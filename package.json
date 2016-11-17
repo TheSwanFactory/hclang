@@ -1,12 +1,15 @@
 {
-  "name": "maml",
+  "name": "MAML",
   "version": "0.0.0",
-  "description": "maml",
+  "description": "The Multipurpose Abstract Markup Language",
   "license": "MIT",
-  "repository": "",
-  "author": "",
+  "repository": "https://github.com/TheSwanFactory/maml",
+  "author": "Ernest N. Prabhakar, Ph.D.",
   "keywords": [
-    ""
+    "language",
+    "markup",
+    "html",
+    "interpreter"
   ],
   "files": [
     "lib"
