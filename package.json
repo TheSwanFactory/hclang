@@ -9,7 +9,8 @@
     "language",
     "markup",
     "html",
-    "interpreter"
+    "interpreter",
+    "cli"
   ],
   "files": [
     "lib"
