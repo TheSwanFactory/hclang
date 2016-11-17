@@ -2,7 +2,7 @@
   "compilerOptions": {
     "declaration": true,
     "module": "commonjs",
-    "target": "es5",    
+    "target": "es5",
     "moduleResolution": "node",
     "noImplicitAny": true,
     "outDir": "./lib",
@@ -13,7 +13,6 @@
     "src/**/*"
   ],
   "exclude": [
-    "node_modules",
     "**/*-spec.ts"
   ]
 }

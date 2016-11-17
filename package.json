@@ -9,22 +9,32 @@
     "language",
     "markup",
     "html",
-    "interpreter"
+    "interpreter",
+    "cli"
   ],
   "files": [
     "lib"
   ],
+  "bin": {
+    "maml": "lib/index.js"
+  },
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "scripts": {
     "clean": "rimraf lib",
     "lint": "tslint --force --format verbose \"src/**/*.ts\"",
     "build": "npm run clean && npm run lint && echo Using TypeScript && tsc --version && tsc --pretty",
+    "run": "node lib/index.js",
     "test": "npm run build && mocha --compilers ts:ts-node/register --recursive test/**/*-spec.ts",
     "watch": "npm run build -- --watch",
     "watch:test": "npm run test -- --watch"
   },
   "dependencies": {
+    "chalk": "^1.1.3",
+    "clear": "0.0.1",
+    "figlet": "^1.2.0",
+    "inquirer": "^1.2.3",
+    "minimist": "^1.2.0"
   },
   "devDependencies": {
     "@types/chai": "3.4.30",
