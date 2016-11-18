@@ -3,13 +3,13 @@ import { Frame } from "./frame";
 
 export { Frame };
 
-var clear = require("clear");
-var chalk = require("chalk");
-var figlet = require("figlet");
+const clear = require("clear");
+const chalk = require("chalk");
+const figlet = require("figlet");
 
 clear();
 console.log(
   chalk.green(
-    figlet.textSync('MAML', { horizontalLayout: 'full' })
+    figlet.textSync("MAML", { horizontalLayout: "full" })
   )
 );
