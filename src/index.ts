@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-import { Greeter } from "./greeter";
+import { Frame } from "./frame";
 
-export { Greeter };
+export { Frame };
 
 var clear = require("clear");
 var chalk = require("chalk");

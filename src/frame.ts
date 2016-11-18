@@ -1,4 +1,4 @@
-export class Greeter {
+export class Frame {
   private greeting: string;
 
   constructor(message: string) {

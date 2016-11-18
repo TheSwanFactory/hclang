@@ -6,20 +6,20 @@ Here is a quick example of how this module can be used in other modules. The [Ty
 
 Now assuming you have published this amazing module to _npm_ with the name `my-amazing-lib`, and installed it in the module in which you need it -
 
-- To use the `Greeter` class in a TypeScript file -
+- To use the `Frame` class in a TypeScript file -
 
 ```ts
-import { Greeter } from "my-amazing-lib";
+import { Frame } from "my-amazing-lib";
 
-const greeter = new Greeter("World!");
-greeter.greet();
+const frame = new Frame("World!");
+frame.greet();
 ```
 
-- To use the `Greeter` class in a JavaScript file -
+- To use the `Frame` class in a JavaScript file -
 
 ```js
-const Greeter = require('my-amazing-lib').Greeter;
+const Frame = require('my-amazing-lib').Frame;
 
-const greeter = new Greeter('World!');
-greeter.greet();
+const frame = new Frame('World!');
+frame.greet();
 ```
