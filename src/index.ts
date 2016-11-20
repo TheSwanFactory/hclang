@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { Frame } from "./frame";
+import { Frame } from "./frames/frame";
 
 export { Frame };
 

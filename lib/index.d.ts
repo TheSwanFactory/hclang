@@ -1,2 +1,2 @@
-import { Frame } from "./frame";
+import { Frame } from "./frames/frame";
 export { Frame };

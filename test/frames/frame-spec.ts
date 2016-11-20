@@ -1,5 +1,5 @@
 
-import { Frame } from "../src/frame";
+import { Frame } from "../../src/frames/frame";
 import * as chai from "chai";
 
 const expect = chai.expect;
