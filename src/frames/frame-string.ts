@@ -1,4 +1,4 @@
-import { Frame, FrameArray } from "./frame";
+import { FrameArray } from "./frame";
 import { FrameChar } from "./frame-char";
 
 export class FrameString extends FrameArray {
@@ -6,7 +6,7 @@ export class FrameString extends FrameArray {
   public static readonly END = "”";
 
   constructor(JSstring: string) {
-    let result = Array.prototype.map.call(JSstring, (char: string) => {return new FrameChar(char); })
+    let result = Array.prototype.map.call(JSstring, (char: string) => {return new FrameChar(char); });
     super(result);
   }
 
@@ -15,6 +15,6 @@ export class FrameString extends FrameArray {
   };
 
   public toString() {
-    return FrameString.BEGIN + this.toStringData() + FrameString.BEGIN;
+    return FrameString.BEGIN + this.toStringData() + FrameString.END;
   }
 };
