@@ -1,2 +1,2 @@
-import { Greeter } from "./greeter";
-export { Greeter };
+import { Frame } from "./frames/frame";
+export { Frame };
