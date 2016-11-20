@@ -4,7 +4,7 @@ import * as chai from "chai";
 
 const expect = chai.expect;
 
-describe("frame", () => {
+describe("Frame", () => {
   it("should exist", () => {
     const frame = new Frame();
     expect(frame).to.be.instanceOf(Frame);
