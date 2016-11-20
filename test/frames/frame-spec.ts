@@ -14,10 +14,17 @@ describe("Frame", () => {
 describe("FrameArray", () => {
   const frame = new Frame();
   const frame_array = new FrameArray([frame]);
+
   it("should exist", () => {
-    expect(frame).to.be.instanceOf(FrameArray);
+    expect(frame_array).to.be.instanceOf(FrameArray);
   });
+
+  it("uses 'at' to access elements by index", () => {
+    let element = frame_array.at(0);
+    expect(element).to.be.instanceOf(Frame);
+  });
+
   it("is constructed from an array of frames", () => {
-    expect(frame).to.be.instanceOf(FrameArray);
+    expect(frame_array).to.be.instanceOf(FrameArray);
   });
 });
