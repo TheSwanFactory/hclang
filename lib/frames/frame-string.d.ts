@@ -3,6 +3,6 @@ export declare class FrameString extends FrameArray {
     static readonly BEGIN: string;
     static readonly END: string;
     constructor(JSstring: string);
-    toStringData(): void;
+    toStringData(): string;
     toString(): string;
 }

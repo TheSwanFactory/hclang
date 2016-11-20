@@ -14,9 +14,10 @@ export class FrameString extends FrameArray {
   }
 
   public toStringData() {
+    return this.data.map((obj: FrameChar) => { return obj.toChar(); }).join("");
   };
 
   public toString() {
-    return FrameString.BEGIN + this.data.toString() + FrameString.BEGIN;
+    return FrameString.BEGIN + this.toStringData() + FrameString.BEGIN;
   }
 };
