@@ -11,7 +11,7 @@ describe("FrameString", () => {
     expect(frame_string).to.be.instanceOf(FrameString);
   });
 
-  it.skip("stringifies with smart quotes", () => {
+  it("stringifies with smart quotes", () => {
     expect(frame_string.toString()).to.equal("\\\\a");
   });
 });

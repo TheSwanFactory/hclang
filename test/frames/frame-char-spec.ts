@@ -14,4 +14,8 @@ describe("FrameChar", () => {
   it("stringifies to a unit netstring", () => {
     expect(frame_char.toString()).to.equal("\\\\a");
   });
+
+  it("returns the char for 'toChar'", () => {
+    expect(frame_char.toChar()).to.equal("a");
+  });
 });
