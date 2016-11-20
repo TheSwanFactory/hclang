@@ -6,10 +6,7 @@ export class FrameString extends FrameArray {
   public static readonly END = "”";
 
   constructor(JSstring: string) {
-    let result: Array<Frame> = [];
-    for (let char of JSstring) {
-      result.push(new FrameChar(char));
-    }
+    let result = Array.prototype.map.call(JSstring, (char: string) => {return new FrameChar(char); })
     super(result);
   }
 
