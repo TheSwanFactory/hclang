@@ -5,12 +5,11 @@ import * as chai from "chai";
 const expect = chai.expect;
 
 describe("FrameString", () => {
+  const frame_string = new FrameString("Hello, MAML!");
   it("takes a JavaScript string", () => {
-    const frame_string = new FrameString("a");
     expect(frame_string).to.be.instanceOf(FrameString);
   });
   it("stringifies with smart quotes", () => {
-    const frame_string = new FrameString("a");
     expect(frame_string.toString()).to.equal("\\\\a");
   });
 });
