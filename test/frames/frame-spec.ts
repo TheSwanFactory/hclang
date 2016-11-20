@@ -12,8 +12,12 @@ describe("Frame", () => {
 });
 
 describe("FrameArray", () => {
+  const frame = new Frame();
+  const frame_array = new FrameArray([frame]);
   it("should exist", () => {
-    const frame = new FrameArray();
+    expect(frame).to.be.instanceOf(FrameArray);
+  });
+  it("is constructed from an array of frames", () => {
     expect(frame).to.be.instanceOf(FrameArray);
   });
 });
