@@ -1,5 +1,7 @@
 export class Frame {
-
+  public call(argument: Frame) {
+    return argument;
+  }
 };
 
 export class FrameArray {
