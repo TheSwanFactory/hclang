@@ -10,6 +10,11 @@ export class FrameString extends FrameArray {
     super(result);
   }
 
+  public call(argument: FrameString) {
+    this.data = this.data.concat(argument.data);
+    return this;
+  }
+
   public toStringData() {
     return this.data.map((obj: FrameChar) => { return obj.toChar(); }).join("");
   };
