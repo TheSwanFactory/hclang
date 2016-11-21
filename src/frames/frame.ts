@@ -4,8 +4,9 @@ export class Frame {
   }
 };
 
-export class FrameArray {
+export class FrameArray extends Frame {
   constructor(protected data: Array<Frame>) {
+    super();
   }
 
   public at(index: number) {
