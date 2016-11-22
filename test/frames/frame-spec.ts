@@ -16,6 +16,10 @@ describe("Frame", () => {
     const result = frame.call(frame2);
     expect(result).to.equal(frame2);
   });
+
+  it("stringifies to nil", () => {
+    expect(frame).to.be.instanceOf(Frame);
+  });
 });
 
 describe("FrameArray", () => {
