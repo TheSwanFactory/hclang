@@ -3,7 +3,7 @@ export declare class FrameExpr extends FrameArray {
     static readonly BEGIN: string;
     static readonly END: string;
     constructor(data: Array<Frame>);
-    call(argument: Frame): this;
+    call(argument: Frame): Frame;
     toStringData(): string;
     toString(): string;
 }

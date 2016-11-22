@@ -16,9 +16,9 @@ describe("FrameExpr", () => {
     expect(frame_expr.toString()).to.equal(`(() “${js_string}”)`);
   });
 
-  it("replaces nil", () => {
+  it("replaces nil when called", () => {
+    const result = frame_expr.call(frame);
+    expect(result).to.equal(frame_string);
   });
 
-  it("concatenates strings", () => {
-  });
 });
