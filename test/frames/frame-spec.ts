@@ -5,9 +5,20 @@ import * as chai from "chai";
 const expect = chai.expect;
 
 describe("Frame", () => {
+  const frame = new Frame();
+
   it("is constructed from nothing", () => {
-    const frame = new Frame();
     expect(frame).to.be.instanceOf(Frame);
+  });
+
+  it("returns argument when called", () => {
+    const frame2 = new Frame();
+    const result = frame.call(frame2);
+    expect(result).to.equal(frame2);
+  });
+
+  it("stringifies to nil", () => {
+    expect(frame.toString()).to.equal("()");
   });
 });
 
