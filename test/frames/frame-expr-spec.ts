@@ -21,4 +21,12 @@ describe("FrameExpr", () => {
     expect(result).to.equal(frame_string);
   });
 
+  it("concatenates string expressions when called", () => {
+    const js_string_2 = ", MAML!";
+    const frame_string_2 = new FrameString(js_string_2);
+    const frame_expr_2 = new FrameExpr([frame_string, frame_string_2]);
+    const result = frame_expr_2.call(frame);
+
+    expect(result.toString()).to.equal(`“${js_string}${js_string_2}”`);
+  });
 });
