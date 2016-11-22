@@ -18,7 +18,7 @@ describe("Frame", () => {
   });
 
   it("stringifies to nil", () => {
-    expect(frame).to.be.instanceOf(Frame);
+    expect(frame.toString()).to.equal("()");
   });
 });
 

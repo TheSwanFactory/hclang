@@ -13,7 +13,7 @@ describe("FrameExpr", () => {
   const frame_expr = new FrameExpr([frame, frame_string])
 
   it("stringifies with parentheses", () => {
-    expect(frame_expr.toString()).to.equal(`“() ”${js_string}“”`);
+    expect(frame_expr.toString()).to.equal(`(() “${js_string}”)`);
   });
 
   it("replaces nil", () => {
