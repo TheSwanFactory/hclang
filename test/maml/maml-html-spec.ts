@@ -24,7 +24,6 @@ export class FrameHTML extends Frame {
   }
 };
 
-
 describe("FrameHTML", () => {
   const js_string = "Hello, HTML!";
   const frame_string = new FrameString(js_string);
@@ -32,7 +31,10 @@ describe("FrameHTML", () => {
 
   it("HTML-ifies string expressions when called", () => {
     const result = frame_html.call(frame_string);
+    const result_string = result.toString();
     expect(result).to.be.an.instanceof(FrameString);
-    expect(result.toString()).to.equal(`“${js_string}”`);
+    expect(result_string).to.include(js_string);
+    expect(result_string).to.include('<!DOCTYPE html>');
+    expect(result_string).to.match(/<body>([\s\S]*)<\/body>/);
   });
 });
