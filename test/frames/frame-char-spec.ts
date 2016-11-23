@@ -15,7 +15,7 @@ describe("FrameChar", () => {
     expect(frame_char.toString()).to.equal("\\\\a");
   });
 
-  it("returns the char for 'toChar'", () => {
-    expect(frame_char.toChar()).to.equal("a");
+  it("returns the char for 'toStringData'", () => {
+    expect(frame_char.toStringData()).to.equal("a");
   });
 });

@@ -8,7 +8,7 @@ export class FrameChar extends Frame {
     this.data = char;
   }
 
-  public toChar() {
+  public toStringData() {
     return this.data;
   }
 
