@@ -6,18 +6,33 @@ import * as chai from "chai";
 
 const expect = chai.expect;
 
+export class FrameHTML extends Frame {
+  public static readonly BEGIN = `
+<!DOCTYPE html>
+<html>
+  <head>
+  </head>
+  <body>
+  `;
+  public static readonly END = `
+  </body>
+</html>
+  `;
+
+  public call(argument: FrameString) {
+    return new FrameString(FrameHTML.BEGIN + argument.toStringData() + FrameHTML.END);
+  }
+};
+
+
 describe("FrameHTML", () => {
-  const frame = new Frame();
-  const js_string = "Hello";
+  const js_string = "Hello, HTML!";
   const frame_string = new FrameString(js_string);
-  const frame_expr = new FrameExpr([frame, frame_string])
+  const frame_html = new FrameHTML();
 
-  it("concatenates string expressions when called", () => {
-    const js_string_2 = ", MAML!";
-    const frame_string_2 = new FrameString(js_string_2);
-    const frame_expr_2 = new FrameExpr([frame_string, frame_string_2]);
-    const result = frame_expr_2.call(frame);
-
-    expect(result.toString()).to.equal(`“${js_string}${js_string_2}”`);
+  it("HTML-ifies string expressions when called", () => {
+    const result = frame_html.call(frame_string);
+    expect(result).to.be.an.instanceof(FrameString);
+    expect(result.toString()).to.equal(`“${js_string}”`);
   });
 });
