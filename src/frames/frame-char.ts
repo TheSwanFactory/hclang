@@ -1,18 +1,15 @@
 import { Frame } from "./frame";
 
 export class FrameChar extends Frame {
-  protected static chars: { [key: string]: FrameChar; } = {};
-
   public static for(char: string) {
     const exists = FrameChar.chars[char];
     return exists || (FrameChar.chars[char] = new FrameChar(char));
   }
 
-  protected data: string;
+  protected static chars: { [key: string]: FrameChar; } = {};
 
-  constructor(char: string) {
+  constructor(protected data: string) {
     super();
-    this.data = char;
   }
 
   public toStringData() {
