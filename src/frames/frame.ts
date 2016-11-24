@@ -2,6 +2,8 @@ export class Frame {
   public static readonly BEGIN = "(";
   public static readonly END = ")";
 
+  public static readonly nil = new Frame();
+
   public call(argument: Frame) {
     return argument;
   }
@@ -18,5 +20,4 @@ export class FrameArray extends Frame {
   public at(index: number) {
     return this.data[index];
   }
-
 }
