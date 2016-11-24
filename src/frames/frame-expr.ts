@@ -10,7 +10,7 @@ export class FrameExpr extends FrameArray {
 
   public call(context: Frame) {
     return this.data.reduce((sum: Frame, item: Frame) => {
-      const value = item;//.in(context);
+      const value = item.in(context);
       return sum.call(value);
     }, Frame.nil);
   }
