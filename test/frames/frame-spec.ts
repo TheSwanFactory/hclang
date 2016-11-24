@@ -20,6 +20,12 @@ describe("Frame", () => {
   it("stringifies to nil", () => {
     expect(frame.toString()).to.equal("()");
   });
+
+  it("has a unique nil for a properly", () => {
+    const nil = Frame.nil;
+    expect(nil).to.be.instanceOf(Frame);
+    expect(Frame.nil).to.equal(nil);
+  });
 });
 
 describe("FrameArray", () => {
