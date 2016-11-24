@@ -1,11 +1,14 @@
 import { Frame } from "./frame";
 
 export class FrameChar extends Frame {
-  protected data: string;
+  protected static chars: { [key: string]: FrameChar; } = {};
 
   public static for(char: string) {
-    return new FrameChar(char);
+    const exists = FrameChar.chars[char];
+    return exists || (FrameChar.chars[char] = new FrameChar(char));
   }
+
+  protected data: string;
 
   constructor(char: string) {
     super();
