@@ -16,7 +16,7 @@ export class FrameString extends FrameArray {
   }
 
   public toStringData() {
-    return this.data.map((obj: FrameChar) => { return obj.toChar(); }).join("");
+    return this.data.map((obj: FrameChar) => { return obj.toStringData(); }).join("");
   };
 
   public toString() {

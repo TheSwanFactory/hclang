@@ -1,6 +1,13 @@
 import { Frame } from "./frame";
 
 export class FrameChar extends Frame {
+  protected static chars: { [key: string]: FrameChar; } = {};
+
+  public static for(char: string) {
+    const exists = FrameChar.chars[char];
+    return exists || (FrameChar.chars[char] = new FrameChar(char));
+  }
+
   protected data: string;
 
   constructor(char: string) {
@@ -8,7 +15,7 @@ export class FrameChar extends Frame {
     this.data = char;
   }
 
-  public toChar() {
+  public toStringData() {
     return this.data;
   }
 
