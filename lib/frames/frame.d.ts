@@ -2,6 +2,7 @@ export declare class Frame {
     static readonly BEGIN: string;
     static readonly END: string;
     static readonly nil: Frame;
+    in(context?: Frame): this;
     call(argument: Frame): Frame;
     toString(): string;
 }

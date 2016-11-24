@@ -26,6 +26,10 @@ describe("Frame", () => {
     expect(nil).to.be.instanceOf(Frame);
     expect(Frame.nil).to.equal(nil);
   });
+
+  it("is in-dependent of context (literal)", () => {
+    expect(frame.in()).to.equal(frame);
+  });
 });
 
 describe("FrameArray", () => {
