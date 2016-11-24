@@ -9,7 +9,7 @@ export class FrameExpr extends FrameArray {
   }
 
   public call(argument: Frame) {
-    return this.data.reduce((sum: Frame, val: Frame) => { return sum.call(val); });
+    return this.data.reduce((sum: Frame, val: Frame) => { return sum.call(val); }, Frame.nil);
   }
 
   public toStringData() {
