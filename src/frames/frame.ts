@@ -1,5 +1,5 @@
 type Context = { [key: string]: Frame; };
-type KeyValue = [string, Frame];
+interface KeyValuePair extends Array<string | Frame > { 0: string; 1: Frame; }
 const Void: Context = {};
 
 export class Frame {
@@ -22,19 +22,21 @@ export class Frame {
     return argument;
   }
 
-  public toMetaKeys() {
+  private toMetaKeys() {
     return Object.keys(this.meta);
   }
 
-  public toMetaKeyValuePairs() {
+  private toMetaKeyValuePairs() {
     const keys = this.toMetaKeys();
-    let n = keys.length;
-    let result: [KeyValue];
-    for (let i = 0; i < n; i++) {
-      const key = keys[i];
-      result.push([key, this.meta[key]]);
-    }
-    return result;
+    return keys.map((key) => {
+      const pair:KeyValuePair = [key, this.meta[key]];
+      return pair;
+    });
+  }
+
+  public toFunctionalMetaString() {
+    let pairs:Array<KeyValuePair> = this.toMetaKeyValuePairs();
+    return pairs.map(([key, value]) => {return `.${key} ${value};`;}).join(" ");
   }
 
   public toMetaString() {
