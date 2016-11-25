@@ -1,13 +1,19 @@
 
-import { Frame, FrameArray } from "../../src/frames/frame";
+import { IKeyValuePair, Frame, FrameArray } from "../../src/frames/frame";
 import * as chai from "chai";
 
 const expect = chai.expect;
 
 describe("Frame", () => {
-  const frame = new Frame();
+  const frame = new Frame({nil: Frame.nil});
 
-  it("is constructed from nothing", () => {
+  it("has a unique nil for a properly", () => {
+    const nil = Frame.nil;
+    expect(nil).to.be.instanceOf(Frame);
+    expect(Frame.nil).to.equal(nil);
+  });
+
+  it("is constructed from a dictionary", () => {
     expect(frame).to.be.instanceOf(Frame);
   });
 
@@ -17,18 +23,32 @@ describe("Frame", () => {
     expect(result).to.equal(frame2);
   });
 
-  it("stringifies to nil", () => {
-    expect(frame.toString()).to.equal("()");
-  });
-
-  it("has a unique nil for a properly", () => {
-    const nil = Frame.nil;
-    expect(nil).to.be.instanceOf(Frame);
-    expect(Frame.nil).to.equal(nil);
+  it("stringifies to context", () => {
+    expect(Frame.nil.toString()).to.equal("()");
+    expect(frame.toString()).to.equal("(.nil ();)");
   });
 
   it("is in-dependent of context (literal)", () => {
     expect(frame.in()).to.equal(frame);
+  });
+
+  it("returns list of meta_keys", () => {
+    const keys = frame.meta_keys();
+    expect(keys).to.eql(["nil"]);
+  });
+
+  it("returns list of meta_pairs of type IKeyValuePair[]", () => {
+    const pairs: IKeyValuePair[] = frame.meta_pairs();
+    expect(pairs).to.eql([["nil", Frame.nil]]);
+  });
+
+  it("stringifies meta_pairs as `.key value;`", () => {
+    expect(frame.meta_string()).to.eql(".nil ();");
+  });
+
+  it("gets values from context with string key", () => {
+    const value = frame.get("nil");
+    expect(value).to.equal(Frame.nil);
   });
 });
 

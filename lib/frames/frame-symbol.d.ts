@@ -5,6 +5,9 @@ export declare class FrameSymbol extends Frame {
     protected static symbols: {
         [key: string]: FrameSymbol;
     };
-    constructor(data: string);
+    constructor(data: string, meta?: {
+        [key: string]: Frame;
+    });
+    in(context?: Frame): Frame;
     toString(): string;
 }
