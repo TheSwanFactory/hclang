@@ -37,12 +37,14 @@ describe("Frame", () => {
     expect(keys).to.eql(["nil"]);
   });
 
-  it("returns list of meta_pairs of type [IKeyValuePair]", () => {
+  it("returns list of meta_pairs of type IKeyValuePair[]", () => {
     const pairs: IKeyValuePair[] = frame.meta_pairs();
     expect(pairs).to.eql([["nil", Frame.nil]]);
   });
 
-
+  it("stringifies meta_pairs as `.key value;`", () => {
+    expect(frame.meta_string()).to.eql(".nil ();");
+  });
 
   it("gets values from context with string key", () => {
     const value = frame.get("nil");

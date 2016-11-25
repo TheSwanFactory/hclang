@@ -1,4 +1,4 @@
-type Context = { [key: string]: Frame; };
+export type Context = { [key: string]: Frame; };
 export interface IKeyValuePair extends ReadonlyArray<string | Frame > { 0: string; 1: Frame; }
 const Void: Context = {};
 
@@ -34,24 +34,13 @@ export class Frame {
     });
   }
 
-  public toFunctionalMetaString() {
+  public meta_string() {
     let pairs: Array<IKeyValuePair> = this.meta_pairs();
     return pairs.map(([key, value]) => { return `.${key} ${value};`; }).join(" ");
   }
 
-  public toMetaString() {
-    let result: Array<string> = [];
-    for (let key in this.meta) {
-      if (this.meta.hasOwnProperty(key)) {
-        let value = this.meta[key];
-        result.push(`.${key} ${value};`);
-      }
-    }
-    return result.join(" ");
-  }
-
   public toString() {
-    return Frame.BEGIN + this.toMetaString() + Frame.END;
+    return Frame.BEGIN + this.meta_string() + Frame.END;
   }
 };
 

@@ -1,3 +1,6 @@
+export declare type Context = {
+    [key: string]: Frame;
+};
 export interface IKeyValuePair extends ReadonlyArray<string | Frame> {
     0: string;
     1: Frame;
@@ -15,7 +18,7 @@ export declare class Frame {
     call(argument: Frame): Frame;
     meta_keys(): string[];
     meta_pairs(): IKeyValuePair[];
-    toFunctionalMetaString(): string;
+    meta_string(): string;
     toMetaString(): string;
     toString(): string;
 }
