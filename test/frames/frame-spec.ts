@@ -52,17 +52,18 @@ describe("Frame", () => {
       expect(value).to.equal(Frame.nil);
     });
 
-    it("gets undefined if missing key", () => {
+    it("gets Frame.missing if missing key", () => {
       const value = frame.get("missing");
-      expect(value).to.not.exist;
+      expect(value).to.equal(Frame.missing);
     });
 
     it("get searches 'up' if not get_here", () => {
-      const child = new Frame({up: frame});
-      const value_here = child.get_here("nil");
-      expect(value_here).to.not.exist;
-      const value = child.get("nil");
-      expect(value).to.exist;
+      const key = "has";
+      const parent = new Frame({has: frame});
+      const child = new Frame({up: parent});
+
+      expect(child.get_here(key)).to.equal(Frame.missing);
+      expect(child.get(key)).to.equal(frame);
     });
   });
 });
