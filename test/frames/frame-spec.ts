@@ -48,8 +48,8 @@ describe("Frame", () => {
     });
 
     it("gets values from context with string key", () => {
-      const value = frame.get("nil");
-      expect(value).to.equal(Frame.nil);
+      expect(frame.get_here("nil")).to.equal(Frame.nil);
+      expect(frame.get("nil")).to.equal(Frame.nil);
     });
 
     it("gets Frame.missing if missing key", () => {
@@ -62,6 +62,7 @@ describe("Frame", () => {
       const parent = new Frame({has: frame});
       const child = new Frame({up: parent});
 
+      expect(parent.get_here(key)).to.equal(frame);
       expect(child.get_here(key)).to.equal(Frame.missing);
       expect(child.get(key)).to.equal(frame);
     });

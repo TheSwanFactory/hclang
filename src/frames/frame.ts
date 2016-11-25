@@ -6,10 +6,10 @@ export const Void: Context = {};
 export class Frame {
   public static readonly BEGIN = "(";
   public static readonly END = ")";
-  public static readonly kUP = "_up";
+  public static readonly kUP = "up";
   public static readonly nil = new Frame();
   public static readonly missing: Frame = new Frame({
-    up: Frame.nil,
+    missing: Frame.nil,
   });
 
   constructor(private meta = Void) {
@@ -23,9 +23,9 @@ export class Frame {
 
   public get(key: string, current = Frame.nil): Frame {
     let result = this.get_here(key);
-    if (result != Frame.nil) { return result; };
+    if (result !== Frame.missing) { return result; };
     const up = this.get_here(Frame.kUP);
-    if (up == Frame.nil) { return Frame.nil; };
+    if (up === Frame.missing) { return Frame.missing; };
     return up.get(key, this);
   }
 
