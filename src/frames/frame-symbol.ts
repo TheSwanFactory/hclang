@@ -1,4 +1,4 @@
-import { Void, Frame } from "./frame";
+import { Frame, Void } from "./frame";
 
 export class FrameSymbol extends Frame {
   public static for(symbol: string) {
