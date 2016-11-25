@@ -1,16 +1,15 @@
 export declare class Frame {
-    protected meta: {
-        [key: string]: Frame;
-    };
+    private meta;
     static readonly BEGIN: string;
     static readonly END: string;
     static readonly nil: Frame;
     constructor(meta?: {
         [key: string]: Frame;
     });
-    in(context?: Frame): this;
     get(key: string): Frame;
+    in(context?: Frame): this;
     call(argument: Frame): Frame;
+    toMetaString(): string;
     toString(): string;
 }
 export declare class FrameArray extends Frame {

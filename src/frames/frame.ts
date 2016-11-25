@@ -7,7 +7,11 @@ export class Frame {
 
   public static readonly nil = new Frame();
 
-  constructor(protected meta = Void) {
+  constructor(private meta = Void) {
+  }
+
+  public get(key: string) {
+    return this.meta[key];
   }
 
   public in(context = Frame.nil) {
@@ -18,8 +22,19 @@ export class Frame {
     return argument;
   }
 
+  public toMetaString() {
+    let result: Array<string> = [];
+    for (let key in this.meta) {
+      if (this.meta.hasOwnProperty(key)) {
+        let value = this.meta[key];
+        result.push(`.${key} ${value};`);
+      }
+    }
+    return result.join(" ");
+  }
+
   public toString() {
-    return Frame.BEGIN + Frame.END;
+    return Frame.BEGIN + this.toMetaString() + Frame.END;
   }
 };
 

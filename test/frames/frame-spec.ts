@@ -32,9 +32,8 @@ describe("Frame", () => {
   });
 
   it("gets values from context with string key", () => {
-    const key = "a";
     const context = new Frame({key: frame});
-    const value = context.get(key)
+    const value = context.get("key");
     expect(value).to.equal(frame);
   });
 });
