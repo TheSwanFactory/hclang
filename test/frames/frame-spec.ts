@@ -1,5 +1,5 @@
 
-import { Frame, FrameArray } from "../../src/frames/frame";
+import { IKeyValuePair, Frame, FrameArray } from "../../src/frames/frame";
 import * as chai from "chai";
 
 const expect = chai.expect;
@@ -36,6 +36,13 @@ describe("Frame", () => {
     const keys = frame.meta_keys();
     expect(keys).to.eql(["nil"]);
   });
+
+  it("returns list of meta_pairs of type [IKeyValuePair]", () => {
+    const pairs: IKeyValuePair[] = frame.meta_pairs();
+    expect(pairs).to.eql([["nil", Frame.nil]]);
+  });
+
+
 
   it("gets values from context with string key", () => {
     const value = frame.get("nil");
