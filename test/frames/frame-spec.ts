@@ -32,23 +32,25 @@ describe("Frame", () => {
     expect(frame.in()).to.equal(frame);
   });
 
-  it("returns list of meta_keys", () => {
-    const keys = frame.meta_keys();
-    expect(keys).to.eql(["nil"]);
-  });
+  describe("FrameMeta", () => {
+    it("returns list of meta_keys", () => {
+      const keys = frame.meta_keys();
+      expect(keys).to.eql(["nil"]);
+    });
 
-  it("returns list of meta_pairs of type IKeyValuePair[]", () => {
-    const pairs: IKeyValuePair[] = frame.meta_pairs();
-    expect(pairs).to.eql([["nil", Frame.nil]]);
-  });
+    it("returns list of meta_pairs of type IKeyValuePair[]", () => {
+      const pairs: IKeyValuePair[] = frame.meta_pairs();
+      expect(pairs).to.eql([["nil", Frame.nil]]);
+    });
 
-  it("stringifies meta_pairs as `.key value;`", () => {
-    expect(frame.meta_string()).to.eql(".nil ();");
-  });
+    it("stringifies meta_pairs as `.key value;`", () => {
+      expect(frame.meta_string()).to.eql(".nil ();");
+    });
 
-  it("gets values from context with string key", () => {
-    const value = frame.get_here("nil");
-    expect(value).to.equal(Frame.nil);
+    it("gets values from context with string key", () => {
+      const value = frame.get_here("nil");
+      expect(value).to.equal(Frame.nil);
+    });
   });
 });
 
