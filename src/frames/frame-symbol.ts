@@ -13,7 +13,7 @@ export class FrameSymbol extends Frame {
   }
 
   public in(context = Frame.nil) {
-    return context.get_here(this.data);
+    return context.get(this.data);
   }
 
   public toString() {

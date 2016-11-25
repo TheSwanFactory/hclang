@@ -14,6 +14,10 @@ export class Frame {
     return this.meta[key];
   }
 
+  public get(key: string) {
+    return this.get_here(key);
+  }
+
   public in(context = Frame.nil) {
     return <Frame> this;
   }

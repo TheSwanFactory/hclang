@@ -15,6 +15,7 @@ export declare class Frame {
         [key: string]: Frame;
     });
     get_here(key: string): Frame;
+    get(key: string): Frame;
     in(context?: Frame): Frame;
     call(argument: Frame): Frame;
     meta_keys(): string[];
