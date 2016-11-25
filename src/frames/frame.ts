@@ -10,7 +10,7 @@ export class Frame {
   constructor(private meta = Void) {
   }
 
-  public get(key: string) {
+  public get_here(key: string) {
     return this.meta[key];
   }
 

@@ -47,7 +47,7 @@ describe("Frame", () => {
   });
 
   it("gets values from context with string key", () => {
-    const value = frame.get("nil");
+    const value = frame.get_here("nil");
     expect(value).to.equal(Frame.nil);
   });
 });
