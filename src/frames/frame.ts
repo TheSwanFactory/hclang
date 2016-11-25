@@ -1,3 +1,4 @@
+
 export type Context = { [key: string]: Frame; };
 export interface IKeyValuePair extends ReadonlyArray<string | Frame > { 0: string; 1: Frame; }
 export const Void: Context = {};
@@ -5,13 +6,27 @@ export const Void: Context = {};
 export class Frame {
   public static readonly BEGIN = "(";
   public static readonly END = ")";
+  public static readonly kUP = "up";
   public static readonly nil = new Frame();
+  public static readonly missing: Frame = new Frame({
+    missing: Frame.nil,
+  });
 
   constructor(private meta = Void) {
   }
 
-  public get(key: string) {
-    return this.meta[key];
+  public get_here(key: string) {
+    let result = this.meta[key];
+    if (result != null) { return result; };
+    return Frame.missing;
+  }
+
+  public get(key: string, origin = this): Frame {
+    let result = this.get_here(key);
+    if (result !== Frame.missing) { return result; };
+    const up = this.get_here(Frame.kUP);
+    if (up === Frame.missing) { return Frame.missing; };
+    return up.get(key, origin);
   }
 
   public in(context = Frame.nil) {

@@ -10,11 +10,14 @@ export declare class Frame {
     private meta;
     static readonly BEGIN: string;
     static readonly END: string;
+    static readonly kUP: string;
     static readonly nil: Frame;
+    static readonly missing: Frame;
     constructor(meta?: {
         [key: string]: Frame;
     });
-    get(key: string): Frame;
+    get_here(key: string): Frame;
+    get(key: string, current?: this): Frame;
     in(context?: Frame): Frame;
     call(argument: Frame): Frame;
     meta_keys(): string[];

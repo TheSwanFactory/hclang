@@ -32,23 +32,40 @@ describe("Frame", () => {
     expect(frame.in()).to.equal(frame);
   });
 
-  it("returns list of meta_keys", () => {
-    const keys = frame.meta_keys();
-    expect(keys).to.eql(["nil"]);
-  });
+  describe("FrameMeta", () => {
+    it("returns list of meta_keys", () => {
+      const keys = frame.meta_keys();
+      expect(keys).to.eql(["nil"]);
+    });
 
-  it("returns list of meta_pairs of type IKeyValuePair[]", () => {
-    const pairs: IKeyValuePair[] = frame.meta_pairs();
-    expect(pairs).to.eql([["nil", Frame.nil]]);
-  });
+    it("returns list of meta_pairs of type IKeyValuePair[]", () => {
+      const pairs: IKeyValuePair[] = frame.meta_pairs();
+      expect(pairs).to.eql([["nil", Frame.nil]]);
+    });
 
-  it("stringifies meta_pairs as `.key value;`", () => {
-    expect(frame.meta_string()).to.eql(".nil ();");
-  });
+    it("stringifies meta_pairs as `.key value;`", () => {
+      expect(frame.meta_string()).to.eql(".nil ();");
+    });
 
-  it("gets values from context with string key", () => {
-    const value = frame.get("nil");
-    expect(value).to.equal(Frame.nil);
+    it("gets values from context with string key", () => {
+      expect(frame.get_here("nil")).to.equal(Frame.nil);
+      expect(frame.get("nil")).to.equal(Frame.nil);
+    });
+
+    it("gets Frame.missing if missing key", () => {
+      const value = frame.get("missing");
+      expect(value).to.equal(Frame.missing);
+    });
+
+    it("get searches 'up' if not get_here", () => {
+      const key = "has";
+      const parent = new Frame({has: frame});
+      const child = new Frame({up: parent});
+
+      expect(parent.get_here(key)).to.equal(frame);
+      expect(child.get_here(key)).to.equal(Frame.missing);
+      expect(child.get(key)).to.equal(frame);
+    });
   });
 });
 
