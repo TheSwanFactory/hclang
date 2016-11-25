@@ -57,6 +57,11 @@ describe("Frame", () => {
       expect(value).to.not.exist;
     });
 
+    it("get searches 'up' if not get_here", () => {
+      const child = new Frame({up: frame});
+      const value = child.get_here("nil");
+      expect(value).to.exist;
+    });
   });
 });
 
