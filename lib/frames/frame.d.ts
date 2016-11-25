@@ -9,6 +9,7 @@ export declare class Frame {
         [key: string]: Frame;
     });
     in(context?: Frame): this;
+    get(key: string): Frame;
     call(argument: Frame): Frame;
     toString(): string;
 }

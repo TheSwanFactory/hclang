@@ -30,6 +30,13 @@ describe("Frame", () => {
   it("is in-dependent of context (literal)", () => {
     expect(frame.in()).to.equal(frame);
   });
+
+  it("gets values from context with string key", () => {
+    const key = "a";
+    const context = new Frame({key: frame});
+    const value = context.get(key)
+    expect(value).to.equal(frame);
+  });
 });
 
 describe("FrameArray", () => {
