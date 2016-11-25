@@ -15,7 +15,7 @@ export declare class Frame {
         [key: string]: Frame;
     });
     get(key: string): Frame;
-    in(context?: Frame): this;
+    in(context?: Frame): Frame;
     call(argument: Frame): Frame;
     meta_keys(): string[];
     meta_pairs(): IKeyValuePair[];

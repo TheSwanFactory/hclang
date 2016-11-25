@@ -12,6 +12,10 @@ export class FrameSymbol extends Frame {
     super(meta);
   }
 
+  public in(context = Frame.nil) {
+    return context.get(this.data);
+  }
+
   public toString() {
     return this.data;
   }
