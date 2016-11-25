@@ -51,6 +51,12 @@ describe("Frame", () => {
       const value = frame.get_here("nil");
       expect(value).to.equal(Frame.nil);
     });
+
+    it("gets undefined if missing key", () => {
+      const value = frame.get_here("missing");
+      expect(value).to.not.exist;
+    });
+
   });
 });
 
