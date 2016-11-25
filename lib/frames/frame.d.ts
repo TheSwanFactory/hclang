@@ -1,3 +1,7 @@
+export interface IKeyValuePair extends ReadonlyArray<string | Frame> {
+    0: string;
+    1: Frame;
+}
 export declare class Frame {
     private meta;
     static readonly BEGIN: string;
@@ -10,7 +14,7 @@ export declare class Frame {
     in(context?: Frame): this;
     call(argument: Frame): Frame;
     meta_keys(): string[];
-    private meta_pairs();
+    meta_pairs(): IKeyValuePair[];
     toFunctionalMetaString(): string;
     toMetaString(): string;
     toString(): string;

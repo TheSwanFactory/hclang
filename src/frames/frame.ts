@@ -1,5 +1,5 @@
 type Context = { [key: string]: Frame; };
-interface IKeyValuePair extends Array<string | Frame > { 0: string; 1: Frame; }
+export interface IKeyValuePair extends ReadonlyArray<string | Frame > { 0: string; 1: Frame; }
 const Void: Context = {};
 
 export class Frame {
@@ -26,7 +26,7 @@ export class Frame {
     return Object.keys(this.meta);
   }
 
-  private meta_pairs() {
+  public meta_pairs() {
     const keys = this.meta_keys();
     return keys.map((key) => {
       const pair: IKeyValuePair = [key, this.meta[key]];
@@ -36,7 +36,7 @@ export class Frame {
 
   public toFunctionalMetaString() {
     let pairs: Array<IKeyValuePair> = this.meta_pairs();
-    return pairs.map(([key, value]) => {return `.${key} ${value};`;}).join(" ");
+    return pairs.map(([key, value]) => { return `.${key} ${value};`; }).join(" ");
   }
 
   public toMetaString() {
