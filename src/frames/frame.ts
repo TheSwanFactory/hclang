@@ -1,6 +1,6 @@
 export type Context = { [key: string]: Frame; };
 export interface IKeyValuePair extends ReadonlyArray<string | Frame > { 0: string; 1: Frame; }
-const Void: Context = {};
+export const Void: Context = {};
 
 export class Frame {
   public static readonly BEGIN = "(";
