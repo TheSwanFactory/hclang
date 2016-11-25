@@ -21,12 +21,12 @@ export class Frame {
     return Frame.missing;
   }
 
-  public get(key: string, current = Frame.nil): Frame {
+  public get(key: string, origin = this): Frame {
     let result = this.get_here(key);
     if (result !== Frame.missing) { return result; };
     const up = this.get_here(Frame.kUP);
     if (up === Frame.missing) { return Frame.missing; };
-    return up.get(key, this);
+    return up.get(key, origin);
   }
 
   public in(context = Frame.nil) {
