@@ -32,6 +32,11 @@ describe("Frame", () => {
     expect(frame.in()).to.equal(frame);
   });
 
+  it("returns list of meta_keys", () => {
+    const keys = frame.meta_keys();
+    expect(keys).to.eql(["nil"]);
+  });
+
   it("gets values from context with string key", () => {
     const value = frame.get("nil");
     expect(value).to.equal(Frame.nil);
