@@ -9,6 +9,8 @@ export declare class Frame {
     get(key: string): Frame;
     in(context?: Frame): this;
     call(argument: Frame): Frame;
+    toMetaKeys(): string[];
+    toMetaKeyValuePairs(): [[string, Frame]];
     toMetaString(): string;
     toString(): string;
 }

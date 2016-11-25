@@ -1,10 +1,10 @@
 type Context = { [key: string]: Frame; };
+type KeyValue = [string, Frame];
 const Void: Context = {};
 
 export class Frame {
   public static readonly BEGIN = "(";
   public static readonly END = ")";
-
   public static readonly nil = new Frame();
 
   constructor(private meta = Void) {
@@ -20,6 +20,21 @@ export class Frame {
 
   public call(argument: Frame) {
     return argument;
+  }
+
+  public toMetaKeys() {
+    return Object.keys(this.meta);
+  }
+
+  public toMetaKeyValuePairs() {
+    const keys = this.toMetaKeys();
+    let n = keys.length;
+    let result: [KeyValue];
+    for (let i = 0; i < n; i++) {
+      const key = keys[i];
+      result.push([key, this.meta[key]]);
+    }
+    return result;
   }
 
   public toMetaString() {
