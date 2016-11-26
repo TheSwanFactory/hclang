@@ -13,6 +13,9 @@ export class FrameSymbol extends Frame {
   }
 
   public in(context = Frame.nil) {
+    if (this.data === "_") {
+      return context;
+    }
     return context.get(this.data);
   }
 

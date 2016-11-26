@@ -27,4 +27,10 @@ describe("FrameSymbol", () => {
     const result = frame_symbol.in(context);
     expect(result).to.equal(value);
   });
+
+  it ("reflector '_' returns the context", () => {
+    const context = new FrameSymbol("context", {atom: frame_symbol});
+    const reflector = FrameSymbol.for("_");
+    expect(reflector.in(context)).to.equal(context);
+  });
 });
