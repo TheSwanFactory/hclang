@@ -28,7 +28,7 @@ describe("FrameSymbol", () => {
   });
 
   it("looks itself up in context", () => {
-    const value = new FrameSymbol("smasher");
+    const value = FrameSymbol.for("smasher");
     const context = new FrameSymbol("parent", {atom: value});
     const result = frame_symbol.in(context);
     expect(result).to.equal(value);
