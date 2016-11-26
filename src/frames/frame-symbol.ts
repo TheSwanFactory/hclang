@@ -13,10 +13,17 @@ export class FrameSymbol extends Frame {
   }
 
   public in(context = Frame.nil) {
+    if (this.data === "_") {
+      return context;
+    }
     return context.get(this.data);
   }
 
   public toString() {
+    const meta = this.meta_string();
+    if (meta !== "") {
+      return `(${meta} ${this.data})`;
+    }
     return this.data;
   }
 };
