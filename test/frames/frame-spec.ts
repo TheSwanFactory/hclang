@@ -1,13 +1,13 @@
 
 import { IKeyValuePair, Frame, FrameArray } from "../../src/frames/frame";
+import { FrameSymbol } from "../../src/frames/frame-symbol";
 import * as chai from "chai";
-
 const expect = chai.expect;
 
 describe("Frame", () => {
   const frame = new Frame({nil: Frame.nil});
 
-  it("has a unique nil for a properly", () => {
+  it("has a unique nil for a property", () => {
     const nil = Frame.nil;
     expect(nil).to.be.instanceOf(Frame);
     expect(Frame.nil).to.equal(nil);
@@ -65,6 +65,12 @@ describe("Frame", () => {
       expect(parent.get_here(key)).to.equal(frame);
       expect(child.get_here(key)).to.equal(Frame.missing);
       expect(child.get(key)).to.equal(frame);
+    });
+
+    it("returns metadata when called with a symbol", () => {
+      const frame_symbol = new FrameSymbol("nil");
+      const result = frame.call(frame_symbol);
+      expect(result).to.equal(Frame.nil);
     });
   });
 });
