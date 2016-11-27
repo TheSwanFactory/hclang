@@ -30,11 +30,16 @@ class HTMLExpr extends FrameExpr {
   }
 };
 
-class HTMLHead extends Frame {
-  public call(argument: Frame) {
-    return argument;
+class HTMLHead extends FrameExpr {
+  constructor() {
+    const data = [
+      new FrameString("  <head>"),
+      new FrameSymbol("_"),
+      new FrameString("  </head>"),
+    ]
+    super(data);
   }
-}
+};
 
 describe("FrameHTML", () => {
   const js_string = "Hello, HTML!";
@@ -42,14 +47,22 @@ describe("FrameHTML", () => {
   const frame_html = new HTMLExpr();
 
   it("embeds properties into head",  () => {
-    const frame_head = new Frame({});
+    const js_title = "First HTML6 File";
+    const frame_title = new FrameString(js_title);
+    //const frame_head = new Frame({title: frame_title});
     const html_head = new HTMLHead();
-    const result = html_head.call(frame_head);
+    const result = html_head.call(frame_title);
+    const result_string = result.toString();
+
+    expect(result).to.be.an.instanceof(FrameString);
+    expect(result_string).to.match(/<head>([\s\S]*)<\/head>/);
+    expect(result_string).to.include(js_title);
   });
 
   it("HTML-ifies string expressions when called", () => {
     const result = frame_html.call(frame_string);
     const result_string = result.toString();
+
     expect(result).to.be.an.instanceof(FrameString);
     expect(result_string).to.include('<!DOCTYPE html>');
     expect(result_string).to.match(/<body>([\s\S]*)<\/body>/);
