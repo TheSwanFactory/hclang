@@ -13,6 +13,7 @@ const BEGIN_HTML = `
 </head>
 <body>
 `;
+
 const END_HTML = `
 </body>
 </html>
@@ -29,12 +30,22 @@ class HTMLExpr extends FrameExpr {
   }
 };
 
-
+class HTMLHead extends Frame {
+  public call(argument: Frame) {
+    return argument;
+  }
+}
 
 describe("FrameHTML", () => {
   const js_string = "Hello, HTML!";
   const frame_string = new FrameString(js_string);
   const frame_html = new HTMLExpr();
+
+  it("embeds properties into head",  () => {
+    const frame_head = new Frame({});
+    const html_head = new HTMLHead();
+    const result = html_head.call(frame_head);
+  });
 
   it("HTML-ifies string expressions when called", () => {
     const result = frame_html.call(frame_string);
