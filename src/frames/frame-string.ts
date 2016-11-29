@@ -10,7 +10,7 @@ export class FrameString extends FrameArray {
     super(result);
   }
 
-  public call(argument: FrameString) {
+  public apply(argument: FrameString) {
     this.data = this.data.concat(argument.data);
     return this;
   }
