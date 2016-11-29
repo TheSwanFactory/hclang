@@ -9,5 +9,6 @@ export declare class FrameSymbol extends Frame {
         [key: string]: Frame;
     });
     in(context?: Frame): Frame;
+    dispatch(context: Frame): Frame;
     toString(): string;
 }

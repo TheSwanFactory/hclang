@@ -19,6 +19,10 @@ export class FrameSymbol extends Frame {
     return context.get(this.data);
   }
 
+  public dispatch(context: Frame) {
+    return this.in(context);
+  }
+
   public toString() {
     const meta = this.meta_string();
     if (meta !== "") {

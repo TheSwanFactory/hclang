@@ -33,8 +33,16 @@ export class Frame {
     return <Frame> this;
   }
 
+  public apply(argument: Frame) {
+    return <Frame> argument;
+  }
+
+  public dispatch(context: Frame) {
+    return <Frame> context.apply(this);
+  }
+
   public call(argument: Frame) {
-    return argument;
+    return argument.dispatch(this);
   }
 
   public meta_keys() {
