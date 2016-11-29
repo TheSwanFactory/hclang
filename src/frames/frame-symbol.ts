@@ -1,14 +1,18 @@
 import { Frame, Void } from "./frame";
 
 export class FrameSymbol extends Frame {
-  public static readonly underbar = "_";
-
   public static for(symbol: string) {
     const exists = FrameSymbol.symbols[symbol];
     return exists || (FrameSymbol.symbols[symbol] = new FrameSymbol(symbol));
   }
 
+  public static here() {
+    return FrameSymbol.for(FrameSymbol.underbar);
+  }
+
   protected static symbols: { [key: string]: FrameSymbol; } = {};
+
+  private static readonly underbar = "_";
 
   constructor(protected data: string, meta = Void) {
     super(meta);
