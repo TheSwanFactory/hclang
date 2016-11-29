@@ -2,8 +2,8 @@ import { FrameArray } from "./frame";
 import { FrameChar } from "./frame-char";
 
 export class FrameString extends FrameArray {
-  public static readonly BEGIN = "“";
-  public static readonly END = "”";
+  public static readonly BEGIN_STRING = "“";
+  public static readonly END_STRING = "”";
 
   constructor(JSstring: string) {
     let result = Array.prototype.map.call(JSstring, (char: string) => {return new FrameChar(char); });
@@ -20,6 +20,6 @@ export class FrameString extends FrameArray {
   };
 
   public toString() {
-    return FrameString.BEGIN + this.toStringData() + FrameString.END;
+    return FrameString.BEGIN_STRING + this.toStringData() + FrameString.END_STRING;
   }
 };
