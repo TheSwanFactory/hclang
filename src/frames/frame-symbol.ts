@@ -1,6 +1,8 @@
 import { Frame, Void } from "./frame";
 
 export class FrameSymbol extends Frame {
+  public static readonly underbar = "_";
+
   public static for(symbol: string) {
     const exists = FrameSymbol.symbols[symbol];
     return exists || (FrameSymbol.symbols[symbol] = new FrameSymbol(symbol));
@@ -13,7 +15,7 @@ export class FrameSymbol extends Frame {
   }
 
   public in(context = Frame.nil) {
-    if (this.data === "_") {
+    if (this.data === FrameSymbol.underbar) {
       return context;
     }
     return context.get(this.data);
