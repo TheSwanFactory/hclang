@@ -62,6 +62,14 @@ export class Frame {
     return pairs.map(([key, value]) => { return `.${key} ${value};`; }).join(" ");
   }
 
+  public meta_wrap(dataString: string) {
+    const meta = this.meta_string();
+    if (meta !== "") {
+      return `(${meta} ${dataString})`;
+    }
+    return dataString;
+  }
+
   public toString() {
     return Frame.BEGIN + this.meta_string() + Frame.END;
   }

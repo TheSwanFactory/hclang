@@ -24,10 +24,6 @@ export class FrameSymbol extends Frame {
   }
 
   public toString() {
-    const meta = this.meta_string();
-    if (meta !== "") {
-      return `(${meta} ${this.data})`;
-    }
-    return this.data;
+    return this.meta_wrap(this.data);
   }
 };

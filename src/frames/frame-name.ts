@@ -22,10 +22,6 @@ export class FrameName extends Frame {
   }
 
   public toString() {
-    const meta = this.meta_string();
-    if (meta !== "") {
-      return `(${meta} ${this.toStringData()})`;
-    }
-    return this.toStringData();
+    return this.meta_wrap(this.toStringData());
   }
 };
