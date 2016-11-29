@@ -19,7 +19,7 @@ export class FrameSymbol extends Frame {
     return context.get(this.data);
   }
 
-  public dispatch(context: Frame) {
+  public called_by(context: Frame) {
     return this.in(context);
   }
 

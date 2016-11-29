@@ -34,15 +34,15 @@ export class Frame {
   }
 
   public apply(argument: Frame) {
-    return <Frame> argument;
+    return argument;
   }
 
-  public dispatch(context: Frame) {
-    return <Frame> context.apply(this);
+  public called_by(context: Frame) {
+    return context.apply(this);
   }
 
   public call(argument: Frame) {
-    return argument.dispatch(this);
+    return argument.called_by(this);
   }
 
   public meta_keys() {
