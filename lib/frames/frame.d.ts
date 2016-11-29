@@ -25,6 +25,7 @@ export declare class Frame {
     meta_keys(): string[];
     meta_pairs(): IKeyValuePair[];
     meta_string(): string;
+    meta_wrap(dataString: string): string;
     toString(): string;
 }
 export declare class FrameArray extends Frame {
