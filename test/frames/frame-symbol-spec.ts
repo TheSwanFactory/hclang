@@ -1,7 +1,5 @@
-
 import { FrameSymbol } from "../../src/frames/frame-symbol";
 import * as chai from "chai";
-
 const expect = chai.expect;
 
 describe("FrameSymbol", () => {
@@ -36,7 +34,6 @@ describe("FrameSymbol", () => {
 
   it ("reflector '_' returns the context", () => {
     const context = new FrameSymbol("context", {atom: frame_symbol});
-    const reflector = FrameSymbol.for("_");
-    expect(reflector.in(context)).to.equal(context);
+    expect(FrameSymbol.here().in(context)).to.equal(context);
   });
 });

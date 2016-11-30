@@ -33,8 +33,16 @@ export class Frame {
     return <Frame> this;
   }
 
-  public call(argument: Frame) {
+  public apply(argument: Frame) {
     return argument;
+  }
+
+  public called_by(context: Frame) {
+    return context.apply(this);
+  }
+
+  public call(argument: Frame) {
+    return argument.called_by(this);
   }
 
   public meta_keys() {
@@ -52,6 +60,14 @@ export class Frame {
   public meta_string() {
     let pairs: Array<IKeyValuePair> = this.meta_pairs();
     return pairs.map(([key, value]) => { return `.${key} ${value};`; }).join(" ");
+  }
+
+  public meta_wrap(dataString: string) {
+    const meta = this.meta_string();
+    if (meta !== "") {
+      return `(${meta} ${dataString})`;
+    }
+    return dataString;
   }
 
   public toString() {
