@@ -1,3 +1,4 @@
+import { Frame } from "../../src/frames/frame";
 import { FrameSymbol } from "../../src/frames/frame-symbol";
 import { FrameName } from "../../src/frames/frame-name";
 import { FrameExpr } from "../../src/frames/frame-expr";
@@ -25,10 +26,10 @@ describe("FrameName", () => {
 
   it("extracts properties in an expression", () => {
     const value = FrameSymbol.for("smasher");
-    const context = new FrameSymbol("parent", {atom: value});
-    const frame_expr = new FrameExpr([FrameSymbol.here()]); //, frame_name
+    const context = new Frame({atom: value});
+    const frame_expr = new FrameExpr([FrameSymbol.here(), frame_name]);
     const result = frame_expr.call(context);
 
-    //expect(result).to.equal(context);
+    expect(result).to.equal(value);
   });
 });
