@@ -13,10 +13,6 @@ export class FrameName extends Frame {
     return this.data;
   }
 
-  public called_by(context: Frame) {
-    return this.in(context);
-  }
-
   public toStringData() {
     return "." + this.data.toString();
   }
