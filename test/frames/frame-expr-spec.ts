@@ -1,9 +1,8 @@
-
 import { Frame } from "../../src/frames/frame";
 import { FrameString } from "../../src/frames/frame-string";
 import { FrameExpr } from "../../src/frames/frame-expr";
+import { FrameSymbol } from "../../src/frames/frame-symbol";
 import * as chai from "chai";
-
 const expect = chai.expect;
 
 describe("FrameExpr", () => {
@@ -28,5 +27,13 @@ describe("FrameExpr", () => {
     const result = frame_expr_2.call(frame);
 
     expect(result.toString()).to.equal(`“${js_string}${js_string_2}”`);
+  });
+
+  it("returns context for FrameSymbol.here", () => {
+    const context = new Frame({context: frame_string});
+    const frame_expr = new FrameExpr([FrameSymbol.here()]);
+    const result = frame_expr.call(context);
+
+    expect(result).to.equal(context);
   });
 });
