@@ -6,7 +6,6 @@ export declare class FrameName extends Frame {
         [key: string]: Frame;
     });
     in(context?: Frame): FrameSymbol;
-    called_by(context: Frame): FrameSymbol;
     toStringData(): string;
     toString(): string;
 }
