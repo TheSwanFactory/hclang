@@ -1,15 +1,20 @@
-
+import { Frame } from "../../src/frames/frame";
 import { FrameString } from "../../src/frames/frame-string";
 import * as chai from "chai";
-
 const expect = chai.expect;
 
 describe("FrameString", () => {
   const js_string = "Hello, MAML!";
-  const frame_string = new FrameString(js_string);
+  const key = "key";
+  const value = new Frame({value: Frame.nil});
+  const frame_string = new FrameString(js_string, {key: value});
 
   it("takes a JavaScript string", () => {
     expect(frame_string).to.be.instanceOf(FrameString);
+  });
+
+  it("takes a context", () => {
+    expect(frame_string.get(key)).to.equal(value);
   });
 
   it("return JavaScript string for 'toStringData'", () => {

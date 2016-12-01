@@ -1,13 +1,13 @@
-import { FrameArray } from "./frame";
+import { Context, FrameArray, Void } from "./frame";
 import { FrameChar } from "./frame-char";
 
 export class FrameString extends FrameArray {
   public static readonly BEGIN_STRING = "“";
   public static readonly END_STRING = "”";
 
-  constructor(JSstring: string) {
+  constructor(JSstring: string, meta: Context = Void) {
     let result = Array.prototype.map.call(JSstring, (char: string) => {return new FrameChar(char); });
-    super(result);
+    super(result, meta);
   }
 
   public apply(argument: FrameString) {
