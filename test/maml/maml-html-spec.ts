@@ -30,19 +30,6 @@ class HTMLExpr extends FrameExpr {
   }
 };
 
-class HTMLHead extends FrameExpr {
-  constructor() {
-    const data = [
-      new FrameString("  <head>\n"),
-      new FrameString("    <title>\n"),
-      new FrameSymbol("_"),
-      new FrameString("    </title>\n"),
-      new FrameString("  </head>\n"),
-    ]
-    super(data);
-  }
-};
-
 describe("FrameHTML", () => {
   const js_string = "Hello, HTML!";
   const frame_string = new FrameString(js_string);
@@ -52,7 +39,13 @@ describe("FrameHTML", () => {
     const js_title = "First HTML6 File";
     const frame_title = new FrameString(js_title);
     const frame_head = new Frame({title: frame_title});
-    const html_head = new HTMLHead();
+    const html_head = new FrameExpr([
+      new FrameString("  <head>\n"),
+      new FrameString("    <title>\n"),
+      new FrameSymbol("_"),
+      new FrameString("    </title>\n"),
+      new FrameString("  </head>\n"),
+    ]);
     const result = html_head.call(frame_head.get("title"));
     const result_string = result.toString();
 
