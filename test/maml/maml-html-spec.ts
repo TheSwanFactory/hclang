@@ -19,40 +19,26 @@ const END_HTML = `
 </html>
 `;
 
-class HTMLExpr extends FrameExpr {
-  constructor() {
-    const data = [
-      new FrameString(BEGIN_HTML),
-      new FrameSymbol("_"),
-      new FrameString(END_HTML),
-    ]
-    super(data);
-  }
-};
-
-class HTMLHead extends FrameExpr {
-  constructor() {
-    const data = [
-      new FrameString("  <head>\n"),
-      new FrameString("    <title>\n"),
-      new FrameSymbol("_"),
-      new FrameString("    </title>\n"),
-      new FrameString("  </head>\n"),
-    ]
-    super(data);
-  }
-};
-
 describe("FrameHTML", () => {
   const js_string = "Hello, HTML!";
   const frame_string = new FrameString(js_string);
-  const frame_html = new HTMLExpr();
+  const frame_html = new FrameExpr([
+    new FrameString(BEGIN_HTML),
+    new FrameSymbol("_"),
+    new FrameString(END_HTML),
+  ]);
 
   it("embeds properties into head",  () => {
     const js_title = "First HTML6 File";
     const frame_title = new FrameString(js_title);
     const frame_head = new Frame({title: frame_title});
-    const html_head = new HTMLHead();
+    const html_head = new FrameExpr([
+      new FrameString("  <head>\n"),
+      new FrameString("    <title>\n"),
+      new FrameSymbol("_"),
+      new FrameString("    </title>\n"),
+      new FrameString("  </head>\n"),
+    ]);
     const result = html_head.call(frame_head.get("title"));
     const result_string = result.toString();
 
