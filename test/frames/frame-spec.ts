@@ -68,7 +68,7 @@ describe("Frame", () => {
     });
 
     it("returns metadata when called with a symbol", () => {
-      const frame_symbol = new FrameSymbol("nil");
+      const frame_symbol = FrameSymbol.for("nil");
       const result = frame.call(frame_symbol);
       expect(result).to.equal(Frame.nil);
     });

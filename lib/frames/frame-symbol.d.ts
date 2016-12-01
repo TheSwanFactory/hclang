@@ -7,7 +7,7 @@ export declare class FrameSymbol extends Frame {
         [key: string]: FrameSymbol;
     };
     private static readonly underbar;
-    constructor(data: string, meta?: {
+    protected constructor(data: string, meta?: {
         [key: string]: Frame;
     });
     in(context?: Frame): Frame;
