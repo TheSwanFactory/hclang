@@ -49,6 +49,10 @@ export class Frame {
     return Object.keys(this.meta);
   }
 
+  public meta_length() {
+    return this.meta_keys().length;
+  }
+
   public meta_pairs() {
     const keys = this.meta_keys();
     return keys.map((key) => {
@@ -63,9 +67,8 @@ export class Frame {
   }
 
   public meta_wrap(dataString: string) {
-    const meta = this.meta_string();
-    if (meta !== "") {
-      return Frame.BEGIN + `${dataString}, ${meta}` + Frame.END;
+    if (this.meta_length() > 0) {
+      return Frame.BEGIN + `${dataString}, ` + this.meta_string() + Frame.END;
     }
     return dataString;
   }

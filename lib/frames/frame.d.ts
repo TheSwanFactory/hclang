@@ -23,6 +23,7 @@ export declare class Frame {
     called_by(context: Frame): Frame;
     call(argument: Frame): Frame;
     meta_keys(): string[];
+    meta_length(): number;
     meta_pairs(): IKeyValuePair[];
     meta_string(): string;
     meta_wrap(dataString: string): string;
