@@ -1,13 +1,13 @@
-import { Context, FrameArray, Void } from "./frame";
-import { FrameChar } from "./frame-char";
+import { Context, Frame, Void } from "./frame";
+// import { FrameChar } from "./frame-char";
 
-export class FrameString extends FrameArray {
+export class FrameString extends Frame {
   public static readonly BEGIN_STRING = "“";
   public static readonly END_STRING = "”";
 
-  constructor(JSstring: string, meta: Context = Void) {
-    let result = Array.prototype.map.call(JSstring, (char: string) => {return new FrameChar(char); });
-    super(result, meta);
+  constructor(protected data: string, meta: Context = Void) {
+    // let result = Array.prototype.map.call(JSstring, (char: string) => {return new FrameChar(char); });
+    super(meta);
   }
 
   public apply(argument: FrameString) {
@@ -16,7 +16,7 @@ export class FrameString extends FrameArray {
   }
 
   public toStringData() {
-    return this.data.map((obj: FrameChar) => { return obj.toStringData(); }).join("");
+    return this.data;
   };
 
   public toString() {
