@@ -65,7 +65,7 @@ export class Frame {
   public meta_wrap(dataString: string) {
     const meta = this.meta_string();
     if (meta !== "") {
-      return `(${meta} ${dataString})`;
+      return `(${dataString}, ${meta})`;
     }
     return dataString;
   }
