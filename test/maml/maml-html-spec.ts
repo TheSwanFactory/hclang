@@ -19,21 +19,14 @@ const END_HTML = `
 </html>
 `;
 
-class HTMLExpr extends FrameExpr {
-  constructor() {
-    const data = [
-      new FrameString(BEGIN_HTML),
-      new FrameSymbol("_"),
-      new FrameString(END_HTML),
-    ]
-    super(data);
-  }
-};
-
 describe("FrameHTML", () => {
   const js_string = "Hello, HTML!";
   const frame_string = new FrameString(js_string);
-  const frame_html = new HTMLExpr();
+  const frame_html = new FrameExpr([
+    new FrameString(BEGIN_HTML),
+    new FrameSymbol("_"),
+    new FrameString(END_HTML),
+  ]);
 
   it("embeds properties into head",  () => {
     const js_title = "First HTML6 File";
