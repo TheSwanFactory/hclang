@@ -1,8 +1,5 @@
-
-import { FrameChar } from "../../src/frames/frame-char";
-import * as chai from "chai";
-
-const expect = chai.expect;
+import { expect } from "chai";
+import { FrameChar } from "../../src/frames";
 
 describe("FrameChar", () => {
   const frame_char = FrameChar.for("a");

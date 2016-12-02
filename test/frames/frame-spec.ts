@@ -1,8 +1,5 @@
-
-import { IKeyValuePair, Frame, FrameArray } from "../../src/frames/frame";
-import { FrameSymbol } from "../../src/frames/frame-symbol";
-import * as chai from "chai";
-const expect = chai.expect;
+import { expect } from "chai";
+import { IKeyValuePair, Frame, FrameArray, FrameSymbol } from "../../src/frames";
 
 describe("Frame", () => {
   const frame = new Frame({nil: Frame.nil});
