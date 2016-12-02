@@ -17,7 +17,7 @@ describe("FrameSymbol", () => {
   it("stringifies meta into an expression", () => {
     const context = "context";
     const frame_context = new FrameSymbol(context, {atom: frame_symbol});
-    expect(frame_context.toString()).to.equal(`(.atom ${symbol}; ${context})`);
+    expect(frame_context.toString()).to.equal(`(${context}, .atom ${symbol};)`);
   });
 
   it("always returns the same FrameSymbol object", () => {
