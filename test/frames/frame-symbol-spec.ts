@@ -1,6 +1,6 @@
-import { FrameSymbol } from "../../src/frames/frame-symbol";
-import * as chai from "chai";
-const expect = chai.expect;
+import { expect } from "chai";
+import { FrameSymbol } from "../../src/frames";
+
 
 describe("FrameSymbol", () => {
   const symbol = "atom";
