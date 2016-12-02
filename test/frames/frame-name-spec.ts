@@ -1,10 +1,5 @@
-import { Frame } from "../../src/frames/frame";
-import { FrameSymbol } from "../../src/frames/frame-symbol";
-import { FrameName } from "../../src/frames/frame-name";
-import { FrameExpr } from "../../src/frames/frame-expr";
-
-import * as chai from "chai";
-const expect = chai.expect;
+import { expect } from "chai";
+import { FrameExpr, FrameName, FrameString, FrameSymbol } from "../../src/frames";
 
 describe("FrameName", () => {
   const symbol = "atom";
@@ -26,7 +21,7 @@ describe("FrameName", () => {
 
   it("extracts properties in an expression", () => {
     const value = FrameSymbol.for("smasher");
-    const context = new Frame({atom: value});
+    const context = new FrameString("context", {atom: value});
     const frame_expr = new FrameExpr([FrameSymbol.here(), frame_name]);
     const result = frame_expr.call(context);
 
