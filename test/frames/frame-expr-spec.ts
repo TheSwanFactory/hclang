@@ -1,9 +1,5 @@
-import { Frame } from "../../src/frames/frame";
-import { FrameString } from "../../src/frames/frame-string";
-import { FrameExpr } from "../../src/frames/frame-expr";
-import { FrameSymbol } from "../../src/frames/frame-symbol";
-import * as chai from "chai";
-const expect = chai.expect;
+import { expect } from "chai";
+import { Frame, FrameString, FrameExpr, FrameSymbol} from "../../src/frames";
 
 describe("FrameExpr", () => {
   const frame = new Frame();
