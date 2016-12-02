@@ -1,12 +1,10 @@
-import { Frame } from "../../src/frames/frame";
-import { FrameString } from "../../src/frames/frame-string";
-import * as chai from "chai";
-const expect = chai.expect;
+import { expect } from "chai";
+import { FrameString } from "../../src/frames";
 
 describe("FrameString", () => {
   const js_string = "Hello, MAML!";
   const key = "key";
-  const value = new Frame({value: Frame.nil});
+  const value = new FrameString("value");
   const frame_string = new FrameString(js_string, {key: value});
 
   it("takes a JavaScript string", () => {
