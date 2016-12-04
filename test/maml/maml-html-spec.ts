@@ -29,8 +29,6 @@ describe("FrameHTML", () => {
   ]);
 
   it("embeds properties into head",  () => {
-    const frame_title = new FrameString(js_title);
-    const frame_head = new Frame({title: frame_title});
     const html_head = new FrameExpr([
       new FrameString("  <head>\n"),
       new FrameString("    <title>\n"),
@@ -38,7 +36,7 @@ describe("FrameHTML", () => {
       new FrameString("    </title>\n"),
       new FrameString("  </head>\n"),
     ]);
-    const result = html_head.call(frame_head.get("title"));
+    const result = html_head.call(html_content.get("title"));
     const result_string = result.toString();
 
     expect(result).to.be.an.instanceof(FrameString);
