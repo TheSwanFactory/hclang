@@ -1,8 +1,9 @@
 import { expect } from "chai";
 import { Frame, FrameExpr, FrameString, FrameSymbol } from "../../src/frames";
 
+const HTML_PREFIX = "<!DOCTYPE html>"
 const BEGIN_HTML = `
-<!DOCTYPE html>
+${HTML_PREFIX}
 <html>
 <head>
 </head>
@@ -20,6 +21,22 @@ const html_content = new FrameString(js_string, {
     title:new FrameString(js_title)
   }
 );
+
+let html_wrap = (tag: string, content: Frame) => {
+  const wrapper = new FrameExpr([
+    new FrameString(`<${tag}>`), content, new FrameString(`</${tag}>`)
+  ]);
+  return wrapper.in();
+};
+
+let html_call = (content: FrameString) => {
+  const html = new FrameExpr([
+    new FrameString(HTML_PREFIX),
+    html_wrap("head", html_wrap("title", html_content.get("title"))),
+    content,
+  ]);
+  return html.in();
+};
 
 describe("FrameHTML", () => {
   const frame_html = new FrameExpr([
