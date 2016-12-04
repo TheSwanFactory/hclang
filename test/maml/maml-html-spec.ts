@@ -22,7 +22,6 @@ const html_content = new FrameString(js_string, {
 );
 
 describe("FrameHTML", () => {
-  const frame_string = new FrameString(js_string);
   const frame_html = new FrameExpr([
     new FrameString(BEGIN_HTML),
     new FrameSymbol("_"),
@@ -49,7 +48,7 @@ describe("FrameHTML", () => {
   });
 
   it("HTML-ifies string expressions when called", () => {
-    const result = frame_html.call(frame_string);
+    const result = frame_html.call(html_content);
     const result_string = result.toString();
 
     expect(result).to.be.an.instanceof(FrameString);
