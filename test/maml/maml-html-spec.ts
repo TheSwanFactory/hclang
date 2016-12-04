@@ -14,8 +14,14 @@ const END_HTML = `
 </html>
 `;
 
+const js_string = "Hello, HTML!";
+const js_title = "First HTML6 File";
+const html_content = new FrameString(js_string, {
+    title:new FrameString(js_title)
+  }
+);
+
 describe("FrameHTML", () => {
-  const js_string = "Hello, HTML!";
   const frame_string = new FrameString(js_string);
   const frame_html = new FrameExpr([
     new FrameString(BEGIN_HTML),
@@ -24,7 +30,6 @@ describe("FrameHTML", () => {
   ]);
 
   it("embeds properties into head",  () => {
-    const js_title = "First HTML6 File";
     const frame_title = new FrameString(js_title);
     const frame_head = new Frame({title: frame_title});
     const html_head = new FrameExpr([
