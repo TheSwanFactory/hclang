@@ -26,7 +26,7 @@ let html_wrap = (tag: string, content: Frame) => {
   const wrapper = new FrameExpr([
     new FrameString(`<${tag}>`), content, new FrameString(`</${tag}>`)
   ]);
-  return wrapper.call(Frame.nil);
+  return wrapper.in(Frame.nil);
 };
 
 let html_call = (content: FrameString) => {
@@ -35,7 +35,7 @@ let html_call = (content: FrameString) => {
     html_wrap("head", html_wrap("title", html_content.get("title"))),
     html_wrap("body", content),
   ]);
-  return html.call(Frame.nil);
+  return html.in(Frame.nil);
 };
 
 const result = html_call(html_content);

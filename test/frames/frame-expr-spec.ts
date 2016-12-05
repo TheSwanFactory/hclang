@@ -11,8 +11,8 @@ describe("FrameExpr", () => {
     expect(frame_expr.toString()).to.equal(`(() “${js_string}”)`);
   });
 
-  it("replaces nil when called", () => {
-    const result = frame_expr.call(frame);
+  it("replaces nil when evaluated", () => {
+    const result = frame_expr.in(frame);
     expect(result).to.equal(frame_string);
   });
 
@@ -20,7 +20,7 @@ describe("FrameExpr", () => {
     const js_string_2 = ", MAML!";
     const frame_string_2 = new FrameString(js_string_2);
     const frame_expr_2 = new FrameExpr([frame_string, frame_string_2]);
-    const result = frame_expr_2.call(frame);
+    const result = frame_expr_2.in(frame);
 
     expect(result.toString()).to.equal(`“${js_string}${js_string_2}”`);
   });
@@ -28,7 +28,7 @@ describe("FrameExpr", () => {
   it("returns context for FrameSymbol.here", () => {
     const context = new FrameString("context", {key: frame_string});
     const frame_expr = new FrameExpr([FrameSymbol.here()]);
-    const result = frame_expr.call(context);
+    const result = frame_expr.in(context);
 
     expect(result).to.equal(context);
   });
