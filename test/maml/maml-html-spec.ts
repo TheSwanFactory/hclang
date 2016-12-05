@@ -9,9 +9,10 @@ const html_wrap = (tag: string, content: Frame) => {
 
 const HTML_PREFIX = "<!DOCTYPE html>"
 const html_call = (content: FrameString) => {
+  const html_head = html_wrap("title", content.get("title"));
   const html = new FrameExpr([
     new FrameString(HTML_PREFIX),
-    html_wrap("head", html_wrap("title", content.get("title"))),
+    html_wrap("head", html_head),
     html_wrap("body", content),
   ]);
   return html.in(Frame.nil);
