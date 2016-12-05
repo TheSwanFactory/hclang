@@ -33,7 +33,7 @@ let html_call = (content: FrameString) => {
   const html = new FrameExpr([
     new FrameString(HTML_PREFIX),
     html_wrap("head", html_wrap("title", html_content.get("title"))),
-    content,
+    html_wrap("body", content),
   ]);
   return html.call(Frame.nil);
 };
@@ -51,14 +51,6 @@ describe("FrameHTML", () => {
   });
 
   it("HTML-ifies string expressions when called", () => {
-    const frame_html = new FrameExpr([
-      new FrameString(BEGIN_HTML),
-      new FrameSymbol("_"),
-      new FrameString(END_HTML),
-    ]);
-    const result = frame_html.call(html_content);
-    const result_string = result.toString();
-
     expect(result).to.be.an.instanceof(FrameString);
     expect(result_string).to.include('<!DOCTYPE html>');
     expect(result_string).to.match(/<body>([\s\S]*)<\/body>/);
