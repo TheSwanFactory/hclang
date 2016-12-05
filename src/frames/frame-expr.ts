@@ -8,7 +8,11 @@ export class FrameExpr extends FrameArray {
     super(data);
   }
 
-  public call(context: Frame) {
+  public call(context = Frame.nil) {
+    return this.in(context);
+  }
+
+  public in(context = Frame.nil) {
     return this.data.reduce((sum: Frame, item: Frame) => {
       const value = item.in(context);
       return sum.call(value);
