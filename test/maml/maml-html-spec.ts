@@ -26,7 +26,7 @@ let html_wrap = (tag: string, content: Frame) => {
   const wrapper = new FrameExpr([
     new FrameString(`<${tag}>`), content, new FrameString(`</${tag}>`)
   ]);
-  return wrapper.in();
+  return wrapper.call(Frame.nil);
 };
 
 let html_call = (content: FrameString) => {
@@ -35,27 +35,15 @@ let html_call = (content: FrameString) => {
     html_wrap("head", html_wrap("title", html_content.get("title"))),
     content,
   ]);
-  return html.in();
+  return html.call(Frame.nil);
 };
 
+const result = html_call(html_content);
+const result_string = result.toString();
+
 describe("FrameHTML", () => {
-  const frame_html = new FrameExpr([
-    new FrameString(BEGIN_HTML),
-    new FrameSymbol("_"),
-    new FrameString(END_HTML),
-  ]);
 
   it("embeds properties into head",  () => {
-    const html_head = new FrameExpr([
-      new FrameString("  <head>\n"),
-      new FrameString("    <title>\n"),
-      new FrameSymbol("_"),
-      new FrameString("    </title>\n"),
-      new FrameString("  </head>\n"),
-    ]);
-    const result = html_head.call(html_content.get("title"));
-    const result_string = result.toString();
-
     expect(result).to.be.an.instanceof(FrameString);
     expect(result_string).to.match(/<head>([\s\S]*)<\/head>/);
     expect(result_string).to.match(/<title>([\s\S]*)<\/title>/);
@@ -63,6 +51,11 @@ describe("FrameHTML", () => {
   });
 
   it("HTML-ifies string expressions when called", () => {
+    const frame_html = new FrameExpr([
+      new FrameString(BEGIN_HTML),
+      new FrameSymbol("_"),
+      new FrameString(END_HTML),
+    ]);
     const result = frame_html.call(html_content);
     const result_string = result.toString();
 
