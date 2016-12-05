@@ -23,10 +23,9 @@ const html_content = new FrameString(js_string, {
 );
 
 let html_wrap = (tag: string, content: Frame) => {
-  const wrapper = new FrameExpr([
+  return new FrameExpr([
     new FrameString(`<${tag}>`), content, new FrameString(`</${tag}>`)
   ]);
-  return wrapper.in(Frame.nil);
 };
 
 let html_call = (content: FrameString) => {
