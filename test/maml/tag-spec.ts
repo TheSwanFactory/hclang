@@ -17,5 +17,6 @@ describe("MAML Tag", () => {
 
   it("creates a tag", () => {
     expect(js_result).to.include(`<a>`);
+    expect(js_result).to.include(`</a>`);
   });
 });
