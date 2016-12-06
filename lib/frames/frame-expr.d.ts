@@ -7,6 +7,7 @@ export declare class FrameExpr extends FrameArray {
         [key: string]: Frame;
     });
     in(context?: Frame): Frame;
+    call(context: Frame): Frame;
     toStringData(): string;
     toString(): string;
 }

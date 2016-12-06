@@ -24,6 +24,10 @@ export class FrameExpr extends FrameArray {
     }, Frame.nil);
   }
 
+  public call(context: Frame) {
+    return this.in(context);
+  };
+
   public toStringData() {
     return this.data.map((obj: Frame) => { return obj.toString(); }).join(" ");
   };
