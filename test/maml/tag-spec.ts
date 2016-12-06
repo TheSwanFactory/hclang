@@ -3,7 +3,9 @@ import { FrameExpr, FrameString } from "../../src/frames";
 import { tag } from "../../src/maml";
 
 describe("MAML Tag", () => {
-  const expr = tag("a");
+  const text = "Hello, MAML!";
+  const body = new FrameString(text);
+  const expr = tag("a", body);
   const result = expr.in();
   const js_result = result.toString();
 
@@ -18,5 +20,9 @@ describe("MAML Tag", () => {
   it("creates a tag", () => {
     expect(js_result).to.include(`<a>`);
     expect(js_result).to.include(`</a>`);
+  });
+
+  it("includes a body literal", () => {
+    expect(js_result).to.include(text);
   });
 });
