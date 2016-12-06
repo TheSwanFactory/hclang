@@ -1,3 +1,5 @@
+import { FrameExpr } from "../frames";
+
 export const tag = () => {
-  return "";
+  return new FrameExpr([]);
 };
