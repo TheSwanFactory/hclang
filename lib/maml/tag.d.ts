@@ -1,2 +1,2 @@
 import { FrameExpr } from "../frames";
-export declare const tag: () => FrameExpr;
+export declare const tag: (name: string) => FrameExpr;

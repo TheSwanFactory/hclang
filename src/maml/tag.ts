@@ -1,5 +1,7 @@
-import { FrameExpr } from "../frames";
+import { FrameExpr, FrameString } from "../frames";
 
-export const tag = () => {
-  return new FrameExpr([]);
+export const tag = (name: string) => {
+  return new FrameExpr([
+    new FrameString(`<${name}>`),
+  ]);
 };
