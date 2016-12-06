@@ -1,14 +1,23 @@
-import { Frame, FrameArray } from "./frame";
+import { Frame, FrameArray, Void } from "./frame";
+import { FrameName } from "./frame-name";
+import { FrameSymbol } from "./frame-symbol";
 
 export class FrameExpr extends FrameArray {
   public static readonly BEGIN = "(";
   public static readonly END = ")";
 
-  constructor(data: Array<Frame>) {
-    super(data);
+  public static extract(key: string) {
+    return new FrameExpr([
+      FrameSymbol.here(),
+      new FrameName(key),
+    ]);
   }
 
-  public call(context: Frame) {
+  constructor(data: Array<Frame>, meta = Void) {
+    super(data, meta);
+  }
+
+  public in(context = Frame.nil) {
     return this.data.reduce((sum: Frame, item: Frame) => {
       const value = item.in(context);
       return sum.call(value);
