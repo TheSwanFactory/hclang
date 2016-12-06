@@ -40,4 +40,13 @@ describe("FrameExpr", () => {
 
     expect(result).to.equal(frame_string);
   });
+
+  it("evaluates in context when called", () => {
+    const context = new FrameString("context", {key: frame_string});
+    const frame_expr = FrameExpr.extract("key");
+    const result = frame_expr.call(context);
+
+    expect(result).to.equal(frame_string);
+  });
+
 });
