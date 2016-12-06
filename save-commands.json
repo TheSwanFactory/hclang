@@ -1,0 +1,6 @@
+{
+    "commands": [
+        "src/**/*.ts : npm test",
+        "test/**/*.ts : npm test"
+    ]
+}
