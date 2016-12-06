@@ -1,8 +1,17 @@
 import { Frame, FrameArray, Void } from "./frame";
+import { FrameName } from "./frame-name";
+import { FrameSymbol } from "./frame-symbol";
 
 export class FrameExpr extends FrameArray {
   public static readonly BEGIN = "(";
   public static readonly END = ")";
+
+  public static extract(key: string) {
+    return new FrameExpr([
+      FrameSymbol.here(),
+      new FrameName(key),
+    ]);
+  }
 
   constructor(data: Array<Frame>, meta = Void) {
     super(data, meta);

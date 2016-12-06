@@ -32,4 +32,12 @@ describe("FrameExpr", () => {
 
     expect(result).to.equal(context);
   });
+
+  it("extracts properties from the context", () => {
+    const context = new FrameString("context", {key: frame_string});
+    const frame_expr = FrameExpr.extract("key");
+    const result = frame_expr.in(context);
+
+    expect(result).to.equal(frame_string);
+  });
 });
