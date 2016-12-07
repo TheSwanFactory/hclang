@@ -70,6 +70,15 @@ describe("Frame", () => {
       expect(result).to.equal(Frame.nil);
     });
   });
+
+  describe("FrameSET", () => {
+    const value = new Frame({frame: frame});
+    const context = new Frame();
+
+    it("does nothing", () => {
+    });
+
+  });
 });
 
 describe("FrameArray", () => {
