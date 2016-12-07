@@ -29,7 +29,8 @@ export class Frame {
     return up.get(key, origin);
   }
 
-  public set(key: string, origin = this): Frame {
+  public set(key: string, value: Frame): Frame {
+    this.meta[key] = value;
     return this;
   }
 
