@@ -26,7 +26,8 @@ describe("FrameLazy", () => {
     expect(value).to.equal(in_lazy);
   });
 
-  it("stringifies to {frame}", () => {
-    expect(true).to.be.true;
+  it("stringifies to { frame }", () => {
+    const result = lazy.toString();
+    expect(result).to.equal(`{ ${sloth.toString()} }`);
   });
 });
