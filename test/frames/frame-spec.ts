@@ -74,10 +74,15 @@ describe("Frame", () => {
   describe("FrameSET", () => {
     const value = new Frame({frame: frame});
     const context = new Frame();
+    const new_context = context.set("up", value);
 
-    it("does nothing", () => {
+    it("returns (mutable) this", () => {
+      expect(new_context).to.be.instanceOf(Frame);
+      expect(new_context).to.equal(context);
     });
 
+    it("sets metadata in a Frame", () => {
+    });
   });
 });
 
