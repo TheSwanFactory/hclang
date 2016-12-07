@@ -4,14 +4,14 @@ import { IKeyValuePair, Frame, FrameArray, FrameSymbol } from "../../src/frames"
 describe("Frame", () => {
   const frame = new Frame({nil: Frame.nil});
 
+  it("is constructed from a dictionary", () => {
+    expect(frame).to.be.instanceOf(Frame);
+  });
+
   it("has a unique nil for a property", () => {
     const nil = Frame.nil;
     expect(nil).to.be.instanceOf(Frame);
     expect(Frame.nil).to.equal(nil);
-  });
-
-  it("is constructed from a dictionary", () => {
-    expect(frame).to.be.instanceOf(Frame);
   });
 
   it("returns argument when called", () => {
@@ -29,7 +29,7 @@ describe("Frame", () => {
     expect(frame.in()).to.equal(frame);
   });
 
-  describe("FrameMeta", () => {
+  describe("FrameMETA", () => {
     it("returns list of meta_keys", () => {
       const keys = frame.meta_keys();
       expect(keys).to.eql(["nil"]);
@@ -57,7 +57,8 @@ describe("Frame", () => {
     it("get searches 'up' if not get_here", () => {
       const key = "has";
       const parent = new Frame({has: frame});
-      const child = new Frame({up: parent});
+      const child = new Frame();
+      child.set(Frame.kUP, parent);
 
       expect(parent.get_here(key)).to.equal(frame);
       expect(child.get_here(key)).to.equal(Frame.missing);
@@ -68,6 +69,27 @@ describe("Frame", () => {
       const frame_symbol = FrameSymbol.for("nil");
       const result = frame.call(frame_symbol);
       expect(result).to.equal(Frame.nil);
+    });
+  });
+
+  describe("FrameSET", () => {
+    const value = new Frame({frame: frame});
+    const context = new Frame();
+    const new_context = context.set(Frame.kUP, value);
+
+    it("returns (mutable) this", () => {
+      expect(new_context).to.be.instanceOf(Frame);
+      expect(new_context).to.equal(context);
+    });
+
+    it("sets metadata in a Frame", () => {
+      const result = context.get(Frame.kUP);
+      expect(result).to.equal(value);
+    });
+
+    it("can change up path", () => {
+      const result = context.get("frame");
+      expect(result).to.equal(frame);
     });
   });
 });

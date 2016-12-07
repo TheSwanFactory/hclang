@@ -6,7 +6,7 @@ export const Void: Context = {};
 export class Frame {
   public static readonly BEGIN = "(";
   public static readonly END = ")";
-  public static readonly kUP = "up";
+  public static readonly kUP = ".up";
   public static readonly nil = new Frame();
   public static readonly missing: Frame = new Frame({
     missing: Frame.nil,
@@ -27,6 +27,14 @@ export class Frame {
     const up = this.get_here(Frame.kUP);
     if (up === Frame.missing) { return Frame.missing; };
     return up.get(key, origin);
+  }
+
+  public set(key: string, value: Frame): Frame {
+    if (this.meta === Void) {
+      this.meta = {};
+    }
+    this.meta[key] = value;
+    return this;
   }
 
   public in(context = Frame.nil) {
