@@ -29,6 +29,10 @@ export class Frame {
     return up.get(key, origin);
   }
 
+  public set(key: string, origin = this): Frame {
+    return this;
+  }
+
   public in(context = Frame.nil) {
     return <Frame> this;
   }

@@ -18,6 +18,7 @@ export declare class Frame {
     });
     get_here(key: string): Frame;
     get(key: string, origin?: this): Frame;
+    set(key: string, origin?: this): Frame;
     in(context?: Frame): Frame;
     apply(argument: Frame): Frame;
     called_by(context: Frame): Frame;
