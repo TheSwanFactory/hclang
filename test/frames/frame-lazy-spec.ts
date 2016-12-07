@@ -1,9 +1,12 @@
 import { expect } from "chai";
-import { FrameLazy } from "../../src/frames";
+import { FrameString, FrameLazy } from "../../src/frames";
 
 describe("FrameLazy", () => {
+  const frame = new FrameString("frame");
+  const lazy = new FrameLazy(frame);
+
   it("takes a Frame", () => {
-    expect(true).to.be.true;
+    expect(lazy).to.be.instanceof(FrameLazy);
   });
 
   it("returns that Frame when evaluated", () => {
