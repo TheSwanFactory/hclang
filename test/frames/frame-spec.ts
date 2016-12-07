@@ -57,7 +57,8 @@ describe("Frame", () => {
     it("get searches 'up' if not get_here", () => {
       const key = "has";
       const parent = new Frame({has: frame});
-      const child = new Frame({up: parent});
+      const child = new Frame();
+      child.set(Frame.kUP, parent);
 
       expect(parent.get_here(key)).to.equal(frame);
       expect(child.get_here(key)).to.equal(Frame.missing);
