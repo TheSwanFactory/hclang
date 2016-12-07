@@ -72,10 +72,9 @@ describe("Frame", () => {
   });
 
   describe("FrameSET", () => {
-    const value_key = "value";
     const value = new Frame({frame: frame});
     const context = new Frame();
-    const new_context = context.set(value_key, value);
+    const new_context = context.set(Frame.kUP, value);
 
     it("returns (mutable) this", () => {
       expect(new_context).to.be.instanceOf(Frame);
@@ -83,8 +82,13 @@ describe("Frame", () => {
     });
 
     it("sets metadata in a Frame", () => {
-      const result = context.get(value_key);
+      const result = context.get(Frame.kUP);
       expect(result).to.equal(value);
+    });
+
+    it("can change up path", () => {
+      const result = context.get("frame");
+      expect(result).to.equal(frame);
     });
   });
 });
