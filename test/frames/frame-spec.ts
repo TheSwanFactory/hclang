@@ -74,7 +74,7 @@ describe("Frame", () => {
   describe("FrameSET", () => {
     const value_key = "value";
     const value = new Frame({frame: frame});
-    const context = new Frame({});
+    const context = new Frame();
     const new_context = context.set(value_key, value);
 
     it("returns (mutable) this", () => {

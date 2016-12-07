@@ -30,6 +30,9 @@ export class Frame {
   }
 
   public set(key: string, value: Frame): Frame {
+    if (this.meta === Void) {
+      this.meta = {};
+    }
     this.meta[key] = value;
     return this;
   }
