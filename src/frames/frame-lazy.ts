@@ -5,8 +5,8 @@ export class FrameLazy extends Frame {
     super(meta);
   }
 
-  public in(context = Frame.nil) {
-    return this.data;
+  public in(context = Frame.nil): Frame {
+    return this.data.set(Frame.kUP, this);
   }
 
   public toString(): string {
