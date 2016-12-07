@@ -4,14 +4,14 @@ import { IKeyValuePair, Frame, FrameArray, FrameSymbol } from "../../src/frames"
 describe("Frame", () => {
   const frame = new Frame({nil: Frame.nil});
 
+  it("is constructed from a dictionary", () => {
+    expect(frame).to.be.instanceOf(Frame);
+  });
+
   it("has a unique nil for a property", () => {
     const nil = Frame.nil;
     expect(nil).to.be.instanceOf(Frame);
     expect(Frame.nil).to.equal(nil);
-  });
-
-  it("is constructed from a dictionary", () => {
-    expect(frame).to.be.instanceOf(Frame);
   });
 
   it("returns argument when called", () => {
@@ -29,7 +29,7 @@ describe("Frame", () => {
     expect(frame.in()).to.equal(frame);
   });
 
-  describe("FrameMeta", () => {
+  describe("FrameMETA", () => {
     it("returns list of meta_keys", () => {
       const keys = frame.meta_keys();
       expect(keys).to.eql(["nil"]);
