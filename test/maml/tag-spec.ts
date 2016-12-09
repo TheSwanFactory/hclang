@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { FrameExpr, FrameString } from "../../src/frames";
-import { tag } from "../../src/maml";
+import { tag, tag_lazy } from "../../src/maml";
 
 describe("MAML Tag", () => {
   const text = "Hello, MAML!";

@@ -15,7 +15,7 @@ const wrap_args = (prefix: string, suffix: string) => {
   ]);
 }
 
-const tag_lazy = (name: string) => {
+export const tag_lazy = (name: string) => {
   const expr: Frame = new FrameExpr([
     new FrameString(`<${name}>`),
     FrameSymbol.here(),
