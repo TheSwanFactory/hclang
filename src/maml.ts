@@ -1,1 +1,1 @@
-export { tag, tag_lazy } from "./maml/tag";
+export { tag_lazy } from "./maml/tag";

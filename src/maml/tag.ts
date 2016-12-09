@@ -1,12 +1,5 @@
 import { Frame, FrameExpr, FrameLazy, FrameString, FrameSymbol } from "../frames";
 
-export const tag = (name: string, body: Frame) => {
-  return new FrameExpr([
-    tag_lazy(name),
-    body,
-  ]);
-};
-
 const wrap_args = (prefix: string, suffix: string) => {
   return new FrameExpr([
     new FrameString(prefix),
