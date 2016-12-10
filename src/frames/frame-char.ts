@@ -1,6 +1,8 @@
 import { Frame } from "./frame";
 
 export class FrameChar extends Frame {
+  public static readonly CHAR_BEGIN = "\\\\";
+
   public static for(char: string) {
     const exists = FrameChar.chars[char];
     return exists || (FrameChar.chars[char] = new FrameChar(char));
@@ -17,6 +19,6 @@ export class FrameChar extends Frame {
   }
 
   public toString() {
-    return `\\\\${this.data.toString()}`;
+    return FrameChar.CHAR_BEGIN + this.data.toString();
   }
 };
