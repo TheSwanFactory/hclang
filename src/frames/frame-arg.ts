@@ -24,7 +24,12 @@ export class FrameArg extends FrameSymbol {
     super(data);
   }
 
-  public in(context: Frame) {
+  public in(context: Frame): Frame {
+    const level = this.data.length;
+    if (level <= 1) {
       return context;
+    } else {
+      return FrameArg.level(level - 1);
+    }
   }
 };

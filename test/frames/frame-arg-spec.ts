@@ -22,12 +22,20 @@ describe("FrameArg", () => {
   describe("level", () => {
     it("returns 'here' at level 1", () => {
       const frame_level = FrameArg.level();
-      expect(frame_arg).to.equal(frame_level);
+      expect(frame_level).to.equal(frame_arg);
     });
 
     it("returns the same object at each level", () => {
       const level_2 = FrameArg.level(2);
       expect(FrameArg.level(2)).to.equal(level_2);
+    });
+
+    it ("evaluates to a lower level", () => {
+      const context = new FrameString("context", {atom: frame_arg});
+      const level_3 = FrameArg.level(3);
+      const level_2 = FrameArg.level(2);
+      expect(level_3.in(context)).to.equal(level_2);
+      expect(level_2.in(context)).to.equal(frame_arg);
     });
   });
 });
