@@ -19,9 +19,9 @@ describe("FrameArg", () => {
   });
 
 describe("level", () => {
-    it("always returns the same FrameArg object", () => {
-      const frame_arg_2 = FrameArg.for(symbol);
-      expect(frame_arg).to.equal(frame_arg_2);
+    it("level 1 returns 'here'", () => {
+      const frame_level = FrameArg.level();
+      expect(frame_arg).to.equal(frame_level);
     });
   });
 });
