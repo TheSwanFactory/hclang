@@ -2,20 +2,21 @@ import { Frame } from "./frame";
 import { FrameSymbol } from "./frame-symbol";
 
 export class FrameArg extends FrameSymbol {
-  public static for(symbol: string) {
-    const exists = FrameArg.args[symbol];
-    return exists || (FrameArg.args[symbol] = new FrameArg(symbol));
-  }
-
   public static here() {
     return FrameArg.level();
   }
 
-  public static level(number = 1) {
-    return FrameArg.for("_".repeat(number));
+  public static level(count = 1) {
+    const symbol = Array(count + 1).join("_");
+    return FrameArg._for(symbol);
   }
 
   protected static args: { [key: string]: FrameArg; } = {};
+
+  protected static _for(symbol: string) {
+    const exists = FrameArg.args[symbol];
+    return exists || (FrameArg.args[symbol] = new FrameArg(symbol));
+  }
 
   protected constructor(data: string) {
     super(data);

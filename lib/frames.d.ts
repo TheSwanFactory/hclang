@@ -1,3 +1,4 @@
+export { FrameArg } from "./frames/frame-arg";
 export { FrameChar } from "./frames/frame-char";
 export { FrameLazy } from "./frames/frame-lazy";
 export { FrameExpr } from "./frames/frame-expr";
