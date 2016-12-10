@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { Frame, FrameExpr, FrameString, FrameSymbol } from "../../src/frames";
+import { Frame, FrameArg, FrameExpr, FrameString } from "../../src/frames";
 
 describe("FrameExpr", () => {
   const frame = new Frame();
@@ -25,9 +25,9 @@ describe("FrameExpr", () => {
     expect(result.toString()).to.equal(`“${js_string}${js_string_2}”`);
   });
 
-  it("returns context for FrameSymbol.here", () => {
+  it("returns context for FrameArg.here", () => {
     const context = new FrameString("context", {key: frame_string});
-    const frame_expr = new FrameExpr([FrameSymbol.here()]);
+    const frame_expr = new FrameExpr([FrameArg.here()]);
     const result = frame_expr.in(context);
 
     expect(result).to.equal(context);

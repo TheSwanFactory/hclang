@@ -1,6 +1,6 @@
 import { Frame, FrameArray, Void } from "./frame";
+import { FrameArg } from "./frame-arg";
 import { FrameName } from "./frame-name";
-import { FrameSymbol } from "./frame-symbol";
 
 export class FrameExpr extends FrameArray {
   public static readonly BEGIN = "(";
@@ -8,7 +8,7 @@ export class FrameExpr extends FrameArray {
 
   public static extract(key: string) {
     return new FrameExpr([
-      FrameSymbol.here(),
+      FrameArg.here(),
       new FrameName(key),
     ]);
   }

@@ -7,6 +7,7 @@ export declare class FrameArg extends FrameSymbol {
         [key: string]: FrameArg;
     };
     protected static _for(symbol: string): FrameArg;
+    private static readonly underbar;
     protected constructor(data: string);
     in(context: Frame): Frame;
 }
