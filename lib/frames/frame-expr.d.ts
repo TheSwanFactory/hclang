@@ -1,4 +1,5 @@
-import { Frame, FrameArray } from "./frame";
+import { Frame } from "./frame";
+import { FrameArray } from "./frame-array";
 export declare class FrameExpr extends FrameArray {
     static readonly EXPR_BEGIN: string;
     static readonly EXPR_END: string;

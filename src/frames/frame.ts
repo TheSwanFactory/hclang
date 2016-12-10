@@ -85,13 +85,3 @@ export class Frame {
     return Frame.BEGIN + this.meta_string() + Frame.END;
   }
 };
-
-export class FrameArray extends Frame {
-  constructor(protected data: Array<Frame>, meta = Void) {
-    super(meta);
-  }
-
-  public at(index: number) {
-    return this.data[index];
-  }
-}

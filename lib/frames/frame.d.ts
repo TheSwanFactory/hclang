@@ -30,10 +30,3 @@ export declare class Frame {
     meta_wrap(dataString: string): string;
     toString(): string;
 }
-export declare class FrameArray extends Frame {
-    protected data: Array<Frame>;
-    constructor(data: Array<Frame>, meta?: {
-        [key: string]: Frame;
-    });
-    at(index: number): Frame;
-}

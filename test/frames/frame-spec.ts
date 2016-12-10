@@ -107,4 +107,9 @@ describe("FrameArray", () => {
     expect(first_element).to.be.ok;
     expect(first_element).to.be.instanceOf(Frame);
   });
+
+  it("evalates its components", () => {
+    expect(frame_array).to.be.instanceOf(FrameArray);
+  });
+
 });
