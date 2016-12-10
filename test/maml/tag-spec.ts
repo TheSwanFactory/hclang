@@ -1,11 +1,11 @@
 import { expect } from "chai";
 import { FrameExpr, FrameString } from "../../src/frames";
-import { tag_lazy } from "../../src/maml";
+import { tagLazy } from "../../src/maml";
 
 describe("MAML Tag", () => {
   const text = "Hello, MAML!";
   const body = new FrameString(text);
-  const expr = new FrameExpr([tag_lazy("a"), body]);
+  const expr = new FrameExpr([tagLazy("a"), body]);
   const result = expr.in();
   const js_result = result.toString();
 

@@ -1,2 +1,2 @@
 import { FrameLazy } from "../frames";
-export declare const tag_lazy: (name: string) => FrameLazy;
+export declare const tagLazy: (name: string) => FrameLazy;
