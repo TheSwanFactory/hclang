@@ -1,8 +1,8 @@
 import { Context, Frame, Void } from "./frame";
 
 export class FrameLazy extends Frame {
-  public static readonly BEGIN_LAZY = "{";
-  public static readonly END_LAZY = "}";
+  public static readonly LAZY_BEGIN = "{";
+  public static readonly LAZY_END = "}";
 
   constructor(protected data: Frame, meta: Context = Void) {
     super(meta);
@@ -14,6 +14,6 @@ export class FrameLazy extends Frame {
   }
 
   public toString(): string {
-    return FrameLazy.BEGIN_LAZY + " " + this.data.toString() + " " + FrameLazy.END_LAZY;
+    return FrameLazy.LAZY_BEGIN + " " + this.data.toString() + " " + FrameLazy.LAZY_END;
   }
 };

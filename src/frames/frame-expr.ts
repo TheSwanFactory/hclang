@@ -3,8 +3,8 @@ import { FrameArg } from "./frame-arg";
 import { FrameName } from "./frame-name";
 
 export class FrameExpr extends FrameArray {
-  public static readonly BEGIN = "(";
-  public static readonly END = ")";
+  public static readonly EXPR_BEGIN = "(";
+  public static readonly EXPR_END = ")";
 
   public static extract(key: string) {
     return new FrameExpr([
@@ -33,6 +33,6 @@ export class FrameExpr extends FrameArray {
   };
 
   public toString() {
-    return FrameExpr.BEGIN + this.toStringData() + FrameExpr.END;
+    return FrameExpr.EXPR_BEGIN + this.toStringData() + FrameExpr.EXPR_END;
   }
 };

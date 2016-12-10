@@ -1,7 +1,7 @@
 import { Frame, FrameArray } from "./frame";
 export declare class FrameExpr extends FrameArray {
-    static readonly BEGIN: string;
-    static readonly END: string;
+    static readonly EXPR_BEGIN: string;
+    static readonly EXPR_END: string;
     static extract(key: string): FrameExpr;
     constructor(data: Array<Frame>, meta?: {
         [key: string]: Frame;
