@@ -2,12 +2,14 @@ import { Frame } from "./frame";
 import { FrameSymbol } from "./frame-symbol";
 
 export class FrameArg extends FrameSymbol {
+  public static readonly ARG_CHAR = "_";
+
   public static here() {
     return FrameArg.level();
   }
 
   public static level(count = 1) {
-    const symbol = Array(count + 1).join(FrameArg.underbar);
+    const symbol = Array(count + 1).join(FrameArg.ARG_CHAR);
     return FrameArg._for(symbol);
   }
 
@@ -17,8 +19,6 @@ export class FrameArg extends FrameSymbol {
     const exists = FrameArg.args[symbol];
     return exists || (FrameArg.args[symbol] = new FrameArg(symbol));
   }
-
-  private static readonly underbar = "_";
 
   protected constructor(data: string) {
     super(data);
