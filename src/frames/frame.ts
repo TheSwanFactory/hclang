@@ -37,6 +37,10 @@ export class Frame {
     return this;
   }
 
+  public at(index: number) {
+    return Frame.nil;
+  }
+
   public in(context = Frame.nil) {
     return <Frame> this;
   }

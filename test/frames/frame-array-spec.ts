@@ -15,10 +15,11 @@ describe("FrameArray", () => {
     expect(first_element).to.be.instanceOf(Frame);
   });
 
-  it("evaluates its components", () => {
+  it("evaluates its components into an array", () => {
+    const string = new FrameString("string");
     const array_of_expr = new FrameArray([
       Frame.nil,
-      new FrameString("string")
+      string,
       new FrameExpr([
         new FrameString("prefix-"),
         new FrameString("-suffix")
@@ -26,6 +27,7 @@ describe("FrameArray", () => {
     ]);
     const result = array_of_expr.in();
 
-    expect(result.length).to.equal(3);
+    expect(result).to.be.instanceOf(FrameArray);
+    expect(result.at(0)).to.equal(Frame.nil);
   });
 });
