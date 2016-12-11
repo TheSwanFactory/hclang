@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { Frame, FrameArray } from "../../src/frames";
+import { Frame, FrameArray, FrameExpr, FrameString} from "../../src/frames";
 
 describe("FrameArray", () => {
   const frame = new Frame();
@@ -15,8 +15,17 @@ describe("FrameArray", () => {
     expect(first_element).to.be.instanceOf(Frame);
   });
 
-  it("evalates its components", () => {
-    expect(frame_array).to.be.instanceOf(FrameArray);
-  });
+  it("evaluates its components", () => {
+    const array_of_expr = new FrameArray([
+      Frame.nil,
+      new FrameString("string")
+      new FrameExpr([
+        new FrameString("prefix-"),
+        new FrameString("-suffix")
+      ])
+    ]);
+    const result = array_of_expr.in();
 
+    expect(result.length).to.equal(3);
+  });
 });
