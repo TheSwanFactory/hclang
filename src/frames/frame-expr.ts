@@ -1,5 +1,6 @@
-import { Frame, FrameArray, Void } from "./frame";
+import { Frame, Void } from "./frame";
 import { FrameArg } from "./frame-arg";
+import { FrameArray } from "./frame-array";
 import { FrameName } from "./frame-name";
 
 export class FrameExpr extends FrameArray {
