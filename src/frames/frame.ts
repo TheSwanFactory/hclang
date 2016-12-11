@@ -41,8 +41,8 @@ export class Frame {
     return Frame.nil;
   }
 
-  public in(context = Frame.nil) {
-    return <Frame> this;
+  public in(context = Frame.nil): Frame {
+    return this;
   }
 
   public apply(argument: Frame) {

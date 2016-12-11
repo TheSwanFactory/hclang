@@ -4,5 +4,6 @@ export declare class FrameArray extends Frame {
     constructor(data: Array<Frame>, meta?: {
         [key: string]: Frame;
     });
+    in(context?: Frame): Frame;
     at(index: number): Frame;
 }
