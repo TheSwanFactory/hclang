@@ -26,8 +26,11 @@ describe("FrameArray", () => {
       ])
     ]);
     const result = array_of_expr.in();
+    const expr_result = result.at(2);
 
     expect(result).to.be.instanceOf(FrameArray);
     expect(result.at(0)).to.equal(Frame.nil);
+    expect(result.at(1)).to.equal(string);
+    expect(expr_result.toString()).to.include("prefix--suffix");
   });
 });
