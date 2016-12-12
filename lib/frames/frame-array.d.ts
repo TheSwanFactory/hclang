@@ -1,6 +1,6 @@
 import { Frame } from "./frame";
 export declare class FrameArray extends Frame {
-    protected data: Array<Frame>;
+    data: Array<Frame>;
     constructor(data: Array<Frame>, meta?: {
         [key: string]: Frame;
     });
