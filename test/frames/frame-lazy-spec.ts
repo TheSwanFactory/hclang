@@ -30,4 +30,11 @@ describe("FrameLazy", () => {
     const result = lazy.toString();
     expect(result).to.equal(`{ ${sloth.toString()} }`);
   });
+
+  describe("Codify", () => {
+    const codify = new FrameLazy(Frame.nil);
+    it("returns itself when Frame is nil", () => {
+      expect(codify.in(Frame.nil)).to.equal(codify);
+    });
+  });
 });

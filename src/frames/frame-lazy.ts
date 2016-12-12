@@ -9,6 +9,9 @@ export class FrameLazy extends Frame {
   }
 
   public in(context: Frame): Frame {
+    if (context === Frame.nil) {
+      return this;
+    }
     const current = this.set(Frame.kUP, context);
     return this.data.set(Frame.kUP, current);
   }
