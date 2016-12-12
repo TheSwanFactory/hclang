@@ -44,6 +44,7 @@ describe("FrameLazy", () => {
 
       expect(expr).to.be.instanceof(FrameExpr);
       expect(expr.at(0)).to.equal(context);
+      expect(expr.in()).to.equal(Frame.nil);
     });
 
     it("wraps other Frames in Expr when called", () => {
@@ -51,6 +52,7 @@ describe("FrameLazy", () => {
 
       expect(wrap).to.be.instanceof(FrameExpr);
       expect(wrap.at(0)).to.equal(sloth);
+      expect(wrap.in()).to.equal(sloth);
     });
   });
 });
