@@ -19,6 +19,10 @@ export class FrameLazy extends Frame {
   }
 
   public call(argument: Frame): FrameExpr {
+    if (argument instanceof FrameArray) {
+      const array: FrameArray = argument;
+      return new FrameExpr(array.data);
+    }
     return new FrameExpr([argument]);
   }
 
