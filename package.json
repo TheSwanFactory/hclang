@@ -41,6 +41,7 @@
     "@types/mocha": "2.2.29",
     "@types/node": "6.0.31",
     "chai": "^3.5.0",
+    "chai-pretty-expect": "^1.0.1",
     "mocha": "^3.0.1",
     "rimraf": "^2.5.4",
     "ts-node": "^1.2.2",
