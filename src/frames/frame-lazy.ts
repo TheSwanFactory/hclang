@@ -1,4 +1,6 @@
 import { Context, Frame, Void } from "./frame";
+import { FrameArray } from "./frame-array";
+import { FrameExpr } from "./frame-expr";
 
 export class FrameLazy extends Frame {
   public static readonly LAZY_BEGIN = "{";
@@ -14,6 +16,10 @@ export class FrameLazy extends Frame {
     }
     const current = this.set(Frame.kUP, context);
     return this.data.set(Frame.kUP, current);
+  }
+
+  public call(argument: Frame): FrameExpr {
+    return new FrameExpr([argument]);
   }
 
   public toString(): string {

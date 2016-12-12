@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { Frame, FrameString, FrameLazy } from "../../src/frames";
+import { Frame, FrameArray, FrameExpr, FrameString, FrameLazy } from "../../src/frames";
 
 describe("FrameLazy", () => {
   const sloth = new FrameString("sloth");
@@ -33,8 +33,22 @@ describe("FrameLazy", () => {
 
   describe("Codify", () => {
     const codify = new FrameLazy(Frame.nil);
+
     it("returns itself when Frame is nil", () => {
       expect(codify.in(Frame.nil)).to.equal(codify);
+    });
+
+    it("converts Array to Expr when called", () => {
+      const array = new FrameArray([]);
+      const expr = codify.call(array);
+
+      expect(expr).to.be.instanceof(FrameExpr);
+    });
+
+    it("wraps other Frames in Expr when called", () => {
+      const wrap = codify.call(sloth);
+
+      expect(wrap).to.be.instanceof(FrameExpr);
     });
   });
 });
