@@ -1,11 +1,11 @@
-import { FrameArg, FrameExpr, FrameName, FrameString } from "./frames";
+import { FrameArg, FrameExpr, FrameString, FrameSymbol } from "./frames";
 import { tag } from "./maml/tag";
 
 const body = new FrameString("body");
 
 export const maml = new FrameExpr([
   new FrameExpr([
-    new FrameName("tag"),
+    new FrameSymbol("tag"),
     body,
     FrameArg.here(),
   ]),
