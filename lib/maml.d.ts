@@ -1,1 +1,2 @@
-export { tagLazy } from "./maml/tag";
+import { Frame } from "./frames";
+export declare const maml: Frame;
