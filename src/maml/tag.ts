@@ -1,6 +1,9 @@
-import { Frame, FrameArg, FrameExpr, FrameLazy, FrameString } from "../frames";
+import { Frame, FrameArg, FrameArray, FrameExpr, FrameLazy, FrameString } from "../frames";
 
-export const tag = new FrameExpr([]);
+export const tag = new FrameExpr([
+  new FrameLazy(Frame.nil),
+  new FrameArray([]),
+]);
 
 const wrapArgs = (prefix: string, suffix: string) => {
   return new FrameExpr([
