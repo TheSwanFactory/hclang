@@ -9,7 +9,7 @@ describe("MAML Tag", () => {
   const text = "Hello, MAML!";
   const body = new FrameString(text);
   const result = p_tag.call(body);
-  const js_result = result.toString();
+  const result_string = result.toString();
 
   it("is a FrameExpr", () => {
     expect(tag).to.be.instanceOf(FrameExpr);
@@ -21,7 +21,7 @@ describe("MAML Tag", () => {
 
   it("then wraps tags around a string", () => {
     expect(result).to.be.instanceOf(FrameString);
-    expect(js_result).to.include(text);
+    expect(result_string).to.include(text);
+    expect(result_string).to.match(/<p>([\s\S]*)<\/p>/);
   });
-
 });
