@@ -2,7 +2,7 @@ import { Frame, FrameArg, FrameArray, FrameExpr, FrameLazy, FrameString } from "
 
 export const tag = new FrameExpr([
   new FrameLazy(Frame.nil),
-  new FrameArray([]),
+  new FrameArray([FrameArg.level(2)]),
 ]);
 
 const wrapArgs = (prefix: string, suffix: string) => {
