@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { FrameExpr, FrameString } from "../../src/frames";
+import { FrameExpr, FrameName, FrameString } from "../../src/frames";
 import { maml } from "../../src/maml";
 
 describe("MAML Tag", () => {
@@ -25,5 +25,20 @@ describe("MAML Tag", () => {
     expect(result_string).to.match(/<p>([\s\S]*)<\/p>/);
   });
 
-  
+  it("works in expressions", () => {
+    const contents = "contents";
+    const expr = new FrameExpr([
+      new FrameName("tag"),
+      new FrameString("body"),
+      new FrameString(contents),
+    ]);
+    const scope = new FrameString("scope", {tag});
+    const evaluated = expr.in(scope)
+    const evaluated_string = evaluated.toString();
+
+    expect(evaluated).to.be.instanceOf(FrameString);
+    expect(evaluated_string).to.include(contents);
+    expect(evaluated_string).to.match(/<body>([\s\S]*)<\/body>/);
+  });
+
 });
