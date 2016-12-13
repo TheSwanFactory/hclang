@@ -1,4 +1,4 @@
 import { Frame } from "./frames";
 import { tag } from "./maml/tag";
 
-export const maml = new Frame();
+export const maml = new Frame({tag: tag});
