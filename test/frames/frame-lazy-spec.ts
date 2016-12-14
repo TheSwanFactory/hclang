@@ -27,8 +27,7 @@ describe("FrameLazy", () => {
   });
 
   it("stringifies to { frame }", () => {
-    const result = lazy.toString();
-    expect(result).to.equal(`{ ${sloth.toString()} }`);
+    expect(lazy.toString()).to.equal(`{ ${sloth.toString()} }`);
   });
 
   describe("Codify", () => {
@@ -40,8 +39,10 @@ describe("FrameLazy", () => {
 
     it("converts Array to Expr when called", () => {
       const array = new FrameArray([context, new FrameName("nil")]);
-      const expr = codify.call(array);
+      expect(array.toString()).to.equal("[“context”, .nil]");
 
+      const expr = codify.call(array);
+      expect(expr.toString()).to.equal("{ “context” .nil }");
       expect(expr).to.be.instanceof(FrameExpr);
       expect(expr.at(0)).to.equal(context);
       expect(expr.in()).to.equal(Frame.nil);
