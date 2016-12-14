@@ -6,4 +6,5 @@ export declare class FrameArray extends Frame {
     });
     in(context?: Frame): Frame;
     at(index: number): Frame;
+    toStringData(): string;
 }

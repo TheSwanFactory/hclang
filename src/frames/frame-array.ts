@@ -12,4 +12,8 @@ export class FrameArray extends Frame {
   public at(index: number) {
     return this.data[index];
   }
+
+  public toStringData() {
+    return this.data.map((obj: Frame) => { return obj.toString(); }).join(", ");
+  };
 }

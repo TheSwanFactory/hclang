@@ -2,17 +2,22 @@ import { expect } from "chai";
 import { Frame, FrameArray, FrameExpr, FrameString} from "../../src/frames";
 
 describe("FrameArray", () => {
-  const frame = new Frame();
-  const frame_array = new FrameArray([frame]);
+  const a_frame = new FrameString("a");
+  const b_frame = new FrameString("b");
+  const frame_array = new FrameArray([a_frame, b_frame]);
 
   it("is constructed from an array of frames", () => {
     expect(frame_array).to.be.instanceOf(FrameArray);
   });
 
+  it("stringifies with brackets", () => {
+    expect(frame_array.toString()).to.equal("[“a”, “b”]")
+  });
+
   it("uses 'at' to access elements by index", () => {
     const first_element = frame_array.at(0);
     expect(first_element).to.be.ok;
-    expect(first_element).to.be.instanceOf(Frame);
+    expect(first_element).to.equal(a_frame);
   });
 
   it("evaluates its components into an array", () => {
