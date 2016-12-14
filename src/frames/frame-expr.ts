@@ -34,6 +34,6 @@ export class FrameExpr extends FrameArray {
   };
 
   public toString() {
-    return FrameExpr.EXPR_BEGIN + this.toStringData() + FrameExpr.EXPR_END;
+    return FrameExpr.EXPR_BEGIN + this.toStringData() + `, ${this.meta_string()}` + FrameExpr.EXPR_END;
   }
 };
