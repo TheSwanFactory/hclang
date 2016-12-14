@@ -15,6 +15,9 @@ export class Frame {
   constructor(private meta = Void) {
   }
 
+  public s_begin() { return Frame.BEGIN; };
+  public s_end() { return Frame.END; };
+
   public get_here(key: string) {
     let result = this.meta[key];
     if (result != null) { return result; };
@@ -86,6 +89,6 @@ export class Frame {
   }
 
   public toString() {
-    return Frame.BEGIN + this.meta_string() + Frame.END;
+    return this.s_begin() + this.meta_string() + this.s_end();
   }
 };
