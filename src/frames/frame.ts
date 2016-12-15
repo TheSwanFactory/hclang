@@ -4,8 +4,8 @@ export interface IKeyValuePair extends ReadonlyArray<string | Frame > { 0: strin
 export const Void: Context = {};
 
 export class Frame {
-  public static readonly BEGIN = "(";
-  public static readonly END = ")";
+  public static readonly BEGIN_EXPR = "(";
+  public static readonly END_EXPR = ")";
   public static readonly kUP = ".up";
   public static readonly nil = new Frame();
   public static readonly missing: Frame = new Frame({
@@ -15,8 +15,10 @@ export class Frame {
   constructor(private meta = Void) {
   }
 
-  public s_begin() { return Frame.BEGIN; };
-  public s_end() { return Frame.END; };
+  public group_begin() { return Frame.BEGIN_EXPR; };
+  public group_end() { return Frame.END_EXPR; };
+  public data_begin() { return ""; };
+  public data_end() { return ""; };
 
   public get_here(key: string) {
     let result = this.meta[key];
@@ -81,14 +83,23 @@ export class Frame {
     return pairs.map(([key, value]) => { return `.${key} ${value};`; }).join(" ");
   }
 
-  public meta_wrap(dataString: string) {
-    if (this.meta_length() > 0) {
-      return Frame.BEGIN + `${dataString}, ` + this.meta_string() + Frame.END;
+  public toStringData(): string {
+    return null;
+  }
+
+  public toStringArray(): string[] {
+    const DATA_STRING = this.toStringData();
+    const result: string[] = [];
+    if (DATA_STRING != null) {
+      result.push(DATA_STRING);
     }
-    return dataString;
+    if (this.meta_length() > 0) {
+      result.push(this.meta_string());
+    }
+    return result;
   }
 
   public toString() {
-    return this.s_begin() + this.meta_string() + this.s_end();
+    return this.group_begin() + this.toStringArray().join(", ") + this.group_end();
   }
 };

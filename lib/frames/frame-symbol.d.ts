@@ -10,5 +10,5 @@ export declare class FrameSymbol extends Frame {
     });
     in(context?: Frame): Frame;
     called_by(context: Frame): Frame;
-    toString(): string;
+    toString(): any;
 }

@@ -8,5 +8,5 @@ export declare class FrameName extends Frame {
     });
     in(context?: Frame): FrameSymbol;
     toStringData(): string;
-    toString(): string;
+    toString(): any;
 }

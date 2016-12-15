@@ -8,16 +8,18 @@ export interface IKeyValuePair extends ReadonlyArray<string | Frame> {
 export declare const Void: Context;
 export declare class Frame {
     private meta;
-    static readonly BEGIN: string;
-    static readonly END: string;
+    static readonly BEGIN_EXPR: string;
+    static readonly END_EXPR: string;
     static readonly kUP: string;
     static readonly nil: Frame;
     static readonly missing: Frame;
     constructor(meta?: {
         [key: string]: Frame;
     });
-    s_begin(): string;
-    s_end(): string;
+    group_begin(): string;
+    group_end(): string;
+    data_begin(): string;
+    data_end(): string;
     get_here(key: string): Frame;
     get(key: string, origin?: this): Frame;
     set(key: string, value: Frame): Frame;
@@ -30,6 +32,7 @@ export declare class Frame {
     meta_length(): number;
     meta_pairs(): IKeyValuePair[];
     meta_string(): string;
-    meta_wrap(dataString: string): string;
+    toStringData(): string;
+    toStringArray(): string[];
     toString(): string;
 }
