@@ -20,7 +20,7 @@ export class FrameSymbol extends Frame {
     return this.in(context);
   }
 
-  public toString() {
-    return this.meta_wrap(this.data);
+  public toStringData() {
+    return this.data;
   }
 };

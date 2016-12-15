@@ -18,8 +18,4 @@ export class FrameName extends Frame {
   public toStringData() {
     return FrameName.NAME_BEGIN + this.data.toString();
   }
-
-  public toString() {
-    return this.meta_wrap(this.toStringData());
-  }
 };
