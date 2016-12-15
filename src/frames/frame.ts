@@ -100,6 +100,11 @@ export class Frame {
   }
 
   public toString() {
+    if (this.toStringData() === null) {
+      return this.group_begin() + this.meta_string() + this.group_end();
+    } else if (this.meta_length() === 0) {
+      return this.toStringData();
+    }
     return this.group_begin() + this.toStringArray().join(", ") + this.group_end();
   }
 };
