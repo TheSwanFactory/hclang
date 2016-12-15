@@ -18,8 +18,6 @@ export declare class Frame {
     });
     group_begin(): string;
     group_end(): string;
-    data_begin(): string;
-    data_end(): string;
     get_here(key: string): Frame;
     get(key: string, origin?: this): Frame;
     set(key: string, value: Frame): Frame;

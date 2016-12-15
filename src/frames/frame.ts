@@ -17,8 +17,6 @@ export class Frame {
 
   public group_begin() { return Frame.BEGIN_EXPR; };
   public group_end() { return Frame.END_EXPR; };
-  public data_begin() { return ""; };
-  public data_end() { return ""; };
 
   public get_here(key: string) {
     let result = this.meta[key];
