@@ -1,32 +1,27 @@
-import { Context, Frame, Void } from "./frame";
+import { Context, Frame, FrameList, Void } from "./frame";
 import { FrameArray } from "./frame-array";
 import { FrameExpr } from "./frame-expr";
 
-export class FrameLazy extends Frame {
+export class FrameLazy extends FrameList {
   public static readonly LAZY_BEGIN = "{";
   public static readonly LAZY_END = "}";
 
-  constructor(protected data: Frame, meta: Context = Void) {
-    super(meta);
+  constructor(data: Array<Frame>, meta: Context = Void) {
+    super(data, meta);
   }
 
+  public string_open() { return FrameLazy.LAZY_BEGIN + " "; };
+  public string_close() { return  " " + FrameLazy.LAZY_END; };
+
   public in(context: Frame): Frame {
-    if (this.data === Frame.nil) {
+    if (this.data.length === 0) {
       return this;
     }
     const current = this.set(Frame.kUP, context);
-    return this.data.set(Frame.kUP, current);
+    return new FrameExpr(this.data, {up: current});
   }
 
   public call(argument: Frame): FrameExpr {
-    if (argument instanceof FrameArray) {
-      const array: FrameArray = argument;
-      return new FrameExpr(array.data);
-    }
-    return new FrameExpr([argument]);
-  }
-
-  public toString(): string {
-    return FrameLazy.LAZY_BEGIN + " " + this.data.toString() + " " + FrameLazy.LAZY_END;
+    return new FrameExpr(argument.toArray(), {up: this});
   }
 };

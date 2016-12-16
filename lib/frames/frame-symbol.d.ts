@@ -1,5 +1,5 @@
-import { Frame } from "./frame";
-export declare class FrameSymbol extends Frame {
+import { Frame, FrameAtom } from "./frame";
+export declare class FrameSymbol extends FrameAtom {
     protected data: string;
     static for(symbol: string): FrameSymbol;
     protected static symbols: {
@@ -10,5 +10,5 @@ export declare class FrameSymbol extends Frame {
     });
     in(context?: Frame): Frame;
     called_by(context: Frame): Frame;
-    toStringData(): string;
+    toData(): string;
 }

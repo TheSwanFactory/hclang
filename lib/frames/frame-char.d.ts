@@ -1,5 +1,5 @@
-import { Frame } from "./frame";
-export declare class FrameChar extends Frame {
+import { FrameAtom } from "./frame";
+export declare class FrameChar extends FrameAtom {
     protected data: string;
     static readonly CHAR_BEGIN: string;
     static for(char: string): FrameChar;
@@ -7,6 +7,6 @@ export declare class FrameChar extends Frame {
         [key: string]: FrameChar;
     };
     constructor(data: string);
-    toStringData(): string;
-    toString(): string;
+    toData(): string;
+    string_prefix(): string;
 }

@@ -1,7 +1,7 @@
-import { Context, Frame, Void } from "./frame";
+import { Context, Frame, FrameAtom, Void } from "./frame";
 // import { FrameChar } from "./frame-char";
 
-export class FrameString extends Frame {
+export class FrameString extends FrameAtom {
   public static readonly STRING_BEGIN = "“";
   public static readonly STRING_END = "”";
 
@@ -15,11 +15,9 @@ export class FrameString extends Frame {
     return this;
   }
 
-  public toStringData() {
-    return this.data;
-  };
+  public toData() { return this.data; }
 
-  public toString() {
-    return FrameString.STRING_BEGIN + this.toStringData() + FrameString.STRING_END;
-  }
+  public string_prefix() { return FrameString.STRING_BEGIN; };
+
+  public string_suffix() { return FrameString.STRING_END; };
 };

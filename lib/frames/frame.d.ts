@@ -31,6 +31,7 @@ export declare class Frame {
     meta_pairs(): IKeyValuePair[];
     meta_string(): string;
     toString(): string;
+    toArray(): Array<Frame>;
 }
 export declare class FrameAtom extends Frame {
     string_prefix(): string;
@@ -38,6 +39,7 @@ export declare class FrameAtom extends Frame {
     toStringData(): string;
     toString(): string;
     protected toData(): any;
+    toArray(): Array<Frame>;
 }
 export declare class FrameList extends Frame {
     protected data: Array<Frame>;
@@ -47,4 +49,5 @@ export declare class FrameList extends Frame {
     toStringDataArray(): string[];
     toStringArray(): string[];
     toString(): string;
+    toArray(): Array<Frame>;
 }
