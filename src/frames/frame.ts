@@ -15,8 +15,8 @@ export class Frame {
   constructor(private meta = Void) {
   }
 
-  public group_begin() { return Frame.BEGIN_EXPR; };
-  public group_end() { return Frame.END_EXPR; };
+  public string_open() { return Frame.BEGIN_EXPR; };
+  public string_close() { return Frame.END_EXPR; };
 
   public get_here(key: string) {
     let result = this.meta[key];
@@ -82,12 +82,27 @@ export class Frame {
   }
 
   public toString() {
-    return this.group_begin() + this.meta_string() + this.group_end();
+    return this.string_open() + this.meta_string() + this.string_close();
   }
 };
 
 export class FrameAtom extends Frame {
+  public string_prefix() { return ""; };
+  public string_suffix() { return ""; };
+
   public toStringData(): string {
+    return this.string_prefix() + this.toData().toString() + this.string_suffix();
+  }
+
+  public toString() {
+    const DataString = this.toStringData();
+    if (this.meta_length() === 0) {
+      return DataString;
+    }
+    return this.string_open() + [DataString, this.meta_string()].join(", ") + this.string_close();
+  }
+
+  protected toData(): any {
     return null;
   }
 }
@@ -110,6 +125,6 @@ export class FrameList extends Frame {
   }
 
   public toString() {
-    return this.group_begin() + this.toStringArray().join(", ") + this.group_end();
+    return this.string_open() + this.toStringArray().join(", ") + this.string_close();
   }
 }

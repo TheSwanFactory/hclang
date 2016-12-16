@@ -8,8 +8,8 @@ export class FrameArray extends FrameList {
     super(data, meta);
   }
 
-  public group_begin() { return FrameArray.BEGIN_ARRAY; };
-  public group_end() { return FrameArray.END_ARRAY; };
+  public string_open() { return FrameArray.BEGIN_ARRAY; };
+  public string_close() { return FrameArray.END_ARRAY; };
 
   public in(context = Frame.nil): Frame {
     return new FrameArray(this.data.map((f) => { return f.in(context); }));

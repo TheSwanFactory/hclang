@@ -5,8 +5,8 @@ export declare class FrameArray extends FrameList {
     constructor(data: Array<Frame>, meta?: {
         [key: string]: Frame;
     });
-    group_begin(): string;
-    group_end(): string;
+    string_open(): string;
+    string_close(): string;
     in(context?: Frame): Frame;
     at(index: number): Frame;
 }

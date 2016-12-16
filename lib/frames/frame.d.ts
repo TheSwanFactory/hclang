@@ -16,8 +16,8 @@ export declare class Frame {
     constructor(meta?: {
         [key: string]: Frame;
     });
-    group_begin(): string;
-    group_end(): string;
+    string_open(): string;
+    string_close(): string;
     get_here(key: string): Frame;
     get(key: string, origin?: this): Frame;
     set(key: string, value: Frame): Frame;
@@ -33,7 +33,11 @@ export declare class Frame {
     toString(): string;
 }
 export declare class FrameAtom extends Frame {
+    string_prefix(): string;
+    string_suffix(): string;
     toStringData(): string;
+    toString(): string;
+    protected toData(): any;
 }
 export declare class FrameList extends Frame {
     protected data: Array<Frame>;
