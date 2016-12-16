@@ -1,11 +1,11 @@
-import { Frame, Void } from "./frame";
+import { Frame, FrameList, Void } from "./frame";
 
-export class FrameArray extends Frame {
+export class FrameArray extends FrameList {
   public static readonly BEGIN_ARRAY = "[";
   public static readonly END_ARRAY = "]";
 
-  constructor(public data: Array<Frame>, meta = Void) {
-    super(meta);
+  constructor(data: Array<Frame>, meta = Void) {
+    super(data, meta);
   }
 
   public group_begin() { return FrameArray.BEGIN_ARRAY; };
@@ -18,8 +18,4 @@ export class FrameArray extends Frame {
   public at(index: number) {
     return this.data[index];
   }
-
-  public toStringData() {
-    return this.data.map((obj: Frame) => { return obj.toString(); }).join(", ");
-  };
 }

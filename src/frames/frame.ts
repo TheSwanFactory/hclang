@@ -81,16 +81,28 @@ export class Frame {
     return pairs.map(([key, value]) => { return `.${key} ${value};`; }).join(" ");
   }
 
+  public toString() {
+    return this.group_begin() + this.meta_string() + this.group_end();
+  }
+};
+
+export class FrameAtom extends Frame {
   public toStringData(): string {
     return null;
   }
+}
+
+export class FrameList extends Frame {
+  constructor(protected data: Array<Frame>, meta = Void) {
+    super(meta);
+  }
+
+  public toStringDataArray() {
+    return this.data.map((obj: Frame) => { return obj.toString(); });
+  };
 
   public toStringArray(): string[] {
-    const DATA_STRING = this.toStringData();
-    const result: string[] = [];
-    if (DATA_STRING != null) {
-      result.push(DATA_STRING);
-    }
+    const result = this.toStringDataArray();
     if (this.meta_length() > 0) {
       result.push(this.meta_string());
     }
@@ -98,11 +110,6 @@ export class Frame {
   }
 
   public toString() {
-    if (this.toStringData() === null) {
-      return this.group_begin() + this.meta_string() + this.group_end();
-    } else if (this.meta_length() === 0) {
-      return this.toStringData();
-    }
     return this.group_begin() + this.toStringArray().join(", ") + this.group_end();
   }
-};
+}

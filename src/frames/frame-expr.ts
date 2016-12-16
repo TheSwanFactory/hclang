@@ -1,12 +1,8 @@
-import { Frame, Void } from "./frame";
+import { Frame, FrameList, Void } from "./frame";
 import { FrameArg } from "./frame-arg";
-import { FrameArray } from "./frame-array";
 import { FrameName } from "./frame-name";
 
-export class FrameExpr extends FrameArray {
-  public static readonly EXPR_BEGIN = "(";
-  public static readonly EXPR_END = ")";
-
+export class FrameExpr extends FrameList {
   public static extract(key: string) {
     return new FrameExpr([
       FrameArg.here(),
@@ -28,12 +24,4 @@ export class FrameExpr extends FrameArray {
   public call(context: Frame) {
     return this.in(context);
   };
-
-  public toStringData() {
-    return this.data.map((obj: Frame) => { return obj.toString(); }).join(" ");
-  };
-
-  public toString() {
-    return FrameExpr.EXPR_BEGIN + this.toStringData() + `, ${this.meta_string()}` + FrameExpr.EXPR_END;
-  }
 };

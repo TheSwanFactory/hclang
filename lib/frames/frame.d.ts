@@ -30,7 +30,17 @@ export declare class Frame {
     meta_length(): number;
     meta_pairs(): IKeyValuePair[];
     meta_string(): string;
+    toString(): string;
+}
+export declare class FrameAtom extends Frame {
     toStringData(): string;
+}
+export declare class FrameList extends Frame {
+    protected data: Array<Frame>;
+    constructor(data: Array<Frame>, meta?: {
+        [key: string]: Frame;
+    });
+    toStringDataArray(): string[];
     toStringArray(): string[];
     toString(): string;
 }
