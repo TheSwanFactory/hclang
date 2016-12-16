@@ -106,13 +106,11 @@ export class FrameAtom extends Frame {
     return this.string_open() + [DataString, this.meta_string()].join(", ") + this.string_close();
   }
 
-  protected toData(): any {
-    return null;
-  }
-
   public toArray(): Array<Frame> {
     return [this];
   }
+
+  protected toData(): any { return null; }
 }
 
 export class FrameList extends Frame {

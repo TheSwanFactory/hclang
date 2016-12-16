@@ -7,6 +7,6 @@ export declare class FrameName extends FrameAtom {
         [key: string]: Frame;
     });
     in(context?: Frame): FrameSymbol;
-    toData(): FrameSymbol;
     string_prefix(): string;
+    protected toData(): FrameSymbol;
 }

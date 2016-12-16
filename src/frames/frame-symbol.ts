@@ -20,5 +20,5 @@ export class FrameSymbol extends FrameAtom {
     return this.in(context);
   }
 
-  public toData() { return this.data; }
+  protected toData() { return this.data; }
 };

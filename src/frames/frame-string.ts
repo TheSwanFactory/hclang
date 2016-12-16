@@ -1,5 +1,4 @@
-import { Context, Frame, FrameAtom, Void } from "./frame";
-// import { FrameChar } from "./frame-char";
+import { Context, FrameAtom, Void } from "./frame";
 
 export class FrameString extends FrameAtom {
   public static readonly STRING_BEGIN = "“";
@@ -15,9 +14,9 @@ export class FrameString extends FrameAtom {
     return this;
   }
 
-  public toData() { return this.data; }
-
   public string_prefix() { return FrameString.STRING_BEGIN; };
 
   public string_suffix() { return FrameString.STRING_END; };
+
+  protected toData() { return this.data; }
 };

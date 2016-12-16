@@ -7,6 +7,6 @@ export declare class FrameChar extends FrameAtom {
         [key: string]: FrameChar;
     };
     constructor(data: string);
-    toData(): string;
     string_prefix(): string;
+    protected toData(): string;
 }

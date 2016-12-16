@@ -4,7 +4,7 @@ import { Frame, FrameArray, FrameExpr, FrameName, FrameString, FrameLazy } from 
 describe("FrameLazy", () => {
   const sloth = new FrameString("sloth");
   const in_lazy = new FrameString("in_lazy");
-  const lazy = new FrameLazy(sloth, {in_lazy: in_lazy});
+  const lazy = new FrameLazy([sloth], {in_lazy: in_lazy});
   const context = new FrameString("context", {nil: Frame.nil});
   const evaluated = lazy.in(context);
 
@@ -31,7 +31,7 @@ describe("FrameLazy", () => {
   });
 
   describe("Codify", () => {
-    const codify = new FrameLazy(Frame.nil);
+    const codify = new FrameLazy([Frame.nil]);
 
     it("returns itself when Frame is nil", () => {
       expect(codify.in(Frame.nil)).to.equal(codify);

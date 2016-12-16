@@ -15,7 +15,7 @@ export class FrameName extends FrameAtom {
     return this.data;
   }
 
-  public toData() { return this.data; }
-
   public string_prefix() { return FrameName.NAME_BEGIN; };
+
+  protected toData() { return this.data; }
 };

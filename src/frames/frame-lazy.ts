@@ -1,5 +1,4 @@
 import { Context, Frame, FrameList, Void } from "./frame";
-import { FrameArray } from "./frame-array";
 import { FrameExpr } from "./frame-expr";
 
 export class FrameLazy extends FrameList {

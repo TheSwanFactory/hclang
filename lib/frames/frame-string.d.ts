@@ -5,7 +5,7 @@ export declare class FrameString extends FrameAtom {
     static readonly STRING_END: string;
     constructor(data: string, meta?: Context);
     apply(argument: FrameString): this;
-    toData(): string;
     string_prefix(): string;
     string_suffix(): string;
+    protected toData(): string;
 }

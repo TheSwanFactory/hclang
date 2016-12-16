@@ -10,5 +10,5 @@ export declare class FrameSymbol extends FrameAtom {
     });
     in(context?: Frame): Frame;
     called_by(context: Frame): Frame;
-    toData(): string;
+    protected toData(): string;
 }

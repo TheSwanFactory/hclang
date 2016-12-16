@@ -38,8 +38,8 @@ export declare class FrameAtom extends Frame {
     string_suffix(): string;
     toStringData(): string;
     toString(): string;
-    protected toData(): any;
     toArray(): Array<Frame>;
+    protected toData(): any;
 }
 export declare class FrameList extends Frame {
     protected data: Array<Frame>;

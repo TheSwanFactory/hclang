@@ -1,4 +1,4 @@
-import { Frame, FrameAtom } from "./frame";
+import { FrameAtom } from "./frame";
 
 export class FrameChar extends FrameAtom {
   public static readonly CHAR_BEGIN = "\\\\";
@@ -14,7 +14,7 @@ export class FrameChar extends FrameAtom {
     super();
   }
 
-  public toData() { return this.data; }
-
   public string_prefix() { return FrameChar.CHAR_BEGIN; };
+
+  protected toData() { return this.data; }
 };
