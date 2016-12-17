@@ -30,6 +30,11 @@ describe("Frame", () => {
   });
 
   describe("FrameMETA", () => {
+    it("returns a copy", () => {
+      const new_meta = frame.meta_copy();
+      expect(new_meta["nil"]).to.equal(Frame.nil);
+    });
+
     it("returns list of meta_keys", () => {
       const keys = frame.meta_keys();
       expect(keys).to.eql(["nil"]);
@@ -41,7 +46,7 @@ describe("Frame", () => {
     });
 
     it("stringifies meta_pairs as `.key value;`", () => {
-      expect(frame.meta_string()).to.eql(".nil ();");
+      expect(frame.meta_string()).to.equal(".nil ();");
     });
 
     it("gets values from context with string key", () => {

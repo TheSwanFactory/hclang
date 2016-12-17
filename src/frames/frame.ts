@@ -60,6 +60,10 @@ export class Frame {
     return argument.called_by(this);
   }
 
+  public meta_copy() {
+    return Object.create(this.meta);
+  }
+
   public meta_keys() {
     return Object.keys(this.meta);
   }
