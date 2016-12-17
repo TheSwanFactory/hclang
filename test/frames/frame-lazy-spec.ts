@@ -8,7 +8,6 @@ describe("FrameLazy", () => {
   const lazy = new FrameLazy([sloth, FrameArg.here()], {in_lazy: in_lazy});
   const context = new FrameString("context", {nil: Frame.nil});
   const expr = lazy.in(context);
-  const evaluated = expr.call(Frame.nil);
 
   it("takes an Array<Frame>", () => {
     expect(lazy).to.be.instanceof(FrameLazy);
@@ -20,18 +19,21 @@ describe("FrameLazy", () => {
   });
 
   it("evalutes to an Expr", () => {
+    const result = expr.toString();
+    expect(expr).to.be.instanceof(FrameExpr);
+    expect(result).to.equal(`(${sloth.toString()} _, `);
+  });
+
+  it("evalutes to an Expr", () => {
     expect(expr).to.be.instanceof(FrameExpr);
   });
 
-  it("evaluates expr to inside itself", () => {
-    const value = evaluated.get("in_lazy");
-    expect(value).to.equal(in_lazy);
+  it("evaluates expr to inside self and context", () => {
+    const evaluated = expr.call(turtle);
+    expect(evaluated.get("in_lazy")).to.equal(in_lazy);
+    expect(evaluated.get("nil")).to.equal(Frame.nil);
   });
 
-  it("evaluates expr to inside context", () => {
-    const value = evaluated.get("nil");
-    expect(value).to.equal(Frame.nil);
-  });
 
   describe("Codify", () => {
     const codify = new FrameLazy([Frame.nil]);
