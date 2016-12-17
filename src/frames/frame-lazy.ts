@@ -1,4 +1,4 @@
-import { Context, Frame, Void } from "./frame";
+import { Context, Frame, IKeyValuePair, Void } from "./frame";
 import { FrameExpr } from "./frame-expr";
 
 export class FrameLazy extends FrameExpr {
@@ -17,12 +17,8 @@ export class FrameLazy extends FrameExpr {
       return this;
     }
     let MetaNew = this.meta_copy();
-    for (let attr in context) {
-      if (context.hasOwnProperty(attr)) {
-        let prop: any = (<any> context)[attr];
-        MetaNew[attr] = prop;
-      }
-    }
+    let pairs: Array<IKeyValuePair> = context.meta_pairs();
+    pairs.map(([key, value]) => { MetaNew[key] = value; });
     return new FrameExpr(this.data, MetaNew);
   }
 

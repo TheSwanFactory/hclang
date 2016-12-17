@@ -23,7 +23,7 @@ describe("FrameLazy", () => {
 
   it("evalutes to an Expr with merged context", () => {
     expect(expr).to.be.instanceof(FrameExpr);
-    expect(expr.toString()).to.equal(`(speed gap _, .speed “slow”; .gap “ ”;`);
+    expect(expr.toString()).to.equal(`(speed gap _, .speed “slow”; .gap “ ”;)`);
     expect(expr.get("speed")).to.equal(slow);
     expect(expr.get("gap")).to.equal(space);
   });
