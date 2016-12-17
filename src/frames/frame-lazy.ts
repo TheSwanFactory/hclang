@@ -1,7 +1,7 @@
-import { Context, Frame, FrameList, Void } from "./frame";
+import { Context, Frame, Void } from "./frame";
 import { FrameExpr } from "./frame-expr";
 
-export class FrameLazy extends FrameList {
+export class FrameLazy extends FrameExpr {
   public static readonly LAZY_BEGIN = "{";
   public static readonly LAZY_END = "}";
 

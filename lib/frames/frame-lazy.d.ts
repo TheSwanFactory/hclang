@@ -1,6 +1,6 @@
-import { Context, Frame, FrameList } from "./frame";
+import { Context, Frame } from "./frame";
 import { FrameExpr } from "./frame-expr";
-export declare class FrameLazy extends FrameList {
+export declare class FrameLazy extends FrameExpr {
     static readonly LAZY_BEGIN: string;
     static readonly LAZY_END: string;
     constructor(data: Array<Frame>, meta?: Context);
