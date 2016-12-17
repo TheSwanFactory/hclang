@@ -16,8 +16,14 @@ export class FrameLazy extends FrameExpr {
     if (this.data.length === 0) {
       return this;
     }
-    const current = this.set(Frame.kUP, context);
-    return new FrameExpr(this.data, {up: current});
+    let MetaNew = this.meta_copy();
+    for (let attr in context) {
+      if (context.hasOwnProperty(attr)) {
+        let prop: any = (<any> context)[attr];
+        MetaNew[attr] = prop;
+      }
+    }
+    return new FrameExpr(this.data, MetaNew);
   }
 
   public call(argument: Frame): FrameExpr {
