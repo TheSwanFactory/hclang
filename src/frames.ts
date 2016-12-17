@@ -6,4 +6,4 @@ export { FrameExpr } from "./frames/frame-expr";
 export { FrameName } from "./frames/frame-name";
 export { FrameString } from "./frames/frame-string";
 export { FrameSymbol } from "./frames/frame-symbol";
-export { IKeyValuePair, Frame } from "./frames/frame";
+export { IKeyValuePair, Context, Frame, Void } from "./frames/frame";

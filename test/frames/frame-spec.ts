@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { IKeyValuePair, Frame, FrameArray, FrameSymbol } from "../../src/frames";
+import { IKeyValuePair, Context, Frame, FrameArray, FrameSymbol } from "../../src/frames";
 
 describe("Frame", () => {
   const frame = new Frame({nil: Frame.nil});
@@ -31,8 +31,16 @@ describe("Frame", () => {
 
   describe("FrameMETA", () => {
     it("returns a copy", () => {
-      const new_meta = frame.meta_copy();
+      const new_meta: Context = frame.meta_copy();
       expect(new_meta["nil"]).to.equal(Frame.nil);
+
+      new_meta["symbol"] = new FrameSymbol("symbolic");
+      console.log(JSON.stringify(new_meta));
+      expect(frame.toString()).to.equal("(.nil ();)");
+
+      const new_frame = new Frame(new_meta);
+      expect(new_frame.get("nil")).to.equal(Frame.nil);
+      expect(new_frame.toString()).to.equal("(.nil (); .symbol symbolic;)");
     });
 
     it("returns list of meta_keys", () => {

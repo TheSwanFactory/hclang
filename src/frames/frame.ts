@@ -60,8 +60,12 @@ export class Frame {
     return argument.called_by(this);
   }
 
-  public meta_copy() {
-    return Object.create(this.meta);
+  public meta_copy(): Context {
+    let clone = this.meta.constructor(); // give temp the original obj's constructor
+    for (let key in this.meta) {
+        clone[key] = this.meta[key];
+    }
+    return clone;
   }
 
   public meta_keys() {

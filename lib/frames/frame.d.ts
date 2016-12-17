@@ -26,9 +26,7 @@ export declare class Frame {
     apply(argument: Frame): Frame;
     called_by(context: Frame): Frame;
     call(argument: Frame): Frame;
-    meta_copy(): {
-        [key: string]: Frame;
-    };
+    meta_copy(): Context;
     meta_keys(): string[];
     meta_length(): number;
     meta_pairs(): IKeyValuePair[];
