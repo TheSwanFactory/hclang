@@ -24,4 +24,9 @@ export class FrameExpr extends FrameList {
   public call(context: Frame) {
     return this.in(context);
   };
+
+  public toStringDataArray(): string[] {
+    const array = super.toStringDataArray();
+    return [array.join(" ")];
+  }
 };
