@@ -1,33 +1,36 @@
 import { expect } from "chai";
-import { Frame, FrameArray, FrameExpr, FrameName, FrameString, FrameLazy } from "../../src/frames";
+import { Frame, FrameArg, FrameArray, FrameExpr, FrameName, FrameString, FrameLazy } from "../../src/frames";
 
 describe("FrameLazy", () => {
   const sloth = new FrameString("sloth");
+  const turtle = new FrameString("turtle");
   const in_lazy = new FrameString("in_lazy");
-  const lazy = new FrameLazy([sloth], {in_lazy: in_lazy});
+  const lazy = new FrameLazy([sloth, FrameArg.here()], {in_lazy: in_lazy});
   const context = new FrameString("context", {nil: Frame.nil});
-  const evaluated = lazy.in(context);
+  const expr = lazy.in(context);
+  const evaluated = expr.call(Frame.nil);
 
-  it("takes a Frame", () => {
+  it("takes an Array<Frame>", () => {
     expect(lazy).to.be.instanceof(FrameLazy);
   });
 
-  it("returns that Frame when evaluated", () => {
-    expect(evaluated).to.equal(sloth);
+  it("stringifies to { expr, meta }", () => {
+    const result = lazy.toString();
+    expect(result).to.include(`{ ${sloth.toString()} _, `);
   });
 
-  it("places that Frame inside the calling context", () => {
-    const value = evaluated.get("nil");
-    expect(value).to.equal(Frame.nil);
+  it("evalutes to an Expr", () => {
+    expect(expr).to.be.instanceof(FrameExpr);
   });
 
-  it("places that Frame inside this context", () => {
+  it("evaluates expr to inside itself", () => {
     const value = evaluated.get("in_lazy");
     expect(value).to.equal(in_lazy);
   });
 
-  it("stringifies to { frame }", () => {
-    expect(lazy.toString()).to.equal(`{ ${sloth.toString()} }`);
+  it("evaluates expr to inside context", () => {
+    const value = evaluated.get("nil");
+    expect(value).to.equal(Frame.nil);
   });
 
   describe("Codify", () => {
