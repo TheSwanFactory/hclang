@@ -16,13 +16,17 @@ export class FrameLazy extends FrameExpr {
     if (this.data.length === 0) {
       return this;
     }
-    let MetaNew = this.meta_copy();
-    let pairs: Array<IKeyValuePair> = context.meta_pairs();
-    pairs.map(([key, value]) => { MetaNew[key] = value; });
-    return new FrameExpr(this.data, MetaNew);
+    return new FrameExpr(this.data, this.meta_for(context));
   }
 
   public call(argument: Frame): FrameExpr {
-    return new FrameExpr(argument.toArray(), {up: this});
+    return new FrameExpr(argument.toArray(), this.meta_for(argument));
+  }
+
+  protected meta_for(context: Frame) {
+    let MetaNew = this.meta_copy();
+    let pairs: Array<IKeyValuePair> = context.meta_pairs();
+    pairs.map(([key, value]) => { MetaNew[key] = value; });
+    return MetaNew;
   }
 };
