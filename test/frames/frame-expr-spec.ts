@@ -50,14 +50,25 @@ describe("FrameExpr", () => {
     expect(result).to.equal(frame_string);
   });
 
-  it("evaluates a sequence of properties", () => {
+  describe("with Properties, when called", () => {
     const slow = new FrameString("slow");
     const space = new FrameString(" ");
     const turtle = new FrameString("turtle");
 
-    const lazy_array = [new FrameSymbol("speed"), new FrameSymbol("gap"), FrameArg.here()];
-    const frame_expr = new FrameExpr(lazy_array, {speed: slow, gap: space});
+    const s_speed = new FrameSymbol("speed");
+    const s_gap = new FrameSymbol("gap");
 
-    expect(frame_expr.call(turtle).toString()).to.equal(`“slow turtle”`);
+    it("evaluates properties in its local context", () => {
+      const frame_expr = new FrameExpr([s_speed], {speed: slow, gap: space});
+
+      expect(frame_expr.call(Frame.nil).toString()).to.equal(`“slow”`);
+    });
+
+    it("evaluates a sequence of properties", () => {
+      const expr_array = [s_speed, s_gap, FrameArg.here()];
+      const frame_expr = new FrameExpr(expr_array, {speed: slow, gap: space});
+
+      expect(frame_expr.call(turtle).toString()).to.equal(`“slow turtle”`);
+    });
   });
 });
