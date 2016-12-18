@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { Frame, FrameArg, FrameExpr, FrameString } from "../../src/frames";
+import { Frame, FrameArg, FrameExpr, FrameString, FrameSymbol } from "../../src/frames";
 
 describe("FrameExpr", () => {
   const frame = new Frame();
@@ -50,4 +50,14 @@ describe("FrameExpr", () => {
     expect(result).to.equal(frame_string);
   });
 
+  it("evaluates a sequence of properties", () => {
+    const slow = new FrameString("slow");
+    const space = new FrameString(" ");
+    const turtle = new FrameString("turtle");
+
+    const lazy_array = [new FrameSymbol("speed"), new FrameSymbol("gap"), FrameArg.here()];
+    const frame_expr = new FrameExpr(lazy_array, {speed: slow, gap: space});
+
+    expect(frame_expr.call(turtle).toString()).to.equal(`“slow turtle”`);
+  });
 });
