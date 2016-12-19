@@ -31,6 +31,7 @@ describe("FrameLazy", () => {
 
   describe("Codify", () => {
     const codify = new FrameLazy([]);
+    const fast = new FrameString("fast");
 
     it("is created with an empty Array", () => {
       expect(codify.toString()).to.equal("{  }");
@@ -41,20 +42,19 @@ describe("FrameLazy", () => {
     });
 
     it("converts Array to Expr when called", () => {
-      const array = new FrameArray(lazy_array, {speed: slow, gap:space});
+      const array = new FrameArray(lazy_array, {speed: fast, gap:space});
       const codified = codify.call(array);
 
       expect(codified).to.be.instanceof(FrameExpr);
-      expect(codified.toString()).to.equal("(speed gap _)");
-      expect(codified.call(turtle).toString()).to.equal(`“slow turtle”`);
+      expect(codified.toString()).to.include("(speed gap _");
+      expect(codified.call(turtle).toString()).to.equal(`“fast turtle”`);
     });
 
     it("treats other Frames as Arrays when called", () => {
       const wrap = codify.call(turtle);
 
       expect(wrap).to.be.instanceof(FrameExpr);
-      expect(wrap.at(0)).to.equal(turtle);
-      expect(wrap.in()).to.equal(turtle);
+      expect(wrap.call(Frame.nil).toString()).to.equal(`“turtle”`);
     });
   });
 });
