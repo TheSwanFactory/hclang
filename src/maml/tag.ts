@@ -9,7 +9,7 @@ const wrapArgs = (prefix: string, suffix: string) => {
 };
 
 export const tag = new FrameExpr([
-  new FrameLazy(Frame.nil),
+  new FrameLazy([]),
   new FrameArray([
     wrapArgs("<", ">"),
     FrameArg.level(2),
