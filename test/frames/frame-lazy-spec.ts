@@ -1,58 +1,60 @@
 import { expect } from "chai";
-import { Frame, FrameArray, FrameExpr, FrameName, FrameString, FrameLazy } from "../../src/frames";
+import { Frame, FrameArg, FrameArray, FrameExpr, FrameName, FrameString, FrameSymbol, FrameLazy } from "../../src/frames";
 
 describe("FrameLazy", () => {
-  const sloth = new FrameString("sloth");
-  const in_lazy = new FrameString("in_lazy");
-  const lazy = new FrameLazy(sloth, {in_lazy: in_lazy});
-  const context = new FrameString("context", {nil: Frame.nil});
-  const evaluated = lazy.in(context);
+  const slow = new FrameString("slow");
+  const space = new FrameString(" ");
+  const turtle = new FrameString("turtle");
 
-  it("takes a Frame", () => {
+  const lazy_array = [new FrameSymbol("speed"), new FrameSymbol("gap"), FrameArg.here()];
+  const lazy = new FrameLazy(lazy_array, {speed: slow});
+  const context = new FrameString("context", {gap: space});
+
+  it("takes an Array<Frame>", () => {
     expect(lazy).to.be.instanceof(FrameLazy);
   });
 
-  it("returns that Frame when evaluated", () => {
-    expect(evaluated).to.equal(sloth);
-  });
-
-  it("places that Frame inside the calling context", () => {
-    const value = evaluated.get("nil");
-    expect(value).to.equal(Frame.nil);
-  });
-
-  it("places that Frame inside this context", () => {
-    const value = evaluated.get("in_lazy");
-    expect(value).to.equal(in_lazy);
-  });
-
-  it("stringifies to { frame }", () => {
+  it("stringifies to { expr, meta }", () => {
     const result = lazy.toString();
-    expect(result).to.equal(`{ ${sloth.toString()} }`);
+    expect(result).to.include(`{ speed gap _, `);
+  });
+
+  it("evalutes to an Expr with merged context", () => {
+    const expr = lazy.in(context);
+
+    expect(expr).to.be.instanceof(FrameExpr);
+    expect(expr.toString()).to.equal(`(speed gap _, .speed “slow”; .gap “ ”;)`);
+    expect(expr.get("speed")).to.equal(slow);
+    expect(expr.get("gap")).to.equal(space);
+    expect(expr.call(turtle).toString()).to.equal(`“slow turtle”`);
   });
 
   describe("Codify", () => {
-    const codify = new FrameLazy(Frame.nil);
+    const codify = new FrameLazy([]);
+    const fast = new FrameString("fast");
+
+    it("is created with an empty Array", () => {
+      expect(codify.toString()).to.equal("{  }");
+    });
 
     it("returns itself when Frame is nil", () => {
-      expect(codify.in(Frame.nil)).to.equal(codify);
+      expect(codify.in(context)).to.equal(codify);
     });
 
     it("converts Array to Expr when called", () => {
-      const array = new FrameArray([context, new FrameName("nil")]);
-      const expr = codify.call(array);
+      const array = new FrameArray(lazy_array, {speed: fast, gap:space});
+      const codified = codify.call(array);
 
-      expect(expr).to.be.instanceof(FrameExpr);
-      expect(expr.at(0)).to.equal(context);
-      expect(expr.in()).to.equal(Frame.nil);
+      expect(codified).to.be.instanceof(FrameExpr);
+      expect(codified.toString()).to.include("(speed gap _");
+      expect(codified.call(turtle).toString()).to.equal(`“fast turtle”`);
     });
 
-    it("wraps other Frames in Expr when called", () => {
-      const wrap = codify.call(sloth);
+    it("treats other Frames as Arrays when called", () => {
+      const wrap = codify.call(turtle);
 
       expect(wrap).to.be.instanceof(FrameExpr);
-      expect(wrap.at(0)).to.equal(sloth);
-      expect(wrap.in()).to.equal(sloth);
+      expect(wrap.call(Frame.nil).toString()).to.equal(`“turtle”`);
     });
   });
 });

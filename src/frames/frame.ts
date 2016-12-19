@@ -4,8 +4,8 @@ export interface IKeyValuePair extends ReadonlyArray<string | Frame > { 0: strin
 export const Void: Context = {};
 
 export class Frame {
-  public static readonly BEGIN = "(";
-  public static readonly END = ")";
+  public static readonly BEGIN_EXPR = "(";
+  public static readonly END_EXPR = ")";
   public static readonly kUP = ".up";
   public static readonly nil = new Frame();
   public static readonly missing: Frame = new Frame({
@@ -14,6 +14,9 @@ export class Frame {
 
   constructor(private meta = Void) {
   }
+
+  public string_open() { return Frame.BEGIN_EXPR; };
+  public string_close() { return Frame.END_EXPR; };
 
   public get_here(key: string) {
     let result = this.meta[key];
@@ -88,14 +91,60 @@ export class Frame {
     return pairs.map(([key, value]) => { return `.${key} ${value};`; }).join(" ");
   }
 
-  public meta_wrap(dataString: string) {
-    if (this.meta_length() > 0) {
-      return Frame.BEGIN + `${dataString}, ` + this.meta_string() + Frame.END;
-    }
-    return dataString;
+  public toString() {
+    return this.string_open() + this.meta_string() + this.string_close();
+  }
+
+  public toArray(): Array<Frame> {
+    return [];
+  }
+};
+
+export class FrameAtom extends Frame {
+  public string_prefix() { return ""; };
+  public string_suffix() { return ""; };
+
+  public toStringData(): string {
+    return this.string_prefix() + this.toData().toString() + this.string_suffix();
   }
 
   public toString() {
-    return Frame.BEGIN + this.meta_string() + Frame.END;
+    const DataString = this.toStringData();
+    if (this.meta_length() === 0) {
+      return DataString;
+    }
+    return this.string_open() + [DataString, this.meta_string()].join(", ") + this.string_close();
   }
-};
+
+  public toArray(): Array<Frame> {
+    return [this];
+  }
+
+  protected toData(): any { return null; }
+}
+
+export class FrameList extends Frame {
+  constructor(protected data: Array<Frame>, meta = Void) {
+    super(meta);
+  }
+
+  public toStringDataArray() {
+    return this.data.map((obj: Frame) => { return obj.toString(); });
+  };
+
+  public toStringArray(): string[] {
+    const result = this.toStringDataArray();
+    if (this.meta_length() > 0) {
+      result.push(this.meta_string());
+    }
+    return result;
+  }
+
+  public toString() {
+    return this.string_open() + this.toStringArray().join(", ") + this.string_close();
+  }
+
+  public toArray(): Array<Frame> {
+    return this.data;
+  }
+}

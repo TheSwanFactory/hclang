@@ -1,12 +1,8 @@
-import { Frame, Void } from "./frame";
+import { Frame, FrameList, Void } from "./frame";
 import { FrameArg } from "./frame-arg";
-import { FrameArray } from "./frame-array";
 import { FrameName } from "./frame-name";
 
-export class FrameExpr extends FrameArray {
-  public static readonly EXPR_BEGIN = "(";
-  public static readonly EXPR_END = ")";
-
+export class FrameExpr extends FrameList {
   public static extract(key: string) {
     return new FrameExpr([
       FrameArg.here(),
@@ -20,7 +16,10 @@ export class FrameExpr extends FrameArray {
 
   public in(context = Frame.nil) {
     return this.data.reduce((sum: Frame, item: Frame) => {
-      const value = item.in(context);
+      let value = item.in(context);
+      if (value === Frame.missing) {
+        value = item.in(this);
+      }
       return sum.call(value);
     }, Frame.nil);
   }
@@ -29,11 +28,8 @@ export class FrameExpr extends FrameArray {
     return this.in(context);
   };
 
-  public toStringData() {
-    return this.data.map((obj: Frame) => { return obj.toString(); }).join(" ");
-  };
-
-  public toString() {
-    return FrameExpr.EXPR_BEGIN + this.toStringData() + FrameExpr.EXPR_END;
+  public toStringDataArray(): string[] {
+    const array = super.toStringDataArray();
+    return [array.join(" ")];
   }
 };
