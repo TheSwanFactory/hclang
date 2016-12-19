@@ -1,6 +1,6 @@
-import { Frame, Void } from "./frame";
+import { Frame, FrameAtom, Void } from "./frame";
 
-export class FrameSymbol extends Frame {
+export class FrameSymbol extends FrameAtom {
   public static for(symbol: string) {
     const exists = FrameSymbol.symbols[symbol];
     return exists || (FrameSymbol.symbols[symbol] = new FrameSymbol(symbol));
@@ -20,7 +20,5 @@ export class FrameSymbol extends Frame {
     return this.in(context);
   }
 
-  public toString() {
-    return this.meta_wrap(this.data);
-  }
+  protected toData() { return this.data; }
 };

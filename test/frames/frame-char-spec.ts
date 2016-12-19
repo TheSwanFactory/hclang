@@ -8,12 +8,14 @@ describe("FrameChar", () => {
     expect(frame_char).to.be.instanceOf(FrameChar);
   });
 
-  it("stringifies to a unit netstring", () => {
-    expect(frame_char.toString()).to.equal("\\\\a");
+  it("uses \\\\ as prefix", () => {
+    expect(FrameChar.CHAR_BEGIN).to.equal("\\\\");
+    expect(frame_char.string_prefix()).to.equal("\\\\");
+    expect(frame_char.toStringData()).to.equal("\\\\a");
   });
 
-  it("returns the char for 'toStringData'", () => {
-    expect(frame_char.toStringData()).to.equal("a");
+  it("stringifies to a unit netstring", () => {
+    expect(frame_char.toString()).to.equal("\\\\a");
   });
 
   it("always returns the same FramChar object", () => {

@@ -1,14 +1,15 @@
 import { expect } from "chai";
-import { Frame, FrameArg, FrameExpr, FrameString } from "../../src/frames";
+import { Frame, FrameArg, FrameExpr, FrameString, FrameSymbol } from "../../src/frames";
 
 describe("FrameExpr", () => {
   const frame = new Frame();
   const js_string = "Hello";
+  const context = new FrameString("context");
   const frame_string = new FrameString(js_string);
-  const frame_expr = new FrameExpr([frame, frame_string], {string: frame_string});
+  const frame_expr = new FrameExpr([frame, frame_string], {context: context});
 
   it("stringifies with parentheses", () => {
-    expect(frame_expr.toString()).to.equal(`(() “${js_string}”)`);
+    expect(frame_expr.toString()).to.equal(`(() “${js_string}”, .context “context”;)`);
   });
 
   it("replaces nil when evaluated", () => {
@@ -49,4 +50,25 @@ describe("FrameExpr", () => {
     expect(result).to.equal(frame_string);
   });
 
+  describe("with Properties, when called", () => {
+    const slow = new FrameString("slow");
+    const space = new FrameString(" ");
+    const turtle = new FrameString("turtle");
+
+    const s_speed = new FrameSymbol("speed");
+    const s_gap = new FrameSymbol("gap");
+
+    it("evaluates properties in its local context", () => {
+      const frame_expr = new FrameExpr([s_speed], {speed: slow, gap: space});
+
+      expect(frame_expr.call(Frame.nil).toString()).to.equal(`“slow”`);
+    });
+
+    it("evaluates a sequence of properties", () => {
+      const expr_array = [s_speed, s_gap, FrameArg.here()];
+      const frame_expr = new FrameExpr(expr_array, {speed: slow, gap: space});
+
+      expect(frame_expr.call(turtle).toString()).to.equal(`“slow turtle”`);
+    });
+  });
 });
