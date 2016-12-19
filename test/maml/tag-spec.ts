@@ -15,6 +15,10 @@ describe("MAML Tag", () => {
     expect(tag).to.be.instanceOf(FrameExpr);
   });
 
+  it("stringifies to an expression", () => {
+    expect(tag.toString()).to.equal("({ () } ())");
+  });
+
   it("converts a string into an expr", () => {
     expect(p_tag).to.be.instanceOf(FrameExpr);
   });
@@ -27,11 +31,12 @@ describe("MAML Tag", () => {
 
   it("can be bound to a name", () => {
     const expr = new FrameExpr([
-      new FrameSymbol("tag")
+      new FrameSymbol("tag"),
+      new FrameString("body"),
     ]);
     const scope = new FrameString("scope", {tag});
     const evaluated = expr.in(scope)
-    expect(evaluated).to.equal(tag);
+    expect(evaluated.toString()).to.equal("({ () } ())");
   });
 
   it("works in expressions", () => {
