@@ -10,8 +10,7 @@ export class FrameString extends FrameAtom {
   }
 
   public apply(argument: FrameString) {
-    this.data = this.data.concat(argument.data);
-    return this;
+    return new FrameString(this.data + argument.data);
   }
 
   public string_prefix() { return FrameString.STRING_BEGIN; };
