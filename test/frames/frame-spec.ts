@@ -35,7 +35,6 @@ describe("Frame", () => {
       expect(new_meta["nil"]).to.equal(Frame.nil);
 
       new_meta["symbol"] = new FrameSymbol("symbolic");
-      console.log(JSON.stringify(new_meta));
       expect(frame.toString()).to.equal("(.nil ();)");
 
       const new_frame = new Frame(new_meta);
