@@ -6,13 +6,14 @@ describe("FrameExpr", () => {
   const js_string = "Hello";
   const context = new FrameString("context");
   const frame_string = new FrameString(js_string);
-  const frame_expr = new FrameExpr([frame, frame_string], {context: context});
 
   it("stringifies with parentheses", () => {
+    const frame_expr = new FrameExpr([frame, frame_string], {context: context});
     expect(frame_expr.toString()).to.equal(`(() “${js_string}”, .context “context”;)`);
   });
 
   it("replaces nil when evaluated", () => {
+    const frame_expr = new FrameExpr([frame, frame_string], {context: context});
     const result = frame_expr.in(frame);
     expect(result).to.equal(frame_string);
   });
@@ -20,8 +21,8 @@ describe("FrameExpr", () => {
   it("concatenates string expressions when called", () => {
     const js_string_2 = ", MAML!";
     const frame_string_2 = new FrameString(js_string_2);
-    const frame_expr_2 = new FrameExpr([frame_string, frame_string_2]);
-    const result = frame_expr_2.in(frame);
+    const frame_expr = new FrameExpr([frame_string, frame_string_2]);
+    const result = frame_expr.in(frame);
 
     expect(result.toString()).to.equal(`“${js_string}${js_string_2}”`);
   });
@@ -57,6 +58,7 @@ describe("FrameExpr", () => {
 
     const s_speed = new FrameSymbol("speed");
     const s_gap = new FrameSymbol("gap");
+    const expr_array = [s_speed, s_gap, FrameArg.here()];
 
     it("evaluates properties in its local context", () => {
       const frame_expr = new FrameExpr([s_speed], {speed: slow, gap: space});
@@ -65,8 +67,14 @@ describe("FrameExpr", () => {
     });
 
     it("evaluates a sequence of properties", () => {
-      const expr_array = [s_speed, s_gap, FrameArg.here()];
       const frame_expr = new FrameExpr(expr_array, {speed: slow, gap: space});
+
+      expect(frame_expr.call(turtle).toString()).to.equal(`“slow turtle”`);
+    });
+
+    it("evaluates recursively", () => {
+      const sub_expr = new FrameExpr(expr_array)
+      const frame_expr = new FrameExpr([sub_expr], {speed: slow, gap: space});
 
       expect(frame_expr.call(turtle).toString()).to.equal(`“slow turtle”`);
     });
