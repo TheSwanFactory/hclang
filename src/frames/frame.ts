@@ -1,3 +1,4 @@
+import * as _ from 'lodash';
 
 export type Context = { [key: string]: Frame; };
 export interface IKeyValuePair extends ReadonlyArray<string | Frame > { 0: string; 1: Frame; }
