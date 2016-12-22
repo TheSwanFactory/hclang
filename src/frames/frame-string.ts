@@ -5,7 +5,6 @@ export class FrameString extends FrameAtom {
   public static readonly STRING_END = "”";
 
   constructor(protected data: string, meta: Context = Void) {
-    // let result = Array.prototype.map.call(JSstring, (char: string) => {return new FrameChar(char); });
     super(meta);
   }
 
