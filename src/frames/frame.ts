@@ -1,4 +1,4 @@
-import * as _ from 'lodash';
+import * as _ from "lodash";
 
 export type Context = { [key: string]: Frame; };
 export interface IKeyValuePair extends ReadonlyArray<string | Frame > { 0: string; 1: Frame; }
@@ -73,17 +73,16 @@ export class Frame {
     return this.meta_keys().length;
   }
 
-  public meta_pairs() {
-    const keys = this.meta_keys();
-    return keys.map((key) => {
-      const pair: IKeyValuePair = [key, this.meta[key]];
-      return pair;
+  public meta_pairs(): Array<IKeyValuePair> {
+    return _.map(this.meta, (value, key): IKeyValuePair => {
+      return [key, value];
     });
   }
 
   public meta_string() {
-    let pairs: Array<IKeyValuePair> = this.meta_pairs();
-    return pairs.map(([key, value]) => { return `.${key} ${value};`; }).join(" ");
+    return this.meta_pairs().map(([key, value]) => {
+      return `.${key} ${value};`;
+    }).join(" ");
   }
 
   public toString() {

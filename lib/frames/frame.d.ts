@@ -29,7 +29,7 @@ export declare class Frame {
     meta_copy(): Context;
     meta_keys(): string[];
     meta_length(): number;
-    meta_pairs(): IKeyValuePair[];
+    meta_pairs(): Array<IKeyValuePair>;
     meta_string(): string;
     toString(): string;
     asArray(): Array<Frame>;
