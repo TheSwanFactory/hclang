@@ -1,3 +1,4 @@
+import * as _ from "lodash";
 
 export type Context = { [key: string]: Frame; };
 export interface IKeyValuePair extends ReadonlyArray<string | Frame > { 0: string; 1: Frame; }
@@ -61,42 +62,35 @@ export class Frame {
   }
 
   public meta_copy(): Context {
-    let clone = this.meta.constructor(); // give temp the original obj's constructor
-    for (let key in this.meta) {
-      if (this.meta.hasOwnProperty(key)) {
-        clone[key] = this.meta[key];
-      }
-    }
-    return clone;
+    return _.clone(this.meta);
   }
 
   public meta_keys() {
-    return Object.keys(this.meta);
+    return _.keys(this.meta);
   }
 
   public meta_length() {
     return this.meta_keys().length;
   }
 
-  public meta_pairs() {
-    const keys = this.meta_keys();
-    return keys.map((key) => {
-      const pair: IKeyValuePair = [key, this.meta[key]];
-      return pair;
+  public meta_pairs(): Array<IKeyValuePair> {
+    return _.map(this.meta, (value, key): IKeyValuePair => {
+      return [key, value];
     });
   }
 
   public meta_string() {
-    let pairs: Array<IKeyValuePair> = this.meta_pairs();
-    return pairs.map(([key, value]) => { return `.${key} ${value};`; }).join(" ");
+    return this.meta_pairs().map(([key, value]) => {
+      return `.${key} ${value};`;
+    }).join(" ");
   }
 
   public toString() {
     return this.string_open() + this.meta_string() + this.string_close();
   }
 
-  public toArray(): Array<Frame> {
-    return [];
+  public asArray(): Array<Frame> {
+    return _.castArray(this);
   }
 };
 
@@ -114,10 +108,6 @@ export class FrameAtom extends Frame {
       return DataString;
     }
     return this.string_open() + [DataString, this.meta_string()].join(", ") + this.string_close();
-  }
-
-  public toArray(): Array<Frame> {
-    return [this];
   }
 
   protected toData(): any { return null; }
@@ -144,7 +134,7 @@ export class FrameList extends Frame {
     return this.string_open() + this.toStringArray().join(", ") + this.string_close();
   }
 
-  public toArray(): Array<Frame> {
+  public asArray(): Array<Frame> {
     return this.data;
   }
 }
