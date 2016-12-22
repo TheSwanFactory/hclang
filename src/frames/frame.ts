@@ -62,13 +62,7 @@ export class Frame {
   }
 
   public meta_copy(): Context {
-    let clone = this.meta.constructor(); // give temp the original obj's constructor
-    for (let key in this.meta) {
-      if (this.meta.hasOwnProperty(key)) {
-        clone[key] = this.meta[key];
-      }
-    }
-    return clone;
+    return _.clone(this.meta);
   }
 
   public meta_keys() {
