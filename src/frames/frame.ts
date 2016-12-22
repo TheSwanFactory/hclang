@@ -66,7 +66,7 @@ export class Frame {
   }
 
   public meta_keys() {
-    return Object.keys(this.meta);
+    return _.keys(this.meta);
   }
 
   public meta_length() {
@@ -90,8 +90,8 @@ export class Frame {
     return this.string_open() + this.meta_string() + this.string_close();
   }
 
-  public toArray(): Array<Frame> {
-    return [];
+  public asArray(): Array<Frame> {
+    return _.castArray(this);
   }
 };
 
@@ -109,10 +109,6 @@ export class FrameAtom extends Frame {
       return DataString;
     }
     return this.string_open() + [DataString, this.meta_string()].join(", ") + this.string_close();
-  }
-
-  public toArray(): Array<Frame> {
-    return [this];
   }
 
   protected toData(): any { return null; }
@@ -139,7 +135,7 @@ export class FrameList extends Frame {
     return this.string_open() + this.toStringArray().join(", ") + this.string_close();
   }
 
-  public toArray(): Array<Frame> {
+  public asArray(): Array<Frame> {
     return this.data;
   }
 }
