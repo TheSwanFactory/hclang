@@ -14,18 +14,18 @@ export class FrameExpr extends FrameList {
     super(data, meta);
   }
 
-  public in(context = Frame.nil) {
+  public in(contexts = [Frame.nil]) {
     return this.data.reduce((sum: Frame, item: Frame) => {
-      let value = item.in(context);
+      let value = item.in(contexts);
       if (value === Frame.missing) {
-        value = item.in(this);
+        value = item.in([this]);
       }
       return sum.call(value);
     }, Frame.nil);
   }
 
   public call(context: Frame) {
-    return this.in(context);
+    return this.in([context]);
   };
 
   public toStringDataArray(): string[] {

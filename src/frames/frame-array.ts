@@ -11,8 +11,9 @@ export class FrameArray extends FrameList {
   public string_open() { return FrameArray.BEGIN_ARRAY; };
   public string_close() { return FrameArray.END_ARRAY; };
 
-  public in(context = Frame.nil): Frame {
-    return new FrameArray(this.data.map((f) => { return f.in(context); }));
+  public in(contexts = [Frame.nil]): Frame {
+    contexts.push(this);
+    return new FrameArray(this.data.map((f) => { return f.in(contexts); }));
   }
 
   public at(index: number) {

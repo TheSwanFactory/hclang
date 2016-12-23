@@ -12,11 +12,11 @@ export class FrameLazy extends FrameExpr {
   public string_open() { return FrameLazy.LAZY_BEGIN + " "; };
   public string_close() { return  " " + FrameLazy.LAZY_END; };
 
-  public in(context: Frame): Frame {
+  public in(contexts = [Frame.nil]): Frame {
     if (this.data.length === 0) {
       return this;
     }
-    return new FrameExpr(this.data, this.meta_for(context));
+    return new FrameExpr(this.data, this.meta_for(contexts[0]));
   }
 
   public call(argument: Frame): FrameExpr {

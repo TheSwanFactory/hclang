@@ -14,7 +14,7 @@ describe("FrameExpr", () => {
 
   it("replaces nil when evaluated", () => {
     const frame_expr = new FrameExpr([frame, frame_string], {context: context});
-    const result = frame_expr.in(frame);
+    const result = frame_expr.in([frame]);
     expect(result).to.equal(frame_string);
   });
 
@@ -22,7 +22,7 @@ describe("FrameExpr", () => {
     const js_string_2 = ", MAML!";
     const frame_string_2 = new FrameString(js_string_2);
     const frame_expr = new FrameExpr([frame_string, frame_string_2]);
-    const result = frame_expr.in(frame);
+    const result = frame_expr.in([frame]);
 
     expect(result.toString()).to.equal(`“${js_string}${js_string_2}”`);
   });
@@ -30,7 +30,7 @@ describe("FrameExpr", () => {
   it("returns context for FrameArg.here", () => {
     const context = new FrameString("context", {key: frame_string});
     const frame_expr = new FrameExpr([FrameArg.here()]);
-    const result = frame_expr.in(context);
+    const result = frame_expr.in([context]);
 
     expect(result).to.equal(context);
   });
@@ -38,7 +38,7 @@ describe("FrameExpr", () => {
   it("extracts properties from the context", () => {
     const context = new FrameString("context", {key: frame_string});
     const frame_expr = FrameExpr.extract("key");
-    const result = frame_expr.in(context);
+    const result = frame_expr.in([context]);
 
     expect(result).to.equal(frame_string);
   });

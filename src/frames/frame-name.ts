@@ -11,7 +11,7 @@ export class FrameName extends FrameAtom {
     this.data = FrameSymbol.for(symbol);
   }
 
-  public in(context = Frame.nil) {
+  public in(contexts = [Frame.nil]) {
     return this.data;
   }
 

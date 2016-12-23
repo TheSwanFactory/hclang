@@ -7,6 +7,6 @@ export declare class FrameArray extends FrameList {
     });
     string_open(): string;
     string_close(): string;
-    in(context?: Frame): Frame;
+    in(contexts?: Frame[]): Frame;
     at(index: number): Frame;
 }

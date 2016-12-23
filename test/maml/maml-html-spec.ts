@@ -15,7 +15,7 @@ const html_call = (content: FrameString) => {
     html_wrap("head", html_head),
     html_wrap("body", content),
   ]);
-  return html.in(Frame.nil);
+  return html.in([Frame.nil]);
 };
 
 describe("FrameHTML", () => {

@@ -12,12 +12,12 @@ export class FrameSymbol extends FrameAtom {
     super(meta);
   }
 
-  public in(context = Frame.nil) {
-    return context.get(this.data);
+  public in(contexts = [Frame.nil]) {
+    return contexts[0].get(this.data);
   }
 
   public called_by(context: Frame) {
-    return this.in(context);
+    return this.in([context]);
   }
 
   protected toData() { return this.data; }

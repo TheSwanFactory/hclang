@@ -23,7 +23,7 @@ describe("FrameName", () => {
     const value = FrameSymbol.for("smasher");
     const context = new FrameString("context", {atom: value});
     const frame_expr = new FrameExpr([FrameArg.here(), frame_name]);
-    const result = frame_expr.in(context);
+    const result = frame_expr.in([context]);
 
     expect(result).to.equal(value);
   });
