@@ -8,8 +8,12 @@ const body = (level = 1) => {
     new FrameString(HTML_PREFIX),
     new FrameExpr([
       new FrameSymbol("tag"),
-      new FrameString("body"),
-      FrameArg.here(),
+      new FrameString("html"),
+      new FrameExpr([
+        new FrameSymbol("tag"),
+        new FrameString("body"),
+        FrameArg.here(),
+      ]),
     ]),
   ], {tag});
 };
