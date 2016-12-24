@@ -24,10 +24,10 @@ export class FrameArg extends FrameSymbol {
     super(data);
   }
 
-  public in(context: Frame): Frame {
+  public in(contexts = [Frame.nil]): Frame {
     const level = this.data.length;
     if (level <= 1) {
-      return context;
+      return contexts[0];
     } else {
       return FrameArg.level(level - 1);
     }

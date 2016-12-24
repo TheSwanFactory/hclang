@@ -1,12 +1,17 @@
 import { FrameArg, FrameExpr, FrameString, FrameSymbol } from "./frames";
 import { tag } from "./maml/tag";
 
-const body = new FrameString("body");
+const HTML_PREFIX = "<!DOCTYPE html>";
 
-export const maml = new FrameExpr([
-  new FrameExpr([
-    new FrameSymbol("tag"),
-    body,
-    FrameArg.here(),
-  ]),
-], {tag});
+const body = (level = 1) => {
+  return new FrameExpr([
+    new FrameString(HTML_PREFIX),
+    new FrameExpr([
+      new FrameSymbol("tag"),
+      new FrameString("body"),
+      FrameArg.here(),
+    ]),
+  ], {tag});
+};
+
+export const maml = body();

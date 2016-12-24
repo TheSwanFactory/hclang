@@ -9,5 +9,5 @@ export declare class FrameArg extends FrameSymbol {
     };
     protected static _for(symbol: string): FrameArg;
     protected constructor(data: string);
-    in(context: Frame): Frame;
+    in(contexts?: Frame[]): Frame;
 }

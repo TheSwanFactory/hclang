@@ -8,7 +8,7 @@ export declare class FrameSymbol extends FrameAtom {
     constructor(data: string, meta?: {
         [key: string]: Frame;
     });
-    in(context?: Frame): Frame;
+    in(contexts?: Frame[]): Frame;
     called_by(context: Frame): Frame;
     protected toData(): string;
 }

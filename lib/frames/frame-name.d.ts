@@ -6,7 +6,7 @@ export declare class FrameName extends FrameAtom {
     constructor(symbol: string, meta?: {
         [key: string]: Frame;
     });
-    in(context?: Frame): FrameSymbol;
+    in(contexts?: Frame[]): FrameSymbol;
     string_prefix(): string;
     protected toData(): FrameSymbol;
 }

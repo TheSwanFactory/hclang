@@ -15,7 +15,7 @@ describe("FrameArg", () => {
 
     it ("evaluates to the context", () => {
       const context = new FrameString("context", {atom: frame_arg});
-      expect(FrameArg.here().in(context)).to.equal(context);
+      expect(FrameArg.here().in([context])).to.equal(context);
     });
   });
 
@@ -34,8 +34,8 @@ describe("FrameArg", () => {
       const context = new FrameString("context", {atom: frame_arg});
       const level_3 = FrameArg.level(3);
       const level_2 = FrameArg.level(2);
-      expect(level_3.in(context)).to.equal(level_2);
-      expect(level_2.in(context)).to.equal(frame_arg);
+      expect(level_3.in([context])).to.equal(level_2);
+      expect(level_2.in([context])).to.equal(frame_arg);
     });
   });
 });

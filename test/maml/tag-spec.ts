@@ -38,7 +38,7 @@ describe("MAML Tag", () => {
       new FrameString("body"),
     ]);
     const scope = new FrameString("scope", {tag});
-    const evaluated = expr.in(scope)
+    const evaluated = expr.in([scope])
     expect(evaluated.toString()).to.equal("(“<body>” _ “</body>”)");
   });
 
@@ -50,7 +50,7 @@ describe("MAML Tag", () => {
       new FrameString(contents),
     ]);
     const scope = new FrameString("scope", {tag});
-    const evaluated = expr.in(scope)
+    const evaluated = expr.in([scope])
     const evaluated_string = evaluated.toString();
 
     expect(evaluated).to.be.instanceOf(FrameString);

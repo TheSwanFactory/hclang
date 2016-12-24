@@ -22,7 +22,7 @@ export declare class Frame {
     get(key: string, origin?: this): Frame;
     set(key: string, value: Frame): Frame;
     at(index: number): Frame;
-    in(context?: Frame): Frame;
+    in(contexts?: Frame[]): Frame;
     apply(argument: Frame): Frame;
     called_by(context: Frame): Frame;
     call(argument: Frame): Frame;
