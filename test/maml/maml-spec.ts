@@ -24,6 +24,6 @@ describe("maml", () => {
 
   it("wraps its argument in a body tag", () => {
     expect(result).to.be.instanceOf(FrameString);
-    expect(result_string).to.equal(`“<body>${body_text}<\/body>”`);
+    expect(result_string).to.include(`<body>${body_text}<\/body>`);
   });
 });
