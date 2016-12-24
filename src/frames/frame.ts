@@ -45,7 +45,7 @@ export class Frame {
     return Frame.nil;
   }
 
-  public in(context = Frame.nil): Frame {
+  public in(contexts = [Frame.nil]): Frame {
     return this;
   }
 

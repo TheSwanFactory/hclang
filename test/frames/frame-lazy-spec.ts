@@ -20,7 +20,7 @@ describe("FrameLazy", () => {
   });
 
   it("evalutes to an Expr with merged context", () => {
-    const expr = lazy.in(context);
+    const expr = lazy.in([context]);
 
     expect(expr).to.be.instanceof(FrameExpr);
     expect(expr.toString()).to.equal(`(speed gap _, .speed “slow”; .gap “ ”;)`);
@@ -38,7 +38,7 @@ describe("FrameLazy", () => {
     });
 
     it("returns itself when Frame is nil", () => {
-      expect(codify.in(context)).to.equal(codify);
+      expect(codify.in([context])).to.equal(codify);
     });
 
     it("converts Array to Expr when called", () => {
