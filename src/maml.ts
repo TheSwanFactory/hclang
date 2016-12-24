@@ -3,6 +3,13 @@ import { tag } from "./maml/tag";
 
 const HTML_PREFIX = "<!DOCTYPE html>";
 
+const head = [
+  new FrameSymbol("tag"),
+  new FrameString("head"),
+  new FrameExpr([
+  ]),
+];
+
 const body = [
   new FrameSymbol("tag"),
   new FrameString("body"),
@@ -14,6 +21,9 @@ export const maml = new FrameExpr([
   new FrameExpr([
     new FrameSymbol("tag"),
     new FrameString("html"),
-    new FrameExpr(body),
+    new FrameExpr([
+      new FrameExpr(head),
+      new FrameExpr(body),
+    ]),
   ]),
 ], {tag});
