@@ -4,7 +4,7 @@ import { maml } from "../../src/maml";
 
 describe("maml", () => {
   const body_text = "Hello, MAML!";
-  const body = new FrameString(body_text);
+  const body = new FrameString(body_text, {title: new FrameString("First MAML Document!")});
   const result = maml.call(body);
   const result_string = result.toString();
 
