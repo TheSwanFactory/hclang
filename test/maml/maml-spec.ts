@@ -4,7 +4,7 @@ import { maml } from "../../src/maml";
 
 describe("maml", () => {
   const body_text = "Hello, MAML!";
-  const body = new FrameString(body_text, {title: new FrameString("First MAML Document!")});
+  const body = new FrameString(body_text, {title: new FrameString("First MAML Document")});
   const result = maml.call(body);
   const result_string = result.toString();
 
@@ -30,6 +30,6 @@ describe("maml", () => {
   });
 
   it("wraps arg metas in a head tag", () => {
-    expect(result_string).to.include(`<head>([\s\S]*)<\/head>`);
+    expect(result_string).to.match(/<head>([\s\S]*)<\/head>/);
   });
 });

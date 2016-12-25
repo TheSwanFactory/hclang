@@ -6,8 +6,7 @@ const HTML_PREFIX = "<!DOCTYPE html>";
 const head = [
   new FrameSymbol("tag"),
   new FrameString("head"),
-  new FrameExpr([
-  ]),
+  FrameExpr.extract("title"),
 ];
 
 const body = [
