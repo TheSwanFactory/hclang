@@ -1,5 +1,4 @@
 import { Frame, FrameList, Void } from "./frame";
-import { FrameArg } from "./frame-arg";
 
 export class FrameExpr extends FrameList {
   constructor(data: Array<Frame>, meta = Void) {
