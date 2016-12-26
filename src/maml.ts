@@ -11,7 +11,7 @@ const MakeTag = (name: string, contents: Frame) => {
     ]);
 };
 
-const title = MakeTag("title", FrameExpr.extract("title"));
+const title = MakeTag("title", new FrameSymbol("title"));
 const head = MakeTag("head", title);
 const body = MakeTag("body", FrameArg.here());
 

@@ -1,15 +1,7 @@
 import { Frame, FrameList, Void } from "./frame";
 import { FrameArg } from "./frame-arg";
-import { FrameName } from "./frame-name";
 
 export class FrameExpr extends FrameList {
-  public static extract(key: string) {
-    return new FrameExpr([
-      FrameArg.here(),
-      new FrameName(key),
-    ]);
-  }
-
   constructor(data: Array<Frame>, meta = Void) {
     super(data, meta);
   }
