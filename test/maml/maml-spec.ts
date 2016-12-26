@@ -1,11 +1,14 @@
 import { expect } from "chai";
-import { Frame, FrameExpr, FrameString } from "../../src/frames";
+import { Frame, FrameArray, FrameExpr, FrameString } from "../../src/frames";
 import { maml } from "../../src/maml";
 
 describe("maml", () => {
   const body_text = "Hello, MAML!";
   const title_text = "First MAML Document ever";
-  const body = new FrameString(body_text, {title: new FrameString(title_text)});
+  const body = new FrameString(body_text, {
+    author: new FrameString("Ernest Prabhakar"),
+    title: new FrameString(title_text),
+  });
   const result = maml.call(body);
   const result_string = result.toString();
 
@@ -36,5 +39,18 @@ describe("maml", () => {
 
   it("wraps title meta in title tag", () => {
     expect(result_string).to.include(`<title>${title_text}<\/title>`);
+  });
+
+  it("wraps all metas in their keyed tag", () => {
+    const tag = maml.get("tag");
+    const tag_list = body.meta_pairs().map(([key, value]) => {
+      const tag_name = new FrameString(key);
+      return tag.call(tag_name).call(value);
+    });
+    const tags = new FrameArray(tag_list);
+    const tag_string = tags.toString();
+
+    expect(tag_string).to.match(/<author>([\s\S]*)<\/author>/);
+    expect(tag_string).to.match(/<title>([\s\S]*)<\/title>/);
   });
 });
