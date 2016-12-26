@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { Frame, FrameExpr, FrameString } from "../../src/frames";
+import { Frame, FrameArray, FrameExpr, FrameString } from "../../src/frames";
 import { maml } from "../../src/maml";
 
 describe("maml", () => {
@@ -42,7 +42,15 @@ describe("maml", () => {
   });
 
   it("wraps all metas in their keyed tag", () => {
-    expect(result_string).to.match(/<author>([\s\S]*)<\/author>/);
-    expect(result_string).to.match(/<title>([\s\S]*)<\/title>/);
+    const tag = maml.get("tag");
+    const tag_list = body.meta_pairs().map(([key, value]) => {
+      const tag_name = new FrameString(key);
+      return tag.call(tag_name).call(value);
+    });
+    const tags = new FrameArray(tag_list);
+    const tag_string = tags.toString();
+
+    expect(tag_string).to.match(/<author>([\s\S]*)<\/author>/);
+    expect(tag_string).to.match(/<title>([\s\S]*)<\/title>/);
   });
 });
