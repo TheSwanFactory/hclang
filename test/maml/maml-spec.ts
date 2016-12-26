@@ -5,7 +5,10 @@ import { maml } from "../../src/maml";
 describe("maml", () => {
   const body_text = "Hello, MAML!";
   const title_text = "First MAML Document ever";
-  const body = new FrameString(body_text, {title: new FrameString(title_text)});
+  const body = new FrameString(body_text, {
+    author: new FrameString("Ernest Prabhakar"),
+    title: new FrameString(title_text),
+  });
   const result = maml.call(body);
   const result_string = result.toString();
 
@@ -36,5 +39,10 @@ describe("maml", () => {
 
   it("wraps title meta in title tag", () => {
     expect(result_string).to.include(`<title>${title_text}<\/title>`);
+  });
+
+  it("wraps all metas in their keyed tag", () => {
+    expect(result_string).to.match(/<author>([\s\S]*)<\/author>/);
+    expect(result_string).to.match(/<title>([\s\S]*)<\/title>/);
   });
 });
