@@ -19,7 +19,7 @@ export class FrameLazy extends FrameExpr {
     return new FrameExpr(this.data, this.meta_for(contexts[0]));
   }
 
-  public call(argument: Frame): FrameExpr {
+  public call(argument: Frame, parameter = Frame.nil): FrameExpr {
     return new FrameExpr(argument.asArray(), this.meta_for(argument));
   }
 
