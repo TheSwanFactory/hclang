@@ -17,8 +17,9 @@ describe("iterators", () => {
   });
 
   describe("MetaMap", () => {
-    it("acts on a Frame", () => {
-      expect(frame).to.be.instanceOf(Frame);
+    const result = MetaMap(frame, block);
+    it("takes a frame and a block", () => {
+      expect(result).to.be.instanceOf(Frame);
     });
   });
 });
