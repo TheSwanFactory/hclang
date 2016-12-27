@@ -46,10 +46,13 @@ describe("iterators", () => {
       const curried_result = curried(block);
       expect(curried_result).to.eql(result);
     });
-
-    it("is bound to '&&' in ops", () => {
-      const mm = Ops.get("&&");
-      expect(mm).to.be.instanceOf(FrameCurry);
+    describe("&&", () => {
+      const operator = Ops.get("&&", frame);
+      
+      it("extracts FrameCurry from ops", () => {
+        const mm = Ops.get("&&");
+        expect(mm).to.be.instanceOf(FrameCurry);
+      });
     });
   });
 });
