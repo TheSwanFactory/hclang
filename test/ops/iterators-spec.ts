@@ -18,6 +18,7 @@ describe("iterators", () => {
 
   describe("MetaMap", () => {
     const result = MetaMap(frame, block);
+
     it("takes a frame and a block", () => {
       expect(result).to.be.instanceOf(Frame);
     });
@@ -38,6 +39,12 @@ describe("iterators", () => {
 
       expect(first).to.equal("“Prefix: An Author”");
       expect(second).to.equal("“Prefix: A Title”");
+    });
+
+    it("takes just a block when curried", () => {
+      const curried = Curry(MetaMap, frame);
+      const curried_result = curried(block);
+      expect(curried_result).to.eql(result);
     });
   });
 });
