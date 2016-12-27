@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { Frame, FrameString } from "../../src/frames";
+import { Frame, FrameArray, FrameString } from "../../src/frames";
 import { MetaMap } from "../../src/ops";
 
 describe("iterators", () => {
@@ -20,6 +20,10 @@ describe("iterators", () => {
     const result = MetaMap(frame, block);
     it("takes a frame and a block", () => {
       expect(result).to.be.instanceOf(Frame);
+    });
+
+    it("returns a FrameArray", () => {
+      expect(result).to.be.instanceOf(FrameArray);
     });
   });
 });
