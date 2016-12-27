@@ -43,13 +43,13 @@ describe("maml", () => {
 
   it("wraps all metas in their keyed tag", () => {
     const tag = maml.get("tag");
-    const block = (item: IKeyValuePair, index: number, array: IKeyValuePair[]) => {
-      const key = item[0];
-      const value = item[1];
-      const tag_name = new FrameString(key);
+    const block = (value: Frame, tag_name: Frame) => {
       return tag.call(tag_name).call(value);
     };
-    const tag_list = body.meta_pairs().map(block);
+    const tag_list = body.meta_pairs().map( ([key, value]) => {
+      const fkey = new FrameString(key);
+      return block(value, fkey);
+    });
     const tags = new FrameArray(tag_list);
     const tag_string = tags.toString();
 
