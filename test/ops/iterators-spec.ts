@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { Frame, FrameArray, FrameString } from "../../src/frames";
-import { MetaMap } from "../../src/ops";
+import { Curry, MetaMap } from "../../src/ops";
 
 describe("iterators", () => {
   const frame = new Frame({
