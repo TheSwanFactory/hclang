@@ -25,5 +25,19 @@ describe("iterators", () => {
     it("returns a FrameArray", () => {
       expect(result).to.be.instanceOf(FrameArray);
     });
+
+    it("calls block with each element", () => {
+      const result_string = result.toString();
+      expect(result_string).to.include("Prefix: An Author");
+      expect(result_string).to.include("Prefix: A Title");
+    });
+
+    it("calls keys in alphabetic order", () => {
+      const first = result.at(0).toString();
+      const second = result.at(1).toString();
+
+      expect(first).to.equal("“Prefix: An Author”");
+      expect(second).to.equal("“Prefix: A Title”");
+    });
   });
 });
