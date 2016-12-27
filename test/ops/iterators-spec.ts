@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { Frame, FrameArray, FrameString } from "../../src/frames";
-import { Curry, MetaMap, Ops } from "../../src/ops";
+import { Curry, FrameCurry, MetaMap, Ops } from "../../src/ops";
 
 describe("iterators", () => {
   const frame = new Frame({
@@ -48,7 +48,8 @@ describe("iterators", () => {
     });
 
     it("is bound to '&&' in ops", () => {
+      const mm = Ops.get("&&");
+      expect(mm).to.be.instanceOf(FrameCurry);
     });
-
   });
 });
