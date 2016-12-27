@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { Frame, FrameArray, FrameString } from "../../src/frames";
-import { Curry, MetaMap } from "../../src/ops";
+import { Curry, MetaMap, Ops } from "../../src/ops";
 
 describe("iterators", () => {
   const frame = new Frame({
@@ -46,5 +46,9 @@ describe("iterators", () => {
       const curried_result = curried(block);
       expect(curried_result).to.eql(result);
     });
+
+    it("is bound to '&&' in ops", () => {
+    });
+
   });
 });
