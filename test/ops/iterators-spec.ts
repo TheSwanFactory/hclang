@@ -32,7 +32,7 @@ describe("iterators", () => {
       expect(result_string).to.include("Prefix: A Title");
     });
 
-    it("calls keys in alphabetic order", () => {
+    it("calls keys in order they were created", () => {
       const first = result.at(0).toString();
       const second = result.at(1).toString();
 
