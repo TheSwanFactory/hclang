@@ -49,5 +49,3 @@ export class FrameOps extends Frame {
 export const Ops = new FrameOps({
   "&&": MetaMap,
 });
-
-Frame.globals = Ops;

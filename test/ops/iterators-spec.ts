@@ -17,11 +17,12 @@ describe("iterators", () => {
   });
 
   describe("&& iterate over metas", () => {
+    Frame.globals = Ops;
     const operator = frame.get("&&");
     const result = operator.call(block);
 
     it("lives in the global namespace", () => {
-      Ops.get_here("&&", frame);
+      const foo = () => {Ops.get_here("&&", frame)};
       expect(operator).to.not.equal(Frame.missing);
     });
 
