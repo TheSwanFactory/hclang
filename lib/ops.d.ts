@@ -9,6 +9,7 @@ export declare class FrameCurry extends Frame {
 }
 export declare class FrameOps extends Frame {
     constructor(context: Context);
+    get(key: string, origin: Frame): Frame;
 }
 export declare const Ops: FrameOps;
 export { MetaMap };

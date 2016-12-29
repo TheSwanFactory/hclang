@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { Frame, FrameArray, FrameString } from "../../src/frames";
+import { Frame, FrameArray, FrameExpr, FrameString } from "../../src/frames";
 import { Curry, FrameCurry, MetaMap, Ops } from "../../src/ops";
 
 describe("iterators", () => {
@@ -48,10 +48,9 @@ describe("iterators", () => {
     });
     describe("&&", () => {
       const operator = Ops.get("&&", frame);
-      
-      it("extracts FrameCurry from ops", () => {
-        const mm = Ops.get("&&");
-        expect(mm).to.be.instanceOf(FrameCurry);
+
+      it("returns an expression", () => {
+        expect(operator).to.be.instanceOf(FrameExpr);
       });
     });
   });
