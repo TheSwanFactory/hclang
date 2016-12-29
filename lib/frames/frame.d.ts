@@ -13,6 +13,7 @@ export declare class Frame {
     static readonly kUP: string;
     static readonly nil: Frame;
     static readonly missing: Frame;
+    static globals: Frame;
     constructor(meta?: {
         [key: string]: Frame;
     });

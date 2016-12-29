@@ -12,6 +12,7 @@ export class Frame {
   public static readonly missing: Frame = new Frame({
     missing: Frame.nil,
   });
+  public static globals = Frame.missing;
 
   constructor(private meta = Void) {
   }
@@ -26,11 +27,13 @@ export class Frame {
   }
 
   public get(key: string, origin = this): Frame {
-    let result = this.get_here(key);
-    if (result !== Frame.missing) { return result; };
-    const up = this.get_here(Frame.kUP);
-    if (up === Frame.missing) { return Frame.missing; };
-    return up.get(key, origin);
+    const sources: Array<Frame> = [this, this.get_here(Frame.kUP), Frame.globals];
+    for (let source of sources) {
+      if (source === Frame.missing) { return Frame.missing; };
+      let result = source.get_here(key);
+      if (result !== Frame.missing) { return result; };
+    }
+    return Frame.missing;
   }
 
   public set(key: string, value: Frame): Frame {
