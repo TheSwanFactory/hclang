@@ -11,12 +11,12 @@ export const Curry = (func: ICurryFunction, source: Frame) => {
 };
 
 export class FrameCurry extends Frame {
-  constructor(func: ICurryFunction) {
+  constructor(protected _func: ICurryFunction, protected _source: Frame) {
     super();
   }
 
   public apply(argument: Frame, parameter: Frame) {
-    return new FrameArray([]);
+    return this._func(this._source, argument);
   }
 }
 
@@ -30,7 +30,7 @@ export const MetaMap = (source: Frame, block: Frame) => {
 
 export const MetaMapExpr = (source: Frame) => {
   return new FrameExpr([
-    new FrameCurry(MetaMap),
+    new FrameCurry(MetaMap, source),
     FrameArg.here(),
   ]);
 };
