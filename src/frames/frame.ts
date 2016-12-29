@@ -26,7 +26,7 @@ export class Frame {
     return Frame.missing;
   }
 
-  public get(key: string, origin = this): Frame {
+  public get(key: string, origin: Frame = this): Frame {
     const sources: Array<Frame> = [this, this.get_here(Frame.kUP), Frame.globals];
     for (let source of sources) {
       if (source !== Frame.missing) {

@@ -16,7 +16,7 @@ describe("iterators", () => {
     expect(result.toString()).to.equal("“Prefix: argument”");
   });
 
-  it("live in the global namesapce", () => {
+  it("live in the global namespace", () => {
     const operator = frame.get("&&");
     console.log(`** operator ${operator}`);
     expect(operator).to.be.instanceOf(FrameExpr);
@@ -28,7 +28,7 @@ describe("iterators", () => {
   });
 
   describe("&& iterate over metas", () => {
-    const operator = Ops.get_here("&&", frame);
+    const operator = Ops.get("&&", frame);
     const result = operator.call(block);
 
     it("is retrieved as an expression", () => {
