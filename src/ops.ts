@@ -22,7 +22,7 @@ export class FrameOps extends Frame {
     super();
   }
 
-  public get(key: string, origin: Frame): Frame {
+  public get_here(key: string, origin: Frame): Frame {
     const func = this.OpsDict[key];
     if (func != null) {
       return this.curry(func, origin);

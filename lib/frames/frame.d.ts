@@ -19,7 +19,7 @@ export declare class Frame {
     });
     string_open(): string;
     string_close(): string;
-    get_here(key: string): Frame;
+    get_here(key: string, origin?: this): Frame;
     get(key: string, origin?: this): Frame;
     set(key: string, value: Frame): Frame;
     at(index: number): Frame;

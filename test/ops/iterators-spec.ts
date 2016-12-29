@@ -18,11 +18,12 @@ describe("iterators", () => {
 
   it("live in the global namesapce", () => {
     const operator = frame.get("&&");
+    console.log(`** operator ${operator}`);
     expect(operator).to.be.instanceOf(FrameExpr);
   });
 
   describe("&& iterate over metas", () => {
-    const operator = Ops.get("&&", frame);
+    const operator = Ops.get_here("&&", frame);
     const result = operator.call(block);
 
     it("is retrieved as an expression", () => {

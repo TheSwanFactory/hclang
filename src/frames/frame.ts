@@ -20,7 +20,7 @@ export class Frame {
   public string_open() { return Frame.BEGIN_EXPR; };
   public string_close() { return Frame.END_EXPR; };
 
-  public get_here(key: string) {
+  public get_here(key: string, origin = this): Frame {
     let result = this.meta[key];
     if (result != null) { return result; };
     return Frame.missing;
