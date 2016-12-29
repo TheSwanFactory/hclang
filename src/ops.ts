@@ -1,11 +1,13 @@
-import { Context, Frame, FrameArg, FrameExpr } from "./frames";
+import { Frame, FrameArg, FrameExpr } from "./frames";
 import { MetaMap } from "./ops/iterators";
 
 export interface ICurryFunction extends Function {
   (source: Frame, block: Frame): Frame;
 }
 
-export class FrameCurry extends Frame {
+export type FuncDict = { [key: string]: ICurryFunction; };
+
+class FrameCurry extends Frame {
   constructor(protected Func: ICurryFunction, protected Source: Frame) {
     super();
   }
@@ -16,17 +18,22 @@ export class FrameCurry extends Frame {
 }
 
 export class FrameOps extends Frame {
-  constructor(context: Context) {
-    super(context);
+  constructor(protected OpsDict: FuncDict) {
+    super();
   }
 
   public get(key: string, origin: Frame): Frame {
+    return this.curry(MetaMap, origin);
+  }
+
+  protected curry(func: ICurryFunction, origin: Frame): Frame {
     return new FrameExpr([
-      new FrameCurry(MetaMap, origin),
+      new FrameCurry(func, origin),
       FrameArg.here(),
     ]);
   }
 }
 
 export const Ops = new FrameOps({
+  "&&": MetaMap,
 });
