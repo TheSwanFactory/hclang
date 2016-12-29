@@ -24,7 +24,7 @@ export class FrameOps extends Frame {
   }
 
   public get(key: string, origin: Frame): Frame {
-    return MetaMapExpr;
+    return MetaMapExpr(origin);
   }
 }
 

@@ -8,6 +8,8 @@ export const MetaMap = (source: Frame, block: Frame) => {
   return new FrameArray(array);
 };
 
-export const MetaMapExpr = new FrameExpr([
-  new FrameArray([]),
-]);
+export const MetaMapExpr = (source: Frame) => {
+  return new FrameExpr([
+    new FrameArray([]),
+  ]);
+};
