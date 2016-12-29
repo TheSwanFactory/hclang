@@ -10,15 +10,21 @@ describe("iterators", () => {
 
   const block = new FrameString("Prefix: ");
 
-  it("acts on a Frame block", () => {
+  it("treat Frames as iteratee blocks", () => {
     const arg = new FrameString("argument");
     const result = block.call(arg);
     expect(result.toString()).to.equal("“Prefix: argument”");
   });
 
   describe("&& iterate over metas", () => {
-    const operator = Ops.get("&&", frame);
+    Frame.globals = Ops;
+    const operator = frame.get("&&");
     const result = operator.call(block);
+
+    it("lives in the global namespace", () => {
+      const foo = () => {Ops.get_here("&&", frame)};
+      expect(operator).to.not.equal(Frame.missing);
+    });
 
     it("is retrieved as an expression", () => {
       expect(operator).to.be.instanceOf(FrameExpr);

@@ -15,6 +15,10 @@ class FrameCurry extends Frame {
   public apply(argument: Frame, parameter: Frame) {
     return this.Func(this.Source, argument);
   }
+
+  public toString() {
+    return `.Source ${this.Source}; ${this.Func}`;
+  }
 }
 
 export class FrameOps extends Frame {
@@ -22,12 +26,16 @@ export class FrameOps extends Frame {
     super();
   }
 
-  public get(key: string, origin: Frame): Frame {
+  public get_here(key: string, origin: Frame): Frame {
     const func = this.OpsDict[key];
     if (func != null) {
       return this.curry(func, origin);
     }
     return Frame.missing;
+  }
+
+  public toString() {
+    return this.OpsDict.toString();
   }
 
   protected curry(func: ICurryFunction, origin: Frame): Frame {
