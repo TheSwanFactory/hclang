@@ -23,7 +23,11 @@ export class FrameOps extends Frame {
   }
 
   public get(key: string, origin: Frame): Frame {
-    return this.curry(MetaMap, origin);
+    const func = this.OpsDict[key];
+    if (func != null) {
+      return this.curry(func, origin);
+    }
+    return Frame.missing;
   }
 
   protected curry(func: ICurryFunction, origin: Frame): Frame {
