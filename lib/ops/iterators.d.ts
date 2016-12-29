@@ -5,6 +5,7 @@ export interface ICurryFunction extends Function {
 export declare const Curry: (func: ICurryFunction, source: Frame) => (block: Frame) => Frame;
 export declare class FrameCurry extends Frame {
     constructor(func: ICurryFunction);
+    apply(argument: Frame, parameter: Frame): FrameArray;
 }
 export declare const MetaMap: (source: Frame, block: Frame) => FrameArray;
 export declare const MetaMapExpr: (source: Frame) => FrameExpr;

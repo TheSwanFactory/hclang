@@ -1,4 +1,4 @@
-import { Frame, FrameArray, FrameExpr, FrameString } from "../frames";
+import { Frame, FrameArg, FrameArray, FrameExpr, FrameString } from "../frames";
 
 export interface ICurryFunction extends Function {
   (source: Frame, block: Frame): Frame;
@@ -14,6 +14,10 @@ export class FrameCurry extends Frame {
   constructor(func: ICurryFunction) {
     super();
   }
+
+  public apply(argument: Frame, parameter: Frame) {
+    return new FrameArray([]);
+  }
 }
 
 export const MetaMap = (source: Frame, block: Frame) => {
@@ -26,6 +30,7 @@ export const MetaMap = (source: Frame, block: Frame) => {
 
 export const MetaMapExpr = (source: Frame) => {
   return new FrameExpr([
-    new FrameArray([]),
+    new FrameCurry(MetaMap),
+    FrameArg.here(),
   ]);
 };
