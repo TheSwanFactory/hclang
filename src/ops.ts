@@ -1,4 +1,4 @@
-import { Context, Frame, FrameExpr } from "./frames";
+import { Context, Frame, FrameArray, FrameExpr } from "./frames";
 
 export interface ICurryFunction extends Function {
   (source: Frame, block: Frame): Frame;
@@ -24,7 +24,9 @@ export class FrameOps extends Frame {
   }
 
   public get(key: string, origin: Frame): Frame {
-    return new FrameExpr([]);
+    return new FrameExpr([
+      new FrameArray([]),
+    ]);
   }
 }
 

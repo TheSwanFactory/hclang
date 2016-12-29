@@ -46,11 +46,17 @@ describe("iterators", () => {
       const curried_result = curried(block);
       expect(curried_result).to.eql(result);
     });
+
     describe("&&", () => {
       const operator = Ops.get("&&", frame);
+      const result = operator.call(block);
 
-      it("returns an expression", () => {
+      it("is retrieved as an expression", () => {
         expect(operator).to.be.instanceOf(FrameExpr);
+      });
+
+      it("returns FrameArray when called", () => {
+        expect(result).to.be.instanceOf(FrameArray);
       });
     });
   });
