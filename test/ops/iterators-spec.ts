@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { Frame, FrameArray, FrameExpr, FrameString } from "../../src/frames";
-import { Curry, FrameCurry, MetaMap, Ops } from "../../src/ops";
+import { MetaMap, Ops } from "../../src/ops";
 
 describe("iterators", () => {
   const frame = new Frame({
@@ -39,12 +39,6 @@ describe("iterators", () => {
 
       expect(first).to.equal("“Prefix: An Author”");
       expect(second).to.equal("“Prefix: A Title”");
-    });
-
-    it("takes just a block when curried", () => {
-      const curried = Curry(MetaMap, frame);
-      const curried_result = curried(block);
-      expect(curried_result).to.eql(result);
     });
 
     describe("&&", () => {
