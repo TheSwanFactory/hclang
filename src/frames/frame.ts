@@ -29,9 +29,10 @@ export class Frame {
   public get(key: string, origin = this): Frame {
     const sources: Array<Frame> = [this, this.get_here(Frame.kUP), Frame.globals];
     for (let source of sources) {
-      if (source === Frame.missing) { return Frame.missing; };
-      let result = source.get_here(key);
-      if (result !== Frame.missing) { return result; };
+      if (source !== Frame.missing) {
+        let result = source.get_here(key);
+        if (result !== Frame.missing) { return result; };
+      };
     }
     return Frame.missing;
   }
