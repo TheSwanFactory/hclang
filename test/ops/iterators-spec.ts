@@ -16,22 +16,17 @@ describe("iterators", () => {
     expect(result.toString()).to.equal("“Prefix: argument”");
   });
 
-  it("live in the global namespace", () => {
-    const operator = frame.get("&&");
-    expect(operator).to.be.instanceOf(FrameExpr);
-
-    const result = operator.call(block);
-    const result_string = result.toString();
-    expect(result_string).to.include("Prefix: An Author");
-  });
-
   describe("&& iterate over metas", () => {
-    const hosted = frame.get("&&");
-    const operator = Ops.get("&&", frame);
-    const result = hosted.call(block);
+    const operator = frame.get("&&");
+    const result = operator.call(block);
+
+    it("live in the global namespace", () => {
+      expect(operator).to.not.equal(Frame.missing);
+    });
 
     it("is retrieved as an expression", () => {
-      expect(hosted).to.be.instanceOf(FrameExpr);
+      Ops.get("&&", frame);
+      expect(operator).to.be.instanceOf(FrameExpr);
     });
 
     it("returns FrameArray when called", () => {
