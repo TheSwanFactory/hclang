@@ -23,9 +23,9 @@ export declare class Frame {
     set(key: string, value: Frame): Frame;
     at(index: number): Frame;
     in(contexts?: Frame[]): Frame;
-    apply(argument: Frame): Frame;
-    called_by(context: Frame): Frame;
-    call(argument: Frame): Frame;
+    apply(argument: Frame, parameter: Frame): Frame;
+    called_by(context: Frame, parameter: Frame): Frame;
+    call(argument: Frame, parameter?: Frame): Frame;
     meta_copy(): Context;
     meta_keys(): string[];
     meta_length(): number;

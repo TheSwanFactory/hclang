@@ -49,16 +49,16 @@ export class Frame {
     return this;
   }
 
-  public apply(argument: Frame) {
+  public apply(argument: Frame, parameter: Frame) {
     return argument;
   }
 
-  public called_by(context: Frame) {
-    return context.apply(this);
+  public called_by(context: Frame, parameter: Frame) {
+    return context.apply(this, parameter);
   }
 
-  public call(argument: Frame) {
-    return argument.called_by(this);
+  public call(argument: Frame, parameter = Frame.nil) {
+    return argument.called_by(this, parameter);
   }
 
   public meta_copy(): Context {
