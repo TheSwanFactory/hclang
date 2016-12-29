@@ -1,2 +1,3 @@
-import { Frame, FrameArray } from "../frames";
+import { Frame, FrameArray, FrameExpr } from "../frames";
 export declare const MetaMap: (source: Frame, block: Frame) => FrameArray;
+export declare const MetaMapExpr: FrameExpr;

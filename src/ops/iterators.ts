@@ -1,4 +1,4 @@
-import { Frame, FrameArray, FrameString } from "../frames";
+import { Frame, FrameArray, FrameExpr, FrameString } from "../frames";
 
 export const MetaMap = (source: Frame, block: Frame) => {
   const array = source.meta_pairs().map( ([key, value]) => {
@@ -7,3 +7,7 @@ export const MetaMap = (source: Frame, block: Frame) => {
   });
   return new FrameArray(array);
 };
+
+export const MetaMapExpr = new FrameExpr([
+  new FrameArray([]),
+]);

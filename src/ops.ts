@@ -10,7 +10,7 @@ export const Curry = (func: ICurryFunction, source: Frame) => {
   };
 };
 
-import { MetaMap } from "./ops/iterators";
+import { MetaMap, MetaMapExpr } from "./ops/iterators";
 
 export class FrameCurry extends Frame {
   constructor(func: ICurryFunction) {
@@ -24,9 +24,7 @@ export class FrameOps extends Frame {
   }
 
   public get(key: string, origin: Frame): Frame {
-    return new FrameExpr([
-      new FrameArray([]),
-    ]);
+    return MetaMapExpr;
   }
 }
 
