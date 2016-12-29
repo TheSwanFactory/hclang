@@ -32,7 +32,7 @@ export class Frame {
       if (source !== Frame.missing) {
         let result = source.get_here(key);
         if (result !== Frame.missing) { return result; };
-      };
+      }
     }
     return Frame.missing;
   }
