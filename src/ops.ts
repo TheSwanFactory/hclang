@@ -1,4 +1,4 @@
-import { Context, Frame, FrameArg, FrameArray, FrameExpr } from "./frames";
+import { Context, Frame, FrameArg, FrameExpr } from "./frames";
 import { MetaMap } from "./ops/iterators";
 
 export interface ICurryFunction extends Function {
@@ -6,12 +6,12 @@ export interface ICurryFunction extends Function {
 }
 
 export class FrameCurry extends Frame {
-  constructor(protected _func: ICurryFunction, protected _source: Frame) {
+  constructor(protected Func: ICurryFunction, protected Source: Frame) {
     super();
   }
 
   public apply(argument: Frame, parameter: Frame) {
-    return this._func(this._source, argument);
+    return this.Func(this.Source, argument);
   }
 }
 
@@ -30,5 +30,3 @@ export class FrameOps extends Frame {
 
 export const Ops = new FrameOps({
 });
-
-export { MetaMap };
