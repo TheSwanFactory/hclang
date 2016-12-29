@@ -20,6 +20,11 @@ describe("iterators", () => {
     const operator = frame.get("&&");
     console.log(`** operator ${operator}`);
     expect(operator).to.be.instanceOf(FrameExpr);
+
+    const result = operator.call(block);
+    const result_string = result.toString();
+    console.log(`** result ${result}`);
+    expect(result_string).to.include("Prefix: An Author");
   });
 
   describe("&& iterate over metas", () => {
