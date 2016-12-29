@@ -18,21 +18,20 @@ describe("iterators", () => {
 
   it("live in the global namespace", () => {
     const operator = frame.get("&&");
-    console.log(`** operator ${operator}`);
     expect(operator).to.be.instanceOf(FrameExpr);
 
     const result = operator.call(block);
     const result_string = result.toString();
-    console.log(`** result ${result}`);
     expect(result_string).to.include("Prefix: An Author");
   });
 
   describe("&& iterate over metas", () => {
+    const hosted = frame.get("&&");
     const operator = Ops.get("&&", frame);
-    const result = operator.call(block);
+    const result = hosted.call(block);
 
     it("is retrieved as an expression", () => {
-      expect(operator).to.be.instanceOf(FrameExpr);
+      expect(hosted).to.be.instanceOf(FrameExpr);
     });
 
     it("returns FrameArray when called", () => {
