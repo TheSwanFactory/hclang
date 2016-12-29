@@ -20,12 +20,12 @@ describe("iterators", () => {
     const operator = frame.get("&&");
     const result = operator.call(block);
 
-    it("live in the global namespace", () => {
+    it("lives in the global namespace", () => {
+      Ops.get_here("&&", frame);
       expect(operator).to.not.equal(Frame.missing);
     });
 
     it("is retrieved as an expression", () => {
-      Ops.get("&&", frame);
       expect(operator).to.be.instanceOf(FrameExpr);
     });
 
