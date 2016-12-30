@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { Frame, FrameArray, FrameExpr, FrameString } from "../../src/frames";
+import { Frame, FrameArg, FrameArray, FrameExpr, FrameParam, FrameString } from "../../src/frames";
 import { Ops } from "../../src/ops";
 
 describe("iterators", () => {
@@ -38,6 +38,18 @@ describe("iterators", () => {
       const result_string = result.toString();
       expect(result_string).to.include("Prefix: An Author");
       expect(result_string).to.include("Prefix: A Title");
+    });
+
+    it("calls block with key as second parameter", () => {
+      const expr = new FrameExpr([
+        FrameParam.there(),
+        new FrameString(": "),
+        FrameArg.here(),
+      ]);
+      const expr_result = operator.call(expr);
+      const expr_string = expr_result.toString();
+      expect(expr_string).to.include("author: An Author");
+      expect(expr_string).to.include("title: A Title");
     });
   });
 });
