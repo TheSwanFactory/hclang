@@ -13,8 +13,8 @@ export class FrameExpr extends FrameList {
     }, Frame.nil);
   }
 
-  public call(context: Frame) {
-    return this.in([context]);
+  public call(argument: Frame, parameter = Frame.nil) {
+    return this.in([argument, parameter]);
   };
 
   public toStringDataArray(): string[] {
