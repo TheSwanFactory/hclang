@@ -4,6 +4,6 @@ export declare class FrameExpr extends FrameList {
         [key: string]: Frame;
     });
     in(contexts?: Frame[]): Frame;
-    call(context: Frame): Frame;
+    call(argument: Frame, parameter?: Frame): Frame;
     toStringDataArray(): string[];
 }
