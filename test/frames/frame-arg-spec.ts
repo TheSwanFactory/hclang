@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { FrameArg, FrameString } from "../../src/frames";
+import { FrameArg, FrameParam, FrameString } from "../../src/frames";
 
 describe("FrameArg", () => {
   const frame_arg = FrameArg.here();
@@ -36,6 +36,32 @@ describe("FrameArg", () => {
       const level_2 = FrameArg.level(2);
       expect(level_3.in([context])).to.equal(level_2);
       expect(level_2.in([context])).to.equal(frame_arg);
+    });
+  });
+
+  describe("FrameParam", () => {
+    const frame_param = FrameParam.there();
+    const context = new FrameString("context");
+    const param = new FrameString("param");
+
+    it("is created from 'there'", () => {
+      expect(frame_param).to.be.instanceOf(FrameParam);
+    });
+
+    it("stringifies to _^", () => {
+      expect(frame_param.toString()).to.equal("_^");
+    });
+
+    it ("evaluates to the parameter", () => {
+      expect(frame_param.in([context, param])).to.equal(param);
+    });
+
+    it ("evaluates to higher-level parameters", () => {
+      const frame_param_2 = FrameParam.level(2);
+      const param2 = new FrameString("param level 2");
+      const stack = [context, param, param2];
+      expect(frame_param_2.toString()).to.equal("_^^");
+      expect(frame_param_2.in(stack)).to.equal(param2);
     });
   });
 });
