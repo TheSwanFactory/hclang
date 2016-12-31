@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { IKeyValuePair, Context, Frame, FrameArray, FrameSymbol } from "../../src/frames";
+import { IKeyValuePair, Context, Frame, FrameArray, FrameString, FrameSymbol } from "../../src/frames";
 
 describe("Frame", () => {
   const frame = new Frame({nil: Frame.nil});
@@ -66,15 +66,18 @@ describe("Frame", () => {
       expect(value).to.equal(Frame.missing);
     });
 
-    it("get searches 'up' if not get_here", () => {
+    it("get searches 'up' recursively if not get_here", () => {
       const key = "has";
-      const parent = new Frame({has: frame});
-      const child = new Frame();
-      child.set(Frame.kUP, parent);
+      const value = new FrameString("candy");
+      const grand = new FrameString("Grand", {has: value});
+      const parent = new FrameString("Parent", {up: grand});
+      const child = new FrameString("Child", {up: parent});
 
-      expect(parent.get_here(key)).to.equal(frame);
+      expect(grand.get_here(key)).to.equal(value);
+      expect(parent.get_here(key)).to.equal(Frame.missing);
+      expect(parent.get(key)).to.equal(value);
       expect(child.get_here(key)).to.equal(Frame.missing);
-      expect(child.get(key)).to.equal(frame);
+      expect(child.get(key)).to.equal(value);
     });
 
     it("returns metadata when called with a symbol", () => {

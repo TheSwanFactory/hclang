@@ -7,7 +7,7 @@ export const Void: Context = {};
 export class Frame {
   public static readonly BEGIN_EXPR = "(";
   public static readonly END_EXPR = ")";
-  public static readonly kUP = ".up";
+  public static readonly kUP = "up";
   public static readonly nil = new Frame();
   public static readonly missing: Frame = new Frame({
     missing: Frame.nil,
@@ -20,22 +20,22 @@ export class Frame {
   public string_open() { return Frame.BEGIN_EXPR; };
   public string_close() { return Frame.END_EXPR; };
 
-  public get_here(key: string, origin = this): Frame {
+  public get_here(key: string, origin: Frame = this): Frame {
     let result = this.meta[key];
     if (result != null) { return result; };
     return Frame.missing;
   }
 
   public get(key: string, origin: Frame = this): Frame {
-    const sources: Array<Frame> = [this, this.get_here(Frame.kUP), Frame.globals];
-    for (let source of sources) {
-      if (source !== Frame.missing) {
-        let result = source.get_here(key, origin);
-        if (result !== Frame.missing) { return result; };
-      }
+    let result = this.get_here(key, origin);
+    if (result !== Frame.missing) { return result; };
+
+    let source = this.get_here(Frame.kUP);
+    if (source === Frame.missing) {
+      if (Frame.globals === Frame.missing) { return Frame.missing; };
+      source = Frame.globals;
     }
-    console.log(`\t*ERROR*: ${key} not found in: ${this}`);
-    return Frame.missing;
+    return source.get(key, origin);
   }
 
   public set(key: string, value: Frame): Frame {

@@ -8,7 +8,7 @@ export declare type FuncDict = {
 export declare class FrameOps extends Frame {
     protected OpsDict: FuncDict;
     constructor(OpsDict: FuncDict);
-    get_here(key: string, origin: Frame): Frame;
+    get(key: string, origin: Frame): Frame;
     toString(): string;
     protected curry(func: ICurryFunction, origin: Frame): Frame;
 }
