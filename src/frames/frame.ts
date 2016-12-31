@@ -34,6 +34,7 @@ export class Frame {
         if (result !== Frame.missing) { return result; };
       }
     }
+    console.log(`\t*ERROR*: ${key} not found in: ${this}`);
     return Frame.missing;
   }
 
