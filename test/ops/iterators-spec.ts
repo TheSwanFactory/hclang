@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { Frame, FrameArg, FrameArray, FrameExpr, FrameName, FrameParam, FrameString } from "../../src/frames";
+import { Frame, FrameArg, FrameArray, FrameExpr, FrameLazy, FrameName, FrameParam, FrameString } from "../../src/frames";
 import { Ops } from "../../src/ops";
 
 describe("iterators", () => {
@@ -16,7 +16,7 @@ describe("iterators", () => {
     expect(result.toString()).to.equal("“Prefix: argument”");
   });
 
-  describe.only("&& iterate over metas", () => {
+  describe("&& iterate over metas", () => {
     Frame.globals = Ops;
     const operator = frame.get("&&");
     const result = operator.call(block);
@@ -63,11 +63,11 @@ describe("iterators", () => {
       expect(curry_string).to.equal(operator.toString());
     });
 
-    it.skip("is called as a name", () => {
-      const TestBlock = new FrameExpr([
+    it("is called as a name with a lazy block", () => {
+      const TestBlock = new FrameLazy([
         new FrameString(" [ key: "),
         FrameParam.there(),
-        new FrameString(" value: "),
+        new FrameString("| value: "),
         FrameArg.here(),
         new FrameString(" ] "),
       ]);
@@ -78,7 +78,7 @@ describe("iterators", () => {
       ]);
       const expr_result = expr.call(frame);
       const expr_string = expr_result.toString();
-      expect(expr_string).to.include("author: An Author");
+      expect(expr_string).to.include("[ key: author| value: An Author ]");
     });
   });
 });
