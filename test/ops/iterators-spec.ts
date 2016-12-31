@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { Frame, FrameArg, FrameArray, FrameExpr, FrameParam, FrameString } from "../../src/frames";
+import { Frame, FrameArg, FrameArray, FrameExpr, FrameName, FrameParam, FrameString } from "../../src/frames";
 import { Ops } from "../../src/ops";
 
 describe("iterators", () => {
@@ -16,13 +16,12 @@ describe("iterators", () => {
     expect(result.toString()).to.equal("“Prefix: argument”");
   });
 
-  describe("&& iterate over metas", () => {
+  describe.only("&& iterate over metas", () => {
     Frame.globals = Ops;
     const operator = frame.get("&&");
     const result = operator.call(block);
 
     it("lives in the global namespace", () => {
-      const foo = () => {Ops.get_here("&&", frame)};
       expect(operator).to.not.equal(Frame.missing);
     });
 
@@ -50,6 +49,36 @@ describe("iterators", () => {
       const expr_string = expr_result.toString();
       expect(expr_string).to.include("author: An Author");
       expect(expr_string).to.include("title: A Title");
+    });
+
+    it("is curried using a name", () => {
+      const curry = new FrameExpr([
+        FrameArg.here(),
+        new FrameName("&&"),
+      ]);
+      const curry_result = curry.call(frame);
+      const curry_string = curry_result.toString();
+      expect(curry_string).to.include("FrameCurry");
+      expect(curry_string).to.include(frame.toString());
+      expect(curry_string).to.equal(operator.toString());
+    });
+
+    it.skip("is called as a name", () => {
+      const TestBlock = new FrameExpr([
+        new FrameString(" [ key: "),
+        FrameParam.there(),
+        new FrameString(" value: "),
+        FrameArg.here(),
+        new FrameString(" ] "),
+      ]);
+      const expr = new FrameExpr([
+        FrameArg.here(),
+        new FrameName("&&"),
+        TestBlock,
+      ]);
+      const expr_result = expr.call(frame);
+      const expr_string = expr_result.toString();
+      expect(expr_string).to.include("author: An Author");
     });
   });
 });

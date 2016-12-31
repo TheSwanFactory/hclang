@@ -17,7 +17,7 @@ class FrameCurry extends Frame {
   }
 
   public toString() {
-    return `.Source ${this.Source}; ${this.Func}`;
+    return `FrameCurry(${this.Source}, ${this.Func})`;
   }
 }
 
