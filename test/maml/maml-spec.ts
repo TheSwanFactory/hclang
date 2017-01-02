@@ -22,7 +22,9 @@ describe("maml", () => {
 
   it("has a tag property", () => {
     const tag = maml.get("tag");
+
     expect(tag).to.be.instanceOf(FrameExpr);
+    expect(result_string).to.not.include(".missing");
   });
 
   it("wraps everything in an HTML tag", () => {
