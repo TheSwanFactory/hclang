@@ -14,7 +14,9 @@ export class Frame {
   });
   public static globals = Frame.missing;
 
+  public up: Frame;
   constructor(private meta = Void) {
+    this.up = Frame.missing;
   }
 
   public string_open() { return Frame.BEGIN_EXPR; };
@@ -30,7 +32,7 @@ export class Frame {
     let result = this.get_here(key, origin);
     if (result !== Frame.missing) { return result; };
 
-    let source = this.get_here(Frame.kUP);
+    let source = this.up || Frame.globals;
     if (source === Frame.missing) {
       if (Frame.globals === Frame.missing) { return Frame.missing; };
       source = Frame.globals;

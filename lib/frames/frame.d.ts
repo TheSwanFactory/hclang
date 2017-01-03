@@ -14,6 +14,7 @@ export declare class Frame {
     static readonly nil: Frame;
     static readonly missing: Frame;
     static globals: Frame;
+    up: Frame;
     constructor(meta?: {
         [key: string]: Frame;
     });
