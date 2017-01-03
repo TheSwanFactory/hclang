@@ -70,8 +70,11 @@ describe("Frame", () => {
       const key = "has";
       const value = new FrameString("candy");
       const grand = new FrameString("Grand", {has: value});
-      const parent = new FrameString("Parent", {up: grand});
-      const child = new FrameString("Child", {up: parent});
+      const parent = new FrameString("Parent");
+      const child = new FrameString("Child");
+
+      child.up = parent;
+      parent.up = grand;
 
       expect(grand.get_here(key)).to.equal(value);
       expect(parent.get_here(key)).to.equal(Frame.missing);
@@ -90,7 +93,7 @@ describe("Frame", () => {
   describe("FrameSET", () => {
     const value = new Frame({frame: frame});
     const context = new Frame();
-    const new_context = context.set(Frame.kUP, value);
+    const new_context = context.set("key", value);
 
     it("returns (mutable) this", () => {
       expect(new_context).to.be.instanceOf(Frame);
@@ -98,13 +101,8 @@ describe("Frame", () => {
     });
 
     it("sets metadata in a Frame", () => {
-      const result = context.get(Frame.kUP);
+      const result = context.get("key");
       expect(result).to.equal(value);
-    });
-
-    it("can change up path", () => {
-      const result = context.get("frame");
-      expect(result).to.equal(frame);
     });
   });
 });
