@@ -13,12 +13,10 @@ export class FrameSymbol extends FrameAtom {
   }
 
   public in(contexts = [Frame.nil]) {
-    for (let context of contexts) {
+    contexts.forEach((context) => {
       let value = context.get(this.data);
-      if (value !== Frame.missing) {
-        return value;
-      }
-    }
+      if (value !== Frame.missing) { return value; };
+    });
     return Frame.missing;
   }
 
