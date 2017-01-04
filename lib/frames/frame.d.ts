@@ -14,12 +14,13 @@ export declare class Frame {
     static readonly nil: Frame;
     static readonly missing: Frame;
     static globals: Frame;
+    up: Frame;
     constructor(meta?: {
         [key: string]: Frame;
     });
     string_open(): string;
     string_close(): string;
-    get_here(key: string, origin?: this): Frame;
+    get_here(key: string, origin?: Frame): Frame;
     get(key: string, origin?: Frame): Frame;
     set(key: string, value: Frame): Frame;
     at(index: number): Frame;

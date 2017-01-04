@@ -16,7 +16,9 @@ export class FrameLazy extends FrameExpr {
     if (this.data.length === 0) {
       return this;
     }
-    return new FrameExpr(this.data, this.meta_for(contexts[0]));
+    const expr = new FrameExpr(this.data, this.meta_for(contexts[0]));
+    expr.up = this;
+    return expr;
   }
 
   public call(argument: Frame, parameter = Frame.nil): FrameExpr {

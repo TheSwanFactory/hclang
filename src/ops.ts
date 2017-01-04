@@ -17,7 +17,7 @@ class FrameCurry extends Frame {
   }
 
   public toString() {
-    return `.Source ${this.Source}; ${this.Func}`;
+    return `FrameCurry(${this.Source}, ${this.Func})`;
   }
 }
 
@@ -26,11 +26,12 @@ export class FrameOps extends Frame {
     super();
   }
 
-  public get_here(key: string, origin: Frame): Frame {
+  public get(key: string, origin: Frame): Frame {
     const func = this.OpsDict[key];
     if (func != null) {
       return this.curry(func, origin);
     }
+    console.log(`**WARN** [get]: '${key}' not found in: ${origin}`);
     return Frame.missing;
   }
 

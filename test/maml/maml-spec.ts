@@ -22,7 +22,9 @@ describe("maml", () => {
 
   it("has a tag property", () => {
     const tag = maml.get("tag");
+
     expect(tag).to.be.instanceOf(FrameExpr);
+    expect(result_string).to.not.include(".missing");
   });
 
   it("wraps everything in an HTML tag", () => {
@@ -42,18 +44,7 @@ describe("maml", () => {
   });
 
   it("wraps all metas in their keyed tag", () => {
-    const tag = maml.get("tag");
-    const block = (value: Frame, tag_name: Frame) => {
-      return tag.call(tag_name).call(value);
-    };
-    const tag_list = body.meta_pairs().map( ([key, value]) => {
-      const fkey = new FrameString(key);
-      return block(value, fkey);
-    });
-    const tags = new FrameArray(tag_list);
-    const tag_string = tags.toString();
-
-    expect(tag_string).to.match(/<author>([\s\S]*)<\/author>/);
-    expect(tag_string).to.match(/<title>([\s\S]*)<\/title>/);
+    expect(result_string).to.match(/<author>([\s\S]*)<\/author>/);
+    expect(result_string).to.match(/<title>([\s\S]*)<\/title>/);
   });
 });
