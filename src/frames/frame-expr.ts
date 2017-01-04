@@ -3,6 +3,7 @@ import { Frame, FrameList, Void } from "./frame";
 export class FrameExpr extends FrameList {
   constructor(data: Array<Frame>, meta = Void) {
     super(data, meta);
+    data.forEach((item) => { item.up = this; });
   }
 
   public in(contexts = [Frame.nil]) {
