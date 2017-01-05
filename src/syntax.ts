@@ -1,5 +1,7 @@
-//import { lang } from "./exec/lang";
+import { pipeline } from "./syntax/pipeline";
+import * as _ from "lodash";
 
 export const exec = (input: string) => {
-  return input;
+  const output = "";
+  return _.reduce(input, pipeline, output);
 };
