@@ -2,12 +2,15 @@ import { Frame, FrameString } from "../frames";
 import * as _ from "lodash";
 
 export class Router extends Frame {
-
+  public call(argument: Frame, parameter = Frame.nil) {
+    return new FrameString("");
+  }
 };
+const router = new Router();
 
 export const pipe = (input: string): Frame => {
   const start = new FrameString("");
-  const output: Frame = _.reduce(input, pipeline, start);
+  const output: Frame = _.reduce(input, pipeline, router);
   return output;
 };
 
