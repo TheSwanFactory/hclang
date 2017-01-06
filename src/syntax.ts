@@ -1,11 +1,8 @@
-import { Frame, FrameString } from "./frames";
-import { pipeline } from "./syntax/pipeline";
-import * as _ from "lodash";
+import { Frame } from "./frames";
+import { pipe } from "./syntax/pipeline";
 
- const framify = (input: string): Frame => {
-  const start = new FrameString("");
-  const output: Frame = _.reduce(input, pipeline, start);
-  return output;
+const framify = (input: string): Frame => {
+  return pipe(input);
 };
 
 export const exec = (input: string) => {
