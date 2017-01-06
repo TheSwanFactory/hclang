@@ -1,22 +1,34 @@
 import { Frame, FrameString } from "../frames";
 import * as _ from "lodash";
 
-export class Router extends Frame {
+export type Factories = { [key: string]: Function; };
+
+class Router extends Frame {
+  public constructor(protected factories: Factories) {
+    super();
+  }
+
   public call(argument: Frame, parameter = Frame.nil) {
     return new FrameString("");
   }
 };
-const router = new Router();
+
+class SyntaxString extends Frame {
+
+};
+
+const router = new Router({
+  "“": SyntaxString,
+});
 
 export const pipe = (input: string): Frame => {
-  const start = new FrameString("");
   const output: Frame = _.reduce(input, pipeline, router);
   return output;
 };
 
-export const pipeline = (current: Frame, char: string): Frame => {
+const pipeline = (current: Frame, char: string): Frame => {
   const frameChar = new FrameString(char);
   const next = current.call(frameChar);
-  console.log(`pipeline ${next} for ${frameChar}`);
+  //console.log(`pipeline ${next} for ${frameChar}`);
   return next;
 };
