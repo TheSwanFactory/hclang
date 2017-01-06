@@ -9,12 +9,24 @@ class Router extends Frame {
   }
 
   public call(argument: Frame, parameter = Frame.nil) {
-    return new FrameString("");
+    return new SyntaxString();
   }
 };
 
 class SyntaxString extends Frame {
+  protected body: Frame = new FrameString("");
 
+  public call(argument: Frame, parameter = Frame.nil): Frame {
+    if (argument.toString() === "“””") {
+      return this.body;
+    }
+    this.body = this.body.call(argument);
+    return this;
+  }
+
+  public toString() {
+    return `SyntaxString[${this.body}]`;
+  }
 };
 
 const router = new Router({
@@ -28,7 +40,8 @@ export const pipe = (input: string): Frame => {
 
 const pipeline = (current: Frame, char: string): Frame => {
   const frameChar = new FrameString(char);
+  console.log(`*  pipeline ${current}.call(${frameChar})`);
   const next = current.call(frameChar);
-  //console.log(`pipeline ${next} for ${frameChar}`);
+  console.log(`** pipeline -> ${next} `);
   return next;
 };
