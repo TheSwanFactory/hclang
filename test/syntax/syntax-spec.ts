@@ -10,6 +10,20 @@ describe.only("syntax", () => {
       expect(result).to.equal(input);
     });
 
+    it("eliminates inline comments", () => {
+      const input = "#Ignore this#";
+      const result = exec(input);
+
+      expect(result).to.equal("");
+    });
+
+    it("eliminates end-of-ine comments", () => {
+      const input = "#Ignore this\n";
+      const result = exec(input);
+
+      expect(result).to.equal("");
+    });
+
     it.skip("evaluates FrameStrings", () => {
       const part1 = "“Hello, ”";
       const part2 = "“World!”";
