@@ -26,7 +26,7 @@ class LexComment extends Frame {
   private body: string = "";
 
   public call(argument: Frame, parameter = Frame.nil): Frame {
-    if (argument.toString() === "#") {
+    if (argument.toString() === "#" || argument.toString() === "\n") {
       this.body = "";
       return FrameSymbol.for("");
     }
