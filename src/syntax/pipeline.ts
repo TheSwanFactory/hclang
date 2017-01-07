@@ -22,8 +22,26 @@ class LexString extends Frame {
   }
 };
 
+class LexComment extends Frame {
+  private body: string = "";
+
+  public call(argument: Frame, parameter = Frame.nil): Frame {
+    if (argument.toString() === "#") {
+      this.body = "";
+      return FrameSymbol.for("");
+    }
+    this.body = this.body + argument.toString();
+    return this;
+  }
+
+  public toString() {
+    return `LexComment[${this.body}]`;
+  }
+};
+
 const router = new Router({
   "“": new LexString(),
+  "#": new LexComment(),
 });
 
 export const pipe = (input: string): Frame => {
