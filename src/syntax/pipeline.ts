@@ -4,9 +4,21 @@ import * as _ from "lodash";
 class Router extends Frame {
 };
 
-class LexString extends Frame {
-  private body: string = "";
+class Lex extends Frame {
+  protected body: string = "";
 
+  public getClassName() {
+      var funcNameRegex = /function (.{1,})\(/;
+      var results  = (funcNameRegex).exec(this["constructor"].toString());
+      return (results && results.length > 1) ? results[1] : "";
+  }
+
+  public toString() {
+    return this.getClassName() + `[${this.body}]`;
+  }
+}
+
+class LexString extends Lex {
   public call(argument: Frame, parameter = Frame.nil): Frame {
     if (argument.toString() === "”") {
       const result = new FrameString(this.body);
@@ -16,15 +28,9 @@ class LexString extends Frame {
     this.body = this.body + argument.toString();
     return this;
   }
-
-  public toString() {
-    return `LexString[${this.body}]`;
-  }
 };
 
-class LexComment extends Frame {
-  private body: string = "";
-
+class LexComment extends Lex {
   public call(argument: Frame, parameter = Frame.nil): Frame {
     if (argument.toString() === "#" || argument.toString() === "\n") {
       this.body = "";
@@ -32,10 +38,6 @@ class LexComment extends Frame {
     }
     this.body = this.body + argument.toString();
     return this;
-  }
-
-  public toString() {
-    return `LexComment[${this.body}]`;
   }
 };
 
