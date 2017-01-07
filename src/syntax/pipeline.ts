@@ -1,59 +1,8 @@
-import { Frame, FrameString, FrameSymbol } from "../frames";
+import { Frame, FrameSymbol } from "../frames";
+import { LexComment, LexString } from "./lex";
 import * as _ from "lodash";
 
 class Router extends Frame {
-};
-
-class Lex extends Frame {
-  protected body: string = "";
-
-  public call(argument: Frame, parameter = Frame.nil): Frame {
-    if ( this.isEnd(argument.toString()) ) {
-      const result = this.makeFrame();
-      this.body = "";
-      return result;
-    }
-    this.body = this.body + argument.toString();
-    return this;
-  }
-
-  public getClassName() {
-      var funcNameRegex = /function (.{1,})\(/;
-      var results  = (funcNameRegex).exec(this["constructor"].toString());
-      return (results && results.length > 1) ? results[1] : "<class>";
-  }
-
-  public toString() {
-    return this.getClassName() + `[${this.body}]`;
-  }
-
-  protected isEnd(char: string) {
-    return false;
-  }
-
-  protected makeFrame() {
-    return Frame.nil;
-  }
-}
-
-class LexString extends Lex {
-  protected isEnd(char: string) {
-    return char === "”";
-  }
-
-  protected makeFrame() {
-    return new FrameString(this.body);
-  }
-};
-
-class LexComment extends Lex {
-  protected isEnd(char: string) {
-    return char === "#" || char === "\n";
-  }
-
-  protected makeFrame() {
-    return FrameSymbol.for("");
-  }
 };
 
 const router = new Router({
