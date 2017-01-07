@@ -1,45 +1,8 @@
-import { Frame, FrameString, FrameSymbol } from "../frames";
+import { Frame, FrameSymbol } from "../frames";
+import { LexComment, LexString } from "./lex";
 import * as _ from "lodash";
 
-class Router extends Frame {
-};
-
-class LexString extends Frame {
-  private body: string = "";
-
-  public call(argument: Frame, parameter = Frame.nil): Frame {
-    if (argument.toString() === "”") {
-      const result = new FrameString(this.body);
-      this.body = "";
-      return result;
-    }
-    this.body = this.body + argument.toString();
-    return this;
-  }
-
-  public toString() {
-    return `LexString[${this.body}]`;
-  }
-};
-
-class LexComment extends Frame {
-  private body: string = "";
-
-  public call(argument: Frame, parameter = Frame.nil): Frame {
-    if (argument.toString() === "#" || argument.toString() === "\n") {
-      this.body = "";
-      return FrameSymbol.for("");
-    }
-    this.body = this.body + argument.toString();
-    return this;
-  }
-
-  public toString() {
-    return `LexComment[${this.body}]`;
-  }
-};
-
-const router = new Router({
+const router = new Frame({
   "“": new LexString(),
   "#": new LexComment(),
 });
@@ -53,6 +16,6 @@ const pipeline = (current: Frame, char: string): Frame => {
   const frameChar = FrameSymbol.for(char);
   console.log(`*  pipeline ${current}.call(${frameChar})`);
   const next = current.call(frameChar);
-  console.log(`** pipeline -> ${next} `);
+  console.log(`** pipeline -> ${next}`);
   return next;
 };
