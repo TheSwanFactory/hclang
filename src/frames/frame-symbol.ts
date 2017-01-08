@@ -1,6 +1,6 @@
-import { Frame, Void } from "./frame";
+import { Frame, FrameAtom, Void } from "./frame";
 
-export class FrameSymbol extends Frame {
+export class FrameSymbol extends FrameAtom {
   public static for(symbol: string) {
     const exists = FrameSymbol.symbols[symbol];
     return exists || (FrameSymbol.symbols[symbol] = new FrameSymbol(symbol));
@@ -12,15 +12,20 @@ export class FrameSymbol extends Frame {
     super(meta);
   }
 
-  public in(context = Frame.nil) {
-    return context.get(this.data);
+  public in(contexts = [Frame.nil]) {
+    for (let context of contexts) {
+      let value = context.get(this.data);
+      if (value !== Frame.missing) {
+        value.up = context;
+        return value;
+      }
+    }
+    return Frame.missing;
   }
 
   public called_by(context: Frame) {
-    return this.in(context);
+    return this.in([context]);
   }
 
-  public toString() {
-    return this.meta_wrap(this.data);
-  }
+  protected toData() { return this.data; }
 };

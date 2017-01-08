@@ -1,15 +1,30 @@
-import { Frame, Void } from "./frame";
+import { Frame, FrameList, Void } from "./frame";
 
-export class FrameArray extends Frame {
-  constructor(public data: Array<Frame>, meta = Void) {
-    super(meta);
+export class FrameArray extends FrameList {
+  public static readonly BEGIN_ARRAY = "[";
+  public static readonly END_ARRAY = "]";
+
+  constructor(data: Array<Frame>, meta = Void) {
+    super(data, meta);
   }
 
-  public in(context = Frame.nil): Frame {
-    return new FrameArray(this.data.map((f) => { return f.in(context); }));
+  public string_open() { return FrameArray.BEGIN_ARRAY; };
+  public string_close() { return FrameArray.END_ARRAY; };
+
+  public in(contexts = [Frame.nil]): Frame {
+    contexts.push(this);
+    return new FrameArray(this.data.map((f) => { return f.in(contexts); }));
+  }
+
+  public apply(argument: Frame, parameter: Frame) {
+    this.data.push(argument);
+    return this;
   }
 
   public at(index: number) {
+    if (index >= this.data.length) {
+      return Frame.missing;
+    }
     return this.data[index];
   }
 }

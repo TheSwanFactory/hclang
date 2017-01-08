@@ -1,14 +1,9 @@
-import { Frame } from "./frame";
-import { FrameArray } from "./frame-array";
-export declare class FrameExpr extends FrameArray {
-    static readonly EXPR_BEGIN: string;
-    static readonly EXPR_END: string;
-    static extract(key: string): FrameExpr;
+import { Frame, FrameList } from "./frame";
+export declare class FrameExpr extends FrameList {
     constructor(data: Array<Frame>, meta?: {
         [key: string]: Frame;
     });
-    in(context?: Frame): Frame;
-    call(context: Frame): Frame;
-    toStringData(): string;
-    toString(): string;
+    in(contexts?: Frame[]): Frame;
+    call(argument: Frame, parameter?: Frame): Frame;
+    toStringDataArray(): string[];
 }

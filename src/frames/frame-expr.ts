@@ -1,39 +1,25 @@
-import { Frame, Void } from "./frame";
-import { FrameArg } from "./frame-arg";
-import { FrameArray } from "./frame-array";
-import { FrameName } from "./frame-name";
+import { Frame, FrameList, Void } from "./frame";
 
-export class FrameExpr extends FrameArray {
-  public static readonly EXPR_BEGIN = "(";
-  public static readonly EXPR_END = ")";
-
-  public static extract(key: string) {
-    return new FrameExpr([
-      FrameArg.here(),
-      new FrameName(key),
-    ]);
-  }
-
+export class FrameExpr extends FrameList {
   constructor(data: Array<Frame>, meta = Void) {
     super(data, meta);
+    data.forEach((item) => { item.up = this; });
   }
 
-  public in(context = Frame.nil) {
+  public in(contexts = [Frame.nil]) {
+    contexts.push(this);
     return this.data.reduce((sum: Frame, item: Frame) => {
-      const value = item.in(context);
+      let value = item.in(contexts);
       return sum.call(value);
     }, Frame.nil);
   }
 
-  public call(context: Frame) {
-    return this.in(context);
+  public call(argument: Frame, parameter = Frame.nil) {
+    return this.in([argument, parameter]);
   };
 
-  public toStringData() {
-    return this.data.map((obj: Frame) => { return obj.toString(); }).join(" ");
-  };
-
-  public toString() {
-    return FrameExpr.EXPR_BEGIN + this.toStringData() + FrameExpr.EXPR_END;
+  public toStringDataArray(): string[] {
+    const array = super.toStringDataArray();
+    return [array.join(" ")];
   }
 };

@@ -1,32 +1,34 @@
-import { Context, Frame, Void } from "./frame";
-import { FrameArray } from "./frame-array";
+import { Context, Frame, IKeyValuePair, Void } from "./frame";
 import { FrameExpr } from "./frame-expr";
 
-export class FrameLazy extends Frame {
+export class FrameLazy extends FrameExpr {
   public static readonly LAZY_BEGIN = "{";
   public static readonly LAZY_END = "}";
 
-  constructor(protected data: Frame, meta: Context = Void) {
-    super(meta);
+  constructor(data: Array<Frame>, meta: Context = Void) {
+    super(data, meta);
   }
 
-  public in(context: Frame): Frame {
-    if (context === Frame.nil) {
+  public string_open() { return FrameLazy.LAZY_BEGIN + " "; };
+  public string_close() { return  " " + FrameLazy.LAZY_END; };
+
+  public in(contexts = [Frame.nil]): Frame {
+    if (this.data.length === 0) {
       return this;
     }
-    const current = this.set(Frame.kUP, context);
-    return this.data.set(Frame.kUP, current);
+    const expr = new FrameExpr(this.data, this.meta_for(contexts[0]));
+    expr.up = this;
+    return expr;
   }
 
-  public call(argument: Frame): FrameExpr {
-    if (argument instanceof FrameArray) {
-      const array: FrameArray = argument;
-      return new FrameExpr(array.data);
-    }
-    return new FrameExpr([argument]);
+  public call(argument: Frame, parameter = Frame.nil): FrameExpr {
+    return new FrameExpr(argument.asArray(), this.meta_for(argument));
   }
 
-  public toString(): string {
-    return FrameLazy.LAZY_BEGIN + " " + this.data.toString() + " " + FrameLazy.LAZY_END;
+  protected meta_for(context: Frame) {
+    let MetaNew = this.meta_copy();
+    let pairs: Array<IKeyValuePair> = context.meta_pairs();
+    pairs.map(([key, value]) => { MetaNew[key] = value; });
+    return MetaNew;
   }
 };

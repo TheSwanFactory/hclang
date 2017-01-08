@@ -1,7 +1,7 @@
-import { Frame, Void } from "./frame";
+import { Frame, FrameAtom, Void } from "./frame";
 import { FrameSymbol } from "./frame-symbol";
 
-export class FrameName extends Frame {
+export class FrameName extends FrameAtom {
   public static readonly NAME_BEGIN = ".";
 
   protected data: FrameSymbol;
@@ -11,15 +11,11 @@ export class FrameName extends Frame {
     this.data = FrameSymbol.for(symbol);
   }
 
-  public in(context = Frame.nil) {
+  public in(contexts = [Frame.nil]) {
     return this.data;
   }
 
-  public toStringData() {
-    return FrameName.NAME_BEGIN + this.data.toString();
-  }
+  public string_prefix() { return FrameName.NAME_BEGIN; };
 
-  public toString() {
-    return this.meta_wrap(this.toStringData());
-  }
+  protected toData() { return this.data; }
 };

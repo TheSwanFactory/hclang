@@ -9,5 +9,16 @@ export declare class FrameArg extends FrameSymbol {
     };
     protected static _for(symbol: string): FrameArg;
     protected constructor(data: string);
-    in(context: Frame): Frame;
+    in(contexts?: Frame[]): Frame;
+}
+export declare class FrameParam extends FrameSymbol {
+    static readonly ARG_CHAR: string;
+    static there(): FrameParam;
+    static level(count?: number): FrameParam;
+    protected static params: {
+        [key: string]: FrameParam;
+    };
+    protected static _for(symbol: string): FrameParam;
+    protected constructor(data: string);
+    in(contexts?: Frame[]): Frame;
 }

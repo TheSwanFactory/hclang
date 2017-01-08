@@ -1,32 +1,43 @@
+import * as _ from "lodash";
 
 export type Context = { [key: string]: Frame; };
 export interface IKeyValuePair extends ReadonlyArray<string | Frame > { 0: string; 1: Frame; }
 export const Void: Context = {};
 
 export class Frame {
-  public static readonly BEGIN = "(";
-  public static readonly END = ")";
-  public static readonly kUP = ".up";
+  public static readonly BEGIN_EXPR = "(";
+  public static readonly END_EXPR = ")";
+  public static readonly kUP = "up";
   public static readonly nil = new Frame();
   public static readonly missing: Frame = new Frame({
     missing: Frame.nil,
   });
+  public static globals = Frame.missing;
 
+  public up: Frame;
   constructor(private meta = Void) {
+    this.up = Frame.missing;
   }
 
-  public get_here(key: string) {
+  public string_open() { return Frame.BEGIN_EXPR; };
+  public string_close() { return Frame.END_EXPR; };
+
+  public get_here(key: string, origin: Frame = this): Frame {
     let result = this.meta[key];
     if (result != null) { return result; };
     return Frame.missing;
   }
 
-  public get(key: string, origin = this): Frame {
-    let result = this.get_here(key);
+  public get(key: string, origin: Frame = this): Frame {
+    let result = this.get_here(key, origin);
     if (result !== Frame.missing) { return result; };
-    const up = this.get_here(Frame.kUP);
-    if (up === Frame.missing) { return Frame.missing; };
-    return up.get(key, origin);
+
+    let source = this.up || Frame.globals;
+    if (source === Frame.missing) {
+      if (Frame.globals === Frame.missing) { return Frame.missing; };
+      source = Frame.globals;
+    }
+    return source.get(key, origin);
   }
 
   public set(key: string, value: Frame): Frame {
@@ -41,51 +52,96 @@ export class Frame {
     return Frame.nil;
   }
 
-  public in(context = Frame.nil): Frame {
+  public in(contexts = [Frame.nil]): Frame {
     return this;
   }
 
-  public apply(argument: Frame) {
+  public apply(argument: Frame, parameter: Frame) {
     return argument;
   }
 
-  public called_by(context: Frame) {
-    return context.apply(this);
+  public called_by(context: Frame, parameter: Frame) {
+    return context.apply(this, parameter);
   }
 
-  public call(argument: Frame) {
-    return argument.called_by(this);
+  public call(argument: Frame, parameter = Frame.nil) {
+    return argument.called_by(this, parameter);
+  }
+
+  public meta_copy(): Context {
+    return _.clone(this.meta);
   }
 
   public meta_keys() {
-    return Object.keys(this.meta);
+    return _.keys(this.meta);
   }
 
   public meta_length() {
     return this.meta_keys().length;
   }
 
-  public meta_pairs() {
-    const keys = this.meta_keys();
-    return keys.map((key) => {
-      const pair: IKeyValuePair = [key, this.meta[key]];
-      return pair;
+  public meta_pairs(): Array<IKeyValuePair> {
+    return _.map(this.meta, (value, key): IKeyValuePair => {
+      return [key, value];
     });
   }
 
   public meta_string() {
-    let pairs: Array<IKeyValuePair> = this.meta_pairs();
-    return pairs.map(([key, value]) => { return `.${key} ${value};`; }).join(" ");
-  }
-
-  public meta_wrap(dataString: string) {
-    if (this.meta_length() > 0) {
-      return Frame.BEGIN + `${dataString}, ` + this.meta_string() + Frame.END;
-    }
-    return dataString;
+    return this.meta_pairs().map(([key, value]) => {
+      return `.${key} ${value};`;
+    }).join(" ");
   }
 
   public toString() {
-    return Frame.BEGIN + this.meta_string() + Frame.END;
+    return this.string_open() + this.meta_string() + this.string_close();
+  }
+
+  public asArray(): Array<Frame> {
+    return _.castArray(this);
   }
 };
+
+export class FrameAtom extends Frame {
+  public string_prefix() { return ""; };
+  public string_suffix() { return ""; };
+
+  public toStringData(): string {
+    return this.string_prefix() + this.toData().toString() + this.string_suffix();
+  }
+
+  public toString() {
+    const DataString = this.toStringData();
+    if (this.meta_length() === 0) {
+      return DataString;
+    }
+    return this.string_open() + [DataString, this.meta_string()].join(", ") + this.string_close();
+  }
+
+  protected toData(): any { return null; }
+}
+
+export class FrameList extends Frame {
+  constructor(protected data: Array<Frame>, meta = Void) {
+    super(meta);
+  }
+
+  public toStringDataArray() {
+    return this.data.map((obj: Frame) => { return obj.toString(); });
+  };
+
+  public toStringArray(): string[] {
+    const result = this.toStringDataArray();
+    if (this.meta_length() > 0) {
+      result.push(this.meta_string());
+    }
+    return result;
+  }
+
+  public toString() {
+    return this.string_open() + this.toStringArray().join(", ") + this.string_close();
+  }
+
+  public asArray(): Array<Frame> {
+    return this.data;
+  }
+}

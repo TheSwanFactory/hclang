@@ -1,25 +1,20 @@
-import { Context, Frame, Void } from "./frame";
-// import { FrameChar } from "./frame-char";
+import { Context, FrameAtom, Void } from "./frame";
 
-export class FrameString extends Frame {
+export class FrameString extends FrameAtom {
   public static readonly STRING_BEGIN = "“";
   public static readonly STRING_END = "”";
 
   constructor(protected data: string, meta: Context = Void) {
-    // let result = Array.prototype.map.call(JSstring, (char: string) => {return new FrameChar(char); });
     super(meta);
   }
 
   public apply(argument: FrameString) {
-    this.data = this.data.concat(argument.data);
-    return this;
+    return new FrameString(this.data + argument.data);
   }
 
-  public toStringData() {
-    return this.data;
-  };
+  public string_prefix() { return FrameString.STRING_BEGIN; };
 
-  public toString() {
-    return FrameString.STRING_BEGIN + this.toStringData() + FrameString.STRING_END;
-  }
+  public string_suffix() { return FrameString.STRING_END; };
+
+  protected toData() { return this.data; }
 };

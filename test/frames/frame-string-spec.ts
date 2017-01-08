@@ -7,7 +7,7 @@ describe("FrameString", () => {
   const value = new FrameString("value");
   const frame_string = new FrameString(js_string, {key: value});
 
-  it("takes a JavaScript string", () => {
+  it("is created from a JavaScript string", () => {
     expect(frame_string).to.be.instanceOf(FrameString);
   });
 
@@ -15,15 +15,18 @@ describe("FrameString", () => {
     expect(frame_string.get(key)).to.equal(value);
   });
 
-  it("return JavaScript string for 'toStringData'", () => {
-    expect(frame_string.toStringData()).to.equal(js_string);
+  it("uses smart quotes as prefix and suffix", () => {
+    expect(frame_string.string_prefix()).to.equal("“");
+    expect(frame_string.string_suffix()).to.equal("”");
+    expect(frame_string.toStringData()).to.equal(`“${js_string}”`);
   });
 
   it("stringifies with smart quotes", () => {
-    expect(frame_string.toString()).to.equal(`“${js_string}”`);
+    expect(value.toString()).to.equal(`“value”`);
+    expect(frame_string.toString()).to.equal(`(“${js_string}”, .key “value”;)`);
   });
 
-  it("appends when called with a FrameString", () => {
+  it("concatenates when called with a FrameString", () => {
     const js_string_2 = " Goodbye, world!";
     const frame_string_2 = new FrameString(js_string_2);
     const result = frame_string.call(frame_string_2)

@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { IKeyValuePair, Frame, FrameArray, FrameSymbol } from "../../src/frames";
+import { IKeyValuePair, Context, Frame, FrameArray, FrameString, FrameSymbol } from "../../src/frames";
 
 describe("Frame", () => {
   const frame = new Frame({nil: Frame.nil});
@@ -30,6 +30,18 @@ describe("Frame", () => {
   });
 
   describe("FrameMETA", () => {
+    it("returns a copy", () => {
+      const new_meta: Context = frame.meta_copy();
+      expect(new_meta["nil"]).to.equal(Frame.nil);
+
+      new_meta["symbol"] = new FrameSymbol("symbolic");
+      expect(frame.toString()).to.equal("(.nil ();)");
+
+      const new_frame = new Frame(new_meta);
+      expect(new_frame.get("nil")).to.equal(Frame.nil);
+      expect(new_frame.toString()).to.equal("(.nil (); .symbol symbolic;)");
+    });
+
     it("returns list of meta_keys", () => {
       const keys = frame.meta_keys();
       expect(keys).to.eql(["nil"]);
@@ -41,7 +53,7 @@ describe("Frame", () => {
     });
 
     it("stringifies meta_pairs as `.key value;`", () => {
-      expect(frame.meta_string()).to.eql(".nil ();");
+      expect(frame.meta_string()).to.equal(".nil ();");
     });
 
     it("gets values from context with string key", () => {
@@ -54,15 +66,21 @@ describe("Frame", () => {
       expect(value).to.equal(Frame.missing);
     });
 
-    it("get searches 'up' if not get_here", () => {
+    it("get searches 'up' recursively if not get_here", () => {
       const key = "has";
-      const parent = new Frame({has: frame});
-      const child = new Frame();
-      child.set(Frame.kUP, parent);
+      const value = new FrameString("candy");
+      const grand = new FrameString("Grand", {has: value});
+      const parent = new FrameString("Parent");
+      const child = new FrameString("Child");
 
-      expect(parent.get_here(key)).to.equal(frame);
+      child.up = parent;
+      parent.up = grand;
+
+      expect(grand.get_here(key)).to.equal(value);
+      expect(parent.get_here(key)).to.equal(Frame.missing);
+      expect(parent.get(key)).to.equal(value);
       expect(child.get_here(key)).to.equal(Frame.missing);
-      expect(child.get(key)).to.equal(frame);
+      expect(child.get(key)).to.equal(value);
     });
 
     it("returns metadata when called with a symbol", () => {
@@ -75,7 +93,7 @@ describe("Frame", () => {
   describe("FrameSET", () => {
     const value = new Frame({frame: frame});
     const context = new Frame();
-    const new_context = context.set(Frame.kUP, value);
+    const new_context = context.set("key", value);
 
     it("returns (mutable) this", () => {
       expect(new_context).to.be.instanceOf(Frame);
@@ -83,13 +101,8 @@ describe("Frame", () => {
     });
 
     it("sets metadata in a Frame", () => {
-      const result = context.get(Frame.kUP);
+      const result = context.get("key");
       expect(result).to.equal(value);
-    });
-
-    it("can change up path", () => {
-      const result = context.get("frame");
-      expect(result).to.equal(frame);
     });
   });
 });
