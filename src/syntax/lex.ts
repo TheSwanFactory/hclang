@@ -1,6 +1,8 @@
 import { Frame, FrameString, FrameSymbol } from "../frames";
 
 export class Lex extends Frame {
+  public static readonly out = "out_";
+
   protected body: string = "";
 
   public call(argument: Frame, parameter = Frame.nil): Frame {
@@ -29,7 +31,7 @@ export class Lex extends Frame {
 
   protected exportFrame() {
     const output = this.makeFrame();
-    const out = this.get("out");
+    const out = this.get(Lex.out);
     console.log(`** exportFrame[${output}] -> ${out}`);
     out.call(output);
     console.log(`*** -> ${out}`);
