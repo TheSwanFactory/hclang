@@ -11,6 +11,9 @@ export const pipe = (input: string): Frame => {
   const output = new FrameArray([]);
   router.set(Lex.out, output);
   const status: Frame = _.reduce(input, pipeline, router);
+  if (status !== router) {
+    console.log(`\n* pipe returned ${status}`);
+  }
   return output;
 };
 
