@@ -1,4 +1,6 @@
-import { expect } from "chai";
+import chai = require("chai");
+chai.use(require("chai-pretty-expect"));
+const expect = chai.expect;
 import { IKeyValuePair, Context, Frame, FrameArray, FrameString, FrameSymbol } from "../../src/frames";
 
 describe("Frame", () => {

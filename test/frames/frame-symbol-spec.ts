@@ -1,6 +1,5 @@
-import chai = require("chai");
-chai.use(require("chai-pretty-expect"));
-const expect = chai.expect;
+import { expect } from "chai";
+
 import { FrameSymbol } from "../../src/frames";
 
 
