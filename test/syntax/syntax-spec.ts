@@ -11,19 +11,19 @@ describe.only("syntax", () => {
       expect(result).to.equal(input_string);
     });
 
-    it("eliminates inline comments", () => {
+    it.skip("eliminates inline comments", () => {
       const result = exec(input_comment);
       expect(result).to.equal("");
     });
 
-    it("eliminates end-of-ine comments", () => {
+    it.skip("eliminates end-of-ine comments", () => {
       const input = "#Ignore this\n";
       const result = exec(input);
 
       expect(result).to.equal("");
     });
 
-    it("lexes both FrameStrings and comments", () => {
+    it.skip("lexes both FrameStrings and comments", () => {
       const input = input_string + input_comment;
       const result = exec(input);
 

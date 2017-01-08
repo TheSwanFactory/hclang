@@ -5,9 +5,9 @@ export class Lex extends Frame {
 
   public call(argument: Frame, parameter = Frame.nil): Frame {
     if ( this.isEnd(argument.toString()) ) {
-      const result = this.makeFrame();
+      this.exportFrame();
       this.body = "";
-      return result;
+      return this.up;
     }
     this.body = this.body + argument.toString();
     return this;
@@ -25,6 +25,14 @@ export class Lex extends Frame {
 
   protected isEnd(char: string) {
     return false;
+  }
+
+  protected exportFrame() {
+    const output = this.makeFrame();
+    const out = this.get("out");
+    console.log(`* exportFrame[${output}] -> ${out}`);
+    out.call(output);
+    console.log(`** -> ${out}`);
   }
 
   protected makeFrame() {
