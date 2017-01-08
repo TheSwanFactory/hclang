@@ -11,7 +11,7 @@ const router = new Frame({
 
 export const pipe = (input: string): Frame => {
   const status: Frame = _.reduce(input, pipeline, router);
-  return output;
+  return output.at(0);
 };
 
 const pipeline = (current: Frame, char: string): Frame => {
