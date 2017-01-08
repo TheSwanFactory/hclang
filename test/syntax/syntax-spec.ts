@@ -1,8 +1,8 @@
 import { expect } from "chai";
 import { exec } from "../../src/syntax";
 
-describe.only("syntax", () => {
-  describe.only("exec", () => {
+describe("syntax", () => {
+  describe("exec", () => {
     it("quines FrameStrings", () => {
       const input = "“Watson I need you”";
       const result = exec(input);
