@@ -20,6 +20,13 @@ describe("FrameArray", () => {
     expect(first_element).to.equal(a_frame);
   });
 
+  it("appends when called", () => {
+    const array = new FrameArray([]);
+    array.call(a_frame);
+    array.call(b_frame);
+    expect(array.toString()).to.equal("[“a”, “b”]");
+  });
+
   it("evaluates its components into an array", () => {
     const string = new FrameString("string");
     const array_of_expr = new FrameArray([
@@ -27,7 +34,7 @@ describe("FrameArray", () => {
       string,
       new FrameExpr([
         new FrameString("prefix-"),
-        new FrameString("-suffix")
+        new FrameString("-suffix"),
       ])
     ]);
     const result = array_of_expr.in();

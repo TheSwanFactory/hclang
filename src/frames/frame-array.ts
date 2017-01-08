@@ -16,6 +16,11 @@ export class FrameArray extends FrameList {
     return new FrameArray(this.data.map((f) => { return f.in(contexts); }));
   }
 
+  public apply(argument: Frame, parameter: Frame) {
+    this.data.push(argument);
+    return this;
+  }
+
   public at(index: number) {
     return this.data[index];
   }
