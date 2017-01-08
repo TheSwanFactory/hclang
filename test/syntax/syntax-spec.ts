@@ -2,18 +2,17 @@ import { expect } from "chai";
 import { exec } from "../../src/syntax";
 
 describe.only("syntax", () => {
-  describe.only("exec", () => {
-    it("quines FrameStrings", () => {
-      const input = "“Watson I need you”";
-      const result = exec(input);
+  describe("exec", () => {
+    const input_string = "“Watson I need you”";
+    const input_comment = "#Ignore this#";
 
-      expect(result).to.equal(input);
+    it("quines FrameStrings", () => {
+      const result = exec(input_string);
+      expect(result).to.equal(input_string);
     });
 
     it("eliminates inline comments", () => {
-      const input = "#Ignore this#";
-      const result = exec(input);
-
+      const result = exec(input_comment);
       expect(result).to.equal("");
     });
 
@@ -22,6 +21,13 @@ describe.only("syntax", () => {
       const result = exec(input);
 
       expect(result).to.equal("");
+    });
+
+    it("lexes both FrameStrings and comments", () => {
+      const input = input_string + input_comment;
+      const result = exec(input);
+
+      expect(result).to.equal(input_string);
     });
 
     it.skip("evaluates FrameStrings", () => {
