@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { Frame, FrameArray, FrameExpr, FrameString} from "../../src/frames";
 
-describe.only("FrameArray", () => {
+describe("FrameArray", () => {
   const a_frame = new FrameString("a");
   const b_frame = new FrameString("b");
   const frame_array = new FrameArray([a_frame, b_frame]);
