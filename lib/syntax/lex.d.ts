@@ -1,10 +1,12 @@
 import { Frame, FrameString, FrameSymbol } from "../frames";
 export declare class Lex extends Frame {
+    static readonly out: string;
     protected body: string;
     call(argument: Frame, parameter?: Frame): Frame;
     getClassName(): string;
     toString(): string;
     protected isEnd(char: string): boolean;
+    protected exportFrame(): void;
     protected makeFrame(): Frame;
 }
 export declare class LexString extends Lex {
