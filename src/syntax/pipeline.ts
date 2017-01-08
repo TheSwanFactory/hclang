@@ -11,7 +11,7 @@ export const pipe = (input: string): Frame => {
   const output = new FrameArray([]);
   router.set(Lex.out, output);
   const status: Frame = _.reduce(input, pipeline, router);
-  return output.at(0);
+  return output;
 };
 
 const pipeline = (current: Frame, char: string): Frame => {
