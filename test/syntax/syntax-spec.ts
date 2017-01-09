@@ -30,7 +30,7 @@ describe.only("syntax", () => {
       expect(result).to.equal(input_string);
     });
 
-    it.skip("evaluates FrameStrings", () => {
+    it("evaluates FrameStrings", () => {
       const part1 = "“Hello, ”";
       const part2 = "“World!”";
       const input = `${part1}${part2}`
