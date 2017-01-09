@@ -33,7 +33,7 @@ describe.only("syntax", () => {
     it("evaluates FrameStrings", () => {
       const part1 = "“Hello, ”";
       const part2 = "“World!”";
-      const input = `${part1} ${part2}`
+      const input = `${part1}${part2}`
       const result = exec(input);
 
       expect(result).to.equal("[" + "“Hello, World!”" + "]");

@@ -1,9 +1,5 @@
 import { Frame } from "./frames";
-import { pipe } from "./syntax/pipeline";
-
-const framify = (input: string): Frame => {
-  return pipe(input);
-};
+import { framify } from "./syntax/pipeline";
 
 export const exec = (input: string) => {
   return framify(input).toString();
