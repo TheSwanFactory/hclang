@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { exec } from "../../src/syntax";
 
-describe.only("syntax", () => {
+describe("syntax", () => {
   describe("exec", () => {
     const input_string = "“Watson I need you”";
     const input_comment = "#Ignore this#";
