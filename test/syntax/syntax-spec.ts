@@ -8,26 +8,26 @@ describe.only("syntax", () => {
 
     it("quines FrameStrings", () => {
       const result = exec(input_string);
-      expect(result).to.equal("[" + input_string + "]");
+      expect(result).to.equal(input_string);
     });
 
     it("eliminates inline comments", () => {
       const result = exec(input_comment);
-      expect(result).to.equal("[" + "]");
+      expect(result).to.equal("()");
     });
 
     it("eliminates end-of-ine comments", () => {
       const input = "#Ignore this\n";
       const result = exec(input);
 
-      expect(result).to.equal("[" + "]");
+      expect(result).to.equal("()");
     });
 
     it("lexes both FrameStrings and comments", () => {
       const input = input_string + input_comment;
       const result = exec(input);
 
-      expect(result).to.equal("[" + input_string + "]");
+      expect(result).to.equal(input_string);
     });
 
     it("evaluates FrameStrings", () => {
@@ -36,7 +36,7 @@ describe.only("syntax", () => {
       const input = `${part1}${part2}`
       const result = exec(input);
 
-      expect(result).to.equal("[" + "“Hello, World!”" + "]");
+      expect(result).to.equal("“Hello, World!”");
     });
   });
 });
