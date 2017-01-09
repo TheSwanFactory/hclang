@@ -61,3 +61,13 @@ export class LexComment extends Lex {
     return FrameSymbol.for("");
   }
 };
+
+export class LexSpace extends Lex {
+  protected isEnd(char: string) {
+    return char !== " ";
+  }
+
+  protected makeFrame() {
+    return FrameSymbol.for("");
+  }
+};

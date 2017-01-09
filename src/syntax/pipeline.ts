@@ -1,10 +1,11 @@
 import { Frame, FrameArray, FrameSymbol } from "../frames";
-import { Lex, LexComment, LexString } from "./lex";
+import { Lex, LexComment, LexSpace, LexString } from "./lex";
 import * as _ from "lodash";
 
 const router = new Frame({
-  "“": new LexString(),
   "#": new LexComment(),
+  " ": new LexSpace(),
+  "“": new LexString(),
 });
 
 export const pipe = (input: string): Frame => {
