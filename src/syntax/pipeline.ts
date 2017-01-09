@@ -27,8 +27,8 @@ const pipe = (input: string, out: Frame): Frame => {
 
 const pipeline = (current: Frame, char: string): Frame => {
   const frameChar = FrameSymbol.for(char);
-  console.log(`* pipeline ${current}.call(${frameChar})`);
+  // console.log(`* pipeline ${current}.call(${frameChar})`);
   const next = current.call(frameChar);
-  console.log(`** -> ${next}`);
+  // console.log(`** -> ${next}`);
   return next;
 };
