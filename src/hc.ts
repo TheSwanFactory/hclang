@@ -3,16 +3,21 @@ import { Frame, FrameString } from "./frames";
 
 const clear = require("clear");
 const chalk = require("chalk");
-const figlet = require("figlet");
 
 clear();
 
-let title = "HC";
+const InputPrompt = "; ";
+const OutputPrompt  = "# ";
+
+const title = "hc";
+let input = "“Hello, MAML!”";
 let argv = process.argv;
-if (argv.length > 2) title = process.argv[2];
+if (argv.length > 2) input = argv[2];
 
 console.log(
-  chalk.green(
-    figlet.textSync(title, { horizontalLayout: "full" })
-  )
+  chalk.cyan(InputPrompt + input)
+);
+
+console.log(
+  chalk.blue.inverse(OutputPrompt + input)
 );
