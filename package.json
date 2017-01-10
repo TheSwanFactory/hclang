@@ -16,8 +16,8 @@
     "lib"
   ],
   "bin": {
-    "hc": "lib/index.js",
-    "maml": "lib/maml.js"
+    "maml": "lib/index.js",
+    "hc": "lib/hc.js"
   },
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",

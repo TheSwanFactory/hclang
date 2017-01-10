@@ -8,6 +8,6 @@ const figlet = require("figlet");
 clear();
 console.log(
   chalk.green(
-    figlet.textSync("MAML", { horizontalLayout: "full" })
+    figlet.textSync("HC", { horizontalLayout: "full" })
   )
 );
