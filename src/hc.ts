@@ -14,10 +14,13 @@ let input = "“Hello, MAML!”";
 let argv = process.argv;
 if (argv.length > 2) input = argv[2];
 
+const asInput = chalk.cyan;
+const asOutput = chalk.cyan.inverse;
+
 console.log(
-  chalk.cyan(InputPrompt + input)
+  asInput(InputPrompt + input)
 );
 
 console.log(
-  chalk.blue.inverse(OutputPrompt + input)
+  asOutput(OutputPrompt + input)
 );
