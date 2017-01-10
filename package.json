@@ -24,8 +24,10 @@
   "scripts": {
     "clean": "rimraf lib",
     "lint": "tslint --force --format verbose \"src/**/*.ts\"",
-    "build": "npm run clean && npm run lint && echo Using TypeScript && tsc --version && tsc --pretty",
-    "run": "node lib/index.js",
+    "set-bin": "chmod a+x lib/{hc,index}.js",
+    "ts": "echo Using TypeScript && tsc --version && tsc --pretty && npm run set-bin",
+    "build": "npm run clean && npm run lint && npm run ts",
+    "run": "node lib/hc.js",
     "test": "npm run build && mocha --compilers ts:ts-node/register --recursive test/**/*-spec.ts",
     "watch": "npm run build -- --watch",
     "watch:test": "npm run test -- --watch"
