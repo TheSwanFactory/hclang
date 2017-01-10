@@ -6,8 +6,13 @@ const chalk = require("chalk");
 const figlet = require("figlet");
 
 clear();
+
+let title = "HC";
+let argv = process.argv;
+if (argv.length > 2) title = process.argv[2];
+
 console.log(
   chalk.green(
-    figlet.textSync("HC", { horizontalLayout: "full" })
+    figlet.textSync(title, { horizontalLayout: "full" })
   )
 );
