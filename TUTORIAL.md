@@ -1,9 +1,9 @@
-# The SWAN Programming Format
+# Homoiconic C
 ## Coding Without Language
 
 # Introduction
 
-The SWAN Format is an alternative to traditional programming languages.  It has:
+Homoiconic C is an alternative to traditional programming languages.  It has:
 - No grammar
 - No keywords
 - No globals
@@ -38,7 +38,7 @@ Right now, you either must worry about certain things all the time (i.e., when d
 
 # The Format
 
-The SWAN Format is a variation on the ASCII Property List popularized by NeXTSTEP and now used by Java, JSON, etc. This is basically what we did in rudimentary form with CSON files in The Hour of NODE.
+Homoiconic C is a variation on the ASCII Property List popularized by NeXTSTEP and now used by Java, JSON, etc. This is basically what we did in rudimentary form with CSON files in The Hour of NODE.
 
 In a traditional Property List, there are separate entities for, e.g.:
 - dictionary
@@ -49,7 +49,7 @@ In a traditional Property List, there are separate entities for, e.g.:
 
 ## Aggregates
 
-In SWAN, there are three basic aggregates, which function as both dictionaries and arrays:
+In Homoiconic C, there are three basic aggregates, which function as both dictionaries and arrays:
 - Lazy evaluation: "{ closure }"
 - Boxed expressions: "[ tuple ]"
 - Unboxed expressions: "( group )"
@@ -179,7 +179,7 @@ in the hierarchy before it is evaluated.
 ### Conditional Operators
 
 The ternary operator can be broken into two binary operators (with slightly different semantics).
-In SWAN, these are not special forms, but simply pre-defined on the root object,
+In Homoiconic C, these are not special forms, but simply pre-defined on the root object,
 and overriden by nil.
 
 Most objects evaluate the argument of '?' and returns nil for ':',
