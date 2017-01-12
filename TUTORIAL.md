@@ -1,9 +1,16 @@
 # Homoiconic C
 ## Coding Without Language
 
+# TODO
+- Static typing: (the `<` and `>` operators)
+- Syntax for storing names (vs pathing). Potential options:
+  ; ..store .name
+  ; $store .name
+
 # Introduction
 
 Homoiconic C is an alternative to traditional programming languages.  It has:
+
 - No grammar
 - No keywords
 - No globals
@@ -13,6 +20,7 @@ Homoiconic C is an alternative to traditional programming languages.  It has:
 There are pre-defined operators, but they don't really have any special treatment by the language.
 
 Instead, it has a robust runtime built around:
+
 - Ubiquitous Scope (inheritance)
 - Consistent Evaluation (group and fold)
 - Generalized Abstraction (rather than a bunch of special cases)
@@ -30,15 +38,26 @@ We built our syntax and runtime together to allow a very elegant and efficient w
 The goal is not to make programming painless, but rather to concentrate the pain where it does the most good. You should need to (and be able to) worry about what really maters WHEN it really matters, but not otherwise.
 
 Examples:
+
 - calling conventions (assembly vs. C)
 - cache sizes and policies
 - copy-on-write semantics
 
 Right now, you either must worry about certain things all the time (i.e., when doing assembly) or can never worry about them at all (e.g., in a high-level language).
 
-# The Format
+# The Object Model
 
-Homoiconic C is a variation on the ASCII Property List popularized by NeXTSTEP and now used by Java, JSON, etc. This is basically what we did in rudimentary form with CSON files in The Hour of NODE.
+Homiconic C is "monadic", in the sense that everything is a single type of object, what we call a Frame.  All syntax (aggregates, primitives, functions, even comments!) create Frames.  Frames combine aspects of dictionaries, arrays, and functions.  They may seem a little complex, they make everything else much simpler. Once you get used to them, constructs in other languages will start to feel like neutered Frames!
+
+## Inheritance
+
+Everything inherits its current scope (like closures). In addition, evaluation of lazy expressions (closures) causes the result to inherit their scope, allowing them to be used as object factories.
+
+### TODO: Explicit Inheritance (Subclassing)
+
+# The Syntax
+
+Syntactically, Homoiconic C is a variation on the ASCII Property List popularized by NeXTSTEP and now used by Java, JSON, YAML, etc. (This is basically what we did in rudimentary form with CSON files in The [Hour of NODE](http://hourofnode.org)).
 
 In a traditional Property List, there are separate entities for, e.g.:
 - dictionary
@@ -49,16 +68,16 @@ In a traditional Property List, there are separate entities for, e.g.:
 
 ## Aggregates
 
-In Homoiconic C, there are three basic aggregates, which function as both dictionaries and arrays:
-- Lazy evaluation: "{ closure }"
-- Boxed expressions: "[ tuple ]"
-- Unboxed expressions: "( group )"
+In Homoiconic C, there are three basic aggregates for creating Frames, which act as both dictionaries and arrays (and functions):
+- Lazy evaluation: "{ closure }" (aka functions)
+- Boxed expressions: "[ tuple ]" (aka arrays)
+- Unboxed expressions: "( group )" (aka precedence)
 
-## Separators
+### Separators
 
 There are two different separators used to separate elements of those aggregates:
-- non-enumerable: "statement ;" # dictionary-ish
-- enumerale:      "expression ,"     # array-ish
+- non-enumerable: "statement ;"  # dictionary-like
+- enumerable:      "expression ," # array-like
 
 This is another key insight. Virtually every real-world data structure has both a header of named properties and a variable-length list or tree of anonymous items (e.g., TCP, HTTP, HTML, etc.).
 
@@ -72,7 +91,13 @@ Comments act as whitespace, and are delimited by "# inline #" or "# end-of-line\
 
 Everything else is just an identifier.  A sequence of identifiers is an expression.
 
-That is it. That is the entire data format. Everything is just particular types of identifiers.
+That is it. That is the entire data format. Everything is just particular types of identifier, such as:
+
+- .Names
+- Values
+- @Controls
+- $References
+
 
 # Examples
 
