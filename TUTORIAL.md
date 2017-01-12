@@ -59,12 +59,7 @@ Everything inherits its current scope (like closures). In addition, evaluation o
 
 Syntactically, Homoiconic C is a variation on the ASCII Property List popularized by NeXTSTEP and now used by Java, JSON, YAML, etc. (This is basically what we did in rudimentary form with CSON files in The [Hour of NODE](http://hourofnode.org)).
 
-In a traditional Property List, there are separate entities for, e.g.:
-- dictionary
-- array
-- string
-- number
-- etc.
+In a traditional Property List, there are separate entities for dictionary and array.  Instead we use Frames, which have attributes of both (and few other abilities, such as scoping and call-ability).
 
 ## Aggregates
 
@@ -81,11 +76,15 @@ There are two different separators used to separate elements of those aggregates
 
 This is another key insight. Virtually every real-world data structure has both a header of named properties and a variable-length list or tree of anonymous items (e.g., TCP, HTTP, HTML, etc.).
 
+## Aggregates
+
 ## Whitespace
 
 In addition, spaces and newlines can serve as terminators.  Tabs, however, are forbidden and will throw a fatal error. :-)
 
 Comments act as whitespace, and are delimited by "# inline #" or "# end-of-line\n".
+
+
 
 ## Identifiers
 
