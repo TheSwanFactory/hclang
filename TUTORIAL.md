@@ -2,7 +2,6 @@
 ## Coding Without Language
 
 # TODO
-- Static typing: (the `<` and `>` operators)
 - Syntax for storing names (vs pathing). Potential options:
   ; ..store .name
   ; $store .name
@@ -55,48 +54,91 @@ Everything inherits its current scope (like closures). In addition, evaluation o
 
 ### TODO: Explicit Inheritance (Subclassing)
 
+### TODO: Explicit Typing
+
+- Static typing: (the `<` and `>` operators)
+
 # The Syntax
 
 Syntactically, Homoiconic C is a variation on the ASCII Property List popularized by NeXTSTEP and now used by Java, JSON, YAML, etc. (This is basically what we did in rudimentary form with CSON files in The [Hour of NODE](http://hourofnode.org)).
 
 In a traditional Property List, there are separate entities for dictionary and array.  Instead we use Frames, which have attributes of both (and few other abilities, such as scoping and call-ability).
 
-## Aggregates
+## Aggregate Frames
 
-In Homoiconic C, there are three basic aggregates for creating Frames, which act as both dictionaries and arrays (and functions):
-- Lazy evaluation: "{ closure }" (aka functions)
-- Boxed expressions: "[ tuple ]" (aka arrays)
-- Unboxed expressions: "( group )" (aka precedence)
+In Homoiconic C, there are three types of Aggregate Frames:
+
+- *FrameLazy*: "{ closure }" (aka functions)
+- *FrameArray*: "[ tuple ]" (aka lists)
+- *FrameExpr*: "( group )" (aka precedence)
 
 ### Separators
 
 There are two different separators used to separate elements of those aggregates:
-- non-enumerable: "statement ;"  # dictionary-like
-- enumerable:      "expression ," # array-like
 
-This is another key insight. Virtually every real-world data structure has both a header of named properties and a variable-length list or tree of anonymous items (e.g., TCP, HTTP, HTML, etc.).
+- *non-enumerable*: "statement ;"  # dictionary-like
+- *enumerable*:      "expression ," # array-like
 
-## Aggregates
+This is another key insight. Virtually every real-world data structure has both a header of named properties and a variable-length list or tree of enumerated items (e.g., TCP, HTTP, HTML documents, HTML tags, etc.).
 
-## Whitespace
+### Whitespace
 
-In addition, spaces and newlines can serve as terminators.  Tabs, however, are forbidden and will throw a fatal error. :-)
+Spaces and newlines serve as terminators and influence binding (and thus precedence). In general, a newline acts like a comma.
 
-Comments act as whitespace, and are delimited by "# inline #" or "# end-of-line\n".
+Because we allow spaces for indentation, tabs are forbidden and will throw a fatal error (we may reverse this rule in a future dialect).
 
+## Primitives
+
+There are two types of primitive Frames (but note that even these can have properties and be enumerable).
+
+### Quoted
+
+There are three forms of quoting:
+
+- “Strings”
+- #Comments Inline# or #End-of-line
+- \5\Bytes
+
+### Numeric
+
+##### Integer
+
+- *Decimal*: 123
+- *Binary*: 0b11
+- *Octal*: 0o1337
+- *Hexadecimal*: 0xDEADBEEF
+
+##### Large Integer
+
+- *Base64*: 0sBASE64
+
+##### Non-Integer
+
+- *Rational*: 1/3
+- *Float*: 123.456
+- *Scientific*: 123.456.E.-10
+
+##### Times
+
+Having times as a primitive avoids having to worry about epochs and whether to use milliseconds or nanoseconds.  Eventually we plan to directly support parsing of ISO/RFC date strings in multiple languages.
+
+- %date%
+- %time%
+- %datetime%
 
 
 ## Identifiers
 
-Everything else is just an identifier.  A sequence of identifiers is an expression.
-
-That is it. That is the entire data format. Everything is just particular types of identifier, such as:
+Everything else is just an identifier, which can be:
 
 - .Names
 - Values
 - @Controls
 - $References
 
+A sequence of identifiers and primitives is an expression.
+
+That is it. That is the entire syntax, except from a little syntactic sugar for non-alphanumeric identifiers (operators).  This is what makes Homoiconic C a concise yet expressive data format, as well as a trivial-to-parse programming language.
 
 # Examples
 
@@ -187,12 +229,12 @@ This is also used as boolean false (but not zero).
 
 ### Arguments
 
-Use '_' as the anonymous argument.
-
+Use `_` as the anonymous argument.
+```
     ; .square {_ * _};
     ; square 3
     # 9
-
+```
 When you apply something to a closure, it actually inserts that value above it
 in the hierarchy before it is evaluated.
 
@@ -203,8 +245,9 @@ in the hierarchy before it is evaluated.
 ### Conditional Operators
 
 The ternary operator can be broken into two binary operators (with slightly different semantics).
+
 In Homoiconic C, these are not special forms, but simply pre-defined on the root object,
-and overriden by nil.
+and overriden by nil (technically, vice-versa).
 
 Most objects evaluate the argument of '?' and returns nil for ':',
 but nil does the reverse.
@@ -219,17 +262,17 @@ but nil does the reverse.
     ; () : {2 + 2}
     # 4
 
-  Which, when the first expression does not return nil, acts like the ternary
-  operator:
+Which, when the first expression does not return nil, acts like the ternary
+operator:
 
-    ; ( 1 > 5 ) ? 100 : 10
-    # 10
+  ; ( 1 > 5 ) ? 100 : 10
+  # 10
 
-  Note that this assumes that applying nil to anything other than a closure has no effect.
+Note that this assumes that applying nil to anything other than a closure has no effect.
 
-  ### Dataflow Operators
+### Dataflow Operators
 
-  We use '|' for map, in homage to the UNIX pipeline.
+We use '|' for map, in homage to the UNIX pipeline.
 
-      ; [1, 2, 3] | { _ + 1 }
-      # [2, 3, 4]
+    ; [1, 2, 3] | { _ + 1 }
+    # [2, 3, 4]
