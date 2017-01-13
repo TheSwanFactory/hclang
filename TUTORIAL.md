@@ -8,7 +8,7 @@
 
 # Introduction
 
-Homoiconic C is an alternative to traditional programming languages.  It has:
+Homoiconic C ("HC") is an alternative to traditional programming languages. There are a handful of primitive types, and three types of aggregation.  Everything else is just an expression.  That means it has:
 
 - No grammar
 - No keywords
@@ -16,7 +16,7 @@ Homoiconic C is an alternative to traditional programming languages.  It has:
 - No reserved words
 - No special forms
 
-There are pre-defined operators, but they don't really have any special treatment by the language.
+There are pre-defined operators for conditionals, iteration, and typing but they are not treated specially by the language.
 
 Instead, it has a robust runtime built around:
 
@@ -26,15 +26,13 @@ Instead, it has a robust runtime built around:
 - Symmetry of Code and Data (homoiconicity)
 - Explicit State Management (why instruction sets are evil)
 
-# The Approach
+## The Format
 
-The syntax is thus just a thin veneer on top of the semantics, rather than vice versa.
+Rather than a complex language, HC is a simple data format for expressions that is all but Turing Complete (see Appendix for details). By avoiding complicated grammars, the syntax becomes a thin veneer on top of the semantics, rather than vice versa.  
 
-We built our syntax and runtime together to allow a very elegant and efficient way of performing evaluation.  It sounds crazy, but it should make sense by the time we're done.
+## Our Philosophy
 
-# Our Philosophy
-
-The goal is not to make programming painless, but rather to concentrate the pain where it does the most good. You should need to (and be able to) worry about what really maters WHEN it really matters, but not otherwise.
+The goal is not to make programming painless, but rather to concentrate the pain where it does the most good. You should be able to worry about what really maters WHEN it really matters, but not otherwise.
 
 Examples:
 
@@ -46,13 +44,42 @@ Right now, you either must worry about certain things all the time (i.e., when d
 
 # The Object Model
 
-Homiconic C is "monadic", in the sense that everything is a single type of object, what we call a Frame.  All syntax (aggregates, primitives, functions, even comments!) create Frames.  Frames combine aspects of dictionaries, arrays, and functions.  They may seem a little complex, they make everything else much simpler. Once you get used to them, constructs in other languages will start to feel like neutered Frames!
+HC is "monadic", in the sense that everything is a single type of object, what we call a Frame.  All syntax (aggregates, primitives, functions, even comments!) create Frames.  Frames combine aspects of dictionaries, arrays, and functions.  They may seem a little complex, they make everything else much simpler. Once you get used to them, constructs in other languages will start to feel like neutered Frames!
 
 ## Inheritance
 
 Everything inherits its current scope (like closures). In addition, evaluation of lazy expressions (closures) causes the result to inherit their scope, allowing them to be used as object factories.
 
 ### TODO: Explicit Inheritance (Subclassing)
+
+## Effect Typing
+
+Rather than specify call-by-value or call-by-reference, HC is designed around the BitC model for effect typing.  Shapiro *et al* proved it is possible to have a [sound *and* complete](www.cs.jhu.edu/~swaroop/aplas.pdf) systems language if you explicitly annotate variables for **constancy** and **mutability** at each context boundary. This gives the compiler enough information to know how and when to safely copy or share data structures.
+
+ Unfortunately, they could not do that within their Lisp-like syntax. Inspired by their work, we have chosen to use the bulk of our "syntax budget" to address that problem.  In particular, we believe effect is so fundamental we bake it into our identifiers:
+
+ - `CONST` # begins with uppercase letter
+ - `variable` # does not
+ - `mutable_` # trailing underscore
+ - `immutable` # default
+ - `mutating_method:` # trailing colon
+
+Their core insight is that mutability is a property of the *handle*, not the *object*.  Every object starts out mutable, but as long as it is only referenced from immutable handles the compiler can share a single instance between them.  Even if a context specifies a mutable handle, that only maters if it is called by a mutating method, which becomes copy-on-write.  For that reason, all mutating methods are required to return 'self'.
+
+This approach may seem incomplete, in that it doesn't specify the mutability of object literals.  But if accessed directly without a handle, there is no way of knowing (or caring) whether the literal was mutated or not!
+
+Please note that these particular conventions are preliminary, and may change in future versions based on empirical tests of readability and intuitiveness.  Since HC is just a data format, it is trivial to semantically version, and define conversions from obsolete versions.
+
+## Access Modifiers
+
+Closely related to effect typing (which determines *what* can change) are access modifiers (which determine *who* can change or see that). To streamline the grammar and readability, we also bake those into the identifiers, following the typical C conventions:
+
+- `public` # default
+- `_protected` # not accessible from parent
+- `__private` # not accessible by children
+
+### TODO: Are `_foo` and `foo` the same modifier?
+
 
 ### TODO: Explicit Typing
 
