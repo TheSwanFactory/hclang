@@ -1,10 +1,5 @@
 # Homoiconic C
-## Coding Without Language
-
-# TODO
-- Syntax for storing names (vs pathing). Potential options:
-  ; ..store .name
-  ; $store .name
+## Coding Without A Language
 
 # Introduction
 
@@ -26,11 +21,11 @@ Instead, it has a robust runtime built around:
 - Symmetry of Code and Data (homoiconicity)
 - Explicit State Management (why instruction sets are evil)
 
- A stretch goal is to not use any English words in the base language, so as to allow maximal localization. Though we may resort to Latin if we run out of special characters.
+A stretch goal is to not use any English words in the base language, so as to allow maximal localization. Though we may resort to Latin if we run out of special characters.
 
 ## The Format
 
-Rather than a complex human-like language, HC is a simple data format for expressions that is “all but” Turing Complete (see Appendix for details). By avoiding complicated grammars, the syntax becomes a thin veneer on top of the semantics, rather than vice versa.  
+Rather than a complex English-like language, HC is a simple data format for expressions that is “all but” Turing Complete (see Appendix for details). By avoiding complicated grammars, the syntax becomes a thin veneer on top of the semantics, rather than vice versa.  
 
 ## Our Philosophy
 
@@ -46,7 +41,7 @@ Right now, you either must think about certain things all the time (i.e., when d
 
 # The Object Model
 
-HC is "monadic", in the sense that everything is a single type of object, what we call a Frame.  All syntax (aggregates, primitives, functions, even comments!) create Frames.  Frames combine aspects of dictionaries, arrays, and functions.  They may seem a little complex, they make everything else much simpler. Once you get used to them, constructs in other languages will start to feel like neutered Frames!
+HC is "monadic", in the sense that everything is a single type of object that we call a Frame.  All syntax (aggregates, primitives, functions, even comments!) create Frames.  Frames combine aspects of dictionaries, arrays, and functions.  They may seem a little complex, they make everything else much simpler. Once you get used to them, constructs in other languages will start to feel like neutered Frames!
 
 ## Inheritance
 
@@ -100,18 +95,18 @@ In a traditional Property List, there are separate entities for dictionary and a
 
 In Homoiconic C, there are three types of Aggregate Frames:
 
-- *FrameLazy*: "{ closure }" (aka functions)
-- *FrameArray*: "[ tuple ]" (aka lists)
-- *FrameExpr*: "( group )" (aka precedence)
+- *FrameLazy*: `{ closure }` (aka functions)
+- *FrameArray*: `[ tuple ]` (aka lists)
+- *FrameExpr*: `( group )` (aka precedence)
 
 ### Separators
 
 There are two different separators used to separate elements of those aggregates:
 
-- *non-enumerable*: "statement ;"  # dictionary-like
-- *enumerable*:      "expression ," # array-like
+- *non-enumerable*: `statement ;`  # dictionary-like
+- *enumerable*:     `expression,` # array-like
 
-This is another key insight. Virtually every real-world data structure has both a header of named properties and a variable-length list or tree of enumerated items (e.g., TCP, HTTP, HTML documents, HTML tags, etc.).
+This is another key insight. Virtually every real-world data structure has both a header of named properties and a variable-length list or tree of enumerated items (e.g., TCP, HTTP, HTML documents, HTML tags, etc.). Yet somehow there is no universal mechanism for describing those semantics.
 
 ### Whitespace
 
@@ -127,53 +122,53 @@ There are three types of primitive Frames (but note that even these can have pro
 
 There are three forms of quoting:
 
-- “Strings” # Smart quotes!
-- #Comments Inline# *or* #End-of-line
+- `“Strings”` # Smart quotes!
+- `#Comments Inline#` or `#End-of-line`
 
 ### Numeric
 
 ##### Integer
 
-- *Decimal*: 123
-- *Binary*: 0b11
-- *Octal*: 0o1337
-- *Hexadecimal*: 0xDEADBEEF
+- *Decimal*: `123`
+- *Binary*: `0b11`
+- *Octal*: `0o1337`
+- *Hexadecimal*: `0xDEADBEEF`
 
 ##### Non-Integer
 
-- *Rational*: 1/3
-- *Float*: 123.456
-- *Scientific*: 123.456.E.-10
-- *Semver*: 123.456.p123
+- *Rational*: `1/3`
+- *Float*: `123.456`
+- *Scientific*: `123.456.E.-10`
+- *Semver*: `123.456.p123`
 
 ##### Times
 
 Having times as a primitive avoids having to worry about epochs and whether to use milliseconds or nanoseconds.  Eventually we plan to directly support parsing of ISO/RFC date strings in multiple languages.
 
-- %date%
-- %time%
-- %datetime%
+- `%date%`
+- `%time%`
+- `%datetime%`
 
 
 ### BLOBs
 
 Historically, data formats were either binary or ASCII (later, textual).  HC makes it trivial to represent Binary Large OBjects directly inside a human-readable document.
 
-- \5\Bytes
-- 0sBASE64
+- `\5\Bytes`
+- `0sBASE64`
 
 ## Identifiers
 
 Apart from aggregates and primitives, everything else is just an identifier, which can be:
 
-- .Names
-- Values
-- @Controls
-- $References
+- `.Names`
+- `Values`
+- `@Controls`
+- `$References`
 
 A sequence of identifiers and primitives is an expression.
 
-That is it. That is the entire syntax, except from a little syntactic sugar for non-alphanumeric identifiers (operators).  This is what makes Homoiconic C a concise yet expressive data format, as well as a trivial-to-parse programming language.
+That is it. That is the entire syntax, apart from a little syntactic sugar for non-alphanumeric identifiers (operators).  This is what makes Homoiconic C a concise yet expressive data format, as well as a trivial-to-parse programming language.
 
 # Examples
 
@@ -224,7 +219,7 @@ Syntactically, numbers are just special identifiers recognized by the runtime.
     # 3
 
 Applying a name to a dict (or any Frame) returns the value of that property.
-The space before `.min` is optional, but emphasizes that this is just another expression
+The space before `.min` is optional, but emphasizes that property access is just another expression
 
 ## Expressions
 
@@ -347,7 +342,7 @@ Impressively, these constructs are sufficiently powerful to enables classes and 
     # 3  
 ```
 
-This may seem to good to be true, but that is the power of choosing the correct primitives.
+This may seem to good to be true, but that is the power of choosing the correct primitives:
 
 - Data hiding is handled by the implicit access Modifiers
 - Scope is always inherited
@@ -388,7 +383,6 @@ At this time there does not appear to be any natural way to implement multiple i
     };
 ```
 
-
 ## Predefined Operators
 
 ### Conditionals
@@ -396,7 +390,7 @@ At this time there does not appear to be any natural way to implement multiple i
 The ternary operator can be broken into two binary operators (with slightly different semantics).
 
 In Homoiconic C, these are not special forms, but simply pre-defined on the root object,
-and overriden by nil (technically, vice-versa).
+and overriden by `nil` (technically, vice-versa).
 
 Most objects evaluate the argument of `?` and return nil for `:`,
 but nil itself does the reverse.
