@@ -26,13 +26,15 @@ Instead, it has a robust runtime built around:
 - Symmetry of Code and Data (homoiconicity)
 - Explicit State Management (why instruction sets are evil)
 
+ A stretch goal is to not use any English words in the base language, so as to allow maximal localization. Though we may resort to Latin if we run out of special characters.
+
 ## The Format
 
-Rather than a complex language, HC is a simple data format for expressions that is all but Turing Complete (see Appendix for details). By avoiding complicated grammars, the syntax becomes a thin veneer on top of the semantics, rather than vice versa.  
+Rather than a complex human-like language, HC is a simple data format for expressions that is “all but” Turing Complete (see Appendix for details). By avoiding complicated grammars, the syntax becomes a thin veneer on top of the semantics, rather than vice versa.  
 
 ## Our Philosophy
 
-The goal is not to make programming painless, but rather to concentrate the pain where it does the most good. You should be able to worry about what really maters WHEN it really matters, but not otherwise.
+Our goal is not to make programming painless, but rather to concentrate the pain where it does the most good. You should be able to think about what really maters WHEN it really matters, but not otherwise.
 
 Examples:
 
@@ -40,7 +42,7 @@ Examples:
 - cache sizes and policies
 - copy-on-write semantics
 
-Right now, you either must worry about certain things all the time (i.e., when doing assembly) or can never worry about them at all (e.g., in a high-level language).
+Right now, you either must think about certain things all the time (i.e., when doing assembly) or can never think about them at all (e.g., in a high-level language).
 
 # The Object Model
 
@@ -84,10 +86,13 @@ Closely related to effect typing (which determines *what* can change) are access
 ### TODO: Explicit Typing
 
 - Static typing: (the `<` and `>` operators)
+- Endian-ness
+- Bitfields
+- Predicates (the `~` operator)
 
 # The Syntax
 
-Syntactically, Homoiconic C is a variation on the ASCII Property List popularized by NeXTSTEP and now used by Java, JSON, YAML, etc. (This is basically what we did in rudimentary form with CSON files in The [Hour of NODE](http://hourofnode.org)).
+Syntactically, Homoiconic C is a variation on the ASCII Property List format popularized by NeXTSTEP and now expressed by Java, JSON, YAML, etc. (This is basically what we did in rudimentary form with CSON files in The [Hour of NODE](http://hourofnode.org)).
 
 In a traditional Property List, there are separate entities for dictionary and array.  Instead we use Frames, which have attributes of both (and few other abilities, such as scoping and call-ability).
 
@@ -116,15 +121,14 @@ Because we allow spaces for indentation, tabs are forbidden and will throw a fat
 
 ## Primitives
 
-There are two types of primitive Frames (but note that even these can have properties and be enumerable).
+There are three types of primitive Frames (but note that even these can have properties and be enumerable).
 
-### Quoted
+### Strings
 
 There are three forms of quoting:
 
 - “Strings”
-- #Comments Inline# or #End-of-line
-- \5\Bytes
+- #Comments Inline# *or* #End-of-line
 
 ### Numeric
 
@@ -135,15 +139,12 @@ There are three forms of quoting:
 - *Octal*: 0o1337
 - *Hexadecimal*: 0xDEADBEEF
 
-##### Large Integer
-
-- *Base64*: 0sBASE64
-
 ##### Non-Integer
 
 - *Rational*: 1/3
 - *Float*: 123.456
 - *Scientific*: 123.456.E.-10
+- *Semver*: 123.456.p123
 
 ##### Times
 
@@ -154,9 +155,16 @@ Having times as a primitive avoids having to worry about epochs and whether to u
 - %datetime%
 
 
+### BLOBs
+
+Historically, data formats were either binary or ASCII (later, textual).  HC makes it trivial to represent Binary Large OBjects directly inside a human-readable document.
+
+- \5\Bytes
+- 0sBASE64
+
 ## Identifiers
 
-Everything else is just an identifier, which can be:
+Apart from aggregates and primitives, everything else is just an identifier, which can be:
 
 - .Names
 - Values
@@ -169,11 +177,13 @@ That is it. That is the entire syntax, except from a little syntactic sugar for 
 
 # Examples
 
-Using ";" for the input prompt and "#" for the output prompt.
+The example use ";" for the input prompt and "#" for the output prompt. This convention has the nice property that such examples can be pasted directly into the interpreter.
 
-## Names vs. Values
+## Properties
 
-Numbers are just special identifiers recognized by the runtime.
+### Name versus Value
+
+Syntactically, numbers are just special identifiers recognized by the runtime.
 
     ; 1
     # 1
@@ -186,8 +196,6 @@ Labels by themselves return that value.
 
     ; p
     # 42
-
-## Properties
 
 ### Dictionary
 
@@ -215,22 +223,25 @@ Labels by themselves return that value.
     # 3
 
 Applying a name to a dict returns the value of that property.
-The space before '.min' is option, but emphasizes that this is just another expression
+The space before `.min` is optional, but emphasizes that this is just another expression
 
-# Expressions
+## Expressions
 
 ### Binary Operators
 
     ; [.mean 12; .deviation 3; mean .- deviation, mean .+ deviation]
     # [.mean 12; .deviation 3; 9, 15]
 
-Math operators are just properties on number values (like in Ruby). The '.' can be omitted on non-alphanumeric properties, for syntactic sugar.
+Math operators are just properties on number values (like in Ruby). The '.' can be omitted on non-alphanumeric properties (operators), for syntactic sugar.
 
-In other words, this is a Plist with expressions.  And our hypothesis is that this is all you need to do programming.
+    ; 2 + 2
+    # 4
+
+This is why HC looks like a Plist with expressions.  And our hypothesis is that this is all you need to do programming.
 
 ### Nil
 
-The result of evaluated the empty expression.
+The result of evaluating the empty expression is called nil.
 
     ; (1)
     # 1
@@ -241,20 +252,26 @@ The result of evaluated the empty expression.
     ; nil
     # ()
 
-This is also used as boolean false (but not zero).
+This is also used as boolean `false` (but not zero).
 
     ; 1 > 5
     # ()
 
 ### Closures
 
+Closures are just lazily evaluated expressions.  
+
     ; .add {2 + 2}
     # {2 + 2}
+
+To evaluate them, apply an argument, such as `nil`:
 
     ; add ()
     # 4
 
 ### Arguments
+
+#### Anonyomous `_`
 
 Use `_` as the anonymous argument.
 ```
@@ -262,22 +279,43 @@ Use `_` as the anonymous argument.
     ; square 3
     # 9
 ```
+
+#### Argument Lists
+
 When you apply something to a closure, it actually inserts that value above it
 in the hierarchy before it is evaluated.
 
     ; .mag {(x*x) + (y*y)};
-    ; mag (.x 1, .y 2)
+    ; mag (.x 1; .y 2;)
     # 5
 
-### Conditional Operators
+Since objects capture the scope where they are created, this may allow closures to be called with implicit arguments and access the enclosing scope:
+
+    ; .x 3;
+    ; .y 4;
+    ; mag []
+    # 25
+
+TODO: Determine whether this is a bug or a feature. This should not be that dangerous, since the effect typing and access rules still limit what the called function can do to the calling scope.
+
+#### Super `^`
+
+#### This `.`
+
+## Objects
+
+
+## Predefined Operators
+
+### Conditionals
 
 The ternary operator can be broken into two binary operators (with slightly different semantics).
 
 In Homoiconic C, these are not special forms, but simply pre-defined on the root object,
 and overriden by nil (technically, vice-versa).
 
-Most objects evaluate the argument of '?' and returns nil for ':',
-but nil does the reverse.
+Most objects evaluate the argument of `?` and return nil for `:`,
+but nil itself does the reverse.
 
     ; 1 ? {2 + 2}
     # 4
@@ -295,9 +333,9 @@ operator:
   ; ( 1 > 5 ) ? 100 : 10
   # 10
 
-Note that this assumes that applying nil to anything other than a closure has no effect.
+Note that this requires that applying nil to anything other than a closure has no effect.
 
-### Dataflow Operators
+### Iterators
 
 We use '|' for map, in homage to the UNIX pipeline.
 
