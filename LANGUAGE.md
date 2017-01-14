@@ -127,7 +127,7 @@ There are three types of primitive Frames (but note that even these can have pro
 
 There are three forms of quoting:
 
-- “Strings”
+- “Strings” # Smart quotes!
 - #Comments Inline# *or* #End-of-line
 
 ### Numeric
@@ -177,16 +177,11 @@ That is it. That is the entire syntax, except from a little syntactic sugar for 
 
 # Examples
 
-The example use ";" for the input prompt and "#" for the output prompt. This convention has the nice property that such examples can be pasted directly into the interpreter.
+The examples (and the eventual HC interpreter) use `;` for the input prompt and `#` for the output prompt. This convention has the nice property that examples can be pasted directly into the interpreter.  We also use in-line comments (`# #`) for multi-line prompts.
 
 ## Properties
 
 ### Name versus Value
-
-Syntactically, numbers are just special identifiers recognized by the runtime.
-
-    ; 1
-    # 1
 
 Names (setters) begin with a '.', and set a property with that label.
 
@@ -196,6 +191,12 @@ Labels by themselves return that value.
 
     ; p
     # 42
+
+
+Syntactically, numbers are just special identifiers recognized by the runtime.
+
+    ; 1
+    # 1
 
 ### Dictionary
 
@@ -222,7 +223,7 @@ Labels by themselves return that value.
     ; numbers .min
     # 3
 
-Applying a name to a dict returns the value of that property.
+Applying a name to a dict (or any Frame) returns the value of that property.
 The space before `.min` is optional, but emphasizes that this is just another expression
 
 ## Expressions
@@ -241,7 +242,7 @@ This is why HC looks like a Plist with expressions.  And our hypothesis is that 
 
 ### Nil
 
-The result of evaluating the empty expression is called nil.
+The result of evaluating the empty expression is conventionally called nil.
 
     ; (1)
     # 1
@@ -285,7 +286,7 @@ Use `_` as the anonymous argument.
 When you apply something to a closure, it actually inserts that value above it
 in the hierarchy before it is evaluated.
 
-    ; .mag {(x*x) + (y*y)};
+    ; .mag {(x * x) + (y * y )};
     ; mag (.x 1; .y 2;)
     # 5
 
@@ -298,11 +299,94 @@ Since objects capture the scope where they are created, this may allow closures 
 
 TODO: Determine whether this is a bug or a feature. This should not be that dangerous, since the effect typing and access rules still limit what the called function can do to the calling scope.
 
+## Object-Oriented Programming
+
 #### Super `^`
 
-#### This `.`
+The `^` property points to the parent (defined) context, in contrast to the applied (argument) context `_`.  This allows a child to directly set properties on its parent or access overriden properties.
+```
+    ; .parent_ [
+    # # .x 1;
+    # # .helper: {
+    #   # .x 2;
+    #   # .y x + ^.x;
+    #   # .^.y y + _;
+    #   # }
+    # # ]
+    ; parent_.x
+    # 1
+    ; parent.y
+    # @missing
+    ; parent_.helper: 10;
+    ; parent_.y
+    # 13
+```
 
-## Objects
+#### TODO: This `.`
+
+#### TODO: @Reference
+
+#### Classes
+
+Impressively, these constructs are sufficiently powerful to enables classes and factories without any additional syntax or semantics!
+
+(In the below examples, we omit the multi-line prompts to reduce visual clutter.)
+```
+    ; my-class {
+      ._property _;
+      .getProperty { ^._property }
+      .setProperty: { .^._property _}
+    };
+    ; .my-instance my-class 3;
+    ; my-instance.getProperty()
+    # 3
+    ; .mutated = my-instance.setProperty: 42;
+    ; mutated.getProperty()
+    # 42
+    ; my-instance.getProperty()
+    # 3  
+```
+
+This may seem to good to be true, but that is the power of choosing the correct primitives.
+
+- Data hiding is handled by the implicit access Modifiers
+- Scope is always inherited
+- Instance methods refer to their parent by `^`
+- The class itself is the constructor (as a closure)
+- When evaluated, that closure inherits the class as its parent
+
+## TODO: Class variables
+
+#### Singletons
+
+As an added bonus, Frame is perhaps unique in that it is trivial to create singleton objects simply by using a non-lazy constructor:
+
+```
+    ; my-singleton (
+      ._property _;
+      .getProperty { ^._property }
+      .setProperty: { .^._property _}
+    );
+    ;
+```
+
+#### Inheritance
+
+Even inheritance is already accounted for, simply by allowing an object to specify its parent:
+
+```
+    ; my-subclass {
+      .^ my-class
+    };
+```
+At this time there does not appear to be any natural way to implement multiple inheritance (which may be a good thing).  However, if you come up with your own it would be trivial to use it:
+
+(Fake code, will give an error.)
+```
+    ; my-multiclass {
+      .^ multiply-inherit (my-class, my-other-class)
+    };
+```
 
 
 ## Predefined Operators
@@ -341,3 +425,5 @@ We use '|' for map, in homage to the UNIX pipeline.
 
     ; [1, 2, 3] | { _ + 1 }
     # [2, 3, 4]
+
+# TODO: Under Construction
