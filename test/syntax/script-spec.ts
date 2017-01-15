@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { execFile } from "child_process";
+import { execFileSync } from "child_process";
 
 describe.only("script", () => {
   const hc_bin = "lib/hc.js";
@@ -11,10 +11,7 @@ describe.only("script", () => {
   });
 
   it(sample_script, () => {
-    execFile(hc_bin, [script_name], (error, stdout, stderr) => {
-      expect(error).to.be.null;
-      expect(false).to.be.ok;
-      expect(stdout).to.equal("“Hello, Homoiconicity!”");
-    });
+    const result = execFileSync(hc_bin, [script_name]).toString();
+    expect(result).to.equal("“Hello, Homoiconicity!”");
   });
 });
