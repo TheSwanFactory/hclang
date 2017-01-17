@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { execFileSync } from "child_process";
 import * as _ from "lodash";
 
-describe.only("script", () => {
+describe("script", () => {
   const hc_bin = "lib/hc.js";
   let title: string;
 
@@ -12,13 +12,13 @@ describe.only("script", () => {
 
   const script = (args: string[]) => {
     const result = execFileSync(hc_bin, args);
-    return _.trim(result.toString());
+    return result.toString().split("\n");
   };
 
   describe.only("command", () => {
     it("“Hello, Quine!”", () => {
       const result = script(["-c", title]);
-      expect(result).to.equal(title);
+      expect(result[0]).to.equal(title);
     });
   });
 
