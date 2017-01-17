@@ -10,18 +10,22 @@ describe.only("script", () => {
     title = this.currentTest.title;
   });
 
+  const script = (args: string[]) => {
+    const result = execFileSync(hc_bin, args);
+    return _.trim(result.toString());
+  };
+
   describe.only("command", () => {
-    it("“Hello, Homoiconicity!”", () => {
-      const result = execFileSync(hc_bin, ["-c", title]);
-      const output = _.trim(result.toString());
-      expect(output).to.equal(title);
+    it("“Hello, Quine!”", () => {
+      const result = script(["-c", title]);
+      expect(result).to.equal(title);
     });
   });
 
   describe("file", () => {
     const sample_script = "hc/sample.hc";
     it(sample_script, () => {
-      const result = execFileSync(hc_bin, [title]);
+      const result = script([title]);
       expect(result).to.equal("“Hello, Homoiconicity!”");
     });
   });
