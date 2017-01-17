@@ -20,6 +20,11 @@ describe("script", () => {
       const result = script(["-c", title]);
       expect(result[0]).to.equal(title);
     });
+
+    it("#Comment", () => {
+      const result = script(["-c", title]);
+      expect(result[0]).to.equal("");
+    });
   });
 
   describe("file", () => {
