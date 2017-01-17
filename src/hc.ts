@@ -1,8 +1,10 @@
 #!/usr/bin/env node
-// import { Frame, FrameString } from "./frames";
+
+import { exec } from "./syntax";
 
 let input = "“Hello, MAML!”";
 let argv = process.argv;
 if (argv.length > 3) { input = argv[3]; };
 
-console.log(input);
+const output = exec(input);
+console.log(output);
