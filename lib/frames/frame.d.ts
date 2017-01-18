@@ -16,7 +16,7 @@ export declare class Frame {
     up: Frame;
     constructor(meta?: {
         [key: string]: Frame;
-    });
+    }, isNil?: boolean);
     string_open(): string;
     string_close(): string;
     get_here(key: string, origin?: Frame): Frame;
