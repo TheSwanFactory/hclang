@@ -10,7 +10,6 @@ export declare class Frame {
     private meta;
     static readonly BEGIN_EXPR: string;
     static readonly END_EXPR: string;
-    static readonly kUP: string;
     static readonly nil: Frame;
     static readonly missing: Frame;
     static globals: Frame;

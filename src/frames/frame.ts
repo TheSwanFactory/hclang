@@ -7,7 +7,6 @@ export const Void: Context = {};
 export class Frame {
   public static readonly BEGIN_EXPR = "(";
   public static readonly END_EXPR = ")";
-  public static readonly kUP = "up";
   public static readonly nil = new Frame();
   public static readonly missing: Frame = new Frame({
     missing: Frame.nil,
