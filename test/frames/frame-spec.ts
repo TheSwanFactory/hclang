@@ -1,7 +1,7 @@
 import chai = require("chai");
 chai.use(require("chai-pretty-expect"));
 const expect = chai.expect;
-import { IKeyValuePair, Context, Frame, FrameArray, FrameString, FrameSymbol } from "../../src/frames";
+import { IKeyValuePair, Context, Frame, FrameArray, FrameString, FrameSymbol, Void } from "../../src/frames";
 
 describe("Frame", () => {
   const frame = new Frame({nil: Frame.nil});
