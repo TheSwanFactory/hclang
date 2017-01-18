@@ -1,7 +1,7 @@
 import chai = require("chai");
 chai.use(require("chai-pretty-expect"));
 const expect = chai.expect;
-import { IKeyValuePair, Context, Frame, FrameArray, FrameString, FrameSymbol } from "../../src/frames";
+import { IKeyValuePair, Context, Frame, FrameArray, FrameString, FrameSymbol, Void } from "../../src/frames";
 
 describe("Frame", () => {
   const frame = new Frame({nil: Frame.nil});
@@ -16,10 +16,15 @@ describe("Frame", () => {
     expect(Frame.nil).to.equal(nil);
   });
 
-  it("returns argument when called", () => {
-    const frame2 = new Frame();
+  it("returns argument when called with non-nil", () => {
+    const frame2 = new Frame(Void, false);
     const result = frame.call(frame2);
     expect(result).to.equal(frame2);
+  });
+
+  it("returns self when called with nil", () => {
+    const result = frame.call(Frame.nil);
+    expect(result).to.equal(frame);
   });
 
   it("stringifies to context", () => {

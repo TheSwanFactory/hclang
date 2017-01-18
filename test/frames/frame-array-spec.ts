@@ -27,6 +27,13 @@ describe("FrameArray", () => {
     expect(array.toString()).to.equal("[“a”, “b”]");
   });
 
+  it("appends only non-nil", () => {
+    const array = new FrameArray([]);
+    array.call(a_frame);
+    array.call(Frame.nil);
+    expect(array.toString()).to.equal("[“a”]");
+  });
+
   it("evaluates its components into an array", () => {
     const string = new FrameString("string");
     const array_of_expr = new FrameArray([
