@@ -16,14 +16,31 @@ describe("script", () => {
   };
 
   describe.only("command", () => {
-    it("“Hello, Quine!”", () => {
+    const hello_string = "“Hello, Quine!”";
+    const inline_comment = "#Inline#";
+    const endline_comment = "#End-of-line\n";
+
+    it(hello_string, () => {
       const result = script(["-c", title]);
       expect(result[0]).to.equal(title);
     });
 
-    it("#Comment", () => {
+    it(inline_comment, () => {
       const result = script(["-c", title]);
       expect(result[0]).to.equal("");
+    });
+
+    it(endline_comment, () => {
+      const result = script(["-c", title]);
+      expect(result.length).to.equal(2);
+      expect(result[0]).to.equal("");
+      expect(result[1]).to.equal("");
+    });
+
+    it(`${hello_string}${inline_comment}`, () => {
+      const result = script(["-c", title]);
+      expect(result.length).to.equal(1);
+      expect(result.toString()).to.equal(hello_string);
     });
   });
 
