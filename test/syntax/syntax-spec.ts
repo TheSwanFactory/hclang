@@ -12,14 +12,18 @@ describe("syntax", () => {
       expect(result).to.equal(input_string);
     });
 
-    it("eliminates inline comments", () => {
+    it("evaluates inline comments to nil", () => {
       const result = exec(inline_comment);
       expect(result).to.equal("()");
     });
 
-    it("eliminates end-of-line comments", () => {
+    it("evaluates end-of-line comments to nil", () => {
       const result = exec(endline_comment);
+      expect(result).to.equal("()");
+    });
 
+    it("evaluates spaces to nil", () => {
+      const result = exec("  ");
       expect(result).to.equal("()");
     });
 
