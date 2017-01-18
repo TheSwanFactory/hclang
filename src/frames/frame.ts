@@ -16,6 +16,11 @@ export class Frame {
   public up: Frame;
   constructor(private meta = Void, isNil = false) {
     this.up = Frame.missing;
+    if (isNil) {
+      this.called_by = (context: Frame, parameter: Frame) => {
+        return context;
+      };
+    }
   }
 
   public string_open() { return Frame.BEGIN_EXPR; };
