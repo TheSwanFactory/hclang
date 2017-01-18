@@ -34,6 +34,13 @@ describe("syntax", () => {
       expect(result).to.equal(input_string);
     });
 
+    it("handles spaces inside expressions", () => {
+      const input = input_string + " " + inline_comment;
+      const result = exec(input);
+
+      expect(result).to.equal(input_string);
+    });
+
     it("evaluates FrameStrings", () => {
       const part1 = "“Hello, ”";
       const part2 = "“World!”";
