@@ -10,14 +10,13 @@ export declare class Frame {
     private meta;
     static readonly BEGIN_EXPR: string;
     static readonly END_EXPR: string;
-    static readonly kUP: string;
     static readonly nil: Frame;
     static readonly missing: Frame;
     static globals: Frame;
     up: Frame;
     constructor(meta?: {
         [key: string]: Frame;
-    });
+    }, isNil?: boolean);
     string_open(): string;
     string_close(): string;
     get_here(key: string, origin?: Frame): Frame;
