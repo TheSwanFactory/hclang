@@ -15,7 +15,7 @@ describe("script", () => {
     return result.toString().split("\n");
   };
 
-  describe.only("expression", () => {
+  describe("expression", () => {
     const hello_string = "“Hello, Quine!”";
     const inline_comment = "#Inline#";
     const endline_comment = "#End-of-line\n";
@@ -37,14 +37,14 @@ describe("script", () => {
       expect(result[1]).to.equal("");
     });
 
-    it(`${hello_string}${inline_comment}`, () => {
+    it.skip(`${hello_string}${inline_comment}`, () => {
       const result = script(["-e", title]);
       expect(result.length).to.equal(2);
       expect(result.toString()).to.equal(hello_string);
     });
   });
 
-  describe("file", () => {
+  describe.skip("file", () => {
     const sample_script = "hc/sample.hc";
     it(sample_script, () => {
       const result = script([title]);
