@@ -36,19 +36,5 @@ describe("script", () => {
       expect(result[0]).to.equal("()");
       expect(result[1]).to.equal("");
     });
-
-    it.skip(`${hello_string}${inline_comment}`, () => {
-      const result = script(["-e", title]);
-      expect(result.length).to.equal(2);
-      expect(result.toString()).to.equal(hello_string);
-    });
-  });
-
-  describe.skip("file", () => {
-    const sample_script = "hc/sample.hc";
-    it(sample_script, () => {
-      const result = script([title]);
-      expect(result).to.equal("“Hello, Homoiconicity!”");
-    });
   });
 });
