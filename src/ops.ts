@@ -31,7 +31,7 @@ export class FrameOps extends Frame {
     if (func != null) {
       return this.curry(func, origin);
     }
-    // console.log(`**WARN** [get]: '${key}' not found in: ${origin}`);
+    // console.error(`**WARN** [get]: '${key}' not found in: ${origin}`);
     return Frame.missing;
   }
 

@@ -20,15 +20,15 @@ const pipe = (input: string, out: Frame): Frame => {
   router.set(Lex.out, output);
   const status: Frame = _.reduce(input, pipeline, router);
   if (status !== router) {
-    console.log(`\n* pipe returned ${status}`);
+    console.error(`\n* pipe returned ${status}`);
   }
   return out.call(output);
 };
 
 const pipeline = (current: Frame, char: string): Frame => {
   const frameChar = FrameSymbol.for(char);
-  // console.log(`* pipeline ${current}.call(${frameChar})`);
+  // console.error(`* pipeline ${current}.call(${frameChar})`);
   const next = current.call(frameChar);
-  // console.log(`** -> ${next}`);
+  // console.error(`** -> ${next}`);
   return next;
 };
