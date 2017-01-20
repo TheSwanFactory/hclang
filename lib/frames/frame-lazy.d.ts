@@ -8,7 +8,5 @@ export declare class FrameLazy extends FrameExpr {
     string_close(): string;
     in(contexts?: Frame[]): Frame;
     call(argument: Frame, parameter?: Frame): FrameExpr;
-    protected meta_for(context: Frame): {
-        [key: string]: Frame;
-    };
+    protected meta_for(context: Frame): Context;
 }

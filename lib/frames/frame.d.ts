@@ -14,9 +14,7 @@ export declare class Frame {
     static readonly missing: Frame;
     static globals: Frame;
     up: Frame;
-    constructor(meta?: {
-        [key: string]: Frame;
-    }, isNil?: boolean);
+    constructor(meta?: Context, isNil?: boolean);
     string_open(): string;
     string_close(): string;
     get_here(key: string, origin?: Frame): Frame;
@@ -44,9 +42,7 @@ export declare class FrameAtom extends Frame {
 }
 export declare class FrameList extends Frame {
     protected data: Array<Frame>;
-    constructor(data: Array<Frame>, meta?: {
-        [key: string]: Frame;
-    });
+    constructor(data: Array<Frame>, meta?: Context);
     toStringDataArray(): string[];
     toStringArray(): string[];
     toString(): string;
