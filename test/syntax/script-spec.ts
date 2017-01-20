@@ -1,6 +1,6 @@
 import { expect } from "chai";
+import { execFileSync } from "child_process";
 import * as _ from "lodash";
-const proc = require("child_process");
 
 describe("script", () => {
   const hc_bin = "lib/hc.js";
@@ -11,7 +11,7 @@ describe("script", () => {
   });
 
   const script = (args: string[]) => {
-    const result = proc.execFileSync(hc_bin, args);
+    const result = execFileSync(hc_bin, args);
     return result.toString().split("\n");
   };
 
