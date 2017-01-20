@@ -39,7 +39,8 @@
     "figlet": "^1.2.0",
     "inquirer": "^1.2.3",
     "lodash": "^4.17.2",
-    "minimist": "^1.2.0"
+    "minimist": "^1.2.0",
+    "typed-child_process": "git+https://git@github.com/weswigham/typed-child_process.git"
   },
   "devDependencies": {
     "@types/chai": "3.4.30",
