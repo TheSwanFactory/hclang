@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { execFileSync } from "child_process";
+import * as cp from "child_process";
 import * as _ from "lodash";
 
 describe("script", () => {
@@ -11,7 +11,7 @@ describe("script", () => {
   });
 
   const script = (args: string[]) => {
-    const result = execFileSync(hc_bin, args);
+    const result = cp.execFileSync(hc_bin, args);
     return result.toString().split("\n");
   };
 
