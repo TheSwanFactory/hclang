@@ -4,27 +4,38 @@ import { exec } from "../../src/syntax";
 describe("syntax", () => {
   describe("exec", () => {
     const input_string = "“Watson I need you”";
-    const input_comment = "#Ignore this#";
+    const inline_comment = "#Inline#";
+    const endline_comment = "#End-of-line\n";
 
     it("quines FrameStrings", () => {
       const result = exec(input_string);
       expect(result).to.equal(input_string);
     });
 
-    it("eliminates inline comments", () => {
-      const result = exec(input_comment);
+    it("evaluates inline comments to nil", () => {
+      const result = exec(inline_comment);
       expect(result).to.equal("()");
     });
 
-    it("eliminates end-of-ine comments", () => {
-      const input = "#Ignore this\n";
-      const result = exec(input);
+    it("evaluates end-of-line comments to nil", () => {
+      const result = exec(endline_comment);
+      expect(result).to.equal("()");
+    });
 
+    it("evaluates spaces to nil", () => {
+      const result = exec("  ");
       expect(result).to.equal("()");
     });
 
     it("lexes both FrameStrings and comments", () => {
-      const input = input_string + input_comment;
+      const input = input_string + inline_comment;
+      const result = exec(input);
+
+      expect(result).to.equal(input_string);
+    });
+
+    it("handles spaces inside expressions", () => {
+      const input = input_string + " " + inline_comment;
       const result = exec(input);
 
       expect(result).to.equal(input_string);
