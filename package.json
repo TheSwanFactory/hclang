@@ -23,7 +23,7 @@
   "typings": "lib/index.d.ts",
   "scripts": {
     "clean": "rimraf lib",
-    "lint": "grep execFileSync node_modules/@types/node/index.d.ts && tslint --force --format verbose \"src/**/*.ts\"",
+    "lint": "tslint --force --format verbose \"src/**/*.ts\"",
     "set-bin": "chmod a+x ./lib/hc.js ./lib/index.js",
     "ts": "echo Using TypeScript && tsc --version && tsc --pretty && npm run set-bin",
     "build": "npm run clean && npm run lint && npm run ts",
