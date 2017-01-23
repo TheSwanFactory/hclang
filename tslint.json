@@ -4,6 +4,7 @@
     "max-classes-per-file": 3,
     "array-type": false,
     "prefer-const": false,
+    "interface-over-type-literal": false,
 
     "no-console" : false ,
     "no-var-requires" : false
