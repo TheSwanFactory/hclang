@@ -4,8 +4,8 @@ import { Lex, LexComment, LexSpace, LexString } from "./lex";
 import * as _ from "lodash";
 
 const router = new Frame({
-  "#": new LexComment(),
   " ": new LexSpace(),
+  "#": new LexComment(),
   "“": new LexString(),
 });
 
