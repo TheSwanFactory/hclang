@@ -1,7 +1,5 @@
 import { Frame } from "./frames";
-export interface ICurryFunction extends Function {
-    (source: Frame, block: Frame): Frame;
-}
+export declare type ICurryFunction = (source: Frame, block: Frame) => Frame;
 export declare type FuncDict = {
     [key: string]: ICurryFunction;
 };
