@@ -23,7 +23,7 @@
   "typings": "lib/index.d.ts",
   "scripts": {
     "clean": "rimraf lib",
-    "lint": "tslint --force --format verbose \"src/**/*.ts\"",
+    "lint": "tslint --force --format verbose \"{src,test}/**/*.ts\"",
     "set-bin": "chmod a+x ./lib/{hc,index}.js",
     "ts": "echo Using TypeScript && tsc --version && tsc --pretty && npm run set-bin",
     "build": "rimraf lib && tslint \"src/**/*.ts\" && tsc --pretty && chmod a+x ./lib/{hc,index}.js",
