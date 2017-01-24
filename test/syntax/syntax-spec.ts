@@ -1,8 +1,15 @@
 import { expect } from "chai";
 import { exec } from "../../src/syntax";
 
-describe("syntax", () => {
-  describe("exec", () => {
+describe.only("syntax exec", () => {
+  describe("terminators", () => {
+    it("evaluates spaces to nil", () => {
+      const result = exec("  ");
+      expect(result).to.equal("()");
+    });
+  });
+
+  describe("strings", () => {
     const input_string = "“Watson I need you”";
     const inline_comment = "#Inline#";
     const endline_comment = "#End-of-line\n";
@@ -22,10 +29,6 @@ describe("syntax", () => {
       expect(result).to.equal("()");
     });
 
-    it("evaluates spaces to nil", () => {
-      const result = exec("  ");
-      expect(result).to.equal("()");
-    });
 
     it("lexes both FrameStrings and comments", () => {
       const input = input_string + inline_comment;
