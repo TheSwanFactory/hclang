@@ -11,7 +11,7 @@ describe("FrameArray", () => {
   });
 
   it("stringifies with brackets", () => {
-    expect(frame_array.toString()).to.equal("[“a”, “b”]")
+    expect(frame_array.toString()).to.equal("[“a”, “b”]");
   });
 
   it("uses 'at' to access elements by index", () => {
@@ -42,7 +42,7 @@ describe("FrameArray", () => {
       new FrameExpr([
         new FrameString("prefix-"),
         new FrameString("-suffix"),
-      ])
+      ]),
     ]);
     const result = array_of_expr.in();
     const expr_result = result.at(2);

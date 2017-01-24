@@ -1,9 +1,7 @@
 import { Frame, FrameArg, FrameExpr } from "./frames";
 import { MetaMap } from "./ops/iterators";
 
-export interface ICurryFunction extends Function {
-  (source: Frame, block: Frame): Frame;
-}
+export type ICurryFunction = (source: Frame, block: Frame) => Frame;
 
 export type FuncDict = { [key: string]: ICurryFunction; };
 

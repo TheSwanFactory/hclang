@@ -1,3 +1,3 @@
-declare const clear: any;
-declare const chalk: any;
-declare const figlet: any;
+declare let clear: any;
+declare let chalk: any;
+declare let figlet: any;

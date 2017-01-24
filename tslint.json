@@ -1,16 +1,15 @@
 {
   "extends": "tslint:latest",
   "rules" : {
-    "max-classes-per-file": 3,
     "array-type": false,
-    "prefer-const": false,
-
-    "trailing-comma": false,
-    "callable-types": false,
     "interface-over-type-literal": false,
-    "object-literal-sort-keys": false,
-
-    "no-console" : false ,
-    "no-var-requires" : false
+    "max-classes-per-file": 3,
+    "max-line-length" : false,
+    "no-console" : false,
+    "no-string-literal" : false,
+    "no-var-requires" : false,
+    "only-arrow-functions" : false,
+    "prefer-const": false,
+    "variable-name" : false
   }
 }

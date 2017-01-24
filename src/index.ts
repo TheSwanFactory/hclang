@@ -1,11 +1,11 @@
 #!/usr/bin/env node
-const clear = require("clear");
-const chalk = require("chalk");
-const figlet = require("figlet");
+let clear = require("clear");
+let chalk = require("chalk");
+let figlet = require("figlet");
 
 clear();
 console.log(
   chalk.green(
-    figlet.textSync("MAML", { horizontalLayout: "full" })
-  )
+    figlet.textSync("MAML", { horizontalLayout: "full" }),
+  ),
 );

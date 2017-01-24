@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { Frame, FrameArg, FrameArray, FrameExpr, FrameName, FrameString, FrameSymbol, FrameLazy } from "../../src/frames";
+import { Frame, FrameArg, FrameArray, FrameExpr, FrameLazy, FrameName, FrameString, FrameSymbol } from "../../src/frames";
 
 describe("FrameLazy", () => {
   const slow = new FrameString("slow");
@@ -42,7 +42,7 @@ describe("FrameLazy", () => {
     });
 
     it("converts Array to Expr when called", () => {
-      const array = new FrameArray(lazy_array, {speed: fast, gap:space});
+      const array = new FrameArray(lazy_array, {speed: fast, gap: space});
       const codified = codify.call(array);
 
       expect(codified).to.be.instanceof(FrameExpr);

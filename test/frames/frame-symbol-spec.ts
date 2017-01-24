@@ -1,7 +1,5 @@
 import { expect } from "chai";
-
 import { FrameSymbol } from "../../src/frames";
-
 
 describe("FrameSymbol", () => {
   const symbol = "atom";

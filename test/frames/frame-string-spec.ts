@@ -29,7 +29,7 @@ describe("FrameString", () => {
   it("concatenates when called with a FrameString", () => {
     const js_string_2 = " Goodbye, world!";
     const frame_string_2 = new FrameString(js_string_2);
-    const result = frame_string.call(frame_string_2)
+    const result = frame_string.call(frame_string_2);
     expect(result.toString()).to.equal(`“${js_string}${js_string_2}”`);
   });
 });
