@@ -4,16 +4,16 @@ import { Frame, FrameArg, FrameExpr, FrameName, FrameString, FrameSymbol } from 
 describe("FrameExpr", () => {
   const frame = new Frame();
   const js_string = "Hello";
-  const context = new FrameString("context");
   const frame_string = new FrameString(js_string);
+  const context = new FrameString("context", {key: frame_string});
 
   it("stringifies with parentheses", () => {
-    const frame_expr = new FrameExpr([frame, frame_string], {context: context});
-    expect(frame_expr.toString()).to.equal(`(() “${js_string}”, .context “context”;)`);
+    const frame_expr = new FrameExpr([frame, frame_string], {context});
+    expect(frame_expr.toString()).to.equal(`(() “${js_string}”, .context (“context”, .key “Hello”;);)`);
   });
 
   it("replaces nil when evaluated", () => {
-    const frame_expr = new FrameExpr([frame, frame_string], {context: context});
+    const frame_expr = new FrameExpr([frame, frame_string], {context});
     const result = frame_expr.in([frame]);
     expect(result).to.equal(frame_string);
   });
@@ -28,7 +28,6 @@ describe("FrameExpr", () => {
   });
 
   it("returns context for FrameArg.here", () => {
-    const context = new FrameString("context", {key: frame_string});
     const frame_expr = new FrameExpr([FrameArg.here()]);
     const result = frame_expr.in([context]);
 
@@ -36,7 +35,6 @@ describe("FrameExpr", () => {
   });
 
   it("evaluates in context when called", () => {
-    const context = new FrameString("context", {key: frame_string});
     const frame_expr = new FrameExpr([
       FrameArg.here(),
       new FrameName("key"),
@@ -68,7 +66,7 @@ describe("FrameExpr", () => {
     });
 
     it("evaluates recursively", () => {
-      const sub_expr = new FrameExpr(expr_array)
+      const sub_expr = new FrameExpr(expr_array);
       const frame_expr = new FrameExpr([sub_expr], {speed: slow, gap: space});
 
       expect(frame_expr.call(turtle).toString()).to.equal(`“slow turtle”`);

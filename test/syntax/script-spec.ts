@@ -6,7 +6,7 @@ describe("script", () => {
   const hc_bin = "lib/hc.js";
   let title: string;
 
-  beforeEach(function () {
+  beforeEach(function() {
     title = this.currentTest.title;
   });
 
