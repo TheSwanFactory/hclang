@@ -1,4 +1,2 @@
-import { Frame } from "../frames";
-export declare const framify: (input: string, context?: {
-    [key: string]: Frame;
-}) => Frame;
+import { Context, Frame } from "../frames";
+export declare const framify: (input: string, context?: Context) => Frame;

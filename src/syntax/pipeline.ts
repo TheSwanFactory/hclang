@@ -1,13 +1,49 @@
-import { Frame, FrameArray, FrameLazy, FrameSymbol, Void } from "../frames";
+import * as _ from "lodash";
+import { Context, Frame, FrameArray, FrameLazy, FrameString, FrameSymbol, Void } from "../frames";
 import { Lex, LexComment, LexSpace, LexString } from "./lex";
 
-import * as _ from "lodash";
-
-const router = new Frame({
+const lex_routes = {
   " ": new LexSpace(),
   "#": new LexComment(),
   "“": new LexString(),
-});
+};
+
+const router = new Frame(lex_routes);
+
+class PipelineEvaluator extends Frame {
+  constructor(up: Frame, meta: Context = Void) {
+    super(meta);
+    this.up = up;
+  }
+}
+
+class PipelineParser extends Frame {
+  constructor(up: Frame, meta: Context = Void) {
+    super(meta);
+    this.up = up;
+  }
+}
+
+class PipelineLexer extends Frame {
+  constructor(up: Frame, meta: Context = Void) {
+    super(meta);
+    this.up = up;
+  }
+}
+
+const piper = (input: string, context = Void): Frame => {
+  const source = new FrameString(input);
+  const result = new FrameArray([], context);
+  const evaluator = new PipelineEvaluator(result);
+  const parser = new PipelineParser(evaluator);
+  const lexer = new PipelineLexer(parser, lex_routes);
+
+  const status = source.reduce(lexer);
+  if (status !== router) {
+    console.error(`\n* pipe returned ${status}`);
+  }
+  return result;
+};
 
 export const framify = (input: string, context = Void): Frame => {
   const env = new Frame(context);
