@@ -3,6 +3,21 @@ import { exec } from "../../src/syntax";
 
 describe.only("syntax exec", () => {
   describe("terminators", () => {
+    it("evaluates empty string to nothing", () => {
+      const result = exec("");
+      expect(result).to.equal("");
+    });
+
+    it("evaluates newline to nil", () => {
+      const result = exec("\n");
+      expect(result).to.equal("()");
+    });
+
+    it("evaluates multiple newlines as sequence of nils", () => {
+      const result = exec("\n\n");
+      expect(result).to.equal("()\n()");
+    });
+
     it("evaluates spaces to nil", () => {
       const result = exec("  ");
       expect(result).to.equal("()");
