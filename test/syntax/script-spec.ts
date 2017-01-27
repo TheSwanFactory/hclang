@@ -1,6 +1,6 @@
+import * as _ from "lodash";
 import { expect } from "chai";
 import { execFileSync } from "child_process";
-import * as _ from "lodash";
 
 describe("script", () => {
   const hc_bin = "lib/hc.js";

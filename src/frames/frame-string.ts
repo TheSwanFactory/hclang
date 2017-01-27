@@ -1,7 +1,6 @@
+import * as _ from "lodash";
 import { Context, Frame, FrameAtom, Void } from "./frame";
 import { FrameSymbol } from "./frame-symbol";
-
-import * as _ from "lodash";
 
 export class FrameString extends FrameAtom {
   public static readonly STRING_BEGIN = "“";
