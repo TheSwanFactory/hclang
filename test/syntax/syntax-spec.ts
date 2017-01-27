@@ -59,13 +59,17 @@ describe.only("syntax exec", () => {
       expect(result).to.equal(input_string);
     });
 
-    it("evaluates FrameStrings", () => {
+    it("evaluates multiple FrameStrings", () => {
       const part1 = "“Hello, ”";
       const part2 = "“World!”";
-      const input = `${part1}${part2}`;
-      const result = exec(input);
+      const expr = `${part1}${part2}`;
+      const expr_result = exec(expr);
 
-      expect(result).to.equal("“Hello, World!”");
+      expect(expr_result).to.equal("“Hello, World!”");
+
+      const lines = `${part1}\n${part2}`;
+      const lines_result = exec(lines);
+      expect(lines_result).to.equal("“Hello,”\n“ World!”");
     });
   });
 });
