@@ -16,9 +16,9 @@ export class Lex extends Frame {
   }
 
   public getClassName() {
-      const funcNameRegex = /function (.{1,})\(/;
-      const results  = (funcNameRegex).exec(this.constructor.toString());
-      return (results && results.length > 1) ? results[1] : "<class>";
+    const funcNameRegex = /function (.{1,})\(/;
+    const results  = (funcNameRegex).exec(this.constructor.toString());
+    return (results && results.length > 1) ? results[1] : "<class>";
   }
 
   public toString() {
