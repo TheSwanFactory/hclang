@@ -2,6 +2,11 @@ import * as _ from "lodash";
 import { Context, Frame, FrameAtom, Void } from "./frame";
 import { FrameSymbol } from "./frame-symbol";
 
+const reducer = (current: Frame, char: string) => {
+  const symbol = FrameSymbol.for(char);
+  return current.call(symbol);
+};
+
 export class FrameString extends FrameAtom {
   public static readonly STRING_BEGIN = "“";
   public static readonly STRING_END = "”";
@@ -19,7 +24,8 @@ export class FrameString extends FrameAtom {
   public string_suffix() { return FrameString.STRING_END; };
 
   public reduce(iteratee: Frame) {
-    return iteratee;
+    const status: Frame = _.reduce(this.data, reducer, iteratee);
+    return status;
   }
 
   protected toData() { return this.data; }
