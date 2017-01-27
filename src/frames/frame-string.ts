@@ -1,4 +1,7 @@
-import { Context, FrameAtom, Void } from "./frame";
+import { Context, Frame, FrameAtom, Void } from "./frame";
+import { FrameSymbol } from "./frame-symbol";
+
+import * as _ from "lodash";
 
 export class FrameString extends FrameAtom {
   public static readonly STRING_BEGIN = "“";
@@ -16,5 +19,10 @@ export class FrameString extends FrameAtom {
 
   public string_suffix() { return FrameString.STRING_END; };
 
+  public reduce(iteratee: Frame) {
+    return iteratee;
+  }
+
   protected toData() { return this.data; }
+
 };

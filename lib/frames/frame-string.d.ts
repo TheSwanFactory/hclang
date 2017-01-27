@@ -1,4 +1,4 @@
-import { Context, FrameAtom } from "./frame";
+import { Context, Frame, FrameAtom } from "./frame";
 export declare class FrameString extends FrameAtom {
     protected data: string;
     static readonly STRING_BEGIN: string;
@@ -7,5 +7,6 @@ export declare class FrameString extends FrameAtom {
     apply(argument: FrameString): FrameString;
     string_prefix(): string;
     string_suffix(): string;
+    reduce(iteratee: Frame): Frame;
     protected toData(): string;
 }
