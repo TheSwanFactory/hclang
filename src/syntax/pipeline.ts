@@ -31,10 +31,10 @@ class LexPipe extends Frame {
 
 const piper = (input: string, context = Void): Frame => {
   const source = new FrameString(input);
-  const result = new FrameArray([], context);
-  const evaluator = new EvalPipe(result);
-  const parser = new ParsePipe(evaluator);
-  const lexer = new LexPipe(parser, lex_routes);
+  const result = new FrameArray([], context); // store the result
+  const evaluator = new EvalPipe(result); // evaluate expressions in context
+  const parser = new ParsePipe(evaluator); // assemble tokens into expressions
+  const lexer = new LexPipe(parser, lex_routes); // convert string into tokens
 
   const status = source.reduce(lexer);
   if (status !== lexer) {
@@ -48,6 +48,15 @@ export const framify = (input: string, context = Void): Frame => {
   const codify = new FrameLazy([]);
   const expr = pipe(input, codify);
   return expr.call(env);
+};
+
+export const framify_new = (input: string, context = Void): Frame => {
+  const result = new FrameArray([], context);
+  const parser = new ParsePipe(result);
+  const status = pipe(input, parser);
+  console.error(`\n* framify_new.pipe returned ${status}`);
+  const expr = result.at(0);
+  return expr.call(result);
 };
 
 const pipe = (input: string, out: Frame): Frame => {
