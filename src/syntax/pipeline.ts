@@ -60,20 +60,13 @@ export const framify_new = (input: string, context = Void): Frame => {
 };
 
 const pipe = (input: string, out: Frame): Frame => {
+  const source = new FrameString(input);
   const output = new FrameArray([]);
   const router = new LexPipe(output, lex_routes);
 
-  const status: Frame = _.reduce(input, pipeline, router);
+  const status = source.reduce(router);
   if (status !== router) {
     console.error(`\n* pipe returned ${status}`);
   }
   return out.call(output);
-};
-
-const pipeline = (current: Frame, char: string): Frame => {
-  const frameChar = FrameSymbol.for(char);
-  // console.error(`* pipeline ${current}.call(${frameChar})`);
-  const next = current.call(frameChar);
-  // console.error(`** -> ${next}`);
-  return next;
 };
