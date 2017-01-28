@@ -10,33 +10,33 @@ const lex_routes = {
 
 const router = new Frame(lex_routes);
 
-class PipelineEvaluator extends Frame {
-  constructor(up: Frame, meta: Context = Void) {
+class EvalPipe extends Frame {
+  constructor(out: Frame, meta: Context = Void) {
+    meta[Lex.kOUT] = out;
     super(meta);
-    this.up = up;
   }
 }
 
-class PipelineParser extends Frame {
-  constructor(up: Frame, meta: Context = Void) {
+class ParsePipe extends Frame {
+  constructor(out: Frame, meta: Context = Void) {
+    meta[Lex.kOUT] = out;
     super(meta);
-    this.up = up;
   }
 }
 
-class PipelineLexer extends Frame {
-  constructor(up: Frame, meta: Context = Void) {
+class LexPipe extends Lex {
+  constructor(out: Frame, meta: Context = Void) {
+    meta[Lex.kOUT] = out;
     super(meta);
-    this.up = up;
   }
 }
 
 const piper = (input: string, context = Void): Frame => {
   const source = new FrameString(input);
   const result = new FrameArray([], context);
-  const evaluator = new PipelineEvaluator(result);
-  const parser = new PipelineParser(evaluator);
-  const lexer = new PipelineLexer(parser, lex_routes);
+  const evaluator = new EvalPipe(result);
+  const parser = new ParsePipe(evaluator);
+  const lexer = new LexPipe(parser, lex_routes);
 
   const status = source.reduce(lexer);
   if (status !== router) {
@@ -54,7 +54,7 @@ export const framify = (input: string, context = Void): Frame => {
 
 const pipe = (input: string, out: Frame): Frame => {
   const output = new FrameArray([]);
-  router.set(Lex.out, output);
+  router.set(Lex.kOUT, output);
   const status: Frame = _.reduce(input, pipeline, router);
   if (status !== router) {
     console.error(`\n* pipe returned ${status}`);
