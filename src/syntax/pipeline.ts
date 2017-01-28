@@ -8,21 +8,21 @@ const lex_routes = {
   "“": new LexString(),
 };
 
-class EvalPipe extends Frame {
+export class EvalPipe extends Frame {
   constructor(out: Frame, meta: Context = Void) {
     meta[Lex.kOUT] = out;
     super(meta);
   }
 }
 
-class ParsePipe extends Frame {
+export class ParsePipe extends Frame {
   constructor(out: Frame, meta: Context = Void) {
     meta[Lex.kOUT] = out;
     super(meta);
   }
 }
 
-class LexPipe extends Frame {
+export class LexPipe extends Frame {
   constructor(out: Frame, meta: Context = Void) {
     meta[Lex.kOUT] = out;
     super(meta);
