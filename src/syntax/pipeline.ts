@@ -1,4 +1,3 @@
-import * as _ from "lodash";
 import { Context, Frame, FrameArray, FrameLazy, FrameString, FrameSymbol, Void } from "../frames";
 import { LexPipe } from "./lex";
 
@@ -23,7 +22,7 @@ const piper = (input: string, context = Void): Frame => {
   const parser = new ParsePipe(evaluator); // assemble tokens into expressions
   const lexer = new LexPipe(parser); // convert string into tokens
 
-  const status = source.reduce(lexer);
+  const status = lexer.lex(source);
   if (status !== lexer) {
     console.error(`\n* pipe returned ${status}`);
   }
@@ -49,10 +48,10 @@ export const framify_new = (input: string, context = Void): Frame => {
 const pipe = (input: string, out: Frame): Frame => {
   const source = new FrameString(input);
   const output = new FrameArray([]);
-  const router = new LexPipe(output);
+  const lexer = new LexPipe(output);
 
-  const status = source.reduce(router);
-  if (status !== router) {
+  const status = lexer.lex(source);
+  if (status !== lexer) {
     console.error(`\n* pipe returned ${status}`);
   }
   return out.call(output);

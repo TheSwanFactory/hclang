@@ -1,3 +1,4 @@
+import * as _ from "lodash";
 import { Context, Frame, FrameString, FrameSymbol, Void } from "../frames";
 
 export class Lex extends Frame {
@@ -52,23 +53,15 @@ export class LexString extends Lex {
 };
 
 export class LexComment extends Lex {
-  protected isEnd(char: string) {
-    return char === "#" || char === "\n";
-  }
+  protected isEnd(char: string) { return char === "#" || char === "\n"; }
 
-  protected makeFrame() {
-    return FrameSymbol.for("");
-  }
+  protected makeFrame() { return FrameSymbol.for(""); }
 };
 
 export class LexSpace extends Lex {
-  protected isEnd(char: string) {
-    return char !== " ";
-  }
+  protected isEnd(char: string) { return char !== " "; }
 
-  protected makeFrame() {
-    return FrameSymbol.for("");
-  }
+  protected makeFrame() { return FrameSymbol.for(""); }
 };
 
 const lex_routes: Context = {
@@ -81,5 +74,9 @@ export class LexPipe extends Frame {
   constructor(out: Frame) {
     lex_routes[Frame.kOUT] = out;
     super(lex_routes);
+  }
+
+  public lex(source: FrameString) {
+    return source.reduce(this);
   }
 }
