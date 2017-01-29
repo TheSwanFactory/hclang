@@ -76,6 +76,11 @@ export class LexPipe extends Frame {
     super(lex_routes);
   }
 
+  public lex_string(input: string) {
+    const source = new FrameString(input);
+    return this.lex(source);
+  }
+
   public lex(source: FrameString) {
     return source.reduce(this);
   }

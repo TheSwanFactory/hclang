@@ -16,13 +16,12 @@ export class ParsePipe extends Frame {
 }
 
 const piper = (input: string, context = Void): Frame => {
-  const source = new FrameString(input);
   const result = new FrameArray([], context); // store the result
   const evaluator = new EvalPipe(result); // evaluate expressions in context
   const parser = new ParsePipe(evaluator); // assemble tokens into expressions
   const lexer = new LexPipe(parser); // convert string into tokens
 
-  const status = lexer.lex(source);
+  const status = lexer.lex_string(input);
   if (status !== lexer) {
     console.error(`\n* pipe returned ${status}`);
   }
@@ -46,11 +45,10 @@ export const framify_new = (input: string, context = Void): Frame => {
 };
 
 const pipe = (input: string, out: Frame): Frame => {
-  const source = new FrameString(input);
   const output = new FrameArray([]);
   const lexer = new LexPipe(output);
 
-  const status = lexer.lex(source);
+  const status = lexer.lex_string(input);
   if (status !== lexer) {
     console.error(`\n* pipe returned ${status}`);
   }
