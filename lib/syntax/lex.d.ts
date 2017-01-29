@@ -20,3 +20,6 @@ export declare class LexSpace extends Lex {
     protected isEnd(char: string): boolean;
     protected makeFrame(): FrameSymbol;
 }
+export declare class LexPipe extends Frame {
+    constructor(out: Frame);
+}

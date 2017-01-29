@@ -1,4 +1,4 @@
-import { Frame, FrameString, FrameSymbol } from "../frames";
+import { Context, Frame, FrameString, FrameSymbol, Void } from "../frames";
 
 export class Lex extends Frame {
 
@@ -70,3 +70,16 @@ export class LexSpace extends Lex {
     return FrameSymbol.for("");
   }
 };
+
+const lex_routes: Context = {
+  " ": new LexSpace(),
+  "#": new LexComment(),
+  "“": new LexString(),
+};
+
+export class LexPipe extends Frame {
+  constructor(out: Frame) {
+    lex_routes[Frame.kOUT] = out;
+    super(lex_routes);
+  }
+}

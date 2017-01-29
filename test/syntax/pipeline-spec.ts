@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import * as pipe from "../../src/syntax/pipeline";
+import * as pipe from "../../src/syntax/lex";
 
 describe.only("pipeline", () => {
   describe("LexPipe", () => {
