@@ -1,4 +1,11 @@
-import { Context, FrameAtom, Void } from "./frame";
+import * as _ from "lodash";
+import { Context, Frame, FrameAtom, Void } from "./frame";
+import { FrameSymbol } from "./frame-symbol";
+
+const reducer = (current: Frame, char: string) => {
+  const symbol = FrameSymbol.for(char);
+  return current.call(symbol);
+};
 
 export class FrameString extends FrameAtom {
   public static readonly STRING_BEGIN = "“";
@@ -16,5 +23,11 @@ export class FrameString extends FrameAtom {
 
   public string_suffix() { return FrameString.STRING_END; };
 
+  public reduce(iteratee: Frame) {
+    const final: Frame = _.reduce(this.data, reducer, iteratee);
+    return final.call(FrameSymbol.for("$fin"));
+  }
+
   protected toData() { return this.data; }
+
 };

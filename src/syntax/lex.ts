@@ -1,7 +1,7 @@
-import { Frame, FrameString, FrameSymbol } from "../frames";
+import * as _ from "lodash";
+import { Context, Frame, FrameString, FrameSymbol, Void } from "../frames";
 
 export class Lex extends Frame {
-  public static readonly out = "out_";
 
   protected body: string = "";
 
@@ -16,9 +16,9 @@ export class Lex extends Frame {
   }
 
   public getClassName() {
-      const funcNameRegex = /function (.{1,})\(/;
-      const results  = (funcNameRegex).exec(this.constructor.toString());
-      return (results && results.length > 1) ? results[1] : "<class>";
+    const funcNameRegex = /function (.{1,})\(/;
+    const results  = (funcNameRegex).exec(this.constructor.toString());
+    return (results && results.length > 1) ? results[1] : "<class>";
   }
 
   public toString() {
@@ -31,7 +31,7 @@ export class Lex extends Frame {
 
   protected exportFrame() {
     const output = this.makeFrame();
-    const out = this.get(Lex.out);
+    const out = this.get(Frame.kOUT);
     // console.error(`** exportFrame[${output}] -> ${out}`);
     out.call(output);
     // console.error(`*** -> ${out}`);
@@ -53,21 +53,35 @@ export class LexString extends Lex {
 };
 
 export class LexComment extends Lex {
-  protected isEnd(char: string) {
-    return char === "#" || char === "\n";
-  }
+  protected isEnd(char: string) { return char === "#" || char === "\n"; }
 
-  protected makeFrame() {
-    return FrameSymbol.for("");
-  }
+  protected makeFrame() { return FrameSymbol.for(""); }
 };
 
 export class LexSpace extends Lex {
-  protected isEnd(char: string) {
-    return char !== " ";
+  protected isEnd(char: string) { return char !== " "; }
+
+  protected makeFrame() { return FrameSymbol.for(""); }
+};
+
+const lex_routes: Context = {
+  " ": new LexSpace(),
+  "#": new LexComment(),
+  "“": new LexString(),
+};
+
+export class LexPipe extends Frame {
+  constructor(out: Frame) {
+    lex_routes[Frame.kOUT] = out;
+    super(lex_routes);
   }
 
-  protected makeFrame() {
-    return FrameSymbol.for("");
+  public lex_string(input: string) {
+    const source = new FrameString(input);
+    return this.lex(source);
   }
-};
+
+  public lex(source: FrameString) {
+    return source.reduce(this);
+  }
+}
