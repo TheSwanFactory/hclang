@@ -1,21 +1,11 @@
 import { expect } from "chai";
 import { exec } from "../../src/syntax";
 
-describe.only("syntax exec", () => {
+describe("syntax exec", () => {
   describe("terminators", () => {
-    it.skip("evaluates empty string to nothing", () => {
-      const result = exec("");
-      expect(result).to.equal("");
-    });
-
     it("evaluates newline to nil", () => {
       const result = exec("\n");
       expect(result).to.equal("()");
-    });
-
-    it.skip("evaluates multiple newlines as sequence of nils", () => {
-      const result = exec("\n\n");
-      expect(result).to.equal("()\n()");
     });
 
     it("evaluates spaces to nil", () => {
@@ -57,19 +47,6 @@ describe.only("syntax exec", () => {
       const result = exec(input);
 
       expect(result).to.equal(input_string);
-    });
-
-    it.skip("evaluates multiple FrameStrings", () => {
-      const part1 = "“Hello, ”";
-      const part2 = "“World!”";
-      const expr = `${part1}${part2}`;
-      const expr_result = exec(expr);
-
-      expect(expr_result).to.equal("“Hello, World!”");
-
-      const lines = `${part1}\n${part2}`;
-      const lines_result = exec(lines);
-      expect(lines_result).to.equal("“Hello,”\n“ World!”");
     });
   });
 });
