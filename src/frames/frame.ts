@@ -5,6 +5,7 @@ export interface IKeyValuePair extends ReadonlyArray<string | Frame > { 0: strin
 export const Void: Context = {};
 
 export class Frame {
+  public static readonly kOUT = ">>";
   public static readonly BEGIN_EXPR = "(";
   public static readonly END_EXPR = ")";
   public static readonly nil = new Frame(Void, true);

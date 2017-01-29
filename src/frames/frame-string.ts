@@ -24,8 +24,8 @@ export class FrameString extends FrameAtom {
   public string_suffix() { return FrameString.STRING_END; };
 
   public reduce(iteratee: Frame) {
-    const status: Frame = _.reduce(this.data, reducer, iteratee);
-    return status;
+    const final: Frame = _.reduce(this.data, reducer, iteratee);
+    return final.call(FrameSymbol.for("$fin"));
   }
 
   protected toData() { return this.data; }

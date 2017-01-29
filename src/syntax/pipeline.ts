@@ -10,21 +10,21 @@ const lex_routes = {
 
 export class EvalPipe extends Frame {
   constructor(out: Frame, meta: Context = Void) {
-    meta[Lex.kOUT] = out;
+    meta[Frame.kOUT] = out;
     super(meta);
   }
 }
 
 export class ParsePipe extends Frame {
   constructor(out: Frame, meta: Context = Void) {
-    meta[Lex.kOUT] = out;
+    meta[Frame.kOUT] = out;
     super(meta);
   }
 }
 
 export class LexPipe extends Frame {
   constructor(out: Frame, meta: Context = Void) {
-    meta[Lex.kOUT] = out;
+    meta[Frame.kOUT] = out;
     super(meta);
   }
 }
