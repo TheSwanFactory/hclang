@@ -1,8 +1,12 @@
 import { Context, Frame, FrameArray, FrameSymbol, Void } from "../frames";
 
 export class ParseToken extends Frame {
-  constructor(token: Frame, meta: Context = Void) {
+  constructor(protected data: Frame, meta: Context = Void) {
     super(meta);
+  }
+
+  public apply(argument: Frame, parameter: Frame) {
+    return argument.call(this.data);
   }
 }
 

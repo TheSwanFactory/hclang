@@ -13,6 +13,13 @@ describe.only("Parse", () => {
     it("is constructed from a Frame", () => {
       expect(token).to.be.ok;
     });
+
+    it("calls argument with content when called", () => {
+      const out = new frame.FrameArray([]);
+      const result = token.call(out);
+      expect(out.asArray().length).to.equal(1);
+      expect(out.at(0)).to.equal(content);
+    });
   });
 
   describe("ParsePipe", () => {
