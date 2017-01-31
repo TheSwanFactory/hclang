@@ -4,8 +4,8 @@ import { ParsePipe } from "./parse";
 
 export class EvalPipe extends Frame {
   constructor(out: Frame, meta: Context = Void) {
-    meta[Frame.kOUT] = out;
     super(meta);
+    this.set(Frame.kOUT, out);
   }
 }
 

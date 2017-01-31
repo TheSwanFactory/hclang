@@ -1,8 +1,8 @@
 import { Context, Frame, FrameArray, FrameSymbol, Void } from "../frames";
 
 export class ParseToken extends Frame {
-  constructor(protected data: Frame, meta: Context = Void) {
-    super(meta);
+  constructor(protected data: Frame) {
+    super(Void);
   }
 
   public called_by(context: Frame, parameter: Frame) {
@@ -10,10 +10,13 @@ export class ParseToken extends Frame {
   }
 }
 
-export class ParsePipe extends FrameArray {
-  constructor(out: Frame, meta: Context = Void) {
-    let data: Array<Frame> = [];
-    meta[Frame.kOUT] = out;
-    super(data, meta);
+export class ParsePipe extends Frame {
+  protected data: FrameArray;
+  protected context: Frame;
+  constructor(out: Frame) {
+    super(Void);
+    this.set(Frame.kOUT, out);
+    this.data = new FrameArray([]);
+    this.context = new Frame();
   }
 }
