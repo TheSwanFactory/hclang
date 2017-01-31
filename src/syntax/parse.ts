@@ -5,8 +5,8 @@ export class ParseToken extends Frame {
     super(meta);
   }
 
-  public apply(argument: Frame, parameter: Frame) {
-    return argument.call(this.data);
+  public called_by(context: Frame, parameter: Frame) {
+    return context.apply(this.data, parameter);
   }
 }
 

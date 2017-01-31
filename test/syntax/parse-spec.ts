@@ -21,8 +21,8 @@ describe.only("Parse", () => {
       expect(token).to.be.ok;
     });
 
-    it("calls argument with content when called", () => {
-      const result = token.call(out);
+    it("calls callee with content when called", () => {
+      const result = out.call(token);
       expect(out.asArray().length).to.equal(1);
       expect(out.at(0)).to.equal(content);
     });
@@ -38,7 +38,8 @@ describe.only("Parse", () => {
     });
 
     it("appends ParseToken content when called", () => {
-      expect(pipe).to.be.ok;
+      const result = pipe.call(token);
+      expect(result).to.be.ok;
     });
   });
 });
