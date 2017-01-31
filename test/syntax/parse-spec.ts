@@ -23,8 +23,15 @@ describe.only("Parse", () => {
   });
 
   describe("ParsePipe", () => {
+    const out = new frame.FrameArray([]);
+    const pipe = new parse.ParsePipe(out);
+
     it("is exported", () => {
       expect(parse.ParsePipe).to.be.ok;
+    });
+
+    it("is constructed from an output Frame", () => {
+      expect(pipe).to.be.ok;
     });
   });
 });
