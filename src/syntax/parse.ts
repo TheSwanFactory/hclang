@@ -10,6 +10,16 @@ export class ParseToken extends Frame {
   }
 }
 
+export class ParseTerminal extends Frame {
+  constructor(protected data: Frame) {
+    super(Void);
+  }
+
+  public called_by(context: Frame, parameter: Frame) {
+    return context.apply(this.data, parameter);
+  }
+}
+
 export class ParsePipe extends Frame {
   protected data: FrameArray;
   protected context: Frame;
