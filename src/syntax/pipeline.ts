@@ -1,17 +1,11 @@
 import { Context, Frame, FrameArray, FrameLazy, FrameString, FrameSymbol, Void } from "../frames";
 import { LexPipe } from "./lex";
+import { ParsePipe } from "./parse";
 
 export class EvalPipe extends Frame {
   constructor(out: Frame, meta: Context = Void) {
-    meta[Frame.kOUT] = out;
     super(meta);
-  }
-}
-
-export class ParsePipe extends Frame {
-  constructor(out: Frame, meta: Context = Void) {
-    meta[Frame.kOUT] = out;
-    super(meta);
+    this.set(Frame.kOUT, out);
   }
 }
 
@@ -23,7 +17,7 @@ const piper = (input: string, context = Void): Frame => {
 
   const status = lexer.lex_string(input);
   if (status !== lexer) {
-    console.error(`\n* pipe returned ${status}`);
+    // console.error(`\n* pipe returned ${status}`);
   }
   return result;
 };
@@ -50,7 +44,7 @@ const pipe = (input: string, out: Frame): Frame => {
 
   const status = lexer.lex_string(input);
   if (status !== lexer) {
-    console.error(`\n* pipe returned ${status}`);
+    // console.error(`\n* pipe returned ${status}`);
   }
   return out.call(output);
 };
