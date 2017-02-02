@@ -41,7 +41,8 @@ describe.only("Parse", () => {
     });
 
     it("returns bound Op when got", () => {
-      const op = (origin: frame.Frame, parameter: frame.Frame) => {
+      const op = (callee: frame.Frame, parameter: frame.Frame) => {
+        const origin = <parse.ParsePipe> callee;
         return origin;
       };
       const dict = {",": op};
@@ -55,7 +56,8 @@ describe.only("Parse", () => {
       const curry2 = pipe.call(symbol);
       expect(curry2.toString()).to.equal(curry.toString());
 
-
+      const actual = pipe.call(terminal);
+      expect(expected).to.equal(pipe);
     });
   });
 
