@@ -1,7 +1,7 @@
 import { Context, Frame, FrameArray, FrameLazy, FrameString, FrameSymbol, Void } from "../frames";
 import { tokens } from "./tokens";
 
-export class LexPipe extends Frame {
+export class LexParse extends Frame {
   constructor(out: Frame) {
     tokens[Frame.kOUT] = out;
     super(tokens);
@@ -26,7 +26,7 @@ export const framify = (input: string, context = Void): Frame => {
 
 const pipe = (input: string, out: Frame): Frame => {
   const output = new FrameArray([]);
-  const lexer = new LexPipe(output);
+  const lexer = new LexParse(output);
 
   const status = lexer.lex_string(input);
   if (status !== lexer) {
