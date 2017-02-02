@@ -1,4 +1,6 @@
-import { expect } from "chai";
+import chai = require("chai");
+chai.use(require("chai-pretty-expect"));
+const expect = chai.expect;
 import * as parse from "../../src/syntax/parse";
 import * as frame from "../../src/frames";
 import * as ops from "../../src/ops";
@@ -7,7 +9,6 @@ describe.only("Parse", () => {
   const content = new frame.FrameString("content");
   const token = new parse.ParseToken(content);
   const symbol = frame.FrameSymbol.for(",");
-  const terminal = new parse.ParseTerminal(symbol);
   let out: frame.FrameArray;
   let pipe: parse.ParsePipe;
   beforeEach(() => {
@@ -32,32 +33,23 @@ describe.only("Parse", () => {
   });
 
   describe("ParseTerminal", () => {
+    const op = (callee: frame.Frame, parameter: frame.Frame) => {
+      // const origin = <parse.ParsePipe> callee;
+      return content;
+    };
+    const terminal = new parse.ParseTerminal(op);
     it("is exported", () => {
       expect(parse.ParseTerminal).to.be.ok;
     });
 
-    it("is constructed from a FrameSymbol", () => {
+    it("is constructed from a CurryFunction", () => {
       expect(terminal).to.be.ok;
     });
 
-    it("returns bound Op when got", () => {
-      const op = (callee: frame.Frame, parameter: frame.Frame) => {
-        const origin = <parse.ParsePipe> callee;
-        return origin;
-      };
-      const dict = {",": op};
-      const lookup = new ops.FrameOps(dict);
-      const curry = lookup.get(",", pipe);
-      const expected = curry.call(token);
-      expect(curry).to.not.equal(frame.Frame.missing);
-      expect(expected).to.equal(pipe);
-
-      pipe.up = lookup;
-      const curry2 = pipe.call(symbol);
-      expect(curry2.toString()).to.equal(curry.toString());
-
-      const actual = pipe.call(terminal);
-      expect(expected).to.equal(pipe);
+    it("invokes op when called", () => {
+      const pipeString = new frame.FrameString(pipe.toString());
+      const result = pipe.call(terminal);
+      expect(result).to.equal(content);
     });
   });
 

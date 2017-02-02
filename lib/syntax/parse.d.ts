@@ -1,16 +1,18 @@
-import { Frame, FrameArray } from "../frames";
-export declare class ParseToken extends Frame {
+import { Frame, FrameArray, FrameAtom } from "../frames";
+import { ICurryFunction } from "../ops";
+export declare class ParseToken extends FrameAtom {
     protected data: Frame;
     constructor(data: Frame);
-    called_by(context: Frame, parameter: Frame): Frame;
+    called_by(callee: Frame, parameter: Frame): Frame;
+    protected toData(): any;
 }
 export declare class ParseTerminal extends Frame {
-    protected data: Frame;
-    constructor(data: Frame);
-    called_by(context: Frame, parameter: Frame): Frame;
+    protected data: ICurryFunction;
+    constructor(data: ICurryFunction);
+    called_by(callee: Frame, parameter: Frame): any;
+    protected toData(): any;
 }
 export declare class ParsePipe extends Frame {
     protected data: FrameArray;
-    protected context: Frame;
     constructor(out: Frame);
 }
