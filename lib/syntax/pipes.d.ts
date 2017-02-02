@@ -10,4 +10,3 @@ export declare class EvalPipe extends Frame {
 export declare class ParsePipe extends Frame {
     constructor(out: Frame, meta?: Context);
 }
-export declare const framify_new: (input: string, context?: Context) => Frame;

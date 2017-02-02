@@ -43,23 +43,3 @@ const piper = (input: string, context = Void): Frame => {
   }
   return result;
 };
-
-export const framify_new = (input: string, context = Void): Frame => {
-  const result = new FrameArray([], context);
-  const parser = new ParsePipe(result);
-  const status = pipe(input, parser);
-  console.error(`\n* framify_new.pipe returned ${status}`);
-  const expr = result.at(0);
-  return expr.call(result);
-};
-
-const pipe = (input: string, out: Frame): Frame => {
-  const output = new FrameArray([]);
-  const lexer = new LexPipe(output);
-
-  const status = lexer.lex_string(input);
-  if (status !== lexer) {
-    // console.error(`\n* pipe returned ${status}`);
-  }
-  return out.call(output);
-};
