@@ -1,8 +1,8 @@
 import { expect } from "chai";
-import * as lex from "../../src/syntax/lex";
+import { LexPipe } from "../../src/syntax/pipes";
 
 describe("LexPipe", () => {
   it("is exported", () => {
-    expect(lex.LexPipe).to.be.ok;
+    expect(LexPipe).to.be.ok;
   });
 });
