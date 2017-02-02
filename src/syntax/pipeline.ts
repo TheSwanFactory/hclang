@@ -17,7 +17,7 @@ const piper = (input: string, context = Void): Frame => {
 
   const status = lexer.lex_string(input);
   if (status !== lexer) {
-    console.error(`\n* pipe returned ${status}`);
+    // console.error(`\n* pipe returned ${status}`);
   }
   return result;
 };
@@ -44,7 +44,7 @@ const pipe = (input: string, out: Frame): Frame => {
 
   const status = lexer.lex_string(input);
   if (status !== lexer) {
-    console.error(`\n* pipe returned ${status}`);
+    // console.error(`\n* pipe returned ${status}`);
   }
   return out.call(output);
 };

@@ -5,7 +5,7 @@ import * as parse from "../../src/syntax/parse";
 import * as frame from "../../src/frames";
 import * as ops from "../../src/ops";
 
-describe.only("Parse", () => {
+describe("Parse", () => {
   const content = new frame.FrameString("content");
   const token = new parse.ParseToken(content);
   const symbol = frame.FrameSymbol.for(",");
