@@ -34,7 +34,7 @@ describe.only("Parse", () => {
 
   describe("ParseTerminal", () => {
     const op = (callee: frame.Frame, parameter: frame.Frame) => {
-      // const origin = <parse.ParsePipe> callee;
+      // const origin = callee as parse.ParsePipe;
       return content;
     };
     const terminal = new parse.ParseTerminal(op);
