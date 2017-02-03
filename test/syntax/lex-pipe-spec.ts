@@ -2,7 +2,7 @@ import { expect } from "chai";
 import * as frame from "../../src/frames";
 import { LexPipe } from "../../src/syntax/lex-pipe";
 
-describe("LexPipe", () => {
+describe.only("LexPipe", () => {
   const out = new frame.FrameArray([]);
   const pipe = new LexPipe(out);
 
