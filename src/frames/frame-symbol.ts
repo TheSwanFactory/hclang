@@ -17,7 +17,13 @@ export class FrameSymbol extends FrameAtom {
       let value = context.get(this.data);
       if (value !== Frame.missing) {
         value.up = context;
-        return value;
+        const direct = this.get_here(FrameSymbol.kDIRECT);
+        if (direct === Frame.missing) {
+          return value;
+        } else {
+          console.log(" * direct");
+          return value.call(context);
+        }
       }
     }
     return Frame.missing;

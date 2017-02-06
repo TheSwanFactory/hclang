@@ -1,5 +1,6 @@
 import { expect } from "chai";
-import { FrameExpr, FrameString, FrameSymbol } from "../../src/frames";
+import * as frame from "../../src/frames";
+import { FrameSymbol } from "../../src/frames";
 
 describe("FrameSymbol", () => {
   const symbol = "atom";
@@ -25,29 +26,39 @@ describe("FrameSymbol", () => {
   });
 
   it("looks itself up in context", () => {
-    const value = new FrameString("smasher");
-    const context = new FrameString("parent", {atom: value});
+    const value = new frame.FrameString("smasher");
+    const context = new frame.FrameString("parent", {atom: value});
     const result = frame_symbol.in([context]);
     expect(result).to.equal(value);
   });
 
   it("returns the value when called_by", () => {
-    const value = new FrameString("smasher");
-    const context = new FrameString("parent", {atom: value});
+    const value = new frame.FrameString("smasher");
+    const context = new frame.FrameString("parent", {atom: value});
     const result = context.call(frame_symbol)
     expect(result).to.equal(value);
   });
 
-  it("evaluates that value when direct", () => {
-    const key = FrameSymbol.kDIRECT;
-    expect(key).to.equal(FrameString.kDIRECT);
+  describe("direct", () => {
+    const value1 = new frame.FrameString("Atom ");
+    const value2 = new frame.FrameString("Smasher");
+    const expr = new frame.FrameExpr([value1, value2]);
+    const direct_symbol = new FrameSymbol("atom", {"!": frame.Frame.nil});
 
-    const value1 = new FrameString("Atom ");
-    const value2 = new FrameString("Smasher");
-    const expr = new FrameExpr([value1, value2]);
+    it("has a well-known kDIRECT key", () => {
+      const key = FrameSymbol.kDIRECT;
+      expect(key).to.equal("!");
+    });
 
-    const context = new FrameString("parent", {atom: expr});
-    const result = context.call(frame_symbol)
-    expect(result.toString()).to.equal("Atom Smasher");
+    it("has as symbol with the direct key", () => {
+      const direct = direct_symbol.get_here(FrameSymbol.kDIRECT);
+      expect(direct).to.not.equal(frame.Frame.missing);
+    });
+
+    it("evaluates that value when direct is not missing", () => {
+      const context = new frame.FrameString("parent", {atom: expr});
+      const result = context.call(direct_symbol);
+      expect(result.toString()).to.equal("Atom Smasher");
+    });
   });
 });
