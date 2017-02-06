@@ -28,7 +28,7 @@ export class ParsePipe extends Frame {
   protected data: FrameArray;
   constructor(out: Frame) {
     super(Void);
-    this.set(Frame.kOUT, out);
+    this.set(ParsePipe.kOUT, out);
     this.data = new FrameArray([]);
   }
 }
