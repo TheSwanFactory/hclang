@@ -37,4 +37,14 @@ describe("FrameSymbol", () => {
     const result = context.call(frame_symbol)
     expect(result).to.equal(value);
   });
+
+  it("evaluates that value when direct", () => {
+    const key = FrameSymbol.kDIRECT;
+    expect(key).to.equal(FrameSymbol.kDIRECT);
+
+    const value = new FrameString("smasher");
+    const context = new FrameString("parent", {atom: value});
+    const result = context.call(frame_symbol)
+    expect(result).to.equal(value);
+  });
 });
