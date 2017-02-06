@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { FrameSymbol } from "../../src/frames";
+import { FrameString, FrameSymbol } from "../../src/frames";
 
 describe("FrameSymbol", () => {
   const symbol = "atom";
@@ -25,9 +25,16 @@ describe("FrameSymbol", () => {
   });
 
   it("looks itself up in context", () => {
-    const value = FrameSymbol.for("smasher");
-    const context = new FrameSymbol("parent", {atom: value});
+    const value = new FrameString("smasher");
+    const context = new FrameString("parent", {atom: value});
     const result = frame_symbol.in([context]);
+    expect(result).to.equal(value);
+  });
+
+  it("returns the value when called_by", () => {
+    const value = new FrameString("smasher");
+    const context = new FrameString("parent", {atom: value});
+    const result = context.call(frame_symbol)
     expect(result).to.equal(value);
   });
 });
