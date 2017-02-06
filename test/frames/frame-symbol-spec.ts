@@ -58,7 +58,7 @@ describe("FrameSymbol", () => {
     it("evaluates that value when direct is not missing", () => {
       const context = new frame.FrameString("parent", {atom: expr});
       const result = context.call(direct_symbol);
-      expect(result.toString()).to.equal("Atom Smasher");
+      expect(result.toString()).to.equal("“Atom Smasher”");
     });
   });
 });
