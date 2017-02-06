@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { FrameString, FrameSymbol } from "../../src/frames";
+import { FrameExpr, FrameString, FrameSymbol } from "../../src/frames";
 
 describe("FrameSymbol", () => {
   const symbol = "atom";
@@ -40,11 +40,14 @@ describe("FrameSymbol", () => {
 
   it("evaluates that value when direct", () => {
     const key = FrameSymbol.kDIRECT;
-    expect(key).to.equal(FrameSymbol.kDIRECT);
+    expect(key).to.equal(FrameString.kDIRECT);
 
-    const value = new FrameString("smasher");
-    const context = new FrameString("parent", {atom: value});
+    const value1 = new FrameString("Atom ");
+    const value2 = new FrameString("Smasher");
+    const expr = new FrameExpr([value1, value2]);
+
+    const context = new FrameString("parent", {atom: expr});
     const result = context.call(frame_symbol)
-    expect(result).to.equal(value);
+    expect(result.toString()).to.equal("Atom Smasher");
   });
 });
