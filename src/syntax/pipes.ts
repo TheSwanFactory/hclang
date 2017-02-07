@@ -3,7 +3,7 @@ import { tokens } from "./tokens";
 
 export class LexPipe extends Frame {
   constructor(out: Frame) {
-    tokens[Frame.kOUT] = out;
+    tokens[LexPipe.kOUT] = out;
     super(tokens);
   }
 
@@ -19,14 +19,14 @@ export class LexPipe extends Frame {
 
 export class EvalPipe extends Frame {
   constructor(out: Frame, meta: Context = Void) {
-    meta[Frame.kOUT] = out;
+    meta[EvalPipe.kOUT] = out;
     super(meta);
   }
 }
 
 export class ParsePipe extends Frame {
   constructor(out: Frame, meta: Context = Void) {
-    meta[Frame.kOUT] = out;
+    meta[ParsePipe.kOUT] = out;
     super(meta);
   }
 }

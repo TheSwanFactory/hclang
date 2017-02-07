@@ -1,4 +1,5 @@
 import { expect } from "chai";
+import * as frame from "../../src/frames";
 import { FrameSymbol } from "../../src/frames";
 
 describe("FrameSymbol", () => {
@@ -25,9 +26,43 @@ describe("FrameSymbol", () => {
   });
 
   it("looks itself up in context", () => {
-    const value = FrameSymbol.for("smasher");
-    const context = new FrameSymbol("parent", {atom: value});
+    const value = new frame.FrameString("smasher");
+    const context = new frame.FrameString("parent", {atom: value});
     const result = frame_symbol.in([context]);
     expect(result).to.equal(value);
+  });
+
+  it("returns the value when called_by", () => {
+    const value = new frame.FrameString("smasher");
+    const context = new frame.FrameString("parent", {atom: value});
+    const result = context.call(frame_symbol)
+    expect(result).to.equal(value);
+  });
+
+  describe("direct", () => {
+    const value1 = new frame.FrameString("Atom ");
+    const value2 = new frame.FrameString("Smasher");
+    const expr = new frame.FrameExpr([value1, value2]);
+    const direct_symbol = FrameSymbol.direct("atom");
+
+    it("has a well-known kDIRECT key", () => {
+      const key = FrameSymbol.kDIRECT;
+      expect(key).to.equal("!");
+    });
+
+    it("is not identical the same as the non-direct symbol", () => {
+      expect(direct_symbol).to.not.equal(frame_symbol);
+    });
+
+    it("is a symbol with the direct key", () => {
+      const direct = direct_symbol.get_here(FrameSymbol.kDIRECT);
+      expect(direct).to.not.equal(frame.Frame.missing);
+    });
+
+    it("evaluates that value when direct is not missing", () => {
+      const context = new frame.FrameString("parent", {atom: expr});
+      const result = context.call(direct_symbol);
+      expect(result.toString()).to.equal("“Atom Smasher”");
+    });
   });
 });

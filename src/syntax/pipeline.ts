@@ -3,7 +3,7 @@ import { tokens } from "./tokens";
 
 export class LexParse extends Frame {
   constructor(out: Frame) {
-    tokens[Frame.kOUT] = out;
+    tokens[LexParse.kOUT] = out;
     super(tokens);
   }
 

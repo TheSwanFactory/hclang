@@ -9,6 +9,7 @@ export declare const Void: Context;
 export declare class Frame {
     private meta;
     static readonly kOUT: string;
+    static readonly kDIRECT: string;
     static readonly BEGIN_EXPR: string;
     static readonly END_EXPR: string;
     static readonly nil: Frame;

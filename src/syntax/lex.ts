@@ -1,5 +1,5 @@
 import * as _ from "lodash";
-import { Context, Frame, FrameString, FrameSymbol, Void } from "../frames";
+import { Frame } from "../frames";
 
 export class Lex extends Frame {
 
