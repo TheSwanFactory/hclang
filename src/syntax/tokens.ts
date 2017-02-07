@@ -23,6 +23,6 @@ export class LexComment extends Lex {
 };
 
 export const tokens: Context = {
-  "#": new LexComment(),
-  "“": new LexString(),
+//  "#": new LexComment(),
+//  "“": new LexString(),
 };

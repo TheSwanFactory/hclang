@@ -27,16 +27,14 @@ describe.only("LexPipe", () => {
     expect(result.toString()).to.equal(success.toString());
   });
 
-  it.skip("calls finish from ender'", () => {
-    ender(pipe, out);
-    const result = out.at(0);
-    expect(result).to.equal(frame.FrameSymbol.end());
+  it("calls finish from ender", () => {
+    const result = ender(pipe, out);
+    expect(result.toString()).to.equal(success.toString());
   });
 
-
   it.skip("emits END when lex empty string", () => {
-    pipe.lex_string("");
-    const result = out.at(0);
-    expect(result).to.equal(frame.FrameSymbol.end());
+    const result = pipe.lex_string("");
+    console.error(` * out ${out}`)
+    expect(result.toString()).to.equal(success.toString());
   });
 });

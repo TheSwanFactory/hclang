@@ -9,5 +9,5 @@ export class LexSpace extends Lex {
 };
 
 export const terminals: Context = {
-  " ": new LexSpace(),
+//  " ": new LexSpace(),
 };

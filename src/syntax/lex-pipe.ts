@@ -8,7 +8,7 @@ import { tokens } from "./tokens";
 
 export const ender: ICurryFunction = (source: Frame, parameter: Frame) => {
   const pipe = source as LexPipe;
-  return pipe;
+  return pipe.finish();
 };
 
 const meta = _.clone(tokens);
@@ -18,6 +18,7 @@ meta[Frame.kEND] = new ParseTerminal(ender);
 export class LexPipe extends Lex {
   constructor(out: Frame) {
     meta[Frame.kOUT] = out;
+    // console.error(` * LexPipe.meta ${JSON.stringify(meta, null, 2)}\n`);
     super(meta);
   }
 
