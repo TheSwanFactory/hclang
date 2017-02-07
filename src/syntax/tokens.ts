@@ -1,5 +1,6 @@
 import { Context, Frame, FrameString, FrameSymbol } from "../frames";
 import { Lex } from "./lex";
+import { ParseToken } from "./parse";
 
 export class LexString extends Lex {
   protected isEnd(char: string) {
@@ -7,14 +8,18 @@ export class LexString extends Lex {
   }
 
   protected makeFrame() {
-    return new FrameString(this.body);
+    const frame = new FrameString(this.body);
+    return new ParseToken(frame);
   }
 };
 
 export class LexComment extends Lex {
   protected isEnd(char: string) { return char === "#" || char === "\n"; }
 
-  protected makeFrame() { return FrameSymbol.for(""); }
+  protected makeFrame() {
+    const frame = FrameSymbol.for("");
+    return new ParseToken(frame);
+  }
 };
 
 export class LexSpace extends Lex {

@@ -1,10 +1,13 @@
+import * as _ from "lodash";
 import { Context, Frame, FrameArray, FrameLazy, FrameString, FrameSymbol, Void } from "../frames";
 import { tokens } from "./tokens";
 
+const meta = _.clone(tokens);
+
 export class LexPipe extends Frame {
   constructor(out: Frame) {
-    tokens[Frame.kOUT] = out;
-    super(tokens);
+    meta[Frame.kOUT] = out;
+    super(meta);
   }
 
   public lex_string(input: string) {
