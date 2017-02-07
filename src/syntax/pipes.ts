@@ -3,14 +3,14 @@ import { LexPipe } from "./lex-pipe";
 
 export class EvalPipe extends Frame {
   constructor(out: Frame, meta: Context = Void) {
-    meta[Frame.kOUT] = out;
+    meta[EvalPipe.kOUT] = out;
     super(meta);
   }
 }
 
 export class ParsePipe extends Frame {
   constructor(out: Frame, meta: Context = Void) {
-    meta[Frame.kOUT] = out;
+    meta[ParsePipe.kOUT] = out;
     super(meta);
   }
 }
