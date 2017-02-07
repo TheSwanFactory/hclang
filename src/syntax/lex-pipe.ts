@@ -11,9 +11,21 @@ export const ender: ICurryFunction = (source: Frame, parameter: Frame) => {
   return pipe.finish();
 };
 
+export class LexTerminal extends Frame {
+  constructor(protected data: ICurryFunction) {
+    super(Void);
+  }
+
+  public call(argument: Frame, parameter: Frame) {
+    return this.data.call(argument, parameter);
+  }
+
+  protected toData(): any { return this.data; }
+}
+
 const meta = _.clone(tokens);
 _.merge(meta, terminals);
-meta[Frame.kEND] = new ParseTerminal(ender);
+meta[Frame.kEND] = new LexTerminal(ender);
 
 export class LexPipe extends Lex {
   constructor(out: Frame) {

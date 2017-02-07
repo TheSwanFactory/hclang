@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import * as frame from "../../src/frames";
-import { ender, LexPipe } from "../../src/syntax/lex-pipe";
+import { ender, LexPipe, LexTerminal } from "../../src/syntax/lex-pipe";
 import * as parse from "../../src/syntax/parse";
 
 describe.only("LexPipe", () => {
@@ -34,7 +34,7 @@ describe.only("LexPipe", () => {
 
   it("returns Terminal for END", () => {
     const terminal = pipe.get(frame.Frame.kEND);
-    expect(terminal).to.be.instanceof(parse.ParseTerminal);
+    expect(terminal).to.be.instanceof(LexTerminal);
 
 
   });
