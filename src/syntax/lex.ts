@@ -32,9 +32,8 @@ export class Lex extends Frame {
   protected exportFrame() {
     const output = this.makeFrame();
     const out = this.get(Frame.kOUT);
-    // console.error(`** exportFrame[${output}] -> ${out}`);
-    out.call(output);
-    // console.error(`*** -> ${out}`);
+    console.error(`** exportFrame[${output}] -> ${out}`);
+    return out.call(output);
   }
 
   protected makeFrame() {

@@ -1,14 +1,16 @@
 import { expect } from "chai";
 import * as frame from "../../src/frames";
-import { LexPipe } from "../../src/syntax/lex-pipe";
+import { ender, LexPipe } from "../../src/syntax/lex-pipe";
 import * as parse from "../../src/syntax/parse";
 
 describe.only("LexPipe", () => {
+  const success = new frame.FrameString("success!");
   let out: frame.FrameArray;
   let pipe: LexPipe;
-  
+
   beforeEach(() => {
     out = new frame.FrameArray([]);
+    out.set(frame.Frame.kEND, success);
     pipe = new LexPipe(out);
   });
 
@@ -20,15 +22,21 @@ describe.only("LexPipe", () => {
     expect(pipe).to.be.ok;
   });
 
-  it("emits END on `finish`", () => {
-    pipe.lex_string("");
-    const result = out.at(0);
-    expect(result).to.be.an.instanceof(parse.ParseTerminal);
+  it("emits END on finish", () => {
+    const result = pipe.finish();
+    expect(result.toString()).to.equal(success.toString());
   });
 
-  it("emits END when lex empty string", () => {
+  it.skip("calls finish from ender'", () => {
+    ender(pipe, out);
+    const result = out.at(0);
+    expect(result).to.equal(frame.FrameSymbol.end());
+  });
+
+
+  it.skip("emits END when lex empty string", () => {
     pipe.lex_string("");
     const result = out.at(0);
-    expect(result).to.be.an.instanceof(parse.ParseTerminal);
+    expect(result).to.equal(frame.FrameSymbol.end());
   });
 });
