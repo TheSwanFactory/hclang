@@ -6,6 +6,7 @@ import * as parse from "../../src/syntax/parse";
 describe.only("LexPipe", () => {
   let out: frame.FrameArray;
   let pipe: LexPipe;
+  
   beforeEach(() => {
     out = new frame.FrameArray([]);
     pipe = new LexPipe(out);
@@ -19,7 +20,13 @@ describe.only("LexPipe", () => {
     expect(pipe).to.be.ok;
   });
 
-  it("emits ParseTerminal on empty string", () => {
+  it("emits END on `finish`", () => {
+    pipe.lex_string("");
+    const result = out.at(0);
+    expect(result).to.be.an.instanceof(parse.ParseTerminal);
+  });
+
+  it("emits END when lex empty string", () => {
     pipe.lex_string("");
     const result = out.at(0);
     expect(result).to.be.an.instanceof(parse.ParseTerminal);

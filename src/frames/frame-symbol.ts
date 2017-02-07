@@ -11,6 +11,8 @@ export class FrameSymbol extends FrameAtom {
     return exists || (FrameSymbol.directs[symbol] = new FrameSymbol(symbol, {"!": Frame.nil}));
   }
 
+  public static end() { return  FrameSymbol.direct(Frame.kEND); };
+
   protected static symbols: { [key: string]: FrameSymbol; } = {};
   protected static directs: { [key: string]: FrameSymbol; } = {};
 

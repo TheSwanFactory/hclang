@@ -25,7 +25,7 @@ export class FrameString extends FrameAtom {
 
   public reduce(iteratee: Frame) {
     const final: Frame = _.reduce(this.data, reducer, iteratee);
-    return final.call(FrameSymbol.direct(Frame.kEND));
+    return final.call(FrameSymbol.end());
   }
 
   protected toData() { return this.data; }
