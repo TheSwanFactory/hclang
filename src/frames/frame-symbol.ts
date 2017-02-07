@@ -6,7 +6,13 @@ export class FrameSymbol extends FrameAtom {
     return exists || (FrameSymbol.symbols[symbol] = new FrameSymbol(symbol));
   }
 
+  public static direct(symbol: string) {
+    const exists = FrameSymbol.directs[symbol];
+    return exists || (FrameSymbol.directs[symbol] = new FrameSymbol(symbol, {"!": Frame.nil}));
+  }
+
   protected static symbols: { [key: string]: FrameSymbol; } = {};
+  protected static directs: { [key: string]: FrameSymbol; } = {};
 
   constructor(protected data: string, meta = Void) {
     super(meta);

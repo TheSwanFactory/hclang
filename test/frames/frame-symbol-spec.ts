@@ -43,14 +43,18 @@ describe("FrameSymbol", () => {
     const value1 = new frame.FrameString("Atom ");
     const value2 = new frame.FrameString("Smasher");
     const expr = new frame.FrameExpr([value1, value2]);
-    const direct_symbol = new FrameSymbol("atom", {"!": frame.Frame.nil});
+    const direct_symbol = FrameSymbol.direct("atom");
 
     it("has a well-known kDIRECT key", () => {
       const key = FrameSymbol.kDIRECT;
       expect(key).to.equal("!");
     });
 
-    it("has as symbol with the direct key", () => {
+    it("is not identical the same as the non-direct symbol", () => {
+      expect(direct_symbol).to.not.equal(frame_symbol);
+    });
+
+    it("is a symbol with the direct key", () => {
       const direct = direct_symbol.get_here(FrameSymbol.kDIRECT);
       expect(direct).to.not.equal(frame.Frame.missing);
     });
