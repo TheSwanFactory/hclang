@@ -5,7 +5,7 @@ export class Lex extends Frame {
 
   protected body: string = "";
 
-  public apply(argument: Frame, parameter = Frame.nil): Frame {
+  public call(argument: Frame, parameter = Frame.nil): Frame {
     if ( this.isEnd(argument.toString()) ) {
       this.exportFrame();
       this.body = "";

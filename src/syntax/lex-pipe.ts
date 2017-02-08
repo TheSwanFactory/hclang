@@ -27,7 +27,7 @@ const meta = _.clone(tokens);
 _.merge(meta, terminals);
 meta[Frame.kEND] = new LexTerminal(ender);
 
-export class LexPipe extends Lex {
+export class LexPipe extends Frame {
   constructor(out: Frame) {
     meta[Frame.kOUT] = out;
     // console.error(` * LexPipe.meta ${JSON.stringify(meta, null, 2)}\n`);
@@ -44,10 +44,8 @@ export class LexPipe extends Lex {
   }
 
   public finish() {
-    return this.exportFrame();
-  }
-
-  protected makeFrame() {
-    return FrameSymbol.end();
+    const output = FrameSymbol.end();
+    const out = this.get(Frame.kOUT);
+    return out.call(output);
   }
 }
