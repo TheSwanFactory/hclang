@@ -32,19 +32,20 @@ describe.only("LexPipe", () => {
     expect(result.toString()).to.equal(success.toString());
   });
 
-  it("returns Terminal for END", () => {
+  it("returns Terminal(ender) for END", () => {
     const terminal = pipe.get(frame.Frame.kEND);
     expect(terminal).to.be.instanceof(LexTerminal);
 
-
+    const result = terminal.call(pipe);
+    expect(result.toString()).to.equal(success.toString());
   });
 
-  it.skip("calls ender on END", () => {
+  it("calls ender on END", () => {
     const result = pipe.call(frame.FrameSymbol.end());
     expect(result.toString()).to.equal(success.toString());
   });
 
-  it.skip("emits END when lex empty string", () => {
+  it("emits END when lex empty string", () => {
     const result = pipe.lex_string("");
     console.error(` * out ${out}`)
     expect(result.toString()).to.equal(success.toString());
