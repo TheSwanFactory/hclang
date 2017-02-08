@@ -3,7 +3,7 @@ import * as frame from "../../src/frames";
 import { ender, LexPipe, LexTerminal } from "../../src/syntax/lex-pipe";
 import * as parse from "../../src/syntax/parse";
 
-describe.only("LexPipe", () => {
+describe("LexPipe", () => {
   const success = new frame.FrameString("success!");
   let out: frame.FrameArray;
   let pipe: LexPipe;
