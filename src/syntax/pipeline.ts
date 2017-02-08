@@ -1,5 +1,5 @@
 import { Context, Frame, FrameArray, FrameLazy, FrameString, FrameSymbol, Void } from "../frames";
-import { tokens } from "./tokens";
+import { tokens } from "./old_tokens";
 
 export class LexParse extends Frame {
   constructor(out: Frame) {
