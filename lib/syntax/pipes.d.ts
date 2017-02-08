@@ -1,9 +1,4 @@
-import { Context, Frame, FrameString } from "../frames";
-export declare class LexPipe extends Frame {
-    constructor(out: Frame);
-    lex_string(input: string): Frame;
-    lex(source: FrameString): Frame;
-}
+import { Context, Frame } from "../frames";
 export declare class EvalPipe extends Frame {
     constructor(out: Frame, meta?: Context);
 }
