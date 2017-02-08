@@ -16,7 +16,7 @@ export class LexTerminal extends Frame {
     super(Void);
   }
 
-  public call(argument: Frame, parameter: Frame) {
+  public apply(argument: Frame, parameter: Frame) {
     return this.data(argument, parameter);
   }
 

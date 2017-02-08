@@ -1,7 +1,7 @@
 import { Frame } from "../frames";
 export declare class Lex extends Frame {
     protected body: string;
-    call(argument: Frame, parameter?: Frame): Frame;
+    apply(argument: Frame, parameter?: Frame): Frame;
     getClassName(): string;
     toString(): string;
     protected isEnd(char: string): boolean;

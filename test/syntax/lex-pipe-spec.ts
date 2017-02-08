@@ -47,7 +47,6 @@ describe.only("LexPipe", () => {
 
   it("emits END when lex empty string", () => {
     const result = pipe.lex_string("");
-    console.error(` * out ${out}`)
     expect(result.toString()).to.equal(success.toString());
   });
 });

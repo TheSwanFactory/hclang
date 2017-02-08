@@ -29,7 +29,6 @@ export class FrameSymbol extends FrameAtom {
         if (direct === Frame.missing) {
           return value;
         } else {
-          console.log(" * direct");
           return value.call(context);
         }
       }

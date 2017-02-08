@@ -5,7 +5,7 @@ export class Lex extends Frame {
 
   protected body: string = "";
 
-  public call(argument: Frame, parameter = Frame.nil): Frame {
+  public apply(argument: Frame, parameter = Frame.nil): Frame {
     if ( this.isEnd(argument.toString()) ) {
       this.exportFrame();
       this.body = "";
@@ -32,7 +32,7 @@ export class Lex extends Frame {
   protected exportFrame() {
     const output = this.makeFrame();
     const out = this.get(Frame.kOUT);
-    console.error(`** exportFrame[${output}] -> ${out}`);
+    // console.error(`** exportFrame[${output}] -> ${out}`);
     return out.call(output);
   }
 
