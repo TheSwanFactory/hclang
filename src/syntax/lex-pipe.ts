@@ -17,7 +17,7 @@ export class LexTerminal extends Frame {
   }
 
   public call(argument: Frame, parameter: Frame) {
-    return this.data.call(argument, parameter);
+    return this.data(argument, parameter);
   }
 
   protected toData(): any { return this.data; }

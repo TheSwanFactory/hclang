@@ -5,7 +5,7 @@ export declare const ender: ICurryFunction;
 export declare class LexTerminal extends Frame {
     protected data: ICurryFunction;
     constructor(data: ICurryFunction);
-    call(argument: Frame, parameter: Frame): any;
+    call(argument: Frame, parameter: Frame): Frame;
     protected toData(): any;
 }
 export declare class LexPipe extends Lex {
