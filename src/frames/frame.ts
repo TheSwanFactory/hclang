@@ -6,7 +6,6 @@ export const Void: Context = {};
 
 export class Frame {
   public static readonly kOUT = ">>";
-  public static readonly kDIRECT = "!";
   public static readonly kEND = "$$";
   public static readonly BEGIN_EXPR = "(";
   public static readonly END_EXPR = ")";
@@ -17,8 +16,10 @@ export class Frame {
   public static globals = Frame.missing;
 
   public up: Frame;
+  public callme: boolean;
   constructor(private meta = Void, isNil = false) {
     this.up = Frame.missing;
+    this.callme = false;
     if (isNil) {
       this.called_by = (context: Frame, parameter: Frame) => {
         return context;

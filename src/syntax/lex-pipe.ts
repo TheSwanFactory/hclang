@@ -14,6 +14,7 @@ export const ender: ICurryFunction = (source: Frame, parameter: Frame) => {
 export class LexTerminal extends Frame {
   constructor(protected data: ICurryFunction) {
     super(Void);
+    this.callme = true;
   }
 
   public apply(argument: Frame, parameter: Frame) {

@@ -39,30 +39,17 @@ describe("FrameSymbol", () => {
     expect(result).to.equal(value);
   });
 
-  describe("direct", () => {
+  it("evaluates value when callme = true", () => {
     const value1 = new frame.FrameString("Atom ");
     const value2 = new frame.FrameString("Smasher");
     const expr = new frame.FrameExpr([value1, value2]);
-    const direct_symbol = FrameSymbol.direct("atom");
+    const context = new frame.FrameString("parent", {atom: expr});
 
-    it("has a well-known kDIRECT key", () => {
-      const key = FrameSymbol.kDIRECT;
-      expect(key).to.equal("!");
-    });
+    let result = context.call(frame_symbol);
+    expect(result.toString()).to.equal("(“Atom ” “Smasher”)");
 
-    it("is not identical the same as the non-direct symbol", () => {
-      expect(direct_symbol).to.not.equal(frame_symbol);
-    });
-
-    it("is a symbol with the direct key", () => {
-      const direct = direct_symbol.get_here(FrameSymbol.kDIRECT);
-      expect(direct).to.not.equal(frame.Frame.missing);
-    });
-
-    it("evaluates that value when direct is not missing", () => {
-      const context = new frame.FrameString("parent", {atom: expr});
-      const result = context.call(direct_symbol);
-      expect(result.toString()).to.equal("“Atom Smasher”");
-    });
+    expr.callme = true;
+    result = context.call(frame_symbol);
+    expect(result.toString()).to.equal("“Atom Smasher”");
   });
 });

@@ -9,7 +9,6 @@ export declare const Void: Context;
 export declare class Frame {
     private meta;
     static readonly kOUT: string;
-    static readonly kDIRECT: string;
     static readonly kEND: string;
     static readonly BEGIN_EXPR: string;
     static readonly END_EXPR: string;
@@ -17,6 +16,7 @@ export declare class Frame {
     static readonly missing: Frame;
     static globals: Frame;
     up: Frame;
+    callme: boolean;
     constructor(meta?: Context, isNil?: boolean);
     string_open(): string;
     string_close(): string;
