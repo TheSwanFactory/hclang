@@ -17,6 +17,7 @@ export declare class Frame {
     static readonly missing: Frame;
     static globals: Frame;
     up: Frame;
+    callme: boolean;
     constructor(meta?: Context, isNil?: boolean);
     string_open(): string;
     string_close(): string;

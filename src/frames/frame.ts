@@ -17,8 +17,10 @@ export class Frame {
   public static globals = Frame.missing;
 
   public up: Frame;
+  public callme: boolean;
   constructor(private meta = Void, isNil = false) {
     this.up = Frame.missing;
+    this.callme = false;
     if (isNil) {
       this.called_by = (context: Frame, parameter: Frame) => {
         return context;
