@@ -11,7 +11,7 @@ export class FrameSymbol extends FrameAtom {
     return exists || (FrameSymbol.directs[symbol] = new FrameSymbol(symbol, {"!": Frame.nil}));
   }
 
-  public static end() { return  FrameSymbol.direct(Frame.kEND); };
+  public static end() { return  FrameSymbol.for(Frame.kEND); };
 
   protected static symbols: { [key: string]: FrameSymbol; } = {};
   protected static directs: { [key: string]: FrameSymbol; } = {};
@@ -26,7 +26,7 @@ export class FrameSymbol extends FrameAtom {
       if (value !== Frame.missing) {
         value.up = context;
         const direct = this.get_here(FrameSymbol.kDIRECT);
-        if (direct === Frame.missing && value.callme === false) {
+        if (value.callme === false) {
           return value;
         } else {
           return value.call(context);
