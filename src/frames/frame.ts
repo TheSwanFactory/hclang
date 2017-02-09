@@ -6,7 +6,6 @@ export const Void: Context = {};
 
 export class Frame {
   public static readonly kOUT = ">>";
-  public static readonly kDIRECT = "!";
   public static readonly kEND = "$$";
   public static readonly BEGIN_EXPR = "(";
   public static readonly END_EXPR = ")";
