@@ -1,7 +1,8 @@
 import { expect } from "chai";
 import * as frame from "../../src/frames";
-import { LexPipe } from "../../src/syntax/lex-pipe";
+import { ender, LexPipe } from "../../src/syntax/lex-pipe";
 import * as parse from "../../src/syntax/parse";
+import { LexTerminal, terminals } from "../../src/syntax/terminals";
 
 describe("LexPipe", () => {
   const success = new frame.FrameString("success!");
@@ -39,7 +40,7 @@ describe("LexPipe", () => {
     const result = terminal.call(pipe);
     expect(result.toString()).to.equal(success.toString());
   });
-
+    
   it("calls ender on END", () => {
     const result = pipe.call(frame.FrameSymbol.end());
     expect(result.toString()).to.equal(success.toString());
