@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import * as frame from "../../src/frames";
-import { ender, LexPipe, LexTerminal } from "../../src/syntax/lex-pipe";
+import { LexPipe } from "../../src/syntax/lex-pipe";
 import * as parse from "../../src/syntax/parse";
 
 describe("LexPipe", () => {

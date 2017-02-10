@@ -1,17 +1,14 @@
 import { expect } from "chai";
 import * as frame from "../../src/frames";
 import * as lex from "../../src/syntax/lex-pipe";
-import * as parse from "../../src/syntax/parse";
-import { ParsePipe } from "../../src/syntax/pipes";
+import { ParsePipe }from "../../src/syntax/parse";
 
 describe("ParsePipe", () => {
-  const success = new frame.FrameString("success!");
   let out: frame.FrameArray;
   let pipe: ParsePipe;
 
   beforeEach(() => {
     out = new frame.FrameArray([]);
-    out.set(frame.Frame.kEND, success);
     pipe = new ParsePipe(out);
   });
 
@@ -23,4 +20,8 @@ describe("ParsePipe", () => {
     expect(pipe).to.be.ok;
   });
 
+  it("emits an empty Expr when called with end()", () => {
+    const result = pipe.call(frame.FrameSymbol.end());
+    expect(result.toString()).to.equal("()");
+  });
 });
