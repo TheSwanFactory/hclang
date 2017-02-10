@@ -5,7 +5,7 @@ import * as parse from "../../src/syntax/parse";
 import * as frame from "../../src/frames";
 import * as ops from "../../src/ops";
 
-describe.skip("Parse", () => {
+describe("Parse", () => {
   const content = new frame.FrameString("content");
   const token = new parse.ParseToken(content);
   const symbol = frame.FrameSymbol.for(",");
@@ -29,21 +29,6 @@ describe.skip("Parse", () => {
       const result = out.call(token);
       expect(out.asArray().length).to.equal(1);
       expect(out.at(0)).to.equal(content);
-    });
-  });
-
-  describe("ParsePipe", () => {
-    it("is exported", () => {
-      expect(parse.ParsePipe).to.be.ok;
-    });
-
-    it("is constructed from an output Frame", () => {
-      expect(pipe).to.be.ok;
-    });
-
-    it("appends ParseToken content when called", () => {
-      const result = pipe.call(token);
-      expect(result).to.be.ok;
     });
   });
 });
