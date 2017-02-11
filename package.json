@@ -24,7 +24,7 @@
   "scripts": {
     "build": "rimraf lib && tslint \"src/**/*.ts\" && tsc --pretty --inlineSourceMap && chmod a+x ./lib/hc.js ./lib/index.js",
     "clean": "rimraf lib && rm -f *.log.*",
-    "debug": "mocha --debug-brk --inspect --compilers ts:ts-node/register --recursive test/**/*-spec.ts",
+    "debug": "inspect _mocha --debug-brk --compilers ts:ts-node/register --recursive test/**/*-spec.ts",
     "lint": "tslint --force --format verbose \"{src,test}/**/*.ts\"",
     "run": "node lib/hc.js",
     "set-bin": "chmod a+x ./lib/hc.js ./lib/index.js",
@@ -38,6 +38,7 @@
     "clear": "0.0.1",
     "figlet": "1.2.0",
     "inquirer": "3.0.1",
+    "inspect-process": "^0.4.2",
     "lodash": "4.17.4",
     "minimist": "1.2.0"
   },
