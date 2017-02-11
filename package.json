@@ -22,13 +22,14 @@
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "scripts": {
+    "build": "rimraf lib && tslint \"src/**/*.ts\" && tsc --pretty --inlineSourceMap && chmod a+x ./lib/hc.js ./lib/index.js",
     "clean": "rimraf lib && rm -f *.log.*",
+    "debug": "mocha --debug-brk --inspect --compilers ts:ts-node/register --recursive test/**/*-spec.ts",
     "lint": "tslint --force --format verbose \"{src,test}/**/*.ts\"",
-    "set-bin": "chmod a+x ./lib/hc.js ./lib/index.js",
-    "ts": "echo Using TypeScript && tsc --version && tsc --pretty && npm run set-bin",
-    "build": "rimraf lib && tslint \"src/**/*.ts\" && tsc --pretty && chmod a+x ./lib/hc.js ./lib/index.js",
     "run": "node lib/hc.js",
+    "set-bin": "chmod a+x ./lib/hc.js ./lib/index.js",
     "test": "npm run build && mocha --compilers ts:ts-node/register --recursive test/**/*-spec.ts",
+    "ts": "echo Using TypeScript && tsc --version && tsc --pretty && npm run set-bin",
     "watch": "npm run build -- --watch",
     "watch:test": "npm run test -- --watch"
   },
