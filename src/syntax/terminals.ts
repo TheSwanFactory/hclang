@@ -5,6 +5,7 @@ import { Lex } from "./lex";
 export class LexTerminal extends Frame {
   constructor(protected data: ICurryFunction) {
     super(Void);
+    this.callme = true;
   }
 
   public apply(argument: Frame, parameter: Frame) {
