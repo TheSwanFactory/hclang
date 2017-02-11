@@ -22,7 +22,8 @@ export class ParsePipe extends Frame {
     const current = this.data.asArray();
     const expr = new FrameExpr(current);
     const out = this.get(Frame.kOUT);
-    return out.call(expr);
+    out.call(expr);
+    return expr;
   }
 }
 
