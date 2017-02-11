@@ -1,17 +1,11 @@
 import { Context, Frame, FrameArray, FrameLazy, FrameString, FrameSymbol, Void } from "../frames";
 import { LexPipe } from "./lex-pipe";
+import { ParsePipe } from "./parse";
 
 export class EvalPipe extends Frame {
   constructor(out: Frame, meta: Context = Void) {
-    meta[EvalPipe.kOUT] = out;
     super(meta);
-  }
-}
-
-export class ParsePipe extends Frame {
-  constructor(out: Frame, meta: Context = Void) {
-    meta[ParsePipe.kOUT] = out;
-    super(meta);
+    this.set(ParsePipe.kOUT, out);
   }
 }
 

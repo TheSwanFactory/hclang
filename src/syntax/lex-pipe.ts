@@ -1,28 +1,13 @@
 import * as _ from "lodash";
 import { Context, Frame, FrameArray, FrameLazy, FrameString, FrameSymbol, Void } from "../frames";
 import { ICurryFunction } from "../ops";
-import { Lex } from "./lex";
-import { ParseTerminal } from "./parse";
-import { terminals } from "./terminals";
+import { LexTerminal, terminals } from "./terminals";
 import { tokens } from "./tokens";
 
 export const ender: ICurryFunction = (source: Frame, parameter: Frame) => {
   const pipe = source as LexPipe;
   return pipe.finish();
 };
-
-export class LexTerminal extends Frame {
-  constructor(protected data: ICurryFunction) {
-    super(Void);
-    this.callme = true;
-  }
-
-  public apply(argument: Frame, parameter: Frame) {
-    return this.data(argument, parameter);
-  }
-
-  protected toData(): any { return this.data; }
-}
 
 const meta = _.clone(tokens);
 _.merge(meta, terminals);
