@@ -134,7 +134,7 @@ export class FrameList extends Frame {
   }
 
   public toStringDataArray() {
-    return this.data.map((obj: Frame) => { return obj.toString(); });
+    return this.data.map( (obj: Frame) => obj.toString() );
   };
 
   public toStringArray(): string[] {
