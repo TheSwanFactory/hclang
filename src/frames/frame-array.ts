@@ -13,7 +13,7 @@ export class FrameArray extends FrameList {
 
   public in(contexts = [Frame.nil]): Frame {
     contexts.push(this);
-    return new FrameArray(this.data.map((f) => { return f.in(contexts); }));
+    return new FrameArray(this.data.map( (f: Frame) => f.in(contexts) ));
   }
 
   public apply(argument: Frame, parameter: Frame) {
