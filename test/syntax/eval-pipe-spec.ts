@@ -27,6 +27,6 @@ describe("EvalPipe", () => {
     const strB = new frame.FrameString("B");
     const expr = new frame.FrameExpr([strA, strB]);
     const result = pipe.call(expr);
-    expect(result.toString()).to.equal("“A B”");
+    expect(result.toString()).to.equal("“AB”");
   });
 });
