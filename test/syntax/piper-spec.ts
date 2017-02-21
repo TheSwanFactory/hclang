@@ -16,9 +16,8 @@ describe("Piper", () => {
     expect(piper).to.be.ok;
   });
 
-  it("is constructed from an out parameter", () => {
-  });
-
   it("returns nil from empty string", () => {
+    const status = piper.call("");
+    //expect(result.toString()).to.equal("()");
   });
 });
