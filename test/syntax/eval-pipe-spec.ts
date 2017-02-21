@@ -3,7 +3,7 @@ import * as frame from "../../src/frames";
 import * as lex from "../../src/syntax/lex-pipe";
 import * as parse from "../../src/syntax/parse";
 
-import { EvalPipe } from "../../src/syntax/piper";
+import { EvalPipe } from "../../src/syntax/eval-pipe";
 
 describe("EvalPipe", () => {
   let out: frame.FrameArray;
