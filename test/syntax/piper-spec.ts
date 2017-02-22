@@ -17,7 +17,9 @@ describe("Piper", () => {
   });
 
   it("returns nil from empty string", () => {
+    expect(out.size()).to.equal(0);
     const status = piper.call("");
+    expect(out.size()).to.equal(1);
     //expect(result.toString()).to.equal("()");
   });
 });
