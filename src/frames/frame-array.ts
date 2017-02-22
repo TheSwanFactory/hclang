@@ -21,8 +21,12 @@ export class FrameArray extends FrameList {
     return this;
   }
 
+  public size() {
+    return this.data.length;
+  }
+
   public at(index: number) {
-    if (index >= this.data.length) {
+    if (index >= this.size()) {
       return Frame.missing;
     }
     return this.data[index];

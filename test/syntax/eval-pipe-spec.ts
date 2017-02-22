@@ -6,6 +6,9 @@ import * as parse from "../../src/syntax/parse";
 import { EvalPipe } from "../../src/syntax/eval-pipe";
 
 describe("EvalPipe", () => {
+  const strA = new frame.FrameString("A");
+  const strB = new frame.FrameString("B");
+  const expr = new frame.FrameExpr([strA, strB]);
   let out: frame.FrameArray;
   let pipe: EvalPipe;
 
@@ -23,10 +26,14 @@ describe("EvalPipe", () => {
   });
 
   it("evaluates arguments", () => {
-    const strA = new frame.FrameString("A");
-    const strB = new frame.FrameString("B");
-    const expr = new frame.FrameExpr([strA, strB]);
     const result = pipe.call(expr);
     expect(result.toString()).to.equal("“AB”");
+  });
+
+  it("stores result in out", () => {
+    expect(out.size()).to.equal(0);
+    const result = pipe.call(expr);
+    expect(out.size()).to.equal(1);
+    expect(out.at(0)).to.equal(result);
   });
 });

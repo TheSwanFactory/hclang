@@ -24,7 +24,7 @@
   "scripts": {
     "build": "rimraf lib && tslint \"src/**/*.ts\" && tsc --pretty --inlineSourceMap && chmod a+x ./lib/hc.js ./lib/index.js",
     "clean": "rimraf lib && rm -f *.log.*",
-    "debug": "inspect _mocha --debug-brk --compilers ts:ts-node/register --recursive test/**/*-spec.ts",
+    "debug": "echo 'Use `debugger;`\n' && inspect _mocha --no-timeouts --compilers ts:ts-node/register --recursive test/**/*-spec.ts",
     "lint": "tslint --force --format verbose \"{src,test}/**/*.ts\"",
     "run": "node lib/hc.js",
     "set-bin": "chmod a+x ./lib/hc.js ./lib/index.js",
