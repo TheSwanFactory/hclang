@@ -3,15 +3,15 @@ import * as frame from "../../src/frames";
 import * as lex from "../../src/syntax/lex-pipe";
 import * as parse from "../../src/syntax/parse";
 
-import { piper } from "../../src/syntax/piper";
+import { evaluate } from "../../src/syntax/evaluate";
 
-describe("Piper", () => {
+describe("evaluate", () => {
   it("is exported", () => {
-    expect(piper).to.be.ok;
+    expect(evaluate).to.be.ok;
   });
 
   it("returns empty array for empty string", () => {
-    const result = piper.call("");
+    const result = evaluate.call("");
     expect(result.toString()).to.equal("[]");
   });
 });
