@@ -7,9 +7,10 @@ import * as ops from "../../src/ops";
 
 describe("Parse", () => {
   const content = new frame.FrameString("content");
+  const content_string = content.toString();
   const token = new parse.ParseToken(content);
   const symbol = frame.FrameSymbol.for(",");
-  
+
   let out: frame.FrameArray;
   let pipe: parse.ParsePipe;
   beforeEach(() => {
@@ -45,6 +46,12 @@ describe("Parse", () => {
     it("emits an empty Expr when called with end()", () => {
       const result = pipe.call(frame.FrameSymbol.end());
       expect(result.toString()).to.equal("()");
+    });
+
+    it("emits literal when called with token", () => {
+      const result = pipe.call(token);
+      expect(result.toString()).to.equal(content_string);
+      expect(out.at(0).toString()).to.equal(content_string);
     });
   });
 
