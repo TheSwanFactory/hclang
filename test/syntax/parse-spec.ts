@@ -9,6 +9,7 @@ describe("Parse", () => {
   const content = new frame.FrameString("content");
   const token = new parse.ParseToken(content);
   const symbol = frame.FrameSymbol.for(",");
+  
   let out: frame.FrameArray;
   let pipe: parse.ParsePipe;
   beforeEach(() => {
@@ -31,4 +32,20 @@ describe("Parse", () => {
       expect(out.at(0)).to.equal(content);
     });
   });
+
+  describe("ParsePipe", () => {
+    it("is exported", () => {
+      expect(parse.ParsePipe).to.be.ok;
+    });
+
+    it("is constructed from an out parameter", () => {
+      expect(pipe).to.be.ok;
+    });
+
+    it("emits an empty Expr when called with end()", () => {
+      const result = pipe.call(frame.FrameSymbol.end());
+      expect(result.toString()).to.equal("()");
+    });
+  });
+
 });
