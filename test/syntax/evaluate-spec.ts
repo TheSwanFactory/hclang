@@ -18,7 +18,7 @@ describe("evaluate", () => {
   it("quines string literal", () => {
     const hello = new frame.FrameString("Hello, HC!");
     const hello_string = hello.toString();
-    const result = evaluate.call(hello_string);
+    const result = evaluate(hello_string);
     expect(result.toString()).to.equal(`[${hello_string}]`);
   });
 });
