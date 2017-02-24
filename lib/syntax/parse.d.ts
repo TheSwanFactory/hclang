@@ -1,8 +1,7 @@
 import { Frame, FrameArray, FrameAtom } from "../frames";
 import { ICurryFunction } from "../ops";
 export declare const ender: ICurryFunction;
-export declare class ParsePipe extends Frame {
-    protected data: FrameArray;
+export declare class ParsePipe extends FrameArray {
     constructor(out: Frame);
     finish(): Frame;
 }

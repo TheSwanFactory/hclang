@@ -7,19 +7,17 @@ export const ender: ICurryFunction = (source: Frame, parameter: Frame) => {
   return pipe.finish();
 };
 
-export class ParsePipe extends Frame {
-  protected data: FrameArray;
+export class ParsePipe extends FrameArray {
 
   constructor(out: Frame) {
     const meta: Context = {};
     meta[ParsePipe.kOUT] = out;
     meta[Frame.kEND] = new LexTerminal(ender);
-    super(meta);
-    this.data = new FrameArray([]);
+    super([], meta);
   }
 
   public finish(): Frame {
-    const current = this.data.asArray();
+    const current = this.asArray();
     const expr = new FrameExpr(current);
     const out = this.get(Frame.kOUT);
     out.call(expr);
