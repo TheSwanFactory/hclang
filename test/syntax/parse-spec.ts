@@ -7,7 +7,6 @@ import * as ops from "../../src/ops";
 
 describe("Parse", () => {
   const content = new frame.FrameString("content");
-  const content_string = content.toString();
   const token = new parse.ParseToken(content);
   const symbol = frame.FrameSymbol.for(",");
 
@@ -45,13 +44,23 @@ describe("Parse", () => {
 
     it("emits an empty Expr when called with end()", () => {
       const result = pipe.call(frame.FrameSymbol.end());
+      expect(result).to.be.instanceOf(frame.FrameExpr);
       expect(result.toString()).to.equal("()");
+      expect(out.size()).to.equal(1);
+      const expr = out.at(0);
+      expect(expr).to.be.instanceOf(frame.FrameExpr);
+      expect(expr).to.equal(result);
     });
 
-    it("emits literal when called with token", () => {
-      const result = pipe.call(token);
-      expect(result.toString()).to.equal(content_string);
-      expect(out.at(0).toString()).to.equal(content_string);
+    it("emits expr when called with token (and end)", () => {
+      pipe.call(token);
+      const result = pipe.call(frame.FrameSymbol.end());
+      expect(result).to.be.instanceOf(frame.FrameExpr);
+
+      expect(out.size()).to.equal(1);
+      const expr = out.at(0);
+      expect(expr).to.be.instanceOf(frame.FrameExpr);
+      expect(expr.toString()).to.equal(`(${content})`);
     });
   });
 
