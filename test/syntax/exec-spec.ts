@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { exec } from "../../src/syntax";
+import { exec } from "../../src/exec";
 
 describe("syntax exec", () => {
   describe("terminators", () => {

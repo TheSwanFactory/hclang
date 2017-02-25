@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { exec } from "./syntax";
+import { exec } from "./exec";
 
 let input = "“Hello, MAML!”";
 let argv = process.argv;
