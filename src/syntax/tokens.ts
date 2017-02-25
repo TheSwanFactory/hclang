@@ -17,7 +17,7 @@ export class LexComment extends Lex {
   protected isEnd(char: string) { return char === "#" || char === "\n"; }
 
   protected makeFrame() {
-    const frame = FrameSymbol.for("");
+    const frame = Frame.nil;
     return new ParseToken(frame);
   }
 };

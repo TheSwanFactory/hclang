@@ -14,7 +14,7 @@ describe("syntax exec", () => {
     });
   });
 
-  describe.only("tokens", () => {
+  describe("tokens", () => {
     const input_string = "“Watson I need you”";
     const inline_comment = "#Inline#";
     const endline_comment = "#End-of-line\n";
