@@ -1,6 +1,7 @@
 // import { Frame } from "./frames";
+import { evaluate } from "./syntax/evaluate";
 import { framify } from "./syntax/pipeline";
 
 export const exec = (input: string) => {
-  return framify(input).toString();
+  return evaluate(input).toString();
 };
