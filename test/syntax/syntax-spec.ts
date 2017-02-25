@@ -14,7 +14,7 @@ describe("syntax exec", () => {
     });
   });
 
-  describe("strings", () => {
+  describe.only("tokens", () => {
     const input_string = "“Watson I need you”";
     const inline_comment = "#Inline#";
     const endline_comment = "#End-of-line\n";
@@ -26,12 +26,12 @@ describe("syntax exec", () => {
 
     it("evaluates inline comments to nil", () => {
       const result = exec(inline_comment);
-      expect(result).to.equal("()");
+      expect(result).to.equal("");
     });
 
     it("evaluates end-of-line comments to nil", () => {
       const result = exec(endline_comment);
-      expect(result).to.equal("()");
+      expect(result).to.equal("");
     });
 
 

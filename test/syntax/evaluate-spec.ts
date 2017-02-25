@@ -16,9 +16,14 @@ describe("evaluate", () => {
   });
 
   it("quines string literal", () => {
-    const hello = new frame.FrameString("Hello, HC!");
-    const hello_string = hello.toString();
-    const result = evaluate(hello_string);
-    expect(result.toString()).to.equal(`[${hello_string}]`);
+    const input = "“Hello, HC!”";
+    const result = evaluate(input);
+    expect(result.toString()).to.equal(`[${input}]`);
+  });
+
+  it("ignores comments", () => {
+    const input = "#Goodbye";
+    const result = evaluate(input);
+    expect(result.toString()).to.equal(`[]`);
   });
 });
