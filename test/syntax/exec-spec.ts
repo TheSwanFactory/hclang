@@ -24,12 +24,13 @@ describe("syntax exec", () => {
       expect(result).to.equal(input_string);
     });
 
-    it("evaluates inline comments to nil", () => {
+    it("evaluates inline comments to nothing", () => {
+      debugger;
       const result = exec(inline_comment);
       expect(result).to.equal("");
     });
 
-    it("evaluates end-of-line comments to nil", () => {
+    it("evaluates end-of-line comments to nothing", () => {
       const result = exec(endline_comment);
       expect(result).to.equal("");
     });
