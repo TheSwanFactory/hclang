@@ -3,14 +3,14 @@ import { exec } from "../../src/syntax";
 
 describe("syntax exec", () => {
   describe("terminators", () => {
-    it("evaluates newline to nil", () => {
+    it("evaluates newline to nothing", () => {
       const result = exec("\n");
-      expect(result).to.equal("()");
+      expect(result).to.equal("");
     });
 
-    it("evaluates spaces to nil", () => {
+    it("evaluates spaces to nothing", () => {
       const result = exec("  ");
-      expect(result).to.equal("()");
+      expect(result).to.equal("");
     });
   });
 
