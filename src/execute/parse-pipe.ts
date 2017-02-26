@@ -1,5 +1,4 @@
 import { Context, Frame, FrameArray, FrameAtom, FrameExpr, Void } from "../frames";
-import { ICurryFunction } from "../ops";
 import { LexTerminal } from "./terminals";
 
 export class ParsePipe extends FrameArray {

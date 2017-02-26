@@ -1,6 +1,5 @@
 import * as _ from "lodash";
-import { Context, Frame, FrameArray, FrameLazy, FrameString, FrameSymbol, Void } from "../frames";
-import { ICurryFunction } from "../ops";
+import { Context, Frame, FrameString, FrameSymbol } from "../frames";
 import { LexTerminal, terminals } from "./terminals";
 import { tokens } from "./tokens";
 
