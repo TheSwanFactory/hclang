@@ -1,6 +1,16 @@
-import { Context, Frame, FrameString, FrameSymbol } from "../frames";
+import { Context, Frame, FrameAtom, FrameString, FrameSymbol, Void } from "../frames";
 import { Lex } from "./lex";
-import { ParseToken } from "./parse";
+
+export class ParseToken extends FrameAtom {
+  constructor(protected data: Frame) {
+    super(Void);
+  }
+
+  public called_by(callee: Frame, parameter: Frame) {
+    return callee.apply(this.data, parameter);
+  }
+  protected toData(): any { return this.data; }
+}
 
 export class LexString extends Lex {
   protected isEnd(char: string) {

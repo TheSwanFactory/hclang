@@ -1,8 +1,7 @@
 import { expect } from "chai";
 import * as frame from "../../src/frames";
 import * as lex from "../../src/execute/lex-pipe";
-import * as parse from "../../src/execute/parse";
-
+import * as parse from "../../src/execute/parse-pipe";
 import { EvalPipe } from "../../src/execute/eval-pipe";
 
 describe("EvalPipe", () => {
