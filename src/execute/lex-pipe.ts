@@ -4,14 +4,9 @@ import { ICurryFunction } from "../ops";
 import { LexTerminal, terminals } from "./terminals";
 import { tokens } from "./tokens";
 
-export const ender: ICurryFunction = (source: Frame, parameter: Frame) => {
-  const pipe = source as LexPipe;
-  return pipe.finish();
-};
-
 const meta = _.clone(tokens);
 _.merge(meta, terminals);
-meta[Frame.kEND] = new LexTerminal(ender);
+meta[Frame.kEND] = LexTerminal.end();
 
 export class LexPipe extends Frame {
   constructor(out: Frame) {

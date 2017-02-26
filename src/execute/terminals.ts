@@ -1,8 +1,16 @@
 import { Context, Frame, FrameString, FrameSymbol, Void } from "../frames";
 import { ICurryFunction } from "../ops";
 import { Lex } from "./lex";
+import { LexPipe } from "./lex-pipe";
+
+export const ender: ICurryFunction = (source: Frame, parameter: Frame) => {
+  const pipe = source as LexPipe;
+  return pipe.finish();
+};
 
 export class LexTerminal extends Frame {
+  public static end() { return new LexTerminal(ender); };
+
   constructor(protected data: ICurryFunction) {
     super(Void);
     this.callme = true;

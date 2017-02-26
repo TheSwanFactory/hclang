@@ -6,7 +6,7 @@ export class FrameSymbol extends FrameAtom {
     return exists || (FrameSymbol.symbols[symbol] = new FrameSymbol(symbol));
   }
 
-  public static end() { return  FrameSymbol.for(Frame.kEND); };
+  public static end() { return FrameSymbol.for(Frame.kEND); };
 
   protected static symbols: { [key: string]: FrameSymbol; } = {};
 
