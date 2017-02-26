@@ -1,15 +1,15 @@
 import { expect } from "chai";
-import { exec } from "../../src/exec";
+import { execute } from "../../src/execute";
 
-describe("exec", () => {
+describe("execute", () => {
   describe("terminators", () => {
     it("evaluates newline to nothing", () => {
-      const result = exec("\n");
+      const result = execute("\n");
       expect(result).to.equal("");
     });
 
     it("evaluates spaces to nothing", () => {
-      const result = exec("  ");
+      const result = execute("  ");
       expect(result).to.equal("");
     });
   });
@@ -20,32 +20,32 @@ describe("exec", () => {
     const endline_comment = "#End-of-line\n";
 
     it("quines FrameStrings", () => {
-      const result = exec(input_string);
+      const result = execute(input_string);
       expect(result).to.equal(input_string);
     });
 
     it("evaluates inline comments to nothing", () => {
-      const result = exec(inline_comment);
+      const result = execute(inline_comment);
       expect(result).to.equal("");
     });
 
     it("evaluates end-of-line comments to nothing", () => {
-      const result = exec(endline_comment);
+      const result = execute(endline_comment);
       expect(result).to.equal("");
     });
 
 
     it("lexes both FrameStrings and comments", () => {
       const input = input_string + inline_comment;
-      const result = exec(input);
+      const result = execute(input);
 
       expect(result).to.equal(input_string);
     });
 
     it("handles spaces inside expressions", () => {
       const input = input_string + " " + inline_comment;
-      debugger;
-      const result = exec(input);
+      // debugger;
+      const result = execute(input);
 
       expect(result).to.equal(input_string);
     });
