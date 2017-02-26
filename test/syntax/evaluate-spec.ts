@@ -23,7 +23,6 @@ describe("evaluate", () => {
 
   it("ignores comments", () => {
     const input = "#Goodbye";
-    debugger;
     const result = evaluate(input);
     expect(result.toString()).to.equal(`[]`);
   });

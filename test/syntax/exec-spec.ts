@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { exec } from "../../src/exec";
 
-describe("syntax exec", () => {
+describe("exec", () => {
   describe("terminators", () => {
     it("evaluates newline to nothing", () => {
       const result = exec("\n");
@@ -25,7 +25,6 @@ describe("syntax exec", () => {
     });
 
     it("evaluates inline comments to nothing", () => {
-      debugger;
       const result = exec(inline_comment);
       expect(result).to.equal("");
     });
@@ -45,6 +44,7 @@ describe("syntax exec", () => {
 
     it("handles spaces inside expressions", () => {
       const input = input_string + " " + inline_comment;
+      debugger;
       const result = exec(input);
 
       expect(result).to.equal(input_string);
