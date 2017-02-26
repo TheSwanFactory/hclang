@@ -1,8 +1,8 @@
 import { expect } from "chai";
 import * as frame from "../../src/frames";
-import { ender, LexPipe } from "../../src/syntax/lex-pipe";
-import * as parse from "../../src/syntax/parse";
-import { LexTerminal, terminals } from "../../src/syntax/terminals";
+import { ender, LexPipe } from "../../src/execute/lex-pipe";
+import * as parse from "../../src/execute/parse";
+import { LexTerminal, terminals } from "../../src/execute/terminals";
 
 describe("LexPipe", () => {
   const success = new frame.FrameString("success!");

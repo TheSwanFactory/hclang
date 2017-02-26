@@ -1,7 +1,7 @@
 import chai = require("chai");
 chai.use(require("chai-pretty-expect"));
 const expect = chai.expect;
-import * as parse from "../../src/syntax/parse";
+import * as parse from "../../src/execute/parse";
 import * as frame from "../../src/frames";
 import * as ops from "../../src/ops";
 

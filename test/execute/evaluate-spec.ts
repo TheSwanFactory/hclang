@@ -1,9 +1,9 @@
 import { expect } from "chai";
 import * as frame from "../../src/frames";
-import * as lex from "../../src/syntax/lex-pipe";
-import * as parse from "../../src/syntax/parse";
+import * as lex from "../../src/execute/lex-pipe";
+import * as parse from "../../src/execute/parse";
 
-import { evaluate } from "../../src/syntax/evaluate";
+import { evaluate } from "../../src/execute/evaluate";
 
 describe("evaluate", () => {
   it("is exported", () => {
