@@ -25,3 +25,5 @@ export class Terminal extends Frame {
 
 export const terminals: Context = {
 };
+
+terminals[Frame.kEND] = Terminal.end();

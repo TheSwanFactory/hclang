@@ -5,7 +5,6 @@ import { tokens } from "./tokens";
 
 const meta = _.clone(tokens);
 _.merge(meta, terminals);
-meta[Frame.kEND] = Terminal.end();
 
 export class LexPipe extends Frame {
   constructor(out: Frame) {
