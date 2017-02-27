@@ -23,12 +23,5 @@ export class Terminal extends Frame {
   protected toData(): any { return this.data; }
 }
 
-export class LexSpace extends Lex {
-  protected isEnd(char: string) { return char !== " "; }
-
-  protected makeFrame() { return FrameSymbol.for(""); }
-};
-
 export const terminals: Context = {
-  " ": new LexSpace(),
 };

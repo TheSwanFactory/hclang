@@ -32,7 +32,14 @@ export class LexComment extends Lex {
   }
 };
 
+export class LexSpace extends Lex {
+  protected isEnd(char: string) { return char !== " "; }
+
+  protected makeFrame() { return Frame.nil; }
+};
+
 export const tokens: Context = {
+ " ": new LexSpace(),
  "#": new LexComment(),
  "“": new LexString(),
 };
