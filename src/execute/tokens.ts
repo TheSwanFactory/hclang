@@ -1,7 +1,7 @@
 import { Context, Frame, FrameAtom, FrameString, FrameSymbol, Void } from "../frames";
 import { Lex } from "./lex";
 
-export class ParseToken extends FrameAtom {
+export class Token extends FrameAtom {
   constructor(protected data: Frame) {
     super(Void);
   }
@@ -19,7 +19,7 @@ export class LexString extends Lex {
 
   protected makeFrame() {
     const frame = new FrameString(this.body);
-    return new ParseToken(frame);
+    return new Token(frame);
   }
 };
 
@@ -28,7 +28,7 @@ export class LexComment extends Lex {
 
   protected makeFrame() {
     const frame = Frame.nil;
-    return new ParseToken(frame);
+    return new Token(frame);
   }
 };
 

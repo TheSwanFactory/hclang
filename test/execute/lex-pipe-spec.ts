@@ -2,7 +2,7 @@ import { expect } from "chai";
 import * as frame from "../../src/frames";
 import { LexPipe } from "../../src/execute/lex-pipe";
 import * as parse from "../../src/execute/parse-pipe";
-import { ender, LexTerminal, terminals } from "../../src/execute/terminals";
+import { ender, Terminal, terminals } from "../../src/execute/terminals";
 
 describe("LexPipe", () => {
   const success = new frame.FrameString("success!");
@@ -35,7 +35,7 @@ describe("LexPipe", () => {
 
   it("returns Terminal(ender) for END", () => {
     const terminal = pipe.get(frame.Frame.kEND);
-    expect(terminal).to.be.instanceof(LexTerminal);
+    expect(terminal).to.be.instanceof(Terminal);
 
     const result = terminal.call(pipe);
     expect(result.toString()).to.equal(success.toString());

@@ -8,8 +8,8 @@ export const ender: ICurryFunction = (source: Frame, parameter: Frame) => {
   return pipe.finish();
 };
 
-export class LexTerminal extends Frame {
-  public static end() { return new LexTerminal(ender); };
+export class Terminal extends Frame {
+  public static end() { return new Terminal(ender); };
 
   constructor(protected data: ICurryFunction) {
     super(Void);

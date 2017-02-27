@@ -2,13 +2,13 @@ import chai = require("chai");
 chai.use(require("chai-pretty-expect"));
 const expect = chai.expect;
 import { ParsePipe } from "../../src/execute/parse-pipe";
-import { ParseToken } from "../../src/execute/tokens";
+import { Token } from "../../src/execute/tokens";
 import * as frame from "../../src/frames";
 import * as ops from "../../src/ops";
 
 describe("Parse", () => {
   const content = new frame.FrameString("content");
-  const token = new ParseToken(content);
+  const token = new Token(content);
   const symbol = frame.FrameSymbol.for(",");
 
   let out: frame.FrameArray;
@@ -18,9 +18,9 @@ describe("Parse", () => {
     pipe = new ParsePipe(out);
   });
 
-  describe("ParseToken", () => {
+  describe("Token", () => {
     it("is exported", () => {
-      expect(ParseToken).to.be.ok;
+      expect(Token).to.be.ok;
     });
 
     it("is constructed from a Frame", () => {
