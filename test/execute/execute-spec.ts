@@ -18,6 +18,7 @@ describe("execute", () => {
     const input_string = "“Watson I need you”";
     const inline_comment = "#Inline#";
     const endline_comment = "#End-of-line\n";
+    const spaces = "  ";
 
     it("quines FrameStrings", () => {
       const result = execute(input_string);
@@ -34,6 +35,10 @@ describe("execute", () => {
       expect(result).to.equal("");
     });
 
+    it("evaluates spaces to nothing", () => {
+      const result = execute(spaces);
+      expect(result).to.equal("");
+    });
 
     it("lexes both FrameStrings and comments", () => {
       const input = input_string + inline_comment;
@@ -43,8 +48,7 @@ describe("execute", () => {
     });
 
     it("handles spaces inside expressions", () => {
-      const input = input_string + " " + inline_comment;
-      // debugger;
+      const input = input_string + spaces + inline_comment;
       const result = execute(input);
 
       expect(result).to.equal(input_string);
