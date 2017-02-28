@@ -15,15 +15,27 @@ describe("evaluate", () => {
     expect(result.toString()).to.equal("[]");
   });
 
+  it("ignores comments", () => {
+    const input = "#Goodbye";
+    const result = evaluate(input);
+    expect(result.toString()).to.equal(`[]`);
+  });
+
+  it("ignores spaces", () => {
+    const input = "  ";
+    const result = evaluate(input);
+    expect(result.toString()).to.equal(`[]`);
+  });
+
   it("quines string literal", () => {
     const input = "“Hello, HC!”";
     const result = evaluate(input);
     expect(result.toString()).to.equal(`[${input}]`);
   });
 
-  it("ignores comments", () => {
-    const input = "#Goodbye";
+  it("joins multipe strings", () => {
+    const input = "“Hello”“, HC!”";
     const result = evaluate(input);
-    expect(result.toString()).to.equal(`[]`);
+    expect(result.toString()).to.equal(`[“Hello, HC!”]`);
   });
 });
