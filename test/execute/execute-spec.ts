@@ -48,7 +48,8 @@ describe("execute", () => {
     });
 
     it("handles spaces inside expressions", () => {
-      const input = input_string + spaces + inline_comment;
+      const other_string = "Holmes I need you”";
+      const input = other_string + spaces + inline_comment;
       const result = execute(input);
 
       expect(result).to.equal(input_string);

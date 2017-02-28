@@ -33,7 +33,10 @@ export class LexComment extends Lex {
 };
 
 export class LexSpace extends Lex {
-  protected isEnd(char: string) { return char !== " "; }
+  protected isEnd(char: string) {
+    this.pass_on = true;
+    return char !== " ";
+  }
 
   protected makeFrame() { return Frame.nil; }
 };

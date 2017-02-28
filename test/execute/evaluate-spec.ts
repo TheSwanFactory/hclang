@@ -33,7 +33,21 @@ describe("evaluate", () => {
     expect(result.toString()).to.equal(`[${input}]`);
   });
 
-  it("joins multipe strings", () => {
+  it("quines string before spaces", () => {
+    const input = "“Hello, HC!”";
+    const suffix = `${input}  `;
+    const result = evaluate(suffix);
+    expect(result.toString()).to.equal(`[${input}]`);
+  });
+
+  it("quines string after spaces", () => {
+    const input = "“Hello, HC!”";
+    const prefix = `  ${input}`;
+    const result = evaluate(prefix);
+    expect(result.toString()).to.equal(`[${input}]`);
+  });
+
+  it("joins multiple strings", () => {
     const input = "“Hello”“, HC!”";
     const result = evaluate(input);
     expect(result.toString()).to.equal(`[“Hello, HC!”]`);
