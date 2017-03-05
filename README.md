@@ -12,7 +12,7 @@
 
 2. Install the [language-maml](https://github.com/TheSwanFactory/language-maml) Atom package.
 
-3. Clone the [github repository](https://github.com/TheSwanFactory/maml.git).
+3. Clone the [github repository](https://github.com/TheSwanFactory/hclang.git).
 
 4. Install [node.js](https://nodejs.org/).
   * e.g., `brew install node` on macOS.
