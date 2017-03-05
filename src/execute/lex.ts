@@ -4,11 +4,17 @@ import { Frame } from "../frames";
 export class Lex extends Frame {
 
   protected body: string = "";
+  protected pass_on = false;
 
   public call(argument: Frame, parameter = Frame.nil): Frame {
     if ( this.isEnd(argument.toString()) ) {
+      // debugger;
       this.exportFrame();
       this.body = "";
+      if (this.pass_on) {
+        const result = this.up.call(argument);
+        return result;
+      }
       return this.up;
     }
     this.body = this.body + argument.toString();
