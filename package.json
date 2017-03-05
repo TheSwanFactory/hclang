@@ -1,14 +1,17 @@
 {
-  "name": "maml",
+  "name": "hclang",
   "version": "0.0.2",
-  "description": "The Multipurpose Abstract Markup Language",
+  "description": "Homoiconic C: Programming without a Language",
   "license": "MIT",
   "repository": "https://github.com/TheSwanFactory/maml",
   "author": "Ernest N. Prabhakar, Ph.D.",
   "keywords": [
     "language",
     "markup",
+    "programming",
     "html",
+    "maml",
+    "hc",
     "interpreter",
     "cli"
   ],
