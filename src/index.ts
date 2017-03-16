@@ -4,6 +4,7 @@ let chalk = require("chalk");
 let figlet = require("figlet");
 export * from "./frames";
 export * from "./maml";
+export * from "./syntax";
 
 clear();
 console.log(
