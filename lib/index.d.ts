@@ -1,3 +1,3 @@
-declare let clear: any;
-declare let chalk: any;
-declare let figlet: any;
+export * from "./frames";
+export * from "./maml";
+export * from "./syntax";

@@ -1,6 +1,6 @@
 {
   "name": "hclang",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Homoiconic C: Programming without a Language",
   "license": "MIT",
   "repository": "https://github.com/TheSwanFactory/hclang",
@@ -19,7 +19,7 @@
     "lib"
   ],
   "bin": {
-    "maml": "lib/index.js",
+    "maml": "lib/bin.js",
     "hc": "lib/hc.js"
   },
   "main": "lib/index.js",
