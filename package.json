@@ -19,7 +19,7 @@
     "lib"
   ],
   "bin": {
-    "maml": "lib/index.js",
+    "maml": "lib/bin.js",
     "hc": "lib/hc.js"
   },
   "main": "lib/index.js",
