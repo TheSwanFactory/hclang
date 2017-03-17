@@ -52,4 +52,10 @@ describe("evaluate", () => {
     const result = evaluate(input);
     expect(result.toString()).to.equal(`[“Hello, HC!”]`);
   });
+
+  it("joins around inner space", () => {
+    const input = "“Hello” “, HC!”";
+    const result = evaluate(input);
+    expect(result.toString()).to.equal(`[“Hello, HC!”]`);
+  });
 });
