@@ -16,6 +16,7 @@ describe("execute", () => {
 
   describe("tokens", () => {
     const input_string = "“Watson I need you”";
+    const other_string = "Holmes I need you”";
     const inline_comment = "#Inline#";
     const endline_comment = "#End-of-line\n";
     const spaces = "  ";
@@ -47,12 +48,16 @@ describe("execute", () => {
       expect(result).to.equal(input_string);
     });
 
-    it("handles spaces inside expressions", () => {
-      const other_string = "Holmes I need you”";
-      const input = other_string + spaces + inline_comment;
-      const result = execute(input);
+    it("handles spaces after expressions", () => {
+      const space_suffix = other_string + spaces;
+      const result = execute(space_suffix);
+      expect(result).to.equal(other_string);
+    });
 
-      expect(result).to.equal(input_string);
+    it("handles spaces inside expressions", () => {
+      const space_inside = other_string + spaces + inline_comment;
+      const result_inside = execute(space_inside);
+      expect(result_inside).to.equal(other_string);
     });
   });
 });
