@@ -1,4 +1,4 @@
-import { Context, Frame, FrameAtom, FrameString, FrameSymbol, Void } from "../frames";
+import { Context, Frame, FrameAtom, FrameComment, FrameString, FrameSymbol, Void } from "../frames";
 import { Lex } from "./lex";
 
 export class Token extends FrameAtom {
@@ -27,7 +27,7 @@ export class LexComment extends Lex {
   protected isEnd(char: string) { return char === "#" || char === "\n"; }
 
   protected makeFrame() {
-    const frame = Frame.nil;
+    const frame = new FrameComment(this.body);
     return new Token(frame);
   }
 };
