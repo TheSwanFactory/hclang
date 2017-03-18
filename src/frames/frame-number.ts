@@ -11,9 +11,5 @@ export class FrameNumber extends FrameAtom {
     this.data = _.toNumber(source);
   }
 
-  public string_prefix() { return FrameNumber.NUMBER_BEGIN; };
-
-  public string_suffix() { return FrameNumber.NUMBER_END; };
-
   protected toData() { return this.data; }
 };
