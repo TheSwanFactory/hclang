@@ -1,5 +1,6 @@
 # Homoiconic C
 ## Coding Without A Language
+### Draft 3 • 24-MAR-2017
 
 # Introduction
 
@@ -11,17 +12,17 @@ Homoiconic C ("HC") is an alternative to traditional programming languages. Ther
 - No reserved words
 - No special forms
 
-There are pre-defined operators for conditionals, iteration, and typing but they are not treated specially by the language.
+There are pre-defined operators for conditionals, iteration, and typing, but they are not treated specially by the language.
 
 Instead, it has a robust runtime built around:
 
 - Ubiquitous Scope (inheritance)
 - Consistent Evaluation (group and fold)
-- Generalized Abstraction (rather than a bunch of special cases)
+- A Single Generalized Abstraction (rather than many special cases)
 - Symmetry of Code and Data (homoiconicity)
 - Explicit State Management (why instruction sets are evil)
 
-A stretch goal is to not use any English words in the base language, so as to allow maximal localization. Though we may resort to Latin if we run out of special characters.
+A stretch goal is to not use any English words in the base language, so as to allow maximal localization; though we may resort to Latin if we run out of special characters.
 
 ## The Format
 
@@ -235,7 +236,7 @@ Math operators are just properties on number values (like in Ruby). The '.' can 
 
 This is why HC looks like a Plist with expressions.  And our hypothesis is that this is all you need to do programming.
 
-### Nil
+### Nil (False)
 
 The result of evaluating the empty expression is conventionally called nil.
 
@@ -252,6 +253,27 @@ This is also used as boolean `false` (but not zero).
 
     ; 1 > 5
     # ()
+
+### All (True)
+
+The opposite of the nil expression is the all type, or universal set:
+
+    ; <>
+    # <>
+    ; !()
+    ; <>
+
+This is also used as boolean `true`.
+
+    ; 1 = 5 # `=` is only use for comparison, never for assignment
+    # <>
+
+All has the property that every object is a member (`~`), in contrast to nil of which nothing is a member:
+
+    ; 1 ~ <>
+    # <>
+    ; 2 ~ ()
+    ; ()
 
 ### Closures
 
@@ -298,7 +320,7 @@ TODO: Determine whether this is a bug or a feature. This should not be that dang
 
 #### Super `^`
 
-The `^` property points to the parent (defined) context, in contrast to the applied (argument) context `_`.  This allows a child to directly set properties on its parent or access overriden properties.
+The `^` property points to the parent (defined) context, in contrast to the applied (argument) context `_`.  This allows a child to directly set properties on its parent or access overridden properties.
 ```
     ; .parent_ [
     # # .x 1;
@@ -390,7 +412,7 @@ At this time there does not appear to be any natural way to implement multiple i
 The ternary operator can be broken into two binary operators (with slightly different semantics).
 
 In Homoiconic C, these are not special forms, but simply pre-defined on the root object,
-and overriden by `nil` (technically, vice-versa).
+and overridden by nil (or more precisely, vice-versa).
 
 Most objects evaluate the argument of `?` and return nil for `:`,
 but nil itself does the reverse.
@@ -411,13 +433,26 @@ operator:
   ; ( 1 > 5 ) ? 100 : 10
   # 10
 
-Note that this requires that applying nil to anything other than a closure has no effect.
+Note that this implies that applying nil to anything other than a closure has no effect.
 
 ### Iterators
 
-We use '|' for map, in homage to the UNIX pipeline.
+We use `|` for map, in homage to the UNIX pipeline.
 
     ; [1, 2, 3] | { _ + 1 }
     # [2, 3, 4]
 
-# TODO: Under Construction
+  Similarly, we use `&` for reduce:
+
+      ; [1, 2, 3] & { . + _ }
+      # 6
+
+# Appendices
+
+## Appendix I. On Turing Completeness
+
+Turing undecidability, like Godelian incompleteness, starts by assuming "basic arithmetic" (add, substract, multiply, divide) -- i.e. the Peano Axioms. However, this glosses over the fact that division is a "type violation", and can't be fully represented using the same data structures as for addition and substraction.
+
+We believe that a better starting point for modeling computation are the Presburger Axioms.  These give up multiplication and division as first-class operations (though you can emulate them to some extent using repeated addition and subtraction, respectively).  The big win, though, is that Presburger arithmetic is both consistent **and** complete.  This eliminates the halting problem, and massively simplifies analyses (though it may restrict what is possible).
+
+Instead of Turing completeness, we prefer to focus on "Circuit Universality" (a la Scott Aaronson): the ability to represent the effect of any Boolean circuit, including multiple levels of abstraction above them.
