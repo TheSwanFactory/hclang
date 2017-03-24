@@ -39,3 +39,29 @@ We expect the typical strong submission to be accepted normally, with authors ex
 The program committee may identify certain papers with promising ideas as needing important revisions. These papers will be handled in one of two ways. They may get a shepherd, in the tradition followed by numerous conferences. Otherwise, they will be given a concrete set of goals to accomplish in the revision. In the latter case, the second submission must then be accompanied by a cover letter mapping the revision requests to specific parts of the paper; the program committee will use the cover letter and revised submission to arrive at a final decision.
 
 The second phase will only be used to elevate promising papers to the conference’s standard, not to require additional work of papers already deemed up to standard.
+
+## Instructions for Authors
+
+For fairness reasons, all submitted papers should conform to the formatting instructions. Submissions that violate these instructions may be rejected without review, at the discretion of the Program Chair. Onward! 2017 is using double-blind submission.
+
+### Policy on Double Blind Review
+
+Onward! 2017 is using a double-blind submission process. This means that authors will not know who reviewed their papers, and reviewers will not know who authored the papers they review. The aim of double-blind is to treat all papers with minimal bias. Authors must take the following actions to prepare their papers for double-blind reviewing:
+
+ * Remove identifying information (names, institutions, etc) from the author block of the first page of the paper.
+ * To the extent possible, when authors cite their own work, they should refer to it in the third person.
+ * To the extent possible, authors should remove any other potentially identifying information, such as acknowledgements.
+
+After submitting their review, reviewers will be able to see author identities. When the paper is accepted for publication, the camera-ready copy must not be blinded.
+
+See OOPSLA’s FAQ on double-blind reviewing for more information. Please contact the PC chair if you have any questions.
+
+### Format
+
+Submissions should use the [ACM acmart template](http://sigplan.org/Resources/Author/#acmart-format) with the sigplan option and 10 point font. All submissions should be in PDF format.
+
+If you are formatting your paper using LaTeX, you will need to set the 10pt option in the \documentclass command. If you are formatting your paper using Word, you may wish to use the provided Word template that supports this font size. Please include page numbers in your submission. Setting the review option in the LaTeX \documentclass command generates page numbers, and the anonymous option hides author names. Please also ensure that your submission is legible when printed on a black and white printer. In particular, please check that colors remain distinct and font sizes are legible.
+
+## Page Limit
+
+To ensure that papers stay focused on their core contributions, the main part of the paper (excluding bibliographic references) should be no longer than 13 pages. There is no page limit for bibliographic references and appendices, and, therefore, for the overall submission. However, reviewers are not obligated to read the appendices, so the main part of the paper should be self contained. If the paper is accepted, the final submission will be limited to 20 pages, including appendices. (The 13-page limit for the main body of the paper no longer applies.)
