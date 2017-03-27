@@ -31,4 +31,8 @@ export class FrameArray extends FrameList {
     }
     return this.data[index];
   }
+
+  public reset() {
+    this.data = [];
+  }
 }
