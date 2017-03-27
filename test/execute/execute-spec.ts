@@ -3,14 +3,31 @@ import { execute } from "../../src/execute";
 
 describe("execute", () => {
   describe("terminators", () => {
-    it("evaluates newline to nothing", () => {
-      const result = execute("\n");
-      expect(result).to.equal("");
-    });
-
     it("evaluates spaces to nothing", () => {
       const result = execute("  ");
       expect(result).to.equal("");
+    });
+
+    describe("newline", () => {
+      it("evaluates to nothing", () => {
+        const result = execute("\n");
+        expect(result).to.equal("");
+      });
+
+      it("breaks expressions", () => {
+        const result = execute("\n");
+        expect(result).to.equal("");
+      });
+
+      it("breaks expressions after end-of-line comments", () => {
+        const result = execute("\n");
+        expect(result).to.equal("");
+      });
+
+      it("does not break strings", () => {
+        const result = execute("\n");
+        expect(result).to.equal("");
+      });
     });
   });
 
