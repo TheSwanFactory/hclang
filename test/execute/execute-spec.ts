@@ -2,9 +2,15 @@ import { expect } from "chai";
 import { execute } from "../../src/execute";
 
 describe("execute", () => {
+  const input_string = "“Watson I need you”";
+  const other_string = "“Holmes I need you”";
+  const inline_comment = "#Inline#";
+  const endline_comment = "#End-of-line\n";
+  const spaces = "  ";
+
   describe("terminators", () => {
     it("evaluates spaces to nothing", () => {
-      const result = execute("  ");
+      const result = execute(spaces);
       expect(result).to.equal("");
     });
 
@@ -32,11 +38,6 @@ describe("execute", () => {
   });
 
   describe("tokens", () => {
-    const input_string = "“Watson I need you”";
-    const other_string = "“Holmes I need you”";
-    const inline_comment = "#Inline#";
-    const endline_comment = "#End-of-line\n";
-    const spaces = "  ";
 
     it("quines FrameStrings", () => {
       const result = execute(input_string);
