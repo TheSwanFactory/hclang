@@ -27,3 +27,4 @@ export const terminals: Context = {
 };
 
 terminals[Frame.kEND] = Terminal.end();
+terminals["\n"] = Terminal.end();
