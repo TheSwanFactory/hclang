@@ -24,7 +24,7 @@ export class LexString extends Lex {
 };
 
 export class LexComment extends Lex {
-  protected isEnd(char: string) { return char === "#" || char === "\n"; }
+  protected isEnd(char: string) { return char === FrameComment.COMMENT_END; }
 
   protected makeFrame() {
     const frame = new FrameComment(this.body);
