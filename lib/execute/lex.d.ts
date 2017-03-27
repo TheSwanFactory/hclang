@@ -6,6 +6,7 @@ export declare class Lex extends Frame {
     getClassName(): string;
     toString(): string;
     protected isEnd(char: string): boolean;
+    protected finish(argument: Frame): Frame;
     protected exportFrame(): Frame;
     protected makeFrame(): Frame;
 }
