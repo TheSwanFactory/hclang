@@ -1,5 +1,6 @@
 import * as _ from "lodash";
 import { Frame } from "../frames";
+import { terminals } from "./terminals";
 
 export class Lex extends Frame {
 
@@ -12,7 +13,7 @@ export class Lex extends Frame {
       return this.finish(argument, this.pass_on);
     }
 
-    if (this.isLiteral(char) && !this.isQuoting()) {
+    if (this.isTerminal(char) && !this.isQuoting()) {
       return this.finish(argument, true);
     }
     this.body = this.body + argument.toString();
@@ -33,8 +34,9 @@ export class Lex extends Frame {
     return false;
   }
 
-  protected isLiteral(char: string) {
-    return false;
+  protected isTerminal(char: string) {
+    const terms = _.keys(terminals);
+    return _.includes(terms, char);
   }
 
   protected isQuoting() {
