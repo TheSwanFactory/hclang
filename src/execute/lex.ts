@@ -9,7 +9,11 @@ export class Lex extends Frame {
   public call(argument: Frame, parameter = Frame.nil): Frame {
     const char = argument.toString();
     if (this.isEnd(char)) {
-      return this.finish(argument);
+      return this.finish(argument, this.pass_on);
+    }
+
+    if (this.isLiteral(char) && !this.isQuoting()) {
+      return this.finish(argument, true);
     }
     this.body = this.body + argument.toString();
     return this;
@@ -29,10 +33,17 @@ export class Lex extends Frame {
     return false;
   }
 
-  protected finish(argument: Frame) {
+  protected isLiteral(char: string) {
+    return false;
+  }
+
+  protected isQuoting() {
+    return false;
+  }
+
+  protected finish(argument: Frame, pass: boolean) {
     this.exportFrame();
-    this.body = "";
-    if (this.pass_on) {
+    if (pass) {
       const result = this.up.call(argument);
       return result;
     }
@@ -42,6 +53,7 @@ export class Lex extends Frame {
   protected exportFrame() {
     const output = this.makeFrame();
     const out = this.get(Frame.kOUT);
+    this.body = "";
     // console.error(`** exportFrame[${output}] -> ${out}`);
     return out.call(output);
   }
