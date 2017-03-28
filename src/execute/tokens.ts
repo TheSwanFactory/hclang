@@ -12,7 +12,13 @@ export class Token extends FrameAtom {
   protected toData(): any { return this.data; }
 }
 
-export class LexString extends Lex {
+export class LexQuote extends Lex {
+  protected isQuoting() {
+    return true;
+  }
+};
+
+export class LexString extends LexQuote {
   protected isEnd(char: string) {
     return char === "”";
   }

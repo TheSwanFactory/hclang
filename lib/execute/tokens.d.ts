@@ -6,7 +6,10 @@ export declare class Token extends FrameAtom {
     called_by(callee: Frame, parameter: Frame): Frame;
     protected toData(): any;
 }
-export declare class LexString extends Lex {
+export declare class LexQuote extends Lex {
+    protected isQuoting(): boolean;
+}
+export declare class LexString extends LexQuote {
     protected isEnd(char: string): boolean;
     protected makeFrame(): Token;
 }
