@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { execute } from "../../src/execute";
 
-describe.only("execute", () => {
+describe("execute", () => {
   const input_string = "“Watson I need you”";
   const other_string = "“Holmes I need you”";
   const both_strings = `${input_string}\n${other_string}`;
