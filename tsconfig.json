@@ -9,7 +9,7 @@
     "preserveConstEnums": true,
     "removeComments": true,
     "types": [
-      "mocha"
+      "mocha", "node"
     ]
   },
   "include": [
