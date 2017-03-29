@@ -27,4 +27,9 @@ export class LexPipe extends Frame {
     const out = this.get(Frame.kOUT);
     return out.call(output);
   }
+
+  public next() {
+    this.finish();
+    return this;
+  }
 }

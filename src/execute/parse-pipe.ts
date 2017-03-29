@@ -14,6 +14,7 @@ export class ParsePipe extends FrameArray {
     const expr = new FrameExpr(current);
     const out = this.get(Frame.kOUT);
     out.call(expr);
+    this.reset();
     return expr;
   }
 }

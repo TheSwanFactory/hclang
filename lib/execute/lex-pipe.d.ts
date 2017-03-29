@@ -4,4 +4,5 @@ export declare class LexPipe extends Frame {
     lex_string(input: string): Frame;
     lex(source: FrameString): Frame;
     finish(): Frame;
+    next(): this;
 }

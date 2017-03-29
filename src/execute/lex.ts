@@ -1,5 +1,6 @@
 import * as _ from "lodash";
 import { Frame } from "../frames";
+import { terminals } from "./terminals";
 
 export class Lex extends Frame {
 
@@ -7,15 +8,13 @@ export class Lex extends Frame {
   protected pass_on = false;
 
   public call(argument: Frame, parameter = Frame.nil): Frame {
-    if ( this.isEnd(argument.toString()) ) {
-      // debugger;
-      this.exportFrame();
-      this.body = "";
-      if (this.pass_on) {
-        const result = this.up.call(argument);
-        return result;
-      }
-      return this.up;
+    const char = argument.toString();
+    if (this.isEnd(char)) {
+      return this.finish(argument, this.pass_on);
+    }
+
+    if (this.isTerminal(char) && !this.isQuoting()) {
+      return this.finish(argument, true);
     }
     this.body = this.body + argument.toString();
     return this;
@@ -35,9 +34,28 @@ export class Lex extends Frame {
     return false;
   }
 
+  protected isTerminal(char: string) {
+    const terms = _.keys(terminals);
+    return _.includes(terms, char);
+  }
+
+  protected isQuoting() {
+    return false;
+  }
+
+  protected finish(argument: Frame, pass: boolean) {
+    this.exportFrame();
+    if (pass) {
+      const result = this.up.call(argument);
+      return result;
+    }
+    return this.up;
+  }
+
   protected exportFrame() {
     const output = this.makeFrame();
     const out = this.get(Frame.kOUT);
+    this.body = "";
     // console.error(`** exportFrame[${output}] -> ${out}`);
     return out.call(output);
   }

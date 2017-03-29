@@ -8,6 +8,11 @@ export const ender: ICurryFunction = (source: Frame, parameter: Frame) => {
   return pipe.finish();
 };
 
+export const next: ICurryFunction = (source: Frame, parameter: Frame) => {
+  const pipe = source as LexPipe;
+  return pipe.next();
+};
+
 export class Terminal extends Frame {
   public static end() { return new Terminal(ender); };
 
@@ -27,3 +32,4 @@ export const terminals: Context = {
 };
 
 terminals[Frame.kEND] = Terminal.end();
+terminals["\n"] = new Terminal(next);

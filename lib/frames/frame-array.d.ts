@@ -11,4 +11,5 @@ export declare class FrameArray extends FrameList {
     apply(argument: Frame, parameter: Frame): this;
     size(): number;
     at(index: number): Frame;
+    reset(): void;
 }

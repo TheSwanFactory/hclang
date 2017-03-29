@@ -2,24 +2,46 @@ import { expect } from "chai";
 import { execute } from "../../src/execute";
 
 describe("execute", () => {
+  const input_string = "“Watson I need you”";
+  const other_string = "“Holmes I need you”";
+  const both_strings = `${input_string}\n${other_string}`;
+  const inline_comment = "#Inline#";
+  const endline_comment = "#End-of-line\n";
+  const spaces = "  ";
+
   describe("terminators", () => {
-    it("evaluates newline to nothing", () => {
-      const result = execute("\n");
+    it("evaluates spaces to nothing", () => {
+      const result = execute(spaces);
       expect(result).to.equal("");
     });
 
-    it("evaluates spaces to nothing", () => {
-      const result = execute("  ");
-      expect(result).to.equal("");
+    describe("newline", () => {
+      it("evaluates to nothing", () => {
+        const result = execute("\n");
+        expect(result).to.equal("");
+      });
+
+      it("does not break strings", () => {
+        const source = "“Hello,\n World”";
+        const result = execute(source);
+        expect(result).to.equal(source);
+      });
+
+      it("breaks expressions", () => {
+        const result = execute(both_strings);
+        console.error(result);
+        expect(result).to.equal(both_strings);
+      });
+
+      it("breaks expressions after end-of-line comments", () => {
+        const source = `${input_string}${endline_comment}${other_string}`;
+        const result = execute(source);
+        expect(result).to.equal(both_strings);
+      });
     });
   });
 
   describe("tokens", () => {
-    const input_string = "“Watson I need you”";
-    const other_string = "“Holmes I need you”";
-    const inline_comment = "#Inline#";
-    const endline_comment = "#End-of-line\n";
-    const spaces = "  ";
 
     it("quines FrameStrings", () => {
       const result = execute(input_string);
