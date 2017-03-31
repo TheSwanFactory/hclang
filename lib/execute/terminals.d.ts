@@ -1,8 +1,5 @@
 import { Context, Frame } from "../frames";
 import { ICurryFunction } from "../ops";
-export declare type MethodDict = {
-    [key: string]: any;
-};
 export declare class Terminal extends Frame {
     protected data: ICurryFunction;
     static end(): Terminal;

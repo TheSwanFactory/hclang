@@ -27,14 +27,16 @@ export class LexPipe extends Frame {
     return this.get(LexPipe.kOUT) as ParsePipe;
   }
 
-  public push(): void {
+  public push(): Frame {
     const next_parser = this.parser().push();
     this.set(LexPipe.kOUT, next_parser);
+    return this;
   }
 
-  public pop(): void {
+  public pop(): Frame {
     const next_parser = this.parser().pop();
     this.set(LexPipe.kOUT, next_parser);
+    return this;
   }
 
   public finish() {
