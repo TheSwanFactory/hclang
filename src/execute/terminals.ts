@@ -3,6 +3,8 @@ import { ICurryFunction } from "../ops";
 import { Lex } from "./lex";
 import { LexPipe } from "./lex-pipe";
 
+export type MethodDict = { [key: string]: any };
+
 export const ender: ICurryFunction = (source: Frame, parameter: Frame) => {
   const pipe = source as LexPipe;
   return pipe.finish();
@@ -11,6 +13,14 @@ export const ender: ICurryFunction = (source: Frame, parameter: Frame) => {
 export const next: ICurryFunction = (source: Frame, parameter: Frame) => {
   const pipe = source as LexPipe;
   return pipe.next();
+};
+
+const call_lex = (method_name: string): ICurryFunction  => {
+  return (source: Frame, parameter: Frame) => {
+    const pipe = source as MethodDict;
+    const method = pipe[method_name] as any;
+    return method();
+  };
 };
 
 export class Terminal extends Frame {
