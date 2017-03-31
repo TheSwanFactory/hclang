@@ -1,3 +1,4 @@
+import {} from "mocha";
 import { expect } from "chai";
 import * as frame from "../../src/frames";
 import { LexPipe } from "../../src/execute/lex-pipe";
