@@ -5,12 +5,12 @@ import { LexPipe } from "./lex-pipe";
 
 export type MethodDict = { [key: string]: any };
 
-export const ender: ICurryFunction = (source: Frame, parameter: Frame) => {
+const ender: ICurryFunction = (source: Frame, parameter: Frame) => {
   const pipe = source as LexPipe;
   return pipe.finish();
 };
 
-export const next: ICurryFunction = (source: Frame, parameter: Frame) => {
+const next: ICurryFunction = (source: Frame, parameter: Frame) => {
   const pipe = source as LexPipe;
   return pipe.next();
 };

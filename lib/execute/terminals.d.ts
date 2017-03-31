@@ -3,8 +3,6 @@ import { ICurryFunction } from "../ops";
 export declare type MethodDict = {
     [key: string]: any;
 };
-export declare const ender: ICurryFunction;
-export declare const next: ICurryFunction;
 export declare class Terminal extends Frame {
     protected data: ICurryFunction;
     static end(): Terminal;
