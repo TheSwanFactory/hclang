@@ -12,6 +12,10 @@ export class FrameGroup extends FrameList {
     }
     const expr = this.data[0];
     contexts.push(this);
-    return expr.in(contexts);
+    const result = expr.in(contexts);
+    this.meta_pairs().map(([key, value]) => {
+      result.set(key, value);
+    });
+    return result;
   }
 }
