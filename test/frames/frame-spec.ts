@@ -1,6 +1,5 @@
-import chai = require("chai");
-chai.use(require("chai-pretty-expect"));
-const expect = chai.expect;
+import {} from "mocha";
+import { expect } from "chai";
 import { Context, Frame, FrameArray, FrameString, FrameSymbol, IKeyValuePair, Void } from "../../src/frames";
 
 describe("Frame", () => {
