@@ -1,4 +1,5 @@
-import { Frame, FrameList } from "./frame";
+import { Frame } from "./frame";
+import { FrameList } from "./frame-list";
 export declare class FrameArray extends FrameList {
     static readonly BEGIN_ARRAY: string;
     static readonly END_ARRAY: string;
@@ -9,7 +10,6 @@ export declare class FrameArray extends FrameList {
     string_close(): string;
     in(contexts?: Frame[]): Frame;
     apply(argument: Frame, parameter: Frame): this;
-    size(): number;
     at(index: number): Frame;
     reset(): void;
 }

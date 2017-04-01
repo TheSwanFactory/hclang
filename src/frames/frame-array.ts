@@ -1,4 +1,5 @@
-import { Frame, FrameList, Void } from "./frame";
+import { Frame, Void } from "./frame";
+import { FrameList } from "./frame-list";
 
 export class FrameArray extends FrameList {
   public static readonly BEGIN_ARRAY = "[";
@@ -12,17 +13,12 @@ export class FrameArray extends FrameList {
   public string_close() { return FrameArray.END_ARRAY; };
 
   public in(contexts = [Frame.nil]): Frame {
-    contexts.push(this);
-    return new FrameArray(this.data.map( (f: Frame) => f.in(contexts) ));
+    return this.array_eval(contexts);
   }
 
   public apply(argument: Frame, parameter: Frame) {
     this.data.push(argument);
     return this;
-  }
-
-  public size() {
-    return this.data.length;
   }
 
   public at(index: number) {

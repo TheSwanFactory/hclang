@@ -1,3 +1,4 @@
+import {} from "mocha";
 import { expect } from "chai";
 import { Frame, FrameArg, FrameExpr, FrameName, FrameString, FrameSymbol } from "../../src/frames";
 

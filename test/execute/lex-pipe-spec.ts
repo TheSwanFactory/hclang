@@ -1,8 +1,9 @@
+import {} from "mocha";
 import { expect } from "chai";
 import * as frame from "../../src/frames";
 import { LexPipe } from "../../src/execute/lex-pipe";
 import * as parse from "../../src/execute/parse-pipe";
-import { ender, Terminal, terminals } from "../../src/execute/terminals";
+import { Terminal, terminals } from "../../src/execute/terminals";
 
 describe("LexPipe", () => {
   const success = new frame.FrameString("success!");
@@ -25,11 +26,6 @@ describe("LexPipe", () => {
 
   it("emits END on finish", () => {
     const result = pipe.finish();
-    expect(result.toString()).to.equal(success.toString());
-  });
-
-  it("calls finish from ender", () => {
-    const result = ender(pipe, out);
     expect(result.toString()).to.equal(success.toString());
   });
 

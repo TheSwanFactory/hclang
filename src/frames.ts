@@ -1,10 +1,12 @@
 export { FrameArray } from "./frames/frame-array";
 export { FrameArg, FrameParam } from "./frames/frame-arg";
 export { FrameComment } from "./frames/frame-comment";
-export { FrameLazy } from "./frames/frame-lazy";
 export { FrameExpr } from "./frames/frame-expr";
+export { FrameGroup } from "./frames/frame-group";
+export { FrameLazy } from "./frames/frame-lazy";
+export { FrameList } from "./frames/frame-list";
 export { FrameName } from "./frames/frame-name";
 export { FrameNumber } from "./frames/frame-number";
 export { FrameString } from "./frames/frame-string";
 export { FrameSymbol } from "./frames/frame-symbol";
-export { IKeyValuePair, Context, Frame, FrameAtom, FrameList, Void } from "./frames/frame";
+export { IKeyValuePair, Context, Frame, FrameAtom, Void } from "./frames/frame";

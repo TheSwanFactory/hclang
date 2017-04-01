@@ -1,5 +1,6 @@
 import * as _ from "lodash";
 import { Context, Frame, FrameString, FrameSymbol } from "../frames";
+import { ParsePipe } from "./parse-pipe";
 import { Terminal, terminals } from "./terminals";
 import { tokens } from "./tokens";
 
@@ -8,7 +9,7 @@ _.merge(meta, terminals);
 
 export class LexPipe extends Frame {
   constructor(out: Frame) {
-    meta[Frame.kOUT] = out;
+    meta[LexPipe.kOUT] = out;
     // console.error(` * LexPipe.meta ${JSON.stringify(meta, null, 2)}\n`);
     super(meta);
   }
@@ -20,6 +21,22 @@ export class LexPipe extends Frame {
 
   public lex(source: FrameString) {
     return source.reduce(this);
+  }
+
+  public parser(): ParsePipe {
+    return this.get(LexPipe.kOUT) as ParsePipe;
+  }
+
+  public push(): Frame {
+    const next_parser = this.parser().push();
+    this.set(LexPipe.kOUT, next_parser);
+    return this;
+  }
+
+  public pop(): Frame {
+    const next_parser = this.parser().pop();
+    this.set(LexPipe.kOUT, next_parser);
+    return this;
   }
 
   public finish() {

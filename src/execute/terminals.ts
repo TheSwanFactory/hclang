@@ -3,18 +3,8 @@ import { ICurryFunction } from "../ops";
 import { Lex } from "./lex";
 import { LexPipe } from "./lex-pipe";
 
-export const ender: ICurryFunction = (source: Frame, parameter: Frame) => {
-  const pipe = source as LexPipe;
-  return pipe.finish();
-};
-
-export const next: ICurryFunction = (source: Frame, parameter: Frame) => {
-  const pipe = source as LexPipe;
-  return pipe.next();
-};
-
 export class Terminal extends Frame {
-  public static end() { return new Terminal(ender); };
+  public static end() { return new Terminal(finish); };
 
   constructor(protected data: ICurryFunction) {
     super(Void);
@@ -31,5 +21,23 @@ export class Terminal extends Frame {
 export const terminals: Context = {
 };
 
+const finish: ICurryFunction = (source: Frame, parameter: Frame) => {
+  return (source as LexPipe).finish();
+};
+
+const next: ICurryFunction = (source: Frame, parameter: Frame) => {
+  return (source as LexPipe).next();
+};
+
+const push: ICurryFunction = (source: Frame, parameter: Frame) => {
+  return (source as LexPipe).push();
+};
+
+const pop: ICurryFunction = (source: Frame, parameter: Frame) => {
+  return (source as LexPipe).pop();
+};
+
 terminals[Frame.kEND] = Terminal.end();
 terminals["\n"] = new Terminal(next);
+terminals["("] = new Terminal(push);
+terminals[")"] = new Terminal(pop);

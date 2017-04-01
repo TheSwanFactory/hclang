@@ -7,16 +7,12 @@
     "noImplicitAny": true,
     "outDir": "./lib",
     "preserveConstEnums": true,
-    "removeComments": true,
-    "types": [
-      "mocha", "node"
-    ]
+    "removeComments": true
   },
   "include": [
-    "src/**/*"
+    "src/**/*.ts"
   ],
   "exclude": [
-    "**/*-spec.ts",
-    "**/*/*-spec.ts"
+    "test/**/*-spec.ts"
   ]
 }

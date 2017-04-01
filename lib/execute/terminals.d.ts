@@ -1,7 +1,5 @@
 import { Context, Frame } from "../frames";
 import { ICurryFunction } from "../ops";
-export declare const ender: ICurryFunction;
-export declare const next: ICurryFunction;
 export declare class Terminal extends Frame {
     protected data: ICurryFunction;
     static end(): Terminal;
