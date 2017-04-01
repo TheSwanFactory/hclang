@@ -43,11 +43,3 @@ export declare class FrameAtom extends Frame {
     toString(): string;
     protected toData(): any;
 }
-export declare class FrameList extends Frame {
-    protected data: Array<Frame>;
-    constructor(data: Array<Frame>, meta?: Context);
-    toStringDataArray(): string[];
-    toStringArray(): string[];
-    toString(): string;
-    asArray(): Array<Frame>;
-}

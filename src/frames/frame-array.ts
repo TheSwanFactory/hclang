@@ -1,4 +1,5 @@
-import { Frame, FrameList, Void } from "./frame";
+import { Frame, Void } from "./frame";
+import { FrameList } from "./frame-list";
 
 export class FrameArray extends FrameList {
   public static readonly BEGIN_ARRAY = "[";
