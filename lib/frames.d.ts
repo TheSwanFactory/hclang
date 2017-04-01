@@ -1,9 +1,10 @@
 export { FrameArray } from "./frames/frame-array";
 export { FrameArg, FrameParam } from "./frames/frame-arg";
 export { FrameComment } from "./frames/frame-comment";
+export { FrameExpr } from "./frames/frame-expr";
+export { FrameGroup } from "./frames/frame-group";
 export { FrameLazy } from "./frames/frame-lazy";
 export { FrameList } from "./frames/frame-list";
-export { FrameExpr } from "./frames/frame-expr";
 export { FrameName } from "./frames/frame-name";
 export { FrameNumber } from "./frames/frame-number";
 export { FrameString } from "./frames/frame-string";
