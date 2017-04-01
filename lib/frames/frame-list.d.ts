@@ -8,5 +8,6 @@ export declare class FrameList extends Frame {
     toStringArray(): string[];
     toString(): string;
     asArray(): Array<Frame>;
+    size(): number;
     protected array_eval(contexts: Array<Frame>): Frame;
 }

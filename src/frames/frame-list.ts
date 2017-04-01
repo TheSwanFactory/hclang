@@ -26,6 +26,10 @@ export class FrameList extends Frame {
     return this.data;
   }
 
+  public size() {
+    return this.data.length;
+  }
+
   protected array_eval(contexts: Array<Frame>): Frame {
     contexts.push(this);
     return new FrameArray(this.data.map( (f: Frame) => f.in(contexts) ));

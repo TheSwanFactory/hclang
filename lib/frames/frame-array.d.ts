@@ -10,7 +10,6 @@ export declare class FrameArray extends FrameList {
     string_close(): string;
     in(contexts?: Frame[]): Frame;
     apply(argument: Frame, parameter: Frame): this;
-    size(): number;
     at(index: number): Frame;
     reset(): void;
 }
