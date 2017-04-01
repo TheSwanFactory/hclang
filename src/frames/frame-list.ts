@@ -1,4 +1,5 @@
 import { Frame, Void } from "./frame";
+import { FrameArray } from "./frame-array";
 
 export class FrameList extends Frame {
   constructor(protected data: Array<Frame>, meta = Void) {
@@ -23,5 +24,10 @@ export class FrameList extends Frame {
 
   public asArray(): Array<Frame> {
     return this.data;
+  }
+
+  protected array_eval(contexts: Array<Frame>): Frame {
+    contexts.push(this);
+    return new FrameArray(this.data.map( (f: Frame) => f.in(contexts) ));
   }
 }
