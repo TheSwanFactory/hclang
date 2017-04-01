@@ -41,7 +41,8 @@
     "inquirer": "3.0.6",
     "inspect-process": "^0.4.2",
     "lodash": "4.17.4",
-    "minimist": "1.2.0"
+    "minimist": "1.2.0",
+    "mocha-junit-reporter": "^1.13.0"
   },
   "devDependencies": {
     "@types/node": "^7.0.5",
