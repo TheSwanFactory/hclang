@@ -20,11 +20,15 @@ export class ParsePipe extends FrameArray {
   }
 
   public finish(): Frame {
-    const current = this.asArray();
-    const expr = new FrameExpr(current);
+    const result = this.makeFrame();
     const out = this.get(Frame.kOUT);
-    out.call(expr);
+    out.call(result);
     this.reset();
-    return expr;
+    return result;
+  }
+
+  protected makeFrame() {
+    const current = this.asArray();
+    return new FrameExpr(current);
   }
 }
