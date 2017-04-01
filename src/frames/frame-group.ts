@@ -7,6 +7,11 @@ export class FrameGroup extends FrameList {
   }
 
   public in(contexts = [Frame.nil]): Frame {
-    return this.array_eval(contexts);
+    if (this.size() > 1) {
+      return this.array_eval(contexts);
+    }
+    const expr = this.data[0];
+    contexts.push(this);
+    return expr.in(contexts);
   }
 }
