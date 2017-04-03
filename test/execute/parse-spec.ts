@@ -1,7 +1,6 @@
 
-import chai = require("chai");
-chai.use(require("chai-pretty-expect"));
-const expect = chai.expect;
+import { expect } from "chai";
+import {} from "mocha";
 import { ParsePipe } from "../../src/execute/parse-pipe";
 import { Token } from "../../src/execute/tokens";
 import * as frame from "../../src/frames";
