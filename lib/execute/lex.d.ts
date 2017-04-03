@@ -1,4 +1,7 @@
 import { Frame, FrameAtom } from "../frames";
+export declare type Flag = {
+    [key: string]: boolean;
+};
 export declare class Token extends FrameAtom {
     protected data: Frame;
     constructor(data: Frame);
@@ -7,16 +10,15 @@ export declare class Token extends FrameAtom {
 }
 export declare class Lex extends Frame {
     protected factory: any;
-    protected isQuote: boolean;
+    protected flags: Flag;
     protected body: string;
     protected pass_on: boolean;
-    protected constructor(factory: any, isQuote?: boolean);
+    protected constructor(factory: any, flags?: Flag);
     call(argument: Frame, parameter?: Frame): Frame;
     getClassName(): string;
     toString(): string;
     protected isEnd(char: string): boolean;
     protected isTerminal(char: string): boolean;
-    protected isQuoting(): boolean;
     protected finish(argument: Frame, pass: boolean): Frame;
     protected exportFrame(): Frame;
     protected makeFrame(): Frame;

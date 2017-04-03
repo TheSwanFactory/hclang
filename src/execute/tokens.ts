@@ -3,7 +3,7 @@ import { Lex } from "./lex";
 
 export class LexString extends Lex {
   public constructor() {
-    super(FrameString, true);
+    super(FrameString, {isQuote: true});
   }
 
   protected isEnd(char: string) {

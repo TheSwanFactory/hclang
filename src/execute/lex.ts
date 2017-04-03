@@ -2,6 +2,8 @@ import * as _ from "lodash";
 import { Frame, FrameAtom, Void } from "../frames";
 import { terminals } from "./terminals";
 
+export type Flag = { [key: string]: boolean; };
+
 export class Token extends FrameAtom {
   constructor(protected data: Frame) {
     super(Void);
@@ -18,7 +20,7 @@ export class Lex extends Frame {
   protected body: string = "";
   protected pass_on = false;
 
-  protected constructor(protected factory: any, protected isQuote = false) {
+  protected constructor(protected factory: any, protected flags: Flag = {}) {
     super();
   }
 
@@ -28,7 +30,7 @@ export class Lex extends Frame {
       return this.finish(argument, this.pass_on);
     }
 
-    if (this.isTerminal(char) && !this.isQuoting()) {
+    if (this.isTerminal(char) && !this.flags.isQuote) {
       return this.finish(argument, true);
     }
     this.body = this.body + argument.toString();
@@ -52,10 +54,6 @@ export class Lex extends Frame {
   protected isTerminal(char: string) {
     const terms = _.keys(terminals);
     return _.includes(terms, char);
-  }
-
-  protected isQuoting() {
-    return this.isQuote;
   }
 
   protected finish(argument: Frame, pass: boolean) {
