@@ -1,17 +1,14 @@
 import * as _ from "lodash";
 import { Context, Frame, FrameString, FrameSymbol } from "../frames";
 import { ParsePipe } from "./parse-pipe";
+import { syntax } from "./syntax";
 import { Terminal, terminals } from "./terminals";
-import { tokens } from "./tokens";
-
-const meta = _.clone(tokens);
-_.merge(meta, terminals);
 
 export class LexPipe extends Frame {
   constructor(out: Frame) {
-    meta[LexPipe.kOUT] = out;
+    syntax[LexPipe.kOUT] = out;
     // console.error(` * LexPipe.meta ${JSON.stringify(meta, null, 2)}\n`);
-    super(meta);
+    super(syntax);
   }
 
   public lex_string(input: string) {
