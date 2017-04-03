@@ -5,18 +5,12 @@ export class LexString extends Lex {
   public constructor() {
     super(FrameString, {isQuote: true});
   }
-
-  protected isEnd(char: string) {
-    return char === "”";
-  }
 };
 
 export class LexComment extends Lex {
   public constructor() {
     super(FrameComment);
   }
-
-  protected isEnd(char: string) { return char === FrameComment.COMMENT_END; }
 };
 
 export class LexSpace extends Lex {

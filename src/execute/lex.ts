@@ -19,9 +19,13 @@ export class Lex extends Frame {
 
   protected body: string = "";
   protected pass_on = false;
+  protected sample: FrameAtom;
 
   protected constructor(protected factory: any, protected flags: Flag = {}) {
     super();
+    if (factory !== Frame.nil) {
+      this.sample = new factory("");
+    }
   }
 
   public call(argument: Frame, parameter = Frame.nil): Frame {
@@ -48,6 +52,9 @@ export class Lex extends Frame {
   }
 
   protected isEnd(char: string) {
+    if (this.sample) {
+      return char === this.sample.string_suffix();
+    }
     return false;
   }
 
