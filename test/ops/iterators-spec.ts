@@ -1,38 +1,38 @@
 
 import { expect } from "chai";
 import {} from "mocha";
-import { Frame, FrameArg, FrameArray, FrameExpr, FrameLazy, FrameName, FrameParam, FrameString } from "../../src/frames";
+import * as frame from "../../src/frames";
 import { Ops } from "../../src/ops";
 
 describe("iterators", () => {
-  const frame = new Frame({
-    author: new FrameString("An Author"),
-    title: new FrameString("A Title"),
+  const base = new frame.Frame({
+    author: new frame.FrameString("An Author"),
+    title: new frame.FrameString("A Title"),
   });
 
-  const block = new FrameString("Prefix: ");
+  const block = new frame.FrameString("Prefix: ");
 
-  it("treat Frames as iteratee blocks", () => {
-    const arg = new FrameString("argument");
+  it("treat frame.Frames as iteratee blocks", () => {
+    const arg = new frame.FrameString("argument");
     const result = block.call(arg);
     expect(result.toString()).to.equal("“Prefix: argument”");
   });
 
   describe("&& iterate over metas", () => {
-    Frame.globals = Ops;
-    const operator = frame.get("&&");
+    frame.Frame.globals = Ops;
+    const operator = base.get("&&");
     const result = operator.call(block);
 
     it("lives in the global namespace", () => {
-      expect(operator).to.not.equal(Frame.missing);
+      expect(operator).to.not.equal(frame.Frame.missing);
     });
 
     it("is retrieved as an expression", () => {
-      expect(operator).to.be.instanceOf(FrameExpr);
+      expect(operator).to.be.instanceOf(frame.FrameExpr);
     });
 
-    it("returns FrameArray when called", () => {
-      expect(result).to.be.instanceOf(FrameArray);
+    it("returns frame.FrameArray when called", () => {
+      expect(result).to.be.instanceOf(frame.FrameArray);
     });
 
     it("calls block with each element", () => {
@@ -42,10 +42,10 @@ describe("iterators", () => {
     });
 
     it("calls block with key as second parameter", () => {
-      const expr = new FrameExpr([
-        FrameParam.there(),
-        new FrameString(": "),
-        FrameArg.here(),
+      const expr = new frame.FrameExpr([
+        frame.FrameParam.there(),
+        new frame.FrameString(": "),
+        frame.FrameArg.here(),
       ]);
       const expr_result = operator.call(expr);
       const expr_string = expr_result.toString();
@@ -54,31 +54,31 @@ describe("iterators", () => {
     });
 
     it("is curried using a name", () => {
-      const curry = new FrameExpr([
-        FrameArg.here(),
-        new FrameName("&&"),
+      const curry = new frame.FrameExpr([
+        frame.FrameArg.here(),
+        new frame.FrameName("&&"),
       ]);
-      const curry_result = curry.call(frame);
+      const curry_result = curry.call(base);
       const curry_string = curry_result.toString();
       expect(curry_string).to.include("FrameCurry");
-      expect(curry_string).to.include(frame.toString());
+      expect(curry_string).to.include(base.toString());
       expect(curry_string).to.equal(operator.toString());
     });
 
     it("is called as a name with a lazy block", () => {
-      const TestBlock = new FrameLazy([
-        new FrameString(" [ key: "),
-        FrameParam.there(),
-        new FrameString("| value: "),
-        FrameArg.here(),
-        new FrameString(" ] "),
+      const TestBlock = new frame.FrameLazy([
+        new frame.FrameString(" [ key: "),
+        frame.FrameParam.there(),
+        new frame.FrameString("| value: "),
+        frame.FrameArg.here(),
+        new frame.FrameString(" ] "),
       ]);
-      const expr = new FrameExpr([
-        FrameArg.here(),
-        new FrameName("&&"),
+      const expr = new frame.FrameExpr([
+        frame.FrameArg.here(),
+        new frame.FrameName("&&"),
         TestBlock,
       ]);
-      const expr_result = expr.call(frame);
+      const expr_result = expr.call(base);
       const expr_string = expr_result.toString();
       expect(expr_string).to.include("[ key: author| value: An Author ]");
     });

@@ -1,19 +1,19 @@
 
 import { expect } from "chai";
 import {} from "mocha";
-import { Frame, FrameArg, FrameArray, FrameExpr, FrameLazy, FrameName, FrameString, FrameSymbol } from "../../src/frames";
+import * as frame from "../../src/frames";
 
 describe("FrameLazy", () => {
-  const slow = new FrameString("slow");
-  const space = new FrameString(" ");
-  const turtle = new FrameString("turtle");
+  const slow = new frame.FrameString("slow");
+  const space = new frame.FrameString(" ");
+  const turtle = new frame.FrameString("turtle");
 
-  const lazy_array = [new FrameSymbol("speed"), new FrameSymbol("gap"), FrameArg.here()];
-  const lazy = new FrameLazy(lazy_array, {speed: slow});
-  const context = new FrameString("context", {gap: space});
+  const lazy_array = [new frame.FrameSymbol("speed"), new frame.FrameSymbol("gap"), frame.FrameArg.here()];
+  const lazy = new frame.FrameLazy(lazy_array, {speed: slow});
+  const context = new frame.FrameString("context", {gap: space});
 
   it("takes an Array<Frame>", () => {
-    expect(lazy).to.be.instanceof(FrameLazy);
+    expect(lazy).to.be.instanceof(frame.FrameLazy);
   });
 
   it("stringifies to { expr, meta }", () => {
@@ -24,7 +24,7 @@ describe("FrameLazy", () => {
   it("evalutes to an Expr with merged context", () => {
     const expr = lazy.in([context]);
 
-    expect(expr).to.be.instanceof(FrameExpr);
+    expect(expr).to.be.instanceof(frame.FrameExpr);
     expect(expr.toString()).to.equal(`(speed gap _, .speed “slow”; .gap “ ”;)`);
     expect(expr.get("speed")).to.equal(slow);
     expect(expr.get("gap")).to.equal(space);
@@ -32,8 +32,8 @@ describe("FrameLazy", () => {
   });
 
   describe("Codify", () => {
-    const codify = new FrameLazy([]);
-    const fast = new FrameString("fast");
+    const codify = new frame.FrameLazy([]);
+    const fast = new frame.FrameString("fast");
 
     it("is created with an empty Array", () => {
       expect(codify.toString()).to.equal("{  }");
@@ -44,10 +44,10 @@ describe("FrameLazy", () => {
     });
 
     it("converts Array to Expr when called", () => {
-      const array = new FrameArray(lazy_array, {speed: fast, gap: space});
+      const array = new frame.FrameArray(lazy_array, {speed: fast, gap: space});
       const codified = codify.call(array);
 
-      expect(codified).to.be.instanceof(FrameExpr);
+      expect(codified).to.be.instanceof(frame.FrameExpr);
       expect(codified.toString()).to.include("(speed gap _");
       expect(codified.call(turtle).toString()).to.equal(`“fast turtle”`);
     });
@@ -55,8 +55,8 @@ describe("FrameLazy", () => {
     it("treats other Frames as Arrays when called", () => {
       const wrap = codify.call(turtle);
 
-      expect(wrap).to.be.instanceof(FrameExpr);
-      expect(wrap.call(Frame.nil).toString()).to.equal(`“turtle”`);
+      expect(wrap).to.be.instanceof(frame.FrameExpr);
+      expect(wrap.call(frame.Frame.nil).toString()).to.equal(`“turtle”`);
     });
   });
 });
