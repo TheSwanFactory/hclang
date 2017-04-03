@@ -14,7 +14,7 @@ export declare class Lex extends Frame {
     protected body: string;
     protected pass_on: boolean;
     protected sample: FrameAtom;
-    protected constructor(factory: any, flags?: Flag);
+    constructor(factory: any, flags?: Flag);
     call(argument: Frame, parameter?: Frame): Frame;
     getClassName(): string;
     toString(): string;
