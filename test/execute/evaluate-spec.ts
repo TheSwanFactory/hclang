@@ -1,11 +1,10 @@
 
 import { expect } from "chai";
 import {} from "mocha";
-import * as frame from "../../src/frames";
+import { evaluate } from "../../src/execute/evaluate";
 import * as lex from "../../src/execute/lex-pipe";
 import * as parse from "../../src/execute/parse-pipe";
-
-import { evaluate } from "../../src/execute/evaluate";
+import * as frame from "../../src/frames";
 
 describe("evaluate", () => {
   it("is exported", () => {
