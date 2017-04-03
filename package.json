@@ -25,7 +25,7 @@
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "scripts": {
-    "build": "rimraf lib && tslint \"src/**/*.ts\" && tsc --pretty --inlineSourceMap && chmod a+x ./lib/hc.js ./lib/index.js",
+    "build": "rimraf lib && tslint \"{src,test}/**/*.ts\" && tsc --pretty --inlineSourceMap && chmod a+x ./lib/hc.js ./lib/index.js",
     "clean": "rimraf lib && rm -f *.log.*",
     "debug": "echo 'Use `debugger;`\n' && inspect _mocha --no-timeouts --compilers ts:ts-node/register --recursive test/**/*-spec.ts",
     "lint": "tslint --force --format verbose \"{src,test}/**/*.ts\"",
