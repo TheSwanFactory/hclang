@@ -1,6 +1,17 @@
 import * as _ from "lodash";
-import { Frame } from "../frames";
+import { Frame, FrameAtom, Void } from "../frames";
 import { terminals } from "./terminals";
+
+export class Token extends FrameAtom {
+  constructor(protected data: Frame) {
+    super(Void);
+  }
+
+  public called_by(callee: Frame, parameter: Frame) {
+    return callee.apply(this.data, parameter);
+  }
+  protected toData(): any { return this.data; }
+}
 
 export class Lex extends Frame {
 
@@ -65,6 +76,10 @@ export class Lex extends Frame {
   }
 
   protected makeFrame() {
-    return Frame.nil;
+    if (this.factory === Frame.nil) {
+      return Frame.nil;
+    }
+    const frame = new this.factory(this.body);
+    return new Token(frame);
   }
 }

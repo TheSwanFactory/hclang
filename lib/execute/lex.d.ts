@@ -1,4 +1,10 @@
-import { Frame } from "../frames";
+import { Frame, FrameAtom } from "../frames";
+export declare class Token extends FrameAtom {
+    protected data: Frame;
+    constructor(data: Frame);
+    called_by(callee: Frame, parameter: Frame): Frame;
+    protected toData(): any;
+}
 export declare class Lex extends Frame {
     protected factory: any;
     protected body: string;
