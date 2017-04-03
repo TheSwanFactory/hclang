@@ -1,5 +1,6 @@
 {
-  "extends": "tslint:latest",
+  "extends": "tslint:recommended",
+  "defaultSeverity": "warning",
   "rules" : {
     "array-type": false,
     "interface-over-type-literal": false,
@@ -9,6 +10,7 @@
     "no-string-literal" : false,
     "no-var-requires" : false,
     "only-arrow-functions" : false,
+    "ordered-imports" : false,
     "prefer-const": false,
     "variable-name" : false
   }

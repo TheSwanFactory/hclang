@@ -36,7 +36,7 @@ describe("FrameSymbol", () => {
   it("returns the value when called_by", () => {
     const value = new frame.FrameString("smasher");
     const context = new frame.FrameString("parent", {atom: value});
-    const result = context.call(frame_symbol)
+    const result = context.call(frame_symbol);
     expect(result).to.equal(value);
   });
 
