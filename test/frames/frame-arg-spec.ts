@@ -1,5 +1,6 @@
-import {} from "mocha";
+
 import { expect } from "chai";
+import {} from "mocha";
 import { FrameArg, FrameParam, FrameString } from "../../src/frames";
 
 describe("FrameArg", () => {

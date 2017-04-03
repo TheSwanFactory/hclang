@@ -1,15 +1,13 @@
 {
-  "extends": "tslint:latest",
+  "extends": "tslint:recommended",
+  "defaultSeverity": "warning",
   "rules" : {
     "array-type": false,
-    "interface-over-type-literal": false,
     "max-classes-per-file": 3,
     "max-line-length" : false,
     "no-console" : false,
     "no-string-literal" : false,
-    "no-var-requires" : false,
     "only-arrow-functions" : false,
-    "prefer-const": false,
     "variable-name" : false
   }
 }

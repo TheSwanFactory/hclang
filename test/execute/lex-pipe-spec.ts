@@ -1,9 +1,10 @@
-import {} from "mocha";
+
 import { expect } from "chai";
-import * as frame from "../../src/frames";
+import {} from "mocha";
 import { LexPipe } from "../../src/execute/lex-pipe";
 import * as parse from "../../src/execute/parse-pipe";
 import { Terminal, terminals } from "../../src/execute/terminals";
+import * as frame from "../../src/frames";
 
 describe("LexPipe", () => {
   const success = new frame.FrameString("success!");

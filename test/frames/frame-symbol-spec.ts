@@ -1,5 +1,5 @@
-import {} from "mocha";
 import { expect } from "chai";
+import {} from "mocha";
 import * as frame from "../../src/frames";
 import { FrameSymbol } from "../../src/frames";
 
@@ -36,7 +36,7 @@ describe("FrameSymbol", () => {
   it("returns the value when called_by", () => {
     const value = new frame.FrameString("smasher");
     const context = new frame.FrameString("parent", {atom: value});
-    const result = context.call(frame_symbol)
+    const result = context.call(frame_symbol);
     expect(result).to.equal(value);
   });
 
