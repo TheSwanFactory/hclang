@@ -1,11 +1,32 @@
 import * as _ from "lodash";
-import { Frame } from "../frames";
+import { Frame, FrameAtom, Void } from "../frames";
 import { terminals } from "./terminals";
+
+export type Flag = { [key: string]: boolean; };
+
+export class Token extends FrameAtom {
+  constructor(protected data: Frame) {
+    super(Void);
+  }
+
+  public called_by(callee: Frame, parameter: Frame) {
+    return callee.apply(this.data, parameter);
+  }
+  protected toData(): any { return this.data; }
+}
 
 export class Lex extends Frame {
 
   protected body: string = "";
   protected pass_on = false;
+  protected sample: FrameAtom;
+
+  public constructor(protected factory: any, protected flags: Flag = {}) {
+    super();
+    if (factory !== Frame.nil) {
+      this.sample = new factory("");
+    }
+  }
 
   public call(argument: Frame, parameter = Frame.nil): Frame {
     const char = argument.toString();
@@ -13,7 +34,7 @@ export class Lex extends Frame {
       return this.finish(argument, this.pass_on);
     }
 
-    if (this.isTerminal(char) && !this.isQuoting()) {
+    if (this.isTerminal(char) && !this.flags.isQuote) {
       return this.finish(argument, true);
     }
     this.body = this.body + argument.toString();
@@ -31,16 +52,15 @@ export class Lex extends Frame {
   }
 
   protected isEnd(char: string) {
+    if (this.sample) {
+      return char === this.sample.string_suffix();
+    }
     return false;
   }
 
   protected isTerminal(char: string) {
     const terms = _.keys(terminals);
     return _.includes(terms, char);
-  }
-
-  protected isQuoting() {
-    return false;
   }
 
   protected finish(argument: Frame, pass: boolean) {
@@ -56,11 +76,14 @@ export class Lex extends Frame {
     const output = this.makeFrame();
     const out = this.get(Frame.kOUT);
     this.body = "";
-    // console.error(`** exportFrame[${output}] -> ${out}`);
     return out.call(output);
   }
 
   protected makeFrame() {
-    return Frame.nil;
+    if (this.factory === Frame.nil) {
+      return Frame.nil;
+    }
+    const frame = new this.factory(this.body);
+    return new Token(frame);
   }
 }
