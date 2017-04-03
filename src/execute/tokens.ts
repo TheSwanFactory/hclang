@@ -13,12 +13,19 @@ export class Token extends FrameAtom {
 }
 
 export class LexQuote extends Lex {
+  protected constructor(factory: any) {
+    super(factory);
+  }
   protected isQuoting() {
     return true;
   }
 };
 
 export class LexString extends LexQuote {
+  public constructor() {
+    super(FrameString);
+  }
+
   protected isEnd(char: string) {
     return char === "”";
   }
@@ -30,6 +37,10 @@ export class LexString extends LexQuote {
 };
 
 export class LexComment extends Lex {
+  public constructor() {
+    super(FrameComment);
+  }
+
   protected isEnd(char: string) { return char === FrameComment.COMMENT_END; }
 
   protected makeFrame() {
@@ -39,6 +50,10 @@ export class LexComment extends Lex {
 };
 
 export class LexSpace extends Lex {
+  public constructor() {
+    super(FrameString);
+  }
+
   protected isEnd(char: string) {
     this.pass_on = true;
     return char !== " ";

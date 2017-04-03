@@ -2,7 +2,6 @@ import * as _ from "lodash";
 import { Context, Frame, FrameString, FrameSymbol } from "../frames";
 import { ParsePipe } from "./parse-pipe";
 import { syntax } from "./syntax";
-import { Terminal, terminals } from "./terminals";
 
 export class LexPipe extends Frame {
   constructor(out: Frame) {

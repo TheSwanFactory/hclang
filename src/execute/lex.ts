@@ -7,6 +7,10 @@ export class Lex extends Frame {
   protected body: string = "";
   protected pass_on = false;
 
+  protected constructor(protected factory: any) {
+    super();
+  }
+
   public call(argument: Frame, parameter = Frame.nil): Frame {
     const char = argument.toString();
     if (this.isEnd(char)) {
