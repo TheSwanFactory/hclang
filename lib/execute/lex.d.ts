@@ -7,9 +7,10 @@ export declare class Token extends FrameAtom {
 }
 export declare class Lex extends Frame {
     protected factory: any;
+    protected isQuote: boolean;
     protected body: string;
     protected pass_on: boolean;
-    protected constructor(factory: any);
+    protected constructor(factory: any, isQuote?: boolean);
     call(argument: Frame, parameter?: Frame): Frame;
     getClassName(): string;
     toString(): string;

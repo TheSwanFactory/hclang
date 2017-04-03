@@ -18,7 +18,7 @@ export class Lex extends Frame {
   protected body: string = "";
   protected pass_on = false;
 
-  protected constructor(protected factory: any) {
+  protected constructor(protected factory: any, protected isQuote = false) {
     super();
   }
 
@@ -55,7 +55,7 @@ export class Lex extends Frame {
   }
 
   protected isQuoting() {
-    return false;
+    return this.isQuote;
   }
 
   protected finish(argument: Frame, pass: boolean) {
@@ -71,7 +71,6 @@ export class Lex extends Frame {
     const output = this.makeFrame();
     const out = this.get(Frame.kOUT);
     this.body = "";
-    // console.error(`** exportFrame[${output}] -> ${out}`);
     return out.call(output);
   }
 

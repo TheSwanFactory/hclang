@@ -1,18 +1,9 @@
 import { Context, Frame, FrameAtom, FrameComment, FrameString, FrameSymbol, Void } from "../frames";
 import { Lex } from "./lex";
 
-export class LexQuote extends Lex {
-  protected constructor(factory: any) {
-    super(factory);
-  }
-  protected isQuoting() {
-    return true;
-  }
-};
-
-export class LexString extends LexQuote {
+export class LexString extends Lex {
   public constructor() {
-    super(FrameString);
+    super(FrameString, true);
   }
 
   protected isEnd(char: string) {
