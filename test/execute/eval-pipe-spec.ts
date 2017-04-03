@@ -1,9 +1,10 @@
-import {} from "mocha";
+
 import { expect } from "chai";
+import {} from "mocha";
 import * as frame from "../../src/frames";
+import { EvalPipe } from "../../src/execute/eval-pipe";
 import * as lex from "../../src/execute/lex-pipe";
 import * as parse from "../../src/execute/parse-pipe";
-import { EvalPipe } from "../../src/execute/eval-pipe";
 
 describe("EvalPipe", () => {
   const strA = new frame.FrameString("A");

@@ -1,6 +1,7 @@
 import * as _ from "lodash";
-import {} from "mocha";
+
 import { expect } from "chai";
+import {} from "mocha";
 import { execFileSync } from "child_process";
 
 describe("script", () => {

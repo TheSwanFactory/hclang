@@ -1,4 +1,4 @@
-import {} from "mocha";
+
 import chai = require("chai");
 chai.use(require("chai-pretty-expect"));
 const expect = chai.expect;

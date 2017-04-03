@@ -1,5 +1,5 @@
-import {} from "mocha";
 import { expect } from "chai";
+import {} from "mocha";
 import * as frame from "../../src/frames";
 import { FrameSymbol } from "../../src/frames";
 
