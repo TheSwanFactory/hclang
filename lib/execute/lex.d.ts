@@ -20,7 +20,8 @@ export declare class Lex extends Frame {
     toString(): string;
     protected isEnd(char: string): boolean;
     protected isTerminal(char: string): boolean;
-    protected finish(argument: Frame, pass: boolean): Frame;
+    protected isQuote(): boolean;
+    protected finish(argument: Frame, passAlong: boolean): Frame;
     protected exportFrame(): Frame;
     protected makeFrame(): Token;
 }
