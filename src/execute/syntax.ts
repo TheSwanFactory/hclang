@@ -12,19 +12,8 @@ export class FrameSpace extends frame.Frame {
   }
 };
 
-export class LexSpace extends Lex {
-  public constructor() {
-    super(frame.Frame.nil);
-  }
-
-  protected isEnd(char: string) {
-    this.pass_on = true;
-    return char !== " ";
-  }
-};
-
 const tokens: frame.Context = {
- " ": new Lex(FrameSpace),
+ " ": new Lex(FrameSpace, {passAlong: true}),
  "#": new Lex(frame.FrameComment),
  "“": new Lex(frame.FrameString, {isQuote: true}),
 };
