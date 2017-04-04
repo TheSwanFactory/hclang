@@ -23,23 +23,10 @@ const tokenFrames = [
   frame.FrameString,
 ];
 
-const tokens2: frame.Context = {};
-
 _.map(tokenFrames, (klass: any) => {
   const sample: frame.FrameAtom = new klass("");
   const key = sample.string_start();
-  tokens2[key] = new Lex(klass);
+  terminals[key] = new Lex(klass);
 });
 
-const tokens: frame.Context = {
- " ": new Lex(FrameSpace),
- "#": new Lex(frame.FrameComment),
- "“": new Lex(frame.FrameString),
-};
-
-console.log(tokens);
-console.log(tokens2);
-
-_.merge(tokens2, terminals);
-
-export const syntax: frame.Context = tokens;
+export const syntax: frame.Context = terminals;

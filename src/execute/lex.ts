@@ -19,7 +19,6 @@ export class Token extends FrameAtom {
 export class Lex extends Frame {
 
   protected body: string = "";
-  protected pass_on = false;
   protected sample: FrameAtom;
 
   public constructor(protected factory: any) {
