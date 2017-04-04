@@ -12,7 +12,7 @@ export class FrameExpr extends FrameList {
     contexts.push(this);
     return this.data.reduce((sum: Frame, item: Frame) => {
       let value = item.in(contexts);
-      if (value instanceof FrameComment) {
+      if (value.isVoid()) {
         return sum;
       }
       return sum.call(value);

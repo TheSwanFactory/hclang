@@ -108,7 +108,7 @@ export class Frame {
     return _.castArray(this);
   }
 
-  public is_void() {
+  public isVoid() {
     return false;
   }
 };

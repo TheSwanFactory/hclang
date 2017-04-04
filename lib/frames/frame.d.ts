@@ -35,7 +35,7 @@ export declare class Frame {
     meta_string(): string;
     toString(): string;
     asArray(): Array<Frame>;
-    is_void(): boolean;
+    isVoid(): boolean;
 }
 export declare class FrameAtom extends Frame {
     string_prefix(): string;

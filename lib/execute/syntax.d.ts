@@ -2,7 +2,7 @@ import * as frame from "../frames";
 import { Lex } from "./lex";
 export declare class FrameSpace extends frame.Frame {
     canInclude(char: string): boolean;
-    is_void(): boolean;
+    isVoid(): boolean;
 }
 export declare class LexSpace extends Lex {
     constructor();

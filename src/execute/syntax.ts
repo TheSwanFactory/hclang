@@ -7,7 +7,7 @@ export class FrameSpace extends frame.Frame {
   public canInclude(char: string) {
     return char === "";
   }
-  public is_void() {
+  public isVoid() {
     return true;
   }
 };
