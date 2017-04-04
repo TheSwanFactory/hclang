@@ -22,11 +22,9 @@ export class Lex extends Frame {
   protected pass_on = false;
   protected sample: FrameAtom;
 
-  public constructor(protected factory: any, protected flags: Flag = {}) {
+  public constructor(protected factory: any) {
     super();
-    if (!factory.is_nil) {
-      this.sample = new factory("");
-    }
+    this.sample = new factory("");
   }
 
   public call(argument: Frame, parameter = Frame.nil): Frame {

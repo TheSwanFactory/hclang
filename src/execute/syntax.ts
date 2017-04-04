@@ -15,7 +15,7 @@ export class FrameSpace extends frame.Frame {
 const tokens: frame.Context = {
  " ": new Lex(FrameSpace),
  "#": new Lex(frame.FrameComment),
- "“": new Lex(frame.FrameString, {isQuote: true}),
+ "“": new Lex(frame.FrameString),
 };
 
 _.merge(tokens, terminals);
