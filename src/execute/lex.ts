@@ -1,5 +1,5 @@
 import * as _ from "lodash";
-import { Frame, FrameAtom, NilContext } from "../frames";
+import { Frame, FrameAtom, FrameString, NilContext } from "../frames";
 import { terminals } from "./terminals";
 
 export type Flag = { [key: string]: boolean; };
@@ -19,23 +19,20 @@ export class Token extends FrameAtom {
 export class Lex extends Frame {
 
   protected body: string = "";
-  protected pass_on = false;
   protected sample: FrameAtom;
 
-  public constructor(protected factory: any, protected flags: Flag = {}) {
+  public constructor(protected factory: any) {
     super();
-    if (!factory.is_nil) {
-      this.sample = new factory("");
-    }
+    this.sample = new factory("");
   }
 
   public call(argument: Frame, parameter = Frame.nil): Frame {
     const char = argument.toString();
     if (this.isEnd(char)) {
-      return this.finish(argument, this.flags.passAlong);
+      return this.finish(argument, !this.isQuote());
     }
 
-    if (this.isTerminal(char) && !this.flags.isQuote) {
+    if (this.isTerminal(char) && !this.isQuote()) {
       return this.finish(argument, true);
     }
     this.body = this.body + argument.toString();
@@ -61,9 +58,13 @@ export class Lex extends Frame {
     return _.includes(terms, char);
   }
 
-  protected finish(argument: Frame, pass: boolean) {
+  protected isQuote() {
+    return (this.sample instanceof FrameString);
+  }
+
+  protected finish(argument: Frame, passAlong: boolean) {
     this.exportFrame();
-    if (pass) {
+    if (passAlong) {
       const result = this.up.call(argument);
       return result;
     }

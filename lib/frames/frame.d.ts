@@ -40,6 +40,7 @@ export declare class Frame {
 export declare class FrameAtom extends Frame {
     string_prefix(): string;
     string_suffix(): string;
+    string_start(): string;
     toStringData(): string;
     toString(): string;
     canInclude(char: string): boolean;
