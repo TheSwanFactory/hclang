@@ -2,14 +2,14 @@ import * as _ from "lodash";
 
 export type Context = { [key: string]: Frame; };
 export interface IKeyValuePair extends ReadonlyArray<string | Frame > { 0: string; 1: Frame; }
-export const Void: Context = {};
+export const NilContext: Context = {};
 
 export class Frame {
   public static readonly kOUT = ">>";
   public static readonly kEND = "$$";
   public static readonly BEGIN_EXPR = "(";
   public static readonly END_EXPR = ")";
-  public static readonly nil = new Frame(Void, true);
+  public static readonly nil = new Frame(NilContext, true);
   public static readonly missing: Frame = new Frame({
     missing: Frame.nil,
   });
@@ -17,7 +17,7 @@ export class Frame {
 
   public up: Frame;
   public callme: boolean;
-  constructor(private meta = Void, isNil = false) {
+  constructor(private meta = NilContext, isNil = false) {
     this.up = Frame.missing;
     this.callme = false;
     if (isNil) {
@@ -49,7 +49,7 @@ export class Frame {
   }
 
   public set(key: string, value: Frame): Frame {
-    if (this.meta === Void) {
+    if (this.meta === NilContext) {
       this.meta = {};
     }
     this.meta[key] = value;
@@ -106,6 +106,14 @@ export class Frame {
 
   public asArray(): Array<Frame> {
     return _.castArray(this);
+  }
+
+  public is_nil() {
+    return this === Frame.nil;
+  }
+
+  public is_void() {
+    return false;
   }
 };
 
