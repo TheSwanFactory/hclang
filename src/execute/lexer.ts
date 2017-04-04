@@ -1,12 +1,24 @@
 import * as _ from "lodash";
-import { Context, Frame, FrameString, FrameSymbol } from "../frames";
+import { Context, Frame, FrameString, FrameSymbol, NilContext } from "../frames";
+import { ICurryFunction } from "../ops";
 import { ParsePipe } from "./parse-pipe";
 import { syntax } from "./syntax";
+
+class LexTerminal extends Frame {
+  constructor(protected options: Frame) {
+    super(NilContext);
+    this.callme = true;
+  }
+
+  public apply(argument: Frame, parameter: Frame) {
+    const source = argument as Lexer;
+    return source.terminate(this.options);
+  }
+}
 
 export class Lexer extends Frame {
   constructor(out: Frame) {
     syntax[Lexer.kOUT] = out;
-    // console.error(` * LexPipe.meta ${JSON.stringify(meta, null, 2)}\n`);
     super(syntax);
   }
 
@@ -19,18 +31,12 @@ export class Lexer extends Frame {
     return source.reduce(this);
   }
 
-  public parser(): ParsePipe {
-    return this.get(Lexer.kOUT) as ParsePipe;
-  }
-
-  public finish() {
-    const output = FrameSymbol.end();
+  public fold(argument: Frame) {
     const out = this.get(Frame.kOUT);
-    return out.call(output);
+    this.set(Frame.kOUT, out.call(argument));
   }
 
-  public next() {
-    this.finish();
-    return this;
+  public terminate(parameter: Frame) {
+    return Frame.nil;
   }
 }
