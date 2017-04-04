@@ -3,6 +3,12 @@ import * as frame from "../frames";
 import { Lex } from "./lex";
 import { Terminal, terminals } from "./terminals";
 
+export class FrameSpace extends frame.Frame {
+  public canInclude(char: string) {
+    return char === "";
+  }
+};
+
 export class LexSpace extends Lex {
   public constructor() {
     super(frame.Frame.nil);
@@ -15,7 +21,7 @@ export class LexSpace extends Lex {
 };
 
 const tokens: frame.Context = {
- " ": new LexSpace(),
+ " ": new Lex(FrameSpace),
  "#": new Lex(frame.FrameComment),
  "“": new Lex(frame.FrameString, {isQuote: true}),
 };

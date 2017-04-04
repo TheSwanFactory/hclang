@@ -35,7 +35,6 @@ export declare class Frame {
     meta_string(): string;
     toString(): string;
     asArray(): Array<Frame>;
-    is_nil(): boolean;
     is_void(): boolean;
 }
 export declare class FrameAtom extends Frame {
@@ -43,5 +42,6 @@ export declare class FrameAtom extends Frame {
     string_suffix(): string;
     toStringData(): string;
     toString(): string;
+    canInclude(char: string): boolean;
     protected toData(): any;
 }

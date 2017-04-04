@@ -12,6 +12,7 @@ export class Token extends FrameAtom {
   public called_by(callee: Frame, parameter: Frame) {
     return callee.apply(this.data, parameter);
   }
+
   protected toData(): any { return this.data; }
 }
 
@@ -52,10 +53,7 @@ export class Lex extends Frame {
   }
 
   protected isEnd(char: string) {
-    if (this.sample) {
-      return char === this.sample.string_suffix();
-    }
-    return false;
+    return !this.sample.canInclude(char);
   }
 
   protected isTerminal(char: string) {
@@ -80,9 +78,6 @@ export class Lex extends Frame {
   }
 
   protected makeFrame() {
-    if (this.factory === Frame.nil) {
-      return Frame.nil;
-    }
     const frame = new this.factory(this.body);
     return new Token(frame);
   }

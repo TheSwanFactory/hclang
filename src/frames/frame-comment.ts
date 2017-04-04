@@ -8,6 +8,8 @@ export class FrameComment extends FrameAtom {
     super(meta);
   }
 
+  public is_void() { return true; };
+
   public string_prefix() { return FrameComment.COMMENT_BEGIN; };
 
   public string_suffix() { return FrameComment.COMMENT_END; };

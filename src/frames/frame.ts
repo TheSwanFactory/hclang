@@ -108,10 +108,6 @@ export class Frame {
     return _.castArray(this);
   }
 
-  public is_nil() {
-    return this === Frame.nil;
-  }
-
   public is_void() {
     return false;
   }
@@ -131,6 +127,10 @@ export class FrameAtom extends Frame {
       return DataString;
     }
     return this.string_open() + [DataString, this.meta_string()].join(", ") + this.string_close();
+  }
+
+  public canInclude(char: string) {
+    return char !== this.string_suffix();
   }
 
   protected toData(): any { return null; }
