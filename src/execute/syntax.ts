@@ -17,10 +17,13 @@ export class FrameSpace extends frame.FrameAtom {
   }
 };
 
-const tokenFrames = [
+const tokenFrames: Array<any> = [
   FrameSpace,
   frame.FrameComment,
+  frame.FrameName,
+  frame.FrameNumber,
   frame.FrameString,
+  frame.FrameSymbol,
 ];
 
 _.map(tokenFrames, (klass: any) => {
