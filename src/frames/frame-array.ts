@@ -17,7 +17,9 @@ export class FrameArray extends FrameList {
   }
 
   public apply(argument: Frame, parameter: Frame) {
-    this.data.push(argument);
+    if (!argument.is_void()) {
+      this.data.push(argument);
+    }
     return this;
   }
 

@@ -7,6 +7,9 @@ export class FrameSpace extends frame.Frame {
   public canInclude(char: string) {
     return char === "";
   }
+  public is_void() {
+    return true;
+  }
 };
 
 export class LexSpace extends Lex {
