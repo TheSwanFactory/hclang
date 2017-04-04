@@ -32,7 +32,7 @@ export class Lex extends Frame {
   public call(argument: Frame, parameter = Frame.nil): Frame {
     const char = argument.toString();
     if (this.isEnd(char)) {
-      return this.finish(argument, this.flags.passAlong);
+      return this.finish(argument, !this.flags.isQuote);
     }
 
     if (this.isTerminal(char) && !this.flags.isQuote) {

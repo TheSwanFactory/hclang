@@ -13,7 +13,7 @@ export class FrameSpace extends frame.Frame {
 };
 
 const tokens: frame.Context = {
- " ": new Lex(FrameSpace, {passAlong: true}),
+ " ": new Lex(FrameSpace),
  "#": new Lex(frame.FrameComment),
  "“": new Lex(frame.FrameString, {isQuote: true}),
 };
