@@ -9,4 +9,4 @@ export { FrameName } from "./frames/frame-name";
 export { FrameNumber } from "./frames/frame-number";
 export { FrameString } from "./frames/frame-string";
 export { FrameSymbol } from "./frames/frame-symbol";
-export { IKeyValuePair, Context, Frame, FrameAtom, Void } from "./frames/frame";
+export { IKeyValuePair, Context, Frame, FrameAtom, NilContext } from "./frames/frame";

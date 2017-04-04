@@ -22,5 +22,5 @@ export declare class Lex extends Frame {
     protected isTerminal(char: string): boolean;
     protected finish(argument: Frame, pass: boolean): Frame;
     protected exportFrame(): Frame;
-    protected makeFrame(): Frame;
+    protected makeFrame(): Token;
 }

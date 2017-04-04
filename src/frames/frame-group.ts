@@ -1,8 +1,8 @@
-import { Frame, Void } from "./frame";
+import { Frame, NilContext } from "./frame";
 import { FrameList } from "./frame-list";
 
 export class FrameGroup extends FrameList {
-  constructor(data: Array<Frame>, meta = Void) {
+  constructor(data: Array<Frame>, meta = NilContext) {
     super(data, meta);
   }
 

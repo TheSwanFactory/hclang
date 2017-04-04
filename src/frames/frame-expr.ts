@@ -1,9 +1,9 @@
-import { Frame, Void } from "./frame";
+import { Frame, NilContext } from "./frame";
 import { FrameComment } from "./frame-comment";
 import { FrameList } from "./frame-list";
 
 export class FrameExpr extends FrameList {
-  constructor(data: Array<Frame>, meta = Void) {
+  constructor(data: Array<Frame>, meta = NilContext) {
     super(data, meta);
     data.forEach((item) => { item.up = this; });
   }
@@ -12,7 +12,7 @@ export class FrameExpr extends FrameList {
     contexts.push(this);
     return this.data.reduce((sum: Frame, item: Frame) => {
       let value = item.in(contexts);
-      if (value instanceof FrameComment) {
+      if (value.isVoid()) {
         return sum;
       }
       return sum.call(value);

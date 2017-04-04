@@ -1,11 +1,11 @@
-import { Context, Frame, IKeyValuePair, Void } from "./frame";
+import { Context, Frame, IKeyValuePair, NilContext } from "./frame";
 import { FrameExpr } from "./frame-expr";
 
 export class FrameLazy extends FrameExpr {
   public static readonly LAZY_BEGIN = "{";
   public static readonly LAZY_END = "}";
 
-  constructor(data: Array<Frame>, meta: Context = Void) {
+  constructor(data: Array<Frame>, meta: Context = NilContext) {
     super(data, meta);
   }
 

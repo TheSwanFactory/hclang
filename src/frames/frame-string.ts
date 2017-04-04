@@ -1,5 +1,5 @@
 import * as _ from "lodash";
-import { Context, Frame, FrameAtom, Void } from "./frame";
+import { Context, Frame, FrameAtom, NilContext } from "./frame";
 import { FrameSymbol } from "./frame-symbol";
 
 const reducer = (current: Frame, char: string) => {
@@ -11,7 +11,7 @@ export class FrameString extends FrameAtom {
   public static readonly STRING_BEGIN = "“";
   public static readonly STRING_END = "”";
 
-  constructor(protected data: string, meta: Context = Void) {
+  constructor(protected data: string, meta: Context = NilContext) {
     super(meta);
   }
 

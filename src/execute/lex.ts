@@ -1,17 +1,18 @@
 import * as _ from "lodash";
-import { Frame, FrameAtom, Void } from "../frames";
+import { Frame, FrameAtom, NilContext } from "../frames";
 import { terminals } from "./terminals";
 
 export type Flag = { [key: string]: boolean; };
 
 export class Token extends FrameAtom {
   constructor(protected data: Frame) {
-    super(Void);
+    super(NilContext);
   }
 
   public called_by(callee: Frame, parameter: Frame) {
     return callee.apply(this.data, parameter);
   }
+
   protected toData(): any { return this.data; }
 }
 
@@ -23,7 +24,7 @@ export class Lex extends Frame {
 
   public constructor(protected factory: any, protected flags: Flag = {}) {
     super();
-    if (factory !== Frame.nil) {
+    if (!factory.is_nil) {
       this.sample = new factory("");
     }
   }
@@ -31,7 +32,7 @@ export class Lex extends Frame {
   public call(argument: Frame, parameter = Frame.nil): Frame {
     const char = argument.toString();
     if (this.isEnd(char)) {
-      return this.finish(argument, this.pass_on);
+      return this.finish(argument, this.flags.passAlong);
     }
 
     if (this.isTerminal(char) && !this.flags.isQuote) {
@@ -52,10 +53,7 @@ export class Lex extends Frame {
   }
 
   protected isEnd(char: string) {
-    if (this.sample) {
-      return char === this.sample.string_suffix();
-    }
-    return false;
+    return !this.sample.canInclude(char);
   }
 
   protected isTerminal(char: string) {
@@ -80,9 +78,6 @@ export class Lex extends Frame {
   }
 
   protected makeFrame() {
-    if (this.factory === Frame.nil) {
-      return Frame.nil;
-    }
     const frame = new this.factory(this.body);
     return new Token(frame);
   }
