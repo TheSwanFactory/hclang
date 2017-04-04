@@ -1,4 +1,4 @@
-import { Context, Frame, FrameArray, FrameAtom, FrameExpr, FrameSymbol, Void } from "../frames";
+import { Context, Frame, FrameArray, FrameAtom, FrameExpr, FrameSymbol, NilContext } from "../frames";
 import { Terminal } from "./terminals";
 
 export class ParsePipe extends FrameArray {

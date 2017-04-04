@@ -1,10 +1,10 @@
-import { Context, Frame, FrameAtom, Void } from "./frame";
+import { Context, Frame, FrameAtom, NilContext } from "./frame";
 
 export class FrameComment extends FrameAtom {
   public static readonly COMMENT_BEGIN = "#";
   public static readonly COMMENT_END = "#";
 
-  constructor(protected data: string, meta: Context = Void) {
+  constructor(protected data: string, meta: Context = NilContext) {
     super(meta);
   }
 

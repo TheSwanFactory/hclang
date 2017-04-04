@@ -1,7 +1,7 @@
 
 import { expect } from "chai";
 import {} from "mocha";
-import { Context, Frame, FrameArray, FrameString, FrameSymbol, IKeyValuePair, Void } from "../../src/frames";
+import { Context, Frame, FrameArray, FrameString, FrameSymbol, IKeyValuePair, NilContext } from "../../src/frames";
 
 describe("Frame", () => {
   const frame = new Frame({nil: Frame.nil});
@@ -17,7 +17,7 @@ describe("Frame", () => {
   });
 
   it("returns argument when called with non-nil", () => {
-    const frame2 = new Frame(Void, false);
+    const frame2 = new Frame(NilContext, false);
     const result = frame.call(frame2);
     expect(result).to.equal(frame2);
   });

@@ -1,4 +1,4 @@
-import { Frame, FrameAtom, Void } from "./frame";
+import { Frame, FrameAtom, NilContext } from "./frame";
 import { FrameSymbol } from "./frame-symbol";
 
 export class FrameName extends FrameAtom {
@@ -6,7 +6,7 @@ export class FrameName extends FrameAtom {
 
   protected data: FrameSymbol;
 
-  constructor(symbol: string, meta = Void) {
+  constructor(symbol: string, meta = NilContext) {
     super(meta);
     this.data = FrameSymbol.for(symbol);
   }

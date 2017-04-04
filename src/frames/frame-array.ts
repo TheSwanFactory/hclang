@@ -1,11 +1,11 @@
-import { Frame, Void } from "./frame";
+import { Frame, NilContext } from "./frame";
 import { FrameList } from "./frame-list";
 
 export class FrameArray extends FrameList {
   public static readonly BEGIN_ARRAY = "[";
   public static readonly END_ARRAY = "]";
 
-  constructor(data: Array<Frame>, meta = Void) {
+  constructor(data: Array<Frame>, meta = NilContext) {
     super(data, meta);
   }
 

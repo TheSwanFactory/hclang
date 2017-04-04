@@ -1,8 +1,8 @@
-import { Frame, Void } from "./frame";
+import { Frame, NilContext } from "./frame";
 import { FrameArray } from "./frame-array";
 
 export class FrameList extends Frame {
-  constructor(protected data: Array<Frame>, meta = Void) {
+  constructor(protected data: Array<Frame>, meta = NilContext) {
     super(meta);
   }
 

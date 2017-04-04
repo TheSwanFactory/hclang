@@ -1,12 +1,12 @@
 import * as _ from "lodash";
-import { Frame, FrameAtom, Void } from "../frames";
+import { Frame, FrameAtom, NilContext } from "../frames";
 import { terminals } from "./terminals";
 
 export type Flag = { [key: string]: boolean; };
 
 export class Token extends FrameAtom {
   constructor(protected data: Frame) {
-    super(Void);
+    super(NilContext);
   }
 
   public called_by(callee: Frame, parameter: Frame) {
@@ -23,7 +23,7 @@ export class Lex extends Frame {
 
   public constructor(protected factory: any, protected flags: Flag = {}) {
     super();
-    if (factory !== Frame.nil) {
+    if (!factory.is_nil) {
       this.sample = new factory("");
     }
   }

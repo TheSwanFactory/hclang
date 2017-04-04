@@ -5,7 +5,7 @@ export interface IKeyValuePair extends ReadonlyArray<string | Frame> {
     0: string;
     1: Frame;
 }
-export declare const Void: Context;
+export declare const NilContext: Context;
 export declare class Frame {
     private meta;
     static readonly kOUT: string;
@@ -35,6 +35,8 @@ export declare class Frame {
     meta_string(): string;
     toString(): string;
     asArray(): Array<Frame>;
+    is_nil(): boolean;
+    is_void(): boolean;
 }
 export declare class FrameAtom extends Frame {
     string_prefix(): string;

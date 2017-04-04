@@ -1,4 +1,4 @@
-import { Context, Frame, FrameString, FrameSymbol, Void } from "../frames";
+import { Context, Frame, FrameString, FrameSymbol, NilContext } from "../frames";
 import { ICurryFunction } from "../ops";
 import { Lex } from "./lex";
 import { LexPipe } from "./lex-pipe";
@@ -7,7 +7,7 @@ export class Terminal extends Frame {
   public static end() { return new Terminal(finish); };
 
   constructor(protected data: ICurryFunction) {
-    super(Void);
+    super(NilContext);
     this.callme = true;
   }
 

@@ -1,10 +1,10 @@
-import { Context, Frame, FrameArray, FrameLazy, FrameString, FrameSymbol, Void } from "../frames";
+import { Context, Frame, FrameArray, FrameLazy, FrameString, FrameSymbol, NilContext } from "../frames";
 import { EvalPipe } from "./eval-pipe";
 import { GroupPipe } from "./group-pipe";
 import { LexPipe } from "./lex-pipe";
 import { ParsePipe } from "./parse-pipe";
 
-export const evaluate = (input: string, context = Void): Frame => {
+export const evaluate = (input: string, context = NilContext): Frame => {
   const result = new FrameArray([], context); // store the result
   const evaluator = new EvalPipe(result); // evaluate lists into results
   const grouper = new GroupPipe(evaluator); // group expressions into lists
