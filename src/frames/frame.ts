@@ -116,6 +116,7 @@ export class Frame {
 export class FrameAtom extends Frame {
   public string_prefix() { return ""; };
   public string_suffix() { return ""; };
+  public string_start() { return this.string_prefix(); };
 
   public toStringData(): string {
     return this.string_prefix() + this.toData().toString() + this.string_suffix();
