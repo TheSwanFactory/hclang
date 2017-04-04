@@ -3,8 +3,6 @@ import * as frame from "../frames";
 import { Lex } from "./lex";
 import { Terminal, terminals } from "./terminals";
 
-type LexMap = { [key: string]: Lex; };
-
 export class FrameSpace extends frame.FrameAtom {
   public static readonly SPACE_CHAR = " ";
 
@@ -25,11 +23,11 @@ const tokenFrames = [
   frame.FrameString,
 ];
 
-const tokens2: LexMap = {};
+const tokens2: frame.Context = {};
 
 _.map(tokenFrames, (klass: any) => {
   const sample: frame.FrameAtom = new klass("");
-  const key = sample.string_prefix();
+  const key = sample.string_start();
   tokens2[key] = new Lex(klass);
 });
 
@@ -39,6 +37,9 @@ const tokens: frame.Context = {
  "“": new Lex(frame.FrameString),
 };
 
-_.merge(tokens, terminals);
+console.log(tokens);
+console.log(tokens2);
+
+_.merge(tokens2, terminals);
 
 export const syntax: frame.Context = tokens;
