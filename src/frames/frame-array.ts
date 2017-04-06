@@ -1,6 +1,10 @@
 import { Frame, NilContext } from "./frame";
 import { FrameList } from "./frame-list";
 
+export interface IArrayConstructor {
+    new (data: Array<Frame>): FrameArray;
+}
+
 export class FrameArray extends FrameList {
   public static readonly BEGIN_ARRAY = "[";
   public static readonly END_ARRAY = "]";
