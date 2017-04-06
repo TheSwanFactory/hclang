@@ -4,12 +4,11 @@ import { ICurryFunction } from "../ops";
 import { Parser } from "./parser";
 import { syntax } from "./syntax";
 
-export class LexOptions extends Frame {
-  constructor(protected flags: any) {
-    super(NilContext);
-  }
-}
+export type LexOptions = { [key: string]: any; };
 
+export class FrameStatement {
+
+}
 class LexTerminal extends Frame {
   constructor(protected options: LexOptions) {
     super(NilContext);
@@ -19,7 +18,7 @@ class LexTerminal extends Frame {
   public apply(argument: Frame, parameter: Frame) {
     const source = argument as Lexer;
     const options = parameter as LexOptions;
-    return source.terminate(options);
+    return source.finish(options);
   }
 }
 
@@ -43,13 +42,13 @@ export class Lexer extends Frame {
     this.set(Frame.kOUT, out.call(argument));
   }
 
-  public terminate(options: LexOptions) {
+  public finish(options: LexOptions) {
     return Frame.nil;
   }
 }
 
-const parameter = new LexOptions({
-  isStatement: true,
-  pop: true,
+const parameter: LexOptions = {
+  pop: FrameGroup,
   push: FrameGroup,
-});
+  wrap: FrameStatement,
+};
