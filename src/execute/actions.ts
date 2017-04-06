@@ -10,7 +10,7 @@ export class FrameStatement extends frame.Frame {
 
 export class FrameLazyGroup extends frame.FrameLazy {
   constructor(data: Array<frame.FrameExpr>, meta: frame.Context = frame.NilContext) {
-    const group = new frame.FrameGroup(data);
+    const group = new frame.FrameGroup(data); // only if more than one?
     super([group], meta);
   }
 };
@@ -21,8 +21,8 @@ export const actions: OptionMap = {
   ";": {wrap: FrameStatement},
 };
 
-function addGroup(grouper: typeof frame.FrameGroup) {
-  const sample = new grouper([]);
+function addGroup(grouper: frame.IArrayConstructor) {
+  const sample = new grouper([], frame.NilContext);
   const open = sample.string_open();
   const close = sample.string_close();
   actions[open] = {push: grouper};
