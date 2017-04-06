@@ -1,12 +1,19 @@
-import { Context, Frame, FrameGroup, FrameString, NilContext } from "../frames";
+import * as frame from "../frames";
 
 export type LexOptions = { [key: string]: any; };
 
 export type OptionMap = { [key: string]: LexOptions; };
 
-export class FrameStatement extends Frame {
+export class FrameStatement extends frame.Frame {
 
 }
+
+export class FrameLazyGroup extends frame.FrameLazy {
+  constructor(data: Array<frame.FrameExpr>, meta: frame.Context = frame.NilContext) {
+    const group = new frame.FrameGroup(data);
+    super([group], meta);
+  }
+};
 
 export const actions: OptionMap = {
   "\n": {},
@@ -14,7 +21,7 @@ export const actions: OptionMap = {
   ";": {wrap: FrameStatement},
 };
 
-function addGroup(grouper: typeof FrameGroup) {
+function addGroup(grouper: typeof frame.FrameGroup) {
   const sample = new grouper([]);
   const open = sample.string_open();
   const close = sample.string_close();
@@ -22,4 +29,4 @@ function addGroup(grouper: typeof FrameGroup) {
   actions[close] = {pop: grouper};
 }
 
-addGroup(FrameGroup);
+addGroup(frame.FrameGroup);
