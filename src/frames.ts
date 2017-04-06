@@ -1,11 +1,11 @@
 export { FrameArray } from "./frames/frame-array";
-export { FrameAtom } from "./frames/frame-atom";
+export { FrameAtom, IStringConstructor } from "./frames/frame-atom";
 export { FrameArg, FrameParam } from "./frames/frame-arg";
 export { FrameComment } from "./frames/frame-comment";
 export { FrameExpr } from "./frames/frame-expr";
 export { FrameGroup } from "./frames/frame-group";
 export { FrameLazy } from "./frames/frame-lazy";
-export { FrameList } from "./frames/frame-list";
+export { FrameList, IArrayConstructor } from "./frames/frame-list";
 export { FrameName } from "./frames/frame-name";
 export { FrameNumber } from "./frames/frame-number";
 export { FrameString } from "./frames/frame-string";

@@ -1,8 +1,5 @@
 import { Frame } from "./frame";
 import { FrameList } from "./frame-list";
-export interface IArrayConstructor {
-    new (data: Array<Frame>): FrameArray;
-}
 export declare class FrameArray extends FrameList {
     static readonly BEGIN_ARRAY: string;
     static readonly END_ARRAY: string;

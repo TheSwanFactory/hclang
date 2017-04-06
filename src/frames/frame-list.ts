@@ -1,5 +1,9 @@
-import { Frame, NilContext } from "./frame";
+import { Context, Frame, NilContext } from "./frame";
 import { FrameArray } from "./frame-array";
+
+export interface IArrayConstructor {
+    new (data: Array<Frame>, meta: Context): Frame;
+}
 
 export class FrameList extends Frame {
   constructor(protected data: Array<Frame>, meta = NilContext) {

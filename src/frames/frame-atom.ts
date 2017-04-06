@@ -1,4 +1,9 @@
-import { Frame, NilContext } from "./frame";
+import { Context, Frame, NilContext } from "./frame";
+import { FrameArray } from "./frame-array";
+
+export interface IStringConstructor {
+    new (data: string, meta: Context): FrameAtom;
+}
 
 export class FrameAtom extends Frame {
   constructor(meta = NilContext) {

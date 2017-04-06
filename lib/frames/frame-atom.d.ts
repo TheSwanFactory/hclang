@@ -1,8 +1,9 @@
-import { Frame } from "./frame";
+import { Context, Frame } from "./frame";
+export interface IStringConstructor {
+    new (data: string, meta: Context): FrameAtom;
+}
 export declare class FrameAtom extends Frame {
-    constructor(meta?: {
-        [key: string]: Frame;
-    });
+    constructor(meta?: Context);
     string_prefix(): string;
     string_suffix(): string;
     string_start(): string;
