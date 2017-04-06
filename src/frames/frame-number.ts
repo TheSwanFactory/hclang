@@ -8,7 +8,7 @@ export class FrameNumber extends FrameAtom {
   protected data: number;
 
   constructor(source: string, meta: Context = NilContext) {
-    super(source, meta);
+    super(meta);
     this.data = _.toNumber(source);
   }
 

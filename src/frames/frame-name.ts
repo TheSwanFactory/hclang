@@ -8,7 +8,7 @@ export class FrameName extends FrameAtom {
   protected data: FrameSymbol;
 
   constructor(source: string, meta = NilContext) {
-    super(source, meta);
+    super(meta);
     this.data = FrameSymbol.for(source);
   }
 

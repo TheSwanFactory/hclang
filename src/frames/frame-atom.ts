@@ -1,7 +1,7 @@
 import { Frame, NilContext } from "./frame";
 
 export class FrameAtom extends Frame {
-  constructor(protected source: string, meta = NilContext) {
+  constructor(meta = NilContext) {
     super(meta);
   }
 
@@ -26,4 +26,7 @@ export class FrameAtom extends Frame {
   }
 
   protected toData(): any { return null; }
+}
+
+export class FrameQuote extends FrameAtom {
 }

@@ -1,7 +1,6 @@
 import { Frame } from "./frame";
 export declare class FrameAtom extends Frame {
-    protected source: string;
-    constructor(source: string, meta?: {
+    constructor(meta?: {
         [key: string]: Frame;
     });
     string_prefix(): string;
@@ -11,4 +10,6 @@ export declare class FrameAtom extends Frame {
     toString(): string;
     canInclude(char: string): boolean;
     protected toData(): any;
+}
+export declare class FrameQuote extends FrameAtom {
 }

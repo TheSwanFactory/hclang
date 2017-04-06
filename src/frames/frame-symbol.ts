@@ -12,7 +12,7 @@ export class FrameSymbol extends FrameAtom {
   protected static symbols: { [key: string]: FrameSymbol; } = {};
 
   constructor(protected data: string, meta = NilContext) {
-    super(data, meta);
+    super(meta);
   }
 
   public in(contexts = [Frame.nil]) {

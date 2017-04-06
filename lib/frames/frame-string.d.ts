@@ -1,5 +1,6 @@
-import { Context, Frame, FrameAtom } from "./frame";
-export declare class FrameString extends FrameAtom {
+import { Context, Frame } from "./frame";
+import { FrameQuote } from "./frame-atom";
+export declare class FrameString extends FrameQuote {
     protected data: string;
     static readonly STRING_BEGIN: string;
     static readonly STRING_END: string;
