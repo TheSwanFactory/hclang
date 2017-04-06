@@ -1,4 +1,5 @@
-import { Context, FrameAtom } from "./frame";
+import { Context } from "./frame";
+import { FrameAtom } from "./frame-atom";
 export declare class FrameNumber extends FrameAtom {
     static readonly NUMBER_BEGIN: string;
     static readonly NUMBER_END: string;
