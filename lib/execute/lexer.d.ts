@@ -1,9 +1,5 @@
 import { Frame, FrameString } from "../frames";
-export declare type LexOptions = {
-    [key: string]: any;
-};
-export declare class FrameStatement {
-}
+import { LexOptions } from "./actions";
 export declare class Lexer extends Frame {
     constructor(out: Frame);
     lex_string(input: string): Frame;
