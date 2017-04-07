@@ -34,10 +34,10 @@ data format, there are no keywords, reserved words, or even any grammar. Next we
 the robust data protection semantics inspired by BitC[@Shapiro:EffectTyping], which
 allow us the efficiency of C's memory model without any of the downsides. Finally, we
 provide examples of how these deceptively simple primitives allow us to trivially implement
-Object-Oriented programming, HTML, and other higher-level abstractions.
+HTML, Object-Oriented programming, and other higher-level abstractions.
 
-We are currently developing the first implementation of HC as a TypeScript[@TypeScript] interpreter,
-which can be found at <http://github.com/TheSwanFactory/hclang/> under an MIT Open Source
+We are currently developing the first implementation of HC as a TypeScript[@TypeScript] interpreter.
+It can be found at <http://github.com/TheSwanFactory/hclang/> under an MIT Open Source
 license.
 
 ~
@@ -50,7 +50,31 @@ license.
 
 Blah.
 
-# Frames   { #sec-frames }
+# Syntax   { #sec-frames }
+
+The core principle of Homoiconic C syntax is _isomorphism_: every syntactic construct refers
+to exactly one semantic concept. Put another way, it is modeless: characters don't mean
+different things in different places. This enables vastly simpler parsers and a
+much shallower learning curve.
+
+The syntax of traditional data formats is build around _literals_, and the _terminals_ that
+separate and organize them. HC simply extends that with _expressions_ and _identifiers_.
+
+## Literals
+
+## Expressions
+
+## Terminals
+
+Terminals delimit and group expressions.  There are eleven terminals organized into three
+categories: 
+
+* Whitespace: newline | space | tab
+* Separators:  data ',' | metadata ';'
+* Aggregates:  group '(' ')' | array '[' ']' | closure '{' '}'
+
+## Identifiers
+
 
 ## Concepts
 ### Function
