@@ -15,42 +15,62 @@ Doc class     : [preprint]{sigplanconf}
 [TITLE]
 
 ~ Abstract
-There is more in you of good than you know, child of the kindly West.
-Some courage and some wisdom, blended in measure. If more of us valued
-food and cheer and song above hoarded gold, it would be a merrier world.
+Modern programming is dominated by languages derived from C[@CLang]
+and the UNIX shell[@UNIXShell], characterized by complicated syntax and sophisticated parsers.
+Minimalist languages such as Forth[@Forth], Scheme[@Scheme] and Self[@Self] are no longer
+taken seriously[^lua-fn], presumably because they are felt to lack sufficiently readable _syntax_
+and powerful enough _semantics_.
+
+In this paper we introduce a novel data format called **Homoiconic C** ("HC") that we claim
+expresses a safe superset of C-like computations, yet is even easier to read than
+existing scripting languages. The key is a novel data structure and computational model
+we call _Frames_, designed to replace and improve upon the s-expressions and 
+metacircular evaluation model of Lisp[@Lisp]. Frames act as a universal monad[^monad],
+with the result that Homoiconic C is simply conventions for creating and evaluating Frames.
+
+In this paper we will describe the complete syntax of HC, including
+three types of lists, seven atoms, and the seven predefined operators; as a modeless 
+data format, there are no keywords, reserved words, or even any grammar. Next we discuss
+the robust data protection semantics inspired by BitC[@Shapiro:EffectTyping], which
+allow us the efficiency of C's memory model without any of the downsides. Finally, we
+provide examples of how these deceptively simple primitives allow us to trivially implement
+Object-Oriented programming, HTML, and other higher-level abstractions.
+
+We are currently developing the first implementation of HC as a TypeScript[@TypeScript] interpreter,
+which can be found at <http://github.com/TheSwanFactory/hclang/> under an MIT Open Source
+license.
+
 ~
+[^lua-fn]: The only minimalist language still in active use appears to be Lua[@Lua],
+    though even that is relegated to niche applications.
+[^monad]: Not just the mathematical term for an object closed under all operations,
+    but Liebniz's original idea of a single universal building-block[@Liebniz].
 
 # Introduction     { #sec-intro }
 
-Figure [#fig-butterfly] in Section [#sec-intro] shows a monarch butterfly.
-Note that you can drag&drop images into the editor pane to include them in
-the document, and similarly with bibtex files, latex style files, etc.
+Blah.
 
-~ Figure { #fig-butterfly; caption:"A Monarch butterfly"; page-align:here }
-![butterfly]
-~
+# Frames   { #sec-frames }
 
-[butterfly]: images/butterfly.png "butterfly"  { width:4em }
+## Concepts
+### Function
+### Array
+### Dictionary
+### Scope
 
-Our contributions are:
+## Syntax
 
-* A figure of a _butterfly_;
-* Some **mathematics**;
-* And some source code;
-* And references to Tex books [@Knuth:TeX]. 
-  Textual citations, like @Knuth:TeX are also possible.
+## Operators
 
-# Content
+# Data Protection
 
-A definition of $e$ is shown in Equation [#euler] proved by Theorem [#th-euler]:
+## Encapsulation
 
-~ Equation { #euler }
-e = \lim_{n\to\infty} \left( 1 + \frac{1}{n} \right)^n
-~
+## Effect Typing
 
-~ Theorem {#th-euler; caption:"Euler's theorem" }
-More math here.
-~
+# Applications
+
+## Object-Orientation
 
 Let's program some Javascript:
 ``` javascript
@@ -58,6 +78,18 @@ function hello() {
   return "hello world!"
 }
 ```
+
+## Web Technologies
+
+# Next Steps
+
+## Implementation Status
+
+## Future Directions
+
+## Potential Implications
+
+# Related Work
 
 ~ Note
 The syntax highlighting works in the PDF output too.
