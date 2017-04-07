@@ -1,18 +1,16 @@
-Title         : My Academic Paper
-Author        : You
-Affiliation   : Research institute
-Email         : you@bar.com
+Title         : Homoiconic C
+Subtitle      : Programming without a Language
 
-Author        : My co-author
-Affiliation   : Other institute
-Email         : other@bar.com
+HideAuthor        : Ernest N. Prabhakar
+HideAffiliation   : The Swan Factory, Inc.
+HideEmail         : ernest.prabhakar@gmail.com
 
 Colorizer     : javascript
 Bib style     : plainnat
-Bibliography  : example
+Bibliography  : hc-refs.bib
 Logo          : True
-
-Doc class     : [10pt]article
+Package       : amsmath
+Doc class     : [preprint]{sigplanconf}
 
 [TITLE]
 
@@ -39,7 +37,7 @@ Our contributions are:
 * A figure of a _butterfly_;
 * Some **mathematics**;
 * And some source code;
-* And references to Tex books [@Knuth:TeX;@Lamport:LaTeX;@Goo93;@Fberg04] and others [@Grandstrand]. 
+* And references to Tex books [@Knuth:TeX]. 
   Textual citations, like @Knuth:TeX are also possible.
 
 # Content
