@@ -15,50 +15,82 @@ Doc class     : [preprint]{sigplanconf}
 [TITLE]
 
 ~ Abstract
-Modern programming is dominated by languages derived from C[@CLang]
-and the UNIX shell[@UNIXShell], characterized by complicated syntax and sophisticated parsers.
-Minimalist languages such as Forth[@Forth], Scheme[@Scheme] and Self[@Self] are no longer
-taken seriously[^lua-fn], presumably because they are felt to lack sufficiently readable _syntax_
+  
+Modern programming is dominated by languages derived from C[@CLang] and
+the UNIX shell[@UNIXShell], characterized by complicated syntax and
+sophisticated parsers. Minimalist languages such as Forth[@Forth],
+Scheme[@Scheme] and Self[@Self] are no longer taken seriously[^lua-fn],
+presumably because they are felt to lack sufficiently readable _syntax_
 and powerful enough _semantics_.
 
-In this paper we introduce a novel data format called **Homoiconic C** ("HC") that we claim
-expresses a safe superset of C-like computations, yet is even easier to read than
-existing scripting languages. The key is a novel data structure and computational model
-we call _Frames_, designed to replace and improve upon the s-expressions and 
-metacircular evaluation model of Lisp[@Lisp]. Frames act as a universal monad[^monad],
-with the result that Homoiconic C is simply conventions for creating and evaluating Frames.
+In this paper we introduce a novel data format called **Homoiconic C**
+("HC") that we claim expresses a safe superset of C-like computations,
+yet is even easier to read than existing scripting languages. The key is
+a novel data structure and computational model we call _Frames_, designed
+to replace and improve upon the s-expressions and metacircular evaluation
+model of Lisp[@Lisp]. Frames act as a universal monad[^monad], with the
+result that Homoiconic C is simply conventions for creating and
+evaluating Frames.
 
-In this paper we will describe the complete syntax of HC, including
-three types of lists, seven atoms, and the seven predefined operators; as a modeless 
-data format, there are no keywords, reserved words, or even any grammar. Next we discuss
-the robust data protection semantics inspired by BitC[@Shapiro:EffectTyping], which
-allow us the efficiency of C's memory model without any of the downsides. Finally, we
-provide examples of how these deceptively simple primitives allow us to trivially implement
-HTML, Object-Oriented programming, and other higher-level abstractions.
+In this paper we will describe the complete syntax of HC, including three
+types of lists, seven atoms, and the seven predefined operators; as a
+modeless data format, there are no keywords, reserved words, or even any
+grammar. Next we discuss the robust data protection semantics inspired by
+BitC[@Shapiro:EffectTyping], which allow us the efficiency of C's memory
+model without any of the downsides. Finally, we provide examples of how
+these deceptively simple primitives allow us to trivially implement HTML,
+Object-Oriented programming, and other higher-level abstractions.
 
-We are currently developing the first implementation of HC as a TypeScript[@TypeScript] interpreter.
-It can be found at <http://github.com/TheSwanFactory/hclang/> under an MIT Open Source
+We are currently developing the first implementation of HC as a
+TypeScript[@TypeScript] interpreter. It can be found at
+<http://github.com/TheSwanFactory/hclang/> under an MIT Open Source
 license.
 
 ~
-[^lua-fn]: The only minimalist language still in active use appears to be Lua[@Lua],
-    though even that is relegated to niche applications.
-[^monad]: Not just the mathematical term for an object closed under all operations,
-    but Liebniz's original idea of a single universal building-block[@Liebniz].
+[^lua-fn]: The only minimalist language still in active use appears to be
+    Lua[@Lua], though even that is relegated to niche applications.
+    
+[^monad]: Not just the mathematical term for an object closed under all
+    operations, but Liebniz's original idea of a single universal
+    building-block[@Liebniz].
 
 # Introduction     { #sec-intro }
 
 Blah.
 
-# Syntax   { #sec-frames }
+# Frames   { #sec-frames }
 
-The core principle of Homoiconic C syntax is _isomorphism_: every syntactic construct refers
-to exactly one semantic concept. Put another way, it is modeless: characters don't mean
-different things in different places. This enables vastly simpler parsers and a
-much shallower learning curve.
+## Syntax
+The core principle of Homoiconic C syntax is _isomorphism_: every
+syntactic construct refers to exactly one semantic concept. Put another
+way, it is modeless : characters don't mean different things in different
+places. This enables vastly simpler parsers and a much shallower learning
+curve.
 
-The syntax of traditional data formats is build around _literals_, and the _terminals_ that
-separate and organize them. HC simply extends that with _expressions_ and _identifiers_.
+Like traditional data formats, HC is build around _literals_ and
+the _terminals_ that separate and organize them. HC simply extends that
+with _identifiers_, and a single grammar construct, the _expression_. The
+entire syntax is in Table [#sec-table-syntax].
+
+~ TableFigure { #sec-table-syntax; caption: "Complete Homiconic C Syntax" }
+
++----|---------------+----------|---------------+----------------+
+| Literals                                                   |||||
+| Bit               || Number                  || Quote          |
++----|---------------+----------|---------------+----------------+
+| <> | _all (true)_  | 0b010    | _binary_      | “_string_”     |
+| () | _nil (false)_ | 0o1777   | _octal_       | # _commment_ # |
+|                   || 1234     | _decimal_     | \\_length_\\_blob_    |
+|                   || 0xCAFE   | _hexadecimal_ |                |
+|                   || 0@Base64 | _Base64_      |                |
++----|---------------+----------|---------------+----------------+
+
+~
+
+
+
+
+
 
 ## Literals
 
@@ -66,8 +98,8 @@ separate and organize them. HC simply extends that with _expressions_ and _ident
 
 ## Terminals
 
-Terminals delimit and group expressions.  There are eleven terminals organized into three
-categories: 
+Terminals delimit and group expressions. There are eleven terminals
+organized into three categories:
 
 * Whitespace: newline | space | tab
 * Separators:  data ',' | metadata ';'
