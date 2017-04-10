@@ -63,7 +63,7 @@ Blah.
 ## Syntax
 The core principle of Homoiconic C syntax is _isomorphism_: every
 syntactic construct refers to exactly one semantic concept. Put another
-way, it is modeless : characters don't mean different things in different
+way, it is modeless: characters don't mean different things in different
 places. This enables vastly simpler parsers and a much shallower learning
 curve.
 
@@ -74,17 +74,51 @@ entire syntax is in Table [#sec-table-syntax].
 
 ~ TableFigure { #sec-table-syntax; caption: "Complete Homiconic C Syntax" }
 
-+----|---------------+----------|---------------+----------------+
-| Literals                                                   |||||
-| Bit               || Number                  || Quote          |
-+----|---------------+----------|---------------+----------------+
-| <> | _all (true)_  | 0b010    | _binary_      | “_string_”     |
-| () | _nil (false)_ | 0o1777   | _octal_       | # _commment_ # |
-|                   || 1234     | _decimal_     | \\_length_\\_blob_    |
-|                   || 0xCAFE   | _hexadecimal_ |                |
-|                   || 0@Base64 | _Base64_      |                |
-+----|---------------+----------|---------------+----------------+
++----|---------------+----------|---------------+--------------------+
+| Literals                                                       |||||
+| Bit               || Number                  || Quote              |
++----|---------------+----------|---------------+--------------------+
+| <> | _all (true)_  | 0b010    | _binary_      | “_string_”         |
+| () | _nil (false)_ | 0o1777   | _octal_       | # _commment_ #     |
+|                   || 1234     | _decimal_     | \\_length_\\_blob_ |
+|                   || 0xCAFE   | _hexadecimal_ |                    |
+|                   || 0@Base64 | _Base64_      |                    |
++----|---------------+----------|---------------+--------------------+
+{ tbody-tr-odd-background-color:Gainsboro; \
+  tr-even-background-color:Floralwhite; cell-padding 10ex; }
 
++-----------|------------------+------|-----------------+---------|-------------------+
+| Terminals                                                                      ||||||
+| Separators                  || Aggregates            || Whitespace                 ||
++-----------|------------------+------|-----------------+---------|-------------------+
+| ,         | _end expression_ | (    | _begin group_   | space   | _separate tokens_ |
+| ;         | _end statement_  | )    | _end group_     | newline | _end group_       |
+|                             || ]    | _end array_     |                            ||
+|                             || \[   | _begin closure_ |                            ||
+|                             || ]    | _end closure_   |                            ||
++-----------|------------------+------|-----------------+---------|-------------------+
+{ tbody-tr-odd-background-color:Gainsboro; \
+  tr-even-background-color:Floralwhite }
+
++-----------+------------+---------------+--------------+
+| Identifiers                                        ||||
+|Assignment | Constancy  | Privacy       | Effect   |
++-----------+------------+---------------+--------------+
+| _value_   | _variable_ | _public_      | _immutable_  |
+| ._name_   | _Constant_ | \__protected_ | _mutable_\_  |
+|           |            | \_\__private_ | _mutating_: |
++-----------+------------+---------------+--------------+
+{ tbody-tr-odd-background-color:Gainsboro; \
+  tr-even-background-color:Floralwhite }
+
++---------------+
+|Special        |
++-----+
+| \@_reference_ |
+| $_control_    |
++---------------+
+{ tbody-tr-odd-background-color:Gainsboro; \
+  tr-even-background-color:Floralwhite }
 ~
 
 
