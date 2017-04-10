@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+  <meta name="generator" content="Madoko, version 1.1.0" />
+  <meta name="viewport" content="initial-scale=1.0" />
+  <title>Homoiconic C</title>
+  <style type="text/css"  class="link">
+  /*# sourceURL=madoko.css */
+  
+  .madoko .toc>.tocblock .tocblock .tocblock {
+    margin-left: 2.25em;
+  }
+  .madoko .toc>.tocblock .tocblock {
+    margin-left: 1.5em;
+  }
+  .madoko .toc-contents>.tocblock>.tocitem {
+    font-weight: bold;
+  }
+  .madoko .toc {
+    margin-top: 1em;
+  }
+  .madoko p.para-continue {
+    margin-bottom: 0pt;
+  }
+  .madoko .para-block+p {
+    margin-top: 0pt;
+  }
+  .madoko ul.para-block, .madoko ol.para-block {
+    margin-top: 0pt;
+    margin-bottom: 0pt;
+  }
+  .madoko ul.para-end, .madoko ol.para-end {
+    margin-bottom: 1em;
+  }
+  .madoko dl {
+    margin-left: 0em;
+  }
+  .madoko blockquote {
+    font-style: italic;
+  }
+  .madoko a.localref {
+    text-decoration: none;
+  }
+  .madoko a.localref:hover {
+    text-decoration: underline;
+  }
+  .madoko .footnotes {
+    font-size: smaller;
+    margin-top: 2em;
+  }
+  .madoko .footnotes hr {
+    width: 50%;
+    text-align: left;
+  }
+  .madoko .footnote { 
+    margin-left: 1em;
+  }
+  .madoko .footnote-before {
+    margin-left: -1em;
+    width: 1em;
+    display: inline-block;
+  }
+  .madoko .align-center, .madoko .align-center>p {
+    text-align: center !important;
+  }
+  .madoko .align-center pre {
+    text-align: left;
+  }
+  .madoko .align-center>* {
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+  .madoko .align-left, .madoko .align-left>p {
+    text-align: left !important;
+  }
+  .madoko .align-left>* {
+    margin-left: 0pt !important;
+    margin-right: auto !important;
+  }
+  .madoko .align-right, .madoko .align-right>p {
+    text-align: right !important;
+  }
+  .madoko .align-right>* {
+    margin-left: auto !important;
+    margin-right: 0pt !important;
+  }
+  .madoko .align-center>table,
+  .madoko .align-left>table,
+  .madoko .align-right>table {
+    text-align: left !important;
+  }
+  .madoko .equation-before {
+    float: right;
+  }
+  .madoko .bibitem {
+    font-size: smaller;
+  }
+  .madoko .bibsearch {
+    font-size: x-small;
+    text-decoration:none;
+    color: black;
+    font-family: "Segoe UI Symbol", Symbola, serif;
+  }
+  .madoko .block, .madoko .figure, .madoko .bibitem, .madoko .equation, .madoko div.math {
+    margin-top: 1ex;
+    margin-bottom: 1ex;
+  }
+  .madoko .figure {
+    padding: 0.5em;
+    margin-left: 0pt;
+    margin-right: 0pt;
+  }
+  .madoko .hidden {
+    display: none;
+  }
+  .madoko .invisible {
+    visibility: hidden;
+  }
+  .madoko.preview .invisible {
+    visibility: visible;
+    opacity: 0.5;
+  }
+  .madoko code.code, .madoko span.code {
+    white-space: pre-wrap;
+  }
+  .madoko hr, hr.madoko {
+    border: none;
+    border-bottom: black solid 1px;
+    margin-bottom: 0.5ex;
+  }
+  .madoko .framed>*:first-child {
+    margin-top: 0pt;
+  }
+  .madoko .framed>*:last-child {
+    margin-bottom: 0pt;
+  }
+  .madoko ul.list-style-type-dash {
+      list-style-type: none !important;
+  }
+  .madoko ul.list-style-type-dash > li:before {
+      content: "\2013"; 
+      position: absolute;
+      margin-left: -1em; 
+  }
+  .madoko table.madoko {
+    border-collapse: collapse;
+  }
+  .madoko td, .madoko th {
+    padding: 0ex 0.5ex;
+    margin: 0pt;
+    vertical-align: top;
+  }
+  .madoko .cell-border-left {
+    border-left: 1px solid black;
+  }
+  .madoko .cell-border-right {
+    border-right: 1px solid black;
+  }
+  .madoko thead>tr:first-child>.cell-line,
+  .madoko tbody:first-child>tr:first-child>.cell-line {
+    border-top: 1px solid black;
+    border-bottom: none;
+  }
+  .madoko .cell-line, .madoko .cell-double-line {
+    border-bottom: 1px solid black;
+    border-top: none;
+  }
+  .madoko .cell-double-line {
+    border-top: 1px solid black;
+    padding-top: 1.5px !important;
+  }
+  .madoko .input-mathpre .MathJax_Display {
+    text-align: left !important;
+  }
+  .madoko div.input-mathpre {
+    text-align: left;
+    margin-top: 1.5ex;
+    margin-bottom: 1ex;
+  }
+  .madoko .math-rendering {
+    white-space: pre;
+    color: gray;
+  }
+  .madoko .mathdisplay {
+    text-align: center;
+  }
+  .madoko .pretty table {
+    border-collapse: collapse;
+  }
+  .madoko .pretty td {
+    padding: 0em;
+  }
+  .madoko .pretty td.empty {
+    min-width: 1.5ex;
+  }
+  .madoko .pretty td.expander {
+    width: 100em;
+  }
+  body.madoko, .madoko .serif {
+    font-family: Cambria,"Times New Roman","Liberation Serif","Times",serif;
+  }
+  .madoko .sans-serif {
+    font-family: "Calibri", "Optima", sans-serif;
+  }
+  .madoko .symbol {
+    font-family: "Segoe UI Symbol", Symbola, serif;
+  }
+  body.madoko {  
+    -webkit-text-size-adjust: 100%;       
+    text-rendering: optimizeLegibility;
+  }
+  body.madoko {
+    max-width: 88ex; 
+    margin: 1em auto;
+    padding: 0em 2em;  
+  }
+  body.preview.madoko {
+    padding: 0em 1em;
+  }
+  .madoko p {
+    text-align: justify;
+  }
+  .madoko h1, .madoko h2, .madoko h3, .madoko h4 { 
+    margin-top: 1.22em; 
+    margin-bottom: 1ex;
+  }
+  .madoko h1+p, .madoko h2+p, .madoko h3+p, .madoko h4+p, .madoko h5+p  { 
+    margin-top: 1ex;    
+  }
+  .madoko h5, .madoko h6 { 
+    margin-top: 1ex;
+    font-size: 1em;
+  }
+  .madoko h5 { 
+    margin-bottom: 0.5ex;
+  }
+  .madoko h5 + p {
+    margin-top: 0.5ex;
+  }
+  .madoko h6 { 
+    margin-bottom: 0pt;
+  }
+  .madoko h6 + p {
+    margin-top: 0pt;
+  }
+  .madoko pre, .madoko code, .madoko kbd, .madoko samp, .madoko tt, 
+  .madoko .monospace, .madoko .token-indent, .madoko .reveal pre, .madoko .reveal code, .madoko .email {
+    font-family: Consolas,"Andale Mono WT","Andale Mono",Lucida Console,Monaco,monospace,monospace;
+    font-size: 0.85em;
+  }
+  .madoko pre code, .madoko .token-indent {
+    font-size: 0.95em;
+  }
+  .madoko pre code {
+    font-family: inherit !important;
+  }
+  .madoko ol.linenums li {
+    background-color: white;
+    list-style-type: decimal;
+  }
+  .madoko .remote {
+    background-color: #F0FFF0;
+  }
+  .madoko .remote + * {
+    margin-top: 0pt;
+  }
+  @media print {
+    body.madoko {
+      font-size: 10pt;
+    }
+    @page {
+      margin: 1in 1.5in;
+    }
+  }
+  @media only screen and (max-device-width:1024px) {
+    body.madoko {
+      padding: 0em 0.5em;    
+    }
+    .madoko li {
+      text-align: left;
+    }
+  }
+  
+    </style>
+  
+  </head>
+<body class="madoko">
+
+<div class="body madoko" style="line-adjust:0">
+
+<div class="titleblock align-center para-block" style="text-align:center;line-adjust:0">
+<div class="titleheader align-center" style="text-align:center;line-adjust:0">
+<div class="title para-block" style="font-size:xx-large;font-weight:bold;margin-bottom:0.5ex;line-adjust:0">Homoiconic C</div>
+<div class="subtitle para-block" style="font-size:x-large;margin-bottom:0.5ex;line-adjust:0">Programming without a Language</div></div></div>
+<div class="abstract" style="margin-left:3em;margin-right:3em;font-size:small">
+<p class="p noindent"><strong class="strong-star2">Abstract.</strong> <br>
+Modern programming is dominated by languages derived from C<span class="citations" style="target-element:bibitem">[<a href="#clang" title="Stub. 
+Stub." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span> and
+the UNIX shell<span class="citations" style="target-element:bibitem">[<a href="#unixshell" title="Stub. 
+Stub." class="bibref localref" style="target-element:bibitem"><span class="cite-number">10</span></a>]</span>, characterized by complicated syntax and
+sophisticated parsers. Minimalist languages such as Forth<span class="citations" style="target-element:bibitem">[<a href="#forth" title="Stub. 
+Stub." class="bibref localref" style="target-element:bibitem"><span class="cite-number">2</span></a>]</span>,
+Scheme<span class="citations" style="target-element:bibitem">[<a href="#scheme" title="Stub. 
+Stub." class="bibref localref" style="target-element:bibitem"><span class="cite-number">6</span></a>]</span> and Self<span class="citations" style="target-element:bibitem">[<a href="#self" title="Stub. 
+Stub." class="bibref localref" style="target-element:bibitem"><span class="cite-number">7</span></a>]</span> are no longer taken seriously<sup id="back-fn-lua-fn" ><a href="#fn-lua-fn" title="1.The only minimalist language still in active use appears to be
+Lua[&lt;a href=&quot;#lua&quot; title=&quot;Stub. 
+Stub.&quot; class=&quot;bibref localref&quot; style=&quot;target-element:bibitem&quot;&gt;5], though even that is relegated to niche applications.
+
+&#8230;" class="footnote-ref localref" ><span class="footnote-label">1</span></a></sup>,
+presumably because they are felt to lack sufficiently readable <em class="em-low1">syntax</em>
+and powerful enough <em class="em-low1">semantics</em>.
+</p>
+<p class="p indent">In this paper we introduce a novel data format called <strong class="strong-star2">Homoiconic C</strong>
+(&#8220;HC&#8221;) that we claim expresses a safe superset of C-like computations,
+yet is even easier to read than existing scripting languages. The key is
+a novel data structure and computational model we call <em class="em-low1">Frames</em>, designed
+to replace and improve upon the s-expressions and metacircular evaluation
+model of Lisp<span class="citations" style="target-element:bibitem">[<a href="#lisp" title="Stub. 
+Stub." class="bibref localref" style="target-element:bibitem"><span class="cite-number">4</span></a>]</span>. Frames act as a universal monad<sup id="back-fn-monad" ><a href="#fn-monad" title="2.Not just the mathematical term for an object closed under all
+operations, but Liebniz&#39;s original idea of a single universal
+building-block[&lt;a href=&quot;#liebniz&quot; title=&quot;Stub. 
+Stub.&quot; class=&quot;bibref localref&quot; style=&quot;target-element:bibitem&quot;&gt;3].
+&#8617;" class="footnote-ref localref" ><span class="footnote-label">2</span></a></sup>, with the
+result that Homoiconic C is simply conventions for creating and
+evaluating Frames.
+</p>
+<p class="p indent">In this paper we will describe the complete syntax of HC, including three
+types of lists, seven atoms, and the seven predefined operators; as a
+modeless data format, there are no keywords, reserved words, or even any
+grammar. Next we discuss the robust data protection semantics inspired by
+BitC<span class="citations" style="target-element:bibitem">[<a href="#shapiro:effecttyping" title="Stub. 
+Stub." class="bibref localref" style="target-element:bibitem"><span class="cite-number">8</span></a>]</span>, which allow us the efficiency of C&#39;s memory
+model without any of the downsides. Finally, we provide examples of how
+these deceptively simple primitives allow us to trivially implement HTML,
+Object-Oriented programming, and other higher-level abstractions.
+</p>
+<p class="p indent">We are currently developing the first implementation of HC as a
+TypeScript<span class="citations" style="target-element:bibitem">[<a href="#typescript" title="Stub. 
+Stub." class="bibref localref" style="target-element:bibitem"><span class="cite-number">9</span></a>]</span> interpreter. It can be found at
+<a href="http://github.com/TheSwanFactory/hclang/" class="texturl monospace">http://&#8203;github.&#8203;com/&#8203;TheSwanFactory/&#8203;hclang/&#8203;</a> under an MIT Open Source
+license.
+</p></div><h2 id="sec-intro" class="h1" data-heading-depth="1" style="display:block"><span class="heading-before"><span class="heading-label">1</span>.&#8194;</span>Introduction</h2>
+<p class="p noindent">Blah.
+</p><h2 id="sec-frames" class="h1" data-heading-depth="1" style="display:block"><span class="heading-before"><span class="heading-label">2</span>.&#8194;</span>Frames</h2><h3 id="sec-syntax" class="h2" data-heading-depth="2" style="display:block"><span class="heading-before"><span class="heading-label">2.1</span>.&#8194;</span>Syntax</h3>
+<p class="p noindent">The core principle of Homoiconic C syntax is <em class="em-low1">isomorphism</em>: every
+syntactic construct refers to exactly one semantic concept. Put another
+way, it is modeless : characters don&#39;t mean different things in different
+places. This enables vastly simpler parsers and a much shallower learning
+curve.
+</p>
+<p class="p indent">Like traditional data formats, HC is build around <em class="em-low1">literals</em> and
+the <em class="em-low1">terminals</em> that separate and organize them. HC simply extends that
+with <em class="em-low1">identifiers</em>, and a single grammar construct, the <em class="em-low1">expression</em>. The
+entire syntax is in Table&nbsp;<a href="#sec-table-syntax" title="Complete Homiconic C Syntax" class="localref" style="target-element:tablefigure"><span class="table-label">1</span></a>.
+</p>
+<figure id="sec-table-syntax" class="tablefigure floating align-center float" style="text-align:center;float-env:table;float-name:Table">
+<table class="madoko block">
+<thead><tr><th class="thead tr-even col cell-border-left cell-line col-odd col-first" data-row="0" data-col="1"></th><th class="thead tr-even col cell-line col-even" data-row="0" data-col="2"></th><th class="thead tr-even col cell-border-left cell-line col-odd" data-row="0" data-col="3"></th><th class="thead tr-even col cell-line col-even" data-row="0" data-col="4"></th><th class="thead tr-even col cell-border-left cell-border-right cell-line col-odd col-last" data-row="0" data-col="5"></th></tr>
+<tr><th class="col cell-border-left thead tr-odd tr-first cell-border-right col-odd col-last col-first" data-row="1" colspan="5" data-col="1" style="font-weight:bold;text-align:center"> Literals                                                   </th></tr>
+<tr><th class="col cell-border-left thead tr-even tr-last col-odd col-first" data-row="2" colspan="2" data-col="1" style="font-weight:bold;text-align:center"> Bit               </th><th class="col cell-border-left thead tr-even tr-last col-odd" data-row="2" colspan="2" data-col="3" style="font-weight:bold;text-align:center"> Number                  </th><th class="col cell-border-left cell-border-right thead tr-even tr-last col-odd col-last" data-row="2" data-col="5" style="font-weight:bold"> Quote          </th></tr></thead>
+<tbody><tr><td class="tbody tr-even col cell-border-left cell-line col-odd col-first" data-row="0" data-col="1"></td><td class="tbody tr-even col cell-line col-even" data-row="0" data-col="2"></td><td class="tbody tr-even col cell-border-left cell-line col-odd" data-row="0" data-col="3"></td><td class="tbody tr-even col cell-line col-even" data-row="0" data-col="4"></td><td class="tbody tr-even col cell-border-left cell-border-right cell-line col-odd col-last" data-row="0" data-col="5"></td></tr>
+<tr><td class="tbody tr-odd tr-first col cell-border-left col-odd col-first" data-row="1" data-col="1"> &lt;&gt; </td><td class="tbody tr-odd tr-first col col-even" data-row="1" data-col="2"> <em class="em-low1">all (true)</em>  </td><td class="tbody tr-odd tr-first col cell-border-left col-odd" data-row="1" data-col="3"> 0b010    </td><td class="tbody tr-odd tr-first col col-even" data-row="1" data-col="4"> <em class="em-low1">binary</em>      </td><td class="tbody tr-odd tr-first col cell-border-left cell-border-right col-odd col-last" data-row="1" data-col="5"> “<em class="em-low1">string</em>”     </td></tr>
+<tr><td class="tbody tr-even col cell-border-left col-odd col-first" data-row="2" data-col="1"> () </td><td class="tbody tr-even col col-even" data-row="2" data-col="2"> <em class="em-low1">nil (false)</em> </td><td class="tbody tr-even col cell-border-left col-odd" data-row="2" data-col="3"> 0o1777   </td><td class="tbody tr-even col col-even" data-row="2" data-col="4"> <em class="em-low1">octal</em>       </td><td class="tbody tr-even col cell-border-left cell-border-right col-odd col-last" data-row="2" data-col="5"> # <em class="em-low1">commment</em> # </td></tr>
+<tr><td class="tbody tr-odd col cell-border-left col-odd col-first" data-row="3" colspan="2" data-col="1">                   </td><td class="tbody tr-odd col cell-border-left col-odd" data-row="3" data-col="3"> 1234     </td><td class="tbody tr-odd col col-even" data-row="3" data-col="4"> <em class="em-low1">decimal</em>     </td><td class="tbody tr-odd col cell-border-left cell-border-right col-odd col-last" data-row="3" data-col="5"> \<em class="em-low1">length</em>\<em class="em-low1">blob</em>    </td></tr>
+<tr><td class="tbody tr-even col cell-border-left col-odd col-first" data-row="4" colspan="2" data-col="1">                   </td><td class="tbody tr-even col cell-border-left col-odd" data-row="4" data-col="3"> 0xCAFE   </td><td class="tbody tr-even col col-even" data-row="4" data-col="4"> <em class="em-low1">hexadecimal</em> </td><td class="tbody tr-even col cell-border-left cell-border-right col-odd col-last" data-row="4" data-col="5">                </td></tr>
+<tr><td class="tbody tr-odd tr-last col cell-border-left col-odd col-first" data-row="5" colspan="2" data-col="1">                   </td><td class="tbody tr-odd tr-last col cell-border-left col-odd" data-row="5" data-col="3"> 0@Base64 </td><td class="tbody tr-odd tr-last col col-even" data-row="5" data-col="4"> <em class="em-low1">Base64</em>      </td><td class="tbody tr-odd tr-last col cell-border-left cell-border-right col-odd col-last" data-row="5" data-col="5">                </td></tr>
+<tr><td class="tbody tr-odd col cell-border-left cell-line col-odd col-first" data-row="5" data-col="1"></td><td class="tbody tr-odd col cell-line col-even" data-row="5" data-col="2"></td><td class="tbody tr-odd col cell-border-left cell-line col-odd" data-row="5" data-col="3"></td><td class="tbody tr-odd col cell-line col-even" data-row="5" data-col="4"></td><td class="tbody tr-odd col cell-border-left cell-border-right cell-line col-odd col-last" data-row="5" data-col="5"></td></tr></tbody></table>
+<hr  class="figureline madoko" style="display:block">
+
+<div class="p noindent"><fig-caption class="figure-caption"><span class="caption-before"><strong class="strong-star2">Table&#160;<span class="table-label">1</span>.</strong>&#160;</span><span class="caption-text">Complete Homiconic C Syntax</span></fig-caption></div></figure><h3 id="sec-literals" class="h2" data-heading-depth="2" style="display:block"><span class="heading-before"><span class="heading-label">2.2</span>.&#8194;</span>Literals</h3><h3 id="sec-expressions" class="h2" data-heading-depth="2" style="display:block"><span class="heading-before"><span class="heading-label">2.3</span>.&#8194;</span>Expressions</h3><h3 id="sec-terminals" class="h2" data-heading-depth="2" style="display:block"><span class="heading-before"><span class="heading-label">2.4</span>.&#8194;</span>Terminals</h3>
+<p class="p noindent">Terminals delimit and group expressions. There are eleven terminals
+organized into three categories:
+</p>
+<ul class="ul list-star compact">
+<li class="li ul-li list-star-li compact-li">Whitespace: newline | space | tab
+</li>
+<li class="li ul-li list-star-li compact-li">Separators:  data &#8216;,&#8217; | metadata &#8216;;&#8217;
+</li>
+<li class="li ul-li list-star-li compact-li">Aggregates:  group &#8216;(&#8217; &#8216;)&#8217; | array &#39;[&#39; &#39;]&#39; | closure &#8216;{&#8217; &#8216;}&#8217;
+</li></ul>
+<h3 id="sec-identifiers" class="h2" data-heading-depth="2" style="display:block"><span class="heading-before"><span class="heading-label">2.5</span>.&#8194;</span>Identifiers</h3><h3 id="sec-concepts" class="h2" data-heading-depth="2" style="display:block"><span class="heading-before"><span class="heading-label">2.6</span>.&#8194;</span>Concepts</h3><h4 id="sec-function" class="h3" data-heading-depth="3" style="display:block"><span class="heading-before"><span class="heading-label">2.6.1</span>.&#8194;</span>Function</h4><h4 id="sec-array" class="h3" data-heading-depth="3" style="display:block"><span class="heading-before"><span class="heading-label">2.6.2</span>.&#8194;</span>Array</h4><h4 id="sec-dictionary" class="h3" data-heading-depth="3" style="display:block"><span class="heading-before"><span class="heading-label">2.6.3</span>.&#8194;</span>Dictionary</h4><h4 id="sec-scope" class="h3" data-heading-depth="3" style="display:block"><span class="heading-before"><span class="heading-label">2.6.4</span>.&#8194;</span>Scope</h4><h3 id="sec-syntax" class="h2" data-heading-depth="2" style="display:block"><span class="heading-before"><span class="heading-label">2.7</span>.&#8194;</span>Syntax</h3><h3 id="sec-operators" class="h2" data-heading-depth="2" style="display:block"><span class="heading-before"><span class="heading-label">2.8</span>.&#8194;</span>Operators</h3><h2 id="sec-data-protection" class="h1" data-heading-depth="1" style="display:block"><span class="heading-before"><span class="heading-label">3</span>.&#8194;</span>Data Protection</h2><h3 id="sec-encapsulation" class="h2" data-heading-depth="2" style="display:block"><span class="heading-before"><span class="heading-label">3.1</span>.&#8194;</span>Encapsulation</h3><h3 id="sec-effect-typing" class="h2" data-heading-depth="2" style="display:block"><span class="heading-before"><span class="heading-label">3.2</span>.&#8194;</span>Effect Typing</h3><h2 id="sec-applications" class="h1" data-heading-depth="1" style="display:block"><span class="heading-before"><span class="heading-label">4</span>.&#8194;</span>Applications</h2><h3 id="sec-object-orientation" class="h2" data-heading-depth="2" style="display:block"><span class="heading-before"><span class="heading-label">4.1</span>.&#8194;</span>Object-Orientation</h3>
+<p class="p noindent">Let&#39;s program some Javascript:
+</p>
+<pre class="para-block pre-fenced pre-fenced3 language-javascript lang-javascript javascript colorized" style="display:block"><code><span style="color:blue">function</span> hello() {
+  <span style="color:blue">return</span> <span style="color:maroon">&quot;</span><span style="color:maroon">hello world!</span><span style="color:maroon">&quot;</span>
+}</code></pre><h3 id="sec-web-technologies" class="h2" data-heading-depth="2" style="display:block"><span class="heading-before"><span class="heading-label">4.2</span>.&#8194;</span>Web Technologies</h3><h2 id="sec-next-steps" class="h1" data-heading-depth="1" style="display:block"><span class="heading-before"><span class="heading-label">5</span>.&#8194;</span>Next Steps</h2><h3 id="sec-implementation-status" class="h2" data-heading-depth="2" style="display:block"><span class="heading-before"><span class="heading-label">5.1</span>.&#8194;</span>Implementation Status</h3><h3 id="sec-future-directions" class="h2" data-heading-depth="2" style="display:block"><span class="heading-before"><span class="heading-label">5.2</span>.&#8194;</span>Future Directions</h3><h3 id="sec-potential-implications" class="h2" data-heading-depth="2" style="display:block"><span class="heading-before"><span class="heading-label">5.3</span>.&#8194;</span>Potential Implications</h3><h2 id="sec-related-work" class="h1" data-heading-depth="1" style="display:block"><span class="heading-before"><span class="heading-label">6</span>.&#8194;</span>Related Work</h2>
+<div class="note" style="display:block">
+<p class="p noindent"><span class="note-before"><strong class="strong-star2"><span class="note-caption">Note</span></strong>.
+</span>The syntax highlighting works in the PDF output too.</p></div><h2 id="sec-conclusion" class="h1" data-heading-depth="1" style="display:block"><span class="heading-before"><span class="heading-label">7</span>.&#8194;</span>Conclusion</h2>
+<p class="p noindent">Really fun to write Markdown :-)
+</p>
+<div class="bibl" style="bbl-file:out/hc-paper-enp-bib.bbl.mdk"><h2 id="sec-references" class="clearnum h1 heading-references" data-heading-depth="1" style="display:block">References</h2>
+<div class="bibliography bib-numeric" data-hanging-indent="0" data-style="plainnat" style="bibstyle:madoko-numeric">
+
+<div id="clang" class="bibitem" data-cite-label="1" data-cite-year="1900a" data-cite-authors="Stub" style="text-indent:-2rem;margin-left:2rem;searchterm:_Stub_++Stub+"><span class="bibitem-before" style="padding-right:0.5em;display: inline-block; width:calc(2rem - 0.5em);display: inline-block; text-align:right;font-size:90%"></span>Stub.
+<span class="newblock"></span> <em class="em-low1">Stub</em>.
+<span class="newblock"></span> Stub, 1900a.&nbsp;<a href="http://www.bing.com/search?q=_Stub_++Stub+" class="bibsearch">&#128270;</a></div>
+<div id="forth" class="bibitem" data-cite-label="2" data-cite-year="1900b" data-cite-authors="Stub" style="text-indent:-2rem;margin-left:2rem;searchterm:_Stub_++Stub+"><span class="bibitem-before" style="padding-right:0.5em;display: inline-block; width:calc(2rem - 0.5em);display: inline-block; text-align:right;font-size:90%"></span>Stub.
+<span class="newblock"></span> <em class="em-low1">Stub</em>.
+<span class="newblock"></span> Stub, 1900b.&nbsp;<a href="http://www.bing.com/search?q=_Stub_++Stub+" class="bibsearch">&#128270;</a></div>
+<div id="liebniz" class="bibitem" data-cite-label="3" data-cite-year="1900c" data-cite-authors="Stub" style="text-indent:-2rem;margin-left:2rem;searchterm:Stub++Stub+"><span class="bibitem-before" style="padding-right:0.5em;display: inline-block; width:calc(2rem - 0.5em);display: inline-block; text-align:right;font-size:90%"></span>Stub.
+<span class="newblock"></span> Stub.
+<span class="newblock"></span> <em class="em-low1">Stub</em>, 1900c.&nbsp;<a href="http://www.bing.com/search?q=Stub++Stub+" class="bibsearch">&#128270;</a></div>
+<div id="lisp" class="bibitem" data-cite-label="4" data-cite-year="1900d" data-cite-authors="Stub" style="text-indent:-2rem;margin-left:2rem;searchterm:Stub++Stub+"><span class="bibitem-before" style="padding-right:0.5em;display: inline-block; width:calc(2rem - 0.5em);display: inline-block; text-align:right;font-size:90%"></span>Stub.
+<span class="newblock"></span> Stub.
+<span class="newblock"></span> <em class="em-low1">Stub</em>, 1900d.&nbsp;<a href="http://www.bing.com/search?q=Stub++Stub+" class="bibsearch">&#128270;</a></div>
+<div id="lua" class="bibitem" data-cite-label="5" data-cite-year="1900e" data-cite-authors="Stub" style="text-indent:-2rem;margin-left:2rem;searchterm:Stub++Stub+"><span class="bibitem-before" style="padding-right:0.5em;display: inline-block; width:calc(2rem - 0.5em);display: inline-block; text-align:right;font-size:90%"></span>Stub.
+<span class="newblock"></span> Stub.
+<span class="newblock"></span> <em class="em-low1">Stub</em>, 1900e.&nbsp;<a href="http://www.bing.com/search?q=Stub++Stub+" class="bibsearch">&#128270;</a></div>
+<div id="scheme" class="bibitem" data-cite-label="6" data-cite-year="1900f" data-cite-authors="Stub" style="text-indent:-2rem;margin-left:2rem;searchterm:_Stub_++Stub+"><span class="bibitem-before" style="padding-right:0.5em;display: inline-block; width:calc(2rem - 0.5em);display: inline-block; text-align:right;font-size:90%"></span>Stub.
+<span class="newblock"></span> <em class="em-low1">Stub</em>.
+<span class="newblock"></span> Stub, 1900f.&nbsp;<a href="http://www.bing.com/search?q=_Stub_++Stub+" class="bibsearch">&#128270;</a></div>
+<div id="self" class="bibitem" data-cite-label="7" data-cite-year="1900g" data-cite-authors="Stub" style="text-indent:-2rem;margin-left:2rem;searchterm:Stub++Stub+"><span class="bibitem-before" style="padding-right:0.5em;display: inline-block; width:calc(2rem - 0.5em);display: inline-block; text-align:right;font-size:90%"></span>Stub.
+<span class="newblock"></span> Stub.
+<span class="newblock"></span> <em class="em-low1">Stub</em>, 1900g.&nbsp;<a href="http://www.bing.com/search?q=Stub++Stub+" class="bibsearch">&#128270;</a></div>
+<div id="shapiro:effecttyping" class="bibitem" data-cite-label="8" data-cite-year="1900h" data-cite-authors="Stub" style="text-indent:-2rem;margin-left:2rem;searchterm:Stub++Stub+"><span class="bibitem-before" style="padding-right:0.5em;display: inline-block; width:calc(2rem - 0.5em);display: inline-block; text-align:right;font-size:90%"></span>Stub.
+<span class="newblock"></span> Stub.
+<span class="newblock"></span> <em class="em-low1">Stub</em>, 1900h.&nbsp;<a href="http://www.bing.com/search?q=Stub++Stub+" class="bibsearch">&#128270;</a></div>
+<div id="typescript" class="bibitem" data-cite-label="9" data-cite-year="1900i" data-cite-authors="Stub" style="text-indent:-2rem;margin-left:2rem;searchterm:Stub++Stub+"><span class="bibitem-before" style="padding-right:0.5em;display: inline-block; width:calc(2rem - 0.5em);display: inline-block; text-align:right;font-size:90%"></span>Stub.
+<span class="newblock"></span> Stub.
+<span class="newblock"></span> <em class="em-low1">Stub</em>, 1900i.&nbsp;<a href="http://www.bing.com/search?q=Stub++Stub+" class="bibsearch">&#128270;</a></div>
+<div id="unixshell" class="bibitem" data-cite-label="10" data-cite-year="1900j" data-cite-authors="Stub" style="text-indent:-2rem;margin-left:2rem;searchterm:_Stub_++Stub+"><span class="bibitem-before" style="padding-right:0.5em;display: inline-block; width:calc(2rem - 0.5em);display: inline-block; text-align:right;font-size:90%"></span>Stub.
+<span class="newblock"></span> <em class="em-low1">Stub</em>.
+<span class="newblock"></span> Stub, 1900j.&nbsp;<a href="http://www.bing.com/search?q=_Stub_++Stub+" class="bibsearch">&#128270;</a></div></div></div>
+<div class="logomadoko" style="display:block;text-align:right;font-size:xx-small;margin-top:4em">Created with&nbsp;<a href="https://www.madoko.net">Madoko.net</a>.</div><span data-line=""></span>
+<div class="footnotes madoko">
+<hr >
+
+<div id="fn-lua-fn" class="footnote" style="line-adjust:0">
+<p class="p noindent"><span class="footnote-before"><sup><span class="footnote-label">1</span>.</sup></span>The only minimalist language still in active use appears to be
+Lua<span class="citations" style="target-element:bibitem">[<a href="#lua" title="Stub. 
+Stub." class="bibref localref" style="target-element:bibitem"><span class="cite-number">5</span></a>]</span>, though even that is relegated to niche applications.
+</p>
+<p class="p indent"><a href="#back-fn-lua-fn" class="footnote-backref localref">&#8617;</a></p></div>
+<div id="fn-monad" class="footnote" style="line-adjust:0">
+<p class="p noindent"><span class="footnote-before"><sup><span class="footnote-label">2</span>.</sup></span>Not just the mathematical term for an object closed under all
+operations, but Liebniz&#39;s original idea of a single universal
+building-block<span class="citations" style="target-element:bibitem">[<a href="#liebniz" title="Stub. 
+Stub." class="bibref localref" style="target-element:bibitem"><span class="cite-number">3</span></a>]</span>.
+<a href="#back-fn-monad" class="footnote-backref localref">&#8617;</a></p></div></div></div>
+<svg id='math-svg-paths' style='display:none' version='1.1' viewBox='0 0 0 0' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink'>
+<defs>
+<path d='M3.945 -3.786C3.786 -3.786 3.646 -3.786 3.507 -3.646C3.347 -3.497 3.328 -3.328 3.328 -3.258C3.328 -3.019 3.507 -2.909 3.696 -2.909C3.985 -2.909 4.254 -3.148 4.254 -3.547C4.254 -4.035 3.786 -4.403 3.078 -4.403C1.733 -4.403 0.408 -2.979 0.408 -1.574C0.408 -0.677 0.986 0.11 2.022 0.11C3.447 0.11 4.284 -0.946 4.284 -1.066C4.284 -1.126 4.224 -1.196 4.164 -1.196C4.115 -1.196 4.095 -1.176 4.035 -1.096C3.248 -0.11 2.162 -0.11 2.042 -0.11C1.415 -0.11 1.146 -0.598 1.146 -1.196C1.146 -1.604 1.345 -2.57 1.684 -3.188C1.993 -3.756 2.54 -4.184 3.088 -4.184C3.427 -4.184 3.806 -4.055 3.945 -3.786Z' id='g0-99'/>
+<path d='M2.052 -3.985H2.989C3.188 -3.985 3.288 -3.985 3.288 -4.184C3.288 -4.294 3.188 -4.294 3.009 -4.294H2.132C2.491 -5.709 2.54 -5.908 2.54 -5.968C2.54 -6.137 2.421 -6.237 2.252 -6.237C2.222 -6.237 1.943 -6.227 1.853 -5.878L1.465 -4.294H0.528C0.329 -4.294 0.229 -4.294 0.229 -4.105C0.229 -3.985 0.309 -3.985 0.508 -3.985H1.385C0.667 -1.156 0.628 -0.986 0.628 -0.807C0.628 -0.269 1.006 0.11 1.544 0.11C2.56 0.11 3.128 -1.345 3.128 -1.425C3.128 -1.524 3.049 -1.524 3.009 -1.524C2.919 -1.524 2.909 -1.494 2.859 -1.385C2.431 -0.349 1.903 -0.11 1.564 -0.11C1.355 -0.11 1.255 -0.239 1.255 -0.568C1.255 -0.807 1.275 -0.877 1.315 -1.046L2.052 -3.985Z' id='g0-116'/>
+<path d='M3.298 2.391C3.298 2.361 3.298 2.341 3.128 2.172C1.883 0.917 1.564 -0.966 1.564 -2.491C1.564 -4.224 1.943 -5.958 3.168 -7.203C3.298 -7.323 3.298 -7.342 3.298 -7.372C3.298 -7.442 3.258 -7.472 3.198 -7.472C3.098 -7.472 2.202 -6.795 1.614 -5.529C1.106 -4.433 0.986 -3.328 0.986 -2.491C0.986 -1.714 1.096 -0.508 1.644 0.618C2.242 1.843 3.098 2.491 3.198 2.491C3.258 2.491 3.298 2.461 3.298 2.391Z' id='g1-40'/>
+<path d='M2.879 -2.491C2.879 -3.268 2.77 -4.473 2.222 -5.599C1.624 -6.824 0.767 -7.472 0.667 -7.472C0.608 -7.472 0.568 -7.432 0.568 -7.372C0.568 -7.342 0.568 -7.323 0.757 -7.143C1.733 -6.157 2.301 -4.573 2.301 -2.491C2.301 -0.787 1.933 0.966 0.697 2.222C0.568 2.341 0.568 2.361 0.568 2.391C0.568 2.451 0.608 2.491 0.667 2.491C0.767 2.491 1.664 1.813 2.252 0.548C2.76 -0.548 2.879 -1.654 2.879 -2.491Z' id='g1-41'/>
+<path d='M3.736 -6.117C3.796 -6.356 3.826 -6.456 4.015 -6.486C4.105 -6.496 4.423 -6.496 4.623 -6.496C5.33 -6.496 6.436 -6.496 6.436 -5.509C6.436 -5.171 6.276 -4.483 5.888 -4.095C5.629 -3.836 5.101 -3.517 4.204 -3.517H3.088L3.736 -6.117ZM5.171 -3.387C6.177 -3.606 7.362 -4.304 7.362 -5.31C7.362 -6.167 6.466 -6.804 5.161 -6.804H2.321C2.122 -6.804 2.032 -6.804 2.032 -6.605C2.032 -6.496 2.122 -6.496 2.311 -6.496C2.331 -6.496 2.521 -6.496 2.69 -6.476C2.869 -6.456 2.959 -6.446 2.959 -6.316C2.959 -6.276 2.949 -6.247 2.919 -6.127L1.584 -0.777C1.484 -0.389 1.465 -0.309 0.677 -0.309C0.498 -0.309 0.408 -0.309 0.408 -0.11C0.408 0 0.528 0 0.548 0C0.827 0 1.524 -0.03 1.803 -0.03S2.79 0 3.068 0C3.148 0 3.268 0 3.268 -0.199C3.268 -0.309 3.178 -0.309 2.989 -0.309C2.62 -0.309 2.341 -0.309 2.341 -0.488C2.341 -0.548 2.361 -0.598 2.371 -0.658L3.029 -3.298H4.214C5.121 -3.298 5.3 -2.74 5.3 -2.391C5.3 -2.242 5.22 -1.933 5.161 -1.704C5.091 -1.425 5.001 -1.056 5.001 -0.857C5.001 0.219 6.197 0.219 6.326 0.219C7.173 0.219 7.522 -0.787 7.522 -0.927C7.522 -1.046 7.412 -1.046 7.402 -1.046C7.313 -1.046 7.293 -0.976 7.273 -0.907C7.024 -0.169 6.595 0 6.366 0C6.037 0 5.968 -0.219 5.968 -0.608C5.968 -0.917 6.027 -1.425 6.067 -1.743C6.087 -1.883 6.107 -2.072 6.107 -2.212C6.107 -2.979 5.44 -3.288 5.171 -3.387Z' id='g0-82'/>
+<path d='M3.522 -1.269H3.285C3.264 -1.116 3.194 -0.704 3.103 -0.635C3.048 -0.593 2.511 -0.593 2.413 -0.593H1.13C1.862 -1.241 2.106 -1.437 2.525 -1.764C3.041 -2.176 3.522 -2.608 3.522 -3.271C3.522 -4.115 2.783 -4.631 1.89 -4.631C1.025 -4.631 0.439 -4.024 0.439 -3.382C0.439 -3.027 0.739 -2.992 0.809 -2.992C0.976 -2.992 1.179 -3.11 1.179 -3.361C1.179 -3.487 1.13 -3.731 0.767 -3.731C0.983 -4.226 1.458 -4.38 1.785 -4.38C2.483 -4.38 2.845 -3.836 2.845 -3.271C2.845 -2.664 2.413 -2.183 2.19 -1.932L0.509 -0.272C0.439 -0.209 0.439 -0.195 0.439 0H3.313L3.522 -1.269Z' id='g2-50'/>
+</defs>
+</svg>
+
+</body>
+
+</html>
