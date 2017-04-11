@@ -1,3 +1,4 @@
+
 Title         : Homoiconic C
 Subtitle      : Programming without a Language
 
@@ -5,7 +6,6 @@ HideAuthor        : Ernest N. Prabhakar
 HideAffiliation   : The Swan Factory, Inc.
 HideEmail         : ernest.prabhakar@gmail.com
 
-Colorizer     : javascript
 Bib style     : plainnat
 Bibliography  : hc-refs.bib
 Logo          : True
@@ -60,7 +60,21 @@ Blah.
 
 # Frames   { #sec-frames }
 
-## Syntax
+HC is fully homoiconic. Not only is code **a** data structure, all code
+_and_ data is represented by a single structure we call a **frame**. This is possible because all
+frames are simultaneously:
+
+* Callable (like functions)
+* Enumerable (like arrays)
+* Associative (like dictionaries)
+* Scopes (like modules)
+
+Our hypothesis is that the multitude of structures found in programming
+languages boil down to just these four attributes. While frames may seem
+complex, they make everything else much simpler.
+
+# Syntax
+
 The core principle of Homoiconic C syntax is _isomorphism_: every
 syntactic construct refers to exactly one semantic concept. Put another
 way, it is modeless: characters don't mean different things in different
@@ -69,19 +83,23 @@ curve.
 
 Like traditional data formats, HC is build around _literals_ and
 the _terminals_ that separate and organize them. HC simply extends that
-with _identifiers_, and a single grammar construct, the _expression_. The
-entire syntax is in Table [#sec-table-syntax].
+with _identifiers_, and a single grammatic construct, the _expression_.
 
-~ TableFigure { #sec-table-syntax; caption: "Complete Homiconic C Syntax" }
+## Data Format 
+
+Homoiconic C is intended to be a universal format for data as well as code.
+The pure data constructs are found in Table [#sec-table-data].
+
+~ TableFigure { #sec-table-data; caption: "Data Format Specification" }
 
 +----|---------------+----------|---------------+--------------------+
 | Literals                                                       |||||
 | Bit               || Number                  || Quote              |
 +----|---------------+----------|---------------+--------------------+
 | <> | _all (true)_  | 0b010    | _binary_      | “_string_”         |
-| () | _nil (false)_ | 0o1777   | _octal_       | # _commment_ #     |
+| () | _nil (false)_ | 0o1777   | _octal_       | # _comment_ #     |
 |                   || 1234     | _decimal_     | \\_length_\\_blob_ |
-|                   || 0xCAFE   | _hexadecimal_ |                    |
+|                   || 0xCAFE   | _hexadecimal_ | %_date\_time_%     |
 |                   || 0@Base64 | _Base64_      |                    |
 +----|---------------+----------|---------------+--------------------+
 { tbody-tr-odd-background-color:Gainsboro; \
@@ -99,7 +117,14 @@ entire syntax is in Table [#sec-table-syntax].
 +-----------|------------------+------|-----------------+---------|-------------------+
 { tbody-tr-odd-background-color:Gainsboro; \
   tr-even-background-color:Floralwhite }
+~
 
+To be precise, '<>' is the total type and '()' is the empty expression, but since they evaluate to
+themselves they can be considered literals.
+
+## Identifiers 
+
+~ TableFigure { #sec-table-id; caption: "Identifiers" }
 +-----------+------------+---------------+--------------+
 | Identifiers                                        ||||
 |Assignment | Constancy  | Privacy       | Effect   |
@@ -121,34 +146,53 @@ entire syntax is in Table [#sec-table-syntax].
   tr-even-background-color:Floralwhite }
 ~
 
+## Operators 
+
+~ TableFigure { #sec-table-op; caption: "Pre-Defined Operators" }
++-----------+------------+---------------+--------------+
+| Content                                        ||||
+|Role | Data  | Metadata       | Both   |
++-----------+------------+---------------+--------------+
+| Equality   | = | ==      | ===  |
+| Map  | \| | \|\| | \|\|\|  |
+| Fold          |     &      |  && | &&& |
++-----------+------------+---------------+--------------+
+{ tbody-tr-odd-background-color:Gainsboro; \
+  tr-even-background-color:Floralwhite }
+
++-------|--------+---|--------------+--------|--------+
+| Structure                              |||||        |
+| Conditional   || Type            || Bind   |        |
++-------|--------+---|--------------+--------|--------+
+| ?     | _if_   | < | _begin type_ | “_string_”     ||
+| :     | _else_ | > | _end type_   | # _comment_ #  ||
++-------|--------+---|--------------+--------|--------+
+{ tbody-tr-odd-background-color:Gainsboro; \
+  tr-even-background-color:Floralwhite }
+~
+
+Note the type is just a pair of operators, not a syntactic construct,
+since it does not change the evaluation rules.
 
 
 
+## Expressions 
+
+Expressions are simply a list of frames evaluated within the current context then applied left to
+right (left fold [@LeftFold]).
+
+```
+  frame0 frame1 frame2 ...
+```
+This is equivalent to the explicit grouping:
+```
+  ((frame0 frame1) frame2)
+```
+
+The only variation on this is 
 
 
-## Literals
 
-## Expressions
-
-## Terminals
-
-Terminals delimit and group expressions. There are eleven terminals
-organized into three categories:
-
-* Whitespace: newline | space | tab
-* Separators:  data ',' | metadata ';'
-* Aggregates:  group '(' ')' | array '[' ']' | closure '{' '}'
-
-## Identifiers
-
-
-## Concepts
-### Function
-### Array
-### Dictionary
-### Scope
-
-## Syntax
 
 ## Operators
 
