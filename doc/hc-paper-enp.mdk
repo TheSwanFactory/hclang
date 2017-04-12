@@ -11,7 +11,6 @@ Bibliography  : hc-refs.bib
 Logo          : True
 Package       : amsmath
 Doc class     : [preprint]{sigplanconf}
-Colorizer: hc
 
 [TITLE]
 
@@ -57,24 +56,100 @@ license.
 
 # Introduction     { #sec-intro }
 
-Blah.
+Homoiconic C is a data format for computation. It is designed to be a
+simple yet powerful alternative to both traditional programming languages
+and existing data formats.
 
-# Frames   { #sec-frames }
+## A Brief History of Programming Languages
 
-HC is fully homoiconic. Not only is code **a** data structure, all code
-_and_ data is represented by a single structure we call a **frame**. This is possible because all
-frames are simultaneously:
+Early high-level languages (e.g., FORTRAN[@Cite], COBOL[@Cite],
+BASIC[@Cite], ALGOL[@Cite]) were strongly influenced by mathematics and artificial
+intelligence[@Cite], leading to sophisticated precedence rules and
+complicated syntax. The primary alternative was Lisp[@Lisp;], defined --
+at least in theory -- by a single data structure (the list) and a single
+rule (metacircular evaluation).
+
+Lisp was not as efficient as, say, Fortran, but it was much more elegant
+and powerful. The common assumption was that eventually computers would
+become powerful enough that Lisp's inefficiencies would no longer matter.
+Sadly, the failure of hardware-optimized Lisp machines[@Cite] marked the death
+of that dream.
+
+## Then Came C
+
+Into that void stepped the C programming language[@CLang]. C was derived from ALGOL,
+but borrowed (some would say butchered[@Cite]) several powerful ideas
+from Lisp, such as macros[@Cite] and function pointers[@Cite]. In
+addition, the C memory model[@Cite] mapped well onto modern processor
+architectures, enabling remarkably good performance. It also benefited from:
+
+* A relatively simple and easy to read syntax
+* Association with the UNIX operating system
+* Self-sustaining[@Cite], open source compilers 
+
+This led to C (along with its direct descendants, C++[@Cite] and
+Objective-C[@Cite]) completely dominating the field for systems
+programming; a situation which continues today, almost fifty years
+later. This led to the C syntax (with some borrowing from its sister language, the UNIX shell) 
+becoming the baseline for virtually every mass-market language in use today[@Cite]. 
+
+## The Downside of C
+
+This success was not entirely a good thing. C's memory model and type
+system optimized for efficiency at the cost of safety, leading to
+innumerable programming errors and security holes that still plague us
+today [@Cite]. C's syntax and macros --  a breath of fresh air
+when they first came out -- feel clunky and dated in a world of scripting
+languages and functional programming, to the point where it is rarely
+taught to beginning programmers anymore.
+
+In the last decade, we have seen renewed innovation in systems
+programming, leading to languages such as Rust[@Cite], Go[@Cite], and
+Swift [@Cite]. These are enough better and different than C that they
+have carved out their own niches (especially with the help of powerful
+patrons). However, they don't seem to have the factor-of-ten improvement
+necessary to displace or replace C, the way C did to assembly language.
+
+## Framing A New Hope { #sec-frames }
+
+Homoiconic C aspires to reach that goal by marrying the best aspects of
+C's syntax and memory model with the values of rigor and simplicity that
+characterized Lisp. The central innovation is a novel data structure we
+call a **frame**. Frames are simultaneously:
 
 * Callable (like functions)
 * Enumerable (like arrays)
-* Associative (like dictionaries)
-* Scopes (like modules)
+* Associative (like structs)
+* Inherited (like classes)
 
-Our hypothesis is that the multitude of structures found in programming
-languages boil down to just these four attributes. While frames may seem
-complex, they make everything else much simpler.
+Our premise is that the multitude of structures found in programming
+languages boil down to just these four attributes. By encoding
+them in a single object, we hope to dramatically simplify both the structure
+of the language and the process of programming.
 
-# Syntax
+HC also incorporates:
+
+* Homoiconicity, from Lisp
+  : Frames are both code and data, making it trivial to manipulate code via higher-level abstractions.
+* Dataflow, from the UNIX Shell
+  : Iteration and Input/Output are designed for simple pipeline-style composition.
+* Effect Typing, from BitC[@Cite] 
+  : By carefully annotating function boundaries for both _constancy_ and _immutability_, we can safely
+    alias data structures to get C-like performance while preserving the security of managed code.
+
+## About This Document
+
+In the remainder of this document, we will cover:
+
+* The syntax, operators, and data protection rules that define the language
+* Examples of using Homoiconic C to model
+  object-oriented programming and the full stack of web technologies
+* The current status and possible future directions
+* Conclusions and comparisons to related work
+
+# Language Definition
+
+## Syntax
 
 The core principle of Homoiconic C syntax is _isomorphism_: every
 syntactic construct refers to exactly one semantic concept. Put another
@@ -86,7 +161,7 @@ Like traditional data formats, HC is build around _literals_ and
 the _terminals_ that separate and organize them. HC simply extends that
 with _identifiers_, and a single grammatic construct, the _expression_.
 
-## Data Format 
+### Data Format 
 
 Homoiconic C is intended to be a universal format for data as well as code.
 The pure data constructs are found in Table [#sec-table-data].
@@ -123,7 +198,7 @@ The pure data constructs are found in Table [#sec-table-data].
 To be precise, '<>' is the total type and '()' is the empty expression, but since they evaluate to
 themselves they can be considered literals.
 
-## Identifiers 
+### Identifiers 
 
 ~ TableFigure { #sec-table-id; caption: "Identifiers" }
 +-----------+------------+---------------+--------------+
@@ -147,7 +222,65 @@ themselves they can be considered literals.
   tr-even-background-color:Floralwhite }
 ~
 
+
+### Expressions 
+
+Expressions are simply a list of frames evaluated within the current
+context then applied left to right (left fold [@LeftFold]). We refer to
+this as the _elliptical evaluator_, in homage to Lisp's metacircular
+evaluator.
+
+```
+  frame0 frame1 frame2 ...
+```
+This is equivalent to the explicit grouping:
+``` 
+  ((frame0 frame1) frame2)
+```
+
+The only variation on this is deferred evaluation within braces:
+```
+  { frame0 frame1 frame2 }
+```
+
+That's all there is. There are no special forms, keywords, precedence rules, or
+other grammatic constructs. While we realize those may provide some
+efficiency gains for experienced programmers, we do not believe that is 
+worth of cost of complicating the implementation and increasing the
+learning curve for new programmers.
+
+#### Assignment
+
+In particular, assignment is just a simple expression applying a _value_ to a _name_:
+```
+  .key value;
+```
+This avoids the subtle and confusing distinction between differing
+"left-hand-side" and "right-hand-side" interpretations of an identical symbol _x_.
+It also save us from overloading '=' to mean both assignment and a test for equality.
+
+#### Properties
+
+Names also provide an elegant way of manipulating data structures, still in the context of simple expressions:
+
+```
+  structure .property; # gets a property
+  .structure.property value # sets a property 
+``` 
+The space between _structure_ and _property_ is not necessary, but we include it to emphasize the fact
+that this is just an ordinary expression, not a special syntax.
+
+Note that due to the scoping rules, the value _structure_ can be either
+local or in any parent scope, but the name _.structure_ is always local.  If we wish to 
+re-assign that parent value, we use an _@reference_:
+```
+  @structure.property value # sets a property in structure's current scope  
+```
+
+
 ## Operators 
+
+To provide the functionality 
 
 ~ TableFigure { #sec-table-op; caption: "Pre-Defined Operators" }
 +-----------+------------+---------------+--------------+
@@ -176,26 +309,6 @@ Note the type is just a pair of operators, not a syntactic construct,
 since it does not change the evaluation rules.
 
 
-
-## Expressions 
-
-Expressions are simply a list of frames evaluated within the current context then applied left to
-right (left fold [@LeftFold]).
-
-```
-  frame0 frame1 frame2 ...
-```
-This is equivalent to the explicit grouping:
-``` 
-  ((frame0 frame1) frame2)
-```
-
-The only variation on this is 
-
-
-
-
-## Operators
 
 # Data Protection
 
