@@ -11,6 +11,7 @@ Bibliography  : hc-refs.bib
 Logo          : True
 Package       : amsmath
 Doc class     : [preprint]{sigplanconf}
+Colorizer: hc
 
 [TITLE]
 
@@ -185,7 +186,7 @@ right (left fold [@LeftFold]).
   frame0 frame1 frame2 ...
 ```
 This is equivalent to the explicit grouping:
-```
+``` 
   ((frame0 frame1) frame2)
 ```
 
@@ -207,11 +208,7 @@ The only variation on this is
 ## Object-Orientation
 
 Let's program some Javascript:
-``` javascript
-function hello() {
-  return "hello world!"
-}
-```
+
 
 ## Web Technologies
 
