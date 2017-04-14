@@ -11,6 +11,7 @@ Bibliography  : hc-refs.bib
 Logo          : True
 Package       : amsmath
 Doc class     : [preprint]{sigplanconf}
+Colorizer     : Ruby
 
 [TITLE]
 
@@ -161,26 +162,78 @@ Like traditional data formats, HC is build around _literals_ and
 the _terminals_ that separate and organize them. HC simply extends that
 with _identifiers_, and a single grammatic construct, the _expression_.
 
-### Data Format 
 
-Homoiconic C is intended to be a universal format for data as well as code.
-The pure data constructs are found in Table [#sec-table-data].
+### Expressions 
+
+Expressions are simply zero or more frames evaluated within the current
+context, then applied left to right (left fold [@LeftFold]). We refer to
+this as the _elliptical evaluator_, in homage to Lisp's metacircular
+evaluator.
+
+```
+  frame0 frame1 frame2 ...
+```
+Specifically:
+
+1. _frame0_ is evaluated to _value0_ (also a frame)
+2. _frame1_ is evaluated to _value1_
+3. _value0_ is called with the argument _value1_, producing _result1_
+4. -result1_ is called with _value2_ producing _result2_
+5. The final _result_ is thus the value of the evaluated expression
+
+The HC read-eval-print loop (REPL) uses ';' for the input prompt and '#' for the
+output prompt:
+
+``` Ruby
+; frame0
+# value0
+```
+
+That's really all there is. There are no special forms, keywords,
+precedence rules, or other grammatic constructs. While we realize those
+may provide some efficiency gains for experienced programmers, we do not
+believe that is worth of cost of complicating the implementation and
+increasing the learning curve for new programmers.
+
+### Literals
+
+Like any good data format, HC has a rich set of literals, defined in
+Table [#sec-table-literals]:
+
+
+~ TableFigure { #sec-table-literals; caption: "Data Format Specification" }
+
++----------|---------------+--------------------+
+| Literals                                    |||
+| Number                  || Quote              |
++----------|---------------+--------------------+
+| 0b010    | _binary_      | “_string_”         |
+| 0o1777   | _octal_       | # _comment_ #      |
+| 1234     | _decimal_     | \\_length_\\_blob_ |
+| 0xCAFE   | _hexadecimal_ | %_date\_time_%     |
+| 0@Base64 | _Base64_      |                    |
++----------|---------------+--------------------+
+{ tbody-tr-odd-background-color:Gainsboro; \
+  tr-even-background-color:Floralwhite; }
+~
+
+The most significant departure from traditional syntax is the use of
+matching smart quotes, which enables nesting and all but eliminates the
+need for escape sequences. With appropriate editor support (an [atom
+package](https://github.com/TheSwanFactory/language-maml) already exists),
+the user can type '"' as usual and still generate HC strings.
+
+In addition, as part of HC's quest to be a universal data format, it natively supports:
+* Base64 numbers
+* Arbitrary-length binary and hexadecimal bitstreams
+* net-string style blogs 
+* a dedicated time type and literal (to avoid overloading integers)
+
+
+
+### Terminals
 
 ~ TableFigure { #sec-table-data; caption: "Data Format Specification" }
-
-+----|---------------+----------|---------------+--------------------+
-| Literals                                                       |||||
-| Bit               || Number                  || Quote              |
-+----|---------------+----------|---------------+--------------------+
-| <> | _all (true)_  | 0b010    | _binary_      | “_string_”         |
-| () | _nil (false)_ | 0o1777   | _octal_       | # _comment_ #     |
-|                   || 1234     | _decimal_     | \\_length_\\_blob_ |
-|                   || 0xCAFE   | _hexadecimal_ | %_date\_time_%     |
-|                   || 0@Base64 | _Base64_      |                    |
-+----|---------------+----------|---------------+--------------------+
-{ tbody-tr-odd-background-color:Gainsboro; \
-  tr-even-background-color:Floralwhite; cell-padding 10ex; }
-
 +-----------|------------------+------|-----------------+---------|-------------------+
 | Terminals                                                                      ||||||
 | Separators                  || Aggregates            || Whitespace                 ||
@@ -223,31 +276,6 @@ themselves they can be considered literals.
 ~
 
 
-### Expressions 
-
-Expressions are simply a list of frames evaluated within the current
-context then applied left to right (left fold [@LeftFold]). We refer to
-this as the _elliptical evaluator_, in homage to Lisp's metacircular
-evaluator.
-
-```
-  frame0 frame1 frame2 ...
-```
-This is equivalent to the explicit grouping:
-``` 
-  ((frame0 frame1) frame2)
-```
-
-The only variation on this is deferred evaluation within braces:
-```
-  { frame0 frame1 frame2 }
-```
-
-That's all there is. There are no special forms, keywords, precedence rules, or
-other grammatic constructs. While we realize those may provide some
-efficiency gains for experienced programmers, we do not believe that is 
-worth of cost of complicating the implementation and increasing the
-learning curve for new programmers.
 
 #### Assignment
 
