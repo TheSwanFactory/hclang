@@ -11,7 +11,10 @@ Bibliography  : hc-refs.bib
 Logo          : True
 Package       : amsmath
 Doc class     : [preprint]{sigplanconf}
-Colorizer     : Ruby
+
+Colorizer     : ruby
+~Pre,~Code    : language=ruby
+.pre-indented : language=ruby
 
 [TITLE]
 
@@ -144,7 +147,7 @@ In the remainder of this document, we will cover:
 
 * The syntax, operators, and data protection rules that define the language
 * Examples of using Homoiconic C to model
-  object-oriented programming and the full stack of web technologies
+  object-oriented programming and HTML
 * The current status and possible future directions
 * Conclusions and comparisons to related work
 
@@ -158,9 +161,11 @@ way, it is modeless: characters don't mean different things in different
 places. This enables vastly simpler parsers and a much shallower learning
 curve.
 
-Like traditional data formats, HC is build around _literals_ and
-the _terminals_ that separate and organize them. HC simply extends that
-with _identifiers_, and a single grammatic construct, the _expression_.
+Like traditional data formats, HC is build around _literals_ and the
+_terminals_ that separate and organize them. HC simply extends that with
+_identifiers_, and a single grammatic construct, the _expression_. HC
+documents that only use literals and terminals are called _data
+programs_, or sometimes just _congrams_.
 
 
 ### Expressions 
@@ -184,27 +189,26 @@ Specifically:
 The HC read-eval-print loop (REPL) uses ';' for the input prompt and '#' for the
 output prompt:
 
-``` Ruby
+``` ruby
 ; frame0
 # value0
 ```
 
-That's really all there is. There are no special forms, keywords,
+That's pretty much all there is. There are no special forms, keywords,
 precedence rules, or other grammatic constructs. While we realize those
 may provide some efficiency gains for experienced programmers, we do not
-believe that is worth of cost of complicating the implementation and
-increasing the learning curve for new programmers.
+believe they are worth of cost of complicating the implementation and
+increasing the learning curve for new programmers. And as we will show,
+they are not at all necessary.
 
 ### Literals
 
-Like any good data format, HC has a rich set of literals, defined in
-Table [#sec-table-literals]:
+Like any good data format, HC has a rich set of literals, described in
+Table [#sec-table-literals].
 
-
-~ TableFigure { #sec-table-literals; caption: "Data Format Specification" }
+~ TableFigure { #sec-table-literals; caption: "Literals Syntax" }
 
 +----------|---------------+--------------------+
-| Literals                                    |||
 | Number                  || Quote              |
 +----------|---------------+--------------------+
 | 0b010    | _binary_      | “_string_”         |
@@ -214,7 +218,7 @@ Table [#sec-table-literals]:
 | 0@Base64 | _Base64_      |                    |
 +----------|---------------+--------------------+
 { tbody-tr-odd-background-color:Gainsboro; \
-  tr-even-background-color:Floralwhite; }
+  tbody-tr-even-background-color:Floralwhite; }
 ~
 
 The most significant departure from traditional syntax is the use of
@@ -224,32 +228,101 @@ package](https://github.com/TheSwanFactory/language-maml) already exists),
 the user can type '"' as usual and still generate HC strings.
 
 In addition, as part of HC's quest to be a universal data format, it natively supports:
+
 * Base64 numbers
-* Arbitrary-length binary and hexadecimal bitstreams
-* net-string style blogs 
+* arbitrary-length binary and hexadecimal bitstreams
+* net-string style blobs 
 * a dedicated time type and literal (to avoid overloading integers)
 
+By definition, literals evaluate to themselves:
+``` ruby
+; “Hello, Homoiconicity!” 
+# “Hello, Homoiconicity!”
+``` 
+This is true even at the file level. A data program consistent entirely
+of terminals and literals simply evaluates to (and prints out) itself, or
+"[quines](https://en.wikipedia.org/wiki/Quine_%28computing%29)."
+
+Because literals are also frames, they can be called ("All data is also
+code"). Strings, for example, stringify and concatenate their argument.
+``` ruby
+; “Hello, ” “Homoiconicity!” 
+# “Hello, Homoiconicity!”
+; “The Answer” “: ” 42
+# “The Answer: 42”
+``` 
+Similarly, numbers replicate their argument that many times:
+``` ruby
+; 2 “Repeats”
+# “RepeatsRepeats”
+```
 
 
 ### Terminals
 
-~ TableFigure { #sec-table-data; caption: "Data Format Specification" }
-+-----------|------------------+------|-----------------+---------|-------------------+
-| Terminals                                                                      ||||||
-| Separators                  || Aggregates            || Whitespace                 ||
-+-----------|------------------+------|-----------------+---------|-------------------+
-| ,         | _end expression_ | (    | _begin group_   | space   | _separate tokens_ |
-| ;         | _end statement_  | )    | _end group_     | newline | _end group_       |
-|                             || ]    | _end array_     |                            ||
-|                             || \[   | _begin closure_ |                            ||
-|                             || ]    | _end closure_   |                            ||
-+-----------|------------------+------|-----------------+---------|-------------------+
+Terminals in Homoiconic C look much like those in ordinary languages, with a few
+twists. See Table [#sec-table-terminals].
+
+~ TableFigure { #sec-table-terminals; caption: "Terminals Syntax" }
++---------|-----------------------+------|-----------------+
+| Separators                     || Aggregates            ||
++---------|-----------------------+------|-----------------+
+| ,       | _end expression_      | (    | _begin group_   |
+| ;       | _void expression_     | )    | _end group_     |
+| newline | _end line_            | \[   | _begin array_   |
+| space   | _split subexpression_ | ]    | _end array_     |
+|                                || {    | _begin closure_ |
+|                                || }    | _end closure_   |
++---------|-----------------------+------|-----------------+
 { tbody-tr-odd-background-color:Gainsboro; \
-  tr-even-background-color:Floralwhite }
+  tbody-tr-even-background-color:Floralwhite }
 ~
 
-To be precise, '<>' is the total type and '()' is the empty expression, but since they evaluate to
-themselves they can be considered literals.
+Formally speaking, each expression should terminate in an ',' or ';', depending
+on whether we want to return the resulting value:
+``` ruby
+; “My Statement”;
+; “Self Expression”,
+# “Self Expression”
+``` 
+This effectively allows us to distinguish "expressions" that return a
+value from "statements" that do not. However, trailing commas are
+optional, and will be inferred at the end of a line or aggregate if neither
+separator is present.
+
+Space plays an important role in binding, since we do not allow implicit
+precedence. Spaces create a new subexpression, so frames that have no
+space between them bind more tightly than those that do.
+
+``` ruby
+; “Want ” 2 “Live” # evaluates left to right
+# “Want 2Live” 
+; “Want ” 2“Live” # evaluates `2“Live”` first
+# “Want LiveLive” 
+``` 
+This of course can also be done (with more visual clutter) by explicit grouping:
+``` ruby
+; “Want ” (2 “Live”) # evaluates left to right
+# “Want LiveLive” 
+```
+
+Arrays work as you'd expect:
+``` ruby
+; [1, 1, 2, 3, 5] 8
+# [1, 1, 2, 3, 5, 8]
+```
+
+Closures are simply lazy expressions, which evaluate their contents when invoked.
+``` ruby
+; {42; “Life, ” “The Universe, ” “Everything.”} ()
+# “Life, The Universe, Everything.”
+```
+The result of the empty expression is called `nil`, and represents the Boolean false.
+This will become important in Section [#sec-operators] when we discuss conditionals.
+
+Note that statements inside a closure represent values that are not
+returned, which becomes very powerful when we add identifiers.
+
 
 ### Identifiers 
 
