@@ -1,0 +1,82 @@
+~ Begin Bibliography { .bib-numeric ; caption:"12" ; data-style:"plainnat" }
+
+
+
+
+~ Begin Bibitem { cite-year:"1900a" ; cite-authors:"Stub" ; id:"clang" ; tex-cite-label:"Stub(1900{\natexlab{a}})" ; caption:"Stub. &nl;_Stub_\/." ; searchterm:"_Stub_++Stub+" }
+Stub.
+[]{.newblock} _Stub_\/.
+[]{.newblock} Stub, 1900a.
+~ End Bibitem
+
+~ Begin Bibitem { cite-year:"1900b" ; cite-authors:"Stub" ; id:"cite" ; tex-cite-label:"Stub(1900{\natexlab{b}})" ; caption:"Stub. &nl;_Stub_\/." ; searchterm:"_Stub_++Stub+" }
+Stub.
+[]{.newblock} _Stub_\/.
+[]{.newblock} Stub, 1900b.
+~ End Bibitem
+
+~ Begin Bibitem { cite-year:"1900c" ; cite-authors:"Stub" ; id:"forth" ; tex-cite-label:"Stub(1900{\natexlab{c}})" ; caption:"Stub. &nl;_Stub_\/." ; searchterm:"_Stub_++Stub+" }
+Stub.
+[]{.newblock} _Stub_\/.
+[]{.newblock} Stub, 1900c.
+~ End Bibitem
+
+~ Begin Bibitem { cite-year:"1900d" ; cite-authors:"Stub" ; id:"leftfold" ; tex-cite-label:"Stub(1900{\natexlab{d}})" ; caption:"Stub. &nl;Stub." ; searchterm:"Stub++Stub+" }
+Stub.
+[]{.newblock} Stub.
+[]{.newblock} _Stub_\/, 1900d.
+~ End Bibitem
+
+~ Begin Bibitem { cite-year:"1900e" ; cite-authors:"Stub" ; id:"liebniz" ; tex-cite-label:"Stub(1900{\natexlab{e}})" ; caption:"Stub. &nl;Stub." ; searchterm:"Stub++Stub+" }
+Stub.
+[]{.newblock} Stub.
+[]{.newblock} _Stub_\/, 1900e.
+~ End Bibitem
+
+~ Begin Bibitem { cite-year:"1900f" ; cite-authors:"Stub" ; id:"lisp" ; tex-cite-label:"Stub(1900{\natexlab{f}})" ; caption:"Stub. &nl;Stub." ; searchterm:"Stub++Stub+" }
+Stub.
+[]{.newblock} Stub.
+[]{.newblock} _Stub_\/, 1900f.
+~ End Bibitem
+
+~ Begin Bibitem { cite-year:"1900g" ; cite-authors:"Stub" ; id:"lua" ; tex-cite-label:"Stub(1900{\natexlab{g}})" ; caption:"Stub. &nl;Stub." ; searchterm:"Stub++Stub+" }
+Stub.
+[]{.newblock} Stub.
+[]{.newblock} _Stub_\/, 1900g.
+~ End Bibitem
+
+~ Begin Bibitem { cite-year:"1900h" ; cite-authors:"Stub" ; id:"scheme" ; tex-cite-label:"Stub(1900{\natexlab{h}})" ; caption:"Stub. &nl;_Stub_\/." ; searchterm:"_Stub_++Stub+" }
+Stub.
+[]{.newblock} _Stub_\/.
+[]{.newblock} Stub, 1900h.
+~ End Bibitem
+
+~ Begin Bibitem { cite-year:"1900i" ; cite-authors:"Stub" ; id:"self" ; tex-cite-label:"Stub(1900{\natexlab{i}})" ; caption:"Stub. &nl;Stub." ; searchterm:"Stub++Stub+" }
+Stub.
+[]{.newblock} Stub.
+[]{.newblock} _Stub_\/, 1900i.
+~ End Bibitem
+
+~ Begin Bibitem { cite-year:"1900j" ; cite-authors:"Stub" ; id:"shapiro:effecttyping" ; tex-cite-label:"Stub(1900{\natexlab{j}})" ; caption:"Stub. &nl;Stub." ; searchterm:"Stub++Stub+" }
+Stub.
+[]{.newblock} Stub.
+[]{.newblock} _Stub_\/, 1900j.
+~ End Bibitem
+
+~ Begin Bibitem { cite-year:"1900k" ; cite-authors:"Stub" ; id:"typescript" ; tex-cite-label:"Stub(1900{\natexlab{k}})" ; caption:"Stub. &nl;Stub." ; searchterm:"Stub++Stub+" }
+Stub.
+[]{.newblock} Stub.
+[]{.newblock} _Stub_\/, 1900k.
+~ End Bibitem
+
+~ Begin Bibitem { cite-year:"1900l" ; cite-authors:"Stub" ; id:"unixshell" ; tex-cite-label:"Stub(1900{\natexlab{l}})" ; caption:"Stub. &nl;_Stub_\/." ; searchterm:"_Stub_++Stub+" }
+Stub.
+[]{.newblock} _Stub_\/.
+[]{.newblock} Stub, 1900l.
+~ End Bibitem
+
+
+
+
+~ End Bibliography
+
