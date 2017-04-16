@@ -560,6 +560,54 @@ don't need to use `=` for simple value comparison.
 ; 2 ~ ()
 ; ()
 ```
+### Conditionals
+
+The ternary operator can be broken into two binary operators (with slightly different semantics).
+
+In Homoiconic C, these are not special forms, but simply pre-defined on the root object,
+and overridden by nil (or more precisely, vice-versa).
+
+Most objects evaluate the argument of `?` and return nil for `:`,
+but nil itself does the reverse.
+
+``` ruby
+
+; 1 ? {2 + 2}
+# 4
+; 1 : {2 + 2}
+# ()
+
+; () ? {2 + 2}
+# ()
+; () : {2 + 2}
+# 4
+```
+
+Which, when the first expression does not return nil, acts like the ternary
+operator:
+``` ruby
+; ( 1 > 5 ) ? 100 : 10
+# 10
+```
+
+Note that applying nil to anything other than a closure has no effect.
+
+### Iterators
+
+We use `|` for map, in homage to the UNIX pipeline.
+``` ruby
+; [1, 2, 3] | { _ + 1 }
+# [2, 3, 4]
+```
+
+Similarly, we use `&` for reduce:
+``` ruby
+; [1, 2, 3] & { . + _ }
+# 6
+```
+
+###  Data and Metadata
+
 
 
 ## Access Control { #sec-table-access }
@@ -703,5 +751,15 @@ The syntax highlighting works in the PDF output too.
 # Conclusion
 
 Really fun to write Markdown :-)
+
+# Appendices
+
+## Appendix A. On Turing Completeness
+
+Turing undecidability, like Godelian incompleteness, starts by assuming "basic arithmetic" (add, substract, multiply, divide) -- i.e. the Peano Axioms. However, this glosses over the fact that division is a "type violation", and can't be fully represented using the same data structures as for addition and substraction.
+
+We believe that a better starting point for modeling computation are the Presburger Axioms.  These give up multiplication and division as first-class operations (though you can emulate them to some extent using repeated addition and subtraction, respectively).  The big win, though, is that Presburger arithmetic is both consistent **and** complete.  This eliminates the halting problem, and massively simplifies analyses (though it may restrict what is possible).
+
+Instead of Turing completeness, we prefer to focus on "Circuit Universality" (a la Scott Aaronson): the ability to represent the effect of any Boolean circuit, including multiple levels of abstraction above them.
 
 [BIB]
