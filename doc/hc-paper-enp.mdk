@@ -141,6 +141,9 @@ HC also incorporates:
 * Effect Typing, from BitC[@Cite]
   : By carefully annotating function boundaries for both _constancy_ and _immutability_, we can safely
     alias data structures to get C-like performance while preserving the security of managed code.
+* Lexical Scoping, from Scheme[@Cite]
+  : Everything inherits its current scope (like closures). In addition, evaluation of closures causes the result to inherit their scope, allowing them to be used as object factories.
+
 
 ## About This Document
 
@@ -210,15 +213,15 @@ Table [#sec-table-literals].
 
 ~ TableFigure { #sec-table-literals; caption: "Literals Syntax" }
 
-+----------|---------------+--------------------+
-| Number                  || Quote              |
-+----------|---------------+--------------------+
-| 0b010    | _binary_      | “_string_”         |
-| 0o1777   | _octal_       | # _comment_ #      |
-| 1234     | _decimal_     | \\_length_\\_blob_ |
-| 0xCAFE   | _hexadecimal_ | %_date\_time_%     |
-| 0@Base64 | _Base64_      |                    |
-+----------|---------------+--------------------+
++----------|---------------+----------|---------------+--------------------+
+| Integer                 || Non-Integer           || Quote              |
++----------|---------------+----------|---------------+--------------------+
+| 0b010    | _binary_      |1/3| _rational_| “_string_”         |
+| 0o1777   | _octal_       |123.456| _float_ | # _comment_ #      |
+| 1234     | _decimal_     |123.456.E.-10| _scientific_ | \\_length_\\_blob_ |
+| 0xCAFE   | _hexadecimal_ |123.456.p123| _version_ | %_date\_time_%     |
+| 0@Base64 | _Base64_      |+1.408.555.1212| _phone_ |                    |
++----------|---------------+----------|---------------+--------------------+
 { tbody-tr-odd-background-color:Gainsboro; \
   tbody-tr-even-background-color:Floralwhite; }
 ~
@@ -321,6 +324,28 @@ returned, which becomes very powerful when we add identifiers.
 
 ### Identifiers
 
+Everything else is just an identifier, which can be referred to as:
+
+- `value`
+- `.name`
+- `@reference`
+
+
+They come in four varieties:
+
+* *Label*, which begins with a letter and can include letters, numbers, and dashes ("kebab-case").
+* *Anonymous*, which consists of underscores (`_`) and carets(`^`).
+* *Control*, which is a label prefixed with a currency sign (e.g.,`$`).
+* *Operators*, which contains only symbols (none of the above)
+
+
+That completes our syntax[^mod].  Expressions are just literals and identifiers orgranized by terminals.
+
+---
+^[mod] Though identifiers may have suffixes and prefixes for access control,
+as described below.
+
+
 ~ TableFigure { #sec-table-id; caption: "Identifiers" }
 +-----------+------------+---------------+--------------+
 | Identifiers                                        ||||
@@ -347,11 +372,23 @@ returned, which becomes very powerful when we add identifiers.
 
 In particular, assignment is just a simple expression applying a _value_ to a _name_:
 ```
-  .key value;
+; .key value;
 ```
 This avoids the subtle and confusing distinction between differing
 "left-hand-side" and "right-hand-side" interpretations of an identical symbol _x_.
 It also save us from overloading '=' to mean both assignment and a test for equality.
+
+Names (setters) begin with a '.', and set a property with that label.
+``` ruby
+; .p 42;
+```
+
+Labels by themselves return that value.
+``` ruby
+; p
+# 42
+```
+
 
 #### Properties
 
@@ -372,9 +409,96 @@ re-assign that parent value, we use an _@reference_:
 ```
 
 
+When we group names, we get a dictionary:
+``` ruby
+; (.x 1, .y 2)
+# (.x 1, .y 2)
+```
+
+We can also uses names as metadata insides an array of values:
+``` ruby
+; [.name "weights"; 85, 110, 165]
+# [.name "weights"; 85, 110, 165]
+```
+
+We can refer to them from inside the same frame:
+``` ruby
+; .numbers [.min 3; .max 9; min, max]
+# [.min 3; .max 9; min, max]
+```
+
+We can use them to extract data from outside the frame:
+``` ruby
+; numbers .min
+# 3
+```
+The space before `.min` is optional, but emphasizes that property access is just another expression.
+
+####  Anonymous Identifiers
+
+Use `_` as the anonymous argument, representing everything this frame
+was called with:
+``` ruby
+; .square {_ * _};
+; square 3
+# 9
+```
+This is useful not just for closures, but for representing the command-line
+arguments for the entire script.
+
+When you apply something to a closure, it is effectively inserting that
+argument into the inheritance hierarchy.  Thus we can access properties
+of the argument directly, rather than explicitly calling `_`.
+``` ruby
+; .mag {(x * x) + (y * y )};
+; mag (.x 1; .y 2;)
+# 5
+```
+
+You can skip over the argument to access the enclosing scope (one level above)
+using the `^_` identifier (also known as `super`).
+``` ruby
+; .print-arg { var };
+; .print-parent { ^_.var };
+; .var “parent”;
+
+; print-arg(.var “arg”)
+# “arg”
+; print-parent(.var “arg”)
+# “parent”
+```
+
+Since objects capture the scope where they are created, this even allows closures to be called with implicit arguments to access the enclosing scope:
+``` ruby
+; .x 3;
+; .y 4;
+; mag []
+# 25
+```
+
+Implicit argments are a code smell, and will generate a warning.
+However, they can be very useful when debugging or refactoring. That may seem
+dangerous, but the data protection rules (below) largely limit what the called
+function can do to the calling scope.
+
+#### Operator Syntax
+
+In general, operators are treated the same as labels.  The only difference is that operators have a small amount of syntactic sugar, so they default to
+being evaluated inside the preceding frame rather than the current context.
+
+``` ruby
+; 2 .+ 2
+# 4
+
+; 2 + 2
+# 4
+```
+
+
 ## Operators
 
-To provide the functionality
+Homoiconic C pre-defines a small number of operators to provide functionality
+other languages often hard-code into their syntax:
 
 ~ TableFigure { #sec-table-op; caption: "Pre-Defined Operators" }
 +-----------+------------+---------------+--------------+
@@ -392,26 +516,92 @@ To provide the functionality
 | Structure                              |||||        |
 | Conditional   || Type            || Bind   |        |
 +-------|--------+---|--------------+--------|--------+
-| ?     | _if_   | < | _begin type_ | “_string_”     ||
-| :     | _else_ | > | _end type_   | # _comment_ #  ||
+| ?     | _if_   | < | _begin type_ | ^    | _bind type_|
+| :     | _else_ | > | _end type_   | ~ |_has type_|
 +-------|--------+---|--------------+--------|--------+
 { tbody-tr-odd-background-color:Gainsboro; \
   tr-even-background-color:Floralwhite }
 ~
 
-Note the type is just a pair of operators, not a syntactic construct,
-since it does not change the evaluation rules.
+#### Type Operations
+In HC, type is declared using a pair of operators, not a syntactic construct. This works because types are just expressions, and thus do not need to change
+the evaluation rules.
+
+Like all modern statically typed languages, HC relies heavily on type
+inference. By using dataflow, we also eliminate the need to define variables
+for loops or temporary variables.  In addition, the fact that every frame is
+callable means we can often simply treat arguments as generic frames.
+
+However, there are times we do need to explicitly annotate what kind of frames
+we are expecting, in which case we use the type operators:
+``` ruby
+```
+
+The opposite of the nil expression is the _all_ type, or universal set:
+``` ruby
+; <>
+# <>
+; !()
+; <>
+```
+
+`All` is also used as the boolean `true`.
+``` ruby
+; 1 = 5
+# <>
+```
+Remember that `=` is only use for comparison, never for assignment, so we
+don't need to use `=` for simple value comparison.
+
+`All` has the property that every object is a member (`~`), in contrast to nil of which nothing is a member:
+``` ruby
+; 1 ~ <>
+# <>
+; 2 ~ ()
+; ()
+```
 
 
-## Data Protection
+## Access Control { #sec-table-access }
 
-### Encapsulation
+~ TableFigure { #sec-table-id; caption: "Identifiers" }
++-----------+------------+---------------+--------------+
+| Identifiers                                        ||||
+|Assignment | Constancy  | Privacy       | Effect   |
++-----------+------------+---------------+--------------+
+| _value_   | _variable_ | _public_      | _immutable_  |
+| ._name_   | _Constant_ | \__protected_ | _mutable_\_  |
+|           |            | \_\__private_ | _mutating_: |
++-----------+------------+---------------+--------------+
+{ tbody-tr-odd-background-color:Gainsboro; \
+  tr-even-background-color:Floralwhite }
 
 ### Effect Typing
 
-#### Constancy
+Rather than specify call-by-value or call-by-reference, HC is designed around the BitC model for effect typing.  Shapiro *et al* proved it is possible to have a [sound *and* complete](www.cs.jhu.edu/~swaroop/aplas.pdf) systems language if you explicitly annotate variables for **constancy** and **mutability** at each context boundary. This gives the compiler enough information to know how and when to safely copy or share data structures.
 
-#### Mutability
+ Unfortunately, they could not do that within their Lisp-like syntax. Inspired by their work, we have chosen to use the bulk of our "syntax budget" to address that problem.  In particular, we believe effect is so fundamental we bake it into our identifiers:
+
+ - `CONST` # begins with uppercase letter
+ - `variable` # does not
+ - `mutable_` # trailing underscore
+ - `immutable` # default
+ - `mutating_method:` # trailing colon
+
+Their core insight is that mutability is a property of the *handle*, not the *object*.  Every object starts out mutable, but as long as it is only referenced from immutable handles the compiler can share a single instance between them.  Even if a context specifies a mutable handle, that only maters if it is called by a mutating method, which becomes copy-on-write.  For that reason, all mutating methods are required to return 'self'.
+
+This approach may seem incomplete, in that it doesn't specify the mutability of object literals.  But if accessed directly without a handle, there is no way of knowing (or caring) whether the literal was mutated or not!
+
+Please note that these particular conventions are preliminary, and may change in future versions based on empirical tests of readability and intuitiveness.  Since HC is just a data format, it is trivial to semantically version, and define conversions from obsolete versions.
+
+
+## Access Modifiers
+
+Closely related to effect typing (which determines *what* can change) are access modifiers (which determine *who* can change or see that). To streamline the grammar and readability, we also bake those into the identifiers, following the typical C conventions:
+
+- `public` # default
+- `_protected` # not accessible from parent
+- `__private` # not accessible by children
 
 
 
