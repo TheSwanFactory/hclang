@@ -331,42 +331,11 @@ Everything else is just an identifier, which can be referred to as:
 - `@reference`
 
 
-They come in four varieties:
-
-* *Label*, which begins with a letter and can include letters, numbers, and dashes ("kebab-case").
-* *Anonymous*, which consists of underscores (`_`) and trailing carets(`^`).
-* *Control*, which is a label prefixed with a currency sign (e.g.,`$`).
-* *Operators*, which contains only symbols (none of the above)
-
-
 That completes our syntax[^mod].  Expressions are just literals and identifiers orgranized by terminals.
 
 ---
 ^[mod] Though identifiers may have suffixes and prefixes for access control,
 as described in Section { #sec-table-access }.
-
-
-~ TableFigure { #sec-table-id; caption: "Identifiers" }
-+-----------+------------+---------------+--------------+
-| Identifiers                                        ||||
-|Assignment | Constancy  | Privacy       | Effect   |
-+-----------+------------+---------------+--------------+
-| _value_   | _variable_ | _public_      | _immutable_  |
-| ._name_   | _Constant_ | \__protected_ | _mutable_\_  |
-|           |            | \_\__private_ | _mutating_: |
-+-----------+------------+---------------+--------------+
-{ tbody-tr-odd-background-color:Gainsboro; \
-  tr-even-background-color:Floralwhite }
-
-+---------------+
-|Special        |
-+-----+
-| \@_reference_ |
-| $_control_    |
-+---------------+
-{ tbody-tr-odd-background-color:Gainsboro; \
-  tr-even-background-color:Floralwhite }
-~
 
 #### Assignment
 
@@ -481,10 +450,26 @@ However, they can be very useful when debugging or refactoring. That may seem
 dangerous, but the data protection rules (below) largely limit what the called
 function can do to the calling scope.
 
-#### Operator Syntax
+#### Varieties
 
-In general, operators are treated the same as labels.  The only difference is that operators have a small amount of syntactic sugar, so they default to
-being evaluated inside the preceding frame rather than the current context.
+Identifiers can contain letters, numbers, or non-terminal symbols.
+They come in several varieties as described in Table { #sec-table-id }.
+
+~ TableFigure { #sec-table-id; caption: "Identifiers" }
++-----------+------------+---------------+--------------+
+|Variety | Example  | Starts With       | Contains   |
++-----------+------------+---------------+--------------+
+| Label  | _variable_ | _letter_      | _letter_, _number_, `-`  |
+| Operator  | `+` | _symbol_ | _symbol_ |
+| Control  | `$<-` # return | `$`     | _any identifier_  |
+| Anonymous  | \_^ | \_ | \_,\^  |
++-----------+------------+---------------+--------------+
+{ tbody-tr-odd-background-color:Gainsboro; \
+  tr-even-background-color:Floralwhite }
+
+~
+
+Syntactically they are equivalent, with one small piece of syntactic sugar of operators.  Those default to being evaluated inside the preceding frame rather than the current context, so that values are treated as names (unless at the beginning of an expression).
 
 ``` ruby
 ; 2 .+ 2
