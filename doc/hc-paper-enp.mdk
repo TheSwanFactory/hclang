@@ -727,11 +727,10 @@ inheritance is just another expression, you are welcome to define your own:
 
 # Related Work
 
-~ Note
-The syntax highlighting works in the PDF output too.
-~
-
-
+* BitC [sound *and* complete](www.cs.jhu.edu/~swaroop/aplas.pdf)
+* Water http://www.informit.com/articles/article.aspx?p=27567
+* Mathematica https://mathematica.stackexchange.com/questions/2335/metaprogramming-in-mathematica
+* Julia https://julialang.org
 
 # Conclusion
 
