@@ -1,4 +1,5 @@
-import { Frame, FrameAtom, NilContext } from "./frame";
+import { Frame, NilContext } from "./frame";
+import { FrameAtom } from "./frame-atom";
 
 export class FrameSymbol extends FrameAtom {
   public static for(symbol: string) {

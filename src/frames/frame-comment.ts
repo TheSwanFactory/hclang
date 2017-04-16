@@ -1,6 +1,7 @@
-import { Context, Frame, FrameAtom, NilContext } from "./frame";
+import { Context, Frame, NilContext } from "./frame";
+import { FrameQuote } from "./frame-atom";
 
-export class FrameComment extends FrameAtom {
+export class FrameComment extends FrameQuote {
   public static readonly COMMENT_BEGIN = "#";
   public static readonly COMMENT_END = "#";
 

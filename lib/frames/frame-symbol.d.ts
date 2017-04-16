@@ -1,4 +1,5 @@
-import { Frame, FrameAtom } from "./frame";
+import { Frame } from "./frame";
+import { FrameAtom } from "./frame-atom";
 export declare class FrameSymbol extends FrameAtom {
     protected data: string;
     static for(symbol: string): FrameSymbol;

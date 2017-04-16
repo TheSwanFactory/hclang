@@ -1,5 +1,6 @@
 import * as _ from "lodash";
-import { Context, Frame, FrameAtom, NilContext } from "./frame";
+import { Context, Frame, NilContext } from "./frame";
+import { FrameQuote } from "./frame-atom";
 import { FrameSymbol } from "./frame-symbol";
 
 const reducer = (current: Frame, char: string) => {
@@ -7,7 +8,7 @@ const reducer = (current: Frame, char: string) => {
   return current.call(symbol);
 };
 
-export class FrameString extends FrameAtom {
+export class FrameString extends FrameQuote {
   public static readonly STRING_BEGIN = "“";
   public static readonly STRING_END = "”";
 

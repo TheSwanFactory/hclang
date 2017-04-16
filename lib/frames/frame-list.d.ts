@@ -1,9 +1,10 @@
-import { Frame } from "./frame";
+import { Context, Frame } from "./frame";
+export interface IArrayConstructor {
+    new (data: Array<Frame>, meta: Context): Frame;
+}
 export declare class FrameList extends Frame {
     protected data: Array<Frame>;
-    constructor(data: Array<Frame>, meta?: {
-        [key: string]: Frame;
-    });
+    constructor(data: Array<Frame>, meta?: Context);
     toStringDataArray(): string[];
     toStringArray(): string[];
     toString(): string;

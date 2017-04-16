@@ -112,27 +112,3 @@ export class Frame {
     return false;
   }
 };
-
-export class FrameAtom extends Frame {
-  public string_prefix() { return ""; };
-  public string_suffix() { return ""; };
-  public string_start() { return this.string_prefix(); };
-
-  public toStringData(): string {
-    return this.string_prefix() + this.toData().toString() + this.string_suffix();
-  }
-
-  public toString() {
-    const DataString = this.toStringData();
-    if (this.meta_length() === 0) {
-      return DataString;
-    }
-    return this.string_open() + [DataString, this.meta_string()].join(", ") + this.string_close();
-  }
-
-  public canInclude(char: string) {
-    return char !== this.string_suffix();
-  }
-
-  protected toData(): any { return null; }
-}

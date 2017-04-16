@@ -37,12 +37,3 @@ export declare class Frame {
     asArray(): Array<Frame>;
     isVoid(): boolean;
 }
-export declare class FrameAtom extends Frame {
-    string_prefix(): string;
-    string_suffix(): string;
-    string_start(): string;
-    toStringData(): string;
-    toString(): string;
-    canInclude(char: string): boolean;
-    protected toData(): any;
-}
