@@ -98,8 +98,6 @@ programming; a situation which continues today, almost fifty years
 later. This led to the C syntax (with some borrowing from its sister language, the UNIX shell)
 becoming the baseline for virtually every mass-market language in use today[@Cite].
 
-## The Downside of C
-
 This success was not entirely a good thing. C's memory model and type
 system optimized for efficiency at the cost of safety, leading to
 innumerable programming errors and security holes that still plague us
@@ -149,7 +147,7 @@ HC also incorporates:
 
 In the remainder of this document, we will cover:
 
-* The syntax, operators, and data protection rules that define the language
+* The syntax, operators, and access control that define the language
 * Examples of using Homoiconic C to model object-oriented programming and HTML
 * The current status and possible future directions
 * Conclusions and comparisons to related work
@@ -163,7 +161,7 @@ In the remainder of this document, we will cover:
 
 The core principle of Homoiconic C syntax is _isomorphism_: every
 syntactic construct refers to exactly one semantic concept. Put another
-way, it is modeless: characters don't mean different things in different
+way, it is modeless: syntax characters do not mean different things in different
 places. This enables vastly simpler parsers and a much shallower learning
 curve.
 
@@ -185,11 +183,11 @@ evaluator.
 ```
 Specifically:
 
-1. _frame0_ is evaluated to _value0_ (also a frame)
-2. _frame1_ is evaluated to _value1_
-3. _value0_ is called with the argument _value1_, producing _result1_
-4. -result1_ is called with _value2_ producing _result2_
-5. The final _result_ is thus the value of the evaluated expression
+1. `frame0` is evaluated to `value0` (also a frame)
+2. `frame1` is evaluated to `value1`
+3. `value0` is called with the argument `value1`, producing `result1`
+4. `result1` is called with `value2` producing `result2`
+5. The final `result` is thus the value of the evaluated expression
 
 The HC read-eval-print loop (REPL) uses ';' for the input prompt and '#' for the
 output prompt:
@@ -203,8 +201,8 @@ That's pretty much all there is. There are no special forms, keywords,
 precedence rules, or other grammatic constructs. While we realize those
 may provide some efficiency gains for experienced programmers, we do not
 believe they are worth of cost of complicating the implementation and
-increasing the learning curve for new programmers. And as we will show,
-they are not at all necessary.
+increasing the learning curve for new programmers. In particularly,
+they are not actually necessary for a fully-functional programming system.
 
 ### Literals
 
@@ -241,21 +239,24 @@ In addition, as part of HC's quest to be a universal data format, it natively su
 
 By definition, literals evaluate to themselves:
 ``` ruby
-; “Hello, Homoiconicity!”
-# “Hello, Homoiconicity!”
+; “Hello, Quine!”
+# “Hello, Quine!”
 ```
 This is true even at the file level. A data program consistent entirely
 of terminals and literals simply evaluates to (and prints out) itself, or
 "[quines](https://en.wikipedia.org/wiki/Quine_%28computing%29)."
 
-Because literals are also frames, they can be called ("All data is also
-code"). Strings, for example, stringify and concatenate their argument.
+Because literals are also frames, and thus both code and data,
+they can be called like functions.
+
+Strings, for example, stringify and concatenate their argument.
 ``` ruby
 ; “Hello, ” “Homoiconicity!”
 # “Hello, Homoiconicity!”
 ; “The Answer” “: ” 42
 # “The Answer: 42”
 ```
+
 Similarly, numbers replicate their argument that many times:
 ``` ruby
 ; 2 “Repeats”
