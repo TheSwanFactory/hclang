@@ -693,25 +693,25 @@ This may seem to good to be true, but that is the power of choosing the correct 
 - The class itself is the constructor (as a closure)
 - When evaluated, that closure inherits the class as its parent
 
-#### Inheritance
+### Extending Classes
 
 Even inheritance is already accounted for, simply by allowing an object to specify its parent:
 
-```
-    ; my-subclass {
-      ._^ my-class
-    };
-```
-At this time there does not appear to be any natural way to implement multiple inheritance (which may be a good thing).  However, if you come up with your own it would be trivial to use it:
-
-(Fake code, will give an error.)
-```
-    ; my-multiclass {
-      ._^ multiply-inherit (my-class, my-other-class)
-    };
+``` ruby
+; my-subclass {
+  ._^ my-base-class
+};
 ```
 
+There is no built-in support for multiple inheritance.  However, because
+inheritance is just another expression, you are welcome to define your own:
 
+``` ruby
+; .my-multiple-inheritance { “create your own” };
+; multiclass {
+  ._^ my-multiple-inheritance[my-base, another-base]
+};
+```
 
 ## HTML
 
