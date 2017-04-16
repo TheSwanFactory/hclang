@@ -734,7 +734,27 @@ inheritance is just another expression, you are welcome to define your own:
 
 # Conclusion
 
-Really fun to write Markdown :-)
+We believe the historical accident of confusing computation with mathematics
+and programming with natural languages has resulted in massive accidental
+complexity, resulting in buggy software, complicated tools, and steep learning.
+By eliminated that complexity, Homoiconic C promises to usher in a new Golden Age of software that is:
+
+* Provably secure by default
+* Both inherently efficient and easily optimized
+* Easy to learn, read, and modify
+* Trivial to statically analyze, visualize, and automatically evolve
+
+If Homoiconic C fulfills that promise, we can finally make programming an
+everyday skill, used by ordinary people (even children) to solve the problems
+*they* care about, in the same way they use writing and arithmetic.  Not
+everyone will be an expert or professional programmer -- anymore than everyone who sings is an expert or professional musician -- but the ability to
+read, understand, and personalize code will be available to all.
+
+It may be true that there is no silver bullet[@Cite].   But we believe
+Homoiconic C can at least be a "diamond sword", enabling courageous individuals
+to bring safety, performance, usability, and clarity to the software that
+impacts their corner of the world.  We hope you will join us on that quest.
+
 
 # Appendices
 
