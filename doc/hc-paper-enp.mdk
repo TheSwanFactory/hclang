@@ -334,7 +334,7 @@ Everything else is just an identifier, which can be referred to as:
 They come in four varieties:
 
 * *Label*, which begins with a letter and can include letters, numbers, and dashes ("kebab-case").
-* *Anonymous*, which consists of underscores (`_`) and carets(`^`).
+* *Anonymous*, which consists of underscores (`_`) and trailing carets(`^`).
 * *Control*, which is a label prefixed with a currency sign (e.g.,`$`).
 * *Operators*, which contains only symbols (none of the above)
 
@@ -343,7 +343,7 @@ That completes our syntax[^mod].  Expressions are just literals and identifiers 
 
 ---
 ^[mod] Though identifiers may have suffixes and prefixes for access control,
-as described below.
+as described in Section { #sec-table-access }.
 
 
 ~ TableFigure { #sec-table-id; caption: "Identifiers" }
@@ -609,7 +609,75 @@ Closely related to effect typing (which determines *what* can change) are access
 
 ## Object-Orientation
 
-Let's program some Javascript:
+Perhaps surprisingly, it is possible to implement a complete object-oriented
+programming system using only the above primitives.
+
+
+### Constructors
+
+Let's start with a simple singleton:
+
+``` ruby
+; .parent_ [
+# # .x 1;
+# # .helper: {
+#   # .x 2;
+#   # .y x + _^.x;
+#   # ._^.y y + _;
+#   # }
+# # ]
+; parent_.x
+# 1
+; parent.y
+# $missing
+; parent_.helper: 10;
+; parent_.y
+# 13
+```
+
+Then move on to classes:
+```
+; my-class {
+  ._property _;
+  .getProperty { _^._property }
+  .setProperty: { ._^._property _}
+};
+; .my-instance my-class 3;
+; my-instance.getProperty()
+# 3
+; .mutated = my-instance.setProperty: 42;
+; mutated.getProperty()
+# 42
+; my-instance.getProperty()
+# 3
+```
+
+This may seem to good to be true, but that is the power of choosing the correct primitives:
+
+- Data hiding is handled by the implicit access Modifiers
+- Scope is always inherited
+- Instance methods refer to their parent by `_^`
+- The class itself is the constructor (as a closure)
+- When evaluated, that closure inherits the class as its parent
+
+#### Inheritance
+
+Even inheritance is already accounted for, simply by allowing an object to specify its parent:
+
+```
+    ; my-subclass {
+      ._^ my-class
+    };
+```
+At this time there does not appear to be any natural way to implement multiple inheritance (which may be a good thing).  However, if you come up with your own it would be trivial to use it:
+
+(Fake code, will give an error.)
+```
+    ; my-multiclass {
+      ._^ multiply-inherit (my-class, my-other-class)
+    };
+```
+
 
 
 ## HTML
