@@ -1,4 +1,4 @@
-~ Begin Bibliography { .bib-numeric ; caption:"12" ; data-style:"plainnat" }
+~ Begin Bibliography { .bib-numeric ; caption:"13" ; data-style:"plainnat" }
 
 
 
@@ -7,6 +7,13 @@
 Anonymous.
 []{.newblock} _Citation Needed_\/.
 []{.newblock} N/A, 1900.
+~ End Bibitem
+
+~ Begin Bibitem { cite-year:"1900" ; cite-authors:"et\ al" ; id:"bitc" ; tex-cite-label:"et~al(1900)" ; caption:"Shapiro et\ al. &nl;Sound and complete type inference in a systems language." ; searchterm:"Sound+complete+type+inference+systems+language++Shapiro+" }
+Shapiro et\ al.
+[]{.newblock} Sound and complete type inference in a systems language.
+[]{.newblock} _Stub_\/, 1900.
+[]{.newblock} URL <www.cs.jhu.edu/~swaroop/aplas.pdf>.
 ~ End Bibitem
 
 ~ Begin Bibitem { cite-year:"1900a" ; cite-authors:"Stub" ; id:"clang" ; tex-cite-label:"Stub(1900{\natexlab{a}})" ; caption:"Stub. &nl;_Stub_\/." ; searchterm:"_Stub_++Stub+" }

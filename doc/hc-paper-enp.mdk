@@ -420,6 +420,16 @@ special syntax.
 
 ####  TODO: Controls
 
+##### Flow Control
+
+* Exit: `$$`
+* Return: `$<`
+* Break: `$>`
+
+##### Errors
+
+`$error`
+
 ####  Anonymous Identifiers
 
 Use `_` as the anonymous argument, representing everything this frame
@@ -589,11 +599,10 @@ Similarly, we use `&` for reduce:
 # 6
 ```
 
-#### Conditionals
+### Conditionals
 
 Homoiconic C's sole conditionals are a pair of binary operators analogous to C's ternary operator,
 albeit with slightly different semantics. These are described in Table [#sec-table-cond].
-
 
 ~ TableFigure { #sec-table-cond; caption: "Conditional Operators" }
 
@@ -626,57 +635,241 @@ and the opposite on regular frames.
 Which, when the first expression does not return nil, acts just like C's ternary
 operator:
 ``` ruby
-; ( 1 > 5 ) ? 100 : 10
+; 1 > 5 ? (2 * 50) : 10
 # 10
 ```
 
-Note that applying nil to anything other than a closure has no effect.
+Note that applying nil to anything other than a closure has no effect, so conditionals
+work just as well with simple expressions as they do with lazy blocks.
 
+### TODO: Import
 
-## Access Control { #sec-table-access }
+## Access Control { #sec-access }
 
-~ TableFigure { #sec-table-id; caption: "Identifiers" }
-+-----------+------------+---------------+--------------+
-| Identifiers                                        ||||
-|Assignment | Constancy  | Privacy       | Effect   |
-+-----------+------------+---------------+--------------+
-| _value_   | _variable_ | _public_      | _immutable_  |
-| ._name_   | _Constant_ | \__protected_ | _mutable_\_  |
-|           |            | \_\__private_ | _mutating_: |
-+-----------+------------+---------------+--------------+
+Arguably the primary source of bugs, clutter, and complexity in
+programming languages is knowing "who can perform which actions on what data,"
+which we refer to somewhat loosely as "access control." We consider this
+problem so important we spend the bulk of our "syntactic budget" on
+giving programmers an easy way to specify and detect access modes. This
+is done by encoding those rules in the identifiers themselves, as seen in
+Table {#sec-table-access}.
+
+~ TableFigure { #sec-table-access; caption: "Access Modifiers" }
+
++-----------+------------+-------------+
+|Privacy | Constancy  || Effect      |
++-----------+------------+-------------+
+|  _public_   | _variable_ | _immutable_ |
+| \__protected_   | _Constant_  | _mutable_\_ |
+| \_\__private_           |  | _mutating_: |
++-----------+------------+-------------+
 { tbody-tr-odd-background-color:Gainsboro; \
   tr-even-background-color:Floralwhite }
+~
 
-### Effect Typing
+Importantly, these are modifiers not different identifiers. So, for example, the
+constant `COOL` in one scope overrides its case duplicate `cool` from a
+parent scope. For natural languages without separate upper and lower
+case, we use an initial letter `K` to denote the constant version.
 
-Rather than specify call-by-value or call-by-reference, HC is designed around the BitC model for effect typing.  Shapiro *et al* proved it is possible to have a [sound *and* complete](www.cs.jhu.edu/~swaroop/aplas.pdf) systems language if you explicitly annotate variables for **constancy** and **mutability** at each context boundary. This gives the compiler enough information to know how and when to safely copy or share data structures.
+### Encapsulation
 
- Unfortunately, they could not do that within their Lisp-like syntax. Inspired by their work, we have chosen to use the bulk of our "syntax budget" to address that problem.  In particular, we believe effect is so fundamental we bake it into our identifiers:
+The simplest form of access control is _encapsulation_, restricting the ability of
+external objects to even see certain properties.  Here we follow the informal
+conventions often used in C programs:
 
- - `CONST` # begins with uppercase letter
- - `variable` # does not
- - `mutable_` # trailing underscore
- - `immutable` # default
- - `mutating_method:` # trailing colon
+* `public`
+  : visible to everyone
+* `_protected`
+  : not visible to parents or peers, but still visible to children
+* `__private`
+  : not visible to anyone, even children
 
-Their core insight is that mutability is a property of the *handle*, not the *object*.  Every object starts out mutable, but as long as it is only referenced from immutable handles the compiler can share a single instance between them.  Even if a context specifies a mutable handle, that only matters if it is called by a mutating method, which becomes copy-on-write.  For that reason, all mutating methods are required to return 'self'.
+For example:
 
-This approach may seem incomplete, in that it doesn't specify the mutability of object literals.  But if accessed directly without a handle, there is no way of knowing (or caring) whether the literal was mutated or not!
+``` ruby
+; .see-me {
+  .my-public-value 42;
+  ._my-protected-value 21;
+  .__my-private-value 7;
+  .child {
+    my-public-value,
+    my-protected-value,
+    my-private-value,
+  }
+};
+; see-me.child()
+# [42, 21, $error{$is-private .my-private-value}]
+; see-me.my-public-value
+# 42
+; see-me.my-protected-value
+# $error{$is-protected .my-protected-value}
+; see-me.my-private-value
+# $error{$is-private .my-private-value}
 
-Please note that these particular conventions are preliminary, and may change in future versions based on empirical tests of readability and intuitiveness.  Since HC is just a data format, it is trivial to semantically version, and define conversions from obsolete versions.
+```
+
+### Effect
+
+Rather than specifying _call-by-value_ or _call-by-reference_, HC is
+designed around the BitC[@BitC] model of effect typing. Shapiro *et al*
+proved it is possible to have a sound *and* complete systems language if
+we explicitly annotate identifiers for both **constancy** and
+**mutability** (which together we call _effect_ ) at each context
+boundary. This gives the compiler enough information to know how and when
+to safely copy or share data structures. Put another way, effect typing
+makes it as easy to allow side effects for performance as it is to
+restrict side effects for safety.
+
+ Unfortunately, BitC could not accommodate such annotations within their
+ Lisp-like syntax[@Cite]. Inspired by their work, we have designed the
+ syntax of our identifiers to explicitly support effect typing:
+
+* `variable`
+  : Does not begin with an uppercase letter. Can be reassigned. 
+* `CONSTANT`
+  : Begins with uppercase letter. Can **not** be reassigned. 
+* `immutable`
+  : Has no suffix. Can not be modified in place.
+* `mutable_`
+  : Trailing underscore. Can be modified in place.
+* `mutating_method:`
+  : Trailing colon. Can modify its parent context. Returns self.
 
 
-## Access Modifiers
+Please note that these particular conventions are preliminary, and may
+change in future versions based on empirical tests of readability and
+intuitiveness. Since HC is just a data format, we plan to explicitly
+version documents and enable automatic migration between incompatible versions. 
 
-Closely related to effect typing (which determines *what* can change) are access modifiers (which determine *who* can change or see that). To streamline the grammar and readability, we also bake those into the identifiers, following the typical C conventions:
+#### Constancy
 
-- `public` # default
-- `_protected` # not accessible from parent
-- `__private` # not accessible by children
+BitC's first key insight is that _constancy_ (whether an identifier can be
+assigned a new value) is distinct from _mutability_ (whether the
+referenced value can be modified in place). In other words, constancy is
+a property of the _source_ object, whereas mutability is a property of the
+_destination_ object.
+
+
+```ruby
+; .variable 42;
+; .Constant 21;
+; .variable 113
+# 113
+; .Constant 7
+# $error{$is-constant .Constant}
+```
+
+#### Mutability
+
+The second key insight is that effect is a property of
+_names_ rather than of _values_. Object literals have no effect
+restrictions on their own; this is contrast to, e.g., Apple's Cocoa
+frameworks[@Cite], where mutability is an inherent part of the object's
+constructed type. Instead, every object is in principle mutable, but as
+long as it is only referenced from immutable handles the compiler can
+share a single instance between them.
+
+Conversely, objects that are referenced and passed via mutable handles
+are explicitly "aliases" of each other, so the compiler knows that it
+needs to manage dependencies between local copies, ensure serialization
+between different threads, etc.
+
+Note that even if an object is mutable, it won't actually be mutated
+unless we reassign a variable or invoke a mutating method. To make that
+explicit, we require methods that mutate their parent to have a trailing
+colon (`:`). This has the wonderful consequence that we can also invoke
+mutating methods on _immutable_ handles, and automatically perform a
+_copy-on-write_. To enable this, mutating methods can not explicitly
+return a value, but must implicitly return "self" (that is, the parent
+object).
+
+Conversely, this also requires that an immutable reference to a mutable
+object must be _copy-on-assign_, since it can't know when the source
+object may be mutated. Similarly, creating a new mutable handle to a
+mutable object that hasn't yet been mutated triggers the copy-on-write.
+
+```ruby
+#
+# Definitions
+#
+; .fixed (
+  .hic “Object”;
+  .property 42;
+  .accessor {
+    @property
+  }
+  .mutator: {
+    @property _;
+  }
+)
+# $hic{“Object”:0xDEADBEEF}
+; .varying_ fixed
+# $hic{“Object”:0xDEADBEEF}
+; .reference varying_
+# $hic{“Object”:0xFEEDFACE}
+
+#
+# Non-Mutating
+#
+; fixed.accessor()
+# 21
+; fixed
+# $hic{“Object”:0xDEADBEEF}
+; varying_
+# $hic{“Object”:0xDEADBEEF}
+
+#
+# Mutating an Immutable Object
+#
+; .fixed.property 7
+# $error{$is-immutable .fixed}
+
+; .evolved fixed.mutator:7
+# $hic{“Object”:0xDECAFBAD}
+; evolved.accessor()
+# 7
+; fixed.accessor()
+# 42
+; varying_.accessor()
+# 42
+
+#
+# Mutating a Mutable Object
+#
+; varying_.mutator: 14
+# $hic{“Object”:0xFEEDBABE}
+; varying_.accessor()
+# 14
+; fixed.accessor()
+# 42
+; evolved.accessor()
+# 7
+; reference.accessor()
+# 42
+
+#
+# Proactive Copying
+#
+; .initial_ fixed
+# $hic{“Object”:0xDEADBEEF}
+; .shared_ initial_
+# $hic{“Object”:0xDEADC0DE}
+; initial_
+# $hic{“Object”:0xDEADC0DE}
+
+```
 
 
 
 # Applications
+
+## Congrams
+
+### HCSV
+
+### HCSON
+
 
 ## Object-Orientation
 

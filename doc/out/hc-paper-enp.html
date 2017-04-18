@@ -2,7 +2,7 @@
 <html lang="en-US">
 <head>
   <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
-  <meta name="generator" content="Madoko, version 1.1.0" />
+  <meta name="generator" content="Madoko, version 1.1.1" />
   <meta name="viewport" content="initial-scale=1.0" />
   <title>Homoiconic C</title>
   <style type="text/css"  class="link">
@@ -294,20 +294,19 @@
 <div class="title para-block" style="font-size:xx-large;font-weight:bold;margin-bottom:0.5ex;line-adjust:0">Homoiconic C</div>
 <div class="subtitle para-block" style="font-size:x-large;margin-bottom:0.5ex;line-adjust:0">Programming without a Language</div></div></div>
 <div class="abstract" style="margin-left:3em;margin-right:3em;font-size:small">
-<p class="p noindent"><strong class="strong-star2">Abstract.</strong> <br>
+<p class="p noindent"><strong class="strong-star2">Abstract.</strong> 
 Modern programming is dominated by languages derived from C<span class="citations" style="target-element:bibitem">[<a href="#clang" title="Stub. 
-Stub." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span> and
+Stub." class="bibref localref" style="target-element:bibitem"><span class="cite-number">3</span></a>]</span> and
 the UNIX shell<span class="citations" style="target-element:bibitem">[<a href="#unixshell" title="Stub. 
-Stub." class="bibref localref" style="target-element:bibitem"><span class="cite-number">10</span></a>]</span>, characterized by complicated syntax and
+Stub." class="bibref localref" style="target-element:bibitem"><span class="cite-number">13</span></a>]</span>, characterized by complicated syntax and
 sophisticated parsers. Minimalist languages such as Forth<span class="citations" style="target-element:bibitem">[<a href="#forth" title="Stub. 
-Stub." class="bibref localref" style="target-element:bibitem"><span class="cite-number">2</span></a>]</span>,
+Stub." class="bibref localref" style="target-element:bibitem"><span class="cite-number">4</span></a>]</span>,
 Scheme<span class="citations" style="target-element:bibitem">[<a href="#scheme" title="Stub. 
-Stub." class="bibref localref" style="target-element:bibitem"><span class="cite-number">6</span></a>]</span> and Self<span class="citations" style="target-element:bibitem">[<a href="#self" title="Stub. 
-Stub." class="bibref localref" style="target-element:bibitem"><span class="cite-number">7</span></a>]</span> are no longer taken seriously<sup id="back-fn-lua-fn" ><a href="#fn-lua-fn" title="1.The only minimalist language still in active use appears to be
+Stub." class="bibref localref" style="target-element:bibitem"><span class="cite-number">9</span></a>]</span> and Self<span class="citations" style="target-element:bibitem">[<a href="#self" title="Stub. 
+Stub." class="bibref localref" style="target-element:bibitem"><span class="cite-number">10</span></a>]</span> are no longer taken seriously<sup id="back-fn-lua-fn" ><a href="#fn-lua-fn" title="1.The only minimalist language still in active use appears to be
 Lua[&lt;a href=&quot;#lua&quot; title=&quot;Stub. 
-Stub.&quot; class=&quot;bibref localref&quot; style=&quot;target-element:bibitem&quot;&gt;5], though even that is relegated to niche applications.
-
-&#8230;" class="footnote-ref localref" ><span class="footnote-label">1</span></a></sup>,
+Stub.&quot; class=&quot;bibref localref&quot; style=&quot;target-element:bibitem&quot;&gt;8], though even that is relegated to niche applications.
+&#8617;" class="footnote-ref localref" ><span class="footnote-label">1</span></a></sup>,
 presumably because they are felt to lack sufficiently readable <em class="em-low1">syntax</em>
 and powerful enough <em class="em-low1">semantics</em>.
 </p>
@@ -317,10 +316,10 @@ yet is even easier to read than existing scripting languages. The key is
 a novel data structure and computational model we call <em class="em-low1">Frames</em>, designed
 to replace and improve upon the s-expressions and metacircular evaluation
 model of Lisp<span class="citations" style="target-element:bibitem">[<a href="#lisp" title="Stub. 
-Stub." class="bibref localref" style="target-element:bibitem"><span class="cite-number">4</span></a>]</span>. Frames act as a universal monad<sup id="back-fn-monad" ><a href="#fn-monad" title="2.Not just the mathematical term for an object closed under all
+Stub." class="bibref localref" style="target-element:bibitem"><span class="cite-number">7</span></a>]</span>. Frames act as a universal monad<sup id="back-fn-monad" ><a href="#fn-monad" title="2.Not just the mathematical term for an object closed under all
 operations, but Liebniz&#39;s original idea of a single universal
 building-block[&lt;a href=&quot;#liebniz&quot; title=&quot;Stub. 
-Stub.&quot; class=&quot;bibref localref&quot; style=&quot;target-element:bibitem&quot;&gt;3].
+Stub.&quot; class=&quot;bibref localref&quot; style=&quot;target-element:bibitem&quot;&gt;6].
 &#8617;" class="footnote-ref localref" ><span class="footnote-label">2</span></a></sup>, with the
 result that Homoiconic C is simply conventions for creating and
 evaluating Frames.
@@ -330,99 +329,897 @@ types of lists, seven atoms, and the seven predefined operators; as a
 modeless data format, there are no keywords, reserved words, or even any
 grammar. Next we discuss the robust data protection semantics inspired by
 BitC<span class="citations" style="target-element:bibitem">[<a href="#shapiro:effecttyping" title="Stub. 
-Stub." class="bibref localref" style="target-element:bibitem"><span class="cite-number">8</span></a>]</span>, which allow us the efficiency of C&#39;s memory
+Stub." class="bibref localref" style="target-element:bibitem"><span class="cite-number">11</span></a>]</span>, which allow us the efficiency of C&#39;s memory
 model without any of the downsides. Finally, we provide examples of how
 these deceptively simple primitives allow us to trivially implement HTML,
 Object-Oriented programming, and other higher-level abstractions.
 </p>
 <p class="p indent">We are currently developing the first implementation of HC as a
 TypeScript<span class="citations" style="target-element:bibitem">[<a href="#typescript" title="Stub. 
-Stub." class="bibref localref" style="target-element:bibitem"><span class="cite-number">9</span></a>]</span> interpreter. It can be found at
+Stub." class="bibref localref" style="target-element:bibitem"><span class="cite-number">12</span></a>]</span> interpreter. It can be found at
 <a href="http://github.com/TheSwanFactory/hclang/" class="texturl monospace">http://&#8203;github.&#8203;com/&#8203;TheSwanFactory/&#8203;hclang/&#8203;</a> under an MIT Open Source
 license.
 </p></div><h2 id="sec-intro" class="h1" data-heading-depth="1" style="display:block"><span class="heading-before"><span class="heading-label">1</span>.&#8194;</span>Introduction</h2>
-<p class="p noindent">Blah.
-</p><h2 id="sec-frames" class="h1" data-heading-depth="1" style="display:block"><span class="heading-before"><span class="heading-label">2</span>.&#8194;</span>Frames</h2><h3 id="sec-syntax" class="h2" data-heading-depth="2" style="display:block"><span class="heading-before"><span class="heading-label">2.1</span>.&#8194;</span>Syntax</h3>
+<p class="p noindent">Homoiconic C is a data format for computation. It is designed to be a
+simple yet powerful alternative to both traditional programming languages
+and existing data formats.
+</p><h3 id="sec-a-brief-history-of-programming-languages" class="h2" data-heading-depth="2" style="display:block"><span class="heading-before"><span class="heading-label">1.1</span>.&#8194;</span>A Brief History of Programming Languages</h3>
+<p class="p noindent">Early high-level languages (e.g., FORTRAN<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
+Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span>, COBOL<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
+Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span>,
+BASIC<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
+Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span>, ALGOL<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
+Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span>) were strongly influenced by mathematics and
+artificial intelligence<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
+Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span>, leading to sophisticated precedence rules
+and complicated syntax. The primary alternative was Lisp[<span class="textual citations" style="target-element:bibitem"><span class="cite-authors">Stub</span>&#160;[<a href="#lisp" title="Stub. 
+Stub." class="bibref localref" style="target-element:bibitem"><span class="cite-number">7</span></a>]</span>;], defined
+&#8211; at least in theory &#8211; by a single data structure (the list) and a
+single rule (metacircular evaluation).
+</p>
+<p class="p indent">Lisp was not as efficient as, say, Fortran, but it was much more elegant
+and powerful. The common assumption was that eventually computers would
+become powerful enough that Lisp&#39;s inefficiencies would no longer matter.
+Sadly, the failure of hardware-optimized Lisp machines<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
+Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span> marked the
+death of that dream.
+</p><h3 id="sec-then-came-c" class="h2" data-heading-depth="2" style="display:block"><span class="heading-before"><span class="heading-label">1.2</span>.&#8194;</span>Then Came C</h3>
+<p class="p noindent">Into that void stepped the C programming language<span class="citations" style="target-element:bibitem">[<a href="#clang" title="Stub. 
+Stub." class="bibref localref" style="target-element:bibitem"><span class="cite-number">3</span></a>]</span>. C was derived
+from ALGOL, but borrowed (some would say butchered<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
+Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span>) several
+powerful ideas from Lisp, such as macros<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
+Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span> and function
+pointers<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
+Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span>. In addition, the C memory model<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
+Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span> mapped well onto
+modern processor architectures, enabling remarkably good performance. It
+also benefited from:
+</p>
+<ul class="ul list-star compact">
+<li class="li ul-li list-star-li compact-li">A relatively simple and easy to read syntax
+</li>
+<li class="li ul-li list-star-li compact-li">Association with the UNIX operating system
+</li>
+<li class="li ul-li list-star-li compact-li">Self-sustaining<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
+Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span>, open source compilers
+</li></ul>
+
+<p class="p noindent">This led to C (along with its direct descendants, C++<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
+Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span> and
+Objective-C<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
+Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span>) completely dominating the field for systems
+programming; a situation which continues today, almost fifty years later.
+This led to the C syntax (with some borrowing from its sister language,
+the UNIX shell) becoming the baseline for virtually every mass-market
+language in use today<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
+Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span>.
+</p>
+<p class="p indent">This success was not entirely a good thing. C&#39;s memory model and type
+system optimized for efficiency at the cost of safety, leading to
+innumerable programming errors and security holes that still plague us
+today&nbsp;<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
+Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span>. C&#39;s syntax and macros &#8211;  a breath of fresh air
+when they first came out &#8211; feel clunky and dated in a world of scripting
+languages and functional programming, to the point where it is rarely
+taught to beginning programmers anymore.
+</p><h3 id="sec-frames" class="h2" data-heading-depth="2" style="display:block"><span class="heading-before"><span class="heading-label">1.3</span>.&#8194;</span>Framing A New Hope</h3>
+<p class="p noindent">In the last decade, we have seen renewed innovation in systems
+programming, leading to languages such as Rust<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
+Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span>, Go<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
+Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span>, and
+Swift&nbsp;<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
+Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span>. These are enough better and different than C that they
+have carved out their own niches (especially with the help of powerful
+patrons). However, they don&#39;t seem to have the factor-of-ten improvement
+necessary to displace or replace C, the way C did to assembly language.
+</p>
+<p class="p indent">Homoiconic C aspires to reach that goal by marrying the best aspects of
+C&#39;s syntax and memory model with the values of rigor and simplicity that
+characterized Lisp. The central innovation is a novel data structure we
+call a <strong class="strong-star2">frame</strong>. Frames are simultaneously:
+</p>
+<ul class="ul list-star compact">
+<li class="li ul-li list-star-li compact-li">Callable (like functions)
+</li>
+<li class="li ul-li list-star-li compact-li">Enumerable (like arrays)
+</li>
+<li class="li ul-li list-star-li compact-li">Associative (like structs)
+</li>
+<li class="li ul-li list-star-li compact-li">Inherited (like classes)
+</li></ul>
+
+<p class="p noindent">Our premise is that the multitude of structures found in programming
+languages boil down to just these four attributes. By encoding
+them in a single object, we hope to dramatically simplify both the structure
+of the language and the process of programming.
+</p>
+<p class="p indent">HC also incorporates:
+</p>
+<ul class="ul list-star compact">
+<li class="li ul-li list-star-li compact-li">Homoiconicity, from Lisp : Frames are both code and data, making it
+trivial to manipulate code via higher-level abstractions.
+</li>
+<li class="li ul-li list-star-li compact-li">
+<dl class="dl compact">
+<dt class="dt noindent dl-li compact-li" style="text-indent:0em;font-weight:bold">Dataflow, from the UNIX Shell</dt>
+<dd class="dd" style="margin-left:1.5em">Iteration and Input/Output are designed for simple pipeline-style composition.</dd></dl></li>
+<li class="li ul-li list-star-li compact-li">Effect Typing, from BitC<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
+Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span> : By carefully annotating function
+boundaries for both <em class="em-low1">constancy</em> and <em class="em-low1">immutability</em>, we can safely alias
+data structures to get C-like performance while preserving the security
+of managed code.
+</li>
+<li class="li ul-li list-star-li compact-li">Lexical Scoping, from Scheme<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
+Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span> : Everything inherits its current
+scope (like closures). In addition, evaluation of closures causes the
+result to inherit their scope, allowing them to be used as object
+factories.
+</li></ul>
+<h3 id="sec-about-this-document" class="h2" data-heading-depth="2" style="display:block"><span class="heading-before"><span class="heading-label">1.4</span>.&#8194;</span>About This Document</h3>
+<p class="p noindent">In the remainder of this document, we will cover:
+</p>
+<ul class="ul list-star compact">
+<li class="li ul-li list-star-li compact-li">The syntax, operators, and access control that define the language
+</li>
+<li class="li ul-li list-star-li compact-li">Examples of using Homoiconic C to model object-oriented programming and HTML
+</li>
+<li class="li ul-li list-star-li compact-li">The current status and possible future directions
+</li>
+<li class="li ul-li list-star-li compact-li">Conclusions and comparisons to related work
+</li></ul>
+<h2 id="sec-language-definition" class="h1" data-heading-depth="1" style="display:block"><span class="heading-before"><span class="heading-label">2</span>.&#8194;</span>Language Definition</h2><h3 id="sec-syntax" class="h2" data-heading-depth="2" style="display:block"><span class="heading-before"><span class="heading-label">2.1</span>.&#8194;</span>Syntax</h3>
 <p class="p noindent">The core principle of Homoiconic C syntax is <em class="em-low1">isomorphism</em>: every
 syntactic construct refers to exactly one semantic concept. Put another
-way, it is modeless : characters don&#39;t mean different things in different
+way, it is modeless: syntax characters do not mean different things in different
 places. This enables vastly simpler parsers and a much shallower learning
 curve.
 </p>
-<p class="p indent">Like traditional data formats, HC is build around <em class="em-low1">literals</em> and
-the <em class="em-low1">terminals</em> that separate and organize them. HC simply extends that
-with <em class="em-low1">identifiers</em>, and a single grammar construct, the <em class="em-low1">expression</em>. The
-entire syntax is in Table&nbsp;<a href="#sec-table-syntax" title="Complete Homiconic C Syntax" class="localref" style="target-element:tablefigure"><span class="table-label">1</span></a>.
+<p class="p indent">Like traditional data formats, HC is build around <em class="em-low1">literals</em> and the
+<em class="em-low1">terminals</em> that separate and organize them. HC simply extends that with
+<em class="em-low1">identifiers</em>, and a single grammatic construct, the <em class="em-low1">expression</em>. HC
+documents that only use literals and terminals are called <em class="em-low1">data
+programs</em>, or sometimes just <em class="em-low1">congrams</em>.
+</p><h4 id="sec-expressions" class="h3" data-heading-depth="3" style="display:block"><span class="heading-before"><span class="heading-label">2.1.1</span>.&#8194;</span>Expressions</h4>
+<p class="p noindent">Expressions are simply zero or more frames evaluated within the current
+context, then applied left to right (left fold&nbsp;<span class="citations" style="target-element:bibitem">[<a href="#leftfold" title="Stub. 
+Stub." class="bibref localref" style="target-element:bibitem"><span class="cite-number">5</span></a>]</span>). We refer to
+this as the <em class="em-low1">elliptical evaluator</em>, in homage to Lisp&#39;s metacircular
+evaluator.
 </p>
-<figure id="sec-table-syntax" class="tablefigure floating align-center float" style="text-align:center;float-env:table;float-name:Table">
-<table class="madoko block">
+<pre class="para-block pre-fenced pre-fenced3 language-ruby lang-ruby ruby colorized" style="display:block"><code>  frame0 frame1 frame2 <span style="color:blue">...</span></code></pre>
+<p class="p noindent para-continued">Specifically:
+</p>
+<ol class="ol compact">
+<li class="li ol-li compact-li"><code class="code code1 language-ruby lang-ruby ruby colorized">frame0</code> is evaluated to <code class="code code1 language-ruby lang-ruby ruby colorized">value0</code> (also a frame)
+</li>
+<li class="li ol-li compact-li"><code class="code code1 language-ruby lang-ruby ruby colorized">frame1</code> is evaluated to <code class="code code1 language-ruby lang-ruby ruby colorized">value1</code>
+</li>
+<li class="li ol-li compact-li"><code class="code code1 language-ruby lang-ruby ruby colorized">value0</code> is called with the argument <code class="code code1 language-ruby lang-ruby ruby colorized">value1</code>, producing <code class="code code1 language-ruby lang-ruby ruby colorized">result1</code>
+</li>
+<li class="li ol-li compact-li"><code class="code code1 language-ruby lang-ruby ruby colorized">result1</code> is called with <code class="code code1 language-ruby lang-ruby ruby colorized">value2</code> producing <code class="code code1 language-ruby lang-ruby ruby colorized">result2</code>
+</li>
+<li class="li ol-li compact-li">The final <code class="code code1 language-ruby lang-ruby ruby colorized">result</code> is thus the value of the evaluated expression
+</li></ol>
+
+<p class="p noindent">The HC read-eval-print loop (REPL) uses &#8216;;&#8217; for the input prompt and &#8216;#&#8217; for the
+output prompt:
+</p>
+<pre class="para-block pre-fenced pre-fenced3 language-ruby lang-ruby ruby colorized" style="display:block"><code>; frame0
+<span style="color:darkgreen"># value0</span></code></pre>
+<p class="p noindent para-continued">That&#39;s pretty much all there is. There are no special forms, keywords,
+precedence rules, or other grammatic constructs. While we realize those
+may provide some efficiency gains for experienced programmers, we do not
+believe they are worth of cost of complicating the implementation and
+increasing the learning curve for new programmers. In particularly,
+we assert they are not actually necessary for a fully-functional programming system.
+</p><h4 id="sec-literals" class="h3" data-heading-depth="3" style="display:block"><span class="heading-before"><span class="heading-label">2.1.2</span>.&#8194;</span>Literals</h4>
+<p class="p noindent">Like any good data format, HC has a rich set of literals, described in
+Table&nbsp;<a href="#sec-table-literals" title="Literals Syntax" class="localref" style="target-element:tablefigure"><span class="table-label">1</span></a>.
+</p>
+<figure id="sec-table-literals" class="tablefigure floating align-center float" style="text-align:center;float-env:table;float-name:Table">
+<table class="madoko block" style="tbody-tr-odd-background-color:Gainsboro;tbody-tr-even-background-color:Floralwhite">
 <thead><tr><th class="thead tr-even col cell-border-left cell-line col-odd col-first" data-row="0" data-col="1"></th><th class="thead tr-even col cell-line col-even" data-row="0" data-col="2"></th><th class="thead tr-even col cell-border-left cell-line col-odd" data-row="0" data-col="3"></th><th class="thead tr-even col cell-line col-even" data-row="0" data-col="4"></th><th class="thead tr-even col cell-border-left cell-border-right cell-line col-odd col-last" data-row="0" data-col="5"></th></tr>
-<tr><th class="col cell-border-left thead tr-odd tr-first cell-border-right col-odd col-last col-first" data-row="1" colspan="5" data-col="1" style="font-weight:bold;text-align:center"> Literals                                                   </th></tr>
-<tr><th class="col cell-border-left thead tr-even tr-last col-odd col-first" data-row="2" colspan="2" data-col="1" style="font-weight:bold;text-align:center"> Bit               </th><th class="col cell-border-left thead tr-even tr-last col-odd" data-row="2" colspan="2" data-col="3" style="font-weight:bold;text-align:center"> Number                  </th><th class="col cell-border-left cell-border-right thead tr-even tr-last col-odd col-last" data-row="2" data-col="5" style="font-weight:bold"> Quote          </th></tr></thead>
-<tbody><tr><td class="tbody tr-even col cell-border-left cell-line col-odd col-first" data-row="0" data-col="1"></td><td class="tbody tr-even col cell-line col-even" data-row="0" data-col="2"></td><td class="tbody tr-even col cell-border-left cell-line col-odd" data-row="0" data-col="3"></td><td class="tbody tr-even col cell-line col-even" data-row="0" data-col="4"></td><td class="tbody tr-even col cell-border-left cell-border-right cell-line col-odd col-last" data-row="0" data-col="5"></td></tr>
-<tr><td class="tbody tr-odd tr-first col cell-border-left col-odd col-first" data-row="1" data-col="1"> &lt;&gt; </td><td class="tbody tr-odd tr-first col col-even" data-row="1" data-col="2"> <em class="em-low1">all (true)</em>  </td><td class="tbody tr-odd tr-first col cell-border-left col-odd" data-row="1" data-col="3"> 0b010    </td><td class="tbody tr-odd tr-first col col-even" data-row="1" data-col="4"> <em class="em-low1">binary</em>      </td><td class="tbody tr-odd tr-first col cell-border-left cell-border-right col-odd col-last" data-row="1" data-col="5"> “<em class="em-low1">string</em>”     </td></tr>
-<tr><td class="tbody tr-even col cell-border-left col-odd col-first" data-row="2" data-col="1"> () </td><td class="tbody tr-even col col-even" data-row="2" data-col="2"> <em class="em-low1">nil (false)</em> </td><td class="tbody tr-even col cell-border-left col-odd" data-row="2" data-col="3"> 0o1777   </td><td class="tbody tr-even col col-even" data-row="2" data-col="4"> <em class="em-low1">octal</em>       </td><td class="tbody tr-even col cell-border-left cell-border-right col-odd col-last" data-row="2" data-col="5"> # <em class="em-low1">commment</em> # </td></tr>
-<tr><td class="tbody tr-odd col cell-border-left col-odd col-first" data-row="3" colspan="2" data-col="1">                   </td><td class="tbody tr-odd col cell-border-left col-odd" data-row="3" data-col="3"> 1234     </td><td class="tbody tr-odd col col-even" data-row="3" data-col="4"> <em class="em-low1">decimal</em>     </td><td class="tbody tr-odd col cell-border-left cell-border-right col-odd col-last" data-row="3" data-col="5"> \<em class="em-low1">length</em>\<em class="em-low1">blob</em>    </td></tr>
-<tr><td class="tbody tr-even col cell-border-left col-odd col-first" data-row="4" colspan="2" data-col="1">                   </td><td class="tbody tr-even col cell-border-left col-odd" data-row="4" data-col="3"> 0xCAFE   </td><td class="tbody tr-even col col-even" data-row="4" data-col="4"> <em class="em-low1">hexadecimal</em> </td><td class="tbody tr-even col cell-border-left cell-border-right col-odd col-last" data-row="4" data-col="5">                </td></tr>
-<tr><td class="tbody tr-odd tr-last col cell-border-left col-odd col-first" data-row="5" colspan="2" data-col="1">                   </td><td class="tbody tr-odd tr-last col cell-border-left col-odd" data-row="5" data-col="3"> 0@Base64 </td><td class="tbody tr-odd tr-last col col-even" data-row="5" data-col="4"> <em class="em-low1">Base64</em>      </td><td class="tbody tr-odd tr-last col cell-border-left cell-border-right col-odd col-last" data-row="5" data-col="5">                </td></tr>
-<tr><td class="tbody tr-odd col cell-border-left cell-line col-odd col-first" data-row="5" data-col="1"></td><td class="tbody tr-odd col cell-line col-even" data-row="5" data-col="2"></td><td class="tbody tr-odd col cell-border-left cell-line col-odd" data-row="5" data-col="3"></td><td class="tbody tr-odd col cell-line col-even" data-row="5" data-col="4"></td><td class="tbody tr-odd col cell-border-left cell-border-right cell-line col-odd col-last" data-row="5" data-col="5"></td></tr></tbody></table>
+<tr><th class="col cell-border-left thead tr-odd tr-last tr-first col-odd col-first" data-row="1" colspan="2" data-col="1" style="font-weight:bold;text-align:center"> Integer                 </th><th class="col cell-border-left thead tr-odd tr-last tr-first col-odd" data-row="1" colspan="2" data-col="3" style="font-weight:bold;text-align:center"> Non-Integer           </th><th class="col cell-border-left cell-border-right thead tr-odd tr-last tr-first col-odd col-last" data-row="1" data-col="5" style="font-weight:bold"> Quote              </th></tr></thead>
+<tbody><tr><td class="tbody tr-even col cell-border-left cell-line col-odd col-first" data-row="0" data-col="1" style="background-color:Gainsboro"></td><td class="tbody tr-even col cell-line col-even" data-row="0" data-col="2" style="background-color:Gainsboro"></td><td class="tbody tr-even col cell-border-left cell-line col-odd" data-row="0" data-col="3" style="background-color:Gainsboro"></td><td class="tbody tr-even col cell-line col-even" data-row="0" data-col="4" style="background-color:Gainsboro"></td><td class="tbody tr-even col cell-border-left cell-border-right cell-line col-odd col-last" data-row="0" data-col="5" style="background-color:Gainsboro"></td></tr>
+<tr><td class="tbody tr-odd tr-first col cell-border-left col-odd col-first" data-row="1" data-col="1" style="background-color:Gainsboro"> 0b010    </td><td class="tbody tr-odd tr-first col col-even" data-row="1" data-col="2" style="background-color:Gainsboro"> <em class="em-low1">binary</em>      </td><td class="tbody tr-odd tr-first col cell-border-left col-odd" data-row="1" data-col="3" style="background-color:Gainsboro">1/3</td><td class="tbody tr-odd tr-first col col-even" data-row="1" data-col="4" style="background-color:Gainsboro"> <em class="em-low1">rational</em></td><td class="tbody tr-odd tr-first col cell-border-left cell-border-right col-odd col-last" data-row="1" data-col="5" style="background-color:Gainsboro"> “<em class="em-low1">string</em>”         </td></tr>
+<tr><td class="tbody tr-even col cell-border-left col-odd col-first" data-row="2" data-col="1" style="background-color:Floralwhite"> 0o1777   </td><td class="tbody tr-even col col-even" data-row="2" data-col="2" style="background-color:Floralwhite"> <em class="em-low1">octal</em>       </td><td class="tbody tr-even col cell-border-left col-odd" data-row="2" data-col="3" style="background-color:Floralwhite">123.456</td><td class="tbody tr-even col col-even" data-row="2" data-col="4" style="background-color:Floralwhite"> <em class="em-low1">float</em> </td><td class="tbody tr-even col cell-border-left cell-border-right col-odd col-last" data-row="2" data-col="5" style="background-color:Floralwhite"> # <em class="em-low1">comment</em> #      </td></tr>
+<tr><td class="tbody tr-odd col cell-border-left col-odd col-first" data-row="3" data-col="1" style="background-color:Gainsboro"> 1234     </td><td class="tbody tr-odd col col-even" data-row="3" data-col="2" style="background-color:Gainsboro"> <em class="em-low1">decimal</em>     </td><td class="tbody tr-odd col cell-border-left col-odd" data-row="3" data-col="3" style="background-color:Gainsboro">123.456.E.-10</td><td class="tbody tr-odd col col-even" data-row="3" data-col="4" style="background-color:Gainsboro"> <em class="em-low1">scientific</em> </td><td class="tbody tr-odd col cell-border-left cell-border-right col-odd col-last" data-row="3" data-col="5" style="background-color:Gainsboro"> \<em class="em-low1">length</em>\<em class="em-low1">blob</em> </td></tr>
+<tr><td class="tbody tr-even col cell-border-left col-odd col-first" data-row="4" data-col="1" style="background-color:Floralwhite"> 0xCAFE   </td><td class="tbody tr-even col col-even" data-row="4" data-col="2" style="background-color:Floralwhite"> <em class="em-low1">hexadecimal</em> </td><td class="tbody tr-even col cell-border-left col-odd" data-row="4" data-col="3" style="background-color:Floralwhite">123.456.p123</td><td class="tbody tr-even col col-even" data-row="4" data-col="4" style="background-color:Floralwhite"> <em class="em-low1">version</em> </td><td class="tbody tr-even col cell-border-left cell-border-right col-odd col-last" data-row="4" data-col="5" style="background-color:Floralwhite"> %<em class="em-low1">date_time</em>%     </td></tr>
+<tr><td class="tbody tr-odd tr-last col cell-border-left col-odd col-first" data-row="5" data-col="1" style="background-color:Gainsboro"> 0@Base64 </td><td class="tbody tr-odd tr-last col col-even" data-row="5" data-col="2" style="background-color:Gainsboro"> <em class="em-low1">Base64</em>      </td><td class="tbody tr-odd tr-last col cell-border-left col-odd" data-row="5" data-col="3" style="background-color:Gainsboro">+1.408.555.1212</td><td class="tbody tr-odd tr-last col col-even" data-row="5" data-col="4" style="background-color:Gainsboro"> <em class="em-low1">phone</em> </td><td class="tbody tr-odd tr-last col cell-border-left cell-border-right col-odd col-last" data-row="5" data-col="5" style="background-color:Gainsboro">                    </td></tr>
+<tr><td class="tbody tr-odd col cell-border-left cell-line col-odd col-first" data-row="5" data-col="1" style="background-color:Gainsboro"></td><td class="tbody tr-odd col cell-line col-even" data-row="5" data-col="2" style="background-color:Gainsboro"></td><td class="tbody tr-odd col cell-border-left cell-line col-odd" data-row="5" data-col="3" style="background-color:Gainsboro"></td><td class="tbody tr-odd col cell-line col-even" data-row="5" data-col="4" style="background-color:Gainsboro"></td><td class="tbody tr-odd col cell-border-left cell-border-right cell-line col-odd col-last" data-row="5" data-col="5" style="background-color:Gainsboro"></td></tr></tbody></table>
 <hr  class="figureline madoko" style="display:block">
 
-<div class="p noindent"><fig-caption class="figure-caption"><span class="caption-before"><strong class="strong-star2">Table&#160;<span class="table-label">1</span>.</strong>&#160;</span><span class="caption-text">Complete Homiconic C Syntax</span></fig-caption></div></figure><h3 id="sec-literals" class="h2" data-heading-depth="2" style="display:block"><span class="heading-before"><span class="heading-label">2.2</span>.&#8194;</span>Literals</h3><h3 id="sec-expressions" class="h2" data-heading-depth="2" style="display:block"><span class="heading-before"><span class="heading-label">2.3</span>.&#8194;</span>Expressions</h3><h3 id="sec-terminals" class="h2" data-heading-depth="2" style="display:block"><span class="heading-before"><span class="heading-label">2.4</span>.&#8194;</span>Terminals</h3>
-<p class="p noindent">Terminals delimit and group expressions. There are eleven terminals
-organized into three categories:
+<div class="p noindent"><fig-caption class="figure-caption"><span class="caption-before"><strong class="strong-star2">Table&#160;<span class="table-label">1</span>.</strong>&#160;</span><span class="caption-text">Literals Syntax</span></fig-caption></div></figure>
+<p class="p indent">The most significant departure from traditional syntax is the use of
+matching smart quotes, which enables nesting and all but eliminates the
+need for escape sequences. With appropriate editor support (an&nbsp;<a href="https://github.com/TheSwanFactory/language-maml">atom
+package</a> already exists),
+the user can type &#8216;&quot;&#8217; as usual and still generate HC strings.
+</p>
+<p class="p indent">In addition, as part of HC&#39;s quest to be a universal data format, it
+natively supports:
 </p>
 <ul class="ul list-star compact">
-<li class="li ul-li list-star-li compact-li">Whitespace: newline | space | tab
+<li class="li ul-li list-star-li compact-li">Base64 numbers
 </li>
-<li class="li ul-li list-star-li compact-li">Separators:  data &#8216;,&#8217; | metadata &#8216;;&#8217;
+<li class="li ul-li list-star-li compact-li">arbitrary-length binary and hexadecimal bitstreams
 </li>
-<li class="li ul-li list-star-li compact-li">Aggregates:  group &#8216;(&#8217; &#8216;)&#8217; | array &#39;[&#39; &#39;]&#39; | closure &#8216;{&#8217; &#8216;}&#8217;
+<li class="li ul-li list-star-li compact-li">net-string style <em class="em-low1">blobs</em>
+</li>
+<li class="li ul-li list-star-li compact-li">a dedicated <em class="em-low1">time</em> type and literal (to avoid overloading integers)
 </li></ul>
-<h3 id="sec-identifiers" class="h2" data-heading-depth="2" style="display:block"><span class="heading-before"><span class="heading-label">2.5</span>.&#8194;</span>Identifiers</h3><h3 id="sec-concepts" class="h2" data-heading-depth="2" style="display:block"><span class="heading-before"><span class="heading-label">2.6</span>.&#8194;</span>Concepts</h3><h4 id="sec-function" class="h3" data-heading-depth="3" style="display:block"><span class="heading-before"><span class="heading-label">2.6.1</span>.&#8194;</span>Function</h4><h4 id="sec-array" class="h3" data-heading-depth="3" style="display:block"><span class="heading-before"><span class="heading-label">2.6.2</span>.&#8194;</span>Array</h4><h4 id="sec-dictionary" class="h3" data-heading-depth="3" style="display:block"><span class="heading-before"><span class="heading-label">2.6.3</span>.&#8194;</span>Dictionary</h4><h4 id="sec-scope" class="h3" data-heading-depth="3" style="display:block"><span class="heading-before"><span class="heading-label">2.6.4</span>.&#8194;</span>Scope</h4><h3 id="sec-syntax" class="h2" data-heading-depth="2" style="display:block"><span class="heading-before"><span class="heading-label">2.7</span>.&#8194;</span>Syntax</h3><h3 id="sec-operators" class="h2" data-heading-depth="2" style="display:block"><span class="heading-before"><span class="heading-label">2.8</span>.&#8194;</span>Operators</h3><h2 id="sec-data-protection" class="h1" data-heading-depth="1" style="display:block"><span class="heading-before"><span class="heading-label">3</span>.&#8194;</span>Data Protection</h2><h3 id="sec-encapsulation" class="h2" data-heading-depth="2" style="display:block"><span class="heading-before"><span class="heading-label">3.1</span>.&#8194;</span>Encapsulation</h3><h3 id="sec-effect-typing" class="h2" data-heading-depth="2" style="display:block"><span class="heading-before"><span class="heading-label">3.2</span>.&#8194;</span>Effect Typing</h3><h2 id="sec-applications" class="h1" data-heading-depth="1" style="display:block"><span class="heading-before"><span class="heading-label">4</span>.&#8194;</span>Applications</h2><h3 id="sec-object-orientation" class="h2" data-heading-depth="2" style="display:block"><span class="heading-before"><span class="heading-label">4.1</span>.&#8194;</span>Object-Orientation</h3>
-<p class="p noindent">Let&#39;s program some Javascript:
+
+<p class="p noindent">By definition, literals evaluate to themselves:
 </p>
-<pre class="para-block pre-fenced pre-fenced3 language-javascript lang-javascript javascript colorized" style="display:block"><code><span style="color:blue">function</span> hello() {
-  <span style="color:blue">return</span> <span style="color:maroon">&quot;</span><span style="color:maroon">hello world!</span><span style="color:maroon">&quot;</span>
-}</code></pre><h3 id="sec-web-technologies" class="h2" data-heading-depth="2" style="display:block"><span class="heading-before"><span class="heading-label">4.2</span>.&#8194;</span>Web Technologies</h3><h2 id="sec-next-steps" class="h1" data-heading-depth="1" style="display:block"><span class="heading-before"><span class="heading-label">5</span>.&#8194;</span>Next Steps</h2><h3 id="sec-implementation-status" class="h2" data-heading-depth="2" style="display:block"><span class="heading-before"><span class="heading-label">5.1</span>.&#8194;</span>Implementation Status</h3><h3 id="sec-future-directions" class="h2" data-heading-depth="2" style="display:block"><span class="heading-before"><span class="heading-label">5.2</span>.&#8194;</span>Future Directions</h3><h3 id="sec-potential-implications" class="h2" data-heading-depth="2" style="display:block"><span class="heading-before"><span class="heading-label">5.3</span>.&#8194;</span>Potential Implications</h3><h2 id="sec-related-work" class="h1" data-heading-depth="1" style="display:block"><span class="heading-before"><span class="heading-label">6</span>.&#8194;</span>Related Work</h2>
-<div class="note" style="display:block">
-<p class="p noindent"><span class="note-before"><strong class="strong-star2"><span class="note-caption">Note</span></strong>.
-</span>The syntax highlighting works in the PDF output too.</p></div><h2 id="sec-conclusion" class="h1" data-heading-depth="1" style="display:block"><span class="heading-before"><span class="heading-label">7</span>.&#8194;</span>Conclusion</h2>
-<p class="p noindent">Really fun to write Markdown :-)
+<pre class="para-block pre-fenced pre-fenced3 language-ruby lang-ruby ruby colorized" style="display:block"><code>; “<span style="color:purple">Hello</span>, <span style="color:purple">Quine!</span>”
+<span style="color:darkgreen"># “Hello, Quine!”</span></code></pre>
+<p class="p noindent para-continued">This is true even at the file level. A data program consistent entirely
+of terminals and literals simply evaluates to (and prints out) itself, or
+&quot;<a href="https://en.wikipedia.org/wiki/Quine_%28computing%29">quines</a>.&quot;
+</p>
+<p class="p indent">Because literals are also frames, and thus both code and data, they can
+be called like functions. Strings, for example, stringify and concatenate
+their argument.
+</p>
+<pre class="para-block pre-fenced pre-fenced3 language-ruby lang-ruby ruby colorized" style="display:block"><code>; “<span style="color:purple">Hello</span>, ” “<span style="color:purple">Homoiconicity!</span>”
+<span style="color:darkgreen"># “Hello, Homoiconicity!”</span>
+; “<span style="color:purple">The</span> <span style="color:purple">Answer</span>” “<span style="color:blue">:</span> ” <span class="constant" style="color:purple">42</span>
+<span style="color:darkgreen"># “The Answer: 42”</span></code></pre>
+<p class="p noindent para-continued">Similarly, numbers replicate their argument that many times:
+</p>
+<pre class="para-block pre-fenced pre-fenced3 language-ruby lang-ruby ruby colorized" style="display:block"><code>; 2 “<span style="color:purple">Repeats</span>”
+<span style="color:darkgreen"># “RepeatsRepeats”</span></code></pre><h4 id="sec-terminals" class="h3" data-heading-depth="3" style="display:block"><span class="heading-before"><span class="heading-label">2.1.3</span>.&#8194;</span>Terminals</h4>
+<p class="p noindent">Terminals in Homoiconic C look much like those in other C-based
+languages &#8211; see Table&nbsp;<a href="#sec-table-terminals" title="Terminals Syntax" class="localref" style="target-element:tablefigure"><span class="table-label">2</span></a> &#8211; with a few twists.
+</p>
+<figure id="sec-table-terminals" class="tablefigure floating align-center float" style="text-align:center;float-env:table;float-name:Table"><table class="madoko block" style="tbody-tr-odd-background-color:Gainsboro;tbody-tr-even-background-color:Floralwhite">
+<thead><tr><th class="thead tr-even col cell-border-left cell-line col-odd col-first" data-row="0" data-col="1"></th><th class="thead tr-even col cell-line col-even" data-row="0" data-col="2"></th><th class="thead tr-even col cell-border-left cell-line col-odd" data-row="0" data-col="3"></th><th class="thead tr-even col cell-border-right cell-line col-even col-last" data-row="0" data-col="4"></th></tr>
+<tr><th class="col cell-border-left thead tr-odd tr-last tr-first col-odd col-first" data-row="1" colspan="2" data-col="1" style="font-weight:bold;text-align:center"> Separators                     </th><th class="col cell-border-left thead tr-odd tr-last tr-first cell-border-right col-odd col-last" data-row="1" colspan="2" data-col="3" style="font-weight:bold;text-align:center"> Aggregates            </th></tr></thead>
+<tbody><tr><td class="tbody tr-even col cell-border-left cell-line col-odd col-first" data-row="0" data-col="1" style="background-color:Gainsboro"></td><td class="tbody tr-even col cell-line col-even" data-row="0" data-col="2" style="background-color:Gainsboro"></td><td class="tbody tr-even col cell-border-left cell-line col-odd" data-row="0" data-col="3" style="background-color:Gainsboro"></td><td class="tbody tr-even col cell-border-right cell-line col-even col-last" data-row="0" data-col="4" style="background-color:Gainsboro"></td></tr>
+<tr><td class="tbody tr-odd tr-first col cell-border-left col-odd col-first" data-row="1" data-col="1" style="background-color:Gainsboro"> ,       </td><td class="tbody tr-odd tr-first col col-even" data-row="1" data-col="2" style="background-color:Gainsboro"> <em class="em-low1">end expression</em>      </td><td class="tbody tr-odd tr-first col cell-border-left col-odd" data-row="1" data-col="3" style="background-color:Gainsboro"> (    </td><td class="tbody tr-odd tr-first col cell-border-right col-even col-last" data-row="1" data-col="4" style="background-color:Gainsboro"> <em class="em-low1">begin group</em>   </td></tr>
+<tr><td class="tbody tr-even col cell-border-left col-odd col-first" data-row="2" data-col="1" style="background-color:Floralwhite"> ;       </td><td class="tbody tr-even col col-even" data-row="2" data-col="2" style="background-color:Floralwhite"> <em class="em-low1">void expression</em>     </td><td class="tbody tr-even col cell-border-left col-odd" data-row="2" data-col="3" style="background-color:Floralwhite"> )    </td><td class="tbody tr-even col cell-border-right col-even col-last" data-row="2" data-col="4" style="background-color:Floralwhite"> <em class="em-low1">end group</em>     </td></tr>
+<tr><td class="tbody tr-odd col cell-border-left col-odd col-first" data-row="3" data-col="1" style="background-color:Gainsboro"> newline </td><td class="tbody tr-odd col col-even" data-row="3" data-col="2" style="background-color:Gainsboro"> <em class="em-low1">end line</em>            </td><td class="tbody tr-odd col cell-border-left col-odd" data-row="3" data-col="3" style="background-color:Gainsboro"> [   </td><td class="tbody tr-odd col cell-border-right col-even col-last" data-row="3" data-col="4" style="background-color:Gainsboro"> <em class="em-low1">begin array</em>   </td></tr>
+<tr><td class="tbody tr-even col cell-border-left col-odd col-first" data-row="4" data-col="1" style="background-color:Floralwhite"> space   </td><td class="tbody tr-even col col-even" data-row="4" data-col="2" style="background-color:Floralwhite"> <em class="em-low1">split subexpression</em> </td><td class="tbody tr-even col cell-border-left col-odd" data-row="4" data-col="3" style="background-color:Floralwhite"> ]    </td><td class="tbody tr-even col cell-border-right col-even col-last" data-row="4" data-col="4" style="background-color:Floralwhite"> <em class="em-low1">end array</em>     </td></tr>
+<tr><td class="tbody tr-odd col cell-border-left col-odd col-first" data-row="5" colspan="2" data-col="1" style="background-color:Gainsboro">                                </td><td class="tbody tr-odd col cell-border-left col-odd" data-row="5" data-col="3" style="background-color:Gainsboro"> {    </td><td class="tbody tr-odd col cell-border-right col-even col-last" data-row="5" data-col="4" style="background-color:Gainsboro"> <em class="em-low1">begin closure</em> </td></tr>
+<tr><td class="tbody tr-even tr-last col cell-border-left col-odd col-first" data-row="6" colspan="2" data-col="1" style="background-color:Floralwhite">                                </td><td class="tbody tr-even tr-last col cell-border-left col-odd" data-row="6" data-col="3" style="background-color:Floralwhite"> }    </td><td class="tbody tr-even tr-last col cell-border-right col-even col-last" data-row="6" data-col="4" style="background-color:Floralwhite"> <em class="em-low1">end closure</em>   </td></tr>
+<tr><td class="tbody tr-even col cell-border-left cell-line col-odd col-first" data-row="6" data-col="1" style="background-color:Floralwhite"></td><td class="tbody tr-even col cell-line col-even" data-row="6" data-col="2" style="background-color:Floralwhite"></td><td class="tbody tr-even col cell-border-left cell-line col-odd" data-row="6" data-col="3" style="background-color:Floralwhite"></td><td class="tbody tr-even col cell-border-right cell-line col-even col-last" data-row="6" data-col="4" style="background-color:Floralwhite"></td></tr></tbody></table>
+<hr  class="figureline madoko" style="display:block">
+
+<div class="p noindent"><fig-caption class="figure-caption"><span class="caption-before"><strong class="strong-star2">Table&#160;<span class="table-label">2</span>.</strong>&#160;</span><span class="caption-text">Terminals Syntax</span></fig-caption></div></figure>
+<p class="p indent">Formally speaking, each expression should terminate in an &#8216;,&#8217; or &#8216;;&#8217;, depending
+on whether we want to return the resulting value: 
+</p>
+<pre class="para-block pre-fenced pre-fenced3 language-ruby lang-ruby ruby colorized" style="display:block"><code>; “<span style="color:purple">My</span> <span style="color:purple">Statement</span>”; 
+; “<span style="color:purple">Self</span> <span style="color:purple">Expression</span>”, 
+<span style="color:darkgreen"># “Self Expression” </span></code></pre>
+<p class="p noindent para-continued">This effectively allows us to distinguish &#8220;expressions&#8221; that return a
+value from &#8220;statements&#8221; that do not. However, trailing commas are
+optional, if neither separator is present will be inferred at the end of
+a line or aggregate.
+</p>
+<p class="p indent">Space plays an important role in binding, since we do not allow implicit
+precedence. Spaces create a new subexpression, so frames that have no
+space between them bind more tightly than those that do.
+</p>
+<pre class="para-block pre-fenced pre-fenced3 language-ruby lang-ruby ruby colorized" style="display:block"><code>; “<span style="color:purple">Want</span> ” 2 “<span style="color:purple">Live</span>” <span style="color:darkgreen"># evaluates left to right</span>
+<span style="color:darkgreen"># “Want 2Live”</span>
+; “<span style="color:purple">Want</span> ” 2“<span style="color:purple">Live</span>” <span style="color:darkgreen"># evaluates `2“Live”` first</span>
+<span style="color:darkgreen"># “Want LiveLive”</span></code></pre>
+<p class="p noindent para-continued">This of course can also be done (with more visual clutter) via explicit grouping:
+</p>
+<pre class="para-block pre-fenced pre-fenced3 language-ruby lang-ruby ruby colorized" style="display:block"><code>; “<span style="color:purple">Want</span> ” (2 “<span style="color:purple">Live</span>”) <span style="color:darkgreen"># evaluates grouped expressions first</span>
+<span style="color:darkgreen"># “Want LiveLive”</span></code></pre>
+<p class="p noindent para-continued">Arrays work as you&#39;d expect:
+</p>
+<pre class="para-block pre-fenced pre-fenced3 language-ruby lang-ruby ruby colorized" style="display:block"><code>; [1, 1, 2, 3, 5] 8
+<span style="color:darkgreen"># [1, 1, 2, 3, 5, 8]</span></code></pre>
+<p class="p noindent para-continued">Closures are simply lazy expressions, which evaluate their contents when invoked.
+</p>
+<pre class="para-block pre-fenced pre-fenced3 language-ruby lang-ruby ruby colorized" style="display:block"><code>; {<span class="constant" style="color:purple">42</span>; “<span style="color:purple">Life</span>, ” “<span style="color:purple">The</span> <span style="color:purple">Universe</span>, ” “<span style="color:purple">Everything</span>.”} ()
+<span style="color:darkgreen"># “Life, The Universe, Everything.”</span></code></pre>
+<p class="p noindent para-continued">The result of the empty expression (<code class="code code1 language-ruby lang-ruby ruby colorized">()</code>) is called <code class="code code1 language-ruby lang-ruby ruby colorized"><span style="color:blue">nil</span></code>, and represents the Boolean false.
+This will become important in Section&nbsp;<a href="#sec-operators" title="2.2.&#8194;Operators" class="localref" style="target-element:h2"><span class="heading-label">2.2</span></a> when we discuss conditionals.
+</p>
+<p class="p indent">Note that statements inside a closure represent values that are not
+returned, which becomes very powerful when we add identifiers.
+</p><h4 id="sec-identifiers" class="h3" data-heading-depth="3" style="display:block"><span class="heading-before"><span class="heading-label">2.1.4</span>.&#8194;</span>Identifiers</h4>
+<p class="p noindent">Everything else is just an identifier. Identifiers can contain letters,
+numbers, or non-terminal symbols. They come in several varieties as
+described in Table&nbsp;<a href="#sec-table-id" title="Identifiers" class="localref" style="target-element:tablefigure"><span class="table-label">3</span></a>.
+</p>
+<figure id="sec-table-id" class="tablefigure floating align-center float" style="text-align:center;float-env:table;float-name:Table"><table class="madoko block" style="tbody-tr-odd-background-color:Gainsboro;tr-even-background-color:Floralwhite">
+<thead><tr><th class="thead tr-even col cell-border-left cell-line col-odd col-first" data-row="0" data-col="1"></th><th class="thead tr-even col cell-border-left cell-line col-even" data-row="0" data-col="2"></th><th class="thead tr-even col cell-border-left cell-line col-odd" data-row="0" data-col="3"></th><th class="thead tr-even col cell-border-left cell-border-right cell-line col-even col-last" data-row="0" data-col="4"></th></tr>
+<tr><th class="col cell-border-left thead tr-odd tr-last tr-first col-odd col-first" data-row="1" data-col="1" style="font-weight:bold">Variety    </th><th class="col cell-border-left thead tr-odd tr-last tr-first col-even" data-row="1" data-col="2" style="font-weight:bold"> Example        </th><th class="col cell-border-left thead tr-odd tr-last tr-first col-odd" data-row="1" data-col="3" style="font-weight:bold"> Starts With </th><th class="col cell-border-left cell-border-right thead tr-odd tr-last tr-first col-even col-last" data-row="1" data-col="4" style="font-weight:bold"> Contains                </th></tr></thead>
+<tbody><tr><td class="tbody tr-even col cell-border-left cell-line col-odd col-first" data-row="0" data-col="1" style="background-color:Gainsboro"></td><td class="tbody tr-even col cell-border-left cell-line col-even" data-row="0" data-col="2" style="background-color:Gainsboro"></td><td class="tbody tr-even col cell-border-left cell-line col-odd" data-row="0" data-col="3" style="background-color:Gainsboro"></td><td class="tbody tr-even col cell-border-left cell-border-right cell-line col-even col-last" data-row="0" data-col="4" style="background-color:Gainsboro"></td></tr>
+<tr><td class="tbody tr-odd tr-first col cell-border-left col-odd col-first" data-row="1" data-col="1" style="background-color:Gainsboro"> Label     </td><td class="tbody tr-odd tr-first col cell-border-left col-even" data-row="1" data-col="2" style="background-color:Gainsboro"> <em class="em-low1">variable</em>     </td><td class="tbody tr-odd tr-first col cell-border-left col-odd" data-row="1" data-col="3" style="background-color:Gainsboro"> <em class="em-low1">letter</em>    </td><td class="tbody tr-odd tr-first col cell-border-left cell-border-right col-even col-last" data-row="1" data-col="4" style="background-color:Gainsboro"> <em class="em-low1">letter</em>, <em class="em-low1">number</em>, <code class="code code1 language-ruby lang-ruby ruby colorized">-</code> </td></tr>
+<tr><td class="tbody tr-even col cell-border-left col-odd col-first" data-row="2" data-col="1" style="background-color:Floralwhite"> Operator  </td><td class="tbody tr-even col cell-border-left col-even" data-row="2" data-col="2" style="background-color:Floralwhite"> <code class="code code1 language-ruby lang-ruby ruby colorized">+</code>            </td><td class="tbody tr-even col cell-border-left col-odd" data-row="2" data-col="3" style="background-color:Floralwhite"> <em class="em-low1">symbol</em>    </td><td class="tbody tr-even col cell-border-left cell-border-right col-even col-last" data-row="2" data-col="4" style="background-color:Floralwhite"> <em class="em-low1">symbol</em>                </td></tr>
+<tr><td class="tbody tr-odd col cell-border-left col-odd col-first" data-row="3" data-col="1" style="background-color:Gainsboro"> Control   </td><td class="tbody tr-odd col cell-border-left col-even" data-row="3" data-col="2" style="background-color:Gainsboro"> <code class="code code1 language-ruby lang-ruby ruby colorized"><span style="color:purple">$</span>&lt;-</code> # return </td><td class="tbody tr-odd col cell-border-left col-odd" data-row="3" data-col="3" style="background-color:Gainsboro"> <code class="code code1 language-ruby lang-ruby ruby colorized"><span style="color:purple">$</span></code>         </td><td class="tbody tr-odd col cell-border-left cell-border-right col-even col-last" data-row="3" data-col="4" style="background-color:Gainsboro"> <em class="em-low1">any identifier</em>        </td></tr>
+<tr><td class="tbody tr-even col cell-border-left col-odd col-first" data-row="4" data-col="1" style="background-color:Floralwhite"> Anonymous </td><td class="tbody tr-even col cell-border-left col-even" data-row="4" data-col="2" style="background-color:Floralwhite"> _^            </td><td class="tbody tr-even col cell-border-left col-odd" data-row="4" data-col="3" style="background-color:Floralwhite"> _          </td><td class="tbody tr-even col cell-border-left cell-border-right col-even col-last" data-row="4" data-col="4" style="background-color:Floralwhite"> _,^                   </td></tr>
+<tr><td class="tbody tr-odd tr-last col cell-border-left col-odd col-first" data-row="5" data-col="1" style="background-color:Gainsboro"> Self      </td><td class="tbody tr-odd tr-last col cell-border-left col-even" data-row="5" data-col="2" style="background-color:Gainsboro"> .             </td><td class="tbody tr-odd tr-last col cell-border-left col-odd" data-row="5" data-col="3" style="background-color:Gainsboro"> .          </td><td class="tbody tr-odd tr-last col cell-border-left cell-border-right col-even col-last" data-row="5" data-col="4" style="background-color:Gainsboro"> .                      </td></tr>
+<tr><td class="tbody tr-odd col cell-border-left cell-line col-odd col-first" data-row="5" data-col="1" style="background-color:Gainsboro"></td><td class="tbody tr-odd col cell-border-left cell-line col-even" data-row="5" data-col="2" style="background-color:Gainsboro"></td><td class="tbody tr-odd col cell-border-left cell-line col-odd" data-row="5" data-col="3" style="background-color:Gainsboro"></td><td class="tbody tr-odd col cell-border-left cell-border-right cell-line col-even col-last" data-row="5" data-col="4" style="background-color:Gainsboro"></td></tr></tbody></table>
+<hr  class="figureline madoko" style="display:block">
+
+<div class="p noindent"><fig-caption class="figure-caption"><span class="caption-before"><strong class="strong-star2">Table&#160;<span class="table-label">3</span>.</strong>&#160;</span><span class="caption-text">Identifiers</span></fig-caption></div></figure>
+<p class="p indent">Syntactically these are equivalent, with one small piece of syntactic
+sugar for operators; the dot is optional when used in a binary relation:
+</p>
+<pre class="para-block pre-fenced pre-fenced3 language-ruby lang-ruby ruby colorized" style="display:block"><code>; 2 .+ 2
+<span style="color:darkgreen"># 4</span>
+
+; 2 + 2
+<span style="color:darkgreen"># 4</span></code></pre><h5 id="sec-assignment" class="h4" data-heading-depth="4" style="display:block">Assignment</h5>
+<p class="p noindent">Identifiers can be referred to via three different modes:
+</p>
+<ul class="ul list-dash compact">
+<li class="li ul-li list-dash-li compact-li"><code class="code code1 language-ruby lang-ruby ruby colorized">value</code>
+</li>
+<li class="li ul-li list-dash-li compact-li"><code class="code code1 language-ruby lang-ruby ruby colorized">.name</code>
+</li>
+<li class="li ul-li list-dash-li compact-li"><code class="code code1 language-ruby lang-ruby ruby colorized"><span style="color:navy">@reference</span></code>
+</li></ul>
+
+<p class="p noindent">Assignment is just a simple expression setting a property with that name
+in the current context:
+</p>
+<pre class="para-block pre-fenced pre-fenced3 language-ruby lang-ruby ruby colorized" style="display:block"><code>; .x 6 * 7;</code></pre>
+<p class="p noindent para-continued">This avoids the subtle and confusing distinction between differing
+&#8220;left-hand-side&#8221; and &#8220;right-hand-side&#8221; interpretations of an identical symbol <em class="em-low1">x</em>.
+That enables <code class="code code1 language-ruby lang-ruby ruby colorized">=</code> to always mean a test for equality, rather than also being used
+for assignment.
+</p>
+<p class="p indent">We can use the value <code class="code code1 language-ruby lang-ruby ruby colorized">x</code> to access that property in the same or any child context: 
+</p>
+<pre class="para-block pre-fenced pre-fenced3 language-ruby lang-ruby ruby colorized" style="display:block"><code>; x
+<span style="color:darkgreen"># 42</span>
+; [x]
+<span style="color:darkgreen"># [42]</span></code></pre>
+<p class="p noindent para-continued">To set the property in the context it was defined, rather than the local context,
+use a <em class="em-low1">reference</em> instead of a name:
+</p>
+<pre class="para-block pre-fenced pre-fenced3 language-ruby lang-ruby ruby colorized" style="display:block"><code>; .y 7;
+; (.x <span class="constant" style="color:purple">11</span>; <span style="color:navy">@y</span> 3;);
+; x
+<span style="color:darkgreen"># 42</span>
+; y
+<span style="color:darkgreen"># 3</span></code></pre>
+<p class="p noindent para-continued">Names also provide an elegant way of manipulating data structures, still
+in the context of simple expressions:
+</p>
+<pre class="para-block pre-fenced pre-fenced3 language-ruby lang-ruby ruby colorized" style="display:block"><code>; .base {.key <span class="constant" style="color:purple">42</span>};
+; base .key <span style="color:darkgreen"># gets property</span>
+<span style="color:darkgreen"># 42</span>
+; .base .key <span class="constant" style="color:purple">113</span>; <span style="color:darkgreen"># sets property</span>
+; base
+<span style="color:darkgreen"># {.key 113}</span></code></pre>
+<p class="p noindent para-continued">The space between <em class="em-low1">base</em> and _key is not necessary, but we use it to
+emphasize the fact that this is just an ordinary expression, not a
+special syntax.
+</p><h5 id="sec-todo--controls" class="h4" data-heading-depth="4" style="display:block">TODO: Controls</h5><h6 id="sec-flow-control" class="h5" data-heading-depth="5" style="display:block">Flow Control</h6>
+<ul class="ul list-star compact">
+<li class="li ul-li list-star-li compact-li">Exit: <code class="code code1 language-ruby lang-ruby ruby colorized"><span style="color:purple">$</span><span style="color:purple">$</span></code>
+</li>
+<li class="li ul-li list-star-li compact-li">Return: <code class="code code1 language-ruby lang-ruby ruby colorized"><span style="color:purple">$</span>&lt;</code>
+</li>
+<li class="li ul-li list-star-li compact-li">Break: <code class="code code1 language-ruby lang-ruby ruby colorized"><span style="color:purple">$</span>&gt;</code>
+</li></ul>
+<h6 id="sec-errors" class="h5" data-heading-depth="5" style="display:block">Errors</h6>
+<p class="p noindent"><code class="code code1 language-ruby lang-ruby ruby colorized"><span style="color:purple">$error</span></code>
+</p><h5 id="sec-anonymous-identifiers" class="h4" data-heading-depth="4" style="display:block">Anonymous Identifiers</h5>
+<p class="p noindent">Use <code class="code code1 language-ruby lang-ruby ruby colorized">_</code> as the anonymous argument, representing everything this frame
+was called with:
+</p>
+<pre class="para-block pre-fenced pre-fenced3 language-ruby lang-ruby ruby colorized" style="display:block"><code>; .square {_ * _};
+; square 3
+<span style="color:darkgreen"># 9</span></code></pre>
+<p class="p noindent para-continued">This is useful not just for closures, but for representing the command-line
+arguments for the entire script.
+</p>
+<p class="p indent">When you apply something to a closure, it is effectively inserting that
+argument into the inheritance hierarchy.  Thus we can access properties
+of the argument directly, rather than explicitly calling <code class="code code1 language-ruby lang-ruby ruby colorized">_</code>.
+</p>
+<pre class="para-block pre-fenced pre-fenced3 language-ruby lang-ruby ruby colorized" style="display:block"><code>; .mag {(x * x) + (y * y )};
+; mag (.x 1; .y 2;)
+<span style="color:darkgreen"># 5</span></code></pre>
+<p class="p noindent para-continued">You can skip over the argument to access the enclosing scope (one level above)
+using the <code class="code code1 language-ruby lang-ruby ruby colorized">_^</code> identifier (also known as <code class="code code1 language-ruby lang-ruby ruby colorized"><span style="color:blue">super</span></code>).
+</p>
+<pre class="para-block pre-fenced pre-fenced3 language-ruby lang-ruby ruby colorized" style="display:block"><code>; .print-arg { var };
+; .print-parent { _^.var };
+; .var “parent”;
+
+; print-arg(.var “arg”)
+<span style="color:darkgreen"># “arg”</span>
+; print-parent(.var “arg”)
+<span style="color:darkgreen"># “parent”</span></code></pre>
+<p class="p noindent para-continued">Since objects capture the scope where they are created, this even allows
+closures to be called with implicit arguments to access the enclosing
+scope:
+</p>
+<pre class="para-block pre-fenced pre-fenced3 language-ruby lang-ruby ruby colorized" style="display:block"><code>; .x 3;
+; .y 4;
+; mag []
+<span style="color:darkgreen"># 25</span></code></pre>
+<p class="p noindent para-continued">Implicit arguments are a code smell, and will generate a warning.
+However, they can be very useful when debugging or refactoring. That may seem
+dangerous, but the data protection rules (below) largely limit what the called
+function can do to the calling scope.
+</p><h5 id="sec-todo--self" class="h4" data-heading-depth="4" style="display:block">TODO: Self</h5><h3 id="sec-operators" class="h2" data-heading-depth="2" style="display:block"><span class="heading-before"><span class="heading-label">2.2</span>.&#8194;</span>Operators</h3>
+<p class="p noindent">Homoiconic C predefines a small number of top-level operators used by all
+frames. These provide functionality other languages often hard-code into
+their syntax. Note that specific datatypes may define their own operators
+(e.g., <code class="code code1 language-ruby lang-ruby ruby colorized">+</code> for numbers) not covered in this section.
+</p><h4 id="sec-type-operations" class="h3" data-heading-depth="3" style="display:block"><span class="heading-before"><span class="heading-label">2.2.1</span>.&#8194;</span>Type Operations</h4>
+<p class="p noindent">Like all modern statically typed languages, HC relies heavily on type
+inference. By using dataflow, we also eliminate the need to define
+variables for loops or temporary variables. In addition, a frame that is
+callable with any other frame has the generic type, and thus does not need to be
+declared.
+</p>
+<p class="p indent">However, there are times we do need to explicitly annotate what kind of
+frames we are expecting, especially at function boundaries. For those
+cases we use the type operators in Table&nbsp;<a href="#sec-table-type" title="Type Operators" class="localref" style="target-element:tablefigure"><span class="table-label">4</span></a>.
+</p>
+<figure id="sec-table-type" class="tablefigure floating align-center float" style="text-align:center;float-env:table;float-name:Table">
+<table class="madoko block" style="tbody-tr-odd-background-color:Gainsboro;tr-even-background-color:Floralwhite">
+<thead><tr><th class="thead tr-even col cell-border-left cell-line col-odd col-first" data-row="0" data-col="1"></th><th class="thead tr-even col cell-line col-even" data-row="0" data-col="2"></th><th class="thead tr-even col cell-border-left cell-line col-odd" data-row="0" data-col="3"></th><th class="thead tr-even col cell-border-right cell-line col-even col-last" data-row="0" data-col="4"></th></tr>
+<tr><th class="col cell-border-left thead tr-odd tr-last tr-first col-odd col-first" data-row="1" colspan="2" data-col="1" style="font-weight:bold;text-align:center"> Type            </th><th class="col cell-border-left thead tr-odd tr-last tr-first col-odd" data-row="1" data-col="3" style="font-weight:bold"> Bind </th><th class="col cell-border-right thead tr-odd tr-last tr-first col-even col-last" data-row="1" data-col="4" style="font-weight:bold">              </th></tr></thead>
+<tbody><tr><td class="tbody tr-even col cell-border-left cell-line col-odd col-first" data-row="0" data-col="1" style="background-color:Gainsboro"></td><td class="tbody tr-even col cell-line col-even" data-row="0" data-col="2" style="background-color:Gainsboro"></td><td class="tbody tr-even col cell-border-left cell-line col-odd" data-row="0" data-col="3" style="background-color:Gainsboro"></td><td class="tbody tr-even col cell-border-right cell-line col-even col-last" data-row="0" data-col="4" style="background-color:Gainsboro"></td></tr>
+<tr><td class="tbody tr-odd tr-first col cell-border-left col-odd col-first" data-row="1" data-col="1" style="background-color:Gainsboro"> &lt; </td><td class="tbody tr-odd tr-first col col-even" data-row="1" data-col="2" style="background-color:Gainsboro"> <em class="em-low1">begin type</em> </td><td class="tbody tr-odd tr-first col cell-border-left col-odd" data-row="1" data-col="3" style="background-color:Gainsboro"> ~    </td><td class="tbody tr-odd tr-first col cell-border-right col-even col-last" data-row="1" data-col="4" style="background-color:Gainsboro"><em class="em-low1">has type</em>    </td></tr>
+<tr><td class="tbody tr-even col cell-border-left col-odd col-first" data-row="2" data-col="1" style="background-color:Floralwhite"> &gt; </td><td class="tbody tr-even col col-even" data-row="2" data-col="2" style="background-color:Floralwhite"> <em class="em-low1">end type</em>   </td><td class="tbody tr-even col cell-border-left col-odd" data-row="2" data-col="3" style="background-color:Floralwhite"> ^    </td><td class="tbody tr-even col cell-border-right col-even col-last" data-row="2" data-col="4" style="background-color:Floralwhite"> <em class="em-low1">bind type</em>  </td></tr>
+<tr><td class="tbody tr-odd tr-last col cell-border-left col-odd col-first" data-row="3" colspan="2" data-col="1" style="background-color:Gainsboro">                 </td><td class="tbody tr-odd tr-last col cell-border-left col-odd" data-row="3" data-col="3" style="background-color:Gainsboro"> ^^   </td><td class="tbody tr-odd tr-last col cell-border-right col-even col-last" data-row="3" data-col="4" style="background-color:Gainsboro"><em class="em-low1">bind return</em> </td></tr>
+<tr><td class="tbody tr-odd col cell-border-left cell-line col-odd col-first" data-row="3" data-col="1" style="background-color:Gainsboro"></td><td class="tbody tr-odd col cell-line col-even" data-row="3" data-col="2" style="background-color:Gainsboro"></td><td class="tbody tr-odd col cell-border-left cell-line col-odd" data-row="3" data-col="3" style="background-color:Gainsboro"></td><td class="tbody tr-odd col cell-border-right cell-line col-even col-last" data-row="3" data-col="4" style="background-color:Gainsboro"></td></tr></tbody></table>
+<hr  class="figureline madoko" style="display:block">
+
+<div class="p noindent"><fig-caption class="figure-caption"><span class="caption-before"><strong class="strong-star2">Table&#160;<span class="table-label">4</span>.</strong>&#160;</span><span class="caption-text">Type Operators</span></fig-caption></div></figure>
+<p class="p indent">Note that in HC, type is declared using a pair of operators, not a syntactic
+construct. This works because types are just expressions, and thus do not
+need to change the evaluation rules.
+</p><h5 id="sec-the-all-type" class="h4" data-heading-depth="4" style="display:block">The All Type</h5>
+<p class="p noindent">The empty type <code class="code code1 language-ruby lang-ruby ruby colorized">&lt;&gt;</code> is known as <em class="em-low1">all</em>. As the opposite of the empty expression <code class="code code1 language-ruby lang-ruby ruby colorized">()</code> <em class="em-low1">nil</em>,
+it acts as the boolean <code class="code code1 language-ruby lang-ruby ruby colorized"><span style="color:blue">true</span></code> value.
+</p>
+<pre class="para-block pre-fenced pre-fenced3 language-ruby lang-ruby ruby colorized" style="display:block"><code>; &lt;&gt;
+<span style="color:darkgreen"># &lt;&gt;</span>
+; ().!
+; &lt;&gt;
+; &lt;&gt;.!
+; ()</code></pre><h5 id="sec-type-membership" class="h4" data-heading-depth="4" style="display:block">Type Membership</h5>
+<p class="p noindent">The <em class="em-low1">typeof</em> operators <code class="code code1 language-ruby lang-ruby ruby colorized">~</code> tests whether an object belongs to particular
+type, returning true (all) or false (nil). Every object is a member of
+<em class="em-low1">all</em>, while nothing is a member of <em class="em-low1">nil</em>:
+</p>
+<pre class="para-block pre-fenced pre-fenced3 language-ruby lang-ruby ruby colorized" style="display:block"><code>; 1 ~ &lt;&gt;
+<span style="color:darkgreen"># &lt;&gt;</span>
+; 2 ~ ()
+; ()</code></pre><h5 id="sec-todo--type-declaration" class="h4" data-heading-depth="4" style="display:block">TODO: Type Declaration</h5><h4 id="sec-content" class="h3" data-heading-depth="3" style="display:block"><span class="heading-before"><span class="heading-label">2.2.2</span>.&#8194;</span>Content</h4>
+<p class="p noindent">Homoiconic C defines three content operators, each of which come in three
+flavors as shown in Table&nbsp;<a href="#sec-table-content" title="Content Operators" class="localref" style="target-element:tablefigure"><span class="table-label">5</span></a>.
+</p>
+<figure id="sec-table-content" class="tablefigure floating align-center float" style="text-align:center;float-env:table;float-name:Table"><table class="madoko block" style="tbody-tr-odd-background-color:Gainsboro;tr-even-background-color:Floralwhite">
+<thead><tr><th class="thead tr-even col cell-border-left cell-line col-odd col-first" data-row="0" data-col="1"></th><th class="thead tr-even col cell-border-left cell-line col-even" data-row="0" data-col="2"></th><th class="thead tr-even col cell-border-left cell-line col-odd" data-row="0" data-col="3"></th><th class="thead tr-even col cell-border-left cell-border-right cell-line col-even col-last" data-row="0" data-col="4"></th></tr>
+<tr><th class="col cell-border-left thead tr-odd tr-first cell-border-right col-odd col-last col-first" data-row="1" colspan="4" data-col="1" style="font-weight:bold;text-align:center"> Content                       </th></tr>
+<tr><th class="col cell-border-left thead tr-even tr-last col-odd col-first" data-row="2" data-col="1" style="font-weight:bold;background-color:Floralwhite">Role      </th><th class="col cell-border-left thead tr-even tr-last col-even" data-row="2" data-col="2" style="font-weight:bold;background-color:Floralwhite"> All </th><th class="col cell-border-left thead tr-even tr-last col-odd" data-row="2" data-col="3" style="font-weight:bold;background-color:Floralwhite"> Data </th><th class="col cell-border-left cell-border-right thead tr-even tr-last col-even col-last" data-row="2" data-col="4" style="font-weight:bold;background-color:Floralwhite"> Metadata </th></tr></thead>
+<tbody><tr><td class="tbody tr-even col cell-border-left cell-line col-odd col-first" data-row="0" data-col="1" style="background-color:Gainsboro"></td><td class="tbody tr-even col cell-border-left cell-line col-even" data-row="0" data-col="2" style="background-color:Gainsboro"></td><td class="tbody tr-even col cell-border-left cell-line col-odd" data-row="0" data-col="3" style="background-color:Gainsboro"></td><td class="tbody tr-even col cell-border-left cell-border-right cell-line col-even col-last" data-row="0" data-col="4" style="background-color:Gainsboro"></td></tr>
+<tr><td class="tbody tr-odd tr-first col cell-border-left col-odd col-first" data-row="1" data-col="1" style="background-color:Gainsboro"> Equality </td><td class="tbody tr-odd tr-first col cell-border-left col-even" data-row="1" data-col="2" style="background-color:Gainsboro"> =  </td><td class="tbody tr-odd tr-first col cell-border-left col-odd" data-row="1" data-col="3" style="background-color:Gainsboro"> == </td><td class="tbody tr-odd tr-first col cell-border-left cell-border-right col-even col-last" data-row="1" data-col="4" style="background-color:Gainsboro"> ===   </td></tr>
+<tr><td class="tbody tr-even col cell-border-left col-odd col-first" data-row="2" data-col="1" style="background-color:Floralwhite"> Map      </td><td class="tbody tr-even col cell-border-left col-even" data-row="2" data-col="2" style="background-color:Floralwhite"> |  </td><td class="tbody tr-even col cell-border-left col-odd" data-row="2" data-col="3" style="background-color:Floralwhite"> || </td><td class="tbody tr-even col cell-border-left cell-border-right col-even col-last" data-row="2" data-col="4" style="background-color:Floralwhite"> |||   </td></tr>
+<tr><td class="tbody tr-odd tr-last col cell-border-left col-odd col-first" data-row="3" data-col="1" style="background-color:Gainsboro"> Fold     </td><td class="tbody tr-odd tr-last col cell-border-left col-even" data-row="3" data-col="2" style="background-color:Gainsboro"> &amp;   </td><td class="tbody tr-odd tr-last col cell-border-left col-odd" data-row="3" data-col="3" style="background-color:Gainsboro"> &amp;&amp;   </td><td class="tbody tr-odd tr-last col cell-border-left cell-border-right col-even col-last" data-row="3" data-col="4" style="background-color:Gainsboro"> &amp;&amp;&amp;      </td></tr>
+<tr><td class="tbody tr-odd col cell-border-left cell-line col-odd col-first" data-row="3" data-col="1" style="background-color:Gainsboro"></td><td class="tbody tr-odd col cell-border-left cell-line col-even" data-row="3" data-col="2" style="background-color:Gainsboro"></td><td class="tbody tr-odd col cell-border-left cell-line col-odd" data-row="3" data-col="3" style="background-color:Gainsboro"></td><td class="tbody tr-odd col cell-border-left cell-border-right cell-line col-even col-last" data-row="3" data-col="4" style="background-color:Gainsboro"></td></tr></tbody></table>
+<hr  class="figureline madoko" style="display:block">
+
+<div class="p noindent"><fig-caption class="figure-caption"><span class="caption-before"><strong class="strong-star2">Table&#160;<span class="table-label">5</span>.</strong>&#160;</span><span class="caption-text">Content Operators</span></fig-caption></div></figure>
+<p class="p indent">These flavors determine whether we consider the whole object, or just the data
+or metadata separately.
+</p><h5 id="sec-equality" class="h4" data-heading-depth="4" style="display:block">Equality</h5>
+<p class="p noindent"><code class="code code1 language-ruby lang-ruby ruby colorized">=</code> is the usual equality test:
+</p>
+<pre class="para-block pre-fenced pre-fenced3 language-ruby lang-ruby ruby colorized" style="display:block"><code>; .a [<span class="constant" style="color:purple">113</span>, .p <span class="constant" style="color:purple">887</span>];
+; .b [<span class="constant" style="color:purple">113</span>, .p <span class="constant" style="color:purple">661</span>];
+; .c [<span class="constant" style="color:purple">443</span>, .p <span class="constant" style="color:purple">887</span>];
+; a = a
+<span style="color:darkgreen"># &lt;&gt;</span>
+; a = b
+<span style="color:darkgreen"># ()</span>
+; a == b
+<span style="color:darkgreen"># &lt;&gt;</span>
+; a == c
+<span style="color:darkgreen"># ()</span>
+; a === c
+<span style="color:darkgreen"># &lt;&gt;</span></code></pre><h5 id="sec-iterators" class="h4" data-heading-depth="4" style="display:block">Iterators</h5>
+<p class="p noindent">We use <code class="code code1 language-ruby lang-ruby ruby colorized">|</code> for map, in homage to the UNIX pipeline.
+</p>
+<pre class="para-block pre-fenced pre-fenced3 language-ruby lang-ruby ruby colorized" style="display:block"><code>; [1, 2, 3] | { _ + 1 } <span style="color:darkgreen"># will warn, since `_` is not defined on generic frames</span>
+<span style="color:darkgreen"># [2, 3, 4]</span></code></pre>
+<p class="p noindent para-continued">Similarly, we use <code class="code code1 language-ruby lang-ruby ruby colorized">&amp;</code> for reduce:
+</p>
+<pre class="para-block pre-fenced pre-fenced3 language-ruby lang-ruby ruby colorized" style="display:block"><code>; [1, 2, 3] &amp; { . + _ }
+<span style="color:darkgreen"># 6</span></code></pre><h4 id="sec-conditionals" class="h3" data-heading-depth="3" style="display:block"><span class="heading-before"><span class="heading-label">2.2.3</span>.&#8194;</span>Conditionals</h4>
+<p class="p noindent">Homoiconic C&#39;s sole conditionals are a pair of binary operators analogous to C&#39;s ternary operator,
+albeit with slightly different semantics. These are described in Table&nbsp;<a href="#sec-table-cond" title="Conditional Operators" class="localref" style="target-element:tablefigure"><span class="table-label">6</span></a>.
+</p>
+<figure id="sec-table-cond" class="tablefigure floating align-center float" style="text-align:center;float-env:table;float-name:Table">
+<table class="madoko block" style="tbody-tr-odd-background-color:Gainsboro;tr-even-background-color:Floralwhite">
+<thead><tr><th class="thead tr-even col cell-border-left cell-line col-odd col-first" data-row="0" data-col="1"></th><th class="thead tr-even col cell-border-left cell-line col-even" data-row="0" data-col="2"></th><th class="thead tr-even col cell-border-left cell-line col-odd" data-row="0" data-col="3"></th><th class="thead tr-even col cell-border-left cell-border-right cell-line col-even col-last" data-row="0" data-col="4"></th></tr>
+<tr><th class="col cell-border-left thead tr-odd tr-last tr-first col-odd col-first" data-row="1" data-col="1" style="font-weight:bold"> Operator   </th><th class="col cell-border-left thead tr-odd tr-last tr-first col-even" data-row="1" data-col="2" style="font-weight:bold"> Name</th><th class="col cell-border-left thead tr-odd tr-last tr-first col-odd" data-row="1" data-col="3" style="font-weight:bold"> On Frame </th><th class="col cell-border-left cell-border-right thead tr-odd tr-last tr-first col-even col-last" data-row="1" data-col="4" style="font-weight:bold"> On Nil </th></tr></thead>
+<tbody><tr><td class="tbody tr-even col cell-border-left cell-line col-odd col-first" data-row="0" data-col="1" style="background-color:Gainsboro"></td><td class="tbody tr-even col cell-border-left cell-line col-even" data-row="0" data-col="2" style="background-color:Gainsboro"></td><td class="tbody tr-even col cell-border-left cell-line col-odd" data-row="0" data-col="3" style="background-color:Gainsboro"></td><td class="tbody tr-even col cell-border-left cell-border-right cell-line col-even col-last" data-row="0" data-col="4" style="background-color:Gainsboro"></td></tr>
+<tr><td class="tbody tr-odd tr-first col cell-border-left col-odd col-first" data-row="1" data-col="1" style="background-color:Gainsboro"> ?     </td><td class="tbody tr-odd tr-first col cell-border-left col-even" data-row="1" data-col="2" style="background-color:Gainsboro"> <em class="em-low1">if</em>   </td><td class="tbody tr-odd tr-first col cell-border-left col-odd" data-row="1" data-col="3" style="background-color:Gainsboro"> Call with <code class="code code1 language-ruby lang-ruby ruby colorized">()</code> </td><td class="tbody tr-odd tr-first col cell-border-left cell-border-right col-even col-last" data-row="1" data-col="4" style="background-color:Gainsboro"> Return <code class="code code1 language-ruby lang-ruby ruby colorized">()</code> </td></tr>
+<tr><td class="tbody tr-even tr-last col cell-border-left col-odd col-first" data-row="2" data-col="1" style="background-color:Floralwhite"> :     </td><td class="tbody tr-even tr-last col cell-border-left col-even" data-row="2" data-col="2" style="background-color:Floralwhite"> <em class="em-low1">else</em> </td><td class="tbody tr-even tr-last col cell-border-left col-odd" data-row="2" data-col="3" style="background-color:Floralwhite">Return <code class="code code1 language-ruby lang-ruby ruby colorized">()</code> </td><td class="tbody tr-even tr-last col cell-border-left cell-border-right col-even col-last" data-row="2" data-col="4" style="background-color:Floralwhite"> Call with <code class="code code1 language-ruby lang-ruby ruby colorized">()</code> </td></tr>
+<tr><td class="tbody tr-even col cell-border-left cell-line col-odd col-first" data-row="2" data-col="1" style="background-color:Floralwhite"></td><td class="tbody tr-even col cell-border-left cell-line col-even" data-row="2" data-col="2" style="background-color:Floralwhite"></td><td class="tbody tr-even col cell-border-left cell-line col-odd" data-row="2" data-col="3" style="background-color:Floralwhite"></td><td class="tbody tr-even col cell-border-left cell-border-right cell-line col-even col-last" data-row="2" data-col="4" style="background-color:Floralwhite"></td></tr></tbody></table>
+<hr  class="figureline madoko" style="display:block">
+
+<div class="p noindent"><fig-caption class="figure-caption"><span class="caption-before"><strong class="strong-star2">Table&#160;<span class="table-label">6</span>.</strong>&#160;</span><span class="caption-text">Conditional Operators</span></fig-caption></div></figure>
+<p class="p indent">Note that these are not special forms, but simply defined with one behavior on nil
+and the opposite on regular frames.
+</p>
+<pre class="para-block pre-fenced pre-fenced3 language-ruby lang-ruby ruby colorized" style="display:block"><code>
+; 1 <span style="color:blue">?</span> {2 + 2}
+<span style="color:darkgreen"># 4</span>
+; 1 <span style="color:blue">:</span> {2 + 2}
+<span style="color:darkgreen"># ()</span>
+
+; () <span style="color:blue">?</span> {2 + 2}
+<span style="color:darkgreen"># ()</span>
+; () <span style="color:blue">:</span> {2 + 2}
+<span style="color:darkgreen"># 4</span></code></pre>
+<p class="p noindent para-continued">Which, when the first expression does not return nil, acts just like C&#39;s ternary
+operator:
+</p>
+<pre class="para-block pre-fenced pre-fenced3 language-ruby lang-ruby ruby colorized" style="display:block"><code>; 1 &gt; 5 <span style="color:blue">?</span> (2 * <span class="constant" style="color:purple">50</span>) <span style="color:blue">:</span> <span class="constant" style="color:purple">10</span>
+<span style="color:darkgreen"># 10</span></code></pre>
+<p class="p noindent para-continued">Note that applying nil to anything other than a closure has no effect, so conditionals
+work just as well with simple expressions as they do with lazy blocks.
+</p><h4 id="sec-todo--import" class="h3" data-heading-depth="3" style="display:block"><span class="heading-before"><span class="heading-label">2.2.4</span>.&#8194;</span>TODO: Import</h4><h3 id="sec-access" class="h2" data-heading-depth="2" style="display:block"><span class="heading-before"><span class="heading-label">2.3</span>.&#8194;</span>Access Control</h3>
+<p class="p noindent">Arguably the primary source of bugs, clutter, and complexity in
+programming languages is knowing &#8220;who can perform which actions on what data,&#8221;
+which we refer to somewhat loosely as &#8220;access control.&#8221; We consider this
+problem so important we spend the bulk of our &#8220;syntactic budget&#8221; on
+giving programmers an easy way to specify and detect access modes. This
+is done by encoding those rules in the identifiers themselves, as seen in
+Table {#sec-table-access}.
+</p>
+<figure id="sec-table-access" class="tablefigure floating align-center float" style="text-align:center;float-env:table;float-name:Table">
+<table class="madoko block" style="tbody-tr-odd-background-color:Gainsboro;tr-even-background-color:Floralwhite">
+<thead><tr><th class="thead tr-even col cell-border-left cell-line col-odd col-first" data-row="0" data-col="1"></th><th class="thead tr-even col cell-border-left cell-line col-even" data-row="0" data-col="2"></th><th class="thead tr-even col cell-border-left cell-border-right cell-line col-odd col-last" data-row="0" data-col="3"></th></tr>
+<tr><th class="col cell-border-left thead tr-odd tr-last tr-first col-odd col-first" data-row="1" data-col="1" style="font-weight:bold">Privacy </th><th class="col cell-border-left thead tr-odd tr-last tr-first cell-border-right col-even" data-row="1" colspan="2" data-col="2" style="font-weight:bold;text-align:center"> Constancy  </th></tr></thead>
+<tbody><tr><td class="tbody tr-even col cell-border-left cell-line col-odd col-first" data-row="0" data-col="1" style="background-color:Gainsboro"></td><td class="tbody tr-even col cell-border-left cell-line col-even" data-row="0" data-col="2" style="background-color:Gainsboro"></td><td class="tbody tr-even col cell-border-left cell-border-right cell-line col-odd col-last" data-row="0" data-col="3" style="background-color:Gainsboro"></td></tr>
+<tr><td class="tbody tr-odd tr-first col cell-border-left col-odd col-first" data-row="1" data-col="1" style="background-color:Gainsboro">  <em class="em-low1">public</em>   </td><td class="tbody tr-odd tr-first col cell-border-left col-even" data-row="1" data-col="2" style="background-color:Gainsboro"> <em class="em-low1">variable</em> </td><td class="tbody tr-odd tr-first col cell-border-left cell-border-right col-odd col-last" data-row="1" data-col="3" style="background-color:Gainsboro"> <em class="em-low1">immutable</em> </td></tr>
+<tr><td class="tbody tr-even col cell-border-left col-odd col-first" data-row="2" data-col="1" style="background-color:Floralwhite"> _<em class="em-low1">protected</em>   </td><td class="tbody tr-even col cell-border-left col-even" data-row="2" data-col="2" style="background-color:Floralwhite"> <em class="em-low1">Constant</em>  </td><td class="tbody tr-even col cell-border-left cell-border-right col-odd col-last" data-row="2" data-col="3" style="background-color:Floralwhite"> <em class="em-low1">mutable</em>_ </td></tr>
+<tr><td class="tbody tr-odd tr-last col cell-border-left col-odd col-first" data-row="3" data-col="1" style="background-color:Gainsboro"> __<em class="em-low1">private</em>           </td><td class="tbody tr-odd tr-last col cell-border-left col-even" data-row="3" data-col="2" style="background-color:Gainsboro">  </td><td class="tbody tr-odd tr-last col cell-border-left cell-border-right col-odd col-last" data-row="3" data-col="3" style="background-color:Gainsboro"> <em class="em-low1">mutating</em>: </td></tr>
+<tr><td class="tbody tr-odd col cell-border-left cell-line col-odd col-first" data-row="3" data-col="1" style="background-color:Gainsboro"></td><td class="tbody tr-odd col cell-border-left cell-line col-even" data-row="3" data-col="2" style="background-color:Gainsboro"></td><td class="tbody tr-odd col cell-border-left cell-border-right cell-line col-odd col-last" data-row="3" data-col="3" style="background-color:Gainsboro"></td></tr></tbody></table>
+<hr  class="figureline madoko" style="display:block">
+
+<div class="p noindent"><fig-caption class="figure-caption"><span class="caption-before"><strong class="strong-star2">Table&#160;<span class="table-label">7</span>.</strong>&#160;</span><span class="caption-text">Access Modifiers</span></fig-caption></div></figure>
+<p class="p indent">Importantly, these are modifiers not different identifiers. So, for example, the
+constant <code class="code code1 language-ruby lang-ruby ruby colorized"><span style="color:purple">COOL</span></code> in one scope overrides its case duplicate <code class="code code1 language-ruby lang-ruby ruby colorized">cool</code> from a
+parent scope. For natural languages without separate upper and lower
+case, we use an initial letter <code class="code code1 language-ruby lang-ruby ruby colorized"><span style="color:purple">K</span></code> to denote the constant version.
+</p><h4 id="sec-encapsulation" class="h3" data-heading-depth="3" style="display:block"><span class="heading-before"><span class="heading-label">2.3.1</span>.&#8194;</span>Encapsulation</h4>
+<p class="p noindent">The simplest form of access control is <em class="em-low1">encapsulation</em>, restricting the ability of
+external objects to even see certain properties.  Here we follow the informal
+conventions often used in C programs:
+</p>
+<dl class="dl compact">
+<dt class="dt noindent dl-li compact-li" style="text-indent:0em;font-weight:bold"><code class="code code1 language-ruby lang-ruby ruby colorized">public</code></dt>
+<dd class="dd" style="margin-left:1.5em">visible to everyone
+</dd>
+<dt class="dt noindent dl-li compact-li" style="text-indent:0em;font-weight:bold"><code class="code code1 language-ruby lang-ruby ruby colorized">_protected</code></dt>
+<dd class="dd" style="margin-left:1.5em">not visible to parents or peers, but still visible to children
+</dd>
+<dt class="dt noindent dl-li compact-li" style="text-indent:0em;font-weight:bold"><code class="code code1 language-ruby lang-ruby ruby colorized">__private</code></dt>
+<dd class="dd" style="margin-left:1.5em">not visible to anyone, even children</dd></dl>
+<p class="p noindent">For example:
+</p>
+<pre class="para-block pre-fenced pre-fenced3 language-ruby lang-ruby ruby colorized" style="display:block"><code>; .see-me {
+  .my-public-value <span class="constant" style="color:purple">42</span>;
+  ._my-protected-value <span class="constant" style="color:purple">21</span>;
+  .__my-private-value 7;
+  .child {
+    my-public-value,
+    my-protected-value,
+    my-private-value,
+  }
+};
+; see-me.child()
+<span style="color:darkgreen"># [42, 21, $error{$is-private .my-private-value}]</span>
+; see-me.my-public-value
+<span style="color:darkgreen"># 42</span>
+; see-me.my-protected-value
+<span style="color:darkgreen"># $error{$is-protected .my-protected-value}</span>
+; see-me.my-private-value
+<span style="color:darkgreen"># $error{$is-private .my-private-value}</span>
+</code></pre><h4 id="sec-effect" class="h3" data-heading-depth="3" style="display:block"><span class="heading-before"><span class="heading-label">2.3.2</span>.&#8194;</span>Effect</h4>
+<p class="p noindent">Rather than specifying <em class="em-low1">call-by-value</em> or <em class="em-low1">call-by-reference</em>, HC is
+designed around the BitC<span class="citations" style="target-element:bibitem">[<a href="#bitc" title="Shapiro et&#160;al. 
+Sound and complete type inference in a systems language." class="bibref localref" style="target-element:bibitem"><span class="cite-number">2</span></a>]</span> model of effect typing. Shapiro <em class="em-star1">et al</em>
+proved it is possible to have a sound <em class="em-star1">and</em> complete systems language if
+we explicitly annotate identifiers for both <strong class="strong-star2">constancy</strong> and
+<strong class="strong-star2">mutability</strong> (which together we call <em class="em-low1">effect</em> ) at each context
+boundary. This gives the compiler enough information to know how and when
+to safely copy or share data structures. Put another way, effect typing
+makes it as easy to allow side effects for performance as it is to
+restrict side effects for safety.
+</p>
+<p class="p indent"> Unfortunately, BitC could not accommodate such annotations within their
+ Lisp-like syntax<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
+Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span>. Inspired by their work, we have designed the
+ syntax of our identifiers to explicitly support effect typing:
+</p>
+<dl class="dl compact">
+<dt class="dt noindent dl-li compact-li" style="text-indent:0em;font-weight:bold"><code class="code code1 language-ruby lang-ruby ruby colorized">variable</code></dt>
+<dd class="dd" style="margin-left:1.5em">Does not begin with an uppercase letter. Can be reassigned. 
+</dd>
+<dt class="dt noindent dl-li compact-li" style="text-indent:0em;font-weight:bold"><code class="code code1 language-ruby lang-ruby ruby colorized"><span style="color:purple">CONSTANT</span></code></dt>
+<dd class="dd" style="margin-left:1.5em">Begins with uppercase letter. Can <strong class="strong-star2">not</strong> be reassigned. 
+</dd>
+<dt class="dt noindent dl-li compact-li" style="text-indent:0em;font-weight:bold"><code class="code code1 language-ruby lang-ruby ruby colorized">immutable</code></dt>
+<dd class="dd" style="margin-left:1.5em">Has no suffix. Can not be modified in place.
+</dd>
+<dt class="dt noindent dl-li compact-li" style="text-indent:0em;font-weight:bold"><code class="code code1 language-ruby lang-ruby ruby colorized">mutable_</code></dt>
+<dd class="dd" style="margin-left:1.5em">Trailing underscore. Can be modified in place.
+</dd>
+<dt class="dt noindent dl-li compact-li" style="text-indent:0em;font-weight:bold"><code class="code code1 language-ruby lang-ruby ruby colorized">mutating_method<span style="color:blue">:</span></code></dt>
+<dd class="dd" style="margin-left:1.5em">Trailing colon. Can modify its parent context. Returns self.</dd></dl>
+<p class="p noindent">Please note that these particular conventions are preliminary, and may
+change in future versions based on empirical tests of readability and
+intuitiveness. Since HC is just a data format, we plan to explicitly
+version documents and enable automatic migration between incompatible versions. 
+</p><h5 id="sec-constancy" class="h4" data-heading-depth="4" style="display:block">Constancy</h5>
+<p class="p noindent">BitC&#39;s first key insight is that <em class="em-low1">constancy</em> (whether an identifier can be
+assigned a new value) is distinct from <em class="em-low1">mutability</em> (whether the
+referenced value can be modified in place). In other words, constancy is
+a property of the <em class="em-low1">source</em> object, whereas mutability is a property of the
+<em class="em-low1">destination</em> object.
+</p>
+<pre class="para-block pre-fenced pre-fenced3 language-ruby lang-ruby ruby colorized" style="display:block"><code>; .variable <span class="constant" style="color:purple">42</span>;
+; .<span style="color:purple">Constant</span> <span class="constant" style="color:purple">21</span>;
+; .variable <span class="constant" style="color:purple">113</span>
+<span style="color:darkgreen"># 113</span>
+; .<span style="color:purple">Constant</span> 7
+<span style="color:darkgreen"># $error{$is-constant .Constant}</span></code></pre><h5 id="sec-mutability" class="h4" data-heading-depth="4" style="display:block">Mutability</h5>
+<p class="p noindent">The second key insight is that effect is a property of
+<em class="em-low1">names</em> rather than of <em class="em-low1">values</em>. Object literals have no effect
+restrictions on their own; this is contrast to, e.g., Apple&#39;s Cocoa
+frameworks<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
+Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span>, where mutability is an inherent part of the object&#39;s
+constructed type. Instead, every object is in principle mutable, but as
+long as it is only referenced from immutable handles the compiler can
+share a single instance between them.
+</p>
+<p class="p indent">Conversely, objects that are referenced and passed via mutable handles
+are explicitly &#8220;aliases&#8221; of each other, so the compiler knows that it
+needs to manage dependencies between local copies, ensure serialization
+between different threads, etc.
+</p>
+<p class="p indent">Note that even if an object is mutable, it won&#39;t actually be mutated
+unless we reassign a variable or invoke a mutating method. To make that
+explicit, we require methods that mutate their parent to have a trailing
+colon (<code class="code code1 language-ruby lang-ruby ruby colorized"><span style="color:blue">:</span></code>). This has the wonderful consequence that we can also invoke
+mutating methods on <em class="em-low1">immutable</em> handles, and automatically perform a
+<em class="em-low1">copy-on-write</em>. To enable this, mutating methods can not explicitly
+return a value, but must implicitly return &#8220;self&#8221; (that is, the parent
+object).
+</p>
+<p class="p indent">Conversely, this also requires that an immutable reference to a mutable
+object must be <em class="em-low1">copy-on-assign</em>, since it can&#39;t know when the source
+object may be mutated. Similarly, creating a new mutable handle to a
+mutable object that hasn&#39;t yet been mutated triggers the copy-on-write.
+</p>
+<pre class="para-block pre-fenced pre-fenced3 language-ruby lang-ruby ruby colorized" style="display:block"><code><span style="color:darkgreen">#</span>
+<span style="color:darkgreen"># Definitions</span>
+<span style="color:darkgreen">#</span>
+; .fixed (
+  .hic “<span style="color:purple">Object</span>”;
+  .property <span class="constant" style="color:purple">42</span>;
+  .accessor {
+    <span style="color:navy">@property</span>
+  }
+  .mutator<span style="color:blue">:</span> {
+    <span style="color:navy">@property</span> _;
+  }
+)
+<span style="color:darkgreen"># $hic{“Object”:0xDEADBEEF}</span>
+; .varying_ fixed
+<span style="color:darkgreen"># $hic{“Object”:0xDEADBEEF}</span>
+; .reference varying_
+<span style="color:darkgreen"># $hic{“Object”:0xFEEDFACE}</span>
+
+<span style="color:darkgreen">#</span>
+<span style="color:darkgreen"># Non-Mutating</span>
+<span style="color:darkgreen">#</span>
+; fixed.accessor()
+<span style="color:darkgreen"># 21</span>
+; fixed
+<span style="color:darkgreen"># $hic{“Object”:0xDEADBEEF}</span>
+; varying_
+<span style="color:darkgreen"># $hic{“Object”:0xDEADBEEF}</span>
+
+<span style="color:darkgreen">#</span>
+<span style="color:darkgreen"># Mutating an Immutable Object</span>
+<span style="color:darkgreen">#</span>
+; .fixed.property 7
+<span style="color:darkgreen"># $error{$is-immutable .fixed}</span>
+
+; .evolved fixed.mutator<span style="color:maroon">:7</span>
+<span style="color:darkgreen"># $hic{“Object”:0xDECAFBAD}</span>
+; evolved.accessor()
+<span style="color:darkgreen"># 7</span>
+; fixed.accessor()
+<span style="color:darkgreen"># 42</span>
+; varying_.accessor()
+<span style="color:darkgreen"># 42</span>
+
+<span style="color:darkgreen">#</span>
+<span style="color:darkgreen"># Mutating a Mutable Object</span>
+<span style="color:darkgreen">#</span>
+; varying_.mutator<span style="color:blue">:</span> <span class="constant" style="color:purple">14</span>
+<span style="color:darkgreen"># $hic{“Object”:0xFEEDBABE}</span>
+; varying_.accessor()
+<span style="color:darkgreen"># 14</span>
+; fixed.accessor()
+<span style="color:darkgreen"># 42</span>
+; evolved.accessor()
+<span style="color:darkgreen"># 7</span>
+; reference.accessor()
+<span style="color:darkgreen"># 42</span>
+
+<span style="color:darkgreen">#</span>
+<span style="color:darkgreen"># Proactive Copying</span>
+<span style="color:darkgreen">#</span>
+; .initial_ fixed
+<span style="color:darkgreen"># $hic{“Object”:0xDEADBEEF}</span>
+; .shared_ initial_
+<span style="color:darkgreen"># $hic{“Object”:0xDEADC0DE}</span>
+; initial_
+<span style="color:darkgreen"># $hic{“Object”:0xDEADC0DE}</span>
+</code></pre><h2 id="sec-applications" class="h1" data-heading-depth="1" style="display:block"><span class="heading-before"><span class="heading-label">3</span>.&#8194;</span>Applications</h2><h3 id="sec-congrams" class="h2" data-heading-depth="2" style="display:block"><span class="heading-before"><span class="heading-label">3.1</span>.&#8194;</span>Congrams</h3><h4 id="sec-hcsv" class="h3" data-heading-depth="3" style="display:block"><span class="heading-before"><span class="heading-label">3.1.1</span>.&#8194;</span>HCSV</h4><h4 id="sec-hcson" class="h3" data-heading-depth="3" style="display:block"><span class="heading-before"><span class="heading-label">3.1.2</span>.&#8194;</span>HCSON</h4><h3 id="sec-object-orientation" class="h2" data-heading-depth="2" style="display:block"><span class="heading-before"><span class="heading-label">3.2</span>.&#8194;</span>Object-Orientation</h3>
+<p class="p noindent">Perhaps surprisingly, it is possible to implement a complete object-oriented
+programming system using only the above primitives.
+</p><h4 id="sec-constructors" class="h3" data-heading-depth="3" style="display:block"><span class="heading-before"><span class="heading-label">3.2.1</span>.&#8194;</span>Constructors</h4>
+<p class="p noindent">Let&#39;s start with a simple singleton:
+</p>
+<pre class="para-block pre-fenced pre-fenced3 language-ruby lang-ruby ruby colorized" style="display:block"><code>; .parent_ [
+<span style="color:darkgreen"># # .x 1;</span>
+<span style="color:darkgreen"># # .helper: {</span>
+<span style="color:darkgreen">#   # .x 2;</span>
+<span style="color:darkgreen">#   # .y x + _^.x;</span>
+<span style="color:darkgreen">#   # ._^.y y + _;</span>
+<span style="color:darkgreen">#   # }</span>
+<span style="color:darkgreen"># # ]</span>
+; parent_.x
+<span style="color:darkgreen"># 1</span>
+; parent.y
+<span style="color:darkgreen"># $missing</span>
+; parent_.helper<span style="color:blue">:</span> <span class="constant" style="color:purple">10</span>;
+; parent_.y
+<span style="color:darkgreen"># 13</span></code></pre>
+<p class="p noindent para-continued">Then move on to classes:
+</p>
+<pre class="para-block pre-fenced pre-fenced3 language-ruby lang-ruby ruby colorized" style="display:block"><code>; my-<span style="color:blue">class</span> {
+  ._property _;
+  .getProperty { _^._property }
+  .setProperty<span style="color:blue">:</span> { ._^._property _}
+};
+; .my-instance my-<span style="color:blue">class</span> 3;
+; my-instance.getProperty()
+<span style="color:darkgreen"># 3</span>
+; .mutated = my-instance.setProperty<span style="color:blue">:</span> <span class="constant" style="color:purple">42</span>;
+; mutated.getProperty()
+<span style="color:darkgreen"># 42</span>
+; my-instance.getProperty()
+<span style="color:darkgreen"># 3</span></code></pre>
+<p class="p noindent para-continued">This may seem to good to be true, but that is the power of choosing the correct primitives:
+</p>
+<ul class="ul list-dash compact">
+<li class="li ul-li list-dash-li compact-li">Data hiding is handled by the implicit access Modifiers
+</li>
+<li class="li ul-li list-dash-li compact-li">Scope is always inherited
+</li>
+<li class="li ul-li list-dash-li compact-li">Instance methods refer to their parent by <code class="code code1 language-ruby lang-ruby ruby colorized">_^</code>
+</li>
+<li class="li ul-li list-dash-li compact-li">The class itself is the constructor (as a closure)
+</li>
+<li class="li ul-li list-dash-li compact-li">When evaluated, that closure inherits the class as its parent
+</li></ul>
+<h4 id="sec-extending-classes" class="h3" data-heading-depth="3" style="display:block"><span class="heading-before"><span class="heading-label">3.2.2</span>.&#8194;</span>Extending Classes</h4>
+<p class="p noindent">Even inheritance is already accounted for, simply by allowing an object to specify its parent:
+</p>
+<pre class="para-block pre-fenced pre-fenced3 language-ruby lang-ruby ruby colorized" style="display:block"><code>; my-subclass {
+  ._^ my-base-<span style="color:blue">class</span>
+};</code></pre>
+<p class="p noindent para-continued">There is no built-in support for multiple inheritance.  However, because
+inheritance is just another expression, you are welcome to define your own:
+</p>
+<pre class="para-block pre-fenced pre-fenced3 language-ruby lang-ruby ruby colorized" style="display:block"><code>; .my-multiple-inheritance { “create your own” };
+; multiclass {
+  ._^ my-multiple-inheritance[my-base, another-base]
+};</code></pre><h3 id="sec-html" class="h2" data-heading-depth="2" style="display:block"><span class="heading-before"><span class="heading-label">3.3</span>.&#8194;</span>HTML</h3><h2 id="sec-next-steps" class="h1" data-heading-depth="1" style="display:block"><span class="heading-before"><span class="heading-label">4</span>.&#8194;</span>Next Steps</h2><h3 id="sec-implementation-status" class="h2" data-heading-depth="2" style="display:block"><span class="heading-before"><span class="heading-label">4.1</span>.&#8194;</span>Implementation Status</h3><h3 id="sec-future-directions" class="h2" data-heading-depth="2" style="display:block"><span class="heading-before"><span class="heading-label">4.2</span>.&#8194;</span>Future Directions</h3><h3 id="sec-potential-implications" class="h2" data-heading-depth="2" style="display:block"><span class="heading-before"><span class="heading-label">4.3</span>.&#8194;</span>Potential Implications</h3><h2 id="sec-related-work" class="h1" data-heading-depth="1" style="display:block"><span class="heading-before"><span class="heading-label">5</span>.&#8194;</span>Related Work</h2>
+<ul class="ul list-star compact">
+<li class="li ul-li list-star-li compact-li">BitC&nbsp;<a href="www.cs.jhu.edu/~swaroop/aplas.pdf">sound <em class="em-star1">and</em> complete</a>
+</li>
+<li class="li ul-li list-star-li compact-li">Water http://www.informit.com/articles/article.aspx?p=27567
+</li>
+<li class="li ul-li list-star-li compact-li">Mathematica https://mathematica.stackexchange.com/questions/2335/metaprogramming-in-mathematica
+</li>
+<li class="li ul-li list-star-li compact-li">Julia https://julialang.org
+</li></ul>
+<h2 id="sec-conclusion" class="h1" data-heading-depth="1" style="display:block"><span class="heading-before"><span class="heading-label">6</span>.&#8194;</span>Conclusion</h2>
+<p class="p noindent">We believe the historical accident of confusing computation with mathematics
+and programming with natural languages has resulted in massive accidental
+complexity, resulting in buggy software, complicated tools, and steep learning.
+By eliminated that complexity, Homoiconic C promises to usher in a new Golden Age of software that is:
+</p>
+<ul class="ul list-star compact">
+<li class="li ul-li list-star-li compact-li">Provably secure by default
+</li>
+<li class="li ul-li list-star-li compact-li">Both inherently efficient and easily optimized
+</li>
+<li class="li ul-li list-star-li compact-li">Easy to learn, read, and modify
+</li>
+<li class="li ul-li list-star-li compact-li">Trivial to statically analyze, visualize, and automatically evolve
+</li></ul>
+
+<p class="p noindent">If Homoiconic C fulfills that promise, we can finally make programming an
+everyday skill, used by ordinary people (even children) to solve the problems
+<em class="em-star1">they</em> care about, in the same way they use writing and arithmetic.  Not
+everyone will be an expert or professional programmer &#8211; anymore than everyone who sings is an expert or professional musician &#8211; but the ability to
+read, understand, and personalize code will be available to all.
+</p>
+<p class="p indent">It may be true that there is no silver bullet<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
+Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span>.   But we believe
+Homoiconic C can at least be a &#8220;diamond sword&#8221;, enabling courageous individuals
+to bring safety, performance, usability, and clarity to the software that
+impacts their corner of the world.  We hope you will join us on that quest.
+</p><h2 id="sec-appendices" class="h1" data-heading-depth="1" style="display:block"><span class="heading-before"><span class="heading-label">7</span>.&#8194;</span>Appendices</h2><h3 id="sec-appendix-a-on-turing-completeness" class="h2" data-heading-depth="2" style="display:block"><span class="heading-before"><span class="heading-label">7.1</span>.&#8194;</span>Appendix A. On Turing Completeness</h3>
+<p class="p noindent">Turing undecidability, like Godelian incompleteness, starts by assuming &#8220;basic arithmetic&#8221; (add, substract, multiply, divide) &#8211; i.e. the Peano Axioms. However, this glosses over the fact that division is a &#8220;type violation&#8221;, and can&#39;t be fully represented using the same data structures as for addition and substraction.
+</p>
+<p class="p indent">We believe that a better starting point for modeling computation are the Presburger Axioms.  These give up multiplication and division as first-class operations (though you can emulate them to some extent using repeated addition and subtraction, respectively).  The big win, though, is that Presburger arithmetic is both consistent <strong class="strong-star2">and</strong> complete.  This eliminates the halting problem, and massively simplifies analyses (though it may restrict what is possible).
+</p>
+<p class="p indent">Instead of Turing completeness, we prefer to focus on &#8220;Circuit Universality&#8221; (a la Scott Aaronson): the ability to represent the effect of any Boolean circuit, including multiple levels of abstraction above them.
 </p>
 <div class="bibl" style="bbl-file:out/hc-paper-enp-bib.bbl.mdk"><h2 id="sec-references" class="clearnum h1 heading-references" data-heading-depth="1" style="display:block">References</h2>
 <div class="bibliography bib-numeric" data-hanging-indent="0" data-style="plainnat" style="bibstyle:madoko-numeric">
 
-<div id="clang" class="bibitem" data-cite-label="1" data-cite-year="1900a" data-cite-authors="Stub" style="text-indent:-2rem;margin-left:2rem;searchterm:_Stub_++Stub+"><span class="bibitem-before" style="padding-right:0.5em;display: inline-block; width:calc(2rem - 0.5em);display: inline-block; text-align:right;font-size:90%"></span>Stub.
+<div id="cite" class="bibitem" data-cite-label="1" data-cite-year="1900" data-cite-authors="Anonymous" style="text-indent:-2rem;margin-left:2rem;searchterm:_Citation+Needed_++Anonymous+"><span class="bibitem-before" style="padding-right:0.5em;display: inline-block; width:calc(2rem - 0.5em);display: inline-block; text-align:right;font-size:90%"></span>Anonymous.
+<span class="newblock"></span> <em class="em-low1">Citation Needed</em>.
+<span class="newblock"></span> N/A, 1900.&nbsp;<a href="http://www.bing.com/search?q=_Citation+Needed_++Anonymous+" class="bibsearch">&#128270;</a></div>
+<div id="bitc" class="bibitem" data-cite-label="2" data-cite-year="1900" data-cite-authors="et\ al" style="text-indent:-2rem;margin-left:2rem;searchterm:Sound+complete+type+inference+systems+language++Shapiro+"><span class="bibitem-before" style="padding-right:0.5em;display: inline-block; width:calc(2rem - 0.5em);display: inline-block; text-align:right;font-size:90%"></span>Shapiro et&#160;al.
+<span class="newblock"></span> Sound and complete type inference in a systems language.
+<span class="newblock"></span> <em class="em-low1">Stub</em>, 1900.
+<span class="newblock"></span> URL <www.cs.jhu.edu/~swaroop/aplas.pdf>.&nbsp;<a href="http://www.bing.com/search?q=Sound+complete+type+inference+systems+language++Shapiro+" class="bibsearch">&#128270;</a></div>
+<div id="clang" class="bibitem" data-cite-label="3" data-cite-year="1900a" data-cite-authors="Stub" style="text-indent:-2rem;margin-left:2rem;searchterm:_Stub_++Stub+"><span class="bibitem-before" style="padding-right:0.5em;display: inline-block; width:calc(2rem - 0.5em);display: inline-block; text-align:right;font-size:90%"></span>Stub.
 <span class="newblock"></span> <em class="em-low1">Stub</em>.
 <span class="newblock"></span> Stub, 1900a.&nbsp;<a href="http://www.bing.com/search?q=_Stub_++Stub+" class="bibsearch">&#128270;</a></div>
-<div id="forth" class="bibitem" data-cite-label="2" data-cite-year="1900b" data-cite-authors="Stub" style="text-indent:-2rem;margin-left:2rem;searchterm:_Stub_++Stub+"><span class="bibitem-before" style="padding-right:0.5em;display: inline-block; width:calc(2rem - 0.5em);display: inline-block; text-align:right;font-size:90%"></span>Stub.
+<div id="forth" class="bibitem" data-cite-label="4" data-cite-year="1900b" data-cite-authors="Stub" style="text-indent:-2rem;margin-left:2rem;searchterm:_Stub_++Stub+"><span class="bibitem-before" style="padding-right:0.5em;display: inline-block; width:calc(2rem - 0.5em);display: inline-block; text-align:right;font-size:90%"></span>Stub.
 <span class="newblock"></span> <em class="em-low1">Stub</em>.
 <span class="newblock"></span> Stub, 1900b.&nbsp;<a href="http://www.bing.com/search?q=_Stub_++Stub+" class="bibsearch">&#128270;</a></div>
-<div id="liebniz" class="bibitem" data-cite-label="3" data-cite-year="1900c" data-cite-authors="Stub" style="text-indent:-2rem;margin-left:2rem;searchterm:Stub++Stub+"><span class="bibitem-before" style="padding-right:0.5em;display: inline-block; width:calc(2rem - 0.5em);display: inline-block; text-align:right;font-size:90%"></span>Stub.
+<div id="leftfold" class="bibitem" data-cite-label="5" data-cite-year="1900c" data-cite-authors="Stub" style="text-indent:-2rem;margin-left:2rem;searchterm:Stub++Stub+"><span class="bibitem-before" style="padding-right:0.5em;display: inline-block; width:calc(2rem - 0.5em);display: inline-block; text-align:right;font-size:90%"></span>Stub.
 <span class="newblock"></span> Stub.
 <span class="newblock"></span> <em class="em-low1">Stub</em>, 1900c.&nbsp;<a href="http://www.bing.com/search?q=Stub++Stub+" class="bibsearch">&#128270;</a></div>
-<div id="lisp" class="bibitem" data-cite-label="4" data-cite-year="1900d" data-cite-authors="Stub" style="text-indent:-2rem;margin-left:2rem;searchterm:Stub++Stub+"><span class="bibitem-before" style="padding-right:0.5em;display: inline-block; width:calc(2rem - 0.5em);display: inline-block; text-align:right;font-size:90%"></span>Stub.
+<div id="liebniz" class="bibitem" data-cite-label="6" data-cite-year="1900d" data-cite-authors="Stub" style="text-indent:-2rem;margin-left:2rem;searchterm:Stub++Stub+"><span class="bibitem-before" style="padding-right:0.5em;display: inline-block; width:calc(2rem - 0.5em);display: inline-block; text-align:right;font-size:90%"></span>Stub.
 <span class="newblock"></span> Stub.
 <span class="newblock"></span> <em class="em-low1">Stub</em>, 1900d.&nbsp;<a href="http://www.bing.com/search?q=Stub++Stub+" class="bibsearch">&#128270;</a></div>
-<div id="lua" class="bibitem" data-cite-label="5" data-cite-year="1900e" data-cite-authors="Stub" style="text-indent:-2rem;margin-left:2rem;searchterm:Stub++Stub+"><span class="bibitem-before" style="padding-right:0.5em;display: inline-block; width:calc(2rem - 0.5em);display: inline-block; text-align:right;font-size:90%"></span>Stub.
+<div id="lisp" class="bibitem" data-cite-label="7" data-cite-year="1900e" data-cite-authors="Stub" style="text-indent:-2rem;margin-left:2rem;searchterm:Stub++Stub+"><span class="bibitem-before" style="padding-right:0.5em;display: inline-block; width:calc(2rem - 0.5em);display: inline-block; text-align:right;font-size:90%"></span>Stub.
 <span class="newblock"></span> Stub.
 <span class="newblock"></span> <em class="em-low1">Stub</em>, 1900e.&nbsp;<a href="http://www.bing.com/search?q=Stub++Stub+" class="bibsearch">&#128270;</a></div>
-<div id="scheme" class="bibitem" data-cite-label="6" data-cite-year="1900f" data-cite-authors="Stub" style="text-indent:-2rem;margin-left:2rem;searchterm:_Stub_++Stub+"><span class="bibitem-before" style="padding-right:0.5em;display: inline-block; width:calc(2rem - 0.5em);display: inline-block; text-align:right;font-size:90%"></span>Stub.
-<span class="newblock"></span> <em class="em-low1">Stub</em>.
-<span class="newblock"></span> Stub, 1900f.&nbsp;<a href="http://www.bing.com/search?q=_Stub_++Stub+" class="bibsearch">&#128270;</a></div>
-<div id="self" class="bibitem" data-cite-label="7" data-cite-year="1900g" data-cite-authors="Stub" style="text-indent:-2rem;margin-left:2rem;searchterm:Stub++Stub+"><span class="bibitem-before" style="padding-right:0.5em;display: inline-block; width:calc(2rem - 0.5em);display: inline-block; text-align:right;font-size:90%"></span>Stub.
+<div id="lua" class="bibitem" data-cite-label="8" data-cite-year="1900f" data-cite-authors="Stub" style="text-indent:-2rem;margin-left:2rem;searchterm:Stub++Stub+"><span class="bibitem-before" style="padding-right:0.5em;display: inline-block; width:calc(2rem - 0.5em);display: inline-block; text-align:right;font-size:90%"></span>Stub.
 <span class="newblock"></span> Stub.
-<span class="newblock"></span> <em class="em-low1">Stub</em>, 1900g.&nbsp;<a href="http://www.bing.com/search?q=Stub++Stub+" class="bibsearch">&#128270;</a></div>
-<div id="shapiro:effecttyping" class="bibitem" data-cite-label="8" data-cite-year="1900h" data-cite-authors="Stub" style="text-indent:-2rem;margin-left:2rem;searchterm:Stub++Stub+"><span class="bibitem-before" style="padding-right:0.5em;display: inline-block; width:calc(2rem - 0.5em);display: inline-block; text-align:right;font-size:90%"></span>Stub.
+<span class="newblock"></span> <em class="em-low1">Stub</em>, 1900f.&nbsp;<a href="http://www.bing.com/search?q=Stub++Stub+" class="bibsearch">&#128270;</a></div>
+<div id="scheme" class="bibitem" data-cite-label="9" data-cite-year="1900g" data-cite-authors="Stub" style="text-indent:-2rem;margin-left:2rem;searchterm:_Stub_++Stub+"><span class="bibitem-before" style="padding-right:0.5em;display: inline-block; width:calc(2rem - 0.5em);display: inline-block; text-align:right;font-size:90%"></span>Stub.
+<span class="newblock"></span> <em class="em-low1">Stub</em>.
+<span class="newblock"></span> Stub, 1900g.&nbsp;<a href="http://www.bing.com/search?q=_Stub_++Stub+" class="bibsearch">&#128270;</a></div>
+<div id="self" class="bibitem" data-cite-label="10" data-cite-year="1900h" data-cite-authors="Stub" style="text-indent:-2rem;margin-left:2rem;searchterm:Stub++Stub+"><span class="bibitem-before" style="padding-right:0.5em;display: inline-block; width:calc(2rem - 0.5em);display: inline-block; text-align:right;font-size:90%"></span>Stub.
 <span class="newblock"></span> Stub.
 <span class="newblock"></span> <em class="em-low1">Stub</em>, 1900h.&nbsp;<a href="http://www.bing.com/search?q=Stub++Stub+" class="bibsearch">&#128270;</a></div>
-<div id="typescript" class="bibitem" data-cite-label="9" data-cite-year="1900i" data-cite-authors="Stub" style="text-indent:-2rem;margin-left:2rem;searchterm:Stub++Stub+"><span class="bibitem-before" style="padding-right:0.5em;display: inline-block; width:calc(2rem - 0.5em);display: inline-block; text-align:right;font-size:90%"></span>Stub.
+<div id="shapiro:effecttyping" class="bibitem" data-cite-label="11" data-cite-year="1900i" data-cite-authors="Stub" style="text-indent:-2rem;margin-left:2rem;searchterm:Stub++Stub+"><span class="bibitem-before" style="padding-right:0.5em;display: inline-block; width:calc(2rem - 0.5em);display: inline-block; text-align:right;font-size:90%"></span>Stub.
 <span class="newblock"></span> Stub.
 <span class="newblock"></span> <em class="em-low1">Stub</em>, 1900i.&nbsp;<a href="http://www.bing.com/search?q=Stub++Stub+" class="bibsearch">&#128270;</a></div>
-<div id="unixshell" class="bibitem" data-cite-label="10" data-cite-year="1900j" data-cite-authors="Stub" style="text-indent:-2rem;margin-left:2rem;searchterm:_Stub_++Stub+"><span class="bibitem-before" style="padding-right:0.5em;display: inline-block; width:calc(2rem - 0.5em);display: inline-block; text-align:right;font-size:90%"></span>Stub.
+<div id="typescript" class="bibitem" data-cite-label="12" data-cite-year="1900j" data-cite-authors="Stub" style="text-indent:-2rem;margin-left:2rem;searchterm:Stub++Stub+"><span class="bibitem-before" style="padding-right:0.5em;display: inline-block; width:calc(2rem - 0.5em);display: inline-block; text-align:right;font-size:90%"></span>Stub.
+<span class="newblock"></span> Stub.
+<span class="newblock"></span> <em class="em-low1">Stub</em>, 1900j.&nbsp;<a href="http://www.bing.com/search?q=Stub++Stub+" class="bibsearch">&#128270;</a></div>
+<div id="unixshell" class="bibitem" data-cite-label="13" data-cite-year="1900k" data-cite-authors="Stub" style="text-indent:-2rem;margin-left:2rem;searchterm:_Stub_++Stub+"><span class="bibitem-before" style="padding-right:0.5em;display: inline-block; width:calc(2rem - 0.5em);display: inline-block; text-align:right;font-size:90%"></span>Stub.
 <span class="newblock"></span> <em class="em-low1">Stub</em>.
-<span class="newblock"></span> Stub, 1900j.&nbsp;<a href="http://www.bing.com/search?q=_Stub_++Stub+" class="bibsearch">&#128270;</a></div></div></div>
+<span class="newblock"></span> Stub, 1900k.&nbsp;<a href="http://www.bing.com/search?q=_Stub_++Stub+" class="bibsearch">&#128270;</a></div></div></div>
 <div class="logomadoko" style="display:block;text-align:right;font-size:xx-small;margin-top:4em">Created with&nbsp;<a href="https://www.madoko.net">Madoko.net</a>.</div><span data-line=""></span>
 <div class="footnotes madoko">
 <hr >
@@ -430,26 +1227,14 @@ organized into three categories:
 <div id="fn-lua-fn" class="footnote" style="line-adjust:0">
 <p class="p noindent"><span class="footnote-before"><sup><span class="footnote-label">1</span>.</sup></span>The only minimalist language still in active use appears to be
 Lua<span class="citations" style="target-element:bibitem">[<a href="#lua" title="Stub. 
-Stub." class="bibref localref" style="target-element:bibitem"><span class="cite-number">5</span></a>]</span>, though even that is relegated to niche applications.
-</p>
-<p class="p indent"><a href="#back-fn-lua-fn" class="footnote-backref localref">&#8617;</a></p></div>
+Stub." class="bibref localref" style="target-element:bibitem"><span class="cite-number">8</span></a>]</span>, though even that is relegated to niche applications.
+<a href="#back-fn-lua-fn" class="footnote-backref localref">&#8617;</a></p></div>
 <div id="fn-monad" class="footnote" style="line-adjust:0">
 <p class="p noindent"><span class="footnote-before"><sup><span class="footnote-label">2</span>.</sup></span>Not just the mathematical term for an object closed under all
 operations, but Liebniz&#39;s original idea of a single universal
 building-block<span class="citations" style="target-element:bibitem">[<a href="#liebniz" title="Stub. 
-Stub." class="bibref localref" style="target-element:bibitem"><span class="cite-number">3</span></a>]</span>.
+Stub." class="bibref localref" style="target-element:bibitem"><span class="cite-number">6</span></a>]</span>.
 <a href="#back-fn-monad" class="footnote-backref localref">&#8617;</a></p></div></div></div>
-<svg id='math-svg-paths' style='display:none' version='1.1' viewBox='0 0 0 0' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink'>
-<defs>
-<path d='M3.945 -3.786C3.786 -3.786 3.646 -3.786 3.507 -3.646C3.347 -3.497 3.328 -3.328 3.328 -3.258C3.328 -3.019 3.507 -2.909 3.696 -2.909C3.985 -2.909 4.254 -3.148 4.254 -3.547C4.254 -4.035 3.786 -4.403 3.078 -4.403C1.733 -4.403 0.408 -2.979 0.408 -1.574C0.408 -0.677 0.986 0.11 2.022 0.11C3.447 0.11 4.284 -0.946 4.284 -1.066C4.284 -1.126 4.224 -1.196 4.164 -1.196C4.115 -1.196 4.095 -1.176 4.035 -1.096C3.248 -0.11 2.162 -0.11 2.042 -0.11C1.415 -0.11 1.146 -0.598 1.146 -1.196C1.146 -1.604 1.345 -2.57 1.684 -3.188C1.993 -3.756 2.54 -4.184 3.088 -4.184C3.427 -4.184 3.806 -4.055 3.945 -3.786Z' id='g0-99'/>
-<path d='M2.052 -3.985H2.989C3.188 -3.985 3.288 -3.985 3.288 -4.184C3.288 -4.294 3.188 -4.294 3.009 -4.294H2.132C2.491 -5.709 2.54 -5.908 2.54 -5.968C2.54 -6.137 2.421 -6.237 2.252 -6.237C2.222 -6.237 1.943 -6.227 1.853 -5.878L1.465 -4.294H0.528C0.329 -4.294 0.229 -4.294 0.229 -4.105C0.229 -3.985 0.309 -3.985 0.508 -3.985H1.385C0.667 -1.156 0.628 -0.986 0.628 -0.807C0.628 -0.269 1.006 0.11 1.544 0.11C2.56 0.11 3.128 -1.345 3.128 -1.425C3.128 -1.524 3.049 -1.524 3.009 -1.524C2.919 -1.524 2.909 -1.494 2.859 -1.385C2.431 -0.349 1.903 -0.11 1.564 -0.11C1.355 -0.11 1.255 -0.239 1.255 -0.568C1.255 -0.807 1.275 -0.877 1.315 -1.046L2.052 -3.985Z' id='g0-116'/>
-<path d='M3.298 2.391C3.298 2.361 3.298 2.341 3.128 2.172C1.883 0.917 1.564 -0.966 1.564 -2.491C1.564 -4.224 1.943 -5.958 3.168 -7.203C3.298 -7.323 3.298 -7.342 3.298 -7.372C3.298 -7.442 3.258 -7.472 3.198 -7.472C3.098 -7.472 2.202 -6.795 1.614 -5.529C1.106 -4.433 0.986 -3.328 0.986 -2.491C0.986 -1.714 1.096 -0.508 1.644 0.618C2.242 1.843 3.098 2.491 3.198 2.491C3.258 2.491 3.298 2.461 3.298 2.391Z' id='g1-40'/>
-<path d='M2.879 -2.491C2.879 -3.268 2.77 -4.473 2.222 -5.599C1.624 -6.824 0.767 -7.472 0.667 -7.472C0.608 -7.472 0.568 -7.432 0.568 -7.372C0.568 -7.342 0.568 -7.323 0.757 -7.143C1.733 -6.157 2.301 -4.573 2.301 -2.491C2.301 -0.787 1.933 0.966 0.697 2.222C0.568 2.341 0.568 2.361 0.568 2.391C0.568 2.451 0.608 2.491 0.667 2.491C0.767 2.491 1.664 1.813 2.252 0.548C2.76 -0.548 2.879 -1.654 2.879 -2.491Z' id='g1-41'/>
-<path d='M3.736 -6.117C3.796 -6.356 3.826 -6.456 4.015 -6.486C4.105 -6.496 4.423 -6.496 4.623 -6.496C5.33 -6.496 6.436 -6.496 6.436 -5.509C6.436 -5.171 6.276 -4.483 5.888 -4.095C5.629 -3.836 5.101 -3.517 4.204 -3.517H3.088L3.736 -6.117ZM5.171 -3.387C6.177 -3.606 7.362 -4.304 7.362 -5.31C7.362 -6.167 6.466 -6.804 5.161 -6.804H2.321C2.122 -6.804 2.032 -6.804 2.032 -6.605C2.032 -6.496 2.122 -6.496 2.311 -6.496C2.331 -6.496 2.521 -6.496 2.69 -6.476C2.869 -6.456 2.959 -6.446 2.959 -6.316C2.959 -6.276 2.949 -6.247 2.919 -6.127L1.584 -0.777C1.484 -0.389 1.465 -0.309 0.677 -0.309C0.498 -0.309 0.408 -0.309 0.408 -0.11C0.408 0 0.528 0 0.548 0C0.827 0 1.524 -0.03 1.803 -0.03S2.79 0 3.068 0C3.148 0 3.268 0 3.268 -0.199C3.268 -0.309 3.178 -0.309 2.989 -0.309C2.62 -0.309 2.341 -0.309 2.341 -0.488C2.341 -0.548 2.361 -0.598 2.371 -0.658L3.029 -3.298H4.214C5.121 -3.298 5.3 -2.74 5.3 -2.391C5.3 -2.242 5.22 -1.933 5.161 -1.704C5.091 -1.425 5.001 -1.056 5.001 -0.857C5.001 0.219 6.197 0.219 6.326 0.219C7.173 0.219 7.522 -0.787 7.522 -0.927C7.522 -1.046 7.412 -1.046 7.402 -1.046C7.313 -1.046 7.293 -0.976 7.273 -0.907C7.024 -0.169 6.595 0 6.366 0C6.037 0 5.968 -0.219 5.968 -0.608C5.968 -0.917 6.027 -1.425 6.067 -1.743C6.087 -1.883 6.107 -2.072 6.107 -2.212C6.107 -2.979 5.44 -3.288 5.171 -3.387Z' id='g0-82'/>
-<path d='M3.522 -1.269H3.285C3.264 -1.116 3.194 -0.704 3.103 -0.635C3.048 -0.593 2.511 -0.593 2.413 -0.593H1.13C1.862 -1.241 2.106 -1.437 2.525 -1.764C3.041 -2.176 3.522 -2.608 3.522 -3.271C3.522 -4.115 2.783 -4.631 1.89 -4.631C1.025 -4.631 0.439 -4.024 0.439 -3.382C0.439 -3.027 0.739 -2.992 0.809 -2.992C0.976 -2.992 1.179 -3.11 1.179 -3.361C1.179 -3.487 1.13 -3.731 0.767 -3.731C0.983 -4.226 1.458 -4.38 1.785 -4.38C2.483 -4.38 2.845 -3.836 2.845 -3.271C2.845 -2.664 2.413 -2.183 2.19 -1.932L0.509 -0.272C0.439 -0.209 0.439 -0.195 0.439 0H3.313L3.522 -1.269Z' id='g2-50'/>
-</defs>
-</svg>
-
 </body>
 
 </html>
