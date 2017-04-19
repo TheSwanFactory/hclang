@@ -667,6 +667,10 @@ for adding other functionality.
 
 #### TODO: Import Names from Module
 
+While it is recommended that module names live in their own namespace,
+it is essential to also be able to import names into the global namespace.
+This allows essential functionality to provided via a prologue, rather than
+baked directly into the language.
 
 ## Access Control { #sec-access }
 
@@ -774,7 +778,6 @@ referenced value can be modified in place). In other words, constancy is
 a property of the _source_ object, whereas mutability is a property of the
 _destination_ object.
 
-
 ```ruby
 ; .variable 42;
 ; .Constant 21;
@@ -827,74 +830,90 @@ more details).
 
 # Applications {#sec-applications}
 
-
+While the above language may seem simple to the point of simplistic, it has a 
+surprising amount of power.  Here are a few examples of what it can do.
 
 ## Congrams {#sec-congrams}
 
+As mentioned above, HC programs that consist only of literals other than closures 
+are called _congrams_, which are just pure data. This provides a 
+once-in-a-lifetime opportunity to bring rigor and consistency to a variety of organic
+data formats developed over the Internet's brief history.
+
 ### HCSV
 
+Homoiconic C may finally provide a well-defined alternative to the
+ubiquitous CSV[@Cite] file. A properly-structured `.hcsv` file is just as compact
+as CSV, with two important differences:
+* The header row, if any, consists of a list of names
+* Strings must be (smart) quoted
+```
+.first-name, .last-name, .phone-number
+“John”, “Doe”, +1.408.555.1212
+“Jane”, “Smith”, +1.650.555.1212
+```
+
 ### HCSON
+
+HC can also emulate the popular JSON[@Cite] format, or more precisely its
+CoffeeScript cousin CSON[@Cite].
+```
+.first-name “John”, .last-name “Doe”, .phone-number +1.408.555.1212  
+.first-name “Jane”, .last-name “Smith”, .phone-number +1.650.555.1212  
+```
+
+### TODO: HCARD
+
+### TODO: HCAL
+
 
 
 ## Object-Orientation
 
 Perhaps surprisingly, it is possible to implement a complete object-oriented
-programming system using only the above primitives.
+programming system using only the above primitives.  All we need
+are our access control rules plus the super identifier `_^`.
 
+### Singletons
 
-### Constructors
-
-Let's start with a simple singleton:
+Let's start with a simple singleton object containing private data:
 
 ``` ruby
-; .parent_ [
-# # .x 1;
-# # .helper: {
-#   # .x 2;
-#   # .y x + _^.x;
-#   # ._^.y y + _;
-#   # }
-# # ]
-; parent_.x
-# 1
-; parent.y
-# $missing
-; parent_.helper: 10;
-; parent_.y
+; .my-object_ (
+   ._property 13;
+  .getProperty { _property }
+  .setProperty: { @property _}
+);
+; my-object_.getProperty()
+# 13
+; my-object_.setProperty: 42;
+; my-object_.getProperty()
 # 13
 ```
 
-Then move on to classes:
-```
-; my-class {
-  ._property _;
-  .getProperty { _^._property }
-  .setProperty: { ._^._property _}
+### Classes
+
+To turn that into a class, we simply make it a closure which returns
+a frame analogous to that singleton:
+
+``` ruby
+; .my-class {
+   ._property _;
+  .getProperty { _property }
+  .setProperty: { @property _}
 };
 ; .my-instance my-class 3;
 ; my-instance.getProperty()
 # 3
-; .mutated = my-instance.setProperty: 42;
-; mutated.getProperty()
-# 42
-; my-instance.getProperty()
-# 3
 ```
 
-This may seem to good to be true, but that is the power of choosing the correct primitives:
+### Inheritance
 
-- Data hiding is handled by the implicit access Modifiers
-- Scope is always inherited
-- Instance methods refer to their parent by `_^`
-- The class itself is the constructor (as a closure)
-- When evaluated, that closure inherits the class as its parent
-
-### Extending Classes
-
-Even inheritance is already accounted for, simply by allowing an object to specify its parent:
+Even inheritance is already accounted for, simply by explicitly specifying
+its parent scape:
 
 ``` ruby
-; my-subclass {
+; .my-subclass {
   ._^ my-base-class
 };
 ```
@@ -903,9 +922,9 @@ There is no built-in support for multiple inheritance.  However, because
 inheritance is just another expression, you are welcome to define your own:
 
 ``` ruby
-; .my-multiple-inheritance { “create your own” };
+; .my-inheritance { “create your own” };
 ; multiclass {
-  ._^ my-multiple-inheritance[my-base, another-base]
+  ._^ my-inheritance [my-base, another-base]
 };
 ```
 
