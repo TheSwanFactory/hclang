@@ -907,7 +907,7 @@ a frame analogous to that singleton:
 # 3
 ```
 
-### Inheritance
+### TODO: Inheritance
 
 Even inheritance is already accounted for, simply by explicitly specifying
 its parent scape:
@@ -928,42 +928,53 @@ inheritance is just another expression, you are welcome to define your own:
 };
 ```
 
-## HTML {#sec-maml}
+## TODO: HTML {#sec-maml}
 
-# Next Steps
+# TODO: Implementation
 
-## Implementation Status
+## Architecture
+
+## Status
+
+## Next Steps
+
+# TODO: Reflections
+
+## Related Work
+
+* [BitC](www.cs.jhu.edu/~swaroop/aplas.pdf)
+* [STEPS](http://www.vpri.org/pdf/tr2008004_steps08.pdf) 
+* [Water](http://www.informit.com/articles/article.aspx?p=27567)
+* [Mathematica](https://mathematica.stackexchange.com/questions/2335/metaprogramming-in-mathematica)
+* [Julia](https://julialang.org)
 
 ## Future Directions
 
-## Potential Implications
+## Implications
 
-
-
-# Related Work
-
-* BitC [sound *and* complete](www.cs.jhu.edu/~swaroop/aplas.pdf)
-* Water http://www.informit.com/articles/article.aspx?p=27567
-* Mathematica https://mathematica.stackexchange.com/questions/2335/metaprogramming-in-mathematica
-* Julia https://julialang.org
 
 # Conclusion
 
-We believe the historical accident of confusing computation with mathematics
-and programming with natural languages has resulted in massive accidental
-complexity, resulting in buggy software, complicated tools, and steep learning.
-By eliminated that complexity, Homoiconic C promises to usher in a new Golden Age of software that is:
+We believe the historical accident of confusing computation with
+mathematics and programming with natural languages has resulted in
+massive accidental complexity. We believe this is a primary cause of the
+buggy software, complicated tools, and steep learning curve that plague software
+engineering today.
 
-* Provably secure by default
+By eliminated that complexity, Homoiconic C hopes to usher in a new
+Golden Age of software that is:
+* Inherently and provably secure 
 * Both inherently efficient and easily optimized
 * Easy to learn, read, and modify
 * Trivial to statically analyze, visualize, and automatically evolve
 
 If Homoiconic C fulfills that promise, we can finally make programming an
-everyday skill, used by ordinary people (even children) to solve the problems
-*they* care about, in the same way they use writing and arithmetic.  Not
-everyone will be an expert or professional programmer -- anymore than everyone who sings is an expert or professional musician -- but the ability to
-read, understand, and personalize code will be available to all.
+everyday skill, used by ordinary people (even children) to solve the
+problems *they* care about, in the same way they use writing and
+arithmetic. Not everyone will be an expert or professional programmer --
+anymore than everyone who sings is an expert or professional musician --
+but the ability to read, understand, and personalize code will be
+available to all.
 
 It may be true that there is no silver bullet[@Cite].   But we believe
 Homoiconic C can at least be a "diamond sword", enabling courageous individuals
@@ -975,10 +986,23 @@ impacts their corner of the world.  We hope you will join us on that quest.
 
 ## Appendix A. On Turing Completeness
 
-Turing undecidability, like Godelian incompleteness, starts by assuming "basic arithmetic" (add, substract, multiply, divide) -- i.e. the Peano Axioms. However, this glosses over the fact that division is a "type violation", and can't be fully represented using the same data structures as for addition and substraction.
+Turing undecidability, like Godelian incompleteness, starts by assuming
+"basic arithmetic" (add, substract, multiply, divide) -- i.e. the Peano
+Axioms. However, this glosses over the fact that division is a "type
+violation", and can't be fully represented using the same data structures
+as for addition and substraction.
 
-We believe that a better starting point for modeling computation are the Presburger Axioms.  These give up multiplication and division as first-class operations (though you can emulate them to some extent using repeated addition and subtraction, respectively).  The big win, though, is that Presburger arithmetic is both consistent **and** complete.  This eliminates the halting problem, and massively simplifies analyses (though it may restrict what is possible).
+We believe that a better starting point for modeling computation are the
+Presburger Axioms. These give up multiplication and division as
+first-class operations (though you can emulate them to some extent using
+repeated addition and subtraction, respectively). The big win, though, is
+that Presburger arithmetic is both consistent **and** complete. This
+eliminates the halting problem, and massively simplifies analyses (though
+it may restrict what is possible).
 
-Instead of Turing completeness, we prefer to focus on "Circuit Universality" (a la Scott Aaronson): the ability to represent the effect of any Boolean circuit, including multiple levels of abstraction above them.
+Instead of Turing completeness, we prefer to focus on "Circuit
+Universality" (a la Scott Aaronson): the ability to represent the effect
+of any Boolean circuit, including multiple levels of abstraction above
+them.
 
 [BIB]
