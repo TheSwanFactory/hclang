@@ -1,0 +1,74 @@
+\begin{thebibliography}{13}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Anonymous(1900)]{Cite}
+Anonymous.
+\newblock \emph{Citation Needed}.
+\newblock N/A, 1900.
+
+\bibitem[et~al(1900)]{BitC}
+Shapiro et~al.
+\newblock Sound and complete type inference in a systems language.
+\newblock \emph{Stub}, 1900.
+\newblock URL \url{www.cs.jhu.edu/~swaroop/aplas.pdf}.
+
+\bibitem[Stub(1900{\natexlab{a}})]{CLang}
+Stub.
+\newblock \emph{Stub}.
+\newblock Stub, 1900{\natexlab{a}}.
+
+\bibitem[Stub(1900{\natexlab{b}})]{Forth}
+Stub.
+\newblock \emph{Stub}.
+\newblock Stub, 1900{\natexlab{b}}.
+
+\bibitem[Stub(1900{\natexlab{c}})]{LeftFold}
+Stub.
+\newblock Stub.
+\newblock \emph{Stub}, 1900{\natexlab{c}}.
+
+\bibitem[Stub(1900{\natexlab{d}})]{Liebniz}
+Stub.
+\newblock Stub.
+\newblock \emph{Stub}, 1900{\natexlab{d}}.
+
+\bibitem[Stub(1900{\natexlab{e}})]{Lisp}
+Stub.
+\newblock Stub.
+\newblock \emph{Stub}, 1900{\natexlab{e}}.
+
+\bibitem[Stub(1900{\natexlab{f}})]{Lua}
+Stub.
+\newblock Stub.
+\newblock \emph{Stub}, 1900{\natexlab{f}}.
+
+\bibitem[Stub(1900{\natexlab{g}})]{Scheme}
+Stub.
+\newblock \emph{Stub}.
+\newblock Stub, 1900{\natexlab{g}}.
+
+\bibitem[Stub(1900{\natexlab{h}})]{Self}
+Stub.
+\newblock Stub.
+\newblock \emph{Stub}, 1900{\natexlab{h}}.
+
+\bibitem[Stub(1900{\natexlab{i}})]{Shapiro:EffectTyping}
+Stub.
+\newblock Stub.
+\newblock \emph{Stub}, 1900{\natexlab{i}}.
+
+\bibitem[Stub(1900{\natexlab{j}})]{TypeScript}
+Stub.
+\newblock Stub.
+\newblock \emph{Stub}, 1900{\natexlab{j}}.
+
+\bibitem[Stub(1900{\natexlab{k}})]{UNIXShell}
+Stub.
+\newblock \emph{Stub}.
+\newblock Stub, 1900{\natexlab{k}}.
+
+\end{thebibliography}

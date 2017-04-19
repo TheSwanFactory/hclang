@@ -68,25 +68,26 @@ and existing data formats.
 ## A Brief History of Programming Languages
 
 Early high-level languages (e.g., FORTRAN[@Cite], COBOL[@Cite],
-BASIC[@Cite], ALGOL[@Cite]) were strongly influenced by mathematics and artificial
-intelligence[@Cite], leading to sophisticated precedence rules and
-complicated syntax. The primary alternative was Lisp[@Lisp;], defined --
-at least in theory -- by a single data structure (the list) and a single
-rule (metacircular evaluation).
+BASIC[@Cite], ALGOL[@Cite]) were strongly influenced by mathematics and
+artificial intelligence[@Cite], leading to sophisticated precedence rules
+and complicated syntax. The primary alternative was Lisp[@Lisp;], defined
+-- at least in theory -- by a single data structure (the list) and a
+single rule (metacircular evaluation).
 
 Lisp was not as efficient as, say, Fortran, but it was much more elegant
 and powerful. The common assumption was that eventually computers would
 become powerful enough that Lisp's inefficiencies would no longer matter.
-Sadly, the failure of hardware-optimized Lisp machines[@Cite] marked the death
-of that dream.
+Sadly, the failure of hardware-optimized Lisp machines[@Cite] marked the
+death of that dream.
 
 ## Then Came C
 
-Into that void stepped the C programming language[@CLang]. C was derived from ALGOL,
-but borrowed (some would say butchered[@Cite]) several powerful ideas
-from Lisp, such as macros[@Cite] and function pointers[@Cite]. In
-addition, the C memory model[@Cite] mapped well onto modern processor
-architectures, enabling remarkably good performance. It also benefited from:
+Into that void stepped the C programming language[@CLang]. C was derived
+from ALGOL, but borrowed (some would say butchered[@Cite]) several
+powerful ideas from Lisp, such as macros[@Cite] and function
+pointers[@Cite]. In addition, the C memory model[@Cite] mapped well onto
+modern processor architectures, enabling remarkably good performance. It
+also benefited from:
 
 * A relatively simple and easy to read syntax
 * Association with the UNIX operating system
@@ -94,11 +95,10 @@ architectures, enabling remarkably good performance. It also benefited from:
 
 This led to C (along with its direct descendants, C++[@Cite] and
 Objective-C[@Cite]) completely dominating the field for systems
-programming; a situation which continues today, almost fifty years
-later. This led to the C syntax (with some borrowing from its sister language, the UNIX shell)
-becoming the baseline for virtually every mass-market language in use today[@Cite].
-
-## The Downside of C
+programming; a situation which continues today, almost fifty years later.
+This led to the C syntax (with some borrowing from its sister language,
+the UNIX shell) becoming the baseline for virtually every mass-market
+language in use today[@Cite].
 
 This success was not entirely a good thing. C's memory model and type
 system optimized for efficiency at the cost of safety, leading to
@@ -108,14 +108,14 @@ when they first came out -- feel clunky and dated in a world of scripting
 languages and functional programming, to the point where it is rarely
 taught to beginning programmers anymore.
 
+## Framing A New Hope { #sec-frames }
+
 In the last decade, we have seen renewed innovation in systems
 programming, leading to languages such as Rust[@Cite], Go[@Cite], and
 Swift [@Cite]. These are enough better and different than C that they
 have carved out their own niches (especially with the help of powerful
 patrons). However, they don't seem to have the factor-of-ten improvement
 necessary to displace or replace C, the way C did to assembly language.
-
-## Framing A New Hope { #sec-frames }
 
 Homoiconic C aspires to reach that goal by marrying the best aspects of
 C's syntax and memory model with the values of rigor and simplicity that
@@ -134,22 +134,25 @@ of the language and the process of programming.
 
 HC also incorporates:
 
-* Homoiconicity, from Lisp
-  : Frames are both code and data, making it trivial to manipulate code via higher-level abstractions.
+* Homoiconicity, from Lisp : Frames are both code and data, making it
+  trivial to manipulate code via higher-level abstractions.
 * Dataflow, from the UNIX Shell
   : Iteration and Input/Output are designed for simple pipeline-style composition.
-* Effect Typing, from BitC[@Cite]
-  : By carefully annotating function boundaries for both _constancy_ and _immutability_, we can safely
-    alias data structures to get C-like performance while preserving the security of managed code.
-* Lexical Scoping, from Scheme[@Cite]
-  : Everything inherits its current scope (like closures). In addition, evaluation of closures causes the result to inherit their scope, allowing them to be used as object factories.
+* Effect Typing, from BitC[@Cite] : By carefully annotating function
+  boundaries for both _constancy_ and _immutability_, we can safely alias
+  data structures to get C-like performance while preserving the security
+  of managed code.
+* Lexical Scoping, from Scheme[@Cite] : Everything inherits its current
+  scope (like closures). In addition, evaluation of closures causes the
+  result to inherit their scope, allowing them to be used as object
+  factories.
 
 
 ## About This Document
 
 In the remainder of this document, we will cover:
 
-* The syntax, operators, and data protection rules that define the language
+* The syntax, operators, and access control that define the language
 * Examples of using Homoiconic C to model object-oriented programming and HTML
 * The current status and possible future directions
 * Conclusions and comparisons to related work
@@ -163,7 +166,7 @@ In the remainder of this document, we will cover:
 
 The core principle of Homoiconic C syntax is _isomorphism_: every
 syntactic construct refers to exactly one semantic concept. Put another
-way, it is modeless: characters don't mean different things in different
+way, it is modeless: syntax characters do not mean different things in different
 places. This enables vastly simpler parsers and a much shallower learning
 curve.
 
@@ -180,16 +183,16 @@ context, then applied left to right (left fold [@LeftFold]). We refer to
 this as the _elliptical evaluator_, in homage to Lisp's metacircular
 evaluator.
 
-```
+``` ruby
   frame0 frame1 frame2 ...
 ```
 Specifically:
 
-1. _frame0_ is evaluated to _value0_ (also a frame)
-2. _frame1_ is evaluated to _value1_
-3. _value0_ is called with the argument _value1_, producing _result1_
-4. -result1_ is called with _value2_ producing _result2_
-5. The final _result_ is thus the value of the evaluated expression
+1. `frame0` is evaluated to `value0` (also a frame)
+2. `frame1` is evaluated to `value1`
+3. `value0` is called with the argument `value1`, producing `result1`
+4. `result1` is called with `value2` producing `result2`
+5. The final `result` is thus the value of the evaluated expression
 
 The HC read-eval-print loop (REPL) uses ';' for the input prompt and '#' for the
 output prompt:
@@ -203,8 +206,8 @@ That's pretty much all there is. There are no special forms, keywords,
 precedence rules, or other grammatic constructs. While we realize those
 may provide some efficiency gains for experienced programmers, we do not
 believe they are worth of cost of complicating the implementation and
-increasing the learning curve for new programmers. And as we will show,
-they are not at all necessary.
+increasing the learning curve for new programmers. In particularly,
+we assert they are not actually necessary for a fully-functional programming system.
 
 ### Literals
 
@@ -219,7 +222,7 @@ Table [#sec-table-literals].
 | 0b010    | _binary_      |1/3| _rational_| “_string_”         |
 | 0o1777   | _octal_       |123.456| _float_ | # _comment_ #      |
 | 1234     | _decimal_     |123.456.E.-10| _scientific_ | \\_length_\\_blob_ |
-| 0xCAFE   | _hexadecimal_ |123.456.p123| _version_ | %_date\_time_%     |
+| 0xCAFE   | _hexadecimal_ |123.456.p123| _version_ | '_datestring_'     |
 | 0@Base64 | _Base64_      |+1.408.555.1212| _phone_ |                    |
 +----------|---------------+----------|---------------+--------------------+
 { tbody-tr-odd-background-color:Gainsboro; \
@@ -232,30 +235,33 @@ need for escape sequences. With appropriate editor support (an [atom
 package](https://github.com/TheSwanFactory/language-maml) already exists),
 the user can type '"' as usual and still generate HC strings.
 
-In addition, as part of HC's quest to be a universal data format, it natively supports:
+In addition, as part of HC's quest to be a universal data format, it
+natively supports:
 
 * Base64 numbers
 * arbitrary-length binary and hexadecimal bitstreams
-* net-string style blobs
-* a dedicated time type and literal (to avoid overloading integers)
+* net-string style _blobs_
+* a dedicated _time_ type and literal (to avoid overloading integers)
 
 By definition, literals evaluate to themselves:
 ``` ruby
-; “Hello, Homoiconicity!”
-# “Hello, Homoiconicity!”
+; “Hello, Quine!”
+# “Hello, Quine!”
 ```
 This is true even at the file level. A data program consistent entirely
 of terminals and literals simply evaluates to (and prints out) itself, or
 "[quines](https://en.wikipedia.org/wiki/Quine_%28computing%29)."
 
-Because literals are also frames, they can be called ("All data is also
-code"). Strings, for example, stringify and concatenate their argument.
+Because literals are also frames, and thus both code and data, they can
+be called like functions. Strings, for example, stringify and concatenate
+their argument.
 ``` ruby
 ; “Hello, ” “Homoiconicity!”
 # “Hello, Homoiconicity!”
 ; “The Answer” “: ” 42
 # “The Answer: 42”
 ```
+
 Similarly, numbers replicate their argument that many times:
 ``` ruby
 ; 2 “Repeats”
@@ -264,8 +270,8 @@ Similarly, numbers replicate their argument that many times:
 
 ### Terminals
 
-Terminals in Homoiconic C look much like those in ordinary languages, with a few
-twists. See Table [#sec-table-terminals].
+Terminals in Homoiconic C look much like those in other C-based
+languages -- see Table [#sec-table-terminals] -- with a few twists.
 
 ~ TableFigure { #sec-table-terminals; caption: "Terminals Syntax" }
 +---------|-----------------------+------|-----------------+
@@ -283,11 +289,16 @@ twists. See Table [#sec-table-terminals].
 ~
 
 Formally speaking, each expression should terminate in an ',' or ';', depending
-on whether we want to return the resulting value: ``` ruby ; “My Statement”; ;
-“Self Expression”, # “Self Expression” ```  This effectively allows us to
-distinguish "expressions" that return a value from "statements" that do not.
-However, trailing commas are optional, if neither separator is present will be
-inferred at the end of a line or aggregate.
+on whether we want to return the resulting value: 
+``` ruby
+; “My Statement”; 
+; “Self Expression”, 
+# “Self Expression” 
+```
+This effectively allows us to distinguish "expressions" that return a
+value from "statements" that do not. However, trailing commas are
+optional, if neither separator is present will be inferred at the end of
+a line or aggregate.
 
 Space plays an important role in binding, since we do not allow implicit
 precedence. Spaces create a new subexpression, so frames that have no
@@ -299,9 +310,9 @@ space between them bind more tightly than those that do.
 ; “Want ” 2“Live” # evaluates `2“Live”` first
 # “Want LiveLive”
 ```
-This of course can also be done (with more visual clutter) by explicit grouping:
+This of course can also be done (with more visual clutter) via explicit grouping:
 ``` ruby
-; “Want ” (2 “Live”) # evaluates left to right
+; “Want ” (2 “Live”) # evaluates grouped expressions first
 # “Want LiveLive”
 ```
 
@@ -324,84 +335,100 @@ returned, which becomes very powerful when we add identifiers.
 
 ### Identifiers
 
-Everything else is just an identifier, which can be referred to as:
+Everything else is just an identifier. Identifiers can contain letters,
+numbers, or non-terminal symbols. They come in several varieties as
+described in Table [#sec-table-id].
+
+~ TableFigure { #sec-table-id; caption: "Identifiers" }
++-----------+----------------+-------------+-------------------------+
+|Variety    | Example        | Starts With | Contains                |
++-----------+----------------+-------------+-------------------------+
+| Label     | _variable_     | _letter_    | _letter_, _number_, `-` |
+| Operator  | `+`            | _symbol_    | _symbol_                |
+| Control   | `$<-` # return | `$`         | _any identifier_        |
+| Anonymous | \_^            | \_          | \_,\^                   |
+| Self      | \.             | \.          | \.                      |
++-----------+----------------+-------------+-------------------------+
+{ tbody-tr-odd-background-color:Gainsboro; \
+  tr-even-background-color:Floralwhite }
+
+~
+
+Syntactically these are equivalent, with one small piece of syntactic
+sugar for operators; the dot is optional when used in a binary relation:
+
+``` ruby
+; 2 .+ 2
+# 4
+
+; 2 + 2
+# 4
+```
+
+#### Assignment
+
+Identifiers can be referred to via three different modes:
 
 - `value`
 - `.name`
 - `@reference`
 
-
-That completes our syntax[^mod].  Expressions are just literals and identifiers orgranized by terminals.
-
----
-^[mod] Though identifiers may have suffixes and prefixes for access control,
-as described in Section { #sec-table-access }.
-
-#### Assignment
-
-In particular, assignment is just a simple expression applying a _value_ to a _name_:
-```
-; .key value;
+Assignment is just a simple expression setting a property with that name
+in the current context:
+``` ruby
+; .x 6 * 7;
 ```
 This avoids the subtle and confusing distinction between differing
 "left-hand-side" and "right-hand-side" interpretations of an identical symbol _x_.
-It also save us from overloading '=' to mean both assignment and a test for equality.
+That enables `=` to always mean a test for equality, rather than also being used
+for assignment.
 
-Names (setters) begin with a '.', and set a property with that label.
-``` ruby
-; .p 42;
-```
+We can use the value `x` to access that property in the same or any child context: 
 
-Labels by themselves return that value.
 ``` ruby
-; p
+; x
 # 42
+; [x]
+# [42]
 ```
 
-
-#### Properties
-
-Names also provide an elegant way of manipulating data structures, still in the context of simple expressions:
-
-```
-  structure .property; # gets a property
-  .structure.property value # sets a property
-```
-The space between _structure_ and _property_ is not necessary, but we include it to emphasize the fact
-that this is just an ordinary expression, not a special syntax.
-
-Note that due to the scoping rules, the value _structure_ can be either
-local or in any parent scope, but the name _.structure_ is always local.  If we wish to
-re-assign that parent value, we use an _@reference_:
-```
-  @structure.property value # sets a property in structure's current scope
-```
-
-
-When we group names, we get a dictionary:
+To set the property in the context it was defined, rather than the local context,
+use a _reference_ instead of a name:
 ``` ruby
-; (.x 1, .y 2)
-# (.x 1, .y 2)
-```
-
-We can also uses names as metadata insides an array of values:
-``` ruby
-; [.name "weights"; 85, 110, 165]
-# [.name "weights"; 85, 110, 165]
-```
-
-We can refer to them from inside the same frame:
-``` ruby
-; .numbers [.min 3; .max 9; min, max]
-# [.min 3; .max 9; min, max]
-```
-
-We can use them to extract data from outside the frame:
-``` ruby
-; numbers .min
+; .y 7;
+; (.x 11; @y 3;);
+; x
+# 42
+; y
 # 3
 ```
-The space before `.min` is optional, but emphasizes that property access is just another expression.
+
+Names also provide an elegant way of manipulating data structures, still
+in the context of simple expressions:
+
+``` ruby
+; .base {.key 42};
+; base .key # gets property
+# 42
+; .base .key 113; # sets property
+; base
+# {.key 113}
+```
+The space between _base_ and _key is not necessary, but we use it to
+emphasize the fact that this is just an ordinary expression, not a
+special syntax.
+
+####  TODO: Controls
+
+##### Flow Control
+
+* Exit: `$$`
+* Return: `$<`
+* Break: `$>`
+
+##### Errors
+
+`$error`
 
 ####  Anonymous Identifiers
 
@@ -425,10 +452,10 @@ of the argument directly, rather than explicitly calling `_`.
 ```
 
 You can skip over the argument to access the enclosing scope (one level above)
-using the `^_` identifier (also known as `super`).
+using the `_^` identifier (also known as `super`).
 ``` ruby
 ; .print-arg { var };
-; .print-parent { ^_.var };
+; .print-parent { _^.var };
 ; .var “parent”;
 
 ; print-arg(.var “arg”)
@@ -437,7 +464,9 @@ using the `^_` identifier (also known as `super`).
 # “parent”
 ```
 
-Since objects capture the scope where they are created, this even allows closures to be called with implicit arguments to access the enclosing scope:
+Since objects capture the scope where they are created, this even allows
+closures to be called with implicit arguments to access the enclosing
+scope:
 ``` ruby
 ; .x 3;
 ; .y 4;
@@ -445,115 +474,154 @@ Since objects capture the scope where they are created, this even allows closure
 # 25
 ```
 
-Implicit argments are a code smell, and will generate a warning.
+Implicit arguments are a code smell, and will generate a warning.
 However, they can be very useful when debugging or refactoring. That may seem
 dangerous, but the data protection rules (below) largely limit what the called
 function can do to the calling scope.
 
-#### Varieties
-
-Identifiers can contain letters, numbers, or non-terminal symbols.
-They come in several varieties as described in Table { #sec-table-id }.
-
-~ TableFigure { #sec-table-id; caption: "Identifiers" }
-+-----------+------------+---------------+--------------+
-|Variety | Example  | Starts With       | Contains   |
-+-----------+------------+---------------+--------------+
-| Label  | _variable_ | _letter_      | _letter_, _number_, `-`  |
-| Operator  | `+` | _symbol_ | _symbol_ |
-| Control  | `$<-` # return | `$`     | _any identifier_  |
-| Anonymous  | \_^ | \_ | \_,\^  |
-+-----------+------------+---------------+--------------+
-{ tbody-tr-odd-background-color:Gainsboro; \
-  tr-even-background-color:Floralwhite }
-
-~
-
-Syntactically they are equivalent, with one small piece of syntactic sugar of operators.  Those default to being evaluated inside the preceding frame rather than the current context, so that values are treated as names (unless at the beginning of an expression).
-
-``` ruby
-; 2 .+ 2
-# 4
-
-; 2 + 2
-# 4
-```
-
+####  TODO: Self
 
 ## Operators
 
-Homoiconic C pre-defines a small number of operators to provide functionality
-other languages often hard-code into their syntax:
+Homoiconic C predefines a small number of top-level operators used by all
+frames. These provide functionality other languages often hard-code into
+their syntax. Note that specific datatypes may define their own operators
+(e.g., `+` for numbers) not covered in this section.
 
-~ TableFigure { #sec-table-op; caption: "Pre-Defined Operators" }
-+-----------+------------+---------------+--------------+
-| Content                                        ||||
-|Role | Data  | Metadata       | Both   |
-+-----------+------------+---------------+--------------+
-| Equality   | = | ==      | ===  |
-| Map  | \| | \|\| | \|\|\|  |
-| Fold          |     &      |  && | &&& |
-+-----------+------------+---------------+--------------+
-{ tbody-tr-odd-background-color:Gainsboro; \
-  tr-even-background-color:Floralwhite }
+### Type Operations
+Like all modern statically typed languages, HC relies heavily on type
+inference. By using dataflow, we also eliminate the need to define
+variables for loops or temporary variables. In addition, a frame that is
+callable with any other frame has the generic type, and thus does not need to be
+declared.
 
-+-------|--------+---|--------------+--------|--------+
-| Structure                              |||||        |
-| Conditional   || Type            || Bind   |        |
-+-------|--------+---|--------------+--------|--------+
-| ?     | _if_   | < | _begin type_ | ^    | _bind type_|
-| :     | _else_ | > | _end type_   | ~ |_has type_|
-+-------|--------+---|--------------+--------|--------+
+However, there are times we do need to explicitly annotate what kind of
+frames we are expecting, especially at function boundaries. For those
+cases we use the type operators in Table [#sec-table-type].
+
+~ TableFigure { #sec-table-type; caption: "Type Operators" }
+
++---|--------------+------|--------------+
+| Type            || Bind |              |
++---|--------------+------|--------------+
+| < | _begin type_ | ~    |_has type_    |
+| > | _end type_   | ^    | _bind type_  |
+|                 || ^^   |_bind return_ |
++---|--------------+------|--------------+
 { tbody-tr-odd-background-color:Gainsboro; \
   tr-even-background-color:Floralwhite }
 ~
 
-#### Type Operations
-In HC, type is declared using a pair of operators, not a syntactic construct. This works because types are just expressions, and thus do not need to change
-the evaluation rules.
+Note that in HC, type is declared using a pair of operators, not a syntactic
+construct. This works because types are just expressions, and thus do not
+need to change the evaluation rules.
 
-Like all modern statically typed languages, HC relies heavily on type
-inference. By using dataflow, we also eliminate the need to define variables
-for loops or temporary variables.  In addition, the fact that every frame is
-callable means we can often simply treat arguments as generic frames.
 
-However, there are times we do need to explicitly annotate what kind of frames
-we are expecting, in which case we use the type operators:
-``` ruby
-```
+#### The All Type
 
-The opposite of the nil expression is the _all_ type, or universal set:
+The empty type `<>` is known as _all_. As the opposite of the empty expression `()` _nil_,
+it acts as the boolean `true` value.
+
 ``` ruby
 ; <>
 # <>
-; !()
+; ().!
 ; <>
+; <>.!
+; ()
 ```
 
-`All` is also used as the boolean `true`.
-``` ruby
-; 1 = 5
-# <>
-```
-Remember that `=` is only use for comparison, never for assignment, so we
-don't need to use `=` for simple value comparison.
+#### Type Membership
 
-`All` has the property that every object is a member (`~`), in contrast to nil of which nothing is a member:
+The _type of_ operator `~` tests whether an object belongs to particular
+type, returning true (all) or false (nil). Every object is a member of
+_all_, while nothing is a member of _nil_:
+
 ``` ruby
 ; 1 ~ <>
 # <>
 ; 2 ~ ()
 ; ()
 ```
+
+#### TODO: Type Declaration
+
+
+### Content
+
+Homoiconic C defines three content operators, each of which come in three
+flavors as shown in Table [#sec-table-content].
+
+~ TableFigure { #sec-table-content; caption: "Content Operators" }
++----------+-----+------+----------+
+| Content                       ||||
+|Role      | All | Data | Metadata |
++----------+-----+------+----------+
+| Equality | \=  | \=\= | \=\=\=   |
+| Map      | \|  | \|\| | \|\|\|   |
+| Fold     | &   | &&   | &&&      |
++----------+-----+------+----------+
+{ tbody-tr-odd-background-color:Gainsboro; \
+  tr-even-background-color:Floralwhite }
+~
+These flavors determine whether we consider the whole object, or just the data
+or metadata separately.
+
+#### Equality
+`=` is the usual equality test:
+``` ruby
+; .a [113, .p 887];
+; .b [113, .p 661];
+; .c [443, .p 887];
+; a = a
+# <>
+; a = b
+# ()
+; a == b
+# <>
+; a == c
+# ()
+; a === c
+# <>
+```
+
+#### Iterators
+
+We use `|` for map, in homage to the UNIX pipeline.
+``` ruby
+; [1, 2, 3] | { _ + 1 } # will warn, since `_` is not defined on generic frames
+# [2, 3, 4]
+```
+
+Similarly, we use `&` for reduce:
+``` ruby
+; [1, 2, 3] & { . + _ }
+# 6
+```
+
+The operators also work with files and network ports, reading one line
+(or object) at a time, greatly simplifying common I/O operations (a la
+the UNIX shell). See Section [#sec-maml] for an example.
+
 ### Conditionals
 
-The ternary operator can be broken into two binary operators (with slightly different semantics).
+Homoiconic C's sole conditionals are a pair of binary operators analogous to C's ternary operator,
+albeit with slightly different semantics. These are described in Table [#sec-table-cond].
 
-In Homoiconic C, these are not special forms, but simply pre-defined on the root object,
-and overridden by nil (or more precisely, vice-versa).
+~ TableFigure { #sec-table-cond; caption: "Conditional Operators" }
 
-Most objects evaluate the argument of `?` and return nil for `:`,
-but nil itself does the reverse.
++-------+--------+-------+--------+
+| Operator   | Name| On Frame | On Nil | 
++-------+--------+-------+--------+
+| ?     | _if_   | Call with `()` | Return `()` |
+| :     | _else_ |Return `()` | Call with `()` |
++-------+--------+-------+--------+
+{ tbody-tr-odd-background-color:Gainsboro; \
+  tr-even-background-color:Floralwhite }
+~
+
+Note that these are not special forms, but simply defined with one behavior on nil
+and the opposite on regular frames.
 
 ``` ruby
 
@@ -568,137 +636,284 @@ but nil itself does the reverse.
 # 4
 ```
 
-Which, when the first expression does not return nil, acts like the ternary
+Which, when the first expression does not return nil, acts just like C's ternary
 operator:
 ``` ruby
-; ( 1 > 5 ) ? 100 : 10
+; 1 > 5 ? (2 * 50) : 10
 # 10
 ```
 
-Note that applying nil to anything other than a closure has no effect.
+Note that applying nil to anything other than a closure has no effect, so
+conditionals work just as well with simple expressions as they do with
+lazy blocks.
 
-### Iterators
+### Importing Modules
 
-We use `|` for map, in homage to the UNIX pipeline.
-``` ruby
-; [1, 2, 3] | { _ + 1 }
-# [2, 3, 4]
-```
+Importing external modules into a program has come a long way from C's
+text-based `#include` statement. Modern imports are typically expected
+to perform three roles:
 
-Similarly, we use `&` for reduce:
-``` ruby
-; [1, 2, 3] & { . + _ }
-# 6
-```
+1. Match a module name with a local package on disk, often downloaded via
+   a package manager
+2. Read information from that module
+3. Import names from that module into the current namespace
 
-###  Data and Metadata
+This functionality must be available as a primitive, since it is necessary
+for adding other functionality.
 
+#### TODO: Resolve Module Name
 
+#### TODO: Read Module
 
-## Access Control { #sec-table-access }
+#### TODO: Import Names from Module
 
-~ TableFigure { #sec-table-id; caption: "Identifiers" }
-+-----------+------------+---------------+--------------+
-| Identifiers                                        ||||
-|Assignment | Constancy  | Privacy       | Effect   |
-+-----------+------------+---------------+--------------+
-| _value_   | _variable_ | _public_      | _immutable_  |
-| ._name_   | _Constant_ | \__protected_ | _mutable_\_  |
-|           |            | \_\__private_ | _mutating_: |
-+-----------+------------+---------------+--------------+
+While it is recommended that module names live in their own namespace,
+it is essential to also be able to import names into the global namespace.
+This allows essential functionality to provided via a prologue, rather than
+baked directly into the language.
+
+## Access Control { #sec-access }
+
+Arguably the primary source of bugs, clutter, and complexity in
+programming languages is knowing "who can perform which actions on what data,"
+which we refer to somewhat loosely as "access control." We consider this
+problem so important we spend the bulk of our "syntactic budget" on
+giving programmers an easy way to specify and detect access modes. This
+is done by encoding those rules in the identifiers themselves, as seen in
+Table {#sec-table-access}.
+
+~ TableFigure { #sec-table-access; caption: "Access Modifiers" }
+
++-----------+------------+-------------+
+|Privacy | Constancy  || Effect      |
++-----------+------------+-------------+
+|  _public_   | _variable_ | _immutable_ |
+| \__protected_   | _Constant_  | _mutable_\_ |
+| \_\__private_           |  | _mutating_: |
++-----------+------------+-------------+
 { tbody-tr-odd-background-color:Gainsboro; \
   tr-even-background-color:Floralwhite }
+~
 
-### Effect Typing
+Importantly, these are modifiers not different identifiers. So, for example, the
+constant `COOL` in one scope overrides its case duplicate `cool` from a
+parent scope. For natural languages without separate upper and lower
+case, we use an initial letter `K` to denote the constant version.
 
-Rather than specify call-by-value or call-by-reference, HC is designed around the BitC model for effect typing.  Shapiro *et al* proved it is possible to have a [sound *and* complete](www.cs.jhu.edu/~swaroop/aplas.pdf) systems language if you explicitly annotate variables for **constancy** and **mutability** at each context boundary. This gives the compiler enough information to know how and when to safely copy or share data structures.
+### Encapsulation
 
- Unfortunately, they could not do that within their Lisp-like syntax. Inspired by their work, we have chosen to use the bulk of our "syntax budget" to address that problem.  In particular, we believe effect is so fundamental we bake it into our identifiers:
+The simplest form of access control is _encapsulation_, restricting the ability of
+external objects to even see certain properties.  Here we follow the informal
+conventions often used in C programs:
 
- - `CONST` # begins with uppercase letter
- - `variable` # does not
- - `mutable_` # trailing underscore
- - `immutable` # default
- - `mutating_method:` # trailing colon
+* `public`
+  : visible to everyone
+* `_protected`
+  : not visible to parents or peers, but still visible to children
+* `__private`
+  : not visible to anyone, even children
 
-Their core insight is that mutability is a property of the *handle*, not the *object*.  Every object starts out mutable, but as long as it is only referenced from immutable handles the compiler can share a single instance between them.  Even if a context specifies a mutable handle, that only maters if it is called by a mutating method, which becomes copy-on-write.  For that reason, all mutating methods are required to return 'self'.
+For example:
 
-This approach may seem incomplete, in that it doesn't specify the mutability of object literals.  But if accessed directly without a handle, there is no way of knowing (or caring) whether the literal was mutated or not!
+``` ruby
+; .see-me {
+  .my-public-value 42;
+  ._my-protected-value 21;
+  .__my-private-value 7;
+  .child {
+    my-public-value,
+    my-protected-value,
+    my-private-value,
+  }
+};
+; see-me.child()
+# [42, 21, $error{$is-private .my-private-value}]
+; see-me.my-public-value
+# 42
+; see-me.my-protected-value
+# $error{$is-protected .my-protected-value}
+; see-me.my-private-value
+# $error{$is-private .my-private-value}
 
-Please note that these particular conventions are preliminary, and may change in future versions based on empirical tests of readability and intuitiveness.  Since HC is just a data format, it is trivial to semantically version, and define conversions from obsolete versions.
+```
+
+### Effect
+
+Rather than specifying _call-by-value_ or _call-by-reference_, HC is
+designed around the BitC[@BitC] model of effect typing. Shapiro *et al*
+proved it is possible to have a sound *and* complete systems language if
+we explicitly annotate identifiers for both **constancy** and
+**mutability** (which together we call _effect_ ) at each context
+boundary. This gives the compiler enough information to know how and when
+to safely copy or share data structures. Put another way, effect typing
+makes it as easy to allow side effects for performance as it is to
+restrict side effects for safety.
+
+ Unfortunately, BitC could not accommodate such annotations within their
+ Lisp-like syntax[@Cite]. Inspired by their work, we have designed the
+ syntax of our identifiers to explicitly support effect typing:
+
+* `variable`
+  : Does not begin with an uppercase letter. Can be reassigned. 
+* `CONSTANT`
+  : Begins with uppercase letter. Can **not** be reassigned. 
+* `immutable`
+  : Has no suffix. Can not be modified in place.
+* `mutable_`
+  : Trailing underscore. Can be modified in place.
+* `mutating_method:`
+  : Trailing colon. Can modify its parent context. Returns parent.
 
 
-## Access Modifiers
+Please note that these particular conventions are preliminary, and may
+change in future versions based on empirical tests of readability and
+intuitiveness. Since HC is just a data format, we plan to explicitly
+version documents and enable automatic migration between incompatible versions. 
 
-Closely related to effect typing (which determines *what* can change) are access modifiers (which determine *who* can change or see that). To streamline the grammar and readability, we also bake those into the identifiers, following the typical C conventions:
+#### Constancy
 
-- `public` # default
-- `_protected` # not accessible from parent
-- `__private` # not accessible by children
+BitC's first key insight is that _constancy_ (whether an identifier can be
+assigned a new value) is distinct from _mutability_ (whether the
+referenced value can be modified in place). In other words, constancy is
+a property of the _source_ object, whereas mutability is a property of the
+_destination_ object.
+
+```ruby
+; .variable 42;
+; .Constant 21;
+; .variable 113
+# 113
+; .Constant 7
+# $error{$is-constant .Constant}
+```
+
+#### Mutability
+
+The second key insight from BitC is that effect is a property of
+_names_ rather than of _values_. Object literals have no effect
+restrictions on their own; this is contrast to, e.g., Apple's Cocoa
+frameworks[@Cite], where mutability is an inherent part of the object's
+constructed type. Instead, every object is in principle mutable, but as
+long as it is only referenced from immutable handles the compiler can
+safely share a single instance between them, avoiding unnecessary copies.
+
+Conversely, objects that are referenced and passed via mutable handles
+are explicitly "aliases" of each other, so the compiler knows that it
+needs to synchronize changes between local copies, ensure serialization
+between different threads, etc.
+
+In order to ensure both immutable and mutable handles support the same
+methods, HC explicitly tracks which methods mutate their parent scope via
+a trailing colon (`:`). When a mutating method is called on an immutable
+object, it simply performs a _copy-on-write_, returning a new object. To
+enable this, mutating methods can not explicitly return a value, but 
+implicitly return their parent (e.g., "this"; see Section {#sec-oops} for
+more details).
+
+```ruby
+
+; .fixed (
+  .hic “Object”;
+  .property 42;
+  .accessor { property }
+  .mutator: { @property _; }
+);
+; fixed.accessor()
+# 42
+; .varying_ fixed.mutator: 113;
+; varying_.accessor()
+# 113
+; fixed.accessor()
+# 42
+```
 
 
+# Applications {#sec-applications}
 
-# Applications
+While the above language may seem simple to the point of simplistic, it has a 
+surprising amount of power.  Here are a few examples of what it can do.
+
+## Congrams {#sec-congrams}
+
+As mentioned above, HC programs that consist only of literals other than closures 
+are called _congrams_, which are just pure data. This provides a 
+once-in-a-lifetime opportunity to bring rigor and consistency to a variety of organic
+data formats developed over the Internet's brief history.
+
+### HCSV
+
+Homoiconic C may finally provide a well-defined alternative to the
+ubiquitous CSV[@Cite] file. A properly-structured `.hcsv` file is just as compact
+as CSV, with two important differences:
+* The header row, if any, consists of a list of names
+* Strings must be (smart) quoted
+```
+.first-name, .last-name, .phone-number
+“John”, “Doe”, +1.408.555.1212
+“Jane”, “Smith”, +1.650.555.1212
+```
+
+### HCSON
+
+HC can also emulate the popular JSON[@Cite] format, or more precisely its
+CoffeeScript cousin CSON[@Cite].
+```
+.first-name “John”, .last-name “Doe”, .phone-number +1.408.555.1212  
+.first-name “Jane”, .last-name “Smith”, .phone-number +1.650.555.1212  
+```
+
+### TODO: HCARD
+
+### TODO: HCAL
+
+
 
 ## Object-Orientation
 
 Perhaps surprisingly, it is possible to implement a complete object-oriented
-programming system using only the above primitives.
+programming system using only the above primitives.  All we need
+are our access control rules plus the super identifier `_^`.
 
+### Singletons
 
-### Constructors
-
-Let's start with a simple singleton:
+Let's start with a simple singleton object containing private data:
 
 ``` ruby
-; .parent_ [
-# # .x 1;
-# # .helper: {
-#   # .x 2;
-#   # .y x + _^.x;
-#   # ._^.y y + _;
-#   # }
-# # ]
-; parent_.x
-# 1
-; parent.y
-# $missing
-; parent_.helper: 10;
-; parent_.y
+; .my-object_ (
+   ._property 13;
+  .getProperty { _property }
+  .setProperty: { @property _}
+);
+; my-object_.getProperty()
+# 13
+; my-object_.setProperty: 42;
+; my-object_.getProperty()
 # 13
 ```
 
-Then move on to classes:
-```
-; my-class {
-  ._property _;
-  .getProperty { _^._property }
-  .setProperty: { ._^._property _}
+### Classes
+
+To turn that into a class, we simply make it a closure which returns
+a frame analogous to that singleton:
+
+``` ruby
+; .my-class {
+   ._property _;
+  .getProperty { _property }
+  .setProperty: { @property _}
 };
 ; .my-instance my-class 3;
 ; my-instance.getProperty()
 # 3
-; .mutated = my-instance.setProperty: 42;
-; mutated.getProperty()
-# 42
-; my-instance.getProperty()
-# 3
 ```
 
-This may seem to good to be true, but that is the power of choosing the correct primitives:
+### TODO: Inheritance
 
-- Data hiding is handled by the implicit access Modifiers
-- Scope is always inherited
-- Instance methods refer to their parent by `_^`
-- The class itself is the constructor (as a closure)
-- When evaluated, that closure inherits the class as its parent
-
-### Extending Classes
-
-Even inheritance is already accounted for, simply by allowing an object to specify its parent:
+Even inheritance is already accounted for, simply by explicitly specifying
+its parent scape:
 
 ``` ruby
-; my-subclass {
+; .my-subclass {
   ._^ my-base-class
 };
 ```
@@ -707,48 +922,59 @@ There is no built-in support for multiple inheritance.  However, because
 inheritance is just another expression, you are welcome to define your own:
 
 ``` ruby
-; .my-multiple-inheritance { “create your own” };
+; .my-inheritance { “create your own” };
 ; multiclass {
-  ._^ my-multiple-inheritance[my-base, another-base]
+  ._^ my-inheritance [my-base, another-base]
 };
 ```
 
-## HTML
+## TODO: HTML {#sec-maml}
 
-# Next Steps
+# TODO: Implementation
 
-## Implementation Status
+## Architecture
+
+## Status
+
+## Next Steps
+
+# TODO: Reflections
+
+## Related Work
+
+* [BitC](www.cs.jhu.edu/~swaroop/aplas.pdf)
+* [STEPS](http://www.vpri.org/pdf/tr2008004_steps08.pdf) 
+* [Water](http://www.informit.com/articles/article.aspx?p=27567)
+* [Mathematica](https://mathematica.stackexchange.com/questions/2335/metaprogramming-in-mathematica)
+* [Julia](https://julialang.org)
 
 ## Future Directions
 
-## Potential Implications
+## Implications
 
-
-
-# Related Work
-
-* BitC [sound *and* complete](www.cs.jhu.edu/~swaroop/aplas.pdf)
-* Water http://www.informit.com/articles/article.aspx?p=27567
-* Mathematica https://mathematica.stackexchange.com/questions/2335/metaprogramming-in-mathematica
-* Julia https://julialang.org
 
 # Conclusion
 
-We believe the historical accident of confusing computation with mathematics
-and programming with natural languages has resulted in massive accidental
-complexity, resulting in buggy software, complicated tools, and steep learning.
-By eliminated that complexity, Homoiconic C promises to usher in a new Golden Age of software that is:
+We believe the historical accident of confusing computation with
+mathematics and programming with natural languages has resulted in
+massive accidental complexity. We believe this is a primary cause of the
+buggy software, complicated tools, and steep learning curve that plague software
+engineering today.
 
-* Provably secure by default
+By eliminated that complexity, Homoiconic C hopes to usher in a new
+Golden Age of software that is:
+* Inherently and provably secure 
 * Both inherently efficient and easily optimized
 * Easy to learn, read, and modify
 * Trivial to statically analyze, visualize, and automatically evolve
 
 If Homoiconic C fulfills that promise, we can finally make programming an
-everyday skill, used by ordinary people (even children) to solve the problems
-*they* care about, in the same way they use writing and arithmetic.  Not
-everyone will be an expert or professional programmer -- anymore than everyone who sings is an expert or professional musician -- but the ability to
-read, understand, and personalize code will be available to all.
+everyday skill, used by ordinary people (even children) to solve the
+problems *they* care about, in the same way they use writing and
+arithmetic. Not everyone will be an expert or professional programmer --
+anymore than everyone who sings is an expert or professional musician --
+but the ability to read, understand, and personalize code will be
+available to all.
 
 It may be true that there is no silver bullet[@Cite].   But we believe
 Homoiconic C can at least be a "diamond sword", enabling courageous individuals
@@ -760,10 +986,23 @@ impacts their corner of the world.  We hope you will join us on that quest.
 
 ## Appendix A. On Turing Completeness
 
-Turing undecidability, like Godelian incompleteness, starts by assuming "basic arithmetic" (add, substract, multiply, divide) -- i.e. the Peano Axioms. However, this glosses over the fact that division is a "type violation", and can't be fully represented using the same data structures as for addition and substraction.
+Turing undecidability, like Godelian incompleteness, starts by assuming
+"basic arithmetic" (add, substract, multiply, divide) -- i.e. the Peano
+Axioms. However, this glosses over the fact that division is a "type
+violation", and can't be fully represented using the same data structures
+as for addition and substraction.
 
-We believe that a better starting point for modeling computation are the Presburger Axioms.  These give up multiplication and division as first-class operations (though you can emulate them to some extent using repeated addition and subtraction, respectively).  The big win, though, is that Presburger arithmetic is both consistent **and** complete.  This eliminates the halting problem, and massively simplifies analyses (though it may restrict what is possible).
+We believe that a better starting point for modeling computation are the
+Presburger Axioms. These give up multiplication and division as
+first-class operations (though you can emulate them to some extent using
+repeated addition and subtraction, respectively). The big win, though, is
+that Presburger arithmetic is both consistent **and** complete. This
+eliminates the halting problem, and massively simplifies analyses (though
+it may restrict what is possible).
 
-Instead of Turing completeness, we prefer to focus on "Circuit Universality" (a la Scott Aaronson): the ability to represent the effect of any Boolean circuit, including multiple levels of abstraction above them.
+Instead of Turing completeness, we prefer to focus on "Circuit
+Universality" (a la Scott Aaronson): the ability to represent the effect
+of any Boolean circuit, including multiple levels of abstraction above
+them.
 
 [BIB]
