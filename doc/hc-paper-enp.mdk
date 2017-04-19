@@ -222,7 +222,7 @@ Table [#sec-table-literals].
 | 0b010    | _binary_      |1/3| _rational_| “_string_”         |
 | 0o1777   | _octal_       |123.456| _float_ | # _comment_ #      |
 | 1234     | _decimal_     |123.456.E.-10| _scientific_ | \\_length_\\_blob_ |
-| 0xCAFE   | _hexadecimal_ |123.456.p123| _version_ | %_date\_time_%     |
+| 0xCAFE   | _hexadecimal_ |123.456.p123| _version_ | '_datestring_'     |
 | 0@Base64 | _Base64_      |+1.408.555.1212| _phone_ |                    |
 +----------|---------------+----------|---------------+--------------------+
 { tbody-tr-odd-background-color:Gainsboro; \
@@ -533,7 +533,7 @@ it acts as the boolean `true` value.
 
 #### Type Membership
 
-The _typeof_ operators `~` tests whether an object belongs to particular
+The _type of_ operator `~` tests whether an object belongs to particular
 type, returning true (all) or false (nil). Every object is a member of
 _all_, while nothing is a member of _nil_:
 
@@ -599,6 +599,10 @@ Similarly, we use `&` for reduce:
 # 6
 ```
 
+The operators also work with files and network ports, reading one line
+(or object) at a time, greatly simplifying common I/O operations (a la
+the UNIX shell). See Section [#sec-maml] for an example.
+
 ### Conditionals
 
 Homoiconic C's sole conditionals are a pair of binary operators analogous to C's ternary operator,
@@ -639,10 +643,30 @@ operator:
 # 10
 ```
 
-Note that applying nil to anything other than a closure has no effect, so conditionals
-work just as well with simple expressions as they do with lazy blocks.
+Note that applying nil to anything other than a closure has no effect, so
+conditionals work just as well with simple expressions as they do with
+lazy blocks.
 
-### TODO: Import
+### Importing Modules
+
+Importing external modules into a program has come a long way from C's
+text-based `#include` statement. Modern imports are typically expected
+to perform three roles:
+
+1. Match a module name with a local package on disk, often downloaded via
+   a package manager
+2. Read information from that module
+3. Import names from that module into the current namespace
+
+This functionality must be available as a primitive, since it is necessary
+for adding other functionality.
+
+#### TODO: Resolve Module Name
+
+#### TODO: Read Module
+
+#### TODO: Import Names from Module
+
 
 ## Access Control { #sec-access }
 
@@ -734,7 +758,7 @@ restrict side effects for safety.
 * `mutable_`
   : Trailing underscore. Can be modified in place.
 * `mutating_method:`
-  : Trailing colon. Can modify its parent context. Returns self.
+  : Trailing colon. Can modify its parent context. Returns parent.
 
 
 Please note that these particular conventions are preliminary, and may
@@ -762,109 +786,50 @@ _destination_ object.
 
 #### Mutability
 
-The second key insight is that effect is a property of
+The second key insight from BitC is that effect is a property of
 _names_ rather than of _values_. Object literals have no effect
 restrictions on their own; this is contrast to, e.g., Apple's Cocoa
 frameworks[@Cite], where mutability is an inherent part of the object's
 constructed type. Instead, every object is in principle mutable, but as
 long as it is only referenced from immutable handles the compiler can
-share a single instance between them.
+safely share a single instance between them, avoiding unnecessary copies.
 
 Conversely, objects that are referenced and passed via mutable handles
 are explicitly "aliases" of each other, so the compiler knows that it
-needs to manage dependencies between local copies, ensure serialization
+needs to synchronize changes between local copies, ensure serialization
 between different threads, etc.
 
-Note that even if an object is mutable, it won't actually be mutated
-unless we reassign a variable or invoke a mutating method. To make that
-explicit, we require methods that mutate their parent to have a trailing
-colon (`:`). This has the wonderful consequence that we can also invoke
-mutating methods on _immutable_ handles, and automatically perform a
-_copy-on-write_. To enable this, mutating methods can not explicitly
-return a value, but must implicitly return "self" (that is, the parent
-object).
-
-Conversely, this also requires that an immutable reference to a mutable
-object must be _copy-on-assign_, since it can't know when the source
-object may be mutated. Similarly, creating a new mutable handle to a
-mutable object that hasn't yet been mutated triggers the copy-on-write.
+In order to ensure both immutable and mutable handles support the same
+methods, HC explicitly tracks which methods mutate their parent scope via
+a trailing colon (`:`). When a mutating method is called on an immutable
+object, it simply performs a _copy-on-write_, returning a new object. To
+enable this, mutating methods can not explicitly return a value, but 
+implicitly return their parent (e.g., "this"; see Section {#sec-oops} for
+more details).
 
 ```ruby
-#
-# Definitions
-#
+
 ; .fixed (
   .hic “Object”;
   .property 42;
-  .accessor {
-    @property
-  }
-  .mutator: {
-    @property _;
-  }
-)
-# $hic{“Object”:0xDEADBEEF}
-; .varying_ fixed
-# $hic{“Object”:0xDEADBEEF}
-; .reference varying_
-# $hic{“Object”:0xFEEDFACE}
-
-#
-# Non-Mutating
-#
-; fixed.accessor()
-# 21
-; fixed
-# $hic{“Object”:0xDEADBEEF}
-; varying_
-# $hic{“Object”:0xDEADBEEF}
-
-#
-# Mutating an Immutable Object
-#
-; .fixed.property 7
-# $error{$is-immutable .fixed}
-
-; .evolved fixed.mutator:7
-# $hic{“Object”:0xDECAFBAD}
-; evolved.accessor()
-# 7
+  .accessor { property }
+  .mutator: { @property _; }
+);
 ; fixed.accessor()
 # 42
+; .varying_ fixed.mutator: 113;
 ; varying_.accessor()
-# 42
-
-#
-# Mutating a Mutable Object
-#
-; varying_.mutator: 14
-# $hic{“Object”:0xFEEDBABE}
-; varying_.accessor()
-# 14
+# 113
 ; fixed.accessor()
 # 42
-; evolved.accessor()
-# 7
-; reference.accessor()
-# 42
-
-#
-# Proactive Copying
-#
-; .initial_ fixed
-# $hic{“Object”:0xDEADBEEF}
-; .shared_ initial_
-# $hic{“Object”:0xDEADC0DE}
-; initial_
-# $hic{“Object”:0xDEADC0DE}
-
 ```
 
 
+# Applications {#sec-applications}
 
-# Applications
 
-## Congrams
+
+## Congrams {#sec-congrams}
 
 ### HCSV
 
@@ -944,7 +909,7 @@ inheritance is just another expression, you are welcome to define your own:
 };
 ```
 
-## HTML
+## HTML {#sec-maml}
 
 # Next Steps
 
