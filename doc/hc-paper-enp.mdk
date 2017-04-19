@@ -10,7 +10,7 @@ Bib style     : plainnat
 Bibliography  : hc-refs.bib
 Logo          : True
 Package       : amsmath
-Doc class     : [preprint]{sigplanconf}
+Doc class     : [preprint]{acmart}
 
 Colorizer     : ruby
 ~Pre,~Code    : language=ruby
