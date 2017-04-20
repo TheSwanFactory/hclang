@@ -346,7 +346,7 @@ described in Table [#sec-table-id].
 | Label     | _variable_     | _letter_    | _letter_, _number_, `-` |
 | Operator  | `+`            | _symbol_    | _symbol_                |
 | Control   | `$<-` # return | `$`         | _any identifier_        |
-| Anonymous | \_^            | \_          | \_,\^                   |
+| Argument | \_^            | \_          | \_,\^                   |
 | Self      | \.             | \.          | \.                      |
 +-----------+----------------+-------------+-------------------------+
 { tbody-tr-odd-background-color:Gainsboro; \
@@ -430,14 +430,14 @@ special syntax.
 
 `$error`
 
-####  Anonymous Identifiers
+####  Arguments
 
 Use `_` as the anonymous argument, representing everything this frame
 was called with:
 ``` ruby
-; .square {_ * _};
-; square 3
-# 9
+; .triplicate {3 _};
+; square “Baby”
+# “BabyBabyBaby”
 ```
 This is useful not just for closures, but for representing the command-line
 arguments for the entire script.
@@ -661,16 +661,31 @@ to perform three roles:
 This functionality must be available as a primitive, since it is necessary
 for adding other functionality.
 
-#### TODO: Resolve Module Name
+We use the `<-` import operator to match a name against both the online
+registry (TBD) and the local path, and load it into a property with the
+same name. Registry settings can be configured via the `.hconfig` file.
 
-#### TODO: Read Module
-
-#### TODO: Import Names from Module
-
-While it is recommended that module names live in their own namespace,
-it is essential to also be able to import names into the global namespace.
-This allows essential functionality to provided via a prologue, rather than
-baked directly into the language.
+``` ruby
+; <- .module;
+; module
+# (.prop 1, .another-prop 2)
+```
+We can also bind it to a different name:
+``` ruby
+; .alias <- .module;
+; alias.prop
+# 1
+```
+or directly into the current namespace `.`.
+``` ruby
+; . <- .module;
+; prop
+# 1
+```
+While not recommended in general, this allows apparently "built-in"
+functionality to provided via a prologue, rather than hard-coded into the
+language.  Part of HC's philosophy is to provide the same functionality
+we have as language designers to end users wherever possible.
 
 ## Access Control { #sec-access }
 
