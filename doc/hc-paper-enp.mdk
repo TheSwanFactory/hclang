@@ -37,18 +37,17 @@ result that Homoiconic C is simply conventions for creating and
 evaluating Frames.
 
 In this paper we will describe the complete syntax of HC, including three
-types of lists, seven atoms, and the seven predefined operators; as a
-modeless data format, there are no keywords, reserved words, or even any
+primitives, aggregates, and  predefined operators; as a
+modeless data format, there are no keywords, reserved words, or hardly any
 grammar. Next we discuss the robust data protection semantics inspired by
 BitC[@Shapiro:EffectTyping], which allow us the efficiency of C's memory
 model without any of the downsides. Finally, we provide examples of how
-these deceptively simple primitives allow us to trivially implement HTML,
-Object-Oriented programming, and other higher-level abstractions.
+these primitives allow us to easily represent other data formats and
+Object-Oriented programming.
 
 We are currently developing the first implementation of HC as a
-TypeScript[@TypeScript] interpreter. It can be found at
-<http://github.com/TheSwanFactory/hclang/> under an MIT Open Source
-license.
+TypeScript[@TypeScript] interpreter. It can be found on GitHub[@Cite]
+under the MIT Open Source license.
 
 ~
 [^lua-fn]: The only minimalist language still in active use appears to be
@@ -940,11 +939,6 @@ CoffeeScript cousin CSON[@Cite].
 .first-name “Jane”, .last-name “Smith”, .phone-number +1.650.555.1212  
 ```
 
-### TODO: HCARD
-
-### TODO: HCAL
-
-
 
 ## Object-Orientation
 
@@ -985,7 +979,7 @@ a frame analogous to that singleton:
 # 3
 ```
 
-### TODO: Inheritance
+### Inheritance
 
 Even inheritance is already accounted for, simply by explicitly specifying
 its parent scape:
@@ -1006,13 +1000,41 @@ inheritance is just another expression, you are welcome to define your own:
 };
 ```
 
-## TODO: HTML {#sec-maml}
+# Implementation
 
-# TODO: Implementation
+ Homoiconic C is currently implemented as an interpreter via the `hclang`
+ node.js module, written in TypeScript. It is still in active
+ development, and available on GitHub[@Cite] under the MIT Open Source
+ license.
 
 ## Architecture
 
+The core runtime objects live in the `src/frames` directory, where they 
+are implemented as TypeScript classes.  Generally speaking there is
+one class for each primitive and aggregate frame, plus abstract classes for
+the generic Frame, FrameAtom, and FrameList.
+
+The interpreter lives in the `src/execute` directory, and is also
+implemented using frames. Every frame knows how it is represented, and
+the lexer uses that information to dynamically generate a lookup table
+from a list of frame classes. Strings iterate as a list of symbols, so
+the lexer generates tokens from the input string by evaluating
+evaluating a specialized program. Similarly, terminals act as controls
+grouping tokens into expressions and aggregates.
+
+Finally, operator bindings and currying are defined in `src/ops`, and a
+preliminary wrapping of HTML called MAML lives in the `src/maml` directory.
+
 ## Status
+
+As of April 2017, the implementation is about 30% complete. We have
+implemented the core runtime frames and the parsing pipeline, and are
+able to evaluate simple expressions. Supporting the remaining primitives
+and aggregates should be very straightforward.
+
+To date we have only implemented a single operator, 
+
+
 
 ## Next Steps
 
