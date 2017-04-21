@@ -1112,7 +1112,7 @@ efficient use of actual computing hardware. They appeared to have stalled
 due to a lack of funding, and also the difficultly of grafting a rich
 enough type system onto Lisp syntax.
 
-Homoiconic C hopes to avoid those problems through the pursuit ef extreme
+Homoiconic C hopes to avoid those problems through the pursuit of extreme
 simplicity. We start with a variant of the Lisp evaluation model
 explicitly designed to work with numbers and strings, not just lists.
 Next, we carefully design our identifiers to encode the critical
