@@ -1094,22 +1094,17 @@ architectures[@Cite]. While admittedly a long shot, if successful it
 could enable dramatic breakthroughs in performance, power consumption,
 and hardware evolution.
 
+# Related Work
 
-# Reflections
+## BitC
 
-## Related Work
+## STEPS
 
+## Water
 
+## Mathematica
 
-* [BitC](www.cs.jhu.edu/~swaroop/aplas.pdf)
-* [STEPS](http://www.vpri.org/pdf/tr2008004_steps08.pdf) 
-* [Water](http://www.informit.com/articles/article.aspx?p=27567)
-* [Mathematica](https://mathematica.stackexchange.com/questions/2335/metaprogramming-in-mathematica)
-* [Julia](https://julialang.org)
-
-## Future Directions
-
-## Implications
+## Julia
 
 
 # Conclusion
