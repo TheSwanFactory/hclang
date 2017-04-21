@@ -40,7 +40,7 @@ In this paper we will describe the complete syntax of HC, including three
 primitives, aggregates, and  predefined operators; as a
 modeless data format, there are no keywords, reserved words, or hardly any
 grammar. Next we discuss the robust data protection semantics inspired by
-BitC[@Shapiro:EffectTyping], which allow us the efficiency of C's memory
+BitC[@BitC], which allow us the efficiency of C's memory
 model without any of the downsides. Finally, we provide examples of how
 these primitives allow us to easily represent other data formats and
 Object-Oriented programming.
@@ -331,6 +331,14 @@ This will become important in Section [#sec-operators] when we discuss condition
 
 Note that statements inside a closure represent values that are not
 returned, which becomes very powerful when we add identifiers.
+
+Importantly, the empty closure `{}` becomes the "codify" operator, which converts arrays
+into closures:
+
+``` ruby
+; {} [“Life, ” “The Universe, ” “Everything.”]
+# { “Life, ” “The Universe, ” “Everything.” }
+```
 
 ### Identifiers
 
@@ -1096,13 +1104,72 @@ and hardware evolution.
 
 ## BitC
 
-## STEPS
+Homoiconic C could be considered a reincarnation of the BitC[@BitC]
+project, which attempted to add a "bit of C" to Lisp in order to bring
+rigor to systems programming. As far as we know, they are the only group
+to have tackled the gap between the elegance of lambda calculus and
+efficient use of actual computing hardware. They appeared to have stalled
+due to a lack of funding, and also the difficultly of grafting a rich
+enough type system onto Lisp syntax.
 
-## Water
+Homoiconic C hopes to avoid those problems through the pursuit ef extreme
+simplicity. We start with a variant of the Lisp evaluation model
+explicitly designed to work with numbers and strings, not just lists.
+Next, we carefully design our identifiers to encode the critical
+information needed for "sound and complete type inference" across
+invocation boundaries. Finally, we leverage Open Source to bootstrap the
+project so that we are not dependent on external funding.
+
+## Julia
+
+Though developed  independently, Homoiconic C shares many goals and features
+with the emerging Julia[@Julia] language for numerical computing:
+* multiple dispatch
+* homoiconicity, macros, and meta-programming
+* a type system optimized for performance
+
+We admire and hope to emulate Julia's achievements, particularly in terms
+of interoperability with existing languages and creative support for
+concurrency. Though Julia is currently far ahead in terms of both
+implementation and ecosystem, we believe that HC's use of BitC's type
+system plus the extreme simplicity of the syntax and implementation will
+still enable us to provide a compelling alternative.
 
 ## Mathematica
 
-## Julia
+The most widely used homoiconic language in use today is probably
+Mathematica [@Mathematica]. However, despite several notable attempts to
+broaden its reach, Mathematica remains primarily a prototyping tool
+within Wolfram's products rather than remains primarily a prototyping
+tool within Wolfram's products rather than a general-purpose language[@MathematicaPrototype].
+
+## STEPS
+
+Homoiconic C was also inspired by and shares many goals with Alan Kay's
+ambitious STEPS [@STEPS] project for reinventing programming. From our
+perspective, the tragic flaw with his approach was starting from the
+(admittedly ubiquitous) assumption that computation should be built upon
+mathematics. Despite a promising start at replacing operating systems
+with a robust language runtime, the project appeared to eventually
+collapse under the weight of its leaky abstractions.
+
+We believe it is possible to achieve his dream by building on a different
+foundation. Rather than the traditional mantra of "Sequence, Selection,
+and Repetition", Homoiconic C is build around "Dependency, Effect, and
+Interrupts." We believe this choice of basis enables us to generate
+"leak-proof" abstractions that scale seamlessly from individual circuits to complex distributed
+platforms.
+
+## Water
+
+The idea of expressing programs in a data format is not in itself new. A
+relatively modern attempt was Water[@Water], which attempted to program
+web applications using a more concise variant of XML. Though extremely
+clever, it suffered not just from the awkwardness of XML as a data
+format, but from the use of existing imperative programming paradigms.
+
+HC plan to avoid that fate by adopting the more streamlined dataflow paradigm,
+supported by a custom-designed data format optimized for readability.
 
 
 # Conclusion

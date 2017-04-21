@@ -1,4 +1,4 @@
-~ Begin Bibliography { .bib-numeric ; caption:"12" ; data-style:"plainnat" }
+~ Begin Bibliography { .bib-numeric ; caption:"17" ; data-style:"plainnat" }
 
 
 
@@ -9,10 +9,17 @@ Anonymous.
 []{.newblock} N/A, 2000.
 ~ End Bibitem
 
-~ Begin Bibitem { cite-year:"2000" ; cite-authors:"et\ al" ; id:"bitc" ; tex-cite-label:"et~al(2000)" ; caption:"Shapiro et\ al. &nl;Sound and complete type inference in a systems language." ; searchterm:"Sound+complete+type+inference+systems+language++Shapiro+" }
+~ Begin Bibitem { cite-year:"2000a" ; cite-authors:"et\ al" ; id:"steps" ; tex-cite-label:"et~al(2000{\natexlab{a}})" ; caption:"Alan\ Kay et\ al. &nl;Steps toward the reinvention of programming." ; searchterm:"Steps+toward+reinvention+programming++Alan+" }
+Alan\ Kay et\ al.
+[]{.newblock} Steps toward the reinvention of programming.
+[]{.newblock} _TBD_\/, 2000a.
+[]{.newblock} URL <http://www.vpri.org/pdf/tr2008004_steps08.pdf>.
+~ End Bibitem
+
+~ Begin Bibitem { cite-year:"2000b" ; cite-authors:"et\ al" ; id:"bitc" ; tex-cite-label:"et~al(2000{\natexlab{b}})" ; caption:"Shapiro et\ al. &nl;Sound and complete type inference in a systems language." ; searchterm:"Sound+complete+type+inference+systems+language++Shapiro+" }
 Shapiro et\ al.
 []{.newblock} Sound and complete type inference in a systems language.
-[]{.newblock} _TBD_\/, 2000.
+[]{.newblock} _TBD_\/, 2000b.
 []{.newblock} URL <http://www.cs.jhu.edu/~swaroop/aplas.pdf>.
 ~ End Bibitem
 
@@ -20,6 +27,35 @@ Shapiro et\ al.
 H.\ Abelson G.\ Sussman.
 []{.newblock} _Structure and Interpretation of Computer Programs_\/.
 []{.newblock} MIT Press, 1980.
+~ End Bibitem
+
+~ Begin Bibitem { cite-year:"2017" ; cite-authors:"Language" ; id:"julia" ; tex-cite-label:"Language(2017)" ; caption:"The\ Julia Language. &nl;Julia >> docs >> metaprogramming, 2017." ; searchterm:"Julia+docs+metaprogramming+++Julia+Language+" }
+The\ Julia Language.
+[]{.newblock} Julia >> docs >> metaprogramming, 2017.
+[]{.newblock} URL
+  <https://docs.julialang.org/en/stable/manual/metaprogramming/>.
+~ End Bibitem
+
+~ Begin Bibitem { cite-year:"2002" ; cite-authors:"Plush" ; id:"water" ; tex-cite-label:"Plush(2002)" ; caption:"Mike Plush. &nl;Introduction to water: A new native web services programming language, 2002. &nl;URL <http://www.informit.com/articles/article.aspx?p=27567>." ; searchterm:"Mike+Plush+Introduction+water+native+services+programming+language+http+informit+articles+article+aspx++" }
+Mike Plush.
+[]{.newblock} Introduction to water: A new native web services programming
+  language, 2002.
+[]{.newblock} URL <http://www.informit.com/articles/article.aspx?p=27567>.
+~ End Bibitem
+
+~ Begin Bibitem { cite-year:"2012a" ; cite-authors:"Shifrin" ; id:"mathematica" ; tex-cite-label:"Shifrin(2012{\natexlab{a}})" ; caption:"Leonid Shifrin. &nl;Metaprogramming in mathematica, 2012a." ; searchterm:"Metaprogramming+mathematica++Leonid+Shifrin+" }
+Leonid Shifrin.
+[]{.newblock} Metaprogramming in mathematica, 2012a.
+[]{.newblock} URL
+  <https://mathematica.stackexchange.com/questions/2335/metaprogramming-in-mathematica>.
+~ End Bibitem
+
+~ Begin Bibitem { cite-year:"2012b" ; cite-authors:"Shifrin" ; id:"mathematicaprototype" ; tex-cite-label:"Shifrin(2012{\natexlab{b}})" ; caption:"Leonid Shifrin. &nl;Can mathematica be regarded as a software prototyping environment?, 2012b. &nl;URL <https://mathematica.stackexchange.com/questions/1314/can-mathematica-be-regarded-as-a-software-prototyping-environment>." ; searchterm:"Leonid+Shifrin+mathematica+regarded+software+prototyping+environment+https+mathematica+stackexchange+questions+mathematica+regarded+software+prototyping+environment++" }
+Leonid Shifrin.
+[]{.newblock} Can mathematica be regarded as a software prototyping environment?,
+  2012b.
+[]{.newblock} URL
+  <https://mathematica.stackexchange.com/questions/1314/can-mathematica-be-regarded-as-a-software-prototyping-environment>.
 ~ End Bibitem
 
 ~ Begin Bibitem { cite-year:"2000a" ; cite-authors:"TBD" ; id:"clang" ; tex-cite-label:"TBD(2000{\natexlab{a}})" ; caption:"TBD. &nl;Clang, 2000a." ; searchterm:"+Clang++" }
