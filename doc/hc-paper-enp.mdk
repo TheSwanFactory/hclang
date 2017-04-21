@@ -535,9 +535,9 @@ cases we use the type operators in Table [#sec-table-type].
 +---|--------------+------|--------------+
 | Type            || Bind |              |
 +---|--------------+------|--------------+
-| < | _begin type_ | ~    |_has type_    |
+| < | _begin type_ | \~\~ | _get type_   |
 | > | _end type_   | ^    | _bind type_  |
-|                 || ^^   |_bind return_ |
+| ~ |_has type_    | ^^   |_bind return_ |
 +---|--------------+------|--------------+
 { tbody-tr-odd-background-color:Gainsboro; \
   tr-even-background-color:Floralwhite }
@@ -564,7 +564,7 @@ it acts as the boolean `true` value.
 
 #### Type Membership
 
-The _type of_ operator `~` tests whether an object belongs to particular
+The _has-type_ operator `~` tests whether an object belongs to particular
 type, returning true (all) or false (nil). Every object is a member of
 _all_, while nothing is a member of _nil_:
 
@@ -575,7 +575,39 @@ _all_, while nothing is a member of _nil_:
 ; ()
 ```
 
-#### TODO: Type Declaration
+#### Type Signatures
+
+We use `^` to specify the type signature of a closure, which may include
+optional defaults:
+``` ruby
+; .join-name (.first “Jane”, .last) ^ {last “, ” first};
+; join-name (.first “John”, .last “Doe”)
+# “Doe, John”
+``` 
+
+Types are generous, in that you are allowed to specify additional properties,
+but it is an error to omit properties that do not have a default:
+``` ruby
+; join-name (.middle “Q”, .last “Doe”)
+# “Doe, Jane”
+; join-name (.middle “Q”)
+# $!invalid-argument-list (.middle “Q”, $!missing-required-argument .last;)
+``` 
+
+The return type is usually inferred, but can be specified explicitly using a trailing `^^`.
+
+
+#### Type Values
+
+The simplest way to construct a type is to use the `~~` operator to extract the type
+of a known object:
+
+``` ruby
+; “Q” ~ ~~“”
+# <> # true
+; “Q” ~ ~~1
+# () # false
+```
 
 
 ### Content
