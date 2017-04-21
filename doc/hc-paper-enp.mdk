@@ -661,7 +661,7 @@ Similarly, we use `&` for reduce:
 
 The operators also work with files and network ports, reading one line
 (or object) at a time, greatly simplifying common I/O operations (a la
-the UNIX shell). See Section [#sec-maml] for an example.
+the UNIX shell). 
 
 ### Conditionals
 
@@ -1062,10 +1062,10 @@ acceptance tests.
 
 Once that is in place, we can literally run our documentation simply by prefixing
 this file with:
-`
+```
 #!/usr/bin/env hc -doctest
 \`\`\`
-`
+```
 
 The process would thus involve rewriting the documentation and 
 the source code together until they are both complete and consistent. 
