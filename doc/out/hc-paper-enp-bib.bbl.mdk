@@ -1,37 +1,25 @@
-~ Begin Bibliography { .bib-numeric ; caption:"13" ; data-style:"plainnat" }
+~ Begin Bibliography { .bib-numeric ; caption:"12" ; data-style:"plainnat" }
 
 
 
 
-~ Begin Bibitem { cite-year:"1900" ; cite-authors:"Anonymous" ; id:"cite" ; tex-cite-label:"Anonymous(1900)" ; caption:"Anonymous. &nl;_Citation Needed_\/." ; searchterm:"_Citation+Needed_++Anonymous+" }
+~ Begin Bibitem { cite-year:"2000" ; cite-authors:"Anonymous" ; id:"cite" ; tex-cite-label:"Anonymous(2000)" ; caption:"Anonymous. &nl;_Citation Needed_\/." ; searchterm:"_Citation+Needed_++Anonymous+" }
 Anonymous.
 []{.newblock} _Citation Needed_\/.
-[]{.newblock} N/A, 1900.
+[]{.newblock} N/A, 2000.
 ~ End Bibitem
 
-~ Begin Bibitem { cite-year:"1900" ; cite-authors:"et\ al" ; id:"bitc" ; tex-cite-label:"et~al(1900)" ; caption:"Shapiro et\ al. &nl;Sound and complete type inference in a systems language." ; searchterm:"Sound+complete+type+inference+systems+language++Shapiro+" }
-Shapiro et\ al.
-[]{.newblock} Sound and complete type inference in a systems language.
-[]{.newblock} _TBD_\/, 1900.
-[]{.newblock} URL <www.cs.jhu.edu/~swaroop/aplas.pdf>.
-~ End Bibitem
-
-~ Begin Bibitem { cite-year:"2000" ; cite-authors:"et\ al" ; id:"shapiro:effecttyping" ; tex-cite-label:"et~al(2000)" ; caption:"Shapiro et\ al. &nl;Sound and complete type inference in a systems language." ; searchterm:"Sound+complete+type+inference+systems+language++Shapiro+" }
+~ Begin Bibitem { cite-year:"2000" ; cite-authors:"et\ al" ; id:"bitc" ; tex-cite-label:"et~al(2000)" ; caption:"Shapiro et\ al. &nl;Sound and complete type inference in a systems language." ; searchterm:"Sound+complete+type+inference+systems+language++Shapiro+" }
 Shapiro et\ al.
 []{.newblock} Sound and complete type inference in a systems language.
 []{.newblock} _TBD_\/, 2000.
+[]{.newblock} URL <http://www.cs.jhu.edu/~swaroop/aplas.pdf>.
 ~ End Bibitem
 
 ~ Begin Bibitem { cite-year:"1980" ; cite-authors:"G.\ Sussman" ; id:"scheme" ; tex-cite-label:"G.~Sussman(1980)" ; caption:"H.\ Abelson G.\ Sussman. &nl;_Structure and Interpretation of Computer Programs_\/." ; searchterm:"_Structure+Interpretation+Computer+Programs_+++Abelson+Sussman+" }
 H.\ Abelson G.\ Sussman.
 []{.newblock} _Structure and Interpretation of Computer Programs_\/.
 []{.newblock} MIT Press, 1980.
-~ End Bibitem
-
-~ Begin Bibitem { cite-year:"1900" ; cite-authors:"Stub" ; id:"unixshell" ; tex-cite-label:"Stub(1900)" ; caption:"Stub. &nl;_Stub_\/." ; searchterm:"_Stub_++Stub+" }
-Stub.
-[]{.newblock} _Stub_\/.
-[]{.newblock} Stub, 1900.
 ~ End Bibitem
 
 ~ Begin Bibitem { cite-year:"2000a" ; cite-authors:"TBD" ; id:"clang" ; tex-cite-label:"TBD(2000{\natexlab{a}})" ; caption:"TBD. &nl;Clang, 2000a." ; searchterm:"+Clang++" }
@@ -72,6 +60,11 @@ TBD.
 ~ Begin Bibitem { cite-year:"2000h" ; cite-authors:"TBD" ; id:"typescript" ; tex-cite-label:"TBD(2000{\natexlab{h}})" ; caption:"TBD. &nl;Typescript, 2000h." ; searchterm:"+Typescript++" }
 TBD.
 []{.newblock} Typescript, 2000h.
+~ End Bibitem
+
+~ Begin Bibitem { cite-year:"2000i" ; cite-authors:"TBD" ; id:"unixshell" ; tex-cite-label:"TBD(2000{\natexlab{i}})" ; caption:"TBD. &nl;Unixshell, 2000i." ; searchterm:"+Unixshell++" }
+TBD.
+[]{.newblock} Unixshell, 2000i.
 ~ End Bibitem
 
 
