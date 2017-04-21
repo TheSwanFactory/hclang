@@ -12,74 +12,66 @@ Anonymous.
 ~ Begin Bibitem { cite-year:"1900" ; cite-authors:"et\ al" ; id:"bitc" ; tex-cite-label:"et~al(1900)" ; caption:"Shapiro et\ al. &nl;Sound and complete type inference in a systems language." ; searchterm:"Sound+complete+type+inference+systems+language++Shapiro+" }
 Shapiro et\ al.
 []{.newblock} Sound and complete type inference in a systems language.
-[]{.newblock} _Stub_\/, 1900.
+[]{.newblock} _TBD_\/, 1900.
 []{.newblock} URL <www.cs.jhu.edu/~swaroop/aplas.pdf>.
 ~ End Bibitem
 
-~ Begin Bibitem { cite-year:"1900a" ; cite-authors:"Stub" ; id:"clang" ; tex-cite-label:"Stub(1900{\natexlab{a}})" ; caption:"Stub. &nl;_Stub_\/." ; searchterm:"_Stub_++Stub+" }
+~ Begin Bibitem { cite-year:"2000" ; cite-authors:"et\ al" ; id:"shapiro:effecttyping" ; tex-cite-label:"et~al(2000)" ; caption:"Shapiro et\ al. &nl;Sound and complete type inference in a systems language." ; searchterm:"Sound+complete+type+inference+systems+language++Shapiro+" }
+Shapiro et\ al.
+[]{.newblock} Sound and complete type inference in a systems language.
+[]{.newblock} _TBD_\/, 2000.
+~ End Bibitem
+
+~ Begin Bibitem { cite-year:"1980" ; cite-authors:"G.\ Sussman" ; id:"scheme" ; tex-cite-label:"G.~Sussman(1980)" ; caption:"H.\ Abelson G.\ Sussman. &nl;_Structure and Interpretation of Computer Programs_\/." ; searchterm:"_Structure+Interpretation+Computer+Programs_+++Abelson+Sussman+" }
+H.\ Abelson G.\ Sussman.
+[]{.newblock} _Structure and Interpretation of Computer Programs_\/.
+[]{.newblock} MIT Press, 1980.
+~ End Bibitem
+
+~ Begin Bibitem { cite-year:"1900" ; cite-authors:"Stub" ; id:"unixshell" ; tex-cite-label:"Stub(1900)" ; caption:"Stub. &nl;_Stub_\/." ; searchterm:"_Stub_++Stub+" }
 Stub.
 []{.newblock} _Stub_\/.
-[]{.newblock} Stub, 1900a.
+[]{.newblock} Stub, 1900.
 ~ End Bibitem
 
-~ Begin Bibitem { cite-year:"1900b" ; cite-authors:"Stub" ; id:"forth" ; tex-cite-label:"Stub(1900{\natexlab{b}})" ; caption:"Stub. &nl;_Stub_\/." ; searchterm:"_Stub_++Stub+" }
-Stub.
-[]{.newblock} _Stub_\/.
-[]{.newblock} Stub, 1900b.
+~ Begin Bibitem { cite-year:"2000a" ; cite-authors:"TBD" ; id:"clang" ; tex-cite-label:"TBD(2000{\natexlab{a}})" ; caption:"TBD. &nl;Clang, 2000a." ; searchterm:"+Clang++" }
+TBD.
+[]{.newblock} Clang, 2000a.
 ~ End Bibitem
 
-~ Begin Bibitem { cite-year:"1900c" ; cite-authors:"Stub" ; id:"leftfold" ; tex-cite-label:"Stub(1900{\natexlab{c}})" ; caption:"Stub. &nl;Stub." ; searchterm:"Stub++Stub+" }
-Stub.
-[]{.newblock} Stub.
-[]{.newblock} _Stub_\/, 1900c.
+~ Begin Bibitem { cite-year:"2000b" ; cite-authors:"TBD" ; id:"forth" ; tex-cite-label:"TBD(2000{\natexlab{b}})" ; caption:"TBD. &nl;Forth, 2000b." ; searchterm:"+Forth++" }
+TBD.
+[]{.newblock} Forth, 2000b.
 ~ End Bibitem
 
-~ Begin Bibitem { cite-year:"1900d" ; cite-authors:"Stub" ; id:"liebniz" ; tex-cite-label:"Stub(1900{\natexlab{d}})" ; caption:"Stub. &nl;Stub." ; searchterm:"Stub++Stub+" }
-Stub.
-[]{.newblock} Stub.
-[]{.newblock} _Stub_\/, 1900d.
+~ Begin Bibitem { cite-year:"2000c" ; cite-authors:"TBD" ; id:"leftfold" ; tex-cite-label:"TBD(2000{\natexlab{c}})" ; caption:"TBD. &nl;Leftfold, 2000c." ; searchterm:"+Leftfold++" }
+TBD.
+[]{.newblock} Leftfold, 2000c.
 ~ End Bibitem
 
-~ Begin Bibitem { cite-year:"1900e" ; cite-authors:"Stub" ; id:"lisp" ; tex-cite-label:"Stub(1900{\natexlab{e}})" ; caption:"Stub. &nl;Stub." ; searchterm:"Stub++Stub+" }
-Stub.
-[]{.newblock} Stub.
-[]{.newblock} _Stub_\/, 1900e.
+~ Begin Bibitem { cite-year:"2000d" ; cite-authors:"TBD" ; id:"liebniz" ; tex-cite-label:"TBD(2000{\natexlab{d}})" ; caption:"TBD. &nl;Liebniz, 2000d." ; searchterm:"+Liebniz++" }
+TBD.
+[]{.newblock} Liebniz, 2000d.
 ~ End Bibitem
 
-~ Begin Bibitem { cite-year:"1900f" ; cite-authors:"Stub" ; id:"lua" ; tex-cite-label:"Stub(1900{\natexlab{f}})" ; caption:"Stub. &nl;Stub." ; searchterm:"Stub++Stub+" }
-Stub.
-[]{.newblock} Stub.
-[]{.newblock} _Stub_\/, 1900f.
+~ Begin Bibitem { cite-year:"2000e" ; cite-authors:"TBD" ; id:"lisp" ; tex-cite-label:"TBD(2000{\natexlab{e}})" ; caption:"TBD. &nl;Lisp, 2000e." ; searchterm:"+Lisp++" }
+TBD.
+[]{.newblock} Lisp, 2000e.
 ~ End Bibitem
 
-~ Begin Bibitem { cite-year:"1900g" ; cite-authors:"Stub" ; id:"scheme" ; tex-cite-label:"Stub(1900{\natexlab{g}})" ; caption:"Stub. &nl;_Stub_\/." ; searchterm:"_Stub_++Stub+" }
-Stub.
-[]{.newblock} _Stub_\/.
-[]{.newblock} Stub, 1900g.
+~ Begin Bibitem { cite-year:"2000f" ; cite-authors:"TBD" ; id:"lua" ; tex-cite-label:"TBD(2000{\natexlab{f}})" ; caption:"TBD. &nl;Lua, 2000f." ; searchterm:"++" }
+TBD.
+[]{.newblock} Lua, 2000f.
 ~ End Bibitem
 
-~ Begin Bibitem { cite-year:"1900h" ; cite-authors:"Stub" ; id:"self" ; tex-cite-label:"Stub(1900{\natexlab{h}})" ; caption:"Stub. &nl;Stub." ; searchterm:"Stub++Stub+" }
-Stub.
-[]{.newblock} Stub.
-[]{.newblock} _Stub_\/, 1900h.
+~ Begin Bibitem { cite-year:"2000g" ; cite-authors:"TBD" ; id:"self" ; tex-cite-label:"TBD(2000{\natexlab{g}})" ; caption:"TBD. &nl;Self, 2000g." ; searchterm:"+Self++" }
+TBD.
+[]{.newblock} Self, 2000g.
 ~ End Bibitem
 
-~ Begin Bibitem { cite-year:"1900i" ; cite-authors:"Stub" ; id:"shapiro:effecttyping" ; tex-cite-label:"Stub(1900{\natexlab{i}})" ; caption:"Stub. &nl;Stub." ; searchterm:"Stub++Stub+" }
-Stub.
-[]{.newblock} Stub.
-[]{.newblock} _Stub_\/, 1900i.
-~ End Bibitem
-
-~ Begin Bibitem { cite-year:"1900j" ; cite-authors:"Stub" ; id:"typescript" ; tex-cite-label:"Stub(1900{\natexlab{j}})" ; caption:"Stub. &nl;Stub." ; searchterm:"Stub++Stub+" }
-Stub.
-[]{.newblock} Stub.
-[]{.newblock} _Stub_\/, 1900j.
-~ End Bibitem
-
-~ Begin Bibitem { cite-year:"1900k" ; cite-authors:"Stub" ; id:"unixshell" ; tex-cite-label:"Stub(1900{\natexlab{k}})" ; caption:"Stub. &nl;_Stub_\/." ; searchterm:"_Stub_++Stub+" }
-Stub.
-[]{.newblock} _Stub_\/.
-[]{.newblock} Stub, 1900k.
+~ Begin Bibitem { cite-year:"2000h" ; cite-authors:"TBD" ; id:"typescript" ; tex-cite-label:"TBD(2000{\natexlab{h}})" ; caption:"TBD. &nl;Typescript, 2000h." ; searchterm:"+Typescript++" }
+TBD.
+[]{.newblock} Typescript, 2000h.
 ~ End Bibitem
 
 

@@ -13,62 +13,54 @@ Anonymous.
 \bibitem[et~al(1900)]{BitC}
 Shapiro et~al.
 \newblock Sound and complete type inference in a systems language.
-\newblock \emph{Stub}, 1900.
+\newblock \emph{TBD}, 1900.
 \newblock URL \url{www.cs.jhu.edu/~swaroop/aplas.pdf}.
 
-\bibitem[Stub(1900{\natexlab{a}})]{CLang}
+\bibitem[et~al(2000)]{Shapiro:EffectTyping}
+Shapiro et~al.
+\newblock Sound and complete type inference in a systems language.
+\newblock \emph{TBD}, 2000.
+
+\bibitem[G.~Sussman(1980)]{Scheme}
+H.~Abelson G.~Sussman.
+\newblock \emph{Structure and Interpretation of Computer Programs}.
+\newblock MIT Press, 1980.
+
+\bibitem[Stub(1900)]{UNIXShell}
 Stub.
 \newblock \emph{Stub}.
-\newblock Stub, 1900{\natexlab{a}}.
+\newblock Stub, 1900.
 
-\bibitem[Stub(1900{\natexlab{b}})]{Forth}
-Stub.
-\newblock \emph{Stub}.
-\newblock Stub, 1900{\natexlab{b}}.
+\bibitem[TBD(2000{\natexlab{a}})]{CLang}
+TBD.
+\newblock Clang, 2000{\natexlab{a}}.
 
-\bibitem[Stub(1900{\natexlab{c}})]{LeftFold}
-Stub.
-\newblock Stub.
-\newblock \emph{Stub}, 1900{\natexlab{c}}.
+\bibitem[TBD(2000{\natexlab{b}})]{Forth}
+TBD.
+\newblock Forth, 2000{\natexlab{b}}.
 
-\bibitem[Stub(1900{\natexlab{d}})]{Liebniz}
-Stub.
-\newblock Stub.
-\newblock \emph{Stub}, 1900{\natexlab{d}}.
+\bibitem[TBD(2000{\natexlab{c}})]{LeftFold}
+TBD.
+\newblock Leftfold, 2000{\natexlab{c}}.
 
-\bibitem[Stub(1900{\natexlab{e}})]{Lisp}
-Stub.
-\newblock Stub.
-\newblock \emph{Stub}, 1900{\natexlab{e}}.
+\bibitem[TBD(2000{\natexlab{d}})]{Liebniz}
+TBD.
+\newblock Liebniz, 2000{\natexlab{d}}.
 
-\bibitem[Stub(1900{\natexlab{f}})]{Lua}
-Stub.
-\newblock Stub.
-\newblock \emph{Stub}, 1900{\natexlab{f}}.
+\bibitem[TBD(2000{\natexlab{e}})]{Lisp}
+TBD.
+\newblock Lisp, 2000{\natexlab{e}}.
 
-\bibitem[Stub(1900{\natexlab{g}})]{Scheme}
-Stub.
-\newblock \emph{Stub}.
-\newblock Stub, 1900{\natexlab{g}}.
+\bibitem[TBD(2000{\natexlab{f}})]{Lua}
+TBD.
+\newblock Lua, 2000{\natexlab{f}}.
 
-\bibitem[Stub(1900{\natexlab{h}})]{Self}
-Stub.
-\newblock Stub.
-\newblock \emph{Stub}, 1900{\natexlab{h}}.
+\bibitem[TBD(2000{\natexlab{g}})]{Self}
+TBD.
+\newblock Self, 2000{\natexlab{g}}.
 
-\bibitem[Stub(1900{\natexlab{i}})]{Shapiro:EffectTyping}
-Stub.
-\newblock Stub.
-\newblock \emph{Stub}, 1900{\natexlab{i}}.
-
-\bibitem[Stub(1900{\natexlab{j}})]{TypeScript}
-Stub.
-\newblock Stub.
-\newblock \emph{Stub}, 1900{\natexlab{j}}.
-
-\bibitem[Stub(1900{\natexlab{k}})]{UNIXShell}
-Stub.
-\newblock \emph{Stub}.
-\newblock Stub, 1900{\natexlab{k}}.
+\bibitem[TBD(2000{\natexlab{h}})]{TypeScript}
+TBD.
+\newblock Typescript, 2000{\natexlab{h}}.
 
 \end{thebibliography}
