@@ -1,4 +1,4 @@
-\begin{thebibliography}{12}
+\begin{thebibliography}{17}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -10,16 +10,47 @@ Anonymous.
 \newblock \emph{Citation Needed}.
 \newblock N/A, 2000.
 
-\bibitem[et~al(2000)]{BitC}
+\bibitem[et~al(2000{\natexlab{a}})]{STEPS}
+Alan~Kay et~al.
+\newblock Steps toward the reinvention of programming.
+\newblock \emph{TBD}, 2000{\natexlab{a}}.
+\newblock URL \url{http://www.vpri.org/pdf/tr2008004_steps08.pdf}.
+
+\bibitem[et~al(2000{\natexlab{b}})]{BitC}
 Shapiro et~al.
 \newblock Sound and complete type inference in a systems language.
-\newblock \emph{TBD}, 2000.
+\newblock \emph{TBD}, 2000{\natexlab{b}}.
 \newblock URL \url{http://www.cs.jhu.edu/~swaroop/aplas.pdf}.
 
 \bibitem[G.~Sussman(1980)]{Scheme}
 H.~Abelson G.~Sussman.
 \newblock \emph{Structure and Interpretation of Computer Programs}.
 \newblock MIT Press, 1980.
+
+\bibitem[Language(2017)]{Julia}
+The~Julia Language.
+\newblock Julia >> docs >> metaprogramming, 2017.
+\newblock URL
+  \url{https://docs.julialang.org/en/stable/manual/metaprogramming/}.
+
+\bibitem[Plush(2002)]{Water}
+Mike Plush.
+\newblock Introduction to water: A new native web services programming
+  language, 2002.
+\newblock URL \url{http://www.informit.com/articles/article.aspx?p=27567}.
+
+\bibitem[Shifrin(2012{\natexlab{a}})]{Mathematica}
+Leonid Shifrin.
+\newblock Metaprogramming in mathematica, 2012{\natexlab{a}}.
+\newblock URL
+  \url{https://mathematica.stackexchange.com/questions/2335/metaprogramming-in-mathematica}.
+
+\bibitem[Shifrin(2012{\natexlab{b}})]{MathematicaPrototype}
+Leonid Shifrin.
+\newblock Can mathematica be regarded as a software prototyping environment?,
+  2012{\natexlab{b}}.
+\newblock URL
+  \url{https://mathematica.stackexchange.com/questions/1314/can-mathematica-be-regarded-as-a-software-prototyping-environment}.
 
 \bibitem[TBD(2000{\natexlab{a}})]{CLang}
 TBD.

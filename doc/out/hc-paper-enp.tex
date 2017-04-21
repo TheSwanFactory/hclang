@@ -24,13 +24,13 @@
 \begin{abstract}%mdk
 
 %mdk-data-line={23}
-\noindent\mdline{23}Modern programming is dominated by languages derived from C\mdline{23}{}[\mdcite{clang}{3}]\mdline{23} and
-the UNIX shell\mdline{24}{}[\mdcite{unixshell}{13}]\mdline{24}, characterized by complicated syntax and
-sophisticated parsers. Minimalist languages such as Forth\mdline{25}{}[\mdcite{forth}{4}]\mdline{25},
-Scheme\mdline{26}{}[\mdcite{scheme}{9}]\mdline{26} and Self\mdline{26}{}[\mdcite{self}{10}]\mdline{26} are no longer taken seriously\mdline{26}\mdfootnote{1}{%mdk-data-line={53}
+\noindent\mdline{23}Modern programming is dominated by languages derived from C\mdline{23}{}[\mdcite{clang}{9}]\mdline{23} and
+the UNIX shell\mdline{24}{}[\mdcite{unixshell}{17}]\mdline{24}, characterized by complicated syntax and
+sophisticated parsers. Minimalist languages such as Forth\mdline{25}{}[\mdcite{forth}{10}]\mdline{25},
+Scheme\mdline{26}{}[\mdcite{scheme}{4}]\mdline{26} and Self\mdline{26}{}[\mdcite{self}{15}]\mdline{26} are no longer taken seriously\mdline{26}\mdfootnote{1}{%mdk-data-line={53}
 %mdk-data-line={53}
 \noindent\mdline{53}The only minimalist language still in active use appears to be
-Lua\mdline{54}{}[\mdcite{lua}{8}]\mdline{54}, though even that is relegated to niche applications.%mdk
+Lua\mdline{54}{}[\mdcite{lua}{14}]\mdline{54}, though even that is relegated to niche applications.%mdk
 \label{fn-lua-fn}%mdk%mdk
 }\mdline{26},
 presumably because they are felt to lack sufficiently readable \mdline{27}\emph{syntax}\mdline{27}
@@ -42,11 +42,11 @@ and powerful enough \mdline{28}\emph{semantics}\mdline{28}.%mdk
 yet is even easier to read than existing scripting languages. The key is
 a novel data structure and computational model we call \mdline{33}\emph{Frames}\mdline{33}, designed
 to replace and improve upon the s-expressions and metacircular evaluation
-model of Lisp\mdline{35}{}[\mdcite{lisp}{7}]\mdline{35}. Frames act as a universal monad\mdline{35}\mdfootnote{2}{%mdk-data-line={56}
+model of Lisp\mdline{35}{}[\mdcite{lisp}{13}]\mdline{35}. Frames act as a universal monad\mdline{35}\mdfootnote{2}{%mdk-data-line={56}
 %mdk-data-line={56}
 \noindent\mdline{56}Not just the mathematical term for an object closed under all
 operations, but Liebniz\mdline{57}'\mdline{57}s original idea of a single universal
-building-block\mdline{58}{}[\mdcite{liebniz}{6}]\mdline{58}.%mdk
+building-block\mdline{58}{}[\mdcite{liebniz}{12}]\mdline{58}.%mdk
 \label{fn-monad}%mdk%mdk
 }\mdline{35}, with the
 result that Homoiconic C is simply conventions for creating and
@@ -57,14 +57,14 @@ evaluating Frames.%mdk
 primitives, aggregates, and  predefined operators; as a
 modeless data format, there are no keywords, reserved words, or hardly any
 grammar. Next we discuss the robust data protection semantics inspired by
-BitC\mdline{43}{}[\mdcite{shapiro:effecttyping}{11}]\mdline{43}, which allow us the efficiency of C\mdline{43}'\mdline{43}s memory
+BitC\mdline{43}{}[\mdcite{bitc}{3}]\mdline{43}, which allow us the efficiency of C\mdline{43}'\mdline{43}s memory
 model without any of the downsides. Finally, we provide examples of how
 these primitives allow us to easily represent other data formats and
 Object-Oriented programming.%mdk
 
 %mdk-data-line={48}
 \mdline{48}We are currently developing the first implementation of HC as a
-TypeScript\mdline{49}{}[\mdcite{typescript}{12}]\mdline{49} interpreter. It can be found on GitHub\mdline{49}{}[\mdcite{cite}{1}]\mdline{49}
+TypeScript\mdline{49}{}[\mdcite{typescript}{16}]\mdline{49} interpreter. It can be found on GitHub\mdline{49}{}[\mdcite{cite}{1}]\mdline{49}
 under the MIT Open Source license.%mdk
 %mdk
 \end{abstract}%mdk
@@ -84,7 +84,7 @@ and existing data formats.%mdk
 \noindent\mdline{69}Early high-level languages (e.g., FORTRAN\mdline{69}{}[\mdcite{cite}{1}]\mdline{69}, COBOL\mdline{69}{}[\mdcite{cite}{1}]\mdline{69},
 BASIC\mdline{70}{}[\mdcite{cite}{1}]\mdline{70}, ALGOL\mdline{70}{}[\mdcite{cite}{1}]\mdline{70}) were strongly influenced by mathematics and
 artificial intelligence\mdline{71}{}[\mdcite{cite}{1}]\mdline{71}, leading to sophisticated precedence rules
-and complicated syntax. The primary alternative was Lisp\mdline{72}[Stub~{}[\mdcite{lisp}{7}];]\mdline{72}, defined
+and complicated syntax. The primary alternative was Lisp\mdline{72}[TBD~{}[\mdcite{lisp}{13}];]\mdline{72}, defined
 \mdline{73}\textendash{}\mdline{73} at least in theory\mdline{73} \mdline{73}\textendash{}\mdline{73} by a single data structure (the list) and a
 single rule (metacircular evaluation).%mdk
 
@@ -99,7 +99,7 @@ death of that dream.%mdk
 \subsection{\mdline{82}1.2.\hspace*{0.5em}\mdline{82}Then Came C}\label{sec-then-came-c}%mdk%mdk
 
 %mdk-data-line={84}
-\noindent\mdline{84}Into that void stepped the C programming language\mdline{84}{}[\mdcite{clang}{3}]\mdline{84}. C was derived
+\noindent\mdline{84}Into that void stepped the C programming language\mdline{84}{}[\mdcite{clang}{9}]\mdline{84}. C was derived
 from ALGOL, but borrowed (some would say butchered\mdline{85}{}[\mdcite{cite}{1}]\mdline{85}) several
 powerful ideas from Lisp, such as macros\mdline{86}{}[\mdcite{cite}{1}]\mdline{86} and function
 pointers\mdline{87}{}[\mdcite{cite}{1}]\mdline{87}. In addition, the C memory model\mdline{87}{}[\mdcite{cite}{1}]\mdline{87} mapped well onto
@@ -265,7 +265,7 @@ programs}\mdline{176}, or sometimes just \mdline{176}\emph{congrams}\mdline{176}
 
 %mdk-data-line={180}
 \noindent\mdline{180}Expressions are simply zero or more frames evaluated within the current
-context, then applied left to right (left fold\mdline{181}~{}[\mdcite{leftfold}{5}]\mdline{181}). We refer to
+context, then applied left to right (left fold\mdline{181}~{}[\mdcite{leftfold}{11}]\mdline{181}). We refer to
 this as the \mdline{182}\emph{elliptical evaluator}\mdline{182}, in homage to Lisp\mdline{182}'\mdline{182}s metacircular
 evaluator.%mdk
 \begin{mdpre}%mdk
@@ -464,41 +464,48 @@ This will become important in Section\mdline{330}~\mdref{sec-operators}{2.2}\mdl
 returned, which becomes very powerful when we add identifiers.%mdk
 
 %mdk-data-line={335}
-\subsubsection{\mdline{335}2.1.4.\hspace*{0.5em}\mdline{335}Identifiers}\label{sec-identifiers}%mdk%mdk
+\mdline{335}Importantly, the empty closure \mdline{335}\mdcode{\{\}}\mdline{335} becomes the \mdline{335}\textquotedblleft{}codify\textquotedblright{}\mdline{335} operator, which converts arrays
+into closures:%mdk
+\begin{mdpre}%mdk
+\noindent;~\{\}~{}[“{\mdcolor{purple}Life},~”~“{\mdcolor{purple}The}~{\mdcolor{purple}Universe},~”~“{\mdcolor{purple}Everything}.”]\\
+{\mdcolor{darkgreen}\#~\{~“Life,~”~“The~Universe,~”~“Everything.”~\}}%mdk
+\end{mdpre}
+%mdk-data-line={343}
+\subsubsection{\mdline{343}2.1.4.\hspace*{0.5em}\mdline{343}Identifiers}\label{sec-identifiers}%mdk%mdk
 
-%mdk-data-line={337}
-\noindent\mdline{337}Everything else is just an identifier. Identifiers can contain letters,
+%mdk-data-line={345}
+\noindent\mdline{345}Everything else is just an identifier. Identifiers can contain letters,
 numbers, or non-terminal symbols. They come in several varieties as
-described in Table\mdline{339}~\mdref{sec-table-id}{\mdcaptionlabel{3}}\mdline{339}.%mdk
+described in Table\mdline{347}~\mdref{sec-table-id}{\mdcaptionlabel{3}}\mdline{347}.%mdk
 
-%mdk-data-line={341}
+%mdk-data-line={349}
 \begin{table}[tbp]%mdk
 \begin{mdcenter}%mdk
 \begin{mdtabular}{4}{\dimeval{(\linewidth)/4}}{1ex}%mdk
 \begin{tabular}{llll}\midrule
-\multicolumn{1}{|c}{{\bfseries\mdline{343}Variety}}&\multicolumn{1}{|c}{{\bfseries\mdline{343} Example}}&\multicolumn{1}{|c}{{\bfseries\mdline{343} Starts With}}&\multicolumn{1}{|c|}{{\bfseries\mdline{343} Contains}}\\
+\multicolumn{1}{|c}{{\bfseries\mdline{351}Variety}}&\multicolumn{1}{|c}{{\bfseries\mdline{351} Example}}&\multicolumn{1}{|c}{{\bfseries\mdline{351} Starts With}}&\multicolumn{1}{|c|}{{\bfseries\mdline{351} Contains}}\\
 
 \midrule
-\multicolumn{1}{|l}{{\mdcellcolor{gainsboro}}\mdline{345} Label}&\multicolumn{1}{|l}{{\mdcellcolor{gainsboro}}\mdline{345} \mdline{345}\emph{variable}\mdline{345}}&\multicolumn{1}{|l}{{\mdcellcolor{gainsboro}}\mdline{345} \mdline{345}\emph{letter}\mdline{345}}&\multicolumn{1}{|l|}{{\mdcellcolor{gainsboro}}\mdline{345} \mdline{345}\emph{letter}\mdline{345}, \mdline{345}\emph{number}\mdline{345}, \mdline{345}\mdcode{-}\mdline{345}}\\
-\multicolumn{1}{|l}{{\mdcellcolor{floralwhite}}\mdline{346} Operator}&\multicolumn{1}{|l}{{\mdcellcolor{floralwhite}}\mdline{346} \mdline{346}\mdcode{+}\mdline{346}}&\multicolumn{1}{|l}{{\mdcellcolor{floralwhite}}\mdline{346} \mdline{346}\emph{symbol}\mdline{346}}&\multicolumn{1}{|l|}{{\mdcellcolor{floralwhite}}\mdline{346} \mdline{346}\emph{symbol}\mdline{346}}\\
-\multicolumn{1}{|l}{{\mdcellcolor{gainsboro}}\mdline{347} Control}&\multicolumn{1}{|l}{{\mdcellcolor{gainsboro}}\mdline{347} \mdline{347}\mdcode{{\mdcolor{purple}\$}\textless{}-}\mdline{347} \mdline{347}\#\mdline{347} return}&\multicolumn{1}{|l}{{\mdcellcolor{gainsboro}}\mdline{347} \mdline{347}\mdcode{{\mdcolor{purple}\$}}\mdline{347}}&\multicolumn{1}{|l|}{{\mdcellcolor{gainsboro}}\mdline{347} \mdline{347}\emph{any identifier}\mdline{347}}\\
-\multicolumn{1}{|l}{{\mdcellcolor{floralwhite}}\mdline{348} Argument}&\multicolumn{1}{|l}{{\mdcellcolor{floralwhite}}\mdline{348} \mdline{348}\_\mdline{348}\textasciicircum{}\mdline{348}}&\multicolumn{1}{|l}{{\mdcellcolor{floralwhite}}\mdline{348} \mdline{348}\_\mdline{348}}&\multicolumn{1}{|l|}{{\mdcellcolor{floralwhite}}\mdline{348} \mdline{348}\_\mdline{348},\mdline{348}\textasciicircum{}\mdline{348}}\\
-\multicolumn{1}{|l}{{\mdcellcolor{gainsboro}}\mdline{349} Self}&\multicolumn{1}{|l}{{\mdcellcolor{gainsboro}}\mdline{349} \mdline{349}.\mdline{349}}&\multicolumn{1}{|l}{{\mdcellcolor{gainsboro}}\mdline{349} \mdline{349}.\mdline{349}}&\multicolumn{1}{|l|}{{\mdcellcolor{gainsboro}}\mdline{349} \mdline{349}.\mdline{349}}\\
+\multicolumn{1}{|l}{{\mdcellcolor{gainsboro}}\mdline{353} Label}&\multicolumn{1}{|l}{{\mdcellcolor{gainsboro}}\mdline{353} \mdline{353}\emph{variable}\mdline{353}}&\multicolumn{1}{|l}{{\mdcellcolor{gainsboro}}\mdline{353} \mdline{353}\emph{letter}\mdline{353}}&\multicolumn{1}{|l|}{{\mdcellcolor{gainsboro}}\mdline{353} \mdline{353}\emph{letter}\mdline{353}, \mdline{353}\emph{number}\mdline{353}, \mdline{353}\mdcode{-}\mdline{353}}\\
+\multicolumn{1}{|l}{{\mdcellcolor{floralwhite}}\mdline{354} Operator}&\multicolumn{1}{|l}{{\mdcellcolor{floralwhite}}\mdline{354} \mdline{354}\mdcode{+}\mdline{354}}&\multicolumn{1}{|l}{{\mdcellcolor{floralwhite}}\mdline{354} \mdline{354}\emph{symbol}\mdline{354}}&\multicolumn{1}{|l|}{{\mdcellcolor{floralwhite}}\mdline{354} \mdline{354}\emph{symbol}\mdline{354}}\\
+\multicolumn{1}{|l}{{\mdcellcolor{gainsboro}}\mdline{355} Control}&\multicolumn{1}{|l}{{\mdcellcolor{gainsboro}}\mdline{355} \mdline{355}\mdcode{{\mdcolor{purple}\$}\textless{}-}\mdline{355} \mdline{355}\#\mdline{355} return}&\multicolumn{1}{|l}{{\mdcellcolor{gainsboro}}\mdline{355} \mdline{355}\mdcode{{\mdcolor{purple}\$}}\mdline{355}}&\multicolumn{1}{|l|}{{\mdcellcolor{gainsboro}}\mdline{355} \mdline{355}\emph{any identifier}\mdline{355}}\\
+\multicolumn{1}{|l}{{\mdcellcolor{floralwhite}}\mdline{356} Argument}&\multicolumn{1}{|l}{{\mdcellcolor{floralwhite}}\mdline{356} \mdline{356}\_\mdline{356}\textasciicircum{}\mdline{356}}&\multicolumn{1}{|l}{{\mdcellcolor{floralwhite}}\mdline{356} \mdline{356}\_\mdline{356}}&\multicolumn{1}{|l|}{{\mdcellcolor{floralwhite}}\mdline{356} \mdline{356}\_\mdline{356},\mdline{356}\textasciicircum{}\mdline{356}}\\
+\multicolumn{1}{|l}{{\mdcellcolor{gainsboro}}\mdline{357} Self}&\multicolumn{1}{|l}{{\mdcellcolor{gainsboro}}\mdline{357} \mdline{357}.\mdline{357}}&\multicolumn{1}{|l}{{\mdcellcolor{gainsboro}}\mdline{357} \mdline{357}.\mdline{357}}&\multicolumn{1}{|l|}{{\mdcellcolor{gainsboro}}\mdline{357} \mdline{357}.\mdline{357}}\\
 \midrule
 \end{tabular}\end{mdtabular}
 
-%mdk-data-line={354}
+%mdk-data-line={362}
 \mdhr{}%mdk
 
-%mdk-data-line={355}
-\noindent\mdline{355}\mdcaption{\textbf{Table~\mdcaptionlabel{3}.}~\mdcaptiontext{Identifiers}}%mdk
+%mdk-data-line={363}
+\noindent\mdline{363}\mdcaption{\textbf{Table~\mdcaptionlabel{3}.}~\mdcaptiontext{Identifiers}}%mdk
 %mdk
 \end{mdcenter}\label{sec-table-id}%mdk
 %mdk
 \end{table}%mdk
 
-%mdk-data-line={356}
-\mdline{356}Syntactically these are equivalent, with one small piece of syntactic
+%mdk-data-line={364}
+\mdline{364}Syntactically these are equivalent, with one small piece of syntactic
 sugar for operators; the dot is optional when used in a binary relation:%mdk
 \begin{mdpre}%mdk
 \noindent;~2~.+~2\\
@@ -507,45 +514,45 @@ sugar for operators; the dot is optional when used in a binary relation:%mdk
 ;~2~+~2\\
 {\mdcolor{darkgreen}\#~4}%mdk
 \end{mdpre}
-%mdk-data-line={367}
-\paragraph{\mdline{367}Assignment}\label{sec-assignment}%mdk%mdk
+%mdk-data-line={375}
+\paragraph{\mdline{375}Assignment}\label{sec-assignment}%mdk%mdk
 
-%mdk-data-line={369}
-\noindent\mdline{369}Identifiers can be referred to via three different modes:%mdk
+%mdk-data-line={377}
+\noindent\mdline{377}Identifiers can be referred to via three different modes:%mdk
 
-%mdk-data-line={371}
+%mdk-data-line={379}
 \begin{itemize}[noitemsep,topsep=\mdcompacttopsep]%mdk
 
-%mdk-data-line={371}
-\item\mdline{371}\mdcode{value}\mdline{371}%mdk
+%mdk-data-line={379}
+\item\mdline{379}\mdcode{value}\mdline{379}%mdk
 
-%mdk-data-line={372}
-\item\mdline{372}\mdcode{.name}\mdline{372}%mdk
+%mdk-data-line={380}
+\item\mdline{380}\mdcode{.name}\mdline{380}%mdk
 
-%mdk-data-line={373}
-\item\mdline{373}\mdcode{{\mdcolor{navy}@reference}}\mdline{373}%mdk
+%mdk-data-line={381}
+\item\mdline{381}\mdcode{{\mdcolor{navy}@reference}}\mdline{381}%mdk
 %mdk
 \end{itemize}%mdk
 
-%mdk-data-line={375}
-\noindent\mdline{375}Assignment is just a simple expression setting a property with that name
+%mdk-data-line={383}
+\noindent\mdline{383}Assignment is just a simple expression setting a property with that name
 in the current context:%mdk
 \begin{mdpre}%mdk
 \noindent;~.x~6~*~7;%mdk
-\end{mdpre}\noindent\mdline{380}This avoids the subtle and confusing distinction between differing
-\mdline{381}\textquotedblleft{}left-hand-side\textquotedblright{}\mdline{381} and \mdline{381}\textquotedblleft{}right-hand-side\textquotedblright{}\mdline{381} interpretations of an identical symbol \mdline{381}\emph{x}\mdline{381}.
-That enables \mdline{382}\mdcode{=}\mdline{382} to always mean a test for equality, rather than also being used
+\end{mdpre}\noindent\mdline{388}This avoids the subtle and confusing distinction between differing
+\mdline{389}\textquotedblleft{}left-hand-side\textquotedblright{}\mdline{389} and \mdline{389}\textquotedblleft{}right-hand-side\textquotedblright{}\mdline{389} interpretations of an identical symbol \mdline{389}\emph{x}\mdline{389}.
+That enables \mdline{390}\mdcode{=}\mdline{390} to always mean a test for equality, rather than also being used
 for assignment.
 
-%mdk-data-line={385}
-\mdline{385}We can use the value \mdline{385}\mdcode{x}\mdline{385} to access that property in the same or any child context:%mdk
+%mdk-data-line={393}
+\mdline{393}We can use the value \mdline{393}\mdcode{x}\mdline{393} to access that property in the same or any child context:%mdk
 \begin{mdpre}%mdk
 \noindent;~x\\
 {\mdcolor{darkgreen}\#~42}\\
 ;~{}[x]\\
 {\mdcolor{darkgreen}\#~{}[42]}%mdk
-\end{mdpre}\noindent\mdline{394}To set the property in the context it was defined, rather than the local context,
-use a \mdline{395}\emph{reference}\mdline{395} instead of a name:
+\end{mdpre}\noindent\mdline{402}To set the property in the context it was defined, rather than the local context,
+use a \mdline{403}\emph{reference}\mdline{403} instead of a name:
 \begin{mdpre}%mdk
 \noindent;~.y~7;\\
 ;~(.x~{\mdcolor{purple}11};~{\mdcolor{navy}@y}~3;);\\
@@ -553,7 +560,7 @@ use a \mdline{395}\emph{reference}\mdline{395} instead of a name:
 {\mdcolor{darkgreen}\#~42}\\
 ;~y\\
 {\mdcolor{darkgreen}\#~3}%mdk
-\end{mdpre}\noindent\mdline{405}Names also provide an elegant way of manipulating data structures, still
+\end{mdpre}\noindent\mdline{413}Names also provide an elegant way of manipulating data structures, still
 in the context of simple expressions:
 \begin{mdpre}%mdk
 \noindent;~.base~\{.key~{\mdcolor{purple}42}\};\\
@@ -562,92 +569,105 @@ in the context of simple expressions:
 ;~.base~.key~{\mdcolor{purple}113};~{\mdcolor{darkgreen}\#~sets~property}\\
 ;~base\\
 {\mdcolor{darkgreen}\#~\{.key~113\}}%mdk
-\end{mdpre}\noindent\mdline{416}The space between \mdline{416}\emph{base}\mdline{416} and \mdline{416}\_\mdline{416}key is not necessary, but we use it to
+\end{mdpre}\noindent\mdline{424}The space between \mdline{424}\emph{base}\mdline{424} and \mdline{424}\_\mdline{424}key is not necessary, but we use it to
 emphasize the fact that this is just an ordinary expression, not a
 special syntax.
 
-%mdk-data-line={420}
-\paragraph{\mdline{420}Controls}\label{sec-controls}%mdk%mdk
+%mdk-data-line={428}
+\paragraph{\mdline{428}Controls}\label{sec-controls}%mdk%mdk
 
-%mdk-data-line={422}
-\noindent\mdline{422}As part of its quest to avoid arbitrary keywords, HC introduces the concept of
-\mdline{423}\emph{controls}\mdline{423}, mirroring the hardware distinction between the control plan and the data plane.
+%mdk-data-line={430}
+\noindent\mdline{430}As part of its quest to avoid arbitrary keywords, HC introduces the concept of
+\mdline{431}\emph{controls}\mdline{431}, mirroring the hardware distinction between the control plan and the data plane.
 Controls are special closures which modify the behavior of the runtime, rather than
 simply returning values.%mdk
 
-%mdk-data-line={427}
-\paragraph{\mdline{427}Flow Control}\label{sec-flow-control}%mdk%mdk
+%mdk-data-line={435}
+\paragraph{\mdline{435}Flow Control}\label{sec-flow-control}%mdk%mdk
 
-%mdk-data-line={429}
-\noindent\mdline{429}As a dataflow language, there should rarely be a need for direct
+%mdk-data-line={437}
+\noindent\mdline{437}As a dataflow language, there should rarely be a need for direct
 manipulating the flow of control. But when there is, we use a control, e.g.:%mdk
 
-%mdk-data-line={432}
+%mdk-data-line={440}
 \begin{mddefinitions}%mdk
 
 \mddefterm{\noindent{\bfseries\mdcode{{\mdcolor{purple}\$}{\mdcolor{purple}\$}}}}%mdk
 
-%mdk-data-line={432}
+%mdk-data-line={440}
 \begin{mdbmarginx}{}{}{}{1.5em}%mdk
 \begin{mddefdata}%mdk
-\mdline{432}Terminate the program and return the argument (e.g. \mdline{432}\textquotedblleft{}exit\textquotedblright{}\mdline{432})%mdk
+\mdline{440}Terminate the program and return the argument (\mdline{440}\textquotedblleft{}exit\textquotedblright{}\mdline{440})
+%mdk
+\end{mddefdata}%mdk
+\end{mdbmarginx}%mdk
+
+\mddefterm{\noindent{\bfseries\mdcode{{\mdcolor{purple}\$}\textless{}}}}%mdk
+
+%mdk-data-line={442}
+\begin{mdbmarginx}{}{}{}{1.5em}%mdk
+\begin{mddefdata}%mdk
+\mdline{442}Terminate the current scope and return the argument (\mdline{442}\emph{top-level return}\mdline{442})
+%mdk
+\end{mddefdata}%mdk
+\end{mdbmarginx}%mdk
+
+\mddefterm{\noindent{\bfseries\mdcode{{\mdcolor{purple}\$}\textless{}\textless{}}}}%mdk
+
+%mdk-data-line={444}
+\begin{mdbmarginx}{}{}{}{1.5em}%mdk
+\begin{mddefdata}%mdk
+\mdline{444}Terminate the \mdline{444}\emph{parent}\mdline{444} scope and return the argument (\mdline{444}\textquotedblleft{}inner return\textquotedblright{}\mdline{444})%mdk
 \end{mddefdata}%mdk
 \end{mdbmarginx}%mdk
 %mdk
 \end{mddefinitions}%mdk
 
-%mdk-data-line={435}
-\noindent\mdline{435}\mdbr
-\mdline{436}\emph{ \mdcode{{\mdcolor{purple}\$}\textless{}}
-   : Terminate the current scope and return the argument (e.g. \textquotedblleft{} top-level return\textquotedblright{})
-   
-}\mdline{439} \mdline{439}\mdcode{{\mdcolor{purple}\$}\textless{}\textless{}}\mdline{439}
-   : Terminate the \mdline{440}\emph{parent}\mdline{440} scope and return the argument (e.g. \mdline{440}\textquotedblleft{} inner return\textquotedblright{}\mdline{440})
- \mdline{441}\mdbr
-\mdline{442}Remember that every context is a self-contained entity, and thus \mdline{442}\mdcode{.}\mdline{442} and \mdline{442}\mdcode{{\mdcolor{purple}\$}\textless{}}\mdline{442} refer 
-only to that scope, even if it is a clause in a conditional.  That\mdline{443}'\mdline{443}s why we need 
+%mdk-data-line={447}
+\noindent\mdline{447}Remember that every context is a self-contained entity, and thus \mdline{447}\mdcode{.}\mdline{447} and \mdline{447}\mdcode{{\mdcolor{purple}\$}\textless{}}\mdline{447} refer 
+only to that scope, even if it is a clause in a conditional.  That\mdline{448}'\mdline{448}s why we need 
 multi-level returns.%mdk
 
-%mdk-data-line={446}
-\paragraph{\mdline{446}Exceptions}\label{sec-exceptions}%mdk%mdk
+%mdk-data-line={452}
+\paragraph{\mdline{452}Exceptions}\label{sec-exceptions}%mdk%mdk
 
-%mdk-data-line={448}
-\noindent\mdline{448}Controls are also used to signal exceptions and errors.  Exception controls
-begin with \mdline{449}\mdcode{{\mdcolor{purple}\$}!}\mdline{449} and return an interrupt value that propogates back up the call
+%mdk-data-line={454}
+\noindent\mdline{454}Controls are also used to signal exceptions and errors.  Exception controls
+begin with \mdline{455}\mdcode{{\mdcolor{purple}\$}!}\mdline{455} and return an interrupt value that propogates back up the call
 chain until it encounters an appropriate handler or aborts the program.  The REPL,
 however, simply prints out the exceptional value:%mdk
 \begin{mdpre}%mdk
 \noindent~;~.scope~(.a~1,~b.~2);\\
 ~;~scope.c\\
 ~{\mdcolor{darkgreen}\#~\$!missing-key~.c}%mdk
-\end{mdpre}\noindent\mdline{458}Note that in the interest of clarify, we voilate our usual rule and use
+\end{mdpre}\noindent\mdline{464}Note that in the interest of clarify, we voilate our usual rule and use
 English names for exceptions. We do still intend to make these fully
 localizable, so at least beginning programmers can experience an environment
-that doesn\mdline{461}'\mdline{461}t require them to also learn a foreign language.
+that doesn\mdline{467}'\mdline{467}t require them to also learn a foreign language.
 
-%mdk-data-line={463}
-\paragraph{\mdline{463}Arguments}\label{sec-arguments}%mdk%mdk
+%mdk-data-line={469}
+\paragraph{\mdline{469}Arguments}\label{sec-arguments}%mdk%mdk
 
-%mdk-data-line={465}
-\noindent\mdline{465}Use \mdline{465}\mdcode{\_}\mdline{465} as the anonymous argument, representing everything this frame
+%mdk-data-line={471}
+\noindent\mdline{471}Use \mdline{471}\mdcode{\_}\mdline{471} as the anonymous argument, representing everything this frame
 was called with:%mdk
 \begin{mdpre}%mdk
 \noindent;~.triplicate~\{3~\_\};\\
 ;~square~“{\mdcolor{purple}Baby}”\\
 {\mdcolor{darkgreen}\#~“BabyBabyBaby”}%mdk
-\end{mdpre}\noindent\mdline{472}This is useful not just for closures, but for representing the command-line
+\end{mdpre}\noindent\mdline{478}This is useful not just for closures, but for representing the command-line
 arguments for the entire script.
 
-%mdk-data-line={475}
-\mdline{475}When you apply something to a closure, it is effectively inserting that
+%mdk-data-line={481}
+\mdline{481}When you apply something to a closure, it is effectively inserting that
 argument into the inheritance hierarchy.  Thus we can access properties
-of the argument directly, rather than explicitly calling \mdline{477}\mdcode{\_}\mdline{477}.%mdk
+of the argument directly, rather than explicitly calling \mdline{483}\mdcode{\_}\mdline{483}.%mdk
 \begin{mdpre}%mdk
 \noindent;~.mag~\{(x~*~x)~+~(y~*~y~)\};\\
 ;~mag~(.x~1;~.y~2;)\\
 {\mdcolor{darkgreen}\#~5}%mdk
-\end{mdpre}\noindent\mdline{484}You can skip over the argument to access the enclosing scope (one level above)
-using the \mdline{485}\mdcode{\_\textasciicircum{}}\mdline{485} identifier (also known as \mdline{485}\mdcode{{\mdcolor{navy}super}}\mdline{485}).
+\end{mdpre}\noindent\mdline{490}You can skip over the argument to access the enclosing scope (one level above)
+using the \mdline{491}\mdcode{\_\textasciicircum{}}\mdline{491} identifier (also known as \mdline{491}\mdcode{{\mdcolor{navy}super}}\mdline{491}).
 \begin{mdpre}%mdk
 \noindent;~.print-arg~\{~var~\};\\
 ;~.print-parent~\{~\_\textasciicircum{}.var~\};\\
@@ -657,7 +677,7 @@ using the \mdline{485}\mdcode{\_\textasciicircum{}}\mdline{485} identifier (also
 {\mdcolor{darkgreen}\#~“arg”}\\
 ;~print-parent(.var~“arg”)\\
 {\mdcolor{darkgreen}\#~“parent”}%mdk
-\end{mdpre}\noindent\mdline{497}Since objects capture the scope where they are created, this even allows
+\end{mdpre}\noindent\mdline{503}Since objects capture the scope where they are created, this even allows
 closures to be called with implicit arguments to access the enclosing
 scope:
 \begin{mdpre}%mdk
@@ -665,73 +685,73 @@ scope:
 ;~.y~4;\\
 ;~mag~{}[]\\
 {\mdcolor{darkgreen}\#~25}%mdk
-\end{mdpre}\noindent\mdline{507}Implicit arguments are a code smell, and will generate a warning.
+\end{mdpre}\noindent\mdline{513}Implicit arguments are a code smell, and will generate a warning.
 However, they can be very useful when debugging or refactoring. That may seem
 dangerous, but the data protection rules (below) largely limit what the called
 function can do to the calling scope.
 
-%mdk-data-line={512}
-\paragraph{\mdline{512}TODO: Self}\label{sec-todo--self}%mdk%mdk
+%mdk-data-line={518}
+\paragraph{\mdline{518}TODO: Self}\label{sec-todo--self}%mdk%mdk
 
-%mdk-data-line={514}
-\subsection{\mdline{514}2.2.\hspace*{0.5em}\mdline{514}Operators}\label{sec-operators}%mdk%mdk
-
-%mdk-data-line={516}
-\noindent\mdline{516}Homoiconic C predefines a small number of top-level operators used by all
-frames. These provide functionality other languages often hard-code into
-their syntax. Note that specific datatypes may define their own operators
-(e.g., \mdline{519}\mdcode{+}\mdline{519} for numbers) not covered in this section.%mdk
-
-%mdk-data-line={521}
-\subsubsection{\mdline{521}2.2.1.\hspace*{0.5em}\mdline{521}Type Operations}\label{sec-type-operations}%mdk%mdk
+%mdk-data-line={520}
+\subsection{\mdline{520}2.2.\hspace*{0.5em}\mdline{520}Operators}\label{sec-operators}%mdk%mdk
 
 %mdk-data-line={522}
-\noindent\mdline{522}Like all modern statically typed languages, HC relies heavily on type
+\noindent\mdline{522}Homoiconic C predefines a small number of top-level operators used by all
+frames. These provide functionality other languages often hard-code into
+their syntax. Note that specific datatypes may define their own operators
+(e.g., \mdline{525}\mdcode{+}\mdline{525} for numbers) not covered in this section.%mdk
+
+%mdk-data-line={527}
+\subsubsection{\mdline{527}2.2.1.\hspace*{0.5em}\mdline{527}Type Operations}\label{sec-type-operations}%mdk%mdk
+
+%mdk-data-line={528}
+\noindent\mdline{528}Like all modern statically typed languages, HC relies heavily on type
 inference. By using dataflow, we also eliminate the need to define
 variables for loops or temporary variables. In addition, a frame that is
 callable with any other frame has the generic type, and thus does not need to be
 declared.%mdk
 
-%mdk-data-line={528}
-\mdline{528}However, there are times we do need to explicitly annotate what kind of
+%mdk-data-line={534}
+\mdline{534}However, there are times we do need to explicitly annotate what kind of
 frames we are expecting, especially at function boundaries. For those
-cases we use the type operators in Table\mdline{530}~\mdref{sec-table-type}{\mdcaptionlabel{4}}\mdline{530}.%mdk
+cases we use the type operators in Table\mdline{536}~\mdref{sec-table-type}{\mdcaptionlabel{4}}\mdline{536}.%mdk
 
-%mdk-data-line={532}
+%mdk-data-line={538}
 \begin{table}[tbp]%mdk
 \begin{mdcenter}%mdk
 \begin{mdtabular}{4}{\dimeval{(\linewidth)/4}}{1ex}%mdk
 \begin{tabular}{llll}\midrule
-\multicolumn{2}{|c}{{\bfseries\mdline{535} Type}}&\multicolumn{1}{|c}{{\bfseries\mdline{535} Bind}}&\multicolumn{1}{c|}{{\bfseries\mdline{535}}}\\
+\multicolumn{2}{|c}{{\bfseries\mdline{541} Type}}&\multicolumn{1}{|c}{{\bfseries\mdline{541} Bind}}&\multicolumn{1}{c|}{{\bfseries\mdline{541}}}\\
 
 \midrule
-\multicolumn{1}{|l}{{\mdcellcolor{gainsboro}}\mdline{537} \mdline{537}\textless{}\mdline{537}}&{\mdcellcolor{gainsboro}}\mdline{537} \mdline{537}\emph{begin type}\mdline{537}&\multicolumn{1}{|l}{{\mdcellcolor{gainsboro}}\mdline{537} \mdline{537}\textasciitilde{}\mdline{537}\textasciitilde{}\mdline{537}}&\multicolumn{1}{l|}{{\mdcellcolor{gainsboro}}\mdline{537} \mdline{537}\emph{get type}\mdline{537}}\\
-\multicolumn{1}{|l}{{\mdcellcolor{floralwhite}}\mdline{538} \mdline{538}\textgreater{}\mdline{538}}&{\mdcellcolor{floralwhite}}\mdline{538} \mdline{538}\emph{end type}\mdline{538}&\multicolumn{1}{|l}{{\mdcellcolor{floralwhite}}\mdline{538} \mdline{538}\textasciicircum{}\mdline{538}}&\multicolumn{1}{l|}{{\mdcellcolor{floralwhite}}\mdline{538} \mdline{538}\emph{bind type}\mdline{538}}\\
-\multicolumn{1}{|l}{{\mdcellcolor{gainsboro}}\mdline{539} \mdline{539}\textasciitilde{}\mdline{539}}&{\mdcellcolor{gainsboro}}\mdline{539}\emph{has type}\mdline{539}&\multicolumn{1}{|l}{{\mdcellcolor{gainsboro}}\mdline{539} \mdline{539}\textasciicircum{}\mdline{539}\textasciicircum{}\mdline{539}}&\multicolumn{1}{l|}{{\mdcellcolor{gainsboro}}\mdline{539}\emph{bind return}\mdline{539}}\\
+\multicolumn{1}{|l}{{\mdcellcolor{gainsboro}}\mdline{543} \mdline{543}\textless{}\mdline{543}}&{\mdcellcolor{gainsboro}}\mdline{543} \mdline{543}\emph{begin type}\mdline{543}&\multicolumn{1}{|l}{{\mdcellcolor{gainsboro}}\mdline{543} \mdline{543}\textasciitilde{}\mdline{543}\textasciitilde{}\mdline{543}}&\multicolumn{1}{l|}{{\mdcellcolor{gainsboro}}\mdline{543} \mdline{543}\emph{get type}\mdline{543}}\\
+\multicolumn{1}{|l}{{\mdcellcolor{floralwhite}}\mdline{544} \mdline{544}\textgreater{}\mdline{544}}&{\mdcellcolor{floralwhite}}\mdline{544} \mdline{544}\emph{end type}\mdline{544}&\multicolumn{1}{|l}{{\mdcellcolor{floralwhite}}\mdline{544} \mdline{544}\textasciicircum{}\mdline{544}}&\multicolumn{1}{l|}{{\mdcellcolor{floralwhite}}\mdline{544} \mdline{544}\emph{bind type}\mdline{544}}\\
+\multicolumn{1}{|l}{{\mdcellcolor{gainsboro}}\mdline{545} \mdline{545}\textasciitilde{}\mdline{545}}&{\mdcellcolor{gainsboro}}\mdline{545}\emph{has type}\mdline{545}&\multicolumn{1}{|l}{{\mdcellcolor{gainsboro}}\mdline{545} \mdline{545}\textasciicircum{}\mdline{545}\textasciicircum{}\mdline{545}}&\multicolumn{1}{l|}{{\mdcellcolor{gainsboro}}\mdline{545}\emph{bind return}\mdline{545}}\\
 \midrule
 \end{tabular}\end{mdtabular}
 
-%mdk-data-line={543}
+%mdk-data-line={549}
 \mdhr{}%mdk
 
-%mdk-data-line={544}
-\noindent\mdline{544}\mdcaption{\textbf{Table~\mdcaptionlabel{4}.}~\mdcaptiontext{Type Operators}}%mdk
+%mdk-data-line={550}
+\noindent\mdline{550}\mdcaption{\textbf{Table~\mdcaptionlabel{4}.}~\mdcaptiontext{Type Operators}}%mdk
 %mdk
 \end{mdcenter}\label{sec-table-type}%mdk
 %mdk
 \end{table}%mdk
 
-%mdk-data-line={545}
-\mdline{545}Note that in HC, type is declared using a pair of operators, not a syntactic
+%mdk-data-line={551}
+\mdline{551}Note that in HC, type is declared using a pair of operators, not a syntactic
 construct. This works because types are just expressions, and thus do not
 need to change the evaluation rules.%mdk
 
-%mdk-data-line={550}
-\paragraph{\mdline{550}The All Type}\label{sec-the-all-type}%mdk%mdk
+%mdk-data-line={556}
+\paragraph{\mdline{556}The All Type}\label{sec-the-all-type}%mdk%mdk
 
-%mdk-data-line={552}
-\noindent\mdline{552}The empty type \mdline{552}\mdcode{\textless{}\textgreater{}}\mdline{552} is known as \mdline{552}\emph{all}\mdline{552}. As the opposite of the empty expression \mdline{552}\mdcode{()}\mdline{552} \mdline{552}\emph{nil}\mdline{552},
-it acts as the boolean \mdline{553}\mdcode{{\mdcolor{navy}true}}\mdline{553} value.%mdk
+%mdk-data-line={558}
+\noindent\mdline{558}The empty type \mdline{558}\mdcode{\textless{}\textgreater{}}\mdline{558} is known as \mdline{558}\emph{all}\mdline{558}. As the opposite of the empty expression \mdline{558}\mdcode{()}\mdline{558} \mdline{558}\emph{nil}\mdline{558},
+it acts as the boolean \mdline{559}\mdcode{{\mdcolor{navy}true}}\mdline{559} value.%mdk
 \begin{mdpre}%mdk
 \noindent;~\textless{}\textgreater{}\\
 {\mdcolor{darkgreen}\#~\textless{}\textgreater{}}\\
@@ -740,43 +760,43 @@ it acts as the boolean \mdline{553}\mdcode{{\mdcolor{navy}true}}\mdline{553} val
 ;~\textless{}\textgreater{}.!\\
 ;~()%mdk
 \end{mdpre}
-%mdk-data-line={564}
-\paragraph{\mdline{564}Type Membership}\label{sec-type-membership}%mdk%mdk
+%mdk-data-line={570}
+\paragraph{\mdline{570}Type Membership}\label{sec-type-membership}%mdk%mdk
 
-%mdk-data-line={566}
-\noindent\mdline{566}The \mdline{566}\emph{has-type}\mdline{566} operator \mdline{566}\mdcode{\textasciitilde{}}\mdline{566} tests whether an object belongs to particular
+%mdk-data-line={572}
+\noindent\mdline{572}The \mdline{572}\emph{has-type}\mdline{572} operator \mdline{572}\mdcode{\textasciitilde{}}\mdline{572} tests whether an object belongs to particular
 type, returning true (all) or false (nil). Every object is a member of
-\mdline{568}\emph{all}\mdline{568}, while nothing is a member of \mdline{568}\emph{nil}\mdline{568}:%mdk
+\mdline{574}\emph{all}\mdline{574}, while nothing is a member of \mdline{574}\emph{nil}\mdline{574}:%mdk
 \begin{mdpre}%mdk
 \noindent;~1~\textasciitilde{}~\textless{}\textgreater{}\\
 {\mdcolor{darkgreen}\#~\textless{}\textgreater{}}\\
 ;~2~\textasciitilde{}~()\\
 ;~()%mdk
 \end{mdpre}
-%mdk-data-line={577}
-\paragraph{\mdline{577}Type Signatures}\label{sec-type-signatures}%mdk%mdk
+%mdk-data-line={583}
+\paragraph{\mdline{583}Type Signatures}\label{sec-type-signatures}%mdk%mdk
 
-%mdk-data-line={579}
-\noindent\mdline{579}We use \mdline{579}\mdcode{\textasciicircum{}}\mdline{579} to specify the type signature of a closure, which may include
+%mdk-data-line={585}
+\noindent\mdline{585}We use \mdline{585}\mdcode{\textasciicircum{}}\mdline{585} to specify the type signature of a closure, which may include
 optional defaults:%mdk
 \begin{mdpre}%mdk
 \noindent;~.join-name~(.first~“{\mdcolor{purple}Jane}”,~.last)~\textasciicircum{}~\{last~“,~”~first\};\\
 ;~join-name~(.first~“{\mdcolor{purple}John}”,~.last~“{\mdcolor{purple}Doe}”)\\
 {\mdcolor{darkgreen}\#~“Doe,~John”}%mdk
-\end{mdpre}\noindent\mdline{587}Types are generous, in that you are allowed to specify additional properties,
+\end{mdpre}\noindent\mdline{593}Types are generous, in that you are allowed to specify additional properties,
 but it is an error to omit properties that do not have a default:
 \begin{mdpre}%mdk
 \noindent;~join-name~(.middle~“{\mdcolor{purple}Q}”,~.last~“{\mdcolor{purple}Doe}”)\\
 {\mdcolor{darkgreen}\#~“Doe,~Jane”}\\
 ;~join-name~(.middle~“{\mdcolor{purple}Q}”)\\
 {\mdcolor{darkgreen}\#~\$!invalid-argument-list~(.middle~“Q”,~\$!missing-required-argument~.last;)}%mdk
-\end{mdpre}\noindent\mdline{596}The return type is usually inferred, but can be specified explicitly using a trailing \mdline{596}\mdcode{\textasciicircum{}\textasciicircum{}}\mdline{596}.
+\end{mdpre}\noindent\mdline{602}The return type is usually inferred, but can be specified explicitly using a trailing \mdline{602}\mdcode{\textasciicircum{}\textasciicircum{}}\mdline{602}.
 
-%mdk-data-line={599}
-\paragraph{\mdline{599}Type Values}\label{sec-type-values}%mdk%mdk
+%mdk-data-line={605}
+\paragraph{\mdline{605}Type Values}\label{sec-type-values}%mdk%mdk
 
-%mdk-data-line={601}
-\noindent\mdline{601}The simplest way to construct a type is to use the \mdline{601}\mdcode{\textasciitilde{}\textasciitilde{}}\mdline{601} operator to extract the type
+%mdk-data-line={607}
+\noindent\mdline{607}The simplest way to construct a type is to use the \mdline{607}\mdcode{\textasciitilde{}\textasciitilde{}}\mdline{607} operator to extract the type
 of a known object:%mdk
 \begin{mdpre}%mdk
 \noindent;~“{\mdcolor{purple}Q}”~\textasciitilde{}~\textasciitilde{}\textasciitilde{}“”\\
@@ -784,47 +804,47 @@ of a known object:%mdk
 ;~“{\mdcolor{purple}Q}”~\textasciitilde{}~\textasciitilde{}\textasciitilde{}1\\
 {\mdcolor{darkgreen}\#~()~\#~false}%mdk
 \end{mdpre}
-%mdk-data-line={612}
-\subsubsection{\mdline{612}2.2.2.\hspace*{0.5em}\mdline{612}Content}\label{sec-content}%mdk%mdk
+%mdk-data-line={618}
+\subsubsection{\mdline{618}2.2.2.\hspace*{0.5em}\mdline{618}Content}\label{sec-content}%mdk%mdk
 
-%mdk-data-line={614}
-\noindent\mdline{614}Homoiconic C defines three content operators, each of which come in three
-flavors as shown in Table\mdline{615}~\mdref{sec-table-content}{\mdcaptionlabel{5}}\mdline{615}.%mdk
+%mdk-data-line={620}
+\noindent\mdline{620}Homoiconic C defines three content operators, each of which come in three
+flavors as shown in Table\mdline{621}~\mdref{sec-table-content}{\mdcaptionlabel{5}}\mdline{621}.%mdk
 
-%mdk-data-line={617}
+%mdk-data-line={623}
 \begin{table}[tbp]%mdk
 \begin{mdcenter}%mdk
 \begin{mdtabular}{4}{\dimeval{(\linewidth)/4}}{1ex}%mdk
 \begin{tabular}{llll}\midrule
-\multicolumn{4}{|c|}{{\bfseries\mdline{619} Content}}\\
-\multicolumn{1}{|c}{{\mdcellcolor{floralwhite}}{\bfseries\mdline{620}Role}}&\multicolumn{1}{|c}{{\mdcellcolor{floralwhite}}{\bfseries\mdline{620} All}}&\multicolumn{1}{|c}{{\mdcellcolor{floralwhite}}{\bfseries\mdline{620} Data}}&\multicolumn{1}{|c|}{{\mdcellcolor{floralwhite}}{\bfseries\mdline{620} Metadata}}\\
+\multicolumn{4}{|c|}{{\bfseries\mdline{625} Content}}\\
+\multicolumn{1}{|c}{{\mdcellcolor{floralwhite}}{\bfseries\mdline{626}Role}}&\multicolumn{1}{|c}{{\mdcellcolor{floralwhite}}{\bfseries\mdline{626} All}}&\multicolumn{1}{|c}{{\mdcellcolor{floralwhite}}{\bfseries\mdline{626} Data}}&\multicolumn{1}{|c|}{{\mdcellcolor{floralwhite}}{\bfseries\mdline{626} Metadata}}\\
 
 \midrule
-\multicolumn{1}{|l}{{\mdcellcolor{gainsboro}}\mdline{622} Equality}&\multicolumn{1}{|l}{{\mdcellcolor{gainsboro}}\mdline{622} \mdline{622}=\mdline{622}}&\multicolumn{1}{|l}{{\mdcellcolor{gainsboro}}\mdline{622} \mdline{622}=\mdline{622}=\mdline{622}}&\multicolumn{1}{|l|}{{\mdcellcolor{gainsboro}}\mdline{622} \mdline{622}=\mdline{622}=\mdline{622}=\mdline{622}}\\
-\multicolumn{1}{|l}{{\mdcellcolor{floralwhite}}\mdline{623} Map}&\multicolumn{1}{|l}{{\mdcellcolor{floralwhite}}\mdline{623} \mdline{623}\textbar{}\mdline{623}}&\multicolumn{1}{|l}{{\mdcellcolor{floralwhite}}\mdline{623} \mdline{623}\textbar{}\mdline{623}\textbar{}\mdline{623}}&\multicolumn{1}{|l|}{{\mdcellcolor{floralwhite}}\mdline{623} \mdline{623}\textbar{}\mdline{623}\textbar{}\mdline{623}\textbar{}\mdline{623}}\\
-\multicolumn{1}{|l}{{\mdcellcolor{gainsboro}}\mdline{624} Fold}&\multicolumn{1}{|l}{{\mdcellcolor{gainsboro}}\mdline{624} \mdline{624}\&\mdline{624}}&\multicolumn{1}{|l}{{\mdcellcolor{gainsboro}}\mdline{624} \mdline{624}\&\mdline{624}\&\mdline{624}}&\multicolumn{1}{|l|}{{\mdcellcolor{gainsboro}}\mdline{624} \mdline{624}\&\mdline{624}\&\mdline{624}\&\mdline{624}}\\
+\multicolumn{1}{|l}{{\mdcellcolor{gainsboro}}\mdline{628} Equality}&\multicolumn{1}{|l}{{\mdcellcolor{gainsboro}}\mdline{628} \mdline{628}=\mdline{628}}&\multicolumn{1}{|l}{{\mdcellcolor{gainsboro}}\mdline{628} \mdline{628}=\mdline{628}=\mdline{628}}&\multicolumn{1}{|l|}{{\mdcellcolor{gainsboro}}\mdline{628} \mdline{628}=\mdline{628}=\mdline{628}=\mdline{628}}\\
+\multicolumn{1}{|l}{{\mdcellcolor{floralwhite}}\mdline{629} Map}&\multicolumn{1}{|l}{{\mdcellcolor{floralwhite}}\mdline{629} \mdline{629}\textbar{}\mdline{629}}&\multicolumn{1}{|l}{{\mdcellcolor{floralwhite}}\mdline{629} \mdline{629}\textbar{}\mdline{629}\textbar{}\mdline{629}}&\multicolumn{1}{|l|}{{\mdcellcolor{floralwhite}}\mdline{629} \mdline{629}\textbar{}\mdline{629}\textbar{}\mdline{629}\textbar{}\mdline{629}}\\
+\multicolumn{1}{|l}{{\mdcellcolor{gainsboro}}\mdline{630} Fold}&\multicolumn{1}{|l}{{\mdcellcolor{gainsboro}}\mdline{630} \mdline{630}\&\mdline{630}}&\multicolumn{1}{|l}{{\mdcellcolor{gainsboro}}\mdline{630} \mdline{630}\&\mdline{630}\&\mdline{630}}&\multicolumn{1}{|l|}{{\mdcellcolor{gainsboro}}\mdline{630} \mdline{630}\&\mdline{630}\&\mdline{630}\&\mdline{630}}\\
 \midrule
 \end{tabular}\end{mdtabular}
 
-%mdk-data-line={628}
+%mdk-data-line={634}
 \mdhr{}%mdk
 
-%mdk-data-line={629}
-\noindent\mdline{629}\mdcaption{\textbf{Table~\mdcaptionlabel{5}.}~\mdcaptiontext{Content Operators}}%mdk
+%mdk-data-line={635}
+\noindent\mdline{635}\mdcaption{\textbf{Table~\mdcaptionlabel{5}.}~\mdcaptiontext{Content Operators}}%mdk
 %mdk
 \end{mdcenter}\label{sec-table-content}%mdk
 %mdk
 \end{table}%mdk
 
-%mdk-data-line={629}
-\mdline{629}These flavors determine whether we consider the whole object, or just the data
+%mdk-data-line={635}
+\mdline{635}These flavors determine whether we consider the whole object, or just the data
 or metadata separately.%mdk
 
-%mdk-data-line={632}
-\paragraph{\mdline{632}Equality}\label{sec-equality}%mdk%mdk
+%mdk-data-line={638}
+\paragraph{\mdline{638}Equality}\label{sec-equality}%mdk%mdk
 
-%mdk-data-line={633}
-\noindent\mdline{633}\mdcode{=}\mdline{633} is the usual equality test:%mdk
+%mdk-data-line={639}
+\noindent\mdline{639}\mdcode{=}\mdline{639} is the usual equality test:%mdk
 \begin{mdpre}%mdk
 \noindent;~.a~{}[{\mdcolor{purple}113},~.p~{\mdcolor{purple}887}];\\
 ;~.b~{}[{\mdcolor{purple}113},~.p~{\mdcolor{purple}661}];\\
@@ -840,54 +860,54 @@ or metadata separately.%mdk
 ;~a~===~c\\
 {\mdcolor{darkgreen}\#~\textless{}\textgreater{}}%mdk
 \end{mdpre}
-%mdk-data-line={650}
-\paragraph{\mdline{650}Iterators}\label{sec-iterators}%mdk%mdk
+%mdk-data-line={656}
+\paragraph{\mdline{656}Iterators}\label{sec-iterators}%mdk%mdk
 
-%mdk-data-line={652}
-\noindent\mdline{652}We use \mdline{652}\mdcode{\textbar{}}\mdline{652} for map, in homage to the UNIX pipeline.%mdk
+%mdk-data-line={658}
+\noindent\mdline{658}We use \mdline{658}\mdcode{\textbar{}}\mdline{658} for map, in homage to the UNIX pipeline.%mdk
 \begin{mdpre}%mdk
 \noindent;~{}[1,~2,~3]~\textbar{}~\{~\_~+~1~\}~{\mdcolor{darkgreen}\#~will~warn,~since~`\_`~is~not~defined~on~generic~frames}\\
 {\mdcolor{darkgreen}\#~{}[2,~3,~4]}%mdk
-\end{mdpre}\noindent\mdline{658}Similarly, we use \mdline{658}\mdcode{\&}\mdline{658} for reduce:
+\end{mdpre}\noindent\mdline{664}Similarly, we use \mdline{664}\mdcode{\&}\mdline{664} for reduce:
 \begin{mdpre}%mdk
 \noindent;~{}[1,~2,~3]~\&~\{~.~+~\_~\}\\
 {\mdcolor{darkgreen}\#~6}%mdk
-\end{mdpre}\noindent\mdline{664}The operators also work with files and network ports, reading one line
+\end{mdpre}\noindent\mdline{670}The operators also work with files and network ports, reading one line
 (or object) at a time, greatly simplifying common I/O operations (a la
-the UNIX shell). See Section\mdline{666} [\#sec-maml]\mdline{666} for an example.
+the UNIX shell). 
 
-%mdk-data-line={668}
-\subsubsection{\mdline{668}2.2.3.\hspace*{0.5em}\mdline{668}Conditionals}\label{sec-conditionals}%mdk%mdk
+%mdk-data-line={674}
+\subsubsection{\mdline{674}2.2.3.\hspace*{0.5em}\mdline{674}Conditionals}\label{sec-conditionals}%mdk%mdk
 
-%mdk-data-line={670}
-\noindent\mdline{670}Homoiconic C\mdline{670}'\mdline{670}s sole conditionals are a pair of binary operators analogous to C\mdline{670}'\mdline{670}s ternary operator,
-albeit with slightly different semantics. These are described in Table\mdline{671}~\mdref{sec-table-cond}{\mdcaptionlabel{6}}\mdline{671}.%mdk
+%mdk-data-line={676}
+\noindent\mdline{676}Homoiconic C\mdline{676}'\mdline{676}s sole conditionals are a pair of binary operators analogous to C\mdline{676}'\mdline{676}s ternary operator,
+albeit with slightly different semantics. These are described in Table\mdline{677}~\mdref{sec-table-cond}{\mdcaptionlabel{6}}\mdline{677}.%mdk
 
-%mdk-data-line={673}
+%mdk-data-line={679}
 \begin{table}[tbp]%mdk
 \begin{mdcenter}%mdk
 \begin{mdtabular}{4}{\dimeval{(\linewidth)/4}}{1ex}%mdk
 \begin{tabular}{llll}\midrule
-\multicolumn{1}{|c}{{\bfseries\mdline{676} Operator}}&\multicolumn{1}{|c}{{\bfseries\mdline{676} Name}}&\multicolumn{1}{|c}{{\bfseries\mdline{676} On Frame}}&\multicolumn{1}{|c|}{{\bfseries\mdline{676} On Nil}}\\
+\multicolumn{1}{|c}{{\bfseries\mdline{682} Operator}}&\multicolumn{1}{|c}{{\bfseries\mdline{682} Name}}&\multicolumn{1}{|c}{{\bfseries\mdline{682} On Frame}}&\multicolumn{1}{|c|}{{\bfseries\mdline{682} On Nil}}\\
 
 \midrule
-\multicolumn{1}{|l}{{\mdcellcolor{gainsboro}}\mdline{678} ?}&\multicolumn{1}{|l}{{\mdcellcolor{gainsboro}}\mdline{678} \mdline{678}\emph{if}\mdline{678}}&\multicolumn{1}{|l}{{\mdcellcolor{gainsboro}}\mdline{678} Call with \mdline{678}\mdcode{()}\mdline{678}}&\multicolumn{1}{|l|}{{\mdcellcolor{gainsboro}}\mdline{678} Return \mdline{678}\mdcode{()}\mdline{678}}\\
-\multicolumn{1}{|l}{{\mdcellcolor{floralwhite}}\mdline{679} :}&\multicolumn{1}{|l}{{\mdcellcolor{floralwhite}}\mdline{679} \mdline{679}\emph{else}\mdline{679}}&\multicolumn{1}{|l}{{\mdcellcolor{floralwhite}}\mdline{679}Return \mdline{679}\mdcode{()}\mdline{679}}&\multicolumn{1}{|l|}{{\mdcellcolor{floralwhite}}\mdline{679} Call with \mdline{679}\mdcode{()}\mdline{679}}\\
+\multicolumn{1}{|l}{{\mdcellcolor{gainsboro}}\mdline{684} ?}&\multicolumn{1}{|l}{{\mdcellcolor{gainsboro}}\mdline{684} \mdline{684}\emph{if}\mdline{684}}&\multicolumn{1}{|l}{{\mdcellcolor{gainsboro}}\mdline{684} Call with \mdline{684}\mdcode{()}\mdline{684}}&\multicolumn{1}{|l|}{{\mdcellcolor{gainsboro}}\mdline{684} Return \mdline{684}\mdcode{()}\mdline{684}}\\
+\multicolumn{1}{|l}{{\mdcellcolor{floralwhite}}\mdline{685} :}&\multicolumn{1}{|l}{{\mdcellcolor{floralwhite}}\mdline{685} \mdline{685}\emph{else}\mdline{685}}&\multicolumn{1}{|l}{{\mdcellcolor{floralwhite}}\mdline{685}Return \mdline{685}\mdcode{()}\mdline{685}}&\multicolumn{1}{|l|}{{\mdcellcolor{floralwhite}}\mdline{685} Call with \mdline{685}\mdcode{()}\mdline{685}}\\
 \midrule
 \end{tabular}\end{mdtabular}
 
-%mdk-data-line={683}
+%mdk-data-line={689}
 \mdhr{}%mdk
 
-%mdk-data-line={684}
-\noindent\mdline{684}\mdcaption{\textbf{Table~\mdcaptionlabel{6}.}~\mdcaptiontext{Conditional Operators}}%mdk
+%mdk-data-line={690}
+\noindent\mdline{690}\mdcaption{\textbf{Table~\mdcaptionlabel{6}.}~\mdcaptiontext{Conditional Operators}}%mdk
 %mdk
 \end{mdcenter}\label{sec-table-cond}%mdk
 %mdk
 \end{table}%mdk
 
-%mdk-data-line={685}
-\mdline{685}Note that these are not special forms, but simply defined with one behavior on nil
+%mdk-data-line={691}
+\mdline{691}Note that these are not special forms, but simply defined with one behavior on nil
 and the opposite on regular frames.%mdk
 \begin{mdpre}%mdk
 \noindent\\
@@ -900,151 +920,151 @@ and the opposite on regular frames.%mdk
 {\mdcolor{darkgreen}\#~()}\\
 ;~()~{\mdcolor{navy}:}~\{2~+~2\}\\
 {\mdcolor{darkgreen}\#~4}%mdk
-\end{mdpre}\noindent\mdline{701}Which, when the first expression does not return nil, acts just like C\mdline{701}'\mdline{701}s ternary
+\end{mdpre}\noindent\mdline{707}Which, when the first expression does not return nil, acts just like C\mdline{707}'\mdline{707}s ternary
 operator:
 \begin{mdpre}%mdk
 \noindent;~1~\textgreater{}~5~{\mdcolor{navy}?}~(2~*~{\mdcolor{purple}50})~{\mdcolor{navy}:}~{\mdcolor{purple}10}\\
 {\mdcolor{darkgreen}\#~10}%mdk
-\end{mdpre}\noindent\mdline{708}Note that applying nil to anything other than a closure has no effect, so
+\end{mdpre}\noindent\mdline{714}Note that applying nil to anything other than a closure has no effect, so
 conditionals work just as well with simple expressions as they do with
 lazy blocks.
 
-%mdk-data-line={712}
-\subsubsection{\mdline{712}2.2.4.\hspace*{0.5em}\mdline{712}Importing Modules}\label{sec-importing-modules}%mdk%mdk
-
-%mdk-data-line={714}
-\noindent\mdline{714}Importing external modules into a program has come a long way from C\mdline{714}'\mdline{714}s
-text-based \mdline{715}\mdcode{{\mdcolor{darkgreen}\#include}}\mdline{715} statement. Modern imports are typically expected
-to perform three roles:%mdk
-
 %mdk-data-line={718}
-\begin{enumerate}[noitemsep,topsep=\mdcompacttopsep]%mdk
-
-%mdk-data-line={718}
-\item\mdline{718}Match a module name with a local package on disk, often downloaded via
-a package manager%mdk
+\subsubsection{\mdline{718}2.2.4.\hspace*{0.5em}\mdline{718}Importing Modules}\label{sec-importing-modules}%mdk%mdk
 
 %mdk-data-line={720}
-\item\mdline{720}Read information from that module%mdk
+\noindent\mdline{720}Importing external modules into a program has come a long way from C\mdline{720}'\mdline{720}s
+text-based \mdline{721}\mdcode{{\mdcolor{darkgreen}\#include}}\mdline{721} statement. Modern imports are typically expected
+to perform three roles:%mdk
 
-%mdk-data-line={721}
-\item\mdline{721}Import names from that module into the current namespace%mdk
+%mdk-data-line={724}
+\begin{enumerate}[noitemsep,topsep=\mdcompacttopsep]%mdk
+
+%mdk-data-line={724}
+\item\mdline{724}Match a module name with a local package on disk, often downloaded via
+a package manager%mdk
+
+%mdk-data-line={726}
+\item\mdline{726}Read information from that module%mdk
+
+%mdk-data-line={727}
+\item\mdline{727}Import names from that module into the current namespace%mdk
 %mdk
 \end{enumerate}%mdk
 
-%mdk-data-line={723}
-\noindent\mdline{723}This functionality must be available as a primitive, since it is necessary
+%mdk-data-line={729}
+\noindent\mdline{729}This functionality must be available as a primitive, since it is necessary
 for adding other functionality.%mdk
 
-%mdk-data-line={726}
-\mdline{726}We use the \mdline{726}\mdcode{\textless{}-}\mdline{726} import operator to match a name against both the online
+%mdk-data-line={732}
+\mdline{732}We use the \mdline{732}\mdcode{\textless{}-}\mdline{732} import operator to match a name against both the online
 registry (TBD) and the local path, and load it into a property with the
-same name. Registry settings can be configured via the \mdline{728}\mdcode{.hconfig}\mdline{728} file.%mdk
+same name. Registry settings can be configured via the \mdline{734}\mdcode{.hconfig}\mdline{734} file.%mdk
 \begin{mdpre}%mdk
 \noindent;~\textless{}-~.{\mdcolor{navy}module};\\
 ;~{\mdcolor{navy}module}\\
 {\mdcolor{darkgreen}\#~(.prop~1,~.another-prop~2)}%mdk
-\end{mdpre}\noindent\mdline{735}We can also bind it to a different name:
+\end{mdpre}\noindent\mdline{741}We can also bind it to a different name:
 \begin{mdpre}%mdk
 \noindent;~.{\mdcolor{navy}alias}~\textless{}-~.{\mdcolor{navy}module};\\
 ;~{\mdcolor{navy}alias}.prop\\
 {\mdcolor{darkgreen}\#~1}%mdk
-\end{mdpre}\noindent\mdline{741}or directly into the current namespace \mdline{741}\mdcode{.}\mdline{741}.
+\end{mdpre}\noindent\mdline{747}or directly into the current namespace \mdline{747}\mdcode{.}\mdline{747}.
 \begin{mdpre}%mdk
 \noindent;~.~\textless{}-~.{\mdcolor{navy}module};\\
 ;~prop\\
 {\mdcolor{darkgreen}\#~1}%mdk
-\end{mdpre}\noindent\mdline{747}While not recommended in general, direct import allows apparently \mdline{747}\textquotedblleft{}built-in\textquotedblright{}\mdline{747}
+\end{mdpre}\noindent\mdline{753}While not recommended in general, direct import allows apparently \mdline{753}\textquotedblleft{}built-in\textquotedblright{}\mdline{753}
 functionality to provided via a prologue, rather than hard-coded into the
-language.  This reflects HC\mdline{749}'\mdline{749}s philosophy to provide the same functionality
+language.  This reflects HC\mdline{755}'\mdline{755}s philosophy to provide the same functionality
 we have as language designers to end users wherever possible.
 
-%mdk-data-line={752}
-\subsection{\mdline{752}2.3.\hspace*{0.5em}\mdline{752}Access Control}\label{sec-access}%mdk%mdk
+%mdk-data-line={758}
+\subsection{\mdline{758}2.3.\hspace*{0.5em}\mdline{758}Access Control}\label{sec-access}%mdk%mdk
 
-%mdk-data-line={754}
-\noindent\mdline{754}Arguably the primary source of bugs, clutter, and complexity in
-programming languages is knowing \mdline{755}\textquotedblleft{}who can perform which actions on what data,\textquotedblright{}\mdline{755}
-which we refer to somewhat loosely as \mdline{756}\textquotedblleft{}access control.\textquotedblright{}\mdline{756} We consider this
-problem so important we spend the bulk of our \mdline{757}\textquotedblleft{}syntactic budget\textquotedblright{}\mdline{757} on
+%mdk-data-line={760}
+\noindent\mdline{760}Arguably the primary source of bugs, clutter, and complexity in
+programming languages is knowing \mdline{761}\textquotedblleft{}who can perform which actions on what data,\textquotedblright{}\mdline{761}
+which we refer to somewhat loosely as \mdline{762}\textquotedblleft{}access control.\textquotedblright{}\mdline{762} We consider this
+problem so important we spend the bulk of our \mdline{763}\textquotedblleft{}syntactic budget\textquotedblright{}\mdline{763} on
 giving programmers an easy way to specify and detect access modes. This
 is done by encoding those rules in the identifiers themselves, as seen in
-Table \{\mdline{760}\#\mdline{760}sec-table-access\}.%mdk
+Table \{\mdline{766}\#\mdline{766}sec-table-access\}.%mdk
 
-%mdk-data-line={762}
+%mdk-data-line={768}
 \begin{table}[tbp]%mdk
 \begin{mdcenter}%mdk
 \begin{mdtabular}{3}{\dimeval{(\linewidth)/3}}{1ex}%mdk
 \begin{tabular}{lll}\midrule
-\multicolumn{1}{|c}{{\bfseries\mdline{765}Privacy}}&\multicolumn{2}{|c|}{{\bfseries\mdline{765} Constancy}}\\
+\multicolumn{1}{|c}{{\bfseries\mdline{771}Privacy}}&\multicolumn{2}{|c|}{{\bfseries\mdline{771} Constancy}}\\
 
 \midrule
-\multicolumn{1}{|l}{{\mdcellcolor{gainsboro}}\mdline{767}  \mdline{767}\emph{public}\mdline{767}}&\multicolumn{1}{|l}{{\mdcellcolor{gainsboro}}\mdline{767} \mdline{767}\emph{variable}\mdline{767}}&\multicolumn{1}{|l|}{{\mdcellcolor{gainsboro}}\mdline{767} \mdline{767}\emph{immutable}\mdline{767}}\\
-\multicolumn{1}{|l}{{\mdcellcolor{floralwhite}}\mdline{768} \mdline{768}\_\mdline{768}\emph{protected}\mdline{768}}&\multicolumn{1}{|l}{{\mdcellcolor{floralwhite}}\mdline{768} \mdline{768}\emph{Constant}\mdline{768}}&\multicolumn{1}{|l|}{{\mdcellcolor{floralwhite}}\mdline{768} \mdline{768}\emph{mutable}\mdline{768}\_\mdline{768}}\\
-\multicolumn{1}{|l}{{\mdcellcolor{gainsboro}}\mdline{769} \mdline{769}\_\mdline{769}\_\mdline{769}\emph{private}\mdline{769}}&\multicolumn{1}{|l}{{\mdcellcolor{gainsboro}}\mdline{769}}&\multicolumn{1}{|l|}{{\mdcellcolor{gainsboro}}\mdline{769} \mdline{769}\emph{mutating}\mdline{769}:}\\
+\multicolumn{1}{|l}{{\mdcellcolor{gainsboro}}\mdline{773}  \mdline{773}\emph{public}\mdline{773}}&\multicolumn{1}{|l}{{\mdcellcolor{gainsboro}}\mdline{773} \mdline{773}\emph{variable}\mdline{773}}&\multicolumn{1}{|l|}{{\mdcellcolor{gainsboro}}\mdline{773} \mdline{773}\emph{immutable}\mdline{773}}\\
+\multicolumn{1}{|l}{{\mdcellcolor{floralwhite}}\mdline{774} \mdline{774}\_\mdline{774}\emph{protected}\mdline{774}}&\multicolumn{1}{|l}{{\mdcellcolor{floralwhite}}\mdline{774} \mdline{774}\emph{Constant}\mdline{774}}&\multicolumn{1}{|l|}{{\mdcellcolor{floralwhite}}\mdline{774} \mdline{774}\emph{mutable}\mdline{774}\_\mdline{774}}\\
+\multicolumn{1}{|l}{{\mdcellcolor{gainsboro}}\mdline{775} \mdline{775}\_\mdline{775}\_\mdline{775}\emph{private}\mdline{775}}&\multicolumn{1}{|l}{{\mdcellcolor{gainsboro}}\mdline{775}}&\multicolumn{1}{|l|}{{\mdcellcolor{gainsboro}}\mdline{775} \mdline{775}\emph{mutating}\mdline{775}:}\\
 \midrule
 \end{tabular}\end{mdtabular}
 
-%mdk-data-line={773}
+%mdk-data-line={779}
 \mdhr{}%mdk
 
-%mdk-data-line={774}
-\noindent\mdline{774}\mdcaption{\textbf{Table~\mdcaptionlabel{7}.}~\mdcaptiontext{Access Modifiers}}%mdk
+%mdk-data-line={780}
+\noindent\mdline{780}\mdcaption{\textbf{Table~\mdcaptionlabel{7}.}~\mdcaptiontext{Access Modifiers}}%mdk
 %mdk
 \end{mdcenter}\label{sec-table-access}%mdk
 %mdk
 \end{table}%mdk
 
-%mdk-data-line={775}
-\mdline{775}Importantly, these are modifiers not different identifiers. So, for example, the
-constant \mdline{776}\mdcode{{\mdcolor{purple}COOL}}\mdline{776} in one scope overrides its case duplicate \mdline{776}\mdcode{cool}\mdline{776} from a
+%mdk-data-line={781}
+\mdline{781}Importantly, these are modifiers not different identifiers. So, for example, the
+constant \mdline{782}\mdcode{{\mdcolor{purple}COOL}}\mdline{782} in one scope overrides its case duplicate \mdline{782}\mdcode{cool}\mdline{782} from a
 parent scope. For natural languages without separate upper and lower
-case, we use an initial letter \mdline{778}\mdcode{{\mdcolor{purple}K}}\mdline{778} to denote the constant version.%mdk
+case, we use an initial letter \mdline{784}\mdcode{{\mdcolor{purple}K}}\mdline{784} to denote the constant version.%mdk
 
-%mdk-data-line={780}
-\subsubsection{\mdline{780}2.3.1.\hspace*{0.5em}\mdline{780}Encapsulation}\label{sec-encapsulation}%mdk%mdk
+%mdk-data-line={786}
+\subsubsection{\mdline{786}2.3.1.\hspace*{0.5em}\mdline{786}Encapsulation}\label{sec-encapsulation}%mdk%mdk
 
-%mdk-data-line={782}
-\noindent\mdline{782}The simplest form of access control is \mdline{782}\emph{encapsulation}\mdline{782}, restricting the ability of
+%mdk-data-line={788}
+\noindent\mdline{788}The simplest form of access control is \mdline{788}\emph{encapsulation}\mdline{788}, restricting the ability of
 external objects to even see certain properties.  Here we follow the informal
 conventions often used in C programs:%mdk
 
-%mdk-data-line={786}
+%mdk-data-line={792}
 \begin{mddefinitions}%mdk
 
 \mddefterm{\noindent{\bfseries\mdcode{public}}}%mdk
 
-%mdk-data-line={786}
+%mdk-data-line={792}
 \begin{mdbmarginx}{}{}{}{1.5em}%mdk
 \begin{mddefdata}%mdk
-\mdline{786}visible to everyone
+\mdline{792}visible to everyone
 %mdk
 \end{mddefdata}%mdk
 \end{mdbmarginx}%mdk
 
 \mddefterm{\noindent{\bfseries\mdcode{\_protected}}}%mdk
 
-%mdk-data-line={788}
+%mdk-data-line={794}
 \begin{mdbmarginx}{}{}{}{1.5em}%mdk
 \begin{mddefdata}%mdk
-\mdline{788}not visible to parents or peers, but still visible to children
+\mdline{794}not visible to parents or peers, but still visible to children
 %mdk
 \end{mddefdata}%mdk
 \end{mdbmarginx}%mdk
 
 \mddefterm{\noindent{\bfseries\mdcode{\_\_private}}}%mdk
 
-%mdk-data-line={790}
+%mdk-data-line={796}
 \begin{mdbmarginx}{}{}{}{1.5em}%mdk
 \begin{mddefdata}%mdk
-\mdline{790}not visible to anyone, even children%mdk
+\mdline{796}not visible to anyone, even children%mdk
 \end{mddefdata}%mdk
 \end{mdbmarginx}%mdk
 %mdk
 \end{mddefinitions}%mdk
 
-%mdk-data-line={793}
-\noindent\mdline{793}For example:%mdk
+%mdk-data-line={799}
+\noindent\mdline{799}For example:%mdk
 \begin{mdpre}%mdk
 \noindent;~.see-me~\{\\
 ~~.my-public-value~{\mdcolor{purple}42};\\
@@ -1066,94 +1086,94 @@ conventions often used in C programs:%mdk
 {\mdcolor{darkgreen}\#~\$!is-private~.my-private-value}\\
 %mdk
 \end{mdpre}
-%mdk-data-line={817}
-\subsubsection{\mdline{817}2.3.2.\hspace*{0.5em}\mdline{817}Effect}\label{sec-effect}%mdk%mdk
+%mdk-data-line={823}
+\subsubsection{\mdline{823}2.3.2.\hspace*{0.5em}\mdline{823}Effect}\label{sec-effect}%mdk%mdk
 
-%mdk-data-line={819}
-\noindent\mdline{819}Rather than specifying \mdline{819}\emph{call-by-value}\mdline{819} or \mdline{819}\emph{call-by-reference}\mdline{819}, HC is
-designed around the BitC\mdline{820}{}[\mdcite{bitc}{2}]\mdline{820} model of effect typing. Shapiro \mdline{820}\emph{et al}\mdline{820}
-proved it is possible to have a sound \mdline{821}\emph{and}\mdline{821} complete systems language if
-we explicitly annotate identifiers for both \mdline{822}\textbf{constancy}\mdline{822} and
-\mdline{823}\textbf{mutability}\mdline{823} (which together we call \mdline{823}\emph{effect}\mdline{823} ) at each context
+%mdk-data-line={825}
+\noindent\mdline{825}Rather than specifying \mdline{825}\emph{call-by-value}\mdline{825} or \mdline{825}\emph{call-by-reference}\mdline{825}, HC is
+designed around the BitC\mdline{826}{}[\mdcite{bitc}{3}]\mdline{826} model of effect typing. Shapiro \mdline{826}\emph{et al}\mdline{826}
+proved it is possible to have a sound \mdline{827}\emph{and}\mdline{827} complete systems language if
+we explicitly annotate identifiers for both \mdline{828}\textbf{constancy}\mdline{828} and
+\mdline{829}\textbf{mutability}\mdline{829} (which together we call \mdline{829}\emph{effect}\mdline{829} ) at each context
 boundary. This gives the compiler enough information to know how and when
 to safely copy or share data structures. Put another way, effect typing
 makes it as easy to allow side effects for performance as it is to
 restrict side effects for safety.%mdk
 
-%mdk-data-line={829}
-\mdline{829} Unfortunately, BitC could not accommodate such annotations within their
- Lisp-like syntax\mdline{830}{}[\mdcite{cite}{1}]\mdline{830}. Inspired by their work, we have designed the
+%mdk-data-line={835}
+\mdline{835} Unfortunately, BitC could not accommodate such annotations within their
+ Lisp-like syntax\mdline{836}{}[\mdcite{cite}{1}]\mdline{836}. Inspired by their work, we have designed the
  syntax of our identifiers to explicitly support effect typing:%mdk
 
-%mdk-data-line={833}
+%mdk-data-line={839}
 \begin{mddefinitions}%mdk
 
 \mddefterm{\noindent{\bfseries\mdcode{variable}}}%mdk
 
-%mdk-data-line={833}
+%mdk-data-line={839}
 \begin{mdbmarginx}{}{}{}{1.5em}%mdk
 \begin{mddefdata}%mdk
-\mdline{833}Does not begin with an uppercase letter. Can be reassigned. 
+\mdline{839}Does not begin with an uppercase letter. Can be reassigned. 
 %mdk
 \end{mddefdata}%mdk
 \end{mdbmarginx}%mdk
 
 \mddefterm{\noindent{\bfseries\mdcode{{\mdcolor{purple}CONSTANT}}}}%mdk
 
-%mdk-data-line={835}
+%mdk-data-line={841}
 \begin{mdbmarginx}{}{}{}{1.5em}%mdk
 \begin{mddefdata}%mdk
-\mdline{835}Begins with uppercase letter. Can \mdline{835}\textbf{not}\mdline{835} be reassigned. 
+\mdline{841}Begins with uppercase letter. Can \mdline{841}\textbf{not}\mdline{841} be reassigned. 
 %mdk
 \end{mddefdata}%mdk
 \end{mdbmarginx}%mdk
 
 \mddefterm{\noindent{\bfseries\mdcode{immutable}}}%mdk
 
-%mdk-data-line={837}
+%mdk-data-line={843}
 \begin{mdbmarginx}{}{}{}{1.5em}%mdk
 \begin{mddefdata}%mdk
-\mdline{837}Has no suffix. Can not be modified in place.
+\mdline{843}Has no suffix. Can not be modified in place.
 %mdk
 \end{mddefdata}%mdk
 \end{mdbmarginx}%mdk
 
 \mddefterm{\noindent{\bfseries\mdcode{mutable\_}}}%mdk
 
-%mdk-data-line={839}
+%mdk-data-line={845}
 \begin{mdbmarginx}{}{}{}{1.5em}%mdk
 \begin{mddefdata}%mdk
-\mdline{839}Trailing underscore. Can be modified in place.
+\mdline{845}Trailing underscore. Can be modified in place.
 %mdk
 \end{mddefdata}%mdk
 \end{mdbmarginx}%mdk
 
 \mddefterm{\noindent{\bfseries\mdcode{mutating\_method{\mdcolor{navy}:}}}}%mdk
 
-%mdk-data-line={841}
+%mdk-data-line={847}
 \begin{mdbmarginx}{}{}{}{1.5em}%mdk
 \begin{mddefdata}%mdk
-\mdline{841}Trailing colon. Can modify its parent context. Returns parent.%mdk
+\mdline{847}Trailing colon. Can modify its parent context. Returns parent.%mdk
 \end{mddefdata}%mdk
 \end{mdbmarginx}%mdk
 %mdk
 \end{mddefinitions}%mdk
 
-%mdk-data-line={845}
-\noindent\mdline{845}Please note that these particular conventions are preliminary, and may
+%mdk-data-line={851}
+\noindent\mdline{851}Please note that these particular conventions are preliminary, and may
 change in future versions based on empirical tests of readability and
 intuitiveness. Since HC is just a data format, we plan to explicitly
 version documents and enable automatic migration between incompatible versions.%mdk
 
-%mdk-data-line={850}
-\paragraph{\mdline{850}Constancy}\label{sec-constancy}%mdk%mdk
+%mdk-data-line={856}
+\paragraph{\mdline{856}Constancy}\label{sec-constancy}%mdk%mdk
 
-%mdk-data-line={852}
-\noindent\mdline{852}BitC\mdline{852}'\mdline{852}s first key insight is that \mdline{852}\emph{constancy}\mdline{852} (whether an identifier can be
-assigned a new value) is distinct from \mdline{853}\emph{mutability}\mdline{853} (whether the
+%mdk-data-line={858}
+\noindent\mdline{858}BitC\mdline{858}'\mdline{858}s first key insight is that \mdline{858}\emph{constancy}\mdline{858} (whether an identifier can be
+assigned a new value) is distinct from \mdline{859}\emph{mutability}\mdline{859} (whether the
 referenced value can be modified in place). In other words, constancy is
-a property of the \mdline{855}\emph{source}\mdline{855} object, whereas mutability is a property of the
-\mdline{856}\emph{destination}\mdline{856} object.%mdk
+a property of the \mdline{861}\emph{source}\mdline{861} object, whereas mutability is a property of the
+\mdline{862}\emph{destination}\mdline{862} object.%mdk
 \begin{mdpre}%mdk
 \noindent;~.variable~{\mdcolor{purple}42};\\
 ;~.{\mdcolor{purple}Constant}~{\mdcolor{purple}21};\\
@@ -1162,31 +1182,31 @@ a property of the \mdline{855}\emph{source}\mdline{855} object, whereas mutabili
 ;~.{\mdcolor{purple}Constant}~7\\
 {\mdcolor{darkgreen}\#~\$error\{\$is-constant~.Constant\}}%mdk
 \end{mdpre}
-%mdk-data-line={867}
-\paragraph{\mdline{867}Mutability}\label{sec-mutability}%mdk%mdk
+%mdk-data-line={873}
+\paragraph{\mdline{873}Mutability}\label{sec-mutability}%mdk%mdk
 
-%mdk-data-line={869}
-\noindent\mdline{869}The second key insight from BitC is that effect is a property of
-\mdline{870}\emph{names}\mdline{870} rather than of \mdline{870}\emph{values}\mdline{870}. Object literals have no effect
-restrictions on their own; this is contrast to, e.g., Apple\mdline{871}'\mdline{871}s Cocoa
-frameworks\mdline{872}{}[\mdcite{cite}{1}]\mdline{872}, where mutability is an inherent part of the object\mdline{872}'\mdline{872}s
+%mdk-data-line={875}
+\noindent\mdline{875}The second key insight from BitC is that effect is a property of
+\mdline{876}\emph{names}\mdline{876} rather than of \mdline{876}\emph{values}\mdline{876}. Object literals have no effect
+restrictions on their own; this is contrast to, e.g., Apple\mdline{877}'\mdline{877}s Cocoa
+frameworks\mdline{878}{}[\mdcite{cite}{1}]\mdline{878}, where mutability is an inherent part of the object\mdline{878}'\mdline{878}s
 constructed type. Instead, every object is in principle mutable, but as
 long as it is only referenced from immutable handles the compiler can
 safely share a single instance between them, avoiding unnecessary copies.%mdk
 
-%mdk-data-line={877}
-\mdline{877}Conversely, objects that are referenced and passed via mutable handles
-are explicitly \mdline{878}\textquotedblleft{}aliases\textquotedblright{}\mdline{878} of each other, so the compiler knows that it
+%mdk-data-line={883}
+\mdline{883}Conversely, objects that are referenced and passed via mutable handles
+are explicitly \mdline{884}\textquotedblleft{}aliases\textquotedblright{}\mdline{884} of each other, so the compiler knows that it
 needs to synchronize changes between local copies, ensure serialization
 between different threads, etc.%mdk
 
-%mdk-data-line={882}
-\mdline{882}In order to ensure both immutable and mutable handles support the same
+%mdk-data-line={888}
+\mdline{888}In order to ensure both immutable and mutable handles support the same
 methods, HC explicitly tracks which methods mutate their parent scope via
-a trailing colon (\mdline{884}\mdcode{{\mdcolor{navy}:}}\mdline{884}). When a mutating method is called on an immutable
-object, it simply performs a \mdline{885}\emph{copy-on-write}\mdline{885}, returning a new object. To
+a trailing colon (\mdline{890}\mdcode{{\mdcolor{navy}:}}\mdline{890}). When a mutating method is called on an immutable
+object, it simply performs a \mdline{891}\emph{copy-on-write}\mdline{891}, returning a new object. To
 enable this, mutating methods can not explicitly return a value, but 
-implicitly return their parent (e.g., \mdline{887}\textquotedblleft{}this\textquotedblright{}\mdline{887}; see Section \{\mdline{887}\#\mdline{887}sec-oops\} for
+implicitly return their parent (e.g., \mdline{893}\textquotedblleft{}this\textquotedblright{}\mdline{893}; see Section \{\mdline{893}\#\mdline{893}sec-oops\} for
 more details).%mdk
 \begin{mdpre}%mdk
 \noindent\\
@@ -1204,59 +1224,59 @@ more details).%mdk
 ;~fixed.accessor()\\
 {\mdcolor{darkgreen}\#~42}%mdk
 \end{mdpre}
-%mdk-data-line={908}
-\section{\mdline{908}3.\hspace*{0.5em}\mdline{908}Applications}\label{sec-applications}%mdk%mdk
+%mdk-data-line={914}
+\section{\mdline{914}3.\hspace*{0.5em}\mdline{914}Applications}\label{sec-applications}%mdk%mdk
 
-%mdk-data-line={910}
-\noindent\mdline{910}While the above language may seem simple to the point of simplistic, it has a 
+%mdk-data-line={916}
+\noindent\mdline{916}While the above language may seem simple to the point of simplistic, it has a 
 surprising amount of power.  Here are a few examples of what it can do.%mdk
 
-%mdk-data-line={913}
-\subsection{\mdline{913}3.1.\hspace*{0.5em}\mdline{913}Congrams}\label{sec-congrams}%mdk%mdk
+%mdk-data-line={919}
+\subsection{\mdline{919}3.1.\hspace*{0.5em}\mdline{919}Congrams}\label{sec-congrams}%mdk%mdk
 
-%mdk-data-line={915}
-\noindent\mdline{915}As mentioned above, HC programs that consist only of literals other than closures 
-are called \mdline{916}\emph{congrams}\mdline{916}, which are just pure data. This provides a 
+%mdk-data-line={921}
+\noindent\mdline{921}As mentioned above, HC programs that consist only of literals other than closures 
+are called \mdline{922}\emph{congrams}\mdline{922}, which are just pure data. This provides a 
 once-in-a-lifetime opportunity to bring rigor and consistency to a variety of organic
-data formats developed over the Internet\mdline{918}'\mdline{918}s brief history.%mdk
+data formats developed over the Internet\mdline{924}'\mdline{924}s brief history.%mdk
 
-%mdk-data-line={920}
-\subsubsection{\mdline{920}3.1.1.\hspace*{0.5em}\mdline{920}HCSV}\label{sec-hcsv}%mdk%mdk
+%mdk-data-line={926}
+\subsubsection{\mdline{926}3.1.1.\hspace*{0.5em}\mdline{926}HCSV}\label{sec-hcsv}%mdk%mdk
 
-%mdk-data-line={922}
-\noindent\mdline{922}Homoiconic C may finally provide a well-defined alternative to the
-ubiquitous CSV\mdline{923}{}[\mdcite{cite}{1}]\mdline{923} file. A properly-structured \mdline{923}\mdcode{.hcsv}\mdline{923} file is just as compact
+%mdk-data-line={928}
+\noindent\mdline{928}Homoiconic C may finally provide a well-defined alternative to the
+ubiquitous CSV\mdline{929}{}[\mdcite{cite}{1}]\mdline{929} file. A properly-structured \mdline{929}\mdcode{.hcsv}\mdline{929} file is just as compact
 as CSV, with two important differences:
-\mdline{925}\emph{ The header row, if any, consists of a list of names
-}\mdline{926} Strings must be (smart) quoted%mdk
+\mdline{931}\emph{ The header row, if any, consists of a list of names
+}\mdline{932} Strings must be (smart) quoted%mdk
 \begin{mdpre}%mdk
 \noindent.first-name,~.last-name,~.phone-number\\
 “{\mdcolor{purple}John}”,~“{\mdcolor{purple}Doe}”,~+1.{\mdcolor{purple}408.555}.{\mdcolor{purple}1212}\\
 “{\mdcolor{purple}Jane}”,~“{\mdcolor{purple}Smith}”,~+1.{\mdcolor{purple}650.555}.{\mdcolor{purple}1212}%mdk
 \end{mdpre}
-%mdk-data-line={933}
-\subsubsection{\mdline{933}3.1.2.\hspace*{0.5em}\mdline{933}HCSON}\label{sec-hcson}%mdk%mdk
+%mdk-data-line={939}
+\subsubsection{\mdline{939}3.1.2.\hspace*{0.5em}\mdline{939}HCSON}\label{sec-hcson}%mdk%mdk
 
-%mdk-data-line={935}
-\noindent\mdline{935}HC can also emulate the popular JSON\mdline{935}{}[\mdcite{cite}{1}]\mdline{935} format, or more precisely its
-CoffeeScript cousin CSON\mdline{936}{}[\mdcite{cite}{1}]\mdline{936}.%mdk
+%mdk-data-line={941}
+\noindent\mdline{941}HC can also emulate the popular JSON\mdline{941}{}[\mdcite{cite}{1}]\mdline{941} format, or more precisely its
+CoffeeScript cousin CSON\mdline{942}{}[\mdcite{cite}{1}]\mdline{942}.%mdk
 \begin{mdpre}%mdk
 \noindent.first-name~“{\mdcolor{purple}John}”,~.last-name~“{\mdcolor{purple}Doe}”,~.phone-number~+1.{\mdcolor{purple}408.555}.{\mdcolor{purple}1212}~~\\
 .first-name~“{\mdcolor{purple}Jane}”,~.last-name~“{\mdcolor{purple}Smith}”,~.phone-number~+1.{\mdcolor{purple}650.555}.{\mdcolor{purple}1212}~~%mdk
 \end{mdpre}
-%mdk-data-line={943}
-\subsection{\mdline{943}3.2.\hspace*{0.5em}\mdline{943}Object-Orientation}\label{sec-object-orientation}%mdk%mdk
-
-%mdk-data-line={945}
-\noindent\mdline{945}Perhaps surprisingly, it is possible to implement a complete object-oriented
-programming system using only the above primitives.  All we need
-are our access control rules plus the super identifier \mdline{947}\mdcode{\_\textasciicircum{}}\mdline{947}.%mdk
-
 %mdk-data-line={949}
-\subsubsection{\mdline{949}3.2.1.\hspace*{0.5em}\mdline{949}Singletons}\label{sec-singletons}%mdk%mdk
+\subsection{\mdline{949}3.2.\hspace*{0.5em}\mdline{949}Object-Orientation}\label{sec-object-orientation}%mdk%mdk
 
 %mdk-data-line={951}
-\noindent\mdline{951}Let\mdline{951}'\mdline{951}s start with a simple singleton object containing private data:%mdk
+\noindent\mdline{951}Perhaps surprisingly, it is possible to implement a complete object-oriented
+programming system using only the above primitives.  All we need
+are our access control rules plus the super identifier \mdline{953}\mdcode{\_\textasciicircum{}}\mdline{953}.%mdk
+
+%mdk-data-line={955}
+\subsubsection{\mdline{955}3.2.1.\hspace*{0.5em}\mdline{955}Singletons}\label{sec-singletons}%mdk%mdk
+
+%mdk-data-line={957}
+\noindent\mdline{957}Let\mdline{957}'\mdline{957}s start with a simple singleton object containing private data:%mdk
 \begin{mdpre}%mdk
 \noindent;~.my-object\_~(\\
 ~~~.\_property~{\mdcolor{purple}13};\\
@@ -1269,11 +1289,11 @@ are our access control rules plus the super identifier \mdline{947}\mdcode{\_\te
 ;~my-object\_.getProperty()\\
 {\mdcolor{darkgreen}\#~13}%mdk
 \end{mdpre}
-%mdk-data-line={966}
-\subsubsection{\mdline{966}3.2.2.\hspace*{0.5em}\mdline{966}Classes}\label{sec-classes}%mdk%mdk
+%mdk-data-line={972}
+\subsubsection{\mdline{972}3.2.2.\hspace*{0.5em}\mdline{972}Classes}\label{sec-classes}%mdk%mdk
 
-%mdk-data-line={968}
-\noindent\mdline{968}To turn that into a class, we simply make it a closure which returns
+%mdk-data-line={974}
+\noindent\mdline{974}To turn that into a class, we simply make it a closure which returns
 a frame analogous to that singleton:%mdk
 \begin{mdpre}%mdk
 \noindent;~.my-{\mdcolor{navy}class}~\{\\
@@ -1285,17 +1305,17 @@ a frame analogous to that singleton:%mdk
 ;~my-instance.getProperty()\\
 {\mdcolor{darkgreen}\#~3}%mdk
 \end{mdpre}
-%mdk-data-line={982}
-\subsubsection{\mdline{982}3.2.3.\hspace*{0.5em}\mdline{982}Inheritance}\label{sec-inheritance}%mdk%mdk
+%mdk-data-line={988}
+\subsubsection{\mdline{988}3.2.3.\hspace*{0.5em}\mdline{988}Inheritance}\label{sec-inheritance}%mdk%mdk
 
-%mdk-data-line={984}
-\noindent\mdline{984}Even inheritance is already accounted for, simply by explicitly specifying
+%mdk-data-line={990}
+\noindent\mdline{990}Even inheritance is already accounted for, simply by explicitly specifying
 its parent scape:%mdk
 \begin{mdpre}%mdk
 \noindent;~.my-subclass~\{\\
 ~~.\_\textasciicircum{}~my-base-{\mdcolor{navy}class}\\
 \};%mdk
-\end{mdpre}\noindent\mdline{993}There is no built-in support for multiple inheritance.  However, because
+\end{mdpre}\noindent\mdline{999}There is no built-in support for multiple inheritance.  However, because
 inheritance is just another expression, you are welcome to define your own:
 \begin{mdpre}%mdk
 \noindent;~.my-inheritance~\{~“create~your~own”~\};\\
@@ -1303,29 +1323,29 @@ inheritance is just another expression, you are welcome to define your own:
 ~~.\_\textasciicircum{}~my-inheritance~{}[my-base,~another-base]\\
 \};%mdk
 \end{mdpre}
-%mdk-data-line={1003}
-\section{\mdline{1003}4.\hspace*{0.5em}\mdline{1003}Implementation}\label{sec-implementation}%mdk%mdk
+%mdk-data-line={1009}
+\section{\mdline{1009}4.\hspace*{0.5em}\mdline{1009}Implementation}\label{sec-implementation}%mdk%mdk
 
-%mdk-data-line={1005}
-\noindent\mdline{1005} Homoiconic C is available as the \mdline{1005}\mdcode{hc}\mdline{1005} interpreter via the \mdline{1005}\mdcode{hclang}\mdline{1005}
+%mdk-data-line={1011}
+\noindent\mdline{1011} Homoiconic C is available as the \mdline{1011}\mdcode{hc}\mdline{1011} interpreter via the \mdline{1011}\mdcode{hclang}\mdline{1011}
  node.js module, written in TypeScript.%mdk
 \begin{mdpre}%mdk
 \noindent{\mdcolor{purple}\$}~npm~install~-g~hclang\\
 {\mdcolor{purple}\$}~hc~-e~{\mdcolor{maroon}"}{\mdcolor{maroon}“Hello,~”~“Homoiconic~C!”}{\mdcolor{maroon}"}%mdk
-\end{mdpre}\noindent\mdline{1011}It is under active development, and available on GitHub\mdline{1011}{}[\mdcite{cite}{1}]\mdline{1011} under
+\end{mdpre}\noindent\mdline{1017}It is under active development, and available on GitHub\mdline{1017}{}[\mdcite{cite}{1}]\mdline{1017} under
 the MIT Open Source license.
 
-%mdk-data-line={1014}
-\subsection{\mdline{1014}4.1.\hspace*{0.5em}\mdline{1014}Architecture}\label{sec-architecture}%mdk%mdk
+%mdk-data-line={1020}
+\subsection{\mdline{1020}4.1.\hspace*{0.5em}\mdline{1020}Architecture}\label{sec-architecture}%mdk%mdk
 
-%mdk-data-line={1016}
-\noindent\mdline{1016}The core runtime objects live in the \mdline{1016}\mdcode{src/frames}\mdline{1016} directory, where they 
+%mdk-data-line={1022}
+\noindent\mdline{1022}The core runtime objects live in the \mdline{1022}\mdcode{src/frames}\mdline{1022} directory, where they 
 are implemented as TypeScript classes.  Generally speaking there is
 one class for each primitive and aggregate frame, plus abstract classes for
 the generic Frame, FrameAtom, and FrameList.%mdk
 
-%mdk-data-line={1021}
-\mdline{1021}The interpreter lives in the \mdline{1021}\mdcode{src/execute}\mdline{1021} directory, and is also
+%mdk-data-line={1027}
+\mdline{1027}The interpreter lives in the \mdline{1027}\mdcode{src/execute}\mdline{1027} directory, and is also
 implemented using frames. Every frame knows how it is represented, and
 the lexer uses that information to dynamically generate a lookup table
 from a list of frame classes. Strings iterate as a list of symbols, so
@@ -1333,261 +1353,329 @@ the lexer generates tokens from the input string by evaluating
 evaluating a specialized program. Similarly, terminals act as controls
 grouping tokens into expressions and aggregates.%mdk
 
-%mdk-data-line={1029}
-\mdline{1029}Finally, operator bindings and currying are defined in \mdline{1029}\mdcode{src/ops}\mdline{1029}, and a
-preliminary wrapping of HTML called MAML lives in the \mdline{1030}\mdcode{src/maml}\mdline{1030} directory.%mdk
+%mdk-data-line={1035}
+\mdline{1035}Finally, operator bindings and currying are defined in \mdline{1035}\mdcode{src/ops}\mdline{1035}, and a
+preliminary wrapping of HTML called MAML lives in the \mdline{1036}\mdcode{src/maml}\mdline{1036} directory.%mdk
 
-%mdk-data-line={1032}
-\subsection{\mdline{1032}4.2.\hspace*{0.5em}\mdline{1032}Status}\label{sec-status}%mdk%mdk
+%mdk-data-line={1038}
+\subsection{\mdline{1038}4.2.\hspace*{0.5em}\mdline{1038}Status}\label{sec-status}%mdk%mdk
 
-%mdk-data-line={1034}
-\noindent\mdline{1034}As of April 2017, the implementation is about 30\% complete. We have
+%mdk-data-line={1040}
+\noindent\mdline{1040}As of April 2017, the implementation is about 30\% complete. We have
 implemented the core runtime frames and the parsing pipeline, and are
 able to evaluate simple expressions as arguments to the command-line.
 Supporting the remaining primitives and aggregates, as well as
 implementing a full REPL, should be fairly straightforward.%mdk
 
-%mdk-data-line={1040}
-\mdline{1040}To date we have only implemented a single operator, iteration over
+%mdk-data-line={1046}
+\mdline{1046}To date we have only implemented a single operator, iteration over
 properties. This is enough to serve as a proof-of-concept, though it will
 undoubtedly need to be refactored to support the full range of operators.%mdk
 
-%mdk-data-line={1044}
-\mdline{1044}We have not yet begun to implement access control, though we have a high
+%mdk-data-line={1050}
+\mdline{1050}We have not yet begun to implement access control, though we have a high
 degree of confidence in the design based on previous prototypes.  The design
 of the overall type system is somewhat less mature, especially where it overlaps
 with inheritance. This is also the case for the module system, which is still
 in the conceptual stage.%mdk
 
-%mdk-data-line={1050}
-\subsection{\mdline{1050}4.3.\hspace*{0.5em}\mdline{1050}Next Steps}\label{sec-next-steps}%mdk%mdk
+%mdk-data-line={1056}
+\subsection{\mdline{1056}4.3.\hspace*{0.5em}\mdline{1056}Next Steps}\label{sec-next-steps}%mdk%mdk
 
-%mdk-data-line={1052}
-\subsubsection{\mdline{1052}4.3.1.\hspace*{0.5em}\mdline{1052}Documentation-Driven Development}\label{sec-documentation-driven-development}%mdk%mdk
+%mdk-data-line={1058}
+\subsubsection{\mdline{1058}4.3.1.\hspace*{0.5em}\mdline{1058}Documentation-Driven Development}\label{sec-documentation-driven-development}%mdk%mdk
 
-%mdk-data-line={1054}
-\noindent\mdline{1054}The first priority is obviously completing the interpreter. The main tool
-we plan to use to get there is enabling \mdline{1055}\textbf{executable documentation}\mdline{1055}.%mdk
+%mdk-data-line={1060}
+\noindent\mdline{1060}The first priority is obviously completing the interpreter. The main tool
+we plan to use to get there is enabling \mdline{1061}\textbf{executable documentation}\mdline{1061}.%mdk
 
-%mdk-data-line={1057}
-\mdline{1057}This document, for example, is written in a dialect of Markdown called
-Madoko\mdline{1058}{}[\mdcite{cite}{1}]\mdline{1058} which uses triple back-quotes (\mdline{1058}\textquotedblleft{}```\textquotedblright{}\mdline{1058}) to delimit code
+%mdk-data-line={1063}
+\mdline{1063}This document, for example, is written in a dialect of Markdown called
+Madoko\mdline{1064}{}[\mdcite{cite}{1}]\mdline{1064} which uses triple back-quotes (\mdline{1064}\textquotedblleft{}```\textquotedblright{}\mdline{1064}) to delimit code
 fragments. We could invert that by having Homoiconic C use those quotes
 as the delimiters for doc-strings, so it can directly (and sequentially)
 evaluate the code fragments. Next, we add an input stage that tracks the
 raw source, and an output stage treats the semicolon-hashtag pairs as
 acceptance tests.%mdk
 
-%mdk-data-line={1065}
-\mdline{1065}Once that is in place, we can literally run our documentation simply by prefixing
-this file with:
-\mdline{1067}\mdcode{\\
-{\mdcolor{darkgreen}\#!/usr/bin/env~hc~-doctest}\\
-\textbackslash{}}\mdline{1069}`\mdline{1069}`\mdline{1069}
-\mdline{1070}`\mdline{1070}%mdk
+%mdk-data-line={1071}
+\mdline{1071}Once that is in place, we can literally run our documentation simply by prefixing
+this file with:%mdk
+\begin{mdpre}%mdk
+\noindent{\mdcolor{darkgreen}\#!/usr/bin/env~hc~-doctest}\\
+\textbackslash{}{\mdcolor{maroon}`}{\mdcolor{gray}\textbackslash{}`}{\mdcolor{gray}\textbackslash{}`}%mdk
+\end{mdpre}\noindent\mdline{1078}The process would thus involve rewriting the documentation and 
+the source code together until they are both complete and consistent. 
 
-%mdk-data-line={1072}
-\mdline{1072}The process would thus involve rewriting the documentation and 
-the source code together until they are both complete and consistent.%mdk
+%mdk-data-line={1081}
+\subsubsection{\mdline{1081}4.3.2.\hspace*{0.5em}\mdline{1081}Compilation}\label{sec-compilation}%mdk%mdk
 
-%mdk-data-line={1075}
-\subsubsection{\mdline{1075}4.3.2.\hspace*{0.5em}\mdline{1075}Compilation}\label{sec-compilation}%mdk%mdk
-
-%mdk-data-line={1077}
-\noindent\mdline{1077}Once the interpreter is finished, we plan to work on a self-hosting
-transpiler. Written in Homoiconic C, it would convert \mdline{1078}\mdcode{.hc}\mdline{1078} files
+%mdk-data-line={1083}
+\noindent\mdline{1083}Once the interpreter is finished, we plan to work on a self-hosting
+transpiler. Written in Homoiconic C, it would convert \mdline{1084}\mdcode{.hc}\mdline{1084} files
 directly into executable JavaScript. This may be rather heavyweight,
 however, since all the JavaScript objects would be Frame
 instances.%mdk
 
-%mdk-data-line={1083}
-\mdline{1083}The second step would be compiling directly to \mdline{1083}\mdcode{asm.js}\mdline{1083}{}[\mdcite{cite}{1}]\mdline{1083}/
-WebBinary\mdline{1084}{}[\mdcite{cite}{1}]\mdline{1084}. In particular, the goal would be to first wrap asm.js
-as a \mdline{1085}\textquotedblleft{}congram\textquotedblright{}\mdline{1085} so that it can be easily manipulated directly from Homiconic C.%mdk
+%mdk-data-line={1089}
+\mdline{1089}The second step would be compiling directly to \mdline{1089}\mdcode{asm.js}\mdline{1089}{}[\mdcite{cite}{1}]\mdline{1089}/
+WebBinary\mdline{1090}{}[\mdcite{cite}{1}]\mdline{1090}. In particular, the goal would be to first wrap asm.js
+as a \mdline{1091}\textquotedblleft{}congram\textquotedblright{}\mdline{1091} so that it can be easily manipulated directly from Homoiconic C.%mdk
 
-%mdk-data-line={1087}
-\mdline{1087}That experience would serve as a useful stepping stone towards a true
-native code compiler. Rather than simply using LLVM\mdline{1088}{}[\mdcite{cite}{1}]\mdline{1088}, we would
+%mdk-data-line={1093}
+\mdline{1093}That experience would serve as a useful stepping stone towards a true
+native code compiler. Rather than simply using LLVM\mdline{1094}{}[\mdcite{cite}{1}]\mdline{1094}, we would
 prefer to use that opportunity to reexamine the very nature of
 intermediate representations and assembly language. The theory underlying
-Homoiconic C suggests that \mdline{1091}\textquotedblleft{}switching circuits\textquotedblright{}\mdline{1091} may do a better job of
+Homoiconic C suggests that \mdline{1097}\textquotedblleft{}switching circuits\textquotedblright{}\mdline{1097} may do a better job of
 abstracting the underlying electronics than traditional von Neumann
-architectures\mdline{1093}{}[\mdcite{cite}{1}]\mdline{1093}. While admittedly a long shot, if successful it
+architectures\mdline{1099}{}[\mdcite{cite}{1}]\mdline{1099}. While admittedly a long shot, if successful it
 could enable dramatic breakthroughs in performance, power consumption,
 and hardware evolution.%mdk
 
-%mdk-data-line={1098}
-\section{\mdline{1098}5.\hspace*{0.5em}\mdline{1098}Reflections}\label{sec-reflections}%mdk%mdk
-
-%mdk-data-line={1100}
-\subsection{\mdline{1100}5.1.\hspace*{0.5em}\mdline{1100}Related Work}\label{sec-related-work}%mdk%mdk
-
-%mdk-data-line={1104}
-\begin{itemize}[noitemsep,topsep=\mdcompacttopsep]%mdk
-
-%mdk-data-line={1104}
-\item\mdline{1104}\href{www.cs.jhu.edu/~swaroop/aplas.pdf}{BitC}\mdline{1104}%mdk
+%mdk-data-line={1103}
+\section{\mdline{1103}5.\hspace*{0.5em}\mdline{1103}Related Work}\label{sec-related-work}%mdk%mdk
 
 %mdk-data-line={1105}
-\item\mdline{1105}\href{http://www.vpri.org/pdf/tr2008004_steps08.pdf}{STEPS}\mdline{1105}%mdk
-
-%mdk-data-line={1106}
-\item\mdline{1106}\href{http://www.informit.com/articles/article.aspx?p=27567}{Water}\mdline{1106}%mdk
+\subsection{\mdline{1105}5.1.\hspace*{0.5em}\mdline{1105}BitC}\label{sec-bitc}%mdk%mdk
 
 %mdk-data-line={1107}
-\item\mdline{1107}\href{https://mathematica.stackexchange.com/questions/2335/metaprogramming-in-mathematica}{Mathematica}\mdline{1107}%mdk
-
-%mdk-data-line={1108}
-\item\mdline{1108}\href{https://julialang.org}{Julia}\mdline{1108}%mdk
-%mdk
-\end{itemize}%mdk
-
-%mdk-data-line={1110}
-\subsection{\mdline{1110}5.2.\hspace*{0.5em}\mdline{1110}Future Directions}\label{sec-future-directions}%mdk%mdk
-
-%mdk-data-line={1112}
-\subsection{\mdline{1112}5.3.\hspace*{0.5em}\mdline{1112}Implications}\label{sec-implications}%mdk%mdk
+\noindent\mdline{1107}Homoiconic C could be considered a reincarnation of the BitC\mdline{1107}{}[\mdcite{bitc}{3}]\mdline{1107}
+project, which attempted to add a \mdline{1108}\textquotedblleft{}bit of C\textquotedblright{}\mdline{1108} to Lisp in order to bring
+rigor to systems programming. As far as we know, they are the only group
+to have tackled the gap between the elegance of lambda calculus and
+efficient use of actual computing hardware. They appeared to have stalled
+due to a lack of funding, and also the difficultly of grafting a rich
+enough type system onto Lisp syntax.%mdk
 
 %mdk-data-line={1115}
-\section{\mdline{1115}6.\hspace*{0.5em}\mdline{1115}Conclusion}\label{sec-conclusion}%mdk%mdk
+\mdline{1115}Homoiconic C hopes to avoid those problems through the pursuit of extreme
+simplicity. We start with a variant of the Lisp evaluation model
+explicitly designed to work with numbers and strings, not just lists.
+Next, we carefully design our identifiers to encode the critical
+information needed for \mdline{1119}\textquotedblleft{}sound and complete type inference\textquotedblright{}\mdline{1119} across
+invocation boundaries. Finally, we leverage Open Source to bootstrap the
+project so that we are not dependent on external funding.%mdk
 
-%mdk-data-line={1117}
-\noindent\mdline{1117}We believe the historical accident of confusing computation with
+%mdk-data-line={1123}
+\subsection{\mdline{1123}5.2.\hspace*{0.5em}\mdline{1123}Julia}\label{sec-julia}%mdk%mdk
+
+%mdk-data-line={1125}
+\noindent\mdline{1125}Though developed  independently, Homoiconic C shares many goals and features
+with the emerging Julia\mdline{1126}{}[\mdcite{julia}{5}]\mdline{1126} language for numerical computing:
+\mdline{1127}\emph{ multiple dispatch
+}\mdline{1128} homoiconicity, macros, and meta-programming
+\mdline{1129}*\mdline{1129} a type system optimized for performance%mdk
+
+%mdk-data-line={1131}
+\mdline{1131}We admire and hope to emulate Julia\mdline{1131}'\mdline{1131}s achievements, particularly in terms
+of interoperability with existing languages and creative support for
+concurrency. Though Julia is currently far ahead in terms of both
+implementation and ecosystem, we believe that HC\mdline{1134}'\mdline{1134}s use of BitC\mdline{1134}'\mdline{1134}s type
+system plus the extreme simplicity of the syntax and implementation will
+still enable us to provide a compelling alternative.%mdk
+
+%mdk-data-line={1138}
+\subsection{\mdline{1138}5.3.\hspace*{0.5em}\mdline{1138}Mathematica}\label{sec-mathematica}%mdk%mdk
+
+%mdk-data-line={1140}
+\noindent\mdline{1140}The most widely used homoiconic language in use today is probably
+Mathematica\mdline{1141}~{}[\mdcite{mathematica}{7}]\mdline{1141}. However, despite several notable attempts to
+broaden its reach, Mathematica remains primarily a prototyping tool
+within Wolfram\mdline{1143}'\mdline{1143}s products rather than remains primarily a prototyping
+tool within Wolfram\mdline{1144}'\mdline{1144}s products rather than a general-purpose language\mdline{1144}{}[\mdcite{mathematicaprototype}{8}]\mdline{1144}.%mdk
+
+%mdk-data-line={1146}
+\subsection{\mdline{1146}5.4.\hspace*{0.5em}\mdline{1146}STEPS}\label{sec-steps}%mdk%mdk
+
+%mdk-data-line={1148}
+\noindent\mdline{1148}Homoiconic C was also inspired by and shares many goals with Alan Kay\mdline{1148}'\mdline{1148}s
+ambitious STEPS\mdline{1149}~{}[\mdcite{steps}{2}]\mdline{1149} project for reinventing programming. From our
+perspective, the tragic flaw with his approach was starting from the
+(admittedly ubiquitous) assumption that computation should be built upon
+mathematics. Despite a promising start at replacing operating systems
+with a robust language runtime, the project appeared to eventually
+collapse under the weight of its leaky abstractions.%mdk
+
+%mdk-data-line={1156}
+\mdline{1156}We believe it is possible to achieve his dream by building on a different
+foundation. Rather than the traditional mantra of \mdline{1157}\textquotedblleft{}Sequence, Selection,
+and Repetition\textquotedblright{}\mdline{1158}, Homoiconic C is build around \mdline{1158}\textquotedblleft{}Dependency, Effect, and
+Interrupts.\textquotedblright{}\mdline{1159} We believe this choice of basis enables us to generate
+\mdline{1160}\textquotedblleft{}leak-proof\textquotedblright{}\mdline{1160} abstractions that scale seamlessly from individual circuits to complex distributed
+platforms.%mdk
+
+%mdk-data-line={1163}
+\subsection{\mdline{1163}5.5.\hspace*{0.5em}\mdline{1163}Water}\label{sec-water}%mdk%mdk
+
+%mdk-data-line={1165}
+\noindent\mdline{1165}The idea of expressing programs in a data format is not in itself new. A
+relatively modern attempt was Water\mdline{1166}{}[\mdcite{water}{6}]\mdline{1166}, which attempted to program
+web applications using a more concise variant of XML. Though extremely
+clever, it suffered not just from the awkwardness of XML as a data
+format, but from the use of existing imperative programming paradigms.%mdk
+
+%mdk-data-line={1171}
+\mdline{1171}HC plan to avoid that fate by adopting the more streamlined dataflow paradigm,
+supported by a custom-designed data format optimized for readability.%mdk
+
+%mdk-data-line={1175}
+\section{\mdline{1175}6.\hspace*{0.5em}\mdline{1175}Conclusion}\label{sec-conclusion}%mdk%mdk
+
+%mdk-data-line={1177}
+\noindent\mdline{1177}We believe the historical accident of confusing computation with
 mathematics and programming with natural languages has resulted in
 massive accidental complexity. We believe this is a primary cause of the
 buggy software, complicated tools, and steep learning curve that plague software
 engineering today.%mdk
 
-%mdk-data-line={1123}
-\mdline{1123}By eliminated that complexity, Homoiconic C hopes to usher in a new
+%mdk-data-line={1183}
+\mdline{1183}By eliminated that complexity, Homoiconic C hopes to usher in a new
 Golden Age of software that is:
-\mdline{1125}\emph{ Inherently and provably secure 
-}\mdline{1126} Both inherently efficient and easily optimized
-\mdline{1127}\emph{ Easy to learn, read, and modify
-}\mdline{1128} Trivial to statically analyze, visualize, and automatically evolve%mdk
+\mdline{1185}\emph{ Inherently and provably secure 
+}\mdline{1186} Both inherently efficient and easily optimized
+\mdline{1187}\emph{ Easy to learn, read, and modify
+}\mdline{1188} Trivial to statically analyze, visualize, and automatically evolve%mdk
 
-%mdk-data-line={1130}
-\mdline{1130}If Homoiconic C fulfills that promise, we can finally make programming an
+%mdk-data-line={1190}
+\mdline{1190}If Homoiconic C fulfills that promise, we can finally make programming an
 everyday skill, used by ordinary people (even children) to solve the
-problems \mdline{1132}\emph{they}\mdline{1132} care about, in the same way they use writing and
-arithmetic. Not everyone will be an expert or professional programmer\mdline{1133} \mdline{1133}\textendash{}\mdline{1133}
-anymore than everyone who sings is an expert or professional musician\mdline{1134} \mdline{1134}\textendash{}\mdline{1134}
+problems \mdline{1192}\emph{they}\mdline{1192} care about, in the same way they use writing and
+arithmetic. Not everyone will be an expert or professional programmer\mdline{1193} \mdline{1193}\textendash{}\mdline{1193}
+anymore than everyone who sings is an expert or professional musician\mdline{1194} \mdline{1194}\textendash{}\mdline{1194}
 but the ability to read, understand, and personalize code will be
 available to all.%mdk
 
-%mdk-data-line={1138}
-\mdline{1138}It may be true that there is no silver bullet\mdline{1138}{}[\mdcite{cite}{1}]\mdline{1138}.   But we believe
-Homoiconic C can at least be a \mdline{1139}\textquotedblleft{}diamond sword\textquotedblright{}\mdline{1139}, enabling courageous individuals
+%mdk-data-line={1198}
+\mdline{1198}It may be true that there is no silver bullet\mdline{1198}{}[\mdcite{cite}{1}]\mdline{1198}.   But we believe
+Homoiconic C can at least be a \mdline{1199}\textquotedblleft{}diamond sword\textquotedblright{}\mdline{1199}, enabling courageous individuals
 to bring safety, performance, usability, and clarity to the software that
 impacts their corner of the world.  We hope you will join us on that quest.%mdk
 
-%mdk-data-line={1144}
-\section{\mdline{1144}7.\hspace*{0.5em}\mdline{1144}Appendices}\label{sec-appendices}%mdk%mdk
+%mdk-data-line={1204}
+\section{\mdline{1204}7.\hspace*{0.5em}\mdline{1204}Appendices}\label{sec-appendices}%mdk%mdk
 
-%mdk-data-line={1146}
-\subsection{\mdline{1146}7.1.\hspace*{0.5em}\mdline{1146}Appendix A. On Turing Completeness}\label{sec-appendix-a-on-turing-completeness}%mdk%mdk
+%mdk-data-line={1206}
+\subsection{\mdline{1206}7.1.\hspace*{0.5em}\mdline{1206}Appendix A. On Turing Completeness}\label{sec-appendix-a-on-turing-completeness}%mdk%mdk
 
-%mdk-data-line={1148}
-\noindent\mdline{1148}Turing undecidability, like Godelian incompleteness, starts by assuming
-\mdline{1149}\textquotedblleft{}basic arithmetic\textquotedblright{}\mdline{1149} (add, subtract, multiply, divide)\mdline{1149} \mdline{1149}\textendash{}\mdline{1149} i.e. the Peano
-Axioms. However, this glosses over the fact that division is a \mdline{1150}\textquotedblleft{}type
-violation\textquotedblright{}\mdline{1151}, and can\mdline{1151}'\mdline{1151}t be fully represented using the same data structures
+%mdk-data-line={1208}
+\noindent\mdline{1208}Turing undecidability, like Godelian incompleteness, starts by assuming
+\mdline{1209}\textquotedblleft{}basic arithmetic\textquotedblright{}\mdline{1209} (add, subtract, multiply, divide)\mdline{1209} \mdline{1209}\textendash{}\mdline{1209} i.e. the Peano
+Axioms. However, this glosses over the fact that division is a \mdline{1210}\textquotedblleft{}type
+violation\textquotedblright{}\mdline{1211}, and can\mdline{1211}'\mdline{1211}t be fully represented using the same data structures
 as for addition and subtraction.%mdk
 
-%mdk-data-line={1154}
-\mdline{1154}We believe that a better starting point for modeling computation are the
+%mdk-data-line={1214}
+\mdline{1214}We believe that a better starting point for modeling computation are the
 Presburger Axioms. These give up multiplication and division as
 first-class operations (though you can emulate them to some extent using
 repeated addition and subtraction, respectively). The big win, though, is
-that Presburger arithmetic is both consistent \mdline{1158}\textbf{and}\mdline{1158} complete. This
+that Presburger arithmetic is both consistent \mdline{1218}\textbf{and}\mdline{1218} complete. This
 eliminates the halting problem, and massively simplifies analyses (though
 it may restrict what is possible).%mdk
 
-%mdk-data-line={1162}
-\mdline{1162}Instead of Turing completeness, we prefer to focus on \mdline{1162}\textquotedblleft{}Circuit
-Universality\textquotedblright{}\mdline{1163} (a la Scott Aaronson): the ability to represent the effect
+%mdk-data-line={1222}
+\mdline{1222}Instead of Turing completeness, we prefer to focus on \mdline{1222}\textquotedblleft{}Circuit
+Universality\textquotedblright{}\mdline{1223} (a la Scott Aaronson): the ability to represent the effect
 of any Boolean circuit, including multiple levels of abstraction above
 them.%mdk
 
-%mdk-data-line={1167;out/hc-paper-enp-bib.bbl.mdk:1}
-%mdk-data-line={1167;out/hc-paper-enp-bib.bbl.mdk:2}
+%mdk-data-line={1227;out/hc-paper-enp-bib.bbl.mdk:1}
+%mdk-data-line={1227;out/hc-paper-enp-bib.bbl.mdk:2}
 \mdsetrefname{References}%mdk
 {\mdbibindent{0}%mdk
-\begin{thebibliography}{13}%mdk
+\begin{thebibliography}{17}%mdk
 \label{sec-bibliography}%mdk
 
-%mdk-data-line={1167;out/hc-paper-enp-bib.bbl.mdk:7}
-\bibitem{cite}\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:8}\mdbibitemlabel{}\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:8}Anonymous.
-\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:9}\newblock \mdline{1167;out/hc-paper-enp-bib.bbl.mdk:9} \mdline{1167;out/hc-paper-enp-bib.bbl.mdk:9}\emph{Citation Needed}\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:9}\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:9}.
-\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:10}\newblock \mdline{1167;out/hc-paper-enp-bib.bbl.mdk:10} N/A, 1900.\label{cite}%mdk%mdk
+%mdk-data-line={1227;out/hc-paper-enp-bib.bbl.mdk:7}
+\bibitem{cite}\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:8}\mdbibitemlabel{}\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:8}Anonymous.
+\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:9}\newblock \mdline{1227;out/hc-paper-enp-bib.bbl.mdk:9} \mdline{1227;out/hc-paper-enp-bib.bbl.mdk:9}\emph{Citation Needed}\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:9}\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:9}.
+\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:10}\newblock \mdline{1227;out/hc-paper-enp-bib.bbl.mdk:10} N/A, 2000.\label{cite}%mdk%mdk
 
-%mdk-data-line={1167;out/hc-paper-enp-bib.bbl.mdk:13}
-\bibitem{bitc}\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:14}\mdbibitemlabel{}\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:14}Shapiro et\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:14}~\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:14}al.
-\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:15}\newblock \mdline{1167;out/hc-paper-enp-bib.bbl.mdk:15} Sound and complete type inference in a systems language.
-\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:16}\newblock \mdline{1167;out/hc-paper-enp-bib.bbl.mdk:16} \mdline{1167;out/hc-paper-enp-bib.bbl.mdk:16}\emph{Stub}\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:16}\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:16}, 1900.
-\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:17}\newblock \mdline{1167;out/hc-paper-enp-bib.bbl.mdk:17} URL \mdline{1167;out/hc-paper-enp-bib.bbl.mdk:17}\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:17}.\label{bitc}%mdk%mdk
+%mdk-data-line={1227;out/hc-paper-enp-bib.bbl.mdk:13}
+\bibitem{steps}\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:14}\mdbibitemlabel{}\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:14}Alan\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:14}~\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:14}Kay et\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:14}~\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:14}al.
+\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:15}\newblock \mdline{1227;out/hc-paper-enp-bib.bbl.mdk:15} Steps toward the reinvention of programming.
+\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:16}\newblock \mdline{1227;out/hc-paper-enp-bib.bbl.mdk:16} \mdline{1227;out/hc-paper-enp-bib.bbl.mdk:16}\emph{TBD}\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:16}\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:16}, 2000a.
+\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:17}\newblock \mdline{1227;out/hc-paper-enp-bib.bbl.mdk:17} URL \mdline{1227;out/hc-paper-enp-bib.bbl.mdk:17}\href{http://www.vpri.org/pdf/tr2008004_steps08.pdf}{{\ttfamily http://\hspace{0pt}www.\hspace{0pt}vpri.\hspace{0pt}org/\hspace{0pt}pdf/\hspace{0pt}tr2008004\_\hspace{0pt}steps08.\hspace{0pt}pdf}}\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:17}.\label{steps}%mdk%mdk
 
-%mdk-data-line={1167;out/hc-paper-enp-bib.bbl.mdk:20}
-\bibitem{clang}\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:21}\mdbibitemlabel{}\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:21}Stub.
-\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:22}\newblock \mdline{1167;out/hc-paper-enp-bib.bbl.mdk:22} \mdline{1167;out/hc-paper-enp-bib.bbl.mdk:22}\emph{Stub}\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:22}\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:22}.
-\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:23}\newblock \mdline{1167;out/hc-paper-enp-bib.bbl.mdk:23} Stub, 1900a.\label{clang}%mdk%mdk
+%mdk-data-line={1227;out/hc-paper-enp-bib.bbl.mdk:20}
+\bibitem{bitc}\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:21}\mdbibitemlabel{}\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:21}Shapiro et\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:21}~\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:21}al.
+\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:22}\newblock \mdline{1227;out/hc-paper-enp-bib.bbl.mdk:22} Sound and complete type inference in a systems language.
+\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:23}\newblock \mdline{1227;out/hc-paper-enp-bib.bbl.mdk:23} \mdline{1227;out/hc-paper-enp-bib.bbl.mdk:23}\emph{TBD}\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:23}\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:23}, 2000b.
+\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:24}\newblock \mdline{1227;out/hc-paper-enp-bib.bbl.mdk:24} URL \mdline{1227;out/hc-paper-enp-bib.bbl.mdk:24}\href{http://www.cs.jhu.edu/~swaroop/aplas.pdf}{{\ttfamily http://\hspace{0pt}www.\hspace{0pt}cs.\hspace{0pt}jhu.\hspace{0pt}edu/\hspace{0pt}\textasciitilde{}swaroop/\hspace{0pt}aplas.\hspace{0pt}pdf}}\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:24}.\label{bitc}%mdk%mdk
 
-%mdk-data-line={1167;out/hc-paper-enp-bib.bbl.mdk:26}
-\bibitem{forth}\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:27}\mdbibitemlabel{}\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:27}Stub.
-\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:28}\newblock \mdline{1167;out/hc-paper-enp-bib.bbl.mdk:28} \mdline{1167;out/hc-paper-enp-bib.bbl.mdk:28}\emph{Stub}\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:28}\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:28}.
-\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:29}\newblock \mdline{1167;out/hc-paper-enp-bib.bbl.mdk:29} Stub, 1900b.\label{forth}%mdk%mdk
+%mdk-data-line={1227;out/hc-paper-enp-bib.bbl.mdk:27}
+\bibitem{scheme}\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:28}\mdbibitemlabel{}\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:28}H.\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:28}~\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:28}Abelson G.\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:28}~\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:28}Sussman.
+\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:29}\newblock \mdline{1227;out/hc-paper-enp-bib.bbl.mdk:29} \mdline{1227;out/hc-paper-enp-bib.bbl.mdk:29}\emph{Structure and Interpretation of Computer Programs}\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:29}\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:29}.
+\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:30}\newblock \mdline{1227;out/hc-paper-enp-bib.bbl.mdk:30} MIT Press, 1980.\label{scheme}%mdk%mdk
 
-%mdk-data-line={1167;out/hc-paper-enp-bib.bbl.mdk:32}
-\bibitem{leftfold}\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:33}\mdbibitemlabel{}\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:33}Stub.
-\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:34}\newblock \mdline{1167;out/hc-paper-enp-bib.bbl.mdk:34} Stub.
-\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:35}\newblock \mdline{1167;out/hc-paper-enp-bib.bbl.mdk:35} \mdline{1167;out/hc-paper-enp-bib.bbl.mdk:35}\emph{Stub}\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:35}\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:35}, 1900c.\label{leftfold}%mdk%mdk
+%mdk-data-line={1227;out/hc-paper-enp-bib.bbl.mdk:33}
+\bibitem{julia}\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:34}\mdbibitemlabel{}\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:34}The\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:34}~\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:34}Julia Language.
+\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:35}\newblock \mdline{1227;out/hc-paper-enp-bib.bbl.mdk:35} Julia \mdline{1227;out/hc-paper-enp-bib.bbl.mdk:35}\textgreater{}\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:35}\textgreater{}\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:35} docs \mdline{1227;out/hc-paper-enp-bib.bbl.mdk:35}\textgreater{}\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:35}\textgreater{}\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:35} metaprogramming, 2017.
+\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:36}\newblock \mdline{1227;out/hc-paper-enp-bib.bbl.mdk:36} URL
+  \mdline{1227;out/hc-paper-enp-bib.bbl.mdk:37}\href{https://docs.julialang.org/en/stable/manual/metaprogramming/}{{\ttfamily https://\hspace{0pt}docs.\hspace{0pt}julialang.\hspace{0pt}org/\hspace{0pt}en/\hspace{0pt}stable/\hspace{0pt}manual/\hspace{0pt}metaprogramming/\hspace{0pt}}}\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:37}.\label{julia}%mdk%mdk
 
-%mdk-data-line={1167;out/hc-paper-enp-bib.bbl.mdk:38}
-\bibitem{liebniz}\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:39}\mdbibitemlabel{}\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:39}Stub.
-\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:40}\newblock \mdline{1167;out/hc-paper-enp-bib.bbl.mdk:40} Stub.
-\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:41}\newblock \mdline{1167;out/hc-paper-enp-bib.bbl.mdk:41} \mdline{1167;out/hc-paper-enp-bib.bbl.mdk:41}\emph{Stub}\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:41}\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:41}, 1900d.\label{liebniz}%mdk%mdk
+%mdk-data-line={1227;out/hc-paper-enp-bib.bbl.mdk:40}
+\bibitem{water}\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:41}\mdbibitemlabel{}\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:41}Mike Plush.
+\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:42}\newblock \mdline{1227;out/hc-paper-enp-bib.bbl.mdk:42} Introduction to water: A new native web services programming
+  language, 2002.
+\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:44}\newblock \mdline{1227;out/hc-paper-enp-bib.bbl.mdk:44} URL \mdline{1227;out/hc-paper-enp-bib.bbl.mdk:44}\href{http://www.informit.com/articles/article.aspx?p=27567}{{\ttfamily http://\hspace{0pt}www.\hspace{0pt}informit.\hspace{0pt}com/\hspace{0pt}articles/\hspace{0pt}article.\hspace{0pt}aspx?\hspace{0pt}p=\hspace{0pt}27567}}\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:44}.\label{water}%mdk%mdk
 
-%mdk-data-line={1167;out/hc-paper-enp-bib.bbl.mdk:44}
-\bibitem{lisp}\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:45}\mdbibitemlabel{}\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:45}Stub.
-\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:46}\newblock \mdline{1167;out/hc-paper-enp-bib.bbl.mdk:46} Stub.
-\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:47}\newblock \mdline{1167;out/hc-paper-enp-bib.bbl.mdk:47} \mdline{1167;out/hc-paper-enp-bib.bbl.mdk:47}\emph{Stub}\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:47}\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:47}, 1900e.\label{lisp}%mdk%mdk
+%mdk-data-line={1227;out/hc-paper-enp-bib.bbl.mdk:47}
+\bibitem{mathematica}\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:48}\mdbibitemlabel{}\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:48}Leonid Shifrin.
+\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:49}\newblock \mdline{1227;out/hc-paper-enp-bib.bbl.mdk:49} Metaprogramming in mathematica, 2012a.
+\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:50}\newblock \mdline{1227;out/hc-paper-enp-bib.bbl.mdk:50} URL
+  \mdline{1227;out/hc-paper-enp-bib.bbl.mdk:51}\href{https://mathematica.stackexchange.com/questions/2335/metaprogramming-in-mathematica}{{\ttfamily https://\hspace{0pt}mathematica.\hspace{0pt}stackexchange.\hspace{0pt}com/\hspace{0pt}questions/\hspace{0pt}2335/\hspace{0pt}metaprogramming-\hspace{0pt}in-\hspace{0pt}mathematica}}\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:51}.\label{mathematica}%mdk%mdk
 
-%mdk-data-line={1167;out/hc-paper-enp-bib.bbl.mdk:50}
-\bibitem{lua}\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:51}\mdbibitemlabel{}\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:51}Stub.
-\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:52}\newblock \mdline{1167;out/hc-paper-enp-bib.bbl.mdk:52} Stub.
-\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:53}\newblock \mdline{1167;out/hc-paper-enp-bib.bbl.mdk:53} \mdline{1167;out/hc-paper-enp-bib.bbl.mdk:53}\emph{Stub}\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:53}\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:53}, 1900f.\label{lua}%mdk%mdk
+%mdk-data-line={1227;out/hc-paper-enp-bib.bbl.mdk:54}
+\bibitem{mathematicaprototype}\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:55}\mdbibitemlabel{}\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:55}Leonid Shifrin.
+\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:56}\newblock \mdline{1227;out/hc-paper-enp-bib.bbl.mdk:56} Can mathematica be regarded as a software prototyping environment?,
+  2012b.
+\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:58}\newblock \mdline{1227;out/hc-paper-enp-bib.bbl.mdk:58} URL
+  \mdline{1227;out/hc-paper-enp-bib.bbl.mdk:59}\href{https://mathematica.stackexchange.com/questions/1314/can-mathematica-be-regarded-as-a-software-prototyping-environment}{{\ttfamily https://\hspace{0pt}mathematica.\hspace{0pt}stackexchange.\hspace{0pt}com/\hspace{0pt}questions/\hspace{0pt}1314/\hspace{0pt}can-\hspace{0pt}mathematica-\hspace{0pt}be-\hspace{0pt}regarded-\hspace{0pt}as-\hspace{0pt}a-\hspace{0pt}software-\hspace{0pt}prototyping-\hspace{0pt}environment}}\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:59}.\label{mathematicaprototype}%mdk%mdk
 
-%mdk-data-line={1167;out/hc-paper-enp-bib.bbl.mdk:56}
-\bibitem{scheme}\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:57}\mdbibitemlabel{}\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:57}Stub.
-\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:58}\newblock \mdline{1167;out/hc-paper-enp-bib.bbl.mdk:58} \mdline{1167;out/hc-paper-enp-bib.bbl.mdk:58}\emph{Stub}\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:58}\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:58}.
-\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:59}\newblock \mdline{1167;out/hc-paper-enp-bib.bbl.mdk:59} Stub, 1900g.\label{scheme}%mdk%mdk
+%mdk-data-line={1227;out/hc-paper-enp-bib.bbl.mdk:62}
+\bibitem{clang}\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:63}\mdbibitemlabel{}\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:63}TBD.
+\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:64}\newblock \mdline{1227;out/hc-paper-enp-bib.bbl.mdk:64} Clang, 2000a.\label{clang}%mdk%mdk
 
-%mdk-data-line={1167;out/hc-paper-enp-bib.bbl.mdk:62}
-\bibitem{self}\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:63}\mdbibitemlabel{}\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:63}Stub.
-\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:64}\newblock \mdline{1167;out/hc-paper-enp-bib.bbl.mdk:64} Stub.
-\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:65}\newblock \mdline{1167;out/hc-paper-enp-bib.bbl.mdk:65} \mdline{1167;out/hc-paper-enp-bib.bbl.mdk:65}\emph{Stub}\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:65}\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:65}, 1900h.\label{self}%mdk%mdk
+%mdk-data-line={1227;out/hc-paper-enp-bib.bbl.mdk:67}
+\bibitem{forth}\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:68}\mdbibitemlabel{}\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:68}TBD.
+\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:69}\newblock \mdline{1227;out/hc-paper-enp-bib.bbl.mdk:69} Forth, 2000b.\label{forth}%mdk%mdk
 
-%mdk-data-line={1167;out/hc-paper-enp-bib.bbl.mdk:68}
-\bibitem{shapiro:effecttyping}\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:69}\mdbibitemlabel{}\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:69}Stub.
-\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:70}\newblock \mdline{1167;out/hc-paper-enp-bib.bbl.mdk:70} Stub.
-\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:71}\newblock \mdline{1167;out/hc-paper-enp-bib.bbl.mdk:71} \mdline{1167;out/hc-paper-enp-bib.bbl.mdk:71}\emph{Stub}\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:71}\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:71}, 1900i.\label{shapiro:effecttyping}%mdk%mdk
+%mdk-data-line={1227;out/hc-paper-enp-bib.bbl.mdk:72}
+\bibitem{leftfold}\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:73}\mdbibitemlabel{}\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:73}TBD.
+\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:74}\newblock \mdline{1227;out/hc-paper-enp-bib.bbl.mdk:74} Leftfold, 2000c.\label{leftfold}%mdk%mdk
 
-%mdk-data-line={1167;out/hc-paper-enp-bib.bbl.mdk:74}
-\bibitem{typescript}\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:75}\mdbibitemlabel{}\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:75}Stub.
-\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:76}\newblock \mdline{1167;out/hc-paper-enp-bib.bbl.mdk:76} Stub.
-\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:77}\newblock \mdline{1167;out/hc-paper-enp-bib.bbl.mdk:77} \mdline{1167;out/hc-paper-enp-bib.bbl.mdk:77}\emph{Stub}\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:77}\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:77}, 1900j.\label{typescript}%mdk%mdk
+%mdk-data-line={1227;out/hc-paper-enp-bib.bbl.mdk:77}
+\bibitem{liebniz}\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:78}\mdbibitemlabel{}\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:78}TBD.
+\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:79}\newblock \mdline{1227;out/hc-paper-enp-bib.bbl.mdk:79} Liebniz, 2000d.\label{liebniz}%mdk%mdk
 
-%mdk-data-line={1167;out/hc-paper-enp-bib.bbl.mdk:80}
-\bibitem{unixshell}\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:81}\mdbibitemlabel{}\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:81}Stub.
-\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:82}\newblock \mdline{1167;out/hc-paper-enp-bib.bbl.mdk:82} \mdline{1167;out/hc-paper-enp-bib.bbl.mdk:82}\emph{Stub}\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:82}\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:82}.
-\mdline{1167;out/hc-paper-enp-bib.bbl.mdk:83}\newblock \mdline{1167;out/hc-paper-enp-bib.bbl.mdk:83} Stub, 1900k.\label{unixshell}%mdk%mdk
+%mdk-data-line={1227;out/hc-paper-enp-bib.bbl.mdk:82}
+\bibitem{lisp}\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:83}\mdbibitemlabel{}\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:83}TBD.
+\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:84}\newblock \mdline{1227;out/hc-paper-enp-bib.bbl.mdk:84} Lisp, 2000e.\label{lisp}%mdk%mdk
+
+%mdk-data-line={1227;out/hc-paper-enp-bib.bbl.mdk:87}
+\bibitem{lua}\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:88}\mdbibitemlabel{}\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:88}TBD.
+\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:89}\newblock \mdline{1227;out/hc-paper-enp-bib.bbl.mdk:89} Lua, 2000f.\label{lua}%mdk%mdk
+
+%mdk-data-line={1227;out/hc-paper-enp-bib.bbl.mdk:92}
+\bibitem{self}\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:93}\mdbibitemlabel{}\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:93}TBD.
+\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:94}\newblock \mdline{1227;out/hc-paper-enp-bib.bbl.mdk:94} Self, 2000g.\label{self}%mdk%mdk
+
+%mdk-data-line={1227;out/hc-paper-enp-bib.bbl.mdk:97}
+\bibitem{typescript}\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:98}\mdbibitemlabel{}\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:98}TBD.
+\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:99}\newblock \mdline{1227;out/hc-paper-enp-bib.bbl.mdk:99} Typescript, 2000h.\label{typescript}%mdk%mdk
+
+%mdk-data-line={1227;out/hc-paper-enp-bib.bbl.mdk:102}
+\bibitem{unixshell}\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:103}\mdbibitemlabel{}\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:103}TBD.
+\mdline{1227;out/hc-paper-enp-bib.bbl.mdk:104}\newblock \mdline{1227;out/hc-paper-enp-bib.bbl.mdk:104} Unixshell, 2000i.\label{unixshell}%mdk%mdk
 \par%mdk
 \end{thebibliography}}%mdk%mdk
 
-%mdk-data-line={1170}
+%mdk-data-line={1230}
 \begin{mdbmargintb}{4em}{}%mdk
 \begin{mdflushright}%mdk
-{\tiny\mdline{1171}Created with~\href{https://www.madoko.net}{Madoko.net}.}%mdk
+{\tiny\mdline{1231}Created with~\href{https://www.madoko.net}{Madoko.net}.}%mdk
 \end{mdflushright}%mdk
 \end{mdbmargintb}%mdk%mdk
 
