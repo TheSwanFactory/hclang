@@ -1002,10 +1002,14 @@ inheritance is just another expression, you are welcome to define your own:
 
 # Implementation
 
- Homoiconic C is currently implemented as an interpreter via the `hclang`
- node.js module, written in TypeScript. It is still in active
- development, and available on GitHub[@Cite] under the MIT Open Source
- license.
+ Homoiconic C is available as the `hc` interpreter via the `hclang`
+ node.js module, written in TypeScript.
+```
+$ npm install -g hclang
+$ hc -e "“Hello, ” “Homoiconic C!”"
+```
+It is under active development, and available on GitHub[@Cite] under
+the MIT Open Source license.
 
 ## Architecture
 
@@ -1029,18 +1033,73 @@ preliminary wrapping of HTML called MAML lives in the `src/maml` directory.
 
 As of April 2017, the implementation is about 30% complete. We have
 implemented the core runtime frames and the parsing pipeline, and are
-able to evaluate simple expressions. Supporting the remaining primitives
-and aggregates should be very straightforward.
+able to evaluate simple expressions as arguments to the command-line.
+Supporting the remaining primitives and aggregates, as well as
+implementing a full REPL, should be fairly straightforward.
 
-To date we have only implemented a single operator, 
+To date we have only implemented a single operator, iteration over
+properties. This is enough to serve as a proof-of-concept, though it will
+undoubtedly need to be refactored to support the full range of operators.
 
-
+We have not yet begun to implement access control, though we have a high
+degree of confidence in the design based on previous prototypes.  The design
+of the overall type system is somewhat less mature, especially where it overlaps
+with inheritance. This is also the case for the module system, which is still
+in the conceptual stage.
 
 ## Next Steps
 
-# TODO: Reflections
+### Documentation-Driven Development
+
+The first priority is obviously completing the interpreter. The main tool
+we plan to use to get there is enabling **executable documentation**.
+
+This document, for example, is written in a dialect of Markdown called
+Madoko[@Cite] which uses triple back-quotes ("\`\`\`") to delimit code
+fragments. We could invert that by having Homoiconic C use those quotes
+as the delimiters for doc-strings, so it can directly (and sequentially)
+evaluate the code fragments. Next, we add an input stage that tracks the
+raw source, and an output stage treats the semicolon-hashtag pairs as
+acceptance tests.
+
+Once that is in place, we can literally run our documentation simply by prefixing
+this file with:
+`
+#!/usr/bin/env hc -doctest
+\`\`\`
+`
+
+The process would thus involve rewriting the documentation and 
+the source code together until they are both complete and consistent. 
+
+### Compilation
+
+Once the interpreter is finished, we plan to work on a self-hosting
+transpiler. Written in Homoiconic C, it would convert `.hc` files
+directly into executable JavaScript. This may be rather heavyweight,
+however, since all the JavaScript objects would be Frame
+instances.
+
+The second step would be compiling directly to `asm.js`[@Cite]/
+WebBinary[@Cite]. In particular, the goal would be to first wrap asm.js
+as a "congram" so that it can be easily manipulated directly from Homiconic C.
+
+That experience would serve as a useful stepping stone towards a true
+native code compiler. Rather than simply using LLVM[@Cite], we would
+prefer to use that opportunity to reexamine the very nature of
+intermediate representations and assembly language. The theory underlying
+Homoiconic C suggests that "switching circuits" may do a better job of
+abstracting the underlying electronics than traditional von Neumann
+architectures[@Cite]. While admittedly a long shot, if successful it
+could enable dramatic breakthroughs in performance, power consumption,
+and hardware evolution.
+
+
+# Reflections
 
 ## Related Work
+
+
 
 * [BitC](www.cs.jhu.edu/~swaroop/aplas.pdf)
 * [STEPS](http://www.vpri.org/pdf/tr2008004_steps08.pdf) 
@@ -1087,10 +1146,10 @@ impacts their corner of the world.  We hope you will join us on that quest.
 ## Appendix A. On Turing Completeness
 
 Turing undecidability, like Godelian incompleteness, starts by assuming
-"basic arithmetic" (add, substract, multiply, divide) -- i.e. the Peano
+"basic arithmetic" (add, subtract, multiply, divide) -- i.e. the Peano
 Axioms. However, this glosses over the fact that division is a "type
 violation", and can't be fully represented using the same data structures
-as for addition and substraction.
+as for addition and subtraction.
 
 We believe that a better starting point for modeling computation are the
 Presburger Axioms. These give up multiplication and division as
