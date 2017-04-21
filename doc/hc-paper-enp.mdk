@@ -430,14 +430,12 @@ As a dataflow language, there should rarely be a need for direct
 manipulating the flow of control. But when there is, we use a control, e.g.:
 
 * `$$`
-  : Terminate the program and return the argument (e.g. "exit")
-  
+  : Terminate the program and return the argument ("exit")
 * `$<`
-   : Terminate the current scope and return the argument (e.g. " top-level return")
-   
+  : Terminate the current scope and return the argument (_top-level return_)
 * `$<<`
-   : Terminate the _parent_ scope and return the argument (e.g. " inner return")
-   
+  : Terminate the _parent_ scope and return the argument ("inner return")
+
 Remember that every context is a self-contained entity, and thus `.` and `$<` refer 
 only to that scope, even if it is a clause in a conditional.  That's why we need 
 multi-level returns.
@@ -1082,7 +1080,7 @@ instances.
 
 The second step would be compiling directly to `asm.js`[@Cite]/
 WebBinary[@Cite]. In particular, the goal would be to first wrap asm.js
-as a "congram" so that it can be easily manipulated directly from Homiconic C.
+as a "congram" so that it can be easily manipulated directly from Homoiconic C.
 
 That experience would serve as a useful stepping stone towards a true
 native code compiler. Rather than simply using LLVM[@Cite], we would
