@@ -418,17 +418,48 @@ The space between _base_ and _key is not necessary, but we use it to
 emphasize the fact that this is just an ordinary expression, not a
 special syntax.
 
-####  TODO: Controls
+#### Controls
+
+As part of its quest to avoid arbitrary keywords, HC introduces the concept of
+_controls_, mirroring the hardware distinction between the control plan and the data plane.
+Controls are special closures which modify the behavior of the runtime, rather than
+simply returning values.
 
 ##### Flow Control
 
-* Exit: `$$`
-* Return: `$<`
-* Break: `$>`
+As a dataflow language, there should rarely be a need for direct
+manipulating the flow of control. But when there is, we use a control, e.g.:
 
-##### Errors
+* `$$`
+  : Terminate the program and return the argument (e.g. "exit")
+  
+* `$<`
+   : Terminate the current scope and return the argument (e.g. " top-level return")
+   
+* `$<<`
+   : Terminate the _parent_ scope and return the argument (e.g. " inner return")
+   
+Remember that every context is a self-contained entity, and thus `.` and `$<` refer 
+only to that scope, even if it is a clause in a conditional.  That's why we need 
+multi-level returns.
 
-`$error`
+
+##### Exceptions
+
+Controls are also used to signal exceptions and errors.  Exception controls
+begin with `$!` and return an interrupt value that propogates back up the call
+chain until it encounters an appropriate handler or aborts the program.  The REPL,
+however, simply prints out the exceptional value:
+
+``` ruby
+ ; .scope (.a 1, b. 2);
+ ; scope.c
+ # $!missing-key .c
+ ```
+Note that in the interest of clarify, we voilate our usual rule and use
+English names for exceptions. We do still intend to make these fully
+localizable, so at least beginning programmers can experience an environment
+that doesn't require them to also learn a foreign language.
 
 ####  Arguments
 
@@ -682,9 +713,9 @@ or directly into the current namespace `.`.
 ; prop
 # 1
 ```
-While not recommended in general, this allows apparently "built-in"
+While not recommended in general, direct import allows apparently "built-in"
 functionality to provided via a prologue, rather than hard-coded into the
-language.  Part of HC's philosophy is to provide the same functionality
+language.  This reflects HC's philosophy to provide the same functionality
 we have as language designers to end users wherever possible.
 
 ## Access Control { #sec-access }
@@ -742,13 +773,13 @@ For example:
   }
 };
 ; see-me.child()
-# [42, 21, $error{$is-private .my-private-value}]
+# [42, 21, $!is-private .my-private-value]
 ; see-me.my-public-value
 # 42
 ; see-me.my-protected-value
-# $error{$is-protected .my-protected-value}
+# $!is-protected .my-protected-value
 ; see-me.my-private-value
-# $error{$is-private .my-private-value}
+# $!is-private .my-private-value
 
 ```
 
