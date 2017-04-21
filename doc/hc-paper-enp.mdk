@@ -10,7 +10,7 @@ Bib style     : plainnat
 Bibliography  : hc-refs.bib
 Logo          : True
 Package       : amsmath
-Doc class     : [preprint]{sigplanconf}
+Doc class     : [preprint]{acmart}
 
 Colorizer     : ruby
 ~Pre,~Code    : language=ruby
@@ -37,18 +37,17 @@ result that Homoiconic C is simply conventions for creating and
 evaluating Frames.
 
 In this paper we will describe the complete syntax of HC, including three
-types of lists, seven atoms, and the seven predefined operators; as a
-modeless data format, there are no keywords, reserved words, or even any
+primitives, aggregates, and  predefined operators; as a
+modeless data format, there are no keywords, reserved words, or hardly any
 grammar. Next we discuss the robust data protection semantics inspired by
-BitC[@Shapiro:EffectTyping], which allow us the efficiency of C's memory
+BitC[@BitC], which allow us the efficiency of C's memory
 model without any of the downsides. Finally, we provide examples of how
-these deceptively simple primitives allow us to trivially implement HTML,
-Object-Oriented programming, and other higher-level abstractions.
+these primitives allow us to easily represent other data formats and
+Object-Oriented programming.
 
 We are currently developing the first implementation of HC as a
-TypeScript[@TypeScript] interpreter. It can be found at
-<http://github.com/TheSwanFactory/hclang/> under an MIT Open Source
-license.
+TypeScript[@TypeScript] interpreter. It can be found on GitHub[@Cite]
+under the MIT Open Source license.
 
 ~
 [^lua-fn]: The only minimalist language still in active use appears to be
@@ -333,6 +332,14 @@ This will become important in Section [#sec-operators] when we discuss condition
 Note that statements inside a closure represent values that are not
 returned, which becomes very powerful when we add identifiers.
 
+Importantly, the empty closure `{}` becomes the "codify" operator, which converts arrays
+into closures:
+
+``` ruby
+; {} [“Life, ” “The Universe, ” “Everything.”]
+# { “Life, ” “The Universe, ” “Everything.” }
+```
+
 ### Identifiers
 
 Everything else is just an identifier. Identifiers can contain letters,
@@ -346,7 +353,7 @@ described in Table [#sec-table-id].
 | Label     | _variable_     | _letter_    | _letter_, _number_, `-` |
 | Operator  | `+`            | _symbol_    | _symbol_                |
 | Control   | `$<-` # return | `$`         | _any identifier_        |
-| Anonymous | \_^            | \_          | \_,\^                   |
+| Argument | \_^            | \_          | \_,\^                   |
 | Self      | \.             | \.          | \.                      |
 +-----------+----------------+-------------+-------------------------+
 { tbody-tr-odd-background-color:Gainsboro; \
@@ -418,26 +425,55 @@ The space between _base_ and _key is not necessary, but we use it to
 emphasize the fact that this is just an ordinary expression, not a
 special syntax.
 
-####  TODO: Controls
+#### Controls
+
+As part of its quest to avoid arbitrary keywords, HC introduces the concept of
+_controls_, mirroring the hardware distinction between the control plan and the data plane.
+Controls are special closures which modify the behavior of the runtime, rather than
+simply returning values.
 
 ##### Flow Control
 
-* Exit: `$$`
-* Return: `$<`
-* Break: `$>`
+As a dataflow language, there should rarely be a need for direct
+manipulating the flow of control. But when there is, we use a control, e.g.:
 
-##### Errors
+* `$$`
+  : Terminate the program and return the argument ("exit")
+* `$<`
+  : Terminate the current scope and return the argument (_top-level return_)
+* `$<<`
+  : Terminate the _parent_ scope and return the argument ("inner return")
 
-`$error`
+Remember that every context is a self-contained entity, and thus `.` and `$<` refer 
+only to that scope, even if it is a clause in a conditional.  That's why we need 
+multi-level returns.
 
-####  Anonymous Identifiers
+
+##### Exceptions
+
+Controls are also used to signal exceptions and errors.  Exception controls
+begin with `$!` and return an interrupt value that propogates back up the call
+chain until it encounters an appropriate handler or aborts the program.  The REPL,
+however, simply prints out the exceptional value:
+
+``` ruby
+ ; .scope (.a 1, b. 2);
+ ; scope.c
+ # $!missing-key .c
+ ```
+Note that in the interest of clarify, we voilate our usual rule and use
+English names for exceptions. We do still intend to make these fully
+localizable, so at least beginning programmers can experience an environment
+that doesn't require them to also learn a foreign language.
+
+####  Arguments
 
 Use `_` as the anonymous argument, representing everything this frame
 was called with:
 ``` ruby
-; .square {_ * _};
-; square 3
-# 9
+; .triplicate {3 _};
+; square “Baby”
+# “BabyBabyBaby”
 ```
 This is useful not just for closures, but for representing the command-line
 arguments for the entire script.
@@ -504,9 +540,9 @@ cases we use the type operators in Table [#sec-table-type].
 +---|--------------+------|--------------+
 | Type            || Bind |              |
 +---|--------------+------|--------------+
-| < | _begin type_ | ~    |_has type_    |
+| < | _begin type_ | \~\~ | _get type_   |
 | > | _end type_   | ^    | _bind type_  |
-|                 || ^^   |_bind return_ |
+| ~ |_has type_    | ^^   |_bind return_ |
 +---|--------------+------|--------------+
 { tbody-tr-odd-background-color:Gainsboro; \
   tr-even-background-color:Floralwhite }
@@ -533,7 +569,7 @@ it acts as the boolean `true` value.
 
 #### Type Membership
 
-The _type of_ operator `~` tests whether an object belongs to particular
+The _has-type_ operator `~` tests whether an object belongs to particular
 type, returning true (all) or false (nil). Every object is a member of
 _all_, while nothing is a member of _nil_:
 
@@ -544,7 +580,39 @@ _all_, while nothing is a member of _nil_:
 ; ()
 ```
 
-#### TODO: Type Declaration
+#### Type Signatures
+
+We use `^` to specify the type signature of a closure, which may include
+optional defaults:
+``` ruby
+; .join-name (.first “Jane”, .last) ^ {last “, ” first};
+; join-name (.first “John”, .last “Doe”)
+# “Doe, John”
+``` 
+
+Types are generous, in that you are allowed to specify additional properties,
+but it is an error to omit properties that do not have a default:
+``` ruby
+; join-name (.middle “Q”, .last “Doe”)
+# “Doe, Jane”
+; join-name (.middle “Q”)
+# $!invalid-argument-list (.middle “Q”, $!missing-required-argument .last;)
+``` 
+
+The return type is usually inferred, but can be specified explicitly using a trailing `^^`.
+
+
+#### Type Values
+
+The simplest way to construct a type is to use the `~~` operator to extract the type
+of a known object:
+
+``` ruby
+; “Q” ~ ~~“”
+# <> # true
+; “Q” ~ ~~1
+# () # false
+```
 
 
 ### Content
@@ -601,7 +669,7 @@ Similarly, we use `&` for reduce:
 
 The operators also work with files and network ports, reading one line
 (or object) at a time, greatly simplifying common I/O operations (a la
-the UNIX shell). See Section [#sec-maml] for an example.
+the UNIX shell). 
 
 ### Conditionals
 
@@ -661,16 +729,31 @@ to perform three roles:
 This functionality must be available as a primitive, since it is necessary
 for adding other functionality.
 
-#### TODO: Resolve Module Name
+We use the `<-` import operator to match a name against both the online
+registry (TBD) and the local path, and load it into a property with the
+same name. Registry settings can be configured via the `.hconfig` file.
 
-#### TODO: Read Module
-
-#### TODO: Import Names from Module
-
-While it is recommended that module names live in their own namespace,
-it is essential to also be able to import names into the global namespace.
-This allows essential functionality to provided via a prologue, rather than
-baked directly into the language.
+``` ruby
+; <- .module;
+; module
+# (.prop 1, .another-prop 2)
+```
+We can also bind it to a different name:
+``` ruby
+; .alias <- .module;
+; alias.prop
+# 1
+```
+or directly into the current namespace `.`.
+``` ruby
+; . <- .module;
+; prop
+# 1
+```
+While not recommended in general, direct import allows apparently "built-in"
+functionality to provided via a prologue, rather than hard-coded into the
+language.  This reflects HC's philosophy to provide the same functionality
+we have as language designers to end users wherever possible.
 
 ## Access Control { #sec-access }
 
@@ -727,13 +810,13 @@ For example:
   }
 };
 ; see-me.child()
-# [42, 21, $error{$is-private .my-private-value}]
+# [42, 21, $!is-private .my-private-value]
 ; see-me.my-public-value
 # 42
 ; see-me.my-protected-value
-# $error{$is-protected .my-protected-value}
+# $!is-protected .my-protected-value
 ; see-me.my-private-value
-# $error{$is-private .my-private-value}
+# $!is-private .my-private-value
 
 ```
 
@@ -862,11 +945,6 @@ CoffeeScript cousin CSON[@Cite].
 .first-name “Jane”, .last-name “Smith”, .phone-number +1.650.555.1212  
 ```
 
-### TODO: HCARD
-
-### TODO: HCAL
-
-
 
 ## Object-Orientation
 
@@ -907,7 +985,7 @@ a frame analogous to that singleton:
 # 3
 ```
 
-### TODO: Inheritance
+### Inheritance
 
 Even inheritance is already accounted for, simply by explicitly specifying
 its parent scape:
@@ -928,29 +1006,170 @@ inheritance is just another expression, you are welcome to define your own:
 };
 ```
 
-## TODO: HTML {#sec-maml}
+# Implementation
 
-# TODO: Implementation
+ Homoiconic C is available as the `hc` interpreter via the `hclang`
+ node.js module, written in TypeScript.
+```
+$ npm install -g hclang
+$ hc -e "“Hello, ” “Homoiconic C!”"
+```
+It is under active development, and available on GitHub[@Cite] under
+the MIT Open Source license.
 
 ## Architecture
 
+The core runtime objects live in the `src/frames` directory, where they 
+are implemented as TypeScript classes.  Generally speaking there is
+one class for each primitive and aggregate frame, plus abstract classes for
+the generic Frame, FrameAtom, and FrameList.
+
+The interpreter lives in the `src/execute` directory, and is also
+implemented using frames. Every frame knows how it is represented, and
+the lexer uses that information to dynamically generate a lookup table
+from a list of frame classes. Strings iterate as a list of symbols, so
+the lexer generates tokens from the input string by evaluating
+evaluating a specialized program. Similarly, terminals act as controls
+grouping tokens into expressions and aggregates.
+
+Finally, operator bindings and currying are defined in `src/ops`, and a
+preliminary wrapping of HTML called MAML lives in the `src/maml` directory.
+
 ## Status
+
+As of April 2017, the implementation is about 30% complete. We have
+implemented the core runtime frames and the parsing pipeline, and are
+able to evaluate simple expressions as arguments to the command-line.
+Supporting the remaining primitives and aggregates, as well as
+implementing a full REPL, should be fairly straightforward.
+
+To date we have only implemented a single operator, iteration over
+properties. This is enough to serve as a proof-of-concept, though it will
+undoubtedly need to be refactored to support the full range of operators.
+
+We have not yet begun to implement access control, though we have a high
+degree of confidence in the design based on previous prototypes.  The design
+of the overall type system is somewhat less mature, especially where it overlaps
+with inheritance. This is also the case for the module system, which is still
+in the conceptual stage.
 
 ## Next Steps
 
-# TODO: Reflections
+### Documentation-Driven Development
 
-## Related Work
+The first priority is obviously completing the interpreter. The main tool
+we plan to use to get there is enabling **executable documentation**.
 
-* [BitC](www.cs.jhu.edu/~swaroop/aplas.pdf)
-* [STEPS](http://www.vpri.org/pdf/tr2008004_steps08.pdf) 
-* [Water](http://www.informit.com/articles/article.aspx?p=27567)
-* [Mathematica](https://mathematica.stackexchange.com/questions/2335/metaprogramming-in-mathematica)
-* [Julia](https://julialang.org)
+This document, for example, is written in a dialect of Markdown called
+Madoko[@Cite] which uses triple back-quotes ("\`\`\`") to delimit code
+fragments. We could invert that by having Homoiconic C use those quotes
+as the delimiters for doc-strings, so it can directly (and sequentially)
+evaluate the code fragments. Next, we add an input stage that tracks the
+raw source, and an output stage treats the semicolon-hashtag pairs as
+acceptance tests.
 
-## Future Directions
+Once that is in place, we can literally run our documentation simply by prefixing
+this file with:
+```
+#!/usr/bin/env hc -doctest
+\`\`\`
+```
 
-## Implications
+The process would thus involve rewriting the documentation and 
+the source code together until they are both complete and consistent. 
+
+### Compilation
+
+Once the interpreter is finished, we plan to work on a self-hosting
+transpiler. Written in Homoiconic C, it would convert `.hc` files
+directly into executable JavaScript. This may be rather heavyweight,
+however, since all the JavaScript objects would be Frame
+instances.
+
+The second step would be compiling directly to `asm.js`[@Cite]/
+WebBinary[@Cite]. In particular, the goal would be to first wrap asm.js
+as a "congram" so that it can be easily manipulated directly from Homoiconic C.
+
+That experience would serve as a useful stepping stone towards a true
+native code compiler. Rather than simply using LLVM[@Cite], we would
+prefer to use that opportunity to reexamine the very nature of
+intermediate representations and assembly language. The theory underlying
+Homoiconic C suggests that "switching circuits" may do a better job of
+abstracting the underlying electronics than traditional von Neumann
+architectures[@Cite]. While admittedly a long shot, if successful it
+could enable dramatic breakthroughs in performance, power consumption,
+and hardware evolution.
+
+# Related Work
+
+## BitC
+
+Homoiconic C could be considered a reincarnation of the BitC[@BitC]
+project, which attempted to add a "bit of C" to Lisp in order to bring
+rigor to systems programming. As far as we know, they are the only group
+to have tackled the gap between the elegance of lambda calculus and
+efficient use of actual computing hardware. They appeared to have stalled
+due to a lack of funding, and also the difficultly of grafting a rich
+enough type system onto Lisp syntax.
+
+Homoiconic C hopes to avoid those problems through the pursuit of extreme
+simplicity. We start with a variant of the Lisp evaluation model
+explicitly designed to work with numbers and strings, not just lists.
+Next, we carefully design our identifiers to encode the critical
+information needed for "sound and complete type inference" across
+invocation boundaries. Finally, we leverage Open Source to bootstrap the
+project so that we are not dependent on external funding.
+
+## Julia
+
+Though developed  independently, Homoiconic C shares many goals and features
+with the emerging Julia[@Julia] language for numerical computing:
+* multiple dispatch
+* homoiconicity, macros, and meta-programming
+* a type system optimized for performance
+
+We admire and hope to emulate Julia's achievements, particularly in terms
+of interoperability with existing languages and creative support for
+concurrency. Though Julia is currently far ahead in terms of both
+implementation and ecosystem, we believe that HC's use of BitC's type
+system plus the extreme simplicity of the syntax and implementation will
+still enable us to provide a compelling alternative.
+
+## Mathematica
+
+The most widely used homoiconic language in use today is probably
+Mathematica [@Mathematica]. However, despite several notable attempts to
+broaden its reach, Mathematica remains primarily a prototyping tool
+within Wolfram's products rather than remains primarily a prototyping
+tool within Wolfram's products rather than a general-purpose language[@MathematicaPrototype].
+
+## STEPS
+
+Homoiconic C was also inspired by and shares many goals with Alan Kay's
+ambitious STEPS [@STEPS] project for reinventing programming. From our
+perspective, the tragic flaw with his approach was starting from the
+(admittedly ubiquitous) assumption that computation should be built upon
+mathematics. Despite a promising start at replacing operating systems
+with a robust language runtime, the project appeared to eventually
+collapse under the weight of its leaky abstractions.
+
+We believe it is possible to achieve his dream by building on a different
+foundation. Rather than the traditional mantra of "Sequence, Selection,
+and Repetition", Homoiconic C is build around "Dependency, Effect, and
+Interrupts." We believe this choice of basis enables us to generate
+"leak-proof" abstractions that scale seamlessly from individual circuits to complex distributed
+platforms.
+
+## Water
+
+The idea of expressing programs in a data format is not in itself new. A
+relatively modern attempt was Water[@Water], which attempted to program
+web applications using a more concise variant of XML. Though extremely
+clever, it suffered not just from the awkwardness of XML as a data
+format, but from the use of existing imperative programming paradigms.
+
+HC plan to avoid that fate by adopting the more streamlined dataflow paradigm,
+supported by a custom-designed data format optimized for readability.
 
 
 # Conclusion
@@ -987,10 +1206,10 @@ impacts their corner of the world.  We hope you will join us on that quest.
 ## Appendix A. On Turing Completeness
 
 Turing undecidability, like Godelian incompleteness, starts by assuming
-"basic arithmetic" (add, substract, multiply, divide) -- i.e. the Peano
+"basic arithmetic" (add, subtract, multiply, divide) -- i.e. the Peano
 Axioms. However, this glosses over the fact that division is a "type
 violation", and can't be fully represented using the same data structures
-as for addition and substraction.
+as for addition and subtraction.
 
 We believe that a better starting point for modeling computation are the
 Presburger Axioms. These give up multiplication and division as
