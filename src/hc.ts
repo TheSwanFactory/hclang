@@ -3,7 +3,7 @@
 import { execute } from "./execute";
 
 let input = "“Hello, MAML!”";
-let argv = process.argv;
+const argv = process.argv;
 if (argv.length > 3) { input = argv[3]; };
 
 const output = execute(input);

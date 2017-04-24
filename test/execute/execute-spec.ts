@@ -31,7 +31,6 @@ describe("execute", () => {
 
       it("breaks expressions", () => {
         const result = execute(both_strings);
-        console.error(result);
         expect(result).to.equal(both_strings);
       });
 

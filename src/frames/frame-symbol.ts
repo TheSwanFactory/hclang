@@ -16,8 +16,8 @@ export class FrameSymbol extends FrameAtom {
   }
 
   public in(contexts = [Frame.nil]) {
-    for (let context of contexts) {
-      let value = context.get(this.data);
+    for (const context of contexts) {
+      const value = context.get(this.data);
       if (value !== Frame.missing) {
         value.up = context;
         if (value.callme === false) {
