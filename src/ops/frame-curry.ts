@@ -2,7 +2,7 @@ import { Frame, FrameArg, FrameExpr } from "../frames";
 
 export type ICurryFunction = (source: Frame, block: Frame) => Frame;
 
-class FrameCurry extends Frame {
+export class FrameCurry extends Frame {
   constructor(protected Func: ICurryFunction, protected Source: Frame) {
     super();
   }

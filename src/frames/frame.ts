@@ -40,7 +40,7 @@ export class Frame {
     const result = this.get_here(key, origin);
     if (result !== Frame.missing) { return result; };
 
-    const source = this.up || Frame.globals;
+    let source = this.up || Frame.globals;
     if (source === Frame.missing) {
       if (Frame.globals === Frame.missing) { return Frame.missing; };
       source = Frame.globals;
