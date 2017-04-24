@@ -2,11 +2,14 @@
   "extends": "tslint:recommended",
   "defaultSeverity": "warning",
   "rules" : {
+    "align": false,
     "array-type": false,
+    "interface-over-type-literal": false,
     "max-classes-per-file": 3,
     "max-line-length" : false,
     "no-console" : false,
     "no-string-literal" : false,
+    "no-unused-expression" : false,
     "only-arrow-functions" : false,
     "semicolon" : false,
     "variable-name" : false

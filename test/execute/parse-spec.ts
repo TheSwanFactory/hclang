@@ -11,8 +11,8 @@ describe("Parse", () => {
   const token = new Token(content);
   const symbol = frame.FrameSymbol.for(",");
 
-  const out: frame.FrameArray;
-  const pipe: ParsePipe;
+  let out: frame.FrameArray;
+  let pipe: ParsePipe;
   beforeEach(() => {
     out = new frame.FrameArray([]);
     pipe = new ParsePipe(out);

@@ -10,8 +10,8 @@ describe("EvalPipe", () => {
   const strA = new frame.FrameString("A");
   const strB = new frame.FrameString("B");
   const expr = new frame.FrameExpr([strA, strB]);
-  const out: frame.FrameArray;
-  const pipe: EvalPipe;
+  let out: frame.FrameArray;
+  let pipe: EvalPipe;
 
   beforeEach(() => {
     out = new frame.FrameArray([]);

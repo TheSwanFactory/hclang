@@ -8,8 +8,8 @@ import * as frame from "../../src/frames";
 
 describe("LexPipe", () => {
   const success = new frame.FrameString("success!");
-  const out: frame.FrameArray;
-  const pipe: LexPipe;
+  let out: frame.FrameArray;
+  let pipe: LexPipe;
 
   beforeEach(() => {
     out = new frame.FrameArray([]);
