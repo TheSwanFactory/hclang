@@ -1,6 +1,6 @@
 {
   "extends": "tslint:recommended",
-  "defaultSeverity": "warning",
+  "defaultSeverity": "none",
   "rules" : {
     "align": false,
     "array-type": false,
