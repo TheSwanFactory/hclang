@@ -1,14 +1,9 @@
-import { MetaFrame } from "./meta-frame";
-export declare type Context = {
-    [key: string]: Frame;
-};
+import { Context, MetaFrame } from "./meta-frame";
 export interface IKeyValuePair extends ReadonlyArray<string | Frame> {
     0: string;
     1: Frame;
 }
-export declare const NilContext: Context;
 export declare class Frame extends MetaFrame {
-    private meta;
     static readonly kOUT: string;
     static readonly kEND: string;
     static readonly BEGIN_EXPR: string;

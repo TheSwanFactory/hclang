@@ -1,9 +1,7 @@
 import * as _ from "lodash";
-import { MetaFrame } from "./meta-frame";
+import { Context, MetaFrame, NilContext } from "./meta-frame";
 
-export type Context = { [key: string]: Frame; };
 export interface IKeyValuePair extends ReadonlyArray<string | Frame > { 0: string; 1: Frame; }
-export const NilContext: Context = {};
 
 export class Frame extends MetaFrame {
   public static readonly kOUT = ">>";
@@ -18,8 +16,8 @@ export class Frame extends MetaFrame {
 
   public up: Frame;
   public callme: boolean;
-  constructor(private meta = NilContext, isNil = false) {
-    super();
+  constructor(meta = NilContext, isNil = false) {
+    super(meta);
     this.up = Frame.missing;
     this.callme = false;
     if (isNil) {

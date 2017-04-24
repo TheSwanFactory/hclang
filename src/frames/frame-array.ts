@@ -1,5 +1,6 @@
-import { Frame, NilContext } from "./frame";
+import { Frame } from "./frame";
 import { FrameList } from "./frame-list";
+import { NilContext } from "./meta-frame";
 
 export class FrameArray extends FrameList {
   public static readonly BEGIN_ARRAY = "[";

@@ -1,5 +1,6 @@
-import { Context, Frame, NilContext } from "./frame";
+import { Frame } from "./frame";
 import { FrameArray } from "./frame-array";
+import { Context, NilContext } from "./meta-frame";
 
 export interface IArrayConstructor {
     new (data: Array<Frame>, meta: Context): Frame;
