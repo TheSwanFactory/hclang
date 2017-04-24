@@ -6,7 +6,7 @@ import {} from "mocha";
 
 describe("script", () => {
   const hc_bin = "lib/hc.js";
-  let title: string;
+  const title: string;
 
   beforeEach(function() {
     title = this.currentTest.title;

@@ -26,8 +26,8 @@ export class FrameLazy extends FrameExpr {
   }
 
   protected meta_for(context: Frame) {
-    let MetaNew = this.meta_copy();
-    let pairs: Array<IKeyValuePair> = context.meta_pairs();
+    const MetaNew = this.meta_copy();
+    const pairs: Array<IKeyValuePair> = context.meta_pairs();
     pairs.map(([key, value]) => { MetaNew[key] = value; });
     return MetaNew;
   }

@@ -31,16 +31,16 @@ export class Frame {
   public string_close() { return Frame.END_EXPR; };
 
   public get_here(key: string, origin: Frame = this): Frame {
-    let result = this.meta[key];
+    const result = this.meta[key];
     if (result != null) { return result; };
     return Frame.missing;
   }
 
   public get(key: string, origin: Frame = this): Frame {
-    let result = this.get_here(key, origin);
+    const result = this.get_here(key, origin);
     if (result !== Frame.missing) { return result; };
 
-    let source = this.up || Frame.globals;
+    const source = this.up || Frame.globals;
     if (source === Frame.missing) {
       if (Frame.globals === Frame.missing) { return Frame.missing; };
       source = Frame.globals;

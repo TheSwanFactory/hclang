@@ -46,7 +46,7 @@ describe("FrameSymbol", () => {
     const expr = new frame.FrameExpr([value1, value2]);
     const context = new frame.FrameString("parent", {atom: expr});
 
-    let result = context.call(frame_symbol);
+    const result = context.call(frame_symbol);
     expect(result.toString()).to.equal("(“Atom ” “Smasher”)");
 
     expr.callme = true;

@@ -8,6 +8,7 @@
     "no-console" : false,
     "no-string-literal" : false,
     "only-arrow-functions" : false,
+    "semicolon" : false,
     "variable-name" : false
   }
 }

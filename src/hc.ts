@@ -2,8 +2,8 @@
 
 import { execute } from "./execute";
 
-let input = "“Hello, MAML!”";
-let argv = process.argv;
+const input = "“Hello, MAML!”";
+const argv = process.argv;
 if (argv.length > 3) { input = argv[3]; };
 
 const output = execute(input);
