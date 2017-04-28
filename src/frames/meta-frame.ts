@@ -13,9 +13,10 @@ export class MetaFrame {
   }
 
   public get_here(key: string, origin: MetaFrame = this): Frame {
-    const result = this.meta[key];
-    if (result != null) { return result; };
-    return Frame.missing;
+    const exact = this.meta[key];
+    if (exact != null) { return exact; };
+
+    return this.match_here(key);
   }
 
   public get(key: string, origin: MetaFrame = this): Frame {
@@ -63,8 +64,10 @@ export class MetaFrame {
   }
 
   protected match_here(key: string): Frame {
-    _.forOwn(this.meta, (value, pattern): IKeyValuePair => {
-      return [pattern, value];
+    _.forOwn(this.meta, (value, pattern): Frame => {
+      if (pattern.length > 1) {
+        return value;
+      }
     });
     return Frame.missing;
   }
