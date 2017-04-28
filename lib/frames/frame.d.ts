@@ -1,8 +1,4 @@
 import { Context, MetaFrame } from "./meta-frame";
-export interface IKeyValuePair extends ReadonlyArray<string | Frame> {
-    0: string;
-    1: Frame;
-}
 export declare class Frame extends MetaFrame {
     static readonly kOUT: string;
     static readonly kEND: string;
@@ -20,11 +16,6 @@ export declare class Frame extends MetaFrame {
     apply(argument: Frame, parameter: Frame): Frame;
     called_by(context: Frame, parameter: Frame): Frame;
     call(argument: Frame, parameter?: Frame): Frame;
-    meta_copy(): Context;
-    meta_keys(): string[];
-    meta_length(): number;
-    meta_pairs(): Array<IKeyValuePair>;
-    meta_string(): string;
     toString(): string;
     asArray(): Array<Frame>;
     isVoid(): boolean;

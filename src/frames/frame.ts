@@ -1,8 +1,6 @@
 import * as _ from "lodash";
 import { Context, MetaFrame, NilContext } from "./meta-frame";
 
-export interface IKeyValuePair extends ReadonlyArray<string | Frame > { 0: string; 1: Frame; }
-
 export class Frame extends MetaFrame {
   public static readonly kOUT = ">>";
   public static readonly kEND = "$$";
@@ -47,30 +45,6 @@ export class Frame extends MetaFrame {
 
   public call(argument: Frame, parameter = Frame.nil) {
     return argument.called_by(this, parameter);
-  }
-
-  public meta_copy(): Context {
-    return _.clone(this.meta);
-  }
-
-  public meta_keys() {
-    return _.keys(this.meta);
-  }
-
-  public meta_length() {
-    return this.meta_keys().length;
-  }
-
-  public meta_pairs(): Array<IKeyValuePair> {
-    return _.map(this.meta, (value, key): IKeyValuePair => {
-      return [key, value];
-    });
-  }
-
-  public meta_string() {
-    return this.meta_pairs().map(([key, value]) => {
-      return `.${key} ${value};`;
-    }).join(" ");
   }
 
   public toString() {

@@ -1,6 +1,6 @@
-import { Frame, IKeyValuePair } from "./frame";
+import { Frame } from "./frame";
 import { FrameExpr } from "./frame-expr";
-import { Context, NilContext } from "./meta-frame";
+import { Context, IKeyValuePair, NilContext } from "./meta-frame";
 
 export class FrameLazy extends FrameExpr {
   public static readonly LAZY_BEGIN = "{";
