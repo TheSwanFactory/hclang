@@ -14,7 +14,6 @@ export class Frame extends MetaFrame {
   });
   public static globals = Frame.missing;
 
-  public up: Frame;
   public callme: boolean;
   constructor(meta = NilContext, isNil = false) {
     super(meta);
@@ -29,32 +28,6 @@ export class Frame extends MetaFrame {
 
   public string_open() { return Frame.BEGIN_EXPR; };
   public string_close() { return Frame.END_EXPR; };
-
-  public get_here(key: string, origin: Frame = this): Frame {
-    const result = this.meta[key];
-    if (result != null) { return result; };
-    return Frame.missing;
-  }
-
-  public get(key: string, origin: Frame = this): Frame {
-    const result = this.get_here(key, origin);
-    if (result !== Frame.missing) { return result; };
-
-    let source = this.up || Frame.globals;
-    if (source === Frame.missing) {
-      if (Frame.globals === Frame.missing) { return Frame.missing; };
-      source = Frame.globals;
-    }
-    return source.get(key, origin);
-  }
-
-  public set(key: string, value: Frame): Frame {
-    if (this.meta === NilContext) {
-      this.meta = {};
-    }
-    this.meta[key] = value;
-    return this;
-  }
 
   public at(index: number) {
     return Frame.nil;

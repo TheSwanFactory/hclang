@@ -11,14 +11,10 @@ export declare class Frame extends MetaFrame {
     static readonly nil: Frame;
     static readonly missing: Frame;
     static globals: Frame;
-    up: Frame;
     callme: boolean;
     constructor(meta?: Context, isNil?: boolean);
     string_open(): string;
     string_close(): string;
-    get_here(key: string, origin?: Frame): Frame;
-    get(key: string, origin?: Frame): Frame;
-    set(key: string, value: Frame): Frame;
     at(index: number): Frame;
     in(contexts?: Frame[]): Frame;
     apply(argument: Frame, parameter: Frame): Frame;
