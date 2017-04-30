@@ -1,5 +1,5 @@
-import { Context } from "./frame";
 import { FrameQuote } from "./frame-atom";
+import { Context } from "./meta-frame";
 export declare class FrameComment extends FrameQuote {
     protected data: string;
     static readonly COMMENT_BEGIN: string;

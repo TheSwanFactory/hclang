@@ -1,6 +1,7 @@
 import * as _ from "lodash";
-import { Context, Frame, NilContext } from "./frame";
+import { Frame } from "./frame";
 import { FrameAtom } from "./frame-atom";
+import { Context, NilContext } from "./meta-frame";
 
 export class FrameNumber extends FrameAtom {
   public static readonly NUMBER_BEGIN = "0-9";
