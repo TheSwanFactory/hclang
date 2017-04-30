@@ -2,8 +2,6 @@
 import { expect } from "chai";
 import {} from "mocha";
 import { evaluate } from "../../src/execute/evaluate";
-import * as lex from "../../src/execute/lex-pipe";
-import * as parse from "../../src/execute/parse-pipe";
 import * as frame from "../../src/frames";
 
 describe("evaluate", () => {
@@ -58,5 +56,14 @@ describe("evaluate", () => {
     const input = "“Hello” “, HC!”";
     const result = evaluate(input);
     expect(result.toString()).to.equal(`[“Hello, HC!”]`);
+  });
+
+  it("evaluates symbols", () => {
+    const value = new frame.FrameString("value");
+    const input = "key";
+    const result = evaluate(input, {key: value}) as frame.FrameArray;
+    expect(result.size()).to.equal(1);
+    const output = result.at(0);
+    expect(output.toString()).to.equal(value.toString());
   });
 });
