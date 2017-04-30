@@ -36,6 +36,15 @@ describe("MetaFrame", () => {
     expect(frame.get("nil")).to.equal(Frame.nil);
   });
 
+  it("gets values where key matches a pattern", () => {
+    const pattern = "/[A-Z]/";
+    const value = new FrameString("value");
+    const key = "A";
+    frame.set(pattern, value);
+    const result = frame.get(key);
+    expect(result.toString()).to.equal(value.toString());
+  });
+
   it("gets Frame.missing if missing key", () => {
     const value = frame.get("missing");
     expect(value).to.equal(Frame.missing);

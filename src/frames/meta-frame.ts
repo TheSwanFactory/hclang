@@ -63,12 +63,17 @@ export class MetaFrame {
     }).join(" ");
   }
 
-  protected match_here(key: string): Frame {
-    _.forOwn(this.meta, (value, pattern): Frame => {
-      if (pattern.length > 1) {
-        return value;
+  protected match_here(target: string): Frame {
+    let result = Frame.missing;
+  _.forOwn(this.meta, (value, key) => {
+      const isPattern = key.match(/\/(.*)\//);
+      if (isPattern) {
+        const pattern = new RegExp(isPattern[1]);
+        if (pattern.test(target)) {
+          result = value;
+        }
       }
     });
-    return Frame.missing;
+    return result;
   }
 }

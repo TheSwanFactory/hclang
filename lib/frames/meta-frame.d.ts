@@ -19,5 +19,5 @@ export declare class MetaFrame {
     meta_length(): number;
     meta_pairs(): Array<IKeyValuePair>;
     meta_string(): string;
-    protected match_here(key: string): Frame;
+    protected match_here(target: string): Frame;
 }
