@@ -37,6 +37,11 @@ export class FrameSymbol extends FrameAtom {
     return this.in([context]);
   }
 
+  public string_start() {
+    // debugger;
+    return FrameSymbol.SYMBOL_REGEX.toString();
+  };
+
   public canInclude(char: string) {
     return FrameSymbol.SYMBOL_REGEX.test(char);
   }
