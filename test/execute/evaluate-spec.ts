@@ -66,4 +66,11 @@ describe("evaluate", () => {
     const output = result.at(0);
     expect(output.toString()).to.equal(value.toString());
   });
+
+  it("joins doc-strings into strings", () => {
+    const input = "``` Doc String ```";
+    const result = evaluate(input);
+    expect(result.toString()).to.equal(`[“ Doc String ”]`);
+  });
+
 });
