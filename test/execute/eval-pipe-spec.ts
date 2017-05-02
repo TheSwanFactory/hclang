@@ -39,6 +39,13 @@ describe("EvalPipe", () => {
     expect(result.toString()).to.equal(value.toString());
   });
 
+  it("evaluates symbols in expressions", () => {
+    const symbol = new frame.FrameSymbol("key");
+    const wrap = new frame.FrameExpr([symbol]);
+    const result = pipe.call(wrap);
+    expect(result.toString()).to.equal(value.toString());
+  });
+
   it("stores result in out", () => {
     expect(out.size()).to.equal(0);
     const result = pipe.call(expr);
