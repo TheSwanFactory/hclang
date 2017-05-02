@@ -1,4 +1,7 @@
 import { Frame } from "./frame";
+export interface ISourced extends Frame {
+    source: string;
+}
 export declare type Context = {
     [key: string]: Frame;
 };

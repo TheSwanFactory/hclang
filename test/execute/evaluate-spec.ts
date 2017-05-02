@@ -59,7 +59,6 @@ describe("evaluate", () => {
   });
 
   it("evaluates symbols", () => {
-    // debugger;
     const value = new frame.FrameString("value");
     const input = "key";
     const result = evaluate(input, {key: value}) as frame.FrameArray;

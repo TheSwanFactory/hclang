@@ -1,6 +1,10 @@
 import * as _ from "lodash";
 import { Frame } from "./frame";
 
+export interface ISourced extends Frame {
+  source: string;
+}
+
 export type Context = { [key: string]: Frame; };
 export const NilContext: Context = {};
 
@@ -15,7 +19,6 @@ export class MetaFrame {
   public get_here(key: string, origin: MetaFrame = this): Frame {
     const exact = this.meta[key];
     if (exact != null) { return exact; };
-
     return this.match_here(key);
   }
 
@@ -71,6 +74,10 @@ export class MetaFrame {
         const pattern = new RegExp(isPattern[1]);
         if (pattern.test(target)) {
           result = value;
+          if (result.hasOwnProperty("source")) {
+            const sourced = result as ISourced;
+            sourced.source = target;
+          }
         }
       }
     });
