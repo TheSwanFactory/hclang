@@ -1,5 +1,5 @@
 import * as _ from "lodash";
-import { Frame, FrameAtom, FrameString, ISourced, NilContext } from "../frames";
+import { Frame, FrameAtom, FrameQuote, FrameString, ISourced, NilContext } from "../frames";
 import { terminals } from "./terminals";
 
 export type Flag = { [key: string]: boolean; };

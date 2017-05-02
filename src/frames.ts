@@ -1,7 +1,8 @@
 export { FrameArray } from "./frames/frame-array";
-export { FrameAtom, IStringConstructor } from "./frames/frame-atom";
+export { FrameAtom, FrameQuote, IStringConstructor } from "./frames/frame-atom";
 export { FrameArg, FrameParam } from "./frames/frame-arg";
 export { FrameComment } from "./frames/frame-comment";
+export { FrameDoc } from "./frames/frame-doc";
 export { FrameExpr } from "./frames/frame-expr";
 export { FrameGroup } from "./frames/frame-group";
 export { FrameLazy } from "./frames/frame-lazy";
