@@ -7,6 +7,7 @@ import { Terminal, terminals } from "./terminals";
 const tokenFrames: Array<any> = [
   FrameSpace,
   frame.FrameComment,
+  frame.FrameDoc,
   frame.FrameName,
   frame.FrameNumber,
   frame.FrameString,
