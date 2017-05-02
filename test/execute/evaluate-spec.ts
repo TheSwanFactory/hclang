@@ -67,10 +67,10 @@ describe("evaluate", () => {
     expect(output.toString()).to.equal(value.toString());
   });
 
-  it("joins doc-strings into strings", () => {
-    const input = "``` Doc String ```";
+  it("joins multi-line doc-strings into strings", () => {
+    const input = "```\nDoc String\n```";
     const result = evaluate(input);
-    expect(result.toString()).to.equal(`[“ Doc String ”]`);
+    expect(result.toString()).to.equal(`[“\nDoc String\n”]`);
   });
 
 });
