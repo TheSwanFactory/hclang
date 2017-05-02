@@ -1,4 +1,4 @@
-import { Frame, FrameAtom } from "../frames";
+import { Frame, FrameAtom, ISourced } from "../frames";
 export declare type Flag = {
     [key: string]: boolean;
 };
@@ -8,8 +8,9 @@ export declare class Token extends FrameAtom {
     called_by(callee: Frame, parameter: Frame): Frame;
     protected toData(): any;
 }
-export declare class Lex extends Frame {
+export declare class Lex extends Frame implements ISourced {
     protected factory: any;
+    source: string;
     protected body: string;
     protected sample: FrameAtom;
     constructor(factory: any);

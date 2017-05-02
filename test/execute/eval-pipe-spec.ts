@@ -10,11 +10,13 @@ describe("EvalPipe", () => {
   const strA = new frame.FrameString("A");
   const strB = new frame.FrameString("B");
   const expr = new frame.FrameExpr([strA, strB]);
+  const value = new frame.FrameString("Value");
+  const context = {key: value};
   let out: frame.FrameArray;
   let pipe: EvalPipe;
 
   beforeEach(() => {
-    out = new frame.FrameArray([]);
+    out = new frame.FrameArray([], context);
     pipe = new EvalPipe(out);
   });
 
@@ -29,6 +31,19 @@ describe("EvalPipe", () => {
   it("evaluates arguments", () => {
     const result = pipe.call(expr);
     expect(result.toString()).to.equal("“AB”");
+  });
+
+  it("evaluates symbols in context", () => {
+    const symbol = new frame.FrameSymbol("key");
+    const result = pipe.call(symbol);
+    expect(result.toString()).to.equal(value.toString());
+  });
+
+  it("evaluates symbols in expressions", () => {
+    const symbol = new frame.FrameSymbol("key");
+    const wrap = new frame.FrameExpr([symbol]);
+    const result = pipe.call(wrap);
+    expect(result.toString()).to.equal(value.toString());
   });
 
   it("stores result in out", () => {

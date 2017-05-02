@@ -3,6 +3,7 @@ import { FrameAtom } from "./frame-atom";
 import { Context } from "./meta-frame";
 export declare class FrameSymbol extends FrameAtom {
     protected data: string;
+    static readonly SYMBOL_CHAR: RegExp;
     static for(symbol: string): FrameSymbol;
     static end(): FrameSymbol;
     protected static symbols: {
@@ -11,5 +12,7 @@ export declare class FrameSymbol extends FrameAtom {
     constructor(data: string, meta?: Context);
     in(contexts?: Frame[]): Frame;
     called_by(context: Frame): Frame;
+    string_start(): string;
+    canInclude(char: string): boolean;
     protected toData(): string;
 }

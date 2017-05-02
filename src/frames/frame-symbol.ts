@@ -3,6 +3,8 @@ import { FrameAtom } from "./frame-atom";
 import { Context, NilContext } from "./meta-frame";
 
 export class FrameSymbol extends FrameAtom {
+  public static readonly SYMBOL_CHAR = /[-\w]/;
+
   public static for(symbol: string) {
     const exists = FrameSymbol.symbols[symbol];
     return exists || (FrameSymbol.symbols[symbol] = new FrameSymbol(symbol));
@@ -33,6 +35,15 @@ export class FrameSymbol extends FrameAtom {
 
   public called_by(context: Frame) {
     return this.in([context]);
+  }
+
+  public string_start() {
+    // debugger;
+    return FrameSymbol.SYMBOL_CHAR.toString();
+  };
+
+  public canInclude(char: string) {
+    return FrameSymbol.SYMBOL_CHAR.test(char);
   }
 
   protected toData() { return this.data; }
