@@ -37,6 +37,9 @@ export class Lex extends Frame implements ISourced {
     if (this.isTerminal(char) && !this.isQuote()) {
       return this.finish(argument, true);
     }
+    if (this.body === "") {
+      this.body = this.source;
+    }
     this.body = this.body + argument.toString();
     return this;
   }
