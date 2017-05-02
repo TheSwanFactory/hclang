@@ -11,4 +11,4 @@ export { FrameNumber } from "./frames/frame-number";
 export { FrameString } from "./frames/frame-string";
 export { FrameSymbol } from "./frames/frame-symbol";
 export { Frame } from "./frames/frame";
-export { Context, IKeyValuePair, MetaFrame, NilContext } from "./frames/meta-frame";
+export { Context, IKeyValuePair, ISourced, MetaFrame, NilContext } from "./frames/meta-frame";

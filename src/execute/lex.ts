@@ -1,5 +1,5 @@
 import * as _ from "lodash";
-import { Frame, FrameAtom, FrameString, NilContext } from "../frames";
+import { Frame, FrameAtom, FrameString, ISourced, NilContext } from "../frames";
 import { terminals } from "./terminals";
 
 export type Flag = { [key: string]: boolean; };
@@ -16,14 +16,16 @@ export class Token extends FrameAtom {
   protected toData(): any { return this.data; }
 }
 
-export class Lex extends Frame {
+export class Lex extends Frame implements ISourced {
 
+  public source: string;
   protected body: string = "";
   protected sample: FrameAtom;
 
   public constructor(protected factory: any) {
     super();
     this.sample = new factory("");
+    this.source = "";
   }
 
   public call(argument: Frame, parameter = Frame.nil): Frame {
