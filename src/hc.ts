@@ -9,9 +9,8 @@ if (argv.length > 3) {
   input = argv[3];
 } else if (argv.length === 3) {
   const file = argv[2];
-  console.log(file);
   input = fs.readFileSync(file, "utf8");
-  console.log(input);
+  // console.log(input);
 };
 
 const output = execute(input);
