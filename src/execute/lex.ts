@@ -30,10 +30,12 @@ export class Lex extends Frame implements ISourced {
 
   public call(argument: Frame, parameter = Frame.nil): Frame {
     const char = argument.toString();
+    if (this.isEnd(char) && this.isTerminal(char)) {
+      return this.finish(argument, true);
+    }
     if (this.isEnd(char)) {
       return this.finish(argument, !this.isQuote());
     }
-
     if (this.isTerminal(char) && !this.isQuote()) {
       return this.finish(argument, true);
     }
@@ -64,7 +66,7 @@ export class Lex extends Frame implements ISourced {
   }
 
   protected isQuote() {
-    return (this.sample instanceof FrameString);
+    return (this.sample instanceof FrameQuote);
   }
 
   protected finish(argument: Frame, passAlong: boolean) {

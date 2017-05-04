@@ -4,6 +4,8 @@ import { FrameSpace } from "./frame-space";
 import { Lex } from "./lex";
 import { Terminal, terminals } from "./terminals";
 
+export const syntax: frame.Context = _.clone(terminals);
+
 const tokenFrames: Array<any> = [
   FrameSpace,
   frame.FrameComment,
@@ -17,7 +19,5 @@ const tokenFrames: Array<any> = [
 _.map(tokenFrames, (klass: any) => {
   const sample: frame.FrameAtom = new klass("");
   const key = sample.string_start();
-  terminals[key] = new Lex(klass);
+  syntax[key] = new Lex(klass);
 });
-
-export const syntax: frame.Context = terminals;
