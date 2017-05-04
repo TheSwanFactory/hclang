@@ -42,7 +42,7 @@ describe("execute", () => {
     });
   });
 
-  describe.only("tokens", () => {
+  describe("tokens", () => {
 
     it("quines FrameStrings", () => {
       const result = execute(input_string);
