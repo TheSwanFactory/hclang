@@ -7,7 +7,7 @@ describe("execute", () => {
   const input_string = "“Watson I need you”";
   const other_string = "“Holmes I need you”";
   const both_strings = `${input_string}\n${other_string}`;
-  const inline_comment = "#Inline#";
+  const inline_comment = "#Inline comment#";
   const endline_comment = "#End-of-line\n";
   const spaces = "  ";
 
@@ -42,7 +42,7 @@ describe("execute", () => {
     });
   });
 
-  describe("tokens", () => {
+  describe.only("tokens", () => {
 
     it("quines FrameStrings", () => {
       const result = execute(input_string);

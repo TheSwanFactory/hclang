@@ -64,7 +64,7 @@ export class Lex extends Frame implements ISourced {
   }
 
   protected isQuote() {
-    return (this.sample instanceof FrameString);
+    return (this.sample instanceof FrameQuote);
   }
 
   protected finish(argument: Frame, passAlong: boolean) {
