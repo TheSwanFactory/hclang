@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import * as fs from "fs";
 import { execute } from "./execute";
 
 let input = "“Hello, MAML!”";
@@ -9,7 +10,8 @@ if (argv.length > 3) {
 } else if (argv.length === 3) {
   const file = argv[2];
   console.log(file);
-  input = file;
+  input = fs.readFileSync(file, "utf8");
+  console.log(input);
 };
 
 const output = execute(input);
