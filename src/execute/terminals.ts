@@ -37,6 +37,12 @@ const pop: ICurryFunction = (source: Frame, parameter: Frame) => {
   return (source as LexPipe).pop();
 };
 
+const generator = (actions: Context) => {
+  return (source: Frame, parameter: Frame) => {
+    return (source as LexPipe).perform(actions);
+  };
+};
+
 terminals[Frame.kEND] = Terminal.end();
 terminals["\n"] = new Terminal(next);
 terminals["("] = new Terminal(push);

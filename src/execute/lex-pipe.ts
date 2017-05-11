@@ -19,8 +19,24 @@ export class LexPipe extends Frame {
     return source.reduce(this);
   }
 
+  public finish() {
+    const output = FrameSymbol.end();
+    const out = this.get(Frame.kOUT);
+    return out.call(output);
+  }
+
   public parser(): ParsePipe {
     return this.get(LexPipe.kOUT) as ParsePipe;
+  }
+
+  public perform(actions: Context) {
+    this.finish();
+    return this;
+  }
+
+  public next() {
+    this.finish();
+    return this;
   }
 
   public push(): Frame {
@@ -32,17 +48,6 @@ export class LexPipe extends Frame {
   public pop(): Frame {
     const next_parser = this.parser().pop();
     this.set(LexPipe.kOUT, next_parser);
-    return this;
-  }
-
-  public finish() {
-    const output = FrameSymbol.end();
-    const out = this.get(Frame.kOUT);
-    return out.call(output);
-  }
-
-  public next() {
-    this.finish();
     return this;
   }
 }
