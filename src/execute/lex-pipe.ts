@@ -30,7 +30,19 @@ export class LexPipe extends Frame {
   }
 
   public perform(actions: Context) {
-    this.finish();
+    _.forEach(actions, (value, key) => {
+      switch (key) {
+        case "next": {
+          this.next(value);
+        }
+        case "push": {
+          this.push(value);
+        }
+        case "pop": {
+          this.pop(value);
+        }
+      }
+    });
     return this;
   }
 
