@@ -22,19 +22,7 @@ export const terminals: Context = {
 };
 
 const finish: ICurryFunction = (source: Frame, parameter: Frame) => {
-  return (source as LexPipe).finish();
-};
-
-const next: ICurryFunction = (source: Frame, parameter: Frame) => {
-  return (source as LexPipe).next(parameter);
-};
-
-const push: ICurryFunction = (source: Frame, parameter: Frame) => {
-  return (source as LexPipe).push(parameter);
-};
-
-const pop: ICurryFunction = (source: Frame, parameter: Frame) => {
-  return (source as LexPipe).pop(parameter);
+  return (source as LexPipe).finish(parameter);
 };
 
 const perform = (actions: Context) => {
