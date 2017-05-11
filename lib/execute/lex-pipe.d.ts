@@ -7,7 +7,7 @@ export declare class LexPipe extends Frame {
     finish(): Frame;
     parser(): ParsePipe;
     perform(actions: Context): this;
-    next(): this;
-    push(): Frame;
-    pop(): Frame;
+    next(parameter: Frame): this;
+    push(parameter: Frame): Frame;
+    pop(parameter: Frame): Frame;
 }

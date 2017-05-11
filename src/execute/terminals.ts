@@ -26,15 +26,15 @@ const finish: ICurryFunction = (source: Frame, parameter: Frame) => {
 };
 
 const next: ICurryFunction = (source: Frame, parameter: Frame) => {
-  return (source as LexPipe).next();
+  return (source as LexPipe).next(parameter);
 };
 
 const push: ICurryFunction = (source: Frame, parameter: Frame) => {
-  return (source as LexPipe).push();
+  return (source as LexPipe).push(parameter);
 };
 
 const pop: ICurryFunction = (source: Frame, parameter: Frame) => {
-  return (source as LexPipe).pop();
+  return (source as LexPipe).pop(parameter);
 };
 
 const generator = (actions: Context) => {

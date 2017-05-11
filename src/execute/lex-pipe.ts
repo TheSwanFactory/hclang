@@ -34,18 +34,18 @@ export class LexPipe extends Frame {
     return this;
   }
 
-  public next() {
+  public next(parameter: Frame) {
     this.finish();
     return this;
   }
 
-  public push(): Frame {
+  public push(parameter: Frame): Frame {
     const next_parser = this.parser().push();
     this.set(LexPipe.kOUT, next_parser);
     return this;
   }
 
-  public pop(): Frame {
+  public pop(parameter: Frame): Frame {
     const next_parser = this.parser().pop();
     this.set(LexPipe.kOUT, next_parser);
     return this;
