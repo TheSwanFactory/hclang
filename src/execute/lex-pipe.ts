@@ -27,7 +27,7 @@ export class LexPipe extends Frame {
     _.forEach(actions, (value, key) => {
       switch (key) {
         case "finish": {
-          this.next(value);
+          this.finish(value);
         }
         case "next": {
           this.next(value);
