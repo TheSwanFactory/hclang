@@ -4,7 +4,7 @@ import { Lex } from "./lex";
 import { LexPipe } from "./lex-pipe";
 
 export class Terminal extends Frame {
-  public static end() { return new Terminal(finish); };
+  public static end() { return new Terminal(terminate); };
 
   constructor(protected data: ICurryFunction) {
     super(NilContext);
@@ -21,14 +21,16 @@ export class Terminal extends Frame {
 export const terminals: Context = {
 };
 
-const finish: ICurryFunction = (source: Frame, parameter: Frame) => {
-  return (source as LexPipe).finish(parameter);
-};
-
 const perform = (actions: Context) => {
   return (source: Frame, parameter: Frame) => {
     return (source as LexPipe).perform(actions);
   };
+};
+
+const performTerminate = perform({finish: Frame.nil});
+
+const terminate: ICurryFunction = (source: Frame, parameter: Frame) => {
+  return (source as LexPipe).finish(parameter);
 };
 
 terminals[Frame.kEND] = Terminal.end();

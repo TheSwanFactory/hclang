@@ -24,10 +24,11 @@ export class LexPipe extends Frame {
   }
 
   public perform(actions: Context) {
+    let result: Frame = this;
     _.forEach(actions, (value, key) => {
       switch (key) {
         case "finish": {
-          this.finish(value);
+          result = this.finish(value);
         }
         case "next": {
           this.next(value);
@@ -40,7 +41,7 @@ export class LexPipe extends Frame {
         }
       }
     });
-    return this;
+    return result;
   }
 
   public finish(argument: Frame) {
