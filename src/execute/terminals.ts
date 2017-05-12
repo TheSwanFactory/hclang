@@ -3,6 +3,10 @@ import { ICurryFunction } from "../ops";
 import { Lex } from "./lex";
 import { LexPipe } from "./lex-pipe";
 
+export interface IPerformer extends Frame {
+  perform(actions: Context): Frame;
+}
+
 const terminate: ICurryFunction = (source: Frame, parameter: Frame) => {
   return (source as LexPipe).finish(parameter); // also ParsePipe
 };
@@ -27,7 +31,7 @@ export const terminals: Context = {
 
 const perform = (actions: Context) => {
   return (source: Frame, parameter: Frame) => {
-    return (source as LexPipe).perform(actions);
+    return (source as IPerformer).perform(actions);
   };
 };
 

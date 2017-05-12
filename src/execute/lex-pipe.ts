@@ -2,8 +2,9 @@ import * as _ from "lodash";
 import { Context, Frame, FrameString, FrameSymbol } from "../frames";
 import { ParsePipe } from "./parse-pipe";
 import { syntax } from "./syntax";
+import { IPerformer } from "./terminals";
 
-export class LexPipe extends Frame {
+export class LexPipe extends Frame implements IPerformer {
   constructor(out: Frame) {
     syntax[LexPipe.kOUT] = out;
     // console.error(` * LexPipe.meta ${JSON.stringify(meta, null, 2)}\n`);
