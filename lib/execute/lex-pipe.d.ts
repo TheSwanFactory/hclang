@@ -5,8 +5,8 @@ export declare class LexPipe extends Frame {
     lex_string(input: string): Frame;
     lex(source: FrameString): Frame;
     parser(): ParsePipe;
-    perform(actions: Context): Frame;
     finish(argument: Frame): Frame;
+    perform(actions: Context): this;
     next(argument: Frame): this;
     push(argument: Frame): Frame;
     pop(argument: Frame): Frame;

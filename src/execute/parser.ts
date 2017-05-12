@@ -19,7 +19,7 @@ export class Parser extends FrameArray {
     return parent;
   }
 
-  public finish(): Frame {
+  public finish(argument: Frame): Frame {
     const terminal = FrameSymbol.end();
     const result = this.makeFrame();
     const out = this.get(Frame.kOUT);

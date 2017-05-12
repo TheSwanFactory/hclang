@@ -3,6 +3,6 @@ export declare class ParsePipe extends FrameArray {
     constructor(out: Frame);
     push(): Frame;
     pop(): Frame;
-    finish(): Frame;
+    finish(argument: Frame): Frame;
     protected makeFrame(): FrameExpr;
 }

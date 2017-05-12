@@ -3,6 +3,10 @@ import { ICurryFunction } from "../ops";
 import { Lex } from "./lex";
 import { LexPipe } from "./lex-pipe";
 
+const terminate: ICurryFunction = (source: Frame, parameter: Frame) => {
+  return (source as LexPipe).finish(parameter); // also ParsePipe, Parser
+};
+
 export class Terminal extends Frame {
   public static end() { return new Terminal(terminate); };
 
@@ -25,12 +29,6 @@ const perform = (actions: Context) => {
   return (source: Frame, parameter: Frame) => {
     return (source as LexPipe).perform(actions);
   };
-};
-
-const performTerminate = perform({finish: Frame.nil});
-
-const terminate: ICurryFunction = (source: Frame, parameter: Frame) => {
-  return (source as LexPipe).finish(parameter);
 };
 
 terminals[Frame.kEND] = Terminal.end();

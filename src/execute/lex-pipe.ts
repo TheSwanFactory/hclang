@@ -23,13 +23,15 @@ export class LexPipe extends Frame {
     return this.get(LexPipe.kOUT) as ParsePipe;
   }
 
+  public finish(argument: Frame) {
+    const output = FrameSymbol.end();
+    const out = this.get(Frame.kOUT);
+    return out.call(output);
+  }
+
   public perform(actions: Context) {
-    let result: Frame = this;
     _.forEach(actions, (value, key) => {
       switch (key) {
-        case "finish": {
-          result = this.finish(value);
-        }
         case "next": {
           this.next(value);
         }
@@ -41,13 +43,7 @@ export class LexPipe extends Frame {
         }
       }
     });
-    return result;
-  }
-
-  public finish(argument: Frame) {
-    const output = FrameSymbol.end();
-    const out = this.get(Frame.kOUT);
-    return out.call(output);
+    return this;
   }
 
   public next(argument: Frame) {
