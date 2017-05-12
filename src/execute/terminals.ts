@@ -4,7 +4,7 @@ import { Lex } from "./lex";
 import { LexPipe } from "./lex-pipe";
 
 const terminate: ICurryFunction = (source: Frame, parameter: Frame) => {
-  return (source as LexPipe).finish(parameter); // also ParsePipe, Parser
+  return (source as LexPipe).finish(parameter); // also ParsePipe
 };
 
 export class Terminal extends Frame {

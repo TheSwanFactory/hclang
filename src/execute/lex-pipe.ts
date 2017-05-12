@@ -28,7 +28,6 @@ export class LexPipe extends Frame {
   public perform(actions: Context) {
     const parser = this.get(LexPipe.kOUT) as ParsePipe;
     _.forEach(actions, (value, key) => {
-      // console.log("  *  perform.key " + key);
       switch (key) {
         case "next": {
           this.finish(value);
