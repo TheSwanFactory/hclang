@@ -3,8 +3,16 @@ import { ICurryFunction } from "../ops";
 import { Lex } from "./lex";
 import { LexPipe } from "./lex-pipe";
 
+export interface IPerformer extends Frame {
+  perform(actions: Context): Frame;
+}
+
+const terminate: ICurryFunction = (source: Frame, parameter: Frame) => {
+  return (source as LexPipe).finish(parameter); // also ParsePipe
+};
+
 export class Terminal extends Frame {
-  public static end() { return new Terminal(finish); };
+  public static end() { return new Terminal(terminate); };
 
   constructor(protected data: ICurryFunction) {
     super(NilContext);
@@ -21,23 +29,13 @@ export class Terminal extends Frame {
 export const terminals: Context = {
 };
 
-const finish: ICurryFunction = (source: Frame, parameter: Frame) => {
-  return (source as LexPipe).finish();
-};
-
-const next: ICurryFunction = (source: Frame, parameter: Frame) => {
-  return (source as LexPipe).next();
-};
-
-const push: ICurryFunction = (source: Frame, parameter: Frame) => {
-  return (source as LexPipe).push();
-};
-
-const pop: ICurryFunction = (source: Frame, parameter: Frame) => {
-  return (source as LexPipe).pop();
+const perform = (actions: Context) => {
+  return (source: Frame, parameter: Frame) => {
+    return (source as IPerformer).perform(actions);
+  };
 };
 
 terminals[Frame.kEND] = Terminal.end();
-terminals["\n"] = new Terminal(next);
-terminals["("] = new Terminal(push);
-terminals[")"] = new Terminal(pop);
+terminals["\n"] = new Terminal(perform({next: Frame.nil}));
+terminals["("] = new Terminal(perform({push: Frame.nil}));
+terminals[")"] = new Terminal(perform({pop: Frame.nil}));

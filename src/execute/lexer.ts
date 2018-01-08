@@ -2,7 +2,6 @@ import * as _ from "lodash";
 import { Context, Frame, FrameGroup, FrameString, NilContext } from "../frames";
 import { ICurryFunction } from "../ops";
 import { actions, LexOptions } from "./actions";
-import { Parser } from "./parser";
 import { syntax } from "./syntax";
 
 class LexTerminal extends Frame {

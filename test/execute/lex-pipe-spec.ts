@@ -26,7 +26,7 @@ describe("LexPipe", () => {
   });
 
   it("emits END on finish", () => {
-    const result = pipe.finish();
+    const result = pipe.finish(frame.Frame.nil);
     expect(result.toString()).to.equal(success.toString());
   });
 

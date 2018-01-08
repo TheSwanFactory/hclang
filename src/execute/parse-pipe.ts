@@ -9,17 +9,17 @@ export class ParsePipe extends FrameArray {
     super([], meta);
   }
 
-  public push(): Frame {
+  public push(argument: Frame): Frame {
     const child = new ParsePipe(this);
     return child;
   }
 
-  public pop(): Frame {
+  public pop(argument: Frame): Frame {
     const parent = this.get(ParsePipe.kOUT);
     return parent;
   }
 
-  public finish(): Frame {
+  public finish(argument: Frame): Frame {
     const terminal = FrameSymbol.end();
     const result = this.makeFrame();
     const out = this.get(Frame.kOUT);

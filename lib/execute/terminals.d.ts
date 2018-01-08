@@ -1,5 +1,8 @@
 import { Context, Frame } from "../frames";
 import { ICurryFunction } from "../ops";
+export interface IPerformer extends Frame {
+    perform(actions: Context): Frame;
+}
 export declare class Terminal extends Frame {
     protected data: ICurryFunction;
     static end(): Terminal;
