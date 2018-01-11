@@ -1,6 +1,5 @@
 #!/usr/bin/env hc
-.hc 0.1.0
-.ruby “”
+.hc 0.1.0;
 ```
 Title         : Homoiconic C
 Subtitle      : Programming without a Language
