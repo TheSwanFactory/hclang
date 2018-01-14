@@ -18,3 +18,10 @@
   * e.g., `brew install node` on macOS.
 
 5. Run `npm test`.
+
+## Debugging
+
+1. $ sudo ln -s $CWD/lib/node_modules/inspect-process/bin/inspect.js /usr/local/bin/inspect
+2. $ alias debug='inspect _mocha --no-timeouts --compilers ts:ts-node/register --recursive test/**/*-spec.ts'
+3. # Add/uncomment "debugger;"
+3. $ debug
