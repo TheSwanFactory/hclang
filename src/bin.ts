@@ -1,7 +1,5 @@
 #!/usr/bin/env node
-import {green} from "chalk";
+import "chalk";
 console.log(
-  green(
     "MAML; ",
-  ),
 );
