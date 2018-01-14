@@ -42,8 +42,7 @@ describe("execute", () => {
     });
   });
 
-  describe("tokens", () => {
-
+  describe("tokens.strings", () => {
     it("quines FrameStrings", () => {
       const result = execute(input_string);
       expect(result).to.equal(input_string);
@@ -81,6 +80,14 @@ describe("execute", () => {
       const space_inside = other_string + spaces + inline_comment;
       const result_inside = execute(space_inside);
       expect(result_inside).to.equal(other_string);
+    });
+  });
+
+  describe.only("tokens.symbols", () => {
+    const input_setter = ".key";
+    it("returns names", () => {
+      const result = execute(input_setter);
+      expect(result).to.equal(input_setter);
     });
   });
 });
