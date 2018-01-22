@@ -73,4 +73,12 @@ describe("evaluate", () => {
     expect(result.toString()).to.equal(`[“\nDoc String\n”]`);
   });
 
+  it("sets symbols", () => {
+    const value = new frame.FrameString("value");
+    const input = `.key ${value};\nkey`;
+    const result = evaluate(input) as frame.FrameArray;
+    expect(result.size()).to.equal(2);
+    const output = result.at(1);
+    expect(output.toString()).to.equal(value.toString());
+  });
 });

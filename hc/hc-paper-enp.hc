@@ -1,6 +1,5 @@
 #!/usr/bin/env hc
-.hc 0.1.0
-.ruby “”
+.hc 0.1.0;
 ```
 Title         : Homoiconic C
 Subtitle      : Programming without a Language
@@ -431,7 +430,7 @@ special syntax.
 #### Controls
 
 As part of its quest to avoid arbitrary keywords, HC introduces the concept of
-_controls_, mirroring the hardware distinction between the control plan and the data plane.
+_controls_, mirroring the hardware distinction between the control plane and the data plane.
 Controls are special closures which modify the behavior of the runtime, rather than
 simply returning values.
 
@@ -455,7 +454,7 @@ multi-level returns.
 ##### Exceptions
 
 Controls are also used to signal exceptions and errors.  Exception controls
-begin with `$!` and return an interrupt value that propogates back up the call
+begin with `$!` and return an interrupt value that propagates back up the call
 chain until it encounters an appropriate handler or aborts the program.  The REPL,
 however, simply prints out the exceptional value:
 
