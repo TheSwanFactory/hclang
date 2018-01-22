@@ -83,7 +83,7 @@ describe("execute", () => {
     });
   });
 
-  describe.only("tokens.symbols", () => {
+  describe("tokens.symbols", () => {
     const input_setter = ".key";
     it("returns names", () => {
       const result = execute(input_setter);
