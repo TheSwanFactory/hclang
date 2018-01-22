@@ -20,8 +20,9 @@
 5. Run `npm test`.
 
 ## Debugging
-
+0. $ npm install -g inspect-process
 1. $ sudo ln -s $CWD/lib/node_modules/inspect-process/bin/inspect.js /usr/local/bin/inspect
 2. $ alias debug='inspect _mocha --no-timeouts --compilers ts:ts-node/register --recursive test/**/*-spec.ts'
 3. # Add/uncomment "debugger;"
-3. $ debug
+4. $ debug
+5. # In Chrome: about:inspect -> inspect
