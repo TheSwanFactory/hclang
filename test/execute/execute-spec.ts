@@ -85,7 +85,7 @@ describe("execute", () => {
 
   describe("tokens.symbols", () => {
     const input_setter = ".key";
-    it("returns names", () => {
+    it.skip("returns names", () => {
       const result = execute(input_setter);
       expect(result).to.equal(input_setter);
     });
