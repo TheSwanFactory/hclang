@@ -19,5 +19,9 @@ export class FrameName extends FrameAtom {
 
   public string_prefix() { return FrameName.NAME_BEGIN; };
 
+  public canInclude(char: string) {
+    return FrameSymbol.SYMBOL_CHAR.test(char);
+  }
+
   protected toData() { return this.data; }
 };
