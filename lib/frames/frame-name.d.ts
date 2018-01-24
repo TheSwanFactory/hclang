@@ -8,5 +8,6 @@ export declare class FrameName extends FrameAtom {
     constructor(source: string, meta?: Context);
     in(contexts?: Frame[]): FrameSymbol;
     string_prefix(): string;
+    canInclude(char: string): boolean;
     protected toData(): FrameSymbol;
 }

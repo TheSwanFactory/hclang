@@ -58,7 +58,7 @@ describe("evaluate", () => {
     expect(result.toString()).to.equal(`[“Hello, HC!”]`);
   });
 
-  it.only("evaluates symbols", () => {
+  it("evaluates symbols", () => {
     const value = new frame.FrameString("value");
     const input = "key";
     const result = evaluate(input, {key: value}) as frame.FrameArray;
@@ -73,7 +73,17 @@ describe("evaluate", () => {
     expect(result.toString()).to.equal(`[“\nDoc String\n”]`);
   });
 
-  it.only("sets symbols", () => {
+  it.only("set symbols", () => {
+    const value = new frame.FrameString("value");
+    const input = `.key ${value}`;
+    const result = evaluate(input) as frame.FrameArray;
+    console.error(result);
+    expect(result.size()).to.equal(1);
+    const output = result.get("key");
+    expect(output.toString()).to.equal(value.toString());
+  });
+
+  it("creates and returns symbols", () => {
     const value = new frame.FrameString("value");
     const input = `.key ${value};\nkey`;
     const result = evaluate(input) as frame.FrameArray;
