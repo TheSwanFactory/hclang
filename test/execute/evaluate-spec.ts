@@ -58,6 +58,12 @@ describe("evaluate", () => {
     expect(result.toString()).to.equal(`[“Hello, HC!”]`);
   });
 
+  it("joins multi-line doc-strings into strings", () => {
+    const input = "```\nDoc String\n```";
+    const result = evaluate(input);
+    expect(result.toString()).to.equal(`[“\nDoc String\n”]`);
+  });
+
   it("evaluates symbols", () => {
     const value = new frame.FrameString("value");
     const input = "key";
@@ -67,13 +73,7 @@ describe("evaluate", () => {
     expect(output.toString()).to.equal(value.toString());
   });
 
-  it("joins multi-line doc-strings into strings", () => {
-    const input = "```\nDoc String\n```";
-    const result = evaluate(input);
-    expect(result.toString()).to.equal(`[“\nDoc String\n”]`);
-  });
-
-  it.only("set symbols", () => {
+  it.skip("set symbols", () => {
     const value = "value";
     const key = "key";
     const value_str = new frame.FrameString("value");
@@ -90,7 +90,7 @@ describe("evaluate", () => {
     expect(extracted.toString()).to.equal(value_str.toString());
   });
 
-  it("creates and returns symbols", () => {
+  it.skip("creates and returns symbols", () => {
     const value = new frame.FrameString("value");
     const input = `.key ${value};\nkey`;
     const result = evaluate(input) as frame.FrameArray;

@@ -13,7 +13,6 @@ export class FrameGroup extends FrameList {
     }
     const expr = this.data[0];
     contexts.push(this);
-    debugger;
     const result = expr.in(contexts);
     const symbols = this.meta_pairs();
     symbols.map(([key, value]) => {

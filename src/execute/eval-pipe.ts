@@ -9,7 +9,6 @@ export class EvalPipe extends Frame {
 
   public apply(expr: Frame, context: Frame) {
     const out = this.get(Frame.kOUT);
-    debugger;
     const result = expr.in([context, out]);
     out.call(result);
     return result;

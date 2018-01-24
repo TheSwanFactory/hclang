@@ -21,6 +21,9 @@ export class Frame extends MetaFrame {
       this.called_by = (context: Frame, parameter: Frame) => {
         return context;
       };
+      this.call = (argument: Frame, parameter = Frame.nil) => {
+        return argument;
+      };
     }
   }
 

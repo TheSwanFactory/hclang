@@ -16,7 +16,8 @@ export class FrameExpr extends FrameList {
       if (value.isVoid()) {
         return sum;
       }
-      return sum.call(value);
+      const next_sum = sum.call(value)
+      return next_sum;
     }, Frame.nil);
   }
 
