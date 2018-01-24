@@ -13,9 +13,6 @@ export class FrameExpr extends FrameList {
     contexts.push(this);
     return this.data.reduce((sum: Frame, item: Frame) => {
       const value = item.in(contexts);
-      if (value.isVoid()) {
-        return sum;
-      }
       const next_sum = sum.call(value)
       return next_sum;
     }, Frame.nil);
