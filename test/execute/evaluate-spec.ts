@@ -74,13 +74,20 @@ describe("evaluate", () => {
   });
 
   it.only("set symbols", () => {
-    const value = new frame.FrameString("value");
-    const input = `.key ${value}`;
+    const value = "value";
+    const key = "key";
+    const value_str = new frame.FrameString("value");
+    const input = `.${key} ${value_str}`;
     const result = evaluate(input) as frame.FrameArray;
-    console.error(result);
+    console.error(`result: ${result}`);
     expect(result.size()).to.equal(1);
-    const output = result.get("key");
-    expect(output.toString()).to.equal(value.toString());
+    const output = result.at(1);
+    console.error(`output: ${output}`);
+    const extracted = output.get(key);
+    console.error(`extracted: ${extracted}`);
+
+    expect(output.toString()).to.equal(value_str.toString());
+    expect(extracted.toString()).to.equal(value_str.toString());
   });
 
   it("creates and returns symbols", () => {
