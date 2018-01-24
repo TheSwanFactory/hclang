@@ -20,7 +20,6 @@ export class ParsePipe extends FrameArray {
   }
 
   public finish(argument: Frame): Frame {
-    debugger;
     const terminal = FrameSymbol.end();
     const result = this.makeFrame();
     const out = this.get(Frame.kOUT);
