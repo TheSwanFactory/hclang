@@ -53,4 +53,14 @@ describe("FrameSymbol", () => {
     const result2 = context.call(frame_symbol);
     expect(result2.toString()).to.equal("“Atom Smasher”");
   });
+
+  it.only("sets value when called", () => {
+    const value = "value";
+    const frame_value = new frame.FrameString(value);
+    const result = frame_symbol.call(frame_value);
+    console.error(result);
+    const extracted = result.get(symbol);
+    expect(extracted).to.equal(value);
+  });
+
 });
