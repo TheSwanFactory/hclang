@@ -54,13 +54,25 @@ describe("FrameSymbol", () => {
     expect(result2.toString()).to.equal("“Atom Smasher”");
   });
 
-  it.only("sets value when called", () => {
+  describe.only("setter", () => {
     const value = "value";
     const frame_value = new frame.FrameString(value);
-    const result = frame_symbol.call(frame_value);
-    console.error(result);
-    const extracted = result.get(symbol);
-    expect(extracted).to.equal(value);
+    const out = new frame.FrameString("out");
+    const setter = frame_symbol.setter(out);
+    const result = setter.call(frame_value);
+
+    it("has out parameter", () => {
+      expect(setter.get(frame.Frame.kOUT)).to.equal(out);
+    });
+
+    it("returns setter", () => {
+      expect(result).to.equal(setter);
+    });
+
+    it("sets value in out", () => {
+      const extracted = out.get(symbol);
+      expect(extracted).to.equal(frame_value);
+    });
   });
 
 });

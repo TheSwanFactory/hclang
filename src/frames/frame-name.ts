@@ -14,7 +14,11 @@ export class FrameName extends FrameAtom {
   }
 
   public in(contexts = [Frame.nil]) {
-    return this.data;
+    const out = this.get(Frame.kOUT);
+    console.error(`\n** FrameName[${this.data}].out`);
+    console.error(out);
+    const setter = this.data.setter(out);
+    return setter;
   }
 
   public string_prefix() { return FrameName.NAME_BEGIN; };
