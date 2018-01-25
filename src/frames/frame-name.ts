@@ -15,8 +15,8 @@ export class FrameName extends FrameAtom {
 
   public in(contexts = [Frame.nil]) {
     const out = this.get(Frame.kOUT);
-    console.error(`\n** FrameName[${this.data}].out`);
-    console.error(out);
+    // console.error(`\n** FrameName[${this.data}].out`);
+    // console.error(out);
     const setter = this.data.setter(out);
     return setter;
   }

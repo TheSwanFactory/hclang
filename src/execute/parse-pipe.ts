@@ -2,11 +2,14 @@ import { Context, Frame, FrameArray, FrameAtom, FrameExpr, FrameSymbol, NilConte
 import { Terminal } from "./terminals";
 
 export class ParsePipe extends FrameArray {
+  protected factory: any;
+
   constructor(out: Frame) {
     const meta: Context = {};
     meta[ParsePipe.kOUT] = out;
     meta[Frame.kEND] = Terminal.end();
     super([], meta);
+    this.factory = FrameExpr;
   }
 
   public push(argument: Frame): Frame {
@@ -31,6 +34,6 @@ export class ParsePipe extends FrameArray {
 
   protected makeFrame() {
     const current = this.asArray();
-    return new FrameExpr(current);
+    return new this.factory(current);
   }
 }
