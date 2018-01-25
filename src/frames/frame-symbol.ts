@@ -42,7 +42,9 @@ export class FrameSymbol extends FrameAtom {
 
   public setter(out: Frame) {
     const meta: Context = {};
-    meta[Frame.kOUT] = out;
+    if (out !== Frame.missing) {
+      meta[Frame.kOUT] = out;
+    }
     const setter = new FrameSymbol(this.data, meta);
     return setter;
   }

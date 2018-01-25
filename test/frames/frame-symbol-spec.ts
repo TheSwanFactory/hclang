@@ -54,7 +54,7 @@ describe("FrameSymbol", () => {
     expect(result2.toString()).to.equal("“Atom Smasher”");
   });
 
-  describe.only("setter", () => {
+  describe("setter", () => {
     const value = "value";
     const frame_value = new frame.FrameString(value);
     const out = new frame.FrameString("out");
