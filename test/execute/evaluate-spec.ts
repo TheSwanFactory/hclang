@@ -64,38 +64,47 @@ describe("evaluate", () => {
     expect(result.toString()).to.equal(`[“\nDoc String\n”]`);
   });
 
-  it("evaluates symbols", () => {
-    const value = new frame.FrameString("value");
-    const input = "key";
-    const result = evaluate(input, {key: value}) as frame.FrameArray;
-    expect(result.size()).to.equal(1);
-    const output = result.at(0);
-    expect(output.toString()).to.equal(value.toString());
-  });
-
-  it.skip("set symbols", () => {
-    const value = "value";
+  describe("symbols", () => {
     const key = "key";
-    const value_str = new frame.FrameString("value");
-    const input = `.${key} ${value_str}`;
-    const result = evaluate(input) as frame.FrameArray;
-    console.error(`result: ${result}`);
-    expect(result.size()).to.equal(1);
-    const output = result.at(1);
-    console.error(`output: ${output}`);
-    const extracted = output.get(key);
-    console.error(`extracted: ${extracted}`);
+    const value = "value";
+    const frame_value = new frame.FrameString("value");
+    const setting = `.${key} ${frame_value}`;
 
-    expect(output.toString()).to.equal(value_str.toString());
-    expect(extracted.toString()).to.equal(value_str.toString());
-  });
+    it("evaluates in context", () => {
+      const context: frame.Context = {key: frame_value};
+      const result = evaluate(key, context) as frame.FrameArray;
+      expect(result.size()).to.equal(1);
+      const output = result.at(0);
+      expect(output.toString()).to.equal(frame_value.toString());
+    });
 
-  it.skip("creates and returns symbols", () => {
-    const value = new frame.FrameString("value");
-    const input = `.key ${value};\nkey`;
-    const result = evaluate(input) as frame.FrameArray;
-    expect(result.size()).to.equal(2);
-    const output = result.at(1);
-    expect(output.toString()).to.equal(value.toString());
+    it.skip("evaluates names to symbols", () => {
+      const result = evaluate(`.${key}`) as frame.FrameArray;
+      console.error(result);
+      expect(result.size()).to.equal(1);
+      const output = result.at(0);
+      expect(output.toString()).to.equal(key);
+    });
+
+    it.skip("set symbols", () => {
+      const result = evaluate(setting) as frame.FrameArray;
+      console.error(result);
+      expect(result.size()).to.equal(1);
+      const output = result.at(1);
+      console.error(`output: ${output}`);
+      const extracted = output.get(key);
+      console.error(`extracted: ${extracted}`);
+
+      expect(output.toString()).to.equal(frame_value.toString());
+      expect(extracted.toString()).to.equal(frame_value.toString());
+    });
+
+    it.skip("creates and returns symbols", () => {
+      const input = `${setting};\n${key}`;
+      const result = evaluate(input) as frame.FrameArray;
+      expect(result.size()).to.equal(2);
+      const output = result.at(1);
+      expect(output.toString()).to.equal(frame_value.toString());
+    });
   });
 });
