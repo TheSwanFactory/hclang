@@ -78,12 +78,11 @@ describe("evaluate", () => {
       expect(output.toString()).to.equal(frame_value.toString());
     });
 
-    it.skip("evaluates names to symbols", () => {
+    it("evaluates names to symbols", () => {
       const result = evaluate(`.${key}`) as frame.FrameArray;
-      console.error(result);
       expect(result.size()).to.equal(1);
       const output = result.at(0);
-      expect(output.toString()).to.equal(key);
+      expect(output).to.be.instanceof(frame.FrameSymbol);
     });
 
     it.skip("set symbols", () => {
