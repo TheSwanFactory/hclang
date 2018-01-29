@@ -88,13 +88,15 @@ describe("evaluate", () => {
     it("set symbols in result", () => {
       const result = evaluate(setting) as frame.FrameArray;
       const extracted = result.get(key);
-      console.error(`extracted: ${extracted}`);
       expect(extracted.toString()).to.equal(frame_value.toString());
     });
 
-    it.skip("creates and returns symbols", () => {
-      const input = `${setting};\n${key}`;
+    it.only("evaluates created symbols", () => {
+      const input = `${setting}\n${key}`;
       const result = evaluate(input) as frame.FrameArray;
+      console.error(`result:`);
+      console.error(result);
+
       expect(result.size()).to.equal(2);
       const output = result.at(1);
       expect(output.toString()).to.equal(frame_value.toString());
