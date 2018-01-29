@@ -91,7 +91,7 @@ describe("evaluate", () => {
       expect(extracted.toString()).to.equal(frame_value.toString());
     });
 
-    it.only("evaluates created symbols", () => {
+    it("evaluates created symbols", () => {
       const input = `${setting}\n${key}`;
       const result = evaluate(input) as frame.FrameArray;
       console.error(`result:`);
