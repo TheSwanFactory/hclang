@@ -82,12 +82,4 @@ describe("execute", () => {
       expect(result_inside).to.equal(other_string);
     });
   });
-
-  describe("tokens.symbols", () => {
-    const input_setter = ".key";
-    it("returns names", () => {
-      const result = execute(input_setter);
-      expect(result).to.equal(input_setter);
-    });
-  });
 });

@@ -14,10 +14,16 @@ export class FrameName extends FrameAtom {
   }
 
   public in(contexts = [Frame.nil]) {
-    return this.data;
+    const out = contexts[0];
+    const setter = this.data.setter(out);
+    return setter;
   }
 
   public string_prefix() { return FrameName.NAME_BEGIN; };
+
+  public canInclude(char: string) {
+    return FrameSymbol.SYMBOL_CHAR.test(char);
+  }
 
   protected toData() { return this.data; }
 };

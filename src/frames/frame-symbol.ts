@@ -33,6 +33,22 @@ export class FrameSymbol extends FrameAtom {
     return Frame.missing;
   }
 
+  public apply(argument: Frame, parameter: Frame) {
+    // debugger;
+    const out = this.get(Frame.kOUT);
+    out.set(this.data, argument);
+    return this;
+  }
+
+  public setter(out: Frame) {
+    const meta: Context = {};
+    if (!out.isVoid()) {
+      meta[Frame.kOUT] = out;
+    }
+    const setter = new FrameSymbol(this.data, meta);
+    return setter;
+  }
+
   public called_by(context: Frame) {
     return this.in([context]);
   }

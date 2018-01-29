@@ -6,6 +6,7 @@ import { ParsePipe } from "./parse-pipe";
 
 export const evaluate = (input: string, context = NilContext): Frame => {
   const result = new FrameArray([], context); // store the result
+  // result.set("id", new FrameString("result"));
   const evaluator = new EvalPipe(result); // evaluate lists into results
   const grouper = new GroupPipe(evaluator); // group expressions into lists
   const parser = new ParsePipe(grouper); // parse tokens into expressions

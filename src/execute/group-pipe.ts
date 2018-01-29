@@ -5,10 +5,6 @@ import { Terminal } from "./terminals";
 export class GroupPipe extends ParsePipe {
   constructor(out: Frame) {
     super(out);
-  }
-
-  protected makeFrame() {
-    const current = this.asArray();
-    return new FrameGroup(current);
+    this.factory = FrameGroup;
   }
 }

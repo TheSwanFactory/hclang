@@ -58,27 +58,48 @@ describe("evaluate", () => {
     expect(result.toString()).to.equal(`[“Hello, HC!”]`);
   });
 
-  it("evaluates symbols", () => {
-    const value = new frame.FrameString("value");
-    const input = "key";
-    const result = evaluate(input, {key: value}) as frame.FrameArray;
-    expect(result.size()).to.equal(1);
-    const output = result.at(0);
-    expect(output.toString()).to.equal(value.toString());
-  });
-
   it("joins multi-line doc-strings into strings", () => {
     const input = "```\nDoc String\n```";
     const result = evaluate(input);
     expect(result.toString()).to.equal(`[“\nDoc String\n”]`);
   });
 
-  it("sets symbols", () => {
-    const value = new frame.FrameString("value");
-    const input = `.key ${value};\nkey`;
-    const result = evaluate(input) as frame.FrameArray;
-    expect(result.size()).to.equal(2);
-    const output = result.at(1);
-    expect(output.toString()).to.equal(value.toString());
+  describe("symbols", () => {
+    const key = "key";
+    const value = "value";
+    const frame_value = new frame.FrameString("value");
+    const setting = `.${key} ${frame_value}`;
+
+    it("evaluates in context", () => {
+      const context: frame.Context = {key: frame_value};
+      const result = evaluate(key, context) as frame.FrameArray;
+      expect(result.size()).to.equal(1);
+      const output = result.at(0);
+      expect(output.toString()).to.equal(frame_value.toString());
+    });
+
+    it("evaluates names to symbols", () => {
+      const result = evaluate(`.${key}`) as frame.FrameArray;
+      expect(result.size()).to.equal(1);
+      const output = result.at(0);
+      expect(output).to.be.instanceof(frame.FrameSymbol);
+    });
+
+    it("set symbols in result", () => {
+      const result = evaluate(setting) as frame.FrameArray;
+      const extracted = result.get(key);
+      expect(extracted.toString()).to.equal(frame_value.toString());
+    });
+
+    it("evaluates created symbols", () => {
+      const input = `${setting}\n${key}`;
+      const result = evaluate(input) as frame.FrameArray;
+      console.error(`result:`);
+      console.error(result);
+
+      expect(result.size()).to.equal(2);
+      const output = result.at(1);
+      expect(output.toString()).to.equal(frame_value.toString());
+    });
   });
 });

@@ -30,6 +30,7 @@ export class Lex extends Frame implements ISourced {
 
   public call(argument: Frame, parameter = Frame.nil): Frame {
     const char = argument.toString();
+    // debugger;
     if (this.isEnd(char) && this.isTerminal(char)) {
       return this.finish(argument, true);
     }
@@ -82,6 +83,7 @@ export class Lex extends Frame implements ISourced {
     const output = this.makeFrame();
     const out = this.get(Frame.kOUT);
     this.body = "";
+    // debugger;
     return out.call(output);
   }
 

@@ -14,7 +14,8 @@ export class FrameGroup extends FrameList {
     const expr = this.data[0];
     contexts.push(this);
     const result = expr.in(contexts);
-    this.meta_pairs().map(([key, value]) => {
+    const symbols = this.meta_pairs();
+    symbols.map(([key, value]) => {
       result.set(key, value);
     });
     return result;

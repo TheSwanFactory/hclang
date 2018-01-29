@@ -15,10 +15,10 @@ describe("FrameName", () => {
     expect(frame_name.toString()).to.equal(`.${symbol}`);
   });
 
-  it("evaluates to a FrameSymbol object", () => {
+  it("evaluates to a setter", () => {
     const frame_symbol = FrameSymbol.for(symbol);
     const result = frame_name.in();
-    expect(result).to.equal(frame_symbol);
+    expect(result.toString()).to.equal(frame_symbol.toString());
   });
 
   it("extracts properties in an expression", () => {

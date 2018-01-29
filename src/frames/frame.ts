@@ -18,8 +18,8 @@ export class Frame extends MetaFrame {
     this.up = Frame.missing;
     this.callme = false;
     if (isNil) {
-      this.called_by = (context: Frame, parameter: Frame) => {
-        return context;
+      this.isVoid = () => {
+        return true;
       };
     }
   }
@@ -40,10 +40,16 @@ export class Frame extends MetaFrame {
   }
 
   public called_by(context: Frame, parameter: Frame) {
+    if (this.isVoid()) {
+      return context;
+    }
     return context.apply(this, parameter);
   }
 
   public call(argument: Frame, parameter = Frame.nil) {
+    if (this.isVoid()) {
+      return argument;
+    }
     return argument.called_by(this, parameter);
   }
 
