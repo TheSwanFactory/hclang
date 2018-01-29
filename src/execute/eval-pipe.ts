@@ -9,7 +9,7 @@ export class EvalPipe extends Frame {
 
   public apply(expr: Frame, context: Frame) {
     const out = this.get(Frame.kOUT);
-    const result = expr.in([context, out]);
+    const result = expr.in([out, context]);
     out.apply(result, context);
     return result;
   }

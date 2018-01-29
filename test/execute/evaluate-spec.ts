@@ -85,14 +85,14 @@ describe("evaluate", () => {
       expect(output).to.be.instanceof(frame.FrameSymbol);
     });
 
-    it.only("set symbols in result", () => {
+    it("set symbols in result", () => {
       const result = evaluate(setting) as frame.FrameArray;
       const extracted = result.get(key);
       console.error(`extracted: ${extracted}`);
       expect(extracted.toString()).to.equal(frame_value.toString());
     });
 
-    it("creates and returns symbols", () => {
+    it.skip("creates and returns symbols", () => {
       const input = `${setting};\n${key}`;
       const result = evaluate(input) as frame.FrameArray;
       expect(result.size()).to.equal(2);
