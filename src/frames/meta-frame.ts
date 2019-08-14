@@ -8,7 +8,7 @@ export interface ISourced extends Frame {
 export type Context = { [key: string]: Frame; };
 export const NilContext: Context = {};
 
-export interface IKeyValuePair extends ReadonlyArray<string | Frame > { 0: string; 1: Frame; }
+export interface IKeyValuePair extends ReadonlyArray<string | Frame> { 0: string; 1: Frame; }
 
 export class MetaFrame {
   public up: Frame;
@@ -68,7 +68,7 @@ export class MetaFrame {
 
   protected match_here(target: string): Frame {
     let result = Frame.missing;
-  _.forOwn(this.meta, (value, key) => {
+    _.forOwn(this.meta, (value, key) => {
       const isPattern = key.match(/\/(.*)\//);
       if (isPattern) {
         const pattern = new RegExp(isPattern[1]);
