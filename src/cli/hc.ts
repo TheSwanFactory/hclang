@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import * as fs from "fs";
-import { execute } from "./execute";
+import { execute } from "../execute";
 
 let input = "“Hello, MAML!”";
 const argv = process.argv;
