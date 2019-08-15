@@ -5,7 +5,7 @@ import { FrameNote } from "../../src/frames";
 
 describe("FrameNote", () => {
   const symbol = "key";
-  const frame_note = new FrameNote("!", symbol);
+  const frame_note = FrameNote.key(symbol);
 
   it("is created from a string", () => {
     expect(frame_note).to.be.instanceOf(FrameNote);

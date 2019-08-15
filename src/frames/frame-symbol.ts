@@ -1,7 +1,7 @@
 import { Frame } from "./frame";
 import { FrameAtom } from "./frame-atom";
+import { FrameNote } from "./frame-note";
 import { Context, NilContext } from "./meta-frame";
-export { FrameNote } from "./frame-note";
 
 export class FrameSymbol extends FrameAtom {
   public static readonly SYMBOL_CHAR = /[-\w]/;
@@ -31,7 +31,7 @@ export class FrameSymbol extends FrameAtom {
         }
       }
     }
-    return Frame.missing;
+    return FrameNote.key(this.data);
   }
 
   public apply(argument: Frame, parameter: Frame) {
