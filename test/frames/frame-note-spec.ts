@@ -5,14 +5,14 @@ import { FrameNote } from "../../src/frames";
 
 describe("FrameNote", () => {
   const symbol = "key";
-  const frame_note = new FrameNote(symbol);
+  const frame_note = new FrameNote("!", symbol);
 
   it("is created from a string", () => {
     expect(frame_note).to.be.instanceOf(FrameNote);
   });
 
   it("stringifies with a dollar prefix", () => {
-    expect(frame_note.toString()).to.equal("${key}");
+    expect(frame_note.toString()).to.equal("$!.name-missing “key”;");
   });
 
   it("evaluates to itself", () => {
