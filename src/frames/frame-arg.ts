@@ -1,5 +1,6 @@
 import { Frame } from "./frame";
 import { FrameSymbol } from "./frame-symbol";
+export { FrameNote } from "./frame-note";
 
 export class FrameArg extends FrameSymbol {
   public static readonly ARG_CHAR = "_";

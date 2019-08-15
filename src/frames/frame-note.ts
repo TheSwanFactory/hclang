@@ -37,6 +37,4 @@ export class FrameNote extends FrameQuote {
 
   public toString() { return this.string_prefix() + this.data + this.meta_string(); }
 
-  protected toData() { return this.data; }
-
 };

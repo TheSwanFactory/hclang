@@ -1,5 +1,6 @@
 import * as _ from "lodash";
 import { Frame } from "./frame";
+// export { FrameNote } from "./frame-note";
 
 export interface ISourced extends Frame {
   source: string;

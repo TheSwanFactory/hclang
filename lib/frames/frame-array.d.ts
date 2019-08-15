@@ -1,5 +1,6 @@
 import { Frame } from "./frame";
 import { FrameList } from "./frame-list";
+export { FrameNote } from "./frame-note";
 export declare class FrameArray extends FrameList {
     static readonly BEGIN_ARRAY: string;
     static readonly END_ARRAY: string;

@@ -1,5 +1,6 @@
 import { Frame } from "./frame";
 import { FrameSymbol } from "./frame-symbol";
+export { FrameNote } from "./frame-note";
 export declare class FrameArg extends FrameSymbol {
     static readonly ARG_CHAR: string;
     static here(): FrameArg;
