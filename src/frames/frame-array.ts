@@ -1,5 +1,6 @@
 import { Frame } from "./frame";
 import { FrameList } from "./frame-list";
+import { FrameNote } from "./frame-note";
 import { NilContext } from "./meta-frame";
 
 export class FrameArray extends FrameList {
@@ -26,7 +27,8 @@ export class FrameArray extends FrameList {
 
   public at(index: number) {
     if (index >= this.size()) {
-      return Frame.missing;
+      const source = "[0.." + this.size() + "]." + index;
+      return FrameNote.index(source);
     }
     return this.data[index];
   }

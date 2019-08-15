@@ -8,6 +8,7 @@ export { FrameGroup } from "./frames/frame-group";
 export { FrameLazy } from "./frames/frame-lazy";
 export { FrameList, IArrayConstructor } from "./frames/frame-list";
 export { FrameName } from "./frames/frame-name";
+export { FrameNote } from "./frames/frame-note";
 export { FrameNumber } from "./frames/frame-number";
 export { FrameString } from "./frames/frame-string";
 export { FrameSymbol } from "./frames/frame-symbol";

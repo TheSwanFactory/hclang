@@ -1,4 +1,5 @@
 import { Frame } from "./frame";
+import { FrameNote } from "./frame-note";
 import { FrameSymbol } from "./frame-symbol";
 
 export class FrameArg extends FrameSymbol {
@@ -62,7 +63,7 @@ export class FrameParam extends FrameSymbol {
     if (level <= contexts.length) {
       return contexts[level];
     } else {
-      return Frame.missing;
+      return FrameNote.key(this.data);
     }
   }
 };
