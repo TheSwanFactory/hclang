@@ -31,7 +31,7 @@
     "lint": "tslint --force --format verbose \"{src,test}/**/*.ts\"",
     "run": "node lib/hc.js",
     "set-bin": "chmod a+x ./lib/hc.js ./lib/index.js",
-    "test": "npm run build && mocha --compilers ts:ts-node/register --recursive test/**/*-spec.ts",
+    "test": "npm run build && mocha --require ts-node/register --recursive test/**/*-spec.ts",
     "ts": "echo Using TypeScript && tsc --version && tsc --pretty && npm run set-bin",
     "watch": "npm run build -- --watch",
     "watch:test": "npm run test -- --watch"
