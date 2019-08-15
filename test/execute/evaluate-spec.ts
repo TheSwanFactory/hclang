@@ -94,8 +94,8 @@ describe("evaluate", () => {
     it("evaluates created symbols", () => {
       const input = `${setting}\n${key}`;
       const result = evaluate(input) as frame.FrameArray;
-      console.error(`result:`);
-      console.error(result);
+      // console.error(`result:`);
+      // console.error(result);
 
       expect(result.size()).to.equal(2);
       const output = result.at(1);
