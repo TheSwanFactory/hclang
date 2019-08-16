@@ -9,8 +9,8 @@ export declare type LanguageBinding = {
 };
 export declare class FrameNote extends FrameQuote {
     protected data: string;
-    static readonly NOTE_BEGIN: string;
-    static readonly NOTE_END: string;
+    static readonly NOTE_BEGIN = "$";
+    static readonly NOTE_END = ";";
     static readonly LABELS: LanguageBinding;
     static key(source: string): FrameNote;
     static type(source: string): FrameNote;

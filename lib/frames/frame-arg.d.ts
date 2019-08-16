@@ -1,7 +1,7 @@
 import { Frame } from "./frame";
 import { FrameSymbol } from "./frame-symbol";
 export declare class FrameArg extends FrameSymbol {
-    static readonly ARG_CHAR: string;
+    static readonly ARG_CHAR = "_";
     static here(): FrameArg;
     static level(count?: number): FrameArg;
     protected static args: {
@@ -12,7 +12,7 @@ export declare class FrameArg extends FrameSymbol {
     in(contexts?: Frame[]): Frame;
 }
 export declare class FrameParam extends FrameSymbol {
-    static readonly ARG_CHAR: string;
+    static readonly ARG_CHAR = "^";
     static there(): FrameParam;
     static level(count?: number): FrameParam;
     protected static params: {
