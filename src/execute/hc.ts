@@ -29,6 +29,7 @@ export class HC  {
 
   constructor(context = NilContext) {
     this.result = new FrameArray([], context); // store the result
+    // result['.'] = '<>'; name the object?
     const evaluator = new EvalPipe(this.result); // evaluate lists into results
     const grouper = new GroupPipe(evaluator); // group expressions into lists
     const parser = new ParsePipe(grouper); // parse tokens into expressions
