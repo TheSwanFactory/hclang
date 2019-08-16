@@ -7,7 +7,7 @@ import { execute } from "../execute";
 
 let input = "“Hello, MAML!”";
 const argv = process.argv;
-console.log('argv' + argv);
+// console.log('argv' + argv);
 if (argv.length > 3) {
   input = argv[3];
 } else if (argv.length === 3) {
