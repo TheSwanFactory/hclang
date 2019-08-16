@@ -9,7 +9,7 @@ interface IProcessEnv {
     [key: string]: string | undefined
 }
 
-class HC  {
+export class HC  {
   public static make_context(env: IProcessEnv = {}): Context {
     const context: Context = {};
     _.each(process.env, (value, key) => {
