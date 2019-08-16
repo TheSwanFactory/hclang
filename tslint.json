@@ -4,6 +4,7 @@
   "rules" : {
     "align": false,
     "array-type": false,
+    "callable-types": false,
     "interface-over-type-literal": false,
     "max-classes-per-file": 3,
     "max-line-length" : false,
