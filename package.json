@@ -1,6 +1,6 @@
 {
   "name": "hclang",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Homoiconic C: Programming without a Language",
   "license": "MIT",
   "repository": "https://github.com/TheSwanFactory/hclang",
@@ -19,18 +19,18 @@
     "lib"
   ],
   "bin": {
-    "maml": "lib/bin.js",
-    "hc": "lib/hc.js"
+    "maml": "lib/cli/bin.js",
+    "hc": "lib/cli/hc.js"
   },
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "scripts": {
-    "build": "rimraf lib && tslint \"{src,test}/**/*.ts\" && tsc --pretty --inlineSourceMap && chmod a+x ./lib/hc.js ./lib/index.js",
+    "build": "rimraf lib && tslint \"{src,test}/**/*.ts\" && tsc --pretty --inlineSourceMap && npm run set-bin",
     "clean": "rimraf lib && rm -f *.log.*",
     "debug": "echo 'Use `debugger;`\n' && inspect _mocha --no-timeouts --compilers ts:ts-node/register --recursive test/**/*-spec.ts",
     "lint": "tslint --force --format verbose \"{src,test}/**/*.ts\"",
-    "run": "node lib/hc.js",
-    "set-bin": "chmod a+x ./lib/hc.js ./lib/index.js",
+    "hc": "node lib/cli/hc.js",
+    "set-bin": "chmod a+x ./lib/cli/hc.js ./lib/cli/bin.js",
     "test": "npm run build && mocha --require ts-node/register --recursive test/**/*-spec.ts",
     "tag": "bump patch -ctp README.md",
     "ts": "echo Using TypeScript && tsc --version && tsc --pretty && npm run set-bin",
@@ -38,29 +38,31 @@
     "watch:test": "npm run test -- --watch"
   },
   "dependencies": {
-    "chalk": ">=2.3.0",
+    "@types/prompt-sync": "^4.1.0",
+    "chalk": ">=2.4.2",
     "getopts": "^2.2.5",
     "inquirer": "^6.5.1",
     "lodash": "^4.17.15",
+    "prompt-sync": "^4.1.7",
     "prompt-sync-history": "^1.0.1",
     "version-bump-prompt": "^5.0.4"
   },
   "devDependencies": {
-    "@types/chai": "4.2.0",
+    "@types/chai": "^4.2.0",
     "@types/chalk": ">=2.2.0",
-    "@types/lodash": "4.14.92",
-    "@types/mocha": "2.2.46",
-    "@types/node": ">=9.3.0",
+    "@types/lodash": "4.14.136",
+    "@types/mocha": "5.2.7",
+    "@types/node": ">=12.7.2",
     "chai": "^4.2.0",
     "chai-pretty-expect": "1.0.1",
     "inspect-process": ">=0.5.0",
     "minimist": "1.2.0",
-    "mocha": "4.1.0",
+    "mocha": "6.2.0",
     "mocha-junit-reporter": "^1.23.1",
-    "rimraf": "2.6.2",
-    "ts-node": "4.1.0",
-    "tslint": "5.9.1",
-    "typescript": "2.6.2"
+    "rimraf": "3.0.0",
+    "ts-node": "8.3.0",
+    "tslint": "5.18.0",
+    "typescript": "3.5.3"
   },
   "engines": {
     "node": "7.5.0"

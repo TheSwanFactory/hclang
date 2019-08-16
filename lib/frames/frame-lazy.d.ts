@@ -2,8 +2,8 @@ import { Frame } from "./frame";
 import { FrameExpr } from "./frame-expr";
 import { Context } from "./meta-frame";
 export declare class FrameLazy extends FrameExpr {
-    static readonly LAZY_BEGIN: string;
-    static readonly LAZY_END: string;
+    static readonly LAZY_BEGIN = "{";
+    static readonly LAZY_END = "}";
     constructor(data: Array<Frame>, meta?: Context);
     string_open(): string;
     string_close(): string;

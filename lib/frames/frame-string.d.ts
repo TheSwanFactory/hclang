@@ -3,8 +3,8 @@ import { FrameQuote } from "./frame-atom";
 import { Context } from "./meta-frame";
 export declare class FrameString extends FrameQuote {
     protected data: string;
-    static readonly STRING_BEGIN: string;
-    static readonly STRING_END: string;
+    static readonly STRING_BEGIN = "\u201C";
+    static readonly STRING_END = "\u201D";
     constructor(data: string, meta?: Context);
     apply(argument: FrameString): FrameString;
     string_prefix(): string;

@@ -1,9 +1,9 @@
 import { Context, MetaFrame } from "./meta-frame";
 export declare class Frame extends MetaFrame {
-    static readonly kOUT: string;
-    static readonly kEND: string;
-    static readonly BEGIN_EXPR: string;
-    static readonly END_EXPR: string;
+    static readonly kOUT = ">>";
+    static readonly kEND = "$$";
+    static readonly BEGIN_EXPR = "(";
+    static readonly END_EXPR = ")";
     static readonly nil: Frame;
     static readonly missing: Frame;
     static globals: Frame;
