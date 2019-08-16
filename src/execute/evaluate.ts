@@ -1,4 +1,4 @@
-import { Context, Frame, FrameArray, FrameLazy, FrameString, FrameSymbol, NilContext } from "../frames";
+import { Context, Frame, FrameArray, FrameString, NilContext } from "../frames";
 import { EvalPipe } from "./eval-pipe";
 import { GroupPipe } from "./group-pipe";
 import { LexPipe } from "./lex-pipe";
