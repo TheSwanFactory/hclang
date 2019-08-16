@@ -10,15 +10,24 @@ interface IProcessEnv {
 }
 
 class HC  {
-  public result: FrameArray;
-  public lexer: LexPipe;
-
-  constructor(env: IProcessEnv = {}) {
+  public static make_context(env: IProcessEnv = {}): Context {
     const context: Context = {};
     _.each(process.env, (value, key) => {
       context[key] = new FrameString(value);
     });
+    return context;
+  }
 
+  public static from_env(env: IProcessEnv = {}): HC {
+    const context = HC.make_context(env);
+    const hc = new HC(context);
+    return hc;
+  }
+
+  public result: FrameArray;
+  public lexer: LexPipe;
+
+  constructor(context = NilContext) {
     this.result = new FrameArray([], context); // store the result
     const evaluator = new EvalPipe(this.result); // evaluate lists into results
     const grouper = new GroupPipe(evaluator); // group expressions into lists
