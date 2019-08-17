@@ -3,7 +3,7 @@ import { expect } from "chai";
 import {} from "mocha";
 import { Frame, FrameArray, FrameExpr, FrameString} from "../../src/frames";
 
-describe("FrameArray", () => {
+describe.only("FrameArray", () => {
   const a_frame = new FrameString("a");
   const b_frame = new FrameString("b");
   const frame_array = new FrameArray([a_frame, b_frame]);
@@ -20,6 +20,12 @@ describe("FrameArray", () => {
     const first_element = frame_array.at(0);
     expect(first_element).to.be.ok;
     expect(first_element).to.equal(a_frame);
+  });
+
+  it("uses -1 to access last element", () => {
+    const last_element = frame_array.at(-1);
+    expect(last_element).to.be.ok;
+    expect(last_element).to.equal(b_frame);
   });
 
   it("appends when called", () => {

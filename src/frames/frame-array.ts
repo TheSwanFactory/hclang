@@ -26,11 +26,15 @@ export class FrameArray extends FrameList {
   }
 
   public at(index: number) {
-    if (index >= this.size()) {
+    if (index >= this.size() || -index > this.size()) {
       const source = "[0.." + this.size() + "]." + index;
       return FrameNote.index(source);
     }
-    return this.data[index];
+    if (index >= 0) {
+      return this.data[index];
+    }
+    const n = this.data.length;
+    return this.data[n + index];
   }
 
   public reset() {
