@@ -16,55 +16,6 @@ describe.only("HC", () => {
     expect(hc).to.be.ok;
   });
 
-  it("returns empty array for empty string", () => {
-    const result = hc.evaluate("");
-    expect(result.toString()).to.equal("[]");
-  });
-
-  it("ignores comments", () => {
-    const input = "#Goodbye";
-    const result = hc.evaluate(input);
-    expect(result.toString()).to.equal(`[]`);
-  });
-
-  it("ignores spaces", () => {
-    const input = "  ";
-    const result = hc.evaluate(input);
-    expect(result.toString()).to.equal(`[]`);
-  });
-
-  it("quines string literal", () => {
-    const input = "“Hello, HC!”";
-    const result = hc.evaluate(input);
-    expect(result.toString()).to.equal(`[${input}]`);
-  });
-
-  it("quines string before spaces", () => {
-    const input = "“Hello, HC!”";
-    const suffix = `${input}  `;
-    const result = hc.evaluate(suffix);
-    expect(result.toString()).to.equal(`[${input}]`);
-  });
-
-  it("quines string after spaces", () => {
-    const input = "“Hello, HC!”";
-    const prefix = `  ${input}`;
-    const result = hc.evaluate(prefix);
-    expect(result.toString()).to.equal(`[${input}]`);
-  });
-
-  it("joins multiple strings", () => {
-    const input = "“Hello”“, HC!”";
-    const result = hc.evaluate(input);
-    expect(result.toString()).to.equal(`[“Hello, HC!”]`);
-  });
-
-  it("joins around inner space", () => {
-    const input = "“Hello” “, HC!”";
-    const result = hc.evaluate(input);
-    expect(result.toString()).to.equal(`[“Hello, HC!”]`);
-  });
-
   it("joins multi-line doc-strings into strings", () => {
     const input = "```\nDoc String\n```";
     const result = hc.evaluate(input);
