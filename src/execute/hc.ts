@@ -5,7 +5,7 @@ import { GroupPipe } from "./group-pipe";
 import { LexPipe } from "./lex-pipe";
 import { ParsePipe } from "./parse-pipe";
 
-interface IProcessEnv {
+export interface IProcessEnv {
     [key: string]: string | undefined
 }
 

@@ -1,6 +1,6 @@
 import { Context, Frame, FrameArray } from "../frames";
 import { LexPipe } from "./lex-pipe";
-interface IProcessEnv {
+export interface IProcessEnv {
     [key: string]: string | undefined;
 }
 export declare class HC {
@@ -11,4 +11,3 @@ export declare class HC {
     constructor(context?: Context);
     evaluate(input: string): Frame;
 }
-export {};
