@@ -36,6 +36,9 @@ export class FrameArray extends FrameList {
     const n = this.data.length;
     return this.data[n + index];
   }
+  public length() {
+    return this.data.length;
+  }
 
   public reset() {
     this.data = [];

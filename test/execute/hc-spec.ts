@@ -4,7 +4,7 @@ import {} from "mocha";
 import { HC } from "../../src/execute/hc";
 import * as frame from "../../src/frames";
 
-describe("HC", () => {
+describe.only("HC", () => {
   let hc: HC;
 
   beforeEach(() => {
@@ -16,9 +16,15 @@ describe("HC", () => {
     expect(hc).to.be.ok;
   });
 
-  it("evalutes iteratively when called", () => {
-    expect(HC).to.be.ok;
-    expect(hc).to.be.ok;
+  it("returns Frame.nil for empty string", () => {
+    const result = hc.evaluate("");
+    expect(result.toString()).to.equal(frame.Frame.nil.toString());
+  });
+
+  it("returns new value, if any", () => {
+    const input = "“Hello, HC!”";
+    const result = hc.evaluate(input);
+    expect(result.toString()).to.equal(`${input}`);
   });
 
   it("joins multi-line doc-strings into strings", () => {

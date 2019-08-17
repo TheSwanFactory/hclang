@@ -37,7 +37,11 @@ export class HC extends FrameArray {
   }
 
   public evaluate(input: string): Frame {
+    const was = this.length();
     const status = this.lexer.lex_string(input);
-    return this;
+    if (this.length() === was) {
+      return Frame.nil;
+    }
+    return this.at(-1);
   }
 }
