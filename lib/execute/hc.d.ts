@@ -3,7 +3,7 @@ import { LexPipe } from "./lex-pipe";
 export interface IProcessEnv {
     [key: string]: string | undefined;
 }
-export declare class HC {
+export declare class HC extends FrameArray {
     static make_context(env?: IProcessEnv): Context;
     static from_env(env?: IProcessEnv): HC;
     result: FrameArray;

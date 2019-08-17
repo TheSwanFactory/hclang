@@ -9,7 +9,7 @@ export interface IProcessEnv {
     [key: string]: string | undefined
 }
 
-export class HC  {
+export class HC extends FrameArray {
   public static make_context(env: IProcessEnv = {}): Context {
     const context: Context = {};
     _.each(process.env, (value, key) => {
@@ -28,9 +28,9 @@ export class HC  {
   public lexer: LexPipe;
 
   constructor(context = NilContext) {
-    this.result = new FrameArray([], context); // store the result
+    super([], context); // store the result
     // result['.'] = '<>'; name the object?
-    const evaluator = new EvalPipe(this.result); // evaluate lists into results
+    const evaluator = new EvalPipe(this); // evaluate lists into results
     const grouper = new GroupPipe(evaluator); // group expressions into lists
     const parser = new ParsePipe(grouper); // parse tokens into expressions
     this.lexer = new LexPipe(parser); // lex characters into tokens
@@ -38,6 +38,6 @@ export class HC  {
 
   public evaluate(input: string): Frame {
     const status = this.lexer.lex_string(input);
-    return this.result;
+    return this;
   }
 }

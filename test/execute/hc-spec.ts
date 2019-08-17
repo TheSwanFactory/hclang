@@ -16,6 +16,11 @@ describe.only("HC", () => {
     expect(hc).to.be.ok;
   });
 
+  it("evalutes iteratively when called", () => {
+    expect(HC).to.be.ok;
+    expect(hc).to.be.ok;
+  });
+
   it("joins multi-line doc-strings into strings", () => {
     const input = "```\nDoc String\n```";
     const result = hc.evaluate(input);
