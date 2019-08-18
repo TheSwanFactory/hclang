@@ -12,9 +12,9 @@ export class HChat {
   public static readonly IN = "; ";
   public static readonly OUT = "# ";
 
-  public static iterate(hc: HC): void {
+  public static iterate(hc: HC): boolean {
     const hchat = new HChat(hc);
-    hchat.call();
+    return hchat.call();
   }
 
   constructor(protected hc: HC) {

@@ -4,7 +4,7 @@ export declare class HChat {
     protected hc: HC;
     static readonly IN = "; ";
     static readonly OUT = "# ";
-    static iterate(hc: HC): void;
+    static iterate(hc: HC): boolean;
     constructor(hc: HC);
     call(): boolean;
 }

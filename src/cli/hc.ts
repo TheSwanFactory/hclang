@@ -3,6 +3,8 @@
 import * as fs from "fs";
 import * as getopts from "getopts";
 import { execute } from "../execute";
+import { HC } from "../execute/hc";
+import { HChat } from "./hchat";
 
 let input = null;
 
@@ -29,5 +31,6 @@ if (input) {
 }
 
 if (options.interactive) {
-  // start repl
+  const hc = new HC();
+  const status = HChat.iterate(hc);
 }
