@@ -2,7 +2,6 @@
 
 import * as fs from "fs";
 import * as getopts from "getopts";
-import * as prompt from "prompt-sync";
 import { execute } from "../execute";
 
 let input = "“Hello, MAML!”";
