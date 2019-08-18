@@ -4,7 +4,7 @@ import * as fs from "fs";
 import * as getopts from "getopts";
 import { execute } from "../execute";
 
-let input = "“Hello, MAML!”";
+let input = null;
 
 const options = getopts(process.argv.slice(2), {
   alias: {
@@ -23,5 +23,11 @@ if (files.length > 1) {
   options.interactive = true;
 };
 
-const output = execute(input);
-console.log(output);
+if (input) {
+  const output = execute(input);
+  console.log(output);
+}
+
+if (options.interactive) {
+  // start repl
+}
