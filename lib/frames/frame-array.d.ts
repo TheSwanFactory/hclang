@@ -9,5 +9,6 @@ export declare class FrameArray extends FrameList {
     in(contexts?: Frame[]): Frame;
     apply(argument: Frame, parameter: Frame): this;
     at(index: number): Frame;
+    length(): number;
     reset(): void;
 }

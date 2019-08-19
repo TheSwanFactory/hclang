@@ -22,6 +22,12 @@ describe("FrameArray", () => {
     expect(first_element).to.equal(a_frame);
   });
 
+  it("uses -1 to access last element", () => {
+    const last_element = frame_array.at(-1);
+    expect(last_element).to.be.ok;
+    expect(last_element).to.equal(b_frame);
+  });
+
   it("appends when called", () => {
     const array = new FrameArray([]);
     array.call(a_frame);
