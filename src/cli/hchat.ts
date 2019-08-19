@@ -22,7 +22,7 @@ export class HChat {
   }
 
   public call(): boolean {
-    let status = false;
+    let status = true;
     while (status) {
       const input = prompt(HChat.IN);
       const output = this.hc.evaluate(input);

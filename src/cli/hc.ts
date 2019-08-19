@@ -14,19 +14,19 @@ const options = getopts(process.argv.slice(2), {
   },
 });
 
-const hc = new HC();
+const hc = HC.from_env(process.env);
 let evaluated = false;
 let output: Frame;
 
 if (options.evaluate) {
   output = hc.evaluate(options.evaluate);
-  console.log(output);
+  console.log(output.toString());
   evaluated = true;
 }
 
 _.each(options._,  (file) => {
   output = hc.exec_file(file);
-  console.log(output);
+  console.log(output.toString());
   evaluated = true;
 });
 
