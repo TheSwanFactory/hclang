@@ -1,3 +1,4 @@
+import * as fs from "fs";
 import * as _ from "lodash";
 import { Context, Frame, FrameArray, FrameString, NilContext } from "../frames";
 import { EvalPipe } from "./eval-pipe";
@@ -12,7 +13,7 @@ export interface IProcessEnv {
 export class HC extends FrameArray {
   public static make_context(env: IProcessEnv = {}): Context {
     const context: Context = {};
-    _.each(process.env, (value, key) => {
+    _.each(env, (value, key) => {
       context[key] = new FrameString(value);
     });
     return context;
@@ -43,5 +44,10 @@ export class HC extends FrameArray {
       return Frame.nil;
     }
     return this.at(-1);
+  }
+
+  public exec_file(file: string): Frame {
+    const input = fs.readFileSync(file, "utf8");
+    return this.evaluate(input);
   }
 }

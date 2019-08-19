@@ -4,7 +4,7 @@ import {} from "mocha";
 import { HC } from "../../src/execute/hc";
 import * as frame from "../../src/frames";
 
-describe.only("HC", () => {
+describe("HC", () => {
   let hc: HC;
 
   beforeEach(() => {

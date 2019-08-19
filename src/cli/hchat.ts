@@ -13,6 +13,7 @@ export class HChat {
   public static readonly OUT = "# ";
 
   public static iterate(hc: HC): boolean {
+    console.log("HChat.iterate");
     const hchat = new HChat(hc);
     return hchat.call();
   }

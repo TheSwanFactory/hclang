@@ -10,4 +10,5 @@ export declare class HC extends FrameArray {
     lexer: LexPipe;
     constructor(context?: Context);
     evaluate(input: string): Frame;
+    exec_file(file: string): Frame;
 }
