@@ -25,7 +25,7 @@
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "scripts": {
-    "build": "rimraf lib && tslint \"{src,test}/**/*.ts\" && tsc --pretty --inlineSourceMap && npm run set-bin",
+    "build": "rimraf lib && tslint \"{src,test}/**/*.ts\" && npm run ts && genversion -e lib/version.js",
     "clean": "rimraf lib && rm -f *.log.*",
     "debug": "echo 'Use `debugger;`\n' && inspect _mocha --no-timeouts --compilers ts:ts-node/register --recursive test/**/*-spec.ts",
     "lint": "tslint --force --format verbose \"{src,test}/**/*.ts\"",
@@ -33,7 +33,7 @@
     "set-bin": "chmod a+x ./lib/cli/hc.js ./lib/cli/bin.js",
     "test": "npm run build && mocha --require ts-node/register --recursive test/**/*-spec.ts",
     "tag": "bump patch -ctp README.md",
-    "ts": "echo Using TypeScript && tsc --version && tsc --pretty && npm run set-bin",
+    "ts": "echo Using TypeScript && tsc --version && tsc --pretty --inlineSourceMap && npm run set-bin",
     "watch": "npm run build -- --watch",
     "watch:test": "npm run test -- --watch"
   },
@@ -41,6 +41,7 @@
     "@types/prompt-sync": "^4.1.0",
     "@types/prompt-sync-history": "^1.0.1",
     "chalk": ">=2.4.2",
+    "genversion": "^2.2.0",
     "getopts": "^2.2.5",
     "inquirer": "^6.5.1",
     "lodash": "^4.17.15",

@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 import * as getopts from "getopts";
 import * as _ from "lodash";
-import { execute } from "../execute";
 import { HC } from "../execute/hc";
 import { Context, Frame, FrameArray, FrameString, NilContext } from "../frames";
 import { HChat } from "./hchat";
