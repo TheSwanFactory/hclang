@@ -1,6 +1,6 @@
 {
   "name": "hclang",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Homoiconic C: Programming without a Language",
   "license": "MIT",
   "repository": "https://github.com/TheSwanFactory/hclang",
@@ -32,7 +32,7 @@
     "hc": "node lib/cli/hc.js",
     "set-bin": "chmod a+x ./lib/cli/hc.js ./lib/cli/bin.js",
     "test": "npm run build && mocha --require ts-node/register --recursive test/**/*-spec.ts",
-    "tag": "bump patch -c package.json README.md src/version.ts",
+    "tag": "bump patch -c package*.json README.md src/version.ts",
     "ts": "echo Using TypeScript && tsc --version && tsc --pretty --inlineSourceMap && npm run set-bin",
     "watch": "npm run build -- --watch",
     "watch:test": "npm run test -- --watch"
