@@ -3,6 +3,7 @@ import * as prompt_sync from "prompt-sync";
 import * as prompt_history from "prompt-sync-history";
 import { HC } from "../execute/hc";
 import { Context, Frame, NilContext } from "../frames";
+import { version } from "../version";
 
 const prompt = prompt_sync({
   history: prompt_history(),
@@ -13,7 +14,7 @@ export class HChat {
   public static readonly OUT = "# ";
 
   public static iterate(hc: HC): boolean {
-    console.log("HChat.iterate");
+    console.log(".hc " + version);
     const hchat = new HChat(hc);
     return hchat.call();
   }
