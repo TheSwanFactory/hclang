@@ -1,28 +1,34 @@
 #!/usr/bin/env node
-
-import * as fs from "fs";
 import * as getopts from "getopts";
-import * as prompt from "prompt-sync";
-import { execute } from "../execute";
-
-let input = "“Hello, MAML!”";
+import * as _ from "lodash";
+import { HC } from "../execute/hc";
+import { Context, Frame, FrameArray, FrameString, NilContext } from "../frames";
+import { HChat } from "./hchat";
 
 const options = getopts(process.argv.slice(2), {
   alias: {
-    eval: "e",
+    evaluate: "e",
     help: "h",
     interactive: "i",
   },
 });
 
-const files = options._;
-if (files.length > 1) {
-  input = fs.readFileSync(files[0], "utf8");
-} else if (options.eval) {
-  input = options.eval;
-} else {
-  options.interactive = true;
-};
+const hc = HC.from_env(process.env);
+let evaluated = false;
+let output: Frame;
 
-const output = execute(input);
-console.log(output);
+if (options.evaluate) {
+  output = hc.evaluate(options.evaluate);
+  console.log(output.toString());
+  evaluated = true;
+}
+
+_.each(options._,  (file) => {
+  output = hc.exec_file(file);
+  console.log(output.toString());
+  evaluated = true;
+});
+
+if (options.interactive || !evaluated) {
+  const status = HChat.iterate(hc);
+}
