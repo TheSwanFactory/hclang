@@ -12,9 +12,14 @@ export const NilContext: Context = {};
 export interface IKeyValuePair extends ReadonlyArray<string | Frame> { 0: string; 1: Frame; }
 
 export class MetaFrame {
+  public static id_count = 0;
   public up: Frame;
+  public id: string;
 
   constructor(protected meta = NilContext, isNil = false) {
+    const name = this.constructor.name;
+    const id = name + "." + MetaFrame.id_count++;
+    this.id = id;
   }
 
   public get_here(key: string, origin: MetaFrame = this): Frame {
@@ -64,7 +69,7 @@ export class MetaFrame {
   public meta_string() {
     return this.meta_pairs().map(([key, value]) => {
       if (key === ">>") {
-        return `.${key};`;
+        return `.${key} :${value.id};`;
       } else {
         return `.${key} ${value};`;
       }
