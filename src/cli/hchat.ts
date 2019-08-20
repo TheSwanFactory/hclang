@@ -26,10 +26,13 @@ export class HChat {
     let status = true;
     while (status) {
       const input = prompt(HChat.IN);
+      if (!input) {
+        status = false;
+        break;
+      }
       const output = this.hc.evaluate(input);
       console.log(HChat.OUT + output);
-      status = false;
     }
-    return true;
+    return status;
   }
 }
