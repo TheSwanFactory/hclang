@@ -12,7 +12,9 @@ export interface IKeyValuePair extends ReadonlyArray<string | Frame> {
 }
 export declare class MetaFrame {
     protected meta: Context;
+    static id_count: number;
     up: Frame;
+    id: string;
     constructor(meta?: Context, isNil?: boolean);
     get_here(key: string, origin?: MetaFrame): Frame;
     get(key: string, origin?: MetaFrame): Frame;

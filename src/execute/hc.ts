@@ -14,8 +14,13 @@ export class HC extends FrameArray {
   public static make_context(env: IProcessEnv = {}): Context {
     const context: Context = {};
     _.each(env, (value, key) => {
-      context[key] = new FrameString(value);
+      if (key[0] !== "n") {
+        context[key] = new FrameString(value);
+      }
     });
+    if (context["DEBUG_ENV"]) {
+      console.log(context);
+    }
     return context;
   }
 
@@ -30,7 +35,7 @@ export class HC extends FrameArray {
 
   constructor(context = NilContext) {
     super([], context); // store the result
-    // result['.'] = '<>'; name the object?
+    // result["."] = "<>"; name the object?
     const evaluator = new EvalPipe(this); // evaluate lists into results
     const grouper = new GroupPipe(evaluator); // group expressions into lists
     const parser = new ParsePipe(grouper); // parse tokens into expressions
