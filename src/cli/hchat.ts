@@ -31,6 +31,9 @@ export class HChat {
         break;
       }
       const output = this.hc.evaluate(input);
+      if (this.hc.get("DEBUG")) {
+        console.log(output);
+      }
       console.log(HChat.OUT + output);
     }
     return status;
