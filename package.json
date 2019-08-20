@@ -29,6 +29,7 @@
     "clean": "rimraf lib && rm -f *.log.*",
     "debug": "echo 'Use `debugger;`\n' && inspect _mocha --no-timeouts --compilers ts:ts-node/register --recursive test/**/*-spec.ts",
     "lint": "tslint --force --format verbose \"{src,test}/**/*.ts\"",
+    "inspect": "node --require ts-node/register hc.ts",
     "hc": "node lib/cli/hc.js",
     "set-bin": "chmod a+x ./lib/cli/hc.js ./lib/cli/bin.js",
     "test": "npm run build && mocha --require ts-node/register --recursive test/**/*-spec.ts",
