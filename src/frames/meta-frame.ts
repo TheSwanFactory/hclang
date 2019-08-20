@@ -63,7 +63,11 @@ export class MetaFrame {
 
   public meta_string() {
     return this.meta_pairs().map(([key, value]) => {
-      return `.${key} ${value};`;
+      if (key === ">>") {
+        return `.${key};`;
+      } else {
+        return `.${key} ${value};`;
+      }
     }).join(" ");
   }
 
