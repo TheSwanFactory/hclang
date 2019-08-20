@@ -27,9 +27,8 @@ export class HChat {
     while (status) {
       const input = prompt(HChat.IN);
       const output = this.hc.evaluate(input);
-      debugger;
       console.log(HChat.OUT + output);
-      status = true;
+      status = false;
     }
     return true;
   }

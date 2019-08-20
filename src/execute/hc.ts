@@ -50,4 +50,8 @@ export class HC extends FrameArray {
     const input = fs.readFileSync(file, "utf8");
     return this.evaluate(input);
   }
+
+  public toString(): string {
+    return "HC";
+  }
 }
