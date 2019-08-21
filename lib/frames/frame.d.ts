@@ -19,4 +19,5 @@ export declare class Frame extends MetaFrame {
     toString(): string;
     asArray(): Array<Frame>;
     isVoid(): boolean;
+    isNote(): boolean;
 }
