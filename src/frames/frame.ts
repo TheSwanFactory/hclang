@@ -64,4 +64,8 @@ export class Frame extends MetaFrame {
   public isVoid() {
     return false;
   }
+
+  public isNote() {
+    return false;
+  }
 };

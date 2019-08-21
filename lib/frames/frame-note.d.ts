@@ -20,4 +20,5 @@ export declare class FrameNote extends FrameQuote {
     string_prefix(): string;
     string_suffix(): string;
     toString(): string;
+    isNote(): boolean;
 }

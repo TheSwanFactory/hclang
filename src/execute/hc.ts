@@ -35,7 +35,6 @@ export class HC extends FrameArray {
 
   constructor(context = NilContext) {
     super([], context); // store the result
-    // result["."] = "<>"; name the object?
     const evaluator = new EvalPipe(this); // evaluate lists into results
     const grouper = new GroupPipe(evaluator); // group expressions into lists
     const parser = new ParsePipe(grouper); // parse tokens into expressions
@@ -43,12 +42,12 @@ export class HC extends FrameArray {
   }
 
   public evaluate(input: string): Frame {
-    const was = this.length();
-    const status = this.lexer.lex_string(input);
-    if (this.length() === was) {
+    const result = this.lexer.lex_string(input);
+    if (!result) {
       return Frame.nil;
     }
-    return this.at(-1);
+    const value = result.call(this);
+    return value;
   }
 
   public exec_file(file: string): Frame {
