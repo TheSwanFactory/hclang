@@ -1,7 +1,7 @@
 
 import { expect } from "chai";
 import {} from "mocha";
-import { HC } from "../../src/execute/hc";
+import { HC } from "../../src/execute/hc-class";
 import * as frame from "../../src/frames";
 
 describe("HC", () => {

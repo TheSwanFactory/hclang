@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { HC } from "../execute/hc";
+import { HC } from "../execute/hc-class";
 export declare class HChat {
     protected hc: HC;
     static readonly IN = "; ";
