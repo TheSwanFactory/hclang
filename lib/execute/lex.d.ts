@@ -15,7 +15,6 @@ export declare class Lex extends Frame implements ISourced {
     protected sample: FrameAtom;
     constructor(factory: any);
     call(argument: Frame, parameter?: Frame): Frame;
-    getClassName(): string;
     toString(): string;
     protected isEnd(char: string): boolean;
     protected isTerminal(char: string): boolean;

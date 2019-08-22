@@ -47,14 +47,8 @@ export class Lex extends Frame implements ISourced {
     return this;
   }
 
-  public getClassName() {
-    const funcNameRegex = /function (.{1,})\(/;
-    const results  = (funcNameRegex).exec(this.constructor.toString());
-    return (results && results.length > 1) ? results[1] : "<class>";
-  }
-
   public toString() {
-    return this.getClassName() + `[${this.body}]`;
+    return this.id + `[${this.body}]`;
   }
 
   protected isEnd(char: string) {
