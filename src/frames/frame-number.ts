@@ -5,13 +5,13 @@ import { Context, NilContext } from "./meta-frame";
 export class FrameNumber extends FrameAtom {
   public static readonly NUMBER_CHAR = /\d/;
 
-  protected static numbers: { [key: string]: FrameNumber; } = {};
-  protected data: number;
-
   public static for(digits: string) {
     const exists = FrameNumber.numbers[digits];
     return exists || (FrameNumber.numbers[digits] = new FrameNumber(digits));
   }
+
+  protected static numbers: { [key: string]: FrameNumber; } = {};
+  protected data: number;
 
   constructor(source: string, meta: Context = NilContext) {
     super(meta);

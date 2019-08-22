@@ -6,17 +6,22 @@ import { terminals } from "./terminals";
 
 export const syntax: frame.Context = _.clone(terminals);
 
-const atomFrames: Array<any> = [
+const atomClasses: Array<any> = [
   FrameSpace,
+  // frame.FrameArg,
   frame.FrameComment,
   frame.FrameDoc,
   frame.FrameName,
+  // frame.FrameNote,
   frame.FrameNumber,
   frame.FrameString,
   frame.FrameSymbol,
 ];
 
-_.map(atomFrames, (klass: any) => {
+const listClasses: Array<any> = [
+];
+
+_.map(atomClasses, (klass: any) => {
   const sample: frame.FrameAtom = new klass("");
   const key = sample.string_start();
   syntax[key] = new Lex(klass);
