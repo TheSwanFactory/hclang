@@ -6,7 +6,7 @@ import { terminals } from "./terminals";
 
 export const syntax: frame.Context = _.clone(terminals);
 
-const tokenFrames: Array<any> = [
+const atomFrames: Array<any> = [
   FrameSpace,
   frame.FrameComment,
   frame.FrameDoc,
@@ -16,14 +16,8 @@ const tokenFrames: Array<any> = [
   frame.FrameSymbol,
 ];
 
-const add_range = (key: string, klass: any): boolean => {
-  return false;
-};
-
-_.map(tokenFrames, (klass: any) => {
+_.map(atomFrames, (klass: any) => {
   const sample: frame.FrameAtom = new klass("");
   const key = sample.string_start();
-  if (!add_range(key, klass)) {
-    syntax[key] = new Lex(klass);
-  }
+  syntax[key] = new Lex(klass);
 });

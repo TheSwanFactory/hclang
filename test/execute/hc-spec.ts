@@ -33,6 +33,15 @@ describe("HC", () => {
     expect(hc.toString()).to.equal(`[“\nDoc String\n”]`);
   });
 
+  describe("literals", () => {
+    it("returns numbers", () => {
+      const input = "123";
+      const result = hc.evaluate(input);
+      expect(result).to.be.instanceof(frame.FrameNumber);
+      expect(result.toString()).to.equal(input);
+    });
+  });
+
   describe("symbols", () => {
     const key = "key";
     const value = "value";

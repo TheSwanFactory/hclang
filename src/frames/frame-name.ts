@@ -1,7 +1,7 @@
 import { Frame } from "./frame";
 import { FrameAtom } from "./frame-atom";
 import { FrameSymbol } from "./frame-symbol";
-import { Context, NilContext } from "./meta-frame";
+import { NilContext } from "./meta-frame";
 
 export class FrameName extends FrameAtom {
   public static readonly NAME_BEGIN = ".";
