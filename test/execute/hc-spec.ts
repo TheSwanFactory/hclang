@@ -36,7 +36,7 @@ describe("HC", () => {
   describe("symbols", () => {
     const key = "key";
     const value = "value";
-    const frame_value = new frame.FrameString("value");
+    const frame_value = new frame.FrameString(value);
     const setting = `.${key} ${frame_value}`;
 
     it("evaluates in context", () => {
