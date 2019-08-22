@@ -1,5 +1,4 @@
 import * as _ from "lodash";
-import { Frame } from "./frame";
 import { FrameAtom } from "./frame-atom";
 import { Context, NilContext } from "./meta-frame";
 
@@ -12,6 +11,8 @@ export class FrameNumber extends FrameAtom {
     super(meta);
     this.data = _.toNumber(source);
   }
+
+  public string_start() { return FrameNumber.NUMBER_BEGIN; };
 
   protected toData() { return this.data; }
 };

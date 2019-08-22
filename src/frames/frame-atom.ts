@@ -1,5 +1,4 @@
 import {  Frame } from "./frame";
-import { FrameArray } from "./frame-array";
 import { Context, NilContext } from "./meta-frame";
 
 export interface IStringConstructor {
