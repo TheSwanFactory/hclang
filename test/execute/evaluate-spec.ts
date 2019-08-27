@@ -70,14 +70,6 @@ describe("evaluate", () => {
     const frame_value = new frame.FrameString(value);
     const setting = `.${key} ${frame_value}`;
 
-    it("evaluates in context", () => {
-      const context: frame.Context = {key: frame_value};
-      const result = evaluate(key, context) as frame.FrameArray;
-      expect(result.size()).to.equal(1);
-      const output = result.at(0);
-      expect(output.toString()).to.equal(frame_value.toString());
-    });
-
     it("evaluates names to symbols", () => {
       const result = evaluate(`.${key}`) as frame.FrameArray;
       expect(result.size()).to.equal(1);

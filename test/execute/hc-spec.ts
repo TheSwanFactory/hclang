@@ -1,7 +1,7 @@
 
 import { expect } from "chai";
 import {} from "mocha";
-import { HC } from "../../src/execute/hc-class";
+import { HC, IProcessEnv } from "../../src/execute/hc-class";
 import * as frame from "../../src/frames";
 
 describe("HC", () => {
@@ -48,9 +48,9 @@ describe("HC", () => {
     const frame_value = new frame.FrameString(value);
     const setting = `.${key} ${frame_value}`;
 
-    it("evaluates in context", () => {
-      const context: frame.Context = {key: frame_value};
-      const hc2 = new HC(context);
+    it("evaluates in env", () => {
+      const env: IProcessEnv = {key: value};
+      const hc2 = new HC(env);
       hc2.evaluate(key) as frame.FrameArray;
       expect(hc2.size()).to.equal(1);
       const output = hc2.at(0);

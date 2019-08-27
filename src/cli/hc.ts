@@ -13,7 +13,7 @@ const options = getopts(process.argv.slice(2), {
   },
 });
 
-const hc = HC.from_env(process.env);
+const hc = new HC(process.env);
 let evaluated = false;
 let output: Frame;
 
