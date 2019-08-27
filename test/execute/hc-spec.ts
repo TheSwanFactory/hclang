@@ -4,7 +4,7 @@ import {} from "mocha";
 import { HC, IProcessEnv } from "../../src/execute/hc-class";
 import * as frame from "../../src/frames";
 
-describe("HC", () => {
+describe.only("HC", () => {
   let hc: HC;
 
   beforeEach(() => {
@@ -21,19 +21,19 @@ describe("HC", () => {
     expect(result.toString()).to.equal(frame.Frame.nil.toString());
   });
 
-  it("returns new value, if any", () => {
-    const input = "“Hello, HC!”";
-    const result = hc.evaluate(input);
-    expect(result.toString()).to.equal(`${input}`);
-  });
-
-  it("joins multi-line doc-strings into strings", () => {
-    const input = "```\nDoc String\n```";
-    hc.evaluate(input);
-    expect(hc.toString()).to.equal(`[“\nDoc String\n”]`);
-  });
-
   describe("literals", () => {
+    it("returns new value, if any", () => {
+      const input = "“Hello, HC!”";
+      const result = hc.evaluate(input);
+      expect(result.toString()).to.equal(`${input}`);
+    });
+
+    it("joins multi-line doc-strings into strings", () => {
+      const input = "```\nDoc String\n```";
+      hc.evaluate(input);
+      expect(hc.toString()).to.equal(`[“\nDoc String\n”]`);
+    });
+
     it("returns numbers", () => {
       const input = "123";
       const result = hc.evaluate(input);
@@ -79,6 +79,23 @@ describe("HC", () => {
       expect(hc.size()).to.equal(2);
       const output = hc.at(1);
       expect(output.toString()).to.equal(frame_value.toString());
+    });
+  });
+
+  describe("groups", () => {
+    it("returns FrameArray for empty []", () => {
+      const result = hc.evaluate("[]");
+      expect(result).to.be.instanceof(frame.FrameArray);
+    });
+
+    it("returns nil for empty ()", () => {
+      const result = hc.evaluate("()");
+      expect(result).to.equal(frame.Frame.nil);
+    });
+
+    it("returns closure for empty {}", () => {
+      const result = hc.evaluate("{}");
+      // expect(result).to.be.instanceof(frame.FrameLazy);
     });
   });
 });
