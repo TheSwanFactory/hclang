@@ -38,3 +38,5 @@ terminals[Frame.kEND] = Terminal.end();
 terminals["\n"] = new Terminal(perform({next: Frame.nil}));
 terminals["("] = new Terminal(perform({push: Frame.nil}));
 terminals[")"] = new Terminal(perform({pop: Frame.nil}));
+terminals["["] = new Terminal(perform({push: Frame.nil}));
+terminals["]"] = new Terminal(perform({pop: Frame.nil}));

@@ -10,8 +10,8 @@ export class FrameLazy extends FrameExpr {
     super(data, meta);
   }
 
-  public string_open() { return FrameLazy.LAZY_BEGIN + " "; };
-  public string_close() { return  " " + FrameLazy.LAZY_END; };
+  public string_open() { return FrameLazy.LAZY_BEGIN; };
+  public string_close() { return FrameLazy.LAZY_END; };
 
   public in(contexts = [Frame.nil]): Frame {
     if (this.data.length === 0) {
