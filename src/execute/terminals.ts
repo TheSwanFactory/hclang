@@ -1,6 +1,5 @@
-import { Context, Frame, FrameString, FrameSymbol, NilContext } from "../frames";
+import { Context, Frame, NilContext } from "../frames";
 import { ICurryFunction } from "../ops";
-import { Lex } from "./lex";
 import { LexPipe } from "./lex-pipe";
 
 export interface IPerformer extends Frame {

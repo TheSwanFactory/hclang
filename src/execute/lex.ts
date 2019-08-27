@@ -18,6 +18,11 @@ export class Token extends FrameAtom {
 
 export class Lex extends Frame implements ISourced {
 
+  public static isTerminal(char: string) {
+    const terms = _.keys(terminals);
+    return _.includes(terms, char);
+  }
+
   public source: string;
   protected body: string = "";
   protected sample: FrameAtom;
@@ -31,13 +36,13 @@ export class Lex extends Frame implements ISourced {
   public call(argument: Frame, parameter = Frame.nil): Frame {
     const char = argument.toString();
     // debugger;
-    if (this.isEnd(char) && this.isTerminal(char)) {
+    if (this.isEnd(char) && Lex.isTerminal(char)) {
       return this.finish(argument, true);
     }
     if (this.isEnd(char)) {
       return this.finish(argument, !this.isQuote());
     }
-    if (this.isTerminal(char) && !this.isQuote()) {
+    if (Lex.isTerminal(char) && !this.isQuote()) {
       return this.finish(argument, true);
     }
     if (this.body === "") {
@@ -53,11 +58,6 @@ export class Lex extends Frame implements ISourced {
 
   protected isEnd(char: string) {
     return !this.sample.canInclude(char);
-  }
-
-  protected isTerminal(char: string) {
-    const terms = _.keys(terminals);
-    return _.includes(terms, char);
   }
 
   protected isQuote() {
