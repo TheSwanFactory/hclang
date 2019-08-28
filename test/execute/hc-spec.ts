@@ -4,7 +4,7 @@ import {} from "mocha";
 import { HC, IProcessEnv } from "../../src/execute/hc-class";
 import * as frame from "../../src/frames";
 
-describe.only("HC", () => {
+describe("HC", () => {
   let hc: HC;
 
   beforeEach(() => {
@@ -82,7 +82,7 @@ describe.only("HC", () => {
     });
   });
 
-  describe("groups", () => {
+  describe.skip("groups", () => {
     it("returns FrameArray for empty []", () => {
       const result = hc.evaluate("[]");
       expect(result).to.be.instanceof(frame.FrameArray);
@@ -95,7 +95,7 @@ describe.only("HC", () => {
 
     it("returns closure for empty {}", () => {
       const result = hc.evaluate("{}");
-      // expect(result).to.be.instanceof(frame.FrameLazy);
+      expect(result).to.be.instanceof(frame.FrameLazy);
     });
   });
 });

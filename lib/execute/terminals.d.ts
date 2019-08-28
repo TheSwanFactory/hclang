@@ -1,7 +1,10 @@
 import { Context, Frame } from "../frames";
 import { ICurryFunction } from "../ops";
+export declare type IAction = {
+    [key: string]: any;
+};
 export interface IPerformer extends Frame {
-    perform(actions: Context): Frame;
+    perform(actions: IAction): Frame;
 }
 export declare class Terminal extends Frame {
     protected data: ICurryFunction;

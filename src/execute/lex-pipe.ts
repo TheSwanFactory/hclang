@@ -2,12 +2,11 @@ import * as _ from "lodash";
 import { Context, Frame, FrameString, FrameSymbol } from "../frames";
 import { ParsePipe } from "./parse-pipe";
 import { syntax } from "./syntax";
-import { IPerformer } from "./terminals";
+import { IAction, IPerformer } from "./terminals";
 
 export class LexPipe extends Frame implements IPerformer {
   constructor(out: Frame) {
-    syntax[LexPipe.kOUT] = out;
-    // console.error(` * LexPipe.meta ${JSON.stringify(meta, null, 2)}\n`);
+    syntax[Frame.kOUT] = out;
     super(syntax);
   }
 
@@ -20,28 +19,34 @@ export class LexPipe extends Frame implements IPerformer {
     return source.reduce(this);
   }
 
-  public finish(argument: Frame) {
+  public finish(parameter: Frame) {
     const output = FrameSymbol.end();
     const out = this.get(Frame.kOUT);
     return out.call(output);
   }
 
-  public perform(actions: Context) {
-    const parser = this.get(LexPipe.kOUT) as ParsePipe;
+  public perform(actions: IAction) {
+    const parser = this.get(Frame.kOUT) as ParsePipe;
     _.forEach(actions, (value, key) => {
       switch (key) {
         case "next": {
+          const header = (value === ";") ? true : false;
+          parser.next(header);
+          break;
+        }
+        case "end": {
+          parser.next(false);
           this.finish(value);
           break;
         }
         case "push": {
           const next_parser = parser.push(value);
-          this.set(LexPipe.kOUT, next_parser);
+          this.set(Frame.kOUT, next_parser);
           break;
         }
         case "pop": {
           const next_parser = parser.pop(value);
-          this.set(LexPipe.kOUT, next_parser);
+          this.set(Frame.kOUT, next_parser);
           break;
         }
       }

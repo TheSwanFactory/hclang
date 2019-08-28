@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import * as _ from "lodash";
-import { Context, Frame, FrameArray, FrameString, NilContext } from "../frames";
+import { Context, Frame, FrameArray, FrameExpr, FrameString, NilContext } from "../frames";
 import { EvalPipe } from "./eval-pipe";
 import { GroupPipe } from "./group-pipe";
 import { LexPipe } from "./lex-pipe";
@@ -26,8 +26,7 @@ export class HC extends FrameArray {
 
   public static make_pipe(dest: FrameArray): LexPipe {
     const evaluator = new EvalPipe(dest); // evaluate lists into results
-    const grouper = new GroupPipe(evaluator); // group expressions into lists
-    const parser = new ParsePipe(grouper); // parse tokens into expressions
+    const parser = new ParsePipe(evaluator, FrameExpr); // parse tokens into expressions
     const lexer = new LexPipe(parser); // lex characters into tokens
     return lexer;
   }
