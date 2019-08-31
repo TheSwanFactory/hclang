@@ -34,7 +34,8 @@
     "set-bin": "chmod a+x ./lib/cli/hc.js ./lib/cli/bin.js",
     "test": "npm run build && mocha --require ts-node/register --recursive test/**/*-spec.ts",
     "tag": "bump patch -ct package*.json README.md src/version.ts",
-    "ts": "echo TypeScript `tsc --version` && tsc --pretty --inlineSourceMap && npm run set-bin",
+    "ts": "tsc --pretty --inlineSourceMap && npm run set-bin",
+    "ts:version": "echo TypeScript `tsc --version` ",
     "watch": "npm run build -- --watch",
     "watch:test": "npm run test -- --watch"
   },

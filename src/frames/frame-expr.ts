@@ -1,7 +1,6 @@
 import { Frame } from "./frame";
-import { FrameComment } from "./frame-comment";
 import { FrameList } from "./frame-list";
-import { Context, NilContext } from "./meta-frame";
+import { NilContext } from "./meta-frame";
 
 export class FrameExpr extends FrameList {
   constructor(data: Array<Frame>, meta = NilContext) {

@@ -4,11 +4,11 @@ export interface IProcessEnv {
     [key: string]: string | undefined;
 }
 export declare class HC extends FrameArray {
-    static make_context(env?: IProcessEnv): Context;
-    static from_env(env?: IProcessEnv): HC;
+    static make_context(env: IProcessEnv): Context;
+    static make_pipe(dest: FrameArray): LexPipe;
     result: FrameArray;
     lexer: LexPipe;
-    constructor(context?: Context);
+    constructor(env?: IProcessEnv);
     evaluate(input: string): Frame;
     exec_file(file: string): Frame;
 }

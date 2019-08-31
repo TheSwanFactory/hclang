@@ -10,15 +10,14 @@ export declare class Token extends FrameAtom {
 }
 export declare class Lex extends Frame implements ISourced {
     protected factory: any;
+    static isTerminal(char: string): boolean;
     source: string;
     protected body: string;
     protected sample: FrameAtom;
     constructor(factory: any);
     call(argument: Frame, parameter?: Frame): Frame;
-    getClassName(): string;
     toString(): string;
     protected isEnd(char: string): boolean;
-    protected isTerminal(char: string): boolean;
     protected isQuote(): boolean;
     protected finish(argument: Frame, passAlong: boolean): Frame;
     protected exportFrame(): Frame;

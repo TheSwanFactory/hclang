@@ -4,6 +4,7 @@ import { FrameNote } from "./frame-note";
 import { Context, NilContext } from "./meta-frame";
 
 export class FrameSymbol extends FrameAtom {
+  public static readonly SYMBOL_BEGIN = /[-a-zA-Z]/;
   public static readonly SYMBOL_CHAR = /[-\w]/;
 
   public static for(symbol: string) {
@@ -55,8 +56,7 @@ export class FrameSymbol extends FrameAtom {
   }
 
   public string_start() {
-    // debugger;
-    return FrameSymbol.SYMBOL_CHAR.toString();
+    return FrameSymbol.SYMBOL_BEGIN.toString();
   };
 
   public canInclude(char: string) {

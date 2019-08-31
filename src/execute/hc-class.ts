@@ -11,7 +11,7 @@ export interface IProcessEnv {
 }
 
 export class HC extends FrameArray {
-  public static make_context(env: IProcessEnv = {}): Context {
+  public static make_context(env: IProcessEnv): Context {
     const context: Context = {};
     _.each(env, (value, key) => {
       if (key[0] !== "n") {
@@ -24,21 +24,23 @@ export class HC extends FrameArray {
     return context;
   }
 
-  public static from_env(env: IProcessEnv = {}): HC {
-    const context = HC.make_context(env);
-    const hc = new HC(context);
-    return hc;
+  public static make_pipe(dest: FrameArray): LexPipe {
+    const evaluator = new EvalPipe(dest); // evaluate lists into results
+    const grouper = new GroupPipe(evaluator); // group expressions into lists
+    const parser = new ParsePipe(grouper); // parse tokens into expressions
+    const lexer = new LexPipe(parser); // lex characters into tokens
+    return lexer;
   }
 
   public result: FrameArray;
   public lexer: LexPipe;
 
-  constructor(context = NilContext) {
-    super([], context); // store the result
-    const evaluator = new EvalPipe(this); // evaluate lists into results
-    const grouper = new GroupPipe(evaluator); // group expressions into lists
-    const parser = new ParsePipe(grouper); // parse tokens into expressions
-    this.lexer = new LexPipe(parser); // lex characters into tokens
+  constructor(env: IProcessEnv = {}) {
+    super([], NilContext);
+    const context = HC.make_context(env);
+    const root = new Frame(context);
+    this.up = root;
+    this.lexer = HC.make_pipe(this); // lex characters into tokens
   }
 
   public evaluate(input: string): Frame {

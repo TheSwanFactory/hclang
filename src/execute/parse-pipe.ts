@@ -1,4 +1,4 @@
-import { Context, Frame, FrameArray, FrameAtom, FrameExpr, FrameSymbol, NilContext } from "../frames";
+import { Context, Frame, FrameArray, FrameExpr, FrameSymbol } from "../frames";
 import { Terminal } from "./terminals";
 
 export class ParsePipe extends FrameArray {
@@ -23,17 +23,18 @@ export class ParsePipe extends FrameArray {
   }
 
   public finish(argument: Frame): Frame {
-    const terminal = FrameSymbol.end();
-    const result = this.makeFrame();
     const out = this.get(Frame.kOUT);
-    const output = out.call(result);
-    const finished = out.call(terminal);
+    const result = this.makeFrame();
+    const terminal = FrameSymbol.end();
+    out.call(result);
+    out.call(terminal);
     this.reset();
     return result;
   }
 
   protected makeFrame() {
     const current = this.asArray();
-    return new this.factory(current);
+    const instance = new this.factory(current);
+    return instance;
   }
 }
