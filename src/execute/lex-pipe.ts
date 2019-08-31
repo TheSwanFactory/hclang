@@ -35,8 +35,7 @@ export class LexPipe extends Frame implements IPerformer {
           break;
         }
         case "end": {
-          parser.next(false);
-          this.finish(value);
+          parser.finish(value);
           break;
         }
         case "push": {

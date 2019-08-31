@@ -6,7 +6,7 @@ import { ParsePipe } from "../../src/execute/parse-pipe";
 import * as frame from "../../src/frames";
 import * as ops from "../../src/ops";
 
-describe.only("Parse", () => {
+describe("Parse", () => {
   const content = new frame.FrameString("content");
   const token = new Token(content);
   const symbol = frame.FrameSymbol.for(",");
@@ -65,23 +65,21 @@ describe.only("Parse", () => {
       expect(pipe.length()).to.equal(1);
       pipe.next(false);
       expect(pipe.length()).to.equal(0);
-      console.error(pipe);
     });
 
-    it.skip("emits Grouped expr on `finish`", () => {
+    it("emits Grouped expr on `finish`", () => {
       pipe.call(token);
-      console.error(pipe);
       const result = pipe.call(frame.FrameSymbol.end());
-      console.error(result);
+      console.error("** PIPE AFTER FINISH");
+      console.error(pipe);
       expect(result).to.be.instanceOf(frame.FrameGroup);
 
       expect(out.size()).to.equal(1);
       const expr = out.at(0);
-      expect(expr).to.be.instanceOf(frame.FrameExpr);
-      // console.error(` * expr ${JSON.stringify(expr, null, 2)}\n`);
+      console.error("** EXPR AFTER FINISH");
       console.error(expr);
-
-      expect(expr.toString()).to.equal(`(${content})`);
+      expect(expr).to.be.instanceOf(frame.FrameGroup);
+      expect(expr.toString()).to.equal(`((${content}))`);
     });
   });
 

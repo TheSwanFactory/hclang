@@ -14,7 +14,7 @@ export class ParsePipe extends FrameArray {
     this.factory = factory;
     this.collector = [];
   }
-  public next(header: boolean): Frame {
+  public next(header: boolean = false): Frame {
     if (this.length() === 0) {
       return this;
     }
@@ -42,6 +42,7 @@ export class ParsePipe extends FrameArray {
   }
 
   public finish(terminal: any): Frame {
+    this.next();
     const out = this.get(Frame.kOUT);
     const result = this.makeFrame();
     out.call(result);

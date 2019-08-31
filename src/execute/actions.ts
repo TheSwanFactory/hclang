@@ -29,4 +29,4 @@ function addGroup(grouper: frame.IArrayConstructor) {
   actions[close] = {pop: grouper};
 }
 
-addGroup(frame.FrameGroup);
+// addGroup(frame.FrameGroup);
