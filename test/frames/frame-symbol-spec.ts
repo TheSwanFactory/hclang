@@ -49,7 +49,7 @@ describe("FrameSymbol", () => {
     const result = context.call(frame_symbol);
     expect(result.toString()).to.equal("(“Atom ” “Smasher”)");
 
-    expr.callme = true;
+    expr.is.immediate = true;
     const result2 = context.call(frame_symbol);
     expect(result2.toString()).to.equal("“Atom Smasher”");
   });

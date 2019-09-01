@@ -7,7 +7,7 @@ import { syntax } from "./syntax";
 class LexTerminal extends Frame {
   constructor(protected options: LexOptions) {
     super(NilContext);
-    this.callme = true;
+    this.is.immediate = true;
   }
 
   public apply(argument: Frame, parameter: Frame) {

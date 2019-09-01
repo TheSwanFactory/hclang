@@ -25,11 +25,10 @@ export class FrameSymbol extends FrameAtom {
       const value = context.get(this.data);
       if (value !== Frame.missing) {
         value.up = context;
-        if (value.callme === false) {
-          return value;
-        } else {
+        if (value.is.immediate === true) {
           return value.call(context);
         }
+        return value;
       }
     }
     return FrameNote.key(this.data);

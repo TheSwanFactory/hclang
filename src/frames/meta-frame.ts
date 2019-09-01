@@ -7,7 +7,6 @@ export interface ISourced extends Frame {
 }
 
 export type Context = { [key: string]: Frame; };
-export type Flags = { [key: string]: boolean; };
 export const NilContext: Context = {};
 
 export interface IKeyValuePair extends ReadonlyArray<string | Frame> { 0: string; 1: Frame; }
@@ -16,7 +15,6 @@ export class MetaFrame {
   public static id_count = 0;
   public up: Frame;
   public id: string;
-  public is: Flags;
 
   constructor(protected meta = NilContext, isNil = false) {
     const name = this.constructor.name;

@@ -1,4 +1,7 @@
 import { Context, MetaFrame } from "./meta-frame";
+export declare type Flags = {
+    [key: string]: boolean;
+};
 export declare class Frame extends MetaFrame {
     static readonly kOUT = ">>";
     static readonly kEND = "$$";
@@ -8,6 +11,7 @@ export declare class Frame extends MetaFrame {
     static readonly missing: Frame;
     static globals: Frame;
     callme: boolean;
+    is: Flags;
     constructor(meta?: Context, isNil?: boolean);
     string_open(): string;
     string_close(): string;

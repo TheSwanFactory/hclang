@@ -1,6 +1,8 @@
 import * as _ from "lodash";
 import { Context, MetaFrame, NilContext } from "./meta-frame";
 
+export type Flags = { [key: string]: boolean; };
+
 export class Frame extends MetaFrame {
   public static readonly kOUT = ">>";
   public static readonly kEND = "$$";
@@ -12,11 +14,12 @@ export class Frame extends MetaFrame {
   });
   public static globals = Frame.missing;
 
-  public callme: boolean;
+  public is: Flags;
+
   constructor(meta = NilContext, isNil = false) {
     super(meta);
     this.up = Frame.missing;
-    this.callme = false;
+    this.is = {};
     if (isNil) {
       this.isVoid = () => {
         return true;
