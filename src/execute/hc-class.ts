@@ -19,7 +19,6 @@ export class HC extends FrameArray {
       }
     });
     if (context["DEBUG_ENV"]) {
-      console.log("** DEBUG_ENV");
       console.log(context);
     }
     return context;
