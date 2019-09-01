@@ -31,10 +31,9 @@
     "lint": "tslint --force --format verbose \"{src,test}/**/*.ts\"",
     "inspect": "npm run build && node --inspect --require ts-node/register src/cli/hc.ts",
     "hc": "node lib/cli/hc.js",
-    "set-bin": "chmod a+x ./lib/cli/hc.js ./lib/cli/bin.js",
     "test": "npm run build && mocha --require ts-node/register --recursive test/**/*-spec.ts",
     "tag": "bump patch -ct package*.json README.md src/version.ts",
-    "ts": "tsc --pretty --inlineSourceMap && npm run set-bin",
+    "ts": "tsc --pretty --inlineSourceMap && chmod a+x ./lib/cli/hc.js ./lib/cli/bin.js",
     "ts:version": "echo TypeScript `tsc --version` ",
     "watch": "npm run build -- --watch",
     "watch:test": "npm run test -- --watch"
