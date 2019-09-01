@@ -82,10 +82,10 @@ describe("HC", () => {
     it("evaluates created symbols", () => {
       const input = `${setting}\n${key}`;
       hc.evaluate(input) as frame.FrameArray;
-      // console.error(`result:`);
-      // console.error(result);
 
       expect(hc.size()).to.equal(2);
+      console.error(`hc:`);
+      console.error(hc);
       const output = hc.at(1);
       expect(output.toString()).to.equal(frame_value.toString());
     });

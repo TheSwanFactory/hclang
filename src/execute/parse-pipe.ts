@@ -23,8 +23,8 @@ export class ParsePipe extends FrameArray {
     if (header) {
       expr.is.header = true;
     }
-    this.reset();
     this.collector.push(expr);
+    this.reset();
     return this;
   }
 
@@ -47,12 +47,12 @@ export class ParsePipe extends FrameArray {
     const result = this.makeFrame();
     out.call(result);
     out.call(terminal);
-    this.reset();
     return result;
   }
 
   protected makeFrame() {
     const group = new this.factory(this.collector);
+    this.collector = [];
     return group;
   }
 }
