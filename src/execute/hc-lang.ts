@@ -10,19 +10,20 @@ export interface IProcessEnv {
     [key: string]: string | undefined
 }
 
-export class HCLang extends FrameArray {
-  public static make_context(env: IProcessEnv): Context {
-    const context: Context = {};
-    _.each(env, (value, key) => {
-      if (key[0] !== "n") {
-        context[key] = new FrameString(value);
-      }
-    });
-    if (context["DEBUG_ENV"]) {
-      console.log(context);
+const make_context = (env: IProcessEnv) => {
+  const context: Context = {};
+  _.each(env, (value, key) => {
+    if (key[0] !== "n") {
+      context[key] = new FrameString(value);
     }
-    return context;
+  });
+  if (context["DEBUG_ENV"]) {
+    console.log(context);
   }
+  return context;
+};
+
+export class HCLang extends FrameArray {
 
   public static make_pipe(dest: FrameArray): LexPipe {
     const evaluator = new EvalPipe(dest); // evaluate lists into results
@@ -36,7 +37,7 @@ export class HCLang extends FrameArray {
 
   constructor(env: IProcessEnv = {}) {
     super([], NilContext);
-    const context = HCLang.make_context(env);
+    const context = make_context(env);
     const root = new Frame(context);
     this.up = root;
     this.lexer = HCLang.make_pipe(this); // lex characters into tokens
