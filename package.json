@@ -45,7 +45,6 @@
     "chalk": "^2.4.2",
     "getopts": "^2.2.5",
     "inquirer": "^7.0.0",
-    "mem": "^5.1.1",
     "prompt-sync": "^4.1.7",
     "prompt-sync-history": "^1.0.1",
     "version-bump-prompt": "^5.0.5"
