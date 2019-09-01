@@ -16,9 +16,9 @@ describe("FrameLazy", () => {
     expect(lazy).to.be.instanceof(frame.FrameLazy);
   });
 
-  it("stringifies to { expr, meta }", () => {
+  it("stringifies to {expr, meta}", () => {
     const result = lazy.toString();
-    expect(result).to.include(`{ speed gap _, `);
+    expect(result).to.include(`{speed gap _, `);
   });
 
   it("evalutes to an Expr with merged context", () => {
@@ -36,7 +36,7 @@ describe("FrameLazy", () => {
     const fast = new frame.FrameString("fast");
 
     it("is created with an empty Array", () => {
-      expect(codify.toString()).to.equal("{  }");
+      expect(codify.toString()).to.equal("{}");
     });
 
     it("returns itself when Frame is nil", () => {

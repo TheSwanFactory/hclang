@@ -1,9 +1,11 @@
-import { Context, Frame, NilContext } from "../frames";
+import { Context, Frame, FrameArray, FrameExpr, FrameLazy, FrameSymbol, NilContext } from "../frames";
 import { ICurryFunction } from "../ops";
 import { LexPipe } from "./lex-pipe";
 
+export type IAction = { [key: string]: any; };
+
 export interface IPerformer extends Frame {
-  perform(actions: Context): Frame;
+  perform(actions: IAction): Frame;
 }
 
 const terminate: ICurryFunction = (source: Frame, parameter: Frame) => {
@@ -28,13 +30,15 @@ export class Terminal extends Frame {
 export const terminals: Context = {
 };
 
-const perform = (actions: Context) => {
+const perform = (actions: IAction) => {
   return (source: Frame, parameter: Frame) => {
     return (source as IPerformer).perform(actions);
   };
 };
 
 terminals[Frame.kEND] = Terminal.end();
-terminals["\n"] = new Terminal(perform({next: Frame.nil}));
-terminals["("] = new Terminal(perform({push: Frame.nil}));
-terminals[")"] = new Terminal(perform({pop: Frame.nil}));
+terminals["\n"] = new Terminal(perform({end: FrameSymbol.for("\n")}));
+terminals["("] = new Terminal(perform({push: FrameExpr}));
+terminals[")"] = new Terminal(perform({pop: FrameExpr}));
+terminals["["] = new Terminal(perform({push: FrameArray}));
+terminals["]"] = new Terminal(perform({pop: FrameArray}));

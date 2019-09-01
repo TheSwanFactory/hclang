@@ -9,7 +9,7 @@ describe("MAML Tag", () => {
   const p = new FrameString("p");
   const text = "Hello, MAML!";
   const body = new FrameString(text);
-  const stringify_tag = "({  } [(“<” _ “>”), __, (“</” _ “>”)])";
+  const stringify_tag = "({} [(“<” _ “>”), __, (“</” _ “>”)])";
   const p_tag = tag.call(p);
 
   it("is a FrameExpr", () => {

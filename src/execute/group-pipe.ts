@@ -2,9 +2,8 @@ import { Frame, FrameGroup, FrameSymbol } from "../frames";
 import { ParsePipe } from "./parse-pipe";
 
 export class GroupPipe extends ParsePipe {
-  constructor(out: Frame) {
-    super(out);
-    this.factory = FrameGroup;
+  constructor(out: Frame, factory: any) {
+    super(out, factory);
   }
 
   public call(argument: Frame, parameter = Frame.nil) {

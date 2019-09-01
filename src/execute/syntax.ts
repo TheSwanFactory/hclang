@@ -18,9 +18,6 @@ const atomClasses: Array<any> = [
   frame.FrameSymbol,
 ];
 
-const listClasses: Array<any> = [
-];
-
 _.map(atomClasses, (klass: any) => {
   const sample: frame.FrameAtom = new klass("");
   const key = sample.string_start();

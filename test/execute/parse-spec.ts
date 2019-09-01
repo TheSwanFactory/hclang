@@ -15,7 +15,7 @@ describe("Parse", () => {
   let pipe: ParsePipe;
   beforeEach(() => {
     out = new frame.FrameArray([]);
-    pipe = new ParsePipe(out);
+    pipe = new ParsePipe(out, frame.FrameGroup);
   });
 
   describe("Token", () => {
@@ -43,25 +43,43 @@ describe("Parse", () => {
       expect(pipe).to.be.ok;
     });
 
-    it("emits an empty Expr when called with end()", () => {
+    it("emits an empty Group on `end`", () => {
       const result = pipe.call(frame.FrameSymbol.end());
-      expect(result).to.be.instanceOf(frame.FrameExpr);
+      expect(result).to.be.instanceOf(frame.FrameGroup);
       expect(result.toString()).to.equal("()");
       expect(out.size()).to.equal(1);
-      const expr = out.at(0);
-      expect(expr).to.be.instanceOf(frame.FrameExpr);
-      expect(expr).to.equal(result);
+      const group = out.at(0);
+      expect(group).to.equal(result);
     });
 
-    it("emits expr when called with token (and end)", () => {
+    it("adds token contents on `call`", () => {
+      expect(pipe.length()).to.equal(0);
+      pipe.call(token);
+      expect(pipe.length()).to.equal(1);
+      pipe.call(token);
+      expect(pipe.length()).to.equal(2);
+    });
+
+    it("converts contents to Expr on `next`", () => {
+      pipe.call(token);
+      expect(pipe.length()).to.equal(1);
+      pipe.next(false);
+      expect(pipe.length()).to.equal(0);
+    });
+
+    it("emits Grouped expr on `finish`", () => {
       pipe.call(token);
       const result = pipe.call(frame.FrameSymbol.end());
-      expect(result).to.be.instanceOf(frame.FrameExpr);
+      console.error("** PIPE AFTER FINISH");
+      console.error(pipe);
+      expect(result).to.be.instanceOf(frame.FrameGroup);
 
       expect(out.size()).to.equal(1);
       const expr = out.at(0);
-      expect(expr).to.be.instanceOf(frame.FrameExpr);
-      expect(expr.toString()).to.equal(`(${content})`);
+      console.error("** EXPR AFTER FINISH");
+      console.error(expr);
+      expect(expr).to.be.instanceOf(frame.FrameGroup);
+      expect(expr.toString()).to.equal(`((${content}))`);
     });
   });
 

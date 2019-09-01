@@ -6,6 +6,8 @@ export interface IArrayConstructor {
 export declare class FrameList extends Frame {
     protected data: Array<Frame>;
     constructor(data: Array<Frame>, meta?: Context);
+    string_open(): string;
+    string_close(): string;
     toStringDataArray(): string[];
     toStringArray(): string[];
     toString(): string;
