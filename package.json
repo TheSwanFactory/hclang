@@ -1,6 +1,6 @@
 {
   "name": "hclang",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Homoiconic C: Programming without a Language",
   "license": "MIT",
   "repository": "https://github.com/TheSwanFactory/hclang",
@@ -31,10 +31,9 @@
     "lint": "tslint --force --format verbose \"{src,test}/**/*.ts\"",
     "inspect": "npm run build && node --inspect --require ts-node/register src/cli/hc.ts",
     "hc": "node lib/cli/hc.js",
-    "set-bin": "chmod a+x ./lib/cli/hc.js ./lib/cli/bin.js",
     "test": "npm run build && mocha --require ts-node/register --recursive test/**/*-spec.ts",
     "tag": "bump patch -ct package*.json README.md src/version.ts",
-    "ts": "tsc --pretty --inlineSourceMap && npm run set-bin",
+    "ts": "tsc --pretty --inlineSourceMap && chmod a+x ./lib/cli/hc.js ./lib/cli/bin.js",
     "ts:version": "echo TypeScript `tsc --version` ",
     "watch": "npm run build -- --watch",
     "watch:test": "npm run test -- --watch"
@@ -42,20 +41,18 @@
   "dependencies": {
     "@types/prompt-sync": "^4.1.0",
     "@types/prompt-sync-history": "^1.0.1",
-    "chalk": ">=2.4.2",
+    "chalk": "^2.4.2",
     "getopts": "^2.2.5",
-    "inquirer": "^6.5.1",
-    "lodash": "^4.17.15",
+    "inquirer": "^7.0.0",
     "prompt-sync": "^4.1.7",
     "prompt-sync-history": "^1.0.1",
-    "version-bump-prompt": "^5.0.4"
+    "version-bump-prompt": "^5.0.5"
   },
   "devDependencies": {
     "@types/chai": "^4.2.0",
-    "@types/chalk": ">=2.2.0",
-    "@types/lodash": "4.14.137",
+    "@types/lodash": "4.14.138",
     "@types/mocha": "5.2.7",
-    "@types/node": ">=12.7.2",
+    "@types/node": ">=12.7.3",
     "chai": "^4.2.0",
     "chai-pretty-expect": "1.0.1",
     "inspect-process": ">=0.5.0",
@@ -64,8 +61,8 @@
     "mocha-junit-reporter": "^1.23.1",
     "rimraf": "3.0.0",
     "ts-node": "8.3.0",
-    "tslint": "5.18.0",
-    "typescript": "3.5.3"
+    "tslint": "5.19.0",
+    "typescript": "3.6.2"
   },
   "engines": {
     "node": "7.5.0"

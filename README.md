@@ -1,7 +1,7 @@
 # Homiconic C
-version: 0.1.6
+version: 0.1.7
 
-[ ![Codeship Status for HC](https://app.codeship.com/projects/aaeb71c0-b7d8-0134-5ab7-22c228ba91d5/status?branch=master)](https://app.codeship.com/projects/194564)
+[![Codeship Status for TheSwanFactory/hclang](https://app.codeship.com/projects/b1198f30-aee9-0137-5fdc-4a1003a17a1c/status?branch=master)](https://app.codeship.com/projects/362584)
 
 ## Introduction
 
