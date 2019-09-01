@@ -10,7 +10,6 @@ export declare class Frame extends MetaFrame {
     static readonly nil: Frame;
     static readonly missing: Frame;
     static globals: Frame;
-    callme: boolean;
     is: Flags;
     constructor(meta?: Context, isNil?: boolean);
     string_open(): string;

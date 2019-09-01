@@ -1,18 +1,18 @@
 
 import { expect } from "chai";
 import {} from "mocha";
-import { HC, IProcessEnv } from "../../src/execute/hc-class";
+import { HCLang, IProcessEnv } from "../../src/execute/hc-lang";
 import * as frame from "../../src/frames";
 
-describe("HC", () => {
-  let hc: HC;
+describe("HCLang", () => {
+  let hc: HCLang;
 
   beforeEach(() => {
-    hc = new HC();
+    hc = new HCLang();
   });
 
   it("is exported", () => {
-    expect(HC).to.be.ok;
+    expect(HCLang).to.be.ok;
     expect(hc).to.be.ok;
   });
 
@@ -23,7 +23,7 @@ describe("HC", () => {
 
   describe("literals", () => {
     it("returns new value, if any", () => {
-      const input = "“Hello, HC!”";
+      const input = "“Hello, HCLang!”";
       const result = hc.evaluate(input);
       expect(result.toString()).to.equal(`${input}`);
     });
@@ -59,7 +59,7 @@ describe("HC", () => {
 
     it("evaluates in env", () => {
       const env: IProcessEnv = {key: value};
-      const hc2 = new HC(env);
+      const hc2 = new HCLang(env);
       hc2.evaluate(key) as frame.FrameArray;
       expect(hc2.size()).to.equal(1);
       const output = hc2.at(0);

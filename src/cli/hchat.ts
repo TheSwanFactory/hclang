@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import * as prompt_sync from "prompt-sync";
 import * as prompt_history from "prompt-sync-history";
-import { HC } from "../execute/hc-class";
+import { HCLang } from "../execute/hc-lang";
 import { Frame } from "../frames";
 import { version } from "../version";
 
@@ -13,13 +13,13 @@ export class HChat {
   public static readonly IN = "; ";
   public static readonly OUT = "# ";
 
-  public static iterate(hc: HC): boolean {
+  public static iterate(hc: HCLang): boolean {
     console.log(".hc " + version);
     const hchat = new HChat(hc);
     return hchat.call();
   }
 
-  constructor(protected hc: HC) {
+  constructor(protected hc: HCLang) {
   }
 
   public call(): boolean {

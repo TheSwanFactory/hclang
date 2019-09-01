@@ -14,14 +14,14 @@ export class ParsePipe extends FrameArray {
     this.factory = factory;
     this.collector = [];
   }
-  public next(header: boolean = false): Frame {
+  public next(statement: boolean = false): Frame {
     if (this.length() === 0) {
       return this;
     }
     const term = this.asArray();
     const expr = new FrameExpr(term);
-    if (header) {
-      expr.is.header = true;
+    if (statement) {
+      expr.is.statement = true;
     }
     this.collector.push(expr);
     this.reset();

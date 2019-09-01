@@ -10,7 +10,7 @@ export interface IProcessEnv {
     [key: string]: string | undefined
 }
 
-export class HC extends FrameArray {
+export class HCLang extends FrameArray {
   public static make_context(env: IProcessEnv): Context {
     const context: Context = {};
     _.each(env, (value, key) => {
@@ -36,10 +36,10 @@ export class HC extends FrameArray {
 
   constructor(env: IProcessEnv = {}) {
     super([], NilContext);
-    const context = HC.make_context(env);
+    const context = HCLang.make_context(env);
     const root = new Frame(context);
     this.up = root;
-    this.lexer = HC.make_pipe(this); // lex characters into tokens
+    this.lexer = HCLang.make_pipe(this); // lex characters into tokens
   }
 
   public evaluate(input: string): Frame {

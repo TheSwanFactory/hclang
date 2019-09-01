@@ -1,8 +1,8 @@
 import { Frame, NilContext } from "../frames";
-import { HC } from "./hc-class";
+import { HCLang } from "./hc-lang";
 
 export const evaluate = (input: string): Frame => {
-  const hc = new HC();
+  const hc = new HCLang();
   hc.evaluate(input);
   return hc;
 };
