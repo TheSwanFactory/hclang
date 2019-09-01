@@ -70,14 +70,9 @@ describe("Parse", () => {
     it("emits Grouped expr on `finish`", () => {
       pipe.call(token);
       const result = pipe.call(frame.FrameSymbol.end());
-      console.error("** PIPE AFTER FINISH");
-      console.error(pipe);
       expect(result).to.be.instanceOf(frame.FrameGroup);
-
       expect(out.size()).to.equal(1);
       const expr = out.at(0);
-      console.error("** EXPR AFTER FINISH");
-      console.error(expr);
       expect(expr).to.be.instanceOf(frame.FrameGroup);
       expect(expr.toString()).to.equal(`((${content}))`);
     });
