@@ -50,7 +50,6 @@
   },
   "devDependencies": {
     "@types/chai": "^4.2.0",
-    "@types/chalk": ">=2.2.0",
     "@types/lodash": "4.14.138",
     "@types/mocha": "5.2.7",
     "@types/node": ">=12.7.3",
