@@ -1,7 +1,7 @@
 import { Frame, FrameArray } from "../frames";
 export declare class ParsePipe extends FrameArray {
+    collector: Array<Frame>;
     protected factory: any;
-    protected collector: Array<Frame>;
     constructor(out: Frame, factory: any);
     next(statement?: boolean): Frame;
     push(factory: any): Frame;

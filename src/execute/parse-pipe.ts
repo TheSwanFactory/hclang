@@ -2,9 +2,8 @@ import { Context, Frame, FrameArray, FrameExpr, FrameSymbol } from "../frames";
 import { Terminal } from "./terminals";
 
 export class ParsePipe extends FrameArray {
-
+  public collector: Array<Frame>;
   protected factory: any;
-  protected collector: Array<Frame>;
 
   constructor(out: Frame, factory: any) {
     const meta: Context = {};
@@ -44,8 +43,8 @@ export class ParsePipe extends FrameArray {
   public finish(terminal: any): Frame {
     this.next();
     const out = this.get(Frame.kOUT);
-    const result = this.makeFrame();
-    out.call(result);
+    const value = this.makeFrame();
+    const result = out.call(value);
     out.call(terminal);
     return result;
   }

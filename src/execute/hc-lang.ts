@@ -47,8 +47,8 @@ export class HCLang extends FrameArray {
     if (!result) {
       return Frame.nil;
     }
-    const value = result.call(this);
-    return value;
+    // const value = result.call(this);
+    return result;
   }
 
   public exec_file(file: string): Frame {

@@ -10,11 +10,12 @@ export class FrameExpr extends FrameList {
 
   public in(contexts = [Frame.nil]) {
     contexts.push(this);
-    return this.data.reduce((sum: Frame, item: Frame) => {
+    const result = this.data.reduce((sum: Frame, item: Frame) => {
       const value = item.in(contexts);
       const next_sum = sum.call(value)
       return next_sum;
     }, Frame.nil);
+    return result;
   }
 
   public call(argument: Frame, parameter = Frame.nil) {
