@@ -2,7 +2,6 @@ import * as fs from "fs";
 import * as _ from "lodash";
 import { Context, Frame, FrameArray, FrameExpr, FrameString, NilContext } from "../frames";
 import { EvalPipe } from "./eval-pipe";
-import { GroupPipe } from "./group-pipe";
 import { LexPipe } from "./lex-pipe";
 import { ParsePipe } from "./parse-pipe";
 
