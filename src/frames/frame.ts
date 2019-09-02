@@ -21,9 +21,7 @@ export class Frame extends MetaFrame {
     this.up = Frame.missing;
     this.is = {};
     if (isNil) {
-      this.isVoid = () => {
-        return true;
-      };
+      this.is.void = true;
     }
   }
 
@@ -43,14 +41,14 @@ export class Frame extends MetaFrame {
   }
 
   public called_by(context: Frame, parameter: Frame) {
-    if (this.isVoid()) {
+    if (this.is.void) {
       return context;
     }
     return context.apply(this, parameter);
   }
 
   public call(argument: Frame, parameter = Frame.nil) {
-    if (this.isVoid()) {
+    if (this.is.void) {
       return argument;
     }
     return argument.called_by(this, parameter);
@@ -62,10 +60,6 @@ export class Frame extends MetaFrame {
 
   public asArray(): Array<Frame> {
     return _.castArray(this);
-  }
-
-  public isVoid() {
-    return false;
   }
 
   public isNote() {
