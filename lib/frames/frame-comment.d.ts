@@ -6,7 +6,6 @@ export declare class FrameComment extends FrameQuote {
     static readonly COMMENT_END = "#";
     static readonly COMMENT_EOL = "\n";
     constructor(data: string, meta?: Context);
-    isVoid(): boolean;
     string_prefix(): string;
     string_suffix(): string;
     canInclude(char: string): boolean;

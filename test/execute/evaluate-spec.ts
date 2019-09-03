@@ -27,35 +27,35 @@ describe("evaluate", () => {
   });
 
   it("quines string literal", () => {
-    const input = "“Hello, HC!”";
+    const input = "“Hello, HCLang!”";
     const result = evaluate(input);
     expect(result.toString()).to.equal(`[${input}]`);
   });
 
   it("quines string before spaces", () => {
-    const input = "“Hello, HC!”";
+    const input = "“Hello, HCLang!”";
     const suffix = `${input}  `;
     const result = evaluate(suffix);
     expect(result.toString()).to.equal(`[${input}]`);
   });
 
   it("quines string after spaces", () => {
-    const input = "“Hello, HC!”";
+    const input = "“Hello, HCLang!”";
     const prefix = `  ${input}`;
     const result = evaluate(prefix);
     expect(result.toString()).to.equal(`[${input}]`);
   });
 
   it("joins multiple strings", () => {
-    const input = "“Hello”“, HC!”";
+    const input = "“Hello”“, HCLang!”";
     const result = evaluate(input);
-    expect(result.toString()).to.equal(`[“Hello, HC!”]`);
+    expect(result.toString()).to.equal(`[“Hello, HCLang!”]`);
   });
 
   it("joins around inner space", () => {
-    const input = "“Hello” “, HC!”";
+    const input = "“Hello” “, HCLang!”";
     const result = evaluate(input);
-    expect(result.toString()).to.equal(`[“Hello, HC!”]`);
+    expect(result.toString()).to.equal(`[“Hello, HCLang!”]`);
   });
 
   it("joins multi-line doc-strings into strings", () => {

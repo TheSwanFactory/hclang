@@ -17,7 +17,7 @@ export class Terminal extends Frame {
 
   constructor(protected data: ICurryFunction) {
     super(NilContext);
-    this.callme = true;
+    this.is.immediate = true;
   }
 
   public apply(argument: Frame, parameter: Frame) {

@@ -19,7 +19,7 @@ export class FrameArray extends FrameList {
   }
 
   public apply(argument: Frame, parameter: Frame) {
-    if (!argument.isVoid()) {
+    if (!argument.is.void) {
       this.data.push(argument);
     }
     return this;

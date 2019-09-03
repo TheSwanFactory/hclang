@@ -1,10 +1,9 @@
-import { Context, Frame, FrameArray } from "../frames";
+import { Frame, FrameArray } from "../frames";
 import { LexPipe } from "./lex-pipe";
 export interface IProcessEnv {
     [key: string]: string | undefined;
 }
-export declare class HC extends FrameArray {
-    static make_context(env: IProcessEnv): Context;
+export declare class HCLang extends FrameArray {
     static make_pipe(dest: FrameArray): LexPipe;
     result: FrameArray;
     lexer: LexPipe;

@@ -43,13 +43,11 @@ describe("Parse", () => {
       expect(pipe).to.be.ok;
     });
 
-    it("emits an empty Group on `end`", () => {
-      const result = pipe.call(frame.FrameSymbol.end());
-      expect(result).to.be.instanceOf(frame.FrameGroup);
-      expect(result.toString()).to.equal("()");
+    it("emits empty Group on end", () => {
+      pipe.call(frame.FrameSymbol.end());
       expect(out.size()).to.equal(1);
-      const group = out.at(0);
-      expect(group).to.equal(result);
+      const result = out.at(0);
+      expect(result).to.be.instanceOf(frame.FrameGroup);
     });
 
     it("adds token contents on `call`", () => {
@@ -60,17 +58,18 @@ describe("Parse", () => {
       expect(pipe.length()).to.equal(2);
     });
 
-    it("converts contents to Expr on `next`", () => {
+    it("collects contents on `next`", () => {
       pipe.call(token);
       expect(pipe.length()).to.equal(1);
       pipe.next(false);
       expect(pipe.length()).to.equal(0);
+      const collector = pipe.collector;
+      expect(collector.length).to.equal(1);
     });
 
     it("emits Grouped expr on `finish`", () => {
       pipe.call(token);
-      const result = pipe.call(frame.FrameSymbol.end());
-      expect(result).to.be.instanceOf(frame.FrameGroup);
+      pipe.call(frame.FrameSymbol.end());
       expect(out.size()).to.equal(1);
       const expr = out.at(0);
       expect(expr).to.be.instanceOf(frame.FrameGroup);

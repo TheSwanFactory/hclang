@@ -1,6 +1,8 @@
 import * as _ from "lodash";
 import { Context, MetaFrame, NilContext } from "./meta-frame";
 
+export type Flags = { [key: string]: boolean; };
+
 export class Frame extends MetaFrame {
   public static readonly kOUT = ">>";
   public static readonly kEND = "$$";
@@ -12,15 +14,14 @@ export class Frame extends MetaFrame {
   });
   public static globals = Frame.missing;
 
-  public callme: boolean;
+  public is: Flags;
+
   constructor(meta = NilContext, isNil = false) {
     super(meta);
     this.up = Frame.missing;
-    this.callme = false;
+    this.is = {};
     if (isNil) {
-      this.isVoid = () => {
-        return true;
-      };
+      this.is.void = true;
     }
   }
 
@@ -40,14 +41,14 @@ export class Frame extends MetaFrame {
   }
 
   public called_by(context: Frame, parameter: Frame) {
-    if (this.isVoid()) {
+    if (this.is.void) {
       return context;
     }
     return context.apply(this, parameter);
   }
 
   public call(argument: Frame, parameter = Frame.nil) {
-    if (this.isVoid()) {
+    if (this.is.void) {
       return argument;
     }
     return argument.called_by(this, parameter);
@@ -59,10 +60,6 @@ export class Frame extends MetaFrame {
 
   public asArray(): Array<Frame> {
     return _.castArray(this);
-  }
-
-  public isVoid() {
-    return false;
   }
 
   public isNote() {

@@ -5,9 +5,6 @@ export interface ISourced extends Frame {
 export declare type Context = {
     [key: string]: Frame;
 };
-export declare type Flags = {
-    [key: string]: boolean;
-};
 export declare const NilContext: Context;
 export interface IKeyValuePair extends ReadonlyArray<string | Frame> {
     0: string;
@@ -18,7 +15,6 @@ export declare class MetaFrame {
     static id_count: number;
     up: Frame;
     id: string;
-    is: Flags;
     constructor(meta?: Context, isNil?: boolean);
     get_here(key: string, origin?: MetaFrame): Frame;
     get(key: string, origin?: MetaFrame): Frame;

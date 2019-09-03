@@ -2,9 +2,8 @@ import { Context, Frame, FrameArray, FrameExpr, FrameSymbol } from "../frames";
 import { Terminal } from "./terminals";
 
 export class ParsePipe extends FrameArray {
-
+  public collector: Array<Frame>;
   protected factory: any;
-  protected collector: Array<Frame>;
 
   constructor(out: Frame, factory: any) {
     const meta: Context = {};
@@ -14,14 +13,14 @@ export class ParsePipe extends FrameArray {
     this.factory = factory;
     this.collector = [];
   }
-  public next(header: boolean = false): Frame {
+  public next(statement: boolean = false): Frame {
     if (this.length() === 0) {
       return this;
     }
     const term = this.asArray();
     const expr = new FrameExpr(term);
-    if (header) {
-      expr.is.header = true;
+    if (statement) {
+      expr.is.statement = true;
     }
     this.collector.push(expr);
     this.reset();
@@ -44,8 +43,8 @@ export class ParsePipe extends FrameArray {
   public finish(terminal: any): Frame {
     this.next();
     const out = this.get(Frame.kOUT);
-    const result = this.makeFrame();
-    out.call(result);
+    const value = this.makeFrame();
+    const result = out.call(value);
     out.call(terminal);
     return result;
   }

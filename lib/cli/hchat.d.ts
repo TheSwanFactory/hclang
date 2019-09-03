@@ -1,10 +1,10 @@
 #!/usr/bin/env node
-import { HC } from "../execute/hc-class";
+import { HCLang } from "../execute/hc-lang";
 export declare class HChat {
-    protected hc: HC;
+    protected hc: HCLang;
     static readonly IN = "; ";
     static readonly OUT = "# ";
-    static iterate(hc: HC): boolean;
-    constructor(hc: HC);
+    static iterate(hc: HCLang): boolean;
+    constructor(hc: HCLang);
     call(): boolean;
 }
