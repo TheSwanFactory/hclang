@@ -1,4 +1,4 @@
-import { Context, Frame, FrameArray, FrameExpr, FrameSymbol, IArrayConstructor, NilContext } from "../frames";
+import { Context, Frame, FrameArray, FrameGroup, FrameLazy, FrameSymbol, IArrayConstructor, NilContext } from "../frames";
 import { ICurryFunction } from "../ops";
 import { LexPipe } from "./lex-pipe";
 
@@ -51,8 +51,9 @@ function addGroup(grouper: IArrayConstructor) {
 }
 
 terminals[Frame.kEND] = Terminal.end();
-terminals["\n"] = new Terminal(perform({end: FrameSymbol.for("\n")}));
-terminals["("] = new Terminal(perform({push: FrameExpr}));
-terminals[")"] = new Terminal(perform({pop: FrameExpr}));
-terminals["["] = new Terminal(perform({push: FrameArray}));
-terminals["]"] = new Terminal(perform({pop: FrameArray}));
+addTerminal("\n", "end");
+addTerminal(",", "next");
+addTerminal(";", "next");
+addGroup(FrameArray);
+addGroup(FrameGroup);
+addGroup(FrameLazy);
