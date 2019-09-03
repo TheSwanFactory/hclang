@@ -78,9 +78,11 @@ describe("HCLang", () => {
       const output = hclang.at(1);
       expect(output.toString()).to.equal(frame_value.toString());
     });
-    it.skip("but doesn't return a value if a statement", () => {
-      const input = `${setting};\n${key}`;
+
+    it.skip("but doesn't return a value for a statement", () => {
+      const input = `${setting},\n${key}`;
       hclang.evaluate(input) as frame.FrameArray;
+      console.error("hclang", hclang);
 
       expect(hclang.size()).to.equal(1);
       const output = hclang.at(0);
@@ -89,7 +91,7 @@ describe("HCLang", () => {
 
   });
 
-  describe.skip("groups", () => {
+  describe.skip("grouping", () => {
     it("returns FrameArray for empty []", () => {
       const result = hclang.evaluate("[]");
       expect(result).to.be.instanceof(frame.FrameArray);
