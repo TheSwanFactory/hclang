@@ -53,7 +53,7 @@ function addGroup(grouper: IArrayConstructor) {
 terminals[Frame.kEND] = Terminal.end();
 addTerminal("\n", "end");
 addTerminal(",", "next");
-addTerminal(";", "next");
+addTerminal(";", "semi-next");
 addGroup(FrameArray);
 addGroup(FrameGroup);
 addGroup(FrameLazy);
