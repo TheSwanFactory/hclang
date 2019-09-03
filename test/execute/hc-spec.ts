@@ -79,7 +79,7 @@ describe("HCLang", () => {
       expect(output.toString()).to.equal(frame_value.toString());
     });
 
-    it.skip("but doesn't return a value for a statement", () => {
+    it("but doesn't return a value for a statement", () => {
       const input = `${setting},\n${key}`;
       hclang.evaluate(input) as frame.FrameArray;
       console.error("hclang", hclang);

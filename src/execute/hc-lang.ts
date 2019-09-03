@@ -45,7 +45,7 @@ export class HCLang extends FrameArray {
   public evaluate(input: string): Frame {
     const result = this.lexer.lex_string(input);
     // console.error("evaluate.result", result);
-    if (!result) { // || result.is.statement
+    if (!result || result.is.statement) {
       return Frame.nil;
     }
     return result;
