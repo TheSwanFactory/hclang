@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import * as _ from "lodash";
-import { Context, Frame, FrameArray, FrameExpr, FrameString, NilContext } from "../frames";
+import { Context, Frame, FrameArray, FrameGroup, FrameString, NilContext } from "../frames";
 import { EvalPipe } from "./eval-pipe";
 import { LexPipe } from "./lex-pipe";
 import { ParsePipe } from "./parse-pipe";
@@ -25,8 +25,8 @@ const make_context = (env: IProcessEnv) => {
 export class HCLang extends FrameArray {
 
   public static make_pipe(dest: FrameArray): LexPipe {
-    const evaluator = new EvalPipe(dest); // evaluate lists into results
-    const parser = new ParsePipe(evaluator, FrameExpr); // parse tokens into expressions
+    const evaluator = new EvalPipe(dest); // evaluate groups into results
+    const parser = new ParsePipe(evaluator, FrameGroup); // parse tokens into groups of expressions
     const lexer = new LexPipe(parser); // lex characters into tokens
     return lexer;
   }
@@ -45,7 +45,7 @@ export class HCLang extends FrameArray {
   public evaluate(input: string): Frame {
     const result = this.lexer.lex_string(input);
     // console.error("evaluate.result", result);
-    if (!result) { // || result.is.statement
+    if (!result || result.is.statement) {
       return Frame.nil;
     }
     return result;

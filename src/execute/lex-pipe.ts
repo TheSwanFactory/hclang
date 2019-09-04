@@ -29,9 +29,12 @@ export class LexPipe extends Frame implements IPerformer {
     const parser = this.get(Frame.kOUT) as ParsePipe;
     _.forEach(actions, (value, key) => {
       switch (key) {
+        case "semi-next": {
+          parser.next(true);
+          break;
+        }
         case "next": {
-          const statement = (value === ";") ? true : false;
-          parser.next(statement);
+          parser.next(false);
           break;
         }
         case "end": {

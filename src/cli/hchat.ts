@@ -35,7 +35,9 @@ export class HChat {
       if (debug !== Frame.missing) {
         console.log(output);
       }
-      console.log(HChat.OUT + output);
+      if (output !== Frame.nil) {
+        console.log(HChat.OUT + output);
+      }
     }
     return status;
   }

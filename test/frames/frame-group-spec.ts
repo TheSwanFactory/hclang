@@ -15,9 +15,9 @@ describe("FrameGroup", () => {
     expect(frame_group).to.be.instanceOf(frame.FrameGroup);
   });
 
-  it("with multiple arguments, evaluates to FrameArray", () => {
+  it("with multiple arguments, evaluates to FrameGroup", () => {
     const result = multi_group.in();
-    expect(result).to.be.instanceOf(frame.FrameArray);
+    expect(result).to.be.instanceOf(frame.FrameGroup);
   });
 
   it("with single argument, evaluates that", () => {

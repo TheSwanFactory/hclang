@@ -7,17 +7,28 @@ export class FrameGroup extends FrameList {
     super(data, meta);
   }
 
-  public in(contexts = [Frame.nil]): Frame {
-    if (this.size() > 1) {
-      return this.array_eval(contexts);
-    }
-    const expr = this.data[0];
+  public eval_one(contexts = [Frame.nil]): Frame {
     contexts.push(this);
+    const expr = this.data[0];
     const result = expr.in(contexts);
+
     const symbols = this.meta_pairs();
     symbols.map(([key, value]) => {
       result.set(key, value);
     });
     return result;
+  }
+
+  public in(contexts = [Frame.nil]): Frame {
+    switch (this.size()) {
+      case 0: {
+        return Frame.nil;
+      }
+      case 1: {
+        return this.eval_one(contexts);
+      }
+    }
+    this.data = this.data.map( (f: Frame) => f.in(contexts) );
+    return this;
   }
 }
