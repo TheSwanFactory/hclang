@@ -8,13 +8,18 @@ export class FrameExpr extends FrameList {
     data.forEach((item) => { item.up = this; });
   }
 
-  public in(contexts = [Frame.nil]) {
+  public in(contexts = [Frame.nil]): Frame {
     contexts.push(this);
     const result = this.data.reduce((sum: Frame, item: Frame) => {
       const value = item.in(contexts);
       const next_sum = sum.call(value)
       return next_sum;
     }, Frame.nil);
+
+    if (this.is.statement) {
+      this.data = [result];
+      return this;
+    }
     return result;
   }
 
@@ -23,7 +28,7 @@ export class FrameExpr extends FrameList {
   };
 
   public toStringDataArray(): string[] {
-    const array = super.toStringDataArray();
-    return [array.join(" ")];
+    const array = this.data.map( (obj: Frame) => obj.toString() );
+    return [array.join(" ") + ","];
   }
 };

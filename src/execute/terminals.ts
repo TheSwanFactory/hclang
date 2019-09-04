@@ -1,4 +1,4 @@
-import { Context, Frame, FrameArray, FrameExpr, FrameLazy, FrameSymbol, NilContext } from "../frames";
+import { Context, Frame, FrameArray, FrameGroup, FrameLazy, FrameSymbol, IArrayConstructor, NilContext } from "../frames";
 import { ICurryFunction } from "../ops";
 import { LexPipe } from "./lex-pipe";
 
@@ -36,9 +36,24 @@ const perform = (actions: IAction) => {
   };
 };
 
+const addTerminal = (char: string, key: string) => {
+  const action: IAction = {};
+  action[key] = FrameSymbol.for(char);
+  terminals[char] = new Terminal(perform(action));
+};
+
+function addGroup(grouper: IArrayConstructor) {
+  const sample = new grouper([], NilContext);
+  const open = sample.string_open();
+  const close = sample.string_close();
+  terminals[open] =  new Terminal(perform({push: grouper}));
+  terminals[close] =  new Terminal(perform({pop: grouper}));
+}
+
 terminals[Frame.kEND] = Terminal.end();
-terminals["\n"] = new Terminal(perform({end: FrameSymbol.for("\n")}));
-terminals["("] = new Terminal(perform({push: FrameExpr}));
-terminals[")"] = new Terminal(perform({pop: FrameExpr}));
-terminals["["] = new Terminal(perform({push: FrameArray}));
-terminals["]"] = new Terminal(perform({pop: FrameArray}));
+addTerminal("\n", "end");
+addTerminal(",", "next");
+addTerminal(";", "semi-next");
+addGroup(FrameArray);
+addGroup(FrameGroup);
+addGroup(FrameLazy);
