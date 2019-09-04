@@ -80,13 +80,13 @@ describe("HCLang", () => {
     });
 
     it("but doesn't return a value for a statement", () => {
-      const input = `${setting},\n${key}`;
-      hclang.evaluate(input) as frame.FrameArray;
-      console.error("hclang", hclang);
+      const input = `${setting};`;
+      const result = hclang.evaluate(input);
+      expect(result).to.equal(frame.Frame.nil);
+      // NOTE: Does still store the value in the ouptut array
 
-      expect(hclang.size()).to.equal(1);
-      const output = hclang.at(0);
-      expect(output.toString()).to.equal(frame_value.toString());
+      const evaluated = hclang.evaluate(key);
+      expect(evaluated.toString()).to.equal(frame_value.toString());
     });
 
   });
