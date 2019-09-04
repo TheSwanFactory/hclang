@@ -6,6 +6,19 @@ export interface IArrayConstructor {
     new (data: Array<Frame>, meta: Context): Frame;
 }
 
+const stripLastComma = (result: Array<string>) => {
+  if (!result || result.length < 1) {
+    return result;
+  }
+  const n = result.length - 1;
+  const last = result[n];
+  const n_last = last.length - 1;
+  if (last[n_last] === ",") {
+    result[n] = last.substring(0, n_last);
+  }
+  return result;
+};
+
 export class FrameList extends Frame {
   constructor(protected data: Array<Frame>, meta = NilContext) {
     super(meta);
@@ -15,19 +28,24 @@ export class FrameList extends Frame {
   public string_close() { return Frame.END_EXPR; };
 
   public toStringDataArray() {
-    return this.data.map( (obj: Frame) => obj.toString() );
+    const result = this.data.map( (obj: Frame) => {
+      const sep = (obj.is.statement) ? ";" : ",";
+      return obj.toString() + sep;
+    });
+    return result;
   };
 
   public toStringArray(): string[] {
     const result = this.toStringDataArray();
     if (this.meta_length() > 0) {
       result.push(this.meta_string());
+      return result;
     }
-    return result;
+    return stripLastComma(result);
   }
 
   public toString() {
-    return this.string_open() + this.toStringArray().join(", ") + this.string_close();
+    return this.string_open() + this.toStringArray().join(" ") + this.string_close();
   }
 
   public asArray(): Array<Frame> {

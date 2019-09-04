@@ -1,8 +1,8 @@
 import { Frame } from "./frame";
-import { FrameExpr } from "./frame-expr";
+import { FrameList } from "./frame-list";
 import { Context, NilContext } from "./meta-frame";
 
-export class FrameGroup extends FrameExpr {
+export class FrameGroup extends FrameList {
   constructor(data: Array<Frame>, meta = NilContext) {
     super(data, meta);
   }
@@ -11,9 +11,6 @@ export class FrameGroup extends FrameExpr {
     contexts.push(this);
     const expr = this.data[0];
     const result = expr.in(contexts);
-    if (expr.is.statement || this.is.statement) {
-      result.is.statement = true;
-    }
 
     const symbols = this.meta_pairs();
     symbols.map(([key, value]) => {
