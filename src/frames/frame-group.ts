@@ -8,12 +8,13 @@ export class FrameGroup extends FrameExpr {
   }
 
   public eval_one(contexts = [Frame.nil]): Frame {
-    const expr = this.data[0];
     contexts.push(this);
+    const expr = this.data[0];
     const result = expr.in(contexts);
     if (expr.is.statement) {
       result.is.statement = true;
     }
+
     const symbols = this.meta_pairs();
     symbols.map(([key, value]) => {
       result.set(key, value);
@@ -30,6 +31,7 @@ export class FrameGroup extends FrameExpr {
         return this.eval_one(contexts);
       }
     }
-    return this.array_eval(contexts);
+    this.data = this.data.map( (f: Frame) => f.in(contexts) );
+    return this;
   }
 }
