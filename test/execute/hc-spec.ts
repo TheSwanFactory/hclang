@@ -91,7 +91,7 @@ describe("HCLang", () => {
 
   });
 
-  describe.skip("grouping", () => {
+  describe("grouping", () => {
     it("returns FrameArray for empty []", () => {
       const result = hclang.evaluate("[]");
       expect(result).to.be.instanceof(frame.FrameArray);

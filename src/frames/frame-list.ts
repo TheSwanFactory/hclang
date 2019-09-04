@@ -11,8 +11,8 @@ export class FrameList extends Frame {
     super(meta);
   }
 
-  public string_open() { return "("; };
-  public string_close() { return ")"; };
+  public string_open() { return Frame.BEGIN_EXPR; };
+  public string_close() { return Frame.END_EXPR; };
 
   public toStringDataArray() {
     return this.data.map( (obj: Frame) => obj.toString() );

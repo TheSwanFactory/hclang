@@ -15,6 +15,9 @@ export class FrameExpr extends FrameList {
       const next_sum = sum.call(value)
       return next_sum;
     }, Frame.nil);
+    if (this.is.statement) {
+      result.is.statement = true;
+    }
     return result;
   }
 

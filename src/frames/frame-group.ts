@@ -11,7 +11,7 @@ export class FrameGroup extends FrameExpr {
     contexts.push(this);
     const expr = this.data[0];
     const result = expr.in(contexts);
-    if (expr.is.statement) {
+    if (expr.is.statement || this.is.statement) {
       result.is.statement = true;
     }
 
