@@ -25,33 +25,12 @@ export class FrameBlob extends FrameAtom {
     "64": "s", // 6
   };
 
-  public static bytes_per_char(base: number)  {
-    const bits_per_byte = 8;
-    const bits_per_char = Math.log2(base);
-    const bytes_per_char = bits_per_char / bits_per_byte;
-    return bytes_per_char;
-  }
-
-  public static parse(digits: string, base: number)  {
-    const UINT_MAX_BYTES = 4;
-    const bytes_per_char = FrameBlob.bytes_per_char(base);
-    const n_char = digits.length;
-    const max_char = UINT_MAX_BYTES / bytes_per_char;
-    const excess = n_char - max_char;
-    if (excess > 0) {
-      console.error("FrameBlob.parse.overflow.Uint32.base." + base, digits);
-      digits = digits.substr(excess);
-    }
-    const number = parseInt(digits, base);
-    return new Uint32Array([number]);
-  }
-
   protected static numbers: { [key: string]: FrameBlob; } = {};
-  protected data: ArrayBuffer;
+  protected data: BigInt;
 
   constructor(source: string, protected base: number) {
     super(NilContext);
-    this.data = FrameBlob.parse(source, base);
+    this.data = BigInt(source);
   }
 
   public string_start() {
