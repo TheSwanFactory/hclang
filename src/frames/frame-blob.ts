@@ -17,18 +17,33 @@ export class FrameBlob extends FrameAtom {
     "64": /[0-9a-zA-Z+/=]/,
   };
   public static readonly BLOB_KEY = {
-    "2": "b",
-    "8": "o",
-    "10": "d",
-    "16": "x",
-    "32": "t",
-    "64": "s",
+    "2": "b", // 1
+    "8": "o", // 3
+    "10": "d", // N/A
+    "16": "x", // 4
+    "32": "t", // 5
+    "64": "s", // 6
   };
 
-  public static parse(digits: string, base: number): ArrayBuffer {
+  public static bytes_per_char(base: number)  {
+    const bits_per_byte = 8;
+    const bits_per_char = Math.log2(base);
+    const bytes_per_char = bits_per_char / bits_per_byte;
+    return bytes_per_char;
+  }
+
+  public static parse(digits: string, base: number)  {
+    const UINT_MAX_BYTES = 4;
+    const bytes_per_char = FrameBlob.bytes_per_char(base);
+    const n_char = digits.length;
+    const max_char = UINT_MAX_BYTES / bytes_per_char;
+    const excess = n_char - max_char;
+    if (excess > 0) {
+      console.error("FrameBlob.parse.overflow.Uint32.base." + base, digits);
+      digits = digits.substr(excess);
+    }
     const number = parseInt(digits, base);
-    const n = digits.length / base;
-    return new ArrayBuffer(n);
+    return new Uint32Array([number]);
   }
 
   protected static numbers: { [key: string]: FrameBlob; } = {};
