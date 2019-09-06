@@ -1,5 +1,5 @@
 import * as _ from "lodash";
-import { Context, MetaFrame, NilContext } from "./meta-frame";
+import { MetaFrame, NilContext } from "./meta-frame";
 
 export type Flags = { [key: string]: boolean; };
 
@@ -28,15 +28,15 @@ export class Frame extends MetaFrame {
   public string_open() { return Frame.BEGIN_EXPR; };
   public string_close() { return Frame.END_EXPR; };
 
-  public at(index: number) {
+  public at(_index: number) {
     return Frame.nil;
   }
 
-  public in(contexts = [Frame.nil]): Frame {
+  public in(_contexts = [Frame.nil]): Frame {
     return this;
   }
 
-  public apply(argument: Frame, parameter: Frame) {
+  public apply(argument: Frame, _parameter: Frame) {
     return argument;
   }
 
