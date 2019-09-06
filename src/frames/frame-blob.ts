@@ -10,18 +10,18 @@ export interface IRegexpMap {
 export class FrameBlob extends FrameAtom {
   public static readonly BLOB_START = "0";
   public static readonly BLOB_DIGITS: IRegexpMap = {
-    "2": /[01]/,
-    "8": /[0-7]/,
-    "16": /[0-9a-f]/,
-    "32": /[0-9a-hj-np-z]/,
-    "64": /[0-9a-zA-Z+/=]/,
+    2: /[01]/,
+    8: /[0-7]/,
+    16: /[0-9a-f]/,
+    32: /[0-9a-hj-np-z]/,
+    64: /[0-9a-zA-Z+/=]/,
   };
   public static readonly BLOB_KEY = {
-    "2": "b", // 1
-    "8": "o", // 3
-    "16": "x", // 4
-    "32": "t", // 5
-    "64": "s", // 6
+    2: "b", // 1
+    8: "o", // 3
+    16: "x", // 4
+    32: "t", // 5
+    64: "s", // 6
   };
 
   protected static numbers: { [key: string]: FrameBlob; } = {};
@@ -33,17 +33,6 @@ export class FrameBlob extends FrameAtom {
     this.data = BigInt(source);
     this.length = source.length;
   }
-
-  protected shift_left(base: number, length: number) {
-    const shift = BigInt(base * length);
-    this.data = this.data << shift;
-    return this;
-  };
-
-  protected exalt(left_operand: FrameBlob) {
-    left_operand.shift_left(this.base, this.length);
-    return left_operand;
-  };
 
   public called_by(context: Frame, parameter: Frame): Frame {
     if (context instanceof FrameBlob) {
@@ -63,4 +52,15 @@ export class FrameBlob extends FrameAtom {
   }
 
   protected toData() { return this.data; }
+
+  protected shift_left(base: number, length: number) {
+    const shift = BigInt(base * length);
+    this.data = this.data << shift;
+    return this;
+  };
+
+  protected exalt(left_operand: FrameBlob) {
+    left_operand.shift_left(this.base, this.length);
+    return left_operand;
+  };
 };
