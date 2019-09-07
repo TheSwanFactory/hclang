@@ -4,11 +4,11 @@ import { FrameAtom } from "./frame-atom";
 import { NilContext } from "./meta-frame";
 
 export interface IRegexpMap {
-    [key: number]: RegExp;
+  [key: number]: RegExp;
 }
 
 export interface IPrefixMap {
-    [key: number]: string;
+  [key: number]: string;
 }
 
 export class FrameBlob extends FrameAtom {
@@ -28,14 +28,14 @@ export class FrameBlob extends FrameAtom {
     64: "s", // 6
   };
 
-  public static leading_zeros(source: string) {
-    const digits = source.substr(2);
-    const match = /^0*/.exec(digits);
-    const head = match[0];
-    if (head.length === digits.length) {
-      return head.substr(1); // all zeros, so remove redundancy
+  public static fix_source(source: string) {
+    if (source === "") {
+      return "0" + FrameBlob.BLOB_PREFIX[16] + "0";
     }
-    return head;
+    if (source[0] !== "0") {
+      return "0" + source;
+    }
+    return source;
   }
 
   public static find_base(source: string) {
@@ -45,36 +45,35 @@ export class FrameBlob extends FrameAtom {
     return parseInt(base, 10);
   }
 
-  public static count_bits(source: string, base: number) {
-    const length = source.length - 2;
+  public static count_bits(digits: string, base: number) {
+    const length = digits.length;
     const entropy = Math.log2(base);
     const bits = length * entropy;
     return BigInt(bits);
   }
 
-  public static fix_source(source: string) {
-    if (source === "") {
-      source = "0" + FrameBlob.BLOB_PREFIX[16] + "0";
-    }
-    if (source[0] !== "0") {
-      source = "0" + source;
-    }
-    return source;
+  public static leading_zeros(digits: string) {
+    const match = /^0*/.exec(digits);
+    const head = match[0];
+    return head;
   }
 
-  protected base: number;
   protected data: bigint;
+  protected base: number;
   protected n_bits: bigint;
+  protected is_zero: boolean;
   protected zeros: string;
 
   constructor(source: string) {
     super(NilContext);
     source = FrameBlob.fix_source(source);
-    this.data = BigInt(source);
+    const digits = source.substr(2);
 
+    this.data = BigInt(source);
     this.base = FrameBlob.find_base(source);
-    this.n_bits = FrameBlob.count_bits(source, this.base);
-    this.zeros = FrameBlob.leading_zeros(source);
+    this.n_bits = FrameBlob.count_bits(digits, this.base);
+    this.zeros = FrameBlob.leading_zeros(digits);
+    this.is_zero = (this.zeros.length === digits.length);
   }
 
   public called_by(context: Frame, parameter: Frame): Frame {
@@ -92,8 +91,12 @@ export class FrameBlob extends FrameAtom {
 
   public string_prefix() {
     const sigil = FrameBlob.BLOB_PREFIX[this.base];
-     return "0" + sigil + this.zeros;
-   };
+    let zeros = this.zeros;
+    if (this.is_zero) {
+      zeros = zeros.substr(1);
+    }
+    return "0" + sigil + zeros;
+  };
 
   public canInclude(char: string) {
     const regex = FrameBlob.BLOB_DIGITS[64]; // accept everything, to start
@@ -108,6 +111,7 @@ export class FrameBlob extends FrameAtom {
 
   protected append(right_operand: FrameBlob) {
     const left = right_operand.exalt(this);
+    // if (this.data.toString() === "0n") { this.zeros = this.zeros + "0"; }
     this.data = left + right_operand.data;
     this.n_bits = this.n_bits + right_operand.n_bits;
     return this;

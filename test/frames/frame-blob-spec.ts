@@ -1,6 +1,5 @@
-
 import { expect } from "chai";
-import {} from "mocha";
+import { } from "mocha";
 import { FrameBlob } from "../../src/frames";
 
 describe("FrameBlob", () => {
@@ -11,10 +10,10 @@ describe("FrameBlob", () => {
     expect(FrameBlob).to.be.ok;
   });
 
-  it("captures leading zeros", () => {
-    const two = FrameBlob.leading_zeros("0x00abc");
+  it("captures initial zeros", () => {
+    const two = FrameBlob.leading_zeros("00abc");
     expect(two).to.equal("00");
-    const none = FrameBlob.leading_zeros("0xabc");
+    const none = FrameBlob.leading_zeros("abc");
     expect(none).to.equal("");
   });
 

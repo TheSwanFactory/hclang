@@ -10,13 +10,14 @@ export declare class FrameBlob extends FrameAtom {
     static readonly BLOB_START = "0";
     static readonly BLOB_DIGITS: IRegexpMap;
     static readonly BLOB_PREFIX: IPrefixMap;
-    static leading_zeros(source: string): string;
-    static find_base(source: string): number;
-    static count_bits(source: string, base: number): bigint;
     static fix_source(source: string): string;
-    protected base: number;
+    static find_base(source: string): number;
+    static count_bits(digits: string, base: number): bigint;
+    static leading_zeros(digits: string): string;
     protected data: bigint;
+    protected base: number;
     protected n_bits: bigint;
+    protected is_zero: boolean;
     protected zeros: string;
     constructor(source: string);
     called_by(context: Frame, parameter: Frame): Frame;
