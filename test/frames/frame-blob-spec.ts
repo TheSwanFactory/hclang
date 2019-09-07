@@ -33,6 +33,11 @@ describe("FrameBlob", () => {
     expect(frame_blob.toString()).to.equal(source);
   });
 
+  it("defaults to base64", () => {
+    const empty_blob = new FrameBlob(source, 2);
+    expect(empty_blob.toString()).to.equal(source);
+  });
+
   it("remembers leading zeros", () => {
     const l5 = "0b00001";
     const padded = new FrameBlob(l5, 2);

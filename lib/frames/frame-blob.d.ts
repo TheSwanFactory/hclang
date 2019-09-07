@@ -7,12 +7,13 @@ export interface IPrefixMap {
     [key: number]: string;
 }
 export declare class FrameBlob extends FrameAtom {
-    protected base: number;
     static readonly BLOB_START = "0";
     static readonly BLOB_DIGITS: IRegexpMap;
     static readonly BLOB_PREFIX: IPrefixMap;
     static leading_zeros(source: string): string;
     static find_base(source: string): number;
+    static count_bits(source: string, base: number): bigint;
+    protected base: number;
     protected data: bigint;
     protected n_bits: bigint;
     protected zeros: string;

@@ -42,17 +42,23 @@ export class FrameBlob extends FrameAtom {
     return parseInt(base, 10);
   }
 
+  public static count_bits(source: string, base: number) {
+    const length = source.length - 2;
+    const entropy = Math.log2(base);
+    const bits = length * entropy;
+    return BigInt(bits);
+  }
+
+  protected base: number;
   protected data: bigint;
   protected n_bits: bigint;
   protected zeros: string;
 
-  constructor(source: string, protected base: number) {
+  constructor(source: string, base: number) {
     super(NilContext);
-    const length = source.length - 2;
-    const entropy = Math.log2(base);
-    const bits = length * entropy;
-    this.n_bits = BigInt(bits);
+    this.base = FrameBlob.find_base(source);
     this.data = BigInt(source);
+    this.n_bits = FrameBlob.count_bits(source, this.base);
     this.zeros = FrameBlob.leading_zeros(source);
   }
 
