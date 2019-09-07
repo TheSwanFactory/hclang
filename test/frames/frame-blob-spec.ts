@@ -1,21 +1,27 @@
-
 import { expect } from "chai";
-import {} from "mocha";
+import { } from "mocha";
 import { FrameBlob } from "../../src/frames";
 
 describe("FrameBlob", () => {
   const source = "0b10100101";
-  const frame_blob = new FrameBlob(source, 2);
+  const frame_blob = new FrameBlob(source);
 
   it("is exported", () => {
     expect(FrameBlob).to.be.ok;
   });
 
-  it("captures leading zeros", () => {
-    const two = FrameBlob.leading_zeros("0x00abc");
+  it("captures initial zeros", () => {
+    const two = FrameBlob.leading_zeros("00abc");
     expect(two).to.equal("00");
-    const none = FrameBlob.leading_zeros("0xabc");
+    const none = FrameBlob.leading_zeros("abc");
     expect(none).to.equal("");
+  });
+
+  it("finds base from string", () => {
+    const x = FrameBlob.find_base("0x00abc");
+    expect(x).to.equal(16);
+    const b = FrameBlob.find_base("0b01");
+    expect(b).to.equal(2);
   });
 
   it("is created from a string", () => {
@@ -26,15 +32,31 @@ describe("FrameBlob", () => {
     expect(frame_blob.toString()).to.equal(source);
   });
 
+  it("defaults to hexadecimal", () => {
+    const empty_blob = new FrameBlob("");
+    expect(empty_blob.toString()).to.equal("0x0");
+    expect(empty_blob.canInclude("F")).to.be.true;
+  });
+
+  it("can include anything in base64", () => {
+    expect(frame_blob.canInclude("F")).to.be.true;
+  });
+
   it("remembers leading zeros", () => {
-    const l5 = "0b00001";
-    const padded = new FrameBlob(l5, 2);
-    expect(padded.toString()).to.equal(l5);
+    const fourZeros = "0b00001";
+    const padded = new FrameBlob(fourZeros);
+    expect(padded.toString()).to.equal(fourZeros);
+  });
+
+  it("handles all zeros correctly", () => {
+    const fourZeros = "0b0000";
+    const padded = new FrameBlob(fourZeros);
+    expect(padded.toString()).to.equal(fourZeros);
   });
 
   it("appends blobs on a common base", () => {
     const fifteen = "0xf";
-    const left = new FrameBlob(fifteen, 16);
+    const left = new FrameBlob(fifteen);
     const result = left.call(frame_blob);
     expect(result.toString()).to.equal("0xfa5");
   });
@@ -42,8 +64,8 @@ describe("FrameBlob", () => {
   it("append tracks length properly", () => {
     const fifteen = "0xf";
     const one_l2 = "0b01";
-    const right = new FrameBlob(fifteen, 16);
-    const left = new FrameBlob(one_l2, 2);
+    const right = new FrameBlob(fifteen);
+    const left = new FrameBlob(one_l2);
 
     right.call(frame_blob);
     left.call(right);

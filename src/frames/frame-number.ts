@@ -3,6 +3,7 @@ import { FrameAtom } from "./frame-atom";
 import { Context, NilContext } from "./meta-frame";
 
 export class FrameNumber extends FrameAtom {
+  public static readonly NUMBER_BEGIN = /[1-9]/;
   public static readonly NUMBER_CHAR = /\d/;
 
   public static for(digits: string) {
@@ -19,7 +20,7 @@ export class FrameNumber extends FrameAtom {
   }
 
   public string_start() {
-    return FrameNumber.NUMBER_CHAR.toString();
+    return FrameNumber.NUMBER_BEGIN.toString();
   };
 
   public canInclude(char: string) {

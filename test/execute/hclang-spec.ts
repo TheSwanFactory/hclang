@@ -39,6 +39,26 @@ describe("HCLang", () => {
       const result = hclang.evaluate(input);
       expect(result).to.be.instanceof(frame.FrameNumber);
       expect(result.toString()).to.equal(input);
+
+      const digit = "9";
+      const result2 = hclang.evaluate(digit);
+      expect(result2).to.be.instanceof(frame.FrameNumber);
+      expect(result2.toString()).to.equal(digit);
+    });
+
+    it("joins blobs", () => {
+      const bithex = hclang.evaluate("0b1 0x5");
+      expect(bithex).to.be.instanceof(frame.FrameBlob);
+      expect(bithex.toString()).to.equal("0b10101");
+
+      const dual0 = hclang.evaluate("0b00 0b00");
+      expect(dual0.toString()).to.equal("0b0000");
+
+      const right0 = hclang.evaluate("0b01 0b00");
+      expect(right0.toString()).to.equal("0b0100");
+
+      const left0 = hclang.evaluate("0b00 0b01");
+      expect(left0.toString()).to.equal("0b0001");
     });
   });
 

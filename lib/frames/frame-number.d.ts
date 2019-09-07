@@ -1,6 +1,7 @@
 import { FrameAtom } from "./frame-atom";
 import { Context } from "./meta-frame";
 export declare class FrameNumber extends FrameAtom {
+    static readonly NUMBER_BEGIN: RegExp;
     static readonly NUMBER_CHAR: RegExp;
     static for(digits: string): FrameNumber;
     protected static numbers: {
