@@ -40,6 +40,12 @@ describe("HCLang", () => {
       expect(result).to.be.instanceof(frame.FrameNumber);
       expect(result.toString()).to.equal(input);
     });
+
+    it("joins blobs", () => {
+      const bitx = hclang.evaluate("0b1 0x5");
+      expect(bitx).to.be.instanceof(frame.FrameBlob);
+      expect(bitx.toString()).to.equal("0b10101");
+    });
   });
 
   describe("symbols", () => {
