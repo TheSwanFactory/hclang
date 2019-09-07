@@ -7,6 +7,10 @@ export interface IRegexpMap {
     [key: number]: RegExp;
 }
 
+export interface IPrefixMap {
+    [key: number]: string;
+}
+
 export class FrameBlob extends FrameAtom {
   public static readonly BLOB_START = "0";
   public static readonly BLOB_DIGITS: IRegexpMap = {
@@ -16,7 +20,7 @@ export class FrameBlob extends FrameAtom {
     32: /[0-9a-hj-np-z]/,
     64: /[0-9a-zA-Z+/=]/,
   };
-  public static readonly BLOB_KEY = {
+  public static readonly BLOB_PREFIX: IPrefixMap = {
     2: "b", // 1
     8: "o", // 3
     16: "x", // 4
@@ -46,9 +50,18 @@ export class FrameBlob extends FrameAtom {
     return FrameBlob.BLOB_START;
   };
 
+  public string_prefix() {
+    const sigil = FrameBlob.BLOB_PREFIX[this.base];
+     return "0" + sigil;
+   };
+
   public canInclude(char: string) {
     const regex = FrameBlob.BLOB_DIGITS[this.base];
     return regex.test(char);
+  }
+
+  public toString(): string {
+    return this.string_prefix() + this.toData().toString(this.base) + this.string_suffix();
   }
 
   protected toData() { return this.data; }
