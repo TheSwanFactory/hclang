@@ -17,7 +17,7 @@ export declare class FrameBlob extends FrameAtom {
     protected data: bigint;
     protected n_bits: bigint;
     protected zeros: string;
-    constructor(source: string, base: number);
+    constructor(source: string);
     called_by(context: Frame, parameter: Frame): Frame;
     string_start(): string;
     string_prefix(): string;

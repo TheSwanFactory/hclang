@@ -5,7 +5,7 @@ import { FrameBlob } from "../../src/frames";
 
 describe("FrameBlob", () => {
   const source = "0b10100101";
-  const frame_blob = new FrameBlob(source, 2);
+  const frame_blob = new FrameBlob(source);
 
   it("is exported", () => {
     expect(FrameBlob).to.be.ok;
@@ -34,19 +34,25 @@ describe("FrameBlob", () => {
   });
 
   it("defaults to base64", () => {
-    const empty_blob = new FrameBlob(source, 2);
+    const empty_blob = new FrameBlob(source);
     expect(empty_blob.toString()).to.equal(source);
   });
 
   it("remembers leading zeros", () => {
-    const l5 = "0b00001";
-    const padded = new FrameBlob(l5, 2);
-    expect(padded.toString()).to.equal(l5);
+    const fourZeros = "0b00001";
+    const padded = new FrameBlob(fourZeros);
+    expect(padded.toString()).to.equal(fourZeros);
+  });
+
+  it("handles all zeros correctly", () => {
+    const fourZeros = "0b0000";
+    const padded = new FrameBlob(fourZeros);
+    expect(padded.toString()).to.equal(fourZeros);
   });
 
   it("appends blobs on a common base", () => {
     const fifteen = "0xf";
-    const left = new FrameBlob(fifteen, 16);
+    const left = new FrameBlob(fifteen);
     const result = left.call(frame_blob);
     expect(result.toString()).to.equal("0xfa5");
   });
@@ -54,8 +60,8 @@ describe("FrameBlob", () => {
   it("append tracks length properly", () => {
     const fifteen = "0xf";
     const one_l2 = "0b01";
-    const right = new FrameBlob(fifteen, 16);
-    const left = new FrameBlob(one_l2, 2);
+    const right = new FrameBlob(fifteen);
+    const left = new FrameBlob(one_l2);
 
     right.call(frame_blob);
     left.call(right);

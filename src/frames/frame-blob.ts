@@ -32,6 +32,9 @@ export class FrameBlob extends FrameAtom {
     const digits = source.substr(2);
     const match = /^0*/.exec(digits);
     const head = match[0];
+    if (head.length === digits.length) {
+      return head.substr(1); // all zeros, so remove redundancy
+    }
     return head;
   }
 
@@ -54,7 +57,7 @@ export class FrameBlob extends FrameAtom {
   protected n_bits: bigint;
   protected zeros: string;
 
-  constructor(source: string, base: number) {
+  constructor(source: string) {
     super(NilContext);
     this.base = FrameBlob.find_base(source);
     this.data = BigInt(source);
