@@ -33,9 +33,10 @@ describe("FrameBlob", () => {
     expect(frame_blob.toString()).to.equal(source);
   });
 
-  it("defaults to base64", () => {
-    const empty_blob = new FrameBlob(source);
-    expect(empty_blob.toString()).to.equal(source);
+  it("defaults to hexadecimal", () => {
+    const empty_blob = new FrameBlob("");
+    expect(empty_blob.toString()).to.equal("0x0");
+    expect(empty_blob.canInclude("F")).to.be.true;
   });
 
   it("remembers leading zeros", () => {

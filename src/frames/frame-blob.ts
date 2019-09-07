@@ -16,7 +16,7 @@ export class FrameBlob extends FrameAtom {
   public static readonly BLOB_DIGITS: IRegexpMap = {
     2: /[01]/,
     8: /[0-7]/,
-    16: /[0-9a-f]/,
+    16: /[0-9a-fA-F]/,
     32: /[0-9a-hj-np-z]/,
     64: /[0-9a-zA-Z+/=]/,
   };
@@ -59,6 +59,9 @@ export class FrameBlob extends FrameAtom {
 
   constructor(source: string) {
     super(NilContext);
+    if (source === "") {
+      source = "0" + FrameBlob.BLOB_PREFIX[16] + "0";
+    }
     this.base = FrameBlob.find_base(source);
     this.data = BigInt(source);
     this.n_bits = FrameBlob.count_bits(source, this.base);
