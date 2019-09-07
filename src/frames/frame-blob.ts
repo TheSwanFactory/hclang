@@ -30,18 +30,23 @@ export class FrameBlob extends FrameAtom {
 
   protected static numbers: { [key: string]: FrameBlob; } = {};
   protected data: bigint;
-  protected length: number;
+  protected n_bits: bigint;
+  protected zeros: string;
 
   constructor(source: string, protected base: number) {
     super(NilContext);
+    const length = source.length - 2;
+    const entropy = Math.log2(base);
+    const bits = length * entropy;
+    this.n_bits = BigInt(bits);
     this.data = BigInt(source);
-    this.length = source.length;
   }
 
   public called_by(context: Frame, parameter: Frame): Frame {
     if (context instanceof FrameBlob) {
       const left_operand = context as FrameBlob;
-      return this.exalt(left_operand);
+      const result = left_operand.append(this);
+      return result;
     }
     return super.called_by(context, parameter);
   }
@@ -66,14 +71,21 @@ export class FrameBlob extends FrameAtom {
 
   protected toData() { return this.data; }
 
-  protected shift_left(base: number, length: number) {
-    const shift = BigInt(base * length);
-    this.data = this.data << shift;
+  protected append(right_operand: FrameBlob) {
+    console.error("append.this", this, "right_operand", right_operand);
+    const left = right_operand.exalt(this);
+    this.data = left + right_operand.data;
+    this.n_bits = this.n_bits + right_operand.n_bits;
     return this;
   };
 
   protected exalt(left_operand: FrameBlob) {
-    left_operand.shift_left(this.base, this.length);
-    return left_operand;
+    const result = left_operand.shift_left(this.n_bits);
+    return result;
+  };
+
+  protected shift_left(n_bits: bigint) {
+    const bigint_result = this.data << n_bits;
+    return bigint_result;
   };
 };
