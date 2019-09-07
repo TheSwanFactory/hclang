@@ -35,7 +35,6 @@ export class Lex extends Frame implements ISourced {
 
   public call(argument: Frame, parameter = Frame.nil): Frame {
     const char = argument.toString();
-    // debugger;
     if (this.isEnd(char) && Lex.isTerminal(char)) {
       return this.finish(argument, true);
     }
@@ -82,6 +81,9 @@ export class Lex extends Frame implements ISourced {
   }
 
   protected makeFrame() {
+    if (this.body === "") {
+      this.body = this.source;
+    }
     const frame = new this.factory(this.body);
     return new Token(frame);
   }

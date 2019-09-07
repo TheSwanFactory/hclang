@@ -39,6 +39,11 @@ describe("HCLang", () => {
       const result = hclang.evaluate(input);
       expect(result).to.be.instanceof(frame.FrameNumber);
       expect(result.toString()).to.equal(input);
+
+      const digit = "9";
+      const result2 = hclang.evaluate(digit);
+      expect(result2).to.be.instanceof(frame.FrameNumber);
+      expect(result2.toString()).to.equal(digit);
     });
 
     it("joins blobs", () => {
