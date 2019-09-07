@@ -12,13 +12,11 @@ export declare class FrameBlob extends FrameAtom {
     static readonly BLOB_PREFIX: IPrefixMap;
     static fix_source(source: string): string;
     static find_base(source: string): number;
-    static count_bits(digits: string, base: number): bigint;
+    static count_bits(source: string, base: number): bigint;
     static leading_zeros(digits: string): string;
     protected data: bigint;
     protected base: number;
     protected n_bits: bigint;
-    protected is_zero: boolean;
-    protected zeros: string;
     constructor(source: string);
     called_by(context: Frame, parameter: Frame): Frame;
     string_start(): string;
@@ -29,4 +27,5 @@ export declare class FrameBlob extends FrameAtom {
     protected append(right_operand: FrameBlob): this;
     protected exalt(left_operand: FrameBlob): bigint;
     protected shift_left(n_bits: bigint): bigint;
+    protected n_chars(): number;
 }

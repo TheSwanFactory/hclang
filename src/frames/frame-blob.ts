@@ -45,7 +45,8 @@ export class FrameBlob extends FrameAtom {
     return parseInt(base, 10);
   }
 
-  public static count_bits(digits: string, base: number) {
+  public static count_bits(source: string, base: number) {
+    const digits = source.substr(2);
     const length = digits.length;
     const entropy = Math.log2(base);
     const bits = length * entropy;
@@ -61,19 +62,14 @@ export class FrameBlob extends FrameAtom {
   protected data: bigint;
   protected base: number;
   protected n_bits: bigint;
-  protected is_zero: boolean;
-  protected zeros: string;
 
   constructor(source: string) {
     super(NilContext);
     source = FrameBlob.fix_source(source);
-    const digits = source.substr(2);
 
     this.data = BigInt(source);
     this.base = FrameBlob.find_base(source);
-    this.n_bits = FrameBlob.count_bits(digits, this.base);
-    this.zeros = FrameBlob.leading_zeros(digits);
-    this.is_zero = (this.zeros.length === digits.length);
+    this.n_bits = FrameBlob.count_bits(source, this.base);
   }
 
   public called_by(context: Frame, parameter: Frame): Frame {
@@ -91,11 +87,7 @@ export class FrameBlob extends FrameAtom {
 
   public string_prefix() {
     const sigil = FrameBlob.BLOB_PREFIX[this.base];
-    let zeros = this.zeros;
-    if (this.is_zero) {
-      zeros = zeros.substr(1);
-    }
-    return "0" + sigil + zeros;
+    return "0" + sigil;
   };
 
   public canInclude(char: string) {
@@ -104,16 +96,18 @@ export class FrameBlob extends FrameAtom {
   }
 
   public toString(): string {
-    return this.string_prefix() + this.toData().toString(this.base) + this.string_suffix();
+    const dataString = this.toData().toString(this.base);
+    const pad = this.n_chars() - dataString.length;
+    const digits = "0".repeat(pad) + dataString;
+    return this.string_prefix() + digits + this.string_suffix();
   }
 
   protected toData() { return this.data; }
 
   protected append(right_operand: FrameBlob) {
     const left = right_operand.exalt(this);
-    // if (this.data.toString() === "0n") { this.zeros = this.zeros + "0"; }
     this.data = left + right_operand.data;
-    this.n_bits = this.n_bits + right_operand.n_bits;
+    this.n_bits += right_operand.n_bits;
     return this;
   };
 
@@ -125,5 +119,12 @@ export class FrameBlob extends FrameAtom {
   protected shift_left(n_bits: bigint) {
     const bigint_result = this.data << n_bits;
     return bigint_result;
+  };
+
+  protected n_chars() {
+    const entropy = Math.log2(this.base);
+    const bits = Number(this.n_bits);
+    const chars = bits / entropy;
+    return Math.ceil(chars);
   };
 };
