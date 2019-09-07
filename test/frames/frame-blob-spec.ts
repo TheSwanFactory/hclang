@@ -39,6 +39,10 @@ describe("FrameBlob", () => {
     expect(empty_blob.canInclude("F")).to.be.true;
   });
 
+  it("can include anything in base64", () => {
+    expect(frame_blob.canInclude("F")).to.be.true;
+  });
+
   it("remembers leading zeros", () => {
     const fourZeros = "0b00001";
     const padded = new FrameBlob(fourZeros);

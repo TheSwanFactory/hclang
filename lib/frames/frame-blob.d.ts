@@ -13,6 +13,7 @@ export declare class FrameBlob extends FrameAtom {
     static leading_zeros(source: string): string;
     static find_base(source: string): number;
     static count_bits(source: string, base: number): bigint;
+    static fix_source(source: string): string;
     protected base: number;
     protected data: bigint;
     protected n_bits: bigint;

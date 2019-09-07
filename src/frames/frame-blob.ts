@@ -52,6 +52,16 @@ export class FrameBlob extends FrameAtom {
     return BigInt(bits);
   }
 
+  public static fix_source(source: string) {
+    if (source === "") {
+      source = "0" + FrameBlob.BLOB_PREFIX[16] + "0";
+    }
+    if (source[0] !== "0") {
+      source = "0" + source;
+    }
+    return source;
+  }
+
   protected base: number;
   protected data: bigint;
   protected n_bits: bigint;
@@ -59,11 +69,10 @@ export class FrameBlob extends FrameAtom {
 
   constructor(source: string) {
     super(NilContext);
-    if (source === "") {
-      source = "0" + FrameBlob.BLOB_PREFIX[16] + "0";
-    }
-    this.base = FrameBlob.find_base(source);
+    source = FrameBlob.fix_source(source);
     this.data = BigInt(source);
+
+    this.base = FrameBlob.find_base(source);
     this.n_bits = FrameBlob.count_bits(source, this.base);
     this.zeros = FrameBlob.leading_zeros(source);
   }
@@ -87,7 +96,7 @@ export class FrameBlob extends FrameAtom {
    };
 
   public canInclude(char: string) {
-    const regex = FrameBlob.BLOB_DIGITS[this.base];
+    const regex = FrameBlob.BLOB_DIGITS[64]; // accept everything, to start
     return regex.test(char);
   }
 
