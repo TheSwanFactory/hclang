@@ -12,9 +12,7 @@ export declare class FrameBlob extends FrameAtom {
     static readonly BLOB_DIGITS: IRegexpMap;
     static readonly BLOB_PREFIX: IPrefixMap;
     static leading_zeros(source: string): string;
-    protected static numbers: {
-        [key: string]: FrameBlob;
-    };
+    static find_base(source: string): number;
     protected data: bigint;
     protected n_bits: bigint;
     protected zeros: string;

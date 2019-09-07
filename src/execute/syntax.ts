@@ -9,6 +9,7 @@ export const syntax: frame.Context = _.clone(terminals);
 const atomClasses: Array<any> = [
   FrameSpace,
   // frame.FrameArg,
+  // frame.FrameBlob,
   frame.FrameComment,
   frame.FrameDoc,
   frame.FrameName,

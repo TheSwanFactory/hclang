@@ -18,6 +18,13 @@ describe("FrameBlob", () => {
     expect(none).to.equal("");
   });
 
+  it("finds base from string", () => {
+    const x = FrameBlob.find_base("0x00abc");
+    expect(x).to.equal(16);
+    const b = FrameBlob.find_base("0b01");
+    expect(b).to.equal(2);
+  });
+
   it("is created from a string", () => {
     expect(frame_blob).to.be.instanceOf(FrameBlob);
   });

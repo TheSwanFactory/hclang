@@ -35,7 +35,13 @@ export class FrameBlob extends FrameAtom {
     return head;
   }
 
-  protected static numbers: { [key: string]: FrameBlob; } = {};
+  public static find_base(source: string) {
+    const prefix = source.substr(1, 1);
+    const keys = Object.keys(FrameBlob.BLOB_PREFIX);
+    const base = keys.find((k) => FrameBlob.BLOB_PREFIX[parseInt(k, 10)] === prefix);
+    return parseInt(base, 10);
+  }
+
   protected data: bigint;
   protected n_bits: bigint;
   protected zeros: string;
