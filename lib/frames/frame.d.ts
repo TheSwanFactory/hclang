@@ -1,4 +1,4 @@
-import { Context, MetaFrame } from "./meta-frame";
+import { MetaFrame } from "./meta-frame";
 export declare type Flags = {
     [key: string]: boolean;
 };
@@ -11,12 +11,12 @@ export declare class Frame extends MetaFrame {
     static readonly missing: Frame;
     static globals: Frame;
     is: Flags;
-    constructor(meta?: Context, isNil?: boolean);
+    constructor(meta?: import("./meta-frame").Context, isNil?: boolean);
     string_open(): string;
     string_close(): string;
-    at(index: number): Frame;
-    in(contexts?: Frame[]): Frame;
-    apply(argument: Frame, parameter: Frame): Frame;
+    at(_index: number): Frame;
+    in(_contexts?: Frame[]): Frame;
+    apply(argument: Frame, _parameter: Frame): Frame;
     called_by(context: Frame, parameter: Frame): Frame;
     call(argument: Frame, parameter?: Frame): Frame;
     toString(): string;

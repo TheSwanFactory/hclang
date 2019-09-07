@@ -35,7 +35,8 @@ export class ParsePipe extends FrameArray {
   public pop(factory: any): Frame {
     const parent = this.get(ParsePipe.kOUT) as ParsePipe;
     if (parent.factory !== factory) {
-      console.error("mismatched-brackets", parent.factory, factory);
+      const msg = ["open:", parent.factory.name, " close:", factory.name];
+      console.error("pop.mismatched-brackets " + msg.join(""));
     }
     this.finish(Frame.nil);
     return parent;
