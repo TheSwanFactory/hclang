@@ -80,7 +80,6 @@ export class FrameBlob extends FrameAtom {
   protected toData() { return this.data; }
 
   protected append(right_operand: FrameBlob) {
-    console.error("append.this", this, "right_operand", right_operand);
     const left = right_operand.exalt(this);
     this.data = left + right_operand.data;
     this.n_bits = this.n_bits + right_operand.n_bits;
