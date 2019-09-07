@@ -41,6 +41,7 @@
   "dependencies": {
     "@types/prompt-sync": "^4.1.0",
     "@types/prompt-sync-history": "^1.0.1",
+    "big-integer": "^1.6.44",
     "chalk": "^2.4.2",
     "getopts": "^2.2.5",
     "inquirer": "^7.0.0",
