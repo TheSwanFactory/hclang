@@ -14,6 +14,8 @@ describe("FrameBlob", () => {
   it("captures leading zeros", () => {
     const two = FrameBlob.leading_zeros("0x00abc");
     expect(two).to.equal("00");
+    const none = FrameBlob.leading_zeros("0xabc");
+    expect(none).to.equal("");
   });
 
   it("is created from a string", () => {
@@ -22,6 +24,12 @@ describe("FrameBlob", () => {
 
   it("stringifies back to that string", () => {
     expect(frame_blob.toString()).to.equal(source);
+  });
+
+  it("remembers leading zeros", () => {
+    const l5 = "0b00001";
+    const padded = new FrameBlob(l5, 2);
+    expect(padded.toString()).to.equal(l5);
   });
 
   it("appends blobs on a common base", () => {

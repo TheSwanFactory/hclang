@@ -28,6 +28,13 @@ export class FrameBlob extends FrameAtom {
     64: "s", // 6
   };
 
+  public static leading_zeros(source: string) {
+    const digits = source.substr(2);
+    const match = /^0*/.exec(digits);
+    const head = match[0];
+    return head;
+  }
+
   protected static numbers: { [key: string]: FrameBlob; } = {};
   protected data: bigint;
   protected n_bits: bigint;
@@ -40,6 +47,7 @@ export class FrameBlob extends FrameAtom {
     const bits = length * entropy;
     this.n_bits = BigInt(bits);
     this.data = BigInt(source);
+    this.zeros = FrameBlob.leading_zeros(source);
   }
 
   public called_by(context: Frame, parameter: Frame): Frame {
@@ -57,7 +65,7 @@ export class FrameBlob extends FrameAtom {
 
   public string_prefix() {
     const sigil = FrameBlob.BLOB_PREFIX[this.base];
-     return "0" + sigil;
+     return "0" + sigil + this.zeros;
    };
 
   public canInclude(char: string) {
