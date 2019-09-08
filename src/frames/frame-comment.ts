@@ -6,6 +6,7 @@ export class FrameComment extends FrameQuote {
   public static readonly COMMENT_BEGIN = "#";
   public static readonly COMMENT_END = "#";
   public static readonly COMMENT_EOL = "\n";
+  public static readonly COMMENT_END_REGEX = /[#\n]/;
 
   constructor(protected data: string, meta: Context = NilContext) {
     super(meta);
@@ -17,15 +18,7 @@ export class FrameComment extends FrameQuote {
   public string_suffix() { return FrameComment.COMMENT_END; };
 
   public canInclude(char: string) {
-    switch (char) {
-      case FrameComment.COMMENT_END: {
-        return false;
-      }
-      case FrameComment.COMMENT_EOL: {
-        return false;
-      }
-    }
-    return true;
+    return !FrameComment.COMMENT_END_REGEX.test(char);
   }
 
   protected toData() { return this.data; }
