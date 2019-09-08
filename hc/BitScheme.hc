@@ -1,3 +1,5 @@
+#!/usr/bin/env hc #
+```
 = BitScheme Tutorial/Specification
 Draft 0.2, 2019-09-07
 
@@ -5,7 +7,7 @@ Declaratively parse, manipulate and generate binary data
 
 BitScheme is a lightweight data format for describing arbitrary sequences of binary data ("bitstreams", like those used for programming FPGAs).footnote:[https://en.wikipedia.org/wiki/Field-programmable_gate_array[Field-Programmable Gate Array]] It also doubles as a scripting language for manipulating those bitstreams -- what is sometimes called a DREADFUL.footnote:[Declaratively Rendered Executable Abstract Data Format Un-Language]
 
-BitScheme files use `hc` (as un https://github.com/TheSwanFactory/hclang[Homoiconic C]) as the file extension, and must contain that string in an opening `!#` shebang.footnote:[https://en.wikipedia.org/wiki/Shebang_(Unix)[shebang], aka hashbang]
+BitScheme files use `hc` (for https://github.com/TheSwanFactory/hclang[Homoiconic C]) as the file extension, and must contain that string in an opening `!#` shebang.footnote:[https://en.wikipedia.org/wiki/Shebang_(Unix)[shebang], aka hashbang]
 ```
 #!/use/bin/env hc
 ```
@@ -94,11 +96,13 @@ Elements are aggregated using pairs of Delimiters:
 # [1, 2, 3]
 ; (0b1 0b0) # () Unboxed
 # 0b10
-; .AppendZero {_ 0b0}; # {} Deferred
-; AppendZero(0b1)
+; .Closure {0b1 0b0}; # {} Deferred
+; Closure()
 # 0b10
 ; .Bit <0b0, 0b1>; # <> Schema (i.e. type; see below)
 ```
+
+Strictly speaking, only the Deferred Delimeters `{}` are part of the syntax, in the sense of affecting how the DREADFUL is parsed. The others are actually constructors invoking objects defined in the standard library.
 
 ==== Properties
 
@@ -114,14 +118,10 @@ Operators are actually defined as properties. However, since Operators must alwa
 ```
 ; .false () # _nil_, the empty expression
 ; .true <> # _all_, the inclusive schema
-; true .? `Yes' .: `No' # Ternary
+; true .? `Yes' .: `No'
 # `Yes'
 ; false ? `Yes' : `No'
 # `No'
-; [0b101, 0b010] & AppendZero # Map
-# [0b1010, 0b0100]
-; [0b101, 0b010] | AppendZero # Reduce
-# 0b10100100
 ```
 
 == Schemas
@@ -248,9 +248,8 @@ Constructors allow us to natively write assembly as an internal DSL.footnote:[ht
 ; .r7 0b00111;
 ; .v11 (7 0b0) 0b1011; # 11
 ; .add_11_to_r10_into_r7 addi[v11, r10, r7]
-# 0b0000000101101010000001110010011
+# 0b00000001011 01010 000 00111 0010011 # spaces added for clarity
 ```
-That is, "0b00000001011 01010 000 00111 0010011" with spaces added for clarity.
 
 === Usage
 
@@ -269,7 +268,7 @@ We can also apply this Schema to a 32-bit value to parse it into its components:
 ; .a11r10r7-parsed (RISC-V add_11_to_r10_into_r7)
 # (.imm11 0b00000001011; .rs1 0b01010; .func3 0b000; .rd 0b00111; .opcode 0b0010011;)
 ```
-More sophisticated parsers can of course render binary values as symbols for easier readability.
+More sophisticated parsers can of course symbolicate the output for better readability.
 
 ==== Generation
 

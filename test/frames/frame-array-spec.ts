@@ -35,7 +35,7 @@ describe("FrameArray", () => {
     expect(array.toString()).to.equal("[“a”, “b”]");
   });
 
-  it("appends only non-nil", () => {
+  it("appends when non-nil", () => {
     const array = new FrameArray([]);
     array.call(a_frame);
     array.call(Frame.nil);
