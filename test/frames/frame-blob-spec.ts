@@ -10,13 +10,6 @@ describe("FrameBlob", () => {
     expect(FrameBlob).to.be.ok;
   });
 
-  it("captures initial zeros", () => {
-    const two = FrameBlob.leading_zeros("00abc");
-    expect(two).to.equal("00");
-    const none = FrameBlob.leading_zeros("abc");
-    expect(none).to.equal("");
-  });
-
   it("finds base from string", () => {
     const x = FrameBlob.find_base("0x00abc");
     expect(x).to.equal(16);

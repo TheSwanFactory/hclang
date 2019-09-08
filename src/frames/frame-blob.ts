@@ -1,4 +1,4 @@
-import * as _ from "lodash";
+import * as BI from "big-integer";
 import { Frame } from "./frame";
 import { FrameAtom } from "./frame-atom";
 import { NilContext } from "./meta-frame";
@@ -50,24 +50,18 @@ export class FrameBlob extends FrameAtom {
     const length = digits.length;
     const entropy = Math.log2(base);
     const bits = length * entropy;
-    return BigInt(bits);
+    return BI(bits);
   }
 
-  public static leading_zeros(digits: string) {
-    const match = /^0*/.exec(digits);
-    const head = match[0];
-    return head;
-  }
-
-  protected data: bigint;
+  protected data: BI.BigInteger;
   protected base: number;
-  protected n_bits: bigint;
+  protected n_bits: BI.BigInteger;
 
   constructor(source: string) {
     super(NilContext);
     source = FrameBlob.fix_source(source);
 
-    this.data = BigInt(source);
+    this.data = BI(source);
     this.base = FrameBlob.find_base(source);
     this.n_bits = FrameBlob.count_bits(source, this.base);
   }
@@ -106,8 +100,8 @@ export class FrameBlob extends FrameAtom {
 
   protected append(right_operand: FrameBlob) {
     const left = right_operand.exalt(this);
-    this.data = left + right_operand.data;
-    this.n_bits += right_operand.n_bits;
+    this.data = left.add(right_operand.data);
+    this.n_bits = this.n_bits.add(right_operand.n_bits);
     return this;
   };
 
@@ -116,8 +110,8 @@ export class FrameBlob extends FrameAtom {
     return result;
   };
 
-  protected shift_left(n_bits: bigint) {
-    const bigint_result = this.data << n_bits;
+  protected shift_left(n_bits: BI.BigInteger) {
+    const bigint_result = this.data.shiftLeft(n_bits);
     return bigint_result;
   };
 
