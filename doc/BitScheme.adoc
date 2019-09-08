@@ -27,8 +27,8 @@ The simplest Identifiers are Literals, e.g.:
 # 0b101
 ; 0xDEADBEEF # Hexadecimal
 # 0xDEADBEEF
-; `Hello' # String (quoted, utf-8)
-# `Hello'
+; `Hello` # String (quoted, utf-8)
+# `Hello`
 ; \5\Hello # NetString (sized in bytes)
 # \5\Hello
 ```
@@ -71,6 +71,9 @@ Symbols with only non-alphanumeric characters (e.g., ``+``) are called Operators
 - `&` map
 - `|` reduce
 
+The *&* and *|* operators, by default, operate over enumerable elements. Use *&&* and *||* to iterate over properties instead.
+
+See *Operator Syntax* below for more details.
 
 === Grouping
 ==== Terminals
@@ -128,8 +131,8 @@ Schemas, a novel feature of `bitscheme`, can be thought of as a cross between ty
 The three simple Schemas resemble C types, though they actually define an interface rather than require a specific representation:
 ```
 ; .enum123 <1,2,3>; # Enumerated list of valid values
-; .Byte <8.Bit>; # Fixed-length sequences
-; .BitStream <[.Bit]>; # Variable-length Sequence of a specific type
+; .Byte <8@Bit>; # Fixed-length sequences
+; .BitStream <[@Bit]>; # Variable-length Sequence of a specific type
 ```
 
 === Type Constraints
@@ -152,7 +155,7 @@ Schemas can also act directly to extract or bind values from compound sequences:
 ```
 ; <.x, .z> [.x 1; .y 2; .z 3;] # Selector
 # [1, 3]
-; .BitSplitter3 <[.head <3.Bit>; .tail <[.Bit]>;]>;
+; .BitSplitter3 <[.head <3@Bit>; .tail <[@Bit]>;]>;
 ; BitSplitter3 0b10101100
 # [.head 0b101; .tail 0b01100;]
 
@@ -175,7 +178,7 @@ The sequence can then be evaluated by folding it into an expression:
 === Deferred Captures
 To reuse the results of previous captures, enclose the referencing capture in brackets to defer evaluation:
 ```
-; .NetString <[.n <4.Bit>; .string {<n.Byte>};]>;
+; .NetString <[.n <4@Bit>; .string {<n@Byte>};]>;
 ; NetString 0x548656c6c6f666666666 # 5:Hello + sixes
 # [.n 0x5; .string 0x48656c6c6f;] # Hello
 
@@ -189,7 +192,7 @@ To see how this works in practice, we will construct Schema for the six https://
 We start by defining captures for the various sub-fields used by RISC V instructions (as used by RV 32I):
 
 ```
-; .OP <7.Bit> (
+; .OP <7@Bit> (
 # # .Register <0b0110011>;
 # # .Load 0b0000011;
 # # .Math 0b0010011;
@@ -199,11 +202,11 @@ We start by defining captures for the various sub-fields used by RISC V instruct
 # # .Branch <0b1100011>;
 # # .Jump <0b1101111>;
 # # );
-; .FUNCT3 (.funct3 <3.Bit>;);
-; .FUNCT7 (.funct7 <7.Bit>;);
-; .RD (.rd <6.Bit>);
-; .RS1 (.rs1 <5.Bit>);
-; .RS2 (.rs2 <5.Bit>);
+; .FUNCT3 (.funct3 <3@Bit>;);
+; .FUNCT7 (.funct7 <7@Bit>;);
+; .RD (.rd <6@Bit>);
+; .RS1 (.rs1 <5@Bit>);
+; .RS2 (.rs2 <5@Bit>);
 ; .SOURCE (RS2, RS1, FUNCT3);
 ```
 
@@ -212,11 +215,11 @@ These Identifiers allow us to define our top-level Schema very concisely:
 
 ```
 ; .Register <[FUNCT7, SOURCE, RD, OP.Register]>;
-; .Immediate <[.imm11-0 <12.Bit>, RS1, FUNCT3, RD, .opcode OP.Immediate]>;
-; .UpperImmediate <[.imm31-12 <20.Bit>, RD, .opcode OP.Upper]>;
-; .Store <[.imm11-5 <7.Bit>, SOURCE, .imm4-0 <5.Bit>, .opcode OP.Store]>;
-; .Branch <[.b12 <Bit>,.imm10-5 <6.Bit>, SOURCE, .imm4-1 <4.Bit>,.b11 <Bit>, .opcode OP.Branch]>;
-; .Jump <[.b20 <Bit>,.imm10-1 <10.Bit>, .b11 <Bit>, .imm19-12 <8.Bit>, RD, .opcode OP.Jump]>;
+; .Immediate <[.imm11-0 <12@Bit>, RS1, FUNCT3, RD, .opcode OP.Immediate]>;
+; .UpperImmediate <[.imm31-12 <20@Bit>, RD, .opcode OP.Upper]>;
+; .Store <[.imm11-5 <7@Bit>, SOURCE, .imm4-0 <5@Bit>, .opcode OP.Store]>;
+; .Branch <[.b12 <Bit>,.imm10-5 <6@Bit>, SOURCE, .imm4-1 <4@Bit>,.b11 <Bit>, .opcode OP.Branch]>;
+; .Jump <[.b20 <Bit>,.imm10-1 <10@Bit>, .b11 <Bit>, .imm19-12 <8@Bit>, RD, .opcode OP.Jump]>;
 ; .RISC-V <Register, Immediate, UpperImmediate, Store, Branch, Jump>;
 
 ```
@@ -269,7 +272,7 @@ More sophisticated parsers can of course symbolicate the output for better reada
 
 Similarly, we can map the Schema into a dictionary to generate a sequence, and thus a value:
 ```
-; .a11r10r7-sequence (RISC-V & a11r10r7-parsed)
+; .a11r10r7-sequence (RISC-V && a11r10r7-parsed)
 # [0b00000001011, 0b01010, 0b000, 0b00111, 0b0010011]
 ; a11r10r7-sequence | ()
 # 0b00000001011 01010 000 00111 0010011 # spaces added for clarity
