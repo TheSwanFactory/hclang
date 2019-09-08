@@ -26,6 +26,7 @@
   "typings": "lib/index.d.ts",
   "scripts": {
     "bs": "asciidoctor doc/BitScheme.adoc && cat doc/{adoc.hc,BitScheme.adoc} > hc/BitScheme.hc",
+    "bs:html": "asciidoctor doc/BitScheme.adoc && open doc/BitScheme.html",
     "build": "rimraf lib && tslint \"{src,test}/**/*.ts\" && npm run ts",
     "check": "grep -e 'only' -e 'skip' test/*/* || echo 'Ran all tests'",
     "clean": "rimraf lib && rm -f *.log.*",

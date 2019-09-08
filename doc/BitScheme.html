@@ -454,7 +454,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p>BitScheme is a lightweight data format for describing arbitrary sequences of binary data ("bitstreams", like those used for programming FPGAs).<sup class="footnote">[<a id="_footnoteref_1" class="footnote" href="#_footnotedef_1" title="View footnote.">1</a>]</sup> It also doubles as a scripting language for manipulating those bitstreams&#8201;&#8212;&#8201;what is sometimes called a DREADFUL.<sup class="footnote">[<a id="_footnoteref_2" class="footnote" href="#_footnotedef_2" title="View footnote.">2</a>]</sup></p>
 </div>
 <div class="paragraph">
-<p>BitScheme files use <code>hc</code> (for <a href="https://github.com/TheSwanFactory/hclang">Homoiconic C</a>) as the file extension, and must contain that string in an opening <code>!#</code> shebang.<sup class="footnote">[<a id="_footnoteref_3" class="footnote" href="#_footnotedef_3" title="View footnote.">3</a>]</sup></p>
+<p>BitScheme files use <code>hc</code> (as un <a href="https://github.com/TheSwanFactory/hclang">Homoiconic C</a>) as the file extension, and must contain that string in an opening <code>!#</code> shebang.<sup class="footnote">[<a id="_footnoteref_3" class="footnote" href="#_footnotedef_3" title="View footnote.">3</a>]</sup></p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -462,7 +462,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div class="paragraph">
-<p>While you can write parsers in other languages to read the BitScheme format, BitScheme files can also be executed directly from the command line to parse or generate bitstreas. BitScheme can also be run as a REPL.footnote[<a href="https://en.wikipedia.org/wiki/Read–eval–print_loop">Read–Eval–Print Loop</a>]. The REPL uses <code>; </code> as the input prompt and <code># </code> for the output (plus <code># # </code> for multi-line prompts), which is also the format we will use for code examples in this document.</p>
+<p>While you can write parsers in other languages to read the BitScheme format, BitScheme files can also be executed directly from the command line to parse or generate bitstreas. BitScheme can also be run as a REPL.<sup class="footnote">[<a id="_footnoteref_4" class="footnote" href="#_footnotedef_4" title="View footnote.">4</a>]</sup>. The REPL uses <code>; </code> as the input prompt and <code># </code> for the output (plus <code># # </code> for multi-line prompts), which is also the format we will use for code examples in this document.</p>
 </div>
 </div>
 </div>
@@ -590,14 +590,11 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 # [1, 2, 3]
 ; (0b1 0b0) # () Unboxed
 # 0b10
-; .Closure {0b1 0b0}; # {} Deferred
-; Closure()
+; .AppendZero {_ 0b0}; # {} Deferred
+; AppendZero(0b1)
 # 0b10
 ; .Bit &lt;0b0, 0b1&gt;; # &lt;&gt; Schema (i.e. type; see below)</code></pre>
 </div>
-</div>
-<div class="paragraph">
-<p>Strictly speaking, only the Deferred Delimeters <code>{}</code> are part of the syntax, in the sense of affecting how the DREADFUL is parsed. The others are actually constructors invoking objects defined in the standard library.</p>
 </div>
 </div>
 <div class="sect3">
@@ -621,10 +618,14 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="content">
 <pre class="highlight"><code>; .false () # _nil_, the empty expression
 ; .true &lt;&gt; # _all_, the inclusive schema
-; true .? `Yes' .: `No'
+; true .? `Yes' .: `No' # Ternary
 # `Yes'
 ; false ? `Yes' : `No'
-# `No'</code></pre>
+# `No'
+; [0b101, 0b010] &amp; AppendZero # Map
+# [0b1010, 0b0100]
+; [0b101, 0b010] | AppendZero # Reduce
+# 0b10100100</code></pre>
 </div>
 </div>
 </div>
@@ -784,7 +785,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="sect3">
 <h4 id="_constructors_2">Constructors</h4>
 <div class="paragraph">
-<p>Constructors allow us to natively write assembly as an internal DSL.<sup class="footnote">[<a id="_footnoteref_4" class="footnote" href="#_footnotedef_4" title="View footnote.">4</a>]</sup>. We use the <code>^</code> operator to bind a Schema to a deferred expression. For example:</p>
+<p>Constructors allow us to natively write assembly as an internal DSL.<sup class="footnote">[<a id="_footnoteref_5" class="footnote" href="#_footnotedef_5" title="View footnote.">5</a>]</sup>. We use the <code>^</code> operator to bind a Schema to a deferred expression. For example:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -798,8 +799,11 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 ; .r7 0b00111;
 ; .v11 (7 0b0) 0b1011; # 11
 ; .add_11_to_r10_into_r7 addi[v11, r10, r7]
-# 0b00000001011 01010 000 00111 0010011 # spaces added for clarity</code></pre>
+# 0b0000000101101010000001110010011</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>That is, "0b00000001011 01010 000 00111 0010011" with spaces added for clarity.</p>
 </div>
 </div>
 </div>
@@ -831,7 +835,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div class="paragraph">
-<p>More sophisticated parsers can of course symbolicate the output for better readability.</p>
+<p>More sophisticated parsers can of course render binary values as symbols for easier readability.</p>
 </div>
 </div>
 <div class="sect3">
@@ -881,12 +885,15 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <a href="#_footnoteref_3">3</a>. <a href="https://en.wikipedia.org/wiki/Shebang_(Unix)">shebang</a>, aka hashbang
 </div>
 <div class="footnote" id="_footnotedef_4">
-<a href="#_footnoteref_4">4</a>. <a href="https://en.wikipedia.org/wiki/Domain-specific_language">Domain Specific Language</a>
+<a href="#_footnoteref_4">4</a>. <a href="https://en.wikipedia.org/wiki/Read–eval–print_loop">Read–Eval–Print Loop</a>
+</div>
+<div class="footnote" id="_footnotedef_5">
+<a href="#_footnoteref_5">5</a>. <a href="https://en.wikipedia.org/wiki/Domain-specific_language">Domain Specific Language</a>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2019-09-07 22:28:56 -0700
+Last updated 2019-09-08 04:22:28 -0700
 </div>
 </div>
 </body>
