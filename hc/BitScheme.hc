@@ -1,15 +1,15 @@
 #!/usr/bin/env hc #
 ```
 = BitScheme Tutorial/Specification
-Draft 0.1, 2019-08-12
+Draft 0.2, 2019-09-07
 
 Declaratively parse, manipulate and generate binary data
 
 BitScheme is a lightweight data format for describing arbitrary sequences of binary data ("bitstreams", like those used for programming FPGAs).footnote:[https://en.wikipedia.org/wiki/Field-programmable_gate_array[Field-Programmable Gate Array]] It also doubles as a scripting language for manipulating those bitstreams -- what is sometimes called a DREADFUL.footnote:[Declaratively Rendered Executable Abstract Data Format Un-Language]
 
-BitScheme files use `bitscheme` as the file extension, and must contain that string in an opening `!#` shebang.footnote:[https://en.wikipedia.org/wiki/Shebang_(Unix)[shebang], aka hashbang]
+BitScheme files use `hc` (for https://github.com/TheSwanFactory/hclang[Homoiconic C]) as the file extension, and must contain that string in an opening `!#` shebang.footnote:[https://en.wikipedia.org/wiki/Shebang_(Unix)[shebang], aka hashbang]
 ```
-#!/use/bin/env bitscheme
+#!/use/bin/env hc
 ```
 
 While you can write parsers in other languages to read the BitScheme format, BitScheme files can also be executed directly from the command line to parse or generate bitstreas. BitScheme can also be run as a REPL.footnote[https://en.wikipedia.org/wiki/Read–eval–print_loop[Read–Eval–Print Loop]]. The REPL uses ``; `` as the input prompt and ``# `` for the output (plus ``# # `` for multi-line prompts), which is also the format we will use for code examples in this document.

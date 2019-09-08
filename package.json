@@ -26,6 +26,7 @@
   "typings": "lib/index.d.ts",
   "scripts": {
     "bitscheme": "cat doc/{adoc.hc,BitScheme.adoc} > hc/BitScheme.hc",
+    "bitscheme:html": "asciidoctor doc/BitScheme.adoc",
     "build": "rimraf lib && tslint \"{src,test}/**/*.ts\" && npm run ts",
     "clean": "rimraf lib && rm -f *.log.*",
     "debug": "echo 'Use `debugger;`\n' && inspect _mocha --no-timeouts --compilers ts:ts-node/register --recursive test/**/*-spec.ts",
