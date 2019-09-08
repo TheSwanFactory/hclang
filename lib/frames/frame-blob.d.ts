@@ -14,7 +14,6 @@ export declare class FrameBlob extends FrameAtom {
     static fix_source(source: string): string;
     static find_base(source: string): number;
     static count_bits(source: string, base: number): BI.BigInteger;
-    static leading_zeros(digits: string): string;
     protected data: BI.BigInteger;
     protected base: number;
     protected n_bits: BI.BigInteger;

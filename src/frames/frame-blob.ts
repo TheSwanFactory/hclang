@@ -53,12 +53,6 @@ export class FrameBlob extends FrameAtom {
     return BI(bits);
   }
 
-  public static leading_zeros(digits: string) {
-    const match = /^0*/.exec(digits);
-    const head = match[0];
-    return head;
-  }
-
   protected data: BI.BigInteger;
   protected base: number;
   protected n_bits: BI.BigInteger;
