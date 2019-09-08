@@ -31,11 +31,11 @@ export class FrameSymbol extends FrameAtom {
         return value;
       }
     }
-    return FrameNote.key(this.data);
+    const first = contexts[0];
+    return FrameNote.key(first.id + "." + this.data);
   }
 
-  public apply(argument: Frame, parameter: Frame) {
-    // debugger;
+  public apply(argument: Frame, _parameter: Frame) {
     const out = this.get(Frame.kOUT);
     out.set(this.data, argument);
     return this;

@@ -20,4 +20,6 @@ describe("FrameNote", () => {
     expect(result.toString()).to.equal(frame_note.toString());
   });
 
+  it.only("is returned by unbound symbols", () => {
+  });
 });

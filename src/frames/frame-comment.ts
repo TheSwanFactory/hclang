@@ -1,4 +1,3 @@
-import {  Frame } from "./frame";
 import { FrameQuote } from "./frame-atom";
 import { Context, NilContext } from "./meta-frame";
 
