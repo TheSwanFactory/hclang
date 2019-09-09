@@ -11,7 +11,7 @@ export declare class Frame extends MetaFrame {
     static readonly missing: Frame;
     static globals: Frame;
     is: Flags;
-    constructor(meta?: import("./meta-frame").Context, isNil?: boolean);
+    constructor(meta?: import("./meta-frame").Context, isNil?: boolean, isMissing?: boolean);
     string_open(): string;
     string_close(): string;
     at(_index: number): Frame;

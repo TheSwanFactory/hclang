@@ -1,7 +1,7 @@
 
 import { expect } from "chai";
 import {} from "mocha";
-import { FrameNote } from "../../src/frames";
+import { FrameNote, FrameString } from "../../src/frames";
 
 describe("FrameNote", () => {
   const symbol = "key";
@@ -21,5 +21,10 @@ describe("FrameNote", () => {
   });
 
   it.only("is returned by unbound symbols", () => {
+    const context = new FrameString("context");
+    const key = "key";
+    const result = context.get(key);
+    console.error(result);
+    expect(result).to.be.instanceOf(FrameNote);
   });
 });

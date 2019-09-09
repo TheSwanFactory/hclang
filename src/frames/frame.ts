@@ -9,19 +9,20 @@ export class Frame extends MetaFrame {
   public static readonly BEGIN_EXPR = "(";
   public static readonly END_EXPR = ")";
   public static readonly nil = new Frame(NilContext, true);
-  public static readonly missing: Frame = new Frame({
-    missing: Frame.nil,
-  });
+  public static readonly missing: Frame = new Frame(NilContext, false, true);
   public static globals = Frame.missing;
 
   public is: Flags;
 
-  constructor(meta = NilContext, isNil = false) {
+  constructor(meta = NilContext, isNil = false, isMissing = false) {
     super(meta);
     this.up = Frame.missing;
     this.is = {};
     if (isNil) {
       this.is.void = true;
+    }
+    if (isMissing) {
+      this.is.missing = true;
     }
   }
 
