@@ -31,6 +31,9 @@ export class FrameNote extends FrameQuote {
       key = label;
       value = new FrameString(source);
     }
+    if (key === "!") {
+      this.is.missing = true;
+    }
     this.set(key, value);
   }
 

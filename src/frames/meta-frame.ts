@@ -1,6 +1,5 @@
 import * as _ from "lodash";
 import { Frame } from "./frame";
-import { FrameNote } from "./frame-note";
 
 export interface ISourced extends Frame {
   source: string;
@@ -30,14 +29,14 @@ export class MetaFrame {
 
   public get(key: string, origin: MetaFrame = this): Frame {
     const result = this.get_here(key, origin);
-    if (result !== Frame.missing) { return result; };
+    if (!result.is.missing) { return result; };
 
-    let source = this.up || Frame.globals;
-    if (source === Frame.missing) {
-      if (Frame.globals === Frame.missing) { return Frame.missing; };
-      source = Frame.globals;
+    let parent = this.up || Frame.globals;
+    if (parent.is.missing) {
+      if (Frame.globals.is.missing) { return Frame.missing; };
+      parent = Frame.globals;
     }
-    return source.get(key, origin);
+    return parent.get(key, origin);
   }
 
   public set(key: string, value: Frame): MetaFrame {
