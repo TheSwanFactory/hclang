@@ -20,7 +20,7 @@ describe("FrameNote", () => {
     expect(result.toString()).to.equal(frame_note.toString());
   });
 
-  it.only("is returned by unbound symbols", () => {
+  it.skip("is returned by unbound symbols", () => {
     const context = new FrameString("context");
     const key = "key";
     const result = context.get(key);
