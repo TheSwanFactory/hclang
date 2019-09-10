@@ -1,5 +1,5 @@
 // import * as fs from "fs";
-import { Context, Frame, FrameGroup, FrameString, NilContext } from "../frames";
+import { Frame, FrameNote, NilContext } from "../frames";
 import { HCEval } from "./hc-eval";
 
 export type Counts = { [key: string]: number; };
@@ -13,16 +13,34 @@ export class HCTest extends Frame {
     this.n = {total: 0, pass: 0, fail: 0};
   }
 
-  public call(actual: Frame, parameter = Frame.nil): Frame {
+  public call(argument: Frame, parameter = Frame.nil): Frame {
     const source = this.get(HCEval.SOURCE);
     const expected = this.get(HCEval.EXPECT);
 
     if (source.is.missing || expected.is.missing) {
-      return actual;
+      return Frame.nil;
     }
-
+    const result = this.test(
+      source.toString(),
+      expected.toString(),
+      argument.toString()
+    );
     this.set(HCEval.SOURCE, Frame.missing);
     this.set(HCEval.EXPECT, Frame.missing);
-    return this.out.call(actual, parameter);
+    return this.out.call(result, parameter);
   }
+
+  public test(source: string, expected: string, actual: string) {
+    const base = source + " +" + expected;
+
+    this.n.total += 1;
+    if (expected === actual) {
+      this.n.pass += 1;
+      return FrameNote.pass(base);
+    } else {
+      this.n.pass += 1;
+      return FrameNote.fail(base + " -" + actual);
+    }
+  }
+
 }
