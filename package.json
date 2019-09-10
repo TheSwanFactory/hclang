@@ -55,7 +55,7 @@
     "version-bump-prompt": "^5.0.5"
   },
   "devDependencies": {
-    "@types/chai": "^4.2.1",
+    "@types/chai": "^4.2.2",
     "@types/lodash": "4.14.138",
     "@types/mocha": "5.2.7",
     "@types/node": ">=12.7.4",
@@ -67,7 +67,7 @@
     "mocha-junit-reporter": "^1.23.1",
     "rimraf": "3.0.0",
     "ts-node": "8.3.0",
-    "tslint": "5.19.0",
+    "tslint": "5.20.0",
     "typescript": "3.6.2"
   },
   "engines": {
