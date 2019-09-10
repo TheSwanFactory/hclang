@@ -9,6 +9,8 @@ export interface IProcessEnv {
 }
 
 export class HCEval {
+  public static readonly SOURCE = "; ";
+  public static readonly EXPECT = "# ";
 
   public static make_context(env: IProcessEnv): Context {
     const context: Context = {};
@@ -40,5 +42,16 @@ export class HCEval {
     const line = input + "\n";
     const source = new FrameString(line);
     this.current = source.reduce(this.current);
+    this.setSource(input);
   }
+
+  protected setSource(input: string) {
+    const head = input.substr(0, 2);
+    const tail = input.substr(2);
+    if (head === HCEval.SOURCE) {
+      const source = new FrameString(tail);
+      this.out.set(HCEval.SOURCE, source);
+    }
+  }
+
 }
