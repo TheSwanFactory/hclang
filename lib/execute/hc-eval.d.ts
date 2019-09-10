@@ -7,7 +7,7 @@ export declare class HCEval {
     protected out: Frame;
     static make_context(env: IProcessEnv): Context;
     static make_pipe(out: Frame): LexPipe;
-    current: Frame;
+    protected current: Frame;
     constructor(out: Frame);
     call(input: string): void;
 }

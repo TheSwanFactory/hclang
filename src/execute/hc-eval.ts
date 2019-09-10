@@ -1,19 +1,18 @@
-import * as fs from "fs";
-import * as _ from "lodash";
-import { Context, Frame, FrameArray, FrameGroup, FrameString, NilContext } from "../frames";
+// import * as fs from "fs";
+import { Context, Frame, FrameGroup, FrameString } from "../frames";
 import { EvalPipe } from "./eval-pipe";
 import { LexPipe } from "./lex-pipe";
 import { ParsePipe } from "./parse-pipe";
 
 export interface IProcessEnv {
-    [key: string]: string | undefined
+  [key: string]: string | undefined
 }
 
 export class HCEval {
 
   public static make_context(env: IProcessEnv): Context {
     const context: Context = {};
-    _.each(env, (value, key) => {
+    Object.entries(env).forEach(([key, value]) => {
       if (key[0] !== "n") {
         context[key] = new FrameString(value);
       }
@@ -31,7 +30,7 @@ export class HCEval {
     return lexer;
   }
 
-  public current: Frame;
+  protected current: Frame;
 
   constructor(protected out: Frame) {
     this.current = HCEval.make_pipe(this.out);
@@ -39,7 +38,7 @@ export class HCEval {
 
   public call(input: string) {
     const line = input + "\n";
-    const source = new FrameString(input);
+    const source = new FrameString(line);
     this.current = source.reduce(this.current);
   }
 }
