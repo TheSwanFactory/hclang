@@ -39,18 +39,23 @@ export class HCEval {
   }
 
   public call(input: string) {
-    const line = input + "\n";
-    const source = new FrameString(line);
+    const source = new FrameString(input + "\n");
+    this.checkInput(input);
     this.current = source.reduce(this.current);
-    this.setSource(input);
   }
 
-  protected setSource(input: string) {
+  protected checkInput(input: string) {
     const head = input.substr(0, 2);
     const tail = input.substr(2);
-    if (head === HCEval.SOURCE) {
-      const source = new FrameString(tail);
-      this.out.set(HCEval.SOURCE, source);
+    const value = new FrameString(tail);
+
+    switch (head) {
+      case HCEval.SOURCE: {
+        this.out.set(HCEval.SOURCE, value);
+      }
+      case HCEval.EXPECT: {
+        this.out.set(HCEval.EXPECT, value);
+      }
     }
   }
 

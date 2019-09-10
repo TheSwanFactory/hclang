@@ -12,5 +12,5 @@ export declare class HCEval {
     protected current: Frame;
     constructor(out: Frame);
     call(input: string): void;
-    protected setSource(input: string): void;
+    protected checkInput(input: string): void;
 }
