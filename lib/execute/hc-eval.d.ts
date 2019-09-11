@@ -12,6 +12,8 @@ export declare class HCEval {
     static make_pipe(out: Frame): LexPipe;
     protected lexer: Frame;
     constructor(out: Frame);
-    call(input: string): void;
+    call(input: string): Frame;
+    call_file(file: string): Frame;
+    repl(): boolean;
     protected checkInput(input: string): void;
 }

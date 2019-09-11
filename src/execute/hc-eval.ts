@@ -1,9 +1,16 @@
-// import * as fs from "fs";
+import * as fs from "fs";
+import * as prompt_sync from "prompt-sync";
+import * as prompt_history from "prompt-sync-history";
 import { Context, Frame, FrameGroup, FrameString, FrameSymbol } from "../frames";
+import { version } from "../version";
 import { EvalPipe } from "./eval-pipe";
 import { Lex } from "./lex";
 import { LexPipe } from "./lex-pipe";
 import { ParsePipe } from "./parse-pipe";
+
+const prompt = prompt_sync({
+  history: prompt_history(),
+});
 
 export interface IProcessEnv {
   [key: string]: string | undefined
@@ -49,6 +56,33 @@ export class HCEval {
       const end = FrameSymbol.for("\n");
       result.call(end);
     }
+    return result;
+  }
+
+  public call_file(file: string): Frame {
+    const input = fs.readFileSync(file, "utf8");
+    return this.call(input);
+  }
+
+  public repl(): boolean {
+    console.log(".hc " + version);
+    let status = true;
+    while (status) {
+      const input = prompt(HCEval.SOURCE);
+      if (!input) {
+        status = false;
+        break;
+      }
+      const output = this.call(input);
+      const debug = this.out.get("DEBUG");
+      if (debug !== Frame.missing) {
+        console.log(output);
+      }
+      if (output !== Frame.nil) {
+        console.log(HCEval.EXPECT + output);
+      }
+    }
+    return status;
   }
 
   protected checkInput(input: string) {

@@ -20,25 +20,28 @@
   ],
   "bin": {
     "maml": "lib/cli/bin.js",
-    "hc": "lib/cli/hc.js"
+    "hc": "lib/cli/hc.js",
+    "hct": "lib/cli/hct.js"
   },
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "scripts": {
-    "bs": "asciidoctor doc/BitScheme.adoc && cat doc/{adoc.hc,BitScheme.adoc} > hc/BitScheme.hc",
+    "bs:make": "asciidoctor doc/BitScheme.adoc && cat doc/{adoc.hc,BitScheme.adoc} > hc/BitScheme.hc",
     "bs:html": "asciidoctor doc/BitScheme.adoc && open doc/BitScheme.html",
+    "bs": "node lib/cli/hct.js hc/BitScheme.hc",
     "build": "rimraf lib && tslint \"{src,test}/**/*.ts\" && npm run ts",
     "check": "grep -e 'only' -e 'skip' test/*/* || echo 'Ran all tests'",
     "clean": "rimraf lib && rm -f *.log.*",
     "debug": "echo 'Use `debugger;`\n' && inspect _mocha --no-timeouts --compilers ts:ts-node/register --recursive test/**/*-spec.ts",
     "done": "npm run clean && npm run bs && npm run check && npm run tag && npm run build && git commit -am 'update version'",
     "lint": "tslint --force --format verbose \"{src,test}/**/*.ts\"",
-    "inspect": "npm run build && node --inspect --require ts-node/register src/cli/hc.ts",
+    "inspect": "npm run build && node --inspect --require ts-node/register src/cli/hct.ts",
     "hc": "node lib/cli/hc.js",
+    "hct": "node lib/cli/hct.js",
     "test": "npm run build && mocha --require ts-node/register --recursive test/**/*-spec.ts",
     "tag": "bump patch -ct package*.json README.md src/version.ts",
     "tag:minor": "bump minor -ct package*.json README.md src/version.ts",
-    "ts": "tsc --pretty --inlineSourceMap && chmod a+x ./lib/cli/hc.js ./lib/cli/bin.js",
+    "ts": "tsc --pretty --inlineSourceMap && chmod a+x ./lib/cli/hc.js ./lib/cli/hct.js",
     "ts:version": "echo TypeScript `tsc --version` ",
     "watch": "npm run build -- --watch",
     "watch:test": "npm run test -- --watch"
