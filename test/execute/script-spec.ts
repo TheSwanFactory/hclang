@@ -1,5 +1,3 @@
-import * as _ from "lodash";
-
 import { expect } from "chai";
 import { execFileSync } from "child_process";
 import {} from "mocha";

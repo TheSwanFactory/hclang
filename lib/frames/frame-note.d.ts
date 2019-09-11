@@ -15,6 +15,8 @@ export declare class FrameNote extends FrameQuote {
     static key(source: string): FrameNote;
     static type(source: string): FrameNote;
     static index(source: string): FrameNote;
+    static pass(source: string): FrameNote;
+    static fail(source: string): FrameNote;
     constructor(data: string, source: string, meta?: Context);
     in(contexts?: Frame[]): this;
     string_prefix(): string;

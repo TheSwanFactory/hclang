@@ -13,6 +13,8 @@ export class FrameNote extends FrameQuote {
   public static readonly LABELS: LanguageBinding = {
     en: {
       "!": "name-missing",
+      "+": "test-pass",
+      "-": "test-fail",
       "<>": "type-mismatch",
       ">": "bounds-exceeded",
     },
@@ -21,6 +23,8 @@ export class FrameNote extends FrameQuote {
   public static key(source: string) { return new FrameNote("!", source); };
   public static type(source: string) { return new FrameNote("<>", source); };
   public static index(source: string) { return new FrameNote(">", source); };
+  public static pass(source: string) { return new FrameNote("+", source); };
+  public static fail(source: string) { return new FrameNote("-", source); };
 
   constructor(protected data: string, source: string, meta = NilContext) {
     super(meta);
