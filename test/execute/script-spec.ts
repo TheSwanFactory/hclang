@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { execFileSync } from "child_process";
 import {} from "mocha";
 
-describe("script", () => {
+describe.skip("script", () => {
   const hc_bin = "lib/cli/hc.js";
   let title: string;
 

@@ -4,7 +4,7 @@ import {} from "mocha";
 import { HCLang, IProcessEnv } from "../../src/execute/hc-lang";
 import * as frame from "../../src/frames";
 
-describe("HCLang", () => {
+describe.skip("HCLang", () => {
   let hclang: HCLang;
 
   beforeEach(() => {
