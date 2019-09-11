@@ -1,5 +1,4 @@
-// import * as fs from "fs";
-import { Frame, FrameNote, NilContext } from "../frames";
+import { Frame, FrameNote, FrameString, NilContext } from "../frames";
 import { HCEval } from "./hc-eval";
 
 export type Counts = { [key: string]: number; };
@@ -25,7 +24,8 @@ export class HCTest extends Frame {
     }
 
     if (source !== Frame.missing) {
-      this.actual = argument;
+      const actual = argument.toString();
+      this.actual = new FrameString(actual);
     }
     return argument;
   }
