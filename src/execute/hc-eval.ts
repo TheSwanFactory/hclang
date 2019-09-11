@@ -40,22 +40,25 @@ export class HCEval {
     return lexer;
   }
 
-  protected lexer: Frame;
+  protected lexer: LexPipe;
+  protected current: Frame;
 
   constructor(protected out: Frame) {
     this.lexer = HCEval.make_pipe(this.out);
+    this.current = this.lexer;
   }
 
   public call(input: string) {
+    console.error("HCEval.input", input);
     const source = new FrameString(input);
     this.checkInput(input);
-    const result = source.reduce(this.lexer);
-    // console.error("HCEval.input", input);
-    // console.error("HCEval.result", result.toString());
-    if (result instanceof Lex) {
-      const end = FrameSymbol.for("\n");
-      result.call(end);
-    }
+    const result = source.reduce(this.current);
+    console.error("HCEval.result", result.id);
+//    if (result.id.includes("FrameComment")) {
+//      const end = FrameSymbol.for("\n");
+//      result = result.call(end);
+//    }
+    this.current = result;
     return result;
   }
 

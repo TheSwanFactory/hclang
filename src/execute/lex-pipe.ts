@@ -22,7 +22,8 @@ export class LexPipe extends Frame implements IPerformer {
   public finish(parameter: Frame) {
     const output = FrameSymbol.end();
     const out = this.get(Frame.kOUT);
-    return out.call(output);
+    const result = out.call(output);
+    return this;
   }
 
   public perform(actions: IAction) {

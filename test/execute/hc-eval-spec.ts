@@ -25,4 +25,16 @@ describe("HCEval", () => {
     const result = out.at(0);
     expect(result.toString()).to.equal("123");
   });
+
+  it("parses multi-line docStrings", () => {
+    hc_eval.call("`");
+    expect(out.length()).to.equal(0);
+    hc_eval.call("*docString*");
+    expect(out.length()).to.equal(0);
+    hc_eval.call("`");
+    expect(out.length()).to.equal(1);
+
+    const result = out.at(0);
+    expect(result.toString()).to.include("docString");
+  });
 });

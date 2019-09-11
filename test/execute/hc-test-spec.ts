@@ -31,7 +31,7 @@ import * as frame from "../../src/frames";
       expect(result.toString()).to.equal("$-.test-fail “abc +123 -456”;");
     });
 
-    it("outputs Note+ when called with testDoc", () => {
+    it.only("outputs Note+ when called with testDoc", () => {
       hc_eval.call(".abc 123;");
       expect(out.length()).to.equal(0);
 
