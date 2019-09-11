@@ -26,4 +26,15 @@ import * as frame from "../../src/frames";
       const result = test.get(HCEval.EXPECT);
       expect(result.toString()).to.equal("“123”");
     });
+
+    it("test returns FrameNote.pass if expected == actual", () => {
+      const result = test.assertEqual("123", "123", "abc");
+      expect(result.toString()).to.equal("$+.test-pass “abc +123”;");
+    });
+
+    it("test returns FrameNote.fail if expected != actual", () => {
+      const result = test.assertEqual("123", "456", "abc");
+      expect(result.toString()).to.equal("$-.test-fail “abc +123 -456”;");
+    });
+
 });

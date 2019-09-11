@@ -20,17 +20,17 @@ export class HCTest extends Frame {
     if (source.is.missing || expected.is.missing) {
       return Frame.nil;
     }
-    const result = this.test(
-      source.toString(),
+    const result = this.assertEqual(
       expected.toString(),
       argument.toString(),
+      source.toString(),
     );
     this.set(HCEval.SOURCE, Frame.missing);
     this.set(HCEval.EXPECT, Frame.missing);
     return this.out.call(result, parameter);
   }
 
-  public test(source: string, expected: string, actual: string) {
+  public assertEqual(expected: string, actual: string, source: string) {
     const base = source + " +" + expected;
 
     this.n.total += 1;

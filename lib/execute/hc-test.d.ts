@@ -7,5 +7,5 @@ export declare class HCTest extends Frame {
     n: Counts;
     constructor(out: Frame);
     call(argument: Frame, parameter?: Frame): Frame;
-    test(source: string, expected: string, actual: string): FrameNote;
+    assertEqual(expected: string, actual: string, source: string): FrameNote;
 }

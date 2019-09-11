@@ -13,6 +13,8 @@ export class FrameNote extends FrameQuote {
   public static readonly LABELS: LanguageBinding = {
     en: {
       "!": "name-missing",
+      "+": "test-pass",
+      "-": "test-fail",
       "<>": "type-mismatch",
       ">": "bounds-exceeded",
     },
