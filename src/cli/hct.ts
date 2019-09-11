@@ -32,7 +32,9 @@ _.each(options._,  (file) => {
   const rl = readline.createInterface(fs.createReadStream(file), process.stdout);
   rl.on("line", (line) => {
     output = hc_eval.call(line);
-    console.log(out);
+    if (!output.is.void) {
+      console.log(HCEval.EXPECT + output.toString());
+    }
   });
   evaluated = true;
 });

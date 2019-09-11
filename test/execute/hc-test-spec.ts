@@ -37,12 +37,8 @@ import * as frame from "../../src/frames";
 
       hc_eval.call("; abc");
       expect(out.length()).to.equal(0);
-      const source = test.get(HCEval.SOURCE);
 
       hc_eval.call("# 123");
-
-      console.error("test", test.n);
-      console.error("out", out.toString());
       expect(out.length()).to.equal(1);
 
       const result = out.at(0);

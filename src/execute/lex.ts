@@ -31,6 +31,7 @@ export class Lex extends Frame implements ISourced {
     super();
     this.sample = new factory("");
     this.source = "";
+    this.is.void = true;
   }
 
   public call(argument: Frame, parameter = Frame.nil): Frame {

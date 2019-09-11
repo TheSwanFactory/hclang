@@ -50,7 +50,8 @@ export class HCEval {
     const source = new FrameString(input);
     this.checkInput(input);
     const result = source.reduce(this.lexer);
-    console.error("input", input, result.toString(), this.out.toString());
+    // console.error("HCEval.input", input);
+    // console.error("HCEval.result", result.toString());
     if (result instanceof Lex) {
       const end = FrameSymbol.for("\n");
       result.call(end);
