@@ -1,6 +1,6 @@
 {
   "name": "hclang",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Homoiconic C: Programming without a Language",
   "license": "MIT",
   "repository": "https://github.com/TheSwanFactory/hclang",
