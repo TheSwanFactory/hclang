@@ -29,13 +29,16 @@ export class FrameNote extends FrameQuote {
   constructor(protected data: string, source: string, meta = NilContext) {
     super(meta);
     const label = FrameNote.LABELS.en[this.data];
+    let value = new FrameString(data);
+    let key = "!";
     if (label) {
-      const value = new FrameString(source);
-      this.set(label, value);
-    } else {
-      const value = new FrameString(data);
-      this.set("!", value);
+      key = label;
+      value = new FrameString(source);
     }
+    if (key === "!") {
+      this.is.missing = true;
+    }
+    this.set(key, value);
   }
 
   public in(contexts = [Frame.nil]) {
