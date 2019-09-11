@@ -13,7 +13,6 @@ export declare class HCEval {
     protected lexer: Frame;
     constructor(out: Frame);
     call(input: string): Frame;
-    call_file(file: string): Frame;
     repl(): boolean;
     protected checkInput(input: string): void;
 }

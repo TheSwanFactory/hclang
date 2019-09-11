@@ -1,4 +1,3 @@
-import * as fs from "fs";
 import * as prompt_sync from "prompt-sync";
 import * as prompt_history from "prompt-sync-history";
 import { Context, Frame, FrameGroup, FrameString, FrameSymbol } from "../frames";
@@ -57,11 +56,6 @@ export class HCEval {
       result.call(end);
     }
     return result;
-  }
-
-  public call_file(file: string): Frame {
-    const input = fs.readFileSync(file, "utf8");
-    return this.call(input);
   }
 
   public repl(): boolean {

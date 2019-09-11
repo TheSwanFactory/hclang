@@ -1,10 +1,11 @@
 #!/usr/bin/env node
+import * as fs from "fs";
 import * as getopts from "getopts";
 import * as _ from "lodash";
+import * as readline from "readline";
 import { HCEval } from "../execute/hc-eval";
 import { HCTest } from "../execute/hc-test";
 import { Frame, FrameArray } from "../frames";
-import { HChat } from "./hchat";
 
 const options = getopts(process.argv.slice(2), {
   alias: {
@@ -28,8 +29,11 @@ if (options.evaluate) {
 }
 
 _.each(options._,  (file) => {
-  output = hc_eval.call_file(file);
-  console.log(out);
+  const rl = readline.createInterface(fs.createReadStream(file), process.stdout);
+  rl.on("line", (line) => {
+    output = hc_eval.call(line);
+    console.log(out);
+  });
   evaluated = true;
 });
 
