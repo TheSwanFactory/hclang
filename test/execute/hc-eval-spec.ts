@@ -4,7 +4,7 @@ import { } from "mocha";
 import { HCEval } from "../../src/execute/hc-eval";
 import * as frame from "../../src/frames";
 
-describe.only("HCEval", () => {
+describe("HCEval", () => {
   let out: frame.FrameArray;
   let hc_eval: HCEval;
 
@@ -20,7 +20,9 @@ describe.only("HCEval", () => {
 
   it("calls out with result when called with a string", () => {
     expect(out.length()).to.equal(0);
-    hc_eval.call(".abc");
+    hc_eval.call("123");
     expect(out.length()).to.equal(1);
+    const result = out.at(0);
+    expect(result.toString()).to.equal("123");
   });
 });

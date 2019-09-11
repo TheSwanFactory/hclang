@@ -1,6 +1,7 @@
 // import * as fs from "fs";
-import { Context, Frame, FrameGroup, FrameString } from "../frames";
+import { Context, Frame, FrameGroup, FrameString, FrameSymbol } from "../frames";
 import { EvalPipe } from "./eval-pipe";
+import { Lex } from "./lex";
 import { LexPipe } from "./lex-pipe";
 import { ParsePipe } from "./parse-pipe";
 
@@ -11,6 +12,7 @@ export interface IProcessEnv {
 export class HCEval {
   public static readonly SOURCE = "; ";
   public static readonly EXPECT = "# ";
+  public static readonly ACTUAL = "# ";
 
   public static make_context(env: IProcessEnv): Context {
     const context: Context = {};
@@ -32,16 +34,21 @@ export class HCEval {
     return lexer;
   }
 
-  protected current: Frame;
+  protected lexer: Frame;
 
   constructor(protected out: Frame) {
-    this.current = HCEval.make_pipe(this.out);
+    this.lexer = HCEval.make_pipe(this.out);
   }
 
   public call(input: string) {
-    const source = new FrameString(input + "\n");
+    const source = new FrameString(input);
     this.checkInput(input);
-    this.current = source.reduce(this.current);
+    const result = source.reduce(this.lexer);
+    console.error("input", input, result.toString(), this.out.toString());
+    if (result instanceof Lex) {
+      const end = FrameSymbol.for("\n");
+      result.call(end);
+    }
   }
 
   protected checkInput(input: string) {
@@ -52,9 +59,11 @@ export class HCEval {
     switch (head) {
       case HCEval.SOURCE: {
         this.out.set(HCEval.SOURCE, value);
+        break;
       }
       case HCEval.EXPECT: {
         this.out.set(HCEval.EXPECT, value);
+        break;
       }
     }
   }
