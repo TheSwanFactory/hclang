@@ -5,7 +5,7 @@ import { HCEval } from "../../src/execute/hc-eval";
 import { HCTest } from "../../src/execute/hc-test";
 import * as frame from "../../src/frames";
 
-  describe("HCTest", () => {
+  describe.only("HCTest", () => {
     let out: frame.FrameArray;
     let test: HCTest;
     let hc_eval: HCEval;
@@ -19,5 +19,11 @@ import * as frame from "../../src/frames";
       hc_eval.call("; .abc");
       const result = test.get(HCEval.SOURCE);
       expect(result.toString()).to.equal("“.abc”");
+    });
+
+    it("sets expected on out when called with an output string", () => {
+      hc_eval.call("# 123");
+      const result = test.get(HCEval.EXPECT);
+      expect(result.toString()).to.equal("“123”");
     });
 });
