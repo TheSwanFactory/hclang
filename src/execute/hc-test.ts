@@ -23,7 +23,7 @@ export class HCTest extends Frame {
     const result = this.test(
       source.toString(),
       expected.toString(),
-      argument.toString()
+      argument.toString(),
     );
     this.set(HCEval.SOURCE, Frame.missing);
     this.set(HCEval.EXPECT, Frame.missing);

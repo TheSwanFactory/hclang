@@ -23,13 +23,4 @@ describe.only("HCEval", () => {
     hc_eval.call(".abc");
     expect(out.length()).to.equal(1);
   });
-
-  describe("testDoc", () => {
-    it("sets source on out when called with input string", () => {
-      hc_eval.call("; .abc");
-      const result = out.get(HCEval.SOURCE);
-      expect(result.toString()).to.equal("“.abc”");
-    });
-  });
-
 });

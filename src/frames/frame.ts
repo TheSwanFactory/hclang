@@ -1,6 +1,5 @@
 import * as _ from "lodash";
 import { MetaFrame, NilContext } from "./meta-frame";
-import { FrameString } from "./frame-string";
 
 export type Flags = { [key: string]: boolean; };
 
@@ -57,12 +56,6 @@ export class Frame extends MetaFrame {
 
   public toString() {
     return this.string_open() + this.meta_string() + this.string_close();
-  }
-
-  public toFrameString() {
-    const stringValue = this.toString();
-    const frameValue = new FrameString(stringValue);
-    return frameValue;
   }
 
   public asArray(): Array<Frame> {
