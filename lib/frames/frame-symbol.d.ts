@@ -12,7 +12,7 @@ export declare class FrameSymbol extends FrameAtom {
     };
     constructor(data: string, meta?: Context);
     in(contexts?: Frame[]): Frame;
-    apply(argument: Frame, parameter: Frame): this;
+    apply(argument: Frame, _parameter: Frame): this;
     setter(out: Frame): FrameSymbol;
     called_by(context: Frame): Frame;
     string_start(): string;

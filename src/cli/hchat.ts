@@ -32,7 +32,7 @@ export class HChat {
       }
       const output = this.hc.evaluate(input);
       const debug = this.hc.get("DEBUG");
-      if (debug !== Frame.missing) {
+      if (!debug.is.missing) {
         console.log(output);
       }
       if (output !== Frame.nil) {

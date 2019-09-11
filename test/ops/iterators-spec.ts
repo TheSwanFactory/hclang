@@ -24,7 +24,9 @@ describe("iterators", () => {
     const result = operator.call(block);
 
     it("lives in the global namespace", () => {
+      expect(operator).to.be.ok;
       expect(operator).to.not.equal(frame.Frame.missing);
+      expect(operator.is.missing).to.not.equal(true);
     });
 
     it("is retrieved as an expression", () => {

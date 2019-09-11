@@ -18,12 +18,12 @@ export class HCTest extends Frame {
     const source = this.get(HCEval.SOURCE);
     const expected = this.get(HCEval.EXPECT);
 
-    if (this.actual !== Frame.missing || expected !== Frame.missing) {
+    if (!this.actual.is.missing || !expected.is.missing) {
       const result = this.performTest(expected, this.actual, source)
       return this.out.call(result, parameter);
     }
 
-    if (source !== Frame.missing) {
+    if (!source.is.missing) {
       const actual = argument.toString();
       this.actual = new FrameString(actual);
     }
