@@ -57,10 +57,6 @@ export class HCEval {
     this.checkInput(input);
     const result = source.reduce(this.current);
     console.error("HCEval.result", result.id);
-//    if (result.id.includes("FrameComment")) {
-//      const end = FrameSymbol.for("\n");
-//      result = result.call(end);
-//    }
     this.current = result;
     return result;
   }
@@ -74,14 +70,7 @@ export class HCEval {
         status = false;
         break;
       }
-      const output = this.call(input);
-      const debug = this.out.get("DEBUG");
-      if (debug !== Frame.missing) {
-        console.log(output);
-      }
-      if (output !== Frame.nil) {
-        console.log(HCEval.EXPECT + output);
-      }
+      this.call(input);
     }
     return status;
   }

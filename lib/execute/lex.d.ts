@@ -21,7 +21,7 @@ export declare class Lex extends Frame implements ISourced {
     toString(): string;
     protected isEnd(char: string): boolean;
     protected isQuote(): boolean;
-    protected finish(argument: Frame, passAlong: boolean): LexPipe;
+    protected finish(argument: Frame, passAlong: boolean): Frame;
     protected exportFrame(): Frame;
     protected makeFrame(): Token;
 }

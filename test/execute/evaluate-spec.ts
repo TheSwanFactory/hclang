@@ -9,7 +9,7 @@ describe("evaluate", () => {
     expect(evaluate).to.be.ok;
   });
 
-  it.only("returns empty array for empty string", () => {
+  it("returns empty array for empty string", () => {
     const result = evaluate.call("");
     expect(result).to.be.instanceof(frame.FrameArray)
     expect(result.toString()).to.equal("[]");
@@ -40,7 +40,7 @@ describe("evaluate", () => {
     expect(result.toString()).to.equal(`[${input}]`);
   });
 
-  it.only("quines string after spaces", () => {
+  it("quines string after spaces", () => {
     const input = "“Hello, HCLang!”";
     const prefix = `  ${input}`;
     const result = evaluate(prefix);

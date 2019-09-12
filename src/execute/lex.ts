@@ -71,9 +71,10 @@ export class Lex extends Frame implements ISourced {
   protected finish(argument: Frame, passAlong: boolean) {
     this.exportFrame();
     if (passAlong) {
-      this.up.call(argument);
+      const result = this.up.call(argument);
+      return result;
     }
-    return this.pipe;
+    return this.up;
   }
 
   protected exportFrame() {

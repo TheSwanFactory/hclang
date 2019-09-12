@@ -2,8 +2,8 @@ import { expect } from "chai";
 import { execFileSync } from "child_process";
 import {} from "mocha";
 
-describe.skip("script", () => {
-  const hc_bin = "lib/cli/hc.js";
+describe.only("script", () => {
+  const hc_bin = "lib/cli/hct.js";
   let title: string;
 
   beforeEach(function() {
