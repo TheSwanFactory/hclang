@@ -7,7 +7,7 @@ Declaratively parse, manipulate and generate binary data
 
 BitScheme is a lightweight data format for describing arbitrary sequences of binary data ("bitstreams", like those used for programming FPGAs).footnote:[https://en.wikipedia.org/wiki/Field-programmable_gate_array[Field-Programmable Gate Array]] It also doubles as a scripting language for manipulating those bitstreams -- what is sometimes called a DREADFUL.footnote:[Declaratively Rendered Executable Abstract Data Format Un-Language]
 
-BitScheme files use "hc" (as un https://github.com/TheSwanFactory/hclang[Homoiconic C]) as the file extension, and must contain that string in an opening "!#" shebang.footnote:[https://en.wikipedia.org/wiki/Shebang_(Unix)[shebang], aka hashbang]
+BitScheme files use "hc" (as in https://github.com/TheSwanFactory/hclang[Homoiconic C]) as the file extension, and must contain that string in an opening "!#" shebang.footnote:[https://en.wikipedia.org/wiki/Shebang_(Unix)[shebang], aka hashbang]
 ```
 #!/use/bin/env hc
 ```
