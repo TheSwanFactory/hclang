@@ -29,7 +29,7 @@ The simplest Identifiers are Literals, e.g.:
 # 0b101
 ; 0xcafebabe # Hexadecimal
 # 0xcafebabe
-## String (quoted, utf-8)
+### String (quoted, utf-8)
 ; `Hello`
 # `Hello`
 ```
@@ -49,27 +49,24 @@ Identifiers can be combined into Expressions. The default behavior is concatenat
 ```
 ; 0b1101 0b0110
 # 0b11010110
-; `Hello' ` World'
-# `Hello World'
+; `Hello`` World`
+# `Hello World`
 ```
 ==== Symbols
 
 BitScheme also supports Symbolic Identifiers, which use prefix sigils for different usages:
 
 ```
-## .Name (setter)
+### .Name (setter)
 ; .the-answer 42;
-## Value (getter)
+### Value (getter)
 ; the-answer
 # 42
-## $Error
+### $Error
 ; ther-answer
 # $ther-answer
-## @Reference (reset)
-; @the-answer 7;
-
 ```
-
+TBD: @Reference (reset) @the-answer 7
 Symbols with only non-alphanumeric characters (e.g., "+") are called Operators rather than Identifiers. There are four universal binary Operators in the standard library, which can be used with any Value:
 
 - "?" if-then
@@ -86,11 +83,14 @@ See *Operator Syntax* below for more details.
 
 Elements are separated using Terminals:
 ```
-; `Terminal Expression' # newline
-# `Terminal Expression'
-; `Expression1',`Expression2' # comma
-# `Expression1',`Expression2'
-; `Statement'; # semicolon
+### newline
+; `Terminal Expression`
+# `Terminal Expression`
+### comma
+; `Expression1`,`Expression2`
+# `Expression1`,`Expression2`
+### semicolon
+; `Statement`;
 ```
 
 ==== Delimiters
@@ -120,10 +120,10 @@ Operators are actually defined as properties. However, since Operators must alwa
 ```
 ; .false () # _nil_, the empty expression
 ; .true <> # _all_, the inclusive schema
-; true .? `Yes' .: `No' # Ternary
-# `Yes'
-; false ? `Yes' : `No'
-# `No'
+; true .? `Yes` .: `No` # Ternary
+# `Yes`
+; false ? `Yes` : `No`
+# `No`
 ; [0b101, 0b010] & AppendZero # Map
 # [0b1010, 0b0100]
 ; [0b101, 0b010] | AppendZero # Reduce
@@ -295,4 +295,4 @@ Having defined our DREADFUL declarative format, the next step is to make it comp
 
 === GREADFUL
 
-As a bonus, since BitScehme is a well-defined tree-structured data format, it should be possible to generate a Graphical Rendering, i.e. GREADFUL.  Just don't ask me for a https://en.wikipedia.org/wiki/Grateful_Dead[GREADFUL DATE]...
+As a bonus, since BitScehme is a well-defined tree-structured data format, it should be possible to generate a Graphical Rendering, i.e. GREADFUL.  Just don`t ask me for a https://en.wikipedia.org/wiki/Grateful_Dead[GREADFUL DATE]...
