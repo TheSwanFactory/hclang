@@ -1,5 +1,6 @@
 import * as _ from "lodash";
 import { Frame, FrameAtom, FrameQuote, ISourced, NilContext } from "../frames";
+import { LexPipe } from "./lex-pipe";
 import { terminals } from "./terminals";
 
 export type Flag = { [key: string]: boolean; };
@@ -24,6 +25,7 @@ export class Lex extends Frame implements ISourced {
   }
 
   public source: string;
+  public pipe: LexPipe;
   protected body: string = "";
   protected sample: FrameAtom;
 
@@ -69,10 +71,9 @@ export class Lex extends Frame implements ISourced {
   protected finish(argument: Frame, passAlong: boolean) {
     this.exportFrame();
     if (passAlong) {
-      const result = this.up.call(argument);
-      return result;
+      this.up.call(argument);
     }
-    return this.up;
+    return this.pipe;
   }
 
   protected exportFrame() {
