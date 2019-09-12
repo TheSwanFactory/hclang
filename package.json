@@ -27,8 +27,8 @@
   "scripts": {
     "bs:make": "asciidoctor doc/BitScheme.adoc && cat doc/{adoc.hc,BitScheme.adoc} > hc/BitScheme.hc",
     "bs:html": "asciidoctor doc/BitScheme.adoc && open doc/BitScheme.html",
-    "bs": "node lib/cli/hc.js hc/BitScheme.hc",
-    "testdoc": "npm run build && node lib/cli/hc.js hc/sample.hc",
+    "bs": "node lib/cli/hc.js hc/BitScheme.hc -t",
+    "testdoc": "npm run build && node lib/cli/hc.js hc/sample.hc -t",
     "build": "rimraf lib && tslint \"{src,test}/**/*.ts\" && npm run ts",
     "check": "grep -e 'only' -e 'skip' test/*/* || echo 'Ran all tests'",
     "clean": "rimraf lib && rm -f *.log.*",

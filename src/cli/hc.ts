@@ -13,14 +13,19 @@ const options = getopts(process.argv.slice(2), {
     evaluate: "e",
     help: "h",
     interactive: "i",
+    testdoc: "t",
   },
 });
-
+console.error("options", options);
 const context = HCEval.make_context(process.env);
 const out = new HCLog(context);
-// const test = new HCTest(out);
-const hc_eval = new HCEval(out);
+let hc_eval = new HCEval(out);
 let evaluated = false;
+
+if (options.testdoc) {
+  const test = new HCTest(out);
+  hc_eval = new HCEval(test);
+}
 
 if (options.evaluate) {
   hc_eval.call(options.evaluate);
