@@ -49,6 +49,9 @@ export class HCEval {
   }
 
   public call(input: string) {
+    if (!input) {
+      return null;
+    }
     console.error("HCEval.input", input);
     const source = new FrameString(input);
     this.checkInput(input);
