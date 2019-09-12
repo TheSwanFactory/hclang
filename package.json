@@ -1,6 +1,6 @@
 {
   "name": "hclang",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Homoiconic C: Programming without a Language",
   "license": "MIT",
   "repository": "https://github.com/TheSwanFactory/hclang",
@@ -34,7 +34,7 @@
     "check": "grep -e 'only' -e 'skip' test/*/* || echo 'Ran all tests'",
     "clean": "rimraf lib && rm -f *.log.*",
     "debug": "echo 'Use `debugger;`\n' && inspect _mocha --no-timeouts --compilers ts:ts-node/register --recursive test/**/*-spec.ts",
-    "done": "npm run clean && npm run bs && npm run check && npm run tag && npm install && git commit -am 'update version'",
+    "done": "npm run clean && npm run bs:all && npm run check && npm run tag && npm install && git commit -am 'update version'",
     "lint": "tslint --force --format verbose \"{src,test}/**/*.ts\"",
     "inspect": "npm run build && node --inspect --require ts-node/register src/cli/hc.ts",
     "hc": "node lib/cli/hc.js",
