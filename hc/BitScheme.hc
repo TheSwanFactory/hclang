@@ -1,4 +1,4 @@
-#!/usr/bin/env hc
+#!/usr/bin/env hc #
 ```
 = BitScheme Tutorial/Specification
 Draft 0.2, 2019-09-07
@@ -289,10 +289,6 @@ Similarly, we can map the Schema into a dictionary to generate a sequence, and t
 
 == Next Steps
 
-=== CREADFUL
+As of September 11, 2019 "hc" can evaluate all the primitives in this dcument except schemas (though only about half the tests pass).
 
-Having defined our DREADFUL declarative format, the next step is to make it computable (CREADFUL, if you will). This mostly involves completing https://github.com/TheSwanFactory/hclang[Homoiconic C] and adding the ability to read bitstreams rather than just bytes.  This should only take a week or two if I were working on it full-time, but since it has to compete with my job, family, and other projects I will be lucky to have something by the end of 2019.
-
-=== GREADFUL
-
-As a bonus, since BitScehme is a well-defined tree-structured data format, it should be possible to generate a Graphical Rendering, i.e. GREADFUL.  Just don`t ask me for a https://en.wikipedia.org/wiki/Grateful_Dead[GREADFUL DATE]...
+My goal is to have this entire document working by the end of the year.

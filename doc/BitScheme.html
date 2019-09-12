@@ -454,7 +454,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p>BitScheme is a lightweight data format for describing arbitrary sequences of binary data ("bitstreams", like those used for programming FPGAs).<sup class="footnote">[<a id="_footnoteref_1" class="footnote" href="#_footnotedef_1" title="View footnote.">1</a>]</sup> It also doubles as a scripting language for manipulating those bitstreams&#8201;&#8212;&#8201;what is sometimes called a DREADFUL.<sup class="footnote">[<a id="_footnoteref_2" class="footnote" href="#_footnotedef_2" title="View footnote.">2</a>]</sup></p>
 </div>
 <div class="paragraph">
-<p>BitScheme files use <code>hc</code> (as un <a href="https://github.com/TheSwanFactory/hclang">Homoiconic C</a>) as the file extension, and must contain that string in an opening <code>!#</code> shebang.<sup class="footnote">[<a id="_footnoteref_3" class="footnote" href="#_footnotedef_3" title="View footnote.">3</a>]</sup></p>
+<p>BitScheme files use "hc" (as un <a href="https://github.com/TheSwanFactory/hclang">Homoiconic C</a>) as the file extension, and must contain that string in an opening "!#" shebang.<sup class="footnote">[<a id="_footnoteref_3" class="footnote" href="#_footnotedef_3" title="View footnote.">3</a>]</sup></p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -485,19 +485,19 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 # 12345
 ; 0b101 # Binary
 # 0b101
-; 0xDEADBEEF # Hexadecimal
-# 0xDEADBEEF
-; `Hello` # String (quoted, utf-8)
-# `Hello`
-; \5\Hello # NetString (sized in bytes)
-# \5\Hello</code></pre>
+; 0xcafebabe # Hexadecimal
+# 0xcafebabe
+### String (quoted, utf-8)
+; `Hello`
+# `Hello`</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>You can also use triple-backquotes for docstrings in <a href="https://asciidoctor.org">asciidoc</a> format. If you pass a <code>.adoc</code> file to bitscheme, it will prepend the backquotes, execute the code blocks, and warn if the evaluated input does not match the expected output.</p>
+<p>TBD: NetString (sized in bytes) \5\Hello
+You can also use triple-backquotes for docstrings in <a href="https://asciidoctor.org">asciidoc</a> format. If you pass a ".adoc" file to bitscheme, it will prepend the backquotes, execute the code blocks, and warn if the evaluated input does not match the expected output.</p>
 </div>
 <div class="paragraph">
-<p>Comment strings (using '#') are also considered a type of Literal:</p>
+<p>Comment strings (using "#") are also considered a type of Literal:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -515,8 +515,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="content">
 <pre class="highlight"><code>; 0b1101 0b0110
 # 0b11010110
-; `Hello' ` World'
-# `Hello World'</code></pre>
+; `Hello`` World`
+# `Hello World`</code></pre>
 </div>
 </div>
 </div>
@@ -527,35 +527,38 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code>; .the-answer 42; # .Name (setter)
-; the-answer # Value (getter)
+<pre class="highlight"><code>### .Name (setter)
+; .the-answer 42;
+### Value (getter)
+; the-answer
 # 42
+### $Error
 ; ther-answer
-# $ther-answer # $Error
-; @the-answer 7; # @Reference (reset)</code></pre>
+# $ther-answer</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Symbols with only non-alphanumeric characters (e.g., <code>+</code>) are called Operators rather than Identifiers. There are four universal binary Operators in the standard library, which can be used with any Value:</p>
+<p>TBD: @Reference (reset) @the-answer 7
+Symbols with only non-alphanumeric characters (e.g., "+") are called Operators rather than Identifiers. There are four universal binary Operators in the standard library, which can be used with any Value:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p><code>?</code> if-then</p>
+<p>"?" if-then</p>
 </li>
 <li>
-<p><code>:</code> if-else</p>
+<p>":" if-else</p>
 </li>
 <li>
-<p><code>&amp;</code> map</p>
+<p>"&amp;" map</p>
 </li>
 <li>
-<p><code>|</code> reduce</p>
+<p>"|" reduce</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p>The <strong>&amp;</strong> and <strong>|</strong> operators, by default, operate over enumerable elements. Use <strong>&amp;&amp;</strong> and <strong>||</strong> to iterate over properties instead.</p>
+<p>The <strong>&amp;</strong> and <strong>|</strong> operators, by default, operate over enumerable elements. Use <strong>&amp;&amp;</strong> and <strong>||</strong> to iterate over properties instead, and <strong>&amp;&amp;&amp;</strong> and <strong>|||</strong> for both.</p>
 </div>
 <div class="paragraph">
 <p>See <strong>Operator Syntax</strong> below for more details.</p>
@@ -571,11 +574,14 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code>; `Terminal Expression' # newline
-# `Terminal Expression'
-; `Expression1',`Expression2' # comma
-# `Expression1',`Expression2'
-; `Statement'; # semicolon</code></pre>
+<pre class="highlight"><code>### newline
+; `Terminal Expression`
+# `Terminal Expression`
+### comma
+; `Expression1`,`Expression2`
+# `Expression1`,`Expression2`
+### semicolon
+; `Statement`;</code></pre>
 </div>
 </div>
 </div>
@@ -618,10 +624,10 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="content">
 <pre class="highlight"><code>; .false () # _nil_, the empty expression
 ; .true &lt;&gt; # _all_, the inclusive schema
-; true .? `Yes' .: `No' # Ternary
-# `Yes'
-; false ? `Yes' : `No'
-# `No'
+; true .? `Yes` .: `No` # Ternary
+# `Yes`
+; false ? `Yes` : `No`
+# `No`
 ; [0b101, 0b010] &amp; AppendZero # Map
 # [0b1010, 0b0100]
 ; [0b101, 0b010] | AppendZero # Reduce
@@ -858,17 +864,11 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="sect1">
 <h2 id="_next_steps">Next Steps</h2>
 <div class="sectionbody">
-<div class="sect2">
-<h3 id="_creadful">CREADFUL</h3>
 <div class="paragraph">
-<p>Having defined our DREADFUL declarative format, the next step is to make it computable (CREADFUL, if you will). This mostly involves completing <a href="https://github.com/TheSwanFactory/hclang">Homoiconic C</a> and adding the ability to read bitstreams rather than just bytes.  This should only take a week or two if I were working on it full-time, but since it has to compete with my job, family, and other projects I will be lucky to have something by the end of 2019.</p>
+<p>As of September 11, 2019 "hc" can evaluate all the primitives in this dcument except schemas (though only about half the tests pass).</p>
 </div>
-</div>
-<div class="sect2">
-<h3 id="_greadful">GREADFUL</h3>
 <div class="paragraph">
-<p>As a bonus, since BitScehme is a well-defined tree-structured data format, it should be possible to generate a Graphical Rendering, i.e. GREADFUL.  Just don&#8217;t ask me for a <a href="https://en.wikipedia.org/wiki/Grateful_Dead">GREADFUL DATE</a>&#8230;&#8203;</p>
-</div>
+<p>My goal is to have this entire document working by the end of the year.</p>
 </div>
 </div>
 </div>
@@ -893,7 +893,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2019-09-08 04:24:56 -0700
+Last updated 2019-09-11 22:19:55 -0700
 </div>
 </div>
 </body>
