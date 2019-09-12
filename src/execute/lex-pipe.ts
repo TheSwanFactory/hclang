@@ -1,13 +1,25 @@
 import * as _ from "lodash";
 import { Context, Frame, FrameString, FrameSymbol } from "../frames";
+import { Lex } from "./lex";
 import { ParsePipe } from "./parse-pipe";
 import { syntax } from "./syntax";
 import { IAction, IPerformer } from "./terminals";
 
 export class LexPipe extends Frame implements IPerformer {
+
   constructor(out: Frame) {
     syntax[Frame.kOUT] = out;
     super(syntax);
+    this.addPipeToLex();
+  }
+
+  public addPipeToLex() {
+    Object.values(syntax).forEach((value) => {
+      if (value instanceof Lex) {
+        const lex = value as Lex;
+        lex.pipe = this;
+      }
+    });
   }
 
   public lex_string(input: string) {
@@ -22,7 +34,8 @@ export class LexPipe extends Frame implements IPerformer {
   public finish(parameter: Frame) {
     const output = FrameSymbol.end();
     const out = this.get(Frame.kOUT);
-    return out.call(output);
+    const result = out.call(output);
+    return this;
   }
 
   public perform(actions: IAction) {

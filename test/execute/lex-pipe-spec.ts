@@ -25,26 +25,9 @@ describe("LexPipe", () => {
     expect(pipe).to.be.ok;
   });
 
-  it("emits END on finish", () => {
+  it("returns itself on finish", () => {
     const result = pipe.finish(frame.Frame.nil);
-    expect(result.toString()).to.equal(success.toString());
+    expect(result).to.equal(pipe);
   });
 
-  it("returns Terminal(ender) for END", () => {
-    const terminal = pipe.get(frame.Frame.kEND);
-    expect(terminal).to.be.instanceof(Terminal);
-
-    const result = terminal.call(pipe);
-    expect(result.toString()).to.equal(success.toString());
-  });
-
-  it("calls ender on END", () => {
-    const result = pipe.call(frame.FrameSymbol.end());
-    expect(result.toString()).to.equal(success.toString());
-  });
-
-  it("emits END when lex empty string", () => {
-    const result = pipe.lex_string("");
-    expect(result.toString()).to.equal(success.toString());
-  });
 });

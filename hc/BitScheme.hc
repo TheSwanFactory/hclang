@@ -7,7 +7,7 @@ Declaratively parse, manipulate and generate binary data
 
 BitScheme is a lightweight data format for describing arbitrary sequences of binary data ("bitstreams", like those used for programming FPGAs).footnote:[https://en.wikipedia.org/wiki/Field-programmable_gate_array[Field-Programmable Gate Array]] It also doubles as a scripting language for manipulating those bitstreams -- what is sometimes called a DREADFUL.footnote:[Declaratively Rendered Executable Abstract Data Format Un-Language]
 
-BitScheme files use `hc` (as un https://github.com/TheSwanFactory/hclang[Homoiconic C]) as the file extension, and must contain that string in an opening `!#` shebang.footnote:[https://en.wikipedia.org/wiki/Shebang_(Unix)[shebang], aka hashbang]
+BitScheme files use "hc" (as in https://github.com/TheSwanFactory/hclang[Homoiconic C]) as the file extension, and must contain that string in an opening "!#" shebang.footnote:[https://en.wikipedia.org/wiki/Shebang_(Unix)[shebang], aka hashbang]
 ```
 #!/use/bin/env hc
 ```
@@ -27,16 +27,16 @@ The simplest Identifiers are Literals, e.g.:
 # 12345
 ; 0b101 # Binary
 # 0b101
-; 0xDEADBEEF # Hexadecimal
-# 0xDEADBEEF
-; `Hello` # String (quoted, utf-8)
+; 0xcafebabe # Hexadecimal
+# 0xcafebabe
+### String (quoted, utf-8)
+; `Hello`
 # `Hello`
-; \5\Hello # NetString (sized in bytes)
-# \5\Hello
 ```
-You can also use triple-backquotes for docstrings in https://asciidoctor.org[asciidoc] format. If you pass a `.adoc` file to bitscheme, it will prepend the backquotes, execute the code blocks, and warn if the evaluated input does not match the expected output.
+TBD: NetString (sized in bytes) \5\Hello
+You can also use triple-backquotes for docstrings in https://asciidoctor.org[asciidoc] format. If you pass a ".adoc" file to bitscheme, it will prepend the backquotes, execute the code blocks, and warn if the evaluated input does not match the expected output.
 
-Comment strings (using '#') are also considered a type of Literal:
+Comment strings (using "#") are also considered a type of Literal:
 ```
 ; 1234 # trailing comment
 ; #  inline comment # 4321
@@ -49,31 +49,32 @@ Identifiers can be combined into Expressions. The default behavior is concatenat
 ```
 ; 0b1101 0b0110
 # 0b11010110
-; `Hello' ` World'
-# `Hello World'
+; `Hello`` World`
+# `Hello World`
 ```
 ==== Symbols
 
 BitScheme also supports Symbolic Identifiers, which use prefix sigils for different usages:
 
 ```
-; .the-answer 42; # .Name (setter)
-; the-answer # Value (getter)
+### .Name (setter)
+; .the-answer 42;
+### Value (getter)
+; the-answer
 # 42
+### $Error
 ; ther-answer
-# $ther-answer # $Error
-; @the-answer 7; # @Reference (reset)
-
+# $ther-answer
 ```
+TBD: @Reference (reset) @the-answer 7
+Symbols with only non-alphanumeric characters (e.g., "+") are called Operators rather than Identifiers. There are four universal binary Operators in the standard library, which can be used with any Value:
 
-Symbols with only non-alphanumeric characters (e.g., ``+``) are called Operators rather than Identifiers. There are four universal binary Operators in the standard library, which can be used with any Value:
+- "?" if-then
+- ":" if-else
+- "&" map
+- "|" reduce
 
-- `?` if-then
-- `:` if-else
-- `&` map
-- `|` reduce
-
-The *&* and *|* operators, by default, operate over enumerable elements. Use *&&* and *||* to iterate over properties instead.
+The *&* and *|* operators, by default, operate over enumerable elements. Use *&&* and *||* to iterate over properties instead, and *&&&* and *|||* for both.
 
 See *Operator Syntax* below for more details.
 
@@ -82,11 +83,14 @@ See *Operator Syntax* below for more details.
 
 Elements are separated using Terminals:
 ```
-; `Terminal Expression' # newline
-# `Terminal Expression'
-; `Expression1',`Expression2' # comma
-# `Expression1',`Expression2'
-; `Statement'; # semicolon
+### newline
+; `Terminal Expression`
+# `Terminal Expression`
+### comma
+; `Expression1`,`Expression2`
+# `Expression1`,`Expression2`
+### semicolon
+; `Statement`;
 ```
 
 ==== Delimiters
@@ -116,10 +120,10 @@ Operators are actually defined as properties. However, since Operators must alwa
 ```
 ; .false () # _nil_, the empty expression
 ; .true <> # _all_, the inclusive schema
-; true .? `Yes' .: `No' # Ternary
-# `Yes'
-; false ? `Yes' : `No'
-# `No'
+; true .? `Yes` .: `No` # Ternary
+# `Yes`
+; false ? `Yes` : `No`
+# `No`
 ; [0b101, 0b010] & AppendZero # Map
 # [0b1010, 0b0100]
 ; [0b101, 0b010] | AppendZero # Reduce
@@ -285,10 +289,6 @@ Similarly, we can map the Schema into a dictionary to generate a sequence, and t
 
 == Next Steps
 
-=== CREADFUL
+As of September 11, 2019 "hc" can evaluate all the primitives in this dcument except schemas (though only about half the tests pass).
 
-Having defined our DREADFUL declarative format, the next step is to make it computable (CREADFUL, if you will). This mostly involves completing https://github.com/TheSwanFactory/hclang[Homoiconic C] and adding the ability to read bitstreams rather than just bytes.  This should only take a week or two if I were working on it full-time, but since it has to compete with my job, family, and other projects I will be lucky to have something by the end of 2019.
-
-=== GREADFUL
-
-As a bonus, since BitScehme is a well-defined tree-structured data format, it should be possible to generate a Graphical Rendering, i.e. GREADFUL.  Just don't ask me for a https://en.wikipedia.org/wiki/Grateful_Dead[GREADFUL DATE]...
+My goal is to have this entire document working by the end of the year.

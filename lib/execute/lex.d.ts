@@ -1,4 +1,5 @@
 import { Frame, FrameAtom, ISourced } from "../frames";
+import { LexPipe } from "./lex-pipe";
 export declare type Flag = {
     [key: string]: boolean;
 };
@@ -12,6 +13,7 @@ export declare class Lex extends Frame implements ISourced {
     protected factory: any;
     static isTerminal(char: string): boolean;
     source: string;
+    pipe: LexPipe;
     protected body: string;
     protected sample: FrameAtom;
     constructor(factory: any);

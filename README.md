@@ -1,5 +1,5 @@
 # Homiconic C
-version: 0.2.2
+version: 0.3.2
 
 [![Codeship Status for TheSwanFactory/hclang](https://app.codeship.com/projects/b1198f30-aee9-0137-5fdc-4a1003a17a1c/status?branch=master)](https://app.codeship.com/projects/362584)
 
@@ -14,7 +14,15 @@ $ npm install
 $ export DEBUG=true # optional
 $ npm run hc
 ```
+This will launch the interpreter.
 
+## BitScheme
+
+To generate and run the BitScheme documentation, type:
+```
+$ npm run bs:all
+```
+This will open the BitScheme.html file, and also run the documentation through the testdoc evaluator which will generate pass/fail messages.
 
 ## Development
 

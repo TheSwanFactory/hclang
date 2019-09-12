@@ -1,34 +1,49 @@
 #!/usr/bin/env node
+import * as fs from "fs";
 import * as getopts from "getopts";
 import * as _ from "lodash";
-import { HCLang } from "../execute/hc-lang";
-import { Frame } from "../frames";
-import { HChat } from "./hchat";
+import * as readline from "readline";
+import { HCEval } from "../execute/hc-eval";
+import { HCLog } from "../execute/hc-log";
+import { HCTest } from "../execute/hc-test";
 
 const options = getopts(process.argv.slice(2), {
   alias: {
     evaluate: "e",
     help: "h",
     interactive: "i",
+    testdoc: "t",
+    verbose: "v",
   },
 });
+if (options.verbose) {
+  console.error("options", options);
+}
 
-const hclang = new HCLang(process.env);
+const context = HCEval.make_context(process.env);
+const out = new HCLog(context);
+let hc_eval = new HCEval(out);
 let evaluated = false;
-let output: Frame;
+let test: HCTest;
+
+if (options.testdoc) {
+  test = new HCTest(out);
+  hc_eval = new HCEval(test);
+}
 
 if (options.evaluate) {
-  output = hclang.evaluate(options.evaluate);
-  console.log(output.toString());
+  hc_eval.call(options.evaluate);
   evaluated = true;
 }
 
 _.each(options._,  (file) => {
-  output = hclang.exec_file(file);
-  console.log(output.toString());
+  const rl = readline.createInterface(fs.createReadStream(file), null);
+  rl.on("line", (line) => {
+    hc_eval.call(line);
+  });
   evaluated = true;
 });
 
 if (options.interactive || !evaluated) {
-  HChat.iterate(hclang);
+  hc_eval.repl();
 }

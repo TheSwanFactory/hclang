@@ -10,8 +10,10 @@ export declare class HCEval {
     static readonly ACTUAL = "# ";
     static make_context(env: IProcessEnv): Context;
     static make_pipe(out: Frame): LexPipe;
-    protected lexer: Frame;
+    protected lexer: LexPipe;
+    protected current: Frame;
     constructor(out: Frame);
-    call(input: string): void;
+    call(input: string): Frame;
+    repl(): boolean;
     protected checkInput(input: string): void;
 }

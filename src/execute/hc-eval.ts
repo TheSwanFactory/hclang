@@ -1,9 +1,15 @@
-// import * as fs from "fs";
+import * as prompt_sync from "prompt-sync";
+import * as prompt_history from "prompt-sync-history";
 import { Context, Frame, FrameGroup, FrameString, FrameSymbol } from "../frames";
+import { version } from "../version";
 import { EvalPipe } from "./eval-pipe";
 import { Lex } from "./lex";
 import { LexPipe } from "./lex-pipe";
 import { ParsePipe } from "./parse-pipe";
+
+const prompt = prompt_sync({
+  history: prompt_history(),
+});
 
 export interface IProcessEnv {
   [key: string]: string | undefined
@@ -34,21 +40,39 @@ export class HCEval {
     return lexer;
   }
 
-  protected lexer: Frame;
+  protected lexer: LexPipe;
+  protected current: Frame;
 
   constructor(protected out: Frame) {
     this.lexer = HCEval.make_pipe(this.out);
+    this.current = this.lexer;
   }
 
   public call(input: string) {
+    if (!input) {
+      return null;
+    }
+    // console.error("HCEval.input", input);
     const source = new FrameString(input);
     this.checkInput(input);
-    const result = source.reduce(this.lexer);
-    console.error("input", input, result.toString(), this.out.toString());
-    if (result instanceof Lex) {
-      const end = FrameSymbol.for("\n");
-      result.call(end);
+    const result = source.reduce(this.current);
+    // console.error("HCEval.result", result.id);
+    this.current = result;
+    return result;
+  }
+
+  public repl(): boolean {
+    console.log(".hc " + version);
+    let status = true;
+    while (status) {
+      const input = prompt(HCEval.SOURCE);
+      if (!input) {
+        status = false;
+        break;
+      }
+      this.call(input);
     }
+    return status;
   }
 
   protected checkInput(input: string) {

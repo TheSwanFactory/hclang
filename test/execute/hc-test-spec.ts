@@ -18,17 +18,17 @@ import * as frame from "../../src/frames";
     it("sets source on out when called with input string", () => {
       hc_eval.call("; .abc");
       const result = test.get(HCEval.SOURCE);
-      expect(result.toString()).to.equal("“.abc”");
+      expect(result.toString()).to.include("“.abc”");
     });
 
     it("assertEqual returns FrameNote.pass if expected == actual", () => {
       const result = test.assertEqual("123", "123", "abc");
-      expect(result.toString()).to.equal("$+.test-pass “abc +123”;");
+      expect(result.toString()).to.include("$+.test-pass “abc +123”;");
     });
 
     it("assertEqual returns FrameNote.fail if expected != actual", () => {
       const result = test.assertEqual("123", "456", "abc");
-      expect(result.toString()).to.equal("$-.test-fail “abc +123 -456”;");
+      expect(result.toString()).to.include("$-.test-fail “abc +123 -456”;");
     });
 
     it("outputs Note+ when called with testDoc", () => {
@@ -37,16 +37,12 @@ import * as frame from "../../src/frames";
 
       hc_eval.call("; abc");
       expect(out.length()).to.equal(0);
-      const source = test.get(HCEval.SOURCE);
 
       hc_eval.call("# 123");
-
-      console.error("test", test.n);
-      console.error("out", out.toString());
       expect(out.length()).to.equal(1);
 
       const result = out.at(0);
-      expect(result.toString()).to.equal("$+.test-pass ““abc” +“123””;");
+      expect(result.toString()).to.include("$+.test-pass ““abc” +“123””;");
     });
 
     it("outputs Note- when called with testDoc", () => {
@@ -55,7 +51,7 @@ import * as frame from "../../src/frames";
       hc_eval.call("# 123");
       expect(out.length()).to.equal(1);
       const result = out.at(0);
-      expect(result.toString()).to.equal("$-.test-fail ““abc” +“123” -“456””;");
+      expect(result.toString()).to.include("$-.test-fail ““abc” +“123” -“456””;");
     });
 
 });

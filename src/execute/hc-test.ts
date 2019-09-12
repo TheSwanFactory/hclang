@@ -32,7 +32,6 @@ export class HCTest extends Frame {
 
   public performTest(expected: Frame, actual: Frame, source: Frame) {
     const result = this.assertEqual(expected.toString(), actual.toString(), source.toString());
-    console.error("assertEqual.result", result.toString());
     this.set(HCEval.SOURCE, Frame.missing);
     this.set(HCEval.EXPECT, Frame.missing);
     this.actual = Frame.missing;
@@ -40,17 +39,15 @@ export class HCTest extends Frame {
   }
 
   public assertEqual(expected: string, actual: string, source: string) {
-    console.error("assertEqual", "expected", expected, "actual", actual, "source", source);
     const base = source + " +" + expected;
 
     this.n.total += 1;
     if (expected === actual) {
       this.n.pass += 1;
-      return FrameNote.pass(base);
+      return FrameNote.pass(base, JSON.stringify(this.n));
     } else {
-      this.n.pass += 1;
-      return FrameNote.fail(base + " -" + actual);
+      this.n.fail += 1;
+      return FrameNote.fail(base + " -" + actual, JSON.stringify(this.n));
     }
   }
-
 }
