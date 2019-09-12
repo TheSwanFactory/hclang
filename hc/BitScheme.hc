@@ -1,4 +1,4 @@
-#!/usr/bin/env hc #
+#!/usr/bin/env hc
 ```
 = BitScheme Tutorial/Specification
 Draft 0.2, 2019-09-07
@@ -7,7 +7,7 @@ Declaratively parse, manipulate and generate binary data
 
 BitScheme is a lightweight data format for describing arbitrary sequences of binary data ("bitstreams", like those used for programming FPGAs).footnote:[https://en.wikipedia.org/wiki/Field-programmable_gate_array[Field-Programmable Gate Array]] It also doubles as a scripting language for manipulating those bitstreams -- what is sometimes called a DREADFUL.footnote:[Declaratively Rendered Executable Abstract Data Format Un-Language]
 
-BitScheme files use `hc` (as un https://github.com/TheSwanFactory/hclang[Homoiconic C]) as the file extension, and must contain that string in an opening `!#` shebang.footnote:[https://en.wikipedia.org/wiki/Shebang_(Unix)[shebang], aka hashbang]
+BitScheme files use "hc" (as un https://github.com/TheSwanFactory/hclang[Homoiconic C]) as the file extension, and must contain that string in an opening "!#" shebang.footnote:[https://en.wikipedia.org/wiki/Shebang_(Unix)[shebang], aka hashbang]
 ```
 #!/use/bin/env hc
 ```
@@ -27,16 +27,16 @@ The simplest Identifiers are Literals, e.g.:
 # 12345
 ; 0b101 # Binary
 # 0b101
-; 0xDEADBEEF # Hexadecimal
-# 0xDEADBEEF
-; `Hello` # String (quoted, utf-8)
+; 0xcafebabe # Hexadecimal
+# 0xcafebabe
+## String (quoted, utf-8)
+; `Hello`
 # `Hello`
-; \5\Hello # NetString (sized in bytes)
-# \5\Hello
 ```
-You can also use triple-backquotes for docstrings in https://asciidoctor.org[asciidoc] format. If you pass a `.adoc` file to bitscheme, it will prepend the backquotes, execute the code blocks, and warn if the evaluated input does not match the expected output.
+TBD: NetString (sized in bytes) \5\Hello
+You can also use triple-backquotes for docstrings in https://asciidoctor.org[asciidoc] format. If you pass a ".adoc" file to bitscheme, it will prepend the backquotes, execute the code blocks, and warn if the evaluated input does not match the expected output.
 
-Comment strings (using '#') are also considered a type of Literal:
+Comment strings (using "#") are also considered a type of Literal:
 ```
 ; 1234 # trailing comment
 ; #  inline comment # 4321
@@ -57,23 +57,27 @@ Identifiers can be combined into Expressions. The default behavior is concatenat
 BitScheme also supports Symbolic Identifiers, which use prefix sigils for different usages:
 
 ```
-; .the-answer 42; # .Name (setter)
-; the-answer # Value (getter)
+## .Name (setter)
+; .the-answer 42;
+## Value (getter)
+; the-answer
 # 42
+## $Error
 ; ther-answer
-# $ther-answer # $Error
-; @the-answer 7; # @Reference (reset)
+# $ther-answer
+## @Reference (reset)
+; @the-answer 7;
 
 ```
 
-Symbols with only non-alphanumeric characters (e.g., ``+``) are called Operators rather than Identifiers. There are four universal binary Operators in the standard library, which can be used with any Value:
+Symbols with only non-alphanumeric characters (e.g., "+") are called Operators rather than Identifiers. There are four universal binary Operators in the standard library, which can be used with any Value:
 
-- `?` if-then
-- `:` if-else
-- `&` map
-- `|` reduce
+- "?" if-then
+- ":" if-else
+- "&" map
+- "|" reduce
 
-The *&* and *|* operators, by default, operate over enumerable elements. Use *&&* and *||* to iterate over properties instead.
+The *&* and *|* operators, by default, operate over enumerable elements. Use *&&* and *||* to iterate over properties instead, and *&&&* and *|||* for both.
 
 See *Operator Syntax* below for more details.
 

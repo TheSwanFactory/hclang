@@ -7,5 +7,12 @@ docString 3
 ```
 ; 123
 # 456
+; 1234 # trailing comment
+; #  inline comment # 4321
+```
+docString 4
+```
 ; 789
 # 789
+; 0xabc
+# 0xabc
