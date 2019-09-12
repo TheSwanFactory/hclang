@@ -14,8 +14,8 @@ export class HCLog extends Frame {
     if (debug !== Frame.missing) {
       console.log(argument.id, argument);
     }
-    if (argument != Frame.nil && !argument.is.void && !argument.is.statement) {
-      console.log(HCEval.EXPECT + argument.toString());
+    if (argument !== Frame.nil && !argument.is.void && !argument.is.statement) {
+      console.log(argument.toString());
     }
     return argument;
   }
