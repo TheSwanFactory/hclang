@@ -1,7 +1,7 @@
 import { Frame } from "./frame";
 import { FrameQuote } from "./frame-atom";
 import { FrameString } from "./frame-string";
-import { Context, MetaFrame, NilContext } from "./meta-frame";
+import { NilContext } from "./meta-frame";
 
 export type Binding = { [key: string]: string; };
 export type LanguageBinding = { [key: string]: Binding; };
@@ -20,11 +20,18 @@ export class FrameNote extends FrameQuote {
     },
   };
 
+  public static test(data: string, source: string, sum: string) {
+     const note = new FrameNote(data, source);
+     const result = new FrameString(sum);
+     note.set("n", result);
+     return note;
+   };
+
   public static key(source: string) { return new FrameNote("!", source); };
   public static type(source: string) { return new FrameNote("<>", source); };
   public static index(source: string) { return new FrameNote(">", source); };
-  public static pass(source: string) { return new FrameNote("+", source); };
-  public static fail(source: string) { return new FrameNote("-", source); };
+  public static pass(source: string, sum: string) { return FrameNote.test("+", source, sum); };
+  public static fail(source: string, sum: string) { return FrameNote.test("-", source, sum); };
 
   constructor(protected data: string, source: string, meta = NilContext) {
     super(meta);
@@ -41,7 +48,7 @@ export class FrameNote extends FrameQuote {
     this.set(key, value);
   }
 
-  public in(contexts = [Frame.nil]) {
+  public in(_contexts = [Frame.nil]) {
     return this;
   }
 

@@ -44,10 +44,10 @@ export class HCTest extends Frame {
     this.n.total += 1;
     if (expected === actual) {
       this.n.pass += 1;
-      return FrameNote.pass(base);
+      return FrameNote.pass(base, JSON.stringify(this.n));
     } else {
-      this.n.pass += 1;
-      return FrameNote.fail(base + " -" + actual);
+      this.n.fail += 1;
+      return FrameNote.fail(base + " -" + actual, JSON.stringify(this.n));
     }
   }
 }

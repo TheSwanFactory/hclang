@@ -1,5 +1,4 @@
-import { Context, Frame, FrameNote, FrameString } from "../frames";
-import { HCEval } from "./hc-eval";
+import { Context, Frame } from "../frames";
 
 export type Counts = { [key: string]: number; };
 
@@ -9,7 +8,7 @@ export class HCLog extends Frame {
     super(context);
   }
 
-  public apply(argument: Frame, parameter = Frame.nil): Frame {
+  public apply(argument: Frame, _parameter = Frame.nil): Frame {
     const debug = this.get("DEBUG");
     if (debug !== Frame.missing) {
       console.log(argument.id, argument);

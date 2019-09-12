@@ -4,5 +4,5 @@ export declare type Counts = {
 };
 export declare class HCLog extends Frame {
     constructor(context: Context);
-    apply(argument: Frame, parameter?: Frame): Frame;
+    apply(argument: Frame, _parameter?: Frame): Frame;
 }
