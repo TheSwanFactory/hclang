@@ -52,11 +52,11 @@ export class HCEval {
     if (!input) {
       return null;
     }
-    console.error("HCEval.input", input);
+    // console.error("HCEval.input", input);
     const source = new FrameString(input);
     this.checkInput(input);
     const result = source.reduce(this.current);
-    console.error("HCEval.result", result.id);
+    // console.error("HCEval.result", result.id);
     this.current = result;
     return result;
   }
