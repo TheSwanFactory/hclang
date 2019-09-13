@@ -33,12 +33,6 @@ describe("execute", () => {
         const result = execute(both_strings);
         expect(result).to.equal(both_strings);
       });
-
-      it.skip("breaks expressions after end-of-line comments", () => {
-        const source = `${input_string}${endline_comment}${other_string}`;
-        const result = execute(source);
-        expect(result).to.equal(both_strings);
-      });
     });
   });
 

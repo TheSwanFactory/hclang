@@ -70,12 +70,14 @@ describe("evaluate", () => {
   describe("grouping", () => {
     it("returns FrameArray for empty []", () => {
       const result = evaluate("[]");
-      expect(result).to.be.instanceof(frame.FrameArray);
+      const output = result.at(0);
+      expect(output).to.be.instanceof(frame.FrameArray);
     });
 
     it("returns closure for empty {}", () => {
       const result = evaluate("{}");
-      expect(result).to.be.instanceof(frame.FrameLazy);
+      const output = result.at(0);
+      expect(output).to.be.instanceof(frame.FrameLazy);
     });
   });
 });
