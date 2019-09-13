@@ -3,6 +3,7 @@ export declare type Counts = {
     [key: string]: number;
 };
 export declare class HCLog extends Frame {
-    constructor(context: Context);
+    prompt: boolean;
+    constructor(context: Context, prompt?: boolean);
     apply(argument: Frame, _parameter?: Frame): Frame;
 }

@@ -1,10 +1,11 @@
 import { Context, Frame } from "../frames";
+import { HCEval } from "./hc-eval";
 
 export type Counts = { [key: string]: number; };
 
 export class HCLog extends Frame {
 
-  constructor(context: Context) {
+  constructor(context: Context, public prompt: boolean = false) {
     super(context);
   }
 
@@ -14,7 +15,12 @@ export class HCLog extends Frame {
       console.log(argument.id, argument);
     }
     if (argument !== Frame.nil && !argument.is.void && !argument.is.statement) {
-      console.log(argument.toString());
+      const output = argument.toString();
+      if (this.prompt) {
+        console.log(HCEval.EXPECT + output);
+      } else {
+        console.log(output);
+      }
     }
     return argument;
   }

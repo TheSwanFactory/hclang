@@ -7,7 +7,6 @@ export declare class HCEval {
     protected out: Frame;
     static readonly SOURCE = "; ";
     static readonly EXPECT = "# ";
-    static readonly ACTUAL = "# ";
     static make_context(env: IProcessEnv): Context;
     static make_pipe(out: Frame): LexPipe;
     protected lexer: LexPipe;

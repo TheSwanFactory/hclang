@@ -45,5 +45,6 @@ _.each(options._,  (file) => {
 });
 
 if (options.interactive || !evaluated) {
+  out.prompt = true;
   hc_eval.repl();
 }

@@ -69,11 +69,11 @@ describe("HCEval", () => {
     });
 
     it("evaluates created symbols", () => {
-      const input = `${setting}\n${key}`;
+      const input = `${setting};\n${key}`;
       hc_eval.call(input);
 
       expect(out.length()).to.equal(2);
-      const output = out.at(0);
+      const output = out.at(1);
       expect(output.toString()).to.equal(frame_value.toString());
     });
   });
