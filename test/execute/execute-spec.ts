@@ -82,4 +82,31 @@ describe("execute", () => {
       expect(result_inside).to.equal(other_string);
     });
   });
+
+  describe("numbers", () => {
+    it("returns numbers", () => {
+      const input = "123";
+      const result = execute(input);
+      expect(result.toString()).to.equal(input);
+
+      const digit = "9";
+      const result2 = execute(digit);
+      expect(result2.toString()).to.equal(digit);
+    });
+
+    it("joins blobs", () => {
+      const bithex = execute("0b1 0x5");
+      expect(bithex.toString()).to.equal("0b10101");
+
+      const dual0 = execute("0b00 0b00");
+      expect(dual0.toString()).to.equal("0b0000");
+
+      const right0 = execute("0b01 0b00");
+      expect(right0.toString()).to.equal("0b0100");
+
+      const left0 = execute("0b00 0b01");
+      expect(left0.toString()).to.equal("0b0001");
+    });
+  });
+
 });
