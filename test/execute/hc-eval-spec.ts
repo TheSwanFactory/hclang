@@ -1,7 +1,7 @@
 
 import { expect } from "chai";
 import { } from "mocha";
-import { HCEval } from "../../src/execute/hc-eval";
+import { HCEval, IProcessEnv } from "../../src/execute/hc-eval";
 import * as frame from "../../src/frames";
 
 describe("HCEval", () => {
@@ -37,4 +37,45 @@ describe("HCEval", () => {
     const result = out.at(0);
     expect(result.toString()).to.include("docString");
   });
+
+  describe("symbols", () => {
+    const key = "key";
+    const value = "value";
+    const frame_value = new frame.FrameString(value);
+    const setting = `.${key} ${frame_value}`;
+
+    it("evaluates in env", () => {
+      const env: IProcessEnv = {key: value};
+      const context = HCEval.make_context(env);
+      const out2 = new frame.FrameArray([], context);
+      const hc_eval2 = new HCEval(out2);
+      hc_eval2.call(key);
+      expect(out2.length()).to.equal(1);
+      const output = out2.at(0);
+      expect(output.toString()).to.equal(frame_value.toString());
+    });
+
+    it("evaluates names to symbols", () => {
+      hc_eval.call(`.${key}`);
+      expect(out.length()).to.equal(1);
+      const output = out.at(0);
+      expect(output).to.be.instanceof(frame.FrameSymbol);
+    });
+
+    it("set symbols in result", () => {
+      hc_eval.call(setting);
+      const extracted = out.get(key);
+      expect(extracted.toString()).to.equal(frame_value.toString());
+    });
+
+    it("evaluates created symbols", () => {
+      const input = `${setting}\n${key}`;
+      hc_eval.call(input);
+
+      expect(out.length()).to.equal(2);
+      const output = out.at(0);
+      expect(output.toString()).to.equal(frame_value.toString());
+    });
+  });
+
 });

@@ -1,4 +1,4 @@
 export * from "./execute";
-export { HCLang } from "./execute/hc-lang";
+export { HCEval } from "./execute/hc-eval";
 export * from "./frames";
 export * from "./maml";
