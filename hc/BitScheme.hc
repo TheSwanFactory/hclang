@@ -65,8 +65,12 @@ BitScheme also supports Symbolic Identifiers, which use prefix sigils for differ
 ### $Error
 ; ther-answer
 # $ther-answer
+### Alias
+; @the-answer 7;
+; the-answer
+# 7
+
 ```
-TBD: @Reference (reset) @the-answer 7
 Symbols with only non-alphanumeric characters (e.g., "+") are called Operators rather than Identifiers. There are four universal binary Operators in the standard library, which can be used with any Value:
 
 - "?" if-then
@@ -96,16 +100,21 @@ Elements are separated using Terminals:
 ==== Delimiters
 Elements are aggregated using pairs of Delimiters:
 ```
-; [1, 2, 3] # [] Boxed
+### [] Boxed
+; [1, 2, 3]
 # [1, 2, 3]
-; (0b1 0b0) # () Unboxed
+### () Unboxed
+; (0b1 0b0)
 # 0b10
-; .AppendZero {_ 0b0}; # {} Deferred
-; AppendZero(0b1)
+### <> Schema (i.e. type; see below)
+; .Bit <0b0, 0b1>;
+### {} Deferred
+; .AppendZero {0b1 0b0};
+; AppendZero
+# {0b1 0b0}
+; AppendZero()
 # 0b10
-; .Bit <0b0, 0b1>; # <> Schema (i.e. type; see below)
 ```
-
 ==== Properties
 
 Names can be used as properties to extract values from Groupings:
@@ -118,15 +127,20 @@ Names can be used as properties to extract values from Groupings:
 
 Operators are actually defined as properties. However, since Operators must always operate _on_ something, the preceding dot is optional:
 ```
-; .false () # _nil_, the empty expression
-; .true <> # _all_, the inclusive schema
-; true .? `Yes` .: `No` # Ternary
+### _nil_, the empty expression
+; .false ()
+### _all_, the inclusive schema
+; .true <>
+### Ternary
+; true .? `Yes` .: `No`
 # `Yes`
 ; false ? `Yes` : `No`
 # `No`
-; [0b101, 0b010] & AppendZero # Map
+### Map
+; [0b101, 0b010] & AppendZero
 # [0b1010, 0b0100]
-; [0b101, 0b010] | AppendZero # Reduce
+### Reduce
+; [0b101, 0b010] | AppendZero
 # 0b10100100
 ```
 
