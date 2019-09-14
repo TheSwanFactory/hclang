@@ -9,6 +9,6 @@ export declare class FrameString extends FrameQuote {
     apply(argument: FrameString): FrameString;
     string_prefix(): string;
     string_suffix(): string;
-    reduce(iteratee: Frame): Frame;
+    reduce(starter: Frame): Frame;
     protected toData(): string;
 }

@@ -25,8 +25,8 @@ export class FrameString extends FrameQuote {
 
   public string_suffix() { return FrameString.STRING_END; };
 
-  public reduce(iteratee: Frame) {
-    const final: Frame = _.reduce(this.data, reducer, iteratee);
+  public reduce(starter: Frame) {
+    const final: Frame = _.reduce(this.data, reducer, starter);
     return final.call(FrameSymbol.end());
   }
 

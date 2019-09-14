@@ -1,4 +1,5 @@
 import { Frame } from "./frame";
+import { FrameArray } from "./frame-array";
 import { FrameQuote } from "./frame-atom";
 import { FrameString } from "./frame-string";
 import { NilContext } from "./meta-frame";
@@ -9,6 +10,7 @@ export type LanguageBinding = { [key: string]: Binding; };
 export class FrameNote extends FrameQuote {
   public static readonly NOTE_BEGIN = "$";
   public static readonly NOTE_END = ";";
+  public static readonly NOTE_EXTRAS = "++";
 
   public static readonly LABELS: LanguageBinding = {
     en: {
@@ -49,6 +51,16 @@ export class FrameNote extends FrameQuote {
   }
 
   public in(_contexts = [Frame.nil]) {
+    return this;
+  }
+
+  public call(argument: Frame, parameter = Frame.nil) {
+    let extras = this.get(FrameNote.NOTE_EXTRAS);
+    if (extras.is.missing) {
+      extras = new FrameArray([]);
+      this.set(FrameNote.NOTE_EXTRAS, extras);
+    }
+    extras.apply(argument, parameter);
     return this;
   }
 

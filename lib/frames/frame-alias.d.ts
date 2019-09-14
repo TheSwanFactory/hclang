@@ -6,7 +6,7 @@ export declare class FrameAlias extends FrameAtom {
     static readonly ALIAS_BEGIN = "@";
     protected data: FrameSymbol;
     constructor(source: string, meta?: import("./meta-frame").Context);
-    in(contexts?: Frame[]): FrameSymbol | FrameNote;
+    in(contexts?: Frame[]): FrameNote | FrameSymbol;
     string_prefix(): string;
     canInclude(char: string): boolean;
     protected toData(): FrameSymbol;

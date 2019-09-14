@@ -20,6 +20,20 @@ describe("FrameNote", () => {
     expect(result.toString()).to.equal(frame_note.toString());
   });
 
+  it("captures extras when called", () => {
+    const extra1 = new FrameString("x");
+    const extra2 = new FrameString("tra");
+
+    frame_note.call(extra1);
+    let extra = frame_note.get(FrameNote.NOTE_EXTRAS);
+    expect(extra.toString()).to.include("x");
+
+    frame_note.call(extra2);
+    extra = frame_note.get(FrameNote.NOTE_EXTRAS);
+    expect(extra.toString()).to.include("x");
+    expect(extra.toString()).to.include("tra");
+  });
+
   it("is returned by unbound symbols", () => {
     const context = new FrameString("context");
     const symbol = FrameSymbol.for(key);
