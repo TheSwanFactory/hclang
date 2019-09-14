@@ -125,7 +125,7 @@ Names can be used as properties to extract values from Groupings:
 
 ==== Operator Syntax
 
-Operators are actually defined as properties. However, since Operators must always operate _on_ something, the preceding dot is optional:
+Operators are actually defined as properties.
 ```
 ### _nil_, the empty expression
 ; .false ()
@@ -134,13 +134,13 @@ Operators are actually defined as properties. However, since Operators must alwa
 ### Ternary
 ; true .? `Yes` .: `No`
 # `Yes`
-; false ? `Yes` : `No`
+; false .? `Yes` .: `No`
 # `No`
 ### Map
-; [0b101, 0b010] & AppendZero
+; [0b101, 0b010] .& AppendZero
 # [0b1010, 0b0100]
 ### Reduce
-; [0b101, 0b010] | AppendZero
+; [0b101, 0b010] .| AppendZero
 # 0b10100100
 ```
 
@@ -153,8 +153,8 @@ Schemas, a novel feature of `bitscheme`, can be thought of as a cross between ty
 The three simple Schemas resemble C types, though they actually define an interface rather than require a specific representation:
 ```
 ; .enum123 <1,2,3>; # Enumerated list of valid values
-; .Byte <8@Bit>; # Fixed-length sequences
 ; .BitStream <[@Bit]>; # Variable-length Sequence of a specific type
+; .Byte <8@Bit>; # Fixed-length sequences
 ```
 
 === Type Constraints
@@ -187,13 +187,13 @@ Schemas can also act directly to extract or bind values from compound sequences:
 
 We can also reverse the flow, by mapping capture keys to a dictionary to generate a sequence of values:
 ```
-; .BS3_sequence (BitSplitter3 & [.head 0b000; .tail 0b111;])
+; .BS3_sequence (BitSplitter3 .& [.head 0b000; .tail 0b111;])
 # [0b000, 0b111]
 
 ```
 The sequence can then be evaluated by folding it into an expression:
 ```
-; BS3_sequence | ()
+; BS3_sequence .| ()
 # 0b000111
 ```
 
@@ -295,9 +295,9 @@ More sophisticated parsers can of course render binary values as symbols for eas
 
 Similarly, we can map the Schema into a dictionary to generate a sequence, and thus a value:
 ```
-; .a11r10r7-sequence (RISC-V && a11r10r7-parsed)
+; .a11r10r7-sequence (RISC-V .&& a11r10r7-parsed)
 # [0b00000001011, 0b01010, 0b000, 0b00111, 0b0010011]
-; a11r10r7-sequence | ()
+; a11r10r7-sequence .| ()
 # 0b00000001011 01010 000 00111 0010011 # spaces added for clarity
 ```
 
