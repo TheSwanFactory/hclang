@@ -17,8 +17,12 @@ describe("script", () => {
 
   describe("expression", () => {
     const hello_string = "“Hello, Quine!”";
-    const inline_comment = "#Inline#";
-    const endline_comment = "#End-of-line\n";
+    const number = "123";
+
+    it(number, () => {
+      const result = script(["-e", title]);
+      expect(result[0]).to.equal(title);
+    });
 
     it(hello_string, () => {
       const result = script(["-e", title]);

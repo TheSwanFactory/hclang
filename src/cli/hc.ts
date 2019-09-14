@@ -32,7 +32,7 @@ if (options.testdoc) {
 }
 
 if (options.evaluate) {
-  hc_eval.call(options.evaluate);
+  hc_eval.call(options.evaluate.toString());
   evaluated = true;
 }
 

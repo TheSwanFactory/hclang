@@ -1,7 +1,7 @@
 
 import { expect } from "chai";
 import {} from "mocha";
-import { FrameString } from "../../src/frames";
+import { FrameNote, FrameString } from "../../src/frames";
 
 describe("FrameString", () => {
   const js_string = "Hello, MAML!";
@@ -34,4 +34,14 @@ describe("FrameString", () => {
     const result = frame_string.call(frame_string_2);
     expect(result.toString()).to.equal(`“${js_string}${js_string_2}”`);
   });
+
+  it("returns Note on failed reduce", () => {
+    const note = FrameNote.key(key);
+    const result = frame_string.reduce(note);
+    expect(result).to.be.instanceof(FrameNote);
+
+    const extras = result.get(FrameNote.NOTE_EXTRAS);
+    expect(extras.toString()).to.include("H, e, l, l, o");
+  });
+
 });
