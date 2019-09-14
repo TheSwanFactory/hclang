@@ -1,4 +1,4 @@
-import { Context, Frame, FrameArray, FrameGroup, FrameLazy, FrameSymbol, IArrayConstructor, NilContext } from "../frames";
+import { Context, Frame, FrameArray, FrameGroup, FrameLazy, FrameSchema, FrameSymbol, IArrayConstructor, NilContext } from "../frames";
 import { ICurryFunction } from "../ops";
 import { LexPipe } from "./lex-pipe";
 
@@ -57,3 +57,4 @@ addTerminal(";", "semi-next");
 addGroup(FrameArray);
 addGroup(FrameGroup);
 addGroup(FrameLazy);
+addGroup(FrameSchema);
