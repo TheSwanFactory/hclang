@@ -1,3 +1,4 @@
+export { FrameAlias } from "./frames/frame-alias";
 export { FrameArray } from "./frames/frame-array";
 export { FrameAtom, FrameQuote, IStringConstructor } from "./frames/frame-atom";
 export { FrameArg, FrameParam } from "./frames/frame-arg";
