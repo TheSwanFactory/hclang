@@ -11,7 +11,7 @@ export interface IKeyValuePair extends ReadonlyArray<string | Frame> {
     1: Frame;
 }
 export declare class MetaFrame {
-    protected meta: Context;
+    meta: Context;
     static id_count: number;
     up: Frame;
     id: string;

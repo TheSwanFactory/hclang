@@ -13,7 +13,7 @@ export class FrameName extends FrameAtom {
     this.data = FrameSymbol.for(source);
   }
 
-  public in(contexts = [Frame.nil]) {
+  public in(contexts = [Frame.nil]): Frame {
     const out = contexts[0];
     const setter = this.data.setter(out);
     return setter;

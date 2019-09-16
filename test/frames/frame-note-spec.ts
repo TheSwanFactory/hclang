@@ -1,11 +1,11 @@
 
 import { expect } from "chai";
 import {} from "mocha";
-import { FrameNote, FrameString, FrameSymbol } from "../../src/frames";
+import { Frame, FrameNote, FrameString, FrameSymbol } from "../../src/frames";
 
 describe("FrameNote", () => {
   const key = "key";
-  const frame_note = FrameNote.key(key);
+  const frame_note = FrameNote.key(key, Frame.nil);
 
   it("is created from a string", () => {
     expect(frame_note).to.be.instanceOf(FrameNote);

@@ -14,7 +14,7 @@ export class FrameAlias extends FrameAtom {
     this.data = FrameSymbol.for(source);
   }
 
-  public in(contexts = [Frame.nil]) {
+  public in(contexts = [Frame.nil]): Frame {
     const key = this.data.toString();
     for (const context of contexts) {
       const out = this.find(context, key);
@@ -23,7 +23,7 @@ export class FrameAlias extends FrameAtom {
         return setter;
       }
     }
-    return FrameNote.key(key);
+    return FrameNote.key(key, this);
   }
 
   public string_prefix() { return FrameAlias.ALIAS_BEGIN; };

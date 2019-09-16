@@ -36,7 +36,7 @@ describe("FrameString", () => {
   });
 
   it("returns Note on failed reduce", () => {
-    const note = FrameNote.key(key);
+    const note = FrameNote.key(key, value);
     const result = frame_string.reduce(note);
     expect(result).to.be.instanceof(FrameNote);
 

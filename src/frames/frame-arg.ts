@@ -63,7 +63,7 @@ export class FrameParam extends FrameSymbol {
     if (level <= contexts.length) {
       return contexts[level];
     } else {
-      return FrameNote.key(this.data);
+      return FrameNote.key(this.data, this);
     }
   }
 };

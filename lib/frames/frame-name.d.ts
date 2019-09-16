@@ -5,7 +5,7 @@ export declare class FrameName extends FrameAtom {
     static readonly NAME_BEGIN = ".";
     protected data: FrameSymbol;
     constructor(source: string, meta?: import("./meta-frame").Context);
-    in(contexts?: Frame[]): FrameSymbol;
+    in(contexts?: Frame[]): Frame;
     string_prefix(): string;
     canInclude(char: string): boolean;
     protected toData(): FrameSymbol;
