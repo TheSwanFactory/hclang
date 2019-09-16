@@ -1,7 +1,7 @@
 
 import { expect } from "chai";
 import {} from "mocha";
-import { Frame, FrameNote, FrameString, FrameSymbol } from "../../src/frames";
+import { Frame, FrameArray, FrameNote, FrameString, FrameSymbol } from "../../src/frames";
 
 describe("FrameNote", () => {
   const key = "key";
@@ -43,4 +43,17 @@ describe("FrameNote", () => {
     expect(resultString).to.include(key);
     expect(resultString).to.include(context.id);
   });
+
+  it.only("sends to kOUT on kEND", () => {
+    const out = new FrameArray([]);
+    out.set(Frame.kOUT, out);
+    const note = FrameNote.key(key, out);
+    expect(note.get(Frame.kOUT)).to.equal(out);
+
+    note.call(FrameSymbol.end());
+    expect(out.length()).to.equal(1);
+    const result = out.at(0);
+    expect(result).to.equal(note);
+  });
+
 });
