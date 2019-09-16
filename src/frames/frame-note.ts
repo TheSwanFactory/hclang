@@ -47,7 +47,7 @@ export class FrameNote extends FrameQuote {
 
   public call(argument: Frame, parameter = Frame.nil): Frame {
     if (argument === FrameSymbol.end()) {
-      const output = this.get(Frame.kOUT)
+      const output = this.get(Frame.kOUT);
       return output.call(this);
     }
     return this.addExtra(argument, parameter);

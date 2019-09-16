@@ -21,10 +21,11 @@ export class FrameSymbol extends FrameAtom {
   }
 
   public in(contexts = [Frame.nil]): Frame {
+    const first = contexts[0];
     for (const context of contexts) {
       let value = context.get(this.data);
       if (value.is.missing) {
-        value = FrameNote.key(this.data, this);
+        value = FrameNote.key(this.data, first);
       } else {
         value.up = context;
         if (value.is.immediate === true) {
@@ -33,7 +34,6 @@ export class FrameSymbol extends FrameAtom {
         return value;
       }
     }
-    const first = contexts[0];
     return FrameNote.key(first.id + "." + this.data, this);
   }
 
