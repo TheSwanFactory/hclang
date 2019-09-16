@@ -62,8 +62,4 @@ export class Frame extends MetaFrame {
   public asArray(): Array<Frame> {
     return _.castArray(this);
   }
-
-  public isNote() {
-    return false;
-  }
 };

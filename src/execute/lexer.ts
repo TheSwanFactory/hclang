@@ -1,6 +1,5 @@
 import * as _ from "lodash";
-import { Context, Frame, FrameGroup, FrameString, NilContext } from "../frames";
-import { ICurryFunction } from "../ops";
+import { Frame, FrameString, NilContext } from "../frames";
 import { syntax } from "./syntax";
 
 export type LexOptions = { [key: string]: any; };

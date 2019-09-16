@@ -1,7 +1,9 @@
 
 import { expect } from "chai";
 import {} from "mocha";
+import { Terminal } from "../../src/execute/terminals";
 import { Frame, FrameArray, FrameNote, FrameString, FrameSymbol } from "../../src/frames";
+import { ICurryFunction } from "../../src/ops";
 
 describe("FrameNote", () => {
   const key = "key";
@@ -45,8 +47,13 @@ describe("FrameNote", () => {
   });
 
   it.only("sends to kOUT on kEND", () => {
+    const terminate: ICurryFunction = (source: Frame, parameter: Frame) => {
+      return Frame.nil;
+    };
+
     const out = new FrameArray([]);
     out.set(Frame.kOUT, out);
+    out.set(Frame.kEND, new Terminal(terminate));
     const note = FrameNote.key(key, out);
     expect(note.get(Frame.kOUT)).to.equal(out);
 

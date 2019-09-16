@@ -36,17 +36,8 @@ export class FrameNote extends FrameQuote {
 
   constructor(protected data: string, source: string, public where = Frame.nil) {
     super(where.meta);
-    const label = FrameNote.LABELS.en[this.data];
-    let value = new FrameString(data);
-    let key = "!";
-    if (label) {
-      key = label;
-      value = new FrameString(source);
-    }
-    if (key === "!") {
-      this.is.missing = true;
-    }
-    this.set(key, value);
+    this.is.note = true;
+    this.setLabel(data, source);
   }
 
   public in(_contexts = [Frame.nil]): Frame {
@@ -69,8 +60,17 @@ export class FrameNote extends FrameQuote {
 
   public toString() { return this.string_prefix() + this.data + this.meta_string(); }
 
-  public isNote() {
-    return true;
+  protected setLabel(data: string, source: string) {
+    const label = FrameNote.LABELS.en[data];
+    let value = new FrameString(data);
+    let key = "!";
+    if (label) {
+      key = label;
+      value = new FrameString(source);
+    }
+    if (key === "!") {
+      this.is.missing = true;
+    }
+    this.set(key, value);
   }
-
 };
