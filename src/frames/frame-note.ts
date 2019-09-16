@@ -2,6 +2,7 @@ import { Frame } from "./frame";
 import { FrameArray } from "./frame-array";
 import { FrameQuote } from "./frame-atom";
 import { FrameString } from "./frame-string";
+import { FrameSymbol } from "./frame-symbol";
 
 export type Binding = { [key: string]: string; };
 export type LanguageBinding = { [key: string]: Binding; };
@@ -44,14 +45,12 @@ export class FrameNote extends FrameQuote {
     return this;
   }
 
-  public call(argument: Frame, parameter = Frame.nil) {
-    let extras = this.get(FrameNote.NOTE_EXTRAS);
-    if (extras.is.missing) {
-      extras = new FrameArray([]);
-      this.set(FrameNote.NOTE_EXTRAS, extras);
+  public call(argument: Frame, parameter = Frame.nil): Frame {
+    if (argument === FrameSymbol.end()) {
+      const output = this.get(Frame.kOUT)
+      return output.call(this);
     }
-    extras.apply(argument, parameter);
-    return this;
+    return this.addExtra(argument, parameter);
   }
 
   public string_prefix() { return FrameNote.NOTE_BEGIN; };
@@ -73,4 +72,15 @@ export class FrameNote extends FrameQuote {
     }
     this.set(key, value);
   }
+
+  protected addExtra(argument: Frame, parameter: Frame) {
+    let extras = this.get(FrameNote.NOTE_EXTRAS);
+    if (extras.is.missing) {
+      extras = new FrameArray([]);
+      this.set(FrameNote.NOTE_EXTRAS, extras);
+    }
+    extras.apply(argument, parameter);
+    return this;
+  }
+
 };

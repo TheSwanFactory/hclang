@@ -21,9 +21,10 @@ export declare class FrameNote extends FrameQuote {
     static fail(source: string, sum: string): FrameNote;
     constructor(data: string, source: string, where?: Frame);
     in(_contexts?: Frame[]): Frame;
-    call(argument: Frame, parameter?: Frame): this;
+    call(argument: Frame, parameter?: Frame): Frame;
     string_prefix(): string;
     string_suffix(): string;
     toString(): string;
     protected setLabel(data: string, source: string): void;
+    protected addExtra(argument: Frame, parameter: Frame): this;
 }
