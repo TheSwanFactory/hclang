@@ -534,12 +534,15 @@ You can also use triple-backquotes for docstrings in <a href="https://asciidocto
 # 42
 ### $Error
 ; ther-answer
-# $ther-answer</code></pre>
+# $ther-answer
+### Alias
+; @the-answer 7;
+; the-answer
+# 7</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>TBD: @Reference (reset) @the-answer 7
-Symbols with only non-alphanumeric characters (e.g., "+") are called Operators rather than Identifiers. There are four universal binary Operators in the standard library, which can be used with any Value:</p>
+<p>Symbols with only non-alphanumeric characters (e.g., "+") are called Operators rather than Identifiers. There are four universal binary Operators in the standard library, which can be used with any Value:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -592,14 +595,20 @@ Symbols with only non-alphanumeric characters (e.g., "+") are called Operators r
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code>; [1, 2, 3] # [] Boxed
+<pre class="highlight"><code>### [] Boxed
+; [1, 2, 3]
 # [1, 2, 3]
-; (0b1 0b0) # () Unboxed
+### () Unboxed
+; (0b1 0b0)
 # 0b10
-; .AppendZero {_ 0b0}; # {} Deferred
-; AppendZero(0b1)
-# 0b10
-; .Bit &lt;0b0, 0b1&gt;; # &lt;&gt; Schema (i.e. type; see below)</code></pre>
+### &lt;&gt; Schema (i.e. type; see below)
+; .Bit &lt;0b0, 0b1&gt;;
+### {} Deferred
+; .AppendZero {0b1 0b0};
+; AppendZero
+# {0b1 0b0}
+; AppendZero()
+# 0b10</code></pre>
 </div>
 </div>
 </div>
@@ -618,19 +627,24 @@ Symbols with only non-alphanumeric characters (e.g., "+") are called Operators r
 <div class="sect3">
 <h4 id="_operator_syntax">Operator Syntax</h4>
 <div class="paragraph">
-<p>Operators are actually defined as properties. However, since Operators must always operate <em>on</em> something, the preceding dot is optional:</p>
+<p>Operators are actually defined as properties.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code>; .false () # _nil_, the empty expression
-; .true &lt;&gt; # _all_, the inclusive schema
-; true .? `Yes` .: `No` # Ternary
+<pre class="highlight"><code>### _nil_, the empty expression
+; .false ()
+### _all_, the inclusive schema
+; .true &lt;&gt;
+### Ternary
+; true .? `Yes` .: `No`
 # `Yes`
-; false ? `Yes` : `No`
+; false .? `Yes` .: `No`
 # `No`
-; [0b101, 0b010] &amp; AppendZero # Map
+### Map
+; [0b101, 0b010] .&amp; AppendZero
 # [0b1010, 0b0100]
-; [0b101, 0b010] | AppendZero # Reduce
+### Reduce
+; [0b101, 0b010] .| AppendZero
 # 0b10100100</code></pre>
 </div>
 </div>
@@ -652,8 +666,8 @@ Symbols with only non-alphanumeric characters (e.g., "+") are called Operators r
 <div class="listingblock">
 <div class="content">
 <pre class="highlight"><code>; .enum123 &lt;1,2,3&gt;; # Enumerated list of valid values
-; .Byte &lt;8@Bit&gt;; # Fixed-length sequences
-; .BitStream &lt;[@Bit]&gt;; # Variable-length Sequence of a specific type</code></pre>
+; .BitStream &lt;[@Bit]&gt;; # Variable-length Sequence of a specific type
+; .Byte &lt;8@Bit&gt;; # Fixed-length sequences</code></pre>
 </div>
 </div>
 </div>
@@ -696,7 +710,7 @@ Symbols with only non-alphanumeric characters (e.g., "+") are called Operators r
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code>; .BS3_sequence (BitSplitter3 &amp; [.head 0b000; .tail 0b111;])
+<pre class="highlight"><code>; .BS3_sequence (BitSplitter3 .&amp; [.head 0b000; .tail 0b111;])
 # [0b000, 0b111]</code></pre>
 </div>
 </div>
@@ -705,7 +719,7 @@ Symbols with only non-alphanumeric characters (e.g., "+") are called Operators r
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code>; BS3_sequence | ()
+<pre class="highlight"><code>; BS3_sequence .| ()
 # 0b000111</code></pre>
 </div>
 </div>
@@ -851,9 +865,9 @@ Symbols with only non-alphanumeric characters (e.g., "+") are called Operators r
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code>; .a11r10r7-sequence (RISC-V &amp;&amp; a11r10r7-parsed)
+<pre class="highlight"><code>; .a11r10r7-sequence (RISC-V .&amp;&amp; a11r10r7-parsed)
 # [0b00000001011, 0b01010, 0b000, 0b00111, 0b0010011]
-; a11r10r7-sequence | ()
+; a11r10r7-sequence .| ()
 # 0b00000001011 01010 000 00111 0010011 # spaces added for clarity</code></pre>
 </div>
 </div>
@@ -893,7 +907,7 @@ Symbols with only non-alphanumeric characters (e.g., "+") are called Operators r
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2019-09-11 22:29:59 -0700
+Last updated 2019-09-16 17:52:38 -0700
 </div>
 </div>
 </body>
