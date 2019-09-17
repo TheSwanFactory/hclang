@@ -1,5 +1,5 @@
 # Homiconic C
-version: 0.3.6
+version: 0.3.7
 
 [![Codeship Status for TheSwanFactory/hclang](https://app.codeship.com/projects/b1198f30-aee9-0137-5fdc-4a1003a17a1c/status?branch=master)](https://app.codeship.com/projects/362584)
 
