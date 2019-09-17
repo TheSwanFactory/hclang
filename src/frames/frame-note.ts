@@ -49,11 +49,14 @@ export class FrameNote extends FrameQuote {
   }
 
   public call(argument: Frame, parameter = Frame.nil): Frame {
-    if (argument === FrameSymbol.end()) {
-      const output = this.get(Frame.kOUT);
-      return output.call(this);
+    if (argument !== FrameSymbol.end()) {
+      const result = this.addExtra(argument, parameter);
+      return result;
     }
-    return this.addExtra(argument, parameter);
+    const output = this.get(Frame.kOUT);
+    output.call(this);
+    output.call(FrameSymbol.end());
+    return this.up;
   }
 
   public string_prefix() { return FrameNote.NOTE_BEGIN; };
