@@ -1,6 +1,6 @@
 import * as _ from "lodash";
 import { Frame } from "./frame";
-import { FrameQuote } from "./frame-atom";
+import { FrameAtom, FrameQuote } from "./frame-atom";
 import { FrameSymbol } from "./frame-symbol";
 import { Context, NilContext } from "./meta-frame";
 
@@ -17,8 +17,12 @@ export class FrameString extends FrameQuote {
     super(meta);
   }
 
-  public apply(argument: FrameString) {
-    return new FrameString(this.data + argument.data);
+  public apply(argument: FrameAtom) {
+    let value = argument.toString();
+    if (argument instanceof FrameString) {
+      value = argument.data;
+    }
+    return new FrameString(this.data + value);
   }
 
   public string_prefix() { return FrameString.STRING_BEGIN; };

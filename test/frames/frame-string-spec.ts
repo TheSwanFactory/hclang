@@ -3,7 +3,7 @@ import { expect } from "chai";
 import {} from "mocha";
 import { FrameNote, FrameString } from "../../src/frames";
 
-describe.only("FrameString", () => {
+describe("FrameString", () => {
   const js_string = "Hello, MAML!";
   const key = "key";
   const value = new FrameString("value");
@@ -32,13 +32,12 @@ describe.only("FrameString", () => {
     const js_string_2 = " Goodbye, world!";
     const frame_string_2 = new FrameString(js_string_2);
     const result = frame_string.call(frame_string_2);
-    expect(result.toString()).to.equal(`“${js_string}${js_string_2}”`);
+    expect(result.toString()).to.include(`“${js_string}${js_string_2}”`);
   });
 
-  it.skip("stringifies when called with something else", () => {
+  it("stringifies when called with something else", () => {
     const note = FrameNote.key(key, value);
     const result = frame_string.call(note);
-    console.error("result", result);
     expect(result.toString()).to.include(key);
   });
 
