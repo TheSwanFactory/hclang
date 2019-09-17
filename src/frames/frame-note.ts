@@ -3,6 +3,7 @@ import { FrameArray } from "./frame-array";
 import { FrameQuote } from "./frame-atom";
 import { FrameString } from "./frame-string";
 import { FrameSymbol } from "./frame-symbol";
+import { NilContext } from "./meta-frame";
 
 export type Binding = { [key: string]: string; };
 export type LanguageBinding = { [key: string]: Binding; };
@@ -36,9 +37,11 @@ export class FrameNote extends FrameQuote {
   public static fail(source: string, sum: string) { return FrameNote.test("-", source, sum); };
 
   constructor(protected data: string, source: string, public where = Frame.nil) {
-    super(where.meta);
+    super(NilContext);
+    this.up = where;
     this.is.note = true;
     this.setLabel(data, source);
+    this.id += this.data;
   }
 
   public in(_contexts = [Frame.nil]): Frame {
