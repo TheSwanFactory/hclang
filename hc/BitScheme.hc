@@ -12,7 +12,7 @@ BitScheme files use "hc" (as in https://github.com/TheSwanFactory/hclang[Homoico
 #!/use/bin/env hc
 ```
 
-While you can write parsers in other languages to read the BitScheme format, BitScheme files can also be executed directly from the command line to parse or generate bitstreas. BitScheme can also be run as a REPL.footnote:[https://en.wikipedia.org/wiki/Read–eval–print_loop[Read–Eval–Print Loop]]. The REPL uses ``; `` as the input prompt and ``# `` for the output (plus ``# # `` for multi-line prompts), which is also the format we will use for code examples in this document.
+While you can write parsers in other languages to read the BitScheme format, BitScheme files can also be executed directly from the command line to parse or generate bitstreams. BitScheme can also be run as a REPL.footnote:[https://en.wikipedia.org/wiki/Read–eval–print_loop[Read–Eval–Print Loop]]. The REPL uses ``; `` as the input prompt and ``# `` for the output (plus ``# # `` for multi-line prompts), which is also the format we will use for code examples in this document.
 
 == Syntax
 
@@ -125,7 +125,7 @@ Names can be used as properties to extract values from Groupings:
 
 ==== Operator Syntax
 
-Operators are actually defined as properties.
+Operators are actually just non-alphanumeric properties.
 ```
 ### _nil_, the empty expression
 ; .false ()
@@ -170,7 +170,7 @@ The Schema constrains which values can be bound to a Symbol, and can be retrieve
 # $@enum123<1,2,3> 4
 ```
 
-=== Deconstuctors
+=== Deconstructors
 
 Schemas can also act directly to extract or bind values from compound sequences:
 
@@ -303,6 +303,6 @@ Similarly, we can map the Schema into a dictionary to generate a sequence, and t
 
 == Next Steps
 
-As of September 11, 2019 "hc" can evaluate all the primitives in this dcument except schemas (though only about half the tests pass).
+As of September 16, 2019 "hc" can evaluate all the primitives in this document except the operators (though only about half the tests pass).
 
-My goal is to have this entire document working by the end of the year.
+My goal is to have this entire document working by the end of 2019.
