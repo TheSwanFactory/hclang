@@ -2,7 +2,6 @@
 import { expect } from "chai";
 import {} from "mocha";
 import * as frame from "../../src/frames";
-import { Ops } from "../../src/ops";
 
 describe("iterators", () => {
   const base = new frame.Frame({
@@ -19,7 +18,6 @@ describe("iterators", () => {
   });
 
   describe("&& iterate over metas", () => {
-    frame.Frame.globals = Ops;
     const operator = base.get("&&");
     const result = operator.call(block);
 

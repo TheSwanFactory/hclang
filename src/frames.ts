@@ -17,3 +17,7 @@ export { FrameString } from "./frames/frame-string";
 export { FrameSymbol } from "./frames/frame-symbol";
 export { Frame } from "./frames/frame";
 export { Context, IKeyValuePair, ISourced, MetaFrame, NilContext } from "./frames/meta-frame";
+
+import { Frame } from "./frames/frame";
+import { Ops } from "./ops";
+Frame.globals = Ops;

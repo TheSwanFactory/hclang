@@ -1,9 +1,5 @@
 import { Frame, FrameArg, FrameExpr, FrameLazy, FrameName, FrameParam, FrameString, FrameSymbol } from "./frames";
-import { Ops } from "./ops";
-
 import { tag } from "./maml/tag";
-
-Frame.globals = Ops;
 
 const HTML_PREFIX = "<!DOCTYPE html>";
 
