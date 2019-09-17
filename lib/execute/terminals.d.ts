@@ -6,6 +6,9 @@ export declare type IAction = {
 export interface IPerformer extends Frame {
     perform(actions: IAction): Frame;
 }
+export interface IFinish extends Frame {
+    finish(parameter: Frame): Frame;
+}
 export declare class Terminal extends Frame {
     protected data: ICurryFunction;
     static end(): Terminal;

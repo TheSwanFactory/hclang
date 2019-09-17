@@ -3,9 +3,9 @@ import { Context, Frame, FrameString, FrameSymbol } from "../frames";
 import { Lex } from "./lex";
 import { ParsePipe } from "./parse-pipe";
 import { syntax } from "./syntax";
-import { IAction, IPerformer } from "./terminals";
+import { IAction, IFinish, IPerformer } from "./terminals";
 
-export class LexPipe extends Frame implements IPerformer {
+export class LexPipe extends Frame implements IFinish, IPerformer {
 
   constructor(out: Frame) {
     syntax[Frame.kOUT] = out;
@@ -31,7 +31,7 @@ export class LexPipe extends Frame implements IPerformer {
     return source.reduce(this);
   }
 
-  public finish(parameter: Frame) {
+  public finish(_parameter: Frame) {
     const output = FrameSymbol.end();
     const out = this.get(Frame.kOUT);
     const result = out.call(output);

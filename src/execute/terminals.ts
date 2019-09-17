@@ -1,6 +1,5 @@
 import { Context, Frame, FrameArray, FrameGroup, FrameLazy, FrameSchema, FrameSymbol, IArrayConstructor, NilContext } from "../frames";
 import { ICurryFunction } from "../ops";
-import { LexPipe } from "./lex-pipe";
 
 export type IAction = { [key: string]: any; };
 
@@ -8,8 +7,12 @@ export interface IPerformer extends Frame {
   perform(actions: IAction): Frame;
 }
 
-const terminate: ICurryFunction = (source: Frame, parameter: Frame) => {
-  return (source as LexPipe).finish(parameter); // also ParsePipe
+export interface IFinish extends Frame {
+  finish(parameter: Frame): Frame;
+}
+
+const terminate: ICurryFunction = (pipe: IFinish, parameter: Frame) => {
+  return pipe.finish(parameter);
 };
 
 export class Terminal extends Frame {

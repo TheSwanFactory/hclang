@@ -1,5 +1,6 @@
 import { Frame, FrameArray } from "../frames";
-export declare class ParsePipe extends FrameArray {
+import { IFinish } from "./terminals";
+export declare class ParsePipe extends FrameArray implements IFinish {
     collector: Array<Frame>;
     protected factory: any;
     constructor(out: Frame, factory: any);
