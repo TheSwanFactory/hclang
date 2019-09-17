@@ -1,22 +1,8 @@
 import * as _ from "lodash";
-import { Context, Frame, FrameGroup, FrameString, NilContext } from "../frames";
-import { ICurryFunction } from "../ops";
+import { Frame, FrameString } from "../frames";
 import { syntax } from "./syntax";
 
 export type LexOptions = { [key: string]: any; };
-
-class LexTerminal extends Frame {
-  constructor(protected options: LexOptions) {
-    super(NilContext);
-    this.is.immediate = true;
-  }
-
-  public apply(argument: Frame, parameter: Frame) {
-    const source = argument as Lexer;
-    const options = parameter as LexOptions;
-    return source.finish(options);
-  }
-}
 
 export class Lexer extends Frame {
   constructor(out: Frame) {
@@ -38,7 +24,7 @@ export class Lexer extends Frame {
     this.set(Frame.kOUT, out.call(argument));
   }
 
-  public finish(options: LexOptions) {
+  public finish(_options: LexOptions) {
     return Frame.nil;
   }
 }

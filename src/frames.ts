@@ -1,3 +1,4 @@
+export { FrameAlias } from "./frames/frame-alias";
 export { FrameArray } from "./frames/frame-array";
 export { FrameAtom, FrameQuote, IStringConstructor } from "./frames/frame-atom";
 export { FrameArg, FrameParam } from "./frames/frame-arg";
@@ -11,6 +12,7 @@ export { FrameList, IArrayConstructor } from "./frames/frame-list";
 export { FrameName } from "./frames/frame-name";
 export { FrameNote } from "./frames/frame-note";
 export { FrameNumber } from "./frames/frame-number";
+export { FrameSchema } from "./frames/frame-schema";
 export { FrameString } from "./frames/frame-string";
 export { FrameSymbol } from "./frames/frame-symbol";
 export { Frame } from "./frames/frame";

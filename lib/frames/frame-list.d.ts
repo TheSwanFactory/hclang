@@ -13,5 +13,5 @@ export declare class FrameList extends Frame {
     toString(): string;
     asArray(): Array<Frame>;
     size(): number;
-    protected array_eval(contexts: Array<Frame>): Frame;
+    protected array_eval(contexts: Array<Frame>): Array<Frame>;
 }

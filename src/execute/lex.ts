@@ -38,7 +38,7 @@ export class Lex extends Frame implements ISourced {
     this.id = this.id + "." + name;
   }
 
-  public call(argument: Frame, parameter = Frame.nil): Frame {
+  public call(argument: Frame, _parameter = Frame.nil): Frame {
     const char = argument.toString();
     if (this.isEnd(char) && Lex.isTerminal(char)) {
       return this.finish(argument, true);

@@ -56,8 +56,8 @@ export class FrameList extends Frame {
     return this.data.length;
   }
 
-  protected array_eval(contexts: Array<Frame>): Frame {
+  protected array_eval(contexts: Array<Frame>): Array<Frame> {
     contexts.push(this);
-    return new FrameArray(this.data.map( (f: Frame) => f.in(contexts) ));
+    return this.data.map( (f: Frame) => f.in(contexts) );
   }
 }

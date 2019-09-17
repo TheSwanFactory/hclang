@@ -18,7 +18,6 @@ export interface IProcessEnv {
 export class HCEval {
   public static readonly SOURCE = "; ";
   public static readonly EXPECT = "# ";
-  public static readonly ACTUAL = "# ";
 
   public static make_context(env: IProcessEnv): Context {
     const context: Context = {};

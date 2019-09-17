@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { execFileSync } from "child_process";
-import {} from "mocha";
+import { } from "mocha";
 
 describe("script", () => {
   const hc_bin = "lib/cli/hc.js";
@@ -15,14 +15,18 @@ describe("script", () => {
     return result.toString().split("\n");
   };
 
-  describe("expression", () => {
-    const hello_string = "“Hello, Quine!”";
-    const inline_comment = "#Inline#";
-    const endline_comment = "#End-of-line\n";
+  it("?", () => {
+    const result = script(["-e", title]);
+    expect(result[0]).to.include(title);
+  });
 
-    it(hello_string, () => {
-      const result = script(["-e", title]);
-      expect(result[0]).to.equal(title);
-    });
+  it("123", () => {
+    const result = script(["-e", title]);
+    expect(result[0]).to.equal(title);
+  });
+
+  it("“Hello, Quine!”", () => {
+    const result = script(["-e", title]);
+    expect(result[0]).to.equal(title);
   });
 });

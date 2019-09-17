@@ -21,5 +21,4 @@ export declare class Frame extends MetaFrame {
     call(argument: Frame, parameter?: Frame): Frame;
     toString(): string;
     asArray(): Array<Frame>;
-    isNote(): boolean;
 }

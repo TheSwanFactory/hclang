@@ -3,20 +3,20 @@ import { FrameList } from "./frame-list";
 import { FrameNote } from "./frame-note";
 import { NilContext } from "./meta-frame";
 
-export class FrameArray extends FrameList {
-  public static readonly BEGIN_ARRAY = "[";
-  public static readonly END_ARRAY = "]";
+export class FrameSchema extends FrameList {
+  public static readonly BEGIN_SCHEMA = "<";
+  public static readonly END_SCHEMA = ">";
 
   constructor(data: Array<Frame>, meta = NilContext) {
     super(data, meta);
   }
 
-  public string_open() { return FrameArray.BEGIN_ARRAY; };
-  public string_close() { return FrameArray.END_ARRAY; };
+  public string_open() { return FrameSchema.BEGIN_SCHEMA; };
+  public string_close() { return FrameSchema.END_SCHEMA; };
 
   public in(contexts = [Frame.nil]): Frame {
     const array = this.array_eval(contexts);
-    return new FrameArray(array);
+    return new FrameSchema(array);
   }
 
   public apply(argument: Frame, parameter: Frame) {

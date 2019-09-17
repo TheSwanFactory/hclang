@@ -15,7 +15,7 @@ export class MetaFrame {
   public up: Frame;
   public id: string;
 
-  constructor(protected meta = NilContext, isNil = false) {
+  constructor(public meta = NilContext, isNil = false) {
     const name = this.constructor.name;
     const id = name + "." + MetaFrame.id_count++;
     this.id = "$:" + id;

@@ -1,4 +1,4 @@
-import { Context, Frame, FrameArray, FrameGroup, FrameLazy, FrameSymbol, IArrayConstructor, NilContext } from "../frames";
+import { Context, Frame, FrameArray, FrameGroup, FrameLazy, FrameSchema, FrameSymbol, IArrayConstructor, NilContext } from "../frames";
 import { ICurryFunction } from "../ops";
 import { LexPipe } from "./lex-pipe";
 
@@ -31,7 +31,7 @@ export const terminals: Context = {
 };
 
 const perform = (actions: IAction) => {
-  return (source: Frame, parameter: Frame) => {
+  return (source: Frame, _parameter: Frame) => {
     return (source as IPerformer).perform(actions);
   };
 };
@@ -57,3 +57,4 @@ addTerminal(";", "semi-next");
 addGroup(FrameArray);
 addGroup(FrameGroup);
 addGroup(FrameLazy);
+addGroup(FrameSchema);

@@ -20,12 +20,11 @@ export class FrameSymbol extends FrameAtom {
     super(meta);
   }
 
-  public in(contexts = [Frame.nil]) {
+  public in(contexts = [Frame.nil]): Frame {
+    const first = contexts[0];
     for (const context of contexts) {
-      let value = context.get(this.data);
-      if (value.is.missing) {
-        value = FrameNote.key(this.data);
-      } else {
+      const value = context.get(this.data);
+      if (!value.is.missing) {
         value.up = context;
         if (value.is.immediate === true) {
           return value.call(context);
@@ -33,8 +32,7 @@ export class FrameSymbol extends FrameAtom {
         return value;
       }
     }
-    const first = contexts[0];
-    return FrameNote.key(first.id + "." + this.data);
+    return FrameNote.key(first.id + "." + this.data, first);
   }
 
   public apply(argument: Frame, _parameter: Frame) {

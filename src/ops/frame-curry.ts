@@ -1,4 +1,4 @@
-import { Frame, FrameArg, FrameExpr } from "../frames";
+import { Frame } from "../frames";
 
 export type ICurryFunction = (source: Frame, block: Frame) => Frame;
 
@@ -7,7 +7,7 @@ export class FrameCurry extends Frame {
     super();
   }
 
-  public apply(argument: Frame, parameter: Frame) {
+  public apply(argument: Frame, _parameter: Frame) {
     return this.Func(this.Source, argument);
   }
 

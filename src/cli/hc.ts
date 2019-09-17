@@ -32,7 +32,7 @@ if (options.testdoc) {
 }
 
 if (options.evaluate) {
-  hc_eval.call(options.evaluate);
+  hc_eval.call(options.evaluate.toString());
   evaluated = true;
 }
 
@@ -45,5 +45,6 @@ _.each(options._,  (file) => {
 });
 
 if (options.interactive || !evaluated) {
+  out.prompt = true;
   hc_eval.repl();
 }

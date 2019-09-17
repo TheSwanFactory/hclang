@@ -12,7 +12,7 @@ BitScheme files use "hc" (as in https://github.com/TheSwanFactory/hclang[Homoico
 #!/use/bin/env hc
 ```
 
-While you can write parsers in other languages to read the BitScheme format, BitScheme files can also be executed directly from the command line to parse or generate bitstreas. BitScheme can also be run as a REPL.footnote:[https://en.wikipedia.org/wiki/Read–eval–print_loop[Read–Eval–Print Loop]]. The REPL uses ``; `` as the input prompt and ``# `` for the output (plus ``# # `` for multi-line prompts), which is also the format we will use for code examples in this document.
+While you can write parsers in other languages to read the BitScheme format, BitScheme files can also be executed directly from the command line to parse or generate bitstreams. BitScheme can also be run as a REPL.footnote:[https://en.wikipedia.org/wiki/Read–eval–print_loop[Read–Eval–Print Loop]]. The REPL uses ``; `` as the input prompt and ``# `` for the output (plus ``# # `` for multi-line prompts), which is also the format we will use for code examples in this document.
 
 == Syntax
 
@@ -65,8 +65,12 @@ BitScheme also supports Symbolic Identifiers, which use prefix sigils for differ
 ### $Error
 ; ther-answer
 # $ther-answer
+### Alias
+; @the-answer 7;
+; the-answer
+# 7
+
 ```
-TBD: @Reference (reset) @the-answer 7
 Symbols with only non-alphanumeric characters (e.g., "+") are called Operators rather than Identifiers. There are four universal binary Operators in the standard library, which can be used with any Value:
 
 - "?" if-then
@@ -96,16 +100,21 @@ Elements are separated using Terminals:
 ==== Delimiters
 Elements are aggregated using pairs of Delimiters:
 ```
-; [1, 2, 3] # [] Boxed
+### [] Boxed
+; [1, 2, 3]
 # [1, 2, 3]
-; (0b1 0b0) # () Unboxed
+### () Unboxed
+; (0b1 0b0)
 # 0b10
-; .AppendZero {_ 0b0}; # {} Deferred
-; AppendZero(0b1)
+### <> Schema (i.e. type; see below)
+; .Bit <0b0, 0b1>;
+### {} Deferred
+; .AppendZero {0b1 0b0};
+; AppendZero
+# {0b1 0b0}
+; AppendZero()
 # 0b10
-; .Bit <0b0, 0b1>; # <> Schema (i.e. type; see below)
 ```
-
 ==== Properties
 
 Names can be used as properties to extract values from Groupings:
@@ -116,17 +125,22 @@ Names can be used as properties to extract values from Groupings:
 
 ==== Operator Syntax
 
-Operators are actually defined as properties. However, since Operators must always operate _on_ something, the preceding dot is optional:
+Operators are actually just non-alphanumeric properties.
 ```
-; .false () # _nil_, the empty expression
-; .true <> # _all_, the inclusive schema
-; true .? `Yes` .: `No` # Ternary
+### _nil_, the empty expression
+; .false ()
+### _all_, the inclusive schema
+; .true <>
+### Ternary
+; true .? `Yes` .: `No`
 # `Yes`
-; false ? `Yes` : `No`
+; false .? `Yes` .: `No`
 # `No`
-; [0b101, 0b010] & AppendZero # Map
+### Map
+; [0b101, 0b010] .& AppendZero
 # [0b1010, 0b0100]
-; [0b101, 0b010] | AppendZero # Reduce
+### Reduce
+; [0b101, 0b010] .| AppendZero
 # 0b10100100
 ```
 
@@ -139,8 +153,8 @@ Schemas, a novel feature of `bitscheme`, can be thought of as a cross between ty
 The three simple Schemas resemble C types, though they actually define an interface rather than require a specific representation:
 ```
 ; .enum123 <1,2,3>; # Enumerated list of valid values
-; .Byte <8@Bit>; # Fixed-length sequences
 ; .BitStream <[@Bit]>; # Variable-length Sequence of a specific type
+; .Byte <8@Bit>; # Fixed-length sequences
 ```
 
 === Type Constraints
@@ -156,7 +170,7 @@ The Schema constrains which values can be bound to a Symbol, and can be retrieve
 # $@enum123<1,2,3> 4
 ```
 
-=== Deconstuctors
+=== Deconstructors
 
 Schemas can also act directly to extract or bind values from compound sequences:
 
@@ -173,13 +187,13 @@ Schemas can also act directly to extract or bind values from compound sequences:
 
 We can also reverse the flow, by mapping capture keys to a dictionary to generate a sequence of values:
 ```
-; .BS3_sequence (BitSplitter3 & [.head 0b000; .tail 0b111;])
+; .BS3_sequence (BitSplitter3 .& [.head 0b000; .tail 0b111;])
 # [0b000, 0b111]
 
 ```
 The sequence can then be evaluated by folding it into an expression:
 ```
-; BS3_sequence | ()
+; BS3_sequence .| ()
 # 0b000111
 ```
 
@@ -281,14 +295,14 @@ More sophisticated parsers can of course render binary values as symbols for eas
 
 Similarly, we can map the Schema into a dictionary to generate a sequence, and thus a value:
 ```
-; .a11r10r7-sequence (RISC-V && a11r10r7-parsed)
+; .a11r10r7-sequence (RISC-V .&& a11r10r7-parsed)
 # [0b00000001011, 0b01010, 0b000, 0b00111, 0b0010011]
-; a11r10r7-sequence | ()
+; a11r10r7-sequence .| ()
 # 0b00000001011 01010 000 00111 0010011 # spaces added for clarity
 ```
 
 == Next Steps
 
-As of September 11, 2019 "hc" can evaluate all the primitives in this dcument except schemas (though only about half the tests pass).
+As of September 16, 2019 "hc" can evaluate all the primitives in this document except the operators (though only about half the tests pass).
 
-My goal is to have this entire document working by the end of the year.
+My goal is to have this entire document working by the end of 2019.
