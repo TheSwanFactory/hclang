@@ -1,4 +1,4 @@
-import { Context, Frame, FrameArray, FrameGroup, FrameLazy, FrameSchema, FrameSymbol, IArrayConstructor, NilContext } from "../frames";
+import { Context, Frame, FrameArray, FrameGroup, FrameLazy, FrameNote, FrameSchema, FrameSymbol, IArrayConstructor, NilContext } from "../frames";
 import { ICurryFunction } from "../ops";
 
 export type IAction = { [key: string]: any; };
@@ -12,7 +12,13 @@ export interface IFinish extends Frame {
 }
 
 const terminate: ICurryFunction = (pipe: IFinish, parameter: Frame) => {
-  return pipe.finish(parameter);
+  const finisher = pipe.finish;
+  if (finisher instanceof Function) {
+    return pipe.finish(parameter);
+  }
+  const note = FrameNote.key(pipe.id, pipe);
+  console.error("terminate", pipe);
+  return note;
 };
 
 export class Terminal extends Frame {
