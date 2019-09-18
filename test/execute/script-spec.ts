@@ -15,9 +15,10 @@ describe("script", () => {
     return result.toString().split("\n");
   };
 
-  it("?", () => {
+  it("=", () => {
     const result = script(["-e", title]);
     expect(result[0]).to.include(title);
+    // Frame is a language with no equal
   });
 
   it("123", () => {
