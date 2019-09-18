@@ -39,6 +39,12 @@ export class HCEval {
     return lexer;
   }
 
+  public static make_prompt(level: number): string {
+    const indent = 2 * (level - 1);
+    const middle = " ".repeat(indent);
+    return HCEval.EXPECT + middle + HCEval.EXPECT;
+  }
+
   protected pipe: LexPipe;
   protected lex: Frame;
 
@@ -55,7 +61,7 @@ export class HCEval {
     const source = new FrameString(input);
     this.checkInput(input);
     const result = source.reduce(this.lex);
-    console.error("HCEval.result", result);
+    // console.error("HCEval.result", result);
     this.lex = (result instanceof Lex) ? result : this.pipe;
     return result;
   }
@@ -75,7 +81,11 @@ export class HCEval {
   }
 
   protected getInput() {
-    return prompt(HCEval.SOURCE);
+    let prefix = HCEval.SOURCE;
+    if (this.pipe.level > 0) {
+      prefix = HCEval.make_prompt(this.pipe.level);
+    }
+    return prompt(prefix);
   }
 
   protected checkInput(input: string) {
