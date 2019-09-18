@@ -8,5 +8,5 @@ export declare class FrameOps extends Frame {
     constructor(OpsDict: FuncDict);
     get(key: string, origin: Frame): Frame;
     toString(): string;
-    protected curry(func: ICurryFunction, origin: Frame): Frame;
+    protected curry(func: ICurryFunction, origin: Frame, key: string): Frame;
 }
