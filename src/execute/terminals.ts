@@ -41,7 +41,8 @@ export const terminals: Context = {
 
 const perform = (actions: IAction) => {
   return (source: Frame, _parameter: Frame) => {
-    return (source as IPerformer).perform(actions);
+    const performer = source as IPerformer;
+    return performer.perform(actions);
   };
 };
 
