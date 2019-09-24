@@ -206,9 +206,68 @@ To reuse the results of previous captures, enclose the referencing capture in br
 
 ```
 
-== Example: RISC V
+== Example A: Symbolicated Frame Buffer
 
-To see how this works in practice, we will construct Schema for the six https://en.wikipedia.org/wiki/RISC-V#ISA_base_and_extensions[32-bit RISC-V Instruction Formats].
+This example demonstrates:
+* parsing named and unnamed captures
+* reusing variables across scopes
+* symbolicating output
+
+The bitstream starts with a 5-byte magic number for the _header_:
+```
+; .fb-start 0xf4m3b0ff3c;
+```
+After that come an arbitrary series of one of three _commands_.  Each command starts with a 4-bit _operation_:
+```
+; .op {
+# # .x 0xa
+# # .y 0xb
+# # .data 0xc
+}
+```
+The _x_ and _y_ operations are to set the top-level _width_ and _height_ variables, respectively:
+```
+; .width <2 @Byte>;
+; .height <2 @Byte>;
+; .parse-x <op.x; @width>;
+; .parse-y <op.y; @height>;
+```
+Those variables then determine the size of the data buffer in bytes:
+```
+; .pixel <2 @Byte>;
+; .parse-data <op.data; .fb-data <width height pixel>>;
+; .command <parse-x, parse-y, parse-data>;
+; .fb-parse <fb-start, [command]>;
+```
+For simplicity, let's assume a really small 4 x 2 display:
+```
+; .sizes {.mvga-x 0x0004; .mvga-y 0x0002;};
+; .mvga-data [0x0000 0x0001 0x0010 0x0100 0xffff 0xfff0 0xff00 0xf000];
+
+```
+The bitstream then becomes:
+```
+; .fb-bits (fb-start op.x mvga-x op.y mvga-y op.data mvga-data);
+```
+which parses back to:
+```
+; fb-parse fb-bits
+# [0xf4m3b0ff3c, @width 0x0004, @height 0x0002, .fb-data 0x0000000100100100fffffff0ff00f000]
+```
+If we would rather display symbolic values, we instead have the captures reverse-map ("|>") into the names:
+```
+; .sym-x <parse-x |> sizes>;
+; .sym-y <parse-y |> sizes>;
+; .sym-commands <sym-x, sym-y, parse-data>;
+; .fb-sym <fb-start |> @fb-start, [sym-commands]>;
+; fb-sym fb-bits
+# [{fb-start}, {@width mvga-x}, {@height mvga-y}, .fb-data 0x0000000100100100fffffff0ff00f000]
+
+```
+
+== Example B: RISC V
+
+To see how this works for more complex data, we will construct Schema for the six https://en.wikipedia.org/wiki/RISC-V#ISA_base_and_extensions[32-bit RISC-V Instruction Formats].
 
 === Fields
 We start by defining captures for the various sub-fields used by RISC V instructions (as used by RV 32I):
