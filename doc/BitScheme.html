@@ -462,7 +462,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div class="paragraph">
-<p>While you can write parsers in other languages to read the BitScheme format, BitScheme files can also be executed directly from the command line to parse or generate bitstreas. BitScheme can also be run as a REPL.<sup class="footnote">[<a id="_footnoteref_4" class="footnote" href="#_footnotedef_4" title="View footnote.">4</a>]</sup>. The REPL uses <code>; </code> as the input prompt and <code># </code> for the output (plus <code># # </code> for multi-line prompts), which is also the format we will use for code examples in this document.</p>
+<p>While you can write parsers in other languages to read the BitScheme format, BitScheme files can also be executed directly from the command line to parse or generate bitstreams. BitScheme can also be run as a REPL.<sup class="footnote">[<a id="_footnoteref_4" class="footnote" href="#_footnotedef_4" title="View footnote.">4</a>]</sup>. The REPL uses <code>; </code> as the input prompt and <code># </code> for the output (plus <code># # </code> for multi-line prompts), which is also the format we will use for code examples in this document.</p>
 </div>
 </div>
 </div>
@@ -627,7 +627,7 @@ You can also use triple-backquotes for docstrings in <a href="https://asciidocto
 <div class="sect3">
 <h4 id="_operator_syntax">Operator Syntax</h4>
 <div class="paragraph">
-<p>Operators are actually defined as properties.</p>
+<p>Operators are actually just non-alphanumeric properties.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -689,7 +689,7 @@ You can also use triple-backquotes for docstrings in <a href="https://asciidocto
 </div>
 </div>
 <div class="sect2">
-<h3 id="_deconstuctors">Deconstuctors</h3>
+<h3 id="_deconstructors">Deconstructors</h3>
 <div class="paragraph">
 <p>Schemas can also act directly to extract or bind values from compound sequences:</p>
 </div>
@@ -740,10 +740,102 @@ You can also use triple-backquotes for docstrings in <a href="https://asciidocto
 </div>
 </div>
 <div class="sect1">
-<h2 id="_example_risc_v">Example: RISC V</h2>
+<h2 id="_example_a_symbolicated_frame_buffer">Example A: Symbolicated Frame Buffer</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>To see how this works in practice, we will construct Schema for the six <a href="https://en.wikipedia.org/wiki/RISC-V#ISA_base_and_extensions">32-bit RISC-V Instruction Formats</a>.</p>
+<p>This example demonstrates:
+* parsing named and unnamed captures
+* reusing variables across scopes
+* symbolicating output</p>
+</div>
+<div class="paragraph">
+<p>The bitstream starts with a 5-byte magic number for the <em>header</em>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>; .fb-start 0xf4m3b0ff3c;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>After that come an arbitrary series of one of three <em>commands</em>.  Each command starts with a 4-bit <em>operation</em>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>; .op {
+# # .x 0xa
+# # .y 0xb
+# # .data 0xc
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <em>x</em> and <em>y</em> operations are to set the top-level <em>width</em> and <em>height</em> variables, respectively:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>; .width &lt;2 @Byte&gt;;
+; .height &lt;2 @Byte&gt;;
+; .parse-x &lt;op.x; @width&gt;;
+; .parse-y &lt;op.y; @height&gt;;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Those variables then determine the size of the data buffer in bytes:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>; .pixel &lt;2 @Byte&gt;;
+; .parse-data &lt;op.data; .fb-data &lt;width height pixel&gt;&gt;;
+; .command &lt;parse-x, parse-y, parse-data&gt;;
+; .fb-parse &lt;fb-start, [command]&gt;;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For simplicity, let&#8217;s assume a really small 4 x 2 display:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>; .sizes {.mvga-x 0x0004; .mvga-y 0x0002;};
+; .mvga-data [0x0000 0x0001 0x0010 0x0100 0xffff 0xfff0 0xff00 0xf000];</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The bitstream then becomes:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>; .fb-bits (fb-start op.x mvga-x op.y mvga-y op.data mvga-data);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>which parses back to:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>; fb-parse fb-bits
+# [0xf4m3b0ff3c, @width 0x0004, @height 0x0002, .fb-data 0x0000000100100100fffffff0ff00f000]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If we would rather display symbolic values, we instead have the captures reverse-map ("|&gt;") into the names:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>; .sym-x &lt;parse-x |&gt; sizes&gt;;
+; .sym-y &lt;parse-y |&gt; sizes&gt;;
+; .sym-commands &lt;sym-x, sym-y, parse-data&gt;;
+; .fb-sym &lt;fb-start |&gt; @fb-start, [sym-commands]&gt;;
+; fb-sym fb-bits
+# [{fb-start}, {@width mvga-x}, {@height mvga-y}, .fb-data 0x0000000100100100fffffff0ff00f000]</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_example_b_risc_v">Example B: RISC V</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To see how this works for more complex data, we will construct Schema for the six <a href="https://en.wikipedia.org/wiki/RISC-V#ISA_base_and_extensions">32-bit RISC-V Instruction Formats</a>.</p>
 </div>
 <div class="sect2">
 <h3 id="_fields">Fields</h3>
@@ -879,10 +971,10 @@ You can also use triple-backquotes for docstrings in <a href="https://asciidocto
 <h2 id="_next_steps">Next Steps</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>As of September 11, 2019 "hc" can evaluate all the primitives in this dcument except schemas (though only about half the tests pass).</p>
+<p>As of September 16, 2019 "hc" can evaluate all the primitives in this document except the operators (though only about half the tests pass).</p>
 </div>
 <div class="paragraph">
-<p>My goal is to have this entire document working by the end of the year.</p>
+<p>My goal is to have this entire document working by the end of 2019.</p>
 </div>
 </div>
 </div>
@@ -907,7 +999,7 @@ You can also use triple-backquotes for docstrings in <a href="https://asciidocto
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2019-09-16 17:52:38 -0700
+Last updated 2019-09-23 21:36:55 -0700
 </div>
 </div>
 </body>
