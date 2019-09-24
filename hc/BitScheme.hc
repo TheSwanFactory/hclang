@@ -215,7 +215,7 @@ This example demonstrates:
 
 The bitstream starts with a 5-byte magic number for the _header_:
 ```
-; .fb-start 0xf4m3b0ff3c
+; .fb-start 0xf4m3b0ff3c;
 ```
 After that come an arbitrary series of one of three _commands_.  Each command starts with a 4-bit _operation_:
 ```
@@ -237,7 +237,7 @@ Those variables then determine the size of the data buffer in bytes:
 ; .pixel <2 @Byte>;
 ; .parse-data <op.data; .fb-data <width height pixel>>;
 ; .command <parse-x, parse-y, parse-data>;
-; .fb-parse <fb-start; [command]>;
+; .fb-parse <fb-start, [command]>;
 ```
 For simplicity, let's assume a really small 4 x 2 display:
 ```
@@ -252,16 +252,16 @@ The bitstream then becomes:
 which parses back to:
 ```
 ; fb-parse fb-bits
-[@width 0x0004, @height 0x0002, .fb-data 0x0000000100100100fffffff0ff00f000]
+# [0xf4m3b0ff3c, @width 0x0004, @height 0x0002, .fb-data 0x0000000100100100fffffff0ff00f000]
 ```
-If we would rather get symbolic values, we instead have the captures arrow-pipe into an map:
+If we would rather display symbolic values, we instead have the captures reverse-map ("|>") into the names:
 ```
 ; .sym-x <parse-x |> sizes>;
 ; .sym-y <parse-y |> sizes>;
 ; .sym-commands <sym-x, sym-y, parse-data>;
-; .fb-sym <fb-start; [sym-commands]>;
+; .fb-sym <fb-start |> @fb-start, [sym-commands]>;
 ; fb-sym fb-bits
-[{@width mvga-x}, {@height mvga-y}, .fb-data 0x0000000100100100fffffff0ff00f000]
+# [{fb-start}, {@width mvga-x}, {@height mvga-y}, .fb-data 0x0000000100100100fffffff0ff00f000]
 
 ```
 
