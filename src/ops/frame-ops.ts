@@ -22,11 +22,7 @@ export class FrameOps extends Frame {
   }
 
   protected curry(func: ICurryFunction, origin: Frame, key: string): Frame {
-    const expr = new FrameExpr([
-      new FrameCurry(func, origin, key),
-      FrameArg.here(),
-    ]);
-    expr.id += "." + key;
+    const expr = new FrameCurry(func, origin, key);
     return expr;
   }
 }

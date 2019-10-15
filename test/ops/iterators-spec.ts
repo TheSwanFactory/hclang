@@ -27,10 +27,6 @@ describe("iterators", () => {
       expect(operator.is.missing).to.not.equal(true);
     });
 
-    it("is retrieved as an expression", () => {
-      expect(operator).to.be.instanceOf(frame.FrameExpr);
-    });
-
     it("returns frame.FrameArray when called", () => {
       expect(result).to.be.instanceOf(frame.FrameArray);
     });
