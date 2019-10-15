@@ -26,7 +26,7 @@ export class FrameOps extends Frame {
       new FrameCurry(func, origin, key),
       FrameArg.here(),
     ]);
-    expr.id += key;
+    expr.id += "." + key;
     return expr;
   }
 }

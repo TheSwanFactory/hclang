@@ -5,7 +5,7 @@ export type ICurryFunction = (source: Frame, block: Frame) => Frame;
 export class FrameCurry extends Frame {
   constructor(protected Func: ICurryFunction, protected Source: Frame, protected key: string) {
     super();
-    this.id += key;
+    this.id += "." + key;
   }
 
   public apply(argument: Frame, _parameter: Frame) {
