@@ -5,6 +5,6 @@ export declare class FrameCurry extends Frame {
     protected Source: Frame;
     protected key: string;
     constructor(Func: ICurryFunction, Source: Frame, key: string);
-    apply(argument: Frame, _parameter: Frame): Frame;
+    call(argument: Frame, _parameter: Frame): Frame;
     toString(): string;
 }

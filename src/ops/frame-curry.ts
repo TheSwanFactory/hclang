@@ -8,7 +8,7 @@ export class FrameCurry extends Frame {
     this.id += "." + key;
   }
 
-  public apply(argument: Frame, _parameter: Frame) {
+  public call(argument: Frame, _parameter: Frame) {
     return this.Func(this.Source, argument);
   }
 
