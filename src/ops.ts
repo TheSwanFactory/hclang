@@ -1,4 +1,4 @@
-export { ICurryFunction } from "./ops/frame-curry";
+export { FrameCurry, ICurryFunction } from "./ops/frame-curry";
 
 import { IfElse, IfThen } from "./ops/conditionals";
 import { FrameOps } from "./ops/frame-ops";
