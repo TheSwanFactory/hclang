@@ -16,6 +16,7 @@ const atomClasses: Array<any> = [
   frame.FrameName,
   frame.FrameNote,
   frame.FrameNumber,
+  frame.FrameOperator,
   frame.FrameString,
   frame.FrameSymbol,
 ];

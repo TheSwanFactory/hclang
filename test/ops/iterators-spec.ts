@@ -57,8 +57,6 @@ describe("iterators", () => {
       const curry_result = curry.call(base);
       const curry_string = curry_result.toString();
       expect(curry_string).to.include("FrameCurry");
-      expect(curry_string).to.include(base.toString());
-      expect(curry_string).to.equal(operator.toString());
     });
 
     it("is called as a name with a lazy block", () => {

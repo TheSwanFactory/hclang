@@ -19,3 +19,9 @@ export declare class FrameSymbol extends FrameAtom {
     canInclude(char: string): boolean;
     protected toData(): string;
 }
+export declare class FrameOperator extends FrameSymbol {
+    static readonly OPERATOR_BEGIN: RegExp;
+    static readonly OPERATOR_CHAR: RegExp;
+    string_start(): string;
+    canInclude(char: string): boolean;
+}
