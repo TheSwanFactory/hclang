@@ -4,8 +4,8 @@ import { FrameNote } from "./frame-note";
 import { Context, NilContext } from "./meta-frame";
 
 export class FrameSymbol extends FrameAtom {
-  public static readonly SYMBOL_BEGIN = /[-a-zA-Z]/;
-  public static readonly SYMBOL_CHAR = /[-\w]/;
+  public static readonly SYMBOL_BEGIN = /[-a-zA-Z&|?:+*=]/;
+  public static readonly SYMBOL_CHAR = /[-\w&|?:+*=]/;
 
   public static for(symbol: string) {
     const exists = FrameSymbol.symbols[symbol];

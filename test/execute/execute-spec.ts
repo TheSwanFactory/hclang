@@ -2,6 +2,7 @@
 import { expect } from "chai";
 import {} from "mocha";
 import { execute } from "../../src/execute";
+import * as frame from "../../src/frames";
 import { FrameCurry } from "../../src/ops";
 
 describe("execute", () => {
@@ -105,10 +106,16 @@ describe("execute", () => {
   });
 
   describe("operators", () => {
+    it("accepts them as symbols", () => {
+      const input = ".&";
+      const result = execute(input);
+      expect(result.toString()).to.include("&");
+    });
+
     it("curries", () => {
       const input = "[`a`].&";
       const result = execute(input);
-      expect(result).to.be.instanceof(FrameCurry);
+      expect(result).to.include("FrameCurry");
     });
   });
 

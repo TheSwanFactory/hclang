@@ -13,6 +13,6 @@ export class FrameCurry extends Frame {
   }
 
   public toString() {
-    return `FrameCurry(${this.Source}, ${this.Func})`;
+    return this.id; // `FrameCurry(${this.Source.id}, ${this.Func})`;
   }
 }
