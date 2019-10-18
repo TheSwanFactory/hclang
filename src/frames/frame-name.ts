@@ -1,6 +1,6 @@
 import { Frame } from "./frame";
 import { FrameAtom } from "./frame-atom";
-import { FrameSymbol } from "./frame-symbol";
+import { FrameOperator, FrameSymbol } from "./frame-symbol";
 import { NilContext } from "./meta-frame";
 
 export class FrameName extends FrameAtom {
@@ -22,7 +22,8 @@ export class FrameName extends FrameAtom {
   public string_prefix() { return FrameName.NAME_BEGIN; };
 
   public canInclude(char: string) {
-    return FrameSymbol.SYMBOL_CHAR.test(char);
+    return FrameSymbol.SYMBOL_CHAR.test(char) ||
+           FrameOperator.OPERATOR_CHAR.test(char);
   }
 
   protected toData() { return this.data; }
