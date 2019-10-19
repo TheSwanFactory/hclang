@@ -24,6 +24,9 @@
   },
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
+  "watch": {
+    "test": "{src,test}/*.js"
+  },
   "scripts": {
     "bs:html": "tail +3 hc/BitScheme.hc hc/BitScheme-1.hc > doc/BitScheme.adoc && asciidoctor doc/BitScheme.adoc && open doc/BitScheme.html",
     "bs:all": "npm run build && npm run bs:html && npm run bs",
@@ -42,8 +45,7 @@
     "tag:minor": "bump minor -ct package*.json README.md src/version.ts",
     "ts": "tsc --pretty --inlineSourceMap && chmod a+x ./lib/cli/hc.js",
     "ts:version": "echo TypeScript `tsc --version` ",
-    "watch": "npm run build -- --watch",
-    "watch:test": "npm run test -- --watch"
+    "watch": "npm install -g npm-watch && npm-watch"
   },
   "dependencies": {
     "@types/prompt-sync": "^4.1.0",
