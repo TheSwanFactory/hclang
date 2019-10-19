@@ -39,12 +39,18 @@ export class HCEval {
     return lexer;
   }
 
-  protected lexer: LexPipe;
-  protected current: Frame;
+  public static make_prompt(level: number): string {
+    const indent = 2 * (level - 1);
+    const middle = " ".repeat(indent);
+    return HCEval.EXPECT + middle + HCEval.EXPECT;
+  }
+
+  protected pipe: LexPipe;
+  protected lex: Frame;
 
   constructor(protected out: Frame) {
-    this.lexer = HCEval.make_pipe(this.out);
-    this.current = this.lexer;
+    this.pipe = HCEval.make_pipe(this.out);
+    this.lex = this.pipe;
   }
 
   public call(input: string) {
@@ -54,9 +60,9 @@ export class HCEval {
     // console.error("HCEval.input", input);
     const source = new FrameString(input);
     this.checkInput(input);
-    const result = source.reduce(this.current);
-    // console.error("HCEval.result", result.id);
-    this.current = result;
+    const result = source.reduce(this.lex);
+    // console.error("HCEval.result", result);
+    this.lex = (result instanceof Lex) ? result : this.pipe;
     return result;
   }
 
@@ -64,7 +70,7 @@ export class HCEval {
     console.log(".hc " + version);
     let status = true;
     while (status) {
-      const input = prompt(HCEval.SOURCE);
+      const input = this.getInput();
       if (!input) {
         status = false;
         break;
@@ -72,6 +78,14 @@ export class HCEval {
       this.call(input);
     }
     return status;
+  }
+
+  protected getInput() {
+    let prefix = HCEval.SOURCE;
+    if (this.pipe.level > 0) {
+      prefix = HCEval.make_prompt(this.pipe.level);
+    }
+    return prompt(prefix);
   }
 
   protected checkInput(input: string) {

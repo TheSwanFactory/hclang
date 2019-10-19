@@ -3,13 +3,16 @@ import { Context, Frame, FrameString, FrameSymbol } from "../frames";
 import { Lex } from "./lex";
 import { ParsePipe } from "./parse-pipe";
 import { syntax } from "./syntax";
-import { IAction, IPerformer } from "./terminals";
+import { IAction, IFinish, IPerformer } from "./terminals";
 
-export class LexPipe extends Frame implements IPerformer {
+export class LexPipe extends Frame implements IFinish, IPerformer {
+
+  public level: number;
 
   constructor(out: Frame) {
     syntax[Frame.kOUT] = out;
     super(syntax);
+    this.level = 0;
     this.addPipeToLex();
   }
 
@@ -17,7 +20,6 @@ export class LexPipe extends Frame implements IPerformer {
     Object.values(syntax).forEach((value) => {
       if (value instanceof Lex) {
         const lex = value as Lex;
-        lex.pipe = this;
       }
     });
   }
@@ -31,7 +33,7 @@ export class LexPipe extends Frame implements IPerformer {
     return source.reduce(this);
   }
 
-  public finish(parameter: Frame) {
+  public finish(_parameter: Frame) {
     const output = FrameSymbol.end();
     const out = this.get(Frame.kOUT);
     const result = out.call(output);
@@ -57,11 +59,13 @@ export class LexPipe extends Frame implements IPerformer {
         case "push": {
           const next_parser = parser.push(value);
           this.set(Frame.kOUT, next_parser);
+          this.level += 1;
           break;
         }
         case "pop": {
           const next_parser = parser.pop(value);
           this.set(Frame.kOUT, next_parser);
+          this.level -= 1;
           break;
         }
       }

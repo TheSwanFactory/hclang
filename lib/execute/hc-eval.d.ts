@@ -9,10 +9,12 @@ export declare class HCEval {
     static readonly EXPECT = "# ";
     static make_context(env: IProcessEnv): Context;
     static make_pipe(out: Frame): LexPipe;
-    protected lexer: LexPipe;
-    protected current: Frame;
+    static make_prompt(level: number): string;
+    protected pipe: LexPipe;
+    protected lex: Frame;
     constructor(out: Frame);
     call(input: string): Frame;
     repl(): boolean;
+    protected getInput(): string;
     protected checkInput(input: string): void;
 }

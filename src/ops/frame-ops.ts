@@ -1,4 +1,4 @@
-import { Frame, FrameArg, FrameExpr } from "../frames";
+import { Frame, FrameArg, FrameExpr, FrameNote } from "../frames";
 import { FrameCurry, ICurryFunction } from "./frame-curry";
 
 export type FuncDict = { [key: string]: ICurryFunction; };
@@ -11,9 +11,9 @@ export class FrameOps extends Frame {
   public get(key: string, origin: Frame): Frame {
     const func = this.OpsDict[key];
     if (func != null) {
-      return this.curry(func, origin);
+      return this.curry(func, origin, key);
     }
-    // console.error(`**WARN** [get]: '${key}' not found in: ${origin}`);
+    // return FrameNote.key(key, origin);
     return Frame.missing;
   }
 
@@ -21,10 +21,8 @@ export class FrameOps extends Frame {
     return this.OpsDict.toString();
   }
 
-  protected curry(func: ICurryFunction, origin: Frame): Frame {
-    return new FrameExpr([
-      new FrameCurry(func, origin),
-      FrameArg.here(),
-    ]);
+  protected curry(func: ICurryFunction, origin: Frame, key: string): Frame {
+    const expr = new FrameCurry(func, origin, key);
+    return expr;
   }
 }

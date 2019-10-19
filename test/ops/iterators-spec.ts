@@ -2,7 +2,6 @@
 import { expect } from "chai";
 import {} from "mocha";
 import * as frame from "../../src/frames";
-import { Ops } from "../../src/ops";
 
 describe("iterators", () => {
   const base = new frame.Frame({
@@ -19,7 +18,6 @@ describe("iterators", () => {
   });
 
   describe("&& iterate over metas", () => {
-    frame.Frame.globals = Ops;
     const operator = base.get("&&");
     const result = operator.call(block);
 
@@ -27,10 +25,6 @@ describe("iterators", () => {
       expect(operator).to.be.ok;
       expect(operator).to.not.equal(frame.Frame.missing);
       expect(operator.is.missing).to.not.equal(true);
-    });
-
-    it("is retrieved as an expression", () => {
-      expect(operator).to.be.instanceOf(frame.FrameExpr);
     });
 
     it("returns frame.FrameArray when called", () => {
@@ -63,8 +57,6 @@ describe("iterators", () => {
       const curry_result = curry.call(base);
       const curry_string = curry_result.toString();
       expect(curry_string).to.include("FrameCurry");
-      expect(curry_string).to.include(base.toString());
-      expect(curry_string).to.equal(operator.toString());
     });
 
     it("is called as a name with a lazy block", () => {

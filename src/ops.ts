@@ -1,8 +1,13 @@
-import { Frame, FrameArg, FrameExpr } from "./frames";
-export { ICurryFunction } from "./ops/frame-curry";
+export { FrameCurry, ICurryFunction } from "./ops/frame-curry";
+
+import { IfElse, IfThen } from "./ops/conditionals";
 import { FrameOps } from "./ops/frame-ops";
-import { MetaMap } from "./ops/iterators";
+import { MapEnumerable, MapProperties, ReduceEnumerable } from "./ops/iterators";
 
 export const Ops = new FrameOps({
-  "&&": MetaMap,
+  "&":  MapEnumerable,
+  "&&": MapProperties,
+  ":": IfElse,
+  "?": IfThen,
+  "|":  ReduceEnumerable,
 });

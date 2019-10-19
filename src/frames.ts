@@ -14,6 +14,10 @@ export { FrameNote } from "./frames/frame-note";
 export { FrameNumber } from "./frames/frame-number";
 export { FrameSchema } from "./frames/frame-schema";
 export { FrameString } from "./frames/frame-string";
-export { FrameSymbol } from "./frames/frame-symbol";
+export { FrameOperator, FrameSymbol } from "./frames/frame-symbol";
 export { Frame } from "./frames/frame";
 export { Context, IKeyValuePair, ISourced, MetaFrame, NilContext } from "./frames/meta-frame";
+
+import { Frame } from "./frames/frame";
+import { Ops } from "./ops";
+Frame.globals = Ops;

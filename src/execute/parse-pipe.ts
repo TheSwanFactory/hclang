@@ -1,7 +1,7 @@
 import { Context, Frame, FrameArray, FrameExpr, FrameSymbol } from "../frames";
-import { Terminal } from "./terminals";
+import { IFinish, Terminal } from "./terminals";
 
-export class ParsePipe extends FrameArray {
+export class ParsePipe extends FrameArray implements IFinish {
   public collector: Array<Frame>;
   protected factory: any;
 
