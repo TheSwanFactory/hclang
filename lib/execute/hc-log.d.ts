@@ -6,4 +6,5 @@ export declare class HCLog extends Frame {
     prompt: boolean;
     constructor(context: Context, prompt?: boolean);
     apply(argument: Frame, _parameter?: Frame): Frame;
+    private color;
 }
