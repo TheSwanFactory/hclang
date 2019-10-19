@@ -18,7 +18,7 @@ export class HCLog extends Frame {
     if (argument !== Frame.nil && !argument.is.void && !argument.is.statement) {
       const output = argument.toString();
       if (this.prompt) {
-        console.log(HCEval.EXPECT + output);
+        console.log(chalk.grey(HCEval.EXPECT + output));
       } else {
         console.log(output);
       }

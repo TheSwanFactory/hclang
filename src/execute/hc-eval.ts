@@ -28,7 +28,7 @@ export class HCEval {
       }
     });
     if (context["DEBUG_ENV"]) {
-      console.log(context.toString());
+      console.log(context);
     }
     return context;
   }
@@ -68,7 +68,7 @@ export class HCEval {
   }
 
   public repl(): boolean {
-    console.log(chalk.blue(".hc " + version + ";"));
+    console.log(chalk.green(".hc " + version + ";"));
     let status = true;
     while (status) {
       const input = this.getInput();
@@ -86,7 +86,7 @@ export class HCEval {
     if (this.pipe.level > 0) {
       prefix = HCEval.make_prompt(this.pipe.level);
     }
-    return prompt(prefix);
+    return prompt(chalk.grey(prefix));
   }
 
   protected checkInput(input: string) {
