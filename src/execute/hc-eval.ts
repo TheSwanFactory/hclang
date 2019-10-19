@@ -1,3 +1,4 @@
+import chalk from "chalk";
 import * as prompt_sync from "prompt-sync";
 import * as prompt_history from "prompt-sync-history";
 import { Context, Frame, FrameGroup, FrameString, FrameSymbol } from "../frames";
@@ -27,7 +28,7 @@ export class HCEval {
       }
     });
     if (context["DEBUG_ENV"]) {
-      console.log(context);
+      console.log(context.toString());
     }
     return context;
   }
@@ -67,7 +68,7 @@ export class HCEval {
   }
 
   public repl(): boolean {
-    console.log(".hc " + version);
+    console.log(chalk.blue(".hc " + version + ";"));
     let status = true;
     while (status) {
       const input = this.getInput();

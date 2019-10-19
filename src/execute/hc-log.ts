@@ -1,3 +1,4 @@
+import chalk from "chalk";
 import { Context, Frame } from "../frames";
 import { HCEval } from "./hc-eval";
 
