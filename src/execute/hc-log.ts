@@ -20,9 +20,23 @@ export class HCLog extends Frame {
       if (this.prompt) {
         console.log(chalk.grey(HCEval.EXPECT + output));
       } else {
-        console.log(output);
+        const colorized = this.color(output);
+        console.log(colorized);
       }
     }
     return argument;
+  }
+
+  private color(output: string): string {
+    if (output[0] !== "$") {
+      return output;
+    }
+    const flag = output[1];
+    const part = output.split(".n");
+    switch (flag) {
+      case "+": return chalk.green(part[0]) + chalk.grey.italic(part[1]);
+      case "-": return chalk.red(part[0]) + chalk.grey.italic(part[1]);
+      default: return chalk.yellow(output);
+    }
   }
 }

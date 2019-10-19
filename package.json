@@ -45,7 +45,7 @@
     "tag:minor": "bump minor -ct package*.json README.md src/version.ts",
     "ts": "tsc --pretty --inlineSourceMap && chmod a+x ./lib/cli/hc.js",
     "ts:version": "echo TypeScript `tsc --version` ",
-    "watch": "npm install -g npm-watch && npm-watch"
+    "watch": "npm-watch test"
   },
   "dependencies": {
     "@types/prompt-sync": "^4.1.0",
