@@ -20,7 +20,8 @@ export class FrameAtom extends Frame {
 
   public toString() {
     const dataString = this.toStringData();
-    if (this.meta_length() === 0) {
+    const n = this.meta_length();
+    if ((n === 0) || (n === 1 && this.meta[Frame.kOUT])) {
       return dataString;
     }
     return this.string_open() + [dataString, this.meta_string()].join(", ") + this.string_close();
