@@ -1,6 +1,7 @@
+import chalk from "chalk";
 import * as prompt_sync from "prompt-sync";
 import * as prompt_history from "prompt-sync-history";
-import { Context, Frame, FrameGroup, FrameString, FrameSymbol } from "../frames";
+import { Context, Frame, FrameGroup, FrameString } from "../frames";
 import { version } from "../version";
 import { EvalPipe } from "./eval-pipe";
 import { Lex } from "./lex";
@@ -67,7 +68,7 @@ export class HCEval {
   }
 
   public repl(): boolean {
-    console.log(".hc " + version);
+    console.log(chalk.green(".hc " + version + ";"));
     let status = true;
     while (status) {
       const input = this.getInput();
@@ -85,7 +86,7 @@ export class HCEval {
     if (this.pipe.level > 0) {
       prefix = HCEval.make_prompt(this.pipe.level);
     }
-    return prompt(prefix);
+    return prompt(chalk.grey(prefix));
   }
 
   protected checkInput(input: string) {
