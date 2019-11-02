@@ -707,7 +707,11 @@ You can also use triple-backquotes for docstrings in <a href="https://asciidocto
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code>; .BS3_sequence (BitSplitter3 .&amp; [.head 0b000; .tail 0b111;])
+<pre class="highlight"><code>; .Bit &lt;0b0, 0b1&gt;;
+; .Byte &lt;8@Bit&gt;; # Fixed-length sequences
+; .BitSplitter3 &lt;[.head &lt;3@Bit&gt;; .tail &lt;[@Bit]&gt;;]&gt;;
+; .BS3_sequence (BitSplitter3 .&amp; [.head 0b000; .tail 0b111;]);
+; BS3_sequence
 # [0b000, 0b111]</code></pre>
 </div>
 </div>
@@ -1006,7 +1010,7 @@ You can also use triple-backquotes for docstrings in <a href="https://asciidocto
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2019-10-19 04:35:00 -0700
+Last updated 2019-11-01 20:11:06 -0700
 </div>
 </div>
 </body>
