@@ -32,7 +32,7 @@ export class HCLog extends Frame {
       return output;
     }
     const flag = output[1];
-    const part = output.split(".n");
+    const part = output.split(" .n ");
     switch (flag) {
       case "+": return chalk.green(part[0]) + chalk.grey.italic(part[1]);
       case "-": return chalk.red(part[0]) + chalk.grey.italic(part[1]);

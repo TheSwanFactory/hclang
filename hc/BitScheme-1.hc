@@ -4,7 +4,11 @@
 
 We can also reverse the flow, by mapping capture keys to a dictionary to generate a sequence of values:
 ```
-; .BS3_sequence (BitSplitter3 .& [.head 0b000; .tail 0b111;])
+; .Bit <0b0, 0b1>;
+; .Byte <8@Bit>; # Fixed-length sequences
+; .BitSplitter3 <[.head <3@Bit>; .tail <[@Bit]>;]>;
+; .BS3_sequence (BitSplitter3 .& [.head 0b000; .tail 0b111;]);
+; BS3_sequence
 # [0b000, 0b111]
 
 ```
