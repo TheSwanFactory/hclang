@@ -1,0 +1,26 @@
+# Goldiware
+
+**Goldiware** incorporates both hardware and software into a "Grand Unified Theory" of computation that makes it easier to design and program optimally efficient systems. 
+
+Since the invention of Turing Machines and the von Neumann architecture, Computer Science has primarily focused on mathematically-inspired models of software, and attempted to fit hardware into that framework. While that has been phenomenally successful, the proliferation of custom silicon and processors (ASICs, SOCs, GPUs, TPUs, etc.) makes the fiction of "general-purpose" hardware increasingly unrealistic. 
+
+Goldiware starts from the opposite direction. It integrates the three fundamental components of computer hardware (logic gates, switches, and memory) into a novel abstraction called the **hexon**, then uses hexons rather than functions as the basis of a radically different type of programming (a "hexgram") that can be executed using either traditional software or custom hardware. 
+
+#  HEXONS 
+
+
+
+# HEXGRAMS
+
+Hexgrams can be thought of as generalized dependency graphs that links input and output via shared state and trigger.
+
+
+# PEACE Monad
+- Dictionary
+- Array
+- Function
+- Scope
+- Pointer
+
+
+#  Golden Girls Architecture 
