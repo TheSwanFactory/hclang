@@ -1,3 +1,5 @@
+.hc 0.6.0
+
 . <- <>.hcdl.fpga
 
 .blinker <
@@ -11,17 +13,20 @@
 
   -reset.posedge .=> { count .<= 0};
   -clock.posedge .=> { count .<=+ 1};
-
+  .run {
+    -clock.start();
+  };
 };
 
-.-clock fpga.clock(100.mhz);
-.-reset fpga.button();
-.led- fpga.led(2);
 
-.demo blinker[];
--clock();
+.demo blinker(
+  .-clock fpga.clock(100.mega.hz);
+  .-reset fpga.button();
+  .led- fpga.led(2);
+);
+demo.run();
 
-```
+```verilog
 module led_simple(
     input clock,
     input reset,
