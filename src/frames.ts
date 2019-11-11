@@ -3,6 +3,7 @@ export { FrameArray } from "./frames/frame-array";
 export { FrameAtom, FrameQuote, IStringConstructor } from "./frames/frame-atom";
 export { FrameArg, FrameParam } from "./frames/frame-arg";
 export { FrameBlob } from "./frames/frame-blob";
+export { FrameBytes } from "./frames/frame-bytes";
 export { FrameComment } from "./frames/frame-comment";
 export { FrameDoc } from "./frames/frame-doc";
 export { FrameExpr } from "./frames/frame-expr";
