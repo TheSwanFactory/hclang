@@ -8,5 +8,6 @@ export declare class FrameBytes extends FrameQuote {
     constructor(values: number[], meta?: Context);
     string_prefix(): string;
     string_suffix(): string;
-    protected toData(): Uint8Array;
+    toStringData(): string;
+    protected toData(): string;
 }

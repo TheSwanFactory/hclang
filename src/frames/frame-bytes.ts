@@ -19,6 +19,16 @@ export class FrameBytes extends FrameQuote {
 
   public string_suffix() { return FrameBytes.BYTES_END; };
 
-  protected toData() { return this.data; }
+  public toStringData(): string {
+    return this.string_prefix() + this.length + this.string_suffix() + this.toData();
+  }
+
+  protected toData() {
+    let s = "";
+    this.data.forEach((value) => {
+      s = s + String.fromCharCode(value)
+    });
+    return s;
+  }
 
 };
