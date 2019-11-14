@@ -29,12 +29,15 @@ describe("LexPipe", () => {
     expect(result).to.equal(pipe);
   });
 
-  describe.only("FrameBytes", () => {
-    it("returns Lex on \\", () => {
-      const slash = frame.FrameSymbol.for("\\");
-      const result = pipe.call(slash);
-      expect(result).to.be.instanceof(Lex);
-    });
+  it("returns LexBytes on \\4\\", () => {
+    const slash = frame.FrameSymbol.for("\\");
+    const one = frame.FrameSymbol.for("1");
+    let result = pipe.call(slash);
+    expect(result).to.be.instanceof(Lex);
+    result = pipe.call(one);
+    result = pipe.call(slash);
+    console.error(result);
+    expect(result).to.be.instanceof(Lex);
   });
 
 });

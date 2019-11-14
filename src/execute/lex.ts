@@ -1,5 +1,6 @@
 import * as _ from "lodash";
-import { Frame, FrameAtom, FrameQuote, ISourced, NilContext } from "../frames";
+import { Frame, FrameAtom, FrameBytes, FrameQuote, ISourced, NilContext } from "../frames";
+import { LexBytes } from "./lex-bytes";
 import { LexPipe } from "./lex-pipe";
 import { terminals } from "./terminals";
 
@@ -69,12 +70,24 @@ export class Lex extends Frame implements ISourced {
   }
 
   protected finish(argument: Frame, passAlong: boolean) {
+    const recurse = this.checkRecursive(argument);
+    if (recurse !== null) {
+      return recurse;
+    }
     this.exportFrame();
     if (passAlong) {
       const result = this.up.call(argument);
       return result;
     }
     return this.up;
+  }
+
+  protected checkRecursive(_argument: Frame) {
+    if (!(this.sample instanceof FrameBytes)) {
+      return null;
+    }
+    const n = parseInt(this.body, 10);
+    return new LexBytes(n);
   }
 
   protected exportFrame() {
