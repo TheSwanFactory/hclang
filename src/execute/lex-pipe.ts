@@ -13,15 +13,6 @@ export class LexPipe extends Frame implements IFinish, IPerformer {
     syntax[Frame.kOUT] = out;
     super(syntax);
     this.level = 0;
-    this.addPipeToLex();
-  }
-
-  public addPipeToLex() {
-    Object.values(syntax).forEach((value) => {
-      if (value instanceof Lex) {
-        const lex = value as Lex;
-      }
-    });
   }
 
   public lex_string(input: string) {

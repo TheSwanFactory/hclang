@@ -1,9 +1,8 @@
 
 import { expect } from "chai";
 import {} from "mocha";
+import { Lex } from "../../src/execute/lex";
 import { LexPipe } from "../../src/execute/lex-pipe";
-import * as parse from "../../src/execute/parse-pipe";
-import { Terminal, terminals } from "../../src/execute/terminals";
 import * as frame from "../../src/frames";
 
 describe("LexPipe", () => {
@@ -28,6 +27,15 @@ describe("LexPipe", () => {
   it("returns itself on finish", () => {
     const result = pipe.finish(frame.Frame.nil);
     expect(result).to.equal(pipe);
+  });
+
+  describe.skip("FrameBytes", () => {
+    it("returns Lex on /", () => {
+      const slash = frame.FrameSymbol.for("/");
+      const result = pipe.call(slash);
+      console.error(result);
+      expect(result).to.be.instanceof(LexPipe);
+    });
   });
 
 });

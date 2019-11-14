@@ -118,7 +118,7 @@ describe("execute", () => {
     });
   });
 
-  describe.only("byte.strings", () => {
+  describe.skip("byte.strings", () => {
     it("reads n characters", () => {
       const input = "\\1\\a";
       const result = execute(input);
