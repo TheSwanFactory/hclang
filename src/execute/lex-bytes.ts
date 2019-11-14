@@ -7,10 +7,11 @@ export class LexBytes extends Frame implements ISourced {
   public source: string;
   protected body: number[];
 
-  public constructor(protected count: number) {
+  public constructor(protected count: number, up: Frame) {
     super();
     this.body = [];
     this.is.void = true;
+    this.up = up;
   }
 
   public call(argument: Frame, _parameter = Frame.nil): Frame {
@@ -31,13 +32,12 @@ export class LexBytes extends Frame implements ISourced {
   protected exportFrame() {
     const output = this.makeFrame();
     const out = this.get(Frame.kOUT);
-    this.body = [];
-    // debugger;
     return out.call(output);
   }
 
   protected makeFrame() {
     const frame = new FrameBytes(this.body);
+    this.body = [];
     return new Token(frame);
   }
 }

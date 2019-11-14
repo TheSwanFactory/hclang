@@ -2,6 +2,7 @@
 import { expect } from "chai";
 import {} from "mocha";
 import { Lex } from "../../src/execute/lex";
+import { LexBytes } from "../../src/execute/lex-bytes";
 import { LexPipe } from "../../src/execute/lex-pipe";
 import * as frame from "../../src/frames";
 
@@ -29,15 +30,14 @@ describe("LexPipe", () => {
     expect(result).to.equal(pipe);
   });
 
-  it("returns LexBytes on \\4\\", () => {
+  it("returns LexBytes on \\1\\1", () => {
     const slash = frame.FrameSymbol.for("\\");
     const one = frame.FrameSymbol.for("1");
     let result = pipe.call(slash);
     expect(result).to.be.instanceof(Lex);
     result = pipe.call(one);
     result = pipe.call(slash);
-    console.error(result);
-    expect(result).to.be.instanceof(Lex);
+    result = pipe.call(one);
+    console.error(out);
   });
-
 });

@@ -87,14 +87,13 @@ export class Lex extends Frame implements ISourced {
       return null;
     }
     const n = parseInt(this.body, 10);
-    return new LexBytes(n);
+    const lex = new LexBytes(n, this.up);
+    return lex;
   }
 
   protected exportFrame() {
     const output = this.makeFrame();
     const out = this.get(Frame.kOUT);
-    this.body = "";
-    // debugger;
     return out.call(output);
   }
 
@@ -103,6 +102,7 @@ export class Lex extends Frame implements ISourced {
       this.body = this.source;
     }
     const frame = new this.factory(this.body);
+    this.body = "";
     return new Token(frame);
   }
 }
