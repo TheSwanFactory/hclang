@@ -1,5 +1,5 @@
 import * as _ from "lodash";
-import { Frame, FrameAtom, FrameBytes, ISourced, NilContext } from "../frames";
+import { Frame, FrameAtom, FrameBytes, FrameSymbol, ISourced } from "../frames";
 import { Token } from "./lex";
 
 export class LexBytes extends Frame implements ISourced {
@@ -15,6 +15,9 @@ export class LexBytes extends Frame implements ISourced {
   }
 
   public call(argument: Frame, _parameter = Frame.nil): Frame {
+    if (argument === FrameSymbol.end()) {
+      return this.finish(argument, false);
+    }
     const char = argument.toString();
     const code = char.charCodeAt(0);
     this.body.push(code);
@@ -36,6 +39,9 @@ export class LexBytes extends Frame implements ISourced {
   }
 
   protected makeFrame() {
+    if (this.body.length === 0) {
+      return FrameSymbol.end();
+    }
     const frame = new FrameBytes(this.body);
     this.body = [];
     return new Token(frame);
