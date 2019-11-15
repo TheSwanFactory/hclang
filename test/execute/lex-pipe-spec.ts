@@ -37,7 +37,10 @@ describe("LexPipe", () => {
     expect(result).to.be.instanceof(Lex);
     result = pipe.call(one);
     result = pipe.call(slash);
+    expect(result).to.be.instanceof(LexBytes);
     result = pipe.call(one);
+    expect(result).to.be.instanceof(LexPipe);
     console.error(out);
+    expect(out.length()).to.equal(1);
   });
 });
