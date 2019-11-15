@@ -1,4 +1,5 @@
 import { Frame, FrameAtom, ISourced } from "../frames";
+import { LexBytes } from "./lex-bytes";
 import { LexPipe } from "./lex-pipe";
 export declare type Flag = {
     [key: string]: boolean;
@@ -22,6 +23,7 @@ export declare class Lex extends Frame implements ISourced {
     protected isEnd(char: string): boolean;
     protected isQuote(): boolean;
     protected finish(argument: Frame, passAlong: boolean): Frame;
+    protected checkRecursive(_argument: Frame): LexBytes;
     protected exportFrame(): Frame;
     protected makeFrame(): Token;
 }

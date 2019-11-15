@@ -3,7 +3,6 @@ import { expect } from "chai";
 import {} from "mocha";
 import { execute } from "../../src/execute";
 import * as frame from "../../src/frames";
-import { FrameCurry } from "../../src/ops";
 
 describe("execute", () => {
   const input_string = "“Watson I need you”";
@@ -116,6 +115,14 @@ describe("execute", () => {
       const input = "[`a`].&";
       const result = execute(input);
       expect(result).to.include("FrameCurry");
+    });
+  });
+
+  describe("byte.strings", () => {
+    it("reads n characters", () => {
+      const input = "\\1\\a";
+      const result = execute(input);
+      expect(result.toString()).to.equal(input);
     });
   });
 

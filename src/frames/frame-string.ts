@@ -6,7 +6,8 @@ import { Context, NilContext } from "./meta-frame";
 
 const reducer = (current: Frame, char: string) => {
   const symbol = FrameSymbol.for(char);
-  return current.call(symbol);
+  const result = current.call(symbol);
+  return result;
 };
 
 export class FrameString extends FrameQuote {

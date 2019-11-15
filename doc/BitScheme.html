@@ -5,7 +5,8 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 2.0.10">
-<title>Syntax</title>
+<meta name="author" content="Draft 0.2, 2019-09-07">
+<title>BitScheme Tutorial/Specification</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
 /* Asciidoctor default stylesheet | MIT License | https://asciidoctor.org */
@@ -438,13 +439,14 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </head>
 <body class="article">
 <div id="header">
+<h1>BitScheme Tutorial/Specification</h1>
+<div class="details">
+<span id="author" class="author">Draft 0.2, 2019-09-07</span><br>
+</div>
 </div>
 <div id="content">
-<div class="paragraph">
-<p>=&#8658; hc/BitScheme.hc &#8656;=
-= BitScheme Tutorial/Specification
-Draft 0.2, 2019-09-07</p>
-</div>
+<div id="preamble">
+<div class="sectionbody">
 <div class="paragraph">
 <p>Declaratively parse, manipulate and generate binary data</p>
 </div>
@@ -461,6 +463,8 @@ Draft 0.2, 2019-09-07</p>
 </div>
 <div class="paragraph">
 <p>While you can write parsers in other languages to read the BitScheme format, BitScheme files can also be executed directly from the command line to parse or generate bitstreams. BitScheme can also be run as a REPL.<sup class="footnote">[<a id="_footnoteref_4" class="footnote" href="#_footnotedef_4" title="View footnote.">4</a>]</sup>. The REPL uses <code>; </code> as the input prompt and <code># </code> for the output (plus <code># # </code> for multi-line prompts), which is also the format we will use for code examples in this document.</p>
+</div>
+</div>
 </div>
 <div class="sect1">
 <h2 id="_syntax">Syntax</h2>
@@ -485,12 +489,15 @@ Draft 0.2, 2019-09-07</p>
 # 0xcafebabe
 ### String (quoted, utf-8)
 ; `Hello`
-# `Hello`</code></pre>
+# `Hello`
+;
+### ByteString
+; \5\Hello
+# \5\Hello</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>TBD: NetString (sized in bytes) \5\Hello
-You can also use triple-backquotes for docstrings in <a href="https://asciidoctor.org">asciidoc</a> format. If you pass a ".adoc" file to bitscheme, it will prepend the backquotes, execute the code blocks, and warn if the evaluated input does not match the expected output.</p>
+<p>You can also use triple-backquotes for docstrings in <a href="https://asciidoctor.org">asciidoc</a> format. If you pass a ".adoc" file to bitscheme, it will prepend the backquotes, execute the code blocks, and warn if the evaluated input does not match the expected output.</p>
 </div>
 <div class="paragraph">
 <p>Comment strings (using "#") are also considered a type of Literal:</p>
@@ -698,10 +705,9 @@ You can also use triple-backquotes for docstrings in <a href="https://asciidocto
 # [.head 0b101; .tail 0b01100;]</code></pre>
 </div>
 </div>
-<div class="paragraph">
-<p>=&#8658; hc/BitScheme-1.hc &#8656;=
-=== Constructors</p>
 </div>
+<div class="sect2">
+<h3 id="_constructors">Constructors</h3>
 <div class="paragraph">
 <p>We can also reverse the flow, by mapping capture keys to a dictionary to generate a sequence of values:</p>
 </div>
@@ -906,7 +912,7 @@ You can also use triple-backquotes for docstrings in <a href="https://asciidocto
 </div>
 </div>
 <div class="sect3">
-<h4 id="_constructors">Constructors</h4>
+<h4 id="_constructors_2">Constructors</h4>
 <div class="paragraph">
 <p>Constructors allow us to natively write assembly as an internal DSL.<sup class="footnote">[<a id="_footnoteref_5" class="footnote" href="#_footnotedef_5" title="View footnote.">5</a>]</sup>. We use the <code>^</code> operator to bind a Schema to a deferred expression. For example:</p>
 </div>
@@ -1010,7 +1016,7 @@ You can also use triple-backquotes for docstrings in <a href="https://asciidocto
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2019-11-01 20:11:06 -0700
+Last updated 2019-11-14 20:04:26 -0800
 </div>
 </div>
 </body>

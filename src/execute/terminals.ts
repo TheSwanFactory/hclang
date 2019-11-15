@@ -17,7 +17,7 @@ const terminate: ICurryFunction = (pipe: IFinish, parameter: Frame) => {
     return pipe.finish(parameter);
   }
   const note = FrameNote.key(pipe.id, pipe);
-  console.error("terminate", pipe);
+  // console.error("terminate", pipe);
   return note;
 };
 

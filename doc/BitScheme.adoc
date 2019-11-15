@@ -1,4 +1,3 @@
-==> hc/BitScheme.hc <==
 = BitScheme Tutorial/Specification
 Draft 0.2, 2019-09-07
 
@@ -31,8 +30,11 @@ The simplest Identifiers are Literals, e.g.:
 ### String (quoted, utf-8)
 ; `Hello`
 # `Hello`
+;
+### ByteString
+; \5\Hello
+# \5\Hello
 ```
-TBD: NetString (sized in bytes) \5\Hello
 You can also use triple-backquotes for docstrings in https://asciidoctor.org[asciidoc] format. If you pass a ".adoc" file to bitscheme, it will prepend the backquotes, execute the code blocks, and warn if the evaluated input does not match the expected output.
 
 Comment strings (using "#") are also considered a type of Literal:
@@ -181,8 +183,6 @@ Schemas can also act directly to extract or bind values from compound sequences:
 # [.head 0b101; .tail 0b01100;]
 
 ```
-
-==> hc/BitScheme-1.hc <==
 === Constructors
 
 We can also reverse the flow, by mapping capture keys to a dictionary to generate a sequence of values:

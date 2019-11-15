@@ -1,9 +1,9 @@
 
 import { expect } from "chai";
 import {} from "mocha";
+import { Lex } from "../../src/execute/lex";
+import { LexBytes } from "../../src/execute/lex-bytes";
 import { LexPipe } from "../../src/execute/lex-pipe";
-import * as parse from "../../src/execute/parse-pipe";
-import { Terminal, terminals } from "../../src/execute/terminals";
 import * as frame from "../../src/frames";
 
 describe("LexPipe", () => {
@@ -29,5 +29,4 @@ describe("LexPipe", () => {
     const result = pipe.finish(frame.Frame.nil);
     expect(result).to.equal(pipe);
   });
-
 });
