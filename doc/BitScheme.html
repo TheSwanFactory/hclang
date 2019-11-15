@@ -485,12 +485,15 @@ Draft 0.2, 2019-09-07</p>
 # 0xcafebabe
 ### String (quoted, utf-8)
 ; `Hello`
-# `Hello`</code></pre>
+# `Hello`
+;
+### ByteString
+; \5\Hello
+# \5\Hello</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>TBD: NetString (sized in bytes) \5\Hello
-You can also use triple-backquotes for docstrings in <a href="https://asciidoctor.org">asciidoc</a> format. If you pass a ".adoc" file to bitscheme, it will prepend the backquotes, execute the code blocks, and warn if the evaluated input does not match the expected output.</p>
+<p>You can also use triple-backquotes for docstrings in <a href="https://asciidoctor.org">asciidoc</a> format. If you pass a ".adoc" file to bitscheme, it will prepend the backquotes, execute the code blocks, and warn if the evaluated input does not match the expected output.</p>
 </div>
 <div class="paragraph">
 <p>Comment strings (using "#") are also considered a type of Literal:</p>
@@ -1010,7 +1013,7 @@ You can also use triple-backquotes for docstrings in <a href="https://asciidocto
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2019-11-01 20:11:06 -0700
+Last updated 2019-11-14 19:46:16 -0800
 </div>
 </div>
 </body>

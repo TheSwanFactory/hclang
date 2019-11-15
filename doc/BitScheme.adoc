@@ -31,8 +31,11 @@ The simplest Identifiers are Literals, e.g.:
 ### String (quoted, utf-8)
 ; `Hello`
 # `Hello`
+;
+### ByteString
+; \5\Hello
+# \5\Hello
 ```
-TBD: NetString (sized in bytes) \5\Hello
 You can also use triple-backquotes for docstrings in https://asciidoctor.org[asciidoc] format. If you pass a ".adoc" file to bitscheme, it will prepend the backquotes, execute the code blocks, and warn if the evaluated input does not match the expected output.
 
 Comment strings (using "#") are also considered a type of Literal:
