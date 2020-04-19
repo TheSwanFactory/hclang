@@ -11,16 +11,16 @@ Population .Seussville;
 Seussville.Population .Loroid .Hortian;
 Resource .R_BUCKS .R_HAIR;
 Capability .C_SHOE .C_FOOD;
-Signal .IS_HORTONSY;
+Value .IS_HORTONSY;
 
 # Games
 
-.G_PLUTO Game { Status(R_BUCKS) }
+.G_PLUTO Game { Status R_BUCKS; }
 .G_JOB Game {
-   < Loroid > ? R_BUCKS(C_SHOE)
-   < Hortian > ? R_BUCKS(C_FOOD)
+   < Loroid > ? R_BUCKS(C_SHOE);
+   < Hortian > ? R_BUCKS(C_FOOD);
 }
-.G_JOB Game {
-   <Loroid > ? R_BUCKS(C_SHOE)
-   < Hortian > ? R_BUCKS(C_FOOD)
+.G_TRIBE Game {
+   < Loroid > ? Loroid.Status(-IS_HORTONSY);
+   < Hortian > ? Hortian.Status(IS_HORTONSY);
 }
