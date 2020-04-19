@@ -11,16 +11,20 @@ Population .Seussville;
 Seussville.Population .Loroid .Hortian;
 Resource .R_BUCKS .R_HAIR;
 Capability .C_SHOE .C_FOOD;
-Value .IS_HORTONSY;
+Value .IS_HORTONSY .LOVES_GERBIL;
 
 # Games
 
-.G_PLUTO Game { Status R_BUCKS; }
-.G_JOB Game {
-   < Loroid > ? R_BUCKS(C_SHOE);
-   < Hortian > ? R_BUCKS(C_FOOD);
-}
+.G_TERRA Game { Status LOVES_GERBIL; }
+
 .G_TRIBE Game {
-   < Loroid > ? Loroid.Status(-IS_HORTONSY);
-   < Hortian > ? Hortian.Status(IS_HORTONSY);
+   < Loroid > ? (Loroid.Status -IS_HORTONSY);
+   < Hortian > ? (Hortian.Status IS_HORTONSY);
 }
+
+.G_JOB Game {
+   < Loroid > ? (R_BUCKS C_SHOE);
+   < Hortian > ? (R_BUCKS C_FOOD);
+}
+
+.G_PLUTO Game { Status R_BUCKS; }
