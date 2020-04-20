@@ -7,11 +7,11 @@
 
 # Declarations
 
-Population .Seussville;
-Seussville.Population .Loroid .Hortian;
-Resource .R_BUCKS .R_HAIR;
-Capability .C_SHOE .C_FOOD;
-Value .IS_HORTONSY .LOVES_GERBIL;
+.Seuss Population .Gerbil .Horton .Lorax (24 .Who);
+Seuss.Who <.Loroid, .Hortian>;
+Seuss.Resource .R_BUCKS .R_HAIR;
+Seuss.Capability .C_SHOE .C_FOOD;
+Seuss.Value .V_SHOE .V_FOOD .LOVES_GERBIL .IS_HORTONSY ;
 
 # Games
 
@@ -23,8 +23,13 @@ Value .IS_HORTONSY .LOVES_GERBIL;
 }
 
 .G_JOB Game {
-   < Loroid > ? (R_BUCKS C_SHOE);
-   < Hortian > ? (R_BUCKS C_FOOD);
+   < Loroid > ? R_BUCKS(Seuss.V_SHOE C_SHOE) :
+   < Hortian > ? R_BUCKS(Seuss.V_FOOD C_FOOD) :
+   0;
 }
 
 .G_PLUTO Game { Status R_BUCKS; }
+
+# Scenarios
+
+.S_FIT {}
