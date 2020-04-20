@@ -7,28 +7,29 @@
 
 # Declarations
 
-.Seuss Population .Gerbil .Horton .Lorax (24 .Who);
-Seuss.Who <.Loroid, .Hortian>;
+.Seuss Population[.Gerbil, .Horton, .Lorax, 24 .Who];
+Seuss.Who <.Hortian, .Loroid>;
 Seuss.Resource .R_BUCKS .R_HAIR;
-Seuss.Capability .C_SHOE .C_FOOD;
-Seuss.Value .V_SHOE .V_FOOD .LOVES_GERBIL .IS_HORTONSY ;
+Seuss.Capability .C_SHOE .C_SEAT;
+Seuss.Value .V_SHOE .V_SEAT;
+Who.Value .LOVES_GERBIL .IS_HORTONSY;
+Gerbil.Value .HEALTH;
 
 # Games
 
-.G_TERRA Game { Status LOVES_GERBIL; }
+Hortian.Game { R_BUCKS(Seuss.V_SEAT C_SEAT R_HAIR) };
+Loroid.Game { R_BUCKS(Seuss.V_SHOE C_SHOE R_HAIR) };
 
-.G_TRIBE Game {
-   < Loroid > ? (Loroid.Status -IS_HORTONSY);
-   < Hortian > ? (Hortian.Status IS_HORTONSY);
-}
+Hortian.Game { Status IS_HORTONSY };
+Loroid.Game { Status -IS_HORTONSY };
 
-.G_JOB Game {
-   < Loroid > ? R_BUCKS(Seuss.V_SHOE C_SHOE) :
-   < Hortian > ? R_BUCKS(Seuss.V_FOOD C_FOOD) :
-   0;
-}
+Hortian.Game { Status C_SEAT };
+Loroid.Game { Status LOVES_GERBIL };
 
-.G_PLUTO Game { Status R_BUCKS; }
+Who.Game { Status R_BUCKS };
+Horton.Game { Status N(Hortian) };
+Lorax.Game { Status N(Loroid) };
+Gerbil.Game { R_HAIR(HEALTH) };
 
 # Scenarios
 
