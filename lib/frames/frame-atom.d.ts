@@ -1,5 +1,5 @@
-import { Frame } from "./frame";
-import { Context } from "./meta-frame";
+import { Frame } from './frame';
+import { Context } from './meta-frame';
 export interface IStringConstructor {
     new (data: string, meta: Context): FrameAtom;
 }

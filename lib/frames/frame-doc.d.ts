@@ -1,5 +1,5 @@
-import { FrameString } from "./frame-string";
-import { Context } from "./meta-frame";
+import { FrameString } from './frame-string';
+import { Context } from './meta-frame';
 export declare class FrameDoc extends FrameString {
     static readonly DOC_BEGIN = "`";
     static readonly DOC_END = "`";

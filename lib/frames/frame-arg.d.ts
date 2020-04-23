@@ -1,5 +1,5 @@
-import { Frame } from "./frame";
-import { FrameSymbol } from "./frame-symbol";
+import { Frame } from './frame';
+import { FrameSymbol } from './frame-symbol';
 export declare class FrameArg extends FrameSymbol {
     static readonly ARG_CHAR = "_";
     static here(): FrameArg;
@@ -8,7 +8,6 @@ export declare class FrameArg extends FrameSymbol {
         [key: string]: FrameArg;
     };
     protected static _for(symbol: string): FrameArg;
-    protected constructor(data: string);
     in(contexts?: Frame[]): Frame;
 }
 export declare class FrameParam extends FrameSymbol {
@@ -19,6 +18,5 @@ export declare class FrameParam extends FrameSymbol {
         [key: string]: FrameParam;
     };
     protected static _for(symbol: string): FrameParam;
-    protected constructor(data: string);
     in(contexts?: Frame[]): Frame;
 }

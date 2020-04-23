@@ -1,5 +1,5 @@
-import { FrameQuote } from "./frame-atom";
-import { Context } from "./meta-frame";
+import { FrameQuote } from './frame-atom';
+import { Context } from './meta-frame';
 export declare class FrameBytes extends FrameQuote {
     static readonly BYTES_BEGIN = "\\";
     static readonly BYTES_END = "\\";

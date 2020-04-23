@@ -1,6 +1,6 @@
-import * as BI from "big-integer";
-import { Frame } from "./frame";
-import { FrameAtom } from "./frame-atom";
+import * as BI from 'big-integer';
+import { Frame } from './frame';
+import { FrameAtom } from './frame-atom';
 export interface IRegexpMap {
     [key: number]: RegExp;
 }
@@ -13,7 +13,7 @@ export declare class FrameBlob extends FrameAtom {
     static readonly BLOB_PREFIX: IPrefixMap;
     static fix_source(source: string): string;
     static find_base(source: string): number;
-    static count_bits(source: string, base: number): BI.BigInteger;
+    static count_bits(source: string, base: number): any;
     protected data: BI.BigInteger;
     protected base: number;
     protected n_bits: BI.BigInteger;

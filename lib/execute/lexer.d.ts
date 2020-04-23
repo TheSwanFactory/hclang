@@ -1,4 +1,4 @@
-import { Frame, FrameString } from "../frames";
+import { Frame, FrameString } from '../frames';
 export declare type LexOptions = {
     [key: string]: any;
 };

@@ -1,6 +1,6 @@
-import { Frame } from "./frame";
-import { FrameAtom, FrameQuote } from "./frame-atom";
-import { Context } from "./meta-frame";
+import { Frame } from './frame';
+import { FrameAtom, FrameQuote } from './frame-atom';
+import { Context } from './meta-frame';
 export declare class FrameString extends FrameQuote {
     protected data: string;
     static readonly STRING_BEGIN = "\u201C";

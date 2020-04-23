@@ -1,35 +1,42 @@
-import { Frame } from "./frame";
-import { FrameExpr } from "./frame-expr";
-import { Context, IKeyValuePair, NilContext } from "./meta-frame";
+import { Frame } from './frame'
+import { FrameExpr } from './frame-expr'
+import { Context, IKeyValuePair, NilContext } from './meta-frame'
 
 export class FrameLazy extends FrameExpr {
-  public static readonly LAZY_BEGIN = "{";
-  public static readonly LAZY_END = "}";
+  public static readonly LAZY_BEGIN = '{';
+  public static readonly LAZY_END = '}';
 
-  constructor(data: Array<Frame>, meta: Context = NilContext) {
-    super(data, meta);
+  constructor (data: Array<Frame>, meta: Context = NilContext) {
+    super(data, meta)
   }
 
-  public string_open() { return FrameLazy.LAZY_BEGIN; };
-  public string_close() { return FrameLazy.LAZY_END; };
+  public string_open () {
+    return FrameLazy.LAZY_BEGIN
+  };
 
-  public in(contexts = [Frame.nil]): Frame {
+  public string_close () {
+    return FrameLazy.LAZY_END
+  };
+
+  public in (contexts = [Frame.nil]): Frame {
     if (this.data.length === 0) {
-      return this;
+      return this
     }
-    const expr = new FrameExpr(this.data, this.meta_for(contexts[0]));
-    expr.up = this;
-    return expr;
+    const expr = new FrameExpr(this.data, this.meta_for(contexts[0]))
+    expr.up = this
+    return expr
   }
 
-  public call(argument: Frame, parameter = Frame.nil): FrameExpr {
-    return new FrameExpr(argument.asArray(), this.meta_for(argument));
+  public call (argument: Frame, parameter = Frame.nil): FrameExpr {
+    return new FrameExpr(argument.asArray(), this.meta_for(argument))
   }
 
-  protected meta_for(context: Frame) {
-    const MetaNew = this.meta_copy();
-    const pairs: Array<IKeyValuePair> = context.meta_pairs();
-    pairs.map(([key, value]) => { MetaNew[key] = value; });
-    return MetaNew;
+  protected meta_for (context: Frame) {
+    const MetaNew = this.meta_copy()
+    const pairs: Array<IKeyValuePair> = context.meta_pairs()
+    pairs.map(([key, value]) => {
+      MetaNew[key] = value
+    })
+    return MetaNew
   }
 };

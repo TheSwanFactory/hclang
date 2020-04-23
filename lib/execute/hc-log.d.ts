@@ -1,4 +1,4 @@
-import { Context, Frame } from "../frames";
+import { Context, Frame } from '../frames';
 export declare type Counts = {
     [key: string]: number;
 };

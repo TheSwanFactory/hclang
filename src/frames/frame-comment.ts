@@ -1,24 +1,30 @@
-import { FrameAtom } from "./frame-atom";
-import { Context, NilContext } from "./meta-frame";
+import { FrameAtom } from './frame-atom'
+import { Context, NilContext } from './meta-frame'
 
 export class FrameComment extends FrameAtom {
-  public static readonly COMMENT_BEGIN = "#";
-  public static readonly COMMENT_END = "#";
-  public static readonly COMMENT_EOL = "\n";
+  public static readonly COMMENT_BEGIN = '#';
+  public static readonly COMMENT_END = '#';
+  public static readonly COMMENT_EOL = '\n';
   public static readonly COMMENT_END_REGEX = /#/;
 
-  constructor(protected data: string, meta: Context = NilContext) {
-    super(meta);
-    this.is.void = true;
+  constructor (protected data: string, meta: Context = NilContext) {
+    super(meta)
+    this.is.void = true
   }
 
-  public string_prefix() { return FrameComment.COMMENT_BEGIN; };
+  public string_prefix () {
+    return FrameComment.COMMENT_BEGIN
+  };
 
-  public string_suffix() { return FrameComment.COMMENT_END; };
+  public string_suffix () {
+    return FrameComment.COMMENT_END
+  };
 
-  public canInclude(char: string) {
-    return !FrameComment.COMMENT_END_REGEX.test(char);
+  public canInclude (char: string) {
+    return !FrameComment.COMMENT_END_REGEX.test(char)
   }
 
-  protected toData() { return this.data; }
+  protected toData () {
+    return this.data
+  }
 };

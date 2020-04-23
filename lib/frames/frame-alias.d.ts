@@ -1,6 +1,6 @@
-import { Frame } from "./frame";
-import { FrameAtom } from "./frame-atom";
-import { FrameSymbol } from "./frame-symbol";
+import { Frame } from './frame';
+import { FrameAtom } from './frame-atom';
+import { FrameSymbol } from './frame-symbol';
 export declare class FrameAlias extends FrameAtom {
     static readonly ALIAS_BEGIN = "@";
     protected data: FrameSymbol;

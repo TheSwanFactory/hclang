@@ -1,5 +1,5 @@
-import { Context, Frame } from "../frames";
-import { LexPipe } from "./lex-pipe";
+import { Context, Frame } from '../frames';
+import { LexPipe } from './lex-pipe';
 export interface IProcessEnv {
     [key: string]: string | undefined;
 }
@@ -15,6 +15,6 @@ export declare class HCEval {
     constructor(out: Frame);
     call(input: string): Frame;
     repl(): boolean;
-    protected getInput(): string;
+    protected getInput(): any;
     protected checkInput(input: string): void;
 }

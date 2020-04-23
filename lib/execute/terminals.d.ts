@@ -1,5 +1,5 @@
-import { Context, Frame } from "../frames";
-import { ICurryFunction } from "../ops";
+import { Context, Frame } from '../frames';
+import { ICurryFunction } from '../ops';
 export declare type IAction = {
     [key: string]: any;
 };

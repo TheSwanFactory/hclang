@@ -1,4 +1,4 @@
-import { MetaFrame } from "./meta-frame";
+import { MetaFrame } from './meta-frame';
 export declare type Flags = {
     [key: string]: boolean;
 };

@@ -1,6 +1,6 @@
-import { Frame } from "./frame";
-import { FrameExpr } from "./frame-expr";
-import { Context } from "./meta-frame";
+import { Frame } from './frame';
+import { FrameExpr } from './frame-expr';
+import { Context } from './meta-frame';
 export declare class FrameLazy extends FrameExpr {
     static readonly LAZY_BEGIN = "{";
     static readonly LAZY_END = "}";
