@@ -15,6 +15,6 @@ export declare class HCEval {
     constructor(out: Frame);
     call(input: string): Frame;
     repl(): boolean;
-    protected getInput(): any;
+    protected getInput(): string;
     protected checkInput(input: string): void;
 }

@@ -30,23 +30,23 @@ describe('maml', () => {
   })
 
   it('wraps everything in an HTML tag', () => {
-    expect(result_string).to.match(/<html>([\s\S]*)<html>/)
+    expect(result_string).to.match(/<html>([\s\S]*)<\/html>/)
   })
 
   it('wraps arg contents in a body tag', () => {
-    expect(result_string).to.include(`<body>${body_text}<body>`)
+    expect(result_string).to.include(`<body>${body_text}</body>`)
   })
 
   it('wraps arg metas in a head tag', () => {
-    expect(result_string).to.match(/<head>([\s\S]*)<head>/)
+    expect(result_string).to.match(/<head>([\s\S]*)<\/head>/)
   })
 
   it('wraps title meta in title tag', () => {
-    expect(result_string).to.include(`<title>${title_text}<title>`)
+    expect(result_string).to.include(`<title>${title_text}</title>`)
   })
 
   it('wraps all metas in their keyed tag', () => {
-    expect(result_string).to.match(/<author>([\s\S]*)<author>/)
-    expect(result_string).to.match(/<title>([\s\S]*)<title>/)
+    expect(result_string).to.match(/<author>([\s\S]*)<\/author>/)
+    expect(result_string).to.match(/<title>([\s\S]*)<\/title>/)
   })
 })

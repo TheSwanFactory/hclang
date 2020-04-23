@@ -13,7 +13,7 @@ export declare class FrameBlob extends FrameAtom {
     static readonly BLOB_PREFIX: IPrefixMap;
     static fix_source(source: string): string;
     static find_base(source: string): number;
-    static count_bits(source: string, base: number): any;
+    static count_bits(source: string, base: number): BI.BigInteger;
     protected data: BI.BigInteger;
     protected base: number;
     protected n_bits: BI.BigInteger;

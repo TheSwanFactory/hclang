@@ -15,8 +15,8 @@ export declare class MetaFrame {
     static id_count: number;
     up: Frame;
     id: string;
-    constructor(meta?: Context, isNil?: boolean);
-    get_here(key: string, origin?: MetaFrame): Frame;
+    constructor(meta?: Context, _isNil?: boolean);
+    get_here(key: string, _origin?: MetaFrame): Frame;
     get(key: string, origin?: MetaFrame): Frame;
     set(key: string, value: Frame): MetaFrame;
     meta_copy(): Context;

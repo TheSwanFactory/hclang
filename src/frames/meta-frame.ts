@@ -15,13 +15,13 @@ export class MetaFrame {
   public up: Frame;
   public id: string;
 
-  constructor (public meta = NilContext, isNil = false) {
+  constructor (public meta = NilContext, _isNil = false) {
     const name = this.constructor.name
     const id = name + '.' + MetaFrame.id_count++
     this.id = '$:' + id
   }
 
-  public get_here (key: string, origin: MetaFrame = this): Frame {
+  public get_here (key: string, _origin: MetaFrame = this): Frame {
     const exact = this.meta[key]
     if (exact != null) {
       return exact
@@ -89,7 +89,7 @@ export class MetaFrame {
         const pattern = new RegExp(isPattern[1])
         if (pattern.test(target)) {
           result = value
-          if (result.hasOwnProperty('source')) {
+          if (Object.prototype.hasOwnProperty('source')) {
             const sourced = result as ISourced
             sourced.source = target
           }

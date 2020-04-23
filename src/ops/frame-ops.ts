@@ -1,4 +1,4 @@
-import { Frame, FrameArg, FrameExpr, FrameNote } from '../frames'
+import { Frame } from '../frames/frame'
 import { FrameCurry, ICurryFunction } from './frame-curry'
 
 export type FuncDict = { [key: string]: ICurryFunction; };

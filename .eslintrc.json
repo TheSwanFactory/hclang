@@ -25,6 +25,6 @@
       "max-len": 0,
       "require-jsdoc": 0,
       "no-unused-expressions": 0,
-      "no-prototype-builtins": 1
+      "no-prototype-builtins": 0
     }
 }

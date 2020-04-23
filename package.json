@@ -35,7 +35,7 @@
     "testdoc": "npm run build && node lib/cli/hc.js hc/testdoc.hc -t",
     "build": "rimraf lib && eslint \"{src,test}/**/*.ts\" && npm run ts",
     "check": "grep -e 'only' -e 'skip' test/*/* || echo 'Ran all tests'",
-    "clean": "rimraf lib && rm -f *.log.* && eslint --init",
+    "clean": "rimraf lib && rm -f *.log.*",
     "debug": "echo 'Use `debugger;`\n' && mocha --inspect-brk --require ts-node/register --recursive test/**/*-spec.ts",
     "done": "npm run clean && npm run bs:all && npm run check && npm run tag && npm install && git commit -am 'update version'",
     "lint": "eslint --fix \"{src,test}/**/*.ts\"",
