@@ -89,7 +89,7 @@ export class MetaFrame {
         const pattern = new RegExp(isPattern[1])
         if (pattern.test(target)) {
           result = value
-          if (Object.prototype.hasOwnProperty('source')) {
+          if (result.hasOwnProperty('source')) {
             const sourced = result as ISourced
             sourced.source = target
           }

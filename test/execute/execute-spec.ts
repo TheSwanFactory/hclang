@@ -77,7 +77,7 @@ describe('execute', () => {
     })
   })
 
-  describe.only('numbers', () => {
+  describe('numbers', () => {
     it('returns numbers', () => {
       const input = '123'
       const result = execute(input)
