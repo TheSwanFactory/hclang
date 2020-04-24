@@ -1,7 +1,7 @@
 
 import { expect } from 'chai'
 import {} from 'mocha'
-import { Frame, FrameArray, FrameExpr, FrameString, IKeyValuePair } from '../../src/frames'
+import { FrameExpr, FrameString } from '../../src/frames'
 import { maml } from '../../src/maml'
 
 describe('maml', () => {

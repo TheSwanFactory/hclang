@@ -1,6 +1,5 @@
 import * as _ from 'lodash'
-import { Context, Frame, FrameString, FrameSymbol } from '../frames'
-import { Lex } from './lex'
+import { Frame, FrameString, FrameSymbol } from '../frames'
 import { ParsePipe } from './parse-pipe'
 import { syntax } from './syntax'
 import { IAction, IFinish, IPerformer } from './terminals'
@@ -26,7 +25,7 @@ export class LexPipe extends Frame implements IFinish, IPerformer {
   public finish (_parameter: Frame) {
     const output = FrameSymbol.end()
     const out = this.get(Frame.kOUT)
-    const result = out.call(output)
+    out.call(output)
     return this
   }
 

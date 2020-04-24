@@ -1,4 +1,4 @@
-import { Context, Frame, FrameArray, FrameExpr, FrameSymbol } from '../frames'
+import { Context, Frame, FrameArray, FrameExpr } from '../frames'
 import { IFinish, Terminal } from './terminals'
 
 export class ParsePipe extends FrameArray implements IFinish {
@@ -37,7 +37,7 @@ export class ParsePipe extends FrameArray implements IFinish {
     const parent = this.get(ParsePipe.kOUT) as ParsePipe
     if (parent.Factory !== Factory) {
       const msg = ['open:', parent.Factory, ' close:', Factory]
-      // console.error("pop.mismatched-brackets " + msg.join(""));
+      console.error('pop.mismatched-brackets ' + msg.join(''))
     }
     this.finish(Frame.nil)
     return parent

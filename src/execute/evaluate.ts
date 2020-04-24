@@ -1,4 +1,4 @@
-import { Frame, FrameArray, NilContext } from '../frames'
+import { Frame, FrameArray } from '../frames'
 import { HCEval } from './hc-eval'
 
 export const evaluate = (input: string): Frame => {

@@ -2,7 +2,6 @@
 import { expect } from 'chai'
 import {} from 'mocha'
 import { execute } from '../../src/execute'
-import * as frame from '../../src/frames'
 
 describe('execute', () => {
   const input_string = '“Watson I need you”'
@@ -78,7 +77,7 @@ describe('execute', () => {
     })
   })
 
-  describe('numbers', () => {
+  describe.only('numbers', () => {
     it('returns numbers', () => {
       const input = '123'
       const result = execute(input)

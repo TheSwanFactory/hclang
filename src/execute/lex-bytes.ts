@@ -1,5 +1,5 @@
 import * as _ from 'lodash'
-import { Frame, FrameAtom, FrameBytes, FrameSymbol, ISourced } from '../frames'
+import { Frame, FrameBytes, FrameSymbol, ISourced } from '../frames'
 import { Token } from './lex'
 
 export class LexBytes extends Frame implements ISourced {
