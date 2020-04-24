@@ -1,30 +1,30 @@
-import * as _ from "lodash";
-import { Frame, FrameString } from "../frames";
-import { syntax } from "./syntax";
+import * as _ from 'lodash'
+import { Frame, FrameString } from '../frames'
+import { syntax } from './syntax'
 
 export type LexOptions = { [key: string]: any; };
 
 export class Lexer extends Frame {
-  constructor(out: Frame) {
-    syntax[Lexer.kOUT] = out;
-    super(syntax);
+  constructor (out: Frame) {
+    syntax[Lexer.kOUT] = out
+    super(syntax)
   }
 
-  public lex_string(input: string) {
-    const source = new FrameString(input);
-    return this.lex(source);
+  public lex_string (input: string) {
+    const source = new FrameString(input)
+    return this.lex(source)
   }
 
-  public lex(source: FrameString) {
-    return source.reduce(this);
+  public lex (source: FrameString) {
+    return source.reduce(this)
   }
 
-  public fold(argument: Frame) {
-    const out = this.get(Frame.kOUT);
-    this.set(Frame.kOUT, out.call(argument));
+  public fold (argument: Frame) {
+    const out = this.get(Frame.kOUT)
+    this.set(Frame.kOUT, out.call(argument))
   }
 
-  public finish(_options: LexOptions) {
-    return Frame.nil;
+  public finish (_options: LexOptions) {
+    return Frame.nil
   }
 }

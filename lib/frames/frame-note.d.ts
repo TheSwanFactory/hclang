@@ -1,5 +1,5 @@
-import { Frame } from "./frame";
-import { FrameQuote } from "./frame-atom";
+import { Frame } from './frame';
+import { FrameQuote } from './frame-atom';
 export declare type Binding = {
     [key: string]: string;
 };

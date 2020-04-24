@@ -1,5 +1,5 @@
-import { Context, Frame, FrameArray, FrameGroup, FrameLazy, FrameNote, FrameSchema, FrameSymbol, IArrayConstructor, NilContext } from "../frames";
-import { ICurryFunction } from "../ops";
+import { Context, Frame, FrameArray, FrameGroup, FrameLazy, FrameNote, FrameSchema, FrameSymbol, IArrayConstructor, NilContext } from '../frames'
+import { ICurryFunction } from '../ops'
 
 export type IAction = { [key: string]: any; };
 
@@ -12,59 +12,63 @@ export interface IFinish extends Frame {
 }
 
 const terminate: ICurryFunction = (pipe: IFinish, parameter: Frame) => {
-  const finisher = pipe.finish;
+  const finisher = pipe.finish
   if (finisher instanceof Function) {
-    return pipe.finish(parameter);
+    return pipe.finish(parameter)
   }
-  const note = FrameNote.key(pipe.id, pipe);
+  const note = FrameNote.key(pipe.id, pipe)
   // console.error("terminate", pipe);
-  return note;
-};
+  return note
+}
 
 export class Terminal extends Frame {
-  public static end() { return new Terminal(terminate); };
+  public static end () {
+    return new Terminal(terminate)
+  };
 
-  constructor(protected data: ICurryFunction) {
-    super(NilContext);
-    this.is.immediate = true;
+  constructor (protected data: ICurryFunction) {
+    super(NilContext)
+    this.is.immediate = true
   }
 
-  public apply(argument: Frame, parameter: Frame) {
-    return this.data(argument, parameter);
+  public apply (argument: Frame, parameter: Frame) {
+    return this.data(argument, parameter)
   }
 
-  protected toData(): any { return this.data; }
+  protected toData (): any {
+    return this.data
+  }
 }
 
 export const terminals: Context = {
-};
+}
 
 const perform = (actions: IAction) => {
   return (source: Frame, _parameter: Frame) => {
-    const performer = source as IPerformer;
-    return performer.perform(actions);
-  };
-};
-
-const addTerminal = (char: string, key: string) => {
-  const action: IAction = {};
-  action[key] = FrameSymbol.for(char);
-  terminals[char] = new Terminal(perform(action));
-};
-
-function addGroup(grouper: IArrayConstructor) {
-  const sample = new grouper([], NilContext);
-  const open = sample.string_open();
-  const close = sample.string_close();
-  terminals[open] =  new Terminal(perform({push: grouper}));
-  terminals[close] =  new Terminal(perform({pop: grouper}));
+    const performer = source as IPerformer
+    return performer.perform(actions)
+  }
 }
 
-terminals[Frame.kEND] = Terminal.end();
-addTerminal("\n", "end");
-addTerminal(",", "next");
-addTerminal(";", "semi-next");
-addGroup(FrameArray);
-addGroup(FrameGroup);
-addGroup(FrameLazy);
-addGroup(FrameSchema);
+const addTerminal = (char: string, key: string) => {
+  const action: IAction = {}
+  action[key] = FrameSymbol.for(char)
+  terminals[char] = new Terminal(perform(action))
+}
+
+function addGroup (Grouper: IArrayConstructor) {
+  const sample = new Grouper([], NilContext)
+  const open = sample.string_open()
+  const close = sample.string_close()
+  terminals[open] = new Terminal(perform({ push: Grouper }))
+  terminals[close] = new Terminal(perform({ pop: Grouper }))
+}
+
+terminals[Frame.kEND] = Terminal.end()
+addTerminal('\n', 'end')
+addTerminal(',', 'next')
+addTerminal(';', 'semi-next')
+addGroup(FrameArray)
+addGroup(FrameGroup)
+addGroup(FrameLazy)
+addGroup(FrameSchema)

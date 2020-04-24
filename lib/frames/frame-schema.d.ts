@@ -1,5 +1,5 @@
-import { Frame } from "./frame";
-import { FrameList } from "./frame-list";
+import { Frame } from './frame';
+import { FrameList } from './frame-list';
 export declare class FrameSchema extends FrameList {
     static readonly BEGIN_SCHEMA = "<";
     static readonly END_SCHEMA = ">";

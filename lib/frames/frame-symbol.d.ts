@@ -1,6 +1,6 @@
-import { Frame } from "./frame";
-import { FrameAtom } from "./frame-atom";
-import { Context } from "./meta-frame";
+import { Frame } from './frame';
+import { FrameAtom } from './frame-atom';
+import { Context } from './meta-frame';
 export declare class FrameSymbol extends FrameAtom {
     protected data: string;
     static readonly SYMBOL_BEGIN: RegExp;

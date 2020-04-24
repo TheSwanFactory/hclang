@@ -1,2 +1,2 @@
-import { FrameExpr } from "./frames";
+import { FrameExpr } from './frames';
 export declare const maml: FrameExpr;

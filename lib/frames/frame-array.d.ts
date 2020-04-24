@@ -1,5 +1,5 @@
-import { Frame } from "./frame";
-import { FrameList } from "./frame-list";
+import { Frame } from './frame';
+import { FrameList } from './frame-list';
 export declare class FrameArray extends FrameList {
     static readonly BEGIN_ARRAY = "[";
     static readonly END_ARRAY = "]";

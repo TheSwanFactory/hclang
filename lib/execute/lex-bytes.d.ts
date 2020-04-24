@@ -1,5 +1,5 @@
-import { Frame, FrameSymbol, ISourced } from "../frames";
-import { Token } from "./lex";
+import { Frame, FrameSymbol, ISourced } from '../frames';
+import { Token } from './lex';
 export declare class LexBytes extends Frame implements ISourced {
     protected count: number;
     source: string;

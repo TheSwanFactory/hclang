@@ -1,24 +1,24 @@
-export { FrameAlias } from "./frames/frame-alias";
-export { FrameArray } from "./frames/frame-array";
-export { FrameAtom, FrameQuote, IStringConstructor } from "./frames/frame-atom";
-export { FrameArg, FrameParam } from "./frames/frame-arg";
-export { FrameBlob } from "./frames/frame-blob";
-export { FrameBytes } from "./frames/frame-bytes";
-export { FrameComment } from "./frames/frame-comment";
-export { FrameDoc } from "./frames/frame-doc";
-export { FrameExpr } from "./frames/frame-expr";
-export { FrameGroup } from "./frames/frame-group";
-export { FrameLazy } from "./frames/frame-lazy";
-export { FrameList, IArrayConstructor } from "./frames/frame-list";
-export { FrameName } from "./frames/frame-name";
-export { FrameNote } from "./frames/frame-note";
-export { FrameNumber } from "./frames/frame-number";
-export { FrameSchema } from "./frames/frame-schema";
-export { FrameString } from "./frames/frame-string";
-export { FrameOperator, FrameSymbol } from "./frames/frame-symbol";
-export { Frame } from "./frames/frame";
-export { Context, IKeyValuePair, ISourced, MetaFrame, NilContext } from "./frames/meta-frame";
+import { Frame } from './frames/frame'
+import { Ops } from './ops'
 
-import { Frame } from "./frames/frame";
-import { Ops } from "./ops";
-Frame.globals = Ops;
+export { FrameAlias } from './frames/frame-alias'
+export { FrameArray } from './frames/frame-array'
+export { FrameAtom, FrameQuote, IStringConstructor } from './frames/frame-atom'
+export { FrameArg, FrameParam } from './frames/frame-arg'
+export { FrameBlob } from './frames/frame-blob'
+export { FrameBytes } from './frames/frame-bytes'
+export { FrameComment } from './frames/frame-comment'
+export { FrameDoc } from './frames/frame-doc'
+export { FrameExpr } from './frames/frame-expr'
+export { FrameGroup } from './frames/frame-group'
+export { FrameLazy } from './frames/frame-lazy'
+export { FrameList, IArrayConstructor } from './frames/frame-list'
+export { FrameName } from './frames/frame-name'
+export { FrameNote } from './frames/frame-note'
+export { FrameNumber } from './frames/frame-number'
+export { FrameSchema } from './frames/frame-schema'
+export { FrameString } from './frames/frame-string'
+export { FrameOperator, FrameSymbol } from './frames/frame-symbol'
+export { Frame } from './frames/frame'
+export { Context, IKeyValuePair, ISourced, MetaFrame, NilContext } from './frames/meta-frame'
+Frame.globals = Ops

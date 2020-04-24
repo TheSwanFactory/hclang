@@ -1,6 +1,6 @@
-import { Frame, FrameAtom, ISourced } from "../frames";
-import { LexBytes } from "./lex-bytes";
-import { LexPipe } from "./lex-pipe";
+import { Frame, FrameAtom, ISourced } from '../frames';
+import { LexBytes } from './lex-bytes';
+import { LexPipe } from './lex-pipe';
 export declare type Flag = {
     [key: string]: boolean;
 };
@@ -11,13 +11,13 @@ export declare class Token extends FrameAtom {
     protected toData(): any;
 }
 export declare class Lex extends Frame implements ISourced {
-    protected factory: any;
+    protected Factory: any;
     static isTerminal(char: string): boolean;
     source: string;
     pipe: LexPipe;
     protected body: string;
     protected sample: FrameAtom;
-    constructor(factory: any);
+    constructor(Factory: any);
     call(argument: Frame, _parameter?: Frame): Frame;
     toString(): string;
     protected isEnd(char: string): boolean;

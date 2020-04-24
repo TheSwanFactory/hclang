@@ -1,5 +1,5 @@
-import { FrameAtom } from "./frame-atom";
-import { Context } from "./meta-frame";
+import { FrameAtom } from './frame-atom';
+import { Context } from './meta-frame';
 export declare class FrameComment extends FrameAtom {
     protected data: string;
     static readonly COMMENT_BEGIN = "#";

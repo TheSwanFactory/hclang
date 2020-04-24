@@ -1,4 +1,4 @@
-import { Frame, FrameNote } from "../frames";
+import { Frame, FrameNote } from '../frames';
 export declare type Counts = {
     [key: string]: number;
 };

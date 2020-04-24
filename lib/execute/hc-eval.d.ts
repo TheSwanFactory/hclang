@@ -1,5 +1,5 @@
-import { Context, Frame } from "../frames";
-import { LexPipe } from "./lex-pipe";
+import { Context, Frame } from '../frames';
+import { LexPipe } from './lex-pipe';
 export interface IProcessEnv {
     [key: string]: string | undefined;
 }

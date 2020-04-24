@@ -1,5 +1,5 @@
-import { Frame } from "../frames";
-import { ICurryFunction } from "./frame-curry";
+import { Frame } from '../frames/frame';
+import { ICurryFunction } from './frame-curry';
 export declare type FuncDict = {
     [key: string]: ICurryFunction;
 };

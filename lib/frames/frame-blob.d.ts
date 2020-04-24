@@ -1,6 +1,6 @@
-import * as BI from "big-integer";
-import { Frame } from "./frame";
-import { FrameAtom } from "./frame-atom";
+import * as BI from 'big-integer';
+import { Frame } from './frame';
+import { FrameAtom } from './frame-atom';
 export interface IRegexpMap {
     [key: number]: RegExp;
 }
