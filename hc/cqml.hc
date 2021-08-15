@@ -22,37 +22,37 @@ just grouped expressions of values, names, and operators. Queries can operate di
 ## Queries
 ```
 ; user .name
-#  'Jane'
+#  “Jane”
 ; user (.name, .role)
-#  (.name 'Jane', .role 'Boss')
+#  (.name “Jane”, .role “Boss”)
 
 ; Users & .name
-# [ 'Jane', 'Joe']
+# [ “Jane”, “Joe”]
 ; Users & (.name, .role)
 [
-#  (.name 'Jane', .role 'Boss')
-#  (.name 'Joe', .role 'Freelancer')
+#  (.name “Jane”, .role “Boss”)
+#  (.name “Joe”, .role “Freelancer”)
 ]
 ```
 ## Filters
 
 Filters are just lazy predicates:
 ```
-; Users | {role = 'Boss'}
-#  (.name 'Jane', .role 'Boss')
+; Users | {role = “Boss”}
+#  (.name “Jane”, .role “Boss”)
 ```
 Note that equal is an operator. Assignment is done directly by names, which can be evaluated anywhere in an expression.
 ```
-; .is-boss {role = 'Boss'};
+; .is-boss {role = “Boss”};
 ; Users | is-boss
-#  (.name 'Jane', .role 'Boss')
+#  (.name “Jane”, .role “Boss”)
 ```
 ## Joins
 ```
 ; .uc-name (.u,.c) ^ {u.name = c.name};
 ; <Users,Contacts> | uc-name
 [
-#  (.name 'Jane', .role 'Boss', .phone 555.1212)
+#  (.name “Jane”, .role “Boss”, .phone 555.1212)
 ]
 ```
 Where <> is the type operator, usually pronounced "all."
