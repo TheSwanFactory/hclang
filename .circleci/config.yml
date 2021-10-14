@@ -11,6 +11,8 @@ jobs:
           install-yarn: true
       - run: node --version
   test-mocha:
+    docker:
+      - image: 'cimg/base:stable'
     steps:
       - mocha test --reporter mocha-junit-reporter:
           environment:
