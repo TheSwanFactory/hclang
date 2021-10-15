@@ -1,0 +1,20 @@
+= Zoasophy: Ent Club
+Draft 0.1, 2021-10-13
+
+Trying to define Zoaphosy using English words is proving too confusing.
+Therefore, I am going to define what I mean using a formal language.
+This is ultimately intended to be machine-computable, but hopefully it will help clarify my point even for human readers.
+
+== Ent Entities
+
+To make this simple, we will use an abstract entity I call an *Ent*.
+Ent is also a wonderful term from Tolkien for creatures who are wise but slow moving.
+I define Ents in terms of three attributes:
+- Perspective:: determines their Preferences in any given Context
+- Energy:: used to perform actions. Ent's try to conserve this
+- Generativity:: a tuple of (Individuating, Connecting). Ent's try to maximize this.
+```
+.Ent <Perspective, Energy, Generativity>
+```
+
+== Ent Club Games
