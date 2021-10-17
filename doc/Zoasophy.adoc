@@ -1,20 +1,45 @@
-= Zoasophy: Ent Club
+= Zoasophy 201: The Boss of Ent Club
 Draft 0.1, 2021-10-13
 
 Trying to define Zoaphosy using English words is proving too confusing.
 Therefore, I am going to define what I mean using a formal language.
 This is ultimately intended to be machine-computable, but hopefully it will help clarify my point even for human readers.
 
-== Ent Entities
+== The Narrative
 
-To make this simple, we will use an abstract entity I call an *Ent*.
-Ent is also a wonderful term from Tolkien for creatures who are wise but slow moving.
-I define Ents in terms of three attributes:
-- Perspective:: determines their Preferences in any given Context
-- Energy:: used to perform actions. Ent's try to conserve this
-- Generativity:: a tuple of (Individuating, Connecting). Ent's try to maximize this.
+This is story about Ents.
+Ent is short for 'Entities', but also Tolkien's marvelous tree shepherds.
+The key points of our story are:
+
+. Ents are wise, so they want to obtain the most Generativity (Individuating + Connecting) with the least Energy.
+. In pursuit of that goal, four Ents form a Club where they gather every month to play a Game
+. There are four different Games, each of which takes a whole day, so they can only play one per month
+. To honor everyone's Perspective, each month they use Ranked-Choice voting of their Preferences to decide which Game to play
+. Unfortunately, one time their Preferences come out perfectly balanced, so the voting is inconclusive
+. To break this deadlock, one Ent Proposes to play their preferred Game, "unless someone else has a better idea."
+. There is no better option within the time available, so the other Ents wisely agree, leading to a day of enjoyable game-playing for everyone
+. However, the amount of joy is not evenly distributed, because some Ents did not have their Preferences equally respected
+
+What would it take to come up with a better strategy?
+
+
+== The Formal Model
+
+=== Type Definitions
+
+To answer this question more precisely, we start by encoding that narrative in a series of definitions:
+
 ```
-.Ent <Perspective, Energy, Generativity>
+; .Ent <Perspective, Energy, Generativity> # Every Ent has three attributes (their 'type')
+; .Club <[Ent]> # The type of Club is an ordered list of Ents
+; .Game <.A, .B., .C. .D> # A Game is represented by one of four Symbols, eg Apple, Banana, Cherry, Date
+; .Preference <[Game]> # A Preference is an ordered list of Games
 ```
 
-== Ent Club Games
+=== Functions
+
+Next, we declare (but do not implement) a series of functions:
+```
+Ents to Preferences
+Preferences to a Decision
+```
