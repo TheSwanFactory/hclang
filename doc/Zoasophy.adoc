@@ -1,8 +1,8 @@
 = Zoasophy 201: The Boss of Ent Club
 Draft 0.1, 2021-10-13
 
-Trying to define Zoaphosy using English words is proving too confusing.
-Therefore, I am going to define what I mean using a formal language.
+Trying to define Zoasophy using English words is proving too confusing.
+Therefore, I am going to define what I mean using a "formal language."
 This is ultimately intended to be machine-computable, but hopefully it will help clarify my point even for human readers.
 
 == The Narrative
@@ -12,9 +12,10 @@ Ent is short for 'Entities', but also Tolkien's marvelous tree shepherds.
 The key points of our story are:
 
 . Ents are wise, so they want to obtain the most Generativity (Individuating + Connecting) with the least Energy.
-. In pursuit of that goal, four Ents form a Club where they gather every month to play a Game
+. To increase their Generativity, four Ents form a Club where they gather every month to play a Game
 . There are four different Games, each of which takes a whole day, so they can only play one per month
-. To honor everyone's Perspective, each month they use Ranked-Choice voting of their Preferences to decide which Game to play
+. Each Ent has their own Preferences ranking those Games
+. To honor those individual Preferences, each month they use Ranked-Choice voting to decide which Game to play
 . Unfortunately, one time their Preferences come out perfectly balanced, so the voting is inconclusive
 . To break this deadlock, one Ent Proposes to play their preferred Game, "unless someone else has a better idea."
 . There is no better option within the time available, so the other Ents wisely agree, leading to a day of enjoyable game-playing for everyone
@@ -22,24 +23,69 @@ The key points of our story are:
 
 What would it take to come up with a better strategy?
 
-
 == The Formal Model
 
-=== Type Definitions
+=== Definitions
 
 To answer this question more precisely, we start by encoding that narrative in a series of definitions:
 
 ```
-; .Ent <Perspective, Energy, Generativity> # Every Ent has three attributes (their 'type')
-; .Club <[Ent]> # The type of Club is an ordered list of Ents
-; .Game <.A, .B., .C. .D> # A Game is represented by one of four Symbols, eg Apple, Banana, Cherry, Date
-; .Preference <[Game]> # A Preference is an ordered list of Games
+# A Game can be one of four Symbols, eg Apple, Banana, Cherry, Date
+.Game <.A, .B, .C, .D,>
+# A Preference is an ordered list of Games
+.Preference <[Game]>
+# Energy is a simple object of type Number
+.Energy <Number>
+# Generativity is a composite of two Numbers
+.Generativity (.Individuating <Number>, .Connecting <Number>)
+# Each Ent is a composite of three attributes
+.Ent <Preference, Energy, Generativity>
+# Club is an ordered list of Ents
+.Club <[Ent]>
+# Vote is a list of Preferences
+.Vote <[Preference]>
 ```
 
-=== Functions
+=== Deadlock
+These definitions allow us to specify the problem more precisely.
+We start by assuming a SimpleVote algorithm that compares Preferences and chooses the most popular:
+```
+; SimpleVote([
+  [.A,.B,],
+  [.A,.C,],
+  ])
+# .A
+; SimpleVote([
+  [.B,.A,],
+  [.C,.A,],
+  ])
+# .A
+```
+But watch what happens with the undecidable vote:
 
-Next, we declare (but do not implement) a series of functions:
 ```
-Ents to Preferences
-Preferences to a Decision
+; .Deadlock [
+  [.A,.B,.C,.D,],
+  [.B,.C,.D,.A,],
+  [.C,.D,.A,.B,],
+  [.D,.A,.B,.C,],
+]
+; SimpleVote(Deadlock)
+# ()
 ```
+There is no fair algorithm that can decide which Game to play using these inputs
+(a result known as Arrow's Impossibility Theorem or the Condorcet Paradox).
+Under the terms of our scenario, we have a crisis.
+These four Ents have all invested time and energy to come to the Club.
+If there is no Game, that energy will be wasted.
+Worse, the Ents may rationally decide to stop coming, and the Club will dissolve.
+Can anything be done?
+
+We posit a new BossVote algorithm that takes Energy from one Ent to establish their vote as the "default" choice, to ensure that the Club can always decide on a Game to play
+```
+; .Boss Club.0 # Choose member 0 of the Club as Boss
+; BossVote(Boss, Deadlock) # Re-run the vote using energy from that Boss
+# .A
+```
+
+=== Consequences
