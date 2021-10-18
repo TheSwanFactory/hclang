@@ -89,3 +89,45 @@ We posit a new BossVote algorithm that takes Energy from one Ent to establish th
 ```
 
 === Consequences
+
+To make things concrete, assume it takes 5 units of Energy to participate, and a successful Game gives every member 2 units of Individuating and 10 units of Connecting:
+```
+.E_Game -5
+.G_Game (.Individuating 2, .Connecting 10)
+```
+Further, let us assume that the Boss gets an Individuating bonus of `+3` for having their game preferentially picked, while the other members get a penalty to the extent their Preference for `.A` was overriden:
+```
+.Individuating_Impact [
+  +3,
+  -3,
+  -2,
+  -1,
+]
+```
+Finally, let's assume it takes 6 units of energy for the Boss to overcome that resistance:
+```
+.E_Boss -6
+```
+This allows us to compare the impact on Energy and Generativity across three scenarios:
+```
+.Normal_Game [
+  [.E -5, (.I 3, .C 10)],
+  [.E -5, (.I 3, .C 10)],
+  [.E -5, (.I 3, .C 10)],
+  [.E -5, (.I 3, .C 10)],
+]
+
+.Deadlocked_Game [
+  [.E -5, (.I 0, .C 0)],
+  [.E -5, (.I 0, .C 0)],
+  [.E -5, (.I 0, .C 0)],
+  [.E -5, (.I 0, .C 0)],
+]
+
+.Boss_Game [
+  [.E -11, (.I 5, .C 10)],
+  [.E -5, (.I -1, .C 10)],
+  [.E -5, (.I 0, .C 10)],
+  [.E -5, (.I 1, .C 10)],
+]
+```
