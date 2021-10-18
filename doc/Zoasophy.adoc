@@ -1,4 +1,5 @@
 = Zoasophy 201: The Boss of Ent Club
+:Author: Ernest Prabhakar
 Draft 0.1, 2021-10-13
 
 Trying to define Zoasophy using English words is proving too confusing.
@@ -73,8 +74,8 @@ But watch what happens with the undecidable vote:
 ; SimpleVote(Deadlock)
 # ()
 ```
-There is no fair algorithm that can decide which Game to play using these inputs
-(a result known as Arrow's Impossibility Theorem or the Condorcet Paradox).
+There is no fair algorithm that can decide which Game to play using these input "cycles;"
+a result known as Arrow's Impossibility Theorem or the Condorcet Paradox.
 Under the terms of our scenario, we have a crisis.
 These four Ents have all invested time and energy to come to the Club.
 If there is no Game, that energy will be wasted.
@@ -131,3 +132,22 @@ This allows us to compare the impact on Energy and Generativity across three sce
   [.E -5, (.I 1, .C 10)],
 ]
 ```
+
+=== Analysis
+
+This admittedly simplistic model yields some fascinating (at least to me) insights:
+
+. The Club is only viable if the default Generativity payoff is worth 5 Energy Units
+. For rational Ents, being a Boss is only worthwhile if the `+3` Individuating justifies the extra 6 Energy
+. The 'ignored' member has a 'skewed' Generativity result `(.I -1, .C 10)`; this outcome is only worthwhile if 10 units gained of Connecting justify the 1 unit lost to Individuating
+. This analysis feels very different if we ignore Energy, because then it seems the Boss is getting something for nothing
+
+Of course this framing, and the specific numbers, were carefully chosen by me in order to make a point.
+But (at least for me), this seems to capture the fundamental dynamics of all sorts of group situations (including our Zoasophy Zoom calls).
+While we rarely perfect Preference cycles, it is fairly common to have no clear consensus on what to do next.
+
+Interestingly, there is a result that shows it is possible to resolve the Condorcet Paradox if you have rational agents who share all their information.  For example, instead of using subjective Preference ("What is your Preference among these four Games?") ask an objective question ("Which Game would be most Generative for us to play this week?"), and share insights and reasoning until everyone agrees.
+
+While that deliberative process is arguably more "fair," it is also extremely expensive in terms of Energy (and Time, which I plan to include in future models). For slow-talking Ents, that resolution could itself take a whole day.  Is the resulting Generativity and 'fairness' worth that expenditure? To all the Ents?  Might it be simpler to just say that the 'ignored' Ent gets to (has to?) be Boss next time there is a deadlock?
+
+This is precisely by what I mean by the Boss role being adaptive within a local context, defined by
