@@ -126,10 +126,10 @@ This allows us to compare the impact on Energy and Generativity across three sce
 ]
 
 .Boss_Game [
-  [.E -11, (.I 5, .C 10)],
-  [.E -5, (.I -1, .C 10)],
-  [.E -5, (.I 0, .C 10)],
-  [.E -5, (.I 1, .C 10)],
+  [.E -11, (.I  5, .C 10)],
+  [.E -5,  (.I -1, .C 10)],
+  [.E -5,  (.I  0, .C 10)],
+  [.E -5,  (.I  1, .C 10)],
 ]
 ```
 
@@ -137,17 +137,46 @@ This allows us to compare the impact on Energy and Generativity across three sce
 
 This admittedly simplistic model yields some fascinating (at least to me) insights:
 
-. The Club is only viable if the default Generativity payoff is worth 5 Energy Units
+. The Club is only viable if the default Generativity payoff is worth 5 Energy Units to every member
+. Even the 'Martyr' role (of surrendering their Preference) won't fully help with a cycle, as removing their preferred Game still leads to a cycle between the remaining three
 . For rational Ents, being a Boss is only worthwhile if the `+3` Individuating justifies the extra 6 Energy
-. The 'ignored' member has a 'skewed' Generativity result `(.I -1, .C 10)`; this outcome is only worthwhile if 10 units gained of Connecting justify the 1 unit lost to Individuating
-. This analysis feels very different if we ignore Energy, because then it seems the Boss is getting something for nothing
+. The 'ignored' member has a 'skewed' Generativity result `(.I -1, .C 10)`; this outcome is only worthwhile to them if 10 units gained of Connecting justify the 1 unit lost to Individuating, or if there are external considerations that sway the balance
+. This analysis feels very different if we ignore Energy, because then it would seem the Boss is getting something for nothing
+
+For completeness, we can add the "Marty-Boss" who proposes their least-favorite Game (`.D`) in order to keep the peace:
+```
+.DeIndividuating_Impact [
+  -3,
+  -2,
+  -1,
+   0,
+]
+
+.MartyBoss_Game [
+  [.E -11, (.I -1, .C 10)],
+  [.E -5,  (.I  1, .C 10)],
+  [.E -5,  (.I  2, .C 10)],
+  [.E -5,  (.I  3, .C 10)],
+]
+```
+In this case, everyone except them clearly comes out ahead.
+But this is only viable if they value the loss of Energy and Individuating as worth the gain in Connecting, which feels "heroic" rather than "sustainable."
+
+=== Conclusions
 
 Of course this framing, and the specific numbers, were carefully chosen by me in order to make a point.
-But (at least for me), this seems to capture the fundamental dynamics of all sorts of group situations (including our Zoasophy Zoom calls).
-While we rarely perfect Preference cycles, it is fairly common to have no clear consensus on what to do next.
+But (at least for me), this model seems to capture the fundamental dynamics of all sorts of group situations (including our Zoasophy Zoom calls).
+While we rarely have perfect Preference cycles, it is fairly common to have no clear consensus on what to do next, which requires an expenditure of energy (by me) to force a speedy conclusion.
 
-Interestingly, there is a result that shows it is possible to resolve the Condorcet Paradox if you have rational agents who share all their information.  For example, instead of using subjective Preference ("What is your Preference among these four Games?") ask an objective question ("Which Game would be most Generative for us to play this week?"), and share insights and reasoning until everyone agrees.
+Interestingly, it is actually possible to resolve the Condorcet Paradox if you have rational agents who share all their information.  For example, instead of using subjective Preference ("What Game do you want to play?") ask an objective question ("Which Game would be most Generative for us to play this week?"), and have everyone share insights and reasoning until they agree.
 
-While that deliberative process is arguably more "fair," it is also extremely expensive in terms of Energy (and Time, which I plan to include in future models). For slow-talking Ents, that resolution could itself take a whole day.  Is the resulting Generativity and 'fairness' worth that expenditure? To all the Ents?  Might it be simpler to just say that the 'ignored' Ent gets to (has to?) be Boss next time there is a deadlock?
+While that deliberative process is arguably more "fair," it is also extremely expensive in terms of Energy (and Time, which I plan to include in future models).
+For slow-talking Ents, that resolution could itself take a whole day.
+Is the resulting Generativity and 'fairness' worth that expenditure?
+To all the Ents, or only a few?
+What if we just say that the 'ignored' Ent gets to (has to?) be Boss next time there is a deadlock?
+Or have a rotation, so they share the load?
 
-This is precisely by what I mean by the Boss role being adaptive within a local context, defined by
+This is precisely by what I mean by the Boss role being adaptive within a local context.
+Given infinite time and energy, we can approach arbitrarily close to an ideal solution for any given problem.
+But in the real world, we not only have practical constraints on our time and patience, but significant opportunity cost in terms of what we could have done instead.
