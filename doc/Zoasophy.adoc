@@ -1,0 +1,182 @@
+= Zoasophy 201: The Boss of Ent Club
+:Author: Ernest Prabhakar
+Draft 0.1, 2021-10-13
+
+Trying to define Zoasophy using English words is proving too confusing.
+Therefore, I am going to define what I mean using a "formal language."
+This is ultimately intended to be machine-computable, but hopefully it will help clarify my point even for human readers.
+
+== The Narrative
+
+This is story about Ents.
+Ent is short for 'Entities', but also Tolkien's marvelous tree shepherds.
+The key points of our story are:
+
+. Ents are wise, so they want to obtain the most Generativity (Individuating + Connecting) with the least Energy.
+. To increase their Generativity, four Ents form a Club where they gather every month to play a Game
+. There are four different Games, each of which takes a whole day, so they can only play one per month
+. Each Ent has their own Preferences ranking those Games
+. To honor those individual Preferences, each month they use Ranked-Choice voting to decide which Game to play
+. Unfortunately, one time their Preferences come out perfectly balanced, so the voting is inconclusive
+. To break this deadlock, one Ent Proposes to play their preferred Game, "unless someone else has a better idea."
+. There is no better option within the time available, so the other Ents wisely agree, leading to a day of enjoyable game-playing for everyone
+. However, the amount of joy is not evenly distributed, because some Ents did not have their Preferences equally respected
+
+What would it take to come up with a better strategy?
+
+== The Formal Model
+
+=== Definitions
+
+To answer this question more precisely, we start by encoding that narrative in a series of definitions:
+
+```
+# A Game can be one of four Symbols, eg Apple, Banana, Cherry, Date
+.Game <.A, .B, .C, .D,>
+# A Preference is an ordered list of Games
+.Preference <[Game]>
+# Energy is a simple object of type Number
+.Energy <Number>
+# Generativity is a composite of two Numbers
+.Generativity (.Individuating <Number>, .Connecting <Number>)
+# Each Ent is a composite of three attributes
+.Ent <Preference, Energy, Generativity>
+# Club is an ordered list of Ents
+.Club <[Ent]>
+# Vote is a list of Preferences
+.Vote <[Preference]>
+```
+
+=== Deadlock
+These definitions allow us to specify the problem more precisely.
+We start by assuming a SimpleVote algorithm that compares Preferences and chooses the most popular:
+```
+; SimpleVote([
+  [.A,.B,],
+  [.A,.C,],
+  ])
+# .A
+; SimpleVote([
+  [.B,.A,],
+  [.C,.A,],
+  ])
+# .A
+```
+But watch what happens with the undecidable vote:
+
+```
+; .Deadlock [
+  [.A,.B,.C,.D,],
+  [.B,.C,.D,.A,],
+  [.C,.D,.A,.B,],
+  [.D,.A,.B,.C,],
+]
+; SimpleVote(Deadlock)
+# ()
+```
+There is no fair algorithm that can decide which Game to play using these input "cycles;"
+a result known as Arrow's Impossibility Theorem or the Condorcet Paradox.
+Under the terms of our scenario, we have a crisis.
+These four Ents have all invested time and energy to come to the Club.
+If there is no Game, that energy will be wasted.
+Worse, the Ents may rationally decide to stop coming, and the Club will dissolve.
+Can anything be done?
+
+We posit a new BossVote algorithm that takes Energy from one Ent to establish their vote as the "default" choice, to ensure that the Club can always decide on a Game to play
+```
+; .Boss Club.0 # Choose member 0 of the Club as Boss
+; BossVote(Boss, Deadlock) # Re-run the vote using energy from that Boss
+# .A
+```
+
+=== Consequences
+
+To make things concrete, assume it takes 5 units of Energy to participate, and a successful Game gives every member 2 units of Individuating and 10 units of Connecting:
+```
+.E_Game -5
+.G_Game (.Individuating 2, .Connecting 10)
+```
+Further, let us assume that the Boss gets an Individuating bonus of `+3` for having their game preferentially picked, while the other members get a penalty to the extent their Preference for `.A` was overriden:
+```
+.Individuating_Impact [
+  +3,
+  -3,
+  -2,
+  -1,
+]
+```
+Finally, let's assume it takes 6 units of energy for the Boss to overcome that resistance:
+```
+.E_Boss -6
+```
+This allows us to compare the impact on Energy and Generativity across three scenarios:
+```
+.Normal_Game [
+  [.E -5, (.I 3, .C 10)],
+  [.E -5, (.I 3, .C 10)],
+  [.E -5, (.I 3, .C 10)],
+  [.E -5, (.I 3, .C 10)],
+]
+
+.Deadlocked_Game [
+  [.E -5, (.I 0, .C 0)],
+  [.E -5, (.I 0, .C 0)],
+  [.E -5, (.I 0, .C 0)],
+  [.E -5, (.I 0, .C 0)],
+]
+
+.Boss_Game [
+  [.E -11, (.I  5, .C 10)],
+  [.E -5,  (.I -1, .C 10)],
+  [.E -5,  (.I  0, .C 10)],
+  [.E -5,  (.I  1, .C 10)],
+]
+```
+
+=== Analysis
+
+This admittedly simplistic model yields some fascinating (at least to me) insights:
+
+. The Club is only viable if the default Generativity payoff is worth 5 Energy Units to every member
+. Even the 'Martyr' role (of surrendering their Preference) won't fully help with a cycle, as removing their preferred Game still leads to a cycle between the remaining three
+. For rational Ents, being a Boss is only worthwhile if the `+3` Individuating justifies the extra 6 Energy
+. The 'ignored' member has a 'skewed' Generativity result `(.I -1, .C 10)`; this outcome is only worthwhile to them if 10 units gained of Connecting justify the 1 unit lost to Individuating, or if there are external considerations that sway the balance
+. This analysis feels very different if we ignore Energy, because then it would seem the Boss is getting something for nothing
+
+For completeness, we can add the "Marty-Boss" who proposes their least-favorite Game (`.D`) in order to keep the peace:
+```
+.DeIndividuating_Impact [
+  -3,
+  -2,
+  -1,
+   0,
+]
+
+.MartyBoss_Game [
+  [.E -11, (.I -1, .C 10)],
+  [.E -5,  (.I  1, .C 10)],
+  [.E -5,  (.I  2, .C 10)],
+  [.E -5,  (.I  3, .C 10)],
+]
+```
+In this case, everyone except them clearly comes out ahead.
+But this is only viable if they value the loss of Energy and Individuating as worth the gain in Connecting, which feels "heroic" rather than "sustainable."
+
+=== Conclusions
+
+Of course this framing, and the specific numbers, were carefully chosen by me in order to make a point.
+But (at least for me), this model seems to capture the fundamental dynamics of all sorts of group situations (including our Zoasophy Zoom calls).
+While we rarely have perfect Preference cycles, it is fairly common to have no clear consensus on what to do next, which requires an expenditure of energy (by me) to force a speedy conclusion.
+
+Interestingly, it is actually possible to resolve the Condorcet Paradox if you have rational agents who share all their information.  For example, instead of using subjective Preference ("What Game do you want to play?") ask an objective question ("Which Game would be most Generative for us to play this week?"), and have everyone share insights and reasoning until they agree.
+
+While that deliberative process is arguably more "fair," it is also extremely expensive in terms of Energy (and Time, which I plan to include in future models).
+For slow-talking Ents, that resolution could itself take a whole day.
+Is the resulting Generativity and 'fairness' worth that expenditure?
+To all the Ents, or only a few?
+What if we just say that the 'ignored' Ent gets to (has to?) be Boss next time there is a deadlock?
+Or have a rotation, so they share the load?
+
+This is precisely by what I mean by the Boss role being adaptive within a local context.
+Given infinite time and energy, we can approach arbitrarily close to an ideal solution for any given problem.
+But in the real world, we not only have practical constraints on our time and patience, but significant opportunity cost in terms of what we could have done instead.

@@ -1,0 +1,20 @@
+name: "GitHub Actions Test Mocha"
+on:
+    pull_request:
+        branches:
+            - master
+            - zoasophy
+
+jobs:
+    test:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v1
+            - name: 'Install Node'
+              uses: actions/setup-node@v1
+            - name: Install mocha
+              run: npm install -g mocha
+            - name: Install dependencies
+              run: npm install
+            - name: "Run Test"
+              run: mocha test-mocha.test.js
