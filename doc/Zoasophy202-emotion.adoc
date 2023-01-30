@@ -48,17 +48,22 @@ starting with an initial supply of ten units:
   ```
   .Ent.Energy 10
   ```
+With the following four parameters:
+  ```
+  .Ent.Loss [2, 1]
+  .Ent.Gain [5, 1]
+  ```
 
 Next, assume the Ent to loses Energy twice as fast if they are active:
 
   ```
-  .Ent.loss { Active ? 2 : 1 }
+  .Ent.loss { Active ? Loss[0] : Loss[1] }
   ```
 
 Conversely, the Ent can gain energy five times more effectively if active:
 
   ```
-  .Ent.max_gain { Active ? 5 : 1 }
+  .Ent.max_gain { Active ? Gain[0] : Gain[1] }
   ```
 
 However, the gain only happens if the World is Warm:
@@ -122,6 +127,9 @@ And it has to do both of these each `tick` of the clock:
 
 
 == Selective Populations
+
+While this is interesting, it doesn't mean very much unless Energy has consequences.
+
 
 The final piece of the puzzle is that there has to be something at stake.
 The simplest rule is that organisms that gain enough energy reproduce,
