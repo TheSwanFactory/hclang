@@ -34,11 +34,17 @@ We assume the World can be Warm (or not):
   .World.Warm False
   ```
 
-To which our Ent can respond by being Active (or not):
+To which our Ent can respond by being On (or not):
 
   ```
-  .Ent.Active False
+  Ent ^ (.Scale, .Base) {
+    .On False
+    .Energy Base
+    .Loss [Scale, 1]
+    .Gain [2.5 Scale, 1]
+  }
   ```
+
 
 === Energy Dependence
 
@@ -46,7 +52,7 @@ Following our power-management metaphor, we assign the Ent a property called Ene
 starting with an initial supply of ten units:
 
   ```
-  .Ent.Energy 10
+  .Ent
   ```
 With the following four parameters:
   ```
@@ -57,13 +63,13 @@ With the following four parameters:
 Next, assume the Ent to loses Energy twice as fast if they are active:
 
   ```
-  .Ent.loss { Active ? Loss[0] : Loss[1] }
+  .Ent.loss { On ? Loss[0] : Loss[1] }
   ```
 
 Conversely, the Ent can gain energy five times more effectively if active:
 
   ```
-  .Ent.max_gain { Active ? Gain[0] : Gain[1] }
+  .Ent.max_gain { On ? Gain[0] : Gain[1] }
   ```
 
 However, the gain only happens if the World is Warm:
@@ -93,13 +99,13 @@ Leading to a change in Energy:
 These different states lead to the following consequences.
 
   ```
-  ; ,Ent.Active True
+  ; ,Ent.On True
   ; Ent.delta(.Warm True)
   # 3
   ; Ent.delta(.Warm False)
   # -2
 
-  ; ,Ent.Active False
+  ; ,Ent.On False
   ; Ent.delta(.Warm True)
   # 0
   ; Ent.delta(.Warm False)
@@ -112,7 +118,7 @@ Otherwise it is better to be Bored.
 To take advantage of this, our Ent needs to observe whether the world is Warm, and activate accordingly:
 
   ```
-  .Ent.update_active: ^ (.Warm <Bit>) {  .Ent.Active (Warm ? True : False) } # or just (Warm)
+  .Ent.update_active: ^ (.Warm <Bit>) {  .Ent.On (Warm ? True : False) } # or just (Warm)
   ```
 
 And it has to do both of these each `tick` of the clock:
