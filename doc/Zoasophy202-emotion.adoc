@@ -3,50 +3,59 @@
 :Date: 2023-01-29
 :Version: 0.9.0
 
-While the digerati (including me) have been fascinated by https://www.theatlantic.com/technology/archive/2022/12/openai-chatgpt-writing-high-school-english-essay/672412/[ChatGPT] and Artificial Intelligence, I've been wondering why I can't find any good models of Artificial Emotion. Even if you take the ultra-rationalist position of "Intellect Good, Emotions Bad," surely it would be important to understand the enemy!
+While the digerati (including me) have been fascinated by
+https://www.theatlantic.com/technology/archive/2022/12/openai-chatgpt-writing-high-school-english-essay/672412/[ChatGPT]
+and Artificial Intelligence,
+I've been wondering why I can't find any good models of Artificial Emotion.
+Even if you take the ultra-rationalist position of "Intellect Good, Emotions Bad,"
+surely it would be important to understand the enemy!
 
-Most traditional models of emotion focus on "four Fs": fight, flight, feed, mate.  However, it occurred to me that a key aspect of emotion is actually energy management: we get excited or aroused when something important might happen, and sad or bored when it does not. 
+Most traditional models of emotion focus on "four Fs": fight, flight, feed, mate.
+However, it occurred to me that a key aspect of emotion is actually energy management:
+we get excited or aroused when something important might happen, and sad or bored when it does not.
 
-Intriguingly, this suggests treating "power management" in battery-dependent computers as a sort of proto-emotion.  Even better, I can reuse my energy-conserving Ents from 201 as the basis of another toy model, to see what insights we might glean. 
+Intriguingly, this suggests treating "power management" in battery-dependent computers as a sort of proto-emotion.
+Even better, that enables new to reuse my energy-conserving Ents from 201 as the basis of another toy model,
+to see what insights we might glean.
 
 == A Bit of Emotion
 
 The simplest model for an Ent assumes they can be in one of two states: "A" for aroused and "B" for bored.  
 
 ```
-.EntState <.A, .B>
+.Internal <.A, .B>
 ```
 
 Similarly, the World can be in two states, "X" for eXciting and "Y" for Yawn-inducing
 
 ```
-.WorldState <.X, .Y>
+.External <.X, .Y>
 ```
 
-The natural response is to only be aroused when the world is exciting:
+The natural response is for My Emotions (.ME) to only be aroused when the world is exciting:
 
 ```
-.Response(.W <WorldState>) {
-    W = .X ? .A : .B
+.Response ^ (.World External) {
+    .ME (World == .X) ? .A : .B
 }
 ```
 
 == Conservation of Energy
 
 This allows us to simulate "what" an emotion does, but doesn't provide insight about "why."
-For that we need an additional quantity that we choose to call Energy. 
-We also introduce the idea of Time (the tuple of "Energy, Time" is called Action). 
+For that we need to introduce the idea of Energy over Time
+(the tuple of (Energy, Time) is sometimes called Action).
 
 For simplicity, we model Time as a discrete series of uniform "Ticks."  
-Each internal state Loses a certain amount of Energy per Tick, 
+Different internal states cause an Ent to *lose* a certain amount of Energy per Tick,
 say 5 if Aroused versus 1 if Bored
 
 ```
-.E_lose (.A 5 .B 1)
+.E_lose (.A 5, .B 1)
 ```
 
-However, the Ent only gains Energy when Aroused, with the precise
-amount depending on how eXciting the World is (say 10 if it is, 2 if it is not)
+Conversely, different external states cause an Ent to *gain* energy,
+though the precise amount depends on the internal state:
 
 ```
 .E_gain (
@@ -54,8 +63,40 @@ amount depending on how eXciting the World is (say 10 if it is, 2 if it is not)
   .B (.X 1, .Y 0)
 )
 ```
+Thus, the Energy per Tick is a function of both the internal and external state:
 
-As a result, the Ent only gains Energy if it is Aroused when the world is eXciting. Otherwise it is better to be Bored. 
+```
+.E_tick ^(.Ent Internal, .World External) {
+  (E_gain Ent World) - (E_lose Ent)
+}
+```
+Thus being Aroused is energy-positive when the World is eXciting:
+
+```
+; E_tick(.A, .X) # 10 - 5
+# 5
+; E_tick(.A, .Y) # 2 - 5
+# -3
+```
+
+While being Bored is a best neutral:
+```
+; E_tick(.B, .X) # 1 - 1
+# 0
+; E_tick(.B, .Y) # 0 - 1
+# -1
+
+```
+As a result, the Ent only gains Energy if it is Aroused when the world is eXciting.
+Otherwise it is better to be Bored.
+
+
+== Genetic Selection
+
+
+
+
+
 
 === TODO
 
