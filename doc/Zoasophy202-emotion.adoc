@@ -1,0 +1,65 @@
+= Zoasophy 202: Artificial Emotion
+:Author: Ernest Prabhakar
+:Date: 2023-01-29
+:Version: 0.9.0
+
+While the digerati (including me) have been fascinated by https://www.theatlantic.com/technology/archive/2022/12/openai-chatgpt-writing-high-school-english-essay/672412/[ChatGPT] and Artificial Intelligence, I've been wondering why I can't find any good models of Artificial Emotion. Even if you take the ultra-rationalist position of "Intellect Good, Emotions Bad," surely it would be important to understand the enemy!
+
+Most traditional models of emotion focus on "four Fs": fight, flight, feed, mate.  However, it occurred to me that a key aspect of emotion is actually energy management: we get excited or aroused when something important might happen, and sad or bored when it does not. 
+
+Intriguingly, this suggests treating "power management" in battery-dependent computers as a sort of proto-emotion.  Even better, I can reuse my energy-conserving Ents from 201 as the basis of another toy model, to see what insights we might glean. 
+
+== A Bit of Emotion
+
+The simplest model for an Ent assumes they can be in one of two states: "A" for aroused and "B" for bored.  
+
+```
+.EntState <.A, .B>
+```
+
+Similarly, the World can be in two states, "X" for eXciting and "Y" for Yawn-inducing
+
+```
+.WorldState <.X, .Y>
+```
+
+The natural response is to only be aroused when the world is exciting:
+
+```
+.Response(.W <WorldState>) {
+    W = .X ? .A : .B
+}
+```
+
+== Conservation of Energy
+
+This allows us to simulate "what" an emotion does, but doesn't provide insight about "why."
+For that we need an additional quantity that we choose to call Energy. 
+We also introduce the idea of Time (the tuple of "Energy, Time" is called Action). 
+
+For simplicity, we model Time as a discrete series of uniform "Ticks."  
+Each internal state Loses a certain amount of Energy per Tick, 
+say 5 if Aroused versus 1 if Bored
+
+```
+.E_lose (.A 5 .B 1)
+```
+
+However, the Ent only gains Energy when Aroused, with the precise
+amount depending on how eXciting the World is (say 10 if it is, 2 if it is not)
+
+```
+.E_gain (
+  .A (.X 10, .Y 2)
+  .B (.X 1, .Y 0)
+)
+```
+
+As a result, the Ent only gains Energy if it is Aroused when the world is eXciting. Otherwise it is better to be Bored. 
+
+=== TODO
+
+. High/low energy consumption/production ~> external sensor
+. Survival and reproduction
+. Continuous vs discrete: S curve parameters
+
