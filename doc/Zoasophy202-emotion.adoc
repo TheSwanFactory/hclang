@@ -20,56 +20,69 @@ to see what insights we might glean.
 
 == A Bit of Emotion
 
-The simplest model for an Ent assumes they can be in one of two states: "A" for aroused and "B" for bored.  
+Our first goal is to reduce primitive emotions to individual bits of information:
 
-```
-.Internal <.A, .B>
-```
+  ```
+  .Bit < <>, () > # <> is True/all, () is False/nil
+  ```
 
-Similarly, the World can be in two states, "X" for eXciting and "Y" for Yawn-inducing
+We assume the World can be Warm (or not):
 
-```
-.External <.X, .Y>
-```
+  ```
+  .World.Warm <>
+  ```
 
-The natural response is for My Emotions (.ME) to only be aroused when the world is exciting:
+To which our Ent can respond by being Active (or not):
 
-```
-.Response ^ (.World External) {
-    .ME (World == .X) ? .A : .B
-}
-```
+  ```
+  .Ent.Active <>
+  ```
 
-== Conservation of Energy
+=== Energy Dependence
 
-This allows us to simulate "what" an emotion does, but doesn't provide insight about "why."
-For that we need to introduce the idea of Energy over Time
-(the tuple of (Energy, Time) is sometimes called Action).
+Following our power-management metaphor, we assign the Ent a property called Energy,
+starting with an initial supply of ten units:
 
-For simplicity, we model Time as a discrete series of uniform "Ticks."  
-Different internal states cause an Ent to *lose* a certain amount of Energy per Tick,
-say 5 if Aroused versus 1 if Bored
+  ```
+  .Ent.Energy 10
+  ```
 
-```
-.E_lose (.A 5, .B 1)
-```
+Next, assume the Ent to loses Energy twice as fast if they are active:
 
-Conversely, different external states cause an Ent to *gain* energy,
-though the precise amount depends on the internal state:
+  ```
+  .Ent.loss { Active ? 2 : 1 }
+  ```
 
-```
-.E_gain (
-  .A (.X 10, .Y 2)
-  .B (.X 1, .Y 0)
-)
-```
-Thus, the Energy per Tick is a function of both the internal and external state:
+Conversely, the Ent can gain energy five times more effectively if active:
 
-```
-.E_tick ^(.Ent Internal, .World External) {
-  (E_gain Ent World) - (E_lose Ent)
-}
-```
+  ```
+  .Ent.max_gain { Active ? 5 : 1 }
+  ```
+
+However, the gain only happens if the World is Warm:
+
+  ```
+  .Ent.gain ^ (.Warm <Bit>) { Warm ? max_gain() : 0 }
+
+  ```
+The net change is therefore:
+
+
+  ```
+  .Ent.change ^ (.Warm <Bit>)  { gain(Warm) - loss() }
+
+  ```
+And all this happens every `tick` of the clock:
+
+
+  ```
+  .Ent.tick ^ (.Warm <Bit>) {  .Ent.Energy += change(Warm) }
+
+  ```
+
+
+=== Conservation of Energy
+
 Thus being Aroused is energy-positive when the World is eXciting:
 
 ```
@@ -130,7 +143,7 @@ with some paying a higher cost but capturing more energy
 (think carnivores or flyuing insects as compared to herbivorses or crawlers).
 These high-achievers will flourish in an energy-rich environment, but die off in lean times.
 
-== From Energy to Matter
+=== From Energy to Matter
 
 At first blush, this one-bit model only seems applicable to plants.
 It is a plausible explanation of why flowers open during the day,
