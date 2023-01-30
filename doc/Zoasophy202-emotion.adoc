@@ -23,19 +23,21 @@ to see what insights we might glean.
 Our first goal is to reduce primitive emotions to individual bits of information:
 
   ```
-  .Bit < <>, () > # <> is True/all, () is False/nil
+  .True <> # all
+  .False () # nil
+  .Bit < True, False >
   ```
 
 We assume the World can be Warm (or not):
 
   ```
-  .World.Warm <>
+  .World.Warm False
   ```
 
 To which our Ent can respond by being Active (or not):
 
   ```
-  .Ent.Active <>
+  .Ent.Active False
   ```
 
 === Energy Dependence
@@ -69,39 +71,54 @@ The net change is therefore:
 
 
   ```
-  .Ent.change ^ (.Warm <Bit>)  { gain(Warm) - loss() }
+  .Ent.delta ^ (.Warm <Bit>)  { gain(Warm) - loss() }
 
   ```
-And all this happens every `tick` of the clock:
+Leading to a change in Energy:
 
 
   ```
-  .Ent.tick ^ (.Warm <Bit>) {  .Ent.Energy += change(Warm) }
+  .Ent.update_energy: ^ (.Warm <Bit>) {  .Ent.Energy += delta(Warm) }
 
   ```
 
 
 === Conservation of Energy
 
-Thus being Aroused is energy-positive when the World is eXciting:
+These different states lead to the following consequences.
 
-```
-; E_tick(.A, .X) # 10 - 5
-# 5
-; E_tick(.A, .Y) # 2 - 5
-# -3
-```
+  ```
+  ; ,Ent.Active True
+  ; Ent.delta(.Warm True)
+  # 3
+  ; Ent.delta(.Warm False)
+  # -2
 
-While being Bored is a best neutral:
-```
-; E_tick(.B, .X) # 1 - 1
-# 0
-; E_tick(.B, .Y) # 0 - 1
-# -1
+  ; ,Ent.Active False
+  ; Ent.delta(.Warm True)
+  # 0
+  ; Ent.delta(.Warm False)
+  # -1
+  ```
 
-```
-As a result, the Ent only gains Energy if it is Aroused when the world is eXciting.
+In other words, the Ent only gains Energy if it is Aroused when the world is eXciting.
 Otherwise it is better to be Bored.
+
+To take advantage of this, our Ent needs to observe whether the world is Warm, and activate accordingly:
+
+  ```
+  .Ent.update_active: ^ (.Warm <Bit>) {  .Ent.Active (Warm ? True : False) } # or just (Warm)
+  ```
+
+And it has to do both of these each `tick` of the clock:
+
+
+  ```
+  .Ent.tick: ^ (.Warm <Bit>) {
+    update_active: Warm
+    update_active: Warm
+  }
+  ```
 
 
 == Selective Populations
