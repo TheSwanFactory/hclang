@@ -1,13 +1,17 @@
 = Hoon is from Mars, Honc is from Venus
 == Homoiconic-Over-Nock-C: An Easy-to-Love Scripting Language for Urbit
 
-Draft 1, 2023-08-01
+Draft 1, 2023-08-01 ~ponnum-minnus <ernest.prabhakar@gmail.com>
 
-Hoon is a warrior, carving bloody runes into the harsh Martian cliffs in order to un-think the corrupted idioms of Earth.
+* Hoon is a warrior, carving bloody runes into the harsh Martian cliffs in order to un-think the corrupted idioms of Earth.
 
-Honc is a lover, singing soft songs of the Venetian seas to woo the wayward sailors back to their native innocence.
+* Honc is a lover, singing soft songs of the Venetian seas to woo the wayward sailors back to their native innocence.
 
-More prosaically, Honc is an attempt to express Nock semantics in the familiar, C-like syntax (and terminology) used by Python, Ruby, etc.  It is built using Homoiconic C ("hclang"), a similarly quixotic homoiconic tree language for expressing systems computation. Honc can be thought of as an abstract assembly language on top of nock's machine code.
+More prosaically, Honc is an attempt to express Nock semantics in the familiar, C-like syntax (and terminology) used by Python, Ruby, etc.  
+It is built using Homoiconic C ("hclang"), a similarly quixotic homoiconic tree language for expressing systems computation. 
+Honc can be thought of as an abstract assembly language on top of nock's machine code.
+
+Note: this is inspired by, and largely replicates, the excellent https://blog.timlucmiptev.space/part1.html[Nock tutorial] by ~timluc-miptev.
 
 ## Examples
 
@@ -21,10 +25,65 @@ More prosaically, Honc is an attempt to express Nock semantics in the familiar, 
 ; nock () # nil or false in hclang
 # 1
 ```
-This uses the hclang input (";") and output ("#") prompts from the reply.  Since ";" terminates expressions, and "#" creates comments, it can also be pasted directly into a source file (where it is interprted as a doctest).
+All hclang functions take a single argument, which can be nil or a complex data structure.
 
+Note this fragment uses the hclang input (";") and output ("#") prompts from the REPL.  
+Since ";" terminates expressions, and "#" creates comments, it can also be pasted directly into a source file (where it is interprted as a doctest).
 
+### Cells as Lists
 
+For simplicity, nock cells are represented as hclang lists (in both input and output):
+
+```hclang
+; nock [782, [9872, 89728]]
+# [782 [9872 89728]]
+```
+
+## Honc Expressions
+
+The Honc class (which in hclang is just a function with properties) implements most of honc.
+Instances of the Honc class acts as the subject for all honc expressions.
+Much of the time, nock functions are implemented as methods on the Honc class:
+
+```hclang
+.HoncMapping {
+    .echo 0
+    .quote 1
+    .mutate 2
+    .incr 4
+    .cell? 3
+    .equal? 5
+    .if_else 6
+    .compose 7
+    .add_var 8
+    .exec 9
+    .replace 10
+
+    _ & {^ __} # The Distribution Rule
+}
+```
+
+For example:
+
+```hclang
+; Honc(42).echo() # defaults to 1
+# 42
+; Honc([[`apple`, .pie] [0b1101, 0xdad]]).echo(5)
+# .pie 
+; Honc([50, 51]).echo(2)
+# 50
+; Honc([50, 51]).echo([0,1])
+@NockError(`can't evaluate this--a memory slot must be a number like 2, not a cell like [0 1]`)
+# 50
+```
+
+### Quoted Expressions
+
+```hclang
+```
+
+```hclang
+```
 
 ## Appendix: Honc Implementation
 
