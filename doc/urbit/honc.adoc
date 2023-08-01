@@ -1,0 +1,43 @@
+= Hoon is from Mars, Honc is from Venus
+== Homoiconic-Over-Nock-C: An Easy-to-Love Scripting Language for Urbit
+
+Draft 1, 2023-08-01
+
+Hoon is a warrior, carving bloody runes into the harsh Martian cliffs in order to un-think the corrupted idioms of Earth.
+
+Honc is a lover, singing soft songs of the Venetian seas to woo the wayward sailors back to their native innocence.
+
+More prosaically, Honc is an attempt to express Nock semantics in the familiar, C-like syntax (and terminology) used by Python, Ruby, etc.  It is built using Homoiconic C ("hclang"), a similarly quixotic homoiconic tree language for expressing systems computation. Honc can be thought of as an abstract assembly language on top of nock's machine code.
+
+## Examples
+
+### The `nock` compiler
+
+`nock` is a function that compiles the honc dialect of hclang to equivalent nock structures.
+
+```hclang
+; nock <> # all or true in hclang
+# 0
+; nock () # nil or false in hclang
+# 1
+```
+This uses the hclang input (";") and output ("#") prompts from the reply.  Since ";" terminates expressions, and "#" creates comments, it can also be pasted directly into a source file (where it is interprted as a doctest).
+
+
+
+
+## Appendix: Honc Implementation
+
+[still in process]
+
+```hclang
+.Honc {
+    .get {}
+
+}
+
+honc {
+    Honc(_)()
+}
+```
+
