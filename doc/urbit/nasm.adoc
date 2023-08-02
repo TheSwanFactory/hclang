@@ -11,12 +11,15 @@ for Earthlings to read and write nock.
 
 ```hclang
 ; .nock <- `nock`;
-; nock.assemble {[50, 51] (get 2)}
+; nock.assemble { [50, 51] (get 2) }
 # [[50, 51], [0, 2]]
 ; nock.print .-1
 # `[50 51] [0 2]`
 ; nock.eval .-2
 # 50
+; nock.parse .-2
+# { [50, 51] [0, 2] }
+ 
 ```
 
 === Homoiconic C
@@ -76,7 +79,7 @@ Each opcode in nock has an hclang name:
 ```hclang
 .get 0
 .quote 1
-.map-reduce 2
+.map-eval 2
 .is-cell 3
 .increment 4
 .is-equal 5
@@ -269,12 +272,29 @@ Applying nil to a closure evaluates it:
 # 1
 ```
 
-=== OpCode 2: map-reduce
+=== OpCode 2: map-eval
 
 
+```hclang
+; .op2 { [50, 51] [2, [0, 3], [1, [4, 0, 1]]] }
+; .op2a { [50, 51] [map-eval (get 3) {incr get 1}] }
 
+# Break it down into map:
+; { (get 3), {incr get 1} } & [50, 51] 
+# { 51 (incr get 1) }
 
+# Then eval:
+; pp { 51 (incr get 1) }
+# `52`
+```
 
+To simplify compilation into this opcode, nock defines a new '&|' operator:
 
-For simplicity, I have assigned them their own
-psuedo-opcodes:
+```hclang
+; [1, 2] nock.&| []
+# [1, [2]]
+# From: [[1], [2]] | ()
+
+; nc { [(get 3), {incr get 1} ] &| [50, 51] }
+# { [50, 51] [map-eval (get 3) {incr get 1}] }
+```
