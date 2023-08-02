@@ -1,0 +1,65 @@
+= nasm: The Nock Assembler
+
+== Introduction
+
+`nasm` is an high-level assembly language for nock bytecode.
+
+It defines symbols, conventions, tools and libraries that make it easy
+for Earthlings to read and write nock.
+
+=== Example
+
+```hclang
+; .nock <- `nock`
+; nock.assemble {[50, 51] (get 2)}
+# [[50, 51], [0, 2]]
+; nock.write .-1
+# `[50 51] [0 2]`
+; nock.eval .-2
+# 50
+```
+
+=== Homoiconic C
+
+`nasm` is written in Homoiconic C ("hclang"), another minimalist axiomatic language.
+It uses:
+
+- `[square brackets]` for comma-seperated lists ("boxed" grouping)
+- `(round brackets)` for expressions ("unboxed" grouping)
+- `{curly brackets}` for closures ("lazy" evaluation)
+- `.name value` to assign (immutable) variables
+- `;` to terminate expressions (and as the REPL input prompt)
+- `#` for comments (and as the REPL output prompt)
+- `<-` to load modules
+- `backticks` ("`") for strings
+
+While hclang is an impure systems language (inspired by BitC),
+it includes a pure subset that can be compiled to Nock assembly:
+
+```hclang
+; [50, 51].0
+# 50
+; nock.compile { [50, 51] .0 }
+# { [50, 51] (get 2) }
+```
+
+
+```hclang
+```
+
+
+```hclang
+```
+
+
+```hclang
+```
+
+
+```hclang
+```
+
+
+```hclang
+```
+
