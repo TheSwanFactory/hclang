@@ -10,7 +10,7 @@ for Earthlings to read and write nock.
 === Example
 
 ```hclang
-; .nock <- `nock`
+; .nock <- `nock`;
 ; nock.assemble {[50, 51] (get 2)}
 # [[50, 51], [0, 2]]
 ; nock.print .-1
@@ -21,15 +21,18 @@ for Earthlings to read and write nock.
 
 === Homoiconic C
 
-`nasm` is written in Homoiconic C ("hclang"), another minimalist axiomatic language.
-It uses:
+`nasm` is written in Homoiconic C (also known as "hclang"),
+another minimalist axiomatic language.
+It has suprisingly similar semantics to nock,
+but is optimized for readability and trivial evaluation.
+Homoiconic C has no keywords, but instead uses very precise syntax:
 
+- `;` for end of expressions (and the input prompt)
+- `#` for comments (and the output prompt)
 - `[square brackets]` for comma-seperated lists ("boxed" grouping)
 - `(round brackets)` for expressions ("unboxed" grouping)
 - `{curly brackets}` for closures ("lazy" evaluation)
 - `.name value` to assign (immutable) variables
-- `;` to terminate expressions (and as the REPL input prompt)
-- `#` for comments (and as the REPL output prompt)
 - `<-` to load modules
 - `backticks` ("`") for strings
 
@@ -52,8 +55,9 @@ For brevity, we use the following abbreviations:
 ```hclang
 ; .nasm nock.assemble;
 ; .nc nock.compile;
-; .run { nock.eval (nasm _) }
-; .pp { nock.print (nasm _) } # pretty-print
+; .eval nock.eval;
+; .run { eval (nasm _) }
+; .pp { nock.print (nasm _) } # pretty-print assembly
 ```
 
 Where `_` is the default argument for a closure
@@ -67,7 +71,7 @@ This allows us to rewrite the initial example as:
 
 == OpCodes
 
-nasm assigns names to each Nock opcode:
+Each opcode in nock has an hclang name:
 
 ```hclang
 .get 0
@@ -78,18 +82,48 @@ nasm assigns names to each Nock opcode:
 .is-equal 5
 ```
 
-=== Variable Expansion
+=== A Note on Variables
 
-You can define local variables that are expanded at assembly time
+The assembler has access to local context, so it can access and expand variables.
 
 ```hclang
 ; .list [10, 11, 12, 13];
-; pp { list }
-# `[10 [11 [12 13]]]`
+; nasm { list }
+# [10, [11, [12, 13]]]
 ```
 
-Later we will show you how to define macros that are stored in the assembly
-and evaluated at run time.
+The local context itself is represented by '.',
+which nasm models as an implicit get:
+
+```hclang
+; nasm { . }
+# {0 1}
+```
+
+
+By default, the compiler will also expand variables:
+
+```hclang
+; nc { list (get 1) }
+# { [10, [11, [12, 13]]] (0 1) }
+```
+
+We can instead tell the compiler to include an environment
+as part of its output.
+That tells it to not expand those variables,
+but instead pass along the environmnet for the assembler to use.
+
+
+```hclang
+; .ops = nock.opcodes;
+; nc.pass { ops }
+; nc { [50, 51] (get 1) }
+# {.^ ops; [50, 51] (get 1)}
+; nasm .-1
+```
+
+The `.^` operator sets the parent of the current context to 
+the (immutable) variable ops, so nasm can make use of it.
 
 === OpCode 0: get
 
@@ -103,8 +137,8 @@ The `get` opcode in nock extracts items from a binary tree
 # [12, 13]
 ```
 
-For convenience, you can pass `get` a 0-based cell instead of an atom
-and it will calculate the index offset relative to the nested list:
+For convenience, you can pass `get` a 0-based list instead of an number
+and to calculate the offsets relative to the binary tree:
 
 ```hclang
 ; .list2 [20, 21, [22, 23]];
@@ -113,12 +147,134 @@ and it will calculate the index offset relative to the nested list:
 ; list2.2.1
 # 23
 ; nc {list2 .2 .1}
-# { [20, [21, [22, 23]]] (get [1, 1]) } # 7, I think
+# { [20, [21, [22, 23]]] (get [1, 1, 1]) } # 8, I think
+; eval .-1
+# 23
 ```
+
+=== OpCode 1: quote
+
+The `quote` opcode ignores the subject and returns its body:
 
 ```hclang
+; nasm { [50, 51] (quote get 2) }
+# [[50, 51], [1, [0, 2]]]
+; eval .-1
+# [0, 2]
 ```
+
+Note that the assembler stil expands variable names, such as `get`.
+
+You can get the same effect by passing an hclang closure:
 
 ```hclang
+; nasm { [50, 51] {get 2} }
+# [[50, 51], [1, [0, 2]]]
 ```
 
+=== Interlude: Map and Reduce
+
+The easiest way for me to understand nock opcode 2 is in terms of
+two hclang primitive operators: map `&` and reduce `|`.
+
+==== Map
+
+Map creates a new list from an old list by applying a closure in parallel:
+
+```hclang
+; [1, 2] & {pp _} 
+# [`1`, `2`]
+```
+
+==== Reduce
+
+Reduce creates a single element from an old list by repeated application to a seed.
+For example, when you apply an element to a list it appends (repeatedly):
+
+```hclang
+; [] 1
+# [1]
+; [1] 2
+# [1, 2]
+; [1, 2] 3 4
+# [1, 2, 3, 4]
+```
+
+We can use this (rather awkwardly) to clone a list using Reduce:
+
+```hclang
+; [1, 2, 3, 4] | []
+# [1, 2, 3, 4]
+```
+
+Compared to wrapping each element if we instead used Map:
+
+
+```hclang
+; [1, 2, 3, 4] & []
+# [[1], [2], [3], [4]]
+```
+
+==== Evaluation
+
+Importantly, Reduce is how hclang performs evaluation.
+
+Consider `nock.print` of a cell:
+
+```hclang
+; nock.print [1, 2]
+# `[1 2]`
+```
+
+We can implement it as either a closure to apply:
+
+
+```hclang
+; .np_closure { nock.print [1, 2] };
+; np_closure()
+# `[1 2]`
+```
+
+or a list of elements to apply:
+
+
+```hclang
+; .np_list [ nock, .print, [1, 2] ];
+; np_list | ()
+# `[1 2]`
+```
+
+==== Applications of nil
+
+Note that applying any element to nil results in that element:
+
+```hclang
+; () 1
+# 1
+```
+
+Applying nil a to non-closure just returns that element:
+
+```hclang
+; 1 ()
+# 1
+```
+
+
+Applying nil to a closure evaluates it:
+
+
+```hclang
+; { 1 } ()
+# 1
+```
+
+=== OpCode 2: map-reduce
+
+
+
+
+
+
+For simplicity, I have assigned them their own
+psuedo-opcodes:
