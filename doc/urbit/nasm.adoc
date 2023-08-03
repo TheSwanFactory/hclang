@@ -60,7 +60,7 @@ For brevity, we use the following abbreviations:
 ; .nc nock.compile;
 ; .eval nock.eval;
 ; .run { eval (nasm _) }
-; .pp { nock.print (nasm _) } # pretty-print assembly
+; .pp { nock.print (run _) } # pretty-print assembly
 ```
 
 Where `_` is the default argument for a closure
@@ -83,7 +83,26 @@ Each opcode in nock has an hclang name:
 .is-cell 3
 .increment 4
 .is-equal 5
+.if-else 6
+.compose 7
+.prepend 8
+.call 9
+.replace 10
+.hint 11
 ```
+
+The compiler also makes use of a number of pseudo-ops (see Appendix A)
+that are converted to proper nock operations by the assembler.
+
+```hclang
+.map 21
+.reduce 22
+.if 61
+.else 62
+.insert 81
+.delete 82
+```
+
 
 === A Note on Variables
 
@@ -120,12 +139,13 @@ but instead pass along the environmnet for the assembler to use.
 ```hclang
 ; .ops = nock.opcodes;
 ; nc.pass { ops }
-; nc { [50, 51] (get 1) }
-# {.^ ops; [50, 51] (get 1)}
-; nasm .-1
+; nc { [50, 51] (get 2) }
+# {.. ops; [50, 51] [get, 2] }
+; run .-1
+# 50
 ```
 
-The `.^` operator sets the parent of the current context to 
+The `..` operator sets the parent of the current context to 
 the (immutable) variable ops, so nasm can make use of it.
 
 === OpCode 0: get
@@ -298,3 +318,23 @@ To simplify compilation into this opcode, nock defines a new '&|' operator:
 ; nc { [(get 3), {incr get 1} ] &| [50, 51] }
 # { [50, 51] [map-eval (get 3) {incr get 1}] }
 ```
+
+
+== Appendix A: RINC Pseudo-Ops
+
+Strictly speaking, nasm is actually designed around the small number
+of primitive operations that are used to define nock,
+rather than the actual nock opcodes.
+This also makes it easy to compile hclang primitives down to the
+corresponding psuedo-op.
+
+
+This approach is similar to the way modern processors and compilers
+tend to use orthogonal Reduced Instruction Set Computing (RISC) operations,
+rather the Complex Instruction Set Computing (CISC) operations
+optimized for efficient hand-coding.
+Hence the term "RINC", for Reduced Instruction Nock Computing.
+
+The nasm assembler is repsonsible for converting any pseudo-ops
+into the appropriate nock opcodes, so the resulting code runs
+on any nock-compatible virtual machine.
