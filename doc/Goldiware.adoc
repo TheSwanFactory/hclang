@@ -4,9 +4,9 @@
 
 Since the invention of Turing Machines and the von Neumann architecture, Computer Science has primarily focused on mathematically-inspired models of software, and attempted to fit hardware into that framework. While that has been phenomenally successful, the proliferation of custom silicon and processors (ASICs, SOCs, GPUs, TPUs, etc.) makes the fiction of "general-purpose" hardware increasingly unrealistic.
 
-Goldiware starts from the opposite direction. It integrates the three fundamental components of computer hardware (logic gates, switches, and memory) into a novel abstraction called the **hexon**, then uses hexons rather than functions as the basis of a radically different type of programming (a "hexgram") that can be executed using either traditional software or custom hardware.
+Goldiware starts from the opposite direction. It integrates the three fundamental components of computer hardware (logic gates, switches, and memory) into a novel abstraction called the **hexon**. Using hexons rather than functions froms the basis of a radically different type of programming (a "hexgram") that can be executed using either traditional software or custom hardware.
 
-#  HEXONS
+==  HEXONS
 
 • Hexons: an alternative to Boolean logic and mathematical functions as the fundamental semantic of computation. Hexons are built around the concept of “stateful switches” (a la Shannon, 1937) , and thus explicitly take into account:
 • Non-boolean (0,1) values (i.e., the high-impedance “Z” of unused bus lines or disabled transistors)
@@ -14,12 +14,12 @@ Goldiware starts from the opposite direction. It integrates the three fundamenta
 • Multiple disjoint outputs, and thus parallelism and asynchrony
 
 
-# HEXGRAMS
+=== HEXGRAMS
 
 Hexgrams can be thought of as generalized dependency graphs that link input and output via shared state and triggers.
 
 
-# PEACE Monad
+=== PEACE Monad
 - Dictionary
 - Array
 - Function
@@ -28,7 +28,7 @@ Hexgrams can be thought of as generalized dependency graphs that link input and 
 
 Anexecutable data structure – combining the roles of dictionary, array, function, and scope – that acts as a universal monad for programming. PEACE is effectively CSV + names + parametrization + inheritance + effect typing. Programs (or ‘congrams’) written with PEACE read like data but run like code. (see DREADFUL)
 
-#  Golden Girls Architecture
+==  Golden Girls Architecture
 
 • Golden Girls Architecture (GGA): an alternative to the von Neumann1 computer architecture that inverts the relationship between the processor and main memory in order to restore the symmetry between code and data. GGA aggregates hexons into three major subsystems, which interact by exchanging signals one cache line at a time, thus allowing explicit control of non-uniform memory architectures (NUMA):
 • Central Memory Unit (CMU), aka “Experience”
@@ -37,6 +37,6 @@ Anexecutable data structure – combining the roles of dictionary, array, functi
 
 1 Because the opposite of von neu mann is many old vomen.
 
-# Graphical Command Interace (GCI)
+== Graphical Command Interace (GCI)
 
 The visual counterpart of PEACE, GCI marries the discoverability/usability of modern graphical user interfaces (GUIs) with the programmability/ composability of old-fashioned command-line interfaces (CLIs) — e.g., Apple BASIC and the UNIX shell. Because PEACE is a simple hierarchical data structure, it is straightforward to represent and manipulate it as a graphical tree. GCI uses PEACE to treat onscreen controls as commands that fill an activity buffer, which can then be saved, replayed, editing, and collected as part of higher-order abstractions.
