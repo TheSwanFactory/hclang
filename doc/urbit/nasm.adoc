@@ -1,11 +1,17 @@
 = nasm: The Nock Assembler
+Draft 1, 2023-08-01 ~ponnum-minnus <ernest.prabhakar@gmail.com>
 
 == Introduction
 
-`nasm` is an high-level assembly language for nock bytecode.
+`nasm` is an high-level assembly language for nock bytecode,
+the foundational computing layer of the Urbit decentralized network.
 
 It defines symbols, conventions, tools and libraries that make it easy
 for Earthlings to read and write nock.
+
+This document (and most of the examples) are directly inspired by
+https://blog.timlucmiptev.space/part1.html[Nock for Everyday Coders].
+Any errors or misinterpretaions are, of course, my sole responsibility.
 
 === Example
 
@@ -17,8 +23,6 @@ for Earthlings to read and write nock.
 # `[50 51] [0 2]`
 ; nock.eval .-2
 # 50
-; nock.parse .-2
-# { [50, 51] [0, 2] }
  
 ```
 
@@ -41,7 +45,8 @@ Homoiconic C has no keywords, but instead uses very precise syntax:
 
 === Compiling to Assembly
 
-While hclang is an impure systems language (inspired by BitC),
+While hclang is an impure systems language
+(inspired by https://github.com/repos-bitc/bitc[bitc-lang]),
 it includes a pure subset that can be compiled to Nock assembly:
 
 ```hclang
@@ -72,8 +77,16 @@ This allows us to rewrite the initial example as:
 # 50
 ```
 
-=== OpCode Names
+== Primitive Operators
 
+```hclang
+.get 0 # '/'
+.is-cell 3 # '?'
+.increment 4 # '+'
+.is-equal 5 # '='
+.set 100 # '#'
+.eval 102 # '*'
+```
 
 The Nock [pseudocode notation](https://developers.urbit.org/reference/nock/definition#rules)
 defines six prefix operators: ?, +, =, /, #, and *.
@@ -82,41 +95,153 @@ Nasm instantiates these as actual operators with actual names
 (while I sympathize with the desire to avoid English cultural imperialism,
 I find explicit words very helpful in the learning process).
 
-Note that eval ('*') is assigned a 1xx psuedo-opcode, as are other non-coded operations.
+Note that eval and set are assigned 1xx psuedo-opcodes, as are other non-coded operations.
 These simplify composition, but are "compiled away" by the assembler.
 See Appendix A for more details.
 
+
+=== Examples
+
 ```hclang
-.opcodes [
+; run { 50 (get 1) }
+# 50
+; run { [50, 51] (get 2) }
+# 50
+; run { 50 (is-cell (get 1)) }
+# 1 (false)
+; run { [50] (is-cell (get 1)) }
+# 0 (true)
+; run { 50 (increment (get 1)) }
+# 51
+; run { [50, 51] (is-equal (get 2) (get 2)) }
+# 0 (true)
+; run { [50, 51] (is-equal (get 2) (get 3)) }
+# 1 (false)
+; run { 50 (set 2 [8, 9, 10]) }
+# [50, [9, 10]]
+; run { eval (50 (get 1))}
+# 50
+```
 
-    # Primitive Operators
+=== Hierarchical `get`
 
-    .is-cell 3 # '?'
-    .increment 4 # '+'
-    .is-equal 5 # '='
-    .get 0 # '/'
-    .set 10 # '#'
-    .eval 100 # '*'
+The `get` opcode in nock extracts items from a binary tree
+(which is what all lists are implemented as in nock)
 
-    # Other OpCodes
+```hclang
+; run { list (get 2) }
+# 10
+; run { list (get 5) }
+# [12, 13]
+```
 
-    .quote 1
-    .map-eval 2
-    .if-else 6
-    .compose 7
-    .prepend 8
-    .call 9
-    .hint 11
+For convenience, you can pass `get` a 0-based list of nested indices
+(rather than a number) which it will use to calculate the appropriate offset:
 
-    # Other Pseudo-Operators
+```hclang
+; .list2 [20, 21, [22, 23]];
+; list2 .0
+# 20
+; list2 .2 .1
+# 23
+; nc {list2 .2 .1}
+# { [20, [21, [22, 23]]] (get [1, 1, 1]) } # 8, I think
+; eval .-1
+# 23
+```
 
-    .map 121
-    .reduce 122
-    .if 161
-    .else 162
-    .insert 181
-    .delete 182
-]
+== Quoting and Evaluation
+
+=== OpCode 1: quote
+
+The `quote` opcode ignores the subject and returns its body:
+
+```hclang
+; nasm { [50, 51] (quote get 2) }
+# [[50, 51], [1, [0, 2]]]
+; eval .-1
+# [0, 2]
+```
+
+Note that the assembler stil expands variable names inside a quote,
+such as `get`.
+
+You can get the same effect by passing an hclang closure:
+
+```hclang
+; nasm { [50, 51] {get 2} }
+# [[50, 51], [1, [0, 2]]]
+```
+
+Observe that the eval pseudo-app acts as the inverse of quote,
+and may be expanded by the assembler:
+
+```hclang
+; nasm { [50, 51] (eval {get 2}) }
+# [[50, 51], [0, 2]]
+```
+
+=== OpCode 7: compose
+
+The simplest native evaluation opcode is `compose`,
+which repeatedly applies its arguments to the subject:
+
+```hclang
+; nasm { [23, 45] (compose (get 3) (incr (get 1))) }
+# { [23, 45], [7, [0, 3], [4, 0, 1]] }
+; eval .-1
+# 46
+```
+
+Because hclang supports linear lists as well as binary expressions,
+you can also just specify a sequence of operations directly,
+and nasm will interporate the 7.
+
+```hclang
+; nasm { [23, 45] (get 3) (incr (get 1)) }
+# { [23, 45], [7, [0, 3], [4, 0, 1]] }
+; eval .-1
+# 46
+```
+
+=== OpCode 2: map-eval
+
+```hclang
+
+# Original: [50 51] [2 [0 3] [1 [4 0 1]]]
+# [23 45] [7 [0 3] [4 0 1]]
+```
+
+=== OpCode 9: call
+
+```hclang
+
+# Original: [50 51] [2 [0 3] [1 [4 0 1]]]
+# [23 45] [7 [0 3] [4 0 1]]
+```
+
+
+
+
+```hclang
+# Other OpCodes
+
+.quote 1
+.map-eval 2
+.if-else 6
+.compose 7
+.prepend 8
+.call 9
+.hint 11
+
+# Other Pseudo-Operators
+
+.map 121
+.reduce 122
+.if 161
+.else 162
+.insert 181
+.delete 182
 ```
 
 === A Note on Variables
@@ -161,54 +286,9 @@ but instead pass along the environmnet for the assembler to use.
 ```
 
 The `..` operator sets the parent of the current context to 
-the (immutable) variable ops, so nasm can make use of it.
+the (immutable) variable ops, so nasm knows it can make use of it.
 
-=== OpCode 0: get
 
-The `get` opcode in nock extracts items from a binary tree
-(which is what all lists are implemented as in nock)
-
-```hclang
-; run { list (get 2) }
-# 10
-; run { list (get 5) }
-# [12, 13]
-```
-
-For convenience, you can pass `get` a 0-based list instead of an number
-and to calculate the offsets relative to the binary tree:
-
-```hclang
-; .list2 [20, 21, [22, 23]];
-; list2.0
-# 20
-; list2.2.1
-# 23
-; nc {list2 .2 .1}
-# { [20, [21, [22, 23]]] (get [1, 1, 1]) } # 8, I think
-; eval .-1
-# 23
-```
-
-=== OpCode 1: quote
-
-The `quote` opcode ignores the subject and returns its body:
-
-```hclang
-; nasm { [50, 51] (quote get 2) }
-# [[50, 51], [1, [0, 2]]]
-; eval .-1
-# [0, 2]
-```
-
-Note that the assembler stil expands variable names, such as `get`.
-
-You can get the same effect by passing an hclang closure:
-
-```hclang
-; nasm { [50, 51] {get 2} }
-# [[50, 51], [1, [0, 2]]]
-```
 
 === Interlude: Map and Reduce
 
@@ -353,3 +433,35 @@ The nasm assembler is repsonsible for converting any pseudo-ops
 into the appropriate nock opcodes, so the resulting code runs
 on any nock-compatible virtual machine.
 
+```hclang
+.opcodes [
+
+    # Primitive Operators
+
+    .is-cell 3 # '?'
+    .increment 4 # '+'
+    .is-equal 5 # '='
+    .get 0 # '/'
+    .set 10 # '#'
+    .eval 100 # '*'
+
+    # Other OpCodes
+
+    .quote 1
+    .map-eval 2
+    .if-else 6
+    .compose 7
+    .prepend 8
+    .call 9
+    .hint 11
+
+    # Other Pseudo-Operators
+
+    .map 121
+    .reduce 122
+    .if 161
+    .else 162
+    .insert 181
+    .delete 182
+]
+```
