@@ -195,7 +195,7 @@ which repeatedly applies its arguments to the subject:
 
 Because hclang supports linear lists as well as binary expressions,
 you can also just specify a sequence of operations directly,
-and nasm will interporate the 7.
+and nasm will interpolate the 7.
 
 ```hclang
 ; nasm { [23, 45] (get 3) (incr (get 1)) }
@@ -206,10 +206,18 @@ and nasm will interporate the 7.
 
 === OpCode 2: map-eval
 
-```hclang
+OpCode 2 is the more general version of 7
+(more precisely, 7 is syntactic sugar on 2).
+It evaluates *both* arguments against the subject
+before applying them.
 
-# Original: [50 51] [2 [0 3] [1 [4 0 1]]]
-# [23 45] [7 [0 3] [4 0 1]]
+```hclang
+; [(incr (get 1)), 51] [map-eval (get 3) (get 2)]
+# [[[4, 0, 1], 51], [2, [0, 3] [0, 2]]]
+; eval .-1
+# 52
+# Original: { [[4, 0, 1], 51] [2, [0, 3] [0, 2]] }
+# Effect: { 51 (incr (get 1)) }
 ```
 
 === OpCode 9: call
