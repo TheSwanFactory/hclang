@@ -204,6 +204,16 @@ and nasm will interpolate the 7.
 # 46
 ```
 
+Note that this means that if you want to invoke The Distribution Rule (below)
+you must explicitly group the formulas as a cell:
+
+```hclang
+; nasm { [23, 45] [(get 3), (incr (get 2))] }
+# { [23, 45], [[0, 3], [4, 0, 2]] }
+; eval .-1
+# [45, 24]
+```
+
 === OpCode 2: map-eval
 
 OpCode 2 is the more general version of 7
@@ -220,12 +230,63 @@ before applying them.
 # Effect: { 51 (incr (get 1)) }
 ```
 
-=== OpCode 9: call
+=== OpCode 9: method
+
+The "method" operation `[a 9 b c]` does two things:
+
+- applies method `c` to the subject
+- invokes the method at slot `b` against that new subject
+
+It is also defined as syntactic sugar on top of `map-eval`:
 
 ```hclang
+# *[a 9 b c]
+; {a (method b c)}
+#  -> *[*[a c] 2 [0 1] 0 b]
+; { (a c) (map-eval (get 1) (get b))}
+; { (a c) ((a c) (get b))}
+```
 
-# Original: [50 51] [2 [0 3] [1 [4 0 1]]]
-# [23 45] [7 [0 3] [4 0 1]]
+Note that if `c` is a "compound formula" (cell), then by "The Distribution Rule"
+the result of applying c to a will be the map of all components.
+
+```hclang
+# { a [c1, c2] } ->
+# { [a c1, a c2]}
+```
+
+As we can see using the following bindings:
+
+```hclang
+; .a 45;
+; .b 2;
+; .c { {incr (get 3)}, (get 1) };
+; .c1 { {incr (get 3)} };
+; .c2 { get 1 };
+```
+
+which gives:
+
+```hclang
+# Original: .*(45 [9 2 [1 4 0 3] 0 1])
+; nasm { 45 (method 2 [{incr (get 3)}, (get 1)]) }
+# [45, [9, [2, [[1, [4, [0, 3]], [0, 1]]]]]]
+; eval .-1
+# 46
+```
+
+using the following expansion:
+
+```hclang
+# (a [c1 c2]) ->
+# [45 {incr (get 3)}, 45 (get 1)] ->
+# [incr (get 3), 45]
+
+# { 45 (method 2 [{incr (get 3)}, (get 1)]) } ->
+# { [incr (get 3), 45] ([incr (get 3), 45] (get 2)) } ->
+# { [incr (get 3), 45] (incr (get 3)) } ->
+# { incr 45 }
+# 46
 ```
 
 
@@ -234,12 +295,8 @@ before applying them.
 ```hclang
 # Other OpCodes
 
-.quote 1
-.map-eval 2
 .if-else 6
-.compose 7
 .prepend 8
-.call 9
 .hint 11
 
 # Other Pseudo-Operators
