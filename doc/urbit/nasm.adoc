@@ -289,25 +289,33 @@ using the following expansion:
 # 46
 ```
 
-
-
+== Conditionals
 
 ```hclang
 # Other OpCodes
-
 .if-else 6
-.prepend 8
-.hint 11
-
-# Other Pseudo-Operators
-
-.map 121
-.reduce 122
 .if 161
 .else 162
+```
+
+== Prepend
+
+```hclang
+# Other OpCodes
+.prepend 8
 .insert 181
 .delete 182
 ```
+
+== Pragma
+
+```hclang
+# Other OpCodes
+.hint 11
+```
+
+
+
 
 === A Note on Variables
 
@@ -355,12 +363,17 @@ the (immutable) variable ops, so nasm knows it can make use of it.
 
 
 
-=== Interlude: Map and Reduce
+== Interlude: Map and Reduce in hclang
 
 The easiest way for me to understand nock opcode 2 is in terms of
 two hclang primitive operators: map `&` and reduce `|`.
+These map to pseudo-operators in nasm:
 
-==== Map
+```hclang
+.map 121
+.reduce 122
+```
+=== Map
 
 Map creates a new list from an old list by applying a closure in parallel:
 
@@ -369,7 +382,7 @@ Map creates a new list from an old list by applying a closure in parallel:
 # [`1`, `2`]
 ```
 
-==== Reduce
+=== Reduce
 
 Reduce creates a single element from an old list by repeated application to a seed.
 For example, when you apply an element to a list it appends (repeatedly):
@@ -398,7 +411,7 @@ Compared to wrapping each element if we instead used Map:
 # [[1], [2], [3], [4]]
 ```
 
-==== Evaluation
+=== Evaluation
 
 Importantly, Reduce is how hclang performs evaluation.
 
@@ -427,7 +440,7 @@ or a list of elements to apply:
 # `[1 2]`
 ```
 
-==== Applications of nil
+=== Applications of nil
 
 Note that applying any element to nil results in that element:
 
@@ -452,7 +465,7 @@ Applying nil to a closure evaluates it:
 # 1
 ```
 
-=== OpCode 2: map-eval
+=== map-eval in hclang
 
 
 ```hclang
