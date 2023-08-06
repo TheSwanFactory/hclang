@@ -12,14 +12,14 @@ export interface IPrefixMap {
 }
 
 export class FrameBlob extends FrameAtom {
-  public static readonly BLOB_START = '0';
+  public static readonly BLOB_START = '0'
   public static readonly BLOB_DIGITS: IRegexpMap = {
     2: /[01]/,
     8: /[0-7]/,
     16: /[0-9a-fA-F]/,
     32: /[0-9a-hj-np-z]/,
     64: /[0-9a-zA-Z+/=]/
-  };
+  }
 
   public static readonly BLOB_PREFIX: IPrefixMap = {
     2: 'b', // 1
@@ -27,7 +27,7 @@ export class FrameBlob extends FrameAtom {
     16: 'x', // 4
     32: 't', // 5
     64: 's' // 6
-  };
+  }
 
   public static fix_source (source: string) {
     if (source === '') {
@@ -54,9 +54,9 @@ export class FrameBlob extends FrameAtom {
     return BI(bits)
   }
 
-  protected data: BI.BigInteger;
-  protected base: number;
-  protected n_bits: BI.BigInteger;
+  protected data: BI.BigInteger
+  protected base: number
+  protected n_bits: BI.BigInteger
 
   constructor (source: string) {
     super(NilContext)

@@ -26,10 +26,10 @@ export class Lex extends Frame implements ISourced {
     return _.includes(terms, char)
   }
 
-  public source: string;
-  public pipe: LexPipe;
-  protected body: string = '';
-  protected sample: FrameAtom;
+  public source: string
+  public pipe: LexPipe
+  protected body: string = ''
+  protected sample: FrameAtom
 
   public constructor (protected Factory: any) {
     super()

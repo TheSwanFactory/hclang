@@ -5,9 +5,9 @@ import { FrameSymbol } from './frame-symbol'
 import { NilContext } from './meta-frame'
 
 export class FrameAlias extends FrameAtom {
-  public static readonly ALIAS_BEGIN = '@';
+  public static readonly ALIAS_BEGIN = '@'
 
-  protected data: FrameSymbol;
+  protected data: FrameSymbol
 
   constructor (source: string, meta = NilContext) {
     super(meta)

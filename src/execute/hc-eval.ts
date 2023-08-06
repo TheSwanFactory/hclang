@@ -17,8 +17,8 @@ export interface IProcessEnv {
 }
 
 export class HCEval {
-  public static readonly SOURCE = '; ';
-  public static readonly EXPECT = '# ';
+  public static readonly SOURCE = '; '
+  public static readonly EXPECT = '# '
 
   public static make_context (env: IProcessEnv): Context {
     const context: Context = {}
@@ -46,8 +46,8 @@ export class HCEval {
     return HCEval.EXPECT + middle + HCEval.EXPECT
   }
 
-  protected pipe: LexPipe;
-  protected lex: Frame;
+  protected pipe: LexPipe
+  protected lex: Frame
 
   constructor (protected out: Frame) {
     this.pipe = HCEval.make_pipe(this.out)

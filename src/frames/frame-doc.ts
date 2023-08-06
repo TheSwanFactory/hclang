@@ -5,8 +5,8 @@ import { FrameSymbol } from './frame-symbol'
 import { Context, NilContext } from './meta-frame'
 
 export class FrameDoc extends FrameString {
-  public static readonly DOC_BEGIN = '`';
-  public static readonly DOC_END = '`';
+  public static readonly DOC_BEGIN = '`'
+  public static readonly DOC_END = '`'
 
   constructor (data: string, meta: Context = NilContext) {
     super(data, meta)

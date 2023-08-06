@@ -3,8 +3,8 @@ import { Frame, FrameBytes, FrameSymbol, ISourced } from '../frames'
 import { Token } from './lex'
 
 export class LexBytes extends Frame implements ISourced {
-  public source: string;
-  protected body: number[];
+  public source: string
+  protected body: number[]
 
   public constructor (protected count: number, up: Frame) {
     super()
