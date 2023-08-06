@@ -1,7 +1,10 @@
 = Hoon is from Mars, Honc is from Venus
 == Homoiconic-On-Nock-C: An Easy-to-Love Scripting Language for Urbit
 
-Draft 1, 2023-08-01 ~ponnum-minnus <ernest.prabhakar@gmail.com>
+** INCOMPLETE **
+
+Draft 0, 2023-08-01 ~ponnum-minnus <ernest.prabhakar@gmail.com>
+
 
 * Hoon is a warrior, carving bloody runes into the harsh Martian cliffs in order to un-think the corrupted idioms of Earth.
 
@@ -343,3 +346,131 @@ honc {
 }
 ```
 
+== H. Map and Reduce in hclang
+
+The easiest way for me to understand nock opcode 2 is in terms of
+two hclang primitive operators: map `&` and reduce `|`.
+These map to pseudo-operators in nasm:
+
+```hclang
+.map 121
+.reduce 122
+```
+=== Map
+
+Map creates a new list from an old list by applying a closure in parallel:
+
+```hclang
+; [1, 2] & {pp _} 
+# [`1`, `2`]
+```
+
+=== Reduce
+
+Reduce creates a single element from an old list by repeated application to a seed.
+For example, when you apply an element to a list it appends (repeatedly):
+
+```hclang
+; [] 1
+# [1]
+; [1] 2
+# [1, 2]
+; [1, 2] 3 4
+# [1, 2, 3, 4]
+```
+
+We can use this (rather awkwardly) to clone a list using Reduce:
+
+```hclang
+; [1, 2, 3, 4] | []
+# [1, 2, 3, 4]
+```
+
+Compared to wrapping each element if we instead used Map:
+
+
+```hclang
+; [1, 2, 3, 4] & []
+# [[1], [2], [3], [4]]
+```
+
+=== Evaluation
+
+Importantly, Reduce is how hclang performs evaluation.
+
+Consider `nock.print` of a cell:
+
+```hclang
+; nock.print [1, 2]
+# `[1 2]`
+```
+
+We can implement it as either a closure to apply:
+
+
+```hclang
+; .np_closure { nock.print [1, 2] };
+; np_closure()
+# `[1 2]`
+```
+
+or a list of elements to apply:
+
+
+```hclang
+; .np_list [ nock, .print, [1, 2] ];
+; np_list | ()
+# `[1 2]`
+```
+
+=== Applications of nil
+
+Note that applying any element to nil results in that element:
+
+```hclang
+; () 1
+# 1
+```
+
+Applying nil a to non-closure just returns that element:
+
+```hclang
+; 1 ()
+# 1
+```
+
+
+Applying nil to a closure evaluates it:
+
+
+```hclang
+; { 1 } ()
+# 1
+```
+
+=== map-eval in hclang
+
+
+```hclang
+; .op2 { [50, 51] [2, [0, 3], [1, [4, 0, 1]]] }
+; .op2a { [50, 51] [map-eval (get 3) {incr get 1}] }
+
+# Break it down into map:
+; { (get 3), {incr get 1} } & [50, 51] 
+# { 51 (incr get 1) }
+
+# Then eval:
+; pp { 51 (incr get 1) }
+# `52`
+```
+
+To simplify compilation into this opcode, nock defines a new '&|' operator:
+
+```hclang
+; [1, 2] nock.&| []
+# [1, [2]]
+# From: [[1], [2]] | ()
+
+; nc { [(get 3), {incr get 1} ] &| [50, 51] }
+# { [50, 51] [map-eval (get 3) {incr get 1}] }
+```

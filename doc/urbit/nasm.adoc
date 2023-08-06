@@ -122,7 +122,7 @@ See Appendix A for more details.
 ; run { eval (50 (get 1))}
 # 50
 ; run { .ANY (set (2 {50}) [8, 9, 10]) }
-# [50, 9, 10]
+# [50, 9, 10] (explicit set)
 ```
 
 === Hierarchical `get`
@@ -339,7 +339,7 @@ Which can be useful when compling hclang:
 
 == E. Prepend
 
-OpCode 8 is used to prepend a value to a subject snd then runs the second formula:
+OpCode 8 is used to prepend a value to a subject and then runs the second formula:
 
 Either by getting an existing value:
 
@@ -365,11 +365,30 @@ This makes it easy to store "local variables" that can be used
 without modifying the rest of the payload.
 
 
-== F. Pragma
+== F. Native
+
+
+OpCode 11 is a general 'escape hatch' to call native functionality.
+
+For example, passing an atom calls the procedure with that syscall index
+using the rest of the argument as the body:
 
 ```hclang
-# Other OpCodes
-.hint 11
+# Original: ([50 51] [11 103 0 2])
+; .nasm.sycall.103 { nock.print _ }
+; .atom-print 103;
+; run { [50, 51] (native atom-print (get 2)) }
+`[50, 51] (get 2)` # print expression
+# 50
+```
+
+Conversely, passing a cell executes the nock expression first:
+
+
+```hclang
+; run { [50, 51] (native [atom-print {}] (get 2)) }
+`50` # print result
+# 50
 ```
 
 == G. Compile-Time Variables
@@ -390,160 +409,29 @@ which nasm models as an implicit get:
 # {0 1}
 ```
 
-
-By default, the compiler will also expand variables:
+By default, the compiler will expand local variables:
 
 ```hclang
-; nc { list (get 1) }
-# { [10, [11, [12, 13]]] (0 1) }
+; nc { list.0 }
+# { [10, [11, [12, 13]]] (get 2) }
 ```
 
 We can instead tell the compiler to include an environment
 as part of its output.
 That tells it to not expand those variables,
-but instead pass along the environmnet for the assembler to use.
+but instead pass along  for the assembler to use.
 
 
 ```hclang
-; .ops = nock.opcodes;
-; nc.pass { ops }
-; nc { [50, 51] (get 2) }
-# {.. ops; [50, 51] [get, 2] }
+; nc.pass { list }
+; nc { list.0  }
+# {.. <- .list; list [get 2] }
 ; run .-1
-# 50
+# 10
 ```
 
-The `..` operator sets the parent of the current context to 
-the (immutable) variable ops, so nasm knows it can make use of it.
-
-== H. Map and Reduce in hclang
-
-The easiest way for me to understand nock opcode 2 is in terms of
-two hclang primitive operators: map `&` and reduce `|`.
-These map to pseudo-operators in nasm:
-
-```hclang
-.map 121
-.reduce 122
-```
-=== Map
-
-Map creates a new list from an old list by applying a closure in parallel:
-
-```hclang
-; [1, 2] & {pp _} 
-# [`1`, `2`]
-```
-
-=== Reduce
-
-Reduce creates a single element from an old list by repeated application to a seed.
-For example, when you apply an element to a list it appends (repeatedly):
-
-```hclang
-; [] 1
-# [1]
-; [1] 2
-# [1, 2]
-; [1, 2] 3 4
-# [1, 2, 3, 4]
-```
-
-We can use this (rather awkwardly) to clone a list using Reduce:
-
-```hclang
-; [1, 2, 3, 4] | []
-# [1, 2, 3, 4]
-```
-
-Compared to wrapping each element if we instead used Map:
-
-
-```hclang
-; [1, 2, 3, 4] & []
-# [[1], [2], [3], [4]]
-```
-
-=== Evaluation
-
-Importantly, Reduce is how hclang performs evaluation.
-
-Consider `nock.print` of a cell:
-
-```hclang
-; nock.print [1, 2]
-# `[1 2]`
-```
-
-We can implement it as either a closure to apply:
-
-
-```hclang
-; .np_closure { nock.print [1, 2] };
-; np_closure()
-# `[1 2]`
-```
-
-or a list of elements to apply:
-
-
-```hclang
-; .np_list [ nock, .print, [1, 2] ];
-; np_list | ()
-# `[1 2]`
-```
-
-=== Applications of nil
-
-Note that applying any element to nil results in that element:
-
-```hclang
-; () 1
-# 1
-```
-
-Applying nil a to non-closure just returns that element:
-
-```hclang
-; 1 ()
-# 1
-```
-
-
-Applying nil to a closure evaluates it:
-
-
-```hclang
-; { 1 } ()
-# 1
-```
-
-=== map-eval in hclang
-
-
-```hclang
-; .op2 { [50, 51] [2, [0, 3], [1, [4, 0, 1]]] }
-; .op2a { [50, 51] [map-eval (get 3) {incr get 1}] }
-
-# Break it down into map:
-; { (get 3), {incr get 1} } & [50, 51] 
-# { 51 (incr get 1) }
-
-# Then eval:
-; pp { 51 (incr get 1) }
-# `52`
-```
-
-To simplify compilation into this opcode, nock defines a new '&|' operator:
-
-```hclang
-; [1, 2] nock.&| []
-# [1, [2]]
-# From: [[1], [2]] | ()
-
-; nc { [(get 3), {incr get 1} ] &| [50, 51] }
-# { [50, 51] [map-eval (get 3) {incr get 1}] }
-```
+The `..` operator adds those names to the parent context,
+so nasm knows it can make use of it.
 
 
 == Appendix A: RINC Pseudo-Ops
