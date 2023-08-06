@@ -77,7 +77,7 @@ This allows us to rewrite the initial example as:
 # 50
 ```
 
-== Primitive Operators
+== A. Primitive Operators
 
 ```hclang
 .get 0 # '/'
@@ -117,10 +117,12 @@ See Appendix A for more details.
 # 0 (true)
 ; run { [50, 51] (is-equal (get 2) (get 3)) }
 # 1 (false)
-; run { 50 (set 2 [8, 9, 10]) }
-# [50, [9, 10]]
+; run { 50 (set (2 (get 1)) [8, 9, 10]) }
+# [50, 9, 10]
 ; run { eval (50 (get 1))}
 # 50
+; run { .ANY (set (2 {50}) [8, 9, 10]) }
+# [50, 9, 10]
 ```
 
 === Hierarchical `get`
@@ -150,7 +152,7 @@ For convenience, you can pass `get` a 0-based list of nested indices
 # 23
 ```
 
-== Quoting and Evaluation
+== B. Quoting and Evaluation
 
 === OpCode 1: quote
 
@@ -230,7 +232,7 @@ before applying them.
 # Effect: { 51 (incr (get 1)) }
 ```
 
-=== OpCode 9: method
+== C. Methods
 
 The "method" operation `[a 9 b c]` does two things:
 
@@ -293,7 +295,7 @@ using the following expansion:
 ```
 
 
-== Conditionals
+== D. Conditionals
 
 Opcode 6 emulates a traditional if-else:
 
@@ -335,26 +337,42 @@ Which can be useful when compling hclang:
 # { [50, 51] (0 (if-true get 2) (else get 3)) }
 ```
 
-== Prepend
+== E. Prepend
+
+OpCode 8 is used to prepend a value to a subject snd then runs the second formula:
+
+Either by getting an existing value:
 
 ```hclang
-# Other OpCodes
-.prepend 8
-.insert 181
-.delete 182
+# Original: ([67 39] [8 [0 3] [4 0 2]])
+; nasm { [67, 39] (prepend (get 3) (incr get 2)) }
+# [[67, 39], [8, [0, 3], [4, 0, 2]]]
+; eval .-1
+# 40 (incr 39)
 ```
 
-== Pragma
+Or creating a new one:
+
+```hclang
+# Original: ([67 39] [8 [1 0] [4 0 2]])
+; nasm { [67, 39] (prepend {0} (incr get 2)) }
+# [[67, 39], [8, [1, 0], [4, 0, 2]]]
+; eval .-1
+# 1 (incr 0)
+```
+
+This makes it easy to store "local variables" that can be used
+without modifying the rest of the payload.
+
+
+== F. Pragma
 
 ```hclang
 # Other OpCodes
 .hint 11
 ```
 
-
-
-
-=== A Note on Variables
+== G. Compile-Time Variables
 
 The assembler has access to local context, so it can access and expand variables.
 
@@ -398,9 +416,7 @@ but instead pass along the environmnet for the assembler to use.
 The `..` operator sets the parent of the current context to 
 the (immutable) variable ops, so nasm knows it can make use of it.
 
-
-
-== Interlude: Map and Reduce in hclang
+== H. Map and Reduce in hclang
 
 The easiest way for me to understand nock opcode 2 is in terms of
 two hclang primitive operators: map `&` and reduce `|`.
