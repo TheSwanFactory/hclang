@@ -1,4 +1,4 @@
-import * as BI from 'big-integer'
+import BI from 'big-integer'
 import { Frame } from './frame'
 import { FrameAtom } from './frame-atom'
 import { NilContext } from './meta-frame'
