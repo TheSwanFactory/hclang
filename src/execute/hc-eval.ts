@@ -1,4 +1,4 @@
-import * as chalk from 'chalk'
+import chalk from 'chalk'
 import * as prompt_sync from 'prompt-sync'
 import * as prompt_history from 'prompt-sync-history'
 import { Context, Frame, FrameGroup, FrameString } from '../frames'
