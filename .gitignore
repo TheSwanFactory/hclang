@@ -13,6 +13,8 @@ lib-cov
 
 # Misconfigured output
 lib/src
+*.js
+*.d.ts
 
 # Coverage directory used by tools like istanbul
 coverage
