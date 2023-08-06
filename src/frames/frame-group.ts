@@ -13,7 +13,7 @@ export class FrameGroup extends FrameList {
     const result = expr.in(contexts)
 
     const symbols = this.meta_pairs()
-    symbols.map(([key, value]) => {
+    symbols.forEach(([key, value]) => {
       result.set(key, value)
     })
     return result
