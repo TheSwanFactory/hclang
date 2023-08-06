@@ -1,5 +1,6 @@
+export {}
 import * as _ from 'lodash'
-import { MetaFrame, NilContext } from './meta-frame'
+import { MetaFrame, NilContext } from '../frames'
 
 export type Flags = { [key: string]: boolean; };
 

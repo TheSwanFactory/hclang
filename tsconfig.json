@@ -1,13 +1,16 @@
 {
   "compilerOptions": {
-    "declaration": true,
+    "declaration": false,
+    "esModuleInterop": true,
+    "lib": ["es6"],
     "module": "commonjs",
     "target": "ESNext",
     "moduleResolution": "node",
-    "noImplicitAny": true,
+    "noImplicitAny": false,
     "outDir": "./lib",
     "preserveConstEnums": true,
     "removeComments": true,
+    "skipLibCheck": true,
   },
   "include": [
     "src/**/*.ts"
