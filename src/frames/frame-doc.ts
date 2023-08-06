@@ -1,7 +1,5 @@
 import * as _ from 'lodash'
-import { Frame } from './frame'
 import { FrameString } from './frame-string'
-import { FrameSymbol } from './frame-symbol'
 import { Context, NilContext } from './meta-frame'
 
 export class FrameDoc extends FrameString {
