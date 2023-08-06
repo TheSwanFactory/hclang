@@ -234,8 +234,11 @@ before applying them.
 
 The "method" operation `[a 9 b c]` does two things:
 
-- applies method `c` to the subject
+- applies formula `c` to the subject
 - invokes the method at slot `b` against that new subject
+
+For example, if `a` is an atom and `b` is 2,
+then it simply applies the new formula `c` to `a`.
 
 It is also defined as syntactic sugar on top of `map-eval`:
 
@@ -289,13 +292,47 @@ using the following expansion:
 # 46
 ```
 
+
 == Conditionals
+
+Opcode 6 emulates a traditional if-else:
+
+```hclang
+# Original: *(1 [6 [0 1] [0 1] [4 0 1]])
+; nasm { 1 [6 (get 1) (get 1) (incr (get 1))] }
+# [1, [6, [0, 1], [0, 1], [4, [0, 1]]]]
+; eval .-1
+# 2
+# `1 (get 1)` is 1 (false), so it calls the second branch (increment)
+```
+
+nasm allows you to instead use the hclang primitives '?' and ':' for
+if and else, respectively, much like the C ternary operator:
+
+```hclang
+; nasm { 1 ((get 1) ? (get 1) : (incr (get 1))) }
+# [1, [6, [0, 1], [0, 1], [4, [0, 1]]]]
+```
+
+Note that however these are actually two binary operators:
+
+- "?" returns its argument if the subject is true (0), else returns false (1)
+- ":" returns its argument if the subject is false (1), else returns true (0)
+
+Each of these has its own pseudo-code:
 
 ```hclang
 # Other OpCodes
 .if-else 6
-.if 161
+.if-true 161
 .else 162
+```
+
+Which can be useful when compling hclang:
+
+```hclang
+; nc { [50, 51] (<> ? .0 : .1) }
+# { [50, 51] (0 (if-true get 2) (else get 3)) }
 ```
 
 == Prepend
