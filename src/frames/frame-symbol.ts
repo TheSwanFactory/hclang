@@ -16,6 +16,7 @@ export class FrameSymbol extends FrameAtom {
     return FrameSymbol.for(Frame.kEND)
   };
 
+  // eslint-disable-next-line no-use-before-define
   protected static symbols: { [key: string]: FrameSymbol; } = {}
 
   constructor (protected data: string, meta = NilContext) {
