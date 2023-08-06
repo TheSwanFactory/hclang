@@ -1,4 +1,3 @@
-export {}
 import * as _ from 'lodash'
 import { MetaFrame, NilContext } from '../frames'
 
