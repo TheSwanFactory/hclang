@@ -15,6 +15,7 @@
     "interpreter",
     "cli"
   ],
+  "type": "module",
   "directories": {
     "lib": "./lib",
     "src": "./src",

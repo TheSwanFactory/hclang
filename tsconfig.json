@@ -1,6 +1,8 @@
 {
   "compilerOptions": {
     "allowSyntheticDefaultImports": true,
+    "declaration": true,
+    "module":"ESNext",
     "target": "ESNext",
     "moduleResolution": "node",
     "noImplicitAny": false,
