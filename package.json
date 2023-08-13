@@ -46,7 +46,7 @@
     "lint": "eslint --fix \"{src,test}/**/*.ts\"",
     "inspect": "npm run build && node --inspect --require ts-node/register src/cli/hc.ts",
     "hc": "node lib/cli/hc.js",
-    "test": "printenv DEBUG; npm run build && mocha --require ts-node/register --recursive test/**/*-spec.ts",
+    "test": "printenv DEBUG; npm run build && mocha --recursive test/**/*-spec.ts",
     "tag": "bump patch -ct package*.json README.md src/version.ts",
     "tag:minor": "bump minor -ct package*.json README.md src/version.ts",
     "ts": "tsc --pretty --inlineSourceMap && chmod a+x ./lib/cli/hc.js",
