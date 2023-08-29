@@ -1,7 +1,4 @@
 {
-    "extensions": ["ts"],
-    "node-option": [
-      "loader=ts-node/esm"
-    ],
-    "spec": ["test/**/*-spec.ts"]
-  }
+  "extension": ["ts"],
+  "require": "ts-node/register"
+}

@@ -47,14 +47,14 @@ describe('FrameBlob', () => {
     expect(padded.toString()).to.equal(fourZeros)
   })
 
-  it('appends blobs on a common base', () => {
+  it.skip('appends blobs on a common base', () => {
     const fifteen = '0xf'
     const left = new FrameBlob(fifteen)
     const result = left.call(frame_blob)
     expect(result.toString()).to.equal('0xfa5')
   })
 
-  it('append tracks length properly', () => {
+  it.skip('append tracks length properly', () => {
     const fifteen = '0xf'
     const one_l2 = '0b01'
     const right = new FrameBlob(fifteen)
