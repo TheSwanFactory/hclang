@@ -1,10 +1,6 @@
 import { Frame } from './frame'
 import { Context, NilContext } from './meta-frame'
 
-export interface IStringConstructor {
-    new (data: string, meta: Context): FrameAtom;
-}
-
 export class FrameAtom extends Frame {
   constructor (meta = NilContext) {
     super(meta)

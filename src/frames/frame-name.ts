@@ -4,9 +4,9 @@ import { FrameOperator, FrameSymbol } from './frame-symbol'
 import { NilContext } from './meta-frame'
 
 export class FrameName extends FrameAtom {
-  public static readonly NAME_BEGIN = '.';
+  public static readonly NAME_BEGIN = '.'
 
-  protected data: FrameSymbol;
+  protected data: FrameSymbol
 
   constructor (source: string, meta = NilContext) {
     super(meta)

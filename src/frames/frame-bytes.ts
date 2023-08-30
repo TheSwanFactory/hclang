@@ -3,11 +3,11 @@ import { FrameQuote } from './frame-atom'
 import { Context, NilContext } from './meta-frame'
 
 export class FrameBytes extends FrameQuote {
-  public static readonly BYTES_BEGIN = '\\';
-  public static readonly BYTES_END = '\\';
+  public static readonly BYTES_BEGIN = '\\'
+  public static readonly BYTES_END = '\\'
 
-  protected data: Uint8Array;
-  protected length: number;
+  protected data: Uint8Array
+  protected length: number
 
   constructor (values: number[], meta: Context = NilContext) {
     super(meta)

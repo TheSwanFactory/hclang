@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-import * as fs from 'fs'
-import * as getopts from 'getopts'
-import * as _ from 'lodash'
-import * as readline from 'readline'
+import fs from 'fs'
+import getopts from 'getopts'
+import _ from 'lodash'
+import readline from 'readline'
 import { HCEval } from '../execute/hc-eval'
 import { HCLog } from '../execute/hc-log'
 import { HCTest } from '../execute/hc-test'

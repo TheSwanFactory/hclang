@@ -3,16 +3,17 @@ import { FrameAtom } from './frame-atom'
 import { Context, NilContext } from './meta-frame'
 
 export class FrameNumber extends FrameAtom {
-  public static readonly NUMBER_BEGIN = /[1-9]/;
-  public static readonly NUMBER_CHAR = /\d/;
+  public static readonly NUMBER_BEGIN = /[1-9]/
+  public static readonly NUMBER_CHAR = /\d/
 
   public static for (digits: string) {
     const exists = FrameNumber.numbers[digits]
     return exists || (FrameNumber.numbers[digits] = new FrameNumber(digits))
   }
 
-  protected static numbers: { [key: string]: FrameNumber; } = {};
-  protected data: number;
+  // eslint-disable-next-line no-use-before-define
+  protected static numbers: { [key: string]: FrameNumber; } = {}
+  protected data: number
 
   constructor (source: string, meta: Context = NilContext) {
     super(meta)

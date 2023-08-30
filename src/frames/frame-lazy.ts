@@ -3,8 +3,8 @@ import { FrameExpr } from './frame-expr'
 import { Context, IKeyValuePair, NilContext } from './meta-frame'
 
 export class FrameLazy extends FrameExpr {
-  public static readonly LAZY_BEGIN = '{';
-  public static readonly LAZY_END = '}';
+  public static readonly LAZY_BEGIN = '{'
+  public static readonly LAZY_END = '}'
 
   constructor (data: Array<Frame>, meta: Context = NilContext) {
     super(data, meta)
@@ -34,7 +34,7 @@ export class FrameLazy extends FrameExpr {
   protected meta_for (context: Frame) {
     const MetaNew = this.meta_copy()
     const pairs: Array<IKeyValuePair> = context.meta_pairs()
-    pairs.map(([key, value]) => {
+    pairs.forEach(([key, value]) => {
       MetaNew[key] = value
     })
     return MetaNew

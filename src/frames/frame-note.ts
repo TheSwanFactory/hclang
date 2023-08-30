@@ -9,9 +9,9 @@ export type Binding = { [key: string]: string; };
 export type LanguageBinding = { [key: string]: Binding; };
 
 export class FrameNote extends FrameQuote {
-  public static readonly NOTE_BEGIN = '$';
-  public static readonly NOTE_END = ';';
-  public static readonly NOTE_EXTRAS = '++';
+  public static readonly NOTE_BEGIN = '$'
+  public static readonly NOTE_END = ';'
+  public static readonly NOTE_EXTRAS = '++'
 
   public static readonly LABELS: LanguageBinding = {
     en: {
@@ -21,7 +21,7 @@ export class FrameNote extends FrameQuote {
       '<>': 'type-mismatch',
       '>': 'bounds-exceeded'
     }
-  };
+  }
 
   public static test (data: string, source: string, sum: string) {
     const note = new FrameNote(data, source)

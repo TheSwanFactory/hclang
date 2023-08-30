@@ -15,6 +15,12 @@
     "interpreter",
     "cli"
   ],
+  "type": "module",
+  "directories": {
+    "lib": "./lib",
+    "src": "./src",
+    "test": "./test"
+  },
   "files": [
     "lib"
   ],
@@ -22,8 +28,6 @@
     "maml": "lib/cli/bin.js",
     "hc": "lib/cli/hc.js"
   },
-  "main": "lib/index.js",
-  "typings": "lib/index.d.ts",
   "watch": {
     "test": "{src,test}/*.js"
   },
@@ -35,13 +39,13 @@
     "testdoc": "npm run build && node lib/cli/hc.js hc/testdoc.hc -t",
     "build": "rimraf lib && eslint \"{src,test}/**/*.ts\" && npm run ts",
     "check": "grep -e 'only' -e 'skip' test/*/* || echo 'Ran all tests'",
-    "clean": "rimraf lib && rm -f *.log.*",
+    "clean": "rimraf lib && rm -f *.log.* src/*.js src/*/*.js test/*.js test/*/*.js",
     "debug": "echo 'Use `debugger;`\n' && mocha --inspect-brk --require ts-node/register --recursive test/**/*-spec.ts",
     "done": "npm run clean && npm run bs:all && npm run check && npm run tag && npm install && git commit -am 'update version'",
     "lint": "eslint --fix \"{src,test}/**/*.ts\"",
     "inspect": "npm run build && node --inspect --require ts-node/register src/cli/hc.ts",
     "hc": "node lib/cli/hc.js",
-    "test": "printenv DEBUG; npm run build && mocha --require ts-node/register --recursive test/**/*-spec.ts",
+    "test": "printenv DEBUG; npm run build && mocha --recursive test/**/*-spec.ts",
     "tag": "bump patch -ct package*.json README.md src/version.ts",
     "tag:minor": "bump minor -ct package*.json README.md src/version.ts",
     "ts": "tsc --pretty --inlineSourceMap && chmod a+x ./lib/cli/hc.js",
@@ -49,39 +53,41 @@
     "watch": "npm-watch test"
   },
   "dependencies": {
-    "@types/prompt-sync": "^4.1.1",
+    "@types/prompt-sync": "^4.2.0",
     "@types/prompt-sync-history": "^1.0.1",
-    "big-integer": "^1.6.49",
-    "chalk": "^4.1.2",
+    "chalk": "^5.3.0",
     "getopts": "^2.3.0",
-    "inquirer": "^8.1.5",
+    "inquirer": "^9.2.10",
+    "jsbi": "^3.2.5",
+    "node-fetch": "^3.3.2",
+    "npm-check-updates": "^16.13.0",
     "prompt-sync": "^4.2.0",
     "prompt-sync-history": "^1.0.1",
     "version-bump-prompt": "^6.1.0"
   },
   "devDependencies": {
-    "@types/chai": "^4.2.22",
-    "@types/lodash": "4.14.175",
-    "@types/mocha": "9.0.0",
-    "@types/node": ">=16.10.2",
-    "@typescript-eslint/eslint-plugin": "^4.32.0",
-    "@typescript-eslint/parser": "^4.32.0",
-    "asciidoctor": "^2.2.5",
-    "chai": "^4.3.4",
-    "eslint": "^7.32.0",
+    "@types/chai": "^4.3.5",
+    "@types/lodash": "4.14.197",
+    "@types/mocha": "10.0.1",
+    "@types/node": ">=20.5.3",
+    "@typescript-eslint/eslint-plugin": "^6.4.1",
+    "@typescript-eslint/parser": "^6.4.1",
+    "asciidoctor": "^3.0.2",
+    "chai": "^4.3.7",
+    "eslint": "^8.47.0",
     "eslint-config-google": "^0.14.0",
-    "eslint-config-standard": "^16.0.3",
-    "eslint-plugin-import": "^2.24.2",
+    "eslint-config-standard": "^17.1.0",
+    "eslint-plugin-import": "^2.28.1",
     "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-promise": "^5.1.0",
-    "mem": "^9.0.1",
-    "mocha": "^9.1.2",
-    "mocha-junit-reporter": "^2.0.0",
-    "rimraf": "3.0.2",
-    "ts-node": "10.2.1",
-    "typescript": "4.4.3"
+    "eslint-plugin-promise": "^6.1.1",
+    "mem": "^9.0.2",
+    "mocha": "^10.2.0",
+    "mocha-junit-reporter": "^2.2.1",
+    "rimraf": "5.0.1",
+    "ts-node": "9.1.1",
+    "typescript": "5.1.6"
   },
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=20.0.0"
   }
 }

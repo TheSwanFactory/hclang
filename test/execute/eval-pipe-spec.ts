@@ -1,9 +1,6 @@
-
 import { expect } from 'chai'
 import {} from 'mocha'
 import { EvalPipe } from '../../src/execute/eval-pipe'
-import * as lex from '../../src/execute/lex-pipe'
-import * as parse from '../../src/execute/parse-pipe'
 import * as frame from '../../src/frames'
 
 describe('EvalPipe', () => {

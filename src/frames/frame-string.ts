@@ -10,9 +10,13 @@ const reducer = (current: Frame, char: string) => {
   return result
 }
 
+export interface IStringConstructor {
+  new (data: string, meta: Context): FrameAtom;
+}
+
 export class FrameString extends FrameQuote {
-  public static readonly STRING_BEGIN = '“';
-  public static readonly STRING_END = '”';
+  public static readonly STRING_BEGIN = '“'
+  public static readonly STRING_END = '”'
 
   constructor (protected data: string, meta: Context = NilContext) {
     super(meta)

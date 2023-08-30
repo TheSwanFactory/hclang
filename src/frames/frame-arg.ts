@@ -3,7 +3,7 @@ import { FrameNote } from './frame-note'
 import { FrameSymbol } from './frame-symbol'
 
 export class FrameArg extends FrameSymbol {
-  public static readonly ARG_CHAR = '_';
+  public static readonly ARG_CHAR = '_'
 
   public static here () {
     return FrameArg.level()
@@ -14,7 +14,8 @@ export class FrameArg extends FrameSymbol {
     return FrameArg._for(symbol)
   }
 
-  protected static args: { [key: string]: FrameArg; } = {};
+  // eslint-disable-next-line no-use-before-define
+  protected static args: { [key: string]: FrameArg; } = {}
 
   protected static _for (symbol: string) {
     const exists = FrameArg.args[symbol]
@@ -36,7 +37,7 @@ export class FrameArg extends FrameSymbol {
 };
 
 export class FrameParam extends FrameSymbol {
-  public static readonly ARG_CHAR = '^';
+  public static readonly ARG_CHAR = '^'
 
   public static there () {
     return FrameParam.level()
@@ -47,7 +48,8 @@ export class FrameParam extends FrameSymbol {
     return FrameParam._for(symbol)
   }
 
-  protected static params: { [key: string]: FrameParam; } = {};
+  // eslint-disable-next-line no-use-before-define
+  protected static params: { [key: string]: FrameParam; } = {}
 
   protected static _for (symbol: string) {
     const exists = FrameParam.params[symbol]

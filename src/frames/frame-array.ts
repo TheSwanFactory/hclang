@@ -4,8 +4,8 @@ import { FrameNote } from './frame-note'
 import { NilContext } from './meta-frame'
 
 export class FrameArray extends FrameList {
-  public static readonly BEGIN_ARRAY = '[';
-  public static readonly END_ARRAY = ']';
+  public static readonly BEGIN_ARRAY = '['
+  public static readonly END_ARRAY = ']'
 
   constructor (data: Array<Frame>, meta = NilContext) {
     super(data, meta)

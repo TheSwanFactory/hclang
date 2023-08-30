@@ -5,7 +5,7 @@ import { syntax } from './syntax'
 import { IAction, IFinish, IPerformer } from './terminals'
 
 export class LexPipe extends Frame implements IFinish, IPerformer {
-  public level: number;
+  public level: number
 
   constructor (out: Frame) {
     syntax[Frame.kOUT] = out

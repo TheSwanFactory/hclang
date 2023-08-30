@@ -4,8 +4,8 @@ import { HCEval } from './hc-eval'
 export type Counts = { [key: string]: number; };
 
 export class HCTest extends Frame {
-  public n: Counts;
-  protected actual: Frame;
+  public n: Counts
+  protected actual: Frame
 
   constructor (protected out: Frame) {
     super(NilContext)

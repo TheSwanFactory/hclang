@@ -2,8 +2,8 @@ import { Context, Frame, FrameArray, FrameExpr } from '../frames'
 import { IFinish, Terminal } from './terminals'
 
 export class ParsePipe extends FrameArray implements IFinish {
-  public collector: Array<Frame>;
-  protected Factory: any;
+  public collector: Array<Frame>
+  protected Factory: any
 
   constructor (out: Frame, factory: any) {
     const meta: Context = {}

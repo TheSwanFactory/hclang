@@ -4,8 +4,8 @@ import { FrameNote } from './frame-note'
 import { Context, NilContext } from './meta-frame'
 
 export class FrameSymbol extends FrameAtom {
-  public static readonly SYMBOL_BEGIN = /[a-zA-Z]/;
-  public static readonly SYMBOL_CHAR = /[-\w]/;
+  public static readonly SYMBOL_BEGIN = /[a-zA-Z]/
+  public static readonly SYMBOL_CHAR = /[-\w]/
 
   public static for (symbol: string) {
     const exists = FrameSymbol.symbols[symbol]
@@ -16,7 +16,8 @@ export class FrameSymbol extends FrameAtom {
     return FrameSymbol.for(Frame.kEND)
   };
 
-  protected static symbols: { [key: string]: FrameSymbol; } = {};
+  // eslint-disable-next-line no-use-before-define
+  protected static symbols: { [key: string]: FrameSymbol; } = {}
 
   constructor (protected data: string, meta = NilContext) {
     super(meta)
@@ -70,8 +71,8 @@ export class FrameSymbol extends FrameAtom {
 };
 
 export class FrameOperator extends FrameSymbol {
-  public static readonly OPERATOR_BEGIN = /[&|?:+\-*=<>!]/;
-  public static readonly OPERATOR_CHAR = /[&|?:+\-*=<>!]/;
+  public static readonly OPERATOR_BEGIN = /[&|?:+\-*=<>!]/
+  public static readonly OPERATOR_CHAR = /[&|?:+\-*=<>!]/
 
   public string_start () {
     return FrameOperator.OPERATOR_BEGIN.toString()

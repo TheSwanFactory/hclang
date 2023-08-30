@@ -1,4 +1,3 @@
-
 import { expect } from 'chai'
 import {} from 'mocha'
 import { FrameNumber } from '../../src/frames'

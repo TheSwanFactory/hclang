@@ -1,6 +1,6 @@
 import { Frame } from './frame'
 import { FrameList } from './frame-list'
-import { Context, NilContext } from './meta-frame'
+import { NilContext } from './meta-frame'
 
 export class FrameGroup extends FrameList {
   constructor (data: Array<Frame>, meta = NilContext) {
@@ -13,7 +13,7 @@ export class FrameGroup extends FrameList {
     const result = expr.in(contexts)
 
     const symbols = this.meta_pairs()
-    symbols.map(([key, value]) => {
+    symbols.forEach(([key, value]) => {
       result.set(key, value)
     })
     return result

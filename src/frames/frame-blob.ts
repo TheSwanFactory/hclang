@@ -1,7 +1,8 @@
-import * as BI from 'big-integer'
+import { runInNewContext } from 'vm'
 import { Frame } from './frame'
 import { FrameAtom } from './frame-atom'
 import { NilContext } from './meta-frame'
+import * as JSBI from 'jsbi/dist/jsbi-umd.js'
 
 export interface IRegexpMap {
   [key: number]: RegExp;
@@ -12,14 +13,14 @@ export interface IPrefixMap {
 }
 
 export class FrameBlob extends FrameAtom {
-  public static readonly BLOB_START = '0';
+  public static readonly BLOB_START = '0'
   public static readonly BLOB_DIGITS: IRegexpMap = {
     2: /[01]/,
     8: /[0-7]/,
     16: /[0-9a-fA-F]/,
     32: /[0-9a-hj-np-z]/,
     64: /[0-9a-zA-Z+/=]/
-  };
+  }
 
   public static readonly BLOB_PREFIX: IPrefixMap = {
     2: 'b', // 1
@@ -27,7 +28,7 @@ export class FrameBlob extends FrameAtom {
     16: 'x', // 4
     32: 't', // 5
     64: 's' // 6
-  };
+  }
 
   public static fix_source (source: string) {
     if (source === '') {
@@ -39,7 +40,7 @@ export class FrameBlob extends FrameAtom {
     return source
   }
 
-  public static find_base (source: string) {
+  public static find_base (source: string) : number {
     const prefix = source.substr(1, 1)
     const keys = Object.keys(FrameBlob.BLOB_PREFIX)
     const base = keys.find((k) => FrameBlob.BLOB_PREFIX[parseInt(k, 10)] === prefix)
@@ -51,18 +52,18 @@ export class FrameBlob extends FrameAtom {
     const length = digits.length
     const entropy = Math.log2(base)
     const bits = length * entropy
-    return BI(bits)
+    return JSBI.BigInt(bits)
   }
 
-  protected data: BI.BigInteger;
-  protected base: number;
-  protected n_bits: BI.BigInteger;
+  protected data
+  protected base: number
+  protected n_bits
 
   constructor (source: string) {
     super(NilContext)
     source = FrameBlob.fix_source(source)
 
-    this.data = BI(source)
+    this.data = JSBI.BigInt(source)
     this.base = FrameBlob.find_base(source)
     this.n_bits = FrameBlob.count_bits(source, this.base)
   }
@@ -102,9 +103,9 @@ export class FrameBlob extends FrameAtom {
   }
 
   protected append (right_operand: FrameBlob) {
-    const left = right_operand.exalt(this)
-    this.data = left.add(right_operand.data)
-    this.n_bits = this.n_bits.add(right_operand.n_bits)
+    const left = JSBI.BigInt(right_operand.exalt(this))
+    this.data = left + right_operand.data
+    this.n_bits = this.n_bits + right_operand.n_bits
     return this
   };
 
@@ -113,8 +114,8 @@ export class FrameBlob extends FrameAtom {
     return result
   };
 
-  protected shift_left (n_bits: BI.BigInteger) {
-    const bigint_result = this.data.shiftLeft(n_bits)
+  protected shift_left (n_bits) {
+    const bigint_result = this.data << n_bits
     return bigint_result
   };
 
