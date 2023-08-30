@@ -1,0 +1,200 @@
+= Zoasophy 202: Artificial Emotion
+:Author: Ernest Prabhakar
+:Date: 2023-01-29
+:Version: 0.9.0
+
+While the digerati (including me) have been fascinated by
+https://www.theatlantic.com/technology/archive/2022/12/openai-chatgpt-writing-high-school-english-essay/672412/[ChatGPT]
+and Artificial Intelligence,
+I've been wondering why I can't find any good models of Artificial Emotion.
+Even if you take the ultra-rationalist position of "Intellect Good, Emotions Bad,"
+surely it would be important to understand the enemy!
+
+Most traditional models of emotion focus on "four Fs": fight, flight, feed, mate.
+However, it occurred to me that a key aspect of emotion is actually energy management:
+we get excited or aroused when something important might happen, and sad or bored when it does not.
+
+Intriguingly, this suggests treating "power management" in battery-dependent computers as a sort of proto-emotion.
+Even better, that enables new to reuse my energy-conserving Ents from 201 as the basis of another toy model,
+to see what insights we might glean.
+
+== A Bit of Emotion
+
+Our first goal is to reduce primitive emotions to individual bits of information:
+
+  ```
+  .True <> # all
+  .False () # nil
+  .Bit < True, False >
+  ```
+
+We assume the World can be Warm (or not):
+
+  ```
+  .World.Warm False
+  ```
+
+To which our Ent can respond by being On (or not):
+
+  ```
+  Ent ^ (.Scale, .Base) {
+    .On False
+    .Energy Base
+    .Loss [Scale, 1]
+    .Gain [2.5 Scale, 1]
+  }
+  ```
+
+
+=== Energy Dependence
+
+Following our power-management metaphor, we assign the Ent a property called Energy,
+starting with an initial supply of ten units:
+
+  ```
+  .Ent
+  ```
+With the following four parameters:
+  ```
+  .Ent.Loss [2, 1]
+  .Ent.Gain [5, 1]
+  ```
+
+Next, assume the Ent to loses Energy twice as fast if they are active:
+
+  ```
+  .Ent.loss { On ? Loss[0] : Loss[1] }
+  ```
+
+Conversely, the Ent can gain energy five times more effectively if active:
+
+  ```
+  .Ent.max_gain { On ? Gain[0] : Gain[1] }
+  ```
+
+However, the gain only happens if the World is Warm:
+
+  ```
+  .Ent.gain ^ (.Warm <Bit>) { Warm ? max_gain() : 0 }
+
+  ```
+The net change is therefore:
+
+
+  ```
+  .Ent.delta ^ (.Warm <Bit>)  { gain(Warm) - loss() }
+
+  ```
+Leading to a change in Energy:
+
+
+  ```
+  .Ent.update_energy: ^ (.Warm <Bit>) {  .Ent.Energy += delta(Warm) }
+
+  ```
+
+
+=== Conservation of Energy
+
+These different states lead to the following consequences.
+
+  ```
+  ; ,Ent.On True
+  ; Ent.delta(.Warm True)
+  # 3
+  ; Ent.delta(.Warm False)
+  # -2
+
+  ; ,Ent.On False
+  ; Ent.delta(.Warm True)
+  # 0
+  ; Ent.delta(.Warm False)
+  # -1
+  ```
+
+In other words, the Ent only gains Energy if it is Aroused when the world is eXciting.
+Otherwise it is better to be Bored.
+
+To take advantage of this, our Ent needs to observe whether the world is Warm, and activate accordingly:
+
+  ```
+  .Ent.update_active: ^ (.Warm <Bit>) {  .Ent.On (Warm ? True : False) } # or just (Warm)
+  ```
+
+And it has to do both of these each `tick` of the clock:
+
+
+  ```
+  .Ent.tick: ^ (.Warm <Bit>) {
+    update_active: Warm
+    update_active: Warm
+  }
+  ```
+
+
+== Selective Populations
+
+While this is interesting, it doesn't mean very much unless Energy has consequences.
+
+
+The final piece of the puzzle is that there has to be something at stake.
+The simplest rule is that organisms that gain enough energy reproduce,
+while those that lose too much energy die.
+
+We can imagine four types of Responses to the External world:
+
+```
+# always Aroused
+.EntAA ^ (.World External) {
+    .ME (.A)
+}
+
+# always Bored
+.EntBB ^ (.World External) {
+    .ME (.B)
+}
+
+# Aroused IFF eXciting
+.EntAB ^ (.World External) {
+    .ME (World == .X) ? .A : .B
+}
+
+# Bored IFF eXciting
+.EntBA ^ (.World External) {
+    .ME (World == .X) ? .B : .A
+}
+```
+
+It should be obvious that, as long as there is some randomoness in the external environment,
+only `.EntAB` is adaptive.
+
+Things get even more interesting if increase the variability.
+We can imagine each descendants of EntAB has a different levels of Arousal,
+with some paying a higher cost but capturing more energy
+(think carnivores or flyuing insects as compared to herbivorses or crawlers).
+These high-achievers will flourish in an energy-rich environment, but die off in lean times.
+
+=== From Energy to Matter
+
+At first blush, this one-bit model only seems applicable to plants.
+It is a plausible explanation of why flowers open during the day,
+or why seedlings sprout in the spring.
+
+However, the same one-bit model could also apply to carnivores,
+who get activated when prey approaches, but are otherwise lethargic.
+In such a world, prey would need a two-bit model
+where eagerness for food (move forward) is balanced with fear of predators (move backward).
+It does no good to gain energy and price of losing matter (by becoming someone else's lunch).
+
+This simple model seems like it could be scaled up to explain arbitrarily complex behavior.
+Each bit can be thought of as a switch that connects external stimuli to a specific action,
+and those actions have evolutionary consequences.
+Presumably there are also higher-order bits, that respond to internal rather than external stimuli
+(e.g., feeling ashamed of being afraid).
+Maternal and social animals would need to have multiple 'ME's to optimize against,
+perhaps giving rise to what Adam Smith calls "moral sentiments."
+
+== Future Work
+
+A logical next step would be to map this onto traditional models of emotion (e.g., https://positivepsychology.com/emotion-wheel/[Plutchik's Emotion Wheel)] to see how few bits could plausible represent them.
+
