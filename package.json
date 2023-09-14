@@ -55,7 +55,7 @@
   "dependencies": {
     "@types/prompt-sync": "^4.2.0",
     "@types/prompt-sync-history": "^1.0.1",
-    "chalk": "^5.3.0",
+    "chalk": "^4.1.2",
     "getopts": "^2.3.0",
     "inquirer": "^9.2.10",
     "jsbi": "^3.2.5",
@@ -63,6 +63,7 @@
     "npm-check-updates": "^16.13.0",
     "prompt-sync": "^4.2.0",
     "prompt-sync-history": "^1.0.1",
+    "prompts": "^2.4.2",
     "version-bump-prompt": "^6.1.0"
   },
   "devDependencies": {
