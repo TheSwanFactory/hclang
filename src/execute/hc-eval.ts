@@ -1,6 +1,4 @@
 import chalk from 'chalk'
-import prompt_sync from 'prompt-sync'
-import prompt_history from 'prompt-sync-history'
 import { Context, Frame, FrameGroup, FrameString } from '../frames'
 import { version } from '../version'
 import { EvalPipe } from './eval-pipe'
@@ -8,9 +6,7 @@ import { Lex } from './lex'
 import { LexPipe } from './lex-pipe'
 import { ParsePipe } from './parse-pipe'
 
-const prompt = prompt_sync({
-  history: prompt_history()
-})
+const prompts = require('prompts')
 
 export interface IProcessEnv {
   [key: string]: string | undefined
@@ -67,7 +63,7 @@ export class HCEval {
     return result
   }
 
-  public repl (): boolean {
+  public async repl () : Promise<boolean> {
     console.log(chalk.green('.hc ' + version + ';'))
     let status = true
     while (status) {
@@ -76,17 +72,17 @@ export class HCEval {
         status = false
         break
       }
-      this.call(input)
+      this.call(await input)
     }
     return status
   }
 
-  protected getInput () {
+  protected async getInput () {
     let prefix = HCEval.SOURCE
     if (this.pipe.level > 0) {
       prefix = HCEval.make_prompt(this.pipe.level)
     }
-    return prompt(chalk.grey(prefix))
+    return await prompts(chalk.grey(prefix))
   }
 
   protected checkInput (input: string) {
