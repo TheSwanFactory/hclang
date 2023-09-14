@@ -50,6 +50,7 @@
     "tag:minor": "bump minor -ct package*.json README.md src/version.ts",
     "ts": "tsc --pretty --inlineSourceMap && chmod a+x ./lib/cli/hc.js",
     "ts:version": "echo TypeScript `tsc --version` ",
+    "verbose": "NODE_DEBUG=* npm run test",
     "watch": "npm-watch test"
   },
   "dependencies": {
@@ -57,25 +58,25 @@
     "@types/prompt-sync-history": "^1.0.1",
     "chalk": "^4.1.2",
     "getopts": "^2.3.0",
-    "inquirer": "^9.2.10",
+    "inquirer": "^9.2.11",
     "jsbi": "^3.2.5",
     "node-fetch": "^3.3.2",
-    "npm-check-updates": "^16.13.0",
+    "npm-check-updates": "^16.14.2",
     "prompt-sync": "^4.2.0",
     "prompt-sync-history": "^1.0.1",
     "prompts": "^2.4.2",
     "version-bump-prompt": "^6.1.0"
   },
   "devDependencies": {
-    "@types/chai": "^4.3.5",
-    "@types/lodash": "4.14.197",
+    "@types/chai": "^4.3.6",
+    "@types/lodash": "4.14.198",
     "@types/mocha": "10.0.1",
-    "@types/node": ">=20.5.3",
-    "@typescript-eslint/eslint-plugin": "^6.4.1",
-    "@typescript-eslint/parser": "^6.4.1",
-    "asciidoctor": "^3.0.2",
-    "chai": "^4.3.7",
-    "eslint": "^8.47.0",
+    "@types/node": ">=20.6.0",
+    "@typescript-eslint/eslint-plugin": "^6.7.0",
+    "@typescript-eslint/parser": "^6.7.0",
+    "asciidoctor": "^3.0.0",
+    "chai": "^4.3.8",
+    "eslint": "^8.49.0",
     "eslint-config-google": "^0.14.0",
     "eslint-config-standard": "^17.1.0",
     "eslint-plugin-import": "^2.28.1",
@@ -86,7 +87,7 @@
     "mocha-junit-reporter": "^2.2.1",
     "rimraf": "5.0.1",
     "ts-node": "9.1.1",
-    "typescript": "5.1.6"
+    "typescript": "5.2.2"
   },
   "engines": {
     "node": ">=20.0.0"
