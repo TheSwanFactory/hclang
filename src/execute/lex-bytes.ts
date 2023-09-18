@@ -1,4 +1,4 @@
-import * as _ from 'lodash.js'
+import * as _ from 'lodash'
 import { Frame, FrameBytes, FrameSymbol, ISourced } from '../frames.js'
 import { Token } from './lex.js'
 

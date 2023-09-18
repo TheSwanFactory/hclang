@@ -1,4 +1,4 @@
-import * as _ from 'lodash.js'
+import * as _ from 'lodash'
 import { Frame } from './frame.js'
 import { FrameAtom, FrameQuote } from './frame-atom.js'
 import { FrameSymbol } from './frame-symbol.js'

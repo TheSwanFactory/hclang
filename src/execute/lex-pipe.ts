@@ -1,4 +1,4 @@
-import * as _ from 'lodash.js'
+import * as _ from 'lodash'
 import { Frame, FrameString, FrameSymbol } from '../frames.js'
 import { ParsePipe } from './parse-pipe.js'
 import { syntax } from './syntax.js'

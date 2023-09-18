@@ -1,4 +1,4 @@
-import * as _ from 'lodash.js'
+import * as _ from 'lodash'
 import * as frame from '../frames.js'
 import { FrameSpace } from './frame-space.js'
 import { Lex } from './lex.js'

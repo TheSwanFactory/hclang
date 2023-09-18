@@ -1,4 +1,4 @@
-import * as _ from 'lodash.js'
+import * as _ from 'lodash'
 import { MetaFrame, NilContext } from './meta-frame.js'
 
 export type Flags = { [key: string]: boolean; };

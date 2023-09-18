@@ -1,4 +1,4 @@
-import chalk from 'chalk.js'
+import chalk from 'chalk'
 import { Context, Frame, FrameGroup, FrameString } from '../frames.js'
 import { version } from '../version.js'
 import { EvalPipe } from './eval-pipe.js'
@@ -20,7 +20,7 @@ export class HCEval {
     const context: Context = {}
     Object.entries(env).forEach(([key, value]) => {
       if (key[0] !== 'n') {
-        context[key] = new FrameString(value)
+        context[key] = new FrameString(value || 'undefined')
       }
     })
     if (context.DEBUG_ENV) {

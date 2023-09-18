@@ -1,4 +1,4 @@
-import * as _ from 'lodash.js'
+import * as _ from 'lodash'
 import { Frame, FrameAtom, FrameBytes, FrameQuote, ISourced, NilContext } from '../frames.js'
 import { LexBytes } from './lex-bytes.js'
 import { LexPipe } from './lex-pipe.js'

@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-import fs from 'fs.js'
-import getopts from 'getopts.js'
-import _ from 'lodash.js'
-import readline from 'readline.js'
+import fs from 'fs'
+import getopts from 'getopts'
+import _ from 'lodash'
+import readline from 'readline'
 import { HCEval } from '../execute/hc-eval.js'
 import { HCLog } from '../execute/hc-log.js'
 import { HCTest } from '../execute/hc-test.js'
@@ -37,7 +37,7 @@ if (options.evaluate) {
 }
 
 _.each(options._, (file) => {
-  const rl = readline.createInterface(fs.createReadStream(file), null)
+  const rl = readline.createInterface(fs.createReadStream(file), undefined)
   rl.on('line', (line) => {
     hc_eval.call(line)
   })

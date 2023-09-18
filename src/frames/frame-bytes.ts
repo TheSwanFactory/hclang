@@ -1,4 +1,4 @@
-import * as _ from 'lodash.js'
+import * as _ from 'lodash'
 import { FrameQuote } from './frame-atom.js'
 import { Context, NilContext } from './meta-frame.js'
 

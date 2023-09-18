@@ -1,8 +1,8 @@
-import { runInNewContext } from 'vm.js'
+import { runInNewContext } from 'vm'
 import { Frame } from './frame.js'
 import { FrameAtom } from './frame-atom.js'
 import { NilContext } from './meta-frame.js'
-import * as JSBI from 'jsbi/dist/jsbi-umd.js.js'
+import JSBI from 'jsbi'
 
 export interface IRegexpMap {
   [key: number]: RegExp;
@@ -44,7 +44,7 @@ export class FrameBlob extends FrameAtom {
     const prefix = source.substr(1, 1)
     const keys = Object.keys(FrameBlob.BLOB_PREFIX)
     const base = keys.find((k) => FrameBlob.BLOB_PREFIX[parseInt(k, 10)] === prefix)
-    return parseInt(base, 10)
+    return parseInt(base || "10", 10)
   }
 
   public static count_bits (source: string, base: number) {
@@ -52,7 +52,7 @@ export class FrameBlob extends FrameAtom {
     const length = digits.length
     const entropy = Math.log2(base)
     const bits = length * entropy
-    return JSBI.BigInt(bits)
+    return BigInt(bits)
   }
 
   protected data
@@ -63,7 +63,7 @@ export class FrameBlob extends FrameAtom {
     super(NilContext)
     source = FrameBlob.fix_source(source)
 
-    this.data = JSBI.BigInt(source)
+    this.data = BigInt(source)
     this.base = FrameBlob.find_base(source)
     this.n_bits = FrameBlob.count_bits(source, this.base)
   }
@@ -103,7 +103,7 @@ export class FrameBlob extends FrameAtom {
   }
 
   protected append (right_operand: FrameBlob) {
-    const left = JSBI.BigInt(right_operand.exalt(this))
+    const left = BigInt(right_operand.exalt(this))
     this.data = left + right_operand.data
     this.n_bits = this.n_bits + right_operand.n_bits
     return this
@@ -114,7 +114,7 @@ export class FrameBlob extends FrameAtom {
     return result
   };
 
-  protected shift_left (n_bits) {
+  protected shift_left (n_bits: any) {
     const bigint_result = this.data << n_bits
     return bigint_result
   };

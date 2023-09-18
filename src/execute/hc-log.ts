@@ -1,4 +1,4 @@
-import chalk from 'chalk.js'
+import chalk from 'chalk'
 import { Context, Frame } from '../frames.js'
 import { HCEval } from './hc-eval.js'
 
