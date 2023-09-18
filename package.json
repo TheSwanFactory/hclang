@@ -61,6 +61,7 @@
     "getopts": "^2.3.0",
     "inquirer": "^9.2.11",
     "jsbi": "^4.3.0",
+    "lodash-es": "^4.17.21",
     "node-fetch": "^3.3.2",
     "npm-check-updates": "^16.14.4",
     "prompt-sync": "^4.2.0",
