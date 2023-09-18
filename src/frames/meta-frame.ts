@@ -12,7 +12,7 @@ export interface IKeyValuePair extends ReadonlyArray<string | Frame> { 0: string
 
 export class MetaFrame {
   public static id_count = 0
-  public up: Frame
+  public up: Frame = Frame.missing
   public id: string
 
   constructor (public meta = NilContext, _isNil = false) {

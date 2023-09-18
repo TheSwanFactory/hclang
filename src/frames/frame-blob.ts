@@ -44,7 +44,7 @@ export class FrameBlob extends FrameAtom {
     const prefix = source.substr(1, 1)
     const keys = Object.keys(FrameBlob.BLOB_PREFIX)
     const base = keys.find((k) => FrameBlob.BLOB_PREFIX[parseInt(k, 10)] === prefix)
-    return parseInt(base || "10", 10)
+    return parseInt(base || '10', 10)
   }
 
   public static count_bits (source: string, base: number) {

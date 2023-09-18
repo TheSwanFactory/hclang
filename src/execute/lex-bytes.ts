@@ -3,7 +3,7 @@ import { Frame, FrameBytes, FrameSymbol, ISourced } from '../frames.js'
 import { Token } from './lex.js'
 
 export class LexBytes extends Frame implements ISourced {
-  public source: string
+  public source: string = ''
   protected body: number[]
 
   public constructor (protected count: number, up: Frame) {

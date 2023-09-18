@@ -27,7 +27,7 @@ export class Lex extends Frame implements ISourced {
   }
 
   public source: string
-  public pipe: LexPipe
+  public pipe: LexPipe = new LexPipe(this)
   protected body: string = ''
   protected sample: FrameAtom
 
