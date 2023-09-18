@@ -54,7 +54,7 @@ export class MetaFrame {
   }
 
   public meta_copy (): Context {
-    return _.clone(this.meta)
+    return { ...this.meta }
   }
 
   public meta_keys () {

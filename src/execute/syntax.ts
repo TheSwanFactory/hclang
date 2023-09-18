@@ -1,10 +1,11 @@
 import * as _ from 'lodash'
+
 import * as frame from '../frames.js'
 import { FrameSpace } from './frame-space.js'
 import { Lex } from './lex.js'
 import { terminals } from './terminals.js'
 
-export const syntax: frame.Context = _.clone(terminals)
+export const syntax: frame.Context = { ...terminals }
 
 const atomClasses: Array<any> = [
   FrameSpace,
@@ -22,7 +23,7 @@ const atomClasses: Array<any> = [
   frame.FrameSymbol
 ]
 
-_.map(atomClasses, (Klass: any) => {
+_.each(atomClasses, (Klass: any) => {
   const sample: frame.FrameAtom = new Klass('')
   const key = sample.string_start()
   syntax[key] = new Lex(Klass)
