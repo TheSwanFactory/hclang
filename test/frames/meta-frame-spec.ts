@@ -1,5 +1,5 @@
-import { expect } from 'chai.js'
-import {} from 'mocha.js'
+import { expect } from 'chai'
+import {} from 'mocha'
 import { Context, Frame, FrameArray, FrameString, FrameSymbol, IKeyValuePair, NilContext } from '../../src/frames.js'
 
 describe('MetaFrame', () => {

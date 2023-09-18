@@ -1,5 +1,5 @@
-import { expect } from 'chai.js'
-import {} from 'mocha.js'
+import { expect } from 'chai'
+import {} from 'mocha'
 import { execute } from '../../src/execute.js'
 
 describe('execute', () => {

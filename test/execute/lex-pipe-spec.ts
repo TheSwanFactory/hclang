@@ -1,5 +1,5 @@
-import { expect } from 'chai.js'
-import {} from 'mocha.js'
+import { expect } from 'chai'
+import {} from 'mocha'
 import { Lex } from '../../src/execute/lex.js'
 import { LexBytes } from '../../src/execute/lex-bytes.js'
 import { LexPipe } from '../../src/execute/lex-pipe.js'

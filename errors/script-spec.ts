@@ -1,6 +1,6 @@
-import { expect } from 'chai.js'
+import { expect } from 'chai'
 import { execFileSync } from 'child_process.js'
-import { } from 'mocha.js'
+import { } from 'mocha'
 
 describe('script', () => {
   const hc_bin = 'lib/cli/hc.js'
