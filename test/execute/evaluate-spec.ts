@@ -9,7 +9,7 @@ describe('evaluate', () => {
   })
 
   it('returns empty array for empty string', () => {
-    const result = evaluate.call('')
+    const result = evaluate.call('', '')
     expect(result).to.be.instanceof(frame.FrameArray)
     expect(result.toString()).to.equal('[]')
   })
