@@ -1,6 +1,6 @@
-import { expect } from 'chai'
-import { } from 'mocha'
-import { FrameBlob } from '../../src/frames'
+import { expect } from 'chai.js'
+import { } from 'mocha.js'
+import { FrameBlob } from '../../src/frames.js'
 
 describe('FrameBlob', () => {
   const source = '0b10100101'

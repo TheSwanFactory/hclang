@@ -1,8 +1,8 @@
-import { runInNewContext } from 'vm'
-import { Frame } from './frame'
-import { FrameAtom } from './frame-atom'
-import { NilContext } from './meta-frame'
-import * as JSBI from 'jsbi/dist/jsbi-umd.js'
+import { runInNewContext } from 'vm.js'
+import { Frame } from './frame.js'
+import { FrameAtom } from './frame-atom.js'
+import { NilContext } from './meta-frame.js'
+import * as JSBI from 'jsbi/dist/jsbi-umd.js.js'
 
 export interface IRegexpMap {
   [key: number]: RegExp;

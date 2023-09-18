@@ -1,8 +1,12 @@
 {
   "compilerOptions": {
     "allowSyntheticDefaultImports": true,
-    "outDir": "./lib",
-    "rootDir": "./src"
+    "target": "es6",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "outDir": "dist",
+    "rootDir": "./src",
+    "strict": true
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules"]

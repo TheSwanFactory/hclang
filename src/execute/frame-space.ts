@@ -1,4 +1,4 @@
-import * as frame from '../frames'
+import * as frame from '../frames.js'
 
 export class FrameSpace extends frame.FrameAtom {
   public static readonly SPACE_CHAR = ' '

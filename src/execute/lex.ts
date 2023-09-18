@@ -1,8 +1,8 @@
-import * as _ from 'lodash'
-import { Frame, FrameAtom, FrameBytes, FrameQuote, ISourced, NilContext } from '../frames'
-import { LexBytes } from './lex-bytes'
-import { LexPipe } from './lex-pipe'
-import { terminals } from './terminals'
+import * as _ from 'lodash.js'
+import { Frame, FrameAtom, FrameBytes, FrameQuote, ISourced, NilContext } from '../frames.js'
+import { LexBytes } from './lex-bytes.js'
+import { LexPipe } from './lex-pipe.js'
+import { terminals } from './terminals.js'
 
 export type Flag = { [key: string]: boolean; };
 

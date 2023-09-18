@@ -1,6 +1,6 @@
-import { expect } from 'chai'
-import {} from 'mocha'
-import { FrameComment } from '../../src/frames'
+import { expect } from 'chai.js'
+import {} from 'mocha.js'
+import { FrameComment } from '../../src/frames.js'
 
 describe('FrameComment', () => {
   const source = 'Frankly, my dear'

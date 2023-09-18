@@ -1,6 +1,6 @@
-import * as _ from 'lodash'
-import { Frame, FrameBytes, FrameSymbol, ISourced } from '../frames'
-import { Token } from './lex'
+import * as _ from 'lodash.js'
+import { Frame, FrameBytes, FrameSymbol, ISourced } from '../frames.js'
+import { Token } from './lex.js'
 
 export class LexBytes extends Frame implements ISourced {
   public source: string

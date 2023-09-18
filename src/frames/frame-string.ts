@@ -1,8 +1,8 @@
-import * as _ from 'lodash'
-import { Frame } from './frame'
-import { FrameAtom, FrameQuote } from './frame-atom'
-import { FrameSymbol } from './frame-symbol'
-import { Context, NilContext } from './meta-frame'
+import * as _ from 'lodash.js'
+import { Frame } from './frame.js'
+import { FrameAtom, FrameQuote } from './frame-atom.js'
+import { FrameSymbol } from './frame-symbol.js'
+import { Context, NilContext } from './meta-frame.js'
 
 const reducer = (current: Frame, char: string) => {
   const symbol = FrameSymbol.for(char)

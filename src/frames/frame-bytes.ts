@@ -1,6 +1,6 @@
-import * as _ from 'lodash'
-import { FrameQuote } from './frame-atom'
-import { Context, NilContext } from './meta-frame'
+import * as _ from 'lodash.js'
+import { FrameQuote } from './frame-atom.js'
+import { Context, NilContext } from './meta-frame.js'
 
 export class FrameBytes extends FrameQuote {
   public static readonly BYTES_BEGIN = '\\'

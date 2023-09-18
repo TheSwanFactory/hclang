@@ -1,7 +1,7 @@
-import { Frame } from './frame'
-import { FrameAtom } from './frame-atom'
-import { FrameOperator, FrameSymbol } from './frame-symbol'
-import { NilContext } from './meta-frame'
+import { Frame } from './frame.js'
+import { FrameAtom } from './frame-atom.js'
+import { FrameOperator, FrameSymbol } from './frame-symbol.js'
+import { NilContext } from './meta-frame.js'
 
 export class FrameName extends FrameAtom {
   public static readonly NAME_BEGIN = '.'

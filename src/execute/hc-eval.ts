@@ -1,10 +1,10 @@
-import chalk from 'chalk'
-import { Context, Frame, FrameGroup, FrameString } from '../frames'
-import { version } from '../version'
-import { EvalPipe } from './eval-pipe'
-import { Lex } from './lex'
-import { LexPipe } from './lex-pipe'
-import { ParsePipe } from './parse-pipe'
+import chalk from 'chalk.js'
+import { Context, Frame, FrameGroup, FrameString } from '../frames.js'
+import { version } from '../version.js'
+import { EvalPipe } from './eval-pipe.js'
+import { Lex } from './lex.js'
+import { LexPipe } from './lex-pipe.js'
+import { ParsePipe } from './parse-pipe.js'
 
 const prompts = require('prompts')
 

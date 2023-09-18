@@ -1,6 +1,6 @@
-import * as _ from 'lodash'
-import { FrameAtom } from './frame-atom'
-import { Context, NilContext } from './meta-frame'
+import * as _ from 'lodash.js'
+import { FrameAtom } from './frame-atom.js'
+import { Context, NilContext } from './meta-frame.js'
 
 export class FrameNumber extends FrameAtom {
   public static readonly NUMBER_BEGIN = /[1-9]/

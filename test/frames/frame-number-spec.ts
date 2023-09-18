@@ -1,6 +1,6 @@
-import { expect } from 'chai'
-import {} from 'mocha'
-import { FrameNumber } from '../../src/frames'
+import { expect } from 'chai.js'
+import {} from 'mocha.js'
+import { FrameNumber } from '../../src/frames.js'
 
 describe('FrameNumber', () => {
   const source = '12345667890'

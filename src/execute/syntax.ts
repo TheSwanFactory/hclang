@@ -1,8 +1,8 @@
-import * as _ from 'lodash'
-import * as frame from '../frames'
-import { FrameSpace } from './frame-space'
-import { Lex } from './lex'
-import { terminals } from './terminals'
+import * as _ from 'lodash.js'
+import * as frame from '../frames.js'
+import { FrameSpace } from './frame-space.js'
+import { Lex } from './lex.js'
+import { terminals } from './terminals.js'
 
 export const syntax: frame.Context = _.clone(terminals)
 

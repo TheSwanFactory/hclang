@@ -1,6 +1,6 @@
-import * as _ from 'lodash'
-import { Frame, FrameString } from '../frames'
-import { syntax } from './syntax'
+import * as _ from 'lodash.js'
+import { Frame, FrameString } from '../frames.js'
+import { syntax } from './syntax.js'
 
 export type LexOptions = { [key: string]: any; };
 

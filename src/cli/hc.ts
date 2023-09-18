@@ -1,11 +1,11 @@
 #!/usr/bin/env node
-import fs from 'fs'
-import getopts from 'getopts'
-import _ from 'lodash'
-import readline from 'readline'
-import { HCEval } from '../execute/hc-eval'
-import { HCLog } from '../execute/hc-log'
-import { HCTest } from '../execute/hc-test'
+import fs from 'fs.js'
+import getopts from 'getopts.js'
+import _ from 'lodash.js'
+import readline from 'readline.js'
+import { HCEval } from '../execute/hc-eval.js'
+import { HCLog } from '../execute/hc-log.js'
+import { HCTest } from '../execute/hc-test.js'
 
 const options = getopts(process.argv.slice(2), {
   alias: {

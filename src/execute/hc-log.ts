@@ -1,6 +1,6 @@
-import chalk from 'chalk'
-import { Context, Frame } from '../frames'
-import { HCEval } from './hc-eval'
+import chalk from 'chalk.js'
+import { Context, Frame } from '../frames.js'
+import { HCEval } from './hc-eval.js'
 
 export type Counts = { [key: string]: number; };
 

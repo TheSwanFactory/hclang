@@ -1,5 +1,5 @@
-import * as _ from 'lodash'
-import { Frame } from './frame'
+import * as _ from 'lodash.js'
+import { Frame } from './frame.js'
 
 export interface ISourced extends Frame {
   source: string;

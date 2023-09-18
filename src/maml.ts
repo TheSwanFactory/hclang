@@ -1,5 +1,5 @@
-import { Frame, FrameArg, FrameExpr, FrameLazy, FrameName, FrameParam, FrameString, FrameSymbol } from './frames'
-import { tag } from './maml/tag'
+import { Frame, FrameArg, FrameExpr, FrameLazy, FrameName, FrameParam, FrameString, FrameSymbol } from './frames.js'
+import { tag } from './maml/tag.js'
 
 const HTML_PREFIX = '<!DOCTYPE html>'
 

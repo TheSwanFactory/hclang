@@ -1,6 +1,6 @@
-import { expect } from 'chai'
-import {} from 'mocha'
-import * as frame from '../../src/frames'
+import { expect } from 'chai.js'
+import {} from 'mocha.js'
+import * as frame from '../../src/frames.js'
 
 describe('FrameGroup', () => {
   const a_frame = new frame.FrameString('a')

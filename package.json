@@ -48,7 +48,7 @@
     "test": "printenv DEBUG; npm run build && mocha --recursive test/**/*-spec.ts",
     "tag": "bump patch -ct package*.json README.md src/version.ts",
     "tag:minor": "bump minor -ct package*.json README.md src/version.ts",
-    "ts": "tsc --pretty --inlineSourceMap && chmod a+x ./lib/cli/hc.js",
+    "ts": "npx tsc --pretty --inlineSourceMap && chmod a+x ./lib/cli/hc.js",
     "ts:version": "echo TypeScript `tsc --version` ",
     "verbose": "NODE_DEBUG=* npm run test",
     "watch": "npm-watch test"

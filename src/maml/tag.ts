@@ -1,4 +1,4 @@
-import { FrameArg, FrameArray, FrameExpr, FrameLazy, FrameString } from '../frames'
+import { FrameArg, FrameArray, FrameExpr, FrameLazy, FrameString } from '../frames.js'
 
 const wrapArg = (prefix: string, suffix: string) => {
   return new FrameExpr([

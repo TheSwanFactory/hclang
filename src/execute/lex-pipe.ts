@@ -1,8 +1,8 @@
-import * as _ from 'lodash'
-import { Frame, FrameString, FrameSymbol } from '../frames'
-import { ParsePipe } from './parse-pipe'
-import { syntax } from './syntax'
-import { IAction, IFinish, IPerformer } from './terminals'
+import * as _ from 'lodash.js'
+import { Frame, FrameString, FrameSymbol } from '../frames.js'
+import { ParsePipe } from './parse-pipe.js'
+import { syntax } from './syntax.js'
+import { IAction, IFinish, IPerformer } from './terminals.js'
 
 export class LexPipe extends Frame implements IFinish, IPerformer {
   public level: number

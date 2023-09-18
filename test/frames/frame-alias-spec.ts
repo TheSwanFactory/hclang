@@ -1,6 +1,6 @@
-import { expect } from 'chai'
-import {} from 'mocha'
-import { FrameAlias, FrameArg, FrameExpr, FrameString, FrameSymbol } from '../../src/frames'
+import { expect } from 'chai.js'
+import {} from 'mocha.js'
+import { FrameAlias, FrameArg, FrameExpr, FrameString, FrameSymbol } from '../../src/frames.js'
 
 describe('FrameAlias', () => {
   const key = 'atom'
