@@ -22,7 +22,7 @@ export class Token extends FrameAtom {
 export class Lex extends Frame implements ISourced {
   public static isTerminal (char: string) {
     const terms = Object.keys(terminals)
-    return _.includes(terms, char)
+    return terms.includes(char)
   }
 
   public source: string

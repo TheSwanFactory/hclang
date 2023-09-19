@@ -65,7 +65,7 @@ export class MetaFrame {
   }
 
   public meta_pairs (): Array<IKeyValuePair> {
-//    return this.meta.map((value: any, key: string): IKeyValuePair => {return [key, value]})
+    //    return this.meta.map((value: any, key: string): IKeyValuePair => {return [key, value]})
     return Object.entries(this.meta)
   }
 

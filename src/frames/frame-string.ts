@@ -38,7 +38,7 @@ export class FrameString extends FrameQuote {
   };
 
   public reduce (starter: Frame) {
-    const final = _.reduce(this.data, reducer, starter) as Frame
+    const final = this.data.split('').reduce(reducer, starter)
     const result = final.call(FrameSymbol.end())
     return result
   }

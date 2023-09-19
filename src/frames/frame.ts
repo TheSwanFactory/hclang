@@ -65,6 +65,7 @@ export class Frame extends MetaFrame {
   }
 
   public asArray (): Array<Frame> {
-    return _.castArray(this)
+    // return _.castArray(this)
+    return [this]
   }
 };
