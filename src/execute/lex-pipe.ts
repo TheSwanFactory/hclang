@@ -1,12 +1,13 @@
 import { Frame, FrameString, FrameSymbol } from '../frames.js'
 import { ParsePipe } from './parse-pipe.js'
-import { syntax } from './syntax.js'
+import { getSyntax } from './syntax.js'
 import { IAction, IFinish, IPerformer } from './terminals.js'
 
 export class LexPipe extends Frame implements IFinish, IPerformer {
   public level: number
 
   constructor (out: Frame) {
+    const syntax = getSyntax()
     syntax[Frame.kOUT] = out
     super(syntax)
     this.level = 0
