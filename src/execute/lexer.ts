@@ -1,4 +1,3 @@
-import * as _ from 'lodash'
 import { Frame, FrameString } from '../frames.js'
 import { syntax } from './syntax.js'
 

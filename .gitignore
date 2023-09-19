@@ -12,7 +12,8 @@ pids
 lib-cov
 
 # Misconfigured output
-lib/src
+dist
+lib
 *.js
 *.d.ts
 

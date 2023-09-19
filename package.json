@@ -39,7 +39,7 @@
     "testdoc": "npm run build && node lib/src/cli/hc.js hc/testdoc.hc -t",
     "build": "rimraf lib && eslint --fix \"{src,test}/**/*.ts\" && npm run ts",
     "check": "grep -e 'only' -e 'skip' test/*/* || echo 'Ran all tests'",
-    "clean": "rimraf lib && rm -f *.log.* src/*.js src/*/*.js test/*.js test/*/*.js",
+    "clean": "rimraf lib dist && rm -f *.log.* src/*.js src/*/*.js test/*.js test/*/*.js",
     "debug": "echo 'Use `debugger;`\n' && mocha --inspect-brk --require ts-node/register --recursive test/**/*-spec.ts",
     "done": "npm run clean && npm run bs:all && npm run check && npm run tag && npm install && git commit -am 'update version'",
     "lint": "eslint --fix \"{src,test}/**/*.ts\"",
@@ -55,23 +55,16 @@
     "watch": "npm-watch test"
   },
   "dependencies": {
-    "@types/prompt-sync": "^4.2.0",
-    "@types/prompt-sync-history": "^1.0.1",
     "chalk": "^5.3.0",
     "getopts": "^2.3.0",
     "inquirer": "^9.2.11",
     "jsbi": "^4.3.0",
-    "lodash-es": "^4.17.21",
     "node-fetch": "^3.3.2",
     "npm-check-updates": "^16.14.4",
-    "prompt-sync": "^4.2.0",
-    "prompt-sync-history": "^1.0.1",
-    "prompts": "^2.4.2",
     "version-bump-prompt": "^6.1.0"
   },
   "devDependencies": {
     "@types/chai": "^4.3.6",
-    "@types/lodash": "4.14.198",
     "@types/mocha": "10.0.1",
     "@types/node": ">=20.6.2",
     "@typescript-eslint/eslint-plugin": "^6.7.0",

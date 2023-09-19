@@ -1,4 +1,3 @@
-import * as _ from 'lodash'
 import { FrameString } from './frame-string.js'
 import { Context, NilContext } from './meta-frame.js'
 

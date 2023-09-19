@@ -1,4 +1,3 @@
-import * as _ from 'lodash'
 import { Frame } from './frame.js'
 
 export interface ISourced extends Frame {
@@ -58,7 +57,7 @@ export class MetaFrame {
   }
 
   public meta_keys () {
-    return _.keys(this.meta)
+    return Object.keys(this.meta)
   }
 
   public meta_length () {
@@ -66,9 +65,8 @@ export class MetaFrame {
   }
 
   public meta_pairs (): Array<IKeyValuePair> {
-    return _.map(this.meta, (value, key): IKeyValuePair => {
-      return [key, value]
-    })
+//    return this.meta.map((value: any, key: string): IKeyValuePair => {return [key, value]})
+    return Object.entries(this.meta)
   }
 
   public meta_string () {
@@ -83,7 +81,22 @@ export class MetaFrame {
 
   protected match_here (target: string): Frame {
     let result = Frame.missing
+    /*
     _.forOwn(this.meta, (value, key) => {
+      const isPattern = key.match(/\/(.*)\//)
+      if (isPattern) {
+        const pattern = new RegExp(isPattern[1])
+        if (pattern.test(target)) {
+          result = value
+          if (result.hasOwnProperty('source')) {
+            const sourced = result as ISourced
+            sourced.source = target
+          }
+        }
+      }
+    })
+    */
+    this.meta_pairs().forEach(([key, value]) => {
       const isPattern = key.match(/\/(.*)\//)
       if (isPattern) {
         const pattern = new RegExp(isPattern[1])

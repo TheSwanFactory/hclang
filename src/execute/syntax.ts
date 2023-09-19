@@ -1,5 +1,3 @@
-import * as _ from 'lodash'
-
 import * as frame from '../frames.js'
 import { FrameSpace } from './frame-space.js'
 import { Lex } from './lex.js'
@@ -22,9 +20,3 @@ const atomClasses: Array<any> = [
   frame.FrameString,
   frame.FrameSymbol
 ]
-
-_.each(atomClasses, (Klass: any) => {
-  const sample: frame.FrameAtom = new Klass('')
-  const key = sample.string_start()
-  syntax[key] = new Lex(Klass)
-})

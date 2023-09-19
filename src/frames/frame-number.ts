@@ -1,4 +1,3 @@
-import * as _ from 'lodash'
 import { FrameAtom } from './frame-atom.js'
 import { Context, NilContext } from './meta-frame.js'
 
@@ -17,7 +16,7 @@ export class FrameNumber extends FrameAtom {
 
   constructor (source: string, meta: Context = NilContext) {
     super(meta)
-    this.data = _.toNumber(source)
+    this.data = parseInt(source, 10)
   }
 
   public string_start () {
