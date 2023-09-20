@@ -23,7 +23,7 @@ describe('script', () => {
 
   it.only('123', () => {
     const result = script(['-e', title])
-    expect(result[1]).to.equal(title)
+    expect(result[0]).to.equal(title)
   })
 
   it('“Hello, Quine!”', () => {
