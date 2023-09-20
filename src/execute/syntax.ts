@@ -30,9 +30,7 @@ export function getSyntax () {
   atomClasses.forEach((Klass: any) => {
     const sample: frame.FrameAtom = new Klass('')
     const key = sample.string_start()
-    console.log('getSyntax.key', key)
     const lexee = new Lex(Klass)
-    console.log('getSyntax.lexee')
     _syntax[key] = lexee
     return true
   })

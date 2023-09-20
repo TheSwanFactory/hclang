@@ -4,7 +4,7 @@
 
 - Pass CLI tests
 - Pass BLOB tests
-- Use readline
+- npm audit fix --force
 
 ## v0.4.0 2023-09-19
 
