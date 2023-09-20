@@ -1,13 +1,13 @@
-import * as _ from 'lodash'
-import { Frame, FrameString, FrameSymbol } from '../frames'
-import { ParsePipe } from './parse-pipe'
-import { syntax } from './syntax'
-import { IAction, IFinish, IPerformer } from './terminals'
+import { Frame, FrameString, FrameSymbol } from '../frames.js'
+import { ParsePipe } from './parse-pipe.js'
+import { getSyntax } from './syntax.js'
+import { IAction, IFinish, IPerformer } from './terminals.js'
 
 export class LexPipe extends Frame implements IFinish, IPerformer {
   public level: number
 
   constructor (out: Frame) {
+    const syntax = getSyntax()
     syntax[Frame.kOUT] = out
     super(syntax)
     this.level = 0
@@ -29,9 +29,9 @@ export class LexPipe extends Frame implements IFinish, IPerformer {
     return this
   }
 
-  public perform (actions: IAction) {
+  public perform (action: IAction) {
     const parser = this.get(Frame.kOUT) as ParsePipe
-    _.forEach(actions, (value, key) => {
+    for (const [key, value] of Object.entries(action)) {
       switch (key) {
         case 'semi-next': {
           parser.next(true)
@@ -58,7 +58,7 @@ export class LexPipe extends Frame implements IFinish, IPerformer {
           break
         }
       }
-    })
+    }
     return this
   }
 }

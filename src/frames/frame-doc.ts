@@ -1,6 +1,5 @@
-import * as _ from 'lodash'
-import { FrameString } from './frame-string'
-import { Context, NilContext } from './meta-frame'
+import { FrameString } from './frame-string.js'
+import { Context, NilContext } from './meta-frame.js'
 
 export class FrameDoc extends FrameString {
   public static readonly DOC_BEGIN = '`'

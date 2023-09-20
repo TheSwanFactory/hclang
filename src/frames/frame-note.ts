@@ -1,9 +1,9 @@
-import { Frame } from './frame'
-import { FrameArray } from './frame-array'
-import { FrameQuote } from './frame-atom'
-import { FrameString } from './frame-string'
-import { FrameSymbol } from './frame-symbol'
-import { NilContext } from './meta-frame'
+import { Frame } from './frame.js'
+import { FrameArray } from './frame-array.js'
+import { FrameQuote } from './frame-atom.js'
+import { FrameString } from './frame-string.js'
+import { FrameSymbol } from './frame-symbol.js'
+import { NilContext } from './meta-frame.js'
 
 export type Binding = { [key: string]: string; };
 export type LanguageBinding = { [key: string]: Binding; };

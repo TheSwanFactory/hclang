@@ -1,13 +1,12 @@
 import chalk from 'chalk'
-import { Context, Frame, FrameGroup, FrameString } from '../frames'
-import { version } from '../version'
-import { EvalPipe } from './eval-pipe'
-import { Lex } from './lex'
-import { LexPipe } from './lex-pipe'
-import { ParsePipe } from './parse-pipe'
-
-const prompts = require('prompts')
-
+import { Context, Frame, FrameGroup, FrameString } from '../frames.js'
+import { version } from '../version.js'
+import { EvalPipe } from './eval-pipe.js'
+import { Lex } from './lex.js'
+import { LexPipe } from './lex-pipe.js'
+import { ParsePipe } from './parse-pipe.js'
+import { stdin as input, stdout as output } from 'node:process'
+import readline from 'node:readline/promises'
 export interface IProcessEnv {
   [key: string]: string | undefined
 }
@@ -20,7 +19,7 @@ export class HCEval {
     const context: Context = {}
     Object.entries(env).forEach(([key, value]) => {
       if (key[0] !== 'n') {
-        context[key] = new FrameString(value)
+        context[key] = new FrameString(value || 'undefined')
       }
     })
     if (context.DEBUG_ENV) {
@@ -67,12 +66,12 @@ export class HCEval {
     console.log(chalk.green('.hc ' + version + ';'))
     let status = true
     while (status) {
-      const input = this.getInput()
+      const input = await this.getInput()
       if (!input) {
         status = false
         break
       }
-      this.call(await input)
+      this.call(input)
     }
     return status
   }
@@ -82,7 +81,10 @@ export class HCEval {
     if (this.pipe.level > 0) {
       prefix = HCEval.make_prompt(this.pipe.level)
     }
-    return await prompts(chalk.grey(prefix))
+    const rlp = readline.createInterface({ input, output })
+    const answer = await rlp.question(chalk.grey(prefix))
+    rlp.close()
+    return answer
   }
 
   protected checkInput (input: string) {

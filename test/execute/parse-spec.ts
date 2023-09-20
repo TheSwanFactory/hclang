@@ -1,9 +1,9 @@
 import { expect } from 'chai'
 import {} from 'mocha'
-import { Token } from '../../src/execute/lex'
-import { ParsePipe } from '../../src/execute/parse-pipe'
-import * as frame from '../../src/frames'
-import * as ops from '../../src/ops'
+import { Token } from '../../src/execute/lex.js'
+import { ParsePipe } from '../../src/execute/parse-pipe.js'
+import * as frame from '../../src/frames.js'
+import * as ops from '../../src/ops.js'
 
 describe('Parse', () => {
   const content = new frame.FrameString('content')

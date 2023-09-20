@@ -1,21 +1,20 @@
 #!/usr/bin/env node
 import fs from 'fs'
-import getopts from 'getopts'
-import _ from 'lodash'
+// import getopts from 'getopts'
 import readline from 'readline'
-import { HCEval } from '../execute/hc-eval'
-import { HCLog } from '../execute/hc-log'
-import { HCTest } from '../execute/hc-test'
+import { HCEval } from '../execute/hc-eval.js'
+import { HCLog } from '../execute/hc-log.js'
+import { HCTest } from '../execute/hc-test.js'
 
-const options = getopts(process.argv.slice(2), {
-  alias: {
-    evaluate: 'e',
-    help: 'h',
-    interactive: 'i',
-    testdoc: 't',
-    verbose: 'v'
-  }
-})
+const options = // (process.argv.slice(2), {
+           {
+             evaluate: 'e',
+             help: 'h',
+             interactive: 'i',
+             testdoc: 't',
+             verbose: 'v',
+             _: []
+           }
 if (options.verbose) {
   console.error('options', options)
 }
@@ -36,8 +35,8 @@ if (options.evaluate) {
   evaluated = true
 }
 
-_.each(options._, (file) => {
-  const rl = readline.createInterface(fs.createReadStream(file), null)
+options._.forEach((file) => {
+  const rl = readline.createInterface(fs.createReadStream(file), undefined)
   rl.on('line', (line) => {
     hc_eval.call(line)
   })

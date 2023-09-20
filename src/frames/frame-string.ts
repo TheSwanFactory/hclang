@@ -1,8 +1,7 @@
-import * as _ from 'lodash'
-import { Frame } from './frame'
-import { FrameAtom, FrameQuote } from './frame-atom'
-import { FrameSymbol } from './frame-symbol'
-import { Context, NilContext } from './meta-frame'
+import { Frame } from './frame.js'
+import { FrameAtom, FrameQuote } from './frame-atom.js'
+import { FrameSymbol } from './frame-symbol.js'
+import { Context, NilContext } from './meta-frame.js'
 
 const reducer = (current: Frame, char: string) => {
   const symbol = FrameSymbol.for(char)
@@ -39,7 +38,7 @@ export class FrameString extends FrameQuote {
   };
 
   public reduce (starter: Frame) {
-    const final = _.reduce(this.data, reducer, starter) as Frame
+    const final = this.data.split('').reduce(reducer, starter)
     const result = final.call(FrameSymbol.end())
     return result
   }

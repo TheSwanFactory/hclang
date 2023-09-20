@@ -1,9 +1,9 @@
 import { expect } from 'chai'
 import {} from 'mocha'
-import { Lex } from '../../src/execute/lex'
-import { LexBytes } from '../../src/execute/lex-bytes'
-import { LexPipe } from '../../src/execute/lex-pipe'
-import * as frame from '../../src/frames'
+import { Lex } from '../../src/execute/lex.js'
+import { LexBytes } from '../../src/execute/lex-bytes.js'
+import { LexPipe } from '../../src/execute/lex-pipe.js'
+import * as frame from '../../src/frames.js'
 
 describe('LexPipe', () => {
   const success = new frame.FrameString('success!')

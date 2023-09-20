@@ -1,6 +1,6 @@
 import { expect } from 'chai'
 import {} from 'mocha'
-import { Frame, FrameArray, FrameNote, FrameString, FrameSymbol } from '../../src/frames'
+import { Frame, FrameArray, FrameNote, FrameString, FrameSymbol } from '../../src/frames.js'
 
 describe('FrameNote', () => {
   const key = 'key'

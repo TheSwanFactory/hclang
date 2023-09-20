@@ -1,12 +1,11 @@
-import * as _ from 'lodash'
-import * as frame from '../frames'
-import { FrameSpace } from './frame-space'
-import { Lex } from './lex'
-import { terminals } from './terminals'
+import * as frame from '../frames.js'
+import { FrameSpace } from './frame-space.js'
+import { Lex } from './lex.js'
+import { terminals } from './terminals.js'
 
-export const syntax: frame.Context = _.clone(terminals)
-
-const atomClasses: Array<any> = [
+export const _syntax: frame.Context = { ...terminals }
+type Class = { new(...args: any[]): any; };
+export const atomClasses: Array<Class> = [
   FrameSpace,
   frame.FrameAlias,
   frame.FrameArg,
@@ -22,8 +21,20 @@ const atomClasses: Array<any> = [
   frame.FrameSymbol
 ]
 
-_.map(atomClasses, (Klass: any) => {
-  const sample: frame.FrameAtom = new Klass('')
-  const key = sample.string_start()
-  syntax[key] = new Lex(Klass)
-})
+let has_syntax = false
+export function getSyntax () {
+  if (has_syntax === true) {
+    return _syntax
+  }
+  has_syntax = true
+  atomClasses.forEach((Klass: any) => {
+    const sample: frame.FrameAtom = new Klass('')
+    const key = sample.string_start()
+    console.log('getSyntax.key', key)
+    const lexee = new Lex(Klass)
+    console.log('getSyntax.lexee')
+    _syntax[key] = lexee
+    return true
+  })
+  return _syntax
+}

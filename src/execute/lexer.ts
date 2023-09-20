@@ -1,11 +1,11 @@
-import * as _ from 'lodash'
-import { Frame, FrameString } from '../frames'
-import { syntax } from './syntax'
+import { Frame, FrameString } from '../frames.js'
+import { getSyntax } from './syntax.js'
 
 export type LexOptions = { [key: string]: any; };
 
 export class Lexer extends Frame {
   constructor (out: Frame) {
+    const syntax = getSyntax()
     syntax[Lexer.kOUT] = out
     super(syntax)
   }

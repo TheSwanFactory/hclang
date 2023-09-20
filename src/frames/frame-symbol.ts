@@ -1,7 +1,7 @@
-import { Frame } from './frame'
-import { FrameAtom } from './frame-atom'
-import { FrameNote } from './frame-note'
-import { Context, NilContext } from './meta-frame'
+import { Frame } from './frame.js'
+import { FrameAtom } from './frame-atom.js'
+import { FrameNote } from './frame-note.js'
+import { Context, NilContext } from './meta-frame.js'
 
 export class FrameSymbol extends FrameAtom {
   public static readonly SYMBOL_BEGIN = /[a-zA-Z]/

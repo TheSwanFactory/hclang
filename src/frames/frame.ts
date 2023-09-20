@@ -1,5 +1,4 @@
-import * as _ from 'lodash'
-import { MetaFrame, NilContext } from './meta-frame'
+import { MetaFrame, NilContext } from './meta-frame.js'
 
 export type Flags = { [key: string]: boolean; };
 
@@ -66,6 +65,7 @@ export class Frame extends MetaFrame {
   }
 
   public asArray (): Array<Frame> {
-    return _.castArray(this)
+    // return _.castArray(this)
+    return [this]
   }
 };

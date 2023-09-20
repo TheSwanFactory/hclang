@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 import {} from 'mocha'
-import * as frame from '../../src/frames'
-import { FrameSymbol } from '../../src/frames'
+import * as frame from '../../src/frames.js'
+import { FrameSymbol } from '../../src/frames.js'
 
 describe('FrameSymbol', () => {
   const symbol = 'atom'

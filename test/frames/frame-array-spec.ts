@@ -1,6 +1,6 @@
 import { expect } from 'chai'
 import {} from 'mocha'
-import { Frame, FrameArray, FrameExpr, FrameString } from '../../src/frames'
+import { Frame, FrameArray, FrameExpr, FrameString } from '../../src/frames.js'
 
 describe('FrameArray', () => {
   const a_frame = new FrameString('a')

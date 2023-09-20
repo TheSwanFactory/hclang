@@ -1,2 +1,2 @@
-export { execute } from './execute/execute'
-export { evaluate } from './execute/evaluate'
+export { execute } from './execute/execute.js'
+export { evaluate } from './execute/evaluate.js'

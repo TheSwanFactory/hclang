@@ -1,6 +1,6 @@
 import { expect } from 'chai'
 import {} from 'mocha'
-import { execute } from '../../src/execute'
+import { execute } from '../../src/execute.js'
 
 describe('execute', () => {
   const input_string = '“Watson I need you”'

@@ -1,6 +1,6 @@
-import { Frame } from './frame'
-import { FrameExpr } from './frame-expr'
-import { Context, IKeyValuePair, NilContext } from './meta-frame'
+import { Frame } from './frame.js'
+import { FrameExpr } from './frame-expr.js'
+import { Context, IKeyValuePair, NilContext } from './meta-frame.js'
 
 export class FrameLazy extends FrameExpr {
   public static readonly LAZY_BEGIN = '{'

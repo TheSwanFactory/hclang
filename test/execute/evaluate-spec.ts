@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 import { } from 'mocha'
-import { evaluate } from '../../src/execute/evaluate'
-import * as frame from '../../src/frames'
+import { evaluate } from '../../src/execute/evaluate.js'
+import * as frame from '../../src/frames.js'
 
 describe('evaluate', () => {
   it('is exported', () => {
@@ -9,7 +9,7 @@ describe('evaluate', () => {
   })
 
   it('returns empty array for empty string', () => {
-    const result = evaluate.call('')
+    const result = evaluate.call('', '')
     expect(result).to.be.instanceof(frame.FrameArray)
     expect(result.toString()).to.equal('[]')
   })
