@@ -7,7 +7,7 @@ describe('script', () => {
   let title: string
 
   beforeEach(function () {
-    title = this.currentTest.title
+    title = this.currentTest?.title ?? 'n/a'
   })
 
   const script = (args: string[]) => {

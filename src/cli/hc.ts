@@ -1,20 +1,20 @@
 #!/usr/bin/env node
 import fs from 'fs'
-// import getopts from 'getopts'
 import readline from 'readline'
 import { HCEval } from '../execute/hc-eval.js'
 import { HCLog } from '../execute/hc-log.js'
 import { HCTest } from '../execute/hc-test.js'
+import minimist from 'minimist'
 
-const options = // (process.argv.slice(2), {
-           {
-             evaluate: 'e',
-             help: 'h',
-             interactive: 'i',
-             testdoc: 't',
-             verbose: 'v',
-             _: []
-           }
+const aliases = {
+  e: 'evaluate',
+  h: 'help',
+  i: 'interactive',
+  t: 'testdoc',
+  v: 'verbose',
+  V: 'version'
+}
+const options = minimist(process.argv.slice(2), { alias: aliases })
 if (options.verbose) {
   console.error('options', options)
 }
@@ -35,7 +35,7 @@ if (options.evaluate) {
   evaluated = true
 }
 
-options._.forEach((file) => {
+options._.forEach((file: any) => {
   const rl = readline.createInterface(fs.createReadStream(file), undefined)
   rl.on('line', (line) => {
     hc_eval.call(line)
@@ -43,7 +43,7 @@ options._.forEach((file) => {
   evaluated = true
 })
 
-if (options.interactive || !evaluated) {
+if (options.interactive || !options.evaluate) {
   out.prompt = true
   hc_eval.repl()
 }
