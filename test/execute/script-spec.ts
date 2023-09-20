@@ -17,11 +17,11 @@ describe('script', () => {
 
   it('=', () => {
     const result = script(['-e', title])
-    expect(result[1]).to.include(title)
+    expect(result[0]).to.include(title)
     // Frame is a language with no equal
   })
 
-  it.only('123', () => {
+  it('123', () => {
     const result = script(['-e', title])
     expect(result[0]).to.equal(title)
   })

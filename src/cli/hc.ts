@@ -6,16 +6,16 @@ import { HCLog } from '../execute/hc-log.js'
 import { HCTest } from '../execute/hc-test.js'
 import minimist from 'minimist'
 
-const options = minimist(process.argv.slice(2))
-const opts = {
-  evaluate: 'e',
-  help: 'h',
-  interactive: 'i',
-  testdoc: 't',
-  verbose: 'v',
-  _: []
+const aliases = {
+  e: 'evaluate',
+  h: 'help',
+  i: 'interactive',
+  t: 'testdoc',
+  v: 'verbose',
+  V: 'version'
 }
-if (options.v) {
+const options = minimist(process.argv.slice(2), { alias: aliases })
+if (options.verbose) {
   console.error('options', options)
 }
 
@@ -25,13 +25,13 @@ let hc_eval = new HCEval(out)
 let evaluated = false
 let test: HCTest
 
-if (options.t) {
+if (options.testdoc) {
   test = new HCTest(out)
   hc_eval = new HCEval(test)
 }
 
-if (options.e) {
-  hc_eval.call(options.e.toString())
+if (options.evaluate) {
+  hc_eval.call(options.evaluate.toString())
   evaluated = true
 }
 
@@ -43,7 +43,7 @@ options._.forEach((file: any) => {
   evaluated = true
 })
 
-if (options.i || !options.e) {
+if (options.interactive || !options.evaluate) {
   out.prompt = true
   hc_eval.repl()
 }
