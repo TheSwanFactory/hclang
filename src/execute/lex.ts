@@ -31,6 +31,7 @@ export class Lex extends Frame implements ISourced {
   protected sample: FrameAtom
 
   public constructor (protected Factory: any) {
+    // console.debug('Lex.constructor', Factory.name)
     super()
     this.sample = new Factory('')
     this.source = ''

@@ -31,8 +31,6 @@ export class LexPipe extends Frame implements IFinish, IPerformer {
 
   public perform (action: IAction) {
     const parser = this.get(Frame.kOUT) as ParsePipe
-    console.log('LexPipe.perform', action)
-    // destructure action to get key and value
     for (const [key, value] of Object.entries(action)) {
       switch (key) {
         case 'semi-next': {

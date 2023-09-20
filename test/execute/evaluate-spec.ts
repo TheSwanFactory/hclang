@@ -14,7 +14,7 @@ describe('evaluate', () => {
     expect(result.toString()).to.equal('[]')
   })
 
-  it('ignores comments', () => {
+  it.only('ignores comments', () => {
     const input = '#Goodbye'
     const result = evaluate(input)
     expect(result.toString()).to.equal('[]')

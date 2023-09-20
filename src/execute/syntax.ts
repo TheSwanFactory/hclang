@@ -4,8 +4,8 @@ import { Lex } from './lex.js'
 import { terminals } from './terminals.js'
 
 export const _syntax: frame.Context = { ...terminals }
-
-const atomClasses: Array<any> = [
+type Class = { new(...args: any[]): any; };
+export const atomClasses: Array<Class> = [
   FrameSpace,
   frame.FrameAlias,
   frame.FrameArg,
@@ -21,13 +21,20 @@ const atomClasses: Array<any> = [
   frame.FrameSymbol
 ]
 
+let has_syntax = false
 export function getSyntax () {
-  if (Object.keys(_syntax).length === 0) {
-    atomClasses.forEach((Klass: any) => {
-      const sample: frame.FrameAtom = new Klass('')
-      const key = sample.string_start()
-      _syntax[key] = new Lex(Klass)
-    })
+  if (has_syntax === true) {
+    return _syntax
   }
+  has_syntax = true
+  atomClasses.forEach((Klass: any) => {
+    const sample: frame.FrameAtom = new Klass('')
+    const key = sample.string_start()
+    console.log('getSyntax.key', key)
+    const lexee = new Lex(Klass)
+    console.log('getSyntax.lexee')
+    _syntax[key] = lexee
+    return true
+  })
   return _syntax
 }
