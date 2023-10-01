@@ -1,5 +1,6 @@
 import { expect } from 'chai'
-import {} from 'mocha'
+import { describe, it } from 'mocha'
+
 import { FrameExpr, FrameString } from '../../src/frames.js'
 import { maml } from '../../src/maml.js'
 

@@ -1,5 +1,6 @@
 import { expect } from 'chai'
-import { } from 'mocha'
+import { describe, it } from 'mocha'
+
 import { evaluate } from '../../src/execute/evaluate.js'
 import * as frame from '../../src/frames.js'
 

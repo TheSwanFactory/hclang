@@ -1,5 +1,6 @@
 import { expect } from 'chai'
-import {} from 'mocha'
+import { describe, it } from 'mocha'
+
 import { execute } from '../../src/execute.js'
 
 describe('execute', () => {
@@ -81,19 +82,19 @@ describe('execute', () => {
       expect(result2.toString()).to.equal(digit)
     })
 
-    it('returns numbers after inline comment', () => {
-      const input = '#abc# 123'
+    it.only('returns numbers after inline comment', () => {
+      const input = '#abc#123'
       const result = execute(input)
       expect(result.toString()).to.equal('123')
     })
 
-    it.skip('returns numbers before inline comment', () => {
+    it.only('returns numbers before inline comment', () => {
       const input = '123#abc#'
       const result = execute(input)
       expect(result.toString()).to.equal('123')
     })
 
-    it.skip('returns numbers before endcomment', () => {
+    it.only('returns numbers before endcomment', () => {
       const input = '123#abc'
       const result = execute(input)
       expect(result.toString()).to.equal('123')
