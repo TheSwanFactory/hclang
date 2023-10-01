@@ -65,8 +65,8 @@ describe('evaluate', () => {
       expect(result.toString()).to.equal('[“\nDoc String\n”]')
     })
 
-    it.skip('joins around comments', () => {
-      const input = '“Hello” #ignore me# “, HC!”'
+    it('joins around comments', () => {
+      const input = '“Hello”#ignore me#“, HC!”'
       const result = evaluate(input)
       expect(result.toString()).to.equal('[“Hello, HC!”]')
     })
