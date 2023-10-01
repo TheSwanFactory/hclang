@@ -23,7 +23,7 @@ export class HCEval {
       }
     })
     if (context.DEBUG_ENV) {
-      console.log(context)
+      console.log('DEBUG_ENV', context)
     }
     return context
   }

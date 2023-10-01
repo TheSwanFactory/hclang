@@ -87,7 +87,7 @@ describe('execute', () => {
       expect(result2.toString()).to.equal(digit)
     })
 
-    it.only('returns numbers after inline comment', () => {
+    it('returns numbers after inline comment', () => {
       const input = '#abc# 123'
       const result = execute(input)
       expect(result.toString()).to.equal('123')
