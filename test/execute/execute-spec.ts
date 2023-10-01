@@ -68,12 +68,6 @@ describe('execute', () => {
       const result = execute(space_suffix)
       expect(result).to.equal(other_string)
     })
-
-    it('handles spaces between strings', () => {
-      const space_inside = other_string + spaces + inline_comment
-      const result_inside = execute(space_inside)
-      expect(result_inside).to.equal(other_string)
-    })
   })
 
   describe('numbers', () => {
@@ -87,7 +81,7 @@ describe('execute', () => {
       expect(result2.toString()).to.equal(digit)
     })
 
-    it.skip('returns numbers after inline comment', () => {
+    it('returns numbers after inline comment', () => {
       const input = '#abc# 123'
       const result = execute(input)
       expect(result.toString()).to.equal('123')

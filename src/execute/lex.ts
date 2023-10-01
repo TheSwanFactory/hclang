@@ -42,15 +42,28 @@ export class Lex extends Frame implements ISourced {
 
   public call (argument: Frame, _parameter = Frame.nil): Frame {
     const char = argument.toString()
-    if (this.isEnd(char) && Lex.isTerminal(char)) {
+    const end = this.isEnd(char)
+    const terminal = Lex.isTerminal(char)
+    const not_quote = !this.isQuote()
+    // console.debug(`Lex.call(${char}) end: ${end} terminal: ${terminal} not_quote: ${not_quote}`)
+
+    if (end && terminal) {
       return this.finish(argument, true)
     }
-    if (this.isEnd(char)) {
-      return this.finish(argument, !this.isQuote())
+    if (end) { // not terminal
+      // console.debug(`comment: ${this.isEndComment(char)} quote: ${this.isQuote()}`)
+      if (this.isEndComment(char)) {
+        return this.finish(argument, false)
+      }
+      return this.finish(argument, not_quote)
     }
-    if (Lex.isTerminal(char) && !this.isQuote()) {
+    if (terminal && not_quote) { // not end but terminal
       return this.finish(argument, true)
     }
+
+    // otherwise, add to body since still in interior
+    // including quoted terminals
+
     if (this.body === '') {
       this.body = this.source
     }
