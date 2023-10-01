@@ -87,6 +87,18 @@ describe('execute', () => {
       expect(result.toString()).to.equal('123')
     })
 
+    it.skip('returns numbers before inline comment', () => {
+      const input = '123#abc#'
+      const result = execute(input)
+      expect(result.toString()).to.equal('123')
+    })
+
+    it.skip('returns numbers before endcomment', () => {
+      const input = '123#abc'
+      const result = execute(input)
+      expect(result.toString()).to.equal('123')
+    })
+
     it('joins blobs', () => {
       const bithex = execute('0b1 0x5')
       expect(bithex.toString()).to.equal('0b10101')
