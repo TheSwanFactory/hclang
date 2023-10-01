@@ -17,6 +17,10 @@ export class Token extends FrameAtom {
   protected toData (): any {
     return this.data
   }
+
+  public inspect () {
+    return `Token[${this.data.inspect()}]`
+  }
 }
 
 export class Lex extends Frame implements ISourced {
@@ -31,14 +35,17 @@ export class Lex extends Frame implements ISourced {
   protected sample: FrameAtom
 
   public constructor (protected Factory: any) {
-    // console.debug('Lex.constructor', Factory.name)
     super()
     this.sample = new Factory('')
     this.source = ''
     this.is.void = true
-    const name = this.sample.constructor.name
+    const name = this.sample.className()
     this.id = this.id + '.' + name
   }
+
+  // TODO: use terminal to determine next parsing class
+  // Right now, FrameSpace/FrameNumber consume the initial '#' of a comment
+  // That should only happen at the end of a Quote
 
   public call (argument: Frame, _parameter = Frame.nil): Frame {
     const char = argument.toString()
@@ -46,13 +53,14 @@ export class Lex extends Frame implements ISourced {
     const terminal = Lex.isTerminal(char)
     const not_quote = !this.isQuote()
     const end_comment = this.isEndComment(char)
-    // console.debug(`Lex.call(${char}) end: ${end} terminal: ${terminal} not_quote: ${not_quote}`)
+    console.debug(`Lex[${this.id}].call(${char}) end:${end} terminal:${terminal} not_quote:${not_quote}`)
 
     if (end && terminal) { // ends token on a terminal
       return this.finish(argument, true)
     }
     if (end) { // ends token, but not on a terminal
       const pass_along = not_quote && !end_comment
+      console.debug(`Lex.call.end(${char}) pass_along: ${pass_along}`)
       const result = this.finish(argument, pass_along)
       return result
     }
@@ -88,12 +96,15 @@ export class Lex extends Frame implements ISourced {
   }
 
   protected finish (argument: Frame, passAlong: boolean) {
+    console.debug(`Lex.finish[${argument.toString()}].passAlong: ${passAlong}`)
     const recurse = this.checkRecursive(argument)
     if (recurse !== null) {
+      console.debug(`Lex.finish.recurse: ${recurse}`)
       return recurse
     }
     this.exportFrame()
     if (passAlong) {
+      console.debug('Lex.finish.passAlong')
       const result = this.up.call(argument)
       return result
     }
@@ -111,15 +122,19 @@ export class Lex extends Frame implements ISourced {
 
   protected exportFrame () {
     const output = this.makeFrame()
+    console.debug(`Lex.exportFrame.output[${output.inspect()}]`)
     const out = this.get(Frame.kOUT)
-    return out.call(output)
+    const result = out.call(output)
+    return result
   }
 
   protected makeFrame () {
+    console.debug(`Lex.makeFrame.body[${this.body}]`)
     if (this.body === '') {
       this.body = this.source
     }
     const frame = new this.Factory(this.body)
+    console.log(`Lex.makeFrame.frame[${frame.inspect()}]`)
     this.body = ''
     return new Token(frame)
   }
