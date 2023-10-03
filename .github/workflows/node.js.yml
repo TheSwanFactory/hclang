@@ -36,6 +36,7 @@ jobs:
     - run: npm run testdoc
     - name: NPM Publish
       id: npm-publish
+      if: github.ref == 'refs/heads/master' && github.event_name == 'push'
       uses: JS-DevTools/npm-publish@v2.2.2
       with:
         token: ${{ secrets.NPM_TOKEN }}
