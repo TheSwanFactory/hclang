@@ -1,4 +1,4 @@
-import { Frame, FrameAtom, FrameBytes, FrameComment, FrameQuote, ISourced, NilContext } from '../frames.js'
+import { Frame, FrameAtom, FrameBytes, FrameComment, FrameQuote, FrameSymbol, ISourced, NilContext } from '../frames.js'
 import { LexBytes } from './lex-bytes.js'
 import { LexPipe } from './lex-pipe.js'
 import { terminals } from './terminals.js'
@@ -52,16 +52,14 @@ export class Lex extends Frame implements ISourced {
     const end = this.isEnd(char)
     const terminal = Lex.isTerminal(char)
     const not_quote = !this.isQuote()
-    const end_comment = this.isEndComment(char)
-    console.debug(`Lex[${this.id}].call(${char}) end:${end} terminal:${terminal} not_quote:${not_quote}`)
+    const not_comment = !this.isComment()
 
     if (end && terminal) { // ends token on a terminal
       return this.finish(argument, true)
     }
     if (end) { // ends token, but not on a terminal
-      const pass_along = not_quote && !end_comment
-      console.debug(`Lex.call.end(${char}) pass_along: ${pass_along}`)
-      const result = this.finish(argument, pass_along)
+      const pass_along = not_quote && not_comment
+      const result = this.finish(argument, pass_along) // returns parent
       return result
     }
 
@@ -87,8 +85,8 @@ export class Lex extends Frame implements ISourced {
     return !this.sample.canInclude(char)
   }
 
-  protected isEndComment (char: string) {
-    return char === FrameComment.COMMENT_END
+  protected isComment () {
+    return (this.sample instanceof FrameComment)
   }
 
   protected isQuote () {
@@ -96,15 +94,12 @@ export class Lex extends Frame implements ISourced {
   }
 
   protected finish (argument: Frame, passAlong: boolean) {
-    console.debug(`Lex.finish[${argument.toString()}].passAlong: ${passAlong}`)
     const recurse = this.checkRecursive(argument)
     if (recurse !== null) {
-      console.debug(`Lex.finish.recurse: ${recurse}`)
       return recurse
     }
     this.exportFrame()
     if (passAlong) {
-      console.debug('Lex.finish.passAlong')
       const result = this.up.call(argument)
       return result
     }
@@ -122,19 +117,16 @@ export class Lex extends Frame implements ISourced {
 
   protected exportFrame () {
     const output = this.makeFrame()
-    console.debug(`Lex.exportFrame.output[${output.inspect()}]`)
     const out = this.get(Frame.kOUT)
     const result = out.call(output)
     return result
   }
 
   protected makeFrame () {
-    console.debug(`Lex.makeFrame.body[${this.body}]`)
     if (this.body === '') {
       this.body = this.source
     }
     const frame = new this.Factory(this.body)
-    console.log(`Lex.makeFrame.frame[${frame.inspect()}]`)
     this.body = ''
     return new Token(frame)
   }

@@ -82,19 +82,19 @@ describe('execute', () => {
       expect(result2.toString()).to.equal(digit)
     })
 
-    it.only('returns numbers after inline comment', () => {
+    it('returns numbers after inline comment', () => {
       const input = '#abc#123'
       const result = execute(input)
       expect(result.toString()).to.equal('123')
     })
 
-    it.only('returns numbers before inline comment', () => {
+    it('returns numbers before inline comment', () => {
       const input = '123#abc#'
       const result = execute(input)
       expect(result.toString()).to.equal('123')
     })
 
-    it.only('returns numbers before endcomment', () => {
+    it('returns numbers before endcomment', () => {
       const input = '123#abc'
       const result = execute(input)
       expect(result.toString()).to.equal('123')
