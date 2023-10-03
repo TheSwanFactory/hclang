@@ -1,5 +1,6 @@
 import { expect } from 'chai'
-import { } from 'mocha'
+import { describe, it } from 'mocha'
+
 import { evaluate } from '../../src/execute/evaluate.js'
 import * as frame from '../../src/frames.js'
 
@@ -63,6 +64,12 @@ describe('evaluate', () => {
       const input = '```\nDoc String\n```'
       const result = evaluate(input)
       expect(result.toString()).to.equal('[“\nDoc String\n”]')
+    })
+
+    it('joins around comments', () => {
+      const input = '“Hello”#ignore me#“, HC!”'
+      const result = evaluate(input)
+      expect(result.toString()).to.equal('[“Hello, HC!”]')
     })
   })
 

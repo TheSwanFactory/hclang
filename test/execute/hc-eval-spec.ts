@@ -1,5 +1,6 @@
 import { expect } from 'chai'
-import { } from 'mocha'
+import { describe, it, beforeEach } from 'mocha'
+
 import { HCEval, IProcessEnv } from '../../src/execute/hc-eval.js'
 import * as frame from '../../src/frames.js'
 

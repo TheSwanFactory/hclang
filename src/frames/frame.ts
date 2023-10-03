@@ -1,3 +1,4 @@
+import { inspect } from 'node:util'
 import { MetaFrame, NilContext } from './meta-frame.js'
 
 export type Flags = { [key: string]: boolean; };
@@ -62,6 +63,22 @@ export class Frame extends MetaFrame {
 
   public toString () {
     return this.string_open() + this.meta_string() + this.string_close()
+  }
+
+  public className () {
+    return this.constructor.name
+  }
+
+  public inspect () {
+    let result = `${this.className()}<${this.toString()}>`
+    const meta = this.meta_string()
+    if (meta.length > 2) {
+      result += meta
+    }
+    if (Object.keys(this.is).length > 0) {
+      result += `:${inspect(this.is)}`
+    }
+    return result
   }
 
   public asArray (): Array<Frame> {

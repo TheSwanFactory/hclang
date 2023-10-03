@@ -6,9 +6,13 @@
 docString 3
 ```
 ; 123
-# 456
+# 123
 ; 1234 # trailing comment
-; #  inline comment # 4321
+# 1234
+; #  inline comment before # 4321
+# 4321
+; 5678 #  inline comment after # 
+# 5678
 ```
 docString 4
 ```

@@ -1,4 +1,4 @@
-import { Frame, FrameAtom, FrameBytes, FrameQuote, ISourced, NilContext } from '../frames.js'
+import { Frame, FrameAtom, FrameBytes, FrameComment, FrameQuote, FrameSymbol, ISourced, NilContext } from '../frames.js'
 import { LexBytes } from './lex-bytes.js'
 import { LexPipe } from './lex-pipe.js'
 import { terminals } from './terminals.js'
@@ -17,6 +17,10 @@ export class Token extends FrameAtom {
   protected toData (): any {
     return this.data
   }
+
+  public inspect () {
+    return `Token[${this.data.inspect()}]`
+  }
 }
 
 export class Lex extends Frame implements ISourced {
@@ -31,26 +35,40 @@ export class Lex extends Frame implements ISourced {
   protected sample: FrameAtom
 
   public constructor (protected Factory: any) {
-    // console.debug('Lex.constructor', Factory.name)
     super()
     this.sample = new Factory('')
     this.source = ''
     this.is.void = true
-    const name = this.sample.constructor.name
+    const name = this.sample.className()
     this.id = this.id + '.' + name
   }
 
+  // TODO: use terminal to determine next parsing class
+  // Right now, FrameSpace/FrameNumber consume the initial '#' of a comment
+  // That should only happen at the end of a Quote
+
   public call (argument: Frame, _parameter = Frame.nil): Frame {
     const char = argument.toString()
-    if (this.isEnd(char) && Lex.isTerminal(char)) {
+    const end = this.isEnd(char)
+    const terminal = Lex.isTerminal(char)
+    const not_quote = !this.isQuote()
+
+    if (end && terminal) { // ends token on a terminal
       return this.finish(argument, true)
     }
-    if (this.isEnd(char)) {
-      return this.finish(argument, !this.isQuote())
+    if (end) { // ends token, but not on a terminal
+      const use_arg_for_next_token = not_quote && !this.isComment()
+      const result = this.finish(argument, use_arg_for_next_token)
+      return result
     }
-    if (Lex.isTerminal(char) && !this.isQuote()) {
+
+    if (terminal && not_quote) { // unquoted terminal implicitly ends token
       return this.finish(argument, true)
     }
+
+    // otherwise, add to body since still in interior
+    // including quoted terminals
+
     if (this.body === '') {
       this.body = this.source
     }
@@ -64,6 +82,10 @@ export class Lex extends Frame implements ISourced {
 
   protected isEnd (char: string) {
     return !this.sample.canInclude(char)
+  }
+
+  protected isComment () {
+    return (this.sample instanceof FrameComment)
   }
 
   protected isQuote () {
@@ -95,7 +117,8 @@ export class Lex extends Frame implements ISourced {
   protected exportFrame () {
     const output = this.makeFrame()
     const out = this.get(Frame.kOUT)
-    return out.call(output)
+    const result = out.call(output)
+    return result
   }
 
   protected makeFrame () {

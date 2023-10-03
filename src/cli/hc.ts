@@ -28,6 +28,7 @@ let test: HCTest
 if (options.testdoc) {
   test = new HCTest(out)
   hc_eval = new HCEval(test)
+  evaluated = true
 }
 
 if (options.evaluate) {
@@ -43,7 +44,7 @@ options._.forEach((file: any) => {
   evaluated = true
 })
 
-if (options.interactive || !options.evaluate) {
+if (options.interactive || !evaluated) {
   out.prompt = true
   hc_eval.repl()
 }

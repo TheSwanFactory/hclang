@@ -1,6 +1,6 @@
 {
   "name": "hclang",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "description": "Homoiconic C: Programming without a Language",
   "license": "MIT",
   "repository": "https://github.com/TheSwanFactory/hclang",
@@ -43,7 +43,6 @@
     "debug": "echo 'Use `debugger;`\n' && mocha --inspect-brk --require ts-node/register --recursive test/**/*-spec.ts",
     "done": "npm run clean && npm run bs:all && npm run check && npm run tag && npm install && git commit -am 'update version'",
     "lint": "eslint --fix \"{src,test}/**/*.ts\"",
-    "inspect": "npm run build && node --inspect --require ts-node/register src/cli/hc.ts",
     "hc": "node lib/src/cli/hc.js",
     "test": "npm run build && mocha --require ts-node/register test/**/*.*ts",
     "test-only": "mocha --require ts-node/register test/**/*.*ts",

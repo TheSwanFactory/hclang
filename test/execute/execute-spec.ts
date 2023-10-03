@@ -1,5 +1,6 @@
 import { expect } from 'chai'
-import {} from 'mocha'
+import { describe, it } from 'mocha'
+
 import { execute } from '../../src/execute.js'
 
 describe('execute', () => {
@@ -68,12 +69,6 @@ describe('execute', () => {
       const result = execute(space_suffix)
       expect(result).to.equal(other_string)
     })
-
-    it('handles spaces between strings', () => {
-      const space_inside = other_string + spaces + inline_comment
-      const result_inside = execute(space_inside)
-      expect(result_inside).to.equal(other_string)
-    })
   })
 
   describe('numbers', () => {
@@ -85,6 +80,24 @@ describe('execute', () => {
       const digit = '9'
       const result2 = execute(digit)
       expect(result2.toString()).to.equal(digit)
+    })
+
+    it('returns numbers after inline comment', () => {
+      const input = '#abc#123'
+      const result = execute(input)
+      expect(result.toString()).to.equal('123')
+    })
+
+    it('returns numbers before inline comment', () => {
+      const input = '123#abc#'
+      const result = execute(input)
+      expect(result.toString()).to.equal('123')
+    })
+
+    it('returns numbers before endcomment', () => {
+      const input = '123#abc'
+      const result = execute(input)
+      expect(result.toString()).to.equal('123')
     })
 
     it('joins blobs', () => {

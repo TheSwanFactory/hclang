@@ -19,7 +19,9 @@ export class FrameAtom extends Frame {
   };
 
   public toStringData (): string {
-    return this.string_prefix() + this.toData().toString() + this.string_suffix()
+    const data = this.toData()
+    const dataString = data == null ? '' : data.toString()
+    return this.string_prefix() + dataString + this.string_suffix()
   }
 
   public toString () {

@@ -1,5 +1,6 @@
 import { expect } from 'chai'
-import {} from 'mocha'
+import { describe, it } from 'mocha'
+
 import * as frame from '../../src/frames.js'
 import { FrameSymbol } from '../../src/frames.js'
 
