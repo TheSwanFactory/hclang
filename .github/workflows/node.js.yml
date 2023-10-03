@@ -35,7 +35,11 @@ jobs:
     - run: npm test
     - run: npm run testdoc
     - name: NPM Publish
+      id: npm-publish
       uses: JS-DevTools/npm-publish@v2.2.2
       with:
         token: ${{ secrets.NPM_TOKEN }}
         provenance: true
+    - if: ${{ steps.npm-publish.outputs.type }}
+      run: echo "Version changed!"
+  
