@@ -11,6 +11,10 @@ on:
 
 jobs:
   build:
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
 
     runs-on: ubuntu-latest
 
@@ -20,14 +24,18 @@ jobs:
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout
+      uses: actions/checkout@v3
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
     - run: npm ci
-    - run: npm run build --if-present
     - run: npm test
     - run: npm run testdoc
-
+    - name: NPM Publish
+      uses: JS-DevTools/npm-publish@v2.2.2
+      with:
+        token: ${{ secrets.NPM_TOKEN }}
+        provenance: true
