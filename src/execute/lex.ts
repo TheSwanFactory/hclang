@@ -52,14 +52,13 @@ export class Lex extends Frame implements ISourced {
     const end = this.isEnd(char)
     const terminal = Lex.isTerminal(char)
     const not_quote = !this.isQuote()
-    const not_comment = !this.isComment()
 
     if (end && terminal) { // ends token on a terminal
       return this.finish(argument, true)
     }
     if (end) { // ends token, but not on a terminal
-      const pass_along = not_quote && not_comment
-      const result = this.finish(argument, pass_along) // returns parent
+      const use_arg_for_next_token =  not_quote && !this.isComment()
+      const result = this.finish(argument, use_arg_for_next_token)
       return result
     }
 
