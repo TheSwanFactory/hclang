@@ -5,6 +5,7 @@ import { HCEval } from '../execute/hc-eval.js'
 import { HCLog } from '../execute/hc-log.js'
 import { HCTest } from '../execute/hc-test.js'
 import minimist from 'minimist'
+import { runfile } from './runfile.js'
 
 const aliases = {
   e: 'evaluate',
@@ -37,11 +38,7 @@ if (options.evaluate) {
 }
 
 options._.forEach((file: any) => {
-  const rl = readline.createInterface(fs.createReadStream(file), undefined)
-  rl.on('line', (line) => {
-    hc_eval.call(line)
-  })
-  evaluated = true
+  evaluated = runfile(hc_eval, file)
 })
 
 if (options.interactive || !evaluated) {

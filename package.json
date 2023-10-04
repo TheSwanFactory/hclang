@@ -25,7 +25,6 @@
     "lib"
   ],
   "bin": {
-    "maml": "lib/src/cli/bin.js",
     "hc": "lib/src/cli/hc.js"
   },
   "watch": {
