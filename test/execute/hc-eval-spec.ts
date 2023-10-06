@@ -35,7 +35,7 @@ describe('HCEval', () => {
     expect(out.length()).to.equal(1)
 
     const result = out.at(0)
-    expect(result.toString()).to.include('docString')
+    expect(result.toString()).to.equal('`\n*docString*\n`')
   })
 
   describe('symbols', () => {
