@@ -66,7 +66,7 @@ export class FrameSymbol extends FrameAtom {
   }
 
   protected toData () {
-    return this.data
+    return this.data === '$$' ? '\n' : this.data
   }
 };
 
