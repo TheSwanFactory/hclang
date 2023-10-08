@@ -43,4 +43,3 @@ jobs:
         provenance: true
     - if: ${{ steps.npm-publish.outputs.type == 'published' }}
       run: echo "Version changed!"
-  
