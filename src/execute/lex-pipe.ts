@@ -52,6 +52,13 @@ export class LexPipe extends Frame implements IFinish, IPerformer {
           break
         }
         case 'pop': {
+          if (this.level === 0) {
+            console.error('LexPipe.perform.pop.failed: already at top level')
+            break
+          }
+          if (!parser.canPop(value)) {
+            break
+          }
           const next_parser = parser.pop(value)
           this.set(Frame.kOUT, next_parser)
           this.level -= 1

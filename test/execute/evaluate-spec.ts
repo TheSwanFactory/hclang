@@ -85,5 +85,35 @@ describe('evaluate', () => {
       const output = result.at(0)
       expect(output).to.be.instanceof(frame.FrameLazy)
     })
+
+    it('returns FrameNote for empty ()', () => {
+      const result = evaluate('()')
+      const output = result.at(0)
+      expect(output).to.be.instanceof(frame.FrameNote)
+    })
+
+    it('returns FrameArray for empty [] with spaces', () => {
+      const result = evaluate('  [  ]  ')
+      const output = result.at(0)
+      expect(output).to.be.instanceof(frame.FrameArray)
+    })
+
+    it('returns FrameArray for empty [] with comments', () => {
+      const result = evaluate('[#comment#]')
+      const output = result.at(0)
+      expect(output).to.be.instanceof(frame.FrameArray)
+    })
+
+    it('returns FrameNote for mis-matched brackets', () => {
+      const result = evaluate('[}')
+      const output = result.at(0)
+      expect(output).to.be.instanceof(frame.FrameNote)
+    })
+
+    it('returns FrameNote for un-opened close bracket', () => {
+      const result = evaluate('}')
+      const output = result.at(0)
+      expect(output).to.be.instanceof(frame.FrameNote)
+    })
   })
 })

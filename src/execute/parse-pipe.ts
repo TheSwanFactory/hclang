@@ -35,12 +35,16 @@ export class ParsePipe extends FrameArray implements IFinish {
 
   public pop (Factory: any): Frame {
     const parent = this.get(ParsePipe.kOUT) as ParsePipe
-    if (parent.Factory !== Factory) {
-      // const msg = [' open:', parent.Factory, ' close:', Factory]
-      console.error('pop.mismatched-brackets')// + msg.join('')
-    }
     this.finish(Frame.nil)
     return parent
+  }
+
+  public canPop (Factory: any): boolean {
+    const match = (this.Factory.name === Factory.name)
+    if (!match) {
+      console.error(`ParsePipe.canPop.failed: ${Factory.name} cannot pop ${this.Factory.name}`)
+    }
+    return match
   }
 
   public finish (terminal: any): Frame {
