@@ -45,7 +45,7 @@
     "build": "rimraf lib && eslint --fix \"{src,test}/**/*.ts\" && npm run ts",
     "check": "grep -e 'only' -e 'skip' test/*/* || echo 'Ran all tests'",
     "clean": "rimraf lib dist && rm -f *.log.* src/*.js src/*/*.js test/*.js test/*/*.js",
-    "clean-git": "git branch -D `git branch --merged | grep -v '\\*' | grep -v 'master'`",
+    "clean-git": "git branch -D `git branch | grep -v '\\*' | grep -v 'master'`",
     "debug": "echo 'Use `debugger;`\n' && npm  --inspect-brk ",
     "done": "npm run clean && npm run bs:all && npm run check && npm run tag && npm install && git commit -am 'update version'",
     "lint": "eslint --fix \"{src,test}/**/*.ts\"",
