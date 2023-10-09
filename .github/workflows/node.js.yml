@@ -12,7 +12,7 @@ on:
 jobs:
   build:
     permissions:
-      contents: read
+      contents: write
       packages: write
       id-token: write
 
@@ -41,5 +41,6 @@ jobs:
       with:
         token: ${{ secrets.NPM_TOKEN }}
         provenance: true
-    - if: ${{ steps.npm-publish.outputs.type == 'published' }}
-      run: echo "Version changed!"
+    - name: Create release on publish
+      uses: ncipollo/release-action@v1
+      if: ${{ steps.npm-publish.outputs.type == 'published' }}
