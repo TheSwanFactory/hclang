@@ -1,6 +1,6 @@
 {
   "name": "hclang",
-  "version": "0.5.9",
+  "version": "0.5.10",
   "description": "Homoiconic C: Programming without a Language",
   "license": "MIT",
   "repository": {
@@ -31,14 +31,10 @@
     "hc": "lib/src/cli/hc.js"
   },
   "mocha": {
-    "loader": [
-      "ts-node/esm"
-    ],
+    "extension": "ts",
+    "loader": "ts-node/esm",
     "recursive": true,
-    "trace-warnings": false,
-    "extension": [
-      "ts"
-    ]
+    "trace-warnings": false
   },
   "scripts": {
     "bs:html": "tail +3 -q hc/BitScheme.hc hc/BitScheme-1.hc > doc/BitScheme.adoc && asciidoctor doc/BitScheme.adoc && open doc/BitScheme.html",
