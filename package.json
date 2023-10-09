@@ -1,6 +1,6 @@
 {
   "name": "hclang",
-  "version": "0.5.10",
+  "version": "0.5.11",
   "description": "Homoiconic C: Programming without a Language",
   "license": "MIT",
   "repository": {
@@ -57,7 +57,7 @@
     "ts": "npx tsc --pretty --inlineSourceMap && chmod a+x ./lib/src/cli/hc.js",
     "ts:version": "echo TypeScript `tsc --version` ",
     "verbose": "NODE_DEBUG=* npm run test",
-    "watch": "npm-watch test"
+    "watch": "mocha --watch --parallel && npm run build"
   },
   "dependencies": {
     "chalk": "^5.3.0",
