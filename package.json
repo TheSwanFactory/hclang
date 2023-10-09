@@ -30,6 +30,10 @@
   "bin": {
     "hc": "lib/src/cli/hc.js"
   },
+  "mocha": {
+    "loader": "ts-node/esm",
+    "recursive": true
+  },
   "watch": {
     "test": "{src,test}/*.js"
   },
