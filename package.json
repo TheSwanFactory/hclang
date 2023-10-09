@@ -1,6 +1,6 @@
 {
   "name": "hclang",
-  "version": "0.5.9",
+  "version": "0.5.10",
   "description": "Homoiconic C: Programming without a Language",
   "license": "MIT",
   "repository": {
@@ -30,8 +30,11 @@
   "bin": {
     "hc": "lib/src/cli/hc.js"
   },
-  "watch": {
-    "test": "{src,test}/*.js"
+  "mocha": {
+    "extension": "ts",
+    "loader": "ts-node/esm",
+    "recursive": true,
+    "trace-warnings": false
   },
   "scripts": {
     "bs:html": "tail +3 -q hc/BitScheme.hc hc/BitScheme-1.hc > doc/BitScheme.adoc && asciidoctor doc/BitScheme.adoc && open doc/BitScheme.html",
@@ -43,12 +46,12 @@
     "check": "grep -e 'only' -e 'skip' test/*/* || echo 'Ran all tests'",
     "clean": "rimraf lib dist && rm -f *.log.* src/*.js src/*/*.js test/*.js test/*/*.js",
     "clean-git": "git branch -D `git branch --merged | grep -v '\\*' | grep -v 'master'`",
-    "debug": "echo 'Use `debugger;`\n' && mocha --inspect-brk --require ts-node/register --recursive test/**/*-spec.ts",
+    "debug": "echo 'Use `debugger;`\n' && npm  --inspect-brk ",
     "done": "npm run clean && npm run bs:all && npm run check && npm run tag && npm install && git commit -am 'update version'",
     "lint": "eslint --fix \"{src,test}/**/*.ts\"",
     "hc": "node lib/src/cli/hc.js",
-    "test": "npm run build && mocha --require ts-node/register test/**/*.*ts",
-    "test-only": "mocha --require ts-node/register test/**/*.*ts",
+    "test": "npm run build && mocha",
+    "test-only": "mocha",
     "tag": "bump patch -ct package*.json README.md src/version.ts",
     "tag:minor": "bump minor -ct package*.json README.md src/version.ts",
     "ts": "npx tsc --pretty --inlineSourceMap && chmod a+x ./lib/src/cli/hc.js",

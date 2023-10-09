@@ -1,7 +1,0 @@
-{
-  "node-option": [
-      "experimental-specifier-resolution=node",
-      "loader=ts-node/esm"
-  ],
-  "url" : "https://stackoverflow.com/questions/64261239/mocha-tests-with-esm-support-for-native-es6-modules"
-}
