@@ -53,4 +53,11 @@ describe('HCTest', () => {
     const result = out.at(0)
     expect(result.toString()).to.include('$-.test-fail ““abc” +“123” -“456””;')
   })
+
+  it('ignores comment-like headers inside testDoc', () => {
+    hc_eval.call('`')
+    hc_eval.call('# Header')
+    hc_eval.call('`')
+    expect(out.length()).to.equal(0)
+  })
 })
