@@ -50,6 +50,7 @@
     "done": "npm run clean && npm run bs:all && npm run check && npm run tag && npm install && git commit -am 'update version'",
     "lint": "eslint --fix \"{src,test}/**/*.ts\"",
     "hc": "node lib/src/cli/hc.js",
+    "paper": "npm run build && node lib/src/cli/hc.js hc/paper.hc -t",
     "test": "npm run build && mocha",
     "test-only": "mocha",
     "tag": "bump patch -ct package*.json README.md src/version.ts",
