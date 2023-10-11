@@ -22,12 +22,16 @@ export class FrameNumber extends FrameAtom {
   }
 
   public apply (argument: Frame, _parameter: Frame) : Frame {
-    // repeatedly apply argument this.data times
-    let result = argument
-    for (let i = 1; i < this.data; i++) {
-      result = result.call(argument)
-    }
+    // repeatedly apply argument `this.data` times
+    let result = Frame.nil
+    this.range () .forEach (() => {
+      result = result.apply(argument, _parameter)
+    })
     return result
+  }
+
+  public range () : Array<number> {
+    return [...Array(this.data).keys()]
   }
 
   public string_start () {
