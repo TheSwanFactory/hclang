@@ -39,7 +39,7 @@ export class HCTest extends Frame {
   }
 
   public assertEqual (expected: string, actual: string, source: string) {
-    const base = source + ' +' + expected
+    const base = source + ' ?' + expected
 
     this.n.total += 1
     if (expected === actual) {
@@ -47,7 +47,7 @@ export class HCTest extends Frame {
       return FrameNote.pass(base, JSON.stringify(this.n))
     } else {
       this.n.fail += 1
-      return FrameNote.fail(base + ' -' + actual, JSON.stringify(this.n))
+      return FrameNote.fail(base + ' !' + actual, JSON.stringify(this.n))
     }
   }
 }
