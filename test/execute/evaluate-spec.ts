@@ -116,4 +116,11 @@ describe('evaluate', () => {
       expect(output).to.be.instanceof(frame.FrameNote)
     })
   })
+  describe('numbers', () => {
+    it('repeats strings when applied', () => {
+      const input = '3 “Hello”'
+      const result = evaluate(input)
+      expect(result.toString()).to.equal('[“HelloHelloHello”]')
+    })
+  })
 })
