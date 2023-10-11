@@ -24,7 +24,7 @@ export class FrameNumber extends FrameAtom {
   public apply (argument: Frame, _parameter: Frame) : Frame {
     // repeatedly apply argument `this.data` times
     let result = Frame.nil
-    this.range () .forEach (() => {
+    this.range().forEach(() => {
       result = result.apply(argument, _parameter)
     })
     return result
