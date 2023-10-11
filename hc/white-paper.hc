@@ -199,8 +199,8 @@ The HC read-eval-print loop (REPL) uses ';' for the input prompt and '#' for the
 output prompt:
 
 ``` ruby
-; frame0
-# value0
+; .literal
+# literal
 ```
 
 That's pretty much all there is. There are no special forms, keywords,
