@@ -135,7 +135,7 @@ describe('evaluate', () => {
       expect(result.toString()).to.equal('[5]')
     })
 
-    it.skip('uses .%% for modulo', () => {
+    it('uses .%% for modulo', () => {
       const input = '3 .%% 2'
       const result = evaluate(input)
       expect(result.toString()).to.equal('[1]')

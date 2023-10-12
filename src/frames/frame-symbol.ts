@@ -71,8 +71,8 @@ export class FrameSymbol extends FrameAtom {
 };
 
 export class FrameOperator extends FrameSymbol {
-  public static readonly OPERATOR_BEGIN = /[&|?:+\-*=<>!]/
-  public static readonly OPERATOR_CHAR = /[&|?:+\-*=<>!]/
+  public static readonly OPERATOR_BEGIN = /[&|?:+\-\/*%=<>!]/
+  public static readonly OPERATOR_CHAR = this.OPERATOR_BEGIN
 
   public string_start () {
     return FrameOperator.OPERATOR_BEGIN.toString()
