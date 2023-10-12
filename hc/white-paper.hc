@@ -308,7 +308,7 @@ space between them bind more tightly than those that do.
 ``` ruby
 ; “Want ” 2 “Live” # evaluates left to right
 # “Want 2Live”
-; “Want ” 2“Live” # evaluates `2“Live”` first
+; “Want ” (2“Live”) # TODO: evaluates `2“Live”` first w/o parentheses
 # “Want LiveLive”
 ```
 This of course can also be done (with more visual clutter) via explicit grouping:

@@ -27,7 +27,6 @@ export class FrameNumber extends FrameAtom {
     if ((argument instanceof FrameNumber)) {
       const value = this.data * argument.data
       result = new FrameNumber(value.toString())
-
     } else {
       this.range().forEach(() => {
         result = result.apply(argument, _parameter)
