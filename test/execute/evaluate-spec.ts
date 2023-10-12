@@ -122,5 +122,11 @@ describe('evaluate', () => {
       const result = evaluate(input)
       expect(result.toString()).to.equal('[“HelloHelloHello”]')
     })
+
+    it('multiplies numbers when applied', () => {
+      const input = '3 2'
+      const result = evaluate(input)
+      expect(result.toString()).to.equal('[6]')
+    })
   })
 })
