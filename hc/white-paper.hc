@@ -325,7 +325,7 @@ Arrays work as you'd expect:
 
 Closures are simply lazy expressions, which evaluate their contents when invoked.
 ``` ruby
-; {42; “Life, ” “The Universe, ” “Everything.”} ()
+; { “Life, ” “The Universe, ” “Everything.” } ()
 # “Life, The Universe, Everything.”
 ```
 The result of the empty expression (`()`) is called `nil`, and represents the Boolean false.
@@ -335,11 +335,11 @@ Note that statements inside a closure represent values that are not
 returned, which becomes very powerful when we add identifiers.
 
 Importantly, the empty closure `{}` becomes the "codify" operator, which converts arrays
-into closures:
+into deferred expressions:
 
 ``` ruby
 ; {} [“Life, ” “The Universe, ” “Everything.”]
-# { “Life, ” “The Universe, ” “Everything.” }
+# (“Life, The Universe, Everything.”)
 ```
 
 ### Identifiers
