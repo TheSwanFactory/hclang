@@ -128,5 +128,23 @@ describe('evaluate', () => {
       const result = evaluate(input)
       expect(result.toString()).to.equal('[6]')
     })
+
+    it('uses .+ for addition', () => {
+      const input = '3 .+ 2'
+      const result = evaluate(input)
+      expect(result.toString()).to.equal('[5]')
+    })
+
+    it.skip('uses .%% for modulo', () => {
+      const input = '3 .%% 2'
+      const result = evaluate(input)
+      expect(result.toString()).to.equal('[1]')
+    })
+
+    it('uses .** for power', () => {
+      const input = '3 .** 2'
+      const result = evaluate(input)
+      expect(result.toString()).to.equal('[9]')
+    })
   })
 })

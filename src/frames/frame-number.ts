@@ -50,4 +50,58 @@ export class FrameNumber extends FrameAtom {
   protected toData () {
     return this.data
   }
+
+  /*
+ * Math Operations
+ */
+
+  public add (right: FrameNumber) {
+    const value = this.data + right.data
+    return new FrameNumber(value.toString())
+  }
+
+  public subtract (right: FrameNumber) {
+    const value = this.data - right.data
+    return new FrameNumber(value.toString())
+  }
+
+  public multiply (right: FrameNumber) {
+    const value = this.data * right.data
+    return new FrameNumber(value.toString())
+  }
+
+  public divide (right: FrameNumber) {
+    const value = this.data / right.data
+    return new FrameNumber(value.toString())
+  }
+
+  public modulo (right: FrameNumber) {
+    const value = this.data % right.data
+    return new FrameNumber(value.toString())
+  }
+
+  public power (right: FrameNumber) {
+    const value = this.data ** right.data
+    return new FrameNumber(value.toString())
+  }
+
+  public equals (right: FrameNumber) {
+    return this.data === right.data ? Frame.all : Frame.nil
+  }
+
+  public lessThan (right: FrameNumber) {
+    return this.data < right.data ? Frame.all : Frame.nil
+  }
+
+  public greaterThan (right: FrameNumber) {
+    return this.data > right.data ? Frame.all : Frame.nil
+  }
+
+  public lessThanOrEqual (right: FrameNumber) {
+    return this.data <= right.data ? Frame.all : Frame.nil
+  }
+
+  public greaterThanOrEqual (right: FrameNumber) {
+    return this.data >= right.data ? Frame.all : Frame.nil
+  }
 };
