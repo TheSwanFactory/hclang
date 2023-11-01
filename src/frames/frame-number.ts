@@ -1,4 +1,6 @@
+import { Frame } from './frame.js'
 import { FrameAtom } from './frame-atom.js'
+import { FrameString } from './frame-string.js'
 import { Context, NilContext } from './meta-frame.js'
 
 export class FrameNumber extends FrameAtom {
@@ -19,6 +21,24 @@ export class FrameNumber extends FrameAtom {
     this.data = parseInt(source, 10)
   }
 
+  public apply (argument: Frame, _parameter: Frame) : Frame {
+    // repeatedly apply argument `this.data` times
+    let result = Frame.nil
+    if ((argument instanceof FrameNumber)) {
+      const value = this.data * argument.data
+      result = new FrameNumber(value.toString())
+    } else {
+      this.range().forEach(() => {
+        result = result.apply(argument, _parameter)
+      })
+    }
+    return result
+  }
+
+  public range () : Array<number> {
+    return [...Array(this.data).keys()]
+  }
+
   public string_start () {
     return FrameNumber.NUMBER_BEGIN.toString()
   };
@@ -29,5 +49,59 @@ export class FrameNumber extends FrameAtom {
 
   protected toData () {
     return this.data
+  }
+
+  /*
+ * Math Operations
+ */
+
+  public add (right: FrameNumber) {
+    const value = this.data + right.data
+    return new FrameNumber(value.toString())
+  }
+
+  public subtract (right: FrameNumber) {
+    const value = this.data - right.data
+    return new FrameNumber(value.toString())
+  }
+
+  public multiply (right: FrameNumber) {
+    const value = this.data * right.data
+    return new FrameNumber(value.toString())
+  }
+
+  public divide (right: FrameNumber) {
+    const value = this.data / right.data
+    return new FrameNumber(value.toString())
+  }
+
+  public modulo (right: FrameNumber) {
+    const value = this.data % right.data
+    return new FrameNumber(value.toString())
+  }
+
+  public power (right: FrameNumber) {
+    const value = this.data ** right.data
+    return new FrameNumber(value.toString())
+  }
+
+  public equals (right: FrameNumber) {
+    return this.data === right.data ? Frame.all : Frame.nil
+  }
+
+  public lessThan (right: FrameNumber) {
+    return this.data < right.data ? Frame.all : Frame.nil
+  }
+
+  public greaterThan (right: FrameNumber) {
+    return this.data > right.data ? Frame.all : Frame.nil
+  }
+
+  public lessThanOrEqual (right: FrameNumber) {
+    return this.data <= right.data ? Frame.all : Frame.nil
+  }
+
+  public greaterThanOrEqual (right: FrameNumber) {
+    return this.data >= right.data ? Frame.all : Frame.nil
   }
 };

@@ -199,8 +199,8 @@ The HC read-eval-print loop (REPL) uses ';' for the input prompt and '#' for the
 output prompt:
 
 ``` ruby
-; frame0
-# value0
+; .literal
+# literal
 ```
 
 That's pretty much all there is. There are no special forms, keywords,
@@ -308,7 +308,7 @@ space between them bind more tightly than those that do.
 ``` ruby
 ; “Want ” 2 “Live” # evaluates left to right
 # “Want 2Live”
-; “Want ” 2“Live” # evaluates `2“Live”` first
+; “Want ” (2“Live”) # TODO: evaluates `2“Live”` first w/o parentheses
 # “Want LiveLive”
 ```
 This of course can also be done (with more visual clutter) via explicit grouping:
@@ -325,7 +325,7 @@ Arrays work as you'd expect:
 
 Closures are simply lazy expressions, which evaluate their contents when invoked.
 ``` ruby
-; {42; “Life, ” “The Universe, ” “Everything.”} ()
+; { “Life, ” “The Universe, ” “Everything.” } ()
 # “Life, The Universe, Everything.”
 ```
 The result of the empty expression (`()`) is called `nil`, and represents the Boolean false.
@@ -335,11 +335,11 @@ Note that statements inside a closure represent values that are not
 returned, which becomes very powerful when we add identifiers.
 
 Importantly, the empty closure `{}` becomes the "codify" operator, which converts arrays
-into closures:
+into deferred expressions:
 
 ``` ruby
 ; {} [“Life, ” “The Universe, ” “Everything.”]
-# { “Life, ” “The Universe, ” “Everything.” }
+# (“Life, The Universe, Everything.”)
 ```
 
 ### Identifiers

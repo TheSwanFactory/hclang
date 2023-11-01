@@ -116,4 +116,35 @@ describe('evaluate', () => {
       expect(output).to.be.instanceof(frame.FrameNote)
     })
   })
+  describe('numbers', () => {
+    it('repeats strings when applied', () => {
+      const input = '3 “Hello”'
+      const result = evaluate(input)
+      expect(result.toString()).to.equal('[“HelloHelloHello”]')
+    })
+
+    it('multiplies numbers when applied', () => {
+      const input = '3 2'
+      const result = evaluate(input)
+      expect(result.toString()).to.equal('[6]')
+    })
+
+    it('uses .+ for addition', () => {
+      const input = '3 .+ 2'
+      const result = evaluate(input)
+      expect(result.toString()).to.equal('[5]')
+    })
+
+    it('uses .%% for modulo', () => {
+      const input = '3 .%% 2'
+      const result = evaluate(input)
+      expect(result.toString()).to.equal('[1]')
+    })
+
+    it('uses .** for power', () => {
+      const input = '3 .** 2'
+      const result = evaluate(input)
+      expect(result.toString()).to.equal('[9]')
+    })
+  })
 })

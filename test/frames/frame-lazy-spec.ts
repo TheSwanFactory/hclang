@@ -43,12 +43,12 @@ describe('FrameLazy', () => {
       expect(codify.in([context])).to.equal(codify)
     })
 
-    it('converts Array to Expr when called', () => {
+    it('converts Array to unevaluated Expr when called', () => {
       const array = new frame.FrameArray(lazy_array, { speed: fast, gap: space })
       const codified = codify.call(array)
 
       expect(codified).to.be.instanceof(frame.FrameExpr)
-      expect(codified.toString()).to.include('(speed gap _')
+      expect(codified.toString()).to.include('(speed gap _, .speed “fast”; .gap “ ”;)')
       expect(codified.call(turtle).toString()).to.equal('“fast turtle”')
     })
 

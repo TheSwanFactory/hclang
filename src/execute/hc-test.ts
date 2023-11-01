@@ -17,8 +17,9 @@ export class HCTest extends Frame {
     const source = this.get(HCEval.SOURCE)
     const expected = this.get(HCEval.EXPECT)
 
-    if (!this.actual.is.missing || !expected.is.missing) {
+    if (!this.actual.is.missing && !expected.is.missing) {
       const result = this.performTest(expected, this.actual, source)
+      this.actual = Frame.missing
       return this.out.call(result, parameter)
     }
 
@@ -38,7 +39,7 @@ export class HCTest extends Frame {
   }
 
   public assertEqual (expected: string, actual: string, source: string) {
-    const base = source + ' +' + expected
+    const base = source + ' ?' + expected
 
     this.n.total += 1
     if (expected === actual) {
@@ -46,7 +47,7 @@ export class HCTest extends Frame {
       return FrameNote.pass(base, JSON.stringify(this.n))
     } else {
       this.n.fail += 1
-      return FrameNote.fail(base + ' -' + actual, JSON.stringify(this.n))
+      return FrameNote.fail(base + ' !' + actual, JSON.stringify(this.n))
     }
   }
 }

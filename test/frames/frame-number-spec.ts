@@ -18,4 +18,11 @@ describe('FrameNumber', () => {
   it('stringifies back to that string', () => {
     expect(frame_number.toString()).to.equal(source)
   })
+
+  it('returns a range', () => {
+    const range = new FrameNumber('3').range()
+    expect(range).to.be.instanceOf(Array)
+    expect(range).to.have.lengthOf(3)
+    expect(range).to.deep.equal([0, 1, 2])
+  })
 })
