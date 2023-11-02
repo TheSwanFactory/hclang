@@ -146,5 +146,11 @@ describe('evaluate', () => {
       const result = evaluate(input)
       expect(result.toString()).to.equal('[9]')
     })
+
+    it('recognizes non-dot operators', () => {
+      const input = '3 + 2'
+      const result = evaluate(input)
+      expect(result.toString()).to.equal('[5]')
+    })
   })
 })

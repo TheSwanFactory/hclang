@@ -25,7 +25,7 @@ export class FrameName extends FrameAtom {
 
   public canInclude (char: string) {
     return FrameSymbol.SYMBOL_CHAR.test(char) ||
-           FrameOperator.OPERATOR_CHAR.test(char)
+           FrameOperator.OPERATOR_CHARS.test(char)
   }
 
   protected toData () {

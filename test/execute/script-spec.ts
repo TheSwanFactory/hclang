@@ -15,15 +15,9 @@ describe('script', () => {
     return result.toString().split('\n')
   }
 
-  it('=', () => {
+  it('123 + 654', () => {
     const result = script(['-e', title])
-    expect(result[0]).to.include(title)
-    // Frame is a language with no equal
-  })
-
-  it('123', () => {
-    const result = script(['-e', title])
-    expect(result[0]).to.equal(title)
+    expect(result[0]).to.equal('777')
   })
 
   it('“Hello, Quine!”', () => {

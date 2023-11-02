@@ -65,7 +65,6 @@ export class MetaFrame {
   }
 
   public meta_pairs (): Array<IKeyValuePair> {
-    //    return this.meta.map((value: any, key: string): IKeyValuePair => {return [key, value]})
     return Object.entries(this.meta)
   }
 
@@ -81,21 +80,6 @@ export class MetaFrame {
 
   protected match_here (target: string): Frame {
     let result = Frame.missing
-    /*
-    _.forOwn(this.meta, (value, key) => {
-      const isPattern = key.match(/\/(.*)\//)
-      if (isPattern) {
-        const pattern = new RegExp(isPattern[1])
-        if (pattern.test(target)) {
-          result = value
-          if (result.hasOwnProperty('source')) {
-            const sourced = result as ISourced
-            sourced.source = target
-          }
-        }
-      }
-    })
-    */
     this.meta_pairs().forEach(([key, value]) => {
       const isPattern = key.match(/\/(.*)\//)
       if (isPattern) {
