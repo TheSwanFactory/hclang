@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.5.14 2023-11-02
+
+- Document auto-publish
+
 ## v0.5.12 2023-11-02
 
 - Support naked operators
