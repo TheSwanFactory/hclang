@@ -37,6 +37,14 @@ This will open the BitScheme.html file, and also run the documentation through t
 
 5. Run `npm test`.
 
-## Debugging
-0. $ npm run inspect
-5. # In Chrome: chrome://inspect
+## Publishing 
+
+From the feature branch:
+
+1. Update CHANGELOG.md
+
+1. Run `npm run done` to bump version and tag
+
+1. Merge PR
+
+Should automatically publish to [npmjs](https://www.npmjs.com/package/hclang).
