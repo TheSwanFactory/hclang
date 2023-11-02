@@ -1,18 +1,16 @@
 import { Frame } from './frame.js'
 import { FrameAtom } from './frame-atom.js'
 import { FrameOperator, FrameSymbol } from './frame-symbol.js'
-import { ISourced, NilContext } from './meta-frame.js'
+import { NilContext } from './meta-frame.js'
 
-export class FrameName extends FrameAtom implements ISourced {
+export class FrameName extends FrameAtom {
   public static readonly NAME_BEGIN = '.'
 
-  public source: string
   protected data: FrameSymbol
 
   constructor (source: string, meta = NilContext) {
     super(meta)
     this.data = FrameSymbol.for(source)
-    this.source = source
   }
 
   public in (contexts = [Frame.nil]): Frame {
