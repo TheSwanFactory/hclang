@@ -78,6 +78,10 @@ export class FrameOperator extends FrameSymbol {
     // FrameOperator.OPERATOR_CHARS.source.slice(1, -1)
   }
 
+  public in (contexts = [Frame.nil]): Frame {
+    return FrameSymbol.for(this.data)
+  }
+
   public string_start () {
     return FrameOperator.OPERATOR_CHARS.toString()
   };
