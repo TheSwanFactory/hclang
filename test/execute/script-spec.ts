@@ -15,7 +15,7 @@ describe('script', () => {
     return result.toString().split('\n')
   }
 
-  it('123 .+ 654', () => {
+  it('123 + 654', () => {
     const result = script(['-e', title])
     expect(result[0]).to.equal('777')
   })
