@@ -160,6 +160,12 @@ describe('evaluate', () => {
         const result = evaluate(input)
         expect(result.toString()).to.equal('[9]')
       })
+
+      it.skip('groups properties using spaces', () => {
+        const input = '[9,8].0 + [7,6].1'
+        const result = evaluate(input)
+        expect(result.toString()).to.equal('[15]')
+      })
     })
   })
 })

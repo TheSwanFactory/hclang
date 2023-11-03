@@ -5,7 +5,7 @@ export class FrameSpace extends frame.FrameAtom {
 
   constructor (meta = frame.NilContext) {
     super(meta)
-    this.is.void = true
+    this.is.void = false
   }
 
   public string_start () {

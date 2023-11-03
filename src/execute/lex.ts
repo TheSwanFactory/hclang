@@ -2,6 +2,7 @@ import { Frame, FrameAtom, FrameBytes, FrameComment, FrameQuote, FrameSymbol, IS
 import { LexBytes } from './lex-bytes.js'
 import { LexPipe } from './lex-pipe.js'
 import { terminals } from './terminals.js'
+import { FrameSpace } from './frame-space.js'
 
 export type Flag = { [key: string]: boolean; };
 
@@ -20,6 +21,10 @@ export class Token extends FrameAtom {
 
   public inspect () {
     return `Token[${this.data.inspect()}]`
+  }
+
+  public isSpace() {
+    return this.data instanceof FrameSpace
   }
 }
 
@@ -115,8 +120,11 @@ export class Lex extends Frame implements ISourced {
   }
 
   protected exportFrame () {
-    const output = this.makeFrame()
+    const output: Token = this.makeFrame()
     const out = this.get(Frame.kOUT)
+    if (output.isSpace()) {
+      return out
+    }
     const result = out.call(output)
     return result
   }
