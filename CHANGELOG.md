@@ -1,6 +1,18 @@
 # CHANGELOG
 
-## v0.5.0 2023-09-XX
+## v0.5.14 2023-11-02
+
+- Document auto-publish
+
+## v0.5.12 2023-11-02
+
+- Support naked operators
+
+## v0.5.11 2023-10-09
+
+- Past simple doctests
+
+## v0.5.0 2023-09-30
 
 - Pass CLI tests
 - Pass BLOB tests
