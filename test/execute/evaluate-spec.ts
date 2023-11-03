@@ -116,6 +116,7 @@ describe('evaluate', () => {
       expect(output).to.be.instanceof(frame.FrameNote)
     })
   })
+
   describe('numbers', () => {
     it('repeats strings when applied', () => {
       const input = '3 “Hello”'
@@ -151,6 +152,14 @@ describe('evaluate', () => {
       const input = '3 + 2'
       const result = evaluate(input)
       expect(result.toString()).to.equal('[5]')
+    })
+
+    describe('binding', () => {
+      it('accesses array items by index', () => {
+        const input = '[9,8].0'
+        const result = evaluate(input)
+        expect(result.toString()).to.equal('[9]')
+      })
     })
   })
 })

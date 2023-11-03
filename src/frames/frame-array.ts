@@ -1,7 +1,7 @@
 import { Frame } from './frame.js'
 import { FrameList } from './frame-list.js'
 import { FrameNote } from './frame-note.js'
-import { NilContext } from './meta-frame.js'
+import { NilContext, MetaFrame } from './meta-frame.js'
 
 export class FrameArray extends FrameList {
   public static readonly BEGIN_ARRAY = '['
@@ -22,6 +22,13 @@ export class FrameArray extends FrameList {
   public in (contexts = [Frame.nil]): Frame {
     const array = this.array_eval(contexts)
     return new FrameArray(array)
+  }
+  
+  public get (key: string, origin: MetaFrame = this): Frame {
+    if (!isNaN(Number(key))) {
+      return this.at(Number(key));
+    }
+    return super.get(key, origin)
   }
 
   public apply (argument: Frame, parameter: Frame) {
