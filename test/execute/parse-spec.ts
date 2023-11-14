@@ -9,7 +9,6 @@ import * as ops from '../../src/ops.js'
 describe('Parse', () => {
   const content = new frame.FrameString('content')
   const token = new Token(content)
-  const symbol = frame.FrameSymbol.for(',')
 
   let out: frame.FrameArray
   let pipe: ParsePipe
@@ -67,13 +66,45 @@ describe('Parse', () => {
       expect(collector.length).to.equal(1)
     })
 
-    it('emits Grouped expr on `finish`', () => {
+    it('emits Grouped group on `finish`', () => {
       pipe.call(token)
       pipe.call(frame.FrameSymbol.end())
       expect(out.size()).to.equal(1)
-      const expr = out.at(0)
-      expect(expr).to.be.instanceOf(frame.FrameGroup)
-      expect(expr.toString()).to.equal(`((${content}))`)
+      const group = out.at(0)
+      expect(group).to.be.instanceOf(frame.FrameGroup)
+      expect(group.toString()).to.equal(`((${content}))`)
+    })
+
+    it('joins Grouped strings', () => {
+      pipe.call(token)
+      pipe.call(token)
+      pipe.call(frame.FrameSymbol.end())
+      expect(out.size()).to.equal(1)
+      const group = out.at(0)
+      expect(group).to.be.instanceOf(frame.FrameGroup)
+      expect(group.toString()).to.equal(`((${content} ${content}))`)
+    })
+
+    it('commas Grouped strings on `next(false)`', () => {
+      pipe.call(token)
+      pipe.next(false)
+      pipe.call(token)
+      pipe.call(frame.FrameSymbol.end())
+      expect(out.size()).to.equal(1)
+      const group = out.at(0)
+      expect(group).to.be.instanceOf(frame.FrameGroup)
+      expect(group.toString()).to.equal(`((${content}), (${content}))`)
+    })
+
+    it('semicolons Grouped strings on `next(true)`', () => {
+      pipe.call(token)
+      pipe.next(true)
+      pipe.call(token)
+      pipe.call(frame.FrameSymbol.end())
+      expect(out.size()).to.equal(1)
+      const group = out.at(0)
+      expect(group).to.be.instanceOf(frame.FrameGroup)
+      expect(group.toString()).to.equal(`((${content}); (${content}))`)
     })
   })
 })

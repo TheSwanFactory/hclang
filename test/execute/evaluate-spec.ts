@@ -161,6 +161,30 @@ describe('evaluate', () => {
         expect(result.toString()).to.equal('[9]')
       })
 
+      it('groups properties explicitly', () => {
+        const input = '([9,8].0)+([7,6].1)'
+        const result = evaluate(input)
+        expect(result.toString()).to.equal('[15]')
+      })
+
+      it('binds expressions with initial spaces', () => {
+        const input = ' [9,8].0'
+        const result = evaluate(input)
+        expect(result.toString()).to.equal('[9]')
+      })
+
+      it('binds expressions with interior spaces', () => {
+        const input = '[9,8] .0'
+        const result = evaluate(input)
+        expect(result.toString()).to.equal('[9]')
+      })
+
+      it('binds expressions with interior spaces', () => {
+        const input = '1 .+ 2'
+        const result = evaluate(input)
+        expect(result.toString()).to.equal('[3]')
+      })
+
       it.skip('groups properties using spaces', () => {
         const input = '[9,8].0 + [7,6].1'
         const result = evaluate(input)
