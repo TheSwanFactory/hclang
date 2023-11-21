@@ -45,6 +45,13 @@ export class LexPipe extends Frame implements IFinish, IPerformer {
           parser.finish(value)
           break
         }
+        case 'bind': {
+          break
+          const next_parser = parser.bind()
+          this.set(Frame.kOUT, next_parser)
+          this.level += 1
+          break
+        }
         case 'push': {
           const next_parser = parser.push(value)
           this.set(Frame.kOUT, next_parser)

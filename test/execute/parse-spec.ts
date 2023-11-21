@@ -75,7 +75,7 @@ describe('Parse', () => {
       expect(group.toString()).to.equal(`((${content}))`)
     })
 
-    it('joins Grouped strings', () => {
+    it('joins strings in Grouped', () => {
       pipe.call(token)
       pipe.call(token)
       pipe.call(frame.FrameSymbol.end())

@@ -1,4 +1,4 @@
-import { Context, Frame, FrameArray, FrameExpr } from '../frames.js'
+import { Context, Frame, FrameArray, FrameBind, FrameExpr } from '../frames.js'
 import { IFinish, Terminal } from './terminals.js'
 
 export class ParsePipe extends FrameArray implements IFinish {
@@ -15,6 +15,7 @@ export class ParsePipe extends FrameArray implements IFinish {
   }
 
   public next (statement: boolean = false): Frame {
+    this.unbind()
     if (this.length() === 0) {
       return this
     }
@@ -26,6 +27,18 @@ export class ParsePipe extends FrameArray implements IFinish {
     this.collector.push(expr)
     this.reset()
     return this
+  }
+
+  public bind(_Factory: any = undefined): Frame {
+    return this.push(FrameBind)
+  }
+
+  public unbind(): boolean {
+    if (this.Factory === FrameBind) {
+      this.pop(FrameBind)
+      return true
+    }
+    return false
   }
 
   public push (Factory: any): Frame {
@@ -40,6 +53,7 @@ export class ParsePipe extends FrameArray implements IFinish {
   }
 
   public canPop (Factory: any): boolean {
+    this.unbind()
     const match = (this.Factory.name === Factory.name)
     if (!match) {
       console.error(`ParsePipe.canPop.failed: ${Factory.name} cannot pop ${this.Factory.name}`)

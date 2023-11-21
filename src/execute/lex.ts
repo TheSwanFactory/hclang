@@ -57,8 +57,9 @@ export class Lex extends Frame implements ISourced {
     const end = this.isEnd(char)
     const terminal = Lex.isTerminal(char)
     const not_quote = !this.isQuote()
+    const not_space = char != ' '
 
-    if (end && terminal) { // ends token on a terminal
+    if (end && terminal && not_space) { // ends token on a terminal
       return this.finish(argument, true)
     }
     if (end) { // ends token, but not on a terminal
@@ -67,7 +68,7 @@ export class Lex extends Frame implements ISourced {
       return result
     }
 
-    if (terminal && not_quote) { // unquoted terminal implicitly ends token
+    if (terminal && not_quote && not_space) { // unquoted terminal implicitly ends token
       return this.finish(argument, true)
     }
 
@@ -123,7 +124,7 @@ export class Lex extends Frame implements ISourced {
     const output: Token = this.makeFrame()
     const out = this.get(Frame.kOUT)
     if (output.isSpace()) {
-      return out
+      return out // ignore [if not a Terminal]
     }
     const result = out.call(output)
     return result
