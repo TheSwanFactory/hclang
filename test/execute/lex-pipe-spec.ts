@@ -42,7 +42,7 @@ describe('LexPipe', () => {
     expect(pipe.level).to.equal(1)
   })
 
-  it.skip('changes output on bind', () => {
+  it('changes output on bind', () => {
     const out = pipe.get(frame.Frame.kOUT)
     const result = pipe.perform({ bind: frame.FrameBind })
     const out2 = pipe.get(frame.Frame.kOUT)
