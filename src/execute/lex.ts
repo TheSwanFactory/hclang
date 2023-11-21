@@ -1,4 +1,4 @@
-import { Frame, FrameAtom, FrameBytes, FrameComment, FrameQuote, FrameSymbol, ISourced, NilContext } from '../frames.js'
+import { Frame, FrameAtom, FrameBytes, FrameComment, FrameQuote, FrameOperator, ISourced, NilContext, FrameName } from '../frames.js'
 import { LexBytes } from './lex-bytes.js'
 import { LexPipe } from './lex-pipe.js'
 import { terminals } from './terminals.js'
@@ -87,7 +87,13 @@ export class Lex extends Frame implements ISourced {
   }
 
   protected isEnd (char: string) {
-    return !this.sample.canInclude(char)
+    if (this.Factory !== FrameName || this.body.length === 0) {
+      return !this.sample.canInclude(char)
+    }
+    if (this.sample.canInclude(char)) {
+      return FrameOperator.Accepts(char[0]) !== FrameOperator.Accepts(this.body[0])
+    }
+    return true
   }
 
   protected isComment () {

@@ -119,7 +119,7 @@ describe('evaluate', () => {
 
   describe('numbers', () => {
     it('repeats strings when applied', () => {
-      const input = '3 “Hello”'
+      const input = '3“Hello”'
       const result = evaluate(input)
       expect(result.toString()).to.equal('[“HelloHelloHello”]')
     })
@@ -131,27 +131,27 @@ describe('evaluate', () => {
     })
 
     it('uses .+ for addition', () => {
-      const input = '3 .+ 2'
+      const input = '3.+2'
+      const result = evaluate(input)
+      expect(result.toString()).to.equal('[5]')
+    })
+
+    it('uses non-dot + for addition', () => {
+      const input = '3+2'
       const result = evaluate(input)
       expect(result.toString()).to.equal('[5]')
     })
 
     it('uses .%% for modulo', () => {
-      const input = '3 .%% 2'
+      const input = '3.%%2'
       const result = evaluate(input)
       expect(result.toString()).to.equal('[1]')
     })
 
     it('uses .** for power', () => {
-      const input = '3 .** 2'
+      const input = '3.**2'
       const result = evaluate(input)
       expect(result.toString()).to.equal('[9]')
-    })
-
-    it('recognizes non-dot operators', () => {
-      const input = '3 + 2'
-      const result = evaluate(input)
-      expect(result.toString()).to.equal('[5]')
     })
 
     describe('binding', () => {
