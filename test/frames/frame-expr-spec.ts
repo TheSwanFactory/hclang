@@ -35,7 +35,7 @@ describe('FrameExpr', () => {
 
     expect(result).to.equal(context)
   })
-  
+
   it('applies FrameName to FrameArray to extract elements that index', () => {
     const js_string_2 = ', MAML!'
     const frame_string_2 = new FrameString(js_string_2)

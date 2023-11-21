@@ -23,10 +23,10 @@ export class FrameArray extends FrameList {
     const array = this.array_eval(contexts)
     return new FrameArray(array)
   }
-  
+
   public get (key: string, origin: MetaFrame = this): Frame {
     if (!isNaN(Number(key))) {
-      return this.at(Number(key));
+      return this.at(Number(key))
     }
     return super.get(key, origin)
   }

@@ -1,0 +1,23 @@
+exclude: ".projen*|.git*"
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.18.0
+    hooks:
+      - id: gitleaks
+  - repo: local
+    hooks:
+      - id: eslint
+        name: eslint
+        entry: bash -c "npm run lint"
+        language: node
+      - id: test
+        name: test
+        entry: bash -c "npm run test"
+        stages: [pre-push]
+        language: node

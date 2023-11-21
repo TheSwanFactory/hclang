@@ -23,7 +23,7 @@ export class Token extends FrameAtom {
     return `Token[${this.data.inspect()}]`
   }
 
-  public isSpace() {
+  public isSpace () {
     return this.data instanceof FrameSpace
   }
 }
@@ -57,7 +57,7 @@ export class Lex extends Frame implements ISourced {
     const end = this.isEnd(char)
     const terminal = Lex.isTerminal(char)
     const not_quote = !this.isQuote()
-    const not_space = char != ' '
+    const not_space = char !== ' '
 
     if (end && terminal && not_space) { // ends token on a terminal
       return this.finish(argument, true)

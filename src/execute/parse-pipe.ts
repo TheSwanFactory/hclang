@@ -29,11 +29,11 @@ export class ParsePipe extends FrameArray implements IFinish {
     return this
   }
 
-  public bind(_Factory: any = undefined): Frame {
+  public bind (_Factory: any = undefined): Frame {
     return this.push(FrameBind)
   }
 
-  public unbind(): boolean {
+  public unbind (): boolean {
     if (this.Factory === FrameBind) {
       this.pop(FrameBind)
       return true
