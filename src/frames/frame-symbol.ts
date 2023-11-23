@@ -78,6 +78,10 @@ export class FrameOperator extends FrameSymbol {
     // FrameOperator.OPERATOR_CHARS.source.slice(1, -1)
   }
 
+  public static Accepts (char: string) {
+    return FrameOperator.OPERATOR_CHARS.test(char)
+  }
+
   public in (contexts = [Frame.nil]): Frame {
     return FrameSymbol.for(this.data)
   }
@@ -87,6 +91,6 @@ export class FrameOperator extends FrameSymbol {
   };
 
   public canInclude (char: string) {
-    return FrameOperator.OPERATOR_CHARS.test(char)
+    return FrameOperator.Accepts(char)
   }
 }

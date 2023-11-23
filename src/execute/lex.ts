@@ -1,4 +1,4 @@
-import { Frame, FrameAtom, FrameBytes, FrameComment, FrameQuote, FrameSymbol, ISourced, NilContext } from '../frames.js'
+import { Frame, FrameAtom, FrameBytes, FrameComment, FrameQuote, FrameOperator, ISourced, NilContext, FrameName } from '../frames.js'
 import { LexBytes } from './lex-bytes.js'
 import { LexPipe } from './lex-pipe.js'
 import { terminals } from './terminals.js'
@@ -44,7 +44,7 @@ export class Lex extends Frame implements ISourced {
   }
 
   // TODO: use terminal to determine next parsing class
-  // Right now, FrameSpace/FrameNumber consume the initial '#' of a comment
+  // Right now, FrameNumber consume the initial '#' of a comment
   // That should only happen at the end of a Quote
 
   public call (argument: Frame, _parameter = Frame.nil): Frame {
@@ -52,8 +52,9 @@ export class Lex extends Frame implements ISourced {
     const end = this.isEnd(char)
     const terminal = Lex.isTerminal(char)
     const not_quote = !this.isQuote()
+    const not_space = char !== ' '
 
-    if (end && terminal) { // ends token on a terminal
+    if (end && terminal && not_space) { // ends token on a terminal
       return this.finish(argument, true)
     }
     if (end) { // ends token, but not on a terminal
@@ -62,7 +63,7 @@ export class Lex extends Frame implements ISourced {
       return result
     }
 
-    if (terminal && not_quote) { // unquoted terminal implicitly ends token
+    if (terminal && not_quote && not_space) { // unquoted terminal implicitly ends token
       return this.finish(argument, true)
     }
 
@@ -81,7 +82,13 @@ export class Lex extends Frame implements ISourced {
   }
 
   protected isEnd (char: string) {
-    return !this.sample.canInclude(char)
+    if (this.Factory !== FrameName || this.body.length === 0) {
+      return !this.sample.canInclude(char)
+    }
+    if (this.sample.canInclude(char)) {
+      return FrameOperator.Accepts(char[0]) !== FrameOperator.Accepts(this.body[0])
+    }
+    return true
   }
 
   protected isComment () {
@@ -115,8 +122,9 @@ export class Lex extends Frame implements ISourced {
   }
 
   protected exportFrame () {
-    const output = this.makeFrame()
+    const output: Token = this.makeFrame()
     const out = this.get(Frame.kOUT)
+    // if (output.isSpace()) {      return out    }
     const result = out.call(output)
     return result
   }

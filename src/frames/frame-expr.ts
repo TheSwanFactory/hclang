@@ -34,3 +34,6 @@ export class FrameExpr extends FrameList {
     return [array.join(' ') + ',']
   }
 };
+
+export class FrameBind extends FrameExpr {
+}

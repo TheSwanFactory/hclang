@@ -116,9 +116,10 @@ describe('evaluate', () => {
       expect(output).to.be.instanceof(frame.FrameNote)
     })
   })
+
   describe('numbers', () => {
     it('repeats strings when applied', () => {
-      const input = '3 “Hello”'
+      const input = '3“Hello”'
       const result = evaluate(input)
       expect(result.toString()).to.equal('[“HelloHelloHello”]')
     })
@@ -130,27 +131,65 @@ describe('evaluate', () => {
     })
 
     it('uses .+ for addition', () => {
-      const input = '3 .+ 2'
+      const input = '3.+2'
+      const result = evaluate(input)
+      expect(result.toString()).to.equal('[5]')
+    })
+
+    it('uses non-dot + for addition', () => {
+      const input = '3+2'
       const result = evaluate(input)
       expect(result.toString()).to.equal('[5]')
     })
 
     it('uses .%% for modulo', () => {
-      const input = '3 .%% 2'
+      const input = '3.%%2'
       const result = evaluate(input)
       expect(result.toString()).to.equal('[1]')
     })
 
     it('uses .** for power', () => {
-      const input = '3 .** 2'
+      const input = '3.**2'
       const result = evaluate(input)
       expect(result.toString()).to.equal('[9]')
     })
 
-    it('recognizes non-dot operators', () => {
-      const input = '3 + 2'
-      const result = evaluate(input)
-      expect(result.toString()).to.equal('[5]')
+    describe('binding', () => {
+      it('accesses array items by index', () => {
+        const input = '[9,8].0'
+        const result = evaluate(input)
+        expect(result.toString()).to.equal('[9]')
+      })
+
+      it('groups properties explicitly', () => {
+        const input = '([9,8].0)+([7,6].1)'
+        const result = evaluate(input)
+        expect(result.toString()).to.equal('[15]')
+      })
+
+      it('binds expressions with initial spaces', () => {
+        const input = ' [9,8].0'
+        const result = evaluate(input)
+        expect(result.toString()).to.equal('[9]')
+      })
+
+      it('binds expressions with interior spaces', () => {
+        const input = '[9,8] .0'
+        const result = evaluate(input)
+        expect(result.toString()).to.equal('[9]')
+      })
+
+      it('binds expressions with interior spaces', () => {
+        const input = '1 .+ 2'
+        const result = evaluate(input)
+        expect(result.toString()).to.equal('[3]')
+      })
+
+      it('groups properties using spaces', () => {
+        const input = '[9,8].0 + [7,6].1'
+        const result = evaluate(input)
+        expect(result.toString()).to.equal('[15]')
+      })
     })
   })
 })

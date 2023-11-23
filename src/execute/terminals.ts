@@ -38,6 +38,10 @@ export class Terminal extends Frame {
   protected toData (): any {
     return this.data
   }
+
+  public toString () {
+    return this.id + `[${this.data}]`
+  }
 }
 
 export const terminals: Context = {
@@ -68,6 +72,7 @@ terminals[Frame.kEND] = Terminal.end()
 addTerminal('\n', 'end')
 addTerminal(',', 'next')
 addTerminal(';', 'semi-next')
+addTerminal(' ', 'bind')
 addGroup(FrameArray)
 addGroup(FrameGroup)
 addGroup(FrameLazy)

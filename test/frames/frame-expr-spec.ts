@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 import { describe, it } from 'mocha'
 
-import { Frame, FrameArg, FrameExpr, FrameName, FrameString, FrameSymbol } from '../../src/frames.js'
+import { Frame, FrameArg, FrameExpr, FrameName, FrameString, FrameSymbol, FrameArray, NilContext } from '../../src/frames.js'
 
 describe('FrameExpr', () => {
   const frame = new Frame()
@@ -34,6 +34,17 @@ describe('FrameExpr', () => {
     const result = frame_expr.in([context])
 
     expect(result).to.equal(context)
+  })
+
+  it('applies FrameName to FrameArray to extract elements that index', () => {
+    const js_string_2 = ', MAML!'
+    const frame_string_2 = new FrameString(js_string_2)
+    const frame_array = new FrameArray([frame_string, frame_string_2])
+    const frame_name = new FrameName('1')
+    const frame_expr = new FrameExpr([frame_array, frame_name])
+    const result = frame_expr.in([frame])
+
+    expect(result).to.equal(frame_string_2)
   })
 
   it('evaluates in context when called', () => {

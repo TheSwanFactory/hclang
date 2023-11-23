@@ -1,4 +1,4 @@
-import { Context, Frame, FrameArray, FrameExpr } from '../frames.js'
+import { Context, Frame, FrameArray, FrameBind, FrameExpr } from '../frames.js'
 import { IFinish, Terminal } from './terminals.js'
 
 export class ParsePipe extends FrameArray implements IFinish {
@@ -28,12 +28,24 @@ export class ParsePipe extends FrameArray implements IFinish {
     return this
   }
 
-  public push (Factory: any): Frame {
+  public bind (_Factory: any = undefined): ParsePipe {
+    return this.push(FrameBind)
+  }
+
+  public unbind (): ParsePipe {
+    let next = this as ParsePipe
+    while (next.Factory === FrameBind) {
+      next = next.pop(FrameBind)
+    }
+    return next
+  }
+
+  public push (Factory: any): ParsePipe {
     const child = new ParsePipe(this, Factory)
     return child
   }
 
-  public pop (Factory: any): Frame {
+  public pop (Factory: any): ParsePipe {
     const parent = this.get(ParsePipe.kOUT) as ParsePipe
     this.finish(Frame.nil)
     return parent
@@ -51,6 +63,9 @@ export class ParsePipe extends FrameArray implements IFinish {
     this.next()
     const out = this.get(Frame.kOUT)
     const value = this.makeFrame()
+    if (value instanceof FrameBind && value.isEmpty()) {
+      return out
+    }
     const result = out.call(value)
     out.call(terminal)
     return result

@@ -22,16 +22,25 @@ export class LexPipe extends Frame implements IFinish, IPerformer {
     return source.reduce(this)
   }
 
-  public finish (_parameter: Frame) {
+  public finish (parameter: Frame): LexPipe {
+    const next_parser = this.unbind()
     const output = FrameSymbol.end()
-    const out = this.get(Frame.kOUT)
-    out.call(output)
+    next_parser.call(output)
     return this
   }
 
+  public unbind (skip = false): ParsePipe {
+    let next_parser = this.get(Frame.kOUT) as ParsePipe
+    if (!skip) {
+      next_parser = next_parser.unbind()
+    }
+    return next_parser
+  }
+
   public perform (action: IAction) {
-    const parser = this.get(Frame.kOUT) as ParsePipe
     for (const [key, value] of Object.entries(action)) {
+      const skip = (key === 'push')
+      let parser = this.unbind(skip)
       switch (key) {
         case 'semi-next': {
           parser.next(true)
@@ -45,9 +54,14 @@ export class LexPipe extends Frame implements IFinish, IPerformer {
           parser.finish(value)
           break
         }
+        case 'bind': {
+          parser = parser.bind()
+          this.set(Frame.kOUT, parser)
+          break
+        }
         case 'push': {
-          const next_parser = parser.push(value)
-          this.set(Frame.kOUT, next_parser)
+          parser = parser.push(value)
+          this.set(Frame.kOUT, parser)
           this.level += 1
           break
         }
@@ -59,8 +73,8 @@ export class LexPipe extends Frame implements IFinish, IPerformer {
           if (!parser.canPop(value)) {
             break
           }
-          const next_parser = parser.pop(value)
-          this.set(Frame.kOUT, next_parser)
+          parser = parser.pop(value)
+          this.set(Frame.kOUT, parser)
           this.level -= 1
           break
         }
