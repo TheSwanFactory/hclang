@@ -63,6 +63,9 @@ export class ParsePipe extends FrameArray implements IFinish {
     this.next()
     const out = this.get(Frame.kOUT)
     const value = this.makeFrame()
+    if (value instanceof FrameBind && value.isEmpty()) {
+      return out
+    }
     const result = out.call(value)
     out.call(terminal)
     return result

@@ -48,6 +48,10 @@ export class FrameList extends Frame {
     return stripLastComma(result)
   }
 
+  public isEmpty (): boolean {
+    return (this.data.length === 0)
+  }
+
   public toString () {
     return this.string_open() + this.toStringArray().join(' ') + this.string_close()
   }
