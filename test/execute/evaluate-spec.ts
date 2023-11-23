@@ -185,7 +185,7 @@ describe('evaluate', () => {
         expect(result.toString()).to.equal('[3]')
       })
 
-      it.skip('groups properties using spaces', () => {
+      it('groups properties using spaces', () => {
         const input = '[9,8].0 + [7,6].1'
         const result = evaluate(input)
         expect(result.toString()).to.equal('[15]')

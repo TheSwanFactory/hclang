@@ -15,7 +15,6 @@ export class ParsePipe extends FrameArray implements IFinish {
   }
 
   public next (statement: boolean = false): Frame {
-    this.unbind()
     if (this.length() === 0) {
       return this
     }
@@ -29,31 +28,30 @@ export class ParsePipe extends FrameArray implements IFinish {
     return this
   }
 
-  public bind (_Factory: any = undefined): Frame {
+  public bind (_Factory: any = undefined): ParsePipe {
     return this.push(FrameBind)
   }
 
-  public unbind (): boolean {
-    if (this.Factory === FrameBind) {
-      this.pop(FrameBind)
-      return true
+  public unbind (): ParsePipe {
+    let next = this as ParsePipe
+    while (next.Factory === FrameBind) {
+      next = next.pop(FrameBind)
     }
-    return false
+    return next
   }
 
-  public push (Factory: any): Frame {
+  public push (Factory: any): ParsePipe {
     const child = new ParsePipe(this, Factory)
     return child
   }
 
-  public pop (Factory: any): Frame {
+  public pop (Factory: any): ParsePipe {
     const parent = this.get(ParsePipe.kOUT) as ParsePipe
     this.finish(Frame.nil)
     return parent
   }
 
   public canPop (Factory: any): boolean {
-    this.unbind()
     const match = (this.Factory.name === Factory.name)
     if (!match) {
       console.error(`ParsePipe.canPop.failed: ${Factory.name} cannot pop ${this.Factory.name}`)

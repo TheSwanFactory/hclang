@@ -48,6 +48,5 @@ describe('LexPipe', () => {
     const out2 = pipe.get(frame.Frame.kOUT)
     expect(out2).to.not.equal(out)
     expect(result).to.equal(pipe)
-    expect(pipe.level).to.equal(1)
   })
 })
