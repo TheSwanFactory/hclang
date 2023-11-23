@@ -53,7 +53,7 @@ Identifiers can be combined into Expressions. The default behavior is concatenat
 ; 0b1101 0b0110
 # 0b11010110
 ; `Hello`` World`
-# `Hello World`
+# “Hello World”
 ```
 ==== Symbols
 
