@@ -1,12 +1,10 @@
 import * as frame from '../frames.js'
-import { FrameSpace } from './frame-space.js'
 import { Lex } from './lex.js'
 import { terminals } from './terminals.js'
 
 export const _syntax: frame.Context = { ...terminals }
 type Class = { new(...args: any[]): any; };
 export const atomClasses: Array<Class> = [
-  FrameSpace,
   frame.FrameAlias,
   frame.FrameArg,
   frame.FrameBlob,

@@ -52,11 +52,6 @@ describe('execute', () => {
       expect(result).to.equal('')
     })
 
-    it('evaluates spaces to nothing', () => {
-      const result = execute(spaces)
-      expect(result).to.equal('')
-    })
-
     it('lexes both FrameStrings and comments', () => {
       const input = input_string + inline_comment
       const result = execute(input)

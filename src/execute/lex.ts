@@ -2,7 +2,6 @@ import { Frame, FrameAtom, FrameBytes, FrameComment, FrameQuote, FrameOperator, 
 import { LexBytes } from './lex-bytes.js'
 import { LexPipe } from './lex-pipe.js'
 import { terminals } from './terminals.js'
-import { FrameSpace } from './frame-space.js'
 
 export type Flag = { [key: string]: boolean; };
 
@@ -21,10 +20,6 @@ export class Token extends FrameAtom {
 
   public inspect () {
     return `Token[${this.data.inspect()}]`
-  }
-
-  public isSpace () {
-    return this.data instanceof FrameSpace
   }
 }
 
@@ -49,7 +44,7 @@ export class Lex extends Frame implements ISourced {
   }
 
   // TODO: use terminal to determine next parsing class
-  // Right now, FrameSpace/FrameNumber consume the initial '#' of a comment
+  // Right now, FrameNumber consume the initial '#' of a comment
   // That should only happen at the end of a Quote
 
   public call (argument: Frame, _parameter = Frame.nil): Frame {
@@ -129,9 +124,7 @@ export class Lex extends Frame implements ISourced {
   protected exportFrame () {
     const output: Token = this.makeFrame()
     const out = this.get(Frame.kOUT)
-    if (output.isSpace()) {
-      return out // ignore [if not a Terminal]
-    }
+    // if (output.isSpace()) {      return out    }
     const result = out.call(output)
     return result
   }

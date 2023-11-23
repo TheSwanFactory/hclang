@@ -38,6 +38,10 @@ export class Terminal extends Frame {
   protected toData (): any {
     return this.data
   }
+
+  public toString () {
+    return this.id + `[${this.data}]`
+  }
 }
 
 export const terminals: Context = {
