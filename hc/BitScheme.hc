@@ -95,7 +95,7 @@ Elements are separated using Terminals:
 # `Terminal Expression`
 ### comma
 ; `Expression1`,`Expression2`
-# `Expression1`,`Expression2`
+# (`Expression1`, `Expression2`)
 ### semicolon
 ; `Statement`;
 ```
