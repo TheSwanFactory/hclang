@@ -61,16 +61,16 @@ BitScheme also supports Symbolic Identifiers, which use prefix sigils for differ
 
 ```
 ### .Name (setter)
-; .the-answer 42;
+; .the_answer 42;
 ### Value (getter)
-; the-answer
+; the_answer
 # 42
 ### $Error
-; ther-answer
-# $ther-answer
+; ther_answer
+# $!.name-missing “$:HCTest.113.ther_answer”;
 ### Alias
-; @the-answer 7;
-; the-answer
+; @the_answer 7;
+; the_answer
 # 7
 
 ```
