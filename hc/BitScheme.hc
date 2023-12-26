@@ -27,8 +27,8 @@ The simplest Identifiers are Literals, e.g.:
 # 12345
 ; 0b101 # Binary
 # 0b101
-; 0xcafebabe # Hexadecimal
-# 0xcafebabe
+; 0xdeadbeef # Hexadecimal
+# 0xdeadbeef
 ```
 ===== String (quoted, utf-8)
 ```
@@ -140,7 +140,8 @@ Elements are aggregated using pairs of Delimiters:
 
 Names can be used as properties to extract values from Groupings:
 ```
-; [.a 1; .b 2;].a
+; .grp [.a 1; .b 2;];
+; grp.a
 # 1
 ```
 
