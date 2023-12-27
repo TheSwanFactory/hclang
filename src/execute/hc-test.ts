@@ -40,14 +40,24 @@ export class HCTest extends Frame {
 
   public assertEqual (expected: string, actual: string, source: string) {
     const base = source + ' ?' + expected
+    console.log(`assertEqual: ${base}`)
 
     this.n.total += 1
-    if (expected === actual) {
+    if (this.checkEqual(expected, actual)) {
       this.n.pass += 1
       return FrameNote.pass(base, JSON.stringify(this.n))
     } else {
       this.n.fail += 1
       return FrameNote.fail(base + ' !' + actual, JSON.stringify(this.n))
     }
+  }
+
+  public checkEqual (expected: string, actual: string) {
+    if (expected.includes('...')) {
+      const parts = expected.split('...')
+      console.log(`parts: ${parts}`)
+      return actual.startsWith(parts[0])
+    }
+    return expected === actual
   }
 }

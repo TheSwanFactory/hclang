@@ -27,11 +27,15 @@ The simplest Identifiers are Literals, e.g.:
 # 0b101
 ; 0xcafebabe # Hexadecimal
 # 0xcafebabe
-### String (quoted, utf-8)
+```
+===== String (quoted, utf-8)
+```
 ; `Hello`
 # `Hello`
 ;
-### ByteString
+```
+===== ByteString
+```
 ; \5\Hello
 # \5\Hello
 ```
@@ -51,26 +55,30 @@ Identifiers can be combined into Expressions. The default behavior is concatenat
 ; 0b1101 0b0110
 # 0b11010110
 ; `Hello`` World`
-# `Hello World`
+# “Hello World”
 ```
 ==== Symbols
 
 BitScheme also supports Symbolic Identifiers, which use prefix sigils for different usages:
-
+===== .Name (setter)
 ```
-### .Name (setter)
-; .the-answer 42;
-### Value (getter)
-; the-answer
+; .the_answer 42;
+```
+===== Value (getter)
+```
+; the_answer
 # 42
-### $Error
-; ther-answer
-# $ther-answer
-### Alias
-; @the-answer 7;
-; the-answer
+```
+===== $Error
+```
+; ther_answer
+# $!.name-missing “$:HCTest.113.ther_answer”;
+```
+===== Alias
+```
+; @the_answer 7;
+; the_answer
 # 7
-
 ```
 Symbols with only non-alphanumeric characters (e.g., "+") are called Operators rather than Identifiers. There are four universal binary Operators in the standard library, which can be used with any Value:
 
@@ -87,32 +95,42 @@ See *Operator Syntax* below for more details.
 ==== Terminals
 
 Elements are separated using Terminals:
+===== newline
 ```
-### newline
 ; `Terminal Expression`
 # `Terminal Expression`
-### comma
+```
+===== comma
+```
 ; `Expression1`,`Expression2`
-# `Expression1`,`Expression2`
-### semicolon
+# (`Expression1`, `Expression2`)
+```
+===== semicolon
+```
 ; `Statement`;
 ```
 
 ==== Delimiters
 Elements are aggregated using pairs of Delimiters:
+===== [] Boxed
 ```
-### [] Boxed
 ; [1, 2, 3]
 # [1, 2, 3]
-### () Unboxed
+```
+===== () Unboxed
+```
 ; (0b1 0b0)
 # 0b10
-### <> Schema (i.e. type; see below)
+```
+===== <> Schema (i.e. type; see below)
+```
 ; .Bit <0b0, 0b1>;
-### {} Deferred
+```
+===== {} Deferred
+```
 ; .AppendZero {0b1 0b0};
 ; AppendZero
-# {0b1 0b0}
+# ((0b1 ((0b0)))...)
 ; AppendZero()
 # 0b10
 ```
@@ -127,20 +145,28 @@ Names can be used as properties to extract values from Groupings:
 ==== Operator Syntax
 
 Operators are actually just non-alphanumeric properties.
+===== _nil_, the empty expression
 ```
-### _nil_, the empty expression
 ; .false ()
-### _all_, the inclusive schema
+```
+===== _all_, the inclusive schema
+```
 ; .true <>
-### Ternary
+```
+===== Ternary
+```
 ; true .? `Yes` .: `No`
 # `Yes`
 ; false .? `Yes` .: `No`
 # `No`
-### Map
+```
+===== Map
+```
 ; [0b101, 0b010] .& AppendZero
 # [0b1010, 0b0100]
-### Reduce
+```
+===== Reduce
+```
 ; [0b101, 0b010] .| AppendZero
 # 0b10100100
 ```

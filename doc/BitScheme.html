@@ -483,13 +483,24 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 ; 0b101 # Binary
 # 0b101
 ; 0xcafebabe # Hexadecimal
-# 0xcafebabe
-### String (quoted, utf-8)
-; `Hello`
+# 0xcafebabe</code></pre>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_string_quoted_utf_8">String (quoted, utf-8)</h5>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>; `Hello`
 # `Hello`
-;
-### ByteString
-; \5\Hello
+;</code></pre>
+</div>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_bytestring">ByteString</h5>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>; \5\Hello
 # \5\Hello</code></pre>
 </div>
 </div>
@@ -506,6 +517,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 </div>
+</div>
 <div class="sect3">
 <h4 id="_expressions">Expressions</h4>
 <div class="paragraph">
@@ -516,28 +528,45 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <pre class="highlight"><code>; 0b1101 0b0110
 # 0b11010110
 ; `Hello`` World`
-# `Hello World`</code></pre>
+# “Hello World”</code></pre>
 </div>
 </div>
 </div>
 <div class="sect3">
 <h4 id="_symbols">Symbols</h4>
 <div class="paragraph">
-<p>BitScheme also supports Symbolic Identifiers, which use prefix sigils for different usages:</p>
+<p>BitScheme also supports Symbolic Identifiers, which use prefix sigils for different usages:
+===== .Name (setter)</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code>### .Name (setter)
-; .the-answer 42;
-### Value (getter)
-; the-answer
-# 42
-### $Error
-; ther-answer
-# $ther-answer
-### Alias
-; @the-answer 7;
-; the-answer
+<pre class="highlight"><code>; .the_answer 42;</code></pre>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_value_getter">Value (getter)</h5>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>; the_answer
+# 42</code></pre>
+</div>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_error">$Error</h5>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>; ther_answer
+# $!.name-missing “$:HCTest.113.ther_answer”;</code></pre>
+</div>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_alias">Alias</h5>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>; @the_answer 7;
+; the_answer
 # 7</code></pre>
 </div>
 </div>
@@ -568,47 +597,78 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 </div>
+</div>
 <div class="sect2">
 <h3 id="_grouping">Grouping</h3>
 <div class="sect3">
 <h4 id="_terminals">Terminals</h4>
 <div class="paragraph">
-<p>Elements are separated using Terminals:</p>
+<p>Elements are separated using Terminals:
+===== newline</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code>### newline
-; `Terminal Expression`
-# `Terminal Expression`
-### comma
-; `Expression1`,`Expression2`
-# `Expression1`,`Expression2`
-### semicolon
-; `Statement`;</code></pre>
+<pre class="highlight"><code>; `Terminal Expression`
+# `Terminal Expression`</code></pre>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_comma">comma</h5>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>; `Expression1`,`Expression2`
+# (`Expression1`, `Expression2`)</code></pre>
+</div>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_semicolon">semicolon</h5>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>; `Statement`;</code></pre>
+</div>
 </div>
 </div>
 </div>
 <div class="sect3">
 <h4 id="_delimiters">Delimiters</h4>
 <div class="paragraph">
-<p>Elements are aggregated using pairs of Delimiters:</p>
+<p>Elements are aggregated using pairs of Delimiters:
+===== [] Boxed</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code>### [] Boxed
-; [1, 2, 3]
-# [1, 2, 3]
-### () Unboxed
-; (0b1 0b0)
-# 0b10
-### &lt;&gt; Schema (i.e. type; see below)
-; .Bit &lt;0b0, 0b1&gt;;
-### {} Deferred
-; .AppendZero {0b1 0b0};
+<pre class="highlight"><code>; [1, 2, 3]
+# [1, 2, 3]</code></pre>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_unboxed">() Unboxed</h5>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>; (0b1 0b0)
+# 0b10</code></pre>
+</div>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_schema_i_e_type_see_below">&lt;&gt; Schema (i.e. type; see below)</h5>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>; .Bit &lt;0b0, 0b1&gt;;</code></pre>
+</div>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_deferred">{} Deferred</h5>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>; .AppendZero {0b1 0b0};
 ; AppendZero
-# {0b1 0b0}
+# ((0b1 ((0b0)))...)
 ; AppendZero()
 # 0b10</code></pre>
+</div>
 </div>
 </div>
 </div>
@@ -627,25 +687,49 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="sect3">
 <h4 id="_operator_syntax">Operator Syntax</h4>
 <div class="paragraph">
-<p>Operators are actually just non-alphanumeric properties.</p>
+<p>Operators are actually just non-alphanumeric properties.
+===== <em>nil</em>, the empty expression</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code>### _nil_, the empty expression
-; .false ()
-### _all_, the inclusive schema
-; .true &lt;&gt;
-### Ternary
-; true .? `Yes` .: `No`
+<pre class="highlight"><code>; .false ()</code></pre>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_all_the_inclusive_schema"><em>all</em>, the inclusive schema</h5>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>; .true &lt;&gt;</code></pre>
+</div>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_ternary">Ternary</h5>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>; true .? `Yes` .: `No`
 # `Yes`
 ; false .? `Yes` .: `No`
-# `No`
-### Map
-; [0b101, 0b010] .&amp; AppendZero
-# [0b1010, 0b0100]
-### Reduce
-; [0b101, 0b010] .| AppendZero
+# `No`</code></pre>
+</div>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_map">Map</h5>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>; [0b101, 0b010] .&amp; AppendZero
+# [0b1010, 0b0100]</code></pre>
+</div>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_reduce">Reduce</h5>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>; [0b101, 0b010] .| AppendZero
 # 0b10100100</code></pre>
+</div>
 </div>
 </div>
 </div>
@@ -1013,7 +1097,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2023-11-02 08:24:09 -0700
+Last updated 2023-12-26 11:53:19 -0800
 </div>
 </div>
 </body>

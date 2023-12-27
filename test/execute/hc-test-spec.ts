@@ -31,6 +31,11 @@ describe('HCTest', () => {
     expect(result.toString()).to.include('$-.test-fail “abc ?123 !456”;')
   })
 
+  it('assertEqual ignores everything after "..."', () => {
+    const result = test.assertEqual('123...456', '123', 'abc')
+    expect(result.toString()).to.include('$+.test-pass “abc ?123...456”;')
+  })
+
   it('outputs Note+ when called with correct testDoc', () => {
     hc_eval.call('.abc 123;')
     expect(out.length()).to.equal(0)
