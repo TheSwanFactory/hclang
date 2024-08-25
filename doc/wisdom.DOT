@@ -1,88 +1,66 @@
 digraph WisdomIntegrationPipeline {
     rankdir=TB;
 
-    // Outer cluster for Context and Sensor
+    // Define clusters for the parameters
     subgraph cluster_Sensor {
         label = "Sensor";
         style = "filled";
         color = "lightgrey";
-
-        Sensor [label="Sensor"];
-        schema [label="schema", shape="box"];
-        Sensor -> schema [color="blue"];
+        schema [shape="box"];
     }
 
-    // Outer cluster for Classifier and Ontology
     subgraph cluster_Classifier {
         label = "Classifier";
         style = "filled";
         color = "lightgrey";
-
-        Classifier [label="Classifier"];
-        ontology [label="ontology", shape="box"];
-        Classifier -> ontology [color="blue"];
+        ontology [shape="box"];
     }
 
-    // Outer cluster for RightBrain and Values
     subgraph cluster_RightBrain {
         label = "RightBrain";
         style = "filled";
         color = "lightgrey";
-
-        RightBrain [label="RightBrain"];
-        values [label="values", shape="box"];
-        RightBrain -> values [color="blue"];
+        values [shape="box"];
     }
 
-    // Outer cluster for LeftBrain and Goals
     subgraph cluster_LeftBrain {
         label = "LeftBrain";
         style = "filled";
         color = "lightgrey";
-
-        LeftBrain [label="LeftBrain"];
-        goals [label="goals", shape="box"];
-        LeftBrain -> goals [color="blue"];
+        goals [shape="box"];
     }
 
-    // Outer cluster for Body and Capabilities
     subgraph cluster_Body {
         label = "Body";
         style = "filled";
         color = "lightgrey";
-
-        Body [label="Body", shape="house"];
-        capabilities [label="capabilities", shape="box"];
-        Body -> capabilities [color="blue"];
+        capabilities [shape="box"];
     }
 
-    // Outer cluster for Mind and Awareness
     subgraph cluster_Mind {
         label = "Mind";
         style = "filled";
         color = "lightgrey";
-
-        Mind [label="Mind", shape="invhouse"];
-        awareness [label="awareness", shape="box"];
-        Mind -> awareness [color="blue"];
+        awareness [shape="box"];
     }
 
     // Context and Edges
-    Context_n [label="Context n", shape="diamond"];
-    Context_n1 [label="Context n+1", shape="diamond"];
+    Context_n [shape="diamond"];
+    Context_n1 [shape="diamond"];
 
-    Context_n -> Sensor [label="stimulus"];
-    Sensor -> Classifier [label="perception"];
-    Classifier -> RightBrain [label="concept"];
-    RightBrain -> LeftBrain [label="emotion"];
-    LeftBrain -> Body [label="decision", color="green"];
-    Body -> Context_n1 [label="action", color="green"];
-    Context_n1 -> Sensor [label="consequences", color="green"];
+    // Connect primary nodes and their parameters
+    Context_n -> schema [label="stimulus"];
+    schema -> ontology [label="perception"];
+    ontology -> values [label="concept"];
+    values -> goals [label="emotion"];
+    goals -> capabilities [label="decision", color="green"];
+    capabilities -> Context_n1 [label="action", color="green"];
+    Context_n1 -> schema [label="consequences", color="green"];
 
     // Reflection Edges
-    LeftBrain -> Mind [label="reflection", color="red"];
-    Mind -> schema [color="red"];
-    Mind -> ontology [color="red"];
-    Mind -> values [color="red"];
-    Mind -> goals [color="red"];
+    goals -> awareness [label="reflection", color="red"];
+    awareness -> schema [color="red"];
+    awareness -> ontology [color="red"];
+    awareness -> values [color="red"];
+    awareness -> goals [color="red"];
 }
