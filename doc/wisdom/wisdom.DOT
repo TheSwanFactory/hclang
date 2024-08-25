@@ -1,0 +1,72 @@
+digraph Wisdom {
+
+    label="Wisdom Improvement Protocol";
+    labelloc="t";
+
+    // Context nodes
+    Context_n [shape="diamond"; label="Context[n]";];
+    Context_n1 [shape="diamond"; label="Context[n+1]";];
+
+    subgraph cluster_Mind {
+        label = "Mind";
+        style = "filled";
+        color = "lightpink";
+        awareness [shape="box"];
+    }
+
+    // Define clusters for the parameters
+    subgraph cluster_Sensor {
+        label = "Sensor";
+        style = "filled";
+        color = "lightgrey";
+        schema [shape="box"];
+    }
+
+    subgraph cluster_Classifier {
+        label = "Classifier";
+        style = "filled";
+        color = "lightgrey";
+        ontology [shape="box"];
+    }
+
+    subgraph cluster_RightBrain {
+        label = "RightBrain";
+        style = "filled";
+        color = "lightgrey";
+        values [shape="box"];
+    }
+
+    subgraph cluster_LeftBrain {
+        label = "LeftBrain";
+        style = "filled";
+        color = "lightgrey";
+        goals [shape="box"];
+    }
+
+
+    // Place Mind and Body clusters on the same level with different colors
+    subgraph cluster_Body {
+        label = "Body";
+        style = "filled";
+        color = "lightgreen";  // Different color for Body cluster
+        capabilities [shape="box"];
+    }
+
+
+    // Main workflow connections
+    Context_n -> schema [label="stimulus"];
+    schema -> ontology [label="perception"];
+    ontology -> values [label="concept"];
+    values -> goals [label="emotion"];
+    goals -> capabilities [label="decision", color="green"];
+    capabilities -> Context_n1 [label="action", color="green", constraint=false];
+    Context_n1 -> schema [label="consequences", color="green", constraint=false];
+
+    // Reflection edges
+    goals -> awareness [label="reflection", color="blue", constraint=false];
+    awareness -> schema [color="red", style="dotted"];
+    awareness -> ontology [color="red", style="dashed"];
+    awareness -> values [color="red", style="solid"];
+    awareness -> goals [color="red", style="bold"];
+
+}
