@@ -1,0 +1,82 @@
+diagram:
+  type: flowchart
+  direction: TB
+  nodes:
+    - id: Context_n
+      type: diamond
+    - id: Context_n1
+      type: diamond
+    - id: Sensor
+    - id: Classifier
+    - id: RightBrain
+    - id: LeftBrain
+    - id: Body
+      type: house
+    - id: Mind
+      type: invhouse
+    - id: schema
+    - id: ontology
+    - id: values
+    - id: goals
+    - id: capabilities
+    - id: awareness
+
+  edges:
+    - from: Context_n
+      to: Sensor
+      label: "stimulus"
+    - from: Sensor
+      to: Classifier
+      label: "perception"
+    - from: Classifier
+      to: RightBrain
+      label: "concept"
+    - from: RightBrain
+      to: LeftBrain
+      label: "emotion"
+    - from: LeftBrain
+      to: Body
+      label: "decision"
+      color: green
+    - from: Body
+      to: Context_n1
+      label: "action"
+      color: green
+    - from: Context_n1
+      to: Sensor
+      label: "consequences"
+      color: green
+    - from: Sensor
+      to: schema
+      color: blue
+    - from: Classifier
+      to: ontology
+      color: blue
+    - from: RightBrain
+      to: values
+      color: blue
+    - from: LeftBrain
+      to: goals
+      color: blue
+    - from: Body
+      to: capabilities
+      color: blue
+    - from: Mind
+      to: awareness
+      color: blue
+    - from: LeftBrain
+      to: Mind
+      label: "reflection"
+      color: red
+    - from: Mind
+      to: schema
+      color: red
+    - from: Mind
+      to: ontology
+      color: red
+    - from: Mind
+      to: values
+      color: red
+    - from: Mind
+      to: goals
+      color: red
