@@ -1,0 +1,41 @@
+digraph WisdomIntegrationPipeline {
+    rankdir=TB;
+
+    Context_n [label="Context n", shape="diamond"];
+    Context_n1 [label="Context n+1", shape="diamond"];
+    Sensor [label="Sensor"];
+    Classifier [label="Classifier"];
+    RightBrain [label="RightBrain"];
+    LeftBrain [label="LeftBrain"];
+    Body [label="Body", shape="house"];    
+    Mind [label="Mind", shape="invhouse"];
+
+    schema [shape="box"];
+    ontology [shape="box"];
+    values [shape="box"];
+    goals [shape="box"];
+    capabilities [shape="box"];
+    awareness [shape="box"];
+
+    Context_n -> Sensor [label="stimulus"];
+    Sensor -> Classifier [label="perception"];
+    Classifier -> RightBrain [label="concept"];
+    RightBrain -> LeftBrain [label="emotion"];
+
+    LeftBrain -> Body [label="decision", color="green"];
+    Body -> Context_n1 [label="action", color="green"];
+    Context_n1 -> Sensor [label="consequences", color="green"];
+
+    LeftBrain -> Mind [label="reflection", color="red"];
+    Mind -> schema [color="red"];
+    Mind -> ontology [color="red"];
+    Mind -> values [color="red"];
+    Mind -> goals [color="red"];
+
+    Sensor -> schema [color="blue"];
+    Classifier -> ontology [color="blue"];
+    RightBrain -> values [color="blue"];
+    LeftBrain -> goals [color="blue"];
+    Body -> capabilities [color="blue"];
+    Mind -> awareness [color="blue"];
+}
