@@ -1,5 +1,8 @@
 digraph WisdomIntegrationPipeline {
-    rankdir=TB;
+
+    // Context nodes
+    Context_n [shape="diamond"];
+    Context_n1 [shape="diamond"];
 
     // Define clusters for the parameters
     subgraph cluster_Sensor {
@@ -30,37 +33,35 @@ digraph WisdomIntegrationPipeline {
         goals [shape="box"];
     }
 
+
+    // Place Mind and Body clusters on the same level with different colors
     subgraph cluster_Body {
         label = "Body";
         style = "filled";
-        color = "lightgrey";
+        color = "lightgreen";  // Different color for Body cluster
         capabilities [shape="box"];
     }
 
     subgraph cluster_Mind {
         label = "Mind";
         style = "filled";
-        color = "lightgrey";
+        color = "lightpink";  // Different color for Mind cluster
         awareness [shape="box"];
     }
 
-    // Context and Edges
-    Context_n [shape="diamond"];
-    Context_n1 [shape="diamond"];
-
-    // Connect primary nodes and their parameters
+    // Main workflow connections
     Context_n -> schema [label="stimulus"];
     schema -> ontology [label="perception"];
     ontology -> values [label="concept"];
     values -> goals [label="emotion"];
-    goals -> capabilities [label="decision", color="green"];
-    capabilities -> Context_n1 [label="action", color="green"];
-    Context_n1 -> schema [label="consequences", color="green"];
+    goals -> capabilities [label="decision", color="green", constraint=false];
+    capabilities -> Context_n1 [label="action", color="green", constraint=false];
+    Context_n1 -> schema [label="consequences", color="green", constraint=false];
 
-    // Reflection Edges
-    goals -> awareness [label="reflection", color="red"];
-    awareness -> schema [color="red"];
-    awareness -> ontology [color="red"];
-    awareness -> values [color="red"];
-    awareness -> goals [color="red"];
+    // Reflection edges
+    goals -> awareness [label="reflection", color="red", constraint=false];
+    awareness -> schema [color="red", constraint=false];
+    awareness -> ontology [color="red", constraint=false];
+    awareness -> values [color="red", constraint=false];
+    awareness -> goals [color="red", constraint=false];
 }
