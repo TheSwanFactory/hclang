@@ -1,7 +1,7 @@
-digraph WisdomIntegrationPipeline {
+digraph Wisdom {
 
-    label="Wisdom Integration Pipeline"; // Add a title to the graph
-    labelloc="t"; // Position the label at the top
+    label="Wisdom Improvement Protocol";
+    labelloc="t";
 
     // Context nodes
     Context_n [shape="diamond"; label="Context[n]";];
@@ -10,7 +10,7 @@ digraph WisdomIntegrationPipeline {
     subgraph cluster_Mind {
         label = "Mind";
         style = "filled";
-        color = "lightpink";  // Different color for Mind cluster
+        color = "lightpink";
         awareness [shape="box"];
     }
 
@@ -64,8 +64,9 @@ digraph WisdomIntegrationPipeline {
 
     // Reflection edges
     goals -> awareness [label="reflection", color="blue", constraint=false];
-    awareness -> schema [color="red", penwidth=1];
-    awareness -> ontology [color="red", penwidth=3];
-    awareness -> values [color="red", penwidth=5];
-    awareness -> goals [color="red", penwidth=7];
+    awareness -> schema [color="red", style="dotted"];
+    awareness -> ontology [color="red", style="dashed"];
+    awareness -> values [color="red", style="solid"];
+    awareness -> goals [color="red", style="bold"];
+
 }
