@@ -62,7 +62,7 @@ In the example above, `x!` is mutable and can be changed, while `Y` is immutable
 
 Sigma Calculus treats grouping constructors and whole numbers as Monads. These Monads are used for structuring and organizing data.
 
-### Examples of Primitive Monads:
+### Examples of Primitive Monads
 
     ; 1 2 3       # Whole numbers are Monads, which automatically sum
     # 6
@@ -112,7 +112,7 @@ Symbols represent variables, properties, and operations. They are defined by spe
 
 A leading `.` in a symbol indicates a **name** (which evaluates to a symbol). Without the leading dot, the symbol is evaluated as a **value** in the current or parent context, and resolves to a Monad.
 
-### Examples:
+### Examples
 
     ; .a 42          # Symbol a is a name that evaluates to 42.
     # .a 42
@@ -132,7 +132,7 @@ A leading `.` in a symbol indicates a **name** (which evaluates to a symbol). Wi
 
 Symbols can have nested properties using dot notation. This allows for creating complex structures of Monads.
 
-### Examples of Nested Symbols:
+### Examples of Nested Symbols
 
     ; .obj [.prop 5; 1, 2, 3]    # Define an object with property `.prop`.
     # [.prop 5; 1, 2, 3]
@@ -153,7 +153,6 @@ Symbols can have nested properties using dot notation. This allows for creating 
 Operators in Sigma Calculus are binary, meaning they always operate on two Monads. Operators return closures that can be applied to a second argument. The leading dot is often omitted for operators.
 
 ### Common Operators
-
 
 #### FOLD
 
