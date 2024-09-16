@@ -11,7 +11,7 @@ Because WPUs are used for all bit-level operations, there is no need for the com
 ## Sigma Calculus
 
 The Sigma Calculus is explicitly designed to model stateful systems using nested contexts.
-The root context is the immutable Global Object Domain (GOD), which contains all other contexts. Each context is a set of objects, which can be interpreted as either data or code. The Sigma Calculus is a formal system for manipulating these objects, which can be thought of as a generalization of the Lambda Calculus. 
+The root context is the immutable Global Object Domain (GOD), which contains all other contexts. Each context is a set of objects, which can be interpreted as either data or code. The Sigma Calculus is a formal system for manipulating these objects, which can be thought of as a generalization of the Lambda Calculus.
 
 ### WPU Sentences
 
@@ -32,9 +32,9 @@ This is also true when grouping using parentheses:
 # 42
 ```
 
-### Properties and Memory
+### Keys and Memory
 
-The first and most crucial aspect of computation is creating and using properties:
+The first and most crucial aspect of computation is creating and using keys:
 
 ```css
 ; .x 3
@@ -43,12 +43,12 @@ The first and most crucial aspect of computation is creating and using propertie
 # 7
 ```
 
-Here, the property `x` is bound to the variable 3 in the local context, then dereferenced to add to 4.
-We treat memory as a nested series of associative arrays.
-For simplicity, we assume `load` and `store` take constant time,
+Here, the key `x` is bound to the value 3 in the local context, then dereferenced to add to 4.
+We treat memory as a nested series of [associative arrays](https://brilliant.org/wiki/associative-arrays/#:~:text=Associative%20arrays%2C%20also%20called%20maps,the%20number%20is%20the%20key.).
+For simplicity, we assume `load` and `store` take logarithmic time,
 and memory can contain 2^n values (with properties taking up neglible space).
 
-Properties use effect typing to manage mutable state.
+Keys use effect typing to share mutable state across contexts.
 See [Fractor](https://ihack.us/2024/09/14/the-fractor-model-precise-shared-mutable-state-management-for-systems-programming/) for the notation and semantics.
 
 ### Arrays and Iterators
@@ -152,6 +152,6 @@ The Turing Machine is a well-known model of computation that has been studied ex
 
 ## Conclusions
 
-The Shannon Machine is a new model of computation that is based on bit-level word operations and is designed to be more practical and efficient than the Turing Machine. It is a decider computational system that uses bounded depth boolean circuits to perform arithmetic and is based on the Sigma Calculus, which is a formal system for manipulating objects in nested contexts. The Shannon Machine is designed to be a more realistic model of computation that is more in line with how modern computers actually work, and it has the potential to be a more practical and efficient model of computation for the types of problems computers are actually used for.
+The Shannon Machine is a new model of computation that is based on bit-level word operations and is designed to be more practical and efficient than the Turing Machine. It is a decider computational system that uses boolean circuits bounded in depth (logarithmic in *n*) to perform arithmetic ("calculation"), and the Sigma Calculus to perform computation. The Sigma Calculus is a formal system for manipulating objects in nested contexts, and differs from the Lambda Calculus in that it is memory-centric rather than processor-centric. The Shannon Machine is designed to be a more realistic model of computation that is more in line with how modern computers actually work, and it has the potential to be a more practical and efficient model of computation for the types of problems computers are actually used for.  However, my hope is that it will also provide a richer and more robust theoretical foundation for computation than the Turing Machine, with profound implications for the safety and efficiency of future software and hardware systems.
 
-Whether it will fulfill this potential remains to be seen, but it is an interesting and promising new model of computation that is worth studying and exploring further.
+Whether it will fulfill that potential remains to be seen, but I hope you agree it is an interesting and promising new model of computation that is worth studying and exploring further.
