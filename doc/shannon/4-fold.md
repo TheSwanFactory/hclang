@@ -52,45 +52,52 @@ Let's break down a practical example using **HCLANG notation**, showing how arra
 
 ---
 
-### 1. **Setup: A Simple Array with Properties**
+### 1. **Setup: Arrays Properties**
 
-We begin by defining an array and adding a property to it:
+We begin by defining a property:
 
-```
-; .a 1
-# .a 1
-```
+    ; .a 1
+    # .a 1
 
 Here, the property `.a` is assigned the value `1`.
 
-We can access both the data and the property of this array:
+We can access the property directly:
 
-```
-; .a
-# 1
-```
+    ; .a
+    # 1
 
 This shows that the property is readily available for use in computations.
 
+Next, let’s assign the property `.arr` to an array:
+
+    ; .arr [1, 2]
+    # .arr [1, 2]
+    ; arr
+    # 
+
+We can even assign properties inside the array:
+
+    ; .arr.b 2
+    # .arr [.b 2; 1, 2]
 ---
 
 ### 2. **Using FOLD to Process the Array**
 
 Next, let’s use the `fold` operation to process an array. We’ll sum the elements of the array `[1, 2]`:
 
-```
-; [1, 2] | (+)
-# 3
-```
+    ; [1, 2] | ()
+    # 3
 
 This basic fold adds up the elements of the array, resulting in `3`.
+Note that whole numbers are also considered Peano arrays, so this works for any whole number:
+
+    ; 3 | ()
+    # 3  # 0 + 1 + 2
 
 Now, let’s incorporate the property `.a` into the fold operation. We’ll add `.a` to each element during the fold:
 
-```
-; [1, 2] | (+ .a)
-# 5
-```
+    ; [1, 2] | (+ .a)
+    # 5
 
 Each element of the array is processed, and the property `.a` (which is `1`) is added to the result.
 
@@ -100,40 +107,30 @@ Each element of the array is processed, and the property `.a` (which is `1`) is 
 
 We can extend this by defining actions and closures that transform how the array behaves. Here’s a simple closure that references the property `.a`:
 
-```
-; .f {a a}
-# .f {a a}
-```
+    ; .f {a a}
+    # .f {a a}
 
 This closure doubles the value of `.a` and returns it. When we call the closure:
 
-```
-; f()
-# 2
-```
+    ; f()
+    # 2
 
 The closure evaluates and returns `2`, which is the value of `a` doubled.
 
 Next, let’s define a function that uses both the property and the closure:
 
-```
-; .g (.a 1)^{a a}
-# .g (.a 1)^{a a}
-```
+    ; .g (.a 1)^{a a}
+    # .g (.a 1)^{a a}
 
 This function behaves similarly to the closure but allows us to pass new values to `.a`. We can call the function with the default value of `.a`:
 
-```
-; g()
-# 2
-```
+    ; g()
+    # 2
 
 We can also pass a new value for `.a`:
 
-```
-; g(.a 2)
-# 4
-```
+    ; g(.a 2)
+    # 4
 
 The function now evaluates with `.a = 2`, resulting in `4`.
 
@@ -143,24 +140,18 @@ The function now evaluates with `.a = 2`, resulting in `4`.
 
 In the PEACE Monad, context is important for managing the environment of computation. Let’s define a context-aware function:
 
-```
-; .h [@a, @a]
-# .h [a, a]
-```
+    ; .h [@a, @a]
+    # .h [a, a]
 
 This function references the context of `.a`, allowing us to operate with external values. We can call it without modifying the context:
 
-```
-; h | ()
-# 2
-```
+    ; h | ()
+    # 2
 
 Alternatively, we can provide a new value for `.a` in the context:
 
-```
-; h | (.a 2)
-# 4
-```
+    ; h | (.a 2)
+    # 4
 
 ---
 
@@ -168,10 +159,8 @@ Alternatively, we can provide a new value for `.a` in the context:
 
 Finally, let’s combine all these elements into a single fold operation. We’ll sum the elements of the array `[1, 2]`, apply the closure to each element, and add the property `.a` to the result:
 
-```
-; [1, 2] | ((acc, x) => f(), acc + action(x) + .a)
-# 8
-```
+    ; [1, 2] | ((acc, x) => f(), acc + action(x) + .a)
+    # 8
 
 This final expression demonstrates the power of arrays with properties. We’ve combined data, properties, actions, and context into a single fold operation that manages the computation in a simple, homoiconic way.
 
