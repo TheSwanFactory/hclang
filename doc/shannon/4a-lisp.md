@@ -10,15 +10,15 @@ Lisp has long been celebrated for its simplicity, flexibility, and especially fo
 
 ### 1.1 Challenge
 
-One of the main criticisms of Lisp is its **heavy use of parentheses**, often leading to what is called "parentheses hell." This makes code hard to parse visually, especially for newcomers. Additionally, in Lisp, recursing over linked lists is a common pattern, which is more complex than simply iterating over linear arrays.
+One of the main criticisms of Lisp is its **heavy use of parentheses**, often leading to what is called "parentheses hell." This makes code hard to parse visually, especially for newcomers. This is consequence of the way Lisp treats everything as a single paragraph-level expression, without support for named intermediate values.
 
 ### 1.2 Improvement
 
-Sigma Calculus replaces parentheses-heavy recursion with **stateful arrays** and uses a streamlined syntax. By leveraging arrays and **ternary operators** for conditionals, Sigma reduces code complexity. Methods can be written as **short, named sentences** with properties that refer to each other, making the code cleaner and easier to follow.
+By using custom syntax for closures and operators, Sigma Calculus replaces a sea of parenthesis with a more **readable and intuitive syntax**. This makes the code easier to understand and maintain, especially for developers coming from languages with more traditional syntax.
 
 ### 1.3 Example
 
-Lisp factorial using recursion on a linked list:
+Lisp factorial using recursion:
 
 ```lisp
 (defun factorial (n)
@@ -27,13 +27,17 @@ Lisp factorial using recursion on a linked list:
       (* n (factorial (- n 1)))))
 ```
 
-In Sigma Calculus, this can be done with a **ternary operator** and a simple array structure:
+In Sigma Calculus, this can be done with a **ternary operator** and a simple closure:
 
 ```sh
-.factorial [n] [n <= 1 ? 1 : n * factorial[n - 1]]
+.factorial .n^{
+    n <= 1 ? 1 : n * factorial(n - 1)
+}
 ```
 
-Here, the **ternary conditional** (`? :`) makes the logic much clearer and shorter, and the use of **array indexing** allows for more intuitive access and manipulation of data.
+Here, the **ternary conditional** (`? :`) makes the logic much clearer and shorter, without the need for nested parentheses.
+The closure syntax (`{}`) also simplifies the definition of functions, making the code more readable and maintainable.
+Impressively, by using this syntax to infer the type of the underlying objects, Sigma actually simplifies the underlying interpreter, completely eliminating the need for "special forms" while retaining full homoiconicity.
 
 ---
 
@@ -45,7 +49,7 @@ Lisp’s **dynamic typing** and reliance on linked lists for recursive operation
 
 ### 2.2 Improvement
 
-Sigma Calculus uses **typed arrays** as its fundamental data structure, which is more efficient than Lisp's linked lists. Arrays in Sigma map closely to hardware structures, making operations like iteration faster and more memory-efficient than recursive list processing in Lisp.
+Sigma Calculus uses **typed arrays** as its fundamental data structure, which is more efficient than Lisp's linked lists. Arrays in Sigma map closely to hardware structures, making operations like iteration faster and more memory-efficient than recursive list processing in Lisp. Coarse-grained allocation also enables reference counting, reducing the need for garbage collection.
 
 ### 2.3 Example
 
@@ -58,13 +62,15 @@ Lisp recursion on lists:
       (+ (car lst) (sum-list (cdr lst)))))
 ```
 
-Sigma Calculus replaces this recursion with a simple **linear array iteration**:
+Sigma Calculus replaces this recursion with a simple **list comprehsion** over an array:
 
 ```sh
-.sumArray [arr] [arr | fold .+ 0]
+.sumArray .arr^{arr | ()}
 ```
 
-Instead of recursing over linked lists, Sigma uses **array folding** (`fold .+ 0`), which iterates over the array and accumulates the sum. This leads to faster, more predictable performance in real-world applications.
+Instead of recursing over linked lists, Sigma simply reduces the array to a single value, making it more efficient and easier to optimize. This approach is more performant and memory-efficient, especially for large data sets, compared to Lisp's recursive list processing.
+
+Note how the Monadic nature of whole numbers in Sigma enables summing the array without even the need for an explicit `+` operator.
 
 ---
 
