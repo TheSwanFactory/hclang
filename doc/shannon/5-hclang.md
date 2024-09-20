@@ -1,4 +1,4 @@
-# Homoiconic C (HC) Syntax Cheat Sheet
+# TSM-5: Homoiconic C (HC) Syntax Cheat Sheet
 
 ## Introduction
 
@@ -89,41 +89,38 @@ A sequence of identifiers and primitives forms an expression.
 - Super: `^` refers to the parent context.
 - This: `.` refers to the current object.
 
-## 6. Object-Oriented Programming
+## 6. Examples
+
+In Homoiconic C, classes, singletons, and inheritance
+are just design patterns on top of the core syntax.
 
 ### 6.1 Classes
 
 Classes are closures that can create instances:
 
-```
-my-class {
-  ._property _;
-  .getProperty { ^._property }
-  .setProperty: { .^._property _ }
-};
-```
+    my-class {
+      ._property _;
+      .getProperty { ^._property }
+      .setProperty: { .^._property _ }
+    };
 
 ### 6.2 Singletons
 
 Singletons are non-lazy constructors:
 
-```
-my-singleton (
-  ._property _;
-  .getProperty { ^._property }
-  .setProperty: { .^._property _ }
-);
-```
+    my-singleton (
+      ._property _;
+      .getProperty { ^._property }
+      .setProperty: { .^._property _ }
+    );
 
 ### 6.3 Inheritance
 
 Specify a parent for inheritance:
 
-```
-my-subclass {
-  .^ my-class
-};
-```
+    my-subclass {
+      .^ my-class
+    };
 
 ## 7. Predefined Operators
 
@@ -131,24 +128,15 @@ my-subclass {
 
 - Ternary operator is broken into `?` and `:`:
 
-```
-(1 > 5) ? 100 : 10
-```
+    (1 > 5) ? 100 : 10
 
 ### 7.2 Iterators
 
 - **Map**: `|` operator:
 
-```
-[1, 2, 3] | { _ + 1 }
-```
+    [1, 2, 3] | { _ + 1 }
 
 - **Reduce**: `&` operator:
 
-```
-[1, 2, 3] & { . + _ }
-```
+    [1, 2, 3] & { . + _ }
 
-## Conclusion
-
-Homoiconic C simplifies programming by unifying concepts under a single object model with minimal syntax. This cheat sheet covers the essential syntax to get started with HC, but the language's power lies in its consistent and flexible semantic model.
