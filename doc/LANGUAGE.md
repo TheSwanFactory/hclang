@@ -1,8 +1,11 @@
+<!-- markdownlint-disable MD049 -->
 # Homoiconic C
+
 ## Coding Without A Language
+
 ### Draft 3 • 24-MAR-2017
 
-# Introduction
+## Introduction
 
 Homoiconic C ("HC") is an alternative to traditional programming languages. There are a handful of primitive types, and three types of aggregation.  Everything else is just an expression.  That means it has:
 
@@ -24,11 +27,11 @@ Instead, it has a robust runtime built around:
 
 A stretch goal is to not use any English words in the base language, so as to allow maximal localization; though we may resort to Latin if we run out of special characters.
 
-## The Format
+### The Format
 
 Rather than a complex English-like language, HC is a simple data format for expressions that is “all but” Turing Complete (see Appendix for details). By avoiding complicated grammars, the syntax becomes a thin veneer on top of the semantics, rather than vice versa.  
 
-## Our Philosophy
+### Our Philosophy
 
 Our goal is not to make programming painless, but rather to concentrate the pain where it does the most good. You should be able to think about what really maters WHEN it really matters, but not otherwise.
 
@@ -40,27 +43,27 @@ Examples:
 
 Right now, you either must think about certain things all the time (i.e., when doing assembly) or can never think about them at all (e.g., in a high-level language).
 
-# The Object Model
+## The Object Model
 
 HC is "monadic", in the sense that everything is a single type of object that we call a Frame.  All syntax (aggregates, primitives, functions, even comments!) create Frames.  Frames combine aspects of dictionaries, arrays, and functions.  They may seem a little complex, they make everything else much simpler. Once you get used to them, constructs in other languages will start to feel like neutered Frames!
 
-## Inheritance
+### Inheritance
 
 Everything inherits its current scope (like closures). In addition, evaluation of lazy expressions (closures) causes the result to inherit their scope, allowing them to be used as object factories.
 
 ### TODO: Explicit Inheritance (Subclassing)
 
-## Effect Typing
+### Effect Typing
 
 Rather than specify call-by-value or call-by-reference, HC is designed around the BitC model for effect typing.  Shapiro *et al* proved it is possible to have a [sound *and* complete](www.cs.jhu.edu/~swaroop/aplas.pdf) systems language if you explicitly annotate variables for **constancy** and **mutability** at each context boundary. This gives the compiler enough information to know how and when to safely copy or share data structures.
 
  Unfortunately, they could not do that within their Lisp-like syntax. Inspired by their work, we have chosen to use the bulk of our "syntax budget" to address that problem.  In particular, we believe effect is so fundamental we bake it into our identifiers:
 
- - `CONST` # begins with uppercase letter
- - `variable` # does not
- - `mutable_` # trailing underscore
- - `immutable` # default
- - `mutating_method:` # trailing colon
+- `CONST` # begins with uppercase letter
+- `variable` # does not
+- `mutable_` # trailing underscore
+- `immutable` # default
+- `mutating_method:` # trailing colon
 
 Their core insight is that mutability is a property of the *handle*, not the *object*.  Every object starts out mutable, but as long as it is only referenced from immutable handles the compiler can share a single instance between them.  Even if a context specifies a mutable handle, that only maters if it is called by a mutating method, which becomes copy-on-write.  For that reason, all mutating methods are required to return 'self'.
 
@@ -68,7 +71,7 @@ This approach may seem incomplete, in that it doesn't specify the mutability of 
 
 Please note that these particular conventions are preliminary, and may change in future versions based on empirical tests of readability and intuitiveness.  Since HC is just a data format, it is trivial to semantically version, and define conversions from obsolete versions.
 
-## Access Modifiers
+### Access Modifiers
 
 Closely related to effect typing (which determines *what* can change) are access modifiers (which determine *who* can change or see that). To streamline the grammar and readability, we also bake those into the identifiers, following the typical C conventions:
 
@@ -78,7 +81,6 @@ Closely related to effect typing (which determines *what* can change) are access
 
 ### TODO: Are `_foo` and `foo` the same modifier?
 
-
 ### TODO: Explicit Typing
 
 - Static typing: (the `<` and `>` operators)
@@ -86,13 +88,13 @@ Closely related to effect typing (which determines *what* can change) are access
 - Bitfields
 - Predicates (the `~` operator)
 
-# The Syntax
+## The Syntax
 
 Syntactically, Homoiconic C is a variation on the ASCII Property List format popularized by NeXTSTEP and now expressed by Java, JSON, YAML, etc. (This is basically what we did in rudimentary form with CSON files in The [Hour of NODE](http://hourofnode.org)).
 
 In a traditional Property List, there are separate entities for dictionary and array.  Instead we use Frames, which have attributes of both (and few other abilities, such as scoping and call-ability).
 
-## Aggregate Frames
+### Aggregate Frames
 
 In Homoiconic C, there are three types of Aggregate Frames:
 
@@ -100,7 +102,7 @@ In Homoiconic C, there are three types of Aggregate Frames:
 - *FrameArray*: `[ tuple ]` (aka lists)
 - *FrameExpr*: `( group )` (aka precedence)
 
-### Separators
+#### Separators
 
 There are two different separators used to separate elements of those aggregates:
 
@@ -109,24 +111,24 @@ There are two different separators used to separate elements of those aggregates
 
 This is another key insight. Virtually every real-world data structure has both a header of named properties and a variable-length list or tree of enumerated items (e.g., TCP, HTTP, HTML documents, HTML tags, etc.). Yet somehow there is no universal mechanism for describing those semantics.
 
-### Whitespace
+#### Whitespace
 
 Spaces and newlines serve as terminators and influence binding (and thus precedence). In general, a newline acts like a comma.
 
 Because we allow spaces for indentation, tabs are forbidden and will throw a fatal error (we may reverse this rule in a future dialect).
 
-## Primitives
+### Primitives
 
 There are three types of primitive Frames (but note that even these can have properties and be enumerable).
 
-### Strings
+#### Strings
 
 There are three forms of quoting:
 
 - `“Strings”` # Smart quotes!
 - `#Comments Inline#` or `#End-of-line`
 
-### Numeric
+#### Numeric
 
 ##### Integer
 
@@ -150,15 +152,14 @@ Having times as a primitive avoids having to worry about epochs and whether to u
 - `%time%`
 - `%datetime%`
 
-
-### BLOBs
+#### BLOBs
 
 Historically, data formats were either binary or ASCII (later, textual).  HC makes it trivial to represent Binary Large OBjects directly inside a human-readable document.
 
 - `\5\Bytes`
 - `0sBASE64`
 
-## Identifiers
+### Identifiers
 
 Apart from aggregates and primitives, everything else is just an identifier, which can be:
 
@@ -171,13 +172,13 @@ A sequence of identifiers and primitives is an expression.
 
 That is it. That is the entire syntax, apart from a little syntactic sugar for non-alphanumeric identifiers (operators).  This is what makes Homoiconic C a concise yet expressive data format, as well as a trivial-to-parse programming language.
 
-# Examples
+## Examples
 
 The examples (and the eventual HC interpreter) use `;` for the input prompt and `#` for the output prompt. This convention has the nice property that examples can be pasted directly into the interpreter.  We also use in-line comments (`# #`) for multi-line prompts.
 
-## Properties
+### Properties
 
-### Name versus Value
+#### Name versus Value
 
 Names (setters) begin with a '.', and set a property with that label.
 
@@ -188,33 +189,32 @@ Labels by themselves return that value.
     ; p
     # 42
 
-
 Syntactically, numbers are just special identifiers recognized by the runtime.
 
     ; 1
     # 1
 
-### Dictionary
+#### Dictionary
 
     ; [.x 1; .y 2;]
     # [.x 1; .y 2;]
 
-### Array
+#### Array
 
     ; [1, 2, 3]
     # [1, 2, 3]
 
-### Composite
+#### Composite
 
     ; [.name "weights"; 85, 110, 165]
     # [.name "weights"; 85, 110, 165]
 
-### Internal Reference
+#### Internal Reference
 
     ; .numbers [.min 3; .max 9; min, max]
     # [.min 3; .max 9; min, max]
 
-### External Reference
+#### External Reference
 
     ; numbers .min
     # 3
@@ -222,9 +222,9 @@ Syntactically, numbers are just special identifiers recognized by the runtime.
 Applying a name to a dict (or any Frame) returns the value of that property.
 The space before `.min` is optional, but emphasizes that property access is just another expression
 
-## Expressions
+### Expressions
 
-### Binary Operators
+#### Binary Operators
 
     ; [.mean 12; .deviation 3; mean .- deviation, mean .+ deviation]
     # [.mean 12; .deviation 3; 9, 15]
@@ -236,7 +236,7 @@ Math operators are just properties on number values (like in Ruby). The '.' can 
 
 This is why HC looks like a Plist with expressions.  And our hypothesis is that this is all you need to do programming.
 
-### Nil (False)
+#### Nil (False)
 
 The result of evaluating the empty expression is conventionally called nil.
 
@@ -254,7 +254,7 @@ This is also used as boolean `false` (but not zero).
     ; 1 > 5
     # ()
 
-### All (True)
+#### All (True)
 
 The opposite of the nil expression is the all type, or universal set:
 
@@ -275,7 +275,7 @@ All has the property that every object is a member (`~`), in contrast to nil of 
     ; 2 ~ ()
     ; ()
 
-### Closures
+#### Closures
 
 Closures are just lazily evaluated expressions.  
 
@@ -287,18 +287,17 @@ To evaluate them, apply an argument, such as `nil`:
     ; add ()
     # 4
 
-### Arguments
+#### Arguments
 
-#### Anonyomous `_`
+##### Anonyomous `_`
 
 Use `_` as the anonymous argument.
-```
+
     ; .square {_ * _};
     ; square 3
     # 9
-```
 
-#### Argument Lists
+##### Argument Lists
 
 When you apply something to a closure, it actually inserts that value above it
 in the hierarchy before it is evaluated.
@@ -316,12 +315,12 @@ Since objects capture the scope where they are created, this may allow closures 
 
 TODO: Determine whether this is a bug or a feature. This should not be that dangerous, since the effect typing and access rules still limit what the called function can do to the calling scope.
 
-## Object-Oriented Programming
+### Object-Oriented Programming
 
 #### Super `^`
 
 The `^` property points to the parent (defined) context, in contrast to the applied (argument) context `_`.  This allows a child to directly set properties on its parent or access overridden properties.
-```
+
     ; .parent_ [
     # # .x 1;
     # # .helper: {
@@ -337,7 +336,6 @@ The `^` property points to the parent (defined) context, in contrast to the appl
     ; parent_.helper: 10;
     ; parent_.y
     # 13
-```
 
 #### TODO: This `.`
 
@@ -348,7 +346,7 @@ The `^` property points to the parent (defined) context, in contrast to the appl
 Impressively, these constructs are sufficiently powerful to enables classes and factories without any additional syntax or semantics!
 
 (In the below examples, we omit the multi-line prompts to reduce visual clutter.)
-```
+
     ; my-class {
       ._property _;
       .getProperty { ^._property }
@@ -362,7 +360,6 @@ Impressively, these constructs are sufficiently powerful to enables classes and 
     # 42
     ; my-instance.getProperty()
     # 3  
-```
 
 This may seem to good to be true, but that is the power of choosing the correct primitives:
 
@@ -372,42 +369,39 @@ This may seem to good to be true, but that is the power of choosing the correct 
 - The class itself is the constructor (as a closure)
 - When evaluated, that closure inherits the class as its parent
 
-## TODO: Class variables
+### TODO: Class variables
 
 #### Singletons
 
 As an added bonus, Frame is perhaps unique in that it is trivial to create singleton objects simply by using a non-lazy constructor:
 
-```
-    ; my-singleton (
-      ._property _;
-      .getProperty { ^._property }
-      .setProperty: { .^._property _}
-    );
-    ;
-```
+css
+  ; my-singleton (
+    ._property_;
+    .getProperty { ^._property }
+    .setProperty: { .^._property _}
+  );
+  ;
 
-#### Inheritance
+#### Class Inheritance
 
 Even inheritance is already accounted for, simply by allowing an object to specify its parent:
 
-```
     ; my-subclass {
       .^ my-class
     };
-```
+
 At this time there does not appear to be any natural way to implement multiple inheritance (which may be a good thing).  However, if you come up with your own it would be trivial to use it:
 
 (Fake code, will give an error.)
-```
+
     ; my-multiclass {
       .^ multiply-inherit (my-class, my-other-class)
     };
-```
 
-## Predefined Operators
+### Predefined Operators
 
-### Conditionals
+#### Conditionals
 
 The ternary operator can be broken into two binary operators (with slightly different semantics).
 
@@ -430,24 +424,24 @@ but nil itself does the reverse.
 Which, when the first expression does not return nil, acts like the ternary
 operator:
 
-  ; ( 1 > 5 ) ? 100 : 10
-  # 10
+    ; ( 1 > 5 ) ? 100 : 10
+    # 10
 
 Note that this implies that applying nil to anything other than a closure has no effect.
 
-### Iterators
+#### Iterators
 
-We use `|` for map, in homage to the UNIX pipeline.
+We use `&` for map, in homage to the UNIX pipeline.
 
-    ; [1, 2, 3] | { _ + 1 }
+    ; [1, 2, 3] & { _ + 1 }
     # [2, 3, 4]
 
-  Similarly, we use `&` for reduce:
+  Similarly, we use `|` for reduce:
 
-      ; [1, 2, 3] & { . + _ }
+      ; [1, 2, 3] | { . + _ }
       # 6
 
-# Appendices
+## Appendices
 
 ## Appendix I. On Turing Completeness
 
