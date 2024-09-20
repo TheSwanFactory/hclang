@@ -1,27 +1,31 @@
 # Homiconic C
+
 version: 0.5.11
 
 [![Codeship Status for TheSwanFactory/hclang](https://app.codeship.com/projects/b1198f30-aee9-0137-5fdc-4a1003a17a1c/status?branch=master)](https://app.codeship.com/projects/362584)
 
 ## Introduction
 
-[Homoiconic C](https://theswanfactory.wordpress.com/2016/12/20/homoiconic-c-a-universal-language-for-code-and-data/) (HC) is a single universal language for code and data.  This repository contains the first implementation of HC as an interpreter written in TypeScript running on `nodejs`.  It also contains a sample application called MAML, the [*Multipurpose Abstract Markup Language*](https://theswanfactory.wordpress.com/2016/11/08/introducing-maml-a-draft-proposal-for-html6/).  MAML is a radically simple proposal for replacing all the existing web technologies (HMTL, CSS, JavaScript, SVG, etc.) with a single format based on HC. It can also be used to define easily-parseable variants of other common file formats (e.g., HCSV, HCSON). 
+[Homoiconic C](https://theswanfactory.wordpress.com/2016/12/20/homoiconic-c-a-universal-language-for-code-and-data/) (HC) is a single universal language for code and data.  This repository contains the first implementation of HC as an interpreter written in TypeScript running on `nodejs`.  It also contains a sample application called MAML, the [*Multipurpose Abstract Markup Language*](https://theswanfactory.wordpress.com/2016/11/08/introducing-maml-a-draft-proposal-for-html6/).  MAML is a radically simple proposal for replacing all the existing web technologies (HMTL, CSS, JavaScript, SVG, etc.) with a single format based on HC. It can also be used to define easily-parseable variants of other common file formats (e.g., HCSV, HCSON).
 
 ## Usage
 
+```shell
+npm install
+export DEBUG=true # optional
+npm run hc
 ```
-$ npm install
-$ export DEBUG=true # optional
-$ npm run hc
-```
+
 This will launch the interpreter.
 
 ## BitScheme
 
 To generate and run the BitScheme documentation, type:
+
+```shell
+npm run bs:all
 ```
-$ npm run bs:all
-```
+
 This will open the BitScheme.html file, and also run the documentation through the testdoc evaluator which will generate pass/fail messages.
 
 ## Development
@@ -33,11 +37,12 @@ This will open the BitScheme.html file, and also run the documentation through t
 3. Clone the [github repository](https://github.com/TheSwanFactory/hclang.git).
 
 4. Install [node.js](https://nodejs.org/).
-  * e.g., `brew install node` on macOS.
+
+   * e.g., `brew install node` on macOS.
 
 5. Run `npm test`.
 
-## Publishing 
+## Publishing
 
 From the feature branch:
 
