@@ -96,11 +96,12 @@ In a traditional Property List, there are separate entities for dictionary and a
 
 ### Aggregate Frames
 
-In Homoiconic C, there are three types of Aggregate Frames:
+In Homoiconic C, there are four types of Aggregate Frames:
 
-- *FrameLazy*: `{ closure }` (aka functions)
 - *FrameArray*: `[ tuple ]` (aka lists)
 - *FrameExpr*: `( group )` (aka precedence)
+- *FrameLazy*: `{ closure }` (aka functions)
+- *FrameType*: `< type >` (aka predicates)
 
 #### Separators
 
@@ -314,6 +315,49 @@ Since objects capture the scope where they are created, this may allow closures 
     # 25
 
 TODO: Determine whether this is a bug or a feature. This should not be that dangerous, since the effect typing and access rules still limit what the called function can do to the calling scope.
+
+#### Types
+
+Types are actually special kind of closure, used to test whether an object is a member of a set.
+They always return either true or false.
+Typically, types are assigned to properties inline.
+However, they can also be assigned an alias for reuse.
+
+Types can be as simple as a list of valid values:
+
+    ; @SmallPrimes <2, 3, 5, 7>;
+    ; SmallPrimes 3
+    # <>
+    ; SmallPrimes 4
+    # ()
+
+Types can all be dynamically calculated (a "dependent type"):
+
+    ; @IsEven <_ % 2 == 0>;
+    ; IsEven 4
+    # <>
+    ; IsEven 3
+    # ()
+
+We have to use an alias here, because normally types modify the property they are applied to.
+
+    ; .x IsEven 2
+    # .x 2
+    ; .y IsEven 3
+    # $!.type-error IsEven 3
+
+We can extract the type of an object by using all (`<>`) as an operator:
+
+    ; 0.<> == 1.<>
+    # <>
+    ; 0.<> == `zero`.<>
+    # ()
+    ; @Number <0.<>>
+    # <0.<>>
+    ; .z Number 3
+    # 3
+    ; .alpha Number `one`
+    # $!.type-error Number `one`
 
 ### Object-Oriented Programming
 
