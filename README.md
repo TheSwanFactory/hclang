@@ -1,12 +1,14 @@
 # Homiconic C
 
-version: 0.5.11
-
-[![Codeship Status for TheSwanFactory/hclang](https://app.codeship.com/projects/b1198f30-aee9-0137-5fdc-4a1003a17a1c/status?branch=master)](https://app.codeship.com/projects/362584)
+version: 0.5.14
 
 ## Introduction
 
-[Homoiconic C](https://theswanfactory.wordpress.com/2016/12/20/homoiconic-c-a-universal-language-for-code-and-data/) (HC) is a single universal language for code and data.  This repository contains the first implementation of HC as an interpreter written in TypeScript running on `nodejs`.  It also contains a sample application called MAML, the [*Multipurpose Abstract Markup Language*](https://theswanfactory.wordpress.com/2016/11/08/introducing-maml-a-draft-proposal-for-html6/).  MAML is a radically simple proposal for replacing all the existing web technologies (HMTL, CSS, JavaScript, SVG, etc.) with a single format based on HC. It can also be used to define easily-parseable variants of other common file formats (e.g., HCSV, HCSON).
+[Homoiconic C](https://theswanfactory.wordpress.com/2016/12/20/homoiconic-c-a-universal-language-for-code-and-data/) (HC) is a single universal language for code and data.  This repository contains the first implementation of HC as an interpreter written in TypeScript running on `nodejs`.  
+
+It also contains a sample application called MAML, the [*Multipurpose Abstract Markup Language*](https://theswanfactory.wordpress.com/2016/11/08/introducing-maml-a-draft-proposal-for-html6/).  MAML is a radically simple proposal for replacing all the existing web technologies (HMTL, CSS, JavaScript, SVG, etc.) with a single format based on HC.
+
+HC can also be used to define easily-parseable variants of other common file formats (e.g., HCSV, HCSON).
 
 ## Usage
 
@@ -30,17 +32,15 @@ This will open the BitScheme.html file, and also run the documentation through t
 
 ## Development
 
-1. Install the [Atom editor](http://flight-manual.atom.io/getting-started/sections/installing-atom/).
+1. Clone the [github repository](https://github.com/TheSwanFactory/hclang.git).
 
-2. Install the [language-maml](https://github.com/TheSwanFactory/language-maml) Atom package.
-
-3. Clone the [github repository](https://github.com/TheSwanFactory/hclang.git).
-
-4. Install [node.js](https://nodejs.org/).
+2. Install [node.js](https://nodejs.org/).
 
    * e.g., `brew install node` on macOS.
 
-5. Run `npm test`.
+3. Run `npm test`.
+
+NOTE: The [language-hclang](https://github.com/TheSwanFactory/language-hclang) vscode extension is still in development.
 
 ## Publishing
 
