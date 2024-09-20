@@ -18,8 +18,8 @@ export const Ops = new FrameOps({
   '%%': Modulo,
   '**': Power,
   '=': Equals,
-  '>': GreaterThan,
+  '>>': GreaterThan,
   '>=': GreaterThanOrEqual,
-  '<': LessThan,
+  '<<': LessThan,
   '<=': LessThanOrEqual
 })

@@ -101,7 +101,7 @@ In Homoiconic C, there are four types of Aggregate Frames:
 - *FrameArray*: `[ tuple ]` (aka lists)
 - *FrameExpr*: `( group )` (aka precedence)
 - *FrameLazy*: `{ closure }` (aka functions)
-- *FrameType*: `< type >` (aka predicates)
+- *FrameSchema*: `< type >` (aka types)
 
 #### Separators
 
@@ -316,14 +316,13 @@ Since objects capture the scope where they are created, this may allow closures 
 
 TODO: Determine whether this is a bug or a feature. This should not be that dangerous, since the effect typing and access rules still limit what the called function can do to the calling scope.
 
-#### Types
+#### Schemas
 
-Types are actually special kind of closure, used to test whether an object is a member of a set.
+Schemas (similar to types in other languages) test whether an object is a member of a set.
 They always return either true or false.
-Typically, types are assigned to properties inline.
-However, they can also be assigned an alias for reuse.
+They can be defined inline or given an alias for reuse:
 
-Types can be as simple as a list of valid values:
+They can be as simple as a list of valid values:
 
     ; @SmallPrimes <2, 3, 5, 7>;
     ; SmallPrimes 3
@@ -331,7 +330,7 @@ Types can be as simple as a list of valid values:
     ; SmallPrimes 4
     # ()
 
-Types can all be dynamically calculated (a "dependent type"):
+Or dynamically calculated (a "dependent type"):
 
     ; @IsEven <_ % 2 == 0>;
     ; IsEven 4
@@ -339,14 +338,7 @@ Types can all be dynamically calculated (a "dependent type"):
     ; IsEven 3
     # ()
 
-We have to use an alias here, because normally types modify the property they are applied to.
-
-    ; .x IsEven 2
-    # .x 2
-    ; .y IsEven 3
-    # $!.type-error IsEven 3
-
-We can extract the type of an object by using all (`<>`) as an operator:
+Or extracted from an object by using all (`<>`) as an operator:
 
     ; 0.<> == 1.<>
     # <>

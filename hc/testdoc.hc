@@ -20,3 +20,14 @@ docString 4
 # 789
 ; 0xabc
 # 0xabc
+```
+Test types
+```
+; <> 1
+# <>
+; <> ()
+# ()
+; .one <1> 1
+# .one 1
+; @one 2
+#  $!.type-error .one <1> 2
