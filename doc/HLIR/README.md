@@ -40,6 +40,7 @@ teaching, debugging, and experimenting with MLIR transformations.
 | Concept           | HLIR Syntax                  | MLIR Mapping         |
 | ----------------- | ---------------------------- | -------------------- |
 | **Blocks**        | `{ ... }, { { } }`           | Regions, Modules     |
+| **Group**         | `expr, statement; (group)`   | Elements, Precedenc  |
 | **Types**         | `.name <type>`               | Types, Attribute     |
 | **Set Variable**  | `.var <type> 1`              | Block Arguments      |
 | **Expressions**   | `.var expr (expr expr)`      | SSA Values           |
@@ -60,6 +61,7 @@ teaching, debugging, and experimenting with MLIR transformations.
 | **Memory**        | `load`, `store`, etc.        | Memory Management    |
 | **Exceptions**    | `$literal`                   | Flow Control         |
 | **Visibility**    | `._protected, .__private`    | Scope                |
+| **Effect**        | `var`,`CONST`, `mutating:`   | Constancy, Mutation  |
 
 The key aspects of the HLIR design are:
 
