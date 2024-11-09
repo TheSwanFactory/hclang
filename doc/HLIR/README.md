@@ -65,14 +65,15 @@ teaching, debugging, and experimenting with MLIR transformations.
 
 The key aspects of the HLIR design are:
 
-- Everything is a "Frame": blocks, expressions, lists, etc.
-- Frames can be nested, applied, and enumerated
+- Everything is a PEACE monad: blocks, expressions, lists, etc.
 - Folding is the same as evaluation (trivial homoiconicity)
 - No keywords, only symbols and punctuation
 - No loops, only map and reduce operations
 - Parallel execution is an (arbitrarily complex) type hint
 - Functions use `^` to bind arguments (which are also expressions) to blocks
-- Math and comparison operations are binary operators
+- Types are always applied to `.names` not `values`, and can act as compiler
+  hints
+- All non-alphanumeric symbols are binary operators (math, comparison)
 - Vectors and tensors are represented as typed lists
 - Imports merge the module contents into the current context (or an alias)
 
