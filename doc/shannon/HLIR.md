@@ -1,10 +1,41 @@
 # HLIR: Homoiconic, High-Level Intermediate Representation
 
 HLIR is an extremely simple yet powerful syntax for representing low-level
-instructions in a homoiconic form. It is designed to be easy to parse, easy to
-manipulate, and easy to translate to other representations. The HLIR syntax is
-designed to be a direct mapping to the MLIR syntax, with a few simplifications
-and extensions to make it more human-readable.
+instructions in a homoiconic form. It represents a novel synthesis in compiler
+design by bridging the gap between human and machine representations of
+programs. By combining monadic composition with homoiconic structure, HLIR
+allows developers to express computational intent with minimal syntax while
+maintaining direct mappings to MLIR's powerful optimization framework. 
+
+This marriage of high-level semantics with low-level compilation produces a
+uniquely ergonomic intermediate representation - one where code is data,
+transformations are first-class citizens, and optimization becomes natural
+rather than imposed. The result is a language that is both easy for humans to
+reason about and efficient for compilers to transform, potentially setting a new
+standard for intermediate representations in modern compiler design.
+
+In HLIR's case, this shows up clearly in several design choices:
+
+- Parallel execution as a type hint: You express that parallelism is allowed,
+  not how to parallelize
+- Map/reduce as core operations: You express the data transformation pattern,
+  not the loop mechanics
+- Type inference: You express what values mean, not how they're represented
+- Block-based structure: You express logical grouping, not control flow details
+
+Key to this design in the [PEACE
+Monad](https://ihack.us/2024/09/15/tsm-3-sigma-calculus-and-the-peace-monad/),
+which stands for Property, Enumerable, Action, Context, and Effect. Not only is
+it used for blocks (code), expressions (grouping), and lists (data), but it
+parses and evaluates the HLIR syntax itself. This allows for a simple and
+powerful representation of code that can be easily transformed into MLIR
+constructs.
+
+As an added bonus, homoiconicity means HLIR can be configured as an interpreter
+(executing the intent directly, if inefficiently) or a compiler (generating
+standard MLIR), or in-between (unfolding concise HLIR into verbose HLIR showing
+all the inffered types and transformations). This makes it a powerful tool for
+teaching, debugging, and experimenting with MLIR transformations.
 
 | Concept           | HLIR Syntax                  | MLIR Mapping         |
 | ----------------- | ---------------------------- | -------------------- |
