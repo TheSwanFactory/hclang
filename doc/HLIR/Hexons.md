@@ -69,9 +69,9 @@ Hexons capture these truths in a way that objects cannot, providing a path forwa
 
 ---
 
-### **The Role of TSM-10: A Homoiconic Language for Continuations and Concurrency**
+### **The Role of TBC: A Homoiconic Language for Continuations and Concurrency**
 
-One of the inspirations for hexons comes from **TSM-10**, a language designed around **continuations and concurrency**. TSM-10 treats every computation as a continuation, a structure that describes not just what happens now but what happens next. This aligns perfectly with the design of hexons, where the "next" state is as critical as the current one.
+One of the inspirations for hexons comes from **[To Be Continued](https://ihack.us/2024/11/28/tsm-10-to-be-continued-a-homoiconic-language-for-continuations-and-concurrency/)**, a language designed around **continuations and concurrency**. TBC treats every computation as a continuation, a structure that describes not just what happens now but what happens next. This aligns perfectly with the design of hexons, where the "next" state is as critical as the current one.
 
 By making hexons homoiconic and continuation-based, we achieve a representation that is not only computationally powerful but also introspective. Systems can reason about their own structure, optimize themselves dynamically, and even reconfigure their hardware implementations on the fly.
 
