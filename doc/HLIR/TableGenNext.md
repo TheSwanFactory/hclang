@@ -1,6 +1,13 @@
-# HLIR as a Next-Generation TableGen Replacement for MLIR
+# HLIR NextGen - A TableGen Replacement for MLIR
 
-The **HCLang HLIR (High-Level Intermediate Representation)** framework described in that repository could serve as a next-generation replacement for TableGen, especially if it's designed to handle the kind of semantic richness and extensibility required for a dynamic, multi-level execution framework like MLIR.
+The
+**[HLIR](https://ihack.us/2024/11/29/tsm-10-1-hlir-homoiconic-high-level-intermediate-representation/)
+(High-Level Intermediate Representation)** framework written in [Homoiconic
+C](https://ihack.us/2024/09/19/tsm-5-homoiconic-c-hc-syntax-cheat-sheet/) could
+also serve as a next-generation replacement ("HLIR-NG") for LLVM's
+[TableGen](https://llvm.org/docs/TableGen/), especially if it's designed to
+handle the kind of semantic richness and extensibility required for a dynamic,
+multi-level execution framework like [MLIR](https://mlir.llvm.org).
 
 ## 1. How HLIR Could Replace TableGen
 
@@ -10,7 +17,7 @@ The current **TableGen** system is primarily declarative, focusing on describing
 - Traits and type constraints.
 - Limited structural and semantic information.
 
-**HLIR**, as described in the [README](./README.md), introduces concepts that go far beyond this. Here’s how it could serve as an enhanced replacement:
+**HLIR** introduces concepts that go far beyond this. Here’s how it could serve as an enhanced replacement:
 
 ### 1.1 Structural Parity with TableGen
 
@@ -70,37 +77,23 @@ HLIR’s features align perfectly with the requirements of an MLIR interpreter:
 
 ### 3.1 Behavioral Semantics
 
-HLIR could encode the execution rules for MLIR dialects directly, making it possible to interpret high-level IR without lowering it to LLVM.
+HLIR could encode the execution rules for MLIR dialects directly, making it
+possible to interpret high-level IR without lowering it to LLVM.
 
 #### Example: Execution Rules for Tensor Addition
 
-    operation toy.add {
-        inputs: [tensor, tensor]
-        outputs: [tensor]
-        semantics: [
-            // Pseudo-code or C++ inline behavior
-            let result = element_wise_add(input1, input2)
-            return result
-        ]
+```shell
+.toy {
+    .add ^ (.input1 <tensor>, .input2 <tensor>) -> <tensor> {
+        element_wise_add(input1, input2)
     }
+}
+```
 
-### 3.2 Dynamic Typing and Inference
+HLIR encodes typing rules and inference for operations, allowing for dynamic
+checks during interpretation and static checks during compilation.
 
-HLIR could encode typing rules and inference for operations, allowing for dynamic checks during interpretation.
-
-#### Example: Tensor Type Inference
-
-    operation toy.add {
-        inputs: [tensor<*>]  // Accept tensors of any shape
-        outputs: [tensor<*>]
-        typing_rule: [
-            if input1.shape != input2.shape {
-                error("Shape mismatch in tensor addition")
-            }
-        ]
-    }
-
-### 3.3 Interpreter Generation
+### 3.2 Interpreter Generation
 
 HLIR could directly generate:
 
@@ -150,37 +143,18 @@ HLIR could include semantic information that facilitates optimizations:
 
 ## 6. Example Workflow with HLIR
 
-### 6.1 Define a Dialect in HLIR
+- Define a Dialect in HLIR
+- Generate the MLIR Interpreter
+- Execute Operations Dynamically
 
-    dialect toy {
-        operation toy.add {
-            inputs: [tensor, tensor]
-            outputs: [tensor]
-            semantics: [
-                // Inline execution logic
-                let result = element_wise_add(input1, input2)
-                return result
-            ]
-        }
-    }
+```shell
+. <- .toy
+.tensor_a <tensor> [1, 2, 3];
+.tensor_b <tensor> [4, 5, 6];
 
-### 6.2 Generate the MLIR Interpreter
-
-HLIR tooling could generate:
-
-- C++ or Python runtime for interpreting `toy.add`.
-- Dialect registration and validation logic.
-
-### 6.3 Execute MLIR with the Interpreter
-
-    from hlir.runtime import Interpreter
-
-    # Load the toy dialect
-    interpreter = Interpreter("toy")
-
-    # Define tensors and execute `toy.add`
-    result = interpreter.execute("toy.add", [tensor_a, tensor_b])
-    print(result)
+.result toy.add(tensor_a, tensor_b);
+result
+```
 
 ---
 

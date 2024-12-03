@@ -1,10 +1,12 @@
-# HCDL: A Hardware-Centric Design Language for Dialect Implementation
+# HCDL - A Homoiconic Co-Development Language for MLIR Dialects
 
-Expanding on **HLIR** (or **TableGen**) into a **Hardware-Centric Design Language (HCDL)** is an incredibly powerful idea. By leveraging the **homoiconicity** of HLIR and MLIR, HCDL could act as both a high-level specification tool for dialects and a low-level hardware description language (HDL) for fully defining the architecture implementing those dialects. This would unify **software-level IR design** with **hardware architecture specification**, enabling a truly end-to-end system.
+## OBSOLETE: See RELIGN.md for the latest version.
+
+Expanding on **[HLIR](https://ihack.us/2024/11/29/tsm-10-1-hlir-homoiconic-high-level-intermediate-representation/)** (or **[TableGen](https://ihack.us/2024/11/30/tsm-10-2-hlir-nextgen-a-tablegen-replacement-for-mlir/)**) into a **Homoiconic Co-Development Language (HCDL)**  for hardware and software is an incredibly powerful idea. By leveraging the **homoiconicity** of HLIR and [MLIR](https://mlir.llvm.org), HCDL could act as both a high-level specification tool for dialects and a low-level hardware description language (HDL) for fully defining the architecture implementing those dialects. This would unify **software-level IR design** with **hardware architecture specification**, enabling a truly end-to-end system.
 
 ## 1. What Is HCDL?
 
-HCDL (**Hardware-Centric Design Language**) is envisioned as:
+HCDL (**Homoiconic Co-Development Language**) is envisioned as:
 
 - A language to **specify dialects and their hardware implementations**.
 - A **hardware/software co-design tool**, bridging software semantics and hardware architectures.
@@ -16,24 +18,12 @@ HCDL (**Hardware-Centric Design Language**) is envisioned as:
 
 ### 2.1 Dialect + Hardware Specification
 
-HCDL would extend HLIR/TableGen to not only define MLIR dialect semantics but also map these semantics directly to hardware constructs.
+HCDL would extend HLIR/TableGen to not only define MLIR dialect semantics but also be able to map these semantics directly to hardware constructs.
 
 ```sh
 .toy {
-    .add {
-        inputs: [tensor, tensor]
-        outputs: [tensor]
-        semantics: [
-            // Tensor addition execution logic
-            let result = element_wise_add(input1, input2)
-            return result
-        ]
-        hardware: [
-            // RTL description of hardware implementation
-            module toy_add(input [31:0] tensor1, input [31:0] tensor2, output [31:0] result);
-                assign result = tensor1 + tensor2;
-            endmodule
-        ]
+    .add ^ (.input1 <[f32] <tensor>>, .input2 <[f32] <tensor>>) -> <[f32] <tensor>> {
+        f32_tensor_add(input1, input2)
     }
 }
 ```
@@ -96,26 +86,6 @@ HCDL extends HLIR/TableGen to define:
 - Operation schemas (inputs, outputs, constraints).
 - Semantics for interpreters.
 - Hardware implementations.
-
-```shell
-.customAI {
-    .matrix_mul {
-        inputs: [matrix<f32>, matrix<f32>]
-        outputs: [matrix<f32>]
-        semantics: [
-            // Abstract operation logic
-            let result = matrix_a * matrix_b;
-            return result;
-        ]
-        hardware: [
-            // Hardware implementation in Verilog
-            module matrix_mul(input wire [31:0] matrix_a, matrix_b, output wire [31:0] result);
-                // Custom hardware for matrix multiplication
-            endmodule
-        ]
-    }
-}
-```
 
 ### 4.2 Step 2: Software Generation
 
