@@ -5,7 +5,8 @@ import { terminals } from './terminals.ts'
 
 export type Flag = { [key: string]: boolean; };
 
-export type FactoryType = new (body: string) => FrameAtom;
+export type AtomFactory = new (body: string) => FrameAtom;
+export type BytesFactory = new (body: number[]) => FrameBytes;
 
 export class Token extends FrameAtom {
   constructor (protected data: Frame) {
@@ -36,7 +37,7 @@ export class Lex extends Frame implements ISourced {
   protected body: string = ''
   protected sample: FrameAtom
 
-public constructor (protected Factory: FactoryType) {
+public constructor (protected Factory: AtomFactory) {
     super()
     this.sample = new Factory('')
     this.source = ''

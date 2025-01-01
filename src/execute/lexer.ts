@@ -1,7 +1,7 @@
-import { Frame, FrameString } from '../frames.ts'
+import { Any, Frame, FrameString } from '../frames.ts'
 import { getSyntax } from './syntax.ts'
 
-export type LexOptions = { [key: string]: any; };
+export type LexOptions = { [key: string]: Any; };
 
 export class Lexer extends Frame {
   constructor (out: Frame) {

@@ -50,7 +50,7 @@ export class FrameNote extends FrameQuote {
     return FrameNote.test('-', source, sum)
   };
 
-  constructor (protected data: string, source: string, public where = Frame.nil) {
+  constructor (protected data: string, source: string = '', public where = Frame.nil) {
     super(NilContext)
     this.up = where
     this.is.note = true

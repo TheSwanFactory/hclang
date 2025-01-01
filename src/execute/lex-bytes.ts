@@ -12,7 +12,7 @@ export class LexBytes extends Frame implements ISourced {
     this.up = up
   }
 
-  public call (argument: Frame, _parameter = Frame.nil): Frame {
+  public override call (argument: Frame, _parameter = Frame.nil): Frame {
     if (argument === FrameSymbol.end()) {
       return this.finish(argument, false)
     }

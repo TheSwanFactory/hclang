@@ -1,14 +1,12 @@
 import * as frame from '../frames.ts'
-import { Lex } from './lex.ts'
+import { AtomFactory, Lex } from './lex.ts'
 import { terminals } from './terminals.ts'
 
 export const _syntax: frame.Context = { ...terminals }
-type Class = { new(...args: any[]): any; };
-export const atomClasses: Array<Class> = [
+export const atomClasses: Array<AtomFactory> = [
   frame.FrameAlias,
   frame.FrameArg,
   frame.FrameBlob,
-  frame.FrameBytes,
   frame.FrameComment,
   frame.FrameDoc,
   frame.FrameName,
@@ -18,6 +16,7 @@ export const atomClasses: Array<Class> = [
   frame.FrameString,
   frame.FrameSymbol
 ]
+//   FIXME: frame.FrameBytes not of type AtomFactory
 
 let has_syntax = false
 export function getSyntax () {
@@ -25,12 +24,13 @@ export function getSyntax () {
     return _syntax
   }
   has_syntax = true
-  atomClasses.forEach((Klass: any) => {
+  atomClasses.forEach((Klass: AtomFactory) => {
     const sample: frame.FrameAtom = new Klass('')
     const key = sample.string_start()
     const lexee = new Lex(Klass)
     _syntax[key] = lexee
     return true
   })
+
   return _syntax
 }
