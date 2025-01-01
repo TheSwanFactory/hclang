@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { execFileSync } from "child_process";
+import { execFileSync } from "node:child_process";
 import { beforeEach, describe, it } from "mocha";
 
 describe("script", () => {

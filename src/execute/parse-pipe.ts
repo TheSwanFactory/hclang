@@ -1,13 +1,18 @@
-import { Context, Frame, FrameArray, FrameBind, FrameExpr } from "../frames.ts";
+import {
+  Context,
+  Frame,
+  FrameArray,
+  FrameBind,
+  FrameExpr,
+  IArrayConstructor,
+} from "../frames.ts";
 import { IFinish, Terminal } from "./terminals.ts";
-
-export type ParseFactory = { new (data: Array<Frame>): Frame };
 
 export class ParsePipe extends FrameArray implements IFinish {
   public collector: Array<Frame>;
-  protected Factory: ParseFactory;
+  protected Factory: IArrayConstructor;
 
-  constructor(out: Frame, factory: ParseFactory) {
+  constructor(out: Frame, factory: IArrayConstructor) {
     const meta: Context = {};
     meta[ParsePipe.kOUT] = out;
     meta[Frame.kEND] = Terminal.end();
@@ -30,7 +35,7 @@ export class ParsePipe extends FrameArray implements IFinish {
     return this;
   }
 
-  public bind(_Factory: ParseFactory | undefined = undefined): ParsePipe {
+  public bind(_Factory: IArrayConstructor | undefined = undefined): ParsePipe {
     return this.push(FrameBind);
   }
 
@@ -42,18 +47,18 @@ export class ParsePipe extends FrameArray implements IFinish {
     return next;
   }
 
-  public push(Factory: ParseFactory): ParsePipe {
+  public push(Factory: IArrayConstructor): ParsePipe {
     const child = new ParsePipe(this, Factory);
     return child;
   }
 
-  public pop(_Factory: ParseFactory): ParsePipe {
+  public pop(_Factory: IArrayConstructor): ParsePipe {
     const parent = this.get(ParsePipe.kOUT) as ParsePipe;
     this.finish(Frame.nil);
     return parent;
   }
 
-  public canPop(Factory: ParseFactory): boolean {
+  public canPop(Factory: IArrayConstructor): boolean {
     const match = this.Factory.name === Factory.name;
     if (!match) {
       console.error(
@@ -76,7 +81,7 @@ export class ParsePipe extends FrameArray implements IFinish {
   }
 
   protected makeFrame() {
-    const group = new this.Factory(this.collector);
+    const group = new this.Factory(this.collector, this.meta);
     this.collector = [];
     return group;
   }

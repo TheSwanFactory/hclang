@@ -40,22 +40,22 @@ describe("HCEval", () => {
 
   const MockEnv: Deno.Env = {
     get: (key: string) => {
-        const mockVariables: Record<string, string> = { MY_VAR: "mock_value" };
-        return mockVariables[key];
+      const mockVariables: Record<string, string> = { MY_VAR: "mock_value" };
+      return mockVariables[key];
     },
     has: (key: string) => {
-        return key in { MY_VAR: "mock_value" };
+      return key in { MY_VAR: "mock_value" };
     },
     set: (key: string, value: string) => {
-        console.log(`Set ${key} = ${value}`);
+      console.log(`Set ${key} = ${value}`);
     },
     delete: (key: string) => {
-        console.log(`Deleted ${key}`);
+      console.log(`Deleted ${key}`);
     },
     toObject: () => {
-        return { MOCK_VAR: "mock_value" };
+      return { MOCK_VAR: "mock_value" };
     },
-};
+  };
 
   describe("symbols", () => {
     const key = "key";
