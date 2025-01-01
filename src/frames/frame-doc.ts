@@ -9,11 +9,11 @@ export class FrameDoc extends FrameString {
     super(data, meta)
   }
 
-  public string_prefix () {
+  public override string_prefix () {
     return FrameDoc.DOC_BEGIN
   };
 
-  public string_suffix () {
+  public override string_suffix () {
     return FrameDoc.DOC_END
   };
 };

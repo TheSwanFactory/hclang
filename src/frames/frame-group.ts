@@ -19,7 +19,7 @@ export class FrameGroup extends FrameList {
     return result
   }
 
-  public in (contexts = [Frame.nil]): Frame {
+  public override in (contexts = [Frame.nil]): Frame {
     switch (this.size()) {
       case 0: {
         return Frame.nil

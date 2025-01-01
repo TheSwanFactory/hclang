@@ -10,15 +10,15 @@ export class FrameLazy extends FrameExpr {
     super(data, meta)
   }
 
-  public string_open () {
+  public override string_open () {
     return FrameLazy.LAZY_BEGIN
   };
 
-  public string_close () {
+  public override string_close () {
     return FrameLazy.LAZY_END
   };
 
-  public in (contexts = [Frame.nil]): Frame {
+  public override in (contexts = [Frame.nil]): Frame {
     if (this.data.length === 0) {
       return this
     }
@@ -27,7 +27,7 @@ export class FrameLazy extends FrameExpr {
     return expr
   }
 
-  public call (argument: Frame, parameter = Frame.nil): FrameExpr {
+  public override call (argument: Frame, _parameter = Frame.nil): FrameExpr {
     return new FrameExpr(argument.asArray(), this.meta_for(argument))
   }
 

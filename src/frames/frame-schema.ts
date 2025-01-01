@@ -11,27 +11,27 @@ export class FrameSchema extends FrameList {
     super(data, meta)
   }
 
-  public string_open () {
+  public override string_open () {
     return FrameSchema.BEGIN_SCHEMA
   };
 
-  public string_close () {
+  public override string_close () {
     return FrameSchema.END_SCHEMA
   };
 
-  public in (contexts = [Frame.nil]): Frame {
+  public override in (contexts = [Frame.nil]): Frame {
     const array = this.array_eval(contexts)
     return new FrameSchema(array)
   }
 
-  public apply (argument: Frame, parameter: Frame) {
+  public override apply (argument: Frame, _parameter: Frame) {
     if (!argument.is.void) {
       this.data.push(argument)
     }
     return this
   }
 
-  public at (index: number) {
+  public override at (index: number) {
     if (index >= this.size() || -index > this.size()) {
       const source = '[0..' + this.size() + '].' + index
       return FrameNote.index(source)

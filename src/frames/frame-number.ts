@@ -1,6 +1,5 @@
 import { Frame } from './frame.ts'
 import { FrameAtom } from './frame-atom.ts'
-import { FrameString } from './frame-string.ts'
 import { Context, NilContext } from './meta-frame.ts'
 
 export class FrameNumber extends FrameAtom {
@@ -21,7 +20,7 @@ export class FrameNumber extends FrameAtom {
     this.data = parseInt(source, 10)
   }
 
-  public apply (argument: Frame, _parameter: Frame) : Frame {
+  public override apply (argument: Frame, _parameter: Frame) : Frame {
     // repeatedly apply argument `this.data` times
     let result = Frame.nil
     if ((argument instanceof FrameNumber)) {
@@ -39,15 +38,15 @@ export class FrameNumber extends FrameAtom {
     return [...Array(this.data).keys()]
   }
 
-  public string_start () {
+  public override string_start () {
     return FrameNumber.NUMBER_BEGIN.toString()
   };
 
-  public canInclude (char: string) {
+  public override canInclude (char: string) {
     return FrameNumber.NUMBER_CHAR.test(char)
   }
 
-  protected toData () {
+  protected override toData () {
     return this.data
   }
 

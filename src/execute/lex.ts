@@ -1,7 +1,7 @@
-import { Frame, FrameAtom, FrameBytes, FrameComment, FrameQuote, FrameOperator, ISourced, NilContext, FrameName } from '../frames.ts'
+import { Any, Frame, FrameAtom, FrameBytes, FrameComment, FrameQuote, FrameOperator, ISourced, NilContext, FrameName } from '../frames.ts'
 import { LexBytes } from './lex-bytes.ts'
 import { LexPipe } from './lex-pipe.ts'
-import { terminals } from './terminals.ts'
+import { FactoryConstructor, terminals } from './terminals.ts'
 
 export type Flag = { [key: string]: boolean; };
 
@@ -10,15 +10,15 @@ export class Token extends FrameAtom {
     super(NilContext)
   }
 
-  public called_by (callee: Frame, parameter: Frame) {
+  public override called_by (callee: Frame, parameter: Frame) {
     return callee.apply(this.data, parameter)
   }
 
-  protected toData (): any {
+  protected override toData (): Any {
     return this.data
   }
 
-  public inspect () {
+  public override inspect () {
     return `Token[${this.data.inspect()}]`
   }
 }
@@ -34,20 +34,20 @@ export class Lex extends Frame implements ISourced {
   protected body: string = ''
   protected sample: FrameAtom
 
-  public constructor (protected Factory: any) {
+public constructor (protected Factory: FactoryConstructor) {
     super()
     this.sample = new Factory('')
     this.source = ''
     this.is.void = true
     const name = this.sample.className()
     this.id = this.id + '.' + name
-  }
+}
 
   // TODO: use terminal to determine next parsing class
   // Right now, FrameNumber consume the initial '#' of a comment
   // That should only happen at the end of a Quote
 
-  public call (argument: Frame, _parameter = Frame.nil): Frame {
+  public override call (argument: Frame, _parameter = Frame.nil): Frame {
     const char = argument.toString()
     const end = this.isEnd(char)
     const terminal = Lex.isTerminal(char)
@@ -77,7 +77,7 @@ export class Lex extends Frame implements ISourced {
     return this
   }
 
-  public toString () {
+  public override toString () {
     return this.id + `[${this.body}]`
   }
 

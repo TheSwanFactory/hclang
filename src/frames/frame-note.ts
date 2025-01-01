@@ -58,11 +58,11 @@ export class FrameNote extends FrameQuote {
     this.id += this.data
   }
 
-  public in (_contexts = [Frame.nil]): Frame {
+  public override in (_contexts = [Frame.nil]): Frame {
     return this
   }
 
-  public call (argument: Frame, parameter = Frame.nil): Frame {
+  public override call (argument: Frame, parameter = Frame.nil): Frame {
     if (argument !== FrameSymbol.end()) {
       const result = this.addExtra(argument, parameter)
       return result
@@ -73,15 +73,15 @@ export class FrameNote extends FrameQuote {
     return this.up
   }
 
-  public string_prefix () {
+  public override string_prefix () {
     return FrameNote.NOTE_BEGIN
   };
 
-  public string_suffix () {
+  public override string_suffix () {
     return FrameNote.NOTE_END
   };
 
-  public toString () {
+  public override toString () {
     return this.string_prefix() + this.data + this.meta_string()
   }
 

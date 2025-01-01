@@ -1,7 +1,11 @@
-import { Context, Frame, FrameArray, FrameGroup, FrameLazy, FrameNote, FrameSchema, FrameSymbol, IArrayConstructor, NilContext } from '../frames.ts'
+import { Any, Context, Frame, FrameAtom, FrameArray, FrameBind, FrameGroup, FrameLazy, FrameNote, FrameSchema, FrameSymbol, IArrayConstructor, NilContext } from '../frames.ts'
 import { ICurryFunction } from '../ops.ts'
 
-export type IAction = { [key: string]: any; };
+
+export type FactoryConstructor = new (body: string) => FrameAtom
+export type FactoryType = FactoryConstructor | FrameBind | undefined;
+
+export type IAction = { [key: string]: Any; };
 
 export interface IPerformer extends Frame {
   perform(actions: IAction): Frame;
@@ -31,15 +35,15 @@ export class Terminal extends Frame {
     this.is.immediate = true
   }
 
-  public apply (argument: Frame, parameter: Frame) {
+  public override apply (argument: Frame, parameter: Frame) {
     return this.data(argument, parameter)
   }
 
-  protected toData (): any {
+  protected toData (): Any {
     return this.data
   }
 
-  public toString () {
+  public override toString () {
     return this.id + `[${this.data}]`
   }
 }

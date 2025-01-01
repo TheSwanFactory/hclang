@@ -11,34 +11,34 @@ export class FrameArray extends FrameList {
     super(data, meta)
   }
 
-  public string_open () {
+  public override string_open () {
     return FrameArray.BEGIN_ARRAY
   };
 
-  public string_close () {
+  public override string_close () {
     return FrameArray.END_ARRAY
   };
 
-  public in (contexts = [Frame.nil]): Frame {
+  public override in (contexts = [Frame.nil]): Frame {
     const array = this.array_eval(contexts)
     return new FrameArray(array)
   }
 
-  public get (key: string, origin: MetaFrame = this): Frame {
+  public override get (key: string, origin: MetaFrame = this): Frame {
     if (!isNaN(Number(key))) {
       return this.at(Number(key))
     }
     return super.get(key, origin)
   }
 
-  public apply (argument: Frame, parameter: Frame) {
+  public override apply (argument: Frame, _parameter: Frame) {
     if (!argument.is.void) {
       this.data.push(argument)
     }
     return this
   }
 
-  public at (index: number) {
+  public override at (index: number) {
     if (index >= this.size() || -index > this.size()) {
       const source = '[0..' + this.size() + '].' + index
       return FrameNote.index(source)

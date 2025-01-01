@@ -26,7 +26,7 @@ export class FrameArg extends FrameSymbol {
     super(data)
   } */
 
-  public in (contexts = [Frame.nil]): Frame {
+  public override in (contexts = [Frame.nil]): Frame {
     const level = this.data.length
     if (level <= 1) {
       return contexts[0]
@@ -60,7 +60,7 @@ export class FrameParam extends FrameSymbol {
     super(data)
   } */
 
-  public in (contexts = [Frame.nil]): Frame {
+  public override in (contexts = [Frame.nil]): Frame {
     const level = this.data.length - 1
     if (level <= contexts.length) {
       return contexts[level]

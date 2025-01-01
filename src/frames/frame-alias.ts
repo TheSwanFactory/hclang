@@ -14,7 +14,7 @@ export class FrameAlias extends FrameAtom {
     this.data = FrameSymbol.for(source)
   }
 
-  public in (contexts = [Frame.nil]): Frame {
+  public override in (contexts = [Frame.nil]): Frame {
     const key = this.data.toString()
     for (const context of contexts) {
       const out = this.find(context, key)
@@ -26,15 +26,15 @@ export class FrameAlias extends FrameAtom {
     return FrameNote.key(key, this)
   }
 
-  public string_prefix () {
+  public override string_prefix () {
     return FrameAlias.ALIAS_BEGIN
   };
 
-  public canInclude (char: string) {
+  public override canInclude (char: string) {
     return FrameSymbol.SYMBOL_CHAR.test(char)
   }
 
-  protected toData () {
+  protected override toData () {
     return this.data
   }
 

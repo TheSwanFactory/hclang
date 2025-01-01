@@ -24,7 +24,7 @@ export class FrameSymbol extends FrameAtom {
     super(meta)
   }
 
-  public in (contexts = [Frame.nil]): Frame {
+  public override in (contexts = [Frame.nil]): Frame {
     const first = contexts[0]
     for (const context of contexts) {
       const value = context.get(this.data)
@@ -39,7 +39,7 @@ export class FrameSymbol extends FrameAtom {
     return FrameNote.key(first.id + '.' + this.data, first)
   }
 
-  public apply (argument: Frame, _parameter: Frame) {
+  public override apply (argument: Frame, _parameter: Frame) {
     const out = this.get(Frame.kOUT)
     out.set(this.data, argument)
     return this
@@ -54,19 +54,19 @@ export class FrameSymbol extends FrameAtom {
     return setter
   }
 
-  public called_by (context: Frame) {
+  public override called_by (context: Frame) {
     return this.in([context])
   }
 
-  public string_start () {
+  public override string_start () {
     return FrameSymbol.SYMBOL_BEGIN.toString()
   };
 
-  public canInclude (char: string) {
+  public override canInclude (char: string) {
     return FrameSymbol.SYMBOL_CHAR.test(char)
   }
 
-  protected toData () {
+  protected override toData () {
     return this.data === '$$' ? '\n' : this.data
   }
 };
@@ -82,15 +82,15 @@ export class FrameOperator extends FrameSymbol {
     return FrameOperator.OPERATOR_CHARS.test(char)
   }
 
-  public in (contexts = [Frame.nil]): Frame {
+  public override in (_contexts = [Frame.nil]): Frame {
     return FrameSymbol.for(this.data)
   }
 
-  public string_start () {
+  public override string_start () {
     return FrameOperator.OPERATOR_CHARS.toString()
   };
 
-  public canInclude (char: string) {
+  public override canInclude (char: string) {
     return FrameOperator.Accepts(char)
   }
 }

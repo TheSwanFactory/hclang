@@ -1,8 +1,6 @@
-import { runInNewContext } from 'vm'
 import { Frame } from './frame.ts'
 import { FrameAtom } from './frame-atom.ts'
 import { NilContext } from './meta-frame.ts'
-import JSBI from 'jsbi'
 
 export interface IRegexpMap {
   [key: number]: RegExp;
@@ -68,7 +66,7 @@ export class FrameBlob extends FrameAtom {
     this.n_bits = FrameBlob.count_bits(source, this.base)
   }
 
-  public called_by (context: Frame, parameter: Frame): Frame {
+  public override called_by (context: Frame, parameter: Frame): Frame {
     if (context instanceof FrameBlob) {
       const left_operand = context as FrameBlob
       const result = left_operand.append(this)
@@ -77,28 +75,28 @@ export class FrameBlob extends FrameAtom {
     return super.called_by(context, parameter)
   }
 
-  public string_start () {
+  public override string_start () {
     return FrameBlob.BLOB_START
   };
 
-  public string_prefix () {
+  public override string_prefix () {
     const sigil = FrameBlob.BLOB_PREFIX[this.base]
     return '0' + sigil
   };
 
-  public canInclude (char: string) {
+  public override canInclude (char: string) {
     const regex = FrameBlob.BLOB_DIGITS[64] // accept everything, to start
     return regex.test(char)
   }
 
-  public toString (): string {
+  public override toString (): string {
     const dataString = this.toData().toString(this.base)
     const pad = this.n_chars() - dataString.length
     const digits = '0'.repeat(pad) + dataString
     return this.string_prefix() + digits + this.string_suffix()
   }
 
-  protected toData () {
+  protected override toData () {
     return this.data
   }
 
@@ -114,7 +112,7 @@ export class FrameBlob extends FrameAtom {
     return result
   };
 
-  protected shift_left (n_bits: any) {
+  protected shift_left (n_bits: bigint) {
     const bigint_result = this.data << n_bits
     return bigint_result
   };

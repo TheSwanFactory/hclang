@@ -10,7 +10,7 @@ export class FrameExpr extends FrameList {
     })
   }
 
-  public in (contexts = [Frame.nil]): Frame {
+  public override in (contexts = [Frame.nil]): Frame {
     contexts.push(this)
     const result = this.data.reduce((sum: Frame, item: Frame) => {
       const value = item.in(contexts)
@@ -25,11 +25,11 @@ export class FrameExpr extends FrameList {
     return result
   }
 
-  public call (argument: Frame, parameter = Frame.nil) {
+  public override call (argument: Frame, parameter = Frame.nil) {
     return this.in([argument, parameter])
   };
 
-  public toStringDataArray (): string[] {
+  public override toStringDataArray (): string[] {
     const array = this.data.map((obj: Frame) => obj.toString())
     return [array.join(' ') + ',']
   }

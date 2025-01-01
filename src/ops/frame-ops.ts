@@ -8,7 +8,7 @@ export class FrameOps extends Frame {
     super()
   }
 
-  public get (key: string, origin: Frame): Frame {
+  public override get (key: string, origin: Frame): Frame {
     const func = this.OpsDict[key]
     if (func != null) {
       return this.curry(func, origin, key)
@@ -17,7 +17,7 @@ export class FrameOps extends Frame {
     return Frame.missing
   }
 
-  public toString () {
+  public override toString () {
     return this.OpsDict.toString()
   }
 

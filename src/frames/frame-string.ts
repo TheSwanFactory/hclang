@@ -21,7 +21,7 @@ export class FrameString extends FrameQuote {
     super(meta)
   }
 
-  public apply (argument: FrameAtom) {
+  public override apply (argument: FrameAtom) {
     let value = argument.toString()
     if (argument instanceof FrameString) {
       value = argument.data
@@ -29,11 +29,11 @@ export class FrameString extends FrameQuote {
     return new FrameString(this.data + value)
   }
 
-  public string_prefix () {
+  public override string_prefix () {
     return FrameString.STRING_BEGIN
   };
 
-  public string_suffix () {
+  public override string_suffix () {
     return FrameString.STRING_END
   };
 
@@ -43,7 +43,7 @@ export class FrameString extends FrameQuote {
     return result
   }
 
-  protected toData () {
+  protected override toData () {
     return this.data
   }
 };

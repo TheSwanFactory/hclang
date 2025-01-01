@@ -15,22 +15,22 @@ export class FrameName extends FrameAtom implements ISourced {
     this.source = source
   }
 
-  public in (contexts = [Frame.nil]): Frame {
+  public override in (contexts = [Frame.nil]): Frame {
     const out = contexts[0]
     const setter = this.data.setter(out)
     return setter
   }
 
-  public string_prefix () {
+  public override string_prefix () {
     return FrameName.NAME_BEGIN
   };
 
-  public canInclude (char: string) {
+  public override canInclude (char: string) {
     return FrameSymbol.SYMBOL_CHAR.test(char) ||
            FrameOperator.OPERATOR_CHARS.test(char)
   }
 
-  protected toData () {
+  protected override toData () {
     return this.data
   }
 };

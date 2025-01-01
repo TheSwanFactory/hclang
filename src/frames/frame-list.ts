@@ -23,11 +23,11 @@ export class FrameList extends Frame {
     super(meta)
   }
 
-  public string_open () {
+  public override string_open () {
     return Frame.BEGIN_EXPR
   };
 
-  public string_close () {
+  public override string_close () {
     return Frame.END_EXPR
   };
 
@@ -52,11 +52,11 @@ export class FrameList extends Frame {
     return (this.data.length === 0)
   }
 
-  public toString () {
+  public override toString () {
     return this.string_open() + this.toStringArray().join(' ') + this.string_close()
   }
 
-  public asArray (): Array<Frame> {
+  public override asArray (): Array<Frame> {
     return this.data
   }
 

@@ -1,7 +1,11 @@
 import { inspect } from 'node:util'
 import { MetaFrame, NilContext } from './meta-frame.ts'
+import { ICurryFunction } from "../ops.ts";
+import { IArrayConstructor } from "../frames.ts";
 
 export type Flags = { [key: string]: boolean; };
+
+export type Any = null | string | number | bigint | boolean | Frame | Array<Frame> | Flags | ICurryFunction | IArrayConstructor;
 
 export class Frame extends MetaFrame {
   public static readonly kOUT = '>>'
@@ -63,7 +67,7 @@ export class Frame extends MetaFrame {
     return argument.called_by(this, parameter)
   }
 
-  public toString () {
+  public override toString () {
     return this.string_open() + this.meta_string() + this.string_close()
   }
 
