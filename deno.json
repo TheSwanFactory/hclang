@@ -1,6 +1,6 @@
 {
   "tasks": {
-    "dev": "deno run --watch main.ts"
+    "hc": "deno run --allow-env src/cli/hc.ts"
   },
   "imports": {
     "@std/assert": "jsr:@std/assert@1"

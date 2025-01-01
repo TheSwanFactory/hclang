@@ -13,9 +13,9 @@ HC can also be used to define easily-parseable variants of other common file for
 ## Usage
 
 ```shell
-npm install
+deno install
 export DEBUG=true # optional
-npm run hc
+deno task hc
 ```
 
 This will launch the interpreter.
