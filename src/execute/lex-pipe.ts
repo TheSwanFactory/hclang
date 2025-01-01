@@ -1,7 +1,7 @@
-import { Frame, FrameString, FrameSymbol } from '../frames.js'
-import { ParsePipe } from './parse-pipe.js'
-import { getSyntax } from './syntax.js'
-import { IAction, IFinish, IPerformer } from './terminals.js'
+import { Frame, FrameString, FrameSymbol } from '../frames.ts'
+import { ParsePipe } from './parse-pipe.ts'
+import { getSyntax } from './syntax.ts'
+import { IAction, IFinish, IPerformer } from './terminals.ts'
 
 export class LexPipe extends Frame implements IFinish, IPerformer {
   public level: number

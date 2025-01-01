@@ -1,8 +1,8 @@
 import { expect } from 'chai'
 import { describe, it } from 'mocha'
 
-import { FrameExpr, FrameString, FrameSymbol } from '../../src/frames.js'
-import { maml } from '../../src/maml.js'
+import { FrameExpr, FrameString, FrameSymbol } from '../../src/frames.ts'
+import { maml } from '../../src/maml.ts'
 
 describe('MAML Tag', () => {
   const tag = maml.get('tag')

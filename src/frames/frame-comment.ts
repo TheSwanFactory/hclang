@@ -1,5 +1,5 @@
-import { FrameAtom } from './frame-atom.js'
-import { Context, NilContext } from './meta-frame.js'
+import { FrameAtom } from './frame-atom.ts'
+import { Context, NilContext } from './meta-frame.ts'
 
 export class FrameComment extends FrameAtom {
   public static readonly COMMENT_BEGIN = '#'

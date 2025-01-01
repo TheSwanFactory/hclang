@@ -1,5 +1,5 @@
-import { evaluate } from './evaluate.js'
-import { FrameArray } from '../frames.js'
+import { evaluate } from './evaluate.ts'
+import { FrameArray } from '../frames.ts'
 
 const stripLastCommas = (array: Array<string>) => {
   const result = array.map((item) => {

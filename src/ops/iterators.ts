@@ -1,4 +1,4 @@
-import { Frame, FrameArray, FrameNumber, FrameString } from '../frames.js'
+import { Frame, FrameArray, FrameNumber, FrameString } from '../frames.ts'
 
 export const MapEnumerable = (source: Frame, block: Frame) => {
   let i = 0

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import fs from 'fs'
 import readline from 'readline'
-import { HCEval } from '../execute/hc-eval.js'
+import { HCEval } from '../execute/hc-eval.ts'
 
 const RUNDOC = '#!/usr/bin/env hc \n```\n'
 const ENDDOC = '```\n'

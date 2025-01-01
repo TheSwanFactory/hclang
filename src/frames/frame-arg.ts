@@ -1,6 +1,6 @@
-import { Frame } from './frame.js'
-import { FrameNote } from './frame-note.js'
-import { FrameSymbol } from './frame-symbol.js'
+import { Frame } from './frame.ts'
+import { FrameNote } from './frame-note.ts'
+import { FrameSymbol } from './frame-symbol.ts'
 
 export class FrameArg extends FrameSymbol {
   public static readonly ARG_CHAR = '_'

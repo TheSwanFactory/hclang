@@ -1,7 +1,7 @@
-import { Frame } from './frame.js'
-import { FrameList } from './frame-list.js'
-import { FrameNote } from './frame-note.js'
-import { NilContext, MetaFrame } from './meta-frame.js'
+import { Frame } from './frame.ts'
+import { FrameList } from './frame-list.ts'
+import { FrameNote } from './frame-note.ts'
+import { NilContext, MetaFrame } from './meta-frame.ts'
 
 export class FrameArray extends FrameList {
   public static readonly BEGIN_ARRAY = '['

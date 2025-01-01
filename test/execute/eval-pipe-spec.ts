@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 import { describe, it, beforeEach } from 'mocha'
-import { EvalPipe } from '../../src/execute/eval-pipe.js'
-import * as frame from '../../src/frames.js'
+import { EvalPipe } from '../../src/execute/eval-pipe.ts'
+import * as frame from '../../src/frames.ts'
 
 describe('EvalPipe', () => {
   const strA = new frame.FrameString('A')

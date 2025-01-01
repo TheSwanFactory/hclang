@@ -1,9 +1,9 @@
-import { IfElse, IfThen } from './ops/conditionals.js'
-import { FrameOps } from './ops/frame-ops.js'
-import { MapEnumerable, MapProperties, ReduceEnumerable } from './ops/iterators.js'
-import { Add, Divide, Equals, GreaterThan, GreaterThanOrEqual, LessThan, LessThanOrEqual, Modulo, Multiply, Power, Subtract } from './ops/math.js'
+import { IfElse, IfThen } from './ops/conditionals.ts'
+import { FrameOps } from './ops/frame-ops.ts'
+import { MapEnumerable, MapProperties, ReduceEnumerable } from './ops/iterators.ts'
+import { Add, Divide, Equals, GreaterThan, GreaterThanOrEqual, LessThan, LessThanOrEqual, Modulo, Multiply, Power, Subtract } from './ops/math.ts'
 
-export { FrameCurry, ICurryFunction } from './ops/frame-curry.js'
+export { FrameCurry, ICurryFunction } from './ops/frame-curry.ts'
 
 export const Ops = new FrameOps({
   '&': MapEnumerable,

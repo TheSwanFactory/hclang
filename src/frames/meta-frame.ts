@@ -1,4 +1,4 @@
-import { Frame } from './frame.js'
+import { Frame } from './frame.ts'
 
 export interface ISourced extends Frame {
   source: string;

@@ -1,7 +1,7 @@
-import { Frame } from './frame.js'
-import { FrameAtom } from './frame-atom.js'
-import { FrameOperator, FrameSymbol } from './frame-symbol.js'
-import { ISourced, NilContext } from './meta-frame.js'
+import { Frame } from './frame.ts'
+import { FrameAtom } from './frame-atom.ts'
+import { FrameOperator, FrameSymbol } from './frame-symbol.ts'
+import { ISourced, NilContext } from './meta-frame.ts'
 
 export class FrameName extends FrameAtom implements ISourced {
   public static readonly NAME_BEGIN = '.'

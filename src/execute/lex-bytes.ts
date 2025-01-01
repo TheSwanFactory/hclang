@@ -1,5 +1,5 @@
-import { Frame, FrameBytes, FrameSymbol, ISourced } from '../frames.js'
-import { Token } from './lex.js'
+import { Frame, FrameBytes, FrameSymbol, ISourced } from '../frames.ts'
+import { Token } from './lex.ts'
 
 export class LexBytes extends Frame implements ISourced {
   public source: string = ''

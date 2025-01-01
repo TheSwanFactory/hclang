@@ -1,4 +1,4 @@
-import { Frame, FrameNumber } from '../frames.js'
+import { Frame, FrameNumber } from '../frames.ts'
 
 export const Add = (source: Frame, block: Frame) => {
   if (source instanceof FrameNumber && block instanceof FrameNumber) {

@@ -1,8 +1,8 @@
 import { expect } from 'chai'
 import { describe, it } from 'mocha'
 
-import { evaluate } from '../../src/execute/evaluate.js'
-import * as frame from '../../src/frames.js'
+import { evaluate } from '../../src/execute/evaluate.ts'
+import * as frame from '../../src/frames.ts'
 
 describe('evaluate', () => {
   it('is exported', () => {

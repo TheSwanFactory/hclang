@@ -1,5 +1,5 @@
-import { Frame, FrameString } from '../frames.js'
-import { getSyntax } from './syntax.js'
+import { Frame, FrameString } from '../frames.ts'
+import { getSyntax } from './syntax.ts'
 
 export type LexOptions = { [key: string]: any; };
 

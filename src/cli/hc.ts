@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 import fs from 'fs'
-import readline from 'readline'
-import { HCEval } from '../execute/hc-eval.js'
-import { HCLog } from '../execute/hc-log.js'
-import { HCTest } from '../execute/hc-test.js'
+import readline from 'node:readline'
+import { HCEval } from '../execute/hc-eval.ts'
+import { HCLog } from '../execute/hc-log.ts'
+import { HCTest } from '../execute/hc-test.ts'
 import minimist from 'minimist'
-import { runfile } from './runfile.js'
+import { runfile } from './runfile.ts'
 
 const aliases = {
   e: 'evaluate',

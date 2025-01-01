@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 import { describe, it } from 'mocha'
 
-import { FrameBlob } from '../../src/frames.js'
+import { FrameBlob } from '../../src/frames.ts'
 
 describe('FrameBlob', () => {
   const source = '0b10100101'

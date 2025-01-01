@@ -1,5 +1,5 @@
-import { FrameQuote } from './frame-atom.js'
-import { Context, NilContext } from './meta-frame.js'
+import { FrameQuote } from './frame-atom.ts'
+import { Context, NilContext } from './meta-frame.ts'
 
 export class FrameBytes extends FrameQuote {
   public static readonly BYTES_BEGIN = '\\'

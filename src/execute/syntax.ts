@@ -1,6 +1,6 @@
-import * as frame from '../frames.js'
-import { Lex } from './lex.js'
-import { terminals } from './terminals.js'
+import * as frame from '../frames.ts'
+import { Lex } from './lex.ts'
+import { terminals } from './terminals.ts'
 
 export const _syntax: frame.Context = { ...terminals }
 type Class = { new(...args: any[]): any; };

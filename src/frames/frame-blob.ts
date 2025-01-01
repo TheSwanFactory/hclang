@@ -1,7 +1,7 @@
 import { runInNewContext } from 'vm'
-import { Frame } from './frame.js'
-import { FrameAtom } from './frame-atom.js'
-import { NilContext } from './meta-frame.js'
+import { Frame } from './frame.ts'
+import { FrameAtom } from './frame-atom.ts'
+import { NilContext } from './meta-frame.ts'
 import JSBI from 'jsbi'
 
 export interface IRegexpMap {

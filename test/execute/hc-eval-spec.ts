@@ -1,8 +1,8 @@
 import { expect } from 'chai'
 import { describe, it, beforeEach } from 'mocha'
 
-import { HCEval, IProcessEnv } from '../../src/execute/hc-eval.js'
-import * as frame from '../../src/frames.js'
+import { HCEval, IProcessEnv } from '../../src/execute/hc-eval.ts'
+import * as frame from '../../src/frames.ts'
 
 describe('HCEval', () => {
   let out: frame.FrameArray

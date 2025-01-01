@@ -1,10 +1,10 @@
 import { expect } from 'chai'
 import { describe, it, beforeEach } from 'mocha'
 
-import { Token } from '../../src/execute/lex.js'
-import { ParsePipe } from '../../src/execute/parse-pipe.js'
-import * as frame from '../../src/frames.js'
-import * as ops from '../../src/ops.js'
+import { Token } from '../../src/execute/lex.ts'
+import { ParsePipe } from '../../src/execute/parse-pipe.ts'
+import * as frame from '../../src/frames.ts'
+import * as ops from '../../src/ops.ts'
 
 describe('Parse', () => {
   const content = new frame.FrameString('content')

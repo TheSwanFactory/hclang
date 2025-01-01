@@ -1,8 +1,8 @@
 import { expect } from 'chai'
 import { describe, it } from 'mocha'
 
-import { FrameExpr, FrameString } from '../../src/frames.js'
-import { maml } from '../../src/maml.js'
+import { FrameExpr, FrameString } from '../../src/frames.ts'
+import { maml } from '../../src/maml.ts'
 
 describe('maml', () => {
   const body_text = 'Hello, MAML!'

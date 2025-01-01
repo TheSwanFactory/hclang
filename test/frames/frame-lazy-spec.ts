@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 import { describe, it } from 'mocha'
 
-import * as frame from '../../src/frames.js'
+import * as frame from '../../src/frames.ts'
 
 describe('FrameLazy', () => {
   const slow = new frame.FrameString('slow')

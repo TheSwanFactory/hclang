@@ -1,4 +1,4 @@
-export * from './execute.js'
-export { HCEval } from './execute/hc-eval.js'
-export * from './frames.js'
-export * from './maml.js'
+export * from './execute.ts'
+export { HCEval } from './execute/hc-eval.ts'
+export * from './frames.ts'
+export * from './maml.ts'

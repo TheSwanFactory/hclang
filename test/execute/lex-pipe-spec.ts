@@ -1,11 +1,11 @@
 import { expect } from 'chai'
 import { describe, it, beforeEach } from 'mocha'
 
-import { Lex } from '../../src/execute/lex.js'
-import { LexBytes } from '../../src/execute/lex-bytes.js'
-import { LexPipe } from '../../src/execute/lex-pipe.js'
-import * as frame from '../../src/frames.js'
-import { ParsePipe } from '../../src/execute/parse-pipe.js'
+import { Lex } from '../../src/execute/lex.ts'
+import { LexBytes } from '../../src/execute/lex-bytes.ts'
+import { LexPipe } from '../../src/execute/lex-pipe.ts'
+import * as frame from '../../src/frames.ts'
+import { ParsePipe } from '../../src/execute/parse-pipe.ts'
 
 describe('LexPipe', () => {
   const success = new frame.FrameString('success!')

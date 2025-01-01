@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 import { describe, it } from 'mocha'
 
-import { FrameBytes } from '../../src/frames.js'
+import { FrameBytes } from '../../src/frames.ts'
 
 describe('FrameBytes', () => {
   const js_string = 'Hello World!'

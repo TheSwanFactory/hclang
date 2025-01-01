@@ -1,4 +1,4 @@
-import { Context, Frame, NilContext } from '../frames.js'
+import { Context, Frame, NilContext } from '../frames.ts'
 
 export class EvalPipe extends Frame {
   constructor (out: Frame, meta: Context = NilContext) {

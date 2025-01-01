@@ -1,5 +1,5 @@
-import { FrameString } from './frame-string.js'
-import { Context, NilContext } from './meta-frame.js'
+import { FrameString } from './frame-string.ts'
+import { Context, NilContext } from './meta-frame.ts'
 
 export class FrameDoc extends FrameString {
   public static readonly DOC_BEGIN = '`'

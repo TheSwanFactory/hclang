@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 import { describe, it } from 'mocha'
 
-import { FrameDoc } from '../../src/frames.js'
+import { FrameDoc } from '../../src/frames.ts'
 
 describe('FrameDoc', () => {
   const source = '\ndoctest\n'

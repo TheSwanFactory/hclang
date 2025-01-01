@@ -1,4 +1,4 @@
-import { Frame } from '../frames.js'
+import { Frame } from '../frames.ts'
 
 export const IfThen = (source: Frame, block: Frame) => {
   if (source !== Frame.nil) {

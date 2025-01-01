@@ -1,5 +1,5 @@
-import { Context, Frame, FrameArray, FrameBind, FrameExpr } from '../frames.js'
-import { IFinish, Terminal } from './terminals.js'
+import { Context, Frame, FrameArray, FrameBind, FrameExpr } from '../frames.ts'
+import { IFinish, Terminal } from './terminals.ts'
 
 export class ParsePipe extends FrameArray implements IFinish {
   public collector: Array<Frame>

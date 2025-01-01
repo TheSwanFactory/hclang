@@ -1,5 +1,5 @@
-import { Frame } from './frame.js'
-import { Context, NilContext } from './meta-frame.js'
+import { Frame } from './frame.ts'
+import { Context, NilContext } from './meta-frame.ts'
 
 export interface IArrayConstructor {
     new (data: Array<Frame>, meta: Context): Frame;

@@ -1,5 +1,5 @@
 import { inspect } from 'node:util'
-import { MetaFrame, NilContext } from './meta-frame.js'
+import { MetaFrame, NilContext } from './meta-frame.ts'
 
 export type Flags = { [key: string]: boolean; };
 

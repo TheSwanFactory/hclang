@@ -1,5 +1,5 @@
-import { Context, Frame, FrameArray, FrameGroup, FrameLazy, FrameNote, FrameSchema, FrameSymbol, IArrayConstructor, NilContext } from '../frames.js'
-import { ICurryFunction } from '../ops.js'
+import { Context, Frame, FrameArray, FrameGroup, FrameLazy, FrameNote, FrameSchema, FrameSymbol, IArrayConstructor, NilContext } from '../frames.ts'
+import { ICurryFunction } from '../ops.ts'
 
 export type IAction = { [key: string]: any; };
 

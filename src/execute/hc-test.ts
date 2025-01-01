@@ -1,5 +1,5 @@
-import { Frame, FrameNote, FrameString, NilContext } from '../frames.js'
-import { HCEval } from './hc-eval.js'
+import { Frame, FrameNote, FrameString, NilContext } from '../frames.ts'
+import { HCEval } from './hc-eval.ts'
 
 export type Counts = { [key: string]: number; };
 

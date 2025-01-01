@@ -1,4 +1,4 @@
-import { Frame } from '../frames/frame.js'
+import { Frame } from '../frames/frame.ts'
 
 export type ICurryFunction = (source: Frame, block: Frame) => Frame;
 

@@ -1,7 +1,7 @@
-import { Frame, FrameAtom, FrameBytes, FrameComment, FrameQuote, FrameOperator, ISourced, NilContext, FrameName } from '../frames.js'
-import { LexBytes } from './lex-bytes.js'
-import { LexPipe } from './lex-pipe.js'
-import { terminals } from './terminals.js'
+import { Frame, FrameAtom, FrameBytes, FrameComment, FrameQuote, FrameOperator, ISourced, NilContext, FrameName } from '../frames.ts'
+import { LexBytes } from './lex-bytes.ts'
+import { LexPipe } from './lex-pipe.ts'
+import { terminals } from './terminals.ts'
 
 export type Flag = { [key: string]: boolean; };
 

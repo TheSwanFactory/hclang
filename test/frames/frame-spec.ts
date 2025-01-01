@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 import { describe, it } from 'mocha'
 
-import { Context, Frame, FrameArray, FrameString, FrameSymbol, IKeyValuePair, NilContext } from '../../src/frames.js'
+import { Context, Frame, FrameArray, FrameString, FrameSymbol, IKeyValuePair, NilContext } from '../../src/frames.ts'
 
 describe('Frame', () => {
   const frame = new Frame({ nil: Frame.nil })

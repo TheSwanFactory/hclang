@@ -1,7 +1,7 @@
-import { Frame } from './frame.js'
-import { FrameAtom } from './frame-atom.js'
-import { FrameString } from './frame-string.js'
-import { Context, NilContext } from './meta-frame.js'
+import { Frame } from './frame.ts'
+import { FrameAtom } from './frame-atom.ts'
+import { FrameString } from './frame-string.ts'
+import { Context, NilContext } from './meta-frame.ts'
 
 export class FrameNumber extends FrameAtom {
   public static readonly NUMBER_BEGIN = /[1-9]/

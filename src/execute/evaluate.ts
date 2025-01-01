@@ -1,5 +1,5 @@
-import { Frame, FrameArray } from '../frames.js'
-import { HCEval } from './hc-eval.js'
+import { Frame, FrameArray } from '../frames.ts'
+import { HCEval } from './hc-eval.ts'
 
 export const evaluate = (input: string, ...args: any): Frame => {
   const out = new FrameArray([])

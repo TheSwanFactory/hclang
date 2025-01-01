@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 import { describe, it } from 'mocha'
 
-import { FrameNumber } from '../../src/frames.js'
+import { FrameNumber } from '../../src/frames.ts'
 
 describe('FrameNumber', () => {
   const source = '12345667890'
