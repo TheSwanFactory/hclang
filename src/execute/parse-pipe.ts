@@ -1,11 +1,13 @@
 import { Context, Frame, FrameArray, FrameBind, FrameExpr } from '../frames.ts'
 import { IFinish, Terminal } from './terminals.ts'
 
+export type ParseFactory = { new (data: Array<Frame>): Frame }
+
 export class ParsePipe extends FrameArray implements IFinish {
   public collector: Array<Frame>
-  protected Factory: any
+  protected Factory: ParseFactory
 
-  constructor (out: Frame, factory: any) {
+  constructor (out: Frame, factory: ParseFactory) {
     const meta: Context = {}
     meta[ParsePipe.kOUT] = out
     meta[Frame.kEND] = Terminal.end()
@@ -28,7 +30,7 @@ export class ParsePipe extends FrameArray implements IFinish {
     return this
   }
 
-  public bind (_Factory: any = undefined): ParsePipe {
+  public bind (_Factory: ParseFactory|undefined = undefined): ParsePipe {
     return this.push(FrameBind)
   }
 
@@ -40,18 +42,18 @@ export class ParsePipe extends FrameArray implements IFinish {
     return next
   }
 
-  public push (Factory: any): ParsePipe {
+  public push (Factory: ParseFactory): ParsePipe {
     const child = new ParsePipe(this, Factory)
     return child
   }
 
-  public pop (Factory: any): ParsePipe {
+  public pop (_Factory: ParseFactory): ParsePipe {
     const parent = this.get(ParsePipe.kOUT) as ParsePipe
     this.finish(Frame.nil)
     return parent
   }
 
-  public canPop (Factory: any): boolean {
+  public canPop (Factory: ParseFactory): boolean {
     const match = (this.Factory.name === Factory.name)
     if (!match) {
       console.error(`ParsePipe.canPop.failed: ${Factory.name} cannot pop ${this.Factory.name}`)
@@ -59,7 +61,7 @@ export class ParsePipe extends FrameArray implements IFinish {
     return match
   }
 
-  public finish (terminal: any): Frame {
+  public finish (terminal: Frame): Frame {
     this.next()
     const out = this.get(Frame.kOUT)
     const value = this.makeFrame()

@@ -1,9 +1,11 @@
 import { Any, Frame, FrameAtom, FrameBytes, FrameComment, FrameQuote, FrameOperator, ISourced, NilContext, FrameName } from '../frames.ts'
 import { LexBytes } from './lex-bytes.ts'
 import { LexPipe } from './lex-pipe.ts'
-import { FactoryConstructor, terminals } from './terminals.ts'
+import { terminals } from './terminals.ts'
 
 export type Flag = { [key: string]: boolean; };
+
+export type FactoryType = new (body: string) => FrameAtom;
 
 export class Token extends FrameAtom {
   constructor (protected data: Frame) {
@@ -34,7 +36,7 @@ export class Lex extends Frame implements ISourced {
   protected body: string = ''
   protected sample: FrameAtom
 
-public constructor (protected Factory: FactoryConstructor) {
+public constructor (protected Factory: FactoryType) {
     super()
     this.sample = new Factory('')
     this.source = ''

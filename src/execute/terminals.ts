@@ -1,9 +1,5 @@
-import { Any, Context, Frame, FrameAtom, FrameArray, FrameBind, FrameGroup, FrameLazy, FrameNote, FrameSchema, FrameSymbol, IArrayConstructor, NilContext } from '../frames.ts'
+import { Any, Context, Frame, FrameArray, FrameGroup, FrameLazy, FrameNote, FrameSchema, FrameSymbol, IArrayConstructor, NilContext } from '../frames.ts'
 import { ICurryFunction } from '../ops.ts'
-
-
-export type FactoryConstructor = new (body: string) => FrameAtom
-export type FactoryType = FactoryConstructor | FrameBind | undefined;
 
 export type IAction = { [key: string]: Any; };
 
