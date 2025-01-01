@@ -1,27 +1,27 @@
-import { expect } from 'chai'
-import { execFileSync } from 'child_process'
-import { describe, it, beforeEach } from 'mocha'
+import { expect } from "chai";
+import { execFileSync } from "child_process";
+import { beforeEach, describe, it } from "mocha";
 
-describe('script', () => {
-  const hc_bin = 'lib/src/cli/hc.ts'
-  let title: string
+describe("script", () => {
+  const hc_bin = "lib/src/cli/hc.ts";
+  let title: string;
 
   beforeEach(function () {
-    title = this.currentTest?.title ?? 'n/a'
-  })
+    title = this.currentTest?.title ?? "n/a";
+  });
 
   const script = (args: string[]) => {
-    const result = execFileSync(hc_bin, args)
-    return result.toString().split('\n')
-  }
+    const result = execFileSync(hc_bin, args);
+    return result.toString().split("\n");
+  };
 
-  it('123 + 654', () => {
-    const result = script(['-e', title])
-    expect(result[0]).to.equal('777')
-  })
+  it("123 + 654", () => {
+    const result = script(["-e", title]);
+    expect(result[0]).to.equal("777");
+  });
 
-  it('“Hello, Quine!”', () => {
-    const result = script(['-e', title])
-    expect(result[0]).to.equal(title)
-  })
-})
+  it("“Hello, Quine!”", () => {
+    const result = script(["-e", title]);
+    expect(result[0]).to.equal(title);
+  });
+});

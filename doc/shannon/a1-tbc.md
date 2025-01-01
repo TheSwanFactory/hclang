@@ -2,13 +2,19 @@
 
 ## 1. **Origins of TBC**
 
-"To Be Continued" (TBC) was born from the desire to unify **control flow** and **data processing** in a simple, flexible language. It is inspired by **Homoiconic C (HCLang)**, which introduced:
+"To Be Continued" (TBC) was born from the desire to unify **control flow** and
+**data processing** in a simple, flexible language. It is inspired by
+**Homoiconic C (HCLang)**, which introduced:
 
 - **Homoiconicity**: Code is data. Programs can manipulate themselves naturally.
-- **Keywordless Design**: No reserved keywords—syntax is driven by data-like constructs.
-- **Scope-Driven Semantics**: Constructs like functions, processes, and flows are represented as aggregates, ensuring clarity and uniformity.
+- **Keywordless Design**: No reserved keywords—syntax is driven by data-like
+  constructs.
+- **Scope-Driven Semantics**: Constructs like functions, processes, and flows
+  are represented as aggregates, ensuring clarity and uniformity.
 
-TBC builds on these principles by introducing **continuations** (`@`) as a first-class concept to simplify **state**, **concurrency**, and **control flow** in asynchronous systems.
+TBC builds on these principles by introducing **continuations** (`@`) as a
+first-class concept to simplify **state**, **concurrency**, and **control flow**
+in asynchronous systems.
 
 ---
 
@@ -16,19 +22,24 @@ TBC builds on these principles by introducing **continuations** (`@`) as a first
 
 ### 2.1. Continuations as the Core Abstraction
 
-In TBC, **continuations** are the "what happens next" of computation, represented by `@`. They unify control flow concepts such as `return`, `yield`, `await`, and error handling into a single, declarative mechanism.
+In TBC, **continuations** are the "what happens next" of computation,
+represented by `@`. They unify control flow concepts such as `return`, `yield`,
+`await`, and error handling into a single, declarative mechanism.
 
 ```sh
 .add (.x .y) ^ {@ (.x + .y)}
 .add (3 4)  # Output: 7
 ```
 
-- **`^` means binding**, not execution: It defines relationships between components, like arguments and continuations.
-- **`@` means execution**: Represents the continuation, handling the "next step."
+- **`^` means binding**, not execution: It defines relationships between
+  components, like arguments and continuations.
+- **`@` means execution**: Represents the continuation, handling the "next
+  step."
 
 ### 2.2. Declarative and Homoiconic
 
-TBC adopts **HCLang’s keywordless style**, replacing imperative constructs like `if`, `return`, and `try` with **data-like flows**:
+TBC adopts **HCLang’s keywordless style**, replacing imperative constructs like
+`if`, `return`, and `try` with **data-like flows**:
 
 ```sh
 .divide (.x .y) ^ {
@@ -41,7 +52,8 @@ TBC adopts **HCLang’s keywordless style**, replacing imperative constructs lik
 .divide (10 0)  # Output: Error: Division by zero
 ```
 
-This data-driven design improves readability and aligns with TBC’s **code-as-data** philosophy.
+This data-driven design improves readability and aligns with TBC’s
+**code-as-data** philosophy.
 
 ---
 
@@ -49,7 +61,8 @@ This data-driven design improves readability and aligns with TBC’s **code-as-d
 
 ### 3.1. Literals and Automatic Rendering
 
-In TBC, all expressions are **evaluated and rendered automatically** unless suppressed with `;`:
+In TBC, all expressions are **evaluated and rendered automatically** unless
+suppressed with `;`:
 
 ```sh
 "Hello, world!"  # Output: Hello, world!
@@ -92,7 +105,8 @@ add(3, 4)  # Must explicitly render or print the result
 
 ### 4.1. Continuation Passing
 
-TBC continuations resemble Elixir’s pipelines but operate explicitly through `@`:
+TBC continuations resemble Elixir’s pipelines but operate explicitly through
+`@`:
 
 ```sh
 .add (.x .y) ^ {@ (.x + .y)}
@@ -149,7 +163,8 @@ divide(10, 0)
 
 ## 5. **Processes and State**
 
-TBC extends HCLang’s framelike constructs to model **stateful processes**. Processes in TBC resemble Elixir’s GenServer but are more concise.
+TBC extends HCLang’s framelike constructs to model **stateful processes**.
+Processes in TBC resemble Elixir’s GenServer but are more concise.
 
 ### Example: Counter Process
 
@@ -194,7 +209,8 @@ Counter.reset()     # => 0
 
 ## 6. **Scoped Transactions**
 
-TBC uses **scoped continuations** for transactions and workflows, with automatic rendering or suppression as needed:
+TBC uses **scoped continuations** for transactions and workflows, with automatic
+rendering or suppression as needed:
 
 ```sh
 .transaction (
@@ -247,4 +263,5 @@ TBC bridges the gap between:
 
 - **Concurrent Systems**: Manage workflows and parallel tasks.
 - **Stateful Applications**: Simplify state management declaratively.
-- **Exploratory Programming**: Automatic rendering and suppression are ideal for interactive development.
+- **Exploratory Programming**: Automatic rendering and suppression are ideal for
+  interactive development.
