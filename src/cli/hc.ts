@@ -1,6 +1,4 @@
 #!/usr/bin/env node
-import fs from 'fs'
-import readline from 'node:readline'
 import { HCEval } from '../execute/hc-eval.ts'
 import { HCLog } from '../execute/hc-log.ts'
 import { HCTest } from '../execute/hc-test.ts'
@@ -15,12 +13,12 @@ const aliases = {
   v: 'verbose',
   V: 'version'
 }
-const options = minimist(process.argv.slice(2), { alias: aliases })
+const options = minimist(Deno.args.slice(2), { alias: aliases })
 if (options.verbose) {
   console.error('options', options)
 }
 
-const context = HCEval.make_context(process.env)
+const context = HCEval.make_context(Deno.env)
 const out = new HCLog(context)
 let hc_eval = new HCEval(out)
 let evaluated = false

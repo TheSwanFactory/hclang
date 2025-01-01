@@ -15,7 +15,7 @@ export class HCEval {
   public static readonly SOURCE = '; '
   public static readonly EXPECT = '# '
 
-  public static make_context (env: IProcessEnv): Context {
+  public static make_context (env: Deno.Env): Context {
     const context: Context = {}
     Object.entries(env).forEach(([key, value]) => {
       if (key[0] !== 'n') {
