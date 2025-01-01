@@ -6,12 +6,6 @@
     "@std/assert": "jsr:@std/assert@1"
   },
   "compilerOptions": {
-    "allowSyntheticDefaultImports": true,
-    "target": "es6",
-    "module": "NodeNext",
     "strict": true
-  },
-  "unstable": [
-    "sloppy-imports"
-  ]
+  }
 }
