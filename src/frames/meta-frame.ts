@@ -11,7 +11,7 @@ export interface IKeyValuePair extends ReadonlyArray<string | Frame> { 0: string
 
 export class MetaFrame {
   public static id_count = 0
-  public up: Frame = Frame.missing
+  public up: Frame = {} as Frame  // forward-declare Frame
   public id: string
 
   constructor (public meta = NilContext, _isNil = false) {
