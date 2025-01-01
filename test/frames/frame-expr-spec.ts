@@ -9,7 +9,6 @@ import {
   FrameName,
   FrameString,
   FrameSymbol,
-  NilContext,
 } from "../../src/frames.ts";
 
 describe("FrameExpr", () => {

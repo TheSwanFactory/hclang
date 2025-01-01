@@ -1,8 +1,6 @@
 import { expect } from "chai";
 import { beforeEach, describe, it } from "mocha";
 
-import { Lex } from "../../src/execute/lex.ts";
-import { LexBytes } from "../../src/execute/lex-bytes.ts";
 import { LexPipe } from "../../src/execute/lex-pipe.ts";
 import * as frame from "../../src/frames.ts";
 import { ParsePipe } from "../../src/execute/parse-pipe.ts";

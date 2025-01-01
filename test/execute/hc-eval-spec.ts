@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { beforeEach, describe, it } from "mocha";
 
-import { HCEval, IProcessEnv } from "../../src/execute/hc-eval.ts";
+import { HCEval } from "../../src/execute/hc-eval.ts";
 import * as frame from "../../src/frames.ts";
 
 describe("HCEval", () => {
@@ -38,6 +38,25 @@ describe("HCEval", () => {
     expect(result.toString()).to.equal("`\n*docString*\n`");
   });
 
+  const MockEnv: Deno.Env = {
+    get: (key: string) => {
+        const mockVariables: Record<string, string> = { MY_VAR: "mock_value" };
+        return mockVariables[key];
+    },
+    has: (key: string) => {
+        return key in { MY_VAR: "mock_value" };
+    },
+    set: (key: string, value: string) => {
+        console.log(`Set ${key} = ${value}`);
+    },
+    delete: (key: string) => {
+        console.log(`Deleted ${key}`);
+    },
+    toObject: () => {
+        return { MOCK_VAR: "mock_value" };
+    },
+};
+
   describe("symbols", () => {
     const key = "key";
     const value = "value";
@@ -45,7 +64,8 @@ describe("HCEval", () => {
     const setting = `.${key} ${frame_value}`;
 
     it("evaluates in env", () => {
-      const env: IProcessEnv = { key: value };
+      const env = MockEnv;
+      env.set(key, value);
       const context = HCEval.make_context(env);
       const out2 = new frame.FrameArray([], context);
       const hc_eval2 = new HCEval(out2);

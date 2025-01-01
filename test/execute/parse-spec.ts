@@ -4,7 +4,6 @@ import { beforeEach, describe, it } from "mocha";
 import { Token } from "../../src/execute/lex.ts";
 import { ParsePipe } from "../../src/execute/parse-pipe.ts";
 import * as frame from "../../src/frames.ts";
-import * as ops from "../../src/ops.ts";
 
 describe("Parse", () => {
   const content = new frame.FrameString("content");
@@ -27,7 +26,7 @@ describe("Parse", () => {
     });
 
     it("calls callee with content when called", () => {
-      const result = out.call(token);
+      out.call(token);
       expect(out.asArray().length).to.equal(1);
       expect(out.at(0)).to.equal(content);
     });

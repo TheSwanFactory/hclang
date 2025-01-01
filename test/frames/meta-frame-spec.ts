@@ -4,11 +4,9 @@ import { describe, it } from "mocha";
 import {
   Context,
   Frame,
-  FrameArray,
   FrameString,
   FrameSymbol,
   IKeyValuePair,
-  NilContext,
 } from "../../src/frames.ts";
 
 describe("MetaFrame", () => {

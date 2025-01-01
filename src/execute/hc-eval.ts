@@ -7,9 +7,6 @@ import { LexPipe } from "./lex-pipe.ts";
 import { ParsePipe } from "./parse-pipe.ts";
 import { stdin as input, stdout as output } from "node:process";
 import readline from "node:readline/promises";
-export interface IProcessEnv {
-  [key: string]: string | undefined;
-}
 
 export class HCEval {
   public static readonly SOURCE = "; ";
