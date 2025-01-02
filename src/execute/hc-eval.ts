@@ -14,7 +14,8 @@ export class HCEval {
 
   public static make_context(env: Deno.Env): Context {
     const context: Context = {};
-    Object.entries(env).forEach(([key, value]) => {
+    const entries = env.toObject();
+    Object.entries(entries).forEach(([key, value]) => {
       if (key[0] !== "n") {
         context[key] = new FrameString(value || "undefined");
       }
