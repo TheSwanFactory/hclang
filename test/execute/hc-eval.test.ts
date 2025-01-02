@@ -38,7 +38,6 @@ describe("HCEval", () => {
     expect(result.toString()).to.equal("`\n*docString*\n`");
   });
 
-
   describe("symbols", () => {
     const key = "key";
     const value = "value";

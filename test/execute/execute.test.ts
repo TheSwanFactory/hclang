@@ -124,7 +124,7 @@ describe("execute", () => {
     });
   });
 
-// FIXME: Make FrameBytes work with IArrayConstructor?
+  // FIXME: Make FrameBytes work with IArrayConstructor?
   describe.skip("byte.strings", () => {
     it("reads n characters", () => {
       const input = "\\1\\a";

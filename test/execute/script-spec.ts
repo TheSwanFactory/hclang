@@ -18,7 +18,7 @@ const script = async (args: string[]) => {
   if (code !== 0) {
     const result = new TextDecoder().decode(stderr);
     console.error(result);
-    return [`Failed[${code}] to run ${hc_bin}: ${args.join(" ")}`]
+    return [`Failed[${code}] to run ${hc_bin}: ${args.join(" ")}`];
   }
   const result = new TextDecoder("utf-8").decode(stdout);
   return result.trim().split("\n");
