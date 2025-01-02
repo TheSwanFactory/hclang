@@ -17,7 +17,6 @@ export class FrameSymbol extends FrameAtom {
     return FrameSymbol.for(Frame.kEND);
   }
 
-  // eslint-disable-next-line no-use-before-define
   protected static symbols: { [key: string]: FrameSymbol } = {};
 
   constructor(protected data: string, meta = NilContext) {
@@ -73,7 +72,6 @@ export class FrameSymbol extends FrameAtom {
 
 export class FrameOperator extends FrameSymbol {
   public static operator_chars() {
-    // eslint-disable-next-line
     return "&|?:+\\-*%<>!";
     // FrameOperator.OPERATOR_CHARS.source.slice(1, -1)
   }

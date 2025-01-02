@@ -25,7 +25,6 @@ export class Frame extends MetaFrame {
   public static readonly nil = new Frame(NilContext, true);
   public static readonly all = new Frame(NilContext, true);
 
-  // eslint-disable-next-line no-use-before-define
   public static readonly missing: Frame = new Frame(NilContext, false, true);
   public static globals = Frame.missing;
 

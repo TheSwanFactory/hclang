@@ -11,7 +11,6 @@ export class FrameNumber extends FrameAtom {
     return exists || (FrameNumber.numbers[digits] = new FrameNumber(digits));
   }
 
-  // eslint-disable-next-line no-use-before-define
   protected static numbers: { [key: string]: FrameNumber } = {};
   protected data: number;
 
