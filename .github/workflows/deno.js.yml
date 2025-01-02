@@ -17,18 +17,11 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        deno-version: [2.14]
-        # See supported Deno release schedule at https://deno.land/
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Use Deno ${{ matrix.deno-version }}
+      - name: Use Deno 2.x
         uses: denoland/setup-deno@v2
-        with:
-          deno-version: ${{ matrix.deno-version }}
       - run: deno cache deps.ts
       - run: deno test
       - run: deno run --allow-read --allow-write testdoc.ts
