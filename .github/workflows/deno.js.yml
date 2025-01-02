@@ -22,6 +22,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Use Deno 2.x
         uses: denoland/setup-deno@v2
+      - run: deno install
       - run: deno task test
       - name: Publish to Deno.land
         id: deno-publish
