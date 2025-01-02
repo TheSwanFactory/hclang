@@ -81,7 +81,7 @@ export class ParsePipe extends FrameArray implements IFinish {
   }
 
   protected makeFrame() {
-    const group = new this.Factory(this.collector, this.meta);
+    const group = new this.Factory(this.collector, {});
     this.collector = [];
     return group;
   }
