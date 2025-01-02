@@ -13,9 +13,7 @@ import {
 } from "../frames.ts";
 import { ICurryFunction } from "../ops.ts";
 
-export type IAction = {
-  [key: string]: Frame | IArrayConstructor;
-};
+export type IAction = { [key: string]: Any };
 
 export interface IPerformer extends Frame {
   perform(actions: IAction): Frame;

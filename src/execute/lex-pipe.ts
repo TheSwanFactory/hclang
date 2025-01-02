@@ -1,21 +1,7 @@
-import {
-  Frame,
-  FrameString,
-  FrameSymbol,
-  IArrayConstructor,
-} from "../frames.ts";
+import { Frame, FrameString, FrameSymbol } from "../frames.ts";
 import { ParsePipe } from "./parse-pipe.ts";
 import { getSyntax } from "./syntax.ts";
 import { IAction, IFinish, IPerformer } from "./terminals.ts";
-
-function ensure_factory(factory: IArrayConstructor | Frame): IArrayConstructor {
-  if (factory instanceof Frame) {
-    throw new Error(
-      `Expected IArrayConstructor, but received Frame: '${factory}'`,
-    );
-  }
-  return factory;
-}
 
 export class LexPipe extends Frame implements IFinish, IPerformer {
   public level: number;
@@ -65,13 +51,7 @@ export class LexPipe extends Frame implements IFinish, IPerformer {
           break;
         }
         case "end": {
-          if (value instanceof Frame) {
-            parser.finish(value);
-          } else {
-            console.error(
-              `LexPipe.perform.end.failed: value ${value} is not a Frame`,
-            );
-          }
+          parser.finish(value);
           break;
         }
         case "bind": {
@@ -80,8 +60,7 @@ export class LexPipe extends Frame implements IFinish, IPerformer {
           break;
         }
         case "push": {
-          const factory = ensure_factory(value);
-          parser = parser.push(factory);
+          parser = parser.push(value);
           this.set(Frame.kOUT, parser);
           this.level += 1;
           break;
@@ -91,11 +70,10 @@ export class LexPipe extends Frame implements IFinish, IPerformer {
             console.error("LexPipe.perform.pop.failed: already at top level");
             break;
           }
-          const factory = ensure_factory(value);
-          if (!parser.canPop(factory)) {
+          if (!parser.canPop(value)) {
             break;
           }
-          parser = parser.pop(factory);
+          parser = parser.pop(value);
           this.set(Frame.kOUT, parser);
           this.level -= 1;
           break;

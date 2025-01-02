@@ -13,7 +13,7 @@ export class HCTest extends Frame {
     this.n = { total: 0, pass: 0, fail: 0 };
   }
 
-  public override apply(argument: Frame, parameter = Frame.nil): Frame {
+  public apply(argument: Frame, parameter = Frame.nil): Frame {
     const source = this.get(HCEval.SOURCE);
     const expected = this.get(HCEval.EXPECT);
 
