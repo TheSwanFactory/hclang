@@ -1,27 +1,35 @@
-import { expect } from 'chai'
-import { execFileSync } from 'child_process'
-import { describe, it, beforeEach } from 'mocha'
+import { expect } from "chai";
 
-describe('script', () => {
-  const hc_bin = 'lib/src/cli/hc.js'
-  let title: string
+const hc_bin = "src/cli/hc.ts";
 
-  beforeEach(function () {
-    title = this.currentTest?.title ?? 'n/a'
-  })
+const script = async (args: string[]) => {
+  const argv = ["deno", "run", "--allow-all", hc_bin, ...args];
+  console.debug("script", argv);
+  const cmd = new Deno.Command(
+    Deno.execPath(),
+    {
+      args: argv,
+      stdout: "piped",
+      stderr: "piped",
+    },
+  );
 
-  const script = (args: string[]) => {
-    const result = execFileSync(hc_bin, args)
-    return result.toString().split('\n')
+  const { code, stdout, stderr } = await cmd.output();
+  if (code !== 0) {
+    const result = new TextDecoder().decode(stderr);
+    console.error(result);
+    return [`Failed[${code}] to run ${hc_bin}: ${args.join(" ")}`];
   }
+  const result = new TextDecoder("utf-8").decode(stdout);
+  return result.trim().split("\n");
+};
 
-  it('123 + 654', () => {
-    const result = script(['-e', title])
-    expect(result[0]).to.equal('777')
-  })
+Deno.test("123 + 654", async (t) => {
+  const result = await script(["-e", t.name]);
+  expect(result[0]).to.equal("777");
+});
 
-  it('“Hello, Quine!”', () => {
-    const result = script(['-e', title])
-    expect(result[0]).to.equal(title)
-  })
-})
+Deno.test("“Hello, Quine!”", async (t) => {
+  const result = await script(["-e", t.name]);
+  expect(result[0]).to.equal(t.name);
+});

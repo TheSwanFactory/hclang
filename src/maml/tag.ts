@@ -1,18 +1,24 @@
-import { FrameArg, FrameArray, FrameExpr, FrameLazy, FrameString } from '../frames.js'
+import {
+  FrameArg,
+  FrameArray,
+  FrameExpr,
+  FrameLazy,
+  FrameString,
+} from "../frames.ts";
 
 const wrapArg = (prefix: string, suffix: string) => {
   return new FrameExpr([
     new FrameString(prefix),
     FrameArg.here(),
-    new FrameString(suffix)
-  ])
-}
+    new FrameString(suffix),
+  ]);
+};
 
 export const tag = new FrameExpr([
   new FrameLazy([]),
   new FrameArray([
-    wrapArg('<', '>'),
+    wrapArg("<", ">"),
     FrameArg.level(2),
-    wrapArg('</', '>')
-  ])
-])
+    wrapArg("</", ">"),
+  ]),
+]);

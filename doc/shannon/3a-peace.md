@@ -1,12 +1,16 @@
 # The PEACE Monad
 
-The key is interpreting arrays with properties as a new monad called the PEACE monad, which serves as the single primitive for all computation. PEACE Monads are designed to encapsulate every aspect of computation in a way that is both empirically testable and theoretically sound. Each Monad contains:
+The key is interpreting arrays with properties as a new monad called the PEACE
+monad, which serves as the single primitive for all computation. PEACE Monads
+are designed to encapsulate every aspect of computation in a way that is both
+empirically testable and theoretically sound. Each Monad contains:
 
- • Properties: Named attributes that can store information.
- • Enumerables: Ordered collections of elements, enabling iteration and selection.
- • Actions: Functions or transformations that apply to data.
- • Context: The scope within which the Monad operates, akin to namespaces or environments.
- • Effects: The side-effects produced by the Monad, particularly in cases where state changes or external systems are involved.
+• Properties: Named attributes that can store information. • Enumerables:
+Ordered collections of elements, enabling iteration and selection. • Actions:
+Functions or transformations that apply to data. • Context: The scope within
+which the Monad operates, akin to namespaces or environments. • Effects: The
+side-effects produced by the Monad, particularly in cases where state changes or
+external systems are involved.
 
 ## HCLANG Notation
 

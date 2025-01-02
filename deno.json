@@ -1,0 +1,12 @@
+{
+  "tasks": {
+    "hc": "deno run --allow-env src/cli/hc.ts",
+    "test": "deno fmt src && deno lint && deno test --allow-env --allow-read"
+  },
+  "imports": {
+    "@std/assert": "jsr:@std/assert@^1.0.10"
+  },
+  "compilerOptions": {
+    "strict": true
+  }
+}

@@ -1,47 +1,47 @@
-import { Frame, FrameBytes, FrameSymbol, ISourced } from '../frames.js'
-import { Token } from './lex.js'
+import { Frame, FrameBytes, FrameSymbol, ISourced } from "../frames.ts";
+import { Token } from "./lex.ts";
 
 export class LexBytes extends Frame implements ISourced {
-  public source: string = ''
-  protected body: number[]
+  public source: string = "";
+  protected body: number[];
 
-  public constructor (protected count: number, up: Frame) {
-    super()
-    this.body = []
-    this.is.void = true
-    this.up = up
+  public constructor(protected count: number, up: Frame) {
+    super();
+    this.body = [];
+    this.is.void = true;
+    this.up = up;
   }
 
-  public call (argument: Frame, _parameter = Frame.nil): Frame {
+  public override call(argument: Frame, _parameter = Frame.nil): Frame {
     if (argument === FrameSymbol.end()) {
-      return this.finish(argument, false)
+      return this.finish(argument, false);
     }
-    const char = argument.toString()
-    const code = char.charCodeAt(0)
-    this.body.push(code)
+    const char = argument.toString();
+    const code = char.charCodeAt(0);
+    this.body.push(code);
     if (this.body.length === this.count) {
-      this.finish(argument, false)
+      this.finish(argument, false);
     }
-    return this
+    return this;
   }
 
-  protected finish (_argument: Frame, _passAlong: boolean) {
-    this.exportFrame()
-    return this.up
+  protected finish(_argument: Frame, _passAlong: boolean) {
+    this.exportFrame();
+    return this.up;
   }
 
-  protected exportFrame () {
-    const output = this.makeFrame()
-    const out = this.get(Frame.kOUT)
-    return out.call(output)
+  protected exportFrame() {
+    const output = this.makeFrame();
+    const out = this.get(Frame.kOUT);
+    return out.call(output);
   }
 
-  protected makeFrame () {
+  protected makeFrame() {
     if (this.body.length === 0) {
-      return FrameSymbol.end()
+      return FrameSymbol.end();
     }
-    const frame = new FrameBytes(this.body)
-    this.body = []
-    return new Token(frame)
+    const frame = new FrameBytes(this.body);
+    this.body = [];
+    return new Token(frame);
   }
 }

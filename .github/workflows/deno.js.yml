@@ -1,0 +1,35 @@
+# This workflow will do a clean installation of Deno dependencies, cache/restore them, build the source code and run tests across different versions of Deno
+
+name: Deno CI
+
+on:
+  push:
+    branches: ["master"]
+  pull_request:
+    branches: ["master"]
+
+jobs:
+  build:
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Use Deno 2.x
+        uses: denoland/setup-deno@v2
+      - run: deno install
+      - run: deno task test
+      - name: Publish to Deno.land
+        id: deno-publish
+        if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+        run: deno run --allow-net --allow-read --allow-write --allow-env https://deno.land/x/publish/mod.ts
+        env:
+          DENO_AUTH_TOKEN: ${{ secrets.DENO_AUTH_TOKEN }}
+      - name: Create release on publish
+        uses: ncipollo/release-action@v1
+        if: ${{ steps.deno-publish.outputs.type == 'published' }}

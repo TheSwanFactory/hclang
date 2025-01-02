@@ -1,79 +1,88 @@
-import { Context, Frame, FrameArray, FrameBind, FrameExpr } from '../frames.js'
-import { IFinish, Terminal } from './terminals.js'
+import {
+  Context,
+  Frame,
+  FrameArray,
+  FrameBind,
+  FrameExpr,
+  IArrayConstructor,
+} from "../frames.ts";
+import { IFinish, Terminal } from "./terminals.ts";
 
 export class ParsePipe extends FrameArray implements IFinish {
-  public collector: Array<Frame>
-  protected Factory: any
+  public collector: Array<Frame>;
+  protected Factory: IArrayConstructor;
 
-  constructor (out: Frame, factory: any) {
-    const meta: Context = {}
-    meta[ParsePipe.kOUT] = out
-    meta[Frame.kEND] = Terminal.end()
-    super([], meta)
-    this.Factory = factory
-    this.collector = []
+  constructor(out: Frame, factory: IArrayConstructor) {
+    const meta: Context = {};
+    meta[ParsePipe.kOUT] = out;
+    meta[Frame.kEND] = Terminal.end();
+    super([], meta);
+    this.Factory = factory;
+    this.collector = [];
   }
 
-  public next (statement: boolean = false): Frame {
+  public next(statement: boolean = false): Frame {
     if (this.length() === 0) {
-      return this
+      return this;
     }
-    const term = this.asArray()
-    const expr = new FrameExpr(term)
+    const term = this.asArray();
+    const expr = new FrameExpr(term);
     if (statement) {
-      expr.is.statement = true
+      expr.is.statement = true;
     }
-    this.collector.push(expr)
-    this.reset()
-    return this
+    this.collector.push(expr);
+    this.reset();
+    return this;
   }
 
-  public bind (_Factory: any = undefined): ParsePipe {
-    return this.push(FrameBind)
+  public bind(_Factory: IArrayConstructor | undefined = undefined): ParsePipe {
+    return this.push(FrameBind);
   }
 
-  public unbind (): ParsePipe {
-    let next = this as ParsePipe
+  public unbind(): ParsePipe {
+    let next = this as ParsePipe;
     while (next.Factory === FrameBind) {
-      next = next.pop(FrameBind)
+      next = next.pop(FrameBind);
     }
-    return next
+    return next;
   }
 
-  public push (Factory: any): ParsePipe {
-    const child = new ParsePipe(this, Factory)
-    return child
+  public push(Factory: IArrayConstructor): ParsePipe {
+    const child = new ParsePipe(this, Factory);
+    return child;
   }
 
-  public pop (Factory: any): ParsePipe {
-    const parent = this.get(ParsePipe.kOUT) as ParsePipe
-    this.finish(Frame.nil)
-    return parent
+  public pop(_Factory: IArrayConstructor): ParsePipe {
+    const parent = this.get(ParsePipe.kOUT) as ParsePipe;
+    this.finish(Frame.nil);
+    return parent;
   }
 
-  public canPop (Factory: any): boolean {
-    const match = (this.Factory.name === Factory.name)
+  public canPop(Factory: IArrayConstructor): boolean {
+    const match = this.Factory.name === Factory.name;
     if (!match) {
-      console.error(`ParsePipe.canPop.failed: ${Factory.name} cannot pop ${this.Factory.name}`)
+      console.error(
+        `ParsePipe.canPop.failed: ${Factory.name} cannot pop ${this.Factory.name}`,
+      );
     }
-    return match
+    return match;
   }
 
-  public finish (terminal: any): Frame {
-    this.next()
-    const out = this.get(Frame.kOUT)
-    const value = this.makeFrame()
+  public finish(terminal: Frame): Frame {
+    this.next();
+    const out = this.get(Frame.kOUT);
+    const value = this.makeFrame();
     if (value instanceof FrameBind && value.isEmpty()) {
-      return out
+      return out;
     }
-    const result = out.call(value)
-    out.call(terminal)
-    return result
+    const result = out.call(value);
+    out.call(terminal);
+    return result;
   }
 
-  protected makeFrame () {
-    const group = new this.Factory(this.collector)
-    this.collector = []
-    return group
+  protected makeFrame() {
+    const group = new this.Factory(this.collector, {});
+    this.collector = [];
+    return group;
   }
 }

@@ -1,51 +1,51 @@
-import { Frame } from './frame.js'
-import { FrameAtom } from './frame-atom.js'
-import { FrameNote } from './frame-note.js'
-import { FrameSymbol } from './frame-symbol.js'
-import { NilContext } from './meta-frame.js'
+import { Frame } from "./frame.ts";
+import { FrameAtom } from "./frame-atom.ts";
+import { FrameNote } from "./frame-note.ts";
+import { FrameSymbol } from "./frame-symbol.ts";
+import { NilContext } from "./meta-frame.ts";
 
 export class FrameAlias extends FrameAtom {
-  public static readonly ALIAS_BEGIN = '@'
+  public static readonly ALIAS_BEGIN = "@";
 
-  protected data: FrameSymbol
+  protected data: FrameSymbol;
 
-  constructor (source: string, meta = NilContext) {
-    super(meta)
-    this.data = FrameSymbol.for(source)
+  constructor(source: string, meta = NilContext) {
+    super(meta);
+    this.data = FrameSymbol.for(source);
   }
 
-  public in (contexts = [Frame.nil]): Frame {
-    const key = this.data.toString()
+  public override in(contexts = [Frame.nil]): Frame {
+    const key = this.data.toString();
     for (const context of contexts) {
-      const out = this.find(context, key)
+      const out = this.find(context, key);
       if (out !== Frame.nil) {
-        const setter = this.data.setter(out)
-        return setter
+        const setter = this.data.setter(out);
+        return setter;
       }
     }
-    return FrameNote.key(key, this)
+    return FrameNote.key(key, this);
   }
 
-  public string_prefix () {
-    return FrameAlias.ALIAS_BEGIN
-  };
-
-  public canInclude (char: string) {
-    return FrameSymbol.SYMBOL_CHAR.test(char)
+  public override string_prefix() {
+    return FrameAlias.ALIAS_BEGIN;
   }
 
-  protected toData () {
-    return this.data
+  public override canInclude(char: string) {
+    return FrameSymbol.SYMBOL_CHAR.test(char);
   }
 
-  protected find (context: Frame, key: string) {
+  protected override toData() {
+    return this.data;
+  }
+
+  protected find(context: Frame, key: string) {
     while (context !== Frame.missing) {
-      const here = context.get_here(key)
+      const here = context.get_here(key);
       if (!here.is.missing) {
-        return context
+        return context;
       }
-      context = context.up
+      context = context.up;
     }
-    return Frame.nil
+    return Frame.nil;
   }
-};
+}

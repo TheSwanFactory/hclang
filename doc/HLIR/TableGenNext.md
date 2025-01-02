@@ -2,26 +2,29 @@
 
 The
 **[HLIR](https://ihack.us/2024/11/29/tsm-10-1-hlir-homoiconic-high-level-intermediate-representation/)
-(High-Level Intermediate Representation)** framework written in [Homoiconic
-C](https://ihack.us/2024/09/19/tsm-5-homoiconic-c-hc-syntax-cheat-sheet/) could
-also serve as a next-generation replacement ("HLIR-NG") for LLVM's
+(High-Level Intermediate Representation)** framework written in
+[Homoiconic C](https://ihack.us/2024/09/19/tsm-5-homoiconic-c-hc-syntax-cheat-sheet/)
+could also serve as a next-generation replacement ("HLIR-NG") for LLVM's
 [TableGen](https://llvm.org/docs/TableGen/), especially if it's designed to
 handle the kind of semantic richness and extensibility required for a dynamic,
 multi-level execution framework like [MLIR](https://mlir.llvm.org).
 
 ## 1. How HLIR Could Replace TableGen
 
-The current **TableGen** system is primarily declarative, focusing on describing:
+The current **TableGen** system is primarily declarative, focusing on
+describing:
 
 - Dialects and operations.
 - Traits and type constraints.
 - Limited structural and semantic information.
 
-**HLIR** introduces concepts that go far beyond this. Here’s how it could serve as an enhanced replacement:
+**HLIR** introduces concepts that go far beyond this. Here’s how it could serve
+as an enhanced replacement:
 
 ### 1.1 Structural Parity with TableGen
 
-HLIR already supports key features needed to define operations, types, and constraints in MLIR, such as:
+HLIR already supports key features needed to define operations, types, and
+constraints in MLIR, such as:
 
 - **Operation schemas**: Describe inputs, outputs, and attributes.
 - **Dialect hierarchies**: Group related operations logically.
@@ -30,16 +33,21 @@ HLIR already supports key features needed to define operations, types, and const
 
 HLIR’s focus on embedding **rich semantics** makes it ideal for:
 
-- **Behavioral Specifications**: Define operation behavior for interpretation and optimization.
-- **Data Flow and State Semantics**: Model how data moves between operations or changes statefully.
-- **Dynamic Execution**: HLIR can encode rules for runtime interpretation or simulation of IR.
+- **Behavioral Specifications**: Define operation behavior for interpretation
+  and optimization.
+- **Data Flow and State Semantics**: Model how data moves between operations or
+  changes statefully.
+- **Dynamic Execution**: HLIR can encode rules for runtime interpretation or
+  simulation of IR.
 
 ### 1.3 Integration Points
 
 HLIR could be used as a frontend or backend for MLIR:
 
-- **Frontend**: Replace TableGen as the way dialects, types, and operations are defined.
-- **Backend**: Generate C++ or Python code for dialect registration, optimization passes, or interpreters.
+- **Frontend**: Replace TableGen as the way dialects, types, and operations are
+  defined.
+- **Backend**: Generate C++ or Python code for dialect registration,
+  optimization passes, or interpreters.
 
 ---
 
@@ -47,10 +55,12 @@ HLIR could be used as a frontend or backend for MLIR:
 
 ### 2.1 Semantic Richness
 
-HLIR is designed for **explicit semantics**, which could enhance MLIR in several ways:
+HLIR is designed for **explicit semantics**, which could enhance MLIR in several
+ways:
 
 - **Operation Behavior**: Encode execution logic for an MLIR interpreter.
-- **Context-Aware Constraints**: Add runtime constraints or metadata that adapt to execution conditions.
+- **Context-Aware Constraints**: Add runtime constraints or metadata that adapt
+  to execution conditions.
 
 ### 2.2 Unified Framework
 
@@ -108,7 +118,8 @@ HLIR could directly generate:
 
 With HLIR, developers could:
 
-- Define and test new dialects with an interpreter, skipping the full compilation pipeline.
+- Define and test new dialects with an interpreter, skipping the full
+  compilation pipeline.
 - Experiment with semantics and optimization strategies.
 
 ### 4.2 Multi-Level Execution
@@ -116,7 +127,8 @@ With HLIR, developers could:
 HLIR could encode multi-level execution rules, enabling:
 
 - High-level interpretation for debugging or simulation.
-- Selective lowering of performance-critical parts to lower-level dialects (e.g., LLVM).
+- Selective lowering of performance-critical parts to lower-level dialects
+  (e.g., LLVM).
 
 ### 4.3 Advanced Optimization
 
@@ -160,8 +172,13 @@ result
 
 ## 7. Next Steps
 
-- **Integration Exploration**: Combine HLIR with MLIR’s existing pipeline to replace TableGen incrementally.
-- **Runtime Prototype**: Build a proof-of-concept MLIR interpreter driven by HLIR-defined semantics.
-- **Community Collaboration**: Engage with MLIR contributors to explore adoption paths for HLIR.
+- **Integration Exploration**: Combine HLIR with MLIR’s existing pipeline to
+  replace TableGen incrementally.
+- **Runtime Prototype**: Build a proof-of-concept MLIR interpreter driven by
+  HLIR-defined semantics.
+- **Community Collaboration**: Engage with MLIR contributors to explore adoption
+  paths for HLIR.
 
-This vision could redefine how MLIR dialects are developed and used, enabling not just compilation pipelines but dynamic and interactive workflows. Let me know if you'd like to brainstorm specific implementation details!
+This vision could redefine how MLIR dialects are developed and used, enabling
+not just compilation pipelines but dynamic and interactive workflows. Let me
+know if you'd like to brainstorm specific implementation details!
