@@ -2,11 +2,18 @@
 
 ## Introduction
 
-Homoiconic C ("HC") is a minimalist and highly expressive alternative to traditional programming languages. It eschews traditional grammar, keywords, and reserved words, focusing instead on a single type of object called a Frame. HC's syntax is a thin veneer over its robust semantics, which are centered around ubiquitous scope, consistent evaluation, and homoiconicity (symmetry between code and data). This cheat sheet provides an overview of HC's key syntactical elements.
+Homoiconic C ("HC") is a minimalist and highly expressive alternative to
+traditional programming languages. It eschews traditional grammar, keywords, and
+reserved words, focusing instead on a single type of object called a Frame. HC's
+syntax is a thin veneer over its robust semantics, which are centered around
+ubiquitous scope, consistent evaluation, and homoiconicity (symmetry between
+code and data). This cheat sheet provides an overview of HC's key syntactical
+elements.
 
 ## 1. Frames
 
-Everything in HC is a Frame, which combines aspects of dictionaries, arrays, and functions. There are three types of Aggregate Frames:
+Everything in HC is a Frame, which combines aspects of dictionaries, arrays, and
+functions. There are three types of Aggregate Frames:
 
 - **FrameLazy**: `{ closure }` - Functions
 - **FrameArray**: `[ tuple ]` - Lists
@@ -91,8 +98,8 @@ A sequence of identifiers and primitives forms an expression.
 
 ## 6. Examples
 
-In Homoiconic C, classes, singletons, and inheritance
-are just design patterns on top of the core syntax.
+In Homoiconic C, classes, singletons, and inheritance are just design patterns
+on top of the core syntax.
 
 ### 6.1 Classes
 
@@ -128,15 +135,14 @@ Specify a parent for inheritance:
 
 - Ternary operator is broken into `?` and `:`:
 
-    (1 > 5) ? 100 : 10
+  (1 > 5) ? 100 : 10
 
 ### 7.2 Iterators
 
 - **Map**: `|` operator:
 
-    [1, 2, 3] | { _ + 1 }
+  [1, 2, 3] | { _ + 1 }
 
 - **Reduce**: `&` operator:
 
-    [1, 2, 3] & { . + _ }
-
+  [1, 2, 3] & { . + _ }
