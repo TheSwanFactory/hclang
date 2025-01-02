@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { beforeEach, describe, it } from "mocha";
 
-import { HCEval, IProcessEnv } from "../../src/execute/hc-eval.ts";
+import { HCEval } from "../../src/execute/hc-eval.ts";
 import * as frame from "../../src/frames.ts";
 
 describe("HCEval", () => {
@@ -45,7 +45,7 @@ describe("HCEval", () => {
     const setting = `.${key} ${frame_value}`;
 
     it("evaluates in env", () => {
-      const env: IProcessEnv = { key: value };
+      const env: Deno.Env = { key: value };
       const context = HCEval.make_context(env);
       const out2 = new frame.FrameArray([], context);
       const hc_eval2 = new HCEval(out2);

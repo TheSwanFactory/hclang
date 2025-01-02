@@ -22,7 +22,7 @@ export class LexPipe extends Frame implements IFinish, IPerformer {
     return source.reduce(this);
   }
 
-  public finish(parameter: Frame): LexPipe {
+  public finish(_parameter: Frame): LexPipe {
     const next_parser = this.unbind();
     const output = FrameSymbol.end();
     next_parser.call(output);

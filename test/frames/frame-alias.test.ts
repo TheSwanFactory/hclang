@@ -3,7 +3,6 @@ import { describe, it } from "mocha";
 
 import {
   FrameAlias,
-  FrameArg,
   FrameExpr,
   FrameString,
   FrameSymbol,
