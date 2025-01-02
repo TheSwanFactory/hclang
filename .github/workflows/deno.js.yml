@@ -3,41 +3,41 @@
 name: Deno CI
 
 on:
-    push:
-        branches: ["master"]
-    pull_request:
-        branches: ["master"]
+  push:
+    branches: ["master"]
+  pull_request:
+    branches: ["master"]
 
 jobs:
-    build:
-        permissions:
-            contents: write
-            packages: write
-            id-token: write
+  build:
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
 
-        runs-on: ubuntu-latest
+    runs-on: ubuntu-latest
 
-        strategy:
-            matrix:
-                deno-version: [1.28.x, 1.29.x]
-                # See supported Deno release schedule at https://deno.land/
+    strategy:
+      matrix:
+        deno-version: [2.14]
+        # See supported Deno release schedule at https://deno.land/
 
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v3
-            - name: Use Deno ${{ matrix.deno-version }}
-              uses: denoland/setup-deno@v1
-              with:
-                deno-version: ${{ matrix.deno-version }}
-            - run: deno cache deps.ts
-            - run: deno test
-            - run: deno run --allow-read --allow-write testdoc.ts
-            - name: Publish to Deno.land
-              id: deno-publish
-              if: github.ref == 'refs/heads/master' && github.event_name == 'push' && matrix.deno-version == '1.29.x'
-              run: deno run --allow-net --allow-read --allow-write --allow-env https://deno.land/x/publish/mod.ts
-              env:
-                DENO_AUTH_TOKEN: ${{ secrets.DENO_AUTH_TOKEN }}
-            - name: Create release on publish
-              uses: ncipollo/release-action@v1
-              if: ${{ steps.deno-publish.outputs.type == 'published' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Use Deno ${{ matrix.deno-version }}
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: ${{ matrix.deno-version }}
+      - run: deno cache deps.ts
+      - run: deno test
+      - run: deno run --allow-read --allow-write testdoc.ts
+      - name: Publish to Deno.land
+        id: deno-publish
+        if: github.ref == 'refs/heads/master' && github.event_name == 'push' && matrix.deno-version == '1.29.x'
+        run: deno run --allow-net --allow-read --allow-write --allow-env https://deno.land/x/publish/mod.ts
+        env:
+          DENO_AUTH_TOKEN: ${{ secrets.DENO_AUTH_TOKEN }}
+      - name: Create release on publish
+        uses: ncipollo/release-action@v1
+        if: ${{ steps.deno-publish.outputs.type == 'published' }}
