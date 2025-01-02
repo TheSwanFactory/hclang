@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { describe, it } from "mocha";
+import { describe, it } from "jsr:@std/testing/bdd";
 
 import { FrameExpr, FrameString, FrameSymbol } from "../../src/frames.ts";
 import { maml } from "../../src/maml.ts";

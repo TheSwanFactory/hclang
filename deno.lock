@@ -1,0 +1,49 @@
+{
+  "version": "4",
+  "specifiers": {
+    "jsr:@std/assert@^1.0.8": "1.0.8",
+    "jsr:@std/internal@^1.0.5": "1.0.5",
+    "jsr:@std/testing@*": "1.0.5"
+  },
+  "jsr": {
+    "@std/assert@1.0.8": {
+      "integrity": "ebe0bd7eb488ee39686f77003992f389a06c3da1bbd8022184804852b2fa641b"
+    },
+    "@std/internal@1.0.5": {
+      "integrity": "54a546004f769c1ac9e025abd15a76b6671ddc9687e2313b67376125650dc7ba"
+    },
+    "@std/testing@1.0.5": {
+      "integrity": "6e693cbec94c81a1ad3df668685c7ba8e20742bb10305bc7137faa5cf16d2ec4",
+      "dependencies": [
+        "jsr:@std/assert",
+        "jsr:@std/internal"
+      ]
+    }
+  },
+  "workspace": {
+    "dependencies": [
+      "jsr:@std/assert@1"
+    ],
+    "packageJson": {
+      "dependencies": [
+        "npm:@types/chai@^4.3.11",
+        "npm:@types/minimist@^1.2.5",
+        "npm:@types/node@>=20.10.5",
+        "npm:@typescript-eslint/eslint-plugin@^6.15.0",
+        "npm:@typescript-eslint/parser@^6.15.0",
+        "npm:asciidoctor@3",
+        "npm:chai@^4.3.10",
+        "npm:chalk@^5.3.0",
+        "npm:inquirer@^9.2.12",
+        "npm:jsbi@^4.3.0",
+        "npm:mem@^9.0.2",
+        "npm:minimist@^1.2.8",
+        "npm:node-fetch@^3.3.2",
+        "npm:npm-check-updates@^16.14.12",
+        "npm:pug@^3.0.2",
+        "npm:rimraf@5.0.5",
+        "npm:version-bump-prompt@^6.1.0"
+      ]
+    }
+  }
+}

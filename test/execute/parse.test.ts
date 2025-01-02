@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { beforeEach, describe, it } from "mocha";
+import { beforeEach, describe, it } from "jsr:@std/testing/bdd";
 
 import { Token } from "../../src/execute/lex.ts";
 import { ParsePipe } from "../../src/execute/parse-pipe.ts";
