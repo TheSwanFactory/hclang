@@ -14,7 +14,6 @@ export class FrameArg extends FrameSymbol {
     return FrameArg._for(symbol);
   }
 
-  // eslint-disable-next-line no-use-before-define
   protected static args: { [key: string]: FrameArg } = {};
 
   protected static _for(symbol: string) {
@@ -49,7 +48,6 @@ export class FrameParam extends FrameSymbol {
     return FrameParam._for(symbol);
   }
 
-  // eslint-disable-next-line no-use-before-define
   protected static params: { [key: string]: FrameParam } = {};
 
   protected static _for(symbol: string) {

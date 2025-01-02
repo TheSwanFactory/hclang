@@ -14,12 +14,8 @@ repos:
       - id: gitleaks
   - repo: local
     hooks:
-      - id: eslint
-        name: eslint
-        entry: bash -c "npm run lint"
-        language: node
       - id: test
         name: test
-        entry: bash -c "npm run test"
+        entry: bash -c "deno task test"
         stages: [pre-push]
         language: node
