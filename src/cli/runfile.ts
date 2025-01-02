@@ -1,17 +1,20 @@
 #!/usr/bin/env node
-const RUNDOC = '#!/usr/bin/env hc \n```\n'
-const ENDDOC = '```\n'
+const RUNDOC = "#!/usr/bin/env hc \n```\n";
+const ENDDOC = "```\n";
 
-function is_doc (file: string) {
-  const file_ext = file.split('.').pop()
-  return file_ext === 'adoc' || file_ext === 'md'
+function is_doc(file: string) {
+  const file_ext = file.split(".").pop();
+  return file_ext === "adoc" || file_ext === "md";
 }
 
-async function runfile(hc_eval: { call: (line: string) => void }, file: string): Promise<boolean> {
+async function runfile(
+  hc_eval: { call: (line: string) => void },
+  file: string,
+): Promise<boolean> {
   const is_doc_file = is_doc(file);
 
   if (is_doc_file) {
-    hc_eval.call(RUNDOC)
+    hc_eval.call(RUNDOC);
   }
 
   const decoder = new TextDecoder();
@@ -40,7 +43,7 @@ async function runfile(hc_eval: { call: (line: string) => void }, file: string):
     }
 
     if (is_doc_file) {
-      hc_eval.call(ENDDOC)
+      hc_eval.call(ENDDOC);
     }
   } finally {
     fileReader.close();
@@ -49,4 +52,4 @@ async function runfile(hc_eval: { call: (line: string) => void }, file: string):
   return true;
 }
 
-export { runfile }
+export { runfile };
