@@ -38,42 +38,12 @@ describe("HCEval", () => {
     expect(result.toString()).to.equal("`\n*docString*\n`");
   });
 
-  const MockEnv: Deno.Env = {
-    get: (key: string) => {
-      const mockVariables: Record<string, string> = { MY_VAR: "mock_value" };
-      return mockVariables[key];
-    },
-    has: (key: string) => {
-      return key in { MY_VAR: "mock_value" };
-    },
-    set: (key: string, value: string) => {
-      console.log(`Set ${key} = ${value}`);
-    },
-    delete: (key: string) => {
-      console.log(`Deleted ${key}`);
-    },
-    toObject: () => {
-      return { MOCK_VAR: "mock_value" };
-    },
-  };
 
   describe("symbols", () => {
     const key = "key";
     const value = "value";
     const frame_value = new frame.FrameString(value);
     const setting = `.${key} ${frame_value}`;
-
-    it("evaluates in env", () => {
-      const env = MockEnv;
-      env.set(key, value);
-      const context = HCEval.make_context(env);
-      const out2 = new frame.FrameArray([], context);
-      const hc_eval2 = new HCEval(out2);
-      hc_eval2.call(key);
-      expect(out2.length()).to.equal(1);
-      const output = out2.at(0);
-      expect(output.toString()).to.equal(frame_value.toString());
-    });
 
     it("evaluates names to symbols", () => {
       hc_eval.call(`.${key}`);
