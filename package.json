@@ -30,35 +30,23 @@
   "bin": {
     "hc": "lib/src/cli/hc.js"
   },
-  "mocha": {
-    "extension": "ts",
-    "loader": "ts-node/esm",
-    "recursive": true,
-    "trace-warnings": false
-  },
   "scripts": {
     "bs:html": "tail +3 -q hc/BitScheme.hc hc/BitScheme-1.hc > doc/BitScheme.adoc && asciidoctor doc/BitScheme.adoc && open doc/BitScheme.html",
     "bs:all": "npm run build && npm run bs:html && npm run bs",
     "bs": "node lib/src/cli/hc.js hc/BitScheme.hc -t",
     "b1": "node lib/src/cli/hc.js hc/BitScheme-1.hc -t",
     "testdoc": "npm run build && node lib/src/cli/hc.js hc/testdoc.hc -t",
-    "build": "rimraf lib && eslint --fix \"{src,test}/**/*.ts\" && npm run ts",
     "check": "grep -e 'only' -e 'skip' test/*/* || echo 'Ran all tests'",
     "clean": "rimraf lib dist && rm -f *.log.* src/*.js src/*/*.js test/*.js test/*/*.js",
     "clean-git": "git branch -D `git branch | grep -v '\\*' | grep -v 'master'`",
     "debug": "echo 'Use `debugger;`\n' && npm  --inspect-brk ",
     "done": "npm run clean && npm run bs:all && npm run check && npm run tag && npm install && git commit -am 'update version'",
-    "lint": "eslint --fix \"{src,test}/**/*.ts\"",
-    "hc": "node lib/src/cli/hc.js",
     "paper": "npm run build && node lib/src/cli/hc.js hc/white-paper.hc -t",
-    "test": "npm run build && mocha",
-    "test-only": "mocha",
     "tag": "bump patch -ct package*.json README.md src/version.ts",
     "tag:minor": "bump minor -ct package*.json README.md src/version.ts",
     "ts": "npx tsc --pretty --inlineSourceMap && chmod a+x ./lib/src/cli/hc.js",
     "ts:version": "echo TypeScript `tsc --version` ",
-    "verbose": "NODE_DEBUG=* npm run test",
-    "watch": "mocha --watch --parallel && npm run build"
+    "verbose": "NODE_DEBUG=* npm run test"
   },
   "dependencies": {
     "chalk": "^5.3.0",
@@ -72,27 +60,11 @@
   "devDependencies": {
     "@types/chai": "^4.3.11",
     "@types/minimist": "^1.2.5",
-    "@types/mocha": "10.0.6",
     "@types/node": ">=20.10.5",
-    "@typescript-eslint/eslint-plugin": "^6.15.0",
-    "@typescript-eslint/parser": "^6.15.0",
     "asciidoctor": "^3.0.0",
     "chai": "^4.3.10",
-    "eslint": "^8.56.0",
-    "eslint-config-google": "^0.14.0",
-    "eslint-config-standard": "^17.1.0",
-    "eslint-plugin-import": "^2.29.1",
-    "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-promise": "^6.1.1",
     "mem": "^9.0.2",
-    "mocha": "^10.2.0",
-    "mocha-junit-reporter": "^2.2.1",
     "pug": "^3.0.2",
-    "rimraf": "5.0.5",
-    "ts-node": "10.9.2",
-    "typescript": "5.3.3"
-  },
-  "engines": {
-    "node": ">=20.0.0"
+    "rimraf": "5.0.5"
   }
 }
