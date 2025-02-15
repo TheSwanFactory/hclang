@@ -26,7 +26,7 @@ jobs:
       - run: deno task test
       - name: Publish to Deno.land
         id: deno-publish
-        if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+        if: github.ref == 'refs/heads/221-deno-publish' && github.event_name == 'push'
         run: deno publish
       - name: Create release on publish
         uses: ncipollo/release-action@v1
