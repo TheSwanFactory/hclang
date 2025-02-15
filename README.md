@@ -56,9 +56,9 @@ vscode extension is still being updated.
 
 From the feature branch:
 
-1. Update CHANGELOG.md
+1. Update `CHANGELOG.md` and `version` in `deno.json`
 
-1. Run `deno task tag` to bump version and tag release
+1. Run `deno task tag` to commit version and tag release
 
 1. Merge PR to `main` to publish
 
