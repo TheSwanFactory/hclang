@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.6.2 2025-02-15
+
+- First auto-generated release
+
 ## v0.6.1 2025-02-15
 
 - Fix auto-publish
