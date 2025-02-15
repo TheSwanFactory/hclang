@@ -59,11 +59,11 @@ export class MetaFrame {
     return { ...this.meta };
   }
 
-  public meta_keys() {
+  public meta_keys(): string[] {
     return Object.keys(this.meta);
   }
 
-  public meta_length() {
+  public meta_length(): number {
     return this.meta_keys().length;
   }
 

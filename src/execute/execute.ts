@@ -12,7 +12,7 @@ const stripLastCommas = (array: Array<string>) => {
   return result;
 };
 
-export const execute = (input: string) => {
+export const execute = (input: string): string => {
   const result = evaluate(input) as FrameArray;
   const array = result.toStringArray();
   const stripped = stripLastCommas(array);

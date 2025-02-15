@@ -41,15 +41,15 @@ export class Frame extends MetaFrame {
     }
   }
 
-  public string_open() {
+  public string_open(): string {
     return Frame.BEGIN_EXPR;
   }
 
-  public string_close() {
+  public string_close(): string {
     return Frame.END_EXPR;
   }
 
-  public at(_index: number) {
+  public at(_index: number): Frame {
     return Frame.nil;
   }
 
@@ -57,11 +57,11 @@ export class Frame extends MetaFrame {
     return this;
   }
 
-  public apply(argument: Frame, _parameter: Frame) {
+  public apply(argument: Frame, _parameter: Frame): Frame {
     return argument;
   }
 
-  public called_by(context: Frame, parameter: Frame) {
+  public called_by(context: Frame, parameter: Frame): Frame {
     if (this.is.void) {
       return context;
     }
