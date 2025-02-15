@@ -17,7 +17,7 @@ export class MetaFrame {
   public up: Frame = {} as Frame; // forward-declare Frame
   public id: string;
 
-  constructor(public meta = NilContext, _isNil = false) {
+  constructor(public meta: Context = NilContext, _isNil = false) {
     const name = this.constructor.name;
     const id = name + "." + MetaFrame.id_count++;
     this.id = "$:" + id;
