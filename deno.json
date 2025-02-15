@@ -1,4 +1,23 @@
 {
+  "name": "@swanfactory/hclang",
+  "version": "0.6.2",
+  "license": "MIT",
+  "exports": "./src/execute.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TheSwanFactory/hclang.git"
+  },
+  "author": "Ernest N. Prabhakar, Ph.D.",
+  "keywords": [
+    "language",
+    "markup",
+    "programming",
+    "html",
+    "maml",
+    "hc",
+    "interpreter",
+    "cli"
+  ],
   "tasks": {
     "hc": "deno run -A src/cli/hc.ts",
     "test": "deno fmt src && deno lint && deno test --allow-env --allow-read",
