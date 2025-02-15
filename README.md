@@ -30,6 +30,8 @@ This will launch the interpreter.
 
 ## BitScheme
 
+### TODO: Port to Deno
+
 To generate and run the BitScheme documentation, type:
 
 ```shell
@@ -43,14 +45,14 @@ the testdoc evaluator which will generate pass/fail messages.
 
 1. Clone the [github repository](https://github.com/TheSwanFactory/hclang.git).
 
-2. Install [node.js](https://nodejs.org/).
+2. Install [deno](https://github.com/denoland/deno).
 
-   - e.g., `brew install node` on macOS.
+   - e.g., `brew install deno` on macOS.
 
-3. Run `npm test`.
+3. Run `deno task test`.
 
 NOTE: The [language-hclang](https://github.com/TheSwanFactory/language-hclang)
-vscode extension is still in development.
+vscode extension is still being updated.
 
 ## Publishing
 
@@ -58,8 +60,8 @@ From the feature branch:
 
 1. Update CHANGELOG.md
 
-1. Run `npm run done` to bump version and tag
+1. Run `deno task tag` to bump version and tag
 
 1. Merge PR
 
-Should automatically publish to [npmjs](https://www.npmjs.com/package/hclang).
+Should automatically publish to [jsr](https://jsr.io/@swanfactory/hclang).

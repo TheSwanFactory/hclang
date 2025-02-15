@@ -1,7 +1,8 @@
 {
   "tasks": {
-    "hc": "deno run --allow-env src/cli/hc.ts",
-    "test": "deno fmt src && deno lint && deno test --allow-env --allow-read"
+    "hc": "deno run -A src/cli/hc.ts",
+    "test": "deno fmt src && deno lint && deno test --allow-env --allow-read",
+    "tag": "deno run -A https://deno.land/x/version_bump@2.0.2/cli.ts && git add deno.json && git commit -m 'Bump version' && git tag v$(jq -r .version deno.json) && git push origin --tags"
   },
   "imports": {
     "@std/assert": "jsr:@std/assert@^1.0.10"
