@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.6.3 2025-02-15
+
+- Tweak release script
+
 ## v0.6.2 2025-02-15
 
 - First auto-generated release
