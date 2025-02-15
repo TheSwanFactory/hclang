@@ -11,7 +11,7 @@ on:
 jobs:
   build:
     permissions:
-      contents: write
+      contents: read
       packages: write
       id-token: write
 
@@ -27,9 +27,7 @@ jobs:
       - name: Publish to Deno.land
         id: deno-publish
         if: github.ref == 'refs/heads/master' && github.event_name == 'push'
-        run: deno run --allow-net --allow-read --allow-write --allow-env https://deno.land/x/publish/mod.ts
-        env:
-          DENO_AUTH_TOKEN: ${{ secrets.DENO_AUTH_TOKEN }}
+        run: deno publish
       - name: Create release on publish
         uses: ncipollo/release-action@v1
         if: ${{ steps.deno-publish.outputs.type == 'published' }}

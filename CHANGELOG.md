@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v0.6.1 2025-02-15
+
+- Fix auto-publish
+- Get version from deno.json
+
 ## v0.6.0 2025-02-15
 
 - Migrated to Deno
