@@ -1,4 +1,4 @@
-import { expect } from "jsr:@std/expect";
+import { expect } from "npm:chai";
 import { beforeEach, describe, it } from "jsr:@std/testing/bdd";
 import { EvalPipe } from "../../src/execute/eval-pipe.ts";
 import * as frame from "../../src/frames.ts";

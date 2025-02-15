@@ -1,4 +1,4 @@
-import { expect } from "jsr:@std/expect";
+import { expect } from "npm:chai";
 import { beforeEach, describe, it } from "jsr:@std/testing/bdd";
 
 import { LexPipe } from "../../src/execute/lex-pipe.ts";
