@@ -182,7 +182,7 @@ Schemas, a novel feature of `bitscheme`, can be thought of as a cross between ty
 
 The three simple Schemas resemble C types, though they actually define an interface rather than require a specific representation:
 ```
-; .enum123 <1,2,3>; # Enumerated list of valid values
+; @enum123 <1,2,3>; # Enumerated list of valid values
 ; .BitStream <[@Bit]>; # Variable-length Sequence of a specific type
 ; .Byte <8@Bit>; # Fixed-length sequences
 ```
