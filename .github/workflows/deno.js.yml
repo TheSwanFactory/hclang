@@ -25,9 +25,11 @@ jobs:
       - name: Publish to Deno.land
         id: deno-publish
         if: github.ref == 'refs/heads/master' && github.event_name == 'push'
-        run: deno publish
+        run: |
+          deno publish
+          echo "::set-output name=publish-output::$(deno publish)"
       - name: Echo Deno publish output
-        run: echo "${{ steps.deno-publish.outputs }}"
+        run: echo "${{ steps.deno-publish.outputs.publish-output }}"
       - name: Create release on publish
         uses: ncipollo/release-action@v1
         if: github.ref == 'refs/heads/master' && github.event_name == 'push'
