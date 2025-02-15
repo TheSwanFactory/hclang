@@ -1,4 +1,4 @@
-import { expect } from "chai";
+import { expect } from "npm:chai";
 import { beforeEach, describe, it } from "jsr:@std/testing/bdd";
 
 import { HCEval } from "../../src/execute/hc-eval.ts";

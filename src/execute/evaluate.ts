@@ -1,4 +1,4 @@
-import { Frame, FrameArray } from "../frames.ts";
+import { type Frame, FrameArray } from "../frames.ts";
 import { HCEval } from "./hc-eval.ts";
 
 export const evaluate = (input: string, ..._args: string[]): Frame => {

@@ -1,4 +1,4 @@
-import { Frame, FrameBytes, FrameSymbol, ISourced } from "../frames.ts";
+import { Frame, FrameBytes, FrameSymbol, type ISourced } from "../frames.ts";
 import { Token } from "./lex.ts";
 
 export class LexBytes extends Frame implements ISourced {

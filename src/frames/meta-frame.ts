@@ -17,7 +17,7 @@ export class MetaFrame {
   public up: Frame = {} as Frame; // forward-declare Frame
   public id: string;
 
-  constructor(public meta = NilContext, _isNil = false) {
+  constructor(public meta: Context = NilContext, _isNil = false) {
     const name = this.constructor.name;
     const id = name + "." + MetaFrame.id_count++;
     this.id = "$:" + id;
@@ -59,11 +59,11 @@ export class MetaFrame {
     return { ...this.meta };
   }
 
-  public meta_keys() {
+  public meta_keys(): string[] {
     return Object.keys(this.meta);
   }
 
-  public meta_length() {
+  public meta_length(): number {
     return this.meta_keys().length;
   }
 
@@ -71,7 +71,7 @@ export class MetaFrame {
     return Object.entries(this.meta);
   }
 
-  public meta_string() {
+  public meta_string(): string {
     return this.meta_pairs().map(([key, value]) => {
       if (key === Frame.kOUT) {
         return `.${key} ${value.id};`;

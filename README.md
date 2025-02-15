@@ -1,7 +1,5 @@
 # Homiconic C
 
-version: 0.5.14
-
 ## Introduction
 
 [Homoiconic C](https://theswanfactory.wordpress.com/2016/12/20/homoiconic-c-a-universal-language-for-code-and-data/)

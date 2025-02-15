@@ -1,12 +1,12 @@
 import {
-  Context,
+  type Context,
   Frame,
   FrameArray,
   FrameBind,
   FrameExpr,
-  IArrayConstructor,
+  type IArrayConstructor,
 } from "../frames.ts";
-import { IFinish, Terminal } from "./terminals.ts";
+import { type IFinish, Terminal } from "./terminals.ts";
 
 export class ParsePipe extends FrameArray implements IFinish {
   public collector: Array<Frame>;

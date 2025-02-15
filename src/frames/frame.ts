@@ -1,7 +1,6 @@
-import { inspect } from "node:util";
 import { MetaFrame, NilContext } from "./meta-frame.ts";
-import { ICurryFunction } from "../ops.ts";
-import { IArrayConstructor } from "../frames.ts";
+import type { ICurryFunction } from "../ops.ts";
+import type { IArrayConstructor } from "../frames.ts";
 
 export type Flags = { [key: string]: boolean };
 
@@ -22,8 +21,8 @@ export class Frame extends MetaFrame {
   public static readonly kEND = "$$";
   public static readonly BEGIN_EXPR = "(";
   public static readonly END_EXPR = ")";
-  public static readonly nil = new Frame(NilContext, true);
-  public static readonly all = new Frame(NilContext, true);
+  public static readonly nil: Frame = new Frame(NilContext, true);
+  public static readonly all: Frame = new Frame(NilContext, true);
 
   public static readonly missing: Frame = new Frame(NilContext, false, true);
   public static globals = Frame.missing;
@@ -42,15 +41,15 @@ export class Frame extends MetaFrame {
     }
   }
 
-  public string_open() {
+  public string_open(): string {
     return Frame.BEGIN_EXPR;
   }
 
-  public string_close() {
+  public string_close(): string {
     return Frame.END_EXPR;
   }
 
-  public at(_index: number) {
+  public at(_index: number): Frame {
     return Frame.nil;
   }
 
@@ -58,40 +57,40 @@ export class Frame extends MetaFrame {
     return this;
   }
 
-  public apply(argument: Frame, _parameter: Frame) {
+  public apply(argument: Frame, _parameter: Frame): Frame {
     return argument;
   }
 
-  public called_by(context: Frame, parameter: Frame) {
+  public called_by(context: Frame, parameter: Frame): Frame {
     if (this.is.void) {
       return context;
     }
     return context.apply(this, parameter);
   }
 
-  public call(argument: Frame, parameter = Frame.nil) {
+  public call(argument: Frame, parameter = Frame.nil): Frame {
     if (this.is.void) {
       return argument;
     }
     return argument.called_by(this, parameter);
   }
 
-  public override toString() {
+  public override toString(): string {
     return this.string_open() + this.meta_string() + this.string_close();
   }
 
-  public className() {
+  public className(): string {
     return this.constructor.name;
   }
 
-  public inspect() {
+  public inspect(): string {
     let result = `${this.className()}<${this.toString()}>`;
     const meta = this.meta_string();
     if (meta.length > 2) {
       result += meta;
     }
     if (Object.keys(this.is).length > 0) {
-      result += `:${inspect(this.is)}`;
+      result += `:${Deno.inspect(this.is)}`;
     }
     return result;
   }

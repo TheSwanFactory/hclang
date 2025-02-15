@@ -1,4 +1,4 @@
-import { Any, Frame } from "./frame.ts";
+import { type Any, Frame } from "./frame.ts";
 import { NilContext } from "./meta-frame.ts";
 
 export class FrameAtom extends Frame {

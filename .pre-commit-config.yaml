@@ -1,7 +1,7 @@
 exclude: ".projen*|.git*"
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
+    rev: v5.0.0
     hooks:
       - id: check-yaml
       - id: end-of-file-fixer
@@ -9,17 +9,17 @@ repos:
       - id: check-added-large-files
       - id: check-merge-conflict
   - repo: https://github.com/gitleaks/gitleaks
-    rev: v8.18.0
+    rev: v8.23.3
     hooks:
       - id: gitleaks
   - repo: local
     hooks:
       - id: lint
         name: lint
-        entry: bash -c "deno lint"
+        entry: bash -c "deno fmt && deno lint --fix"
         language: deno
       - id: test
         name: test
-        entry: bash -c "deno test"
+        entry: bash -c "deno test -A"
         stages: [pre-push]
         language: deno
