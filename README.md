@@ -58,8 +58,8 @@ From the feature branch:
 
 1. Update CHANGELOG.md
 
-1. Run `deno task tag` to bump version and tag
+1. Run `deno task tag` to bump version and tag release
 
-1. Merge PR
+1. Merge PR to `main` to publish
 
 Should automatically publish to [jsr](https://jsr.io/@swanfactory/hclang).
