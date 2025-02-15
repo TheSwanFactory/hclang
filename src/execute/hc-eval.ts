@@ -5,11 +5,14 @@ import {
   FrameGroup,
   FrameString,
 } from "../frames.ts";
-import { version } from "../version.ts";
 import { EvalPipe } from "./eval-pipe.ts";
 import { Lex } from "./lex.ts";
 import { LexPipe } from "./lex-pipe.ts";
 import { ParsePipe } from "./parse-pipe.ts";
+
+const { version } = JSON.parse(
+  Deno.readTextFileSync(new URL("../../deno.json", import.meta.url)),
+);
 
 export class HCEval {
   public static readonly SOURCE = "; ";

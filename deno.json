@@ -19,7 +19,7 @@
     "cli"
   ],
   "tasks": {
-    "hc": "deno run --allow-env src/cli/hc.ts",
+    "hc": "deno run -A src/cli/hc.ts",
     "test": "deno fmt src && deno lint && deno test --allow-env --allow-read"
   },
   "imports": {
