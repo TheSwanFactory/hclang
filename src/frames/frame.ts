@@ -1,4 +1,3 @@
-import { inspect } from "node:util";
 import { MetaFrame, NilContext } from "./meta-frame.ts";
 import { ICurryFunction } from "../ops.ts";
 import { IArrayConstructor } from "../frames.ts";
@@ -91,7 +90,7 @@ export class Frame extends MetaFrame {
       result += meta;
     }
     if (Object.keys(this.is).length > 0) {
-      result += `:${inspect(this.is)}`;
+      result += `:${Deno.inspect(this.is)}`;
     }
     return result;
   }

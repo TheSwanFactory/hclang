@@ -4,7 +4,7 @@ name: Deno CI
 
 on:
   push:
-    branches: ["master"]
+    branches: ["master", "221-deno-publish"]
   pull_request:
     branches: ["master"]
 
