@@ -5,7 +5,7 @@
     "tag": "deno run -A https://deno.land/x/version_bump@2.0.2/cli.ts && git add deno.json && git commit -m 'Bump version' && git tag v$(jq -r .version deno.json) && git push origin --tags"
   },
   "imports": {
-    "@std/assert": "jsr:@std/assert@^1.0.10"
+    "@nothing628/chalk": "jsr:@nothing628/chalk@^1.0.1"
   },
   "compilerOptions": {
     "strict": true
