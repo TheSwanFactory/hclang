@@ -1,4 +1,8 @@
 {
+  "name": "@swanfactory/clang",
+  "version": "0.1.0",
+  "license": "MIT",
+  "exports": "./src/execute.ts",
   "tasks": {
     "hc": "deno run --allow-env src/cli/hc.ts",
     "test": "deno fmt src && deno lint && deno test --allow-env --allow-read"
