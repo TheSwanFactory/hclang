@@ -15,7 +15,7 @@ and extensions to make it more human-readable.
 | **Types**         | `<type>`                     | MLIR Types           |
 | **If-Else**       | `cond ? { then } : { else }` | `scf.if`             |
 | **List**          | `.list  [v1, v2]`            | List                 |
-| **Reduce**        | `list \| { op _} `           | `scf.reduce`         |
+| **Reduce**        | `list \| { op _}`           | `scf.reduce`         |
 | **Map**           | `list & { op _ }`            | `scf.for`            |
 | **Parallel Map**  | `list <parallel> & { op _ }` | `scf.parallel`       |
 | **Function Def**  | `.f (.arg <t>)^{ op arg }`   | `func.func`          |
