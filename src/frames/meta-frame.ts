@@ -71,7 +71,7 @@ export class MetaFrame {
     return Object.entries(this.meta);
   }
 
-  public meta_string() {
+  public meta_string(): string {
     return this.meta_pairs().map(([key, value]) => {
       if (key === Frame.kOUT) {
         return `.${key} ${value.id};`;
