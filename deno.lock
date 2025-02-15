@@ -81,8 +81,7 @@
   },
   "workspace": {
     "dependencies": [
-      "jsr:@nothing628/chalk@^1.0.1",
-      "jsr:@std/assert@^1.0.10"
+      "jsr:@nothing628/chalk@^1.0.1"
     ]
   }
 }
