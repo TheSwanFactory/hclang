@@ -1,4 +1,4 @@
-import { expect } from "chai";
+import { expect } from "npm:chai";
 import { beforeEach, describe, it } from "jsr:@std/testing/bdd";
 
 import { Token } from "../../src/execute/lex.ts";

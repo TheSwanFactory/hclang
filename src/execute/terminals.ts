@@ -1,6 +1,6 @@
 import {
-  Any,
-  Context,
+  type Any,
+  type Context,
   Frame,
   FrameArray,
   FrameGroup,
@@ -8,10 +8,10 @@ import {
   FrameNote,
   FrameSchema,
   FrameSymbol,
-  IArrayConstructor,
+  type IArrayConstructor,
   NilContext,
 } from "../frames.ts";
-import { ICurryFunction } from "../ops.ts";
+import type { ICurryFunction } from "../ops.ts";
 
 export type IAction = {
   [key: string]: Frame | IArrayConstructor;

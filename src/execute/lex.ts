@@ -1,5 +1,5 @@
 import {
-  Any,
+  type Any,
   Frame,
   FrameAtom,
   FrameBytes,
@@ -7,7 +7,7 @@ import {
   FrameName,
   FrameOperator,
   FrameQuote,
-  ISourced,
+  type ISourced,
   NilContext,
 } from "../frames.ts";
 import { LexBytes } from "./lex-bytes.ts";

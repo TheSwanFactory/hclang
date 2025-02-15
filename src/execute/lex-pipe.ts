@@ -2,11 +2,11 @@ import {
   Frame,
   FrameString,
   FrameSymbol,
-  IArrayConstructor,
+  type IArrayConstructor,
 } from "../frames.ts";
-import { ParsePipe } from "./parse-pipe.ts";
+import type { ParsePipe } from "./parse-pipe.ts";
 import { getSyntax } from "./syntax.ts";
-import { IAction, IFinish, IPerformer } from "./terminals.ts";
+import type { IAction, IFinish, IPerformer } from "./terminals.ts";
 
 function ensure_factory(factory: IArrayConstructor | Frame): IArrayConstructor {
   if (factory instanceof Frame) {

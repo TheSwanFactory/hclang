@@ -1,4 +1,4 @@
-import { Any, Frame, FrameString } from "../frames.ts";
+import { type Any, Frame, FrameString } from "../frames.ts";
 import { getSyntax } from "./syntax.ts";
 
 export type LexOptions = { [key: string]: Any };

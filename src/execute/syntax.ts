@@ -1,5 +1,5 @@
 import * as frame from "../frames.ts";
-import { AtomFactory, Lex } from "./lex.ts";
+import { type AtomFactory, Lex } from "./lex.ts";
 import { terminals } from "./terminals.ts";
 
 export const _syntax: frame.Context = { ...terminals };

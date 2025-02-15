@@ -1,5 +1,5 @@
 import {
-  Frame,
+  type Frame,
   FrameArg,
   FrameExpr,
   FrameLazy,
