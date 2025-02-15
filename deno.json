@@ -1,6 +1,6 @@
 {
   "name": "@swanfactory/hclang",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "license": "MIT",
   "exports": "./src/execute.ts",
   "repository": {
@@ -21,7 +21,7 @@
   "tasks": {
     "hc": "deno run -A src/cli/hc.ts",
     "test": "deno fmt src && deno lint && deno test --allow-env --allow-read",
-    "tag": "deno run -A https://deno.land/x/version_bump@2.0.2/cli.ts && git add deno.json && git commit -m 'Bump version' && git tag v$(jq -r .version deno.json) && git push origin --tags"
+    "tag": "git add deno.json && git commit -m 'Bump version' && git tag v$(jq -r .version deno.json) && git push origin --tags"
   },
   "imports": {
     "@nothing628/chalk": "jsr:@nothing628/chalk@^1.0.1"
