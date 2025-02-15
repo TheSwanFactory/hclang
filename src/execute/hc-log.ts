@@ -1,4 +1,4 @@
-import chalk from "chalk";
+import chalk from "@nothing628/chalk";
 import { type Context, Frame } from "../frames.ts";
 import { HCEval } from "./hc-eval.ts";
 
@@ -9,7 +9,7 @@ export class HCLog extends Frame {
     super(context);
   }
 
-  public apply(argument: Frame, _parameter = Frame.nil): Frame {
+  public override apply(argument: Frame, _parameter = Frame.nil): Frame {
     const debug = this.get("DEBUG");
     if (debug !== Frame.missing) {
       console.log(argument.id, argument);
@@ -34,9 +34,9 @@ export class HCLog extends Frame {
     const part = output.split(" .n ");
     switch (flag) {
       case "+":
-        return chalk.green(part[0]) + chalk.grey.italic(part[1]);
+        return chalk.green(part[0]) + chalk.grey.bold(part[1]);
       case "-":
-        return chalk.red(part[0]) + chalk.grey.italic(part[1]);
+        return chalk.red(part[0]) + chalk.grey.bold(part[1]);
       default:
         return chalk.yellow(output);
     }

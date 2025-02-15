@@ -2,7 +2,7 @@
 import { HCEval } from "../execute/hc-eval.ts";
 import { HCLog } from "../execute/hc-log.ts";
 import { HCTest } from "../execute/hc-test.ts";
-import minimist from "minimist";
+import { parseArgs } from "jsr:@std/cli/parse-args";
 import { runfile } from "./runfile.ts";
 
 const aliases = {
@@ -13,7 +13,13 @@ const aliases = {
   v: "verbose",
   V: "version",
 };
-const options = minimist(Deno.args.slice(2), { alias: aliases });
+
+const options = parseArgs(Deno.args.slice(2), {
+  alias: aliases,
+  boolean: ["help", "interactive", "testdoc", "verbose", "version"],
+  string: ["evaluate"],
+});
+
 if (options.verbose) {
   console.error("options", options);
 }
@@ -37,7 +43,11 @@ async function main() {
   }
 
   for (const file of options._) {
-    evaluated = await runfile(hc_eval, file);
+    if (typeof file === "string") {
+      evaluated = await runfile(hc_eval, file);
+    } else {
+      console.error("Invalid file argument", file);
+    }
   }
 
   if (options.interactive || !evaluated) {

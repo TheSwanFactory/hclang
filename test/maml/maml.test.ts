@@ -1,4 +1,4 @@
-import { expect } from "chai";
+import { expect } from "jsr:@std/expect";
 import { describe, it } from "jsr:@std/testing/bdd";
 
 import { FrameExpr, FrameString } from "../../src/frames.ts";

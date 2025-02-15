@@ -1,4 +1,4 @@
-import chalk from "chalk";
+import chalk from "@nothing628/chalk";
 import {
   type Context,
   type Frame,
