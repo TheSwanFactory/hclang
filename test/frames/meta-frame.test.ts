@@ -2,11 +2,11 @@ import { expect } from "chai";
 import { describe, it } from "jsr:@std/testing/bdd";
 
 import {
-  Context,
+  type Context,
   Frame,
   FrameString,
   FrameSymbol,
-  IKeyValuePair,
+  type IKeyValuePair,
 } from "../../src/frames.ts";
 
 describe("MetaFrame", () => {

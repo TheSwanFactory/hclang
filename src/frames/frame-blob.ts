@@ -1,4 +1,4 @@
-import { Frame } from "./frame.ts";
+import type { Frame } from "./frame.ts";
 import { FrameAtom } from "./frame-atom.ts";
 import { NilContext } from "./meta-frame.ts";
 

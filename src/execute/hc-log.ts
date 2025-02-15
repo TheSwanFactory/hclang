@@ -1,5 +1,5 @@
 import chalk from "chalk";
-import { Context, Frame } from "../frames.ts";
+import { type Context, Frame } from "../frames.ts";
 import { HCEval } from "./hc-eval.ts";
 
 export type Counts = { [key: string]: number };

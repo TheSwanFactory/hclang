@@ -1,5 +1,10 @@
 import chalk from "chalk";
-import { Context, Frame, FrameGroup, FrameString } from "../frames.ts";
+import {
+  type Context,
+  type Frame,
+  FrameGroup,
+  FrameString,
+} from "../frames.ts";
 import { version } from "../version.ts";
 import { EvalPipe } from "./eval-pipe.ts";
 import { Lex } from "./lex.ts";

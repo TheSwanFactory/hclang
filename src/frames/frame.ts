@@ -1,6 +1,6 @@
 import { MetaFrame, NilContext } from "./meta-frame.ts";
-import { ICurryFunction } from "../ops.ts";
-import { IArrayConstructor } from "../frames.ts";
+import type { ICurryFunction } from "../ops.ts";
+import type { IArrayConstructor } from "../frames.ts";
 
 export type Flags = { [key: string]: boolean };
 

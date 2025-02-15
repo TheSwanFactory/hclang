@@ -1,7 +1,7 @@
 import { Frame } from "./frame.ts";
 import { FrameList } from "./frame-list.ts";
 import { FrameNote } from "./frame-note.ts";
-import { MetaFrame, NilContext } from "./meta-frame.ts";
+import { type MetaFrame, NilContext } from "./meta-frame.ts";
 
 export class FrameArray extends FrameList {
   public static readonly BEGIN_ARRAY = "[";
