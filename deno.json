@@ -1,6 +1,6 @@
 {
   "name": "@swanfactory/hclang",
-  "version": "0.1.0",
+  "version": "0.5.14",
   "license": "MIT",
   "exports": "./src/execute.ts",
   "repository": {
