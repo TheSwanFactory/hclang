@@ -29,5 +29,5 @@ export {
   MetaFrame,
   NilContext,
 } from "./frames/meta-frame.ts";
-export type { Context, IKeyValuePair, ISourced } from "./frames/meta-frame.ts";
+export type { Context, IKeyValuePair, ISourced } from "./frames/context.ts";
 Frame.globals = Ops;

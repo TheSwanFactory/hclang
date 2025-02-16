@@ -1,10 +1,16 @@
 # CHANGELOG
 
+## v0.6.6 2025-02-16
+
+- Export `contextify` method
+- Split out Context type
+
 ## v0.6.5 2025-02-16
 
-- Refactor main module
+- Refactor main module to fix parsing
 - Add exports for main, getEval, getOptions, and runfile
 - Add tests
+- Add return types
 
 ## v0.6.4 2025-02-15
 
