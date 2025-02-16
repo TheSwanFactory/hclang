@@ -1,7 +1,7 @@
 import chalk from "@nothing628/chalk";
 import {
   type Context,
-  type Env,
+  type StringMap,
   type Frame,
   FrameGroup,
   FrameString,
@@ -19,7 +19,7 @@ export class HCEval {
   public static readonly SOURCE = "; ";
   public static readonly EXPECT = "# ";
 
-  public static make_context(entries: Env): Context {
+  public static make_context(entries: StringMap): Context {
     const context: Context = {};
     Object.entries(entries).forEach(([key, value]) => {
       if (key[0] !== "n") {

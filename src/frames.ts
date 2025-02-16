@@ -23,7 +23,7 @@ export { type Any, Frame } from "./frames/frame.ts";
 export { type ISourced, MetaFrame } from "./frames/meta-frame.ts";
 export {
   type Context,
-  type Env,
+  type StringMap,
   contextEqual,
   contextString,
   type IKeyValuePair,

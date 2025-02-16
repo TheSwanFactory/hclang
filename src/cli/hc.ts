@@ -4,7 +4,7 @@ import { HCLog } from "../execute/hc-log.ts";
 import { HCTest } from "../execute/hc-test.ts";
 import { parseArgs } from "jsr:@std/cli/parse-args";
 import { runfile } from "./runfile.ts";
-import type { Env } from "../frames.ts";
+import type { StringMap } from "../frames.ts";
 
 const aliases = {
   e: "evaluate",
@@ -35,7 +35,7 @@ export function getOptions(args: string[]): ReturnType<typeof parseArgs> {
  * @param env - An object containing key-value pairs of environment variables.
  * @returns An instance of `HCEval` configured with the provided environment variables.
  */
-export function getEval(env: Env): HCEval {
+export function getEval(env: StringMap): HCEval {
   const context = HCEval.make_context(env);
   const out = new HCLog(context);
   const hc_eval = new HCEval(out);
