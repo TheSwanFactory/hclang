@@ -12,6 +12,12 @@ const stripLastCommas = (array: Array<string>) => {
   return result;
 };
 
+/**
+ * Executes the given input string and returns the processed result as a string.
+ *
+ * @param {string} input - The input string of hc code to be evaluated.
+ * @returns {string} - The processed result(s) as a string, with each element separated by a newline.
+ */
 export const execute = (input: string): string => {
   const result = evaluate(input) as FrameArray;
   const array = result.toStringArray();
