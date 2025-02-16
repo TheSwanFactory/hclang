@@ -20,7 +20,7 @@ const aliases = {
  * @param args - The array of command-line arguments (only).
  * @returns The parsed options object.
  */
-export function getOptions(args: string[]) {
+export function getOptions(args: string[]): ReturnType<typeof parseArgs> {
   return parseArgs(args, {
     alias: aliases,
     boolean: ["help", "interactive", "testdoc", "verbose", "version"],
@@ -34,7 +34,7 @@ export function getOptions(args: string[]) {
  * @param env - An object containing key-value pairs of environment variables.
  * @returns An instance of `HCEval` configured with the provided environment variables.
  */
-export function getEval(env: {[key: string]: string}) {
+export function getEval(env: { [key: string]: string }): HCEval {
   const context = HCEval.make_context(env);
   const out = new HCLog(context);
   const hc_eval = new HCEval(out);
@@ -43,10 +43,10 @@ export function getEval(env: {[key: string]: string}) {
 
 /**
  * The main function for the CLI application.
- * 
+ *
  * @param hc_eval - An instance of HCEval.
  * @param options - The options object returned by the getOptions function.
- * 
+ *
  * The function performs the following tasks:
  * - Logs the options if the verbose flag is set.
  * - Creates a context and output logger.
@@ -56,7 +56,10 @@ export function getEval(env: {[key: string]: string}) {
  * - Iterates over the files provided in the options and runs each file.
  * - If the interactive option is set or no evaluation has been performed, starts the REPL.
  */
-export async function main(hc_eval: HCEval, options: ReturnType<typeof getOptions>) {
+export async function main(
+  hc_eval: HCEval,
+  options: ReturnType<typeof getOptions>,
+): Promise<void> {
   if (options.verbose) {
     console.error("options", options);
   }

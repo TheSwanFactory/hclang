@@ -2,7 +2,7 @@
 const RUNDOC = "#!/usr/bin/env hc \n```\n";
 const ENDDOC = "```\n";
 
-function is_doc(file: string) {
+function is_doc(file: string): boolean {
   const file_ext = file.split(".").pop();
   return file_ext === "adoc" || file_ext === "md";
 }

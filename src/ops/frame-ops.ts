@@ -17,7 +17,7 @@ export class FrameOps extends Frame {
     return Frame.missing;
   }
 
-  public override toString() {
+  public override toString(): string {
     return this.OpsDict.toString();
   }
 
