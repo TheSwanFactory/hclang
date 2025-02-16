@@ -28,7 +28,7 @@ export class FrameBlob extends FrameAtom {
     64: "s", // 6
   };
 
-  public static fix_source(source: string) {
+  public static fix_source(source: string): string {
     if (source === "") {
       return "0" + FrameBlob.BLOB_PREFIX[16] + "0";
     }
@@ -47,7 +47,7 @@ export class FrameBlob extends FrameAtom {
     return parseInt(base || "10", 10);
   }
 
-  public static count_bits(source: string, base: number) {
+  public static count_bits(source: string, base: number): bigint {
     const digits = source.substr(2);
     const length = digits.length;
     const entropy = Math.log2(base);
@@ -55,9 +55,9 @@ export class FrameBlob extends FrameAtom {
     return BigInt(bits);
   }
 
-  protected data;
+  protected data: bigint;
   protected base: number;
-  protected n_bits;
+  protected n_bits: bigint;
 
   constructor(source: string) {
     super(NilContext);
@@ -77,16 +77,16 @@ export class FrameBlob extends FrameAtom {
     return super.called_by(context, parameter);
   }
 
-  public override string_start() {
+  public override string_start(): string {
     return FrameBlob.BLOB_START;
   }
 
-  public override string_prefix() {
+  public override string_prefix(): string {
     const sigil = FrameBlob.BLOB_PREFIX[this.base];
     return "0" + sigil;
   }
 
-  public override canInclude(char: string) {
+  public override canInclude(char: string): boolean {
     const regex = FrameBlob.BLOB_DIGITS[64]; // accept everything, to start
     return regex.test(char);
   }
@@ -98,28 +98,28 @@ export class FrameBlob extends FrameAtom {
     return this.string_prefix() + digits + this.string_suffix();
   }
 
-  protected override toData() {
+  protected override toData(): bigint {
     return this.data;
   }
 
-  protected append(right_operand: FrameBlob) {
+  protected append(right_operand: FrameBlob): FrameBlob {
     const left = BigInt(right_operand.exalt(this));
     this.data = left + right_operand.data;
     this.n_bits = this.n_bits + right_operand.n_bits;
     return this;
   }
 
-  protected exalt(left_operand: FrameBlob) {
+  protected exalt(left_operand: FrameBlob): bigint {
     const result = left_operand.shift_left(this.n_bits);
     return result;
   }
 
-  protected shift_left(n_bits: bigint) {
+  protected shift_left(n_bits: bigint): bigint {
     const bigint_result = this.data << n_bits;
     return bigint_result;
   }
 
-  protected n_chars() {
+  protected n_chars(): number {
     const entropy = Math.log2(this.base);
     const bits = Number(this.n_bits);
     const chars = bits / entropy;

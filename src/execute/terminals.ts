@@ -25,7 +25,7 @@ export interface IFinish extends Frame {
   finish(parameter: Frame): Frame;
 }
 
-const terminate: ICurryFunction = (pipe: Frame, parameter: Frame) => {
+const terminate: ICurryFunction = (pipe: Frame, parameter: Frame): Frame => {
   if ("finish" in pipe && pipe.finish instanceof Function) {
     return pipe.finish(parameter);
   }
@@ -36,7 +36,7 @@ const terminate: ICurryFunction = (pipe: Frame, parameter: Frame) => {
 };
 
 export class Terminal extends Frame {
-  public static end() {
+  public static end(): Terminal {
     return new Terminal(terminate);
   }
 
@@ -45,7 +45,7 @@ export class Terminal extends Frame {
     this.is.immediate = true;
   }
 
-  public override apply(argument: Frame, parameter: Frame) {
+  public override apply(argument: Frame, parameter: Frame): Frame {
     return this.data(argument, parameter);
   }
 
@@ -53,7 +53,7 @@ export class Terminal extends Frame {
     return this.data;
   }
 
-  public override toString() {
+  public override toString(): string {
     return this.id + `[${this.data}]`;
   }
 }
@@ -61,19 +61,19 @@ export class Terminal extends Frame {
 export const terminals: Context = {};
 
 const perform = (actions: IAction) => {
-  return (source: Frame, _parameter: Frame) => {
+  return (source: Frame, _parameter: Frame): Frame => {
     const performer = source as IPerformer;
     return performer.perform(actions);
   };
 };
 
-const addTerminal = (char: string, key: string) => {
+const addTerminal = (char: string, key: string): void => {
   const action: IAction = {};
   action[key] = FrameSymbol.for(char);
   terminals[char] = new Terminal(perform(action));
 };
 
-function addGroup(Grouper: IArrayConstructor) {
+function addGroup(Grouper: IArrayConstructor): void {
   const sample = new Grouper([], NilContext);
   const open = sample.string_open();
   const close = sample.string_close();

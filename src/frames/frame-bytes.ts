@@ -14,11 +14,11 @@ export class FrameBytes extends FrameQuote {
     this.length = values.length;
   }
 
-  public override string_prefix() {
+  public override string_prefix(): string {
     return FrameBytes.BYTES_BEGIN;
   }
 
-  public override string_suffix() {
+  public override string_suffix(): string {
     return FrameBytes.BYTES_END;
   }
 
@@ -27,7 +27,7 @@ export class FrameBytes extends FrameQuote {
       this.toData();
   }
 
-  protected override toData() {
+  protected override toData(): string {
     let s = "";
     this.data.forEach((value) => {
       s = s + String.fromCharCode(value);

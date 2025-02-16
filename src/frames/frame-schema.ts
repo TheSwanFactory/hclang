@@ -11,11 +11,11 @@ export class FrameSchema extends FrameList {
     super(data, meta);
   }
 
-  public override string_open() {
+  public override string_open(): string {
     return FrameSchema.BEGIN_SCHEMA;
   }
 
-  public override string_close() {
+  public override string_close(): string {
     return FrameSchema.END_SCHEMA;
   }
 
@@ -24,14 +24,14 @@ export class FrameSchema extends FrameList {
     return new FrameSchema(array);
   }
 
-  public override apply(argument: Frame, _parameter: Frame) {
+  public override apply(argument: Frame, _parameter: Frame): this {
     if (!argument.is.void) {
       this.data.push(argument);
     }
     return this;
   }
 
-  public override at(index: number) {
+  public override at(index: number): Frame | FrameNote {
     if (index >= this.size() || -index > this.size()) {
       const source = "[0.." + this.size() + "]." + index;
       return FrameNote.index(source);
@@ -43,11 +43,11 @@ export class FrameSchema extends FrameList {
     return this.data[n + index];
   }
 
-  public length() {
+  public length(): number {
     return this.data.length;
   }
 
-  public reset() {
+  public reset(): void {
     this.data = [];
   }
 }

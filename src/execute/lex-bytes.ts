@@ -25,18 +25,18 @@ export class LexBytes extends Frame implements ISourced {
     return this;
   }
 
-  protected finish(_argument: Frame, _passAlong: boolean) {
+  protected finish(_argument: Frame, _passAlong: boolean): Frame {
     this.exportFrame();
     return this.up;
   }
 
-  protected exportFrame() {
+  protected exportFrame(): Frame {
     const output = this.makeFrame();
     const out = this.get(Frame.kOUT);
     return out.call(output);
   }
 
-  protected makeFrame() {
+  protected makeFrame(): Frame {
     if (this.body.length === 0) {
       return FrameSymbol.end();
     }

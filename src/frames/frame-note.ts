@@ -23,30 +23,30 @@ export class FrameNote extends FrameQuote {
     },
   };
 
-  public static test(data: string, source: string, sum: string) {
+  public static test(data: string, source: string, sum: string): FrameNote {
     const note = new FrameNote(data, source);
     const result = new FrameString(sum);
     note.set("n", result);
     return note;
   }
 
-  public static key(source: string, where: Frame) {
+  public static key(source: string, where: Frame): FrameNote {
     return new FrameNote("!", source, where);
   }
 
-  public static type(source: string) {
+  public static type(source: string): FrameNote {
     return new FrameNote("<>", source);
   }
 
-  public static index(source: string) {
+  public static index(source: string): FrameNote {
     return new FrameNote(">", source);
   }
 
-  public static pass(source: string, sum: string) {
+  public static pass(source: string, sum: string): FrameNote {
     return FrameNote.test("+", source, sum);
   }
 
-  public static fail(source: string, sum: string) {
+  public static fail(source: string, sum: string): FrameNote {
     return FrameNote.test("-", source, sum);
   }
 
@@ -77,19 +77,19 @@ export class FrameNote extends FrameQuote {
     return this.up;
   }
 
-  public override string_prefix() {
+  public override string_prefix(): string {
     return FrameNote.NOTE_BEGIN;
   }
 
-  public override string_suffix() {
+  public override string_suffix(): string {
     return FrameNote.NOTE_END;
   }
 
-  public override toString() {
+  public override toString(): string {
     return this.string_prefix() + this.data + this.meta_string();
   }
 
-  protected setLabel(data: string, source: string) {
+  protected setLabel(data: string, source: string): void {
     const label = FrameNote.LABELS.en[data];
     let value = new FrameString(data);
     let key = "!";
@@ -103,7 +103,7 @@ export class FrameNote extends FrameQuote {
     this.set(key, value);
   }
 
-  protected addExtra(argument: Frame, parameter: Frame) {
+  protected addExtra(argument: Frame, parameter: Frame): FrameNote {
     let extras = this.get(FrameNote.NOTE_EXTRAS);
     if (extras.is.missing) {
       extras = new FrameArray([]);

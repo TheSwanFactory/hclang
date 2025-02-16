@@ -19,7 +19,7 @@ export class FrameArray extends FrameList {
     return FrameArray.END_ARRAY;
   }
 
-  public override in(contexts = [Frame.nil]): Frame {
+  public override in(contexts: Array<Frame> = [Frame.nil]): Frame {
     const array = this.array_eval(contexts);
     return new FrameArray(array);
   }

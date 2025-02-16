@@ -11,19 +11,19 @@ export class FrameComment extends FrameAtom {
     this.is.void = true;
   }
 
-  public override string_prefix() {
+  public override string_prefix(): string {
     return FrameComment.COMMENT_BEGIN;
   }
 
-  public override string_suffix() {
+  public override string_suffix(): string {
     return FrameComment.COMMENT_END;
   }
 
-  public override canInclude(char: string) {
+  public override canInclude(char: string): boolean {
     return !FrameComment.COMMENT_END_REGEX.test(char);
   }
 
-  protected override toData() {
+  protected override toData(): string {
     return this.data;
   }
 }

@@ -27,12 +27,12 @@ export class LexPipe extends Frame implements IFinish, IPerformer {
     this.level = 0;
   }
 
-  public lex_string(input: string) {
+  public lex_string(input: string): Frame {
     const source = new FrameString(input);
     return this.lex(source);
   }
 
-  public lex(source: FrameString) {
+  public lex(source: FrameString): Frame {
     return source.reduce(this);
   }
 
@@ -51,7 +51,7 @@ export class LexPipe extends Frame implements IFinish, IPerformer {
     return next_parser;
   }
 
-  public perform(action: IAction) {
+  public perform(action: IAction): LexPipe {
     for (const [key, value] of Object.entries(action)) {
       const skip = key === "push";
       let parser = this.unbind(skip);

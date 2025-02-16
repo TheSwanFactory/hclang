@@ -21,7 +21,7 @@ export class ParsePipe extends FrameArray implements IFinish {
     this.collector = [];
   }
 
-  public next(statement: boolean = false): Frame {
+  public next(statement: boolean = false): ParsePipe {
     if (this.length() === 0) {
       return this;
     }
@@ -80,7 +80,7 @@ export class ParsePipe extends FrameArray implements IFinish {
     return result;
   }
 
-  protected makeFrame() {
+  protected makeFrame(): Frame {
     const group = new this.Factory(this.collector, {});
     this.collector = [];
     return group;

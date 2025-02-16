@@ -19,7 +19,7 @@ export const atomClasses: Array<AtomFactory> = [
 //   FIXME: frame.FrameBytes not of type AtomFactory
 
 let has_syntax = false;
-export function getSyntax() {
+export function getSyntax(): frame.Context {
   if (has_syntax === true) {
     return _syntax;
   }

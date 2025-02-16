@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v0.6.5 2025-02-16
+
+- Refactor main module
+- Add exports for main, getEval, getOptions, and runfile
+- Add tests
+
 ## v0.6.4 2025-02-15
 
 - Use `mod.ts`

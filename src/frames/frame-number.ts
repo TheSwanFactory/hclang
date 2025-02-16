@@ -6,7 +6,7 @@ export class FrameNumber extends FrameAtom {
   public static readonly NUMBER_BEGIN = /[1-9]/;
   public static readonly NUMBER_CHAR = /\d/;
 
-  public static for(digits: string) {
+  public static for(digits: string): FrameNumber {
     const exists = FrameNumber.numbers[digits];
     return exists || (FrameNumber.numbers[digits] = new FrameNumber(digits));
   }
@@ -37,15 +37,15 @@ export class FrameNumber extends FrameAtom {
     return [...Array(this.data).keys()];
   }
 
-  public override string_start() {
+  public override string_start(): string {
     return FrameNumber.NUMBER_BEGIN.toString();
   }
 
-  public override canInclude(char: string) {
+  public override canInclude(char: string): boolean {
     return FrameNumber.NUMBER_CHAR.test(char);
   }
 
-  protected override toData() {
+  protected override toData(): number {
     return this.data;
   }
 
@@ -53,45 +53,45 @@ export class FrameNumber extends FrameAtom {
    * Math Operations
    */
 
-  public override valueOf() {
+  public override valueOf(): number {
     return this.data;
   }
 
-  public add(right: FrameNumber) {
+  public add(right: FrameNumber): FrameNumber {
     const value = this.data + right.data;
     return new FrameNumber(value.toString());
   }
 
-  public subtract(right: FrameNumber) {
+  public subtract(right: FrameNumber): FrameNumber {
     const value = this.data - right.data;
     return new FrameNumber(value.toString());
   }
 
-  public multiply(right: FrameNumber) {
+  public multiply(right: FrameNumber): FrameNumber {
     const value = this.data * right.data;
     return new FrameNumber(value.toString());
   }
 
-  public divide(right: FrameNumber) {
+  public divide(right: FrameNumber): FrameNumber {
     const value = this.data / right.data;
     return new FrameNumber(value.toString());
   }
 
-  public modulo(right: FrameNumber) {
+  public modulo(right: FrameNumber): FrameNumber {
     const value = this.data % right.data;
     return new FrameNumber(value.toString());
   }
 
-  public power(right: FrameNumber) {
+  public power(right: FrameNumber): FrameNumber {
     const value = this.data ** right.data;
     return new FrameNumber(value.toString());
   }
 
-  public lessThan(right: FrameNumber) {
+  public lessThan(right: FrameNumber): Frame {
     return this.data < right.data ? Frame.all : Frame.nil;
   }
 
-  public greaterThan(right: FrameNumber) {
+  public greaterThan(right: FrameNumber): Frame {
     return this.data > right.data ? Frame.all : Frame.nil;
   }
 
@@ -99,11 +99,11 @@ export class FrameNumber extends FrameAtom {
     return this.data === right.data ? Frame.all : Frame.nil;
   }
 
-  public lessThanOrEqual(right: FrameNumber) {
+  public lessThanOrEqual(right: FrameNumber): Frame {
     return this.data <= right.data ? Frame.all : Frame.nil;
   }
 
-  public greaterThanOrEqual(right: FrameNumber) {
+  public greaterThanOrEqual(right: FrameNumber): Frame {
     return this.data >= right.data ? Frame.all : Frame.nil;
   }
 }

@@ -18,9 +18,8 @@ export class HCEval {
   public static readonly SOURCE = "; ";
   public static readonly EXPECT = "# ";
 
-  public static make_context(env: Deno.Env): Context {
+  public static make_context(entries: { [key: string]: string }): Context {
     const context: Context = {};
-    const entries = env.toObject();
     Object.entries(entries).forEach(([key, value]) => {
       if (key[0] !== "n") {
         context[key] = new FrameString(value || "undefined");
@@ -48,12 +47,12 @@ export class HCEval {
   protected pipe: LexPipe;
   protected lex: Frame;
 
-  constructor(protected out: Frame) {
+  constructor(public out: Frame) {
     this.pipe = HCEval.make_pipe(this.out);
     this.lex = this.pipe;
   }
 
-  public call(input: string) {
+  public call(input: string): Frame | null {
     if (!input) {
       return null;
     }
@@ -77,7 +76,7 @@ export class HCEval {
     return status;
   }
 
-  protected async *getInputStream() {
+  protected async *getInputStream(): AsyncGenerator<string, void, unknown> {
     const decoder = new TextDecoderStream();
     const stdinStream = Deno.stdin.readable.pipeThrough(decoder);
     const reader = stdinStream.getReader();
@@ -96,7 +95,7 @@ export class HCEval {
     }
   }
 
-  protected checkInput(input: string) {
+  protected checkInput(input: string): void {
     const head = input.substr(0, 2);
     const tail = input.substr(2);
     const value = new FrameString(tail);

@@ -24,7 +24,7 @@ export class Token extends FrameAtom {
     super(NilContext);
   }
 
-  public override called_by(callee: Frame, parameter: Frame) {
+  public override called_by(callee: Frame, parameter: Frame): Frame {
     return callee.apply(this.data, parameter);
   }
 
@@ -32,13 +32,13 @@ export class Token extends FrameAtom {
     return this.data;
   }
 
-  public override inspect() {
+  public override inspect(): string {
     return `Token[${this.data.inspect()}]`;
   }
 }
 
 export class Lex extends Frame implements ISourced {
-  public static isTerminal(char: string) {
+  public static isTerminal(char: string): boolean {
     const terms = Object.keys(terminals);
     return terms.includes(char);
   }
@@ -56,10 +56,6 @@ export class Lex extends Frame implements ISourced {
     const name = this.sample.className();
     this.id = this.id + "." + name;
   }
-
-  // TODO: use terminal to determine next parsing class
-  // Right now, FrameNumber consume the initial '#' of a comment
-  // That should only happen at the end of a Quote
 
   public override call(argument: Frame, _parameter = Frame.nil): Frame {
     const char = argument.toString();
@@ -91,11 +87,11 @@ export class Lex extends Frame implements ISourced {
     return this;
   }
 
-  public override toString() {
+  public override toString(): string {
     return this.id + `[${this.body}]`;
   }
 
-  protected isEnd(char: string) {
+  protected isEnd(char: string): boolean {
     if (this.Factory !== FrameName || this.body.length === 0) {
       return !this.sample.canInclude(char);
     }
@@ -106,15 +102,15 @@ export class Lex extends Frame implements ISourced {
     return true;
   }
 
-  protected isComment() {
+  protected isComment(): boolean {
     return (this.sample instanceof FrameComment);
   }
 
-  protected isQuote() {
+  protected isQuote(): boolean {
     return (this.sample instanceof FrameQuote);
   }
 
-  protected finish(argument: Frame, passAlong: boolean) {
+  protected finish(argument: Frame, passAlong: boolean): Frame {
     const recurse = this.checkRecursive(argument);
     if (recurse !== null) {
       return recurse;
@@ -127,7 +123,7 @@ export class Lex extends Frame implements ISourced {
     return this.up;
   }
 
-  protected checkRecursive(_argument: Frame) {
+  protected checkRecursive(_argument: Frame): Frame | null {
     if (!(this.sample instanceof FrameBytes)) {
       return null;
     }
@@ -136,15 +132,14 @@ export class Lex extends Frame implements ISourced {
     return lex;
   }
 
-  protected exportFrame() {
+  protected exportFrame(): Frame {
     const output: Token = this.makeFrame();
     const out = this.get(Frame.kOUT);
-    // if (output.isSpace()) {      return out    }
     const result = out.call(output);
     return result;
   }
 
-  protected makeFrame() {
+  protected makeFrame(): Token {
     if (this.body === "") {
       this.body = this.source;
     }

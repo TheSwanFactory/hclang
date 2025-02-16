@@ -30,7 +30,7 @@ export class HCTest extends Frame {
     return argument;
   }
 
-  public performTest(expected: Frame, actual: Frame, source: Frame) {
+  public performTest(expected: Frame, actual: Frame, source: Frame): Frame {
     const result = this.assertEqual(
       expected.toString(),
       actual.toString(),
@@ -42,7 +42,7 @@ export class HCTest extends Frame {
     return result;
   }
 
-  public assertEqual(expected: string, actual: string, source: string) {
+  public assertEqual(expected: string, actual: string, source: string): Frame {
     const base = source + " ?" + expected;
     console.log(`assertEqual: ${base}`);
 
@@ -56,7 +56,7 @@ export class HCTest extends Frame {
     }
   }
 
-  public checkEqual(expected: string, actual: string) {
+  public checkEqual(expected: string, actual: string): boolean {
     if (expected.includes("...")) {
       const parts = expected.split("...");
       console.log(`parts: ${parts}`);

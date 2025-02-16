@@ -10,15 +10,15 @@ export class FrameLazy extends FrameExpr {
     super(data, meta);
   }
 
-  public override string_open() {
+  public override string_open(): string {
     return FrameLazy.LAZY_BEGIN;
   }
 
-  public override string_close() {
+  public override string_close(): string {
     return FrameLazy.LAZY_END;
   }
 
-  public override in(contexts = [Frame.nil]): Frame {
+  public override in(contexts: Array<Frame> = [Frame.nil]): Frame {
     if (this.data.length === 0) {
       return this;
     }
@@ -27,11 +27,14 @@ export class FrameLazy extends FrameExpr {
     return expr;
   }
 
-  public override call(argument: Frame, _parameter = Frame.nil): FrameExpr {
+  public override call(
+    argument: Frame,
+    _parameter: Frame = Frame.nil,
+  ): FrameExpr {
     return new FrameExpr(argument.asArray(), this.meta_for(argument));
   }
 
-  protected meta_for(context: Frame) {
+  protected meta_for(context: Frame): Context {
     const MetaNew = this.meta_copy();
     const pairs: Array<IKeyValuePair> = context.meta_pairs();
     pairs.forEach(([key, value]) => {

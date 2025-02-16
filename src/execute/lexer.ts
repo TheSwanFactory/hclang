@@ -10,21 +10,21 @@ export class Lexer extends Frame {
     super(syntax);
   }
 
-  public lex_string(input: string) {
+  public lex_string(input: string): Frame {
     const source = new FrameString(input);
     return this.lex(source);
   }
 
-  public lex(source: FrameString) {
+  public lex(source: FrameString): Frame {
     return source.reduce(this);
   }
 
-  public fold(argument: Frame) {
+  public fold(argument: Frame): void {
     const out = this.get(Frame.kOUT);
     this.set(Frame.kOUT, out.call(argument));
   }
 
-  public finish(_options: LexOptions) {
+  public finish(_options: LexOptions): Frame {
     return Frame.nil;
   }
 }

@@ -6,7 +6,7 @@ import {
   FrameString,
 } from "../frames.ts";
 
-const wrapArg = (prefix: string, suffix: string) => {
+const wrapArg = (prefix: string, suffix: string): FrameExpr => {
   return new FrameExpr([
     new FrameString(prefix),
     FrameArg.here(),
@@ -14,7 +14,7 @@ const wrapArg = (prefix: string, suffix: string) => {
   ]);
 };
 
-export const tag = new FrameExpr([
+export const tag: FrameExpr = new FrameExpr([
   new FrameLazy([]),
   new FrameArray([
     wrapArg("<", ">"),

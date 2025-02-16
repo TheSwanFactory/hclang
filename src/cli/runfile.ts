@@ -2,11 +2,19 @@
 const RUNDOC = "#!/usr/bin/env hc \n```\n";
 const ENDDOC = "```\n";
 
-function is_doc(file: string) {
+function is_doc(file: string): boolean {
   const file_ext = file.split(".").pop();
   return file_ext === "adoc" || file_ext === "md";
 }
 
+/**
+ * Asynchronously reads and processes a file line by line, passing each line to the provided `hc_eval` object's `call` method.
+ * If the file is a documentation file, it will also call `RUNDOC` at the beginning and `ENDDOC` at the end.
+ *
+ * @param hc_eval - An object with a `call` method that processes each line of the file.
+ * @param file - The path to the file to be read and processed.
+ * @returns A promise that resolves to `true` when the file has been successfully processed.
+ */
 async function runfile(
   hc_eval: { call: (line: string) => void },
   file: string,

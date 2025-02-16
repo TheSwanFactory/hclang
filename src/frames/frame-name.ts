@@ -21,16 +21,16 @@ export class FrameName extends FrameAtom implements ISourced {
     return setter;
   }
 
-  public override string_prefix() {
+  public override string_prefix(): string {
     return FrameName.NAME_BEGIN;
   }
 
-  public override canInclude(char: string) {
+  public override canInclude(char: string): boolean {
     return FrameSymbol.SYMBOL_CHAR.test(char) ||
       FrameOperator.OPERATOR_CHARS.test(char);
   }
 
-  protected override toData() {
+  protected override toData(): FrameSymbol {
     return this.data;
   }
 }

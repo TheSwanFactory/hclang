@@ -12,7 +12,7 @@ export class FrameExpr extends FrameList {
 
   public override in(contexts = [Frame.nil]): Frame {
     contexts.push(this);
-    const result = this.data.reduce((sum: Frame, item: Frame) => {
+    const result = this.data.reduce((sum: Frame, item: Frame): Frame => {
       const value = item.in(contexts);
       const next_sum = sum.call(value);
       return next_sum;
@@ -25,12 +25,12 @@ export class FrameExpr extends FrameList {
     return result;
   }
 
-  public override call(argument: Frame, parameter = Frame.nil) {
+  public override call(argument: Frame, parameter = Frame.nil): Frame {
     return this.in([argument, parameter]);
   }
 
   public override toStringDataArray(): string[] {
-    const array = this.data.map((obj: Frame) => obj.toString());
+    const array = this.data.map((obj: Frame): string => obj.toString());
     return [array.join(" ") + ","];
   }
 }
