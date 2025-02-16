@@ -21,11 +21,9 @@ export { FrameString, type IStringConstructor } from "./frames/frame-string.ts";
 export { FrameOperator, FrameSymbol } from "./frames/frame-symbol.ts";
 export { type Any, Frame } from "./frames/frame.ts";
 export {
-  contextEqual,
-  contextString,
   type ISourced,
   MetaFrame,
   NilContext,
 } from "./frames/meta-frame.ts";
-export { type Context, type IKeyValuePair } from "./frames/context.ts";
+export { contextEqual, contextString, type Context, type IKeyValuePair } from "./frames/context.ts";
 Frame.globals = Ops;
