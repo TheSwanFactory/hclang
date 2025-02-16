@@ -1,9 +1,5 @@
 import { Frame } from "./frame.ts";
 
-export interface ISourced extends Frame {
-  source: string;
-}
-
 export type Context = { [key: string]: Frame };
 export const NilContext: Context = {};
 
