@@ -6,27 +6,27 @@ manipulate, and easy to translate to other representations. The HLIR syntax is
 designed to be a direct mapping to the MLIR syntax, with a few simplifications
 and extensions to make it more human-readable.
 
-| Concept           | HLIR Syntax                  | MLIR Mapping         |
-| ----------------- | ---------------------------- | -------------------- |
-| **Blocks**        | `{ ... }`                    | Regions, Modules     |
-| **Expressions**   | `expr, expr, ...`            | SSA Values           |
-| **Operations**    | `op(arg1, arg2, ...)`        | Operations           |
-| **Set Variable**  | `.var 1`                     | Block Arguments      |
-| **Types**         | `<type>`                     | MLIR Types           |
-| **If-Else**       | `cond ? { then } : { else }` | `scf.if`             |
-| **List**          | `.list  [v1, v2]`            | List                 |
-| **Reduce**        | `list \| { op _}`           | `scf.reduce`         |
-| **Map**           | `list & { op _ }`            | `scf.for`            |
-| **Parallel Map**  | `list <parallel> & { op _ }` | `scf.parallel`       |
-| **Function Def**  | `.f (.arg <t>)^{ op arg }`   | `func.func`          |
-| **Function Use**  | `f(val)`                     | `func(val)`          |
-| **Imports**       | `. <- "foo.hlir"`            | Merge Module         |
-| **Aliases**       | `.custom <- "foo.hlir"`      | Alias Module         |
-| **Arithmetic**    | `+`, `-`, `*`, `/`, etc.     | Arithmetic Ops       |
-| **Comparison**    | `==`, `>>`, `<<`, etc.       | Comparison Ops       |
-| **Logical**       | `and`, `or`, `not`, etc.     | Logical Ops          |
-| **Memory**        | `load`, `store`, etc.        | Memory Management    |
-| **Vectors**       | `.v <type> [v1, v2]`         | Vector, Tensor, etc. |
+| Concept          | HLIR Syntax                  | MLIR Mapping         |
+| ---------------- | ---------------------------- | -------------------- |
+| **Blocks**       | `{ ... }`                    | Regions, Modules     |
+| **Expressions**  | `expr, expr, ...`            | SSA Values           |
+| **Operations**   | `op(arg1, arg2, ...)`        | Operations           |
+| **Set Variable** | `.var 1`                     | Block Arguments      |
+| **Types**        | `<type>`                     | MLIR Types           |
+| **If-Else**      | `cond ? { then } : { else }` | `scf.if`             |
+| **List**         | `.list  [v1, v2]`            | List                 |
+| **Reduce**       | `list \| { op _}`            | `scf.reduce`         |
+| **Map**          | `list & { op _ }`            | `scf.for`            |
+| **Parallel Map** | `list <parallel> & { op _ }` | `scf.parallel`       |
+| **Function Def** | `.f (.arg <t>)^{ op arg }`   | `func.func`          |
+| **Function Use** | `f(val)`                     | `func(val)`          |
+| **Imports**      | `. <- "foo.hlir"`            | Merge Module         |
+| **Aliases**      | `.custom <- "foo.hlir"`      | Alias Module         |
+| **Arithmetic**   | `+`, `-`, `*`, `/`, etc.     | Arithmetic Ops       |
+| **Comparison**   | `==`, `>>`, `<<`, etc.       | Comparison Ops       |
+| **Logical**      | `and`, `or`, `not`, etc.     | Logical Ops          |
+| **Memory**       | `load`, `store`, etc.        | Memory Management    |
+| **Vectors**      | `.v <type> [v1, v2]`         | Vector, Tensor, etc. |
 
 The key aspects of the HLIR design are:
 
@@ -46,5 +46,5 @@ MLIR code from it.
 
 HLIR is built using [Homoiconic C](https://github.com/TheSwanFactory/hclang),
 which uses monadic parsing and effect typing to provide a simple and powerful
-data format for [deterministic
-computing](https://ihack.us/2024/09/15/tsm-1-the-shannon-machine-better-than-turing-complete/).
+data format for
+[deterministic computing](https://ihack.us/2024/09/15/tsm-1-the-shannon-machine-better-than-turing-complete/).
