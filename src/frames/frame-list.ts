@@ -5,7 +5,7 @@ export interface IArrayConstructor {
   new (data: Array<Frame>, meta: Context): Frame;
 }
 
-const stripLastComma = (result: Array<string>) => {
+const stripLastComma = (result: Array<string>): Array<string> => {
   if (!result || result.length < 1) {
     return result;
   }
@@ -19,19 +19,19 @@ const stripLastComma = (result: Array<string>) => {
 };
 
 export class FrameList extends Frame {
-  constructor(protected data: Array<Frame>, meta = NilContext) {
+  constructor(protected data: Array<Frame>, meta: Context = NilContext) {
     super(meta);
   }
 
-  public override string_open() {
+  public override string_open(): string {
     return Frame.BEGIN_EXPR;
   }
 
-  public override string_close() {
+  public override string_close(): string {
     return Frame.END_EXPR;
   }
 
-  public toStringDataArray() {
+  public toStringDataArray(): Array<string> {
     const result = this.data.map((obj: Frame) => {
       const sep = (obj.is.statement) ? ";" : ",";
       return obj.toString() + sep;
@@ -52,7 +52,7 @@ export class FrameList extends Frame {
     return (this.data.length === 0);
   }
 
-  public override toString() {
+  public override toString(): string {
     return this.string_open() + this.toStringArray().join(" ") +
       this.string_close();
   }
@@ -61,7 +61,7 @@ export class FrameList extends Frame {
     return this.data;
   }
 
-  public size() {
+  public size(): number {
     return this.data.length;
   }
 
