@@ -1,8 +1,9 @@
 import chalk from "@nothing628/chalk";
 import {
   type Context,
-  type Frame,
+  Frame,
   FrameGroup,
+  FrameNumber,
   FrameString,
   type StringMap,
 } from "../frames.ts";
@@ -19,12 +20,26 @@ export class HCEval {
   public static readonly SOURCE = "; ";
   public static readonly EXPECT = "# ";
 
+  public static isAlphabetic(char: string): boolean {
+    return /\p{L}/u.test(char);
+  }
+
+  public static isNumeric(char: string): boolean {
+    return /\p{N}/u.test(char);
+  }
+
   public static make_context(entries: StringMap): Context {
     const context: Context = {};
     Object.entries(entries).forEach(([key, value]) => {
-      if (key[0] !== "n") {
-        context[key] = new FrameString(value || "undefined");
-      }
+      const first = key[0];
+        if (HCEval.isAlphabetic(first)) {
+            context[key] = new FrameString(value);
+        } else if (HCEval.isNumeric(first)) {
+            context[key] = new FrameNumber(value);
+        } else {
+            console.error(`make_context.invalid_key: "${key}"`);
+            context[key] = Frame.nil;
+        }
     });
     if (context.DEBUG_ENV) {
       console.debug("DEBUG_ENV", context);
