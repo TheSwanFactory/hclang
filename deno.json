@@ -1,5 +1,6 @@
 {
   "name": "@swanfactory/hclang",
+  "description": "Homoiconic C - a universal data format for computation",
   "version": "0.6.3",
   "license": "MIT",
   "exports": "./src/execute.ts",
