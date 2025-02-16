@@ -31,15 +31,15 @@ export class HCEval {
   public static make_context(entries: StringMap): Context {
     const context: Context = {};
     Object.entries(entries).forEach(([key, value]) => {
-      const first = key[0];
-        if (HCEval.isAlphabetic(first)) {
-            context[key] = new FrameString(value);
-        } else if (HCEval.isNumeric(first)) {
-            context[key] = new FrameNumber(value);
-        } else {
-            console.error(`make_context.invalid_key: "${key}"`);
-            context[key] = Frame.nil;
-        }
+      const first = value[0];
+      if (HCEval.isAlphabetic(first)) {
+        context[key] = new FrameString(value);
+      } else if (HCEval.isNumeric(first)) {
+        context[key] = new FrameNumber(value);
+      } else {
+        console.error(`make_context.invalid_key: "${key}"`);
+        context[key] = Frame.nil;
+      }
     });
     if (context.DEBUG_ENV) {
       console.debug("DEBUG_ENV", context);
