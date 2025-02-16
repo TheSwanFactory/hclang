@@ -14,6 +14,12 @@ const aliases = {
   V: "version",
 };
 
+/**
+ * Parses command-line arguments and returns the options.
+ *
+ * @param args - The array of command-line arguments (minus the script name).
+ * @returns The parsed options object.
+ */
 export function getOptions(args: string[]) {
   return parseArgs(args, {
     alias: aliases,
@@ -22,6 +28,20 @@ export function getOptions(args: string[]) {
   });
 }
 
+/**
+ * The main function for the CLI application.
+ * 
+ * @param options - The options object returned by the getOptions function.
+ * 
+ * The function performs the following tasks:
+ * - Logs the options if the verbose flag is set.
+ * - Creates a context and output logger.
+ * - Initializes the HCEval instance.
+ * - If the testdoc option is set, initializes the HCTest instance and updates the HCEval instance.
+ * - If the evaluate option is set, evaluates the provided code.
+ * - Iterates over the files provided in the options and runs each file.
+ * - If the interactive option is set or no evaluation has been performed, starts the REPL.
+ */
 export async function main(options: ReturnType<typeof getOptions>) {
   if (options.verbose) {
     console.error("options", options);
