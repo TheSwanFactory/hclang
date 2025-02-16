@@ -18,19 +18,18 @@ export class HCEval {
   public static readonly SOURCE = "; ";
   public static readonly EXPECT = "# ";
 
-  public static make_context(env: Deno.Env): Context {
+public static make_context(entries: { [key: string]: string }): Context {
     const context: Context = {};
-    const entries = env.toObject();
     Object.entries(entries).forEach(([key, value]) => {
-      if (key[0] !== "n") {
-        context[key] = new FrameString(value || "undefined");
-      }
+        if (key[0] !== "n") {
+            context[key] = new FrameString(value || "undefined");
+        }
     });
     if (context.DEBUG_ENV) {
-      console.debug("DEBUG_ENV", context);
+        console.debug("DEBUG_ENV", context);
     }
     return context;
-  }
+}
 
   public static make_pipe(out: Frame): LexPipe {
     const evaluator = new EvalPipe(out); // evaluate groups into results
@@ -48,7 +47,7 @@ export class HCEval {
   protected pipe: LexPipe;
   protected lex: Frame;
 
-  constructor(protected out: Frame) {
+  constructor(public out: Frame) {
     this.pipe = HCEval.make_pipe(this.out);
     this.lex = this.pipe;
   }

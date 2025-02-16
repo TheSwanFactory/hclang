@@ -29,8 +29,22 @@ export function getOptions(args: string[]) {
 }
 
 /**
+ * Creates and returns an instance of `HCEval` initialized with the provided environment variables.
+ *
+ * @param env - An object containing key-value pairs of environment variables.
+ * @returns An instance of `HCEval` configured with the provided environment variables.
+ */
+export function getEval(env: {[key: string]: string}) {
+  const context = HCEval.make_context(env);
+  const out = new HCLog(context);
+  const hc_eval = new HCEval(out);
+  return hc_eval;
+}
+
+/**
  * The main function for the CLI application.
  * 
+ * @param hc_eval - An instance of HCEval.
  * @param options - The options object returned by the getOptions function.
  * 
  * The function performs the following tasks:
@@ -42,19 +56,16 @@ export function getOptions(args: string[]) {
  * - Iterates over the files provided in the options and runs each file.
  * - If the interactive option is set or no evaluation has been performed, starts the REPL.
  */
-export async function main(options: ReturnType<typeof getOptions>) {
+export async function main(hc_eval: HCEval, options: ReturnType<typeof getOptions>) {
   if (options.verbose) {
     console.error("options", options);
   }
 
-  const context = HCEval.make_context(Deno.env);
-  const out = new HCLog(context);
-  let hc_eval = new HCEval(out);
   let evaluated = false;
   let test: HCTest;
 
   if (options.testdoc) {
-    test = new HCTest(out);
+    test = new HCTest(hc_eval.out);
     hc_eval = new HCEval(test);
     evaluated = true;
   }
@@ -73,13 +84,14 @@ export async function main(options: ReturnType<typeof getOptions>) {
   }
 
   if (options.interactive || !evaluated) {
-    out.prompt = true;
+    (hc_eval.out as HCLog).prompt = true;
     hc_eval.repl();
   }
 }
 
 const options = getOptions(Deno.args.slice(2));
-main(options).catch((err) => {
+const hc_eval = getEval(Deno.env.toObject());
+main(hc_eval, options).catch((err) => {
   console.error(err);
   Deno.exit(1);
 });
