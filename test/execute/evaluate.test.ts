@@ -192,4 +192,19 @@ describe("evaluate", () => {
       });
     });
   });
+  describe("contexts", () => {
+    it("evaluates in context", () => {
+      const context: frame.Context = {
+        "x": new frame.FrameNumber("2"),
+      };
+      const input = "1 + x";
+      const result = evaluate(input, context);
+      expect(result.toString()).to.equal("[3, .x 2;]");
+      expect(result.meta).to.equal(context);
+      const first = result.at(0);
+      expect(first.toString()).to.equal("3");
+    });
+    it("updates context on assignment", () => {
+    });      
+  });
 });
