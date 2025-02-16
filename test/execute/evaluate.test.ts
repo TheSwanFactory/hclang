@@ -197,6 +197,7 @@ describe("evaluate", () => {
       const context: frame.Context = {
         "x": new frame.FrameNumber("2"),
       };
+      expect(context.x.toString()).to.equal("2");
       const input = "1 + x";
       const result = evaluate(input, context);
       expect(result.toString()).to.equal("[3, .x 2;]");
@@ -205,6 +206,14 @@ describe("evaluate", () => {
       expect(first.toString()).to.equal("3");
     });
     it("updates context on assignment", () => {
-    });      
+      const output: frame.Context = {
+        "x": new frame.FrameNumber("3"),
+      };
+      const input = ".x 3;";
+      const result = evaluate(input);
+      expect(frame.contextString(result.meta)).to.equal(
+        frame.contextString(output),
+      );
+    });
   });
 });
