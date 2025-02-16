@@ -1,13 +1,8 @@
 import { Frame } from "./frame.ts";
-import { type Context, NilContext } from "./context.ts";
+import { type Context, type IKeyValuePair, NilContext } from "./context.ts";
 
 export interface ISourced extends Frame {
   source: string;
-}
-
-export interface IKeyValuePair extends ReadonlyArray<string | Frame> {
-  0: string;
-  1: Frame;
 }
 
 export class MetaFrame {

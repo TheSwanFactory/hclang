@@ -23,7 +23,7 @@
     "doc:bs": "tail +3 -q hc/BitScheme.hc > doc/BitScheme.adoc && asciidoctor doc/BitScheme.adoc && open doc/BitScheme.html",
     "hc": "deno run -A src/cli/hc.ts",
     "tag": "git add deno.json && git commit -m 'Bump version' && git tag v$(jq -r .version deno.json) && git push origin --tags",
-    "test": "deno fmt src && deno lint && deno test --allow-env --allow-read --allow-write",
+    "test": "deno fmt src && deno lint --fix && deno test --allow-env --allow-read --allow-write",
     "test:bs": "deno task hc hc/BitScheme.hc -t",
     "test:doc": "deno task hc hc/testdoc.hc -t",
     "test:wp": "deno task hc hc/white-paper.hc -t"
