@@ -39,7 +39,7 @@ const { version } = JSON.parse(
  *   key2: "12345",
  *   key3: "!@#$%"
  * };
- * const context = HCEval.make_context(entries);
+ * const context = make_context(entries);
  * console.log(context);
  * ```
  */

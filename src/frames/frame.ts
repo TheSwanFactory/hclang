@@ -84,6 +84,14 @@ export class Frame extends MetaFrame {
     return this.string_open() + this.meta_string() + this.string_close();
   }
 
+  public equals(right: Frame): Frame {
+    return this.toString() === right.toString() ? Frame.all : Frame.nil;
+  }
+
+  public isEqualTo(right: Frame): boolean {
+    return this.equals(right) === Frame.all;
+  }
+
   public className(): string {
     return this.constructor.name;
   }

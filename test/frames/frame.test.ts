@@ -35,4 +35,18 @@ describe("Frame", () => {
   it("is in-dependent of context (literal)", () => {
     expect(frame.in()).to.equal(frame);
   });
+
+  describe("equals", () => {
+    it("returns true for identical frames", () => {
+      const frame2 = new Frame({ nil: Frame.nil });
+      expect(frame.isEqualTo(frame2)).to.be.true;
+      expect(frame.equals(frame2)).to.equal(Frame.all);
+    });
+
+    it("returns false for different frames", () => {
+      const frame2 = new Frame({ all: Frame.all });
+      expect(frame.isEqualTo(frame2)).to.be.false;
+        expect(frame.equals(frame2)).to.equal(Frame.nil);
+    });
+  });
 });

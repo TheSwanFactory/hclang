@@ -41,10 +41,6 @@ export class FrameAtom extends Frame {
   protected toData(): Any {
     return null;
   }
-
-  public equals(right: FrameAtom): Any {
-    return this.toString() === right.toString() ? Frame.all : Frame.nil;
-  }
 }
 
 export class FrameQuote extends FrameAtom {
