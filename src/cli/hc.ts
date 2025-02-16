@@ -14,7 +14,7 @@ const aliases = {
   V: "version",
 };
 
-function parseCommandLineArgs(args: string[]) {
+export function getOptions(args: string[]) {
   return parseArgs(args, {
     alias: aliases,
     boolean: ["help", "interactive", "testdoc", "verbose", "version"],
@@ -22,7 +22,7 @@ function parseCommandLineArgs(args: string[]) {
   });
 }
 
-async function main(options: ReturnType<typeof parseCommandLineArgs>) {
+export async function main(options: ReturnType<typeof getOptions>) {
   if (options.verbose) {
     console.error("options", options);
   }
@@ -58,7 +58,7 @@ async function main(options: ReturnType<typeof parseCommandLineArgs>) {
   }
 }
 
-const options = parseCommandLineArgs(Deno.args.slice(2));
+const options = getOptions(Deno.args.slice(2));
 main(options).catch((err) => {
   console.error(err);
   Deno.exit(1);
