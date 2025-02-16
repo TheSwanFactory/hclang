@@ -14,17 +14,19 @@ const aliases = {
   V: "version",
 };
 
-const options = parseArgs(Deno.args.slice(2), {
-  alias: aliases,
-  boolean: ["help", "interactive", "testdoc", "verbose", "version"],
-  string: ["evaluate"],
-});
-
-if (options.verbose) {
-  console.error("options", options);
+function parseCommandLineArgs(args: string[]) {
+  return parseArgs(args, {
+    alias: aliases,
+    boolean: ["help", "interactive", "testdoc", "verbose", "version"],
+    string: ["evaluate"],
+  });
 }
 
-async function main() {
+async function main(options: ReturnType<typeof parseCommandLineArgs>) {
+  if (options.verbose) {
+    console.error("options", options);
+  }
+
   const context = HCEval.make_context(Deno.env);
   const out = new HCLog(context);
   let hc_eval = new HCEval(out);
@@ -56,7 +58,8 @@ async function main() {
   }
 }
 
-main().catch((err) => {
+const options = parseCommandLineArgs(Deno.args.slice(2));
+main(options).catch((err) => {
   console.error(err);
   Deno.exit(1);
 });
