@@ -20,10 +20,11 @@ export { FrameSchema } from "./frames/frame-schema.ts";
 export { FrameString, type IStringConstructor } from "./frames/frame-string.ts";
 export { FrameOperator, FrameSymbol } from "./frames/frame-symbol.ts";
 export { type Any, Frame } from "./frames/frame.ts";
+export { type ISourced, MetaFrame, NilContext } from "./frames/meta-frame.ts";
 export {
-  type ISourced,
-  MetaFrame,
-  NilContext,
-} from "./frames/meta-frame.ts";
-export { contextEqual, contextString, type Context, type IKeyValuePair } from "./frames/context.ts";
+  type Context,
+  contextEqual,
+  contextString,
+  type IKeyValuePair,
+} from "./frames/context.ts";
 Frame.globals = Ops;
