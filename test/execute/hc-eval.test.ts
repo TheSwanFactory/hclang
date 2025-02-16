@@ -69,39 +69,39 @@ describe("HCEval", () => {
 
   describe("make_context", () => {
     it("returns a context from StringMap", () => {
-        const entries = { key: "value" };
-        const context = HCEval.make_context(entries);
-        // check type
-        expect(context).to.be.ok;
-        expect(context).to.be.instanceof(Object);
-        expect(context).to.have.property("key");
-        expect(context.key).to.be.instanceof(frame.FrameString);
-        expect(context.key.toString()).to.equal("“value”");
+      const entries = { key: "value" };
+      const context = HCEval.make_context(entries);
+      // check type
+      expect(context).to.be.ok;
+      expect(context).to.be.instanceof(Object);
+      expect(context).to.have.property("key");
+      expect(context.key).to.be.instanceof(frame.FrameString);
+      expect(context.key.toString()).to.equal("“value”");
     });
     it("return a context with FrameNumber for numeric values", () => {
-        const entries = { "key": "2" };
-        const context = HCEval.make_context(entries);
-        expect(context).to.be.ok;
-        expect(context).to.have.property("key");
-        expect(context.key).to.be.instanceof(frame.FrameNumber);
-        expect(context.key.toString()).to.equal("2");
+      const entries = { "key": "2" };
+      const context = HCEval.make_context(entries);
+      expect(context).to.be.ok;
+      expect(context).to.have.property("key");
+      expect(context.key).to.be.instanceof(frame.FrameNumber);
+      expect(context.key.toString()).to.equal("2");
     });
     it("treats letters as isAlphabetic", () => {
-        expect(HCEval.isAlphabetic("a")).to.be.true;
-        expect(HCEval.isAlphabetic("A")).to.be.true;
-        expect(HCEval.isAlphabetic("1")).to.be.false;
-        expect(HCEval.isAlphabetic("$")).to.be.false;
-        expect(HCEval.isAlphabetic("é")).to.be.true;
-        expect(HCEval.isAlphabetic("Ⰰ")).to.be.true;
-        expect(HCEval.isAlphabetic("𐍈")).to.be.true;
+      expect(HCEval.isAlphabetic("a")).to.be.true;
+      expect(HCEval.isAlphabetic("A")).to.be.true;
+      expect(HCEval.isAlphabetic("1")).to.be.false;
+      expect(HCEval.isAlphabetic("$")).to.be.false;
+      expect(HCEval.isAlphabetic("é")).to.be.true;
+      expect(HCEval.isAlphabetic("Ⰰ")).to.be.true;
+      expect(HCEval.isAlphabetic("𐍈")).to.be.true;
     });
-    it("treats numbers as isNumeric", () => {   
-        expect(HCEval.isNumeric("1")).to.be.true;
-        expect(HCEval.isNumeric("2")).to.be.true;
-        expect(HCEval.isNumeric("E")).to.be.false;
-        expect(HCEval.isNumeric("$")).to.be.false;
-        expect(HCEval.isNumeric(".")).to.be.false;
-        expect(HCEval.isNumeric("Ⰰ")).to.be.false;
+    it("treats numbers as isNumeric", () => {
+      expect(HCEval.isNumeric("1")).to.be.true;
+      expect(HCEval.isNumeric("2")).to.be.true;
+      expect(HCEval.isNumeric("E")).to.be.false;
+      expect(HCEval.isNumeric("$")).to.be.false;
+      expect(HCEval.isNumeric(".")).to.be.false;
+      expect(HCEval.isNumeric("Ⰰ")).to.be.false;
     });
   });
 });

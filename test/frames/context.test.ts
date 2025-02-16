@@ -8,7 +8,7 @@ import {
   Frame,
 } from "../../src/frames.ts";
 
-describe("context", () => {  
+describe("context", () => {
   describe("contextEqual", () => {
     const base: Context = { key: Frame.nil };
     const same: Context = { key: Frame.nil };

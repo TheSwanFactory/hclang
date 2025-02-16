@@ -6,11 +6,10 @@ const key = "key";
 const value = "value";
 const frame_value = new frame.FrameString(value);
 
-
 Deno.test({
   name: "evaluates in env",
   fn() {
-    const env = {key: value};
+    const env = { key: value };
     const context = HCEval.make_context(env);
     const out2 = new frame.FrameArray([], context);
     const hc_eval2 = new HCEval(out2);
