@@ -1,7 +1,7 @@
 import type { Frame } from "./frame.ts";
 import { type FrameAtom, FrameQuote } from "./frame-atom.ts";
 import { FrameSymbol } from "./frame-symbol.ts";
-import { NilContext } from "./meta-frame.ts";
+import { NilContext } from "./context.ts";
 import type { Context } from "./context.ts"
 
 const reducer = (current: Frame, char: string): Frame => {

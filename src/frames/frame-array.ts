@@ -2,7 +2,7 @@ import { Frame } from "./frame.ts";
 import { FrameList } from "./frame-list.ts";
 import { FrameNote } from "./frame-note.ts";
 import type { MetaFrame } from "./meta-frame.ts";
-import { NilContext } from "./meta-frame.ts";
+import { NilContext } from "./context.ts";
 
 export class FrameArray extends FrameList {
   public static readonly BEGIN_ARRAY = "[";
