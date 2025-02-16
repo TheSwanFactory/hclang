@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v0.6.4 2025-02-15
+
+- Use `mod.ts`
+- Change `evaluate` to accept a context
+- Add methods to compare and print contexts
+
 ## v0.6.3 2025-02-15
 
 - Tweak release script
