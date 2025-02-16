@@ -3,7 +3,7 @@
   "description": "Homoiconic C - a universal data format for computation",
   "version": "0.6.3",
   "license": "MIT",
-  "exports": "./src/execute.ts",
+  "exports": "./src/mod.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/TheSwanFactory/hclang.git"
