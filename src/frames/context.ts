@@ -1,6 +1,7 @@
 import { Frame } from "./frame.ts";
 
 export type Context = { [key: string]: Frame };
+export type Env = { [key: string]: string };
 export const NilContext: Context = {};
 
 export function contextEqual(

@@ -1,6 +1,7 @@
 import chalk from "@nothing628/chalk";
 import {
   type Context,
+  type Env,
   type Frame,
   FrameGroup,
   FrameString,
@@ -18,7 +19,7 @@ export class HCEval {
   public static readonly SOURCE = "; ";
   public static readonly EXPECT = "# ";
 
-  public static make_context(entries: { [key: string]: string }): Context {
+  public static make_context(entries: Env): Context {
     const context: Context = {};
     Object.entries(entries).forEach(([key, value]) => {
       if (key[0] !== "n") {
