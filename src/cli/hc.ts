@@ -17,7 +17,7 @@ const aliases = {
 /**
  * Parses command-line arguments and returns the options.
  *
- * @param args - The array of command-line arguments (minus the script name).
+ * @param args - The array of command-line arguments (only).
  * @returns The parsed options object.
  */
 export function getOptions(args: string[]) {
@@ -89,7 +89,7 @@ export async function main(hc_eval: HCEval, options: ReturnType<typeof getOption
   }
 }
 
-const options = getOptions(Deno.args.slice(2));
+const options = getOptions(Deno.args);
 const hc_eval = getEval(Deno.env.toObject());
 main(hc_eval, options).catch((err) => {
   console.error(err);
