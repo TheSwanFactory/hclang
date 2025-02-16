@@ -1,10 +1,10 @@
 import chalk from "@nothing628/chalk";
 import {
   type Context,
-  type StringMap,
   type Frame,
   FrameGroup,
   FrameString,
+  type StringMap,
 } from "../frames.ts";
 import { EvalPipe } from "./eval-pipe.ts";
 import { Lex } from "./lex.ts";

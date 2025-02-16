@@ -23,10 +23,10 @@ export { type Any, Frame } from "./frames/frame.ts";
 export { type ISourced, MetaFrame } from "./frames/meta-frame.ts";
 export {
   type Context,
-  type StringMap,
   contextEqual,
   contextString,
   type IKeyValuePair,
   NilContext,
+  type StringMap,
 } from "./frames/context.ts";
 Frame.globals = Ops;

@@ -3,7 +3,7 @@ import { FrameArray } from "./frame-array.ts";
 import { FrameQuote } from "./frame-atom.ts";
 import { FrameString } from "./frame-string.ts";
 import { FrameSymbol } from "./frame-symbol.ts";
-import { type StringMap, NilContext } from "./context.ts";
+import { NilContext, type StringMap } from "./context.ts";
 
 export type LanguageBinding = { [key: string]: StringMap };
 
