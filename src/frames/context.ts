@@ -1,7 +1,18 @@
 import { Frame } from "./frame.ts";
 
-export type Context = { [key: string]: Frame };
+/**
+ * StringMap is a map of strings to strings.
+ */
 export type StringMap = { [key: string]: string };
+
+/**
+ * Context is a map of symbols to frames.
+ */
+export type Context = { [key: string]: Frame };
+
+/**
+ * NilContext is an empty context.
+ */
 export const NilContext: Context = {};
 
 export function contextEqual(

@@ -16,6 +16,11 @@ const { version } = JSON.parse(
   Deno.readTextFileSync(new URL("../../deno.json", import.meta.url)),
 );
 
+/**
+ * The `HCEval` class provides methods for evaluating and processing input strings
+ * within a specific context. It includes functionality for creating contexts from
+ * entries, setting up lexical pipes, generating prompts, and running a REPL (Read-Eval-Print Loop).
+*/
 export class HCEval {
   public static readonly SOURCE = "; ";
   public static readonly EXPECT = "# ";
