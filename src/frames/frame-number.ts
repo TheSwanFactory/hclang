@@ -53,6 +53,10 @@ export class FrameNumber extends FrameAtom {
    * Math Operations
    */
 
+  public override valueOf() {
+    return this.data;
+  }
+
   public add(right: FrameNumber) {
     const value = this.data + right.data;
     return new FrameNumber(value.toString());
@@ -83,16 +87,16 @@ export class FrameNumber extends FrameAtom {
     return new FrameNumber(value.toString());
   }
 
-  public equals(right: FrameNumber) {
-    return this.data === right.data ? Frame.all : Frame.nil;
-  }
-
   public lessThan(right: FrameNumber) {
     return this.data < right.data ? Frame.all : Frame.nil;
   }
 
   public greaterThan(right: FrameNumber) {
     return this.data > right.data ? Frame.all : Frame.nil;
+  }
+
+  public override equals(right: FrameNumber): Frame {
+    return this.data === right.data ? Frame.all : Frame.nil;
   }
 
   public lessThanOrEqual(right: FrameNumber) {
