@@ -1,7 +1,7 @@
 import chalk from "@nothing628/chalk";
 import {
   type Context,
-  Frame,
+  type Frame,
   FrameGroup,
   FrameNumber,
   FrameString,
@@ -46,14 +46,10 @@ const { version } = JSON.parse(
 export function make_context(entries: StringMap): Context {
   const context: Context = {};
   Object.entries(entries).forEach(([key, value]) => {
-    const first = value[0];
-    if (HCEval.isAlphabetic(first)) {
-      context[key] = new FrameString(value);
-    } else if (HCEval.isNumeric(first)) {
+     if (HCEval.isInteger(value)) {
       context[key] = new FrameNumber(value);
     } else {
-      console.error(`make_context.invalid_key: "${key}"`);
-      context[key] = Frame.nil;
+      context[key] = new FrameString(value);
     }
   });
   if (context.DEBUG_ENV) {
@@ -88,13 +84,13 @@ export class HCEval {
   }
 
   /**
-   * Checks if the given character is numeric.
+   * Checks if the given string is numeric.
    *
-   * @param {string} char - The character to check.
-   * @returns {boolean} `true` if the character is numeric, `false` otherwise.
+   * @param {string} value - The string to check.
+   * @returns {boolean} `true` if the string is all numeric, `false` otherwise.
    */
-  public static isNumeric(char: string): boolean {
-    return /\p{N}/u.test(char);
+  public static isInteger(value: string): boolean {
+    return /^\p{N}+$/u.test(value);
   }
 
   /**

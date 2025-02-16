@@ -87,21 +87,14 @@ describe("make_context", () => {
     expect(context.key).to.be.instanceof(frame.FrameNumber);
     expect(context.key.toString()).to.equal("2");
   });
-  it("treats letters as isAlphabetic", () => {
-    expect(HCEval.isAlphabetic("a")).to.be.true;
-    expect(HCEval.isAlphabetic("A")).to.be.true;
-    expect(HCEval.isAlphabetic("1")).to.be.false;
-    expect(HCEval.isAlphabetic("$")).to.be.false;
-    expect(HCEval.isAlphabetic("é")).to.be.true;
-    expect(HCEval.isAlphabetic("Ⰰ")).to.be.true;
-    expect(HCEval.isAlphabetic("𐍈")).to.be.true;
-  });
-  it("treats numbers as isNumeric", () => {
-    expect(HCEval.isNumeric("1")).to.be.true;
-    expect(HCEval.isNumeric("2")).to.be.true;
-    expect(HCEval.isNumeric("E")).to.be.false;
-    expect(HCEval.isNumeric("$")).to.be.false;
-    expect(HCEval.isNumeric(".")).to.be.false;
-    expect(HCEval.isNumeric("Ⰰ")).to.be.false;
+  it("treats integers as isNumeric", () => {
+    expect(HCEval.isInteger("1")).to.be.true;
+    expect(HCEval.isInteger("1234567890")).to.be.true;
+    expect(HCEval.isInteger("12345.6789")).to.be.false;
+    expect(HCEval.isInteger("123.456.789")).to.be.false;
+    expect(HCEval.isInteger("E")).to.be.false;
+    expect(HCEval.isInteger("$")).to.be.false;
+    expect(HCEval.isInteger(".")).to.be.false;
+    expect(HCEval.isInteger("Ⰰ")).to.be.false;
   });
 });
