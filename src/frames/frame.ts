@@ -22,7 +22,11 @@ export class Frame extends MetaFrame {
   public static readonly BEGIN_EXPR = "(";
   public static readonly END_EXPR = ")";
   public static readonly nil: Frame = new Frame(NilContext, true);
-  public static readonly all: Frame = new Frame(NilContext, true);
+  public static readonly all: Frame = new (class extends Frame {
+    override toString() {
+      return "<>";
+    }
+  })();
 
   public static readonly missing: Frame = new Frame(NilContext, false, true);
   public static globals = Frame.missing;

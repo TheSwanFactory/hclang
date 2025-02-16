@@ -1,7 +1,7 @@
 import { expect } from "npm:chai";
 import { describe, it } from "jsr:@std/testing/bdd";
 
-import { execute } from "../../src/execute.ts";
+import { execute } from "../../src/mod.ts";
 
 describe("execute", () => {
   const input_string = "“Watson I need you”";

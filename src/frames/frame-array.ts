@@ -11,11 +11,11 @@ export class FrameArray extends FrameList {
     super(data, meta);
   }
 
-  public override string_open() {
+  public override string_open(): string {
     return FrameArray.BEGIN_ARRAY;
   }
 
-  public override string_close() {
+  public override string_close(): string {
     return FrameArray.END_ARRAY;
   }
 
@@ -31,14 +31,14 @@ export class FrameArray extends FrameList {
     return super.get(key, origin);
   }
 
-  public override apply(argument: Frame, _parameter: Frame) {
+  public override apply(argument: Frame, _parameter: Frame): FrameArray {
     if (!argument.is.void) {
       this.data.push(argument);
     }
     return this;
   }
 
-  public override at(index: number) {
+  public override at(index: number): Frame {
     if (index >= this.size() || -index > this.size()) {
       const source = "[0.." + this.size() + "]." + index;
       return FrameNote.index(source);
@@ -50,11 +50,11 @@ export class FrameArray extends FrameList {
     return this.data[n + index];
   }
 
-  public length() {
+  public length(): number {
     return this.data.length;
   }
 
-  public reset() {
+  public reset(): void {
     this.data = [];
   }
 }

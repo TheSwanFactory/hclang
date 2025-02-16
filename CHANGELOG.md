@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v0.6.4 2025-02-15
+
+- Use `mod.ts`
+- Change `evaluate` to accept a context
+- Add methods to compare and print contexts
+
 ## v0.6.3 2025-02-15
 
 - Tweak release script
@@ -16,7 +22,8 @@
 ## v0.6.0 2025-02-15
 
 - Migrated to Deno
-- Dropped support for [FrameBytes](https://github.com/TheSwanFactory/hclang/issues/220)
+- Dropped support for
+  [FrameBytes](https://github.com/TheSwanFactory/hclang/issues/220)
 
 ## v0.5.14 2023-11-02
 

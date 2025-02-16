@@ -23,6 +23,11 @@ export type { IStringConstructor } from "./frames/frame-string.ts";
 export { FrameOperator, FrameSymbol } from "./frames/frame-symbol.ts";
 export { Frame } from "./frames/frame.ts";
 export type { Any } from "./frames/frame.ts";
-export { MetaFrame, NilContext } from "./frames/meta-frame.ts";
+export {
+  contextEqual,
+  contextString,
+  MetaFrame,
+  NilContext,
+} from "./frames/meta-frame.ts";
 export type { Context, IKeyValuePair, ISourced } from "./frames/meta-frame.ts";
 Frame.globals = Ops;

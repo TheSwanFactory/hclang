@@ -1,7 +1,7 @@
 import { expect } from "npm:chai";
 import { describe, it } from "jsr:@std/testing/bdd";
 
-import { FrameNumber } from "../../src/frames.ts";
+import { Frame, FrameNumber } from "../../src/frames.ts";
 
 describe("FrameNumber", () => {
   const source = "12345667890";
@@ -24,5 +24,12 @@ describe("FrameNumber", () => {
     expect(range).to.be.instanceOf(Array);
     expect(range).to.have.lengthOf(3);
     expect(range).to.deep.equal([0, 1, 2]);
+  });
+
+  it("is equal to the same number", () => {
+    const same = new FrameNumber(source);
+    expect(frame_number.equals(same)).to.equal(Frame.all);
+    expect(frame_number == same).to.be.false;
+    expect(frame_number).to.not.equal(same);
   });
 });
