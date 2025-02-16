@@ -1,7 +1,8 @@
 import type { Frame } from "./frame.ts";
 import { type FrameAtom, FrameQuote } from "./frame-atom.ts";
 import { FrameSymbol } from "./frame-symbol.ts";
-import { type Context, NilContext } from "./meta-frame.ts";
+import { NilContext } from "./meta-frame.ts";
+import type { Context } from "./context.ts"
 
 const reducer = (current: Frame, char: string): Frame => {
   const symbol = FrameSymbol.for(char);

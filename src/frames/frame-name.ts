@@ -1,7 +1,8 @@
 import { Frame } from "./frame.ts";
 import { FrameAtom } from "./frame-atom.ts";
 import { FrameOperator, FrameSymbol } from "./frame-symbol.ts";
-import { type ISourced, NilContext } from "./meta-frame.ts";
+import { type ISourced } from "./meta-frame.ts";
+import { NilContext } from "./meta-frame.ts";
 
 export class FrameName extends FrameAtom implements ISourced {
   public static readonly NAME_BEGIN = ".";

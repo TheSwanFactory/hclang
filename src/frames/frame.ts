@@ -1,4 +1,5 @@
-import { MetaFrame, NilContext } from "./meta-frame.ts";
+import { MetaFrame } from "./meta-frame.ts";
+import { NilContext } from "./meta-frame.ts";
 import type { ICurryFunction } from "../ops.ts";
 import type { IArrayConstructor } from "../frames.ts";
 

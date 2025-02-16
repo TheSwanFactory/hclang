@@ -1,7 +1,7 @@
 import { Frame } from "./frame.ts";
 import { FrameAtom } from "./frame-atom.ts";
-import { type Context, NilContext } from "./meta-frame.ts";
-
+import { NilContext } from "./meta-frame.ts";
+import type { Context } from "./context.ts"
 export class FrameNumber extends FrameAtom {
   public static readonly NUMBER_BEGIN = /[1-9]/;
   public static readonly NUMBER_CHAR = /\d/;
