@@ -2,7 +2,8 @@
 
 ## v0.6.7 2025-02-17
 
-- Flatten Frames into nodes compatible with [react-accessible-treeview](https://dgreene1.github.io/react-accessible-treeview/docs/api)
+- Flatten Frames into nodes compatible with
+  [react-accessible-treeview](https://dgreene1.github.io/react-accessible-treeview/docs/api)
 
 ## v0.6.6 2025-02-16
 
