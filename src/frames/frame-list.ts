@@ -1,6 +1,10 @@
 import { Frame } from "./frame.ts";
 import { type Context, NilContext } from "./context.ts";
 
+/**
+ * The `IArrayConstructor` interface defines a constructor for creating
+ * `Frame` objects from an array of `Frame` objects and a `Context`.
+ */
 export interface IArrayConstructor {
   new (data: Array<Frame>, meta: Context): Frame;
 }
