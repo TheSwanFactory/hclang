@@ -1,9 +1,11 @@
 {
   "deno.enable": true,
   "deno.lint": true,
-  "editor.defaultFormatter": "denoland.vscode-deno",
   "deno.codeLens.test": true,
   "deno.codeLens.implementations": true,
   "deno.codeLens.references": true,
-  "deno.codeLens.referencesAllFunctions": true
+  "deno.codeLens.referencesAllFunctions": true,
+  "editor.defaultFormatter": "denoland.vscode-deno",
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true
 }
