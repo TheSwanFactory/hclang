@@ -59,7 +59,9 @@ export class Flatten {
       return undefined;
     }
 
-    const child = Frame.isInteger(key) && parent.array ? parent.array.get(key) : parent.frame.get(key);
+    const child = Frame.isInteger(key) && parent.array
+      ? parent.array.get(key)
+      : parent.frame.get(key);
 
     if (child) {
       result = new Flatten(child, key, parentKey);
@@ -75,7 +77,11 @@ export class Flatten {
    * @param key - The key of the node.
    * @param parent - The key of the parent node (null for root).
    */
-  constructor(private frame: Frame, key: string, public parent: string | null = null) {
+  constructor(
+    private frame: Frame,
+    key: string,
+    public parent: string | null = null,
+  ) {
     this.array = frame instanceof FrameArray ? frame : null;
     this.name = frame instanceof FrameArray ? key : frame.toString();
     this.id = parent ? `${parent}.${key}` : key;
@@ -83,7 +89,9 @@ export class Flatten {
 
     let keys = frame.meta_keys();
     if (this.array) {
-      keys = keys.concat(Array.from({ length: this.array.size() }, (_, i) => `${i}`));
+      keys = keys.concat(
+        Array.from({ length: this.array.size() }, (_, i) => `${i}`),
+      );
     }
     this.children = keys.map((childKey) => `${this.id}.${childKey}`);
   }
