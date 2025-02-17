@@ -1,10 +1,10 @@
 import { useState } from "preact/hooks";
 
-import { evaluate } from "../../src/mod.ts";
+// import { evaluate } from "../../src/mod.ts";
 
 function evaluateCode(code: string) {
   console.log(code);
-  const result = evaluate(code);
+  const result = code.toLocaleUpperCase();
   console.log(result);
   return result;
 }
