@@ -2,7 +2,7 @@ import { Frame } from "./frame.ts";
 import { FrameAtom } from "./frame-atom.ts";
 import { FrameNote } from "./frame-note.ts";
 import { FrameSymbol } from "./frame-symbol.ts";
-import { NilContext } from "./meta-frame.ts";
+import { NilContext } from "./context.ts";
 
 export class FrameAlias extends FrameAtom {
   public static readonly ALIAS_BEGIN = "@";

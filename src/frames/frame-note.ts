@@ -3,10 +3,9 @@ import { FrameArray } from "./frame-array.ts";
 import { FrameQuote } from "./frame-atom.ts";
 import { FrameString } from "./frame-string.ts";
 import { FrameSymbol } from "./frame-symbol.ts";
-import { NilContext } from "./meta-frame.ts";
+import { NilContext, type StringMap } from "./context.ts";
 
-export type Binding = { [key: string]: string };
-export type LanguageBinding = { [key: string]: Binding };
+export type LanguageBinding = { [key: string]: StringMap };
 
 export class FrameNote extends FrameQuote {
   public static readonly NOTE_BEGIN = "$";

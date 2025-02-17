@@ -1,5 +1,5 @@
 import { FrameQuote } from "./frame-atom.ts";
-import { type Context, NilContext } from "./meta-frame.ts";
+import { type Context, NilContext } from "./context.ts";
 
 export class FrameBytes extends FrameQuote {
   public static readonly BYTES_BEGIN = "\\";

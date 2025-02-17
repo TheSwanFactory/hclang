@@ -12,22 +12,21 @@ export { FrameDoc } from "./frames/frame-doc.ts";
 export { FrameBind, FrameExpr } from "./frames/frame-expr.ts";
 export { FrameGroup } from "./frames/frame-group.ts";
 export { FrameLazy } from "./frames/frame-lazy.ts";
-export { FrameList } from "./frames/frame-list.ts";
-export type { IArrayConstructor } from "./frames/frame-list.ts";
+export { FrameList, type IArrayConstructor } from "./frames/frame-list.ts";
 export { FrameName } from "./frames/frame-name.ts";
 export { FrameNote } from "./frames/frame-note.ts";
 export { FrameNumber } from "./frames/frame-number.ts";
 export { FrameSchema } from "./frames/frame-schema.ts";
-export { FrameString } from "./frames/frame-string.ts";
-export type { IStringConstructor } from "./frames/frame-string.ts";
+export { FrameString, type IStringConstructor } from "./frames/frame-string.ts";
 export { FrameOperator, FrameSymbol } from "./frames/frame-symbol.ts";
-export { Frame } from "./frames/frame.ts";
-export type { Any } from "./frames/frame.ts";
+export { type Any, Frame } from "./frames/frame.ts";
+export { type ISourced, MetaFrame } from "./frames/meta-frame.ts";
 export {
+  type Context,
   contextEqual,
   contextString,
-  MetaFrame,
+  type IKeyValuePair,
   NilContext,
-} from "./frames/meta-frame.ts";
-export type { Context, IKeyValuePair, ISourced } from "./frames/meta-frame.ts";
+  type StringMap,
+} from "./frames/context.ts";
 Frame.globals = Ops;

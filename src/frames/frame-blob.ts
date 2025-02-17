@@ -1,6 +1,6 @@
 import type { Frame } from "./frame.ts";
 import { FrameAtom } from "./frame-atom.ts";
-import { NilContext } from "./meta-frame.ts";
+import { NilContext } from "./context.ts";
 
 export interface IRegexpMap {
   [key: number]: RegExp;

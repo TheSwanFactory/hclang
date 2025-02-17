@@ -1,7 +1,7 @@
 import { Frame } from "./frame.ts";
 import { FrameAtom } from "./frame-atom.ts";
 import { FrameNote } from "./frame-note.ts";
-import { type Context, NilContext } from "./meta-frame.ts";
+import { type Context, NilContext } from "./context.ts";
 
 export class FrameSymbol extends FrameAtom {
   public static readonly SYMBOL_BEGIN = /[a-zA-Z]/;

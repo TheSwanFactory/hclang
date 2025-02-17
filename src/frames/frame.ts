@@ -1,4 +1,5 @@
-import { MetaFrame, NilContext } from "./meta-frame.ts";
+import { MetaFrame } from "./meta-frame.ts";
+import { NilContext } from "./context.ts";
 import type { ICurryFunction } from "../ops.ts";
 import type { IArrayConstructor } from "../frames.ts";
 
@@ -81,6 +82,14 @@ export class Frame extends MetaFrame {
 
   public override toString(): string {
     return this.string_open() + this.meta_string() + this.string_close();
+  }
+
+  public equals(right: Frame): Frame {
+    return this.toString() === right.toString() ? Frame.all : Frame.nil;
+  }
+
+  public isEqualTo(right: Frame): boolean {
+    return this.equals(right) === Frame.all;
   }
 
   public className(): string {

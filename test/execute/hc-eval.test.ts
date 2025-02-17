@@ -1,7 +1,7 @@
 import { expect } from "npm:chai";
 import { beforeEach, describe, it } from "jsr:@std/testing/bdd";
 
-import { HCEval } from "../../src/execute/hc-eval.ts";
+import { HCEval, make_context } from "../../src/execute/hc-eval.ts";
 import * as frame from "../../src/frames.ts";
 
 describe("HCEval", () => {
@@ -65,5 +65,36 @@ describe("HCEval", () => {
       const output = out.at(1);
       expect(output.toString()).to.equal(frame_value.toString());
     });
+  });
+});
+
+describe("make_context", () => {
+  it("returns a context from StringMap", () => {
+    const entries = { key: "value" };
+    const context = make_context(entries);
+    // check type
+    expect(context).to.be.ok;
+    expect(context).to.be.instanceof(Object);
+    expect(context).to.have.property("key");
+    expect(context.key).to.be.instanceof(frame.FrameString);
+    expect(context.key.toString()).to.equal("“value”");
+  });
+  it("return a context with FrameNumber for numeric values", () => {
+    const entries = { "key": "2" };
+    const context = make_context(entries);
+    expect(context).to.be.ok;
+    expect(context).to.have.property("key");
+    expect(context.key).to.be.instanceof(frame.FrameNumber);
+    expect(context.key.toString()).to.equal("2");
+  });
+  it("correctly identifies isInteger", () => {
+    expect(HCEval.isInteger("1")).to.be.true;
+    expect(HCEval.isInteger("1234567890")).to.be.true;
+    expect(HCEval.isInteger("12345.6789")).to.be.false;
+    expect(HCEval.isInteger("123.456.789")).to.be.false;
+    expect(HCEval.isInteger("E")).to.be.false;
+    expect(HCEval.isInteger("$")).to.be.false;
+    expect(HCEval.isInteger(".")).to.be.false;
+    expect(HCEval.isInteger("Ⰰ")).to.be.false;
   });
 });
