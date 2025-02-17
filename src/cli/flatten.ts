@@ -1,4 +1,4 @@
-import { type Frame, FrameArray } from "../frames.ts";
+import { Frame, FrameArray } from "../frames.ts";
 
 /**
  * Flatten Frame object graphs into a tree structure.
@@ -27,6 +27,11 @@ export class Flatten {
    * Stores only child IDs (lazy loading).
    */
   children: string[];
+
+  /**
+   * Always set.
+   */
+  private frame: Frame;
 
   /**
    * Set only if a FrameArray.
@@ -60,17 +65,22 @@ export class Flatten {
     }
 
     const parent = Flatten.getNode(parentKey);
-    if (!parent || !parent.array) {
+    if (!parent) {
       return undefined;
     }
 
-    const child = parent.array.get(key);
-    if (!child) {
-      return undefined;
+    let child = undefined;
+    if (Frame.isInteger(key) && parent.array) {
+      child = parent.array.get(key);
+    } else {
+      child = parent.frame.get(key);
     }
 
-    result = new Flatten(child, key, parentKey);
-    return result;
+    if (child) {
+      result = new Flatten(child, key, parentKey);
+      return result;
+    }
+    return undefined;
   }
 
   /**
@@ -81,6 +91,7 @@ export class Flatten {
    * @param parentKey - The key of the parent node (null for root).
    */
   constructor(frame: Frame, key: string, parentKey: string | null = null) {
+    this.frame = frame;
     this.array = null;
     this.name = key;
     this.parent = parentKey;
@@ -97,5 +108,14 @@ export class Flatten {
       this.name = frame.toString();
     }
     this.children = keys.map((key) => `${this.id}.${key}`);
+  }
+
+  /**
+   * Returns a string representation of the Flatten node.
+   *
+   * @returns A string representing the Flatten node.
+   */
+  public toString(): string {
+    return `Flatten<${this.id} ${this.name}>`;
   }
 }

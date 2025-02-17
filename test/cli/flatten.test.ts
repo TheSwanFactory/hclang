@@ -23,17 +23,24 @@ describe("Flatten", () => {
   });
 
   it("should manually create a child node correctly", () => {
-    const context = make_context({ key: "child" });
     const parentFrame = new Frame();
-    const childFrame = new Frame(context);
     const parentNode = new Flatten(parentFrame, "parent");
     expect(parentNode.id).to.equal("parent");
     expect(parentNode.children).to.be.empty;
 
+    const context = make_context({ key: "grandchild" });
+    const childFrame = new Frame(context);
     const childNode = new Flatten(childFrame, "child", "parent");
     expect(childNode.id).to.equal("parent.child");
-    expect(childNode.name).to.equal("(.key “child”;)");
+    expect(childNode.name).to.equal("(.key “grandchild”;)");
     expect(childNode.parent).to.equal("parent");
+    expect(childNode.children).to.not.be.empty;
+    expect(Flatten.getNode("parent.child")).to.equal(childNode);
+    const grandchild = Flatten.getNode("parent.child.key");
+    expect(grandchild).to.not.equal(undefined);
+    if (grandchild) {
+      expect(grandchild.toString()).to.contain("grandchild");
+    }
   });
 
   it("should handle FrameArray correctly", () => {

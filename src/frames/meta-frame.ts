@@ -16,6 +16,17 @@ export interface ISourced extends Frame {
  */
 export class MetaFrame {
   /**
+   * Checks if the given string is numeric
+   * (to distinguish array indices from metadata keys)
+   *
+   * @param {string} value - The string to check.
+   * @returns {boolean} `true` if the string is all numeric, `false` otherwise.
+   */
+  public static isInteger(value: string): boolean {
+    return /^\p{N}+$/u.test(value);
+  }
+
+  /**
    * id_count is a static counter, incremented to generate unique IDs.
    */
   public static id_count = 0;
