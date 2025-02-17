@@ -29,6 +29,6 @@ jobs:
       - name: Upload to Deno Deploy
         uses: denoland/deployctl@v1
         with:
-          project: "swanfactory-online"
-          entrypoint: "main.ts"
-          root: "."
+          project: "hclang"
+          entrypoint: "web/main.ts"
+          root: "web"
