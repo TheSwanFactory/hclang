@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v0.6.10 2025-02-17
+## v0.6.10 UNRELEASED
 
 - Configure `hc` CLI
 
