@@ -4,24 +4,33 @@ import { Flatten, Frame, make_context } from "../../src/mod.ts";
 import { FrameArray } from "../../src/frames.ts";
 
 describe("Flatten", () => {
-  it("should create a root node correctly", () => {
-    const context = make_context({ key: "root" });
-    const frame = new Frame(context);
-    const node = new Flatten(frame, "root");
-    expect(node.id).to.equal("root");
-    expect(node.name).to.equal("root");
-    expect(node.parent).to.be.null;
-    expect(node.children).to.be.empty;
+  it("should getNode undefined if empty", () => {
+    const fetchedNode = Flatten.getNode("root");
+    expect(fetchedNode).to.equal(undefined);
   });
 
-  it("should create a child node correctly", () => {
+  it("should create a root node correctly", () => {
+    const frame = new Frame();
+    const node = new Flatten(frame, "root");
+    expect(node.id).to.equal("root");
+    expect(node.name).to.equal("()");
+    expect(node.parent).to.be.null;
+    expect(node.children).to.be.empty;
+
+    const fetchedNode = Flatten.getNode("root");
+    expect(fetchedNode).to.equal(node);
+    expect(fetchedNode?.id).to.equal("root");
+  });
+
+  it("should manually create a child node correctly", () => {
     const context = make_context({ key: "child" });
-    const frame = new Frame(context);
-    const parentNode = new Flatten(frame, "parent");
+    const parentFrame = new Frame();
+    const childFrame = new Frame(context);
+    const parentNode = new Flatten(parentFrame, "parent");
     expect(parentNode.id).to.equal("parent");
-    const childNode = new Flatten(frame, "child", "parent");
+    const childNode = new Flatten(childFrame, "child", "parent");
     expect(childNode.id).to.equal("parent.child");
-    expect(childNode.name).to.equal("child");
+    expect(childNode.name).to.equal("(.key “child”;)");
     expect(childNode.parent).to.equal("parent");
     expect(childNode.children).to.be.empty;
   });
@@ -67,7 +76,7 @@ describe("Flatten", () => {
     const childNode = Flatten.getNode("root.0");
     expect(childNode).to.not.be.undefined;
     expect(childNode?.id).to.equal("root.0");
-    expect(childNode?.name).to.equal("0");
+    expect(childNode?.name).to.equal("(.key “child1”;)");
     expect(childNode?.parent).to.equal("root");
   });
 });

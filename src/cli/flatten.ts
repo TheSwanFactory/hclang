@@ -50,8 +50,12 @@ export class Flatten {
     if (result) {
       return result;
     }
-    const [parentKey, key] = id.split(".").reverse();
-    console.log(`parentKey: ${parentKey}, name: ${key}`);
+    const ids = id.split(".");
+    const key = ids.pop()!;
+    const parentKey = ids.join(".");
+    if (!parentKey) {
+      return undefined;
+    }
     const parent = Flatten.getNode(parentKey);
     const child = parent?.array?.get(key);
     if (child) {
