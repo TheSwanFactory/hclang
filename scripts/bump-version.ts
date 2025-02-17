@@ -1,5 +1,4 @@
-import { parseArgs } from "@std/cli/parse_args";
-
+import { parseArgs } from "@std/cli/parse-args";                                                                    
 const flags = parseArgs(Deno.args, {
   boolean: ["minor"],
   default: { minor: false },
