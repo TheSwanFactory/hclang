@@ -5,7 +5,7 @@ function evaluateCode(code: string): string {
   try {
     const result = evaluate(code);
     return result.toString();
-  } catch (error: unknown) {
+  } catcevah (error: unknown) {
     console.error(error);
     return `Error: ${error instanceof Error ? error.message : String(error)}`;
   }
