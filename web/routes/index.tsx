@@ -4,29 +4,22 @@ export default function Home() {
   return (
     <div>
       <head>
-        <title>Home - SwanFactory Online</title>
+        <title>HCLang Playground</title>
       </head>
       <div className="max-w-4xl mx-auto p-4">
         <h1 className="text-4xl font-bold mb-4">
-          Welcome to the SwanFactory Online!
+          Welcome to Homoiconic C!
         </h1>
 
         <p className="text-lg mb-4">
-          The SwanFactory online is your gateway to{" "}
-          <strong>Polygogy</strong>—a revolutionary approach to lifelong
-          learning that empowers everyone to grow, teach, and lead in a
-          continuous cycle of transformation.
-        </p>
-        <p className="text-lg mb-4">
-          Dive into the philosophy of Polygogy and discover how you can become a
-          part of this dynamic learning movement:
+          Homoiconic C ("HC") is a universal data format for computation.
         </p>
         <a
           className="text-blue-500 hover:underline mb-4 block text-2xl"
-          href="https://theswanfactory.wordpress.com/2025/01/18/the-polygogy-manyfesto-reinventing-lifelong-learning/"
+          href="https://ihack.us/2024/09/19/tsm-5-homoiconic-c-hc-syntax-cheat-sheet/"
           target="_blank"
         >
-          Read the Polygogy Manyfesto
+          HC Cheat Sheet.
         </a>
         <div class="p-4 mx-auto max-w-screen-md">
           <h3 class="text-2xl font-bold">Testing Email</h3>
