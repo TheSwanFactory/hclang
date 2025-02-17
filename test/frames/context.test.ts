@@ -11,16 +11,16 @@ import {
 describe("context", () => {
   describe("contextEqual", () => {
     const base: Context = { key: Frame.nil };
-    const same: Context = { key: Frame.nil };
-    const different: Context = { key: Frame.missing };
-    const other: Context = { other: Frame.nil };
-    const more: Context = { key: Frame.nil, other: Frame.nil };
 
     it("returns true for identical contexts", () => {
+      const same: Context = { key: Frame.nil };
       expect(contextEqual(base, same)).to.be.true;
     });
 
     it("returns false for different contexts", () => {
+        const different: Context = { key: Frame.all };
+        const other: Context = { other: Frame.nil };
+        const more: Context = { key: Frame.nil, other: Frame.nil };
       expect(contextEqual(base, different)).to.be.false;
       expect(contextEqual(base, more)).to.be.false;
       expect(contextEqual(base, other)).to.be.false;

@@ -46,7 +46,7 @@ const { version } = JSON.parse(
 export function make_context(entries: StringMap): Context {
   const context: Context = {};
   Object.entries(entries).forEach(([key, value]) => {
-     if (HCEval.isInteger(value)) {
+    if (HCEval.isInteger(value)) {
       context[key] = new FrameNumber(value);
     } else {
       context[key] = new FrameString(value);

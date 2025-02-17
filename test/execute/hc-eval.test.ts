@@ -87,7 +87,7 @@ describe("make_context", () => {
     expect(context.key).to.be.instanceof(frame.FrameNumber);
     expect(context.key.toString()).to.equal("2");
   });
-  it("treats integers as isNumeric", () => {
+  it("correctly identifies isInteger", () => {
     expect(HCEval.isInteger("1")).to.be.true;
     expect(HCEval.isInteger("1234567890")).to.be.true;
     expect(HCEval.isInteger("12345.6789")).to.be.false;

@@ -20,8 +20,12 @@ export function contextEqual(
   right: Context,
 ): boolean {
   const keys = new Set([...Object.keys(left), ...Object.keys(right)]);
+  console.log(`contextEqual.keys`, keys);
   for (const key of keys) {
-    if (left[key] !== right[key]) {
+    const lvalue = left[key];
+    const rvalue = right[key];
+    console.log(`contextEqual.${key}`, lvalue, rvalue);
+    if (!lvalue || !rvalue || !lvalue.isEqualTo(rvalue)) {
       return false;
     }
   }
