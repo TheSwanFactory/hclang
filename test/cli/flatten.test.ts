@@ -28,11 +28,12 @@ describe("Flatten", () => {
     const childFrame = new Frame(context);
     const parentNode = new Flatten(parentFrame, "parent");
     expect(parentNode.id).to.equal("parent");
+    expect(parentNode.children).to.be.empty;
+
     const childNode = new Flatten(childFrame, "child", "parent");
     expect(childNode.id).to.equal("parent.child");
     expect(childNode.name).to.equal("(.key “child”;)");
     expect(childNode.parent).to.equal("parent");
-    expect(childNode.children).to.be.empty;
   });
 
   it("should handle FrameArray correctly", () => {

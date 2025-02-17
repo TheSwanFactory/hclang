@@ -46,24 +46,31 @@ export class Flatten {
    * @returns The node if found, otherwise undefined.
    */
   public static getNode(id: string): Flatten | undefined {
-    const result = Flatten.nodeMap.get(id);
+    let result = Flatten.nodeMap.get(id);
     if (result) {
       return result;
     }
+
     const ids = id.split(".");
     const key = ids.pop()!;
     const parentKey = ids.join(".");
+
     if (!parentKey) {
       return undefined;
     }
+
     const parent = Flatten.getNode(parentKey);
-    const child = parent?.array?.get(key);
-    if (child) {
-      const node = new Flatten(child, key, parentKey);
-      return node;
-    } else {
+    if (!parent || !parent.array) {
       return undefined;
     }
+
+    const child = parent.array.get(key);
+    if (!child) {
+      return undefined;
+    }
+
+    result = new Flatten(child, key, parentKey);
+    return result;
   }
 
   /**
@@ -80,13 +87,15 @@ export class Flatten {
     this.id = parentKey ? `${parentKey}.${key}` : key;
     Flatten.nodeMap.set(this.id, this);
 
-    this.children = [];
+    let keys = frame.meta_keys();
+
     if (frame instanceof FrameArray) {
       this.array = frame;
       const n = this.array.size();
-      this.children = Array.from({ length: n }, (_, i) => `${this.id}.${i}`);
+      keys = keys.concat(Array.from({ length: n }, (_, i) => `${i}`));
     } else {
       this.name = frame.toString();
     }
+    this.children = keys.map((key) => `${this.id}.${key}`);
   }
 }
