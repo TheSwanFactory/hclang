@@ -1,30 +1,30 @@
 import { useState } from "preact/hooks";
 import { evaluate } from "../../src/mod.ts";
 
-function evaluateCode(code: string) {
+function evaluateCode(code: string): string {
   try {
     const result = evaluate(code);
     return result.toString();
-  } catch (error) {
+  } catch (error: unknown) {
     console.error(error);
-    return `Error: ${error.message}`;
+    return `Error: ${error instanceof Error ? error.message : String(error)}`;
   }
 }
 
 export default function Interpreter() {
-  const [text, setText] = useState("");
-  const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [result, setResult] = useState("");
+  const [text, setText] = useState<string>("");
+  const [error, setError] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [result, setResult] = useState<string>("");
 
-  const handleEvaluation = async (code: string) => {
+  const handleEvaluation = (code: string): void => {
     setError("");
     setIsLoading(true);
     try {
       const evalResult = evaluateCode(code);
       setResult(evalResult);
-    } catch (e) {
-      setError(e.message);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : String(e));
     } finally {
       setIsLoading(false);
     }
