@@ -1,5 +1,4 @@
-import SendEmailButton from "../islands/EmailButton.tsx";
-import UppercaseConverter from "../islands/UppercaseConverter.tsx";
+import Interpreter from "../islands/Interpreter.tsx";
 
 export default function Home() {
   return (
@@ -22,13 +21,9 @@ export default function Home() {
         >
           HC Cheat Sheet.
         </a>
-        <div class="p-4 mx-auto max-w-screen-md">
-          <h3 class="text-2xl font-bold">Testing Email</h3>
-          <SendEmailButton />
-        </div>
         <div className="mt-8 p-4 border rounded">
-          <h3 className="text-2xl font-bold mb-4">Text Converter</h3>
-          <UppercaseConverter />
+          <h3 className="text-2xl font-bold mb-4">HCLang Interpreter</h3>
+          <Interpreter />
         </div>
         <p className="text-lg text-gray-750 mt-4">
           Coming soon: subscribe to our mailing list.
