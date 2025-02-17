@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v0.6.9 2025-02-17
+
+- Move version back to `deno.json`
+- Add scripts/bump-version
+
 ## v0.6.8 2025-02-17
 
 - Move version into `version.ts`

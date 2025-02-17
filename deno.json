@@ -1,5 +1,6 @@
 {
   "name": "@swanfactory/hclang",
+  "version": "0.6.9",
   "description": "Homoiconic C - a universal data format for computation",
   "license": "MIT",
   "exports": "./src/mod.ts",
@@ -21,7 +22,8 @@
   "tasks": {
     "doc:bs": "tail +3 -q hc/BitScheme.hc > doc/BitScheme.adoc && asciidoctor doc/BitScheme.adoc && open doc/BitScheme.html",
     "hc": "deno run -A src/cli/hc.ts",
-    "tag": "git add src/version.ts && git commit -m 'Bump version' && git tag v$(deno eval 'import { VERSION } from \"./src/version.ts\"; console.log(VERSION)') && git push origin --tags",
+    "tag": "deno run -A scripts/bump-version.ts && git add deno.json src/version.ts && git commit -m 'Bump version' && git tag v$(jq -r .version deno.json) && git push origin --tags",
+    "tag:minor": "deno run -A scripts/bump-version.ts --minor && git add deno.json src/version.ts && git commit -m 'Bump version' && git tag v$(jq -r .version deno.json) && git push origin --tags",
     "test": "deno fmt && deno lint --fix && deno test --allow-env --allow-read --allow-write",
     "test:bs": "deno task hc hc/BitScheme.hc -t",
     "test:doc": "deno task hc hc/testdoc.hc -t",
@@ -35,6 +37,8 @@
     "strict": true
   },
   "fmt": {
-    "exclude": ["**/*.html"]
+    "exclude": [
+      "**/*.html"
+    ]
   }
 }
