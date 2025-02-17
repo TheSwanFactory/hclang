@@ -1,9 +1,11 @@
 # CHANGELOG
 
-## v0.6.7 2025-02-17
+## v0.6.7 2025-02-16
 
 - Flatten Frames into nodes compatible with
   [react-accessible-treeview](https://dgreene1.github.io/react-accessible-treeview/docs/api)
+- move isNumeric and isAlphabetic into MetaFrame
+- add Frame, Context, and MetaFrame to exports (with jsdoc)
 
 ## v0.6.6 2025-02-16
 
