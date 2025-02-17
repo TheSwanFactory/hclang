@@ -26,7 +26,8 @@
     "test": "deno fmt && deno lint --fix && deno test --allow-env --allow-read --allow-write",
     "test:bs": "deno task hc hc/BitScheme.hc -t",
     "test:doc": "deno task hc hc/testdoc.hc -t",
-    "test:wp": "deno task hc hc/white-paper.hc -t"
+    "test:wp": "deno task hc hc/white-paper.hc -t",
+    "web": "cd web && deno task start"
   },
   "imports": {
     "@nothing628/chalk": "jsr:@nothing628/chalk@^1.0.1",
