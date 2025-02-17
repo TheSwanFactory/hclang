@@ -46,7 +46,7 @@ describe("Frame", () => {
     it("returns false for different frames", () => {
       const frame2 = new Frame({ all: Frame.all });
       expect(frame.isEqualTo(frame2)).to.be.false;
-        expect(frame.equals(frame2)).to.equal(Frame.nil);
+      expect(frame.equals(frame2)).to.equal(Frame.nil);
     });
   });
 });

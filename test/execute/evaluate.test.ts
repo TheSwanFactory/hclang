@@ -211,7 +211,7 @@ describe("evaluate", () => {
       const output: frame.Context = make_context(env);
       const input = ".x 3;";
       const result = evaluate(input);
-      expect(frame.contextEqual(result.meta,output)).to.equal(true);
+      expect(frame.contextEqual(result.meta, output)).to.equal(true);
     });
   });
 });

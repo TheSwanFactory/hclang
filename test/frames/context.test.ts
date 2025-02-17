@@ -18,9 +18,9 @@ describe("context", () => {
     });
 
     it("returns false for different contexts", () => {
-        const different: Context = { key: Frame.all };
-        const other: Context = { other: Frame.nil };
-        const more: Context = { key: Frame.nil, other: Frame.nil };
+      const different: Context = { key: Frame.all };
+      const other: Context = { other: Frame.nil };
+      const more: Context = { key: Frame.nil, other: Frame.nil };
       expect(contextEqual(base, different)).to.be.false;
       expect(contextEqual(base, more)).to.be.false;
       expect(contextEqual(base, other)).to.be.false;
