@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.6.8 2025-02-17
+
+- Move version into `version.ts`
+
 ## v0.6.7 2025-02-16
 
 - Flatten Frames into nodes compatible with
