@@ -1,10 +1,20 @@
 # CHANGELOG
 
+## v0.6.6 2025-02-16
+
+- Split out Context type
+- Add tests for Context
+- Expose `make_context` method for use in tests
+- Add `equals` and `isEqualTo` methods in Frame
+
+NOTE: Cannot export `Context` without exporing all of `Frame`
+
 ## v0.6.5 2025-02-16
 
-- Refactor main module
+- Refactor main module to fix parsing
 - Add exports for main, getEval, getOptions, and runfile
 - Add tests
+- Add return types
 
 ## v0.6.4 2025-02-15
 

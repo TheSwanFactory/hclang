@@ -2,6 +2,7 @@ import { expect } from "npm:chai";
 import { describe, it } from "jsr:@std/testing/bdd";
 
 import { evaluate } from "../../src/execute/evaluate.ts";
+import { make_context } from "../../src/execute/hc-eval.ts";
 import * as frame from "../../src/frames.ts";
 
 describe("evaluate", () => {
@@ -194,10 +195,10 @@ describe("evaluate", () => {
   });
   describe("contexts", () => {
     it("evaluates in context", () => {
-      const context: frame.Context = {
-        "x": new frame.FrameNumber("2"),
-      };
+      const env = { "x": "2" };
+      const context: frame.Context = make_context(env);
       expect(context.x.toString()).to.equal("2");
+
       const input = "1 + x";
       const result = evaluate(input, context);
       expect(result.toString()).to.equal("[3, .x 2;]");
@@ -206,14 +207,11 @@ describe("evaluate", () => {
       expect(first.toString()).to.equal("3");
     });
     it("updates context on assignment", () => {
-      const output: frame.Context = {
-        "x": new frame.FrameNumber("3"),
-      };
+      const env = { "x": "3" };
+      const output: frame.Context = make_context(env);
       const input = ".x 3;";
       const result = evaluate(input);
-      expect(frame.contextString(result.meta)).to.equal(
-        frame.contextString(output),
-      );
+      expect(frame.contextEqual(result.meta, output)).to.equal(true);
     });
   });
 });

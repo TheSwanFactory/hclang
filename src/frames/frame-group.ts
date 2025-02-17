@@ -1,6 +1,6 @@
 import { Frame } from "./frame.ts";
 import { FrameList } from "./frame-list.ts";
-import { NilContext } from "./meta-frame.ts";
+import { NilContext } from "./context.ts";
 
 export class FrameGroup extends FrameList {
   constructor(data: Array<Frame>, meta = NilContext) {
