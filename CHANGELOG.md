@@ -2,8 +2,12 @@
 
 ## v0.6.6 2025-02-16
 
-- Export `contextify` method
 - Split out Context type
+- Add tests for Context
+- Expose `make_context` method for use in tests
+- Add `equals` and `isEqualTo` methods in Frame
+
+NOTE: Cannot export `Context` without exporing all of `Frame`
 
 ## v0.6.5 2025-02-16
 
