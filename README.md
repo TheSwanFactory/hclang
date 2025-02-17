@@ -5,7 +5,7 @@
 [Homoiconic C](https://theswanfactory.wordpress.com/2016/12/20/homoiconic-c-a-universal-language-for-code-and-data/)
 (HC) is a single universal language for code and data. This repository contains
 the first implementation of HC as an interpreter written in TypeScript running
-on `nodejs`.
+on [deno](https://deno.land/).
 
 It also contains a sample application called MAML, the
 [_Multipurpose Abstract Markup Language_](https://theswanfactory.wordpress.com/2016/11/08/introducing-maml-a-draft-proposal-for-html6/).

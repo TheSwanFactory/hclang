@@ -1,7 +1,7 @@
 import chalk from "@nothing628/chalk";
 import {
   type Context,
-  type Frame,
+  Frame,
   FrameGroup,
   FrameNumber,
   FrameString,
@@ -46,7 +46,7 @@ const { version } = JSON.parse(
 export function make_context(entries: StringMap): Context {
   const context: Context = {};
   Object.entries(entries).forEach(([key, value]) => {
-    if (HCEval.isInteger(value)) {
+    if (Frame.isInteger(value)) {
       context[key] = new FrameNumber(value);
     } else {
       context[key] = new FrameString(value);
@@ -72,26 +72,6 @@ export class HCEval {
    * EXPECT is the output prompt prefix.
    */
   public static readonly EXPECT = "# ";
-
-  /**
-   * Checks if the given character is alphabetic.
-   *
-   * @param {string} char - The character to check.
-   * @returns {boolean} `true` if the character is alphabetic, `false` otherwise.
-   */
-  public static isAlphabetic(char: string): boolean {
-    return /\p{L}/u.test(char);
-  }
-
-  /**
-   * Checks if the given string is numeric.
-   *
-   * @param {string} value - The string to check.
-   * @returns {boolean} `true` if the string is all numeric, `false` otherwise.
-   */
-  public static isInteger(value: string): boolean {
-    return /^\p{N}+$/u.test(value);
-  }
 
   /**
    * Creates a lexical pipe for evaluating expressions.
