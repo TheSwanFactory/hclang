@@ -2,7 +2,7 @@
 import { HCEval, make_context } from "../execute/hc-eval.ts";
 import { HCLog } from "../execute/hc-log.ts";
 import { HCTest } from "../execute/hc-test.ts";
-import { parseArgs } from "jsr:@std/cli/parse-args";
+import { parseArgs } from "@std/cli/parse-args";
 import { runfile } from "./runfile.ts";
 import type { StringMap } from "../frames.ts";
 
