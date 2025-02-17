@@ -1,6 +1,6 @@
-import { parse } from "https://deno.land/std/flags/mod.ts";
+import { parseArgs } from "@std/cli/parse_args";
 
-const flags = parse(Deno.args, {
+const flags = parseArgs(Deno.args, {
   boolean: ["minor"],
   default: { minor: false },
 });
