@@ -12,7 +12,7 @@ import { Lex } from "./lex.ts";
 import { LexPipe } from "./lex-pipe.ts";
 import { ParsePipe } from "./parse-pipe.ts";
 
-import { VERSION as version } from "../version.ts";
+import { VERSION } from "../version.ts";
 
 /**
  * Creates a new context from the given entries (usually environment variables).
@@ -122,7 +122,7 @@ export class HCEval {
    * @returns {Promise<boolean>} A promise that resolves to `true` if the REPL was successful, `false` otherwise.
    */
   public async repl(): Promise<boolean> {
-    console.log(chalk.green(".hc " + version + ";"));
+    console.log(chalk.green(".hc " + VERSION + ";"));
     let status = true;
     for await (const input of this.getInputStream()) {
       if (!input) {
