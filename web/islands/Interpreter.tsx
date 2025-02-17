@@ -3,10 +3,10 @@ import { useState } from "preact/hooks";
 import { evaluate } from "../../src/mod.ts";
 
 function evaluateCode(code: string) {
-    console.log(code);
-    const result = evaluate(code);
-    console.log(result);
-    return result;
+  console.log(code);
+  const result = evaluate(code);
+  console.log(result);
+  return result;
 }
 
 export default function Interpreter() {
