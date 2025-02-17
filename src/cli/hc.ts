@@ -8,7 +8,7 @@ import type { StringMap } from "../frames.ts";
 
 /**
  * @module hc
- * 
+ *
  * This is the main entry point for the hc command-line interface (CLI).
  */
 
