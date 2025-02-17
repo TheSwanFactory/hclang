@@ -8,7 +8,6 @@ import type { IArrayConstructor } from "../frames.ts";
  */
 export type Flags = { [key: string]: boolean };
 
-
 /**
  * The `Any` type represents a value that can be primitives or Frames
  * (used primarily for parsing).
@@ -31,12 +30,11 @@ export type Any =
  * manipulating and interacting with frames.
  */
 export class Frame extends MetaFrame {
-
   /**
    * kOUT is where the Frame writes output when evaluated.
    */
   public static readonly kOUT = ">>";
-  /** 
+  /**
    * kEND is the symbol for the end of a FrameList.
    */
   public static readonly kEND = "$$";
@@ -69,7 +67,7 @@ export class Frame extends MetaFrame {
 
   /**
    * globals is the top of the lookup chain.
-   * 
+   *
    * It will be set to the Ops object for global operators.
    */
   public static globals: Frame = Frame.missing;
@@ -111,8 +109,8 @@ export class Frame extends MetaFrame {
 
   /**
    * at returns the Frame at the given index (for FrameLists)
-   * 
-   * @param _index 
+   *
+   * @param _index
    * @returns a Frame or Frame.nil
    */
 
@@ -122,8 +120,8 @@ export class Frame extends MetaFrame {
 
   /**
    * in determines how the Frame is evaluated in the given contexts.
-   * 
-   * @param _contexts 
+   *
+   * @param _contexts
    * @returns a Frame or Frame.nil
    */
 
@@ -134,9 +132,9 @@ export class Frame extends MetaFrame {
   /**
    * apply returns the Frame as the result of evaluation
    * with the given argument (and optional parameter)
-   * 
-   * @param argument 
-   * @param _parameter 
+   *
+   * @param argument
+   * @param _parameter
    * @returns a Frame
    */
 
@@ -147,9 +145,9 @@ export class Frame extends MetaFrame {
   /**
    * called_by defautls to reversing the double-dispatch
    * and just applies the original Frame to this argument.
-   * 
-   * @param context 
-   * @param _parameter 
+   *
+   * @param context
+   * @param _parameter
    * @returns a Frame
    */
 
@@ -163,9 +161,9 @@ export class Frame extends MetaFrame {
   /**
    * call is used to perform double-dispatch
    * to allow arguments to specify how the Frame should be evaluated.
-   * 
-   * @param argument 
-   * @param parameter 
+   *
+   * @param argument
+   * @param parameter
    * @returns a Frame
    */
   public call(argument: Frame, parameter = Frame.nil): Frame {
@@ -188,7 +186,7 @@ export class Frame extends MetaFrame {
   /**
    * equals compares two Frames for equality.
    * The default implementation is to compare their string representation.
-   * @param other 
+   * @param other
    * @returns either Frame.all (true) or Frame.nil (false)
    */
   public equals(other: Frame): Frame {
@@ -198,8 +196,8 @@ export class Frame extends MetaFrame {
   /**
    * isEqualTo compares two Frames for equality using 'equals'
    * It converts the result to a boolean.
-   * 
-   * @param other 
+   *
+   * @param other
    * @returns true if the two Frames are equal, else false
    */
 
@@ -236,7 +234,7 @@ export class Frame extends MetaFrame {
    * asArray returns the Frame as an array of Frames.
    * This is used to allow Frames to be passed to functions
    * that expect arrays.
-   * 
+   *
    * The default implementation is to return this frame inside an Array.
    * @returns an array of Frames
    */

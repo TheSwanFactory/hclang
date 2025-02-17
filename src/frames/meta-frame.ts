@@ -19,7 +19,7 @@ export class MetaFrame {
    * id_count is a static counter, incremented to generate unique IDs.
    */
   public static id_count = 0;
-  
+
   /**
    * up is a reference to the parent frame.
    */
@@ -40,9 +40,9 @@ export class MetaFrame {
     this.id = "$:" + id;
   }
 
-    /**
-     * get_here retrieves a Frame by key from the current context.
-     */
+  /**
+   * get_here retrieves a Frame by key from the current context.
+   */
   public get_here(key: string, _origin: MetaFrame = this): Frame {
     const exact = this.meta[key];
     if (exact != null) {
@@ -51,9 +51,9 @@ export class MetaFrame {
     return this.match_here(key);
   }
 
-  /** 
+  /**
    * get retrieves a Frame by key, searching up the parent chain if necessary.
-  */
+   */
 
   public get(key: string, origin: MetaFrame = this): Frame {
     const result = this.get_here(key, origin);

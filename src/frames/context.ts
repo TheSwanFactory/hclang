@@ -17,9 +17,9 @@ export const NilContext: Context = {};
 
 /**
  * contextEqual compares two contexts for equality.
- * 
- * @param left 
- * @param right 
+ *
+ * @param left
+ * @param right
  * @returns true if the contexts are equal
  */
 export function contextEqual(
@@ -41,8 +41,8 @@ export function contextEqual(
 
 /**
  * contextString returns a string representation of the context.
- * 
- * @param context 
+ *
+ * @param context
  * @returns a string
  */
 export function contextString(
