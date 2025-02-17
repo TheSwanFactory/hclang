@@ -12,9 +12,7 @@ import { Lex } from "./lex.ts";
 import { LexPipe } from "./lex-pipe.ts";
 import { ParsePipe } from "./parse-pipe.ts";
 
-const { version } = JSON.parse(
-  Deno.readTextFileSync(new URL("../../deno.json", import.meta.url)),
-);
+import { VERSION as version } from "../version.ts";
 
 /**
  * Creates a new context from the given entries (usually environment variables).
