@@ -19,19 +19,9 @@ export class Flatten {
   name: string;
 
   /**
-   * Parent node ID (null for root).
-   */
-  parent: string | null;
-
-  /**
    * Stores only child IDs (lazy loading).
    */
   children: string[];
-
-  /**
-   * Always set.
-   */
-  private frame: Frame;
 
   /**
    * Set only if a FrameArray.
@@ -69,12 +59,7 @@ export class Flatten {
       return undefined;
     }
 
-    let child = undefined;
-    if (Frame.isInteger(key) && parent.array) {
-      child = parent.array.get(key);
-    } else {
-      child = parent.frame.get(key);
-    }
+    const child = Frame.isInteger(key) && parent.array ? parent.array.get(key) : parent.frame.get(key);
 
     if (child) {
       result = new Flatten(child, key, parentKey);
@@ -88,28 +73,20 @@ export class Flatten {
    *
    * @param frame - The frame data associated with the node.
    * @param key - The key of the node.
-   * @param parentKey - The key of the parent node (null for root).
+   * @param parent - The key of the parent node (null for root).
    */
-  constructor(frame: Frame, key: string, parentKey: string | null = null) {
-    this.frame = frame;
-    this.array = null;
-    this.name = key;
-    this.parent = parentKey;
-    this.id = parentKey ? `${parentKey}.${key}` : key;
+  constructor(private frame: Frame, key: string, public parent: string | null = null) {
+    this.array = frame instanceof FrameArray ? frame : null;
+    this.name = frame instanceof FrameArray ? key : frame.toString();
+    this.id = parent ? `${parent}.${key}` : key;
     Flatten.nodeMap.set(this.id, this);
 
     let keys = frame.meta_keys();
-
-    if (frame instanceof FrameArray) {
-      this.array = frame;
-      const n = this.array.size();
-      keys = keys.concat(Array.from({ length: n }, (_, i) => `${i}`));
-    } else {
-      this.name = frame.toString();
+    if (this.array) {
+      keys = keys.concat(Array.from({ length: this.array.size() }, (_, i) => `${i}`));
     }
-    this.children = keys.map((key) => `${this.id}.${key}`);
+    this.children = keys.map((childKey) => `${this.id}.${childKey}`);
   }
-
   /**
    * Returns a string representation of the Flatten node.
    *
@@ -117,5 +94,19 @@ export class Flatten {
    */
   public toString(): string {
     return `Flatten<${this.id} ${this.name}>`;
+  }
+
+  /**
+   * toJson converts the Flatten node to a JSON object.
+   *
+   * @returns A JSON object representing the Flatten node.
+   */
+  public toJson(): object {
+    return {
+      name: this.name,
+      children: this.children,
+      id: this.id,
+      parent: this.parent,
+    };
   }
 }
