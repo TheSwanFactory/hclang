@@ -1,7 +1,27 @@
-// Sync version from deno.json to src/version.ts
+import { parse } from "https://deno.land/std/flags/mod.ts";
+
+const flags = parse(Deno.args, {
+  boolean: ["minor"],
+  default: { minor: false },
+});
+
+// Read current version
 const denoJson = JSON.parse(await Deno.readTextFile("deno.json"));
-const version = denoJson.version;
+const [major, minor, patch] = denoJson.version.split(".").map(Number);
+
+// Bump version
+const newVersion = flags.minor
+  ? `${major}.${minor + 1}.0`
+  : `${major}.${minor}.${patch + 1}`;
+
+// Update deno.json
+denoJson.version = newVersion;
+await Deno.writeTextFile("deno.json", JSON.stringify(denoJson, null, 2) + "\n");
+
+// Update version.ts
 await Deno.writeTextFile(
   "src/version.ts",
-  `export const VERSION = "${version}";\n`
+  `export const VERSION = "${newVersion}";\n`
 );
+
+console.log(`Bumped version to ${newVersion}`);
