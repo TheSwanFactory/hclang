@@ -1,10 +1,20 @@
-#!/usr/bin/env node
+#!/usr/bin/env -S deno run -A
 import { HCEval, make_context } from "../execute/hc-eval.ts";
 import { HCLog } from "../execute/hc-log.ts";
 import { HCTest } from "../execute/hc-test.ts";
 import { parseArgs } from "@std/cli/parse-args";
 import { runfile } from "./runfile.ts";
 import type { StringMap } from "../frames.ts";
+
+/**
+ * @module hc
+ *
+ * This is the main entry point for the hc command-line interface (CLI).
+ */
+
+/**
+ * aliases to short form of command-line interface (CLI) options.
+ */
 
 const aliases = {
   e: "evaluate",

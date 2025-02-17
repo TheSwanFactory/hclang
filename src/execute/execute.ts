@@ -14,9 +14,17 @@ const stripLastCommas = (array: Array<string>) => {
 
 /**
  * Executes the given input string and returns the processed result as a string.
+ * It is a wrapper around the `evaluate` function.
  *
- * @param {string} input - The input string of hc code to be evaluated.
+ * @param {string} input - The input string of `hc` code to be evaluated.
  * @returns {string} - The processed result(s) as a string, with each element separated by a newline.
+ *
+ * @example
+ * import { execute } from "jsr:@swanfactory/hclang";
+ * 
+ * const input = '1 + 1';
+ * const result = execute(input);
+ * console.log(result); // Output: '2'
  */
 export const execute = (input: string): string => {
   const result = evaluate(input) as FrameArray;

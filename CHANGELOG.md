@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.6.10 UNRELEASED
+
+- Configure `hc` CLI
+
 ## v0.6.9 2025-02-17
 
 - Move version back to `deno.json`

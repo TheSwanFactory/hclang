@@ -7,6 +7,13 @@ export type StringMap = { [key: string]: string };
 
 /**
  * Context is a map of symbols to frames.
+ * Typically, you create them using `make_context`
+ * from a `StringMap`.
+ * It is passed in as an optional argument to `evaluate`,
+ * and used to resolve symbols during evaluation.
+ * 
+ * @example
+ * const context: Context = make_context({ "a": "1" });
  */
 export type Context = { [key: string]: Frame };
 
