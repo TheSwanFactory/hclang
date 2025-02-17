@@ -31,8 +31,7 @@
   },
   "imports": {
     "@nothing628/chalk": "jsr:@nothing628/chalk@^1.0.1",
-    "@std/cli": "jsr:@std/cli@^1.0.13",
-    "@std/cli/parse_args": "jsr:@std/cli@^1.0.13/parse_args"
+    "@std/cli": "jsr:@std/cli@^1.0.13"
   },
   "compilerOptions": {
     "strict": true

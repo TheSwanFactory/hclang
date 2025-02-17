@@ -1,4 +1,4 @@
-import { parseArgs } from "@std/cli/parse-args";                                                                    
+import { parseArgs } from "@std/cli/parse-args";
 const flags = parseArgs(Deno.args, {
   boolean: ["minor"],
   default: { minor: false },
@@ -20,7 +20,7 @@ await Deno.writeTextFile("deno.json", JSON.stringify(denoJson, null, 2) + "\n");
 // Update version.ts
 await Deno.writeTextFile(
   "src/version.ts",
-  `export const VERSION = "${newVersion}";\n`
+  `export const VERSION = "${newVersion}";\n`,
 );
 
 console.log(`Bumped version to ${newVersion}`);
