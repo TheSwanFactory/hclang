@@ -13,7 +13,6 @@ lib-cov
 
 # Misconfigured output
 dist
-lib
 *.js
 *.d.ts
 
