@@ -1,17 +1,17 @@
 {
-  "name": "@swanfactory/hclang-cli",
+  "name": "@swanfactory/hclang-workspace",
   "version": "0.6.10",
-  "description": "CLI tools for HCLang",
-  "exports": "./cli/mod.ts",
   "tasks": {
-    "test": "mkdir -p test/cli && deno test --allow-env --allow-read --allow-write",
-    "compile": "deno compile --output scripts/hc lib/cli/hc.ts",
-    "hc": "deno run -A lib/cli/hc.ts",
-    "test:bs": "deno task hc hc/BitScheme.hc -t",
-    "test:doc": "deno task hc hc/testdoc.hc -t"
-  },
-  "imports": {
-    "@nothing628/chalk": "jsr:@nothing628/chalk@^1.0.1",
-    "@std/cli": "jsr:@std/cli@^1.0.13"
+    "test": "deno fmt && deno lint --fix && deno test --allow-env --allow-read --allow-write",
+    "test:cli": "deno test --allow-env --allow-read --allow-write cli",
+    "test:lib": "deno test lib", 
+    "test:maml": "deno test maml",
+    "test:all": "deno task test:cli && deno task test:lib && deno task test:maml"
+},
+  "workspaces": ["cli", "lib", "maml"],
+  "fmt": {
+    "exclude": [
+      "**/*.html"
+    ]
   }
 }

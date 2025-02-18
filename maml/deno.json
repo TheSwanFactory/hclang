@@ -1,0 +1,13 @@
+{
+  "name": "@swanfactory/maml",
+  "version": "0.6.10",
+  "description": "Multipurpose Abstract Markup Library for Homoiconic C",
+  "license": "MIT",
+  "exports": "./tag.ts",
+  "tasks": {
+    "test": "deno fmt && deno lint --fix && deno test --allow-env --allow-read --allow-write"
+  },
+  "compilerOptions": {
+    "strict": true
+  }
+}
