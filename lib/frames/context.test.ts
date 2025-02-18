@@ -1,12 +1,7 @@
 import { expect } from "npm:chai";
 import { describe, it } from "jsr:@std/testing/bdd";
 
-import {
-  type Context,
-  contextEqual,
-  contextString,
-  Frame,
-} from "../frames.ts";
+import { type Context, contextEqual, contextString, Frame } from "../frames.ts";
 
 describe("context", () => {
   describe("contextEqual", () => {

@@ -1,12 +1,7 @@
 import { expect } from "npm:chai";
 import { describe, it } from "jsr:@std/testing/bdd";
 
-import {
-  FrameAlias,
-  FrameExpr,
-  FrameString,
-  FrameSymbol,
-} from "../frames.ts";
+import { FrameAlias, FrameExpr, FrameString, FrameSymbol } from "../frames.ts";
 
 describe("FrameAlias", () => {
   const key = "atom";

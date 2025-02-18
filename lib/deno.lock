@@ -2,9 +2,7 @@
   "version": "4",
   "specifiers": {
     "jsr:@nothing628/chalk@*": "1.0.1",
-    "jsr:@nothing628/chalk@^1.0.1": "1.0.1",
     "jsr:@std/assert@^1.0.10": "1.0.11",
-    "jsr:@std/cli@^1.0.13": "1.0.13",
     "jsr:@std/internal@^1.0.5": "1.0.5",
     "jsr:@std/testing@*": "1.0.9",
     "npm:@types/node@*": "22.5.4",
@@ -16,9 +14,6 @@
     },
     "@std/assert@1.0.11": {
       "integrity": "2461ef3c368fe88bc60e186e7744a93112f16fd110022e113a0849e94d1c83c1"
-    },
-    "@std/cli@1.0.13": {
-      "integrity": "5db2d95ab2dca3bca9fb6ad3c19908c314e93d6391c8b026725e4892d4615a69"
     },
     "@std/internal@1.0.5": {
       "integrity": "54a546004f769c1ac9e025abd15a76b6671ddc9687e2313b67376125650dc7ba"
@@ -65,24 +60,6 @@
     },
     "undici-types@6.19.8": {
       "integrity": "sha512-ve2KP6f/JnbPBFyobGHuerC9g1FYGn/F8n1LWTwNxCEzd6IfqTwUQcNXgEtmmQ6DlRrC1hrSrBnCZPokRrDHjw=="
-    }
-  },
-  "redirects": {
-    "https://deno.land/std/flags/mod.ts": "https://deno.land/std@0.224.0/flags/mod.ts"
-  },
-  "remote": {
-    "https://deno.land/std@0.224.0/assert/assert_exists.ts": "43420cf7f956748ae6ed1230646567b3593cb7a36c5a5327269279c870c5ddfd",
-    "https://deno.land/std@0.224.0/assert/assertion_error.ts": "ba8752bd27ebc51f723702fac2f54d3e94447598f54264a6653d6413738a8917",
-    "https://deno.land/std@0.224.0/flags/mod.ts": "88553267f34519c8982212185339efdb2d2e62c159ec558f47eb50c8952a6be3"
-  },
-  "workspace": {
-    "members": {
-      "cli": {
-        "dependencies": [
-          "jsr:@nothing628/chalk@^1.0.1",
-          "jsr:@std/cli@^1.0.13"
-        ]
-      }
     }
   }
 }

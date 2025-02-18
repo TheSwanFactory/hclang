@@ -1,5 +1,4 @@
 {
-  "name": "@swanfactory/hc",
   "version": "0.6.10",
   "description": "Homoiconic C command-line interface and REPL",
   "entry": "./hc.ts",

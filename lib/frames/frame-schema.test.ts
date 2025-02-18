@@ -1,12 +1,7 @@
 import { expect } from "npm:chai";
 import { describe, it } from "jsr:@std/testing/bdd";
 
-import {
-  Frame,
-  FrameExpr,
-  FrameSchema,
-  FrameString,
-} from "../frames.ts";
+import { Frame, FrameExpr, FrameSchema, FrameString } from "../frames.ts";
 
 describe("FrameSchema", () => {
   const a_frame = new FrameString("a");

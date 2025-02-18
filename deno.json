@@ -1,14 +1,13 @@
 {
-  "name": "@swanfactory/hclang-workspace",
   "version": "0.6.10",
   "tasks": {
-    "test": "deno fmt && deno lint --fix && deno test:all",
+    "test": "deno fmt && deno lint --fix && deno task test:all",
     "test:cli": "cd cli && deno task test",
-    "test:lib": "deno test lib", 
+    "test:lib": "deno test lib",
     "test:maml": "deno test maml",
     "test:all": "deno task test:cli && deno task test:lib && deno task test:maml"
-},
-  "workspaces": ["cli", "lib", "maml"],
+  },
+  "workspace": ["cli", "lib", "maml"],
   "fmt": {
     "exclude": [
       "**/*.html"
