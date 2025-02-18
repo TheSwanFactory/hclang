@@ -2,8 +2,8 @@
   "name": "@swanfactory/hclang-workspace",
   "version": "0.6.10",
   "tasks": {
-    "test": "deno fmt && deno lint --fix && deno test --allow-env --allow-read --allow-write",
-    "test:cli": "deno test --allow-env --allow-read --allow-write cli",
+    "test": "deno fmt && deno lint --fix && deno test:all",
+    "test:cli": "cd cli && deno task test",
     "test:lib": "deno test lib", 
     "test:maml": "deno test maml",
     "test:all": "deno task test:cli && deno task test:lib && deno task test:maml"

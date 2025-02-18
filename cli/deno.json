@@ -14,6 +14,7 @@
   "tasks": {
     "compile": "deno compile --output ../scripts/hc ./hc.ts",
     "hc": "deno run -A ./hc.ts",
+    "test": "deno test --allow-env --allow-read --allow-write",
     "test:bs": "deno task hc hc/BitScheme.hc -t",
     "test:doc": "deno task hc hc/testdoc.hc -t"
   },
