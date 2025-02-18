@@ -11,7 +11,7 @@ export type StringMap = { [key: string]: string };
  * from a `StringMap`.
  * It is passed in as an optional argument to `evaluate`,
  * and used to resolve symbols during evaluation.
- * 
+ *
  * @example
  * const context: Context = make_context({ "a": "1" });
  */

@@ -7,7 +7,7 @@ import { HCEval } from "./hc-eval.ts";
  * @param {string} input - The input string to be evaluated.
  * @param {NilContext} [meta=NilContext] - The context in which the evaluation takes place. Defaults to NilContext.
  * @returns {FrameArray} The result of the evaluation as a FrameArray.
- * 
+ *
  * @example
  * import { evaluate } from "jsr:@swanfactory/hclang";
  *

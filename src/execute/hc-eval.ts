@@ -16,7 +16,7 @@ import { VERSION } from "../version.ts";
 
 /**
  * Creates a new context from the given key-value entries.
- * 
+ *
  * @param {StringMap} entries - A map of string keys to string values
  * @returns {Context} A new context with the entries converted to appropriate Frame types
  */
