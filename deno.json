@@ -4,6 +4,8 @@
     "hc": "scripts/hc"
   },
   "tasks": {
+    "bump": "deno run -A scripts/bump-version.ts && git add deno.json lib/version.ts */deno.json && git commit -m 'Bump version'",
+    "tag": "git tag v$(jq -r .version deno.json) && git push origin --tags",
     "test": "deno fmt && deno lint --fix && deno task test:all",
     "test:cli": "cd cli && deno task test",
     "test:lib": "deno test lib",
