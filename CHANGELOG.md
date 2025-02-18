@@ -1,8 +1,9 @@
 # CHANGELOG
 
-## v0.6.10 UNRELEASED
+## v0.6.10 2025-02-17
 
 - Configure `hc` CLI
+- Trim Deno dependencies from library
 
 ## v0.6.9 2025-02-17
 

@@ -21,7 +21,7 @@ const stripLastCommas = (array: Array<string>) => {
  *
  * @example
  * import { execute } from "jsr:@swanfactory/hclang";
- * 
+ *
  * const input = '1 + 1';
  * const result = execute(input);
  * console.log(result); // Output: '2'

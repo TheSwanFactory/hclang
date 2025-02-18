@@ -15,10 +15,10 @@ import { ParsePipe } from "./parse-pipe.ts";
 import { VERSION } from "../version.ts";
 
 /**
- * Creates a new context from the given entries (usually environment variables).
+ * Creates a new context from the given key-value entries.
  *
- * @param {StringMap} entries - A map of string keys to string values.
- * @returns {Context} The created context.
+ * @param {StringMap} entries - A map of string keys to string values
+ * @returns {Context} A new context with the entries converted to appropriate Frame types
  *
  * @remarks
  * This method iterates over the entries and determines the type of each value
@@ -39,7 +39,6 @@ import { VERSION } from "../version.ts";
  * };
  * const context = make_context(entries);
  * console.log(context);
- * ```
  */
 export function make_context(entries: StringMap): Context {
   const context: Context = {};
