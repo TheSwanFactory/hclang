@@ -7,7 +7,7 @@ import {
   FrameNote,
   FrameString,
   FrameSymbol,
-} from "../../src/frames.ts";
+} from "../../lib/frames.ts";
 
 describe("FrameNote", () => {
   const key = "key";

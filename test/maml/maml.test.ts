@@ -1,8 +1,8 @@
 import { expect } from "npm:chai";
 import { describe, it } from "jsr:@std/testing/bdd";
 
-import { FrameExpr, FrameString } from "../../src/frames.ts";
-import { maml } from "../../src/maml.ts";
+import { FrameExpr, FrameString } from "../../lib/frames.ts";
+import { maml } from "../../lib/maml.ts";
 
 describe("maml", () => {
   const body_text = "Hello, MAML!";

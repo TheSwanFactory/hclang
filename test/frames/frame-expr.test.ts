@@ -9,7 +9,7 @@ import {
   FrameName,
   FrameString,
   FrameSymbol,
-} from "../../src/frames.ts";
+} from "../../lib/frames.ts";
 
 describe("FrameExpr", () => {
   const frame = new Frame();

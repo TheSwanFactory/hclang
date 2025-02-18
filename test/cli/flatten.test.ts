@@ -1,7 +1,7 @@
 import { expect } from "npm:chai";
 import { describe, it } from "jsr:@std/testing/bdd";
-import { Flatten, Frame, make_context } from "../../src/mod.ts";
-import { FrameArray } from "../../src/frames.ts";
+import { Flatten, Frame, make_context } from "../../lib/mod.ts";
+import { FrameArray } from "../../lib/frames.ts";
 
 describe("Flatten", () => {
   it("should getNode undefined if empty", () => {

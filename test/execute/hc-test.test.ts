@@ -1,9 +1,9 @@
 import { expect } from "npm:chai";
 import { beforeEach, describe, it } from "jsr:@std/testing/bdd";
 
-import { HCEval } from "../../src/execute/hc-eval.ts";
-import { HCTest } from "../../src/execute/hc-test.ts";
-import * as frame from "../../src/frames.ts";
+import { HCEval } from "../../lib/execute/hc-eval.ts";
+import { HCTest } from "../../lib/execute/hc-test.ts";
+import * as frame from "../../lib/frames.ts";
 
 describe("HCTest", () => {
   let out: frame.FrameArray;

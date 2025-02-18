@@ -1,7 +1,7 @@
 import { expect } from "npm:chai";
 import { describe, it } from "jsr:@std/testing/bdd";
 
-import { FrameBlob } from "../../src/frames.ts";
+import { FrameBlob } from "../../lib/frames.ts";
 
 describe("FrameBlob", () => {
   const source = "0b10100101";

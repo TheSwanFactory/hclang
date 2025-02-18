@@ -1,6 +1,6 @@
 import { expect } from "npm:chai";
 import { beforeEach, describe, it } from "jsr:@std/testing/bdd";
-import { runfile } from "../../src/cli/runfile.ts";
+import { runfile } from "../../lib/cli/runfile.ts";
 
 describe("runfile", () => {
   let hc_eval: { call: (line: string) => void };

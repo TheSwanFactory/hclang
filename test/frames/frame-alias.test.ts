@@ -6,7 +6,7 @@ import {
   FrameExpr,
   FrameString,
   FrameSymbol,
-} from "../../src/frames.ts";
+} from "../../lib/frames.ts";
 
 describe("FrameAlias", () => {
   const key = "atom";

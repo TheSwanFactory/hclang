@@ -1,8 +1,8 @@
 import { expect } from "npm:chai";
 import { describe, it } from "jsr:@std/testing/bdd";
 
-import * as frame from "../../src/frames.ts";
-import { FrameSymbol } from "../../src/frames.ts";
+import * as frame from "../../lib/frames.ts";
+import { FrameSymbol } from "../../lib/frames.ts";
 
 describe("FrameSymbol", () => {
   const symbol = "atom";

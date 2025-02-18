@@ -1,7 +1,7 @@
 import { expect } from "npm:chai";
 import { beforeEach, describe, it } from "jsr:@std/testing/bdd";
-import { EvalPipe } from "../../src/execute/eval-pipe.ts";
-import * as frame from "../../src/frames.ts";
+import { EvalPipe } from "../../lib/execute/eval-pipe.ts";
+import * as frame from "../../lib/frames.ts";
 
 describe("EvalPipe", () => {
   const strA = new frame.FrameString("A");

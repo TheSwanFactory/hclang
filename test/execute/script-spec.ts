@@ -1,6 +1,6 @@
 import { expect } from "npm:chai";
 
-const hc_bin = "src/cli/hc.ts";
+const hc_bin = "lib/cli/hc.ts";
 
 const script = async (args: string[]) => {
   const argv = ["deno", "run", "--allow-all", hc_bin, ...args];

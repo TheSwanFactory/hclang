@@ -6,7 +6,7 @@ import {
   FrameExpr,
   FrameSchema,
   FrameString,
-} from "../../src/frames.ts";
+} from "../../lib/frames.ts";
 
 describe("FrameSchema", () => {
   const a_frame = new FrameString("a");

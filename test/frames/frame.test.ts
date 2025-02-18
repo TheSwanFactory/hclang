@@ -1,7 +1,7 @@
 import { expect } from "npm:chai";
 import { describe, it } from "jsr:@std/testing/bdd";
 
-import { Frame, NilContext } from "../../src/frames.ts";
+import { Frame, NilContext } from "../../lib/frames.ts";
 
 describe("Frame", () => {
   const frame = new Frame({ nil: Frame.nil });

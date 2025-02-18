@@ -1,8 +1,8 @@
 import { expect } from "npm:chai";
 import { beforeEach, describe, it } from "jsr:@std/testing/bdd";
 
-import { HCEval, make_context } from "../../src/execute/hc-eval.ts";
-import * as frame from "../../src/frames.ts";
+import { HCEval, make_context } from "../../lib/execute/hc-eval.ts";
+import * as frame from "../../lib/frames.ts";
 
 describe("HCEval", () => {
   let out: frame.FrameArray;

@@ -1,9 +1,9 @@
 import { expect } from "npm:chai";
 import { beforeEach, describe, it } from "jsr:@std/testing/bdd";
 
-import { LexPipe } from "../../src/execute/lex-pipe.ts";
-import * as frame from "../../src/frames.ts";
-import { ParsePipe } from "../../src/execute/parse-pipe.ts";
+import { LexPipe } from "../../lib/execute/lex-pipe.ts";
+import * as frame from "../../lib/frames.ts";
+import { ParsePipe } from "../../lib/execute/parse-pipe.ts";
 
 describe("LexPipe", () => {
   const success = new frame.FrameString("success!");

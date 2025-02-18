@@ -7,7 +7,7 @@ import {
   FrameName,
   FrameString,
   FrameSymbol,
-} from "../../src/frames.ts";
+} from "../../lib/frames.ts";
 
 describe("FrameName", () => {
   const symbol = "atom";

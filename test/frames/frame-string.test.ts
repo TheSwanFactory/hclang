@@ -1,7 +1,7 @@
 import { expect } from "npm:chai";
 import { describe, it } from "jsr:@std/testing/bdd";
 
-import { FrameNote, FrameString } from "../../src/frames.ts";
+import { FrameNote, FrameString } from "../../lib/frames.ts";
 
 describe("FrameString", () => {
   const js_string = "Hello, MAML!";

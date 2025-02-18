@@ -1,6 +1,6 @@
 import { expect } from "npm:chai";
 import { describe, it } from "jsr:@std/testing/bdd";
-import { getOptions, main } from "../../src/cli/hc.ts";
+import { getOptions, main } from "../../lib/cli/hc.ts";
 
 describe("getOptions", () => {
   it("is exported", () => {

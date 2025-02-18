@@ -1,7 +1,7 @@
 import { expect } from "npm:chai";
 import { describe, it } from "jsr:@std/testing/bdd";
 
-import { FrameDoc } from "../../src/frames.ts";
+import { FrameDoc } from "../../lib/frames.ts";
 
 describe("FrameDoc", () => {
   const source = "\ndoctest\n";

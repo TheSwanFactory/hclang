@@ -1,7 +1,7 @@
 import { expect } from "npm:chai";
 import { describe, it } from "jsr:@std/testing/bdd";
 
-import { FrameComment } from "../../src/frames.ts";
+import { FrameComment } from "../../lib/frames.ts";
 
 describe("FrameComment", () => {
   const source = "Frankly, my dear";

@@ -7,7 +7,7 @@ import {
   FrameString,
   FrameSymbol,
   type IKeyValuePair,
-} from "../../src/frames.ts";
+} from "../../lib/frames.ts";
 
 describe("MetaFrame", () => {
   const frame = new Frame({ nil: Frame.nil });

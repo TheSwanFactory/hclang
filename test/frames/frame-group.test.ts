@@ -1,7 +1,7 @@
 import { expect } from "npm:chai";
 import { describe, it } from "jsr:@std/testing/bdd";
 
-import * as frame from "../../src/frames.ts";
+import * as frame from "../../lib/frames.ts";
 
 describe("FrameGroup", () => {
   const a_frame = new frame.FrameString("a");

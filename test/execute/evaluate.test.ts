@@ -1,9 +1,9 @@
 import { expect } from "npm:chai";
 import { describe, it } from "jsr:@std/testing/bdd";
 
-import { evaluate } from "../../src/execute/evaluate.ts";
-import { make_context } from "../../src/execute/hc-eval.ts";
-import * as frame from "../../src/frames.ts";
+import { evaluate } from "../../lib/execute/evaluate.ts";
+import { make_context } from "../../lib/execute/hc-eval.ts";
+import * as frame from "../../lib/frames.ts";
 
 describe("evaluate", () => {
   it("is exported", () => {

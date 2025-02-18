@@ -1,6 +1,6 @@
 import { expect } from "npm:chai";
-import * as frame from "../../src/frames.ts";
-import { HCEval, make_context } from "../../src/execute/hc-eval.ts";
+import * as frame from "../../lib/frames.ts";
+import { HCEval, make_context } from "../../lib/execute/hc-eval.ts";
 
 const key = "key";
 const value = "value";

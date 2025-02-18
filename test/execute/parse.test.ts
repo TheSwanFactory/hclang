@@ -1,9 +1,9 @@
 import { expect } from "npm:chai";
 import { beforeEach, describe, it } from "jsr:@std/testing/bdd";
 
-import { Token } from "../../src/execute/lex.ts";
-import { ParsePipe } from "../../src/execute/parse-pipe.ts";
-import * as frame from "../../src/frames.ts";
+import { Token } from "../../lib/execute/lex.ts";
+import { ParsePipe } from "../../lib/execute/parse-pipe.ts";
+import * as frame from "../../lib/frames.ts";
 
 describe("Parse", () => {
   const content = new frame.FrameString("content");

@@ -6,7 +6,7 @@ import {
   contextEqual,
   contextString,
   Frame,
-} from "../../src/frames.ts";
+} from "../../lib/frames.ts";
 
 describe("context", () => {
   describe("contextEqual", () => {

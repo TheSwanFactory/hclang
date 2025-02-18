@@ -19,7 +19,7 @@ await Deno.writeTextFile("deno.json", JSON.stringify(denoJson, null, 2) + "\n");
 
 // Update version.ts
 await Deno.writeTextFile(
-  "src/version.ts",
+  "lib/version.ts",
   `export const VERSION = "${newVersion}";\n`,
 );
 
