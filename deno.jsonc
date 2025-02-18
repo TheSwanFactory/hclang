@@ -1,0 +1,18 @@
+{
+  "name": "@swanfactory/hclang-workspace",
+  "version": "0.6.10",
+  "tasks": {
+    "test": "deno test --allow-env --allow-read --allow-write cli/ lib/ maml/",
+    "test:cli": "cd cli && deno test",
+    "test:lib": "cd lib && deno test",
+    "test:maml": "cd maml && deno test",
+    "fmt": "deno fmt",
+    "lint": "deno lint"
+  },
+  "workspaces": ["cli", "lib", "maml"],
+  "fmt": {
+    "exclude": [
+      "**/*.html"
+    ]
+  }
+}
