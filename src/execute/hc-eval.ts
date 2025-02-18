@@ -15,31 +15,10 @@ import { ParsePipe } from "./parse-pipe.ts";
 import { VERSION } from "../version.ts";
 
 /**
- * Creates a new context from the given entries (usually environment variables).
- *
- * @param {StringMap} entries - A map of string keys to string values.
- * @returns {Context} The created context.
- *
- * @remarks
- * This method iterates over the entries and determines the type of each value
- * based on its first character:
- * - If alphabetic, the value is wrapped in a `FrameString`.
- * - If numeric, the value is wrapped in a `FrameNumber`.
- * - If neither, an error is logged and the key is set to `Frame.nil`.
- *
- * If the context contains a `DEBUG_ENV` key, the context is logged to the console
- * for debugging purposes.
- *
- * @example
- * ```typescript
- * const entries = {
- *   key1: "value1",
- *   key2: "12345",
- *   key3: "!@#$%"
- * };
- * const context = make_context(entries);
- * console.log(context);
- * ```
+ * Creates a new context from the given key-value entries.
+ * 
+ * @param {StringMap} entries - A map of string keys to string values
+ * @returns {Context} A new context with the entries converted to appropriate Frame types
  */
 export function make_context(entries: StringMap): Context {
   const context: Context = {};

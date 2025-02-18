@@ -103,8 +103,9 @@ export async function main(
   }
 }
 
+const env = Deno.env.toObject();
 const options = getOptions(Deno.args);
-const hc_eval = getEval(Deno.env.toObject());
+const hc_eval = getEval(env);
 main(hc_eval, options).catch((err) => {
   console.error(err);
   Deno.exit(1);
