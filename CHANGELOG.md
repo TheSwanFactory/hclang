@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v0.7.0 2025-02-17
+
+- Workspace (monorepo) support
+- Seperate packages for CLI, library, and MAML
+
 ## v0.6.10 2025-02-17
 
 - Configure `hc` CLI

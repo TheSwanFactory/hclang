@@ -1,51 +1,23 @@
 {
-  "name": "@swanfactory/hclang",
-  "version": "0.6.10",
-  "description": "Homoiconic C - a universal data format for computation",
-  "license": "MIT",
-  "exports": "./src/mod.ts",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/TheSwanFactory/hclang.git"
-  },
-  "author": "Ernest N. Prabhakar, Ph.D.",
-  "keywords": [
-    "language",
-    "markup",
-    "programming",
-    "html",
-    "maml",
-    "hc",
-    "interpreter",
-    "cli"
-  ],
-  "entry": "./src/cli/hc.ts",
+  "version": "0.7.0",
   "bin": {
-    "hc": "./src/cli/hc.ts"
-  },
-  "permissions": {
-    "read": true,
-    "write": true,
-    "env": true
+    "hc": "scripts/hc"
   },
   "tasks": {
-    "compile": "deno compile --output scripts/hc src/cli/hc.ts",
-    "doc:bs": "tail +3 -q hc/BitScheme.hc > doc/BitScheme.adoc && asciidoctor doc/BitScheme.adoc && open doc/BitScheme.html",
-    "hc": "deno run -A src/cli/hc.ts",
-    "tag": "deno run -A scripts/bump-version.ts && git add deno.json src/version.ts && git commit -m 'Bump version' && git tag v$(jq -r .version deno.json) && git push origin --tags",
-    "tag:minor": "deno run -A scripts/bump-version.ts --minor && git add deno.json src/version.ts && git commit -m 'Bump version' && git tag v$(jq -r .version deno.json) && git push origin --tags",
-    "test": "deno fmt && deno lint --fix && deno test --allow-env --allow-read --allow-write",
-    "test:bs": "deno task hc hc/BitScheme.hc -t",
-    "test:doc": "deno task hc hc/testdoc.hc -t",
-    "test:wp": "deno task hc hc/white-paper.hc -t"
+    "build": "cd cli && deno task build",
+    "bump": "deno run -A scripts/bump-version.ts && git add deno.json lib/version.ts */deno.json && git commit -m 'Bump version'",
+    "tag": "git tag v$(jq -r .version deno.json) && git push origin --tags",
+    "test": "deno fmt && deno lint --fix && deno task test:all",
+    "test:cli": "cd cli && deno task test",
+    "test:lib": "deno test lib",
+    "test:maml": "deno test maml",
+    "test:all": "deno task test:cli && deno task test:lib && deno task test:maml"
   },
-  "imports": {
-    "@nothing628/chalk": "jsr:@nothing628/chalk@^1.0.1",
-    "@std/cli": "jsr:@std/cli@^1.0.13"
-  },
-  "compilerOptions": {
-    "strict": true
-  },
+  "workspace": [
+    "cli",
+    "lib",
+    "maml"
+  ],
   "fmt": {
     "exclude": [
       "**/*.html"

@@ -8,7 +8,7 @@
       "request": "launch",
       "name": "Launch Program",
       "type": "node",
-      "program": "${workspaceFolder}/src/cli/hc.ts",
+      "program": "${workspaceFolder}/lib/cli/hc.ts",
       "cwd": "${workspaceFolder}",
       "env": {},
       "runtimeExecutable": "/opt/homebrew/bin/deno",

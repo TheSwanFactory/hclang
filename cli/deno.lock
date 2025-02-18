@@ -1,10 +1,8 @@
 {
   "version": "4",
   "specifiers": {
-    "jsr:@nothing628/chalk@*": "1.0.1",
     "jsr:@nothing628/chalk@^1.0.1": "1.0.1",
     "jsr:@std/assert@^1.0.10": "1.0.11",
-    "jsr:@std/cli@*": "1.0.13",
     "jsr:@std/cli@^1.0.13": "1.0.13",
     "jsr:@std/internal@^1.0.5": "1.0.5",
     "jsr:@std/testing@*": "1.0.9",
@@ -68,22 +66,10 @@
       "integrity": "sha512-ve2KP6f/JnbPBFyobGHuerC9g1FYGn/F8n1LWTwNxCEzd6IfqTwUQcNXgEtmmQ6DlRrC1hrSrBnCZPokRrDHjw=="
     }
   },
-  "redirects": {
-    "https://deno.land/std/flags/mod.ts": "https://deno.land/std@0.224.0/flags/mod.ts"
-  },
-  "remote": {
-    "https://deno.land/std@0.224.0/assert/assert_exists.ts": "43420cf7f956748ae6ed1230646567b3593cb7a36c5a5327269279c870c5ddfd",
-    "https://deno.land/std@0.224.0/assert/assertion_error.ts": "ba8752bd27ebc51f723702fac2f54d3e94447598f54264a6653d6413738a8917",
-    "https://deno.land/std@0.224.0/flags/mod.ts": "88553267f34519c8982212185339efdb2d2e62c159ec558f47eb50c8952a6be3"
-  },
   "workspace": {
-    "members": {
-      "cli": {
-        "dependencies": [
-          "jsr:@nothing628/chalk@^1.0.1",
-          "jsr:@std/cli@^1.0.13"
-        ]
-      }
-    }
+    "dependencies": [
+      "jsr:@nothing628/chalk@^1.0.1",
+      "jsr:@std/cli@^1.0.13"
+    ]
   }
 }
