@@ -8,7 +8,7 @@ import {
   FrameString,
   FrameSymbol,
 } from "./frames.ts";
-import { tag } from "./maml/tag.ts";
+import { tag } from "../maml/tag.ts";
 
 const HTML_PREFIX = "<!DOCTYPE html>";
 

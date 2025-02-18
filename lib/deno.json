@@ -1,0 +1,13 @@
+{
+  "name": "@swanfactory/hclib",
+  "version": "0.6.10",
+  "description": "Homoiconic C - pure JavaScript library",
+  "license": "MIT",
+  "exports": "./mod.ts",
+  "tasks": {
+    "test": "deno fmt && deno lint --fix && deno test --allow-env --allow-read --allow-write"
+  },
+  "compilerOptions": {
+    "strict": true
+  }
+}
