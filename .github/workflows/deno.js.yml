@@ -24,6 +24,7 @@ jobs:
       - name: Use Deno 2.x
         uses: denoland/setup-deno@v2
       - run: deno install
+      - run: deno task build
       - run: deno task test
       - name: Create release on tag
         uses: ncipollo/release-action@v1

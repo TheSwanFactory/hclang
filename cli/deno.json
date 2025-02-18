@@ -1,5 +1,5 @@
 {
-  "version": "0.6.10",
+  "version": "0.7.0",
   "description": "Homoiconic C command-line interface and REPL",
   "entry": "./hc.ts",
   "bin": {
@@ -11,7 +11,7 @@
     "env": true
   },
   "tasks": {
-    "compile": "deno compile --output ../scripts/hc ./hc.ts",
+    "build": "deno compile --output ../scripts/hc ./hc.ts",
     "hc": "deno run -A ./hc.ts",
     "test": "deno test --allow-env --allow-read --allow-write",
     "test:bs": "deno task hc hc/BitScheme.hc -t",

@@ -4,6 +4,7 @@
     "jsr:@nothing628/chalk@*": "1.0.1",
     "jsr:@nothing628/chalk@^1.0.1": "1.0.1",
     "jsr:@std/assert@^1.0.10": "1.0.11",
+    "jsr:@std/cli@*": "1.0.13",
     "jsr:@std/cli@^1.0.13": "1.0.13",
     "jsr:@std/internal@^1.0.5": "1.0.5",
     "jsr:@std/testing@*": "1.0.9",

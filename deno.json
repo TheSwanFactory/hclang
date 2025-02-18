@@ -1,5 +1,8 @@
 {
-  "version": "0.6.10",
+  "version": "0.7.0",
+  "bin": {
+    "hc": "scripts/hc"
+  },
   "tasks": {
     "test": "deno fmt && deno lint --fix && deno task test:all",
     "test:cli": "cd cli && deno task test",
@@ -7,7 +10,11 @@
     "test:maml": "deno test maml",
     "test:all": "deno task test:cli && deno task test:lib && deno task test:maml"
   },
-  "workspace": ["cli", "lib", "maml"],
+  "workspace": [
+    "cli",
+    "lib",
+    "maml"
+  ],
   "fmt": {
     "exclude": [
       "**/*.html"
