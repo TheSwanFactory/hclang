@@ -2,12 +2,13 @@
   "name": "@swanfactory/hclang-cli",
   "version": "0.6.10",
   "description": "CLI tools for HCLang",
+  "exports": "./cli/mod.ts",
   "tasks": {
-    "test": "deno test",
+    "test": "mkdir -p test/cli && deno test --allow-env --allow-read --allow-write",
     "compile": "deno compile --output scripts/hc lib/cli/hc.ts",
     "hc": "deno run -A lib/cli/hc.ts",
     "test:bs": "deno task hc hc/BitScheme.hc -t",
-    "test:doc": "deno task hc hc/testdoc.hc -t" 
+    "test:doc": "deno task hc hc/testdoc.hc -t"
   },
   "imports": {
     "@nothing628/chalk": "jsr:@nothing628/chalk@^1.0.1",
