@@ -10,20 +10,19 @@ export type Flags = { [key: string]: boolean };
 
 /**
  * inspectFlags returns a string representation of the Flags.
- * 
- * @param flags 
- * @returns 
+ *
+ * @param flags
+ * @returns
  */
 export function inspectFlags(flags: Flags): string {
-  const keys = Object.keys(flags);
-    if (keys.length === 0) {
-        return "{}";
-        }
-    let result = "{";
-    for (const key of keys) {
-        result += `${key}: ${flags[key]}, \n`;
-    }
-    return result.slice(0, -2) + "}";
+  const entries = Object.entries(flags);
+  if (entries.length === 0) {
+    return "{}";
+  }
+  const result = entries.map(([key, value]) => `  ${key}: ${value}`).join(
+    ",\n",
+  );
+  return `{\n${result}\n}`;
 }
 
 /**
