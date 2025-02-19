@@ -9,6 +9,24 @@ import type { IArrayConstructor } from "../frames.ts";
 export type Flags = { [key: string]: boolean };
 
 /**
+ * inspectFlags returns a string representation of the Flags.
+ * 
+ * @param flags 
+ * @returns 
+ */
+export function inspectFlags(flags: Flags): string {
+  const keys = Object.keys(flags);
+    if (keys.length === 0) {
+        return "{}";
+        }
+    let result = "{";
+    for (const key of keys) {
+        result += `${key}: ${flags[key]}, \n`;
+    }
+    return result.slice(0, -2) + "}";
+}
+
+/**
  * The `Any` type represents a value that can be primitives or Frames
  * (used primarily for parsing).
  */
@@ -225,7 +243,7 @@ export class Frame extends MetaFrame {
       result += meta;
     }
     if (Object.keys(this.is).length > 0) {
-      result += `:${Deno.inspect(this.is)}`;
+      result += `:${inspectFlags(this.is)}`;
     }
     return result;
   }
