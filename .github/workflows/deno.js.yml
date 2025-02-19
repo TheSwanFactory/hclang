@@ -34,4 +34,4 @@ jobs:
       - name: Publish to Deno.land on merge to master
         id: deno-publish
         if: github.ref == 'refs/heads/master'
-        run: deno publish
+        run: deno task publish

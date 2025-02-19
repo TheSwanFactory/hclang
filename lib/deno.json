@@ -1,8 +1,23 @@
 {
-  "name": "@swanfactory/hclib",
+  "name": "@swanfactory/hclang",
   "version": "0.7.0",
   "description": "Homoiconic C - pure JavaScript library",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TheSwanFactory/hclang.git"
+  },
+  "author": "Ernest N. Prabhakar, Ph.D.",
+  "keywords": [
+    "language",
+    "markup",
+    "programming",
+    "html",
+    "maml",
+    "hc",
+    "interpreter",
+    "cli"
+  ],
   "exports": "./mod.ts",
   "compilerOptions": {
     "strict": true
