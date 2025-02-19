@@ -4,6 +4,7 @@ import { HCLog } from "../lib/execute/hc-log.ts";
 import { HCTest } from "../lib/execute/hc-test.ts";
 import { parseArgs } from "@std/cli/parse-args";
 import { runfile } from "./runfile.ts";
+import { Prompt } from "./prompt.ts";
 import type { StringMap } from "../lib/frames.ts";
 
 /**
@@ -71,12 +72,13 @@ export async function main(
   hc_eval: HCEval,
   options: ReturnType<typeof getOptions>,
 ): Promise<void> {
+  const prompt = new Prompt(hc_eval);
+  let evaluated = false;
+  let test: HCTest;
+
   if (options.verbose) {
     console.error("options", options);
   }
-
-  let evaluated = false;
-  let test: HCTest;
 
   if (options.testdoc) {
     test = new HCTest(hc_eval.out);
@@ -99,7 +101,7 @@ export async function main(
 
   if (options.interactive || !evaluated) {
     (hc_eval.out as HCLog).prompt = true;
-    hc_eval.repl();
+    prompt.repl();
   }
 }
 
