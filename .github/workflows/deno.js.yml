@@ -35,3 +35,6 @@ jobs:
         id: deno-publish
         if: github.ref == 'refs/heads/master'
         run: deno task publish
+        env:
+          DENO_AUTH_TOKEN: ${{ secrets.DENO_AUTH_TOKEN }}
+
