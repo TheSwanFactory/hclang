@@ -1,6 +1,7 @@
 import { expect } from "npm:chai";
 import { describe, it } from "jsr:@std/testing/bdd";
-import { Flatten, Frame, make_context } from "../lib/mod.ts";
+import { Frame, make_context } from "../lib/mod.ts";
+import { Flatten } from "./flatten.ts";
 import { FrameArray } from "../lib/frames.ts";
 
 describe("Flatten", () => {
