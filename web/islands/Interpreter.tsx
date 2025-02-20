@@ -1,4 +1,4 @@
-import { useState, useEffect } from "preact/hooks";
+import { useEffect, useState } from "preact/hooks";
 import { execute } from "@swanfactory/hclang";
 
 interface HistoryItem {
@@ -28,7 +28,7 @@ export default function Interpreter() {
   const [history, setHistory] = useState<HistoryItem[]>([]);
 
   useEffect(() => {
-    const savedHistory = localStorage.getItem('hc-history');
+    const savedHistory = localStorage.getItem("hc-history");
     if (savedHistory) {
       setHistory(JSON.parse(savedHistory));
     }
@@ -40,25 +40,25 @@ export default function Interpreter() {
     try {
       // Build context from history
       const context = history
-        .map(item => item.code)
+        .map((item) => item.code)
         .reverse()
         .join("\n");
-      
+
       // Combine history with new code
       const fullCode = context ? `${context}\n${code}` : code;
-      
+
       const evalResult = evaluateCode(fullCode);
       setResult(evalResult);
-      
+
       const newHistoryItem = {
         code,
         result: evalResult,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
-      
+
       const updatedHistory = [newHistoryItem, ...history].slice(0, 50); // Keep last 50 items
       setHistory(updatedHistory);
-      localStorage.setItem('hc-history', JSON.stringify(updatedHistory));
+      localStorage.setItem("hc-history", JSON.stringify(updatedHistory));
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -75,7 +75,7 @@ export default function Interpreter() {
     setText("");
     setResult("");
     setError("");
-    localStorage.removeItem('hc-history');
+    localStorage.removeItem("hc-history");
   };
 
   return (
@@ -101,9 +101,15 @@ export default function Interpreter() {
         )}
       </div>
       <div style={{ marginTop: "20px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
           <h3>History</h3>
-          <button 
+          <button
             onClick={clearHistory}
             style={{ padding: "4px 8px" }}
           >
@@ -112,15 +118,15 @@ export default function Interpreter() {
         </div>
         <div style={{ maxHeight: "200px", overflowY: "auto" }}>
           {history.map((item, index) => (
-            <div 
+            <div
               key={item.timestamp}
               onClick={() => handleHistoryClick(item)}
-              style={{ 
-                cursor: "pointer", 
+              style={{
+                cursor: "pointer",
                 padding: "8px",
                 margin: "4px",
                 border: "1px solid #ccc",
-                borderRadius: "4px"
+                borderRadius: "4px",
               }}
             >
               <pre style={{ margin: 0 }}>{item.code}</pre>
