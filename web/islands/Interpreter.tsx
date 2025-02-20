@@ -9,7 +9,6 @@ interface HistoryItem {
 
 function evaluateCode(code: string): string {
   console.log(`Evaluating code: ${code}`);
-  console.log(execute);
   try {
     const result = execute(code);
     console.log(`Result: ${result}`);
@@ -38,25 +37,18 @@ export default function Interpreter() {
     setError("");
     setIsLoading(true);
     try {
-      // Build context from history
-      const context = history
-        .map((item) => item.code)
-        .reverse()
-        .join("\n");
-
-      // Combine history with new code
+      const context = history.map((item) => item.code).reverse().join("\n");
       const fullCode = context ? `${context}\n${code}` : code;
-
       const evalResult = evaluateCode(fullCode);
       setResult(evalResult);
 
-      const newHistoryItem = {
+      const newHistoryItem: HistoryItem = {
         code,
         result: evalResult,
         timestamp: Date.now(),
       };
 
-      const updatedHistory = [newHistoryItem, ...history].slice(0, 50); // Keep last 50 items
+      const updatedHistory = [newHistoryItem, ...history].slice(0, 50);
       setHistory(updatedHistory);
       localStorage.setItem("hc-history", JSON.stringify(updatedHistory));
     } catch (e: unknown) {
@@ -67,7 +59,7 @@ export default function Interpreter() {
   };
 
   const handleHistoryClick = (historyItem: HistoryItem) => {
-    setText((prev) => prev + "\n" + historyItem.code);
+    setText((prev) => `${prev}\n${historyItem.code}`);
   };
 
   const clearHistory = () => {
@@ -109,15 +101,12 @@ export default function Interpreter() {
           }}
         >
           <h3>History</h3>
-          <button
-            onClick={clearHistory}
-            style={{ padding: "4px 8px" }}
-          >
+          <button onClick={clearHistory} style={{ padding: "4px 8px" }}>
             Clear History
           </button>
         </div>
         <div style={{ maxHeight: "200px", overflowY: "auto" }}>
-          {history.map((item, index) => (
+          {history.map((item) => (
             <div
               key={item.timestamp}
               onClick={() => handleHistoryClick(item)}
