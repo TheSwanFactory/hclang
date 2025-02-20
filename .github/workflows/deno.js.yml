@@ -37,4 +37,3 @@ jobs:
         run: deno task publish
         env:
           DENO_AUTH_TOKEN: ${{ secrets.DENO_AUTH_TOKEN }}
-
