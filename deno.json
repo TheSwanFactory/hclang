@@ -1,37 +1,46 @@
 {
-  "version": "0.7.1",
-  "bin": {
-    "hc": "scripts/hc"
-  },
-  "tasks": {
-    "build": "cd cli && deno task build",
-    "bump": "deno run -A scripts/bump-version.ts && git add deno.json lib/version.ts */deno.json && git commit -m 'Bump version'",
-    "publish": "cd lib && deno publish",
-    "tag": "git tag v$(jq -r .version deno.json) && git push origin --tags",
-    "test": "deno fmt && deno lint --fix && deno task test:all",
-    "test:cli": "cd cli && deno task test",
-    "test:lib": "deno test lib",
-    "test:maml": "deno test maml",
-    "test:all": "deno task test:cli && deno task test:lib && deno task test:maml"
-  },
-  "workspace": [
-    "cli",
-    "lib",
-    "maml",
-    "web"
-  ],
-  "fmt": {
-    "exclude": [
-      "**/*.html",
-      "**/_fresh/*"
+    "version": "0.7.1",
+    "bin": {
+        "hc": "scripts/hc"
+    },
+    "tasks": {
+        "build": "cd cli && deno task build",
+        "bump": "deno run -A scripts/bump-version.ts && git add deno.json lib/version.ts */deno.json && git commit -m 'Bump version'",
+        "publish": "cd lib && deno publish",
+        "tag": "git tag v$(jq -r .version deno.json) && git push origin --tags",
+        "test": "deno fmt && deno lint --fix && deno task test:all",
+        "test:cli": "cd cli && deno task test",
+        "test:lib": "deno test lib",
+        "test:maml": "deno test maml",
+        "test:all": "deno task test:cli && deno task test:lib && deno task test:maml"
+    },
+    "fmt": {
+        "exclude": [
+            "**/*.html",
+            "**/_fresh/*"
+        ]
+    },
+    "lint": {
+        "rules": {
+            "tags": [
+                "fresh",
+                "recommended"
+            ]
+        }
+    },
+    "imports": {
+        "$fresh/": "https://deno.land/x/fresh@1.7.3/",
+        "@swanfactory/hclang": "jsr:@swanfactory/hclang@^0.7.1",
+        "preact": "https://esm.sh/preact@10.22.0/",
+        "preact/": "https://esm.sh/preact@10.22.0/",
+        "@preact/signals": "https://esm.sh/*@preact/signals@1.2.2",
+        "@preact/signals-core": "https://esm.sh/*@preact/signals-core@1.5.1",
+        "$std/": "https://deno.land/std@0.216.0/"
+    },
+    "workspace": [
+        "cli",
+        "lib",
+        "maml",
+        "web"
     ]
-  },
-  "lint": {
-    "rules": {
-      "tags": [
-        "fresh",
-        "recommended"
-      ]
-    }
-  }
 }

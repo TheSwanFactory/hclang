@@ -9,7 +9,8 @@
     "jsr:@std/internal@^1.0.5": "1.0.5",
     "jsr:@std/testing@*": "1.0.9",
     "npm:@types/node@*": "22.5.4",
-    "npm:chai@*": "5.2.0"
+    "npm:chai@*": "5.2.0",
+    "npm:preact@^10.26.2": "10.26.2"
   },
   "jsr": {
     "@nothing628/chalk@1.0.1": {
@@ -64,6 +65,9 @@
     "pathval@2.0.0": {
       "integrity": "sha512-vE7JKRyES09KiunauX7nd2Q9/L7lhok4smP9RZTDeD4MVs72Dp2qNFVz39Nz5a0FVEW0BJR6C0DYrq6unoziZA=="
     },
+    "preact@10.26.2": {
+      "integrity": "sha512-0gNmv4qpS9HaN3+40CLBAnKe0ZfyE4ZWo5xKlC1rVrr0ckkEvJvAQqKaHANdFKsGstoxrY4AItZ7kZSGVoVjgg=="
+    },
     "undici-types@6.19.8": {
       "integrity": "sha512-ve2KP6f/JnbPBFyobGHuerC9g1FYGn/F8n1LWTwNxCEzd6IfqTwUQcNXgEtmmQ6DlRrC1hrSrBnCZPokRrDHjw=="
     }
@@ -80,16 +84,14 @@
     "https://esm.sh/preact@10.22.0/jsx-runtime": "6c6117abd414386ed23785f7c198e03bee696c1fa0fee01b72a64abe5e7ae7fb"
   },
   "workspace": {
+    "dependencies": [
+      "jsr:@swanfactory/hclang@~0.7.1"
+    ],
     "members": {
       "cli": {
         "dependencies": [
           "jsr:@nothing628/chalk@^1.0.1",
           "jsr:@std/cli@^1.0.13"
-        ]
-      },
-      "web": {
-        "dependencies": [
-          "jsr:@swanfactory/hclang@~0.7.1"
         ]
       }
     }

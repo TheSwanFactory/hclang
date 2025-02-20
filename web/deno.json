@@ -10,15 +10,6 @@
     "preview": "deno run -A --unstable-kv main.ts",
     "update": "deno run -A -r https://fresh.deno.dev/update ."
   },
-  "imports": {
-    "$fresh/": "https://deno.land/x/fresh@1.7.3/",
-    "@swanfactory/hclang": "jsr:@swanfactory/hclang@^0.7.1",
-    "preact": "https://esm.sh/preact@10.22.0",
-    "preact/": "https://esm.sh/preact@10.22.0/",
-    "@preact/signals": "https://esm.sh/*@preact/signals@1.2.2",
-    "@preact/signals-core": "https://esm.sh/*@preact/signals-core@1.5.1",
-    "$std/": "https://deno.land/std@0.216.0/"
-  },
   "compilerOptions": {
     "jsx": "react-jsx",
     "jsxImportSource": "preact"
