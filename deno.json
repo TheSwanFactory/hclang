@@ -14,14 +14,33 @@
     "test:maml": "deno test maml",
     "test:all": "deno task test:cli && deno task test:lib && deno task test:maml"
   },
+  "fmt": {
+    "exclude": [
+      "**/*.html",
+      "**/_fresh/*"
+    ]
+  },
+  "lint": {
+    "rules": {
+      "tags": [
+        "fresh",
+        "recommended"
+      ]
+    }
+  },
+  "imports": {
+    "$fresh/": "https://deno.land/x/fresh@1.7.3/",
+    "@swanfactory/hclang": "./lib/mod.ts",
+    "preact": "https://esm.sh/preact@10.22.0/",
+    "preact/": "https://esm.sh/preact@10.22.0/",
+    "@preact/signals": "https://esm.sh/*@preact/signals@1.2.2",
+    "@preact/signals-core": "https://esm.sh/*@preact/signals-core@1.5.1",
+    "$std/": "https://deno.land/std@0.216.0/"
+  },
   "workspace": [
     "cli",
     "lib",
-    "maml"
-  ],
-  "fmt": {
-    "exclude": [
-      "**/*.html"
-    ]
-  }
+    "maml",
+    "web"
+  ]
 }
