@@ -1,5 +1,4 @@
 {
-  "lock": false,
   "tasks": {
     "t": "deno test --allow-read --allow-env --coverage=cov/",
     "check": "deno fmt && deno lint --fix && deno check **/*.tsx && deno task t",
@@ -11,17 +10,6 @@
     "preview": "deno run -A --unstable-kv main.ts",
     "update": "deno run -A -r https://fresh.deno.dev/update ."
   },
-  "lint": {
-    "rules": {
-      "tags": [
-        "fresh",
-        "recommended"
-      ]
-    }
-  },
-  "exclude": [
-    "**/_fresh/*"
-  ],
   "imports": {
     "$fresh/": "https://deno.land/x/fresh@1.7.3/",
     "@swanfactory/hclang": "jsr:@swanfactory/hclang@^0.7.1",
@@ -34,6 +22,5 @@
   "compilerOptions": {
     "jsx": "react-jsx",
     "jsxImportSource": "preact"
-  },
-  "nodeModulesDir": "none"
+  }
 }

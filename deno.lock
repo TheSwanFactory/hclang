@@ -74,7 +74,10 @@
   "remote": {
     "https://deno.land/std@0.224.0/assert/assert_exists.ts": "43420cf7f956748ae6ed1230646567b3593cb7a36c5a5327269279c870c5ddfd",
     "https://deno.land/std@0.224.0/assert/assertion_error.ts": "ba8752bd27ebc51f723702fac2f54d3e94447598f54264a6653d6413738a8917",
-    "https://deno.land/std@0.224.0/flags/mod.ts": "88553267f34519c8982212185339efdb2d2e62c159ec558f47eb50c8952a6be3"
+    "https://deno.land/std@0.224.0/flags/mod.ts": "88553267f34519c8982212185339efdb2d2e62c159ec558f47eb50c8952a6be3",
+    "https://esm.sh/preact@10.22.0/denonext/jsx-runtime.mjs": "9c20426e7e6c4b17b6f912ab90df23d55138dd3d719bce34563b775f9d70b6b2",
+    "https://esm.sh/preact@10.22.0/denonext/preact.mjs": "4d84d31589efc25c9c066968c07fa9ac3db53831b34a4c46535d0c724cdb486e",
+    "https://esm.sh/preact@10.22.0/jsx-runtime": "6c6117abd414386ed23785f7c198e03bee696c1fa0fee01b72a64abe5e7ae7fb"
   },
   "workspace": {
     "members": {
@@ -82,6 +85,11 @@
         "dependencies": [
           "jsr:@nothing628/chalk@^1.0.1",
           "jsr:@std/cli@^1.0.13"
+        ]
+      },
+      "web": {
+        "dependencies": [
+          "jsr:@swanfactory/hclang@~0.7.1"
         ]
       }
     }

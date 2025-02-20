@@ -17,11 +17,21 @@
   "workspace": [
     "cli",
     "lib",
-    "maml"
+    "maml",
+    "web"
   ],
   "fmt": {
     "exclude": [
-      "**/*.html"
+      "**/*.html",
+      "**/_fresh/*"
     ]
+  },
+  "lint": {
+    "rules": {
+      "tags": [
+        "fresh",
+        "recommended"
+      ]
+    }
   }
 }
