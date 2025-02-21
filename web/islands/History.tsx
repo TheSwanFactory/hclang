@@ -23,7 +23,11 @@ export function History(
         }}
       >
         <h3>History</h3>
-        <button type="reset" onClick={onClearHistory} style={{ padding: "4px 8px" }}>
+        <button
+          type="reset"
+          onClick={onClearHistory}
+          style={{ padding: "4px 8px" }}
+        >
           Clear History
         </button>
       </div>

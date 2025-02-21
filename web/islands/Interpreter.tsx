@@ -75,7 +75,11 @@ export default function Interpreter() {
         cols={50}
       />
       <br />
-      <button type="submit" onClick={() => handleEvaluation(text)} disabled={isLoading}>
+      <button
+        type="submit"
+        onClick={() => handleEvaluation(text)}
+        disabled={isLoading}
+      >
         Evaluate
       </button>
       <div>

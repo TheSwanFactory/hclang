@@ -5,10 +5,12 @@
     "jsr:@nothing628/chalk@*": "1.0.1",
     "jsr:@nothing628/chalk@^1.0.1": "1.0.1",
     "jsr:@std/assert@^1.0.10": "1.0.11",
+    "jsr:@std/assert@^1.0.11": "1.0.11",
     "jsr:@std/bytes@^1.0.2": "1.0.5",
     "jsr:@std/cli@*": "1.0.13",
     "jsr:@std/cli@^1.0.13": "1.0.13",
     "jsr:@std/encoding@^1.0.5": "1.0.7",
+    "jsr:@std/expect@*": "1.0.13",
     "jsr:@std/internal@^1.0.5": "1.0.5",
     "jsr:@std/path@^1.0.6": "1.0.8",
     "jsr:@std/testing@*": "1.0.9",
@@ -29,7 +31,10 @@
       "integrity": "d89ab2f1a9674ce7134b791ea8f53aec728d3e00ad89d08c44785bff342d2ef6"
     },
     "@std/assert@1.0.11": {
-      "integrity": "2461ef3c368fe88bc60e186e7744a93112f16fd110022e113a0849e94d1c83c1"
+      "integrity": "2461ef3c368fe88bc60e186e7744a93112f16fd110022e113a0849e94d1c83c1",
+      "dependencies": [
+        "jsr:@std/internal"
+      ]
     },
     "@std/bytes@1.0.5": {
       "integrity": "4465dd739d7963d964c809202ebea6d5c6b8e3829ef25c6a224290fbb8a1021e"
@@ -40,6 +45,13 @@
     "@std/encoding@1.0.7": {
       "integrity": "f631247c1698fef289f2de9e2a33d571e46133b38d042905e3eac3715030a82d"
     },
+    "@std/expect@1.0.13": {
+      "integrity": "d8e236c7089cd9fcf5e6032f27dadc3db6349d0aee48c15bc71d717bca5baa42",
+      "dependencies": [
+        "jsr:@std/assert@^1.0.11",
+        "jsr:@std/internal"
+      ]
+    },
     "@std/internal@1.0.5": {
       "integrity": "54a546004f769c1ac9e025abd15a76b6671ddc9687e2313b67376125650dc7ba"
     },
@@ -49,7 +61,7 @@
     "@std/testing@1.0.9": {
       "integrity": "9bdd4ac07cb13e7594ac30e90f6ceef7254ac83a9aeaa089be0008f33aab5cd4",
       "dependencies": [
-        "jsr:@std/assert",
+        "jsr:@std/assert@^1.0.10",
         "jsr:@std/internal"
       ]
     }

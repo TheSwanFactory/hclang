@@ -12,7 +12,8 @@
     "test:cli": "cd cli && deno task test",
     "test:lib": "deno test lib",
     "test:maml": "deno test maml",
-    "test:all": "deno task test:cli && deno task test:lib && deno task test:maml"
+    "test:web": "cd web && deno test",
+    "test:all": "deno task test:cli && deno task test:lib && deno task test:maml && deno task test:web"
   },
   "fmt": {
     "exclude": [
