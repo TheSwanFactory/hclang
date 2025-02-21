@@ -10,7 +10,9 @@ interface HistoryProps {
   onClearHistory: () => void;
 }
 
-export function History({ history, onHistoryClick, onClearHistory }: HistoryProps) {
+export function History(
+  { history, onHistoryClick, onClearHistory }: HistoryProps,
+) {
   return (
     <div style={{ marginTop: "20px" }}>
       <div
@@ -21,7 +23,7 @@ export function History({ history, onHistoryClick, onClearHistory }: HistoryProp
         }}
       >
         <h3>History</h3>
-        <button onClick={onClearHistory} style={{ padding: "4px 8px" }}>
+        <button type="reset" onClick={onClearHistory} style={{ padding: "4px 8px" }}>
           Clear History
         </button>
       </div>

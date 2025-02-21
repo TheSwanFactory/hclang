@@ -2,7 +2,6 @@ import { useEffect, useState } from "preact/hooks";
 import { execute } from "@swanfactory/hclang";
 import { History, HistoryItem } from "./History.tsx";
 
-
 function evaluateCode(code: string): string {
   console.log(`Evaluating code: ${code}`);
   try {
@@ -76,7 +75,7 @@ export default function Interpreter() {
         cols={50}
       />
       <br />
-      <button onClick={() => handleEvaluation(text)} disabled={isLoading}>
+      <button type="submit" onClick={() => handleEvaluation(text)} disabled={isLoading}>
         Evaluate
       </button>
       <div>
