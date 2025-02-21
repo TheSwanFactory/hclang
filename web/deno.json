@@ -1,4 +1,5 @@
 {
+  "version": "0.7.1",
   "tasks": {
     "t": "deno test --allow-read --allow-env --coverage=cov/",
     "check": "deno fmt && deno lint --fix && deno check **/*.tsx && deno task t",
