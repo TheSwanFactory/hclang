@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>hclang Parser with Preact</title>
+    <script type="module">
+        import { h, render } from 'https://esm.sh/preact@10.25.4';
+        import { useState } from 'https://esm.sh/preact@10.25.4/hooks';
+        import htm from 'https://esm.sh/htm@3.1.1';
+        import { execute } from 'https://esm.sh/jsr/@swanfactory/hclang@0.7.1';
+
+        // HTM setup for JSX-like syntax
+        const html = htm.bind(h);
+
+        function App() {
+            const [input, setInput] = useState('');
+            const [output, setOutput] = useState('');
+
+            const handleInputChange = (e) => {
+                setInput(e.target.value);
+            };
+
+            const handleExecute = async () => {
+                try {
+                    const result = await execute(input);
+                    setOutput(JSON.stringify(result, null, 2));
+                } catch (error) {
+                    setOutput(`Error: ${error.message}`);
+                }
+            };
+
+            return html`
+        <div>
+          <h1>hclang Executor</h1>
+          <textarea
+            rows="10"
+            cols="50"
+            placeholder="Enter hclang code here..."
+            value=${input}
+            onInput=${handleInputChange}
+          ></textarea>
+          <br />
+          <button onClick=${handleExecute}>Execute</button>
+          <pre>${output}</pre>
+        </div>
+      `;
+        }
+
+        render(html`<${App} />`, document.body);
+    </script>
+</head>
+
+<body>
+</body>
+
+</html>
