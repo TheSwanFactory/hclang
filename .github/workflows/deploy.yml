@@ -35,5 +35,5 @@ jobs:
         uses: denoland/deployctl@v1
         with:
           project: "hclang"
-          entrypoint: "main.ts"
-          root: "web"
+          entrypoint: "web/main.ts"
+          root: "."
