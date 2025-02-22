@@ -17,7 +17,7 @@ export default function Executor({ onSubmit, latestOutput }: ExecutorProps) {
   return (
     <div>
       <textarea
-        placeholder="Enter code..."
+        placeholder="e.g., .a 1; a + a, a * a"
         value={input}
         onInput={(e) => setInput((e.target as HTMLTextAreaElement).value)}
       />
