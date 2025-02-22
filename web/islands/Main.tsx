@@ -24,7 +24,9 @@ export default function Main() {
         error instanceof Error ? error.message : String(error)
       }`;
       setLatestOutput(errorMsg);
-      setHistory((prev: HistoryItem[]) => [{ input, output: errorMsg }, ...prev]);
+      setHistory((
+        prev: HistoryItem[],
+      ) => [{ input, output: errorMsg }, ...prev]);
     }
   };
 
