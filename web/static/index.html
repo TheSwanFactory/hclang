@@ -104,7 +104,7 @@
             }
         }
 
-        function ExecutionUI({ repl, input, setInput, setOutput }) {
+        function Executor({ repl, input, setInput, setOutput }) {
             return html`
         <div>
           <textarea
@@ -123,7 +123,7 @@
       `;
         }
 
-        function HistoryUI({ repl }) {
+        function Historian({ repl }) {
             return html`
         <div>
           <h2>History</h2>
@@ -154,8 +154,8 @@
             return html`
         <div>
           <h1>hcweb REPL</h1>
-          <${ExecutionUI} repl=${repl} input=${input} setInput=${setInput} setOutput=${setOutput} />
-          <${HistoryUI} repl=${repl} />
+          <${Executor} repl=${repl} input=${input} setInput=${setInput} setOutput=${setOutput} />
+          <${Historian} repl=${repl} />
           <button style="background: red;" onClick=${repl.reset.bind(repl)}>Reset</button>
         </div>
       `;
