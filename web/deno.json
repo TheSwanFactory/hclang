@@ -1,9 +1,6 @@
 {
   "version": "0.7.2",
   "tasks": {
-    "t": "deno test --allow-read --allow-env --coverage=cov/",
-    "check": "deno fmt && deno lint --fix && deno check **/*.tsx && deno task t",
-
     "cli": "echo \"import '\\$fresh/src/dev/cli.ts'\" | deno run --unstable-kv -A -",
     "manifest": "deno task cli manifest $(pwd)",
     "start": "deno run -A --unstable-kv --watch=static/,routes/ dev.ts",
