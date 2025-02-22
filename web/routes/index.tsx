@@ -1,10 +1,13 @@
-import { FreshContext } from "$fresh/server.ts";
+import { Head } from "$fresh/runtime.ts";
+import Main from "../islands/Main.tsx";
 
-export const handler = async (_req: Request, _ctx: FreshContext) => {
-  const html = await Deno.readFile("static/index.html");
-  return new Response(html, {
-    headers: {
-      "content-type": "text/html",
-    },
-  });
-};
+export default function Home() {
+  return (
+    <>
+      <Head>
+        <title>HCLang Playground</title>
+      </Head>
+      <Main />
+    </>
+  );
+}
