@@ -1,3 +1,4 @@
+import { h } from "preact";
 import { useState } from "preact/hooks";
 import Executor from "./Executor.tsx";
 import Historian from "./Historian.tsx";

@@ -1,3 +1,5 @@
+import { h } from "preact";
+
 interface HistoryItem {
   input: string;
   output: string;
