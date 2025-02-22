@@ -1,5 +1,13 @@
 import { execute } from "./execute.ts";
-import { Context, make_context, StringMap } from "../mod.ts";
+import { Context, contextString, make_context, StringMap } from "../mod.ts";
+
+/**
+ * HistoryPair is an object representing the input-output pair of an executed command.
+ *
+ * @property input - The input string that was executed.
+ * @property output - The output string that was produced by the execution.
+ */
+export type HistoryPair = { input: string; output: string };
 
 /**
  * Creates an instance of HCLang.
@@ -19,7 +27,7 @@ export class HCLang {
   /**
    * history is an array of objects representing the input-output pairs of executed commands.
    */
-  protected history: { input: string; output: string }[];
+  protected history: HistoryPair[];
 
   /**
    * constructor creates an instance of HCLang.
@@ -30,6 +38,13 @@ export class HCLang {
   constructor(environment: StringMap = {}) {
     this.context = make_context(environment);
     this.history = []; // Array of { input, output } objects
+  }
+
+  /**
+   * @returns A string representation of the current execution context.
+   */
+  getContextString() {
+    return contextString(this.context);
   }
 
   /**
@@ -55,6 +70,18 @@ export class HCLang {
       this.history.push({ input, output: errorMsg });
       return errorMsg;
     }
+  }
+
+  /**
+   * Returns the history array
+   * @returns An array of objects representing the HistoryPairs of executed commands.
+   *
+   * Each HistoryPair has the following structure:
+   * - input: The input string that was executed.
+   * - output: The output string that was produced by the execution
+   */
+  getHistory(): HistoryPair[] {
+    return this.history;
   }
 
   /**
