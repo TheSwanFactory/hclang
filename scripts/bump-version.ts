@@ -18,7 +18,13 @@ const newVersion = flags.minor
   : `${major}.${minor}.${patch + 1}`;
 
 // Update deno.json in root, lib, cli, and maml directories
-const paths = ["deno.json", "lib/deno.json", "cli/deno.json", "maml/deno.json"];
+const paths = [
+  "deno.json",
+  "lib/deno.json",
+  "cli/deno.json",
+  "maml/deno.json",
+  "web/deno.json",
+];
 for (const path of paths) {
   const denoJson = JSON.parse(await Deno.readTextFile(path));
   denoJson.version = newVersion;

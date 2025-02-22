@@ -56,10 +56,10 @@ vscode extension is still being updated.
 
 From the feature branch:
 
-1. Update `CHANGELOG.md` and `version` in `deno.json`
+1. Run `deno task test` to ensure all tests pass
+2. Run `deno task bump` to update version everywhere
+3. Run `deno task tag` to commit version and tag release
 
-1. Run `deno task tag` to commit version and tag release
-
-1. Merge PR to `main` to publish
+4. Merge PR to `main` to publish
 
 Should automatically publish to [jsr](https://jsr.io/@swanfactory/hclang).
