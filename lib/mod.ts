@@ -2,6 +2,7 @@ export { VERSION } from "./version.ts";
 export { evaluate } from "./execute/evaluate.ts";
 export { execute } from "./execute/execute.ts";
 export { make_context } from "./execute/hc-eval.ts";
+export { HCLang } from "./execute/hc-lang.ts";
 export {
   type Context,
   type Flags,
