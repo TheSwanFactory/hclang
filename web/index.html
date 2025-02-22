@@ -3,51 +3,108 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>hclang Parser with Preact</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>hcweb REPL</title>
+    <link rel="stylesheet" href="https://www.w3.org/StyleSheets/Core/Swiss.css">
     <script type="module">
         import { h, render } from 'https://esm.sh/preact@10.25.4';
         import { useState } from 'https://esm.sh/preact@10.25.4/hooks';
         import htm from 'https://esm.sh/htm@3.1.1';
         import { execute } from 'https://esm.sh/jsr/@swanfactory/hclang@0.7.1';
 
-        // HTM setup for JSX-like syntax
         const html = htm.bind(h);
 
-        function App() {
-            const [input, setInput] = useState('');
-            const [output, setOutput] = useState('');
+        // ✅ Hclang Module
+        class Hclang {
+            constructor(environment = {}) {
+                this.environment = environment;
+                this.history = []; // Stores { input, output }
+            }
 
-            const handleInputChange = (e) => {
-                setInput(e.target.value);
-            };
-
-            const handleExecute = async () => {
+            async call(input) {
                 try {
-                    const result = await execute(input);
-                    setOutput(JSON.stringify(result, null, 2));
+                    const output = await execute(input);
+                    const result = String(output);
+                    this.history.unshift({ input, output: result }); // Store history internally
+                    return result;
                 } catch (error) {
-                    setOutput(`Error: ${error.message}`);
+                    const errorMsg = `Error: ${error.message}`;
+                    this.history.unshift({ input, output: errorMsg });
+                    return errorMsg;
                 }
-            };
+            }
 
+            reset() {
+                this.environment = {};
+                this.history = [];
+            }
+
+            getHistory() {
+                return this.history;
+            }
+        }
+
+        // ✅ hcweb Module
+        function ExecutionUI({ repl, input, setInput }) {
             return html`
-        <div>
-          <h1>hclang Executor</h1>
-          <textarea
-            rows="10"
-            cols="50"
-            placeholder="Enter hclang code here..."
-            value=${input}
-            onInput=${handleInputChange}
-          ></textarea>
-          <br />
-          <button onClick=${handleExecute}>Execute</button>
-          <pre>${output}</pre>
+        <div style="display: flex; gap: 20px;">
+          <div style="flex: 1;">
+            <textarea
+              rows="4"
+              style="width: 100%;"
+              placeholder="Enter code..."
+              value=${input}
+              onInput=${(e) => setInput(e.target.value)}
+            ></textarea>
+            <button style="width: 100%;" onClick=${async () => {
+                    if (!input.trim()) return;
+                    await repl.call(input);
+                    setInput('');
+                }}>Submit</button>
+          </div>
         </div>
       `;
         }
 
-        render(html`<${App} />`, document.body);
+        function HistoryUI({ repl }) {
+            return html`
+        <div>
+          <h2>History</h2>
+          <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr>
+                <th style="text-align: left;">Input</th>
+                <th style="text-align: left;">Output</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${repl.getHistory().map(({ input, output }) => html`
+                <tr>
+                  <td style="border: 1px solid #ccc; padding: 5px;">${input}</td>
+                  <td style="border: 1px solid #ccc; padding: 5px;">${output}</td>
+                </tr>
+              `)}
+            </tbody>
+          </table>
+        </div>
+      `;
+        }
+
+        function HcWebRepl({ repl }) {
+            const [input, setInput] = useState('');
+
+            return html`
+        <div style="max-width: 800px; margin: auto; padding: 20px;">
+          <h1>hcweb REPL</h1>
+          <${ExecutionUI} repl=${repl} input=${input} setInput=${setInput} />
+          <${HistoryUI} repl=${repl} />
+          <button style="width: 100%;" onClick=${repl.reset.bind(repl)}>Reset</button>
+        </div>
+      `;
+        }
+
+        // ✅ Render the REPL
+        render(html`<${HcWebRepl} repl=${new Hclang()} />`, document.body);
     </script>
 </head>
 
