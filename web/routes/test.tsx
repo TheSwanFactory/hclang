@@ -1,6 +1,6 @@
-import { h } from "preact";
 import Executor from "../islands/Executor.tsx";
 import Historian from "../islands/Historian.tsx";
+import Reset from "../islands/Reset.tsx";
 import { useState } from "preact/hooks";
 import { execute } from "@swanfactory/hclang";
 
@@ -19,8 +19,8 @@ export default function Home() {
       const result = String(output);
       setLatestOutput(result);
       setHistory((prev) => [{ input, output: result }, ...prev]);
-    } catch (error) {
-      const errorMsg = `Error: ${error.message}`;
+    } catch (error: unknown) {
+      const errorMsg = `Error: ${error instanceof Error ? error.message : String(error)}`;
       setLatestOutput(errorMsg);
       setHistory((prev) => [{ input, output: errorMsg }, ...prev]);
     }
@@ -48,7 +48,7 @@ export default function Home() {
         <h3>HCLang Interpreter</h3>
         <Executor onSubmit={handleSubmit} latestOutput={latestOutput} />
         <Historian history={history} />
-        <button style="background: red;" onClick={handleReset}>Reset</button>
+        <Reset onReset={handleReset} />
       </main>
     </div>
   );
