@@ -1,7 +1,7 @@
-import { HandlerContext } from "$fresh/server.ts";
+import { FreshContext } from "$fresh/server.ts";
 
 export const handler = {
-  GET: async (_req: Request, ctx: HandlerContext) => {
+  GET: async (_req: Request, ctx: FreshContext) => {
     try {
       const content = await Deno.readFile("./static/index.html");
       return new Response(content, {
