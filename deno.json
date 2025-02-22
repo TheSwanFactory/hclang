@@ -31,7 +31,7 @@
   },
   "imports": {
     "$fresh/": "https://deno.land/x/fresh@1.7.3/",
-    "@swanfactory/hclang": "https://esm.sh/jsr/@swanfactory/hclang@0.7.2/",
+    "@swanfactory/hclang": "./lib/mod.ts",
     "preact": "https://esm.sh/preact@10.23.1/",
     "preact/": "https://esm.sh/preact@10.23.1/",
     "@preact/signals": "https://esm.sh/*@preact/signals@1.2.2",
