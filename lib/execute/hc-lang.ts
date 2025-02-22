@@ -18,6 +18,7 @@ export type HistoryPair = { input: string; output: string };
  * Initializes the execution context with the provided environment and sets up
  * an empty history array to store the input-output pairs of executed commands.
  */
+
 export class HCLang {
   /**
    * context is an object representing the execution environment.
@@ -41,9 +42,11 @@ export class HCLang {
   }
 
   /**
-   * @returns A string representation of the current execution context.
+   * Returns a string representation of the current execution context.
+   *
+   * @returns {string} A string representation of the current execution context.
    */
-  getContextString() {
+  getContextString(): string {
     return contextString(this.context);
   }
 
