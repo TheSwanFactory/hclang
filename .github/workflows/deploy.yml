@@ -36,4 +36,4 @@ jobs:
         with:
           project: "hclang"
           entrypoint: "web/main.ts"
-          root: "."
+          root: "web"
