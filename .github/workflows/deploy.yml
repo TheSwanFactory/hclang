@@ -1,9 +1,9 @@
 name: Deploy
 on:
   push:
-    branches: main
+    branches: master
   pull_request:
-    branches: main
+    branches: master
 
 jobs:
   deploy:
@@ -23,11 +23,6 @@ jobs:
         with:
           deno-version: v2.x
 
-      - name: Install Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: lts/*
-
       - name: Build step
         run: "deno task build"
 
@@ -35,5 +30,7 @@ jobs:
         uses: denoland/deployctl@v1
         with:
           project: "hclang"
-          entrypoint: "main.ts"
-          root: "web"
+          entrypoint: "web/main.ts"
+          root: ""
+          
+          
