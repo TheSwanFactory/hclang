@@ -1,6 +1,6 @@
-import App from "../islands/App.tsx";
+import Main from "../islands/Main.tsx";
 
-export default function Home() {
+export default function Local() {
   return (
     <div>
       <header>
@@ -16,7 +16,7 @@ export default function Home() {
       </header>
       <main className="interpreter-wrapper">
         <h3>HCLang Interpreter</h3>
-        <App />
+        <Main />
       </main>
     </div>
   );

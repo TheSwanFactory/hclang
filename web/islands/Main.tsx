@@ -9,7 +9,7 @@ interface HistoryItem {
   output: string;
 }
 
-export default function App() {
+export default function Main() {
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [latestOutput, setLatestOutput] = useState("");
 
