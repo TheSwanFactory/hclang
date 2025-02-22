@@ -1,4 +1,3 @@
-
 interface HistoryItem {
   input: string;
   output: string;
