@@ -6,6 +6,67 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>hcweb REPL</title>
     <link rel="stylesheet" href="https://www.w3.org/StyleSheets/Core/Swiss.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 100px;
+            /* Increased height */
+            font-size: 16px;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            /* Rounded */
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            margin-top: 5px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        pre {
+            min-height: 50px;
+            background: #f4f4f4;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-family: monospace;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background: #f0f0f0;
+        }
+    </style>
     <script type="module">
         import { h, render } from 'https://esm.sh/preact@10.25.4';
         import { useState } from 'https://esm.sh/preact@10.25.4/hooks';
@@ -14,7 +75,6 @@
 
         const html = htm.bind(h);
 
-        // ✅ Hclang Module
         class Hclang {
             constructor(environment = {}) {
                 this.environment = environment;
@@ -44,24 +104,21 @@
             }
         }
 
-        // ✅ hcweb Module
-        function ExecutionUI({ repl, input, setInput }) {
+        function ExecutionUI({ repl, input, setInput, setOutput }) {
             return html`
-        <div style="display: flex; gap: 20px;">
-          <div style="flex: 1;">
-            <textarea
-              rows="4"
-              style="width: 100%;"
-              placeholder="Enter code..."
-              value=${input}
-              onInput=${(e) => setInput(e.target.value)}
-            ></textarea>
-            <button style="width: 100%;" onClick=${async () => {
+        <div>
+          <textarea
+            placeholder="Enter code..."
+            value=${input}
+            onInput=${(e) => setInput(e.target.value)}
+          ></textarea>
+          <button onClick=${async () => {
                     if (!input.trim()) return;
-                    await repl.call(input);
+                    const output = await repl.call(input);
+                    setOutput(output); // Show latest output below submit button
                     setInput('');
                 }}>Submit</button>
-          </div>
+          <pre>${repl.getHistory().length > 0 ? repl.getHistory()[0].output : "Output will appear here"}</pre>
         </div>
       `;
         }
@@ -70,18 +127,18 @@
             return html`
         <div>
           <h2>History</h2>
-          <table style="width: 100%; border-collapse: collapse;">
+          <table>
             <thead>
               <tr>
-                <th style="text-align: left;">Input</th>
-                <th style="text-align: left;">Output</th>
+                <th>Input</th>
+                <th>Output</th>
               </tr>
             </thead>
             <tbody>
               ${repl.getHistory().map(({ input, output }) => html`
                 <tr>
-                  <td style="border: 1px solid #ccc; padding: 5px;">${input}</td>
-                  <td style="border: 1px solid #ccc; padding: 5px;">${output}</td>
+                  <td>${input}</td>
+                  <td>${output}</td>
                 </tr>
               `)}
             </tbody>
@@ -92,18 +149,18 @@
 
         function HcWebRepl({ repl }) {
             const [input, setInput] = useState('');
+            const [output, setOutput] = useState('');
 
             return html`
-        <div style="max-width: 800px; margin: auto; padding: 20px;">
+        <div>
           <h1>hcweb REPL</h1>
-          <${ExecutionUI} repl=${repl} input=${input} setInput=${setInput} />
+          <${ExecutionUI} repl=${repl} input=${input} setInput=${setInput} setOutput=${setOutput} />
           <${HistoryUI} repl=${repl} />
-          <button style="width: 100%;" onClick=${repl.reset.bind(repl)}>Reset</button>
+          <button style="background: red;" onClick=${repl.reset.bind(repl)}>Reset</button>
         </div>
       `;
         }
 
-        // ✅ Render the REPL
         render(html`<${HcWebRepl} repl=${new Hclang()} />`, document.body);
     </script>
 </head>
