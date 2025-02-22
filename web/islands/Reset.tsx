@@ -4,7 +4,7 @@ interface ResetProps {
 
 export default function Reset({ onReset }: ResetProps) {
   return (
-    <button style="background: red;" onClick={onReset}>
+    <button type="button" style="background: red;" onClick={onReset}>
       Reset
     </button>
   );

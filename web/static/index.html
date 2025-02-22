@@ -52,7 +52,7 @@
             value=${input}
             onInput=${(e) => setInput(e.target.value)}
           ></textarea>
-          <button onClick=${async () => {
+          <button type="button" onClick=${async () => {
                     if (!input.trim()) return;
                     const output = await repl.call(input);
                     setOutput(output); // Show latest output below submit button
@@ -96,7 +96,7 @@
           <h1>hcweb REPL</h1>
           <${Executor} repl=${repl} input=${input} setInput=${setInput} setOutput=${setOutput} />
           <${Historian} repl=${repl} />
-          <button style="background: red;" onClick=${repl.reset.bind(repl)}>Reset</button>
+          <button type="button" style="background: red;" onClick=${repl.reset.bind(repl)}>Reset</button>
         </div>
       `;
         }

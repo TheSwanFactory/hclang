@@ -21,7 +21,7 @@ export default function Executor({ onSubmit, latestOutput }: ExecutorProps) {
         value={input}
         onInput={(e) => setInput((e.target as HTMLTextAreaElement).value)}
       />
-      <button onClick={handleSubmit}>Submit</button>
+      <button type="button" onClick={handleSubmit}>Submit</button>
       <pre>{latestOutput || "Output will appear here"}</pre>
     </div>
   );
