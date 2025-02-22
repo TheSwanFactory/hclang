@@ -1,5 +1,6 @@
 import { evaluate } from "./evaluate.ts";
 import type { FrameArray } from "../frames.ts";
+import { NilContext } from "../frames.ts";
 
 const stripLastCommas = (array: Array<string>) => {
   const result = array.map((item) => {
@@ -26,8 +27,8 @@ const stripLastCommas = (array: Array<string>) => {
  * const result = execute(input);
  * console.log(result); // Output: '2'
  */
-export const execute = (input: string): string => {
-  const result = evaluate(input) as FrameArray;
+export const execute = (input: string, meta = NilContext): string => {
+  const result = evaluate(input, meta) as FrameArray;
   const array = result.toStringArray();
   const stripped = stripLastCommas(array);
   return stripped.join("\n");
