@@ -1,4 +1,3 @@
-import { h } from "preact";
 import { useState } from "preact/hooks";
 import Executor from "./Executor.tsx";
 import Historian from "./Historian.tsx";
@@ -19,13 +18,13 @@ export default function Main() {
       const output = await execute(input);
       const result = String(output);
       setLatestOutput(result);
-      setHistory((prev) => [{ input, output: result }, ...prev]);
+      setHistory((prev: HistoryItem[]) => [{ input, output: result }, ...prev]);
     } catch (error: unknown) {
       const errorMsg = `Error: ${
         error instanceof Error ? error.message : String(error)
       }`;
       setLatestOutput(errorMsg);
-      setHistory((prev) => [{ input, output: errorMsg }, ...prev]);
+      setHistory((prev: HistoryItem[]) => [{ input, output: errorMsg }, ...prev]);
     }
   };
 
