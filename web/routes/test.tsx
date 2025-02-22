@@ -1,36 +1,6 @@
-import Executor from "../islands/Executor.tsx";
-import Historian from "../islands/Historian.tsx";
-import Reset from "../islands/Reset.tsx";
-import { useState } from "preact/hooks";
-import { execute } from "@swanfactory/hclang";
-
-interface HistoryItem {
-  input: string;
-  output: string;
-}
+import App from "../islands/App.tsx";
 
 export default function Home() {
-  const [history, setHistory] = useState<HistoryItem[]>([]);
-  const [latestOutput, setLatestOutput] = useState("");
-
-  const handleSubmit = async (input: string) => {
-    try {
-      const output = await execute(input);
-      const result = String(output);
-      setLatestOutput(result);
-      setHistory((prev) => [{ input, output: result }, ...prev]);
-    } catch (error: unknown) {
-      const errorMsg = `Error: ${error instanceof Error ? error.message : String(error)}`;
-      setLatestOutput(errorMsg);
-      setHistory((prev) => [{ input, output: errorMsg }, ...prev]);
-    }
-  };
-
-  const handleReset = () => {
-    setHistory([]);
-    setLatestOutput("");
-  };
-
   return (
     <div>
       <header>
@@ -46,9 +16,7 @@ export default function Home() {
       </header>
       <main className="interpreter-wrapper">
         <h3>HCLang Interpreter</h3>
-        <Executor onSubmit={handleSubmit} latestOutput={latestOutput} />
-        <Historian history={history} />
-        <Reset onReset={handleReset} />
+        <App />
       </main>
     </div>
   );
