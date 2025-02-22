@@ -18,11 +18,11 @@ export default function Home() {
       const output = await execute(input);
       const result = String(output);
       setLatestOutput(result);
-      setHistory((prev) => [{input, output: result}, ...prev]);
+      setHistory((prev) => [{ input, output: result }, ...prev]);
     } catch (error) {
       const errorMsg = `Error: ${error.message}`;
       setLatestOutput(errorMsg);
-      setHistory((prev) => [{input, output: errorMsg}, ...prev]);
+      setHistory((prev) => [{ input, output: errorMsg }, ...prev]);
     }
   };
 
