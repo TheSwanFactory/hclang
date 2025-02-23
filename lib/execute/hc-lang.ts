@@ -94,7 +94,7 @@ export class HCLang {
    * clears the `history` array, effectively resetting the state
    * of the execution environment.
    */
-  reset() {
+  reset(): void {
     this.context = make_context({}); // Reset execution state
     this.history = []; // Clear history
   }

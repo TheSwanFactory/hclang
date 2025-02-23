@@ -72,7 +72,7 @@ export class Frame extends MetaFrame {
    */
 
   public static readonly all: Frame = new (class extends Frame {
-    override toString() {
+    override toString(): string {
       return "<>";
     }
   })();
