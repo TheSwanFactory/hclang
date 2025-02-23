@@ -69,7 +69,7 @@ export default function App({ Component }: PageProps) {
               <li>
                 Github: &nbsp;
                 <a
-                  href="https://github.com/swanfactory/hclang"
+                  href="https://github.com/theswanfactory/hclang"
                   class="text-indigo-600 hover:text-indigo-800"
                 >
                   swanfactory/hclang
