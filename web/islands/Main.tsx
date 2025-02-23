@@ -1,4 +1,4 @@
-import { useEffect, useState } from "preact/hooks";
+import { useState } from "preact/hooks";
 import Executor from "./Executor.tsx";
 import Historian from "./Historian.tsx";
 import Reset from "./Reset.tsx";

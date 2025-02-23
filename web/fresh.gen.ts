@@ -10,7 +10,7 @@ import * as $Executor from "./islands/Executor.tsx";
 import * as $Historian from "./islands/Historian.tsx";
 import * as $Main from "./islands/Main.tsx";
 import * as $Reset from "./islands/Reset.tsx";
-import * as $islands from "./islands/index.ts";
+import * as $index_1 from "./islands/index.ts";
 import type { Manifest } from "$fresh/server.ts";
 
 const manifest = {
@@ -25,7 +25,7 @@ const manifest = {
     "./islands/Historian.tsx": $Historian,
     "./islands/Main.tsx": $Main,
     "./islands/Reset.tsx": $Reset,
-    "./islands/index.ts": $islands,
+    "./islands/index.ts": $index_1,
   },
   baseUrl: import.meta.url,
 } satisfies Manifest;
