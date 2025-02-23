@@ -9,7 +9,7 @@ import * as $Executor from "./islands/Executor.tsx";
 import * as $Historian from "./islands/Historian.tsx";
 import * as $Main from "./islands/Main.tsx";
 import * as $Reset from "./islands/Reset.tsx";
-import * as $index_1 from "./islands/index.ts";
+import * as $index_1 from "./mod.ts";
 import type { Manifest } from "$fresh/server.ts";
 
 const manifest = {
