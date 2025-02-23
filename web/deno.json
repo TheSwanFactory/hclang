@@ -1,5 +1,8 @@
 {
+  "name": "@swanfactory/hcweb",
   "version": "0.7.3",
+  "description": "Homoiconic C - Web Components",
+  "license": "MIT",
   "tasks": {
     "cli": "echo \"import '\\$fresh/src/dev/cli.ts'\" | deno run --unstable-kv -A -",
     "manifest": "deno task cli manifest $(pwd)",
@@ -8,6 +11,7 @@
     "preview": "deno run -A --unstable-kv main.ts",
     "update": "deno run -A -r https://fresh.deno.dev/update ."
   },
+  "exports": "./mod.ts",
   "compilerOptions": {
     "jsx": "react-jsx",
     "jsxImportSource": "preact",
