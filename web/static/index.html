@@ -11,38 +11,9 @@
         import { h, render } from 'https://esm.sh/preact@10.25.4';
         import { useState } from 'https://esm.sh/preact@10.25.4/hooks';
         import htm from 'https://esm.sh/htm@3.1.1';
-        import { execute } from 'https://esm.sh/jsr/@swanfactory/hclang@0.7.2';
+        import { HCLang } from 'https://esm.sh/jsr/@swanfactory/hclang@0.7.2';
 
         const html = htm.bind(h);
-
-        class Hclang {
-            constructor(environment = {}) {
-                this.environment = environment;
-                this.history = []; // Stores { input, output }
-            }
-
-            async call(input) {
-                try {
-                    const output = await execute(input);
-                    const result = String(output);
-                    this.history.unshift({ input, output: result }); // Store history internally
-                    return result;
-                } catch (error) {
-                    const errorMsg = `Error: ${error.message}`;
-                    this.history.unshift({ input, output: errorMsg });
-                    return errorMsg;
-                }
-            }
-
-            reset() {
-                this.environment = {};
-                this.history = [];
-            }
-
-            getHistory() {
-                return this.history;
-            }
-        }
 
         function Executor({ repl, input, setInput, setOutput }) {
             return html`
@@ -101,7 +72,7 @@
       `;
         }
 
-        render(html`<${HcWebRepl} repl=${new Hclang()} />`, document.getElementById('app'));
+        render(html`<${HcWebRepl} repl=${new HCLang()} />`, document.getElementById('app'));
     </script>
 </head>
 
