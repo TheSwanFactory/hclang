@@ -1,4 +1,5 @@
 import { PageProps } from "$fresh/server.ts";
+import { JSX } from "preact";
 
 /**
  * Root application component that provides the HTML structure

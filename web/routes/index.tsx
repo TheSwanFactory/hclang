@@ -1,4 +1,5 @@
 import Main from "../islands/Main.tsx";
+import { JSX } from "preact";
 
 /**
  * Home page component that renders the main REPL interface

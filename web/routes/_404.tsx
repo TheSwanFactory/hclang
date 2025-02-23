@@ -1,4 +1,5 @@
 import { Head } from "$fresh/runtime.ts";
+import { JSX } from "preact";
 
 /**
  * 404 error page component
