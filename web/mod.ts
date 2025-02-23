@@ -1,3 +1,6 @@
+export type { JSX } from "preact";
+export type { HCLang } from "@swanfactory/hclang";
+
 /**
  * Main component that manages HCLang state and user interactions
  * @module
