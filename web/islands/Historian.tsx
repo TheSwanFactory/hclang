@@ -1,11 +1,13 @@
 import { HCLang } from "@swanfactory/hclang";
+import { JSX } from "preact";
 
 /**
  * Props for the Historian component
  * @interface HistorianProps
  * @property {HCLang} hclang - The HCLang instance to display history from
  */
-interface HistorianProps {
+export interface HistorianProps {
+  /** The HCLang instance used to display execution history */
   hclang: HCLang;
 }
 
@@ -26,7 +28,12 @@ type RowData = {
  * @param {HCLang} props.hclang - The HCLang instance to display history from
  * @returns {JSX.Element} A table showing the execution history
  */
-export default function Historian({ hclang }: HistorianProps) {
+/**
+ * Component that displays the execution history from an HCLang instance
+ * @param props - Component properties
+ * @returns A table showing the execution history
+ */
+export default function Historian({ hclang }: HistorianProps): JSX.Element {
   const history = hclang.getHistory();
   return (
     <div class="mt-12">

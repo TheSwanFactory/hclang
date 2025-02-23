@@ -1,11 +1,21 @@
 import { useState } from "preact/hooks";
 import { JSX } from "preact";
 
-interface ExecutorProps {
+/**
+ * Props for the Executor component that handles command input and display
+ */
+export interface ExecutorProps {
+  /** Callback function to handle command submission */
   onSubmit: (input: string) => Promise<void>;
+  /** Most recent command output to display */
   latestOutput: string;
 }
 
+/**
+ * Component that provides a textarea for entering commands and displays their output
+ * @param props - Component properties
+ * @returns A form with input and output areas
+ */
 export default function Executor(
   { onSubmit, latestOutput }: ExecutorProps,
 ): JSX.Element {

@@ -8,7 +8,7 @@ const frame_value = new frame.FrameString(value);
 
 Deno.test({
   name: "evaluates in env",
-  fn() {
+  fn(): void {
     const env = { key: value };
     const context = make_context(env);
     const out2 = new frame.FrameArray([], context);

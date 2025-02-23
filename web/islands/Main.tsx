@@ -3,6 +3,7 @@ import Executor from "./Executor.tsx";
 import Historian from "./Historian.tsx";
 import Reset from "./Reset.tsx";
 import { HCLang } from "@swanfactory/hclang";
+import { JSX } from "preact";
 
 /**
  * Main component that orchestrates the HCLang REPL interface.
@@ -11,7 +12,11 @@ import { HCLang } from "@swanfactory/hclang";
  *
  * @returns {JSX.Element} The rendered REPL interface
  */
-export default function Main() {
+/**
+ * Main component that manages HCLang state and user interactions
+ * @returns The main application interface
+ */
+export default function Main(): JSX.Element {
   const hclang = useSignal(new HCLang());
   const output = useSignal("");
 

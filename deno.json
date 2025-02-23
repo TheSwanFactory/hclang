@@ -39,6 +39,12 @@
       "tags": [
         "fresh",
         "recommended"
+      ],
+      "include": [
+        "explicit-function-return-type",
+        "explicit-module-boundary-types",
+        "require-await",
+        "no-explicit-any"
       ]
     }
   },
