@@ -1,11 +1,12 @@
 import { useState } from "preact/hooks";
+import { JSX } from "preact";
 
 interface ExecutorProps {
   onSubmit: (input: string) => Promise<void>;
   latestOutput: string;
 }
 
-export default function Executor({ onSubmit, latestOutput }: ExecutorProps) {
+export default function Executor({ onSubmit, latestOutput }: ExecutorProps): JSX.Element {
   const [input, setInput] = useState("");
 
   const handleSubmit = async () => {
@@ -14,12 +15,16 @@ export default function Executor({ onSubmit, latestOutput }: ExecutorProps) {
     setInput("");
   };
 
+  const handleInput = (e: JSX.TargetedEvent<HTMLTextAreaElement>) => {
+    setInput(e.currentTarget.value);
+  };
+
   return (
     <div>
       <textarea
         placeholder="e.g., .a 1; a + a, a * a"
         value={input}
-        onInput={(e) => setInput((e.target as HTMLTextAreaElement).value)}
+        onInput={handleInput}
       />
       <button type="button" onClick={handleSubmit}>Submit</button>
       <pre>{latestOutput || "Output will appear here"}</pre>
