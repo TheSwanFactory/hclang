@@ -10,17 +10,20 @@ export default function App({ Component }: PageProps) {
           rel="stylesheet"
           href="https://www.w3.org/StyleSheets/Core/Steely"
         />
-        <style>
-          {`
-            button {
-                padding: 10px 20px;
-                border-radius: 10px;
-                font-size: 1.2em;
-            }
-            `}
-        </style>
+        <link rel="stylesheet" href="/styles.css" />
       </head>
       <body>
+        <header>
+          <h1>Welcome to Homoiconic C!</h1>
+          <p>Homoiconic C ("HC") is a universal data format for computation.</p>
+          <a
+            className="cheat-sheet"
+            href="https://ihack.us/2024/09/19/tsm-5-homoiconic-c-hc-syntax-cheat-sheet/"
+            target="_blank"
+          >
+            HC Cheat Sheet
+          </a>
+        </header>
         <main>
           <Component />
         </main>
