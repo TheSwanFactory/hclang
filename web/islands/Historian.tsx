@@ -29,24 +29,26 @@ type RowData = {
 export default function Historian({ hclang }: HistorianProps) {
   const history = hclang.getHistory();
   return (
-    <div class="history">
-      <h2>History</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Input</th>
-            <th>Output</th>
-          </tr>
-        </thead>
-        <tbody>
-          {history.map(({ input, output }, i) => (
-            <tr key={i}>
-              <td class="input">{input}</td>
-              <td class="output">{output}</td>
+    <div class="mt-12">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6">History</h2>
+      <div class="overflow-x-auto shadow-sm rounded-lg border border-gray-200">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Input</th>
+              <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Output</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            {history.reverse().map(({ input, output }, i) => (
+              <tr key={i}>
+                <td class="px-6 py-4 whitespace-pre-wrap">{input}</td>
+                <td class="px-6 py-4 whitespace-pre-wrap">{output}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
