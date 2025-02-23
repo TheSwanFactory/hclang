@@ -15,6 +15,12 @@
     "test:web": "cd web && deno test",
     "test:all": "deno task test:cli && deno task test:lib && deno task test:maml && deno task test:web"
   },
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "types": ["preact"]
+  },
   "fmt": {
     "exclude": [
       "**/*.html",
