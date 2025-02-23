@@ -5,7 +5,7 @@ import { HCLang } from "@swanfactory/hclang";
  * @interface HistorianProps
  * @property {HCLang} hclang - The HCLang instance to display history from
  */
-interface HistorianProps {
+export interface HistorianProps {
   hclang: HCLang;
 }
 

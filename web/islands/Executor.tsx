@@ -1,7 +1,7 @@
 import { useState } from "preact/hooks";
 import { JSX } from "preact";
 
-interface ExecutorProps {
+export interface ExecutorProps {
   onSubmit: (input: string) => Promise<void>;
   latestOutput: string;
 }

@@ -1,6 +1,6 @@
 import { JSX } from "preact";
 
-interface ResetProps {
+export interface ResetProps {
   onReset: () => void;
 }
 
