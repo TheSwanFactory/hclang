@@ -1,10 +1,7 @@
-interface HistoryItem {
-  input: string;
-  output: string;
-}
+import { type HistoryPair } from "@swanfactory/hclang";
 
 interface HistorianProps {
-  history: HistoryItem[];
+  history: HistoryPair[];
 }
 
 export default function Historian({ history }: HistorianProps) {

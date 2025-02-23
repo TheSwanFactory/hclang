@@ -1,36 +1,26 @@
-import { useState } from "preact/hooks";
+import { useState, useEffect } from "preact/hooks";
 import Executor from "./Executor.tsx";
 import Historian from "./Historian.tsx";
 import Reset from "./Reset.tsx";
-// import { execute } from "./mod.ts";
-import { execute } from "@swanfactory/hclang";
-interface HistoryItem {
-  input: string;
-  output: string;
-}
+import { HCLang, type HistoryPair } from "@swanfactory/hclang";
 
 export default function Main() {
-  const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [hclang] = useState(() => new HCLang());
+  const [history, setHistory] = useState<HistoryPair[]>([]);
   const [latestOutput, setLatestOutput] = useState("");
 
+  useEffect(() => {
+    // Keep history in sync with HCLang
+    setHistory(hclang.getHistory());
+  }, [latestOutput]); // Update when output changes
+
   const handleSubmit = async (input: string) => {
-    try {
-      const output = await execute(input);
-      const result = String(output);
-      setLatestOutput(result);
-      setHistory((prev: HistoryItem[]) => [{ input, output: result }, ...prev]);
-    } catch (error: unknown) {
-      const errorMsg = `Error: ${
-        error instanceof Error ? error.message : String(error)
-      }`;
-      setLatestOutput(errorMsg);
-      setHistory((
-        prev: HistoryItem[],
-      ) => [{ input, output: errorMsg }, ...prev]);
-    }
+    const result = await hclang.call(input);
+    setLatestOutput(result);
   };
 
   const handleReset = () => {
+    hclang.reset();
     setHistory([]);
     setLatestOutput("");
   };
