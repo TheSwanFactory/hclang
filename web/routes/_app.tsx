@@ -10,14 +10,14 @@ export default function App({ Component }: PageProps) {
       </head>
       <body class="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <header class="py-8">
+          <header class="pt-8 pb-4">
             <h1 class="text-4xl font-extrabold text-gray-900 tracking-tight mb-4">
               Welcome to Homoiconic C!
             </h1>
             <p class="text-xl text-gray-600 mb-8">
               Homoiconic C ("HC") is a universal data format for computation.
             </p>
-            <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
+            <div class="bg-white rounded-lg shadow-sm p-6 mb-4">
               <h4 class="text-lg font-semibold text-gray-900 mb-4">
                 Documentation
               </h4>
