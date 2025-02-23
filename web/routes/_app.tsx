@@ -40,13 +40,13 @@ export default function App({ Component }: PageProps) {
             <h4>Links</h4>
             <ul>
                 <li>
-                    <a href="./hclang.html">Standalone Single-File Version</a>
+                    Single-File Version: <a href="./hclang.html">hclang.html</a>
                 </li>
                 <li>
-                <a href="https://github/swanfactory/hclang">GitHub</a>
+                Github: <a href="https://github/swanfactory/hclang">swanfactory/hclang</a>
                 </li>
                 <li>
-                  <a href="https://jsr.io/@swanfactory/hclang">@swanfactory/hclang JSR module</a>
+                  JSR module: <a href="https://jsr.io/@swanfactory/hclang">@swanfactory/hclang</a>
                 </li>
               </ul>
             </div>
