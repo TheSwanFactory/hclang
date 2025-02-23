@@ -1,5 +1,4 @@
 import { useSignal } from "@preact/signals";
-import { JSX } from "preact";
 import Executor from "./Executor.tsx";
 import Historian from "./Historian.tsx";
 import Reset from "./Reset.tsx";
