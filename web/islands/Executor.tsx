@@ -22,14 +22,23 @@ export default function Executor(
   };
 
   return (
-    <div>
+    <div class="space-y-4 w-full">
       <textarea
+        class="w-full h-40 p-4 font-mono text-sm border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
         placeholder="e.g., .a 1; a + a, a * a"
         value={input}
         onInput={handleInput}
       />
-      <button type="button" onClick={handleSubmit}>Submit</button>
-      <pre>{latestOutput || "Output will appear here"}</pre>
+      <button 
+        class="w-full sm:w-auto px-6 py-3 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+        type="button" 
+        onClick={handleSubmit}
+      >
+        Submit
+      </button>
+      <pre class="w-full p-4 bg-gray-50 border border-gray-200 rounded-lg font-mono text-sm overflow-x-auto shadow-sm">
+        {latestOutput || "Output will appear here"}
+      </pre>
     </div>
   );
 }
