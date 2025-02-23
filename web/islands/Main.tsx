@@ -2,8 +2,8 @@ import { useState } from "preact/hooks";
 import Executor from "./Executor.tsx";
 import Historian from "./Historian.tsx";
 import Reset from "./Reset.tsx";
+// import { execute } from "./mod.ts";
 import { execute } from "@swanfactory/hclang";
-
 interface HistoryItem {
   input: string;
   output: string;
