@@ -1,12 +1,13 @@
-import { type HistoryPair } from "@swanfactory/hclang";
+import { HCLang } from "@swanfactory/hclang";
 
 interface HistorianProps {
-  history: HistoryPair[];
+  hclang: HCLang;
 }
 
-export default function Historian({ history }: HistorianProps) {
+export default function Historian({ hclang }: HistorianProps) {
+  const history = hclang.getHistory();
   return (
-    <div>
+    <div class="history">
       <h2>History</h2>
       <table>
         <thead>
@@ -16,10 +17,10 @@ export default function Historian({ history }: HistorianProps) {
           </tr>
         </thead>
         <tbody>
-          {history.map(({ input, output }) => (
-            <tr>
-              <td>{input}</td>
-              <td>{output}</td>
+          {history.map(({ input, output }, i) => (
+            <tr key={i}>
+              <td class="input">{input}</td>
+              <td class="output">{output}</td>
             </tr>
           ))}
         </tbody>

@@ -1,34 +1,26 @@
-import { useState, useEffect } from "preact/hooks";
+import { useSignal } from "@preact/signals";
 import Executor from "./Executor.tsx";
 import Historian from "./Historian.tsx";
 import Reset from "./Reset.tsx";
-import { HCLang, type HistoryPair } from "@swanfactory/hclang";
+import { HCLang } from "@swanfactory/hclang";
 
 export default function Main() {
-  const [hclang] = useState(() => new HCLang());
-  const [history, setHistory] = useState<HistoryPair[]>([]);
-  const [latestOutput, setLatestOutput] = useState("");
-
-  useEffect(() => {
-    // Keep history in sync with HCLang
-    setHistory(hclang.getHistory());
-  }, [latestOutput]); // Update when output changes
+  const hclang = useSignal(new HCLang());
+  const output = useSignal("");
 
   const handleSubmit = async (input: string) => {
-    const result = await hclang.call(input);
-    setLatestOutput(result);
+    output.value = await hclang.value.call(input);
   };
 
   const handleReset = () => {
-    hclang.reset();
-    setHistory([]);
-    setLatestOutput("");
+    hclang.value.reset();
+    output.value = "";
   };
 
   return (
     <div>
-      <Executor onSubmit={handleSubmit} latestOutput={latestOutput} />
-      <Historian history={history} />
+      <Executor onSubmit={handleSubmit} latestOutput={output.value} />
+      <Historian hclang={hclang.value} />
       <Reset onReset={handleReset} />
     </div>
   );
