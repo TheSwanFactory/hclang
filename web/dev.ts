@@ -1,4 +1,4 @@
-#!/usr/bin/env -S deno run -A --watch=static/,routes/
+#!/usr/bin/env -S deno run -A --unstable-kv --watch=static/,routes/
 
 import dev from "https://deno.land/x/fresh@1.7.3/dev.ts";
 import config from "./fresh.config.ts";
