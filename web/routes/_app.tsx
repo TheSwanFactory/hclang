@@ -36,10 +36,24 @@ export default function App({ Component }: PageProps) {
         <main>
           <Component />
         </main>
-        <footer style={{ color: "gray", fontSize: "0.8em" }}>
-          <p>&copy; 2025 The Swan Factory</p>
-        </footer>
-      </body>
+        <div className="footer-links">
+            <h4>Links</h4>
+            <ul>
+                <li>
+                    <a href="./hclang.html">Standalone Single-File Version</a>
+                </li>
+                <li>
+                <a href="https://github/swanfactory/hclang">GitHub</a>
+                </li>
+                <li>
+                  <a href="https://jsr.io/@swanfactory/hclang">@swanfactory/hclang JSR module</a>
+                </li>
+              </ul>
+            </div>
+            <footer style={{ color: "gray", fontSize: "0.8em" }}>
+              <p>&copy; 2025 The Swan Factory</p>
+            </footer>
+          </body>
     </html>
   );
 }
