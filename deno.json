@@ -16,7 +16,7 @@
     "test:all": "deno task test:cli && deno task test:lib && deno task test:maml && deno task test:web"
   },
   "compilerOptions": {
-    "jsx": "react-jsx", 
+    "jsx": "react-jsx",
     "jsxImportSource": "preact",
     "lib": ["dom", "dom.iterable", "esnext", "deno.ns"],
     "types": ["preact"]
