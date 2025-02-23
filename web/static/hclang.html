@@ -54,7 +54,7 @@
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
-                                ${repl.getHistory().map(({ input, output }) => html`
+                                ${repl.getHistory().reverse().map(({ input, output }) => html`
                                     <tr>
                                         <td class="px-6 py-4 whitespace-pre-wrap">${input}</td>
                                         <td class="px-6 py-4 whitespace-pre-wrap">${output}</td>
