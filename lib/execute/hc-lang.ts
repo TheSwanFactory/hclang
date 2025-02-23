@@ -95,7 +95,7 @@ export class HCLang {
    * of the execution environment.
    */
   reset() {
-    this.context = {}; // Reset execution state
+    this.context = make_context({}); // Reset execution state
     this.history = []; // Clear history
   }
 }
