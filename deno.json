@@ -1,5 +1,5 @@
 {
-  "version": "0.7.2",
+  "version": "0.7.3",
   "bin": {
     "hc": "scripts/hc"
   },
@@ -18,8 +18,15 @@
   "compilerOptions": {
     "jsx": "react-jsx",
     "jsxImportSource": "preact",
-    "lib": ["dom", "dom.iterable", "esnext", "deno.ns"],
-    "types": ["preact"]
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext",
+      "deno.ns"
+    ],
+    "types": [
+      "preact"
+    ]
   },
   "fmt": {
     "exclude": [
