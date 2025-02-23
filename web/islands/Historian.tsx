@@ -12,7 +12,7 @@ interface HistorianProps {
 /**
  * Displays the execution history from an HCLang instance.
  * Shows a table of input-output pairs from previous executions.
- * 
+ *
  * @param {HistorianProps} props - Component properties
  * @param {HCLang} props.hclang - The HCLang instance to display history from
  * @returns {JSX.Element} A table showing the execution history
