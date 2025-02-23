@@ -45,6 +45,9 @@
         "explicit-module-boundary-types",
         "require-await",
         "no-explicit-any"
+      ],
+      "exclude": [
+        "private-type-ref"
       ]
     }
   },
