@@ -1,32 +1,58 @@
-interface HistoryItem {
+import { HCLang } from "@swanfactory/hclang";
+
+/**
+ * Props for the Historian component
+ * @interface HistorianProps
+ * @property {HCLang} hclang - The HCLang instance to display history from
+ */
+interface HistorianProps {
+  hclang: HCLang;
+}
+
+/**
+ * Type definition for table row data
+ */
+type RowData = {
   input: string;
   output: string;
-}
+  key: number;
+};
 
-interface HistorianProps {
-  history: HistoryItem[];
-}
-
-export default function Historian({ history }: HistorianProps) {
+/**
+ * Displays the execution history from an HCLang instance.
+ * Shows a table of input-output pairs from previous executions.
+ *
+ * @param {HistorianProps} props - Component properties
+ * @param {HCLang} props.hclang - The HCLang instance to display history from
+ * @returns {JSX.Element} A table showing the execution history
+ */
+export default function Historian({ hclang }: HistorianProps) {
+  const history = hclang.getHistory();
   return (
-    <div>
-      <h2>History</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Input</th>
-            <th>Output</th>
-          </tr>
-        </thead>
-        <tbody>
-          {history.map(({ input, output }) => (
+    <div class="mt-12">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6">History</h2>
+      <div class="overflow-x-auto shadow-sm rounded-lg border border-gray-200">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
             <tr>
-              <td>{input}</td>
-              <td>{output}</td>
+              <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                Input
+              </th>
+              <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                Output
+              </th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            {history.reverse().map(({ input, output }, i) => (
+              <tr key={i}>
+                <td class="px-6 py-4 whitespace-pre-wrap">{input}</td>
+                <td class="px-6 py-4 whitespace-pre-wrap">{output}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

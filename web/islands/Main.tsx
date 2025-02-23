@@ -1,44 +1,33 @@
-import { useState } from "preact/hooks";
+import { useSignal } from "@preact/signals";
 import Executor from "./Executor.tsx";
 import Historian from "./Historian.tsx";
 import Reset from "./Reset.tsx";
-// import { execute } from "./mod.ts";
-import { execute } from "@swanfactory/hclang";
-interface HistoryItem {
-  input: string;
-  output: string;
-}
+import { HCLang } from "@swanfactory/hclang";
 
+/**
+ * Main component that orchestrates the HCLang REPL interface.
+ * Manages the HCLang instance and output state using signals.
+ * Coordinates between Executor, Historian, and Reset components.
+ *
+ * @returns {JSX.Element} The rendered REPL interface
+ */
 export default function Main() {
-  const [history, setHistory] = useState<HistoryItem[]>([]);
-  const [latestOutput, setLatestOutput] = useState("");
+  const hclang = useSignal(new HCLang());
+  const output = useSignal("");
 
   const handleSubmit = async (input: string) => {
-    try {
-      const output = await execute(input);
-      const result = String(output);
-      setLatestOutput(result);
-      setHistory((prev: HistoryItem[]) => [{ input, output: result }, ...prev]);
-    } catch (error: unknown) {
-      const errorMsg = `Error: ${
-        error instanceof Error ? error.message : String(error)
-      }`;
-      setLatestOutput(errorMsg);
-      setHistory((
-        prev: HistoryItem[],
-      ) => [{ input, output: errorMsg }, ...prev]);
-    }
+    output.value = await hclang.value.call(input);
   };
 
   const handleReset = () => {
-    setHistory([]);
-    setLatestOutput("");
+    hclang.value.reset();
+    output.value = "";
   };
 
   return (
     <div>
-      <Executor onSubmit={handleSubmit} latestOutput={latestOutput} />
-      <Historian history={history} />
+      <Executor onSubmit={handleSubmit} latestOutput={output.value} />
+      <Historian hclang={hclang.value} />
       <Reset onReset={handleReset} />
     </div>
   );
