@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>hcweb REPL</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <script type="module">
         import { h, render } from 'https://esm.sh/preact@10.25.4';
         import { useState } from 'https://esm.sh/preact@10.25.4/hooks';
@@ -15,15 +15,15 @@
 
         function Executor({ repl, input, setInput, setOutput }) {
             return html`
-                <div class="space-y-4">
+                <div class="space-y-4 w-full">
                     <textarea
-                        class="w-full h-32 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        class="w-full h-40 p-4 font-mono text-sm border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                         placeholder="Enter code..."
                         value=${input}
                         onInput=${(e) => setInput(e.target.value)}
                     ></textarea>
                     <button 
-                        class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        class="w-full sm:w-auto px-6 py-3 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
                         type="button" 
                         onClick=${async () => {
                             if (!input.trim()) return;
@@ -34,7 +34,7 @@
                     >
                         Submit
                     </button>
-                    <pre class="p-4 bg-gray-100 rounded-md overflow-x-auto">
+                    <pre class="w-full p-4 bg-gray-50 border border-gray-200 rounded-lg font-mono text-sm overflow-x-auto shadow-sm">
                         ${repl.getHistory().length > 0 ? repl.getHistory()[0].output : "Output will appear here"}
                     </pre>
                 </div>
@@ -43,14 +43,14 @@
 
         function Historian({ repl }) {
             return html`
-                <div class="mt-8">
-                    <h2 class="text-xl font-bold mb-4">History</h2>
-                    <div class="overflow-x-auto">
+                <div class="mt-12">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">History</h2>
+                    <div class="overflow-x-auto shadow-sm rounded-lg border border-gray-200">
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                                 <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Input</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Output</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Input</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Output</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
@@ -72,12 +72,12 @@
             const [output, setOutput] = useState('');
 
             return html`
-                <div class="max-w-4xl mx-auto p-6">
-                    <h1 class="text-3xl font-bold mb-8">hcweb REPL</h1>
+                <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                    <h1 class="text-4xl font-extrabold text-gray-900 tracking-tight mb-12">hcweb REPL</h1>
                     <${Executor} repl=${repl} input=${input} setInput=${setInput} setOutput=${setOutput} />
                     <${Historian} repl=${repl} />
                     <button 
-                        class="mt-8 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
+                        class="mt-8 px-6 py-3 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200"
                         type="button" 
                         onClick=${repl.reset.bind(repl)}
                     >
@@ -90,7 +90,7 @@
         render(html`<${HcWebRepl} repl=${new HCLang()} />`, document.getElementById('app'));
     </script>
 </head>
-<body class="bg-gray-50">
+<body class="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
     <div id="app"></div>
 </body>
 </html>
