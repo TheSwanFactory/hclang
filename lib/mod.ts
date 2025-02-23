@@ -14,5 +14,5 @@ export {
   type StringMap,
 } from "./frames.ts";
 
-import * as web from "../web/islands/index.ts";
-export { web };
+// import * as web from "../web/islands/index.ts";
+// export { web };
