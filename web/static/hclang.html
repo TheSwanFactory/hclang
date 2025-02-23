@@ -1,12 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>hcweb REPL</title>
-    <link rel="stylesheet" href="https://www.w3.org/StyleSheets/Core/Swiss.css">
-    <link rel="stylesheet" href="./styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.js"></script>
     <script type="module">
         import { h, render } from 'https://esm.sh/preact@10.25.4';
         import { useState } from 'https://esm.sh/preact@10.25.4/hooks';
@@ -17,45 +15,56 @@
 
         function Executor({ repl, input, setInput, setOutput }) {
             return html`
-        <div>
-          <textarea
-            placeholder="Enter code..."
-            value=${input}
-            onInput=${(e) => setInput(e.target.value)}
-          ></textarea>
-          <button type="button" onClick=${async () => {
-                    if (!input.trim()) return;
-                    const output = await repl.call(input);
-                    setOutput(output); // Show latest output below submit button
-                    setInput('');
-                }}>Submit</button>
-          <pre>${repl.getHistory().length > 0 ? repl.getHistory()[0].output : "Output will appear here"}</pre>
-        </div>
-      `;
+                <div class="space-y-4">
+                    <textarea
+                        class="w-full h-32 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Enter code..."
+                        value=${input}
+                        onInput=${(e) => setInput(e.target.value)}
+                    ></textarea>
+                    <button 
+                        class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        type="button" 
+                        onClick=${async () => {
+                            if (!input.trim()) return;
+                            const output = await repl.call(input);
+                            setOutput(output);
+                            setInput('');
+                        }}
+                    >
+                        Submit
+                    </button>
+                    <pre class="p-4 bg-gray-100 rounded-md overflow-x-auto">
+                        ${repl.getHistory().length > 0 ? repl.getHistory()[0].output : "Output will appear here"}
+                    </pre>
+                </div>
+            `;
         }
 
         function Historian({ repl }) {
             return html`
-        <div>
-          <h2>History</h2>
-          <table>
-            <thead>
-              <tr>
-                <th>Input</th>
-                <th>Output</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${repl.getHistory().map(({ input, output }) => html`
-                <tr>
-                  <td>${input}</td>
-                  <td>${output}</td>
-                </tr>
-              `)}
-            </tbody>
-          </table>
-        </div>
-      `;
+                <div class="mt-8">
+                    <h2 class="text-xl font-bold mb-4">History</h2>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Input</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Output</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                ${repl.getHistory().map(({ input, output }) => html`
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-pre-wrap">${input}</td>
+                                        <td class="px-6 py-4 whitespace-pre-wrap">${output}</td>
+                                    </tr>
+                                `)}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
         }
 
         function HcWebRepl({ repl }) {
@@ -63,21 +72,25 @@
             const [output, setOutput] = useState('');
 
             return html`
-        <div>
-          <h1>hcweb REPL</h1>
-          <${Executor} repl=${repl} input=${input} setInput=${setInput} setOutput=${setOutput} />
-          <${Historian} repl=${repl} />
-          <button type="button" style="background: red;" onClick=${repl.reset.bind(repl)}>Reset</button>
-        </div>
-      `;
+                <div class="max-w-4xl mx-auto p-6">
+                    <h1 class="text-3xl font-bold mb-8">hcweb REPL</h1>
+                    <${Executor} repl=${repl} input=${input} setInput=${setInput} setOutput=${setOutput} />
+                    <${Historian} repl=${repl} />
+                    <button 
+                        class="mt-8 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
+                        type="button" 
+                        onClick=${repl.reset.bind(repl)}
+                    >
+                        Reset
+                    </button>
+                </div>
+            `;
         }
 
         render(html`<${HcWebRepl} repl=${new HCLang()} />`, document.getElementById('app'));
     </script>
 </head>
-
-<body>
+<body class="bg-gray-50">
     <div id="app"></div>
 </body>
-
 </html>
