@@ -459,6 +459,7 @@
     "https://esm.sh/@babel/helper-validator-identifier@7.22.20/denonext/helper-validator-identifier.mjs": "f765fd69eb4fd81b839b76bf60f227caac4fe4d41b4c646cc08aa7b8d948fe17",
     "https://esm.sh/@jsr/swanfactory__hclang@0.7.1/denonext/swanfactory__hclang.mjs": "55049a7cd9d568a2d1f2bd55770b4ed26188a723738c3939d668c8c321d86ebd",
     "https://esm.sh/@jsr/swanfactory__hclang@0.7.2/denonext/swanfactory__hclang.mjs": "f8728a4b9a9f173a9f445346ee8fe6ed31aec8c0f944cb5c0373821470ad02d4",
+    "https://esm.sh/@twind/core@1.1.3": "9bcaf0c427f0a27f9203aa1ac0b5db3422c6b02b53906c603c8a7ded90662e76",
     "https://esm.sh/@twind/core@1.1.3/denonext/core.mjs": "39005f461379ef3ae69a2147083b793354a0867cc6fb926052c8af29ec84d20a",
     "https://esm.sh/@twind/core@1.1.3?target=denonext": "9bcaf0c427f0a27f9203aa1ac0b5db3422c6b02b53906c603c8a7ded90662e76",
     "https://esm.sh/@twind/preset-tailwind@1.1.4": "d8bb39cf3b464fa91fdbf6cbf546e1ea32aba539a90e697458377b1463a0251a",
