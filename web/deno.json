@@ -10,7 +10,9 @@
   },
   "compilerOptions": {
     "jsx": "react-jsx",
-    "jsxImportSource": "preact"
+    "jsxImportSource": "preact",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "types": ["preact"]
   },
   "imports": {
     "$fresh/": "https://deno.land/x/fresh@1.7.3/",
