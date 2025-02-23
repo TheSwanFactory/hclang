@@ -58,7 +58,7 @@ export default function App({ Component }: PageProps) {
             <h4 class="text-lg font-semibold text-gray-900 mb-4">Links</h4>
             <ul class="space-y-2">
               <li>
-                Single-File Version:
+                Single-File Version: &nbsp;
                 <a
                   href="./hclang.html"
                   class="text-indigo-600 hover:text-indigo-800"
@@ -67,7 +67,7 @@ export default function App({ Component }: PageProps) {
                 </a>
               </li>
               <li>
-                Github:
+                Github: &nbsp;
                 <a
                   href="https://github.com/swanfactory/hclang"
                   class="text-indigo-600 hover:text-indigo-800"
@@ -76,7 +76,7 @@ export default function App({ Component }: PageProps) {
                 </a>
               </li>
               <li>
-                JSR module:
+                JSR module: &nbsp;
                 <a
                   href="https://jsr.io/@swanfactory/hclang"
                   class="text-indigo-600 hover:text-indigo-800"
