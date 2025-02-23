@@ -1,4 +1,5 @@
 import { HCLang } from "@swanfactory/hclang";
+import { JSX } from "preact";
 
 /**
  * Props for the Historian component
@@ -8,6 +9,15 @@ import { HCLang } from "@swanfactory/hclang";
 interface HistorianProps {
   hclang: HCLang;
 }
+
+/**
+ * Type definition for table row data
+ */
+type RowData = {
+  input: string;
+  output: string;
+  key: number;
+};
 
 /**
  * Displays the execution history from an HCLang instance.
