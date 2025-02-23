@@ -18,21 +18,31 @@ export default function App({ Component }: PageProps) {
               Homoiconic C ("HC") is a universal data format for computation.
             </p>
             <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
-              <h4 class="text-lg font-semibold text-gray-900 mb-4">Documentation</h4>
+              <h4 class="text-lg font-semibold text-gray-900 mb-4">
+                Documentation
+              </h4>
               <ul class="space-y-2">
                 <li>
-                  <a href="./BitScheme.html" class="text-indigo-600 hover:text-indigo-800">
+                  <a
+                    href="./BitScheme.html"
+                    class="text-indigo-600 hover:text-indigo-800"
+                  >
                     Homoiconic C Tutorial (BitScheme)
                   </a>
                 </li>
                 <li>
-                  <a href="./hc-paper.html" class="text-indigo-600 hover:text-indigo-800">
+                  <a
+                    href="./hc-paper.html"
+                    class="text-indigo-600 hover:text-indigo-800"
+                  >
                     Homoiconic C White Paper
                   </a>
                 </li>
                 <li>
-                  <a href="https://ihack.us/2024/09/19/tsm-5-homoiconic-c-hc-syntax-cheat-sheet/" 
-                     class="text-indigo-600 hover:text-indigo-800">
+                  <a
+                    href="https://ihack.us/2024/09/19/tsm-5-homoiconic-c-hc-syntax-cheat-sheet/"
+                    class="text-indigo-600 hover:text-indigo-800"
+                  >
                     HC Cheat Sheet
                   </a>
                 </li>
@@ -48,20 +58,29 @@ export default function App({ Component }: PageProps) {
             <h4 class="text-lg font-semibold text-gray-900 mb-4">Links</h4>
             <ul class="space-y-2">
               <li>
-                Single-File Version: 
-                <a href="./hclang.html" class="text-indigo-600 hover:text-indigo-800">
+                Single-File Version:
+                <a
+                  href="./hclang.html"
+                  class="text-indigo-600 hover:text-indigo-800"
+                >
                   hclang.html
                 </a>
               </li>
               <li>
-                Github: 
-                <a href="https://github.com/swanfactory/hclang" class="text-indigo-600 hover:text-indigo-800">
+                Github:
+                <a
+                  href="https://github.com/swanfactory/hclang"
+                  class="text-indigo-600 hover:text-indigo-800"
+                >
                   swanfactory/hclang
                 </a>
               </li>
               <li>
-                JSR module: 
-                <a href="https://jsr.io/@swanfactory/hclang" class="text-indigo-600 hover:text-indigo-800">
+                JSR module:
+                <a
+                  href="https://jsr.io/@swanfactory/hclang"
+                  class="text-indigo-600 hover:text-indigo-800"
+                >
                   @swanfactory/hclang
                 </a>
               </li>
