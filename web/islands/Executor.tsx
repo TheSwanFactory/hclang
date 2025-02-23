@@ -6,7 +6,9 @@ interface ExecutorProps {
   latestOutput: string;
 }
 
-export default function Executor({ onSubmit, latestOutput }: ExecutorProps): JSX.Element {
+export default function Executor(
+  { onSubmit, latestOutput }: ExecutorProps,
+): JSX.Element {
   const [input, setInput] = useState("");
 
   const handleSubmit = async () => {
