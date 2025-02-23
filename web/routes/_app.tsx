@@ -1,6 +1,11 @@
 import { PageProps } from "$fresh/server.ts";
 
-export default function App({ Component }: PageProps) {
+/**
+ * Root application component that provides the HTML structure
+ * @param props - Component properties including the page component to render
+ * @returns The rendered application shell
+ */
+export default function App({ Component }: PageProps): JSX.Element {
   return (
     <html lang="en">
       <head>
