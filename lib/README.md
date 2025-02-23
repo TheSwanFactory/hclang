@@ -1,9 +1,22 @@
 # HCLANG: TypeScript Homoiconic C Interpreter
 
 This repository contains the first implementation of Homoiconic C (HC) as
-standalone library is designed to be used with Node, Deno, and web browsers.
+standalone library designed to be used with Node, Deno, and web browsers.
 
-- jsr:@swanfactory/hclang: [module](https://jsr.io/@swanfactory/hclang) and
+## Installation
+
+### Deno
+```bash
+deno add jsr:@swanfactory/hclang
+```
+
+### Node.js / npm
+```bash
+npx jsr add @swanfactory/hclang
+```
+
+### Links
+- JSR Package: [module](https://jsr.io/@swanfactory/hclang) and
   [documentation](https://jsr.io/@swanfactory/hclang/doc)
 - GitHub Repo: [swanfactory/hclang](https://github.com/TheSwanFactory/hclang)
 
@@ -21,7 +34,7 @@ Evaluates the given input string within the provided context and returns the
 result as a _FrameArray_.
 
 ```typescript
-import { evaluate } from "path/to/mod.ts";
+import { evaluate } from "@swanfactory/hclang";
 
 const input = "1 + 1";
 const result = evaluate(input);
@@ -34,7 +47,7 @@ Executes the given input string and returns the processed result as a string. It
 is a convenience method for `evaluate`.
 
 ```typescript
-import { execute } from "path/to/mod.ts";
+import { execute } from "@swanfactory/hclang";
 
 const input = "1 + 1";
 const result = execute(input);
@@ -51,7 +64,7 @@ the second argument to `evaluate`, in order to predefine variables.
 This can be passed as the second argument to `evaluate`,
 in order to predefine variables.
 
-    import { make_context } from "path/to/mod.ts";
+    import { make_context } from "@swanfactory/hclang";
     
     const env = { "x": "2" };
     const context = make_context(env);
