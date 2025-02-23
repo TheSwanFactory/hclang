@@ -46,9 +46,7 @@
         "require-await",
         "no-explicit-any"
       ],
-      "exclude": [
-        "private-type-ref"
-      ]
+      "exclude": []
     }
   },
   "imports": {

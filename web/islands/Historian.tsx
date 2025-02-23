@@ -1,4 +1,5 @@
 import { HCLang } from "@swanfactory/hclang";
+import { JSX } from "preact";
 
 /**
  * Props for the Historian component

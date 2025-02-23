@@ -8,13 +8,19 @@ export { default as Main } from "./islands/Main.tsx";
  * Component for executing HCLang commands
  * Provides input textarea and output display
  */
-export { default as Executor, type ExecutorProps } from "./islands/Executor.tsx";
+export {
+  default as Executor,
+  type ExecutorProps,
+} from "./islands/Executor.tsx";
 
 /**
  * Component for displaying HCLang execution history
  * Shows a table of previous input-output pairs
  */
-export { default as Historian, type HistorianProps } from "./islands/Historian.tsx";
+export {
+  default as Historian,
+  type HistorianProps,
+} from "./islands/Historian.tsx";
 
 /**
  * Reset button component for clearing HCLang state

@@ -3,6 +3,7 @@ import Executor from "./Executor.tsx";
 import Historian from "./Historian.tsx";
 import Reset from "./Reset.tsx";
 import { HCLang } from "@swanfactory/hclang";
+import { JSX } from "preact";
 
 /**
  * Main component that orchestrates the HCLang REPL interface.
