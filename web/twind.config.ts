@@ -1,12 +1,17 @@
-import { Options } from "$fresh/plugins/twind.ts";
+import { defineConfig } from "twind";
+// @ts-ignore: No types available
+import presetTailwind from "@twind/preset-tailwind";
 
 export default {
-  selfURL: import.meta.url,
-  theme: {
-    extend: {
-      fontFamily: {
-        mono: ["Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", "monospace"],
+  ...defineConfig({
+    presets: [presetTailwind()],
+    theme: {
+      extend: {
+        fontFamily: {
+          mono: ["Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", "monospace"],
+        },
       },
     },
-  },
-} as Options;
+  }),
+  selfURL: import.meta.url,
+};
