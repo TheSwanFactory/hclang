@@ -10,7 +10,7 @@ describe("runfile", () => {
   });
 
   it("is exported", () => {
-    expect(runfile).to.be.ok;
+    expect(runfile).toBeTruthy();
   });
 
   it("calls hc_eval.call for each line in the file", async () => {

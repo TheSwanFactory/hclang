@@ -22,7 +22,7 @@ describe("iterators", () => {
     const result = operator.call(block);
 
     it("lives in the global namespace", () => {
-      expect(operator).to.be.ok;
+      expect(operator).toBeTruthy();
       expect(operator).to.not.equal(frame.Frame.missing);
       expect(operator.is.missing).to.not.equal(true);
     });
@@ -33,8 +33,8 @@ describe("iterators", () => {
 
     it("calls block with each element", () => {
       const result_string = result.toString();
-      expect(result_string).to.include("Prefix: An Author");
-      expect(result_string).to.include("Prefix: A Title");
+      expect(result_string).toContain("Prefix: An Author");
+      expect(result_string).toContain("Prefix: A Title");
     });
 
     it("calls block with key as second parameter", () => {
@@ -45,8 +45,8 @@ describe("iterators", () => {
       ]);
       const expr_result = operator.call(expr);
       const expr_string = expr_result.toString();
-      expect(expr_string).to.include("author: An Author");
-      expect(expr_string).to.include("title: A Title");
+      expect(expr_string).toContain("author: An Author");
+      expect(expr_string).toContain("title: A Title");
     });
 
     it("is curried using a name", () => {
@@ -56,7 +56,7 @@ describe("iterators", () => {
       ]);
       const curry_result = curry.call(base);
       const curry_string = curry_result.toString();
-      expect(curry_string).to.include("FrameCurry");
+      expect(curry_string).toContain("FrameCurry");
     });
 
     it("is called as a name with a lazy block", () => {
@@ -74,7 +74,7 @@ describe("iterators", () => {
       ]);
       const expr_result = expr.call(base);
       const expr_string = expr_result.toString();
-      expect(expr_string).to.include("[ key: author| value: An Author ]");
+      expect(expr_string).toContain("[ key: author| value: An Author ]");
     });
   });
 });

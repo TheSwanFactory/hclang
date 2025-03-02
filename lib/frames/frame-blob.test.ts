@@ -8,7 +8,7 @@ describe("FrameBlob", () => {
   const frame_blob = new FrameBlob(source);
 
   it("is exported", () => {
-    expect(FrameBlob).to.be.ok;
+    expect(FrameBlob).toBeTruthy();
   });
 
   it("finds base from string", () => {

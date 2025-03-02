@@ -32,12 +32,12 @@ describe("FrameNote", () => {
 
     frame_note.call(extra1);
     let extra = frame_note.get(FrameNote.NOTE_EXTRAS);
-    expect(extra.toString()).to.include("x");
+    expect(extra.toString()).toContain("x");
 
     frame_note.call(extra2);
     extra = frame_note.get(FrameNote.NOTE_EXTRAS);
-    expect(extra.toString()).to.include("x");
-    expect(extra.toString()).to.include("tra");
+    expect(extra.toString()).toContain("x");
+    expect(extra.toString()).toContain("tra");
   });
 
   it("is returned by unbound symbols", () => {
@@ -46,8 +46,8 @@ describe("FrameNote", () => {
     const result = symbol.in([context]);
     expect(result).toBeInstanceOf(FrameNote);
     const resultString = result.toString();
-    expect(resultString).to.include(key);
-    expect(resultString).to.include(context.id);
+    expect(resultString).toContain(key);
+    expect(resultString).toContain(context.id);
   });
 
   it("sends to kOUT on kEND", () => {

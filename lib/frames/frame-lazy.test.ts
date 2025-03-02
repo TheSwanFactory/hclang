@@ -22,7 +22,7 @@ describe("FrameLazy", () => {
 
   it("stringifies to {expr, meta}", () => {
     const result = lazy.toString();
-    expect(result).to.include("{speed gap _, ");
+    expect(result).toContain("{speed gap _, ");
   });
 
   it("evalutes to an Expr with merged context", () => {
@@ -55,7 +55,7 @@ describe("FrameLazy", () => {
       const codified = codify.call(array);
 
       expect(codified).toBeInstanceOf(frame.FrameExpr);
-      expect(codified.toString()).to.include(
+      expect(codified.toString()).toContain(
         "(speed gap _, .speed “fast”; .gap “ ”;)",
       );
       expect(codified.call(turtle).toString()).toEqual("“fast turtle”");

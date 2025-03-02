@@ -7,7 +7,7 @@ import * as frame from "../frames.ts";
 
 describe("evaluate", () => {
   it("is exported", () => {
-    expect(evaluate).to.be.ok;
+    expect(evaluate).toBeTruthy();
   });
 
   it("returns empty array for empty string", () => {

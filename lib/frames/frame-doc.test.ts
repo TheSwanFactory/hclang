@@ -8,7 +8,7 @@ describe("FrameDoc", () => {
   const frame_doc = new FrameDoc(source);
 
   it("is exported", () => {
-    expect(FrameDoc).to.be.ok;
+    expect(FrameDoc).toBeTruthy();
   });
 
   it("is created from a string", () => {

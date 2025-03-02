@@ -18,11 +18,11 @@ describe("EvalPipe", () => {
   });
 
   it("is exported", () => {
-    expect(EvalPipe).to.be.ok;
+    expect(EvalPipe).toBeTruthy();
   });
 
   it("is constructed from an out parameter", () => {
-    expect(pipe).to.be.ok;
+    expect(pipe).toBeTruthy();
   });
 
   it("evaluates arguments", () => {

@@ -4,7 +4,7 @@ import { getOptions, main } from "./hc.ts";
 
 describe("getOptions", () => {
   it("is exported", () => {
-    expect(getOptions).to.be.ok;
+    expect(getOptions).toBeTruthy();
   });
 
   it("defaults to false", () => {
@@ -58,6 +58,6 @@ describe("getOptions", () => {
 
 describe("main", () => {
   it("is exported", () => {
-    expect(main).to.be.ok;
+    expect(main).toBeTruthy();
   });
 });

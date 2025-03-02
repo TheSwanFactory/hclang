@@ -34,7 +34,7 @@ describe("maml", () => {
   });
 
   it("wraps arg contents in a body tag", () => {
-    expect(result_string).to.include(`<body>${body_text}</body>`);
+    expect(result_string).toContain(`<body>${body_text}</body>`);
   });
 
   it("wraps arg metas in a head tag", () => {
@@ -42,7 +42,7 @@ describe("maml", () => {
   });
 
   it("wraps title meta in title tag", () => {
-    expect(result_string).to.include(`<title>${title_text}</title>`);
+    expect(result_string).toContain(`<title>${title_text}</title>`);
   });
 
   it("wraps all metas in their keyed tag", () => {

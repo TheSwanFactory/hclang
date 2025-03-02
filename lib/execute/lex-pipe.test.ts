@@ -19,11 +19,11 @@ describe("LexPipe", () => {
   });
 
   it("is exported", () => {
-    expect(LexPipe).to.be.ok;
+    expect(LexPipe).toBeTruthy();
   });
 
   it("is constructed from an out parameter", () => {
-    expect(pipe).to.be.ok;
+    expect(pipe).toBeTruthy();
   });
 
   it("returns itself on finish", () => {

@@ -8,7 +8,7 @@ describe("FrameNumber", () => {
   const frame_number = new FrameNumber(source);
 
   it("is exported", () => {
-    expect(FrameNumber).to.be.ok;
+    expect(FrameNumber).toBeTruthy();
   });
 
   it("is created from a string", () => {

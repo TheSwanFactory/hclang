@@ -114,13 +114,13 @@ describe("execute", () => {
     it("accepts them as symbols", () => {
       const input = ".&";
       const result = execute(input);
-      expect(result.toString()).to.include("&");
+      expect(result.toString()).toContain("&");
     });
 
     it("curries", () => {
       const input = "[`a`].&";
       const result = execute(input);
-      expect(result).to.include("FrameCurry");
+      expect(result).toContain("FrameCurry");
     });
   });
 

@@ -8,7 +8,7 @@ describe("FrameComment", () => {
   const frame_comment = new FrameComment(source);
 
   it("is exported", () => {
-    expect(FrameComment).to.be.ok;
+    expect(FrameComment).toBeTruthy();
   });
 
   it("is created from a string", () => {

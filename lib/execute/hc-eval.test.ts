@@ -14,8 +14,8 @@ describe("HCEval", () => {
   });
 
   it("is exported", () => {
-    expect(HCEval).to.be.ok;
-    expect(hc_eval).to.be.ok;
+    expect(HCEval).toBeTruthy();
+    expect(hc_eval).toBeTruthy();
   });
 
   it("calls out with result when called with a string", () => {
@@ -73,7 +73,7 @@ describe("make_context", () => {
     const entries = { key: "value" };
     const context = make_context(entries);
     // check type
-    expect(context).to.be.ok;
+    expect(context).toBeTruthy();
     expect(context).toBeInstanceOf(Object);
     expect(context).to.have.property("key");
     expect(context.key).toBeInstanceOf(frame.FrameString);
@@ -82,7 +82,7 @@ describe("make_context", () => {
   it("return a context with FrameNumber for numeric values", () => {
     const entries = { "key": "2" };
     const context = make_context(entries);
-    expect(context).to.be.ok;
+    expect(context).toBeTruthy();
     expect(context).to.have.property("key");
     expect(context.key).toBeInstanceOf(frame.FrameNumber);
     expect(context.key.toString()).toEqual("2");

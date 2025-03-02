@@ -18,13 +18,13 @@ describe("FrameArray", () => {
 
   it("uses 'at' to access elements by index", () => {
     const first_element = frame_array.at(0);
-    expect(first_element).to.be.ok;
+    expect(first_element).toBeTruthy();
     expect(first_element).toEqual(a_frame);
   });
 
   it("uses -1 to access last element", () => {
     const last_element = frame_array.at(-1);
-    expect(last_element).to.be.ok;
+    expect(last_element).toBeTruthy();
     expect(last_element).toEqual(b_frame);
   });
 
@@ -58,6 +58,6 @@ describe("FrameArray", () => {
     expect(result).toBeInstanceOf(FrameArray);
     expect(result.at(0)).toEqual(Frame.nil);
     expect(result.at(1)).toEqual(string);
-    expect(expr_result.toString()).to.include("prefix--suffix");
+    expect(expr_result.toString()).toContain("prefix--suffix");
   });
 });

@@ -18,11 +18,11 @@ describe("Parse", () => {
 
   describe("Token", () => {
     it("is exported", () => {
-      expect(Token).to.be.ok;
+      expect(Token).toBeTruthy();
     });
 
     it("is constructed from a Frame", () => {
-      expect(token).to.be.ok;
+      expect(token).toBeTruthy();
     });
 
     it("calls callee with content when called", () => {
@@ -34,11 +34,11 @@ describe("Parse", () => {
 
   describe("ParsePipe", () => {
     it("is exported", () => {
-      expect(ParsePipe).to.be.ok;
+      expect(ParsePipe).toBeTruthy();
     });
 
     it("is constructed from an out parameter", () => {
-      expect(pipe).to.be.ok;
+      expect(pipe).toBeTruthy();
     });
 
     it("emits empty Group on end", () => {

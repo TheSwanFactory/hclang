@@ -30,7 +30,7 @@ describe("MAML Tag", () => {
     expect(result).toBeInstanceOf(FrameString);
 
     const result_string = result.toString();
-    expect(result_string).to.include(text);
+    expect(result_string).toContain(text);
     expect(result_string).toEqual(`“<p>${text}</p>”`);
   });
 
@@ -56,7 +56,7 @@ describe("MAML Tag", () => {
     const evaluated_string = evaluated.toString();
 
     expect(evaluated).toBeInstanceOf(FrameString);
-    expect(evaluated_string).to.include(contents);
+    expect(evaluated_string).toContain(contents);
     expect(evaluated_string).to.match(/<body>([\s\S]*)<\/body>/);
   });
 });

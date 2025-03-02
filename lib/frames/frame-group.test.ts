@@ -26,7 +26,7 @@ describe("FrameGroup", () => {
 
   it("includes meta in result", () => {
     const result = value.get("c");
-    expect(result).to.be.ok;
+    expect(result).toBeTruthy();
     expect(result).toEqual(c_frame);
   });
 });
