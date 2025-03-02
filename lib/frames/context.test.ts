@@ -25,7 +25,7 @@ describe("context", () => {
     const context: Context = { nil: Frame.nil, all: Frame.all };
     const result = contextString(context);
     it("returns a string", () => {
-      expect(result).toBeInstanceOf(String);
+      expect(typeof result).toBe("string");
     });
     it("returns a string of meta_pairs", () => {
       expect(result).toEqual(".nil (); .all <>;");
