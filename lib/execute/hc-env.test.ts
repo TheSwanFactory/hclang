@@ -1,4 +1,4 @@
-import { expect } from "npm:chai";
+import { expect } from "jsr:@std/expect";
 import * as frame from "../frames.ts";
 import { HCEval, make_context } from "./hc-eval.ts";
 

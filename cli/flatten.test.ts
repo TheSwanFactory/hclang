@@ -1,4 +1,4 @@
-import { expect } from "npm:chai";
+import { expect } from "jsr:@std/expect";
 import { describe, it } from "jsr:@std/testing/bdd";
 import { Frame, make_context } from "../lib/mod.ts";
 import { Flatten } from "./flatten.ts";
