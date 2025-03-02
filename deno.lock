@@ -489,11 +489,15 @@
     "https://esm.sh/twind@0.16.19/sheets": "92a397a7f283e14aeec25da0eb1559a8489b78d5b2b14c83be157680c67ad0bb"
   },
   "workspace": {
+    "dependencies": [
+      "jsr:@std/expect@~0.219.1"
+    ],
     "members": {
       "cli": {
         "dependencies": [
           "jsr:@nothing628/chalk@^1.0.1",
-          "jsr:@std/cli@^1.0.13"
+          "jsr:@std/cli@^1.0.13",
+          "jsr:@std/expect@~0.219.1"
         ]
       }
     }

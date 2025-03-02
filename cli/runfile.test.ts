@@ -37,7 +37,7 @@ describe("runfile", () => {
       callCount++;
     };
     await runfile(hc_eval, emptyFile);
-    expect(callCount).to.equal(0);
+    expect(callCount).toEqual(0);
     await Deno.remove(emptyFile);
   });
 
@@ -50,7 +50,7 @@ describe("runfile", () => {
       callCount++;
     };
     await runfile(hc_eval, singleLineFile);
-    expect(callCount).to.equal(1);
+    expect(callCount).toEqual(1);
     await Deno.remove(singleLineFile);
   });
   it("handles files with multiple lines", async () => {
@@ -62,7 +62,7 @@ describe("runfile", () => {
       callCount++;
     };
     await runfile(hc_eval, multiLineFile);
-    expect(callCount).to.equal(2);
+    expect(callCount).toEqual(2);
     await Deno.remove(multiLineFile);
   });
   it("handles files with a trailing newline", async () => {
@@ -74,7 +74,7 @@ describe("runfile", () => {
       callCount++;
     };
     await runfile(hc_eval, trailingNewlineFile);
-    expect(callCount).to.equal(1);
+    expect(callCount).toEqual(1);
     await Deno.remove(trailingNewlineFile);
   });
 });

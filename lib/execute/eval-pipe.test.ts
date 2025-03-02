@@ -27,26 +27,26 @@ describe("EvalPipe", () => {
 
   it("evaluates arguments", () => {
     const result = pipe.call(expr);
-    expect(result.toString()).to.equal("“AB”");
+    expect(result.toString()).toEqual("“AB”");
   });
 
   it("evaluates symbols in context", () => {
     const symbol = new frame.FrameSymbol("key");
     const result = pipe.call(symbol);
-    expect(result.toString()).to.equal(value.toString());
+    expect(result.toString()).toEqual(value.toString());
   });
 
   it("evaluates symbols in expressions", () => {
     const symbol = new frame.FrameSymbol("key");
     const wrap = new frame.FrameExpr([symbol]);
     const result = pipe.call(wrap);
-    expect(result.toString()).to.equal(value.toString());
+    expect(result.toString()).toEqual(value.toString());
   });
 
   it("stores result in out", () => {
-    expect(out.size()).to.equal(0);
+    expect(out.size()).toEqual(0);
     const result = pipe.call(expr);
-    expect(out.size()).to.equal(1);
-    expect(out.at(0)).to.equal(result);
+    expect(out.size()).toEqual(1);
+    expect(out.at(0)).toEqual(result);
   });
 });

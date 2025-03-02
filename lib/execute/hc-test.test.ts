@@ -38,13 +38,13 @@ describe("HCTest", () => {
 
   it("outputs Note+ when called with correct testDoc", () => {
     hc_eval.call(".abc 123;");
-    expect(out.length()).to.equal(0);
+    expect(out.length()).toEqual(0);
 
     hc_eval.call("; abc");
-    expect(out.length()).to.equal(0);
+    expect(out.length()).toEqual(0);
 
     hc_eval.call("# 123");
-    expect(out.length()).to.equal(1);
+    expect(out.length()).toEqual(1);
 
     const result = out.at(0);
     expect(result.toString()).to.include("$+.test-pass ““abc” ?“123””;");
@@ -54,7 +54,7 @@ describe("HCTest", () => {
     hc_eval.call(".abc 456;");
     hc_eval.call("; abc");
     hc_eval.call("# 123");
-    expect(out.length()).to.equal(1);
+    expect(out.length()).toEqual(1);
     const result = out.at(0);
     expect(result.toString()).to.include("$-.test-fail ““abc” ?“123” !“456””;");
   });
@@ -63,6 +63,6 @@ describe("HCTest", () => {
     hc_eval.call("`");
     hc_eval.call("# Header");
     hc_eval.call("`");
-    expect(out.length()).to.equal(0);
+    expect(out.length()).toEqual(0);
   });
 });

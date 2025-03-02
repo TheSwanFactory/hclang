@@ -15,17 +15,17 @@ describe("maml", () => {
   const result_string = result.toString();
 
   it("is a FrameExpr", () => {
-    expect(maml).to.be.instanceOf(FrameExpr);
+    expect(maml).toBeInstanceOf(FrameExpr);
   });
 
   it("when called, returns a FrameString", () => {
-    expect(result).to.be.instanceOf(FrameString);
+    expect(result).toBeInstanceOf(FrameString);
   });
 
   it("has a tag property", () => {
     const tag = maml.get("tag");
 
-    expect(tag).to.be.instanceOf(FrameExpr);
+    expect(tag).toBeInstanceOf(FrameExpr);
     expect(result_string).to.not.include(".missing");
   });
 

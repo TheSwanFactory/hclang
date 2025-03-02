@@ -19,7 +19,7 @@ describe("FrameExpr", () => {
 
   it("stringifies with parentheses", () => {
     const frame_expr = new FrameExpr([frame, frame_string], { context });
-    expect(frame_expr.toString()).to.equal(
+    expect(frame_expr.toString()).toEqual(
       `(() “${js_string}”, .context (“context”, .key “Hello”;);)`,
     );
   });
@@ -27,7 +27,7 @@ describe("FrameExpr", () => {
   it("replaces nil when evaluated", () => {
     const frame_expr = new FrameExpr([frame, frame_string], { context });
     const result = frame_expr.in([frame]);
-    expect(result).to.equal(frame_string);
+    expect(result).toEqual(frame_string);
   });
 
   it("concatenates string expressions when called", () => {
@@ -36,14 +36,14 @@ describe("FrameExpr", () => {
     const frame_expr = new FrameExpr([frame_string, frame_string_2]);
     const result = frame_expr.in([frame]);
 
-    expect(result.toString()).to.equal(`“${js_string}${js_string_2}”`);
+    expect(result.toString()).toEqual(`“${js_string}${js_string_2}”`);
   });
 
   it("returns context for FrameArg.here", () => {
     const frame_expr = new FrameExpr([FrameArg.here()]);
     const result = frame_expr.in([context]);
 
-    expect(result).to.equal(context);
+    expect(result).toEqual(context);
   });
 
   it("applies FrameName to FrameArray to extract elements that index", () => {
@@ -54,7 +54,7 @@ describe("FrameExpr", () => {
     const frame_expr = new FrameExpr([frame_array, frame_name]);
     const result = frame_expr.in([frame]);
 
-    expect(result).to.equal(frame_string_2);
+    expect(result).toEqual(frame_string_2);
   });
 
   it("evaluates in context when called", () => {
@@ -64,7 +64,7 @@ describe("FrameExpr", () => {
     ]);
     const result = frame_expr.call(context);
 
-    expect(result).to.equal(frame_string);
+    expect(result).toEqual(frame_string);
   });
 
   describe("with Properties, when called", () => {
@@ -79,20 +79,20 @@ describe("FrameExpr", () => {
     it("evaluates properties in its local context", () => {
       const frame_expr = new FrameExpr([s_speed], { speed: slow, gap: space });
 
-      expect(frame_expr.call(Frame.nil).toString()).to.equal("“slow”");
+      expect(frame_expr.call(Frame.nil).toString()).toEqual("“slow”");
     });
 
     it("evaluates a sequence of properties", () => {
       const frame_expr = new FrameExpr(expr_array, { speed: slow, gap: space });
 
-      expect(frame_expr.call(turtle).toString()).to.equal("“slow turtle”");
+      expect(frame_expr.call(turtle).toString()).toEqual("“slow turtle”");
     });
 
     it("evaluates recursively", () => {
       const sub_expr = new FrameExpr(expr_array);
       const frame_expr = new FrameExpr([sub_expr], { speed: slow, gap: space });
 
-      expect(frame_expr.call(turtle).toString()).to.equal("“slow turtle”");
+      expect(frame_expr.call(turtle).toString()).toEqual("“slow turtle”");
     });
   });
 });

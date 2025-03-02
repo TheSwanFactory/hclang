@@ -14,7 +14,7 @@ describe("iterators", () => {
   it("treat frame.Frames as iteratee blocks", () => {
     const arg = new frame.FrameString("argument");
     const result = block.call(arg);
-    expect(result.toString()).to.equal("“Prefix: argument”");
+    expect(result.toString()).toEqual("“Prefix: argument”");
   });
 
   describe("&& iterate over metas", () => {
@@ -28,7 +28,7 @@ describe("iterators", () => {
     });
 
     it("returns frame.FrameArray when called", () => {
-      expect(result).to.be.instanceOf(frame.FrameArray);
+      expect(result).toBeInstanceOf(frame.FrameArray);
     });
 
     it("calls block with each element", () => {

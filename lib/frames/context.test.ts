@@ -28,7 +28,7 @@ describe("context", () => {
       expect(result).to.be.a("string");
     });
     it("returns a string of meta_pairs", () => {
-      expect(result).to.equal(".nil (); .all <>;");
+      expect(result).toEqual(".nil (); .all <>;");
     });
   });
 });

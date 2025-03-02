@@ -22,11 +22,11 @@ describe("FrameBytes", () => {
   const bytes = new FrameBytes(hello_world);
 
   it("is created from a number array", () => {
-    expect(bytes).to.be.instanceOf(FrameBytes);
+    expect(bytes).toBeInstanceOf(FrameBytes);
   });
 
   it("stringifies as a bytestring", () => {
     const n = js_string.length;
-    expect(bytes.toString()).to.equal(`\\${n}\\${js_string}`);
+    expect(bytes.toString()).toEqual(`\\${n}\\${js_string}`);
   });
 });

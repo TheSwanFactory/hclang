@@ -12,21 +12,21 @@ describe("FrameGroup", () => {
   const value = frame_group.in();
 
   it("is constructed from an array of frames", () => {
-    expect(frame_group).to.be.instanceOf(frame.FrameGroup);
+    expect(frame_group).toBeInstanceOf(frame.FrameGroup);
   });
 
   it("with multiple arguments, evaluates to FrameGroup", () => {
     const result = multi_group.in();
-    expect(result).to.be.instanceOf(frame.FrameGroup);
+    expect(result).toBeInstanceOf(frame.FrameGroup);
   });
 
   it("with single argument, evaluates that", () => {
-    expect(value).to.be.instanceOf(frame.FrameString);
+    expect(value).toBeInstanceOf(frame.FrameString);
   });
 
   it("includes meta in result", () => {
     const result = value.get("c");
     expect(result).to.be.ok;
-    expect(result).to.equal(c_frame);
+    expect(result).toEqual(c_frame);
   });
 });

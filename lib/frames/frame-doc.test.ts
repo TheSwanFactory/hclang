@@ -12,10 +12,10 @@ describe("FrameDoc", () => {
   });
 
   it("is created from a string", () => {
-    expect(frame_doc).to.be.instanceOf(FrameDoc);
+    expect(frame_doc).toBeInstanceOf(FrameDoc);
   });
 
   it('stringifies with "`"', () => {
-    expect(frame_doc.toString()).to.equal(`\`${source}\``);
+    expect(frame_doc.toString()).toEqual(`\`${source}\``);
   });
 });

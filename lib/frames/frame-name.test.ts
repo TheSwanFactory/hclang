@@ -14,17 +14,17 @@ describe("FrameName", () => {
   const frame_name = new FrameName(symbol);
 
   it("is created from a string", () => {
-    expect(frame_name).to.be.instanceOf(FrameName);
+    expect(frame_name).toBeInstanceOf(FrameName);
   });
 
   it("stringifies with a dot prefix", () => {
-    expect(frame_name.toString()).to.equal(`.${symbol}`);
+    expect(frame_name.toString()).toEqual(`.${symbol}`);
   });
 
   it("evaluates to a setter", () => {
     const frame_symbol = FrameSymbol.for(symbol);
     const result = frame_name.in();
-    expect(result.toString()).to.equal(frame_symbol.toString());
+    expect(result.toString()).toEqual(frame_symbol.toString());
   });
 
   it("extracts properties in an expression", () => {
@@ -33,6 +33,6 @@ describe("FrameName", () => {
     const frame_expr = new FrameExpr([FrameArg.here(), frame_name]);
     const result = frame_expr.in([context]);
 
-    expect(result).to.equal(value);
+    expect(result).toEqual(value);
   });
 });

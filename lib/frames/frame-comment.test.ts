@@ -12,10 +12,10 @@ describe("FrameComment", () => {
   });
 
   it("is created from a string", () => {
-    expect(frame_comment).to.be.instanceOf(FrameComment);
+    expect(frame_comment).toBeInstanceOf(FrameComment);
   });
 
   it("stringifies with `#`", () => {
-    expect(frame_comment.toString()).to.equal(`#${source}#`);
+    expect(frame_comment.toString()).toEqual(`#${source}#`);
   });
 });

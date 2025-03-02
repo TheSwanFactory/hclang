@@ -17,7 +17,7 @@ describe("FrameLazy", () => {
   const context = new frame.FrameString("context", { gap: space });
 
   it("takes an Array<Frame>", () => {
-    expect(lazy).to.be.instanceof(frame.FrameLazy);
+    expect(lazy).toBeInstanceOf(frame.FrameLazy);
   });
 
   it("stringifies to {expr, meta}", () => {
@@ -28,11 +28,11 @@ describe("FrameLazy", () => {
   it("evalutes to an Expr with merged context", () => {
     const expr = lazy.in([context]);
 
-    expect(expr).to.be.instanceof(frame.FrameExpr);
-    expect(expr.toString()).to.equal("(speed gap _, .speed “slow”; .gap “ ”;)");
-    expect(expr.get("speed")).to.equal(slow);
-    expect(expr.get("gap")).to.equal(space);
-    expect(expr.call(turtle).toString()).to.equal("“slow turtle”");
+    expect(expr).toBeInstanceOf(frame.FrameExpr);
+    expect(expr.toString()).toEqual("(speed gap _, .speed “slow”; .gap “ ”;)");
+    expect(expr.get("speed")).toEqual(slow);
+    expect(expr.get("gap")).toEqual(space);
+    expect(expr.call(turtle).toString()).toEqual("“slow turtle”");
   });
 
   describe("Codify", () => {
@@ -40,11 +40,11 @@ describe("FrameLazy", () => {
     const fast = new frame.FrameString("fast");
 
     it("is created with an empty Array", () => {
-      expect(codify.toString()).to.equal("{}");
+      expect(codify.toString()).toEqual("{}");
     });
 
     it("returns itself when Frame is nil", () => {
-      expect(codify.in([context])).to.equal(codify);
+      expect(codify.in([context])).toEqual(codify);
     });
 
     it("converts Array to unevaluated Expr when called", () => {
@@ -54,18 +54,18 @@ describe("FrameLazy", () => {
       });
       const codified = codify.call(array);
 
-      expect(codified).to.be.instanceof(frame.FrameExpr);
+      expect(codified).toBeInstanceOf(frame.FrameExpr);
       expect(codified.toString()).to.include(
         "(speed gap _, .speed “fast”; .gap “ ”;)",
       );
-      expect(codified.call(turtle).toString()).to.equal("“fast turtle”");
+      expect(codified.call(turtle).toString()).toEqual("“fast turtle”");
     });
 
     it("treats other Frames as Arrays when called", () => {
       const wrap = codify.call(turtle);
 
-      expect(wrap).to.be.instanceof(frame.FrameExpr);
-      expect(wrap.call(frame.Frame.nil).toString()).to.equal("“turtle”");
+      expect(wrap).toBeInstanceOf(frame.FrameExpr);
+      expect(wrap.call(frame.Frame.nil).toString()).toEqual("“turtle”");
     });
   });
 });

@@ -10,21 +10,21 @@ describe("getOptions", () => {
   it("defaults to false", () => {
     const args: string[] = [];
     const options = getOptions(args);
-    expect(options.help).to.equal(false);
-    expect(options.interactive).to.equal(false);
-    expect(options.testdoc).to.equal(false);
-    expect(options.verbose).to.equal(false);
-    expect(options.version).to.equal(false);
+    expect(options.help).toEqual(false);
+    expect(options.interactive).toEqual(false);
+    expect(options.testdoc).toEqual(false);
+    expect(options.verbose).toEqual(false);
+    expect(options.version).toEqual(false);
   });
 
   it("parses short boolean correctly", () => {
     const args = ["-h", "-i", "-t", "-v", "-V"];
     const options = getOptions(args);
-    expect(options.help).to.equal(true);
-    expect(options.interactive).to.equal(true);
-    expect(options.testdoc).to.equal(true);
-    expect(options.verbose).to.equal(true);
-    expect(options.version).to.equal(true);
+    expect(options.help).toEqual(true);
+    expect(options.interactive).toEqual(true);
+    expect(options.testdoc).toEqual(true);
+    expect(options.verbose).toEqual(true);
+    expect(options.version).toEqual(true);
   });
 
   it("parses boolean correctly", () => {
@@ -36,17 +36,17 @@ describe("getOptions", () => {
       "--version",
     ];
     const options = getOptions(args);
-    expect(options.help).to.equal(true);
-    expect(options.interactive).to.equal(true);
-    expect(options.testdoc).to.equal(true);
-    expect(options.verbose).to.equal(true);
-    expect(options.version).to.equal(true);
+    expect(options.help).toEqual(true);
+    expect(options.interactive).toEqual(true);
+    expect(options.testdoc).toEqual(true);
+    expect(options.verbose).toEqual(true);
+    expect(options.version).toEqual(true);
   });
 
   it("parses string correctly", () => {
     const args = ["--evaluate", "1+1"];
     const options = getOptions(args);
-    expect(options.evaluate).to.equal("1+1");
+    expect(options.evaluate).toEqual("1+1");
   });
 
   it("parses multiple files", () => {

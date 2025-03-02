@@ -13,11 +13,11 @@ describe("FrameAlias", () => {
   child.up = parent;
 
   it("is created from a string", () => {
-    expect(frame_alias).to.be.instanceOf(FrameAlias);
+    expect(frame_alias).toBeInstanceOf(FrameAlias);
   });
 
   it("stringifies with @ prefix", () => {
-    expect(frame_alias.toString()).to.equal(`@${key}`);
+    expect(frame_alias.toString()).toEqual(`@${key}`);
   });
 
   it("evaluates to a setter for ancestor", () => {
@@ -25,7 +25,7 @@ describe("FrameAlias", () => {
     const result = frame_alias.in([child]);
     expect(result.toString()).to.include(frame_key.toString());
     const out = result.get(FrameAlias.kOUT);
-    expect(out).to.equal(parent);
+    expect(out).toEqual(parent);
   });
 
   it("sets properties in ancestor", () => {
