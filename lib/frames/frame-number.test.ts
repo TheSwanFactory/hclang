@@ -19,17 +19,17 @@ describe("FrameNumber", () => {
     expect(frame_number.toString()).toEqual(source);
   });
 
-  it("returns a range", () => {
+it("returns a range", () => {
     const range = new FrameNumber("3").range();
     expect(range).toBeInstanceOf(Array);
-    expect(range).to.have.lengthOf(3);
-    expect(range).to.deep.equal([0, 1, 2]);
-  });
+    expect(range).toHaveLength(3);
+    expect(range).toEqual([0, 1, 2]);
+});
 
-  it("is equal to the same number", () => {
+it("is equal to the same number", () => {
     const same = new FrameNumber(source);
     expect(frame_number.equals(same)).toEqual(Frame.all);
     expect(frame_number == same).toBe(false);
-    expect(frame_number).to.not.equal(same);
-  });
+    expect(frame_number).not.toEqual(same);
+});
 });

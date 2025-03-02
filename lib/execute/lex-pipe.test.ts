@@ -31,20 +31,20 @@ describe("LexPipe", () => {
     expect(result).toEqual(pipe);
   });
 
-  it("changes output on push", () => {
-    const out = pipe.get(frame.Frame.kOUT);
-    const result = pipe.perform({ push: frame.FrameExpr });
-    const out2 = pipe.get(frame.Frame.kOUT);
-    expect(out2).to.not.equal(out);
-    expect(result).toEqual(pipe);
-    expect(pipe.level).toEqual(1);
-  });
+    it("changes output on push", () => {
+        const out = pipe.get(frame.Frame.kOUT);
+        const result = pipe.perform({ push: frame.FrameExpr });
+        const out2 = pipe.get(frame.Frame.kOUT);
+        expect(out2).not.toEqual(out);
+        expect(result).toEqual(pipe);
+        expect(pipe.level).toEqual(1);
+    });
 
-  it("changes output on bind", () => {
-    const out = pipe.get(frame.Frame.kOUT);
-    const result = pipe.perform({ bind: frame.FrameBind });
-    const out2 = pipe.get(frame.Frame.kOUT);
-    expect(out2).to.not.equal(out);
-    expect(result).toEqual(pipe);
-  });
+    it("changes output on bind", () => {
+        const out = pipe.get(frame.Frame.kOUT);
+        const result = pipe.perform({ bind: frame.FrameBind });
+        const out2 = pipe.get(frame.Frame.kOUT);
+        expect(out2).not.toEqual(out);
+        expect(result).toEqual(pipe);
+    });
 });

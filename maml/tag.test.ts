@@ -57,6 +57,6 @@ describe("MAML Tag", () => {
 
     expect(evaluated).toBeInstanceOf(FrameString);
     expect(evaluated_string).toContain(contents);
-    expect(evaluated_string).to.match(/<body>([\s\S]*)<\/body>/);
+    expect(evaluated_string).toMatch(/<body>([\s\S]*)<\/body>/);
   });
 });

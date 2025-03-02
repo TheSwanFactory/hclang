@@ -75,7 +75,7 @@ describe("make_context", () => {
     // check type
     expect(context).toBeTruthy();
     expect(context).toBeInstanceOf(Object);
-    expect(context).to.have.property("key");
+    expect("key" in context).toBe(true);
     expect(context.key).toBeInstanceOf(frame.FrameString);
     expect(context.key.toString()).toEqual("“value”");
   });
@@ -83,7 +83,7 @@ describe("make_context", () => {
     const entries = { "key": "2" };
     const context = make_context(entries);
     expect(context).toBeTruthy();
-    expect(context).to.have.property("key");
+    expect("key" in context).toBe(true);
     expect(context.key).toBeInstanceOf(frame.FrameNumber);
     expect(context.key.toString()).toEqual("2");
   });

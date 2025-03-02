@@ -32,8 +32,7 @@ describe("evaluate", () => {
     const input = "<>";
     const result = evaluate(input);
     const first = result.at(0);
-    expect(first).to.not.be.null;
-    // expect(first).toEqual(frame.Frame.all);
+    expect(first).toEqual(frame.Frame.all);
   });
 
   describe("strings", () => {
