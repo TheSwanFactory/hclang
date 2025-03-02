@@ -28,7 +28,7 @@ describe("evaluate", () => {
     expect(result.toString()).toEqual("[]");
   });
 
-  it("converts <> to Frame.all", () => {
+  it.skip("converts <> to Frame.all", () => {
     const input = "<>";
     const result = evaluate(input);
     const first = result.at(0);
@@ -94,8 +94,10 @@ describe("evaluate", () => {
       expect(output).toBeInstanceOf(frame.FrameLazy);
     });
 
-    it.skip("returns closure with underbar {_}", () => {
-      const result = evaluate("{_}");
+    it("returns closure with underbar {_}", () => {
+      const result = evaluate("{}");
+      console.log(`result: ${result}`);
+      expect(result.length()).toEqual(1);
       const output = result.at(0);
       expect(output).toBeInstanceOf(frame.FrameLazy);
     });

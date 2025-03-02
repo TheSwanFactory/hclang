@@ -104,8 +104,8 @@ export class LexPipe extends Frame implements IFinish, IPerformer {
    * @method checkLazy - Sets the Frame.is.lazy property for FrameLazy or FrameSchema.
    * @param {IArrayConstructor} factory - The factory to check for laziness.
    */
-  public checkLazy(factory: IArrayConstructor): void {
-    this.is.lazy = factory === FrameLazy || factory === FrameSchema;
+  public checkLazy(factory: IArrayConstructor): boolean {
+    return this.is.lazy = factory === FrameLazy || factory === FrameSchema;
   }
 
   /**
@@ -153,7 +153,7 @@ export class LexPipe extends Frame implements IFinish, IPerformer {
           parser = parser.push(factory);
           this.set(Frame.kOUT, parser);
           this.level += 1;
-          this.checkLazy(factory);
+          parser.is.lazy = this.checkLazy(factory);
           break;
         }
         case "pop": { // pop the current factory from the parser
@@ -168,7 +168,7 @@ export class LexPipe extends Frame implements IFinish, IPerformer {
           parser = parser.pop(factory);
           this.set(Frame.kOUT, parser);
           this.level -= 1;
-          this.checkLazy(factory);
+          this.is.lazy = parser.is.lazy || false;
           break;
         }
       }
