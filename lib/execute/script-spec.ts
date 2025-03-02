@@ -1,4 +1,4 @@
-import { expect } from "npm:chai";
+import { expect } from "jsr:@std/expect";
 
 const hc_bin = "lib/cli/hc.ts";
 

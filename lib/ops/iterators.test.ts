@@ -1,4 +1,4 @@
-import { expect } from "npm:chai";
+import { expect } from "jsr:@std/expect";
 import { describe, it } from "jsr:@std/testing/bdd";
 
 import * as frame from "../frames.ts";
@@ -23,8 +23,8 @@ describe("iterators", () => {
 
     it("lives in the global namespace", () => {
       expect(operator).toBeTruthy();
-      expect(operator).to.not.equal(frame.Frame.missing);
-      expect(operator.is.missing).to.not.equal(true);
+      expect(operator).not.toEqual(frame.Frame.missing);
+      expect(operator.is.missing).not.toEqual(true);
     });
 
     it("returns frame.FrameArray when called", () => {

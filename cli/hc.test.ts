@@ -1,4 +1,4 @@
-import { expect } from "npm:chai";
+import { expect } from "jsr:@std/expect";
 import { describe, it } from "jsr:@std/testing/bdd";
 import { getOptions, main } from "./hc.ts";
 
@@ -52,7 +52,7 @@ describe("getOptions", () => {
   it("parses multiple files", () => {
     const args = ["file1", "file2"];
     const options = getOptions(args);
-    expect(options._).to.deep.equal(["file1", "file2"]);
+    expect(options._).toEqual(["file1", "file2"]);
   });
 });
 
