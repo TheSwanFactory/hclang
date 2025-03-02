@@ -1,12 +1,15 @@
 import * as frame from "../frames.ts";
 import { LexBytes } from "./lex-bytes.ts";
-import { type AtomFactory, Lex } from "./lex.ts";
+import {
+  type AtomFactory,
+  type BytesFactory,
+  Lex,
+  type UnionFactory,
+} from "./lex.ts";
 import { terminals } from "./terminals.ts";
 
-export type AtomFactoryUnion = AtomFactory | typeof frame.FrameBytes;
-
 export const _syntax: frame.Context = { ...terminals };
-export const atomClasses: Array<AtomFactoryUnion> = [
+export const atomClasses: Array<UnionFactory> = [
   frame.FrameAlias,
   frame.FrameArg,
   frame.FrameBlob,
@@ -35,9 +38,10 @@ export function getSyntax(): frame.Context {
     return _syntax;
   }
   has_syntax = true;
-  atomClasses.forEach((UnionKlass: AtomFactoryUnion) => {
+  atomClasses.forEach((UnionKlass: UnionFactory) => {
     if (UnionKlass === frame.FrameBytes) {
-      const sample: frame.FrameAtom = new frame.FrameBytes([]);
+      const Klass = UnionKlass as BytesFactory;
+      const sample: frame.FrameAtom = new Klass([]);
       const key = sample.string_start();
       const lexee = new LexBytes(0);
       _syntax[key] = lexee;

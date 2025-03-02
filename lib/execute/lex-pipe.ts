@@ -65,6 +65,10 @@ export class LexPipe extends Frame implements IFinish, IPerformer {
    * @method lex - Processes a FrameString input and reduces it.
    * @param {FrameString} source - The FrameString input to be lexed.
    * @returns {Frame} - The resulting Frame after lexical analysis.
+   *
+   * Each symbol is evaluated in the context of the syntax
+   * to determine which 'lexee' to use. The lexee then appends symbols
+   * until it completes, or 'action' is reached.
    */
   public lex(source: FrameString): Frame {
     return source.reduce(this);
@@ -95,7 +99,7 @@ export class LexPipe extends Frame implements IFinish, IPerformer {
   }
 
   /**
-   * // Perform an action on the LexPipe instance
+   * // Perform an action when a terminal is found during lexing
    * lexPipe.perform({ next: true });
    *
    * Action keys can be: "semi-next", "next", "end", "bind", "push", or "pop".
