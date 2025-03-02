@@ -6,6 +6,7 @@
   "tasks": {
     "build": "cd cli && deno task build",
     "bump": "deno run -A scripts/bump-version.ts && git add deno.json lib/version.ts */deno.json && git commit -m 'Bump version'",
+    "hc": "deno run -A cli/hc.ts",
     "publish": "cd lib && deno publish",
     "tag": "git tag v$(jq -r .version deno.json) && git push origin --tags",
     "test": "deno fmt && deno lint --fix && deno task test:all",

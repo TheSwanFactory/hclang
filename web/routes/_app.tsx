@@ -17,28 +17,55 @@ export default function App({ Component }: PageProps): JSX.Element {
       <body class="min-h-screen bg-gray-100 flex">
         {/* Sidebar */}
         <div class="w-64 bg-white shadow-md p-6 h-screen fixed">
-          <h4 class="text-lg font-semibold text-gray-900 mb-4">Documentation</h4>
+          <h4 class="text-lg font-semibold text-gray-900 mb-4">
+            Documentation
+          </h4>
           <ul class="space-y-2">
             <li>
-              <a href="./BitScheme.html" class="text-indigo-600 hover:text-indigo-800">
+              <a
+                href="./BitScheme.html"
+                class="text-indigo-600 hover:text-indigo-800"
+              >
                 Homoiconic C Tutorial
               </a>
             </li>
             <li>
-              <a href="./hc-paper.html" class="text-indigo-600 hover:text-indigo-800">
+              <a
+                href="./hc-paper.html"
+                class="text-indigo-600 hover:text-indigo-800"
+              >
                 Homoiconic C White Paper
               </a>
             </li>
             <li>
-              <a href="https://ihack.us/2024/09/19/tsm-5-homoiconic-c-hc-syntax-cheat-sheet/" class="text-indigo-600 hover:text-indigo-800">
+              <a
+                href="https://ihack.us/2024/09/19/tsm-5-homoiconic-c-hc-syntax-cheat-sheet/"
+                class="text-indigo-600 hover:text-indigo-800"
+              >
                 HC Cheat Sheet
               </a>
             </li>
           </ul>
           <h4 class="text-lg font-semibold text-gray-900 mt-6 mb-4">Links</h4>
           <ul class="space-y-2">
-            <li>GitHub: <a href="https://github.com/theswanfactory/hclang" class="text-indigo-600 hover:text-indigo-800">swanfactory/hclang</a></li>
-            <li>JSR module: <a href="https://jsr.io/@swanfactory/hclang" class="text-indigo-600 hover:text-indigo-800">@swanfactory/hclang</a></li>
+            <li>
+              GitHub:{" "}
+              <a
+                href="https://github.com/theswanfactory/hclang"
+                class="text-indigo-600 hover:text-indigo-800"
+              >
+                swanfactory/hclang
+              </a>
+            </li>
+            <li>
+              JSR module:{" "}
+              <a
+                href="https://jsr.io/@swanfactory/hclang"
+                class="text-indigo-600 hover:text-indigo-800"
+              >
+                @swanfactory/hclang
+              </a>
+            </li>
           </ul>
         </div>
 
