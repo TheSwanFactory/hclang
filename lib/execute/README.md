@@ -1,6 +1,7 @@
 # HCLang Execution Flow
 
-This document traces the execution flow in HCLang, from the high-level `execute` function through each component in the execution pipeline.
+This document traces the execution flow in HCLang, from the high-level `execute`
+function through each component in the execution pipeline.
 
 ## Execution Pipeline Overview
 
@@ -11,8 +12,10 @@ Input String → execute() → evaluate() → HCEval → LexPipe → ParsePipe �
 The execution process follows these main steps:
 
 1. **Input Processing**: The input string is received by `execute.ts`
-2. **Evaluation Setup**: The input is passed to `evaluate.ts` which sets up the evaluation environment
-3. **Lexical Analysis**: The input is tokenized by the lexer (`lex.ts`, `lex-pipe.ts`)
+2. **Evaluation Setup**: The input is passed to `evaluate.ts` which sets up the
+   evaluation environment
+3. **Lexical Analysis**: The input is tokenized by the lexer (`lex.ts`,
+   `lex-pipe.ts`)
 4. **Parsing**: Tokens are parsed into structured expressions (`parse-pipe.ts`)
 5. **Execution**: Expressions are evaluated (`eval-pipe.ts`)
 6. **Testing**: Optional test operations are performed (`hc-test.ts`)
@@ -33,9 +36,11 @@ export const execute = (input: string, meta = NilContext): string => {
 ```
 
 This function:
+
 - Takes an input string and optional context
 - Calls `evaluate` to process the input
-- Formats the result as a string (removing trailing commas and joining with newlines)
+- Formats the result as a string (removing trailing commas and joining with
+  newlines)
 
 ### 2. `evaluate.ts`
 
@@ -51,6 +56,7 @@ export const evaluate = (input: string, meta = NilContext): FrameArray => {
 ```
 
 This function:
+
 - Creates a new `FrameArray` to collect results
 - Instantiates an `HCEval` object with the output frame
 - Calls the `call` method on the `HCEval` instance with the input string
@@ -58,7 +64,8 @@ This function:
 
 ### 3. `hc-eval.ts`
 
-The `HCEval` class orchestrates the evaluation process by setting up the execution pipeline:
+The `HCEval` class orchestrates the evaluation process by setting up the
+execution pipeline:
 
 ```typescript
 public static make_pipe(out: Frame): LexPipe {
@@ -125,6 +132,7 @@ export class Lex extends Frame implements ISourced {
 ```
 
 The `Lex` class:
+
 - Processes input characters one by one
 - Determines when a token ends
 - Handles special cases like quotes and comments
@@ -140,7 +148,7 @@ export class LexPipe extends Frame implements IFinish, IPerformer {
   public lex(source: FrameString): Frame {
     return source.reduce(this);
   }
-  
+
   public perform(action: IAction): LexPipe {
     for (const [key, value] of Object.entries(action)) {
       const skip = key === "push";
@@ -154,7 +162,7 @@ export class LexPipe extends Frame implements IFinish, IPerformer {
           parser.next(false);
           break;
         }
-        // ... other actions
+          // ... other actions
       }
     }
     return this;
@@ -164,6 +172,7 @@ export class LexPipe extends Frame implements IFinish, IPerformer {
 ```
 
 The `LexPipe`:
+
 - Processes the input string character by character
 - Identifies tokens and passes them to the appropriate lexer
 - Manages the state of the lexical analysis
@@ -189,7 +198,7 @@ export class ParsePipe extends FrameArray implements IFinish {
     this.reset();
     return this;
   }
-  
+
   public finish(terminal: Frame): Frame {
     this.next();
     const out = this.get(Frame.kOUT);
@@ -209,6 +218,7 @@ export class ParsePipe extends FrameArray implements IFinish {
 ```
 
 The parser:
+
 - Collects tokens into expressions
 - Creates appropriate frame structures based on token types
 - Handles nested expressions
@@ -232,6 +242,7 @@ export class EvalPipe extends Frame {
 ```
 
 The evaluator:
+
 - Takes parsed expressions
 - Evaluates them according to the language semantics
 - Handles function application, variable lookup, etc.
@@ -262,6 +273,7 @@ export class HCTest extends Frame {
 ```
 
 The test framework:
+
 - Compares actual outputs with expected outputs
 - Tracks test statistics (total, passed, failed)
 - Provides assertion methods
@@ -291,7 +303,7 @@ export class FrameList extends Frame {
   constructor(protected data: Array<Frame>, meta: Context = NilContext) {
     super(meta);
   }
-  
+
   public toStringArray(): string[] {
     const result = this.toStringDataArray();
     if (this.meta_length() > 0) {
@@ -300,12 +312,13 @@ export class FrameList extends Frame {
     }
     return stripLastComma(result);
   }
-  
+
   // ...
 }
 ```
 
 The `FrameList` class:
+
 - Stores an array of Frame objects
 - Provides methods to convert the frames to strings
 - Handles metadata and formatting
