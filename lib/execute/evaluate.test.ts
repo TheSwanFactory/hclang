@@ -28,7 +28,7 @@ describe("evaluate", () => {
     expect(result.toString()).toEqual("[]");
   });
 
-  it.skip("converts <> to Frame.all", () => {
+  it("converts <> to Frame.all", () => {
     const input = "<>";
     const result = evaluate(input);
     const first = result.at(0);
