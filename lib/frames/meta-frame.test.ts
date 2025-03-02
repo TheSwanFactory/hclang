@@ -23,15 +23,15 @@ describe("MetaFrame", () => {
     expect(new_frame.toString()).toEqual("(.nil (); .symbol symbolic;)");
   });
 
-it("returns list of meta_keys", () => {
+  it("returns list of meta_keys", () => {
     const keys = frame.meta_keys();
     expect(keys).toEqual(["nil"]);
-});
+  });
 
-it("returns list of meta_pairs of type IKeyValuePair[]", () => {
+  it("returns list of meta_pairs of type IKeyValuePair[]", () => {
     const pairs: IKeyValuePair[] = frame.meta_pairs();
     expect(pairs).toEqual([["nil", Frame.nil]]);
-});
+  });
 
   it("stringifies meta_pairs as `.key value;`", () => {
     expect(frame.meta_string()).toEqual(".nil ();");
