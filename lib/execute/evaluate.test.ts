@@ -28,6 +28,14 @@ describe("evaluate", () => {
     expect(result.toString()).to.equal("[]");
   });
 
+  it("converts <> to Frame.all", () => {
+    const input = "<>";
+    const result = evaluate(input);
+    const first = result.at(0);
+    expect(first).to.not.be.null;
+    // expect(first).to.equal(frame.Frame.all);
+  });
+
   describe("strings", () => {
     it("quines string literal", () => {
       const input = "“Hello, HC!”";
@@ -193,6 +201,7 @@ describe("evaluate", () => {
       });
     });
   });
+
   describe("contexts", () => {
     it("evaluates in context", () => {
       const env = { "x": "2" };
