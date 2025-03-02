@@ -94,12 +94,13 @@ describe("evaluate", () => {
       expect(output).toBeInstanceOf(frame.FrameLazy);
     });
 
-    it("returns closure with underbar {_}", () => {
-      const result = evaluate("{}");
+    it.only("returns closure with underbar {_}", () => {
+      const result = evaluate("{_}");
       console.log(`result: ${result}`);
       expect(result.length()).toEqual(1);
       const output = result.at(0);
       expect(output).toBeInstanceOf(frame.FrameLazy);
+      expect(output.toString()).toEqual("{_}");
     });
 
     it("returns FrameNote for empty ()", () => {

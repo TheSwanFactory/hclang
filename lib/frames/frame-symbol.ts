@@ -2,7 +2,7 @@ import { Frame } from "./frame.ts";
 import { FrameAtom } from "./frame-atom.ts";
 import { FrameNote } from "./frame-note.ts";
 import { type Context, NilContext } from "./context.ts";
-import { FrameArg, FrameLazy } from "../frames.ts";
+import { FrameArg } from "../frames.ts";
 
 export class FrameSymbol extends FrameAtom {
   public static readonly SYMBOL_BEGIN = /[a-zA-Z]/;
@@ -56,13 +56,14 @@ export class FrameSymbol extends FrameAtom {
 
   public override called_by(context: Frame): Frame {
     if (this.isQuoted(context)) {
-      return FrameArg.here();
+      return FrameArg.here(); // FIXME: Does not return context
     }
     return this.in([context]);
   }
 
   private isQuoted(context: Frame): boolean {
-    return context.is.lazy && this.data != FrameLazy.LAZY_END;
+    return context.is.lazy &&
+      (Frame.isAlphabetic(this.data) || this.data == FrameArg.ARG_CHAR);
   }
 
   public override string_start(): string {
