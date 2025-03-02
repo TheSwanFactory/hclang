@@ -66,13 +66,13 @@ describe("Frame", () => {
   describe("equals", () => {
     it("returns true for identical frames", () => {
       const frame2 = new Frame({ nil: Frame.nil });
-      expect(frame.isEqualTo(frame2)).to.be.true;
+      expect(frame.isEqualTo(frame2)).toBe(true);
       expect(frame.equals(frame2)).toEqual(Frame.all);
     });
 
     it("returns false for different frames", () => {
       const frame2 = new Frame({ all: Frame.all });
-      expect(frame.isEqualTo(frame2)).to.be.false;
+      expect(frame.isEqualTo(frame2)).toBe(false);
       expect(frame.equals(frame2)).toEqual(Frame.nil);
     });
   });

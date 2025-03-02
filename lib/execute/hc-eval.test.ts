@@ -88,13 +88,13 @@ describe("make_context", () => {
     expect(context.key.toString()).toEqual("2");
   });
   it("correctly identifies isInteger", () => {
-    expect(frame.Frame.isInteger("1")).to.be.true;
-    expect(frame.Frame.isInteger("1234567890")).to.be.true;
-    expect(frame.Frame.isInteger("12345.6789")).to.be.false;
-    expect(frame.Frame.isInteger("123.456.789")).to.be.false;
-    expect(frame.Frame.isInteger("E")).to.be.false;
-    expect(frame.Frame.isInteger("$")).to.be.false;
-    expect(frame.Frame.isInteger(".")).to.be.false;
-    expect(frame.Frame.isInteger("Ⰰ")).to.be.false;
+    expect(frame.Frame.isInteger("1")).toBe(true);
+    expect(frame.Frame.isInteger("1234567890")).toBe(true);
+    expect(frame.Frame.isInteger("12345.6789")).toBe(false);
+    expect(frame.Frame.isInteger("123.456.789")).toBe(false);
+    expect(frame.Frame.isInteger("E")).toBe(false);
+    expect(frame.Frame.isInteger("$")).toBe(false);
+    expect(frame.Frame.isInteger(".")).toBe(false);
+    expect(frame.Frame.isInteger("Ⰰ")).toBe(false);
   });
 });

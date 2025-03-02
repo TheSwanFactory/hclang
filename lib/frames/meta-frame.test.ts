@@ -53,7 +53,7 @@ describe("MetaFrame", () => {
 
   it("gets Frame.missing if missing key", () => {
     const value = frame.get("missing");
-    expect(value.is.missing).to.be.true;
+    expect(value.is.missing).toBe(true);
   });
 
   it("get searches 'up' recursively if not get_here", () => {
@@ -67,9 +67,9 @@ describe("MetaFrame", () => {
     parent.up = grand;
 
     expect(grand.get_here(key)).toEqual(value);
-    expect(parent.get_here(key).is.missing).to.be.true;
+    expect(parent.get_here(key).is.missing).toBe(true);
     expect(parent.get(key)).toEqual(value);
-    expect(child.get_here(key).is.missing).to.be.true;
+    expect(child.get_here(key).is.missing).toBe(true);
     expect(child.get(key)).toEqual(value);
   });
 

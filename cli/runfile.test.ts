@@ -24,7 +24,7 @@ describe("runfile", () => {
 
     await runfile(hc_eval, file);
 
-    expect(callCount).to.be.greaterThan(0);
+    expect(callCount).toBeGreaterThan(0);
     await Deno.remove(file);
   });
 

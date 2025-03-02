@@ -29,11 +29,11 @@ describe("FrameBlob", () => {
   it("defaults to hexadecimal", () => {
     const empty_blob = new FrameBlob("");
     expect(empty_blob.toString()).toEqual("0x0");
-    expect(empty_blob.canInclude("F")).to.be.true;
+    expect(empty_blob.canInclude("F")).toBe(true);
   });
 
   it("can include anything in base64", () => {
-    expect(frame_blob.canInclude("F")).to.be.true;
+    expect(frame_blob.canInclude("F")).toBe(true);
   });
 
   it("remembers leading zeros", () => {

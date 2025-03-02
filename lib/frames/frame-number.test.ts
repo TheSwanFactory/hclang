@@ -29,7 +29,7 @@ describe("FrameNumber", () => {
   it("is equal to the same number", () => {
     const same = new FrameNumber(source);
     expect(frame_number.equals(same)).toEqual(Frame.all);
-    expect(frame_number == same).to.be.false;
+    expect(frame_number == same).toBe(false);
     expect(frame_number).to.not.equal(same);
   });
 });
