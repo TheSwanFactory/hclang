@@ -1,4 +1,4 @@
-import { expect } from "npm:chai";
+import { expect } from "jsr:@std/expect";
 import { describe, it } from "jsr:@std/testing/bdd";
 
 import { FrameBytes } from "../frames.ts";
@@ -22,11 +22,11 @@ describe("FrameBytes", () => {
   const bytes = new FrameBytes(hello_world);
 
   it("is created from a number array", () => {
-    expect(bytes).to.be.instanceOf(FrameBytes);
+    expect(bytes).toBeInstanceOf(FrameBytes);
   });
 
   it("stringifies as a bytestring", () => {
     const n = js_string.length;
-    expect(bytes.toString()).to.equal(`\\${n}\\${js_string}`);
+    expect(bytes.toString()).toEqual(`\\${n}\\${js_string}`);
   });
 });

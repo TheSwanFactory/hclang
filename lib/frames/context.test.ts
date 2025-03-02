@@ -1,4 +1,4 @@
-import { expect } from "npm:chai";
+import { expect } from "jsr:@std/expect";
 import { describe, it } from "jsr:@std/testing/bdd";
 
 import { type Context, contextEqual, contextString, Frame } from "../frames.ts";
@@ -9,26 +9,26 @@ describe("context", () => {
 
     it("returns true for identical contexts", () => {
       const same: Context = { key: Frame.nil };
-      expect(contextEqual(base, same)).to.be.true;
+      expect(contextEqual(base, same)).toBe(true);
     });
 
     it("returns false for different contexts", () => {
       const different: Context = { key: Frame.all };
       const other: Context = { other: Frame.nil };
       const more: Context = { key: Frame.nil, other: Frame.nil };
-      expect(contextEqual(base, different)).to.be.false;
-      expect(contextEqual(base, more)).to.be.false;
-      expect(contextEqual(base, other)).to.be.false;
+      expect(contextEqual(base, different)).toBe(false);
+      expect(contextEqual(base, more)).toBe(false);
+      expect(contextEqual(base, other)).toBe(false);
     });
   });
   describe("contextString", () => {
     const context: Context = { nil: Frame.nil, all: Frame.all };
     const result = contextString(context);
     it("returns a string", () => {
-      expect(result).to.be.a("string");
+      expect(typeof result).toBe("string");
     });
     it("returns a string of meta_pairs", () => {
-      expect(result).to.equal(".nil (); .all <>;");
+      expect(result).toEqual(".nil (); .all <>;");
     });
   });
 });

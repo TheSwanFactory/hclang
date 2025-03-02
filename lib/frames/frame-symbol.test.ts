@@ -1,4 +1,4 @@
-import { expect } from "npm:chai";
+import { expect } from "jsr:@std/expect";
 import { describe, it } from "jsr:@std/testing/bdd";
 
 import * as frame from "../frames.ts";
@@ -9,36 +9,36 @@ describe("FrameSymbol", () => {
   const frame_symbol = FrameSymbol.for(symbol);
 
   it("is created from a string", () => {
-    expect(frame_symbol).to.be.instanceOf(FrameSymbol);
+    expect(frame_symbol).toBeInstanceOf(FrameSymbol);
   });
 
   it("stringifies back to that string", () => {
-    expect(frame_symbol.toString()).to.equal(symbol);
+    expect(frame_symbol.toString()).toEqual(symbol);
   });
 
   it("stringifies meta into an expression", () => {
     const context = "context";
     const frame_context = new FrameSymbol(context, { atom: frame_symbol });
-    expect(frame_context.toString()).to.equal(`(${context}, .atom ${symbol};)`);
+    expect(frame_context.toString()).toEqual(`(${context}, .atom ${symbol};)`);
   });
 
   it("always returns the same FrameSymbol object", () => {
     const frame_symbol_2 = FrameSymbol.for(symbol);
-    expect(frame_symbol).to.equal(frame_symbol_2);
+    expect(frame_symbol).toEqual(frame_symbol_2);
   });
 
   it("looks itself up in context", () => {
     const value = new frame.FrameString("smasher");
     const context = new frame.FrameString("parent", { atom: value });
     const result = frame_symbol.in([context]);
-    expect(result).to.equal(value);
+    expect(result).toEqual(value);
   });
 
   it("returns the value when called_by", () => {
     const value = new frame.FrameString("smasher");
     const context = new frame.FrameString("parent", { atom: value });
     const result = context.call(frame_symbol);
-    expect(result).to.equal(value);
+    expect(result).toEqual(value);
   });
 
   it("evaluates value when callme = true", () => {
@@ -48,11 +48,11 @@ describe("FrameSymbol", () => {
     const context = new frame.FrameString("parent", { atom: expr });
 
     const result = context.call(frame_symbol);
-    expect(result.toString()).to.equal("(“Atom ” “Smasher”)");
+    expect(result.toString()).toEqual("(“Atom ” “Smasher”)");
 
     expr.is.immediate = true;
     const result2 = context.call(frame_symbol);
-    expect(result2.toString()).to.equal("“Atom Smasher”");
+    expect(result2.toString()).toEqual("“Atom Smasher”");
   });
 
   describe("setter", () => {
@@ -63,16 +63,16 @@ describe("FrameSymbol", () => {
     const result = setter.call(frame_value);
 
     it("has out parameter", () => {
-      expect(setter.get(frame.Frame.kOUT)).to.equal(out);
+      expect(setter.get(frame.Frame.kOUT)).toEqual(out);
     });
 
     it("returns setter", () => {
-      expect(result).to.equal(setter);
+      expect(result).toEqual(setter);
     });
 
     it("sets value in out", () => {
       const extracted = out.get(symbol);
-      expect(extracted).to.equal(frame_value);
+      expect(extracted).toEqual(frame_value);
     });
   });
 });

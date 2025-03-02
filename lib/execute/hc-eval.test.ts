@@ -1,4 +1,4 @@
-import { expect } from "npm:chai";
+import { expect } from "jsr:@std/expect";
 import { beforeEach, describe, it } from "jsr:@std/testing/bdd";
 
 import { HCEval, make_context } from "./hc-eval.ts";
@@ -14,28 +14,28 @@ describe("HCEval", () => {
   });
 
   it("is exported", () => {
-    expect(HCEval).to.be.ok;
-    expect(hc_eval).to.be.ok;
+    expect(HCEval).toBeTruthy();
+    expect(hc_eval).toBeTruthy();
   });
 
   it("calls out with result when called with a string", () => {
-    expect(out.length()).to.equal(0);
+    expect(out.length()).toEqual(0);
     hc_eval.call("123");
-    expect(out.length()).to.equal(1);
+    expect(out.length()).toEqual(1);
     const result = out.at(0);
-    expect(result.toString()).to.equal("123");
+    expect(result.toString()).toEqual("123");
   });
 
   it("parses multi-line docStrings", () => {
     hc_eval.call("`");
-    expect(out.length()).to.equal(0);
+    expect(out.length()).toEqual(0);
     hc_eval.call("*docString*");
-    expect(out.length()).to.equal(0);
+    expect(out.length()).toEqual(0);
     hc_eval.call("`");
-    expect(out.length()).to.equal(1);
+    expect(out.length()).toEqual(1);
 
     const result = out.at(0);
-    expect(result.toString()).to.equal("`\n*docString*\n`");
+    expect(result.toString()).toEqual("`\n*docString*\n`");
   });
 
   describe("symbols", () => {
@@ -46,24 +46,24 @@ describe("HCEval", () => {
 
     it("evaluates names to symbols", () => {
       hc_eval.call(`.${key}`);
-      expect(out.length()).to.equal(1);
+      expect(out.length()).toEqual(1);
       const output = out.at(0);
-      expect(output).to.be.instanceof(frame.FrameSymbol);
+      expect(output).toBeInstanceOf(frame.FrameSymbol);
     });
 
     it("set symbols in result", () => {
       hc_eval.call(setting);
       const extracted = out.get(key);
-      expect(extracted.toString()).to.equal(frame_value.toString());
+      expect(extracted.toString()).toEqual(frame_value.toString());
     });
 
     it("evaluates created symbols", () => {
       const input = `${setting};\n${key}`;
       hc_eval.call(input);
 
-      expect(out.length()).to.equal(2);
+      expect(out.length()).toEqual(2);
       const output = out.at(1);
-      expect(output.toString()).to.equal(frame_value.toString());
+      expect(output.toString()).toEqual(frame_value.toString());
     });
   });
 });
@@ -73,28 +73,28 @@ describe("make_context", () => {
     const entries = { key: "value" };
     const context = make_context(entries);
     // check type
-    expect(context).to.be.ok;
-    expect(context).to.be.instanceof(Object);
-    expect(context).to.have.property("key");
-    expect(context.key).to.be.instanceof(frame.FrameString);
-    expect(context.key.toString()).to.equal("“value”");
+    expect(context).toBeTruthy();
+    expect(context).toBeInstanceOf(Object);
+    expect("key" in context).toBe(true);
+    expect(context.key).toBeInstanceOf(frame.FrameString);
+    expect(context.key.toString()).toEqual("“value”");
   });
   it("return a context with FrameNumber for numeric values", () => {
     const entries = { "key": "2" };
     const context = make_context(entries);
-    expect(context).to.be.ok;
-    expect(context).to.have.property("key");
-    expect(context.key).to.be.instanceof(frame.FrameNumber);
-    expect(context.key.toString()).to.equal("2");
+    expect(context).toBeTruthy();
+    expect("key" in context).toBe(true);
+    expect(context.key).toBeInstanceOf(frame.FrameNumber);
+    expect(context.key.toString()).toEqual("2");
   });
   it("correctly identifies isInteger", () => {
-    expect(frame.Frame.isInteger("1")).to.be.true;
-    expect(frame.Frame.isInteger("1234567890")).to.be.true;
-    expect(frame.Frame.isInteger("12345.6789")).to.be.false;
-    expect(frame.Frame.isInteger("123.456.789")).to.be.false;
-    expect(frame.Frame.isInteger("E")).to.be.false;
-    expect(frame.Frame.isInteger("$")).to.be.false;
-    expect(frame.Frame.isInteger(".")).to.be.false;
-    expect(frame.Frame.isInteger("Ⰰ")).to.be.false;
+    expect(frame.Frame.isInteger("1")).toBe(true);
+    expect(frame.Frame.isInteger("1234567890")).toBe(true);
+    expect(frame.Frame.isInteger("12345.6789")).toBe(false);
+    expect(frame.Frame.isInteger("123.456.789")).toBe(false);
+    expect(frame.Frame.isInteger("E")).toBe(false);
+    expect(frame.Frame.isInteger("$")).toBe(false);
+    expect(frame.Frame.isInteger(".")).toBe(false);
+    expect(frame.Frame.isInteger("Ⰰ")).toBe(false);
   });
 });

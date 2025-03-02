@@ -1,8 +1,21 @@
 # CHANGELOG
 
-## v0.7.1 2025-03-01
+## v0.7.4 2025-03-01
 
-- Fix CLI installation
+- Top-level `deno task hc` and `test:doc` command
+- Properly returns Frame.all for '<>'
+
+## v0.7.3 2025-02-23
+
+- Reformat hcweb
+
+## v0.7.2 2025-02-22
+
+- Initial working hcweb
+
+## v0.7.1 2025-02-22
+
+- Automate Publishing
 
 ## v0.7.0 2025-02-17
 

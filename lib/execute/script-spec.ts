@@ -1,4 +1,4 @@
-import { expect } from "npm:chai";
+import { expect } from "jsr:@std/expect";
 
 const hc_bin = "lib/cli/hc.ts";
 
@@ -26,10 +26,10 @@ const script = async (args: string[]) => {
 
 Deno.test("123 + 654", async (t) => {
   const result = await script(["-e", t.name]);
-  expect(result[0]).to.equal("777");
+  expect(result[0]).toEqual("777");
 });
 
 Deno.test("“Hello, Quine!”", async (t) => {
   const result = await script(["-e", t.name]);
-  expect(result[0]).to.equal(t.name);
+  expect(result[0]).toEqual(t.name);
 });

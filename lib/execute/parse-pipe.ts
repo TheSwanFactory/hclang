@@ -4,6 +4,7 @@ import {
   FrameArray,
   FrameBind,
   FrameExpr,
+  FrameSchema,
   type IArrayConstructor,
 } from "../frames.ts";
 import { type IFinish, Terminal } from "./terminals.ts";
@@ -71,9 +72,12 @@ export class ParsePipe extends FrameArray implements IFinish {
   public finish(terminal: Frame): Frame {
     this.next();
     const out = this.get(Frame.kOUT);
-    const value = this.makeFrame();
+    let value = this.makeFrame();
     if (value instanceof FrameBind && value.isEmpty()) {
       return out;
+    }
+    if (value instanceof FrameSchema && value.isEmpty()) {
+      value = Frame.all;
     }
     const result = out.call(value);
     out.call(terminal);

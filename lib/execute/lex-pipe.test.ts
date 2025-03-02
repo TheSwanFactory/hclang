@@ -1,4 +1,4 @@
-import { expect } from "npm:chai";
+import { expect } from "jsr:@std/expect";
 import { beforeEach, describe, it } from "jsr:@std/testing/bdd";
 
 import { LexPipe } from "./lex-pipe.ts";
@@ -19,32 +19,32 @@ describe("LexPipe", () => {
   });
 
   it("is exported", () => {
-    expect(LexPipe).to.be.ok;
+    expect(LexPipe).toBeTruthy();
   });
 
   it("is constructed from an out parameter", () => {
-    expect(pipe).to.be.ok;
+    expect(pipe).toBeTruthy();
   });
 
   it("returns itself on finish", () => {
     const result = pipe.finish(frame.Frame.nil);
-    expect(result).to.equal(pipe);
+    expect(result).toEqual(pipe);
   });
 
   it("changes output on push", () => {
     const out = pipe.get(frame.Frame.kOUT);
     const result = pipe.perform({ push: frame.FrameExpr });
     const out2 = pipe.get(frame.Frame.kOUT);
-    expect(out2).to.not.equal(out);
-    expect(result).to.equal(pipe);
-    expect(pipe.level).to.equal(1);
+    expect(out2).not.toEqual(out);
+    expect(result).toEqual(pipe);
+    expect(pipe.level).toEqual(1);
   });
 
   it("changes output on bind", () => {
     const out = pipe.get(frame.Frame.kOUT);
     const result = pipe.perform({ bind: frame.FrameBind });
     const out2 = pipe.get(frame.Frame.kOUT);
-    expect(out2).to.not.equal(out);
-    expect(result).to.equal(pipe);
+    expect(out2).not.toEqual(out);
+    expect(result).toEqual(pipe);
   });
 });

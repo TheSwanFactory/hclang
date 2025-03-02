@@ -19,6 +19,7 @@
   },
   "imports": {
     "@nothing628/chalk": "jsr:@nothing628/chalk@^1.0.1",
-    "@std/cli": "jsr:@std/cli@^1.0.13"
+    "@std/cli": "jsr:@std/cli@^1.0.13",
+    "@std/expect": "jsr:@std/expect@^0.219.1"
   }
 }

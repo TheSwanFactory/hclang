@@ -1,4 +1,4 @@
-import { expect } from "npm:chai";
+import { expect } from "jsr:@std/expect";
 import { describe, it } from "jsr:@std/testing/bdd";
 
 import { FrameExpr, FrameString, FrameSymbol } from "../lib/frames.ts";
@@ -13,25 +13,25 @@ describe("MAML Tag", () => {
   const p_tag = tag.call(p);
 
   it("is a FrameExpr", () => {
-    expect(tag).to.be.instanceOf(FrameExpr);
+    expect(tag).toBeInstanceOf(FrameExpr);
   });
 
   it("stringifies to an expression", () => {
-    expect(tag.toString()).to.equal(stringify_tag);
+    expect(tag.toString()).toEqual(stringify_tag);
   });
 
   it("converts a string into an expr", () => {
-    expect(p_tag).to.be.instanceOf(FrameExpr);
-    expect(p_tag.toString()).to.equal("(“<p>” _ “</p>”)");
+    expect(p_tag).toBeInstanceOf(FrameExpr);
+    expect(p_tag.toString()).toEqual("(“<p>” _ “</p>”)");
   });
 
   it("then wraps tags around a string", () => {
     const result = p_tag.call(body);
-    expect(result).to.be.instanceOf(FrameString);
+    expect(result).toBeInstanceOf(FrameString);
 
     const result_string = result.toString();
-    expect(result_string).to.include(text);
-    expect(result_string).to.equal(`“<p>${text}</p>”`);
+    expect(result_string).toContain(text);
+    expect(result_string).toEqual(`“<p>${text}</p>”`);
   });
 
   it("can be bound to a name", () => {
@@ -41,7 +41,7 @@ describe("MAML Tag", () => {
     ]);
     const scope = new FrameString("scope", { tag });
     const evaluated = expr.in([scope]);
-    expect(evaluated.toString()).to.equal("(“<body>” _ “</body>”)");
+    expect(evaluated.toString()).toEqual("(“<body>” _ “</body>”)");
   });
 
   it("works in expressions", () => {
@@ -55,8 +55,8 @@ describe("MAML Tag", () => {
     const evaluated = expr.in([scope]);
     const evaluated_string = evaluated.toString();
 
-    expect(evaluated).to.be.instanceOf(FrameString);
-    expect(evaluated_string).to.include(contents);
-    expect(evaluated_string).to.match(/<body>([\s\S]*)<\/body>/);
+    expect(evaluated).toBeInstanceOf(FrameString);
+    expect(evaluated_string).toContain(contents);
+    expect(evaluated_string).toMatch(/<body>([\s\S]*)<\/body>/);
   });
 });
