@@ -2,7 +2,8 @@
 
 ## v0.7.1 2025-03-01
 
-- Fix CLI installation
+- Top-level `deno task hc` and `test:doc` command
+- Properly returns Frame.all for '<>'
 
 ## v0.7.0 2025-02-17
 
