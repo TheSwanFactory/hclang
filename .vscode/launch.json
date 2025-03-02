@@ -6,7 +6,7 @@
   "configurations": [
     {
       "request": "launch",
-      "name": "Run Deno Tests",
+      "name": "Run Current Deno Tests",
       "type": "node",
       //            "program": "${workspaceFolder}/cli/hc.ts",
       "cwd": "${workspaceFolder}",
@@ -14,9 +14,9 @@
       "runtimeExecutable": "/opt/homebrew/bin/deno",
       "runtimeArgs": [
         "test",
-        "--unstable",
         "--inspect-wait",
-        "--allow-all"
+        "--allow-all",
+        "${file}"
       ],
       "attachSimplePort": 9229
     }
