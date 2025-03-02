@@ -39,7 +39,7 @@ export class FrameAlias extends FrameAtom {
   }
 
   protected find(context: Frame, key: string): Frame {
-    while (context !== Frame.missing) {
+    while (context !== Frame.missing && context !== undefined) {
       const here = context.get_here(key);
       if (!here.is.missing) {
         return context;

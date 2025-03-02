@@ -6,14 +6,14 @@
   "configurations": [
     {
       "request": "launch",
-      "name": "Launch Program",
+      "name": "Run Deno Tests",
       "type": "node",
-      "program": "${workspaceFolder}/lib/cli/hc.ts",
+      //            "program": "${workspaceFolder}/cli/hc.ts",
       "cwd": "${workspaceFolder}",
       "env": {},
       "runtimeExecutable": "/opt/homebrew/bin/deno",
       "runtimeArgs": [
-        "run",
+        "test",
         "--unstable",
         "--inspect-wait",
         "--allow-all"

@@ -75,6 +75,10 @@ export class Frame extends MetaFrame {
     override toString(): string {
       return "<>";
     }
+
+    override call(): Frame {
+      return this;
+    }
   })();
 
   /**

@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.7.1 2025-03-01
+
+- Fix CLI installation
+
 ## v0.7.0 2025-02-17
 
 - Workspace (monorepo) support

@@ -1021,12 +1021,12 @@ the MIT Open Source license.
 
 ## Architecture
 
-The core runtime objects live in the `src/frames` directory, where they
+The core runtime objects live in the `lib/frames` directory, where they
 are implemented as TypeScript classes.  Generally speaking there is
 one class for each primitive and aggregate frame, plus abstract classes for
 the generic Frame, FrameAtom, and FrameList.
 
-The interpreter lives in the `src/execute` directory, and is also
+The interpreter lives in the `lib/execute` directory, and is also
 implemented using frames. Every frame knows how it is represented, and
 the lexer uses that information to dynamically generate a lookup table
 from a list of frame classes. Strings iterate as a list of symbols, so
@@ -1034,8 +1034,8 @@ the lexer generates tokens from the input string by evaluating
 evaluating a specialized program. Similarly, terminals act as controls
 grouping tokens into expressions and aggregates.
 
-Finally, operator bindings and currying are defined in `src/ops`, and a
-preliminary wrapping of HTML called MAML lives in the `src/maml` directory.
+Finally, operator bindings and currying are defined in `lib/ops`, and a
+preliminary wrapping of HTML called MAML lives in the `lib/maml` directory.
 
 ## Status
 

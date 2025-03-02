@@ -6,16 +6,19 @@ standalone library designed to be used with Node, Deno, and web browsers.
 ## Installation
 
 ### Deno
+
 ```bash
 deno add jsr:@swanfactory/hclang
 ```
 
 ### Node.js / npm
+
 ```bash
 npx jsr add @swanfactory/hclang
 ```
 
 ### Links
+
 - JSR Package: [module](https://jsr.io/@swanfactory/hclang) and
   [documentation](https://jsr.io/@swanfactory/hclang/doc)
 - GitHub Repo: [swanfactory/hclang](https://github.com/TheSwanFactory/hclang)
