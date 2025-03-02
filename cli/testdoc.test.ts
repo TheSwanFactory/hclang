@@ -1,69 +1,80 @@
-import { assertEquals } from "https://deno.land/std@0.216.0/assert/mod.ts";
+import { expect } from "npm:chai";
+import { describe, it } from "jsr:@std/testing/bdd";
 import { HCEval } from "../lib/execute/hc-eval.ts";
-import { HCTest } from "../lib/execute/hc-test.ts";
-import { Frame } from "../lib/frames/frame.ts";
 
-Deno.test("Schema with number", async () => {
-  const hc = new HCEval();
-  const result = await hc.evaluate("<> 1");
-  assertEquals(result.toString(), "<1>");
-});
+describe("testdoc", () => {
+  describe("schema operations", () => {
+    it("combines schema with number", async () => {
+      const hc = new HCEval();
+      const result = await hc.evaluate("<> 1");
+      expect(result.toString()).to.equal("<1>");
+    });
 
-Deno.test("Schema with expression", async () => {
-  const hc = new HCEval();
-  const result = await hc.evaluate("<> ()");
-  assertEquals(result.toString(), "<>");
-});
+    it("combines schema with expression", async () => {
+      const hc = new HCEval();
+      const result = await hc.evaluate("<> ()");
+      expect(result.toString()).to.equal("<>");
+    });
+  });
 
-Deno.test("Name with schema and number", async () => {
-  const hc = new HCEval();
-  const result = await hc.evaluate(".one <1> 1");
-  assertEquals(result.toString(), "one");
-});
+  describe("name operations", () => {
+    it("defines name with schema and number", async () => {
+      const hc = new HCEval();
+      const result = await hc.evaluate(".one <1> 1");
+      expect(result.toString()).to.equal("one");
+    });
 
-Deno.test("Alias with number", async () => {
-  const hc = new HCEval();
-  // First define one
-  await hc.evaluate(".one <1> 1");
-  const result = await hc.evaluate("@one 2");
-  // The expected output should contain a type error
-  const output = result.toString();
-  assertEquals(output.includes("type-error"), true);
-  assertEquals(output.includes("one"), true);
-});
+    it("handles alias with number and type error", async () => {
+      const hc = new HCEval();
+      // First define one
+      await hc.evaluate(".one <1> 1");
+      const result = await hc.evaluate("@one 2");
+      // The expected output should contain a type error
+      const output = result.toString();
+      expect(output).to.include("type-error");
+      expect(output).to.include("one");
+    });
+  });
 
-Deno.test("Enumerated type definition", async () => {
-  const hc = new HCEval();
-  await hc.evaluate("@enum123 <1,2,3>");
-  const result = await hc.evaluate("enum123");
-  assertEquals(result.toString(), "<1,2,3>");
-});
+  describe("enumerated types", () => {
+    it("defines enumerated type", async () => {
+      const hc = new HCEval();
+      await hc.evaluate("@enum123 <1,2,3>");
+      const result = await hc.evaluate("enum123");
+      expect(result.toString()).to.equal("<1,2,3>");
+    });
 
-Deno.test("Enumerated type validation", async () => {
-  const hc = new HCEval();
-  await hc.evaluate("@enum123 <1,2,3>");
-  const result = await hc.evaluate("@enum123 4");
-  // Should fail validation
-  const output = result.toString();
-  assertEquals(output.includes("enum123"), true);
-});
+    it("validates against enumerated type", async () => {
+      const hc = new HCEval();
+      await hc.evaluate("@enum123 <1,2,3>");
+      const result = await hc.evaluate("@enum123 4");
+      // Should fail validation
+      const output = result.toString();
+      expect(output).to.include("enum123");
+    });
+  });
 
-Deno.test("Conditional expression with true", async () => {
-  const hc = new HCEval();
-  await hc.evaluate(".true 1");
-  const result = await hc.evaluate("true .? `Yes` .: `No`");
-  assertEquals(result.toString(), "`Yes`");
-});
+  describe("conditional expressions", () => {
+    it("evaluates true condition", async () => {
+      const hc = new HCEval();
+      await hc.evaluate(".true 1");
+      const result = await hc.evaluate("true .? `Yes` .: `No`");
+      expect(result.toString()).to.equal("`Yes`");
+    });
 
-Deno.test("Conditional expression with false", async () => {
-  const hc = new HCEval();
-  await hc.evaluate(".false 0");
-  const result = await hc.evaluate("false .? `Yes` .: `No`");
-  assertEquals(result.toString(), "`No`");
-});
+    it("evaluates false condition", async () => {
+      const hc = new HCEval();
+      await hc.evaluate(".false 0");
+      const result = await hc.evaluate("false .? `Yes` .: `No`");
+      expect(result.toString()).to.equal("`No`");
+    });
+  });
 
-Deno.test("Selector with object", async () => {
-  const hc = new HCEval();
-  const result = await hc.evaluate("<.x, .z> [.x 1; .y 2; .z 3;]");
-  assertEquals(result.toString(), "[1, 3]");
+  describe("selectors", () => {
+    it("selects properties from object", async () => {
+      const hc = new HCEval();
+      const result = await hc.evaluate("<.x, .z> [.x 1; .y 2; .z 3;]");
+      expect(result.toString()).to.equal("[1, 3]");
+    });
+  });
 });
