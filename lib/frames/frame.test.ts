@@ -36,33 +36,32 @@ describe("Frame", () => {
     expect(frame.in()).to.equal(frame);
   });
 
-  
-describe("all", () => {
+  describe("all", () => {
     it("is a Frame", () => {
-        const all = Frame.all;
-        expect(all).to.be.instanceOf(Frame);
+      const all = Frame.all;
+      expect(all).to.be.instanceOf(Frame);
     });
 
     it("has a unique all for all Frames", () => {
-        const all = Frame.all;
-        expect(all).to.be.instanceOf(Frame);
-        expect(Frame.all).to.equal(all);
+      const all = Frame.all;
+      expect(all).to.be.instanceOf(Frame);
+      expect(Frame.all).to.equal(all);
     });
 
     it("returns self when called with all, nil, or any frame", () => {
-        expect(Frame.all.call(Frame.all)).to.equal(Frame.all);
-        expect(Frame.all.call(Frame.nil)).to.equal(Frame.all);
-        expect(Frame.all.call(frame)).to.equal(Frame.all);
+      expect(Frame.all.call(Frame.all)).to.equal(Frame.all);
+      expect(Frame.all.call(Frame.nil)).to.equal(Frame.all);
+      expect(Frame.all.call(frame)).to.equal(Frame.all);
     });
 
     it("stringifies to <>", () => {
-        expect(Frame.all.toString()).to.equal("<>");
+      expect(Frame.all.toString()).to.equal("<>");
     });
 
     it("always evaluates to itself", () => {
-        expect(Frame.all.in()).to.equal(Frame.all);
+      expect(Frame.all.in()).to.equal(Frame.all);
     });
-});
+  });
 
   describe("equals", () => {
     it("returns true for identical frames", () => {
