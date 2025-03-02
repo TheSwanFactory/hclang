@@ -2,6 +2,7 @@ import { Frame } from "./frame.ts";
 import { FrameAtom } from "./frame-atom.ts";
 import { FrameNote } from "./frame-note.ts";
 import { type Context, NilContext } from "./context.ts";
+import { FrameArg } from "../frames.ts";
 
 export class FrameSymbol extends FrameAtom {
   public static readonly SYMBOL_BEGIN = /[a-zA-Z]/;
@@ -54,6 +55,9 @@ export class FrameSymbol extends FrameAtom {
   }
 
   public override called_by(context: Frame): Frame {
+    if (context.is.lazy) {
+      return FrameArg.here();
+    }
     return this.in([context]);
   }
 
