@@ -2,13 +2,21 @@ import chalk from "jsr:@nothing628/chalk";
 import { type Context, Frame } from "../frames.ts";
 import { HCEval } from "./hc-eval.ts";
 
-export type Counts = { [key: string]: number };
-
+/**
+ * The `HCLog` class is used by the CLI for logging output to the console.
+ */
 export class HCLog extends Frame {
   constructor(context: Context, public prompt: boolean = false) {
     super(context);
   }
 
+  /**
+   * Applies the log operation to the given argument.
+   *
+   * @param {Frame} argument - The frame to log.
+   * @param {Frame} _parameter - The parameter to pass to the log operation.
+   * @returns {Frame} The argument frame
+   */
   public override apply(argument: Frame, _parameter = Frame.nil): Frame {
     const debug = this.get("DEBUG");
     if (debug !== Frame.missing) {
@@ -26,6 +34,12 @@ export class HCLog extends Frame {
     return argument;
   }
 
+  /**
+   * Colorizes the output string.
+   *
+   * @param {string} output - The output string to colorize.
+   * @returns {string} The colorized output string.
+   */
   private color(output: string): string {
     if (output[0] !== "$") {
       return output;

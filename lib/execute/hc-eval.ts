@@ -69,6 +69,8 @@ export class HCEval {
 
   /**
    * Creates a lexical pipe for evaluating expressions.
+   * @param out - The output frame where results will be stored.
+   * @returns A LexPipe instance for evaluating expressions.
    */
   public static make_pipe(out: Frame): LexPipe {
     const evaluator = new EvalPipe(out); // evaluate groups into results
@@ -77,17 +79,30 @@ export class HCEval {
     return lexer;
   }
 
+  /**
+   * The lexical pipe used for collecting input symbols into lexical tokens and
+   * then passing them to the parser.
+   */
   protected pipe: LexPipe;
+  /**
+   * The current lexical frame.  It starts as the pipe, but then becomes the token
+   * until it is reset to the pipe.
+   */
   protected lex: Frame;
 
+  /**
+   * Constructs an instance of HCEval.
+   * @param out - The output frame where results will be stored.
+   */
   constructor(public out: Frame) {
     this.pipe = HCEval.make_pipe(this.out);
     this.lex = this.pipe;
   }
 
   /**
-   * @param input The input string to evaluate.
-   * @returns
+   * Evaluates the given input string.
+   * @param input - The input string to evaluate.
+   * @returns The resulting frame or null if the input is empty.
    */
   public call(input: string): Frame | null {
     if (!input) {
@@ -100,10 +115,18 @@ export class HCEval {
     return result;
   }
 
+  /**
+   * Gets the current level of the lexical pipe.
+   * @returns The current level.
+   */
   public level(): number {
     return this.pipe.level;
   }
 
+  /**
+   * Checks the input string and sets the appropriate frame values based on the input prefix.
+   * @param input - The input string to check.
+   */
   protected checkInput(input: string): void {
     const head = input.substr(0, 2);
     const tail = input.substr(2);

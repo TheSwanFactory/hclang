@@ -1,5 +1,7 @@
 import {
   Frame,
+  FrameLazy,
+  FrameSchema,
   FrameString,
   FrameSymbol,
   type IArrayConstructor,
@@ -17,9 +19,33 @@ function ensure_factory(factory: IArrayConstructor | Frame): IArrayConstructor {
   return factory;
 }
 
+/**
+ * The `LexPipe` class extends the `Frame` class and implements the `IFinish` and `IPerformer` interfaces.
+ * It is responsible for lexical analysis and transformation of input strings or frames into a sequence of frames.
+ *
+ * The class maintains a level counter to track the depth of nested frames and provides methods to lex strings,
+ * perform actions, and manage the binding and unbinding of parsers.
+ *
+ * @extends Frame
+ * @implements IFinish
+ * @implements IPerformer
+ *
+ * @example
+ * // Create a new LexPipe instance with an output frame
+ * const lexPipe = new LexPipe(outputFrame);
+ *
+ * // Lex a string input
+ * const resultFrame = lexPipe.lex_string("input string");
+ */
 export class LexPipe extends Frame implements IFinish, IPerformer {
+  /**
+   *  @property {number} level - The current level of nested frames.
+   */
   public level: number;
 
+  /**
+   * @param {Frame} out - The output frame to be used by the LexPipe instance.
+   */
   constructor(out: Frame) {
     const syntax = getSyntax();
     syntax[Frame.kOUT] = out;
@@ -27,15 +53,34 @@ export class LexPipe extends Frame implements IFinish, IPerformer {
     this.level = 0;
   }
 
+  /**
+   * @method lex_string - Converts a string input into a Frame and processes it.
+   * @param {string} input - The string input to be lexed.
+   * @returns {Frame} - The resulting Frame after lexical analysis.
+   */
   public lex_string(input: string): Frame {
     const source = new FrameString(input);
     return this.lex(source);
   }
 
+  /**
+   * @method lex - Processes a FrameString input and reduces it.
+   * @param {FrameString} source - The FrameString input to be lexed.
+   * @returns {Frame} - The resulting Frame after lexical analysis.
+   *
+   * Each symbol is evaluated in the context of the syntax
+   * to determine which 'lexee' to use. The lexee then appends symbols
+   * until it completes, or 'action' is reached.
+   */
   public lex(source: FrameString): Frame {
     return source.reduce(this);
   }
 
+  /**
+   * @method finish - Finalizes the LexPipe instance and triggers the next parser.
+   * @param {Frame} _parameter - The parameter to be passed to the finish method.
+   * @returns {LexPipe} - The current LexPipe instance.
+   */
   public finish(_parameter: Frame): LexPipe {
     const next_parser = this.unbind();
     const output = FrameSymbol.end();
@@ -43,7 +88,11 @@ export class LexPipe extends Frame implements IFinish, IPerformer {
     return this;
   }
 
-  public unbind(skip = false): ParsePipe {
+  /**
+   * @method unbind - Tries to unbind the most recent parser expression.
+   * @param {boolean} [skip=false] - Whether to skip the unbinding process.
+   * @returns {ParsePipe} - The next parser after unbinding.
+   */ public unbind(skip = false): ParsePipe {
     let next_parser = this.get(Frame.kOUT) as ParsePipe;
     if (!skip) {
       next_parser = next_parser.unbind();
@@ -51,20 +100,40 @@ export class LexPipe extends Frame implements IFinish, IPerformer {
     return next_parser;
   }
 
+  /**
+   * @method checkLazy - Sets the Frame.is.lazy property for FrameLazy or FrameSchema.
+   * @param {IArrayConstructor} factory - The factory to check for laziness.
+   */
+  public checkLazy(factory: IArrayConstructor): boolean {
+    return this.is.lazy = factory === FrameLazy || factory === FrameSchema;
+  }
+
+  /**
+   * // Perform an action when a terminal is found during lexing
+   * lexPipe.perform({ next: true });
+   *
+   * Action keys can be: "semi-next", "next", "end", "bind", "push", or "pop".
+   * The "push" and "pop" actions require a factory as a value.
+   * The "end" action requires a terminal Frame as a value.
+   *
+   * @method perform - Executes a series of actions on the LexPipe instance.
+   * @param {IAction} action - The action to be performed.
+   * @returns {LexPipe} - The current LexPipe instance.
+   */
   public perform(action: IAction): LexPipe {
     for (const [key, value] of Object.entries(action)) {
       const skip = key === "push";
       let parser = this.unbind(skip);
       switch (key) {
-        case "semi-next": {
+        case "semi-next": { // statement (property)
           parser.next(true);
           break;
         }
-        case "next": {
+        case "next": { // expression (enumerable)
           parser.next(false);
           break;
         }
-        case "end": {
+        case "end": { // end of input
           if (value instanceof Frame) {
             parser.finish(value);
           } else {
@@ -74,19 +143,20 @@ export class LexPipe extends Frame implements IFinish, IPerformer {
           }
           break;
         }
-        case "bind": {
+        case "bind": { // bind current values into an expression
           parser = parser.bind();
           this.set(Frame.kOUT, parser);
           break;
         }
-        case "push": {
+        case "push": { // push a new factory into the parser
           const factory = ensure_factory(value);
           parser = parser.push(factory);
           this.set(Frame.kOUT, parser);
           this.level += 1;
+          parser.is.lazy = this.checkLazy(factory);
           break;
         }
-        case "pop": {
+        case "pop": { // pop the current factory from the parser
           if (this.level === 0) {
             console.error("LexPipe.perform.pop.failed: already at top level");
             break;
@@ -98,6 +168,7 @@ export class LexPipe extends Frame implements IFinish, IPerformer {
           parser = parser.pop(factory);
           this.set(Frame.kOUT, parser);
           this.level -= 1;
+          this.is.lazy = parser.is.lazy || false;
           break;
         }
       }

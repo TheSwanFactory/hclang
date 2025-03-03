@@ -6,7 +6,7 @@
   "configurations": [
     {
       "request": "launch",
-      "name": "Run Current Deno Tests",
+      "name": "Test File",
       "type": "node",
       //            "program": "${workspaceFolder}/cli/hc.ts",
       "cwd": "${workspaceFolder}",
