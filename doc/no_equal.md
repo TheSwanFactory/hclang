@@ -96,6 +96,7 @@ This was why I always found Lisp hard to read: it used words like 'eval' and
 'quote' for special forms that changed the evaluation rules, but were visually
 indisguishable from ordinary variables (plus the fact that Lisp methods were
 enormous run on sentences.)
+
 ### The Logic of Symbols
 
 In English, we use letters for content, and punctuation for structure.
