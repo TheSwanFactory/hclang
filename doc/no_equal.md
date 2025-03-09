@@ -20,9 +20,8 @@ Triad:
 
 - Research languages are created for correctness
 - Compiled languages are engineered for speed
-- Scripting languages are desgined for readability
-
-It struck me how seemingly every commonly-used language (expect, surprisingly,
+- Scripting languages are designed for readability
+It struck me how seemingly every commonly-used language (except, surprisingly,
 SQL):
 
 - Proudly identify with one of those categories
@@ -96,11 +95,10 @@ Then I realized: syntax!
 This was why I always found Lisp hard to read: it used words like 'eval' and
 'quote' for special forms that changed the evaluation rules, but were visually
 indisguishable from ordinary variables (plus the fact that Lisp methods were
-enormous run on setences.)
-
+enormous run on sentences.)
 ### The Logic of Symbols
 
-In English, we use letters for content, and punctation for structure.
+In English, we use letters for content, and punctuation for structure.
 Maybe we can use C syntax the same way:
 
 - immediate `()` versus lazy `{}`
@@ -192,7 +190,7 @@ I had implicitly been assuming that any value could:
 - become a context for other properties
 - have both named properties and enumerable elements
 
-Heresy! Functions are not data structures, dicionaries are not arrays, and
+Heresy! Functions are not data structures, dictionaries are not arrays, and
 modules and classes are unique ways to organize all of them.
 
 Everyone knows that. Right?
@@ -310,7 +308,7 @@ that are underdeveloped are:
    errors on invalid type assignments. It is possible that further testing may
    require us to redesign the type system.
 2. **Bit Manipulation**: in order to be a full C replacement, we should not only
-   supprot bit-level operations, but also support endian typing for bit
+   support bit-level operations, but also support endian typing for bit
    representations (which C does not!).
 3. **WASM Compilation**:  in theory, it should be straightforward to create an
    execution context that generates WASM instead of directly evaulating
