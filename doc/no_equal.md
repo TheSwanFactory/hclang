@@ -107,7 +107,7 @@ Maybe we can use C syntax the same way:
 - statements `;` vs expressions `,`
 - `.name` (lhs) versus `value` (rhs)
 
-```hc
+```css
 .main {
     .x 1;
     x,
@@ -115,12 +115,12 @@ Maybe we can use C syntax the same way:
 ```
 
 That... works!  In fact, it looks a little like CSS, one of the most elegant and
-human-editable data formats.
+human-editable data formats; I even am using that for its syntax coloring!
 
 In fact, we can use `<>`  for types, add some syntactic sugar to drop the
 trailing comma, and get:
 
-```hc
+```css
 .main {.x <int> 1; x}
 ```
 
@@ -152,7 +152,7 @@ true (or all: `<>`),
 Using the statement terminator `;` as our input prompt, and the comment `#` as
 our output prompt, we get:
 
-```hc
+```css
 ; <> ? 1
 # 1
 ; () ? 1
@@ -169,7 +169,7 @@ our output prompt, we get:
 More importantly, we can use lazy expressions to ensure conditional expressions.
 Using `@alias` to modify a value in the parent context, we get:
 
-```hc
+```css
 ; .x 10;
 ; x
 # 10
@@ -215,7 +215,7 @@ That's the only rule you need to evaluate any expression. No more special forms!
 In fact, you can perform evalution just by using
 symbols and the reduce operator `|`:
 
-```hc
+```css
 ; .x 1;
 ; x + x
 # 2
