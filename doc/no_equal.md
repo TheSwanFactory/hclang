@@ -95,7 +95,8 @@ Then I realized: syntax!
 
 This was why I always found Lisp hard to read: it used words like 'eval' and
 'quote' for special forms that changed the evaluation rules, but were visually
-indisguishable from ordinary variables (plus the fact that Lisp methods were  enormous run on setences.)
+indisguishable from ordinary variables (plus the fact that Lisp methods were
+enormous run on setences.)
 
 ### The Logic of Symbols
 
@@ -113,31 +114,43 @@ Maybe we can use C syntax the same way:
 }
 ```
 
-That... works!  In fact, it looks a little like CSS, one of the most elegant and human-editable data formats.
+That... works!  In fact, it looks a little like CSS, one of the most elegant and
+human-editable data formats.
 
-In fact, we can use `<>`  for types, add some syntactic sugar to drop the trailing comma, and get:
+In fact, we can use `<>`  for types, add some syntactic sugar to drop the
+trailing comma, and get:
 
 ```hc
 .main {.x <int> 1; x}
 ```
 
-That looks pretty trivial to parse into a Lisp-like data structure, but reads remarkably like C.  Like in Lisp, everything has a value, but values with different behaviors are clearly identified by the syntax.
+That looks pretty trivial to parse into a Lisp-like data structure, but reads
+remarkably like C.  Like in Lisp, everything has a value, but values with
+different behaviors are clearly identified by the syntax.
 
-The key (no pun intended) is these funny dot-prefixed names, which we call *symbols*. The name `.x` evaluates to `symbol(x)` just like the string `1` evaluates to the number 1. This turns traditional C references into ordinary expressions:
+The key (no pun intended) is these funny dot-prefixed names, which we call
+*symbols*. The name `.x` evaluates to `symbol(x)` just like the string `1`
+evaluates to the number 1. This turns traditional C references into ordinary
+expressions:
 
 - `main .x`: return the value of the property `x` in the context of `main`
 - `.main .x 1`: set the property `x` in the context of `main` to 1
 
-In fact, if we extend this to non-alphabetic symbols, it works great for operators. We can use a little trick calling currying to evaluate `1 .+ 2` one step at a time:
+In fact, if we extend this to non-alphabetic symbols, it works great for
+operators. We can use a little trick calling currying to evaluate `1 .+ 2` one
+step at a time:
 
 - `1 .+` evaluates `+` in the context of `1` to get the curry `{1 + _}`,
 - `{1 + _} 2` evalutes to `3`
 
 ### Conditionals
 
-I bet we can even use this to decompose the ternary into `?` for "then" and `:` for "else". We can also use nil `()` for false (like Lisp) and everyting else as true (or all: `<>`),
+I bet we can even use this to decompose the ternary into `?` for "then" and `:`
+for "else". We can also use nil `()` for false (like Lisp) and everyting else as
+true (or all: `<>`),
 
-Using the statement terminator `;` as our input prompt, and the comment `#` as our output prompt, we get:
+Using the statement terminator `;` as our input prompt, and the comment `#` as
+our output prompt, we get:
 
 ```hc
 ; <> ? 1
@@ -179,7 +192,8 @@ I had implicitly been assuming that any value could:
 - become a context for other properties
 - have both named properties and enumerable elements
 
-Heresy! Functions are not data structures, dicionaries are not arrays, and modules and classes are unique ways to organize all of them.
+Heresy! Functions are not data structures, dicionaries are not arrays, and
+modules and classes are unique ways to organize all of them.
 
 Everyone knows that. Right?
 
@@ -193,7 +207,8 @@ Gosh, it would sure make the evaluation rules ridicuously simple:
 4. Apply A to B -- `A(B)` -- to get C
 5. Repeat
 
-There's even a name for it: [Fold](https://ihack.us/2024/09/19/tsm-6-simplifying-lisp-with-homoiconic-c-all-you-need-is-fold/).
+There's even a name for it:
+[Fold](https://ihack.us/2024/09/19/tsm-6-simplifying-lisp-with-homoiconic-c-all-you-need-is-fold/).
 
 That's the only rule you need to evaluate any expression. No more special forms!
 
@@ -221,9 +236,12 @@ Well... what if we just used fold?
 
 Then use fold all the way down!
 
-It sounds insane, but it actually works. You can [check it out](https://hclang.deno.dev) for yourself.
+It sounds insane, but it actually works. You can [check it
+out](https://hclang.deno.dev) for yourself.
 
-There's even a name for it -- [monadic parsing](https://gabrijel-boduljak.com/functional-pearl-monadic-parsing/) -- though nobody had ever taken it to quite this extreme before.
+There's even a name for that too: [monadic
+parsing](https://gabrijel-boduljak.com/functional-pearl-monadic-parsing/) --
+though nobody else takes it to this extreme.
 
 ## Framing the PEACE Monad
 
@@ -237,7 +255,8 @@ I describe these monads using the acronym PEACE, because they can have:
 - **Enumerables**: like an array or list
 - **Action**: like a function or method
 - **Context**: like a class or module
-- **Effect**: as in side-effects (safely via sound-and-complete effect typing as in [BitC](https://danluu.com/bitc-retrospective/))
+- **Effect**: as in side-effects (safely via sound-and-complete effect typing as
+  in [BitC](https://danluu.com/bitc-retrospective/))
 
 I call this data structure a "frame", out of resemblance to a stack frame,
 and the face this is a radical reframing of what we mean by computation.
@@ -256,24 +275,51 @@ see above, Exceptions (Error, Break, Continue) are also frames. This was a
 radical idea at the time, but nowadays "Maybe Monads" in Haskell and Result
 types in Rust have made them commonplace.
 
-In combination with using finite arrays for reduce (and map `&` as syntactic sugar on reduce) instead of open-ended iteration, this means that Homoiconic C is fully decideable. More formally, it is based on Presburger arithmetic, where every input of size `n` is gauranteed to terminate in `2^n` steps.
+In combination with using finite arrays for reduce (and map `&` as syntactic
+sugar on reduce) instead of open-ended iteration, this means that Homoiconic C
+is fully decideable. More formally, it is based on [Presburger arithmetic](https://en.wikipedia.org/wiki/Presburger_arithmetic), where
+every input of size `n` is gauranteed to terminate in `2^n` steps.
 
-This may seem shocking to computer scientists raised on  Turing completeness.  But that is only necessary for operations like long division, which in early computers led to the infinite sequence `1.333333...` -- but nowadays is elegantly approximated using bounded boolean circuits (e.g., FPUs).  You can of course *simulate* infinite operaitons on top of the core abstraction, but that is your choice.  The core computational model is inherently finite, enabling a rich array of static analyses with (as far as I can tell) no real loss of expressive power.
+This may seem shocking to computer scientists raised on [Turing
+completeness](https://en.wikipedia.org/wiki/Turing_completeness). But that is
+really only necessary for operations like long division, which in early
+computers led to the infinite sequence `1.333333...` -- but nowadays is
+elegantly approximated (in finite time!) using bounded boolean circuits (e.g.,
+FPUs).  You can of course *simulate* infinite operations on top of the core
+abstraction, but that is your choice.  The core computational model is
+inherently finite, enabling a rich array of static analyses with (as far as I
+can tell) no real loss of expressive power.
 
 ## Current Status
 
 ### Existing Implementation
 
-As mentioned, you can interact with the current implementation directly at the [HCLang Playground](https://hclang.deno.dev).  This version is written in TypeScript, and available as a JSR module.  It runs in the brower, and can even be distributed as a single HTML file with no back-end (though it uses a CDN to download the module and UI).
+As mentioned, you can interact with the current implementation directly at the
+[HCLang Playground](https://hclang.deno.dev).  This version is written in
+TypeScript, and available as a JSR module.  It runs in the brower, and can even
+be distributed as a single HTML file with no back-end (though it uses a CDN to
+download the module and UI).
 
 ### Open Issues
 
-The current list of open issues is available on the [GitHub repository](https://github.com/TheSwanFactory/hclang/issues). The main areas that are underdeveloped are:
+The current list of open issues is available on the [GitHub
+repository](https://github.com/TheSwanFactory/hclang/issues). The main areas
+that are underdeveloped are:
 
-1. **Type Checking**: we can declare and parse types, but don't properly throw errors on invalid type assignments. It is possible that further testing may require us to redesign the type system.
-2. **Bit Manipulation**: in order to be a full C replacement, we should not only supprot bit-level operations, but also support endian typing for bit representations (which C does not!).
-3. **WASM Compilation**:  in theory, it should be straightforward to create an execution context that generates WASM instead of directly evaulating expressions.  The first step is probably defining a `WASM.hc` data structure in Homoiconic C that trivially converts itself to WASM.  But there are probably a lot of steps after that...
+1. **Type Checking**: we can declare and parse types, but don't properly throw
+   errors on invalid type assignments. It is possible that further testing may
+   require us to redesign the type system.
+2. **Bit Manipulation**: in order to be a full C replacement, we should not only
+   supprot bit-level operations, but also support endian typing for bit
+   representations (which C does not!).
+3. **WASM Compilation**:  in theory, it should be straightforward to create an
+   execution context that generates WASM instead of directly evaulating
+   expressions.  The first step is probably defining a `WASM.hc` data structure
+   in Homoiconic C that trivially converts itself to WASM.  But there are
+   probably a lot of steps after that...
 
 ### Closing Thoughts
 
-Homoiconic C is currently a background passion project, as I have yet to find a "killer app" to justify productizing it.  If you have any suggestions -- or want to help! -- please [drop me a line](mailto:ernest.prabhakar@gmail.com).
+Homoiconic C is currently a background passion project, as I have yet to find a
+"killer app" to justify productizing it.  If you have any suggestions -- or want
+to help! -- please [drop me a line](mailto:ernest.prabhakar@gmail.com).
