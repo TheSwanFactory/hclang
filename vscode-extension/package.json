@@ -3,7 +3,7 @@
   "displayName": "Homoiconic C",
   "description": "Syntax highlighting and language support for Homoiconic C (HC) - the universal language for code and data",
   "version": "0.1.0",
-  "publisher": "swanfactory",
+  "publisher": "TheSwanFactory",
   "license": "MIT",
   "repository": {
     "type": "git",
