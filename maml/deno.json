@@ -1,6 +1,6 @@
 {
   "name": "@swanfactory/maml",
-  "version": "0.7.3",
+  "version": "0.7.4",
   "description": "Multipurpose Abstract Markup Library for Homoiconic C",
   "license": "MIT",
   "exports": "./tag.ts",
