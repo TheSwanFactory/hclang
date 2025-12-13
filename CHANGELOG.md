@@ -1,7 +1,12 @@
 # CHANGELOG
 
-## v0.7.4 2025-03-01
+## v0.7.4 2025-12-13
 
+- **Deno 2 Compatibility**: Full support for Deno 2.x
+  - Fixed `@preact/hooks` import path (hooks is a submodule of preact)
+  - Removed deprecated `permissions` field from `cli/deno.json`
+  - Added version specifiers to all JSR imports
+  - All tests pass with Deno 2
 - Top-level `deno task hc` and `test:doc` command
 - Properly returns Frame.all for '<>'
 
