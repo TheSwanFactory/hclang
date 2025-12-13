@@ -11,7 +11,7 @@ docString 3
 # 1234
 ; #  inline comment before # 4321
 # 4321
-; 5678 #  inline comment after # 
+; 5678 #  inline comment after #
 # 5678
 ```
 docString 4

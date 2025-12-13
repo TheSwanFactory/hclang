@@ -23,7 +23,7 @@ Any errors or misinterpretaions are, of course, my sole responsibility.
 # `[50 51] [0 2]`
 ; nock.eval .-2
 # 50
- 
+
 ```
 
 === Homoiconic C

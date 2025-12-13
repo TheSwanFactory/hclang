@@ -624,8 +624,8 @@ manipulating the flow of control. But when there is, we use a control, e.g.:%mdk
 \end{mddefinitions}%mdk
 
 %mdk-data-line={447}
-\noindent\mdline{447}Remember that every context is a self-contained entity, and thus \mdline{447}\mdcode{.}\mdline{447} and \mdline{447}\mdcode{{\mdcolor{purple}\$}\textless{}}\mdline{447} refer 
-only to that scope, even if it is a clause in a conditional.  That\mdline{448}'\mdline{448}s why we need 
+\noindent\mdline{447}Remember that every context is a self-contained entity, and thus \mdline{447}\mdcode{.}\mdline{447} and \mdline{447}\mdcode{{\mdcolor{purple}\$}\textless{}}\mdline{447} refer
+only to that scope, even if it is a clause in a conditional.  That\mdline{448}'\mdline{448}s why we need
 multi-level returns.%mdk
 
 %mdk-data-line={452}
@@ -874,7 +874,7 @@ or metadata separately.%mdk
 {\mdcolor{darkgreen}\#~6}%mdk
 \end{mdpre}\noindent\mdline{670}The operators also work with files and network ports, reading one line
 (or object) at a time, greatly simplifying common I/O operations (a la
-the UNIX shell). 
+the UNIX shell).
 
 %mdk-data-line={674}
 \subsubsection{\mdline{674}2.2.3.\hspace*{0.5em}\mdline{674}Conditionals}\label{sec-conditionals}%mdk%mdk
@@ -1113,7 +1113,7 @@ restrict side effects for safety.%mdk
 %mdk-data-line={839}
 \begin{mdbmarginx}{}{}{}{1.5em}%mdk
 \begin{mddefdata}%mdk
-\mdline{839}Does not begin with an uppercase letter. Can be reassigned. 
+\mdline{839}Does not begin with an uppercase letter. Can be reassigned.
 %mdk
 \end{mddefdata}%mdk
 \end{mdbmarginx}%mdk
@@ -1123,7 +1123,7 @@ restrict side effects for safety.%mdk
 %mdk-data-line={841}
 \begin{mdbmarginx}{}{}{}{1.5em}%mdk
 \begin{mddefdata}%mdk
-\mdline{841}Begins with uppercase letter. Can \mdline{841}\textbf{not}\mdline{841} be reassigned. 
+\mdline{841}Begins with uppercase letter. Can \mdline{841}\textbf{not}\mdline{841} be reassigned.
 %mdk
 \end{mddefdata}%mdk
 \end{mdbmarginx}%mdk
@@ -1205,7 +1205,7 @@ between different threads, etc.%mdk
 methods, HC explicitly tracks which methods mutate their parent scope via
 a trailing colon (\mdline{890}\mdcode{{\mdcolor{navy}:}}\mdline{890}). When a mutating method is called on an immutable
 object, it simply performs a \mdline{891}\emph{copy-on-write}\mdline{891}, returning a new object. To
-enable this, mutating methods can not explicitly return a value, but 
+enable this, mutating methods can not explicitly return a value, but
 implicitly return their parent (e.g., \mdline{893}\textquotedblleft{}this\textquotedblright{}\mdline{893}; see Section \{\mdline{893}\#\mdline{893}sec-oops\} for
 more details).%mdk
 \begin{mdpre}%mdk
@@ -1228,15 +1228,15 @@ more details).%mdk
 \section{\mdline{914}3.\hspace*{0.5em}\mdline{914}Applications}\label{sec-applications}%mdk%mdk
 
 %mdk-data-line={916}
-\noindent\mdline{916}While the above language may seem simple to the point of simplistic, it has a 
+\noindent\mdline{916}While the above language may seem simple to the point of simplistic, it has a
 surprising amount of power.  Here are a few examples of what it can do.%mdk
 
 %mdk-data-line={919}
 \subsection{\mdline{919}3.1.\hspace*{0.5em}\mdline{919}Congrams}\label{sec-congrams}%mdk%mdk
 
 %mdk-data-line={921}
-\noindent\mdline{921}As mentioned above, HC programs that consist only of literals other than closures 
-are called \mdline{922}\emph{congrams}\mdline{922}, which are just pure data. This provides a 
+\noindent\mdline{921}As mentioned above, HC programs that consist only of literals other than closures
+are called \mdline{922}\emph{congrams}\mdline{922}, which are just pure data. This provides a
 once-in-a-lifetime opportunity to bring rigor and consistency to a variety of organic
 data formats developed over the Internet\mdline{924}'\mdline{924}s brief history.%mdk
 
@@ -1339,7 +1339,7 @@ the MIT Open Source license.
 \subsection{\mdline{1020}4.1.\hspace*{0.5em}\mdline{1020}Architecture}\label{sec-architecture}%mdk%mdk
 
 %mdk-data-line={1022}
-\noindent\mdline{1022}The core runtime objects live in the \mdline{1022}\mdcode{src/frames}\mdline{1022} directory, where they 
+\noindent\mdline{1022}The core runtime objects live in the \mdline{1022}\mdcode{src/frames}\mdline{1022} directory, where they
 are implemented as TypeScript classes.  Generally speaking there is
 one class for each primitive and aggregate frame, plus abstract classes for
 the generic Frame, FrameAtom, and FrameList.%mdk
@@ -1404,8 +1404,8 @@ this file with:%mdk
 \begin{mdpre}%mdk
 \noindent{\mdcolor{darkgreen}\#!/usr/bin/env~hc~-doctest}\\
 \textbackslash{}{\mdcolor{maroon}`}{\mdcolor{gray}\textbackslash{}`}{\mdcolor{gray}\textbackslash{}`}%mdk
-\end{mdpre}\noindent\mdline{1078}The process would thus involve rewriting the documentation and 
-the source code together until they are both complete and consistent. 
+\end{mdpre}\noindent\mdline{1078}The process would thus involve rewriting the documentation and
+the source code together until they are both complete and consistent.
 
 %mdk-data-line={1081}
 \subsubsection{\mdline{1081}4.3.2.\hspace*{0.5em}\mdline{1081}Compilation}\label{sec-compilation}%mdk%mdk
@@ -1532,7 +1532,7 @@ engineering today.%mdk
 %mdk-data-line={1183}
 \mdline{1183}By eliminated that complexity, Homoiconic C hopes to usher in a new
 Golden Age of software that is:
-\mdline{1185}\emph{ Inherently and provably secure 
+\mdline{1185}\emph{ Inherently and provably secure
 }\mdline{1186} Both inherently efficient and easily optimized
 \mdline{1187}\emph{ Easy to learn, read, and modify
 }\mdline{1188} Trivial to statically analyze, visualize, and automatically evolve%mdk

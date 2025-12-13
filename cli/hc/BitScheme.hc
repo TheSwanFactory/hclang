@@ -395,4 +395,3 @@ Similarly, we can map the Schema into a dictionary to generate a sequence, and t
 ; a11r10r7-sequence .| ()
 # 0b00000001011 01010 000 00111 0010011 # spaces added for clarity
 ```
-

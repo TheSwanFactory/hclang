@@ -7,7 +7,7 @@
   <title>Homoiconic C</title>
   <style type="text/css"  class="link">
   /*# sourceURL=madoko.css */
-  
+
   .madoko .toc>.tocblock .tocblock .tocblock {
     margin-left: 2.25em;
   }
@@ -53,7 +53,7 @@
     width: 50%;
     text-align: left;
   }
-  .madoko .footnote { 
+  .madoko .footnote {
     margin-left: 1em;
   }
   .madoko .footnote-before {
@@ -139,9 +139,9 @@
       list-style-type: none !important;
   }
   .madoko ul.list-style-type-dash > li:before {
-      content: "\2013"; 
+      content: "\2013";
       position: absolute;
-      margin-left: -1em; 
+      margin-left: -1em;
   }
   .madoko table.madoko {
     border-collapse: collapse;
@@ -206,14 +206,14 @@
   .madoko .symbol {
     font-family: "Segoe UI Symbol", Symbola, serif;
   }
-  body.madoko {  
-    -webkit-text-size-adjust: 100%;       
+  body.madoko {
+    -webkit-text-size-adjust: 100%;
     text-rendering: optimizeLegibility;
   }
   body.madoko {
-    max-width: 88ex; 
+    max-width: 88ex;
     margin: 1em auto;
-    padding: 0em 2em;  
+    padding: 0em 2em;
   }
   body.preview.madoko {
     padding: 0em 1em;
@@ -221,30 +221,30 @@
   .madoko p {
     text-align: justify;
   }
-  .madoko h1, .madoko h2, .madoko h3, .madoko h4 { 
-    margin-top: 1.22em; 
+  .madoko h1, .madoko h2, .madoko h3, .madoko h4 {
+    margin-top: 1.22em;
     margin-bottom: 1ex;
   }
-  .madoko h1+p, .madoko h2+p, .madoko h3+p, .madoko h4+p, .madoko h5+p  { 
-    margin-top: 1ex;    
+  .madoko h1+p, .madoko h2+p, .madoko h3+p, .madoko h4+p, .madoko h5+p  {
+    margin-top: 1ex;
   }
-  .madoko h5, .madoko h6 { 
+  .madoko h5, .madoko h6 {
     margin-top: 1ex;
     font-size: 1em;
   }
-  .madoko h5 { 
+  .madoko h5 {
     margin-bottom: 0.5ex;
   }
   .madoko h5 + p {
     margin-top: 0.5ex;
   }
-  .madoko h6 { 
+  .madoko h6 {
     margin-bottom: 0pt;
   }
   .madoko h6 + p {
     margin-top: 0pt;
   }
-  .madoko pre, .madoko code, .madoko kbd, .madoko samp, .madoko tt, 
+  .madoko pre, .madoko code, .madoko kbd, .madoko samp, .madoko tt,
   .madoko .monospace, .madoko .token-indent, .madoko .reveal pre, .madoko .reveal code, .madoko .email {
     font-family: Consolas,"Andale Mono WT","Andale Mono",Lucida Console,Monaco,monospace,monospace;
     font-size: 0.85em;
@@ -275,15 +275,15 @@
   }
   @media only screen and (max-device-width:1024px) {
     body.madoko {
-      padding: 0em 0.5em;    
+      padding: 0em 0.5em;
     }
     .madoko li {
       text-align: left;
     }
   }
-  
+
     </style>
-  
+
   </head>
 <body class="madoko">
 
@@ -294,17 +294,17 @@
 <div class="title para-block" style="font-size:xx-large;font-weight:bold;margin-bottom:0.5ex;line-adjust:0">Homoiconic C</div>
 <div class="subtitle para-block" style="font-size:x-large;margin-bottom:0.5ex;line-adjust:0">Programming without a Language</div></div></div>
 <div class="abstract" style="margin-left:3em;margin-right:3em;font-size:small">
-<p class="p noindent"><strong class="strong-star2">Abstract.</strong> 
-Modern programming is dominated by languages derived from C<span class="citations" style="target-element:bibitem">[<a href="#clang" title="TBD. 
+<p class="p noindent"><strong class="strong-star2">Abstract.</strong>
+Modern programming is dominated by languages derived from C<span class="citations" style="target-element:bibitem">[<a href="#clang" title="TBD.
 Clang, 2000a." class="bibref localref" style="target-element:bibitem"><span class="cite-number">9</span></a>]</span> and
-the UNIX shell<span class="citations" style="target-element:bibitem">[<a href="#unixshell" title="TBD. 
+the UNIX shell<span class="citations" style="target-element:bibitem">[<a href="#unixshell" title="TBD.
 Unixshell, 2000i." class="bibref localref" style="target-element:bibitem"><span class="cite-number">17</span></a>]</span>, characterized by complicated syntax and
-sophisticated parsers. Minimalist languages such as Forth<span class="citations" style="target-element:bibitem">[<a href="#forth" title="TBD. 
+sophisticated parsers. Minimalist languages such as Forth<span class="citations" style="target-element:bibitem">[<a href="#forth" title="TBD.
 Forth, 2000b." class="bibref localref" style="target-element:bibitem"><span class="cite-number">10</span></a>]</span>,
-Scheme<span class="citations" style="target-element:bibitem">[<a href="#scheme" title="H.&#160;Abelson G.&#160;Sussman. 
-Structure and Interpretation of Computer Programs." class="bibref localref" style="target-element:bibitem"><span class="cite-number">4</span></a>]</span> and Self<span class="citations" style="target-element:bibitem">[<a href="#self" title="TBD. 
+Scheme<span class="citations" style="target-element:bibitem">[<a href="#scheme" title="H.&#160;Abelson G.&#160;Sussman.
+Structure and Interpretation of Computer Programs." class="bibref localref" style="target-element:bibitem"><span class="cite-number">4</span></a>]</span> and Self<span class="citations" style="target-element:bibitem">[<a href="#self" title="TBD.
 Self, 2000g." class="bibref localref" style="target-element:bibitem"><span class="cite-number">15</span></a>]</span> are no longer taken seriously<sup id="back-fn-lua-fn" ><a href="#fn-lua-fn" title="1.The only minimalist language still in active use appears to be
-Lua[&lt;a href=&quot;#lua&quot; title=&quot;TBD. 
+Lua[&lt;a href=&quot;#lua&quot; title=&quot;TBD.
 Lua, 2000f.&quot; class=&quot;bibref localref&quot; style=&quot;target-element:bibitem&quot;&gt;14], though even that is relegated to niche applications.
 &#8617;" class="footnote-ref localref" ><span class="footnote-label">1</span></a></sup>,
 presumably because they are felt to lack sufficiently readable <em class="em-low1">syntax</em>
@@ -315,10 +315,10 @@ and powerful enough <em class="em-low1">semantics</em>.
 yet is even easier to read than existing scripting languages. The key is
 a novel data structure and computational model we call <em class="em-low1">Frames</em>, designed
 to replace and improve upon the s-expressions and metacircular evaluation
-model of Lisp<span class="citations" style="target-element:bibitem">[<a href="#lisp" title="TBD. 
+model of Lisp<span class="citations" style="target-element:bibitem">[<a href="#lisp" title="TBD.
 Lisp, 2000e." class="bibref localref" style="target-element:bibitem"><span class="cite-number">13</span></a>]</span>. Frames act as a universal monad<sup id="back-fn-monad" ><a href="#fn-monad" title="2.Not just the mathematical term for an object closed under all
 operations, but Liebniz&#39;s original idea of a single universal
-building-block[&lt;a href=&quot;#liebniz&quot; title=&quot;TBD. 
+building-block[&lt;a href=&quot;#liebniz&quot; title=&quot;TBD.
 Liebniz, 2000d.&quot; class=&quot;bibref localref&quot; style=&quot;target-element:bibitem&quot;&gt;12].
 &#8617;" class="footnote-ref localref" ><span class="footnote-label">2</span></a></sup>, with the
 result that Homoiconic C is simply conventions for creating and
@@ -328,15 +328,15 @@ evaluating Frames.
 primitives, aggregates, and  predefined operators; as a
 modeless data format, there are no keywords, reserved words, or hardly any
 grammar. Next we discuss the robust data protection semantics inspired by
-BitC<span class="citations" style="target-element:bibitem">[<a href="#bitc" title="Shapiro et&#160;al. 
+BitC<span class="citations" style="target-element:bibitem">[<a href="#bitc" title="Shapiro et&#160;al.
 Sound and complete type inference in a systems language." class="bibref localref" style="target-element:bibitem"><span class="cite-number">3</span></a>]</span>, which allow us the efficiency of C&#39;s memory
 model without any of the downsides. Finally, we provide examples of how
 these primitives allow us to easily represent other data formats and
 Object-Oriented programming.
 </p>
 <p class="p indent">We are currently developing the first implementation of HC as a
-TypeScript<span class="citations" style="target-element:bibitem">[<a href="#typescript" title="TBD. 
-Typescript, 2000h." class="bibref localref" style="target-element:bibitem"><span class="cite-number">16</span></a>]</span> interpreter. It can be found on GitHub<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
+TypeScript<span class="citations" style="target-element:bibitem">[<a href="#typescript" title="TBD.
+Typescript, 2000h." class="bibref localref" style="target-element:bibitem"><span class="cite-number">16</span></a>]</span> interpreter. It can be found on GitHub<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous.
 Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span>
 under the MIT Open Source license.
 </p></div><h2 id="sec-intro" class="h1" data-heading-depth="1" style="display:block"><span class="heading-before"><span class="heading-label">1</span>.&#8194;</span>Introduction</h2>
@@ -344,15 +344,15 @@ under the MIT Open Source license.
 simple yet powerful alternative to both traditional programming languages
 and existing data formats.
 </p><h3 id="sec-a-brief-history-of-programming-languages" class="h2" data-heading-depth="2" style="display:block"><span class="heading-before"><span class="heading-label">1.1</span>.&#8194;</span>A Brief History of Programming Languages</h3>
-<p class="p noindent">Early high-level languages (e.g., FORTRAN<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
-Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span>, COBOL<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
+<p class="p noindent">Early high-level languages (e.g., FORTRAN<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous.
+Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span>, COBOL<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous.
 Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span>,
-BASIC<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
-Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span>, ALGOL<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
+BASIC<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous.
+Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span>, ALGOL<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous.
 Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span>) were strongly influenced by mathematics and
-artificial intelligence<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
+artificial intelligence<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous.
 Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span>, leading to sophisticated precedence rules
-and complicated syntax. The primary alternative was Lisp[<span class="textual citations" style="target-element:bibitem"><span class="cite-authors">TBD</span>&#160;[<a href="#lisp" title="TBD. 
+and complicated syntax. The primary alternative was Lisp[<span class="textual citations" style="target-element:bibitem"><span class="cite-authors">TBD</span>&#160;[<a href="#lisp" title="TBD.
 Lisp, 2000e." class="bibref localref" style="target-element:bibitem"><span class="cite-number">13</span></a>]</span>;], defined
 &#8211; at least in theory &#8211; by a single data structure (the list) and a
 single rule (metacircular evaluation).
@@ -360,18 +360,18 @@ single rule (metacircular evaluation).
 <p class="p indent">Lisp was not as efficient as, say, Fortran, but it was much more elegant
 and powerful. The common assumption was that eventually computers would
 become powerful enough that Lisp&#39;s inefficiencies would no longer matter.
-Sadly, the failure of hardware-optimized Lisp machines<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
+Sadly, the failure of hardware-optimized Lisp machines<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous.
 Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span> marked the
 death of that dream.
 </p><h3 id="sec-then-came-c" class="h2" data-heading-depth="2" style="display:block"><span class="heading-before"><span class="heading-label">1.2</span>.&#8194;</span>Then Came C</h3>
-<p class="p noindent">Into that void stepped the C programming language<span class="citations" style="target-element:bibitem">[<a href="#clang" title="TBD. 
+<p class="p noindent">Into that void stepped the C programming language<span class="citations" style="target-element:bibitem">[<a href="#clang" title="TBD.
 Clang, 2000a." class="bibref localref" style="target-element:bibitem"><span class="cite-number">9</span></a>]</span>. C was derived
-from ALGOL, but borrowed (some would say butchered<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
+from ALGOL, but borrowed (some would say butchered<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous.
 Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span>) several
-powerful ideas from Lisp, such as macros<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
+powerful ideas from Lisp, such as macros<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous.
 Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span> and function
-pointers<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
-Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span>. In addition, the C memory model<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
+pointers<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous.
+Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span>. In addition, the C memory model<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous.
 Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span> mapped well onto
 modern processor architectures, enabling remarkably good performance. It
 also benefited from:
@@ -381,34 +381,34 @@ also benefited from:
 </li>
 <li class="li ul-li list-star-li compact-li">Association with the UNIX operating system
 </li>
-<li class="li ul-li list-star-li compact-li">Self-sustaining<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
+<li class="li ul-li list-star-li compact-li">Self-sustaining<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous.
 Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span>, open source compilers
 </li></ul>
 
-<p class="p noindent">This led to C (along with its direct descendants, C++<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
+<p class="p noindent">This led to C (along with its direct descendants, C++<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous.
 Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span> and
-Objective-C<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
+Objective-C<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous.
 Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span>) completely dominating the field for systems
 programming; a situation which continues today, almost fifty years later.
 This led to the C syntax (with some borrowing from its sister language,
 the UNIX shell) becoming the baseline for virtually every mass-market
-language in use today<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
+language in use today<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous.
 Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span>.
 </p>
 <p class="p indent">This success was not entirely a good thing. C&#39;s memory model and type
 system optimized for efficiency at the cost of safety, leading to
 innumerable programming errors and security holes that still plague us
-today&nbsp;<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
+today&nbsp;<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous.
 Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span>. C&#39;s syntax and macros &#8211;  a breath of fresh air
 when they first came out &#8211; feel clunky and dated in a world of scripting
 languages and functional programming, to the point where it is rarely
 taught to beginning programmers anymore.
 </p><h3 id="sec-frames" class="h2" data-heading-depth="2" style="display:block"><span class="heading-before"><span class="heading-label">1.3</span>.&#8194;</span>Framing A New Hope</h3>
 <p class="p noindent">In the last decade, we have seen renewed innovation in systems
-programming, leading to languages such as Rust<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
-Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span>, Go<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
+programming, leading to languages such as Rust<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous.
+Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span>, Go<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous.
 Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span>, and
-Swift&nbsp;<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
+Swift&nbsp;<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous.
 Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span>. These are enough better and different than C that they
 have carved out their own niches (especially with the help of powerful
 patrons). However, they don&#39;t seem to have the factor-of-ten improvement
@@ -444,13 +444,13 @@ trivial to manipulate code via higher-level abstractions.
 <dl class="dl compact">
 <dt class="dt noindent dl-li compact-li" style="text-indent:0em;font-weight:bold">Dataflow, from the UNIX Shell</dt>
 <dd class="dd" style="margin-left:1.5em">Iteration and Input/Output are designed for simple pipeline-style composition.</dd></dl></li>
-<li class="li ul-li list-star-li compact-li">Effect Typing, from BitC<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
+<li class="li ul-li list-star-li compact-li">Effect Typing, from BitC<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous.
 Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span> : By carefully annotating function
 boundaries for both <em class="em-low1">constancy</em> and <em class="em-low1">immutability</em>, we can safely alias
 data structures to get C-like performance while preserving the security
 of managed code.
 </li>
-<li class="li ul-li list-star-li compact-li">Lexical Scoping, from Scheme<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
+<li class="li ul-li list-star-li compact-li">Lexical Scoping, from Scheme<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous.
 Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span> : Everything inherits its current
 scope (like closures). In addition, evaluation of closures causes the
 result to inherit their scope, allowing them to be used as object
@@ -482,7 +482,7 @@ documents that only use literals and terminals are called <em class="em-low1">da
 programs</em>, or sometimes just <em class="em-low1">congrams</em>.
 </p><h4 id="sec-expressions" class="h3" data-heading-depth="3" style="display:block"><span class="heading-before"><span class="heading-label">2.1.1</span>.&#8194;</span>Expressions</h4>
 <p class="p noindent">Expressions are simply zero or more frames evaluated within the current
-context, then applied left to right (left fold&nbsp;<span class="citations" style="target-element:bibitem">[<a href="#leftfold" title="TBD. 
+context, then applied left to right (left fold&nbsp;<span class="citations" style="target-element:bibitem">[<a href="#leftfold" title="TBD.
 Leftfold, 2000c." class="bibref localref" style="target-element:bibitem"><span class="cite-number">11</span></a>]</span>). We refer to
 this as the <em class="em-low1">elliptical evaluator</em>, in homage to Lisp&#39;s metacircular
 evaluator.
@@ -588,10 +588,10 @@ languages &#8211; see Table&nbsp;<a href="#sec-table-terminals" title="Terminals
 
 <div class="p noindent"><fig-caption class="figure-caption"><span class="caption-before"><strong class="strong-star2">Table&#160;<span class="table-label">2</span>.</strong>&#160;</span><span class="caption-text">Terminals Syntax</span></fig-caption></div></figure>
 <p class="p indent">Formally speaking, each expression should terminate in an &#8216;,&#8217; or &#8216;;&#8217;, depending
-on whether we want to return the resulting value: 
+on whether we want to return the resulting value:
 </p>
-<pre class="para-block pre-fenced pre-fenced3 language-ruby lang-ruby ruby colorized" style="display:block"><code>; “<span style="color:purple">My</span> <span style="color:purple">Statement</span>”; 
-; “<span style="color:purple">Self</span> <span style="color:purple">Expression</span>”, 
+<pre class="para-block pre-fenced pre-fenced3 language-ruby lang-ruby ruby colorized" style="display:block"><code>; “<span style="color:purple">My</span> <span style="color:purple">Statement</span>”;
+; “<span style="color:purple">Self</span> <span style="color:purple">Expression</span>”,
 <span style="color:darkgreen"># “Self Expression” </span></code></pre>
 <p class="p noindent para-continued">This effectively allows us to distinguish &#8220;expressions&#8221; that return a
 value from &#8220;statements&#8221; that do not. However, trailing commas are
@@ -673,7 +673,7 @@ in the current context:
 That enables <code class="code code1 language-ruby lang-ruby ruby colorized">=</code> to always mean a test for equality, rather than also being used
 for assignment.
 </p>
-<p class="p indent">We can use the value <code class="code code1 language-ruby lang-ruby ruby colorized">x</code> to access that property in the same or any child context: 
+<p class="p indent">We can use the value <code class="code code1 language-ruby lang-ruby ruby colorized">x</code> to access that property in the same or any child context:
 </p>
 <pre class="para-block pre-fenced pre-fenced3 language-ruby lang-ruby ruby colorized" style="display:block"><code>; x
 <span style="color:darkgreen"># 42</span>
@@ -718,8 +718,8 @@ manipulating the flow of control. But when there is, we use a control, e.g.:
 </dd>
 <dt class="dt noindent dl-li compact-li" style="text-indent:0em;font-weight:bold"><code class="code code1 language-ruby lang-ruby ruby colorized"><span style="color:purple">$</span>&lt;&lt;</code></dt>
 <dd class="dd" style="margin-left:1.5em">Terminate the <em class="em-low1">parent</em> scope and return the argument (&#8220;inner return&#8221;)</dd></dl>
-<p class="p noindent">Remember that every context is a self-contained entity, and thus <code class="code code1 language-ruby lang-ruby ruby colorized">.</code> and <code class="code code1 language-ruby lang-ruby ruby colorized"><span style="color:purple">$</span>&lt;</code> refer 
-only to that scope, even if it is a clause in a conditional.  That&#39;s why we need 
+<p class="p noindent">Remember that every context is a self-contained entity, and thus <code class="code code1 language-ruby lang-ruby ruby colorized">.</code> and <code class="code code1 language-ruby lang-ruby ruby colorized"><span style="color:purple">$</span>&lt;</code> refer
+only to that scope, even if it is a clause in a conditional.  That&#39;s why we need
 multi-level returns.
 </p><h6 id="sec-exceptions" class="h5" data-heading-depth="5" style="display:block">Exceptions</h6>
 <p class="p noindent">Controls are also used to signal exceptions and errors.  Exception controls
@@ -888,7 +888,7 @@ or metadata separately.
 <span style="color:darkgreen"># 6</span></code></pre>
 <p class="p noindent para-continued">The operators also work with files and network ports, reading one line
 (or object) at a time, greatly simplifying common I/O operations (a la
-the UNIX shell). 
+the UNIX shell).
 </p><h4 id="sec-conditionals" class="h3" data-heading-depth="3" style="display:block"><span class="heading-before"><span class="heading-label">2.2.3</span>.&#8194;</span>Conditionals</h4>
 <p class="p noindent">Homoiconic C&#39;s sole conditionals are a pair of binary operators analogous to C&#39;s ternary operator,
 albeit with slightly different semantics. These are described in Table&nbsp;<a href="#sec-table-cond" title="Conditional Operators" class="localref" style="target-element:tablefigure"><span class="table-label">6</span></a>.
@@ -1024,7 +1024,7 @@ conventions often used in C programs:
 <span style="color:darkgreen"># $!is-private .my-private-value</span>
 </code></pre><h4 id="sec-effect" class="h3" data-heading-depth="3" style="display:block"><span class="heading-before"><span class="heading-label">2.3.2</span>.&#8194;</span>Effect</h4>
 <p class="p noindent">Rather than specifying <em class="em-low1">call-by-value</em> or <em class="em-low1">call-by-reference</em>, HC is
-designed around the BitC<span class="citations" style="target-element:bibitem">[<a href="#bitc" title="Shapiro et&#160;al. 
+designed around the BitC<span class="citations" style="target-element:bibitem">[<a href="#bitc" title="Shapiro et&#160;al.
 Sound and complete type inference in a systems language." class="bibref localref" style="target-element:bibitem"><span class="cite-number">3</span></a>]</span> model of effect typing. Shapiro <em class="em-star1">et al</em>
 proved it is possible to have a sound <em class="em-star1">and</em> complete systems language if
 we explicitly annotate identifiers for both <strong class="strong-star2">constancy</strong> and
@@ -1035,16 +1035,16 @@ makes it as easy to allow side effects for performance as it is to
 restrict side effects for safety.
 </p>
 <p class="p indent"> Unfortunately, BitC could not accommodate such annotations within their
- Lisp-like syntax<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
+ Lisp-like syntax<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous.
 Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span>. Inspired by their work, we have designed the
  syntax of our identifiers to explicitly support effect typing:
 </p>
 <dl class="dl compact">
 <dt class="dt noindent dl-li compact-li" style="text-indent:0em;font-weight:bold"><code class="code code1 language-ruby lang-ruby ruby colorized">variable</code></dt>
-<dd class="dd" style="margin-left:1.5em">Does not begin with an uppercase letter. Can be reassigned. 
+<dd class="dd" style="margin-left:1.5em">Does not begin with an uppercase letter. Can be reassigned.
 </dd>
 <dt class="dt noindent dl-li compact-li" style="text-indent:0em;font-weight:bold"><code class="code code1 language-ruby lang-ruby ruby colorized"><span style="color:purple">CONSTANT</span></code></dt>
-<dd class="dd" style="margin-left:1.5em">Begins with uppercase letter. Can <strong class="strong-star2">not</strong> be reassigned. 
+<dd class="dd" style="margin-left:1.5em">Begins with uppercase letter. Can <strong class="strong-star2">not</strong> be reassigned.
 </dd>
 <dt class="dt noindent dl-li compact-li" style="text-indent:0em;font-weight:bold"><code class="code code1 language-ruby lang-ruby ruby colorized">immutable</code></dt>
 <dd class="dd" style="margin-left:1.5em">Has no suffix. Can not be modified in place.
@@ -1057,7 +1057,7 @@ Citation Needed." class="bibref localref" style="target-element:bibitem"><span c
 <p class="p noindent">Please note that these particular conventions are preliminary, and may
 change in future versions based on empirical tests of readability and
 intuitiveness. Since HC is just a data format, we plan to explicitly
-version documents and enable automatic migration between incompatible versions. 
+version documents and enable automatic migration between incompatible versions.
 </p><h5 id="sec-constancy" class="h4" data-heading-depth="4" style="display:block">Constancy</h5>
 <p class="p noindent">BitC&#39;s first key insight is that <em class="em-low1">constancy</em> (whether an identifier can be
 assigned a new value) is distinct from <em class="em-low1">mutability</em> (whether the
@@ -1074,7 +1074,7 @@ a property of the <em class="em-low1">source</em> object, whereas mutability is 
 <p class="p noindent">The second key insight from BitC is that effect is a property of
 <em class="em-low1">names</em> rather than of <em class="em-low1">values</em>. Object literals have no effect
 restrictions on their own; this is contrast to, e.g., Apple&#39;s Cocoa
-frameworks<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
+frameworks<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous.
 Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span>, where mutability is an inherent part of the object&#39;s
 constructed type. Instead, every object is in principle mutable, but as
 long as it is only referenced from immutable handles the compiler can
@@ -1089,7 +1089,7 @@ between different threads, etc.
 methods, HC explicitly tracks which methods mutate their parent scope via
 a trailing colon (<code class="code code1 language-ruby lang-ruby ruby colorized"><span style="color:blue">:</span></code>). When a mutating method is called on an immutable
 object, it simply performs a <em class="em-low1">copy-on-write</em>, returning a new object. To
-enable this, mutating methods can not explicitly return a value, but 
+enable this, mutating methods can not explicitly return a value, but
 implicitly return their parent (e.g., &#8220;this&#8221;; see Section {#sec-oops} for
 more details).
 </p>
@@ -1107,16 +1107,16 @@ more details).
 <span style="color:darkgreen"># 113</span>
 ; fixed.accessor()
 <span style="color:darkgreen"># 42</span></code></pre><h2 id="sec-applications" class="h1" data-heading-depth="1" style="display:block"><span class="heading-before"><span class="heading-label">3</span>.&#8194;</span>Applications</h2>
-<p class="p noindent">While the above language may seem simple to the point of simplistic, it has a 
+<p class="p noindent">While the above language may seem simple to the point of simplistic, it has a
 surprising amount of power.  Here are a few examples of what it can do.
 </p><h3 id="sec-congrams" class="h2" data-heading-depth="2" style="display:block"><span class="heading-before"><span class="heading-label">3.1</span>.&#8194;</span>Congrams</h3>
-<p class="p noindent">As mentioned above, HC programs that consist only of literals other than closures 
-are called <em class="em-low1">congrams</em>, which are just pure data. This provides a 
+<p class="p noindent">As mentioned above, HC programs that consist only of literals other than closures
+are called <em class="em-low1">congrams</em>, which are just pure data. This provides a
 once-in-a-lifetime opportunity to bring rigor and consistency to a variety of organic
 data formats developed over the Internet&#39;s brief history.
 </p><h4 id="sec-hcsv" class="h3" data-heading-depth="3" style="display:block"><span class="heading-before"><span class="heading-label">3.1.1</span>.&#8194;</span>HCSV</h4>
 <p class="p noindent">Homoiconic C may finally provide a well-defined alternative to the
-ubiquitous CSV<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
+ubiquitous CSV<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous.
 Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span> file. A properly-structured <code class="code code1 language-ruby lang-ruby ruby colorized">.hcsv</code> file is just as compact
 as CSV, with two important differences:
 <em class="em-star1"> The header row, if any, consists of a list of names
@@ -1125,12 +1125,12 @@ as CSV, with two important differences:
 <pre class="para-block pre-fenced pre-fenced3 language-ruby lang-ruby ruby colorized" style="display:block"><code>.first-name, .last-name, .phone-number
 “<span style="color:purple">John</span>”, “<span style="color:purple">Doe</span>”, +1.<span class="constant" style="color:purple">408.555</span>.<span class="constant" style="color:purple">1212</span>
 “<span style="color:purple">Jane</span>”, “<span style="color:purple">Smith</span>”, +1.<span class="constant" style="color:purple">650.555</span>.<span class="constant" style="color:purple">1212</span></code></pre><h4 id="sec-hcson" class="h3" data-heading-depth="3" style="display:block"><span class="heading-before"><span class="heading-label">3.1.2</span>.&#8194;</span>HCSON</h4>
-<p class="p noindent">HC can also emulate the popular JSON<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
+<p class="p noindent">HC can also emulate the popular JSON<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous.
 Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span> format, or more precisely its
-CoffeeScript cousin CSON<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
+CoffeeScript cousin CSON<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous.
 Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span>.
 </p>
-<pre class="para-block pre-fenced pre-fenced3 language-ruby lang-ruby ruby colorized" style="display:block"><code>.first-name “<span style="color:purple">John</span>”, .last-name “<span style="color:purple">Doe</span>”, .phone-number +1.<span class="constant" style="color:purple">408.555</span>.<span class="constant" style="color:purple">1212</span>  
+<pre class="para-block pre-fenced pre-fenced3 language-ruby lang-ruby ruby colorized" style="display:block"><code>.first-name “<span style="color:purple">John</span>”, .last-name “<span style="color:purple">Doe</span>”, .phone-number +1.<span class="constant" style="color:purple">408.555</span>.<span class="constant" style="color:purple">1212</span>
 .first-name “<span style="color:purple">Jane</span>”, .last-name “<span style="color:purple">Smith</span>”, .phone-number +1.<span class="constant" style="color:purple">650.555</span>.<span class="constant" style="color:purple">1212</span>  </code></pre><h3 id="sec-object-orientation" class="h2" data-heading-depth="2" style="display:block"><span class="heading-before"><span class="heading-label">3.2</span>.&#8194;</span>Object-Orientation</h3>
 <p class="p noindent">Perhaps surprisingly, it is possible to implement a complete object-oriented
 programming system using only the above primitives.  All we need
@@ -1177,11 +1177,11 @@ inheritance is just another expression, you are welcome to define your own:
 </p>
 <pre class="para-block pre-fenced pre-fenced3 language-ruby lang-ruby ruby colorized" style="display:block"><code><span style="color:purple">$</span> npm install -g hclang
 <span style="color:purple">$</span> hc -e <span style="color:maroon">&quot;</span><span class="$s2" style="color:maroon">“Hello, ” “Homoiconic C!”</span><span style="color:maroon">&quot;</span></code></pre>
-<p class="p noindent para-continued">It is under active development, and available on GitHub<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
+<p class="p noindent para-continued">It is under active development, and available on GitHub<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous.
 Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span> under
 the MIT Open Source license.
 </p><h3 id="sec-architecture" class="h2" data-heading-depth="2" style="display:block"><span class="heading-before"><span class="heading-label">4.1</span>.&#8194;</span>Architecture</h3>
-<p class="p noindent">The core runtime objects live in the <code class="code code1 language-ruby lang-ruby ruby colorized">src/frames</code> directory, where they 
+<p class="p noindent">The core runtime objects live in the <code class="code code1 language-ruby lang-ruby ruby colorized">src/frames</code> directory, where they
 are implemented as TypeScript classes.  Generally speaking there is
 one class for each primitive and aggregate frame, plus abstract classes for
 the generic Frame, FrameAtom, and FrameList.
@@ -1217,7 +1217,7 @@ in the conceptual stage.
 we plan to use to get there is enabling <strong class="strong-star2">executable documentation</strong>.
 </p>
 <p class="p indent">This document, for example, is written in a dialect of Markdown called
-Madoko<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
+Madoko<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous.
 Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span> which uses triple back-quotes (&#8220;```&#8221;) to delimit code
 fragments. We could invert that by having Homoiconic C use those quotes
 as the delimiters for doc-strings, so it can directly (and sequentially)
@@ -1230,8 +1230,8 @@ this file with:
 </p>
 <pre class="para-block pre-fenced pre-fenced3 language-ruby lang-ruby ruby colorized" style="display:block"><code><span style="color:darkgreen">#!/usr/bin/env hc -doctest</span>
 \<span style="color:maroon">`</span><span class="$s2" style="color:gray">\`</span><span class="$s2" style="color:gray">\`</span></code></pre>
-<p class="p noindent para-continued">The process would thus involve rewriting the documentation and 
-the source code together until they are both complete and consistent. 
+<p class="p noindent para-continued">The process would thus involve rewriting the documentation and
+the source code together until they are both complete and consistent.
 </p><h4 id="sec-compilation" class="h3" data-heading-depth="3" style="display:block"><span class="heading-before"><span class="heading-label">4.3.2</span>.&#8194;</span>Compilation</h4>
 <p class="p noindent">Once the interpreter is finished, we plan to work on a self-hosting
 transpiler. Written in Homoiconic C, it would convert <code class="code code1 language-ruby lang-ruby ruby colorized">.hc</code> files
@@ -1239,25 +1239,25 @@ directly into executable JavaScript. This may be rather heavyweight,
 however, since all the JavaScript objects would be Frame
 instances.
 </p>
-<p class="p indent">The second step would be compiling directly to <code class="code code1 language-ruby lang-ruby ruby colorized">asm.js</code><span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
+<p class="p indent">The second step would be compiling directly to <code class="code code1 language-ruby lang-ruby ruby colorized">asm.js</code><span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous.
 Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span>/
-WebBinary<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
+WebBinary<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous.
 Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span>. In particular, the goal would be to first wrap asm.js
 as a &#8220;congram&#8221; so that it can be easily manipulated directly from Homoiconic C.
 </p>
 <p class="p indent">That experience would serve as a useful stepping stone towards a true
-native code compiler. Rather than simply using LLVM<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
+native code compiler. Rather than simply using LLVM<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous.
 Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span>, we would
 prefer to use that opportunity to reexamine the very nature of
 intermediate representations and assembly language. The theory underlying
 Homoiconic C suggests that &#8220;switching circuits&#8221; may do a better job of
 abstracting the underlying electronics than traditional von Neumann
-architectures<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
+architectures<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous.
 Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span>. While admittedly a long shot, if successful it
 could enable dramatic breakthroughs in performance, power consumption,
 and hardware evolution.
 </p><h2 id="sec-related-work" class="h1" data-heading-depth="1" style="display:block"><span class="heading-before"><span class="heading-label">5</span>.&#8194;</span>Related Work</h2><h3 id="sec-bitc" class="h2" data-heading-depth="2" style="display:block"><span class="heading-before"><span class="heading-label">5.1</span>.&#8194;</span>BitC</h3>
-<p class="p noindent">Homoiconic C could be considered a reincarnation of the BitC<span class="citations" style="target-element:bibitem">[<a href="#bitc" title="Shapiro et&#160;al. 
+<p class="p noindent">Homoiconic C could be considered a reincarnation of the BitC<span class="citations" style="target-element:bibitem">[<a href="#bitc" title="Shapiro et&#160;al.
 Sound and complete type inference in a systems language." class="bibref localref" style="target-element:bibitem"><span class="cite-number">3</span></a>]</span>
 project, which attempted to add a &#8220;bit of C&#8221; to Lisp in order to bring
 rigor to systems programming. As far as we know, they are the only group
@@ -1275,7 +1275,7 @@ invocation boundaries. Finally, we leverage Open Source to bootstrap the
 project so that we are not dependent on external funding.
 </p><h3 id="sec-julia" class="h2" data-heading-depth="2" style="display:block"><span class="heading-before"><span class="heading-label">5.2</span>.&#8194;</span>Julia</h3>
 <p class="p noindent">Though developed  independently, Homoiconic C shares many goals and features
-with the emerging Julia<span class="citations" style="target-element:bibitem">[<a href="#julia" title="The&#160;Julia Language. 
+with the emerging Julia<span class="citations" style="target-element:bibitem">[<a href="#julia" title="The&#160;Julia Language.
 Julia &gt;&gt; docs &gt;&gt; metaprogramming, 2017." class="bibref localref" style="target-element:bibitem"><span class="cite-number">5</span></a>]</span> language for numerical computing:
 <em class="em-star1"> multiple dispatch
 </em> homoiconicity, macros, and meta-programming
@@ -1289,16 +1289,16 @@ system plus the extreme simplicity of the syntax and implementation will
 still enable us to provide a compelling alternative.
 </p><h3 id="sec-mathematica" class="h2" data-heading-depth="2" style="display:block"><span class="heading-before"><span class="heading-label">5.3</span>.&#8194;</span>Mathematica</h3>
 <p class="p noindent">The most widely used homoiconic language in use today is probably
-Mathematica&nbsp;<span class="citations" style="target-element:bibitem">[<a href="#mathematica" title="Leonid Shifrin. 
+Mathematica&nbsp;<span class="citations" style="target-element:bibitem">[<a href="#mathematica" title="Leonid Shifrin.
 Metaprogramming in mathematica, 2012a." class="bibref localref" style="target-element:bibitem"><span class="cite-number">7</span></a>]</span>. However, despite several notable attempts to
 broaden its reach, Mathematica remains primarily a prototyping tool
 within Wolfram&#39;s products rather than remains primarily a prototyping
-tool within Wolfram&#39;s products rather than a general-purpose language<span class="citations" style="target-element:bibitem">[<a href="#mathematicaprototype" title="Leonid Shifrin. 
-Can mathematica be regarded as a software prototyping environment?, 2012b. 
+tool within Wolfram&#39;s products rather than a general-purpose language<span class="citations" style="target-element:bibitem">[<a href="#mathematicaprototype" title="Leonid Shifrin.
+Can mathematica be regarded as a software prototyping environment?, 2012b.
 URL https://&#8203;mathematica.&#8203;stackexchange.&#8203;com/&#8203;questions/&#8203;1314/&#8203;can-&#8203;mathematica-&#8203;be-&#8203;regarded-&#8203;as-&#8203;a-&#8203;software-&#8203;prototyping-&#8203;environment." class="bibref localref" style="target-element:bibitem"><span class="cite-number">8</span></a>]</span>.
 </p><h3 id="sec-steps" class="h2" data-heading-depth="2" style="display:block"><span class="heading-before"><span class="heading-label">5.4</span>.&#8194;</span>STEPS</h3>
 <p class="p noindent">Homoiconic C was also inspired by and shares many goals with Alan Kay&#39;s
-ambitious STEPS&nbsp;<span class="citations" style="target-element:bibitem">[<a href="#steps" title="Alan&#160;Kay et&#160;al. 
+ambitious STEPS&nbsp;<span class="citations" style="target-element:bibitem">[<a href="#steps" title="Alan&#160;Kay et&#160;al.
 Steps toward the reinvention of programming." class="bibref localref" style="target-element:bibitem"><span class="cite-number">2</span></a>]</span> project for reinventing programming. From our
 perspective, the tragic flaw with his approach was starting from the
 (admittedly ubiquitous) assumption that computation should be built upon
@@ -1314,8 +1314,8 @@ Interrupts.&#8221; We believe this choice of basis enables us to generate
 platforms.
 </p><h3 id="sec-water" class="h2" data-heading-depth="2" style="display:block"><span class="heading-before"><span class="heading-label">5.5</span>.&#8194;</span>Water</h3>
 <p class="p noindent">The idea of expressing programs in a data format is not in itself new. A
-relatively modern attempt was Water<span class="citations" style="target-element:bibitem">[<a href="#water" title="Mike Plush. 
-Introduction to water: A new native web services programming language, 2002. 
+relatively modern attempt was Water<span class="citations" style="target-element:bibitem">[<a href="#water" title="Mike Plush.
+Introduction to water: A new native web services programming language, 2002.
 URL http://&#8203;www.&#8203;informit.&#8203;com/&#8203;articles/&#8203;article.&#8203;aspx?&#8203;p=&#8203;27567." class="bibref localref" style="target-element:bibitem"><span class="cite-number">6</span></a>]</span>, which attempted to program
 web applications using a more concise variant of XML. Though extremely
 clever, it suffered not just from the awkwardness of XML as a data
@@ -1332,7 +1332,7 @@ engineering today.
 </p>
 <p class="p indent">By eliminated that complexity, Homoiconic C hopes to usher in a new
 Golden Age of software that is:
-<em class="em-star1"> Inherently and provably secure 
+<em class="em-star1"> Inherently and provably secure
 </em> Both inherently efficient and easily optimized
 <em class="em-star1"> Easy to learn, read, and modify
 </em> Trivial to statically analyze, visualize, and automatically evolve
@@ -1345,7 +1345,7 @@ anymore than everyone who sings is an expert or professional musician &#8211;
 but the ability to read, understand, and personalize code will be
 available to all.
 </p>
-<p class="p indent">It may be true that there is no silver bullet<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous. 
+<p class="p indent">It may be true that there is no silver bullet<span class="citations" style="target-element:bibitem">[<a href="#cite" title="Anonymous.
 Citation Needed." class="bibref localref" style="target-element:bibitem"><span class="cite-number">1</span></a>]</span>.   But we believe
 Homoiconic C can at least be a &#8220;diamond sword&#8221;, enabling courageous individuals
 to bring safety, performance, usability, and clarity to the software that
@@ -1428,13 +1428,13 @@ them.
 
 <div id="fn-lua-fn" class="footnote" style="line-adjust:0">
 <p class="p noindent"><span class="footnote-before"><sup><span class="footnote-label">1</span>.</sup></span>The only minimalist language still in active use appears to be
-Lua<span class="citations" style="target-element:bibitem">[<a href="#lua" title="TBD. 
+Lua<span class="citations" style="target-element:bibitem">[<a href="#lua" title="TBD.
 Lua, 2000f." class="bibref localref" style="target-element:bibitem"><span class="cite-number">14</span></a>]</span>, though even that is relegated to niche applications.
 <a href="#back-fn-lua-fn" class="footnote-backref localref">&#8617;</a></p></div>
 <div id="fn-monad" class="footnote" style="line-adjust:0">
 <p class="p noindent"><span class="footnote-before"><sup><span class="footnote-label">2</span>.</sup></span>Not just the mathematical term for an object closed under all
 operations, but Liebniz&#39;s original idea of a single universal
-building-block<span class="citations" style="target-element:bibitem">[<a href="#liebniz" title="TBD. 
+building-block<span class="citations" style="target-element:bibitem">[<a href="#liebniz" title="TBD.
 Liebniz, 2000d." class="bibref localref" style="target-element:bibitem"><span class="cite-number">12</span></a>]</span>.
 <a href="#back-fn-monad" class="footnote-backref localref">&#8617;</a></p></div></div></div>
 </body>

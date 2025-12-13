@@ -17,9 +17,11 @@ repos:
       - id: lint
         name: lint
         entry: bash -c "deno fmt && deno lint --fix"
-        language: deno
+        language: system
+        pass_filenames: false
       - id: test
         name: test
         entry: bash -c "deno test -A"
         stages: [pre-push]
-        language: deno
+        language: system
+        pass_filenames: false

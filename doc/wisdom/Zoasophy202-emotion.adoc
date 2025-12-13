@@ -197,4 +197,3 @@ perhaps giving rise to what Adam Smith calls "moral sentiments."
 == Future Work
 
 A logical next step would be to map this onto traditional models of emotion (e.g., https://positivepsychology.com/emotion-wheel/[Plutchik's Emotion Wheel)] to see how few bits could plausible represent them.
-

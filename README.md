@@ -74,17 +74,18 @@ deno task test
 
 The root `deno.json` provides several tasks:
 
-| Task                  | Description                                   |
-| --------------------- | --------------------------------------------- |
-| `deno task hc`        | Launch the HC REPL                            |
-| `deno task test`      | Run all tests (format, lint, and test suites) |
-| `deno task test:cli`  | Test CLI package                              |
-| `deno task test:lib`  | Test library package                          |
-| `deno task test:maml` | Test MAML package                             |
-| `deno task test:web`  | Test web package                              |
-| `deno task test:bs`   | Test BitScheme documentation                  |
-| `deno task test:doc`  | Test HC documentation examples                |
-| `deno task build`     | Build the HC CLI binary                       |
+| Task                  | Description                                    |
+| --------------------- | ---------------------------------------------- |
+| `deno task hc`        | Launch the HC REPL                             |
+| `deno task setup`     | Install pre-commit hooks                       |
+| `deno task test`      | Run all tests (setup, format, lint, and tests) |
+| `deno task test:cli`  | Test CLI package                               |
+| `deno task test:lib`  | Test library package                           |
+| `deno task test:maml` | Test MAML package                              |
+| `deno task test:web`  | Test web package                               |
+| `deno task test:bs`   | Test BitScheme documentation                   |
+| `deno task test:doc`  | Test HC documentation examples                 |
+| `deno task build`     | Build the HC CLI binary                        |
 
 ### BitScheme
 
@@ -128,11 +129,27 @@ deno task hc
    # Other platforms: see https://deno.land/
    ```
 
-3. Run tests:
+3. (Optional) Install [pre-commit](https://pre-commit.com/) for automatic code
+   quality checks:
+
+   ```bash
+   # macOS
+   brew install pre-commit
+
+   # Other platforms: pip install pre-commit
+   ```
+
+   Pre-commit hooks are automatically installed when you run `deno task test` or
+   manually with `deno task setup`.
+
+4. Run tests:
 
    ```bash
    deno task test
    ```
+
+   This will automatically set up pre-commit hooks, format code, run linters,
+   and execute the test suite.
 
 ### Project Structure
 

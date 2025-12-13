@@ -10,7 +10,7 @@ Draft 0, 2023-08-01 ~ponnum-minnus <ernest.prabhakar@gmail.com>
 
 * Honc is a lover, singing soft songs of the gentle Venetian seas to woo wayward sailors back to their native innocence.
 
-More prosaically, Honc is an attempt to express Nock semantics in the familiar, C-like syntax (and terminology) used by Python, Ruby, etc.  
+More prosaically, Honc is an attempt to express Nock semantics in the familiar, C-like syntax (and terminology) used by Python, Ruby, etc.
 It is built on Homoiconic C ("hclang"), another attempt to reinvent programming on an axiomatic, tree-structured foundation.
 
 Initially, I thought it might be easy to implement nock in hclang, to give Urbit developers a more approachable scripting language.
@@ -38,7 +38,7 @@ Any errors are mine alone; corrections are deeply appreciated!
 
 All hclang functions take a single argument, which can be `nil` or a complex data structure.
 
-Note this fragment uses the hclang input (";") and output ("#") prompts from the REPL.  
+Note this fragment uses the hclang input (";") and output ("#") prompts from the REPL.
 Since ";" terminates expressions, and "#" creates comments,
 REPL code can be pasted directly into a source file (where it is interprted as a doctest).
 
@@ -140,7 +140,7 @@ then retrieve it at compile time:
 ; plist.a
 # 1
 ; nockc {plist .a}
-# same as "plist.0" 
+# same as "plist.0"
 # [[1, 3.14, 1, 42], [0, 2]]
 ```
 
@@ -248,7 +248,7 @@ As a convenience, you can pass `echo` a list of 0-based indices for nested data 
 ```hclang
 ; .apples Honc([[`apple`, .pie] [0b1101, 0xdad]]);
 ; apples.echo(5)
-# .pie 
+# .pie
 ; apples.echo([0, 1])
 # .pie
 ```
@@ -361,7 +361,7 @@ These map to pseudo-operators in nasm:
 Map creates a new list from an old list by applying a closure in parallel:
 
 ```hclang
-; [1, 2] & {pp _} 
+; [1, 2] & {pp _}
 # [`1`, `2`]
 ```
 
@@ -456,7 +456,7 @@ Applying nil to a closure evaluates it:
 ; .op2a { [50, 51] [map-eval (get 3) {incr get 1}] }
 
 # Break it down into map:
-; { (get 3), {incr get 1} } & [50, 51] 
+; { (get 3), {incr get 1} } & [50, 51]
 # { 51 (incr get 1) }
 
 # Then eval:
