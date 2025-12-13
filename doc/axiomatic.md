@@ -335,6 +335,7 @@ potential as the foundation of mathematics and physics.”
 To the judges, the audience, and my fellow debater: let’s not just seek answers tonight—let’s seek better questions, and let’s keep asking them together. Thank you.”
 
 (The audience breaks into applause, impressed by Mark’s humility, resilience, and willingness to engage constructively with Saul’s critique. Stephen Wolfram steps forward, smiling, to prepare for the next act.)
+
 ---
 
 ## Act IV: Saul Youssef’s Model Pitch

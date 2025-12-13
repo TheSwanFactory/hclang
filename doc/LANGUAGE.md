@@ -4,7 +4,7 @@
 
 ### Draft 3 • 24-MAR-2017
 
-# Introduction
+## Introduction
 
 Homoiconic C ("HC") is an alternative to traditional programming languages.
 There are a handful of primitive types, and three types of aggregation.
@@ -54,7 +54,7 @@ Right now, you either must think about certain things all the time (i.e., when
 doing assembly) or can never think about them at all (e.g., in a high-level
 language).
 
-# The Object Model
+## The Object Model
 
 HC is "monadic", in the sense that everything is a single type of object that we
 call a Frame. All syntax (aggregates, primitives, functions, even comments!)
@@ -127,7 +127,7 @@ typical C conventions:
 - Bitfields
 - Predicates (the `~` operator)
 
-# The Syntax
+## The Syntax
 
 Syntactically, Homoiconic C is a variation on the ASCII Property List format
 popularized by NeXTSTEP and now expressed by Java, JSON, YAML, etc. (This is
@@ -181,21 +181,21 @@ There are three forms of quoting:
 
 ### Numeric
 
-##### Integer
+#### Integer
 
 - _Decimal_: `123`
 - _Binary_: `0b11`
 - _Octal_: `0o1337`
 - _Hexadecimal_: `0xDEADBEEF`
 
-##### Non-Integer
+#### Non-Integer
 
 - _Rational_: `1/3`
 - _Float_: `123.456`
 - _Scientific_: `123.456.E.-10`
 - _Semver_: `123.456.p123`
 
-##### Times
+#### Times
 
 Having times as a primitive avoids having to worry about epochs and whether to
 use milliseconds or nanoseconds. Eventually we plan to directly support parsing
@@ -231,7 +231,7 @@ non-alphanumeric identifiers (operators). This is what makes Homoiconic C a
 concise yet expressive data format, as well as a trivial-to-parse programming
 language.
 
-# Examples
+## Usage Examples
 
 The examples (and the eventual HC interpreter) use `;` for the input prompt and
 `#` for the output prompt. This convention has the nice property that examples
@@ -359,11 +359,9 @@ To evaluate them, apply an argument, such as `nil`:
 
 Use `_` as the anonymous argument.
 
-```
-; .square {_ * _};
-; square 3
-# 9
-```
+    ; .square {_ * _};
+    ; square 3
+    # 9
 
 #### Argument Lists
 
@@ -388,29 +386,27 @@ function can do to the calling scope.
 
 ## Object-Oriented Programming
 
-#### Super `^`
+### Super `^`
 
 The `^` property points to the parent (defined) context, in contrast to the
 applied (argument) context `_`. This allows a child to directly set properties
 on its parent or access overridden properties.
 
-```
-; .parent_ [
-# # .x 1;
-# # .helper: {
-#   # .x 2;
-#   # .y x + ^.x;
-#   # .^.y y + _;
-#   # }
-# # ]
-; parent_.x
-# 1
-; parent.y
-# @missing
-; parent_.helper: 10;
-; parent_.y
-# 13
-```
+    ; .parent_ [
+    # # .x 1;
+    # # .helper: {
+    #   # .x 2;
+    #   # .y x + ^.x;
+    #   # .^.y y + _;
+    #   # }
+    # # ]
+    ; parent_.x
+    # 1
+    ; parent.y
+    # @missing
+    ; parent_.helper: 10;
+    ; parent_.y
+    # 13
 
 #### TODO: This `.`
 
@@ -424,21 +420,19 @@ factories without any additional syntax or semantics!
 (In the below examples, we omit the multi-line prompts to reduce visual
 clutter.)
 
-```
-; my-class {
-  ._property _;
-  .getProperty { ^._property }
-  .setProperty: { .^._property _}
-};
-; .my-instance my-class 3;
-; my-instance.getProperty()
-# 3
-; .mutated = my-instance.setProperty: 42;
-; mutated.getProperty()
-# 42
-; my-instance.getProperty()
-# 3
-```
+    ; my-class {
+      ._property _;
+      .getProperty { ^._property }
+      .setProperty: { .^._property _}
+    };
+    ; .my-instance my-class 3;
+    ; my-instance.getProperty()
+    # 3
+    ; .mutated = my-instance.setProperty: 42;
+    ; mutated.getProperty()
+    # 42
+    ; my-instance.getProperty()
+    # 3
 
 This may seem to good to be true, but that is the power of choosing the correct
 primitives:
@@ -449,32 +443,28 @@ primitives:
 - The class itself is the constructor (as a closure)
 - When evaluated, that closure inherits the class as its parent
 
-## TODO: Class variables
+### TODO: Class variables
 
 #### Singletons
 
 As an added bonus, Frame is perhaps unique in that it is trivial to create
 singleton objects simply by using a non-lazy constructor:
 
-```
-; my-singleton (
-  ._property _;
-  .getProperty { ^._property }
-  .setProperty: { .^._property _}
-);
-;
-```
+    ; my-singleton (
+      ._property _;
+      .getProperty { ^._property }
+      .setProperty: { .^._property _}
+    );
+    ;
 
-#### Inheritance
+#### Inheritance (Subclassing)
 
 Even inheritance is already accounted for, simply by allowing an object to
 specify its parent:
 
-```
-; my-subclass {
-  .^ my-class
-};
-```
+    ; my-subclass {
+      .^ my-class
+    };
 
 At this time there does not appear to be any natural way to implement multiple
 inheritance (which may be a good thing). However, if you come up with your own
@@ -482,11 +472,9 @@ it would be trivial to use it:
 
 (Fake code, will give an error.)
 
-```
-; my-multiclass {
-  .^ multiply-inherit (my-class, my-other-class)
-};
-```
+    ; my-multiclass {
+      .^ multiply-inherit (my-class, my-other-class)
+    };
 
 ## Predefined Operators
 
@@ -514,9 +502,11 @@ does the reverse.
 Which, when the first expression does not return nil, acts like the ternary
 operator:
 
-; ( 1 > 5 ) ? 100 : 10
+    ```
+    ; ( 1 > 5 ) ? 100 : 10
 
-# 10
+    # 10
+    ```
 
 Note that this implies that applying nil to anything other than a closure has no
 effect.
@@ -533,9 +523,9 @@ Similarly, we use `&` for reduce:
     ; [1, 2, 3] & { . + _ }
     # 6
 
-# Appendices
+## Appendices
 
-## Appendix I. On Turing Completeness
+### Appendix I: On Turing Completeness
 
 Turing undecidability, like Godelian incompleteness, starts by assuming "basic
 arithmetic" (add, substract, multiply, divide) -- i.e. the Peano Axioms.
