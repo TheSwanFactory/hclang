@@ -147,11 +147,37 @@ hclang/
 └── deno.json     # Workspace root configuration
 ```
 
-### VSCode Extension
+### VS Code Extension
 
-The [language-hclang](https://github.com/TheSwanFactory/language-hclang) VSCode
-extension provides syntax highlighting for HC files (still being updated for
-latest syntax).
+The VS Code extension for HC is now included in this repository at
+[vscode-extension/](vscode-extension/). It provides comprehensive syntax
+highlighting for all HC language features based on the complete grammar
+specification.
+
+**Installation:**
+
+```bash
+# Install from source
+deno task vscode:install
+
+# Or package for distribution
+deno task vscode:package
+
+# Or publish to marketplace
+deno task vscode:publish
+```
+
+The extension recognizes `.hc` files and provides:
+
+- Syntax highlighting for all HC elements (numbers, strings, identifiers,
+  operators, etc.)
+- Smart bracket matching for `{}`, `[]`, `()`
+- Auto-closing pairs
+- Comment toggling with `#`
+
+**Note:** The old standalone
+[language-hclang](https://github.com/TheSwanFactory/language-hclang) repository
+is now deprecated in favor of this integrated extension.
 
 ## Publishing
 
