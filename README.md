@@ -74,18 +74,19 @@ deno task test
 
 The root `deno.json` provides several tasks:
 
-| Task                  | Description                                    |
-| --------------------- | ---------------------------------------------- |
-| `deno task hc`        | Launch the HC REPL                             |
-| `deno task setup`     | Install pre-commit hooks                       |
-| `deno task test`      | Run all tests (setup, format, lint, and tests) |
-| `deno task test:cli`  | Test CLI package                               |
-| `deno task test:lib`  | Test library package                           |
-| `deno task test:maml` | Test MAML package                              |
-| `deno task test:web`  | Test web package                               |
-| `deno task test:bs`   | Test BitScheme documentation                   |
-| `deno task test:doc`  | Test HC documentation examples                 |
-| `deno task build`     | Build the HC CLI binary                        |
+| Task                   | Description                                    |
+| ---------------------- | ---------------------------------------------- |
+| `deno task hc`         | Launch the HC REPL                             |
+| `deno task setup`      | Install pre-commit hooks                       |
+| `deno task test`       | Run all tests (setup, format, lint, and tests) |
+| `deno task test:setup` | Run all pre-commit hooks on all files          |
+| `deno task test:cli`   | Test CLI package                               |
+| `deno task test:lib`   | Test library package                           |
+| `deno task test:maml`  | Test MAML package                              |
+| `deno task test:web`   | Test web package                               |
+| `deno task test:bs`    | Test BitScheme documentation                   |
+| `deno task test:doc`   | Test HC documentation examples                 |
+| `deno task build`      | Build the HC CLI binary                        |
 
 ### BitScheme
 

@@ -12,6 +12,7 @@
     "setup": "pre-commit install || echo 'pre-commit not installed. Install it with: brew install pre-commit (or pip install pre-commit). See https://pre-commit.com for more info.'",
     "tag": "git tag v$(jq -r .version deno.json) && git push origin --tags",
     "test": "deno task setup && deno fmt && deno lint --fix && deno task test:all",
+    "test:setup": "pre-commit run --all-files || echo 'pre-commit not installed. Install it with: brew install pre-commit (or pip install pre-commit). See https://pre-commit.com for more info.'",
     "test:cli": "cd cli && deno task test",
     "test:doc": "cd cli && deno task test:doc",
     "test:lib": "deno test lib",
