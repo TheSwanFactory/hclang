@@ -68,8 +68,8 @@ withdrawing funds:
 fractor BankAccount {
   balance: int;
 
-  get_balance() { 
-    return read_fractor(BankAccount).balance; 
+  get_balance() {
+    return read_fractor(BankAccount).balance;
   }
 
   deposit:(amount: int) {

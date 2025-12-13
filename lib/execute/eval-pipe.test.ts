@@ -1,5 +1,5 @@
-import { expect } from "jsr:@std/expect";
-import { beforeEach, describe, it } from "jsr:@std/testing/bdd";
+import { expect } from "jsr:@std/expect@^0.219.1";
+import { beforeEach, describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 import { EvalPipe } from "./eval-pipe.ts";
 import * as frame from "../frames.ts";
 

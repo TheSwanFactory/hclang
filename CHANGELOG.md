@@ -1,8 +1,24 @@
 # CHANGELOG
 
-## v0.7.4 2025-03-01
+## v0.7.4 2025-12-13
 
-- Top-level `deno task hc` and `test:doc` command
+- **Deno 2 Compatibility**: Full support for Deno 2.x
+  - Fixed `@preact/hooks` import path (hooks is a submodule of preact)
+  - Removed deprecated `permissions` field from `cli/deno.json`
+  - Added version specifiers to all JSR imports
+  - All tests pass with Deno 2
+- **VS Code Extension**: Added comprehensive syntax highlighting
+  - Full language configuration with bracket matching and auto-closing
+  - Complete syntax highlighting for all HC language features
+  - Packaged and ready for VS Code Marketplace
+  - Published under TheSwanFactory namespace
+  - Replaces deprecated standalone language-hclang repository
+- **Documentation Enhancements**:
+  - Added comprehensive [GRAMMAR.md](doc/GRAMMAR.md) reference
+  - Significantly improved [README.md](README.md) with detailed usage examples
+  - Added VS Code extension documentation
+  - Applied formatting lint to all documentation files
+- Top-level `deno task hc` and `test:doc` commands
 - Properly returns Frame.all for '<>'
 
 ## v0.7.3 2025-02-23

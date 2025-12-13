@@ -1,6 +1,6 @@
 import { execute } from "@swanfactory/hclang";
-import { describe, it } from "jsr:@std/testing/bdd";
-import { expect } from "jsr:@std/expect";
+import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
+import { expect } from "jsr:@std/expect@^0.219.1";
 
 // Example test case
 describe("execute", () => {

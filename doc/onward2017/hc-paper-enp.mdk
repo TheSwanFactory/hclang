@@ -288,11 +288,11 @@ languages -- see Table [#sec-table-terminals] -- with a few twists.
 ~
 
 Formally speaking, each expression should terminate in an ',' or ';', depending
-on whether we want to return the resulting value: 
+on whether we want to return the resulting value:
 ``` ruby
-; “My Statement”; 
-; “Self Expression”, 
-# “Self Expression” 
+; “My Statement”;
+; “Self Expression”,
+# “Self Expression”
 ```
 This effectively allows us to distinguish "expressions" that return a
 value from "statements" that do not. However, trailing commas are
@@ -390,7 +390,7 @@ This avoids the subtle and confusing distinction between differing
 That enables `=` to always mean a test for equality, rather than also being used
 for assignment.
 
-We can use the value `x` to access that property in the same or any child context: 
+We can use the value `x` to access that property in the same or any child context:
 
 ``` ruby
 ; x
@@ -444,8 +444,8 @@ manipulating the flow of control. But when there is, we use a control, e.g.:
 * `$<<`
   : Terminate the _parent_ scope and return the argument ("inner return")
 
-Remember that every context is a self-contained entity, and thus `.` and `$<` refer 
-only to that scope, even if it is a clause in a conditional.  That's why we need 
+Remember that every context is a self-contained entity, and thus `.` and `$<` refer
+only to that scope, even if it is a clause in a conditional.  That's why we need
 multi-level returns.
 
 
@@ -588,7 +588,7 @@ optional defaults:
 ; .join-name (.first “Jane”, .last) ^ {last “, ” first};
 ; join-name (.first “John”, .last “Doe”)
 # “Doe, John”
-``` 
+```
 
 Types are generous, in that you are allowed to specify additional properties,
 but it is an error to omit properties that do not have a default:
@@ -597,7 +597,7 @@ but it is an error to omit properties that do not have a default:
 # “Doe, Jane”
 ; join-name (.middle “Q”)
 # $!invalid-argument-list (.middle “Q”, $!missing-required-argument .last;)
-``` 
+```
 
 The return type is usually inferred, but can be specified explicitly using a trailing `^^`.
 
@@ -669,7 +669,7 @@ Similarly, we use `&` for reduce:
 
 The operators also work with files and network ports, reading one line
 (or object) at a time, greatly simplifying common I/O operations (a la
-the UNIX shell). 
+the UNIX shell).
 
 ### Conditionals
 
@@ -679,7 +679,7 @@ albeit with slightly different semantics. These are described in Table [#sec-tab
 ~ TableFigure { #sec-table-cond; caption: "Conditional Operators" }
 
 +-------+--------+-------+--------+
-| Operator   | Name| On Frame | On Nil | 
+| Operator   | Name| On Frame | On Nil |
 +-------+--------+-------+--------+
 | ?     | _if_   | Call with `()` | Return `()` |
 | :     | _else_ |Return `()` | Call with `()` |
@@ -837,9 +837,9 @@ restrict side effects for safety.
  syntax of our identifiers to explicitly support effect typing:
 
 * `variable`
-  : Does not begin with an uppercase letter. Can be reassigned. 
+  : Does not begin with an uppercase letter. Can be reassigned.
 * `CONSTANT`
-  : Begins with uppercase letter. Can **not** be reassigned. 
+  : Begins with uppercase letter. Can **not** be reassigned.
 * `immutable`
   : Has no suffix. Can not be modified in place.
 * `mutable_`
@@ -851,7 +851,7 @@ restrict side effects for safety.
 Please note that these particular conventions are preliminary, and may
 change in future versions based on empirical tests of readability and
 intuitiveness. Since HC is just a data format, we plan to explicitly
-version documents and enable automatic migration between incompatible versions. 
+version documents and enable automatic migration between incompatible versions.
 
 #### Constancy
 
@@ -889,7 +889,7 @@ In order to ensure both immutable and mutable handles support the same
 methods, HC explicitly tracks which methods mutate their parent scope via
 a trailing colon (`:`). When a mutating method is called on an immutable
 object, it simply performs a _copy-on-write_, returning a new object. To
-enable this, mutating methods can not explicitly return a value, but 
+enable this, mutating methods can not explicitly return a value, but
 implicitly return their parent (e.g., "this"; see Section {#sec-oops} for
 more details).
 
@@ -913,13 +913,13 @@ more details).
 
 # Applications {#sec-applications}
 
-While the above language may seem simple to the point of simplistic, it has a 
+While the above language may seem simple to the point of simplistic, it has a
 surprising amount of power.  Here are a few examples of what it can do.
 
 ## Congrams {#sec-congrams}
 
-As mentioned above, HC programs that consist only of literals other than closures 
-are called _congrams_, which are just pure data. This provides a 
+As mentioned above, HC programs that consist only of literals other than closures
+are called _congrams_, which are just pure data. This provides a
 once-in-a-lifetime opportunity to bring rigor and consistency to a variety of organic
 data formats developed over the Internet's brief history.
 
@@ -941,8 +941,8 @@ as CSV, with two important differences:
 HC can also emulate the popular JSON[@Cite] format, or more precisely its
 CoffeeScript cousin CSON[@Cite].
 ```
-.first-name “John”, .last-name “Doe”, .phone-number +1.408.555.1212  
-.first-name “Jane”, .last-name “Smith”, .phone-number +1.650.555.1212  
+.first-name “John”, .last-name “Doe”, .phone-number +1.408.555.1212
+.first-name “Jane”, .last-name “Smith”, .phone-number +1.650.555.1212
 ```
 
 
@@ -1019,7 +1019,7 @@ the MIT Open Source license.
 
 ## Architecture
 
-The core runtime objects live in the `lib/frames` directory, where they 
+The core runtime objects live in the `lib/frames` directory, where they
 are implemented as TypeScript classes.  Generally speaking there is
 one class for each primitive and aggregate frame, plus abstract classes for
 the generic Frame, FrameAtom, and FrameList.
@@ -1075,8 +1075,8 @@ this file with:
 \`\`\`
 ```
 
-The process would thus involve rewriting the documentation and 
-the source code together until they are both complete and consistent. 
+The process would thus involve rewriting the documentation and
+the source code together until they are both complete and consistent.
 
 ### Compilation
 
@@ -1182,7 +1182,7 @@ engineering today.
 
 By eliminated that complexity, Homoiconic C hopes to usher in a new
 Golden Age of software that is:
-* Inherently and provably secure 
+* Inherently and provably secure
 * Both inherently efficient and easily optimized
 * Easy to learn, read, and modify
 * Trivial to statically analyze, visualize, and automatically evolve

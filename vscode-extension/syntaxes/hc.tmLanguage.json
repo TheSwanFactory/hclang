@@ -1,0 +1,338 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Homoiconic C",
+  "scopeName": "source.hclang",
+  "fileTypes": [
+    "hc"
+  ],
+  "patterns": [
+    {
+      "include": "#special-values"
+    },
+    {
+      "include": "#comments"
+    },
+    {
+      "include": "#strings"
+    },
+    {
+      "include": "#time-literals"
+    },
+    {
+      "include": "#blob-literals"
+    },
+    {
+      "include": "#numbers"
+    },
+    {
+      "include": "#operators"
+    },
+    {
+      "include": "#punctuation"
+    },
+    {
+      "include": "#identifiers"
+    }
+  ],
+  "repository": {
+    "special-values": {
+      "patterns": [
+        {
+          "name": "constant.language.nil.hclang",
+          "match": "\\(\\)",
+          "comment": "nil (false) - empty expression"
+        },
+        {
+          "name": "constant.language.all.hclang",
+          "match": "<>",
+          "comment": "all (true) - universal set"
+        },
+        {
+          "name": "variable.language.parent.hclang",
+          "match": "(?<!\\w)\\^(?!\\w)",
+          "comment": "parent/super context"
+        },
+        {
+          "name": "variable.language.anonymous.hclang",
+          "match": "(?<!\\w)_(?!\\w)",
+          "comment": "anonymous argument"
+        },
+        {
+          "name": "variable.language.this.hclang",
+          "match": "(?<!\\.)\\b\\.(?!\\w)",
+          "comment": "this context (standalone dot)"
+        }
+      ]
+    },
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.block.hclang",
+          "begin": "#",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.comment.begin.hclang"
+            }
+          },
+          "end": "#|$",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.comment.end.hclang"
+            }
+          },
+          "comment": "Inline comment #...# or end-of-line #..."
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.hclang",
+          "begin": "\"",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.begin.hclang"
+            }
+          },
+          "end": "\"",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.end.hclang"
+            }
+          },
+          "patterns": [
+            {
+              "name": "constant.character.escape.hclang",
+              "match": "\\\\."
+            }
+          ]
+        },
+        {
+          "name": "string.quoted.backtick.hclang",
+          "begin": "`",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.begin.hclang"
+            }
+          },
+          "end": "`",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.end.hclang"
+            }
+          },
+          "patterns": [
+            {
+              "name": "constant.character.escape.hclang",
+              "match": "\\\\."
+            }
+          ]
+        }
+      ]
+    },
+    "time-literals": {
+      "patterns": [
+        {
+          "name": "constant.numeric.time.hclang",
+          "match": "%[^%]+%",
+          "comment": "Time literals: %date%, %time%, %datetime%"
+        }
+      ]
+    },
+    "blob-literals": {
+      "patterns": [
+        {
+          "name": "string.unquoted.blob.base64.hclang",
+          "match": "\\b0s[A-Za-z0-9+/=]+\\b",
+          "comment": "Base64 encoded binary data"
+        },
+        {
+          "name": "string.unquoted.blob.raw.hclang",
+          "match": "\\\\\\d+\\\\[^\\\\]*\\\\",
+          "comment": "Raw byte strings \\length\\content\\"
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.scientific.hclang",
+          "match": "\\b\\d+\\.\\d+\\.E\\.-?\\d+\\b",
+          "comment": "Scientific notation: 123.456.E.-10"
+        },
+        {
+          "name": "constant.numeric.semver.hclang",
+          "match": "\\b\\d+\\.\\d+\\.p\\d+\\b",
+          "comment": "Semantic version: 123.456.p123"
+        },
+        {
+          "name": "constant.numeric.float.hclang",
+          "match": "\\b\\d+\\.\\d+\\b",
+          "comment": "Floating point: 123.456"
+        },
+        {
+          "name": "constant.numeric.rational.hclang",
+          "match": "\\b\\d+/\\d+\\b",
+          "comment": "Rational numbers: 1/3"
+        },
+        {
+          "name": "constant.numeric.integer.hexadecimal.hclang",
+          "match": "\\b0[xX][0-9A-Fa-f]+\\b",
+          "comment": "Hexadecimal: 0xDEADBEEF"
+        },
+        {
+          "name": "constant.numeric.integer.binary.hclang",
+          "match": "\\b0b[01]+\\b",
+          "comment": "Binary: 0b1101"
+        },
+        {
+          "name": "constant.numeric.integer.octal.hclang",
+          "match": "\\b0o[0-7]+\\b",
+          "comment": "Octal: 0o1337"
+        },
+        {
+          "name": "constant.numeric.integer.decimal.hclang",
+          "match": "\\b\\d+\\b",
+          "comment": "Decimal: 123"
+        }
+      ]
+    },
+    "operators": {
+      "patterns": [
+        {
+          "name": "keyword.operator.arithmetic.dotted.hclang",
+          "match": "\\.[+\\-*/]",
+          "comment": "Dotted arithmetic operators: .+ .- .* ./"
+        },
+        {
+          "name": "keyword.operator.arithmetic.hclang",
+          "match": "[+\\-*/]",
+          "comment": "Arithmetic operators"
+        },
+        {
+          "name": "keyword.operator.comparison.hclang",
+          "match": "[=<>~]",
+          "comment": "Comparison operators"
+        },
+        {
+          "name": "keyword.operator.logical.hclang",
+          "match": "[!?:]",
+          "comment": "Logical operators: ! (not), ? (if), : (else)"
+        },
+        {
+          "name": "keyword.operator.functional.hclang",
+          "match": "\\|{1,3}|&{1,3}",
+          "comment": "Functional operators: | (map), & (reduce)"
+        }
+      ]
+    },
+    "punctuation": {
+      "patterns": [
+        {
+          "name": "punctuation.section.braces.hclang",
+          "match": "[{}]",
+          "comment": "FrameLazy (closure)"
+        },
+        {
+          "name": "punctuation.section.brackets.hclang",
+          "match": "[\\[\\]]",
+          "comment": "FrameArray (tuple)"
+        },
+        {
+          "name": "punctuation.section.parens.hclang",
+          "match": "[()]",
+          "comment": "FrameExpr (group)"
+        },
+        {
+          "name": "punctuation.separator.semicolon.hclang",
+          "match": ";",
+          "comment": "Non-enumerable separator"
+        },
+        {
+          "name": "punctuation.separator.comma.hclang",
+          "match": ",",
+          "comment": "Enumerable separator"
+        }
+      ]
+    },
+    "identifiers": {
+      "patterns": [
+        {
+          "name": "entity.name.function.setter.hclang",
+          "match": "\\.[_a-zA-Z][\\w-]*[:_]?",
+          "comment": "Names (setters): .property, .method:, .mutable_"
+        },
+        {
+          "name": "keyword.control.hclang",
+          "match": "@[_a-zA-Z][\\w-]*",
+          "comment": "Controls: @control, @variable"
+        },
+        {
+          "name": "variable.other.reference.hclang",
+          "match": "\\$[_a-zA-Z][\\w-]*",
+          "comment": "References: $reference, $error"
+        },
+        {
+          "name": "variable.other.constant.private.hclang",
+          "match": "\\b__[A-Z][\\w-]*\\b",
+          "comment": "Private constant: __PRIVATE_CONST"
+        },
+        {
+          "name": "variable.other.constant.protected.hclang",
+          "match": "\\b_[A-Z][\\w-]*\\b",
+          "comment": "Protected constant: _PROTECTED_CONST"
+        },
+        {
+          "name": "variable.other.constant.hclang",
+          "match": "\\b[A-Z][\\w-]*\\b",
+          "comment": "Public constant: CONST"
+        },
+        {
+          "name": "entity.name.function.mutating.private.hclang",
+          "match": "\\b__[a-z][\\w-]*:(?!:)",
+          "comment": "Private mutating method: __method:"
+        },
+        {
+          "name": "entity.name.function.mutating.protected.hclang",
+          "match": "\\b_[a-z][\\w-]*:(?!:)",
+          "comment": "Protected mutating method: _method:"
+        },
+        {
+          "name": "entity.name.function.mutating.hclang",
+          "match": "\\b[a-z][\\w-]*:(?!:)",
+          "comment": "Public mutating method: method:"
+        },
+        {
+          "name": "variable.other.mutable.private.hclang",
+          "match": "\\b__[a-z][\\w-]*_\\b",
+          "comment": "Private mutable: __mutable_"
+        },
+        {
+          "name": "variable.other.mutable.protected.hclang",
+          "match": "\\b_[a-z][\\w-]*_\\b",
+          "comment": "Protected mutable: _mutable_"
+        },
+        {
+          "name": "variable.other.mutable.hclang",
+          "match": "\\b[a-z][\\w-]*_\\b",
+          "comment": "Public mutable: mutable_"
+        },
+        {
+          "name": "variable.other.private.hclang",
+          "match": "\\b__[a-z][\\w-]*\\b",
+          "comment": "Private variable: __private"
+        },
+        {
+          "name": "variable.other.protected.hclang",
+          "match": "\\b_[a-z][\\w-]*\\b",
+          "comment": "Protected variable: _protected"
+        },
+        {
+          "name": "variable.other.hclang",
+          "match": "\\b[a-z][\\w-]*\\b",
+          "comment": "Public variable: variable"
+        }
+      ]
+    }
+  }
+}

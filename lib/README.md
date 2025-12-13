@@ -68,7 +68,7 @@ This can be passed as the second argument to `evaluate`,
 in order to predefine variables.
 
     import { make_context } from "@swanfactory/hclang";
-    
+
     const env = { "x": "2" };
     const context = make_context(env);
     console.log(context.x.toString()); // Output: '2'

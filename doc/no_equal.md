@@ -20,9 +20,8 @@ Triad:
 
 - Research languages are created for correctness
 - Compiled languages are engineered for speed
-- Scripting languages are designed for readability
-It struck me how seemingly every commonly-used language (except, surprisingly,
-SQL):
+- Scripting languages are designed for readability It struck me how seemingly
+  every commonly-used language (except, surprisingly, SQL):
 
 - Proudly identify with one of those categories
 - Shamelessly stole ideas from the other two
@@ -44,8 +43,8 @@ int x = 1 + 1;
 ```
 
 The first Lisp I learned was Schema, which despised variable assignment because
-of its focus on immutable, mathematically pure execution contexts.  Yet the
-power of C as a systems language came from:
+of its focus on immutable, mathematically pure execution contexts. Yet the power
+of C as a systems language came from:
 
 1. **Static typing**: Running directly on native hardware (`int`)
 2. **Mutable state**: Allowed changing their values in place (`=`)
@@ -75,16 +74,16 @@ void main() {
 }
 ```
 
-I remember thinking something like: what if this was JSON or YAML?
-Then I could turn it into a dictionary:
+I remember thinking something like: what if this was JSON or YAML? Then I could
+turn it into a dictionary:
 
 ```yaml
 main:
-    x: 1
-    print: x
+  x: 1
+  print: x
 ```
 
-That almost works!  But how to distinguish:
+That almost works! But how to distinguish:
 
 - immediate versus lazy evaluation
 - statements from expressions
@@ -99,8 +98,8 @@ enormous run on sentences.)
 
 ### The Logic of Symbols
 
-In English, we use letters for content, and punctuation for structure.
-Maybe we can use C syntax the same way:
+In English, we use letters for content, and punctuation for structure. Maybe we
+can use C syntax the same way:
 
 - immediate `()` versus lazy `{}`
 - statements `;` vs expressions `,`
@@ -113,10 +112,10 @@ Maybe we can use C syntax the same way:
 }
 ```
 
-That... works!  In fact, it looks a little like CSS, one of the most elegant and
+That... works! In fact, it looks a little like CSS, one of the most elegant and
 human-editable data formats; I even am using that for its syntax coloring!
 
-In fact, we can use `<>`  for types, add some syntactic sugar to drop the
+In fact, we can use `<>` for types, add some syntactic sugar to drop the
 trailing comma, and get:
 
 ```css
@@ -124,11 +123,11 @@ trailing comma, and get:
 ```
 
 That looks pretty trivial to parse into a Lisp-like data structure, but reads
-remarkably like C.  Like in Lisp, everything has a value, but values with
+remarkably like C. Like in Lisp, everything has a value, but values with
 different behaviors are clearly identified by the syntax.
 
 The key (no pun intended) is these funny dot-prefixed names, which we call
-*symbols*. The name `.x` evaluates to `symbol(x)` just like the string `1`
+_symbols_. The name `.x` evaluates to `symbol(x)` just like the string `1`
 evaluates to the number 1. This turns traditional C references into ordinary
 expressions:
 
@@ -182,8 +181,8 @@ Using `@alias` to modify a value in the parent context, we get:
 
 ## Universal Application
 
-Without realizing it, I had stumbled into something even more profound.
-I had implicitly been assuming that any value could:
+Without realizing it, I had stumbled into something even more profound. I had
+implicitly been assuming that any value could:
 
 - be stored in a property
 - be consumed by a function
@@ -211,8 +210,8 @@ There's even a name for it:
 
 That's the only rule you need to evaluate any expression. No more special forms!
 
-In fact, you can perform evalution just by using
-symbols and the reduce operator `|`:
+In fact, you can perform evalution just by using symbols and the reduce operator
+`|`:
 
 ```css
 ; .x 1;
@@ -224,8 +223,8 @@ symbols and the reduce operator `|`:
 # 8
 ```
 
-But what about parsing tokens into those expressions?
-Or lexing a sequence of symbols into valid tokens?
+But what about parsing tokens into those expressions? Or lexing a sequence of
+symbols into valid tokens?
 
 Well... what if we just used fold?
 
@@ -235,12 +234,12 @@ Well... what if we just used fold?
 
 Then use fold all the way down!
 
-It sounds insane, but it actually works. You can [check it
-out](https://hclang.deno.dev) for yourself.
+It sounds insane, but it actually works. You can
+[check it out](https://hclang.deno.dev) for yourself.
 
-There's even a name for that too: [monadic
-parsing](https://gabrijel-boduljak.com/functional-pearl-monadic-parsing/) --
-though nobody else takes it to this extreme.
+There's even a name for that too:
+[monadic parsing](https://gabrijel-boduljak.com/functional-pearl-monadic-parsing/)
+-- though nobody else takes it to this extreme.
 
 ## Framing the PEACE Monad
 
@@ -257,8 +256,8 @@ I describe these monads using the acronym PEACE, because they can have:
 - **Effect**: as in side-effects (safely via sound-and-complete effect typing as
   in [BitC](https://danluu.com/bitc-retrospective/))
 
-I call this data structure a "frame", out of resemblance to a stack frame,
-and the face this is a radical reframing of what we mean by computation.
+I call this data structure a "frame", out of resemblance to a stack frame, and
+the face this is a radical reframing of what we mean by computation.
 
 Everything in HC is a Frame:
 
@@ -276,34 +275,35 @@ types in Rust have made them commonplace.
 
 In combination with using finite arrays for reduce (and map `&` as syntactic
 sugar on reduce) instead of open-ended iteration, this means that Homoiconic C
-is fully decideable. More formally, it is based on [Presburger arithmetic](https://en.wikipedia.org/wiki/Presburger_arithmetic), where
-every input of size `n` is gauranteed to terminate in `2^n` steps.
+is fully decideable. More formally, it is based on
+[Presburger arithmetic](https://en.wikipedia.org/wiki/Presburger_arithmetic),
+where every input of size `n` is gauranteed to terminate in `2^n` steps.
 
-This may seem shocking to computer scientists raised on [Turing
-completeness](https://en.wikipedia.org/wiki/Turing_completeness). But that is
-really only necessary for operations like long division, which in early
+This may seem shocking to computer scientists raised on
+[Turing completeness](https://en.wikipedia.org/wiki/Turing_completeness). But
+that is really only necessary for operations like long division, which in early
 computers led to the infinite sequence `1.333333...` -- but nowadays is
 elegantly approximated (in finite time!) using bounded boolean circuits (e.g.,
-FPUs).  You can of course *simulate* infinite operations on top of the core
-abstraction, but that is your choice.  The core computational model is
-inherently finite, enabling a rich array of static analyses with (as far as I
-can tell) no real loss of expressive power.
+FPUs). You can of course _simulate_ infinite operations on top of the core
+abstraction, but that is your choice. The core computational model is inherently
+finite, enabling a rich array of static analyses with (as far as I can tell) no
+real loss of expressive power.
 
 ## Current Status
 
 ### Existing Implementation
 
 As mentioned, you can interact with the current implementation directly at the
-[HCLang Playground](https://hclang.deno.dev).  This version is written in
-TypeScript, and available as a JSR module.  It runs in the brower, and can even
+[HCLang Playground](https://hclang.deno.dev). This version is written in
+TypeScript, and available as a JSR module. It runs in the brower, and can even
 be distributed as a single HTML file with no back-end (though it uses a CDN to
 download the module and UI).
 
 ### Open Issues
 
-The current list of open issues is available on the [GitHub
-repository](https://github.com/TheSwanFactory/hclang/issues). The main areas
-that are underdeveloped are:
+The current list of open issues is available on the
+[GitHub repository](https://github.com/TheSwanFactory/hclang/issues). The main
+areas that are underdeveloped are:
 
 1. **Type Checking**: we can declare and parse types, but don't properly throw
    errors on invalid type assignments. It is possible that further testing may
@@ -311,14 +311,14 @@ that are underdeveloped are:
 2. **Bit Manipulation**: in order to be a full C replacement, we should not only
    support bit-level operations, but also support endian typing for bit
    representations (which C does not!).
-3. **WASM Compilation**:  in theory, it should be straightforward to create an
+3. **WASM Compilation**: in theory, it should be straightforward to create an
    execution context that generates WASM instead of directly evaulating
-   expressions.  The first step is probably defining a `WASM.hc` data structure
-   in Homoiconic C that trivially converts itself to WASM.  But there are
+   expressions. The first step is probably defining a `WASM.hc` data structure
+   in Homoiconic C that trivially converts itself to WASM. But there are
    probably a lot of steps after that...
 
 ### Closing Thoughts
 
 Homoiconic C is currently a background passion project, as I have yet to find a
-"killer app" to justify productizing it.  If you have any suggestions -- or want
+"killer app" to justify productizing it. If you have any suggestions -- or want
 to help! -- please [drop me a line](mailto:ernest.prabhakar@gmail.com).

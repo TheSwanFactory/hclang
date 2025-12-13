@@ -332,13 +332,8 @@ body.preview.madoko {
 .madoko .reveal code,
 .madoko .email {
   font-family:
-    Consolas,
-    "Andale Mono WT",
-    "Andale Mono",
-    Lucida Console,
-    Monaco,
-    monospace,
-    monospace;
+    Consolas, "Andale Mono WT", "Andale Mono", Lucida Console, Monaco,
+    monospace, monospace;
   font-size: 0.85em;
 }
 .madoko pre code, .madoko .token-indent {

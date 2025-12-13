@@ -1,5 +1,5 @@
-import { expect } from "jsr:@std/expect";
-import { describe, it } from "jsr:@std/testing/bdd";
+import { expect } from "jsr:@std/expect@^0.219.1";
+import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 import { Frame, make_context } from "../lib/mod.ts";
 import { Flatten } from "./flatten.ts";
 import { FrameArray } from "../lib/frames.ts";

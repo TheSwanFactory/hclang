@@ -1,17 +1,12 @@
 {
-  "version": "0.7.3",
+  "version": "0.7.4",
   "description": "Homoiconic C command-line interface and REPL",
   "entry": "./hc.ts",
   "bin": {
     "hc": "./hc.ts"
   },
-  "permissions": {
-    "read": true,
-    "write": true,
-    "env": true
-  },
   "tasks": {
-    "build": "deno compile --output ../scripts/hc ./hc.ts",
+    "build": "deno compile --allow-read --allow-write --allow-env --output ../scripts/hc ./hc.ts",
     "hc": "deno run -A ./hc.ts",
     "test": "deno test --allow-env --allow-read --allow-write",
     "test:bs": "deno task hc hc/BitScheme.hc -t",

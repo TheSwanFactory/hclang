@@ -1,4 +1,4 @@
-import { expect } from "jsr:@std/expect";
+import { expect } from "jsr:@std/expect@^0.219.1";
 
 const hc_bin = "lib/cli/hc.ts";
 

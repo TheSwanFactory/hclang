@@ -1,4 +1,4 @@
-import { expect } from "jsr:@std/expect";
+import { expect } from "jsr:@std/expect@^0.219.1";
 import * as frame from "../frames.ts";
 import { HCEval, make_context } from "./hc-eval.ts";
 

@@ -1,5 +1,5 @@
-import { expect } from "jsr:@std/expect";
-import { describe, it } from "jsr:@std/testing/bdd";
+import { expect } from "jsr:@std/expect@^0.219.1";
+import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 
 import { FrameExpr, FrameString, FrameSymbol } from "../lib/frames.ts";
 import { maml } from "../lib/maml.ts";
