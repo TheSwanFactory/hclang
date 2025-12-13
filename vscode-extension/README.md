@@ -1,14 +1,18 @@
 # Homoiconic C (HC) Language Support for VS Code
 
-Syntax highlighting and language support for [Homoiconic C](https://github.com/TheSwanFactory/hclang) - a universal language for code and data.
+Syntax highlighting and language support for
+[Homoiconic C](https://github.com/TheSwanFactory/hclang) - a universal language
+for code and data.
 
 ## Features
 
 - **Comprehensive Syntax Highlighting** for all HC syntax elements:
-  - Special values: `()` (nil), `<>` (all), `^` (parent), `_` (anonymous), `.` (this)
+  - Special values: `()` (nil), `<>` (all), `^` (parent), `_` (anonymous), `.`
+    (this)
   - Comments: inline `#...#` and end-of-line `#...`
   - Strings: double-quoted `"..."` and backtick `` `...` ``
-  - Numbers: decimal, binary `0b`, octal `0o`, hex `0x`, float, rational `1/3`, scientific notation
+  - Numbers: decimal, binary `0b`, octal `0o`, hex `0x`, float, rational `1/3`,
+    scientific notation
   - Time literals: `%date%`, `%time%`, `%datetime%`
   - BLOB literals: raw bytes `\n\content\` and base64 `0sBase64`
   - Identifiers with semantic prefixes:
@@ -28,7 +32,8 @@ Syntax highlighting and language support for [Homoiconic C](https://github.com/T
 
 ### From VS Code Marketplace
 
-Search for "Homoiconic C" in the Extensions view (`Cmd+Shift+X` / `Ctrl+Shift+X`) and install.
+Search for "Homoiconic C" in the Extensions view (`Cmd+Shift+X` /
+`Ctrl+Shift+X`) and install.
 
 ### From Source
 
@@ -94,6 +99,7 @@ $reference      # Reference/error
 ## Language Specification
 
 For detailed language specification, see:
+
 - [Grammar Reference](https://github.com/TheSwanFactory/hclang/blob/master/doc/GRAMMAR.md)
 - [Language Documentation](https://github.com/TheSwanFactory/hclang/blob/master/doc/LANGUAGE.md)
 - [HC Blog Post](https://theswanfactory.wordpress.com/2016/12/20/homoiconic-c-a-universal-language-for-code-and-data/)
@@ -109,7 +115,8 @@ cd hclang/vscode-extension
 
 ### Testing Locally
 
-Press `F5` in VS Code to launch the extension in a new Extension Development Host window.
+Press `F5` in VS Code to launch the extension in a new Extension Development
+Host window.
 
 Or use the command line:
 
@@ -134,7 +141,9 @@ deno task vscode:install
 
 ## Contributing
 
-Contributions are welcome! Please see the [main repository](https://github.com/TheSwanFactory/hclang) for contribution guidelines.
+Contributions are welcome! Please see the
+[main repository](https://github.com/TheSwanFactory/hclang) for contribution
+guidelines.
 
 ## License
 

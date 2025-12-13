@@ -17,7 +17,8 @@ The repository includes several packages:
 - **[@swanfactory/hclang](https://jsr.io/@swanfactory/hclang)** - Core library
   published to JSR
 - **CLI** - Interactive REPL and command-line tools
-- **MAML** - [_Multipurpose Abstract Markup Language_](https://theswanfactory.wordpress.com/2016/11/08/introducing-maml-a-draft-proposal-for-html6/),
+- **MAML** -
+  [_Multipurpose Abstract Markup Language_](https://theswanfactory.wordpress.com/2016/11/08/introducing-maml-a-draft-proposal-for-html6/),
   a radically simple proposal for replacing web technologies (HTML, CSS,
   JavaScript, SVG) with a single format based on HC
 - **Web** - Web components and Fresh framework integration
@@ -46,8 +47,8 @@ const result = execute("1 + 1");
 console.log(result); // Output: '2'
 ```
 
-See the [library documentation](https://jsr.io/@swanfactory/hclang/doc) for
-more details.
+See the [library documentation](https://jsr.io/@swanfactory/hclang/doc) for more
+details.
 
 ### Run the REPL
 
@@ -73,17 +74,17 @@ deno task test
 
 The root `deno.json` provides several tasks:
 
-| Task           | Description                                 |
-| -------------- | ------------------------------------------- |
-| `deno task hc` | Launch the HC REPL                          |
-| `deno task test` | Run all tests (format, lint, and test suites) |
-| `deno task test:cli` | Test CLI package                      |
-| `deno task test:lib` | Test library package                  |
-| `deno task test:maml` | Test MAML package                    |
-| `deno task test:web` | Test web package                      |
-| `deno task test:bs` | Test BitScheme documentation          |
-| `deno task test:doc` | Test HC documentation examples        |
-| `deno task build` | Build the HC CLI binary                   |
+| Task                  | Description                                   |
+| --------------------- | --------------------------------------------- |
+| `deno task hc`        | Launch the HC REPL                            |
+| `deno task test`      | Run all tests (format, lint, and test suites) |
+| `deno task test:cli`  | Test CLI package                              |
+| `deno task test:lib`  | Test library package                          |
+| `deno task test:maml` | Test MAML package                             |
+| `deno task test:web`  | Test web package                              |
+| `deno task test:bs`   | Test BitScheme documentation                  |
+| `deno task test:doc`  | Test HC documentation examples                |
+| `deno task build`     | Build the HC CLI binary                       |
 
 ### BitScheme
 
@@ -216,8 +217,10 @@ For maintainers publishing new versions:
 - **JSR Package**: [@swanfactory/hclang](https://jsr.io/@swanfactory/hclang)
 - **Documentation**: [JSR Docs](https://jsr.io/@swanfactory/hclang/doc)
 - **GitHub**: [TheSwanFactory/hclang](https://github.com/TheSwanFactory/hclang)
-- **Blog**: [Homoiconic C Introduction](https://theswanfactory.wordpress.com/2016/12/20/homoiconic-c-a-universal-language-for-code-and-data/)
-- **MAML**: [HTML6 Proposal](https://theswanfactory.wordpress.com/2016/11/08/introducing-maml-a-draft-proposal-for-html6/)
+- **Blog**:
+  [Homoiconic C Introduction](https://theswanfactory.wordpress.com/2016/12/20/homoiconic-c-a-universal-language-for-code-and-data/)
+- **MAML**:
+  [HTML6 Proposal](https://theswanfactory.wordpress.com/2016/11/08/introducing-maml-a-draft-proposal-for-html6/)
 
 ## License
 

@@ -1,10 +1,12 @@
 # Homoiconic C Grammar Reference
 
-This document describes the grammar rules for Homoiconic C (HC) syntax highlighting and parsing.
+This document describes the grammar rules for Homoiconic C (HC) syntax
+highlighting and parsing.
 
 ## Overview
 
-HC has no traditional grammar, keywords, or reserved words. Everything is expressed through:
+HC has no traditional grammar, keywords, or reserved words. Everything is
+expressed through:
 
 - Three types of aggregate frames
 - Primitive types
@@ -283,11 +285,15 @@ my-instance.setProperty: 42
 
 ## Notes for Syntax Highlighters
 
-1. **Comments are strings**: The `#` syntax creates string objects, not ignored text
-2. **No keywords**: There are no reserved words; everything is an identifier or operator
+1. **Comments are strings**: The `#` syntax creates string objects, not ignored
+   text
+2. **No keywords**: There are no reserved words; everything is an identifier or
+   operator
 3. **Context matters**: The same character can mean different things:
    - `.` alone = this
    - `.name` = property setter
    - `2.+` = method call on number
-4. **Operators are properties**: Math operators are just syntactic sugar for property access
-5. **Whitespace is significant**: Newlines act as separators and affect precedence
+4. **Operators are properties**: Math operators are just syntactic sugar for
+   property access
+5. **Whitespace is significant**: Newlines act as separators and affect
+   precedence
