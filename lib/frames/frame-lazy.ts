@@ -46,7 +46,8 @@ export class FrameLazy extends FrameExpr {
     const parts = this.data.map(stringify);
     // Closures always use space separators, not commas
     const body = parts.join(" ").trim();
-    const display = body.length > 0 ? body : body;
+    // Add padding spaces around non-empty body
+    const display = body.length > 0 ? ` ${body} ` : body;
     return [display + ","];
   }
 
