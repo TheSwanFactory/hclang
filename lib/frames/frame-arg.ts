@@ -59,7 +59,8 @@ export class FrameArg extends FrameSymbol {
 
     const closure = findClosure(contexts);
     if (!closure) {
-      return FrameNote.key(this.data, this);
+      // When no closure, decrement the level
+      return FrameArg.level(level - 1);
     }
 
     let target: Frame | undefined = closure;
@@ -100,6 +101,14 @@ export class FrameParam extends FrameSymbol {
   public override in(contexts = [Frame.nil]): Frame {
     const level = this.data.length - 1; // number of ^
 
+    // Parameters are stored in the contexts array
+    // contexts[0] is the argument, contexts[1] is the parameter
+    const paramIndex = level;
+    if (paramIndex < contexts.length) {
+      return contexts[paramIndex];
+    }
+
+    // If not in contexts, try walking up the closure chain
     const closure = findClosure(contexts);
     if (!closure) {
       return FrameNote.key(this.data, this);
