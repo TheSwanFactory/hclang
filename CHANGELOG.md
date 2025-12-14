@@ -6,11 +6,14 @@
 
 ## v0.7.5 2025-12-14
 
-- **Closure Improvements**: Fixed lazy closure evaluation and anonymous
-  parameter handling
-  - Closures now properly stay unevaluated until called
-  - Fixed anonymous parameter `_` resolution in closures
-  - Improved closure string output formatting (no captured environment metadata)
+- **Closure Bug Fixes** (Partial): Fixed 6 of 8 test failures from closure
+  changes
+  - Fixed anonymous parameter `_` and multi-level `___` evaluation outside
+    closures
+  - Fixed parameter `_^` access in closures and iterators
+  - Fixed closure string output (removed extra spaces: `{expr}` not `{ expr }`)
+  - ⚠️ Known issue: 5 separator/stringification tests still failing (requires
+    spec)
 - **Format Specifications**: Added canonical formatting and pretty-printing
   specs for hcfmt
   - Defined canonical format rules for consistent code formatting
@@ -22,6 +25,8 @@
     [lib/execute](lib/execute/CLAUDE.md), [lib/frames](lib/frames/CLAUDE.md),
     [lib/ops](lib/ops/CLAUDE.md), and [web](web/CLAUDE.md)
   - Detailed architecture and development workflow documentation
+  - Added
+    [test failures analysis](spec/1-fix-closures/06-test-failures-analysis.md)
 
 ## v0.7.4 2025-12-13
 

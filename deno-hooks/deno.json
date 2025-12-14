@@ -1,0 +1,27 @@
+{
+  "name": "@data-yaml/deno-hooks",
+  "version": "0.1.0",
+  "exports": {
+    ".": "./mod.ts",
+    "./install": "./install.ts",
+    "./run": "./run.ts"
+  },
+  "tasks": {
+    "install": "deno run -A install.ts",
+    "test": "deno test -A"
+  },
+  "fmt": {
+    "exclude": []
+  },
+  "lint": {
+    "rules": {
+      "tags": ["recommended"]
+    }
+  },
+  "imports": {
+    "@std/yaml": "jsr:@std/yaml@^1.0.5",
+    "@std/path": "jsr:@std/path@^1.0.8",
+    "@std/fs": "jsr:@std/fs@^1.0.8",
+    "@std/expect": "jsr:@std/expect@^1.0.8"
+  }
+}

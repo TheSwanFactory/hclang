@@ -74,6 +74,7 @@
   },
   "workspace": [
     "cli",
+    "deno-hooks",
     "lib",
     "maml",
     "web"
