@@ -223,19 +223,90 @@ describe("evaluate", () => {
   });
 
   describe("closures with arguments", () => {
-    it("applies closure {_} as identity function", () => {
-      const result = evaluate("{_} 42");
-      expect(result.toString()).toEqual("[42]");
-    });
+    describe("anonymous parameter `_`", () => {
+      it("applies closure {_} as identity function", () => {
+        const result = evaluate("{_} 42");
+        expect(result.toString()).toEqual("[42]");
+      });
 
-    it("applies closure { _ + 1 } to add one", () => {
-      const result = evaluate("{ _ + 1 } 2");
-      expect(result.toString()).toEqual("[3]");
-    });
+      it("applies closure { _ + 1 } to add one", () => {
+        const result = evaluate("{ _ + 1 } 2");
+        expect(result.toString()).toEqual("[3]");
+      });
 
-    it("applies closure { _ * _ } to square", () => {
-      const result = evaluate("{ _ * _ } 3");
-      expect(result.toString()).toEqual("[9]");
+      it("applies closure { _ * _ } to square", () => {
+        const result = evaluate("{ _ * _ } 3");
+        expect(result.toString()).toEqual("[9]");
+      });
+
+      it("reuses the same argument for multiple `_` references", () => {
+        const result = evaluate("{ _ + _ } 5");
+        expect(result.toString()).toEqual("[10]");
+      });
+
+      it("handles string repetition using `_`", () => {
+        const result = evaluate("{3 _} “Baby”");
+        expect(result.toString()).toEqual("[“BabyBabyBaby”]");
+      });
+
+      it("implicitly accesses properties from the argument", () => {
+        const result = evaluate("{x + y} (.x 3; .y 4;)");
+        expect(result.toString()).toEqual("[7, .x 3; .y 4;]");
+      });
+
+      it("matches implicit and explicit property access", () => {
+        const implicit = evaluate("{(x * x) + (y * y)}").at(0);
+        const explicit = evaluate("{(_.x * _.x) + (_.y * _.y)}").at(0);
+
+        const arg = new frame.Frame();
+        arg.set("x", new frame.FrameNumber("3"));
+        arg.set("y", new frame.FrameNumber("4"));
+
+        expect((implicit as frame.FrameLazy).call(arg).toString()).toEqual(
+          "25",
+        );
+        expect((explicit as frame.FrameLazy).call(arg).toString()).toEqual(
+          "25",
+        );
+      });
+
+      it("uses scope variables alongside `_` arguments", () => {
+        const context = make_context({ x: "100" });
+        const result = evaluate("{ x + _ } 5", context);
+        expect(result.at(0).toString()).toEqual("105");
+      });
+
+      it("uses __ to reach an outer closure argument", () => {
+        const innerExpr = new frame.FrameExpr([
+          frame.FrameArg.here(),
+          new frame.FrameOperator("+"),
+          frame.FrameArg.level(2),
+        ]);
+        const inner = new frame.FrameLazy([innerExpr]);
+        const outer = new frame.FrameLazy([inner]);
+
+        const afterOuter = outer.call(new frame.FrameNumber("10"));
+        const result = (afterOuter as frame.Frame).call(
+          new frame.FrameNumber("5"),
+        );
+
+        expect(result.toString()).toEqual("15");
+      });
+
+      it("uses _^ to access the parent scope instead of the argument", () => {
+        const expr = new frame.FrameExpr([
+          frame.FrameParam.there(),
+          frame.FrameSymbol.for("value"),
+        ]);
+        const parent = new frame.Frame();
+        parent.set("value", new frame.FrameNumber("5"));
+
+        const closure = new frame.FrameLazy([expr], parent.meta);
+        closure.in([parent]);
+
+        const result = closure.call(new frame.FrameNumber("1"));
+        expect(result.toString()).toEqual("5");
+      });
     });
   });
 

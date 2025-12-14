@@ -1,7 +1,14 @@
 import { Frame } from "./frame.ts";
 import { FrameNote } from "./frame-note.ts";
+import { FrameLazy } from "./frame-lazy.ts";
 import { FrameSymbol } from "./frame-symbol.ts";
 import { type Context, NilContext } from "./context.ts";
+
+const findClosure = (contexts: Frame[]): FrameLazy | undefined => {
+  return contexts.find((context) => context instanceof FrameLazy) as
+    | FrameLazy
+    | undefined;
+};
 
 export class FrameArg extends FrameSymbol {
   public static readonly ARG_CHAR = "_";
@@ -48,9 +55,21 @@ export class FrameArg extends FrameSymbol {
     const level = this.data.length;
     if (level <= 1) {
       return contexts[0];
-    } else {
-      return FrameArg.level(level - 1);
     }
+
+    const closure = findClosure(contexts);
+    if (!closure) {
+      return FrameNote.key(this.data, this);
+    }
+
+    let target: Frame | undefined = closure;
+    for (let i = 1; i < level; i++) {
+      target = target?.up;
+      if (!target) {
+        return FrameNote.key(this.data, this);
+      }
+    }
+    return target;
   }
 }
 
@@ -79,11 +98,20 @@ export class FrameParam extends FrameSymbol {
     } */
 
   public override in(contexts = [Frame.nil]): Frame {
-    const level = this.data.length - 1;
-    if (level <= contexts.length) {
-      return contexts[level];
-    } else {
+    const level = this.data.length - 1; // number of ^
+
+    const closure = findClosure(contexts);
+    if (!closure) {
       return FrameNote.key(this.data, this);
     }
+
+    let target: Frame | undefined = closure;
+    for (let i = 0; i < level; i++) {
+      target = target?.up;
+      if (!target) {
+        return FrameNote.key(this.data, this);
+      }
+    }
+    return target;
   }
 }
