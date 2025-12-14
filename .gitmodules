@@ -1,0 +1,3 @@
+[submodule "deno-hooks"]
+	path = deno-hooks
+	url = https://github.com/data-yaml/deno-hooks.git
