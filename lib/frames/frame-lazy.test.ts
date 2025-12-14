@@ -20,9 +20,10 @@ describe("FrameLazy", () => {
     expect(lazy).toBeInstanceOf(frame.FrameLazy);
   });
 
-  it("stringifies to {expr, meta}", () => {
+  it("stringifies to {expr} without metadata", () => {
     const result = lazy.toString();
-    expect(result).toContain("{speed gap _, ");
+    // Closures don't show captured metadata in toString (use inspect() for that)
+    expect(result).toEqual("{speed gap _}");
   });
 
   it("captures context but stays lazy until called", () => {
@@ -31,10 +32,12 @@ describe("FrameLazy", () => {
     expect(result).toBe(lazy);
     expect(lazy.get("speed")).toEqual(slow);
     expect(lazy.get("gap")).toEqual(space);
-    expect(lazy.toString()).toContain(
-      "{speed, gap, _, .speed “slow”; .gap “ ”;}",
-    );
-    expect(lazy.call(turtle).toString()).toEqual("“slow turtle”");
+    // Closures don't show captured metadata in toString
+    expect(lazy.toString()).toEqual("{speed gap _}");
+    // But inspect() shows metadata for debugging
+    expect(lazy.inspect()).toContain(".speed");
+    expect(lazy.inspect()).toContain(".gap");
+    expect(lazy.call(turtle).toString()).toEqual("\u201cslow turtle\u201d");
   });
 
   describe("Codify", () => {

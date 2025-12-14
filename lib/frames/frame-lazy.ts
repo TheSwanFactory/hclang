@@ -18,6 +18,24 @@ export class FrameLazy extends FrameExpr {
     return FrameLazy.LAZY_END;
   }
 
+  public override toStringArray(): string[] {
+    // Closures should not display their captured environment metadata
+    // Only show the closure body, not the context it was created in
+    const result = this.toStringDataArray();
+    // Note: We deliberately skip adding meta_string() here
+    // unlike the base FrameList implementation
+
+    // Strip the trailing comma from the last element
+    if (result.length > 0) {
+      const n = result.length - 1;
+      const last = result[n];
+      if (last.endsWith(",")) {
+        result[n] = last.substring(0, last.length - 1);
+      }
+    }
+    return result;
+  }
+
   public override toStringDataArray(): string[] {
     const stringify = (obj: Frame): string => {
       if (obj instanceof FrameExpr) {
@@ -29,8 +47,8 @@ export class FrameLazy extends FrameExpr {
     const needsPadding = this.data.length === 1 &&
       this.data[0] instanceof FrameExpr &&
       (this.data[0] as FrameExpr).asArray().length > 1;
-    const separator = this.meta_length() > 1 ? ", " : " ";
-    const body = parts.join(separator).trim();
+    // Closures always use space separators, not commas
+    const body = parts.join(" ").trim();
     const display = needsPadding ? ` ${body} ` : body;
     return [display + ","];
   }
