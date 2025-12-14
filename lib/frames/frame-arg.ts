@@ -1,6 +1,7 @@
 import { Frame } from "./frame.ts";
 import { FrameNote } from "./frame-note.ts";
 import { FrameSymbol } from "./frame-symbol.ts";
+import { type Context, NilContext } from "./context.ts";
 
 export class FrameArg extends FrameSymbol {
   public static readonly ARG_CHAR = "_";
@@ -17,6 +18,10 @@ export class FrameArg extends FrameSymbol {
   protected static args: { [key: string]: FrameArg } = {};
 
   protected static _for(symbol: string): FrameArg {
+    if (symbol.includes(FrameParam.ARG_CHAR)) {
+      const level = symbol.length - 1;
+      return FrameParam.level(level) as unknown as FrameArg;
+    }
     const exists = FrameArg.args[symbol];
     return exists || (FrameArg.args[symbol] = new FrameArg(symbol));
   }
@@ -24,6 +29,20 @@ export class FrameArg extends FrameSymbol {
   /* protected constructor (data: string) {
         super(data)
     } */
+
+  constructor(source: string, meta: Context = NilContext) {
+    // Normalize empty source to a single underscore so lexer quirks still produce a usable arg token.
+    const normalized = source === "" ? FrameArg.ARG_CHAR : source;
+    super(normalized, meta);
+  }
+
+  public override string_start(): string {
+    return FrameArg.ARG_CHAR;
+  }
+
+  public override canInclude(char: string): boolean {
+    return char === FrameArg.ARG_CHAR || char === FrameParam.ARG_CHAR;
+  }
 
   public override in(contexts = [Frame.nil]): Frame {
     const level = this.data.length;

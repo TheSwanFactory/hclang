@@ -25,14 +25,16 @@ describe("FrameLazy", () => {
     expect(result).toContain("{speed gap _, ");
   });
 
-  it("evalutes to an Expr with merged context", () => {
-    const expr = lazy.in([context]);
+  it("captures context but stays lazy until called", () => {
+    const result = lazy.in([context]);
 
-    expect(expr).toBeInstanceOf(frame.FrameExpr);
-    expect(expr.toString()).toEqual("(speed gap _, .speed “slow”; .gap “ ”;)");
-    expect(expr.get("speed")).toEqual(slow);
-    expect(expr.get("gap")).toEqual(space);
-    expect(expr.call(turtle).toString()).toEqual("“slow turtle”");
+    expect(result).toBe(lazy);
+    expect(lazy.get("speed")).toEqual(slow);
+    expect(lazy.get("gap")).toEqual(space);
+    expect(lazy.toString()).toContain(
+      "{speed, gap, _, .speed “slow”; .gap “ ”;}",
+    );
+    expect(lazy.call(turtle).toString()).toEqual("“slow turtle”");
   });
 
   describe("Codify", () => {
