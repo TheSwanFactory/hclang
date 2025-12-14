@@ -94,6 +94,27 @@ describe("evaluate", () => {
       expect(output).toBeInstanceOf(frame.FrameLazy);
     });
 
+    it("returns unevaluated closure for {1}", () => {
+      const result = evaluate("{1}");
+      const output = result.at(0);
+      expect(output).toBeInstanceOf(frame.FrameLazy);
+      expect(output.toString()).toEqual("{1}");
+    });
+
+    it("returns unevaluated closure for {_}", () => {
+      const result = evaluate("{_}");
+      const output = result.at(0);
+      expect(output).toBeInstanceOf(frame.FrameLazy);
+      expect(output.toString()).toEqual("{_}");
+    });
+
+    it("returns unevaluated closure for { _ + 1 }", () => {
+      const result = evaluate("{ _ + 1 }");
+      const output = result.at(0);
+      expect(output).toBeInstanceOf(frame.FrameLazy);
+      expect(output.toString()).toEqual("{ _ + 1 }");
+    });
+
     it("returns FrameNote for empty ()", () => {
       const result = evaluate("()");
       const output = result.at(0);
@@ -198,6 +219,23 @@ describe("evaluate", () => {
         const result = evaluate(input);
         expect(result.toString()).toEqual("[15]");
       });
+    });
+  });
+
+  describe("closures with arguments", () => {
+    it("applies closure {_} as identity function", () => {
+      const result = evaluate("{_} 42");
+      expect(result.toString()).toEqual("[42]");
+    });
+
+    it("applies closure { _ + 1 } to add one", () => {
+      const result = evaluate("{ _ + 1 } 2");
+      expect(result.toString()).toEqual("[3]");
+    });
+
+    it("applies closure { _ * _ } to square", () => {
+      const result = evaluate("{ _ * _ } 3");
+      expect(result.toString()).toEqual("[9]");
     });
   });
 
