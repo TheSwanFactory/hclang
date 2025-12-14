@@ -584,3 +584,52 @@ The fix will be successful when:
   (`deno test lib/frames/frame-lazy.test.ts lib/execute/evaluate.test.ts`),
   including grouping expectations for `{1}`, `{_}`, `{ _ + 1 }` and codify
   behavior.
+
+## CLI Output Issue (2025-12-13, final pass)
+
+After fixing the core evaluation issues, a separate problem was discovered in
+CLI output: closures were displaying their entire captured environment
+(including all process environment variables) instead of just showing `{}`,
+`{1}`, etc.
+
+**Root Cause**: When `FrameLazy.in()` is called with a context, it merges the
+context metadata into `this.meta` (line 46). The base
+`FrameList.toStringArray()` method then includes this metadata in the string
+output. With the environment context containing hundreds of variables, this made
+output unreadable.
+
+**Example of the Problem**:
+
+```hc
+; {}
+{, .INFOPATH "/opt/homebrew/share/info:..."; .USER "ernest"; ...}
+```
+
+(Hundreds of lines of environment variables)
+
+**Fix**: Override `toStringArray()` in `FrameLazy` to:
+
+1. Skip calling `.meta_string()` (unlike the base implementation)
+2. Always use space separators (not commas)
+3. Strip trailing commas from the output
+
+This separates concerns:
+
+- `toString()` - Clean, user-facing output (just the closure body)
+- `inspect()` - Debugging output (includes captured metadata)
+
+**Result**: CLI output is now clean and matches expectations:
+
+```hc
+; {}
+# {}
+; {1}
+# {1}
+; {_}
+# {_}
+; { _ + 1 }
+# { _ + 1 }
+```
+
+**Final Status**: All tests pass, both unit tests and end-to-end CLI tests. The
+closure parsing and evaluation issues are fully resolved.
