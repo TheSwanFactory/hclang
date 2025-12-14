@@ -12,7 +12,7 @@ indentation while guaranteeing a single stable output for any valid HC source.
 - **Deterministic**: Same input ⇒ same output; idempotent.
 - **Semantic preservation**: Output parses to the same AST/behavior.
 - **Stability over taste**: Rules are consistent and minimal; no user knobs.
-- **Width-aware**: Respect a configured line width (default 80), breaking lines
+- **Width-aware**: Respect a configured line width (default 128), breaking lines
   predictably.
 - **Comment-preserving**: Comments stay attached to their logical anchors.
 
@@ -27,10 +27,12 @@ indentation while guaranteeing a single stable output for any valid HC source.
 
 1. **Parse** to Frames/AST.
 2. **Annotate** comments with attachment points (before/inline/after).
-3. **Measure** to decide when to break lines given `maxWidth` (default 80).
+3. **Measure** to decide when to break lines given `maxWidth` (default 100).
 4. **Render** with indentation and spacing rules below.
 
 ## Line Breaking Rules
+
+The following show sub-optimal output that should be corrected.
 
 - **General**: Prefer single-line if it fits within `maxWidth`; otherwise apply
   structured breaks.
@@ -38,38 +40,47 @@ indentation while guaranteeing a single stable output for any valid HC source.
   - Empty: `{}`.
   - Single short expression: `{ expr }` on one line if it fits.
   - Multi-item or long:
-    ```
+
+    ```hc
     {
       expr1;
       expr2;
       expr3;
     }
     ```
+
   - Body indented +2 spaces (configurable indent, default 2).
 - **Arrays `[...]`**:
   - Short: `[a, b, c]` if it fits.
   - Long: break after `[` and before `]`, one element per line with trailing
     commas optional (see trailing comma rule):
-    ```
+
+    ```hc
     [
       a,
       b,
       c,
     ]
     ```
+
 - **Groups `(...)`**:
   - Expr grouping stays compact when possible.
   - Statement groups or long expressions may break similar to arrays, with
     aligned indentation.
 - **Binary operators**:
   - Prefer break _after_ the operator (Rust/Prettier style):
+
+    ```hc
+    (long_lhs
+      + long_rhs)
     ```
-    long_lhs
-      + long_rhs
-    ```
+
   - Chains may align operators vertically when broken.
 - **Pipelines / sequences**: If modeled as multiple expressions, place one per
   line when exceeding width.
+- NOTE: hclang a) does NOT have lookahead, b) interprets newline as a
+  terminator, and c) allows hanging operators as curry
+  - SO: multi-line expressions require explicit grouping
 
 ## Indentation
 
@@ -102,7 +113,7 @@ indentation while guaranteeing a single stable output for any valid HC source.
 
 ## Width Configuration
 
-- `maxWidth` default 80; formatter must emit the same shape for given width.
+- `maxWidth` default 128; formatter must emit the same shape for given width.
 - No soft/hard wrap modes; a single algorithm decides breaks based on width and
   constructs.
 
@@ -118,11 +129,11 @@ pretty(src)`.
 - If a node cannot be pretty-printed deterministically, fall back to canonical
   single-line form for that node (fail-safe).
 
-## Examples (assuming maxWidth 80, indent 2)
+## Examples (assuming maxWidth 128, indent 2)
 
 Single-line fits:
 
-```
+```hc
 { _ + 1 }
 [1, 2, 3]
 (.x 1; .y 2;)
@@ -130,7 +141,7 @@ Single-line fits:
 
 Multi-line closure:
 
-```
+```hc
 {
   _ + 1;
   x + y;
@@ -139,7 +150,7 @@ Multi-line closure:
 
 Multi-line array:
 
-```
+```hc
 [
   long_value_one,
   long_value_two,
@@ -149,7 +160,7 @@ Multi-line array:
 
 Operator break:
 
-```
+```hc
 long_identifier
   + another_long_identifier
   + third_part
@@ -157,13 +168,13 @@ long_identifier
 
 Inline comment that overflows:
 
-```
+```hc
 _ + 1  # short comment
 ```
 
 Becomes (if too long for line):
 
-```
+```hc
 # short comment
 _ + 1
 ```

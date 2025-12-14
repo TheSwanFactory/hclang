@@ -3,8 +3,12 @@
 ## Goal
 
 Define the canonical formatting (“quining”) rules for HC source so any valid HC
-program can be parsed and re‑emitted in a stable, deterministic form. This spec
-is for a formatter tool and does **not** implement code.
+program can be parsed and re‑emitted in a stable, deterministic form.
+
+The goal is for this to be the _native_ 'asString' output emitted by `asString`,
+rather than a separate tool.
+
+This spe defines the format and does **not** implement code.
 
 ## Scope
 
@@ -12,6 +16,8 @@ is for a formatter tool and does **not** implement code.
 - Output: Canonically formatted HC source that round-trips through the parser.
 - Stable output: Same input ⇒ same output; formatting idempotent.
 - Out of scope: Error recovery, linting, refactors.
+- Stretch goal: informative error messages for invalid code (not a hard
+  requirement)
 
 ## Pipeline Expectations
 
