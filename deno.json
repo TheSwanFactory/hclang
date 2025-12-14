@@ -18,7 +18,7 @@
     "test:maml": "deno test maml",
     "test:web": "cd web && deno test",
     "test:bs": "cd cli && deno task test:bs",
-    "test:all": "deno task test:cli && deno task test:lib && deno task test:maml && deno task test:web",
+    "test:all": "deno task test:cli && deno task test:lib && deno task test:web",
     "vscode:package": "cd vscode-extension && npx @vscode/vsce package",
     "vscode:publish": "cd vscode-extension && npx @vscode/vsce publish",
     "vscode:install": "cd vscode-extension && npx @vscode/vsce package && code --install-extension *.vsix"
@@ -73,7 +73,6 @@
   },
   "workspace": [
     "cli",
-    "deno-hooks",
     "lib",
     "maml",
     "web"
