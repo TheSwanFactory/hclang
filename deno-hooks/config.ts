@@ -46,7 +46,8 @@ export async function loadConfig(rootDir: string): Promise<Config> {
     return config;
   } catch (error) {
     if (!(error instanceof Deno.errors.NotFound)) {
-      throw new Error(`Failed to parse ${yamlPath}: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(`Failed to parse ${yamlPath}: ${message}`);
     }
   }
 
@@ -62,7 +63,8 @@ export async function loadConfig(rootDir: string): Promise<Config> {
     }
   } catch (error) {
     if (!(error instanceof Deno.errors.NotFound)) {
-      throw new Error(`Failed to parse ${jsonPath}: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(`Failed to parse ${jsonPath}: ${message}`);
     }
   }
 
