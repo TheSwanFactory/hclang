@@ -7,6 +7,10 @@ established formatters (Go `gofmt`, Rust `rustfmt`, Deno `deno fmt`, Prettier).
 This complements the canonical spacing rules by adding line breaks and
 indentation while guaranteeing a single stable output for any valid HC source.
 
+All examples below show the **formatted output** shape, not the raw input. Each
+example notes the `maxWidth` in effect so it’s clear when line breaks are
+expected.
+
 ## Guiding Principles
 
 - **Deterministic**: Same input ⇒ same output; idempotent.
@@ -27,12 +31,10 @@ indentation while guaranteeing a single stable output for any valid HC source.
 
 1. **Parse** to Frames/AST.
 2. **Annotate** comments with attachment points (before/inline/after).
-3. **Measure** to decide when to break lines given `maxWidth` (default 100).
+3. **Measure** to decide when to break lines given `maxWidth` (default 128).
 4. **Render** with indentation and spacing rules below.
 
 ## Line Breaking Rules
-
-The following show sub-optimal output that should be corrected.
 
 - **General**: Prefer single-line if it fits within `maxWidth`; otherwise apply
   structured breaks.
@@ -52,14 +54,13 @@ The following show sub-optimal output that should be corrected.
   - Body indented +2 spaces (configurable indent, default 2).
 - **Arrays `[...]`**:
   - Short: `[a, b, c]` if it fits.
-  - Long: break after `[` and before `]`, one element per line with trailing
-    commas optional (see trailing comma rule):
+  - Long: break after `[` and before `]`, one element per line (no trailing
+    comma):
 
     ```hc
     [
       a,
-      b,
-      c,
+      b
     ]
     ```
 
@@ -129,9 +130,9 @@ pretty(src)`.
 - If a node cannot be pretty-printed deterministically, fall back to canonical
   single-line form for that node (fail-safe).
 
-## Examples (assuming maxWidth 128, indent 2)
+## Examples (indent 2)
 
-Single-line fits:
+### Single-line fits (maxWidth 128)
 
 ```hc
 { _ + 1 }
@@ -139,7 +140,7 @@ Single-line fits:
 (.x 1; .y 2;)
 ```
 
-Multi-line closure:
+### Multi-line closure (forced by tight width; maxWidth 40)
 
 ```hc
 {
@@ -148,7 +149,7 @@ Multi-line closure:
 }
 ```
 
-Multi-line array:
+### Multi-line array (forced by tight width; maxWidth 40)
 
 ```hc
 [
