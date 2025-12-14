@@ -44,12 +44,9 @@ export class FrameLazy extends FrameExpr {
       return obj.toString();
     };
     const parts = this.data.map(stringify);
-    const needsPadding = this.data.length === 1 &&
-      this.data[0] instanceof FrameExpr &&
-      (this.data[0] as FrameExpr).asArray().length > 1;
     // Closures always use space separators, not commas
     const body = parts.join(" ").trim();
-    const display = needsPadding ? ` ${body} ` : body;
+    const display = body.length > 0 ? ` ${body} ` : body;
     return [display + ","];
   }
 

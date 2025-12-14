@@ -98,14 +98,14 @@ describe("evaluate", () => {
       const result = evaluate("{1}");
       const output = result.at(0);
       expect(output).toBeInstanceOf(frame.FrameLazy);
-      expect(output.toString()).toEqual("{1}");
+      expect(output.toString()).toEqual("{ 1 }");
     });
 
     it("returns unevaluated closure for {_}", () => {
       const result = evaluate("{_}");
       const output = result.at(0);
       expect(output).toBeInstanceOf(frame.FrameLazy);
-      expect(output.toString()).toEqual("{_}");
+      expect(output.toString()).toEqual("{ _ }");
     });
 
     it("returns unevaluated closure for { _ + 1 }", () => {
