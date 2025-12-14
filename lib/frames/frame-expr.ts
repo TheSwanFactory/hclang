@@ -31,8 +31,8 @@ export class FrameExpr extends FrameList {
 
   public override toStringDataArray(): string[] {
     const body = this.data.map((obj: Frame) => obj.toString()).join(" ");
-    const sep = this.is.statement ? ";" : ",";
-    return [body + sep];
+    // Don't add separator here - let parent FrameList handle it
+    return [body];
   }
 }
 
