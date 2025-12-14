@@ -11,6 +11,7 @@ The closure improvements in v0.7.5 introduced 8 test failures that were not caug
 ## Why Tests Were Not Caught Locally
 
 ### Root Cause
+
 The pre-push hook was not installed. While `.pre-commit-config.yaml` defines a test hook for the `pre-push` stage:
 
 ```yaml
@@ -23,11 +24,13 @@ The pre-push hook was not installed. While `.pre-commit-config.yaml` defines a t
 ```
 
 The hook was never installed because:
+
 1. `pre-commit install` only installs pre-commit hooks by default
 2. Pre-push hooks require `pre-commit install --hook-type pre-push`
 3. The pre-commit tool wasn't properly available in the Python environment
 
 ### Prevention
+
 - Always run `deno task test` manually before pushing
 - Install pre-push hooks: `pre-commit install --hook-type pre-push`
 - Ensure pre-commit is available in the active Python environment
@@ -44,12 +47,14 @@ The hook was never installed because:
 **Issue**: Extra semicolon before closing paren - `("content";)` instead of `("content")`
 
 **Analysis**:
+
 - `FrameExpr.toStringDataArray()` adds semicolon: `["content";"]`
 - `FrameExpr.toString()` wraps it: `("content";)`
 - `FrameList.toStringDataArray()` adds another semicolon based on `is.statement`
 - Result: `("content";);` - double semicolon
 
 **Root Cause**: Separator responsibility is unclear between FrameExpr and FrameList
+
 - FrameExpr includes separator in toStringDataArray (for trailing comma before metadata)
 - FrameList also adds separators when joining nested expressions
 - This creates duplication for statement separators
@@ -57,6 +62,7 @@ The hook was never installed because:
 ### 2. FrameLazy Stringification (FIXED)
 
 **Tests**:
+
 - `FrameLazy ... stringifies to {expr} without metadata`
 - `FrameLazy ... captures context but stays lazy until called`
 
@@ -70,6 +76,7 @@ const display = body.length > 0 ? ` ${body} ` : body;
 ```
 
 **Fix**: Remove extra spaces
+
 ```typescript
 const display = body.length > 0 ? body : body;
 ```
@@ -79,6 +86,7 @@ const display = body.length > 0 ? body : body;
 ### 3. FrameArg Level Evaluation (FIXED)
 
 **Tests**:
+
 - `FrameArg ... level ... evaluates to a lower level`
 - `FrameArg ... FrameParam ... evaluates to the parameter`
 - `FrameArg ... FrameParam ... evaluates to higher-level parameters`
@@ -91,6 +99,7 @@ const display = body.length > 0 ? body : body;
 **Analysis**: [frame-arg.ts:54-73](../../lib/frames/frame-arg.ts#L54-L73)
 
 The new `FrameArg.in()` implementation:
+
 1. If level <= 1: returns `contexts[0]` ✓
 2. If level > 1: searches for FrameLazy in contexts
 3. If no FrameLazy: returns error ✗
@@ -98,6 +107,7 @@ The new `FrameArg.in()` implementation:
 But tests like `level_3.in([context])` don't provide a FrameLazy, so they fail.
 
 **Fix**: When no closure, decrement the level instead of erroring
+
 ```typescript
 if (!closure) {
   // When no closure, decrement the level
@@ -106,6 +116,7 @@ if (!closure) {
 ```
 
 **Fix for FrameParam**: Access parameters from contexts array
+
 ```typescript
 // Parameters are stored in the contexts array
 // contexts[0] is the argument, contexts[1] is the parameter
@@ -120,6 +131,7 @@ if (paramIndex < contexts.length) {
 ### 4. Iterator Tests with Closures (FIXED)
 
 **Tests**:
+
 - `iterators ... && iterate over metas ... calls block with key as second parameter`
 - `iterators ... && iterate over metas ... is called as a name with a lazy block`
 
@@ -129,6 +141,7 @@ if (paramIndex < contexts.length) {
 **Issue**: FrameParam was looking in closure chain instead of contexts array
 
 **Analysis**: When FrameLazy.call() is invoked, it creates contexts:
+
 ```typescript
 expr.in([argument, _parameter, this])
 ```
@@ -136,6 +149,7 @@ expr.in([argument, _parameter, this])
 So `contexts[1]` contains the parameter, not `closure.up`.
 
 **Fix**: FrameParam should check contexts array first before walking closure chain
+
 ```typescript
 // Parameters are stored in the contexts array first
 const paramIndex = level;
@@ -150,6 +164,7 @@ if (paramIndex < contexts.length) {
 ### 5. Separator/Stringification Issues (NEEDS SPEC)
 
 **Tests**:
+
 - `evaluate ... grouping ... returns unevaluated closure for {1}`
 - `evaluate ... grouping ... returns unevaluated closure for {_}`
 - `evaluate ... grouping ... returns unevaluated closure for { _ + 1 }`
@@ -157,6 +172,7 @@ if (paramIndex < contexts.length) {
 - `FrameLazy ... Codify ... converts Array to unevaluated Expr when called`
 
 **Issue**: Complex interaction between:
+
 - FrameExpr.toStringDataArray() adding separators
 - FrameList.toStringDataArray() adding separators
 - Nested expressions getting double separators
@@ -167,6 +183,7 @@ if (paramIndex < contexts.length) {
 ## Design Questions for Separator Fix
 
 ### Question 1: Separator Responsibility
+
 **Who should add separators between elements?**
 
 Options:
@@ -175,10 +192,12 @@ B. The parent FrameList adds separators when joining children
 C. Hybrid: Frame adds internal separator, parent adds external separator
 
 **Current Behavior**: Hybrid (causing conflicts)
+
 - FrameExpr adds separator in toStringDataArray() (for metadata trailing comma)
 - FrameList adds separator when joining (for sibling separation)
 
 ### Question 2: Nested Expression Handling
+
 **How should nested expressions be separated?**
 
 Example: `FrameGroup([expr1, expr2])` where expr1 is a statement
@@ -187,42 +206,70 @@ Current output: `(("content";); ("content"))`
 Expected output: `(("content"); ("content"))`
 
 The semicolon should be:
+
 - Outside the inner expr's parens: `("content")`
 - Between the two exprs at group level: `); (`
 
 ### Question 3: Metadata Separator
+
 **How should data and metadata be separated?**
 
 Example: `FrameExpr([frame, string], {context})`
 
 Expected: `(() "Hello", .context (...))`
+
 - Data elements space-separated: `() "Hello"`
 - Trailing comma after data: `,`
 - Metadata follows: `.context (...)`
 
-## Proposed Solution (DRAFT - NEEDS REVIEW)
+## Proposed Solution
 
-### Principle
-**Single Responsibility**: Each Frame type handles its own internal formatting. Parents only join children with spaces, not adding/modifying separators.
+### Key Design Decision: Metadata-First Ordering
+
+**DECISION**: Write metadata FIRST if present, followed by data elements.
+
+**Rationale**:
+
+- Metadata always ends with semicolon (from nested expressions)
+- This makes the separator after metadata unambiguous
+- Internal references in data become much clearer
+- Eliminates the need for complex separator detection logic
+
+### New Format
+
+**With metadata**:
+
+```hc
+(metadata; data data data)
+```
+
+Example: `(.context ("context", .key "Hello";); () "Hello")`
+
+**Without metadata** (unchanged):
+
+```hc
+(data, data, data)
+```
 
 ### Changes Needed
 
-1. **FrameExpr.toStringDataArray()**
-   - Add trailing separator for metadata boundary
-   - But NOT for statement separation (that's parent's job)
+1. **FrameList.toStringArray()**
+   - If metadata present: `[meta_string(), ...dataArray]`
+   - If no metadata: `stripLastComma(dataArray)` as before
 
-2. **FrameList.toStringDataArray()**
-   - Add separators between children based on is.statement
-   - But detect if child already has internal separator to avoid duplication
+2. **FrameExpr.toStringDataArray()**
+   - Remove trailing separator (no longer needed with metadata-first)
+   - Just return data body: `[body]`
 
-3. **stripLastComma()**
-   - Strip trailing separator only if no metadata
+3. **FrameList.toStringDataArray()**
+   - Keep current behavior: add separators between children
+   - But now no conflict since FrameExpr doesn't add its own
 
 ### Implementation Strategy
 
-1. Write comprehensive test cases covering all scenarios
-2. Define clear spec for separator rules
-3. Implement changes one type at a time
+1. Update FrameList.toStringArray() to reorder metadata-first
+2. Remove separator from FrameExpr.toStringDataArray()
+3. Update all tests to expect new metadata-first format
 4. Verify no regressions
 
 ## Next Steps
