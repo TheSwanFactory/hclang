@@ -1,5 +1,28 @@
 # CHANGELOG
 
+> Create concise entries for changes since the last tag User-visible changes
+> only (ignore internal cleanup) one-line per change Ignore spec documents, and
+> deprioritize test-only changes
+
+## v0.7.5 2025-12-14
+
+- **Closure Improvements**: Fixed lazy closure evaluation and anonymous
+  parameter handling
+  - Closures now properly stay unevaluated until called
+  - Fixed anonymous parameter `_` resolution in closures
+  - Improved closure string output formatting (no captured environment metadata)
+- **Format Specifications**: Added canonical formatting and pretty-printing
+  specs for hcfmt
+  - Defined canonical format rules for consistent code formatting
+  - Added pretty-printing specification for enhanced readability
+  - Included smoke tests for format validation
+- **Documentation**: Added comprehensive CLAUDE.md guide files
+  - Project-wide [CLAUDE.md](CLAUDE.md) developer guide
+  - Package-specific guides for [cli](cli/CLAUDE.md),
+    [lib/execute](lib/execute/CLAUDE.md), [lib/frames](lib/frames/CLAUDE.md),
+    [lib/ops](lib/ops/CLAUDE.md), and [web](web/CLAUDE.md)
+  - Detailed architecture and development workflow documentation
+
 ## v0.7.4 2025-12-13
 
 - **Deno 2 Compatibility**: Full support for Deno 2.x
