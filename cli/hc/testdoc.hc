@@ -45,5 +45,5 @@ Test types
 ; .one <1> 1
 # .one 1
 ; @one 2
-#  $!.type-error .one <1> 2
+# $!.type-error .one <1> 2
 ; @enum123 <1,2,3>; # Enumerated list of valid values

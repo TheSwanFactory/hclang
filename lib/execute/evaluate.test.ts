@@ -222,6 +222,20 @@ describe("evaluate", () => {
     });
   });
 
+  describe("schemas", () => {
+    it("binds value with schema and reports assignment", () => {
+      const result = evaluate(".one <1> 1");
+      expect(result.toString()).toEqual("[.one 1, .one.<> <1>; .one 1;]");
+    });
+
+    it("rejects values that do not match the schema", () => {
+      const result = evaluate(".one <1> 1; @one 2");
+      expect(result.toString()).toEqual(
+        "[((.one 1); $!.type-error .one <1> 2), .one.<> <1>; .one 1;]",
+      );
+    });
+  });
+
   describe("closures with arguments", () => {
     describe("anonymous parameter `_`", () => {
       it("applies closure {_} as identity function", () => {
