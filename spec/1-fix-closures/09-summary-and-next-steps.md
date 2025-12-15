@@ -1,12 +1,12 @@
 # Fix Closures - Summary and Next Steps
 
-**Status**: Ready for Implementation
-**Date**: 2025-12-14
-**Branch**: `fix-closures`
+**Status**: Ready for Implementation **Date**: 2025-12-14 **Branch**:
+`fix-closures`
 
 ## Summary
 
-This spec series documents the investigation and proposed fixes for test failures introduced by closure improvements in v0.7.5.
+This spec series documents the investigation and proposed fixes for test
+failures introduced by closure improvements in v0.7.5.
 
 ## Completed Investigation
 
@@ -17,7 +17,8 @@ This spec series documents the investigation and proposed fixes for test failure
    - Status: Implemented and tested
 
 2. **FrameExpr separator** - Need to decide: keep or revert
-   - File: [lib/frames/frame-expr.ts:32-36](../../lib/frames/frame-expr.ts#L32-L36)
+   - File:
+     [lib/frames/frame-expr.ts:32-36](../../lib/frames/frame-expr.ts#L32-L36)
    - Currently reverted to original (with separator)
    - Status: Works both ways, design decision needed
 
@@ -33,6 +34,7 @@ This spec series documents the investigation and proposed fixes for test failure
 ### 1. Separator Changes Are Independent
 
 The FrameExpr separator change is **orthogonal** to MAML issues:
+
 - Removing separator from FrameExpr.toStringDataArray() fixes double-semicolon
 - But MAML still fails even with original separator logic
 - We can decide on separators independently of MAML
@@ -41,7 +43,8 @@ The FrameExpr separator change is **orthogonal** to MAML issues:
 
 **Design Principle**: HCLang core semantics are primary, MAML is secondary.
 
-Rather than changing HC parameter semantics to match legacy MAML expectations, we should update MAML to use correct HC argument semantics.
+Rather than changing HC parameter semantics to match legacy MAML expectations,
+we should update MAML to use correct HC argument semantics.
 
 ### 3. Simple Fix Available
 
@@ -51,18 +54,22 @@ MAML can be fixed with a **one-line change**: replace `^` with `__`
 // lib/maml.ts:23-27
 const HeadBlock = new FrameLazy([
   new FrameSymbol("tag"),
-  FrameArg.level(2),   // __ instead of FrameParam.there() (^)
-  FrameArg.here(),     // _
+  FrameArg.level(2), // __ instead of FrameParam.there() (^)
+  FrameArg.here(), // _
 ]);
 ```
 
 ## Specification Documents
 
 1. **[01-closure-parsing.md](01-closure-parsing.md)** - Closure parsing spec
-2. **[02-underbar-reqs.md](02-underbar-reqs.md)** - Anonymous parameter requirements
-3. **[03-closure-eval-diagnosis.md](03-closure-eval-diagnosis.md)** - Initial diagnosis and resolution
-4. **[06-test-failures-analysis.md](06-test-failures-analysis.md)** - Test failure analysis
-5. **[07-metadata-first-implementation.md](07-metadata-first-implementation.md)** - Investigation results
+2. **[02-underbar-reqs.md](02-underbar-reqs.md)** - Anonymous parameter
+   requirements
+3. **[03-closure-eval-diagnosis.md](03-closure-eval-diagnosis.md)** - Initial
+   diagnosis and resolution
+4. **[06-test-failures-analysis.md](06-test-failures-analysis.md)** - Test
+   failure analysis
+5. **[07-metadata-first-implementation.md](07-metadata-first-implementation.md)** -
+   Investigation results
 6. **[08-maml-redesign.md](08-maml-redesign.md)** - MAML fix proposal
 
 ## Next Steps
@@ -77,8 +84,7 @@ Fix MAML to use correct HC semantics, keep current stringification:
 4. ✅ Run all tests
 5. ✅ Commit and push
 
-**Effort**: 5 minutes
-**Risk**: Very low (single line change in MAML)
+**Effort**: 5 minutes **Risk**: Very low (single line change in MAML)
 
 ### Option B: Separator Cleanup + MAML Fix
 
@@ -91,8 +97,8 @@ Implement metadata-first separator design + fix MAML:
 5. ✅ Run all tests
 6. ✅ Commit and push
 
-**Effort**: 15-30 minutes
-**Risk**: Low (separator tests currently pass either way)
+**Effort**: 15-30 minutes **Risk**: Low (separator tests currently pass either
+way)
 
 ### Option C: Analysis Only
 
@@ -102,8 +108,7 @@ Just document findings, don't implement:
 2. ❌ Tests still failing
 3. ❌ Branch cannot merge
 
-**Effort**: 0 minutes (already done)
-**Risk**: N/A (no changes)
+**Effort**: 0 minutes (already done) **Risk**: N/A (no changes)
 
 ## Recommendation
 
@@ -116,7 +121,9 @@ Just document findings, don't implement:
 3. **Ship the value** - Closure improvements are valuable, unblock the branch
 4. **Iterate later** - Can revisit separator design in future PR
 
-The metadata-first design is well-specified but not critical. The important work is:
+The metadata-first design is well-specified but not critical. The important work
+is:
+
 - ✅ Closures work correctly
 - ✅ MAML adapts to HC semantics
 - ✅ All tests pass
@@ -136,16 +143,19 @@ For Option A:
 ## Success Criteria
 
 ✅ All tests pass:
+
 - `deno test -A lib/execute/evaluate.test.ts` - closure tests
 - `deno test -A lib/execute/parse.test.ts` - separator tests
 - `deno test -A maml/maml.test.ts` - MAML tests
 - `deno test -A` - no regressions
 
 ✅ Design documented:
+
 - Specs explain rationale
 - Future developers understand decisions
 
 ✅ Branch mergeable:
+
 - All tests green
 - CI passes
 - Ready for PR

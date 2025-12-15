@@ -1,5 +1,5 @@
 {
-  "version": "0.7.5",
+  "version": "0.7.6",
   "bin": {
     "hc": "scripts/hc"
   },
@@ -10,8 +10,8 @@
     "hc": "deno run -A cli/hc.ts",
     "publish": "cd lib && deno publish",
     "setup": "deno run -A deno-hooks",
-    "tag": "git tag v$(jq -r .version deno.json) && git push origin --tags",
-    "test": "deno task setup && deno fmt && deno lint --fix && deno task test:all",
+    "tag": "deno task test && git tag v$(jq -r .version deno.json) && git push origin --tags",
+    "test": "deno fmt && deno lint --fix && deno task test:all",
     "test:cli": "cd cli && deno task test",
     "test:doc": "cd cli && deno task test:doc",
     "test:lib": "deno test lib",

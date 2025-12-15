@@ -1,17 +1,18 @@
 # Final Diagnosis: Fundamental Conflict
 
-**Status**: Blocker Identified
-**Date**: 2025-12-14
+**Status**: Blocker Identified **Date**: 2025-12-14
 
 ## The Conflict
 
-Closure fixes and MAML are **fundamentally incompatible** with current implementation.
+Closure fixes and MAML are **fundamentally incompatible** with current
+implementation.
 
 ### Root Cause: FrameLazy.call()
 
 The new FrameLazy implementation (for correct closure semantics) breaks MAML.
 
 **Old FrameLazy.call()** (v0.7.4):
+
 ```typescript
 public override call(
   argument: Frame,
@@ -22,6 +23,7 @@ public override call(
 ```
 
 **New FrameLazy.call()** (current):
+
 ```typescript
 public override call(
   argument: Frame,
@@ -44,7 +46,10 @@ public override call(
 
 ### Why It Breaks MAML
 
-The line `expr.in([argument, _parameter, this])` evaluates the closure body immediately with the argument/parameter contexts. This is correct for closures but breaks MAML's use of `FrameSymbol("tag")` which expects to look up "tag" in a different context.
+The line `expr.in([argument, _parameter, this])` evaluates the closure body
+immediately with the argument/parameter contexts. This is correct for closures
+but breaks MAML's use of `FrameSymbol("tag")` which expects to look up "tag" in
+a different context.
 
 ### Test Results
 
@@ -78,6 +83,7 @@ Requires deep understanding of context/metadata propagation to make both work.
 **Choose Option 1**: Keep closure fixes, mark MAML as broken.
 
 **Rationale**:
+
 1. HC core semantics > MAML application
 2. Closures are fundamental to HC
 3. MAML can be rewritten
@@ -94,6 +100,7 @@ Requires deep understanding of context/metadata propagation to make both work.
 ## Alternative: Full Revert
 
 If we can't ship with broken MAML:
+
 1. Revert ALL closure changes
 2. Go back to v0.7.4 state
 3. Plan more carefully for v0.7.6

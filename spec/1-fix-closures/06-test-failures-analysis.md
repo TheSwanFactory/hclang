@@ -1,18 +1,20 @@
 # Test Failures Analysis - Closure Branch
 
-**Status**: Analysis and Fix Design
-**Date**: 2025-12-14
-**Component**: Test failures introduced by closure changes
+**Status**: Analysis and Fix Design **Date**: 2025-12-14 **Component**: Test
+failures introduced by closure changes
 
 ## Overview
 
-The closure improvements in v0.7.5 introduced 8 test failures that were not caught locally before pushing. This document analyzes the failures and designs fixes.
+The closure improvements in v0.7.5 introduced 8 test failures that were not
+caught locally before pushing. This document analyzes the failures and designs
+fixes.
 
 ## Why Tests Were Not Caught Locally
 
 ### Root Cause
 
-The pre-push hook was not installed. While `.pre-commit-config.yaml` defines a test hook for the `pre-push` stage:
+The pre-push hook was not installed. While `.pre-commit-config.yaml` defines a
+test hook for the `pre-push` stage:
 
 ```yaml
 - id: test
@@ -41,10 +43,11 @@ The hook was never installed because:
 
 **Test**: `Parse ... ParsePipe ... semicolons Grouped strings on next(true)`
 
-**Expected**: `(("content"); ("content"))`
-**Actual**: `(("content";); ("content"))`
+**Expected**: `(("content"); ("content"))` **Actual**:
+`(("content";); ("content"))`
 
-**Issue**: Extra semicolon before closing paren - `("content";)` instead of `("content")`
+**Issue**: Extra semicolon before closing paren - `("content";)` instead of
+`("content")`
 
 **Analysis**:
 
@@ -53,9 +56,11 @@ The hook was never installed because:
 - `FrameList.toStringDataArray()` adds another semicolon based on `is.statement`
 - Result: `("content";);` - double semicolon
 
-**Root Cause**: Separator responsibility is unclear between FrameExpr and FrameList
+**Root Cause**: Separator responsibility is unclear between FrameExpr and
+FrameList
 
-- FrameExpr includes separator in toStringDataArray (for trailing comma before metadata)
+- FrameExpr includes separator in toStringDataArray (for trailing comma before
+  metadata)
 - FrameList also adds separators when joining nested expressions
 - This creates duplication for statement separators
 
@@ -66,8 +71,7 @@ The hook was never installed because:
 - `FrameLazy ... stringifies to {expr} without metadata`
 - `FrameLazy ... captures context but stays lazy until called`
 
-**Expected**: `{speed gap _}`
-**Actual**: `{ speed gap _ }` (extra spaces)
+**Expected**: `{speed gap _}` **Actual**: `{ speed gap _ }` (extra spaces)
 
 **Issue**: [frame-lazy.ts:49](../../lib/frames/frame-lazy.ts#L49)
 
@@ -91,10 +95,11 @@ const display = body.length > 0 ? body : body;
 - `FrameArg ... FrameParam ... evaluates to the parameter`
 - `FrameArg ... FrameParam ... evaluates to higher-level parameters`
 
-**Expected**: Return lower-level FrameArg or parameter from contexts
-**Actual**: Returns FrameNote error with "name-missing" = "___"
+**Expected**: Return lower-level FrameArg or parameter from contexts **Actual**:
+Returns FrameNote error with "name-missing" = "___"
 
-**Issue**: New closure-aware implementation requires FrameLazy in contexts, but tests pass plain contexts
+**Issue**: New closure-aware implementation requires FrameLazy in contexts, but
+tests pass plain contexts
 
 **Analysis**: [frame-arg.ts:54-73](../../lib/frames/frame-arg.ts#L54-L73)
 
@@ -135,20 +140,21 @@ if (paramIndex < contexts.length) {
 - `iterators ... && iterate over metas ... calls block with key as second parameter`
 - `iterators ... && iterate over metas ... is called as a name with a lazy block`
 
-**Expected**: `"[ key: author| value: An Author ]"`
-**Actual**: Returns full base array instead of key
+**Expected**: `"[ key: author| value: An Author ]"` **Actual**: Returns full
+base array instead of key
 
 **Issue**: FrameParam was looking in closure chain instead of contexts array
 
 **Analysis**: When FrameLazy.call() is invoked, it creates contexts:
 
 ```typescript
-expr.in([argument, _parameter, this])
+expr.in([argument, _parameter, this]);
 ```
 
 So `contexts[1]` contains the parameter, not `closure.up`.
 
-**Fix**: FrameParam should check contexts array first before walking closure chain
+**Fix**: FrameParam should check contexts array first before walking closure
+chain
 
 ```typescript
 // Parameters are stored in the contexts array first
@@ -186,10 +192,9 @@ if (paramIndex < contexts.length) {
 
 **Who should add separators between elements?**
 
-Options:
-A. Each Frame adds its own trailing separator in toStringDataArray()
-B. The parent FrameList adds separators when joining children
-C. Hybrid: Frame adds internal separator, parent adds external separator
+Options: A. Each Frame adds its own trailing separator in toStringDataArray() B.
+The parent FrameList adds separators when joining children C. Hybrid: Frame adds
+internal separator, parent adds external separator
 
 **Current Behavior**: Hybrid (causing conflicts)
 
@@ -202,8 +207,8 @@ C. Hybrid: Frame adds internal separator, parent adds external separator
 
 Example: `FrameGroup([expr1, expr2])` where expr1 is a statement
 
-Current output: `(("content";); ("content"))`
-Expected output: `(("content"); ("content"))`
+Current output: `(("content";); ("content"))` Expected output:
+`(("content"); ("content"))`
 
 The semicolon should be:
 
