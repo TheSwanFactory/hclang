@@ -1,0 +1,22 @@
+hooks:
+  pre-commit:
+    # Format code with deno fmt
+    - id: deno-fmt
+      name: deno fmt
+      run: deno-fmt
+      glob: "*.{ts,js,json,md}"
+      pass_filenames: true
+
+    # Lint code with deno lint
+    - id: deno-lint
+      name: deno lint
+      run: deno-lint
+      glob: "*.{ts,js}"
+      pass_filenames: true
+
+  pre-push:
+    # Run tests before pushing
+    - id: test
+      name: test
+      run: deno-test
+      pass_filenames: false

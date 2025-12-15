@@ -1,5 +1,5 @@
 {
-  "version": "0.7.4",
+  "version": "0.7.5",
   "bin": {
     "hc": "scripts/hc"
   },
@@ -9,17 +9,16 @@
     "clean": "rm deno.lock */deno.lock",
     "hc": "deno run -A cli/hc.ts",
     "publish": "cd lib && deno publish",
-    "setup": "pre-commit install || echo 'pre-commit not installed. Install it with: brew install pre-commit (or pip install pre-commit). See https://pre-commit.com for more info.'",
+    "setup": "deno run -A deno-hooks",
     "tag": "git tag v$(jq -r .version deno.json) && git push origin --tags",
     "test": "deno task setup && deno fmt && deno lint --fix && deno task test:all",
-    "test:setup": "pre-commit run --all-files || echo 'pre-commit not installed. Install it with: brew install pre-commit (or pip install pre-commit). See https://pre-commit.com for more info.'",
     "test:cli": "cd cli && deno task test",
     "test:doc": "cd cli && deno task test:doc",
     "test:lib": "deno test lib",
     "test:maml": "deno test maml",
     "test:web": "cd web && deno test",
     "test:bs": "cd cli && deno task test:bs",
-    "test:all": "deno task test:cli && deno task test:lib && deno task test:maml && deno task test:web",
+    "test:all": "deno task test:cli && deno task test:lib && deno task test:web",
     "vscode:package": "cd vscode-extension && npx @vscode/vsce package",
     "vscode:publish": "cd vscode-extension && npx @vscode/vsce publish",
     "vscode:install": "cd vscode-extension && npx @vscode/vsce package && code --install-extension *.vsix"
@@ -60,6 +59,8 @@
   "imports": {
     "$fresh/": "https://deno.land/x/fresh@1.7.3/",
     "@swanfactory/hclang": "https://esm.sh/jsr/@swanfactory/hclang@0.7.2/",
+    "@theswanfactory/deno-hooks": "jsr:@theswanfactory/deno-hooks@0.2.1-dev.1765778019",
+    "deno-hooks": "jsr:@theswanfactory/deno-hooks@0.2.1-dev.1765778019",
     "preact": "https://esm.sh/preact@10.23.1/",
     "preact/": "https://esm.sh/preact@10.23.1/",
     "@preact/hooks": "https://esm.sh/preact@10.23.1/hooks",

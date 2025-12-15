@@ -3,13 +3,16 @@
   "specifiers": {
     "jsr:@nothing628/chalk@*": "1.0.1",
     "jsr:@nothing628/chalk@^1.0.1": "1.0.1",
-    "jsr:@std/assert@^1.0.15": "1.0.16",
     "jsr:@std/assert@~0.219.1": "0.219.1",
     "jsr:@std/cli@^1.0.13": "1.0.24",
     "jsr:@std/expect@~0.219.1": "0.219.1",
     "jsr:@std/fmt@~0.219.1": "0.219.1",
+    "jsr:@std/fs@^1.0.8": "1.0.20",
     "jsr:@std/internal@^1.0.12": "1.0.12",
-    "jsr:@std/testing@^1.0.10": "1.0.16",
+    "jsr:@std/path@^1.0.8": "1.1.3",
+    "jsr:@std/path@^1.1.3": "1.1.3",
+    "jsr:@std/yaml@^1.0.5": "1.0.10",
+    "jsr:@theswanfactory/deno-hooks@0.2.1-dev.1765778019": "0.2.1-dev.1765778019",
     "npm:@types/node@*": "24.2.0"
   },
   "jsr": {
@@ -22,9 +25,6 @@
         "jsr:@std/fmt"
       ]
     },
-    "@std/assert@1.0.16": {
-      "integrity": "6a7272ed1eaa77defe76e5ff63ca705d9c495077e2d5fd0126d2b53fc5bd6532"
-    },
     "@std/cli@1.0.24": {
       "integrity": "b655a5beb26aa94f98add6bc8889f5fb9bc3ee2cc3fc954e151201f4c4200a5e",
       "dependencies": [
@@ -34,21 +34,38 @@
     "@std/expect@0.219.1": {
       "integrity": "52fba000f4c51094232d8403ac13373b243ce2e6a048a322b369fb8b5cbb6b14",
       "dependencies": [
-        "jsr:@std/assert@~0.219.1",
+        "jsr:@std/assert",
         "jsr:@std/fmt"
       ]
     },
     "@std/fmt@0.219.1": {
       "integrity": "2432152e927df249a207177aa048a6d9465956ea0047653ee6abd4f514db504f"
     },
+    "@std/fs@1.0.20": {
+      "integrity": "e953206aae48d46ee65e8783ded459f23bec7dd1f3879512911c35e5484ea187",
+      "dependencies": [
+        "jsr:@std/internal",
+        "jsr:@std/path@^1.1.3"
+      ]
+    },
     "@std/internal@1.0.12": {
       "integrity": "972a634fd5bc34b242024402972cd5143eac68d8dffaca5eaa4dba30ce17b027"
     },
-    "@std/testing@1.0.16": {
-      "integrity": "a917ffdeb5924c9be436dc78bc32e511760e14d3a96e49c607fc5ecca86d0092",
+    "@std/path@1.1.3": {
+      "integrity": "b015962d82a5e6daea980c32b82d2c40142149639968549c649031a230b1afb3",
       "dependencies": [
-        "jsr:@std/assert@^1.0.15",
         "jsr:@std/internal"
+      ]
+    },
+    "@std/yaml@1.0.10": {
+      "integrity": "245706ea3511cc50c8c6d00339c23ea2ffa27bd2c7ea5445338f8feff31fa58e"
+    },
+    "@theswanfactory/deno-hooks@0.2.1-dev.1765778019": {
+      "integrity": "8ed33f05126321c452267092e783308b0a1b6ec5ef57d7279fd63f91581f3e9e",
+      "dependencies": [
+        "jsr:@std/fs",
+        "jsr:@std/path@^1.0.8",
+        "jsr:@std/yaml"
       ]
     }
   },
@@ -96,7 +113,8 @@
   },
   "workspace": {
     "dependencies": [
-      "jsr:@std/expect@~0.219.1"
+      "jsr:@std/expect@~0.219.1",
+      "jsr:@theswanfactory/deno-hooks@0.2.1-dev.1765778019"
     ],
     "members": {
       "cli": {

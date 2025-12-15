@@ -30,8 +30,9 @@ export class FrameExpr extends FrameList {
   }
 
   public override toStringDataArray(): string[] {
-    const array = this.data.map((obj: Frame): string => obj.toString());
-    return [array.join(" ") + ","];
+    const body = this.data.map((obj: Frame) => obj.toString()).join(" ");
+    // Don't add separator here - let parent FrameList handle it
+    return [body];
   }
 }
 

@@ -1,6 +1,14 @@
 import { Frame } from "./frame.ts";
 import { FrameNote } from "./frame-note.ts";
+import { FrameLazy } from "./frame-lazy.ts";
 import { FrameSymbol } from "./frame-symbol.ts";
+import { type Context, NilContext } from "./context.ts";
+
+const findClosure = (contexts: Frame[]): FrameLazy | undefined => {
+  return contexts.find((context) => context instanceof FrameLazy) as
+    | FrameLazy
+    | undefined;
+};
 
 export class FrameArg extends FrameSymbol {
   public static readonly ARG_CHAR = "_";
@@ -17,6 +25,10 @@ export class FrameArg extends FrameSymbol {
   protected static args: { [key: string]: FrameArg } = {};
 
   protected static _for(symbol: string): FrameArg {
+    if (symbol.includes(FrameParam.ARG_CHAR)) {
+      const level = symbol.length - 1;
+      return FrameParam.level(level) as unknown as FrameArg;
+    }
     const exists = FrameArg.args[symbol];
     return exists || (FrameArg.args[symbol] = new FrameArg(symbol));
   }
@@ -25,13 +37,40 @@ export class FrameArg extends FrameSymbol {
         super(data)
     } */
 
+  constructor(source: string, meta: Context = NilContext) {
+    // Normalize empty source to a single underscore so lexer quirks still produce a usable arg token.
+    const normalized = source === "" ? FrameArg.ARG_CHAR : source;
+    super(normalized, meta);
+  }
+
+  public override string_start(): string {
+    return FrameArg.ARG_CHAR;
+  }
+
+  public override canInclude(char: string): boolean {
+    return char === FrameArg.ARG_CHAR || char === FrameParam.ARG_CHAR;
+  }
+
   public override in(contexts = [Frame.nil]): Frame {
     const level = this.data.length;
     if (level <= 1) {
       return contexts[0];
-    } else {
+    }
+
+    const closure = findClosure(contexts);
+    if (!closure) {
+      // When no closure, decrement the level
       return FrameArg.level(level - 1);
     }
+
+    let target: Frame | undefined = closure;
+    for (let i = 1; i < level; i++) {
+      target = target?.up;
+      if (!target) {
+        return FrameNote.key(this.data, this);
+      }
+    }
+    return target;
   }
 }
 
@@ -60,11 +99,28 @@ export class FrameParam extends FrameSymbol {
     } */
 
   public override in(contexts = [Frame.nil]): Frame {
-    const level = this.data.length - 1;
-    if (level <= contexts.length) {
-      return contexts[level];
-    } else {
+    const level = this.data.length - 1; // number of ^
+
+    // Parameters are stored in the contexts array
+    // contexts[0] is the argument, contexts[1] is the parameter
+    const paramIndex = level;
+    if (paramIndex < contexts.length) {
+      return contexts[paramIndex];
+    }
+
+    // If not in contexts, try walking up the closure chain
+    const closure = findClosure(contexts);
+    if (!closure) {
       return FrameNote.key(this.data, this);
     }
+
+    let target: Frame | undefined = closure;
+    for (let i = 0; i < level; i++) {
+      target = target?.up;
+      if (!target) {
+        return FrameNote.key(this.data, this);
+      }
+    }
+    return target;
   }
 }
