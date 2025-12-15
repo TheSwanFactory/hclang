@@ -59,8 +59,8 @@
   "imports": {
     "$fresh/": "https://deno.land/x/fresh@1.7.3/",
     "@swanfactory/hclang": "https://esm.sh/jsr/@swanfactory/hclang@0.7.2/",
-    "@theswanfactory/deno-hooks": "jsr:@theswanfactory/deno-hooks@^0.2.0",
-    "deno-hooks": "jsr:@theswanfactory/deno-hooks@^0.2.1",
+    "@theswanfactory/deno-hooks": "jsr:@theswanfactory/deno-hooks@0.2.1-dev.1765778019",
+    "deno-hooks": "jsr:@theswanfactory/deno-hooks@0.2.1-dev.1765778019",
     "preact": "https://esm.sh/preact@10.23.1/",
     "preact/": "https://esm.sh/preact@10.23.1/",
     "@preact/hooks": "https://esm.sh/preact@10.23.1/hooks",
