@@ -30,7 +30,8 @@ formats (e.g., HCSV, HCSON).
 
 ### Try it Online
 
-Visit [hclang.deno.dev](https://hclang.deno.dev) to try HC directly in your browser with no installation required.
+Visit [hclang.deno.dev](https://hclang.deno.dev) to try HC directly in your
+browser with no installation required.
 
 ### Use as a Library
 
