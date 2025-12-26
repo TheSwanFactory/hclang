@@ -66,8 +66,8 @@ describe("FrameSymbol", () => {
       expect(setter.get(frame.Frame.kOUT)).toEqual(out);
     });
 
-    it("returns setter", () => {
-      expect(result).toEqual(setter);
+    it("returns a literal summary", () => {
+      expect(result.toString()).toEqual(`.${symbol} “${value}”`);
     });
 
     it("sets value in out", () => {
