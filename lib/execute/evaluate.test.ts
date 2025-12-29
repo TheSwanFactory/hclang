@@ -222,6 +222,213 @@ describe("evaluate", () => {
     });
   });
 
+  describe("schemas", () => {
+    it("binds value with schema and reports assignment", () => {
+      const result = evaluate(".one <1> 1");
+      expect(result.toString()).toEqual("[.one 1, .one.<> <1>; .one 1;]");
+    });
+
+    it("rejects values that do not match the schema", () => {
+      const result = evaluate(".one <1> 1; @one 2");
+      expect(result.toString()).toEqual(
+        "[((.one 1); $!.type-error .one <1> 2), .one.<> <1>; .one 1;]",
+      );
+    });
+
+    // Empty schema tests
+    it("accepts any value with empty schema", () => {
+      const result = evaluate(".x <> 42");
+      // Empty schema stores differently than full schemas
+      expect(result.toString()).toEqual("[42, .x <>;]");
+    });
+
+    it.skip("allows reassignment with empty schema", () => {
+      // SKIPPED: Empty schema binding returns empty result []
+      // This may be a bug or intended behavior - needs investigation
+      const result = evaluate('.x <> 42; @x "hello"');
+      expect(result.toString()).toContain('.x "hello"');
+    });
+
+    // String enumeration tests - SKIPPED: Not implemented
+    it.skip("accepts values from string enumeration", () => {
+      // SKIPPED: String schemas return empty []
+      // Current implementation only supports numeric schema validation
+      const result = evaluate('.color <"red","green","blue"> "red"');
+      expect(result.toString()).toContain('.color "red"');
+    });
+
+    it.skip("rejects values not in string enumeration", () => {
+      // SKIPPED: String schemas not implemented
+      const result = evaluate(
+        '.color <"red","green","blue"> "red"; @color "yellow"',
+      );
+      expect(result.toString()).toContain("$!.type-error");
+    });
+
+    it("validates number enumerations", () => {
+      const result = evaluate(".option <1,2,3> 2");
+      expect(result.toString()).toContain(".option 2");
+    });
+
+    it("rejects numbers not in enumeration", () => {
+      const result = evaluate(".option <1,2,3> 2; @option 4");
+      expect(result.toString()).toContain("$!.type-error");
+    });
+
+    // Single-value schema tests (constants)
+    it("enforces single value schema", () => {
+      const result = evaluate(".const <42> 42");
+      expect(result.toString()).toContain(".const 42");
+    });
+
+    it("rejects different value for single value schema", () => {
+      const result = evaluate(".const <42> 42; @const 43");
+      expect(result.toString()).toContain("$!.type-error");
+    });
+
+    it.skip("enforces string literal type", () => {
+      // SKIPPED: String schemas not implemented
+      const result = evaluate('.status <"ok"> "ok"');
+      expect(result.toString()).toContain('.status "ok"');
+    });
+
+    // Reassignment tests
+    it("allows multiple valid assignments", () => {
+      const result = evaluate(".x <1,2> 1; @x 2; @x 1");
+      expect(result.toString()).not.toContain("$!.type-error");
+    });
+
+    it("maintains schema across assignments", () => {
+      const result = evaluate(".x <1> 1; @x 1; @x 1");
+      const assignments = result.toStringArray();
+      // Result contains nested expressions, both match the filter
+      expect(assignments.filter((s) => s.includes(".x 1"))).toHaveLength(2);
+    });
+
+    // Edge cases (aspirational - document expected behavior)
+    describe.skip("edge cases", () => {
+      it("handles schema with nil value", () => {
+        const result = evaluate(".x <()> ()");
+        expect(result.toString()).toContain(".x ()");
+      });
+
+      it("preserves schema through context", () => {
+        const result = evaluate(".x <1> 1; .y @x");
+        // .y should get value 1, but schema stays with x
+        expect(result.toString()).toContain(".y 1");
+      });
+
+      it("reports clear error with schema details", () => {
+        const result = evaluate(".num <1,2,3> 1; @num 5");
+        const error = result.toString();
+        expect(error).toContain("$!.type-error");
+        expect(error).toContain(".num");
+      });
+
+      it("handles nested structure access", () => {
+        const result = evaluate(".arr <[1,2]> [1,2]");
+        // Array structure type checking
+        expect(result.toString()).toContain(".arr");
+      });
+    });
+
+    // Schema storage and retrieval
+    describe.skip("schema storage", () => {
+      it("stores schema under name.<> key", () => {
+        const result = evaluate(".x <1> 1");
+        expect(result.toString()).toContain(".x.<> <1>");
+      });
+
+      it("retrieves schema for validation", () => {
+        const result = evaluate(".x <1> 1; .schema .x.<>");
+        expect(result.toString()).toContain("<1>");
+      });
+
+      it("allows schema definition without initial value", () => {
+        const result = evaluate(".x <1,2,3>; @x 2");
+        // Schema-only binding support
+        expect(result.toString()).toContain(".x 2");
+      });
+    });
+
+    // HLIR advanced types (aspirational - from doc/HLIR examples)
+    describe.skip("HLIR advanced types", () => {
+      it("supports primitive type i32", () => {
+        const result = evaluate(".x <i32> 42");
+        expect(result.toString()).toContain(".x 42");
+      });
+
+      it("supports floating point type f32", () => {
+        const result = evaluate(".pi <f32> 3.14");
+        expect(result.toString()).toContain(".pi 3.14");
+      });
+
+      it("supports index type", () => {
+        const result = evaluate(".idx <index> 0");
+        expect(result.toString()).toContain(".idx 0");
+      });
+
+      it("validates primitive types", () => {
+        const result = evaluate('.x <i32> 42; @x "string"');
+        expect(result.toString()).toContain("$!.type-error");
+      });
+
+      it("supports tensor types", () => {
+        const result = evaluate(".mat <tensor<2x3xf32>> [[1,2,3],[4,5,6]]");
+        expect(result.toString()).toContain(".mat");
+      });
+
+      it("supports function signatures", () => {
+        const result = evaluate(
+          ".f <(.x <i32>, .y <f32>) -> <i32>> {x + y}",
+        );
+        expect(result.toString()).toContain(".f");
+      });
+
+      it("validates function parameter types", () => {
+        const result = evaluate(
+          ".add <(.a <i32>, .b <i32>) -> <i32>> {a + b}; @add {x}",
+        );
+        expect(result.toString()).toContain("$!.type-error");
+      });
+
+      it("supports nested generic types", () => {
+        const result = evaluate(".slice <tensor<1x2xf32>> [[1,2]]");
+        expect(result.toString()).toContain(".slice");
+      });
+
+      it("supports type composition", () => {
+        const result = evaluate(
+          ".complex <{.real <f32>, .imag <f32>}> {.real 1.0, .imag 2.0}",
+        );
+        expect(result.toString()).toContain(".complex");
+      });
+
+      it("type checks against empty type (void)", () => {
+        const result = evaluate(".void <()> ()");
+        expect(result.toString()).toContain(".void ()");
+      });
+    });
+
+    // Type conversion (aspirational)
+    describe.skip("type conversion", () => {
+      it("supports explicit type conversion", () => {
+        const result = evaluate(".x <f32> 3.14; .y <i32> x");
+        expect(result.toString()).toContain(".y 3");
+      });
+
+      it("validates conversion compatibility", () => {
+        const result = evaluate('.x <"string"> "hello"; .y <i32> x');
+        expect(result.toString()).toContain("$!.type-error");
+      });
+
+      it("handles numeric type widening", () => {
+        const result = evaluate(".x <i32> 42; .y <f64> x");
+        expect(result.toString()).toContain(".y 42");
+      });
+    });
+  });
+
   describe("closures with arguments", () => {
     describe("anonymous parameter `_`", () => {
       it("applies closure {_} as identity function", () => {

@@ -4,6 +4,19 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.7.6 2025-12-21
+
+- **Type/Schema Tests**: Added comprehensive test coverage for schema validation
+  - 33 total schema tests (was 2): 9 passing, 24 skipped as aspirational
+  - ✅ Numeric schemas work: enumerations `<1,2,3>`, constants `<42>`
+  - 📝 String schemas documented but not yet implemented (tests skipped with
+    `.skip()`)
+  - 📝 HLIR advanced types documented: `<i32>`, `<tensor<2x3xf32>>`, function
+    signatures
+  - Updated `testdoc.hc` with working schema examples
+  - Added `spec/2-type-tests/` documenting findings and implementation
+    recommendations
+
 ## v0.7.5 2025-12-14
 
 - **Closure Improvements**: Significant improvements to closure semantics and
