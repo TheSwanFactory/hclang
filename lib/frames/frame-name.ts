@@ -1,4 +1,5 @@
 import { Frame } from "./frame.ts";
+import { FrameArray } from "./frame-array.ts";
 import { FrameAtom } from "./frame-atom.ts";
 import { FrameOperator, FrameSymbol } from "./frame-symbol.ts";
 import type { ISourced } from "./meta-frame.ts";
@@ -16,8 +17,18 @@ export class FrameName extends FrameAtom implements ISourced {
     this.source = source;
   }
 
+  private bindingTarget(contexts: Frame[]): Frame {
+    for (let i = contexts.length - 1; i >= 0; i--) {
+      const context = contexts[i];
+      if (context instanceof FrameArray) {
+        return context;
+      }
+    }
+    return contexts[0];
+  }
+
   public override in(contexts = [Frame.nil]): Frame {
-    const out = contexts[0];
+    const out = this.bindingTarget(contexts);
     const setter = this.data.setter(out);
     return setter;
   }
