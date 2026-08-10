@@ -21,9 +21,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Use Deno 2.x
+      - name: Use Deno 2.9.5
         uses: denoland/setup-deno@v2
-      - run: deno install
+        with:
+          deno-version: v2.9.5
+      - run: deno ci
       - run: deno task build
       - run: deno task test:all
       - name: Create release on tag
