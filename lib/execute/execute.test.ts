@@ -110,6 +110,18 @@ describe("execute", () => {
     });
   });
 
+  describe("identifiers", () => {
+    it("allows hyphens", () => {
+      const result = execute(".a-b 3\na-b");
+      expect(result).toEqual(".a-b 3\n3\n.a-b 3;");
+    });
+
+    it("allows multiple hyphens", () => {
+      const result = execute(".a-long-name 4\na-long-name");
+      expect(result).toEqual(".a-long-name 4\n4\n.a-long-name 4;");
+    });
+  });
+
   describe("operators", () => {
     it("accepts them as symbols", () => {
       const input = ".&";
