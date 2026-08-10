@@ -4,6 +4,10 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.8.0 2026-08-09
+
+- Upgrade development and CI to Deno 2.9.5.
+
 ## v0.7.6 2025-12-21
 
 - **Type/Schema Tests**: Added comprehensive test coverage for schema validation
