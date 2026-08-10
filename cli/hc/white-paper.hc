@@ -1,5 +1,4 @@
 #!/usr/bin/env hc
-.hc 0.1.0;
 ```
 Title         : Homoiconic C
 Subtitle      : Programming without a Language
@@ -184,7 +183,7 @@ context, then applied left to right (left fold [@LeftFold]). We refer to
 this as the _elliptical evaluator_, in homage to Lisp's metacircular
 evaluator.
 
-``` ruby
+```
   frame0 frame1 frame2 ...
 ```
 Specifically:
@@ -198,7 +197,7 @@ Specifically:
 The HC read-eval-print loop (REPL) uses ';' for the input prompt and '#' for the
 output prompt:
 
-``` ruby
+```
 ; .literal
 # literal
 ```
@@ -245,7 +244,7 @@ natively supports:
 * a dedicated _time_ type and literal (to avoid overloading integers)
 
 By definition, literals evaluate to themselves:
-``` ruby
+```
 ; “Hello, Quine!”
 # “Hello, Quine!”
 ```
@@ -256,7 +255,7 @@ of terminals and literals simply evaluates to (and prints out) itself, or
 Because literals are also frames, and thus both code and data, they can
 be called like functions. Strings, for example, stringify and concatenate
 their argument.
-``` ruby
+```
 ; “Hello, ” “Homoiconicity!”
 # “Hello, Homoiconicity!”
 ; “The Answer” “: ” 42
@@ -264,7 +263,7 @@ their argument.
 ```
 
 Similarly, numbers replicate their argument that many times:
-``` ruby
+```
 ; 2 “Repeats”
 # “RepeatsRepeats”
 ```
@@ -291,7 +290,7 @@ languages -- see Table [#sec-table-terminals] -- with a few twists.
 
 Formally speaking, each expression should terminate in an ',' or ';', depending
 on whether we want to return the resulting value:
-``` ruby
+```
 ; “My Statement”;
 ; “Self Expression”,
 # “Self Expression”
@@ -305,26 +304,26 @@ Space plays an important role in binding, since we do not allow implicit
 precedence. Spaces create a new subexpression, so frames that have no
 space between them bind more tightly than those that do.
 
-``` ruby
+```
 ; “Want ” 2 “Live” # evaluates left to right
 # “Want 2Live”
 ; “Want ” (2“Live”) # TODO: evaluates `2“Live”` first w/o parentheses
 # “Want LiveLive”
 ```
 This of course can also be done (with more visual clutter) via explicit grouping:
-``` ruby
+```
 ; “Want ” (2 “Live”) # evaluates grouped expressions first
 # “Want LiveLive”
 ```
 
 Arrays work as you'd expect:
-``` ruby
+```
 ; [1, 1, 2, 3, 5] 8
 # [1, 1, 2, 3, 5, 8]
 ```
 
 Closures are simply lazy expressions, which evaluate their contents when invoked.
-``` ruby
+```
 ; { “Life, ” “The Universe, ” “Everything.” } ()
 # “Life, The Universe, Everything.”
 ```
@@ -337,7 +336,7 @@ returned, which becomes very powerful when we add identifiers.
 Importantly, the empty closure `{}` becomes the "codify" operator, which converts arrays
 into deferred expressions:
 
-``` ruby
+```
 ; {} [“Life, ” “The Universe, ” “Everything.”]
 # (“Life, The Universe, Everything.”)
 ```
@@ -366,7 +365,7 @@ described in Table [#sec-table-id].
 Syntactically these are equivalent, with one small piece of syntactic
 sugar for operators; the dot is optional when used in a binary relation:
 
-``` ruby
+```
 ; 2 .+ 2
 # 4
 
@@ -384,7 +383,7 @@ Identifiers can be referred to via three different modes:
 
 Assignment is just a simple expression setting a property with that name
 in the current context:
-``` ruby
+```
 ; .x 6 * 7;
 ```
 This avoids the subtle and confusing distinction between differing
@@ -394,7 +393,7 @@ for assignment.
 
 We can use the value `x` to access that property in the same or any child context:
 
-``` ruby
+```
 ; x
 # 42
 ; [x]
@@ -403,7 +402,7 @@ We can use the value `x` to access that property in the same or any child contex
 
 To set the property in the context it was defined, rather than the local context,
 use a _reference_ instead of a name:
-``` ruby
+```
 ; .y 7;
 ; (.x 11; @y 3;);
 ; x
@@ -415,7 +414,7 @@ use a _reference_ instead of a name:
 Names also provide an elegant way of manipulating data structures, still
 in the context of simple expressions:
 
-``` ruby
+```
 ; .base {.key 42};
 ; base .key # gets property
 # 42
@@ -458,7 +457,7 @@ begin with `$!` and return an interrupt value that propagates back up the call
 chain until it encounters an appropriate handler or aborts the program.  The REPL,
 however, simply prints out the exceptional value:
 
-``` ruby
+```
  ; .scope (.a 1, b. 2);
  ; scope.c
  # $!missing-key .c
@@ -472,7 +471,7 @@ that doesn't require them to also learn a foreign language.
 
 Use `_` as the anonymous argument, representing everything this frame
 was called with:
-``` ruby
+```
 ; .triplicate {3 _};
 ; square “Baby”
 # “BabyBabyBaby”
@@ -483,7 +482,7 @@ arguments for the entire script.
 When you apply something to a closure, it is effectively inserting that
 argument into the inheritance hierarchy.  Thus we can access properties
 of the argument directly, rather than explicitly calling `_`.
-``` ruby
+```
 ; .mag {(x * x) + (y * y )};
 ; mag (.x 1; .y 2;)
 # 5
@@ -491,7 +490,7 @@ of the argument directly, rather than explicitly calling `_`.
 
 You can skip over the argument to access the enclosing scope (one level above)
 using the `_^` identifier (also known as `super`).
-``` ruby
+```
 ; .print-arg { var };
 ; .print-parent { _^.var };
 ; .var “parent”;
@@ -505,7 +504,7 @@ using the `_^` identifier (also known as `super`).
 Since objects capture the scope where they are created, this even allows
 closures to be called with implicit arguments to access the enclosing
 scope:
-``` ruby
+```
 ; .x 3;
 ; .y 4;
 ; mag []
@@ -560,7 +559,7 @@ need to change the evaluation rules.
 The empty type `<>` is known as _all_. As the opposite of the empty expression `()` _nil_,
 it acts as the boolean `true` value.
 
-``` ruby
+```
 ; <>
 # <>
 ; ().!
@@ -575,7 +574,7 @@ The _has-type_ operator `~` tests whether an object belongs to particular
 type, returning true (all) or false (nil). Every object is a member of
 _all_, while nothing is a member of _nil_:
 
-``` ruby
+```
 ; 1 ~ <>
 # <>
 ; 2 ~ ()
@@ -586,7 +585,7 @@ _all_, while nothing is a member of _nil_:
 
 We use `^` to specify the type signature of a closure, which may include
 optional defaults:
-``` ruby
+```
 ; .join-name (.first “Jane”, .last) ^ {last “, ” first};
 ; join-name (.first “John”, .last “Doe”)
 # “Doe, John”
@@ -594,7 +593,7 @@ optional defaults:
 
 Types are generous, in that you are allowed to specify additional properties,
 but it is an error to omit properties that do not have a default:
-``` ruby
+```
 ; join-name (.middle “Q”, .last “Doe”)
 # “Doe, Jane”
 ; join-name (.middle “Q”)
@@ -609,7 +608,7 @@ The return type is usually inferred, but can be specified explicitly using a tra
 The simplest way to construct a type is to use the `~~` operator to extract the type
 of a known object:
 
-``` ruby
+```
 ; “Q” ~ ~~“”
 # <> # true
 ; “Q” ~ ~~1
@@ -639,7 +638,7 @@ or metadata separately.
 
 #### Equality
 `=` is the usual equality test:
-``` ruby
+```
 ; .a [113, .p 887];
 ; .b [113, .p 661];
 ; .c [443, .p 887];
@@ -658,13 +657,13 @@ or metadata separately.
 #### Iterators
 
 We use `|` for map, in homage to the UNIX pipeline.
-``` ruby
+```
 ; [1, 2, 3] | { _ + 1 } # will warn, since `_` is not defined on generic frames
 # [2, 3, 4]
 ```
 
 Similarly, we use `&` for reduce:
-``` ruby
+```
 ; [1, 2, 3] & { . + _ }
 # 6
 ```
@@ -693,7 +692,7 @@ albeit with slightly different semantics. These are described in Table [#sec-tab
 Note that these are not special forms, but simply defined with one behavior on nil
 and the opposite on regular frames.
 
-``` ruby
+```
 
 ; 1 ? {2 + 2}
 # 4
@@ -708,7 +707,7 @@ and the opposite on regular frames.
 
 Which, when the first expression does not return nil, acts just like C's ternary
 operator:
-``` ruby
+```
 ; 1 > 5 ? (2 * 50) : 10
 # 10
 ```
@@ -735,19 +734,19 @@ We use the `<-` import operator to match a name against both the online
 registry (TBD) and the local path, and load it into a property with the
 same name. Registry settings can be configured via the `.hconfig` file.
 
-``` ruby
+```
 ; <- .module;
 ; module
 # (.prop 1, .another-prop 2)
 ```
 We can also bind it to a different name:
-``` ruby
+```
 ; .alias <- .module;
 ; alias.prop
 # 1
 ```
 or directly into the current namespace `.`.
-``` ruby
+```
 ; . <- .module;
 ; prop
 # 1
@@ -800,7 +799,7 @@ conventions often used in C programs:
 
 For example:
 
-``` ruby
+```
 ; .see-me {
   .my-public-value 42;
   ._my-protected-value 21;
@@ -863,7 +862,7 @@ referenced value can be modified in place). In other words, constancy is
 a property of the _source_ object, whereas mutability is a property of the
 _destination_ object.
 
-```ruby
+```
 ; .variable 42;
 ; .Constant 21;
 ; .variable 113
@@ -895,7 +894,7 @@ enable this, mutating methods can not explicitly return a value, but
 implicitly return their parent (e.g., "this"; see Section {#sec-oops} for
 more details).
 
-```ruby
+```
 
 ; .fixed (
   .hic “Object”;
@@ -958,7 +957,7 @@ are our access control rules plus the super identifier `_^`.
 
 Let's start with a simple singleton object containing private data:
 
-``` ruby
+```
 ; .my-object_ (
    ._property 13;
   .getProperty { _property }
@@ -976,7 +975,7 @@ Let's start with a simple singleton object containing private data:
 To turn that into a class, we simply make it a closure which returns
 a frame analogous to that singleton:
 
-``` ruby
+```
 ; .my-class {
    ._property _;
   .getProperty { _property }
@@ -992,7 +991,7 @@ a frame analogous to that singleton:
 Even inheritance is already accounted for, simply by explicitly specifying
 its parent scape:
 
-``` ruby
+```
 ; .my-subclass {
   ._^ my-base-class
 };
@@ -1001,7 +1000,7 @@ its parent scape:
 There is no built-in support for multiple inheritance.  However, because
 inheritance is just another expression, you are welcome to define your own:
 
-``` ruby
+```
 ; .my-inheritance { “create your own” };
 ; multiclass {
   ._^ my-inheritance [my-base, another-base]
