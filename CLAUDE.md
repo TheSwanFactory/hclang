@@ -60,6 +60,11 @@ Each package has detailed documentation in its own CLAUDE.md file:
 
 ### Installation
 
+Development requires Deno 2.9.5, the exact release pinned in CI. Install it
+using the
+[official platform-neutral instructions](https://docs.deno.com/runtime/getting_started/installation/),
+then confirm that the first line of `deno --version` reports `deno 2.9.5`.
+
 ```bash
 # For library usage
 deno add jsr:@swanfactory/hclang
@@ -67,8 +72,13 @@ deno add jsr:@swanfactory/hclang
 # For development
 git clone https://github.com/TheSwanFactory/hclang.git
 cd hclang
-deno task test
+deno ci
+deno task build
+deno task test:all
 ```
+
+For development, `deno ci` enforces the committed lockfile before running the
+same build and aggregate test commands used by CI.
 
 ### Basic Usage
 
@@ -88,9 +98,12 @@ deno task hc file.hc       # Execute file
 ### Running Tests
 
 ```bash
-deno task test              # Run all tests
+deno ci                     # Frozen dependency installation used by CI
+deno task build             # Build the CLI as CI does
+deno task test:all          # Run the aggregate CI test suite
 deno task test:cli          # Test CLI package
 deno task test:lib          # Test library package
+deno task test:maml         # Test MAML package separately
 deno task test:web          # Test web package
 ```
 
@@ -286,7 +299,14 @@ See [web/CLAUDE.md](web/CLAUDE.md)
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Run `deno task test` to ensure everything works
+4. Validate with the exact Deno 2.9.5 CI path:
+
+   ```bash
+   deno ci
+   deno task build
+   deno task test:all
+   ```
+
 5. Submit a pull request to `master`
 
 All contributions should:
