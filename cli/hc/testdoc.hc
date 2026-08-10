@@ -59,7 +59,7 @@ Test types
 ; @option 3
 # .option 3
 ; @option 4
-# $!.type-error .option <1,2,3> 4
+# $!.type-error .option <1, 2, 3> 4
 ; Single value schema (constant)
 ; .const <42> 42
 # .const 42
