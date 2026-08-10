@@ -24,7 +24,7 @@ const HeadBlock = new FrameLazy([
   new FrameSymbol("tag"),
   FrameParam.there(),
   FrameArg.here(),
-]);
+], { tag });
 
 const head = MakeTag(
   "head",
