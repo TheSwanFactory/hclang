@@ -5,7 +5,6 @@ name: Deno CI
 on:
   push:
     branches: ["master"]
-    tags: ["v*"]
   pull_request:
     branches: ["master"]
 
@@ -28,14 +27,16 @@ jobs:
       - run: deno ci
       - run: deno task build
       - run: deno task test:all
-      - name: Create release on tag
+      - name: Create GitHub release
         uses: ncipollo/release-action@v1
-        if: startsWith(github.ref, 'refs/tags/')
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         with:
-          tag: ${{ github.ref_name }}
-      - name: Publish to Deno.land on merge to master
+          tag: release-${{ github.sha }}
+          commit: ${{ github.sha }}
+          generateReleaseNotes: true
+      - name: Publish to JSR on push to master
         id: deno-publish
-        if: github.ref == 'refs/heads/master'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         run: deno task publish
         env:
           DENO_AUTH_TOKEN: ${{ secrets.DENO_AUTH_TOKEN }}

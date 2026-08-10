@@ -204,13 +204,14 @@ HC processes code through a three-stage pipeline:
 
 ```bash
 deno task bump              # Update version everywhere
-deno task tag               # Create and push git tag
 ```
 
-### Publishing to JSR
+### Publishing to JSR and GitHub Releases
 
-Merge PR to `master` branch - GitHub Actions automatically publishes to
-[JSR](https://jsr.io/@swanfactory/hclang).
+Merge the PR to the `master` branch. GitHub Actions publishes the package to
+[JSR](https://jsr.io/@swanfactory/hclang), creates a unique
+`release-<commit SHA>` tag, and publishes a GitHub Release with generated notes.
+No manual tag is required.
 
 ### VS Code Extension
 
