@@ -39,11 +39,7 @@
   "fmt": {
     "exclude": [
       "**/*.html",
-      "**/_fresh/*",
-      "doc/out/**",
-      ".kiro/specs/deno-upgrade/tasks.md",
-      "doc/no_equal.md",
-      "doc/shannon/1-shannon.md"
+      "**/_fresh/*"
     ]
   },
   "lint": {

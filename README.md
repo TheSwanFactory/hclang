@@ -126,38 +126,36 @@ deno task hc
    cd hclang
    ```
 
-2. Install Deno 2.9.5 using the
-   [official Deno installation instructions](https://docs.deno.com/runtime/getting_started/installation/)
-   for your platform. This exact release is the supported development runtime
-   and the version pinned in CI. Confirm it before validation:
+2. Install [Deno](https://github.com/denoland/deno):
 
    ```bash
-   deno --version
+   # macOS
+   brew install deno
+
+   # Other platforms: see https://deno.land/
    ```
 
-   The first line must report `deno 2.9.5`.
-
-3. Install the committed dependency graph in frozen mode, as CI does:
+3. (Optional) Install [pre-commit](https://pre-commit.com/) for automatic code
+   quality checks:
 
    ```bash
-   deno ci
-   ```
+   # macOS
+   brew install pre-commit
 
-4. (Optional) Install [pre-commit](https://pre-commit.com/) for automatic code
-   quality checks using its platform-appropriate installation instructions.
+   # Other platforms: pip install pre-commit
+   ```
 
    Pre-commit hooks are automatically installed when you run `deno task test` or
    manually with `deno task setup`.
 
-5. Run the same build and aggregate test commands as CI:
+4. Run tests:
 
    ```bash
-   deno task build
-   deno task test:all
+   deno task test
    ```
 
-   `deno ci`, `deno task build`, and `deno task test:all` are the local
-   equivalents of the exact-runtime CI validation path.
+   This will automatically set up pre-commit hooks, format code, run linters,
+   and execute the test suite.
 
 ### Project Structure
 

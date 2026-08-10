@@ -6,13 +6,7 @@
 
 ## v0.8.0 2026-08-09
 
-- **Deno runtime**: Upgraded the observed local Deno 2.6.0 baseline to the exact
-  Deno 2.9.5 development and CI target, pinned both workflows, enforced frozen
-  `deno ci` installs, regenerated the lockfile, and updated runtime guidance.
-  The complete final command sequence passes under Deno 2.9.5, including frozen
-  install, non-mutating format/lint checks, type-check, build, and all
-  configured test tasks. The HC executable-document tasks exit successfully
-  while retaining their separately reported internal diagnostic counts.
+- Upgrade development and CI to Deno 2.9.5.
 
 ## v0.7.6 2025-12-21
 
