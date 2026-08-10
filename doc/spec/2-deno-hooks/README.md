@@ -486,11 +486,10 @@ needed.
 **Minimum**: Git 2.9+ (required for `core.hooksPath`) **Recommended**: Git 2.20+
 (better hook performance)
 
-### Deno Version
+### Deno Versions
 
-**Supported**: Deno 2.9.5, matching the repository's exact CI runtime. Run
-`deno --version` before local validation and use `deno ci` to enforce the
-committed lockfile before the CI-equivalent build and test commands.
+**Minimum**: Deno 1.40+ (required for `Deno.Command`) **Recommended**: Deno 2.0+
+(stable API, better performance)
 
 ### Operating Systems
 
