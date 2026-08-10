@@ -208,10 +208,11 @@ deno task bump              # Update version everywhere
 
 ### Publishing to JSR and GitHub Releases
 
-Merge the PR to the `master` branch. GitHub Actions publishes the package to
-[JSR](https://jsr.io/@swanfactory/hclang), creates a unique
-`release-<commit SHA>` tag, and publishes a GitHub Release with generated notes.
-No manual tag is required.
+Merge the PR to the `master` branch. GitHub Actions compares the version in
+`deno.json` with the version before the merge. When the version changed, it
+publishes the package to [JSR](https://jsr.io/@swanfactory/hclang) and creates a
+GitHub Release tagged `v<version>` with generated notes. Merges without a
+version bump do not publish or create a release; no manual tag is required.
 
 ### VS Code Extension
 
