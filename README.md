@@ -222,18 +222,12 @@ For maintainers publishing new versions:
    This updates `deno.json`, `lib/version.ts`, and all workspace package
    versions, then commits the changes.
 
-3. Tag the release:
+3. Merge the PR to the `master` branch.
 
-   ```bash
-   deno task tag
-   ```
-
-   This creates a git tag and pushes it to GitHub.
-
-4. Merge PR to `master` branch
-
-   This automatically publishes to [JSR](https://jsr.io/@swanfactory/hclang) via
-   GitHub Actions.
+   GitHub Actions publishes the package to
+   [JSR](https://jsr.io/@swanfactory/hclang), creates a unique
+   `release-<commit SHA>` tag for the merged commit, and publishes a GitHub
+   Release with generated notes. No manual tag is required.
 
 ## Links
 
