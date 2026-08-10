@@ -190,6 +190,12 @@ describe("evaluate", () => {
         expect(result.toString()).toEqual("[9]");
       });
 
+      it("accesses properties on array literals", () => {
+        const input = "[.a 1; .b 2;].a";
+        const result = evaluate(input);
+        expect(result.toString()).toEqual("[1]");
+      });
+
       it("groups properties explicitly", () => {
         const input = "([9,8].0)+([7,6].1)";
         const result = evaluate(input);

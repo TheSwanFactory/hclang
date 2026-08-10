@@ -22,7 +22,7 @@ export class FrameArray extends FrameList {
 
   public override in(contexts: Array<Frame> = [Frame.nil]): Frame {
     const array = this.array_eval(contexts);
-    return new FrameArray(array);
+    return new FrameArray(array, this.meta_copy());
   }
 
   public override get(key: string, origin: MetaFrame = this): Frame {
