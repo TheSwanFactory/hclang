@@ -20,6 +20,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Use Deno 2.9.5
         uses: denoland/setup-deno@v2
         with:
@@ -27,16 +29,31 @@ jobs:
       - run: deno ci
       - run: deno task build
       - run: deno task test:all
-      - name: Create GitHub release
-        uses: ncipollo/release-action@v1
+      - name: Detect version bump
+        id: version
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-        with:
-          tag: release-${{ github.sha }}
-          commit: ${{ github.sha }}
-          generateReleaseNotes: true
-      - name: Publish to JSR on push to master
+        env:
+          BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          current_version=$(jq -r '.version' deno.json)
+          previous_version=$(git show "$BEFORE_SHA:deno.json" | jq -r '.version')
+
+          if [ "$current_version" = "$previous_version" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "version=$current_version" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Publish to JSR
         id: deno-publish
-        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        if: steps.version.outputs.changed == 'true'
         run: deno task publish
         env:
           DENO_AUTH_TOKEN: ${{ secrets.DENO_AUTH_TOKEN }}
+      - name: Create GitHub release
+        uses: ncipollo/release-action@v1
+        if: steps.version.outputs.changed == 'true'
+        with:
+          tag: v${{ steps.version.outputs.version }}
+          commit: ${{ github.sha }}
+          generateReleaseNotes: true
