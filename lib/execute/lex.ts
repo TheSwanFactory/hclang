@@ -96,8 +96,10 @@ export class Lex extends Frame implements ISourced {
       return !this.sample.canInclude(char);
     }
     if (this.sample.canInclude(char)) {
-      return FrameOperator.Accepts(char[0]) !==
-        FrameOperator.Accepts(this.body[0]);
+      const startsWithOperator = FrameOperator.Accepts(this.body[0]);
+      const continuesIdentifier = char[0] === "-" && !startsWithOperator;
+      return !continuesIdentifier &&
+        FrameOperator.Accepts(char[0]) !== startsWithOperator;
     }
     return true;
   }

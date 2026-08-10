@@ -4,6 +4,11 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.8.1 2026-08-10
+
+- Support hyphens in identifiers.
+- Support property access on array literals.
+
 ## v0.8.0 2026-08-09
 
 - Upgrade development and CI to Deno 2.9.5.

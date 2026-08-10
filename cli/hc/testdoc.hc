@@ -36,6 +36,18 @@ Test closures
 ; { _ + 1 } 2
 # 3
 ```
+Test identifiers
+```
+; .a-b 3
+# .a-b 3
+; a-b
+# 3
+```
+Test array literal properties
+```
+; [.a 1; .b 2;].a
+# 1
+```
 Test types
 ```
 ; Empty schema accepts any value
@@ -47,7 +59,7 @@ Test types
 ; @option 3
 # .option 3
 ; @option 4
-# $!.type-error .option <1,2,3> 4
+# $!.type-error .option <1, 2, 3> 4
 ; Single value schema (constant)
 ; .const <42> 42
 # .const 42
