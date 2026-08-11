@@ -106,6 +106,9 @@ export class HCEval {
 
   public finish(): boolean {
     const complete = !(this.lex instanceof Lex && this.lex.isDocument());
+    if (!complete) {
+      this.pipe = HCEval.make_pipe(this.out);
+    }
     this.lex = this.pipe;
     return complete;
   }

@@ -85,6 +85,17 @@ describe("HCEval", () => {
     expect(hc_eval.finish()).toEqual(false);
   });
 
+  it("can be reused cleanly after an unfinished document", () => {
+    hc_eval.call("```stale");
+    expect(hc_eval.finish()).toEqual(false);
+
+    hc_eval.call("```clean```");
+
+    expect(out.length()).toEqual(1);
+    expect(out.at(0).toString()).toEqual("```clean```");
+    expect(hc_eval.finish()).toEqual(true);
+  });
+
   describe("symbols", () => {
     const key = "key";
     const value = "value";
