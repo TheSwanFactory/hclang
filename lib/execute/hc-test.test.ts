@@ -140,7 +140,7 @@ describe("HCTest", () => {
     );
   });
 
-  it("fails an unimplemented example without an actual result", () => {
+  it("counts an unimplemented example without an actual result", () => {
     test.set(HCEval.SOURCE, new frame.FrameString("source"));
     test.set(
       HCEval.EXPECT,
@@ -148,8 +148,14 @@ describe("HCTest", () => {
     );
     test.finish();
 
-    expect(test.exitCode).toEqual(1);
-    expect(out.at(0).toString()).toContain("missing actual");
+    expect(test.exitCode).toEqual(0);
+    expect(test.n).toEqual({
+      total: 1,
+      pass: 0,
+      fail: 0,
+      unimplemented: 1,
+    });
+    expect(out.at(0).toString()).toContain("!<missing>");
   });
 
   it("rejects an unimplemented marker without a correct value", () => {

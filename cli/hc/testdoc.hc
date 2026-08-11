@@ -84,8 +84,10 @@ Test types
 ```
 Future: String schemas (not yet implemented)
 ```
-## ; .color <"red","green","blue"> "red"  # Would validate string enums
-## ; .status <"ok"> "ok"                   # Would validate string literals
+; .color <"red","green","blue"> "red"  # Would validate string enums
+# $!.unimplemented .color "red"
+; .status <"ok"> "ok"                   # Would validate string literals
+# $!.unimplemented .status "ok"
 ```
 HLIR advanced types (aspirational)
 ```

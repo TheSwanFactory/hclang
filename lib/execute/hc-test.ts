@@ -118,10 +118,6 @@ export class HCTest extends Frame {
     let result: Frame;
     if (!this.pending) {
       result = this.failure(`<missing source> ?${expected} !missing source`);
-    } else if (this.pending.actual === undefined) {
-      result = this.failure(
-        `${this.pending.source} ?${expected} !missing actual`,
-      );
     } else {
       const correct = this.unimplementedExpected(expected);
       if (correct === "") {
@@ -129,15 +125,20 @@ export class HCTest extends Frame {
           `${this.pending.source} ?${expected} !missing correct value`,
         );
       } else if (correct !== null) {
-        result = this.checkEqual(correct, this.pending.actual)
+        result = this.pending.actual !== undefined &&
+            this.checkEqual(correct, this.pending.actual)
           ? this.failure(
             `${this.pending.source} ?${expected} !unexpectedly implemented; remove marker`,
           )
           : this.unimplemented(
             this.pending.source,
             expected,
-            this.pending.actual,
+            this.pending.actual ?? "<missing>",
           );
+      } else if (this.pending.actual === undefined) {
+        result = this.failure(
+          `${this.pending.source} ?${expected} !missing actual`,
+        );
       } else {
         result = this.assertEqual(
           expected,
