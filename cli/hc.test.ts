@@ -1,5 +1,7 @@
 import { expect } from "jsr:@std/expect@^0.219.1";
 import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
+import { HCEval } from "../lib/execute/hc-eval.ts";
+import { FrameArray } from "../lib/frames.ts";
 import { getOptions, main } from "./hc.ts";
 
 describe("getOptions", () => {
@@ -59,5 +61,31 @@ describe("getOptions", () => {
 describe("main", () => {
   it("is exported", () => {
     expect(main).toBeTruthy();
+  });
+
+  it("returns a non-zero status for a failed testdoc assertion", async () => {
+    const file = await Deno.makeTempFile({ suffix: ".hc" });
+    try {
+      await Deno.writeTextFile(file, "; 1\n# 2\n");
+      const hcEval = new HCEval(new FrameArray([]));
+      const status = await main(hcEval, getOptions(["--testdoc", file]));
+      expect(status).toEqual(1);
+    } finally {
+      await Deno.remove(file);
+    }
+  });
+
+  it("keeps the maintained testdoc fixture green with authoritative totals", async () => {
+    const out = new FrameArray([]);
+    const file = new URL("./hc/testdoc.hc", import.meta.url).pathname;
+    const status = await main(
+      new HCEval(out),
+      getOptions(["--testdoc", file]),
+    );
+
+    expect(status).toEqual(0);
+    expect(out.at(-1).toString()).toContain(
+      '“{"total":38,"pass":28,"fail":0,"skip":10}”',
+    );
   });
 });

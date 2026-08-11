@@ -47,6 +47,11 @@ deno task hc path/to/file.hc
 deno task test
 ```
 
+Executable-document tests pair `; source` with `# expected`. To account for an
+intentional skip explicitly, use `# SKIP: reason` as the expected-result line.
+Testdoc mode includes skipped examples in its final total, reports pass, fail,
+and skip counts at EOF, and exits non-zero when any test fails.
+
 ### Building the Binary
 
 ```bash

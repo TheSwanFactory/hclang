@@ -71,10 +71,9 @@ export function getEval(env: StringMap): HCEval {
 export async function main(
   hc_eval: HCEval,
   options: ReturnType<typeof getOptions>,
-): Promise<void> {
-  const prompt = new Prompt(hc_eval);
+): Promise<number> {
   let evaluated = false;
-  let test: HCTest;
+  let test: HCTest | undefined;
 
   if (options.verbose) {
     console.error("options", options);
@@ -101,14 +100,24 @@ export async function main(
 
   if (options.interactive || !evaluated) {
     (hc_eval.out as HCLog).prompt = true;
-    prompt.repl();
+    await new Prompt(hc_eval).repl();
   }
+
+  if (test) {
+    test.finish();
+  }
+
+  return test?.exitCode ?? 0;
 }
 
-const env = Deno.env.toObject();
-const options = getOptions(Deno.args);
-const hc_eval = getEval(env);
-main(hc_eval, options).catch((err) => {
-  console.error(err);
-  Deno.exit(1);
-});
+if (import.meta.main) {
+  const env = Deno.env.toObject();
+  const options = getOptions(Deno.args);
+  const hc_eval = getEval(env);
+  main(hc_eval, options).then((exitCode) => {
+    Deno.exitCode = exitCode;
+  }).catch((err) => {
+    console.error(err);
+    Deno.exit(1);
+  });
+}
