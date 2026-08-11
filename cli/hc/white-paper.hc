@@ -382,9 +382,9 @@ Identifiers can be referred to via three different modes:
 - `@reference`
 
 Assignment is just a simple expression setting a property with that name
-in the current context:
+in the current context. Parentheses make the value expression explicit:
 ```
-; .x 6 * 7;
+; .x (6 * 7);
 ```
 This avoids the subtle and confusing distinction between differing
 "left-hand-side" and "right-hand-side" interpretations of an identical symbol _x_.
@@ -401,10 +401,10 @@ We can use the value `x` to access that property in the same or any child contex
 ```
 
 To set the property in the context it was defined, rather than the local context,
-use a _reference_ instead of a name:
+use a _reference_ instead of a name. Here the array creates a child data context:
 ```
 ; .y 7;
-; (.x 11; @y 3;);
+; [.x 11; @y 3;];
 ; x
 # 42
 ; y
@@ -412,15 +412,16 @@ use a _reference_ instead of a name:
 ```
 
 Names also provide an elegant way of manipulating data structures, still
-in the context of simple expressions:
+in the context of simple expressions. Arrays carry properties; a closure can
+apply a setter to an array passed as its argument:
 
 ```
-; .base {.key 42};
+; .base [.key 42;];
 ; base .key # gets property
 # 42
-; .base .key 113; # sets property
-; base
-# {.key 113}
+; {.key 113} base; # sets property
+; base .key
+# 113
 ```
 The space between _base_ and _key is not necessary, but we use it to
 emphasize the fact that this is just an ordinary expression, not a
@@ -458,9 +459,9 @@ chain until it encounters an appropriate handler or aborts the program.  The REP
 however, simply prints out the exceptional value:
 
 ```
- ; .scope (.a 1, b. 2);
+ ; .scope [.a 1; .b 2;];
  ; scope.c
- # $!missing-key .c
+ # $!.name-missing “...
  ```
 Note that in the interest of clarify, we voilate our usual rule and use
 English names for exceptions. We do still intend to make these fully
