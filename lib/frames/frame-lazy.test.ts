@@ -68,6 +68,16 @@ describe("FrameLazy", () => {
       expect(codified.call(turtle).toString()).toEqual("“fast turtle”");
     });
 
+    it("does not copy caller metadata into the codified expression", () => {
+      const scopedCodify = new frame.FrameLazy([], {
+        "; ": new frame.FrameString("source"),
+      });
+      const codified = scopedCodify.call(new frame.FrameArray([turtle]));
+
+      expect(codified.toString()).toEqual("(“turtle”)");
+      expect(codified.meta_length()).toEqual(0);
+    });
+
     it("treats other Frames as Arrays when called", () => {
       const wrap = codify.call(turtle);
 

@@ -63,10 +63,8 @@ export class FrameLazy extends FrameExpr {
     _parameter: Frame = Frame.nil,
   ): Frame {
     if (this.data.length === 0) {
-      const codified = new FrameExpr(
-        argument.asArray(),
-        this.meta_for(argument),
-      );
+      // Codify the value, not the caller's captured evaluation context.
+      const codified = new FrameExpr(argument.asArray(), argument.meta_copy());
       codified.up = this;
       return codified;
     }
