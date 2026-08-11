@@ -17,7 +17,12 @@ describe("HCTest", () => {
 
   it("tracks a source as pending until its expectation arrives", () => {
     hc_eval.call("; .abc");
-    expect(test.n).toEqual({ total: 0, pass: 0, fail: 0, skip: 0 });
+    expect(test.n).toEqual({
+      total: 0,
+      pass: 0,
+      fail: 0,
+      unimplemented: 0,
+    });
     expect(out.length()).toEqual(0);
   });
 
@@ -66,9 +71,9 @@ describe("HCTest", () => {
     expect(out.length()).toEqual(0);
   });
 
-  it("ignores skip-like text inside document strings", () => {
+  it("ignores unimplemented-like text inside document strings", () => {
     hc_eval.call("`");
-    hc_eval.call("# SKIP: prose, not a test");
+    hc_eval.call("# $!.unimplemented prose, not a test");
     hc_eval.call("`");
     expect(out.length()).toEqual(0);
   });
@@ -78,7 +83,12 @@ describe("HCTest", () => {
     hc_eval.call("; 123");
     hc_eval.call("# 123");
 
-    expect(test.n).toEqual({ total: 2, pass: 1, fail: 1, skip: 0 });
+    expect(test.n).toEqual({
+      total: 2,
+      pass: 1,
+      fail: 1,
+      unimplemented: 0,
+    });
     expect(out.at(0).toString()).toContain("missing expectation");
     expect(out.at(1).toString()).toContain("$+.test-pass");
   });
@@ -88,22 +98,75 @@ describe("HCTest", () => {
     test.finish();
 
     expect(test.exitCode).toEqual(1);
-    expect(test.n).toEqual({ total: 1, pass: 0, fail: 1, skip: 0 });
+    expect(test.n).toEqual({
+      total: 1,
+      pass: 0,
+      fail: 1,
+      unimplemented: 0,
+    });
     expect(out.at(0).toString()).toContain("missing expectation");
     expect(out.at(1).toString()).toContain("$=.test-summary “HCTest”;");
   });
 
-  it("counts an explicit skip", () => {
-    hc_eval.call("; notImplemented");
-    hc_eval.call("# SKIP: not implemented");
+  it("counts an evaluated incorrect result as unimplemented", () => {
+    hc_eval.call("; 1");
+    hc_eval.call("# $!.unimplemented 2");
     test.finish();
 
     expect(test.exitCode).toEqual(0);
-    expect(test.n).toEqual({ total: 1, pass: 0, fail: 0, skip: 1 });
-    expect(out.at(0).toString()).toContain("$~.test-skip");
-    expect(out.at(1).toString()).toContain(
-      '“{"total":1,"pass":0,"fail":0,"skip":1}”',
+    expect(test.n).toEqual({
+      total: 1,
+      pass: 0,
+      fail: 0,
+      unimplemented: 1,
+    });
+    expect(out.at(0).toString()).toContain("$~.test-unimplemented");
+  });
+
+  it("fails when an unimplemented example produces the correct result", () => {
+    hc_eval.call("; 1");
+    hc_eval.call("# $!.unimplemented 1");
+    test.finish();
+
+    expect(test.exitCode).toEqual(1);
+    expect(test.n).toEqual({
+      total: 1,
+      pass: 0,
+      fail: 1,
+      unimplemented: 0,
+    });
+    expect(out.at(0).toString()).toContain(
+      "unexpectedly implemented; remove marker",
     );
+  });
+
+  it("fails an unimplemented example without an actual result", () => {
+    test.set(HCEval.SOURCE, new frame.FrameString("source"));
+    test.set(
+      HCEval.EXPECT,
+      new frame.FrameString("$!.unimplemented correct"),
+    );
+    test.finish();
+
+    expect(test.exitCode).toEqual(1);
+    expect(out.at(0).toString()).toContain("missing actual");
+  });
+
+  it("rejects an unimplemented marker without a correct value", () => {
+    hc_eval.call("; 1");
+    hc_eval.call("# $!.unimplemented   ");
+    test.finish();
+
+    expect(test.exitCode).toEqual(1);
+    expect(out.at(0).toString()).toContain("missing correct value");
+  });
+
+  it("rejects an empty source", () => {
+    hc_eval.call("; ");
+    test.finish();
+
+    expect(test.exitCode).toEqual(1);
+    expect(out.at(0).toString()).toContain("missing source");
   });
 
   it("reports an expectation without a source", () => {
@@ -111,7 +174,12 @@ describe("HCTest", () => {
     test.finish();
 
     expect(test.exitCode).toEqual(1);
-    expect(test.n).toEqual({ total: 1, pass: 0, fail: 1, skip: 0 });
+    expect(test.n).toEqual({
+      total: 1,
+      pass: 0,
+      fail: 1,
+      unimplemented: 0,
+    });
     expect(out.at(0).toString()).toContain("missing source");
   });
 });

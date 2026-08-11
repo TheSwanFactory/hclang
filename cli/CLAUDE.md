@@ -47,10 +47,12 @@ deno task hc path/to/file.hc
 deno task test
 ```
 
-Executable-document tests pair `; source` with `# expected`. To account for an
-intentional skip explicitly, use `# SKIP: reason` as the expected-result line.
-Testdoc mode includes skipped examples in its final total, reports pass, fail,
-and skip counts at EOF, and exits non-zero when any test fails.
+Executable-document tests pair `; source` with `# expected`. For an unfinished
+but evaluated example, use `# $!.unimplemented Correct-Value`. A differing
+actual result counts as unimplemented; producing `Correct-Value` fails until the
+marker is removed. Comment out examples that must not be evaluated. Testdoc mode
+reports total, pass, fail, and unimplemented counts at EOF and exits non-zero
+when any test fails.
 
 ### Building the Binary
 

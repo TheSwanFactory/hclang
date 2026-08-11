@@ -17,7 +17,7 @@ export class FrameNote extends FrameQuote {
       "!": "name-missing",
       "+": "test-pass",
       "-": "test-fail",
-      "~": "test-skip",
+      "~": "test-unimplemented",
       "=": "test-summary",
       "<>": "type-mismatch",
       ">": "bounds-exceeded",
@@ -51,7 +51,7 @@ export class FrameNote extends FrameQuote {
     return FrameNote.test("-", source, sum);
   }
 
-  public static skip(source: string, sum: string): FrameNote {
+  public static unimplemented(source: string, sum: string): FrameNote {
     return FrameNote.test("~", source, sum);
   }
 

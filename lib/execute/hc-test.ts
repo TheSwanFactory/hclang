@@ -5,7 +5,7 @@ export type Counts = {
   total: number;
   pass: number;
   fail: number;
-  skip: number;
+  unimplemented: number;
 };
 
 type PendingTest = {
@@ -14,8 +14,8 @@ type PendingTest = {
 };
 
 export class HCTest extends Frame {
-  /** Use `# SKIP: reason` as an expected-result line to skip an example. */
-  public static readonly SKIP = "SKIP";
+  /** Marks an evaluated example whose correct result is not implemented yet. */
+  public static readonly UNIMPLEMENTED = "$!.unimplemented";
 
   public n: Counts;
   private pending?: PendingTest;
@@ -23,12 +23,17 @@ export class HCTest extends Frame {
 
   constructor(protected out: Frame) {
     super(NilContext);
-    this.n = { total: 0, pass: 0, fail: 0, skip: 0 };
+    this.n = { total: 0, pass: 0, fail: 0, unimplemented: 0 };
   }
 
   public override set(key: string, value: Frame): this {
     if (key === HCEval.SOURCE && !value.is.missing) {
       this.flushCase();
+      if (!this.hasContent(value.toString())) {
+        this.emit(this.failure(`${value.toString()} !missing source`));
+        super.set(key, Frame.missing);
+        return this;
+      }
       super.set(key, value);
       this.pending = { source: value.toString() };
       return this;
@@ -40,9 +45,6 @@ export class HCTest extends Frame {
         this.flushCase();
       }
       super.set(key, value);
-      if (this.pending && this.isSkip(value.toString())) {
-        this.complete(value.toString());
-      }
       return this;
     }
     super.set(key, value);
@@ -116,18 +118,33 @@ export class HCTest extends Frame {
     let result: Frame;
     if (!this.pending) {
       result = this.failure(`<missing source> ?${expected} !missing source`);
-    } else if (this.isSkip(expected)) {
-      result = this.skip(this.pending.source, expected);
     } else if (this.pending.actual === undefined) {
       result = this.failure(
         `${this.pending.source} ?${expected} !missing actual`,
       );
     } else {
-      result = this.assertEqual(
-        expected,
-        this.pending.actual,
-        this.pending.source,
-      );
+      const correct = this.unimplementedExpected(expected);
+      if (correct === "") {
+        result = this.failure(
+          `${this.pending.source} ?${expected} !missing correct value`,
+        );
+      } else if (correct !== null) {
+        result = this.checkEqual(correct, this.pending.actual)
+          ? this.failure(
+            `${this.pending.source} ?${expected} !unexpectedly implemented; remove marker`,
+          )
+          : this.unimplemented(
+            this.pending.source,
+            expected,
+            this.pending.actual,
+          );
+      } else {
+        result = this.assertEqual(
+          expected,
+          this.pending.actual,
+          this.pending.source,
+        );
+      }
     }
 
     this.pending = undefined;
@@ -172,17 +189,37 @@ export class HCTest extends Frame {
     return FrameNote.fail(source, JSON.stringify(this.n));
   }
 
-  private skip(source: string, expected: string): Frame {
+  private unimplemented(
+    source: string,
+    expected: string,
+    actual: string,
+  ): Frame {
     this.n.total += 1;
-    this.n.skip += 1;
-    return FrameNote.skip(`${source} ?${expected}`, JSON.stringify(this.n));
+    this.n.unimplemented += 1;
+    return FrameNote.unimplemented(
+      `${source} ?${expected} !${actual}`,
+      JSON.stringify(this.n),
+    );
   }
 
-  private isSkip(expected: string): boolean {
-    const marker = expected.startsWith("“") && expected.endsWith("”")
-      ? expected.slice(1, -1)
-      : expected;
-    return marker === HCTest.SKIP || marker.startsWith(`${HCTest.SKIP}:`);
+  private unimplementedExpected(expected: string): string | null {
+    const quoted = expected.startsWith("“") && expected.endsWith("”");
+    const marker = quoted ? expected.slice(1, -1) : expected;
+    if (marker === HCTest.UNIMPLEMENTED) return "";
+
+    const prefix = `${HCTest.UNIMPLEMENTED} `;
+    if (!marker.startsWith(prefix)) return null;
+
+    const correct = marker.slice(prefix.length);
+    if (!this.hasContent(correct)) return "";
+    return quoted ? `“${correct}”` : correct;
+  }
+
+  private hasContent(value: string): boolean {
+    const unquoted = value.startsWith("“") && value.endsWith("”")
+      ? value.slice(1, -1)
+      : value;
+    return unquoted.trim().length > 0;
   }
 
   private clearMarkers(): void {

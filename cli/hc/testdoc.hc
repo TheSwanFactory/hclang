@@ -84,16 +84,11 @@ Test types
 ```
 Future: String schemas (not yet implemented)
 ```
-; .color <"red","green","blue"> "red"  # Would validate string enums
-# SKIP: string schemas are not implemented
-; .status <"ok"> "ok"                   # Would validate string literals
-# SKIP: string schemas are not implemented
+## ; .color <"red","green","blue"> "red"  # Would validate string enums
+## ; .status <"ok"> "ok"                   # Would validate string literals
 ```
 HLIR advanced types (aspirational)
 ```
-; .x <i32> 42                           # Primitive types
-# SKIP: primitive HLIR types are aspirational
-; .mat <tensor<2x3xf32>> [[1,2,3]]      # Tensor types
-# SKIP: tensor types are aspirational
-; .f <(.x <i32>) -> <i32>> {x + 1}      # Function signatures
-# SKIP: function signatures are aspirational
+## ; .x <i32> 42                           # Primitive types
+## ; .mat <tensor<2x3xf32>> [[1,2,3]]      # Tensor types
+## ; .f <(.x <i32>) -> <i32>> {x + 1}      # Function signatures
