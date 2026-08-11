@@ -175,17 +175,18 @@ describe("HCTest", () => {
     expect(out.at(0).toString()).toContain("missing source");
   });
 
-  it("reports an expectation without a source", () => {
+  it("treats an expectation-like line without a source as a comment", () => {
     hc_eval.call("# orphan");
-    test.finish();
+    expect(out.length()).toEqual(0);
 
-    expect(test.exitCode).toEqual(1);
+    test.finish();
+    expect(test.exitCode).toEqual(0);
     expect(test.n).toEqual({
-      total: 1,
+      total: 0,
       pass: 0,
-      fail: 1,
+      fail: 0,
       unimplemented: 0,
     });
-    expect(out.at(0).toString()).toContain("missing source");
+    expect(out.at(0).toString()).toContain("$=.test-summary");
   });
 });

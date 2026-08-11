@@ -54,10 +54,10 @@ export class HCTest extends Frame {
   public override apply(argument: Frame, _parameter = Frame.nil): Frame {
     const expected = this.get_here(HCEval.EXPECT);
     if (!expected.is.missing) {
-      if (this.pending || argument === Frame.nil) {
+      if (this.pending) {
         this.complete(expected.toString());
       } else {
-        // A `# ` line inside a document string is content, not an expectation.
+        // Without a pending source, `# ` is an ordinary HC comment.
         super.set(HCEval.EXPECT, Frame.missing);
       }
       return argument;
@@ -175,12 +175,7 @@ export class HCTest extends Frame {
   }
 
   private flushExpectation(): void {
-    const expected = this.get_here(HCEval.EXPECT);
-    if (expected.is.missing) return;
-
-    this.emit(
-      this.failure(`<missing source> ?${expected.toString()} !missing source`),
-    );
+    // Without a pending source, `# ` is an ordinary HC comment.
     super.set(HCEval.EXPECT, Frame.missing);
   }
 

@@ -91,6 +91,9 @@ Future: String schemas (not yet implemented)
 ```
 HLIR advanced types (aspirational)
 ```
-## ; .x <i32> 42                           # Primitive types
-## ; .mat <tensor<2x3xf32>> [[1,2,3]]      # Tensor types
-## ; .f <(.x <i32>) -> <i32>> {x + 1}      # Function signatures
+; .x <i32> 42                           # Primitive types
+# $!.unimplemented .x 42
+; .mat <tensor<2x3xf32>> [[1,2,3]]      # Tensor types
+# $!.unimplemented .mat...
+; .f <(.x <i32>) -> <i32>> {x + 1}      # Function signatures
+# $!.unimplemented .f...
