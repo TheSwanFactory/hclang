@@ -50,29 +50,29 @@ Test array literal properties
 ```
 Test types
 ```
-; Empty schema accepts any value
+## Empty schema accepts any value
 ; .x <> 42
 # 42
-; Number enumerations
+## Number enumerations
 ; .option <1,2,3> 2
 # .option 2
 ; @option 3
 # .option 3
 ; @option 4
 # $!.type-error .option <1, 2, 3> 4
-; Single value schema (constant)
+## Single value schema (constant)
 ; .const <42> 42
 # .const 42
 ; @const 43
 # $!.type-error .const <42> 43
-; Multiple valid assignments
+## Multiple valid assignments
 ; .x <1,2> 1
 # .x 1
 ; @x 2
 # .x 2
 ; @x 1
 # .x 1
-; Original tests
+## Original tests
 ; <> 1
 # <>
 ; <> ()
@@ -85,10 +85,15 @@ Test types
 Future: String schemas (not yet implemented)
 ```
 ; .color <"red","green","blue"> "red"  # Would validate string enums
+# $!.unimplemented .color "red"
 ; .status <"ok"> "ok"                   # Would validate string literals
+# $!.unimplemented .status "ok"
 ```
 HLIR advanced types (aspirational)
 ```
 ; .x <i32> 42                           # Primitive types
+# $!.unimplemented .x 42
 ; .mat <tensor<2x3xf32>> [[1,2,3]]      # Tensor types
+# $!.unimplemented .mat...
 ; .f <(.x <i32>) -> <i32>> {x + 1}      # Function signatures
+# $!.unimplemented .f...

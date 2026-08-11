@@ -4,6 +4,14 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.8.2 2026-08-10
+
+- Account for every HCTest testdoc source/result pair, including malformed and
+  unexpected EOF cases.
+- Return a nonzero CLI status when HCTest testdocs fail.
+- Support `$!.unimplemented` expectations and report complete HCTest fixture and
+  assertion totals.
+
 ## v0.8.1 2026-08-10
 
 - Support hyphens in identifiers.
