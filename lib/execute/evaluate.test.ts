@@ -71,7 +71,22 @@ describe("evaluate", () => {
     it("joins multi-line doc-strings into strings", () => {
       const input = "```\nDoc String\n```";
       const result = evaluate(input);
-      expect(result.toString()).toEqual("[“\nDoc String\n”]");
+      expect(result.toString()).toEqual(`[${input}]`);
+    });
+
+    it("preserves short backtick runs inside long doc strings", () => {
+      const input = "```one ` and two `` backticks```";
+      const result = evaluate(input);
+
+      expect(result.toString()).toEqual(`[${input}]`);
+      expect(result.at(0)).toBeInstanceOf(frame.FrameDoc);
+    });
+
+    it("keeps two top-level backticks as an empty short doc string", () => {
+      const result = evaluate("``");
+
+      expect(result.at(0)).toBeInstanceOf(frame.FrameDoc);
+      expect(result.at(0).toString()).toEqual("``");
     });
 
     it("joins around comments", () => {

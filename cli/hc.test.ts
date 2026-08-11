@@ -102,4 +102,18 @@ describe("main", () => {
       '“{"total":12,"pass":12,"fail":0,"unimplemented":0}”',
     );
   });
+
+  it("traverses the complete white paper with authoritative totals", async () => {
+    const out = new FrameArray([]);
+    const file = new URL("./hc/white-paper.hc", import.meta.url).pathname;
+    const status = await main(
+      new HCEval(out),
+      getOptions(["--testdoc", file]),
+    );
+
+    expect(status).toEqual(0);
+    expect(out.at(-1).toString()).toContain(
+      '“{"total":27,"pass":25,"fail":0,"unimplemented":2}”',
+    );
+  });
 });

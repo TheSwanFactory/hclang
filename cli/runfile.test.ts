@@ -1,6 +1,8 @@
 import { expect } from "jsr:@std/expect@^0.219.1";
 import { beforeEach, describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 import { runfile } from "./runfile.ts";
+import { HCEval } from "../lib/execute/hc-eval.ts";
+import { FrameArray, FrameDoc } from "../lib/frames.ts";
 
 describe("runfile", () => {
   let hc_eval: { call: (line: string) => void };
@@ -76,5 +78,21 @@ describe("runfile", () => {
     await runfile(hc_eval, trailingNewlineFile);
     expect(callCount).toEqual(1);
     await Deno.remove(trailingNewlineFile);
+  });
+
+  it("keeps inline backticks inside synthetic documentation wrappers", async () => {
+    const file = await Deno.makeTempFile({ suffix: ".adoc" });
+    try {
+      await Deno.writeTextFile(file, "Use `one` or ``two`` backticks.\n");
+      const out = new FrameArray([]);
+
+      await runfile(new HCEval(out), file);
+
+      expect(out.length()).toEqual(1);
+      expect(out.at(0)).toBeInstanceOf(FrameDoc);
+      expect(out.at(0).toString()).toContain("`one` or ``two``");
+    } finally {
+      await Deno.remove(file);
+    }
   });
 });

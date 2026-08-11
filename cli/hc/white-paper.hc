@@ -188,11 +188,11 @@ evaluator.
 ```
 Specifically:
 
-1. `frame0` is evaluated to `value0` (also a frame)
-2. `frame1` is evaluated to `value1`
-3. `value0` is called with the argument `value1`, producing `result1`
-4. `result1` is called with `value2` producing `result2`
-5. The final `result` is thus the value of the evaluated expression
+1. ``frame0`` is evaluated to ``value0`` (also a frame)
+2. ``frame1`` is evaluated to ``value1``
+3. ``value0`` is called with the argument ``value1``, producing ``result1``
+4. ``result1`` is called with ``value2`` producing ``result2``
+5. The final ``result`` is thus the value of the evaluated expression
 
 The HC read-eval-print loop (REPL) uses ';' for the input prompt and '#' for the
 output prompt:
@@ -259,7 +259,7 @@ their argument.
 ; “Hello, ” “Homoiconicity!”
 # “Hello, Homoiconicity!”
 ; “The Answer” “: ” 42
-# “The Answer: 42”
+# $!.unimplemented “The Answer: 42”
 ```
 
 Similarly, numbers replicate their argument that many times:
@@ -292,6 +292,7 @@ Formally speaking, each expression should terminate in an ',' or ';', depending
 on whether we want to return the resulting value:
 ```
 ; “My Statement”;
+# $!.unimplemented ()
 ; “Self Expression”,
 # “Self Expression”
 ```
@@ -307,7 +308,7 @@ space between them bind more tightly than those that do.
 ```
 ; “Want ” 2 “Live” # evaluates left to right
 # “Want 2Live”
-; “Want ” (2“Live”) # TODO: evaluates `2“Live”` first w/o parentheses
+; “Want ” (2“Live”) # TODO: evaluates ``2“Live”`` first w/o parentheses
 # “Want LiveLive”
 ```
 This of course can also be done (with more visual clutter) via explicit grouping:
@@ -327,13 +328,13 @@ Closures are simply lazy expressions, which evaluate their contents when invoked
 ; { “Life, ” “The Universe, ” “Everything.” } ()
 # “Life, The Universe, Everything.”
 ```
-The result of the empty expression (`()`) is called `nil`, and represents the Boolean false.
+The result of the empty expression (``()``) is called ``nil``, and represents the Boolean false.
 This will become important in Section [#sec-operators] when we discuss conditionals.
 
 Note that statements inside a closure represent values that are not
 returned, which becomes very powerful when we add identifiers.
 
-Importantly, the empty closure `{}` becomes the "codify" operator, which converts arrays
+Importantly, the empty closure ``{}`` becomes the "codify" operator, which converts arrays
 into deferred expressions:
 
 ```
@@ -351,9 +352,9 @@ described in Table [#sec-table-id].
 +-----------+----------------+-------------+-------------------------+
 |Variety    | Example        | Starts With | Contains                |
 +-----------+----------------+-------------+-------------------------+
-| Label     | _variable_     | _letter_    | _letter_, _number_, `-` |
-| Operator  | `+`            | _symbol_    | _symbol_                |
-| Control   | `$<-` # return | `$`         | _any identifier_        |
+| Label     | _variable_     | _letter_    | _letter_, _number_, ``-`` |
+| Operator  | ``+``            | _symbol_    | _symbol_                |
+| Control   | ``$<-`` # return | ``$``         | _any identifier_        |
 | Argument | \_^            | \_          | \_,\^                   |
 | Self      | \.             | \.          | \.                      |
 +-----------+----------------+-------------+-------------------------+
@@ -377,21 +378,22 @@ sugar for operators; the dot is optional when used in a binary relation:
 
 Identifiers can be referred to via three different modes:
 
-- `value`
-- `.name`
-- `@reference`
+- ``value``
+- ``.name``
+- ``@reference``
 
 Assignment is just a simple expression setting a property with that name
 in the current context. Parentheses make the value expression explicit:
 ```
-; .x (6 * 7);
+; .x (6 * 7)
+# .x 42
 ```
 This avoids the subtle and confusing distinction between differing
 "left-hand-side" and "right-hand-side" interpretations of an identical symbol _x_.
-That enables `=` to always mean a test for equality, rather than also being used
+That enables ``=`` to always mean a test for equality, rather than also being used
 for assignment.
 
-We can use the value `x` to access that property in the same or any child context:
+We can use the value ``x`` to access that property in the same or any child context:
 
 ```
 ; x
@@ -403,8 +405,10 @@ We can use the value `x` to access that property in the same or any child contex
 To set the property in the context it was defined, rather than the local context,
 use a _reference_ instead of a name. Here the array creates a child data context:
 ```
-; .y 7;
-; [.x 11; @y 3;];
+; .y 7
+# .y 7
+; [.x 11; @y 3;].x
+# 11
 ; x
 # 42
 ; y
@@ -416,10 +420,12 @@ in the context of simple expressions. Arrays carry properties; a closure can
 apply a setter to an array passed as its argument:
 
 ```
-; .base [.key 42;];
+; .base [.key 42;]
+# .base [(.key 42); .key 42;]
 ; base .key # gets property
 # 42
-; {.key 113} base; # sets property
+; {.key 113} base # sets property
+# .key 113
 ; base .key
 # 113
 ```
@@ -439,14 +445,14 @@ simply returning values.
 As a dataflow language, there should rarely be a need for direct
 manipulating the flow of control. But when there is, we use a control, e.g.:
 
-* `$$`
+* ``$$``
   : Terminate the program and return the argument ("exit")
-* `$<`
+* ``$<``
   : Terminate the current scope and return the argument (_top-level return_)
-* `$<<`
+* ``$<<``
   : Terminate the _parent_ scope and return the argument ("inner return")
 
-Remember that every context is a self-contained entity, and thus `.` and `$<` refer
+Remember that every context is a self-contained entity, and thus ``.`` and ``$<`` refer
 only to that scope, even if it is a clause in a conditional.  That's why we need
 multi-level returns.
 
@@ -454,15 +460,14 @@ multi-level returns.
 ##### Exceptions
 
 Controls are also used to signal exceptions and errors.  Exception controls
-begin with `$!` and return an interrupt value that propagates back up the call
+begin with ``$!`` and return an interrupt value that propagates back up the call
 chain until it encounters an appropriate handler or aborts the program.  The REPL,
 however, simply prints out the exceptional value:
 
 ```
- ; .scope [.a 1; .b 2;];
- ; scope.c
- # $!.name-missing “...
- ```
+; [.a 1; .b 2;].c
+# $!.name-missing “...
+```
 Note that in the interest of clarify, we voilate our usual rule and use
 English names for exceptions. We do still intend to make these fully
 localizable, so at least beginning programmers can experience an environment
@@ -470,28 +475,30 @@ that doesn't require them to also learn a foreign language.
 
 ####  Arguments
 
-Use `_` as the anonymous argument, representing everything this frame
+Use ``_`` as the anonymous argument, representing everything this frame
 was called with:
-```
+[source,hc]
+----
 ; .triplicate {3 _};
 ; square “Baby”
 # “BabyBabyBaby”
-```
+----
 This is useful not just for closures, but for representing the command-line
 arguments for the entire script.
 
 When you apply something to a closure, it is effectively inserting that
 argument into the inheritance hierarchy.  Thus we can access properties
-of the argument directly, rather than explicitly calling `_`.
-```
+of the argument directly, rather than explicitly calling ``_``.
+[source,hc]
+----
 ; .mag {(x * x) + (y * y )};
 ; mag (.x 1; .y 2;)
 # 5
-```
-
+----
 You can skip over the argument to access the enclosing scope (one level above)
-using the `_^` identifier (also known as `super`).
-```
+using the ``_^`` identifier (also known as ``super``).
+[source,hc]
+----
 ; .print-arg { var };
 ; .print-parent { _^.var };
 ; .var “parent”;
@@ -500,18 +507,17 @@ using the `_^` identifier (also known as `super`).
 # “arg”
 ; print-parent(.var “arg”)
 # “parent”
-```
-
+----
 Since objects capture the scope where they are created, this even allows
 closures to be called with implicit arguments to access the enclosing
 scope:
-```
+[source,hc]
+----
 ; .x 3;
 ; .y 4;
 ; mag []
 # 25
-```
-
+----
 Implicit arguments are a code smell, and will generate a warning.
 However, they can be very useful when debugging or refactoring. That may seem
 dangerous, but the data protection rules (below) largely limit what the called
@@ -524,7 +530,7 @@ function can do to the calling scope.
 Homoiconic C predefines a small number of top-level operators used by all
 frames. These provide functionality other languages often hard-code into
 their syntax. Note that specific datatypes may define their own operators
-(e.g., `+` for numbers) not covered in this section.
+(e.g., ``+`` for numbers) not covered in this section.
 
 ### Type Operations
 Like all modern statically typed languages, HC relies heavily on type
@@ -557,66 +563,62 @@ need to change the evaluation rules.
 
 #### The All Type
 
-The empty type `<>` is known as _all_. As the opposite of the empty expression `()` _nil_,
-it acts as the boolean `true` value.
-
-```
+The empty type ``<>`` is known as _all_. As the opposite of the empty expression ``()`` _nil_,
+it acts as the boolean ``true`` value.
+[source,hc]
+----
 ; <>
 # <>
 ; ().!
 ; <>
 ; <>.!
 ; ()
-```
-
+----
 #### Type Membership
 
-The _has-type_ operator `~` tests whether an object belongs to particular
+The _has-type_ operator ``~`` tests whether an object belongs to particular
 type, returning true (all) or false (nil). Every object is a member of
 _all_, while nothing is a member of _nil_:
-
-```
+[source,hc]
+----
 ; 1 ~ <>
 # <>
 ; 2 ~ ()
 ; ()
-```
-
+----
 #### Type Signatures
 
-We use `^` to specify the type signature of a closure, which may include
+We use ``^`` to specify the type signature of a closure, which may include
 optional defaults:
-```
+[source,hc]
+----
 ; .join-name (.first “Jane”, .last) ^ {last “, ” first};
 ; join-name (.first “John”, .last “Doe”)
 # “Doe, John”
-```
-
+----
 Types are generous, in that you are allowed to specify additional properties,
 but it is an error to omit properties that do not have a default:
-```
+[source,hc]
+----
 ; join-name (.middle “Q”, .last “Doe”)
 # “Doe, Jane”
 ; join-name (.middle “Q”)
 # $!invalid-argument-list (.middle “Q”, $!missing-required-argument .last;)
-```
-
-The return type is usually inferred, but can be specified explicitly using a trailing `^^`.
+----
+The return type is usually inferred, but can be specified explicitly using a trailing ``^^``.
 
 
 #### Type Values
 
-The simplest way to construct a type is to use the `~~` operator to extract the type
+The simplest way to construct a type is to use the ``~~`` operator to extract the type
 of a known object:
-
-```
+[source,hc]
+----
 ; “Q” ~ ~~“”
 # <> # true
 ; “Q” ~ ~~1
 # () # false
-```
-
-
+----
 ### Content
 
 Homoiconic C defines three content operators, each of which come in three
@@ -638,8 +640,9 @@ These flavors determine whether we consider the whole object, or just the data
 or metadata separately.
 
 #### Equality
-`=` is the usual equality test:
-```
+``=`` is the usual equality test:
+[source,hc]
+----
 ; .a [113, .p 887];
 ; .b [113, .p 661];
 ; .c [443, .p 887];
@@ -653,22 +656,21 @@ or metadata separately.
 # ()
 ; a === c
 # <>
-```
-
+----
 #### Iterators
 
-We use `|` for map, in homage to the UNIX pipeline.
-```
-; [1, 2, 3] | { _ + 1 } # will warn, since `_` is not defined on generic frames
+We use ``|`` for map, in homage to the UNIX pipeline.
+[source,hc]
+----
+; [1, 2, 3] | { _ + 1 } # will warn, since ``_`` is not defined on generic frames
 # [2, 3, 4]
-```
-
-Similarly, we use `&` for reduce:
-```
+----
+Similarly, we use ``&`` for reduce:
+[source,hc]
+----
 ; [1, 2, 3] & { . + _ }
 # 6
-```
-
+----
 The operators also work with files and network ports, reading one line
 (or object) at a time, greatly simplifying common I/O operations (a la
 the UNIX shell).
@@ -683,8 +685,8 @@ albeit with slightly different semantics. These are described in Table [#sec-tab
 +-------+--------+-------+--------+
 | Operator   | Name| On Frame | On Nil |
 +-------+--------+-------+--------+
-| ?     | _if_   | Call with `()` | Return `()` |
-| :     | _else_ |Return `()` | Call with `()` |
+| ?     | _if_   | Call with ``()`` | Return ``()`` |
+| :     | _else_ |Return ``()`` | Call with ``()`` |
 +-------+--------+-------+--------+
 { tbody-tr-odd-background-color:Gainsboro; \
   tr-even-background-color:Floralwhite }
@@ -692,9 +694,8 @@ albeit with slightly different semantics. These are described in Table [#sec-tab
 
 Note that these are not special forms, but simply defined with one behavior on nil
 and the opposite on regular frames.
-
-```
-
+[source,hc]
+----
 ; 1 ? {2 + 2}
 # 4
 ; 1 : {2 + 2}
@@ -704,15 +705,14 @@ and the opposite on regular frames.
 # ()
 ; () : {2 + 2}
 # 4
-```
-
+----
 Which, when the first expression does not return nil, acts just like C's ternary
 operator:
-```
+[source,hc]
+----
 ; 1 > 5 ? (2 * 50) : 10
 # 10
-```
-
+----
 Note that applying nil to anything other than a closure has no effect, so
 conditionals work just as well with simple expressions as they do with
 lazy blocks.
@@ -720,7 +720,7 @@ lazy blocks.
 ### Importing Modules
 
 Importing external modules into a program has come a long way from C's
-text-based `#include` statement. Modern imports are typically expected
+text-based ``#include`` statement. Modern imports are typically expected
 to perform three roles:
 
 1. Match a module name with a local package on disk, often downloaded via
@@ -731,27 +731,29 @@ to perform three roles:
 This functionality must be available as a primitive, since it is necessary
 for adding other functionality.
 
-We use the `<-` import operator to match a name against both the online
+We use the ``<-`` import operator to match a name against both the online
 registry (TBD) and the local path, and load it into a property with the
-same name. Registry settings can be configured via the `.hconfig` file.
-
-```
+same name. Registry settings can be configured via the ``.hconfig`` file.
+[source,hc]
+----
 ; <- .module;
 ; module
 # (.prop 1, .another-prop 2)
-```
+----
 We can also bind it to a different name:
-```
+[source,hc]
+----
 ; .alias <- .module;
 ; alias.prop
 # 1
-```
-or directly into the current namespace `.`.
-```
+----
+or directly into the current namespace ``.``.
+[source,hc]
+----
 ; . <- .module;
 ; prop
 # 1
-```
+----
 While not recommended in general, direct import allows apparently "built-in"
 functionality to provided via a prologue, rather than hard-coded into the
 language.  This reflects HC's philosophy to provide the same functionality
@@ -781,9 +783,9 @@ Table {#sec-table-access}.
 ~
 
 Importantly, these are modifiers not different identifiers. So, for example, the
-constant `COOL` in one scope overrides its case duplicate `cool` from a
+constant ``COOL`` in one scope overrides its case duplicate ``cool`` from a
 parent scope. For natural languages without separate upper and lower
-case, we use an initial letter `K` to denote the constant version.
+case, we use an initial letter ``K`` to denote the constant version.
 
 ### Encapsulation
 
@@ -791,16 +793,16 @@ The simplest form of access control is _encapsulation_, restricting the ability 
 external objects to even see certain properties.  Here we follow the informal
 conventions often used in C programs:
 
-* `public`
+* ``public``
   : visible to everyone
-* `_protected`
+* ``_protected``
   : not visible to parents or peers, but still visible to children
-* `__private`
+* ``__private``
   : not visible to anyone, even children
 
 For example:
-
-```
+[source,hc]
+----
 ; .see-me {
   .my-public-value 42;
   ._my-protected-value 21;
@@ -819,9 +821,7 @@ For example:
 # $!is-protected .my-protected-value
 ; see-me.my-private-value
 # $!is-private .my-private-value
-
-```
-
+----
 ### Effect
 
 Rather than specifying _call-by-value_ or _call-by-reference_, HC is
@@ -838,15 +838,15 @@ restrict side effects for safety.
  Lisp-like syntax[@Cite]. Inspired by their work, we have designed the
  syntax of our identifiers to explicitly support effect typing:
 
-* `variable`
+* ``variable``
   : Does not begin with an uppercase letter. Can be reassigned.
-* `CONSTANT`
+* ``CONSTANT``
   : Begins with uppercase letter. Can **not** be reassigned.
-* `immutable`
+* ``immutable``
   : Has no suffix. Can not be modified in place.
-* `mutable_`
+* ``mutable_``
   : Trailing underscore. Can be modified in place.
-* `mutating_method:`
+* ``mutating_method:``
   : Trailing colon. Can modify its parent context. Returns parent.
 
 
@@ -862,16 +862,15 @@ assigned a new value) is distinct from _mutability_ (whether the
 referenced value can be modified in place). In other words, constancy is
 a property of the _source_ object, whereas mutability is a property of the
 _destination_ object.
-
-```
+[source,hc]
+----
 ; .variable 42;
 ; .Constant 21;
 ; .variable 113
 # 113
 ; .Constant 7
 # $error{$is-constant .Constant}
-```
-
+----
 #### Mutability
 
 The second key insight from BitC is that effect is a property of
@@ -889,14 +888,13 @@ between different threads, etc.
 
 In order to ensure both immutable and mutable handles support the same
 methods, HC explicitly tracks which methods mutate their parent scope via
-a trailing colon (`:`). When a mutating method is called on an immutable
+a trailing colon (``:``). When a mutating method is called on an immutable
 object, it simply performs a _copy-on-write_, returning a new object. To
 enable this, mutating methods can not explicitly return a value, but
 implicitly return their parent (e.g., "this"; see Section {#sec-oops} for
 more details).
-
-```
-
+[source,hc]
+----
 ; .fixed (
   .hic “Object”;
   .property 42;
@@ -910,9 +908,7 @@ more details).
 # 113
 ; fixed.accessor()
 # 42
-```
-
-
+----
 # Applications {#sec-applications}
 
 While the above language may seem simple to the point of simplistic, it has a
@@ -928,37 +924,36 @@ data formats developed over the Internet's brief history.
 ### HCSV
 
 Homoiconic C may finally provide a well-defined alternative to the
-ubiquitous CSV[@Cite] file. A properly-structured `.hcsv` file is just as compact
+ubiquitous CSV[@Cite] file. A properly-structured ``.hcsv`` file is just as compact
 as CSV, with two important differences:
 * The header row, if any, consists of a list of names
 * Strings must be (smart) quoted
-```
+[source,hc]
+----
 .first-name, .last-name, .phone-number
 “John”, “Doe”, +1.408.555.1212
 “Jane”, “Smith”, +1.650.555.1212
-```
-
+----
 ### HCSON
 
 HC can also emulate the popular JSON[@Cite] format, or more precisely its
 CoffeeScript cousin CSON[@Cite].
-```
+[source,hc]
+----
 .first-name “John”, .last-name “Doe”, .phone-number +1.408.555.1212
 .first-name “Jane”, .last-name “Smith”, .phone-number +1.650.555.1212
-```
-
-
+----
 ## Object-Orientation
 
 Perhaps surprisingly, it is possible to implement a complete object-oriented
 programming system using only the above primitives.  All we need
-are our access control rules plus the super identifier `_^`.
+are our access control rules plus the super identifier ``_^``.
 
 ### Singletons
 
 Let's start with a simple singleton object containing private data:
-
-```
+[source,hc]
+----
 ; .my-object_ (
    ._property 13;
   .getProperty { _property }
@@ -969,14 +964,13 @@ Let's start with a simple singleton object containing private data:
 ; my-object_.setProperty: 42;
 ; my-object_.getProperty()
 # 13
-```
-
+----
 ### Classes
 
 To turn that into a class, we simply make it a closure which returns
 a frame analogous to that singleton:
-
-```
+[source,hc]
+----
 ; .my-class {
    ._property _;
   .getProperty { _property }
@@ -985,48 +979,46 @@ a frame analogous to that singleton:
 ; .my-instance my-class 3;
 ; my-instance.getProperty()
 # 3
-```
-
+----
 ### Inheritance
 
 Even inheritance is already accounted for, simply by explicitly specifying
 its parent scape:
-
-```
+[source,hc]
+----
 ; .my-subclass {
   ._^ my-base-class
 };
-```
-
+----
 There is no built-in support for multiple inheritance.  However, because
 inheritance is just another expression, you are welcome to define your own:
-
-```
+[source,hc]
+----
 ; .my-inheritance { “create your own” };
 ; multiclass {
   ._^ my-inheritance [my-base, another-base]
 };
-```
-
+----
 # Implementation
 
- Homoiconic C is available as the `hc` interpreter via the `hclang`
+ Homoiconic C is available as the ``hc`` interpreter via the ``hclang``
  node.js module, written in TypeScript.
-```
+[source,hc]
+----
 $ npm install -g hclang
 $ hc -e "“Hello, ” “Homoiconic C!”"
-```
+----
 It is under active development, and available on GitHub[@Cite] under
 the MIT Open Source license.
 
 ## Architecture
 
-The core runtime objects live in the `lib/frames` directory, where they
+The core runtime objects live in the ``lib/frames`` directory, where they
 are implemented as TypeScript classes.  Generally speaking there is
 one class for each primitive and aggregate frame, plus abstract classes for
 the generic Frame, FrameAtom, and FrameList.
 
-The interpreter lives in the `lib/execute` directory, and is also
+The interpreter lives in the ``lib/execute`` directory, and is also
 implemented using frames. Every frame knows how it is represented, and
 the lexer uses that information to dynamically generate a lookup table
 from a list of frame classes. Strings iterate as a list of symbols, so
@@ -1034,8 +1026,8 @@ the lexer generates tokens from the input string by evaluating
 evaluating a specialized program. Similarly, terminals act as controls
 grouping tokens into expressions and aggregates.
 
-Finally, operator bindings and currying are defined in `lib/ops`, and a
-preliminary wrapping of HTML called MAML lives in the `lib/maml` directory.
+Finally, operator bindings and currying are defined in ``lib/ops``, and a
+preliminary wrapping of HTML called MAML lives in the ``lib/maml`` directory.
 
 ## Status
 
@@ -1063,7 +1055,7 @@ The first priority is obviously completing the interpreter. The main tool
 we plan to use to get there is enabling **executable documentation**.
 
 This document, for example, is written in a dialect of Markdown called
-Madoko[@Cite] which uses triple back-quotes ("\`\`\`") to delimit code
+Madoko[@Cite] which uses triple back-quotes ("\``\``\`") to delimit code
 fragments. We could invert that by having Homoiconic C use those quotes
 as the delimiters for doc-strings, so it can directly (and sequentially)
 evaluate the code fragments. Next, we add an input stage that tracks the
@@ -1072,23 +1064,23 @@ acceptance tests.
 
 Once that is in place, we can literally run our documentation simply by prefixing
 this file with:
-```
+[source,hc]
+----
 #!/usr/bin/env hc -doctest
-\`\`\`
-```
-
+\``\``\`
+----
 The process would thus involve rewriting the documentation and
 the source code together until they are both complete and consistent.
 
 ### Compilation
 
 Once the interpreter is finished, we plan to work on a self-hosting
-transpiler. Written in Homoiconic C, it would convert `.hc` files
+transpiler. Written in Homoiconic C, it would convert ``.hc`` files
 directly into executable JavaScript. This may be rather heavyweight,
 however, since all the JavaScript objects would be Frame
 instances.
 
-The second step would be compiling directly to `asm.js`[@Cite]/
+The second step would be compiling directly to ``asm.js``[@Cite]/
 WebBinary[@Cite]. In particular, the goal would be to first wrap asm.js
 as a "congram" so that it can be easily manipulated directly from Homoiconic C.
 
@@ -1227,4 +1219,5 @@ of any Boolean circuit, including multiple levels of abstraction above
 them.
 
 [BIB]
-```
+[source,hc]
+----

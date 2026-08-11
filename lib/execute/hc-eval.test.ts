@@ -38,6 +38,26 @@ describe("HCEval", () => {
     expect(result.toString()).toEqual("`\n*docString*\n`");
   });
 
+  it("retains long doc state and incomplete backticks across calls", () => {
+    hc_eval.call("```");
+    hc_eval.call("one `");
+    hc_eval.call("two ``");
+    hc_eval.call("three");
+    hc_eval.call("```");
+
+    expect(out.length()).toEqual(1);
+    expect(out.at(0).toString()).toEqual(
+      "```\none `\ntwo ``\nthree\n```",
+    );
+  });
+
+  it("does not evaluate doctest markers inside long docs", () => {
+    hc_eval.call("```\n; missing-name\n# expectation\n```");
+
+    expect(out.length()).toEqual(1);
+    expect(out.at(0)).toBeInstanceOf(frame.FrameDoc);
+  });
+
   describe("symbols", () => {
     const key = "key";
     const value = "value";

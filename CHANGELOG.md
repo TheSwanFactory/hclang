@@ -4,6 +4,15 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.8.3 2026-08-11
+
+- Support short and long document strings delimited by one or three backticks,
+  preserving their delimiter level when rendered.
+- Preserve one- and two-backtick AsciiDoc spans inside long document strings,
+  including across incremental evaluator calls.
+- Traverse the complete white paper as a deterministic doctest with
+  non-executable examples retained as native AsciiDoc source blocks.
+
 ## v0.8.2 2026-08-10
 
 - Account for every HCTest testdoc source/result pair, including malformed and

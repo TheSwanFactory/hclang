@@ -94,7 +94,9 @@ export class HCEval {
       return null;
     }
     const source = new FrameString(input);
-    this.checkInput(input);
+    if (!(this.lex instanceof Lex && this.lex.isDocument())) {
+      this.checkInput(input);
+    }
     const result = source.reduce(this.lex);
     this.lex = (result instanceof Lex) ? result : this.pipe;
     return result;

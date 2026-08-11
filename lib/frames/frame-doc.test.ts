@@ -18,4 +18,12 @@ describe("FrameDoc", () => {
   it('stringifies with "`"', () => {
     expect(frame_doc.toString()).toEqual(`\`${source}\``);
   });
+
+  it("preserves a long delimiter", () => {
+    const body = "one ` and two `` backticks";
+    const long = new FrameDoc(body, undefined, 3);
+
+    expect(long.delimiterLevel).toEqual(3);
+    expect(long.toString()).toEqual(`\`\`\`${body}\`\`\``);
+  });
 });

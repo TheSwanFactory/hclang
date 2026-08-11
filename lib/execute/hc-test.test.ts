@@ -78,6 +78,21 @@ describe("HCTest", () => {
     expect(out.length()).toEqual(0);
   });
 
+  it("ignores source and expectation markers inside long documents", () => {
+    hc_eval.call("```");
+    hc_eval.call("; prose, not a source");
+    hc_eval.call("# prose, not an expectation");
+    hc_eval.call("```");
+    test.finish();
+
+    expect(test.n).toEqual({
+      total: 0,
+      pass: 0,
+      fail: 0,
+      unimplemented: 0,
+    });
+  });
+
   it("does not shift a pending actual onto the next source", () => {
     hc_eval.call("; missingName");
     hc_eval.call("; 123");
