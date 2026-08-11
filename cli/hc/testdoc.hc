@@ -50,34 +50,29 @@ Test array literal properties
 ```
 Test types
 ```
-; Empty schema accepts any value
-# SKIP: documentation-only heading
+## Empty schema accepts any value
 ; .x <> 42
 # 42
-; Number enumerations
-# SKIP: documentation-only heading
+## Number enumerations
 ; .option <1,2,3> 2
 # .option 2
 ; @option 3
 # .option 3
 ; @option 4
 # $!.type-error .option <1, 2, 3> 4
-; Single value schema (constant)
-# SKIP: documentation-only heading
+## Single value schema (constant)
 ; .const <42> 42
 # .const 42
 ; @const 43
 # $!.type-error .const <42> 43
-; Multiple valid assignments
-# SKIP: documentation-only heading
+## Multiple valid assignments
 ; .x <1,2> 1
 # .x 1
 ; @x 2
 # .x 2
 ; @x 1
 # .x 1
-; Original tests
-# SKIP: documentation-only heading
+## Original tests
 ; <> 1
 # <>
 ; <> ()
