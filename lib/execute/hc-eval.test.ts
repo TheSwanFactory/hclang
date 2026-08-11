@@ -58,6 +58,33 @@ describe("HCEval", () => {
     expect(out.at(0)).toBeInstanceOf(frame.FrameDoc);
   });
 
+  it("isolates unfinished document state between evaluators", () => {
+    hc_eval.call("```leaked");
+    const otherOut = new frame.FrameArray([]);
+    const other = new HCEval(otherOut);
+
+    other.call("```clean```");
+
+    expect(otherOut.length()).toEqual(1);
+    expect(otherOut.at(0).toString()).toEqual("```clean```");
+  });
+
+  it("recognizes delimiters split across non-line-ending calls", () => {
+    hc_eval.call("``", false);
+    hc_eval.call("`content``", false);
+    hc_eval.call("`", true);
+
+    expect(out.length()).toEqual(1);
+    expect(out.at(0).toString()).toEqual("```content```");
+    expect(hc_eval.finish()).toEqual(true);
+  });
+
+  it("reports an unfinished long document at EOF", () => {
+    hc_eval.call("```unfinished ``");
+
+    expect(hc_eval.finish()).toEqual(false);
+  });
+
   describe("symbols", () => {
     const key = "key";
     const value = "value";

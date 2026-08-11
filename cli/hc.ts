@@ -103,11 +103,16 @@ export async function main(
     await new Prompt(hc_eval).repl();
   }
 
+  const lexicalComplete = hc_eval.finish();
+  if (!lexicalComplete) {
+    console.error("HCEval.finish.failed: unterminated document string");
+  }
+
   if (test) {
     test.finish();
   }
 
-  return test?.exitCode ?? 0;
+  return lexicalComplete ? test?.exitCode ?? 0 : 1;
 }
 
 if (import.meta.main) {

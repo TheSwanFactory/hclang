@@ -95,4 +95,18 @@ describe("runfile", () => {
       await Deno.remove(file);
     }
   });
+
+  it("preserves blank lines inside synthetic documentation wrappers", async () => {
+    const file = await Deno.makeTempFile({ suffix: ".md" });
+    try {
+      await Deno.writeTextFile(file, "first\n\nsecond\n");
+      const out = new FrameArray([]);
+
+      await runfile(new HCEval(out), file);
+
+      expect(out.at(0).toString()).toContain("first\n\nsecond");
+    } finally {
+      await Deno.remove(file);
+    }
+  });
 });

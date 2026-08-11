@@ -75,6 +75,26 @@ describe("main", () => {
     }
   });
 
+  it("returns a non-zero status for an unterminated document", async () => {
+    const file = await Deno.makeTempFile({ suffix: ".hc" });
+    const originalError = console.error;
+    const diagnostics: string[] = [];
+    console.error = (...args: unknown[]) => diagnostics.push(args.join(" "));
+    try {
+      await Deno.writeTextFile(file, "```unfinished ``");
+      const hcEval = new HCEval(new FrameArray([]));
+      const status = await main(hcEval, getOptions([file]));
+
+      expect(status).toEqual(1);
+      expect(diagnostics).toEqual([
+        "HCEval.finish.failed: unterminated document string",
+      ]);
+    } finally {
+      console.error = originalError;
+      await Deno.remove(file);
+    }
+  });
+
   it("keeps the maintained testdoc fixture green with authoritative totals", async () => {
     const out = new FrameArray([]);
     const file = new URL("./hc/testdoc.hc", import.meta.url).pathname;
@@ -106,14 +126,26 @@ describe("main", () => {
   it("traverses the complete white paper with authoritative totals", async () => {
     const out = new FrameArray([]);
     const file = new URL("./hc/white-paper.hc", import.meta.url).pathname;
-    const status = await main(
-      new HCEval(out),
-      getOptions(["--testdoc", file]),
-    );
+    const originalError = console.error;
+    const diagnostics: unknown[][] = [];
+    console.error = (...args: unknown[]) => diagnostics.push(args);
+    try {
+      const status = await main(
+        new HCEval(out),
+        getOptions(["--testdoc", file]),
+      );
+      const summaries = out.asArray().filter((item) =>
+        item.toString().includes("$=.test-summary")
+      );
 
-    expect(status).toEqual(0);
-    expect(out.at(-1).toString()).toContain(
-      '“{"total":27,"pass":25,"fail":0,"unimplemented":2}”',
-    );
+      expect(status).toEqual(0);
+      expect(diagnostics).toEqual([]);
+      expect(summaries.length).toEqual(1);
+      expect(summaries[0].toString()).toContain(
+        '“{"total":27,"pass":25,"fail":0,"unimplemented":2}”',
+      );
+    } finally {
+      console.error = originalError;
+    }
   });
 });

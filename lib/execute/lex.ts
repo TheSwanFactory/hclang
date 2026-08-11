@@ -12,7 +12,6 @@ import {
   NilContext,
 } from "../frames.ts";
 import { LexBytes } from "./lex-bytes.ts";
-import { LexPipe } from "./lex-pipe.ts";
 import { terminals } from "./terminals.ts";
 
 export type Flag = { [key: string]: boolean };
@@ -45,7 +44,6 @@ export class Lex extends Frame implements ISourced {
   }
 
   public source: string;
-  public pipe: LexPipe = new LexPipe(this);
   protected body: string = "";
   protected sample: FrameAtom;
   private docDelimiterLevel: 1 | 3 = 1;

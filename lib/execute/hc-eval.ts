@@ -87,19 +87,27 @@ export class HCEval {
 
   /**
    * @param input The input string to evaluate.
+   * @param endOfLine Whether this chunk ends a logical source line.
    * @returns
    */
-  public call(input: string): Frame | null {
-    if (!input) {
+  public call(input: string, endOfLine = true): Frame | null {
+    const activeDocument = this.lex instanceof Lex && this.lex.isDocument();
+    if (!input && !(endOfLine && activeDocument)) {
       return null;
     }
     const source = new FrameString(input);
-    if (!(this.lex instanceof Lex && this.lex.isDocument())) {
+    if (!activeDocument) {
       this.checkInput(input);
     }
-    const result = source.reduce(this.lex);
+    const result = source.reduce(this.lex, endOfLine);
     this.lex = (result instanceof Lex) ? result : this.pipe;
     return result;
+  }
+
+  public finish(): boolean {
+    const complete = !(this.lex instanceof Lex && this.lex.isDocument());
+    this.lex = this.pipe;
+    return complete;
   }
 
   public level(): number {
