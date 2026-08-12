@@ -5,6 +5,11 @@
 [#293 — Parsing and literal recognition gaps](https://github.com/TheSwanFactory/hclang/issues/293)\
 **Related architecture:** #292
 
+**Subsequent decision:** Comparisons that collide with type/schema delimiters
+use explicit dot-led property names such as `.>` and `.<`. The raw-source
+failure analyzed below remains accurate historical evidence, while #293 now owns
+updating the doctest spelling and the still-separate conditional semantics.
+
 ## Executive Summary
 
 The white-paper example

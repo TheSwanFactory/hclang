@@ -6,6 +6,14 @@
 **Evaluates:** [04-tokenizer-conjecture.md](./04-tokenizer-conjecture.md)\
 **Related:** #293 and [03-lookahead-tensions.md](./03-lookahead-tensions.md)
 
+**Subsequent decision:**
+[11-candidate-composition-spec.md](./11-candidate-composition-spec.md) chooses
+explicit dot-led comparison properties and numeric-property evaluation for
+phone-shaped values. Those decisions remove the pre-recognizer ambiguities used
+as evidence below. The back-half `scan(Symbol)` findings remain applicable; the
+candidate-composition conclusion is historical rather than an implementation
+requirement.
+
 ## Verdict
 
 The Tokenizer conjecture survives, but only in a narrower form than a general

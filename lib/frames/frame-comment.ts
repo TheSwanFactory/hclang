@@ -1,5 +1,7 @@
 import { FrameQuote } from "./frame-atom.ts";
 import { type Context, NilContext } from "./context.ts";
+import type { Frame } from "./frame.ts";
+import { LexicalScan } from "./lexical-scan.ts";
 
 export class FrameComment extends FrameQuote {
   public static readonly COMMENT_BEGIN = "#";
@@ -21,6 +23,21 @@ export class FrameComment extends FrameQuote {
 
   public override canInclude(char: string): boolean {
     return !FrameComment.COMMENT_END_REGEX.test(char);
+  }
+
+  public override scan(symbol: Frame, _source = ""): LexicalScan {
+    const char = symbol.toString();
+    if (char === FrameComment.COMMENT_END) {
+      return LexicalScan.completeConsume();
+    }
+    if (char === "\n") {
+      return LexicalScan.completeRedispatch();
+    }
+    return LexicalScan.consume();
+  }
+
+  public override finishInput(_source = ""): LexicalScan {
+    return LexicalScan.completeConsume();
   }
 
   protected override toData(): string {

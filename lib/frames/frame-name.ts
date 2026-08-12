@@ -4,6 +4,7 @@ import { FrameAtom } from "./frame-atom.ts";
 import { FrameOperator, FrameSymbol } from "./frame-symbol.ts";
 import type { ISourced } from "./meta-frame.ts";
 import { NilContext } from "./context.ts";
+import { LexicalScan } from "./lexical-scan.ts";
 
 export class FrameName extends FrameAtom implements ISourced {
   public static readonly NAME_BEGIN = ".";
@@ -40,6 +41,23 @@ export class FrameName extends FrameAtom implements ISourced {
   public override canInclude(char: string): boolean {
     return FrameSymbol.SYMBOL_CHAR.test(char) ||
       FrameOperator.OPERATOR_CHARS.test(char);
+  }
+
+  public override scan(symbol: Frame, source = this.source): LexicalScan {
+    const char = symbol.toString();
+    if (!this.canInclude(char)) {
+      return LexicalScan.completeRedispatch();
+    }
+    if (source.length === 0) {
+      return LexicalScan.consume();
+    }
+
+    const startsWithOperator = FrameOperator.Accepts(source[0]);
+    const continuesIdentifier = char[0] === "-" && !startsWithOperator;
+    const sameKind = FrameOperator.Accepts(char[0]) === startsWithOperator;
+    return continuesIdentifier || sameKind
+      ? LexicalScan.consume()
+      : LexicalScan.completeRedispatch();
   }
 
   protected override toData(): FrameSymbol {

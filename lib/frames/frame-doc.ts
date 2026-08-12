@@ -1,5 +1,6 @@
 import { FrameString } from "./frame-string.ts";
 import { type Context, NilContext } from "./context.ts";
+import type { SigilStart } from "./lexical-scan.ts";
 
 export class FrameDoc extends FrameString {
   public static readonly DOC_BEGIN = "`";
@@ -15,6 +16,10 @@ export class FrameDoc extends FrameString {
 
   public override string_prefix(): string {
     return FrameDoc.DOC_BEGIN.repeat(this.fenceLength);
+  }
+
+  public override sigilStarts(): SigilStart[] {
+    return [{ key: FrameDoc.DOC_BEGIN, mode: "document" }];
   }
 
   public override string_suffix(): string {

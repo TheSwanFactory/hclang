@@ -5,6 +5,13 @@
 [#292 — Generalize the FrameAtom lexical-boundary contract beyond canInclude()](https://github.com/TheSwanFactory/hclang/issues/292)\
 **Related:** #293
 
+**Subsequent decision:**
+[11-candidate-composition-spec.md](./11-candidate-composition-spec.md) removes
+the two motivating ambiguities from current scope: comparisons use dot-led
+property names, and phone-shaped values use ordinary numeric-property
+evaluation. The tensions below remain an analysis of what overlapping undotted
+syntax would cost, not a requirement to implement candidate composition.
+
 ## Purpose
 
 This document analyzes the pressures commonly grouped under the word "lookahead"

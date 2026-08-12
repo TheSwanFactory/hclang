@@ -1,6 +1,7 @@
 import type { Frame } from "./frame.ts";
 import { FrameAtom } from "./frame-atom.ts";
 import { NilContext } from "./context.ts";
+import { LexicalScan } from "./lexical-scan.ts";
 
 export interface IRegexpMap {
   [key: number]: RegExp;
@@ -89,6 +90,22 @@ export class FrameBlob extends FrameAtom {
   public override canInclude(char: string): boolean {
     const regex = FrameBlob.BLOB_DIGITS[64]; // accept everything, to start
     return regex.test(char);
+  }
+
+  public override scan(symbol: Frame, source = ""): LexicalScan {
+    const char = symbol.toString();
+    if (source === "") {
+      const prefixes = Object.values(FrameBlob.BLOB_PREFIX);
+      return prefixes.includes(char) || /\d/.test(char)
+        ? LexicalScan.consume()
+        : LexicalScan.completeRedispatch();
+    }
+
+    const base = FrameBlob.find_base(`0${source}`);
+    const digits = base === 10 ? /\d/ : FrameBlob.BLOB_DIGITS[base];
+    return digits.test(char)
+      ? LexicalScan.consume()
+      : LexicalScan.completeRedispatch();
   }
 
   public override toString(): string {

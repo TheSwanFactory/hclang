@@ -3,10 +3,11 @@ import { type FrameAtom, FrameQuote } from "./frame-atom.ts";
 import { FrameSymbol } from "./frame-symbol.ts";
 import { NilContext } from "./context.ts";
 import type { Context } from "./context.ts";
+import { sigilizer } from "../execute/sigilizer.ts";
 
 const reducer = (current: Frame, char: string): Frame => {
   const symbol = FrameSymbol.for(char);
-  const result = current.call(symbol);
+  const result = sigilizer.scan(current, symbol);
   return result;
 };
 
@@ -40,7 +41,7 @@ export class FrameString extends FrameQuote {
 
   public reduce(starter: Frame, finish = true): Frame {
     const final = this.data.split("").reduce(reducer, starter);
-    return finish ? final.call(FrameSymbol.end()) : final;
+    return finish ? sigilizer.scan(final, FrameSymbol.end()) : final;
   }
 
   protected override toData(): string {

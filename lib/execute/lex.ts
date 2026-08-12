@@ -18,22 +18,15 @@ import {
   type Any,
   Frame,
   FrameAtom,
-  FrameBytes,
-  FrameComment,
-  FrameName,
-  FrameOperator,
-  FrameQuote,
+  FrameSymbol,
   type ISourced,
+  LexicalScan,
   NilContext,
 } from "../frames.ts";
-import { LexBytes } from "./lex-bytes.ts";
-import { terminals } from "./terminals.ts";
 
 export type Flag = { [key: string]: boolean };
 
 export type AtomFactory = new (body: string) => FrameAtom;
-export type BytesFactory = new (body: number[]) => FrameBytes;
-
 export class Token extends FrameAtom {
   constructor(protected data: Frame) {
     super(NilContext);
@@ -53,11 +46,6 @@ export class Token extends FrameAtom {
 }
 
 export class Lex extends Frame implements ISourced {
-  public static isTerminal(char: string): boolean {
-    const terms = Object.keys(terminals);
-    return terms.includes(char);
-  }
-
   public source: string;
   protected body: string = "";
   protected sample: FrameAtom;
@@ -67,71 +55,60 @@ export class Lex extends Frame implements ISourced {
     this.sample = new Factory("");
     this.source = "";
     this.is.void = true;
+    this.is.lexical = true;
     const name = this.sample.className();
     this.id = this.id + "." + name;
   }
 
   public override call(argument: Frame, _parameter = Frame.nil): Frame {
-    const char = argument.toString();
-    const end = this.isEnd(char);
-    const terminal = Lex.isTerminal(char);
-    const not_quote = !this.isQuote();
-    const not_space = char !== " ";
+    return this.scan(argument);
+  }
 
-    if (end && terminal && not_space) { // ends token on a terminal
-      return this.finish(argument, true);
-    }
-    if (end) { // ends token, but not on a terminal
-      const use_arg_for_next_token = not_quote && !this.isComment();
-      const result = this.finish(argument, use_arg_for_next_token);
-      return result;
+  public override scan(argument: Frame, _source = ""): Frame {
+    const transition = this.sample.scan(argument, this.lexemeSource());
+    if (!(transition instanceof LexicalScan)) {
+      return transition;
     }
 
-    if (terminal && not_quote && not_space) { // unquoted terminal implicitly ends token
-      return this.finish(argument, true);
+    switch (transition.disposition) {
+      case "consume":
+        this.append(argument);
+        return this;
+      case "complete-consume":
+        return this.finish(argument, false, transition.value);
+      case "complete-redispatch":
+        return this.finish(argument, true, transition.value);
+      case "transition":
+        if (transition.next instanceof FrameAtom) {
+          this.sample = transition.next;
+          this.body = "";
+          this.source = "";
+          return this;
+        }
+        return LexicalScan.error("lexical transition did not return an atom");
+      case "error":
+        return transition;
     }
-
-    // otherwise, add to body since still in interior
-    // including quoted terminals
-
-    if (this.body === "") {
-      this.body = this.source;
-    }
-    this.body = this.body + argument.toString();
-    return this;
   }
 
   public override toString(): string {
     return this.id + `[${this.body}]`;
   }
 
-  protected isEnd(char: string): boolean {
-    if (this.Factory !== FrameName || this.body.length === 0) {
-      return !this.sample.canInclude(char);
+  public override finishInput(): Frame {
+    const readiness = this.sample.finishInput(this.lexemeSource());
+    if (readiness.is.error) {
+      return readiness;
     }
-    if (this.sample.canInclude(char)) {
-      const startsWithOperator = FrameOperator.Accepts(this.body[0]);
-      const continuesIdentifier = char[0] === "-" && !startsWithOperator;
-      return !continuesIdentifier &&
-        FrameOperator.Accepts(char[0]) !== startsWithOperator;
-    }
-    return true;
+    return this.scan(FrameSymbol.end());
   }
 
-  protected isComment(): boolean {
-    return (this.sample instanceof FrameComment);
-  }
-
-  protected isQuote(): boolean {
-    return (this.sample instanceof FrameQuote);
-  }
-
-  protected finish(argument: Frame, passAlong: boolean): Frame {
-    const recurse = this.checkRecursive(argument);
-    if (recurse !== null) {
-      return recurse;
-    }
-    this.exportFrame();
+  protected finish(
+    argument: Frame,
+    passAlong: boolean,
+    value: Frame | null = null,
+  ): Frame {
+    this.exportFrame(value);
     if (passAlong) {
       const result = this.up.call(argument);
       return result;
@@ -139,28 +116,35 @@ export class Lex extends Frame implements ISourced {
     return this.up;
   }
 
-  protected checkRecursive(_argument: Frame): Frame | null {
-    if (!(this.sample instanceof FrameBytes)) {
-      return null;
-    }
-    const n = parseInt(this.body, 10);
-    const lex = new LexBytes(n, this.up);
-    return lex;
-  }
-
-  protected exportFrame(): Frame {
-    const output: Token = this.makeFrame();
+  protected exportFrame(value: Frame | null = null): Frame {
+    const output: Token = this.makeFrame(value);
     const out = this.get(Frame.kOUT);
     const result = out.call(output);
     return result;
   }
 
-  protected makeFrame(): Token {
+  protected makeFrame(value: Frame | null = null): Token {
+    if (value !== null) {
+      this.body = "";
+      this.sample = new this.Factory("");
+      return new Token(value);
+    }
     if (this.body === "") {
       this.body = this.source;
     }
     const frame = new this.Factory(this.body);
     this.body = "";
     return new Token(frame);
+  }
+
+  private append(argument: Frame): void {
+    if (this.body === "") {
+      this.body = this.source;
+    }
+    this.body += argument.toString();
+  }
+
+  private lexemeSource(): string {
+    return this.body === "" ? this.source : this.body;
   }
 }

@@ -75,10 +75,12 @@ const addTerminal = (char: string, key: string): void => {
 
 function addGroup(Grouper: IArrayConstructor): void {
   const sample = new Grouper([], NilContext);
-  const open = sample.string_open();
-  const close = sample.string_close();
-  terminals[open] = new Terminal(perform({ push: Grouper }));
-  terminals[close] = new Terminal(perform({ pop: Grouper }));
+  sample.sigilStarts().forEach(({ key, mode }) => {
+    if (mode !== "push" && mode !== "pop") {
+      throw new Error(`Invalid structural Sigil mode: ${mode}`);
+    }
+    terminals[key] = new Terminal(perform({ [mode]: Grouper }));
+  });
 }
 
 terminals[Frame.kEND] = Terminal.end();

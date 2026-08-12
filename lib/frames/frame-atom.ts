@@ -1,5 +1,6 @@
 import { type Any, Frame } from "./frame.ts";
 import { NilContext } from "./context.ts";
+import { LexicalScan, type SigilStart } from "./lexical-scan.ts";
 
 export class FrameAtom extends Frame {
   constructor(meta = NilContext) {
@@ -16,6 +17,10 @@ export class FrameAtom extends Frame {
 
   public string_start(): string {
     return this.string_prefix();
+  }
+
+  public override sigilStarts(): SigilStart[] {
+    return [{ key: this.string_start(), mode: "atom" }];
   }
 
   public toStringData(): string {
@@ -38,10 +43,27 @@ export class FrameAtom extends Frame {
     return char !== this.string_suffix();
   }
 
+  public override scan(symbol: Frame, _source = ""): Frame {
+    return this.canInclude(symbol.toString())
+      ? LexicalScan.consume()
+      : LexicalScan.completeRedispatch();
+  }
+
   protected toData(): Any {
     return null;
   }
 }
 
 export class FrameQuote extends FrameAtom {
+  public override scan(symbol: Frame, _source = ""): Frame {
+    return symbol.toString() === this.string_suffix()
+      ? LexicalScan.completeConsume()
+      : LexicalScan.consume();
+  }
+
+  public override finishInput(source = ""): LexicalScan {
+    return LexicalScan.error(
+      `unterminated ${this.className()}: ${this.string_prefix()}${source}`,
+    );
+  }
 }

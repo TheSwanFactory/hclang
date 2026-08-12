@@ -3,6 +3,7 @@ import { FrameAtom } from "./frame-atom.ts";
 import { FrameNote } from "./frame-note.ts";
 import { FrameSchema } from "./frame-schema.ts";
 import { type Context, NilContext } from "./context.ts";
+import { LexicalScan, type SigilStart } from "./lexical-scan.ts";
 
 class FrameLiteral extends FrameAtom {
   constructor(protected data: string) {
@@ -108,6 +109,8 @@ export class FrameSymbol extends FrameAtom {
 }
 
 export class FrameOperator extends FrameSymbol {
+  public static readonly OPERATOR_START = /[&|?:+\-/*%=!]/;
+
   public static operator_chars(): string {
     return "&|?:+\\-*%<>!";
     // FrameOperator.OPERATOR_CHARS.source.slice(1, -1)
@@ -125,7 +128,21 @@ export class FrameOperator extends FrameSymbol {
     return FrameOperator.OPERATOR_CHARS.toString();
   }
 
+  public override sigilStarts(): SigilStart[] {
+    return [{ key: FrameOperator.OPERATOR_START.toString(), mode: "atom" }];
+  }
+
   public override canInclude(char: string): boolean {
     return FrameOperator.Accepts(char);
+  }
+
+  public override scan(symbol: Frame, _source = ""): LexicalScan {
+    const char = symbol.toString();
+    if (char === "<" || char === ">") {
+      return LexicalScan.completeRedispatch();
+    }
+    return this.canInclude(char)
+      ? LexicalScan.consume()
+      : LexicalScan.completeRedispatch();
   }
 }

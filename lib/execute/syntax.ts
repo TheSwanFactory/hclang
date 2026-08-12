@@ -23,6 +23,7 @@ export const atomClasses: Array<AtomFactory> = [
   frame.FrameAlias,
   frame.FrameArg,
   frame.FrameBlob,
+  frame.FrameBytes,
   frame.FrameComment,
   frame.FrameDoc,
   frame.FrameName,
@@ -32,26 +33,26 @@ export const atomClasses: Array<AtomFactory> = [
   frame.FrameString,
   frame.FrameSymbol,
 ];
-//   FIXME: frame.FrameBytes not of type AtomFactory
+type LexFactory = (Atom: AtomFactory) => Lex;
 
-type LexFactory = () => Lex;
-
-const atomLexers = new Map<AtomFactory, LexFactory>([
-  [frame.FrameDoc, () => new LexDoc()],
-]);
-
-const makeLexer = (Atom: AtomFactory): Lex => {
-  const factory = atomLexers.get(Atom);
-  return factory ? factory() : new Lex(Atom);
+const lexicalModes: Record<"atom" | "document", LexFactory> = {
+  atom: (Atom) => new Lex(Atom),
+  document: () => new LexDoc(),
 };
 
 export function getSyntax(): frame.Context {
   const syntax: frame.Context = { ...terminals };
   atomClasses.forEach((Klass: AtomFactory) => {
     const sample: frame.FrameAtom = new Klass("");
-    const key = sample.string_start();
-    const lexee = makeLexer(Klass);
-    syntax[key] = lexee;
+    sample.sigilStarts().forEach(({ key, mode }) => {
+      if (mode === "push" || mode === "pop") {
+        throw new Error(`Atom registered a structural Sigil mode: ${key}`);
+      }
+      if (syntax[key] !== undefined) {
+        throw new Error(`Conflicting Sigil registration: ${key}`);
+      }
+      syntax[key] = lexicalModes[mode](Klass);
+    });
     return true;
   });
 

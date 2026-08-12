@@ -4,12 +4,9 @@ import {
   FrameGroup,
   FrameNumber,
   FrameString,
-  FrameSymbol,
   type StringMap,
 } from "../frames.ts";
 import { EvalPipe } from "./eval-pipe.ts";
-import { Lex } from "./lex.ts";
-import { LexDoc } from "./lex-doc.ts";
 import { LexPipe } from "./lex-pipe.ts";
 import { ParsePipe } from "./parse-pipe.ts";
 
@@ -83,6 +80,7 @@ export class HCEval {
   protected lex: Frame;
   private lexicalError: string | null = null;
   private inputBuffer = "";
+  private needsFinish = false;
 
   constructor(public out: Frame) {
     this.pipe = HCEval.make_pipe(this.out);
@@ -113,7 +111,7 @@ export class HCEval {
     }
 
     const hasLogicalLine = this.inputBuffer.length > 0 || input.length > 0 ||
-      this.lex instanceof LexDoc;
+      this.lex.is.document === true;
     if (endOfLine && hasLogicalLine) {
       result = this.reduceLine(this.inputBuffer, true);
       this.inputBuffer = "";
@@ -123,7 +121,7 @@ export class HCEval {
   }
 
   private reduceLine(input: string, endOfLine: boolean): Frame {
-    const activeDocument = this.lex instanceof LexDoc;
+    const activeDocument = this.lex.is.document === true;
     if (this.lex === this.pipe) {
       this.lexicalError = null;
     }
@@ -132,7 +130,11 @@ export class HCEval {
       this.checkInput(input);
     }
     const result = source.reduce(this.lex, endOfLine);
-    this.lex = (result instanceof Lex) ? result : this.pipe;
+    this.lex = result.is.lexical === true ? result : this.pipe;
+    if (result.is.error === true) {
+      this.lexicalError = result.toString();
+    }
+    this.needsFinish = endOfLine ? false : this.needsFinish || input.length > 0;
     return result;
   }
 
@@ -144,15 +146,13 @@ export class HCEval {
       this.inputBuffer = "";
     }
 
-    if (this.lex instanceof LexDoc) {
-      complete = this.lex.finishInput();
-      this.lexicalError = this.lex.failure();
-      if (complete) {
-        this.pipe.finish(Frame.nil);
-      }
-    } else if (this.lex !== this.pipe) {
+    if (this.lex !== this.pipe) {
+      const result = this.lex.finishInput();
+      complete = result.is.error !== true;
+      this.lexicalError = complete ? null : result.toString();
+    } else if (this.needsFinish) {
+      this.pipe.finish(Frame.nil);
       this.lexicalError = null;
-      this.lex.call(FrameSymbol.end());
     } else {
       this.lexicalError = null;
     }
@@ -162,6 +162,7 @@ export class HCEval {
     }
     this.lex = this.pipe;
     this.inputBuffer = "";
+    this.needsFinish = false;
     return complete;
   }
 
