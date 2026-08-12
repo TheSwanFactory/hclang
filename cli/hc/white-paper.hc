@@ -472,12 +472,11 @@ that doesn't require them to also learn a foreign language.
 
 Use `_` as the anonymous argument, representing everything this frame
 was called with:
-[source,hc]
-----
+```
 ; .triplicate {3 _};
-; square “Baby”
+; triplicate “Baby”
 # “BabyBabyBaby”
-----
+```
 This is useful not just for closures, but for representing the command-line
 arguments for the entire script.
 
@@ -916,21 +915,24 @@ ubiquitous CSV[@Cite] file. A properly-structured `.hcsv` file is just as compac
 as CSV, with two important differences:
 * The header row, if any, consists of a list of names
 * Strings must be (smart) quoted
-[source,hc]
-----
-.first-name, .last-name, .phone-number
-“John”, “Doe”, +1.408.555.1212
-“Jane”, “Smith”, +1.650.555.1212
-----
+```
+; .first-name, .last-name, .phone-number
+# (first-name, last-name, phone-number)
+; “John”, “Doe”, +1.408.555.1212
+# $!.unimplemented (“John”, “Doe”, +1.408.555.1212)
+; “Jane”, “Smith”, +1.650.555.1212
+# $!.unimplemented (“Jane”, “Smith”, +1.650.555.1212)
+```
 ### HCSON
 
 HC can also emulate the popular JSON[@Cite] format, or more precisely its
 CoffeeScript cousin CSON[@Cite].
-[source,hc]
-----
-.first-name “John”, .last-name “Doe”, .phone-number +1.408.555.1212
-.first-name “Jane”, .last-name “Smith”, .phone-number +1.650.555.1212
-----
+```
+; .first-name “John”, .last-name “Doe”, .phone-number +1.408.555.1212
+# $!.unimplemented (.first-name “John”, .last-name “Doe”, .phone-number +1.408.555.1212)
+; .first-name “Jane”, .last-name “Smith”, .phone-number +1.650.555.1212
+# $!.unimplemented (.first-name “Jane”, .last-name “Smith”, .phone-number +1.650.555.1212)
+```
 ## Object-Orientation
 
 Perhaps surprisingly, it is possible to implement a complete object-oriented

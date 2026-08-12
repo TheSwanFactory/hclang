@@ -479,11 +479,12 @@ After the lexical behavior conforms to this specification:
 5. Remove escaped-backtick workarounds that are no longer needed.
 6. Pair every intended value-returning semicolon source with one hash
    expectation; leave statement sources without an expectation.
-7. Preserve the semantics of every existing example: do not turn a statement
-   into a value-returning expression, replace one source with another, or
-   reinterpret a source line as an expectation. Add an expectation only when the
-   documented result is unambiguous; otherwise retain the example in a
-   non-executable listing block.
+7. Do not change an example's semantics merely to make the migration pass: do
+   not turn a statement into a value-returning expression, replace one source
+   with another, or reinterpret a source line as an expectation. An
+   independently identified documentation defect may be corrected explicitly and
+   tested. Add an expectation only when the documented result is unambiguous;
+   otherwise retain the example in a non-executable listing block.
 8. Mark unsupported required behavior with `$!.unimplemented` and a concrete
    expected value.
 9. Inventory executable and non-executable examples before accepting totals.
