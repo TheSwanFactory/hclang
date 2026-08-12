@@ -38,7 +38,7 @@ describe("HCEval", () => {
     expect(result.toString()).toEqual("`\n*docString*\n`");
   });
 
-  it("retains long doc state and incomplete backticks across calls", () => {
+  it("retains document state and incomplete backticks across calls", () => {
     hc_eval.call("```");
     hc_eval.call("one `");
     hc_eval.call("two ``");
@@ -51,7 +51,7 @@ describe("HCEval", () => {
     );
   });
 
-  it("does not evaluate doctest markers inside long docs", () => {
+  it("does not evaluate doctest markers inside fenced documents", () => {
     hc_eval.call("```\n; missing-name\n# expectation\n```");
 
     expect(out.length()).toEqual(1);
@@ -79,7 +79,7 @@ describe("HCEval", () => {
     expect(hc_eval.finish()).toEqual(true);
   });
 
-  it("reports an unfinished long document at EOF", () => {
+  it("reports an unfinished document at EOF", () => {
     hc_eval.call("```unfinished ``");
 
     expect(hc_eval.finish()).toEqual(false);
@@ -94,6 +94,151 @@ describe("HCEval", () => {
     expect(out.length()).toEqual(1);
     expect(out.at(0).toString()).toEqual("```clean```");
     expect(hc_eval.finish()).toEqual(true);
+  });
+
+  for (const fenceLength of [1, 3, 5, 7]) {
+    it(`closes an odd fence of length ${fenceLength} at EOF`, () => {
+      const fence = "`".repeat(fenceLength);
+      hc_eval.call(`${fence}body${fence}`, false);
+
+      expect(hc_eval.finish()).toEqual(true);
+      expect(out.length()).toEqual(1);
+      expect(out.at(0).toString()).toEqual(`${fence}body${fence}`);
+    });
+  }
+
+  for (const fenceLength of [2, 4, 6, 8]) {
+    it(`classifies an even run of length ${fenceLength} at EOF`, () => {
+      const fence = "`".repeat(fenceLength);
+      hc_eval.call(fence, false);
+
+      expect(hc_eval.finish()).toEqual(true);
+      expect(out.length()).toEqual(1);
+      expect(out.at(0).toString()).toEqual(fence);
+    });
+  }
+
+  it("preserves shorter runs inside a five-backtick document", () => {
+    const fence = "`".repeat(5);
+    const body = "one ` two `` three ``` four ```` end";
+    hc_eval.call(`${fence}${body}${fence}`, false);
+
+    expect(hc_eval.finish()).toEqual(true);
+    expect(out.at(0).toString()).toEqual(`${fence}${body}${fence}`);
+  });
+
+  it("rejects a run longer than the active fence", () => {
+    hc_eval.call("```body````", false);
+
+    expect(hc_eval.finish()).toEqual(false);
+    expect(hc_eval.error()).toEqual(
+      "document fence run exceeds the opening fence",
+    );
+    expect(out.length()).toEqual(0);
+  });
+
+  it("does not close a greater run by an equal prefix", () => {
+    hc_eval.call("```body````outside", true);
+
+    expect(hc_eval.finish()).toEqual(false);
+    expect(out.length()).toEqual(0);
+  });
+
+  it("rejects a longer interior run in a one-backtick document", () => {
+    hc_eval.call("`body``", false);
+
+    expect(hc_eval.finish()).toEqual(false);
+    expect(hc_eval.error()).toEqual(
+      "document fence run exceeds the opening fence",
+    );
+  });
+
+  it("treats a shorter final run as content before reporting EOF", () => {
+    hc_eval.call("```body``", false);
+
+    expect(hc_eval.finish()).toEqual(false);
+    expect(hc_eval.error()).toEqual("unterminated document string");
+    expect(out.length()).toEqual(0);
+  });
+
+  it("keeps an opening run pending across arbitrary chunks", () => {
+    hc_eval.call("``", false);
+    hc_eval.call("```body", false);
+    hc_eval.call("``", false);
+    hc_eval.call("```", false);
+
+    expect(hc_eval.finish()).toEqual(true);
+    expect(out.at(0).toString()).toEqual("`````body`````");
+  });
+
+  it("keeps a closing run pending across arbitrary chunks", () => {
+    hc_eval.call("`````body``", false);
+    hc_eval.call("```", false);
+
+    expect(hc_eval.finish()).toEqual(true);
+    expect(out.at(0).toString()).toEqual("`````body`````");
+  });
+
+  it("is invariant across every two-chunk split", () => {
+    const source = "`````one ` two `` three ``` four ```` end`````";
+
+    for (let split = 1; split < source.length; split++) {
+      const splitOut = new frame.FrameArray([]);
+      const splitEval = new HCEval(splitOut);
+      splitEval.call(source.slice(0, split), false);
+      splitEval.call(source.slice(split), false);
+
+      expect(splitEval.finish()).toEqual(true);
+      expect(splitOut.length()).toEqual(1);
+      expect(splitOut.at(0).toString()).toEqual(source);
+    }
+  });
+
+  it("classifies even runs identically across every two-chunk split", () => {
+    const source = "`".repeat(8);
+
+    for (let split = 1; split < source.length; split++) {
+      const splitOut = new frame.FrameArray([]);
+      const splitEval = new HCEval(splitOut);
+      splitEval.call(source.slice(0, split), false);
+      splitEval.call(source.slice(split), false);
+
+      expect(splitEval.finish()).toEqual(true);
+      expect(splitOut.length()).toEqual(1);
+      expect(splitOut.at(0).toString()).toEqual(source);
+    }
+  });
+
+  it("rejects greater runs across every two-chunk split", () => {
+    const source = "```body````";
+
+    for (let split = 1; split < source.length; split++) {
+      const splitOut = new frame.FrameArray([]);
+      const splitEval = new HCEval(splitOut);
+      splitEval.call(source.slice(0, split), false);
+      splitEval.call(source.slice(split), false);
+
+      expect(splitEval.finish()).toEqual(false);
+      expect(splitEval.error()).toEqual(
+        "document fence run exceeds the opening fence",
+      );
+      expect(splitOut.length()).toEqual(0);
+    }
+  });
+
+  it("treats a logical newline, but not a chunk boundary, as the end of a run", () => {
+    hc_eval.call("```body``", true);
+    hc_eval.call("`", false);
+
+    expect(hc_eval.finish()).toEqual(false);
+    expect(hc_eval.error()).toEqual("unterminated document string");
+  });
+
+  it("reports an odd opening run at EOF as unterminated", () => {
+    hc_eval.call("`````", false);
+
+    expect(hc_eval.finish()).toEqual(false);
+    expect(hc_eval.error()).toEqual("unterminated document string");
   });
 
   describe("symbols", () => {

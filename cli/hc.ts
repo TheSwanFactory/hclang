@@ -105,7 +105,8 @@ export async function main(
 
   const lexicalComplete = hc_eval.finish();
   if (!lexicalComplete) {
-    console.error("HCEval.finish.failed: unterminated document string");
+    const reason = hc_eval.error() ?? "incomplete lexical input";
+    console.error(`HCEval.finish.failed: ${reason}`);
   }
 
   if (test) {

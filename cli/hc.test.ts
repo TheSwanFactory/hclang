@@ -95,6 +95,26 @@ describe("main", () => {
     }
   });
 
+  it("returns a non-zero status for a greater interior run", async () => {
+    const file = await Deno.makeTempFile({ suffix: ".hc" });
+    const originalError = console.error;
+    const diagnostics: string[] = [];
+    console.error = (...args: unknown[]) => diagnostics.push(args.join(" "));
+    try {
+      await Deno.writeTextFile(file, "```body````");
+      const hcEval = new HCEval(new FrameArray([]));
+      const status = await main(hcEval, getOptions([file]));
+
+      expect(status).toEqual(1);
+      expect(diagnostics).toEqual([
+        "HCEval.finish.failed: document fence run exceeds the opening fence",
+      ]);
+    } finally {
+      console.error = originalError;
+      await Deno.remove(file);
+    }
+  });
+
   it("keeps the maintained testdoc fixture green with authoritative totals", async () => {
     const out = new FrameArray([]);
     const file = new URL("./hc/testdoc.hc", import.meta.url).pathname;

@@ -2,6 +2,7 @@
 “Hello, Homoiconicity!”
 `docString 1`
 ```docString 2```
+`````docString 5 with ``` shorter backticks`````
 ```
 docString 3
 one `backtick` span

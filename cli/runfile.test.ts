@@ -109,4 +109,20 @@ describe("runfile", () => {
       await Deno.remove(file);
     }
   });
+
+  it("preserves a final HC line until evaluator EOF", async () => {
+    const file = await Deno.makeTempFile({ suffix: ".hc" });
+    try {
+      await Deno.writeTextFile(file, "123");
+      const out = new FrameArray([]);
+      const evaluator = new HCEval(out);
+
+      await runfile(evaluator, file);
+      expect(out.length()).toEqual(0);
+      expect(evaluator.finish()).toEqual(true);
+      expect(out.at(0).toString()).toEqual("123");
+    } finally {
+      await Deno.remove(file);
+    }
+  });
 });

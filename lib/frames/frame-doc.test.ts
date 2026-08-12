@@ -19,11 +19,26 @@ describe("FrameDoc", () => {
     expect(frame_doc.toString()).toEqual(`\`${source}\``);
   });
 
-  it("preserves a long delimiter", () => {
-    const body = "one ` and two `` backticks";
-    const long = new FrameDoc(body, undefined, 3);
+  for (const fenceLength of [1, 3, 5, 7]) {
+    it(`preserves an odd fence of length ${fenceLength}`, () => {
+      const fence = "`".repeat(fenceLength);
+      const body = "one ` and two `` backticks";
+      const document = new FrameDoc(body, undefined, fenceLength);
 
-    expect(long.delimiterLevel).toEqual(3);
-    expect(long.toString()).toEqual(`\`\`\`${body}\`\`\``);
-  });
+      expect(document.fenceLength).toEqual(fenceLength);
+      expect(document.toString()).toEqual(`${fence}${body}${fence}`);
+    });
+  }
+
+  for (const fenceLength of [2, 4, 6, 8]) {
+    it(`preserves an empty even fence of length ${fenceLength}`, () => {
+      const fence = "`".repeat(fenceLength);
+      const document = new FrameDoc("", undefined, fenceLength);
+
+      expect(document.fenceLength).toEqual(fenceLength);
+      expect(document.string_prefix()).toEqual(fence);
+      expect(document.string_suffix()).toEqual("");
+      expect(document.toString()).toEqual(fence);
+    });
+  }
 });

@@ -20,7 +20,6 @@ import {
   FrameAtom,
   FrameBytes,
   FrameComment,
-  FrameDoc,
   FrameName,
   FrameOperator,
   FrameQuote,
@@ -62,9 +61,6 @@ export class Lex extends Frame implements ISourced {
   public source: string;
   protected body: string = "";
   protected sample: FrameAtom;
-  private docDelimiterLevel: 1 | 3 = 1;
-  private docOpening = true;
-  private docTicks = 1;
 
   public constructor(protected Factory: AtomFactory) {
     super();
@@ -77,9 +73,6 @@ export class Lex extends Frame implements ISourced {
 
   public override call(argument: Frame, _parameter = Frame.nil): Frame {
     const char = argument.toString();
-    if (this.sample instanceof FrameDoc) {
-      return this.callDocument(argument, char);
-    }
     const end = this.isEnd(char);
     const terminal = Lex.isTerminal(char);
     const not_quote = !this.isQuote();
@@ -110,10 +103,6 @@ export class Lex extends Frame implements ISourced {
 
   public override toString(): string {
     return this.id + `[${this.body}]`;
-  }
-
-  public isDocument(): boolean {
-    return this.sample instanceof FrameDoc;
   }
 
   protected isEnd(char: string): boolean {
@@ -170,59 +159,8 @@ export class Lex extends Frame implements ISourced {
     if (this.body === "") {
       this.body = this.source;
     }
-    const delimiterLevel = this.docDelimiterLevel;
-    const frame = this.sample instanceof FrameDoc
-      ? new FrameDoc(this.body, NilContext, delimiterLevel)
-      : new this.Factory(this.body);
+    const frame = new this.Factory(this.body);
     this.body = "";
-    if (this.sample instanceof FrameDoc) {
-      this.docDelimiterLevel = 1;
-      this.docOpening = true;
-      this.docTicks = 1;
-    }
     return new Token(frame);
-  }
-
-  private callDocument(argument: Frame, char: string): Frame {
-    const isTick = char === FrameDoc.DOC_END;
-
-    if (this.docOpening) {
-      if (isTick) {
-        this.docTicks += 1;
-        if (this.docTicks === FrameDoc.LONG_DELIMITER_LEVEL) {
-          this.docDelimiterLevel = 3;
-          this.docOpening = false;
-          this.docTicks = 0;
-        }
-        return this;
-      }
-
-      this.docOpening = false;
-      if (this.docTicks === 2) {
-        return this.finish(argument, true);
-      }
-      this.docTicks = 0;
-    }
-
-    if (this.docDelimiterLevel === 1 && isTick) {
-      return this.finish(argument, false);
-    }
-
-    if (this.docDelimiterLevel === 3) {
-      if (isTick) {
-        this.docTicks += 1;
-        if (this.docTicks === FrameDoc.LONG_DELIMITER_LEVEL) {
-          return this.finish(argument, false);
-        }
-        return this;
-      }
-      if (this.docTicks > 0) {
-        this.body += FrameDoc.DOC_END.repeat(this.docTicks);
-        this.docTicks = 0;
-      }
-    }
-
-    this.body += char;
-    return this;
   }
 }

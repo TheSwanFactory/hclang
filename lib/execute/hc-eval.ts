@@ -4,10 +4,12 @@ import {
   FrameGroup,
   FrameNumber,
   FrameString,
+  FrameSymbol,
   type StringMap,
 } from "../frames.ts";
 import { EvalPipe } from "./eval-pipe.ts";
 import { Lex } from "./lex.ts";
+import { LexDoc } from "./lex-doc.ts";
 import { LexPipe } from "./lex-pipe.ts";
 import { ParsePipe } from "./parse-pipe.ts";
 
@@ -79,6 +81,8 @@ export class HCEval {
 
   protected pipe: LexPipe;
   protected lex: Frame;
+  private lexicalError: string | null = null;
+  private pendingLogicalLine = false;
 
   constructor(public out: Frame) {
     this.pipe = HCEval.make_pipe(this.out);
@@ -91,9 +95,12 @@ export class HCEval {
    * @returns
    */
   public call(input: string, endOfLine = true): Frame | null {
-    const activeDocument = this.lex instanceof Lex && this.lex.isDocument();
+    const activeDocument = this.lex instanceof LexDoc;
     if (!input && !(endOfLine && activeDocument)) {
       return null;
+    }
+    if (this.lex === this.pipe) {
+      this.lexicalError = null;
     }
     const source = new FrameString(input);
     if (!activeDocument) {
@@ -101,16 +108,36 @@ export class HCEval {
     }
     const result = source.reduce(this.lex, endOfLine);
     this.lex = (result instanceof Lex) ? result : this.pipe;
+    this.pendingLogicalLine = !endOfLine;
     return result;
   }
 
   public finish(): boolean {
-    const complete = !(this.lex instanceof Lex && this.lex.isDocument());
+    let complete = true;
+
+    if (this.lex instanceof LexDoc) {
+      complete = this.lex.finishInput();
+      this.lexicalError = this.lex.failure();
+      if (complete) {
+        this.pipe.finish(Frame.nil);
+      }
+    } else if (this.pendingLogicalLine) {
+      this.lexicalError = null;
+      this.lex.call(FrameSymbol.end());
+    } else {
+      this.lexicalError = null;
+    }
+
     if (!complete) {
       this.pipe = HCEval.make_pipe(this.out);
     }
     this.lex = this.pipe;
+    this.pendingLogicalLine = false;
     return complete;
+  }
+
+  public error(): string | null {
+    return this.lexicalError;
   }
 
   public level(): number {

@@ -2,6 +2,7 @@ import { expect } from "jsr:@std/expect@^0.219.1";
 import { beforeEach, describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 
 import { Token } from "./lex.ts";
+import { LexPipe } from "./lex-pipe.ts";
 import { ParsePipe } from "./parse-pipe.ts";
 import * as frame from "../frames.ts";
 
@@ -104,6 +105,55 @@ describe("Parse", () => {
       const group = out.at(0);
       expect(group).toBeInstanceOf(frame.FrameGroup);
       expect(group.toString()).toEqual(`((${content}); (${content}))`);
+    });
+  });
+
+  describe("document lexer handoff", () => {
+    const lexAtoms = (source: string): frame.Frame[] => {
+      const output = new frame.FrameArray([]);
+      const parser = new ParsePipe(output, frame.FrameGroup);
+      const lexer = new LexPipe(parser);
+
+      new frame.FrameString(source).reduce(lexer);
+
+      const group = output.at(0) as frame.FrameGroup;
+      const expr = group.asArray()[0] as frame.FrameExpr;
+      return expr.asArray();
+    };
+
+    it("receives one document for a non-empty odd-fenced source", () => {
+      const atoms = lexAtoms("`````body`````");
+
+      expect(atoms.length).toEqual(1);
+      expect(atoms[0]).toBeInstanceOf(frame.FrameDoc);
+      expect(atoms[0].toString()).toEqual("`````body`````");
+    });
+
+    it("receives one document for one maximal even run", () => {
+      const atoms = lexAtoms("``````");
+
+      expect(atoms.length).toEqual(1);
+      expect(atoms[0]).toBeInstanceOf(frame.FrameDoc);
+      expect(atoms[0].toString()).toEqual("``````");
+    });
+
+    it("receives the character following an even run as the next atom", () => {
+      const atoms = lexAtoms("``7");
+
+      expect(atoms.length).toEqual(2);
+      expect(atoms[0]).toBeInstanceOf(frame.FrameDoc);
+      expect(atoms[1]).toBeInstanceOf(frame.FrameNumber);
+      expect(atoms[1].toString()).toEqual("7");
+    });
+
+    it("receives the character following a closing run as the next atom", () => {
+      const atoms = lexAtoms("```body```7");
+
+      expect(atoms.length).toEqual(2);
+      expect(atoms[0]).toBeInstanceOf(frame.FrameDoc);
+      expect(atoms[0].toString()).toEqual("```body```");
+      expect(atoms[1]).toBeInstanceOf(frame.FrameNumber);
+      expect(atoms[1].toString()).toEqual("7");
     });
   });
 });

@@ -6,10 +6,12 @@
 
 ## v0.8.3 2026-08-11
 
-- Support short and long document strings delimited by one or three backticks,
-  preserving their delimiter level when rendered.
-- Preserve one- and two-backtick AsciiDoc spans inside long document strings,
-  including across incremental evaluator calls.
+- Support document strings opened by any odd backtick run and closed by an equal
+  run, preserving their fence length when rendered.
+- Treat top-level even backtick runs as empty documents, preserve shorter runs
+  inside documents, and reject interior runs longer than the opening fence.
+- Preserve document fences across incremental input chunks and validate pending
+  runs at EOF.
 - Traverse the complete white paper as a deterministic doctest with
   non-executable examples retained as native AsciiDoc source blocks.
 

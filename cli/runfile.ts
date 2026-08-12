@@ -16,13 +16,13 @@ function is_doc(file: string): boolean {
  * @returns A promise that resolves to `true` when the file has been successfully processed.
  */
 async function runfile(
-  hc_eval: { call: (line: string) => void },
+  hc_eval: { call: (line: string, endOfLine?: boolean) => void },
   file: string,
 ): Promise<boolean> {
   const is_doc_file = is_doc(file);
 
   if (is_doc_file) {
-    hc_eval.call(RUNDOC);
+    hc_eval.call(RUNDOC, false);
   }
 
   const decoder = new TextDecoder();
@@ -41,17 +41,17 @@ async function runfile(
       partialLine = lines.pop() || ""; // Save any incomplete line
 
       for (const line of lines) {
-        hc_eval.call(line.trim());
+        hc_eval.call(line.trim(), true);
       }
     }
 
     // Process any remaining partial line
     if (partialLine) {
-      hc_eval.call(partialLine.trim());
+      hc_eval.call(partialLine.trim(), is_doc_file);
     }
 
     if (is_doc_file) {
-      hc_eval.call(ENDDOC);
+      hc_eval.call(ENDDOC, false);
     }
   } finally {
     fileReader.close();
