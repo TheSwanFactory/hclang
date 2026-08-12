@@ -109,7 +109,7 @@ export async function main(
     console.error(`HCEval.finish.failed: ${reason}`);
   }
 
-  if (test) {
+  if (test && lexicalComplete) {
     test.finish();
   }
 

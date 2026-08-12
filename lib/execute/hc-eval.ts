@@ -82,7 +82,7 @@ export class HCEval {
   protected pipe: LexPipe;
   protected lex: Frame;
   private lexicalError: string | null = null;
-  private pendingLogicalLine = false;
+  private inputBuffer = "";
 
   constructor(public out: Frame) {
     this.pipe = HCEval.make_pipe(this.out);
@@ -91,16 +91,39 @@ export class HCEval {
 
   /**
    * @param input The input string to evaluate.
-   * @param endOfLine Whether this chunk ends a logical source line.
+   * @param endOfLine Whether this transport chunk ends a logical source line.
+   * Embedded newlines always end logical lines; incomplete transport fragments
+   * are buffered so prompt detection and lexing see the same line boundaries.
    * @returns
    */
   public call(input: string, endOfLine = true): Frame | null {
-    const activeDocument = this.lex instanceof LexDoc;
-    const needsLogicalBoundary = endOfLine &&
-      (this.lex !== this.pipe || this.pendingLogicalLine);
-    if (!input && !needsLogicalBoundary) {
+    if (!input && !endOfLine) {
       return null;
     }
+
+    this.inputBuffer += input;
+    let result: Frame | null = null;
+    let newline = this.inputBuffer.indexOf("\n");
+
+    while (newline >= 0) {
+      const line = this.inputBuffer.slice(0, newline);
+      this.inputBuffer = this.inputBuffer.slice(newline + 1);
+      result = this.reduceLine(line, true);
+      newline = this.inputBuffer.indexOf("\n");
+    }
+
+    const hasLogicalLine = this.inputBuffer.length > 0 || input.length > 0 ||
+      this.lex instanceof LexDoc;
+    if (endOfLine && hasLogicalLine) {
+      result = this.reduceLine(this.inputBuffer, true);
+      this.inputBuffer = "";
+    }
+
+    return result;
+  }
+
+  private reduceLine(input: string, endOfLine: boolean): Frame {
+    const activeDocument = this.lex instanceof LexDoc;
     if (this.lex === this.pipe) {
       this.lexicalError = null;
     }
@@ -110,12 +133,16 @@ export class HCEval {
     }
     const result = source.reduce(this.lex, endOfLine);
     this.lex = (result instanceof Lex) ? result : this.pipe;
-    this.pendingLogicalLine = !endOfLine;
     return result;
   }
 
   public finish(): boolean {
     let complete = true;
+
+    if (this.inputBuffer.length > 0) {
+      this.reduceLine(this.inputBuffer, false);
+      this.inputBuffer = "";
+    }
 
     if (this.lex instanceof LexDoc) {
       complete = this.lex.finishInput();
@@ -123,7 +150,7 @@ export class HCEval {
       if (complete) {
         this.pipe.finish(Frame.nil);
       }
-    } else if (this.pendingLogicalLine) {
+    } else if (this.lex !== this.pipe) {
       this.lexicalError = null;
       this.lex.call(FrameSymbol.end());
     } else {
@@ -134,7 +161,7 @@ export class HCEval {
       this.pipe = HCEval.make_pipe(this.out);
     }
     this.lex = this.pipe;
-    this.pendingLogicalLine = false;
+    this.inputBuffer = "";
     return complete;
   }
 

@@ -12,6 +12,8 @@
   inside documents, and reject interior runs longer than the opening fence.
 - Preserve document fences across incremental input chunks and validate pending
   runs at EOF.
+- Make doctest marker detection and UTF-8 file decoding chunk-independent, and
+  suppress test summaries after lexical failure.
 - Keep punctuation inside comments inert and allow void doctest statements
   without expected-output lines.
 - Traverse the complete white paper as a deterministic doctest with

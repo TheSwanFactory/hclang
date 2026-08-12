@@ -30,24 +30,30 @@ async function runfile(
   const buffer = new Uint8Array(1024);
   let partialLine = "";
 
+  const processChunk = (chunk: string): void => {
+    const lines = (partialLine + chunk).split("\n");
+    partialLine = lines.pop() ?? "";
+
+    for (const rawLine of lines) {
+      const line = rawLine.endsWith("\r") ? rawLine.slice(0, -1) : rawLine;
+      hc_eval.call(line, true);
+    }
+  };
+
   try {
     while (true) {
       const nread = await fileReader.read(buffer);
       if (nread === null || nread === 0) break;
 
-      // Decode the chunk and split into lines
-      const chunk = decoder.decode(buffer.subarray(0, nread));
-      const lines = (partialLine + chunk).split("\n");
-      partialLine = lines.pop() || ""; // Save any incomplete line
-
-      for (const line of lines) {
-        hc_eval.call(line.trim(), true);
-      }
+      const chunk = decoder.decode(buffer.subarray(0, nread), { stream: true });
+      processChunk(chunk);
     }
+
+    processChunk(decoder.decode());
 
     // Process any remaining partial line
     if (partialLine) {
-      hc_eval.call(partialLine.trim(), is_doc_file);
+      hc_eval.call(partialLine, is_doc_file);
     }
 
     if (is_doc_file) {

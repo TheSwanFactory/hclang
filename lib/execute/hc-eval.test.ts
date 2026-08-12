@@ -2,6 +2,7 @@ import { expect } from "jsr:@std/expect@^0.219.1";
 import { beforeEach, describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 
 import { HCEval, make_context } from "./hc-eval.ts";
+import { HCTest } from "./hc-test.ts";
 import * as frame from "../frames.ts";
 
 describe("HCEval", () => {
@@ -56,6 +57,42 @@ describe("HCEval", () => {
 
     expect(out.length()).toEqual(1);
     expect(out.at(0)).toBeInstanceOf(frame.FrameDoc);
+  });
+
+  it("detects doctest markers after document transitions within one call", () => {
+    const notes = new frame.FrameArray([]);
+    const test = new HCTest(notes);
+    const evaluator = new HCEval(test);
+
+    evaluator.call("```\nprose\n```\n; 1\n# 1");
+
+    expect(evaluator.finish()).toEqual(true);
+    test.finish();
+    expect(test.n).toEqual({
+      total: 1,
+      pass: 1,
+      fail: 0,
+      unimplemented: 0,
+    });
+  });
+
+  it("detects doctest markers split across transport chunks", () => {
+    const notes = new frame.FrameArray([]);
+    const test = new HCTest(notes);
+    const evaluator = new HCEval(test);
+
+    evaluator.call("```\nprose\n```\n;", false);
+    evaluator.call(" 1\n#", false);
+    evaluator.call(" 1", true);
+
+    expect(evaluator.finish()).toEqual(true);
+    test.finish();
+    expect(test.n).toEqual({
+      total: 1,
+      pass: 1,
+      fail: 0,
+      unimplemented: 0,
+    });
   });
 
   it("isolates unfinished document state between evaluators", () => {

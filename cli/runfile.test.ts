@@ -110,6 +110,36 @@ describe("runfile", () => {
     }
   });
 
+  it("preserves UTF-8 characters split across read boundaries", async () => {
+    const file = await Deno.makeTempFile({ suffix: ".md" });
+    try {
+      const prefix = "a".repeat(1023);
+      await Deno.writeTextFile(file, `${prefix}é\n`);
+      const out = new FrameArray([]);
+
+      await runfile(new HCEval(out), file);
+
+      expect(out.at(0).toString()).toContain(`${prefix}é`);
+      expect(out.at(0).toString()).not.toContain("�");
+    } finally {
+      await Deno.remove(file);
+    }
+  });
+
+  it("preserves line whitespace inside synthetic documentation wrappers", async () => {
+    const file = await Deno.makeTempFile({ suffix: ".adoc" });
+    try {
+      await Deno.writeTextFile(file, "  indented content  \n");
+      const out = new FrameArray([]);
+
+      await runfile(new HCEval(out), file);
+
+      expect(out.at(0).toString()).toContain("  indented content  ");
+    } finally {
+      await Deno.remove(file);
+    }
+  });
+
   it("preserves a final HC line until evaluator EOF", async () => {
     const file = await Deno.makeTempFile({ suffix: ".hc" });
     try {

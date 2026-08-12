@@ -95,6 +95,30 @@ describe("main", () => {
     }
   });
 
+  it("does not emit a successful test summary after lexical failure", async () => {
+    const file = await Deno.makeTempFile({ suffix: ".hc" });
+    const out = new FrameArray([]);
+    const originalError = console.error;
+    console.error = () => {};
+    try {
+      await Deno.writeTextFile(file, "```unfinished");
+      const status = await main(
+        new HCEval(out),
+        getOptions(["--testdoc", file]),
+      );
+
+      expect(status).toEqual(1);
+      expect(
+        out.asArray().some((item) =>
+          item.toString().includes("$=.test-summary")
+        ),
+      ).toEqual(false);
+    } finally {
+      console.error = originalError;
+      await Deno.remove(file);
+    }
+  });
+
   it("returns a non-zero status for a greater interior run", async () => {
     const file = await Deno.makeTempFile({ suffix: ".hc" });
     const originalError = console.error;
