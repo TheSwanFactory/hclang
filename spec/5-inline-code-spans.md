@@ -273,6 +273,46 @@ Required outcome:
 - behavior for identifiers, operators, comments, strings, bytes, terminals, and
   other atoms remains compatible.
 
+### Existing deferred-classification precedents
+
+The implementation review should inspect the following pre-existing behavior.
+These cases demonstrate useful parts of the required control flow, but none is a
+complete model for document-fence recognition.
+
+- `FrameName` accepts both identifier and operator characters. `Lex.isEnd()`
+  uses the accumulated atom and the arriving character to decide whether a
+  hyphen continues an identifier or an operator character begins a different
+  token. This is state-dependent classification rather than true
+  future-character lookahead.
+- `Lex.finish()` can complete the current atom and redispatch the character that
+  exposed its boundary through the parent pipe. This is the existing precedent
+  for processing the non-backtick that ends a maximal run in the resulting
+  lexical context.
+- `HCEval.call()` retains an unfinished `Lex` between calls. This demonstrates
+  persistent monadic lexer state, although the historical call model treats a
+  call boundary as a logical line boundary rather than an arbitrary transport
+  chunk.
+- `LexBytes` demonstrates a stateful lexer consuming a fixed amount of
+  subsequent input before returning to its parent. Its end-to-end test is
+  currently skipped, so it is evidence of an intended transition pattern, not a
+  conformance baseline.
+- `FrameString` is not a lookahead precedent. Its asymmetric smart opening and
+  closing quotes avoid an escape ambiguity, while the generic
+  `FrameAtom.canInclude()` still makes an immediate one-character decision.
+
+The existing `FrameName` and `FrameBytes` paths also place atom-type-specific
+decisions inside generic `Lex`. Adding document runs creates another demand that
+does not fit the current boolean `canInclude()` contract. This is evidence that
+a more general atom/lexer boundary may be missing, but it does not determine
+what that abstraction should be.
+
+Before adding another document-specific path, the implementation design MUST
+assess whether one shared lexical-transition abstraction can cover the
+demonstrated cases while preserving the character-to-parser dispatch model. The
+assessment must not expand into a parser redesign without an independently
+demonstrated need. This specification does not prescribe an API, state machine,
+class hierarchy, or ownership model for that abstraction.
+
 ### Atom lexical contract: `lib/frames/frame-atom.ts`
 
 `FrameAtom.canInclude()` currently provides a one-character include-or-end
