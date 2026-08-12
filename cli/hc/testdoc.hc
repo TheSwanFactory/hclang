@@ -8,6 +8,18 @@ docString 3
 one `backtick` span
 two ``backtick`` span
 ```
+; `one-backtick document`
+# `one-backtick document`
+; ```three-backtick document with `one` and ``two`` spans```
+# ```three-backtick document with `one` and ``two`` spans```
+; `````five-backtick document with `one` ``two`` ```three``` and ````four```` spans`````
+# `````five-backtick document with `one` ``two`` ```three``` and ````four```` spans`````
+; ``
+# ``
+; ````
+# ````
+; ``````
+# ``````
 ; 123
 # 123
 ; 1234 # trailing comment
