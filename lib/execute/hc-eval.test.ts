@@ -234,6 +234,15 @@ describe("HCEval", () => {
     expect(hc_eval.error()).toEqual("unterminated document string");
   });
 
+  it("applies an empty logical-line boundary after a transport chunk", () => {
+    hc_eval.call("123", false);
+    hc_eval.call("", true);
+
+    expect(out.length()).toEqual(1);
+    expect(out.at(0).toString()).toEqual("123");
+    expect(hc_eval.finish()).toEqual(true);
+  });
+
   it("reports an odd opening run at EOF as unterminated", () => {
     hc_eval.call("`````", false);
 

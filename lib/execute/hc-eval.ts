@@ -96,7 +96,9 @@ export class HCEval {
    */
   public call(input: string, endOfLine = true): Frame | null {
     const activeDocument = this.lex instanceof LexDoc;
-    if (!input && !(endOfLine && activeDocument)) {
+    const needsLogicalBoundary = endOfLine &&
+      (this.lex !== this.pipe || this.pendingLogicalLine);
+    if (!input && !needsLogicalBoundary) {
       return null;
     }
     if (this.lex === this.pipe) {
