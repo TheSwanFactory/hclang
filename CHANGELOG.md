@@ -12,6 +12,8 @@
   inside documents, and reject interior runs longer than the opening fence.
 - Preserve document fences across incremental input chunks and validate pending
   runs at EOF.
+- Keep punctuation inside comments inert and allow void doctest statements
+  without expected-output lines.
 - Traverse the complete white paper as a deterministic doctest with
   non-executable examples retained as native AsciiDoc source blocks.
 

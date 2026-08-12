@@ -64,6 +64,11 @@ export class HCTest extends Frame {
     }
 
     if (this.pending && this.pending.actual === undefined) {
+      if (argument.is.statement) {
+        this.pending = undefined;
+        this.clearMarkers();
+        return argument;
+      }
       this.pending.actual = new FrameString(argument.toString()).toString();
       super.set(HCEval.SOURCE, Frame.missing);
     }

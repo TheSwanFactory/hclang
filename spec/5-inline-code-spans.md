@@ -422,8 +422,11 @@ executable HC examples. Triple fences are one ordinary instance of the general
 odd-fence rule.
 
 Executable cases use the maintained doctest convention: one semicolon source and
-one hash expectation. An intended executable example whose correct behavior is
-not implemented uses `$!.unimplemented` with a concrete expected value.
+one hash expectation for a value-returning expression. An expression ending in
+the HC semicolon terminal is a statement: it intentionally produces no output,
+has no hash expectation, and is not counted as an assertion. An intended
+value-returning example whose correct behavior is not implemented uses
+`$!.unimplemented` with a concrete expected value.
 
 Language tags MUST NOT follow executable HC fences because text outside the
 document is HC input.
@@ -474,7 +477,8 @@ After the lexical behavior conforms to this specification:
    literal blocks inside document content.
 4. Normalize malformed, indented, and unclosed delimiters.
 5. Remove escaped-backtick workarounds that are no longer needed.
-6. Pair every intended semicolon source with one hash expectation.
+6. Pair every intended value-returning semicolon source with one hash
+   expectation; leave statement sources without an expectation.
 7. Mark unsupported required behavior with `$!.unimplemented` and a concrete
    expected value.
 8. Inventory executable and non-executable examples before accepting totals.
@@ -543,6 +547,7 @@ Cover:
 
 - semicolon and hash lines inside documents using multiple odd fence lengths;
 - shorter inline backtick runs never becoming doctest input;
+- statement sources producing no output and requiring no hash expectation;
 - lexical failure preventing a false-green finish; and
 - exactly one authoritative summary after successful completion.
 
@@ -628,7 +633,8 @@ suite:
 - `testdoc.hc` demonstrates shorter inline runs inside a triple document.
 - `white-paper.hc` uses native AsciiDoc inline spans and backtick-free listing
   blocks for non-executable examples.
-- Every intended executable white-paper example is counted exactly once.
+- Every intended value-returning executable white-paper example is counted
+  exactly once; statement examples are executed without being counted.
 - The full white-paper doctest reaches EOF with exactly one final summary, zero
   failures, and no lexer, parser, missing-test, name-resolution, or
   prose-derived diagnostics.

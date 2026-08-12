@@ -55,6 +55,35 @@ describe("HCTest", () => {
     expect(result.toString()).toContain("$+.test-pass ““abc” ?“123””;");
   });
 
+  it("does not execute terminal characters inside expectation comments", () => {
+    hc_eval.call("; “Hello, Quine!”");
+    hc_eval.call("# “Hello, Quine!”");
+    hc_eval.call("; “The Answer” “: ” 42");
+    hc_eval.call("# “The Answer: 42”");
+    test.finish();
+
+    expect(test.n).toEqual({
+      total: 2,
+      pass: 2,
+      fail: 0,
+      unimplemented: 0,
+    });
+  });
+
+  it("does not require an expectation for a statement", () => {
+    hc_eval.call("; “My Statement”;");
+    hc_eval.call("; 123");
+    hc_eval.call("# 123");
+    test.finish();
+
+    expect(test.n).toEqual({
+      total: 1,
+      pass: 1,
+      fail: 0,
+      unimplemented: 0,
+    });
+  });
+
   it("outputs Note- when called with incorrect testDoc", () => {
     hc_eval.call(".abc 456;");
     hc_eval.call("; abc");

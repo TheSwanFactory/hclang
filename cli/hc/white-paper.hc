@@ -259,7 +259,7 @@ their argument.
 ; “Hello, ” “Homoiconicity!”
 # “Hello, Homoiconicity!”
 ; “The Answer” “: ” 42
-# $!.unimplemented “The Answer: 42”
+# “The Answer: 42”
 ```
 
 Similarly, numbers replicate their argument that many times:
@@ -292,7 +292,6 @@ Formally speaking, each expression should terminate in an ',' or ';', depending
 on whether we want to return the resulting value:
 ```
 ; “My Statement”;
-# $!.unimplemented ()
 ; “Self Expression”,
 # “Self Expression”
 ```

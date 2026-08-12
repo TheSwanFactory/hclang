@@ -47,8 +47,10 @@ deno task hc path/to/file.hc
 deno task test
 ```
 
-Executable-document tests pair `; source` with `# expected`. For an unfinished
-but evaluated example, use `# $!.unimplemented Correct-Value`. A differing or
+Executable-document tests pair a value-returning `; source` with `# expected`.
+An expression ending in the HC `;` terminal is a statement, intentionally has no
+expectation, and is not counted as an assertion. For an unfinished but evaluated
+value-returning example, use `# $!.unimplemented Correct-Value`. A differing or
 missing actual result counts as unimplemented; producing `Correct-Value` fails
 until the marker is removed. Comment out examples that must not be evaluated.
 Testdoc mode reports total, pass, fail, and unimplemented counts at EOF and
