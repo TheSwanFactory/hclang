@@ -408,9 +408,9 @@ independent defect.
 
 ### Inline code
 
-Prose SHOULD use AsciiDoc unconstrained monospace spans with two backticks.
-Inside a triple-backtick HC document, one- and two-backtick runs are shorter
-than the active fence and therefore remain literal body text.
+Prose SHOULD use ordinary AsciiDoc monospace spans with one backtick on each
+side. Inside a triple-backtick HC document, one- and two-backtick runs are
+shorter than the active fence and therefore remain literal body text.
 
 HTML code elements are neither required nor preferred. The lexer does not need
 to know that these shorter runs are AsciiDoc markup.
@@ -467,7 +467,8 @@ The following behavior is intentionally clarified or changed:
 
 After the lexical behavior conforms to this specification:
 
-1. Normalize prose inline code to AsciiDoc two-backtick spans.
+1. Retain or normalize prose inline code as ordinary AsciiDoc single-backtick
+   spans.
 2. Retain bare triple fences only for examples intended to execute.
 3. Convert illustrative fences to AsciiDoc source/listing blocks or indented
    literal blocks inside document content.
