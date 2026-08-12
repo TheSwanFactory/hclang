@@ -4,6 +4,21 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.8.3 2026-08-12
+
+- Support document strings opened by any odd backtick run and closed by an equal
+  run, preserving their fence length when rendered.
+- Treat top-level even backtick runs as empty documents, preserve shorter runs
+  inside documents, and reject interior runs longer than the opening fence.
+- Preserve document fences across incremental input chunks and validate pending
+  runs at EOF.
+- Make doctest marker detection and UTF-8 file decoding chunk-independent, and
+  suppress test summaries after lexical failure.
+- Keep punctuation inside comments inert and allow void doctest statements
+  without expected-output lines.
+- Traverse the complete white paper as a deterministic doctest with
+  non-executable examples retained as native AsciiDoc source blocks.
+
 ## v0.8.2 2026-08-10
 
 - Account for every HCTest testdoc source/result pair, including malformed and

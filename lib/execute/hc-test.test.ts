@@ -55,6 +55,51 @@ describe("HCTest", () => {
     expect(result.toString()).toContain("$+.test-pass ““abc” ?“123””;");
   });
 
+  it("does not execute terminal characters inside expectation comments", () => {
+    hc_eval.call("; “Hello, Quine!”");
+    hc_eval.call("# “Hello, Quine!”");
+    hc_eval.call("; “The Answer” “: ” 42");
+    hc_eval.call("# “The Answer: 42”");
+    test.finish();
+
+    expect(test.n).toEqual({
+      total: 2,
+      pass: 2,
+      fail: 0,
+      unimplemented: 0,
+    });
+  });
+
+  it("does not require an expectation for a statement", () => {
+    hc_eval.call("; “My Statement”;");
+    hc_eval.call("; 123");
+    hc_eval.call("# 123");
+    test.finish();
+
+    expect(test.n).toEqual({
+      total: 1,
+      pass: 1,
+      fail: 0,
+      unimplemented: 0,
+    });
+  });
+
+  it("does not require an actual frame from a statement", () => {
+    test.set(HCEval.SOURCE, new frame.FrameString("setup;"));
+    test.set(HCEval.SOURCE, new frame.FrameString("123"));
+    test.apply(new frame.FrameNumber("123"));
+    test.set(HCEval.EXPECT, new frame.FrameString("123"));
+    test.apply(frame.Frame.nil);
+    test.finish();
+
+    expect(test.n).toEqual({
+      total: 1,
+      pass: 1,
+      fail: 0,
+      unimplemented: 0,
+    });
+  });
+
   it("outputs Note- when called with incorrect testDoc", () => {
     hc_eval.call(".abc 456;");
     hc_eval.call("; abc");
@@ -76,6 +121,21 @@ describe("HCTest", () => {
     hc_eval.call("# $!.unimplemented prose, not a test");
     hc_eval.call("`");
     expect(out.length()).toEqual(0);
+  });
+
+  it("ignores source and expectation markers inside odd-fenced documents", () => {
+    hc_eval.call("`````");
+    hc_eval.call("; prose, not a source");
+    hc_eval.call("# prose, not an expectation");
+    hc_eval.call("`````");
+    test.finish();
+
+    expect(test.n).toEqual({
+      total: 0,
+      pass: 0,
+      fail: 0,
+      unimplemented: 0,
+    });
   });
 
   it("does not shift a pending actual onto the next source", () => {

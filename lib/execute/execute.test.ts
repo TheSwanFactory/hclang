@@ -52,6 +52,11 @@ describe("execute", () => {
       expect(result).toEqual("");
     });
 
+    it("keeps terminal characters inside comments", () => {
+      const result = execute("#commas, semicolons; and spaces");
+      expect(result).toEqual("");
+    });
+
     it("lexes both FrameStrings and comments", () => {
       const input = input_string + inline_comment;
       const result = execute(input);

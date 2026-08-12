@@ -11,6 +11,7 @@ export type Counts = {
 type PendingTest = {
   source: string;
   actual?: string;
+  statement: boolean;
 };
 
 export class HCTest extends Frame {
@@ -34,8 +35,12 @@ export class HCTest extends Frame {
         super.set(key, Frame.missing);
         return this;
       }
+      const source = value.toString();
       super.set(key, value);
-      this.pending = { source: value.toString() };
+      this.pending = {
+        source,
+        statement: this.isStatementSource(source),
+      };
       return this;
     }
 
@@ -64,6 +69,11 @@ export class HCTest extends Frame {
     }
 
     if (this.pending && this.pending.actual === undefined) {
+      if (this.pending.statement || argument.is.statement) {
+        this.pending = undefined;
+        this.clearMarkers();
+        return argument;
+      }
       this.pending.actual = new FrameString(argument.toString()).toString();
       super.set(HCEval.SOURCE, Frame.missing);
     }
@@ -166,6 +176,12 @@ export class HCTest extends Frame {
   private flushPending(): void {
     if (!this.pending) return;
 
+    if (this.pending.statement) {
+      this.pending = undefined;
+      this.clearMarkers();
+      return;
+    }
+
     const reason = this.pending.actual === undefined
       ? "missing actual and expectation"
       : "missing expectation";
@@ -216,6 +232,13 @@ export class HCTest extends Frame {
       ? value.slice(1, -1)
       : value;
     return unquoted.trim().length > 0;
+  }
+
+  private isStatementSource(source: string): boolean {
+    const unquoted = source.startsWith("“") && source.endsWith("”")
+      ? source.slice(1, -1)
+      : source;
+    return unquoted.trimEnd().endsWith(";");
   }
 
   private clearMarkers(): void {

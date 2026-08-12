@@ -1,10 +1,10 @@
-import { FrameAtom } from "./frame-atom.ts";
+import { FrameQuote } from "./frame-atom.ts";
 import { type Context, NilContext } from "./context.ts";
 
-export class FrameComment extends FrameAtom {
+export class FrameComment extends FrameQuote {
   public static readonly COMMENT_BEGIN = "#";
   public static readonly COMMENT_END = "#";
-  public static readonly COMMENT_END_REGEX = /#/;
+  public static readonly COMMENT_END_REGEX = /#|\n/;
 
   constructor(protected data: string, meta: Context = NilContext) {
     super(meta);

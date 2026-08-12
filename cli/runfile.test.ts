@@ -1,6 +1,8 @@
 import { expect } from "jsr:@std/expect@^0.219.1";
 import { beforeEach, describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 import { runfile } from "./runfile.ts";
+import { HCEval } from "../lib/execute/hc-eval.ts";
+import { FrameArray, FrameDoc } from "../lib/frames.ts";
 
 describe("runfile", () => {
   let hc_eval: { call: (line: string) => void };
@@ -76,5 +78,81 @@ describe("runfile", () => {
     await runfile(hc_eval, trailingNewlineFile);
     expect(callCount).toEqual(1);
     await Deno.remove(trailingNewlineFile);
+  });
+
+  it("keeps inline backticks inside synthetic documentation wrappers", async () => {
+    const file = await Deno.makeTempFile({ suffix: ".adoc" });
+    try {
+      await Deno.writeTextFile(file, "Use `one` or ``two`` backticks.\n");
+      const out = new FrameArray([]);
+
+      await runfile(new HCEval(out), file);
+
+      expect(out.length()).toEqual(1);
+      expect(out.at(0)).toBeInstanceOf(FrameDoc);
+      expect(out.at(0).toString()).toContain("`one` or ``two``");
+    } finally {
+      await Deno.remove(file);
+    }
+  });
+
+  it("preserves blank lines inside synthetic documentation wrappers", async () => {
+    const file = await Deno.makeTempFile({ suffix: ".md" });
+    try {
+      await Deno.writeTextFile(file, "first\n\nsecond\n");
+      const out = new FrameArray([]);
+
+      await runfile(new HCEval(out), file);
+
+      expect(out.at(0).toString()).toContain("first\n\nsecond");
+    } finally {
+      await Deno.remove(file);
+    }
+  });
+
+  it("preserves UTF-8 characters split across read boundaries", async () => {
+    const file = await Deno.makeTempFile({ suffix: ".md" });
+    try {
+      const prefix = "a".repeat(1023);
+      await Deno.writeTextFile(file, `${prefix}é\n`);
+      const out = new FrameArray([]);
+
+      await runfile(new HCEval(out), file);
+
+      expect(out.at(0).toString()).toContain(`${prefix}é`);
+      expect(out.at(0).toString()).not.toContain("�");
+    } finally {
+      await Deno.remove(file);
+    }
+  });
+
+  it("preserves line whitespace inside synthetic documentation wrappers", async () => {
+    const file = await Deno.makeTempFile({ suffix: ".adoc" });
+    try {
+      await Deno.writeTextFile(file, "  indented content  \n");
+      const out = new FrameArray([]);
+
+      await runfile(new HCEval(out), file);
+
+      expect(out.at(0).toString()).toContain("  indented content  ");
+    } finally {
+      await Deno.remove(file);
+    }
+  });
+
+  it("preserves a final HC line until evaluator EOF", async () => {
+    const file = await Deno.makeTempFile({ suffix: ".hc" });
+    try {
+      await Deno.writeTextFile(file, "123");
+      const out = new FrameArray([]);
+      const evaluator = new HCEval(out);
+
+      await runfile(evaluator, file);
+      expect(out.length()).toEqual(0);
+      expect(evaluator.finish()).toEqual(true);
+      expect(out.at(0).toString()).toEqual("123");
+    } finally {
+      await Deno.remove(file);
+    }
   });
 });

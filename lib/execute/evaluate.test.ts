@@ -68,11 +68,49 @@ describe("evaluate", () => {
       expect(result.toString()).toEqual("[“Hello, HC!”]");
     });
 
-    it("joins multi-line doc-strings into strings", () => {
+    it("joins multi-line document strings into strings", () => {
       const input = "```\nDoc String\n```";
       const result = evaluate(input);
-      expect(result.toString()).toEqual("[“\nDoc String\n”]");
+      expect(result.toString()).toEqual(`[${input}]`);
     });
+
+    it("preserves shorter backtick runs inside document strings", () => {
+      const input = "```one ` and two `` backticks```";
+      const result = evaluate(input);
+
+      expect(result.toString()).toEqual(`[${input}]`);
+      expect(result.at(0)).toBeInstanceOf(frame.FrameDoc);
+    });
+
+    it("keeps two top-level backticks as one empty document", () => {
+      const result = evaluate("``");
+
+      expect(result.at(0)).toBeInstanceOf(frame.FrameDoc);
+      expect(result.at(0).toString()).toEqual("``");
+    });
+
+    for (const fenceLength of [1, 3, 5, 7]) {
+      it(`recognizes an odd document fence of length ${fenceLength}`, () => {
+        const fence = "`".repeat(fenceLength);
+        const input = `${fence}body${fence}`;
+        const result = evaluate(input);
+
+        expect(result.length()).toEqual(1);
+        expect(result.at(0)).toBeInstanceOf(frame.FrameDoc);
+        expect(result.at(0).toString()).toEqual(input);
+      });
+    }
+
+    for (const fenceLength of [2, 4, 6, 8]) {
+      it(`recognizes one empty document from an even run of length ${fenceLength}`, () => {
+        const fence = "`".repeat(fenceLength);
+        const result = evaluate(fence);
+
+        expect(result.length()).toEqual(1);
+        expect(result.at(0)).toBeInstanceOf(frame.FrameDoc);
+        expect(result.at(0).toString()).toEqual(fence);
+      });
+    }
 
     it("joins around comments", () => {
       const input = "“Hello”#ignore me#“, HC!”";

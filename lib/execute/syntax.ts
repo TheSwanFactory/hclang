@@ -1,8 +1,24 @@
+/**
+ * Generates HC's character-to-parser dispatch context.
+ *
+ * Every registered atom class supplies a sample whose `string_start()` is the
+ * lookup key for its configured parser. During reduction, a source character
+ * becomes a `FrameSymbol`; looking that symbol up in `LexPipe` selects that
+ * parser. Most atoms use `Lex(Factory)`; atoms with a registered parser use it
+ * through the same lookup. The selected lexer consumes the remaining characters
+ * and emits one completed atom to `ParsePipe`.
+ *
+ * This table performs only initial character dispatch. Atom-specific lexical
+ * boundaries and transitions belong to the atom's lexical contract, while
+ * `ParsePipe` is responsible only for aggregating completed frames.
+ *
+ * @module
+ */
 import * as frame from "../frames.ts";
 import { type AtomFactory, Lex } from "./lex.ts";
+import { LexDoc } from "./lex-doc.ts";
 import { terminals } from "./terminals.ts";
 
-export const _syntax: frame.Context = { ...terminals };
 export const atomClasses: Array<AtomFactory> = [
   frame.FrameAlias,
   frame.FrameArg,
@@ -18,19 +34,26 @@ export const atomClasses: Array<AtomFactory> = [
 ];
 //   FIXME: frame.FrameBytes not of type AtomFactory
 
-let has_syntax = false;
+type LexFactory = () => Lex;
+
+const atomLexers = new Map<AtomFactory, LexFactory>([
+  [frame.FrameDoc, () => new LexDoc()],
+]);
+
+const makeLexer = (Atom: AtomFactory): Lex => {
+  const factory = atomLexers.get(Atom);
+  return factory ? factory() : new Lex(Atom);
+};
+
 export function getSyntax(): frame.Context {
-  if (has_syntax === true) {
-    return _syntax;
-  }
-  has_syntax = true;
+  const syntax: frame.Context = { ...terminals };
   atomClasses.forEach((Klass: AtomFactory) => {
     const sample: frame.FrameAtom = new Klass("");
     const key = sample.string_start();
-    const lexee = new Lex(Klass);
-    _syntax[key] = lexee;
+    const lexee = makeLexer(Klass);
+    syntax[key] = lexee;
     return true;
   });
 
-  return _syntax;
+  return syntax;
 }

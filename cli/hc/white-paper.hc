@@ -459,10 +459,10 @@ chain until it encounters an appropriate handler or aborts the program.  The REP
 however, simply prints out the exceptional value:
 
 ```
- ; .scope [.a 1; .b 2;];
- ; scope.c
- # $!.name-missing “...
- ```
+; .scope [.a 1; .b 2;];
+; scope.c
+# $!.name-missing “...
+```
 Note that in the interest of clarify, we voilate our usual rule and use
 English names for exceptions. We do still intend to make these fully
 localizable, so at least beginning programmers can experience an environment
@@ -474,7 +474,7 @@ Use `_` as the anonymous argument, representing everything this frame
 was called with:
 ```
 ; .triplicate {3 _};
-; square “Baby”
+; triplicate “Baby”
 # “BabyBabyBaby”
 ```
 This is useful not just for closures, but for representing the command-line
@@ -486,9 +486,8 @@ of the argument directly, rather than explicitly calling `_`.
 ```
 ; .mag {(x * x) + (y * y )};
 ; mag (.x 1; .y 2;)
-# 5
+# $!.unimplemented 5
 ```
-
 You can skip over the argument to access the enclosing scope (one level above)
 using the `_^` identifier (also known as `super`).
 ```
@@ -499,9 +498,8 @@ using the `_^` identifier (also known as `super`).
 ; print-arg(.var “arg”)
 # “arg”
 ; print-parent(.var “arg”)
-# “parent”
+# $!.unimplemented “parent”
 ```
-
 Since objects capture the scope where they are created, this even allows
 closures to be called with implicit arguments to access the enclosing
 scope:
@@ -509,9 +507,8 @@ scope:
 ; .x 3;
 ; .y 4;
 ; mag []
-# 25
+# $!.unimplemented 25
 ```
-
 Implicit arguments are a code smell, and will generate a warning.
 However, they can be very useful when debugging or refactoring. That may seem
 dangerous, but the data protection rules (below) largely limit what the called
@@ -559,29 +556,31 @@ need to change the evaluation rules.
 
 The empty type `<>` is known as _all_. As the opposite of the empty expression `()` _nil_,
 it acts as the boolean `true` value.
-
 ```
 ; <>
 # <>
 ; ().!
+# $!.unimplemented <>
 ; <>
+# <>
 ; <>.!
+# $!.unimplemented ()
 ; ()
+# ()
 ```
-
 #### Type Membership
 
 The _has-type_ operator `~` tests whether an object belongs to particular
 type, returning true (all) or false (nil). Every object is a member of
 _all_, while nothing is a member of _nil_:
-
 ```
 ; 1 ~ <>
-# <>
+# $!.unimplemented <>
 ; 2 ~ ()
+# $!.unimplemented ()
 ; ()
+# ()
 ```
-
 #### Type Signatures
 
 We use `^` to specify the type signature of a closure, which may include
@@ -589,18 +588,16 @@ optional defaults:
 ```
 ; .join-name (.first “Jane”, .last) ^ {last “, ” first};
 ; join-name (.first “John”, .last “Doe”)
-# “Doe, John”
+# $!.unimplemented “Doe, John”
 ```
-
 Types are generous, in that you are allowed to specify additional properties,
 but it is an error to omit properties that do not have a default:
 ```
 ; join-name (.middle “Q”, .last “Doe”)
-# “Doe, Jane”
+# $!.unimplemented “Doe, Jane”
 ; join-name (.middle “Q”)
-# $!invalid-argument-list (.middle “Q”, $!missing-required-argument .last;)
+# $!.unimplemented $!invalid-argument-list (.middle “Q”, $!missing-required-argument .last;)
 ```
-
 The return type is usually inferred, but can be specified explicitly using a trailing `^^`.
 
 
@@ -608,15 +605,12 @@ The return type is usually inferred, but can be specified explicitly using a tra
 
 The simplest way to construct a type is to use the `~~` operator to extract the type
 of a known object:
-
 ```
 ; “Q” ~ ~~“”
-# <> # true
+# $!.unimplemented <>
 ; “Q” ~ ~~1
-# () # false
+# $!.unimplemented ()
 ```
-
-
 ### Content
 
 Homoiconic C defines three content operators, each of which come in three
@@ -644,31 +638,28 @@ or metadata separately.
 ; .b [113, .p 661];
 ; .c [443, .p 887];
 ; a = a
-# <>
+# $!.unimplemented <>
 ; a = b
 # ()
 ; a == b
-# <>
+# $!.unimplemented <>
 ; a == c
-# ()
+# $!.unimplemented ()
 ; a === c
-# <>
+# $!.unimplemented <>
 ```
-
 #### Iterators
 
 We use `|` for map, in homage to the UNIX pipeline.
 ```
 ; [1, 2, 3] | { _ + 1 } # will warn, since `_` is not defined on generic frames
-# [2, 3, 4]
+# $!.unimplemented [2, 3, 4]
 ```
-
 Similarly, we use `&` for reduce:
 ```
 ; [1, 2, 3] & { . + _ }
-# 6
+# $!.unimplemented 6
 ```
-
 The operators also work with files and network ports, reading one line
 (or object) at a time, greatly simplifying common I/O operations (a la
 the UNIX shell).
@@ -692,27 +683,24 @@ albeit with slightly different semantics. These are described in Table [#sec-tab
 
 Note that these are not special forms, but simply defined with one behavior on nil
 and the opposite on regular frames.
-
 ```
-
 ; 1 ? {2 + 2}
 # 4
 ; 1 : {2 + 2}
 # ()
 
 ; () ? {2 + 2}
-# ()
+# $!.unimplemented ()
 ; () : {2 + 2}
-# 4
+# $!.unimplemented 4
 ```
-
 Which, when the first expression does not return nil, acts just like C's ternary
 operator:
-```
+[source,hc]
+----
 ; 1 > 5 ? (2 * 50) : 10
 # 10
-```
-
+----
 Note that applying nil to anything other than a closure has no effect, so
 conditionals work just as well with simple expressions as they do with
 lazy blocks.
@@ -734,24 +722,26 @@ for adding other functionality.
 We use the `<-` import operator to match a name against both the online
 registry (TBD) and the local path, and load it into a property with the
 same name. Registry settings can be configured via the `.hconfig` file.
-
-```
+[source,hc]
+----
 ; <- .module;
 ; module
 # (.prop 1, .another-prop 2)
-```
+----
 We can also bind it to a different name:
-```
+[source,hc]
+----
 ; .alias <- .module;
 ; alias.prop
 # 1
-```
+----
 or directly into the current namespace `.`.
-```
+[source,hc]
+----
 ; . <- .module;
 ; prop
 # 1
-```
+----
 While not recommended in general, direct import allows apparently "built-in"
 functionality to provided via a prologue, rather than hard-coded into the
 language.  This reflects HC's philosophy to provide the same functionality
@@ -799,8 +789,8 @@ conventions often used in C programs:
   : not visible to anyone, even children
 
 For example:
-
-```
+[source,hc]
+----
 ; .see-me {
   .my-public-value 42;
   ._my-protected-value 21;
@@ -819,9 +809,7 @@ For example:
 # $!is-protected .my-protected-value
 ; see-me.my-private-value
 # $!is-private .my-private-value
-
-```
-
+----
 ### Effect
 
 Rather than specifying _call-by-value_ or _call-by-reference_, HC is
@@ -862,16 +850,14 @@ assigned a new value) is distinct from _mutability_ (whether the
 referenced value can be modified in place). In other words, constancy is
 a property of the _source_ object, whereas mutability is a property of the
 _destination_ object.
-
 ```
 ; .variable 42;
 ; .Constant 21;
 ; .variable 113
-# 113
+# $!.unimplemented 113
 ; .Constant 7
-# $error{$is-constant .Constant}
+# $!.unimplemented $error{$is-constant .Constant}
 ```
-
 #### Mutability
 
 The second key insight from BitC is that effect is a property of
@@ -894,9 +880,8 @@ object, it simply performs a _copy-on-write_, returning a new object. To
 enable this, mutating methods can not explicitly return a value, but
 implicitly return their parent (e.g., "this"; see Section {#sec-oops} for
 more details).
-
-```
-
+[source,hc]
+----
 ; .fixed (
   .hic “Object”;
   .property 42;
@@ -907,12 +892,10 @@ more details).
 # 42
 ; .varying_ fixed.mutator: 113;
 ; varying_.accessor()
-# 113
+# $!.unimplemented 113
 ; fixed.accessor()
 # 42
-```
-
-
+----
 # Applications {#sec-applications}
 
 While the above language may seem simple to the point of simplistic, it has a
@@ -933,21 +916,23 @@ as CSV, with two important differences:
 * The header row, if any, consists of a list of names
 * Strings must be (smart) quoted
 ```
-.first-name, .last-name, .phone-number
-“John”, “Doe”, +1.408.555.1212
-“Jane”, “Smith”, +1.650.555.1212
+; .first-name, .last-name, .phone-number
+# (first-name, last-name, phone-number)
+; “John”, “Doe”, +1.408.555.1212
+# $!.unimplemented (“John”, “Doe”, +1.408.555.1212)
+; “Jane”, “Smith”, +1.650.555.1212
+# $!.unimplemented (“Jane”, “Smith”, +1.650.555.1212)
 ```
-
 ### HCSON
 
 HC can also emulate the popular JSON[@Cite] format, or more precisely its
 CoffeeScript cousin CSON[@Cite].
 ```
-.first-name “John”, .last-name “Doe”, .phone-number +1.408.555.1212
-.first-name “Jane”, .last-name “Smith”, .phone-number +1.650.555.1212
+; .first-name “John”, .last-name “Doe”, .phone-number +1.408.555.1212
+# $!.unimplemented (.first-name “John”, .last-name “Doe”, .phone-number +1.408.555.1212)
+; .first-name “Jane”, .last-name “Smith”, .phone-number +1.650.555.1212
+# $!.unimplemented (.first-name “Jane”, .last-name “Smith”, .phone-number +1.650.555.1212)
 ```
-
-
 ## Object-Orientation
 
 Perhaps surprisingly, it is possible to implement a complete object-oriented
@@ -957,8 +942,8 @@ are our access control rules plus the super identifier `_^`.
 ### Singletons
 
 Let's start with a simple singleton object containing private data:
-
-```
+[source,hc]
+----
 ; .my-object_ (
    ._property 13;
   .getProperty { _property }
@@ -969,14 +954,13 @@ Let's start with a simple singleton object containing private data:
 ; my-object_.setProperty: 42;
 ; my-object_.getProperty()
 # 13
-```
-
+----
 ### Classes
 
 To turn that into a class, we simply make it a closure which returns
 a frame analogous to that singleton:
-
-```
+[source,hc]
+----
 ; .my-class {
    ._property _;
   .getProperty { _property }
@@ -985,37 +969,35 @@ a frame analogous to that singleton:
 ; .my-instance my-class 3;
 ; my-instance.getProperty()
 # 3
-```
-
+----
 ### Inheritance
 
 Even inheritance is already accounted for, simply by explicitly specifying
 its parent scape:
-
-```
+[source,hc]
+----
 ; .my-subclass {
   ._^ my-base-class
 };
-```
-
+----
 There is no built-in support for multiple inheritance.  However, because
 inheritance is just another expression, you are welcome to define your own:
-
-```
+[source,hc]
+----
 ; .my-inheritance { “create your own” };
 ; multiclass {
   ._^ my-inheritance [my-base, another-base]
 };
-```
-
+----
 # Implementation
 
  Homoiconic C is available as the `hc` interpreter via the `hclang`
  node.js module, written in TypeScript.
-```
+[source,hc]
+----
 $ npm install -g hclang
 $ hc -e "“Hello, ” “Homoiconic C!”"
-```
+----
 It is under active development, and available on GitHub[@Cite] under
 the MIT Open Source license.
 
@@ -1072,11 +1054,11 @@ acceptance tests.
 
 Once that is in place, we can literally run our documentation simply by prefixing
 this file with:
-```
+[source,hc]
+----
 #!/usr/bin/env hc -doctest
 \`\`\`
-```
-
+----
 The process would thus involve rewriting the documentation and
 the source code together until they are both complete and consistent.
 
@@ -1227,4 +1209,7 @@ of any Boolean circuit, including multiple levels of abstraction above
 them.
 
 [BIB]
+[source,hc]
+----
+----
 ```

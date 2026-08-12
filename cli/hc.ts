@@ -103,11 +103,17 @@ export async function main(
     await new Prompt(hc_eval).repl();
   }
 
-  if (test) {
+  const lexicalComplete = hc_eval.finish();
+  if (!lexicalComplete) {
+    const reason = hc_eval.error() ?? "incomplete lexical input";
+    console.error(`HCEval.finish.failed: ${reason}`);
+  }
+
+  if (test && lexicalComplete) {
     test.finish();
   }
 
-  return test?.exitCode ?? 0;
+  return lexicalComplete ? test?.exitCode ?? 0 : 1;
 }
 
 if (import.meta.main) {

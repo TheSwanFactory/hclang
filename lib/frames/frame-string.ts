@@ -38,10 +38,9 @@ export class FrameString extends FrameQuote {
     return FrameString.STRING_END;
   }
 
-  public reduce(starter: Frame): Frame {
+  public reduce(starter: Frame, finish = true): Frame {
     const final = this.data.split("").reduce(reducer, starter);
-    const result = final.call(FrameSymbol.end());
-    return result;
+    return finish ? final.call(FrameSymbol.end()) : final;
   }
 
   protected override toData(): string {

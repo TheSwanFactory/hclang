@@ -1,3 +1,19 @@
+/**
+ * Generic monadic parser for HC atoms.
+ *
+ * `syntax.ts` configures one `Lex` with each registered atom factory. After a
+ * source character selects that lexer through the `LexPipe` context, `Lex`
+ * folds subsequent characters into the atom, emits a `Token` containing the
+ * completed frame, and returns control to its parent pipe. `ParsePipe` then
+ * aggregates the frame without interpreting its lexical syntax.
+ *
+ * Atom-specific recognition belongs behind the atom lexical contract. Keep
+ * this reducer generic: type tests and branches that encode the syntax of an
+ * individual atom undermine the data-driven dispatch established by
+ * `getSyntax()`.
+ *
+ * @module
+ */
 import {
   type Any,
   Frame,
@@ -11,7 +27,6 @@ import {
   NilContext,
 } from "../frames.ts";
 import { LexBytes } from "./lex-bytes.ts";
-import { LexPipe } from "./lex-pipe.ts";
 import { terminals } from "./terminals.ts";
 
 export type Flag = { [key: string]: boolean };
@@ -44,7 +59,6 @@ export class Lex extends Frame implements ISourced {
   }
 
   public source: string;
-  public pipe: LexPipe = new LexPipe(this);
   protected body: string = "";
   protected sample: FrameAtom;
 
