@@ -1,3 +1,18 @@
+/**
+ * Generates HC's character-to-parser dispatch context.
+ *
+ * Every registered atom class supplies a sample whose `string_start()` is the
+ * lookup key for a generic `Lex(Factory)`. During reduction, a source character
+ * becomes a `FrameSymbol`; looking that symbol up in `LexPipe` selects the
+ * configured atom parser. The selected lexer consumes the remaining characters
+ * and emits one completed atom to `ParsePipe`.
+ *
+ * This table performs only initial character dispatch. Atom-specific lexical
+ * boundaries and transitions belong to the atom's lexical contract, while
+ * `ParsePipe` is responsible only for aggregating completed frames.
+ *
+ * @module
+ */
 import * as frame from "../frames.ts";
 import { type AtomFactory, Lex } from "./lex.ts";
 import { terminals } from "./terminals.ts";
