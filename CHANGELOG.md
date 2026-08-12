@@ -4,7 +4,7 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
-## v0.8.3 2026-08-11
+## v0.8.3 2026-08-12
 
 - Support document strings opened by any odd backtick run and closed by an equal
   run, preserving their fence length when rendered.
