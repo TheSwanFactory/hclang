@@ -84,6 +84,22 @@ describe("HCTest", () => {
     });
   });
 
+  it("does not require an actual frame from a statement", () => {
+    test.set(HCEval.SOURCE, new frame.FrameString("setup;"));
+    test.set(HCEval.SOURCE, new frame.FrameString("123"));
+    test.apply(new frame.FrameNumber("123"));
+    test.set(HCEval.EXPECT, new frame.FrameString("123"));
+    test.apply(frame.Frame.nil);
+    test.finish();
+
+    expect(test.n).toEqual({
+      total: 1,
+      pass: 1,
+      fail: 0,
+      unimplemented: 0,
+    });
+  });
+
   it("outputs Note- when called with incorrect testDoc", () => {
     hc_eval.call(".abc 456;");
     hc_eval.call("; abc");

@@ -476,28 +476,25 @@ that doesn't require them to also learn a foreign language.
 
 Use `_` as the anonymous argument, representing everything this frame
 was called with:
-[source,hc]
-----
+```
 ; .triplicate {3 _};
-; square “Baby”
+; triplicate “Baby”
 # “BabyBabyBaby”
-----
+```
 This is useful not just for closures, but for representing the command-line
 arguments for the entire script.
 
 When you apply something to a closure, it is effectively inserting that
 argument into the inheritance hierarchy.  Thus we can access properties
 of the argument directly, rather than explicitly calling `_`.
-[source,hc]
-----
+```
 ; .mag {(x * x) + (y * y )};
 ; mag (.x 1; .y 2;)
-# 5
-----
+# $!.unimplemented 5
+```
 You can skip over the argument to access the enclosing scope (one level above)
 using the `_^` identifier (also known as `super`).
-[source,hc]
-----
+```
 ; .print-arg { var };
 ; .print-parent { _^.var };
 ; .var “parent”;
@@ -505,18 +502,17 @@ using the `_^` identifier (also known as `super`).
 ; print-arg(.var “arg”)
 # “arg”
 ; print-parent(.var “arg”)
-# “parent”
-----
+# $!.unimplemented “parent”
+```
 Since objects capture the scope where they are created, this even allows
 closures to be called with implicit arguments to access the enclosing
 scope:
-[source,hc]
-----
+```
 ; .x 3;
 ; .y 4;
 ; mag []
-# 25
-----
+# $!.unimplemented 25
+```
 Implicit arguments are a code smell, and will generate a warning.
 However, they can be very useful when debugging or refactoring. That may seem
 dangerous, but the data protection rules (below) largely limit what the called
@@ -564,46 +560,42 @@ need to change the evaluation rules.
 
 The empty type `<>` is known as _all_. As the opposite of the empty expression `()` _nil_,
 it acts as the boolean `true` value.
-[source,hc]
-----
+```
 ; <>
 # <>
 ; ().!
-; <>
+# $!.unimplemented <>
 ; <>.!
-; ()
-----
+# $!.unimplemented ()
+```
 #### Type Membership
 
 The _has-type_ operator `~` tests whether an object belongs to particular
 type, returning true (all) or false (nil). Every object is a member of
 _all_, while nothing is a member of _nil_:
-[source,hc]
-----
+```
 ; 1 ~ <>
-# <>
+# $!.unimplemented <>
 ; 2 ~ ()
-; ()
-----
+# $!.unimplemented ()
+```
 #### Type Signatures
 
 We use `^` to specify the type signature of a closure, which may include
 optional defaults:
-[source,hc]
-----
+```
 ; .join-name (.first “Jane”, .last) ^ {last “, ” first};
 ; join-name (.first “John”, .last “Doe”)
-# “Doe, John”
-----
+# $!.unimplemented “Doe, John”
+```
 Types are generous, in that you are allowed to specify additional properties,
 but it is an error to omit properties that do not have a default:
-[source,hc]
-----
+```
 ; join-name (.middle “Q”, .last “Doe”)
-# “Doe, Jane”
+# $!.unimplemented “Doe, Jane”
 ; join-name (.middle “Q”)
-# $!invalid-argument-list (.middle “Q”, $!missing-required-argument .last;)
-----
+# $!.unimplemented $!invalid-argument-list (.middle “Q”, $!missing-required-argument .last;)
+```
 The return type is usually inferred, but can be specified explicitly using a trailing `^^`.
 
 
@@ -611,13 +603,12 @@ The return type is usually inferred, but can be specified explicitly using a tra
 
 The simplest way to construct a type is to use the `~~` operator to extract the type
 of a known object:
-[source,hc]
-----
+```
 ; “Q” ~ ~~“”
-# <> # true
+# $!.unimplemented <>
 ; “Q” ~ ~~1
-# () # false
-----
+# $!.unimplemented ()
+```
 ### Content
 
 Homoiconic C defines three content operators, each of which come in three
@@ -640,36 +631,33 @@ or metadata separately.
 
 #### Equality
 `=` is the usual equality test:
-[source,hc]
-----
+```
 ; .a [113, .p 887];
 ; .b [113, .p 661];
 ; .c [443, .p 887];
 ; a = a
-# <>
+# $!.unimplemented <>
 ; a = b
 # ()
 ; a == b
-# <>
+# $!.unimplemented <>
 ; a == c
-# ()
+# $!.unimplemented ()
 ; a === c
-# <>
-----
+# $!.unimplemented <>
+```
 #### Iterators
 
 We use `|` for map, in homage to the UNIX pipeline.
-[source,hc]
-----
+```
 ; [1, 2, 3] | { _ + 1 } # will warn, since `_` is not defined on generic frames
-# [2, 3, 4]
-----
+# $!.unimplemented [2, 3, 4]
+```
 Similarly, we use `&` for reduce:
-[source,hc]
-----
+```
 ; [1, 2, 3] & { . + _ }
-# 6
-----
+# $!.unimplemented 6
+```
 The operators also work with files and network ports, reading one line
 (or object) at a time, greatly simplifying common I/O operations (a la
 the UNIX shell).
@@ -693,18 +681,17 @@ albeit with slightly different semantics. These are described in Table [#sec-tab
 
 Note that these are not special forms, but simply defined with one behavior on nil
 and the opposite on regular frames.
-[source,hc]
-----
+```
 ; 1 ? {2 + 2}
 # 4
 ; 1 : {2 + 2}
 # ()
 
 ; () ? {2 + 2}
-# ()
+# $!.unimplemented ()
 ; () : {2 + 2}
-# 4
-----
+# $!.unimplemented 4
+```
 Which, when the first expression does not return nil, acts just like C's ternary
 operator:
 [source,hc]
@@ -861,15 +848,14 @@ assigned a new value) is distinct from _mutability_ (whether the
 referenced value can be modified in place). In other words, constancy is
 a property of the _source_ object, whereas mutability is a property of the
 _destination_ object.
-[source,hc]
-----
+```
 ; .variable 42;
 ; .Constant 21;
 ; .variable 113
-# 113
+# $!.unimplemented 113
 ; .Constant 7
-# $error{$is-constant .Constant}
-----
+# $!.unimplemented $error{$is-constant .Constant}
+```
 #### Mutability
 
 The second key insight from BitC is that effect is a property of
@@ -892,22 +878,16 @@ object, it simply performs a _copy-on-write_, returning a new object. To
 enable this, mutating methods can not explicitly return a value, but
 implicitly return their parent (e.g., "this"; see Section {#sec-oops} for
 more details).
-[source,hc]
-----
-; .fixed (
-  .hic “Object”;
-  .property 42;
-  .accessor { property }
-  .mutator: { @property _; }
-);
+```
+; .fixed (.hic “Object”; .property 42; .accessor { property } .mutator: { @property _; });
 ; fixed.accessor()
 # 42
 ; .varying_ fixed.mutator: 113;
 ; varying_.accessor()
-# 113
+# $!.unimplemented 113
 ; fixed.accessor()
 # 42
-----
+```
 # Applications {#sec-applications}
 
 While the above language may seem simple to the point of simplistic, it has a
