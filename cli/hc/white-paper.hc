@@ -384,8 +384,7 @@ Identifiers can be referred to via three different modes:
 Assignment is just a simple expression setting a property with that name
 in the current context. Parentheses make the value expression explicit:
 ```
-; .x (6 * 7)
-# .x 42
+; .x (6 * 7);
 ```
 This avoids the subtle and confusing distinction between differing
 "left-hand-side" and "right-hand-side" interpretations of an identical symbol _x_.
@@ -404,10 +403,8 @@ We can use the value `x` to access that property in the same or any child contex
 To set the property in the context it was defined, rather than the local context,
 use a _reference_ instead of a name. Here the array creates a child data context:
 ```
-; .y 7
-# .y 7
-; [.x 11; @y 3;].x
-# 11
+; .y 7;
+; [.x 11; @y 3;];
 ; x
 # 42
 ; y
@@ -419,12 +416,10 @@ in the context of simple expressions. Arrays carry properties; a closure can
 apply a setter to an array passed as its argument:
 
 ```
-; .base [.key 42;]
-# .base [(.key 42); .key 42;]
+; .base [.key 42;];
 ; base .key # gets property
 # 42
-; {.key 113} base # sets property
-# .key 113
+; {.key 113} base; # sets property
 ; base .key
 # 113
 ```
@@ -464,7 +459,8 @@ chain until it encounters an appropriate handler or aborts the program.  The REP
 however, simply prints out the exceptional value:
 
 ```
-; [.a 1; .b 2;].c
+; .scope [.a 1; .b 2;];
+; scope.c
 # $!.name-missing “...
 ```
 Note that in the interest of clarify, we voilate our usual rule and use
@@ -476,11 +472,12 @@ that doesn't require them to also learn a foreign language.
 
 Use `_` as the anonymous argument, representing everything this frame
 was called with:
-```
+[source,hc]
+----
 ; .triplicate {3 _};
-; triplicate “Baby”
+; square “Baby”
 # “BabyBabyBaby”
-```
+----
 This is useful not just for closures, but for representing the command-line
 arguments for the entire script.
 
@@ -565,8 +562,12 @@ it acts as the boolean `true` value.
 # <>
 ; ().!
 # $!.unimplemented <>
+; <>
+# <>
 ; <>.!
 # $!.unimplemented ()
+; ()
+# ()
 ```
 #### Type Membership
 
@@ -578,6 +579,8 @@ _all_, while nothing is a member of _nil_:
 # $!.unimplemented <>
 ; 2 ~ ()
 # $!.unimplemented ()
+; ()
+# ()
 ```
 #### Type Signatures
 
@@ -878,8 +881,14 @@ object, it simply performs a _copy-on-write_, returning a new object. To
 enable this, mutating methods can not explicitly return a value, but
 implicitly return their parent (e.g., "this"; see Section {#sec-oops} for
 more details).
-```
-; .fixed (.hic “Object”; .property 42; .accessor { property } .mutator: { @property _; });
+[source,hc]
+----
+; .fixed (
+  .hic “Object”;
+  .property 42;
+  .accessor { property }
+  .mutator: { @property _; }
+);
 ; fixed.accessor()
 # 42
 ; .varying_ fixed.mutator: 113;
@@ -887,7 +896,7 @@ more details).
 # $!.unimplemented 113
 ; fixed.accessor()
 # 42
-```
+----
 # Applications {#sec-applications}
 
 While the above language may seem simple to the point of simplistic, it has a

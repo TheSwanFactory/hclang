@@ -479,11 +479,16 @@ After the lexical behavior conforms to this specification:
 5. Remove escaped-backtick workarounds that are no longer needed.
 6. Pair every intended value-returning semicolon source with one hash
    expectation; leave statement sources without an expectation.
-7. Mark unsupported required behavior with `$!.unimplemented` and a concrete
+7. Preserve the semantics of every existing example: do not turn a statement
+   into a value-returning expression, replace one source with another, or
+   reinterpret a source line as an expectation. Add an expectation only when the
+   documented result is unambiguous; otherwise retain the example in a
+   non-executable listing block.
+8. Mark unsupported required behavior with `$!.unimplemented` and a concrete
    expected value.
-8. Inventory executable and non-executable examples before accepting totals.
-9. Close the final AsciiDoc block and enclosing HC document before EOF.
-10. Record reviewed exact total, pass, fail, and unimplemented counts in the
+9. Inventory executable and non-executable examples before accepting totals.
+10. Close the final AsciiDoc block and enclosing HC document before EOF.
+11. Record reviewed exact total, pass, fail, and unimplemented counts in the
     full-document CLI regression, with zero failures.
 
 ## Required tests
