@@ -1,6 +1,6 @@
 # Parsing and Literal Recognition Triage
 
-**Status:** Proposed\
+**Status:** Resolved in v0.8.5\
 **Issue:**
 [#293 — Parsing and literal recognition gaps](https://github.com/TheSwanFactory/hclang/issues/293)\
 **Parent:** #197\
@@ -136,25 +136,26 @@ have actually moved from unimplemented to passing.
 
 ## Acceptance Criteria
 
-- [ ] `+1.408.555.1212` retains its ordinary lexical decomposition and evaluates
+- [x] `+1.408.555.1212` retains its ordinary lexical decomposition and evaluates
       as one phone-shaped value preserving exact spelling.
-- [ ] All four original HCSV/HCSON phone assertions pass without
+- [x] All four original HCSV/HCSON phone assertions pass without
       `$!.unimplemented`.
-- [ ] Existing arithmetic and name/operator syntax continues to dispatch
+- [x] Existing arithmetic and name/operator syntax continues to dispatch
       correctly.
-- [ ] `1.< 3` evaluates to `<>` and `1.> 3` evaluates to `()`.
-- [ ] Raw `<` and `>` remain structural type/schema delimiters.
-- [ ] The ternary example is updated to the selected comparison spelling and
+- [x] `1.< 3` evaluates to `<>` and `1.> 3` evaluates to `()`.
+- [x] Raw `<` and `>` remain structural type/schema delimiters.
+- [x] The ternary example is updated to the selected comparison spelling and
       classified as supported, stale, or intentionally unsupported.
-- [ ] Supported conditional syntax has focused lexer/parser tests and a
-      white-paper doctest using the selected explicit-dot comparison spelling.
-- [ ] Lexer and parser responsibilities are documented by the focused tests and
+- [x] Supported conditional syntax retains its white-paper doctests, with
+      focused evaluation coverage using the selected explicit-dot comparison
+      spelling.
+- [x] Lexer and parser responsibilities are documented by the focused tests and
       resulting implementation.
-- [ ] Any required lexical-boundary abstraction is resolved in, or explicitly
+- [x] Any required lexical-boundary abstraction is resolved in, or explicitly
       delegated to, #292.
-- [ ] No white-paper example is rewritten into different syntax merely to make
+- [x] No white-paper example is rewritten into different syntax merely to make
       it pass.
-- [ ] The full-document doctest reports deterministic totals with zero failures.
+- [x] The full-document doctest reports deterministic totals with zero failures.
 
 ## Expected Implementation Order
 
