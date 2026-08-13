@@ -70,13 +70,23 @@ describe("Lex", () => {
   }
 
   it("lexes a trailing-colon mutating name across chunk boundaries", () => {
-    const name = ".mutator:";
-    expect(lexAtoms(`${name} `).map(String)).toEqual([name]);
-    for (let split = 1; split < name.length; split++) {
-      expect(
-        lexChunkedAtoms([name.slice(0, split), name.slice(split)]).map(String),
-      ).toEqual([name]);
+    for (const name of [".mutator:", "mutator:", "@mutator:"]) {
+      expect(lexAtoms(`${name} `).map(String)).toEqual([name]);
+      for (let split = 1; split < name.length; split++) {
+        expect(
+          lexChunkedAtoms([name.slice(0, split), name.slice(split)]).map(
+            String,
+          ),
+        ).toEqual([name]);
+      }
     }
+  });
+
+  it("ends a mutating identifier after its trailing colon", () => {
+    expect(lexAtoms(".mutator:x ").map(String)).toEqual([".mutator:", "x"]);
+    expect(lexAtoms(".mutator:: ").map(String)).toEqual([".mutator:", ":"]);
+    expect(lexAtoms("mutator:x ").map(String)).toEqual(["mutator:", "x"]);
+    expect(lexAtoms("@mutator:x ").map(String)).toEqual(["@mutator:", "x"]);
   });
 
   it("keeps a standalone colon as an operator", () => {

@@ -903,6 +903,37 @@ describe("evaluate", () => {
       );
     });
 
+    it("constructs repeated instances without mutating the class aggregate", () => {
+      const result = evaluate(
+        ".Class {[.Value _; .get {Value}]}; " +
+          ".first (Class 1); .second (Class 2); " +
+          "first.get(); second.get()",
+      );
+
+      expect(result.at(0).toString()).toMatch(/; \(1\); 2\)$/);
+      expect(result.meta.first.get_here("Value").toString()).toEqual("1");
+      expect(result.meta.second.get_here("Value").toString()).toEqual("2");
+      expect(result.meta.Class.meta.Value).toBeUndefined();
+    });
+
+    it("propagates assignment errors out of mutating methods", () => {
+      const constant = evaluate(
+        ".owner_ [.Value 1; .change: {@Value _;}]; owner_.change: 2",
+      );
+      const schema = evaluate(
+        ".owner_ [.value <1> 1; .change: {@value _;}]; owner_.change: 2",
+      );
+
+      expect(constant.at(0).toString()).toContain(
+        "$error{$is-constant .Value}",
+      );
+      expect(constant.meta.owner_.get_here("Value").toString()).toEqual("1");
+      expect(schema.at(0).toString()).toContain(
+        "$!.type-error .value <1> 2",
+      );
+      expect(schema.meta.owner_.get_here("value").toString()).toEqual("1");
+    });
+
     it("interprets a parent declaration as the frame up link", () => {
       const result = evaluate(
         ".base [.public 42; ._protected 21; .__private 7]; " +
@@ -917,6 +948,21 @@ describe("evaluate", () => {
       expect(result.at(0).toString()).toContain(
         "[42, 21, $!.is-private .private]",
       );
+    });
+
+    it("rejects cyclic parent declarations without corrupting lookup", () => {
+      const declaration = evaluate(
+        ".owner_ [.set-parent: {._^ _;}]; owner_.set-parent: owner_",
+      );
+      const owner = declaration.meta.owner_;
+
+      expect(declaration.at(0).toString()).toContain(
+        "$!.cyclic-parent ._^",
+      );
+      expect(owner.is.inherited).not.toBe(true);
+      expect(owner.up).not.toBe(owner);
+      expect(evaluate("owner_.missing", declaration.meta).at(0).toString())
+        .toContain("$!.name-missing");
     });
 
     it("supports user-defined multiple-base composition", () => {

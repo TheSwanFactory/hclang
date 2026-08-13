@@ -73,6 +73,16 @@ describe("MetaFrame", () => {
     expect(child.get(key)).toEqual(value);
   });
 
+  it("detects parent assignments that would create a cycle", () => {
+    const parent = new Frame();
+    const child = new Frame();
+    child.up = parent;
+
+    expect(parent.wouldCreateParentCycle(child)).toBe(true);
+    expect(child.wouldCreateParentCycle(parent)).toBe(false);
+    expect(parent.wouldCreateParentCycle(parent)).toBe(true);
+  });
+
   describe("visibility", () => {
     const publicValue = new FrameString("public");
     const protectedValue = new FrameString("protected");

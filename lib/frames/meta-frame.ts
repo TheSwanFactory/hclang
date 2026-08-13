@@ -127,6 +127,18 @@ export class MetaFrame {
     return this;
   }
 
+  /** Whether assigning parent would attach this frame to a cyclic chain. */
+  public wouldCreateParentCycle(parent: MetaFrame): boolean {
+    const seen = new Set<MetaFrame>([this]);
+    let current: MetaFrame | undefined = parent;
+    while (current) {
+      if (seen.has(current)) return true;
+      seen.add(current);
+      current = current.up;
+    }
+    return false;
+  }
+
   /**
    * meta_copy creates a shallow copy of the current context.
    */

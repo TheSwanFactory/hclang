@@ -34,6 +34,22 @@ export class FrameSymbol extends FrameAtom {
     return FrameSymbol.for(Frame.kEND);
   }
 
+  /** Handles the single trailing colon shared by mutating identifiers. */
+  public static scanMutatingSuffix(
+    source: string,
+    char: string,
+  ): ScanResult | undefined {
+    if (source.length === 0 || FrameSymbol.OPERATOR_CHARS.test(source[0])) {
+      return undefined;
+    }
+    if (source.endsWith(":")) {
+      return { disposition: ScanDisposition.CompleteRedispatch };
+    }
+    if (char === ":") {
+      return { disposition: ScanDisposition.Consume };
+    }
+  }
+
   protected static symbols: { [key: string]: FrameSymbol } = {};
 
   constructor(protected data: string, meta: Context = NilContext) {
@@ -72,6 +88,9 @@ export class FrameSymbol extends FrameAtom {
     }
     if (this.data === "_^") {
       const previous = out.is.inherited === true ? out.up : Frame.missing;
+      if (out.wouldCreateParentCycle(argument)) {
+        return Frame.error("$!.cyclic-parent ._^");
+      }
       out.up = argument;
       out.is.inherited = true;
       return previous.is.missing
@@ -90,14 +109,14 @@ export class FrameSymbol extends FrameAtom {
 
     const schema = out.get(schemaKey);
     if (!schema.is.missing && !this.matchesSchema(schema, argument)) {
-      return new FrameLiteral(
+      return Frame.error(
         `$!.type-error .${this.data} ${schema.toString()} ${argument.toString()}`,
       );
     }
 
     const previous = binding?.value ?? out.get_here(this.data, out);
     if (!previous.is.missing && this.isConstant(assignmentKey)) {
-      return new FrameLiteral(`$error{$is-constant .${this.data}}`);
+      return Frame.error(`$error{$is-constant .${this.data}}`);
     }
 
     out.set(assignmentKey, argument);
@@ -125,6 +144,15 @@ export class FrameSymbol extends FrameAtom {
 
   public override canInclude(char: string): boolean {
     return FrameSymbol.SYMBOL_CHAR.test(char);
+  }
+
+  public override scan(symbol: Frame, source = ""): ScanResult {
+    const char = symbol.toString();
+    return FrameSymbol.scanMutatingSuffix(source, char) ?? {
+      disposition: this.canInclude(char)
+        ? ScanDisposition.Consume
+        : ScanDisposition.CompleteRedispatch,
+    };
   }
 
   protected override toData(): string {

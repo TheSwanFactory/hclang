@@ -13,9 +13,11 @@
 - Enforce protected and private visibility for owner, child, parent, and peer
   property reads and writes.
 - Support shared mutable handles and trailing-colon mutating methods, including
-  copy-on-write through immutable handles and implicit receiver returns.
+  copy-on-write through immutable handles, implicit receiver returns, and
+  propagated mutation errors.
 - Construct singleton and class frames with ordinary aggregates and closures,
-  including source-level parent lookup and inherited frame relationships.
+  including repeatable construction, source-level parent lookup, and cycle-safe
+  inherited frame relationships.
 - Keep environment-dependent module loading explicitly aspirational with a
   focused follow-up issue.
 

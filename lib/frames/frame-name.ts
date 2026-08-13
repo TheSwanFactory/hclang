@@ -65,6 +65,10 @@ export class FrameName extends FrameAtom implements ISourced {
     if (source.endsWith("^")) {
       return { disposition: ScanDisposition.CompleteRedispatch };
     }
+    const mutatingSuffix = FrameSymbol.scanMutatingSuffix(source, char);
+    if (mutatingSuffix) {
+      return mutatingSuffix;
+    }
     const parentDeclaration = source === "_" && char === "^";
     if (!parentDeclaration && !this.canInclude(char)) {
       return { disposition: ScanDisposition.CompleteRedispatch };
@@ -74,12 +78,10 @@ export class FrameName extends FrameAtom implements ISourced {
     }
 
     const startsWithOperator = FrameOperator.Accepts(source[0]);
-    const mutatingSuffix = char === ":" && !startsWithOperator;
     const continuesIdentifier = char[0] === "-" && !startsWithOperator;
     const sameKind = FrameOperator.Accepts(char[0]) === startsWithOperator;
     return {
-      disposition: parentDeclaration || mutatingSuffix || continuesIdentifier ||
-          sameKind
+      disposition: parentDeclaration || continuesIdentifier || sameKind
         ? ScanDisposition.Consume
         : ScanDisposition.CompleteRedispatch,
     };
