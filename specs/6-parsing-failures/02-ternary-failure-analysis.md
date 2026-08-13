@@ -193,15 +193,15 @@ change as a result of this classification alone.
 
 ## v0.8.5 Resolution
 
-Issue #293 implemented the selected dotted comparison spelling, so `1.> 5`
-now reaches comparison evaluation without colliding with schema delimiters. The
+Issue #293 implemented the selected dotted comparison spelling, so `1.> 5` now
+reaches comparison evaluation without colliding with schema delimiters. The
 remaining `? ... : ...` failure is still the independent conditional-state
 problem described above: the two binary operators do not preserve the original
 predicate as a chained ternary expression.
 
 The white-paper chain therefore remains a non-executable source listing and is
 classified as **stale syntax**. The independently supported `?` and `:` forms
-remain executable white-paper doctests, and focused evaluation coverage now
-also proves that an explicit false dotted comparison selects an independent
-else branch. Supporting a chained ternary requires a separate language design;
-it is not part of the numeric-property or dotted-comparison implementation.
+remain executable white-paper doctests, and focused evaluation coverage now also
+proves that an explicit false dotted comparison selects an independent else
+branch. Supporting a chained ternary requires a separate language design; it is
+not part of the numeric-property or dotted-comparison implementation.
