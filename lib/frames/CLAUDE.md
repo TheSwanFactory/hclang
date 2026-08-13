@@ -43,7 +43,14 @@ and program is composed of frames. This unified representation enables:
 ### Advanced Types
 
 - [frame-alias.ts](frame-alias.ts) - Aliases and references
-- [frame-schema.ts](frame-schema.ts) - Type schemas
+- [frame-match.ts](frame-match.ts) - General membership and match-evidence
+  protocol
+- [frame-schema.ts](frame-schema.ts) - Immutable evidence-producing type schemas
+- [schema-matcher.ts](schema-matcher.ts) - General schema matcher contract and
+  enumeration matcher
+- [schema-structural-matcher.ts](schema-structural-matcher.ts) - Direct-property
+  structural matcher
+- [schema-bit-matcher.ts](schema-bit-matcher.ts) - Built-in bit-layout matcher
 - [frame-note.ts](frame-note.ts) - Annotations and metadata
 - [frame-doc.ts](frame-doc.ts) - Documentation frames
 
@@ -81,6 +88,15 @@ protocol:
 
 The active Frame owns syntax-specific and input-dependent state. The stateless
 Sigilizer routes only the generic dispositions declared in `lib/scan.ts`.
+
+### Type Matching
+
+First-class types implement the `FrameMatcher` protocol. A pure match returns
+either failure or success evidence. Binding validation and the `~` operator use
+only membership, while applying a type returns the evidence. `FrameSchema`
+delegates equality, structural, and bit-layout behavior to separate immutable
+matchers so adding a domain does not add domain logic to schema storage or
+binding resolution.
 
 ### Type Hierarchy
 

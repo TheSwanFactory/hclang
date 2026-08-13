@@ -1,10 +1,16 @@
 import { Frame } from "./frame.ts";
 import { FrameList } from "./frame-list.ts";
 import { FrameNote } from "./frame-note.ts";
+import { compileSchemaMatcher } from "./schema-compiler.ts";
+import { type FrameMatcher, type MatchResult } from "./frame-match.ts";
+import {
+  EnumerationSchemaMatcher,
+  type SchemaMatcher,
+} from "./schema-matcher.ts";
 import { NilContext } from "./context.ts";
 import type { SigilStart } from "../scan.ts";
 
-export class FrameSchema extends FrameList {
+export class FrameSchema extends FrameList implements FrameMatcher {
   public static readonly BEGIN_SCHEMA = "<";
   public static readonly END_SCHEMA = ">";
   public static readonly SIGIL_STARTS = [
@@ -12,8 +18,15 @@ export class FrameSchema extends FrameList {
     { key: FrameSchema.END_SCHEMA, mode: "pop" },
   ] as const satisfies readonly SigilStart[];
 
-  constructor(data: Array<Frame>, meta = NilContext) {
+  private matcher: SchemaMatcher;
+
+  constructor(
+    data: Array<Frame>,
+    meta = NilContext,
+    matcher: SchemaMatcher = new EnumerationSchemaMatcher(),
+  ) {
     super(data, meta);
+    this.matcher = matcher;
   }
 
   public override string_open(): string {
@@ -25,15 +38,29 @@ export class FrameSchema extends FrameList {
   }
 
   public override in(contexts = [Frame.nil]): Frame {
+    const matcher = compileSchemaMatcher(this.data);
+    if (matcher) {
+      return new FrameSchema([...this.data], NilContext, matcher);
+    }
     const array = this.array_eval(contexts);
     return new FrameSchema(array);
   }
 
-  public override apply(argument: Frame, _parameter: Frame): this {
-    if (!argument.is.void) {
-      this.data.push(argument);
-    }
-    return this;
+  public override apply(argument: Frame, parameter: Frame): Frame {
+    const result = this.match(argument, parameter);
+    return result.matched ? result.evidence : result.error;
+  }
+
+  public match(value: Frame, origin = Frame.nil): MatchResult {
+    return this.matcher.match(this, value, origin);
+  }
+
+  public override toString(): string {
+    return this.matcher.format?.() ?? super.toString();
+  }
+
+  public override dataString(): string {
+    return this.matcher.format ? this.toString() : super.dataString();
   }
 
   public override at(index: number): Frame | FrameNote {
@@ -52,13 +79,8 @@ export class FrameSchema extends FrameList {
     return this.data.length;
   }
 
-  /** Whether a value belongs to this enumerated schema. */
+  /** Whether matching succeeds when its evidence is discarded. */
   public matches(value: Frame): boolean {
-    return this.length() === 0 ||
-      this.data.some((candidate) => candidate.isEqualTo(value));
-  }
-
-  public reset(): void {
-    this.data = [];
+    return this.match(value).matched;
   }
 }

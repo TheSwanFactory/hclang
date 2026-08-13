@@ -43,7 +43,11 @@ export class FrameAtom extends Frame {
     return char !== this.string_suffix();
   }
 
-  public override scan(symbol: Frame, _source = ""): ScanResponse {
+  public override scan(
+    symbol: Frame,
+    _source = "",
+    _context: Frame = Frame.nil,
+  ): ScanResponse {
     return {
       disposition: this.canInclude(symbol.toString())
         ? ScanDisposition.Consume

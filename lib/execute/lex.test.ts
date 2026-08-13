@@ -8,6 +8,7 @@ import {
   FrameExpr,
   FrameGroup,
   FrameName,
+  FrameNumber,
   FrameParam,
   FrameString,
 } from "../frames.ts";
@@ -158,5 +159,31 @@ describe("Lex", () => {
 
   it("emits a byte payload before scanning the following symbol", () => {
     expect(lexAtoms("\\1\\a7 ").map(String)).toEqual(["\\1\\a", "7"]);
+  });
+
+  it("supplies live scope while preserving dynamic byte boundaries", () => {
+    const output = new FrameArray([]);
+    output.set("size", new FrameNumber("1"));
+    const parser = new ParsePipe(output, FrameGroup);
+    const lexer = new LexPipe(parser);
+
+    new FrameString("\\size\\a7 ").reduce(lexer);
+
+    const group = output.at(0) as FrameGroup;
+    const expr = group.asArray()[0] as FrameExpr;
+    expect(expr.asArray().map(String)).toEqual(["\\1\\a", "7"]);
+  });
+
+  it("redispatches the first payload character after a dynamic zero length", () => {
+    const output = new FrameArray([]);
+    output.set("size", new FrameNumber("0"));
+    const parser = new ParsePipe(output, FrameGroup);
+    const lexer = new LexPipe(parser);
+
+    new FrameString("\\size\\7 ").reduce(lexer);
+
+    const group = output.at(0) as FrameGroup;
+    const expr = group.asArray()[0] as FrameExpr;
+    expect(expr.asArray().map(String)).toEqual(["\\0\\", "7"]);
   });
 });

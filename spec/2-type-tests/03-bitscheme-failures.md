@@ -5,6 +5,13 @@
 **Test Command**: `deno task test:bs`
 **Results**: 14 passed, 17 failed (31 total)
 
+> **Historical analysis:** This document records the December 2025 failure
+> state. The subsequently implemented deterministic schema-retrieval,
+> property-selection, and bit-deconstruction behavior is specified in
+> [Minimal Schema Typing, Retrieval, and Deconstruction](../9-minimal-schema-deconstruction.md).
+> Broader constructors, deferred captures, and recursive schemas remain
+> intentionally deferred there.
+
 ## Overview
 
 The BitScheme test suite reveals significant issues with type/schema definitions and selector syntax. These failures represent missing or broken functionality in HC's advanced type system features.

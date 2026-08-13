@@ -122,6 +122,26 @@ export class FrameBlob extends FrameAtom {
     return this.string_prefix() + digits + this.string_suffix();
   }
 
+  /** The exact rendered width of this blob, including leading zero bits. */
+  public bitLength(): number {
+    return Number(this.n_bits);
+  }
+
+  /** Return an exact-width binary slice without changing this blob. */
+  public sliceBits(offset: number, width: number): FrameBlob {
+    if (
+      !Number.isInteger(offset) || !Number.isInteger(width) || offset < 0 ||
+      width <= 0 || offset + width > this.bitLength()
+    ) {
+      throw new RangeError(`Invalid bit slice: ${offset}..${offset + width}`);
+    }
+    const remaining = this.bitLength() - offset - width;
+    const mask = (1n << BigInt(width)) - 1n;
+    const value = (this.data >> BigInt(remaining)) & mask;
+    const digits = value.toString(2).padStart(width, "0");
+    return new FrameBlob(`0b${digits}`);
+  }
+
   protected override toData(): bigint {
     return this.data;
   }

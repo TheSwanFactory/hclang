@@ -75,7 +75,11 @@ export class Lex extends Frame implements ISourced {
   }
 
   public override scan(argument: Frame, _source = ""): ScanResponse {
-    return this.sample.scan(argument, this.lexemeSource());
+    return this.sample.scan(
+      argument,
+      this.lexemeSource(),
+      this.scanContext(),
+    );
   }
 
   public override toString(): string {
@@ -139,5 +143,22 @@ export class Lex extends Frame implements ISourced {
 
   private lexemeSource(): string {
     return this.body === "" ? this.source : this.body;
+  }
+
+  /** Resolve the terminal result frame at the end of the active output chain. */
+  private scanContext(): Frame {
+    let context = this.get(Frame.kOUT);
+    const seen = new Set<Frame>();
+
+    while (!context.is.missing && !seen.has(context)) {
+      seen.add(context);
+      const next = context.get_here(Frame.kOUT, context);
+      if (next.is.missing) {
+        break;
+      }
+      context = next;
+    }
+
+    return context;
   }
 }

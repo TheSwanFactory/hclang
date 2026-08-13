@@ -12,6 +12,13 @@ export { FrameDoc } from "./frames/frame-doc.ts";
 export { FrameBind, FrameExpr } from "./frames/frame-expr.ts";
 export { FrameGroup } from "./frames/frame-group.ts";
 export { FrameLazy } from "./frames/frame-lazy.ts";
+export {
+  type FrameMatcher,
+  isFrameMatcher,
+  type MatchFailure,
+  type MatchResult,
+  type MatchSuccess,
+} from "./frames/frame-match.ts";
 export { FrameList, type IArrayConstructor } from "./frames/frame-list.ts";
 export { FrameName } from "./frames/frame-name.ts";
 export { FrameNote } from "./frames/frame-note.ts";

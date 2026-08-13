@@ -55,6 +55,19 @@ describe("FrameSymbol", () => {
     expect(result2.toString()).toEqual("“Atom Smasher”");
   });
 
+  it("retrieves a schema from the owner of an inherited binding", () => {
+    const schema = new frame.FrameSchema([new frame.FrameNumber("1")]);
+    const owner = new frame.FrameArray([], {
+      choice: new frame.FrameNumber("1"),
+      "choice.<>": schema,
+    });
+    const child = new frame.FrameArray([]);
+    child.up = owner;
+    child.is.inherited = true;
+
+    expect(FrameSymbol.for("choice").bindingSchema([child])).toEqual(schema);
+  });
+
   describe("setter", () => {
     const value = "value";
     const frame_value = new frame.FrameString(value);

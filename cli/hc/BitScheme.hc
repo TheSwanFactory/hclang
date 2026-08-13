@@ -41,6 +41,14 @@ The simplest Identifiers are Literals, e.g.:
 ; \5\Hello
 # \5\Hello
 ```
+Byte-string lengths can also resolve an already evaluated integer symbol:
+```
+; .v 4;
+; .h 2;
+; .size (v * h);
+; \size\01234567
+# \8\01234567
+```
 You can also use triple-backquotes for docstrings in https://asciidoctor.org[asciidoc] format. If you pass a ".adoc" file to bitscheme, it will prepend the backquotes, execute the code blocks, and warn if the evaluated input does not match the expected output.
 
 Comment strings (using "#") are also considered a type of Literal:
@@ -188,7 +196,7 @@ The schema and capture gaps are tracked by https://github.com/TheSwanFactory/hcl
 
 == Schemas
 
-Schemas can be thought of as a cross between type signatures and regular expressions. Each element of a schema is called a _capture_. Numeric enumeration constraints are implemented; schema retrieval, schema deconstruction, and bit-count captures remain aspirational.
+Schemas can be thought of as a cross between type signatures and regular expressions. Each element of a schema is called a _capture_. Numeric enumeration constraints and the minimal deterministic retrieval and deconstruction forms are implemented. General alternatives, constructors, and deferred capture lengths remain aspirational.
 
 === Numeric Constraints (implemented)
 
@@ -202,40 +210,40 @@ The current declaration syntax binds a schema and an initial value in one expres
 # $!.type-error .enum123 <1, 2, 3> 4
 ```
 
-=== Schema Retrieval and Captures (aspirational, #310)
+=== Schema Retrieval and Captures (implemented, #310)
 
-Retrieving the schema attached to a value through `<>` is not yet implemented:
+The `<>` property retrieves the schema attached to the binding:
 ```
 ; enum123.<>
-# $!.unimplemented <1,2,3>
+# <1, 2, 3>
 ```
 
-Fixed- and variable-length bit captures are valid tutorial design, but they are not currently executable capture operators:
+Fixed-width captures require an exact-width blob. A remainder capture consumes the complete blob:
 ```
 ; <8@Bit> 0xff
-# $!.unimplemented 0xff
+# 0xff
 ; <[@Bit]> 0b101
-# $!.unimplemented 0b101
+# 0b101
 ```
 
-=== Deconstructors (aspirational, #310)
+=== Minimal Deconstructors (implemented, #310)
 
-Schemas are intended to extract named properties and split bit sequences:
+Property selectors extract direct properties in schema order. A schema-only statement defines a callable deterministic bit splitter:
 ```
 ; <.x, .z> [.x 1; .y 2; .z 3;]
-# $!.unimplemented [1, 3]
+# [1, 3]
+; .BitSplitter3 <[.head <3@Bit>; .tail <[@Bit]>;]>;
 ; BitSplitter3 0b10101100
-# $!.unimplemented [.head 0b101; .tail 0b01100;]
+# [.head 0b101; .tail 0b01100;]
 ```
 
-The declarations below are retained as non-executable specification because their capture semantics are not implemented yet:
+The declarations below remain non-executable because user-defined capture units and aliases are deferred:
 
 [source,hc]
 ----
 .Bit <0b0, 0b1>;
 .BitStream <[@Bit]>;
 .Byte <8@Bit>;
-.BitSplitter3 <[.head <3@Bit>; .tail <[@Bit]>;]>;
 ----
 
 === Constructors and Deferred Captures (aspirational, #310)
