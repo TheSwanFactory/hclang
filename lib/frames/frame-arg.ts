@@ -3,6 +3,7 @@ import { FrameNote } from "./frame-note.ts";
 import { FrameLazy } from "./frame-lazy.ts";
 import { FrameSymbol } from "./frame-symbol.ts";
 import { type Context, NilContext } from "./context.ts";
+import type { SigilStart } from "../execute/sigilizer.ts";
 
 const findClosure = (contexts: Frame[]): FrameLazy | undefined => {
   return contexts.find((context) => context instanceof FrameLazy) as
@@ -12,6 +13,9 @@ const findClosure = (contexts: Frame[]): FrameLazy | undefined => {
 
 export class FrameArg extends FrameSymbol {
   public static readonly ARG_CHAR = "_";
+  public static override readonly SIGIL_STARTS: readonly SigilStart[] = [
+    { key: FrameArg.ARG_CHAR, mode: "atom" },
+  ];
 
   public static here(): FrameArg {
     return FrameArg.level();

@@ -1,7 +1,11 @@
 import type { Frame } from "./frame.ts";
 import { FrameAtom } from "./frame-atom.ts";
 import { NilContext } from "./context.ts";
-import { LexicalScan } from "./lexical-scan.ts";
+import {
+  Scan,
+  type ScanResult,
+  type SigilStart,
+} from "../execute/sigilizer.ts";
 
 export interface IRegexpMap {
   [key: number]: RegExp;
@@ -13,6 +17,9 @@ export interface IPrefixMap {
 
 export class FrameBlob extends FrameAtom {
   public static readonly BLOB_START = "0";
+  public static readonly SIGIL_STARTS = [
+    { key: FrameBlob.BLOB_START, mode: "atom" },
+  ] as const satisfies readonly SigilStart[];
   public static readonly BLOB_DIGITS: IRegexpMap = {
     2: /[01]/,
     8: /[0-7]/,
@@ -92,20 +99,18 @@ export class FrameBlob extends FrameAtom {
     return regex.test(char);
   }
 
-  public override scan(symbol: Frame, source = ""): LexicalScan {
+  public override scan(symbol: Frame, source = ""): ScanResult {
     const char = symbol.toString();
     if (source === "") {
       const prefixes = Object.values(FrameBlob.BLOB_PREFIX);
       return prefixes.includes(char) || /\d/.test(char)
-        ? LexicalScan.consume()
-        : LexicalScan.completeRedispatch();
+        ? Scan.consume()
+        : Scan.completeRedispatch();
     }
 
     const base = FrameBlob.find_base(`0${source}`);
     const digits = base === 10 ? /\d/ : FrameBlob.BLOB_DIGITS[base];
-    return digits.test(char)
-      ? LexicalScan.consume()
-      : LexicalScan.completeRedispatch();
+    return digits.test(char) ? Scan.consume() : Scan.completeRedispatch();
   }
 
   public override toString(): string {

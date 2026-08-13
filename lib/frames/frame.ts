@@ -2,7 +2,7 @@ import { MetaFrame } from "./meta-frame.ts";
 import { NilContext } from "./context.ts";
 import type { ICurryFunction } from "../ops.ts";
 import type { IArrayConstructor } from "../frames.ts";
-import type { SigilStart } from "./lexical-scan.ts";
+import type { ScanResponse } from "../execute/sigilizer.ts";
 
 /**
  * Flags map strings to booleans.
@@ -195,23 +195,18 @@ export class Frame extends MetaFrame {
     return argument.called_by(this, parameter);
   }
 
-  /** Advertises source forms that can select this Frame's lexical syntax. */
-  public sigilStarts(): SigilStart[] {
-    return [];
-  }
-
   /**
    * Advances an active lexical receiver by one Symbol.
    *
    * Non-lexical Frames retain the historical double-dispatch behavior. The
    * optional source is supplied only to syntax participants adapted by Lex.
    */
-  public scan(argument: Frame, _source = ""): Frame {
+  public scan(argument: Frame, _source = ""): ScanResponse {
     return this.call(argument);
   }
 
   /** Resolves this receiver at physical end-of-input. */
-  public finishInput(_source = ""): Frame {
+  public finishInput(_source = ""): ScanResponse {
     return this;
   }
 

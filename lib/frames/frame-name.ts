@@ -4,10 +4,17 @@ import { FrameAtom } from "./frame-atom.ts";
 import { FrameOperator, FrameSymbol } from "./frame-symbol.ts";
 import type { ISourced } from "./meta-frame.ts";
 import { NilContext } from "./context.ts";
-import { LexicalScan } from "./lexical-scan.ts";
+import {
+  Scan,
+  type ScanResult,
+  type SigilStart,
+} from "../execute/sigilizer.ts";
 
 export class FrameName extends FrameAtom implements ISourced {
   public static readonly NAME_BEGIN = ".";
+  public static readonly SIGIL_STARTS = [
+    { key: FrameName.NAME_BEGIN, mode: "atom" },
+  ] as const satisfies readonly SigilStart[];
 
   public source: string;
   protected data: FrameSymbol;
@@ -43,21 +50,21 @@ export class FrameName extends FrameAtom implements ISourced {
       FrameOperator.OPERATOR_CHARS.test(char);
   }
 
-  public override scan(symbol: Frame, source = this.source): LexicalScan {
+  public override scan(symbol: Frame, source = this.source): ScanResult {
     const char = symbol.toString();
     if (!this.canInclude(char)) {
-      return LexicalScan.completeRedispatch();
+      return Scan.completeRedispatch();
     }
     if (source.length === 0) {
-      return LexicalScan.consume();
+      return Scan.consume();
     }
 
     const startsWithOperator = FrameOperator.Accepts(source[0]);
     const continuesIdentifier = char[0] === "-" && !startsWithOperator;
     const sameKind = FrameOperator.Accepts(char[0]) === startsWithOperator;
     return continuesIdentifier || sameKind
-      ? LexicalScan.consume()
-      : LexicalScan.completeRedispatch();
+      ? Scan.consume()
+      : Scan.completeRedispatch();
   }
 
   protected override toData(): FrameSymbol {

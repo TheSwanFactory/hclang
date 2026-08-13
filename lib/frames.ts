@@ -23,10 +23,11 @@ export { type Any, type Flags, Frame } from "./frames/frame.ts";
 export { type ISourced, MetaFrame } from "./frames/meta-frame.ts";
 export {
   type LexicalMode,
-  LexicalScan,
-  type ScanDisposition,
+  Scan,
+  type ScanResponse,
+  type ScanResult,
   type SigilStart,
-} from "./frames/lexical-scan.ts";
+} from "./execute/sigilizer.ts";
 export {
   type Context,
   contextEqual,

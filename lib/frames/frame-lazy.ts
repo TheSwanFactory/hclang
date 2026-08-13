@@ -1,10 +1,15 @@
 import { Frame } from "./frame.ts";
 import { FrameExpr } from "./frame-expr.ts";
 import { type Context, NilContext } from "./context.ts";
+import type { SigilStart } from "../execute/sigilizer.ts";
 
 export class FrameLazy extends FrameExpr {
   public static readonly LAZY_BEGIN = "{";
   public static readonly LAZY_END = "}";
+  public static readonly SIGIL_STARTS = [
+    { key: FrameLazy.LAZY_BEGIN, mode: "push" },
+    { key: FrameLazy.LAZY_END, mode: "pop" },
+  ] as const satisfies readonly SigilStart[];
 
   constructor(data: Array<Frame>, meta: Context = NilContext) {
     super(data, meta);

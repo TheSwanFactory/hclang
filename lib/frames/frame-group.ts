@@ -1,8 +1,13 @@
 import { Frame } from "./frame.ts";
 import { FrameList } from "./frame-list.ts";
 import { NilContext } from "./context.ts";
+import type { SigilStart } from "../execute/sigilizer.ts";
 
 export class FrameGroup extends FrameList {
+  public static readonly SIGIL_STARTS = [
+    { key: Frame.BEGIN_EXPR, mode: "push" },
+    { key: Frame.END_EXPR, mode: "pop" },
+  ] as const satisfies readonly SigilStart[];
   constructor(data: Array<Frame>, meta = NilContext) {
     super(data, meta);
   }

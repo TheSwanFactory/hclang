@@ -12,6 +12,7 @@ import {
   NilContext,
 } from "../frames.ts";
 import type { ICurryFunction } from "../ops.ts";
+import type { SigilStart } from "./sigilizer.ts";
 
 export type IAction = {
   [key: string]: Frame | IArrayConstructor;
@@ -73,14 +74,17 @@ const addTerminal = (char: string, key: string): void => {
   terminals[char] = new Terminal(perform(action));
 };
 
-function addGroup(Grouper: IArrayConstructor): void {
-  const sample = new Grouper([], NilContext);
-  sample.sigilStarts().forEach(({ key, mode }) => {
+type GroupFactory = IArrayConstructor & {
+  readonly SIGIL_STARTS: readonly SigilStart[];
+};
+
+function addGroup(Grouper: GroupFactory): void {
+  for (const { key, mode } of Grouper.SIGIL_STARTS) {
     if (mode !== "push" && mode !== "pop") {
       throw new Error(`Invalid structural Sigil mode: ${mode}`);
     }
     terminals[key] = new Terminal(perform({ [mode]: Grouper }));
-  });
+  }
 }
 
 terminals[Frame.kEND] = Terminal.end();

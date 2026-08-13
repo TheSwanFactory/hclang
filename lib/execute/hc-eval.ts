@@ -4,11 +4,13 @@ import {
   FrameGroup,
   FrameNumber,
   FrameString,
+  FrameSymbol,
   type StringMap,
 } from "../frames.ts";
 import { EvalPipe } from "./eval-pipe.ts";
 import { LexPipe } from "./lex-pipe.ts";
 import { ParsePipe } from "./parse-pipe.ts";
+import { sigilizer } from "./sigilizer.ts";
 
 /**
  * Creates a new context from the given key-value entries.
@@ -147,7 +149,7 @@ export class HCEval {
     }
 
     if (this.lex !== this.pipe) {
-      const result = this.lex.finishInput();
+      const result = sigilizer.finish(this.lex, FrameSymbol.end());
       complete = result.is.error !== true;
       this.lexicalError = complete ? null : result.toString();
     } else if (this.needsFinish) {

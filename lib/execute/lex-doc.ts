@@ -1,11 +1,11 @@
-import {
-  Frame,
-  FrameDoc,
-  FrameSymbol,
-  LexicalScan,
-  NilContext,
-} from "../frames.ts";
+import { Frame, FrameDoc, FrameSymbol, NilContext } from "../frames.ts";
 import { Lex, Token } from "./lex.ts";
+import {
+  Scan,
+  type ScanResponse,
+  type ScanResult,
+  sigilizer,
+} from "./sigilizer.ts";
 
 /**
  * Monadic parser for document atoms selected by the backtick syntax entry.
@@ -25,15 +25,15 @@ export class LexDoc extends Lex {
   }
 
   public override call(argument: Frame, _parameter = Frame.nil): Frame {
-    return this.scan(argument);
+    return sigilizer.scan(this, argument);
   }
 
-  public override scan(argument: Frame, _source = ""): Frame {
+  public override scan(argument: Frame, _source = ""): ScanResponse {
     const char = argument.toString();
     if (char === FrameDoc.DOC_END) {
       this.ticks += 1;
       if (!this.opening && this.ticks > this.fenceLength) {
-        return LexicalScan.error(
+        return Scan.error(
           "document fence run exceeds the opening fence",
         );
       }
@@ -44,12 +44,12 @@ export class LexDoc extends Lex {
   }
 
   /** Classifies a final pending run and reports whether EOF is valid. */
-  public override finishInput(): Frame {
+  public override finishInput(): ScanResponse {
     if (this.opening) {
       if (this.ticks % 2 === 0) {
         this.emitDocument("", this.ticks);
         this.resetDocument();
-        return this.up.call(FrameSymbol.end());
+        return sigilizer.scan(this.up, FrameSymbol.end());
       }
       return this.failUnterminated();
     }
@@ -57,7 +57,7 @@ export class LexDoc extends Lex {
     if (this.ticks === this.fenceLength) {
       this.emitDocument(this.body, this.fenceLength);
       this.resetDocument();
-      return this.up.call(FrameSymbol.end());
+      return sigilizer.scan(this.up, FrameSymbol.end());
     }
 
     if (this.ticks > 0 && this.ticks < this.fenceLength) {
@@ -67,7 +67,7 @@ export class LexDoc extends Lex {
     return this.failUnterminated();
   }
 
-  private classifyRun(argument: Frame, char: string): Frame {
+  private classifyRun(argument: Frame, char: string): ScanResponse {
     if (this.opening) {
       const openingLength = this.ticks;
       this.ticks = 0;
@@ -75,7 +75,7 @@ export class LexDoc extends Lex {
       if (openingLength % 2 === 0) {
         this.emitDocument("", openingLength);
         this.resetDocument();
-        return this.up.call(argument);
+        return sigilizer.scan(this.up, argument);
       }
 
       this.opening = false;
@@ -98,10 +98,10 @@ export class LexDoc extends Lex {
     if (this.ticks === this.fenceLength) {
       this.emitDocument(this.body, this.fenceLength);
       this.resetDocument();
-      return this.up.call(argument);
+      return sigilizer.scan(this.up, argument);
     }
 
-    return LexicalScan.error(
+    return Scan.error(
       "document fence run exceeds the opening fence",
     );
   }
@@ -112,8 +112,8 @@ export class LexDoc extends Lex {
     out.call(output);
   }
 
-  private failUnterminated(): LexicalScan {
-    return LexicalScan.error("unterminated document string");
+  private failUnterminated(): ScanResult {
+    return Scan.error("unterminated document string");
   }
 
   private resetDocument(): void {

@@ -1,12 +1,10 @@
 /**
  * Generates HC's character-to-parser dispatch context.
  *
- * Every registered atom class supplies a sample whose `string_start()` is the
- * lookup key for its configured parser. During reduction, a source character
- * becomes a `FrameSymbol`; looking that symbol up in `LexPipe` selects that
- * parser. Most atoms use `Lex(Factory)`; atoms with a registered parser use it
- * through the same lookup. The selected lexer consumes the remaining characters
- * and emits one completed atom to `ParsePipe`.
+ * Every registered atom class supplies static `SIGIL_STARTS` metadata. During
+ * reduction, a source character becomes a `FrameSymbol`; looking that symbol
+ * up in `LexPipe` selects its parser. The selected lexer consumes the remaining
+ * characters and emits one completed atom to `ParsePipe`.
  *
  * This table performs only initial character dispatch. Atom-specific lexical
  * boundaries and transitions belong to the atom's lexical contract, while
@@ -42,9 +40,8 @@ const lexicalModes: Record<"atom" | "document", LexFactory> = {
 
 export function getSyntax(): frame.Context {
   const syntax: frame.Context = { ...terminals };
-  atomClasses.forEach((Klass: AtomFactory) => {
-    const sample: frame.FrameAtom = new Klass("");
-    sample.sigilStarts().forEach(({ key, mode }) => {
+  for (const Klass of atomClasses) {
+    for (const { key, mode } of Klass.SIGIL_STARTS) {
       if (mode === "push" || mode === "pop") {
         throw new Error(`Atom registered a structural Sigil mode: ${key}`);
       }
@@ -52,9 +49,8 @@ export function getSyntax(): frame.Context {
         throw new Error(`Conflicting Sigil registration: ${key}`);
       }
       syntax[key] = lexicalModes[mode](Klass);
-    });
-    return true;
-  });
+    }
+  }
 
   return syntax;
 }

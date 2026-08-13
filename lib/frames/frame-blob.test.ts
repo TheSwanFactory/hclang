@@ -1,7 +1,7 @@
 import { expect } from "jsr:@std/expect@^0.219.1";
 import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 
-import { FrameBlob, FrameSymbol, LexicalScan } from "../frames.ts";
+import { FrameBlob, FrameSymbol, type ScanResult } from "../frames.ts";
 
 describe("FrameBlob", () => {
   const source = "0b10100101";
@@ -49,14 +49,17 @@ describe("FrameBlob", () => {
       const accepted = frame_blob.scan(
         FrameSymbol.for(valid),
         source,
-      ) as LexicalScan;
+      ) as ScanResult;
       const rejected = frame_blob.scan(
         FrameSymbol.for(invalid),
         source,
-      ) as LexicalScan;
+      ) as ScanResult;
 
       expect(accepted.disposition).toEqual("consume");
-      expect(rejected.disposition).toEqual("complete-redispatch");
+      expect(rejected.disposition).toEqual("complete");
+      if (rejected.disposition === "complete") {
+        expect(rejected.redispatch).toBe(true);
+      }
     });
   });
 

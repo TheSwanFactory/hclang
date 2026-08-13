@@ -4,7 +4,11 @@ import { FrameQuote } from "./frame-atom.ts";
 import { FrameString } from "./frame-string.ts";
 import { FrameSymbol } from "./frame-symbol.ts";
 import { NilContext, type StringMap } from "./context.ts";
-import { LexicalScan } from "./lexical-scan.ts";
+import {
+  Scan,
+  type ScanResponse,
+  type SigilStart,
+} from "../execute/sigilizer.ts";
 
 export type LanguageBinding = { [key: string]: StringMap };
 
@@ -12,6 +16,9 @@ export class FrameNote extends FrameQuote {
   public static readonly NOTE_BEGIN = "$";
   public static readonly NOTE_END = ";";
   public static readonly NOTE_EXTRAS = "++";
+  public static readonly SIGIL_STARTS = [
+    { key: FrameNote.NOTE_BEGIN, mode: "atom" },
+  ] as const satisfies readonly SigilStart[];
 
   public static readonly LABELS: LanguageBinding = {
     en: {
@@ -95,12 +102,12 @@ export class FrameNote extends FrameQuote {
     return FrameNote.NOTE_END;
   }
 
-  public override scan(symbol: Frame, source?: string): Frame {
+  public override scan(symbol: Frame, source?: string): ScanResponse {
     if (source === undefined) {
       return this.call(symbol);
     }
     if (symbol.toString() === this.string_suffix()) {
-      return LexicalScan.completeRedispatch();
+      return Scan.completeRedispatch();
     }
     return super.scan(symbol, source);
   }

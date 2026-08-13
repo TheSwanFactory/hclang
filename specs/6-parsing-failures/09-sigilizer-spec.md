@@ -6,6 +6,10 @@
 **Feature issue:**
 [#293 — Parsing and literal recognition gaps](https://github.com/TheSwanFactory/hclang/issues/293)\
 **Builds on:** [08-sigilizer-phase.md](./08-sigilizer-phase.md)\
+**Implementation refinement:**
+[12-sigilizer-refactoring.md](./12-sigilizer-refactoring.md) supersedes the
+instance-registration and `LexicalScan` representation details below; those
+sections preserve the original design rationale.\
 **Sigil disambiguation decision:**
 [11-candidate-composition-spec.md](./11-candidate-composition-spec.md)\
 **Related analysis:** [01-parsing-triage.md](./01-parsing-triage.md),

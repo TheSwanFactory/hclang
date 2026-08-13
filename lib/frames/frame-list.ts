@@ -1,6 +1,5 @@
 import { Frame } from "./frame.ts";
 import { type Context, NilContext } from "./context.ts";
-import type { SigilStart } from "./lexical-scan.ts";
 
 /**
  * The `IArrayConstructor` interface defines a constructor for creating
@@ -34,13 +33,6 @@ export class FrameList extends Frame {
 
   public override string_close(): string {
     return Frame.END_EXPR;
-  }
-
-  public override sigilStarts(): SigilStart[] {
-    return [
-      { key: this.string_open(), mode: "push" },
-      { key: this.string_close(), mode: "pop" },
-    ];
   }
 
   public toStringDataArray(): Array<string> {

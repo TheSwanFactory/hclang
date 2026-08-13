@@ -18,15 +18,22 @@ import {
   type Any,
   Frame,
   FrameAtom,
-  FrameSymbol,
   type ISourced,
-  LexicalScan,
   NilContext,
 } from "../frames.ts";
+import {
+  Scan,
+  type ScanResponse,
+  sigilizer,
+  type SigilStart,
+} from "./sigilizer.ts";
 
 export type Flag = { [key: string]: boolean };
 
-export type AtomFactory = new (body: string) => FrameAtom;
+export interface AtomFactory {
+  new (body: string): FrameAtom;
+  readonly SIGIL_STARTS: readonly SigilStart[];
+}
 export class Token extends FrameAtom {
   constructor(protected data: Frame) {
     super(NilContext);
@@ -61,59 +68,39 @@ export class Lex extends Frame implements ISourced {
   }
 
   public override call(argument: Frame, _parameter = Frame.nil): Frame {
-    return this.scan(argument);
+    return sigilizer.scan(this, argument);
   }
 
-  public override scan(argument: Frame, _source = ""): Frame {
-    const transition = this.sample.scan(argument, this.lexemeSource());
-    if (!(transition instanceof LexicalScan)) {
-      return transition;
-    }
-
-    switch (transition.disposition) {
-      case "consume":
-        this.append(argument);
-        return this;
-      case "complete-consume":
-        return this.finish(argument, false, transition.value);
-      case "complete-redispatch":
-        return this.finish(argument, true, transition.value);
-      case "transition":
-        if (transition.next instanceof FrameAtom) {
-          this.sample = transition.next;
-          this.body = "";
-          this.source = "";
-          return this;
-        }
-        return LexicalScan.error("lexical transition did not return an atom");
-      case "error":
-        return transition;
-    }
+  public override scan(argument: Frame, _source = ""): ScanResponse {
+    return this.sample.scan(argument, this.lexemeSource());
   }
 
   public override toString(): string {
     return this.id + `[${this.body}]`;
   }
 
-  public override finishInput(): Frame {
-    const readiness = this.sample.finishInput(this.lexemeSource());
-    if (readiness.is.error) {
-      return readiness;
-    }
-    return this.scan(FrameSymbol.end());
+  public override finishInput(): ScanResponse {
+    return this.sample.finishInput(this.lexemeSource());
   }
 
-  protected finish(
-    argument: Frame,
-    passAlong: boolean,
-    value: Frame | null = null,
-  ): Frame {
+  public consumeScan(argument: Frame): Frame {
+    this.append(argument);
+    return this;
+  }
+
+  public completeScan(value: Frame | null = null): Frame {
     this.exportFrame(value);
-    if (passAlong) {
-      const result = this.up.call(argument);
-      return result;
-    }
     return this.up;
+  }
+
+  public transitionScan(next: Frame): ScanResponse {
+    if (!(next instanceof FrameAtom)) {
+      return Scan.error("lexical transition did not return an atom");
+    }
+    this.sample = next;
+    this.body = "";
+    this.source = "";
+    return this;
   }
 
   protected exportFrame(value: Frame | null = null): Frame {

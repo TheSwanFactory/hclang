@@ -3,7 +3,11 @@ import { FrameAtom } from "./frame-atom.ts";
 import { FrameNote } from "./frame-note.ts";
 import { FrameSchema } from "./frame-schema.ts";
 import { type Context, NilContext } from "./context.ts";
-import { LexicalScan, type SigilStart } from "./lexical-scan.ts";
+import {
+  Scan,
+  type ScanResult,
+  type SigilStart,
+} from "../execute/sigilizer.ts";
 
 class FrameLiteral extends FrameAtom {
   constructor(protected data: string) {
@@ -19,6 +23,9 @@ export class FrameSymbol extends FrameAtom {
   public static readonly SYMBOL_BEGIN = /[a-zA-Z]/;
   public static readonly SYMBOL_CHAR = /[-\w]/;
   public static readonly OPERATOR_CHARS = /[&|?:+\-/*%=<>!]/;
+  public static readonly SIGIL_STARTS: readonly SigilStart[] = [
+    { key: FrameSymbol.SYMBOL_BEGIN.toString(), mode: "atom" },
+  ];
 
   public static for(symbol: string): FrameSymbol {
     const exists = FrameSymbol.symbols[symbol];
@@ -110,6 +117,9 @@ export class FrameSymbol extends FrameAtom {
 
 export class FrameOperator extends FrameSymbol {
   public static readonly OPERATOR_START = /[&|?:+\-/*%=!]/;
+  public static override readonly SIGIL_STARTS: readonly SigilStart[] = [
+    { key: FrameOperator.OPERATOR_START.toString(), mode: "atom" },
+  ];
 
   public static operator_chars(): string {
     return "&|?:+\\-*%<>!";
@@ -128,21 +138,15 @@ export class FrameOperator extends FrameSymbol {
     return FrameOperator.OPERATOR_CHARS.toString();
   }
 
-  public override sigilStarts(): SigilStart[] {
-    return [{ key: FrameOperator.OPERATOR_START.toString(), mode: "atom" }];
-  }
-
   public override canInclude(char: string): boolean {
     return FrameOperator.Accepts(char);
   }
 
-  public override scan(symbol: Frame, _source = ""): LexicalScan {
+  public override scan(symbol: Frame, _source = ""): ScanResult {
     const char = symbol.toString();
     if (char === "<" || char === ">") {
-      return LexicalScan.completeRedispatch();
+      return Scan.completeRedispatch();
     }
-    return this.canInclude(char)
-      ? LexicalScan.consume()
-      : LexicalScan.completeRedispatch();
+    return this.canInclude(char) ? Scan.consume() : Scan.completeRedispatch();
   }
 }

@@ -1,11 +1,18 @@
 import { FrameAtom, FrameQuote } from "./frame-atom.ts";
 import { type Context, NilContext } from "./context.ts";
 import { Frame } from "./frame.ts";
-import { LexicalScan } from "./lexical-scan.ts";
+import {
+  Scan,
+  type ScanResult,
+  type SigilStart,
+} from "../execute/sigilizer.ts";
 
 export class FrameBytes extends FrameQuote {
   public static readonly BYTES_BEGIN = "\\";
   public static readonly BYTES_END = "\\";
+  public static readonly SIGIL_STARTS = [
+    { key: FrameBytes.BYTES_BEGIN, mode: "atom" },
+  ] as const satisfies readonly SigilStart[];
 
   protected data: Uint8Array;
   protected length: number;
@@ -30,23 +37,23 @@ export class FrameBytes extends FrameQuote {
       this.toData();
   }
 
-  public override scan(symbol: Frame, source = ""): LexicalScan {
+  public override scan(symbol: Frame, source = ""): ScanResult {
     const char = symbol.toString();
     if (/\d/.test(char)) {
-      return LexicalScan.consume();
+      return Scan.consume();
     }
     if (char !== FrameBytes.BYTES_END || source === "") {
-      return LexicalScan.error(`invalid byte length: \\${source}${char}`);
+      return Scan.error(`invalid byte length: \\${source}${char}`);
     }
 
     const count = parseInt(source, 10);
     return count === 0
-      ? LexicalScan.completeConsume(new FrameBytes([]))
-      : LexicalScan.transition(new FrameBytePayload(count));
+      ? Scan.completeConsume(new FrameBytes([]))
+      : Scan.transition(new FrameBytePayload(count));
   }
 
-  public override finishInput(source = ""): LexicalScan {
-    return LexicalScan.error(`unterminated byte length: \\${source}`);
+  public override finishInput(source = ""): ScanResult {
+    return Scan.error(`unterminated byte length: \\${source}`);
   }
 
   protected override toData(): string {
@@ -65,18 +72,18 @@ export class FrameBytePayload extends FrameAtom {
     this.is.lexical = true;
   }
 
-  public override scan(symbol: Frame, source = ""): LexicalScan {
+  public override scan(symbol: Frame, source = ""): ScanResult {
     const payload = source + symbol.toString();
     if (payload.length < this.count) {
-      return LexicalScan.consume();
+      return Scan.consume();
     }
 
     const bytes = Array.from(payload, (char) => char.charCodeAt(0));
-    return LexicalScan.completeConsume(new FrameBytes(bytes));
+    return Scan.completeConsume(new FrameBytes(bytes));
   }
 
-  public override finishInput(source = ""): LexicalScan {
-    return LexicalScan.error(
+  public override finishInput(source = ""): ScanResult {
+    return Scan.error(
       `byte payload shorter than ${this.count}: ${source}`,
     );
   }
