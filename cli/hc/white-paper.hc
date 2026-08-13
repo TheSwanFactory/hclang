@@ -919,9 +919,9 @@ as CSV, with two important differences:
 ; .first-name, .last-name, .phone-number
 # (first-name, last-name, phone-number)
 ; “John”, “Doe”, +1.408.555.1212
-# $!.unimplemented (“John”, “Doe”, +1.408.555.1212)
+# (“John”, “Doe”, +1.408.555.1212)
 ; “Jane”, “Smith”, +1.650.555.1212
-# $!.unimplemented (“Jane”, “Smith”, +1.650.555.1212)
+# (“Jane”, “Smith”, +1.650.555.1212)
 ```
 ### HCSON
 
@@ -929,9 +929,9 @@ HC can also emulate the popular JSON[@Cite] format, or more precisely its
 CoffeeScript cousin CSON[@Cite].
 ```
 ; .first-name “John”, .last-name “Doe”, .phone-number +1.408.555.1212
-# $!.unimplemented (.first-name “John”, .last-name “Doe”, .phone-number +1.408.555.1212)
+# (.first-name “John”, .last-name “Doe”, .phone-number +1.408.555.1212)
 ; .first-name “Jane”, .last-name “Smith”, .phone-number +1.650.555.1212
-# $!.unimplemented (.first-name “Jane”, .last-name “Smith”, .phone-number +1.650.555.1212)
+# (.first-name “Jane”, .last-name “Smith”, .phone-number +1.650.555.1212)
 ```
 ## Object-Orientation
 
