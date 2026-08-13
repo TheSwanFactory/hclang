@@ -197,6 +197,26 @@ describe("evaluate", () => {
       expect(result.toString()).toEqual("[6]");
     });
 
+    describe("numeric properties", () => {
+      it("composes an integer and numeric property into a decimal", () => {
+        expect(evaluate("1.408").toString()).toEqual("[1.408]");
+      });
+
+      it("preserves additional segments and their leading zeroes", () => {
+        expect(evaluate("1.408.055.1212").toString()).toEqual(
+          "[1.408.055.1212]",
+        );
+      });
+
+      it("completes at an expression boundary", () => {
+        expect(evaluate("1.408, 2").toString()).toEqual("[(1.408, 2)]");
+      });
+
+      it("reports a nonnumeric property as missing", () => {
+        expect(evaluate("1.invalid").toString()).toContain("name-missing");
+      });
+    });
+
     it("uses .+ for addition", () => {
       const input = "3.+2";
       const result = evaluate(input);

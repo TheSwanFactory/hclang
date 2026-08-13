@@ -2,6 +2,7 @@ import { Frame } from "./frame.ts";
 import { FrameAtom } from "./frame-atom.ts";
 import { NilContext } from "./context.ts";
 import type { Context } from "./context.ts";
+import type { MetaFrame } from "./meta-frame.ts";
 import type { SigilStart } from "../scan.ts";
 export class FrameNumber extends FrameAtom {
   public static readonly NUMBER_BEGIN = /[1-9]/;
@@ -17,10 +18,19 @@ export class FrameNumber extends FrameAtom {
 
   protected static numbers: { [key: string]: FrameNumber } = {};
   protected data: number;
+  protected spelling: string;
 
   constructor(source: string, meta: Context = NilContext) {
     super(meta);
-    this.data = parseInt(source, 10);
+    this.data = Number(source);
+    this.spelling = source;
+  }
+
+  public override get(key: string, origin: MetaFrame = this): Frame {
+    if (/^\d+$/.test(key)) {
+      return new FrameNumber(`${this.spelling}.${key}`);
+    }
+    return super.get(key, origin);
   }
 
   public override apply(argument: Frame, _parameter: Frame): Frame {
@@ -49,8 +59,8 @@ export class FrameNumber extends FrameAtom {
     return FrameNumber.NUMBER_CHAR.test(char);
   }
 
-  protected override toData(): number {
-    return this.data;
+  protected override toData(): string {
+    return this.spelling;
   }
 
   /*
