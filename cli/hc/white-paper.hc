@@ -698,7 +698,7 @@ Which, when the first expression does not return nil, acts just like C's ternary
 operator:
 [source,hc]
 ----
-; 1 > 5 ? (2 * 50) : 10
+; 1.> 5 ? (2 * 50) : 10
 # 10
 ----
 Note that applying nil to anything other than a closure has no effect, so

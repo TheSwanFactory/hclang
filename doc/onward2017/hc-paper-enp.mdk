@@ -707,7 +707,7 @@ and the opposite on regular frames.
 Which, when the first expression does not return nil, acts just like C's ternary
 operator:
 ``` ruby
-; 1 > 5 ? (2 * 50) : 10
+; 1.> 5 ? (2 * 50) : 10
 # 10
 ```
 
