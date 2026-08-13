@@ -1,0 +1,166 @@
+:root {
+  color: #172033;
+  background: #eef2f7;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+  font-synthesis: none;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+a {
+  color: #4338ca;
+}
+
+a:hover {
+  color: #312e81;
+}
+
+.app-shell {
+  display: grid;
+  grid-template-columns: 17rem minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  align-self: start;
+  height: 100vh;
+  padding: 2rem 1.5rem;
+  overflow-y: auto;
+  background: #fff;
+  border-right: 1px solid #dbe3ef;
+}
+
+.sidebar h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+}
+
+.sidebar h2:not(:first-child) {
+  margin-top: 2rem;
+}
+
+.sidebar nav {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.sidebar a {
+  width: fit-content;
+  line-height: 1.4;
+  text-decoration: none;
+}
+
+.sidebar a:hover {
+  text-decoration: underline;
+}
+
+.page {
+  display: flex;
+  min-width: 0;
+  min-height: 100vh;
+  flex-direction: column;
+}
+
+.content {
+  width: min(100%, 64rem);
+  margin: 0 auto;
+  padding: 3rem 2rem;
+  flex: 1;
+}
+
+footer {
+  padding: 1.5rem;
+  color: #64748b;
+  text-align: center;
+}
+
+.error-page {
+  padding: clamp(1.5rem, 4vw, 3rem);
+  background: #fff;
+  border: 1px solid #dbe3ef;
+  border-radius: 1rem;
+  box-shadow: 0 1rem 3rem rgb(15 23 42 / 8%);
+}
+
+.error-page h1 {
+  margin: 0.25rem 0 0.75rem;
+  color: #111827;
+  font-size: clamp(2rem, 5vw, 3rem);
+  line-height: 1.05;
+}
+
+.error-page p:not(.eyebrow) {
+  color: #536176;
+}
+
+.error-page .eyebrow {
+  margin: 0;
+  color: #4f46e5;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.error-page .button {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1rem;
+  padding: 0.75rem 1.25rem;
+  color: #fff;
+  background: #4f46e5;
+  border-radius: 0.65rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.error-page .button:hover {
+  color: #fff;
+  background: #3730a3;
+}
+
+.error-page .button:focus-visible,
+a:focus-visible {
+  outline: 3px solid #818cf8;
+  outline-offset: 3px;
+}
+
+@media (max-width: 760px) {
+  .app-shell {
+    display: block;
+  }
+
+  .sidebar {
+    position: static;
+    width: auto;
+    height: auto;
+    border-right: 0;
+    border-bottom: 1px solid #dbe3ef;
+  }
+
+  .sidebar nav {
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  }
+
+  .content {
+    padding: 1.25rem;
+  }
+
+  .error-page {
+    padding: 1.25rem;
+  }
+}

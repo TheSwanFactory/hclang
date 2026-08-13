@@ -52,9 +52,9 @@ Each package has detailed documentation in its own CLAUDE.md file:
   - Higher-order functions
 
 - **[web/CLAUDE.md](web/CLAUDE.md)** - Web interface
-  - Standalone HTML page
-  - Fresh framework server
-  - Browser-based HC execution
+  - Fresh 2 application and production build
+  - Reusable Preact island published as `@swanfactory/hcweb`
+  - Browser-based HC execution with transitive hclang loading
 
 ## Quick Start
 
@@ -105,7 +105,7 @@ deno task setup             # Install pre-commit hooks
 ### Building
 
 ```bash
-deno task build             # Build CLI binary
+deno task build             # Build the CLI and Fresh web application
 ```
 
 ## Key Concepts
@@ -258,11 +258,12 @@ See [cli/CLAUDE.md](cli/CLAUDE.md)
 
 ### Web (web/)
 
-Browser interface built on lib:
+Fresh 2 application and reusable Preact island package:
 
-- Standalone HTML page
-- Fresh framework for dev server
-- Client-side HC execution
+- One authoritative browser-based HC interpreter
+- Published to JSR as `@swanfactory/hcweb`
+- Loads the workspace/JSR hclang package transitively
+- Built with Fresh's Vite plugin for deployment
 
 See [web/CLAUDE.md](web/CLAUDE.md)
 

@@ -4,6 +4,13 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.9.2 2026-08-13
+
+- Re-publish hcweb as a Fresh 2 island package that loads hclang transitively
+  from JSR without consumer-side dependency configuration.
+- Restore a production-built HC playground with accessible submit, history,
+  reset, and recoverable error behavior, replacing the obsolete static fallback.
+
 ## v0.9.1 2026-08-13
 
 - Resolve previously evaluated integer bindings as dynamic byte-string lengths

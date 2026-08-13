@@ -1,54 +1,64 @@
 import { useState } from "preact/hooks";
-import { JSX } from "preact";
+import type { JSX } from "preact";
 
-/**
- * Props for the Executor component that handles command input and display
- */
+/** Properties for the HC source editor and result display. */
 export interface ExecutorProps {
-  /** Callback function to handle command submission */
   onSubmit: (input: string) => Promise<void>;
-  /** Most recent command output to display */
   latestOutput: string;
+  latestError?: string;
 }
 
-/**
- * Component that provides a textarea for entering commands and displays their output
- * @param props - Component properties
- * @returns A form with input and output areas
- */
+/** Collects HC source and displays the latest evaluation result. */
 export default function Executor(
-  { onSubmit, latestOutput }: ExecutorProps,
+  { onSubmit, latestOutput, latestError = "" }: ExecutorProps,
 ): JSX.Element {
   const [input, setInput] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async () => {
-    if (!input.trim()) return;
-    await onSubmit(input);
-    setInput("");
-  };
+  const handleSubmit = async (
+    event: JSX.TargetedSubmitEvent<HTMLFormElement>,
+  ): Promise<void> => {
+    event.preventDefault();
+    if (!input.trim() || isSubmitting) return;
 
-  const handleInput = (e: JSX.TargetedEvent<HTMLTextAreaElement>) => {
-    setInput(e.currentTarget.value);
+    setIsSubmitting(true);
+    try {
+      await onSubmit(input);
+      setInput("");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <div class="space-y-4 w-full">
+    <form class="executor" onSubmit={handleSubmit}>
+      <label for="hc-source">HC source</label>
       <textarea
-        class="w-full h-40 p-4 font-mono text-sm border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+        id="hc-source"
+        name="source"
         placeholder="e.g., .a 1; a + a, a * a"
         value={input}
-        onInput={handleInput}
+        onInput={(event) => setInput(event.currentTarget.value)}
       />
-      <button
-        class="w-full sm:w-auto px-6 py-3 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
-        type="button"
-        onClick={handleSubmit}
-      >
-        Submit
-      </button>
-      <pre class="w-full p-4 bg-gray-50 border border-gray-200 rounded-lg font-mono text-sm overflow-x-auto shadow-sm">
-        {latestOutput || "Output will appear here"}
-      </pre>
-    </div>
+      <div class="actions">
+        <button
+          class="button button--primary"
+          disabled={isSubmitting}
+          type="submit"
+        >
+          {isSubmitting ? "Running…" : "Submit"}
+        </button>
+      </div>
+
+      <section class="result" aria-label="Latest result">
+        {latestError
+          ? <p class="error" role="alert">{latestError}</p>
+          : (
+            <pre data-testid="latest-output" aria-live="polite">
+              {latestOutput || "Output will appear here"}
+            </pre>
+          )}
+      </section>
+    </form>
   );
 }

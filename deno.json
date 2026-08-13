@@ -1,21 +1,22 @@
 {
-  "version": "0.9.1",
-  "bin": {
-    "hc": "scripts/hc"
-  },
+  "version": "0.9.2",
+  "nodeModulesDir": "manual",
+  "bin": { "hc": "scripts/hc" },
   "tasks": {
-    "build": "cd cli && deno task build",
+    "build": "deno task build:cli && deno task build:web",
+    "build:cli": "cd cli && deno task build",
+    "build:web": "cd web && deno task build",
     "bump": "deno run -A scripts/bump-version.ts && deno install && git add deno.json deno.lock lib/version.ts cli/deno.json lib/deno.json maml/deno.json web/deno.json && git commit -m 'Bump version'",
     "clean": "rm deno.lock */deno.lock",
     "hc": "deno run -A cli/hc.ts",
-    "publish": "cd lib && deno publish",
+    "publish": "cd lib && deno publish && cd ../web && deno publish",
     "setup": "deno run -A deno-hooks",
     "test": "deno fmt && deno lint --fix && deno task test:all",
     "test:cli": "cd cli && deno task test",
     "test:doc": "cd cli && deno task test:doc",
     "test:lib": "deno test lib",
     "test:maml": "deno test maml",
-    "test:web": "cd web && deno test",
+    "test:web": "cd web && deno task test",
     "test:bs": "cd cli && deno task test:bs",
     "test:all": "deno task test:cli && deno task test:lib && deno task test:web && deno task test:bs",
     "vscode:package": "cd vscode-extension && npx @vscode/vsce package",
@@ -23,30 +24,12 @@
     "vscode:install": "cd vscode-extension && npx @vscode/vsce package && code --install-extension *.vsix"
   },
   "compilerOptions": {
-    "jsx": "react-jsx",
-    "jsxImportSource": "preact",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext",
-      "deno.ns"
-    ],
-    "types": [
-      "preact"
-    ]
+    "lib": ["dom", "dom.iterable", "esnext", "deno.ns"]
   },
-  "fmt": {
-    "exclude": [
-      "**/*.html",
-      "**/_fresh/*"
-    ]
-  },
+  "fmt": { "exclude": ["**/*.html", "**/_fresh/*"] },
   "lint": {
     "rules": {
-      "tags": [
-        "fresh",
-        "recommended"
-      ],
+      "tags": ["fresh", "recommended"],
       "include": [
         "explicit-function-return-type",
         "explicit-module-boundary-types",
@@ -56,26 +39,8 @@
     }
   },
   "imports": {
-    "$fresh/": "https://deno.land/x/fresh@1.7.3/",
-    "@swanfactory/hclang": "https://esm.sh/jsr/@swanfactory/hclang@0.7.2/",
     "@theswanfactory/deno-hooks": "jsr:@theswanfactory/deno-hooks@0.2.1-dev.1765778019",
-    "deno-hooks": "jsr:@theswanfactory/deno-hooks@0.2.1-dev.1765778019",
-    "preact": "https://esm.sh/preact@10.23.1/",
-    "preact/": "https://esm.sh/preact@10.23.1/",
-    "@preact/hooks": "https://esm.sh/preact@10.23.1/hooks",
-    "@preact/signals": "https://esm.sh/*@preact/signals@1.2.2",
-    "@preact/signals-core": "https://esm.sh/*@preact/signals-core@1.5.1",
-    "$std/": "https://deno.land/std@0.216.0/",
-    "@std/expect": "jsr:@std/expect@^0.219.1",
-    "twind": "https://esm.sh/twind@0.16.19",
-    "twind/": "https://esm.sh/twind@0.16.19/",
-    "@twind/core": "https://esm.sh/@twind/core@1.1.3",
-    "@twind/preset-tailwind": "https://esm.sh/@twind/preset-tailwind@1.1.4"
+    "deno-hooks": "jsr:@theswanfactory/deno-hooks@0.2.1-dev.1765778019"
   },
-  "workspace": [
-    "cli",
-    "lib",
-    "maml",
-    "web"
-  ]
+  "workspace": ["cli", "lib", "maml", "web", "web/tests/consumer"]
 }

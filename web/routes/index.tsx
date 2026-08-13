@@ -1,10 +1,8 @@
+import type { JSX } from "preact";
 import Main from "../islands/Main.tsx";
-import { JSX } from "preact";
+import { define } from "../utils.ts";
 
-/**
- * Home page component that renders the main REPL interface
- * @returns The rendered home page
- */
-export default function Home(): JSX.Element {
+/** Renders the interactive HC playground. */
+export default define.page(function Home(): JSX.Element {
   return <Main />;
-}
+});

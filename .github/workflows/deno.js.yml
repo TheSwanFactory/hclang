@@ -29,6 +29,9 @@ jobs:
       - run: deno ci
       - run: deno task build
       - run: deno task test:all
+      - name: Validate hcweb package
+        working-directory: web
+        run: deno publish --dry-run
       - name: Detect version bump
         id: version
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
