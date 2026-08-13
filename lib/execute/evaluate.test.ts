@@ -468,6 +468,20 @@ describe("evaluate", () => {
     });
 
     // Reassignment tests
+    it("returns the assigned value when reassigning a variable", () => {
+      const result = evaluate(".variable 42; .variable 113");
+      expect(result.at(0).toString()).toEqual("((.variable 42); 113)");
+      expect(result.meta.variable.toString()).toEqual("113");
+    });
+
+    it("rejects reassignment of a constant without changing its value", () => {
+      const result = evaluate(".Constant 21; .Constant 7");
+      expect(result.at(0).toString()).toEqual(
+        "((.Constant 21); $error{$is-constant .Constant})",
+      );
+      expect(result.meta.Constant.toString()).toEqual("21");
+    });
+
     it("allows multiple valid assignments", () => {
       const result = evaluate(".x <1,2> 1; @x 2; @x 1");
       expect(result.toString()).not.toContain("$!.type-error");

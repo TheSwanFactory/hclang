@@ -69,8 +69,15 @@ export class FrameSymbol extends FrameAtom {
       );
     }
 
+    const previous = out.get_here(this.data);
+    if (!previous.is.missing && this.isConstant()) {
+      return new FrameLiteral(`$error{$is-constant .${this.data}}`);
+    }
+
     out.set(this.data, argument);
-    return new FrameLiteral(`.${this.data} ${argument.toString()}`);
+    return previous.is.missing
+      ? new FrameLiteral(`.${this.data} ${argument.toString()}`)
+      : argument;
   }
 
   public setter(out: Frame): FrameSymbol {
@@ -108,6 +115,10 @@ export class FrameSymbol extends FrameAtom {
     return schema.asArray().some((capture) =>
       capture.toString() === value.toString()
     );
+  }
+
+  private isConstant(): boolean {
+    return /^\p{Lu}/u.test(this.data);
   }
 }
 

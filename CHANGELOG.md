@@ -4,6 +4,15 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.8.7 2026-08-12
+
+- Return the assigned value when reassigning variables and preserve it in the
+  surrounding expression.
+- Reject reassignment of uppercase constant names without changing their
+  original value.
+- Classify the white paper's module, visibility, mutability, object, class, and
+  inheritance examples with focused follow-up issues.
+
 ## v0.8.6 2026-08-12
 
 - Compare frames independently across their whole value, data plane (`==`), and

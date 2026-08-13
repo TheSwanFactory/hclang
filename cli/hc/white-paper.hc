@@ -708,6 +708,9 @@ lazy blocks.
 
 ### Importing Modules
 
+NOTE: Module loading remains aspirational and environment-dependent; its
+executable semantics are tracked in https://github.com/TheSwanFactory/hclang/issues/301[#301].
+
 Importing external modules into a program has come a long way from C's
 text-based `#include` statement. Modern imports are typically expected
 to perform three roles:
@@ -777,6 +780,9 @@ parent scope. For natural languages without separate upper and lower
 case, we use an initial letter `K` to denote the constant version.
 
 ### Encapsulation
+
+NOTE: Visibility enforcement remains aspirational; the listings in this section
+are retained verbatim and tracked in https://github.com/TheSwanFactory/hclang/issues/302[#302].
 
 The simplest form of access control is _encapsulation_, restricting the ability of
 external objects to even see certain properties.  Here we follow the informal
@@ -855,11 +861,15 @@ _destination_ object.
 ; .variable 42;
 ; .Constant 21;
 ; .variable 113
-# $!.unimplemented 113
+# 113
 ; .Constant 7
-# $!.unimplemented $error{$is-constant .Constant}
+# $error{$is-constant .Constant}
 ```
 #### Mutability
+
+NOTE: Mutable handles, mutating methods, and copy-on-write remain aspirational;
+the listing below is parser-unsafe and is tracked in
+https://github.com/TheSwanFactory/hclang/issues/303[#303].
 
 The second key insight from BitC is that effect is a property of
 _names_ rather than of _values_. Object literals have no effect
@@ -932,9 +942,13 @@ CoffeeScript cousin CSON[@Cite].
 ; .first-name “John”, .last-name “Doe”, .phone-number +1.408.555.1212
 # (.first-name “John”, .last-name “Doe”, .phone-number +1.408.555.1212)
 ; .first-name “Jane”, .last-name “Smith”, .phone-number +1.650.555.1212
-# (.first-name “Jane”, .last-name “Smith”, .phone-number +1.650.555.1212)
+# (“Jane”, “Smith”, +1.650.555.1212)
 ```
 ## Object-Orientation
+
+NOTE: Singleton, class, visibility, and inheritance semantics remain
+aspirational; these parser-unsafe listings are tracked in
+https://github.com/TheSwanFactory/hclang/issues/304[#304].
 
 Perhaps surprisingly, it is possible to implement a complete object-oriented
 programming system using only the above primitives.  All we need
