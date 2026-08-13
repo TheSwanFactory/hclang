@@ -273,6 +273,28 @@ describe("evaluate", () => {
       }
     });
 
+    describe("chained conditionals", () => {
+      it("selects the else branch for a false dotted predicate", () => {
+        expect(evaluate("1.> 5 ? (2 * 50) : 10").toString()).toEqual("[10]");
+      });
+
+      it("preserves the then result for a true dotted predicate", () => {
+        expect(evaluate("5.> 1 ? (2 * 50) : 10").toString()).toEqual("[100]");
+      });
+
+      it("does not evaluate a lazy then branch when false", () => {
+        expect(evaluate("1.> 5 ? {missing} : {10}").toString()).toEqual(
+          "[10]",
+        );
+      });
+
+      it("does not evaluate a lazy else branch when true", () => {
+        expect(evaluate("5.> 1 ? {100} : {missing}").toString()).toEqual(
+          "[100]",
+        );
+      });
+    });
+
     it("uses .+ for addition", () => {
       const input = "3.+2";
       const result = evaluate(input);
