@@ -97,6 +97,32 @@ Test types
 ; @one 2
 # $!.type-error .one <1> 2
 ```
+Conditionals
+```
+## Binary truth table for ordinary frames and raw nil
+; 1 ? {2 + 2}
+# 4
+; 1 : {2 + 2}
+# ()
+; () ? {2 + 2}
+# ()
+; () : {2 + 2}
+# 4
+## Dotted comparisons produce explicit true and false predicates
+; 1.> 5 ? {100}
+# ()
+; 1.> 5 : {10}
+# 10
+; 5.> 1 ? {100}
+# 100
+; 5.> 1 : {10}
+# ()
+## Chained conditionals preserve the predicate across both branches
+; 1.> 5 ? (2 * 50) : 10
+# 10
+; 5.> 1 ? (2 * 50) : 10
+# 100
+```
 Future: String schemas (not yet implemented)
 ```
 ; .color <"red","green","blue"> "red"  # Would validate string enums

@@ -153,10 +153,11 @@ describe("evaluate", () => {
       expect(output.toString()).toEqual("{ _ + 1 }");
     });
 
-    it("returns FrameNote for empty ()", () => {
+    it("returns explicit false for empty ()", () => {
       const result = evaluate("()");
       const output = result.at(0);
-      expect(output).toBeInstanceOf(frame.FrameNote);
+      expect(output).toBe(frame.Frame.false);
+      expect(output.toString()).toEqual("()");
     });
 
     it("returns FrameArray for empty [] with spaces", () => {
@@ -251,6 +252,25 @@ describe("evaluate", () => {
       it("treats a false comparison as false for an else branch", () => {
         expect(evaluate("3.> 4 : {1}").toString()).toEqual("[1]");
       });
+    });
+
+    describe("binary conditionals", () => {
+      for (
+        const [source, expected] of [
+          ["1 ? {4}", "[4]"],
+          ["1 : {4}", "[()]"],
+          ["() ? {4}", "[()]"],
+          ["() : {4}", "[4]"],
+          ["1.> 5 ? {100}", "[()]"],
+          ["1.> 5 : {10}", "[10]"],
+          ["5.> 1 ? {100}", "[100]"],
+          ["5.> 1 : {10}", "[()]"],
+        ]
+      ) {
+        it(`${source} evaluates to ${expected}`, () => {
+          expect(evaluate(source).toString()).toEqual(expected);
+        });
+      }
     });
 
     it("uses .+ for addition", () => {

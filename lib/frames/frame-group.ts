@@ -27,7 +27,7 @@ export class FrameGroup extends FrameList {
   public override in(contexts = [Frame.nil]): Frame {
     switch (this.size()) {
       case 0: {
-        return Frame.nil;
+        return this.up?.is.missing === true ? Frame.nil : Frame.false;
       }
       case 1: {
         return this.eval_one(contexts);

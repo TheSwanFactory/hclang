@@ -79,6 +79,20 @@ export class Frame extends MetaFrame {
     }
   })();
   /**
+   * true is an explicit true result that can continue through an expression.
+   * Frame.all remains the absorbing universal schema value.
+   */
+  public static readonly true: Frame = new (class extends Frame {
+    constructor() {
+      super();
+      this.is.true = true;
+    }
+
+    override toString(): string {
+      return "<>";
+    }
+  })();
+  /**
    * all is the singleton Frame '<>' that represents the total type (true).
    */
 
