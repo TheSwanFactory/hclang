@@ -89,8 +89,12 @@ export class FrameList extends Frame {
     return clone;
   }
 
-  protected array_eval(contexts: Array<Frame>): Array<Frame> {
-    contexts.push(this);
+  /** Evaluate source items with an explicit innermost declaration target. */
+  protected array_eval(
+    contexts: Array<Frame>,
+    out: Frame = this,
+  ): Array<Frame> {
+    contexts.push(out);
     return this.data.map((f: Frame) => f.in(contexts));
   }
 }

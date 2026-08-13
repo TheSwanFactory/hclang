@@ -26,13 +26,12 @@ export class FrameArray extends FrameList {
   }
 
   public override in(contexts: Array<Frame> = [Frame.nil]): Frame {
-    const runtime = this.copy();
-    const array = runtime.array_eval([...contexts]);
-    const result = new FrameArray(array, runtime.meta_copy());
-    if (runtime.is.inherited === true) {
-      result.up = runtime.up;
+    const result = new FrameArray([...this.data], this.meta_copy());
+    if (this.is.inherited === true) {
+      result.up = this.up;
       result.is.inherited = true;
     }
+    result.data = this.array_eval([...contexts], result);
     return result;
   }
 
