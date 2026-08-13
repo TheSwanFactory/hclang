@@ -21,12 +21,12 @@ import {
   type ISourced,
   NilContext,
 } from "../frames.ts";
+import { sigilizer } from "./sigilizer.ts";
 import {
-  Scan,
+  ScanDisposition,
   type ScanResponse,
-  sigilizer,
   type SigilStart,
-} from "./sigilizer.ts";
+} from "../scan.ts";
 
 export type Flag = { [key: string]: boolean };
 
@@ -95,7 +95,10 @@ export class Lex extends Frame implements ISourced {
 
   public transitionScan(next: Frame): ScanResponse {
     if (!(next instanceof FrameAtom)) {
-      return Scan.error("lexical transition did not return an atom");
+      return {
+        disposition: ScanDisposition.Error,
+        message: "lexical transition did not return an atom",
+      };
     }
     this.sample = next;
     this.body = "";

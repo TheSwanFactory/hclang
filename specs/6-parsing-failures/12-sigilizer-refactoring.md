@@ -25,8 +25,8 @@ on the active lexeme.
 
 ### A scan decision is not a Frame
 
-Replace `LexicalScan extends Frame` with a discriminated `ScanResult` value. Its
-disposition is enum-like, with payloads only where required:
+Replace `LexicalScan extends Frame` with a plain `ScanResult` record containing
+a `ScanDisposition` enum and optional payloads:
 
 - consume the Symbol;
 - complete, either consuming or redispatching the Symbol, with an optional
@@ -37,6 +37,19 @@ disposition is enum-like, with payloads only where required:
 An error produced from that result may become an error Frame at the pipeline
 boundary. The decision itself MUST NOT impersonate a language value or active
 lexical receiver.
+
+The protocol MUST NOT introduce a factory namespace or helper language for
+constructing results. Syntax participants return ordinary object literals such
+as `{ disposition: ScanDisposition.Consume }`.
+
+### The scan protocol is neutral
+
+`ScanDisposition`, `ScanResult`, `ScanResponse`, and `SigilStart` live in a
+neutral lexical protocol module. Frame classes and Sigilizer both depend on that
+module; neither obtains the protocol through the other.
+
+The protocol's reference to `Frame` is type-only. It MUST NOT introduce a
+runtime dependency from the neutral module back into the Frame hierarchy.
 
 ### Sigilizer routes decisions
 
@@ -66,6 +79,8 @@ protocol.
 ## Acceptance
 
 - No `LexicalScan` Frame class remains.
+- No `Scan` factory namespace or frozen constructor table remains.
+- Frame classes do not import scan protocol types or values from Sigilizer.
 - Sigil starts are obtained from static class values without sample instances.
 - Sigilizer contains the sole scan-disposition routing switch.
 - Redispatch and EOF pass through Sigilizer.

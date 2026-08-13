@@ -1,6 +1,6 @@
 import { FrameString } from "./frame-string.ts";
 import { type Context, NilContext } from "./context.ts";
-import type { SigilStart } from "../execute/sigilizer.ts";
+import type { SigilStart } from "../scan.ts";
 
 export class FrameDoc extends FrameString {
   public static readonly DOC_BEGIN = "`";

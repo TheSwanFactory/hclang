@@ -1,7 +1,7 @@
 import { Frame } from "./frame.ts";
 import { FrameList } from "./frame-list.ts";
 import { NilContext } from "./context.ts";
-import type { SigilStart } from "../execute/sigilizer.ts";
+import type { SigilStart } from "../scan.ts";
 
 export class FrameGroup extends FrameList {
   public static readonly SIGIL_STARTS = [

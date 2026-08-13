@@ -3,11 +3,7 @@ import { FrameAtom } from "./frame-atom.ts";
 import { FrameNote } from "./frame-note.ts";
 import { FrameSchema } from "./frame-schema.ts";
 import { type Context, NilContext } from "./context.ts";
-import {
-  Scan,
-  type ScanResult,
-  type SigilStart,
-} from "../execute/sigilizer.ts";
+import { ScanDisposition, type ScanResult, type SigilStart } from "../scan.ts";
 
 class FrameLiteral extends FrameAtom {
   constructor(protected data: string) {
@@ -145,8 +141,12 @@ export class FrameOperator extends FrameSymbol {
   public override scan(symbol: Frame, _source = ""): ScanResult {
     const char = symbol.toString();
     if (char === "<" || char === ">") {
-      return Scan.completeRedispatch();
+      return { disposition: ScanDisposition.CompleteRedispatch };
     }
-    return this.canInclude(char) ? Scan.consume() : Scan.completeRedispatch();
+    return {
+      disposition: this.canInclude(char)
+        ? ScanDisposition.Consume
+        : ScanDisposition.CompleteRedispatch,
+    };
   }
 }

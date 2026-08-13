@@ -2,7 +2,8 @@ import { expect } from "jsr:@std/expect@^0.219.1";
 import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 
 import { Frame, FrameSymbol } from "../frames.ts";
-import { Scan, type ScanResponse, Sigilizer } from "./sigilizer.ts";
+import { ScanDisposition, type ScanResponse } from "../scan.ts";
+import { Sigilizer } from "./sigilizer.ts";
 
 class RecordingReceiver extends Frame {
   public readonly received: string[] = [];
@@ -21,7 +22,7 @@ class CompletingReceiver extends Frame {
   }
 
   public override scan(_symbol: Frame): ScanResponse {
-    return Scan.completeRedispatch();
+    return { disposition: ScanDisposition.CompleteRedispatch };
   }
 
   public consumeScan(_symbol: Frame): Frame {
@@ -70,7 +71,8 @@ describe("Sigilizer", () => {
 
     const result = phase.scan(receiver, FrameSymbol.for("x"));
 
-    expect(Scan.consume() instanceof Frame).toBe(false);
+    const decision: ScanResponse = { disposition: ScanDisposition.Consume };
+    expect(decision instanceof Frame).toBe(false);
     expect(receiver.completed).toEqual(1);
     expect(next.received).toEqual(["x"]);
     expect(result).toBe(next);

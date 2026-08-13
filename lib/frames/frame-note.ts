@@ -5,10 +5,10 @@ import { FrameString } from "./frame-string.ts";
 import { FrameSymbol } from "./frame-symbol.ts";
 import { NilContext, type StringMap } from "./context.ts";
 import {
-  Scan,
+  ScanDisposition,
   type ScanResponse,
   type SigilStart,
-} from "../execute/sigilizer.ts";
+} from "../scan.ts";
 
 export type LanguageBinding = { [key: string]: StringMap };
 
@@ -107,7 +107,7 @@ export class FrameNote extends FrameQuote {
       return this.call(symbol);
     }
     if (symbol.toString() === this.string_suffix()) {
-      return Scan.completeRedispatch();
+      return { disposition: ScanDisposition.CompleteRedispatch };
     }
     return super.scan(symbol, source);
   }

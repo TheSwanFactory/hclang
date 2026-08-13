@@ -1,11 +1,11 @@
 import { Frame, FrameDoc, FrameSymbol, NilContext } from "../frames.ts";
 import { Lex, Token } from "./lex.ts";
+import { sigilizer } from "./sigilizer.ts";
 import {
-  Scan,
+  ScanDisposition,
   type ScanResponse,
   type ScanResult,
-  sigilizer,
-} from "./sigilizer.ts";
+} from "../scan.ts";
 
 /**
  * Monadic parser for document atoms selected by the backtick syntax entry.
@@ -33,9 +33,10 @@ export class LexDoc extends Lex {
     if (char === FrameDoc.DOC_END) {
       this.ticks += 1;
       if (!this.opening && this.ticks > this.fenceLength) {
-        return Scan.error(
-          "document fence run exceeds the opening fence",
-        );
+        return {
+          disposition: ScanDisposition.Error,
+          message: "document fence run exceeds the opening fence",
+        };
       }
       return this;
     }
@@ -101,9 +102,10 @@ export class LexDoc extends Lex {
       return sigilizer.scan(this.up, argument);
     }
 
-    return Scan.error(
-      "document fence run exceeds the opening fence",
-    );
+    return {
+      disposition: ScanDisposition.Error,
+      message: "document fence run exceeds the opening fence",
+    };
   }
 
   private emitDocument(body: string, fenceLength: number): void {
@@ -113,7 +115,10 @@ export class LexDoc extends Lex {
   }
 
   private failUnterminated(): ScanResult {
-    return Scan.error("unterminated document string");
+    return {
+      disposition: ScanDisposition.Error,
+      message: "unterminated document string",
+    };
   }
 
   private resetDocument(): void {

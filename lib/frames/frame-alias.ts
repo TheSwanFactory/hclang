@@ -3,7 +3,7 @@ import { FrameAtom } from "./frame-atom.ts";
 import { FrameNote } from "./frame-note.ts";
 import { FrameSymbol } from "./frame-symbol.ts";
 import { NilContext } from "./context.ts";
-import type { SigilStart } from "../execute/sigilizer.ts";
+import type { SigilStart } from "../scan.ts";
 
 export class FrameAlias extends FrameAtom {
   public static readonly ALIAS_BEGIN = "@";

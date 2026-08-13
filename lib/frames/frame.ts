@@ -2,7 +2,7 @@ import { MetaFrame } from "./meta-frame.ts";
 import { NilContext } from "./context.ts";
 import type { ICurryFunction } from "../ops.ts";
 import type { IArrayConstructor } from "../frames.ts";
-import type { ScanResponse } from "../execute/sigilizer.ts";
+import type { ScanResponse } from "../scan.ts";
 
 /**
  * Flags map strings to booleans.

@@ -1,43 +1,5 @@
 import { Frame } from "../frames/frame.ts";
-
-export type LexicalMode = "atom" | "document" | "push" | "pop";
-
-export interface SigilStart {
-  readonly key: string;
-  readonly mode: LexicalMode;
-}
-
-export type ScanResult =
-  | { readonly disposition: "consume" }
-  | {
-    readonly disposition: "complete";
-    readonly redispatch: boolean;
-    readonly value: Frame | null;
-  }
-  | { readonly disposition: "transition"; readonly next: Frame }
-  | { readonly disposition: "error"; readonly message: string };
-
-export type ScanResponse = Frame | ScanResult;
-
-/** Constructors for the small result language understood by Sigilizer. */
-export const Scan = Object.freeze({
-  consume: (): ScanResult => ({ disposition: "consume" }),
-  completeConsume: (value: Frame | null = null): ScanResult => ({
-    disposition: "complete",
-    redispatch: false,
-    value,
-  }),
-  completeRedispatch: (value: Frame | null = null): ScanResult => ({
-    disposition: "complete",
-    redispatch: true,
-    value,
-  }),
-  transition: (next: Frame): ScanResult => ({
-    disposition: "transition",
-    next,
-  }),
-  error: (message: string): ScanResult => ({ disposition: "error", message }),
-});
+import { ScanDisposition, type ScanResponse } from "../scan.ts";
 
 export interface ScanHost extends Frame {
   consumeScan(symbol: Frame): Frame;
@@ -95,8 +57,8 @@ export class Sigilizer {
       return result;
     }
 
-    if (result.disposition === "error") {
-      return new LexicalError(result.message);
+    if (result.disposition === ScanDisposition.Error) {
+      return new LexicalError(result.message ?? "lexical error");
     }
 
     if (!isScanHost(receiver)) {
@@ -107,17 +69,22 @@ export class Sigilizer {
     }
 
     switch (result.disposition) {
-      case "consume":
+      case ScanDisposition.Consume:
         return receiver.consumeScan(symbol);
-      case "complete": {
-        const next = receiver.completeScan(result.value);
-        return result.redispatch ? this.scan(next, symbol) : next;
+      case ScanDisposition.CompleteConsume:
+        return receiver.completeScan(result.frame ?? null);
+      case ScanDisposition.CompleteRedispatch: {
+        const next = receiver.completeScan(result.frame ?? null);
+        return this.scan(next, symbol);
       }
-      case "transition":
+      case ScanDisposition.Transition:
+        if (result.frame === undefined) {
+          return new LexicalError("lexical transition did not provide a Frame");
+        }
         return this.route(
           receiver,
           symbol,
-          receiver.transitionScan(result.next),
+          receiver.transitionScan(result.frame),
         );
     }
   }

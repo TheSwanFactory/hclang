@@ -1,11 +1,7 @@
 import { FrameQuote } from "./frame-atom.ts";
 import { type Context, NilContext } from "./context.ts";
 import type { Frame } from "./frame.ts";
-import {
-  Scan,
-  type ScanResult,
-  type SigilStart,
-} from "../execute/sigilizer.ts";
+import { ScanDisposition, type ScanResult, type SigilStart } from "../scan.ts";
 
 export class FrameComment extends FrameQuote {
   public static readonly COMMENT_BEGIN = "#";
@@ -35,16 +31,16 @@ export class FrameComment extends FrameQuote {
   public override scan(symbol: Frame, _source = ""): ScanResult {
     const char = symbol.toString();
     if (char === FrameComment.COMMENT_END) {
-      return Scan.completeConsume();
+      return { disposition: ScanDisposition.CompleteConsume };
     }
     if (char === "\n") {
-      return Scan.completeRedispatch();
+      return { disposition: ScanDisposition.CompleteRedispatch };
     }
-    return Scan.consume();
+    return { disposition: ScanDisposition.Consume };
   }
 
   public override finishInput(_source = ""): ScanResult {
-    return Scan.completeRedispatch();
+    return { disposition: ScanDisposition.CompleteRedispatch };
   }
 
   protected override toData(): string {

@@ -1,7 +1,7 @@
 import { Frame } from "./frame.ts";
 import { FrameExpr } from "./frame-expr.ts";
 import { type Context, NilContext } from "./context.ts";
-import type { SigilStart } from "../execute/sigilizer.ts";
+import type { SigilStart } from "../scan.ts";
 
 export class FrameLazy extends FrameExpr {
   public static readonly LAZY_BEGIN = "{";

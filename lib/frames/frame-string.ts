@@ -4,7 +4,7 @@ import { FrameSymbol } from "./frame-symbol.ts";
 import { NilContext } from "./context.ts";
 import type { Context } from "./context.ts";
 import { sigilizer } from "../execute/sigilizer.ts";
-import type { SigilStart } from "../execute/sigilizer.ts";
+import type { SigilStart } from "../scan.ts";
 
 const reducer = (current: Frame, char: string): Frame => {
   const symbol = FrameSymbol.for(char);

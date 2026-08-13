@@ -2,7 +2,7 @@ import { Frame } from "./frame.ts";
 import { FrameList } from "./frame-list.ts";
 import { FrameNote } from "./frame-note.ts";
 import { NilContext } from "./context.ts";
-import type { SigilStart } from "../execute/sigilizer.ts";
+import type { SigilStart } from "../scan.ts";
 
 export class FrameSchema extends FrameList {
   public static readonly BEGIN_SCHEMA = "<";

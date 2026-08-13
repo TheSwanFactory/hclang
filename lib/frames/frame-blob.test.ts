@@ -1,7 +1,12 @@
 import { expect } from "jsr:@std/expect@^0.219.1";
 import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 
-import { FrameBlob, FrameSymbol, type ScanResult } from "../frames.ts";
+import {
+  FrameBlob,
+  FrameSymbol,
+  ScanDisposition,
+  type ScanResult,
+} from "../frames.ts";
 
 describe("FrameBlob", () => {
   const source = "0b10100101";
@@ -55,11 +60,10 @@ describe("FrameBlob", () => {
         source,
       ) as ScanResult;
 
-      expect(accepted.disposition).toEqual("consume");
-      expect(rejected.disposition).toEqual("complete");
-      if (rejected.disposition === "complete") {
-        expect(rejected.redispatch).toBe(true);
-      }
+      expect(accepted.disposition).toEqual(ScanDisposition.Consume);
+      expect(rejected.disposition).toEqual(
+        ScanDisposition.CompleteRedispatch,
+      );
     });
   });
 

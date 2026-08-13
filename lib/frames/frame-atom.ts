@@ -1,6 +1,6 @@
 import { type Any, Frame } from "./frame.ts";
 import { NilContext } from "./context.ts";
-import { Scan, type ScanResponse } from "../execute/sigilizer.ts";
+import { ScanDisposition, type ScanResponse } from "../scan.ts";
 
 export class FrameAtom extends Frame {
   constructor(meta = NilContext) {
@@ -40,13 +40,15 @@ export class FrameAtom extends Frame {
   }
 
   public override scan(symbol: Frame, _source = ""): ScanResponse {
-    return this.canInclude(symbol.toString())
-      ? Scan.consume()
-      : Scan.completeRedispatch();
+    return {
+      disposition: this.canInclude(symbol.toString())
+        ? ScanDisposition.Consume
+        : ScanDisposition.CompleteRedispatch,
+    };
   }
 
   public override finishInput(_source = ""): ScanResponse {
-    return Scan.completeRedispatch();
+    return { disposition: ScanDisposition.CompleteRedispatch };
   }
 
   protected toData(): Any {
@@ -56,14 +58,18 @@ export class FrameAtom extends Frame {
 
 export class FrameQuote extends FrameAtom {
   public override scan(symbol: Frame, _source = ""): ScanResponse {
-    return symbol.toString() === this.string_suffix()
-      ? Scan.completeConsume()
-      : Scan.consume();
+    return {
+      disposition: symbol.toString() === this.string_suffix()
+        ? ScanDisposition.CompleteConsume
+        : ScanDisposition.Consume,
+    };
   }
 
   public override finishInput(source = ""): ScanResponse {
-    return Scan.error(
-      `unterminated ${this.className()}: ${this.string_prefix()}${source}`,
-    );
+    return {
+      disposition: ScanDisposition.Error,
+      message:
+        `unterminated ${this.className()}: ${this.string_prefix()}${source}`,
+    };
   }
 }

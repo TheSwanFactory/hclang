@@ -12,7 +12,7 @@ import {
   NilContext,
 } from "../frames.ts";
 import type { ICurryFunction } from "../ops.ts";
-import type { SigilStart } from "./sigilizer.ts";
+import type { SigilStart } from "../scan.ts";
 
 export type IAction = {
   [key: string]: Frame | IArrayConstructor;

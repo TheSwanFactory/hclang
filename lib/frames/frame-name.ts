@@ -4,11 +4,7 @@ import { FrameAtom } from "./frame-atom.ts";
 import { FrameOperator, FrameSymbol } from "./frame-symbol.ts";
 import type { ISourced } from "./meta-frame.ts";
 import { NilContext } from "./context.ts";
-import {
-  Scan,
-  type ScanResult,
-  type SigilStart,
-} from "../execute/sigilizer.ts";
+import { ScanDisposition, type ScanResult, type SigilStart } from "../scan.ts";
 
 export class FrameName extends FrameAtom implements ISourced {
   public static readonly NAME_BEGIN = ".";
@@ -53,18 +49,20 @@ export class FrameName extends FrameAtom implements ISourced {
   public override scan(symbol: Frame, source = this.source): ScanResult {
     const char = symbol.toString();
     if (!this.canInclude(char)) {
-      return Scan.completeRedispatch();
+      return { disposition: ScanDisposition.CompleteRedispatch };
     }
     if (source.length === 0) {
-      return Scan.consume();
+      return { disposition: ScanDisposition.Consume };
     }
 
     const startsWithOperator = FrameOperator.Accepts(source[0]);
     const continuesIdentifier = char[0] === "-" && !startsWithOperator;
     const sameKind = FrameOperator.Accepts(char[0]) === startsWithOperator;
-    return continuesIdentifier || sameKind
-      ? Scan.consume()
-      : Scan.completeRedispatch();
+    return {
+      disposition: continuesIdentifier || sameKind
+        ? ScanDisposition.Consume
+        : ScanDisposition.CompleteRedispatch,
+    };
   }
 
   protected override toData(): FrameSymbol {
