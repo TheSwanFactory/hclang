@@ -1,9 +1,18 @@
 import { Frame } from "../frames/frame.ts";
 import { ScanDisposition, type ScanResponse } from "../scan.ts";
 
+/**
+ * Primitive mutations a lexical state exposes to Sigilizer.
+ *
+ * Syntax-specific Frames decide what should happen; the host owns the mutable
+ * token buffer and output connection on which that decision operates.
+ */
 export interface ScanHost extends Frame {
+  /** Append one consumed Symbol and remain active. */
   consumeScan(symbol: Frame): Frame;
+  /** Emit the completed value, if any, and return the parent receiver. */
   completeScan(value: Frame | null): Frame;
+  /** Install a syntax-specific receiver while retaining the lexical host. */
   transitionScan(next: Frame): ScanResponse;
 }
 
@@ -40,10 +49,12 @@ class LexicalError extends Frame {
  * the generic routing of the resulting lexical decision.
  */
 export class Sigilizer {
+  /** Advance one lexical receiver by one source Symbol. */
   public scan(receiver: Frame, symbol: Frame): Frame {
     return this.route(receiver, symbol, receiver.scan(symbol));
   }
 
+  /** Resolve one lexical receiver at physical end-of-input. */
   public finish(receiver: Frame, end: Frame): Frame {
     return this.route(receiver, end, receiver.finishInput());
   }
@@ -90,4 +101,5 @@ export class Sigilizer {
   }
 }
 
+/** Shared stateless Sigilizer used by source reduction and incremental input. */
 export const sigilizer = new Sigilizer();

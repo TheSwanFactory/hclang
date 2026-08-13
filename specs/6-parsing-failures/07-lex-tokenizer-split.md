@@ -1,6 +1,7 @@
 # Lex and Tokenizer Phase Separation
 
-**Status:** Architectural direction\
+**Status:** Superseded by [08-sigilizer-phase.md](./08-sigilizer-phase.md),
+which keeps `Lex` and names the new phase Sigilizer\
 **Issue:**
 [#292 — Generalize the FrameAtom lexical-boundary contract beyond canInclude()](https://github.com/TheSwanFactory/hclang/issues/292)\
 **Refines:** [04-tokenizer-conjecture.md](./04-tokenizer-conjecture.md),

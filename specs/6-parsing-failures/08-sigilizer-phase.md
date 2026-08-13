@@ -1,6 +1,8 @@
 # The Sigilizer Phase
 
-**Status:** Refined architectural direction\
+**Status:** Implemented with the interface and representation refinements in
+[09-sigilizer-spec.md](./09-sigilizer-spec.md) and
+[12-sigilizer-refactoring.md](./12-sigilizer-refactoring.md)\
 **Issue:**
 [#292 — Generalize the FrameAtom lexical-boundary contract beyond canInclude()](https://github.com/TheSwanFactory/hclang/issues/292)\
 **Supersedes the naming in:**
@@ -17,6 +19,10 @@ for comparisons. It also classifies phone-shaped values as numeric-property
 evaluation. Candidate composition is therefore not required by the known
 failures; the Sigilizer direction remains for uniform discovery and Frame-owned
 scanning.
+
+This document records the architectural decision and its pre-implementation
+evidence. Specifications 09 and 12 are normative for the implemented static
+`SIGIL_STARTS` and plain-`ScanResult` interfaces.
 
 ## Decision
 

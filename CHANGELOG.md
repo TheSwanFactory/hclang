@@ -6,6 +6,9 @@
 
 ## v0.8.4 2026-08-12
 
+- Route symbol-to-token recognition through a stateless Sigilizer and shared
+  Frame-level Scan protocol (`scan()`/`finishInput()`), replacing lexer-specific
+  boundary workarounds.
 - Lex dot-led comparison names such as `.<`, `.>`, `.<=`, and `.>=` while
   preserving raw `<` and `>` as structural type delimiters.
 - Restore fixed-length byte strings such as `\5\Hello`, including incremental

@@ -1,5 +1,8 @@
 # Sigilizer Refactoring
 
+**Status:** Implemented in v0.8.4\
+**Refines:** [09-sigilizer-spec.md](./09-sigilizer-spec.md)
+
 ## Purpose
 
 The first implementation regularized lexical special cases, but put two parts of

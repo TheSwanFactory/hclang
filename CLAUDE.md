@@ -130,11 +130,18 @@ The universal building block. Everything in HC is a frame:
 
 ### Pipeline Architecture
 
-HC processes code through a three-stage pipeline:
+HC processes code through a stateless lexical boundary before its familiar
+Lex/Parse/Eval stages:
 
-1. **Lex** - Text → Tokens
-2. **Parse** - Tokens → Frames (AST)
-3. **Eval** - Frames → Results
+1. **Symbolicate** - String → `FrameSymbol`
+2. **Sigilize** - Symbol + active lexical Frame → routed scan decision
+3. **Lex** - Syntax-owned lexical state → Token or structural action
+4. **Parse** - Tokens/actions → Frames (AST)
+5. **Eval** - Frames → Results
+
+Sigilizer holds no input state. Registered Frame classes advertise static
+`SIGIL_STARTS` metadata and own their `scan()`/`finishInput()` decisions through
+the neutral protocol in `lib/scan.ts`.
 
 ## Project Guidelines
 
@@ -172,12 +179,13 @@ HC processes code through a three-stage pipeline:
 ### Adding a Language Feature
 
 1. Read [lib/execute/CLAUDE.md](lib/execute/CLAUDE.md) for pipeline overview
-2. Add token definition in `lib/execute/terminals.ts`
-3. Update lexer in `lib/execute/lex.ts`
-4. Add syntax rules in `lib/execute/syntax.ts`
-5. Implement evaluation in `lib/execute/hc-eval.ts` or `lib/execute/hc-lang.ts`
-6. Add tests at each stage
-7. Update documentation
+2. Register source starts with the owning Frame's static `SIGIL_STARTS`
+3. Implement syntax-specific `scan()`/`finishInput()` behavior on that Frame
+4. Add structural actions in `lib/execute/terminals.ts` when applicable
+5. Add parser registration in `lib/execute/syntax.ts`
+6. Implement evaluation in `lib/execute/hc-eval.ts` or `lib/execute/hc-lang.ts`
+7. Add tests at each affected boundary
+8. Update documentation
 
 ### Adding a Built-in Operation
 

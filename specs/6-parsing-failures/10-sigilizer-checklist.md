@@ -6,6 +6,8 @@
 **Feature issue:**
 [#293 — Parsing and literal recognition gaps](https://github.com/TheSwanFactory/hclang/issues/293)\
 **Specification:** [09-sigilizer-spec.md](./09-sigilizer-spec.md)\
+**Implementation refinement:**
+[12-sigilizer-refactoring.md](./12-sigilizer-refactoring.md)\
 **Sigil disambiguation decision:**
 [11-candidate-composition-spec.md](./11-candidate-composition-spec.md)
 
@@ -43,7 +45,7 @@ remain in #293 rather than this Sigilizer migration.
 | 2 — quotes/comments      | Complete; concrete Lex branches removed                |
 | 3 — bytes                | Complete; skipped test enabled and EOF failures tested |
 | 4 — lifecycle            | Complete; concrete evaluator checks removed            |
-| 5 — documents            | Complete; mode selected by `sigilStarts()` metadata    |
+| 5 — documents            | Complete; mode selected by static `SIGIL_STARTS`       |
 | 6 — operators/blobs      | Complete; raw angles excluded and bases validated      |
 | Candidate composition    | Not required by the explicit-dot decision              |
 | Phone/ternary evaluation | Deferred to #293                                       |
@@ -80,7 +82,7 @@ Every slice MUST follow this sequence.
 
 ### Green: add the Frame-level affordance
 
-- [ ] Add or override only the `sigilStarts()`, `scan(Symbol)`, or
+- [ ] Add or override only the static `SIGIL_STARTS`, `scan(Symbol)`, or
       `finishInput()` behavior required by this slice.
 - [ ] Make the stateless Sigilizer or generic Lex route the returned Frame
       without a new syntax-family check.
@@ -270,8 +272,8 @@ separate slices so each red signal remains attributable.
 
 #### Green
 
-- [ ] Add `FrameBytes.sigilStarts()` so byte syntax is reachable independently
-      of its runtime constructor shape.
+- [ ] Add `FrameBytes.SIGIL_STARTS` so byte syntax is reachable independently of
+      its runtime constructor shape.
 - [ ] Add Frame-owned `scan(Symbol)` transitions for length recognition and
       fixed-count payload mode entry.
 - [ ] Make the byte lexical mode participate through the same `scan(Symbol)`
@@ -354,7 +356,7 @@ Document scanning itself is not a workaround; the concrete-class factory map in
 
 #### Green
 
-- [ ] Add `FrameDoc.sigilStarts()` and Frame-owned selection through
+- [ ] Add `FrameDoc.SIGIL_STARTS` and Frame-owned selection through
       `scan(Symbol)`.
 - [ ] Preserve the existing specialized document lexical mode if still useful.
 - [ ] Confirm generic registry code does not name `FrameDoc`.
@@ -464,7 +466,8 @@ The Sigilizer migration is complete when:
 - [ ] The nil Sigilizer has become the sole stateless driver of lexical Symbols.
 - [ ] All active lexical Frames advance through `scan(Symbol)`.
 - [ ] All active lexical Frames complete through `finishInput()`.
-- [ ] Syntax discovery uses `sigilStarts()` without dispatch-order dependence.
+- [ ] Syntax discovery uses static `SIGIL_STARTS` without dispatch-order
+      dependence.
 - [ ] Generic Lex contains no concrete syntax-family workarounds.
 - [ ] `HCEval` contains no concrete lexical-state lifecycle checks.
 - [ ] Structural actions occur only after Sigil commitment.

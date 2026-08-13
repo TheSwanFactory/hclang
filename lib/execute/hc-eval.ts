@@ -74,7 +74,7 @@ export class HCEval {
   public static make_pipe(out: Frame): LexPipe {
     const evaluator = new EvalPipe(out); // evaluate groups into results
     const parser = new ParsePipe(evaluator, FrameGroup); // parse tokens into groups of expressions
-    const lexer = new LexPipe(parser); // lex characters into tokens
+    const lexer = new LexPipe(parser); // symbolicate, sigilize, and lex into tokens
     return lexer;
   }
 

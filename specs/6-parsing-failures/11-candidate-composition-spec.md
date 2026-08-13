@@ -67,9 +67,9 @@ generic terminal overrides with syntax-owned `scan(Symbol)` transitions.
 
 ### `FrameSchema`
 
-`FrameSchema` exclusively advertises raw `<` and `>` through `sigilStarts()`.
-Those forms commit immediately as structural actions because no other raw Sigil
-in this scope competes for them.
+`FrameSchema` exclusively advertises raw `<` and `>` through static
+`SIGIL_STARTS` metadata. Those forms commit immediately as structural actions
+because no other raw Sigil in this scope competes for them.
 
 The Sigilizer does not need to delay the Parse push or pop to inspect a future
 Symbol.
@@ -177,9 +177,9 @@ true:
 
 If that future case occurs, a separate specification must define inert
 speculation, accepted fallbacks, consumption, redispatch, EOF, and ambiguity.
-The three Frame methods in 09 can carry such a returned Frame state, but the
-current implementation MUST NOT pre-build that machinery without a concrete
-case.
+The registration and scan contracts in 09 can carry such a returned Frame state,
+but the current implementation MUST NOT pre-build that machinery without a
+concrete case.
 
 ## Functional Requirements
 

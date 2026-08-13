@@ -1,6 +1,9 @@
 # Evaluation of the Tokenizer Conjecture
 
-**Status:** Evaluation\
+**Status:** Historical evaluation; architecture and naming refined by
+[08-sigilizer-phase.md](./08-sigilizer-phase.md),
+[09-sigilizer-spec.md](./09-sigilizer-spec.md), and
+[12-sigilizer-refactoring.md](./12-sigilizer-refactoring.md)\
 **Issue:**
 [#292 — Generalize the FrameAtom lexical-boundary contract beyond canInclude()](https://github.com/TheSwanFactory/hclang/issues/292)\
 **Evaluates:** [04-tokenizer-conjecture.md](./04-tokenizer-conjecture.md)\

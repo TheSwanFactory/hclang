@@ -8,11 +8,24 @@ execution engine that powers both the REPL and programmatic usage.
 
 ## Architecture
 
-The execution pipeline consists of three main stages:
+The execution pipeline has five explicit boundaries:
 
-1. **Lexing** - Convert raw text into tokens
-2. **Parsing** - Build syntax trees from tokens
-3. **Evaluation** - Execute the syntax trees in a context
+1. **Symbolication** - Convert source characters into `FrameSymbol` values
+2. **Sigilization** - Route each Symbol to the active lexical Frame
+3. **Lexing** - Accumulate syntax-owned scan decisions into Tokens or actions
+4. **Parsing** - Build Frame expressions and aggregates from Tokens
+5. **Evaluation** - Execute the parsed Frames in a context
+
+In compact form:
+
+```text
+String -> Symbol -> Sigilizer -> Lex/Frame scanner -> Token or action -> Parse -> Eval
+```
+
+Sigilizer is a stateless phase driver. Input-dependent state remains in the
+active `Lex` or syntax-specific Frame. Those Frames return the neutral scan
+decisions defined in `../scan.ts`; Sigilizer alone routes consume, completion,
+redispatch, transition, and lexical failure.
 
 ## Key Components
 
@@ -24,9 +37,11 @@ The execution pipeline consists of three main stages:
 
 ### Lexing (Tokenization)
 
-- [lex.ts](lex.ts) - Main lexer implementation
-- [lexer.ts](lexer.ts) - Lexer interface and types
-- [lex-bytes.ts](lex-bytes.ts) - Byte-level lexing
+- [sigilizer.ts](sigilizer.ts) - Stateless routing of Frame scan decisions
+- [../scan.ts](../scan.ts) - Neutral scan protocol and static Sigil metadata
+- [syntax.ts](syntax.ts) - Class-level `SIGIL_STARTS` registration
+- [lex.ts](lex.ts) - Generic Token-building lexical state
+- [lex-doc.ts](lex-doc.ts) - Document-fence lexical state
 - [lex-pipe.ts](lex-pipe.ts) - Lexer pipeline composition
 - [terminals.ts](terminals.ts) - Terminal token definitions
 
@@ -75,8 +90,8 @@ console.log(result.toStringArray()); // ["20"]
 The package uses a pipe-based architecture where each stage can be composed:
 
 ```typescript
-// Lex -> Parse -> Evaluate
-text -> lex-pipe -> parse-pipe -> eval-pipe -> result
+// Symbol -> Sigilizer -> Lex -> Parse -> Evaluate
+text -> FrameSymbol -> scan protocol -> lex-pipe -> parse-pipe -> eval-pipe -> result
 ```
 
 ## Development Guidelines
@@ -89,12 +104,14 @@ text -> lex-pipe -> parse-pipe -> eval-pipe -> result
 
 ### Adding Language Features
 
-1. Add terminal definitions in [terminals.ts](terminals.ts) if needed
-2. Update lexer in [lex.ts](lex.ts) to recognize new syntax
-3. Add syntax rules in [syntax.ts](syntax.ts)
-4. Implement evaluation logic in [hc-eval.ts](hc-eval.ts) or
+1. Advertise lexical or structural starts with static `SIGIL_STARTS`
+2. Put syntax-specific continuation and EOF rules in the owning Frame's `scan()`
+   and `finishInput()` methods
+3. Add structural terminal definitions in [terminals.ts](terminals.ts) if needed
+4. Add parser registration in [syntax.ts](syntax.ts)
+5. Implement evaluation logic in [hc-eval.ts](hc-eval.ts) or
    [hc-lang.ts](hc-lang.ts)
-5. Add tests at each stage
+6. Add focused scan, lexer, parser, and end-to-end tests as applicable
 
 ### Debugging
 
@@ -107,9 +124,9 @@ text -> lex-pipe -> parse-pipe -> eval-pipe -> result
 ### Lex Pipe
 
 1. Takes raw string input
-2. Converts to byte stream
-3. Tokenizes into terminals
-4. Outputs token stream
+2. Converts each character to a `FrameSymbol`
+3. Uses Sigilizer to route the selected Frame's scan decision
+4. Emits completed Tokens or committed structural actions
 
 ### Parse Pipe
 

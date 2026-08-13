@@ -1,6 +1,7 @@
 # The Stateless Tokenizer Phase
 
-**Status:** Refined architectural conjecture\
+**Status:** Historical architectural conjecture; naming superseded by
+[08-sigilizer-phase.md](./08-sigilizer-phase.md)\
 **Issue:**
 [#292 — Generalize the FrameAtom lexical-boundary contract beyond canInclude()](https://github.com/TheSwanFactory/hclang/issues/292)\
 **Refines:** [04-tokenizer-conjecture.md](./04-tokenizer-conjecture.md) and

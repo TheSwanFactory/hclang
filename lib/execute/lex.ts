@@ -30,8 +30,11 @@ import {
 
 export type Flag = { [key: string]: boolean };
 
+/** Constructor and class-level source registration for one atom family. */
 export interface AtomFactory {
+  /** Construct a runtime atom from its completed source body. */
   new (body: string): FrameAtom;
+  /** Source characters and lexical modes that select this atom family. */
   readonly SIGIL_STARTS: readonly SigilStart[];
 }
 export class Token extends FrameAtom {

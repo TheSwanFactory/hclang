@@ -7,9 +7,8 @@
 [#293 — Parsing and literal recognition gaps](https://github.com/TheSwanFactory/hclang/issues/293)\
 **Builds on:** [08-sigilizer-phase.md](./08-sigilizer-phase.md)\
 **Implementation refinement:**
-[12-sigilizer-refactoring.md](./12-sigilizer-refactoring.md) supersedes the
-instance-registration and `LexicalScan` representation details below; those
-sections preserve the original design rationale.\
+[12-sigilizer-refactoring.md](./12-sigilizer-refactoring.md) defines the final
+static-registration and plain-`ScanResult` representation used below.\
 **Sigil disambiguation decision:**
 [11-candidate-composition-spec.md](./11-candidate-composition-spec.md)\
 **Related analysis:** [01-parsing-triage.md](./01-parsing-triage.md),
@@ -22,19 +21,20 @@ sections preserve the original design rationale.\
 HC requires a stateless Sigilizer phase between source symbolication and Parse.
 The Sigilizer drives the complete lexical path: it discovers possible syntax at
 token entry, calls the current Frame-shaped lexical state for every subsequent
-Symbol, and routes the returned Frame until a Token, structural action, or error
-reaches the next phase.
+Symbol, and routes its returned Frame or `ScanResult` until a Token, structural
+action, or error reaches the next phase.
 
 The Sigilizer owns no input-dependent state and contains no syntax-family rules.
-Pending Sigils, active Lex recognizers, specialized lexical modes, completed
-Tokens, structural actions, and errors are all represented by Frames returned
-through the existing monadic pipeline.
+Pending Sigils, active Lex recognizers, and specialized lexical modes are
+Frames. A syntax-specific Frame may return the next Frame directly or a plain
+`ScanResult`; that decision carries no lexical state and is routed only by
+Sigilizer.
 
-The existing Frame API needs three method contracts:
+The contract has one class-level registration and two Frame methods:
 
-| Method          | Responsibility                                                   |
+| Contract        | Responsibility                                                   |
 | --------------- | ---------------------------------------------------------------- |
-| `sigilStarts()` | Advertise one or more possible initial sigil forms.              |
+| `SIGIL_STARTS`  | Advertise one or more possible initial sigil forms.              |
 | `scan(Symbol)`  | Perform one syntax-owned lexical transition in any active state. |
 | `finishInput()` | Resolve any active lexical state at EOF.                         |
 
@@ -43,10 +43,9 @@ advancing a pending Sigil, committing a Sigil, and advancing a selected Lex
 recognizer. The active receiver determines which of those meanings applies. The
 Sigilizer only calls and routes the result.
 
-These contracts do not require one return representation beyond the invariant
-that returned Frames represent the next monadic state. The v0.8.4 implementation
-uses `LexicalScan` Frames for consumption, redispatch, mode transition,
-completion, and error outcomes.
+The v0.8.4 implementation represents routing decisions as plain `ScanResult`
+records containing a `ScanDisposition` enum and optional Frame or error-message
+payload. `ScanResult` is neither a language value nor an active lexical state.
 
 ## Problem Statement
 
@@ -132,8 +131,8 @@ lexical pipeline.
 ### Sigilizer
 
 Sigilizer is a stateless phase driver. At entry it discovers syntax participants
-through `sigilStarts()`. In every active state it calls `scan(Symbol)` and
-routes the returned Frame.
+through static `SIGIL_STARTS` metadata. In every active state it calls
+`scan(Symbol)` and routes the returned Frame or `ScanResult`.
 
 ### Sigil
 
@@ -190,14 +189,13 @@ The receiver supplies the meaning:
 
 The Sigilizer does not inspect the receiver's concrete class to choose a method.
 
-## Method Contract Overview
+## Contract Overview
 
-The three methods form one lexical-transition protocol plus registration and
-input completion:
+Class metadata plus two methods form one lexical-transition protocol:
 
-| Protocol           | Method          | When used                                  |
+| Protocol           | Contract        | When used                                  |
 | ------------------ | --------------- | ------------------------------------------ |
-| Syntax discovery   | `sigilStarts()` | No active lexical state                    |
+| Syntax discovery   | `SIGIL_STARTS`  | Registry construction                      |
 | Lexical transition | `scan(Symbol)`  | Every source Symbol in every lexical state |
 | Input lifecycle    | `finishInput()` | EOF only                                   |
 
@@ -205,7 +203,7 @@ Boundary redispatch, Sigil refinement, commitment, Token emission, structural
 actions, lexical-mode entry, and errors are outcomes of `scan(Symbol)`. They do
 not require separate generic methods.
 
-## Method: `sigilStarts()`
+## Class metadata: `SIGIL_STARTS`
 
 ### Purpose
 
@@ -214,18 +212,19 @@ state is active.
 
 ### Receiver
 
-Every existing Frame class that defines lexical or structural source syntax. The
-base `Frame` contract supplies no registrations unless a subclass advertises
-them.
+Every registered Frame class that defines lexical or structural source syntax.
+The metadata is read from the class without constructing a sample runtime Frame.
 
 ### Required information
 
 Each advertised start MUST identify:
 
-- the exact character or character-class pattern that triggers participation;
-- the syntax role being considered;
-- whether the start can commit immediately or may remain pending; and
-- enough identity to invoke the responsible syntax participant's `scan()`.
+- the exact source character that triggers participation; and
+- the lexical mode (`atom`, `document`, `push`, or `pop`) selected for it.
+
+The registered class supplies the participant identity. Candidate composition or
+longer patterns require a separate extension because the current metadata
+intentionally describes unambiguous one-character starts.
 
 One Frame class MAY advertise multiple starts or roles. `FrameSchema`, for
 example, participates separately as an opening and closing structural form.
@@ -243,13 +242,13 @@ example, participates separately as an opening and closing structural form.
 
 ### Relationship to existing methods
 
-`sigilStarts()` becomes the normative recognition-registration method.
+Static `SIGIL_STARTS` is the normative recognition-registration contract.
 
-- `string_start()` MAY serve as a compatibility source for simple atom classes,
-  but MUST NOT silently resolve conflicting registrations.
+- `string_start()` remains a legacy syntax/rendering helper; registry
+  construction MUST NOT fabricate instances or derive starts from it.
 - `string_prefix()` and `string_suffix()` remain rendering methods.
 - `string_open()` and `string_close()` remain aggregate notation and rendering
-  methods; structural registration moves to `sigilStarts()`.
+  methods; structural registration moves to `SIGIL_STARTS`.
 
 ### Classes requiring participation
 
@@ -275,7 +274,7 @@ selected token, or operating a specialized lexical mode.
 
 Any Frame that can be active during lexical processing, including:
 
-- a syntax participant selected by `sigilStarts()`;
+- a syntax participant selected by `SIGIL_STARTS`;
 - a pending or committed Sigil;
 - generic Lex state;
 - quote, comment, document, byte, and operator Lex states;
@@ -300,33 +299,26 @@ stored as input-dependent state on Sigilizer.
 
 ### Required outcomes
 
-The returned Frame MUST distinguish these semantic outcomes:
+`scan()` returns either a direct next Frame or a plain `ScanResult`. The
+`ScanDisposition` enum distinguishes the generic routing outcomes:
 
-1. **No match:** a discovered participant cannot own the initial prefix.
-2. **Pending Sigil:** the selected interpretation remains incomplete.
-3. **Lex selected:** one token family has committed and Lex owns subsequent
-   token recognition.
-4. **Continue and consume:** the Symbol belongs to the active lexical state.
-5. **Complete and consume:** the Symbol completes the token or void syntax and
-   does not begin another source form.
-6. **Complete and redispatch:** the active state completes without consuming the
-   Symbol; the Symbol must re-enter Sigilizer exactly once.
-7. **Transition lexical mode:** recognition continues in another Frame state.
-8. **Token complete:** exactly one Token is emitted to Parse unless the syntax
-   is explicitly void.
-9. **Structural action committed:** a selected delimiter or separator action may
-   now enter Parse.
-10. **Lexical error:** the prefix or token body is invalid, with exact source
-    retained.
+1. **Consume:** the Symbol belongs to the active lexical state.
+2. **Complete and consume:** complete the token or void syntax and do not
+   redispatch the Symbol.
+3. **Complete and redispatch:** complete without consuming the Symbol, then
+   submit that Symbol to the resulting receiver exactly once.
+4. **Transition:** replace the syntax-specific receiver with the supplied Frame;
+   the deciding Symbol is consumed by the transition.
+5. **Error:** convert the supplied message into a lexical error Frame.
 
-The specification does not prescribe separate result subclasses, flags, or an
-enum for these meanings. A result MAY both emit an artifact and identify the
-next active Frame through existing monadic behavior.
+A direct returned Frame may represent the next Lex receiver, emitted-token
+pipeline state, or committed structural action. Input-dependent state MUST stay
+in Frames; a `ScanResult` is only an instruction to Sigilizer.
 
 ### Required behavior
 
 - Sigilizer MUST call the same method for every active lexical receiver.
-- A pending or continuing result MUST itself be a valid next monadic receiver.
+- A pending lexical state MUST itself be a valid next monadic Frame receiver.
 - A physical chunk boundary MUST NOT force a transition or commitment.
 - Exact source spelling MUST be preserved until completion or failure.
 - Structural parser mutation MUST NOT occur before lexical commitment.
@@ -334,8 +326,8 @@ next active Frame through existing monadic behavior.
 - No invalid source may be silently discarded.
 - Generic Sigilizer and generic Lex MUST route results without concrete syntax
   checks.
-- Syntax classes MAY return generic Lex, specialized lexical modes, Tokens,
-  structural actions, or errors as appropriate.
+- Syntax classes MAY return a direct Frame or a plain `ScanResult` as
+  appropriate.
 
 ### Relationship to `canInclude()`
 
@@ -418,7 +410,8 @@ specialized Lex mode; they MUST NOT move into Sigilizer.
 
 The byte participant owns initial selection, length recognition, transition to
 fixed-count payload consumption, and token completion through `scan()`. Generic
-Lex MUST no longer test for `FrameBytes` to create `LexBytes`.
+Lex MUST no longer test for `FrameBytes`; `FrameBytes.scan()` transitions to the
+`FrameBytePayload` lexical state.
 
 #### Ordinary atoms
 
@@ -447,7 +440,7 @@ subclass owns active source.
 
 ### Required outcomes
 
-The returned Frame MUST distinguish:
+The returned Frame or `ScanResult` MUST distinguish:
 
 1. **Complete:** active source validly completes and any final Token or
    structural action has been emitted.
@@ -469,17 +462,17 @@ The returned Frame MUST distinguish:
 - Comments MAY terminate validly at EOF according to their language rule.
 - Documents MUST retain the behavior covered by existing fence and chunk tests.
 - Byte modes MUST reject payloads shorter than their declared length.
-- Failure MUST be available directly from the returned Frame; callers MUST NOT
-  require a concrete-class `failure()` query.
+- Failure MUST use the common Frame-or-`ScanResult` return path; callers MUST
+  NOT require a concrete-class `failure()` query.
 
 ### Relationship to existing methods
 
 `LexDoc.finishInput()` is the working precedent and becomes an implementation of
 the common contract rather than a document-only evaluator exception.
 
-The current document-only `failure()` side channel SHOULD be superseded by a
-structured returned result. `ParsePipe.finish()` and terminal `finish()` have
-different phase meanings and are not replaced by this lexical-input contract.
+The former document-only `failure()` side channel is superseded by a structured
+returned result. `ParsePipe.finish()` and terminal `finish()` have different
+phase meanings and are not replaced by this lexical-input contract.
 
 ## Required Method Placement by Existing Class
 
@@ -489,8 +482,9 @@ represented by that default.
 
 | Existing class                                                      | Required methods or changes                                                                                                 |
 | ------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `Frame`                                                             | Define defaults for `sigilStarts()`, `scan(Symbol)`, and `finishInput()` so every returned Frame participates uniformly.    |
-| `FrameAtom`                                                         | Supply default atom registration and simple selected-token scanning, including ordinary boundary redispatch.                |
+| `Frame`                                                             | Define defaults for `scan(Symbol)` and `finishInput()` so every returned Frame participates uniformly.                      |
+| Registered Frame classes                                            | Declare static `SIGIL_STARTS` without constructing sample runtime values.                                                   |
+| `FrameAtom`                                                         | Supply simple selected-token scanning, including ordinary boundary redispatch.                                              |
 | `FrameList`                                                         | Advertise structural sigils and scan them to commitment without executing actions during discovery.                         |
 | `FrameSchema`                                                       | Scan raw `<` and `>` as immediately committed opening/closing structural roles.                                             |
 | `FrameOperator`                                                     | Override `scan()` for undotted operator continuation/completion; do not claim raw `<` or `>` starts.                        |
@@ -504,7 +498,7 @@ represented by that default.
 | `FrameNumber`, `FrameSymbol`, `FrameAlias`, `FrameArg`, `FrameNote` | Use defaults unless focused tests demonstrate a richer transition.                                                          |
 | `Lex`                                                               | Participate through `scan()`, delegate syntax decisions polymorphically, emit Token, and contain no concrete syntax checks. |
 | `LexDoc`                                                            | Conform document behavior to common `scan()` and `finishInput()` results.                                                   |
-| `LexBytes`                                                          | Conform fixed-count behavior and premature EOF to common `scan()` and `finishInput()` results.                              |
+| `FrameBytePayload`                                                  | Own fixed-count behavior and premature EOF through common `scan()` and `finishInput()` results.                             |
 | `LexPipe` / Sigilizer host                                          | Discover starts, invoke `scan()` on the active Frame, and route redispatch without syntax-specific pending state.           |
 | `HCEval`                                                            | Retain any active returned Frame and call common `finishInput()` without `LexDoc` checks.                                   |
 
@@ -528,15 +522,16 @@ This specification does not add:
   into existing operator, number, and numeric-name/property forms.
 - Ternary-specific methods: `?`/`:` composition is an Eval concern.
 
-Adding another generic method later requires evidence that the three specified
-contracts cannot express required behavior without concrete-class branching.
+Adding another generic method later requires evidence that the metadata and two
+specified methods cannot express required behavior without concrete-class
+branching.
 
 ## Functional Requirements
 
 ### Discovery and scanning
 
 - **FR-001:** Every lexical and structural syntax class MUST advertise initial
-  participation through `sigilStarts()`.
+  participation through static `SIGIL_STARTS` metadata.
 - **FR-002:** The registry MUST reject or explicitly report conflicting starts;
   it MUST NOT choose among them by exact-key priority or registration order.
 - **FR-003:** Sigilizer MUST invoke `scan(Symbol)` polymorphically for every
@@ -553,9 +548,9 @@ contracts cannot express required behavior without concrete-class branching.
 
 - **FR-008:** Generic Lex MUST use `scan()` as its normative continuation
   contract.
-- **FR-009:** `scan()` MUST express initial non-match, pending interpretation,
-  commitment, consumed continuation, consumed completion, redispatched
-  completion, mode transition, Token completion, structural action, and error.
+- **FR-009:** A direct Frame or `ScanResult` MUST express selected continuation,
+  consumed continuation, consumed completion, redispatched completion, mode
+  transition, Token/structural pipeline state, and lexical error.
 - **FR-010:** Generic Lex MUST contain no syntax-specific tests for names,
   comments, quotes, documents, bytes, blobs, or operators.
 - **FR-011:** A selected token MUST emit exactly one Token unless its syntax is
@@ -685,12 +680,12 @@ listing to an executable doctest.
 
 - Existing and future syntax participants remain Frame classes or expose
   Frame-compatible polymorphic behavior.
-- Returned Frames remain the sole representation of input-dependent pipeline
-  state.
+- Frames remain the sole representation of input-dependent pipeline state; plain
+  `ScanResult` records carry stateless routing decisions only.
 - The syntax registry reports conflicting starts instead of selecting by
   incidental lookup priority; no conflicting start is required in this scope.
-- v0.8.4 represents transition outcomes as `LexicalScan` Frames; future syntax
-  may add Frame-compatible states without changing the three contracts.
+- v0.8.4 represents generic outcomes with `ScanDisposition` and plain
+  `ScanResult` records in the neutral `lib/scan.ts` module.
 - Existing document-fence behavior is correct and forms a compatibility
   baseline.
 - Dot-prefixed numeric names remain ordinary property syntax; phone-shaped
@@ -710,8 +705,8 @@ listing to an executable doctest.
 
 ## Success Criteria
 
-1. All lexical and structural syntax starts are discoverable through one
-   `sigilStarts()` contract, with zero dispatch-order dependencies.
+1. All lexical and structural syntax starts are discoverable through static
+   `SIGIL_STARTS` metadata, with zero dispatch-order dependencies.
 2. Every active lexical Frame is advanced through `scan(Symbol)`; generic
    Sigilizer contains zero concrete syntax-family branches.
 3. Generic Lex contains zero concrete branches for names, quotes, comments,
@@ -738,4 +733,5 @@ listing to an executable doctest.
 Version 0.8.4 implements this specification and 11 without candidate
 composition. Dotted comparison names are covered by the `FrameName.scan(Symbol)`
 migration, while comparison lookup and evaluation stay in #293. The explicit-dot
-decision does not change the three method contracts defined here.
+decision does not change the registration and scan contracts defined here. The
+final representation is the plain-result design in specification 12.

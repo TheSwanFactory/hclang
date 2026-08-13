@@ -1,6 +1,7 @@
 # The Tokenizer Conjecture
 
-**Status:** Conjecture\
+**Status:** Historical conjecture; naming superseded by
+[08-sigilizer-phase.md](./08-sigilizer-phase.md)\
 **Issue:**
 [#292 — Generalize the FrameAtom lexical-boundary contract beyond canInclude()](https://github.com/TheSwanFactory/hclang/issues/292)\
 **Related:** #293 and [03-lookahead-tensions.md](./03-lookahead-tensions.md)

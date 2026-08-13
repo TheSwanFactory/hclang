@@ -3,8 +3,9 @@
  *
  * Every registered atom class supplies static `SIGIL_STARTS` metadata. During
  * reduction, a source character becomes a `FrameSymbol`; looking that symbol
- * up in `LexPipe` selects its parser. The selected lexer consumes the remaining
- * characters and emits one completed atom to `ParsePipe`.
+ * up in `LexPipe` selects its lexical receiver. Sigilizer then routes the
+ * receiver's `scan()` decisions until it emits one completed atom to
+ * `ParsePipe`.
  *
  * This table performs only initial character dispatch. Atom-specific lexical
  * boundaries and transitions belong to the atom's lexical contract, while
