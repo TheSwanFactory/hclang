@@ -217,6 +217,22 @@ describe("evaluate", () => {
       });
     });
 
+    describe("unary plus", () => {
+      it("preserves a leading plus on a number", () => {
+        expect(evaluate("+1").toString()).toEqual("[+1]");
+      });
+
+      it("preserves the exact spelling of a numeric-property chain", () => {
+        expect(evaluate("+1.408.055.1212").toString()).toEqual(
+          "[+1.408.055.1212]",
+        );
+      });
+
+      it("does not change binary addition", () => {
+        expect(evaluate("1 + 2").toString()).toEqual("[3]");
+      });
+    });
+
     it("uses .+ for addition", () => {
       const input = "3.+2";
       const result = evaluate(input);

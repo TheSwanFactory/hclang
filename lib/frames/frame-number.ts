@@ -47,6 +47,13 @@ export class FrameNumber extends FrameAtom {
     return result;
   }
 
+  public override called_by(context: Frame, parameter: Frame): Frame {
+    if ("operator" in context && context.operator === "+") {
+      return new FrameNumber(`+${this.spelling}`);
+    }
+    return super.called_by(context, parameter);
+  }
+
   public range(): Array<number> {
     return [...Array(this.data).keys()];
   }

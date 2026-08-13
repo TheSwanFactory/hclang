@@ -116,6 +116,12 @@ export class FrameOperator extends FrameSymbol {
   public static override readonly SIGIL_STARTS: readonly SigilStart[] = [
     { key: FrameOperator.OPERATOR_START.toString(), mode: "atom" },
   ];
+  public readonly operator: string;
+
+  constructor(source: string, meta: Context = NilContext) {
+    super(source, meta);
+    this.operator = source;
+  }
 
   public static operator_chars(): string {
     return "&|?:+\\-*%<>!";
@@ -127,7 +133,11 @@ export class FrameOperator extends FrameSymbol {
   }
 
   public override in(_contexts: Frame[] = [Frame.nil]): Frame {
-    return FrameSymbol.for(this.data);
+    return this.data === "+" ? this : FrameSymbol.for(this.data);
+  }
+
+  public override called_by(context: Frame): Frame {
+    return FrameSymbol.for(this.data).called_by(context);
   }
 
   public override string_start(): string {
