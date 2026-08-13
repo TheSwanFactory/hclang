@@ -1,6 +1,7 @@
 # Live Parent Inheritance and Mutation Authority
 
-**Status:** Proposed\
+**Status:** Implemented for closure and argument lookup in v0.8.8; broader
+class-composition questions remain deferred\
 **Issue:**
 [#295 — Argument and context inheritance gaps](https://github.com/TheSwanFactory/hclang/issues/295)\
 **Parent:** #197\

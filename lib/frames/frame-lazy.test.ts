@@ -26,7 +26,7 @@ describe("FrameLazy", () => {
     expect(result).toEqual("{ speed gap _ }");
   });
 
-  it("captures context but stays lazy until called", () => {
+  it("retains a live parent context and stays lazy until called", () => {
     const result = lazy.in([context]);
 
     expect(result).toBe(lazy);
@@ -34,10 +34,12 @@ describe("FrameLazy", () => {
     expect(lazy.get("gap")).toEqual(space);
     // Closures don't show captured metadata in toString
     expect(lazy.toString()).toEqual("{ speed gap _ }");
-    // But inspect() shows metadata for debugging
+    // Own metadata remains inspectable; inherited metadata is not copied.
     expect(lazy.inspect()).toContain(".speed");
-    expect(lazy.inspect()).toContain(".gap");
+    expect(lazy.meta.gap).toBeUndefined();
     expect(lazy.call(turtle).toString()).toEqual("\u201cslow turtle\u201d");
+    context.set("gap", new frame.FrameString("-"));
+    expect(lazy.call(turtle).toString()).toEqual("“slow-turtle”");
   });
 
   describe("Codify", () => {
