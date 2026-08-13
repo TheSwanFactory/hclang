@@ -58,7 +58,6 @@ export class FrameLazy extends FrameExpr {
 
   public override in(contexts: Array<Frame> = [Frame.nil]): Frame {
     const context = contexts[0] ?? Frame.nil;
-    this.meta = this.meta_for(context);
     this.up = context;
     return this;
   }
@@ -74,28 +73,10 @@ export class FrameLazy extends FrameExpr {
       return codified;
     }
 
-    const expr = new FrameExpr(this.data, this.meta_for(argument));
+    // Argument and closure are explicit evaluation contexts. Keeping this
+    // metadata local lets lookup reach the closure's live parent chain.
+    const expr = new FrameExpr(this.data);
     expr.up = this;
     return expr.in([argument, _parameter, this]);
-  }
-
-  protected meta_for(context: Frame): Context {
-    const contextMeta = context.meta === NilContext ? {} : context.meta;
-    const selfMeta = this.meta === NilContext ? {} : this.meta;
-
-    const leading = Object.keys(selfMeta).filter((key) =>
-      !(key in contextMeta)
-    );
-    const contextKeys = Object.keys(contextMeta);
-    const trailing = Object.keys(selfMeta).filter((
-      key,
-    ) => (key in contextMeta));
-
-    const orderedKeys = [...leading, ...contextKeys, ...trailing];
-    const MetaNew: Context = {};
-    orderedKeys.forEach((key) => {
-      MetaNew[key] = (key in contextMeta) ? contextMeta[key] : selfMeta[key];
-    });
-    return MetaNew;
   }
 }

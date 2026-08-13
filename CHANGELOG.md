@@ -4,6 +4,12 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.8.8 2026-08-13
+
+- Preserve live closure parent relationships so argument lookup, explicit parent
+  lookup, and empty-argument fallback observe the current enclosing scope
+  without granting implicit mutation authority.
+
 ## v0.8.7 2026-08-13
 
 - Return the assigned value when reassigning variables and preserve it in the

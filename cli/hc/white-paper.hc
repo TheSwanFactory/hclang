@@ -507,7 +507,7 @@ scope:
 ; .x 3;
 ; .y 4;
 ; mag []
-# $!.unimplemented 25
+# 25
 ```
 Implicit arguments are a code smell, and will generate a warning.
 However, they can be very useful when debugging or refactoring. That may seem

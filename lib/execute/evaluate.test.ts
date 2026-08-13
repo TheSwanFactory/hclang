@@ -715,6 +715,32 @@ describe("evaluate", () => {
         expect(result.at(0).toString()).toContain("“parent”");
         expect(result.meta.var.toString()).toEqual("“parent”");
       });
+
+      it("reads the live enclosing scope through an empty argument", () => {
+        const result = evaluate(
+          ".x 42; .y 3; .mag {(x * x) + (y * y)}; " +
+            ".x 3; .y 4; mag []",
+        );
+
+        expect(result.at(0).asArray().at(-1)?.toString()).toEqual("25");
+      });
+
+      it("keeps explicit argument shadowing ahead of the live parent", () => {
+        const result = evaluate(
+          ".x 3; .read-x {x}; read-x(.x 9;)",
+        );
+
+        expect(result.at(0).asArray().at(-1)?.toString()).toEqual("9");
+        expect(result.meta.x.toString()).toEqual("3");
+      });
+
+      it("does not leak arguments between repeated calls", () => {
+        const result = evaluate(
+          ".x 3; .read-x {x}; read-x(.x 9;); read-x []",
+        );
+
+        expect(result.at(0).asArray().at(-1)?.toString()).toEqual("3");
+      });
     });
   });
 

@@ -200,7 +200,7 @@ describe("main", () => {
       expect(diagnostics).toEqual([]);
       expect(summaries.length).toEqual(1);
       expect(summaries[0].toString()).toContain(
-        '“{"total":74,"pass":64,"fail":0,"unimplemented":10}”',
+        '“{"total":74,"pass":65,"fail":0,"unimplemented":9}”',
       );
     } finally {
       console.error = originalError;
