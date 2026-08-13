@@ -51,7 +51,9 @@ export class FrameSymbol extends FrameAtom {
       const value = context.get(this.data, origin);
       if (!value.is.missing) {
         if (value.is.error) return value;
-        value.up = context;
+        if (value.is.inherited !== true) {
+          value.up = context;
+        }
         if (value.is.immediate === true) {
           return value.call(context);
         }
@@ -67,6 +69,14 @@ export class FrameSymbol extends FrameAtom {
     const out = this.get(Frame.kOUT);
     if (argument instanceof FrameHandle) {
       argument = argument.unwrap();
+    }
+    if (this.data === "_^") {
+      const previous = out.is.inherited === true ? out.up : Frame.missing;
+      out.up = argument;
+      out.is.inherited = true;
+      return previous.is.missing
+        ? new FrameLiteral(`._^ ${argument.toString()}`)
+        : argument;
     }
     const binding = out.resolve_here(this.data, out);
     if (binding?.value.is.error) return binding.value;

@@ -7,6 +7,7 @@ import {
   FrameExpr,
   FrameGroup,
   FrameName,
+  FrameParam,
   FrameString,
 } from "../frames.ts";
 import { LexPipe } from "./lex-pipe.ts";
@@ -80,6 +81,23 @@ describe("Lex", () => {
 
   it("keeps a standalone colon as an operator", () => {
     expect(lexAtoms(": ").map(String)).toEqual([":"]);
+  });
+
+  it("lexes source parent lookup and declaration names", () => {
+    const parent = lexAtoms("_^ ");
+    expect(parent).toHaveLength(1);
+    expect(parent[0]).toBeInstanceOf(FrameParam);
+    expect(parent[0].toString()).toEqual("_^");
+
+    const declaration = lexAtoms("._^ ");
+    expect(declaration).toHaveLength(1);
+    expect(declaration[0]).toBeInstanceOf(FrameName);
+    expect(declaration[0].toString()).toEqual("._^");
+  });
+
+  it("preserves parent identifiers across chunk boundaries", () => {
+    expect(lexChunkedAtoms(["_", "^"]).map(String)).toEqual(["_^"]);
+    expect(lexChunkedAtoms(["._", "^"]).map(String)).toEqual(["._^"]);
   });
 
   it("keeps raw angle brackets structural", () => {

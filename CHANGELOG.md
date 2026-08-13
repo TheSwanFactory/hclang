@@ -14,8 +14,10 @@
   property reads and writes.
 - Support shared mutable handles and trailing-colon mutating methods, including
   copy-on-write through immutable handles and implicit receiver returns.
-- Classify the white paper's module, object, class, and inheritance examples as
-  aspirational with focused follow-up issues.
+- Construct singleton and class frames with ordinary aggregates and closures,
+  including source-level parent lookup and inherited frame relationships.
+- Keep environment-dependent module loading explicitly aspirational with a
+  focused follow-up issue.
 
 ## v0.8.6 2026-08-12
 

@@ -486,7 +486,7 @@ of the argument directly, rather than explicitly calling `_`.
 ```
 ; .mag {(x * x) + (y * y )};
 ; mag (.x 1; .y 2;)
-# $!.unimplemented 5
+# 5
 ```
 You can skip over the argument to access the enclosing scope (one level above)
 using the `_^` identifier (also known as `super`).
@@ -498,7 +498,7 @@ using the `_^` identifier (also known as `super`).
 ; print-arg(.var “arg”)
 # “arg”
 ; print-parent(.var “arg”)
-# $!.unimplemented “parent”
+# “parent”
 ```
 Since objects capture the scope where they are created, this even allows
 closures to be called with implicit arguments to access the enclosing
@@ -923,10 +923,6 @@ CoffeeScript cousin CSON[@Cite].
 ```
 ## Object-Orientation
 
-NOTE: Singleton, class, and inheritance semantics remain
-aspirational; these parser-unsafe listings are tracked in
-https://github.com/TheSwanFactory/hclang/issues/304[#304].
-
 Perhaps surprisingly, it is possible to implement a complete object-oriented
 programming system using only the above primitives.  All we need
 are our access control rules plus the super identifier `_^`.
@@ -934,53 +930,51 @@ are our access control rules plus the super identifier `_^`.
 ### Singletons
 
 Let's start with a simple singleton object containing private data:
-[source,hc]
-----
-; .my-object_ (
-   ._property 13;
-  .getProperty { _property }
-  .setProperty: { @property _}
-);
+```
+; .my-object_ [._property 13; .getProperty {_property}; .setProperty: {@property _;}];
 ; my-object_.getProperty()
 # 13
 ; my-object_.setProperty: 42;
 ; my-object_.getProperty()
-# 13
-----
+# 42
+```
 ### Classes
 
 To turn that into a class, we simply make it a closure which returns
 a frame analogous to that singleton:
-[source,hc]
-----
-; .my-class {
-   ._property _;
-  .getProperty { _property }
-  .setProperty: { @property _}
-};
-; .my-instance my-class 3;
+```
+; .my-class {[._property _; .getProperty {_property}; .setProperty: {@property _;}]};
+; .my-instance (my-class 3);
 ; my-instance.getProperty()
 # 3
-----
+```
 ### Inheritance
 
 Even inheritance is already accounted for, simply by explicitly specifying
 its parent scape:
-[source,hc]
-----
-; .my-subclass {
-  ._^ my-base-class
-};
-----
+```
+; .my-base-class [.public-value 42; ._protected-value 21; .__private-value 7];
+; .my-subclass {[._^ my-base-class; .values {[public-value, protected-value, private-value]}]};
+; .my-subinstance (my-subclass());
+; my-subinstance.values()
+# [42, 21, $!.is-private .private-value]
+; my-subinstance.public-value
+# 42
+; my-subinstance.protected-value
+# $!.is-protected .protected-value
+```
 There is no built-in support for multiple inheritance.  However, because
 inheritance is just another expression, you are welcome to define your own:
-[source,hc]
-----
-; .my-inheritance { “create your own” };
-; multiclass {
-  ._^ my-inheritance [my-base, another-base]
-};
-----
+```
+; .my-inheritance { [.a _.0.a; .b _.1.b] };
+; .my-base [.a 1];
+; .another-base [.b 2];
+; .multiclass (my-inheritance [my-base, another-base]);
+; multiclass.a
+# 1
+; multiclass.b
+# 2
+```
 # Implementation
 
  Homoiconic C is available as the `hc` interpreter via the `hclang`

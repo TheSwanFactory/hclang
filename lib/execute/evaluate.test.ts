@@ -647,7 +647,9 @@ describe("evaluate", () => {
 
       it("implicitly accesses properties from the argument", () => {
         const result = evaluate("{x + y} (.x 3; .y 4;)");
-        expect(result.toString()).toEqual("[7, .x 3; .y 4;]");
+        expect(result.toString()).toEqual("[7]");
+        expect(result.meta.x).toBeUndefined();
+        expect(result.meta.y).toBeUndefined();
       });
 
       it("matches implicit and explicit property access", () => {
@@ -702,6 +704,16 @@ describe("evaluate", () => {
 
         const result = closure.call(new frame.FrameNumber("1"));
         expect(result.toString()).toEqual("5");
+      });
+
+      it("parses _^ as source-level parent lookup", () => {
+        const result = evaluate(
+          ".print-parent {_^.var}; .var “parent”; " +
+            "print-parent(.var “argument”)",
+        );
+
+        expect(result.at(0).toString()).toContain("“parent”");
+        expect(result.meta.var.toString()).toEqual("“parent”");
       });
     });
   });
@@ -866,6 +878,55 @@ describe("evaluate", () => {
 
       expect(result.at(0).toString()).toContain(".property 113;");
       expect(result.at(0).toString()).not.toMatch(/; 999\)$/);
+    });
+
+    it("constructs singleton frames from existing interpretations", () => {
+      const result = evaluate(
+        ".object_ [._property 13; .get {_property}; " +
+          ".set: {@property _;}]; object_.get(); " +
+          "object_.set: 42; object_.get()",
+      );
+
+      expect(result.at(0).toString()).toContain("(13)");
+      expect(result.at(0).toString()).toMatch(/; 42\)$/);
+    });
+
+    it("constructs class instances by calling a frame-producing closure", () => {
+      const result = evaluate(
+        ".class {[._property _; .get {_property}]}; " +
+          ".instance (class 3); instance.get()",
+      );
+
+      expect(result.at(0).toString()).toMatch(/; 3\)$/);
+      expect(result.meta.instance.get_here("_property").toString()).toEqual(
+        "3",
+      );
+    });
+
+    it("interprets a parent declaration as the frame up link", () => {
+      const result = evaluate(
+        ".base [.public 42; ._protected 21; .__private 7]; " +
+          ".subclass {[._^ base; " +
+          ".values {[public, protected, private]}]}; " +
+          ".instance (subclass()); instance.values()",
+      );
+      const instance = result.meta.instance;
+
+      expect(instance.up).toBe(result.meta.base);
+      expect(instance.is.inherited).toBe(true);
+      expect(result.at(0).toString()).toContain(
+        "[42, 21, $!.is-private .private]",
+      );
+    });
+
+    it("supports user-defined multiple-base composition", () => {
+      const result = evaluate(
+        ".compose { [.a _.0.a; .b _.1.b] }; " +
+          ".left [.a 1]; .right [.b 2]; " +
+          ".combined (compose [left, right]); combined.a; combined.b",
+      );
+
+      expect(result.at(0).toString()).toMatch(/; \(1\); 2\)$/);
     });
   });
 });

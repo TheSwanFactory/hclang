@@ -27,7 +27,12 @@ export class FrameArray extends FrameList {
 
   public override in(contexts: Array<Frame> = [Frame.nil]): Frame {
     const array = this.array_eval(contexts);
-    return new FrameArray(array, this.meta_copy());
+    const result = new FrameArray(array, this.meta_copy());
+    if (this.is.inherited === true) {
+      result.up = this.up;
+      result.is.inherited = true;
+    }
+    return result;
   }
 
   public override get(key: string, origin: MetaFrame = this): Frame {

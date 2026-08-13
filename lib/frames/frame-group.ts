@@ -13,9 +13,9 @@ export class FrameGroup extends FrameList {
   }
 
   public eval_one(contexts = [Frame.nil]): Frame {
-    contexts.push(this);
+    const scoped = [...contexts, this];
     const expr = this.data[0];
-    const result = expr.in(contexts);
+    const result = expr.in(scoped);
 
     const symbols = this.meta_pairs();
     symbols.forEach(([key, value]) => {
@@ -33,7 +33,8 @@ export class FrameGroup extends FrameList {
         return this.eval_one(contexts);
       }
     }
-    this.data = this.data.map((f: Frame) => f.in(contexts));
+    const scoped = [...contexts, this];
+    this.data = this.data.map((f: Frame) => f.in([...scoped]));
     return this;
   }
 }

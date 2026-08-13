@@ -1,4 +1,5 @@
 import { Frame } from "./frame.ts";
+import { FrameAtom } from "./frame-atom.ts";
 import { FrameNote } from "./frame-note.ts";
 import { FrameLazy } from "./frame-lazy.ts";
 import { FrameSymbol } from "./frame-symbol.ts";
@@ -27,6 +28,17 @@ export class FrameArg extends FrameSymbol {
   }
 
   protected static args: { [key: string]: FrameArg } = {};
+
+  /** Resolve the source body after the leading `_` selected this atom family. */
+  public static fromSource(source: string): FrameAtom {
+    if (/^\^+$/.test(source)) {
+      return FrameParam.level(source.length);
+    }
+    if (/^_*$/.test(source)) {
+      return FrameArg.level(source.length + 1);
+    }
+    return new FrameArg(`_${source}`);
+  }
 
   protected static _for(symbol: string): FrameArg {
     if (symbol.includes(FrameParam.ARG_CHAR)) {
@@ -108,11 +120,12 @@ export class FrameParam extends FrameSymbol {
     // Parameters are stored in the contexts array
     // contexts[0] is the argument, contexts[1] is the parameter
     const paramIndex = level;
-    if (paramIndex < contexts.length) {
+    if (paramIndex < contexts.length && contexts[paramIndex] !== Frame.nil) {
       return contexts[paramIndex];
     }
 
-    // If not in contexts, try walking up the closure chain
+    // A nil parameter is the placeholder used for an ordinary closure call.
+    // In that case, walk up the captured scope instead.
     const closure = findClosure(contexts);
     if (!closure) {
       return FrameNote.key(this.data, this);
