@@ -29,6 +29,8 @@ jobs:
       - run: deno ci
       - run: deno task build
       - run: deno task test:all
+      - name: Test BitScheme executable specification
+        run: deno task test:bs
       - name: Detect version bump
         id: version
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'

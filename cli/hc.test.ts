@@ -153,6 +153,32 @@ describe("main", () => {
     );
   });
 
+  it("traverses the BitScheme tutorial with authoritative totals", async () => {
+    const out = new FrameArray([]);
+    const file = new URL("./hc/BitScheme.hc", import.meta.url).pathname;
+    const originalError = console.error;
+    const diagnostics: unknown[][] = [];
+    console.error = (...args: unknown[]) => diagnostics.push(args);
+    try {
+      const status = await main(
+        new HCEval(out),
+        getOptions(["--testdoc", file]),
+      );
+      const summaries = out.asArray().filter((item) =>
+        item.toString().includes("$=.test-summary")
+      );
+
+      expect(status).toEqual(0);
+      expect(diagnostics).toEqual([]);
+      expect(summaries.length).toEqual(1);
+      expect(summaries[0].toString()).toContain(
+        '“{"total":39,"pass":26,"fail":0,"unimplemented":13}”',
+      );
+    } finally {
+      console.error = originalError;
+    }
+  });
+
   it("passes the white-paper core examples independently", async () => {
     const out = new FrameArray([]);
     const file = new URL("./hc/white-paper-core.hc", import.meta.url).pathname;
