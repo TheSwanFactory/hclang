@@ -494,6 +494,89 @@ describe("evaluate", () => {
       expect(assignments.filter((s) => s.includes(".x 1"))).toHaveLength(2);
     });
 
+    describe("minimal deconstruction", () => {
+      it("retrieves the schema attached to a binding after reassignment", () => {
+        const result = evaluate(".x <1,2> 1; @x 2; x.<>");
+        expect(result.at(0).toString()).toContain("<1, 2>");
+        expect(result.meta.x.toString()).toEqual("2");
+      });
+
+      it("reports a missing binding schema", () => {
+        const result = evaluate(".plain 1; plain.<>");
+        expect(result.at(0).toString()).toContain("$!.schema-missing .plain");
+      });
+
+      it("selects direct properties in schema order without mutation", () => {
+        const result = evaluate("<.x, .z> [.x 1; .y 2; .z 3;]");
+        expect(result.toString()).toEqual("[[1, 3]]");
+      });
+
+      it("rejects invalid, missing, and inaccessible selector inputs", () => {
+        expect(evaluate("<.x> 1").toString()).toEqual(
+          "[$!.selector-input-invalid 1]",
+        );
+        expect(evaluate("<.x> [.y 2;]").toString()).toEqual(
+          "[$!.property-missing .x]",
+        );
+        expect(evaluate("<.secret> [.__secret 1;]").toString()).toEqual(
+          "[$!.is-private .secret]",
+        );
+      });
+
+      it("matches exact and complete bit schemas", () => {
+        expect(evaluate("<8@Bit> 0xff").toString()).toEqual("[0xff]");
+        expect(evaluate("<[@Bit]> 0b101").toString()).toEqual("[0b101]");
+      });
+
+      it("distinguishes invalid, short, and long bit inputs", () => {
+        expect(evaluate("<3@Bit> 5").toString()).toEqual(
+          "[$!.bit-input-invalid 5]",
+        );
+        expect(evaluate("<3@Bit> 0b10").toString()).toEqual(
+          "[$!.insufficient-bits <3@Bit> 0]",
+        );
+        expect(evaluate("<3@Bit> 0b1010").toString()).toEqual(
+          "[$!.unconsumed-bits 1]",
+        );
+      });
+
+      it("defines and reuses a named bit splitter with exact-width results", () => {
+        const result = evaluate(
+          ".Split <[.head <3@Bit>; .tail <[@Bit]>;]>; " +
+            "Split 0b00101; Split 0b11000; Split.<>",
+        );
+        const output = result.at(0).toString();
+        expect(output).toContain("[.head 0b001; .tail 0b01;]");
+        expect(output).toContain("[.head 0b110; .tail 0b00;]");
+        expect(output).toContain(
+          "<[.head <3@Bit>; .tail <[@Bit]>;]>",
+        );
+      });
+
+      it("fails sequences atomically for empty remainder and leftovers", () => {
+        expect(
+          evaluate("<[.head <3@Bit>; .tail <[@Bit]>;]> 0b101").toString(),
+        ).toEqual("[$!.insufficient-bits .tail 3]");
+        expect(evaluate("<[.head <3@Bit>;]> 0b1010").toString()).toEqual(
+          "[$!.unconsumed-bits 1]",
+        );
+      });
+
+      it("rejects misplaced remainders, duplicate names, and mixed forms", () => {
+        expect(
+          evaluate(
+            "<[.tail <[@Bit]>; .head <1@Bit>;]> 0b1",
+          ).toString(),
+        ).toEqual("[$!.invalid-remainder-position .tail]");
+        expect(
+          evaluate("<[.x <1@Bit>; .x <1@Bit>;]> 0b11").toString(),
+        ).toEqual("[$!.duplicate-capture-name .x]");
+        expect(evaluate("<1,.x> 1").toString()).toEqual(
+          "[$!.unsupported-schema-form]",
+        );
+      });
+    });
+
     // Edge cases (aspirational - document expected behavior)
     describe.skip("edge cases", () => {
       it("handles schema with nil value", () => {

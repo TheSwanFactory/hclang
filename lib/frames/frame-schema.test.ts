@@ -28,18 +28,11 @@ describe("FrameSchema", () => {
     expect(last_element).toEqual(b_frame);
   });
 
-  it("appends when called", () => {
-    const array = new FrameSchema([]);
-    array.call(a_frame);
-    array.call(b_frame);
-    expect(array.toString()).toEqual("<“a”, “b”>");
-  });
-
-  it("appends when non-nil", () => {
-    const array = new FrameSchema([]);
-    array.call(a_frame);
-    array.call(Frame.nil);
-    expect(array.toString()).toEqual("<“a”>");
+  it("does not mutate when called", () => {
+    const schema = new FrameSchema([a_frame, b_frame]);
+    expect(schema.call(a_frame)).toEqual(a_frame);
+    expect(schema.call(b_frame)).toEqual(b_frame);
+    expect(schema.toString()).toEqual("<“a”, “b”>");
   });
 
   it("evaluates its components into an array", () => {

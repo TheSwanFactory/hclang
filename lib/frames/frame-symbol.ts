@@ -91,6 +91,27 @@ export class FrameSymbol extends FrameAtom {
     return FrameNote.key(first.id + "." + this.data, first);
   }
 
+  /** Resolve the schema belonging to this binding, not to its bound value. */
+  public bindingSchema(contexts: Frame[] = [Frame.nil]): Frame {
+    const first = contexts[0];
+    for (const context of contexts) {
+      const origin = context;
+      const seen = new Set<Frame>();
+      let owner: Frame | undefined = context;
+      while (owner && !owner.is.missing && !seen.has(owner)) {
+        seen.add(owner);
+        const binding = owner.resolve_here(this.data, origin);
+        if (binding) {
+          if (binding.value.is.error) return binding.value;
+          const schema = owner.meta[`${binding.key}.<>`];
+          return schema ?? Frame.error(`$!.schema-missing .${this.data}`);
+        }
+        owner = owner.up;
+      }
+    }
+    return FrameNote.key(first.id + "." + this.data, first);
+  }
+
   public override apply(argument: Frame, _parameter: Frame): Frame {
     const out = this.get(Frame.kOUT);
     if (argument instanceof FrameHandle) {
@@ -146,6 +167,25 @@ export class FrameSymbol extends FrameAtom {
     }
     const setter = new FrameSymbol(this.data, meta);
     return setter;
+  }
+
+  /** Complete a statement whose declared value is the schema itself. */
+  public defineSchema(schema: FrameSchema): Frame {
+    const out = this.get(Frame.kOUT);
+    const binding = out.resolve_here(this.data, out);
+    if (binding?.value.is.error) return binding.value;
+    const assignmentKey = binding?.key ?? this.data;
+    const previous = binding?.value ?? out.get_here(this.data, out);
+    if (!previous.is.missing && this.isConstant(assignmentKey)) {
+      return Frame.error(`$error{$is-constant .${this.data}}`);
+    }
+    out.set(assignmentKey, schema);
+    out.set(`${assignmentKey}.<>`, schema);
+    return new FrameLiteral(`.${this.data} ${schema.toString()}`, {
+      target: new WeakRef(out),
+      key: assignmentKey,
+      value: schema,
+    });
   }
 
   public override called_by(context: Frame): Frame {

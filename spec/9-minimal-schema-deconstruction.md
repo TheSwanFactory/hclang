@@ -1,6 +1,6 @@
 # Minimal Schema Retrieval and Deconstruction
 
-**Status:** Proposed\
+**Status:** Implemented on the #310 feature branch\
 **Issue:**
 [#310 — Implement BitScheme schema retrieval, deconstructors, and bit captures](https://github.com/TheSwanFactory/hclang/issues/310)\
 **Related:** #311, #312

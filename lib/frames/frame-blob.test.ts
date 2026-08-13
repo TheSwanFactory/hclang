@@ -73,6 +73,14 @@ describe("FrameBlob", () => {
     expect(padded.toString()).toEqual(fourZeros);
   });
 
+  it("reports and slices its exact bit width without mutation", () => {
+    const blob = new FrameBlob("0b00101");
+    expect(blob.bitLength()).toEqual(5);
+    expect(blob.sliceBits(0, 3).toString()).toEqual("0b001");
+    expect(blob.sliceBits(3, 2).toString()).toEqual("0b01");
+    expect(blob.toString()).toEqual("0b00101");
+  });
+
   it("handles all zeros correctly", () => {
     const fourZeros = "0b0000";
     const padded = new FrameBlob(fourZeros);
