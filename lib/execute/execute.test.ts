@@ -147,5 +147,13 @@ describe("execute", () => {
       const result = execute(input);
       expect(result.toString()).toEqual(input);
     });
+
+    it("resolves a computed symbolic length to canonical numeric output", () => {
+      const result = execute(
+        ".v 4\n.h 2\n.size (v * h)\n\\size\\01234567",
+      );
+
+      expect(result).toContain("\\8\\01234567");
+    });
   });
 });

@@ -228,7 +228,11 @@ export class Frame extends MetaFrame {
    * Non-lexical Frames retain the historical double-dispatch behavior. The
    * optional source is supplied only to syntax participants adapted by Lex.
    */
-  public scan(argument: Frame, _source = ""): ScanResponse {
+  public scan(
+    argument: Frame,
+    _source = "",
+    _context: Frame = Frame.nil,
+  ): ScanResponse {
     return this.call(argument);
   }
 

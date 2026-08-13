@@ -163,6 +163,21 @@ describe("HCEval", () => {
     }
   });
 
+  it("recognizes dynamic byte syntax across every two-chunk split", () => {
+    const source = "\\size\\abc";
+
+    for (let split = 1; split < source.length; split++) {
+      const splitOut = new frame.FrameArray([]);
+      splitOut.set("size", new frame.FrameNumber("3"));
+      const splitEval = new HCEval(splitOut);
+      splitEval.call(source.slice(0, split), false);
+      splitEval.call(source.slice(split), false);
+
+      expect(splitEval.finish()).toEqual(true);
+      expect(splitOut.at(0).toString()).toEqual("\\3\\abc");
+    }
+  });
+
   it("reports a premature byte payload at EOF", () => {
     hc_eval.call("\\3\\ab", false);
 
@@ -175,8 +190,45 @@ describe("HCEval", () => {
     hc_eval.call("\\xignored", false);
 
     expect(hc_eval.finish()).toEqual(false);
-    expect(hc_eval.error()).toEqual("invalid byte length: \\x");
+    expect(hc_eval.error()).toEqual("unterminated byte length: \\xignored");
     expect(out.length()).toEqual(0);
+  });
+
+  it("reports a missing dynamic byte length", () => {
+    hc_eval.call("\\size\\abc", false);
+
+    expect(hc_eval.finish()).toEqual(false);
+    expect(hc_eval.error()).toEqual("byte length not found: size");
+    expect(out.length()).toEqual(0);
+  });
+
+  it("reports an invalid dynamic byte length value", () => {
+    out.set("size", new frame.FrameString("three"));
+    hc_eval.call("\\size\\abc", false);
+
+    expect(hc_eval.finish()).toEqual(false);
+    expect(hc_eval.error()).toEqual(
+      "invalid byte length value for size: “three”",
+    );
+  });
+
+  it("reports a premature dynamic byte payload at EOF", () => {
+    out.set("size", new frame.FrameNumber("3"));
+    hc_eval.call("\\size\\ab", false);
+
+    expect(hc_eval.finish()).toEqual(false);
+    expect(hc_eval.error()).toEqual("byte payload shorter than 3: ab");
+  });
+
+  it("can be reused cleanly after a dynamic byte failure", () => {
+    hc_eval.call("\\missing\\abc", false);
+    expect(hc_eval.finish()).toEqual(false);
+
+    hc_eval.call("7");
+
+    expect(out.length()).toEqual(1);
+    expect(out.at(0).toString()).toEqual("7");
+    expect(hc_eval.finish()).toEqual(true);
   });
 
   it("can be reused cleanly after a byte failure", () => {

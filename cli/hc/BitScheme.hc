@@ -41,6 +41,14 @@ The simplest Identifiers are Literals, e.g.:
 ; \5\Hello
 # \5\Hello
 ```
+Byte-string lengths can also resolve an already evaluated integer symbol:
+```
+; .v 4;
+; .h 2;
+; .size (v * h);
+; \size\01234567
+# \8\01234567
+```
 You can also use triple-backquotes for docstrings in https://asciidoctor.org[asciidoc] format. If you pass a ".adoc" file to bitscheme, it will prepend the backquotes, execute the code blocks, and warn if the evaluated input does not match the expected output.
 
 Comment strings (using "#") are also considered a type of Literal:

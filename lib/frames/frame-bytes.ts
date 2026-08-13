@@ -1,6 +1,7 @@
 import { FrameAtom, FrameQuote } from "./frame-atom.ts";
 import { type Context, NilContext } from "./context.ts";
 import { Frame } from "./frame.ts";
+import { FrameNumber } from "./frame-number.ts";
 import { ScanDisposition, type ScanResult, type SigilStart } from "../scan.ts";
 
 export class FrameBytes extends FrameQuote {
@@ -33,9 +34,13 @@ export class FrameBytes extends FrameQuote {
       this.toData();
   }
 
-  public override scan(symbol: Frame, source = ""): ScanResult {
+  public override scan(
+    symbol: Frame,
+    source = "",
+    context: Frame = Frame.nil,
+  ): ScanResult {
     const char = symbol.toString();
-    if (/\d/.test(char)) {
+    if (this.canIncludeLengthCharacter(source, char)) {
       return { disposition: ScanDisposition.Consume };
     }
     if (char !== FrameBytes.BYTES_END || source === "") {
@@ -45,7 +50,13 @@ export class FrameBytes extends FrameQuote {
       };
     }
 
-    const count = parseInt(source, 10);
+    const count = this.resolveLength(source, context);
+    if (typeof count === "string") {
+      return {
+        disposition: ScanDisposition.Error,
+        message: count,
+      };
+    }
     return count === 0
       ? {
         disposition: ScanDisposition.CompleteConsume,
@@ -70,6 +81,36 @@ export class FrameBytes extends FrameQuote {
       s = s + String.fromCharCode(value);
     });
     return s;
+  }
+
+  private canIncludeLengthCharacter(source: string, char: string): boolean {
+    if (/^\d*$/.test(source)) {
+      return /\d/.test(char) || (source === "" && /[a-zA-Z]/.test(char));
+    }
+    return /^[a-zA-Z][-\w]*$/.test(source) && /[-\w]/.test(char);
+  }
+
+  private resolveLength(source: string, context: Frame): number | string {
+    if (/^\d+$/.test(source)) {
+      return parseInt(source, 10);
+    }
+    if (!/^[a-zA-Z][-\w]*$/.test(source)) {
+      return `invalid byte length: \\${source}\\`;
+    }
+
+    const value = context.get(source, context);
+    if (value.is.missing) {
+      return `byte length not found: ${source}`;
+    }
+    if (!(value instanceof FrameNumber)) {
+      return `invalid byte length value for ${source}: ${value.toString()}`;
+    }
+
+    const count = Number(value.valueOf());
+    if (!Number.isSafeInteger(count) || count < 0) {
+      return `invalid byte length value for ${source}: ${value.toString()}`;
+    }
+    return count;
   }
 }
 
