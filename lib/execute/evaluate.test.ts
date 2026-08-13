@@ -233,6 +233,26 @@ describe("evaluate", () => {
       });
     });
 
+    describe("dotted comparisons", () => {
+      it("evaluates dotted less-than and greater-than properties", () => {
+        expect(evaluate("1.< 3").toString()).toEqual("[<>]");
+        expect(evaluate("1.> 3").toString()).toEqual("[()]");
+      });
+
+      it("retains dotted equals-suffixed comparisons", () => {
+        expect(evaluate("1.<= 1").toString()).toEqual("[<>]");
+        expect(evaluate("3.>= 4").toString()).toEqual("[()]");
+      });
+
+      it("keeps raw angle brackets as schema delimiters", () => {
+        expect(evaluate("<1, 3>").toString()).toEqual("[<1, 3>]");
+      });
+
+      it("treats a false comparison as false for an else branch", () => {
+        expect(evaluate("3.> 4 : {1}").toString()).toEqual("[1]");
+      });
+    });
+
     it("uses .+ for addition", () => {
       const input = "3.+2";
       const result = evaluate(input);

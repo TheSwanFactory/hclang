@@ -69,6 +69,16 @@ export class Frame extends MetaFrame {
    */
   public static readonly nil: Frame = new Frame(NilContext, true);
   /**
+   * false is an explicit false result. Unlike nil, it is retained by output
+   * collections, while rendering with the same canonical `()` spelling.
+   */
+  public static readonly false: Frame = new (class extends Frame {
+    constructor() {
+      super();
+      this.is.false = true;
+    }
+  })();
+  /**
    * all is the singleton Frame '<>' that represents the total type (true).
    */
 
