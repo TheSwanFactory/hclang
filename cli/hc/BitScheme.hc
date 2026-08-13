@@ -46,8 +46,9 @@ You can also use triple-backquotes for docstrings in https://asciidoctor.org[asc
 Comment strings (using "#") are also considered a type of Literal:
 ```
 ; 1234 # trailing comment
-; #  inline comment # 4321
-
+# 1234
+; #  inline comment before # 4321
+# 4321
 ```
 
 ==== Expressions
@@ -56,7 +57,7 @@ Identifiers can be combined into Expressions. The default behavior is concatenat
 ```
 ; 0b1101 0b0110
 # 0b11010110
-; `Hello`` World`
+; `Hello` ` World`
 # “Hello World”
 ```
 ==== Symbols
@@ -74,7 +75,7 @@ BitScheme also supports Symbolic Identifiers, which use prefix sigils for differ
 ===== $Error
 ```
 ; ther_answer
-# $!.name-missing “$:HCTest.113.ther_answer”;
+# $!.name-missing...
 ```
 ===== Alias
 ```
@@ -86,10 +87,10 @@ Symbols with only non-alphanumeric characters (e.g., "+") are called Operators r
 
 - "?" if-then
 - ":" if-else
-- "&" map
-- "|" reduce
+- "|" map
+- "&" reduce
 
-The *&* and *|* operators, by default, operate over enumerable elements. Use *&&* and *||* to iterate over properties instead, and *&&&* and *|||* for both.
+The *|* and *&* operators operate over enumerable elements. Use *&&* to map over properties.
 
 See *Operator Syntax* below for more details.
 
@@ -130,10 +131,10 @@ Elements are aggregated using pairs of Delimiters:
 ```
 ===== {} Deferred
 ```
-; .AppendZero {0b1 0b0};
+; .AppendZero {_ 0b0};
 ; AppendZero
-# ((0b1 ((0b0)))...)
-; AppendZero()
+# { _ 0b0 }
+; AppendZero 0b1
 # 0b10
 ```
 ==== Properties
@@ -150,248 +151,187 @@ Names can be used as properties to extract values from Groupings:
 Operators are actually just non-alphanumeric properties.
 ===== _nil_, the empty expression
 ```
-; .false ()
+; .false ();
 ```
 ===== _all_, the inclusive schema
 ```
-; .true <>
+; .true <>;
 ```
-===== Ternary
+===== Conditional
 ```
-; true .? `Yes` .: `No`
+; true ? {`Yes`}
 # `Yes`
-; false .? `Yes` .: `No`
+; () : {`No`}
 # `No`
 ```
 ===== Map
 ```
-; [0b101, 0b010] .& AppendZero
+; [0b101, 0b010] | AppendZero
 # [0b1010, 0b0100]
 ```
 ===== Reduce
 ```
-; [0b101, 0b010] .| AppendZero
+; [0b1010, 0b0100] & {. _}
 # 0b10100100
 ```
 
+== Implementation Status
+
+This specification distinguishes four statuses:
+
+* *implemented* examples are executable assertions and must pass;
+* *stale* syntax is shown only when explaining its current replacement;
+* *aspirational* examples are executable assertions marked `$!.unimplemented`;
+* *environment-dependent* operations, such as writing generated data files, remain non-executable documentation.
+
+The schema and capture gaps are tracked by https://github.com/TheSwanFactory/hclang/issues/310[#310]. The framebuffer example is tracked by https://github.com/TheSwanFactory/hclang/issues/311[#311], and the RISC-V example by https://github.com/TheSwanFactory/hclang/issues/312[#312].
+
 == Schemas
 
-Schemas, a novel feature of `bitscheme`, can be thought of as a cross between type signatures and regular expressions.  Syntactically they are ordinary Groupings, so they are easy to compose and refactor.  Each element of a Schema is called a _capture_.
+Schemas can be thought of as a cross between type signatures and regular expressions. Each element of a schema is called a _capture_. Numeric enumeration constraints are implemented; schema retrieval, schema deconstruction, and bit-count captures remain aspirational.
 
-=== Simple Captures
+=== Numeric Constraints (implemented)
 
-The three simple Schemas resemble C types, though they actually define an interface rather than require a specific representation:
+The current declaration syntax binds a schema and an initial value in one expression:
 ```
-; @enum123 <1,2,3>; # Enumerated list of valid values
-; .BitStream <[@Bit]>; # Variable-length Sequence of a specific type
-; .Byte <8@Bit>; # Fixed-length sequences
-```
-
-=== Type Constraints
-
-The Schema constrains which values can be bound to a Symbol, and can be retrieved via the `<>` property.
-```
-; @enum123 2;
+; .enum123 <1,2,3> 2
+# .enum123 2
 ; enum123
 # 2
-; enum123.<>
-# <1,2,3>
 ; @enum123 4
-# $@enum123<1,2,3> 4
+# $!.type-error .enum123 <1, 2, 3> 4
 ```
 
-=== Deconstructors
+=== Schema Retrieval and Captures (aspirational, #310)
 
-Schemas can also act directly to extract or bind values from compound sequences:
-
+Retrieving the schema attached to a value through `<>` is not yet implemented:
 ```
-; <.x, .z> [.x 1; .y 2; .z 3;] # Selector
-# [1, 3]
-; .BitSplitter3 <[.head <3@Bit>; .tail <[@Bit]>;]>;
+; enum123.<>
+# $!.unimplemented <1,2,3>
+```
+
+Fixed- and variable-length bit captures are valid tutorial design, but they are not currently executable capture operators:
+```
+; <8@Bit> 0xff
+# $!.unimplemented 0xff
+; <[@Bit]> 0b101
+# $!.unimplemented 0b101
+```
+
+=== Deconstructors (aspirational, #310)
+
+Schemas are intended to extract named properties and split bit sequences:
+```
+; <.x, .z> [.x 1; .y 2; .z 3;]
+# $!.unimplemented [1, 3]
 ; BitSplitter3 0b10101100
-# [.head 0b101; .tail 0b01100;]
+# $!.unimplemented [.head 0b101; .tail 0b01100;]
+```
 
-```
-#!/usr/bin/env hc #
-```
-=== Constructors
+The declarations below are retained as non-executable specification because their capture semantics are not implemented yet:
 
-We can also reverse the flow, by mapping capture keys to a dictionary to generate a sequence of values:
+[source,hc]
+----
+.Bit <0b0, 0b1>;
+.BitStream <[@Bit]>;
+.Byte <8@Bit>;
+.BitSplitter3 <[.head <3@Bit>; .tail <[@Bit]>;]>;
+----
+
+=== Constructors and Deferred Captures (aspirational, #310)
+
+Constructors are intended to reverse schema flow by mapping capture keys into a value. The old dotted iterator spellings are stale; current HC uses `|` for map and `&` for reduce.
 ```
-; .Bit <0b0, 0b1>;
-; .Byte <8@Bit>; # Fixed-length sequences
-; .BitSplitter3 <[.head <3@Bit>; .tail <[@Bit]>;]>;
-; .BS3_sequence (BitSplitter3 .& [.head 0b000; .tail 0b111;]);
 ; BS3_sequence
-# [0b000, 0b111]
-
-```
-The sequence can then be evaluated by folding it into an expression:
-```
-; BS3_sequence .| ()
-# 0b000111
+# $!.unimplemented [0b000, 0b111]
+; BS3_sequence & {. _}
+# $!.unimplemented 0b000111
 ```
 
-=== Deferred Captures
-To reuse the results of previous captures, enclose the referencing capture in brackets to defer evaluation:
-```
-; .NetString <[.n <4@Bit>; .string {<n@Byte>};]>;
-; NetString 0x548656c6c6f666666666 # 5:Hello + sixes
-# [.n 0x5; .string 0x48656c6c6f;] # Hello
+The intended constructor remains non-executable until schema deconstruction exists:
 
+[source,hc]
+----
+.BS3_sequence (BitSplitter3 | [.head 0b000; .tail 0b111;]);
+----
+
+Deferred captures are intended to reuse the result of an earlier capture:
+```
+; NetString 0x548656c6c6f666666666
+# $!.unimplemented [.n 0x5; .string 0x48656c6c6f;]
 ```
 
-== Example A: Symbolicated Frame Buffer
+[source,hc]
+----
+.NetString <[.n <4@Bit>; .string {<n@Byte>};]>;
+----
 
-This example demonstrates:
+== Example A: Symbolicated Frame Buffer (aspirational, #311)
 
-* parsing named and unnamed captures
-* reusing variables across scopes
-* symbolicating output
+This design parses named and unnamed captures, reuses variables across scopes, and symbolicates output. Its declarations are non-executable because they depend on #310 and the parser-specific work in #311:
 
-The bitstream starts with a 5-byte magic number for the _header_:
-```
-; .fb-start 0xf4m3b0ff3c;
-```
-After that come an arbitrary series of one of three _commands_.  Each command starts with a 4-bit _operation_:
-```
-; .op {
-# # .x 0xa
-# # .y 0xb
-# # .data 0xc
-}
-```
-The _x_ and _y_ operations are to set the top-level _width_ and _height_ variables, respectively:
-```
-; .width <2 @Byte>;
-; .height <2 @Byte>;
-; .parse-x <op.x; @width>;
-; .parse-y <op.y; @height>;
-```
-Those variables then determine the size of the data buffer in bytes:
-```
-; .pixel <2 @Byte>;
-; .parse-data <op.data; .fb-data <width height pixel>>;
-; .command <parse-x, parse-y, parse-data>;
-; .fb-parse <fb-start, [command]>;
-```
-For simplicity, let's assume a really small 4 x 2 display:
-```
-; .sizes {.mvga-x 0x0004; .mvga-y 0x0002;};
-; .mvga-data [0x0000 0x0001 0x0010 0x0100 0xffff 0xfff0 0xff00 0xf000];
+[source,hc]
+----
+.fb-start 0xf4m3b0ff3c;
+.op {.x 0xa; .y 0xb; .data 0xc;};
+.width <2@Byte>;
+.height <2@Byte>;
+.parse-x <op.x; @width>;
+.parse-y <op.y; @height>;
+.pixel <2@Byte>;
+.parse-data <op.data; .fb-data <width height pixel>>;
+.command <parse-x, parse-y, parse-data>;
+.fb-parse <fb-start, [command]>;
+.sizes {.mvga-x 0x0004; .mvga-y 0x0002;};
+.mvga-data [0x0000 0x0001 0x0010 0x0100 0xffff 0xfff0 0xff00 0xf000];
+.fb-bits (fb-start op.x mvga-x op.y mvga-y op.data mvga-data);
+.sym-x <parse-x |> sizes>;
+.sym-y <parse-y |> sizes>;
+.sym-commands <sym-x, sym-y, parse-data>;
+.fb-sym <fb-start |> @fb-start, [sym-commands]>;
+----
 
-```
-The bitstream then becomes:
-```
-; .fb-bits (fb-start op.x mvga-x op.y mvga-y op.data mvga-data);
-```
-which parses back to:
+The parsing and symbolic-output targets remain authoritative aspirational assertions:
 ```
 ; fb-parse fb-bits
-# [0xf4m3b0ff3c, @width 0x0004, @height 0x0002, .fb-data 0x0000000100100100fffffff0ff00f000]
-```
-If we would rather display symbolic values, we instead have the captures reverse-map ("|>") into the names:
-```
-; .sym-x <parse-x |> sizes>;
-; .sym-y <parse-y |> sizes>;
-; .sym-commands <sym-x, sym-y, parse-data>;
-; .fb-sym <fb-start |> @fb-start, [sym-commands]>;
+# $!.unimplemented [0xf4m3b0ff3c, @width 0x0004, @height 0x0002, .fb-data 0x0000000100100100fffffff0ff00f000]
 ; fb-sym fb-bits
-# [{fb-start}, {@width mvga-x}, {@height mvga-y}, .fb-data 0x0000000100100100fffffff0ff00f000]
-
+# $!.unimplemented [{fb-start}, {@width mvga-x}, {@height mvga-y}, .fb-data 0x0000000100100100fffffff0ff00f000]
 ```
 
-== Example B: RISC V
+== Example B: RISC-V (aspirational, #312)
 
-To see how this works for more complex data, we will construct Schema for the six https://en.wikipedia.org/wiki/RISC-V#ISA_base_and_extensions[32-bit RISC-V Instruction Formats].
+The following RV32I schema remains non-executable documentation because fixed-length captures and schema constructors are not implemented:
 
-=== Fields
-We start by defining captures for the various sub-fields used by RISC V instructions (as used by RV 32I):
+[source,hc]
+----
+.OP <7@Bit> (.Register <0b0110011>; .Load 0b0000011; .Math 0b0010011; .Immediate <Load, Math>; .Upper <0b0110111, 0b0010111>; .Store <0b0100011>; .Branch <0b1100011>; .Jump <0b1101111>;);
+.FUNCT3 (.funct3 <3@Bit>;);
+.FUNCT7 (.funct7 <7@Bit>;);
+.RD (.rd <5@Bit>);
+.RS1 (.rs1 <5@Bit>);
+.RS2 (.rs2 <5@Bit>);
+.SOURCE (RS2, RS1, FUNCT3);
+.Register <[FUNCT7, SOURCE, RD, OP.Register]>;
+.Immediate <[.imm11-0 <12@Bit>, RS1, FUNCT3, RD, .opcode OP.Immediate]>;
+.UpperImmediate <[.imm31-12 <20@Bit>, RD, .opcode OP.Upper]>;
+.Store <[.imm11-5 <7@Bit>, SOURCE, .imm4-0 <5@Bit>, .opcode OP.Store]>;
+.Branch <[.b12 <Bit>, .imm10-5 <6@Bit>, SOURCE, .imm4-1 <4@Bit>, .b11 <Bit>, .opcode OP.Branch]>;
+.Jump <[.b20 <Bit>, .imm10-1 <10@Bit>, .b11 <Bit>, .imm19-12 <8@Bit>, RD, .opcode OP.Jump]>;
+.RISC-V <Register, Immediate, UpperImmediate, Store, Branch, Jump>;
+.func (.add 0b000; .slt 0b010; .xor 0b100; .or 0b110; .and 0b111;);
+.addi <[.value, .source, .dest]> ^ {value source func.add dest OP.Math};
+----
 
+Construction, parsing, and generation are tracked independently so each future result can remove one marker:
 ```
-; .OP <7@Bit> (
-# # .Register <0b0110011>;
-# # .Load 0b0000011;
-# # .Math 0b0010011;
-# # .Immediate <Load, Math>;
-# # .Upper <0b0110111, 0b0010111>;
-# # .Store <0b0100011>;
-# # .Branch <0b1100011>;
-# # .Jump <0b1101111>;
-# # );
-; .FUNCT3 (.funct3 <3@Bit>;);
-; .FUNCT7 (.funct7 <7@Bit>;);
-; .RD (.rd <6@Bit>);
-; .RS1 (.rs1 <5@Bit>);
-; .RS2 (.rs2 <5@Bit>);
-; .SOURCE (RS2, RS1, FUNCT3);
+; addi[0b000000001011, 0b01010, 0b00111]
+# $!.unimplemented 0b00000000101101010000001110010011
+; RISC-V 0b00000000101101010000001110010011
+# $!.unimplemented [.imm11-0 0b000000001011; .rs1 0b01010; .funct3 0b000; .rd 0b00111; .opcode 0b0010011;]
+; RISC-V | [.imm11-0 0b000000001011; .rs1 0b01010; .funct3 0b000; .rd 0b00111; .opcode 0b0010011;]
+# $!.unimplemented [0b000000001011, 0b01010, 0b000, 0b00111, 0b0010011]
 ```
 
-=== Schema
-These Identifiers allow us to define our top-level Schema very concisely:
-
-```
-; .Register <[FUNCT7, SOURCE, RD, OP.Register]>;
-; .Immediate <[.imm11-0 <12@Bit>, RS1, FUNCT3, RD, .opcode OP.Immediate]>;
-; .UpperImmediate <[.imm31-12 <20@Bit>, RD, .opcode OP.Upper]>;
-; .Store <[.imm11-5 <7@Bit>, SOURCE, .imm4-0 <5@Bit>, .opcode OP.Store]>;
-; .Branch <[.b12 <Bit>,.imm10-5 <6@Bit>, SOURCE, .imm4-1 <4@Bit>,.b11 <Bit>, .opcode OP.Branch]>;
-; .Jump <[.b20 <Bit>,.imm10-1 <10@Bit>, .b11 <Bit>, .imm19-12 <8@Bit>, RD, .opcode OP.Jump]>;
-; .RISC-V <Register, Immediate, UpperImmediate, Store, Branch, Jump>;
-
-```
-==== Immediate Helpers
-
-We can also define helper properties to reconstitute immediates:
-```
-; @Immediate.immediate { imm11-0 };
-; @UpperImmediate.immediate { imm31-12 (12 0b0)};
-; @Store.immediate { imm11-5 imm4-0 };
-; @Branch.immediate { b12 b11 imm10-5 imm4-1 0b0};
-; @Jump.immediate { b20 imm19-12 b11 imm10-1 0b0 };
-
-```
-==== Constructors
-
-Constructors allow us to natively write assembly as an internal DSL.footnote:[https://en.wikipedia.org/wiki/Domain-specific_language[Domain Specific Language]]. We use the `^` operator to bind a Schema to a deferred expression. For example:
-```
-; .func (.add 0b000; .slt 010; .xor 0b100; .or 0b110; .and 0b111;);
-; .addi <[.value, .source, .dest]> ^ {value source func.add dest OP.Math };
-```
-```
-; .r10 0b01010;
-; .r7 0b00111;
-; .v11 (7 0b0) 0b1011; # 11
-; .add_11_to_r10_into_r7 addi[v11, r10, r7]
-# 0b0000000101101010000001110010011
-```
-That is, "0b00000001011 01010 000 00111 0010011" with spaces added for clarity.
-
-=== Usage
-
-==== Generating Data Files
-
-Having created our Schema, we can simply evaluate it to expand all the variables:
-```
-; RISC-V
-```
-The resulting output contains no variables, and can be used as a schema format for traditional parsers and generators.
-
-==== Parsing
-
-We can also apply this Schema to a 32-bit value to parse it into its components:
-```
-; .a11r10r7-parsed (RISC-V add_11_to_r10_into_r7)
-# (.imm11 0b00000001011; .rs1 0b01010; .func3 0b000; .rd 0b00111; .opcode 0b0010011;)
-```
-More sophisticated parsers can of course render binary values as symbols for easier readability.
-
-==== Generation
-
-Similarly, we can map the Schema into a dictionary to generate a sequence, and thus a value:
-```
-; .a11r10r7-sequence (RISC-V .&& a11r10r7-parsed)
-# [0b00000001011, 0b01010, 0b000, 0b00111, 0b0010011]
-; a11r10r7-sequence .| ()
-# 0b00000001011 01010 000 00111 0010011 # spaces added for clarity
+Writing the generated bytes to a data file is environment-dependent and intentionally remains non-executable documentation. The executable specification ends here.
 ```

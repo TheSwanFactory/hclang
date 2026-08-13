@@ -4,6 +4,13 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.9.0 2026-08-13
+
+- Restore the BitScheme tutorial as a fully traversable executable specification
+  with current conditional, map, reduce, and schema syntax.
+- Re-baseline advanced capture, framebuffer, and RISC-V behavior as explicitly
+  tracked aspirational examples instead of stale failing assertions.
+
 ## v0.8.9 2026-08-13
 
 - Negate the `()` and `<>` boolean singletons with `.!`.
