@@ -486,7 +486,7 @@ of the argument directly, rather than explicitly calling `_`.
 ```
 ; .mag {(x * x) + (y * y )};
 ; mag (.x 1; .y 2;)
-# $!.unimplemented 5
+# 5
 ```
 You can skip over the argument to access the enclosing scope (one level above)
 using the `_^` identifier (also known as `super`).
@@ -498,7 +498,7 @@ using the `_^` identifier (also known as `super`).
 ; print-arg(.var “arg”)
 # “arg”
 ; print-parent(.var “arg”)
-# $!.unimplemented “parent”
+# “parent”
 ```
 Since objects capture the scope where they are created, this even allows
 closures to be called with implicit arguments to access the enclosing
@@ -708,6 +708,9 @@ lazy blocks.
 
 ### Importing Modules
 
+NOTE: Module loading remains aspirational and environment-dependent; its
+executable semantics are tracked in https://github.com/TheSwanFactory/hclang/issues/301[#301].
+
 Importing external modules into a program has come a long way from C's
 text-based `#include` statement. Modern imports are typically expected
 to perform three roles:
@@ -790,27 +793,17 @@ conventions often used in C programs:
   : not visible to anyone, even children
 
 For example:
-[source,hc]
-----
-; .see-me {
-  .my-public-value 42;
-  ._my-protected-value 21;
-  .__my-private-value 7;
-  .child {
-    my-public-value,
-    my-protected-value,
-    my-private-value,
-  }
-};
+```
+; .see-me [.my-public-value 42; ._my-protected-value 21; .__my-private-value 7; .child {[my-public-value, my-protected-value, my-private-value]}];
 ; see-me.child()
-# [42, 21, $!is-private .my-private-value]
+# [42, 21, $!.is-private .my-private-value]
 ; see-me.my-public-value
 # 42
 ; see-me.my-protected-value
-# $!is-protected .my-protected-value
+# $!.is-protected .my-protected-value
 ; see-me.my-private-value
-# $!is-private .my-private-value
-----
+# $!.is-private .my-private-value
+```
 ### Effect
 
 Rather than specifying _call-by-value_ or _call-by-reference_, HC is
@@ -855,9 +848,9 @@ _destination_ object.
 ; .variable 42;
 ; .Constant 21;
 ; .variable 113
-# $!.unimplemented 113
+# 113
 ; .Constant 7
-# $!.unimplemented $error{$is-constant .Constant}
+# $error{$is-constant .Constant}
 ```
 #### Mutability
 
@@ -881,22 +874,16 @@ object, it simply performs a _copy-on-write_, returning a new object. To
 enable this, mutating methods can not explicitly return a value, but
 implicitly return their parent (e.g., "this"; see Section {#sec-oops} for
 more details).
-[source,hc]
-----
-; .fixed (
-  .hic “Object”;
-  .property 42;
-  .accessor { property }
-  .mutator: { @property _; }
-);
+```
+; .fixed [.hic “Object”; .property 42; .accessor {property}; .mutator: {@property _;}];
 ; fixed.accessor()
 # 42
-; .varying_ fixed.mutator: 113;
+; .varying_ (fixed.mutator: 113);
 ; varying_.accessor()
-# $!.unimplemented 113
+# 113
 ; fixed.accessor()
 # 42
-----
+```
 # Applications {#sec-applications}
 
 While the above language may seem simple to the point of simplistic, it has a
@@ -932,7 +919,7 @@ CoffeeScript cousin CSON[@Cite].
 ; .first-name “John”, .last-name “Doe”, .phone-number +1.408.555.1212
 # (.first-name “John”, .last-name “Doe”, .phone-number +1.408.555.1212)
 ; .first-name “Jane”, .last-name “Smith”, .phone-number +1.650.555.1212
-# (.first-name “Jane”, .last-name “Smith”, .phone-number +1.650.555.1212)
+# (“Jane”, “Smith”, +1.650.555.1212)
 ```
 ## Object-Orientation
 
@@ -943,53 +930,51 @@ are our access control rules plus the super identifier `_^`.
 ### Singletons
 
 Let's start with a simple singleton object containing private data:
-[source,hc]
-----
-; .my-object_ (
-   ._property 13;
-  .getProperty { _property }
-  .setProperty: { @property _}
-);
+```
+; .my-object_ [._property 13; .getProperty {_property}; .setProperty: {@property _;}];
 ; my-object_.getProperty()
 # 13
 ; my-object_.setProperty: 42;
 ; my-object_.getProperty()
-# 13
-----
+# 42
+```
 ### Classes
 
 To turn that into a class, we simply make it a closure which returns
 a frame analogous to that singleton:
-[source,hc]
-----
-; .my-class {
-   ._property _;
-  .getProperty { _property }
-  .setProperty: { @property _}
-};
-; .my-instance my-class 3;
+```
+; .my-class {[._property _; .getProperty {_property}; .setProperty: {@property _;}]};
+; .my-instance (my-class 3);
 ; my-instance.getProperty()
 # 3
-----
+```
 ### Inheritance
 
 Even inheritance is already accounted for, simply by explicitly specifying
-its parent scape:
-[source,hc]
-----
-; .my-subclass {
-  ._^ my-base-class
-};
-----
+its parent scope:
+```
+; .my-base-class [.public-value 42; ._protected-value 21; .__private-value 7];
+; .my-subclass {[._^ my-base-class; .values {[public-value, protected-value, private-value]}]};
+; .my-subinstance (my-subclass());
+; my-subinstance.values()
+# [42, 21, $!.is-private .private-value]
+; my-subinstance.public-value
+# 42
+; my-subinstance.protected-value
+# $!.is-protected .protected-value
+```
 There is no built-in support for multiple inheritance.  However, because
 inheritance is just another expression, you are welcome to define your own:
-[source,hc]
-----
-; .my-inheritance { “create your own” };
-; multiclass {
-  ._^ my-inheritance [my-base, another-base]
-};
-----
+```
+; .my-inheritance { [.a _.0.a; .b _.1.b] };
+; .my-base [.a 1];
+; .another-base [.b 2];
+; .multiclass (my-inheritance [my-base, another-base]);
+; multiclass.a
+# 1
+; multiclass.b
+# 2
+```
 # Implementation
 
  Homoiconic C is available as the `hc` interpreter via the `hclang`

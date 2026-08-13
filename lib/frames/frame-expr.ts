@@ -22,8 +22,10 @@ export class FrameExpr extends FrameList {
     }, Frame.nil);
 
     if (this.is.statement) {
-      this.data = [result];
-      return this;
+      const statement = new FrameExpr([result]);
+      statement.is.statement = true;
+      statement.is.error = result.is.error === true;
+      return statement;
     }
     return result;
   }

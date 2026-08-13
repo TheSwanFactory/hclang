@@ -3,7 +3,7 @@ import { FrameNote } from "./frame-note.ts";
 import { FrameLazy } from "./frame-lazy.ts";
 import { FrameSymbol } from "./frame-symbol.ts";
 import { type Context, NilContext } from "./context.ts";
-import type { SigilStart } from "../scan.ts";
+import { ScanDisposition, type ScanResult, type SigilStart } from "../scan.ts";
 
 const findClosure = (contexts: Frame[]): FrameLazy | undefined => {
   return contexts.find((context) => context instanceof FrameLazy) as
@@ -29,10 +29,6 @@ export class FrameArg extends FrameSymbol {
   protected static args: { [key: string]: FrameArg } = {};
 
   protected static _for(symbol: string): FrameArg {
-    if (symbol.includes(FrameParam.ARG_CHAR)) {
-      const level = symbol.length - 1;
-      return FrameParam.level(level) as unknown as FrameArg;
-    }
     const exists = FrameArg.args[symbol];
     return exists || (FrameArg.args[symbol] = new FrameArg(symbol));
   }
@@ -55,6 +51,31 @@ export class FrameArg extends FrameSymbol {
     return char === FrameArg.ARG_CHAR || char === FrameParam.ARG_CHAR;
   }
 
+  public override scan(symbol: Frame, source = ""): ScanResult {
+    const char = symbol.toString();
+    // The leading `_` selected this family; a first caret selects parameters.
+    if (char === FrameParam.ARG_CHAR && source === "") {
+      return {
+        disposition: ScanDisposition.Transition,
+        frame: FrameParam.level(),
+      };
+    }
+    if (this.canInclude(char)) {
+      return { disposition: ScanDisposition.Consume };
+    }
+    return {
+      disposition: ScanDisposition.CompleteRedispatch,
+      frame: this.completeAtom(source),
+    };
+  }
+
+  public override finishInput(source = ""): ScanResult {
+    return {
+      disposition: ScanDisposition.CompleteConsume,
+      frame: this.completeAtom(source),
+    };
+  }
+
   public override in(contexts = [Frame.nil]): Frame {
     const level = this.data.length;
     if (level <= 1) {
@@ -75,6 +96,12 @@ export class FrameArg extends FrameSymbol {
       }
     }
     return target;
+  }
+
+  private completeAtom(source: string): FrameArg {
+    return /^_*$/.test(source)
+      ? FrameArg.level(source.length + 1)
+      : new FrameArg(`_${source}`);
   }
 }
 
@@ -102,17 +129,35 @@ export class FrameParam extends FrameSymbol {
         super(data)
     } */
 
+  public override scan(symbol: Frame, source = ""): ScanResult {
+    if (symbol.toString() === FrameParam.ARG_CHAR) {
+      return { disposition: ScanDisposition.Consume };
+    }
+    return {
+      disposition: ScanDisposition.CompleteRedispatch,
+      frame: this.completeAtom(source),
+    };
+  }
+
+  public override finishInput(source = ""): ScanResult {
+    return {
+      disposition: ScanDisposition.CompleteConsume,
+      frame: this.completeAtom(source),
+    };
+  }
+
   public override in(contexts = [Frame.nil]): Frame {
     const level = this.data.length - 1; // number of ^
 
     // Parameters are stored in the contexts array
     // contexts[0] is the argument, contexts[1] is the parameter
     const paramIndex = level;
-    if (paramIndex < contexts.length) {
+    if (paramIndex < contexts.length && contexts[paramIndex] !== Frame.nil) {
       return contexts[paramIndex];
     }
 
-    // If not in contexts, try walking up the closure chain
+    // A nil parameter is the placeholder used for an ordinary closure call.
+    // In that case, walk up the captured scope instead.
     const closure = findClosure(contexts);
     if (!closure) {
       return FrameNote.key(this.data, this);
@@ -126,5 +171,9 @@ export class FrameParam extends FrameSymbol {
       }
     }
     return target;
+  }
+
+  private completeAtom(source: string): FrameParam {
+    return FrameParam.level(this.data.length - 1 + source.length);
   }
 }

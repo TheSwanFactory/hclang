@@ -3,10 +3,12 @@ import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 
 import {
   Frame,
+  FrameArg,
   FrameArray,
   FrameExpr,
   FrameGroup,
   FrameName,
+  FrameParam,
   FrameString,
 } from "../frames.ts";
 import { LexPipe } from "./lex-pipe.ts";
@@ -67,6 +69,67 @@ describe("Lex", () => {
       }
     });
   }
+
+  it("lexes a trailing-colon mutating name across chunk boundaries", () => {
+    for (const name of [".mutator:", "mutator:", "@mutator:"]) {
+      expect(lexAtoms(`${name} `).map(String)).toEqual([name]);
+      for (let split = 1; split < name.length; split++) {
+        expect(
+          lexChunkedAtoms([name.slice(0, split), name.slice(split)]).map(
+            String,
+          ),
+        ).toEqual([name]);
+      }
+    }
+  });
+
+  it("ends a mutating identifier after its trailing colon", () => {
+    expect(lexAtoms(".mutator:x ").map(String)).toEqual([".mutator:", "x"]);
+    expect(lexAtoms(".mutator:: ").map(String)).toEqual([".mutator:", ":"]);
+    expect(lexAtoms("mutator:x ").map(String)).toEqual(["mutator:", "x"]);
+    expect(lexAtoms("@mutator:x ").map(String)).toEqual(["@mutator:", "x"]);
+  });
+
+  it("keeps a standalone colon as an operator", () => {
+    expect(lexAtoms(": ").map(String)).toEqual([":"]);
+  });
+
+  it("lexes source parent lookup and declaration names", () => {
+    for (const name of ["_", "__", "___"]) {
+      const local = lexAtoms(`${name} `);
+      expect(local).toHaveLength(1);
+      expect(local[0]).toBeInstanceOf(FrameArg);
+      expect(local[0].toString()).toEqual(name);
+    }
+
+    const parent = lexAtoms("_^ ");
+    expect(parent).toHaveLength(1);
+    expect(parent[0]).toBeInstanceOf(FrameParam);
+    expect(parent[0].toString()).toEqual("_^");
+
+    const outerParent = lexAtoms("_^^ ");
+    expect(outerParent).toHaveLength(1);
+    expect(outerParent[0]).toBeInstanceOf(FrameParam);
+    expect(outerParent[0].toString()).toEqual("_^^");
+
+    const declaration = lexAtoms("._^ ");
+    expect(declaration).toHaveLength(1);
+    expect(declaration[0]).toBeInstanceOf(FrameName);
+    expect(declaration[0].toString()).toEqual("._^");
+  });
+
+  it("preserves parent identifiers across chunk boundaries", () => {
+    for (const name of ["_^", "_^^"]) {
+      for (let split = 1; split < name.length; split++) {
+        expect(
+          lexChunkedAtoms([name.slice(0, split), name.slice(split)]).map(
+            String,
+          ),
+        ).toEqual([name]);
+      }
+    }
+    expect(lexChunkedAtoms(["._", "^"]).map(String)).toEqual(["._^"]);
+  });
 
   it("keeps raw angle brackets structural", () => {
     const atoms = lexAtoms("<> ");

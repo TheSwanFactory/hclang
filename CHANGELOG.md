@@ -4,6 +4,23 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.8.7 2026-08-13
+
+- Return the assigned value when reassigning variables and preserve it in the
+  surrounding expression.
+- Reject reassignment of uppercase constant names without changing their
+  original value.
+- Enforce protected and private visibility for owner, child, parent, and peer
+  property reads and writes.
+- Support shared mutable handles and trailing-colon mutating methods, including
+  copy-on-write through immutable handles, implicit receiver returns, and
+  propagated mutation errors.
+- Construct singleton and class frames with ordinary aggregates and closures,
+  including repeatable construction, source-level parent lookup, and cycle-safe
+  inherited frame relationships.
+- Keep environment-dependent module loading explicitly aspirational with a
+  focused follow-up issue.
+
 ## v0.8.6 2026-08-12
 
 - Compare frames independently across their whole value, data plane (`==`), and

@@ -167,6 +167,20 @@ describe("main", () => {
     );
   });
 
+  it("passes the annotated class-support examples independently", async () => {
+    const out = new FrameArray([]);
+    const file = new URL("./hc/class-support.hc", import.meta.url).pathname;
+    const status = await main(
+      new HCEval(out),
+      getOptions(["--testdoc", file]),
+    );
+
+    expect(status).toEqual(0);
+    expect(out.at(-1).toString()).toContain(
+      '“{"total":12,"pass":12,"fail":0,"unimplemented":0}”',
+    );
+  });
+
   it("traverses the complete white paper with authoritative totals", async () => {
     const out = new FrameArray([]);
     const file = new URL("./hc/white-paper.hc", import.meta.url).pathname;
@@ -186,7 +200,7 @@ describe("main", () => {
       expect(diagnostics).toEqual([]);
       expect(summaries.length).toEqual(1);
       expect(summaries[0].toString()).toContain(
-        '“{"total":59,"pass":45,"fail":0,"unimplemented":14}”',
+        '“{"total":74,"pass":64,"fail":0,"unimplemented":10}”',
       );
     } finally {
       console.error = originalError;

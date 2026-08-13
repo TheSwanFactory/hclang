@@ -1,5 +1,7 @@
 import { Frame } from "./frame.ts";
 import { FrameArray } from "./frame-array.ts";
+import { FrameGroup } from "./frame-group.ts";
+import { FrameHandle } from "./frame-handle.ts";
 import { FrameAtom } from "./frame-atom.ts";
 import { FrameOperator, FrameSymbol } from "./frame-symbol.ts";
 import type { ISourced } from "./meta-frame.ts";
@@ -22,9 +24,17 @@ export class FrameName extends FrameAtom implements ISourced {
   }
 
   private bindingTarget(contexts: Frame[]): Frame {
+    const nestedGroup =
+      contexts.filter((context) => context instanceof FrameGroup).length > 1;
     for (let i = contexts.length - 1; i >= 0; i--) {
       const context = contexts[i];
-      if (context instanceof FrameArray) {
+      if (context instanceof FrameHandle) {
+        return context.unwrap();
+      }
+      if (
+        context instanceof FrameArray ||
+        (nestedGroup && context instanceof FrameGroup)
+      ) {
         return context;
       }
     }
@@ -52,7 +62,15 @@ export class FrameName extends FrameAtom implements ISourced {
 
   public override scan(symbol: Frame, source = this.source): ScanResult {
     const char = symbol.toString();
-    if (!this.canInclude(char)) {
+    if (source.endsWith("^")) {
+      return { disposition: ScanDisposition.CompleteRedispatch };
+    }
+    const mutatingSuffix = FrameSymbol.scanMutatingSuffix(source, char);
+    if (mutatingSuffix) {
+      return mutatingSuffix;
+    }
+    const parentDeclaration = source === "_" && char === "^";
+    if (!parentDeclaration && !this.canInclude(char)) {
       return { disposition: ScanDisposition.CompleteRedispatch };
     }
     if (source.length === 0) {
@@ -63,7 +81,7 @@ export class FrameName extends FrameAtom implements ISourced {
     const continuesIdentifier = char[0] === "-" && !startsWithOperator;
     const sameKind = FrameOperator.Accepts(char[0]) === startsWithOperator;
     return {
-      disposition: continuesIdentifier || sameKind
+      disposition: parentDeclaration || continuesIdentifier || sameKind
         ? ScanDisposition.Consume
         : ScanDisposition.CompleteRedispatch,
     };

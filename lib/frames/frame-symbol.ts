@@ -1,6 +1,8 @@
 import { Frame } from "./frame.ts";
 import { FrameAtom } from "./frame-atom.ts";
 import { FrameNote } from "./frame-note.ts";
+import { FrameHandle } from "./frame-handle.ts";
+import { FrameArray } from "./frame-array.ts";
 import { FrameSchema } from "./frame-schema.ts";
 import { type Context, NilContext } from "./context.ts";
 import { ScanDisposition, type ScanResult, type SigilStart } from "../scan.ts";
@@ -32,6 +34,22 @@ export class FrameSymbol extends FrameAtom {
     return FrameSymbol.for(Frame.kEND);
   }
 
+  /** Handles the single trailing colon shared by mutating identifiers. */
+  public static scanMutatingSuffix(
+    source: string,
+    char: string,
+  ): ScanResult | undefined {
+    if (source.length === 0 || FrameSymbol.OPERATOR_CHARS.test(source[0])) {
+      return undefined;
+    }
+    if (source.endsWith(":")) {
+      return { disposition: ScanDisposition.CompleteRedispatch };
+    }
+    if (char === ":") {
+      return { disposition: ScanDisposition.Consume };
+    }
+  }
+
   protected static symbols: { [key: string]: FrameSymbol } = {};
 
   constructor(protected data: string, meta: Context = NilContext) {
@@ -41,13 +59,23 @@ export class FrameSymbol extends FrameAtom {
   public override in(contexts: Frame[] = [Frame.nil]): Frame {
     const first = contexts[0];
     for (const context of contexts) {
-      const value = context.get(this.data);
+      const explicitOrigin = this.get_here(Frame.kOUT);
+      const origin =
+        context instanceof FrameHandle && !explicitOrigin.is.missing
+          ? explicitOrigin
+          : context;
+      const value = context.get(this.data, origin);
       if (!value.is.missing) {
-        value.up = context;
+        if (value.is.error) return value;
+        if (value.is.inherited !== true) {
+          value.up = context;
+        }
         if (value.is.immediate === true) {
           return value.call(context);
         }
-        return value;
+        return value instanceof FrameArray
+          ? new FrameHandle(value, this.data.endsWith("_"))
+          : value;
       }
     }
     return FrameNote.key(first.id + "." + this.data, first);
@@ -55,7 +83,24 @@ export class FrameSymbol extends FrameAtom {
 
   public override apply(argument: Frame, _parameter: Frame): Frame {
     const out = this.get(Frame.kOUT);
-    const schemaKey = `${this.data}.<>`;
+    if (argument instanceof FrameHandle) {
+      argument = argument.unwrap();
+    }
+    if (this.data === "_^") {
+      const previous = out.is.inherited === true ? out.up : Frame.missing;
+      if (out.wouldCreateParentCycle(argument)) {
+        return Frame.error("$!.cyclic-parent ._^");
+      }
+      out.up = argument;
+      out.is.inherited = true;
+      return previous.is.missing
+        ? new FrameLiteral(`._^ ${argument.toString()}`)
+        : argument;
+    }
+    const binding = out.resolve_here(this.data, out);
+    if (binding?.value.is.error) return binding.value;
+    const assignmentKey = binding?.key ?? this.data;
+    const schemaKey = `${assignmentKey}.<>`;
 
     if (argument instanceof FrameSchema) {
       out.set(schemaKey, argument);
@@ -64,13 +109,20 @@ export class FrameSymbol extends FrameAtom {
 
     const schema = out.get(schemaKey);
     if (!schema.is.missing && !this.matchesSchema(schema, argument)) {
-      return new FrameLiteral(
+      return Frame.error(
         `$!.type-error .${this.data} ${schema.toString()} ${argument.toString()}`,
       );
     }
 
-    out.set(this.data, argument);
-    return new FrameLiteral(`.${this.data} ${argument.toString()}`);
+    const previous = binding?.value ?? out.get_here(this.data, out);
+    if (!previous.is.missing && this.isConstant(assignmentKey)) {
+      return Frame.error(`$error{$is-constant .${this.data}}`);
+    }
+
+    out.set(assignmentKey, argument);
+    return previous.is.missing
+      ? new FrameLiteral(`.${this.data} ${argument.toString()}`)
+      : argument;
   }
 
   public setter(out: Frame): FrameSymbol {
@@ -94,6 +146,15 @@ export class FrameSymbol extends FrameAtom {
     return FrameSymbol.SYMBOL_CHAR.test(char);
   }
 
+  public override scan(symbol: Frame, source = ""): ScanResult {
+    const char = symbol.toString();
+    return FrameSymbol.scanMutatingSuffix(source, char) ?? {
+      disposition: this.canInclude(char)
+        ? ScanDisposition.Consume
+        : ScanDisposition.CompleteRedispatch,
+    };
+  }
+
   protected override toData(): string {
     return this.data === "$$" ? "\n" : this.data;
   }
@@ -108,6 +169,10 @@ export class FrameSymbol extends FrameAtom {
     return schema.asArray().some((capture) =>
       capture.toString() === value.toString()
     );
+  }
+
+  private isConstant(key = this.data): boolean {
+    return /^_*\p{Lu}/u.test(key);
   }
 }
 

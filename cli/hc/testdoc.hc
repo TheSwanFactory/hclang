@@ -72,7 +72,7 @@ Test types
 ; .option <1,2,3> 2
 # .option 2
 ; @option 3
-# .option 3
+# 3
 ; @option 4
 # $!.type-error .option <1, 2, 3> 4
 ## Single value schema (constant)
@@ -82,11 +82,11 @@ Test types
 # $!.type-error .const <42> 43
 ## Multiple valid assignments
 ; .x <1,2> 1
-# .x 1
+# 1
 ; @x 2
-# .x 2
+# 2
 ; @x 1
-# .x 1
+# 1
 ## Original tests
 ; <> 1
 # <>

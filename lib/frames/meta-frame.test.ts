@@ -73,6 +73,67 @@ describe("MetaFrame", () => {
     expect(child.get(key)).toEqual(value);
   });
 
+  it("detects parent assignments that would create a cycle", () => {
+    const parent = new Frame();
+    const child = new Frame();
+    child.up = parent;
+
+    expect(parent.wouldCreateParentCycle(child)).toBe(true);
+    expect(child.wouldCreateParentCycle(parent)).toBe(false);
+    expect(parent.wouldCreateParentCycle(parent)).toBe(true);
+  });
+
+  describe("visibility", () => {
+    const publicValue = new FrameString("public");
+    const protectedValue = new FrameString("protected");
+    const privateValue = new FrameString("private");
+    const parent = new Frame();
+    const owner = new Frame({
+      name: publicValue,
+      _protected: protectedValue,
+      __private: privateValue,
+    });
+    const child = new Frame();
+    const peer = new Frame();
+    owner.up = parent;
+    child.up = owner;
+    peer.up = parent;
+
+    it("allows the owner to read every visibility", () => {
+      expect(owner.get("name", owner)).toBe(publicValue);
+      expect(owner.get("protected", owner)).toBe(protectedValue);
+      expect(owner.get("private", owner)).toBe(privateValue);
+    });
+
+    it("allows children to read public and protected values", () => {
+      expect(owner.get("name", child)).toBe(publicValue);
+      expect(owner.get("protected", child)).toBe(protectedValue);
+      expect(owner.get("private", child).toString()).toEqual(
+        "$!.is-private .private",
+      );
+    });
+
+    it("denies protected and private values to parents and peers", () => {
+      for (const origin of [parent, peer]) {
+        expect(owner.get("name", origin)).toBe(publicValue);
+        expect(owner.get("protected", origin).toString()).toEqual(
+          "$!.is-protected .protected",
+        );
+        expect(owner.get("private", origin).toString()).toEqual(
+          "$!.is-private .private",
+        );
+      }
+    });
+
+    it("does not fall through a denied binding to an ancestor", () => {
+      parent.set("private", publicValue);
+      const denied = owner.get("private", child);
+
+      expect(denied.is.error).toBe(true);
+      expect(denied.toString()).toEqual("$!.is-private .private");
+    });
+  });
+
   it("returns metadata when called with a symbol", () => {
     const frame_symbol = FrameSymbol.for("nil");
     const result = frame.call(frame_symbol);

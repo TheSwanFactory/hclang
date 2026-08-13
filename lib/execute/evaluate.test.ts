@@ -468,6 +468,20 @@ describe("evaluate", () => {
     });
 
     // Reassignment tests
+    it("returns the assigned value when reassigning a variable", () => {
+      const result = evaluate(".variable 42; .variable 113");
+      expect(result.at(0).toString()).toEqual("((.variable 42); 113)");
+      expect(result.meta.variable.toString()).toEqual("113");
+    });
+
+    it("rejects reassignment of a constant without changing its value", () => {
+      const result = evaluate(".Constant 21; .Constant 7");
+      expect(result.at(0).toString()).toEqual(
+        "((.Constant 21); $error{$is-constant .Constant})",
+      );
+      expect(result.meta.Constant.toString()).toEqual("21");
+    });
+
     it("allows multiple valid assignments", () => {
       const result = evaluate(".x <1,2> 1; @x 2; @x 1");
       expect(result.toString()).not.toContain("$!.type-error");
@@ -633,7 +647,9 @@ describe("evaluate", () => {
 
       it("implicitly accesses properties from the argument", () => {
         const result = evaluate("{x + y} (.x 3; .y 4;)");
-        expect(result.toString()).toEqual("[7, .x 3; .y 4;]");
+        expect(result.toString()).toEqual("[7]");
+        expect(result.meta.x).toBeUndefined();
+        expect(result.meta.y).toBeUndefined();
       });
 
       it("matches implicit and explicit property access", () => {
@@ -689,6 +705,16 @@ describe("evaluate", () => {
         const result = closure.call(new frame.FrameNumber("1"));
         expect(result.toString()).toEqual("5");
       });
+
+      it("parses _^ as source-level parent lookup", () => {
+        const result = evaluate(
+          ".print-parent {_^.var}; .var “parent”; " +
+            "print-parent(.var “argument”)",
+        );
+
+        expect(result.at(0).toString()).toContain("“parent”");
+        expect(result.meta.var.toString()).toEqual("“parent”");
+      });
     });
   });
 
@@ -711,6 +737,242 @@ describe("evaluate", () => {
       const input = ".x 3;";
       const result = evaluate(input);
       expect(frame.contextEqual(result.meta, output)).toEqual(true);
+    });
+  });
+
+  describe("access and effects", () => {
+    it("enforces visibility through ordinary property syntax", () => {
+      const declaration =
+        ".owner [.public 42; ._protected 21; .__private 7; .child {[public, protected, private]}];";
+
+      expect(evaluate(`${declaration} owner.public`).at(0).toString())
+        .toContain("; 42)");
+      expect(evaluate(`${declaration} owner.protected`).at(0).toString())
+        .toContain("$!.is-protected .protected");
+      expect(evaluate(`${declaration} owner.private`).at(0).toString())
+        .toContain("$!.is-private .private");
+      expect(evaluate(`${declaration} owner.child()`).at(0).toString())
+        .toContain("[42, 21, $!.is-private .private]");
+    });
+
+    it("preserves owner ancestry through nested child handles", () => {
+      const result = evaluate(
+        ".owner [._p 21; .__q 7; .child [.read {[p,q]}]]; " +
+          "owner.child.read()",
+      );
+
+      expect(result.at(0).toString()).toContain(
+        "[21, $!.is-private .q]",
+      );
+    });
+
+    it("writes protected declarations without creating public shadows", () => {
+      const result = evaluate(
+        ".owner_ [._protected 7; .attempt: {@protected _;}]; " +
+          "owner_.attempt: 9",
+      );
+      const owner = result.meta.owner_;
+
+      expect(owner.get_here("_protected").toString()).toEqual("9");
+      expect(owner.meta.protected).toBeUndefined();
+    });
+
+    it("reassigns logical protected and private names in place", () => {
+      const result = evaluate(
+        ".owner [._protected 7; .protected 9; " +
+          ".__private 3; .private 5]",
+      );
+      const owner = result.meta.owner;
+
+      expect(owner.get_here("_protected").toString()).toEqual("9");
+      expect(owner.get_here("__private").toString()).toEqual("5");
+      expect(owner.meta.protected).toBeUndefined();
+      expect(owner.meta.private).toBeUndefined();
+    });
+
+    it("enforces constants through their logical visibility name", () => {
+      const result = evaluate(
+        ".owner [._Protected 7; .Protected 9; " +
+          ".__Private 3; .Private 5]",
+      );
+      const owner = result.meta.owner;
+
+      expect(result.at(0).toString()).toContain(
+        "$error{$is-constant .Protected}",
+      );
+      expect(result.at(0).toString()).toContain(
+        "$error{$is-constant .Private}",
+      );
+      expect(owner.get_here("_Protected").toString()).toEqual("7");
+      expect(owner.get_here("__Private").toString()).toEqual("3");
+      expect(owner.meta.Protected).toBeUndefined();
+      expect(owner.meta.Private).toBeUndefined();
+    });
+
+    it("denies child writes to private declarations without shadows", () => {
+      const result = evaluate(
+        ".owner_ [.__private 7; .attempt: {@private _;}]; " +
+          "owner_.attempt: 9",
+      );
+      const owner = result.meta.owner_;
+
+      expect(result.at(0).toString()).toContain("$!.is-private .private");
+      expect(owner.get_here("__private").toString()).toEqual("7");
+      expect(owner.meta.private).toBeUndefined();
+    });
+
+    it("compares handle metadata symmetrically through its target", () => {
+      expect(evaluate(".x [.a 1]; .y [.a 2]; x === y").at(0).toString())
+        .toContain("; ())");
+      expect(evaluate(".x [.a 1]; x === [.a 2]").at(0).toString())
+        .toContain("; ())");
+      expect(evaluate(".x [.a 1]; [.a 2] === x").at(0).toString())
+        .toContain("; ())");
+      expect(evaluate(".x [.a 1]; [.a 1] === x").at(0).toString())
+        .toContain("; <>)");
+    });
+
+    it("copies immutable receivers before mutating methods", () => {
+      const result = evaluate(
+        ".fixed [.property 42; .accessor {property}; .mutator: {@property _;}]; " +
+          ".varying_ (fixed.mutator: 113); varying_.accessor(); fixed.accessor()",
+      );
+
+      expect(result.at(0).toString()).toContain("(113); 42)");
+      expect(result.meta.fixed.get_here("property").toString()).toEqual("42");
+    });
+
+    it("synchronizes mutable aliases through shared identity", () => {
+      const result = evaluate(
+        ".shared_ [.property 42; .mutator: {@property _;}]; " +
+          ".alias_ shared_; alias_.mutator: 113; " +
+          "shared_.property; alias_.property",
+      );
+
+      expect(result.at(0).toString()).toContain("(113); 113)");
+      expect(result.meta.shared_.get_here("property").toString()).toEqual(
+        "113",
+      );
+    });
+
+    it("keeps constancy independent from mutable-handle effects", () => {
+      const declaration = evaluate(
+        ".Thing_ [.property 42; .mutator: {@property _;}];",
+      );
+      evaluate("Thing_.mutator: 113", declaration.meta);
+      const reassignment = evaluate(".Thing_ 7", declaration.meta);
+
+      expect(reassignment.at(0).toString()).toContain(
+        "$error{$is-constant .Thing_}",
+      );
+      expect(declaration.meta.Thing_.get_here("property").toString()).toEqual(
+        "113",
+      );
+    });
+
+    it("returns the receiver rather than a mutator body's value", () => {
+      const result = evaluate(
+        ".mutable_ [.property 42; .mutator: {@property _; 999}]; " +
+          "mutable_.mutator: 113",
+      );
+
+      expect(result.at(0).toString()).toContain(".property 113;");
+      expect(result.at(0).toString()).not.toMatch(/; 999\)$/);
+    });
+
+    it("constructs singleton frames from existing interpretations", () => {
+      const result = evaluate(
+        ".object_ [._property 13; .get {_property}; " +
+          ".set: {@property _;}]; object_.get(); " +
+          "object_.set: 42; object_.get()",
+      );
+
+      expect(result.at(0).toString()).toContain("(13)");
+      expect(result.at(0).toString()).toMatch(/; 42\)$/);
+    });
+
+    it("constructs class instances by calling a frame-producing closure", () => {
+      const result = evaluate(
+        ".class {[._property _; .get {_property}]}; " +
+          ".instance (class 3); instance.get()",
+      );
+
+      expect(result.at(0).toString()).toMatch(/; 3\)$/);
+      expect(result.meta.instance.get_here("_property").toString()).toEqual(
+        "3",
+      );
+    });
+
+    it("constructs repeated instances without mutating the class aggregate", () => {
+      const result = evaluate(
+        ".Class {[.Value _; .get {Value}]}; " +
+          ".first (Class 1); .second (Class 2); " +
+          "first.get(); second.get()",
+      );
+
+      expect(result.at(0).toString()).toMatch(/; \(1\); 2\)$/);
+      expect(result.meta.first.get_here("Value").toString()).toEqual("1");
+      expect(result.meta.second.get_here("Value").toString()).toEqual("2");
+      expect(result.meta.Class.meta.Value).toBeUndefined();
+    });
+
+    it("propagates assignment errors out of mutating methods", () => {
+      const constant = evaluate(
+        ".owner_ [.Value 1; .change: {@Value _;}]; owner_.change: 2",
+      );
+      const schema = evaluate(
+        ".owner_ [.value <1> 1; .change: {@value _;}]; owner_.change: 2",
+      );
+
+      expect(constant.at(0).toString()).toContain(
+        "$error{$is-constant .Value}",
+      );
+      expect(constant.meta.owner_.get_here("Value").toString()).toEqual("1");
+      expect(schema.at(0).toString()).toContain(
+        "$!.type-error .value <1> 2",
+      );
+      expect(schema.meta.owner_.get_here("value").toString()).toEqual("1");
+    });
+
+    it("interprets a parent declaration as the frame up link", () => {
+      const result = evaluate(
+        ".base [.public 42; ._protected 21; .__private 7]; " +
+          ".subclass {[._^ base; " +
+          ".values {[public, protected, private]}]}; " +
+          ".instance (subclass()); instance.values()",
+      );
+      const instance = result.meta.instance;
+
+      expect(instance.up).toBe(result.meta.base);
+      expect(instance.is.inherited).toBe(true);
+      expect(result.at(0).toString()).toContain(
+        "[42, 21, $!.is-private .private]",
+      );
+    });
+
+    it("rejects cyclic parent declarations without corrupting lookup", () => {
+      const declaration = evaluate(
+        ".owner_ [.set-parent: {._^ _;}]; owner_.set-parent: owner_",
+      );
+      const owner = declaration.meta.owner_;
+
+      expect(declaration.at(0).toString()).toContain(
+        "$!.cyclic-parent ._^",
+      );
+      expect(owner.is.inherited).not.toBe(true);
+      expect(owner.up).not.toBe(owner);
+      expect(evaluate("owner_.missing", declaration.meta).at(0).toString())
+        .toContain("$!.name-missing");
+    });
+
+    it("supports user-defined multiple-base composition", () => {
+      const result = evaluate(
+        ".compose { [.a _.0.a; .b _.1.b] }; " +
+          ".left [.a 1]; .right [.b 2]; " +
+          ".combined (compose [left, right]); combined.a; combined.b",
+      );
+
+      expect(result.at(0).toString()).toMatch(/; \(1\); 2\)$/);
     });
   });
 });

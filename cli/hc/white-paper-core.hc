@@ -17,7 +17,7 @@
 ; base .key
 # 42
 ; {.key 113} base
-# .key 113
+# 113
 ; base .key
 # 113
 ; [.a 1; .b 2;].c

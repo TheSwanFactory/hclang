@@ -11,6 +11,19 @@ export interface ISourced extends Frame {
   source: string;
 }
 
+/** A logical lookup resolved to its physical declaration key and value. */
+export type BindingResolution = {
+  key: string;
+  value: Frame;
+};
+
+/** Visibility levels for logical frame bindings. */
+export enum Visibility {
+  Public = "public",
+  Protected = "protected",
+  Private = "private",
+}
+
 /**
  * MetaFrame is the parent class of Frame, providing methods for managing metadata.
  */
@@ -65,11 +78,49 @@ export class MetaFrame {
    * get_here retrieves a Frame by key from the current context.
    */
   public get_here(key: string, _origin: MetaFrame = this): Frame {
-    const exact = this.meta[key];
+    const exact = this.resolve_here(key, _origin);
     if (exact != null) {
-      return exact;
+      return exact.value;
     }
     return this.match_here(key);
+  }
+
+  /** Resolves a logical name to the declaration key visible from origin. */
+  public resolve_here(
+    key: string,
+    origin: MetaFrame = this,
+  ): BindingResolution | undefined {
+    if (key.startsWith("__")) {
+      return this.authorize(
+        key,
+        Visibility.Private,
+        key.slice(2),
+        origin,
+      );
+    }
+    if (key.startsWith("_")) {
+      return this.authorize(
+        key,
+        Visibility.Protected,
+        key.slice(1),
+        origin,
+      );
+    }
+
+    const publicValue = this.meta[key];
+    if (publicValue != null) return { key, value: publicValue };
+    return this.authorize(
+      `_${key}`,
+      Visibility.Protected,
+      key,
+      origin,
+    ) ??
+      this.authorize(
+        `__${key}`,
+        Visibility.Private,
+        key,
+        origin,
+      );
   }
 
   /**
@@ -101,6 +152,18 @@ export class MetaFrame {
     }
     this.meta[key] = value;
     return this;
+  }
+
+  /** Whether assigning parent would attach this frame to a cyclic chain. */
+  public wouldCreateParentCycle(parent: MetaFrame): boolean {
+    const seen = new Set<MetaFrame>([this]);
+    let current: MetaFrame | undefined = parent;
+    while (current) {
+      if (seen.has(current)) return true;
+      seen.add(current);
+      current = current.up;
+    }
+    return false;
   }
 
   /**
@@ -163,5 +226,37 @@ export class MetaFrame {
       }
     });
     return result;
+  }
+
+  private authorize(
+    physicalKey: string,
+    visibility: Visibility,
+    key: string,
+    origin: MetaFrame,
+  ): BindingResolution | undefined {
+    const value = this.meta[physicalKey];
+    if (value == null) return undefined;
+    const authorized = visibility === Visibility.Public ||
+      (visibility === Visibility.Private
+        ? origin === this
+        : this.isAncestorOf(origin));
+    if (authorized) {
+      return { key: physicalKey, value };
+    }
+    return {
+      key: physicalKey,
+      value: Frame.error(`$!.is-${visibility} .${key}`),
+    };
+  }
+
+  private isAncestorOf(origin: MetaFrame): boolean {
+    const seen = new Set<MetaFrame>();
+    let current: MetaFrame | undefined = origin;
+    while (current && !seen.has(current)) {
+      if (current === this) return true;
+      seen.add(current);
+      current = current.up;
+    }
+    return false;
   }
 }
