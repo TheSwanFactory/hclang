@@ -20,7 +20,7 @@ export { FrameSchema } from "./frames/frame-schema.ts";
 export { FrameString, type IStringConstructor } from "./frames/frame-string.ts";
 export { FrameOperator, FrameSymbol } from "./frames/frame-symbol.ts";
 export { type Any, type Flags, Frame } from "./frames/frame.ts";
-export { type ISourced, MetaFrame } from "./frames/meta-frame.ts";
+export { type ISourced, MetaFrame, Visibility } from "./frames/meta-frame.ts";
 export {
   type LexicalMode,
   ScanDisposition,

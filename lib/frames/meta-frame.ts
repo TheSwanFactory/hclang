@@ -17,6 +17,13 @@ export type BindingResolution = {
   value: Frame;
 };
 
+/** Visibility levels for logical frame bindings. */
+export enum Visibility {
+  Public = "public",
+  Protected = "protected",
+  Private = "private",
+}
+
 /**
  * MetaFrame is the parent class of Frame, providing methods for managing metadata.
  */
@@ -84,16 +91,36 @@ export class MetaFrame {
     origin: MetaFrame = this,
   ): BindingResolution | undefined {
     if (key.startsWith("__")) {
-      return this.authorize(key, "private", key.slice(2), origin);
+      return this.authorize(
+        key,
+        Visibility.Private,
+        key.slice(2),
+        origin,
+      );
     }
     if (key.startsWith("_")) {
-      return this.authorize(key, "protected", key.slice(1), origin);
+      return this.authorize(
+        key,
+        Visibility.Protected,
+        key.slice(1),
+        origin,
+      );
     }
 
     const publicValue = this.meta[key];
     if (publicValue != null) return { key, value: publicValue };
-    return this.authorize(`_${key}`, "protected", key, origin) ??
-      this.authorize(`__${key}`, "private", key, origin);
+    return this.authorize(
+      `_${key}`,
+      Visibility.Protected,
+      key,
+      origin,
+    ) ??
+      this.authorize(
+        `__${key}`,
+        Visibility.Private,
+        key,
+        origin,
+      );
   }
 
   /**
@@ -203,15 +230,17 @@ export class MetaFrame {
 
   private authorize(
     physicalKey: string,
-    visibility: "protected" | "private",
+    visibility: Visibility,
     key: string,
     origin: MetaFrame,
   ): BindingResolution | undefined {
     const value = this.meta[physicalKey];
     if (value == null) return undefined;
-    if (
-      visibility === "private" ? origin === this : this.isAncestorOf(origin)
-    ) {
+    const authorized = visibility === Visibility.Public ||
+      (visibility === Visibility.Private
+        ? origin === this
+        : this.isAncestorOf(origin));
+    if (authorized) {
       return { key: physicalKey, value };
     }
     return {
