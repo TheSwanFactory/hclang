@@ -34,8 +34,6 @@ export type Flag = { [key: string]: boolean };
 export interface AtomFactory {
   /** Construct a runtime atom from its completed source body. */
   new (body: string): FrameAtom;
-  /** Optionally select a more specific atom after the whole body is known. */
-  readonly fromSource?: (body: string) => FrameAtom;
   /** Source characters and lexical modes that select this atom family. */
   readonly SIGIL_STARTS: readonly SigilStart[];
 }
@@ -127,8 +125,7 @@ export class Lex extends Frame implements ISourced {
     if (this.body === "") {
       this.body = this.source;
     }
-    const frame = this.Factory.fromSource?.(this.body) ??
-      new this.Factory(this.body);
+    const frame = new this.Factory(this.body);
     this.body = "";
     return new Token(frame);
   }

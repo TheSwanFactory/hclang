@@ -3,6 +3,7 @@ import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 
 import {
   Frame,
+  FrameArg,
   FrameArray,
   FrameExpr,
   FrameGroup,
@@ -94,10 +95,22 @@ describe("Lex", () => {
   });
 
   it("lexes source parent lookup and declaration names", () => {
+    for (const name of ["_", "__", "___"]) {
+      const local = lexAtoms(`${name} `);
+      expect(local).toHaveLength(1);
+      expect(local[0]).toBeInstanceOf(FrameArg);
+      expect(local[0].toString()).toEqual(name);
+    }
+
     const parent = lexAtoms("_^ ");
     expect(parent).toHaveLength(1);
     expect(parent[0]).toBeInstanceOf(FrameParam);
     expect(parent[0].toString()).toEqual("_^");
+
+    const outerParent = lexAtoms("_^^ ");
+    expect(outerParent).toHaveLength(1);
+    expect(outerParent[0]).toBeInstanceOf(FrameParam);
+    expect(outerParent[0].toString()).toEqual("_^^");
 
     const declaration = lexAtoms("._^ ");
     expect(declaration).toHaveLength(1);
@@ -106,7 +119,15 @@ describe("Lex", () => {
   });
 
   it("preserves parent identifiers across chunk boundaries", () => {
-    expect(lexChunkedAtoms(["_", "^"]).map(String)).toEqual(["_^"]);
+    for (const name of ["_^", "_^^"]) {
+      for (let split = 1; split < name.length; split++) {
+        expect(
+          lexChunkedAtoms([name.slice(0, split), name.slice(split)]).map(
+            String,
+          ),
+        ).toEqual([name]);
+      }
+    }
     expect(lexChunkedAtoms(["._", "^"]).map(String)).toEqual(["._^"]);
   });
 
