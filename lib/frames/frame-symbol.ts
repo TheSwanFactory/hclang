@@ -4,11 +4,21 @@ import { FrameNote } from "./frame-note.ts";
 import { FrameHandle } from "./frame-handle.ts";
 import { FrameArray } from "./frame-array.ts";
 import { FrameSchema } from "./frame-schema.ts";
+import { FrameType } from "./frame-type.ts";
 import { type Context, NilContext } from "./context.ts";
 import { ScanDisposition, type ScanResult, type SigilStart } from "../scan.ts";
 
-class FrameLiteral extends FrameAtom {
-  constructor(protected data: string) {
+export type FrameBinding = {
+  target: WeakRef<Frame>;
+  key: string;
+  value: Frame;
+};
+
+export class FrameLiteral extends FrameAtom {
+  constructor(
+    protected data: string,
+    public readonly binding?: FrameBinding,
+  ) {
     super(NilContext);
   }
 
@@ -20,7 +30,7 @@ class FrameLiteral extends FrameAtom {
 export class FrameSymbol extends FrameAtom {
   public static readonly SYMBOL_BEGIN = /[a-zA-Z]/;
   public static readonly SYMBOL_CHAR = /[-\w]/;
-  public static readonly OPERATOR_CHARS = /[&|?:+\-/*%=<>!]/;
+  public static readonly OPERATOR_CHARS = /[&|?:+\-/*%=<>!~^]/;
   public static readonly SIGIL_STARTS: readonly SigilStart[] = [
     { key: FrameSymbol.SYMBOL_BEGIN.toString(), mode: "atom" },
   ];
@@ -121,7 +131,11 @@ export class FrameSymbol extends FrameAtom {
 
     out.set(assignmentKey, argument);
     return previous.is.missing
-      ? new FrameLiteral(`.${this.data} ${argument.toString()}`)
+      ? new FrameLiteral(`.${this.data} ${argument.toString()}`, {
+        target: new WeakRef(out),
+        key: assignmentKey,
+        value: argument,
+      })
       : argument;
   }
 
@@ -166,9 +180,7 @@ export class FrameSymbol extends FrameAtom {
     if (schema.length() === 0) {
       return true;
     }
-    return schema.asArray().some((capture) =>
-      capture.toString() === value.toString()
-    );
+    return schema.matches(value);
   }
 
   private isConstant(key = this.data): boolean {
@@ -177,7 +189,7 @@ export class FrameSymbol extends FrameAtom {
 }
 
 export class FrameOperator extends FrameSymbol {
-  public static readonly OPERATOR_START = /[&|?:+\-/*%=!]/;
+  public static readonly OPERATOR_START = /[&|?:+\-/*%=!~^]/;
   public static override readonly SIGIL_STARTS: readonly SigilStart[] = [
     { key: FrameOperator.OPERATOR_START.toString(), mode: "atom" },
   ];
@@ -200,6 +212,13 @@ export class FrameOperator extends FrameSymbol {
 
   public override in(_contexts: Frame[] = [Frame.nil]): Frame {
     return this;
+  }
+
+  public override apply(argument: Frame, parameter: Frame): Frame {
+    if (this.operator === "~~") {
+      return FrameType.of(argument);
+    }
+    return super.apply(argument, parameter);
   }
 
   public override called_by(context: Frame): Frame {

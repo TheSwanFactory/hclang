@@ -4,6 +4,16 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.8.9 2026-08-13
+
+- Negate the `()` and `<>` boolean singletons with `.!`.
+- Test membership in all, nil, enumerated schemas, and runtime types extracted
+  with `~~`.
+- Bind closure argument signatures with `^`, applying defaults, allowing extra
+  properties, and reporting omitted required properties.
+- Promote all nine boolean and type-operation white-paper examples to passing
+  doctests.
+
 ## v0.8.8 2026-08-13
 
 - Preserve live closure parent relationships so argument lookup, explicit parent

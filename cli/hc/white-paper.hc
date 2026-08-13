@@ -560,11 +560,11 @@ it acts as the boolean `true` value.
 ; <>
 # <>
 ; ().!
-# $!.unimplemented <>
+# <>
 ; <>
 # <>
 ; <>.!
-# $!.unimplemented ()
+# ()
 ; ()
 # ()
 ```
@@ -575,9 +575,9 @@ type, returning true (all) or false (nil). Every object is a member of
 _all_, while nothing is a member of _nil_:
 ```
 ; 1 ~ <>
-# $!.unimplemented <>
+# <>
 ; 2 ~ ()
-# $!.unimplemented ()
+# ()
 ; ()
 # ()
 ```
@@ -588,15 +588,15 @@ optional defaults:
 ```
 ; .join-name (.first “Jane”, .last) ^ {last “, ” first};
 ; join-name (.first “John”, .last “Doe”)
-# $!.unimplemented “Doe, John”
+# “Doe, John”
 ```
 Types are generous, in that you are allowed to specify additional properties,
 but it is an error to omit properties that do not have a default:
 ```
 ; join-name (.middle “Q”, .last “Doe”)
-# $!.unimplemented “Doe, Jane”
+# “Doe, Jane”
 ; join-name (.middle “Q”)
-# $!.unimplemented $!invalid-argument-list (.middle “Q”, $!missing-required-argument .last;)
+# $!invalid-argument-list (.middle “Q”, $!missing-required-argument .last;)
 ```
 The return type is usually inferred, but can be specified explicitly using a trailing `^^`.
 
@@ -607,9 +607,9 @@ The simplest way to construct a type is to use the `~~` operator to extract the 
 of a known object:
 ```
 ; “Q” ~ ~~“”
-# $!.unimplemented <>
+# <>
 ; “Q” ~ ~~1
-# $!.unimplemented ()
+# ()
 ```
 ### Content
 

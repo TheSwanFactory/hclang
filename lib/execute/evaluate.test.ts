@@ -618,6 +618,46 @@ describe("evaluate", () => {
     });
   });
 
+  describe("boolean and type operations", () => {
+    it("negates the nil and all singleton booleans", () => {
+      expect(evaluate("().!").at(0)).toBe(frame.Frame.all);
+      expect(evaluate("<>.!").toString()).toEqual("[]");
+    });
+
+    it("defines all and nil membership", () => {
+      expect(evaluate("1 ~ <>").at(0)).toBe(frame.Frame.all);
+      expect(evaluate("2 ~ ()").toString()).toEqual("[]");
+    });
+
+    it("extracts first-class runtime types for membership", () => {
+      expect(evaluate("~~“”").at(0)).toBeInstanceOf(frame.FrameType);
+      expect(evaluate("“Q” ~ ~~“”").at(0)).toBe(frame.Frame.all);
+      expect(evaluate("“Q” ~ ~~1").toString()).toEqual("[]");
+    });
+
+    it("enforces closure signature defaults and required properties", () => {
+      const declaration =
+        ".join-name (.first “Jane”, .last) ^ {last “, ” first}; ";
+
+      expect(
+        evaluate(
+          declaration + "join-name (.first “John”, .last “Doe”)",
+        ).at(0).toString(),
+      ).toContain("“Doe, John”");
+      expect(
+        evaluate(
+          declaration + "join-name (.middle “Q”, .last “Doe”)",
+        ).at(0).toString(),
+      ).toContain("“Doe, Jane”");
+      expect(
+        evaluate(declaration + "join-name (.middle “Q”)").at(0).toString(),
+      ).toContain(
+        "$!invalid-argument-list (.middle “Q”, " +
+          "$!missing-required-argument .last;)",
+      );
+    });
+  });
+
   describe("closures with arguments", () => {
     describe("anonymous parameter `_`", () => {
       it("applies closure {_} as identity function", () => {

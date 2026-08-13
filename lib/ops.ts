@@ -20,6 +20,7 @@ import {
   Power,
   Subtract,
 } from "./ops/math.ts";
+import { BindType, HasType } from "./ops/type-operations.ts";
 
 export { FrameCurry } from "./ops/frame-curry.ts";
 export type { ICurryFunction } from "./ops/frame-curry.ts";
@@ -45,4 +46,6 @@ export const Ops = new FrameOps({
   "<": LessThan,
   "<<": LessThan,
   "<=": LessThanOrEqual,
+  "~": HasType,
+  "^": BindType,
 });
