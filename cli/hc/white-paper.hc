@@ -694,13 +694,13 @@ and the opposite on regular frames.
 ; () : {2 + 2}
 # 4
 ```
-Together the operators act like C's ternary operator while preserving HC's
-left-to-right evaluation:
+Chaining applies those binary rules using HC's ordinary left-to-right
+evaluation. The result returned by `?` becomes the left operand of `:`:
 ```
 ; 1.> 5 ? (2 * 50) : 10
 # 10
 ; 5.> 1 ? (2 * 50) : 10
-# 100
+# ()
 ```
 Note that applying nil to anything other than a closure has no effect, so
 conditionals work just as well with simple expressions as they do with

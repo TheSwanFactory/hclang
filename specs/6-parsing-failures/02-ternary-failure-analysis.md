@@ -6,9 +6,9 @@
 **Related architecture:** #292
 
 **Resolution:** Comparisons that collide with type/schema delimiters use
-explicit dot-led property names such as `.>` and `.<`. Conditional evaluation
-preserves a successful `?` result until a following `:` selects the final
-branch.
+explicit dot-led property names such as `.>` and `.<`. Binary `?` and `:` call
+their selected right operand with nil, and chains compose those call results
+through ordinary left-to-right evaluation.
 
 ## Executive Summary
 
@@ -27,13 +27,12 @@ The example exposes two independent incompatibilities:
    comparison operator. At top level it attempts to pop a schema that was never
    opened, reports `LexPipe.perform.pop.failed: already at top level`, drops the
    character, and ultimately produces no evaluated result.
-2. The old sequential definitions of `?` and `:` did not compose into a ternary
-   chain because the branch decision was not retained for the following `:`
-   operator.
+2. A nil accumulator could not dispatch the following ordinary operator, so the
+   binary definitions of `?` and `:` did not reliably compose left to right.
 
 Issue #293 resolved both gaps. The maintained spelling uses `.>`, raw `>`
-remains structural, and a conditional result carries the selected branch across
-the rest of the chain.
+remains structural, and every non-leading operator dispatches generically even
+when the accumulated value is nil. No ternary parser state is introduced.
 
 ## Pre-fix Reproduction
 
@@ -98,8 +97,8 @@ Before v0.8.5, the conditional operations were independently defined as follows:
 - `:` calls its right operand with nil when the left operand is nil; otherwise
   it returns nil.
 
-Each operator worked in isolation for its documented binary role, but did not
-preserve the original condition across a `? ... : ...` sequence.
+Each operator worked in isolation for its documented binary role, but a nil
+accumulator could not reliably dispatch the following operator.
 
 For a truthy condition, left-to-right reduction behaves conceptually as:
 
@@ -108,7 +107,9 @@ condition ? then-branch  => then-value
 then-value : else-branch => nil
 ```
 
-Thus `1 ? {100} : {10}` produced no output rather than `100`.
+Thus `1 ? {100} : {10}` reduces to nil by the binary rules: `?` first calls the
+then operand and returns `100`, then `:` sees a truthy left operand and returns
+nil. This is the intended left-to-right result, not C-style branch preservation.
 
 For a false condition, `?` returned nil, which could not reliably dispatch the
 following `:` operator. Focused reproductions returned unresolved operator
@@ -133,9 +134,8 @@ token stream it receives.
 
 ### Evaluator and operator model
 
-Responsible for whether two ordinary binary operators can compose into the
-documented ternary behavior. The current left-to-right reduction and stateless
-`IfThen`/`IfElse` functions do not provide that composition.
+Responsible for allowing ordinary operators to dispatch when the accumulated
+value is nil and for applying the documented binary call rules consistently.
 
 ### Documentation
 
@@ -149,19 +149,25 @@ rules:
 
 1. Raw `<` and `>` remain schema delimiters; numeric comparisons use `.<`, `.>`,
    `.<=`, and `.>=`.
-2. Binary `?` calls its right operand for a truthy frame and returns explicit
-   `()` for false. Binary `:` does the opposite.
-3. Raw `()` and false comparison results are explicit false values that can
-   continue dispatching through an expression.
-4. A successful `?` returns a transparent conditional value that remembers the
-   selected result until a following `:` is reduced.
-5. A chained `:` returns the remembered then result for a true predicate or
-   evaluates its else operand for a false predicate.
-6. Lazy branch operands are called only when selected. Ordinary grouped operands
-   retain HC's normal eager left-to-right evaluation.
+2. For a truthy left frame, binary `?` returns `right.call(Frame.nil)`; for nil
+   it returns `Frame.nil` without calling the right operand.
+3. For a truthy left frame, binary `:` returns `Frame.nil` without calling the
+   right operand; for nil it returns `right.call(Frame.nil)`.
+4. Raw `()` and false comparison results are `Frame.nil`; true comparison
+   results are `Frame.all`.
+5. Chains use ordinary left-to-right composition. A false predicate reduces
+   `nil ? A : B` to `B()`. A true predicate reduces to `A() : B`; a truthy `A()`
+   result yields nil, while a nil `A()` result proceeds to `B()`.
+6. `FrameOperator` retains operator identity, and every non-leading operator is
+   dispatched through `called_by` even when the accumulated value is nil. This
+   is generic operator evaluation, not conditional-specific parsing, and it
+   preserves leading unary operators such as `+`.
+7. A lazy callable is invoked only when its binary rule selects it. Ordinary
+   grouped operands retain HC's normal eager left-to-right evaluation.
 
-The maintained testdoc covers the complete binary truth table, raw `()`, true
-and false dotted comparisons, both chained outcomes, and explicit `()` results.
-Focused TypeScript tests also prove that unselected lazy branches are not
-evaluated. The original false white-paper chain and a true counterpart are both
-executable doctests.
+The maintained testdoc covers the complete binary truth table with callables,
+callables returning nil, raw `()`, true and false dotted comparisons, and all
+three chained outcomes. Focused TypeScript tests prove invocation with
+`Frame.nil` and prove that a non-selected lazy callable is not invoked. The
+original false white-paper chain and its binary-composition true counterpart are
+both executable doctests.

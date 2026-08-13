@@ -11,9 +11,9 @@
 - Support leading unary `+` on numeric-property chains without changing binary
   addition.
 - Evaluate dotted numeric comparisons `.<`, `.>`, `.<=`, and `.>=`, including
-  explicit `()` false results, while preserving raw schema delimiters.
-- Support the complete binary and chained `?`/`:` conditional truth table,
-  preserving branch state and skipping unselected lazy branches.
+  `<>`/`()` truth results, while preserving raw schema delimiters.
+- Make binary `?` and `:` call the selected right operand with `()`, with
+  chained conditionals following ordinary left-to-right evaluation.
 - Execute the four original HCSV/HCSON phone examples in the full white-paper
   doctest.
 

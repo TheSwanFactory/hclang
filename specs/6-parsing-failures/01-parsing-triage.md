@@ -106,11 +106,12 @@ evaluation changes belong to #293.
 
 Update the focused conditional case to use the selected `.>` comparison property
 before changing runtime conditional behavior. Determine whether any remaining
-failure arises from operator association, state preservation, aggregate
+failure arises from operator dispatch, call-result composition, aggregate
 evaluation, or branch semantics.
 
 The investigation must define the documented expression as supported syntax and
-preserve the original predicate across the left-to-right `? ... : ...` chain.
+apply the two binary operators through ordinary left-to-right evaluation,
+without preserving the original predicate as hidden state.
 
 If the syntax is supported, add focused lexer/parser tests and update the
 white-paper example to the selected comparison spelling before promoting it to
@@ -141,8 +142,9 @@ have actually moved from unimplemented to passing.
       correctly.
 - [x] `1.< 3` evaluates to `<>` and `1.> 3` evaluates to `()`.
 - [x] Raw `<` and `>` remain structural type/schema delimiters.
-- [x] The ternary example uses the selected comparison spelling and evaluates
-      both its false and true branches.
+- [x] The conditional example uses the selected comparison spelling: the false
+      chain evaluates its else call to `10`, a truthy then-call followed by `:`
+      evaluates to `()`, and a nil then-call proceeds to the else call.
 - [x] Supported conditional syntax retains its white-paper doctests, with
       focused evaluation coverage using the selected explicit-dot comparison
       spelling.
