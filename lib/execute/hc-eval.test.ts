@@ -27,6 +27,14 @@ describe("HCEval", () => {
     expect(result.toString()).toEqual("123");
   });
 
+  it("retains a generic atom across arbitrary chunks", () => {
+    hc_eval.call("12", false);
+    hc_eval.call("3", false);
+
+    expect(hc_eval.finish()).toEqual(true);
+    expect(out.at(0).toString()).toEqual("123");
+  });
+
   it("parses multi-line docStrings", () => {
     hc_eval.call("`");
     expect(out.length()).toEqual(0);
@@ -120,6 +128,66 @@ describe("HCEval", () => {
     hc_eval.call("```unfinished ``");
 
     expect(hc_eval.finish()).toEqual(false);
+  });
+
+  it("reports an unterminated smart string at EOF", () => {
+    hc_eval.call("“unfinished", false);
+
+    expect(hc_eval.finish()).toEqual(false);
+    expect(hc_eval.error()).toContain("unterminated FrameString");
+    expect(out.length()).toEqual(0);
+  });
+
+  it("retains a byte payload across arbitrary chunks", () => {
+    hc_eval.call("\\3\\a", false);
+    hc_eval.call("b", false);
+    hc_eval.call("c", false);
+
+    expect(hc_eval.finish()).toEqual(true);
+    expect(out.length()).toEqual(1);
+    expect(out.at(0)).toBeInstanceOf(frame.FrameBytes);
+    expect(out.at(0).toString()).toEqual("\\3\\abc");
+  });
+
+  it("recognizes byte syntax identically across every two-chunk split", () => {
+    const source = "\\3\\abc";
+
+    for (let split = 1; split < source.length; split++) {
+      const splitOut = new frame.FrameArray([]);
+      const splitEval = new HCEval(splitOut);
+      splitEval.call(source.slice(0, split), false);
+      splitEval.call(source.slice(split), false);
+
+      expect(splitEval.finish()).toEqual(true);
+      expect(splitOut.at(0).toString()).toEqual(source);
+    }
+  });
+
+  it("reports a premature byte payload at EOF", () => {
+    hc_eval.call("\\3\\ab", false);
+
+    expect(hc_eval.finish()).toEqual(false);
+    expect(hc_eval.error()).toEqual("byte payload shorter than 3: ab");
+    expect(out.length()).toEqual(0);
+  });
+
+  it("retains an invalid byte-length failure until EOF", () => {
+    hc_eval.call("\\xignored", false);
+
+    expect(hc_eval.finish()).toEqual(false);
+    expect(hc_eval.error()).toEqual("invalid byte length: \\x");
+    expect(out.length()).toEqual(0);
+  });
+
+  it("can be reused cleanly after a byte failure", () => {
+    hc_eval.call("\\3\\ab", false);
+    expect(hc_eval.finish()).toEqual(false);
+
+    hc_eval.call("7");
+
+    expect(out.length()).toEqual(1);
+    expect(out.at(0).toString()).toEqual("7");
+    expect(hc_eval.finish()).toEqual(true);
   });
 
   it("can be reused cleanly after an unfinished document", () => {

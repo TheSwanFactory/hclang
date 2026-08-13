@@ -1,10 +1,21 @@
 # Evaluation of the Tokenizer Conjecture
 
-**Status:** Evaluation\
+**Status:** Historical evaluation; architecture and naming refined by
+[08-sigilizer-phase.md](./08-sigilizer-phase.md),
+[09-sigilizer-spec.md](./09-sigilizer-spec.md), and
+[12-sigilizer-refactoring.md](./12-sigilizer-refactoring.md)\
 **Issue:**
 [#292 — Generalize the FrameAtom lexical-boundary contract beyond canInclude()](https://github.com/TheSwanFactory/hclang/issues/292)\
 **Evaluates:** [04-tokenizer-conjecture.md](./04-tokenizer-conjecture.md)\
 **Related:** #293 and [03-lookahead-tensions.md](./03-lookahead-tensions.md)
+
+**Subsequent decision:**
+[11-candidate-composition-spec.md](./11-candidate-composition-spec.md) chooses
+explicit dot-led comparison properties and numeric-property evaluation for
+phone-shaped values. Those decisions remove the pre-recognizer ambiguities used
+as evidence below. The back-half `scan(Symbol)` findings remain applicable; the
+candidate-composition conclusion is historical rather than an implementation
+requirement.
 
 ## Verdict
 

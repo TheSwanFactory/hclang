@@ -1,7 +1,12 @@
 import { expect } from "jsr:@std/expect@^0.219.1";
 import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 
-import { FrameBlob } from "../frames.ts";
+import {
+  FrameBlob,
+  FrameSymbol,
+  ScanDisposition,
+  type ScanResult,
+} from "../frames.ts";
 
 describe("FrameBlob", () => {
   const source = "0b10100101";
@@ -34,6 +39,32 @@ describe("FrameBlob", () => {
 
   it("can include anything in base64", () => {
     expect(frame_blob.canInclude("F")).toBe(true);
+  });
+
+  it("scans digits according to the selected base", () => {
+    const cases = [
+      ["b10", "1", "2"],
+      ["o7", "7", "8"],
+      ["xF", "a", "G"],
+      ["tz", "z", "i"],
+      ["sA", "/", "_"],
+    ];
+
+    cases.forEach(([source, valid, invalid]) => {
+      const accepted = frame_blob.scan(
+        FrameSymbol.for(valid),
+        source,
+      ) as ScanResult;
+      const rejected = frame_blob.scan(
+        FrameSymbol.for(invalid),
+        source,
+      ) as ScanResult;
+
+      expect(accepted.disposition).toEqual(ScanDisposition.Consume);
+      expect(rejected.disposition).toEqual(
+        ScanDisposition.CompleteRedispatch,
+      );
+    });
   });
 
   it("remembers leading zeros", () => {

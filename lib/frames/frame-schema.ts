@@ -2,10 +2,15 @@ import { Frame } from "./frame.ts";
 import { FrameList } from "./frame-list.ts";
 import { FrameNote } from "./frame-note.ts";
 import { NilContext } from "./context.ts";
+import type { SigilStart } from "../scan.ts";
 
 export class FrameSchema extends FrameList {
   public static readonly BEGIN_SCHEMA = "<";
   public static readonly END_SCHEMA = ">";
+  public static readonly SIGIL_STARTS = [
+    { key: FrameSchema.BEGIN_SCHEMA, mode: "push" },
+    { key: FrameSchema.END_SCHEMA, mode: "pop" },
+  ] as const satisfies readonly SigilStart[];
 
   constructor(data: Array<Frame>, meta = NilContext) {
     super(data, meta);

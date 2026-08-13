@@ -3,10 +3,15 @@ import { FrameList } from "./frame-list.ts";
 import { FrameNote } from "./frame-note.ts";
 import type { MetaFrame } from "./meta-frame.ts";
 import { NilContext } from "./context.ts";
+import type { SigilStart } from "../scan.ts";
 
 export class FrameArray extends FrameList {
   public static readonly BEGIN_ARRAY = "[";
   public static readonly END_ARRAY = "]";
+  public static readonly SIGIL_STARTS = [
+    { key: FrameArray.BEGIN_ARRAY, mode: "push" },
+    { key: FrameArray.END_ARRAY, mode: "pop" },
+  ] as const satisfies readonly SigilStart[];
 
   constructor(data: Array<Frame>, meta = NilContext) {
     super(data, meta);

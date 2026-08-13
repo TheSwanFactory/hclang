@@ -6,7 +6,7 @@ export { FrameArray } from "./frames/frame-array.ts";
 export { FrameAtom, FrameQuote } from "./frames/frame-atom.ts";
 export { FrameArg, FrameParam } from "./frames/frame-arg.ts";
 export { FrameBlob } from "./frames/frame-blob.ts";
-export { FrameBytes } from "./frames/frame-bytes.ts";
+export { FrameBytePayload, FrameBytes } from "./frames/frame-bytes.ts";
 export { FrameComment } from "./frames/frame-comment.ts";
 export { FrameDoc } from "./frames/frame-doc.ts";
 export { FrameBind, FrameExpr } from "./frames/frame-expr.ts";
@@ -21,6 +21,13 @@ export { FrameString, type IStringConstructor } from "./frames/frame-string.ts";
 export { FrameOperator, FrameSymbol } from "./frames/frame-symbol.ts";
 export { type Any, type Flags, Frame } from "./frames/frame.ts";
 export { type ISourced, MetaFrame } from "./frames/meta-frame.ts";
+export {
+  type LexicalMode,
+  ScanDisposition,
+  type ScanResponse,
+  type ScanResult,
+  type SigilStart,
+} from "./scan.ts";
 export {
   type Context,
   contextEqual,

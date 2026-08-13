@@ -3,9 +3,13 @@ import { FrameAtom } from "./frame-atom.ts";
 import { FrameNote } from "./frame-note.ts";
 import { FrameSymbol } from "./frame-symbol.ts";
 import { NilContext } from "./context.ts";
+import type { SigilStart } from "../scan.ts";
 
 export class FrameAlias extends FrameAtom {
   public static readonly ALIAS_BEGIN = "@";
+  public static readonly SIGIL_STARTS = [
+    { key: FrameAlias.ALIAS_BEGIN, mode: "atom" },
+  ] as const satisfies readonly SigilStart[];
 
   protected data: FrameSymbol;
 

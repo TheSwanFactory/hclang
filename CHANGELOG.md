@@ -4,6 +4,20 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.8.4 2026-08-12
+
+- Route symbol-to-token recognition through a stateless Sigilizer and shared
+  Frame-level Scan protocol (`scan()`/`finishInput()`), replacing lexer-specific
+  boundary workarounds.
+- Lex dot-led comparison names such as `.<`, `.>`, `.<=`, and `.>=` while
+  preserving raw `<` and `>` as structural type delimiters.
+- Restore fixed-length byte strings such as `\5\Hello`, including incremental
+  input and exact payload boundaries.
+- Report lexical failures for unterminated smart strings, invalid byte lengths,
+  and byte payloads that end before their declared length.
+- Validate blob continuation against the selected base instead of accepting
+  base-64 digits in every blob literal.
+
 ## v0.8.3 2026-08-12
 
 - Support document strings opened by any odd backtick run and closed by an equal

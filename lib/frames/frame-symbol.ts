@@ -3,6 +3,7 @@ import { FrameAtom } from "./frame-atom.ts";
 import { FrameNote } from "./frame-note.ts";
 import { FrameSchema } from "./frame-schema.ts";
 import { type Context, NilContext } from "./context.ts";
+import { ScanDisposition, type ScanResult, type SigilStart } from "../scan.ts";
 
 class FrameLiteral extends FrameAtom {
   constructor(protected data: string) {
@@ -18,6 +19,9 @@ export class FrameSymbol extends FrameAtom {
   public static readonly SYMBOL_BEGIN = /[a-zA-Z]/;
   public static readonly SYMBOL_CHAR = /[-\w]/;
   public static readonly OPERATOR_CHARS = /[&|?:+\-/*%=<>!]/;
+  public static readonly SIGIL_STARTS: readonly SigilStart[] = [
+    { key: FrameSymbol.SYMBOL_BEGIN.toString(), mode: "atom" },
+  ];
 
   public static for(symbol: string): FrameSymbol {
     const exists = FrameSymbol.symbols[symbol];
@@ -108,6 +112,11 @@ export class FrameSymbol extends FrameAtom {
 }
 
 export class FrameOperator extends FrameSymbol {
+  public static readonly OPERATOR_START = /[&|?:+\-/*%=!]/;
+  public static override readonly SIGIL_STARTS: readonly SigilStart[] = [
+    { key: FrameOperator.OPERATOR_START.toString(), mode: "atom" },
+  ];
+
   public static operator_chars(): string {
     return "&|?:+\\-*%<>!";
     // FrameOperator.OPERATOR_CHARS.source.slice(1, -1)
@@ -127,5 +136,17 @@ export class FrameOperator extends FrameSymbol {
 
   public override canInclude(char: string): boolean {
     return FrameOperator.Accepts(char);
+  }
+
+  public override scan(symbol: Frame, _source = ""): ScanResult {
+    const char = symbol.toString();
+    if (char === "<" || char === ">") {
+      return { disposition: ScanDisposition.CompleteRedispatch };
+    }
+    return {
+      disposition: this.canInclude(char)
+        ? ScanDisposition.Consume
+        : ScanDisposition.CompleteRedispatch,
+    };
   }
 }

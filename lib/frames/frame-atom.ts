@@ -1,5 +1,6 @@
 import { type Any, Frame } from "./frame.ts";
 import { NilContext } from "./context.ts";
+import { ScanDisposition, type ScanResponse } from "../scan.ts";
 
 export class FrameAtom extends Frame {
   constructor(meta = NilContext) {
@@ -38,10 +39,37 @@ export class FrameAtom extends Frame {
     return char !== this.string_suffix();
   }
 
+  public override scan(symbol: Frame, _source = ""): ScanResponse {
+    return {
+      disposition: this.canInclude(symbol.toString())
+        ? ScanDisposition.Consume
+        : ScanDisposition.CompleteRedispatch,
+    };
+  }
+
+  public override finishInput(_source = ""): ScanResponse {
+    return { disposition: ScanDisposition.CompleteRedispatch };
+  }
+
   protected toData(): Any {
     return null;
   }
 }
 
 export class FrameQuote extends FrameAtom {
+  public override scan(symbol: Frame, _source = ""): ScanResponse {
+    return {
+      disposition: symbol.toString() === this.string_suffix()
+        ? ScanDisposition.CompleteConsume
+        : ScanDisposition.Consume,
+    };
+  }
+
+  public override finishInput(source = ""): ScanResponse {
+    return {
+      disposition: ScanDisposition.Error,
+      message:
+        `unterminated ${this.className()}: ${this.string_prefix()}${source}`,
+    };
+  }
 }

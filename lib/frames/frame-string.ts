@@ -3,10 +3,12 @@ import { type FrameAtom, FrameQuote } from "./frame-atom.ts";
 import { FrameSymbol } from "./frame-symbol.ts";
 import { NilContext } from "./context.ts";
 import type { Context } from "./context.ts";
+import { sigilizer } from "../execute/sigilizer.ts";
+import type { SigilStart } from "../scan.ts";
 
 const reducer = (current: Frame, char: string): Frame => {
   const symbol = FrameSymbol.for(char);
-  const result = current.call(symbol);
+  const result = sigilizer.scan(current, symbol);
   return result;
 };
 
@@ -17,6 +19,9 @@ export interface IStringConstructor {
 export class FrameString extends FrameQuote {
   public static readonly STRING_BEGIN = "“";
   public static readonly STRING_END = "”";
+  public static readonly SIGIL_STARTS: readonly SigilStart[] = [
+    { key: FrameString.STRING_BEGIN, mode: "atom" },
+  ];
 
   constructor(protected data: string, meta: Context = NilContext) {
     super(meta);
@@ -40,7 +45,7 @@ export class FrameString extends FrameQuote {
 
   public reduce(starter: Frame, finish = true): Frame {
     const final = this.data.split("").reduce(reducer, starter);
-    return finish ? final.call(FrameSymbol.end()) : final;
+    return finish ? sigilizer.scan(final, FrameSymbol.end()) : final;
   }
 
   protected override toData(): string {

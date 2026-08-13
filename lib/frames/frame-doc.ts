@@ -1,9 +1,13 @@
 import { FrameString } from "./frame-string.ts";
 import { type Context, NilContext } from "./context.ts";
+import type { SigilStart } from "../scan.ts";
 
 export class FrameDoc extends FrameString {
   public static readonly DOC_BEGIN = "`";
   public static readonly DOC_END = "`";
+  public static override readonly SIGIL_STARTS: readonly SigilStart[] = [
+    { key: FrameDoc.DOC_BEGIN, mode: "document" },
+  ];
 
   constructor(
     data: string,

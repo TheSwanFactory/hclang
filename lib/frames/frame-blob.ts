@@ -1,6 +1,7 @@
 import type { Frame } from "./frame.ts";
 import { FrameAtom } from "./frame-atom.ts";
 import { NilContext } from "./context.ts";
+import { ScanDisposition, type ScanResult, type SigilStart } from "../scan.ts";
 
 export interface IRegexpMap {
   [key: number]: RegExp;
@@ -12,6 +13,9 @@ export interface IPrefixMap {
 
 export class FrameBlob extends FrameAtom {
   public static readonly BLOB_START = "0";
+  public static readonly SIGIL_STARTS = [
+    { key: FrameBlob.BLOB_START, mode: "atom" },
+  ] as const satisfies readonly SigilStart[];
   public static readonly BLOB_DIGITS: IRegexpMap = {
     2: /[01]/,
     8: /[0-7]/,
@@ -89,6 +93,26 @@ export class FrameBlob extends FrameAtom {
   public override canInclude(char: string): boolean {
     const regex = FrameBlob.BLOB_DIGITS[64]; // accept everything, to start
     return regex.test(char);
+  }
+
+  public override scan(symbol: Frame, source = ""): ScanResult {
+    const char = symbol.toString();
+    if (source === "") {
+      const prefixes = Object.values(FrameBlob.BLOB_PREFIX);
+      return {
+        disposition: prefixes.includes(char) || /\d/.test(char)
+          ? ScanDisposition.Consume
+          : ScanDisposition.CompleteRedispatch,
+      };
+    }
+
+    const base = FrameBlob.find_base(`0${source}`);
+    const digits = base === 10 ? /\d/ : FrameBlob.BLOB_DIGITS[base];
+    return {
+      disposition: digits.test(char)
+        ? ScanDisposition.Consume
+        : ScanDisposition.CompleteRedispatch,
+    };
   }
 
   public override toString(): string {

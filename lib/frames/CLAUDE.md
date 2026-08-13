@@ -70,6 +70,18 @@ interface IFrame {
 }
 ```
 
+Frames that participate in source recognition also use the shared lexical
+protocol:
+
+- static `SIGIL_STARTS` advertises the source characters and lexical modes the
+  class owns;
+- `scan(Symbol)` returns the next Frame or a plain `ScanResult` for one source
+  Symbol; and
+- `finishInput()` completes or rejects the active state at physical EOF.
+
+The active Frame owns syntax-specific and input-dependent state. The stateless
+Sigilizer routes only the generic dispositions declared in `lib/scan.ts`.
+
 ### Type Hierarchy
 
 ```
@@ -138,9 +150,11 @@ const arr = frame.toStringArray();
 1. Extend appropriate base class ([frame.ts](frame.ts),
    [frame-atom.ts](frame-atom.ts), etc.)
 2. Implement required protocol methods
-3. Add constructor and initialization
-4. Implement `toString()` and `toStringArray()`
-5. Add tests in corresponding `.test.ts` file
+3. For source syntax, declare static `SIGIL_STARTS` and override `scan()` or
+   `finishInput()` only when the inherited atom behavior is insufficient
+4. Add constructor and initialization
+5. Implement `toString()` and `toStringArray()`
+6. Add tests in corresponding `.test.ts` file
 
 ### Testing
 

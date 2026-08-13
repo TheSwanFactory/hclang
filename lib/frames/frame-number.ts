@@ -2,9 +2,13 @@ import { Frame } from "./frame.ts";
 import { FrameAtom } from "./frame-atom.ts";
 import { NilContext } from "./context.ts";
 import type { Context } from "./context.ts";
+import type { SigilStart } from "../scan.ts";
 export class FrameNumber extends FrameAtom {
   public static readonly NUMBER_BEGIN = /[1-9]/;
   public static readonly NUMBER_CHAR = /\d/;
+  public static readonly SIGIL_STARTS = [
+    { key: FrameNumber.NUMBER_BEGIN.toString(), mode: "atom" },
+  ] as const satisfies readonly SigilStart[];
 
   public static for(digits: string): FrameNumber {
     const exists = FrameNumber.numbers[digits];

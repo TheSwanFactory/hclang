@@ -37,7 +37,8 @@
 - Method names and semantic contracts are intentionally included because the
   requested artifact is an interface specification for language-runtime
   developers.
-- The representation of a pending Sigil containing several viable participants
-  remains a planning dependency under issue #292, not an unresolved requirement
-  in this specification.
-- Validation passed on the first iteration.
+- The explicit-dot decision in 11 removes the only demonstrated need for a
+  pending Sigil containing several viable participants. Candidate composition is
+  neither a planning dependency nor part of the current scope.
+- Validation passed for the original five-method draft and again after the
+  three-method `scan(Symbol)` simplification and explicit-dot revision.

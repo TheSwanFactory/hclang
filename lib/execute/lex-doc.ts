@@ -1,5 +1,11 @@
-import { Frame, FrameDoc, NilContext } from "../frames.ts";
+import { Frame, FrameDoc, FrameSymbol, NilContext } from "../frames.ts";
 import { Lex, Token } from "./lex.ts";
+import { sigilizer } from "./sigilizer.ts";
+import {
+  ScanDisposition,
+  type ScanResponse,
+  type ScanResult,
+} from "../scan.ts";
 
 /**
  * Monadic parser for document atoms selected by the backtick syntax entry.
@@ -12,22 +18,25 @@ export class LexDoc extends Lex {
   private opening = true;
   private ticks = 1;
   private fenceLength = 0;
-  private failureMessage: string | null = null;
 
   public constructor() {
     super(FrameDoc);
+    this.is.document = true;
   }
 
   public override call(argument: Frame, _parameter = Frame.nil): Frame {
-    if (this.failureMessage !== null) {
-      return this;
-    }
+    return sigilizer.scan(this, argument);
+  }
 
+  public override scan(argument: Frame, _source = ""): ScanResponse {
     const char = argument.toString();
     if (char === FrameDoc.DOC_END) {
       this.ticks += 1;
       if (!this.opening && this.ticks > this.fenceLength) {
-        this.failureMessage = "document fence run exceeds the opening fence";
+        return {
+          disposition: ScanDisposition.Error,
+          message: "document fence run exceeds the opening fence",
+        };
       }
       return this;
     }
@@ -36,16 +45,12 @@ export class LexDoc extends Lex {
   }
 
   /** Classifies a final pending run and reports whether EOF is valid. */
-  public finishInput(): boolean {
-    if (this.failureMessage !== null) {
-      return false;
-    }
-
+  public override finishInput(): ScanResponse {
     if (this.opening) {
       if (this.ticks % 2 === 0) {
         this.emitDocument("", this.ticks);
         this.resetDocument();
-        return true;
+        return sigilizer.scan(this.up, FrameSymbol.end());
       }
       return this.failUnterminated();
     }
@@ -53,7 +58,7 @@ export class LexDoc extends Lex {
     if (this.ticks === this.fenceLength) {
       this.emitDocument(this.body, this.fenceLength);
       this.resetDocument();
-      return true;
+      return sigilizer.scan(this.up, FrameSymbol.end());
     }
 
     if (this.ticks > 0 && this.ticks < this.fenceLength) {
@@ -63,11 +68,7 @@ export class LexDoc extends Lex {
     return this.failUnterminated();
   }
 
-  public failure(): string | null {
-    return this.failureMessage;
-  }
-
-  private classifyRun(argument: Frame, char: string): Frame {
+  private classifyRun(argument: Frame, char: string): ScanResponse {
     if (this.opening) {
       const openingLength = this.ticks;
       this.ticks = 0;
@@ -75,7 +76,7 @@ export class LexDoc extends Lex {
       if (openingLength % 2 === 0) {
         this.emitDocument("", openingLength);
         this.resetDocument();
-        return this.up.call(argument);
+        return sigilizer.scan(this.up, argument);
       }
 
       this.opening = false;
@@ -98,11 +99,13 @@ export class LexDoc extends Lex {
     if (this.ticks === this.fenceLength) {
       this.emitDocument(this.body, this.fenceLength);
       this.resetDocument();
-      return this.up.call(argument);
+      return sigilizer.scan(this.up, argument);
     }
 
-    this.failureMessage = "document fence run exceeds the opening fence";
-    return this;
+    return {
+      disposition: ScanDisposition.Error,
+      message: "document fence run exceeds the opening fence",
+    };
   }
 
   private emitDocument(body: string, fenceLength: number): void {
@@ -111,9 +114,11 @@ export class LexDoc extends Lex {
     out.call(output);
   }
 
-  private failUnterminated(): false {
-    this.failureMessage = "unterminated document string";
-    return false;
+  private failUnterminated(): ScanResult {
+    return {
+      disposition: ScanDisposition.Error,
+      message: "unterminated document string",
+    };
   }
 
   private resetDocument(): void {
@@ -121,6 +126,5 @@ export class LexDoc extends Lex {
     this.opening = true;
     this.ticks = 1;
     this.fenceLength = 0;
-    this.failureMessage = null;
   }
 }
