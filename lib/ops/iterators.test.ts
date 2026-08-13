@@ -11,6 +11,26 @@ describe("iterators", () => {
 
   const block = new frame.FrameString("Prefix: ");
 
+  it("maps enumerable data with |", () => {
+    const result = frame.FrameNumber.for("1").get("|").call(block);
+    expect(result.toString()).toEqual("[“Prefix: 1”]");
+  });
+
+  it("reduces enumerable data with & using . as the accumulator", () => {
+    const source = new frame.FrameArray([
+      frame.FrameNumber.for("1"),
+      frame.FrameNumber.for("2"),
+      frame.FrameNumber.for("3"),
+    ]);
+    const reducer = new frame.FrameLazy([
+      new frame.FrameName(""),
+      new frame.FrameOperator("+"),
+      frame.FrameArg.here(),
+    ]);
+
+    expect(source.get("&").call(reducer).toString()).toEqual("6");
+  });
+
   it("treat frame.Frames as iteratee blocks", () => {
     const arg = new frame.FrameString("argument");
     const result = block.call(arg);

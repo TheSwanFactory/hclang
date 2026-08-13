@@ -61,6 +61,20 @@ export class FrameList extends Frame {
       this.string_close();
   }
 
+  public override dataString(): string {
+    // Evaluated property declarations are retained as data-plane assignment
+    // echoes as well as metadata. Exclude those echoes from data-only equality.
+    const metadataAssignments = new Set(
+      this.meta_pairs().map(([key, value]) => `.${key} ${value}`),
+    );
+    const data = this.data.filter((item) =>
+      !metadataAssignments.has(item.toString())
+    );
+    return this.string_open() +
+      data.map((item) => item.dataString()).join(",") +
+      this.string_close();
+  }
+
   public override asArray(): Array<Frame> {
     return this.data;
   }

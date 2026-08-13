@@ -7,12 +7,14 @@ import {
 } from "./ops/iterators.ts";
 import {
   Add,
+  DataEquals,
   Divide,
   Equals,
   GreaterThan,
   GreaterThanOrEqual,
   LessThan,
   LessThanOrEqual,
+  MetadataEquals,
   Modulo,
   Multiply,
   Power,
@@ -23,11 +25,11 @@ export { FrameCurry } from "./ops/frame-curry.ts";
 export type { ICurryFunction } from "./ops/frame-curry.ts";
 
 export const Ops = new FrameOps({
-  "&": MapEnumerable,
+  "&": ReduceEnumerable,
   "&&": MapProperties,
   ":": IfElse,
   "?": IfThen,
-  "|": ReduceEnumerable,
+  "|": MapEnumerable,
   "+": Add,
   "-": Subtract,
   "*": Multiply,
@@ -35,6 +37,8 @@ export const Ops = new FrameOps({
   "%%": Modulo,
   "**": Power,
   "=": Equals,
+  "==": DataEquals,
+  "===": MetadataEquals,
   ">": GreaterThan,
   ">>": GreaterThan,
   ">=": GreaterThanOrEqual,

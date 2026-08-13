@@ -4,6 +4,15 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.8.6 2026-08-12
+
+- Compare frames independently across their whole value, data plane (`==`), and
+  metadata plane (`===`).
+- Map enumerable values with `|` and reduce them with `&`, including documented
+  element and accumulator closure contexts.
+- Promote the supported core frame-operator examples from unimplemented markers
+  to passing white-paper doctests.
+
 ## v0.8.5 2026-08-12
 
 - Compose numeric properties into decimal and phone-shaped values while
