@@ -153,11 +153,10 @@ describe("evaluate", () => {
       expect(output.toString()).toEqual("{ _ + 1 }");
     });
 
-    it("returns explicit false for empty ()", () => {
+    it("returns nil for empty ()", () => {
       const result = evaluate("()");
       const output = result.at(0);
-      expect(output).toBe(frame.Frame.false);
-      expect(output.toString()).toEqual("()");
+      expect(output).toBeInstanceOf(frame.FrameNote);
     });
 
     it("returns FrameArray for empty [] with spaces", () => {
@@ -237,12 +236,12 @@ describe("evaluate", () => {
     describe("dotted comparisons", () => {
       it("evaluates dotted less-than and greater-than properties", () => {
         expect(evaluate("1.< 3").toString()).toEqual("[<>]");
-        expect(evaluate("1.> 3").toString()).toEqual("[()]");
+        expect(evaluate("1.> 3").toString()).toEqual("[]");
       });
 
       it("retains dotted equals-suffixed comparisons", () => {
         expect(evaluate("1.<= 1").toString()).toEqual("[<>]");
-        expect(evaluate("3.>= 4").toString()).toEqual("[()]");
+        expect(evaluate("3.>= 4").toString()).toEqual("[]");
       });
 
       it("keeps raw angle brackets as schema delimiters", () => {
@@ -255,22 +254,58 @@ describe("evaluate", () => {
     });
 
     describe("binary conditionals", () => {
-      for (
-        const [source, expected] of [
-          ["1 ? {4}", "[4]"],
-          ["1 : {4}", "[()]"],
-          ["() ? {4}", "[()]"],
-          ["() : {4}", "[4]"],
-          ["1.> 5 ? {100}", "[()]"],
-          ["1.> 5 : {10}", "[10]"],
-          ["5.> 1 ? {100}", "[100]"],
-          ["5.> 1 : {10}", "[()]"],
-        ]
-      ) {
-        it(`${source} evaluates to ${expected}`, () => {
-          expect(evaluate(source).toString()).toEqual(expected);
-        });
-      }
+      it("calls the right operand of ? only for a truthy receiver", () => {
+        const callable = new (class extends frame.Frame {
+          calls = 0;
+          override call(argument: frame.Frame): frame.Frame {
+            this.calls++;
+            expect(argument).toBe(frame.Frame.nil);
+            return new frame.FrameNumber("4");
+          }
+        })();
+
+        expect(frame.FrameNumber.for("1").get("?").call(callable).toString())
+          .toEqual("4");
+        expect(callable.calls).toEqual(1);
+        expect(frame.Frame.nil.get("?").call(callable)).toBe(frame.Frame.nil);
+        expect(callable.calls).toEqual(1);
+      });
+
+      it("calls the right operand of : only for nil", () => {
+        const callable = new (class extends frame.Frame {
+          calls = 0;
+          override call(argument: frame.Frame): frame.Frame {
+            this.calls++;
+            expect(argument).toBe(frame.Frame.nil);
+            return new frame.FrameNumber("4");
+          }
+        })();
+
+        expect(frame.FrameNumber.for("1").get(":").call(callable)).toBe(
+          frame.Frame.nil,
+        );
+        expect(callable.calls).toEqual(0);
+        expect(frame.Frame.nil.get(":").call(callable).toString()).toEqual("4");
+        expect(callable.calls).toEqual(1);
+      });
+
+      it("propagates nil returned by a selected callable", () => {
+        const returnsNil = new (class extends frame.Frame {
+          override call(): frame.Frame {
+            return frame.Frame.nil;
+          }
+        })();
+
+        expect(frame.FrameNumber.for("1").get("?").call(returnsNil)).toBe(
+          frame.Frame.nil,
+        );
+        expect(frame.Frame.nil.get(":").call(returnsNil)).toBe(frame.Frame.nil);
+      });
+
+      it("applies binary rules to comparison predicates", () => {
+        expect(evaluate("1.> 5 : {10}").toString()).toEqual("[10]");
+        expect(evaluate("5.> 1 ? {100}").toString()).toEqual("[100]");
+      });
     });
 
     describe("chained conditionals", () => {
@@ -278,8 +313,8 @@ describe("evaluate", () => {
         expect(evaluate("1.> 5 ? (2 * 50) : 10").toString()).toEqual("[10]");
       });
 
-      it("preserves the then result for a true dotted predicate", () => {
-        expect(evaluate("5.> 1 ? (2 * 50) : 10").toString()).toEqual("[100]");
+      it("returns nil when a true then call returns a truthy value", () => {
+        expect(evaluate("5.> 1 ? (2 * 50) : 10").toString()).toEqual("[]");
       });
 
       it("does not evaluate a lazy then branch when false", () => {
@@ -288,10 +323,8 @@ describe("evaluate", () => {
         );
       });
 
-      it("does not evaluate a lazy else branch when true", () => {
-        expect(evaluate("5.> 1 ? {100} : {missing}").toString()).toEqual(
-          "[100]",
-        );
+      it("evaluates else when a true then call returns nil", () => {
+        expect(evaluate("5.> 1 ? {()} : {10}").toString()).toEqual("[10]");
       });
     });
 

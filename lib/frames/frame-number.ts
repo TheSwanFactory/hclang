@@ -109,11 +109,11 @@ export class FrameNumber extends FrameAtom {
   }
 
   public lessThan(right: FrameNumber): Frame {
-    return this.data < right.data ? Frame.true : Frame.false;
+    return this.data < right.data ? Frame.all : Frame.nil;
   }
 
   public greaterThan(right: FrameNumber): Frame {
-    return this.data > right.data ? Frame.true : Frame.false;
+    return this.data > right.data ? Frame.all : Frame.nil;
   }
 
   public override equals(right: FrameNumber): Frame {
@@ -121,10 +121,10 @@ export class FrameNumber extends FrameAtom {
   }
 
   public lessThanOrEqual(right: FrameNumber): Frame {
-    return this.data <= right.data ? Frame.true : Frame.false;
+    return this.data <= right.data ? Frame.all : Frame.nil;
   }
 
   public greaterThanOrEqual(right: FrameNumber): Frame {
-    return this.data >= right.data ? Frame.true : Frame.false;
+    return this.data >= right.data ? Frame.all : Frame.nil;
   }
 }

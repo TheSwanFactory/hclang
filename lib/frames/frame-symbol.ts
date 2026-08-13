@@ -121,6 +121,7 @@ export class FrameOperator extends FrameSymbol {
   constructor(source: string, meta: Context = NilContext) {
     super(source, meta);
     this.operator = source;
+    this.is.operator = true;
   }
 
   public static operator_chars(): string {
@@ -133,7 +134,7 @@ export class FrameOperator extends FrameSymbol {
   }
 
   public override in(_contexts: Frame[] = [Frame.nil]): Frame {
-    return this.data === "+" ? this : FrameSymbol.for(this.data);
+    return this;
   }
 
   public override called_by(context: Frame): Frame {

@@ -1,18 +1,15 @@
-import { Frame, FrameConditional } from "../frames.ts";
+import { Frame } from "../frames.ts";
 
 export const IfThen = (source: Frame, block: Frame): Frame => {
-  if (source !== Frame.nil && source.is.false !== true) {
-    return new FrameConditional(block.call(Frame.nil));
+  if (source !== Frame.nil) {
+    return block.call(Frame.nil);
   }
-  return Frame.false;
+  return Frame.nil;
 };
 
 export const IfElse = (source: Frame, block: Frame): Frame => {
-  if (source instanceof FrameConditional) {
-    return source.otherwise(block);
-  }
-  if (source === Frame.nil || source.is.false === true) {
+  if (source === Frame.nil) {
     return block.call(Frame.nil);
   }
-  return Frame.false;
+  return Frame.nil;
 };

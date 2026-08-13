@@ -108,7 +108,12 @@ Conditionals
 # ()
 ; () : {2 + 2}
 # 4
-## Dotted comparisons produce explicit true and false predicates
+## The selected callable may itself return nil
+; 1 ? {()}
+# ()
+; () : {()}
+# ()
+## Dotted comparisons produce Frame.all or Frame.nil predicates
 ; 1.> 5 ? {100}
 # ()
 ; 1.> 5 : {10}
@@ -117,11 +122,13 @@ Conditionals
 # 100
 ; 5.> 1 : {10}
 # ()
-## Chained conditionals preserve the predicate across both branches
+## Chained conditionals follow ordinary left-to-right binary composition
 ; 1.> 5 ? (2 * 50) : 10
 # 10
 ; 5.> 1 ? (2 * 50) : 10
-# 100
+# ()
+; 5.> 1 ? {()} : {10}
+# 10
 ```
 Future: String schemas (not yet implemented)
 ```

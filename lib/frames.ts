@@ -8,7 +8,6 @@ export { FrameArg, FrameParam } from "./frames/frame-arg.ts";
 export { FrameBlob } from "./frames/frame-blob.ts";
 export { FrameBytePayload, FrameBytes } from "./frames/frame-bytes.ts";
 export { FrameComment } from "./frames/frame-comment.ts";
-export { FrameConditional } from "./frames/frame-conditional.ts";
 export { FrameDoc } from "./frames/frame-doc.ts";
 export { FrameBind, FrameExpr } from "./frames/frame-expr.ts";
 export { FrameGroup } from "./frames/frame-group.ts";
