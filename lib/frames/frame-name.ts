@@ -32,6 +32,10 @@ export class FrameName extends FrameAtom implements ISourced {
   }
 
   public override in(contexts = [Frame.nil]): Frame {
+    // The empty name denotes the current iterator accumulator when supplied.
+    if (this.source === "" && contexts.length > 1) {
+      return contexts[1];
+    }
     const out = this.bindingTarget(contexts);
     const setter = this.data.setter(out);
     return setter;

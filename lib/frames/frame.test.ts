@@ -1,7 +1,7 @@
 import { expect } from "jsr:@std/expect@^0.219.1";
 import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 
-import { Frame, NilContext } from "../frames.ts";
+import { Frame, FrameArray, NilContext } from "../frames.ts";
 
 describe("Frame", () => {
   const frame = new Frame({ nil: Frame.nil });
@@ -74,6 +74,28 @@ describe("Frame", () => {
       const frame2 = new Frame({ all: Frame.all });
       expect(frame.isEqualTo(frame2)).toBe(false);
       expect(frame.equals(frame2)).toEqual(Frame.nil);
+    });
+  });
+
+  describe("equality planes", () => {
+    const data = [new Frame()];
+    const left = new FrameArray(data, { tag: Frame.nil });
+    const sameData = new FrameArray(data, { tag: Frame.all });
+    const sameMetadata = new FrameArray([Frame.all], { tag: Frame.nil });
+
+    it("compares the whole frame with =", () => {
+      expect(left.get("=").call(left)).toBe(Frame.all);
+      expect(left.get("=").call(sameData)).toBe(Frame.nil);
+    });
+
+    it("compares only data with ==", () => {
+      expect(left.get("==").call(sameData)).toBe(Frame.all);
+      expect(left.get("==").call(sameMetadata)).toBe(Frame.nil);
+    });
+
+    it("compares only metadata with ===", () => {
+      expect(left.get("===").call(sameMetadata)).toBe(Frame.all);
+      expect(left.get("===").call(sameData)).toBe(Frame.nil);
     });
   });
 });

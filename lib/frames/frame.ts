@@ -77,6 +77,10 @@ export class Frame extends MetaFrame {
       return "<>";
     }
 
+    override dataString(): string {
+      return "<>";
+    }
+
     override call(): Frame {
       return this;
     }
@@ -228,6 +232,29 @@ export class Frame extends MetaFrame {
    */
   public equals(other: Frame): Frame {
     return this.toString() === other.toString() ? Frame.all : Frame.nil;
+  }
+
+  /** Compare only this frame's data plane, excluding metadata. */
+  public dataEquals(other: Frame): Frame {
+    return this.dataString() === other.dataString() ? Frame.all : Frame.nil;
+  }
+
+  /** Compare only this frame's metadata plane, excluding data. */
+  public metadataEquals(other: Frame): Frame {
+    const keys = new Set([...this.meta_keys(), ...other.meta_keys()]);
+    for (const key of keys) {
+      const left = this.meta[key];
+      const right = other.meta[key];
+      if (!left || !right || !left.isEqualTo(right)) {
+        return Frame.nil;
+      }
+    }
+    return Frame.all;
+  }
+
+  /** Stable representation of the data plane used by data equality. */
+  public dataString(): string {
+    return this.string_open() + this.string_close();
   }
 
   /**

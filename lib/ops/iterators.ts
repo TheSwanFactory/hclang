@@ -1,4 +1,4 @@
-import { type Frame, FrameArray, FrameNumber, FrameString } from "../frames.ts";
+import { Frame, FrameArray, FrameNumber, FrameString } from "../frames.ts";
 
 export const MapEnumerable = (source: Frame, block: Frame): FrameArray => {
   let i = 0;
@@ -19,12 +19,12 @@ export const MapProperties = (source: Frame, block: Frame): FrameArray => {
 };
 
 export const ReduceEnumerable = (source: Frame, block: Frame): Frame => {
-  let i = 0;
-  const FrameReducer = (sum: Frame, value: Frame): Frame => {
-    const param = FrameNumber.for(i.toString());
-    i += 1;
-    return sum.call(value, param);
-  };
-  const result: Frame = source.asArray().reduce(FrameReducer, block);
-  return result;
+  const values = source.asArray();
+  if (values.length === 0) {
+    return Frame.nil;
+  }
+  return values.slice(1).reduce(
+    (accumulator, value) => block.call(value, accumulator),
+    values[0],
+  );
 };

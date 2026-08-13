@@ -25,6 +25,10 @@ export class FrameAtom extends Frame {
     return this.string_prefix() + dataString + this.string_suffix();
   }
 
+  public override dataString(): string {
+    return this.toStringData();
+  }
+
   public override toString(): string {
     const dataString = this.toStringData();
     const n = this.meta_length();

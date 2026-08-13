@@ -43,10 +43,15 @@ export const Power = (source: Frame, block: Frame): Frame => {
 };
 
 export const Equals = (source: Frame, block: Frame): Frame => {
-  if (source instanceof FrameNumber && block instanceof FrameNumber) {
-    return source.equals(block);
-  }
-  return Frame.nil;
+  return source.equals(block);
+};
+
+export const DataEquals = (source: Frame, block: Frame): Frame => {
+  return source.dataEquals(block);
+};
+
+export const MetadataEquals = (source: Frame, block: Frame): Frame => {
+  return source.metadataEquals(block);
 };
 
 export const GreaterThan = (source: Frame, block: Frame): Frame => {

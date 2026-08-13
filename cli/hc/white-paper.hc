@@ -638,27 +638,27 @@ or metadata separately.
 ; .b [113, .p 661];
 ; .c [443, .p 887];
 ; a = a
-# $!.unimplemented <>
+# <>
 ; a = b
 # ()
 ; a == b
-# $!.unimplemented <>
+# <>
 ; a == c
-# $!.unimplemented ()
+# ()
 ; a === c
-# $!.unimplemented <>
+# <>
 ```
 #### Iterators
 
 We use `|` for map, in homage to the UNIX pipeline.
 ```
 ; [1, 2, 3] | { _ + 1 } # will warn, since `_` is not defined on generic frames
-# $!.unimplemented [2, 3, 4]
+# [2, 3, 4]
 ```
 Similarly, we use `&` for reduce:
 ```
 ; [1, 2, 3] & { . + _ }
-# $!.unimplemented 6
+# 6
 ```
 The operators also work with files and network ports, reading one line
 (or object) at a time, greatly simplifying common I/O operations (a la
