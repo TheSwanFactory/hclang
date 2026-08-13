@@ -4,6 +4,15 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.9.1 2026-08-13
+
+- Resolve previously evaluated integer bindings as dynamic byte-string lengths
+  while preserving exact payload boundaries, canonical numeric rendering, and
+  recoverable diagnostics.
+- Retrieve schemas from bindings and apply immutable schemas as direct property
+  selectors, exact or remainder bit captures, and deterministic named bit
+  sequences that preserve leading-zero widths.
+
 ## v0.9.0 2026-08-13
 
 - Restore the BitScheme tutorial as a fully traversable executable specification
