@@ -1,26 +1,25 @@
 # Ternary Failure Analysis
 
-**Status:** Analysis complete\
+**Status:** Resolved in v0.8.5\
 **Issue:**
 [#293 — Parsing and literal recognition gaps](https://github.com/TheSwanFactory/hclang/issues/293)\
 **Related architecture:** #292
 
-**Subsequent decision:** Comparisons that collide with type/schema delimiters
-use explicit dot-led property names such as `.>` and `.<`. The raw-source
-failure analyzed below remains accurate historical evidence, while #293 now owns
-updating the doctest spelling and the still-separate conditional semantics.
+**Resolution:** Comparisons that collide with type/schema delimiters use
+explicit dot-led property names such as `.>` and `.<`. Conditional evaluation
+preserves a successful `?` result until a following `:` selects the final
+branch.
 
 ## Executive Summary
 
-The white-paper example
+The original white-paper comparison spelling
 
 ```hc
 1 > 5 ? (2 * 50) : 10
 ```
 
-does not fail because the parser lacks a C-style ternary grammar. HC has no
-ternary grammar: expressions are reduced left to right, and `?` and `:` are
-ordinary curried binary operators.
+failed for two independent reasons. HC expressions reduce left to right, and `?`
+and `:` remain ordinary curried binary operators.
 
 The example exposes two independent incompatibilities:
 
@@ -28,18 +27,15 @@ The example exposes two independent incompatibilities:
    comparison operator. At top level it attempts to pop a schema that was never
    opened, reports `LexPipe.perform.pop.failed: already at top level`, drops the
    character, and ultimately produces no evaluated result.
-2. Even with the comparison replaced by a hypothetical working predicate, the
-   current sequential definitions of `?` and `:` do not compose into a ternary
-   chain. A successful `?` produces the selected value, after which `:` is
-   applied to that value and returns nil. The branch decision is not retained
-   for the following `:` operator.
+2. The old sequential definitions of `?` and `:` did not compose into a ternary
+   chain because the branch decision was not retained for the following `:`
+   operator.
 
-The exact white-paper expression is therefore **stale syntax relative to the
-current implementation**. Supporting it requires both a comparison-token
-decision and a conditional-composition design; it is not a focused precedence or
-parser-association repair.
+Issue #293 resolved both gaps. The maintained spelling uses `.>`, raw `>`
+remains structural, and a conditional result carries the selected branch across
+the rest of the chain.
 
-## Reproduction
+## Pre-fix Reproduction
 
 Evaluating the exact source produces no result and emits a parser-stack
 diagnostic:
@@ -89,22 +85,21 @@ failure. It is related to #292 because resolving it may require a boundary or
 lookahead decision that cannot be represented by an atom's current
 `canInclude(char): boolean` contract alone.
 
-## Conditional Composition Cause
+## Pre-fix Conditional Composition Cause
 
-The current evaluator does not build an abstract syntax tree with a ternary
-node. `FrameExpr.in` reduces every expression from left to right by repeatedly
-calling the accumulated frame with the next evaluated frame.
+The evaluator does not build an abstract syntax tree with a ternary node.
+`FrameExpr.in` reduces every expression from left to right by repeatedly calling
+the accumulated frame with the next evaluated frame.
 
-The conditional operations are independently defined as follows:
+Before v0.8.5, the conditional operations were independently defined as follows:
 
 - `?` calls its right operand with nil when the left operand is non-nil;
   otherwise it returns nil.
 - `:` calls its right operand with nil when the left operand is nil; otherwise
   it returns nil.
 
-Each operator works in isolation for its documented binary role. For example,
-`1 ? {100}` produces `100`. They do not, however, preserve the original
-condition across a `? ... : ...` sequence.
+Each operator worked in isolation for its documented binary role, but did not
+preserve the original condition across a `? ... : ...` sequence.
 
 For a truthy condition, left-to-right reduction behaves conceptually as:
 
@@ -113,13 +108,11 @@ condition ? then-branch  => then-value
 then-value : else-branch => nil
 ```
 
-Thus `1 ? {100} : {10}` currently produces no output rather than `100`.
+Thus `1 ? {100} : {10}` produced no output rather than `100`.
 
-For a false condition, `?` returns nil, which is the state needed by `:`.
-However, current nil/curry behavior does not reliably turn the complete chain
-into the else value; focused reproductions return unresolved operator frames or
-no output. In neither branch does the implementation satisfy the white paper's
-claim that the operator pair acts like C's ternary operator.
+For a false condition, `?` returned nil, which could not reliably dispatch the
+following `:` operator. Focused reproductions returned unresolved operator
+frames or no output.
 
 Parentheses do not solve this problem. `(2 * 50)` is a group value and works as
 the right operand of an isolated `?`, but it does not make the later `:` aware
@@ -146,62 +139,29 @@ documented ternary behavior. The current left-to-right reduction and stateless
 
 ### Documentation
 
-Responsible for using a single-character comparison spelling that conflicts with
-schema syntax and for claiming a chained behavior that the current runtime does
-not implement.
+Responsible for selecting the explicit dotted comparison spelling that does not
+conflict with schema syntax.
 
-## Classification Decision
+## Implementation Decision
 
-For issue #293, classify the exact example as **stale syntax**.
+Issue #293 makes the white-paper conditional behavior executable with these
+rules:
 
-This classification does not declare ternary-style conditionals permanently
-unsupported. It records that the example cannot be promoted to an executable
-doctest through a local parser fix while preserving current language rules.
+1. Raw `<` and `>` remain schema delimiters; numeric comparisons use `.<`, `.>`,
+   `.<=`, and `.>=`.
+2. Binary `?` calls its right operand for a truthy frame and returns explicit
+   `()` for false. Binary `:` does the opposite.
+3. Raw `()` and false comparison results are explicit false values that can
+   continue dispatching through an expression.
+4. A successful `?` returns a transparent conditional value that remembers the
+   selected result until a following `:` is reduced.
+5. A chained `:` returns the remembered then result for a true predicate or
+   evaluates its else operand for a false predicate.
+6. Lazy branch operands are called only when selected. Ordinary grouped operands
+   retain HC's normal eager left-to-right evaluation.
 
-Supporting the example verbatim would require explicit decisions about:
-
-1. whether `>` remains a schema delimiter, becomes a comparison operator in some
-   contexts, or participates in a lookahead-based disambiguation rule;
-2. whether comparisons use the single-character white-paper spelling or the
-   multi-character spellings present in the operation table;
-3. whether `?` and `:` remain independent binary operators or create and consume
-   an intermediate conditional state; and
-4. whether right operands are ordinary evaluated groups, lazy blocks, or a
-   separately defined branch form.
-
-These are language-design choices rather than missing test coverage.
-
-## Recommended Follow-up
-
-1. Add a focused regression test documenting that an unmatched `>` is a schema
-   close and produces a structured error rather than only a console diagnostic.
-2. Delegate comparison-versus-schema dispatch to #292 if lookahead or contextual
-   redispatch is desired.
-3. Open or identify a separate conditional-semantics issue before implementing
-   `condition ? then : else` composition.
-4. Keep the exact white-paper listing non-executable until those language
-   decisions are made.
-5. Do not rewrite the listing to a different comparison or branch syntax merely
-   to make it pass.
-
-## Acceptance Impact for #293
-
-The ternary-classification acceptance criterion is satisfied by this analysis:
-the example is stale syntax, with the lexer/parser and evaluator
-responsibilities identified separately. No white-paper assertion totals should
-change as a result of this classification alone.
-
-## v0.8.5 Resolution
-
-Issue #293 implemented the selected dotted comparison spelling, so `1.> 5` now
-reaches comparison evaluation without colliding with schema delimiters. The
-remaining `? ... : ...` failure is still the independent conditional-state
-problem described above: the two binary operators do not preserve the original
-predicate as a chained ternary expression.
-
-The white-paper chain therefore remains a non-executable source listing and is
-classified as **stale syntax**. The independently supported `?` and `:` forms
-remain executable white-paper doctests, and focused evaluation coverage now also
-proves that an explicit false dotted comparison selects an independent else
-branch. Supporting a chained ternary requires a separate language design; it is
-not part of the numeric-property or dotted-comparison implementation.
+The maintained testdoc covers the complete binary truth table, raw `()`, true
+and false dotted comparisons, both chained outcomes, and explicit `()` results.
+Focused TypeScript tests also prove that unselected lazy branches are not
+evaluated. The original false white-paper chain and a true counterpart are both
+executable doctests.

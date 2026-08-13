@@ -12,6 +12,8 @@
   addition.
 - Evaluate dotted numeric comparisons `.<`, `.>`, `.<=`, and `.>=`, including
   explicit `()` false results, while preserving raw schema delimiters.
+- Support the complete binary and chained `?`/`:` conditional truth table,
+  preserving branch state and skipping unselected lazy branches.
 - Execute the four original HCSV/HCSON phone examples in the full white-paper
   doctest.
 

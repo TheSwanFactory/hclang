@@ -109,11 +109,8 @@ before changing runtime conditional behavior. Determine whether any remaining
 failure arises from operator association, state preservation, aggregate
 evaluation, or branch semantics.
 
-The investigation must classify the documented expression as exactly one of:
-
-- supported syntax requiring a parser fix;
-- stale syntax requiring an explicit documentation decision; or
-- intentionally unsupported syntax with the reason recorded.
+The investigation must define the documented expression as supported syntax and
+preserve the original predicate across the left-to-right `? ... : ...` chain.
 
 If the syntax is supported, add focused lexer/parser tests and update the
 white-paper example to the selected comparison spelling before promoting it to
@@ -144,8 +141,8 @@ have actually moved from unimplemented to passing.
       correctly.
 - [x] `1.< 3` evaluates to `<>` and `1.> 3` evaluates to `()`.
 - [x] Raw `<` and `>` remain structural type/schema delimiters.
-- [x] The ternary example is updated to the selected comparison spelling and
-      classified as supported, stale, or intentionally unsupported.
+- [x] The ternary example uses the selected comparison spelling and evaluates
+      both its false and true branches.
 - [x] Supported conditional syntax retains its white-paper doctests, with
       focused evaluation coverage using the selected explicit-dot comparison
       spelling.

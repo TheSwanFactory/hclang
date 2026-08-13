@@ -690,17 +690,18 @@ and the opposite on regular frames.
 # ()
 
 ; () ? {2 + 2}
-# $!.unimplemented ()
+# ()
 ; () : {2 + 2}
-# $!.unimplemented 4
+# 4
 ```
-Which, when the first expression does not return nil, acts just like C's ternary
-operator:
-[source,hc]
-----
+Together the operators act like C's ternary operator while preserving HC's
+left-to-right evaluation:
+```
 ; 1.> 5 ? (2 * 50) : 10
 # 10
-----
+; 5.> 1 ? (2 * 50) : 10
+# 100
+```
 Note that applying nil to anything other than a closure has no effect, so
 conditionals work just as well with simple expressions as they do with
 lazy blocks.
