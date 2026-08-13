@@ -12,8 +12,11 @@ export class FrameExpr extends FrameList {
 
   public override in(contexts = [Frame.nil]): Frame {
     contexts.push(this);
-    const result = this.data.reduce((sum: Frame, item: Frame): Frame => {
+    const result = this.data.reduce((sum: Frame, item: Frame, index): Frame => {
       const value = item.in(contexts);
+      if (index > 0 && value.is.operator === true) {
+        return value.called_by(sum, Frame.nil);
+      }
       const next_sum = sum.call(value);
       return next_sum;
     }, Frame.nil);

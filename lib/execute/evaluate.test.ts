@@ -153,7 +153,7 @@ describe("evaluate", () => {
       expect(output.toString()).toEqual("{ _ + 1 }");
     });
 
-    it("returns FrameNote for empty ()", () => {
+    it("returns nil for empty ()", () => {
       const result = evaluate("()");
       const output = result.at(0);
       expect(output).toBeInstanceOf(frame.FrameNote);
@@ -195,6 +195,137 @@ describe("evaluate", () => {
       const input = "3 2";
       const result = evaluate(input);
       expect(result.toString()).toEqual("[6]");
+    });
+
+    describe("numeric properties", () => {
+      it("composes an integer and numeric property into a decimal", () => {
+        expect(evaluate("1.408").toString()).toEqual("[1.408]");
+      });
+
+      it("preserves additional segments and their leading zeroes", () => {
+        expect(evaluate("1.408.055.1212").toString()).toEqual(
+          "[1.408.055.1212]",
+        );
+      });
+
+      it("completes at an expression boundary", () => {
+        expect(evaluate("1.408, 2").toString()).toEqual("[(1.408, 2)]");
+      });
+
+      it("reports a nonnumeric property as missing", () => {
+        expect(evaluate("1.invalid").toString()).toContain("name-missing");
+      });
+    });
+
+    describe("unary plus", () => {
+      it("preserves a leading plus on a number", () => {
+        expect(evaluate("+1").toString()).toEqual("[+1]");
+      });
+
+      it("preserves the exact spelling of a numeric-property chain", () => {
+        expect(evaluate("+1.408.055.1212").toString()).toEqual(
+          "[+1.408.055.1212]",
+        );
+      });
+
+      it("does not change binary addition", () => {
+        expect(evaluate("1 + 2").toString()).toEqual("[3]");
+      });
+    });
+
+    describe("dotted comparisons", () => {
+      it("evaluates dotted less-than and greater-than properties", () => {
+        expect(evaluate("1.< 3").toString()).toEqual("[<>]");
+        expect(evaluate("1.> 3").toString()).toEqual("[]");
+      });
+
+      it("retains dotted equals-suffixed comparisons", () => {
+        expect(evaluate("1.<= 1").toString()).toEqual("[<>]");
+        expect(evaluate("3.>= 4").toString()).toEqual("[]");
+      });
+
+      it("keeps raw angle brackets as schema delimiters", () => {
+        expect(evaluate("<1, 3>").toString()).toEqual("[<1, 3>]");
+      });
+
+      it("treats a false comparison as false for an else branch", () => {
+        expect(evaluate("3.> 4 : {1}").toString()).toEqual("[1]");
+      });
+    });
+
+    describe("binary conditionals", () => {
+      it("calls the right operand of ? only for a truthy receiver", () => {
+        const callable = new (class extends frame.Frame {
+          calls = 0;
+          override call(argument: frame.Frame): frame.Frame {
+            this.calls++;
+            expect(argument).toBe(frame.Frame.nil);
+            return new frame.FrameNumber("4");
+          }
+        })();
+
+        expect(frame.FrameNumber.for("1").get("?").call(callable).toString())
+          .toEqual("4");
+        expect(callable.calls).toEqual(1);
+        expect(frame.Frame.nil.get("?").call(callable)).toBe(frame.Frame.nil);
+        expect(callable.calls).toEqual(1);
+      });
+
+      it("calls the right operand of : only for nil", () => {
+        const callable = new (class extends frame.Frame {
+          calls = 0;
+          override call(argument: frame.Frame): frame.Frame {
+            this.calls++;
+            expect(argument).toBe(frame.Frame.nil);
+            return new frame.FrameNumber("4");
+          }
+        })();
+
+        expect(frame.FrameNumber.for("1").get(":").call(callable)).toBe(
+          frame.Frame.nil,
+        );
+        expect(callable.calls).toEqual(0);
+        expect(frame.Frame.nil.get(":").call(callable).toString()).toEqual("4");
+        expect(callable.calls).toEqual(1);
+      });
+
+      it("propagates nil returned by a selected callable", () => {
+        const returnsNil = new (class extends frame.Frame {
+          override call(): frame.Frame {
+            return frame.Frame.nil;
+          }
+        })();
+
+        expect(frame.FrameNumber.for("1").get("?").call(returnsNil)).toBe(
+          frame.Frame.nil,
+        );
+        expect(frame.Frame.nil.get(":").call(returnsNil)).toBe(frame.Frame.nil);
+      });
+
+      it("applies binary rules to comparison predicates", () => {
+        expect(evaluate("1.> 5 : {10}").toString()).toEqual("[10]");
+        expect(evaluate("5.> 1 ? {100}").toString()).toEqual("[100]");
+      });
+    });
+
+    describe("chained conditionals", () => {
+      it("selects the else branch for a false dotted predicate", () => {
+        expect(evaluate("1.> 5 ? (2 * 50) : 10").toString()).toEqual("[10]");
+      });
+
+      it("returns nil when a true then call returns a truthy value", () => {
+        expect(evaluate("5.> 1 ? (2 * 50) : 10").toString()).toEqual("[]");
+      });
+
+      it("does not evaluate a lazy then branch when false", () => {
+        expect(evaluate("1.> 5 ? {missing} : {10}").toString()).toEqual(
+          "[10]",
+        );
+      });
+
+      it("evaluates else when a true then call returns nil", () => {
+        expect(evaluate("5.> 1 ? {()} : {10}").toString()).toEqual("[10]");
+      });
     });
 
     it("uses .+ for addition", () => {

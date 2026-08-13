@@ -4,6 +4,19 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.8.5 2026-08-12
+
+- Compose numeric properties into decimal and phone-shaped values while
+  preserving exact segment spelling and leading zeroes.
+- Support leading unary `+` on numeric-property chains without changing binary
+  addition.
+- Evaluate dotted numeric comparisons `.<`, `.>`, `.<=`, and `.>=`, including
+  `<>`/`()` truth results, while preserving raw schema delimiters.
+- Make binary `?` and `:` call the selected right operand with `()`, with
+  chained conditionals following ordinary left-to-right evaluation.
+- Execute the four original HCSV/HCSON phone examples in the full white-paper
+  doctest.
+
 ## v0.8.4 2026-08-12
 
 - Route symbol-to-token recognition through a stateless Sigilizer and shared

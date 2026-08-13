@@ -690,17 +690,18 @@ and the opposite on regular frames.
 # ()
 
 ; () ? {2 + 2}
-# $!.unimplemented ()
+# ()
 ; () : {2 + 2}
-# $!.unimplemented 4
+# 4
 ```
-Which, when the first expression does not return nil, acts just like C's ternary
-operator:
-[source,hc]
-----
+Chaining applies those binary rules using HC's ordinary left-to-right
+evaluation. The result returned by `?` becomes the left operand of `:`:
+```
 ; 1.> 5 ? (2 * 50) : 10
 # 10
-----
+; 5.> 1 ? (2 * 50) : 10
+# ()
+```
 Note that applying nil to anything other than a closure has no effect, so
 conditionals work just as well with simple expressions as they do with
 lazy blocks.
@@ -919,9 +920,9 @@ as CSV, with two important differences:
 ; .first-name, .last-name, .phone-number
 # (first-name, last-name, phone-number)
 ; “John”, “Doe”, +1.408.555.1212
-# $!.unimplemented (“John”, “Doe”, +1.408.555.1212)
+# (“John”, “Doe”, +1.408.555.1212)
 ; “Jane”, “Smith”, +1.650.555.1212
-# $!.unimplemented (“Jane”, “Smith”, +1.650.555.1212)
+# (“Jane”, “Smith”, +1.650.555.1212)
 ```
 ### HCSON
 
@@ -929,9 +930,9 @@ HC can also emulate the popular JSON[@Cite] format, or more precisely its
 CoffeeScript cousin CSON[@Cite].
 ```
 ; .first-name “John”, .last-name “Doe”, .phone-number +1.408.555.1212
-# $!.unimplemented (.first-name “John”, .last-name “Doe”, .phone-number +1.408.555.1212)
+# (.first-name “John”, .last-name “Doe”, .phone-number +1.408.555.1212)
 ; .first-name “Jane”, .last-name “Smith”, .phone-number +1.650.555.1212
-# $!.unimplemented (.first-name “Jane”, .last-name “Smith”, .phone-number +1.650.555.1212)
+# (.first-name “Jane”, .last-name “Smith”, .phone-number +1.650.555.1212)
 ```
 ## Object-Orientation
 
