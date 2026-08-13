@@ -68,6 +68,20 @@ describe("Lex", () => {
     });
   }
 
+  it("lexes a trailing-colon mutating name across chunk boundaries", () => {
+    const name = ".mutator:";
+    expect(lexAtoms(`${name} `).map(String)).toEqual([name]);
+    for (let split = 1; split < name.length; split++) {
+      expect(
+        lexChunkedAtoms([name.slice(0, split), name.slice(split)]).map(String),
+      ).toEqual([name]);
+    }
+  });
+
+  it("keeps a standalone colon as an operator", () => {
+    expect(lexAtoms(": ").map(String)).toEqual([":"]);
+  });
+
   it("keeps raw angle brackets structural", () => {
     const atoms = lexAtoms("<> ");
 

@@ -83,6 +83,12 @@ export class FrameList extends Frame {
     return this.data.length;
   }
 
+  public override copy(): this {
+    const clone = super.copy();
+    clone.data = [...this.data];
+    return clone;
+  }
+
   protected array_eval(contexts: Array<Frame>): Array<Frame> {
     contexts.push(this);
     return this.data.map((f: Frame) => f.in(contexts));

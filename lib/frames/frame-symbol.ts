@@ -1,6 +1,8 @@
 import { Frame } from "./frame.ts";
 import { FrameAtom } from "./frame-atom.ts";
 import { FrameNote } from "./frame-note.ts";
+import { FrameHandle } from "./frame-handle.ts";
+import { FrameArray } from "./frame-array.ts";
 import { FrameSchema } from "./frame-schema.ts";
 import { type Context, NilContext } from "./context.ts";
 import { ScanDisposition, type ScanResult, type SigilStart } from "../scan.ts";
@@ -41,13 +43,21 @@ export class FrameSymbol extends FrameAtom {
   public override in(contexts: Frame[] = [Frame.nil]): Frame {
     const first = contexts[0];
     for (const context of contexts) {
-      const value = context.get(this.data);
+      const explicitOrigin = this.get_here(Frame.kOUT);
+      const origin =
+        context instanceof FrameHandle && !explicitOrigin.is.missing
+          ? explicitOrigin
+          : context;
+      const value = context.get(this.data, origin);
       if (!value.is.missing) {
+        if (value.is.error) return value;
         value.up = context;
         if (value.is.immediate === true) {
           return value.call(context);
         }
-        return value;
+        return value instanceof FrameArray
+          ? new FrameHandle(value, this.data.endsWith("_"))
+          : value;
       }
     }
     return FrameNote.key(first.id + "." + this.data, first);
@@ -55,7 +65,13 @@ export class FrameSymbol extends FrameAtom {
 
   public override apply(argument: Frame, _parameter: Frame): Frame {
     const out = this.get(Frame.kOUT);
-    const schemaKey = `${this.data}.<>`;
+    if (argument instanceof FrameHandle) {
+      argument = argument.unwrap();
+    }
+    const binding = out.resolve_here(this.data, out);
+    if (binding?.value.is.error) return binding.value;
+    const assignmentKey = binding?.key ?? this.data;
+    const schemaKey = `${assignmentKey}.<>`;
 
     if (argument instanceof FrameSchema) {
       out.set(schemaKey, argument);
@@ -69,12 +85,12 @@ export class FrameSymbol extends FrameAtom {
       );
     }
 
-    const previous = out.get_here(this.data);
-    if (!previous.is.missing && this.isConstant()) {
+    const previous = binding?.value ?? out.get_here(this.data, out);
+    if (!previous.is.missing && this.isConstant(assignmentKey)) {
       return new FrameLiteral(`$error{$is-constant .${this.data}}`);
     }
 
-    out.set(this.data, argument);
+    out.set(assignmentKey, argument);
     return previous.is.missing
       ? new FrameLiteral(`.${this.data} ${argument.toString()}`)
       : argument;
@@ -117,8 +133,8 @@ export class FrameSymbol extends FrameAtom {
     );
   }
 
-  private isConstant(): boolean {
-    return /^\p{Lu}/u.test(this.data);
+  private isConstant(key = this.data): boolean {
+    return /^_*\p{Lu}/u.test(key);
   }
 }
 

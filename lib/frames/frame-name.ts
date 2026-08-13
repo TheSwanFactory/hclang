@@ -1,5 +1,6 @@
 import { Frame } from "./frame.ts";
 import { FrameArray } from "./frame-array.ts";
+import { FrameHandle } from "./frame-handle.ts";
 import { FrameAtom } from "./frame-atom.ts";
 import { FrameOperator, FrameSymbol } from "./frame-symbol.ts";
 import type { ISourced } from "./meta-frame.ts";
@@ -24,6 +25,9 @@ export class FrameName extends FrameAtom implements ISourced {
   private bindingTarget(contexts: Frame[]): Frame {
     for (let i = contexts.length - 1; i >= 0; i--) {
       const context = contexts[i];
+      if (context instanceof FrameHandle) {
+        return context.unwrap();
+      }
       if (context instanceof FrameArray) {
         return context;
       }
@@ -60,10 +64,11 @@ export class FrameName extends FrameAtom implements ISourced {
     }
 
     const startsWithOperator = FrameOperator.Accepts(source[0]);
+    const mutatingSuffix = char === ":" && !startsWithOperator;
     const continuesIdentifier = char[0] === "-" && !startsWithOperator;
     const sameKind = FrameOperator.Accepts(char[0]) === startsWithOperator;
     return {
-      disposition: continuesIdentifier || sameKind
+      disposition: mutatingSuffix || continuesIdentifier || sameKind
         ? ScanDisposition.Consume
         : ScanDisposition.CompleteRedispatch,
     };

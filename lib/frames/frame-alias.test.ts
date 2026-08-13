@@ -1,7 +1,13 @@
 import { expect } from "jsr:@std/expect@^0.219.1";
 import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 
-import { FrameAlias, FrameExpr, FrameString, FrameSymbol } from "../frames.ts";
+import {
+  Frame,
+  FrameAlias,
+  FrameExpr,
+  FrameString,
+  FrameSymbol,
+} from "../frames.ts";
 
 describe("FrameAlias", () => {
   const key = "atom";
@@ -39,5 +45,30 @@ describe("FrameAlias", () => {
     expect(result_2.toString()).toContain("proton");
     const result_3 = parent.get(key);
     expect(result_3.toString()).toContain("proton");
+  });
+
+  it("writes through a logical protected name to its declaration", () => {
+    const owner = new Frame({ _protected: value_1 });
+    const descendant = new Frame();
+    descendant.up = owner;
+
+    new FrameExpr([new FrameAlias("protected"), value_2]).in([descendant]);
+
+    expect(owner.get_here("_protected")).toBe(value_2);
+    expect(owner.meta.protected).toBeUndefined();
+  });
+
+  it("denies private writes from a descendant without creating a shadow", () => {
+    const owner = new Frame({ __private: value_1 });
+    const descendant = new Frame();
+    descendant.up = owner;
+    const result = new FrameExpr([
+      new FrameAlias("private"),
+      value_2,
+    ]).in([descendant]);
+
+    expect(result.toString()).toEqual("$!.is-private .private");
+    expect(owner.get_here("__private")).toBe(value_1);
+    expect(owner.meta.private).toBeUndefined();
   });
 });

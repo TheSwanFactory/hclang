@@ -781,9 +781,6 @@ case, we use an initial letter `K` to denote the constant version.
 
 ### Encapsulation
 
-NOTE: Visibility enforcement remains aspirational; the listings in this section
-are retained verbatim and tracked in https://github.com/TheSwanFactory/hclang/issues/302[#302].
-
 The simplest form of access control is _encapsulation_, restricting the ability of
 external objects to even see certain properties.  Here we follow the informal
 conventions often used in C programs:
@@ -796,27 +793,17 @@ conventions often used in C programs:
   : not visible to anyone, even children
 
 For example:
-[source,hc]
-----
-; .see-me {
-  .my-public-value 42;
-  ._my-protected-value 21;
-  .__my-private-value 7;
-  .child {
-    my-public-value,
-    my-protected-value,
-    my-private-value,
-  }
-};
+```
+; .see-me [.my-public-value 42; ._my-protected-value 21; .__my-private-value 7; .child {[my-public-value, my-protected-value, my-private-value]}];
 ; see-me.child()
-# [42, 21, $!is-private .my-private-value]
+# [42, 21, $!.is-private .my-private-value]
 ; see-me.my-public-value
 # 42
 ; see-me.my-protected-value
-# $!is-protected .my-protected-value
+# $!.is-protected .my-protected-value
 ; see-me.my-private-value
-# $!is-private .my-private-value
-----
+# $!.is-private .my-private-value
+```
 ### Effect
 
 Rather than specifying _call-by-value_ or _call-by-reference_, HC is
@@ -867,10 +854,6 @@ _destination_ object.
 ```
 #### Mutability
 
-NOTE: Mutable handles, mutating methods, and copy-on-write remain aspirational;
-the listing below is parser-unsafe and is tracked in
-https://github.com/TheSwanFactory/hclang/issues/303[#303].
-
 The second key insight from BitC is that effect is a property of
 _names_ rather than of _values_. Object literals have no effect
 restrictions on their own; this is contrast to, e.g., Apple's Cocoa
@@ -891,22 +874,16 @@ object, it simply performs a _copy-on-write_, returning a new object. To
 enable this, mutating methods can not explicitly return a value, but
 implicitly return their parent (e.g., "this"; see Section {#sec-oops} for
 more details).
-[source,hc]
-----
-; .fixed (
-  .hic “Object”;
-  .property 42;
-  .accessor { property }
-  .mutator: { @property _; }
-);
+```
+; .fixed [.hic “Object”; .property 42; .accessor {property}; .mutator: {@property _;}];
 ; fixed.accessor()
 # 42
-; .varying_ fixed.mutator: 113;
+; .varying_ (fixed.mutator: 113);
 ; varying_.accessor()
-# $!.unimplemented 113
+# 113
 ; fixed.accessor()
 # 42
-----
+```
 # Applications {#sec-applications}
 
 While the above language may seem simple to the point of simplistic, it has a
@@ -946,7 +923,7 @@ CoffeeScript cousin CSON[@Cite].
 ```
 ## Object-Orientation
 
-NOTE: Singleton, class, visibility, and inheritance semantics remain
+NOTE: Singleton, class, and inheritance semantics remain
 aspirational; these parser-unsafe listings are tracked in
 https://github.com/TheSwanFactory/hclang/issues/304[#304].
 

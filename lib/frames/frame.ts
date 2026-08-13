@@ -1,5 +1,5 @@
 import { MetaFrame } from "./meta-frame.ts";
-import { NilContext } from "./context.ts";
+import { type Context, NilContext } from "./context.ts";
 import type { ICurryFunction } from "../ops.ts";
 import type { IArrayConstructor } from "../frames.ts";
 import type { ScanResponse } from "../scan.ts";
@@ -97,6 +97,29 @@ export class Frame extends MetaFrame {
    * It will be set to the Ops object for global operators.
    */
   public static globals: Frame = Frame.missing;
+
+  /** Creates a runtime error value without coupling MetaFrame to FrameNote. */
+  public static error(source: string): Frame {
+    const error = new (class extends Frame {
+      public override toString(): string {
+        return source;
+      }
+
+      public override dataString(): string {
+        return source;
+      }
+
+      public override call(_argument: Frame): Frame {
+        return this;
+      }
+
+      public override called_by(_context: Frame): Frame {
+        return this;
+      }
+    })();
+    error.is.error = true;
+    return error;
+  }
 
   /**
    * is captures Flags for this Frame.
@@ -241,15 +264,25 @@ export class Frame extends MetaFrame {
 
   /** Compare only this frame's metadata plane, excluding data. */
   public metadataEquals(other: Frame): Frame {
-    const keys = new Set([...this.meta_keys(), ...other.meta_keys()]);
+    const leftMeta = this.metadataView();
+    const rightMeta = other.metadataView();
+    const keys = new Set([
+      ...Object.keys(leftMeta),
+      ...Object.keys(rightMeta),
+    ]);
     for (const key of keys) {
-      const left = this.meta[key];
-      const right = other.meta[key];
+      const left = leftMeta[key];
+      const right = rightMeta[key];
       if (!left || !right || !left.isEqualTo(right)) {
         return Frame.nil;
       }
     }
     return Frame.all;
+  }
+
+  /** Returns the live metadata plane used by metadata equality. */
+  public metadataView(): Context {
+    return this.meta;
   }
 
   /** Stable representation of the data plane used by data equality. */
@@ -305,5 +338,15 @@ export class Frame extends MetaFrame {
   public asArray(): Array<Frame> {
     // return _.castArray(this)
     return [this];
+  }
+
+  /** Returns a shallow frame copy with an independent metadata context. */
+  public copy(): this {
+    const clone = Object.create(Object.getPrototypeOf(this)) as this;
+    Object.assign(clone, this);
+    clone.meta = this.meta_copy();
+    clone.is = { ...this.is };
+    clone.id = `$:${this.className()}.${MetaFrame.id_count++}`;
+    return clone;
   }
 }

@@ -10,8 +10,12 @@
   surrounding expression.
 - Reject reassignment of uppercase constant names without changing their
   original value.
-- Classify the white paper's module, visibility, mutability, object, class, and
-  inheritance examples with focused follow-up issues.
+- Enforce protected and private visibility for owner, child, parent, and peer
+  property reads and writes.
+- Support shared mutable handles and trailing-colon mutating methods, including
+  copy-on-write through immutable handles and implicit receiver returns.
+- Classify the white paper's module, object, class, and inheritance examples as
+  aspirational with focused follow-up issues.
 
 ## v0.8.6 2026-08-12
 
