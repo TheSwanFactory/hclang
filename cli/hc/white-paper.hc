@@ -951,7 +951,7 @@ a frame analogous to that singleton:
 ### Inheritance
 
 Even inheritance is already accounted for, simply by explicitly specifying
-its parent scape:
+its parent scope:
 ```
 ; .my-base-class [.public-value 42; ._protected-value 21; .__private-value 7];
 ; .my-subclass {[._^ my-base-class; .values {[public-value, protected-value, private-value]}]};
