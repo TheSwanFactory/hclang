@@ -96,6 +96,27 @@ Test types
 # .one 1
 ; @one 2
 # $!.type-error .one <1> 2
+## Boolean and first-class type operations
+; ().!
+# <>
+; <>.!
+# ()
+; 1 ~ <>
+# <>
+; 2 ~ ()
+# ()
+; “Q” ~ ~~“”
+# <>
+; “Q” ~ ~~1
+# ()
+## Closure signatures apply defaults, require bare fields, and allow extras
+; .join-name (.first “Jane”, .last) ^ {last “, ” first};
+; join-name (.first “John”, .last “Doe”)
+# “Doe, John”
+; join-name (.middle “Q”, .last “Doe”)
+# “Doe, Jane”
+; join-name (.middle “Q”)
+# $!invalid-argument-list (.middle “Q”, $!missing-required-argument .last;)
 ```
 Conditionals
 ```

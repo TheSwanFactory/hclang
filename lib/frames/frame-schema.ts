@@ -52,6 +52,12 @@ export class FrameSchema extends FrameList {
     return this.data.length;
   }
 
+  /** Whether a value belongs to this enumerated schema. */
+  public matches(value: Frame): boolean {
+    return this.length() === 0 ||
+      this.data.some((candidate) => candidate.isEqualTo(value));
+  }
+
   public reset(): void {
     this.data = [];
   }

@@ -81,8 +81,8 @@ export class Frame extends MetaFrame {
       return "<>";
     }
 
-    override call(): Frame {
-      return this;
+    override call(argument: Frame): Frame {
+      return Frame.isBooleanNegation(argument) ? Frame.nil : this;
     }
   })();
 
@@ -217,7 +217,7 @@ export class Frame extends MetaFrame {
    */
   public call(argument: Frame, parameter = Frame.nil): Frame {
     if (this.is.void) {
-      return argument;
+      return Frame.isBooleanNegation(argument) ? Frame.all : argument;
     }
     return argument.called_by(this, parameter);
   }
@@ -348,5 +348,10 @@ export class Frame extends MetaFrame {
     clone.is = { ...this.is };
     clone.id = `$:${this.className()}.${MetaFrame.id_count++}`;
     return clone;
+  }
+
+  private static isBooleanNegation(argument: Frame): boolean {
+    return argument.className() === "FrameSymbol" &&
+      argument.toString() === "!";
   }
 }

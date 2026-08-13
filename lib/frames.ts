@@ -18,7 +18,13 @@ export { FrameNote } from "./frames/frame-note.ts";
 export { FrameNumber } from "./frames/frame-number.ts";
 export { FrameSchema } from "./frames/frame-schema.ts";
 export { FrameString, type IStringConstructor } from "./frames/frame-string.ts";
-export { FrameOperator, FrameSymbol } from "./frames/frame-symbol.ts";
+export {
+  type FrameBinding,
+  FrameLiteral,
+  FrameOperator,
+  FrameSymbol,
+} from "./frames/frame-symbol.ts";
+export { FrameType } from "./frames/frame-type.ts";
 export { type Any, type Flags, Frame } from "./frames/frame.ts";
 export { type ISourced, MetaFrame, Visibility } from "./frames/meta-frame.ts";
 export {
