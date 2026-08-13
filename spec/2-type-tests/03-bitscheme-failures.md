@@ -8,7 +8,7 @@
 > **Historical analysis:** This document records the December 2025 failure
 > state. The subsequently implemented deterministic schema-retrieval,
 > property-selection, and bit-deconstruction behavior is specified in
-> [Minimal Schema Retrieval and Deconstruction](../9-minimal-schema-deconstruction.md).
+> [Minimal Schema Typing, Retrieval, and Deconstruction](../9-minimal-schema-deconstruction.md).
 > Broader constructors, deferred captures, and recursive schemas remain
 > intentionally deferred there.
 

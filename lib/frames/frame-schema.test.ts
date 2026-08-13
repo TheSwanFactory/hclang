@@ -1,7 +1,14 @@
 import { expect } from "jsr:@std/expect@^0.219.1";
 import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 
-import { Frame, FrameExpr, FrameSchema, FrameString } from "../frames.ts";
+import {
+  Frame,
+  FrameExpr,
+  FrameNumber,
+  FrameSchema,
+  FrameString,
+  FrameType,
+} from "../frames.ts";
 
 describe("FrameSchema", () => {
   const a_frame = new FrameString("a");
@@ -33,6 +40,30 @@ describe("FrameSchema", () => {
     expect(schema.call(a_frame)).toEqual(a_frame);
     expect(schema.call(b_frame)).toEqual(b_frame);
     expect(schema.toString()).toEqual("<“a”, “b”>");
+  });
+
+  it("uses one match result for membership and application evidence", () => {
+    const schema = new FrameSchema([a_frame]);
+    const accepted = schema.match(a_frame);
+    const rejected = schema.match(b_frame);
+
+    expect(accepted.matched).toEqual(true);
+    if (accepted.matched) expect(accepted.evidence).toEqual(a_frame);
+    expect(rejected.matched).toEqual(false);
+    expect(schema.matches(a_frame)).toEqual(true);
+    expect(schema.matches(b_frame)).toEqual(false);
+    expect(schema.call(a_frame)).toEqual(a_frame);
+  });
+
+  it("composes nested schemas and runtime types as candidates", () => {
+    const strings = new FrameSchema([a_frame, b_frame]);
+    const nested = new FrameSchema([strings]);
+    const runtime = new FrameSchema([FrameType.of(a_frame)]);
+
+    expect(nested.matches(a_frame)).toEqual(true);
+    expect(nested.matches(new FrameNumber("1"))).toEqual(false);
+    expect(runtime.matches(new FrameString("another"))).toEqual(true);
+    expect(runtime.matches(new FrameNumber("1"))).toEqual(false);
   });
 
   it("evaluates its components into an array", () => {

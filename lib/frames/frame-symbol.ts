@@ -5,6 +5,7 @@ import { FrameHandle } from "./frame-handle.ts";
 import { FrameArray } from "./frame-array.ts";
 import { FrameSchema } from "./frame-schema.ts";
 import { FrameType } from "./frame-type.ts";
+import { isFrameMatcher } from "./frame-match.ts";
 import { type Context, NilContext } from "./context.ts";
 import { ScanDisposition, type ScanResult, type SigilStart } from "../scan.ts";
 
@@ -214,13 +215,7 @@ export class FrameSymbol extends FrameAtom {
   }
 
   private matchesSchema(schema: Frame, value: Frame): boolean {
-    if (!(schema instanceof FrameSchema)) {
-      return true;
-    }
-    if (schema.length() === 0) {
-      return true;
-    }
-    return schema.matches(value);
+    return !isFrameMatcher(schema) || schema.match(value).matched;
   }
 
   private isConstant(key = this.data): boolean {

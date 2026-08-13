@@ -9,9 +9,10 @@
 - Resolve previously evaluated integer bindings as dynamic byte-string lengths
   while preserving exact payload boundaries, canonical numeric rendering, and
   recoverable diagnostics.
-- Retrieve schemas from bindings and apply immutable schemas as direct property
-  selectors, exact or remainder bit captures, and deterministic named bit
-  sequences that preserve leading-zero widths.
+- Treat schemas and first-class runtime types as composable, evidence-producing
+  matchers shared by binding validation, membership, and application, including
+  direct-property and deterministic bit-capture matchers that preserve
+  leading-zero widths.
 
 ## v0.9.0 2026-08-13
 

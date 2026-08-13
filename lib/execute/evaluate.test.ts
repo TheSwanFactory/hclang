@@ -495,6 +495,63 @@ describe("evaluate", () => {
     });
 
     describe("minimal deconstruction", () => {
+      it("aligns membership with evidence-producing application", () => {
+        const cases = [
+          ["2", "<1,2>", "2"],
+          ["[.x 1;]", "<.x>", "[1]"],
+          ["0b101", "<3@Bit>", "0b101"],
+          ["0b101", "<[@Bit]>", "0b101"],
+          [
+            "0b10101",
+            "<[.head <3@Bit>; .tail <[@Bit]>;]>",
+            "[.head 0b101; .tail 0b01;]",
+          ],
+        ];
+
+        for (const [value, schema, evidence] of cases) {
+          expect(evaluate(`${value} ~ ${schema}`).at(0)).toBe(frame.Frame.all);
+          expect(evaluate(`${schema} ${value}`).at(0).toString()).toEqual(
+            evidence,
+          );
+
+          const binding = evaluate(`.value ${schema} ${value}`);
+          expect(binding.meta.value).toBeDefined();
+          expect(binding.toString()).not.toContain("$!.type-error");
+        }
+        expect(evaluate("0b10 ~ <3@Bit>").toString()).toEqual("[]");
+        expect(evaluate("<3@Bit> 0b10").at(0).toString()).toEqual(
+          "$!.insufficient-bits <3@Bit> 0",
+        );
+
+        const rejected = evaluate(".value <3@Bit> 0b10");
+        expect(rejected.meta.value).toBeUndefined();
+        expect(rejected.at(0).toString()).toEqual(
+          "$!.type-error .value <3@Bit> 0b10",
+        );
+      });
+
+      it("composes named schema and runtime-type candidates", () => {
+        const nested = evaluate(
+          ".Small <1,2>; .value <Small> 2; @value 3",
+        );
+        expect(nested.meta.value.toString()).toEqual("2");
+        expect(nested.at(0).toString()).toContain(
+          "$!.type-error .value <<1, 2>> 3",
+        );
+
+        const runtime = evaluate(
+          ".Text <~~“”>; .value <Text> “Q”; @value 1",
+        );
+        expect(runtime.meta.value.toString()).toEqual("“Q”");
+        expect(runtime.at(0).toString()).toContain(
+          "$!.type-error .value <<~~“”>> 1",
+        );
+      });
+
+      it("keeps ordinary aggregate values available to enumeration", () => {
+        expect(evaluate("<[1,2]> [1,2]").toString()).toEqual("[[1, 2]]");
+      });
+
       it("retrieves the schema attached to a binding after reassignment", () => {
         const result = evaluate(".x <1,2> 1; @x 2; x.<>");
         expect(result.at(0).toString()).toContain("<1, 2>");
@@ -572,7 +629,7 @@ describe("evaluate", () => {
           evaluate("<[.x <1@Bit>; .x <1@Bit>;]> 0b11").toString(),
         ).toEqual("[$!.duplicate-capture-name .x]");
         expect(evaluate("<1,.x> 1").toString()).toEqual(
-          "[$!.unsupported-schema-form]",
+          "[$!.unsupported-schema-match]",
         );
       });
     });
