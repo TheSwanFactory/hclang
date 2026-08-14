@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="hcweb-version" content="__HCWEB_VERSION__">
+    <meta name="hclang-version" content="__HCLANG_VERSION__">
+    <meta name="source-commit" content="__SOURCE_COMMIT__">
+    <meta name="build-date" content="__BUILD_DATE__">
+    <meta name="package-source" content="__PACKAGE_SOURCE__">
+    <title>Homoiconic C Playground</title>
+    <style>
+      :root {
+        color: #172033;
+        background: #eef2f7;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system,
+          BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-synthesis: none;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        min-width: 320px;
+        min-height: 100vh;
+        margin: 0;
+      }
+
+      a {
+        color: #4338ca;
+      }
+
+      a:hover {
+        color: #312e81;
+      }
+
+      a:focus-visible {
+        outline: 3px solid #818cf8;
+        outline-offset: 3px;
+      }
+
+      .app-shell {
+        display: grid;
+        grid-template-columns: 17rem minmax(0, 1fr);
+        min-height: 100vh;
+      }
+
+      .sidebar {
+        position: sticky;
+        top: 0;
+        align-self: start;
+        height: 100vh;
+        padding: 2rem 1.5rem;
+        overflow-y: auto;
+        background: #fff;
+        border-right: 1px solid #dbe3ef;
+      }
+
+      .sidebar h2 {
+        margin: 0 0 0.75rem;
+        font-size: 1rem;
+      }
+
+      .sidebar h2:not(:first-child) {
+        margin-top: 2rem;
+      }
+
+      .sidebar nav {
+        display: grid;
+        gap: 0.65rem;
+      }
+
+      .sidebar a {
+        width: fit-content;
+        line-height: 1.4;
+        text-decoration: none;
+      }
+
+      .sidebar a:hover {
+        text-decoration: underline;
+      }
+
+      .page {
+        display: flex;
+        min-width: 0;
+        min-height: 100vh;
+        flex-direction: column;
+      }
+
+      .content {
+        width: min(100%, 64rem);
+        margin: 0 auto;
+        padding: 3rem 2rem;
+        flex: 1;
+      }
+
+      footer {
+        padding: 1.5rem;
+        color: #64748b;
+        text-align: center;
+      }
+
+      footer p {
+        margin: 0.25rem;
+      }
+
+      .build-details {
+        font-size: 0.75rem;
+      }
+
+      @media (max-width: 760px) {
+        .app-shell {
+          display: block;
+        }
+
+        .sidebar {
+          position: static;
+          width: auto;
+          height: auto;
+          border-right: 0;
+          border-bottom: 1px solid #dbe3ef;
+        }
+
+        .sidebar nav {
+          grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+        }
+
+        .content {
+          padding: 1.25rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="HC resources">
+        <h2>Documentation</h2>
+        <nav>
+          <a href="https://github.com/TheSwanFactory/hclang/blob/master/doc/BitScheme.adoc">Homoiconic C Tutorial</a>
+          <a href="https://github.com/TheSwanFactory/hclang/blob/master/doc/onward2017/Onward2017.md">Homoiconic C Paper</a>
+          <a href="https://ihack.us/2024/09/19/tsm-5-homoiconic-c-hc-syntax-cheat-sheet/">HC Cheat Sheet</a>
+        </nav>
+        <h2>Project</h2>
+        <nav>
+          <a href="https://github.com/TheSwanFactory/hclang">Source code</a>
+          <a href="https://jsr.io/@swanfactory/hclang">hclang on JSR</a>
+          <a href="https://jsr.io/@swanfactory/hcweb">hcweb on JSR</a>
+        </nav>
+      </aside>
+      <div class="page">
+        <main class="content">
+          <div id="hcweb-root"></div>
+        </main>
+        <footer>
+          <p>&copy; 2026 The Swan Factory</p>
+          <p class="build-details">
+            hcweb __HCWEB_VERSION__ · hclang __HCLANG_VERSION__ ·
+            <a href="https://github.com/TheSwanFactory/hclang/commit/__SOURCE_COMMIT__">source __SOURCE_COMMIT__</a>
+          </p>
+        </footer>
+      </div>
+    </div>
+    <!-- HCWEB_BUNDLE -->
+  </body>
+</html>

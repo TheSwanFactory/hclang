@@ -10,46 +10,39 @@
   },
   "tasks": {
     "check": "deno fmt --check . && deno lint . && deno check",
-    "dev": "vite",
-    "build": "vite build",
-    "start": "deno serve -A _fresh/server.js",
-    "test": "deno test -A tests/*.test.tsx && deno task test:consumer",
+    "dev": "deno task build && deno task serve",
+    "serve": "deno run -A jsr:@std/http@1.1.3/file-server ../dist",
+    "build": "deno run -A ../scripts/build-hcweb.ts",
+    "test": "deno task build && deno task test:components && deno task test:consumer && deno task test:artifact",
+    "test:components": "deno test -A tests/hclang.test.tsx",
     "test:consumer": "deno task --config tests/consumer/deno.json --lock ../deno.lock build",
-    "update": "deno run -A -r jsr:@fresh/update ."
+    "test:artifact": "deno test -A tests/standalone.test.ts tests/standalone-browser.test.ts"
   },
   "exports": {
     ".": "./mod.ts",
     "./islands/Main": "./islands/Main.tsx",
+    "./mount": "./mount.ts",
     "./styles": "./styles.ts"
   },
   "publish": {
     "exclude": [
-      "assets/",
       "CLAUDE.md",
-      "client.ts",
-      "main.ts",
-      "routes/",
+      "index.html",
       "static/",
-      "tests/",
-      "utils.ts",
-      "vite.config.ts"
+      "tests/"
     ]
   },
-  "exclude": ["**/_fresh/*", "tests/consumer/_fresh/"],
+  "exclude": ["tests/consumer/_fresh/"],
   "imports": {
-    "@fresh/plugin-vite": "jsr:@fresh/plugin-vite@1.1.2",
     "@preact/signals": "npm:@preact/signals@2.11.0",
     "@testing-library/preact": "npm:@testing-library/preact@3.2.4",
-    "@types/babel__core": "npm:@types/babel__core@7.20.5",
-    "fresh": "jsr:@fresh/core@2.3.3",
     "jsdom": "npm:jsdom@30.0.1",
-    "preact": "npm:preact@10.29.8",
-    "vite": "npm:vite@7.3.6"
+    "playwright": "npm:playwright@1.62.0",
+    "preact": "npm:preact@10.29.8"
   },
   "compilerOptions": {
     "lib": ["dom", "dom.asynciterable", "dom.iterable", "deno.ns"],
     "jsx": "react-jsx",
-    "jsxImportSource": "preact",
-    "types": ["vite/client"]
+    "jsxImportSource": "preact"
   }
 }

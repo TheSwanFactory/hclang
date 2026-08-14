@@ -2,46 +2,56 @@
 
 ## Architecture
 
-`web/` is both a Fresh 2 application and the source of the `@swanfactory/hcweb`
-JSR package. `routes/index.tsx` renders the public `Main` island. `Main` alone
-owns the `HCLang` interpreter and coordinates `Executor`, `Historian`, and
-`Reset`.
+`web/` produces two things from one source: the `@swanfactory/hcweb` JSR package
+and `dist/hcweb.html`, a single offline file distributed as a GitHub release
+asset.
 
-There is no standalone or CDN implementation. Static HTML is documentation only.
-Fresh uses Vite, with application CSS imported from `client.ts`. `_fresh/` is
-generated output and must not be committed.
+`Main` is the sole owner of the `HCLang` interpreter, latest output, error, and
+history state. `mount.ts` is the public entry that renders it into an element.
+`index.html` is the only page template; the release builder replaces its
+`<!-- HCWEB_BUNDLE -->` marker with the inlined bundle.
+
+There is no server, no SSR, and no Fresh runtime in the production path. Fresh
+appears only in `tests/consumer/`, which proves the package still works as a
+third-party Fresh island.
 
 ## Dependency boundary
 
 Web source imports `@swanfactory/hclang` by its bare workspace name. Deno
-resolves the local workspace package during development and rewrites it to JSR
-metadata when hcweb is published. Do not add an HTTPS, CDN, or member-level JSR
-mapping for hclang.
+resolves the local package during development and rewrites it to a JSR
+dependency on publish. Never add an HTTPS, CDN, or member-level mapping.
 
 ## Commands
 
-Run these from `web/`:
+Run from `web/`:
 
 ```sh
-deno task dev       # Vite development server (long-running)
-deno task test      # component tests and consumer production build
-deno task build     # production build
-deno task start     # serve the production build (long-running)
+deno task build     # ../dist/hcweb.html + checksum
+deno task dev       # build, then serve ../dist
+deno task check
+deno task test      # build + components + consumer + artifact
 deno publish --dry-run
 ```
 
 ## Public API
 
-- `@swanfactory/hcweb` exports the documented components and prop types.
-- `@swanfactory/hcweb/islands/Main` is the default interactive island entry and
-  embeds its scoped styles.
-- `@swanfactory/hcweb/styles` exports the style string for advanced consumers.
+- `@swanfactory/hcweb/mount` — `mountHcweb(element)`, the simplest entry
+- `@swanfactory/hcweb/islands/Main` — island entry for Fresh `islandSpecifiers`
+- `@swanfactory/hcweb` — components and prop types
+- `@swanfactory/hcweb/styles` — the scoped style string
 
-A Fresh consumer must register the island entry with `islandSpecifiers`. It must
-not configure hclang separately.
+## Artifact invariants
+
+The generated file must stay one HTML file with one inline script, no external
+resource, and no automatic network request. It must run from `file://` offline.
+Two rules are easy to break:
+
+- Inject with a **function** replacer. String replacements expand `$$` and `$&`,
+  which once corrupted HC's `$$` sentinel into `$` and broke sigil registration.
+- Keep build metadata derived from the commit, not wall-clock time, so builds
+  stay reproducible.
 
 ## Changes
 
-Keep REPL state in one owner, preserve keyboard and label accessibility, test
-submit/history/reset/error recovery, and update `README.md` when changing public
-exports or commands.
+Keep REPL state in one owner, preserve labels/keyboard/focus behavior, and when
+public exports or commands change, update `README.md` and the artifact tests.

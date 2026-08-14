@@ -3,8 +3,8 @@ logs
 *.log
 npm-debug.log*
 
-# Fresh and Vite output
-web/_fresh/
+# Generated web artifacts
+dist/
 web/tests/consumer/_fresh/
 
 # Runtime data

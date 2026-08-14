@@ -6,6 +6,7 @@
     "build": "deno task build:cli && deno task build:web",
     "build:cli": "cd cli && deno task build",
     "build:web": "cd web && deno task build",
+    "build:web:release": "deno run -A scripts/build-hcweb.ts --jsr-version",
     "bump": "deno run -A scripts/bump-version.ts && deno install && git add deno.json deno.lock lib/version.ts cli/deno.json lib/deno.json maml/deno.json web/deno.json && git commit -m 'Bump version'",
     "clean": "rm deno.lock */deno.lock",
     "hc": "deno run -A cli/hc.ts",
@@ -26,10 +27,11 @@
   "compilerOptions": {
     "lib": ["dom", "dom.iterable", "esnext", "deno.ns"]
   },
-  "fmt": { "exclude": ["**/*.html", "**/_fresh/*"] },
+  "fmt": { "exclude": ["**/*.html", "dist/", "**/_fresh/"] },
+  "exclude": ["dist/", "**/_fresh/"],
   "lint": {
     "rules": {
-      "tags": ["fresh", "recommended"],
+      "tags": ["recommended"],
       "include": [
         "explicit-function-return-type",
         "explicit-module-boundary-types",

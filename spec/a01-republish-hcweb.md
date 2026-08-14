@@ -1,6 +1,11 @@
 # Re-publish hcweb on Fresh 2
 
-**Status:** Implemented on `issue-263-republish-hcweb`; release pending\
+**Status:** Superseded in part by
+[a02 — Single-file hcweb deployment](a02-hcweb-deployment.md), which replaces
+the Fresh 2 application and server deployment with one offline `hcweb.html`
+release artifact. The package boundary, single-owner REPL, and removal of the
+static fallback below remain in force; the Fresh 2 application requirements do
+not.\
 **Issue:**
 [#263 — Re-publish hcweb](https://github.com/TheSwanFactory/hclang/issues/263)\
 **Related:** #252, #254, #257, #259, #260, #262, #276

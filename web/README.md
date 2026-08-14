@@ -1,98 +1,86 @@
 # Homoiconic C Web Interface
 
-`@swanfactory/hcweb` provides the interactive Preact island used by the
-[Homoiconic C](https://github.com/TheSwanFactory/hclang) playground. The same
-source powers the Fresh application in this directory and the package published
-to JSR.
+Two products live here:
 
-The island loads `@swanfactory/hclang` as a normal transitive JSR dependency.
-Consumers do not install hclang separately and do not need an hclang import-map
-entry or CDN loader.
+- **`hcweb.html`** — a single self-contained file that runs the HC playground
+  offline. Download it from the
+  [latest release](https://github.com/TheSwanFactory/hclang/releases/latest/download/hcweb.html),
+  then open it in a browser. No install, no server, no network.
+- **`@swanfactory/hcweb`** — the Preact components on JSR, for embedding the
+  playground in your own site.
 
-## Use hcweb in Fresh 2
+The package loads `@swanfactory/hclang` as a normal transitive JSR dependency.
+Consumers never install or configure hclang.
 
-Install the package:
+## Use the package
 
 ```sh
 deno add jsr:@swanfactory/hcweb
 ```
 
-Register its public island in `vite.config.ts`:
+Mount it into any element:
 
 ```ts
-import { fresh } from "@fresh/plugin-vite";
-import { defineConfig } from "vite";
+import { mountHcweb } from "@swanfactory/hcweb/mount";
 
-export default defineConfig({
-  plugins: [
-    fresh({
-      islandSpecifiers: ["@swanfactory/hcweb/islands/Main"],
-    }),
-  ],
-});
+mountHcweb(document.getElementById("hcweb-root")!);
 ```
 
-Render the island from a route. Its scoped styles and hclang runtime are
-included automatically:
+Fresh 2 consumers can register the island directly instead:
 
-```tsx
-import Main from "@swanfactory/hcweb/islands/Main";
-
-export default function Playground() {
-  return <Main />;
-}
+```ts
+fresh({ islandSpecifiers: ["@swanfactory/hcweb/islands/Main"] });
 ```
 
-## Develop the application
+Either way the component embeds its own scoped styles, so no stylesheet import
+is required.
+
+## Build and test locally
 
 From `web/`:
 
 ```sh
-deno install
-deno task dev
-```
-
-Open the URL printed by Vite. `deno task dev` is long-running; stop it with
-Ctrl-C.
-
-One-shot checks:
-
-```sh
-deno task check
-deno task test
-deno task build
+deno task build    # writes ../dist/hcweb.html and its checksum
+deno task dev      # build, then serve ../dist
+deno task check    # format, lint, type check
+deno task test     # build, component, consumer, and artifact tests
 deno publish --dry-run
 ```
 
-`deno task test` runs browser-component behavior tests and builds a clean Fresh
-consumer fixture. The fixture deliberately maps hcweb but not hclang, proving
-that consumers need no hclang configuration.
-
-Preview the production build with:
+`deno task test` runs three layers: jsdom component behavior, a Fresh consumer
+production build, and the generated artifact itself. The artifact tests open
+`dist/hcweb.html` through a real `file://` URL in offline Chromium and fail on
+any network request. They need a browser once:
 
 ```sh
-deno task start
+deno run -A npm:playwright@1.62.0 install chromium
 ```
 
-`deno task start` is also long-running and serves `_fresh/server.js`.
+## How the release artifact is built
 
-## Publish
+`scripts/build-hcweb.ts` bundles the playground into `web/index.html`:
 
-The root release workflow publishes `@swanfactory/hclang` first and then hcweb
-when the workspace version changes. Deno converts hcweb's bare workspace import
-of `@swanfactory/hclang` into the matching JSR dependency. Do not replace it
-with an `esm.sh`, HTTPS, or explicit member-level JSR mapping.
+1. Generate an entry that imports `mountHcweb`.
+2. `deno bundle --platform=browser --format=iife --minify` it into one script.
+3. Inline that script into the committed template and fill in version, commit,
+   and build metadata.
+4. Write `dist/hcweb.html` plus `dist/hcweb.html.sha256`.
 
-Before merging a release, run the package dry run above. JSR versions are
-immutable, so the workspace must use the next available version.
+For a release, CI publishes to JSR first, then rebuilds with
+`--jsr-version <version>` so the entry imports the exact published
+`jsr:@swanfactory/hcweb@<version>`. The builder resolves that graph in a
+temporary directory outside the workspace and fails if any local source leaks
+in. JSR is the build-time provenance; the artifact itself contacts nothing at
+runtime.
 
-## Deploy
+Version numbers are locked across the workspace, so publish hclang before hcweb.
+JSR versions are immutable, so a release needs the next version.
 
-The application is compatible with Deno Deploy's Fresh preset:
+## Layout
 
-- application root: `web/`
-- build command: `deno task build`
-- production entry point: `_fresh/server.js`
-
-The `static/` directory contains the BitScheme tutorial and HC white paper.
-There is no standalone REPL; `/` is the only supported interactive interface.
+- `index.html` — the one page template used by dev and release builds
+- `mount.ts` — public mount entry
+- `islands/` — `Main` owns interpreter, output, history, and reset state
+- `styles.ts` — scoped component CSS embedded by `Main`
+- `static/` — BitScheme tutorial and HC white paper
+- `tests/` — component, consumer, and artifact suites

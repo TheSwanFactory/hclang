@@ -52,8 +52,8 @@ Each package has detailed documentation in its own CLAUDE.md file:
   - Higher-order functions
 
 - **[web/CLAUDE.md](web/CLAUDE.md)** - Web interface
-  - Fresh 2 application and production build
-  - Reusable Preact island published as `@swanfactory/hcweb`
+  - Single-file offline `hcweb.html` release artifact
+  - Reusable Preact components published as `@swanfactory/hcweb`
   - Browser-based HC execution with transitive hclang loading
 
 ## Quick Start
@@ -258,12 +258,12 @@ See [cli/CLAUDE.md](cli/CLAUDE.md)
 
 ### Web (web/)
 
-Fresh 2 application and reusable Preact island package:
+Preact playground distributed two ways:
 
-- One authoritative browser-based HC interpreter
-- Published to JSR as `@swanfactory/hcweb`
-- Loads the workspace/JSR hclang package transitively
-- Built with Fresh's Vite plugin for deployment
+- `dist/hcweb.html`, one offline file attached to each GitHub release
+- `@swanfactory/hcweb` on JSR for embedding, loading hclang transitively
+- One authoritative browser-based HC interpreter, no server or SSR
+- Bundled by `scripts/build-hcweb.ts` using Deno's browser bundler
 
 See [web/CLAUDE.md](web/CLAUDE.md)
 
