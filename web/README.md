@@ -64,7 +64,14 @@ deno run -A npm:playwright@1.62.0 install chromium
 2. `deno bundle --platform=browser --format=iife --minify` it into one script.
 3. Inline that script into the committed template and fill in version, commit,
    and build metadata.
-4. Write `dist/hcweb.html` plus `dist/hcweb.html.sha256`.
+4. Write `dist/hcweb.html`, a byte-identical `dist/index.html`, and
+   `dist/hcweb.html.sha256`.
+
+`dist/` is therefore also a complete static site. Deno Deploy is configured from
+the root `deno.json` `deploy` key to build `deno task build:web` and serve
+`dist/` statically, which mirrors the artifact at a URL without adding a server.
+Only the app directory is set in the Deno Deploy dashboard, and it must be the
+repository root.
 
 For a release, CI publishes to JSR first, then rebuilds with
 `--jsr-version <version>` so the entry imports the exact published

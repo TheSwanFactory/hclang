@@ -194,10 +194,18 @@ workflow-scoped and retention-limited. GitHub release assets are public,
 versioned distribution objects and are already part of this repository's release
 model.
 
-A hosted copy is optional. If GitHub Pages or another static host is later
-wanted, it MUST publish the exact verified `hcweb.html` bytes as `index.html`
-after release. It MUST not rebuild from source or become the authoritative
-artifact.
+A hosted copy is optional and MUST serve the same bytes. The builder therefore
+writes `dist/index.html` as a byte-identical copy of `dist/hcweb.html`, and a
+static host MAY publish `dist/` directly. The mirror MUST NOT become the
+authoritative artifact, and hosting MUST NOT reintroduce a server runtime.
+
+Deno Deploy is configured from source through the root `deno.json` `deploy` key
+using a static runtime over `dist/`. Source configuration overrides dashboard
+settings, so the framework preset MUST NOT remain in effect. Only the
+application directory is dashboard-owned and MUST point at the repository root.
+Because a host MAY build without a git checkout, the builder MUST fall back to
+non-git metadata rather than failing; byte reproducibility is only required
+where commit metadata is available.
 
 ## Verification
 

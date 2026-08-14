@@ -26,10 +26,20 @@ function metaContent(name: string): string | undefined {
 }
 
 describe("standalone artifact", () => {
-  it("ships only the HTML file and its checksum", async () => {
+  it("ships only the HTML file, its mirror copy, and the checksum", async () => {
     const entries: string[] = [];
     for await (const entry of Deno.readDir(distDir)) entries.push(entry.name);
-    expect(entries.sort()).toEqual(["hcweb.html", "hcweb.html.sha256"]);
+    expect(entries.sort()).toEqual([
+      "hcweb.html",
+      "hcweb.html.sha256",
+      "index.html",
+    ]);
+  });
+
+  it("mirrors the artifact byte-for-byte as index.html", async () => {
+    const mirror = await Deno.readFile(join(distDir, "index.html"));
+    const artifact = await Deno.readFile(artifactPath);
+    expect(mirror).toEqual(artifact);
   });
 
   it("matches its published checksum", async () => {

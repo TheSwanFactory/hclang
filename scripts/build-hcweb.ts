@@ -41,8 +41,12 @@ async function command(
   return output;
 }
 
-async function gitText(args: string[]): Promise<string> {
-  const output = await command("git", args);
+/** Reads git metadata, tolerating hosts that build without a git checkout. */
+async function gitText(args: string[]): Promise<string | undefined> {
+  const output = await command("git", args, { reject: false }).catch(() =>
+    undefined
+  );
+  if (!output?.success) return undefined;
   return new TextDecoder().decode(output.stdout).trim();
 }
 
@@ -132,14 +136,16 @@ async function releaseGraph(
 
 async function build(): Promise<void> {
   const version = await verifyVersions();
-  const commit = await gitText(["rev-parse", "HEAD"]);
+  const commit = await gitText(["rev-parse", "HEAD"]) ??
+    Deno.env.get("GITHUB_SHA") ?? "unknown";
+  // Commit time keeps release builds byte-reproducible. Hosted mirrors that
+  // build without a git checkout fall back to the current time.
   const commitEpoch = Number(
     await gitText(["show", "-s", "--format=%ct", "HEAD"]),
   );
-  if (!Number.isFinite(commitEpoch)) {
-    throw new Error("Invalid commit timestamp");
-  }
-  const buildDate = new Date(commitEpoch * 1000).toISOString();
+  const buildDate = Number.isFinite(commitEpoch)
+    ? new Date(commitEpoch * 1000).toISOString()
+    : new Date().toISOString();
   const temporaryDir = await Deno.makeTempDir({ prefix: "hcweb-build-" });
 
   try {
@@ -212,10 +218,13 @@ async function build(): Promise<void> {
     });
     await Deno.mkdir(distDir, { recursive: true });
     const outputPath = join(distDir, "hcweb.html");
-    const pendingPath = `${outputPath}.pending`;
     const bytes = new TextEncoder().encode(html);
-    await Deno.writeFile(pendingPath, bytes);
-    await Deno.rename(pendingPath, outputPath);
+    for (const name of ["hcweb.html", "index.html"]) {
+      // `index.html` is the same bytes, so a static host can serve `/`.
+      const target = join(distDir, name);
+      await Deno.writeFile(`${target}.pending`, bytes);
+      await Deno.rename(`${target}.pending`, target);
+    }
 
     const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", bytes));
     const checksum = Array.from(
