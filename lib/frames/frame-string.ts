@@ -16,12 +16,29 @@ export interface IStringConstructor {
   new (data: string, meta: Context): FrameAtom;
 }
 
+/**
+ * The canonical HC string.
+ *
+ * `“ ”` denotes its own characters and nests without escapes. `"` is the ASCII
+ * input spelling of the same value: its maximal run selects nesting depth
+ * rather than a second string type, and the completed value always prints with
+ * curly quotes, so the alias is erased by round-tripping.
+ */
 export class FrameString extends FrameQuote {
   public static readonly STRING_BEGIN = "“";
   public static readonly STRING_END = "”";
+  public static readonly ASCII_QUOTE = '"';
   public static readonly SIGIL_STARTS: readonly SigilStart[] = [
     { key: FrameString.STRING_BEGIN, mode: "atom" },
+    { key: FrameString.ASCII_QUOTE, mode: "run" },
   ];
+  public static readonly RUN_DELIMITER: string = FrameString.ASCII_QUOTE;
+  public static readonly RUN_LABEL: string = "quoted";
+
+  /** Builds one string from an ASCII-quoted body; depth is not retained. */
+  public static fromRun(body: string, _runLength: number): FrameString {
+    return new FrameString(body);
+  }
 
   constructor(protected data: string, meta: Context = NilContext) {
     super(meta);

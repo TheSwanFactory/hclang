@@ -222,7 +222,7 @@ Table [#sec-table-literals].
 | 0b010    | _binary_      |1/3| _rational_| “_string_”         |
 | 0o1777   | _octal_       |123.456| _float_ | # _comment_ #      |
 | 1234     | _decimal_     |123.456.E.-10| _scientific_ | \\_length_\\_blob_ |
-| 0xCAFE   | _hexadecimal_ |123.456.p123| _version_ | '_datestring_'     |
+| 0xCAFE   | _hexadecimal_ |123.456.p123| _version_ | '_resource_'       |
 | 0@Base64 | _Base64_      |+1.408.555.1212| _phone_ |                    |
 +----------|---------------+----------|---------------+--------------------+
 { tbody-tr-odd-background-color:Gainsboro; \
@@ -231,9 +231,42 @@ Table [#sec-table-literals].
 
 The most significant departure from traditional syntax is the use of
 matching smart quotes, which enables nesting and all but eliminates the
-need for escape sequences. With appropriate editor support (an [atom
-package](https://github.com/TheSwanFactory/language-maml) already exists),
-the user can type '"' as usual and still generate HC strings.
+need for escape sequences. Balanced interior quotes are ordinary content,
+so a quotation inside a quotation needs no escape character:
+```
+; “nesting “quotes” inside quotes”
+# “nesting “quotes” inside quotes”
+```
+A delimiter earns its keep only when it changes what the delimited text
+_denotes_. The ASCII double quote therefore introduces no second string
+type: it is simply the input spelling of the curly pair, and its output is
+always canonical. Run length selects nesting depth rather than type, using
+the same odd/even rule as document fences, so an even run is the empty
+string and a longer odd run permits interior runs as content:
+```
+; "ASCII quotes canonicalize"
+# “ASCII quotes canonicalize”
+; ""
+# “”
+; """interior " and "" runs are content"""
+# “interior " and "" runs are content”
+```
+The single quote takes the one genuinely vacant slot: naming something
+that is _not_ in the program. A resource identifier is an inert,
+structured URI reference. It reaches no network, filesystem, or registry
+when it is lexed or evaluated, so source text can name a resource without
+being able to authorize it; resolution requires a resource frame supplied
+by the invocation context.
+```
+; 'https://theswanfactory.com/hc?v=1'
+# 'https://theswanfactory.com/hc?v=1'
+; 'jsr:@swanfactory/hclang'.scheme
+# “jsr”
+; 'https://theswanfactory.com/hc'.authority
+# “theswanfactory.com”
+```
+Because every external identity is lexically marked, a program's entire
+external surface can be enumerated without evaluating it.
 
 In addition, as part of HC's quest to be a universal data format, it
 natively supports:
@@ -701,15 +734,17 @@ evaluation. The result returned by `?` becomes the left operand of `:`:
 # 10
 ; 5.> 1 ? (2 * 50) : 10
 # ()
-```
+`````
 Note that applying nil to anything other than a closure has no effect, so
 conditionals work just as well with simple expressions as they do with
 lazy blocks.
 
 ### Importing Modules
 
-NOTE: Module loading remains aspirational and environment-dependent; its
-executable semantics are tracked in https://github.com/TheSwanFactory/hclang/issues/301[#301].
+> [!NOTE]
+> Module loading remains aspirational and environment-dependent; its
+> executable semantics are tracked in
+> [#301](https://github.com/TheSwanFactory/hclang/issues/301).
 
 Importing external modules into a program has come a long way from C's
 text-based `#include` statement. Modern imports are typically expected
@@ -726,26 +761,38 @@ for adding other functionality.
 We use the `<-` import operator to match a name against both the online
 registry (TBD) and the local path, and load it into a property with the
 same name. Registry settings can be configured via the `.hconfig` file.
-[source,hc]
-----
+
+```hc
 ; <- .module;
 ; module
 # (.prop 1, .another-prop 2)
-----
+```
+
 We can also bind it to a different name:
-[source,hc]
-----
+
+```hc
 ; .alias <- .module;
 ; alias.prop
 # 1
-----
+```
+
 or directly into the current namespace `.`.
-[source,hc]
-----
+
+```hc
 ; . <- .module;
 ; prop
 # 1
-----
+```
+
+A module can also be named by a resource identifier, since `'…'` denotes
+anything outside the program without granting any authority over it:
+
+```hc
+; .hclang <- 'jsr:@swanfactory/hclang';
+; hclang.execute “1 + 1”
+# “2”
+```
+
 While not recommended in general, direct import allows apparently "built-in"
 functionality to provided via a prologue, rather than hard-coded into the
 language.  This reflects HC's philosophy to provide the same functionality
@@ -793,7 +840,7 @@ conventions often used in C programs:
   : not visible to anyone, even children
 
 For example:
-```
+`````
 ; .see-me [.my-public-value 42; ._my-protected-value 21; .__my-private-value 7; .child {[my-public-value, my-protected-value, my-private-value]}];
 ; see-me.child()
 # [42, 21, $!.is-private .my-private-value]
@@ -974,16 +1021,17 @@ inheritance is just another expression, you are welcome to define your own:
 # 1
 ; multiclass.b
 # 2
-```
+`````
 # Implementation
 
  Homoiconic C is available as the `hc` interpreter via the `hclang`
  node.js module, written in TypeScript.
-[source,hc]
-----
+
+```console
 $ npm install -g hclang
 $ hc -e "“Hello, ” “Homoiconic C!”"
-----
+```
+
 It is under active development, and available on GitHub[@Cite] under
 the MIT Open Source license.
 
@@ -1031,7 +1079,7 @@ The first priority is obviously completing the interpreter. The main tool
 we plan to use to get there is enabling **executable documentation**.
 
 This document, for example, is written in a dialect of Markdown called
-Madoko[@Cite] which uses triple back-quotes ("\`\`\`") to delimit code
+Madoko[@Cite] which uses triple back-quotes (`` ``` ``) to delimit code
 fragments. We could invert that by having Homoiconic C use those quotes
 as the delimiters for doc-strings, so it can directly (and sequentially)
 evaluate the code fragments. Next, we add an input stage that tracks the
@@ -1040,11 +1088,12 @@ acceptance tests.
 
 Once that is in place, we can literally run our documentation simply by prefixing
 this file with:
-[source,hc]
-----
+
+````hc
 #!/usr/bin/env hc -doctest
-\`\`\`
-----
+```
+````
+
 The process would thus involve rewriting the documentation and
 the source code together until they are both complete and consistent.
 
@@ -1195,7 +1244,4 @@ of any Boolean circuit, including multiple levels of abstraction above
 them.
 
 [BIB]
-[source,hc]
-----
-----
-```
+`````

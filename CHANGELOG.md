@@ -4,6 +4,23 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.9.3 2026-08-13
+
+- Nest curly-quoted strings without an escape character, keeping balanced
+  interior quotes as data and reporting an unmatched interior quote instead of
+  silently truncating the string.
+- Accept `"` as the ASCII input spelling of a canonical string, where run length
+  selects nesting depth: `""` is the empty string and `"""…"""` keeps interior
+  `"` runs as content.
+- Validate string schemas such as `<"red","green">`, which the ASCII quote makes
+  expressible.
+- Name external resources with inert `'…'` URI references that expose `scheme`,
+  `authority`, `path`, `query`, and `fragment` while performing no network,
+  filesystem, or registry access, and reject non-URI content as a lexical error.
+- Treat prose inside a document fence as GFM, and keep `.adoc` support only as a
+  compatibility shim.
+- Highlight the new delimiters in the VS Code extension.
+
 ## v0.9.2 2026-08-13
 
 - Ship the HC playground as a single self-contained `hcweb.html` release asset

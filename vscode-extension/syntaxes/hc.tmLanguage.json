@@ -87,6 +87,43 @@
     "strings": {
       "patterns": [
         {
+          "name": "string.quoted.other.smart.hclang",
+          "begin": "“",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.begin.hclang"
+            }
+          },
+          "end": "”",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.end.hclang"
+            }
+          },
+          "comment": "Canonical string “...”, which nests without escapes"
+        },
+        {
+          "name": "string.quoted.double.hclang",
+          "begin": "\"{3}",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.begin.hclang"
+            }
+          },
+          "end": "\"{3}",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.end.hclang"
+            }
+          },
+          "comment": "An odd ASCII run selects depth; shorter runs are content"
+        },
+        {
+          "name": "string.quoted.double.hclang",
+          "match": "\"{2}",
+          "comment": "An even ASCII run is the empty string"
+        },
+        {
           "name": "string.quoted.double.hclang",
           "begin": "\"",
           "beginCaptures": {
@@ -100,12 +137,28 @@
               "name": "punctuation.definition.string.end.hclang"
             }
           },
-          "patterns": [
-            {
-              "name": "constant.character.escape.hclang",
-              "match": "\\\\."
+          "comment": "ASCII input spelling of the canonical string"
+        },
+        {
+          "name": "string.quoted.single.uri.hclang",
+          "match": "'[^'\\s<>\"“”`\\\\^{}|]+'",
+          "comment": "Inert resource identifier '...' with URI-shaped content"
+        },
+        {
+          "name": "string.quoted.backtick.hclang",
+          "begin": "`{3}",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.begin.hclang"
             }
-          ]
+          },
+          "end": "`{3}",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.end.hclang"
+            }
+          },
+          "comment": "Document fence; interior shorter runs are GFM content"
         },
         {
           "name": "string.quoted.backtick.hclang",
@@ -120,13 +173,7 @@
             "0": {
               "name": "punctuation.definition.string.end.hclang"
             }
-          },
-          "patterns": [
-            {
-              "name": "constant.character.escape.hclang",
-              "match": "\\\\."
-            }
-          ]
+          }
         }
       ]
     },

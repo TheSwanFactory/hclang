@@ -41,7 +41,8 @@ redispatch, transition, and lexical failure.
 - [../scan.ts](../scan.ts) - Neutral scan protocol and static Sigil metadata
 - [syntax.ts](syntax.ts) - Class-level `SIGIL_STARTS` registration
 - [lex.ts](lex.ts) - Generic Token-building lexical state
-- [lex-doc.ts](lex-doc.ts) - Document-fence lexical state
+- [lex-run.ts](lex-run.ts) - Run-delimited lexical state shared by document
+  fences and ASCII-quoted strings, where run length selects nesting depth
 - [lex-pipe.ts](lex-pipe.ts) - Lexer pipeline composition
 - [terminals.ts](terminals.ts) - Terminal token definitions
 

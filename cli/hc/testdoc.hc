@@ -151,12 +151,37 @@ Conditionals
 ; 5.> 1 ? {()} : {10}
 # 10
 ```
-Future: String schemas (not yet implemented)
+Quote delimiters
 ```
-; .color <"red","green","blue"> "red"  # Would validate string enums
-# $!.unimplemented .color "red"
-; .status <"ok"> "ok"                   # Would validate string literals
-# $!.unimplemented .status "ok"
+## Curly quotes nest without an escape character
+; “a “b” c”
+# “a “b” c”
+## The ASCII quote is an input spelling of the same value
+; "ascii"
+# “ascii”
+; ""
+# “”
+## An odd ASCII run selects nesting depth, so shorter runs are content
+; """x "" y"""
+# “x "" y”
+## Single quotes name a resource without authorizing it
+; 'jsr:@swanfactory/hclang'
+# 'jsr:@swanfactory/hclang'
+; 'jsr:@swanfactory/hclang'.scheme
+# “jsr”
+; 'docs/hc.md'.path
+# “docs/hc.md”
+```
+String schemas
+```
+; .color <"red","green","blue"> "red"
+# .color “red”
+; @color "blue"
+# “blue”
+; @color "purple"
+# $!.type-error .color <“red”, “green”, “blue”> “purple”
+; .status <"ok"> "ok"
+# .status “ok”
 ```
 HLIR advanced types (aspirational)
 ```

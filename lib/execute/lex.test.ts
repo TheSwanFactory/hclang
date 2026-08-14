@@ -11,6 +11,7 @@ import {
   FrameNumber,
   FrameParam,
   FrameString,
+  FrameURI,
 } from "../frames.ts";
 import { LexPipe } from "./lex-pipe.ts";
 import { ParsePipe } from "./parse-pipe.ts";
@@ -130,6 +131,40 @@ describe("Lex", () => {
       }
     }
     expect(lexChunkedAtoms(["._", "^"]).map(String)).toEqual(["._^"]);
+  });
+
+  it("nests curly quotes without an escape character", () => {
+    expect(lexAtoms("“a “b” c” ").map(String)).toEqual(["“a “b” c”"]);
+    expect(lexAtoms("“a”“b” ").map(String)).toEqual(["“a”", "“b”"]);
+  });
+
+  it("lexes an ASCII-quoted run as one canonical string", () => {
+    expect(lexAtoms('"a" ').map(String)).toEqual(["“a”"]);
+    expect(lexAtoms('"" ').map(String)).toEqual(["“”"]);
+    expect(lexAtoms('"""a"b""" ').map(String)).toEqual(['“a"b”']);
+    expect(lexAtoms('"a“b”c" ').map(String)).toEqual(["“a“b”c”"]);
+    expect(lexAtoms('“a "b" c” ').map(String)).toEqual(['“a "b" c”']);
+  });
+
+  it("lexes ASCII-quoted strings identically across every two-chunk split", () => {
+    const source = '"""a"b"""';
+
+    for (let split = 1; split < source.length; split++) {
+      expect(
+        lexChunkedAtoms([source.slice(0, split), source.slice(split)]).map(
+          String,
+        ),
+      ).toEqual(['“a"b”']);
+    }
+  });
+
+  it("lexes a resource identifier and its components", () => {
+    const atoms = lexAtoms("'jsr:@swanfactory/hclang' ");
+
+    expect(atoms).toHaveLength(1);
+    expect(atoms[0]).toBeInstanceOf(FrameURI);
+    expect(atoms[0].toString()).toEqual("'jsr:@swanfactory/hclang'");
+    expect(atoms[0].get("scheme").toString()).toEqual("“jsr”");
   });
 
   it("keeps raw angle brackets structural", () => {

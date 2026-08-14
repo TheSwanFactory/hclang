@@ -35,7 +35,13 @@ expressed through:
 
 ### Strings
 
-- **Double quotes**: `"string content"`
+- **Smart quotes**: `“string content”` (canonical; nests without escapes)
+- **ASCII quotes**: `"string content"` (input spelling of the same value; run
+  length selects nesting depth, so `""` is empty and `"""…"""` allows interior
+  `"` runs)
+- **Resource identifiers**: `'scheme:path?query#fragment'` (inert URI reference
+  naming something outside the program)
+- **Documents**: `` `GFM prose` `` (odd backtick run opens, an equal run closes)
 - **Comments** (also strings):
   - Inline: `#Comment text#`
   - End-of-line: `#Comment to end of line`
@@ -205,7 +211,10 @@ parent_.helper: 10
 
 ### String Literals
 
-- `"..."` - String content
+- `“...”` - String content (canonical)
+- `"..."` - String content (ASCII alias, printed with smart quotes)
+- `'...'` - Resource identifier (inert URI reference)
+- `` `...` `` - Document content (GFM prose)
 - `#...#` - Inline comment
 - `#...` - End-of-line comment
 
@@ -287,13 +296,17 @@ my-instance.setProperty: 42
 
 1. **Comments are strings**: The `#` syntax creates string objects, not ignored
    text
-2. **No keywords**: There are no reserved words; everything is an identifier or
+2. **Quote runs matter**: `"` and `` ` `` are classified by maximal run length,
+   so a highlighter cannot treat either as a single-character delimiter
+3. **Apostrophes are not quotes**: `'` opens a resource identifier, which may
+   not contain whitespace
+4. **No keywords**: There are no reserved words; everything is an identifier or
    operator
-3. **Context matters**: The same character can mean different things:
+5. **Context matters**: The same character can mean different things:
    - `.` alone = this
    - `.name` = property setter
    - `2.+` = method call on number
-4. **Operators are properties**: Math operators are just syntactic sugar for
+6. **Operators are properties**: Math operators are just syntactic sugar for
    property access
-5. **Whitespace is significant**: Newlines act as separators and affect
+7. **Whitespace is significant**: Newlines act as separators and affect
    precedence

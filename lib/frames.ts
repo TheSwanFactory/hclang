@@ -32,6 +32,7 @@ export {
   FrameSymbol,
 } from "./frames/frame-symbol.ts";
 export { FrameType } from "./frames/frame-type.ts";
+export { FrameURI } from "./frames/frame-uri.ts";
 export { type Any, type Flags, Frame } from "./frames/frame.ts";
 export { type ISourced, MetaFrame, Visibility } from "./frames/meta-frame.ts";
 export {

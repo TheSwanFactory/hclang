@@ -10,13 +10,16 @@
 import type { Frame } from "./frames/frame.ts";
 
 /** The lexical path selected by a syntax class's static `SIGIL_STARTS`. */
-export type LexicalMode = "atom" | "document" | "push" | "pop";
+export type LexicalMode = "atom" | "run" | "push" | "pop";
 
 /** Class-level registration for one source prefix and its lexical path. */
 export interface SigilStart {
   /** The exact source character that selects this syntax participant. */
   readonly key: string;
-  /** Whether the participant begins an atom, document, or structural action. */
+  /**
+   * Whether the participant begins a single-delimiter atom, a run-delimited
+   * value whose run length selects nesting depth, or a structural action.
+   */
   readonly mode: LexicalMode;
 }
 

@@ -53,6 +53,8 @@ and program is composed of frames. This unified representation enables:
 - [schema-bit-matcher.ts](schema-bit-matcher.ts) - Built-in bit-layout matcher
 - [frame-note.ts](frame-note.ts) - Annotations and metadata
 - [frame-doc.ts](frame-doc.ts) - Documentation frames
+- [frame-uri.ts](frame-uri.ts) - Inert, structured resource identifiers `'…'`
+  that name external things without authorizing them
 
 ### Meta Types
 
