@@ -4,7 +4,7 @@ logs
 npm-debug.log*
 
 # Generated web artifacts
-dist/
+web/dist/
 web/tests/consumer/_fresh/
 
 # Runtime data

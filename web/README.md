@@ -40,8 +40,8 @@ is required.
 From `web/`:
 
 ```sh
-deno task build    # writes ../dist/hcweb.html and its checksum
-deno task dev      # build, then serve ../dist
+deno task build    # writes dist/hcweb.html and its checksum
+deno task dev      # build, then serve dist/
 deno task check    # format, lint, type check
 deno task test     # build, component, consumer, and artifact tests
 deno publish --dry-run
@@ -67,11 +67,11 @@ deno run -A npm:playwright@1.62.0 install chromium
 4. Write `dist/hcweb.html`, a byte-identical `dist/index.html`, and
    `dist/hcweb.html.sha256`.
 
-`dist/` is therefore also a complete static site. Deno Deploy is configured from
-the root `deno.json` `deploy` key to build `deno task build:web` and serve
-`dist/` statically, which mirrors the artifact at a URL without adding a server.
-Only the app directory is set in the Deno Deploy dashboard, and it must be the
-repository root.
+`web/dist/` is therefore also a complete static site. Deno Deploy reads its
+configuration from the `deploy` key, which is declared in both `deno.json` files
+so the mirror builds whether the Deploy app directory is the repository root or
+`web/`. Both serve `web/dist` statically, so the hosted copy is the same bytes
+as the release asset and adds no server.
 
 For a release, CI publishes to JSR first, then rebuilds with
 `--jsr-version <version>` so the entry imports the exact published

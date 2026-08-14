@@ -2,8 +2,9 @@ import { describe, it } from "jsr:@std/testing@1.0.15/bdd";
 import { expect } from "jsr:@std/expect@1.0.17";
 import { dirname, fromFileUrl, join } from "jsr:@std/path@1.1.6";
 
-const rootDir = dirname(dirname(dirname(fromFileUrl(import.meta.url))));
-const distDir = join(rootDir, "dist");
+const webDir = dirname(dirname(fromFileUrl(import.meta.url)));
+const rootDir = dirname(webDir);
+const distDir = join(webDir, "dist");
 const artifactPath = join(distDir, "hcweb.html");
 const html = await Deno.readTextFile(artifactPath);
 

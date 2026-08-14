@@ -4,8 +4,8 @@ import { dirname, fromFileUrl, join, toFileUrl } from "jsr:@std/path@1.1.6";
 import { chromium } from "playwright";
 import type { Browser, Page } from "playwright";
 
-const rootDir = dirname(dirname(dirname(fromFileUrl(import.meta.url))));
-const artifactUrl = toFileUrl(join(rootDir, "dist/hcweb.html")).href;
+const webDir = dirname(dirname(fromFileUrl(import.meta.url)));
+const artifactUrl = toFileUrl(join(webDir, "dist/hcweb.html")).href;
 
 let browser: Browser;
 let page: Page;

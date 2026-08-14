@@ -3,8 +3,9 @@
 ## Architecture
 
 `web/` produces two things from one source: the `@swanfactory/hcweb` JSR package
-and `dist/hcweb.html`, a single offline file distributed as a GitHub release
-asset.
+and `web/dist/hcweb.html`, a single offline file distributed as a GitHub release
+asset. `web/dist/index.html` is a byte-identical copy so the same output can be
+served as a static site.
 
 `Main` is the sole owner of the `HCLang` interpreter, latest output, error, and
 history state. `mount.ts` is the public entry that renders it into an element.
@@ -26,8 +27,8 @@ dependency on publish. Never add an HTTPS, CDN, or member-level mapping.
 Run from `web/`:
 
 ```sh
-deno task build     # ../dist/hcweb.html + checksum
-deno task dev       # build, then serve ../dist
+deno task build     # dist/hcweb.html + checksum
+deno task dev       # build, then serve dist/
 deno task check
 deno task test      # build + components + consumer + artifact
 deno publish --dry-run

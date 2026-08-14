@@ -260,7 +260,7 @@ See [cli/CLAUDE.md](cli/CLAUDE.md)
 
 Preact playground distributed two ways:
 
-- `dist/hcweb.html`, one offline file attached to each GitHub release
+- `web/dist/hcweb.html`, one offline file attached to each GitHub release
 - `@swanfactory/hcweb` on JSR for embedding, loading hclang transitively
 - One authoritative browser-based HC interpreter, no server or SSR
 - Bundled by `scripts/build-hcweb.ts` using Deno's browser bundler

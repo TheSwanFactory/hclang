@@ -199,13 +199,14 @@ writes `dist/index.html` as a byte-identical copy of `dist/hcweb.html`, and a
 static host MAY publish `dist/` directly. The mirror MUST NOT become the
 authoritative artifact, and hosting MUST NOT reintroduce a server runtime.
 
-Deno Deploy is configured from source through the root `deno.json` `deploy` key
-using a static runtime over `dist/`. Source configuration overrides dashboard
-settings, so the framework preset MUST NOT remain in effect. Only the
-application directory is dashboard-owned and MUST point at the repository root.
-Because a host MAY build without a git checkout, the builder MUST fall back to
-non-git metadata rather than failing; byte reproducibility is only required
-where commit metadata is available.
+Deno Deploy is configured from source through the `deploy` key using a static
+runtime over the build output. Source configuration overrides dashboard
+settings, so a stale framework preset MUST NOT remain in effect. Because the
+application directory is the one dashboard-owned setting, the key MUST be
+declared in both the root and `web/` manifests so the mirror builds under either
+application directory. Because a host MAY build without a git checkout, the
+builder MUST fall back to non-git metadata rather than failing; byte
+reproducibility is only required where commit metadata is available.
 
 ## Verification
 
@@ -213,7 +214,8 @@ where commit metadata is available.
 
 CI MUST parse the completed HTML and assert:
 
-- `dist/` contains exactly `hcweb.html` plus the optional checksum sidecar;
+- the output directory contains exactly `hcweb.html`, the byte-identical
+  `index.html` mirror copy, and the checksum sidecar;
 - the file contains exactly one executable inline script;
 - no executable script has `src` and no stylesheet has external `href`;
 - no `import` statement or dynamic `import()` remains in emitted JavaScript;

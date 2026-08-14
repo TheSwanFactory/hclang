@@ -27,12 +27,12 @@
   "compilerOptions": {
     "lib": ["dom", "dom.iterable", "esnext", "deno.ns"]
   },
-  "fmt": { "exclude": ["**/*.html", "dist/", "**/_fresh/"] },
-  "exclude": ["dist/", "**/_fresh/"],
+  "fmt": { "exclude": ["**/*.html", "web/dist/", "**/_fresh/"] },
+  "exclude": ["web/dist/", "**/_fresh/"],
   "deploy": {
     "install": "deno install",
     "build": "deno task build:web",
-    "runtime": { "type": "static", "cwd": "./dist" }
+    "runtime": { "type": "static", "cwd": "./web/dist" }
   },
   "lint": {
     "rules": {

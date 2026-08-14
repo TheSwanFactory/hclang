@@ -41,7 +41,7 @@ jobs:
         uses: actions/upload-artifact@v5
         with:
           name: hcweb-candidate
-          path: dist/hcweb.html
+          path: web/dist/hcweb.html
           if-no-files-found: error
       - name: Validate hcweb package
         working-directory: web
@@ -96,5 +96,5 @@ jobs:
           tag: v${{ steps.version.outputs.version }}
           commit: ${{ github.sha }}
           generateReleaseNotes: true
-          artifacts: dist/hcweb.html,dist/hcweb.html.sha256
+          artifacts: web/dist/hcweb.html,web/dist/hcweb.html.sha256
           artifactErrorsFailBuild: true

@@ -2,7 +2,7 @@ import { dirname, fromFileUrl, join, toFileUrl } from "jsr:@std/path@1.1.6";
 
 const rootDir = dirname(dirname(fromFileUrl(import.meta.url)));
 const webDir = join(rootDir, "web");
-const distDir = join(rootDir, "dist");
+const distDir = join(webDir, "dist");
 const templatePath = join(webDir, "index.html");
 const entryMarker = "<!-- HCWEB_BUNDLE -->";
 

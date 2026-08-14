@@ -22,6 +22,7 @@
     "jsr:@std/bytes@^1.0.6": "1.0.6",
     "jsr:@std/cli@^1.0.13": "1.0.32",
     "jsr:@std/cli@^1.0.19": "1.0.32",
+    "jsr:@std/cli@^1.0.32": "1.0.32",
     "jsr:@std/dotenv@~0.225.5": "0.225.8",
     "jsr:@std/encoding@^1.0.10": "1.0.11",
     "jsr:@std/encoding@^1.0.11": "1.0.11",
@@ -33,8 +34,11 @@
     "jsr:@std/fmt@^1.0.8": "1.0.10",
     "jsr:@std/fmt@~0.219.1": "0.219.1",
     "jsr:@std/fs@^1.0.19": "1.0.24",
+    "jsr:@std/fs@^1.0.24": "1.0.24",
     "jsr:@std/fs@^1.0.8": "1.0.24",
     "jsr:@std/html@^1.0.5": "1.0.7",
+    "jsr:@std/html@^1.0.7": "1.0.7",
+    "jsr:@std/http@1.1.3": "1.1.3",
     "jsr:@std/http@^1.0.21": "1.1.3",
     "jsr:@std/internal@^1.0.10": "1.0.14",
     "jsr:@std/internal@^1.0.12": "1.0.14",
@@ -51,8 +55,10 @@
     "jsr:@std/path@^1.1.1": "1.1.6",
     "jsr:@std/path@^1.1.2": "1.1.6",
     "jsr:@std/path@^1.1.5": "1.1.6",
+    "jsr:@std/path@^1.1.6": "1.1.6",
     "jsr:@std/semver@1": "1.0.8",
     "jsr:@std/semver@^1.0.6": "1.0.8",
+    "jsr:@std/streams@^1.1.2": "1.1.2",
     "jsr:@std/testing@1.0.15": "1.0.15",
     "jsr:@std/testing@^1.0.10": "1.0.16",
     "jsr:@std/uuid@^1.0.9": "1.1.1",
@@ -111,8 +117,8 @@
         "jsr:@std/encoding@^1.0.10",
         "jsr:@std/fmt@^1.0.8",
         "jsr:@std/fs@^1.0.19",
-        "jsr:@std/html",
-        "jsr:@std/http",
+        "jsr:@std/html@^1.0.5",
+        "jsr:@std/http@^1.0.21",
         "jsr:@std/jsonc",
         "jsr:@std/media-types@^1.1.0",
         "jsr:@std/net",
@@ -231,7 +237,15 @@
     "@std/http@1.1.3": {
       "integrity": "73a98e05ff58aa18bea562d286172e6c815b1eddd4fcab194beda19e3683b88c",
       "dependencies": [
-        "jsr:@std/encoding@^1.0.11"
+        "jsr:@std/cli@^1.0.32",
+        "jsr:@std/encoding@^1.0.11",
+        "jsr:@std/fmt@^1.0.10",
+        "jsr:@std/fs@^1.0.24",
+        "jsr:@std/html@^1.0.7",
+        "jsr:@std/media-types@^1.1.0",
+        "jsr:@std/net",
+        "jsr:@std/path@^1.1.6",
+        "jsr:@std/streams"
       ]
     },
     "@std/internal@1.0.14": {
@@ -260,6 +274,9 @@
     },
     "@std/semver@1.0.8": {
       "integrity": "dc830e8b8b6a380c895d53fbfd1258dc253704ca57bbe1629ac65fd7830179b7"
+    },
+    "@std/streams@1.1.2": {
+      "integrity": "0249bf9b78a999f57032ca4d8e7ccaa57579090242640b35ddc948fbb745d3af"
     },
     "@std/testing@1.0.15": {
       "integrity": "a490169f5ccb0f3ae9c94fbc69d2cd43603f2cffb41713a85f99bbb0e3087cbc",
