@@ -1,65 +1,46 @@
-import { HCLang } from "@swanfactory/hclang";
-import { JSX } from "preact";
+import type { HCLang } from "@swanfactory/hclang";
+import type { JSX } from "preact";
 
-/**
- * Props for the Historian component
- * @interface HistorianProps
- * @property {HCLang} hclang - The HCLang instance to display history from
- */
+/** Properties for the HC execution history. */
 export interface HistorianProps {
-  /** The HCLang instance used to display execution history */
   hclang: HCLang;
+  /** Forces a refresh after the mutable interpreter changes. */
+  revision?: number;
 }
 
-/**
- * Type definition for table row data
- */
-type RowData = {
-  input: string;
-  output: string;
-  key: number;
-};
+/** Displays the interpreter's newest input/output pair first. */
+export default function Historian(
+  { hclang, revision: _revision }: HistorianProps,
+): JSX.Element {
+  const history = [...hclang.getHistory()].reverse();
 
-/**
- * Displays the execution history from an HCLang instance.
- * Shows a table of input-output pairs from previous executions.
- *
- * @param {HistorianProps} props - Component properties
- * @param {HCLang} props.hclang - The HCLang instance to display history from
- * @returns {JSX.Element} A table showing the execution history
- */
-/**
- * Component that displays the execution history from an HCLang instance
- * @param props - Component properties
- * @returns A table showing the execution history
- */
-export default function Historian({ hclang }: HistorianProps): JSX.Element {
-  const history = hclang.getHistory();
   return (
-    <div class="mt-12">
-      <h2 class="text-2xl font-bold text-gray-900 mb-6">History</h2>
-      <div class="overflow-x-auto shadow-sm rounded-lg border border-gray-200">
-        <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-gray-50">
+    <section class="history" aria-labelledby="history-heading">
+      <h2 id="history-heading">History</h2>
+      <div class="table-scroll">
+        <table>
+          <thead>
             <tr>
-              <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                Input
-              </th>
-              <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                Output
-              </th>
+              <th scope="col">Input</th>
+              <th scope="col">Output</th>
             </tr>
           </thead>
-          <tbody class="bg-white divide-y divide-gray-200">
-            {history.reverse().map(({ input, output }, i) => (
-              <tr key={i}>
-                <td class="px-6 py-4 whitespace-pre-wrap">{input}</td>
-                <td class="px-6 py-4 whitespace-pre-wrap">{output}</td>
-              </tr>
-            ))}
+          <tbody>
+            {history.length === 0
+              ? (
+                <tr>
+                  <td class="empty-history" colSpan={2}>No evaluations yet.</td>
+                </tr>
+              )
+              : history.map(({ input, output }, index) => (
+                <tr key={`${history.length - index}-${input}`}>
+                  <td>{input}</td>
+                  <td>{output}</td>
+                </tr>
+              ))}
           </tbody>
         </table>
       </div>
-    </div>
+    </section>
   );
 }

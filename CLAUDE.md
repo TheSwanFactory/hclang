@@ -52,9 +52,9 @@ Each package has detailed documentation in its own CLAUDE.md file:
   - Higher-order functions
 
 - **[web/CLAUDE.md](web/CLAUDE.md)** - Web interface
-  - Standalone HTML page
-  - Fresh framework server
-  - Browser-based HC execution
+  - Single-file offline `hcweb.html` release artifact
+  - Reusable Preact components published as `@swanfactory/hcweb`
+  - Browser-based HC execution with transitive hclang loading
 
 ## Quick Start
 
@@ -105,7 +105,7 @@ deno task setup             # Install pre-commit hooks
 ### Building
 
 ```bash
-deno task build             # Build CLI binary
+deno task build             # Build the CLI and Fresh web application
 ```
 
 ## Key Concepts
@@ -258,11 +258,12 @@ See [cli/CLAUDE.md](cli/CLAUDE.md)
 
 ### Web (web/)
 
-Browser interface built on lib:
+Preact playground distributed two ways:
 
-- Standalone HTML page
-- Fresh framework for dev server
-- Client-side HC execution
+- `web/dist/hcweb.html`, one offline file attached to each GitHub release
+- `@swanfactory/hcweb` on JSR for embedding, loading hclang transitively
+- One authoritative browser-based HC interpreter, no server or SSR
+- Bundled by `scripts/build-hcweb.ts` using Deno's browser bundler
 
 See [web/CLAUDE.md](web/CLAUDE.md)
 

@@ -3,6 +3,10 @@ logs
 *.log
 npm-debug.log*
 
+# Generated web artifacts
+web/dist/
+web/tests/consumer/_fresh/
+
 # Runtime data
 pids
 *.pid

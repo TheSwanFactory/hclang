@@ -4,6 +4,16 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.9.2 2026-08-13
+
+- Ship the HC playground as a single self-contained `hcweb.html` release asset
+  that runs offline from a local file with no server, install, or network
+  access.
+- Re-publish hcweb as an island package that loads hclang transitively from JSR
+  without consumer-side dependency configuration, with a new `mount` entry.
+- Restore accessible submit, history, reset, and recoverable error behavior,
+  replacing the obsolete static fallback.
+
 ## v0.9.1 2026-08-13
 
 - Resolve previously evaluated integer bindings as dynamic byte-string lengths
