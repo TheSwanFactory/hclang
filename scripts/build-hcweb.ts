@@ -83,55 +83,130 @@ async function verifyVersions(): Promise<string> {
   return expected;
 }
 
+const RELEASE_PACKAGES = ["@swanfactory/hcweb", "@swanfactory/hclang"];
+const RELEASE_ATTEMPTS = 6;
+const RELEASE_RETRY_MS = 10_000;
+/**
+ * Deno's default dependency cooldown rejects versions younger than 24 hours.
+ *
+ * That default is right for third-party code and wrong here: the release job
+ * publishes these two packages and then builds the artifact from the exact
+ * versions it just published, with integrity captured in a fresh lock. Waiting
+ * out a cooldown on our own release would mean no artifact for a day.
+ */
+const RELEASE_AGE_ARGS = ["--minimum-dependency-age=0"];
+
+const escapePattern = (value: string): string =>
+  value.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&");
+
+/**
+ * Names the first release package the graph does not pin to `version`.
+ *
+ * Published packages declare each other by range, so a graph that resolves an
+ * older patch is evidence of registry propagation rather than of a bad graph.
+ * The version must end where it is written, so `0.9.30` does not satisfy a
+ * `0.9.3` release.
+ */
+export function missingPackagePin(
+  graph: string,
+  version: string,
+): string | undefined {
+  for (const name of RELEASE_PACKAGES) {
+    const pinned = new RegExp(
+      `${escapePattern(name)}[@/]${escapePattern(version)}(?![\\w.-])`,
+    );
+    if (!pinned.test(graph)) {
+      return `${name}@${version}`;
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Reports the first resolution error the graph recorded for a module.
+ *
+ * `deno info --json` exits zero and stores resolution failures inside the
+ * graph, so an unchecked graph turns a real diagnosis into a vague complaint
+ * about a missing dependency pin.
+ */
+export function graphModuleError(graph: string): string | undefined {
+  let parsed: { modules?: { specifier?: string; error?: string }[] };
+  try {
+    parsed = JSON.parse(graph);
+  } catch {
+    return "release graph was not valid JSON";
+  }
+  for (const module of parsed.modules ?? []) {
+    if (typeof module.error === "string") {
+      const specifier = module.specifier ?? "unknown specifier";
+      return `${specifier}: ${module.error}`;
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Resolves the published graph, tolerating bounded registry propagation.
+ *
+ * Publishing and building are one release step apart, so a resolve can fail, or
+ * quietly answer with the previous version, while JSR's version index catches
+ * up. Those are the same recoverable condition, and each retry discards the
+ * lock and the cached index so a stale answer cannot simply be re-resolved.
+ * Workspace source is never substituted, and a leaked workspace path fails
+ * immediately because no amount of waiting can fix it.
+ */
 async function releaseGraph(
   entryPath: string,
   lockPath: string,
   version: string,
 ): Promise<string> {
-  const args = [
-    "info",
-    "--json",
-    "--no-config",
-    "--lock",
-    lockPath,
-    entryPath,
-  ];
-  let output: Deno.CommandOutput | undefined;
-  for (let attempt = 1; attempt <= 6; attempt += 1) {
-    output = await command(Deno.execPath(), args, { reject: false });
-    if (output.success) break;
-    if (attempt < 6) {
-      await new Promise((resolve) => setTimeout(resolve, 10_000));
+  const rootUrl = toFileUrl(`${rootDir}/`).href;
+  let failure = `unable to resolve hcweb ${version} from JSR`;
+
+  for (let attempt = 1; attempt <= RELEASE_ATTEMPTS; attempt += 1) {
+    // A lock written from a stale index would pin the older version again.
+    await Deno.remove(lockPath).catch((error) => {
+      if (!(error instanceof Deno.errors.NotFound)) throw error;
+    });
+    const args = [
+      "info",
+      "--json",
+      "--no-config",
+      "--lock",
+      lockPath,
+      ...RELEASE_AGE_ARGS,
+    ];
+    if (attempt > 1) {
+      const specifiers = RELEASE_PACKAGES.map((name) => `jsr:${name}`);
+      args.push(`--reload=${specifiers.join(",")}`);
     }
-  }
-  if (!output?.success) {
-    const detail = new TextDecoder().decode(output?.stderr).trim();
-    throw new Error(`Unable to resolve hcweb ${version} from JSR: ${detail}`);
+    args.push(entryPath);
+
+    const output = await command(Deno.execPath(), args, { reject: false });
+    if (!output.success) {
+      const detail = new TextDecoder().decode(output.stderr).trim();
+      failure = `unable to resolve hcweb ${version} from JSR: ${detail}`;
+    } else {
+      const graph = new TextDecoder().decode(output.stdout);
+      if (graph.includes(rootUrl)) {
+        throw new Error("Release graph resolved repository workspace source");
+      }
+      const moduleError = graphModuleError(graph);
+      const missing = moduleError ?? missingPackagePin(graph, version);
+      if (missing === undefined) {
+        return graph;
+      }
+      failure = moduleError
+        ? `release graph could not resolve ${moduleError}`
+        : `release graph is missing exact dependency ${missing}`;
+    }
+
+    if (attempt < RELEASE_ATTEMPTS) {
+      await new Promise((resolve) => setTimeout(resolve, RELEASE_RETRY_MS));
+    }
   }
 
-  const graph = new TextDecoder().decode(output.stdout);
-  const rootUrl = toFileUrl(`${rootDir}/`).href;
-  if (graph.includes(rootUrl)) {
-    throw new Error("Release graph resolved repository workspace source");
-  }
-  const packagePatterns = [
-    [
-      `@swanfactory/hcweb@${version}`,
-      `@swanfactory/hcweb/${version}`,
-    ],
-    [
-      `@swanfactory/hclang@${version}`,
-      `@swanfactory/hclang/${version}`,
-    ],
-  ];
-  for (const alternatives of packagePatterns) {
-    if (!alternatives.some((pattern) => graph.includes(pattern))) {
-      throw new Error(
-        `Release graph is missing exact dependency ${alternatives[0]}`,
-      );
-    }
-  }
-  return graph;
+  throw new Error(`${failure} after ${RELEASE_ATTEMPTS} attempts`);
 }
 
 async function build(): Promise<void> {
@@ -170,7 +245,12 @@ async function build(): Promise<void> {
 
     const bundleArgs = ["bundle"];
     if (releaseVersion) {
-      bundleArgs.push("--no-config", "--lock", temporaryLock);
+      bundleArgs.push(
+        "--no-config",
+        "--lock",
+        temporaryLock,
+        ...RELEASE_AGE_ARGS,
+      );
     } else {
       bundleArgs.push(
         "--config",
@@ -244,4 +324,6 @@ async function build(): Promise<void> {
   }
 }
 
-await build();
+if (import.meta.main) {
+  await build();
+}

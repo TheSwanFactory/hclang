@@ -1,5 +1,5 @@
 {
-  "version": "0.9.3",
+  "version": "0.9.4",
   "nodeModulesDir": "manual",
   "bin": { "hc": "scripts/hc" },
   "tasks": {
@@ -17,9 +17,10 @@
     "test:doc": "cd cli && deno task test:doc",
     "test:lib": "deno test lib",
     "test:maml": "deno test maml",
+    "test:scripts": "deno test scripts",
     "test:web": "cd web && deno task test",
     "test:bs": "cd cli && deno task test:bs",
-    "test:all": "deno task test:cli && deno task test:lib && deno task test:web && deno task test:bs",
+    "test:all": "deno task test:cli && deno task test:lib && deno task test:scripts && deno task test:web && deno task test:bs",
     "vscode:package": "cd vscode-extension && npx @vscode/vsce package",
     "vscode:publish": "cd vscode-extension && npx @vscode/vsce publish",
     "vscode:install": "cd vscode-extension && npx @vscode/vsce package && code --install-extension *.vsix"

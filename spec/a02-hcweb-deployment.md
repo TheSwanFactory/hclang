@@ -171,6 +171,23 @@ Keep package publication and artifact production in one ordered release job:
    `@swanfactory/hcweb`.
 4. Confirm the exact hcweb version is readable from JSR. Retry only bounded
    registry-propagation failures; never substitute workspace source.
+
+   The release resolve MUST waive the dependency-age cooldown. Deno refuses
+   package versions younger than 24 hours by default, which is correct for
+   third-party code and wrong for the two packages this job published seconds
+   earlier: the artifact is built from an exact version, authored here, with
+   integrity captured in a fresh lock. Honouring the cooldown would mean no
+   artifact until the next day.
+
+   A graph that resolves but pins an older version is a propagation failure, not
+   a different one: published packages declare each other by range, so a lagging
+   version index yields the previous patch. Each retry MUST discard the
+   resolution lock and the cached version index, or a stale answer is simply
+   re-resolved.
+
+   Resolution errors MUST be read out of the graph, because `deno info --json`
+   exits zero and records them per module. A graph that reaches workspace source
+   MUST fail immediately, because waiting cannot correct it.
 5. In an isolated temporary directory, build `dist/hcweb.html` from the exact
    JSR hcweb version.
 6. Run all structural and real-browser artifact checks with networking disabled.

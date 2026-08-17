@@ -4,6 +4,14 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.9.4 2026-08-17
+
+- Build the release artifact from the version the release job just published, so
+  a version bump reaches its GitHub release with the `hcweb.html` asset instead
+  of failing seconds after publishing. Deno's 24-hour dependency cooldown was
+  rejecting our own new release, which is why both v0.9.2 and v0.9.3 reached JSR
+  without producing a release.
+
 ## v0.9.3 2026-08-13
 
 - Nest curly-quoted strings without an escape character, keeping balanced
