@@ -33,8 +33,17 @@ the atom.
 - `toString()` round-trips that data.
 - An unmatched interior open does not truncate the string; the value stays
   pending and `finishInput()` reports `unterminated FrameString`.
+- An unmatched interior close cannot truncate one either. A `”` at depth zero
+  completes its string by definition, so the mistake is only detectable at the
+  next one: `FrameStringEnd` claims `”` outside a string and reports
+  `unmatched string terminator`, which turns `“a ” b”` into a lexical error
+  instead of a value that silently loses its tail.
 - Depth is computed from the accumulated source rather than stored, so it is
   chunk-independent and cannot leak between lexemes or evaluators.
+
+`“a ” 2` remains one string applied to `2`, because that is also the spelling of
+legitimate string application. Only a later unmatched terminator distinguishes
+the two, which is why detection lives there.
 
 Symmetric delimiters cannot nest, so the rule is expressed once for the whole
 quote family and returns depth zero for `#…#` and `'…'`.
@@ -88,8 +97,15 @@ is ordinary content. `"""` must not open a document.
 
 Because the rule is shared, `LexRun` replaces the document-specific `LexDoc`:
 `FrameDoc` and `FrameString` each register a run-delimited Sigil start and
-supply `RUN_DELIMITER`, `RUN_LABEL`, and `fromRun()`. The lexical mode is
-therefore named `run` rather than `document`.
+supply `RUN_DELIMITER`, `RUN_LABEL`, `RUN_OPAQUE`, and `fromRun()`. The lexical
+mode is therefore named `run` rather than `document`.
+
+Alias equivalence extends to line structure. A pending lexeme of any family owns
+the line structure of its own body, so a blank logical line reaches it and a
+multi-line `"""…"""` string produces the same value as the same body in `“ ”`.
+`RUN_OPAQUE` marks the one genuine difference: document bodies are foreign
+prose, so HC reads no doctest markers inside them, while string bodies are HC
+data in two spellings and follow the ordinary line rules.
 
 The redundancy is deliberate and confined to the surface. Backticks and curly
 quotes are a genuine problem to type on mobile keyboards, and a canonicalizing
@@ -112,7 +128,12 @@ apply to the prose, not to HC's fence.
 - `cli/runfile.ts` keeps synthetic wrapping for `.md`; `.adoc` remains only as a
   compatibility shim.
 - Converting the `.adoc` files under `doc/`, and the AsciiDoc prose in
-  `cli/hc/BitScheme.hc`, is a follow-up.
+  `cli/hc/BitScheme.hc`, is tracked separately in #319.
+
+The white paper retains its Madoko constructs (`[TITLE]`, `~ Abstract`,
+`[@Cite]` citations, header attributes). Madoko is a Markdown dialect, so those
+are prose conventions rather than AsciiDoc holdovers, and removing them would
+break the paper's own build.
 
 ## Resolved open questions
 
@@ -130,17 +151,18 @@ apply to the prose, not to HC's fence.
 
 ## Known limitation
 
-Unbalanced interior curly quotes still round-trip ambiguously: `"a”b"` prints as
-`“a”b”`, which re-lexes as a shorter string. Balanced interior quotes, which are
-what nesting is for, round-trip exactly. Fixing the unbalanced case would
-require either an escape character or output rewriting, both of which the
-language rejects.
+Unbalanced interior curly quotes do not round-trip: `"a”b"` prints as `“a”b”`,
+and re-lexing that output is a lexical error rather than a silently shorter
+string. Balanced interior quotes, which are what nesting is for, round-trip
+exactly. Fixing the unbalanced case would require either an escape character or
+output rewriting, both of which the language rejects, so the failure is at least
+loud.
 
 ## Acceptance criteria
 
 - `“a “b” c”` is one string whose data contains balanced interior quotes and
   which round-trips through `toString()`.
-- An unmatched interior `”` does not truncate a string.
+- An unmatched `”` is a lexical error, not a truncated string.
 - `"…"` produces a `FrameString` that prints with curly quotes.
 - `""` is the empty string; `"""` nests.
 - `'…'` produces an inert URI value that touches no external system at lex or

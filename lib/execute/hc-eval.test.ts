@@ -440,6 +440,63 @@ describe("HCEval", () => {
     });
   });
 
+  describe("unmatched string terminators", () => {
+    for (const source of ["”", "”a”", "“a ” b”", "1 ” 2"]) {
+      it(`reports ${JSON.stringify(source)} instead of truncating`, () => {
+        hc_eval.call(source, true);
+
+        expect(hc_eval.finish()).toEqual(false);
+        expect(hc_eval.error()).toEqual("unmatched string terminator: ”");
+        expect(out.length()).toEqual(0);
+      });
+    }
+
+    it("keeps terminators inert inside strings, comments, and documents", () => {
+      hc_eval.call("“a ” b”");
+      expect(hc_eval.error()).toEqual("unmatched string terminator: ”");
+
+      const cleanOut = new frame.FrameArray([]);
+      const clean = new HCEval(cleanOut);
+      clean.call("#a ” b#");
+      clean.call("`a ” b`");
+      clean.call('"a ” b"');
+
+      expect(clean.finish()).toEqual(true);
+      expect(cleanOut.at(0).toString()).toEqual("`a ” b`");
+      expect(cleanOut.at(1).toString()).toEqual("“a ” b”");
+    });
+
+    it("can be reused cleanly after an unmatched terminator", () => {
+      hc_eval.call("”", true);
+      expect(hc_eval.finish()).toEqual(false);
+
+      hc_eval.call("“clean”");
+
+      expect(out.length()).toEqual(1);
+      expect(out.at(0).toString()).toEqual("“clean”");
+      expect(hc_eval.finish()).toEqual(true);
+    });
+  });
+
+  describe("multi-line strings", () => {
+    it("preserves blank logical lines in both spellings", () => {
+      hc_eval.call("“a", true);
+      hc_eval.call("", true);
+      hc_eval.call("b”", true);
+
+      const aliasOut = new frame.FrameArray([]);
+      const alias = new HCEval(aliasOut);
+      alias.call('"""a', true);
+      alias.call("", true);
+      alias.call('b"""', true);
+
+      expect(hc_eval.finish()).toEqual(true);
+      expect(alias.finish()).toEqual(true);
+      expect(out.at(0).toString()).toEqual("“a\n\nb”");
+      expect(aliasOut.at(0).toString()).toEqual(out.at(0).toString());
+    });
+  });
+
   describe("ASCII quote alias", () => {
     it("canonicalizes an ASCII-quoted string", () => {
       hc_eval.call('"ascii"', false);
@@ -512,6 +569,19 @@ describe("HCEval", () => {
       expect(out.length()).toEqual(0);
     });
 
+    it("does not share pending run state between evaluators", () => {
+      hc_eval.call('"""leaked', false);
+
+      const otherOut = new frame.FrameArray([]);
+      const other = new HCEval(otherOut);
+      other.call('"clean"', false);
+
+      expect(other.finish()).toEqual(true);
+      expect(otherOut.length()).toEqual(1);
+      expect(otherOut.at(0).toString()).toEqual("“clean”");
+      expect(hc_eval.finish()).toEqual(false);
+    });
+
     it("can be reused cleanly after an unterminated run", () => {
       hc_eval.call('"stale', false);
       expect(hc_eval.finish()).toEqual(false);
@@ -547,6 +617,34 @@ describe("HCEval", () => {
       expect(hc_eval.finish()).toEqual(false);
       expect(hc_eval.error()).toEqual("empty resource identifier: ''");
       expect(out.length()).toEqual(0);
+    });
+
+    it("lexes identically across every two-chunk split", () => {
+      const source = "'https://example.com/hc?v=1'";
+
+      for (let split = 1; split < source.length; split++) {
+        const splitOut = new frame.FrameArray([]);
+        const splitEval = new HCEval(splitOut);
+        splitEval.call(source.slice(0, split), false);
+        splitEval.call(source.slice(split), false);
+
+        expect(splitEval.finish()).toEqual(true);
+        expect(splitOut.length()).toEqual(1);
+        expect(splitOut.at(0).toString()).toEqual(source);
+      }
+    });
+
+    it("does not share pending identifier state between evaluators", () => {
+      hc_eval.call("'jsr:leaked", false);
+
+      const otherOut = new frame.FrameArray([]);
+      const other = new HCEval(otherOut);
+      other.call("'jsr:clean'", false);
+
+      expect(other.finish()).toEqual(true);
+      expect(otherOut.length()).toEqual(1);
+      expect(otherOut.at(0).toString()).toEqual("'jsr:clean'");
+      expect(hc_eval.finish()).toEqual(false);
     });
 
     it("keeps apostrophes inert inside strings, comments, and documents", () => {

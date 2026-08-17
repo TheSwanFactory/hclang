@@ -1,10 +1,10 @@
 import type { Frame } from "./frame.ts";
-import { type FrameAtom, FrameQuote } from "./frame-atom.ts";
+import { FrameAtom, FrameQuote } from "./frame-atom.ts";
 import { FrameSymbol } from "./frame-symbol.ts";
 import { NilContext } from "./context.ts";
 import type { Context } from "./context.ts";
 import { sigilizer } from "../execute/sigilizer.ts";
-import type { SigilStart } from "../scan.ts";
+import { ScanDisposition, type ScanResult, type SigilStart } from "../scan.ts";
 
 const reducer = (current: Frame, char: string): Frame => {
   const symbol = FrameSymbol.for(char);
@@ -34,6 +34,8 @@ export class FrameString extends FrameQuote {
   ];
   public static readonly RUN_DELIMITER: string = FrameString.ASCII_QUOTE;
   public static readonly RUN_LABEL: string = "quoted";
+  /** String bodies are HC data, spelled two ways; they are not foreign text. */
+  public static readonly RUN_OPAQUE: boolean = false;
 
   /** Builds one string from an ASCII-quoted body; depth is not retained. */
   public static fromRun(body: string, _runLength: number): FrameString {
@@ -67,5 +69,38 @@ export class FrameString extends FrameQuote {
 
   protected override toData(): string {
     return this.data;
+  }
+}
+
+/**
+ * A closing quote with no string to close.
+ *
+ * Because an interior `”` at depth zero completes its string, a later `”` can
+ * only mean the string ended earlier than the author intended. Reporting it
+ * keeps that mistake from silently truncating a value, or from being absorbed
+ * as an argument to the string that closed too soon.
+ */
+export class FrameStringEnd extends FrameAtom {
+  public static readonly SIGIL_STARTS: readonly SigilStart[] = [
+    { key: FrameString.STRING_END, mode: "atom" },
+  ];
+
+  constructor(_body: string = "") {
+    super(NilContext);
+  }
+
+  public override scan(_symbol: Frame, _source = ""): ScanResult {
+    return FrameStringEnd.unmatched();
+  }
+
+  public override finishInput(_source = ""): ScanResult {
+    return FrameStringEnd.unmatched();
+  }
+
+  private static unmatched(): ScanResult {
+    return {
+      disposition: ScanDisposition.Error,
+      message: `unmatched string terminator: ${FrameString.STRING_END}`,
+    };
   }
 }

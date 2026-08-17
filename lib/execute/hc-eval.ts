@@ -112,8 +112,10 @@ export class HCEval {
       newline = this.inputBuffer.indexOf("\n");
     }
 
+    // A pending lexeme owns the line structure of its own body, so an empty
+    // logical line still has to reach it.
     const hasLogicalLine = this.inputBuffer.length > 0 || input.length > 0 ||
-      this.lex.is.document === true;
+      this.lex !== this.pipe;
     if (endOfLine && hasLogicalLine) {
       result = this.reduceLine(this.inputBuffer, true);
       this.inputBuffer = "";

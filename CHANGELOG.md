@@ -7,8 +7,10 @@
 ## v0.9.3 2026-08-13
 
 - Nest curly-quoted strings without an escape character, keeping balanced
-  interior quotes as data and reporting an unmatched interior quote instead of
-  silently truncating the string.
+  interior quotes as data and reporting an unmatched quote instead of silently
+  truncating the string.
+- Preserve blank logical lines inside every multi-line literal, so a string
+  spelled `"""…"""` has the same value as the same body in `“ ”`.
 - Accept `"` as the ASCII input spelling of a canonical string, where run length
   selects nesting depth: `""` is the empty string and `"""…"""` keeps interior
   `"` runs as content.

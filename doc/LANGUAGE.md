@@ -192,6 +192,9 @@ _denotes_:
 Adjacent strings join by juxtaposition, so `“a” x “b”` is HC's interpolation.
 There are no escape characters in any quote family.
 
+Balanced interior quotes are content, so `“a “b” c”` is one string. A `”` with
+no string to close is a lexical error rather than a silent truncation.
+
 Run length selects nesting **depth**, not type, for the ASCII quote and the
 document fence alike: an odd run opens, an equal run closes, an even run is
 empty, and a longer interior run is an error. So `""` is the empty string and

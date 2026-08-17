@@ -28,6 +28,13 @@ export interface RunFactory extends AtomFactory {
   readonly RUN_DELIMITER: string;
   /** Adjective naming this family in lexical diagnostics. */
   readonly RUN_LABEL: string;
+  /**
+   * Whether the body is foreign content rather than HC source.
+   *
+   * Opaque bodies own their own line conventions, so HC does not look for
+   * prompt markers inside them.
+   */
+  readonly RUN_OPAQUE: boolean;
   /** Builds one completed value from its body and classified run length. */
   fromRun(body: string, runLength: number): Frame;
 }
@@ -39,7 +46,7 @@ export class LexRun extends Lex {
 
   public constructor(private Runs: RunFactory) {
     super(Runs);
-    this.is.document = true;
+    this.is.document = Runs.RUN_OPAQUE;
   }
 
   public override call(argument: Frame, _parameter = Frame.nil): Frame {

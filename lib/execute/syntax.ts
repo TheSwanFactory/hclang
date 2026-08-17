@@ -30,6 +30,7 @@ export const atomClasses: Array<AtomFactory> = [
   frame.FrameNumber,
   frame.FrameOperator,
   frame.FrameString,
+  frame.FrameStringEnd,
   frame.FrameSymbol,
   frame.FrameURI,
 ];
@@ -45,10 +46,11 @@ function asRunFactory(Atom: AtomFactory): RunFactory {
   if (
     typeof candidate.RUN_DELIMITER !== "string" ||
     typeof candidate.RUN_LABEL !== "string" ||
+    typeof candidate.RUN_OPAQUE !== "boolean" ||
     typeof candidate.fromRun !== "function"
   ) {
     throw new Error(
-      `Run-delimited Sigil requires RUN_DELIMITER, RUN_LABEL, and fromRun: ${Atom.name}`,
+      `Run-delimited Sigil requires RUN_DELIMITER, RUN_LABEL, RUN_OPAQUE, and fromRun: ${Atom.name}`,
     );
   }
   return candidate as RunFactory;
