@@ -139,6 +139,46 @@ describe("main", () => {
     }
   });
 
+  it("returns a non-zero status for an unterminated quoted string", async () => {
+    const file = await Deno.makeTempFile({ suffix: ".hc" });
+    const originalError = console.error;
+    const diagnostics: string[] = [];
+    console.error = (...args: unknown[]) => diagnostics.push(args.join(" "));
+    try {
+      await Deno.writeTextFile(file, '"""body""');
+      const hcEval = new HCEval(new FrameArray([]));
+      const status = await main(hcEval, getOptions([file]));
+
+      expect(status).toEqual(1);
+      expect(diagnostics).toEqual([
+        "HCEval.finish.failed: unterminated quoted string",
+      ]);
+    } finally {
+      console.error = originalError;
+      await Deno.remove(file);
+    }
+  });
+
+  it("returns a non-zero status for a non-URI resource identifier", async () => {
+    const file = await Deno.makeTempFile({ suffix: ".hc" });
+    const originalError = console.error;
+    const diagnostics: string[] = [];
+    console.error = (...args: unknown[]) => diagnostics.push(args.join(" "));
+    try {
+      await Deno.writeTextFile(file, "don't stop\n");
+      const hcEval = new HCEval(new FrameArray([]));
+      const status = await main(hcEval, getOptions([file]));
+
+      expect(status).toEqual(1);
+      expect(diagnostics).toEqual([
+        "HCEval.finish.failed: unterminated resource identifier: 't",
+      ]);
+    } finally {
+      console.error = originalError;
+      await Deno.remove(file);
+    }
+  });
+
   it("keeps the maintained testdoc fixture green with authoritative totals", async () => {
     const out = new FrameArray([]);
     const file = new URL("./hc/testdoc.hc", import.meta.url).pathname;
@@ -149,7 +189,7 @@ describe("main", () => {
 
     expect(status).toEqual(0);
     expect(out.at(-1).toString()).toContain(
-      '“{"total":61,"pass":56,"fail":0,"unimplemented":5}”',
+      '“{"total":70,"pass":67,"fail":0,"unimplemented":3}”',
     );
   });
 
@@ -226,7 +266,7 @@ describe("main", () => {
       expect(diagnostics).toEqual([]);
       expect(summaries.length).toEqual(1);
       expect(summaries[0].toString()).toContain(
-        '“{"total":74,"pass":74,"fail":0,"unimplemented":0}”',
+        '“{"total":81,"pass":81,"fail":0,"unimplemented":0}”',
       );
     } finally {
       console.error = originalError;

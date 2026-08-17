@@ -15,7 +15,7 @@
  */
 import * as frame from "../frames.ts";
 import { type AtomFactory, Lex } from "./lex.ts";
-import { LexDoc } from "./lex-doc.ts";
+import { LexRun, type RunFactory } from "./lex-run.ts";
 import { terminals } from "./terminals.ts";
 
 export const atomClasses: Array<AtomFactory> = [
@@ -30,14 +30,31 @@ export const atomClasses: Array<AtomFactory> = [
   frame.FrameNumber,
   frame.FrameOperator,
   frame.FrameString,
+  frame.FrameStringEnd,
   frame.FrameSymbol,
+  frame.FrameURI,
 ];
 type LexFactory = (Atom: AtomFactory) => Lex;
 
-const lexicalModes: Record<"atom" | "document", LexFactory> = {
+const lexicalModes: Record<"atom" | "run", LexFactory> = {
   atom: (Atom) => new Lex(Atom),
-  document: () => new LexDoc(),
+  run: (Atom) => new LexRun(asRunFactory(Atom)),
 };
+
+function asRunFactory(Atom: AtomFactory): RunFactory {
+  const candidate = Atom as Partial<RunFactory> & AtomFactory;
+  if (
+    typeof candidate.RUN_DELIMITER !== "string" ||
+    typeof candidate.RUN_LABEL !== "string" ||
+    typeof candidate.RUN_OPAQUE !== "boolean" ||
+    typeof candidate.fromRun !== "function"
+  ) {
+    throw new Error(
+      `Run-delimited Sigil requires RUN_DELIMITER, RUN_LABEL, RUN_OPAQUE, and fromRun: ${Atom.name}`,
+    );
+  }
+  return candidate as RunFactory;
+}
 
 export function getSyntax(): frame.Context {
   const syntax: frame.Context = { ...terminals };

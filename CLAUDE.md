@@ -143,6 +143,25 @@ Sigilizer holds no input state. Registered Frame classes advertise static
 `SIGIL_STARTS` metadata and own their `scan()`/`finishInput()` decisions through
 the neutral protocol in `lib/scan.ts`.
 
+A Sigil start selects one of two lexical paths. `atom` mode reads a
+single-delimiter atom, where asymmetric delimiters nest by matching pairs. `run`
+mode reads a family whose maximal run length selects nesting depth: an odd run
+opens, an equal run closes, an even run is empty, and a longer interior run is
+an error. Documents (`` ` ``) and ASCII-quoted strings (`"`) share that one
+rule, so run length never selects a type.
+
+### Delimiter Families
+
+A delimiter earns its keep only when it changes what the delimited text denotes:
+
+| Delimiter | Denotes                                         |
+| --------- | ----------------------------------------------- |
+| `“ ”`     | the characters, canonical spelling              |
+| `" "`     | the characters, ASCII input spelling            |
+| `'…'`     | an inert name for something outside the program |
+| `` ` ``   | foreign content, verbatim GFM prose             |
+| `#…#`     | a comment, which is also a string               |
+
 ## Project Guidelines
 
 ### Code Organization

@@ -1,9 +1,14 @@
 # Odd Backtick Fences for HC Document Strings
 
-**Status:** Proposed\
+**Status:** Implemented\
 **Issue:**
 [#284 — Make white-paper doctest traverse the full document](https://github.com/TheSwanFactory/hclang/issues/284)\
-**Related:** #197, #282
+**Related:** #197, #282, #316\
+**Revised by:**
+[#316 — Unify quote delimiters](https://github.com/TheSwanFactory/hclang/issues/316),
+which replaced this document's AsciiDoc conventions with GFM and generalized the
+run rule to every run-delimited family. See
+[a03-unified-quote-delimiters.md](a03-unified-quote-delimiters.md).
 
 ## Summary
 
@@ -18,9 +23,9 @@ Their meaning cannot depend on physical read chunks or evaluator call
 boundaries.
 
 This rule makes triple-backtick document fences first-class HC syntax, permits
-one- and two-backtick AsciiDoc spans inside them, supports larger odd fences
-without adding named delimiter levels, and preserves the established two-
-backtick spelling of an empty document.
+one- and two-backtick GFM spans inside them, supports larger odd fences without
+adding named delimiter levels, and preserves the established two- backtick
+spelling of an empty document.
 
 Issue #284 also requires migrating `cli/hc/white-paper.hc` so executable
 examples use HC document fences, non-executable examples remain document
@@ -60,7 +65,7 @@ for one and three backticks.
 9. Detect unterminated documents and invalid runs at EOF.
 10. Traverse the complete white paper with deterministic doctest counts and no
     prose-derived diagnostics.
-11. Prefer native AsciiDoc notation over HTML substitutions.
+11. Prefer native document notation over HTML substitutions.
 
 ## Non-goals
 
@@ -404,16 +409,23 @@ Required outcome:
 No counting-semantics change is expected unless focused tests expose an
 independent defect.
 
-## AsciiDoc conventions for the white paper
+## GFM conventions for the white paper
+
+Prose inside a backtick fence is [GFM](https://github.github.com/gfm/). HC
+documents are inside out: a fence toggles _out_ of HC into prose, where GFM's
+own containment rules apply to the prose, not to HC's fence. HC interprets
+nothing inside a fence except backtick runs.
 
 ### Inline code
 
-Prose SHOULD use ordinary AsciiDoc monospace spans with one backtick on each
-side. Inside a triple-backtick HC document, one- and two-backtick runs are
-shorter than the active fence and therefore remain literal body text.
+Prose SHOULD use ordinary GFM code spans with one backtick on each side. Inside
+a triple-backtick HC document, one- and two-backtick runs are shorter than the
+active fence and therefore remain literal body text. A code span that must
+contain a backtick run uses the GFM rule of longer delimiters with interior
+spaces, as in `` ` `` inside a double-backtick span.
 
 HTML code elements are neither required nor preferred. The lexer does not need
-to know that these shorter runs are AsciiDoc markup.
+to know that these shorter runs are GFM markup.
 
 ### Executable examples
 
@@ -434,15 +446,18 @@ document is HC input.
 ### Non-executable examples
 
 Shell commands, pseudocode, incomplete HC fragments, and aspirational examples
-that must not execute SHOULD use backtick-free AsciiDoc source or listing blocks
-inside the active document.
+that must not execute SHOULD use a GFM fenced code block inside the active
+document.
 
-The preferred form is an AsciiDoc source attribute followed by a `----` listing
-block. Such blocks remain `FrameDoc` content and do not contribute to doctest
-totals.
+Because a GFM fence needs at least three backticks, the enclosing HC document
+MUST be opened by a longer odd run: a five-backtick HC fence leaves three- and
+four-backtick GFM fences as literal content. A GFM language tag is welcome on
+those interior blocks, which remain `FrameDoc` content and do not contribute to
+doctest totals. Four-space indented blocks are an acceptable alternative where
+no language tag is wanted.
 
-All AsciiDoc blocks and the enclosing HC document MUST be explicitly closed
-before EOF.
+All GFM blocks and the enclosing HC document MUST be explicitly closed before
+EOF.
 
 ## Compatibility requirements
 
@@ -470,11 +485,11 @@ The following behavior is intentionally clarified or changed:
 
 After the lexical behavior conforms to this specification:
 
-1. Retain or normalize prose inline code as ordinary AsciiDoc single-backtick
-   spans.
+1. Retain or normalize prose inline code as ordinary GFM single-backtick spans.
 2. Retain bare triple fences only for examples intended to execute.
-3. Convert illustrative fences to AsciiDoc source/listing blocks or indented
-   literal blocks inside document content.
+3. Convert illustrative fences to GFM code blocks inside document content,
+   opening the enclosing HC document with a longer odd fence when the interior
+   block needs three or more backticks.
 4. Normalize malformed, indented, and unclosed delimiters.
 5. Remove escaped-backtick workarounds that are no longer needed.
 6. Pair every intended value-returning semicolon source with one hash
@@ -484,11 +499,11 @@ After the lexical behavior conforms to this specification:
    with another, or reinterpret a source line as an expectation. An
    independently identified documentation defect may be corrected explicitly and
    tested. Add an expectation only when the documented result is unambiguous;
-   otherwise retain the example in a non-executable listing block.
+   otherwise retain the example in a non-executable code block.
 8. Mark unsupported required behavior with `$!.unimplemented` and a concrete
    expected value.
 9. Inventory executable and non-executable examples before accepting totals.
-10. Close the final AsciiDoc block and enclosing HC document before EOF.
+10. Close the final GFM block and enclosing HC document before EOF.
 11. Record reviewed exact total, pass, fail, and unimplemented counts in the
     full-document CLI regression, with zero failures.
 
@@ -588,7 +603,7 @@ close the document and reinterpret its remainder in another lexical context.
 
 ### Replace inline code with HTML
 
-Rejected. HTML avoids the collision but discards the desired AsciiDoc source
+Rejected. HTML avoids the collision but discards the desired plain-prose
 convention and leaves HC document fences underspecified.
 
 ### Replace inline code with plus-delimited passthroughs
@@ -628,7 +643,7 @@ suite:
 - A shorter interior run is literal content.
 - An equal interior run closes the document.
 - A greater interior run is a lexical error.
-- One- and two-backtick AsciiDoc spans remain content inside triple documents.
+- One- and two-backtick GFM spans remain content inside triple documents.
 - Fence form survives frame construction and `toString()` round-tripping.
 - Opening and closing fences are excluded from document data.
 - EOF rejects unterminated and invalid documents.
@@ -637,8 +652,8 @@ suite:
 - No new `ParsePipe` grammar production or aggregate terminal is introduced.
 - Synthetic `.md` and `.adoc` wrappers continue to work.
 - `testdoc.hc` demonstrates shorter inline runs inside a triple document.
-- `white-paper.hc` uses native AsciiDoc inline spans and backtick-free listing
-  blocks for non-executable examples.
+- `white-paper.hc` uses native GFM inline spans and GFM code blocks for
+  non-executable examples.
 - Every intended value-returning executable white-paper example is counted
   exactly once; statement examples are executed without being counted.
 - The full white-paper doctest reaches EOF with exactly one final summary, zero

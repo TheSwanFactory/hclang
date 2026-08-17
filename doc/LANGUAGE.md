@@ -174,10 +174,39 @@ properties and be enumerable).
 
 ### Strings
 
-There are three forms of quoting:
+A delimiter earns its keep only when it changes what the delimited text
+_denotes_:
 
-- `“Strings”` # Smart quotes!
+| Denotation       | Delimiter | Value is                               |
+| ---------------- | --------- | -------------------------------------- |
+| itself           | `“ ”`     | the characters                         |
+| itself           | `" "`     | the characters (ASCII input spelling)  |
+| something absent | `' '`     | a name for a thing outside the program |
+| foreign content  | `` ` ``   | verbatim, line-structured GFM prose    |
+
+- `“Strings”` # Smart quotes, which nest without escape sequences
+- `"Strings"` # Canonicalized to smart quotes when printed
+- `'jsr:@swanfactory/hclang'` # Inert resource identifier
 - `#Comments Inline#` or `#End-of-line`
+
+Adjacent strings join by juxtaposition, so `“a” x “b”` is HC's interpolation.
+There are no escape characters in any quote family.
+
+Balanced interior quotes are content, so `“a “b” c”` is one string. A `”` with
+no string to close is a lexical error rather than a silent truncation.
+
+Run length selects nesting **depth**, not type, for the ASCII quote and the
+document fence alike: an odd run opens, an equal run closes, an even run is
+empty, and a longer interior run is an error. So `""` is the empty string and
+`"""…"""` permits interior `"` and `""` as content. Curly quotes nest by
+matching pairs instead, since their delimiters are asymmetric.
+
+A resource identifier is powerless by construction. It performs no network,
+filesystem, or registry access when lexed or evaluated; it decomposes into
+readable `scheme`, `authority`, `path`, `query`, and `fragment` properties, and
+resolving it requires a resource frame supplied by the invocation context. Its
+content must be URI-shaped, so an English apostrophe is a fast lexical error
+rather than a swallowed remainder.
 
 ### Numeric
 

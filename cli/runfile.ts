@@ -2,9 +2,17 @@
 const RUNDOC = "#!/usr/bin/env hc \n```\n";
 const ENDDOC = "```\n";
 
+/**
+ * Extensions wrapped in a synthetic document fence.
+ *
+ * Prose inside an HC document is GFM. `adoc` is retained only as a
+ * compatibility shim for AsciiDoc files that predate that decision.
+ */
+const DOC_EXTENSIONS = ["md", "adoc"];
+
 function is_doc(file: string): boolean {
-  const file_ext = file.split(".").pop();
-  return file_ext === "adoc" || file_ext === "md";
+  const file_ext = file.split(".").pop() ?? "";
+  return DOC_EXTENSIONS.includes(file_ext);
 }
 
 /**

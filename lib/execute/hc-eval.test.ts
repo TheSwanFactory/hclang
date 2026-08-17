@@ -407,6 +407,257 @@ describe("HCEval", () => {
     expect(hc_eval.error()).toEqual("unterminated document string");
   });
 
+  describe("nested curly quotes", () => {
+    it("keeps balanced interior quotes in one string", () => {
+      hc_eval.call("“a “b” c”", false);
+
+      expect(hc_eval.finish()).toEqual(true);
+      expect(out.length()).toEqual(1);
+      expect(out.at(0)).toBeInstanceOf(frame.FrameString);
+      expect(out.at(0).toString()).toEqual("“a “b” c”");
+    });
+
+    it("does not truncate a string at an unmatched interior open", () => {
+      hc_eval.call("“a “b c”", false);
+
+      expect(hc_eval.finish()).toEqual(false);
+      expect(hc_eval.error()).toContain("unterminated FrameString");
+      expect(out.length()).toEqual(0);
+    });
+
+    it("nests identically across every two-chunk split", () => {
+      const source = "“a “b” c”";
+
+      for (let split = 1; split < source.length; split++) {
+        const splitOut = new frame.FrameArray([]);
+        const splitEval = new HCEval(splitOut);
+        splitEval.call(source.slice(0, split), false);
+        splitEval.call(source.slice(split), false);
+
+        expect(splitEval.finish()).toEqual(true);
+        expect(splitOut.at(0).toString()).toEqual(source);
+      }
+    });
+  });
+
+  describe("unmatched string terminators", () => {
+    for (const source of ["”", "”a”", "“a ” b”", "1 ” 2"]) {
+      it(`reports ${JSON.stringify(source)} instead of truncating`, () => {
+        hc_eval.call(source, true);
+
+        expect(hc_eval.finish()).toEqual(false);
+        expect(hc_eval.error()).toEqual("unmatched string terminator: ”");
+        expect(out.length()).toEqual(0);
+      });
+    }
+
+    it("keeps terminators inert inside strings, comments, and documents", () => {
+      hc_eval.call("“a ” b”");
+      expect(hc_eval.error()).toEqual("unmatched string terminator: ”");
+
+      const cleanOut = new frame.FrameArray([]);
+      const clean = new HCEval(cleanOut);
+      clean.call("#a ” b#");
+      clean.call("`a ” b`");
+      clean.call('"a ” b"');
+
+      expect(clean.finish()).toEqual(true);
+      expect(cleanOut.at(0).toString()).toEqual("`a ” b`");
+      expect(cleanOut.at(1).toString()).toEqual("“a ” b”");
+    });
+
+    it("can be reused cleanly after an unmatched terminator", () => {
+      hc_eval.call("”", true);
+      expect(hc_eval.finish()).toEqual(false);
+
+      hc_eval.call("“clean”");
+
+      expect(out.length()).toEqual(1);
+      expect(out.at(0).toString()).toEqual("“clean”");
+      expect(hc_eval.finish()).toEqual(true);
+    });
+  });
+
+  describe("multi-line strings", () => {
+    it("preserves blank logical lines in both spellings", () => {
+      hc_eval.call("“a", true);
+      hc_eval.call("", true);
+      hc_eval.call("b”", true);
+
+      const aliasOut = new frame.FrameArray([]);
+      const alias = new HCEval(aliasOut);
+      alias.call('"""a', true);
+      alias.call("", true);
+      alias.call('b"""', true);
+
+      expect(hc_eval.finish()).toEqual(true);
+      expect(alias.finish()).toEqual(true);
+      expect(out.at(0).toString()).toEqual("“a\n\nb”");
+      expect(aliasOut.at(0).toString()).toEqual(out.at(0).toString());
+    });
+  });
+
+  describe("ASCII quote alias", () => {
+    it("canonicalizes an ASCII-quoted string", () => {
+      hc_eval.call('"ascii"', false);
+
+      expect(hc_eval.finish()).toEqual(true);
+      expect(out.at(0)).toBeInstanceOf(frame.FrameString);
+      expect(out.at(0).toString()).toEqual("“ascii”");
+    });
+
+    for (const runLength of [1, 3, 5]) {
+      it(`opens depth ${runLength} with an odd ASCII run`, () => {
+        const run = '"'.repeat(runLength);
+        const interior = '"'.repeat(runLength - 1);
+        const body = runLength === 1 ? "body" : `body ${interior} end`;
+        hc_eval.call(`${run}${body}${run}`, false);
+
+        expect(hc_eval.finish()).toEqual(true);
+        expect(out.at(0).toString()).toEqual(`“${body}”`);
+      });
+    }
+
+    for (const runLength of [2, 4, 6]) {
+      it(`produces the empty string from an even run of ${runLength}`, () => {
+        hc_eval.call('"'.repeat(runLength), false);
+
+        expect(hc_eval.finish()).toEqual(true);
+        expect(out.length()).toEqual(1);
+        expect(out.at(0).toString()).toEqual("“”");
+      });
+    }
+
+    it("keeps curly quotes as ordinary content", () => {
+      hc_eval.call('"a“b”c"', false);
+
+      expect(hc_eval.finish()).toEqual(true);
+      expect(out.at(0).toString()).toEqual("“a“b”c”");
+    });
+
+    it("keeps ASCII quotes as content inside curly quotes", () => {
+      hc_eval.call('“a "b" c”', false);
+
+      expect(hc_eval.finish()).toEqual(true);
+      expect(out.at(0).toString()).toEqual('“a "b" c”');
+    });
+
+    it("preserves a pending run across arbitrary chunks", () => {
+      hc_eval.call('""', false);
+      hc_eval.call('"body ""', false);
+      hc_eval.call(' end"""', false);
+
+      expect(hc_eval.finish()).toEqual(true);
+      expect(out.at(0).toString()).toEqual('“body "" end”');
+    });
+
+    it("rejects a run longer than the active delimiter", () => {
+      hc_eval.call('"""body""""', false);
+
+      expect(hc_eval.finish()).toEqual(false);
+      expect(hc_eval.error()).toEqual(
+        "quoted fence run exceeds the opening fence",
+      );
+      expect(out.length()).toEqual(0);
+    });
+
+    it("reports an unterminated ASCII-quoted string", () => {
+      hc_eval.call('"""body""', false);
+
+      expect(hc_eval.finish()).toEqual(false);
+      expect(hc_eval.error()).toEqual("unterminated quoted string");
+      expect(out.length()).toEqual(0);
+    });
+
+    it("does not share pending run state between evaluators", () => {
+      hc_eval.call('"""leaked', false);
+
+      const otherOut = new frame.FrameArray([]);
+      const other = new HCEval(otherOut);
+      other.call('"clean"', false);
+
+      expect(other.finish()).toEqual(true);
+      expect(otherOut.length()).toEqual(1);
+      expect(otherOut.at(0).toString()).toEqual("“clean”");
+      expect(hc_eval.finish()).toEqual(false);
+    });
+
+    it("can be reused cleanly after an unterminated run", () => {
+      hc_eval.call('"stale', false);
+      expect(hc_eval.finish()).toEqual(false);
+
+      hc_eval.call('"clean"');
+
+      expect(out.length()).toEqual(1);
+      expect(out.at(0).toString()).toEqual("“clean”");
+      expect(hc_eval.finish()).toEqual(true);
+    });
+  });
+
+  describe("resource identifiers", () => {
+    it("evaluates one inert URI value", () => {
+      hc_eval.call("'jsr:@swanfactory/hclang'", false);
+
+      expect(hc_eval.finish()).toEqual(true);
+      expect(out.at(0)).toBeInstanceOf(frame.FrameURI);
+      expect(out.at(0).toString()).toEqual("'jsr:@swanfactory/hclang'");
+    });
+
+    it("reports an English apostrophe as a lexical error", () => {
+      hc_eval.call("don't stop", true);
+
+      expect(hc_eval.error()).toEqual(
+        "unterminated resource identifier: 't",
+      );
+    });
+
+    it("rejects an empty identifier", () => {
+      hc_eval.call("''", false);
+
+      expect(hc_eval.finish()).toEqual(false);
+      expect(hc_eval.error()).toEqual("empty resource identifier: ''");
+      expect(out.length()).toEqual(0);
+    });
+
+    it("lexes identically across every two-chunk split", () => {
+      const source = "'https://example.com/hc?v=1'";
+
+      for (let split = 1; split < source.length; split++) {
+        const splitOut = new frame.FrameArray([]);
+        const splitEval = new HCEval(splitOut);
+        splitEval.call(source.slice(0, split), false);
+        splitEval.call(source.slice(split), false);
+
+        expect(splitEval.finish()).toEqual(true);
+        expect(splitOut.length()).toEqual(1);
+        expect(splitOut.at(0).toString()).toEqual(source);
+      }
+    });
+
+    it("does not share pending identifier state between evaluators", () => {
+      hc_eval.call("'jsr:leaked", false);
+
+      const otherOut = new frame.FrameArray([]);
+      const other = new HCEval(otherOut);
+      other.call("'jsr:clean'", false);
+
+      expect(other.finish()).toEqual(true);
+      expect(otherOut.length()).toEqual(1);
+      expect(otherOut.at(0).toString()).toEqual("'jsr:clean'");
+      expect(hc_eval.finish()).toEqual(false);
+    });
+
+    it("keeps apostrophes inert inside strings, comments, and documents", () => {
+      hc_eval.call("“don't stop”");
+      hc_eval.call("#don't stop#");
+      hc_eval.call("`don't stop`");
+
+      expect(hc_eval.finish()).toEqual(true);
+      expect(out.at(0).toString()).toEqual("“don't stop”");
+      expect(out.at(1).toString()).toEqual("`don't stop`");
+    });
+  });
+
   describe("symbols", () => {
     const key = "key";
     const value = "value";

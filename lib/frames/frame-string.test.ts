@@ -1,7 +1,9 @@
 import { expect } from "jsr:@std/expect@^0.219.1";
 import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 
-import { FrameNote, FrameString } from "../frames.ts";
+import { FrameNote, FrameString, FrameStringEnd } from "../frames.ts";
+import { ScanDisposition } from "../scan.ts";
+import { FrameSymbol } from "./frame-symbol.ts";
 
 describe("FrameString", () => {
   const js_string = "Hello, MAML!";
@@ -39,6 +41,45 @@ describe("FrameString", () => {
     const note = FrameNote.key(key, value);
     const result = frame_string.call(note);
     expect(result.toString()).toContain(key);
+  });
+
+  it("nests balanced interior quotes without escapes", () => {
+    expect(frame_string.nestingDepth("a “b")).toEqual(1);
+    expect(frame_string.nestingDepth("a “b” c")).toEqual(0);
+    expect(frame_string.nestingDepth("a “b “c”")).toEqual(1);
+  });
+
+  it("round-trips balanced interior quotes", () => {
+    const nested = new FrameString("a “b” c");
+
+    expect(nested.toString()).toEqual("“a “b” c”");
+  });
+
+  it("registers the ASCII quote as a run-delimited alias", () => {
+    const keys = FrameString.SIGIL_STARTS.map(({ key }) => key);
+
+    expect(keys).toEqual(["“", '"']);
+    expect(FrameString.RUN_DELIMITER).toEqual('"');
+    expect(FrameString.SIGIL_STARTS[1].mode).toEqual("run");
+  });
+
+  it("builds a canonical string from an ASCII-quoted run", () => {
+    const aliased = FrameString.fromRun('interior " run', 3);
+
+    expect(aliased).toBeInstanceOf(FrameString);
+    expect(aliased.toString()).toEqual('“interior " run”');
+  });
+
+  it("reports a closing quote that has no string to close", () => {
+    const orphan = new FrameStringEnd();
+    const unmatched = {
+      disposition: ScanDisposition.Error,
+      message: "unmatched string terminator: ”",
+    };
+
+    expect(FrameStringEnd.SIGIL_STARTS).toEqual([{ key: "”", mode: "atom" }]);
+    expect(orphan.scan(FrameSymbol.for("a"), "")).toEqual(unmatched);
+    expect(orphan.finishInput("")).toEqual(unmatched);
   });
 
   it("returns Note parent on failed reduce", () => {
