@@ -83,55 +83,89 @@ async function verifyVersions(): Promise<string> {
   return expected;
 }
 
+const RELEASE_PACKAGES = ["@swanfactory/hcweb", "@swanfactory/hclang"];
+const RELEASE_ATTEMPTS = 6;
+const RELEASE_RETRY_MS = 10_000;
+
+const escapePattern = (value: string): string =>
+  value.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&");
+
+/**
+ * Names the first release package the graph does not pin to `version`.
+ *
+ * Published packages declare each other by range, so a graph that resolves an
+ * older patch is evidence of registry propagation rather than of a bad graph.
+ * The version must end where it is written, so `0.9.30` does not satisfy a
+ * `0.9.3` release.
+ */
+export function missingPackagePin(
+  graph: string,
+  version: string,
+): string | undefined {
+  for (const name of RELEASE_PACKAGES) {
+    const pinned = new RegExp(
+      `${escapePattern(name)}[@/]${escapePattern(version)}(?![\\w.-])`,
+    );
+    if (!pinned.test(graph)) {
+      return `${name}@${version}`;
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Resolves the published graph, tolerating bounded registry propagation.
+ *
+ * Publishing and building are one release step apart, so `deno info` can
+ * succeed while JSR still advertises the previous version. An unresolvable
+ * graph and a graph pinned to an older version are therefore the same
+ * recoverable condition, and each retry discards the lock and the cached
+ * version index so a stale answer cannot simply be re-resolved. Workspace
+ * source is never substituted, and a leaked workspace path fails immediately
+ * because no amount of waiting can fix it.
+ */
 async function releaseGraph(
   entryPath: string,
   lockPath: string,
   version: string,
 ): Promise<string> {
-  const args = [
-    "info",
-    "--json",
-    "--no-config",
-    "--lock",
-    lockPath,
-    entryPath,
-  ];
-  let output: Deno.CommandOutput | undefined;
-  for (let attempt = 1; attempt <= 6; attempt += 1) {
-    output = await command(Deno.execPath(), args, { reject: false });
-    if (output.success) break;
-    if (attempt < 6) {
-      await new Promise((resolve) => setTimeout(resolve, 10_000));
+  const rootUrl = toFileUrl(`${rootDir}/`).href;
+  let failure = `unable to resolve hcweb ${version} from JSR`;
+
+  for (let attempt = 1; attempt <= RELEASE_ATTEMPTS; attempt += 1) {
+    // A lock written from a stale index would pin the older version again.
+    await Deno.remove(lockPath).catch((error) => {
+      if (!(error instanceof Deno.errors.NotFound)) throw error;
+    });
+    const args = ["info", "--json", "--no-config", "--lock", lockPath];
+    if (attempt > 1) {
+      const specifiers = RELEASE_PACKAGES.map((name) => `jsr:${name}`);
+      args.push(`--reload=${specifiers.join(",")}`);
     }
-  }
-  if (!output?.success) {
-    const detail = new TextDecoder().decode(output?.stderr).trim();
-    throw new Error(`Unable to resolve hcweb ${version} from JSR: ${detail}`);
+    args.push(entryPath);
+
+    const output = await command(Deno.execPath(), args, { reject: false });
+    if (!output.success) {
+      const detail = new TextDecoder().decode(output.stderr).trim();
+      failure = `unable to resolve hcweb ${version} from JSR: ${detail}`;
+    } else {
+      const graph = new TextDecoder().decode(output.stdout);
+      if (graph.includes(rootUrl)) {
+        throw new Error("Release graph resolved repository workspace source");
+      }
+      const missing = missingPackagePin(graph, version);
+      if (missing === undefined) {
+        return graph;
+      }
+      failure = `release graph is missing exact dependency ${missing}`;
+    }
+
+    if (attempt < RELEASE_ATTEMPTS) {
+      await new Promise((resolve) => setTimeout(resolve, RELEASE_RETRY_MS));
+    }
   }
 
-  const graph = new TextDecoder().decode(output.stdout);
-  const rootUrl = toFileUrl(`${rootDir}/`).href;
-  if (graph.includes(rootUrl)) {
-    throw new Error("Release graph resolved repository workspace source");
-  }
-  const packagePatterns = [
-    [
-      `@swanfactory/hcweb@${version}`,
-      `@swanfactory/hcweb/${version}`,
-    ],
-    [
-      `@swanfactory/hclang@${version}`,
-      `@swanfactory/hclang/${version}`,
-    ],
-  ];
-  for (const alternatives of packagePatterns) {
-    if (!alternatives.some((pattern) => graph.includes(pattern))) {
-      throw new Error(
-        `Release graph is missing exact dependency ${alternatives[0]}`,
-      );
-    }
-  }
-  return graph;
+  throw new Error(`${failure} after ${RELEASE_ATTEMPTS} attempts`);
 }
 
 async function build(): Promise<void> {
@@ -244,4 +278,6 @@ async function build(): Promise<void> {
   }
 }
 
-await build();
+if (import.meta.main) {
+  await build();
+}

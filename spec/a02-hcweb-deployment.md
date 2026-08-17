@@ -171,6 +171,13 @@ Keep package publication and artifact production in one ordered release job:
    `@swanfactory/hcweb`.
 4. Confirm the exact hcweb version is readable from JSR. Retry only bounded
    registry-propagation failures; never substitute workspace source.
+
+   A graph that resolves but pins an older version is such a failure, not a
+   different one: published packages declare each other by range, so a lagging
+   version index yields the previous patch. Each retry MUST discard the
+   resolution lock and the cached version index, or a stale answer is simply
+   re-resolved. A graph that reaches workspace source MUST fail immediately,
+   because waiting cannot correct it.
 5. In an isolated temporary directory, build `dist/hcweb.html` from the exact
    JSR hcweb version.
 6. Run all structural and real-browser artifact checks with networking disabled.
