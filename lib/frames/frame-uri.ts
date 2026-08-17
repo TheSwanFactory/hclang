@@ -2,9 +2,11 @@ import { FrameQuote } from "./frame-atom.ts";
 import { FrameString } from "./frame-string.ts";
 import { type Context, NilContext } from "./context.ts";
 import { Frame } from "./frame.ts";
+import { unterminatedAtEnd } from "./atom-syntax.ts";
 import {
+  type AtomSyntax,
   ScanDisposition,
-  type ScanResponse,
+  type ScanResult,
   type SigilStart,
 } from "../scan.ts";
 
@@ -14,6 +16,30 @@ const URI_REFERENCE =
 
 /** Characters a URI reference cannot contain, so an apostrophe fails fast. */
 const URI_EXCLUDED = /[\s<>"“”`\\^{}|]/;
+
+/** Rejects non-URI content while the offending character is still local. */
+const recognizeReference = (symbol: Frame, source = ""): ScanResult => {
+  const char = symbol.toString();
+  if (char === FrameURI.URI_END) {
+    if (source === "") {
+      return {
+        disposition: ScanDisposition.Error,
+        message: "empty resource identifier: ''",
+      };
+    }
+    return { disposition: ScanDisposition.CompleteConsume };
+  }
+  if (URI_EXCLUDED.test(char)) {
+    const opened = `${FrameURI.URI_BEGIN}${source}`;
+    return {
+      disposition: ScanDisposition.Error,
+      message: /\s/.test(char)
+        ? `unterminated resource identifier: ${opened}`
+        : `invalid resource identifier: ${opened}${char}`,
+    };
+  }
+  return { disposition: ScanDisposition.Consume };
+};
 
 /**
  * Inert name for a resource outside the program.
@@ -44,6 +70,14 @@ export class FrameURI extends FrameQuote {
     "fragment",
   ] as const;
 
+  public static readonly SYNTAX: AtomSyntax = {
+    NAME: "FrameURI",
+    SIGIL_STARTS: FrameURI.SIGIL_STARTS,
+    recognize: recognizeReference,
+    finish: unterminatedAtEnd("FrameURI", FrameURI.URI_BEGIN),
+    fromSource: (source: string): Frame => new FrameURI(source),
+  };
+
   constructor(protected data: string, meta: Context = NilContext) {
     super(meta);
     this.decompose();
@@ -55,30 +89,6 @@ export class FrameURI extends FrameQuote {
 
   public override string_suffix(): string {
     return FrameURI.URI_END;
-  }
-
-  /** Rejects non-URI content while the offending character is still local. */
-  public override scan(symbol: Frame, source = ""): ScanResponse {
-    const char = symbol.toString();
-    if (char === FrameURI.URI_END) {
-      if (source === "") {
-        return {
-          disposition: ScanDisposition.Error,
-          message: "empty resource identifier: ''",
-        };
-      }
-      return { disposition: ScanDisposition.CompleteConsume };
-    }
-    if (URI_EXCLUDED.test(char)) {
-      const opened = `${FrameURI.URI_BEGIN}${source}`;
-      return {
-        disposition: ScanDisposition.Error,
-        message: /\s/.test(char)
-          ? `unterminated resource identifier: ${opened}`
-          : `invalid resource identifier: ${opened}${char}`,
-      };
-    }
-    return { disposition: ScanDisposition.Consume };
   }
 
   /** The delimited reference, unchanged by decomposition. */

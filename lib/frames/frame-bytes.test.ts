@@ -42,7 +42,7 @@ describe("FrameBytes", () => {
     const context = new FrameArray([]);
     context.set("size", new FrameNumber("3"));
 
-    const result = new FrameBytes("").scan(
+    const result = FrameBytes.SYNTAX.recognize(
       FrameSymbol.for("\\"),
       "size",
       context,
@@ -57,7 +57,7 @@ describe("FrameBytes", () => {
     const context = new FrameArray([]);
     context.set("size", new FrameNumber("0"));
 
-    const result = new FrameBytes("").scan(
+    const result = FrameBytes.SYNTAX.recognize(
       FrameSymbol.for("\\"),
       "size",
       context,
@@ -68,7 +68,7 @@ describe("FrameBytes", () => {
   });
 
   it("rejects a missing symbolic length", () => {
-    const result = new FrameBytes("").scan(
+    const result = FrameBytes.SYNTAX.recognize(
       FrameSymbol.for("\\"),
       "missing",
       new FrameArray([]),
@@ -84,7 +84,7 @@ describe("FrameBytes", () => {
     const context = new FrameArray([]);
     context.set("size", new FrameString("three"));
 
-    const result = new FrameBytes("").scan(
+    const result = FrameBytes.SYNTAX.recognize(
       FrameSymbol.for("\\"),
       "size",
       context,
@@ -101,7 +101,7 @@ describe("FrameBytes", () => {
       const context = new FrameArray([]);
       context.set("size", new FrameNumber(invalid));
 
-      const result = new FrameBytes("").scan(
+      const result = FrameBytes.SYNTAX.recognize(
         FrameSymbol.for("\\"),
         "size",
         context,
@@ -115,7 +115,7 @@ describe("FrameBytes", () => {
   }
 
   it("reports an unterminated symbolic length", () => {
-    expect(new FrameBytes("").finishInput("size")).toEqual({
+    expect(FrameBytes.SYNTAX.finish("size")).toEqual({
       disposition: ScanDisposition.Error,
       message: "unterminated byte length: \\size",
     });

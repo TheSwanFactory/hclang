@@ -14,43 +14,23 @@
  * @module
  */
 import { Frame, FrameSymbol } from "../frames.ts";
-import { type AtomFactory, Lex, Token } from "./lex.ts";
+import { LexHost, Token } from "./lex.ts";
 import { sigilizer } from "./sigilizer.ts";
 import {
+  type RunSyntax,
   ScanDisposition,
   type ScanResponse,
   type ScanResult,
 } from "../scan.ts";
 
-/** Class-level registration for one run-delimited family. */
-export interface RunFactory extends AtomFactory {
-  /** The character whose maximal runs delimit this family. */
-  readonly RUN_DELIMITER: string;
-  /** Adjective naming this family in lexical diagnostics. */
-  readonly RUN_LABEL: string;
-  /**
-   * Whether the body is foreign content rather than HC source.
-   *
-   * Opaque bodies own their own line conventions, so HC does not look for
-   * prompt markers inside them.
-   */
-  readonly RUN_OPAQUE: boolean;
-  /** Builds one completed value from its body and classified run length. */
-  fromRun(body: string, runLength: number): Frame;
-}
-
-export class LexRun extends Lex {
+export class LexRun extends LexHost {
   private opening = true;
   private ticks = 1;
   private fenceLength = 0;
 
-  public constructor(private Runs: RunFactory) {
+  public constructor(private Runs: RunSyntax) {
     super(Runs);
     this.is.document = Runs.RUN_OPAQUE;
-  }
-
-  public override call(argument: Frame, _parameter = Frame.nil): Frame {
-    return sigilizer.scan(this, argument);
   }
 
   public override scan(argument: Frame, _source = ""): ScanResponse {

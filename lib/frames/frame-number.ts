@@ -3,13 +3,22 @@ import { FrameAtom } from "./frame-atom.ts";
 import { NilContext } from "./context.ts";
 import type { Context } from "./context.ts";
 import type { MetaFrame } from "./meta-frame.ts";
-import type { SigilStart } from "../scan.ts";
+import { completeAtEnd, includeRecognizer } from "./atom-syntax.ts";
+import type { AtomSyntax, SigilStart } from "../scan.ts";
 export class FrameNumber extends FrameAtom {
   public static readonly NUMBER_BEGIN = /[1-9]/;
   public static readonly NUMBER_CHAR = /\d/;
   public static readonly SIGIL_STARTS = [
     { key: FrameNumber.NUMBER_BEGIN.toString(), mode: "atom" },
   ] as const satisfies readonly SigilStart[];
+
+  public static readonly SYNTAX: AtomSyntax = {
+    NAME: "FrameNumber",
+    SIGIL_STARTS: FrameNumber.SIGIL_STARTS,
+    recognize: includeRecognizer((char) => FrameNumber.NUMBER_CHAR.test(char)),
+    finish: completeAtEnd,
+    fromSource: (source: string): Frame => new FrameNumber(source),
+  };
 
   public static for(digits: string): FrameNumber {
     const exists = FrameNumber.numbers[digits];

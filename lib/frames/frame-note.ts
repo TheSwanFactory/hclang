@@ -4,9 +4,11 @@ import { FrameQuote } from "./frame-atom.ts";
 import { FrameString } from "./frame-string.ts";
 import { FrameSymbol } from "./frame-symbol.ts";
 import { NilContext, type StringMap } from "./context.ts";
+import { unterminatedAtEnd } from "./atom-syntax.ts";
 import {
+  type AtomSyntax,
   ScanDisposition,
-  type ScanResponse,
+  type ScanResult,
   type SigilStart,
 } from "../scan.ts";
 
@@ -19,6 +21,19 @@ export class FrameNote extends FrameQuote {
   public static readonly SIGIL_STARTS = [
     { key: FrameNote.NOTE_BEGIN, mode: "atom" },
   ] as const satisfies readonly SigilStart[];
+
+  public static readonly SYNTAX: AtomSyntax = {
+    NAME: "FrameNote",
+    SIGIL_STARTS: FrameNote.SIGIL_STARTS,
+    // A note's terminator is redispatched, so it can also close its enclosure.
+    recognize: (symbol: Frame): ScanResult => ({
+      disposition: symbol.toString() === FrameNote.NOTE_END
+        ? ScanDisposition.CompleteRedispatch
+        : ScanDisposition.Consume,
+    }),
+    finish: unterminatedAtEnd("FrameNote", FrameNote.NOTE_BEGIN),
+    fromSource: (source: string): Frame => new FrameNote(source),
+  };
 
   public static readonly LABELS: LanguageBinding = {
     en: {
@@ -100,16 +115,6 @@ export class FrameNote extends FrameQuote {
 
   public override string_suffix(): string {
     return FrameNote.NOTE_END;
-  }
-
-  public override scan(symbol: Frame, source?: string): ScanResponse {
-    if (source === undefined) {
-      return this.call(symbol);
-    }
-    if (symbol.toString() === this.string_suffix()) {
-      return { disposition: ScanDisposition.CompleteRedispatch };
-    }
-    return super.scan(symbol, source);
   }
 
   public override toString(): string {

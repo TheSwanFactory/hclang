@@ -1,12 +1,13 @@
 import { expect } from "jsr:@std/expect@^0.219.1";
 import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 
-import { FrameString, FrameURI } from "../frames.ts";
+import { Frame, FrameString, FrameURI } from "../frames.ts";
 import { ScanDisposition } from "../scan.ts";
 import { FrameSymbol } from "./frame-symbol.ts";
 
-const scan = (uri: FrameURI, char: string, source: string) =>
-  uri.scan(FrameSymbol.for(char), source);
+/** Recognition is class-side, so no value is needed to exercise it. */
+const scan = (char: string, source: string) =>
+  FrameURI.SYNTAX.recognize(FrameSymbol.for(char), source, Frame.nil);
 
 describe("FrameURI", () => {
   const reference = "https://example.com/hc/doc?v=1#top";
@@ -57,13 +58,13 @@ describe("FrameURI", () => {
   });
 
   it("completes on the closing quote", () => {
-    expect(scan(uri, "'", "hc/doc")).toEqual({
+    expect(scan("'", "hc/doc")).toEqual({
       disposition: ScanDisposition.CompleteConsume,
     });
   });
 
   it("rejects an empty identifier", () => {
-    expect(scan(uri, "'", "")).toEqual({
+    expect(scan("'", "")).toEqual({
       disposition: ScanDisposition.Error,
       message: "empty resource identifier: ''",
     });
@@ -75,7 +76,7 @@ describe("FrameURI", () => {
 
   it("rejects characters excluded from a URI reference", () => {
     for (const char of ["<", ">", "{", "}", "|", "\\", "^", '"', "`"]) {
-      expect(scan(uri, char, "hc")).toEqual({
+      expect(scan(char, "hc")).toEqual({
         disposition: ScanDisposition.Error,
         message: `invalid resource identifier: 'hc${char}`,
       });
@@ -83,14 +84,14 @@ describe("FrameURI", () => {
   });
 
   it("reports whitespace as an unterminated identifier", () => {
-    expect(scan(uri, " ", "don")).toEqual({
+    expect(scan(" ", "don")).toEqual({
       disposition: ScanDisposition.Error,
       message: "unterminated resource identifier: 'don",
     });
   });
 
   it("reports an unterminated identifier at end of input", () => {
-    expect(uri.finishInput("hc/doc")).toEqual({
+    expect(FrameURI.SYNTAX.finish("hc/doc")).toEqual({
       disposition: ScanDisposition.Error,
       message: "unterminated FrameURI: 'hc/doc",
     });

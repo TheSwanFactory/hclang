@@ -11,10 +11,12 @@ import {
   FrameNumber,
   FrameParam,
   FrameString,
+  FrameSymbol,
   FrameURI,
 } from "../frames.ts";
 import { LexPipe } from "./lex-pipe.ts";
 import { ParsePipe } from "./parse-pipe.ts";
+import { sigilizer } from "./sigilizer.ts";
 
 const lexAtoms = (source: string): Frame[] => {
   const output = new FrameArray([]);
@@ -207,6 +209,26 @@ describe("Lex", () => {
     const group = output.at(0) as FrameGroup;
     const expr = group.asArray()[0] as FrameExpr;
     expect(expr.asArray().map(String)).toEqual(["\\1\\a", "7"]);
+  });
+
+  it("resets recognition between values sharing one lexer", () => {
+    // The `\` lexer transitions to a payload receiver, completes, and must be
+    // ready to recognize the next length with no placeholder value in between.
+    expect(lexAtoms("\\1\\a\\2\\bc ").map(String)).toEqual([
+      "\\1\\a",
+      "\\2\\bc",
+    ]);
+    expect(lexAtoms("“a”“b” ").map(String)).toEqual(["“a”", "“b”"]);
+  });
+
+  it("reports an unterminated byte length at physical end of input", () => {
+    const output = new FrameArray([]);
+    const parser = new ParsePipe(output, FrameGroup);
+    const pending = new FrameString("\\12").reduce(new LexPipe(parser), false);
+    const result = sigilizer.finish(pending, FrameSymbol.end());
+
+    expect(result.is.error).toEqual(true);
+    expect(result.toString()).toEqual("unterminated byte length: \\12");
   });
 
   it("redispatches the first payload character after a dynamic zero length", () => {

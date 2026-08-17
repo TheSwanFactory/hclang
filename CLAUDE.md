@@ -139,9 +139,12 @@ Lex/Parse/Eval stages:
 4. **Parse** - Tokens/actions → Frames (AST)
 5. **Eval** - Frames → Results
 
-Sigilizer holds no input state. Registered Frame classes advertise static
-`SIGIL_STARTS` metadata and own their `scan()`/`finishInput()` decisions through
-the neutral protocol in `lib/scan.ts`.
+Sigilizer holds no input state. Registered families advertise an immutable
+static `SYNTAX` descriptor carrying their `SIGIL_STARTS` metadata and their own
+recognition decisions through the neutral protocol in `lib/scan.ts`. Recognition
+is class-side and stateless, so `Lex` never constructs a value to ask a question
+about syntax; construction happens only through the descriptor's explicit value
+factory.
 
 A Sigil start selects one of two lexical paths. `atom` mode reads a
 single-delimiter atom, where asymmetric delimiters nest by matching pairs. `run`
@@ -199,9 +202,10 @@ A delimiter earns its keep only when it changes what the delimited text denotes:
 
 1. Read [lib/execute/CLAUDE.md](lib/execute/CLAUDE.md) for pipeline overview
 2. Register source starts with the owning Frame's static `SIGIL_STARTS`
-3. Implement syntax-specific `scan()`/`finishInput()` behavior on that Frame
+3. Publish a static `SYNTAX` descriptor with `recognize`, `finish`, and
+   `fromSource`, composing the shared rules in `lib/frames/atom-syntax.ts`
 4. Add structural actions in `lib/execute/terminals.ts` when applicable
-5. Add parser registration in `lib/execute/syntax.ts`
+5. Register the descriptor in `lib/execute/syntax.ts`
 6. Implement evaluation in `lib/execute/hc-eval.ts` or `lib/execute/hc-lang.ts`
 7. Add tests at each affected boundary
 8. Update documentation

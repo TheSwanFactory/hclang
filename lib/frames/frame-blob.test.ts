@@ -2,11 +2,16 @@ import { expect } from "jsr:@std/expect@^0.219.1";
 import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 
 import {
+  Frame,
   FrameBlob,
   FrameSymbol,
   ScanDisposition,
   type ScanResult,
 } from "../frames.ts";
+
+/** Recognition is class-side, so no value is needed to exercise it. */
+const scan = (char: string, source: string): ScanResult =>
+  FrameBlob.SYNTAX.recognize(FrameSymbol.for(char), source, Frame.nil);
 
 describe("FrameBlob", () => {
   const source = "0b10100101";
@@ -51,14 +56,8 @@ describe("FrameBlob", () => {
     ];
 
     cases.forEach(([source, valid, invalid]) => {
-      const accepted = frame_blob.scan(
-        FrameSymbol.for(valid),
-        source,
-      ) as ScanResult;
-      const rejected = frame_blob.scan(
-        FrameSymbol.for(invalid),
-        source,
-      ) as ScanResult;
+      const accepted = scan(valid, source);
+      const rejected = scan(invalid, source);
 
       expect(accepted.disposition).toEqual(ScanDisposition.Consume);
       expect(rejected.disposition).toEqual(

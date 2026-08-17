@@ -4,6 +4,17 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.10.0 2026-08-17
+
+- Construct `FrameBytes` from bytes only. The `number[] | string` constructor
+  accepted a placeholder string that the lexer needed and silently produced an
+  empty byte value; library callers passing a string now get a type error.
+- Register syntax families with an immutable static `SYNTAX` descriptor instead
+  of a runtime constructor, so recognition no longer requires constructing a
+  value. Custom families implement `recognize`, `finish`, and `fromSource`
+  rather than overriding `scan()` and `finishInput()` on the value class.
+- HC syntax, token boundaries, parsing, and evaluation are unchanged.
+
 ## v0.9.4 2026-08-17
 
 - Build the release artifact from the version the release job just published, so

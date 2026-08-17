@@ -39,7 +39,9 @@ redispatch, transition, and lexical failure.
 
 - [sigilizer.ts](sigilizer.ts) - Stateless routing of Frame scan decisions
 - [../scan.ts](../scan.ts) - Neutral scan protocol and static Sigil metadata
-- [syntax.ts](syntax.ts) - Class-level `SIGIL_STARTS` registration
+- [syntax.ts](syntax.ts) - Class-level `SYNTAX` descriptor registration
+- [../frames/atom-syntax.ts](../frames/atom-syntax.ts) - Shared stateless
+  recognizers composed by those descriptors
 - [lex.ts](lex.ts) - Generic Token-building lexical state
 - [lex-run.ts](lex-run.ts) - Run-delimited lexical state shared by document
   fences and ASCII-quoted strings, where run length selects nesting depth
@@ -106,8 +108,8 @@ text -> FrameSymbol -> scan protocol -> lex-pipe -> parse-pipe -> eval-pipe -> r
 ### Adding Language Features
 
 1. Advertise lexical or structural starts with static `SIGIL_STARTS`
-2. Put syntax-specific continuation and EOF rules in the owning Frame's `scan()`
-   and `finishInput()` methods
+2. Put syntax-specific continuation and EOF rules in the family's static
+   `SYNTAX` descriptor, and its construction in that descriptor's value factory
 3. Add structural terminal definitions in [terminals.ts](terminals.ts) if needed
 4. Add parser registration in [syntax.ts](syntax.ts)
 5. Implement evaluation logic in [hc-eval.ts](hc-eval.ts) or

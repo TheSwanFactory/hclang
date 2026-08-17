@@ -1,15 +1,19 @@
 /**
  * Generic monadic parser for HC atoms.
  *
- * `syntax.ts` configures one `Lex` with each registered atom factory. After a
- * source character selects that lexer through the `LexPipe` context, `Lex`
- * folds subsequent characters into the atom, emits a `Token` containing the
- * completed frame, and returns control to its parent pipe. `ParsePipe` then
+ * `syntax.ts` configures one `Lex` with each registered syntax descriptor.
+ * After a source character selects that lexer through the `LexPipe` context,
+ * `Lex` folds subsequent characters into the atom, emits a `Token` containing
+ * the completed frame, and returns control to its parent pipe. `ParsePipe` then
  * aggregates the frame without interpreting its lexical syntax.
  *
- * Atom-specific recognition belongs behind the atom lexical contract. Keep
- * this reducer generic: type tests and branches that encode the syntax of an
- * individual atom undermine the data-driven dispatch established by
+ * Recognition belongs to the registered descriptor, construction to an explicit
+ * value factory. `Lex` never builds a value in order to ask a question about
+ * syntax: an ordinary lexeme is recognized class-side, and only a stateful
+ * receiver installed by a transition is an object at all.
+ *
+ * Keep this reducer generic: type tests and branches that encode the syntax of
+ * an individual atom undermine the data-driven dispatch established by
  * `getSyntax()`.
  *
  * @module
@@ -23,20 +27,14 @@ import {
 } from "../frames.ts";
 import { sigilizer } from "./sigilizer.ts";
 import {
+  type AtomSyntax,
   ScanDisposition,
   type ScanResponse,
-  type SigilStart,
+  type SyntaxFacet,
 } from "../scan.ts";
 
 export type Flag = { [key: string]: boolean };
 
-/** Constructor and class-level source registration for one atom family. */
-export interface AtomFactory {
-  /** Construct a runtime atom from its completed source body. */
-  new (body: string): FrameAtom;
-  /** Source characters and lexical modes that select this atom family. */
-  readonly SIGIL_STARTS: readonly SigilStart[];
-}
 export class Token extends FrameAtom {
   constructor(protected data: Frame) {
     super(NilContext);
@@ -55,39 +53,74 @@ export class Token extends FrameAtom {
   }
 }
 
-export class Lex extends Frame implements ISourced {
-  public source: string;
-  protected body: string = "";
-  protected sample: FrameAtom;
+/**
+ * Mutable lexeme state shared by every lexical mode.
+ *
+ * The buffer lives here, which is why a descriptor can recognize source without
+ * holding any state of its own.
+ */
+export abstract class LexHost extends Frame implements ISourced {
+  public source = "";
+  protected body = "";
 
-  public constructor(protected Factory: AtomFactory) {
+  protected constructor(facet: SyntaxFacet) {
     super();
-    this.sample = new Factory("");
-    this.source = "";
     this.is.void = true;
     this.is.lexical = true;
-    const name = this.sample.className();
-    this.id = this.id + "." + name;
+    this.id = this.id + "." + facet.NAME;
   }
 
   public override call(argument: Frame, _parameter = Frame.nil): Frame {
     return sigilizer.scan(this, argument);
   }
 
-  public override scan(argument: Frame, _source = ""): ScanResponse {
-    return this.sample.scan(
-      argument,
-      this.lexemeSource(),
-      this.scanContext(),
-    );
-  }
-
   public override toString(): string {
     return this.id + `[${this.body}]`;
   }
 
+  protected lexemeSource(): string {
+    return this.body === "" ? this.source : this.body;
+  }
+
+  /** Resolve the terminal result frame at the end of the active output chain. */
+  protected scanContext(): Frame {
+    let context = this.get(Frame.kOUT);
+    const seen = new Set<Frame>();
+
+    while (!context.is.missing && !seen.has(context)) {
+      seen.add(context);
+      const next = context.get_here(Frame.kOUT, context);
+      if (next.is.missing) {
+        break;
+      }
+      context = next;
+    }
+
+    return context;
+  }
+}
+
+export class Lex extends LexHost {
+  /** A stateful receiver installed by a transition, or none. */
+  private active: Frame | null = null;
+
+  public constructor(protected syntax: AtomSyntax) {
+    super(syntax);
+  }
+
+  public override scan(argument: Frame, _source = ""): ScanResponse {
+    const source = this.lexemeSource();
+    const context = this.scanContext();
+    return this.active === null
+      ? this.syntax.recognize(argument, source, context)
+      : this.active.scan(argument, source, context);
+  }
+
   public override finishInput(): ScanResponse {
-    return this.sample.finishInput(this.lexemeSource());
+    const source = this.lexemeSource();
+    return this.active === null
+      ? this.syntax.finish(source)
+      : this.active.finishInput(source);
   }
 
   public consumeScan(argument: Frame): Frame {
@@ -107,7 +140,7 @@ export class Lex extends Frame implements ISourced {
         message: "lexical transition did not return an atom",
       };
     }
-    this.sample = next;
+    this.active = next;
     this.body = "";
     this.source = "";
     return this;
@@ -120,16 +153,22 @@ export class Lex extends Frame implements ISourced {
     return result;
   }
 
+  /**
+   * Emits one completed value and resets recognition.
+   *
+   * Resetting is discarding the active receiver: a stateless recognizer has
+   * nothing to rebuild.
+   */
   protected makeFrame(value: Frame | null = null): Token {
+    this.active = null;
     if (value !== null) {
       this.body = "";
-      this.sample = new this.Factory("");
       return new Token(value);
     }
     if (this.body === "") {
       this.body = this.source;
     }
-    const frame = new this.Factory(this.body);
+    const frame = this.syntax.fromSource(this.body);
     this.body = "";
     return new Token(frame);
   }
@@ -139,26 +178,5 @@ export class Lex extends Frame implements ISourced {
       this.body = this.source;
     }
     this.body += argument.toString();
-  }
-
-  private lexemeSource(): string {
-    return this.body === "" ? this.source : this.body;
-  }
-
-  /** Resolve the terminal result frame at the end of the active output chain. */
-  private scanContext(): Frame {
-    let context = this.get(Frame.kOUT);
-    const seen = new Set<Frame>();
-
-    while (!context.is.missing && !seen.has(context)) {
-      seen.add(context);
-      const next = context.get_here(Frame.kOUT, context);
-      if (next.is.missing) {
-        break;
-      }
-      context = next;
-    }
-
-    return context;
   }
 }

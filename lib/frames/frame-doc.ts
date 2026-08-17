@@ -1,6 +1,6 @@
 import { FrameString } from "./frame-string.ts";
 import { type Context, NilContext } from "./context.ts";
-import type { SigilStart } from "../scan.ts";
+import type { AtomSyntax, RunSyntax, SigilStart } from "../scan.ts";
 
 export class FrameDoc extends FrameString {
   public static readonly DOC_BEGIN = "`";
@@ -17,6 +17,23 @@ export class FrameDoc extends FrameString {
   public static override fromRun(body: string, runLength: number): FrameDoc {
     return new FrameDoc(body, NilContext, runLength);
   }
+
+  /**
+   * Documents register only a run start, so only the run facet differs.
+   *
+   * The inherited atom facet builds a single-fence document from its body; the
+   * dispatch table never selects it, because `` ` `` is registered as a run.
+   */
+  public static override readonly SYNTAX: AtomSyntax & RunSyntax = {
+    ...FrameString.SYNTAX,
+    NAME: "FrameDoc",
+    SIGIL_STARTS: FrameDoc.SIGIL_STARTS,
+    fromSource: (source: string): FrameDoc => new FrameDoc(source),
+    RUN_DELIMITER: FrameDoc.RUN_DELIMITER,
+    RUN_LABEL: FrameDoc.RUN_LABEL,
+    RUN_OPAQUE: FrameDoc.RUN_OPAQUE,
+    fromRun: FrameDoc.fromRun,
+  };
 
   constructor(
     data: string,

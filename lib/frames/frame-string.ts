@@ -4,7 +4,14 @@ import { FrameSymbol } from "./frame-symbol.ts";
 import { NilContext } from "./context.ts";
 import type { Context } from "./context.ts";
 import { sigilizer } from "../execute/sigilizer.ts";
-import { ScanDisposition, type ScanResult, type SigilStart } from "../scan.ts";
+import { quoteRecognizer, unterminatedAtEnd } from "./atom-syntax.ts";
+import {
+  type AtomSyntax,
+  type RunSyntax,
+  ScanDisposition,
+  type ScanResult,
+  type SigilStart,
+} from "../scan.ts";
 
 const reducer = (current: Frame, char: string): Frame => {
   const symbol = FrameSymbol.for(char);
@@ -41,6 +48,22 @@ export class FrameString extends FrameQuote {
   public static fromRun(body: string, _runLength: number): FrameString {
     return new FrameString(body);
   }
+
+  /** One family, two spellings: a nesting atom and a run-delimited alias. */
+  public static readonly SYNTAX: AtomSyntax & RunSyntax = {
+    NAME: "FrameString",
+    SIGIL_STARTS: FrameString.SIGIL_STARTS,
+    recognize: quoteRecognizer(
+      FrameString.STRING_BEGIN,
+      FrameString.STRING_END,
+    ),
+    finish: unterminatedAtEnd("FrameString", FrameString.STRING_BEGIN),
+    fromSource: (source: string): Frame => new FrameString(source),
+    RUN_DELIMITER: FrameString.RUN_DELIMITER,
+    RUN_LABEL: FrameString.RUN_LABEL,
+    RUN_OPAQUE: FrameString.RUN_OPAQUE,
+    fromRun: FrameString.fromRun,
+  };
 
   constructor(protected data: string, meta: Context = NilContext) {
     super(meta);
@@ -85,19 +108,18 @@ export class FrameStringEnd extends FrameAtom {
     { key: FrameString.STRING_END, mode: "atom" },
   ];
 
-  constructor(_body: string = "") {
-    super(NilContext);
-  }
+  /** Recognition always fails, so this family never builds a value. */
+  public static readonly SYNTAX: AtomSyntax = {
+    NAME: "FrameStringEnd",
+    SIGIL_STARTS: FrameStringEnd.SIGIL_STARTS,
+    recognize: (): ScanResult => FrameStringEnd.unmatched(),
+    finish: (): ScanResult => FrameStringEnd.unmatched(),
+    fromSource: (): Frame => {
+      throw new Error("unmatched string terminator has no value");
+    },
+  };
 
-  public override scan(_symbol: Frame, _source = ""): ScanResult {
-    return FrameStringEnd.unmatched();
-  }
-
-  public override finishInput(_source = ""): ScanResult {
-    return FrameStringEnd.unmatched();
-  }
-
-  private static unmatched(): ScanResult {
+  public static unmatched(): ScanResult {
     return {
       disposition: ScanDisposition.Error,
       message: `unmatched string terminator: ${FrameString.STRING_END}`,

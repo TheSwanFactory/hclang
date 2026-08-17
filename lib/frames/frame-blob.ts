@@ -1,7 +1,8 @@
 import type { Frame } from "./frame.ts";
 import { FrameAtom } from "./frame-atom.ts";
 import { NilContext } from "./context.ts";
-import { ScanDisposition, type ScanResult, type SigilStart } from "../scan.ts";
+import { completeAtEnd, includeOrEnd } from "./atom-syntax.ts";
+import type { AtomSyntax, ScanResult, SigilStart } from "../scan.ts";
 
 export interface IRegexpMap {
   [key: number]: RegExp;
@@ -30,6 +31,25 @@ export class FrameBlob extends FrameAtom {
     16: "x", // 4
     32: "t", // 5
     64: "s", // 6
+  };
+
+  public static readonly SYNTAX: AtomSyntax = {
+    NAME: "FrameBlob",
+    SIGIL_STARTS: FrameBlob.SIGIL_STARTS,
+    recognize: (symbol: Frame, source = ""): ScanResult => {
+      const char = symbol.toString();
+      // The leading zero admits a base sigil or a decimal digit.
+      if (source === "") {
+        const prefixes = Object.values(FrameBlob.BLOB_PREFIX);
+        return includeOrEnd(prefixes.includes(char) || /\d/.test(char));
+      }
+
+      const base = FrameBlob.find_base(`0${source}`);
+      const digits = base === 10 ? /\d/ : FrameBlob.BLOB_DIGITS[base];
+      return includeOrEnd(digits.test(char));
+    },
+    finish: completeAtEnd,
+    fromSource: (source: string): Frame => new FrameBlob(source),
   };
 
   public static fix_source(source: string): string {
@@ -93,26 +113,6 @@ export class FrameBlob extends FrameAtom {
   public override canInclude(char: string): boolean {
     const regex = FrameBlob.BLOB_DIGITS[64]; // accept everything, to start
     return regex.test(char);
-  }
-
-  public override scan(symbol: Frame, source = ""): ScanResult {
-    const char = symbol.toString();
-    if (source === "") {
-      const prefixes = Object.values(FrameBlob.BLOB_PREFIX);
-      return {
-        disposition: prefixes.includes(char) || /\d/.test(char)
-          ? ScanDisposition.Consume
-          : ScanDisposition.CompleteRedispatch,
-      };
-    }
-
-    const base = FrameBlob.find_base(`0${source}`);
-    const digits = base === 10 ? /\d/ : FrameBlob.BLOB_DIGITS[base];
-    return {
-      disposition: digits.test(char)
-        ? ScanDisposition.Consume
-        : ScanDisposition.CompleteRedispatch,
-    };
   }
 
   public override toString(): string {
