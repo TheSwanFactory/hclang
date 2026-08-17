@@ -86,6 +86,15 @@ async function verifyVersions(): Promise<string> {
 const RELEASE_PACKAGES = ["@swanfactory/hcweb", "@swanfactory/hclang"];
 const RELEASE_ATTEMPTS = 6;
 const RELEASE_RETRY_MS = 10_000;
+/**
+ * Deno's default dependency cooldown rejects versions younger than 24 hours.
+ *
+ * That default is right for third-party code and wrong here: the release job
+ * publishes these two packages and then builds the artifact from the exact
+ * versions it just published, with integrity captured in a fresh lock. Waiting
+ * out a cooldown on our own release would mean no artifact for a day.
+ */
+const RELEASE_AGE_ARGS = ["--minimum-dependency-age=0"];
 
 const escapePattern = (value: string): string =>
   value.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&");
@@ -114,15 +123,37 @@ export function missingPackagePin(
 }
 
 /**
+ * Reports the first resolution error the graph recorded for a module.
+ *
+ * `deno info --json` exits zero and stores resolution failures inside the
+ * graph, so an unchecked graph turns a real diagnosis into a vague complaint
+ * about a missing dependency pin.
+ */
+export function graphModuleError(graph: string): string | undefined {
+  let parsed: { modules?: { specifier?: string; error?: string }[] };
+  try {
+    parsed = JSON.parse(graph);
+  } catch {
+    return "release graph was not valid JSON";
+  }
+  for (const module of parsed.modules ?? []) {
+    if (typeof module.error === "string") {
+      const specifier = module.specifier ?? "unknown specifier";
+      return `${specifier}: ${module.error}`;
+    }
+  }
+  return undefined;
+}
+
+/**
  * Resolves the published graph, tolerating bounded registry propagation.
  *
- * Publishing and building are one release step apart, so `deno info` can
- * succeed while JSR still advertises the previous version. An unresolvable
- * graph and a graph pinned to an older version are therefore the same
- * recoverable condition, and each retry discards the lock and the cached
- * version index so a stale answer cannot simply be re-resolved. Workspace
- * source is never substituted, and a leaked workspace path fails immediately
- * because no amount of waiting can fix it.
+ * Publishing and building are one release step apart, so a resolve can fail, or
+ * quietly answer with the previous version, while JSR's version index catches
+ * up. Those are the same recoverable condition, and each retry discards the
+ * lock and the cached index so a stale answer cannot simply be re-resolved.
+ * Workspace source is never substituted, and a leaked workspace path fails
+ * immediately because no amount of waiting can fix it.
  */
 async function releaseGraph(
   entryPath: string,
@@ -137,7 +168,14 @@ async function releaseGraph(
     await Deno.remove(lockPath).catch((error) => {
       if (!(error instanceof Deno.errors.NotFound)) throw error;
     });
-    const args = ["info", "--json", "--no-config", "--lock", lockPath];
+    const args = [
+      "info",
+      "--json",
+      "--no-config",
+      "--lock",
+      lockPath,
+      ...RELEASE_AGE_ARGS,
+    ];
     if (attempt > 1) {
       const specifiers = RELEASE_PACKAGES.map((name) => `jsr:${name}`);
       args.push(`--reload=${specifiers.join(",")}`);
@@ -153,11 +191,14 @@ async function releaseGraph(
       if (graph.includes(rootUrl)) {
         throw new Error("Release graph resolved repository workspace source");
       }
-      const missing = missingPackagePin(graph, version);
+      const moduleError = graphModuleError(graph);
+      const missing = moduleError ?? missingPackagePin(graph, version);
       if (missing === undefined) {
         return graph;
       }
-      failure = `release graph is missing exact dependency ${missing}`;
+      failure = moduleError
+        ? `release graph could not resolve ${moduleError}`
+        : `release graph is missing exact dependency ${missing}`;
     }
 
     if (attempt < RELEASE_ATTEMPTS) {
@@ -204,7 +245,12 @@ async function build(): Promise<void> {
 
     const bundleArgs = ["bundle"];
     if (releaseVersion) {
-      bundleArgs.push("--no-config", "--lock", temporaryLock);
+      bundleArgs.push(
+        "--no-config",
+        "--lock",
+        temporaryLock,
+        ...RELEASE_AGE_ARGS,
+      );
     } else {
       bundleArgs.push(
         "--config",

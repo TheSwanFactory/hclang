@@ -1,7 +1,7 @@
 import { expect } from "jsr:@std/expect@^0.219.1";
 import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 
-import { missingPackagePin } from "./build-hcweb.ts";
+import { graphModuleError, missingPackagePin } from "./build-hcweb.ts";
 
 /** A resolved graph pins each package by identifier or by module path. */
 const graphFor = (hcweb: string, hclang: string): string =>
@@ -44,5 +44,35 @@ describe("missingPackagePin", () => {
     ].join(",");
 
     expect(missingPackagePin(graph, "0.9.3")).toBeUndefined();
+  });
+});
+
+describe("graphModuleError", () => {
+  it("accepts a graph that resolved every module", () => {
+    expect(graphModuleError(graphFor("0.9.4", "0.9.4"))).toBeUndefined();
+  });
+
+  it("surfaces a resolution error that deno info recorded instead of raising", () => {
+    const graph = JSON.stringify({
+      modules: [
+        { specifier: "file:///tmp/entry.ts" },
+        {
+          specifier: "jsr:@swanfactory/hcweb@0.9.4/mount",
+          error:
+            "Could not find version of '@swanfactory/hcweb' that matches specified version constraint '0.9.4'",
+        },
+      ],
+    });
+
+    expect(graphModuleError(graph)).toEqual(
+      "jsr:@swanfactory/hcweb@0.9.4/mount: Could not find version of " +
+        "'@swanfactory/hcweb' that matches specified version constraint '0.9.4'",
+    );
+  });
+
+  it("reports unparsable output rather than treating it as resolved", () => {
+    expect(graphModuleError("not json")).toEqual(
+      "release graph was not valid JSON",
+    );
   });
 });
