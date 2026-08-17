@@ -215,10 +215,6 @@ export class FrameSymbol extends FrameAtom {
     return FrameSymbol.SYMBOL_BEGIN.toString();
   }
 
-  public override canInclude(char: string): boolean {
-    return FrameSymbol.SYMBOL_CHAR.test(char);
-  }
-
   protected override toData(): string {
     return this.data === "$$" ? "\n" : this.data;
   }
@@ -287,9 +283,5 @@ export class FrameOperator extends FrameSymbol {
 
   public override string_start(): string {
     return FrameOperator.OPERATOR_CHARS.toString();
-  }
-
-  public override canInclude(char: string): boolean {
-    return FrameOperator.Accepts(char);
   }
 }

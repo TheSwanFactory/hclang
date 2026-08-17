@@ -3,8 +3,8 @@ import { FrameAtom } from "./frame-atom.ts";
 import { NilContext } from "./context.ts";
 import type { Context } from "./context.ts";
 import type { MetaFrame } from "./meta-frame.ts";
-import { completeAtEnd, includeRecognizer } from "./atom-syntax.ts";
-import type { AtomSyntax, SigilStart } from "../scan.ts";
+import { completeAtEnd, includeOrEnd } from "./atom-syntax.ts";
+import type { AtomSyntax, ScanResult, SigilStart } from "../scan.ts";
 export class FrameNumber extends FrameAtom {
   public static readonly NUMBER_BEGIN = /[1-9]/;
   public static readonly NUMBER_CHAR = /\d/;
@@ -15,7 +15,8 @@ export class FrameNumber extends FrameAtom {
   public static readonly SYNTAX: AtomSyntax = {
     NAME: "FrameNumber",
     SIGIL_STARTS: FrameNumber.SIGIL_STARTS,
-    recognize: includeRecognizer((char) => FrameNumber.NUMBER_CHAR.test(char)),
+    recognize: (symbol: Frame): ScanResult =>
+      includeOrEnd(FrameNumber.NUMBER_CHAR.test(symbol.toString())),
     finish: completeAtEnd,
     fromSource: (source: string): Frame => new FrameNumber(source),
   };
@@ -69,10 +70,6 @@ export class FrameNumber extends FrameAtom {
 
   public override string_start(): string {
     return FrameNumber.NUMBER_BEGIN.toString();
-  }
-
-  public override canInclude(char: string): boolean {
-    return FrameNumber.NUMBER_CHAR.test(char);
   }
 
   protected override toData(): string {

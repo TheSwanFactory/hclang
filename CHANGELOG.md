@@ -13,6 +13,9 @@
   of a runtime constructor, so recognition no longer requires constructing a
   value. Custom families implement `recognize`, `finish`, and `fromSource`
   rather than overriding `scan()` and `finishInput()` on the value class.
+- Remove `FrameAtom.canInclude()` and its overrides. Recognition no longer calls
+  it, and each family now states its accepted characters once, in its
+  recognizer.
 - HC syntax, token boundaries, parsing, and evaluation are unchanged.
 
 ## v0.9.4 2026-08-17

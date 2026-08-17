@@ -6,7 +6,7 @@ import { FrameAtom } from "./frame-atom.ts";
 import { FrameOperator, FrameSymbol } from "./frame-symbol.ts";
 import type { ISourced } from "./meta-frame.ts";
 import { NilContext } from "./context.ts";
-import { completeAtEnd, type IncludeRule } from "./atom-syntax.ts";
+import { completeAtEnd } from "./atom-syntax.ts";
 import {
   type AtomSyntax,
   ScanDisposition,
@@ -14,7 +14,8 @@ import {
   type SigilStart,
 } from "../scan.ts";
 
-const includes: IncludeRule = (char) =>
+/** A name accepts identifier and operator characters alike. */
+const includes = (char: string): boolean =>
   FrameSymbol.SYMBOL_CHAR.test(char) || FrameOperator.OPERATOR_CHARS.test(char);
 
 /** A name continues while its spelling stays one kind of identifier. */
@@ -98,10 +99,6 @@ export class FrameName extends FrameAtom implements ISourced {
 
   public override string_prefix(): string {
     return FrameName.NAME_BEGIN;
-  }
-
-  public override canInclude(char: string): boolean {
-    return includes(char);
   }
 
   protected override toData(): FrameSymbol {

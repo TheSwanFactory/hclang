@@ -110,11 +110,6 @@ export class FrameBlob extends FrameAtom {
     return "0" + sigil;
   }
 
-  public override canInclude(char: string): boolean {
-    const regex = FrameBlob.BLOB_DIGITS[64]; // accept everything, to start
-    return regex.test(char);
-  }
-
   public override toString(): string {
     const dataString = this.toData().toString(this.base);
     const pad = this.n_chars() - dataString.length;

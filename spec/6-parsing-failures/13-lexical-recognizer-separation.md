@@ -172,6 +172,13 @@ existing conflicting-Sigil check.
 becoming the class constant. Existing recognition tests are retargeted from a
 value instance to the descriptor without changing their assertions.
 
+**Vestigial predicates must not survive the move.** `canInclude()` existed to
+serve `FrameAtom.scan()`. Once recognition moves class-side it has no caller, and
+leaving it behind would create two unlinked definitions of which characters a
+family accepts. It is removed with its overrides, so each family states that rule
+once, in its recognizer. `FrameComment` keeps `COMMENT_END_REGEX` as that single
+statement and its recognizer branches on the terminator the regex matched.
+
 ## Acceptance
 
 - No `AtomFactory` type and no `new Factory("")` remain.
@@ -179,6 +186,9 @@ value instance to the descriptor without changing their assertions.
 - `Lex` names itself from `SYNTAX.NAME`.
 - Runtime Frames arrive only from explicit value factories or scan results.
 - `FrameBytes` accepts bytes only, and no test constructs `new FrameBytes("")`.
+- No `canInclude()` remains, and each family's accepted characters are stated
+  once.
+- Every shared recognizer helper has more than one caller.
 - Symbolic byte lengths still resolve against the live context.
 - Generic `Lex`, `LexRun`, and Sigilizer contain no atom-family check.
 - Registration rejects a duplicate descriptor name and a missing facet.

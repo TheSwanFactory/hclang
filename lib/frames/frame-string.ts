@@ -4,7 +4,7 @@ import { FrameSymbol } from "./frame-symbol.ts";
 import { NilContext } from "./context.ts";
 import type { Context } from "./context.ts";
 import { sigilizer } from "../execute/sigilizer.ts";
-import { quoteRecognizer, unterminatedAtEnd } from "./atom-syntax.ts";
+import { nestingDepth, unterminatedAtEnd } from "./atom-syntax.ts";
 import {
   type AtomSyntax,
   type RunSyntax,
@@ -22,6 +22,28 @@ const reducer = (current: Frame, char: string): Frame => {
 export interface IStringConstructor {
   new (data: string, meta: Context): FrameAtom;
 }
+
+/**
+ * Curly quotes nest without an escape character.
+ *
+ * An interior open increments depth and an interior close decrements it, so only
+ * a close at depth zero completes the string.
+ */
+const recognizeQuoted = (symbol: Frame, source = ""): ScanResult => {
+  if (symbol.toString() !== FrameString.STRING_END) {
+    return { disposition: ScanDisposition.Consume };
+  }
+  const depth = nestingDepth(
+    source,
+    FrameString.STRING_BEGIN,
+    FrameString.STRING_END,
+  );
+  return {
+    disposition: depth > 0
+      ? ScanDisposition.Consume
+      : ScanDisposition.CompleteConsume,
+  };
+};
 
 /**
  * The canonical HC string.
@@ -53,10 +75,7 @@ export class FrameString extends FrameQuote {
   public static readonly SYNTAX: AtomSyntax & RunSyntax = {
     NAME: "FrameString",
     SIGIL_STARTS: FrameString.SIGIL_STARTS,
-    recognize: quoteRecognizer(
-      FrameString.STRING_BEGIN,
-      FrameString.STRING_END,
-    ),
+    recognize: recognizeQuoted,
     finish: unterminatedAtEnd("FrameString", FrameString.STRING_BEGIN),
     fromSource: (source: string): Frame => new FrameString(source),
     RUN_DELIMITER: FrameString.RUN_DELIMITER,

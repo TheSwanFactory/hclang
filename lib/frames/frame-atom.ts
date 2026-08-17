@@ -39,11 +39,6 @@ export class FrameAtom extends Frame {
       this.string_close();
   }
 
-  /** Which characters belong to this value's spelling. */
-  public canInclude(char: string): boolean {
-    return char !== this.string_suffix();
-  }
-
   protected toData(): Any {
     return null;
   }

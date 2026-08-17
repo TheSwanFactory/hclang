@@ -4,14 +4,8 @@ import { FrameNote } from "./frame-note.ts";
 import { FrameLazy } from "./frame-lazy.ts";
 import { FrameSymbol } from "./frame-symbol.ts";
 import { NilContext } from "./context.ts";
-import {
-  completeAtEnd,
-  includeOrEnd,
-  type IncludeRule,
-} from "./atom-syntax.ts";
+import { completeAtEnd, includeOrEnd } from "./atom-syntax.ts";
 import type { AtomSyntax, ScanResult, SigilStart } from "../scan.ts";
-
-const includes: IncludeRule = (char) => FrameSymbol.SYMBOL_CHAR.test(char);
 
 export class FrameAlias extends FrameAtom {
   public static readonly ALIAS_BEGIN = "@";
@@ -25,7 +19,7 @@ export class FrameAlias extends FrameAtom {
     recognize: (symbol: Frame, source = ""): ScanResult => {
       const char = symbol.toString();
       return FrameSymbol.scanMutatingSuffix(source, char) ??
-        includeOrEnd(includes(char));
+        includeOrEnd(FrameSymbol.SYMBOL_CHAR.test(char));
     },
     finish: completeAtEnd,
     fromSource: (source: string): Frame => new FrameAlias(source),
@@ -57,10 +51,6 @@ export class FrameAlias extends FrameAtom {
 
   public override string_prefix(): string {
     return FrameAlias.ALIAS_BEGIN;
-  }
-
-  public override canInclude(char: string): boolean {
-    return includes(char);
   }
 
   protected override toData(): FrameSymbol {

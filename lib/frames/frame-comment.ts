@@ -22,14 +22,15 @@ export class FrameComment extends FrameQuote {
     SIGIL_STARTS: FrameComment.SIGIL_STARTS,
     recognize: (symbol: Frame): ScanResult => {
       const char = symbol.toString();
-      if (char === FrameComment.COMMENT_END) {
-        return { disposition: ScanDisposition.CompleteConsume };
+      if (!FrameComment.COMMENT_END_REGEX.test(char)) {
+        return { disposition: ScanDisposition.Consume };
       }
-      // A comment is also closed by the line that contains it.
-      if (char === "\n") {
-        return { disposition: ScanDisposition.CompleteRedispatch };
-      }
-      return { disposition: ScanDisposition.Consume };
+      // `#` closes the comment; a newline ends it but belongs to its line.
+      return {
+        disposition: char === FrameComment.COMMENT_END
+          ? ScanDisposition.CompleteConsume
+          : ScanDisposition.CompleteRedispatch,
+      };
     },
     finish: completeAtEnd,
     fromSource: (source: string): Frame => new FrameComment(source),
@@ -46,10 +47,6 @@ export class FrameComment extends FrameQuote {
 
   public override string_suffix(): string {
     return FrameComment.COMMENT_END;
-  }
-
-  public override canInclude(char: string): boolean {
-    return !FrameComment.COMMENT_END_REGEX.test(char);
   }
 
   protected override toData(): string {

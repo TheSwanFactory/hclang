@@ -85,10 +85,6 @@ export class FrameArg extends FrameSymbol {
     return FrameArg.ARG_CHAR;
   }
 
-  public override canInclude(char: string): boolean {
-    return char === FrameArg.ARG_CHAR || char === FrameParam.ARG_CHAR;
-  }
-
   public override in(contexts = [Frame.nil]): Frame {
     const level = this.data.length;
     if (level <= 1) {

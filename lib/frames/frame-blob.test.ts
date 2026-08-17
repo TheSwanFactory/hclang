@@ -39,11 +39,13 @@ describe("FrameBlob", () => {
   it("defaults to hexadecimal", () => {
     const empty_blob = new FrameBlob("");
     expect(empty_blob.toString()).toEqual("0x0");
-    expect(empty_blob.canInclude("F")).toBe(true);
+    expect(scan("F", "x0").disposition).toEqual(ScanDisposition.Consume);
   });
 
-  it("can include anything in base64", () => {
-    expect(frame_blob.canInclude("F")).toBe(true);
+  it("accepts the full base64 alphabet", () => {
+    for (const char of ["F", "f", "9", "+", "/", "="]) {
+      expect(scan(char, "sA").disposition).toEqual(ScanDisposition.Consume);
+    }
   });
 
   it("scans digits according to the selected base", () => {

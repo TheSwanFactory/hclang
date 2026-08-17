@@ -8,14 +8,7 @@
  *
  * @module
  */
-import type { Frame } from "./frame.ts";
 import { ScanDisposition, type ScanResult } from "../scan.ts";
-
-/** Whether one character belongs to the spelling of an atom. */
-export type IncludeRule = (char: string) => boolean;
-
-/** A stateless recognition rule, as required by `AtomSyntax.recognize`. */
-export type Recognizer = (symbol: Frame, source?: string) => ScanResult;
 
 /** A stateless end-of-input rule, as required by `AtomSyntax.finish`. */
 export type Finisher = (source?: string) => ScanResult;
@@ -30,11 +23,6 @@ export const includeOrEnd = (included: boolean): ScanResult => ({
     ? ScanDisposition.Consume
     : ScanDisposition.CompleteRedispatch,
 });
-
-/** Recognition for an atom spelled as a run of accepted characters. */
-export const includeRecognizer =
-  (include: IncludeRule): Recognizer => (symbol: Frame): ScanResult =>
-    includeOrEnd(include(symbol.toString()));
 
 /** End-of-input rule for an atom that ends wherever the source ends. */
 export const completeAtEnd = (): ScanResult => ({
@@ -54,28 +42,6 @@ export const nestingDepth = (
   prefix === "" || prefix === suffix
     ? 0
     : occurrences(source, prefix) - occurrences(source, suffix);
-
-/**
- * Recognition for an atom delimited by an explicit prefix and suffix.
- *
- * Asymmetric delimiters nest without an escape character: an interior prefix
- * increments depth, an interior suffix decrements it, and only a suffix at depth
- * zero completes the atom.
- */
-export const quoteRecognizer = (
-  prefix: string,
-  suffix: string,
-): Recognizer =>
-(symbol: Frame, source = ""): ScanResult => {
-  if (symbol.toString() !== suffix) {
-    return { disposition: ScanDisposition.Consume };
-  }
-  return {
-    disposition: nestingDepth(source, prefix, suffix) > 0
-      ? ScanDisposition.Consume
-      : ScanDisposition.CompleteConsume,
-  };
-};
 
 /** End-of-input rule for a delimited atom that must be closed. */
 export const unterminatedAtEnd = (
