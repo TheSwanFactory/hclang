@@ -1,9 +1,15 @@
-import { FrameQuote } from "./frame-atom.ts";
+import { FrameText } from "./frame-text.ts";
 import { type Context, NilContext } from "./context.ts";
 import type { Frame } from "./frame.ts";
-import { ScanDisposition, type ScanResult, type SigilStart } from "../scan.ts";
+import { completeAtEnd } from "./atom-syntax.ts";
+import {
+  type AtomSyntax,
+  ScanDisposition,
+  type ScanResult,
+  type SigilStart,
+} from "../scan.ts";
 
-export class FrameComment extends FrameQuote {
+export class FrameComment extends FrameText {
   public static readonly COMMENT_BEGIN = "#";
   public static readonly COMMENT_END = "#";
   public static readonly COMMENT_END_REGEX = /#|\n/;
@@ -11,8 +17,27 @@ export class FrameComment extends FrameQuote {
     { key: FrameComment.COMMENT_BEGIN, mode: "atom" },
   ] as const satisfies readonly SigilStart[];
 
-  constructor(protected data: string, meta: Context = NilContext) {
-    super(meta);
+  public static readonly SYNTAX: AtomSyntax = {
+    NAME: "FrameComment",
+    SIGIL_STARTS: FrameComment.SIGIL_STARTS,
+    recognize: (symbol: Frame): ScanResult => {
+      const char = symbol.toString();
+      if (!FrameComment.COMMENT_END_REGEX.test(char)) {
+        return { disposition: ScanDisposition.Consume };
+      }
+      // `#` closes the comment; a newline ends it but belongs to its line.
+      return {
+        disposition: char === FrameComment.COMMENT_END
+          ? ScanDisposition.CompleteConsume
+          : ScanDisposition.CompleteRedispatch,
+      };
+    },
+    finish: completeAtEnd,
+    fromSource: (source: string): Frame => new FrameComment(source),
+  };
+
+  constructor(data: string, meta: Context = NilContext) {
+    super(data, meta);
     this.is.void = true;
   }
 
@@ -22,28 +47,5 @@ export class FrameComment extends FrameQuote {
 
   public override string_suffix(): string {
     return FrameComment.COMMENT_END;
-  }
-
-  public override canInclude(char: string): boolean {
-    return !FrameComment.COMMENT_END_REGEX.test(char);
-  }
-
-  public override scan(symbol: Frame, _source = ""): ScanResult {
-    const char = symbol.toString();
-    if (char === FrameComment.COMMENT_END) {
-      return { disposition: ScanDisposition.CompleteConsume };
-    }
-    if (char === "\n") {
-      return { disposition: ScanDisposition.CompleteRedispatch };
-    }
-    return { disposition: ScanDisposition.Consume };
-  }
-
-  public override finishInput(_source = ""): ScanResult {
-    return { disposition: ScanDisposition.CompleteRedispatch };
-  }
-
-  protected override toData(): string {
-    return this.data;
   }
 }

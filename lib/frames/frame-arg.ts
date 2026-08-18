@@ -3,7 +3,12 @@ import { FrameNote } from "./frame-note.ts";
 import { FrameLazy } from "./frame-lazy.ts";
 import { FrameSymbol } from "./frame-symbol.ts";
 import { type Context, NilContext } from "./context.ts";
-import { ScanDisposition, type ScanResult, type SigilStart } from "../scan.ts";
+import {
+  type AtomSyntax,
+  ScanDisposition,
+  type ScanResult,
+  type SigilStart,
+} from "../scan.ts";
 
 const findClosure = (contexts: Frame[]): FrameLazy | undefined => {
   return contexts.find((context) => context instanceof FrameLazy) as
@@ -11,11 +16,55 @@ const findClosure = (contexts: Frame[]): FrameLazy | undefined => {
     | undefined;
 };
 
+/** An underscore run denotes a level; a trailing suffix names the argument. */
+const completeArg = (source: string): FrameArg =>
+  /^_*$/.test(source)
+    ? FrameArg.level(source.length + 1)
+    : new FrameArg(`_${source}`);
+
+/** A leading caret after `_` denotes a parameter level. */
+const completeLexeme = (source: string): FrameArg | FrameParam =>
+  source.startsWith(FrameParam.ARG_CHAR)
+    ? FrameParam.level(source.length)
+    : completeArg(source);
+
 export class FrameArg extends FrameSymbol {
   public static readonly ARG_CHAR = "_";
   public static override readonly SIGIL_STARTS: readonly SigilStart[] = [
     { key: FrameArg.ARG_CHAR, mode: "atom" },
   ];
+
+  public static override readonly SYNTAX: AtomSyntax = {
+    NAME: "FrameArg",
+    SIGIL_STARTS: FrameArg.SIGIL_STARTS,
+    recognize: (symbol: Frame, source = ""): ScanResult => {
+      const char = symbol.toString();
+
+      // A caret immediately after the selecting `_` changes this lexeme from
+      // an argument to a parameter. The source buffer carries the whole level,
+      // so no runtime FrameParam is needed as a receiver.
+      if (source.startsWith(FrameParam.ARG_CHAR)) {
+        return char === FrameParam.ARG_CHAR
+          ? { disposition: ScanDisposition.Consume }
+          : {
+            disposition: ScanDisposition.CompleteRedispatch,
+            frame: completeLexeme(source),
+          };
+      }
+
+      if (char === FrameArg.ARG_CHAR || char === FrameParam.ARG_CHAR) {
+        return { disposition: ScanDisposition.Consume };
+      }
+      return {
+        disposition: ScanDisposition.CompleteRedispatch,
+        frame: completeLexeme(source),
+      };
+    },
+    finish: (source = ""): ScanResult => ({
+      disposition: ScanDisposition.CompleteConsume,
+      frame: completeLexeme(source),
+    }),
+  };
 
   public static here(): FrameArg {
     return FrameArg.level();
@@ -47,35 +96,6 @@ export class FrameArg extends FrameSymbol {
     return FrameArg.ARG_CHAR;
   }
 
-  public override canInclude(char: string): boolean {
-    return char === FrameArg.ARG_CHAR || char === FrameParam.ARG_CHAR;
-  }
-
-  public override scan(symbol: Frame, source = ""): ScanResult {
-    const char = symbol.toString();
-    // The leading `_` selected this family; a first caret selects parameters.
-    if (char === FrameParam.ARG_CHAR && source === "") {
-      return {
-        disposition: ScanDisposition.Transition,
-        frame: FrameParam.level(),
-      };
-    }
-    if (this.canInclude(char)) {
-      return { disposition: ScanDisposition.Consume };
-    }
-    return {
-      disposition: ScanDisposition.CompleteRedispatch,
-      frame: this.completeAtom(source),
-    };
-  }
-
-  public override finishInput(source = ""): ScanResult {
-    return {
-      disposition: ScanDisposition.CompleteConsume,
-      frame: this.completeAtom(source),
-    };
-  }
-
   public override in(contexts = [Frame.nil]): Frame {
     const level = this.data.length;
     if (level <= 1) {
@@ -96,12 +116,6 @@ export class FrameArg extends FrameSymbol {
       }
     }
     return target;
-  }
-
-  private completeAtom(source: string): FrameArg {
-    return /^_*$/.test(source)
-      ? FrameArg.level(source.length + 1)
-      : new FrameArg(`_${source}`);
   }
 }
 
@@ -129,23 +143,6 @@ export class FrameParam extends FrameSymbol {
         super(data)
     } */
 
-  public override scan(symbol: Frame, source = ""): ScanResult {
-    if (symbol.toString() === FrameParam.ARG_CHAR) {
-      return { disposition: ScanDisposition.Consume };
-    }
-    return {
-      disposition: ScanDisposition.CompleteRedispatch,
-      frame: this.completeAtom(source),
-    };
-  }
-
-  public override finishInput(source = ""): ScanResult {
-    return {
-      disposition: ScanDisposition.CompleteConsume,
-      frame: this.completeAtom(source),
-    };
-  }
-
   public override in(contexts = [Frame.nil]): Frame {
     const level = this.data.length - 1; // number of ^
 
@@ -171,9 +168,5 @@ export class FrameParam extends FrameSymbol {
       }
     }
     return target;
-  }
-
-  private completeAtom(source: string): FrameParam {
-    return FrameParam.level(this.data.length - 1 + source.length);
   }
 }

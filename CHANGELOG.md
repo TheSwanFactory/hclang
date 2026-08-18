@@ -4,6 +4,12 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.10.0 2026-08-17
+
+- Read a document's characters without its fences through `.body`, as in
+  `` `prose`.body `` returning `“prose”`. A document still evaluates to itself
+  and still prints its fences verbatim.
+
 ## v0.9.4 2026-08-17
 
 - Build the release artifact from the version the release job just published, so

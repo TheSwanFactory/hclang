@@ -49,3 +49,60 @@ export interface ScanResult {
 
 /** A direct next receiver or a decision for Sigilizer to route. */
 export type ScanResponse = Frame | ScanResult;
+
+/**
+ * Class-side registration shared by every syntax family.
+ *
+ * A family registers this descriptor, never a runtime constructor. Recognition
+ * is a property of the family; construction is a property of the value.
+ */
+export interface SyntaxFacet {
+  /** Stable name used for lexer identity and diagnostics. */
+  readonly NAME: string;
+  /** Source characters and lexical modes that select this family. */
+  readonly SIGIL_STARTS: readonly SigilStart[];
+}
+
+/**
+ * Recognition and construction for a single-delimiter (`atom`) family.
+ *
+ * Recognition is stateless: it reads the Symbol, the lexeme accumulated so far,
+ * and the live evaluation context, never a partially built value. A family
+ * whose values never come from source may throw from `fromSource()` rather than
+ * accept a placeholder.
+ */
+export interface AtomSyntax extends SyntaxFacet {
+  /**
+   * Decide what the active lexeme does with one source Symbol.
+   *
+   * A descriptor is not a receiver, so it returns a decision and never itself.
+   */
+  recognize(symbol: Frame, source: string, context: Frame): ScanResult;
+  /** Resolve the active lexeme at physical end-of-input. */
+  finish(source: string): ScanResult;
+  /**
+   * Build one runtime value from its completed source body, when completion does
+   * not already supply one.
+   *
+   * Families that complete exclusively through `ScanResult.frame` omit this
+   * callback; they never accept placeholder source merely to satisfy the host.
+   */
+  readonly fromSource?: (source: string) => Frame;
+}
+
+/** Registration for a family whose maximal run length selects nesting depth. */
+export interface RunSyntax extends SyntaxFacet {
+  /** The character whose maximal runs delimit this family. */
+  readonly RUN_DELIMITER: string;
+  /** Adjective naming this family in lexical diagnostics. */
+  readonly RUN_LABEL: string;
+  /**
+   * Whether the body is foreign content rather than HC source.
+   *
+   * Opaque bodies own their own line conventions, so HC does not look for
+   * prompt markers inside them.
+   */
+  readonly RUN_OPAQUE: boolean;
+  /** Build one completed value from its body and classified run length. */
+  fromRun(body: string, runLength: number): Frame;
+}

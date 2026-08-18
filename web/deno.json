@@ -1,6 +1,6 @@
 {
   "name": "@swanfactory/hcweb",
-  "version": "0.9.4",
+  "version": "0.10.0",
   "description": "Homoiconic C - Web Components",
   "license": "MIT",
   "repository": {
@@ -33,11 +33,17 @@
       "tests/"
     ]
   },
-  "exclude": ["dist/", "tests/consumer/_fresh/"],
+  "exclude": [
+    "dist/",
+    "tests/consumer/_fresh/"
+  ],
   "deploy": {
     "install": "deno install",
     "build": "deno task build",
-    "runtime": { "type": "static", "cwd": "./dist" }
+    "runtime": {
+      "type": "static",
+      "cwd": "./dist"
+    }
   },
   "imports": {
     "@preact/signals": "npm:@preact/signals@2.11.0",
@@ -47,7 +53,12 @@
     "preact": "npm:preact@10.29.8"
   },
   "compilerOptions": {
-    "lib": ["dom", "dom.asynciterable", "dom.iterable", "deno.ns"],
+    "lib": [
+      "dom",
+      "dom.asynciterable",
+      "dom.iterable",
+      "deno.ns"
+    ],
     "jsx": "react-jsx",
     "jsxImportSource": "preact"
   }

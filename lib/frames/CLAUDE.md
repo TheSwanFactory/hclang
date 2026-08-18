@@ -60,6 +60,8 @@ and program is composed of frames. This unified representation enables:
 
 - [frame.ts](frame.ts) - Base Frame class and core protocol
 - [frame-atom.ts](frame-atom.ts) - Atomic (primitive) frame base class
+- [frame-text.ts](frame-text.ts) - Body shared by delimited text values, plus
+  the `CharacterContent` capability
 - [meta-frame.ts](meta-frame.ts) - Meta-programming support
 - [context.ts](context.ts) - Evaluation context (variable bindings)
 
@@ -79,17 +81,50 @@ interface IFrame {
 }
 ```
 
-Frames that participate in source recognition also use the shared lexical
-protocol:
+Families that participate in source recognition publish an immutable static
+`SYNTAX` descriptor instead of exposing a constructor to the lexer:
 
-- static `SIGIL_STARTS` advertises the source characters and lexical modes the
-  class owns;
-- `scan(Symbol)` returns the next Frame or a plain `ScanResult` for one source
-  Symbol; and
-- `finishInput()` completes or rejects the active state at physical EOF.
+- `SIGIL_STARTS` advertises the source characters and lexical modes the family
+  owns;
+- `recognize(symbol, source, context)` decides what one source Symbol does to
+  the lexeme accumulated so far;
+- `finish(source)` completes or rejects the lexeme at physical EOF; and
+- `fromSource(source)` builds the runtime value, or throws for a family whose
+  values never come from source.
 
-The active Frame owns syntax-specific and input-dependent state. The stateless
-Sigilizer routes only the generic dispositions declared in `lib/scan.ts`.
+Recognition is a property of the family, not of a value: it is stateless, so
+`lib/frames/atom-syntax.ts` supplies the shared rules and no family needs a
+receiver class. A family that genuinely accumulates lexical state, such as
+`FrameBytePayload`, is installed by a `Transition` and keeps instance
+`scan()`/`finishInput()` methods. `Frame.scan()` therefore means runtime double
+dispatch everywhere else.
+
+The stateless Sigilizer routes only the generic dispositions declared in
+`lib/scan.ts`.
+
+### Text Values and Character Content
+
+`FrameString`, `FrameDoc`, `FrameComment`, and `FrameURI` all hold a string body
+and render it through their own delimiters, so `FrameText` holds that body once
+and they are siblings rather than subclasses of one another. A document is not a
+kind of string: `` ` `` denotes foreign content while `“ ”` denotes characters.
+
+Storage is not coercion. Contributing raw characters to a larger string is the
+`CharacterContent` capability, advertised only by `FrameString` and `FrameDoc`,
+and juxtaposition tests for that capability rather than for a class. A comment
+or a resource identifier therefore keeps its delimiters when it joins a string,
+which is why `“a” #b#` yields `“a#b#”`.
+
+Two families stay out. `FrameBytes` is byte-backed, with a printable form
+derived from a `Uint8Array`. `FrameNote` holds a string, but that string is a
+label key resolved through `LABELS`, and a note renders through `toString()`
+rather than the shared `toStringData()` path.
+
+A document publishes its characters as a computed `body` property rather than
+stored metadata, because stored metadata would switch the shared atom renderer
+to its braced form and break fence round-tripping. Reading `.body` does not
+change what a document denotes: it still evaluates to itself and still prints
+its fences.
 
 ### Type Matching
 
@@ -168,8 +203,8 @@ const arr = frame.toStringArray();
 1. Extend appropriate base class ([frame.ts](frame.ts),
    [frame-atom.ts](frame-atom.ts), etc.)
 2. Implement required protocol methods
-3. For source syntax, declare static `SIGIL_STARTS` and override `scan()` or
-   `finishInput()` only when the inherited atom behavior is insufficient
+3. For source syntax, declare static `SIGIL_STARTS` and a static `SYNTAX`
+   descriptor, reusing the shared recognizers in `atom-syntax.ts` where possible
 4. Add constructor and initialization
 5. Implement `toString()` and `toStringArray()`
 6. Add tests in corresponding `.test.ts` file

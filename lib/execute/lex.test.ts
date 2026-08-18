@@ -11,10 +11,14 @@ import {
   FrameNumber,
   FrameParam,
   FrameString,
+  FrameSymbol,
   FrameURI,
 } from "../frames.ts";
+import { Lex } from "./lex.ts";
 import { LexPipe } from "./lex-pipe.ts";
 import { ParsePipe } from "./parse-pipe.ts";
+import { sigilizer } from "./sigilizer.ts";
+import { type AtomSyntax, ScanDisposition } from "../scan.ts";
 
 const lexAtoms = (source: string): Frame[] => {
   const output = new FrameArray([]);
@@ -207,6 +211,43 @@ describe("Lex", () => {
     const group = output.at(0) as FrameGroup;
     const expr = group.asArray()[0] as FrameExpr;
     expect(expr.asArray().map(String)).toEqual(["\\1\\a", "7"]);
+  });
+
+  it("resets recognition between values sharing one lexer", () => {
+    // The `\` lexer transitions to a payload receiver, completes, and must be
+    // ready to recognize the next length with no placeholder value in between.
+    expect(lexAtoms("\\1\\a\\2\\bc ").map(String)).toEqual([
+      "\\1\\a",
+      "\\2\\bc",
+    ]);
+    expect(lexAtoms("“a”“b” ").map(String)).toEqual(["“a”", "“b”"]);
+  });
+
+  it("reports an unterminated byte length at physical end of input", () => {
+    const output = new FrameArray([]);
+    const parser = new ParsePipe(output, FrameGroup);
+    const pending = new FrameString("\\12").reduce(new LexPipe(parser), false);
+    const result = sigilizer.finish(pending, FrameSymbol.end());
+
+    expect(result.is.error).toEqual(true);
+    expect(result.toString()).toEqual("unterminated byte length: \\12");
+  });
+
+  it("reports a factoryless completion that omits its value", () => {
+    const malformed: AtomSyntax = {
+      NAME: "Malformed",
+      SIGIL_STARTS: [{ key: "x", mode: "atom" }],
+      recognize: () => ({ disposition: ScanDisposition.CompleteConsume }),
+      finish: () => ({ disposition: ScanDisposition.CompleteConsume }),
+    };
+
+    const result = new Lex(malformed).completeScan();
+
+    expect(result.is.error).toEqual(true);
+    expect(result.is.lexical).toEqual(true);
+    expect(result.toString()).toEqual(
+      "Malformed completed without a value or source factory",
+    );
   });
 
   it("redispatches the first payload character after a dynamic zero length", () => {

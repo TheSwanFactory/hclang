@@ -3,7 +3,12 @@ import { Ops } from "./ops.ts";
 
 export { FrameAlias } from "./frames/frame-alias.ts";
 export { FrameArray } from "./frames/frame-array.ts";
-export { FrameAtom, FrameQuote } from "./frames/frame-atom.ts";
+export { FrameAtom } from "./frames/frame-atom.ts";
+export {
+  type CharacterContent,
+  FrameText,
+  hasCharacterContent,
+} from "./frames/frame-text.ts";
 export { FrameArg, FrameParam } from "./frames/frame-arg.ts";
 export { FrameBlob } from "./frames/frame-blob.ts";
 export { FrameBytePayload, FrameBytes } from "./frames/frame-bytes.ts";
@@ -24,11 +29,7 @@ export { FrameName } from "./frames/frame-name.ts";
 export { FrameNote } from "./frames/frame-note.ts";
 export { FrameNumber } from "./frames/frame-number.ts";
 export { FrameSchema } from "./frames/frame-schema.ts";
-export {
-  FrameString,
-  FrameStringEnd,
-  type IStringConstructor,
-} from "./frames/frame-string.ts";
+export { FrameString, FrameStringEnd } from "./frames/frame-string.ts";
 export {
   type FrameBinding,
   FrameLiteral,

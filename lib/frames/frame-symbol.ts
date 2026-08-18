@@ -7,7 +7,13 @@ import { FrameSchema } from "./frame-schema.ts";
 import { FrameType } from "./frame-type.ts";
 import { isFrameMatcher } from "./frame-match.ts";
 import { type Context, NilContext } from "./context.ts";
-import { ScanDisposition, type ScanResult, type SigilStart } from "../scan.ts";
+import { completeAtEnd, includeOrEnd } from "./atom-syntax.ts";
+import {
+  type AtomSyntax,
+  ScanDisposition,
+  type ScanResult,
+  type SigilStart,
+} from "../scan.ts";
 
 export type FrameBinding = {
   target: WeakRef<Frame>;
@@ -35,6 +41,18 @@ export class FrameSymbol extends FrameAtom {
   public static readonly SIGIL_STARTS: readonly SigilStart[] = [
     { key: FrameSymbol.SYMBOL_BEGIN.toString(), mode: "atom" },
   ];
+
+  public static readonly SYNTAX: AtomSyntax = {
+    NAME: "FrameSymbol",
+    SIGIL_STARTS: FrameSymbol.SIGIL_STARTS,
+    recognize: (symbol: Frame, source = ""): ScanResult => {
+      const char = symbol.toString();
+      return FrameSymbol.scanMutatingSuffix(source, char) ??
+        includeOrEnd(FrameSymbol.SYMBOL_CHAR.test(char));
+    },
+    finish: completeAtEnd,
+    fromSource: (source: string): Frame => new FrameSymbol(source),
+  };
 
   public static for(symbol: string): FrameSymbol {
     const exists = FrameSymbol.symbols[symbol];
@@ -197,19 +215,6 @@ export class FrameSymbol extends FrameAtom {
     return FrameSymbol.SYMBOL_BEGIN.toString();
   }
 
-  public override canInclude(char: string): boolean {
-    return FrameSymbol.SYMBOL_CHAR.test(char);
-  }
-
-  public override scan(symbol: Frame, source = ""): ScanResult {
-    const char = symbol.toString();
-    return FrameSymbol.scanMutatingSuffix(source, char) ?? {
-      disposition: this.canInclude(char)
-        ? ScanDisposition.Consume
-        : ScanDisposition.CompleteRedispatch,
-    };
-  }
-
   protected override toData(): string {
     return this.data === "$$" ? "\n" : this.data;
   }
@@ -228,6 +233,22 @@ export class FrameOperator extends FrameSymbol {
   public static override readonly SIGIL_STARTS: readonly SigilStart[] = [
     { key: FrameOperator.OPERATOR_START.toString(), mode: "atom" },
   ];
+
+  public static override readonly SYNTAX: AtomSyntax = {
+    NAME: "FrameOperator",
+    SIGIL_STARTS: FrameOperator.SIGIL_STARTS,
+    recognize: (symbol: Frame): ScanResult => {
+      const char = symbol.toString();
+      // Comparison brackets belong to the schema syntax, not to an operator.
+      if (char === "<" || char === ">") {
+        return { disposition: ScanDisposition.CompleteRedispatch };
+      }
+      return includeOrEnd(FrameOperator.Accepts(char));
+    },
+    finish: completeAtEnd,
+    fromSource: (source: string): Frame => new FrameOperator(source),
+  };
+
   public readonly operator: string;
 
   constructor(source: string, meta: Context = NilContext) {
@@ -262,21 +283,5 @@ export class FrameOperator extends FrameSymbol {
 
   public override string_start(): string {
     return FrameOperator.OPERATOR_CHARS.toString();
-  }
-
-  public override canInclude(char: string): boolean {
-    return FrameOperator.Accepts(char);
-  }
-
-  public override scan(symbol: Frame, _source = ""): ScanResult {
-    const char = symbol.toString();
-    if (char === "<" || char === ">") {
-      return { disposition: ScanDisposition.CompleteRedispatch };
-    }
-    return {
-      disposition: this.canInclude(char)
-        ? ScanDisposition.Consume
-        : ScanDisposition.CompleteRedispatch,
-    };
   }
 }

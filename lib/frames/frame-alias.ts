@@ -4,13 +4,26 @@ import { FrameNote } from "./frame-note.ts";
 import { FrameLazy } from "./frame-lazy.ts";
 import { FrameSymbol } from "./frame-symbol.ts";
 import { NilContext } from "./context.ts";
-import { ScanDisposition, type ScanResult, type SigilStart } from "../scan.ts";
+import { completeAtEnd, includeOrEnd } from "./atom-syntax.ts";
+import type { AtomSyntax, ScanResult, SigilStart } from "../scan.ts";
 
 export class FrameAlias extends FrameAtom {
   public static readonly ALIAS_BEGIN = "@";
   public static readonly SIGIL_STARTS = [
     { key: FrameAlias.ALIAS_BEGIN, mode: "atom" },
   ] as const satisfies readonly SigilStart[];
+
+  public static readonly SYNTAX: AtomSyntax = {
+    NAME: "FrameAlias",
+    SIGIL_STARTS: FrameAlias.SIGIL_STARTS,
+    recognize: (symbol: Frame, source = ""): ScanResult => {
+      const char = symbol.toString();
+      return FrameSymbol.scanMutatingSuffix(source, char) ??
+        includeOrEnd(FrameSymbol.SYMBOL_CHAR.test(char));
+    },
+    finish: completeAtEnd,
+    fromSource: (source: string): Frame => new FrameAlias(source),
+  };
 
   protected data: FrameSymbol;
 
@@ -38,19 +51,6 @@ export class FrameAlias extends FrameAtom {
 
   public override string_prefix(): string {
     return FrameAlias.ALIAS_BEGIN;
-  }
-
-  public override canInclude(char: string): boolean {
-    return FrameSymbol.SYMBOL_CHAR.test(char);
-  }
-
-  public override scan(symbol: Frame, source = ""): ScanResult {
-    const char = symbol.toString();
-    return FrameSymbol.scanMutatingSuffix(source, char) ?? {
-      disposition: this.canInclude(char)
-        ? ScanDisposition.Consume
-        : ScanDisposition.CompleteRedispatch,
-    };
   }
 
   protected override toData(): FrameSymbol {

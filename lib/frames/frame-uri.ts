@@ -1,10 +1,12 @@
-import { FrameQuote } from "./frame-atom.ts";
+import { FrameText } from "./frame-text.ts";
 import { FrameString } from "./frame-string.ts";
 import { type Context, NilContext } from "./context.ts";
 import { Frame } from "./frame.ts";
+import { unterminatedAtEnd } from "./atom-syntax.ts";
 import {
+  type AtomSyntax,
   ScanDisposition,
-  type ScanResponse,
+  type ScanResult,
   type SigilStart,
 } from "../scan.ts";
 
@@ -14,6 +16,30 @@ const URI_REFERENCE =
 
 /** Characters a URI reference cannot contain, so an apostrophe fails fast. */
 const URI_EXCLUDED = /[\s<>"“”`\\^{}|]/;
+
+/** Rejects non-URI content while the offending character is still local. */
+const recognizeReference = (symbol: Frame, source = ""): ScanResult => {
+  const char = symbol.toString();
+  if (char === FrameURI.URI_END) {
+    if (source === "") {
+      return {
+        disposition: ScanDisposition.Error,
+        message: "empty resource identifier: ''",
+      };
+    }
+    return { disposition: ScanDisposition.CompleteConsume };
+  }
+  if (URI_EXCLUDED.test(char)) {
+    const opened = `${FrameURI.URI_BEGIN}${source}`;
+    return {
+      disposition: ScanDisposition.Error,
+      message: /\s/.test(char)
+        ? `unterminated resource identifier: ${opened}`
+        : `invalid resource identifier: ${opened}${char}`,
+    };
+  }
+  return { disposition: ScanDisposition.Consume };
+};
 
 /**
  * Inert name for a resource outside the program.
@@ -29,7 +55,7 @@ const URI_EXCLUDED = /[\s<>"“”`\\^{}|]/;
  * must be URI-shaped, which turns an English apostrophe into a fast lexical
  * error instead of a silently swallowed remainder.
  */
-export class FrameURI extends FrameQuote {
+export class FrameURI extends FrameText {
   public static readonly URI_BEGIN = "'";
   public static readonly URI_END = "'";
   public static readonly SIGIL_STARTS: readonly SigilStart[] = [
@@ -44,8 +70,16 @@ export class FrameURI extends FrameQuote {
     "fragment",
   ] as const;
 
-  constructor(protected data: string, meta: Context = NilContext) {
-    super(meta);
+  public static readonly SYNTAX: AtomSyntax = {
+    NAME: "FrameURI",
+    SIGIL_STARTS: FrameURI.SIGIL_STARTS,
+    recognize: recognizeReference,
+    finish: unterminatedAtEnd("FrameURI", FrameURI.URI_BEGIN),
+    fromSource: (source: string): Frame => new FrameURI(source),
+  };
+
+  constructor(data: string, meta: Context = NilContext) {
+    super(data, meta);
     this.decompose();
   }
 
@@ -57,30 +91,6 @@ export class FrameURI extends FrameQuote {
     return FrameURI.URI_END;
   }
 
-  /** Rejects non-URI content while the offending character is still local. */
-  public override scan(symbol: Frame, source = ""): ScanResponse {
-    const char = symbol.toString();
-    if (char === FrameURI.URI_END) {
-      if (source === "") {
-        return {
-          disposition: ScanDisposition.Error,
-          message: "empty resource identifier: ''",
-        };
-      }
-      return { disposition: ScanDisposition.CompleteConsume };
-    }
-    if (URI_EXCLUDED.test(char)) {
-      const opened = `${FrameURI.URI_BEGIN}${source}`;
-      return {
-        disposition: ScanDisposition.Error,
-        message: /\s/.test(char)
-          ? `unterminated resource identifier: ${opened}`
-          : `invalid resource identifier: ${opened}${char}`,
-      };
-    }
-    return { disposition: ScanDisposition.Consume };
-  }
-
   /** The delimited reference, unchanged by decomposition. */
   public override toString(): string {
     return this.toStringData();
@@ -89,10 +99,6 @@ export class FrameURI extends FrameQuote {
   /** Resource identifiers are values, not lookups. */
   public override in(_contexts = [Frame.nil]): Frame {
     return this;
-  }
-
-  protected override toData(): string {
-    return this.data;
   }
 
   /** Publishes URI components as ordinary readable properties. */
