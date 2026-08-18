@@ -9,10 +9,10 @@
 - Read a document's characters without its fences through `.body`, as in
   `` `prose`.body `` returning `“prose”`. A document still evaluates to itself
   and still prints its fences verbatim.
-- Separated lexical recognition from runtime value construction, and gave every
-  delimited text value one shared body. Internal to the interpreter: HC syntax,
-  token boundaries, parsing, and evaluation are unchanged, and the published
-  `@swanfactory/hclang` entry point is untouched.
+- Separated lexical recognition from runtime value construction, and shared the
+  stored body of strings, documents, comments, and resource identifiers.
+  Existing HC programs retain their syntax, token boundaries, and evaluation
+  results; the published package export surface is unchanged.
 
 ## v0.9.4 2026-08-17
 
