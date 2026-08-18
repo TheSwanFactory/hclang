@@ -3,6 +3,7 @@ import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 
 import { Frame, FrameString, FrameURI } from "../frames.ts";
 import { ScanDisposition } from "../scan.ts";
+import { nestingDepth } from "./atom-syntax.ts";
 import { FrameSymbol } from "./frame-symbol.ts";
 
 /** Recognition is class-side, so no value is needed to exercise it. */
@@ -71,7 +72,8 @@ describe("FrameURI", () => {
   });
 
   it("does not nest", () => {
-    expect(uri.nestingDepth("'inner'")).toEqual(0);
+    expect(nestingDepth("'inner'", FrameURI.URI_BEGIN, FrameURI.URI_END))
+      .toEqual(0);
   });
 
   it("rejects characters excluded from a URI reference", () => {

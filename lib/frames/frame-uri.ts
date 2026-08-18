@@ -1,4 +1,4 @@
-import { FrameQuote } from "./frame-atom.ts";
+import { FrameText } from "./frame-text.ts";
 import { FrameString } from "./frame-string.ts";
 import { type Context, NilContext } from "./context.ts";
 import { Frame } from "./frame.ts";
@@ -55,7 +55,7 @@ const recognizeReference = (symbol: Frame, source = ""): ScanResult => {
  * must be URI-shaped, which turns an English apostrophe into a fast lexical
  * error instead of a silently swallowed remainder.
  */
-export class FrameURI extends FrameQuote {
+export class FrameURI extends FrameText {
   public static readonly URI_BEGIN = "'";
   public static readonly URI_END = "'";
   public static readonly SIGIL_STARTS: readonly SigilStart[] = [
@@ -78,8 +78,8 @@ export class FrameURI extends FrameQuote {
     fromSource: (source: string): Frame => new FrameURI(source),
   };
 
-  constructor(protected data: string, meta: Context = NilContext) {
-    super(meta);
+  constructor(data: string, meta: Context = NilContext) {
+    super(data, meta);
     this.decompose();
   }
 
@@ -99,10 +99,6 @@ export class FrameURI extends FrameQuote {
   /** Resource identifiers are values, not lookups. */
   public override in(_contexts = [Frame.nil]): Frame {
     return this;
-  }
-
-  protected override toData(): string {
-    return this.data;
   }
 
   /** Publishes URI components as ordinary readable properties. */

@@ -20,6 +20,11 @@ two ``backtick`` span
 # ````
 ; ``````
 # ``````
+## A document publishes its characters without its fences
+; `one-backtick document`.body
+# “one-backtick document”
+; ```body with `one` and ``two`` spans```.body
+# “body with `one` and ``two`` spans”
 ; 123
 # 123
 ; 1234 # trailing comment

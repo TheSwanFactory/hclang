@@ -173,11 +173,12 @@ becoming the class constant. Existing recognition tests are retargeted from a
 value instance to the descriptor without changing their assertions.
 
 **Vestigial predicates must not survive the move.** `canInclude()` existed to
-serve `FrameAtom.scan()`. Once recognition moves class-side it has no caller, and
-leaving it behind would create two unlinked definitions of which characters a
-family accepts. It is removed with its overrides, so each family states that rule
-once, in its recognizer. `FrameComment` keeps `COMMENT_END_REGEX` as that single
-statement and its recognizer branches on the terminator the regex matched.
+serve `FrameAtom.scan()`. Once recognition moves class-side it has no caller,
+and leaving it behind would create two unlinked definitions of which characters
+a family accepts. It is removed with its overrides, so each family states that
+rule once, in its recognizer. `FrameComment` keeps `COMMENT_END_REGEX` as that
+single statement and its recognizer branches on the terminator the regex
+matched.
 
 ## Acceptance
 

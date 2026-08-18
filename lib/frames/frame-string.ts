@@ -1,5 +1,10 @@
 import type { Frame } from "./frame.ts";
-import { FrameAtom, FrameQuote } from "./frame-atom.ts";
+import { FrameAtom } from "./frame-atom.ts";
+import {
+  type CharacterContent,
+  FrameText,
+  hasCharacterContent,
+} from "./frame-text.ts";
 import { FrameSymbol } from "./frame-symbol.ts";
 import { NilContext } from "./context.ts";
 import type { Context } from "./context.ts";
@@ -22,6 +27,23 @@ const reducer = (current: Frame, char: string): Frame => {
 export interface IStringConstructor {
   new (data: string, meta: Context): FrameAtom;
 }
+
+/**
+ * Joins one text value with a juxtaposed argument, always yielding a string.
+ *
+ * Character content contributes its characters; anything else contributes its
+ * spelling, so `“a” #c# ` keeps the comment delimiters it was written with.
+ */
+export const concatenateText = (
+  receiver: CharacterContent,
+  argument: FrameAtom,
+): FrameString => {
+  const value = hasCharacterContent(argument)
+    ? argument.characterContent()
+    : argument.toString();
+
+  return new FrameString(receiver.characterContent() + value);
+};
 
 /**
  * Curly quotes nest without an escape character.
@@ -53,7 +75,7 @@ const recognizeQuoted = (symbol: Frame, source = ""): ScanResult => {
  * rather than a second string type, and the completed value always prints with
  * curly quotes, so the alias is erased by round-tripping.
  */
-export class FrameString extends FrameQuote {
+export class FrameString extends FrameText implements CharacterContent {
   public static readonly STRING_BEGIN = "“";
   public static readonly STRING_END = "”";
   public static readonly ASCII_QUOTE = '"';
@@ -84,16 +106,16 @@ export class FrameString extends FrameQuote {
     fromRun: FrameString.fromRun,
   };
 
-  constructor(protected data: string, meta: Context = NilContext) {
-    super(meta);
+  constructor(data: string, meta: Context = NilContext) {
+    super(data, meta);
+  }
+
+  public characterContent(): string {
+    return this.data;
   }
 
   public override apply(argument: FrameAtom): FrameString {
-    let value = argument.toString();
-    if (argument instanceof FrameString) {
-      value = argument.data;
-    }
-    return new FrameString(this.data + value);
+    return concatenateText(this, argument);
   }
 
   public override string_prefix(): string {
@@ -107,10 +129,6 @@ export class FrameString extends FrameQuote {
   public reduce(starter: Frame, finish = true): Frame {
     const final = this.data.split("").reduce(reducer, starter);
     return finish ? sigilizer.scan(final, FrameSymbol.end()) : final;
-  }
-
-  protected override toData(): string {
-    return this.data;
   }
 }
 

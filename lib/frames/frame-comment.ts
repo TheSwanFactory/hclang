@@ -1,4 +1,4 @@
-import { FrameQuote } from "./frame-atom.ts";
+import { FrameText } from "./frame-text.ts";
 import { type Context, NilContext } from "./context.ts";
 import type { Frame } from "./frame.ts";
 import { completeAtEnd } from "./atom-syntax.ts";
@@ -9,7 +9,7 @@ import {
   type SigilStart,
 } from "../scan.ts";
 
-export class FrameComment extends FrameQuote {
+export class FrameComment extends FrameText {
   public static readonly COMMENT_BEGIN = "#";
   public static readonly COMMENT_END = "#";
   public static readonly COMMENT_END_REGEX = /#|\n/;
@@ -36,8 +36,8 @@ export class FrameComment extends FrameQuote {
     fromSource: (source: string): Frame => new FrameComment(source),
   };
 
-  constructor(protected data: string, meta: Context = NilContext) {
-    super(meta);
+  constructor(data: string, meta: Context = NilContext) {
+    super(data, meta);
     this.is.void = true;
   }
 
@@ -47,9 +47,5 @@ export class FrameComment extends FrameQuote {
 
   public override string_suffix(): string {
     return FrameComment.COMMENT_END;
-  }
-
-  protected override toData(): string {
-    return this.data;
   }
 }

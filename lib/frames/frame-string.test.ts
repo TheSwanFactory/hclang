@@ -2,6 +2,7 @@ import { expect } from "jsr:@std/expect@^0.219.1";
 import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 
 import { Frame, FrameNote, FrameString, FrameStringEnd } from "../frames.ts";
+import { nestingDepth } from "./atom-syntax.ts";
 import { ScanDisposition } from "../scan.ts";
 import { FrameSymbol } from "./frame-symbol.ts";
 
@@ -44,9 +45,12 @@ describe("FrameString", () => {
   });
 
   it("nests balanced interior quotes without escapes", () => {
-    expect(frame_string.nestingDepth("a “b")).toEqual(1);
-    expect(frame_string.nestingDepth("a “b” c")).toEqual(0);
-    expect(frame_string.nestingDepth("a “b “c”")).toEqual(1);
+    const depth = (source: string) =>
+      nestingDepth(source, FrameString.STRING_BEGIN, FrameString.STRING_END);
+
+    expect(depth("a “b")).toEqual(1);
+    expect(depth("a “b” c")).toEqual(0);
+    expect(depth("a “b “c”")).toEqual(1);
   });
 
   it("round-trips balanced interior quotes", () => {

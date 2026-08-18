@@ -16,6 +16,18 @@
 - Remove `FrameAtom.canInclude()` and its overrides. Recognition no longer calls
   it, and each family now states its accepted characters once, in its
   recognizer.
+- Read a document's characters without its fences through `.body`, as in
+  `` `prose`.body `` returning `“prose”`. A document still evaluates to itself
+  and still prints its fences verbatim.
+- Hold the body of every delimited text value in one place, `FrameText`, making
+  strings, documents, comments, and resource identifiers siblings. `FrameDoc` is
+  no longer a subclass of `FrameString`, so library code that relied on that
+  assignability must treat the two as separate text families.
+- Join juxtaposed values by the new `CharacterContent` capability rather than by
+  class, which keeps a comment or resource identifier's delimiters intact when
+  it is appended to a string.
+- Remove `FrameQuote.nestingDepth()`, whose only remaining callers were tests.
+  `FrameQuote` is now a marker for delimited atoms.
 - HC syntax, token boundaries, parsing, and evaluation are unchanged.
 
 ## v0.9.4 2026-08-17

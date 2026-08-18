@@ -4,6 +4,11 @@ import { Ops } from "./ops.ts";
 export { FrameAlias } from "./frames/frame-alias.ts";
 export { FrameArray } from "./frames/frame-array.ts";
 export { FrameAtom, FrameQuote } from "./frames/frame-atom.ts";
+export {
+  type CharacterContent,
+  FrameText,
+  hasCharacterContent,
+} from "./frames/frame-text.ts";
 export { FrameArg, FrameParam } from "./frames/frame-arg.ts";
 export { FrameBlob } from "./frames/frame-blob.ts";
 export { FrameBytePayload, FrameBytes } from "./frames/frame-bytes.ts";

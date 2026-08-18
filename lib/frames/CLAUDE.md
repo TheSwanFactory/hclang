@@ -59,7 +59,10 @@ and program is composed of frames. This unified representation enables:
 ### Meta Types
 
 - [frame.ts](frame.ts) - Base Frame class and core protocol
-- [frame-atom.ts](frame-atom.ts) - Atomic (primitive) frame base class
+- [frame-atom.ts](frame-atom.ts) - Atomic (primitive) frame base class, plus
+  `FrameQuote`, a marker for atoms with explicit delimiters
+- [frame-text.ts](frame-text.ts) - Body shared by delimited text values, plus
+  the `CharacterContent` capability
 - [meta-frame.ts](meta-frame.ts) - Meta-programming support
 - [context.ts](context.ts) - Evaluation context (variable bindings)
 
@@ -99,6 +102,30 @@ dispatch everywhere else.
 
 The stateless Sigilizer routes only the generic dispositions declared in
 `lib/scan.ts`.
+
+### Text Values and Character Content
+
+`FrameString`, `FrameDoc`, `FrameComment`, and `FrameURI` all hold a string body
+and render it through their own delimiters, so `FrameText` holds that body once
+and they are siblings rather than subclasses of one another. A document is not a
+kind of string: `` ` `` denotes foreign content while `“ ”` denotes characters.
+
+Storage is not coercion. Contributing raw characters to a larger string is the
+`CharacterContent` capability, advertised only by `FrameString` and `FrameDoc`,
+and juxtaposition tests for that capability rather than for a class. A comment
+or a resource identifier therefore keeps its delimiters when it joins a string,
+which is why `“a” #b#` yields `“a#b#”`.
+
+Two families stay out. `FrameBytes` is byte-backed, with a printable form
+derived from a `Uint8Array`. `FrameNote` holds a string, but that string is a
+label key resolved through `LABELS`, and a note renders through `toString()`
+rather than the shared `toStringData()` path.
+
+A document publishes its characters as a computed `body` property rather than
+stored metadata, because stored metadata would switch the shared atom renderer
+to its braced form and break fence round-tripping. Reading `.body` does not
+change what a document denotes: it still evaluates to itself and still prints
+its fences.
 
 ### Type Matching
 
