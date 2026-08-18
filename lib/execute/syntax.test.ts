@@ -1,7 +1,14 @@
 import { expect } from "jsr:@std/expect@^0.219.1";
 import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 
-import { FrameBytes, FrameDoc, FrameNumber, FrameString } from "../frames.ts";
+import {
+  FrameArg,
+  FrameBytes,
+  FrameDoc,
+  FrameNumber,
+  FrameString,
+  FrameStringEnd,
+} from "../frames.ts";
 import { getSyntax, syntaxFacets } from "./syntax.ts";
 import type { SyntaxFacet } from "../scan.ts";
 
@@ -32,8 +39,14 @@ describe("getSyntax", () => {
     } as SyntaxFacet;
 
     expect(() => getSyntax([runOnly])).toThrow(
-      "Atom Sigil requires recognize, finish, and fromSource: RunOnly",
+      "Atom Sigil requires recognize and finish: RunOnly",
     );
+  });
+
+  it("permits result-completed families to omit a source factory", () => {
+    expect(FrameArg.SYNTAX.fromSource).toBeUndefined();
+    expect(FrameBytes.SYNTAX.fromSource).toBeUndefined();
+    expect(FrameStringEnd.SYNTAX.fromSource).toBeUndefined();
   });
 
   it("rejects a run start without run metadata", () => {

@@ -14,9 +14,11 @@ import {
   FrameSymbol,
   FrameURI,
 } from "../frames.ts";
+import { Lex } from "./lex.ts";
 import { LexPipe } from "./lex-pipe.ts";
 import { ParsePipe } from "./parse-pipe.ts";
 import { sigilizer } from "./sigilizer.ts";
+import { type AtomSyntax, ScanDisposition } from "../scan.ts";
 
 const lexAtoms = (source: string): Frame[] => {
   const output = new FrameArray([]);
@@ -229,6 +231,23 @@ describe("Lex", () => {
 
     expect(result.is.error).toEqual(true);
     expect(result.toString()).toEqual("unterminated byte length: \\12");
+  });
+
+  it("reports a factoryless completion that omits its value", () => {
+    const malformed: AtomSyntax = {
+      NAME: "Malformed",
+      SIGIL_STARTS: [{ key: "x", mode: "atom" }],
+      recognize: () => ({ disposition: ScanDisposition.CompleteConsume }),
+      finish: () => ({ disposition: ScanDisposition.CompleteConsume }),
+    };
+
+    const result = new Lex(malformed).completeScan();
+
+    expect(result.is.error).toEqual(true);
+    expect(result.is.lexical).toEqual(true);
+    expect(result.toString()).toEqual(
+      "Malformed completed without a value or source factory",
+    );
   });
 
   it("redispatches the first payload character after a dynamic zero length", () => {

@@ -1,7 +1,14 @@
 import { expect } from "jsr:@std/expect@^0.219.1";
 import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 
-import { FrameArg, FrameParam, FrameString } from "../frames.ts";
+import {
+  Frame,
+  FrameArg,
+  FrameParam,
+  FrameString,
+  FrameSymbol,
+  ScanDisposition,
+} from "../frames.ts";
 
 describe("FrameArg", () => {
   const frame_arg = FrameArg.here();
@@ -45,6 +52,34 @@ describe("FrameArg", () => {
     const frame_param = FrameParam.there();
     const context = new FrameString("context");
     const param = new FrameString("param");
+
+    it("is constructed only when its class-side recognition completes", () => {
+      const firstCaret = FrameArg.SYNTAX.recognize(
+        FrameSymbol.for("^"),
+        "",
+        Frame.nil,
+      );
+      expect(firstCaret).toEqual({ disposition: ScanDisposition.Consume });
+
+      const completed = FrameArg.SYNTAX.recognize(
+        FrameSymbol.for(" "),
+        "^^",
+        Frame.nil,
+      );
+      expect(completed.disposition).toEqual(
+        ScanDisposition.CompleteRedispatch,
+      );
+      expect(completed.frame).toBeInstanceOf(FrameParam);
+      expect(completed.frame?.toString()).toEqual("_^^");
+    });
+
+    it("constructs a parameter value on physical EOF", () => {
+      const completed = FrameArg.SYNTAX.finish("^");
+
+      expect(completed.disposition).toEqual(ScanDisposition.CompleteConsume);
+      expect(completed.frame).toBeInstanceOf(FrameParam);
+      expect(completed.frame?.toString()).toEqual("_^");
+    });
 
     it("is created from 'there'", () => {
       expect(frame_param).toBeInstanceOf(FrameParam);

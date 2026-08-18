@@ -80,8 +80,14 @@ export interface AtomSyntax extends SyntaxFacet {
   recognize(symbol: Frame, source: string, context: Frame): ScanResult;
   /** Resolve the active lexeme at physical end-of-input. */
   finish(source: string): ScanResult;
-  /** Build one runtime value from its completed source body. */
-  fromSource(source: string): Frame;
+  /**
+   * Build one runtime value from its completed source body, when completion does
+   * not already supply one.
+   *
+   * Families that complete exclusively through `ScanResult.frame` omit this
+   * callback; they never accept placeholder source merely to satisfy the host.
+   */
+  readonly fromSource?: (source: string) => Frame;
 }
 
 /** Registration for a family whose maximal run length selects nesting depth. */

@@ -1,6 +1,6 @@
 # Lexical Recognizer Separation
 
-**Status:** Specified for v0.10.0\
+**Status:** Implemented in v0.10.0\
 **Issue:**
 [#298 — Separate lexical recognizers from runtime Frame construction](https://github.com/TheSwanFactory/hclang/issues/298)\
 **Refines:** [12-sigilizer-refactoring.md](./12-sigilizer-refactoring.md)\
@@ -41,24 +41,25 @@ and evaluation semantics are unchanged.
 
 ## The observation that shapes the design
 
-Every lexical recognizer in the codebase is already stateless.
+Every ordinary atom recognizer in the codebase is already stateless.
 
 `FrameAlias`, `FrameArg`, `FrameBlob`, `FrameBytes`, `FrameComment`,
 `FrameName`, `FrameNumber`, `FrameOperator`, `FrameString`, `FrameStringEnd`,
-`FrameSymbol`, `FrameURI`, and the shared `FrameQuote` rule read no mutable
-instance state in `scan()` or `finishInput()`. They read the arguments
-`(symbol, source, context)`, class constants such as `BLOB_DIGITS`, `NOTE_END`,
-and `SYMBOL_CHAR`, and constant-valued instance methods such as `canInclude()`
-and `string_suffix()`. The lexeme buffer already lives in `Lex`, which is why
-these methods receive `source` as a parameter.
+`FrameSymbol`, and `FrameURI` read only `(symbol, source, context)` and class
+constants such as `BLOB_DIGITS`, `NOTE_END`, and `SYMBOL_CHAR`. The lexeme
+buffer already lives in `Lex`, which is why these rules receive `source` as a
+parameter.
 
 Recognition is therefore a property of the syntax family, not of any value. It
-is an instance method today only because `Lex` needed an object to call it on,
-and a value instance was the nearest one available.
+was an instance method only because `Lex` needed an object to call it on, and a
+value instance was the nearest one available.
 
-The only stateful lexical receivers are `FrameBytePayload(count)` and
-`FrameParam.level(n)`. Both are already distinct objects reached through
-`Transition`, and both remain instance receivers.
+`FrameParam` originally remained an exception: the first caret transitioned to
+`FrameParam.level()`, and that runtime value recognized the rest. But the source
+buffer already carries the complete caret run, so `FrameArg.SYNTAX` recognizes
+it class-side and constructs `FrameParam` only in its completion result. The
+only stateful receiver left is `FrameBytePayload(count)`, whose count is genuine
+lexical configuration rather than a runtime byte value.
 
 ## Decision
 
@@ -74,9 +75,9 @@ export interface SyntaxFacet {
 }
 
 export interface AtomSyntax extends SyntaxFacet {
-  recognize(symbol: Frame, source: string, context: Frame): ScanResponse;
-  finish(source: string): ScanResponse;
-  fromSource(source: string): Frame;
+  recognize(symbol: Frame, source: string, context: Frame): ScanResult;
+  finish(source: string): ScanResult;
+  readonly fromSource?: (source: string) => Frame;
 }
 
 export interface RunSyntax extends SyntaxFacet {
@@ -116,13 +117,15 @@ more directly.
 
 ### Value construction is explicit
 
-Completed source becomes a value only through `syntax.fromSource(source)`,
-`syntax.fromRun(body, runLength)`, or a `frame:` payload already supplied by a
-scan result. Generic `Lex` performs no other construction.
+Completed source becomes a value only through an optional
+`syntax.fromSource(source)`, `syntax.fromRun(body, runLength)`, or a `frame:`
+payload supplied by a scan result. Generic `Lex` performs no other construction.
 
-A family whose values are never built from source declines the operation rather
-than accepting a placeholder. `FrameBytes.SYNTAX.fromSource` throws, because
-every bytes completion supplies an explicit value.
+A family whose every successful completion supplies a value omits `fromSource`.
+`FrameBytes`, `FrameStringEnd`, and `FrameArg` therefore carry no throwing or
+unreachable factory. If a factoryless family violates its contract by completing
+without a value, `Lex` returns a lexical protocol error rather than throwing or
+fabricating a runtime value.
 
 ### Byte recognition leaves the byte value
 
@@ -161,11 +164,10 @@ the `call()` it selected.
 
 ## Risks
 
-**Static inheritance is silent.** `FrameArg extends FrameSymbol` and
-`FrameDoc extends FrameString` inherit `SYNTAX` unless they override it, and
-TypeScript will not demand an override. Registering descriptors explicitly turns
-an omission into a duplicate `NAME`, which registration rejects alongside the
-existing conflicting-Sigil check.
+**Static inheritance is silent.** `FrameArg extends FrameSymbol`, and TypeScript
+will not demand a `SYNTAX` override. Registering descriptors explicitly turns an
+inherited descriptor into a duplicate `NAME`, which registration rejects
+alongside the existing conflicting-Sigil check.
 
 **Behavior must move unchanged.** Each recognizer moves verbatim, with
 `this.canInclude(c)` becoming the family predicate and `this.string_suffix()`
@@ -185,7 +187,10 @@ matched.
 - No `AtomFactory` type and no `new Factory("")` remain.
 - `Lex` holds no `sample` and constructs no value for recognition.
 - `Lex` names itself from `SYNTAX.NAME`.
-- Runtime Frames arrive only from explicit value factories or scan results.
+- Runtime Frames arrive only from explicit value factories or completed scan
+  results; `FrameParam` is never a lexical receiver.
+- A result-completed family may omit `fromSource`, and no registered source
+  factory deliberately throws.
 - `FrameBytes` accepts bytes only, and no test constructs `new FrameBytes("")`.
 - No `canInclude()` remains, and each family's accepted characters are stated
   once.

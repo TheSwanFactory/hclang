@@ -25,7 +25,7 @@ import {
   type ISourced,
   NilContext,
 } from "../frames.ts";
-import { sigilizer } from "./sigilizer.ts";
+import { lexicalError, sigilizer } from "./sigilizer.ts";
 import {
   type AtomSyntax,
   ScanDisposition,
@@ -126,8 +126,32 @@ export class Lex extends LexHost {
     return this;
   }
 
+  /**
+   * Emits one completed value and resets recognition.
+   *
+   * A family may either supply the value in its completion result or register a
+   * source factory. Completing with neither is a lexical protocol error, not a
+   * reason for a descriptor to carry a factory that deliberately throws.
+   */
   public completeScan(value: Frame | null = null): Frame {
-    this.exportFrame(value);
+    let completed = value;
+    if (completed === null) {
+      const createValue = this.syntax.fromSource;
+      if (createValue === undefined) {
+        return lexicalError(
+          `${this.syntax.NAME} completed without a value or source factory`,
+        );
+      }
+      if (this.body === "") {
+        this.body = this.source;
+      }
+      completed = createValue(this.body);
+    }
+
+    this.active = null;
+    this.body = "";
+    const out = this.get(Frame.kOUT);
+    out.call(new Token(completed));
     return this.up;
   }
 
@@ -142,33 +166,6 @@ export class Lex extends LexHost {
     this.body = "";
     this.source = "";
     return this;
-  }
-
-  protected exportFrame(value: Frame | null = null): Frame {
-    const output: Token = this.makeFrame(value);
-    const out = this.get(Frame.kOUT);
-    const result = out.call(output);
-    return result;
-  }
-
-  /**
-   * Emits one completed value and resets recognition.
-   *
-   * Resetting is discarding the active receiver: a stateless recognizer has
-   * nothing to rebuild.
-   */
-  protected makeFrame(value: Frame | null = null): Token {
-    this.active = null;
-    if (value !== null) {
-      this.body = "";
-      return new Token(value);
-    }
-    if (this.body === "") {
-      this.body = this.source;
-    }
-    const frame = this.syntax.fromSource(this.body);
-    this.body = "";
-    return new Token(frame);
   }
 
   private append(argument: Frame): void {

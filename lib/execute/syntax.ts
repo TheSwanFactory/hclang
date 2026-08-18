@@ -48,11 +48,10 @@ function asAtomSyntax(facet: SyntaxFacet): AtomSyntax {
   const candidate = facet as Partial<AtomSyntax> & SyntaxFacet;
   if (
     typeof candidate.recognize !== "function" ||
-    typeof candidate.finish !== "function" ||
-    typeof candidate.fromSource !== "function"
+    typeof candidate.finish !== "function"
   ) {
     throw new Error(
-      `Atom Sigil requires recognize, finish, and fromSource: ${facet.NAME}`,
+      `Atom Sigil requires recognize and finish: ${facet.NAME}`,
     );
   }
   return candidate as AtomSyntax;

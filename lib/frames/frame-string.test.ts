@@ -85,7 +85,6 @@ describe("FrameString", () => {
       FrameStringEnd.SYNTAX.recognize(FrameSymbol.for("a"), "", Frame.nil),
     ).toEqual(unmatched);
     expect(FrameStringEnd.SYNTAX.finish("")).toEqual(unmatched);
-    expect(() => FrameStringEnd.SYNTAX.fromSource("")).toThrow();
   });
 
   it("returns Note parent on failed reduce", () => {

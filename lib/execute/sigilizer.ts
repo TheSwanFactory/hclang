@@ -42,6 +42,10 @@ class LexicalError extends Frame {
   }
 }
 
+/** Create a terminal error at the lexical protocol boundary. */
+export const lexicalError = (message: string): Frame =>
+  new LexicalError(message);
+
 /**
  * Stateless boundary between source symbols and the active lexical receiver.
  *
@@ -69,11 +73,11 @@ export class Sigilizer {
     }
 
     if (result.disposition === ScanDisposition.Error) {
-      return new LexicalError(result.message ?? "lexical error");
+      return lexicalError(result.message ?? "lexical error");
     }
 
     if (!isScanHost(receiver)) {
-      return new LexicalError(
+      return lexicalError(
         `${receiver.className()} returned '${result.disposition}' without ` +
           "implementing the lexical host contract",
       );
@@ -90,7 +94,7 @@ export class Sigilizer {
       }
       case ScanDisposition.Transition:
         if (result.frame === undefined) {
-          return new LexicalError("lexical transition did not provide a Frame");
+          return lexicalError("lexical transition did not provide a Frame");
         }
         return this.route(
           receiver,

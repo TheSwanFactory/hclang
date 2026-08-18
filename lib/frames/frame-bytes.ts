@@ -102,9 +102,6 @@ export class FrameBytes extends FrameAtom {
       disposition: ScanDisposition.Error,
       message: `unterminated byte length: \\${source}`,
     }),
-    fromSource: (source: string): Frame => {
-      throw new Error(`byte values are built from bytes, not \\${source}`);
-    },
   };
 
   protected data: Uint8Array;

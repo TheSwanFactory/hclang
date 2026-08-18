@@ -147,9 +147,6 @@ export class FrameStringEnd extends FrameAtom {
     SIGIL_STARTS: FrameStringEnd.SIGIL_STARTS,
     recognize: (): ScanResult => FrameStringEnd.unmatched(),
     finish: (): ScanResult => FrameStringEnd.unmatched(),
-    fromSource: (): Frame => {
-      throw new Error("unmatched string terminator has no value");
-    },
   };
 
   public static unmatched(): ScanResult {
