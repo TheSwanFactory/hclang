@@ -33,8 +33,6 @@ import {
   type SyntaxFacet,
 } from "../scan.ts";
 
-export type Flag = { [key: string]: boolean };
-
 export class Token extends FrameAtom {
   constructor(protected data: Frame) {
     super(NilContext);

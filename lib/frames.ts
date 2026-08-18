@@ -29,11 +29,7 @@ export { FrameName } from "./frames/frame-name.ts";
 export { FrameNote } from "./frames/frame-note.ts";
 export { FrameNumber } from "./frames/frame-number.ts";
 export { FrameSchema } from "./frames/frame-schema.ts";
-export {
-  FrameString,
-  FrameStringEnd,
-  type IStringConstructor,
-} from "./frames/frame-string.ts";
+export { FrameString, FrameStringEnd } from "./frames/frame-string.ts";
 export {
   type FrameBinding,
   FrameLiteral,

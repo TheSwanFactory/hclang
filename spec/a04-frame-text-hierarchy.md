@@ -153,8 +153,9 @@ inherits `FrameString`, and it is currently untested.
       string reduction, both of which it loses.
 - [x] Verify no remaining parameter or return type requires a document where a
       string is declared.
-- [ ] Decide whether to retire `IStringConstructor`, an exported type with no
-      consumer in the repository. Left in place; it predates this work.
+- [x] Decide whether to retire `IStringConstructor`, an exported type with no
+      consumer in the repository. Retired, along with the unused `Flag` type and
+      the superseded `lexer.ts` module.
 
 ### Regression tests
 

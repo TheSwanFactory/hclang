@@ -6,29 +6,13 @@
 
 ## v0.10.0 2026-08-17
 
-- Construct `FrameBytes` from bytes only. The `number[] | string` constructor
-  accepted a placeholder string that the lexer needed and silently produced an
-  empty byte value; library callers passing a string now get a type error.
-- Register syntax families with an immutable static `SYNTAX` descriptor instead
-  of a runtime constructor, so recognition no longer requires constructing a
-  value. Custom families implement `recognize`, `finish`, and `fromSource`
-  rather than overriding `scan()` and `finishInput()` on the value class.
-- Remove `FrameAtom.canInclude()` and its overrides. Recognition no longer calls
-  it, and each family now states its accepted characters once, in its
-  recognizer.
 - Read a document's characters without its fences through `.body`, as in
   `` `prose`.body `` returning `“prose”`. A document still evaluates to itself
   and still prints its fences verbatim.
-- Hold the body of every delimited text value in one place, `FrameText`, making
-  strings, documents, comments, and resource identifiers siblings. `FrameDoc` is
-  no longer a subclass of `FrameString`, so library code that relied on that
-  assignability must treat the two as separate text families.
-- Join juxtaposed values by the new `CharacterContent` capability rather than by
-  class, which keeps a comment or resource identifier's delimiters intact when
-  it is appended to a string.
-- Remove `FrameQuote.nestingDepth()`, whose only remaining callers were tests.
-  `FrameQuote` is now a marker for delimited atoms.
-- HC syntax, token boundaries, parsing, and evaluation are unchanged.
+- Separated lexical recognition from runtime value construction, and gave every
+  delimited text value one shared body. Internal to the interpreter: HC syntax,
+  token boundaries, parsing, and evaluation are unchanged, and the published
+  `@swanfactory/hclang` entry point is untouched.
 
 ## v0.9.4 2026-08-17
 

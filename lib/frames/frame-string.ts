@@ -24,10 +24,6 @@ const reducer = (current: Frame, char: string): Frame => {
   return result;
 };
 
-export interface IStringConstructor {
-  new (data: string, meta: Context): FrameAtom;
-}
-
 /**
  * Joins one text value with a juxtaposed argument, always yielding a string.
  *
