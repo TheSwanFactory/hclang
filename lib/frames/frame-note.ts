@@ -1,6 +1,6 @@
 import { Frame } from "./frame.ts";
 import { FrameArray } from "./frame-array.ts";
-import { FrameQuote } from "./frame-atom.ts";
+import { FrameAtom } from "./frame-atom.ts";
 import { FrameString } from "./frame-string.ts";
 import { FrameSymbol } from "./frame-symbol.ts";
 import { NilContext, type StringMap } from "./context.ts";
@@ -14,7 +14,7 @@ import {
 
 export type LanguageBinding = { [key: string]: StringMap };
 
-export class FrameNote extends FrameQuote {
+export class FrameNote extends FrameAtom {
   public static readonly NOTE_BEGIN = "$";
   public static readonly NOTE_END = ";";
   public static readonly NOTE_EXTRAS = "++";

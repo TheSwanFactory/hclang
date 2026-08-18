@@ -1,4 +1,4 @@
-import { FrameAtom, FrameQuote } from "./frame-atom.ts";
+import { FrameAtom } from "./frame-atom.ts";
 import { type Context, NilContext } from "./context.ts";
 import { Frame } from "./frame.ts";
 import { FrameNumber } from "./frame-number.ts";
@@ -86,7 +86,7 @@ const recognizeLength = (
     };
 };
 
-export class FrameBytes extends FrameQuote {
+export class FrameBytes extends FrameAtom {
   public static readonly BYTES_BEGIN = "\\";
   public static readonly BYTES_END = "\\";
   public static readonly SIGIL_STARTS = [

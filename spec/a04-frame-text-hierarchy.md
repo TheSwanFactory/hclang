@@ -21,10 +21,10 @@ forces `FrameDoc` to satisfy `FrameString`'s static side, which is why its
 `SYNTAX` descriptor currently spreads `FrameString.SYNTAX` and carries an
 unreachable `fromSource`.
 
-Introduce an abstract `FrameText` under `FrameQuote` that owns the string body,
-and make all four families siblings. Keep string coercion separate from storage:
-appending to a string must still take the raw body of a string or document, and
-the rendered spelling of a comment or resource identifier.
+Introduce an abstract `FrameText` that owns the string body, and make all four
+families siblings. Keep string coercion separate from storage: appending to a
+string must still take the raw body of a string or document, and the rendered
+spelling of a comment or resource identifier.
 
 ## Decisions
 
@@ -34,7 +34,7 @@ only `FrameString` and `FrameDoc` advertise, so `FrameString`'s application path
 tests for that capability rather than for a position in the hierarchy. Testing
 `instanceof FrameText` there would silently strip comment and URI delimiters.
 
-`FrameBytes` stays directly under `FrameQuote`. Its body is a byte array whose
+`FrameBytes` stays out of the text base. Its body is a byte array whose
 printable form is derived, not stored text.
 
 `FrameNote` stays where it is. It holds a string, but that string is a label key
@@ -51,11 +51,12 @@ that capability keep the application behavior they have today, sharing one
 implementation. A comment and a resource identifier do not gain it: a comment is
 void and an identifier is an inert name.
 
-`FrameQuote` loses its last member and becomes a marker for "atom with explicit
-delimiters", which is a real distinction from bare atoms like symbols and
-numbers. It stays exported and stays the base of the text families, byte
-strings, and notes. Retiring it would remove a published type for no behavioral
-gain, so that is left alone.
+`FrameQuote` is retired. Removing its last member leaves a class with no
+members, no `instanceof` user, and nothing to say that `FrameAtom` does not
+already say; the nesting rule it once held is recognition and lives beside the
+syntax descriptors. `FrameText`, `FrameBytes`, and `FrameNote` extend
+`FrameAtom` directly. It was never reachable through the package entry point, so
+no consumer loses a type.
 
 A document publishes its body as a readable `body` property, computed on access
 rather than stored as metadata. Storing it would put an entry in the document's
@@ -88,9 +89,8 @@ inherits `FrameString`, and it is currently untested.
 
 ### Hierarchy
 
-- [x] Add an abstract text base under `FrameQuote` in a new
-      `lib/frames/frame-text.ts`, owning the string body and returning it as the
-      atom's data.
+- [x] Add an abstract text base in a new `lib/frames/frame-text.ts`, owning the
+      string body and returning it as the atom's data.
 - [x] Make the body immutable. No current text family reassigns it; confirm that
       before choosing the modifier.
 - [x] Reparent `FrameString`, `FrameComment`, and `FrameURI` onto the new base
@@ -100,7 +100,7 @@ inherits `FrameString`, and it is currently untested.
 - [x] Preserve each subclass's remaining constructor work: the comment's void
       flag, the resource identifier's decomposition, and the document's fence
       length.
-- [x] Leave `FrameBytes` under `FrameQuote`, and leave `FrameNote` unchanged.
+- [x] Keep `FrameBytes` and `FrameNote` out of the text base.
 
 ### Coercion capability
 
@@ -115,14 +115,15 @@ inherits `FrameString`, and it is currently untested.
 - [x] Confirm no import cycle results: the text base must not import either
       concrete family.
 
-### Quote marker
+### Quote base
 
 - [x] Delete the instance nesting-depth wrapper from `FrameQuote`; the shared
       rule beside the descriptors is the single implementation.
 - [x] Retarget its four assertions in the string and resource identifier tests
       to the shared rule.
-- [x] Document `FrameQuote` as a marker for delimited atoms, and keep it
-      exported.
+- [x] Retire the emptied `FrameQuote`, reparenting the text base, byte strings,
+      and notes onto `FrameAtom`.
+- [x] Drop its export and its mention in the frames guide.
 
 ### Document body property
 
@@ -215,6 +216,6 @@ nesting wrapper is removed, and a document's body is reachable as a computed
 - Changing HC syntax, token boundaries, parsing, or evaluation semantics.
 - Changing what any delimiter denotes.
 - Folding notes, symbols, blobs, or byte strings into the text base.
-- Retiring `FrameQuote`, or making a document evaluate to anything but itself.
+- Making a document evaluate to anything but itself.
 - Revisiting the recognizer boundary settled in
   [13-lexical-recognizer-separation.md](6-parsing-failures/13-lexical-recognizer-separation.md).

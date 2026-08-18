@@ -13,11 +13,11 @@
  *
  * @module
  */
-import { FrameQuote } from "./frame-atom.ts";
+import { FrameAtom } from "./frame-atom.ts";
 import { type Context, NilContext } from "./context.ts";
 import type { Frame } from "./frame.ts";
 
-export abstract class FrameText extends FrameQuote {
+export abstract class FrameText extends FrameAtom {
   protected constructor(
     protected readonly data: string,
     meta: Context = NilContext,

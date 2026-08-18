@@ -42,14 +42,3 @@ export class FrameAtom extends Frame {
     return null;
   }
 }
-
-/**
- * Marker for an atom delimited by an explicit prefix and suffix.
- *
- * The distinction from a bare atom is real: a delimited atom knows where it ends
- * from its own spelling, and asymmetric delimiters nest by matching pairs. That
- * nesting rule is recognition, so it lives beside the syntax descriptors in
- * `atom-syntax.ts` rather than on the value.
- */
-export class FrameQuote extends FrameAtom {
-}

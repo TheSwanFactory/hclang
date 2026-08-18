@@ -59,8 +59,7 @@ and program is composed of frames. This unified representation enables:
 ### Meta Types
 
 - [frame.ts](frame.ts) - Base Frame class and core protocol
-- [frame-atom.ts](frame-atom.ts) - Atomic (primitive) frame base class, plus
-  `FrameQuote`, a marker for atoms with explicit delimiters
+- [frame-atom.ts](frame-atom.ts) - Atomic (primitive) frame base class
 - [frame-text.ts](frame-text.ts) - Body shared by delimited text values, plus
   the `CharacterContent` capability
 - [meta-frame.ts](meta-frame.ts) - Meta-programming support
