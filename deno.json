@@ -39,7 +39,10 @@
     "exclude": [
       "**/*.html",
       "web/dist/",
-      "**/_fresh/"
+      "**/_fresh/",
+      "doc/out/",
+      "doc/no_equal.md",
+      "doc/shannon/1-shannon.md"
     ]
   },
   "exclude": [
