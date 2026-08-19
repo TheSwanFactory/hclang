@@ -61,7 +61,7 @@ export class MetaFrame {
   public up: Frame = {} as Frame; // forward-declare Frame
 
   /**
-   * parent is the declared parent: the explicit `._^` inheritance link.
+   * parent is the declared parent: the explicit `.^` inheritance link.
    * It is written only by setParent, so the declared chain is acyclic by
    * construction, and it is the only chain visibility authorizes against.
    */
@@ -196,7 +196,7 @@ export class MetaFrame {
    */
   public setParent(parent: Frame): Frame | undefined {
     if (this.wouldCreateParentCycle(parent)) {
-      return Frame.error("$!.cyclic-parent ._^");
+      return Frame.error("$!.cyclic-parent .^");
     }
     this.parent = parent;
     return undefined;

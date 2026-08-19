@@ -45,7 +45,7 @@ the call evaluates to the new value, and the original is untouched at any depth.
 `A parent declaration uses the existing up relationship. Descendants inherit
 public and protected values, while private values remain inaccessible.`
 ; .base [.public 42; ._protected 21; .__private 7];
-; .Derived {[._^ base; .values {[public, protected, private]}]};
+; .Derived {[.^ base; .values {[public, protected, private]}]};
 ; .derived (Derived());
 ; derived.values()
 # [42, 21, $!.is-private .private]
@@ -83,9 +83,14 @@ protected access.`
 # $!.is-protected .inner-secret
 
 `Parent relationships must remain acyclic.`
-; .cyclic_ [.set-parent: {._^ _;}];
+; .cyclic_ [.set-parent: {.^ _;}];
 ; [cyclic_.set-parent: cyclic_]
-# [($!.cyclic-parent ._^);]
+# [($!.cyclic-parent .^);]
+
+`The parent is declared as .^, and the retired ._^ spelling is refused rather
+than silently declaring a protected member named ^.`
+; [._^ base]
+# [$!.retired-syntax ._^ .^]
 
 `Multiple-base behavior is ordinary user-defined composition, not inheritance
 syntax or a built-in policy.`

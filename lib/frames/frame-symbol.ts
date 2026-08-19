@@ -139,13 +139,21 @@ export class FrameSymbol extends FrameAtom {
     if (argument instanceof FrameHandle) {
       argument = argument.unwrap();
     }
-    if (this.data === "_^") {
+    // `.^` declares the parent. It needs no visibility grading, so it collides
+    // with nothing: the leading underscore of the retired `._^` spelling read
+    // as "protected member named ^", which is what forced a magic string here.
+    if (this.data === "^") {
       const previous = out.hasDeclaredParent() ? out.parent : Frame.missing;
       const refused = out.setParent(argument);
       if (refused) return refused;
       return previous.is.missing
-        ? new FrameLiteral(`._^ ${argument.toString()}`)
+        ? new FrameLiteral(`.^ ${argument.toString()}`)
         : argument;
+    }
+    // The retired spelling would now quietly declare a protected member named
+    // `^` instead of a parent, so it is refused by name rather than obeyed.
+    if (this.data === "_^") {
+      return Frame.error("$!.retired-syntax ._^ .^");
     }
     const binding = out.resolve_here(this.data, out);
     if (binding?.value.is.error) return binding.value;

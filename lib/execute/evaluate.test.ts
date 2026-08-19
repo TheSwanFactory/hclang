@@ -1203,7 +1203,7 @@ describe("evaluate", () => {
     it("interprets a parent declaration as the declared parent link", () => {
       const result = evaluate(
         ".base [.public 42; ._protected 21; .__private 7]; " +
-          ".subclass {[._^ base; " +
+          ".subclass {[.^ base; " +
           ".values {[public, protected, private]}]}; " +
           ".instance (subclass()); instance.values()",
       );
@@ -1218,14 +1218,27 @@ describe("evaluate", () => {
       );
     });
 
+    it("refuses the retired parent-declaration spelling by name", () => {
+      const result = evaluate(
+        ".base [._protected 21]; .derived [._^ base; .read {protected}]",
+      );
+      const derived = result.meta.derived;
+
+      // Unrefused, `._^` would declare a protected member named ^, silently
+      // leaving the aggregate with no parent at all.
+      expect(result.at(0).toString()).toContain("$!.retired-syntax ._^ .^");
+      expect(derived.hasDeclaredParent()).toBe(false);
+      expect(derived.get_here("_^").is.missing).toBe(true);
+    });
+
     it("rejects cyclic parent declarations without corrupting lookup", () => {
       const declaration = evaluate(
-        ".owner_ [.set-parent: {._^ _;}]; owner_.set-parent: owner_",
+        ".owner_ [.set-parent: {.^ _;}]; owner_.set-parent: owner_",
       );
       const owner = declaration.meta.owner_;
 
       expect(declaration.at(0).toString()).toContain(
-        "$!.cyclic-parent ._^",
+        "$!.cyclic-parent .^",
       );
       expect(owner.hasDeclaredParent()).toBe(false);
       expect(owner.parent).not.toBe(owner);

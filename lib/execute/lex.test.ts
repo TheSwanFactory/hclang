@@ -118,10 +118,19 @@ describe("Lex", () => {
     expect(outerParent[0]).toBeInstanceOf(FrameParam);
     expect(outerParent[0].toString()).toEqual("_^^");
 
-    const declaration = lexAtoms("._^ ");
+    // The parent declaration needs no lexer rule of its own: `^` is already an
+    // operator character, so `.^` lexes as an ordinary name and completes on
+    // the following character.
+    const declaration = lexAtoms(".^ ");
     expect(declaration).toHaveLength(1);
     expect(declaration[0]).toBeInstanceOf(FrameName);
-    expect(declaration[0].toString()).toEqual("._^");
+    expect(declaration[0].toString()).toEqual(".^");
+
+    // The retired spelling stays one name so evaluation can refuse it.
+    const retired = lexAtoms("._^ ");
+    expect(retired).toHaveLength(1);
+    expect(retired[0]).toBeInstanceOf(FrameName);
+    expect(retired[0].toString()).toEqual("._^");
   });
 
   it("preserves parent identifiers across chunk boundaries", () => {
