@@ -1252,14 +1252,17 @@ describe("evaluate", () => {
       expect(derived.get_here("_^").is.missing).toBe(true);
     });
 
-    it("rejects cyclic parent declarations without corrupting lookup", () => {
+    it("rejects parent declarations outside construction without corrupting lookup", () => {
       const declaration = evaluate(
         ".owner_ [.set-parent: {.^ _;}]; owner_.set-parent: owner_",
       );
       const owner = declaration.meta.owner_;
 
+      // A method body is not a construction position, so the declaration is
+      // refused by position rather than reaching setParent's cycle guard --
+      // which lib/frames/meta-frame.test.ts pins at its only writer instead.
       expect(declaration.at(0).toString()).toContain(
-        "$!.cyclic-parent .^",
+        "$!.parent-not-declarable .^",
       );
       expect(owner.hasDeclaredParent()).toBe(false);
       expect(owner.parent).not.toBe(owner);

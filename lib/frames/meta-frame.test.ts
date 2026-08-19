@@ -96,6 +96,19 @@ describe("MetaFrame", () => {
     expect(parent.hasDeclaredParent()).toBe(false);
   });
 
+  it("accepts any frame as a declared parent", () => {
+    // Every frame can carry bindings, so nothing restricts a parent to an
+    // aggregate. An atom simply has none to inherit, and lookup reports the
+    // name as missing rather than failing at the declaration.
+    const child = new Frame();
+    const atom = new FrameString("atom", { inherited: Frame.all });
+
+    expect(child.setParent(atom)).toBeUndefined();
+    expect(child.parent).toBe(atom);
+    expect(child.get("inherited")).toBe(Frame.all);
+    expect(child.get("absent").is.missing).toBe(true);
+  });
+
   it("keeps the lexical pointer independent of the declared parent", () => {
     const declared = new Frame();
     const scope = new Frame();

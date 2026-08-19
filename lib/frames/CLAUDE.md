@@ -155,6 +155,27 @@ Wrapping and copying must not bend the table. A handle grades against its
 target, and an instance copy is its own owner, with full access to its own
 fields and no residual claim on its source's private ones.
 
+### Declared Parents
+
+`.^ base` declares a parent. The link is structural rather than an ordinary
+binding, so two rules bound it:
+
+- **Constructor position only.** It is declarable on the aggregate under
+  construction, and nowhere else. A method body has no aggregate under
+  construction, so its target would be the argument; declaring a parent there is
+  refused with `$!.parent-not-declarable .^` rather than re-parenting the wrong
+  frame. Re-parenting an existing object from a method is not yet a feature: it
+  is a mutation of identity and needs an effect rule first
+  ([#330](https://github.com/TheSwanFactory/hclang/issues/330)).
+- **Any frame may be a parent.** Every frame carries bindings, so nothing
+  restricts a parent to an aggregate. An atom simply has none to inherit, and
+  lookup reports the name as missing rather than failing at the declaration.
+
+`setParent` is the only writer, so the declared chain is acyclic by
+construction. Because the parent is declarable only during construction, a cycle
+is currently unreachable from HC source — the guard is covered at the frame
+level instead.
+
 ### Handles
 
 A handle is a name's effect-qualified reference to a value, and nothing more.

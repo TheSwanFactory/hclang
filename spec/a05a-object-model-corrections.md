@@ -7,7 +7,11 @@ scope frame with named slots, so `FrameArg`/`FrameParam` still index
 positionally ([#327](https://github.com/TheSwanFactory/hclang/issues/327)).
 Correction 5's parent respelling landed as `.^`; its mutating-marker unification
 stays deferred per [a05b](a05b-object-model-resolutions.md)
-([#328](https://github.com/TheSwanFactory/hclang/issues/328))\
+([#328](https://github.com/TheSwanFactory/hclang/issues/328)). `.^` is
+declarable only on the aggregate under construction, so it does not reach a
+receiver from a method body; re-parenting an existing object is a mutation of
+identity and needs an effect rule first
+([#330](https://github.com/TheSwanFactory/hclang/issues/330))\
 **Corrects:**
 [a05-object-model-refactoring.md](a05-object-model-refactoring.md)\
 **Issue:**

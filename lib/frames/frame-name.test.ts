@@ -10,6 +10,7 @@ import {
   FrameString,
   FrameSymbol,
 } from "../frames.ts";
+import { FrameHandle } from "./frame-handle.ts";
 
 describe("FrameName", () => {
   const symbol = "atom";
@@ -57,6 +58,26 @@ describe("FrameName", () => {
       const setter = frame_name.in([statement, wrapper]);
 
       expect(setter.get(Frame.kOUT)).toBe(statement);
+    });
+
+    it("declares a parent only on the frame under construction", () => {
+      const parent = new FrameName(FrameName.PARENT_DECLARATION);
+      const underConstruction = new FrameArray([]);
+      underConstruction.declares = true;
+
+      expect(parent.in([new FrameString("statement"), underConstruction]))
+        .not.toHaveProperty("is.error", true);
+
+      // A method body offers no aggregate under construction. Its target would
+      // be the argument, so the declaration is refused rather than re-parenting
+      // the wrong frame.
+      const inMethodBody = parent.in([
+        new FrameHandle(new FrameArray([]), true),
+        new FrameString("receiver"),
+      ]);
+
+      expect(inMethodBody.is.error).toBe(true);
+      expect(inMethodBody.toString()).toEqual("$!.parent-not-declarable .^");
     });
 
     it("prefers the innermost of several declaration targets", () => {

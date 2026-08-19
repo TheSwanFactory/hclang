@@ -82,10 +82,12 @@ protected access.`
 ; outer.nested.read()
 # $!.is-protected .inner-secret
 
-`Parent relationships must remain acyclic.`
-; .cyclic_ [.set-parent: {.^ _;}];
-; [cyclic_.set-parent: cyclic_]
-# [($!.cyclic-parent .^);]
+`The parent is structural, so it is declarable only on the aggregate under
+construction. A method body has no aggregate under construction, and its target
+would be the argument, so declaring a parent there is refused by name.`
+; .target_ [.set-parent: {.^ _;}];
+; [target_.set-parent: target_]
+# [($!.parent-not-declarable .^);]
 
 `The parent is declared as .^, and the retired ._^ spelling is refused rather
 than silently declaring a protected member named ^.`
