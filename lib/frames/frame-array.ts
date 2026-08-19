@@ -32,10 +32,17 @@ export class FrameArray extends FrameList {
     if (this.hasDeclaredParent()) {
       result.parent = this.parent;
     }
-    // An aggregate under construction accepts declarations, and says so rather
-    // than leaving a name to infer it from the shape of the context stack.
+    // An aggregate accepts declarations while it is under construction, and
+    // says so rather than leaving a name to infer it from the context stack.
+    // The mark is scoped to that construction: once built, the aggregate is a
+    // value, so appearing in a later context stack (as a method receiver, say)
+    // does not make it absorb declarations.
     result.declares = true;
-    result.data = this.array_eval([...contexts], result);
+    try {
+      result.data = this.array_eval([...contexts], result);
+    } finally {
+      result.declares = false;
+    }
     return result;
   }
 

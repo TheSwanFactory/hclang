@@ -963,6 +963,18 @@ describe("evaluate", () => {
         .toContain("[42, 21, 7]");
     });
 
+    it("does not absorb body declarations into a method's receiver", () => {
+      // A constructed aggregate is a value, not an open declaration target, so
+      // a non-mutating method cannot quietly add fields to its receiver.
+      const immutable = evaluate(".obj [.m {.zz 1}]; obj.m(); obj.zz");
+      const mutable = evaluate(".obj_ [.m {.yy 2}]; obj_.m(); obj_.yy");
+
+      expect(immutable.at(-1).toString()).toContain("$!.name-missing");
+      expect(immutable.meta.obj.get_here("zz").is.missing).toBe(true);
+      expect(mutable.at(-1).toString()).toContain("$!.name-missing");
+      expect(mutable.meta.obj_.get_here("yy").is.missing).toBe(true);
+    });
+
     it("refuses protected access to a merely nested aggregate", () => {
       // Lexical nesting is not inheritance: a child aggregate is a peer for
       // visibility, not a descendant, because it declares no parent.
