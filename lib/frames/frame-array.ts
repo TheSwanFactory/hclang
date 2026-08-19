@@ -46,6 +46,28 @@ export class FrameArray extends FrameList {
     return result;
   }
 
+  /**
+   * Aggregates are where identity matters, so an instance copy isolates them:
+   * every nested aggregate, in the data plane and the metadata plane alike, gets
+   * fresh identity, and writing through the copy is invisible through the
+   * original at any depth. Atoms and closure bodies are shared, since neither
+   * carries identity a write can land on. A declared parent rides along in its
+   * own field, and the id is always fresh.
+   */
+  public override instanceCopy(seen: Map<Frame, Frame> = new Map()): Frame {
+    const copied = seen.get(this);
+    if (copied) {
+      return copied;
+    }
+    const clone = this.copy();
+    seen.set(this, clone);
+    clone.data = this.data.map((item) => item.instanceCopy(seen));
+    for (const [key, value] of this.meta_pairs()) {
+      clone.set(key, value.instanceCopy(seen));
+    }
+    return clone;
+  }
+
   public override get(key: string, origin: MetaFrame = this): Frame {
     if (!isNaN(Number(key))) {
       return this.at(Number(key));

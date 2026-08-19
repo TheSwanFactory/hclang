@@ -28,6 +28,20 @@ prove that constructor state does not leak between repeated instances.`
 ; constant_.Value
 # 1
 
+`A mutating method reached through an immutable handle is a functional update:
+the call evaluates to the new value, and the original is untouched at any depth.`
+; .pair [.inner_ [.n 1; .set-n: {@n _;}]; .bump: {inner_.set-n: _}];
+; (pair.bump: 5).inner_.n
+# 5
+; pair.inner_.n
+# 1
+
+`A mutable receiver takes no copy, so the nested identity it declares is shared.`
+; .live_ [.inner_ [.n 1; .set-n: {@n _;}]; .bump: {inner_.set-n: _}];
+; live_.bump: 9;
+; live_.inner_.n
+# 9
+
 `A parent declaration uses the existing up relationship. Descendants inherit
 public and protected values, while private values remain inaccessible.`
 ; .base [.public 42; ._protected 21; .__private 7];

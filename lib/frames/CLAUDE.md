@@ -126,6 +126,27 @@ to its braced form and break fence round-tripping. Reading `.body` does not
 change what a document denotes: it still evaluates to itself and still prints
 its fences.
 
+### Copy Contract
+
+Copying is two operations, not one, and every call site belongs to exactly one
+of them:
+
+- **Plumbing copy** — `Frame.copy()`. A shallow clone with an independent
+  metadata map, flags, and a fresh id, for interpreter internals that need those
+  and nothing more. It promises no object semantics; nested aggregates are
+  shared.
+- **Instance copy** — `Frame.instanceCopy()`. The object-semantic operation,
+  with exactly one caller: copy-on-write in `BoundMethod`, where a mutating
+  method is reached through an immutable handle. Nested aggregates get fresh
+  identity at every depth in both planes, so a write through the copy is
+  invisible through the original; atoms and closure bodies are shared, because
+  neither owns identity a write can land on. A declared parent is preserved in
+  its own field and the id is always fresh.
+
+Copy-on-write therefore means functional update: `p.set: 2` leaves `p` alone and
+evaluates to the new value. Bodies are never copied — a bound method passes its
+receiver as an explicit argument rather than rewriting a copied closure.
+
 ### Type Matching
 
 First-class types implement the `FrameMatcher` protocol. A pure match returns

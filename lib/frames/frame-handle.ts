@@ -62,8 +62,11 @@ class BoundMethod extends Frame {
   }
 
   public override call(argument: Frame, _parameter = Frame.nil): Frame {
+    // Copy-on-write is the one caller of the instance copy, and it means
+    // functional update: an immutable receiver is untouched at any depth, and
+    // the call evaluates to the new value.
     const target = this.key.endsWith(":") && !this.mutable
-      ? this.boundReceiver.copy()
+      ? this.boundReceiver.instanceCopy()
       : this.boundReceiver;
     // The receiver travels as an explicit argument. The shared closure is
     // neither copied nor mutated, so it stays reusable across calls.

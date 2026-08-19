@@ -1173,6 +1173,33 @@ describe("evaluate", () => {
       expect(schema.meta.owner_.get_here("value").toString()).toEqual("1");
     });
 
+    it("updates an immutable receiver functionally, at any depth", () => {
+      const result = evaluate(
+        ".pair [.inner_ [.n 1; .set-n: {@n _;}]; .bump: {inner_.set-n: _}]; " +
+          "(pair.bump: 5).inner_.n; pair.inner_.n",
+      );
+
+      // Copy-on-write is the only instance-copy caller: the call evaluates to
+      // the new value and the original is untouched through its nested
+      // aggregate, which a plumbing copy would have shared.
+      expect(result.at(0).toString()).toMatch(/; \(5\); 1\)$/);
+      expect(
+        result.meta.pair.get_here("inner_").get_here("n").toString(),
+      ).toEqual("1");
+    });
+
+    it("mutates a mutable receiver in place, sharing nested identity", () => {
+      const result = evaluate(
+        ".live_ [.inner_ [.n 1; .set-n: {@n _;}]; .bump: {inner_.set-n: _}]; " +
+          "live_.bump: 9; live_.inner_.n",
+      );
+
+      expect(result.at(0).toString()).toMatch(/; 9\)$/);
+      expect(
+        result.meta.live_.get_here("inner_").get_here("n").toString(),
+      ).toEqual("9");
+    });
+
     it("interprets a parent declaration as the declared parent link", () => {
       const result = evaluate(
         ".base [.public 42; ._protected 21; .__private 7]; " +
