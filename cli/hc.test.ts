@@ -243,7 +243,7 @@ describe("main", () => {
 
     expect(status).toEqual(0);
     expect(out.at(-1).toString()).toContain(
-      '“{"total":12,"pass":12,"fail":0,"unimplemented":0}”',
+      '“{"total":22,"pass":22,"fail":0,"unimplemented":0}”',
     );
   });
 
@@ -266,7 +266,7 @@ describe("main", () => {
       expect(diagnostics).toEqual([]);
       expect(summaries.length).toEqual(1);
       expect(summaries[0].toString()).toContain(
-        '“{"total":81,"pass":81,"fail":0,"unimplemented":0}”',
+        '“{"total":82,"pass":82,"fail":0,"unimplemented":0}”',
       );
     } finally {
       console.error = originalError;

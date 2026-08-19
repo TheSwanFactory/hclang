@@ -4,6 +4,19 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.10.1 2026-08-18
+
+- Refuse a protected member reached through containment rather than inheritance,
+  so a nested aggregate's method reading an enclosing frame's `_secret` reports
+  `$!.is-protected` instead of returning the value.
+- Declare an aggregate's parent as `.^ base`, which now inherits the parent's
+  bindings; the parent is declarable only on the aggregate under construction.
+- Refuse the retired `._^` spelling with `$!.retired-syntax ._^ .^` instead of
+  silently declaring a protected member named `^` and leaving the aggregate with
+  no parent at all.
+- Report `$!.parent-not-declarable .^` for a parent declaration outside
+  construction, such as in a method body, instead of exhausting the stack.
+
 ## v0.10.0 2026-08-17
 
 - Read a document's characters without its fences through `.body`, as in

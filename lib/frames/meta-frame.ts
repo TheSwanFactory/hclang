@@ -55,9 +55,29 @@ export class MetaFrame {
   public static id_count = 0;
 
   /**
-   * up is a reference to the parent frame.
+   * up is the lexical parent: the scope or container a frame was evaluated in.
+   * It is rewritten as lookup learns context and carries no ownership claim.
    */
   public up: Frame = {} as Frame; // forward-declare Frame
+
+  /**
+   * parent is the declared parent: the explicit `.^` inheritance link.
+   * It is written only by setParent, so the declared chain is acyclic by
+   * construction, and it is the only chain visibility authorizes against.
+   */
+  public parent: Frame = {} as Frame; // forward-declare Frame
+
+  /**
+   * receiver is the frame a method body executes against, installed per call
+   * on the invocation frame rather than by mutating a shared closure.
+   */
+  public receiver: Frame = {} as Frame; // forward-declare Frame
+
+  /**
+   * declares marks a frame that accepts declarations, so a name binds to the
+   * innermost marked target instead of inferring one from context classes.
+   */
+  public declares = false;
 
   /**
    * id is a unique identifier for each Frame.
@@ -133,6 +153,16 @@ export class MetaFrame {
       return result;
     }
 
+    // The declared chain is consulted before the lexical one: inheritance is
+    // ownership, while up is only the scope this frame happened to be seen in.
+    const declared = this.parent;
+    if (declared && !declared.is.missing) {
+      const inherited = declared.get(key, origin);
+      if (!inherited.is.missing) {
+        return inherited;
+      }
+    }
+
     let parent = this.up || Frame.globals;
     if (parent.is.missing) {
       if (Frame.globals.is.missing) {
@@ -154,16 +184,54 @@ export class MetaFrame {
     return this;
   }
 
+  /** Whether this frame carries an explicitly declared parent. */
+  public hasDeclaredParent(): boolean {
+    return this.parent != null && !this.parent.is.missing;
+  }
+
+  /**
+   * setParent is the only path that may attach a declared parent, so a cyclic
+   * declared chain cannot be built by a caller that forgot to check. It returns
+   * an error frame when the link is refused and undefined when it is accepted.
+   */
+  public setParent(parent: Frame): Frame | undefined {
+    if (this.wouldCreateParentCycle(parent)) {
+      return Frame.error("$!.cyclic-parent .^");
+    }
+    this.parent = parent;
+    return undefined;
+  }
+
   /** Whether assigning parent would attach this frame to a cyclic chain. */
-  public wouldCreateParentCycle(parent: MetaFrame): boolean {
+  public wouldCreateParentCycle(parent: Frame): boolean {
     const seen = new Set<MetaFrame>([this]);
-    let current: MetaFrame | undefined = parent;
-    while (current) {
+    let current: Frame | undefined = parent;
+    while (current && !current.is.missing) {
       if (seen.has(current)) return true;
       seen.add(current);
-      current = current.up;
+      current = current.parent;
     }
     return false;
+  }
+
+  /**
+   * The innermost receiver active across an evaluation context stack.
+   *
+   * Only a frame's own receiver slot counts. The lexical `up` chain is not
+   * followed: it is rewritten by unrelated evaluation, including on every
+   * successful lookup and on the shared body items an invocation frame wraps,
+   * so walking it would let one call's receiver leak into another's. A scope
+   * nested inside a method body still finds the receiver because the
+   * invocation frame that carries it stays on this stack.
+   */
+  public static receiverIn(contexts: Frame[]): Frame | undefined {
+    for (let i = contexts.length - 1; i >= 0; i--) {
+      const receiver = contexts[i].receiver;
+      if (receiver && !receiver.is.missing) {
+        return receiver;
+      }
+    }
+    return undefined;
   }
 
   /**
@@ -249,13 +317,19 @@ export class MetaFrame {
     };
   }
 
+  /**
+   * isAncestorOf walks the declared parent chain only. Lexical nesting and
+   * syntactic containment confer no protected access: an inner aggregate or an
+   * unrelated peer's method is not a descendant.
+   */
   private isAncestorOf(origin: MetaFrame): boolean {
     const seen = new Set<MetaFrame>();
     let current: MetaFrame | undefined = origin;
     while (current && !seen.has(current)) {
       if (current === this) return true;
       seen.add(current);
-      current = current.up;
+      if (!current.hasDeclaredParent()) return false;
+      current = current.parent;
     }
     return false;
   }

@@ -415,11 +415,17 @@ function can do to the calling scope.
 
 ## Object-Oriented Programming
 
-### Super `^`
+### Super `^` (not implemented)
 
-The `^` property points to the parent (defined) context, in contrast to the
-applied (argument) context `_`. This allows a child to directly set properties
-on its parent or access overridden properties.
+`.^ base` declares a parent, and inherited properties are read by plain name.
+Expression-position `^` is the BindType operator, not a reader, so the `^.x` and
+`.^.x` forms below are a design sketch rather than working syntax: they neither
+read nor write the parent today. Nothing else gives `^` a second meaning in
+expression position.
+
+The sketch: a `^` property pointing at the parent (defined) context, in contrast
+to the applied (argument) context `_`, letting a child set properties on its
+parent or reach overridden ones.
 
     ; .parent_ [
     # # .x 1;
@@ -451,8 +457,8 @@ clutter.)
 
     ; my-class {
       ._property _;
-      .getProperty { ^._property }
-      .setProperty: { .^._property _}
+      .getProperty { property }
+      .setProperty: { @property _; }
     };
     ; .my-instance my-class 3;
     ; my-instance.getProperty()
@@ -468,7 +474,7 @@ primitives:
 
 - Data hiding is handled by the implicit access Modifiers
 - Scope is always inherited
-- Instance methods refer to their parent by `^`
+- Instance methods declare their parent by `.^`, and read through it by name
 - The class itself is the constructor (as a closure)
 - When evaluated, that closure inherits the class as its parent
 
@@ -481,8 +487,8 @@ singleton objects simply by using a non-lazy constructor:
 
     ; my-singleton (
       ._property _;
-      .getProperty { ^._property }
-      .setProperty: { .^._property _}
+      .getProperty { property }
+      .setProperty: { @property _; }
     );
     ;
 

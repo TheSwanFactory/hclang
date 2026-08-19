@@ -839,10 +839,15 @@ conventions often used in C programs:
 * `__private`
   : not visible to anyone, even children
 
-For example:
+A method runs against its own object, so it reaches all three of its own
+properties. A child reaches the public and protected ones, while an outside
+peer reaches only the public one:
 `````
-; .see-me [.my-public-value 42; ._my-protected-value 21; .__my-private-value 7; .child {[my-public-value, my-protected-value, my-private-value]}];
-; see-me.child()
+; .see-me [.my-public-value 42; ._my-protected-value 21; .__my-private-value 7; .own-method {[my-public-value, my-protected-value, my-private-value]}];
+; see-me.own-method()
+# [42, 21, 7]
+; .my-child [.^ see-me; .read {[my-public-value, my-protected-value, my-private-value]}];
+; my-child.read()
 # [42, 21, $!.is-private .my-private-value]
 ; see-me.my-public-value
 # 42
@@ -972,7 +977,7 @@ CoffeeScript cousin CSON[@Cite].
 
 Perhaps surprisingly, it is possible to implement a complete object-oriented
 programming system using only the above primitives.  All we need
-are our access control rules plus the super identifier `_^`.
+are our access control rules plus the parent declaration `.^`.
 
 ### Singletons
 
@@ -1001,7 +1006,7 @@ Even inheritance is already accounted for, simply by explicitly specifying
 its parent scope:
 ```
 ; .my-base-class [.public-value 42; ._protected-value 21; .__private-value 7];
-; .my-subclass {[._^ my-base-class; .values {[public-value, protected-value, private-value]}]};
+; .my-subclass {[.^ my-base-class; .values {[public-value, protected-value, private-value]}]};
 ; .my-subinstance (my-subclass());
 ; my-subinstance.values()
 # [42, 21, $!.is-private .private-value]

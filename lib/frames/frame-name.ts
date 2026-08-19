@@ -1,6 +1,4 @@
 import { Frame } from "./frame.ts";
-import { FrameArray } from "./frame-array.ts";
-import { FrameGroup } from "./frame-group.ts";
 import { FrameHandle } from "./frame-handle.ts";
 import { FrameAtom } from "./frame-atom.ts";
 import { FrameOperator, FrameSymbol } from "./frame-symbol.ts";
@@ -28,8 +26,13 @@ const recognizeName = (symbol: Frame, source = ""): ScanResult => {
   if (mutatingSuffix) {
     return mutatingSuffix;
   }
-  const parentDeclaration = source === "_" && char === "^";
-  if (!parentDeclaration && !includes(char)) {
+  // `.^` needs no rule of its own: `^` is an operator character, so it is
+  // consumed and completed like any other name. This branch keeps the retired
+  // `._^` spelling a single name, so evaluation can refuse it by name instead
+  // of letting it break into `._` and a stray `^`. It exists only to serve that
+  // refusal, so it is deleted with it (#332).
+  const retiredParentDeclaration = source === "_" && char === "^";
+  if (!retiredParentDeclaration && !includes(char)) {
     return { disposition: ScanDisposition.CompleteRedispatch };
   }
   if (source.length === 0) {
@@ -40,7 +43,7 @@ const recognizeName = (symbol: Frame, source = ""): ScanResult => {
   const continuesIdentifier = char[0] === "-" && !startsWithOperator;
   const sameKind = FrameOperator.Accepts(char[0]) === startsWithOperator;
   return {
-    disposition: parentDeclaration || continuesIdentifier || sameKind
+    disposition: retiredParentDeclaration || continuesIdentifier || sameKind
       ? ScanDisposition.Consume
       : ScanDisposition.CompleteRedispatch,
   };
@@ -48,6 +51,8 @@ const recognizeName = (symbol: Frame, source = ""): ScanResult => {
 
 export class FrameName extends FrameAtom implements ISourced {
   public static readonly NAME_BEGIN = ".";
+  /** The spelling that declares a parent, as `.^ base`. */
+  public static readonly PARENT_DECLARATION = "^";
   public static readonly SIGIL_STARTS = [
     { key: FrameName.NAME_BEGIN, mode: "atom" },
   ] as const satisfies readonly SigilStart[];
@@ -69,22 +74,27 @@ export class FrameName extends FrameAtom implements ISourced {
     this.source = source;
   }
 
-  private bindingTarget(contexts: Frame[]): Frame {
-    const nestedGroup =
-      contexts.filter((context) => context instanceof FrameGroup).length > 1;
+  /**
+   * A name binds to the innermost frame that declared itself a declaration
+   * target, and to the statement context when none did. Frames say whether they
+   * accept declarations; this no longer counts nested groups to guess.
+   *
+   * Why a target matched is reported too, because one name accepts only the
+   * frame under construction: see `in`.
+   */
+  private bindingTarget(
+    contexts: Frame[],
+  ): { out: Frame; via: "construction" | "handle" | "statement" } {
     for (let i = contexts.length - 1; i >= 0; i--) {
       const context = contexts[i];
       if (context instanceof FrameHandle) {
-        return context.unwrap();
+        return { out: context.unwrap(), via: "handle" };
       }
-      if (
-        context instanceof FrameArray ||
-        (nestedGroup && context instanceof FrameGroup)
-      ) {
-        return context;
+      if (context.declares) {
+        return { out: context, via: "construction" };
       }
     }
-    return contexts[0];
+    return { out: contexts[0], via: "statement" };
   }
 
   public override in(contexts = [Frame.nil]): Frame {
@@ -92,7 +102,17 @@ export class FrameName extends FrameAtom implements ISourced {
     if (this.source === "" && contexts.length > 1) {
       return contexts[1];
     }
-    const out = this.bindingTarget(contexts);
+    const { out, via } = this.bindingTarget(contexts);
+    // The parent link is structural, not an ordinary binding, so it is
+    // declarable only on the aggregate under construction. Elsewhere — a method
+    // body, most notably — the target would be the argument, so the write would
+    // re-parent the wrong frame, and it reported a spurious cycle whenever the
+    // argument and the receiver were the same frame. Refuse by name instead.
+    if (
+      this.source === FrameName.PARENT_DECLARATION && via !== "construction"
+    ) {
+      return Frame.error(`$!.parent-not-declarable .${this.source}`);
+    }
     const setter = this.data.setter(out);
     return setter;
   }

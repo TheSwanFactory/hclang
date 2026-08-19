@@ -199,11 +199,18 @@ identity and can participate in inheritance even though it owns no properties.
 
 ## Required Examples
 
+> [!NOTE]
+> The parent declaration is spelled `.^` as of
+> [a05a correction 5](a05a-object-model-corrections.md); the retired `._^`
+> spelling is refused with `$!.retired-syntax ._^ .^`. The enclosing-scope
+> reference `_^` used elsewhere in this document is unchanged. The normative
+> model below is unaffected: only the declaration's spelling moved.
+
 ### Live inherited read
 
 ```hc
 ; .parent_ [.x 1;];
-; .child_ [._^ parent_];
+; .child_ [.^ parent_];
 ; child_.x
 # 1
 ; parent_.x: 2;
@@ -218,7 +225,7 @@ behavior is that an authorized parent update is visible through the child.
 
 ```hc
 ; .parent_ [.x 1;];
-; .child_ [._^ parent_; .x 2;];
+; .child_ [.^ parent_; .x 2;];
 ; child_.x
 # 2
 ; parent_.x

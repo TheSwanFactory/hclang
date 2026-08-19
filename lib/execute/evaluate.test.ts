@@ -957,19 +957,47 @@ describe("evaluate", () => {
         .toContain("$!.is-protected .protected");
       expect(evaluate(`${declaration} owner.private`).at(0).toString())
         .toContain("$!.is-private .private");
+      // A method runs against its receiver, so the owner reaches every one of
+      // its own declarations, private included.
       expect(evaluate(`${declaration} owner.child()`).at(0).toString())
-        .toContain("[42, 21, $!.is-private .private]");
+        .toContain("[42, 21, 7]");
     });
 
-    it("preserves owner ancestry through nested child handles", () => {
+    it("does not absorb body declarations into a method's receiver", () => {
+      // A constructed aggregate is a value, not an open declaration target, so
+      // a non-mutating method cannot quietly add fields to its receiver.
+      const immutable = evaluate(".obj [.m {.zz 1}]; obj.m(); obj.zz");
+      const mutable = evaluate(".obj_ [.m {.yy 2}]; obj_.m(); obj_.yy");
+
+      expect(immutable.at(-1).toString()).toContain("$!.name-missing");
+      expect(immutable.meta.obj.get_here("zz").is.missing).toBe(true);
+      expect(mutable.at(-1).toString()).toContain("$!.name-missing");
+      expect(mutable.meta.obj_.get_here("yy").is.missing).toBe(true);
+    });
+
+    it("refuses protected access to a merely nested aggregate", () => {
+      // Lexical nesting is not inheritance: a child aggregate is a peer for
+      // visibility, not a descendant, because it declares no parent.
       const result = evaluate(
         ".owner [._p 21; .__q 7; .child [.read {[p,q]}]]; " +
           "owner.child.read()",
       );
 
       expect(result.at(0).toString()).toContain(
-        "[21, $!.is-private .q]",
+        "[$!.is-protected .p, $!.is-private .q]",
       );
+    });
+
+    it("refuses protected access to an unrelated peer's method", () => {
+      // The access path must not change the answer: a peer method is refused
+      // exactly as a peer's dotted access at top level is.
+      const result = evaluate(
+        ".vault [._secret 99]; .thief [.steal {vault.secret}]; thief.steal()",
+      );
+
+      expect(result.at(0).toString()).toContain("$!.is-protected .secret");
+      expect(evaluate(".vault [._secret 99]; vault.secret").at(0).toString())
+        .toContain("$!.is-protected .secret");
     });
 
     it("writes protected declarations without creating public shadows", () => {
@@ -1015,16 +1043,21 @@ describe("evaluate", () => {
       expect(owner.meta.Private).toBeUndefined();
     });
 
-    it("denies child writes to private declarations without shadows", () => {
+    it("writes an own private declaration from an own mutating method", () => {
+      // The receiver is the owner, so the write is authorized, lands on the
+      // private declaration, and still creates no public shadow.
       const result = evaluate(
         ".owner_ [.__private 7; .attempt: {@private _;}]; " +
           "owner_.attempt: 9",
       );
       const owner = result.meta.owner_;
 
-      expect(result.at(0).toString()).toContain("$!.is-private .private");
-      expect(owner.get_here("__private").toString()).toEqual("7");
+      expect(owner.get_here("__private").toString()).toEqual("9");
       expect(owner.meta.private).toBeUndefined();
+      // Outside that receiver the same name stays refused.
+      expect(
+        evaluate(".owner [.__private 7]; owner.private").at(0).toString(),
+      ).toContain("$!.is-private .private");
     });
 
     it("compares handle metadata symmetrically through its target", () => {
@@ -1109,6 +1142,27 @@ describe("evaluate", () => {
       );
     });
 
+    it("reads each instance's own fields through a shared method body", () => {
+      // Instances share one body, whose captured scope is whichever instance
+      // was built last, so the receiver must be consulted ahead of it. Calling
+      // back into an earlier instance must not read the later one's fields.
+      const shared = evaluate(
+        ".Klass {[.own _; .read {own}]}; " +
+          ".one (Klass 1); .two (Klass 2); [one.read(), two.read(), one.read()]",
+      );
+
+      expect(shared.at(-1).toString()).toContain("[1, 2, 1]");
+    });
+
+    it("reads each instance's own private fields through a shared body", () => {
+      const shared = evaluate(
+        ".Klass {[.__own _; .read {own}]}; " +
+          ".one (Klass 1); .two (Klass 2); [one.read(), two.read(), one.read()]",
+      );
+
+      expect(shared.at(-1).toString()).toContain("[1, 2, 1]");
+    });
+
     it("constructs repeated instances without mutating the class aggregate", () => {
       const result = evaluate(
         ".Class {[.Value _; .get {Value}]}; " +
@@ -1140,33 +1194,78 @@ describe("evaluate", () => {
       expect(schema.meta.owner_.get_here("value").toString()).toEqual("1");
     });
 
-    it("interprets a parent declaration as the frame up link", () => {
+    it("updates an immutable receiver functionally, at any depth", () => {
+      const result = evaluate(
+        ".pair [.inner_ [.n 1; .set-n: {@n _;}]; .bump: {inner_.set-n: _}]; " +
+          "(pair.bump: 5).inner_.n; pair.inner_.n",
+      );
+
+      // Copy-on-write is the only instance-copy caller: the call evaluates to
+      // the new value and the original is untouched through its nested
+      // aggregate, which a plumbing copy would have shared.
+      expect(result.at(0).toString()).toMatch(/; \(5\); 1\)$/);
+      expect(
+        result.meta.pair.get_here("inner_").get_here("n").toString(),
+      ).toEqual("1");
+    });
+
+    it("mutates a mutable receiver in place, sharing nested identity", () => {
+      const result = evaluate(
+        ".live_ [.inner_ [.n 1; .set-n: {@n _;}]; .bump: {inner_.set-n: _}]; " +
+          "live_.bump: 9; live_.inner_.n",
+      );
+
+      expect(result.at(0).toString()).toMatch(/; 9\)$/);
+      expect(
+        result.meta.live_.get_here("inner_").get_here("n").toString(),
+      ).toEqual("9");
+    });
+
+    it("interprets a parent declaration as the declared parent link", () => {
       const result = evaluate(
         ".base [.public 42; ._protected 21; .__private 7]; " +
-          ".subclass {[._^ base; " +
+          ".subclass {[.^ base; " +
           ".values {[public, protected, private]}]}; " +
           ".instance (subclass()); instance.values()",
       );
       const instance = result.meta.instance;
 
-      expect(instance.up).toBe(result.meta.base);
-      expect(instance.is.inherited).toBe(true);
+      // The declared parent has its own field, so it is not confused with the
+      // lexical scope the instance happens to have been evaluated in.
+      expect(instance.parent).toBe(result.meta.base);
+      expect(instance.hasDeclaredParent()).toBe(true);
       expect(result.at(0).toString()).toContain(
         "[42, 21, $!.is-private .private]",
       );
     });
 
-    it("rejects cyclic parent declarations without corrupting lookup", () => {
+    it("refuses the retired parent-declaration spelling by name", () => {
+      const result = evaluate(
+        ".base [._protected 21]; .derived [._^ base; .read {protected}]",
+      );
+      const derived = result.meta.derived;
+
+      // Unrefused, `._^` would declare a protected member named ^, silently
+      // leaving the aggregate with no parent at all.
+      expect(result.at(0).toString()).toContain("$!.retired-syntax ._^ .^");
+      expect(derived.hasDeclaredParent()).toBe(false);
+      expect(derived.get_here("_^").is.missing).toBe(true);
+    });
+
+    it("rejects parent declarations outside construction without corrupting lookup", () => {
       const declaration = evaluate(
-        ".owner_ [.set-parent: {._^ _;}]; owner_.set-parent: owner_",
+        ".owner_ [.set-parent: {.^ _;}]; owner_.set-parent: owner_",
       );
       const owner = declaration.meta.owner_;
 
+      // A method body is not a construction position, so the declaration is
+      // refused by position rather than reaching setParent's cycle guard --
+      // which lib/frames/meta-frame.test.ts pins at its only writer instead.
       expect(declaration.at(0).toString()).toContain(
-        "$!.cyclic-parent ._^",
+        "$!.parent-not-declarable .^",
       );
-      expect(owner.is.inherited).not.toBe(true);
-      expect(owner.up).not.toBe(owner);
+      expect(owner.hasDeclaredParent()).toBe(false);
+      expect(owner.parent).not.toBe(owner);
       expect(evaluate("owner_.missing", declaration.meta).at(0).toString())
         .toContain("$!.name-missing");
     });

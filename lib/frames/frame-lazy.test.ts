@@ -87,4 +87,55 @@ describe("FrameLazy", () => {
       expect(wrap.call(frame.Frame.nil).toString()).toEqual("“turtle”");
     });
   });
+
+  describe("receiver", () => {
+    const body = [new frame.FrameSymbol("field")];
+
+    it("resolves a body against the receiver it was called with", () => {
+      const method = new frame.FrameLazy([...body]);
+      const receiver = new frame.FrameArray([], {
+        field: new frame.FrameString("mine"),
+      });
+
+      const result = method.call(frame.Frame.nil, frame.Frame.nil, receiver);
+
+      expect(result.toString()).toEqual("“mine”");
+    });
+
+    it("neither copies nor mutates the shared closure", () => {
+      const method = new frame.FrameLazy([...body]);
+      const captured = new frame.FrameString("definition scope");
+      method.up = captured;
+      const first = new frame.FrameArray([], {
+        field: new frame.FrameString("first"),
+      });
+      const second = new frame.FrameArray([], {
+        field: new frame.FrameString("second"),
+      });
+
+      const one = method.call(frame.Frame.nil, frame.Frame.nil, first);
+      const two = method.call(frame.Frame.nil, frame.Frame.nil, second);
+
+      // Each call sees its own receiver, and the closure keeps the scope it
+      // captured at definition rather than the last receiver bound to it.
+      expect(one.toString()).toEqual("“first”");
+      expect(two.toString()).toEqual("“second”");
+      expect(method.up).toBe(captured);
+      expect(method.receiver.is.missing).toBe(true);
+    });
+
+    it("keeps the receiver for a scope nested inside the body", () => {
+      const nested = new frame.FrameGroup([
+        new frame.FrameExpr([new frame.FrameSymbol("field")]),
+      ]);
+      const method = new frame.FrameLazy([nested]);
+      const receiver = new frame.FrameArray([], {
+        field: new frame.FrameString("outer receiver"),
+      });
+
+      const result = method.call(frame.Frame.nil, frame.Frame.nil, receiver);
+
+      expect(result.toString()).toEqual("“outer receiver”");
+    });
+  });
 });

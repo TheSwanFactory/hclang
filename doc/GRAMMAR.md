@@ -99,8 +99,12 @@ expressed through:
 ### Special Identifiers
 
 - **Anonymous argument**: `_` (single underscore)
-- **Parent/super**: `^` (caret)
+- **Parent declaration**: `.^` (declares the parent; `.^ base`)
+- **Enclosing scope**: `_^` (skips the argument; `_^.var`)
 - **This**: `.` (dot by itself)
+
+A method reads its own and its inherited properties by plain name, so there is
+no reader spelled `^`: `^.property` is not a super reference.
 
 ## Predefined Operators
 
@@ -193,7 +197,8 @@ parent_.helper: 10
 ### Context References
 
 - **Argument context**: `_` (applied context)
-- **Parent context**: `^` (defined context)
+- **Enclosing context**: `_^` (defined context, skipping the argument)
+- **Declared parent**: `.^ base` (inheritance, read by plain name)
 - **This context**: `.` (current object)
 
 ## Syntax Highlighting Categories
@@ -252,7 +257,7 @@ parent_.helper: 10
 - Nil: `()`
 - All: `<>`
 - Anonymous: `_`
-- Parent: `^`
+- Enclosing scope: `_^`
 
 ## Example Patterns
 
@@ -284,8 +289,14 @@ parent_.helper: 10
 # Class definition
 .my-class {
   ._property _;
-  .getProperty {^._property}
-  .setProperty: {.^._property _}
+  .getProperty {property}
+  .setProperty: {@property _;}
+}
+
+# Inheritance, declaring the parent
+.my-subclass {
+  .^ my-class;
+  .describe {property}
 }
 
 # Method call with mutating method

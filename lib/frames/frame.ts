@@ -133,6 +133,8 @@ export class Frame extends MetaFrame {
   constructor(meta = NilContext, isNil = false, isMissing = false) {
     super(meta);
     this.up = Frame.missing;
+    this.parent = Frame.missing;
+    this.receiver = Frame.missing;
     this.is = {};
     if (isNil) {
       this.is.void = true;
@@ -344,7 +346,12 @@ export class Frame extends MetaFrame {
     return [this];
   }
 
-  /** Returns a shallow frame copy with an independent metadata context. */
+  /**
+   * The plumbing copy: a shallow clone with an independent metadata map, flags,
+   * and id, for interpreter internals that need those and nothing more. It
+   * makes no object-semantic promise, so callers must not treat it as one;
+   * `instanceCopy` is the operation with object semantics.
+   */
   public copy(): this {
     const clone = Object.create(Object.getPrototypeOf(this)) as this;
     Object.assign(clone, this);
@@ -352,6 +359,20 @@ export class Frame extends MetaFrame {
     clone.is = { ...this.is };
     clone.id = `$:${this.className()}.${MetaFrame.id_count++}`;
     return clone;
+  }
+
+  /**
+   * The instance copy: the object-semantic operation, taken when copy-on-write
+   * shields an immutable receiver from a mutating method. Atoms are immutable
+   * and closures are shared bodies, so for them sharing is unobservable and the
+   * default is to share. Aggregates own identity, so `FrameArray` overrides this
+   * to hand back a fresh one at every depth.
+   *
+   * The map memoizes aggregates already copied in this operation, so a nested
+   * aggregate reached twice stays one aggregate and a cyclic chain terminates.
+   */
+  public instanceCopy(_seen: Map<Frame, Frame> = new Map()): Frame {
+    return this;
   }
 
   private static isBooleanNegation(argument: Frame): boolean {

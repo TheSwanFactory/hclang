@@ -126,6 +126,102 @@ to its braced form and break fence round-tripping. Reading `.body` does not
 change what a document denotes: it still evaluates to itself and still prints
 its fences.
 
+### Visibility
+
+A leading underscore grades a declaration, and `resolve_here` in `meta-frame.ts`
+is the one place that answers the question. The answer depends only on where the
+access originates:
+
+| Accessor origin              | public | protected | private |
+| ---------------------------- | ------ | --------- | ------- |
+| the owner itself             | yes    | yes       | yes     |
+| a descendant via parent link | yes    | yes       | no      |
+| an unrelated peer            | yes    | no        | no      |
+
+Two rules make that table hold no matter how the access arrives:
+
+- **Descendant means declared.** `isAncestorOf` walks the declared `parent`
+  chain only, never the lexical `up` pointer. Lexical nesting and syntactic
+  containment confer nothing, so an aggregate nested inside another is an
+  unrelated peer for visibility, and so is a peer's method body. `up` is
+  rewritten as lookup learns context, and access control must not depend on
+  lookup history.
+- **Origin is the receiver.** A method body resolves against the frame it runs
+  against, so the owner reaches all three of its own grades, including from a
+  scope nested inside the body. A refusal is an error value, not a miss, so it
+  never falls through to an ancestor that happens to share the name.
+
+Wrapping and copying must not bend the table. A handle grades against its
+target, and an instance copy is its own owner, with full access to its own
+fields and no residual claim on its source's private ones.
+
+### Declared Parents
+
+`.^ base` declares a parent. The link is structural rather than an ordinary
+binding, so two rules bound it:
+
+- **Constructor position only.** It is declarable on the aggregate under
+  construction, and nowhere else. A method body has no aggregate under
+  construction, so its target would be the argument; declaring a parent there is
+  refused with `$!.parent-not-declarable .^` rather than re-parenting the wrong
+  frame. Re-parenting an existing object from a method is not yet a feature: it
+  is a mutation of identity and needs an effect rule first
+  ([#330](https://github.com/TheSwanFactory/hclang/issues/330)).
+- **Any frame may be a parent.** Every frame carries bindings, so nothing
+  restricts a parent to an aggregate. An atom simply has none to inherit, and
+  lookup reports the name as missing rather than failing at the declaration.
+
+`setParent` is the only writer, so the declared chain is acyclic by
+construction. Because the parent is declarable only during construction, a cycle
+is currently unreachable from HC source — the guard is covered at the frame
+level instead.
+
+### Handles
+
+A handle is a name's effect-qualified reference to a value, and nothing more.
+Two rules define it:
+
+- **Transparency.** Wrapping does not change what a value prints, equals, or
+  exposes; rendering, data, metadata, and array views delegate to the target,
+  and assignment unwraps, so a mutation lands where it would have without the
+  wrapper.
+- **Caller-scoped lookup.** `get_here` answers missing by design, so explicit
+  dotted lookup resolves against the caller's origin rather than the wrapper.
+
+Discovering a method through a handle yields a `BoundMethod`, which owns the
+effect rules for that pairing: a mutating method acts on the receiver itself
+through a mutable handle, and on an instance copy through an immutable one.
+
+### Copy Contract
+
+Copying is two operations, not one, and every call site belongs to exactly one
+of them:
+
+- **Plumbing copy** — `Frame.copy()`. A shallow clone with an independent
+  metadata map, flags, and a fresh id, for interpreter internals that need those
+  and nothing more. It promises no object semantics; nested aggregates are
+  shared.
+- **Instance copy** — `Frame.instanceCopy()`. The object-semantic operation,
+  with exactly one caller: copy-on-write in `BoundMethod`, where a mutating
+  method is reached through an immutable handle. Nested aggregates get fresh
+  identity at every depth in both planes, so a write through the copy is
+  invisible through the original; atoms and closure bodies are shared, because
+  neither owns identity a write can land on. A declared parent is preserved in
+  its own field and the id is always fresh.
+
+Copy-on-write therefore means functional update: `p.set: 2` leaves `p` alone and
+evaluates to the new value. Bodies are never copied — a bound method passes its
+receiver as an explicit argument rather than rewriting a copied closure.
+
+Isolation wins where the two effect rules meet. A nested `inner_` declares a
+mutable identity, yet reaching it through an **immutable** outer receiver still
+forks it, because the outer handle governs the whole aggregate it reaches:
+"untouched at any depth" would otherwise be false, and a caller holding the
+outer value immutably would observe a write through it. A trailing underscore
+declares how a name may be used, not a promise that an enclosing copy will share
+its target. Reach the inner identity through a mutable outer handle when sharing
+is the point.
+
 ### Type Matching
 
 First-class types implement the `FrameMatcher` protocol. A pure match returns
