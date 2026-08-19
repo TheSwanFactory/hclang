@@ -62,8 +62,8 @@ describe("FrameSymbol", () => {
       "choice.<>": schema,
     });
     const child = new frame.FrameArray([]);
+    child.setParent(owner);
     child.up = owner;
-    child.is.inherited = true;
 
     expect(FrameSymbol.for("choice").bindingSchema([child])).toEqual(schema);
   });

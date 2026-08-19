@@ -76,6 +76,7 @@ export class FrameLazy extends FrameExpr {
   public override call(
     argument: Frame,
     _parameter: Frame = Frame.nil,
+    receiver: Frame = Frame.missing,
   ): Frame {
     if (this.data.length === 0) {
       // Codify the value, not the caller's captured evaluation context.
@@ -93,7 +94,15 @@ export class FrameLazy extends FrameExpr {
     // metadata local lets lookup reach the closure's live parent chain.
     const expr = new FrameExpr(this.data);
     expr.up = this;
-    return expr.in([prepared, _parameter, this]);
+    // The receiver is installed per call on this invocation frame, so repeated
+    // calls cannot leak a receiver into one another.
+    expr.receiver = receiver;
+    // It is also an explicit lookup layer, consulted after the closure's own
+    // scope, which is what reassigning the copied body's up used to accomplish.
+    const scope = receiver.is.missing
+      ? [prepared, _parameter, this]
+      : [prepared, _parameter, this, receiver];
+    return expr.in(scope);
   }
 
   private prepareArgument(argument: Frame): Frame {

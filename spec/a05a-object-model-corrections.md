@@ -11,11 +11,12 @@
 a05 diagnoses the problem correctly: the single `up` pointer carries six
 distinct relationships — lexical scope (`frame-symbol.ts:100`), syntactic
 containment (`frame-expr.ts:12`), declared parent (`frame-symbol.ts:144`),
-runtime receiver (`frame-handle.ts:69`), handle-to-target (`frame-handle.ts:13`),
-and note provenance (`frame-note.ts:91`). But it then names four roles and
-declines to give them separate storage, so several checklist items exist only to
-manage the ambiguity it chose to keep, and two of its open questions are
-artifacts of that choice rather than genuine design forks.
+runtime receiver (`frame-handle.ts:69`), handle-to-target
+(`frame-handle.ts:13`), and note provenance (`frame-note.ts:91`). But it then
+names four roles and declines to give them separate storage, so several
+checklist items exist only to manage the ambiguity it chose to keep, and two of
+its open questions are artifacts of that choice rather than genuine design
+forks.
 
 This correction promotes three storage and threading decisions from "open" to
 "decided," retires the checklist items those decisions subsume, bounds the copy
@@ -62,13 +63,13 @@ receiver as an explicit slot rather than as a mutation of a copied body deletes
 both the per-call copy and the write.
 
 This resolves a05 open question 3 ("how far does the instance copy recurse into
-lazy bodies") by dissolving it: bodies are not copied at all. It also retires the
-origin hack at `frame-symbol.ts:91-96`, where the `>>` frame is substituted as
-`origin` when the context is a handle. That hack exists because there is no
+lazy bodies") by dissolving it: bodies are not copied at all. It also retires
+the origin hack at `frame-symbol.ts:91-96`, where the `>>` frame is substituted
+as `origin` when the context is a handle. That hack exists because there is no
 first-class notion of self — private access is `origin === this`
 (`meta-frame.ts:246`), so "self" must be smuggled in. With the receiver as an
-explicit slot, `origin` is the receiver, and a05's requested "private access from
-a closure nested in a method body" test becomes a consequence rather than a
+explicit slot, `origin` is the receiver, and a05's requested "private access
+from a closure nested in a method body" test becomes a consequence rather than a
 special case.
 
 ### 3. The receiver mark reuses `>>`, and the tradeoff is named
@@ -82,26 +83,27 @@ and by `FrameSymbol.setter` (`frame-symbol.ts:178-185`). The census in
 `FrameExpr` push themselves onto the same flat array without recording why.
 
 Decision: push one scope frame carrying named slots in its metadata — `>>` for
-the write target, plus argument, parameter, and receiver — so the write target is
-read, not inferred. This is more idiomatic for a homoiconic language than a
+the write target, plus argument, parameter, and receiver — so the write target
+is read, not inferred. This is more idiomatic for a homoiconic language than a
 boolean flag, and it subsumes two positional hacks a05 does not mention:
 `FrameArg`/`FrameParam` indexing by stack position (`frame-arg.ts:100-118`,
 `:139-165`) and the empty name meaning "iterator accumulator" because it sits at
 `contexts[1]` (`frame-name.ts:92-95`).
 
-Named tradeoff: `in(contexts: Frame[])` is the interpreter's universal signature,
-and a05 open question 1 explicitly prefers keeping it stable. This decision does
-change how that array is populated. That cost is accepted here deliberately
-rather than deferred, because leaving the signature "stable" while overloading
-positions in the array is what produced the census in the first place.
+Named tradeoff: `in(contexts: Frame[])` is the interpreter's universal
+signature, and a05 open question 1 explicitly prefers keeping it stable. This
+decision does change how that array is populated. That cost is accepted here
+deliberately rather than deferred, because leaving the signature "stable" while
+overloading positions in the array is what produced the census in the first
+place.
 
 ### 4. The copy contract is bounded to copy-on-write
 
 `copy()` has four production callers: two in `BoundMethod`
 (`frame-handle.ts:66,68`), one for signature defaulting (`frame-lazy.ts:104`),
 and the `FrameList` override itself. Of those, only `this.receiver.copy()` wants
-object semantics. Constructors do not need it: `FrameArray.in` builds a new array
-and re-evaluates every item (`frame-array.ts:28-35`), so nested aggregate
+object semantics. Constructors do not need it: `FrameArray.in` builds a new
+array and re-evaluates every item (`frame-array.ts:28-35`), so nested aggregate
 literals are already fresh per call — which is exactly what the `Point` case in
 `class-support.hc` proves. The nested-sharing leak a05's plane table is designed
 to prevent arises only through copy-on-write.
@@ -120,8 +122,8 @@ Two trims to the table:
 - Drop the **handle identity** row. `FrameHandle` is not exported from
   `lib/frames.ts` and no caller copies one, so that row specifies behavior
   nothing needs. Handles are created only for `FrameArray` values
-  (`frame-symbol.ts:105-107`), so "object" here means "aggregate" — worth stating
-  in one sentence in place of the row.
+  (`frame-symbol.ts:105-107`), so "object" here means "aggregate" — worth
+  stating in one sentence in place of the row.
 - The **lexical parent** row ("not inherited; the copy learns its context where
   it is used") depends on the same lookup-time `up` rewrite that correction 1
   removes from the visibility path. Once the declared parent has its own field,
@@ -138,10 +140,10 @@ a05 fences syntax changes out as non-goals. Two of them are worth reopening
 because the fence is what forces the very string tests and magic branches the
 checklist is trying to delete.
 
-**`._^` becomes `.^`.** a05 wants `._^` to stop being a magic string in
-`apply` and become an ordinary assignment. It cannot, quite: `resolve_here`
-grades a leading underscore as visibility (`meta-frame.ts:84-90`), so `_^` reads
-as "protected member named `^`." The magic-string branch
+**`._^` becomes `.^`.** a05 wants `._^` to stop being a magic string in `apply`
+and become an ordinary assignment. It cannot, quite: `resolve_here` grades a
+leading underscore as visibility (`meta-frame.ts:84-90`), so `_^` reads as
+"protected member named `^`." The magic-string branch
 (`frame-symbol.ts:135-150`) is what currently prevents that collision. Spelling
 it `.^` avoids the collision, matches `^` already meaning "outward"
 (`FrameParam.ARG_CHAR`, `frame-arg.ts:123`), and deletes the `parentDeclaration`
@@ -190,13 +192,13 @@ as consequences.
 - **Write target:** replace "define the receiver mark (flag or slot)" with "add
   named slots to one scope frame; read `>>` for the write target." Keep the
   census deletion and the coverage cases.
-- **Parent link:** keep, and add "the declared parent is a distinct field; lexical
-  `up` never overwrites it, so `is.inherited` is deleted rather than queried."
-  Add "protected authorization walks the declared field only; pin the
+- **Parent link:** keep, and add "the declared parent is a distinct field;
+  lexical `up` never overwrites it, so `is.inherited` is deleted rather than
+  queried." Add "protected authorization walks the declared field only; pin the
   nested-aggregate non-access with a test."
 - **Handle:** keep bound-method extraction, but pass the receiver as an explicit
-  slot rather than rewriting a copied body's `up`. Drop the copy-on-write
-  string test in favor of declared mutability plus the instance copy.
+  slot rather than rewriting a copied body's `up`. Drop the copy-on-write string
+  test in favor of declared mutability plus the instance copy.
 - **Copy contract:** scope the instance copy to its single caller
   (copy-on-write) with functional-update semantics; drop the handle-identity and
   lexical-parent rows.
@@ -212,5 +214,5 @@ as consequences.
 The a05 non-goals stand, with one narrowing: a05 lists "reworking the
 trailing-colon lexer behavior already fixed in PR #305" as out of scope.
 Correction 5 reopens exactly that, so if the syntax simplifications are adopted,
-this non-goal is lifted; if they are deferred, corrections 1–4 stand on their own
-and this non-goal remains in force.
+this non-goal is lifted; if they are deferred, corrections 1–4 stand on their
+own and this non-goal remains in force.

@@ -76,11 +76,38 @@ describe("MetaFrame", () => {
   it("detects parent assignments that would create a cycle", () => {
     const parent = new Frame();
     const child = new Frame();
-    child.up = parent;
+    child.setParent(parent);
 
     expect(parent.wouldCreateParentCycle(child)).toBe(true);
     expect(child.wouldCreateParentCycle(parent)).toBe(false);
     expect(parent.wouldCreateParentCycle(parent)).toBe(true);
+  });
+
+  it("refuses a cyclic declared parent through its only writer", () => {
+    const parent = new Frame();
+    const child = new Frame();
+
+    expect(child.setParent(parent)).toBeUndefined();
+    expect(child.parent).toBe(parent);
+    // setParent is the only path that attaches a declared parent, so the cycle
+    // cannot be built by a caller that forgot to check first.
+    const refused = parent.setParent(child);
+    expect(refused?.toString()).toContain("$!.cyclic-parent");
+    expect(parent.hasDeclaredParent()).toBe(false);
+  });
+
+  it("keeps the lexical pointer independent of the declared parent", () => {
+    const declared = new Frame();
+    const scope = new Frame();
+    const frame = new Frame();
+
+    frame.setParent(declared);
+    frame.up = scope;
+
+    // Lexical assignment never clobbers the declared link, so no flag is
+    // needed to protect it.
+    expect(frame.parent).toBe(declared);
+    expect(frame.up).toBe(scope);
   });
 
   describe("visibility", () => {
@@ -95,9 +122,14 @@ describe("MetaFrame", () => {
     });
     const child = new Frame();
     const peer = new Frame();
-    owner.up = parent;
-    child.up = owner;
-    peer.up = parent;
+    const nested = new Frame();
+    // Visibility is graded against the declared chain, so these relationships
+    // are declared rather than expressed through the lexical pointer.
+    owner.setParent(parent);
+    child.setParent(owner);
+    peer.setParent(parent);
+    // A frame that is merely nested inside the owner declares no parent.
+    nested.up = owner;
 
     it("allows the owner to read every visibility", () => {
       expect(owner.get("name", owner)).toBe(publicValue);
@@ -110,6 +142,13 @@ describe("MetaFrame", () => {
       expect(owner.get("protected", child)).toBe(protectedValue);
       expect(owner.get("private", child).toString()).toEqual(
         "$!.is-private .private",
+      );
+    });
+
+    it("denies protected values to a merely nested frame", () => {
+      expect(owner.get("name", nested)).toBe(publicValue);
+      expect(owner.get("protected", nested).toString()).toEqual(
+        "$!.is-protected .protected",
       );
     });
 

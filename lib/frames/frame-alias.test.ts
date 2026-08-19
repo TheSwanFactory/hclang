@@ -50,6 +50,9 @@ describe("FrameAlias", () => {
   it("writes through a logical protected name to its declaration", () => {
     const owner = new Frame({ _protected: value_1 });
     const descendant = new Frame();
+    // Protected access follows the declared parent, so the descendant declares
+    // one rather than relying on a lexical pointer.
+    descendant.setParent(owner);
     descendant.up = owner;
 
     new FrameExpr([new FrameAlias("protected"), value_2]).in([descendant]);

@@ -34,9 +34,14 @@ export class FrameAlias extends FrameAtom {
 
   public override in(contexts: Frame[] = [Frame.nil]): Frame {
     const key = this.data.toString();
-    const origin = contexts.find((context) => context instanceof FrameLazy) ??
+    // A mutating method aliases its receiver's declaration, so the receiver is
+    // searched first and authorizes the write.
+    const receiver = Frame.receiverIn(contexts);
+    const origin = receiver ??
+      contexts.find((context) => context instanceof FrameLazy) ??
       contexts[0];
-    for (const context of contexts) {
+    const searched = receiver ? [receiver, ...contexts] : contexts;
+    for (const context of searched) {
       const found = this.find(context, key, origin);
       if (found instanceof Frame) {
         return found;

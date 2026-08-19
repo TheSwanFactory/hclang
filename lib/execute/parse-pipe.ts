@@ -4,6 +4,7 @@ import {
   FrameArray,
   FrameBind,
   FrameExpr,
+  FrameGroup,
   FrameSchema,
   type IArrayConstructor,
 } from "../frames.ts";
@@ -12,6 +13,8 @@ import { type IFinish, Terminal } from "./terminals.ts";
 export class ParsePipe extends FrameArray implements IFinish {
   public collector: Array<Frame>;
   protected Factory: IArrayConstructor;
+  /** A nested pipe came from source grouping; the root pipe wraps statements. */
+  protected readonly nested: boolean;
 
   constructor(out: Frame, factory: IArrayConstructor) {
     const meta: Context = {};
@@ -20,6 +23,7 @@ export class ParsePipe extends FrameArray implements IFinish {
     super([], meta);
     this.Factory = factory;
     this.collector = [];
+    this.nested = out instanceof ParsePipe;
   }
 
   public next(statement: boolean = false): ParsePipe {
@@ -86,6 +90,11 @@ export class ParsePipe extends FrameArray implements IFinish {
 
   protected makeFrame(): Frame {
     const group = new this.Factory(this.collector, {});
+    // A group written in the source accepts declarations. A statement wrapper
+    // exists only to group, so it never claims to be a declaration target.
+    if (this.nested && group instanceof FrameGroup) {
+      group.declares = true;
+    }
     this.collector = [];
     return group;
   }

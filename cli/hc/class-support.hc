@@ -40,6 +40,34 @@ public and protected values, while private values remain inaccessible.`
 ; derived.protected
 # $!.is-protected .protected
 
+`Visibility grades the declared parent chain, not lexical nesting. A method
+reaches every property of its own receiver, including private ones.`
+; .owner [.open 42; ._shared 21; .__secret 7; .own-method {[open, shared, secret]}];
+; owner.own-method()
+# [42, 21, 7]
+
+`That access survives nesting: a scope inside a method body still runs against
+the same receiver.`
+; .nester [.__deep 3; .via-group {(deep)}; .via-block {[deep] | {_}}];
+; nester.via-group()
+# 3
+; nester.via-block()
+# [3]
+
+`An unrelated peer is refused, whether it asks directly or from inside its own
+method, because it declares no parent.`
+; .thief [.steal {owner.shared}];
+; thief.steal()
+# $!.is-protected .shared
+; owner.shared
+# $!.is-protected .shared
+
+`A merely nested aggregate is a peer, not a descendant: containment grants no
+protected access.`
+; .outer [._inner-secret 21; .nested [.read {inner-secret}]];
+; outer.nested.read()
+# $!.is-protected .inner-secret
+
 `Parent relationships must remain acyclic.`
 ; .cyclic_ [.set-parent: {._^ _;}];
 ; [cyclic_.set-parent: cyclic_]

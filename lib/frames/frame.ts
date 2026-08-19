@@ -133,6 +133,8 @@ export class Frame extends MetaFrame {
   constructor(meta = NilContext, isNil = false, isMissing = false) {
     super(meta);
     this.up = Frame.missing;
+    this.parent = Frame.missing;
+    this.receiver = Frame.missing;
     this.is = {};
     if (isNil) {
       this.is.void = true;

@@ -1,6 +1,4 @@
 import { Frame } from "./frame.ts";
-import { FrameArray } from "./frame-array.ts";
-import { FrameGroup } from "./frame-group.ts";
 import { FrameHandle } from "./frame-handle.ts";
 import { FrameAtom } from "./frame-atom.ts";
 import { FrameOperator, FrameSymbol } from "./frame-symbol.ts";
@@ -69,18 +67,18 @@ export class FrameName extends FrameAtom implements ISourced {
     this.source = source;
   }
 
+  /**
+   * A name binds to the innermost frame that declared itself a declaration
+   * target, and to the statement context when none did. Frames say whether they
+   * accept declarations; this no longer counts nested groups to guess.
+   */
   private bindingTarget(contexts: Frame[]): Frame {
-    const nestedGroup =
-      contexts.filter((context) => context instanceof FrameGroup).length > 1;
     for (let i = contexts.length - 1; i >= 0; i--) {
       const context = contexts[i];
       if (context instanceof FrameHandle) {
         return context.unwrap();
       }
-      if (
-        context instanceof FrameArray ||
-        (nestedGroup && context instanceof FrameGroup)
-      ) {
+      if (context.declares) {
         return context;
       }
     }

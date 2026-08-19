@@ -957,19 +957,35 @@ describe("evaluate", () => {
         .toContain("$!.is-protected .protected");
       expect(evaluate(`${declaration} owner.private`).at(0).toString())
         .toContain("$!.is-private .private");
+      // A method runs against its receiver, so the owner reaches every one of
+      // its own declarations, private included.
       expect(evaluate(`${declaration} owner.child()`).at(0).toString())
-        .toContain("[42, 21, $!.is-private .private]");
+        .toContain("[42, 21, 7]");
     });
 
-    it("preserves owner ancestry through nested child handles", () => {
+    it("refuses protected access to a merely nested aggregate", () => {
+      // Lexical nesting is not inheritance: a child aggregate is a peer for
+      // visibility, not a descendant, because it declares no parent.
       const result = evaluate(
         ".owner [._p 21; .__q 7; .child [.read {[p,q]}]]; " +
           "owner.child.read()",
       );
 
       expect(result.at(0).toString()).toContain(
-        "[21, $!.is-private .q]",
+        "[$!.is-protected .p, $!.is-private .q]",
       );
+    });
+
+    it("refuses protected access to an unrelated peer's method", () => {
+      // The access path must not change the answer: a peer method is refused
+      // exactly as a peer's dotted access at top level is.
+      const result = evaluate(
+        ".vault [._secret 99]; .thief [.steal {vault.secret}]; thief.steal()",
+      );
+
+      expect(result.at(0).toString()).toContain("$!.is-protected .secret");
+      expect(evaluate(".vault [._secret 99]; vault.secret").at(0).toString())
+        .toContain("$!.is-protected .secret");
     });
 
     it("writes protected declarations without creating public shadows", () => {
@@ -1015,16 +1031,21 @@ describe("evaluate", () => {
       expect(owner.meta.Private).toBeUndefined();
     });
 
-    it("denies child writes to private declarations without shadows", () => {
+    it("writes an own private declaration from an own mutating method", () => {
+      // The receiver is the owner, so the write is authorized, lands on the
+      // private declaration, and still creates no public shadow.
       const result = evaluate(
         ".owner_ [.__private 7; .attempt: {@private _;}]; " +
           "owner_.attempt: 9",
       );
       const owner = result.meta.owner_;
 
-      expect(result.at(0).toString()).toContain("$!.is-private .private");
-      expect(owner.get_here("__private").toString()).toEqual("7");
+      expect(owner.get_here("__private").toString()).toEqual("9");
       expect(owner.meta.private).toBeUndefined();
+      // Outside that receiver the same name stays refused.
+      expect(
+        evaluate(".owner [.__private 7]; owner.private").at(0).toString(),
+      ).toContain("$!.is-private .private");
     });
 
     it("compares handle metadata symmetrically through its target", () => {
@@ -1140,7 +1161,7 @@ describe("evaluate", () => {
       expect(schema.meta.owner_.get_here("value").toString()).toEqual("1");
     });
 
-    it("interprets a parent declaration as the frame up link", () => {
+    it("interprets a parent declaration as the declared parent link", () => {
       const result = evaluate(
         ".base [.public 42; ._protected 21; .__private 7]; " +
           ".subclass {[._^ base; " +
@@ -1149,8 +1170,10 @@ describe("evaluate", () => {
       );
       const instance = result.meta.instance;
 
-      expect(instance.up).toBe(result.meta.base);
-      expect(instance.is.inherited).toBe(true);
+      // The declared parent has its own field, so it is not confused with the
+      // lexical scope the instance happens to have been evaluated in.
+      expect(instance.parent).toBe(result.meta.base);
+      expect(instance.hasDeclaredParent()).toBe(true);
       expect(result.at(0).toString()).toContain(
         "[42, 21, $!.is-private .private]",
       );
@@ -1165,8 +1188,8 @@ describe("evaluate", () => {
       expect(declaration.at(0).toString()).toContain(
         "$!.cyclic-parent ._^",
       );
-      expect(owner.is.inherited).not.toBe(true);
-      expect(owner.up).not.toBe(owner);
+      expect(owner.hasDeclaredParent()).toBe(false);
+      expect(owner.parent).not.toBe(owner);
       expect(evaluate("owner_.missing", declaration.meta).at(0).toString())
         .toContain("$!.name-missing");
     });

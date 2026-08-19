@@ -54,7 +54,7 @@ export class FrameHandle extends Frame {
 class BoundMethod extends Frame {
   constructor(
     private readonly method: FrameLazy,
-    private readonly receiver: Frame,
+    private readonly boundReceiver: Frame,
     private readonly mutable: boolean,
     private readonly key: string,
   ) {
@@ -62,13 +62,13 @@ class BoundMethod extends Frame {
   }
 
   public override call(argument: Frame, _parameter = Frame.nil): Frame {
-    const receiver = this.key.endsWith(":") && !this.mutable
-      ? this.receiver.copy()
-      : this.receiver;
-    const method = this.method.copy();
-    method.up = receiver;
-    const result = method.call(argument, method);
+    const target = this.key.endsWith(":") && !this.mutable
+      ? this.boundReceiver.copy()
+      : this.boundReceiver;
+    // The receiver travels as an explicit argument. The shared closure is
+    // neither copied nor mutated, so it stays reusable across calls.
+    const result = this.method.call(argument, this.method, target);
     if (result.is.error) return result;
-    return this.key.endsWith(":") ? receiver : result;
+    return this.key.endsWith(":") ? target : result;
   }
 }

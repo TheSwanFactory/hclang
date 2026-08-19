@@ -27,10 +27,14 @@ export class FrameArray extends FrameList {
 
   public override in(contexts: Array<Frame> = [Frame.nil]): Frame {
     const result = new FrameArray([...this.data], this.meta_copy());
-    if (this.is.inherited === true) {
-      result.up = this.up;
-      result.is.inherited = true;
+    // A declared parent is carried in its own field, so propagation is a copy
+    // of that field rather than a flag dance over the lexical pointer.
+    if (this.hasDeclaredParent()) {
+      result.parent = this.parent;
     }
+    // An aggregate under construction accepts declarations, and says so rather
+    // than leaving a name to infer it from the shape of the context stack.
+    result.declares = true;
     result.data = this.array_eval([...contexts], result);
     return result;
   }

@@ -87,18 +87,21 @@ export class FrameSymbol extends FrameAtom {
 
   public override in(contexts: Frame[] = [Frame.nil]): Frame {
     const first = contexts[0];
+    // A method body resolves against its receiver, so visibility asks the same
+    // question no matter which path the access arrives by.
+    const receiver = Frame.receiverIn(contexts);
     for (const context of contexts) {
       const explicitOrigin = this.get_here(Frame.kOUT);
-      const origin =
-        context instanceof FrameHandle && !explicitOrigin.is.missing
+      const origin = receiver ??
+        (context instanceof FrameHandle && !explicitOrigin.is.missing
           ? explicitOrigin
-          : context;
+          : context);
       const value = context.get(this.data, origin);
       if (!value.is.missing) {
         if (value.is.error) return value;
-        if (value.is.inherited !== true) {
-          value.up = context;
-        }
+        // up is purely lexical now, so it can always be refreshed: a declared
+        // parent lives in its own field and is never clobbered here.
+        value.up = context;
         if (value.is.immediate === true) {
           return value.call(context);
         }
@@ -137,12 +140,9 @@ export class FrameSymbol extends FrameAtom {
       argument = argument.unwrap();
     }
     if (this.data === "_^") {
-      const previous = out.is.inherited === true ? out.up : Frame.missing;
-      if (out.wouldCreateParentCycle(argument)) {
-        return Frame.error("$!.cyclic-parent ._^");
-      }
-      out.up = argument;
-      out.is.inherited = true;
+      const previous = out.hasDeclaredParent() ? out.parent : Frame.missing;
+      const refused = out.setParent(argument);
+      if (refused) return refused;
       return previous.is.missing
         ? new FrameLiteral(`._^ ${argument.toString()}`)
         : argument;

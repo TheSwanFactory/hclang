@@ -2,7 +2,9 @@ import { expect } from "jsr:@std/expect@^0.219.1";
 import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 
 import {
+  Frame,
   FrameArg,
+  FrameArray,
   FrameExpr,
   FrameName,
   FrameString,
@@ -34,5 +36,38 @@ describe("FrameName", () => {
     const result = frame_expr.in([context]);
 
     expect(result).toEqual(value);
+  });
+
+  describe("declaration target", () => {
+    it("binds to the innermost frame that accepts declarations", () => {
+      const statement = new FrameString("statement");
+      const target = new FrameArray([]);
+      target.declares = true;
+      const wrapper = new FrameString("wrapper");
+
+      const setter = frame_name.in([statement, target, wrapper]);
+
+      expect(setter.get(Frame.kOUT)).toBe(target);
+    });
+
+    it("binds to the statement context when nothing accepts declarations", () => {
+      const statement = new FrameString("statement");
+      const wrapper = new FrameString("wrapper");
+
+      const setter = frame_name.in([statement, wrapper]);
+
+      expect(setter.get(Frame.kOUT)).toBe(statement);
+    });
+
+    it("prefers the innermost of several declaration targets", () => {
+      const outer = new FrameArray([]);
+      const inner = new FrameArray([]);
+      outer.declares = true;
+      inner.declares = true;
+
+      const setter = frame_name.in([outer, inner]);
+
+      expect(setter.get(Frame.kOUT)).toBe(inner);
+    });
   });
 });

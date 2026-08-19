@@ -839,10 +839,15 @@ conventions often used in C programs:
 * `__private`
   : not visible to anyone, even children
 
-For example:
+A method runs against its own object, so it reaches all three of its own
+properties. A child reaches the public and protected ones, while an outside
+peer reaches only the public one:
 `````
-; .see-me [.my-public-value 42; ._my-protected-value 21; .__my-private-value 7; .child {[my-public-value, my-protected-value, my-private-value]}];
-; see-me.child()
+; .see-me [.my-public-value 42; ._my-protected-value 21; .__my-private-value 7; .own-method {[my-public-value, my-protected-value, my-private-value]}];
+; see-me.own-method()
+# [42, 21, 7]
+; .my-child [._^ see-me; .read {[my-public-value, my-protected-value, my-private-value]}];
+; my-child.read()
 # [42, 21, $!.is-private .my-private-value]
 ; see-me.my-public-value
 # 42
