@@ -1,6 +1,16 @@
 # Object Model Refactoring
 
-**Status:** Draft\
+**Status:** Implemented in v0.10.1, as corrected by
+[a05a](a05a-object-model-corrections.md) and resolved by
+[a05b](a05b-object-model-resolutions.md). The four roles now have separate
+owners: a declared `parent` field written only by `setParent`, a receiver passed
+per call, a declared write target, and the lexical `up` pointer. Visibility
+grades the declared chain alone, which closed a leak that let a peer's method
+and a merely nested aggregate read protected fields. `is.inherited`, the
+`FrameGroup`-counting heuristic, and the per-call body copy are gone. Copy is
+two named operations with the instance copy bounded to copy-on-write. The parent
+declaration is respelled `.^`; the mutating-marker unification a05a proposed
+stays deferred per a05b\
 **Issue:**
 [#306 — Refine object model ownership, inheritance, and copy semantics](https://github.com/TheSwanFactory/hclang/issues/306),
 following the seams recorded on

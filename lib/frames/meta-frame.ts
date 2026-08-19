@@ -214,30 +214,22 @@ export class MetaFrame {
     return false;
   }
 
-  /** The innermost receiver active across an evaluation context stack. */
+  /**
+   * The innermost receiver active across an evaluation context stack.
+   *
+   * Only a frame's own receiver slot counts. The lexical `up` chain is not
+   * followed: it is rewritten by unrelated evaluation, including on every
+   * successful lookup and on the shared body items an invocation frame wraps,
+   * so walking it would let one call's receiver leak into another's. A scope
+   * nested inside a method body still finds the receiver because the
+   * invocation frame that carries it stays on this stack.
+   */
   public static receiverIn(contexts: Frame[]): Frame | undefined {
     for (let i = contexts.length - 1; i >= 0; i--) {
-      const receiver = contexts[i].receiverOrigin();
-      if (receiver) return receiver;
-    }
-    return undefined;
-  }
-
-  /**
-   * receiverOrigin reports the frame a method body is executing against,
-   * following the lexical chain so a closure nested in a method body keeps its
-   * enclosing receiver.
-   */
-  public receiverOrigin(): Frame | undefined {
-    const seen = new Set<MetaFrame>();
-    let current: Frame | undefined = this as unknown as Frame;
-    while (current && !current.is.missing && !seen.has(current)) {
-      seen.add(current);
-      const receiver = current.receiver;
+      const receiver = contexts[i].receiver;
       if (receiver && !receiver.is.missing) {
         return receiver;
       }
-      current = current.up;
     }
     return undefined;
   }

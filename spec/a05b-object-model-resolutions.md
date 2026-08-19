@@ -1,6 +1,14 @@
 # Object Model Resolutions
 
-**Status:** Draft\
+**Status:** Implemented in v0.10.1. Corrections 1–3 landed together as this
+document required, with the suite green only at the end; the peer-method and
+nested-aggregate refusals are pinned in `cli/hc/class-support.hc`. The `.^`
+respelling needed no lexer rule, so its one condition held, and `._^` is refused
+by name rather than falling through. Two amendments remain open: the residual
+per-call `FrameExpr` rewrite of `up` on shared body items
+([#329](https://github.com/TheSwanFactory/hclang/issues/329)), and the deferred
+mutating-marker unification
+([#328](https://github.com/TheSwanFactory/hclang/issues/328))\
 **Responds to:**
 [a05a-object-model-corrections.md](a05a-object-model-corrections.md)\
 **Issue:** [#306](https://github.com/TheSwanFactory/hclang/issues/306)

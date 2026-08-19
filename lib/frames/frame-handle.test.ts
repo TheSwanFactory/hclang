@@ -1,0 +1,121 @@
+import { expect } from "jsr:@std/expect@^0.219.1";
+import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
+
+import { Frame } from "./frame.ts";
+import { FrameArray } from "./frame-array.ts";
+import { FrameHandle } from "./frame-handle.ts";
+import { FrameLazy } from "./frame-lazy.ts";
+import { FrameNumber } from "./frame-number.ts";
+import { FrameString } from "./frame-string.ts";
+import { FrameSymbol } from "./frame-symbol.ts";
+import { BoundMethod } from "./bound-method.ts";
+
+describe("FrameHandle", () => {
+  const target = (): FrameArray =>
+    new FrameArray([new FrameNumber("1")], {
+      field: new FrameString("value"),
+    });
+
+  describe("transparency", () => {
+    it("renders, exposes, and compares as its target does", () => {
+      const value = target();
+      const handle = new FrameHandle(value, false);
+
+      expect(handle.toString()).toEqual(value.toString());
+      expect(handle.dataString()).toEqual(value.dataString());
+      expect(handle.metadataView()).toEqual(value.metadataView());
+      expect(handle.asArray()).toEqual(value.asArray());
+    });
+
+    it("is invisible to equality in either direction", () => {
+      const value = target();
+      const handle = new FrameHandle(value, false);
+      const twin = target();
+
+      expect(handle.equals(twin)).toBe(value.equals(twin));
+      expect(twin.equals(handle)).toBe(twin.equals(value));
+    });
+
+    it("unwraps to the identity a mutation must land on", () => {
+      const value = target();
+      const handle = new FrameHandle(value, true);
+
+      expect(handle.unwrap()).toBe(value);
+    });
+  });
+
+  describe("caller-scoped lookup", () => {
+    it("answers get_here with missing so the caller stays the origin", () => {
+      const handle = new FrameHandle(target(), false);
+
+      // The wrapper declines to resolve, which is what keeps visibility graded
+      // against the frame that asked rather than against the handle.
+      expect(handle.get_here("field").is.missing).toBe(true);
+      // Full lookup still reaches the target.
+      expect(handle.get("field").toString()).toEqual("“value”");
+    });
+
+    it("forwards an explicit origin to the target unchanged", () => {
+      const value = new FrameArray([], {
+        _guarded: new FrameString("protected"),
+      });
+      const handle = new FrameHandle(value, false);
+      const stranger = new Frame();
+
+      expect(handle.get("guarded", value).toString()).toEqual("“protected”");
+      expect(handle.get("guarded", stranger).toString()).toContain(
+        "$!.is-protected",
+      );
+    });
+  });
+
+  describe("bound methods", () => {
+    const method = (): FrameLazy => new FrameLazy([FrameSymbol.for("field")]);
+    const boundOn = (handle: FrameHandle, key: string): BoundMethod =>
+      handle.get(key) as unknown as BoundMethod;
+
+    it("pairs a discovered method with its receiver", () => {
+      const value = target();
+      value.set("read", method());
+      const handle = new FrameHandle(value, false);
+
+      const bound = handle.get("read");
+
+      expect(bound).toBeInstanceOf(BoundMethod);
+      expect(bound.call(Frame.nil).toString()).toEqual("“value”");
+    });
+
+    it("reports a mutating method by its declared effect", () => {
+      const value = target();
+      value.set("write:", method());
+      value.set("read", method());
+      const handle = new FrameHandle(value, true);
+
+      expect(boundOn(handle, "write:").isMutating()).toBe(true);
+      expect(boundOn(handle, "read").isMutating()).toBe(false);
+    });
+
+    it("acts on the receiver itself through a mutable handle", () => {
+      const value = target();
+      value.set("write:", method());
+      const handle = new FrameHandle(value, true);
+
+      const result = boundOn(handle, "write:").call(Frame.nil);
+
+      expect(result).toBe(value);
+    });
+
+    it("acts on an instance copy through an immutable handle", () => {
+      const value = target();
+      value.set("write:", method());
+      const handle = new FrameHandle(value, false);
+
+      const result = boundOn(handle, "write:").call(Frame.nil);
+
+      // Functional update: the original identity is shielded and the call
+      // evaluates to the new value.
+      expect(result).not.toBe(value);
+      expect(result.toString()).toEqual(value.toString());
+    });
+  });
+});

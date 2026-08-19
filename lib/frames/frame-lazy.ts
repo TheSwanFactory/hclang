@@ -97,11 +97,14 @@ export class FrameLazy extends FrameExpr {
     // The receiver is installed per call on this invocation frame, so repeated
     // calls cannot leak a receiver into one another.
     expr.receiver = receiver;
-    // It is also an explicit lookup layer, consulted after the closure's own
-    // scope, which is what reassigning the copied body's up used to accomplish.
+    // It is also an explicit lookup layer, and it is consulted ahead of this
+    // closure: a method's own fields shadow the scope the body was defined in.
+    // Bodies are shared between instances, and a shared body's captured scope
+    // is whichever instance was built last, so consulting it first would read
+    // another instance's fields.
     const scope = receiver.is.missing
       ? [prepared, _parameter, this]
-      : [prepared, _parameter, this, receiver];
+      : [prepared, _parameter, receiver, this];
     return expr.in(scope);
   }
 

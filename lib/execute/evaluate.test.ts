@@ -1142,6 +1142,27 @@ describe("evaluate", () => {
       );
     });
 
+    it("reads each instance's own fields through a shared method body", () => {
+      // Instances share one body, whose captured scope is whichever instance
+      // was built last, so the receiver must be consulted ahead of it. Calling
+      // back into an earlier instance must not read the later one's fields.
+      const shared = evaluate(
+        ".Klass {[.own _; .read {own}]}; " +
+          ".one (Klass 1); .two (Klass 2); [one.read(), two.read(), one.read()]",
+      );
+
+      expect(shared.at(-1).toString()).toContain("[1, 2, 1]");
+    });
+
+    it("reads each instance's own private fields through a shared body", () => {
+      const shared = evaluate(
+        ".Klass {[.__own _; .read {own}]}; " +
+          ".one (Klass 1); .two (Klass 2); [one.read(), two.read(), one.read()]",
+      );
+
+      expect(shared.at(-1).toString()).toContain("[1, 2, 1]");
+    });
+
     it("constructs repeated instances without mutating the class aggregate", () => {
       const result = evaluate(
         ".Class {[.Value _; .get {Value}]}; " +

@@ -126,6 +126,51 @@ to its braced form and break fence round-tripping. Reading `.body` does not
 change what a document denotes: it still evaluates to itself and still prints
 its fences.
 
+### Visibility
+
+A leading underscore grades a declaration, and `resolve_here` in `meta-frame.ts`
+is the one place that answers the question. The answer depends only on where the
+access originates:
+
+| Accessor origin              | public | protected | private |
+| ---------------------------- | ------ | --------- | ------- |
+| the owner itself             | yes    | yes       | yes     |
+| a descendant via parent link | yes    | yes       | no      |
+| an unrelated peer            | yes    | no        | no      |
+
+Two rules make that table hold no matter how the access arrives:
+
+- **Descendant means declared.** `isAncestorOf` walks the declared `parent`
+  chain only, never the lexical `up` pointer. Lexical nesting and syntactic
+  containment confer nothing, so an aggregate nested inside another is an
+  unrelated peer for visibility, and so is a peer's method body. `up` is
+  rewritten as lookup learns context, and access control must not depend on
+  lookup history.
+- **Origin is the receiver.** A method body resolves against the frame it runs
+  against, so the owner reaches all three of its own grades, including from a
+  scope nested inside the body. A refusal is an error value, not a miss, so it
+  never falls through to an ancestor that happens to share the name.
+
+Wrapping and copying must not bend the table. A handle grades against its
+target, and an instance copy is its own owner, with full access to its own
+fields and no residual claim on its source's private ones.
+
+### Handles
+
+A handle is a name's effect-qualified reference to a value, and nothing more.
+Two rules define it:
+
+- **Transparency.** Wrapping does not change what a value prints, equals, or
+  exposes; rendering, data, metadata, and array views delegate to the target,
+  and assignment unwraps, so a mutation lands where it would have without the
+  wrapper.
+- **Caller-scoped lookup.** `get_here` answers missing by design, so explicit
+  dotted lookup resolves against the caller's origin rather than the wrapper.
+
+Discovering a method through a handle yields a `BoundMethod`, which owns the
+effect rules for that pairing: a mutating method acts on the receiver itself
+through a mutable handle, and on an instance copy through an immutable one.
+
 ### Copy Contract
 
 Copying is two operations, not one, and every call site belongs to exactly one
@@ -146,6 +191,15 @@ of them:
 Copy-on-write therefore means functional update: `p.set: 2` leaves `p` alone and
 evaluates to the new value. Bodies are never copied — a bound method passes its
 receiver as an explicit argument rather than rewriting a copied closure.
+
+Isolation wins where the two effect rules meet. A nested `inner_` declares a
+mutable identity, yet reaching it through an **immutable** outer receiver still
+forks it, because the outer handle governs the whole aggregate it reaches:
+"untouched at any depth" would otherwise be false, and a caller holding the
+outer value immutably would observe a write through it. A trailing underscore
+declares how a name may be used, not a promise that an enclosing copy will share
+its target. Reach the inner identity through a mutable outer handle when sharing
+is the point.
 
 ### Type Matching
 

@@ -1,6 +1,13 @@
 # Object Model Refactoring Corrections
 
-**Status:** Draft\
+**Status:** Implemented in v0.10.1, except as noted. Corrections 1, 2, and 4 are
+implemented in full. Correction 3 deleted the census and made the write target
+declared, but kept the flat `Frame[]` context stack rather than introducing a
+scope frame with named slots, so `FrameArg`/`FrameParam` still index
+positionally ([#327](https://github.com/TheSwanFactory/hclang/issues/327)).
+Correction 5's parent respelling landed as `.^`; its mutating-marker unification
+stays deferred per [a05b](a05b-object-model-resolutions.md)
+([#328](https://github.com/TheSwanFactory/hclang/issues/328))\
 **Corrects:**
 [a05-object-model-refactoring.md](a05-object-model-refactoring.md)\
 **Issue:**

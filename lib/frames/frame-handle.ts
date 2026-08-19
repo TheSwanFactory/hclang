@@ -1,9 +1,26 @@
 import { Frame } from "./frame.ts";
 import { FrameLazy } from "./frame-lazy.ts";
+import { BoundMethod } from "./bound-method.ts";
 import type { MetaFrame } from "./meta-frame.ts";
 import type { Context } from "./context.ts";
 
-/** A name's effect-qualified reference to a value. */
+/**
+ * A name's effect-qualified reference to a value.
+ *
+ * The handle's charter is that reference and nothing more. Two rules define it:
+ *
+ * - **Transparency.** Wrapping must not change what a value prints, equals, or
+ *   exposes, so rendering, data, metadata, and array views all delegate to the
+ *   target. A handle is invisible to comparison, and assignment unwraps it, so
+ *   a mutation lands on the same frame it would have without the wrapper.
+ * - **Caller-scoped lookup.** `get_here` answers missing by design. Explicit
+ *   dotted lookup therefore resolves against the caller's origin rather than
+ *   this wrapper, which is what keeps visibility grading pinned to the frame
+ *   that asked.
+ *
+ * Discovering a method here yields a `BoundMethod`; the effect rules for that
+ * pairing belong to it, not to the handle.
+ */
 export class FrameHandle extends Frame {
   constructor(
     private readonly target: Frame,
@@ -48,30 +65,5 @@ export class FrameHandle extends Frame {
 
   public override asArray(): Frame[] {
     return this.target.asArray();
-  }
-}
-
-class BoundMethod extends Frame {
-  constructor(
-    private readonly method: FrameLazy,
-    private readonly boundReceiver: Frame,
-    private readonly mutable: boolean,
-    private readonly key: string,
-  ) {
-    super();
-  }
-
-  public override call(argument: Frame, _parameter = Frame.nil): Frame {
-    // Copy-on-write is the one caller of the instance copy, and it means
-    // functional update: an immutable receiver is untouched at any depth, and
-    // the call evaluates to the new value.
-    const target = this.key.endsWith(":") && !this.mutable
-      ? this.boundReceiver.instanceCopy()
-      : this.boundReceiver;
-    // The receiver travels as an explicit argument. The shared closure is
-    // neither copied nor mutated, so it stays reusable across calls.
-    const result = this.method.call(argument, this.method, target);
-    if (result.is.error) return result;
-    return this.key.endsWith(":") ? target : result;
   }
 }
