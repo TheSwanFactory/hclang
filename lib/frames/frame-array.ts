@@ -39,7 +39,7 @@ export class FrameArray extends FrameList {
     // does not make it absorb declarations.
     result.declares = true;
     try {
-      result.data = this.array_eval([...contexts], result);
+      result.data = this.array_eval(contexts, result);
     } finally {
       result.declares = false;
     }
@@ -68,11 +68,11 @@ export class FrameArray extends FrameList {
     return clone;
   }
 
-  public override get(key: string, origin: MetaFrame = this): Frame {
-    if (!isNaN(Number(key))) {
+  protected override lookup_here(key: string, origin: MetaFrame): Frame {
+    if (/^\d+$/.test(key)) {
       return this.at(Number(key));
     }
-    return super.get(key, origin);
+    return super.lookup_here(key, origin);
   }
 
   public override apply(argument: Frame, _parameter: Frame): FrameArray {

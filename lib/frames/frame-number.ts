@@ -36,11 +36,11 @@ export class FrameNumber extends FrameAtom {
     this.spelling = source;
   }
 
-  public override get(key: string, origin: MetaFrame = this): Frame {
+  protected override lookup_here(key: string, origin: MetaFrame): Frame {
     if (/^\d+$/.test(key)) {
       return new FrameNumber(`${this.spelling}.${key}`);
     }
-    return super.get(key, origin);
+    return super.lookup_here(key, origin);
   }
 
   public override apply(argument: Frame, _parameter: Frame): Frame {

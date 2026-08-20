@@ -1,6 +1,8 @@
 import { expect } from "jsr:@std/expect@^0.219.1";
 import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 
+import "../frames.ts";
+
 import { Frame } from "./frame.ts";
 import { FrameArray } from "./frame-array.ts";
 import { FrameHandle } from "./frame-handle.ts";
@@ -66,6 +68,15 @@ describe("FrameHandle", () => {
       expect(handle.get("guarded", stranger).toString()).toContain(
         "$!.is-protected",
       );
+    });
+
+    it("terminates mutually targeting handles and still reaches globals", () => {
+      const left = new FrameHandle(Frame.missing, false);
+      const right = new FrameHandle(left, false);
+      Reflect.set(left, "target", right);
+
+      expect(left.get("absent").is.missing).toBe(true);
+      expect(left.get("&&").is.missing).not.toBe(true);
     });
   });
 

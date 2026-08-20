@@ -176,6 +176,21 @@ construction. Because the parent is declarable only during construction, a cycle
 is currently unreachable from HC source — the guard is covered at the frame
 level instead.
 
+The complete lookup graph is broader than that declared chain: lexical `up`
+links are rewritten freely, and handles add target links, so either can cycle.
+`MetaFrame.get` therefore owns one guarded traversal for every built-in frame.
+It checks `lookup_here` first, then follows the links from `lookup_links` with
+declared parents before lexical `up`, sharing one seen-set. A revisit is a miss
+for that branch rather than an error or recursive overflow, and `Frame.globals`
+is consulted once as the final tier after the non-global graph is exhausted.
+
+Specialized frames customize the template through protected hooks instead of
+recursing through public `get`: `lookup_here` supplies computed local values,
+`lookup_links` supplies structural links such as a handle target, and
+`lookup_result` transforms a successful value, such as binding a method to its
+handle target. Keeping traversal and cycle state in `MetaFrame.get` prevents a
+specialization from accidentally resetting the guard.
+
 ### Handles
 
 A handle is a name's effect-qualified reference to a value, and nothing more.
@@ -212,6 +227,21 @@ of them:
 Copy-on-write therefore means functional update: `p.set: 2` leaves `p` alone and
 evaluates to the new value. Bodies are never copied — a bound method passes its
 receiver as an explicit argument rather than rewriting a copied closure.
+
+A declared parent remains shared rather than joining the instance copy. During a
+copy-on-write call, `BoundMethod` therefore records the aggregates actually
+produced by `instanceCopy` as call-scoped ownership provenance. An alias may
+write only when its physical declaration owner belongs to that copied graph. If
+resolution reaches a shared declared parent or an aggregate inherited from one,
+the call returns `$!.copy-on-write-boundary .name` instead of mutating shared
+state. The provenance follows repeated dotted handle traversal, so the same rule
+holds at any depth; an ordinary mutable receiver still updates the inherited
+owner directly.
+
+The boundary belongs to the invocation, not to the returned aggregate. A
+functional result can later be bound through a mutable name and then exercise
+normal mutable inherited-write authority; it is not permanently marked as an
+immutable copy.
 
 Isolation wins where the two effect rules meet. A nested `inner_` declares a
 mutable identity, yet reaching it through an **immutable** outer receiver still

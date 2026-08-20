@@ -89,7 +89,8 @@ export class FrameSymbol extends FrameAtom {
     const first = contexts[0];
     // A method body resolves against its receiver, so visibility asks the same
     // question no matter which path the access arrives by.
-    const receiver = Frame.receiverIn(contexts);
+    const receiverState = Frame.receiverStateIn(contexts);
+    const receiver = receiverState?.receiver;
     for (const context of contexts) {
       const explicitOrigin = this.get_here(Frame.kOUT);
       const origin = receiver ??
@@ -105,8 +106,11 @@ export class FrameSymbol extends FrameAtom {
         if (value.is.immediate === true) {
           return value.call(context);
         }
+        const copyOnWrite = context instanceof FrameHandle
+          ? context.copyOnWriteScope() ?? receiverState?.copyOnWrite
+          : receiverState?.copyOnWrite;
         return value instanceof FrameArray
-          ? new FrameHandle(value, this.data.endsWith("_"))
+          ? new FrameHandle(value, this.data.endsWith("_"), copyOnWrite)
           : value;
       }
     }
@@ -139,9 +143,7 @@ export class FrameSymbol extends FrameAtom {
     if (argument instanceof FrameHandle) {
       argument = argument.unwrap();
     }
-    // `.^` declares the parent. It needs no visibility grading, so it collides
-    // with nothing: the leading underscore of the retired `._^` spelling read
-    // as "protected member named ^", which is what forced a magic string here.
+    // `.^` declares the structural parent without visibility grading.
     if (this.data === "^") {
       const previous = out.hasDeclaredParent() ? out.parent : Frame.missing;
       const refused = out.setParent(argument);
@@ -149,11 +151,6 @@ export class FrameSymbol extends FrameAtom {
       return previous.is.missing
         ? new FrameLiteral(`.^ ${argument.toString()}`)
         : argument;
-    }
-    // The retired spelling would now quietly declare a protected member named
-    // `^` instead of a parent, so it is refused by name rather than obeyed.
-    if (this.data === "_^") {
-      return Frame.error("$!.retired-syntax ._^ .^");
     }
     const binding = out.resolve_here(this.data, out);
     if (binding?.value.is.error) return binding.value;

@@ -3,10 +3,10 @@
 **Status:** Implemented in v0.10.1. Corrections 1–3 landed together as this
 document required, with the suite green only at the end; the peer-method and
 nested-aggregate refusals are pinned in `cli/hc/class-support.hc`. The `.^`
-respelling needed no lexer rule, so its one condition held, and `._^` is refused
-by name rather than falling through. Two amendments remain open: the residual
-per-call `FrameExpr` rewrite of `up` on shared body items
-([#329](https://github.com/TheSwanFactory/hclang/issues/329)), and the deferred
+respelling needs no lexer rule, so its one condition holds, and no compatibility
+recognizer or evaluator branch remains for the old spelling. Two amendments
+remain open: the evaluation-scope and shared-body cleanup
+([#327](https://github.com/TheSwanFactory/hclang/issues/327)), and the deferred
 mutating-marker unification
 ([#328](https://github.com/TheSwanFactory/hclang/issues/328))\
 **Responds to:**
@@ -61,9 +61,10 @@ accepted on one condition: **the lexing must be clean.**
   `^` remains the BindType operator. The documented `^.x` super syntax is a
   silent no-op today: fix the docs or make it an error, but do not give
   expression-position `^` a second meaning.
-- **`._^` gets an explicit ending.** Unaliased, old `._^ x` silently declares a
-  protected member named `^`. Either keep `._^` as a deprecated alias or reject
-  it with a pointed error; silent fallthrough is not acceptable.
+- **No compatibility path remains for the old spelling.** Without a recognizer
+  exception, it follows the ordinary boundary between an underscore-led name and
+  the `^` operator. It neither declares a parent nor silently creates a
+  protected member named `^`; `.^` is the only parent-declaration spelling.
 - The declared parent's own field (correction 1) is the natural place to later
   expose a _readable_ parent property, which `._^` never provided.
 
@@ -83,5 +84,5 @@ the corpus. Revisit after corrections 1–4 land.
   nested-aggregate refusal to `class-support.hc`.
 - Receiver: include the per-call `FrameExpr` `up` rewrite in the receiver
   extraction's scope.
-- Syntax: `.^` only; `._^` aliased-or-erroring; docs corrected for `^.x`;
-  trailing-underscore unification dropped from this round.
+- Syntax: `.^` only, with no compatibility recognizer or evaluator branch; docs
+  corrected for `^.x`; trailing-underscore unification dropped from this round.

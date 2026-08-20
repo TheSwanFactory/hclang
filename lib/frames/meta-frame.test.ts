@@ -73,6 +73,26 @@ describe("MetaFrame", () => {
     expect(child.get(key)).toEqual(value);
   });
 
+  it("terminates lexical cycles and still falls back to globals", () => {
+    const left = new Frame();
+    const right = new Frame();
+    left.up = right;
+    right.up = left;
+
+    expect(left.get("absent").is.missing).toBe(true);
+    expect(left.get("&&").is.missing).not.toBe(true);
+  });
+
+  it("guards cycles spanning declared and lexical links", () => {
+    const child = new Frame();
+    const parent = new Frame();
+    child.setParent(parent);
+    parent.up = child;
+
+    expect(child.get("absent").is.missing).toBe(true);
+    expect(child.get("&&").is.missing).not.toBe(true);
+  });
+
   it("detects parent assignments that would create a cycle", () => {
     const parent = new Frame();
     const child = new Frame();

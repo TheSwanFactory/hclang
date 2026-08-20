@@ -94,7 +94,7 @@ export class FrameList extends Frame {
     contexts: Array<Frame>,
     out: Frame = this,
   ): Array<Frame> {
-    contexts.push(out);
-    return this.data.map((f: Frame) => f.in(contexts));
+    const scoped = [...contexts, out];
+    return this.data.map((frame) => frame.in(scoped));
   }
 }

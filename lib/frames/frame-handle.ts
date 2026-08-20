@@ -25,6 +25,7 @@ export class FrameHandle extends Frame {
   constructor(
     private readonly target: Frame,
     private readonly mutable: boolean,
+    private readonly copyOnWrite?: WeakSet<Frame>,
   ) {
     super();
     this.up = target;
@@ -34,10 +35,24 @@ export class FrameHandle extends Frame {
     return this.target;
   }
 
-  public override get(key: string, origin: MetaFrame = this): Frame {
-    const value = this.target.get(key, origin);
+  /** Copy provenance carried across dotted aggregate traversal. */
+  public copyOnWriteScope(): WeakSet<Frame> | undefined {
+    return this.copyOnWrite;
+  }
+
+  protected override lookup_links(): Frame[] {
+    return [this.target];
+  }
+
+  protected override lookup_result(value: Frame, key: string): Frame {
     if (value instanceof FrameLazy) {
-      return new BoundMethod(value, this.target, this.mutable, key);
+      return new BoundMethod(
+        value,
+        this.target,
+        this.mutable,
+        key,
+        this.copyOnWrite,
+      );
     }
     return value;
   }

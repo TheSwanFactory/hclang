@@ -29,6 +29,7 @@ export class BoundMethod extends Frame {
     private readonly receiverTarget: Frame,
     private readonly mutable: boolean,
     private readonly key: string,
+    private readonly copyOnWrite?: WeakSet<Frame>,
   ) {
     super();
   }
@@ -39,23 +40,39 @@ export class BoundMethod extends Frame {
   }
 
   public override call(argument: Frame, _parameter = Frame.nil): Frame {
-    const target = this.authorizedTarget();
+    const authorized = this.authorizedCall();
     // The parameter slot stays the nil placeholder of an ordinary closure call.
     // Passing the method here would put the shared body ahead of the receiver in
     // the lookup order, and a shared body's captured scope is whichever instance
     // was built last, so a method would read another instance's fields.
-    const result = this.method.call(argument, Frame.nil, target);
+    const result = this.method.call(
+      argument,
+      Frame.nil,
+      authorized.target,
+      authorized.copyOnWrite,
+    );
     if (result.is.error) return result;
-    return this.isMutating() ? target : result;
+    return this.isMutating() ? authorized.target : result;
   }
 
-  /**
-   * The frame this call acts on: the receiver itself when the effect is
-   * authorized, and otherwise an instance copy, which is the single caller of
-   * the object-semantic copy.
-   */
-  private authorizedTarget(): Frame {
-    const shielded = this.isMutating() && !this.mutable;
-    return shielded ? this.receiverTarget.instanceCopy() : this.receiverTarget;
+  /** Selects the target and records every aggregate isolated for this call. */
+  private authorizedCall(): {
+    target: Frame;
+    copyOnWrite?: WeakSet<Frame>;
+  } {
+    if (!this.isMutating() || this.mutable) {
+      return {
+        target: this.receiverTarget,
+        copyOnWrite: this.copyOnWrite,
+      };
+    }
+
+    const copied = new Map<Frame, Frame>();
+    const target = this.receiverTarget.instanceCopy(copied);
+    const copyOnWrite = this.copyOnWrite ?? new WeakSet<Frame>();
+    for (const aggregate of copied.values()) {
+      copyOnWrite.add(aggregate);
+    }
+    return { target, copyOnWrite };
   }
 }

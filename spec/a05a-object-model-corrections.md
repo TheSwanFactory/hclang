@@ -160,8 +160,8 @@ it `.^` avoids the collision, matches `^` already meaning "outward"
 (`FrameParam.ARG_CHAR`, `frame-arg.ts:123`), and deletes the `parentDeclaration`
 branch in the name recognizer (`frame-name.ts:31,42`) — `.^ base` already lexes
 as an ordinary name today, because `^` passes `OPERATOR_CHARS` and completes on
-the following character. Keep `._^` as a deprecated alias if compatibility
-requires it.
+the following character. No compatibility alias or pointed refusal is retained;
+old input follows the ordinary name/operator boundary.
 
 **One effect marker instead of two.** Mutable identity is a trailing `_` on the
 name (`frame-symbol.ts:106`); a mutating method is a trailing `:` on the key,
@@ -216,9 +216,10 @@ as consequences.
 - **Visibility and symmetry:** unchanged in intent; the matrix now holds by
   construction (correction 1) rather than by test alone, though the tests still
   belong.
-- **Syntax (new section):** `._^` → `.^` with optional deprecated alias; unify
-  the mutating marker on trailing `_`; delete `scanMutatingSuffix` and the
-  `parentDeclaration` recognizer branch. Update `class-support.hc` accordingly.
+- **Syntax (new section):** `._^` → `.^` with no compatibility alias or pointed
+  refusal; unify the mutating marker on trailing `_`; delete
+  `scanMutatingSuffix` and the `parentDeclaration` recognizer branch. Update
+  `class-support.hc` accordingly.
 
 ## Non-goals unchanged from a05
 

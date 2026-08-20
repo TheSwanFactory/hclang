@@ -201,10 +201,10 @@ identity and can participate in inheritance even though it owns no properties.
 
 > [!NOTE]
 > The parent declaration is spelled `.^` as of
-> [a05a correction 5](a05a-object-model-corrections.md); the retired `._^`
-> spelling is refused with `$!.retired-syntax ._^ .^`. The enclosing-scope
-> reference `_^` used elsewhere in this document is unchanged. The normative
-> model below is unaffected: only the declaration's spelling moved.
+> [a05a correction 5](a05a-object-model-corrections.md). No compatibility
+> spelling is retained; the enclosing-scope reference `_^` used elsewhere in
+> this document is unrelated and unchanged. The normative model below is
+> unaffected: only the declaration's spelling moved.
 
 ### Live inherited read
 
