@@ -1117,6 +1117,67 @@ describe("evaluate", () => {
       expect(result.meta.owner_.hasDeclaredParent()).toBe(false);
     });
 
+    it("does not grant receiver authority to a named conditional helper", () => {
+      const result = evaluate(
+        ".next [.marker 2]; .helper {.^ next}; " +
+          ".owner_ [.invoke: {1 ? helper}]; owner_.invoke: 0",
+      );
+
+      expect(result.at(-1).toString()).toContain(
+        "$!.parent-not-declarable .^",
+      );
+      expect(result.meta.owner_.hasDeclaredParent()).toBe(false);
+    });
+
+    it("does not grant receiver authority to a named iterator helper", () => {
+      const result = evaluate(
+        ".next []; .helper {.^ next}; " +
+          ".owner_ [.invoke {[1] | helper}]; owner_.invoke()",
+      );
+
+      expect(result.at(-1).toString()).toContain(
+        "$!.parent-not-declarable .^",
+      );
+      expect(result.meta.owner_.hasDeclaredParent()).toBe(false);
+    });
+
+    it("preserves receiver authority through nested inline callbacks", () => {
+      const result = evaluate(
+        ".owner [.value 1; .write: {1 ? {[1] | {@value 9}}}]; " +
+          ".updated_ (owner.write: 0); [owner.value, updated_.value]",
+      );
+
+      expect(result.at(-1).toString()).toContain("[1, 9]");
+      expect(result.meta.owner.get_here("value").toString()).toEqual("1");
+      expect(result.meta.updated_.get_here("value").toString()).toEqual("9");
+    });
+
+    it("keeps callback state fresh across repeated functional calls", () => {
+      const result = evaluate(
+        ".owner [.value 1; .write: {1 ? {@value 9}}]; " +
+          ".first_ (owner.write: 0); .second_ (owner.write: 0); " +
+          "[owner.value, first_.value, second_.value]",
+      );
+
+      expect(result.at(-1).toString()).toContain("[1, 9, 9]");
+      expect(result.meta.first_).not.toBe(result.meta.owner);
+      expect(result.meta.second_).not.toBe(result.meta.owner);
+      expect(result.meta.second_).not.toBe(result.meta.first_);
+    });
+
+    it("restores outer callback state after a nested receiver call", () => {
+      const result = evaluate(
+        ".inner_ [.value 2; .write: {1 ? {@value 8}}]; " +
+          ".outer_ [.value 1; " +
+          ".write: {inner_.write: 0; 1 ? {@value 9}}]; " +
+          "outer_.write: 0; [outer_.value, inner_.value]",
+      );
+
+      expect(result.at(-1).toString()).toContain("[9, 8]");
+      expect(result.meta.outer_.get_here("value").toString()).toEqual("9");
+      expect(result.meta.inner_.get_here("value").toString()).toEqual("8");
+    });
+
     it("refuses protected access to a merely nested aggregate", () => {
       // Lexical nesting is not inheritance: a child aggregate is a peer for
       // visibility, not a descendant, because it declares no parent.

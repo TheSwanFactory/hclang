@@ -1,4 +1,5 @@
 import { Frame } from "../frames/frame.ts";
+import { FrameLazy } from "../frames/frame-lazy.ts";
 import type { ReceiverState } from "../frames/bound-method.ts";
 
 /**
@@ -30,13 +31,20 @@ export class FrameCurry extends Frame {
     return this;
   }
 
-  /** Invokes the curried operation and forwards only its captured method state. */
+  /**
+   * Invokes the operation, delegating receiver state only to a callback literal
+   * evaluated in the same method invocation.
+   */
   public override call(
     argument: Frame,
     _parameter: Frame = Frame.nil,
     _receiverState?: ReceiverState,
   ): Frame {
-    return this.Func(this.Source, argument, this.callbackReceiverState);
+    const receiverState = this.callbackReceiverState;
+    const callbackReceiverState = receiverState && argument instanceof FrameLazy
+      ? argument.receiverStateForCallback(receiverState)
+      : undefined;
+    return this.Func(this.Source, argument, callbackReceiverState);
   }
 
   public override toString(): string {

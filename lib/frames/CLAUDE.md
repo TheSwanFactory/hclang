@@ -218,9 +218,11 @@ method contract authorizes mutation.
 One immutable `ReceiverState` carries the exact receiver, copy provenance, bare
 sibling binding mode, and private write brand from `BoundMethod` to the
 invocation frame. Syntax nested on the explicit evaluation stack reads that same
-object. Fresh built-in conditional and iterator curries forward it to callbacks;
-ordinary helper closure calls do not, because ambient capability propagation
-would grant unrelated code the caller's receiver authority.
+object. A closure literal evaluated in that invocation receives a plumbing copy
+marked with the state object's identity. Fresh built-in conditional and iterator
+curries forward authority only when the callback bears that matching marker, so
+nested inline blocks retain the decision while unrelated named helpers and
+ordinary helper calls cannot acquire it.
 
 An alias first searches the receiver and its declared parents. A hit consumes
 the write brand; a miss searches only the receiver's live lexical scope, never

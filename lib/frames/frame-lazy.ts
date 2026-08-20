@@ -6,6 +6,10 @@ import { type Context, NilContext } from "./context.ts";
 import type { ReceiverState } from "./bound-method.ts";
 import type { SigilStart } from "../scan.ts";
 
+// This records provenance, not authority: only a per-evaluation literal copy
+// can be associated with the invocation in which it was produced.
+const inlineCallbackReceiverStates = new WeakMap<FrameLazy, ReceiverState>();
+
 export class FrameLazy extends FrameExpr {
   public static readonly LAZY_BEGIN = "{";
   public static readonly LAZY_END = "}";
@@ -70,8 +74,27 @@ export class FrameLazy extends FrameExpr {
 
   public override in(contexts: Array<Frame> = [Frame.nil]): Frame {
     const context = contexts[0] ?? Frame.nil;
-    this.up = context;
-    return this;
+    const receiverState = Frame.receiverStateIn(contexts);
+    if (!receiverState) {
+      this.up = context;
+      return this;
+    }
+
+    // Mark only a per-evaluation copy. The parsed/shared closure must never
+    // retain one invocation's callback provenance into another call.
+    const callback = this.copy();
+    callback.up = context;
+    inlineCallbackReceiverStates.set(callback, receiverState);
+    return callback;
+  }
+
+  /** Returns state only when this literal was evaluated in that invocation. */
+  public receiverStateForCallback(
+    receiverState: ReceiverState,
+  ): ReceiverState | undefined {
+    return inlineCallbackReceiverStates.get(this) === receiverState
+      ? receiverState
+      : undefined;
   }
 
   /** Evaluates this closure with an optional bound receiver capability. */

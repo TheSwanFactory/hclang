@@ -168,7 +168,10 @@ A method reached by bare name on the active receiver MUST be rebound through the
 same effect decision as dotted lookup. A sibling mutator called by a
 non-mutating method is therefore functional rather than an in-place escalation.
 Built-in conditional and iterator callbacks MUST retain the active receiver
-decision; ordinary helper closure calls MUST NOT inherit it implicitly.
+decision only when the callback closure was evaluated within that same method
+invocation. A named helper closure defined outside the invocation MUST NOT gain
+receiver authority merely by being supplied to built-in control flow, and an
+ordinary helper closure call MUST NOT inherit it implicitly.
 
 ### 5. Shadowing is local and reversible
 
