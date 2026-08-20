@@ -22,6 +22,9 @@
 - Refuse receiver-targeted `@name` writes from non-mutating methods, while
   preserving in-place mutation through mutable handles and functional updates
   through immutable handles.
+- Preserve receiver effects through built-in control-flow blocks and bare
+  sibling calls, while excluding caller arguments and shared inherited state
+  from write authority.
 
 ## v0.10.1 2026-08-18
 

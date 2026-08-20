@@ -4,10 +4,13 @@ import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 import {
   Frame,
   FrameAlias,
+  FrameArray,
   FrameExpr,
+  FrameLazy,
   FrameString,
   FrameSymbol,
 } from "../frames.ts";
+import { BoundMethod } from "./bound-method.ts";
 
 describe("FrameAlias", () => {
   const key = "atom";
@@ -74,6 +77,47 @@ describe("FrameAlias", () => {
     expect(result.toString()).toEqual("$!.is-private .private");
     expect(owner.get_here("__private")).toBe(value_1);
     expect(descendant.meta.private).toBeUndefined();
+  });
+
+  it("gates receiver-owned aliases before lexical fallback", () => {
+    const lexical = new Frame({ atom: value_1 });
+    const receiver = new FrameArray([], { atom: value_1 });
+    receiver.up = lexical;
+    const method = new FrameLazy([frame_alias, value_2]);
+
+    const result = new BoundMethod(method, receiver, true, "write").call(
+      Frame.nil,
+    );
+
+    expect(result.toString()).toEqual("$!.method-not-mutating @atom");
+    expect(receiver.get_here("atom")).toBe(value_1);
+    expect(lexical.get_here("atom")).toBe(value_1);
+  });
+
+  it("writes lexical scope after a receiver miss, never the argument", () => {
+    const lexical = new Frame({ atom: value_1 });
+    const receiver = new FrameArray([]);
+    receiver.up = lexical;
+    const argument = new Frame({ atom: new FrameString("argument") });
+    const method = new FrameLazy([frame_alias, value_2]);
+
+    new BoundMethod(method, receiver, true, "write").call(argument);
+
+    expect(lexical.get_here("atom")).toBe(value_2);
+    expect(argument.get_here("atom").toString()).toEqual("“argument”");
+  });
+
+  it("does not treat an argument-only binding as an alias target", () => {
+    const receiver = new FrameArray([]);
+    const argument = new Frame({ atom: value_1 });
+    const method = new FrameLazy([frame_alias, value_2]);
+
+    const result = new BoundMethod(method, receiver, true, "write").call(
+      argument,
+    );
+
+    expect(result.toString()).toContain("$!.name-missing");
+    expect(argument.get_here("atom")).toBe(value_1);
   });
 
   it("terminates a cyclic lexical search as missing", () => {

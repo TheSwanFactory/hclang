@@ -110,9 +110,7 @@ export class FrameName extends FrameAtom implements ISourced {
       if (!receiverState) {
         return Frame.error(`$!.parent-not-declarable .${this.source}`);
       }
-      const target = authorizedReceiverWriteTarget(
-        receiverState.writeAuthority,
-      );
+      const target = authorizedReceiverWriteTarget(receiverState);
       if (!target) {
         return Frame.error(`$!.method-not-mutating .${this.source}`);
       }

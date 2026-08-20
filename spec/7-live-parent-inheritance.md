@@ -143,16 +143,32 @@ method. That operation MUST still enforce:
 - mutable versus immutable handles; and
 - any applicable resource/effect authority.
 
-A receiver-targeted alias such as `@name`, and the structural parent write
-`.^ base`, MUST require a method declared mutating. If the active method lacks
-that effect, the operation MUST return `$!.method-not-mutating @name` or
-`$!.method-not-mutating .^`, respectively, without changing either the receiver
-or a same-named lexical binding. A mutable handle alone MUST NOT grant the
-missing method effect. Once authorized, a mutable handle targets the receiver
-itself and an immutable handle targets the functional instance copy selected for
-that call. For `.^`, this means the original immutable receiver retains its
-parent while the returned copy receives the new parent. Parent writes MUST
-continue to reject direct and indirect cycles before changing either target.
+A receiver-path alias such as `@name`, and the structural parent write
+`.^ base`, MUST require a method declared mutating. The receiver path comprises
+the receiver and its declared parents. If that path owns the alias name and the
+active method lacks the effect, the operation MUST return
+`$!.method-not-mutating @name` without falling through to a same-named lexical
+binding. An unauthorized parent write MUST likewise return
+`$!.method-not-mutating .^`. Neither refusal may change the receiver.
+
+If `@name` misses the receiver path, it retains lexical alias behavior through
+the receiver's live enclosing scope. That fallback MUST skip the method argument
+and parameter layers, which are values supplied by the caller rather than alias
+write targets.
+
+A mutable handle alone MUST NOT grant a missing method effect. Once authorized,
+a mutable handle targets the receiver itself and an immutable handle targets the
+functional instance copy selected for that call. For `.^`, this means the
+original immutable receiver retains its parent while the returned copy receives
+the new parent. Authority MUST NOT be minted for an aggregate outside an active
+copy-on-write graph, and parent writes MUST reject direct and indirect cycles
+before changing either target.
+
+A method reached by bare name on the active receiver MUST be rebound through the
+same effect decision as dotted lookup. A sibling mutator called by a
+non-mutating method is therefore functional rather than an in-place escalation.
+Built-in conditional and iterator callbacks MUST retain the active receiver
+decision; ordinary helper closure calls MUST NOT inherit it implicitly.
 
 ### 5. Shadowing is local and reversible
 

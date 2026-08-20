@@ -36,6 +36,20 @@ the call evaluates to the new value, and the original is untouched at any depth.
 ; pair.inner_.n
 # 1
 
+`A bare sibling mutator remains functional inside a non-mutating method.`
+; .sibling-owner [.value 1; .write: {@value _;}; .sneak {write: _}];
+; .sibling-copy (sibling-owner.sneak(9));
+; sibling-owner.value
+# 1
+; sibling-copy.value
+# 9
+
+`Built-in control-flow blocks retain the active receiver capability.`
+; .callback-owner_ [.value 1; .write: {1 ? {@value 9}}];
+; callback-owner_.write: 9;
+; callback-owner_.value
+# 9
+
 `A mutable receiver takes no copy, so the nested identity it declares is shared.`
 ; .live_ [.inner_ [.n 1; .set-n: {@n _;}]; .bump: {inner_.set-n: _}];
 ; live_.bump: 9;

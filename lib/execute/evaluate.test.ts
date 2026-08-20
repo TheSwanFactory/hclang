@@ -1030,6 +1030,93 @@ describe("evaluate", () => {
       expect(result.meta.owner.get_here("value").toString()).toEqual("1");
     });
 
+    it("keeps lexical alias fallback away from the caller argument", () => {
+      const result = evaluate(
+        ".x 1; .owner [.write {@x 9}]; .arg (.x 5); " +
+          "owner.write(arg); [x, arg.x]",
+      );
+
+      expect(result.at(-1).toString()).toContain("[9, 5]");
+      expect(result.meta.x.toString()).toEqual("9");
+      expect(result.meta.arg.get_here("x").toString()).toEqual("5");
+    });
+
+    it("does not use an argument-only binding as an alias target", () => {
+      const result = evaluate(
+        ".owner [.write {@x 9}]; .arg (.x 5); owner.write(arg)",
+      );
+
+      expect(result.at(-1).toString()).toContain("$!.name-missing");
+      expect(result.meta.arg.get_here("x").toString()).toEqual("5");
+    });
+
+    it("preserves inherited-method lexical alias fallback", () => {
+      const result = evaluate(
+        ".parent [.write: {@x _;}]; " +
+          ".inner [.x 1; .child_ [.^ parent]]; " +
+          "inner.child_.write: 9; inner.x",
+      );
+
+      expect(result.at(-1).toString()).toMatch(/; 9\)$/);
+      expect(result.meta.inner.get_here("x").toString()).toEqual("9");
+    });
+
+    it("preserves receiver authority through conditional blocks", () => {
+      const result = evaluate(
+        ".old [.marker 1]; .next [.marker 2]; " +
+          ".child_ [.^ old; .reparent: {1 ? {.^ next}}]; " +
+          "child_.reparent: 0; child_.marker",
+      );
+
+      expect(result.at(-1).toString()).toMatch(/; 2\)$/);
+      expect(result.meta.child_.parent).toBe(result.meta.next);
+    });
+
+    it("preserves functional receiver updates through iterator blocks", () => {
+      const result = evaluate(
+        ".owner [.value 1; .write: {[1] | {@value 9}}]; " +
+          ".updated_ (owner.write: 0); [owner.value, updated_.value]",
+      );
+
+      expect(result.at(-1).toString()).toContain("[1, 9]");
+      expect(result.meta.owner.get_here("value").toString()).toEqual("1");
+      expect(result.meta.updated_.get_here("value").toString()).toEqual("9");
+    });
+
+    it("does not grant callback writes to a non-mutating method", () => {
+      const result = evaluate(
+        ".owner_ [.value 1; .write {1 ? {@value 9}}]; owner_.write()",
+      );
+
+      expect(result.at(-1).toString()).toContain(
+        "$!.method-not-mutating @value",
+      );
+      expect(result.meta.owner_.get_here("value").toString()).toEqual("1");
+    });
+
+    it("binds a bare sibling mutator as a functional receiver update", () => {
+      const result = evaluate(
+        ".owner [.value 1; .write: {@value _;}; .sneak {write: 9}]; " +
+          ".updated_ (owner.sneak()); [owner.value, updated_.value]",
+      );
+
+      expect(result.at(-1).toString()).toContain("[1, 9]");
+      expect(result.meta.owner.get_here("value").toString()).toEqual("1");
+      expect(result.meta.updated_.get_here("value").toString()).toEqual("9");
+    });
+
+    it("does not propagate receiver authority into ordinary helper calls", () => {
+      const result = evaluate(
+        ".next []; .helper {.^ next}; " +
+          ".owner_ [.invoke: {helper()}]; owner_.invoke: 0",
+      );
+
+      expect(result.at(-1).toString()).toContain(
+        "$!.parent-not-declarable .^",
+      );
+      expect(result.meta.owner_.hasDeclaredParent()).toBe(false);
+    });
+
     it("refuses protected access to a merely nested aggregate", () => {
       // Lexical nesting is not inheritance: a child aggregate is a peer for
       // visibility, not a descendant, because it declares no parent.
@@ -1137,9 +1224,25 @@ describe("evaluate", () => {
       const inner = result.meta.base_.get_here("inner_");
 
       expect(result.at(0).toString()).toContain(
-        "$!.copy-on-write-boundary .own",
+        "$!.copy-on-write-boundary .set-own",
       );
       expect(inner.get_here("own").toString()).toEqual("1");
+    });
+
+    it("rejects re-parenting shared state inherited by a copied receiver", () => {
+      const result = evaluate(
+        ".next [.marker 9]; " +
+          ".base [.inner_ [.value 1; .reparent: {.^ _;}]]; " +
+          ".owner [.^ base; .change: {inner_.reparent: next}]; " +
+          "owner.change: 0",
+      );
+      const sharedInner = result.meta.base.get_here("inner_");
+
+      expect(result.at(-1).toString()).toContain(
+        "$!.copy-on-write-boundary .reparent",
+      );
+      expect(sharedInner.hasDeclaredParent()).toBe(false);
+      expect(sharedInner.get_here("value").toString()).toEqual("1");
     });
 
     it("allows the same nested writes through mutable receivers", () => {

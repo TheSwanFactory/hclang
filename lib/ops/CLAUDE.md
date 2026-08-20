@@ -52,6 +52,12 @@ Operations in HC are themselves frames, maintaining homoiconicity:
 - Can be returned from functions
 - Can be stored in data structures
 
+A fresh `FrameCurry` is created for every operation lookup. When lookup occurs
+inside a method, built-in conditionals and iterators capture that invocation's
+typed receiver state and pass the exact object only to the blocks they invoke.
+This preserves effect and copy-on-write decisions through language control flow
+without granting receiver authority to ordinary helper closure calls.
+
 ## Usage Examples
 
 ### Mathematical Operations

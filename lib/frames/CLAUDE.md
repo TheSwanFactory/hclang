@@ -204,14 +204,28 @@ Two rules define it:
 - **Caller-scoped lookup.** `get_here` answers missing by design, so explicit
   dotted lookup resolves against the caller's origin rather than the wrapper.
 
-Discovering a method through a handle yields a `BoundMethod`, which owns the
-effect rules for that pairing: a mutating method acts on the receiver itself
-through a mutable handle, and on an instance copy through an immutable one. A
-method without the mutating suffix retains receiver read access but receives no
-receiver-write capability, so a receiver-targeted `@name` returns
-`$!.method-not-mutating @name` through either kind of handle. Handle mutability
-selects original identity versus functional copy only after the method contract
-authorizes mutation.
+Discovering a method through a handle or by bare name on the active raw receiver
+yields a `BoundMethod`, which owns the effect rules for that pairing: a mutating
+method acts on the receiver itself through a mutable handle, and on an instance
+copy through an immutable one. A method without the mutating suffix retains
+receiver read access but receives no receiver-write capability, so a
+receiver-targeted `@name` returns `$!.method-not-mutating @name` through either
+kind of handle. A bare sibling mutator called from such a method is rebound
+functionally instead of escalating the outer method to an in-place write. Handle
+mutability selects original identity versus functional copy only after the
+method contract authorizes mutation.
+
+One immutable `ReceiverState` carries the exact receiver, copy provenance, bare
+sibling binding mode, and private write brand from `BoundMethod` to the
+invocation frame. Syntax nested on the explicit evaluation stack reads that same
+object. Fresh built-in conditional and iterator curries forward it to callbacks;
+ordinary helper closure calls do not, because ambient capability propagation
+would grant unrelated code the caller's receiver authority.
+
+An alias first searches the receiver and its declared parents. A hit consumes
+the write brand; a miss searches only the receiver's live lexical scope, never
+the prepared argument or parameter supplied by the caller. This preserves
+lexical alias behavior without making caller-owned values write targets.
 
 ### Copy Contract
 
@@ -236,12 +250,14 @@ receiver as an explicit argument rather than rewriting a copied closure.
 
 A declared parent remains shared rather than joining the instance copy. During a
 copy-on-write call, `BoundMethod` therefore records the aggregates actually
-produced by `instanceCopy` as call-scoped ownership provenance. An alias may
-write only when its physical declaration owner belongs to that copied graph. If
-resolution reaches a shared declared parent or an aggregate inherited from one,
-the call returns `$!.copy-on-write-boundary .name` instead of mutating shared
-state. The provenance follows repeated dotted handle traversal, so the same rule
-holds at any depth; an ordinary mutable receiver still updates the inherited
+produced by `instanceCopy` as call-scoped ownership provenance. Before a nested
+mutable method receives any write brand, its receiver must belong to that copied
+graph; otherwise the call returns `$!.copy-on-write-boundary .method`. Alias
+resolution also checks that its physical declaration owner belongs to the graph,
+so reaching a shared declared parent returns `$!.copy-on-write-boundary .name`
+instead of mutating shared state. The provenance follows repeated dotted handle
+traversal, and the authority-minting check protects structural writes such as
+`.^` as well as aliases. An ordinary mutable receiver still updates an inherited
 owner directly.
 
 The boundary belongs to the invocation, not to the returned aggregate. A

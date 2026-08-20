@@ -2,6 +2,8 @@ import { expect } from "jsr:@std/expect@^0.219.1";
 import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 
 import * as frame from "../frames.ts";
+import type { ReceiverState } from "../frames/bound-method.ts";
+import { MapEnumerable, MapProperties, ReduceEnumerable } from "./iterators.ts";
 
 describe("iterators", () => {
   const base = new frame.Frame({
@@ -35,6 +37,41 @@ describe("iterators", () => {
     const arg = new frame.FrameString("argument");
     const result = block.call(arg);
     expect(result.toString()).toEqual("“Prefix: argument”");
+  });
+
+  it("forwards receiver state through every iterator callback", () => {
+    class CapturingBlock extends frame.Frame {
+      public readonly seen: Array<ReceiverState | undefined> = [];
+
+      public override call(
+        argument: frame.Frame,
+        _parameter = frame.Frame.nil,
+        receiverState?: ReceiverState,
+      ): frame.Frame {
+        this.seen.push(receiverState);
+        return argument;
+      }
+    }
+
+    const receiverState: ReceiverState = {
+      receiver: new frame.Frame(),
+      mutable: false,
+    };
+    const enumerable = new frame.FrameArray([
+      frame.FrameNumber.for("1"),
+      frame.FrameNumber.for("2"),
+    ]);
+    const enumerableBlock = new CapturingBlock();
+    const propertyBlock = new CapturingBlock();
+    const reduceBlock = new CapturingBlock();
+
+    MapEnumerable(enumerable, enumerableBlock, receiverState);
+    MapProperties(base, propertyBlock, receiverState);
+    ReduceEnumerable(enumerable, reduceBlock, receiverState);
+
+    expect(enumerableBlock.seen).toEqual([receiverState, receiverState]);
+    expect(propertyBlock.seen).toEqual([receiverState, receiverState]);
+    expect(reduceBlock.seen).toEqual([receiverState]);
   });
 
   describe("&& iterate over metas", () => {

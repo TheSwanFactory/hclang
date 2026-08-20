@@ -41,10 +41,10 @@ export class FrameAlias extends FrameAtom {
       contexts.find((context) => context instanceof FrameLazy) ??
       contexts[0];
 
-    // Receiver declarations are readable from every method, but writable only
-    // when BoundMethod supplied the target selected by its declared effect and
-    // the handle's mutability. Declared parents belong to the same receiver
-    // path; lexical parents do not grant receiver-write authority.
+    // Receiver and declared-parent hits are writes to object state, so they
+    // require the method capability. A miss retains the historical lexical
+    // alias behavior, but searches only the receiver's enclosing scope: the
+    // prepared argument and parameter are never alias-write targets.
     const receiverFound = receiver
       ? this.find(receiver, key, origin, new Set(), false)
       : undefined;
@@ -52,34 +52,23 @@ export class FrameAlias extends FrameAtom {
       return receiverFound;
     }
     if (receiverFound) {
-      const writeTarget = authorizedReceiverWriteTarget(
-        receiverState?.writeAuthority,
-      );
-      if (!writeTarget) {
+      if (!authorizedReceiverWriteTarget(receiverState)) {
         return Frame.error(`$!.method-not-mutating @${key}`);
       }
-      // Resolve again against the capability target so the setter stays
-      // anchored there if read and write receiver projections ever diverge.
-      const authorized = this.find(
-        writeTarget,
-        key,
-        origin,
-        new Set(),
-        false,
-      );
-      if (authorized instanceof Frame) {
-        return authorized;
-      }
-      if (authorized) {
-        return this.setterFor(authorized, key, receiverState?.copyOnWrite);
-      }
-      return FrameNote.key(key, this);
+      return this.setterFor(receiverFound, key, receiverState?.copyOnWrite);
     }
 
-    const searched = receiver
-      ? contexts.filter((context) => context !== receiver)
-      : contexts;
-    for (const context of searched) {
+    if (receiver) {
+      const lexicalFound = this.find(receiver.up, key, origin);
+      if (lexicalFound instanceof Frame) {
+        return lexicalFound;
+      }
+      return lexicalFound
+        ? this.setterFor(lexicalFound, key, receiverState?.copyOnWrite)
+        : FrameNote.key(key, this);
+    }
+
+    for (const context of contexts) {
       const found = this.find(context, key, origin);
       if (found instanceof Frame) {
         return found;
