@@ -89,11 +89,6 @@ would be the argument, so declaring a parent there is refused by name.`
 ; [target_.set-parent: target_]
 # [($!.parent-not-declarable .^);]
 
-`The parent is declared as .^, and the retired ._^ spelling is refused rather
-than silently declaring a protected member named ^.`
-; [._^ base]
-# [$!.retired-syntax ._^ .^]
-
 `Multiple-base behavior is ordinary user-defined composition, not inheritance
 syntax or a built-in policy.`
 ; .compose { [.left _.0.left; .right _.1.right] };

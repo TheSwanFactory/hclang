@@ -4,6 +4,12 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## Unreleased
+
+- Remove transitional recognition and the pointed error for `._^`; `.^` is the
+  only parent-declaration spelling, and old input follows ordinary name/operator
+  tokenization.
+
 ## v0.10.1 2026-08-18
 
 - Refuse a protected member reached through containment rather than inheritance,

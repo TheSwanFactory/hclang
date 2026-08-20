@@ -125,12 +125,6 @@ describe("Lex", () => {
     expect(declaration).toHaveLength(1);
     expect(declaration[0]).toBeInstanceOf(FrameName);
     expect(declaration[0].toString()).toEqual(".^");
-
-    // The retired spelling stays one name so evaluation can refuse it.
-    const retired = lexAtoms("._^ ");
-    expect(retired).toHaveLength(1);
-    expect(retired[0]).toBeInstanceOf(FrameName);
-    expect(retired[0].toString()).toEqual("._^");
   });
 
   it("preserves parent identifiers across chunk boundaries", () => {
@@ -143,7 +137,6 @@ describe("Lex", () => {
         ).toEqual([name]);
       }
     }
-    expect(lexChunkedAtoms(["._", "^"]).map(String)).toEqual(["._^"]);
   });
 
   it("nests curly quotes without an escape character", () => {

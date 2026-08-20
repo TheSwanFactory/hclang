@@ -1239,19 +1239,6 @@ describe("evaluate", () => {
       );
     });
 
-    it("refuses the retired parent-declaration spelling by name", () => {
-      const result = evaluate(
-        ".base [._protected 21]; .derived [._^ base; .read {protected}]",
-      );
-      const derived = result.meta.derived;
-
-      // Unrefused, `._^` would declare a protected member named ^, silently
-      // leaving the aggregate with no parent at all.
-      expect(result.at(0).toString()).toContain("$!.retired-syntax ._^ .^");
-      expect(derived.hasDeclaredParent()).toBe(false);
-      expect(derived.get_here("_^").is.missing).toBe(true);
-    });
-
     it("rejects parent declarations outside construction without corrupting lookup", () => {
       const declaration = evaluate(
         ".owner_ [.set-parent: {.^ _;}]; owner_.set-parent: owner_",

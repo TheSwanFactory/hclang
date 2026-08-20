@@ -27,12 +27,8 @@ const recognizeName = (symbol: Frame, source = ""): ScanResult => {
     return mutatingSuffix;
   }
   // `.^` needs no rule of its own: `^` is an operator character, so it is
-  // consumed and completed like any other name. This branch keeps the retired
-  // `._^` spelling a single name, so evaluation can refuse it by name instead
-  // of letting it break into `._` and a stray `^`. It exists only to serve that
-  // refusal, so it is deleted with it (#332).
-  const retiredParentDeclaration = source === "_" && char === "^";
-  if (!retiredParentDeclaration && !includes(char)) {
+  // consumed and completed like any other name.
+  if (!includes(char)) {
     return { disposition: ScanDisposition.CompleteRedispatch };
   }
   if (source.length === 0) {
@@ -43,7 +39,7 @@ const recognizeName = (symbol: Frame, source = ""): ScanResult => {
   const continuesIdentifier = char[0] === "-" && !startsWithOperator;
   const sameKind = FrameOperator.Accepts(char[0]) === startsWithOperator;
   return {
-    disposition: retiredParentDeclaration || continuesIdentifier || sameKind
+    disposition: continuesIdentifier || sameKind
       ? ScanDisposition.Consume
       : ScanDisposition.CompleteRedispatch,
   };
