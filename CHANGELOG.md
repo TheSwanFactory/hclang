@@ -16,6 +16,9 @@
   functional update that would write through a shared declared parent.
 - Treat only decimal-digit array properties as positions, so metadata named
   `Infinity`, `1e3`, `0x10`, or the empty string remains accessible.
+- Re-parent existing receivers with `.^ base` only from mutating methods,
+  updating mutable receivers in place and immutable receivers as functional
+  copies while preserving cycle rejection.
 - Refuse receiver-targeted `@name` writes from non-mutating methods, while
   preserving in-place mutation through mutable handles and functional updates
   through immutable handles.

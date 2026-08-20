@@ -68,16 +68,17 @@ describe("FrameName", () => {
       expect(parent.in([new FrameString("statement"), underConstruction]))
         .not.toHaveProperty("is.error", true);
 
-      // A method body offers no aggregate under construction. Its target would
-      // be the argument, so the declaration is refused rather than re-parenting
-      // the wrong frame.
-      const inMethodBody = parent.in([
+      // Without an active bound-method invocation there is no receiver-write
+      // authority, even if a handle happens to be present in the context.
+      const outsideConstructionOrMethod = parent.in([
         new FrameHandle(new FrameArray([]), true),
-        new FrameString("receiver"),
+        new FrameString("ordinary context"),
       ]);
 
-      expect(inMethodBody.is.error).toBe(true);
-      expect(inMethodBody.toString()).toEqual("$!.parent-not-declarable .^");
+      expect(outsideConstructionOrMethod.is.error).toBe(true);
+      expect(outsideConstructionOrMethod.toString()).toEqual(
+        "$!.parent-not-declarable .^",
+      );
     });
 
     it("prefers the innermost of several declaration targets", () => {

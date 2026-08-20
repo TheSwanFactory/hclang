@@ -143,12 +143,16 @@ method. That operation MUST still enforce:
 - mutable versus immutable handles; and
 - any applicable resource/effect authority.
 
-A receiver-targeted alias such as `@name` MUST require a method declared
-mutating. If the active method lacks that effect, the operation MUST return
-`$!.method-not-mutating @name` without changing either the receiver or a
-same-named lexical binding. A mutable handle alone MUST NOT grant the missing
-method effect. Once authorized, a mutable handle targets the receiver itself and
-an immutable handle targets the functional instance copy selected for that call.
+A receiver-targeted alias such as `@name`, and the structural parent write
+`.^ base`, MUST require a method declared mutating. If the active method lacks
+that effect, the operation MUST return `$!.method-not-mutating @name` or
+`$!.method-not-mutating .^`, respectively, without changing either the receiver
+or a same-named lexical binding. A mutable handle alone MUST NOT grant the
+missing method effect. Once authorized, a mutable handle targets the receiver
+itself and an immutable handle targets the functional instance copy selected for
+that call. For `.^`, this means the original immutable receiver retains its
+parent while the returned copy receives the new parent. Parent writes MUST
+continue to reject direct and indirect cycles before changing either target.
 
 ### 5. Shadowing is local and reversible
 

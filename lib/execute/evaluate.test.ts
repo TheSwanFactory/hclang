@@ -1410,22 +1410,67 @@ describe("evaluate", () => {
       );
     });
 
-    it("rejects parent declarations outside construction without corrupting lookup", () => {
-      const declaration = evaluate(
-        ".owner_ [.set-parent: {.^ _;}]; owner_.set-parent: owner_",
-      );
-      const owner = declaration.meta.owner_;
+    it("refuses a parent write outside construction and method calls", () => {
+      const result = evaluate(".base []; .^ base");
 
-      // A method body is not a construction position, so the declaration is
-      // refused by position rather than reaching setParent's cycle guard --
-      // which lib/frames/meta-frame.test.ts pins at its only writer instead.
-      expect(declaration.at(0).toString()).toContain(
+      expect(result.at(-1).toString()).toContain(
         "$!.parent-not-declarable .^",
       );
-      expect(owner.hasDeclaredParent()).toBe(false);
-      expect(owner.parent).not.toBe(owner);
-      expect(evaluate("owner_.missing", declaration.meta).at(0).toString())
-        .toContain("$!.name-missing");
+    });
+
+    it("re-parents a mutable receiver in place", () => {
+      const result = evaluate(
+        ".oldBase [.marker 1]; .newBase [.marker 2]; " +
+          ".child_ [.^ oldBase; .reparent: {.^ _;}]; " +
+          "child_.reparent: newBase; child_.marker",
+      );
+      const child = result.meta.child_;
+
+      expect(child.parent).toBe(result.meta.newBase);
+      expect(result.at(-1).toString()).toMatch(/; 2\)$/);
+    });
+
+    it("re-parents only the functional copy of an immutable receiver", () => {
+      const result = evaluate(
+        ".oldBase [.marker 1]; .newBase [.marker 2]; " +
+          ".child [.^ oldBase; .reparent: {.^ _;}]; " +
+          ".updated_ (child.reparent: newBase); " +
+          "[child.marker, updated_.marker]",
+      );
+      const child = result.meta.child;
+      const updated = result.meta.updated_;
+
+      expect(child.parent).toBe(result.meta.oldBase);
+      expect(updated).not.toBe(child);
+      expect(updated.parent).toBe(result.meta.newBase);
+      expect(result.at(-1).toString()).toContain("[1, 2]");
+    });
+
+    it("refuses receiver re-parenting from a non-mutating method", () => {
+      const result = evaluate(
+        ".oldBase []; .newBase []; " +
+          ".child_ [.^ oldBase; .reparent {.^ _;}]; " +
+          "child_.reparent(newBase)",
+      );
+      const child = result.meta.child_;
+
+      expect(result.at(-1).toString()).toContain(
+        "$!.method-not-mutating .^",
+      );
+      expect(child.parent).toBe(result.meta.oldBase);
+    });
+
+    it("rejects an indirect parent cycle reached through a mutating method", () => {
+      const result = evaluate(
+        ".left_ [.reparent: {.^ _;}]; .right_ [.^ left_]; " +
+          "left_.reparent: right_",
+      );
+      const left = result.meta.left_;
+      const right = result.meta.right_;
+
+      expect(result.at(-1).toString()).toContain("$!.cyclic-parent .^");
+      expect(left.hasDeclaredParent()).toBe(false);
+      expect(right.parent).toBe(left);
     });
 
     it("supports user-defined multiple-base composition", () => {
