@@ -36,7 +36,8 @@ export class FrameAlias extends FrameAtom {
     const key = this.data.toString();
     // A mutating method aliases its receiver's declaration, so the receiver is
     // searched first and authorizes the write.
-    const receiver = Frame.receiverIn(contexts);
+    const receiverState = Frame.receiverStateIn(contexts);
+    const receiver = receiverState?.receiver;
     const origin = receiver ??
       contexts.find((context) => context instanceof FrameLazy) ??
       contexts[0];
@@ -47,6 +48,10 @@ export class FrameAlias extends FrameAtom {
         return found;
       }
       if (found) {
+        const copyOnWrite = receiverState?.copyOnWrite;
+        if (copyOnWrite && !copyOnWrite.has(found.out)) {
+          return Frame.error(`$!.copy-on-write-boundary .${key}`);
+        }
         const setter = FrameSymbol.for(found.key).setter(found.out);
         return setter;
       }
@@ -66,24 +71,31 @@ export class FrameAlias extends FrameAtom {
     context: Frame,
     key: string,
     origin: Frame,
+    seen: Set<Frame> = new Set(),
   ): { out: Frame; key: string } | Frame | undefined {
-    const seen = new Set<Frame>();
-    while (context !== Frame.missing && context !== undefined) {
-      if (seen.has(context)) return undefined;
-      seen.add(context);
-
-      const binding = context.resolve_here(key, origin);
-      if (binding?.value.is.error) {
-        return binding.value;
-      }
-      if (binding) {
-        return { out: context, key: binding.key };
-      }
-      const here = context.get_here(key, origin);
-      if (!here.is.missing) {
-        return { out: context, key };
-      }
-      context = context.up;
+    if (
+      context === Frame.missing || context === undefined || seen.has(context)
+    ) {
+      return undefined;
     }
+    seen.add(context);
+
+    const binding = context.resolve_here(key, origin);
+    if (binding?.value.is.error) {
+      return binding.value;
+    }
+    if (binding) {
+      return { out: context, key: binding.key };
+    }
+    const here = context.get_here(key, origin);
+    if (!here.is.missing) {
+      return { out: context, key };
+    }
+
+    if (context.hasDeclaredParent()) {
+      const inherited = this.find(context.parent, key, origin, seen);
+      if (inherited) return inherited;
+    }
+    return this.find(context.up, key, origin, seen);
   }
 }

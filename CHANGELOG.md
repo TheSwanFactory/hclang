@@ -16,6 +16,13 @@
   diagnostic.
 - Report `$!.parent-not-declarable .^` for a parent declaration outside
   construction, such as in a method body, instead of exhausting the stack.
+- Keep schema evaluation from leaking its context into later sibling lookups.
+- Terminate cyclic scope and handle lookup while retaining global operator
+  fallback.
+- Let mutable derived methods update inherited declarations, while refusing a
+  functional update that would write through a shared declared parent.
+- Treat only decimal-digit array properties as positions, so metadata named
+  `Infinity`, `1e3`, `0x10`, or the empty string remains accessible.
 
 ## v0.10.0 2026-08-17
 

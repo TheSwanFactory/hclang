@@ -49,22 +49,23 @@ describe("FrameAlias", () => {
 
   it("writes through a logical protected name to its declaration", () => {
     const owner = new Frame({ _protected: value_1 });
+    const lexical = new Frame({ _protected: new FrameString("lexical") });
     const descendant = new Frame();
-    // Protected access follows the declared parent, so the descendant declares
-    // one rather than relying on a lexical pointer.
     descendant.setParent(owner);
-    descendant.up = owner;
+    descendant.up = lexical;
 
     new FrameExpr([new FrameAlias("protected"), value_2]).in([descendant]);
 
     expect(owner.get_here("_protected")).toBe(value_2);
+    expect(lexical.get_here("_protected").toString()).toEqual("“lexical”");
+    expect(descendant.get_here("_protected").is.missing).toBe(true);
     expect(owner.meta.protected).toBeUndefined();
   });
 
-  it("denies private writes from a descendant without creating a shadow", () => {
+  it("denies inherited private writes without creating a shadow", () => {
     const owner = new Frame({ __private: value_1 });
     const descendant = new Frame();
-    descendant.up = owner;
+    descendant.setParent(owner);
     const result = new FrameExpr([
       new FrameAlias("private"),
       value_2,
@@ -72,6 +73,17 @@ describe("FrameAlias", () => {
 
     expect(result.toString()).toEqual("$!.is-private .private");
     expect(owner.get_here("__private")).toBe(value_1);
-    expect(owner.meta.private).toBeUndefined();
+    expect(descendant.meta.private).toBeUndefined();
+  });
+
+  it("terminates a cyclic lexical search as missing", () => {
+    const left = new Frame();
+    const right = new Frame();
+    left.up = right;
+    right.up = left;
+
+    const result = new FrameAlias("absent").in([left]);
+
+    expect(result.toString()).toContain("$!.name-missing");
   });
 });

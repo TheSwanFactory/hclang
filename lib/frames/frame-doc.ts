@@ -61,15 +61,11 @@ export class FrameDoc extends FrameText implements CharacterContent {
    * Stored metadata would switch the shared atom renderer to its braced form and
    * break fence round-tripping, and would hold the body twice.
    */
-  public override get(
-    key: string,
-    origin: MetaFrame = this,
-    seen: Set<MetaFrame> = new Set(),
-  ): Frame {
+  protected override lookup_here(key: string, origin: MetaFrame): Frame {
     if (key === FrameDoc.BODY_KEY) {
       return new FrameString(this.data);
     }
-    return super.get(key, origin, seen);
+    return super.lookup_here(key, origin);
   }
 
   public override apply(argument: FrameAtom): FrameString {

@@ -89,7 +89,8 @@ export class FrameSymbol extends FrameAtom {
     const first = contexts[0];
     // A method body resolves against its receiver, so visibility asks the same
     // question no matter which path the access arrives by.
-    const receiver = Frame.receiverIn(contexts);
+    const receiverState = Frame.receiverStateIn(contexts);
+    const receiver = receiverState?.receiver;
     for (const context of contexts) {
       const explicitOrigin = this.get_here(Frame.kOUT);
       const origin = receiver ??
@@ -105,8 +106,11 @@ export class FrameSymbol extends FrameAtom {
         if (value.is.immediate === true) {
           return value.call(context);
         }
+        const copyOnWrite = context instanceof FrameHandle
+          ? context.copyOnWriteScope() ?? receiverState?.copyOnWrite
+          : receiverState?.copyOnWrite;
         return value instanceof FrameArray
-          ? new FrameHandle(value, this.data.endsWith("_"))
+          ? new FrameHandle(value, this.data.endsWith("_"), copyOnWrite)
           : value;
       }
     }

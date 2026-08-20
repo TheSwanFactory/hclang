@@ -7,6 +7,7 @@ import {
   FrameNumber,
   FrameSchema,
   FrameString,
+  FrameSymbol,
   FrameType,
 } from "../frames.ts";
 
@@ -83,5 +84,18 @@ describe("FrameSchema", () => {
     expect(result.at(0)).toEqual(Frame.nil);
     expect(result.at(1)).toEqual(string);
     expect(expr_result.toString()).toContain("prefix--suffix");
+  });
+
+  it("does not mutate its caller's context stack while evaluating", () => {
+    const scoped = new FrameString("scoped");
+    const scope = new Frame({ scoped });
+    const contexts = [scope];
+    const schema = new FrameSchema([FrameSymbol.for("scoped")]);
+
+    const result = schema.in(contexts);
+
+    expect(result.at(0)).toBe(scoped);
+    expect(contexts).toHaveLength(1);
+    expect(contexts[0]).toBe(scope);
   });
 });

@@ -1,4 +1,5 @@
 import { Frame } from "../frames/frame.ts";
+import type { MetaFrame } from "../frames/meta-frame.ts";
 import { FrameCurry, type ICurryFunction } from "./frame-curry.ts";
 
 export type FuncDict = { [key: string]: ICurryFunction };
@@ -8,12 +9,11 @@ export class FrameOps extends Frame {
     super();
   }
 
-  public override get(key: string, origin: Frame): Frame {
+  protected override lookup_here(key: string, origin: MetaFrame): Frame {
     const func = this.OpsDict[key];
     if (func != null) {
-      return this.curry(func, origin, key);
+      return this.curry(func, origin as Frame, key);
     }
-    // return FrameNote.key(key, origin);
     return Frame.missing;
   }
 

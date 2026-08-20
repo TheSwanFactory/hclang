@@ -29,6 +29,19 @@ describe("FrameArray", () => {
     expect(first_element).toEqual(a_frame);
   });
 
+  it("uses only decimal digit keys for positional lookup", () => {
+    const array = new FrameArray([a_frame, b_frame]);
+    for (const key of ["Infinity", "1e3", "0x10", ""]) {
+      const value = new FrameString(`property:${key}`);
+      array.set(key, value);
+      expect(array.get(key)).toBe(value);
+    }
+
+    array.set("0", new FrameString("metadata zero"));
+    expect(array.get("0")).toBe(a_frame);
+    expect(array.get("1")).toBe(b_frame);
+  });
+
   it("uses -1 to access last element", () => {
     const last_element = frame_array.at(-1);
     expect(last_element).toBeTruthy();

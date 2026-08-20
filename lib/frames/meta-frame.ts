@@ -73,6 +73,9 @@ export class MetaFrame {
    */
   public receiver: Frame = {} as Frame; // forward-declare Frame
 
+  /** Aggregates isolated for the active copy-on-write invocation, if any. */
+  public receiverCopyOnWrite?: WeakSet<Frame>;
+
   /**
    * declares marks a frame that accepts declarations, so a name binds to the
    * innermost marked target instead of inferring one from context classes.
@@ -144,50 +147,86 @@ export class MetaFrame {
   }
 
   /**
-   * get retrieves a Frame by key, searching up the parent chain if necessary.
+   * Get a frame by key through one guarded lookup traversal.
    *
-   * The declared chain is acyclic by construction, since setParent is its only
-   * writer and it refuses a cycle. The lexical `up` chain has no such
-   * discipline: it is assigned freely, including on every successful lookup and
-   * by syntactic containment. A cycle there must therefore be a miss rather
-   * than a stack overflow, so seen carries the frames already asked. One set
-   * spans both chains: a frame that reported a miss for this key and origin
-   * reports the same miss on revisit, so skipping it also collapses the
-   * repeated work a diamond would otherwise cost.
+   * Subclasses customize only local lookup, links, and successful-result
+   * transformation. The traversal itself stays here so a virtual override
+   * cannot accidentally discard cycle state. Declared parents precede lexical
+   * scope, and globals are consulted once after the complete scope graph.
    */
-  public get(
+  public get(key: string, origin: MetaFrame = this): Frame {
+    const local = this.lookup_here(key, origin);
+    if (!local.is.missing) {
+      return this.lookup_result(local, key);
+    }
+
+    // Allocate traversal state only after an immediate local miss.
+    const seen = new Set<MetaFrame>([this]);
+    for (const link of this.lookup_links()) {
+      const result = MetaFrame.lookup(link, key, origin, seen);
+      if (!result.is.missing) {
+        return this.lookup_result(result, key);
+      }
+    }
+
+    // Globals are the final lookup tier, even when the lexical graph cycles.
+    const globals = Frame.globals;
+    if (globals && !globals.is.missing && !seen.has(globals)) {
+      const result = MetaFrame.lookup(globals, key, origin, seen);
+      if (!result.is.missing) {
+        return this.lookup_result(result, key);
+      }
+    }
+    return Frame.missing;
+  }
+
+  /** Local behavior used by the guarded lookup driver. */
+  protected lookup_here(key: string, origin: MetaFrame): Frame {
+    return this.get_here(key, origin);
+  }
+
+  /** Non-global links in lookup precedence order. */
+  protected lookup_links(): Frame[] {
+    const links: Frame[] = [];
+    if (this.parent && !this.parent.is.missing) {
+      links.push(this.parent);
+    }
+    if (
+      this.up && !this.up.is.missing && this.up !== Frame.globals
+    ) {
+      links.push(this.up);
+    }
+    return links;
+  }
+
+  /** Allows wrappers to transform a value found anywhere below them. */
+  protected lookup_result(result: Frame, _key: string): Frame {
+    return result;
+  }
+
+  /** Depth-first declared-before-lexical traversal without global fallback. */
+  private static lookup(
+    frame: MetaFrame,
     key: string,
-    origin: MetaFrame = this,
-    seen: Set<MetaFrame> = new Set(),
+    origin: MetaFrame,
+    seen: Set<MetaFrame>,
   ): Frame {
-    if (seen.has(this)) {
+    if (seen.has(frame)) {
       return Frame.missing;
     }
-    seen.add(this);
+    seen.add(frame);
 
-    const result = this.get_here(key, origin);
-    if (!result.is.missing) {
-      return result;
+    const local = frame.lookup_here(key, origin);
+    if (!local.is.missing) {
+      return frame.lookup_result(local, key);
     }
-
-    // The declared chain is consulted before the lexical one: inheritance is
-    // ownership, while up is only the scope this frame happened to be seen in.
-    const declared = this.parent;
-    if (declared && !declared.is.missing) {
-      const inherited = declared.get(key, origin, seen);
-      if (!inherited.is.missing) {
-        return inherited;
+    for (const link of frame.lookup_links()) {
+      const result = MetaFrame.lookup(link, key, origin, seen);
+      if (!result.is.missing) {
+        return frame.lookup_result(result, key);
       }
     }
-
-    let parent = this.up || Frame.globals;
-    if (parent.is.missing) {
-      if (Frame.globals.is.missing) {
-        return Frame.missing;
-      }
-      parent = Frame.globals;
-    }
-    return parent.get(key, origin, seen);
+    return Frame.missing;
   }
 
   /**
@@ -241,14 +280,22 @@ export class MetaFrame {
    * nested inside a method body still finds the receiver because the
    * invocation frame that carries it stays on this stack.
    */
-  public static receiverIn(contexts: Frame[]): Frame | undefined {
+  public static receiverStateIn(
+    contexts: Frame[],
+  ): { receiver: Frame; copyOnWrite?: WeakSet<Frame> } | undefined {
     for (let i = contexts.length - 1; i >= 0; i--) {
-      const receiver = contexts[i].receiver;
+      const context = contexts[i];
+      const receiver = context.receiver;
       if (receiver && !receiver.is.missing) {
-        return receiver;
+        return { receiver, copyOnWrite: context.receiverCopyOnWrite };
       }
     }
     return undefined;
+  }
+
+  /** The receiver projection used by ordinary method-body lookup. */
+  public static receiverIn(contexts: Frame[]): Frame | undefined {
+    return this.receiverStateIn(contexts)?.receiver;
   }
 
   /**

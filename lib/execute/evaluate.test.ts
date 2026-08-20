@@ -1011,6 +1011,122 @@ describe("evaluate", () => {
       expect(owner.meta.protected).toBeUndefined();
     });
 
+    it("writes inherited protected declarations without creating shadows", () => {
+      const result = evaluate(
+        ".base_ [._count 41]; " +
+          ".derived_ [.^ base_; .read {count}; .set-count: {@count _;}]; " +
+          "derived_.set-count: 99; derived_.read()",
+      );
+      const base = result.meta.base_;
+      const derived = result.meta.derived_;
+
+      expect(result.at(0).toString()).toMatch(/; 99\)$/);
+      expect(base.get_here("_count").toString()).toEqual("99");
+      expect(derived.get_here("_count").is.missing).toBe(true);
+      expect(derived.meta.count).toBeUndefined();
+    });
+
+    it("rejects inherited writes through a copy-on-write receiver", () => {
+      const result = evaluate(
+        ".base_ [._count 41]; " +
+          ".derived [.^ base_; .set-count: {@count _;}]; " +
+          "derived.set-count: 99",
+      );
+      const base = result.meta.base_;
+      const derived = result.meta.derived;
+
+      expect(result.at(0).toString()).toContain(
+        "$!.copy-on-write-boundary .count",
+      );
+      expect(base.get_here("_count").toString()).toEqual("41");
+      expect(derived.get_here("_count").is.missing).toBe(true);
+      expect(derived.meta.count).toBeUndefined();
+    });
+
+    it("rejects nested inherited writes across a copy-on-write boundary", () => {
+      const result = evaluate(
+        ".base_ [._count 41]; " +
+          ".derived [.^ base_; " +
+          ".inner_ [.^ base_; .set-count: {@count _;}]; " +
+          ".bump: {inner_.set-count: _}]; " +
+          "derived.bump: 99",
+      );
+
+      expect(result.at(0).toString()).toContain(
+        "$!.copy-on-write-boundary .count",
+      );
+      expect(result.meta.base_.get_here("_count").toString()).toEqual("41");
+    });
+
+    it("preserves copy boundaries across repeated aggregate lookup", () => {
+      const result = evaluate(
+        ".base_ [._count 1]; " +
+          ".derived [.inner_ [.leaf_ [.^ base_; " +
+          ".set-count: {@count _;}]]; " +
+          ".bump: {inner_.leaf_.set-count: _}]; " +
+          "derived.bump: 9",
+      );
+
+      expect(result.at(0).toString()).toContain(
+        "$!.copy-on-write-boundary .count",
+      );
+      expect(result.meta.base_.get_here("_count").toString()).toEqual("1");
+    });
+
+    it("rejects writes to aggregates inherited by a copied receiver", () => {
+      const result = evaluate(
+        ".base_ [.inner_ [.own 1; .set-own: {@own _;}]]; " +
+          ".derived [.^ base_; .bump: {inner_.set-own: _}]; " +
+          "derived.bump: 99",
+      );
+      const inner = result.meta.base_.get_here("inner_");
+
+      expect(result.at(0).toString()).toContain(
+        "$!.copy-on-write-boundary .own",
+      );
+      expect(inner.get_here("own").toString()).toEqual("1");
+    });
+
+    it("allows the same nested writes through mutable receivers", () => {
+      const result = evaluate(
+        ".countbase_ [._count 1]; " +
+          ".deep_ [.inner_ [.leaf_ [.^ countbase_; " +
+          ".set-count: {@count _;}]]; " +
+          ".bump: {inner_.leaf_.set-count: _}]; " +
+          ".ownerbase_ [.inner_ [.own 1; .set-own: {@own _;}]]; " +
+          ".inheritor_ [.^ ownerbase_; .bump: {inner_.set-own: _}]; " +
+          "deep_.bump: 9; inheritor_.bump: 99",
+      );
+      const inheritedInner = result.meta.ownerbase_.get_here("inner_");
+
+      expect(result.at(0).toString()).not.toContain(
+        "$!.copy-on-write-boundary",
+      );
+      expect(result.meta.countbase_.get_here("_count").toString()).toEqual(
+        "9",
+      );
+      expect(inheritedInner.get_here("own").toString()).toEqual("99");
+    });
+
+    it("does not retain copy-on-write restrictions on returned values", () => {
+      const result = evaluate(
+        ".base_ [._count 41]; " +
+          ".derived [.^ base_; .own 1; " +
+          ".set-own: {@own _;}; .set-count: {@count _;}]; " +
+          ".copy_ (derived.set-own: 2); copy_.set-count: 99",
+      );
+      const base = result.meta.base_;
+      const derived = result.meta.derived;
+      const copy = result.meta.copy_;
+
+      expect(result.at(0).toString()).not.toContain(
+        "$!.copy-on-write-boundary",
+      );
+      expect(base.get_here("_count").toString()).toEqual("99");
+      expect(derived.get_here("own").toString()).toEqual("1");
+      expect(copy.get_here("own").toString()).toEqual("2");
+    });
+
     it("reassigns logical protected and private names in place", () => {
       const result = evaluate(
         ".owner [._protected 7; .protected 9; " +
