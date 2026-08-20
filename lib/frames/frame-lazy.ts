@@ -3,7 +3,12 @@ import { FrameExpr } from "./frame-expr.ts";
 import { FrameGroup } from "./frame-group.ts";
 import { FrameSymbol } from "./frame-symbol.ts";
 import { type Context, NilContext } from "./context.ts";
+import type { ReceiverState } from "./bound-method.ts";
 import type { SigilStart } from "../scan.ts";
+
+// This records provenance, not authority: only a per-evaluation literal copy
+// can be associated with the invocation in which it was produced.
+const inlineCallbackReceiverStates = new WeakMap<FrameLazy, ReceiverState>();
 
 export class FrameLazy extends FrameExpr {
   public static readonly LAZY_BEGIN = "{";
@@ -69,15 +74,34 @@ export class FrameLazy extends FrameExpr {
 
   public override in(contexts: Array<Frame> = [Frame.nil]): Frame {
     const context = contexts[0] ?? Frame.nil;
-    this.up = context;
-    return this;
+    const receiverState = Frame.receiverStateIn(contexts);
+    if (!receiverState) {
+      this.up = context;
+      return this;
+    }
+
+    // Mark only a per-evaluation copy. The parsed/shared closure must never
+    // retain one invocation's callback provenance into another call.
+    const callback = this.copy();
+    callback.up = context;
+    inlineCallbackReceiverStates.set(callback, receiverState);
+    return callback;
   }
 
+  /** Returns state only when this literal was evaluated in that invocation. */
+  public receiverStateForCallback(
+    receiverState: ReceiverState,
+  ): ReceiverState | undefined {
+    return inlineCallbackReceiverStates.get(this) === receiverState
+      ? receiverState
+      : undefined;
+  }
+
+  /** Evaluates this closure with an optional bound receiver capability. */
   public override call(
     argument: Frame,
     _parameter: Frame = Frame.nil,
-    receiver: Frame = Frame.missing,
-    receiverCopyOnWrite?: WeakSet<Frame>,
+    receiverState?: ReceiverState,
   ): Frame {
     if (this.data.length === 0) {
       // Codify the value, not the caller's captured evaluation context.
@@ -95,18 +119,18 @@ export class FrameLazy extends FrameExpr {
     // metadata local lets lookup reach the closure's live parent chain.
     const expr = new FrameExpr(this.data);
     expr.up = this;
-    // Receiver authority is installed per call on this invocation frame, so
-    // repeated calls cannot leak either a receiver or a copy boundary.
-    expr.receiver = receiver;
-    expr.receiverCopyOnWrite = receiverCopyOnWrite;
+    // Receiver state is one typed per-call capability, so repeated calls cannot
+    // leak read access, write authority, or copy bounds through this closure.
+    expr.receiverState = receiverState;
     // It is also an explicit lookup layer, and it is consulted ahead of this
     // closure: a method's own fields shadow the scope the body was defined in.
     // Bodies are shared between instances, and a shared body's captured scope
     // is whichever instance was built last, so consulting it first would read
     // another instance's fields.
-    const scope = receiver.is.missing
-      ? [prepared, _parameter, this]
-      : [prepared, _parameter, receiver, this];
+    const receiver = receiverState?.receiver;
+    const scope = receiver
+      ? [prepared, _parameter, receiver, this]
+      : [prepared, _parameter, this];
     return expr.in(scope);
   }
 

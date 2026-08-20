@@ -2,6 +2,7 @@ import { expect } from "jsr:@std/expect@^0.219.1";
 import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 
 import * as frame from "../frames.ts";
+import type { ReceiverState } from "./bound-method.ts";
 
 describe("FrameLazy", () => {
   const slow = new frame.FrameString("slow");
@@ -97,7 +98,12 @@ describe("FrameLazy", () => {
         field: new frame.FrameString("mine"),
       });
 
-      const result = method.call(frame.Frame.nil, frame.Frame.nil, receiver);
+      const receiverState: ReceiverState = { receiver, mutable: false };
+      const result = method.call(
+        frame.Frame.nil,
+        frame.Frame.nil,
+        receiverState,
+      );
 
       expect(result.toString()).toEqual("“mine”");
     });
@@ -113,15 +119,21 @@ describe("FrameLazy", () => {
         field: new frame.FrameString("second"),
       });
 
-      const one = method.call(frame.Frame.nil, frame.Frame.nil, first);
-      const two = method.call(frame.Frame.nil, frame.Frame.nil, second);
+      const one = method.call(frame.Frame.nil, frame.Frame.nil, {
+        receiver: first,
+        mutable: false,
+      });
+      const two = method.call(frame.Frame.nil, frame.Frame.nil, {
+        receiver: second,
+        mutable: false,
+      });
 
       // Each call sees its own receiver, and the closure keeps the scope it
       // captured at definition rather than the last receiver bound to it.
       expect(one.toString()).toEqual("“first”");
       expect(two.toString()).toEqual("“second”");
       expect(method.up).toBe(captured);
-      expect(method.receiver.is.missing).toBe(true);
+      expect(method.receiverState).toBeUndefined();
     });
 
     it("keeps the receiver for a scope nested inside the body", () => {
@@ -133,7 +145,12 @@ describe("FrameLazy", () => {
         field: new frame.FrameString("outer receiver"),
       });
 
-      const result = method.call(frame.Frame.nil, frame.Frame.nil, receiver);
+      const receiverState: ReceiverState = { receiver, mutable: false };
+      const result = method.call(
+        frame.Frame.nil,
+        frame.Frame.nil,
+        receiverState,
+      );
 
       expect(result.toString()).toEqual("“outer receiver”");
     });

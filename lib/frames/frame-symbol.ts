@@ -5,6 +5,9 @@ import { FrameHandle } from "./frame-handle.ts";
 import { FrameArray } from "./frame-array.ts";
 import { FrameSchema } from "./frame-schema.ts";
 import { FrameType } from "./frame-type.ts";
+import { FrameLazy } from "./frame-lazy.ts";
+import { BoundMethod } from "./bound-method.ts";
+import { FrameCurry } from "../ops/frame-curry.ts";
 import { isFrameMatcher } from "./frame-match.ts";
 import { type Context, NilContext } from "./context.ts";
 import { completeAtEnd, includeOrEnd } from "./atom-syntax.ts";
@@ -103,8 +106,27 @@ export class FrameSymbol extends FrameAtom {
         // up is purely lexical now, so it can always be refreshed: a declared
         // parent lives in its own field and is never clobbered here.
         value.up = context;
+        // Built-in control flow receives the exact active capability only for
+        // callbacks it invokes; ordinary closure calls do not inherit it.
+        if (value instanceof FrameCurry && receiverState) {
+          value.withReceiverState(receiverState);
+        }
         if (value.is.immediate === true) {
           return value.call(context);
+        }
+        // A bare method found through the active raw receiver must obey the same
+        // effect and copy rules as dotted lookup through a handle.
+        if (
+          value instanceof FrameLazy && receiverState && context === receiver &&
+          this.isReceiverPathValue(receiver, value, origin)
+        ) {
+          return new BoundMethod(
+            value,
+            receiver,
+            receiverState.mutable,
+            this.data,
+            receiverState.copyOnWrite,
+          );
         }
         const copyOnWrite = context instanceof FrameHandle
           ? context.copyOnWriteScope() ?? receiverState?.copyOnWrite
@@ -115,6 +137,23 @@ export class FrameSymbol extends FrameAtom {
       }
     }
     return FrameNote.key(first.id + "." + this.data, first);
+  }
+
+  /** Whether a method was found on the receiver or its declared parents. */
+  private isReceiverPathValue(
+    receiver: Frame,
+    value: Frame,
+    origin: Frame,
+  ): boolean {
+    const seen = new Set<Frame>();
+    let current: Frame | undefined = receiver;
+    while (current && !current.is.missing && !seen.has(current)) {
+      seen.add(current);
+      const local = current.get_here(this.data, origin);
+      if (!local.is.missing) return local === value;
+      current = current.hasDeclaredParent() ? current.parent : undefined;
+    }
+    return false;
   }
 
   /** Resolve the schema belonging to this binding, not to its bound value. */
@@ -271,8 +310,12 @@ export class FrameOperator extends FrameSymbol {
     return FrameOperator.OPERATOR_CHARS.test(char);
   }
 
-  public override in(_contexts: Frame[] = [Frame.nil]): Frame {
-    return this;
+  public override in(contexts: Frame[] = [Frame.nil]): Frame {
+    const receiverState = Frame.receiverStateIn(contexts);
+    if (!receiverState) return this;
+    const bound = this.copy();
+    bound.receiverState = receiverState;
+    return bound;
   }
 
   public override apply(argument: Frame, parameter: Frame): Frame {
@@ -283,7 +326,10 @@ export class FrameOperator extends FrameSymbol {
   }
 
   public override called_by(context: Frame): Frame {
-    return FrameSymbol.for(this.data).called_by(context);
+    const value = FrameSymbol.for(this.data).called_by(context);
+    return value instanceof FrameCurry && this.receiverState
+      ? value.withReceiverState(this.receiverState)
+      : value;
   }
 
   public override string_start(): string {

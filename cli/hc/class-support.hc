@@ -36,6 +36,20 @@ the call evaluates to the new value, and the original is untouched at any depth.
 ; pair.inner_.n
 # 1
 
+`A bare sibling mutator remains functional inside a non-mutating method.`
+; .sibling-owner [.value 1; .write: {@value _;}; .sneak {write: _}];
+; .sibling-copy (sibling-owner.sneak(9));
+; sibling-owner.value
+# 1
+; sibling-copy.value
+# 9
+
+`Built-in control-flow blocks retain the active receiver capability.`
+; .callback-owner_ [.value 1; .write: {1 ? {@value 9}}];
+; callback-owner_.write: 9;
+; callback-owner_.value
+# 9
+
 `A mutable receiver takes no copy, so the nested identity it declares is shared.`
 ; .live_ [.inner_ [.n 1; .set-n: {@n _;}]; .bump: {inner_.set-n: _}];
 ; live_.bump: 9;
@@ -82,12 +96,36 @@ protected access.`
 ; outer.nested.read()
 # $!.is-protected .inner-secret
 
-`The parent is structural, so it is declarable only on the aggregate under
-construction. A method body has no aggregate under construction, and its target
-would be the argument, so declaring a parent there is refused by name.`
-; .target_ [.set-parent: {.^ _;}];
-; [target_.set-parent: target_]
-# [($!.parent-not-declarable .^);]
+`A mutating method re-parents a mutable receiver in place.`
+; .old-parent [.marker 1];
+; .new-parent [.marker 2];
+; .mutable-child_ [.^ old-parent; .reparent: {.^ _;}];
+; mutable-child_.reparent: new-parent;
+; mutable-child_.marker
+# 2
+
+`The same mutating method reached through an immutable handle re-parents only
+its functional copy; the original keeps its declared parent.`
+; .immutable-child [.^ old-parent; .reparent: {.^ _;}];
+; .updated-child (immutable-child.reparent: new-parent);
+; immutable-child.marker
+# 1
+; updated-child.marker
+# 2
+
+`A non-mutating method has no authority to re-parent even a mutable receiver.`
+; .blocked-child_ [.^ old-parent; .reparent {.^ _;}];
+; [blocked-child_.reparent(new-parent)]
+# [($!.method-not-mutating .^);]
+
+`The language-level writer rejects direct and indirect cycles.`
+; .self_ [.reparent: {.^ _;}];
+; [self_.reparent: self_]
+# [($!.cyclic-parent .^);]
+; .left_ [.reparent: {.^ _;}];
+; .right_ [.^ left_];
+; [left_.reparent: right_]
+# [($!.cyclic-parent .^);]
 
 `Multiple-base behavior is ordinary user-defined composition, not inheritance
 syntax or a built-in policy.`

@@ -5,13 +5,12 @@ implemented in full. Correction 3 deleted the census and made the write target
 declared, but kept the flat `Frame[]` context stack rather than introducing a
 scope frame with named slots, so `FrameArg`/`FrameParam` still index
 positionally ([#327](https://github.com/TheSwanFactory/hclang/issues/327)).
-Correction 5's parent respelling landed as `.^`; its mutating-marker unification
-stays deferred per [a05b](a05b-object-model-resolutions.md)
-([#328](https://github.com/TheSwanFactory/hclang/issues/328)). `.^` is
-declarable only on the aggregate under construction, so it does not reach a
-receiver from a method body; re-parenting an existing object is a mutation of
-identity and needs an effect rule first
-([#330](https://github.com/TheSwanFactory/hclang/issues/330))\
+Correction 5's parent respelling landed as `.^`; effect-gated method-position
+re-parenting landed in v0.10.2
+([#330](https://github.com/TheSwanFactory/hclang/issues/330)), while its
+mutating-marker unification stays deferred per
+[a05b](a05b-object-model-resolutions.md)
+([#328](https://github.com/TheSwanFactory/hclang/issues/328)).\
 **Corrects:**
 [a05-object-model-refactoring.md](a05-object-model-refactoring.md)\
 **Issue:**

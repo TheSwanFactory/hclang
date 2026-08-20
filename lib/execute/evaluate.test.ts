@@ -975,6 +975,209 @@ describe("evaluate", () => {
       expect(mutable.meta.obj_.get_here("yy").is.missing).toBe(true);
     });
 
+    it("refuses receiver aliases from plain methods through immutable handles", () => {
+      const result = evaluate(
+        ".owner [.value 1; .write {@value 9}]; owner.write()",
+      );
+
+      expect(result.at(0).toString()).toContain(
+        "$!.method-not-mutating @value",
+      );
+      expect(result.meta.owner.get_here("value").toString()).toEqual("1");
+    });
+
+    it("refuses receiver aliases from plain methods through mutable handles", () => {
+      const result = evaluate(
+        ".owner_ [.value 1; .write {@value 9}]; owner_.write()",
+      );
+
+      expect(result.at(0).toString()).toContain(
+        "$!.method-not-mutating @value",
+      );
+      expect(result.meta.owner_.get_here("value").toString()).toEqual("1");
+    });
+
+    it("updates a copy through mutating receiver aliases on immutable handles", () => {
+      const result = evaluate(
+        ".owner [.value 1; .write: {@value _;}]; " +
+          ".updated_ (owner.write: 9)",
+      );
+
+      expect(result.meta.owner.get_here("value").toString()).toEqual("1");
+      expect(result.meta.updated_.get_here("value").toString()).toEqual("9");
+      expect(result.meta.updated_).not.toBe(result.meta.owner);
+    });
+
+    it("updates in place through mutating receiver aliases on mutable handles", () => {
+      const result = evaluate(
+        ".owner_ [.value 1; .write: {@value _;}]; owner_.write: 9",
+      );
+
+      expect(result.at(0).toString()).toContain(".value 9;");
+      expect(result.meta.owner_.get_here("value").toString()).toEqual("9");
+    });
+
+    it("gates the receiver before a shadowed lexical alias target", () => {
+      const result = evaluate(
+        ".value 100; .owner [.value 1; .write {@value 9}]; " +
+          "owner.write(); value; owner.value",
+      );
+
+      expect(result.at(0).toString()).toContain(
+        "$!.method-not-mutating @value",
+      );
+      expect(result.meta.value.toString()).toEqual("100");
+      expect(result.meta.owner.get_here("value").toString()).toEqual("1");
+    });
+
+    it("keeps lexical alias fallback away from the caller argument", () => {
+      const result = evaluate(
+        ".x 1; .owner [.write {@x 9}]; .arg (.x 5); " +
+          "owner.write(arg); [x, arg.x]",
+      );
+
+      expect(result.at(-1).toString()).toContain("[9, 5]");
+      expect(result.meta.x.toString()).toEqual("9");
+      expect(result.meta.arg.get_here("x").toString()).toEqual("5");
+    });
+
+    it("does not use an argument-only binding as an alias target", () => {
+      const result = evaluate(
+        ".owner [.write {@x 9}]; .arg (.x 5); owner.write(arg)",
+      );
+
+      expect(result.at(-1).toString()).toContain("$!.name-missing");
+      expect(result.meta.arg.get_here("x").toString()).toEqual("5");
+    });
+
+    it("preserves inherited-method lexical alias fallback", () => {
+      const result = evaluate(
+        ".parent [.write: {@x _;}]; " +
+          ".inner [.x 1; .child_ [.^ parent]]; " +
+          "inner.child_.write: 9; inner.x",
+      );
+
+      expect(result.at(-1).toString()).toMatch(/; 9\)$/);
+      expect(result.meta.inner.get_here("x").toString()).toEqual("9");
+    });
+
+    it("preserves receiver authority through conditional blocks", () => {
+      const result = evaluate(
+        ".old [.marker 1]; .next [.marker 2]; " +
+          ".child_ [.^ old; .reparent: {1 ? {.^ next}}]; " +
+          "child_.reparent: 0; child_.marker",
+      );
+
+      expect(result.at(-1).toString()).toMatch(/; 2\)$/);
+      expect(result.meta.child_.parent).toBe(result.meta.next);
+    });
+
+    it("preserves functional receiver updates through iterator blocks", () => {
+      const result = evaluate(
+        ".owner [.value 1; .write: {[1] | {@value 9}}]; " +
+          ".updated_ (owner.write: 0); [owner.value, updated_.value]",
+      );
+
+      expect(result.at(-1).toString()).toContain("[1, 9]");
+      expect(result.meta.owner.get_here("value").toString()).toEqual("1");
+      expect(result.meta.updated_.get_here("value").toString()).toEqual("9");
+    });
+
+    it("does not grant callback writes to a non-mutating method", () => {
+      const result = evaluate(
+        ".owner_ [.value 1; .write {1 ? {@value 9}}]; owner_.write()",
+      );
+
+      expect(result.at(-1).toString()).toContain(
+        "$!.method-not-mutating @value",
+      );
+      expect(result.meta.owner_.get_here("value").toString()).toEqual("1");
+    });
+
+    it("binds a bare sibling mutator as a functional receiver update", () => {
+      const result = evaluate(
+        ".owner [.value 1; .write: {@value _;}; .sneak {write: 9}]; " +
+          ".updated_ (owner.sneak()); [owner.value, updated_.value]",
+      );
+
+      expect(result.at(-1).toString()).toContain("[1, 9]");
+      expect(result.meta.owner.get_here("value").toString()).toEqual("1");
+      expect(result.meta.updated_.get_here("value").toString()).toEqual("9");
+    });
+
+    it("does not propagate receiver authority into ordinary helper calls", () => {
+      const result = evaluate(
+        ".next []; .helper {.^ next}; " +
+          ".owner_ [.invoke: {helper()}]; owner_.invoke: 0",
+      );
+
+      expect(result.at(-1).toString()).toContain(
+        "$!.parent-not-declarable .^",
+      );
+      expect(result.meta.owner_.hasDeclaredParent()).toBe(false);
+    });
+
+    it("does not grant receiver authority to a named conditional helper", () => {
+      const result = evaluate(
+        ".next [.marker 2]; .helper {.^ next}; " +
+          ".owner_ [.invoke: {1 ? helper}]; owner_.invoke: 0",
+      );
+
+      expect(result.at(-1).toString()).toContain(
+        "$!.parent-not-declarable .^",
+      );
+      expect(result.meta.owner_.hasDeclaredParent()).toBe(false);
+    });
+
+    it("does not grant receiver authority to a named iterator helper", () => {
+      const result = evaluate(
+        ".next []; .helper {.^ next}; " +
+          ".owner_ [.invoke {[1] | helper}]; owner_.invoke()",
+      );
+
+      expect(result.at(-1).toString()).toContain(
+        "$!.parent-not-declarable .^",
+      );
+      expect(result.meta.owner_.hasDeclaredParent()).toBe(false);
+    });
+
+    it("preserves receiver authority through nested inline callbacks", () => {
+      const result = evaluate(
+        ".owner [.value 1; .write: {1 ? {[1] | {@value 9}}}]; " +
+          ".updated_ (owner.write: 0); [owner.value, updated_.value]",
+      );
+
+      expect(result.at(-1).toString()).toContain("[1, 9]");
+      expect(result.meta.owner.get_here("value").toString()).toEqual("1");
+      expect(result.meta.updated_.get_here("value").toString()).toEqual("9");
+    });
+
+    it("keeps callback state fresh across repeated functional calls", () => {
+      const result = evaluate(
+        ".owner [.value 1; .write: {1 ? {@value 9}}]; " +
+          ".first_ (owner.write: 0); .second_ (owner.write: 0); " +
+          "[owner.value, first_.value, second_.value]",
+      );
+
+      expect(result.at(-1).toString()).toContain("[1, 9, 9]");
+      expect(result.meta.first_).not.toBe(result.meta.owner);
+      expect(result.meta.second_).not.toBe(result.meta.owner);
+      expect(result.meta.second_).not.toBe(result.meta.first_);
+    });
+
+    it("restores outer callback state after a nested receiver call", () => {
+      const result = evaluate(
+        ".inner_ [.value 2; .write: {1 ? {@value 8}}]; " +
+          ".outer_ [.value 1; " +
+          ".write: {inner_.write: 0; 1 ? {@value 9}}]; " +
+          "outer_.write: 0; [outer_.value, inner_.value]",
+      );
+
+      expect(result.at(-1).toString()).toContain("[9, 8]");
+      expect(result.meta.outer_.get_here("value").toString()).toEqual("9");
+      expect(result.meta.inner_.get_here("value").toString()).toEqual("8");
+    });
+
     it("refuses protected access to a merely nested aggregate", () => {
       // Lexical nesting is not inheritance: a child aggregate is a peer for
       // visibility, not a descendant, because it declares no parent.
@@ -1082,9 +1285,25 @@ describe("evaluate", () => {
       const inner = result.meta.base_.get_here("inner_");
 
       expect(result.at(0).toString()).toContain(
-        "$!.copy-on-write-boundary .own",
+        "$!.copy-on-write-boundary .set-own",
       );
       expect(inner.get_here("own").toString()).toEqual("1");
+    });
+
+    it("rejects re-parenting shared state inherited by a copied receiver", () => {
+      const result = evaluate(
+        ".next [.marker 9]; " +
+          ".base [.inner_ [.value 1; .reparent: {.^ _;}]]; " +
+          ".owner [.^ base; .change: {inner_.reparent: next}]; " +
+          "owner.change: 0",
+      );
+      const sharedInner = result.meta.base.get_here("inner_");
+
+      expect(result.at(-1).toString()).toContain(
+        "$!.copy-on-write-boundary .reparent",
+      );
+      expect(sharedInner.hasDeclaredParent()).toBe(false);
+      expect(sharedInner.get_here("value").toString()).toEqual("1");
     });
 
     it("allows the same nested writes through mutable receivers", () => {
@@ -1355,22 +1574,67 @@ describe("evaluate", () => {
       );
     });
 
-    it("rejects parent declarations outside construction without corrupting lookup", () => {
-      const declaration = evaluate(
-        ".owner_ [.set-parent: {.^ _;}]; owner_.set-parent: owner_",
-      );
-      const owner = declaration.meta.owner_;
+    it("refuses a parent write outside construction and method calls", () => {
+      const result = evaluate(".base []; .^ base");
 
-      // A method body is not a construction position, so the declaration is
-      // refused by position rather than reaching setParent's cycle guard --
-      // which lib/frames/meta-frame.test.ts pins at its only writer instead.
-      expect(declaration.at(0).toString()).toContain(
+      expect(result.at(-1).toString()).toContain(
         "$!.parent-not-declarable .^",
       );
-      expect(owner.hasDeclaredParent()).toBe(false);
-      expect(owner.parent).not.toBe(owner);
-      expect(evaluate("owner_.missing", declaration.meta).at(0).toString())
-        .toContain("$!.name-missing");
+    });
+
+    it("re-parents a mutable receiver in place", () => {
+      const result = evaluate(
+        ".oldBase [.marker 1]; .newBase [.marker 2]; " +
+          ".child_ [.^ oldBase; .reparent: {.^ _;}]; " +
+          "child_.reparent: newBase; child_.marker",
+      );
+      const child = result.meta.child_;
+
+      expect(child.parent).toBe(result.meta.newBase);
+      expect(result.at(-1).toString()).toMatch(/; 2\)$/);
+    });
+
+    it("re-parents only the functional copy of an immutable receiver", () => {
+      const result = evaluate(
+        ".oldBase [.marker 1]; .newBase [.marker 2]; " +
+          ".child [.^ oldBase; .reparent: {.^ _;}]; " +
+          ".updated_ (child.reparent: newBase); " +
+          "[child.marker, updated_.marker]",
+      );
+      const child = result.meta.child;
+      const updated = result.meta.updated_;
+
+      expect(child.parent).toBe(result.meta.oldBase);
+      expect(updated).not.toBe(child);
+      expect(updated.parent).toBe(result.meta.newBase);
+      expect(result.at(-1).toString()).toContain("[1, 2]");
+    });
+
+    it("refuses receiver re-parenting from a non-mutating method", () => {
+      const result = evaluate(
+        ".oldBase []; .newBase []; " +
+          ".child_ [.^ oldBase; .reparent {.^ _;}]; " +
+          "child_.reparent(newBase)",
+      );
+      const child = result.meta.child_;
+
+      expect(result.at(-1).toString()).toContain(
+        "$!.method-not-mutating .^",
+      );
+      expect(child.parent).toBe(result.meta.oldBase);
+    });
+
+    it("rejects an indirect parent cycle reached through a mutating method", () => {
+      const result = evaluate(
+        ".left_ [.reparent: {.^ _;}]; .right_ [.^ left_]; " +
+          "left_.reparent: right_",
+      );
+      const left = result.meta.left_;
+      const right = result.meta.right_;
+
+      expect(result.at(-1).toString()).toContain("$!.cyclic-parent .^");
+      expect(left.hasDeclaredParent()).toBe(false);
+      expect(right.parent).toBe(left);
     });
 
     it("supports user-defined multiple-base composition", () => {

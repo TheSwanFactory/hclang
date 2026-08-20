@@ -3,6 +3,7 @@ import { type Context, NilContext } from "./context.ts";
 import type { ICurryFunction } from "../ops.ts";
 import type { IArrayConstructor } from "../frames.ts";
 import type { ScanResponse } from "../scan.ts";
+import type { ReceiverState } from "./bound-method.ts";
 
 /**
  * Flags map strings to booleans.
@@ -134,7 +135,6 @@ export class Frame extends MetaFrame {
     super(meta);
     this.up = Frame.missing;
     this.parent = Frame.missing;
-    this.receiver = Frame.missing;
     this.is = {};
     if (isNil) {
       this.is.void = true;
@@ -217,7 +217,11 @@ export class Frame extends MetaFrame {
    * @param parameter
    * @returns a Frame
    */
-  public call(argument: Frame, parameter = Frame.nil): Frame {
+  public call(
+    argument: Frame,
+    parameter = Frame.nil,
+    _receiverState?: ReceiverState,
+  ): Frame {
     if (this.is.void) {
       return Frame.isBooleanNegation(argument) ? Frame.all : argument;
     }

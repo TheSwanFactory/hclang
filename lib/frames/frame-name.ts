@@ -5,6 +5,7 @@ import { FrameOperator, FrameSymbol } from "./frame-symbol.ts";
 import type { ISourced } from "./meta-frame.ts";
 import { NilContext } from "./context.ts";
 import { completeAtEnd } from "./atom-syntax.ts";
+import { authorizedReceiverWriteTarget } from "./bound-method.ts";
 import {
   type AtomSyntax,
   ScanDisposition,
@@ -99,18 +100,23 @@ export class FrameName extends FrameAtom implements ISourced {
       return contexts[1];
     }
     const { out, via } = this.bindingTarget(contexts);
-    // The parent link is structural, not an ordinary binding, so it is
-    // declarable only on the aggregate under construction. Elsewhere — a method
-    // body, most notably — the target would be the argument, so the write would
-    // re-parent the wrong frame, and it reported a spurious cycle whenever the
-    // argument and the receiver were the same frame. Refuse by name instead.
+    // Construction declares the new aggregate's parent. Method-position `.^`
+    // instead re-parents the exact original-or-copy target authorized by the
+    // bound method's declared effect and receiver handle mutability.
     if (
       this.source === FrameName.PARENT_DECLARATION && via !== "construction"
     ) {
-      return Frame.error(`$!.parent-not-declarable .${this.source}`);
+      const receiverState = Frame.receiverStateIn(contexts);
+      if (!receiverState) {
+        return Frame.error(`$!.parent-not-declarable .${this.source}`);
+      }
+      const target = authorizedReceiverWriteTarget(receiverState);
+      if (!target) {
+        return Frame.error(`$!.method-not-mutating .${this.source}`);
+      }
+      return this.data.setter(target);
     }
-    const setter = this.data.setter(out);
-    return setter;
+    return this.data.setter(out);
   }
 
   public override string_prefix(): string {

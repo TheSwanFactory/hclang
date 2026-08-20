@@ -5,6 +5,7 @@ import { FrameLazy } from "./frame-lazy.ts";
 import { FrameSymbol } from "./frame-symbol.ts";
 import { NilContext } from "./context.ts";
 import { completeAtEnd, includeOrEnd } from "./atom-syntax.ts";
+import { authorizedReceiverWriteTarget } from "./bound-method.ts";
 import type { AtomSyntax, ScanResult, SigilStart } from "../scan.ts";
 
 export class FrameAlias extends FrameAtom {
@@ -34,26 +35,46 @@ export class FrameAlias extends FrameAtom {
 
   public override in(contexts: Frame[] = [Frame.nil]): Frame {
     const key = this.data.toString();
-    // A mutating method aliases its receiver's declaration, so the receiver is
-    // searched first and authorizes the write.
     const receiverState = Frame.receiverStateIn(contexts);
     const receiver = receiverState?.receiver;
     const origin = receiver ??
       contexts.find((context) => context instanceof FrameLazy) ??
       contexts[0];
-    const searched = receiver ? [receiver, ...contexts] : contexts;
-    for (const context of searched) {
+
+    // Receiver and declared-parent hits are writes to object state, so they
+    // require the method capability. A miss retains the historical lexical
+    // alias behavior, but searches only the receiver's enclosing scope: the
+    // prepared argument and parameter are never alias-write targets.
+    const receiverFound = receiver
+      ? this.find(receiver, key, origin, new Set(), false)
+      : undefined;
+    if (receiverFound instanceof Frame) {
+      return receiverFound;
+    }
+    if (receiverFound) {
+      if (!authorizedReceiverWriteTarget(receiverState)) {
+        return Frame.error(`$!.method-not-mutating @${key}`);
+      }
+      return this.setterFor(receiverFound, key, receiverState?.copyOnWrite);
+    }
+
+    if (receiver) {
+      const lexicalFound = this.find(receiver.up, key, origin);
+      if (lexicalFound instanceof Frame) {
+        return lexicalFound;
+      }
+      return lexicalFound
+        ? this.setterFor(lexicalFound, key, receiverState?.copyOnWrite)
+        : FrameNote.key(key, this);
+    }
+
+    for (const context of contexts) {
       const found = this.find(context, key, origin);
       if (found instanceof Frame) {
         return found;
       }
       if (found) {
-        const copyOnWrite = receiverState?.copyOnWrite;
-        if (copyOnWrite && !copyOnWrite.has(found.out)) {
-          return Frame.error(`$!.copy-on-write-boundary .${key}`);
-        }
-        const setter = FrameSymbol.for(found.key).setter(found.out);
-        return setter;
+        return this.setterFor(found, key, receiverState?.copyOnWrite);
       }
     }
     return FrameNote.key(key, this);
@@ -72,6 +93,7 @@ export class FrameAlias extends FrameAtom {
     key: string,
     origin: Frame,
     seen: Set<Frame> = new Set(),
+    followLexical = true,
   ): { out: Frame; key: string } | Frame | undefined {
     if (
       context === Frame.missing || context === undefined || seen.has(context)
@@ -93,9 +115,28 @@ export class FrameAlias extends FrameAtom {
     }
 
     if (context.hasDeclaredParent()) {
-      const inherited = this.find(context.parent, key, origin, seen);
+      const inherited = this.find(
+        context.parent,
+        key,
+        origin,
+        seen,
+        followLexical,
+      );
       if (inherited) return inherited;
     }
-    return this.find(context.up, key, origin, seen);
+    return followLexical
+      ? this.find(context.up, key, origin, seen, followLexical)
+      : undefined;
+  }
+
+  private setterFor(
+    found: { out: Frame; key: string },
+    key: string,
+    copyOnWrite?: WeakSet<Frame>,
+  ): Frame {
+    if (copyOnWrite && !copyOnWrite.has(found.out)) {
+      return Frame.error(`$!.copy-on-write-boundary .${key}`);
+    }
+    return FrameSymbol.for(found.key).setter(found.out);
   }
 }

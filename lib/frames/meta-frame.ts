@@ -1,5 +1,6 @@
 import { Frame } from "./frame.ts";
 import { type Context, type IKeyValuePair, NilContext } from "./context.ts";
+import type { ReceiverState } from "./bound-method.ts";
 
 /**
  * ISourced is a Frame with a source property.
@@ -67,14 +68,8 @@ export class MetaFrame {
    */
   public parent: Frame = {} as Frame; // forward-declare Frame
 
-  /**
-   * receiver is the frame a method body executes against, installed per call
-   * on the invocation frame rather than by mutating a shared closure.
-   */
-  public receiver: Frame = {} as Frame; // forward-declare Frame
-
-  /** Aggregates isolated for the active copy-on-write invocation, if any. */
-  public receiverCopyOnWrite?: WeakSet<Frame>;
+  /** Typed receiver capability installed only on an invocation frame. */
+  public receiverState?: ReceiverState;
 
   /**
    * declares marks a frame that accepts declarations, so a name binds to the
@@ -271,24 +266,19 @@ export class MetaFrame {
   }
 
   /**
-   * The innermost receiver active across an evaluation context stack.
+   * The innermost receiver capability active across an evaluation stack.
    *
-   * Only a frame's own receiver slot counts. The lexical `up` chain is not
-   * followed: it is rewritten by unrelated evaluation, including on every
-   * successful lookup and on the shared body items an invocation frame wraps,
-   * so walking it would let one call's receiver leak into another's. A scope
-   * nested inside a method body still finds the receiver because the
-   * invocation frame that carries it stays on this stack.
+   * Only a frame's own invocation slot counts. The lexical `up` chain is not
+   * followed: it is rewritten by unrelated evaluation, so walking it would let
+   * one call's receiver leak into another. Nested syntax still finds the state
+   * because the invocation frame remains on the explicit context stack.
    */
   public static receiverStateIn(
     contexts: Frame[],
-  ): { receiver: Frame; copyOnWrite?: WeakSet<Frame> } | undefined {
+  ): ReceiverState | undefined {
     for (let i = contexts.length - 1; i >= 0; i--) {
-      const context = contexts[i];
-      const receiver = context.receiver;
-      if (receiver && !receiver.is.missing) {
-        return { receiver, copyOnWrite: context.receiverCopyOnWrite };
-      }
+      const state = contexts[i].receiverState;
+      if (state) return state;
     }
     return undefined;
   }
