@@ -975,6 +975,61 @@ describe("evaluate", () => {
       expect(mutable.meta.obj_.get_here("yy").is.missing).toBe(true);
     });
 
+    it("refuses receiver aliases from plain methods through immutable handles", () => {
+      const result = evaluate(
+        ".owner [.value 1; .write {@value 9}]; owner.write()",
+      );
+
+      expect(result.at(0).toString()).toContain(
+        "$!.method-not-mutating @value",
+      );
+      expect(result.meta.owner.get_here("value").toString()).toEqual("1");
+    });
+
+    it("refuses receiver aliases from plain methods through mutable handles", () => {
+      const result = evaluate(
+        ".owner_ [.value 1; .write {@value 9}]; owner_.write()",
+      );
+
+      expect(result.at(0).toString()).toContain(
+        "$!.method-not-mutating @value",
+      );
+      expect(result.meta.owner_.get_here("value").toString()).toEqual("1");
+    });
+
+    it("updates a copy through mutating receiver aliases on immutable handles", () => {
+      const result = evaluate(
+        ".owner [.value 1; .write: {@value _;}]; " +
+          ".updated_ (owner.write: 9)",
+      );
+
+      expect(result.meta.owner.get_here("value").toString()).toEqual("1");
+      expect(result.meta.updated_.get_here("value").toString()).toEqual("9");
+      expect(result.meta.updated_).not.toBe(result.meta.owner);
+    });
+
+    it("updates in place through mutating receiver aliases on mutable handles", () => {
+      const result = evaluate(
+        ".owner_ [.value 1; .write: {@value _;}]; owner_.write: 9",
+      );
+
+      expect(result.at(0).toString()).toContain(".value 9;");
+      expect(result.meta.owner_.get_here("value").toString()).toEqual("9");
+    });
+
+    it("gates the receiver before a shadowed lexical alias target", () => {
+      const result = evaluate(
+        ".value 100; .owner [.value 1; .write {@value 9}]; " +
+          "owner.write(); value; owner.value",
+      );
+
+      expect(result.at(0).toString()).toContain(
+        "$!.method-not-mutating @value",
+      );
+      expect(result.meta.value.toString()).toEqual("100");
+      expect(result.meta.owner.get_here("value").toString()).toEqual("1");
+    });
+
     it("refuses protected access to a merely nested aggregate", () => {
       // Lexical nesting is not inheritance: a child aggregate is a peer for
       // visibility, not a descendant, because it declares no parent.

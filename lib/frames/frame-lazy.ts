@@ -3,6 +3,7 @@ import { FrameExpr } from "./frame-expr.ts";
 import { FrameGroup } from "./frame-group.ts";
 import { FrameSymbol } from "./frame-symbol.ts";
 import { type Context, NilContext } from "./context.ts";
+import type { ReceiverWriteAuthority } from "./bound-method.ts";
 import type { SigilStart } from "../scan.ts";
 
 export class FrameLazy extends FrameExpr {
@@ -78,6 +79,7 @@ export class FrameLazy extends FrameExpr {
     _parameter: Frame = Frame.nil,
     receiver: Frame = Frame.missing,
     receiverCopyOnWrite?: WeakSet<Frame>,
+    receiverWriteAuthority?: ReceiverWriteAuthority,
   ): Frame {
     if (this.data.length === 0) {
       // Codify the value, not the caller's captured evaluation context.
@@ -95,10 +97,11 @@ export class FrameLazy extends FrameExpr {
     // metadata local lets lookup reach the closure's live parent chain.
     const expr = new FrameExpr(this.data);
     expr.up = this;
-    // Receiver authority is installed per call on this invocation frame, so
-    // repeated calls cannot leak either a receiver or a copy boundary.
+    // Receiver state is installed per call on this invocation frame, so
+    // repeated calls cannot leak read access, write authority, or copy bounds.
     expr.receiver = receiver;
     expr.receiverCopyOnWrite = receiverCopyOnWrite;
+    expr.receiverWriteAuthority = receiverWriteAuthority;
     // It is also an explicit lookup layer, and it is consulted ahead of this
     // closure: a method's own fields shadow the scope the body was defined in.
     // Bodies are shared between instances, and a shared body's captured scope

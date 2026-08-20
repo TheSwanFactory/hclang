@@ -205,7 +205,12 @@ Two rules define it:
 
 Discovering a method through a handle yields a `BoundMethod`, which owns the
 effect rules for that pairing: a mutating method acts on the receiver itself
-through a mutable handle, and on an instance copy through an immutable one.
+through a mutable handle, and on an instance copy through an immutable one. A
+method without the mutating suffix retains receiver read access but receives no
+receiver-write capability, so a receiver-targeted `@name` returns
+`$!.method-not-mutating @name` through either kind of handle. Handle mutability
+selects original identity versus functional copy only after the method contract
+authorizes mutation.
 
 ### Copy Contract
 

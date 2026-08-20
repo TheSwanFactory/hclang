@@ -270,6 +270,9 @@ export class MetaFrame {
     return false;
   }
 
+  /** Opaque capability authorizing writes to the active method receiver. */
+  public receiverWriteAuthority?: unknown;
+
   /**
    * The innermost receiver active across an evaluation context stack.
    *
@@ -282,12 +285,20 @@ export class MetaFrame {
    */
   public static receiverStateIn(
     contexts: Frame[],
-  ): { receiver: Frame; copyOnWrite?: WeakSet<Frame> } | undefined {
+  ): {
+    receiver: Frame;
+    writeAuthority?: unknown;
+    copyOnWrite?: WeakSet<Frame>;
+  } | undefined {
     for (let i = contexts.length - 1; i >= 0; i--) {
       const context = contexts[i];
       const receiver = context.receiver;
       if (receiver && !receiver.is.missing) {
-        return { receiver, copyOnWrite: context.receiverCopyOnWrite };
+        return {
+          receiver,
+          writeAuthority: context.receiverWriteAuthority,
+          copyOnWrite: context.receiverCopyOnWrite,
+        };
       }
     }
     return undefined;

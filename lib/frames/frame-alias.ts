@@ -5,6 +5,7 @@ import { FrameLazy } from "./frame-lazy.ts";
 import { FrameSymbol } from "./frame-symbol.ts";
 import { NilContext } from "./context.ts";
 import { completeAtEnd, includeOrEnd } from "./atom-syntax.ts";
+import { authorizedReceiverWriteTarget } from "./bound-method.ts";
 import type { AtomSyntax, ScanResult, SigilStart } from "../scan.ts";
 
 export class FrameAlias extends FrameAtom {
@@ -34,26 +35,57 @@ export class FrameAlias extends FrameAtom {
 
   public override in(contexts: Frame[] = [Frame.nil]): Frame {
     const key = this.data.toString();
-    // A mutating method aliases its receiver's declaration, so the receiver is
-    // searched first and authorizes the write.
     const receiverState = Frame.receiverStateIn(contexts);
     const receiver = receiverState?.receiver;
     const origin = receiver ??
       contexts.find((context) => context instanceof FrameLazy) ??
       contexts[0];
-    const searched = receiver ? [receiver, ...contexts] : contexts;
+
+    // Receiver declarations are readable from every method, but writable only
+    // when BoundMethod supplied the target selected by its declared effect and
+    // the handle's mutability. Declared parents belong to the same receiver
+    // path; lexical parents do not grant receiver-write authority.
+    const receiverFound = receiver
+      ? this.find(receiver, key, origin, new Set(), false)
+      : undefined;
+    if (receiverFound instanceof Frame) {
+      return receiverFound;
+    }
+    if (receiverFound) {
+      const writeTarget = authorizedReceiverWriteTarget(
+        receiverState?.writeAuthority,
+      );
+      if (!writeTarget) {
+        return Frame.error(`$!.method-not-mutating @${key}`);
+      }
+      // Resolve again against the capability target so the setter stays
+      // anchored there if read and write receiver projections ever diverge.
+      const authorized = this.find(
+        writeTarget,
+        key,
+        origin,
+        new Set(),
+        false,
+      );
+      if (authorized instanceof Frame) {
+        return authorized;
+      }
+      if (authorized) {
+        return this.setterFor(authorized, key, receiverState?.copyOnWrite);
+      }
+      return FrameNote.key(key, this);
+    }
+
+    const searched = receiver
+      ? contexts.filter((context) => context !== receiver)
+      : contexts;
     for (const context of searched) {
       const found = this.find(context, key, origin);
       if (found instanceof Frame) {
         return found;
       }
       if (found) {
-        const copyOnWrite = receiverState?.copyOnWrite;
-        if (copyOnWrite && !copyOnWrite.has(found.out)) {
-          return Frame.error(`$!.copy-on-write-boundary .${key}`);
-        }
-        const setter = FrameSymbol.for(found.key).setter(found.out);
-        return setter;
+        return this.setterFor(found, key, receiverState?.copyOnWrite);
       }
     }
     return FrameNote.key(key, this);
@@ -72,6 +104,7 @@ export class FrameAlias extends FrameAtom {
     key: string,
     origin: Frame,
     seen: Set<Frame> = new Set(),
+    followLexical = true,
   ): { out: Frame; key: string } | Frame | undefined {
     if (
       context === Frame.missing || context === undefined || seen.has(context)
@@ -93,9 +126,28 @@ export class FrameAlias extends FrameAtom {
     }
 
     if (context.hasDeclaredParent()) {
-      const inherited = this.find(context.parent, key, origin, seen);
+      const inherited = this.find(
+        context.parent,
+        key,
+        origin,
+        seen,
+        followLexical,
+      );
       if (inherited) return inherited;
     }
-    return this.find(context.up, key, origin, seen);
+    return followLexical
+      ? this.find(context.up, key, origin, seen, followLexical)
+      : undefined;
+  }
+
+  private setterFor(
+    found: { out: Frame; key: string },
+    key: string,
+    copyOnWrite?: WeakSet<Frame>,
+  ): Frame {
+    if (copyOnWrite && !copyOnWrite.has(found.out)) {
+      return Frame.error(`$!.copy-on-write-boundary .${key}`);
+    }
+    return FrameSymbol.for(found.key).setter(found.out);
   }
 }

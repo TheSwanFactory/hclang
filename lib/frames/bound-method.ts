@@ -1,6 +1,25 @@
 import { Frame } from "./frame.ts";
 import type { FrameLazy } from "./frame-lazy.ts";
 
+/** Runtime brand for receiver-write authority minted only by BoundMethod. */
+const RECEIVER_WRITE_TARGET = Symbol("receiverWriteTarget");
+
+export type ReceiverWriteAuthority = {
+  readonly [RECEIVER_WRITE_TARGET]: Frame;
+};
+
+const authorizeReceiverWrite = (target: Frame): ReceiverWriteAuthority =>
+  Object.freeze({ [RECEIVER_WRITE_TARGET]: target });
+
+/** Extracts a target only from authority minted in this module. */
+export const authorizedReceiverWriteTarget = (
+  authority: unknown,
+): Frame | undefined => {
+  if (typeof authority !== "object" || authority === null) return undefined;
+  const target = (authority as ReceiverWriteAuthority)[RECEIVER_WRITE_TARGET];
+  return target instanceof Frame ? target : undefined;
+};
+
 /** The suffix that marks a method as mutating its receiver. */
 const MUTATING_SUFFIX = ":";
 
@@ -50,19 +69,28 @@ export class BoundMethod extends Frame {
       Frame.nil,
       authorized.target,
       authorized.copyOnWrite,
+      authorized.writeAuthority,
     );
     if (result.is.error) return result;
     return this.isMutating() ? authorized.target : result;
   }
 
-  /** Selects the target and records every aggregate isolated for this call. */
+  /** Selects the read receiver, authorized write target, and isolated graph. */
   private authorizedCall(): {
     target: Frame;
+    writeAuthority?: ReceiverWriteAuthority;
     copyOnWrite?: WeakSet<Frame>;
   } {
-    if (!this.isMutating() || this.mutable) {
+    if (!this.isMutating()) {
       return {
         target: this.receiverTarget,
+        copyOnWrite: this.copyOnWrite,
+      };
+    }
+    if (this.mutable) {
+      return {
+        target: this.receiverTarget,
+        writeAuthority: authorizeReceiverWrite(this.receiverTarget),
         copyOnWrite: this.copyOnWrite,
       };
     }
@@ -73,6 +101,10 @@ export class BoundMethod extends Frame {
     for (const aggregate of copied.values()) {
       copyOnWrite.add(aggregate);
     }
-    return { target, copyOnWrite };
+    return {
+      target,
+      writeAuthority: authorizeReceiverWrite(target),
+      copyOnWrite,
+    };
   }
 }

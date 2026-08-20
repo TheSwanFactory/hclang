@@ -4,18 +4,11 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
-## v0.10.1 2026-08-18
+## v0.10.2 2026-08-19
 
-- Refuse a protected member reached through containment rather than inheritance,
-  so a nested aggregate's method reading an enclosing frame's `_secret` reports
-  `$!.is-protected` instead of returning the value.
-- Declare an aggregate's parent as `.^ base`, which now inherits the parent's
-  bindings; the parent is declarable only on the aggregate under construction.
 - Make `.^` the only parent-declaration spelling; old `._^` input follows
   ordinary name/operator tokenization with no compatibility alias or pointed
   diagnostic.
-- Report `$!.parent-not-declarable .^` for a parent declaration outside
-  construction, such as in a method body, instead of exhausting the stack.
 - Keep schema evaluation from leaking its context into later sibling lookups.
 - Terminate cyclic scope and handle lookup while retaining global operator
   fallback.
@@ -23,6 +16,19 @@
   functional update that would write through a shared declared parent.
 - Treat only decimal-digit array properties as positions, so metadata named
   `Infinity`, `1e3`, `0x10`, or the empty string remains accessible.
+- Refuse receiver-targeted `@name` writes from non-mutating methods, while
+  preserving in-place mutation through mutable handles and functional updates
+  through immutable handles.
+
+## v0.10.1 2026-08-18
+
+- Refuse a protected member reached through containment rather than inheritance,
+  so a nested aggregate's method reading an enclosing frame's `_secret` reports
+  `$!.is-protected` instead of returning the value.
+- Declare an aggregate's parent as `.^ base`, which now inherits the parent's
+  bindings; the parent is declarable only on the aggregate under construction.
+- Report `$!.parent-not-declarable .^` for a parent declaration outside
+  construction, such as in a method body, instead of exhausting the stack.
 
 ## v0.10.0 2026-08-17
 
