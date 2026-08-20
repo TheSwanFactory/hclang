@@ -145,9 +145,26 @@ export class MetaFrame {
 
   /**
    * get retrieves a Frame by key, searching up the parent chain if necessary.
+   *
+   * The declared chain is acyclic by construction, since setParent is its only
+   * writer and it refuses a cycle. The lexical `up` chain has no such
+   * discipline: it is assigned freely, including on every successful lookup and
+   * by syntactic containment. A cycle there must therefore be a miss rather
+   * than a stack overflow, so seen carries the frames already asked. One set
+   * spans both chains: a frame that reported a miss for this key and origin
+   * reports the same miss on revisit, so skipping it also collapses the
+   * repeated work a diamond would otherwise cost.
    */
+  public get(
+    key: string,
+    origin: MetaFrame = this,
+    seen: Set<MetaFrame> = new Set(),
+  ): Frame {
+    if (seen.has(this)) {
+      return Frame.missing;
+    }
+    seen.add(this);
 
-  public get(key: string, origin: MetaFrame = this): Frame {
     const result = this.get_here(key, origin);
     if (!result.is.missing) {
       return result;
@@ -157,7 +174,7 @@ export class MetaFrame {
     // ownership, while up is only the scope this frame happened to be seen in.
     const declared = this.parent;
     if (declared && !declared.is.missing) {
-      const inherited = declared.get(key, origin);
+      const inherited = declared.get(key, origin, seen);
       if (!inherited.is.missing) {
         return inherited;
       }
@@ -170,7 +187,7 @@ export class MetaFrame {
       }
       parent = Frame.globals;
     }
-    return parent.get(key, origin);
+    return parent.get(key, origin, seen);
   }
 
   /**

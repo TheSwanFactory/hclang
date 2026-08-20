@@ -68,11 +68,15 @@ export class FrameArray extends FrameList {
     return clone;
   }
 
-  public override get(key: string, origin: MetaFrame = this): Frame {
+  public override get(
+    key: string,
+    origin: MetaFrame = this,
+    seen: Set<MetaFrame> = new Set(),
+  ): Frame {
     if (!isNaN(Number(key))) {
       return this.at(Number(key));
     }
-    return super.get(key, origin);
+    return super.get(key, origin, seen);
   }
 
   public override apply(argument: Frame, _parameter: Frame): FrameArray {

@@ -34,8 +34,12 @@ export class FrameHandle extends Frame {
     return this.target;
   }
 
-  public override get(key: string, origin: MetaFrame = this): Frame {
-    const value = this.target.get(key, origin);
+  public override get(
+    key: string,
+    origin: MetaFrame = this,
+    seen: Set<MetaFrame> = new Set(),
+  ): Frame {
+    const value = this.target.get(key, origin, seen);
     if (value instanceof FrameLazy) {
       return new BoundMethod(value, this.target, this.mutable, key);
     }

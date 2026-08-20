@@ -42,7 +42,10 @@ export class FrameSchema extends FrameList implements FrameMatcher {
     if (matcher) {
       return new FrameSchema([...this.data], NilContext, matcher);
     }
-    const array = this.array_eval(contexts);
+    // array_eval pushes onto the stack it is given, so it gets a copy: a schema
+    // must not leave itself behind in its caller's contexts, where every later
+    // lookup in that evaluation would see it. Every sibling FrameList copies.
+    const array = this.array_eval([...contexts]);
     return new FrameSchema(array);
   }
 

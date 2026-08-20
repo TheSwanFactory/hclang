@@ -67,7 +67,11 @@ export class FrameAlias extends FrameAtom {
     key: string,
     origin: Frame,
   ): { out: Frame; key: string } | Frame | undefined {
+    const seen = new Set<Frame>();
     while (context !== Frame.missing && context !== undefined) {
+      if (seen.has(context)) return undefined;
+      seen.add(context);
+
       const binding = context.resolve_here(key, origin);
       if (binding?.value.is.error) {
         return binding.value;
