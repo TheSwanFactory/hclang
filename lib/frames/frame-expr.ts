@@ -59,7 +59,7 @@ export class FrameExpr extends FrameList {
         : item.in(scope);
       // A sequence stops at the first failing statement, because later
       // statements were written to run after the earlier ones succeeded.
-      if (result.is.error) return result;
+      if (result.isFailedResult()) return result;
     }
     return result;
   }
@@ -116,7 +116,7 @@ export class FrameExpr extends FrameList {
     if (!this.is.statement) return result;
     const statement = new FrameExpr([result]);
     statement.is.statement = true;
-    statement.is.error = result.is.error === true;
+    statement.is.error = result.isFailedResult();
     return statement;
   }
 }

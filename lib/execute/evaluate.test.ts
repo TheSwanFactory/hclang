@@ -1580,12 +1580,24 @@ describe("evaluate", () => {
       expect(result.meta.Class.meta.Value).toBeUndefined();
     });
 
-    it("propagates assignment errors out of mutating methods", () => {
+    it("propagates direct and aggregate errors out of mutating methods", () => {
       const constant = evaluate(
         ".owner_ [.Value 1; .change: {@Value _;}]; owner_.change: 2",
       );
       const schema = evaluate(
         ".owner_ [.value <1> 1; .change: {@value _;}]; owner_.change: 2",
+      );
+      const aggregate = evaluate(
+        ".owner_ [.value <1> 1; .change: {[1] | {@value 2}}]; " +
+          "owner_.change: 2",
+      );
+      const trailingStatement = evaluate(
+        ".owner_ [.value <1> 1; .change: {[1] | {@value 2};}]; " +
+          "owner_.change: 2",
+      );
+      const sequenced = evaluate(
+        ".owner_ [.value <1,3> 1; " +
+          ".change: {[1] | {@value 2}; @value 3}]; owner_.change: 0",
       );
 
       expect(constant.at(0).toString()).toContain(
@@ -1596,6 +1608,19 @@ describe("evaluate", () => {
         "$!.type-error .value <1> 2",
       );
       expect(schema.meta.owner_.get_here("value").toString()).toEqual("1");
+      expect(aggregate.at(0).toString()).toContain(
+        "$!.type-error .value <1> 2",
+      );
+      expect(aggregate.meta.owner_.get_here("value").toString()).toEqual("1");
+      expect(trailingStatement.at(0).toString()).toContain(
+        "$!.type-error .value <1> 2",
+      );
+      expect(trailingStatement.meta.owner_.get_here("value").toString())
+        .toEqual("1");
+      expect(sequenced.at(0).toString()).toContain(
+        "$!.type-error .value <1, 3> 2",
+      );
+      expect(sequenced.meta.owner_.get_here("value").toString()).toEqual("1");
     });
 
     it("updates an immutable receiver functionally, at any depth", () => {

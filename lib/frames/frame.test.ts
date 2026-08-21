@@ -63,6 +63,18 @@ describe("Frame", () => {
     });
   });
 
+  describe("failed results", () => {
+    it("classifies errors and immediate aggregate errors without recursing", () => {
+      const error = Frame.error("$!.failure");
+      const aggregate = new FrameArray([error]);
+      const nested = new FrameArray([aggregate]);
+
+      expect(error.isFailedResult()).toBe(true);
+      expect(aggregate.isFailedResult()).toBe(true);
+      expect(nested.isFailedResult()).toBe(false);
+    });
+  });
+
   describe("equals", () => {
     it("returns true for identical frames", () => {
       const frame2 = new Frame({ nil: Frame.nil });

@@ -4,6 +4,11 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.10.4 2026-08-20
+
+- Surface errors returned as immediate elements of iterator aggregates from
+  mutating methods, and stop sequenced bodies at the same failed result (#338).
+
 ## v0.10.3 2026-08-20
 
 - Give every evaluation named argument, parameter, receiver, and write-target

@@ -94,7 +94,7 @@ export class BoundMethod extends Frame {
     // the lookup order, and a shared body's captured scope is whichever instance
     // was built last, so a method would read another instance's fields.
     const result = this.method.call(argument, Frame.nil, state);
-    if (result.is.error) return result;
+    if (result.isFailedResult()) return result;
     return this.isMutating() ? state.receiver : result;
   }
 
