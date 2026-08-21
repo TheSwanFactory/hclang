@@ -39,11 +39,8 @@ iterator parameter keeps the spelling it already had: the bare name `.`.
    `.k 7; [10] | { _^.k }` returned `name-missing` rather than `7`. Worse, the
    level count depended on invocation: the same block `{_^.k}` read `k` when
    called as a plain closure but the index when called from `|`, so callers had
-   to count a phantom level exactly when an iterator was involved. The project's
-   own fixtures mispredicted this — `format.hc` expected
-   `{_^.value} (.value 9;)` to yield `9`, which the conflated semantics did not
-   even deliver (a plain closure call supplies no parameter). This is the same
-   class of defect #333 fixed for `up`, in the argument syntax.
+   to count a phantom level exactly when an iterator was involved. This is the
+   same class of defect #333 fixed for `up`, in the argument syntax.
 
 ## Semantics now
 
@@ -68,8 +65,7 @@ exactly.
 - Pinned in `evaluate.test.ts` (lexical reach from an iterator block; all three
   `.` readings) and `cli/hc/white-paper-core.hc` (executed corpus).
 - `doc/GRAMMAR.md` documents the iterator parameter spelling and the
-  invocation-independent caret count; the stale `format.hc` fixture is corrected
-  to a true example.
+  invocation-independent caret count.
 
 ## Noted, not resolved here
 
@@ -79,3 +75,14 @@ setter against the write target, and a method reads its own properties by plain
 name. The grammar now documents `.` as the iterator parameter; if a "this"
 reader is ever wanted, it needs its own decision rather than another shared
 spelling.
+
+`cli/hc/format.hc` contains a stale `_^` line, `; {_^.value} (.value 9;)`
+expecting `9`, and it is deliberately left alone. That expectation fails
+identically before and after this change, because a plain closure call supplies
+no parameter and `_^` therefore took the lexical path already, so it is not
+evidence about the conflation and not collateral of removing it. The line has
+never been checked: the whole file body sits inside a document fence, so
+`--testdoc` reports zero assertions for it. Fixing it means deciding what that
+file is for — a formatter specification pairing source with its re-printed form,
+which is what its other entries do, or an executable document. That is #344, not
+this document.

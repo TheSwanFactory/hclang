@@ -23,7 +23,7 @@ Format coverage
 # Anonymous args and parents
 ; { { _ + __ } } 10 5
 # 15
-; .value 9; {_^.value} ()
+; {_^.value} (.value 9;)
 # 9
 
 # Numeric literals: hex preserved
