@@ -15,6 +15,8 @@ export class ParsePipe extends FrameArray implements IFinish {
   protected Factory: IArrayConstructor;
   /** A nested pipe came from source grouping; the root pipe wraps statements. */
   protected readonly nested: boolean;
+  /** Whether the source separated this group's terms with `;`. */
+  protected sequenced = false;
 
   constructor(out: Frame, factory: IArrayConstructor) {
     const meta: Context = {};
@@ -27,6 +29,13 @@ export class ParsePipe extends FrameArray implements IFinish {
   }
 
   public next(statement: boolean = false): ParsePipe {
+    if (statement) {
+      // Writing the separator is the author's intent to sequence, whether or
+      // not it also terminated a nonempty term. Recording it here is what lets
+      // a closure body be evaluated by intent rather than by inspecting flags
+      // on its children.
+      this.sequenced = true;
+    }
     if (this.length() === 0) {
       return this;
     }
@@ -95,7 +104,11 @@ export class ParsePipe extends FrameArray implements IFinish {
     if (this.nested && group instanceof FrameGroup) {
       group.declares = true;
     }
+    if (this.sequenced) {
+      group.is.sequence = true;
+    }
     this.collector = [];
+    this.sequenced = false;
     return group;
   }
 }

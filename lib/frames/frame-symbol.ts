@@ -106,9 +106,10 @@ export class FrameSymbol extends FrameAtom {
       if (!value.is.missing) {
         if (value.is.error) return value;
 
-        // A closure template is bound by copying it into this evaluation. Reads
-        // never rewrite a shared closure's ancestry; non-closure values retain
-        // the historical live lexical link until that larger concern migrates.
+        // A closure template is bound by copying it into this evaluation, so
+        // reads never rewrite a shared closure's ancestry. Non-closure values
+        // still take the historical live lexical link, which is the last
+        // remaining re-parenting write: see #341.
         const resolved = value instanceof FrameLazy ? value.bind(scope) : value;
         if (!(value instanceof FrameLazy)) value.up = context;
 
@@ -198,11 +199,6 @@ export class FrameSymbol extends FrameAtom {
       return previous.is.missing
         ? new FrameLiteral(`.^ ${argument.toString()}`)
         : argument;
-    }
-    // A malformed or legacy scope must still fail as an HC value rather than
-    // install a direct metadata self-cycle that overflows the host formatter.
-    if (out === argument) {
-      return Frame.error(`$!.cyclic-binding .${this.data}`);
     }
     const binding = out.resolve_here(this.data, out);
     if (binding?.value.is.error) return binding.value;

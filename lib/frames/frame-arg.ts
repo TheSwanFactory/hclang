@@ -130,8 +130,15 @@ export class FrameParam extends FrameSymbol {
     } */
 
   public override in(input: EvaluationInput = []): Frame {
+    const scope = EvaluationScope.from(input);
     const level = this.data.length - 1;
-    return EvaluationScope.from(input).parameterAt(level) ??
-      FrameNote.key(this.data, this);
+    // One caret means the explicit parameter when the call supplied one, which
+    // is how an iterator hands a block its key alongside the value. Otherwise,
+    // and at every deeper level, each caret is one enclosing lexical scope.
+    // The two referents share a spelling; see #340.
+    const target = level === 1 && scope.parameter
+      ? scope.parameter
+      : scope.lexicalAt(level);
+    return target ?? FrameNote.key(this.data, this);
   }
 }

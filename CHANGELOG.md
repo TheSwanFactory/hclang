@@ -9,11 +9,22 @@
 - Give every evaluation named argument, parameter, receiver, and write-target
   roles, so repeated or interleaved closure calls preserve their captured scope
   without re-parenting shared closures or body items (#327, #329).
-- Return the last statement from a closure body, keeping declarations from
-  earlier statements available through the rest of that call (#323).
-- Reject closure bindings that would point an argument directly to itself,
-  returning an HC error instead of overflowing the host stack during
-  stringification (#337).
+- Declare into a frame belonging to the call instead of into the argument, so
+  `{.x _; x}` names its argument and a callee's declarations no longer appear on
+  the caller's value.
+- Return the last statement from a closure body, and end the sequence at the
+  first statement that fails (#323).
+- Build objects by returning an aggregate, as in `{[.X _; .getX {X}]}`: a
+  closure's own declarations belong to that call and are not reachable through
+  its result. `doc/GRAMMAR.md` covers the idiom.
+- Print any frame reachable from itself as an identity instead of overflowing
+  the host stack, so no source input can reach a `RangeError` while a value is
+  being displayed (#337).
+- Resolve `_^^` and deeper against enclosing lexical scopes rather than
+  positions in a context list, which had no meaning past `_^`.
+- Refuse `.^` inside a closure nested in a mutating method, reporting
+  `$!.parent-not-declarable .^` where the re-parenting was previously dropped in
+  silence.
 
 ## v0.10.2 2026-08-19
 

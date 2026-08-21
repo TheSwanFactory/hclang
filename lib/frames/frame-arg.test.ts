@@ -2,6 +2,7 @@ import { expect } from "jsr:@std/expect@^0.219.1";
 import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 
 import {
+  EvaluationScope,
   Frame,
   FrameArg,
   FrameParam,
@@ -93,12 +94,36 @@ describe("FrameArg", () => {
       expect(frame_param.in([context, param])).toEqual(param);
     });
 
-    it("evaluates to higher-level parameters", () => {
+    it("reports a missing scope for a level the flat adapter cannot express", () => {
+      // Beyond one caret, a level names an enclosing lexical scope rather than
+      // an array index, so a flat context list has nothing to resolve against.
       const frame_param_2 = FrameParam.level(2);
       const param2 = new FrameString("param level 2");
-      const stack = [context, param, param2];
+
       expect(frame_param_2.toString()).toEqual("_^^");
-      expect(frame_param_2.in(stack)).toEqual(param2);
+      expect(frame_param_2.in([context, param, param2]).toString())
+        .toContain("$!.name-missing");
+    });
+
+    it("evaluates each level against one enclosing lexical scope", () => {
+      const outer = EvaluationScope.call(new FrameString("outer"));
+      const middle = EvaluationScope.call(
+        new FrameString("middle"),
+        Frame.nil,
+        undefined,
+        outer,
+      );
+      const inner = EvaluationScope.call(
+        new FrameString("inner"),
+        Frame.nil,
+        undefined,
+        middle,
+      );
+
+      expect(FrameParam.level(1).in(inner)).toBe(middle.lexicalTarget);
+      expect(FrameParam.level(2).in(inner)).toBe(outer.lexicalTarget);
+      expect(FrameParam.level(3).in(inner).toString())
+        .toContain("$!.name-missing");
     });
   });
 });

@@ -5,6 +5,7 @@ import { FrameSymbol } from "./frame-symbol.ts";
 import { type Context, NilContext } from "./context.ts";
 import type { ReceiverState } from "./bound-method.ts";
 import { type EvaluationInput, EvaluationScope } from "./evaluation-scope.ts";
+import { renderNested } from "./stringify.ts";
 import type { SigilStart } from "../scan.ts";
 
 // Both maps describe per-evaluation bound copies. The parsed/shared closure is
@@ -56,12 +57,14 @@ export class FrameLazy extends FrameExpr {
   }
 
   public override toStringDataArray(): string[] {
-    const stringify = (obj: Frame): string => {
-      if (obj instanceof FrameExpr) {
-        return obj.asArray().map(stringify).join(" ");
-      }
-      return obj.toString();
-    };
+    const stringify = (obj: Frame): string =>
+      renderNested(
+        obj,
+        () =>
+          obj instanceof FrameExpr
+            ? obj.asArray().map(stringify).join(" ")
+            : obj.toString(),
+      );
     const parts = this.data.map(stringify);
     const body = parts.join(" ").trim();
     const display = body.length > 0 ? ` ${body} ` : body;
@@ -119,7 +122,7 @@ export class FrameLazy extends FrameExpr {
       enclosing,
       receiverState,
     );
-    return FrameExpr.evaluateBody(this.data, scope);
+    return FrameExpr.evaluateBody(this.data, scope, this.is.sequence === true);
   }
 
   private legacyCapture(): EvaluationScope | undefined {

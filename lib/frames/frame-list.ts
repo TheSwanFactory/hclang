@@ -1,6 +1,7 @@
 import { Frame } from "./frame.ts";
 import { type Context, NilContext } from "./context.ts";
 import { type EvaluationInput, EvaluationScope } from "./evaluation-scope.ts";
+import { renderNested } from "./stringify.ts";
 
 /**
  * The `IArrayConstructor` interface defines a constructor for creating
@@ -39,7 +40,7 @@ export class FrameList extends Frame {
   public toStringDataArray(): Array<string> {
     const result = this.data.map((obj: Frame) => {
       const sep = (obj.is.statement) ? ";" : ",";
-      return obj.toString() + sep;
+      return renderNested(obj, () => obj.toString()) + sep;
     });
     return result;
   }
@@ -69,10 +70,12 @@ export class FrameList extends Frame {
       this.meta_pairs().map(([key, value]) => `.${key} ${value}`),
     );
     const data = this.data.filter((item) =>
-      !metadataAssignments.has(item.toString())
+      !metadataAssignments.has(renderNested(item, () => item.toString()))
     );
     return this.string_open() +
-      data.map((item) => item.dataString()).join(",") +
+      data.map((item) => renderNested(item, () => item.dataString())).join(
+        ",",
+      ) +
       this.string_close();
   }
 

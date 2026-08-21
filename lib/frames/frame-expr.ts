@@ -3,16 +3,18 @@ import { FrameList } from "./frame-list.ts";
 import { FrameName } from "./frame-name.ts";
 import { FrameSchema } from "./frame-schema.ts";
 import { FrameSymbol } from "./frame-symbol.ts";
-import { NilContext } from "./context.ts";
 import { type EvaluationInput, EvaluationScope } from "./evaluation-scope.ts";
+import { renderNested } from "./stringify.ts";
 
+/**
+ * A parsed expression: an ordered list of terms evaluated against a scope.
+ *
+ * Constructing one establishes no ancestry over its terms. Syntax containment
+ * is not lexical ancestry, and closure calls may evaluate these shared items
+ * repeatedly, so re-parenting them here would make one call's scope visible to
+ * the next (#329).
+ */
 export class FrameExpr extends FrameList {
-  constructor(data: Array<Frame>, meta = NilContext) {
-    // Syntax containment is not lexical ancestry. In particular, closure calls
-    // may evaluate these shared items repeatedly without re-parenting them.
-    super(data, meta);
-  }
-
   public override in(input: EvaluationInput = []): Frame {
     return this.asStatement(this.evaluate(input));
   }
@@ -30,19 +32,23 @@ export class FrameExpr extends FrameList {
   }
 
   /**
-   * Evaluates a closure body as a sequence and returns its last statement.
-   * Without a statement separator, a programmatically constructed body remains
-   * one ordinary expression for compatibility with the Frame API.
+   * Evaluates a closure body, as a sequence when the source asked for one.
+   *
+   * `sequence` records that the author wrote `;` between terms, so intent comes
+   * from the parser rather than from inspecting flags on the body's children. A
+   * body assembled programmatically therefore stays one juxtaposed expression,
+   * which is what the Frame API has always meant by a multi-item body.
+   *
+   * A one-term body keeps its existing value and representation either way, so
+   * a trailing separator alone does not unwrap a single statement.
    */
   public static evaluateBody(
     body: readonly Frame[],
     input: EvaluationInput,
+    sequence = false,
   ): Frame {
     const scope = EvaluationScope.from(input);
-    if (
-      body.length === 1 ||
-      !body.some((item) => item.is.statement === true)
-    ) {
+    if (body.length === 1 || !sequence) {
       return FrameExpr.evaluateTerms(body, scope);
     }
 
@@ -51,6 +57,8 @@ export class FrameExpr extends FrameList {
       result = item instanceof FrameExpr
         ? item.evaluate(scope)
         : item.in(scope);
+      // A sequence stops at the first failing statement, because later
+      // statements were written to run after the earlier ones succeeded.
       if (result.is.error) return result;
     }
     return result;
@@ -61,7 +69,9 @@ export class FrameExpr extends FrameList {
   }
 
   public override toStringDataArray(): string[] {
-    const body = this.data.map((obj: Frame) => obj.toString()).join(" ");
+    const body = this.data
+      .map((obj: Frame) => renderNested(obj, () => obj.toString()))
+      .join(" ");
     // Don't add separator here - let parent FrameList handle it
     return [body];
   }

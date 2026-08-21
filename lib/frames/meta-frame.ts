@@ -1,6 +1,7 @@
 import { Frame } from "./frame.ts";
 import { type Context, type IKeyValuePair, NilContext } from "./context.ts";
 import type { ReceiverState } from "./bound-method.ts";
+import { renderNested } from "./stringify.ts";
 
 /**
  * ISourced is a Frame with a source property.
@@ -266,29 +267,6 @@ export class MetaFrame {
   }
 
   /**
-   * The innermost receiver capability active across an evaluation stack.
-   *
-   * Only a frame's own invocation slot counts. The lexical `up` chain is not
-   * followed: it is rewritten by unrelated evaluation, so walking it would let
-   * one call's receiver leak into another. Nested syntax still finds the state
-   * because the invocation frame remains on the explicit context stack.
-   */
-  public static receiverStateIn(
-    contexts: Frame[],
-  ): ReceiverState | undefined {
-    for (let i = contexts.length - 1; i >= 0; i--) {
-      const state = contexts[i].receiverState;
-      if (state) return state;
-    }
-    return undefined;
-  }
-
-  /** The receiver projection used by ordinary method-body lookup. */
-  public static receiverIn(contexts: Frame[]): Frame | undefined {
-    return this.receiverStateIn(contexts)?.receiver;
-  }
-
-  /**
    * meta_copy creates a shallow copy of the current context.
    */
   public meta_copy(): Context {
@@ -318,14 +296,16 @@ export class MetaFrame {
 
   /**
    * meta_string returns a string representation of the current context.
+   *
+   * Nested values render through the cycle guard, so metadata that reaches this
+   * frame again yields an id rather than overflowing the host stack.
    */
   public meta_string(): string {
     return this.meta_pairs().map(([key, value]) => {
       if (key === Frame.kOUT) {
         return `.${key} ${value.id};`;
-      } else {
-        return `.${key} ${value};`;
       }
+      return `.${key} ${renderNested(value, () => value.toString())};`;
     }).join(" ");
   }
 

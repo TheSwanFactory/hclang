@@ -21,10 +21,16 @@ type ScopeOptions = {
   writeTarget: Frame;
   writeTargetRole: WriteTargetRole;
   lookupFrames: Frame[];
+  lookupMembers: Set<Frame>;
   enclosing?: EvaluationScope;
   closure?: Frame;
   lexicalTarget: Frame;
-  legacyLevels?: Frame[];
+};
+
+/** An ordered lookup list paired with its membership set. */
+type LookupLayers = {
+  frames: Frame[];
+  members: Set<Frame>;
 };
 
 /**
@@ -45,7 +51,7 @@ export class EvaluationScope {
   public readonly lexicalTarget: Frame;
 
   readonly #lookupFrames: Frame[];
-  readonly #legacyLevels?: Frame[];
+  readonly #lookupMembers: Set<Frame>;
 
   private constructor(options: ScopeOptions) {
     this.argument = options.argument;
@@ -57,24 +63,32 @@ export class EvaluationScope {
     this.closure = options.closure;
     this.lexicalTarget = options.lexicalTarget;
     this.#lookupFrames = options.lookupFrames;
-    this.#legacyLevels = options.legacyLevels;
+    this.#lookupMembers = options.lookupMembers;
   }
 
   /** Creates the scope at the evaluator boundary. */
   public static root(out: Frame, context: Frame = Frame.nil): EvaluationScope {
+    const layers = EvaluationScope.layers(
+      context.is.void ? [out] : [out, context],
+    );
     return new EvaluationScope({
       argument: out,
       parameter: context.is.void ? undefined : context,
       writeTarget: out,
       writeTargetRole: "statement",
-      lookupFrames: context.is.void ? [out] : [out, context],
+      lookupFrames: layers.frames,
+      lookupMembers: layers.members,
       lexicalTarget: out,
     });
   }
 
   /**
    * Normalizes historical Frame[] callers once at the protocol boundary.
-   * Positional interpretation remains only in this adapter, not in evaluation.
+   *
+   * Positional interpretation remains only in this adapter, and only for the
+   * two slots that have named meanings: the argument and the parameter. Deeper
+   * indices carry no meaning, because `_^^` and beyond name enclosing lexical
+   * scopes, which a flat array cannot express.
    */
   public static from(input: EvaluationInput = []): EvaluationScope {
     if (input instanceof EvaluationScope) return input;
@@ -86,6 +100,9 @@ export class EvaluationScope {
       : undefined;
     const receiverState = EvaluationScope.findReceiverState(frames);
     const binding = EvaluationScope.findWriteTarget(frames, argument);
+    const layers = EvaluationScope.layers(
+      frames.length > 0 ? frames : [Frame.nil],
+    );
 
     return new EvaluationScope({
       argument,
@@ -93,13 +110,24 @@ export class EvaluationScope {
       receiverState,
       writeTarget: binding.target,
       writeTargetRole: binding.role,
-      lookupFrames: frames.length > 0 ? frames : [Frame.nil],
+      lookupFrames: layers.frames,
+      lookupMembers: layers.members,
       lexicalTarget: binding.target,
-      legacyLevels: frames,
     });
   }
 
-  /** Creates named call state and a local target for empty arguments. */
+  /**
+   * Creates named call state with the call's own frame as its write target.
+   *
+   * A closure declares into its own local frame, never into the argument it was
+   * handed: the argument is read-only for the duration of the call. That makes
+   * `.x _` mean "bind the argument under the name x here" rather than "set x on
+   * the argument to the argument", which is what made a closure's write target
+   * and its argument the same frame and produced a self-referential binding.
+   *
+   * A handle argument is the one exception, because a handle is explicitly a
+   * mutable view requested by the caller for exactly this purpose.
+   */
   public static call(
     argument: Frame,
     parameter: Frame = Frame.nil,
@@ -108,11 +136,7 @@ export class EvaluationScope {
     receiverState?: ReceiverState,
   ): EvaluationScope {
     const local = new Frame();
-    const target = argument instanceof FrameHandle
-      ? argument.unwrap()
-      : argument.is.void
-      ? local
-      : argument;
+    const target = argument instanceof FrameHandle ? argument.unwrap() : local;
     const targetRole: WriteTargetRole = argument instanceof FrameHandle
       ? "handle"
       : "statement";
@@ -122,6 +146,7 @@ export class EvaluationScope {
     if (receiverState) lookupFrames.push(receiverState.receiver);
     if (closure) lookupFrames.push(closure);
     if (enclosing) lookupFrames.push(...enclosing.lookupFrames());
+    const layers = EvaluationScope.layers(lookupFrames);
 
     return new EvaluationScope({
       argument,
@@ -129,26 +154,35 @@ export class EvaluationScope {
       receiverState,
       writeTarget: target,
       writeTargetRole: targetRole,
-      lookupFrames: EvaluationScope.unique(lookupFrames),
+      lookupFrames: layers.frames,
+      lookupMembers: layers.members,
       enclosing,
       closure,
       lexicalTarget: target,
     });
   }
 
-  /** Adds syntax or metadata to lookup without changing any named role. */
+  /**
+   * Adds syntax or metadata to lookup without changing any named role.
+   *
+   * A layer already in lookup would be deduplicated away, so this scope is
+   * returned unchanged rather than rebuilt.
+   */
   public withLayer(frame: Frame): EvaluationScope {
+    if (this.#lookupMembers.has(frame)) return this;
+
+    const layers = this.appended(frame);
     return new EvaluationScope({
       argument: this.argument,
       parameter: this.parameter,
       receiverState: this.receiverState,
       writeTarget: this.writeTarget,
       writeTargetRole: this.writeTargetRole,
-      lookupFrames: EvaluationScope.unique([...this.#lookupFrames, frame]),
+      lookupFrames: layers.frames,
+      lookupMembers: layers.members,
       enclosing: this.enclosing,
       closure: this.closure,
       lexicalTarget: this.lexicalTarget,
-      legacyLevels: this.#legacyLevels,
     });
   }
 
@@ -157,17 +191,18 @@ export class EvaluationScope {
     target: Frame,
     role: WriteTargetRole = "construction",
   ): EvaluationScope {
+    const layers = this.appended(target);
     return new EvaluationScope({
       argument: this.argument,
       parameter: this.parameter,
       receiverState: this.receiverState,
       writeTarget: target,
       writeTargetRole: role,
-      lookupFrames: EvaluationScope.unique([...this.#lookupFrames, target]),
+      lookupFrames: layers.frames,
+      lookupMembers: layers.members,
       enclosing: this.enclosing,
       closure: this.closure,
       lexicalTarget: target,
-      legacyLevels: this.#legacyLevels,
     });
   }
 
@@ -187,11 +222,15 @@ export class EvaluationScope {
     return scope?.argument;
   }
 
-  /** Resolves an explicit parameter, then `_^`, `_^^`, ... lexical scopes. */
-  public parameterAt(level: number): Frame | undefined {
-    const legacy = this.#legacyLevels?.[level];
-    if (legacy && legacy !== Frame.nil) return legacy;
-    if (level === 1 && this.parameter) return this.parameter;
+  /**
+   * Resolves one enclosing lexical declaration target per level.
+   *
+   * This is the only meaning of the accessor: the explicit parameter is read
+   * from `parameter` by the callers that want it, so one spelling asking for
+   * two different things stays visible at the call site.
+   */
+  public lexicalAt(level: number): Frame | undefined {
+    if (level <= 0) return this.lexicalTarget;
 
     let scope = this.enclosing;
     for (let current = 1; current < level; current += 1) {
@@ -200,6 +239,38 @@ export class EvaluationScope {
     return scope?.lexicalTarget;
   }
 
+  /** Copies this scope's lookup layers with additions that are not present. */
+  private appended(...additions: Frame[]): LookupLayers {
+    const frames = [...this.#lookupFrames];
+    const members = new Set(this.#lookupMembers);
+    for (const addition of additions) {
+      if (members.has(addition)) continue;
+      members.add(addition);
+      frames.push(addition);
+    }
+    return { frames, members };
+  }
+
+  /** Builds deduplicated lookup layers in one linear pass. */
+  private static layers(candidates: readonly Frame[]): LookupLayers {
+    const frames: Frame[] = [];
+    const members = new Set<Frame>();
+    for (const candidate of candidates) {
+      if (members.has(candidate)) continue;
+      members.add(candidate);
+      frames.push(candidate);
+    }
+    return { frames, members };
+  }
+
+  /**
+   * The innermost receiver capability carried by a historical context list.
+   *
+   * Only a frame's own invocation slot counts. The lexical `up` chain is not
+   * followed: it is rewritten by unrelated evaluation, so walking it would let
+   * one call's receiver leak into another. Scopes built by `call` carry the
+   * state in a named field and never need this scan.
+   */
   private static findReceiverState(frames: Frame[]): ReceiverState | undefined {
     for (let index = frames.length - 1; index >= 0; index -= 1) {
       const state = frames[index].receiverState;
@@ -222,9 +293,5 @@ export class EvaluationScope {
       }
     }
     return { target: fallback, role: "statement" };
-  }
-
-  private static unique(frames: Frame[]): Frame[] {
-    return frames.filter((frame, index) => frames.indexOf(frame) === index);
   }
 }
