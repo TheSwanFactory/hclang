@@ -29,12 +29,18 @@ declared `.set_ {…}` and called `counter_.set_ 2`. The colon is only the if-el
 operator, at every position.
 
 a05b's objection is answered rather than dismissed. Mutating-ness is still
-represented at declaration time, but the representation moves out of the
-runtime: `effect-marker.ts` grades a key once and yields a `MethodEffect`, and
-`BoundMethod` receives that declared fact instead of testing a key's spelling
-when the effect is applied. `FrameHandle` mutability comes from the same rule
+represented, but the representation moves out of the effect engine:
+`effect-marker.ts` is the one place that reads the marker, yielding a
+`MethodEffect`, and `BoundMethod` receives that graded fact rather than a key
+string it tests itself. `FrameHandle` mutability comes from the same rule
 through `touchesIdentity`. The two divergent runtime string tests are gone; one
 named rule replaces them.
+
+Grading happens where a method is bound to its receiver — `FrameHandle.lookup`
+and `FrameSymbol.in` — which is once per method access, not once per
+declaration. Storing the effect beside the binding at declaration time would
+take the test off the access path; that is a change to how a declaration is
+recorded, and it is not made here.
 
 ## Why the underscore wins
 
@@ -77,19 +83,59 @@ Breaking, with the corpus and documentation migrated in the same change:
 `class-support.hc`, `white-paper.hc`, `GRAMMAR.md`, `LANGUAGE.md`, the
 `lib/execute` and `lib/frames` tests, `lib/frames/CLAUDE.md`, the older papers
 in `doc/onward2017`, `doc/shannon`, and `doc/wisdom`, and the VS Code grammar.
-No compatibility alias is retained: old input follows the ordinary boundary
-between an identifier and the `:` operator, so `.set: {…}` declares `set`,
-applies if-else to the result, and does not silently produce a mutating method.
+
+No compatibility alias is retained, and old input fails where it is used rather
+than where it is written. `.set: {…}` declares nothing: the aggregate's metadata
+holds only the fields declared without a marker, and the statement itself
+applies if-else to a name the aggregate never binds, evaluating to `()`. So the
+symptom a migrator greps for is `$!.name-missing` at every call site —
+`.owner [.value 1; .set: {@value _;}]; owner.set` reports
+`$!.name-missing “$:FrameHandle.134.set”` — and not a method that mutates when
+it should not.
+
+### The second break: a block-valued field already spelled with the marker
+
+Unifying the marker widens what the marker claims, so a field whose spelling did
+not change can still change meaning. Any `.name_ {…}` that existed before this
+change is now a mutating method, with two consequences at once.
+
+A mutating method returns its receiver rather than its body's value:
+
+```hc
+; .o [.f_ {41 + 1}; .g {f_()}];
+; o.g()
+# before: 42; now: the receiver aggregate
+```
+
+And the field gains receiver-write authority, which turns a diagnosed error into
+a silent no-op:
+
+```hc
+; .o [.n 1; .f_ {@n 5;}; .g {f_(); n}];
+; o.g()
+# before: $!.method-not-mutating @n; now: 1, the write dropped with the copy
+```
+
+That second case is the sharper edge, because a rename-only migration guide
+gives no reason to look for it: code HC used to refuse now runs and discards the
+write against an immutable receiver's instance copy. The CHANGELOG names it as
+its own breaking entry for that reason. Renaming any block-valued field that is
+not meant to mutate its receiver is the migration.
 
 The VS Code grammar loses the ability to tell a mutating method from a mutable
 name by spelling, because they are now the same spelling. It scopes a
-declaration (`method_` followed by `{`) as a function and a call site as a
-mutable name, which is what the language now says.
+declaration (`method_` followed by `{`, dotted or not) as a function and every
+other trailing-underscore name as a mutable name, which is what the language now
+says. The declaration patterns admit the leading dot and precede the dotted-name
+rule, because TextMate resolves overlapping patterns by earliest start index
+first and list order only second; a rule that began at the name would always
+lose to one that began at the dot.
 
-`web/static/hc-paper.html` is a pre-v0.8 Madoko rendering that still describes
-the colon. It is already stale against the live white paper in other ways, and
-no generator for it lives in this repository, so regenerating it is out of
-scope.
+`web/static/hc-paper.html` was a pre-v0.8 Madoko rendering that still taught the
+trailing colon. Nothing in `web/` references it, the build never copies
+`web/static/` into `dist/`, and no generator for it lives in this repository, so
+it is deleted rather than carried as a shipped-looking file contradicting the
+language.
 
 ## Verification
 

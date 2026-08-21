@@ -94,6 +94,14 @@ describe("Lex", () => {
     expect(lexAtoms("mutator:x ").map(String)).toEqual(["mutator", ":", "x"]);
     expect(lexAtoms("@mutator:x ").map(String)).toEqual(["@mutator", ":", "x"]);
   });
+  it("ends an identifier before a colon run, which lexes as one symbol", () => {
+    // The old mutating-colon rule had to decide how many colons joined a name.
+    // Now the name simply stops, and a run of operator characters is one symbol
+    // that no operator table binds.
+    expect(lexAtoms(".mutator:: ").map(String)).toEqual([".mutator", "::"]);
+    expect(lexAtoms("mutator:: ").map(String)).toEqual(["mutator", "::"]);
+    expect(lexAtoms(":: ").map(String)).toEqual(["::"]);
+  });
 
   it("keeps a standalone colon as an operator", () => {
     expect(lexAtoms(": ").map(String)).toEqual([":"]);

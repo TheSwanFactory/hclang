@@ -18,9 +18,17 @@
 /** The suffix by which a key claims authority over its target's identity. */
 export const EFFECT_MARKER = "_";
 
-/** Whether this key's spelling claims authority over its target's identity. */
+/**
+ * Whether this key's spelling claims authority over its target's identity.
+ *
+ * A marker needs something to mark. A key whose every character is the marker
+ * names no target: `_` and the longer runs `FrameArg` spells that way are the
+ * argument and its enclosing scopes, not a mutable binding, and grading them as
+ * marked would leave a diagnostic with an empty subject.
+ */
 export const touchesIdentity = (key: string): boolean =>
-  key.endsWith(EFFECT_MARKER);
+  key.endsWith(EFFECT_MARKER) &&
+  !/^_+$/.test(key);
 
 /** What a declared key says about the method bound to it. */
 export interface MethodEffect {

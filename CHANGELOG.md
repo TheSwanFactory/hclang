@@ -10,13 +10,25 @@
   underscore instead of a trailing colon: `.set_ {@value _;}` called as
   `counter_.set_ 2`. One marker now spells the whole effect axis, matching the
   mutable name it acts on. Rename every `method:` declaration and call site to
-  `method_`; the old spelling silently declares a non-mutating `method` and
-  applies if-else to its result (#328).
+  `method_`. Unmigrated code fails at its call sites rather than misbehaving:
+  `.set: {…}` declares nothing, because the statement applies if-else to a name
+  the aggregate never binds, so `owner.set` reports `$!.name-missing` (#328).
+- **Breaking:** A trailing underscore on a block-valued field now declares a
+  mutating method, so a field that already carried one changes meaning even
+  though its spelling did not. `.o [.f_ {41 + 1}; .g {f_()}]; o.g()` returned
+  `42` and now returns the receiver, because a mutating method returns the frame
+  it ran against. Such a field also gains receiver-write authority: a `@name`
+  write that previously reported `$!.method-not-mutating` now lands on a
+  discarded instance copy and is dropped without a diagnostic. Rename any
+  block-valued field that is not meant to mutate its receiver (#328).
 - **Breaking:** `:` is only the if-else operator, so a name ends at a colon with
   or without a space before it. `.mutator:x` used to lex as `.mutator:` followed
   by `x`, and now lexes as `.mutator`, `:`, `x` (#328).
 - A mutating method reached through an immutable handle is still a functional
   update against an instance copy; only its spelling changed.
+- `deno task bump --minor` reaches the bump script, and the script no longer
+  assumes `deno` is on `PATH`, so a pinned or absolute-path toolchain cannot
+  leave the tree bumped, uncommitted, and holding a stale lockfile.
 
 ## v0.10.5 2026-08-20
 

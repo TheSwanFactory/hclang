@@ -202,15 +202,21 @@ mutating marker out of an operator character, and `:` denotes if-else alone.
 
 `effect-marker.ts` is the only place that reads the marker. `FrameSymbol.in`
 asks `touchesIdentity` for handle mutability, and every `BoundMethod` is built
-from a `MethodEffect` produced by `methodEffect`, so the effect engine receives
-a declared fact instead of re-reading a key's spelling. `MethodEffect.name` is
-the key without its marker, which is how a diagnostic names its subject.
+from a `MethodEffect` produced by `methodEffect` where the method meets its
+receiver, so the effect engine receives a graded fact instead of testing a key's
+spelling itself. `MethodEffect.name` is the key without its marker, which is how
+a diagnostic names its subject. A marker alone is not a marked key: `_` and the
+longer underscore runs `FrameArg` uses are keys of length one and up whose whole
+text is the marker, and they grade as non-mutating so that a diagnostic never
+loses its subject.
 
 Nothing distinguishes a mutable field from a mutating method at the spelling
 level; the value's own type does. A `FrameArray` found under such a key becomes
-a handle, and a `FrameLazy` becomes a bound method. Leading underscores are a
-separate axis, graded by `resolve_here` for visibility, so `.__secret_` is a
-private mutable binding.
+a handle, and a `FrameLazy` becomes a bound method. That is also why the marker
+is not purely additive: a block-valued field spelled with a trailing underscore
+before v0.11.0 is a mutating method now. Leading underscores are a separate
+axis, graded by `resolve_here` for visibility, so `.__secret_` is a private
+mutable binding.
 
 ### Handles
 

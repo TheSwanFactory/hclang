@@ -77,7 +77,11 @@ const main = async (): Promise<void> => {
   );
   console.log(`Bumped version to ${version}`);
 
-  await run("deno", "install");
+  // Every manifest and the version module are already rewritten by this point,
+  // so a failure here leaves the tree bumped, uncommitted, and holding a stale
+  // lockfile. `Deno.execPath()` is the interpreter already running this script,
+  // which an absolute-path install or a pinned CI toolchain need not put on PATH.
+  await run(Deno.execPath(), "install");
   await run("git", "add", "deno.lock", VERSION_MODULE, ...VERSIONED_MANIFESTS);
   await run("git", "commit", "-m", `Bump version to ${version}`);
 };

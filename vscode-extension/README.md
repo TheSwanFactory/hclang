@@ -19,7 +19,7 @@ for code and data.
     - Names (setters): `.property`
     - Controls: `@control`
     - References: `$reference`
-  - Effect typing: `CONST`, `variable`, `mutable_`, `method:`
+  - Effect typing: `CONST`, `variable`, `mutable_`, `method_`
   - Access modifiers: `public`, `_protected`, `__private`
   - Operators: `+`, `-`, `*`, `/`, `=`, `<`, `>`, `~`, `!`, `?`, `:`, `|`, `&`
   - Frame delimiters: `{}` (lazy), `[]` (array), `()` (expr)
