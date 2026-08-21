@@ -521,8 +521,10 @@ of the argument directly, rather than explicitly calling `_`.
 ; mag (.x 1; .y 2;)
 # 5
 ```
-You can skip over the argument to access the enclosing scope (one level above)
-using the `_^` identifier (also known as `super`).
+You can reach past the argument to the enclosing lexical scope (one level above)
+using the `_^` identifier. It is not a `super` reference: it names the scope the
+closure was written in, not a declared parent, and each caret is one more
+lexical scope out regardless of how the closure was called.
 ```
 ; .print-arg { var };
 ; .print-parent { _^.var };

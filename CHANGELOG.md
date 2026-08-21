@@ -6,10 +6,12 @@
 
 ## v0.10.5 2026-08-20
 
-- `_^` now always means one enclosing lexical scope per caret, independent of
-  how the closure was invoked; the iterator parameter (index, key, or
-  accumulator) is read only through the bare name `.`, as in
-  `[1, 2, 3] & { . + _ }` (#340).
+- **Breaking:** `_^` no longer reads the call's parameter. It now always means
+  one enclosing lexical scope per caret, independent of how the closure was
+  invoked, which also makes the enclosing scope reachable from an iterator block
+  for the first time. Code using `_^` to read an iterator's index, key, or
+  accumulator must use the bare name `.` instead, as in `[1, 2, 3] & { . + _ }`
+  (#340).
 
 ## v0.10.4 2026-08-20
 

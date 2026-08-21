@@ -965,6 +965,16 @@ describe("evaluate", () => {
         expect(result.meta.var.toString()).toEqual("“parent”");
       });
 
+      it("never reads the argument through _^, even when called with one", () => {
+        // The expression a stale format.hc fixture expected to yield 9. A
+        // plain call supplies no parameter, and `_^` would not read one
+        // anyway: it reaches past the argument to the lexical scope, which
+        // here declares no `value`.
+        const result = evaluate("{_^.value} (.value 9;)");
+
+        expect(result.at(0).toString()).toContain("$!.name-missing");
+      });
+
       it("reaches the enclosing scope through _^ inside an iterator block", () => {
         const result = evaluate(".k 7; [10] | { _^.k }");
 

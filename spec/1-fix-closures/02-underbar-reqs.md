@@ -9,6 +9,15 @@ is suitable for writing comprehensive tests.
 **Status**: Requirements Definition **Date**: 2025-12-13 **Component**:
 `lib/frames/frame-arg.ts` and closure evaluation
 
+> **Superseded in part by
+> [a06-outward-reference-resolution.md](../a06-outward-reference-resolution.md)
+> (#340).** This document describes `_^` as a _parameter_ accessor, which was
+> one of two conflated readings. `_^` now means one enclosing lexical scope per
+> caret and never reads the call's parameter; the parameter role — an iterator's
+> index, key, or accumulator — is read only through the bare name `.`. Every
+> `_^`-as-parameter requirement below is superseded; the `_` and `__`
+> requirements still stand.
+
 ## Background
 
 In HC, `_` is the **anonymous argument** - a special identifier that represents
@@ -501,7 +510,7 @@ hierarchy **above** the closure but **below** the defining scope.
 
 **Scope Chain**:
 
-```
+```text
 Global Scope
   ↓
 Defining Scope (where closure created)

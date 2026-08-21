@@ -101,9 +101,12 @@ expressed through:
 - **Anonymous argument**: `_` (single underscore; `__` reaches the enclosing
   call's argument, and so on per underscore)
 - **Parent declaration**: `.^` (declares the parent; `.^ base`)
-- **Enclosing scope**: `_^` (skips the argument; `_^.var`). Each caret is
-  exactly one enclosing lexical scope: `_^^` is two scopes out. The count
-  depends only on where the closure was written, never on how it was invoked.
+- **Enclosing scope**: `_^` (`_^.var`). Each caret is exactly one enclosing
+  lexical scope: `_^^` is two scopes out. The count depends only on where the
+  closure was written, never on how it was invoked. `_`/`__` and `_^`/`_^^` are
+  two unrelated ladders — one walks argument scopes, the other lexical scopes —
+  so `_^` is not "`_` plus one" and never skips a level to compensate for how it
+  was called.
 - **Iterator parameter**: `.` (dot by itself). Inside a block called by `|`,
   `&&`, or `&`, the bare name denotes what the iterator supplies alongside the
   value: the element index, the property key, or the running accumulator, as in
@@ -242,8 +245,8 @@ parent_.helper: 10
 ### Context References
 
 - **Argument context**: `_` (applied context)
-- **Enclosing context**: `_^` (defined context, skipping the argument; one
-  lexical scope per caret, regardless of how the closure was invoked)
+- **Enclosing context**: `_^` (defined context; one lexical scope per caret,
+  regardless of how the closure was invoked)
 - **Declared parent**: `.^ base` (inheritance, read by plain name)
 - **Iterator parameter**: `.` (the index, key, or accumulator supplied by `|`,
   `&&`, or `&` alongside the value)

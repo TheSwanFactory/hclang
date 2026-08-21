@@ -65,7 +65,17 @@ exactly.
 - Pinned in `evaluate.test.ts` (lexical reach from an iterator block; all three
   `.` readings) and `cli/hc/white-paper-core.hc` (executed corpus).
 - `doc/GRAMMAR.md` documents the iterator parameter spelling and the
-  invocation-independent caret count.
+  invocation-independent caret count. Its "skips the argument" gloss on `_^` is
+  dropped in both places: it was accurate under the old positional model, where
+  `_^` was literally slot 1, but with `_`/`__` walking argument scopes and
+  `_^`/`_^^` walking lexical scopes as two unrelated ladders it invites exactly
+  the phantom-level counting this change removes.
+- `cli/hc/white-paper.hc` no longer calls `_^` a `super` reference. It names the
+  scope the closure was written in, not a declared parent, which is read by
+  plain name.
+- `spec/1-fix-closures/02-underbar-reqs.md` carries a superseded-by pointer
+  here: its REQ-9 defines `_^` as the parameter accessor, which is the reading
+  this document deletes.
 
 ## Noted, not resolved here
 
@@ -74,7 +84,27 @@ GRAMMAR.md listed bare `.` as "This (current object)". There is no working
 setter against the write target, and a method reads its own properties by plain
 name. The grammar now documents `.` as the iterator parameter; if a "this"
 reader is ever wanted, it needs its own decision rather than another shared
-spelling.
+spelling. `cli/hc/white-paper.hc` still lists a `Self` identifier variety
+spelled `.`, which is the same unresolved question in prose.
+
+**The parameter has no ladder, and failing to find it is silent.** `_` has `__`,
+`_^` has `_^^`, but `.` has nothing: a closure nested inside an iterator block
+cannot reach the parameter at all. Worse, the miss is not reported.
+`FrameName.in` falls through to `this.data.setter(scope.writeTarget)` when no
+parameter was supplied, so an empty-name _read_ silently becomes an empty-name
+setter: `{ . } ()` yields nothing and `{ . + 1 } (5)` swallows the `+ 1`. This
+asymmetry predates this document — `_^` reports `$!.name-missing` for an absent
+level, and now always did — but making `.` the sole reader of the parameter role
+makes it the only outward spelling whose failure mode is silence. Both halves,
+the missing ladder and the missing diagnostic, are #345. The fix is not a
+one-liner: the empty-name setter is reachable (`. 5` evaluates to `. 5`), so
+turning an unsatisfied empty-name read into an error is a decision about what
+bare `.` means, of the same kind this document settled for `_^`.
+
+Two published documents still describe the superseded reading and are
+deliberately untouched: `doc/onward2017/hc-paper-enp.mdk` is the Onward! 2017
+paper, a historical artifact that also predates the `._^` removal in v0.10.2,
+and no test runs it.
 
 `cli/hc/format.hc` contains a stale `_^` line, `; {_^.value} (.value 9;)`
 expecting `9`, and it is deliberately left alone. That expectation fails
