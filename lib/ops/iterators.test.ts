@@ -94,9 +94,9 @@ describe("iterators", () => {
       expect(result_string).toContain("Prefix: A Title");
     });
 
-    it("calls block with key as second parameter", () => {
+    it("calls block with key readable through the bare name `.`", () => {
       const expr = new frame.FrameExpr([
-        frame.FrameParam.there(),
+        new frame.FrameName(""),
         new frame.FrameString(": "),
         frame.FrameArg.here(),
       ]);
@@ -119,7 +119,7 @@ describe("iterators", () => {
     it("is called as a name with a lazy block", () => {
       const TestBlock = new frame.FrameLazy([
         new frame.FrameString(" [ key: "),
-        frame.FrameParam.there(),
+        new frame.FrameName(""),
         new frame.FrameString("| value: "),
         frame.FrameArg.here(),
         new frame.FrameString(" ] "),

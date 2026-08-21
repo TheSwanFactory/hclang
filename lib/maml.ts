@@ -4,7 +4,6 @@ import {
   FrameExpr,
   FrameLazy,
   FrameName,
-  FrameParam,
   FrameString,
   FrameSymbol,
 } from "./frames.ts";
@@ -20,9 +19,11 @@ const MakeTag = (name: string, contents: Frame) => {
   ]);
 };
 
+// The empty name is the bare `.` spelling: the property key the `&&` iterator
+// hands the block alongside the value.
 const HeadBlock = new FrameLazy([
   new FrameSymbol("tag"),
-  FrameParam.there(),
+  new FrameName(""),
   FrameArg.here(),
 ], { tag });
 
