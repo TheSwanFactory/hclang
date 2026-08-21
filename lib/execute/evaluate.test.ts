@@ -965,6 +965,30 @@ describe("evaluate", () => {
         expect(result.meta.var.toString()).toEqual("“parent”");
       });
 
+      it("reaches the enclosing scope through _^ inside an iterator block", () => {
+        const result = evaluate(".k 7; [10] | { _^.k }");
+
+        expect(result.at(0).asArray().at(-1)?.toString()).toEqual("[7]");
+      });
+
+      it("reads the iterator index through the bare name `.`", () => {
+        const result = evaluate("[10, 20, 30] | { . }");
+
+        expect(result.at(0).toString()).toEqual("[0, 1, 2]");
+      });
+
+      it("reads the iterator key through the bare name `.`", () => {
+        const result = evaluate("(.a 1; .b 2;) && { . }");
+
+        expect(result.at(0).toString()).toEqual("[“a”, “b”]");
+      });
+
+      it("reads the reduce accumulator through the bare name `.`", () => {
+        const result = evaluate("[1, 2, 3] & { . + _ }");
+
+        expect(result.at(0).toString()).toEqual("6");
+      });
+
       it("reads the live enclosing scope through an empty argument", () => {
         const result = evaluate(
           ".x 42; .y 3; .mag {(x * x) + (y * y)}; " +

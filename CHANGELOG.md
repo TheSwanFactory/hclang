@@ -4,6 +4,13 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.10.5 2026-08-20
+
+- `_^` now always means one enclosing lexical scope per caret, independent of
+  how the closure was invoked; the iterator parameter (index, key, or
+  accumulator) is read only through the bare name `.`, as in
+  `[1, 2, 3] & { . + _ }` (#340).
+
 ## v0.10.4 2026-08-20
 
 - Return direct errors and aggregates with immediate error elements from

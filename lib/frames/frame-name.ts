@@ -74,7 +74,10 @@ export class FrameName extends FrameAtom implements ISourced {
   /** Resolves declarations through the scope's explicit write-target role. */
   public override in(input: EvaluationInput = []): Frame {
     const scope = EvaluationScope.from(input);
-    // The empty name denotes the current iterator accumulator when supplied.
+    // The empty name (bare `.`) denotes the call's explicit parameter when
+    // one was supplied: the key, index, or accumulator an iterator hands its
+    // block alongside the value. This is the only spelling for that role;
+    // `_^` always means one enclosing lexical scope.
     if (this.source === "" && scope.parameter) {
       return scope.parameter;
     }

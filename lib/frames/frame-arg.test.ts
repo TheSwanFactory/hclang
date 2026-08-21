@@ -90,8 +90,23 @@ describe("FrameArg", () => {
       expect(frame_param.toString()).toEqual("_^");
     });
 
-    it("evaluates to the parameter", () => {
-      expect(frame_param.in([context, param])).toEqual(param);
+    it("never reads the parameter, which belongs to the bare name `.`", () => {
+      // A flat context list carries no enclosing lexical scope, so one caret
+      // resolves to nothing rather than falling back to the parameter slot.
+      expect(frame_param.in([context, param]).toString())
+        .toContain("$!.name-missing");
+    });
+
+    it("evaluates to the enclosing lexical scope over a supplied parameter", () => {
+      const outer = EvaluationScope.call(new FrameString("outer"));
+      const inner = EvaluationScope.call(
+        new FrameString("inner"),
+        param,
+        undefined,
+        outer,
+      );
+
+      expect(frame_param.in(inner)).toEqual(outer.lexicalTarget);
     });
 
     it("reports a missing scope for a level the flat adapter cannot express", () => {
