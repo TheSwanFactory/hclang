@@ -97,9 +97,12 @@ asymmetry predates this document — `_^` reports `$!.name-missing` for an absen
 level, and now always did — but making `.` the sole reader of the parameter role
 makes it the only outward spelling whose failure mode is silence. Both halves,
 the missing ladder and the missing diagnostic, are #345. The fix is not a
-one-liner: the empty-name setter is reachable (`. 5` evaluates to `. 5`), so
-turning an unsatisfied empty-name read into an error is a decision about what
-bare `.` means, of the same kind this document settled for `_^`.
+one-liner: the empty-name setter is reachable, so turning an unsatisfied
+empty-name read into an error is a decision about what bare `.` means, of the
+same kind this document settled for `_^`. `{ . 5 } ()` evaluates to `. 5`, and
+the sharper case is `[10] | { . 5 }`, which yields `[0]` — the parameter reading
+wins and the `5` vanishes. At top level what such an expression prints depends
+on the root output frame, so the closure form above is the stable statement.
 
 Two published documents still describe the superseded reading and are
 deliberately untouched: `doc/onward2017/hc-paper-enp.mdk` is the Onward! 2017
