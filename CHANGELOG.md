@@ -6,8 +6,9 @@
 
 ## v0.10.4 2026-08-20
 
-- Surface errors returned as immediate elements of iterator aggregates from
-  mutating methods, and stop sequenced bodies at the same failed result (#338).
+- Return direct errors and aggregates with immediate error elements from
+  mutating methods, and stop sequenced bodies at the same shallow boundary while
+  preserving nested errors as data (#338).
 
 ## v0.10.3 2026-08-20
 

@@ -1623,6 +1623,28 @@ describe("evaluate", () => {
       expect(sequenced.meta.owner_.get_here("value").toString()).toEqual("1");
     });
 
+    it("covers #334's aggregate-error reproducer", () => {
+      const result = evaluate(
+        ".b_ [.n <1,2,3> 2; .run: {[1] | {@n 4}}]; [b_.run: 0]",
+      );
+
+      expect(result.at(0).toString()).toContain(
+        "$!.type-error .n <1, 2, 3> 4",
+      );
+      expect(result.meta.b_.get_here("n").toString()).toEqual("2");
+    });
+
+    it("keeps nested error-valued aggregates as sequence data", () => {
+      const result = evaluate(
+        ".owner_ [.value <1,3> 1; " +
+          ".change: {[[1] | {@value 2}]; @value 3}]; owner_.change: 0",
+      );
+
+      // The first result is [[type-error]], so the shallow rule continues to
+      // the later statement instead of promoting nested error-valued data.
+      expect(result.meta.owner_.get_here("value").toString()).toEqual("3");
+    });
+
     it("updates an immutable receiver functionally, at any depth", () => {
       const result = evaluate(
         ".pair [.inner_ [.n 1; .set-n: {@n _;}]; .bump: {inner_.set-n: _}]; " +
