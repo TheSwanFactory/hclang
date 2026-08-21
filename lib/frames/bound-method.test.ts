@@ -13,6 +13,7 @@ import {
   BoundMethod,
   type ReceiverState,
 } from "./bound-method.ts";
+import { methodEffect } from "./effect-marker.ts";
 
 class CapturingLazy extends FrameLazy {
   public seen?: ReceiverState;
@@ -63,7 +64,12 @@ describe("BoundMethod", () => {
     const receiver = new FrameArray([]);
     const method = new CapturingLazy();
 
-    const result = new BoundMethod(method, receiver, true, "write:").call(
+    const result = new BoundMethod(
+      method,
+      receiver,
+      true,
+      methodEffect("write_"),
+    ).call(
       Frame.nil,
     );
 
@@ -80,7 +86,7 @@ describe("BoundMethod", () => {
       new ReturningLazy(failed),
       receiver,
       true,
-      "write:",
+      methodEffect("write_"),
     ).call(Frame.nil);
 
     expect(result).toBe(failed);
@@ -89,7 +95,12 @@ describe("BoundMethod", () => {
   it("withholds write authority from a non-mutating method", () => {
     const receiver = new FrameArray([], { value: original });
 
-    const result = new BoundMethod(writer(), receiver, true, "write").call(
+    const result = new BoundMethod(
+      writer(),
+      receiver,
+      true,
+      methodEffect("write"),
+    ).call(
       Frame.nil,
     );
 
@@ -100,7 +111,12 @@ describe("BoundMethod", () => {
   it("mutates a mutable receiver in place", () => {
     const receiver = new FrameArray([], { value: original });
 
-    const result = new BoundMethod(writer(), receiver, true, "write:").call(
+    const result = new BoundMethod(
+      writer(),
+      receiver,
+      true,
+      methodEffect("write_"),
+    ).call(
       Frame.nil,
     );
 
@@ -111,7 +127,12 @@ describe("BoundMethod", () => {
   it("updates an immutable receiver through an isolated copy", () => {
     const receiver = new FrameArray([], { value: original });
 
-    const result = new BoundMethod(writer(), receiver, false, "write:").call(
+    const result = new BoundMethod(
+      writer(),
+      receiver,
+      false,
+      methodEffect("write_"),
+    ).call(
       Frame.nil,
     );
 
@@ -129,7 +150,7 @@ describe("BoundMethod", () => {
       method,
       receiver,
       true,
-      "write:",
+      methodEffect("write_"),
       copiedGraph,
     ).call(Frame.nil);
 
@@ -146,7 +167,7 @@ describe("BoundMethod", () => {
       writer(),
       receiver,
       true,
-      "write:",
+      methodEffect("write_"),
       copiedGraph,
     ).call(Frame.nil);
 

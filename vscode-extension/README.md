@@ -83,7 +83,7 @@ square 5  # Returns 25
 CONSTANT        # Immutable constant (uppercase)
 variable        # Immutable variable
 mutable_        # Mutable variable (trailing _)
-method:         # Mutating method (trailing :)
+method_         # Mutating method (the same trailing _)
 
 # Access modifiers
 public          # Public (default)

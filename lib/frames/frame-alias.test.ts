@@ -11,6 +11,7 @@ import {
   FrameSymbol,
 } from "../frames.ts";
 import { BoundMethod } from "./bound-method.ts";
+import { methodEffect } from "./effect-marker.ts";
 
 describe("FrameAlias", () => {
   const key = "atom";
@@ -85,7 +86,12 @@ describe("FrameAlias", () => {
     receiver.up = lexical;
     const method = new FrameLazy([frame_alias, value_2]);
 
-    const result = new BoundMethod(method, receiver, true, "write").call(
+    const result = new BoundMethod(
+      method,
+      receiver,
+      true,
+      methodEffect("write"),
+    ).call(
       Frame.nil,
     );
 
@@ -101,7 +107,9 @@ describe("FrameAlias", () => {
     const argument = new Frame({ atom: new FrameString("argument") });
     const method = new FrameLazy([frame_alias, value_2]);
 
-    new BoundMethod(method, receiver, true, "write").call(argument);
+    new BoundMethod(method, receiver, true, methodEffect("write")).call(
+      argument,
+    );
 
     expect(lexical.get_here("atom")).toBe(value_2);
     expect(argument.get_here("atom").toString()).toEqual("“argument”");
@@ -112,7 +120,12 @@ describe("FrameAlias", () => {
     const argument = new Frame({ atom: value_1 });
     const method = new FrameLazy([frame_alias, value_2]);
 
-    const result = new BoundMethod(method, receiver, true, "write").call(
+    const result = new BoundMethod(
+      method,
+      receiver,
+      true,
+      methodEffect("write"),
+    ).call(
       argument,
     );
 

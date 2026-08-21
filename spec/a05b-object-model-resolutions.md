@@ -4,10 +4,11 @@
 document required, with the suite green only at the end; the peer-method and
 nested-aggregate refusals are pinned in `cli/hc/class-support.hc`. The `.^`
 respelling needs no lexer rule, so its one condition holds, and no compatibility
-recognizer or evaluator branch remains for the old spelling. Two amendments
-remain open: the evaluation-scope and shared-body cleanup
-([#327](https://github.com/TheSwanFactory/hclang/issues/327)), and the deferred
-mutating-marker unification
+recognizer or evaluator branch remains for the old spelling. One amendment
+remains open, the evaluation-scope and shared-body cleanup
+([#327](https://github.com/TheSwanFactory/hclang/issues/327)); the
+mutating-marker unification deferred below landed in v0.11.0 as the respelling
+alone, per [a05c](a05c-unified-effect-marker.md)
 ([#328](https://github.com/TheSwanFactory/hclang/issues/328))\
 **Responds to:**
 [a05a-object-model-corrections.md](a05a-object-model-corrections.md)\

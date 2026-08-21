@@ -7,6 +7,7 @@ import { FrameSchema } from "./frame-schema.ts";
 import { FrameType } from "./frame-type.ts";
 import { FrameLazy } from "./frame-lazy.ts";
 import { BoundMethod } from "./bound-method.ts";
+import { methodEffect, touchesIdentity } from "./effect-marker.ts";
 import { FrameCurry } from "../ops/frame-curry.ts";
 import { isFrameMatcher } from "./frame-match.ts";
 import { type Context, NilContext } from "./context.ts";
@@ -49,11 +50,8 @@ export class FrameSymbol extends FrameAtom {
   public static readonly SYNTAX: AtomSyntax = {
     NAME: "FrameSymbol",
     SIGIL_STARTS: FrameSymbol.SIGIL_STARTS,
-    recognize: (symbol: Frame, source = ""): ScanResult => {
-      const char = symbol.toString();
-      return FrameSymbol.scanMutatingSuffix(source, char) ??
-        includeOrEnd(FrameSymbol.SYMBOL_CHAR.test(char));
-    },
+    recognize: (symbol: Frame): ScanResult =>
+      includeOrEnd(FrameSymbol.SYMBOL_CHAR.test(symbol.toString())),
     finish: completeAtEnd,
     fromSource: (source: string): Frame => new FrameSymbol(source),
   };
@@ -65,22 +63,6 @@ export class FrameSymbol extends FrameAtom {
 
   public static end(): FrameSymbol {
     return FrameSymbol.for(Frame.kEND);
-  }
-
-  /** Handles the single trailing colon shared by mutating identifiers. */
-  public static scanMutatingSuffix(
-    source: string,
-    char: string,
-  ): ScanResult | undefined {
-    if (source.length === 0 || FrameSymbol.OPERATOR_CHARS.test(source[0])) {
-      return undefined;
-    }
-    if (source.endsWith(":")) {
-      return { disposition: ScanDisposition.CompleteRedispatch };
-    }
-    if (char === ":") {
-      return { disposition: ScanDisposition.Consume };
-    }
   }
 
   protected static symbols: { [key: string]: FrameSymbol } = {};
@@ -132,7 +114,7 @@ export class FrameSymbol extends FrameAtom {
             resolved,
             receiver,
             receiverState.mutable,
-            this.data,
+            methodEffect(this.data),
             receiverState.copyOnWrite,
           );
         }
@@ -140,7 +122,7 @@ export class FrameSymbol extends FrameAtom {
           ? context.copyOnWriteScope() ?? receiverState?.copyOnWrite
           : receiverState?.copyOnWrite;
         return resolved instanceof FrameArray
-          ? new FrameHandle(resolved, this.data.endsWith("_"), copyOnWrite)
+          ? new FrameHandle(resolved, touchesIdentity(this.data), copyOnWrite)
           : resolved;
       }
     }

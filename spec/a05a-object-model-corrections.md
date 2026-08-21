@@ -7,9 +7,11 @@ scope frame with named slots, so `FrameArg`/`FrameParam` still index
 positionally ([#327](https://github.com/TheSwanFactory/hclang/issues/327)).
 Correction 5's parent respelling landed as `.^`; effect-gated method-position
 re-parenting landed in v0.10.2
-([#330](https://github.com/TheSwanFactory/hclang/issues/330)), while its
-mutating-marker unification stays deferred per
-[a05b](a05b-object-model-resolutions.md)
+([#330](https://github.com/TheSwanFactory/hclang/issues/330)). Its
+mutating-marker unification, deferred by
+[a05b](a05b-object-model-resolutions.md), landed in v0.11.0 as the marker
+respelling alone, without the proposed "requires a mutable receiver" rule; see
+[a05c](a05c-unified-effect-marker.md)
 ([#328](https://github.com/TheSwanFactory/hclang/issues/328)).\
 **Corrects:**
 [a05-object-model-refactoring.md](a05-object-model-refactoring.md)\

@@ -88,7 +88,12 @@ expressed through:
 - **variable**: `lowercase` (does not begin with uppercase)
 - **mutable**: `mutable_` (trailing underscore)
 - **immutable**: `immutable` (default, no trailing underscore)
-- **mutating method**: `method:` (trailing colon)
+- **mutating method**: `method_` (trailing underscore)
+
+One marker spells the whole effect axis: a trailing underscore touches identity,
+whether it names a mutable handle or declares a method that may write its
+receiver. The colon is therefore only the if-else operator, and a name is
+complete at a colon with or without intervening space.
 
 ### Access Modifiers (by leading underscores)
 
@@ -230,8 +235,8 @@ first.getX()
 ### Method Calls
 
 ```grammar
-object.mutating_method: argument
-parent_.helper: 10
+object.mutating_method_ argument
+parent_.helper_ 10
 ```
 
 ## Context and Scope
@@ -341,7 +346,7 @@ parent_.helper: 10
 .my-class {
   [._property _;
    .getProperty {property}
-   .setProperty: {@property _;}]
+   .setProperty_ {@property _;}]
 }
 
 # Inheritance, declaring the parent
@@ -351,7 +356,7 @@ parent_.helper: 10
 }
 
 # Method call with mutating method
-my-instance.setProperty: 42
+my-instance.setProperty_ 42
 ```
 
 ## Notes for Syntax Highlighters

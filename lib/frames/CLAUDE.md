@@ -192,6 +192,26 @@ recursing through public `get`: `lookup_here` supplies computed local values,
 handle target. Keeping traversal and cycle state in `MetaFrame.get` prevents a
 specialization from accidentally resetting the guard.
 
+### Effect Marker
+
+One spelling rule covers the whole effect axis: a trailing underscore on a key
+means the key touches identity. `counter_` names a mutable handle on its value,
+and `.set_ {…}` declares a method that may write the receiver it runs against.
+Because the two halves share a marker, the lexer needs no rule to carve a
+mutating marker out of an operator character, and `:` denotes if-else alone.
+
+`effect-marker.ts` is the only place that reads the marker. `FrameSymbol.in`
+asks `touchesIdentity` for handle mutability, and every `BoundMethod` is built
+from a `MethodEffect` produced by `methodEffect`, so the effect engine receives
+a declared fact instead of re-reading a key's spelling. `MethodEffect.name` is
+the key without its marker, which is how a diagnostic names its subject.
+
+Nothing distinguishes a mutable field from a mutating method at the spelling
+level; the value's own type does. A `FrameArray` found under such a key becomes
+a handle, and a `FrameLazy` becomes a bound method. Leading underscores are a
+separate axis, graded by `resolve_here` for visibility, so `.__secret_` is a
+private mutable binding.
+
 ### Handles
 
 A handle is a name's effect-qualified reference to a value, and nothing more.
@@ -246,7 +266,7 @@ of them:
   neither owns identity a write can land on. A declared parent is preserved in
   its own field and the id is always fresh.
 
-Copy-on-write therefore means functional update: `p.set: 2` leaves `p` alone and
+Copy-on-write therefore means functional update: `p.set_ 2` leaves `p` alone and
 evaluates to the new value. Bodies are never copied — a bound method passes its
 receiver as an explicit argument rather than rewriting a copied closure.
 

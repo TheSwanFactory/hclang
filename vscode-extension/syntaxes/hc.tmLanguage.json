@@ -336,18 +336,18 @@
         },
         {
           "name": "entity.name.function.mutating.private.hclang",
-          "match": "\\b__[a-z][\\w-]*:(?!:)",
-          "comment": "Private mutating method: __method:"
+          "match": "\\b__[a-z][\\w-]*_(?=\\s*\\{)",
+          "comment": "Private mutating method declaration: __method_ {…}"
         },
         {
           "name": "entity.name.function.mutating.protected.hclang",
-          "match": "\\b_[a-z][\\w-]*:(?!:)",
-          "comment": "Protected mutating method: _method:"
+          "match": "\\b_[a-z][\\w-]*_(?=\\s*\\{)",
+          "comment": "Protected mutating method declaration: _method_ {…}"
         },
         {
           "name": "entity.name.function.mutating.hclang",
-          "match": "\\b[a-z][\\w-]*:(?!:)",
-          "comment": "Public mutating method: method:"
+          "match": "\\b[a-z][\\w-]*_(?=\\s*\\{)",
+          "comment": "Public mutating method declaration: method_ {…}. A trailing underscore is the one effect marker, so a call site is scoped as a mutable name instead"
         },
         {
           "name": "variable.other.mutable.private.hclang",

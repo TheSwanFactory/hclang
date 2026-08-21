@@ -89,7 +89,7 @@ Leading to a change in Energy:
 
 
   ```
-  .Ent.update_energy: ^ (.Warm <Bit>) {  .Ent.Energy += delta(Warm) }
+  .Ent.update_energy_ ^ (.Warm <Bit>) {  .Ent.Energy += delta(Warm) }
 
   ```
 
@@ -118,16 +118,16 @@ Otherwise it is better to be Bored.
 To take advantage of this, our Ent needs to observe whether the world is Warm, and activate accordingly:
 
   ```
-  .Ent.update_active: ^ (.Warm <Bit>) {  .Ent.On (Warm ? True : False) } # or just (Warm)
+  .Ent.update_active_ ^ (.Warm <Bit>) {  .Ent.On (Warm ? True : False) } # or just (Warm)
   ```
 
 And it has to do both of these each `tick` of the clock:
 
 
   ```
-  .Ent.tick: ^ (.Warm <Bit>) {
-    update_active: Warm
-    update_active: Warm
+  .Ent.tick_ ^ (.Warm <Bit>) {
+    update_active_ Warm
+    update_active_ Warm
   }
   ```
 

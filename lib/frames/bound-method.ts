@@ -1,5 +1,6 @@
 import { Frame } from "./frame.ts";
 import type { FrameLazy } from "./frame-lazy.ts";
+import type { MethodEffect } from "./effect-marker.ts";
 
 /** Runtime brand for receiver writes authorized only by BoundMethod. */
 const RECEIVER_WRITE_AUTHORIZED = Symbol("receiverWriteAuthorized");
@@ -48,9 +49,6 @@ export const authorizedReceiverWriteTarget = (
     : undefined;
 };
 
-/** The suffix that marks a method as mutating its receiver. */
-const MUTATING_SUFFIX = ":";
-
 /**
  * A method paired with the receiver it runs against.
  *
@@ -75,7 +73,7 @@ export class BoundMethod extends Frame {
     private readonly method: FrameLazy,
     private readonly receiverTarget: Frame,
     private readonly mutable: boolean,
-    private readonly key: string,
+    private readonly effect: MethodEffect,
     private readonly copyOnWrite?: WeakSet<Frame>,
   ) {
     super();
@@ -83,7 +81,7 @@ export class BoundMethod extends Frame {
 
   /** Whether this method was declared to mutate the frame it runs against. */
   public isMutating(): boolean {
-    return this.key.endsWith(MUTATING_SUFFIX);
+    return this.effect.mutating;
   }
 
   public override call(argument: Frame, _parameter = Frame.nil): Frame {
@@ -109,8 +107,9 @@ export class BoundMethod extends Frame {
       if (
         this.copyOnWrite && !this.copyOnWrite.has(this.receiverTarget)
       ) {
-        const key = this.key.slice(0, -MUTATING_SUFFIX.length);
-        return Frame.error(`$!.copy-on-write-boundary .${key}`);
+        return Frame.error(
+          `$!.copy-on-write-boundary .${this.effect.name}`,
+        );
       }
       return receiverState(
         this.receiverTarget,

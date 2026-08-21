@@ -4,6 +4,20 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.11.0 2026-08-20
+
+- **Breaking:** A mutating method is declared and called with a trailing
+  underscore instead of a trailing colon: `.set_ {@value _;}` called as
+  `counter_.set_ 2`. One marker now spells the whole effect axis, matching the
+  mutable name it acts on. Rename every `method:` declaration and call site to
+  `method_`; the old spelling silently declares a non-mutating `method` and
+  applies if-else to its result (#328).
+- **Breaking:** `:` is only the if-else operator, so a name ends at a colon with
+  or without a space before it. `.mutator:x` used to lex as `.mutator:` followed
+  by `x`, and now lexes as `.mutator`, `:`, `x` (#328).
+- A mutating method reached through an immutable handle is still a functional
+  update against an instance copy; only its spelling changed.
+
 ## v0.10.5 2026-08-20
 
 - **Breaking:** `_^` no longer reads the call's parameter. It now always means

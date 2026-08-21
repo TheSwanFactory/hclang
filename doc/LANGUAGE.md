@@ -89,7 +89,7 @@ our identifiers:
 - `variable` # does not
 - `mutable_` # trailing underscore
 - `immutable` # default
-- `mutating_method:` # trailing colon
+- `mutating_method_` # trailing underscore, the same marker
 
 Their core insight is that mutability is a property of the _handle_, not the
 _object_. Every object starts out mutable, but as long as it is only referenced
@@ -429,7 +429,7 @@ parent or reach overridden ones.
 
     ; .parent_ [
     # # .x 1;
-    # # .helper: {
+    # # .helper_ {
     #   # .x 2;
     #   # .y x + ^.x;
     #   # .^.y y + _;
@@ -439,7 +439,7 @@ parent or reach overridden ones.
     # 1
     ; parent.y
     # @missing
-    ; parent_.helper: 10;
+    ; parent_.helper_ 10;
     ; parent_.y
     # 13
 
@@ -458,12 +458,12 @@ clutter.)
     ; my-class {
       ._property _;
       .getProperty { property }
-      .setProperty: { @property _; }
+      .setProperty_ { @property _; }
     };
     ; .my-instance my-class 3;
     ; my-instance.getProperty()
     # 3
-    ; .mutated = my-instance.setProperty: 42;
+    ; .mutated = my-instance.setProperty_ 42;
     ; mutated.getProperty()
     # 42
     ; my-instance.getProperty()
@@ -488,7 +488,7 @@ singleton objects simply by using a non-lazy constructor:
     ; my-singleton (
       ._property _;
       .getProperty { property }
-      .setProperty: { @property _; }
+      .setProperty_ { @property _; }
     );
     ;
 
