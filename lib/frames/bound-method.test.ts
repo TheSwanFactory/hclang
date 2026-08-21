@@ -31,6 +31,16 @@ class CapturingLazy extends FrameLazy {
   }
 }
 
+class ReturningLazy extends FrameLazy {
+  constructor(private readonly result: Frame) {
+    super([Frame.nil]);
+  }
+
+  public override call(): Frame {
+    return this.result;
+  }
+}
+
 describe("BoundMethod", () => {
   const original = new FrameString("original");
   const replacement = new FrameString("replacement");
@@ -60,6 +70,20 @@ describe("BoundMethod", () => {
     expect(result).toBe(receiver);
     expect(method.seen?.receiver).toBe(receiver);
     expect(authorizedReceiverWriteTarget(method.seen)).toBe(receiver);
+  });
+
+  it("returns the original failed aggregate from a mutating method", () => {
+    const receiver = new FrameArray([]);
+    const failed = new FrameArray([Frame.error("$!.failure")]);
+
+    const result = new BoundMethod(
+      new ReturningLazy(failed),
+      receiver,
+      true,
+      "write:",
+    ).call(Frame.nil);
+
+    expect(result).toBe(failed);
   });
 
   it("withholds write authority from a non-mutating method", () => {

@@ -352,6 +352,18 @@ export class Frame extends MetaFrame {
   }
 
   /**
+   * Whether this frame is a failed result at a control boundary.
+   *
+   * An aggregate of operation results fails when one immediate element is an
+   * error. This is deliberately shallow: nested error-valued arrays remain
+   * ordinary values unless they are themselves the result being controlled.
+   */
+  public isFailedResult(): boolean {
+    return this.is.error === true ||
+      this.asArray().some((result) => result.is.error === true);
+  }
+
+  /**
    * The plumbing copy: a shallow clone with an independent metadata map, flags,
    * and id, for interpreter internals that need those and nothing more. It
    * makes no object-semantic promise, so callers must not treat it as one;
