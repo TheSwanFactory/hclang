@@ -30,6 +30,39 @@ describe("stringify cycle detection", () => {
     expect(array.dataString()).toContain(array.id);
   });
 
+  it("renders the data plane of a cycle closed through a nested aggregate", () => {
+    // `dataString` filters declaration echoes by rendering each item, and only
+    // then renders the survivors. Both steps have to terminate when the cycle
+    // closes below this frame rather than at it.
+    const inner = new frame.FrameArray([]);
+    const outer = new frame.FrameArray([inner]);
+    inner.asArray().push(outer);
+
+    expect(outer.dataString()).toMatch(anId);
+    expect(inner.dataString()).toMatch(anId);
+  });
+
+  it("renders the data plane of a cycle that also passes through metadata", () => {
+    const owner = new frame.FrameArray([]);
+    const child = new frame.FrameArray([owner]);
+    owner.asArray().push(child);
+    owner.set("child", child);
+
+    expect(owner.dataString()).toMatch(anId);
+    expect(owner.toString()).toMatch(anId);
+  });
+
+  it("still excludes declaration echoes from the data plane", () => {
+    // The echo filter compares rendered forms, so cycle safety must not change
+    // which items it removes.
+    const echoed = new frame.FrameArray([]);
+    echoed.set("x", new frame.FrameNumber("1"));
+    echoed.asArray().push(new frame.FrameLiteral(".x 1"));
+    echoed.asArray().push(new frame.FrameNumber("2"));
+
+    expect(echoed.dataString()).toEqual("[2]");
+  });
+
   it("renders a mutual metadata cycle between two frames", () => {
     const left = new frame.Frame();
     const right = new frame.Frame();

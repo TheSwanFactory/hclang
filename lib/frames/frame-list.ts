@@ -66,12 +66,16 @@ export class FrameList extends Frame {
   public override dataString(): string {
     // Evaluated property declarations are retained as data-plane assignment
     // echoes as well as metadata. Exclude those echoes from data-only equality.
-    const metadataAssignments = new Set(
+    const declarationEchoes = new Set(
       this.meta_pairs().map(([key, value]) => `.${key} ${value}`),
     );
-    const data = this.data.filter((item) =>
-      !metadataAssignments.has(renderNested(item, () => item.toString()))
+    const data = this.data.filter(
+      (item) => !declarationEchoes.has(item.toString()),
     );
+    // Only the surviving items are rendered for output, so only they need the
+    // cycle guard. The membership test above needs no guard of its own: each
+    // descent within `item.toString()` is already guarded, so it terminates
+    // whether or not this frame is itself mid-render.
     return this.string_open() +
       data.map((item) => renderNested(item, () => item.dataString())).join(
         ",",
