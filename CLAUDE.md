@@ -234,8 +234,13 @@ A delimiter earns its keep only when it changes what the delimited text denotes:
 ### Version Management
 
 ```bash
-deno task bump              # Update version everywhere
+deno task bump              # Bump the patch version everywhere and commit
+deno task bump --minor      # Bump the minor version instead, resetting the patch
 ```
+
+The task updates the five `deno.json` files and `lib/version.ts`, runs
+`deno install`, then stages and commits the result. Any other argument is
+refused rather than ignored.
 
 ### Publishing to JSR and GitHub Releases
 

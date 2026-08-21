@@ -98,30 +98,30 @@ describe("FrameHandle", () => {
 
     it("reports a mutating method by its declared effect", () => {
       const value = target();
-      value.set("write:", method());
+      value.set("write_", method());
       value.set("read", method());
       const handle = new FrameHandle(value, true);
 
-      expect(boundOn(handle, "write:").isMutating()).toBe(true);
+      expect(boundOn(handle, "write_").isMutating()).toBe(true);
       expect(boundOn(handle, "read").isMutating()).toBe(false);
     });
 
     it("acts on the receiver itself through a mutable handle", () => {
       const value = target();
-      value.set("write:", method());
+      value.set("write_", method());
       const handle = new FrameHandle(value, true);
 
-      const result = boundOn(handle, "write:").call(Frame.nil);
+      const result = boundOn(handle, "write_").call(Frame.nil);
 
       expect(result).toBe(value);
     });
 
     it("acts on an instance copy through an immutable handle", () => {
       const value = target();
-      value.set("write:", method());
+      value.set("write_", method());
       const handle = new FrameHandle(value, false);
 
-      const result = boundOn(handle, "write:").call(Frame.nil);
+      const result = boundOn(handle, "write_").call(Frame.nil);
 
       // Functional update: the original identity is shielded and the call
       // evaluates to the new value.

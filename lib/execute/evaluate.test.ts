@@ -1102,8 +1102,8 @@ describe("evaluate", () => {
 
     it("updates a copy through mutating receiver aliases on immutable handles", () => {
       const result = evaluate(
-        ".owner [.value 1; .write: {@value _;}]; " +
-          ".updated_ (owner.write: 9)",
+        ".owner [.value 1; .write_ {@value _;}]; " +
+          ".updated_ (owner.write_ 9)",
       );
 
       expect(result.meta.owner.get_here("value").toString()).toEqual("1");
@@ -1113,7 +1113,7 @@ describe("evaluate", () => {
 
     it("updates in place through mutating receiver aliases on mutable handles", () => {
       const result = evaluate(
-        ".owner_ [.value 1; .write: {@value _;}]; owner_.write: 9",
+        ".owner_ [.value 1; .write_ {@value _;}]; owner_.write_ 9",
       );
 
       expect(result.at(0).toString()).toContain(".value 9;");
@@ -1155,9 +1155,9 @@ describe("evaluate", () => {
 
     it("preserves inherited-method lexical alias fallback", () => {
       const result = evaluate(
-        ".parent [.write: {@x _;}]; " +
+        ".parent [.write_ {@x _;}]; " +
           ".inner [.x 1; .child_ [.^ parent]]; " +
-          "inner.child_.write: 9; inner.x",
+          "inner.child_.write_ 9; inner.x",
       );
 
       expect(result.at(-1).toString()).toMatch(/; 9\)$/);
@@ -1167,8 +1167,8 @@ describe("evaluate", () => {
     it("preserves receiver authority through conditional blocks", () => {
       const result = evaluate(
         ".old [.marker 1]; .next [.marker 2]; " +
-          ".child_ [.^ old; .reparent: {1 ? {.^ next}}]; " +
-          "child_.reparent: 0; child_.marker",
+          ".child_ [.^ old; .reparent_ {1 ? {.^ next}}]; " +
+          "child_.reparent_ 0; child_.marker",
       );
 
       expect(result.at(-1).toString()).toMatch(/; 2\)$/);
@@ -1177,8 +1177,8 @@ describe("evaluate", () => {
 
     it("preserves functional receiver updates through iterator blocks", () => {
       const result = evaluate(
-        ".owner [.value 1; .write: {[1] | {@value 9}}]; " +
-          ".updated_ (owner.write: 0); [owner.value, updated_.value]",
+        ".owner [.value 1; .write_ {[1] | {@value 9}}]; " +
+          ".updated_ (owner.write_ 0); [owner.value, updated_.value]",
       );
 
       expect(result.at(-1).toString()).toContain("[1, 9]");
@@ -1199,7 +1199,7 @@ describe("evaluate", () => {
 
     it("binds a bare sibling mutator as a functional receiver update", () => {
       const result = evaluate(
-        ".owner [.value 1; .write: {@value _;}; .sneak {write: 9}]; " +
+        ".owner [.value 1; .write_ {@value _;}; .sneak {write_ 9}]; " +
           ".updated_ (owner.sneak()); [owner.value, updated_.value]",
       );
 
@@ -1211,7 +1211,7 @@ describe("evaluate", () => {
     it("does not propagate receiver authority into ordinary helper calls", () => {
       const result = evaluate(
         ".next []; .helper {.^ next}; " +
-          ".owner_ [.invoke: {helper()}]; owner_.invoke: 0",
+          ".owner_ [.invoke_ {helper()}]; owner_.invoke_ 0",
       );
 
       expect(result.at(-1).toString()).toContain(
@@ -1223,7 +1223,7 @@ describe("evaluate", () => {
     it("does not grant receiver authority to a named conditional helper", () => {
       const result = evaluate(
         ".next [.marker 2]; .helper {.^ next}; " +
-          ".owner_ [.invoke: {1 ? helper}]; owner_.invoke: 0",
+          ".owner_ [.invoke_ {1 ? helper}]; owner_.invoke_ 0",
       );
 
       expect(result.at(-1).toString()).toContain(
@@ -1246,8 +1246,8 @@ describe("evaluate", () => {
 
     it("preserves receiver authority through nested inline callbacks", () => {
       const result = evaluate(
-        ".owner [.value 1; .write: {1 ? {[1] | {@value 9}}}]; " +
-          ".updated_ (owner.write: 0); [owner.value, updated_.value]",
+        ".owner [.value 1; .write_ {1 ? {[1] | {@value 9}}}]; " +
+          ".updated_ (owner.write_ 0); [owner.value, updated_.value]",
       );
 
       expect(result.at(-1).toString()).toContain("[1, 9]");
@@ -1257,8 +1257,8 @@ describe("evaluate", () => {
 
     it("keeps callback state fresh across repeated functional calls", () => {
       const result = evaluate(
-        ".owner [.value 1; .write: {1 ? {@value 9}}]; " +
-          ".first_ (owner.write: 0); .second_ (owner.write: 0); " +
+        ".owner [.value 1; .write_ {1 ? {@value 9}}]; " +
+          ".first_ (owner.write_ 0); .second_ (owner.write_ 0); " +
           "[owner.value, first_.value, second_.value]",
       );
 
@@ -1270,10 +1270,10 @@ describe("evaluate", () => {
 
     it("restores outer callback state after a nested receiver call", () => {
       const result = evaluate(
-        ".inner_ [.value 2; .write: {1 ? {@value 8}}]; " +
+        ".inner_ [.value 2; .write_ {1 ? {@value 8}}]; " +
           ".outer_ [.value 1; " +
-          ".write: {inner_.write: 0; 1 ? {@value 9}}]; " +
-          "outer_.write: 0; [outer_.value, inner_.value]",
+          ".write_ {inner_.write_ 0; 1 ? {@value 9}}]; " +
+          "outer_.write_ 0; [outer_.value, inner_.value]",
       );
 
       expect(result.at(-1).toString()).toContain("[9, 8]");
@@ -1308,8 +1308,8 @@ describe("evaluate", () => {
 
     it("writes protected declarations without creating public shadows", () => {
       const result = evaluate(
-        ".owner_ [._protected 7; .attempt: {@protected _;}]; " +
-          "owner_.attempt: 9",
+        ".owner_ [._protected 7; .attempt_ {@protected _;}]; " +
+          "owner_.attempt_ 9",
       );
       const owner = result.meta.owner_;
 
@@ -1320,8 +1320,8 @@ describe("evaluate", () => {
     it("writes inherited protected declarations without creating shadows", () => {
       const result = evaluate(
         ".base_ [._count 41]; " +
-          ".derived_ [.^ base_; .read {count}; .set-count: {@count _;}]; " +
-          "derived_.set-count: 99; derived_.read()",
+          ".derived_ [.^ base_; .read {count}; .set-count_ {@count _;}]; " +
+          "derived_.set-count_ 99; derived_.read()",
       );
       const base = result.meta.base_;
       const derived = result.meta.derived_;
@@ -1335,8 +1335,8 @@ describe("evaluate", () => {
     it("rejects inherited writes through a copy-on-write receiver", () => {
       const result = evaluate(
         ".base_ [._count 41]; " +
-          ".derived [.^ base_; .set-count: {@count _;}]; " +
-          "derived.set-count: 99",
+          ".derived [.^ base_; .set-count_ {@count _;}]; " +
+          "derived.set-count_ 99",
       );
       const base = result.meta.base_;
       const derived = result.meta.derived;
@@ -1353,9 +1353,9 @@ describe("evaluate", () => {
       const result = evaluate(
         ".base_ [._count 41]; " +
           ".derived [.^ base_; " +
-          ".inner_ [.^ base_; .set-count: {@count _;}]; " +
-          ".bump: {inner_.set-count: _}]; " +
-          "derived.bump: 99",
+          ".inner_ [.^ base_; .set-count_ {@count _;}]; " +
+          ".bump_ {inner_.set-count_ _}]; " +
+          "derived.bump_ 99",
       );
 
       expect(result.at(0).toString()).toContain(
@@ -1368,9 +1368,9 @@ describe("evaluate", () => {
       const result = evaluate(
         ".base_ [._count 1]; " +
           ".derived [.inner_ [.leaf_ [.^ base_; " +
-          ".set-count: {@count _;}]]; " +
-          ".bump: {inner_.leaf_.set-count: _}]; " +
-          "derived.bump: 9",
+          ".set-count_ {@count _;}]]; " +
+          ".bump_ {inner_.leaf_.set-count_ _}]; " +
+          "derived.bump_ 9",
       );
 
       expect(result.at(0).toString()).toContain(
@@ -1381,9 +1381,9 @@ describe("evaluate", () => {
 
     it("rejects writes to aggregates inherited by a copied receiver", () => {
       const result = evaluate(
-        ".base_ [.inner_ [.own 1; .set-own: {@own _;}]]; " +
-          ".derived [.^ base_; .bump: {inner_.set-own: _}]; " +
-          "derived.bump: 99",
+        ".base_ [.inner_ [.own 1; .set-own_ {@own _;}]]; " +
+          ".derived [.^ base_; .bump_ {inner_.set-own_ _}]; " +
+          "derived.bump_ 99",
       );
       const inner = result.meta.base_.get_here("inner_");
 
@@ -1396,9 +1396,9 @@ describe("evaluate", () => {
     it("rejects re-parenting shared state inherited by a copied receiver", () => {
       const result = evaluate(
         ".next [.marker 9]; " +
-          ".base [.inner_ [.value 1; .reparent: {.^ _;}]]; " +
-          ".owner [.^ base; .change: {inner_.reparent: next}]; " +
-          "owner.change: 0",
+          ".base [.inner_ [.value 1; .reparent_ {.^ _;}]]; " +
+          ".owner [.^ base; .change_ {inner_.reparent_ next}]; " +
+          "owner.change_ 0",
       );
       const sharedInner = result.meta.base.get_here("inner_");
 
@@ -1413,11 +1413,11 @@ describe("evaluate", () => {
       const result = evaluate(
         ".countbase_ [._count 1]; " +
           ".deep_ [.inner_ [.leaf_ [.^ countbase_; " +
-          ".set-count: {@count _;}]]; " +
-          ".bump: {inner_.leaf_.set-count: _}]; " +
-          ".ownerbase_ [.inner_ [.own 1; .set-own: {@own _;}]]; " +
-          ".inheritor_ [.^ ownerbase_; .bump: {inner_.set-own: _}]; " +
-          "deep_.bump: 9; inheritor_.bump: 99",
+          ".set-count_ {@count _;}]]; " +
+          ".bump_ {inner_.leaf_.set-count_ _}]; " +
+          ".ownerbase_ [.inner_ [.own 1; .set-own_ {@own _;}]]; " +
+          ".inheritor_ [.^ ownerbase_; .bump_ {inner_.set-own_ _}]; " +
+          "deep_.bump_ 9; inheritor_.bump_ 99",
       );
       const inheritedInner = result.meta.ownerbase_.get_here("inner_");
 
@@ -1434,8 +1434,8 @@ describe("evaluate", () => {
       const result = evaluate(
         ".base_ [._count 41]; " +
           ".derived [.^ base_; .own 1; " +
-          ".set-own: {@own _;}; .set-count: {@count _;}]; " +
-          ".copy_ (derived.set-own: 2); copy_.set-count: 99",
+          ".set-own_ {@own _;}; .set-count_ {@count _;}]; " +
+          ".copy_ (derived.set-own_ 2); copy_.set-count_ 99",
       );
       const base = result.meta.base_;
       const derived = result.meta.derived;
@@ -1485,8 +1485,8 @@ describe("evaluate", () => {
       // The receiver is the owner, so the write is authorized, lands on the
       // private declaration, and still creates no public shadow.
       const result = evaluate(
-        ".owner_ [.__private 7; .attempt: {@private _;}]; " +
-          "owner_.attempt: 9",
+        ".owner_ [.__private 7; .attempt_ {@private _;}]; " +
+          "owner_.attempt_ 9",
       );
       const owner = result.meta.owner_;
 
@@ -1511,8 +1511,8 @@ describe("evaluate", () => {
 
     it("copies immutable receivers before mutating methods", () => {
       const result = evaluate(
-        ".fixed [.property 42; .accessor {property}; .mutator: {@property _;}]; " +
-          ".varying_ (fixed.mutator: 113); varying_.accessor(); fixed.accessor()",
+        ".fixed [.property 42; .accessor {property}; .mutator_ {@property _;}]; " +
+          ".varying_ (fixed.mutator_ 113); varying_.accessor(); fixed.accessor()",
       );
 
       expect(result.at(0).toString()).toContain("(113); 42)");
@@ -1521,8 +1521,8 @@ describe("evaluate", () => {
 
     it("synchronizes mutable aliases through shared identity", () => {
       const result = evaluate(
-        ".shared_ [.property 42; .mutator: {@property _;}]; " +
-          ".alias_ shared_; alias_.mutator: 113; " +
+        ".shared_ [.property 42; .mutator_ {@property _;}]; " +
+          ".alias_ shared_; alias_.mutator_ 113; " +
           "shared_.property; alias_.property",
       );
 
@@ -1534,9 +1534,9 @@ describe("evaluate", () => {
 
     it("keeps constancy independent from mutable-handle effects", () => {
       const declaration = evaluate(
-        ".Thing_ [.property 42; .mutator: {@property _;}];",
+        ".Thing_ [.property 42; .mutator_ {@property _;}];",
       );
-      evaluate("Thing_.mutator: 113", declaration.meta);
+      evaluate("Thing_.mutator_ 113", declaration.meta);
       const reassignment = evaluate(".Thing_ 7", declaration.meta);
 
       expect(reassignment.at(0).toString()).toContain(
@@ -1549,8 +1549,8 @@ describe("evaluate", () => {
 
     it("returns the receiver rather than a mutator body's value", () => {
       const result = evaluate(
-        ".mutable_ [.property 42; .mutator: {@property _; 999}]; " +
-          "mutable_.mutator: 113",
+        ".mutable_ [.property 42; .mutator_ {@property _; 999}]; " +
+          "mutable_.mutator_ 113",
       );
 
       expect(result.at(0).toString()).toContain(".property 113;");
@@ -1560,8 +1560,8 @@ describe("evaluate", () => {
     it("constructs singleton frames from existing interpretations", () => {
       const result = evaluate(
         ".object_ [._property 13; .get {_property}; " +
-          ".set: {@property _;}]; object_.get(); " +
-          "object_.set: 42; object_.get()",
+          ".set_ {@property _;}]; object_.get(); " +
+          "object_.set_ 42; object_.get()",
       );
 
       expect(result.at(0).toString()).toContain("(13)");
@@ -1616,22 +1616,22 @@ describe("evaluate", () => {
 
     it("propagates direct and aggregate errors out of mutating methods", () => {
       const constant = evaluate(
-        ".owner_ [.Value 1; .change: {@Value _;}]; owner_.change: 2",
+        ".owner_ [.Value 1; .change_ {@Value _;}]; owner_.change_ 2",
       );
       const schema = evaluate(
-        ".owner_ [.value <1> 1; .change: {@value _;}]; owner_.change: 2",
+        ".owner_ [.value <1> 1; .change_ {@value _;}]; owner_.change_ 2",
       );
       const aggregate = evaluate(
-        ".owner_ [.value <1> 1; .change: {[1] | {@value 2}}]; " +
-          "owner_.change: 2",
+        ".owner_ [.value <1> 1; .change_ {[1] | {@value 2}}]; " +
+          "owner_.change_ 2",
       );
       const trailingStatement = evaluate(
-        ".owner_ [.value <1> 1; .change: {[1] | {@value 2};}]; " +
-          "owner_.change: 2",
+        ".owner_ [.value <1> 1; .change_ {[1] | {@value 2};}]; " +
+          "owner_.change_ 2",
       );
       const sequenced = evaluate(
         ".owner_ [.value <1,3> 1; " +
-          ".change: {[1] | {@value 2}; @value 3}]; owner_.change: 0",
+          ".change_ {[1] | {@value 2}; @value 3}]; owner_.change_ 0",
       );
 
       expect(constant.at(0).toString()).toContain(
@@ -1659,7 +1659,7 @@ describe("evaluate", () => {
 
     it("covers #334's aggregate-error reproducer", () => {
       const result = evaluate(
-        ".b_ [.n <1,2,3> 2; .run: {[1] | {@n 4}}]; [b_.run: 0]",
+        ".b_ [.n <1,2,3> 2; .run_ {[1] | {@n 4}}]; [b_.run_ 0]",
       );
 
       expect(result.at(0).toString()).toContain(
@@ -1671,7 +1671,7 @@ describe("evaluate", () => {
     it("keeps nested error-valued aggregates as sequence data", () => {
       const result = evaluate(
         ".owner_ [.value <1,3> 1; " +
-          ".change: {[[1] | {@value 2}]; @value 3}]; owner_.change: 0",
+          ".change_ {[[1] | {@value 2}]; @value 3}]; owner_.change_ 0",
       );
 
       // The first result is [[type-error]], so the shallow rule continues to
@@ -1681,8 +1681,8 @@ describe("evaluate", () => {
 
     it("updates an immutable receiver functionally, at any depth", () => {
       const result = evaluate(
-        ".pair [.inner_ [.n 1; .set-n: {@n _;}]; .bump: {inner_.set-n: _}]; " +
-          "(pair.bump: 5).inner_.n; pair.inner_.n",
+        ".pair [.inner_ [.n 1; .set-n_ {@n _;}]; .bump_ {inner_.set-n_ _}]; " +
+          "(pair.bump_ 5).inner_.n; pair.inner_.n",
       );
 
       // Copy-on-write is the only instance-copy caller: the call evaluates to
@@ -1696,8 +1696,8 @@ describe("evaluate", () => {
 
     it("mutates a mutable receiver in place, sharing nested identity", () => {
       const result = evaluate(
-        ".live_ [.inner_ [.n 1; .set-n: {@n _;}]; .bump: {inner_.set-n: _}]; " +
-          "live_.bump: 9; live_.inner_.n",
+        ".live_ [.inner_ [.n 1; .set-n_ {@n _;}]; .bump_ {inner_.set-n_ _}]; " +
+          "live_.bump_ 9; live_.inner_.n",
       );
 
       expect(result.at(0).toString()).toMatch(/; 9\)$/);
@@ -1735,8 +1735,8 @@ describe("evaluate", () => {
     it("re-parents a mutable receiver in place", () => {
       const result = evaluate(
         ".oldBase [.marker 1]; .newBase [.marker 2]; " +
-          ".child_ [.^ oldBase; .reparent: {.^ _;}]; " +
-          "child_.reparent: newBase; child_.marker",
+          ".child_ [.^ oldBase; .reparent_ {.^ _;}]; " +
+          "child_.reparent_ newBase; child_.marker",
       );
       const child = result.meta.child_;
 
@@ -1747,8 +1747,8 @@ describe("evaluate", () => {
     it("re-parents only the functional copy of an immutable receiver", () => {
       const result = evaluate(
         ".oldBase [.marker 1]; .newBase [.marker 2]; " +
-          ".child [.^ oldBase; .reparent: {.^ _;}]; " +
-          ".updated_ (child.reparent: newBase); " +
+          ".child [.^ oldBase; .reparent_ {.^ _;}]; " +
+          ".updated_ (child.reparent_ newBase); " +
           "[child.marker, updated_.marker]",
       );
       const child = result.meta.child;
@@ -1776,8 +1776,8 @@ describe("evaluate", () => {
 
     it("rejects an indirect parent cycle reached through a mutating method", () => {
       const result = evaluate(
-        ".left_ [.reparent: {.^ _;}]; .right_ [.^ left_]; " +
-          "left_.reparent: right_",
+        ".left_ [.reparent_ {.^ _;}]; .right_ [.^ left_]; " +
+          "left_.reparent_ right_",
       );
       const left = result.meta.left_;
       const right = result.meta.right_;

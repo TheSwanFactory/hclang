@@ -192,6 +192,32 @@ recursing through public `get`: `lookup_here` supplies computed local values,
 handle target. Keeping traversal and cycle state in `MetaFrame.get` prevents a
 specialization from accidentally resetting the guard.
 
+### Effect Marker
+
+One spelling rule covers the whole effect axis: a trailing underscore on a key
+means the key touches identity. `counter_` names a mutable handle on its value,
+and `.set_ {…}` declares a method that may write the receiver it runs against.
+Because the two halves share a marker, the lexer needs no rule to carve a
+mutating marker out of an operator character, and `:` denotes if-else alone.
+
+`effect-marker.ts` is the only place that reads the marker. `FrameSymbol.in`
+asks `touchesIdentity` for handle mutability, and every `BoundMethod` is built
+from a `MethodEffect` produced by `methodEffect` where the method meets its
+receiver, so the effect engine receives a graded fact instead of testing a key's
+spelling itself. `MethodEffect.name` is the key without its marker, which is how
+a diagnostic names its subject. A marker alone is not a marked key: `_` and the
+longer underscore runs `FrameArg` uses are keys of length one and up whose whole
+text is the marker, and they grade as non-mutating so that a diagnostic never
+loses its subject.
+
+Nothing distinguishes a mutable field from a mutating method at the spelling
+level; the value's own type does. A `FrameArray` found under such a key becomes
+a handle, and a `FrameLazy` becomes a bound method. That is also why the marker
+is not purely additive: a block-valued field spelled with a trailing underscore
+before v0.11.0 is a mutating method now. Leading underscores are a separate
+axis, graded by `resolve_here` for visibility, so `.__secret_` is a private
+mutable binding.
+
 ### Handles
 
 A handle is a name's effect-qualified reference to a value, and nothing more.
@@ -246,7 +272,7 @@ of them:
   neither owns identity a write can land on. A declared parent is preserved in
   its own field and the id is always fresh.
 
-Copy-on-write therefore means functional update: `p.set: 2` leaves `p` alone and
+Copy-on-write therefore means functional update: `p.set_ 2` leaves `p` alone and
 evaluates to the new value. Bodies are never copied — a bound method passes its
 receiver as an explicit argument rather than rewriting a copied closure.
 

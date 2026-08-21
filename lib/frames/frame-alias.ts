@@ -18,11 +18,8 @@ export class FrameAlias extends FrameAtom {
   public static readonly SYNTAX: AtomSyntax = {
     NAME: "FrameAlias",
     SIGIL_STARTS: FrameAlias.SIGIL_STARTS,
-    recognize: (symbol: Frame, source = ""): ScanResult => {
-      const char = symbol.toString();
-      return FrameSymbol.scanMutatingSuffix(source, char) ??
-        includeOrEnd(FrameSymbol.SYMBOL_CHAR.test(char));
-    },
+    recognize: (symbol: Frame): ScanResult =>
+      includeOrEnd(FrameSymbol.SYMBOL_CHAR.test(symbol.toString())),
     finish: completeAtEnd,
     fromSource: (source: string): Frame => new FrameAlias(source),
   };

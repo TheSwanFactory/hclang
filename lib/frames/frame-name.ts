@@ -23,10 +23,6 @@ const recognizeName = (symbol: Frame, source = ""): ScanResult => {
   if (source.endsWith("^")) {
     return { disposition: ScanDisposition.CompleteRedispatch };
   }
-  const mutatingSuffix = FrameSymbol.scanMutatingSuffix(source, char);
-  if (mutatingSuffix) {
-    return mutatingSuffix;
-  }
   // `.^` needs no rule of its own: `^` is an operator character, so it is
   // consumed and completed like any other name.
   if (!includes(char)) {

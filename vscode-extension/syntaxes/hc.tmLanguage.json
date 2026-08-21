@@ -305,9 +305,24 @@
     "identifiers": {
       "patterns": [
         {
+          "name": "entity.name.function.mutating.private.hclang",
+          "match": "\\.?\\b__[a-z][\\w-]*_(?=\\s*\\{)",
+          "comment": "Private mutating method declaration: .__method_ {…}"
+        },
+        {
+          "name": "entity.name.function.mutating.protected.hclang",
+          "match": "\\.?\\b_[a-z][\\w-]*_(?=\\s*\\{)",
+          "comment": "Protected mutating method declaration: ._method_ {…}"
+        },
+        {
+          "name": "entity.name.function.mutating.hclang",
+          "match": "\\.?\\b[a-z][\\w-]*_(?=\\s*\\{)",
+          "comment": "Public mutating method declaration: .method_ {…}. A trailing underscore is the one effect marker, so nothing but the following block tells a declaration from a call site. These three patterns admit the leading dot and precede the dotted-name rule below: TextMate prefers the earliest start index and consults list order only for a tie, so a rule starting at the name would always lose to one starting at the dot"
+        },
+        {
           "name": "entity.name.function.setter.hclang",
-          "match": "\\.[_a-zA-Z][\\w-]*[:_]?",
-          "comment": "Names (setters): .property, .method:, .mutable_"
+          "match": "\\.[_a-zA-Z][\\w-]*",
+          "comment": "Names (setters): .property, .mutable_"
         },
         {
           "name": "keyword.control.hclang",
@@ -333,21 +348,6 @@
           "name": "variable.other.constant.hclang",
           "match": "\\b[A-Z][\\w-]*\\b",
           "comment": "Public constant: CONST"
-        },
-        {
-          "name": "entity.name.function.mutating.private.hclang",
-          "match": "\\b__[a-z][\\w-]*:(?!:)",
-          "comment": "Private mutating method: __method:"
-        },
-        {
-          "name": "entity.name.function.mutating.protected.hclang",
-          "match": "\\b_[a-z][\\w-]*:(?!:)",
-          "comment": "Protected mutating method: _method:"
-        },
-        {
-          "name": "entity.name.function.mutating.hclang",
-          "match": "\\b[a-z][\\w-]*:(?!:)",
-          "comment": "Public mutating method: method:"
         },
         {
           "name": "variable.other.mutable.private.hclang",

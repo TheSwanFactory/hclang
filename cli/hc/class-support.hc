@@ -3,13 +3,25 @@
 effects, and parent lookup. These examples intentionally use no class-specific
 runtime primitive.`
 
-`A mutable singleton shares identity through its trailing-underscore handle.`
-; .counter_ [._value 1; .get {value}; .set: {@value _;}];
+`A mutable singleton shares identity through its trailing-underscore handle.
+The same trailing underscore declares the method allowed to write it, so one
+marker spells the whole effect axis: an underscore touches identity.`
+; .counter_ [._value 1; .get {value}; .set_ {@value _;}];
 ; counter_.get()
 # 1
-; counter_.set: 2;
+; counter_.set_ 2;
 ; counter_.get()
 # 2
+
+`Both halves of that axis coexist on one aggregate without interference: here a
+trailing underscore names a mutable field, declares the method that replaces it,
+and marks the receiver each is reached through.`
+; .box_ [.slot_ [.n 1]; .fill_ {@slot_ _;}; .read {slot_.n}];
+; box_.read()
+# 1
+; box_.fill_ [.n 7];
+; box_.read()
+# 7
 
 `A class is a reusable closure that returns a fresh aggregate. Uppercase fields
 prove that constructor state does not leak between repeated instances.`
@@ -22,22 +34,22 @@ prove that constructor state does not leak between repeated instances.`
 # 5
 
 `Mutating methods return their receiver, but assignment failures remain errors.`
-; .constant_ [.Value 1; .change: {@Value _;}];
-; [constant_.change: 2]
+; .constant_ [.Value 1; .change_ {@Value _;}];
+; [constant_.change_ 2]
 # [($error{$is-constant .Value});]
 ; constant_.Value
 # 1
 
 `A mutating method reached through an immutable handle is a functional update:
 the call evaluates to the new value, and the original is untouched at any depth.`
-; .pair [.inner_ [.n 1; .set-n: {@n _;}]; .bump: {inner_.set-n: _}];
-; (pair.bump: 5).inner_.n
+; .pair [.inner_ [.n 1; .set-n_ {@n _;}]; .bump_ {inner_.set-n_ _}];
+; (pair.bump_ 5).inner_.n
 # 5
 ; pair.inner_.n
 # 1
 
 `A bare sibling mutator remains functional inside a non-mutating method.`
-; .sibling-owner [.value 1; .write: {@value _;}; .sneak {write: _}];
+; .sibling-owner [.value 1; .write_ {@value _;}; .sneak {write_ _}];
 ; .sibling-copy (sibling-owner.sneak(9));
 ; sibling-owner.value
 # 1
@@ -45,14 +57,14 @@ the call evaluates to the new value, and the original is untouched at any depth.
 # 9
 
 `Built-in control-flow blocks retain the active receiver capability.`
-; .callback-owner_ [.value 1; .write: {1 ? {@value 9}}];
-; callback-owner_.write: 9;
+; .callback-owner_ [.value 1; .write_ {1 ? {@value 9}}];
+; callback-owner_.write_ 9;
 ; callback-owner_.value
 # 9
 
 `A mutable receiver takes no copy, so the nested identity it declares is shared.`
-; .live_ [.inner_ [.n 1; .set-n: {@n _;}]; .bump: {inner_.set-n: _}];
-; live_.bump: 9;
+; .live_ [.inner_ [.n 1; .set-n_ {@n _;}]; .bump_ {inner_.set-n_ _}];
+; live_.bump_ 9;
 ; live_.inner_.n
 # 9
 
@@ -99,15 +111,15 @@ protected access.`
 `A mutating method re-parents a mutable receiver in place.`
 ; .old-parent [.marker 1];
 ; .new-parent [.marker 2];
-; .mutable-child_ [.^ old-parent; .reparent: {.^ _;}];
-; mutable-child_.reparent: new-parent;
+; .mutable-child_ [.^ old-parent; .reparent_ {.^ _;}];
+; mutable-child_.reparent_ new-parent;
 ; mutable-child_.marker
 # 2
 
 `The same mutating method reached through an immutable handle re-parents only
 its functional copy; the original keeps its declared parent.`
-; .immutable-child [.^ old-parent; .reparent: {.^ _;}];
-; .updated-child (immutable-child.reparent: new-parent);
+; .immutable-child [.^ old-parent; .reparent_ {.^ _;}];
+; .updated-child (immutable-child.reparent_ new-parent);
 ; immutable-child.marker
 # 1
 ; updated-child.marker
@@ -119,12 +131,12 @@ its functional copy; the original keeps its declared parent.`
 # [($!.method-not-mutating .^);]
 
 `The language-level writer rejects direct and indirect cycles.`
-; .self_ [.reparent: {.^ _;}];
-; [self_.reparent: self_]
+; .self_ [.reparent_ {.^ _;}];
+; [self_.reparent_ self_]
 # [($!.cyclic-parent .^);]
-; .left_ [.reparent: {.^ _;}];
+; .left_ [.reparent_ {.^ _;}];
 ; .right_ [.^ left_];
-; [left_.reparent: right_]
+; [left_.reparent_ right_]
 # [($!.cyclic-parent .^);]
 
 `Multiple-base behavior is ordinary user-defined composition, not inheritance

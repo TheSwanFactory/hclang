@@ -108,7 +108,7 @@ Classes are closures that can create instances:
     my-class {
       ._property _;
       .getProperty { ^._property }
-      .setProperty: { .^._property _ }
+      .setProperty_ { .^._property _ }
     };
 
 ### 6.2 Singletons
@@ -118,7 +118,7 @@ Singletons are non-lazy constructors:
     my-singleton (
       ._property _;
       .getProperty { ^._property }
-      .setProperty: { .^._property _ }
+      .setProperty_ { .^._property _ }
     );
 
 ### 6.3 Inheritance

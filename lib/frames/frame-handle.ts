@@ -1,6 +1,7 @@
 import { Frame } from "./frame.ts";
 import { FrameLazy } from "./frame-lazy.ts";
 import { BoundMethod } from "./bound-method.ts";
+import { methodEffect } from "./effect-marker.ts";
 import type { MetaFrame } from "./meta-frame.ts";
 import type { Context } from "./context.ts";
 
@@ -50,7 +51,7 @@ export class FrameHandle extends Frame {
         value,
         this.target,
         this.mutable,
-        key,
+        methodEffect(key),
         this.copyOnWrite,
       );
     }

@@ -76,8 +76,8 @@ describe("Lex", () => {
     });
   }
 
-  it("lexes a trailing-colon mutating name across chunk boundaries", () => {
-    for (const name of [".mutator:", "mutator:", "@mutator:"]) {
+  it("lexes a trailing-underscore mutating name across chunk boundaries", () => {
+    for (const name of [".mutator_", "mutator_", "@mutator_"]) {
       expect(lexAtoms(`${name} `).map(String)).toEqual([name]);
       for (let split = 1; split < name.length; split++) {
         expect(
@@ -89,11 +89,18 @@ describe("Lex", () => {
     }
   });
 
-  it("ends a mutating identifier after its trailing colon", () => {
-    expect(lexAtoms(".mutator:x ").map(String)).toEqual([".mutator:", "x"]);
-    expect(lexAtoms(".mutator:: ").map(String)).toEqual([".mutator:", ":"]);
-    expect(lexAtoms("mutator:x ").map(String)).toEqual(["mutator:", "x"]);
-    expect(lexAtoms("@mutator:x ").map(String)).toEqual(["@mutator:", "x"]);
+  it("ends an identifier at a colon, which is only an operator", () => {
+    expect(lexAtoms(".mutator:x ").map(String)).toEqual([".mutator", ":", "x"]);
+    expect(lexAtoms("mutator:x ").map(String)).toEqual(["mutator", ":", "x"]);
+    expect(lexAtoms("@mutator:x ").map(String)).toEqual(["@mutator", ":", "x"]);
+  });
+  it("ends an identifier before a colon run, which lexes as one symbol", () => {
+    // The old mutating-colon rule had to decide how many colons joined a name.
+    // Now the name simply stops, and a run of operator characters is one symbol
+    // that no operator table binds.
+    expect(lexAtoms(".mutator:: ").map(String)).toEqual([".mutator", "::"]);
+    expect(lexAtoms("mutator:: ").map(String)).toEqual(["mutator", "::"]);
+    expect(lexAtoms(":: ").map(String)).toEqual(["::"]);
   });
 
   it("keeps a standalone colon as an operator", () => {

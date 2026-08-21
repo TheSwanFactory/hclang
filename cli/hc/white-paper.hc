@@ -882,8 +882,8 @@ restrict side effects for safety.
   : Has no suffix. Can not be modified in place.
 * `mutable_`
   : Trailing underscore. Can be modified in place.
-* `mutating_method:`
-  : Trailing colon. Can modify its parent context. Returns parent.
+* `mutating_method_`
+  : Trailing underscore. Can modify its parent context. Returns parent.
 
 
 Please note that these particular conventions are preliminary, and may
@@ -923,16 +923,18 @@ between different threads, etc.
 
 In order to ensure both immutable and mutable handles support the same
 methods, HC explicitly tracks which methods mutate their parent scope via
-a trailing colon (`:`). When a mutating method is called on an immutable
+the same trailing underscore (`_`) that marks a mutable name. One marker
+serves the whole effect axis, so the colon keeps its single meaning as the
+if-else operator. When a mutating method is called on an immutable
 object, it simply performs a _copy-on-write_, returning a new object. To
 enable this, mutating methods can not explicitly return a value, but
 implicitly return their parent (e.g., "this"; see Section {#sec-oops} for
 more details).
 ```
-; .fixed [.hic “Object”; .property 42; .accessor {property}; .mutator: {@property _;}];
+; .fixed [.hic “Object”; .property 42; .accessor {property}; .mutator_ {@property _;}];
 ; fixed.accessor()
 # 42
-; .varying_ (fixed.mutator: 113);
+; .varying_ (fixed.mutator_ 113);
 ; varying_.accessor()
 # 113
 ; fixed.accessor()
@@ -985,10 +987,10 @@ are our access control rules plus the parent declaration `.^`.
 
 Let's start with a simple singleton object containing private data:
 ```
-; .my-object_ [._property 13; .getProperty {_property}; .setProperty: {@property _;}];
+; .my-object_ [._property 13; .getProperty {_property}; .setProperty_ {@property _;}];
 ; my-object_.getProperty()
 # 13
-; my-object_.setProperty: 42;
+; my-object_.setProperty_ 42;
 ; my-object_.getProperty()
 # 42
 ```
@@ -997,7 +999,7 @@ Let's start with a simple singleton object containing private data:
 To turn that into a class, we simply make it a closure which returns
 a frame analogous to that singleton:
 ```
-; .my-class {[._property _; .getProperty {_property}; .setProperty: {@property _;}]};
+; .my-class {[._property _; .getProperty {_property}; .setProperty_ {@property _;}]};
 ; .my-instance (my-class 3);
 ; my-instance.getProperty()
 # 3

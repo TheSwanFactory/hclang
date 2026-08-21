@@ -89,5 +89,5 @@ JSR versions are immutable, so a release needs the next version.
 - `mount.ts` — public mount entry
 - `islands/` — `Main` owns interpreter, output, history, and reset state
 - `styles.ts` — scoped component CSS embedded by `Main`
-- `static/` — BitScheme tutorial and HC white paper
+- `static/` — BitScheme tutorial, kept out of both `dist/` and the JSR package
 - `tests/` — component, consumer, and artifact suites

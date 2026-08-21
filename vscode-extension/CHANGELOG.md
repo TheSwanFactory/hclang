@@ -3,6 +3,19 @@
 All notable changes to the Homoiconic C VS Code extension will be documented in
 this file.
 
+## [0.2.0] - 2026-08-21
+
+### Changed
+
+- Highlight a mutating method as `method_`, matching HC v0.11.0, where a
+  trailing underscore is the one marker for the whole effect axis. A trailing
+  colon is no longer part of a name, so `:` highlights as the if-else operator
+  everywhere.
+- Scope a trailing-underscore name followed by a block as a mutating method
+  declaration, dotted or not, and every other trailing-underscore name as a
+  mutable name. A mutating method and a mutable name share a spelling now, so
+  the following block is the only distinction available to a grammar.
+
 ## [0.1.0] - 2025-01-12
 
 ### Added
