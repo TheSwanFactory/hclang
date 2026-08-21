@@ -1,5 +1,7 @@
 import { Frame } from "./frame.ts";
 import { type Context, NilContext } from "./context.ts";
+import { type EvaluationInput, EvaluationScope } from "./evaluation-scope.ts";
+import { renderNested } from "./stringify.ts";
 
 /**
  * The `IArrayConstructor` interface defines a constructor for creating
@@ -38,7 +40,7 @@ export class FrameList extends Frame {
   public toStringDataArray(): Array<string> {
     const result = this.data.map((obj: Frame) => {
       const sep = (obj.is.statement) ? ";" : ",";
-      return obj.toString() + sep;
+      return renderNested(obj, () => obj.toString()) + sep;
     });
     return result;
   }
@@ -64,14 +66,20 @@ export class FrameList extends Frame {
   public override dataString(): string {
     // Evaluated property declarations are retained as data-plane assignment
     // echoes as well as metadata. Exclude those echoes from data-only equality.
-    const metadataAssignments = new Set(
+    const declarationEchoes = new Set(
       this.meta_pairs().map(([key, value]) => `.${key} ${value}`),
     );
-    const data = this.data.filter((item) =>
-      !metadataAssignments.has(item.toString())
+    const data = this.data.filter(
+      (item) => !declarationEchoes.has(item.toString()),
     );
+    // Only the surviving items are rendered for output, so only they need the
+    // cycle guard. The membership test above needs no guard of its own: each
+    // descent within `item.toString()` is already guarded, so it terminates
+    // whether or not this frame is itself mid-render.
     return this.string_open() +
-      data.map((item) => item.dataString()).join(",") +
+      data.map((item) => renderNested(item, () => item.dataString())).join(
+        ",",
+      ) +
       this.string_close();
   }
 
@@ -91,10 +99,13 @@ export class FrameList extends Frame {
 
   /** Evaluate source items with an explicit innermost declaration target. */
   protected array_eval(
-    contexts: Array<Frame>,
+    input: EvaluationInput,
     out: Frame = this,
   ): Array<Frame> {
-    const scoped = [...contexts, out];
-    return this.data.map((frame) => frame.in(scoped));
+    const scope = EvaluationScope.from(input).withWriteTarget(
+      out,
+      "construction",
+    );
+    return this.data.map((frame) => frame.in(scope));
   }
 }

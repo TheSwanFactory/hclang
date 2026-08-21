@@ -10,6 +10,7 @@ import { BoundMethod } from "./bound-method.ts";
 import { FrameCurry } from "../ops/frame-curry.ts";
 import { isFrameMatcher } from "./frame-match.ts";
 import { type Context, NilContext } from "./context.ts";
+import { type EvaluationInput, EvaluationScope } from "./evaluation-scope.ts";
 import { completeAtEnd, includeOrEnd } from "./atom-syntax.ts";
 import {
   type AtomSyntax,
@@ -88,13 +89,14 @@ export class FrameSymbol extends FrameAtom {
     super(meta);
   }
 
-  public override in(contexts: Frame[] = [Frame.nil]): Frame {
-    const first = contexts[0];
+  public override in(input: EvaluationInput = []): Frame {
+    const scope = EvaluationScope.from(input);
+    const first = scope.argument;
     // A method body resolves against its receiver, so visibility asks the same
     // question no matter which path the access arrives by.
-    const receiverState = Frame.receiverStateIn(contexts);
+    const receiverState = scope.receiverState;
     const receiver = receiverState?.receiver;
-    for (const context of contexts) {
+    for (const context of scope.lookupFrames()) {
       const explicitOrigin = this.get_here(Frame.kOUT);
       const origin = receiver ??
         (context instanceof FrameHandle && !explicitOrigin.is.missing
@@ -103,25 +105,31 @@ export class FrameSymbol extends FrameAtom {
       const value = context.get(this.data, origin);
       if (!value.is.missing) {
         if (value.is.error) return value;
-        // up is purely lexical now, so it can always be refreshed: a declared
-        // parent lives in its own field and is never clobbered here.
-        value.up = context;
+
+        // A closure template is bound by copying it into this evaluation, so
+        // reads never rewrite a shared closure's ancestry. Non-closure values
+        // still take the historical live lexical link, which is the last
+        // remaining re-parenting write: see #341.
+        const resolved = value instanceof FrameLazy ? value.bind(scope) : value;
+        if (!(value instanceof FrameLazy)) value.up = context;
+
         // Built-in control flow receives the exact active capability only for
         // callbacks it invokes; ordinary closure calls do not inherit it.
-        if (value instanceof FrameCurry && receiverState) {
-          value.withReceiverState(receiverState);
+        if (resolved instanceof FrameCurry && receiverState) {
+          resolved.withReceiverState(receiverState);
         }
-        if (value.is.immediate === true) {
-          return value.call(context);
+        if (resolved.is.immediate === true) {
+          return resolved.call(context);
         }
         // A bare method found through the active raw receiver must obey the same
         // effect and copy rules as dotted lookup through a handle.
         if (
-          value instanceof FrameLazy && receiverState && context === receiver &&
+          resolved instanceof FrameLazy && receiverState &&
+          context === receiver &&
           this.isReceiverPathValue(receiver, value, origin)
         ) {
           return new BoundMethod(
-            value,
+            resolved,
             receiver,
             receiverState.mutable,
             this.data,
@@ -131,9 +139,9 @@ export class FrameSymbol extends FrameAtom {
         const copyOnWrite = context instanceof FrameHandle
           ? context.copyOnWriteScope() ?? receiverState?.copyOnWrite
           : receiverState?.copyOnWrite;
-        return value instanceof FrameArray
-          ? new FrameHandle(value, this.data.endsWith("_"), copyOnWrite)
-          : value;
+        return resolved instanceof FrameArray
+          ? new FrameHandle(resolved, this.data.endsWith("_"), copyOnWrite)
+          : resolved;
       }
     }
     return FrameNote.key(first.id + "." + this.data, first);
@@ -157,9 +165,10 @@ export class FrameSymbol extends FrameAtom {
   }
 
   /** Resolve the schema belonging to this binding, not to its bound value. */
-  public bindingSchema(contexts: Frame[] = [Frame.nil]): Frame {
-    const first = contexts[0];
-    for (const context of contexts) {
+  public bindingSchema(input: EvaluationInput = []): Frame {
+    const scope = EvaluationScope.from(input);
+    const first = scope.argument;
+    for (const context of scope.lookupFrames()) {
       const origin = context;
       const seen = new Set<Frame>();
       let owner: Frame | undefined = context;
@@ -310,8 +319,8 @@ export class FrameOperator extends FrameSymbol {
     return FrameOperator.OPERATOR_CHARS.test(char);
   }
 
-  public override in(contexts: Frame[] = [Frame.nil]): Frame {
-    const receiverState = Frame.receiverStateIn(contexts);
+  public override in(input: EvaluationInput = []): Frame {
+    const receiverState = EvaluationScope.from(input).receiverState;
     if (!receiverState) return this;
     const bound = this.copy();
     bound.receiverState = receiverState;

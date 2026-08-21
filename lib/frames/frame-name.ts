@@ -1,9 +1,9 @@
 import { Frame } from "./frame.ts";
-import { FrameHandle } from "./frame-handle.ts";
 import { FrameAtom } from "./frame-atom.ts";
 import { FrameOperator, FrameSymbol } from "./frame-symbol.ts";
 import type { ISourced } from "./meta-frame.ts";
 import { NilContext } from "./context.ts";
+import { type EvaluationInput, EvaluationScope } from "./evaluation-scope.ts";
 import { completeAtEnd } from "./atom-syntax.ts";
 import { authorizedReceiverWriteTarget } from "./bound-method.ts";
 import {
@@ -71,52 +71,31 @@ export class FrameName extends FrameAtom implements ISourced {
     this.source = source;
   }
 
-  /**
-   * A name binds to the innermost frame that declared itself a declaration
-   * target, and to the statement context when none did. Frames say whether they
-   * accept declarations; this no longer counts nested groups to guess.
-   *
-   * Why a target matched is reported too, because one name accepts only the
-   * frame under construction: see `in`.
-   */
-  private bindingTarget(
-    contexts: Frame[],
-  ): { out: Frame; via: "construction" | "handle" | "statement" } {
-    for (let i = contexts.length - 1; i >= 0; i--) {
-      const context = contexts[i];
-      if (context instanceof FrameHandle) {
-        return { out: context.unwrap(), via: "handle" };
-      }
-      if (context.declares) {
-        return { out: context, via: "construction" };
-      }
-    }
-    return { out: contexts[0], via: "statement" };
-  }
-
-  public override in(contexts = [Frame.nil]): Frame {
+  /** Resolves declarations through the scope's explicit write-target role. */
+  public override in(input: EvaluationInput = []): Frame {
+    const scope = EvaluationScope.from(input);
     // The empty name denotes the current iterator accumulator when supplied.
-    if (this.source === "" && contexts.length > 1) {
-      return contexts[1];
+    if (this.source === "" && scope.parameter) {
+      return scope.parameter;
     }
-    const { out, via } = this.bindingTarget(contexts);
+
     // Construction declares the new aggregate's parent. Method-position `.^`
     // instead re-parents the exact original-or-copy target authorized by the
     // bound method's declared effect and receiver handle mutability.
     if (
-      this.source === FrameName.PARENT_DECLARATION && via !== "construction"
+      this.source === FrameName.PARENT_DECLARATION &&
+      scope.writeTargetRole !== "construction"
     ) {
-      const receiverState = Frame.receiverStateIn(contexts);
-      if (!receiverState) {
+      if (!scope.receiverState) {
         return Frame.error(`$!.parent-not-declarable .${this.source}`);
       }
-      const target = authorizedReceiverWriteTarget(receiverState);
+      const target = authorizedReceiverWriteTarget(scope.receiverState);
       if (!target) {
         return Frame.error(`$!.method-not-mutating .${this.source}`);
       }
       return this.data.setter(target);
     }
-    return this.data.setter(out);
+    return this.data.setter(scope.writeTarget);
   }
 
   public override string_prefix(): string {

@@ -3,64 +3,109 @@ import { FrameList } from "./frame-list.ts";
 import { FrameName } from "./frame-name.ts";
 import { FrameSchema } from "./frame-schema.ts";
 import { FrameSymbol } from "./frame-symbol.ts";
-import { NilContext } from "./context.ts";
+import { type EvaluationInput, EvaluationScope } from "./evaluation-scope.ts";
+import { renderNested } from "./stringify.ts";
 
+/**
+ * A parsed expression: an ordered list of terms evaluated against a scope.
+ *
+ * Constructing one establishes no ancestry over its terms. Syntax containment
+ * is not lexical ancestry, and closure calls may evaluate these shared items
+ * repeatedly, so re-parenting them here would make one call's scope visible to
+ * the next (#329).
+ */
 export class FrameExpr extends FrameList {
-  constructor(data: Array<Frame>, meta = NilContext) {
-    super(data, meta);
-    data.forEach((item) => {
-      item.up = this;
-    });
+  public override in(input: EvaluationInput = []): Frame {
+    return this.asStatement(this.evaluate(input));
   }
 
-  public override in(contexts = [Frame.nil]): Frame {
-    const retrieval = this.schemaRetrieval(contexts);
-    if (retrieval) return this.asStatement(retrieval);
+  /** Evaluates this expression without exposing its statement wrapper. */
+  public evaluate(input: EvaluationInput = []): Frame {
+    const scope = EvaluationScope.from(input).withLayer(this);
+    const retrieval = this.schemaRetrieval(scope);
+    if (retrieval) return retrieval;
 
-    const definition = this.schemaDefinition(contexts);
-    if (definition) return this.asStatement(definition);
+    const definition = this.schemaDefinition(scope);
+    if (definition) return definition;
 
-    contexts.push(this);
-    const result = this.data.reduce((sum: Frame, item: Frame, index): Frame => {
-      const value = item.in(contexts);
-      if (index > 0 && value.is.operator === true) {
-        return value.called_by(sum, Frame.nil);
-      }
-      const next_sum = sum.call(value);
-      return next_sum;
-    }, Frame.nil);
+    return FrameExpr.evaluateTerms(this.data, scope);
+  }
 
-    return this.asStatement(result);
+  /**
+   * Evaluates a closure body, as a sequence when the source asked for one.
+   *
+   * `sequence` records that the author wrote `;` between terms, so intent comes
+   * from the parser rather than from inspecting flags on the body's children. A
+   * body assembled programmatically therefore stays one juxtaposed expression,
+   * which is what the Frame API has always meant by a multi-item body.
+   *
+   * A one-term body keeps its existing value and representation either way, so
+   * a trailing separator alone does not unwrap a single statement.
+   */
+  public static evaluateBody(
+    body: readonly Frame[],
+    input: EvaluationInput,
+    sequence = false,
+  ): Frame {
+    const scope = EvaluationScope.from(input);
+    if (body.length === 1 || !sequence) {
+      return FrameExpr.evaluateTerms(body, scope);
+    }
+
+    let result = Frame.nil;
+    for (const item of body) {
+      result = item instanceof FrameExpr
+        ? item.evaluate(scope)
+        : item.in(scope);
+      // A sequence stops at the first failing statement, because later
+      // statements were written to run after the earlier ones succeeded.
+      if (result.is.error) return result;
+    }
+    return result;
   }
 
   public override call(argument: Frame, parameter = Frame.nil): Frame {
-    return this.in([argument, parameter]);
+    return this.in(EvaluationScope.call(argument, parameter));
   }
 
   public override toStringDataArray(): string[] {
-    const body = this.data.map((obj: Frame) => obj.toString()).join(" ");
+    const body = this.data
+      .map((obj: Frame) => renderNested(obj, () => obj.toString()))
+      .join(" ");
     // Don't add separator here - let parent FrameList handle it
     return [body];
   }
 
-  private schemaRetrieval(contexts: Frame[]): Frame | undefined {
+  private static evaluateTerms(
+    terms: readonly Frame[],
+    scope: EvaluationScope,
+  ): Frame {
+    return terms.reduce((sum: Frame, item: Frame, index): Frame => {
+      const value = item.in(scope);
+      if (index > 0 && value.is.operator === true) {
+        return value.called_by(sum, Frame.nil);
+      }
+      return sum.call(value);
+    }, Frame.nil);
+  }
+
+  private schemaRetrieval(scope: EvaluationScope): Frame | undefined {
     if (
       this.data.length !== 2 || !(this.data[0] instanceof FrameSymbol) ||
       !(this.data[1] instanceof FrameName) || this.data[1].source !== "<>"
     ) return undefined;
-    return this.data[0].bindingSchema(contexts);
+    return this.data[0].bindingSchema(scope);
   }
 
-  private schemaDefinition(contexts: Frame[]): Frame | undefined {
+  private schemaDefinition(scope: EvaluationScope): Frame | undefined {
     if (!this.is.statement || this.data.length !== 2) return undefined;
     const name = unwrapSingleton(this.data[0]);
     const schema = unwrapSingleton(this.data[1]);
     if (!(name instanceof FrameName) || !(schema instanceof FrameSchema)) {
       return undefined;
     }
-    const scoped = [...contexts, this];
-    const setter = name.in(scoped);
-    const value = schema.in(scoped);
+    const setter = name.in(scope);
+    const value = schema.in(scope);
     if (!(setter instanceof FrameSymbol) || !(value instanceof FrameSchema)) {
       return Frame.error("$!.unsupported-schema-definition");
     }

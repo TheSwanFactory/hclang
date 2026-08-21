@@ -825,6 +825,75 @@ describe("evaluate", () => {
         expect(result.toString()).toEqual("[“BabyBabyBaby”]");
       });
 
+      it("returns the last statement while preserving one-statement results", () => {
+        const two = evaluate(".two {1; 2}").meta.two as frame.FrameLazy;
+        const setup = evaluate(".h {.k {7}; k()}").meta.h as frame.FrameLazy;
+        const one = evaluate(".one {1;}").meta.one as frame.FrameLazy;
+
+        expect(two.call(frame.Frame.nil).toString()).toEqual("2");
+        expect(setup.call(frame.Frame.nil).toString()).toEqual("7");
+        expect(one.call(frame.Frame.nil).toString()).toEqual("(1)");
+      });
+
+      it("sequences only a body the source separated with `;`", () => {
+        // The parser records the separator, so intent distinguishes the two
+        // cases: an assembled body is one juxtaposed expression as before,
+        // even though its items happen to carry the statement flag.
+        const parsed = evaluate(".seq {1; 2}").meta.seq as frame.FrameLazy;
+        expect(parsed.is.sequence).toBe(true);
+        expect(parsed.call(frame.Frame.nil).toString()).toEqual("2");
+
+        const first = new frame.FrameExpr([new frame.FrameNumber("1")]);
+        const second = new frame.FrameExpr([new frame.FrameNumber("2")]);
+        first.is.statement = true;
+        second.is.statement = true;
+        const assembled = new frame.FrameLazy([first, second]);
+
+        expect(assembled.is.sequence).toBeUndefined();
+        expect(assembled.call(frame.Frame.nil).toString()).toEqual("(1)");
+      });
+
+      it("stops a sequenced body at its first failing statement", () => {
+        // Later statements were written to run after the earlier ones
+        // succeeded, so a sequence short-circuits where juxtaposition does not.
+        const halted = evaluate(".f {.Fixed 1; .Fixed 2; 42}; f()");
+        expect(halted.at(0).asArray().at(-1)?.toString())
+          .toContain("$is-constant .Fixed");
+      });
+
+      it("declares the argument under a name instead of into it", () => {
+        // A closure's write target is its own call frame, so naming the
+        // argument binds it here rather than setting a key on the argument to
+        // the argument itself. That was the source of the #337 self-cycle.
+        const cases: Array<[string, string]> = [
+          [".helper {.target _}; helper(1)", ".target 1"],
+          ["{.target _}(1)", ".target 1"],
+          [".helper {.target _}; helper([1])", ".target [1]"],
+          ["{.target _}([1])", ".target [1]"],
+          [".helper {.target _; target}; helper(1)", "1"],
+          [".helper {.target [_]}; helper([1])", ".target [[1]]"],
+        ];
+
+        for (const [source, expected] of cases) {
+          expect(evaluate(source).at(0).asArray().at(-1)?.toString())
+            .toEqual(expected);
+        }
+      });
+
+      it("binds a captured argument per call without cross-talk", () => {
+        const source = ".mk {.v _; {v}}; [mk(1)(), mk(2)(), mk(1)()]";
+        expect(evaluate(source).at(0).asArray().at(-1)?.toString())
+          .toEqual("[1, 2, 1]");
+      });
+
+      it("uses the lexical construction target for _^", () => {
+        const result = evaluate(
+          ".owner [.x 1; .read {_^.x}]; owner.read()",
+        );
+
+        expect(result.at(0).asArray().at(-1)?.toString()).toEqual("1");
+      });
+
       it("implicitly accesses properties from the argument", () => {
         const result = evaluate("{x + y} (.x 3; .y 4;)");
         expect(result.toString()).toEqual("[7]");
@@ -880,9 +949,9 @@ describe("evaluate", () => {
         parent.set("value", new frame.FrameNumber("5"));
 
         const closure = new frame.FrameLazy([expr], parent.meta);
-        closure.in([parent]);
+        const bound = closure.in([parent]);
 
-        const result = closure.call(new frame.FrameNumber("1"));
+        const result = bound.call(new frame.FrameNumber("1"));
         expect(result.toString()).toEqual("5");
       });
 

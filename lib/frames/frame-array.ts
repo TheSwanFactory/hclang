@@ -3,6 +3,7 @@ import { FrameList } from "./frame-list.ts";
 import { FrameNote } from "./frame-note.ts";
 import type { MetaFrame } from "./meta-frame.ts";
 import { NilContext } from "./context.ts";
+import type { EvaluationInput } from "./evaluation-scope.ts";
 import type { SigilStart } from "../scan.ts";
 
 export class FrameArray extends FrameList {
@@ -25,7 +26,7 @@ export class FrameArray extends FrameList {
     return FrameArray.END_ARRAY;
   }
 
-  public override in(contexts: Array<Frame> = [Frame.nil]): Frame {
+  public override in(input: EvaluationInput = []): Frame {
     const result = new FrameArray([...this.data], this.meta_copy());
     // A declared parent is carried in its own field, so propagation is a copy
     // of that field rather than a flag dance over the lexical pointer.
@@ -39,7 +40,7 @@ export class FrameArray extends FrameList {
     // does not make it absorb declarations.
     result.declares = true;
     try {
-      result.data = this.array_eval(contexts, result);
+      result.data = this.array_eval(input, result);
     } finally {
       result.declares = false;
     }

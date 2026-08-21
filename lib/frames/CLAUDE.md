@@ -378,8 +378,14 @@ const arr = frame.toStringArray();
 
 ### Context
 
-The [context.ts](context.ts) module manages variable bindings during evaluation.
-Context is itself a Frame (FrameBlob), making the environment first-class.
+The public `Context` map supplies initial bindings. Runtime evaluation uses an
+immutable `EvaluationScope` with named argument, parameter, receiver, and
+write-target roles plus an enclosing-scope link. Syntax derives scopes rather
+than pushing positional frames, and closure literals capture a per-evaluation
+scope without rewriting shared closure or body ancestry.
+
+Context bindings remain homoiconic Frames and are created with `make_context`
+when entering through the public evaluator.
 
 ### Meta-Programming
 

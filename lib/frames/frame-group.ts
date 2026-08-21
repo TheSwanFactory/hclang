@@ -1,6 +1,7 @@
 import { Frame } from "./frame.ts";
 import { FrameList } from "./frame-list.ts";
 import { NilContext } from "./context.ts";
+import { type EvaluationInput, EvaluationScope } from "./evaluation-scope.ts";
 import type { SigilStart } from "../scan.ts";
 
 export class FrameGroup extends FrameList {
@@ -12,10 +13,15 @@ export class FrameGroup extends FrameList {
     super(data, meta);
   }
 
-  public eval_one(contexts = [Frame.nil]): Frame {
-    const scoped = [...contexts, this];
+  private scoped(input: EvaluationInput): EvaluationScope {
+    const scope = EvaluationScope.from(input).withLayer(this);
+    return this.declares ? scope.withWriteTarget(this, "construction") : scope;
+  }
+
+  public eval_one(input: EvaluationInput = []): Frame {
+    const scope = this.scoped(input);
     const expr = this.data[0];
-    const result = expr.in(scoped);
+    const result = expr.in(scope);
 
     const symbols = this.meta_pairs();
     symbols.forEach(([key, value]) => {
@@ -24,17 +30,17 @@ export class FrameGroup extends FrameList {
     return result;
   }
 
-  public override in(contexts = [Frame.nil]): Frame {
+  public override in(input: EvaluationInput = []): Frame {
     switch (this.size()) {
       case 0: {
         return Frame.nil;
       }
       case 1: {
-        return this.eval_one(contexts);
+        return this.eval_one(input);
       }
     }
-    const scoped = [...contexts, this];
-    this.data = this.data.map((f: Frame) => f.in([...scoped]));
+    const scope = this.scoped(input);
+    this.data = this.data.map((frame: Frame) => frame.in(scope));
     return this;
   }
 }

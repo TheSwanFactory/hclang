@@ -179,6 +179,44 @@ square 3
 mag (.x 1; .y 2;)
 ```
 
+A closure body evaluates semicolon-separated statements in source order and
+returns the value of its last statement. For example, `{1; 2}` returns `2`.
+Declarations made by an earlier statement remain available to later statements
+in the same call, so `{.k {7}; k()}` returns `7`. A body containing only one
+statement retains its existing value and representation. A statement that fails
+ends the sequence, so the statements after it do not run.
+
+### Declaration Scope in a Call
+
+A closure declares into a frame belonging to the call, not into the argument it
+was given. The argument is read-only for the duration of the call:
+
+```hc
+.f {.x _; x}
+f 3
+# 3 — `x` names the argument here; the argument itself is unchanged
+```
+
+Those declarations live only for that call. They are visible to later statements
+in the same body, and they are gone once the call returns, because the body's
+value is its last statement rather than the frame it declared into:
+
+```hc
+.broken {.a 1; .b 2;}
+.o broken()
+# `o` is the last statement, so `o.a` is missing
+```
+
+To return something with reachable properties, construct and return an
+aggregate. This is the idiom for object factories and classes:
+
+```hc
+.Point {[.X _; .getX {X}]}
+.first (Point 3)
+first.getX()
+# 3
+```
+
 ### Method Calls
 
 ```grammar
@@ -192,7 +230,7 @@ parent_.helper: 10
 
 - Everything inherits its current scope (closure-like)
 - Lazy expressions inherit scope when evaluated
-- Can be used as object factories
+- Used as object factories by returning an aggregate, as in `{[.X _;]}`
 
 ### Context References
 
@@ -286,17 +324,17 @@ parent_.helper: 10
 # Reduce operation
 [1, 2, 3] & {. + _}
 
-# Class definition
+# Class definition: a closure returning a fresh aggregate
 .my-class {
-  ._property _;
-  .getProperty {property}
-  .setProperty: {@property _;}
+  [._property _;
+   .getProperty {property}
+   .setProperty: {@property _;}]
 }
 
 # Inheritance, declaring the parent
 .my-subclass {
-  .^ my-class;
-  .describe {property}
+  [.^ my-class;
+   .describe {property}]
 }
 
 # Method call with mutating method

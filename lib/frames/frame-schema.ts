@@ -8,6 +8,7 @@ import {
   type SchemaMatcher,
 } from "./schema-matcher.ts";
 import { NilContext } from "./context.ts";
+import type { EvaluationInput } from "./evaluation-scope.ts";
 import type { SigilStart } from "../scan.ts";
 
 export class FrameSchema extends FrameList implements FrameMatcher {
@@ -37,12 +38,12 @@ export class FrameSchema extends FrameList implements FrameMatcher {
     return FrameSchema.END_SCHEMA;
   }
 
-  public override in(contexts = [Frame.nil]): Frame {
+  public override in(input: EvaluationInput = []): Frame {
     const matcher = compileSchemaMatcher(this.data);
     if (matcher) {
       return new FrameSchema([...this.data], NilContext, matcher);
     }
-    const array = this.array_eval(contexts);
+    const array = this.array_eval(input);
     return new FrameSchema(array);
   }
 
