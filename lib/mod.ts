@@ -7,9 +7,12 @@ export {
   type Context,
   contextEqual,
   contextString,
+  type EvaluationInput,
+  EvaluationScope,
   type Flags,
   Frame,
   type IKeyValuePair,
   MetaFrame,
   type StringMap,
+  type WriteTargetRole,
 } from "./frames.ts";

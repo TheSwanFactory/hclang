@@ -4,6 +4,17 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.10.3 2026-08-20
+
+- Give every evaluation named argument, parameter, receiver, and write-target
+  roles, so repeated or interleaved closure calls preserve their captured scope
+  without re-parenting shared closures or body items (#327, #329).
+- Return the last statement from a closure body, keeping declarations from
+  earlier statements available through the rest of that call (#323).
+- Reject closure bindings that would point an argument directly to itself,
+  returning an HC error instead of overflowing the host stack during
+  stringification (#337).
+
 ## v0.10.2 2026-08-19
 
 - Make `.^` the only parent-declaration spelling; old `._^` input follows

@@ -825,6 +825,39 @@ describe("evaluate", () => {
         expect(result.toString()).toEqual("[“BabyBabyBaby”]");
       });
 
+      it("returns the last statement while preserving one-statement results", () => {
+        const two = evaluate(".two {1; 2}").meta.two as frame.FrameLazy;
+        const setup = evaluate(".h {.k {7}; k()}").meta.h as frame.FrameLazy;
+        const one = evaluate(".one {1;}").meta.one as frame.FrameLazy;
+
+        expect(two.call(frame.Frame.nil).toString()).toEqual("2");
+        expect(setup.call(frame.Frame.nil).toString()).toEqual("7");
+        expect(one.call(frame.Frame.nil).toString()).toEqual("(1)");
+      });
+
+      it("reports closure self-binding without a host stack overflow", () => {
+        const sources = [
+          ".helper {.target _}; helper(1)",
+          "{.target _}(1)",
+          ".helper {.target _}; helper([1])",
+          "{.target _}([1])",
+        ];
+
+        for (const source of sources) {
+          expect(evaluate(source).toString()).toContain(
+            "$!.cyclic-binding .target",
+          );
+        }
+      });
+
+      it("uses the lexical construction target for _^", () => {
+        const result = evaluate(
+          ".owner [.x 1; .read {_^.x}]; owner.read()",
+        );
+
+        expect(result.at(0).asArray().at(-1)?.toString()).toEqual("1");
+      });
+
       it("implicitly accesses properties from the argument", () => {
         const result = evaluate("{x + y} (.x 3; .y 4;)");
         expect(result.toString()).toEqual("[7]");
@@ -880,9 +913,9 @@ describe("evaluate", () => {
         parent.set("value", new frame.FrameNumber("5"));
 
         const closure = new frame.FrameLazy([expr], parent.meta);
-        closure.in([parent]);
+        const bound = closure.in([parent]);
 
-        const result = closure.call(new frame.FrameNumber("1"));
+        const result = bound.call(new frame.FrameNumber("1"));
         expect(result.toString()).toEqual("5");
       });
 

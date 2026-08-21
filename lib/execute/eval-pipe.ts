@@ -1,4 +1,4 @@
-import { type Context, Frame, NilContext } from "../frames.ts";
+import { type Context, EvaluationScope, Frame, NilContext } from "../frames.ts";
 
 export class EvalPipe extends Frame {
   constructor(out: Frame, meta: Context = NilContext) {
@@ -9,7 +9,7 @@ export class EvalPipe extends Frame {
 
   public override apply(expr: Frame, context: Frame): Frame {
     const out = this.get(Frame.kOUT);
-    const result = expr.in([out, context]);
+    const result = expr.in(EvaluationScope.root(out, context));
     out.apply(result, context);
     return result;
   }

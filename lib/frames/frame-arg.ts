@@ -1,20 +1,14 @@
 import { Frame } from "./frame.ts";
 import { FrameNote } from "./frame-note.ts";
-import { FrameLazy } from "./frame-lazy.ts";
 import { FrameSymbol } from "./frame-symbol.ts";
 import { type Context, NilContext } from "./context.ts";
+import { type EvaluationInput, EvaluationScope } from "./evaluation-scope.ts";
 import {
   type AtomSyntax,
   ScanDisposition,
   type ScanResult,
   type SigilStart,
 } from "../scan.ts";
-
-const findClosure = (contexts: Frame[]): FrameLazy | undefined => {
-  return contexts.find((context) => context instanceof FrameLazy) as
-    | FrameLazy
-    | undefined;
-};
 
 /** An underscore run denotes a level; a trailing suffix names the argument. */
 const completeArg = (source: string): FrameArg =>
@@ -96,26 +90,18 @@ export class FrameArg extends FrameSymbol {
     return FrameArg.ARG_CHAR;
   }
 
-  public override in(contexts = [Frame.nil]): Frame {
+  public override in(input: EvaluationInput = []): Frame {
+    const scope = EvaluationScope.from(input);
     const level = this.data.length;
-    if (level <= 1) {
-      return contexts[0];
-    }
+    const target = scope.argumentAt(level);
+    if (target) return target;
 
-    const closure = findClosure(contexts);
-    if (!closure) {
-      // When no closure, decrement the level
-      return FrameArg.level(level - 1);
-    }
-
-    let target: Frame | undefined = closure;
-    for (let i = 1; i < level; i++) {
-      target = target?.up;
-      if (!target) {
-        return FrameNote.key(this.data, this);
-      }
-    }
-    return target;
+    // Outside a closure, an unresolved level remains an argument expression at
+    // the next shallower level. Inside a closure, the requested scope is truly
+    // missing and is reported as such.
+    return scope.enclosing
+      ? FrameNote.key(this.data, this)
+      : FrameArg.level(level - 1);
   }
 }
 
@@ -143,30 +129,9 @@ export class FrameParam extends FrameSymbol {
         super(data)
     } */
 
-  public override in(contexts = [Frame.nil]): Frame {
-    const level = this.data.length - 1; // number of ^
-
-    // Parameters are stored in the contexts array
-    // contexts[0] is the argument, contexts[1] is the parameter
-    const paramIndex = level;
-    if (paramIndex < contexts.length && contexts[paramIndex] !== Frame.nil) {
-      return contexts[paramIndex];
-    }
-
-    // A nil parameter is the placeholder used for an ordinary closure call.
-    // In that case, walk up the captured scope instead.
-    const closure = findClosure(contexts);
-    if (!closure) {
-      return FrameNote.key(this.data, this);
-    }
-
-    let target: Frame | undefined = closure;
-    for (let i = 0; i < level; i++) {
-      target = target?.up;
-      if (!target) {
-        return FrameNote.key(this.data, this);
-      }
-    }
-    return target;
+  public override in(input: EvaluationInput = []): Frame {
+    const level = this.data.length - 1;
+    return EvaluationScope.from(input).parameterAt(level) ??
+      FrameNote.key(this.data, this);
   }
 }

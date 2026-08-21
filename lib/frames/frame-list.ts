@@ -1,5 +1,6 @@
 import { Frame } from "./frame.ts";
 import { type Context, NilContext } from "./context.ts";
+import { type EvaluationInput, EvaluationScope } from "./evaluation-scope.ts";
 
 /**
  * The `IArrayConstructor` interface defines a constructor for creating
@@ -91,10 +92,13 @@ export class FrameList extends Frame {
 
   /** Evaluate source items with an explicit innermost declaration target. */
   protected array_eval(
-    contexts: Array<Frame>,
+    input: EvaluationInput,
     out: Frame = this,
   ): Array<Frame> {
-    const scoped = [...contexts, out];
-    return this.data.map((frame) => frame.in(scoped));
+    const scope = EvaluationScope.from(input).withWriteTarget(
+      out,
+      "construction",
+    );
+    return this.data.map((frame) => frame.in(scope));
   }
 }

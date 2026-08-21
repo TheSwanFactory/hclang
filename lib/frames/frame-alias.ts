@@ -4,6 +4,7 @@ import { FrameNote } from "./frame-note.ts";
 import { FrameLazy } from "./frame-lazy.ts";
 import { FrameSymbol } from "./frame-symbol.ts";
 import { NilContext } from "./context.ts";
+import { type EvaluationInput, EvaluationScope } from "./evaluation-scope.ts";
 import { completeAtEnd, includeOrEnd } from "./atom-syntax.ts";
 import { authorizedReceiverWriteTarget } from "./bound-method.ts";
 import type { AtomSyntax, ScanResult, SigilStart } from "../scan.ts";
@@ -33,18 +34,18 @@ export class FrameAlias extends FrameAtom {
     this.data = FrameSymbol.for(source);
   }
 
-  public override in(contexts: Frame[] = [Frame.nil]): Frame {
+  public override in(input: EvaluationInput = []): Frame {
+    const scope = EvaluationScope.from(input);
     const key = this.data.toString();
-    const receiverState = Frame.receiverStateIn(contexts);
+    const receiverState = scope.receiverState;
     const receiver = receiverState?.receiver;
-    const origin = receiver ??
-      contexts.find((context) => context instanceof FrameLazy) ??
-      contexts[0];
+    const origin = receiver ?? scope.closure ??
+      scope.lookupFrames().find((context) => context instanceof FrameLazy) ??
+      scope.argument;
 
     // Receiver and declared-parent hits are writes to object state, so they
-    // require the method capability. A miss retains the historical lexical
-    // alias behavior, but searches only the receiver's enclosing scope: the
-    // prepared argument and parameter are never alias-write targets.
+    // require the method capability. A miss searches the closure's captured
+    // lexical scope, never caller-owned argument or parameter values.
     const receiverFound = receiver
       ? this.find(receiver, key, origin, new Set(), false)
       : undefined;
@@ -60,15 +61,13 @@ export class FrameAlias extends FrameAtom {
 
     if (receiver) {
       const lexicalFound = this.find(receiver.up, key, origin);
-      if (lexicalFound instanceof Frame) {
-        return lexicalFound;
-      }
+      if (lexicalFound instanceof Frame) return lexicalFound;
       return lexicalFound
         ? this.setterFor(lexicalFound, key, receiverState?.copyOnWrite)
         : FrameNote.key(key, this);
     }
 
-    for (const context of contexts) {
+    for (const context of scope.lookupFrames()) {
       const found = this.find(context, key, origin);
       if (found instanceof Frame) {
         return found;

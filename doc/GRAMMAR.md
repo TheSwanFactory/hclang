@@ -179,6 +179,12 @@ square 3
 mag (.x 1; .y 2;)
 ```
 
+A closure body evaluates semicolon-separated statements in source order and
+returns the value of its last statement. For example, `{1; 2}` returns `2`.
+Declarations made by an earlier statement remain available to later statements
+in the same call, so `{.k {7}; k()}` returns `7`. A body containing only one
+statement retains its existing value and representation.
+
 ### Method Calls
 
 ```grammar

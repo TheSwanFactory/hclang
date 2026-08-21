@@ -4,10 +4,13 @@ import { FrameGroup } from "./frame-group.ts";
 import { FrameSymbol } from "./frame-symbol.ts";
 import { type Context, NilContext } from "./context.ts";
 import type { ReceiverState } from "./bound-method.ts";
+import { type EvaluationInput, EvaluationScope } from "./evaluation-scope.ts";
 import type { SigilStart } from "../scan.ts";
 
-// This records provenance, not authority: only a per-evaluation literal copy
-// can be associated with the invocation in which it was produced.
+// Both maps describe per-evaluation bound copies. The parsed/shared closure is
+// never a key, so evaluating one template in two scopes cannot rebind either
+// result or mutate the template's lexical ancestry.
+const capturedScopes = new WeakMap<FrameLazy, EvaluationScope>();
 const inlineCallbackReceiverStates = new WeakMap<FrameLazy, ReceiverState>();
 
 export class FrameLazy extends FrameExpr {
@@ -40,18 +43,13 @@ export class FrameLazy extends FrameExpr {
   }
 
   public override toStringArray(): string[] {
-    // Closures should not display their captured environment metadata
-    // Only show the closure body, not the context it was created in
+    // Closures display their body, never the environment they captured.
     const result = this.toStringDataArray();
-    // Note: We deliberately skip adding meta_string() here
-    // unlike the base FrameList implementation
-
-    // Strip the trailing comma from the last element
     if (result.length > 0) {
-      const n = result.length - 1;
-      const last = result[n];
+      const index = result.length - 1;
+      const last = result[index];
       if (last.endsWith(",")) {
-        result[n] = last.substring(0, last.length - 1);
+        result[index] = last.substring(0, last.length - 1);
       }
     }
     return result;
@@ -65,27 +63,27 @@ export class FrameLazy extends FrameExpr {
       return obj.toString();
     };
     const parts = this.data.map(stringify);
-    // Closures always use space separators, not commas
     const body = parts.join(" ").trim();
-    // Add padding spaces around non-empty body
     const display = body.length > 0 ? ` ${body} ` : body;
     return [display + ","];
   }
 
-  public override in(contexts: Array<Frame> = [Frame.nil]): Frame {
-    const context = contexts[0] ?? Frame.nil;
-    const receiverState = Frame.receiverStateIn(contexts);
-    if (!receiverState) {
-      this.up = context;
-      return this;
-    }
+  /** Binds a reusable closure template to one immutable evaluation scope. */
+  public bind(input: EvaluationInput): FrameLazy {
+    if (capturedScopes.has(this)) return this;
 
-    // Mark only a per-evaluation copy. The parsed/shared closure must never
-    // retain one invocation's callback provenance into another call.
-    const callback = this.copy();
-    callback.up = context;
-    inlineCallbackReceiverStates.set(callback, receiverState);
-    return callback;
+    const scope = EvaluationScope.from(input);
+    const bound = this.copy();
+    bound.up = scope.lexicalTarget;
+    capturedScopes.set(bound, scope);
+    if (scope.receiverState) {
+      inlineCallbackReceiverStates.set(bound, scope.receiverState);
+    }
+    return bound;
+  }
+
+  public override in(input: EvaluationInput = []): Frame {
+    return this.bind(input);
   }
 
   /** Returns state only when this literal was evaluated in that invocation. */
@@ -97,10 +95,10 @@ export class FrameLazy extends FrameExpr {
       : undefined;
   }
 
-  /** Evaluates this closure with an optional bound receiver capability. */
+  /** Evaluates this closure with optional bound receiver capability. */
   public override call(
     argument: Frame,
-    _parameter: Frame = Frame.nil,
+    parameter: Frame = Frame.nil,
     receiverState?: ReceiverState,
   ): Frame {
     if (this.data.length === 0) {
@@ -111,33 +109,27 @@ export class FrameLazy extends FrameExpr {
     }
 
     const prepared = this.prepareArgument(argument);
-    if (prepared.is.error) {
-      return prepared;
-    }
+    if (prepared.is.error) return prepared;
 
-    // Argument and closure are explicit evaluation contexts. Keeping this
-    // metadata local lets lookup reach the closure's live parent chain.
-    const expr = new FrameExpr(this.data);
-    expr.up = this;
-    // Receiver state is one typed per-call capability, so repeated calls cannot
-    // leak read access, write authority, or copy bounds through this closure.
-    expr.receiverState = receiverState;
-    // It is also an explicit lookup layer, and it is consulted ahead of this
-    // closure: a method's own fields shadow the scope the body was defined in.
-    // Bodies are shared between instances, and a shared body's captured scope
-    // is whichever instance was built last, so consulting it first would read
-    // another instance's fields.
-    const receiver = receiverState?.receiver;
-    const scope = receiver
-      ? [prepared, _parameter, receiver, this]
-      : [prepared, _parameter, this];
-    return expr.in(scope);
+    const enclosing = capturedScopes.get(this) ?? this.legacyCapture();
+    const scope = EvaluationScope.call(
+      prepared,
+      parameter,
+      this,
+      enclosing,
+      receiverState,
+    );
+    return FrameExpr.evaluateBody(this.data, scope);
+  }
+
+  private legacyCapture(): EvaluationScope | undefined {
+    return this.up && !this.up.is.missing
+      ? EvaluationScope.root(this.up)
+      : undefined;
   }
 
   private prepareArgument(argument: Frame): Frame {
-    if (!this.signature) {
-      return argument;
-    }
+    if (!this.signature) return argument;
 
     const prepared = argument.copy();
     for (const [key, defaultValue] of this.signature.meta_pairs()) {
@@ -150,9 +142,7 @@ export class FrameLazy extends FrameExpr {
       .filter((item) => item instanceof FrameSymbol)
       .map((item) => item.toString())
       .filter((key) => prepared.get_here(key).is.missing);
-    if (missing.length === 0) {
-      return prepared;
-    }
+    if (missing.length === 0) return prepared;
 
     const supplied = argument.meta_pairs().map(([key, value]) =>
       `.${key} ${value.toString()}`

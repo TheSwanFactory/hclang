@@ -28,19 +28,48 @@ describe("FrameLazy", () => {
   });
 
   it("retains a live parent context and stays lazy until called", () => {
-    const result = lazy.in([context]);
+    const result = lazy.in([context]) as frame.FrameLazy;
 
-    expect(result).toBe(lazy);
-    expect(lazy.get("speed")).toEqual(slow);
-    expect(lazy.get("gap")).toEqual(space);
+    expect(result).not.toBe(lazy);
+    expect(lazy.up).toBe(frame.Frame.missing);
+    expect(result.get("speed")).toEqual(slow);
+    expect(result.get("gap")).toEqual(space);
     // Closures don't show captured metadata in toString
-    expect(lazy.toString()).toEqual("{ speed gap _ }");
+    expect(result.toString()).toEqual("{ speed gap _ }");
     // Own metadata remains inspectable; inherited metadata is not copied.
-    expect(lazy.inspect()).toContain(".speed");
-    expect(lazy.meta.gap).toBeUndefined();
-    expect(lazy.call(turtle).toString()).toEqual("\u201cslow turtle\u201d");
+    expect(result.inspect()).toContain(".speed");
+    expect(result.meta.gap).toBeUndefined();
+    expect(result.call(turtle).toString()).toEqual("\u201cslow turtle\u201d");
     context.set("gap", new frame.FrameString("-"));
-    expect(lazy.call(turtle).toString()).toEqual("“slow-turtle”");
+    expect(result.call(turtle).toString()).toEqual("“slow-turtle”");
+  });
+
+  it("keeps captures and shared body ancestry stable across calls", () => {
+    const symbol = new frame.FrameSymbol("captured");
+    const body = new frame.FrameExpr([symbol]);
+    const syntaxParent = new frame.FrameString("syntax parent");
+    body.up = syntaxParent;
+    symbol.up = syntaxParent;
+
+    const template = new frame.FrameLazy([body]);
+    const firstScope = new frame.Frame({
+      captured: new frame.FrameNumber("1"),
+    });
+    const secondScope = new frame.Frame({
+      captured: new frame.FrameNumber("2"),
+    });
+    const first = template.in([firstScope]) as frame.FrameLazy;
+    const second = template.in([secondScope]) as frame.FrameLazy;
+
+    expect([
+      first.call(frame.Frame.nil).toString(),
+      second.call(frame.Frame.nil).toString(),
+      first.call(frame.Frame.nil).toString(),
+    ]).toEqual(["1", "2", "1"]);
+    expect(first).not.toBe(second);
+    expect(template.up).toBe(frame.Frame.missing);
+    expect(body.up).toBe(syntaxParent);
+    expect(symbol.up).toBe(syntaxParent);
   });
 
   describe("Codify", () => {
@@ -51,8 +80,11 @@ describe("FrameLazy", () => {
       expect(codify.toString()).toEqual("{}");
     });
 
-    it("returns itself when Frame is nil", () => {
-      expect(codify.in([context])).toEqual(codify);
+    it("returns a bound copy when evaluated", () => {
+      const bound = codify.in([context]);
+      expect(bound).toBeInstanceOf(frame.FrameLazy);
+      expect(bound).not.toBe(codify);
+      expect(codify.up).toBe(frame.Frame.missing);
     });
 
     it("converts Array to unevaluated Expr when called", () => {

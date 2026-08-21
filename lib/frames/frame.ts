@@ -4,6 +4,7 @@ import type { ICurryFunction } from "../ops.ts";
 import type { IArrayConstructor } from "../frames.ts";
 import type { ScanResponse } from "../scan.ts";
 import type { ReceiverState } from "./bound-method.ts";
+import type { EvaluationInput } from "./evaluation-scope.ts";
 
 /**
  * Flags map strings to booleans.
@@ -176,7 +177,7 @@ export class Frame extends MetaFrame {
    * @returns a Frame or Frame.nil
    */
 
-  public in(_contexts = [Frame.nil]): Frame {
+  public in(_scope: EvaluationInput = []): Frame {
     return this;
   }
 

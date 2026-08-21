@@ -4,37 +4,60 @@ import { FrameName } from "./frame-name.ts";
 import { FrameSchema } from "./frame-schema.ts";
 import { FrameSymbol } from "./frame-symbol.ts";
 import { NilContext } from "./context.ts";
+import { type EvaluationInput, EvaluationScope } from "./evaluation-scope.ts";
 
 export class FrameExpr extends FrameList {
   constructor(data: Array<Frame>, meta = NilContext) {
+    // Syntax containment is not lexical ancestry. In particular, closure calls
+    // may evaluate these shared items repeatedly without re-parenting them.
     super(data, meta);
-    data.forEach((item) => {
-      item.up = this;
-    });
   }
 
-  public override in(contexts = [Frame.nil]): Frame {
-    const retrieval = this.schemaRetrieval(contexts);
-    if (retrieval) return this.asStatement(retrieval);
+  public override in(input: EvaluationInput = []): Frame {
+    return this.asStatement(this.evaluate(input));
+  }
 
-    const definition = this.schemaDefinition(contexts);
-    if (definition) return this.asStatement(definition);
+  /** Evaluates this expression without exposing its statement wrapper. */
+  public evaluate(input: EvaluationInput = []): Frame {
+    const scope = EvaluationScope.from(input).withLayer(this);
+    const retrieval = this.schemaRetrieval(scope);
+    if (retrieval) return retrieval;
 
-    contexts.push(this);
-    const result = this.data.reduce((sum: Frame, item: Frame, index): Frame => {
-      const value = item.in(contexts);
-      if (index > 0 && value.is.operator === true) {
-        return value.called_by(sum, Frame.nil);
-      }
-      const next_sum = sum.call(value);
-      return next_sum;
-    }, Frame.nil);
+    const definition = this.schemaDefinition(scope);
+    if (definition) return definition;
 
-    return this.asStatement(result);
+    return FrameExpr.evaluateTerms(this.data, scope);
+  }
+
+  /**
+   * Evaluates a closure body as a sequence and returns its last statement.
+   * Without a statement separator, a programmatically constructed body remains
+   * one ordinary expression for compatibility with the Frame API.
+   */
+  public static evaluateBody(
+    body: readonly Frame[],
+    input: EvaluationInput,
+  ): Frame {
+    const scope = EvaluationScope.from(input);
+    if (
+      body.length === 1 ||
+      !body.some((item) => item.is.statement === true)
+    ) {
+      return FrameExpr.evaluateTerms(body, scope);
+    }
+
+    let result = Frame.nil;
+    for (const item of body) {
+      result = item instanceof FrameExpr
+        ? item.evaluate(scope)
+        : item.in(scope);
+      if (result.is.error) return result;
+    }
+    return result;
   }
 
   public override call(argument: Frame, parameter = Frame.nil): Frame {
-    return this.in([argument, parameter]);
+    return this.in(EvaluationScope.call(argument, parameter));
   }
 
   public override toStringDataArray(): string[] {
@@ -43,24 +66,36 @@ export class FrameExpr extends FrameList {
     return [body];
   }
 
-  private schemaRetrieval(contexts: Frame[]): Frame | undefined {
+  private static evaluateTerms(
+    terms: readonly Frame[],
+    scope: EvaluationScope,
+  ): Frame {
+    return terms.reduce((sum: Frame, item: Frame, index): Frame => {
+      const value = item.in(scope);
+      if (index > 0 && value.is.operator === true) {
+        return value.called_by(sum, Frame.nil);
+      }
+      return sum.call(value);
+    }, Frame.nil);
+  }
+
+  private schemaRetrieval(scope: EvaluationScope): Frame | undefined {
     if (
       this.data.length !== 2 || !(this.data[0] instanceof FrameSymbol) ||
       !(this.data[1] instanceof FrameName) || this.data[1].source !== "<>"
     ) return undefined;
-    return this.data[0].bindingSchema(contexts);
+    return this.data[0].bindingSchema(scope);
   }
 
-  private schemaDefinition(contexts: Frame[]): Frame | undefined {
+  private schemaDefinition(scope: EvaluationScope): Frame | undefined {
     if (!this.is.statement || this.data.length !== 2) return undefined;
     const name = unwrapSingleton(this.data[0]);
     const schema = unwrapSingleton(this.data[1]);
     if (!(name instanceof FrameName) || !(schema instanceof FrameSchema)) {
       return undefined;
     }
-    const scoped = [...contexts, this];
-    const setter = name.in(scoped);
-    const value = schema.in(scoped);
+    const setter = name.in(scope);
+    const value = schema.in(scope);
     if (!(setter instanceof FrameSymbol) || !(value instanceof FrameSchema)) {
       return Frame.error("$!.unsupported-schema-definition");
     }
