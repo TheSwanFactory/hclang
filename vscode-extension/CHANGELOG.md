@@ -8,8 +8,22 @@ this file.
 ### Changed
 
 - Highlight `$` as the current file or module namespace and `$$` as the explicit
-  host namespace, matching HC v0.11.2. Unsupported dollar runs such as `$word`,
-  `$$$`, and identifier suffixes are not highlighted as anchors, even partially.
+  host namespace, matching HC v0.11.2. An anchor is highlighted only where it
+  stands at a token boundary, so no part of a malformed run is painted as one.
+
+### Added
+
+- Mark every dollar spelling the HC lexer rejects as an error, rather than
+  leaving it unstyled: malformed runs such as `$word`, `$$$`, and `$$HOME`, and
+  anchors abutting an identifier such as `name$`, `1$`, `0b101$`, `@ctl$`,
+  `.set$`, `_$`, and `-$`. Diagnostic notes (`$!…;`, `$+…;`, `$<>…;`) and
+  boundary-legal anchors (`+$`, `<=$`, `@$`, `.$`, `.+$`, `_^$`) are unaffected.
+
+### Fixed
+
+- Ship the `.hc` file icon the manifest has always declared. `images/icon.png`
+  was referenced but never added, so the language contributed a path that
+  resolved to nothing and files fell back to the generic icon.
 
 ## [0.2.0] - 2026-08-21
 
