@@ -34,6 +34,14 @@ const lexAtoms = (source: string): Frame[] => {
   return expr.asArray();
 };
 
+const lexResult = (source: string): Frame => {
+  const output = new FrameArray([]);
+  const parser = new ParsePipe(output, FrameGroup);
+  const lexer = new LexPipe(parser);
+
+  return new FrameString(source).reduce(lexer);
+};
+
 const lexChunkedAtoms = (chunks: string[]): Frame[] => {
   const output = new FrameArray([]);
   const parser = new ParsePipe(output, FrameGroup);
@@ -66,6 +74,24 @@ describe("Lex", () => {
     expect(fileProperty.map(String)).toEqual(["$", ".value"]);
     expect(hostProperty.map(String)).toEqual(["$$", ".value"]);
   });
+
+  for (
+    const source of [
+      "identity$",
+      "identity$$",
+      "name$",
+      "name$$",
+      "name-$$",
+    ]
+  ) {
+    it(`rejects a dollar suffix on symbol ${source}`, () => {
+      const result = lexResult(source);
+
+      expect(result.is.lexical).toBe(true);
+      expect(result.is.error).toBe(true);
+      expect(result.toString()).toContain("invalid dollar form");
+    });
+  }
 
   it("lexes host anchors identically across every two-chunk split", () => {
     const source = "$$.value";

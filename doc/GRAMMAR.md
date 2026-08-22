@@ -82,7 +82,10 @@ expressed through:
 - **Controls**: `@control` (leading `@`)
 - **Scope anchors**: `$.property` reads the current file/module namespace;
   `$$.property` reads the host-supplied namespace. A bare `$` or `$$` is the
-  corresponding namespace reference.
+  corresponding namespace reference. Dollar-family forms must begin at a token
+  boundary: `$` is reserved and cannot immediately follow an identifier
+  continuation (`\w` or `-`), so `name$`, `name$$`, and `name-$$` are lexical
+  errors rather than symbol suffixes or adjacent anchors.
 
 ### Effect Typing (by case/suffix)
 

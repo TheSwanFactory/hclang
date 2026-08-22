@@ -42,7 +42,23 @@ describe("HCEval", () => {
     }
   });
 
-  for (const source of ["$foo", "1 + $foo", "$$$", "$<", "$<<", "$$HOME"]) {
+  for (
+    const source of [
+      "$foo",
+      "1 + $foo",
+      "$$$",
+      "$$$$",
+      "$foo$$",
+      "$<",
+      "$<<",
+      "$$HOME",
+      "identity$",
+      "identity$$",
+      "name$",
+      "name$$",
+      "name-$$",
+    ]
+  ) {
     it(`rejects unsupported dollar form ${source} without output`, () => {
       hc_eval.call(source);
 
@@ -52,7 +68,22 @@ describe("HCEval", () => {
     });
   }
 
-  for (const source of ["$foo", "$$$", "$<", "$<<", "$$HOME"]) {
+  for (
+    const source of [
+      "$foo",
+      "$$$",
+      "$$$$",
+      "$foo$$",
+      "$<",
+      "$<<",
+      "$$HOME",
+      "identity$",
+      "identity$$",
+      "name$",
+      "name$$",
+      "name-$$",
+    ]
+  ) {
     it(`rejects ${source} across every two-chunk split`, () => {
       for (let split = 1; split < source.length; split++) {
         const splitOut = new frame.FrameArray([]);

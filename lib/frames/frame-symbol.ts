@@ -50,8 +50,16 @@ export class FrameSymbol extends FrameAtom {
   public static readonly SYNTAX: AtomSyntax = {
     NAME: "FrameSymbol",
     SIGIL_STARTS: FrameSymbol.SIGIL_STARTS,
-    recognize: (symbol: Frame): ScanResult =>
-      includeOrEnd(FrameSymbol.SYMBOL_CHAR.test(symbol.toString())),
+    recognize: (symbol: Frame, source = ""): ScanResult => {
+      const char = symbol.toString();
+      if (char === "$") {
+        return {
+          disposition: ScanDisposition.Error,
+          message: `invalid dollar form: ${source}${char}`,
+        };
+      }
+      return includeOrEnd(FrameSymbol.SYMBOL_CHAR.test(char));
+    },
     finish: completeAtEnd,
     fromSource: (source: string): Frame => new FrameSymbol(source),
   };

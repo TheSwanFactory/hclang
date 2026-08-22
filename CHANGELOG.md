@@ -14,8 +14,9 @@
   (#349).
 - Give each CLI input file an isolated `$` namespace while retaining the same
   host-selected `$$` namespace across files (#349).
-- Reject unsupported forms such as `$word`, `$<`, and `$$$` as lexical errors
-  instead of consuming the rest of the expression (#349).
+- Reject unsupported forms such as `$word`, `$<`, and `$$$`, plus
+  identifier-adjacent forms such as `name$`, `name$$`, and `name-$$`, as lexical
+  errors instead of consuming or restarting the expression (#349).
 - Update the bundled VS Code grammar to distinguish `$` file anchors from `$$`
   host anchors, released as extension v0.2.1 (#349).
 
