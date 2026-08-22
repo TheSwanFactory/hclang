@@ -1,7 +1,7 @@
 import type { Frame } from "./frame.ts";
 import { FrameAtom } from "./frame-atom.ts";
 import { NilContext } from "./context.ts";
-import { completeAtEnd, includeOrEnd } from "./atom-syntax.ts";
+import { completeAtEnd, includeOrReserve } from "./atom-syntax.ts";
 import type { AtomSyntax, ScanResult, SigilStart } from "../scan.ts";
 
 export interface IRegexpMap {
@@ -38,15 +38,22 @@ export class FrameBlob extends FrameAtom {
     SIGIL_STARTS: FrameBlob.SIGIL_STARTS,
     recognize: (symbol: Frame, source = ""): ScanResult => {
       const char = symbol.toString();
+      // The leading zero is part of the lexeme, so it is also the character an
+      // adjacent anchor would abut when the body is still empty.
+      const lexeme = `${FrameBlob.BLOB_START}${source}`;
       // The leading zero admits a base sigil or a decimal digit.
       if (source === "") {
         const prefixes = Object.values(FrameBlob.BLOB_PREFIX);
-        return includeOrEnd(prefixes.includes(char) || /\d/.test(char));
+        return includeOrReserve(
+          char,
+          prefixes.includes(char) || /\d/.test(char),
+          lexeme,
+        );
       }
 
-      const base = FrameBlob.find_base(`0${source}`);
+      const base = FrameBlob.find_base(lexeme);
       const digits = base === 10 ? /\d/ : FrameBlob.BLOB_DIGITS[base];
-      return includeOrEnd(digits.test(char));
+      return includeOrReserve(char, digits.test(char), lexeme);
     },
     finish: completeAtEnd,
     fromSource: (source: string): Frame => new FrameBlob(source),

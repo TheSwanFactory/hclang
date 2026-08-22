@@ -84,8 +84,10 @@ expressed through:
   `$$.property` reads the host-supplied namespace. A bare `$` or `$$` is the
   corresponding namespace reference. Dollar-family forms must begin at a token
   boundary: `$` is reserved and cannot immediately follow an identifier
-  continuation (`\w` or `-`), so `name$`, `name$$`, and `name-$$` are lexical
-  errors rather than symbol suffixes or adjacent anchors.
+  continuation (`\w` or `-`), whatever family spelled it. So `name$`, `name-$$`,
+  `1$`, `0b101$`, `@ctl$`, `.set$`, and `_$` are lexical errors rather than
+  suffixes or adjacent anchors, while a sigil that is not itself an identifier
+  continuation still ends a token and leaves `@$`, `.$`, `.+$`, and `_^$` legal.
 
 ### Effect Typing (by case/suffix)
 

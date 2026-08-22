@@ -75,6 +75,9 @@ describe("Lex", () => {
     expect(hostProperty.map(String)).toEqual(["$$", ".value"]);
   });
 
+  // An anchor names an evaluation root only at a token boundary, so every
+  // family whose lexeme ends in `\w` or `-` refuses an adjacent dollar rather
+  // than splitting into a value and a bare anchor.
   for (
     const source of [
       "identity$",
@@ -82,9 +85,18 @@ describe("Lex", () => {
       "name$",
       "name$$",
       "name-$$",
+      "1$",
+      "123$$",
+      "0$",
+      "0b101$",
+      "0xff$$",
+      "@ctl$",
+      "@ctl$$",
+      ".set$",
+      ".set$$",
     ]
   ) {
-    it(`rejects a dollar suffix on symbol ${source}`, () => {
+    it(`rejects a dollar suffix on identifier ${source}`, () => {
       const result = lexResult(source);
 
       expect(result.is.lexical).toBe(true);
@@ -92,6 +104,27 @@ describe("Lex", () => {
       expect(result.toString()).toContain("invalid dollar form");
     });
   }
+
+  // A sigil that is not itself an identifier continuation still ends a token,
+  // so an anchor may follow it exactly as the highlighter's boundary allows.
+  for (
+    const source of [
+      "@$ ",
+      ".$ ",
+      ".+$ ",
+      ".^$ ",
+      "1 $ ",
+    ]
+  ) {
+    it(`admits a boundary-legal anchor in ${source.trim()}`, () => {
+      expect(lexResult(source).is.error).toBeFalsy();
+    });
+  }
+
+  it("separates an anchor from the sigil that precedes it", () => {
+    expect(lexAtoms("@$ ").map(String)).toEqual(["@", "$"]);
+    expect(lexAtoms(".+$ ").map(String)).toEqual([".+", "$"]);
+  });
 
   it("lexes host anchors identically across every two-chunk split", () => {
     const source = "$$.value";

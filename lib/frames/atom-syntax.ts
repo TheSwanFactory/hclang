@@ -24,6 +24,36 @@ export const includeOrEnd = (included: boolean): ScanResult => ({
     : ScanDisposition.CompleteRedispatch,
 });
 
+/** The sigil that opens a scope anchor, reserved at identifier boundaries. */
+const ANCHOR_SIGIL = "$";
+
+/** An identifier continuation, which an anchor may never abut. */
+const IDENTIFIER_CHAR = /[-\w]/;
+
+/**
+ * Continue a word-shaped atom, or refuse an anchor that would abut it.
+ *
+ * `$` and `$$` name an evaluation root only at a token boundary, so an anchor
+ * touching an identifier continuation is a lexical error rather than a silent
+ * split into two adjacent tokens. Every family whose lexeme can end in `\w` or
+ * `-` routes continuation through here, so `name$`, `1$`, `0b1$`, `@ctl$`, and
+ * `.set$` all fail alike while `@$`, `.$`, and `.+$` stay boundary-legal.
+ *
+ * `lexeme` is the spelling so far including any sigil the family consumed
+ * before its body, since that sigil can itself be the preceding character.
+ */
+export const includeOrReserve = (
+  char: string,
+  included: boolean,
+  lexeme: string,
+): ScanResult =>
+  char === ANCHOR_SIGIL && IDENTIFIER_CHAR.test(lexeme.slice(-1))
+    ? {
+      disposition: ScanDisposition.Error,
+      message: `invalid dollar form: ${lexeme}${char}`,
+    }
+    : includeOrEnd(included);
+
 /** End-of-input rule for an atom that ends wherever the source ends. */
 export const completeAtEnd = (): ScanResult => ({
   disposition: ScanDisposition.CompleteRedispatch,

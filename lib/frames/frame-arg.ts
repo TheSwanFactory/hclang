@@ -3,6 +3,7 @@ import { FrameNote } from "./frame-note.ts";
 import { FrameSymbol } from "./frame-symbol.ts";
 import { type Context, NilContext } from "./context.ts";
 import { type EvaluationInput, EvaluationScope } from "./evaluation-scope.ts";
+import { includeOrReserve } from "./atom-syntax.ts";
 import {
   type AtomSyntax,
   ScanDisposition,
@@ -33,6 +34,16 @@ export class FrameArg extends FrameSymbol {
     SIGIL_STARTS: FrameArg.SIGIL_STARTS,
     recognize: (symbol: Frame, source = ""): ScanResult => {
       const char = symbol.toString();
+
+      // An underscore is an identifier continuation, so an anchor abutting the
+      // run is reserved just as it is after any other word-shaped atom. A
+      // caret ends the lexeme without being one, so `_^$` stays legal.
+      const reserved = includeOrReserve(
+        char,
+        false,
+        `${FrameArg.ARG_CHAR}${source}`,
+      );
+      if (reserved.disposition === ScanDisposition.Error) return reserved;
 
       // A caret immediately after the selecting `_` changes this lexeme from
       // an argument to a parameter. The source buffer carries the whole level,

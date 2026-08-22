@@ -71,6 +71,16 @@
           "name": "variable.language.file-scope.hclang",
           "match": "(?<![$\\w-])\\$(?![$!+\\-~=><\\w-])",
           "comment": "Current file or module namespace anchor"
+        },
+        {
+          "name": "invalid.illegal.dollar-form.hclang",
+          "match": "(?<![$\\w-])(?!\\$\\$?(?![$\\w-])|\\$-)\\$[$\\w-]*(?![$\\w-])",
+          "comment": "Malformed dollar run: any $-led token that is neither $ nor $$, such as $$$, $foo, or $$HOME. A diagnostic note ends the run at its own prefix, and $- is exempted because a hyphen is the one note prefix that continues a token"
+        },
+        {
+          "name": "invalid.illegal.dollar-suffix.hclang",
+          "match": "(?<![$\\w-])[.@]?[\\w-]+\\$[$\\w-]*",
+          "comment": "Anchor abutting an identifier, such as name$, 1$, 0b101$, @ctl$, or .set$. The lexer reserves $ at every identifier boundary, so these are errors rather than a value followed by an anchor"
         }
       ]
     },

@@ -14,11 +14,16 @@
   (#349).
 - Give each CLI input file an isolated `$` namespace while retaining the same
   host-selected `$$` namespace across files (#349).
-- Reject unsupported forms such as `$word`, `$<`, and `$$$`, plus
-  identifier-adjacent forms such as `name$`, `name$$`, and `name-$$`, as lexical
-  errors instead of consuming or restarting the expression (#349).
+- Reject unsupported forms such as `$word`, `$<`, and `$$$` as lexical errors
+  instead of consuming or restarting the expression (#349).
+- Reserve `$` at every identifier boundary, so an anchor abutting a symbol,
+  number, blob, alias, name, or argument is a lexical error: `name$`, `1$`,
+  `0b101$`, `@ctl$`, `.set$`, and `_$` all fail alike, while a sigil that is not
+  an identifier continuation still ends a token and keeps `@$`, `.$`, `.+$`, and
+  `_^$` legal (#349).
 - Update the bundled VS Code grammar to distinguish `$` file anchors from `$$`
-  host anchors, released as extension v0.2.1 (#349).
+  host anchors and to mark every rejected dollar spelling as invalid, released
+  as extension v0.2.1 (#349).
 
 ## v0.11.1 2026-08-21
 

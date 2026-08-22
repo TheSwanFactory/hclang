@@ -12,7 +12,11 @@ import { FrameCurry } from "../ops/frame-curry.ts";
 import { isFrameMatcher } from "./frame-match.ts";
 import { type Context, NilContext } from "./context.ts";
 import { type EvaluationInput, EvaluationScope } from "./evaluation-scope.ts";
-import { completeAtEnd, includeOrEnd } from "./atom-syntax.ts";
+import {
+  completeAtEnd,
+  includeOrEnd,
+  includeOrReserve,
+} from "./atom-syntax.ts";
 import {
   type AtomSyntax,
   ScanDisposition,
@@ -52,13 +56,11 @@ export class FrameSymbol extends FrameAtom {
     SIGIL_STARTS: FrameSymbol.SIGIL_STARTS,
     recognize: (symbol: Frame, source = ""): ScanResult => {
       const char = symbol.toString();
-      if (char === "$") {
-        return {
-          disposition: ScanDisposition.Error,
-          message: `invalid dollar form: ${source}${char}`,
-        };
-      }
-      return includeOrEnd(FrameSymbol.SYMBOL_CHAR.test(char));
+      return includeOrReserve(
+        char,
+        FrameSymbol.SYMBOL_CHAR.test(char),
+        source,
+      );
     },
     finish: completeAtEnd,
     fromSource: (source: string): Frame => new FrameSymbol(source),
