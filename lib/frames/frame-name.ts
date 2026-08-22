@@ -1,5 +1,6 @@
 import { Frame } from "./frame.ts";
 import { FrameAtom } from "./frame-atom.ts";
+import { FrameNote } from "./frame-note.ts";
 import { FrameOperator, FrameSymbol } from "./frame-symbol.ts";
 import type { ISourced } from "./meta-frame.ts";
 import { NilContext } from "./context.ts";
@@ -20,6 +21,14 @@ const includes = (char: string): boolean =>
 /** A name continues while its spelling stays one kind of identifier. */
 const recognizeName = (symbol: Frame, source = ""): ScanResult => {
   const char = symbol.toString();
+  // The selecting dot plus any immediately repeated dots form the parameter
+  // ladder. Once a run has started, its first non-dot belongs to the next atom.
+  if (char === "." && (source === "" || /^\.+$/.test(source))) {
+    return { disposition: ScanDisposition.Consume };
+  }
+  if (source.startsWith(".")) {
+    return { disposition: ScanDisposition.CompleteRedispatch };
+  }
   if (source.endsWith("^")) {
     return { disposition: ScanDisposition.CompleteRedispatch };
   }
@@ -67,15 +76,19 @@ export class FrameName extends FrameAtom implements ISourced {
     this.source = source;
   }
 
-  /** Resolves declarations through the scope's explicit write-target role. */
+  /** Resolves parameter reads or declarations through their named roles. */
   public override in(input: EvaluationInput = []): Frame {
     const scope = EvaluationScope.from(input);
-    // The empty name (bare `.`) denotes the call's explicit parameter when
-    // one was supplied: the key, index, or accumulator an iterator hands its
-    // block alongside the value. This is the only spelling for that role;
-    // `_^` always means one enclosing lexical scope.
-    if (this.source === "" && scope.parameter) {
-      return scope.parameter;
+    // A run of dots is the call-parameter ladder: `.` reads this call's index,
+    // key, or accumulator, `..` reads the enclosing call's, and so on. A miss
+    // is a read error; source syntax never turns an empty name into a setter.
+    if (/^\.*$/.test(this.source)) {
+      const target = scope.parameterAt(this.source.length + 1);
+      if (target) return target;
+
+      const missing = FrameNote.key(this.toString(), this);
+      missing.is.error = true;
+      return missing;
     }
 
     // Construction declares the new aggregate's parent. Method-position `.^`

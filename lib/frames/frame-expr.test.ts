@@ -49,7 +49,7 @@ describe("FrameExpr", () => {
     expect(result).toEqual(context);
   });
 
-  it("applies FrameName to FrameArray to extract elements that index", () => {
+  it("applies FrameName to FrameArray through a read projection", () => {
     const js_string_2 = ", MAML!";
     const frame_string_2 = new FrameString(js_string_2);
     const frame_array = new FrameArray([frame_string, frame_string_2]);
@@ -57,17 +57,22 @@ describe("FrameExpr", () => {
     const frame_expr = new FrameExpr([frame_array, frame_name]);
     const result = frame_expr.in([frame]);
 
-    expect(result).toEqual(frame_string_2);
+    expect(result).not.toBe(frame_string_2);
+    expect(result.toString()).toEqual(frame_string_2.toString());
+    expect(frame_string_2.up).toBe(Frame.missing);
   });
 
-  it("evaluates in context when called", () => {
+  it("evaluates in context through a read projection", () => {
     const frame_expr = new FrameExpr([
       FrameArg.here(),
       new FrameName("key"),
     ]);
     const result = frame_expr.call(context);
 
-    expect(result).toEqual(frame_string);
+    expect(result).not.toBe(frame_string);
+    expect(result.toString()).toEqual(frame_string.toString());
+    expect(result.up).toBe(context);
+    expect(frame_string.up).toBe(Frame.missing);
   });
 
   describe("with Properties, when called", () => {

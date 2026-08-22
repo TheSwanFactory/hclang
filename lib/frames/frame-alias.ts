@@ -1,6 +1,7 @@
 import { Frame } from "./frame.ts";
 import { FrameAtom } from "./frame-atom.ts";
 import { FrameNote } from "./frame-note.ts";
+import { FrameHandle } from "./frame-handle.ts";
 import { FrameLazy } from "./frame-lazy.ts";
 import { FrameSymbol } from "./frame-symbol.ts";
 import { NilContext } from "./context.ts";
@@ -57,7 +58,8 @@ export class FrameAlias extends FrameAtom {
     }
 
     if (receiver) {
-      const lexicalFound = this.find(receiver.up, key, origin);
+      const lexicalContext = receiverState?.lexicalContext ?? receiver.up;
+      const lexicalFound = this.find(lexicalContext, key, origin);
       if (lexicalFound instanceof Frame) return lexicalFound;
       return lexicalFound
         ? this.setterFor(lexicalFound, key, receiverState?.copyOnWrite)
@@ -90,6 +92,7 @@ export class FrameAlias extends FrameAtom {
     origin: Frame,
     seen: Set<Frame> = new Set(),
     followLexical = true,
+    followInheritedLexical = followLexical,
   ): { out: Frame; key: string } | Frame | undefined {
     if (
       context === Frame.missing || context === undefined || seen.has(context)
@@ -97,6 +100,25 @@ export class FrameAlias extends FrameAtom {
       return undefined;
     }
     seen.add(context);
+
+    // A contextual handle represents target-local/declared lookup followed by
+    // the context of this read. Traverse those explicit links rather than the
+    // target's historical `up`, which belongs to neither this receiver nor this
+    // invocation.
+    if (context instanceof FrameHandle && context.readContextFrame()) {
+      const targetFound = this.find(
+        context.unwrap(),
+        key,
+        origin,
+        seen,
+        false,
+        true,
+      );
+      if (targetFound) return targetFound;
+      return followLexical
+        ? this.find(context.readContextFrame()!, key, origin, seen)
+        : undefined;
+    }
 
     const binding = context.resolve_here(key, origin);
     if (binding?.value.is.error) {
@@ -116,7 +138,8 @@ export class FrameAlias extends FrameAtom {
         key,
         origin,
         seen,
-        followLexical,
+        followInheritedLexical,
+        followInheritedLexical,
       );
       if (inherited) return inherited;
     }

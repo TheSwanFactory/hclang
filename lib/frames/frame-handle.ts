@@ -14,10 +14,11 @@ import type { Context } from "./context.ts";
  *   exposes, so rendering, data, metadata, and array views all delegate to the
  *   target. A handle is invisible to comparison, and assignment unwraps it, so
  *   a mutation lands on the same frame it would have without the wrapper.
- * - **Caller-scoped lookup.** `get_here` answers missing by design. Explicit
- *   dotted lookup therefore resolves against the caller's origin rather than
- *   this wrapper, which is what keeps visibility grading pinned to the frame
- *   that asked.
+ * - **Caller-scoped lookup.** A handle created by symbol lookup carries that
+ *   read's lexical context separately from the shared target. Local and
+ *   declared-parent lookup remains live on the target, then falls back through
+ *   the per-read context without rewriting `target.up`. Legacy programmatic
+ *   handles without a read context retain their original target traversal.
  *
  * Discovering a method here yields a `BoundMethod`; the effect rules for that
  * pairing belong to it, not to the handle.
@@ -27,8 +28,12 @@ export class FrameHandle extends Frame {
     private readonly target: Frame,
     private readonly mutable: boolean,
     private readonly copyOnWrite?: WeakSet<Frame>,
+    private readonly readContext?: Frame,
+    private readonly searchReadContext = true,
   ) {
     super();
+    // Preserve the historical programmatic link. Contextual lookup overrides
+    // traversal below, so a shared target never needs to acquire this context.
     this.up = target;
   }
 
@@ -36,13 +41,50 @@ export class FrameHandle extends Frame {
     return this.target;
   }
 
+  /** The lexical fallback selected for this particular read. */
+  public readContextFrame(): Frame | undefined {
+    return this.readContext;
+  }
+
+  /**
+   * Context to persist on a value returned through this handle.
+   *
+   * A receiver-only handle restricts one lookup operation; that restriction
+   * must not truncate the caller-specific continuation of a returned value.
+   */
+  public resultContext(): FrameHandle {
+    return this.searchReadContext ? this : new FrameHandle(
+      this.target,
+      this.mutable,
+      this.copyOnWrite,
+      this.readContext,
+    );
+  }
+
   /** Copy provenance carried across dotted aggregate traversal. */
   public copyOnWriteScope(): WeakSet<Frame> | undefined {
     return this.copyOnWrite;
   }
 
+  /** Resolve target-local array and metadata values without following target.up. */
+  protected override lookup_here(key: string, origin: MetaFrame): Frame {
+    return this.readContext
+      ? this.lookup_here_on(this.target, key, origin)
+      : super.lookup_here(key, origin);
+  }
+
   protected override lookup_links(): Frame[] {
-    return [this.target];
+    if (!this.readContext) return [this.target];
+
+    const links: Frame[] = [];
+    if (this.target.hasDeclaredParent()) links.push(this.target.parent);
+    if (
+      this.searchReadContext && this.readContext !== this.target &&
+      !links.includes(this.readContext)
+    ) {
+      links.push(this.readContext);
+    }
+    return links;
   }
 
   protected override lookup_result(value: Frame, key: string): Frame {
@@ -53,6 +95,7 @@ export class FrameHandle extends Frame {
         this.mutable,
         methodEffect(key),
         this.copyOnWrite,
+        this.readContext,
       );
     }
     return value;

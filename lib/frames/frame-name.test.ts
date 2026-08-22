@@ -30,13 +30,16 @@ describe("FrameName", () => {
     expect(result.toString()).toEqual(frame_symbol.toString());
   });
 
-  it("extracts properties in an expression", () => {
+  it("extracts properties through a per-read projection", () => {
     const value = FrameSymbol.for("smasher");
     const context = new FrameString("context", { atom: value });
     const frame_expr = new FrameExpr([FrameArg.here(), frame_name]);
     const result = frame_expr.in([context]);
 
-    expect(result).toEqual(value);
+    expect(result).not.toBe(value);
+    expect(result.toString()).toEqual(value.toString());
+    expect(result.up).toBe(context);
+    expect(value.up).toBe(Frame.missing);
   });
 
   describe("declaration target", () => {

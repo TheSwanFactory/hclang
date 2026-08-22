@@ -9,14 +9,16 @@ const RECEIVER_WRITE_AUTHORIZED = Symbol("receiverWriteAuthorized");
  * Per-invocation receiver capability selected by a bound method.
  *
  * `receiver` is the exact read target, `mutable` controls how a bare sibling
- * method is rebound, and `copyOnWrite` records the aggregate graph isolated for
- * an outer functional update. The private symbol is present only when this
- * invocation may write its receiver.
+ * method is rebound, `copyOnWrite` records the aggregate graph isolated for an
+ * outer functional update, and `lexicalContext` is the fallback selected by
+ * the read that produced the method. The private symbol is present only when
+ * this invocation may write its receiver.
  */
 export type ReceiverState = {
   readonly receiver: Frame;
   readonly mutable: boolean;
   readonly copyOnWrite?: WeakSet<Frame>;
+  readonly lexicalContext?: Frame;
   readonly [RECEIVER_WRITE_AUTHORIZED]?: true;
 };
 
@@ -24,6 +26,7 @@ const receiverState = (
   receiver: Frame,
   mutable: boolean,
   copyOnWrite: WeakSet<Frame> | undefined,
+  lexicalContext: Frame | undefined,
   writeAuthorized: boolean,
 ): ReceiverState => {
   const state: ReceiverState = writeAuthorized
@@ -31,9 +34,10 @@ const receiverState = (
       receiver,
       mutable,
       copyOnWrite,
+      lexicalContext,
       [RECEIVER_WRITE_AUTHORIZED]: true,
     }
-    : { receiver, mutable, copyOnWrite };
+    : { receiver, mutable, copyOnWrite, lexicalContext };
   return Object.freeze(state);
 };
 
@@ -75,6 +79,7 @@ export class BoundMethod extends Frame {
     private readonly mutable: boolean,
     private readonly effect: MethodEffect,
     private readonly copyOnWrite?: WeakSet<Frame>,
+    private readonly lexicalContext?: Frame,
   ) {
     super();
   }
@@ -101,7 +106,13 @@ export class BoundMethod extends Frame {
     if (!this.isMutating()) {
       // A non-mutating method may read the receiver, but a bare sibling mutator
       // must remain functional even when this method was reached mutably.
-      return receiverState(this.receiverTarget, false, this.copyOnWrite, false);
+      return receiverState(
+        this.receiverTarget,
+        false,
+        this.copyOnWrite,
+        this.lexicalContext,
+        false,
+      );
     }
     if (this.mutable) {
       if (
@@ -115,6 +126,7 @@ export class BoundMethod extends Frame {
         this.receiverTarget,
         true,
         this.copyOnWrite,
+        this.lexicalContext,
         true,
       );
     }
@@ -125,6 +137,12 @@ export class BoundMethod extends Frame {
     for (const aggregate of copied.values()) {
       copyOnWrite.add(aggregate);
     }
-    return receiverState(target, true, copyOnWrite, true);
+    return receiverState(
+      target,
+      true,
+      copyOnWrite,
+      this.lexicalContext,
+      true,
+    );
   }
 }

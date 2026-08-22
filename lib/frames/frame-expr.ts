@@ -81,7 +81,13 @@ export class FrameExpr extends FrameList {
     scope: EvaluationScope,
   ): Frame {
     return terms.reduce((sum: Frame, item: Frame, index): Frame => {
+      // A failed term is the result of the expression. In particular, a
+      // missing dot-parameter read must not be replaced by the operator or
+      // operand that follows it.
+      if (sum.isFailedResult()) return sum;
+
       const value = item.in(scope);
+      if (value.is.error === true) return value;
       if (index > 0 && value.is.operator === true) {
         return value.called_by(sum, Frame.nil);
       }
