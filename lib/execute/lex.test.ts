@@ -94,6 +94,12 @@ describe("Lex", () => {
       "@ctl$$",
       ".set$",
       ".set$$",
+      "_$",
+      "__$",
+      "-$",
+      "-$$",
+      "--$",
+      ".-$",
     ]
   ) {
     it(`rejects a dollar suffix on identifier ${source}`, () => {
@@ -113,6 +119,9 @@ describe("Lex", () => {
       ".$ ",
       ".+$ ",
       ".^$ ",
+      "_^$ ",
+      "+$ ",
+      "<=$ ",
       "1 $ ",
     ]
   ) {
@@ -124,6 +133,9 @@ describe("Lex", () => {
   it("separates an anchor from the sigil that precedes it", () => {
     expect(lexAtoms("@$ ").map(String)).toEqual(["@", "$"]);
     expect(lexAtoms(".+$ ").map(String)).toEqual([".+", "$"]);
+    // A hyphen is the one operator character that also continues an
+    // identifier, so it reserves where the other operators do not.
+    expect(lexAtoms("+$ ").map(String)).toEqual(["+", "$"]);
   });
 
   it("lexes host anchors identically across every two-chunk split", () => {

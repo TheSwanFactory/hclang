@@ -12,11 +12,7 @@ import { FrameCurry } from "../ops/frame-curry.ts";
 import { isFrameMatcher } from "./frame-match.ts";
 import { type Context, NilContext } from "./context.ts";
 import { type EvaluationInput, EvaluationScope } from "./evaluation-scope.ts";
-import {
-  completeAtEnd,
-  includeOrEnd,
-  includeOrReserve,
-} from "./atom-syntax.ts";
+import { completeAtEnd, includeOrReserve } from "./atom-syntax.ts";
 import {
   type AtomSyntax,
   ScanDisposition,
@@ -298,13 +294,16 @@ export class FrameOperator extends FrameSymbol {
   public static override readonly SYNTAX: AtomSyntax = {
     NAME: "FrameOperator",
     SIGIL_STARTS: FrameOperator.SIGIL_STARTS,
-    recognize: (symbol: Frame): ScanResult => {
+    recognize: (symbol: Frame, source = ""): ScanResult => {
       const char = symbol.toString();
       // Comparison brackets belong to the schema syntax, not to an operator.
       if (char === "<" || char === ">") {
         return { disposition: ScanDisposition.CompleteRedispatch };
       }
-      return includeOrEnd(FrameOperator.Accepts(char));
+      // A hyphen is the one operator character that also continues an
+      // identifier, so it reserves an abutting anchor exactly as `name-` does.
+      // Every other operator ends at a boundary and leaves `+$` legal.
+      return includeOrReserve(char, FrameOperator.Accepts(char), source);
     },
     finish: completeAtEnd,
     fromSource: (source: string): Frame => new FrameOperator(source),

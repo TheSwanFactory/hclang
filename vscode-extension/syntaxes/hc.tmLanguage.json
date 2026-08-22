@@ -79,8 +79,8 @@
         },
         {
           "name": "invalid.illegal.dollar-suffix.hclang",
-          "match": "(?<![$\\w-])[.@]?[\\w-]+\\$[$\\w-]*",
-          "comment": "Anchor abutting an identifier, such as name$, 1$, 0b101$, @ctl$, or .set$. The lexer reserves $ at every identifier boundary, so these are errors rather than a value followed by an anchor"
+          "match": "(?<=[\\w-])\\$+",
+          "comment": "Anchor abutting an identifier, such as name$, 1$, 0b101$, @ctl$, .set$, _$, or -$. The lexer reserves $ wherever the preceding character continues an identifier, which is exactly this lookbehind, so only the offending dollars are marked and the value before them keeps its own scope"
         }
       ]
     },

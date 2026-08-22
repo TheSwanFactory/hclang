@@ -83,11 +83,14 @@ expressed through:
 - **Scope anchors**: `$.property` reads the current file/module namespace;
   `$$.property` reads the host-supplied namespace. A bare `$` or `$$` is the
   corresponding namespace reference. Dollar-family forms must begin at a token
-  boundary: `$` is reserved and cannot immediately follow an identifier
-  continuation (`\w` or `-`), whatever family spelled it. So `name$`, `name-$$`,
-  `1$`, `0b101$`, `@ctl$`, `.set$`, and `_$` are lexical errors rather than
-  suffixes or adjacent anchors, while a sigil that is not itself an identifier
-  continuation still ends a token and leaves `@$`, `.$`, `.+$`, and `_^$` legal.
+  boundary: `$` is reserved wherever the character before it continues an
+  identifier (`\w` or `-`), whatever family spelled that character. So `name$`,
+  `name-$$`, `1$`, `0b101$`, `@ctl$`, `.set$`, `_$`, and `-$` are lexical errors
+  rather than suffixes or adjacent anchors. A hyphen reserves even when it is
+  standing as an operator, because a reader cannot tell `foo-$` from `foo - $`
+  without knowing where the token ended; write the space. Every other operator
+  and sigil ends a token without continuing an identifier, so `+$`, `<=$`, `@$`,
+  `.$`, `.+$`, and `_^$` stay legal.
 
 ### Effect Typing (by case/suffix)
 

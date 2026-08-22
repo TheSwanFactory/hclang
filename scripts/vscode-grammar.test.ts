@@ -1,6 +1,15 @@
 import { expect } from "jsr:@std/expect@^0.219.1";
 import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 
+// The barrel import comes first so the frame classes finish initializing
+// before the lexing pipeline reaches them.
+import "../lib/mod.ts";
+import { FrameArray } from "../lib/frames/frame-array.ts";
+import { FrameGroup } from "../lib/frames/frame-group.ts";
+import { FrameString } from "../lib/frames/frame-string.ts";
+import { LexPipe } from "../lib/execute/lex-pipe.ts";
+import { ParsePipe } from "../lib/execute/parse-pipe.ts";
+
 import grammar from "../vscode-extension/syntaxes/hc.tmLanguage.json" with {
   type: "json",
 };
@@ -144,4 +153,98 @@ describe("VS Code scope-anchor grammar", () => {
       expect(invalidMatches(source)).toEqual([]);
     }
   });
+});
+
+/** Lex one source and report the dollar verdict the highlighter must match. */
+const lexVerdict = (source: string): "invalid" | "clean" | "other-error" => {
+  const output = new FrameArray([]);
+  const result = new FrameString(source).reduce(
+    new LexPipe(new ParsePipe(output, FrameGroup)),
+  );
+
+  if (!result.is.error) return "clean";
+  return result.toString().includes("invalid dollar form")
+    ? "invalid"
+    : "other-error";
+};
+
+// The two halves of this PR are a lexer rule and a grammar rule that must state
+// the same thing. Asserting them against hand-written lists lets them drift, so
+// this runs both over one corpus and compares their verdicts directly.
+describe("grammar and lexer agree on every dollar spelling", () => {
+  const corpus = [
+    // Anchors that stand at a boundary.
+    "$",
+    "$$",
+    "$.name",
+    "$$.name",
+    "($)",
+    "($$)",
+    "[1, $]",
+    "{$}",
+    "1 $",
+    // Sigils that end a token without continuing an identifier.
+    "@$",
+    ".$",
+    ".+$",
+    ".^$",
+    "_^$",
+    "+$",
+    "<=$",
+    // Diagnostic notes, which the dollar family still owns.
+    "$!missing;",
+    "$+pass;",
+    "$-fail;",
+    "$~todo;",
+    "$=summary;",
+    "$>bounds;",
+    "$<>type;",
+    // Malformed dollar runs.
+    "$$$",
+    "$$$$",
+    "$foo",
+    "$foo$",
+    "$foo$$",
+    "$$HOME",
+    "$_x",
+    "$1",
+    "$$-foo",
+    // Anchors abutting an identifier, one per word-shaped family.
+    "name$",
+    "name$$",
+    "name-$$",
+    "1$",
+    "123$$",
+    "0$",
+    "0b101$",
+    "0xff$$",
+    "@ctl$",
+    ".set$",
+    "x.set$",
+    "_$",
+    "__$",
+    "-$",
+    "-$$",
+    "--$",
+    "1-$",
+    "1-$$",
+    "1 -$",
+    ".-$",
+    // Ordinary source with no dollar in it at all.
+    "name",
+    ".set",
+    "@ctl",
+    "0b101",
+    "1 - 2",
+  ];
+
+  for (const source of corpus) {
+    const verdict = lexVerdict(source);
+    if (verdict === "other-error") continue;
+
+    it(`${verdict === "invalid" ? "flags" : "accepts"} ${source}`, () => {
+      const flagged = invalidMatches(source).length > 0;
+      expect(flagged).toBe(verdict === "invalid");
+    });
+  }
 });
