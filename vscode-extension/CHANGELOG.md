@@ -19,6 +19,12 @@ this file.
   `.set$`, `_$`, and `-$`. Diagnostic notes (`$!…;`, `$+…;`, `$<>…;`) and
   boundary-legal anchors (`+$`, `<=$`, `@$`, `.$`, `.+$`, `_^$`) are unaffected.
 
+### Fixed
+
+- Ship the `.hc` file icon the manifest has always declared. `images/icon.png`
+  was referenced but never added, so the language contributed a path that
+  resolved to nothing and files fell back to the generic icon.
+
 ## [0.2.0] - 2026-08-21
 
 ### Changed
