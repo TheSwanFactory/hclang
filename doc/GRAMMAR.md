@@ -112,11 +112,12 @@ complete at a colon with or without intervening space.
   two unrelated ladders — one walks argument scopes, the other lexical scopes —
   so `_^` is not "`_` plus one" and never skips a level to compensate for how it
   was called.
-- **Iterator parameter**: `.` (dot by itself). Inside a block called by `|`,
-  `&&`, or `&`, the bare name denotes what the iterator supplies alongside the
-  value: the element index, the property key, or the running accumulator, as in
-  `[1, 2, 3] & { . + _ }`. It is the only spelling for that role; `_^` never
-  reads it.
+- **Iterator parameter**: `.` (dot by itself) reads the parameter supplied to
+  the current call: the element index for `|`, property key for `&&`, or running
+  accumulator for `&`, as in `[1, 2, 3] & { . + _ }`. Repeat the dot to walk
+  exact enclosing call levels: `..` is the enclosing call's parameter, `...` the
+  next one, and so on. A level without a parameter reports `$!.name-missing`;
+  bare `.` has no separate `this` meaning.
 
 A method reads its own and its inherited properties by plain name, so there is
 no reader spelled `^`: `^.property` is not a super reference.
@@ -253,8 +254,8 @@ parent_.helper_ 10
 - **Enclosing context**: `_^` (defined context; one lexical scope per caret,
   regardless of how the closure was invoked)
 - **Declared parent**: `.^ base` (inheritance, read by plain name)
-- **Iterator parameter**: `.` (the index, key, or accumulator supplied by `|`,
-  `&&`, or `&` alongside the value)
+- **Iterator parameter**: `.` is the current call's index, key, or accumulator;
+  repeat the dot for exact enclosing call levels (`..`, `...`, and so on)
 
 ## Syntax Highlighting Categories
 
@@ -370,7 +371,7 @@ my-instance.setProperty_ 42
 4. **No keywords**: There are no reserved words; everything is an identifier or
    operator
 5. **Context matters**: The same character can mean different things:
-   - `.` alone = this
+   - `.` alone = current call parameter; repeated dots walk enclosing calls
    - `.name` = property setter
    - `2.+` = method call on number
 6. **Operators are properties**: Math operators are just syntactic sugar for

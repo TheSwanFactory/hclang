@@ -11,6 +11,7 @@ import {
   FrameSymbol,
 } from "../frames.ts";
 import { BoundMethod } from "./bound-method.ts";
+import { FrameHandle } from "./frame-handle.ts";
 import { methodEffect } from "./effect-marker.ts";
 
 describe("FrameAlias", () => {
@@ -131,6 +132,25 @@ describe("FrameAlias", () => {
 
     expect(result.toString()).toContain("$!.name-missing");
     expect(argument.get_here("atom")).toBe(value_1);
+  });
+
+  it("matches symbol precedence through a contextual handle", () => {
+    const parentLexical = new Frame({ atom: value_1 });
+    const parent = new Frame();
+    parent.up = parentLexical;
+    const target = new FrameArray([]);
+    target.setParent(parent);
+    const readContext = new Frame({
+      atom: new FrameString("read context"),
+    });
+    const handle = new FrameHandle(target, false, undefined, readContext);
+
+    expect(handle.get(key).toString()).toEqual("“neutron”");
+    const setter = frame_alias.in([handle]);
+    setter.call(value_2);
+
+    expect(parentLexical.get_here(key)).toBe(value_2);
+    expect(readContext.get_here(key).toString()).toEqual("“read context”");
   });
 
   it("terminates a cyclic lexical search as missing", () => {

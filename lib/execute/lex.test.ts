@@ -134,6 +134,23 @@ describe("Lex", () => {
     expect(declaration[0].toString()).toEqual(".^");
   });
 
+  it("lexes the repeated-dot parameter ladder", () => {
+    for (const name of [".", "..", "..."]) {
+      const atoms = lexAtoms(`${name} `);
+      expect(atoms).toHaveLength(1);
+      expect(atoms[0]).toBeInstanceOf(FrameName);
+      expect(atoms[0].toString()).toEqual(name);
+
+      for (let split = 1; split < name.length; split++) {
+        expect(
+          lexChunkedAtoms([name.slice(0, split), name.slice(split)]).map(
+            String,
+          ),
+        ).toEqual([name]);
+      }
+    }
+  });
+
   it("preserves parent identifiers across chunk boundaries", () => {
     for (const name of ["_^", "_^^"]) {
       for (let split = 1; split < name.length; split++) {

@@ -4,6 +4,20 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.11.1 2026-08-21
+
+- Stop symbol lookup from rewriting shared values' `up` links. Immutable values
+  now use per-read lexical projections, while aggregates retain identity through
+  contextual handles, so interleaved reads keep independent live contexts
+  (#341).
+- **Breaking:** Add a call-parameter ladder: `.` reads the current iterator
+  parameter, `..` the enclosing call's parameter, and so on. A missing level now
+  reports `$!.name-missing` instead of silently becoming an empty-name setter;
+  bare `.` has no separate `this` meaning (#345).
+- Run `cli/hc/format.hc` as an executable rendering corpus, with the stale `_^`
+  expectation corrected and authoritative totals enforced by the CLI suite
+  (#344).
+
 ## v0.11.0 2026-08-20
 
 - **Breaking:** A mutating method is declared and called with a trailing

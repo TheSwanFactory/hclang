@@ -93,8 +93,12 @@ describe("FrameSchema", () => {
     const schema = new FrameSchema([FrameSymbol.for("scoped")]);
 
     const result = schema.in(contexts);
+    const projected = result.at(0);
 
-    expect(result.at(0)).toBe(scoped);
+    expect(projected).not.toBe(scoped);
+    expect(projected.toString()).toEqual(scoped.toString());
+    expect(projected.up).toBe(scope);
+    expect(scoped.up).toBe(Frame.missing);
     expect(contexts).toHaveLength(1);
     expect(contexts[0]).toBe(scope);
   });

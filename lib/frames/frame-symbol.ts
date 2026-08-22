@@ -88,12 +88,19 @@ export class FrameSymbol extends FrameAtom {
       if (!value.is.missing) {
         if (value.is.error) return value;
 
-        // A closure template is bound by copying it into this evaluation, so
-        // reads never rewrite a shared closure's ancestry. Non-closure values
-        // still take the historical live lexical link, which is the last
-        // remaining re-parenting write: see #341.
-        const resolved = value instanceof FrameLazy ? value.bind(scope) : value;
-        if (!(value instanceof FrameLazy)) value.up = context;
+        // Every successful read gets its own lexical projection. Closures bind
+        // a scoped copy, aggregates keep their exact identity behind a handle,
+        // and immutable values use a plumbing copy. The shared binding is never
+        // re-parented for the benefit of one reader.
+        const isCanonicalBoolean = value === Frame.nil || value === Frame.all;
+        const resolved = value instanceof FrameLazy
+          ? value.bind(scope)
+          : value instanceof FrameArray || isCanonicalBoolean
+          ? value
+          : value.copy();
+        if (!(resolved instanceof FrameArray) && !isCanonicalBoolean) {
+          resolved.up = context;
+        }
 
         // Built-in control flow receives the exact active capability only for
         // callbacks it invokes; ordinary closure calls do not inherit it.
@@ -116,13 +123,19 @@ export class FrameSymbol extends FrameAtom {
             receiverState.mutable,
             methodEffect(this.data),
             receiverState.copyOnWrite,
+            receiverState.lexicalContext,
           );
         }
         const copyOnWrite = context instanceof FrameHandle
           ? context.copyOnWriteScope() ?? receiverState?.copyOnWrite
           : receiverState?.copyOnWrite;
         return resolved instanceof FrameArray
-          ? new FrameHandle(resolved, touchesIdentity(this.data), copyOnWrite)
+          ? new FrameHandle(
+            resolved,
+            touchesIdentity(this.data),
+            copyOnWrite,
+            context,
+          )
           : resolved;
       }
     }

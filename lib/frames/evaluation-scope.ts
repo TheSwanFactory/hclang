@@ -143,7 +143,21 @@ export class EvaluationScope {
 
     const lookupFrames = [local, argument];
     if (!parameter.is.void) lookupFrames.push(parameter);
-    if (receiverState) lookupFrames.push(receiverState.receiver);
+    if (receiverState) {
+      const receiverLookup = receiverState.lexicalContext
+        ? new FrameHandle(
+          receiverState.receiver,
+          receiverState.mutable,
+          receiverState.copyOnWrite,
+          receiverState.lexicalContext,
+          false,
+        )
+        : receiverState.receiver;
+      lookupFrames.push(receiverLookup);
+      if (receiverState.lexicalContext) {
+        lookupFrames.push(receiverState.lexicalContext);
+      }
+    }
     if (closure) lookupFrames.push(closure);
     if (enclosing) lookupFrames.push(...enclosing.lookupFrames());
     const layers = EvaluationScope.layers(lookupFrames);
@@ -220,6 +234,17 @@ export class EvaluationScope {
       scope = scope?.enclosing;
     }
     return scope?.argument;
+  }
+
+  /** Resolves `.`, `..`, ... through exact enclosing call parameters. */
+  public parameterAt(level: number): Frame | undefined {
+    if (level <= 1) return this.parameter;
+
+    let scope = this.enclosing;
+    for (let current = 2; current < level; current += 1) {
+      scope = scope?.enclosing;
+    }
+    return scope?.parameter;
   }
 
   /**

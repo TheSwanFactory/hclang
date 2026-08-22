@@ -388,7 +388,7 @@ described in Table [#sec-table-id].
 | Operator  | `+`            | _symbol_    | _symbol_                |
 | Control   | `$<-` # return | `$`         | _any identifier_        |
 | Argument | \_^            | \_          | \_,\^                   |
-| Self      | \.             | \.          | \.                      |
+| Parameter | `.` / `..`     | `.`           | `.`                      |
 +-----------+----------------+-------------+-------------------------+
 { tbody-tr-odd-background-color:Gainsboro; \
   tr-even-background-color:Floralwhite }
@@ -549,7 +549,14 @@ However, they can be very useful when debugging or refactoring. That may seem
 dangerous, but the data protection rules (below) largely limit what the called
 function can do to the calling scope.
 
-####  TODO: Self
+#### Call Parameters
+
+Iterator blocks receive a second value alongside their ordinary `_` argument:
+`|` supplies the element index, `&&` the property key, and `&` the running
+accumulator. `.` reads that current call parameter. Repeat the dot to reach the
+same role in exact enclosing calls: `..` is one call outward, `...` two. If the
+requested call supplied no parameter, the read reports `$!.name-missing`; dot
+has no separate `Self` meaning.
 
 ## Operators
 

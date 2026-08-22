@@ -96,6 +96,32 @@ describe("FrameHandle", () => {
       expect(bound.call(Frame.nil).toString()).toEqual("“value”");
     });
 
+    it("keeps each read context live through a bound method", () => {
+      const value = new FrameArray([], {
+        read: new FrameLazy([FrameSymbol.for("lexical")]),
+      });
+      const leftContext = new Frame({
+        lexical: new FrameString("left"),
+      });
+      const rightContext = new Frame({
+        lexical: new FrameString("right"),
+      });
+      const left = new FrameHandle(value, false, undefined, leftContext);
+      const right = new FrameHandle(value, false, undefined, rightContext);
+
+      expect(boundOn(left, "read").call(Frame.nil).toString()).toEqual(
+        "“left”",
+      );
+      expect(boundOn(right, "read").call(Frame.nil).toString()).toEqual(
+        "“right”",
+      );
+      leftContext.set("lexical", new FrameString("updated"));
+      expect(boundOn(left, "read").call(Frame.nil).toString()).toEqual(
+        "“updated”",
+      );
+      expect(value.up).toBe(Frame.missing);
+    });
+
     it("reports a mutating method by its declared effect", () => {
       const value = target();
       value.set("write_", method());

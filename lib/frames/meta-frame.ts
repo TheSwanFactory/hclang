@@ -57,8 +57,9 @@ export class MetaFrame {
   public static id_count = 0;
 
   /**
-   * up is the lexical parent: the scope or container a frame was evaluated in.
-   * It is rewritten as lookup learns context and carries no ownership claim.
+   * up is the lexical parent carried by structurally nested frames and
+   * per-read plumbing copies. Symbol lookup never rewrites it on a shared
+   * value; identity-bearing values carry reader context in a FrameHandle.
    */
   public up: Frame = {} as Frame; // forward-declare Frame
 
@@ -102,6 +103,15 @@ export class MetaFrame {
       return exact.value;
     }
     return this.match_here(key);
+  }
+
+  /** Lets a projection perform another frame's local lookup without its links. */
+  protected lookup_here_on(
+    frame: MetaFrame,
+    key: string,
+    origin: MetaFrame,
+  ): Frame {
+    return frame.lookup_here(key, origin);
   }
 
   /** Resolves a logical name to the declaration key visible from origin. */

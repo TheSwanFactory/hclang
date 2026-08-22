@@ -999,6 +999,30 @@ describe("evaluate", () => {
         expect(result.at(0).toString()).toEqual("6");
       });
 
+      it("reads exact enclosing parameter levels through repeated dots", () => {
+        const enclosing = evaluate("[10, 20] | { { .. } () }");
+        const exactMiss = evaluate("[10] | { { { .. } () } () }");
+        const twoLevels = evaluate("[10] | { { { ... } () } () }");
+
+        expect(enclosing.at(0).toString()).toEqual("[0, 1]");
+        expect(exactMiss.at(0).toString()).toContain("$!.name-missing");
+        expect(twoLevels.at(0).toString()).toEqual("[0]");
+      });
+
+      it("reports missing dot reads instead of a setter or `this`", () => {
+        for (
+          const source of [
+            "{ . } ()",
+            "{ . + 1 } (5)",
+            "[.value 9; .read {.};].read()",
+          ]
+        ) {
+          const result = evaluate(source);
+          expect(result.at(0).toString()).toContain("$!.name-missing");
+          expect(result.meta[""]).toBeUndefined();
+        }
+      });
+
       it("reads the live enclosing scope through an empty argument", () => {
         const result = evaluate(
           ".x 42; .y 3; .mag {(x * x) + (y * y)}; " +

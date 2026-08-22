@@ -27,18 +27,26 @@ describe("FrameSymbol", () => {
     expect(frame_symbol).toEqual(frame_symbol_2);
   });
 
-  it("looks itself up in context", () => {
+  it("looks itself up in context without re-parenting the binding", () => {
     const value = new frame.FrameString("smasher");
     const context = new frame.FrameString("parent", { atom: value });
     const result = frame_symbol.in([context]);
-    expect(result).toEqual(value);
+
+    expect(result).not.toBe(value);
+    expect(result.toString()).toEqual(value.toString());
+    expect(result.up).toBe(context);
+    expect(value.up).toBe(frame.Frame.missing);
   });
 
-  it("returns the value when called_by", () => {
+  it("returns a per-read projection when called_by", () => {
     const value = new frame.FrameString("smasher");
     const context = new frame.FrameString("parent", { atom: value });
     const result = context.call(frame_symbol);
-    expect(result).toEqual(value);
+
+    expect(result).not.toBe(value);
+    expect(result.toString()).toEqual(value.toString());
+    expect(result.up).toBe(context);
+    expect(value.up).toBe(frame.Frame.missing);
   });
 
   it("evaluates value when callme = true", () => {
