@@ -27,6 +27,56 @@ describe("HCEval", () => {
     expect(result.toString()).toEqual("123");
   });
 
+  it("resolves an explicit host anchor across transport chunks", () => {
+    const host = new frame.Frame(make_context({ key: "9" }));
+    const source = "$$.key";
+
+    for (let split = 1; split < source.length; split++) {
+      const splitOut = new frame.FrameArray([]);
+      const evaluator = new HCEval(splitOut, splitOut, host);
+      evaluator.call(source.slice(0, split), false);
+      evaluator.call(source.slice(split), false);
+
+      expect(evaluator.finish()).toBe(true);
+      expect(splitOut.at(0).toString()).toEqual("9");
+    }
+  });
+
+  for (const source of ["$foo", "1 + $foo", "$$$", "$<", "$<<", "$$HOME"]) {
+    it(`rejects unsupported dollar form ${source} without output`, () => {
+      hc_eval.call(source);
+
+      expect(hc_eval.finish()).toBe(false);
+      expect(hc_eval.error()).toContain("invalid dollar form");
+      expect(out.length()).toEqual(0);
+    });
+  }
+
+  for (const source of ["$foo", "$$$", "$<", "$<<", "$$HOME"]) {
+    it(`rejects ${source} across every two-chunk split`, () => {
+      for (let split = 1; split < source.length; split++) {
+        const splitOut = new frame.FrameArray([]);
+        const evaluator = new HCEval(splitOut);
+        evaluator.call(source.slice(0, split), false);
+        evaluator.call(source.slice(split), false);
+
+        expect(evaluator.finish()).toBe(false);
+        expect(evaluator.error()).toContain("invalid dollar form");
+        expect(splitOut.length()).toEqual(0);
+      }
+    });
+  }
+
+  it("can be reused after an invalid dollar form", () => {
+    hc_eval.call("$foo");
+    expect(hc_eval.finish()).toBe(false);
+
+    hc_eval.call("7");
+
+    expect(hc_eval.finish()).toBe(true);
+    expect(out.at(0).toString()).toEqual("7");
+  });
+
   it("retains a generic atom across arbitrary chunks", () => {
     hc_eval.call("12", false);
     hc_eval.call("3", false);

@@ -5,7 +5,7 @@ import { HCTest } from "../lib/execute/hc-test.ts";
 import { parseArgs } from "@std/cli/parse-args";
 import { runfile } from "./runfile.ts";
 import { Prompt } from "./prompt.ts";
-import type { StringMap } from "../lib/frames.ts";
+import { Frame, type StringMap } from "../lib/frames.ts";
 
 /**
  * @module hc
@@ -49,8 +49,9 @@ export function getOptions(args: string[]): ReturnType<typeof parseArgs> {
 export function getEval(env: StringMap): HCEval {
   const context = make_context(env);
   const out = new HCLog(context);
-  const hc_eval = new HCEval(out);
-  return hc_eval;
+  const fileScope = new Frame();
+  const hostNamespace = new Frame(context);
+  return new HCEval(out, fileScope, hostNamespace);
 }
 
 /**
@@ -69,10 +70,12 @@ export function getEval(env: StringMap): HCEval {
  * - If the interactive option is set or no evaluation has been performed, starts the REPL.
  */
 export async function main(
-  hc_eval: HCEval,
+  hcEval: HCEval,
   options: ReturnType<typeof getOptions>,
 ): Promise<number> {
   let evaluated = false;
+  let sourceStarted = false;
+  let lexicalComplete = true;
   let test: HCTest | undefined;
 
   if (options.verbose) {
@@ -80,33 +83,50 @@ export async function main(
   }
 
   if (options.testdoc) {
-    test = new HCTest(hc_eval.out);
-    hc_eval = new HCEval(test);
+    test = new HCTest(hcEval.out);
+    hcEval = hcEval.withOutput(test);
     evaluated = true;
   }
 
+  const finishSource = (evaluator: HCEval): boolean => {
+    const complete = evaluator.finish();
+    if (!complete) {
+      const reason = evaluator.error() ?? "incomplete lexical input";
+      console.error(`HCEval.finish.failed: ${reason}`);
+    }
+    return complete;
+  };
+
   if (options.evaluate) {
-    hc_eval.call(options.evaluate.toString());
+    sourceStarted = true;
+    hcEval.call(options.evaluate.toString());
     evaluated = true;
+    lexicalComplete = finishSource(hcEval);
   }
 
   for (const file of options._) {
-    if (typeof file === "string") {
-      evaluated = await runfile(hc_eval, file);
-    } else {
+    if (!lexicalComplete) break;
+    if (typeof file !== "string") {
       console.error("Invalid file argument", file);
+      continue;
     }
+
+    if (sourceStarted) hcEval = hcEval.nextSourceUnit();
+    sourceStarted = true;
+    evaluated = await runfile(hcEval, file);
+    lexicalComplete = finishSource(hcEval);
   }
 
-  if (options.interactive || !evaluated) {
-    (hc_eval.out as HCLog).prompt = true;
-    await new Prompt(hc_eval).repl();
+  if (lexicalComplete && (options.interactive || !evaluated)) {
+    if (sourceStarted) hcEval = hcEval.nextSourceUnit();
+    sourceStarted = true;
+    if (hcEval.out instanceof HCLog) hcEval.out.prompt = true;
+    await new Prompt(hcEval).repl();
+    lexicalComplete = finishSource(hcEval);
   }
 
-  const lexicalComplete = hc_eval.finish();
-  if (!lexicalComplete) {
-    const reason = hc_eval.error() ?? "incomplete lexical input";
-    console.error(`HCEval.finish.failed: ${reason}`);
+  if (!sourceStarted) {
+    lexicalComplete = finishSource(hcEval);
   }
 
   if (test && lexicalComplete) {

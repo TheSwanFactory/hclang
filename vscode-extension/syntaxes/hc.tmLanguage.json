@@ -61,6 +61,16 @@
           "name": "variable.language.this.hclang",
           "match": "(?<!\\.)\\b\\.(?!\\w)",
           "comment": "this context (standalone dot)"
+        },
+        {
+          "name": "variable.language.host-scope.hclang",
+          "match": "\\$\\$(?![$\\w-])",
+          "comment": "Explicit host namespace anchor"
+        },
+        {
+          "name": "variable.language.file-scope.hclang",
+          "match": "\\$(?![$!+\\-~=><\\w-])",
+          "comment": "Current file or module namespace anchor"
         }
       ]
     },
@@ -330,9 +340,9 @@
           "comment": "Controls: @control, @variable"
         },
         {
-          "name": "variable.other.reference.hclang",
-          "match": "\\$[_a-zA-Z][\\w-]*",
-          "comment": "References: $reference, $error"
+          "name": "constant.other.diagnostic.hclang",
+          "match": "\\$(?:[!+\\-~=>]|<>)[^;]*;",
+          "comment": "Diagnostic notes such as $!.name-missing …;"
         },
         {
           "name": "variable.other.constant.private.hclang",

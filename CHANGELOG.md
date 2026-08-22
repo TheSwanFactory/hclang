@@ -4,6 +4,20 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.11.2 2026-08-21
+
+- **Breaking:** Define `$` as the current file/module namespace and `$$` as a
+  host namespace whose bindings cannot be replaced by HC source. Host values
+  passed to `evaluate`/`execute`, including CLI environment variables, must now
+  be read explicitly as `$$.name`; bare names no longer depend on ambient host
+  state (#349).
+- Give each CLI input file an isolated `$` namespace while retaining the same
+  host-selected `$$` namespace across files (#349).
+- Reject unsupported forms such as `$word`, `$<`, and `$$$` as lexical errors
+  instead of consuming the rest of the expression (#349).
+- Update the bundled VS Code grammar to distinguish `$` file anchors from `$$`
+  host anchors, released as extension v0.2.1 (#349).
+
 ## v0.11.1 2026-08-21
 
 - Stop symbol lookup from rewriting shared values' `up` links. Immutable values

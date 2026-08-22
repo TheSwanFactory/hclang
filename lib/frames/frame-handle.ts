@@ -1,4 +1,4 @@
-import { Frame } from "./frame.ts";
+import { type EvaluationRoots, Frame } from "./frame.ts";
 import { FrameLazy } from "./frame-lazy.ts";
 import { BoundMethod } from "./bound-method.ts";
 import { methodEffect } from "./effect-marker.ts";
@@ -44,6 +44,10 @@ export class FrameHandle extends Frame {
   /** The lexical fallback selected for this particular read. */
   public readContextFrame(): Frame | undefined {
     return this.readContext;
+  }
+
+  public override evaluationRoots(): EvaluationRoots | undefined {
+    return this.readContext?.evaluationRoots();
   }
 
   /**

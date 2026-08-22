@@ -68,7 +68,8 @@ Apart from aggregates and primitives, everything else is an identifier:
 - `.Names` - Set a property
 - `Values` - Access a value
 - `@Controls` - Control flow
-- `$References` - References to other objects
+- `$` - Access the current file or module namespace
+- `$$` - Access the explicit host namespace
 
 ## 5. Expressions
 

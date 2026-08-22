@@ -11,6 +11,12 @@ import type { EvaluationInput } from "./evaluation-scope.ts";
  */
 export type Flags = { [key: string]: boolean };
 
+/** Named evaluator roots carried by explicit scope references and projections. */
+export type EvaluationRoots = {
+  fileScope: Frame;
+  hostNamespace: Frame;
+};
+
 /**
  * inspectFlags returns a string representation of the Flags.
  *
@@ -176,6 +182,16 @@ export class Frame extends MetaFrame {
    * @param _contexts
    * @returns a Frame or Frame.nil
    */
+
+  /** Named roots carried by this frame, when it is a scoped projection. */
+  public evaluationRoots(): EvaluationRoots | undefined {
+    return undefined;
+  }
+
+  /** Lexical continuation for values projected through this frame. */
+  public projectionContext(): Frame {
+    return this;
+  }
 
   public in(_scope: EvaluationInput = []): Frame {
     return this;

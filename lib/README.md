@@ -1,7 +1,7 @@
 # HCLANG: TypeScript Homoiconic C Interpreter
 
-This repository contains the first implementation of Homoiconic C (HC) as
-standalone library designed to be used with Node, Deno, and web browsers.
+This package contains the core Homoiconic C (HC) interpreter for Deno, Node.js,
+and web browsers.
 
 ## Installation
 
@@ -25,51 +25,56 @@ npx jsr add @swanfactory/hclang
 
 ## Entry Points
 
-The following functions are exported from the `mod.ts` file:
-
 ### `VERSION`
 
 The current version of the HC interpreter.
 
-### [evaluate](http://_vscodecontentref_/0)
+### `evaluate`
 
-Evaluates the given input string within the provided context and returns the
-result as a _FrameArray_.
+Evaluates one HC source unit and returns a `FrameArray` containing its results
+and top-level declarations.
 
 ```typescript
 import { evaluate } from "@swanfactory/hclang";
 
-const input = "1 + 1";
-const result = evaluate(input);
-console.log(result.toStringArray()); // Output: ['2']
+const result = evaluate(".answer 42; $.answer");
+console.log(result.at(0).toString());
 ```
 
 ### `execute`
 
-Executes the given input string and returns the processed result as a string. It
-is a convenience method for `evaluate`.
+Evaluates one HC source unit and returns its rendered output as a string.
 
 ```typescript
 import { execute } from "@swanfactory/hclang";
 
-const input = "1 + 1";
-const result = execute(input);
-console.log(result); // Output: '2'
+console.log(execute("1 + 1")); // "2"
 ```
 
-### [make_context](http://_vscodecontentref_/3)
+### `make_context`
 
-Creates a new evaluation context from a map of strings, which will be converted
-to `FrameString` objects (or `FrameNumber` if integers). This can be passed as
-the second argument to `evaluate`, in order to predefine variables.
+Converts a string map to HC values. Passing the result as the second argument to
+`evaluate` or `execute` exposes it as the host namespace. Host bindings are
+reached explicitly through `$$`; they never participate in bare-name lookup and
+cannot be replaced by HC declarations or aliases.
 
 ```typescript
-This can be passed as the second argument to `evaluate`,
-in order to predefine variables.
+import { evaluate, make_context } from "@swanfactory/hclang";
 
-    import { make_context } from "@swanfactory/hclang";
-
-    const env = { "x": "2" };
-    const context = make_context(env);
-    console.log(context.x.toString()); // Output: '2'
+const host = make_context({ x: "2" });
+const result = evaluate("1 + $$.x", host);
+console.log(result.at(0).toString()); // "3"
 ```
+
+Binding immutability is not deep freezing: a mutable Frame deliberately supplied
+by a host remains a mutable capability under HC's ordinary effect rules.
+
+### `HCLang`
+
+`HCLang` is a stateful interactive source unit. Declarations persist between
+`call()` submissions and are reachable by bare name or `$`; constructor values
+remain in the separate `$$` host namespace. `reset()` clears both namespaces and
+history.
+
+Each CLI input file receives its own `$` namespace, while all files share the
+host-selected `$$` namespace.

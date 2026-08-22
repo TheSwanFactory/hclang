@@ -93,13 +93,16 @@ export class FrameSymbol extends FrameAtom {
         // and immutable values use a plumbing copy. The shared binding is never
         // re-parented for the benefit of one reader.
         const isCanonicalBoolean = value === Frame.nil || value === Frame.all;
+        const continuation = context instanceof FrameHandle
+          ? context.resultContext()
+          : context.projectionContext();
         const resolved = value instanceof FrameLazy
-          ? value.bind(scope)
+          ? value.bind(scope.captureScope())
           : value instanceof FrameArray || isCanonicalBoolean
           ? value
           : value.copy();
         if (!(resolved instanceof FrameArray) && !isCanonicalBoolean) {
-          resolved.up = context;
+          resolved.up = continuation;
         }
 
         // Built-in control flow receives the exact active capability only for
@@ -134,7 +137,7 @@ export class FrameSymbol extends FrameAtom {
             resolved,
             touchesIdentity(this.data),
             copyOnWrite,
-            context instanceof FrameHandle ? context.resultContext() : context,
+            continuation,
           )
           : resolved;
       }

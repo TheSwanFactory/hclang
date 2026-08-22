@@ -1,8 +1,8 @@
 import { expect } from "jsr:@std/expect@^0.219.1";
 import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 import { HCEval } from "../lib/execute/hc-eval.ts";
-import { FrameArray } from "../lib/frames.ts";
-import { getOptions, main } from "./hc.ts";
+import { Frame, FrameArray, FrameNumber } from "../lib/frames.ts";
+import { getEval, getOptions, main } from "./hc.ts";
 
 describe("getOptions", () => {
   it("is exported", () => {
@@ -61,6 +61,41 @@ describe("getOptions", () => {
 describe("main", () => {
   it("is exported", () => {
     expect(main).toBeTruthy();
+  });
+
+  it("keeps host bindings outside the initial file scope", () => {
+    const evaluator = getEval({ hostValue: "9" });
+
+    expect(evaluator.fileScope.get_here("hostValue").is.missing).toBe(true);
+    expect(evaluator.hostNamespace.get_here("hostValue").toString()).toEqual(
+      "9",
+    );
+  });
+
+  it("isolates file scopes while sharing the host namespace", async () => {
+    const directory = await Deno.makeTempDir();
+    const first = `${directory}/first.hc`;
+    const second = `${directory}/second.hc`;
+    try {
+      await Deno.writeTextFile(first, ".x 7;\n$.x\n");
+      await Deno.writeTextFile(second, "$.x\n$$.host\n");
+      const out = new FrameArray([]);
+      const host = new Frame();
+      host.set("host", new FrameNumber("9"));
+
+      const status = await main(
+        new HCEval(out, out, host),
+        getOptions([first, second]),
+      );
+      const rendered = out.asArray().map(String);
+
+      expect(status).toEqual(0);
+      expect(rendered.some((value) => value.includes("$!.name-missing $.x")))
+        .toBe(true);
+      expect(rendered.at(-1)).toEqual("9");
+    } finally {
+      await Deno.remove(directory, { recursive: true });
+    }
   });
 
   it("returns a non-zero status for a failed testdoc assertion", async () => {

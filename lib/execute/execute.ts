@@ -1,35 +1,27 @@
 import { evaluate } from "./evaluate.ts";
-import type { FrameArray } from "../frames.ts";
-import { NilContext } from "../frames.ts";
+import { type FrameArray, NilContext } from "../frames.ts";
 
-const stripLastCommas = (array: Array<string>) => {
-  const result = array.map((item) => {
-    const n = item.length - 1;
-    if (item[n] === ",") {
-      return item.substring(0, n);
-    }
-    return item;
+const stripLastCommas = (array: string[]): string[] =>
+  array.map((item) => {
+    const last = item.length - 1;
+    return item[last] === "," ? item.substring(0, last) : item;
   });
-  return result;
-};
+
+/** Renders evaluator output using the public `execute` line convention. */
+export const renderResults = (result: FrameArray): string =>
+  stripLastCommas(result.toStringArray()).join("\n");
 
 /**
- * Executes the given input string and returns the processed result as a string.
- * It is a wrapper around the `evaluate` function.
+ * Evaluates HC source and renders each result on its own line.
  *
- * @param {string} input - The input string of `hc` code to be evaluated.
- * @returns {string} - The processed result(s) as a string, with each element separated by a newline.
+ * @param input HC source for one file/module scope.
+ * @param meta Host-supplied bindings, reachable only through `$$`.
+ * @returns Rendered evaluation results separated by newlines.
  *
  * @example
  * import { execute } from "jsr:@swanfactory/hclang";
  *
- * const input = '1 + 1';
- * const result = execute(input);
- * console.log(result); // Output: '2'
+ * console.log(execute("1 + 1")); // "2"
  */
-export const execute = (input: string, meta = NilContext): string => {
-  const result = evaluate(input, meta) as FrameArray;
-  const array = result.toStringArray();
-  const stripped = stripLastCommas(array);
-  return stripped.join("\n");
-};
+export const execute = (input: string, meta = NilContext): string =>
+  renderResults(evaluate(input, meta));

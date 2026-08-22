@@ -251,7 +251,8 @@ which can be:
 - `.Names`
 - `Values`
 - `@Controls`
-- `$References`
+- `$` (the current file or module namespace)
+- `$$` (the explicit host namespace)
 
 A sequence of identifiers and primitives is an expression.
 

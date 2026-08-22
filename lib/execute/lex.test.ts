@@ -8,8 +8,10 @@ import {
   FrameExpr,
   FrameGroup,
   FrameName,
+  FrameNote,
   FrameNumber,
   FrameParam,
+  FrameScopeAnchor,
   FrameString,
   FrameSymbol,
   FrameURI,
@@ -49,6 +51,54 @@ const lexChunkedAtoms = (chunks: string[]): Frame[] => {
 };
 
 describe("Lex", () => {
+  it("lexes file and host anchors with longest-match dollar rules", () => {
+    const file = lexAtoms("$");
+    const host = lexAtoms("$$");
+    const fileProperty = lexAtoms("$.value ");
+    const hostProperty = lexAtoms("$$.value ");
+
+    expect(file).toHaveLength(1);
+    expect(file[0]).toBeInstanceOf(FrameScopeAnchor);
+    expect(file[0].toString()).toEqual("$");
+    expect(host).toHaveLength(1);
+    expect(host[0]).toBeInstanceOf(FrameScopeAnchor);
+    expect(host[0].toString()).toEqual("$$");
+    expect(fileProperty.map(String)).toEqual(["$", ".value"]);
+    expect(hostProperty.map(String)).toEqual(["$$", ".value"]);
+  });
+
+  it("lexes host anchors identically across every two-chunk split", () => {
+    const source = "$$.value";
+
+    for (let split = 1; split < source.length; split++) {
+      expect(
+        lexChunkedAtoms([source.slice(0, split), source.slice(split)]).map(
+          String,
+        ),
+      ).toEqual(["$$", ".value"]);
+    }
+  });
+
+  for (
+    const source of [
+      "$!missing;",
+      "$+pass;",
+      "$-fail;",
+      "$~todo;",
+      "$=summary;",
+      "$>bounds;",
+      "$<>type;",
+    ]
+  ) {
+    it(`retains diagnostic note ${source} behind the dollar family`, () => {
+      const atoms = lexAtoms(`${source} `);
+
+      expect(atoms).toHaveLength(1);
+      expect(atoms[0]).toBeInstanceOf(FrameNote);
+      expect(atoms[0].toString()).toContain(source.slice(0, -1));
+    });
+  }
+
   it("preserves name and operator boundaries", () => {
     expect(lexAtoms(".a-b ").map(String)).toEqual([".a-b"]);
     expect(lexAtoms(".a+b ").map(String)).toEqual([".a", "+", "b"]);

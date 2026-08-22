@@ -80,7 +80,9 @@ expressed through:
 - **Names** (setters): `.property` (leading dot)
 - **Values**: `variable` (no prefix)
 - **Controls**: `@control` (leading `@`)
-- **References**: `$reference` (leading `$`)
+- **Scope anchors**: `$.property` reads the current file/module namespace;
+  `$$.property` reads the host-supplied namespace. A bare `$` or `$$` is the
+  corresponding namespace reference.
 
 ### Effect Typing (by case/suffix)
 
@@ -256,6 +258,11 @@ parent_.helper_ 10
 - **Declared parent**: `.^ base` (inheritance, read by plain name)
 - **Iterator parameter**: `.` is the current call's index, key, or accumulator;
   repeat the dot for exact enclosing call levels (`..`, `...`, and so on)
+- **File/module scope**: `$`; read a top-level property with `$.property`
+- **Host namespace**: `$$`; read a host-supplied property with `$$.property`.
+  Host bindings are not part of bare-name lookup and cannot be replaced by HC
+  source. A mutable value deliberately supplied by the host retains its normal
+  effects.
 
 ## Syntax Highlighting Categories
 
@@ -305,7 +312,8 @@ parent_.helper_ 10
 
 - Names (setters): `\.\w+[:_]?`
 - Controls: `@\w+`
-- References: `\$\w+`
+- File/host anchors: `\$` and `\$\$` (normally followed by property syntax)
+- Diagnostic notes: `\$(?:!|\+|-|~|=|<>|>).*;`
 - Values: `\w+[:_]?`
 
 ### Special Constants
@@ -315,6 +323,8 @@ parent_.helper_ 10
 - Anonymous: `_`
 - Enclosing scope: `_^`
 - Iterator parameter: `.`
+- File/module scope: `$`
+- Host namespace: `$$`
 
 ## Example Patterns
 

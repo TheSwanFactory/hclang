@@ -3,6 +3,14 @@
 All notable changes to the Homoiconic C VS Code extension will be documented in
 this file.
 
+## [0.2.1] - 2026-08-21
+
+### Changed
+
+- Highlight `$` as the current file or module namespace and `$$` as the explicit
+  host namespace, matching HC v0.11.2. Unsupported `$word` forms are no longer
+  highlighted as references.
+
 ## [0.2.0] - 2026-08-21
 
 ### Changed
