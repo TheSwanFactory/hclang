@@ -46,6 +46,21 @@ export class FrameHandle extends Frame {
     return this.readContext;
   }
 
+  /**
+   * Context to persist on a value returned through this handle.
+   *
+   * A receiver-only handle restricts one lookup operation; that restriction
+   * must not truncate the caller-specific continuation of a returned value.
+   */
+  public resultContext(): FrameHandle {
+    return this.searchReadContext ? this : new FrameHandle(
+      this.target,
+      this.mutable,
+      this.copyOnWrite,
+      this.readContext,
+    );
+  }
+
   /** Copy provenance carried across dotted aggregate traversal. */
   public copyOnWriteScope(): WeakSet<Frame> | undefined {
     return this.copyOnWrite;

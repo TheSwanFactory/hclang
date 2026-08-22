@@ -134,7 +134,7 @@ export class FrameSymbol extends FrameAtom {
             resolved,
             touchesIdentity(this.data),
             copyOnWrite,
-            context,
+            context instanceof FrameHandle ? context.resultContext() : context,
           )
           : resolved;
       }

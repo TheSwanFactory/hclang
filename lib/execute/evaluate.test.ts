@@ -1616,6 +1616,18 @@ describe("evaluate", () => {
       expect(shared.at(-1).toString()).toContain("[1, 2, 1]");
     });
 
+    it("preserves caller context through aggregates returned by shared methods", () => {
+      const result = evaluate(
+        ".lexical “root”; " +
+          ".shared [.inner [.read {lexical}]; .get {inner}]; " +
+          ".left [.lexical “left”; .shared shared]; " +
+          ".right [.lexical “right”; .shared shared]; " +
+          "[left.shared.get().read(), right.shared.get().read()]",
+      );
+
+      expect(result.toString()).toContain("[“left”, “right”]");
+    });
+
     it("reads each instance's own private fields through a shared body", () => {
       const shared = evaluate(
         ".Klass {[.__own _; .read {own}]}; " +
