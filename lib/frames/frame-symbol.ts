@@ -12,7 +12,7 @@ import { FrameCurry } from "../ops/frame-curry.ts";
 import { isFrameMatcher } from "./frame-match.ts";
 import { type Context, NilContext } from "./context.ts";
 import { type EvaluationInput, EvaluationScope } from "./evaluation-scope.ts";
-import { completeAtEnd, includeOrEnd } from "./atom-syntax.ts";
+import { completeAtEnd, includeOrReserve } from "./atom-syntax.ts";
 import {
   type AtomSyntax,
   ScanDisposition,
@@ -50,8 +50,14 @@ export class FrameSymbol extends FrameAtom {
   public static readonly SYNTAX: AtomSyntax = {
     NAME: "FrameSymbol",
     SIGIL_STARTS: FrameSymbol.SIGIL_STARTS,
-    recognize: (symbol: Frame): ScanResult =>
-      includeOrEnd(FrameSymbol.SYMBOL_CHAR.test(symbol.toString())),
+    recognize: (symbol: Frame, source = ""): ScanResult => {
+      const char = symbol.toString();
+      return includeOrReserve(
+        char,
+        FrameSymbol.SYMBOL_CHAR.test(char),
+        source,
+      );
+    },
     finish: completeAtEnd,
     fromSource: (source: string): Frame => new FrameSymbol(source),
   };
@@ -93,13 +99,16 @@ export class FrameSymbol extends FrameAtom {
         // and immutable values use a plumbing copy. The shared binding is never
         // re-parented for the benefit of one reader.
         const isCanonicalBoolean = value === Frame.nil || value === Frame.all;
+        const continuation = context instanceof FrameHandle
+          ? context.resultContext()
+          : context.projectionContext();
         const resolved = value instanceof FrameLazy
-          ? value.bind(scope)
+          ? value.bind(scope.captureScope())
           : value instanceof FrameArray || isCanonicalBoolean
           ? value
           : value.copy();
         if (!(resolved instanceof FrameArray) && !isCanonicalBoolean) {
-          resolved.up = context;
+          resolved.up = continuation;
         }
 
         // Built-in control flow receives the exact active capability only for
@@ -134,7 +143,7 @@ export class FrameSymbol extends FrameAtom {
             resolved,
             touchesIdentity(this.data),
             copyOnWrite,
-            context instanceof FrameHandle ? context.resultContext() : context,
+            continuation,
           )
           : resolved;
       }
@@ -285,13 +294,16 @@ export class FrameOperator extends FrameSymbol {
   public static override readonly SYNTAX: AtomSyntax = {
     NAME: "FrameOperator",
     SIGIL_STARTS: FrameOperator.SIGIL_STARTS,
-    recognize: (symbol: Frame): ScanResult => {
+    recognize: (symbol: Frame, source = ""): ScanResult => {
       const char = symbol.toString();
       // Comparison brackets belong to the schema syntax, not to an operator.
       if (char === "<" || char === ">") {
         return { disposition: ScanDisposition.CompleteRedispatch };
       }
-      return includeOrEnd(FrameOperator.Accepts(char));
+      // A hyphen is the one operator character that also continues an
+      // identifier, so it reserves an abutting anchor exactly as `name-` does.
+      // Every other operator ends at a boundary and leaves `+$` legal.
+      return includeOrReserve(char, FrameOperator.Accepts(char), source);
     },
     finish: completeAtEnd,
     fromSource: (source: string): Frame => new FrameOperator(source),

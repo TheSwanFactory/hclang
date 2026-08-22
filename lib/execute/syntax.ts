@@ -28,7 +28,7 @@ export const syntaxFacets: Array<SyntaxFacet> = [
   frame.FrameComment.SYNTAX,
   frame.FrameDoc.SYNTAX,
   frame.FrameName.SYNTAX,
-  frame.FrameNote.SYNTAX,
+  frame.FrameScopeAnchor.SYNTAX,
   frame.FrameNumber.SYNTAX,
   frame.FrameOperator.SYNTAX,
   frame.FrameString.SYNTAX,

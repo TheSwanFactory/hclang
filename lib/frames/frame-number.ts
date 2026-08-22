@@ -3,7 +3,7 @@ import { FrameAtom } from "./frame-atom.ts";
 import { NilContext } from "./context.ts";
 import type { Context } from "./context.ts";
 import type { MetaFrame } from "./meta-frame.ts";
-import { completeAtEnd, includeOrEnd } from "./atom-syntax.ts";
+import { completeAtEnd, includeOrReserve } from "./atom-syntax.ts";
 import type { AtomSyntax, ScanResult, SigilStart } from "../scan.ts";
 export class FrameNumber extends FrameAtom {
   public static readonly NUMBER_BEGIN = /[1-9]/;
@@ -15,8 +15,10 @@ export class FrameNumber extends FrameAtom {
   public static readonly SYNTAX: AtomSyntax = {
     NAME: "FrameNumber",
     SIGIL_STARTS: FrameNumber.SIGIL_STARTS,
-    recognize: (symbol: Frame): ScanResult =>
-      includeOrEnd(FrameNumber.NUMBER_CHAR.test(symbol.toString())),
+    recognize: (symbol: Frame, source = ""): ScanResult => {
+      const char = symbol.toString();
+      return includeOrReserve(char, FrameNumber.NUMBER_CHAR.test(char), source);
+    },
     finish: completeAtEnd,
     fromSource: (source: string): Frame => new FrameNumber(source),
   };

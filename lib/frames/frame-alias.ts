@@ -6,7 +6,7 @@ import { FrameLazy } from "./frame-lazy.ts";
 import { FrameSymbol } from "./frame-symbol.ts";
 import { NilContext } from "./context.ts";
 import { type EvaluationInput, EvaluationScope } from "./evaluation-scope.ts";
-import { completeAtEnd, includeOrEnd } from "./atom-syntax.ts";
+import { completeAtEnd, includeOrReserve } from "./atom-syntax.ts";
 import { authorizedReceiverWriteTarget } from "./bound-method.ts";
 import type { AtomSyntax, ScanResult, SigilStart } from "../scan.ts";
 
@@ -19,8 +19,14 @@ export class FrameAlias extends FrameAtom {
   public static readonly SYNTAX: AtomSyntax = {
     NAME: "FrameAlias",
     SIGIL_STARTS: FrameAlias.SIGIL_STARTS,
-    recognize: (symbol: Frame): ScanResult =>
-      includeOrEnd(FrameSymbol.SYMBOL_CHAR.test(symbol.toString())),
+    recognize: (symbol: Frame, source = ""): ScanResult => {
+      const char = symbol.toString();
+      return includeOrReserve(
+        char,
+        FrameSymbol.SYMBOL_CHAR.test(char),
+        `${FrameAlias.ALIAS_BEGIN}${source}`,
+      );
+    },
     finish: completeAtEnd,
     fromSource: (source: string): Frame => new FrameAlias(source),
   };

@@ -34,6 +34,10 @@ export {
 export { FrameList, type IArrayConstructor } from "./frames/frame-list.ts";
 export { FrameName } from "./frames/frame-name.ts";
 export { FrameNote } from "./frames/frame-note.ts";
+export {
+  FrameScopeAnchor,
+  type ScopeAnchorKind,
+} from "./frames/frame-scope-anchor.ts";
 export { FrameNumber } from "./frames/frame-number.ts";
 export { FrameSchema } from "./frames/frame-schema.ts";
 export { FrameString, FrameStringEnd } from "./frames/frame-string.ts";
@@ -45,7 +49,12 @@ export {
 } from "./frames/frame-symbol.ts";
 export { FrameType } from "./frames/frame-type.ts";
 export { FrameURI } from "./frames/frame-uri.ts";
-export { type Any, type Flags, Frame } from "./frames/frame.ts";
+export {
+  type Any,
+  type EvaluationRoots,
+  type Flags,
+  Frame,
+} from "./frames/frame.ts";
 export { type ISourced, MetaFrame, Visibility } from "./frames/meta-frame.ts";
 export {
   type LexicalMode,

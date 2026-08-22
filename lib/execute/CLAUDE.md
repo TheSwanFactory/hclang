@@ -84,9 +84,12 @@ import { evaluate } from "./evaluate.ts";
 import { make_context } from "../frames/context.ts";
 
 const context = make_context({ x: "10" });
-const result = evaluate("x * 2", context);
+const result = evaluate("$$.x * 2", context);
 console.log(result.toStringArray()); // ["20"]
 ```
+
+The second argument supplies the explicit `$$` host namespace. Host bindings do
+not participate in bare-name lookup.
 
 ### Pipeline Composition
 

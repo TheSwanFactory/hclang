@@ -36,6 +36,23 @@ describe("HCLang", () => {
         hc_lang.reset();
         expect(hc_lang.getHistory()).toEqual([]);
       });
+
+      it("preserves file declarations between submissions", async () => {
+        await hc_lang.call(".x 7;");
+
+        expect(await hc_lang.call("x")).toEqual("7");
+        expect(await hc_lang.call("$.x")).toEqual("7");
+
+        hc_lang.reset();
+        expect(await hc_lang.call("x")).toContain("$!.name-missing");
+      });
+
+      it("requires explicit access to host bindings", async () => {
+        const hosted = new HCLang({ x: "2" });
+
+        expect(await hosted.call("x")).toContain("$!.name-missing");
+        expect(await hosted.call("$$.x")).toEqual("2");
+      });
     });
   });
 });

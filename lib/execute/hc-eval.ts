@@ -71,11 +71,14 @@ export class HCEval {
   /**
    * Creates a lexical pipe for evaluating expressions.
    */
-  public static make_pipe(out: Frame): LexPipe {
-    const evaluator = new EvalPipe(out); // evaluate groups into results
-    const parser = new ParsePipe(evaluator, FrameGroup); // parse tokens into groups of expressions
-    const lexer = new LexPipe(parser); // symbolicate, sigilize, and lex into tokens
-    return lexer;
+  public static make_pipe(
+    out: Frame,
+    fileScope: Frame = out,
+    hostNamespace: Frame = Frame.nil,
+  ): LexPipe {
+    const evaluator = new EvalPipe(out, fileScope, hostNamespace);
+    const parser = new ParsePipe(evaluator, FrameGroup);
+    return new LexPipe(parser);
   }
 
   protected pipe: LexPipe;
@@ -84,9 +87,23 @@ export class HCEval {
   private inputBuffer = "";
   private needsFinish = false;
 
-  constructor(public out: Frame) {
-    this.pipe = HCEval.make_pipe(this.out);
+  constructor(
+    public readonly out: Frame,
+    public readonly fileScope: Frame = out,
+    public readonly hostNamespace: Frame = Frame.nil,
+  ) {
+    this.pipe = HCEval.make_pipe(out, fileScope, hostNamespace);
     this.lex = this.pipe;
+  }
+
+  /** Reuses this source unit and host while directing results elsewhere. */
+  public withOutput(out: Frame): HCEval {
+    return new HCEval(out, this.fileScope, this.hostNamespace);
+  }
+
+  /** Starts an isolated source unit that shares only the host namespace. */
+  public nextSourceUnit(): HCEval {
+    return new HCEval(this.out, new Frame(), this.hostNamespace);
   }
 
   /**
@@ -162,7 +179,11 @@ export class HCEval {
     }
 
     if (!complete) {
-      this.pipe = HCEval.make_pipe(this.out);
+      this.pipe = HCEval.make_pipe(
+        this.out,
+        this.fileScope,
+        this.hostNamespace,
+      );
     }
     this.lex = this.pipe;
     this.inputBuffer = "";

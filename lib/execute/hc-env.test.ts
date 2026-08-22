@@ -2,20 +2,23 @@ import { expect } from "jsr:@std/expect@^0.219.1";
 import * as frame from "../frames.ts";
 import { HCEval, make_context } from "./hc-eval.ts";
 
-const key = "key";
-const value = "value";
-const frame_value = new frame.FrameString(value);
-
 Deno.test({
-  name: "evaluates in env",
+  name: "exposes host values only through the host anchor",
   fn(): void {
-    const env = { key: value };
-    const context = make_context(env);
-    const out2 = new frame.FrameArray([], context);
-    const hc_eval2 = new HCEval(out2);
-    hc_eval2.call(key);
-    expect(out2.length()).toEqual(1);
-    const output = out2.at(0);
-    expect(output.toString()).toEqual(frame_value.toString());
+    const context = make_context({ key: "value" });
+    const host = new frame.Frame(context);
+    const explicitOut = new frame.FrameArray([]);
+    const explicit = new HCEval(explicitOut, explicitOut, host);
+
+    explicit.call("$$.key");
+
+    expect(explicitOut.length()).toEqual(1);
+    expect(explicitOut.at(0).toString()).toEqual("“value”");
+
+    const bareOut = new frame.FrameArray([]);
+    const bare = new HCEval(bareOut, bareOut, host);
+    bare.call("key");
+
+    expect(bareOut.at(0).toString()).toContain("$!.name-missing");
   },
 });

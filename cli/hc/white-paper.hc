@@ -386,7 +386,8 @@ described in Table [#sec-table-id].
 +-----------+----------------+-------------+-------------------------+
 | Label     | _variable_     | _letter_    | _letter_, _number_, `-` |
 | Operator  | `+`            | _symbol_    | _symbol_                |
-| Control   | `$<-` # return | `$`         | _any identifier_        |
+| Alias     | `@variable`    | `@`         | _identifier_            |
+| Scope     | `$` / `$$`     | `$`         | `$`, then `.property`   |
 | Argument | \_^            | \_          | \_,\^                   |
 | Parameter | `.` / `..`     | `.`           | `.`                      |
 +-----------+----------------+-------------+-------------------------+
@@ -460,6 +461,20 @@ The space between _base_ and _key is not necessary, but we use it to
 emphasize the fact that this is just an ordinary expression, not a
 special syntax.
 
+#### Scope Anchors
+
+Two anchors make non-local namespaces explicit without counting lexical levels:
+
+- `$` is the top-level namespace of the current file or module.
+- `$$` is the namespace supplied by the host.
+
+Ordinary property syntax performs reads, as in `$.setting` and `$$.HOME`. A bare
+name never searches `$$`, so the process environment cannot silently determine
+whether a program binds an identifier. Host namespace bindings cannot be
+replaced by HC source, though a mutable value deliberately supplied by the host
+retains its ordinary effects. Top-level declarations still use `.name`, and
+`@name` reassigns a binding in the context where HC defined it.
+
 #### Controls
 
 As part of its quest to avoid arbitrary keywords, HC introduces the concept of
@@ -469,19 +484,10 @@ simply returning values.
 
 ##### Flow Control
 
-As a dataflow language, there should rarely be a need for direct
-manipulating the flow of control. But when there is, we use a control, e.g.:
-
-* `$$`
-  : Terminate the program and return the argument ("exit")
-* `$<`
-  : Terminate the current scope and return the argument (_top-level return_)
-* `$<<`
-  : Terminate the _parent_ scope and return the argument ("inner return")
-
-Remember that every context is a self-contained entity, and thus `.` and `$<` refer
-only to that scope, even if it is a clause in a conditional.  That's why we need
-multi-level returns.
+HC currently has no sigil for imperative exit or multi-level return. Earlier
+drafts reserved `$$`, `$<`, and `$<<` for those operations; those spellings are
+retired. `$$` is now the explicit host-namespace anchor, while `$<` and `$<<`
+are rejected rather than silently consuming an expression.
 
 
 ##### Exceptions

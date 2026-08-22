@@ -4,13 +4,6 @@ import { FrameAtom } from "./frame-atom.ts";
 import { FrameString } from "./frame-string.ts";
 import { FrameSymbol } from "./frame-symbol.ts";
 import { NilContext, type StringMap } from "./context.ts";
-import { unterminatedAtEnd } from "./atom-syntax.ts";
-import {
-  type AtomSyntax,
-  ScanDisposition,
-  type ScanResult,
-  type SigilStart,
-} from "../scan.ts";
 
 export type LanguageBinding = { [key: string]: StringMap };
 
@@ -18,22 +11,6 @@ export class FrameNote extends FrameAtom {
   public static readonly NOTE_BEGIN = "$";
   public static readonly NOTE_END = ";";
   public static readonly NOTE_EXTRAS = "++";
-  public static readonly SIGIL_STARTS = [
-    { key: FrameNote.NOTE_BEGIN, mode: "atom" },
-  ] as const satisfies readonly SigilStart[];
-
-  public static readonly SYNTAX: AtomSyntax = {
-    NAME: "FrameNote",
-    SIGIL_STARTS: FrameNote.SIGIL_STARTS,
-    // A note's terminator is redispatched, so it can also close its enclosure.
-    recognize: (symbol: Frame): ScanResult => ({
-      disposition: symbol.toString() === FrameNote.NOTE_END
-        ? ScanDisposition.CompleteRedispatch
-        : ScanDisposition.Consume,
-    }),
-    finish: unterminatedAtEnd("FrameNote", FrameNote.NOTE_BEGIN),
-    fromSource: (source: string): Frame => new FrameNote(source),
-  };
 
   public static readonly LABELS: LanguageBinding = {
     en: {

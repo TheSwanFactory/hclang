@@ -5,7 +5,7 @@ import { FrameOperator, FrameSymbol } from "./frame-symbol.ts";
 import type { ISourced } from "./meta-frame.ts";
 import { NilContext } from "./context.ts";
 import { type EvaluationInput, EvaluationScope } from "./evaluation-scope.ts";
-import { completeAtEnd } from "./atom-syntax.ts";
+import { completeAtEnd, includeOrReserve } from "./atom-syntax.ts";
 import { authorizedReceiverWriteTarget } from "./bound-method.ts";
 import {
   type AtomSyntax,
@@ -35,7 +35,9 @@ const recognizeName = (symbol: Frame, source = ""): ScanResult => {
   // `.^` needs no rule of its own: `^` is an operator character, so it is
   // consumed and completed like any other name.
   if (!includes(char)) {
-    return { disposition: ScanDisposition.CompleteRedispatch };
+    // A bare `.` or an operator spelling ends at a boundary, so only an
+    // identifier body reserves the anchor that would abut it.
+    return includeOrReserve(char, false, `${FrameName.NAME_BEGIN}${source}`);
   }
   if (source.length === 0) {
     return { disposition: ScanDisposition.Consume };

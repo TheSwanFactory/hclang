@@ -4,6 +4,27 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.11.2 2026-08-21
+
+- **Breaking:** Define `$` as the current file/module namespace and `$$` as a
+  host namespace whose bindings cannot be replaced by HC source. Host values
+  passed to `evaluate`/`execute`, including CLI environment variables, must now
+  be read explicitly as `$$.name`; bare names no longer depend on ambient host
+  state. Anchored reads preserve ordinary private and protected visibility
+  (#349).
+- Give each CLI input file an isolated `$` namespace while retaining the same
+  host-selected `$$` namespace across files (#349).
+- Reject unsupported forms such as `$word`, `$<`, and `$$$` as lexical errors
+  instead of consuming or restarting the expression (#349).
+- Reserve `$` wherever the preceding character continues an identifier, so an
+  anchor abutting a symbol, number, blob, alias, name, argument, or hyphen is a
+  lexical error: `name$`, `1$`, `0b101$`, `@ctl$`, `.set$`, `_$`, and `-$` all
+  fail alike. Every other operator and sigil ends a token without continuing an
+  identifier, so `+$`, `<=$`, `@$`, `.$`, `.+$`, and `_^$` stay legal (#349).
+- Update the bundled VS Code grammar to distinguish `$` file anchors from `$$`
+  host anchors and to mark every rejected dollar spelling as invalid, released
+  as extension v0.2.1 (#349).
+
 ## v0.11.1 2026-08-21
 
 - Stop symbol lookup from rewriting shared values' `up` links. Immutable values

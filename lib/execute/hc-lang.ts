@@ -1,101 +1,87 @@
-import { execute } from "./execute.ts";
-import { Context, contextString, make_context, StringMap } from "../mod.ts";
+import { renderResults } from "./execute.ts";
+import { HCEval, make_context } from "./hc-eval.ts";
+import {
+  type Context,
+  contextString,
+  Frame,
+  FrameArray,
+  type StringMap,
+} from "../frames.ts";
 
-/**
- * HistoryPair is an object representing the input-output pair of an executed command.
- *
- * @property input - The input string that was executed.
- * @property output - The output string that was produced by the execution.
- */
+/** One submitted source string and its rendered output. */
 export type HistoryPair = { input: string; output: string };
 
 /**
- * Creates an instance of HCLang.
+ * Stateful HC session used by interactive clients such as the web playground.
  *
- * @param environment - An optional object representing the initial environment
- *                      variables for the execution context. Defaults to an empty object.
- *
- * Initializes the execution context with the provided environment and sets up
- * an empty history array to store the input-output pairs of executed commands.
+ * Submitted calls share one file/module scope, while constructor values live in
+ * a distinct host namespace reached only through `$$`. `reset()` replaces both
+ * namespaces and clears history.
  */
-
 export class HCLang {
-  /**
-   * context is an object representing the execution environment.
-   */
+  /** Host bindings supplied by the embedding application. */
   private context: Context;
-
-  /**
-   * history is an array of objects representing the input-output pairs of executed commands.
-   */
+  /** Persistent declarations for this interactive source unit. */
+  private fileScope: Frame;
+  /** Stable frame exposing `context` through the explicit host anchor. */
+  private hostNamespace: Frame;
   protected history: HistoryPair[];
 
-  /**
-   * constructor creates an instance of HCLang.
-   *
-   * @param environment - An optional object representing the initial environment
-   *                      variables for the execution context. Defaults to an empty object.
-   */
-  constructor(environment: StringMap = {}) {
+  public constructor(environment: StringMap = {}) {
     this.context = make_context(environment);
-    this.history = []; // Array of { input, output } objects
+    this.fileScope = new Frame();
+    this.hostNamespace = new Frame(this.context);
+    this.history = [];
   }
 
-  /**
-   * Returns a string representation of the current execution context.
-   *
-   * @returns {string} A string representation of the current execution context.
-   */
-  getContextString(): string {
+  /** Returns the host namespace supplied by the embedding application. */
+  public getContextString(): string {
     return contextString(this.context);
   }
 
   /**
-   * Executes the given input string and returns the result as a string.
+   * Evaluates one submission in this session's persistent file scope.
    *
-   * @param input - The input string to be executed.
-   * @returns A promise that resolves to the result of the execution as a string.
-   *
-   * @throws Will return an error message string if the execution fails.
-   *
-   * The result or error message is also stored in the history array.
+   * A declaration made by one call is visible to later calls through a bare
+   * name or `$`; host values require `$$` on every call.
    */
-  async call(input: string): Promise<string> {
+  public call(input: string): Promise<string> {
     try {
-      const output = await execute(input, this.context);
-      const result = String(output);
-      this.history.push({ input, output: result }); // Store as an object
-      return result;
+      const out = new FrameArray([]);
+      const evaluator = new HCEval(
+        out,
+        this.fileScope,
+        this.hostNamespace,
+      );
+      evaluator.call(input);
+      if (!evaluator.finish()) {
+        out.apply(
+          Frame.error(evaluator.error() ?? "incomplete lexical input"),
+          Frame.nil,
+        );
+      }
+      const result = renderResults(out);
+      this.history.push({ input, output: result });
+      return Promise.resolve(result);
     } catch (error) {
       const errorMsg = error instanceof Error
         ? `Error: ${error.message}`
         : "Unknown error";
       this.history.push({ input, output: errorMsg });
-      return errorMsg;
+      return Promise.resolve(errorMsg);
     }
   }
 
-  /**
-   * Returns the history array
-   * @returns An array of objects representing the HistoryPairs of executed commands.
-   *
-   * Each HistoryPair has the following structure:
-   * - input: The input string that was executed.
-   * - output: The output string that was produced by the execution
-   */
-  getHistory(): HistoryPair[] {
+  /** Returns all submissions and rendered results in order. */
+  public getHistory(): HistoryPair[] {
     return this.history;
   }
 
-  /**
-   * Resets the execution state and clears the history.
-   *
-   * This method reinitializes the `context` to an empty object and
-   * clears the `history` array, effectively resetting the state
-   * of the execution environment.
-   */
-  reset(): void {
-    this.context = make_context({}); // Reset execution state
-    this.history = []; // Clear history
+  /** Clears file declarations, host bindings, and history. */
+  public reset(): void {
+    this.context = make_context({});
+    this.fileScope = new Frame();
+    this.hostNamespace = new Frame(this.context);
+    this.history = [];
   }
 }

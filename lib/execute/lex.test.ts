@@ -8,8 +8,10 @@ import {
   FrameExpr,
   FrameGroup,
   FrameName,
+  FrameNote,
   FrameNumber,
   FrameParam,
+  FrameScopeAnchor,
   FrameString,
   FrameSymbol,
   FrameURI,
@@ -32,6 +34,14 @@ const lexAtoms = (source: string): Frame[] => {
   return expr.asArray();
 };
 
+const lexResult = (source: string): Frame => {
+  const output = new FrameArray([]);
+  const parser = new ParsePipe(output, FrameGroup);
+  const lexer = new LexPipe(parser);
+
+  return new FrameString(source).reduce(lexer);
+};
+
 const lexChunkedAtoms = (chunks: string[]): Frame[] => {
   const output = new FrameArray([]);
   const parser = new ParsePipe(output, FrameGroup);
@@ -49,6 +59,117 @@ const lexChunkedAtoms = (chunks: string[]): Frame[] => {
 };
 
 describe("Lex", () => {
+  it("lexes file and host anchors with longest-match dollar rules", () => {
+    const file = lexAtoms("$");
+    const host = lexAtoms("$$");
+    const fileProperty = lexAtoms("$.value ");
+    const hostProperty = lexAtoms("$$.value ");
+
+    expect(file).toHaveLength(1);
+    expect(file[0]).toBeInstanceOf(FrameScopeAnchor);
+    expect(file[0].toString()).toEqual("$");
+    expect(host).toHaveLength(1);
+    expect(host[0]).toBeInstanceOf(FrameScopeAnchor);
+    expect(host[0].toString()).toEqual("$$");
+    expect(fileProperty.map(String)).toEqual(["$", ".value"]);
+    expect(hostProperty.map(String)).toEqual(["$$", ".value"]);
+  });
+
+  // An anchor names an evaluation root only at a token boundary, so every
+  // family whose lexeme ends in `\w` or `-` refuses an adjacent dollar rather
+  // than splitting into a value and a bare anchor.
+  for (
+    const source of [
+      "identity$",
+      "identity$$",
+      "name$",
+      "name$$",
+      "name-$$",
+      "1$",
+      "123$$",
+      "0$",
+      "0b101$",
+      "0xff$$",
+      "@ctl$",
+      "@ctl$$",
+      ".set$",
+      ".set$$",
+      "_$",
+      "__$",
+      "-$",
+      "-$$",
+      "--$",
+      ".-$",
+    ]
+  ) {
+    it(`rejects a dollar suffix on identifier ${source}`, () => {
+      const result = lexResult(source);
+
+      expect(result.is.lexical).toBe(true);
+      expect(result.is.error).toBe(true);
+      expect(result.toString()).toContain("invalid dollar form");
+    });
+  }
+
+  // A sigil that is not itself an identifier continuation still ends a token,
+  // so an anchor may follow it exactly as the highlighter's boundary allows.
+  for (
+    const source of [
+      "@$ ",
+      ".$ ",
+      ".+$ ",
+      ".^$ ",
+      "_^$ ",
+      "+$ ",
+      "<=$ ",
+      "1 $ ",
+    ]
+  ) {
+    it(`admits a boundary-legal anchor in ${source.trim()}`, () => {
+      expect(lexResult(source).is.error).toBeFalsy();
+    });
+  }
+
+  it("separates an anchor from the sigil that precedes it", () => {
+    expect(lexAtoms("@$ ").map(String)).toEqual(["@", "$"]);
+    expect(lexAtoms(".+$ ").map(String)).toEqual([".+", "$"]);
+    // A hyphen is the one operator character that also continues an
+    // identifier, so it reserves where the other operators do not.
+    expect(lexAtoms("+$ ").map(String)).toEqual(["+", "$"]);
+  });
+
+  it("lexes host anchors identically across every two-chunk split", () => {
+    const source = "$$.value";
+
+    for (let split = 1; split < source.length; split++) {
+      expect(
+        lexChunkedAtoms([source.slice(0, split), source.slice(split)]).map(
+          String,
+        ),
+      ).toEqual(["$$", ".value"]);
+    }
+  });
+
+  for (
+    const source of [
+      "$!missing;",
+      "$+pass;",
+      "$-fail;",
+      "$~todo;",
+      "$=summary;",
+      "$>bounds;",
+      "$<>type;",
+    ]
+  ) {
+    it(`retains diagnostic note ${source} behind the dollar family`, () => {
+      const atoms = lexAtoms(`${source} `);
+
+      expect(atoms).toHaveLength(1);
+      expect(atoms[0]).toBeInstanceOf(FrameNote);
+      expect(atoms[0].toString()).toContain(source.slice(0, -1));
+    });
+  }
+
   it("preserves name and operator boundaries", () => {
     expect(lexAtoms(".a-b ").map(String)).toEqual([".a-b"]);
     expect(lexAtoms(".a+b ").map(String)).toEqual([".a", "+", "b"]);

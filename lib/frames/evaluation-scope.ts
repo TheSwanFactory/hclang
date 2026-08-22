@@ -1,4 +1,4 @@
-import { Frame } from "./frame.ts";
+import { type EvaluationRoots, Frame } from "./frame.ts";
 import { FrameHandle } from "./frame-handle.ts";
 import type { ReceiverState } from "./bound-method.ts";
 
@@ -25,6 +25,8 @@ type ScopeOptions = {
   enclosing?: EvaluationScope;
   closure?: Frame;
   lexicalTarget: Frame;
+  fileScope: Frame;
+  hostNamespace: Frame;
 };
 
 /** An ordered lookup list paired with its membership set. */
@@ -49,6 +51,8 @@ export class EvaluationScope {
   public readonly enclosing?: EvaluationScope;
   public readonly closure?: Frame;
   public readonly lexicalTarget: Frame;
+  public readonly fileScope: Frame;
+  public readonly hostNamespace: Frame;
 
   readonly #lookupFrames: Frame[];
   readonly #lookupMembers: Set<Frame>;
@@ -62,23 +66,46 @@ export class EvaluationScope {
     this.enclosing = options.enclosing;
     this.closure = options.closure;
     this.lexicalTarget = options.lexicalTarget;
+    this.fileScope = options.fileScope;
+    this.hostNamespace = options.hostNamespace;
     this.#lookupFrames = options.lookupFrames;
     this.#lookupMembers = options.lookupMembers;
   }
 
   /** Creates the scope at the evaluator boundary. */
-  public static root(out: Frame, context: Frame = Frame.nil): EvaluationScope {
-    const layers = EvaluationScope.layers(
-      context.is.void ? [out] : [out, context],
-    );
+  public static root(
+    fileScope: Frame,
+    hostNamespace: Frame = Frame.nil,
+  ): EvaluationScope {
+    const layers = EvaluationScope.layers([fileScope]);
     return new EvaluationScope({
-      argument: out,
-      parameter: context.is.void ? undefined : context,
-      writeTarget: out,
+      argument: fileScope,
+      writeTarget: fileScope,
       writeTargetRole: "statement",
       lookupFrames: layers.frames,
       lookupMembers: layers.members,
-      lexicalTarget: out,
+      lexicalTarget: fileScope,
+      fileScope,
+      hostNamespace,
+    });
+  }
+
+  /** Creates target-local lookup while retaining both named roots. */
+  public static anchor(
+    reference: Frame,
+    fileScope: Frame,
+    hostNamespace: Frame,
+  ): EvaluationScope {
+    const layers = EvaluationScope.layers([reference]);
+    return new EvaluationScope({
+      argument: reference,
+      writeTarget: fileScope,
+      writeTargetRole: "statement",
+      lookupFrames: layers.frames,
+      lookupMembers: layers.members,
+      lexicalTarget: fileScope,
+      fileScope,
+      hostNamespace,
     });
   }
 
@@ -100,6 +127,7 @@ export class EvaluationScope {
       : undefined;
     const receiverState = EvaluationScope.findReceiverState(frames);
     const binding = EvaluationScope.findWriteTarget(frames, argument);
+    const roots = EvaluationScope.findEvaluationRoots(frames);
     const layers = EvaluationScope.layers(
       frames.length > 0 ? frames : [Frame.nil],
     );
@@ -113,6 +141,8 @@ export class EvaluationScope {
       lookupFrames: layers.frames,
       lookupMembers: layers.members,
       lexicalTarget: binding.target,
+      fileScope: roots?.fileScope ?? binding.target,
+      hostNamespace: roots?.hostNamespace ?? Frame.nil,
     });
   }
 
@@ -161,6 +191,11 @@ export class EvaluationScope {
     if (closure) lookupFrames.push(closure);
     if (enclosing) lookupFrames.push(...enclosing.lookupFrames());
     const layers = EvaluationScope.layers(lookupFrames);
+    const carriedRoots = EvaluationScope.findEvaluationRoots([
+      receiverState?.lexicalContext,
+      argument,
+      parameter,
+    ]);
 
     return new EvaluationScope({
       argument,
@@ -173,6 +208,9 @@ export class EvaluationScope {
       enclosing,
       closure,
       lexicalTarget: target,
+      fileScope: enclosing?.fileScope ?? carriedRoots?.fileScope ?? target,
+      hostNamespace: enclosing?.hostNamespace ??
+        carriedRoots?.hostNamespace ?? Frame.nil,
     });
   }
 
@@ -197,6 +235,8 @@ export class EvaluationScope {
       enclosing: this.enclosing,
       closure: this.closure,
       lexicalTarget: this.lexicalTarget,
+      fileScope: this.fileScope,
+      hostNamespace: this.hostNamespace,
     });
   }
 
@@ -217,7 +257,22 @@ export class EvaluationScope {
       enclosing: this.enclosing,
       closure: this.closure,
       lexicalTarget: target,
+      fileScope: this.fileScope,
+      hostNamespace: this.hostNamespace,
     });
+  }
+
+  /** Accessor whose identity grades private and protected reads. */
+  public accessOrigin(): Frame {
+    return this.receiverState?.receiver ?? this.writeTarget;
+  }
+
+  /** Scope used when a projected unbound closure captures its environment. */
+  public captureScope(): EvaluationScope {
+    const roots = this.argument.evaluationRoots();
+    return roots
+      ? EvaluationScope.root(roots.fileScope, roots.hostNamespace)
+      : this;
   }
 
   /** Ordered lookup layers for symbol and alias resolution. */
@@ -277,6 +332,34 @@ export class EvaluationScope {
   }
 
   /** Builds deduplicated lookup layers in one linear pass. */
+  /**
+   * Find named roots along a value's lexical projection continuation.
+   *
+   * Handles keep that continuation separate from their identity-bearing target;
+   * ordinary plumbing copies carry it in `up`. Structural parents are never
+   * searched, and captureScope intentionally retains its direct-root check so a
+   * projected object's own metadata remains in lexical lookup.
+   */
+  private static findEvaluationRoots(
+    candidates: readonly (Frame | undefined)[],
+  ): EvaluationRoots | undefined {
+    for (const candidate of candidates) {
+      const seen = new Set<Frame>();
+      let current = candidate;
+      while (current && !current.is.missing && !seen.has(current)) {
+        seen.add(current);
+        if (current instanceof FrameHandle) {
+          current = current.readContextFrame();
+          continue;
+        }
+        const roots = current.evaluationRoots();
+        if (roots) return roots;
+        current = current.up;
+      }
+    }
+    return undefined;
+  }
+
   private static layers(candidates: readonly Frame[]): LookupLayers {
     const frames: Frame[] = [];
     const members = new Set<Frame>();

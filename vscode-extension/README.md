@@ -15,10 +15,7 @@ for code and data.
     scientific notation
   - Time literals: `%date%`, `%time%`, `%datetime%`
   - BLOB literals: raw bytes `\n\content\` and base64 `0sBase64`
-  - Identifiers with semantic prefixes:
-    - Names (setters): `.property`
-    - Controls: `@control`
-    - References: `$reference`
+  - Scope anchors: `$` (current file/module) and `$$` (host namespace)
   - Effect typing: `CONST`, `variable`, `mutable_`, `method_`
   - Access modifiers: `public`, `_protected`, `__private`
   - Operators: `+`, `-`, `*`, `/`, `=`, `<`, `>`, `~`, `!`, `?`, `:`, `|`, `&`
@@ -92,8 +89,9 @@ __private       # Private (double __)
 
 # Semantic prefixes
 .setter         # Property setter
-@control        # Control flow
-$reference      # Reference/error
+@control        # Control or alias
+$.property      # Current file/module property
+$$.property     # Host-supplied property
 ```
 
 ## Language Specification

@@ -7,6 +7,7 @@ export {
   type Context,
   contextEqual,
   contextString,
+  type EvaluationRoots,
   type Flags,
   Frame,
   type IKeyValuePair,

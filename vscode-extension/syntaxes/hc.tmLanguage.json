@@ -61,6 +61,26 @@
           "name": "variable.language.this.hclang",
           "match": "(?<!\\.)\\b\\.(?!\\w)",
           "comment": "this context (standalone dot)"
+        },
+        {
+          "name": "variable.language.host-scope.hclang",
+          "match": "(?<![$\\w-])\\$\\$(?![$\\w-])",
+          "comment": "Explicit host namespace anchor"
+        },
+        {
+          "name": "variable.language.file-scope.hclang",
+          "match": "(?<![$\\w-])\\$(?![$!+\\-~=><\\w-])",
+          "comment": "Current file or module namespace anchor"
+        },
+        {
+          "name": "invalid.illegal.dollar-form.hclang",
+          "match": "(?<![$\\w-])(?!\\$\\$?(?![$\\w-])|\\$-)\\$[$\\w-]*(?![$\\w-])",
+          "comment": "Malformed dollar run: any $-led token that is neither $ nor $$, such as $$$, $foo, or $$HOME. A diagnostic note ends the run at its own prefix, and $- is exempted because a hyphen is the one note prefix that continues a token"
+        },
+        {
+          "name": "invalid.illegal.dollar-suffix.hclang",
+          "match": "(?<=[\\w-])\\$+",
+          "comment": "Anchor abutting an identifier, such as name$, 1$, 0b101$, @ctl$, .set$, _$, or -$. The lexer reserves $ wherever the preceding character continues an identifier, which is exactly this lookbehind, so only the offending dollars are marked and the value before them keeps its own scope"
         }
       ]
     },
@@ -330,9 +350,9 @@
           "comment": "Controls: @control, @variable"
         },
         {
-          "name": "variable.other.reference.hclang",
-          "match": "\\$[_a-zA-Z][\\w-]*",
-          "comment": "References: $reference, $error"
+          "name": "constant.other.diagnostic.hclang",
+          "match": "\\$(?:[!+\\-~=>]|<>)[^;]*;",
+          "comment": "Diagnostic notes such as $!.name-missing …;"
         },
         {
           "name": "variable.other.constant.private.hclang",

@@ -6,14 +6,17 @@ import { Frame } from "./frame.ts";
 export type StringMap = { [key: string]: string };
 
 /**
- * Context is a map of symbols to frames.
- * Typically, you create them using `make_context`
- * from a `StringMap`.
- * It is passed in as an optional argument to `evaluate`,
- * and used to resolve symbols during evaluation.
+ * A map of embedding-supplied names to HC frames.
+ *
+ * Passing a `Context` to `evaluate` or `execute` exposes it as the host
+ * namespace: source must spell `$$.name` to read a binding. The map is never an
+ * ordinary bare-name lookup layer, and HC declarations or aliases cannot
+ * replace its bindings. Mutable values remain explicit capabilities and retain
+ * their normal effects when read through a mutable name.
  *
  * @example
- * const context: Context = make_context({ "a": "1" });
+ * const host: Context = make_context({ a: "1" });
+ * const result = evaluate("$$.a", host);
  */
 export type Context = { [key: string]: Frame };
 
