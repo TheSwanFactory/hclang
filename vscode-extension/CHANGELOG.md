@@ -8,8 +8,8 @@ this file.
 ### Changed
 
 - Highlight `$` as the current file or module namespace and `$$` as the explicit
-  host namespace, matching HC v0.11.2. Unsupported `$word` forms are no longer
-  highlighted as references.
+  host namespace, matching HC v0.11.2. Unsupported dollar runs such as `$word`,
+  `$$$`, and identifier suffixes are not highlighted as anchors, even partially.
 
 ## [0.2.0] - 2026-08-21
 

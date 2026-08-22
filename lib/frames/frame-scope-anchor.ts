@@ -116,6 +116,7 @@ export class FrameScopeAnchor extends FrameAtom {
     public readonly kind: ScopeAnchorKind,
     private readonly fileScope: Frame = Frame.missing,
     private readonly hostNamespace: Frame = Frame.missing,
+    private readonly accessor?: Frame,
   ) {
     super();
   }
@@ -126,6 +127,7 @@ export class FrameScopeAnchor extends FrameAtom {
       this.kind,
       scope.fileScope,
       scope.hostNamespace,
+      scope.accessOrigin(),
     );
   }
 
@@ -138,7 +140,12 @@ export class FrameScopeAnchor extends FrameAtom {
 
   public override projectionContext(): Frame {
     return this.kind === "host"
-      ? new FrameScopeAnchor("file", this.fileScope, this.hostNamespace)
+      ? new FrameScopeAnchor(
+        "file",
+        this.fileScope,
+        this.hostNamespace,
+        this.accessor,
+      )
       : this;
   }
 
@@ -156,10 +163,11 @@ export class FrameScopeAnchor extends FrameAtom {
     return Frame.error(`$!.scope-not-callable ${this.toString()}`);
   }
 
-  /** Resolve only within the selected namespace and make a miss terminal. */
-  public override get(key: string, _origin: MetaFrame = this): Frame {
+  /** Resolve only within the namespace, graded against the real accessor. */
+  public override get(key: string, origin: MetaFrame = this): Frame {
     const target = this.target();
-    const value = target.get_here(key, target);
+    const accessOrigin = origin === this ? this.accessor ?? origin : origin;
+    const value = target.get_here(key, accessOrigin);
     return value.is.missing
       ? Frame.error(`$!.name-missing ${this.toString()}.${key}`)
       : value;

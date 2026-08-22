@@ -64,12 +64,12 @@
         },
         {
           "name": "variable.language.host-scope.hclang",
-          "match": "\\$\\$(?![$\\w-])",
+          "match": "(?<![$\\w-])\\$\\$(?![$\\w-])",
           "comment": "Explicit host namespace anchor"
         },
         {
           "name": "variable.language.file-scope.hclang",
-          "match": "\\$(?![$!+\\-~=><\\w-])",
+          "match": "(?<![$\\w-])\\$(?![$!+\\-~=><\\w-])",
           "comment": "Current file or module namespace anchor"
         }
       ]

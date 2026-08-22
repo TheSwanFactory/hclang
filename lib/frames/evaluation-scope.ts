@@ -262,6 +262,11 @@ export class EvaluationScope {
     });
   }
 
+  /** Accessor whose identity grades private and protected reads. */
+  public accessOrigin(): Frame {
+    return this.receiverState?.receiver ?? this.writeTarget;
+  }
+
   /** Scope used when a projected unbound closure captures its environment. */
   public captureScope(): EvaluationScope {
     const roots = this.argument.evaluationRoots();

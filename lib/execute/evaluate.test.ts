@@ -1086,6 +1086,75 @@ describe("evaluate", () => {
       expect(result.at(0).toString()).toContain("[9, 1, 2]");
     });
 
+    it("preserves visibility across bare and file-anchor paths", () => {
+      const privateBare = evaluate(".__secret 42; {{secret}()}()");
+      const privateAnchored = evaluate(".__secret 42; {{$.secret}()}()");
+      const protectedBare = evaluate("._guarded 21; {{guarded}()}()");
+      const protectedAnchored = evaluate("._guarded 21; {{$.guarded}()}()");
+
+      for (const result of [privateBare, privateAnchored]) {
+        expect(result.at(0).toString()).toContain("$!.is-private .secret");
+      }
+      for (const result of [protectedBare, protectedAnchored]) {
+        expect(result.at(0).toString()).toContain(
+          "$!.is-protected .guarded",
+        );
+      }
+
+      expect(evaluate(".__secret 42; $.secret").at(0).toString()).toMatch(
+        /; 42\)$/,
+      );
+    });
+
+    it("does not grant host-owner visibility through the host anchor", () => {
+      const context: frame.Context = {
+        __secret: new frame.FrameNumber("42"),
+        _guarded: new frame.FrameNumber("21"),
+      };
+
+      for (const source of ["$$.secret", "{{$$.secret}()}()"]) {
+        expect(evaluate(source, context).at(0).toString()).toContain(
+          "$!.is-private .secret",
+        );
+      }
+      for (const source of ["$$.guarded", "{{$$.guarded}()}()"]) {
+        expect(evaluate(source, context).at(0).toString()).toContain(
+          "$!.is-protected .guarded",
+        );
+      }
+    });
+
+    it("preserves receiver visibility through anchor projections", () => {
+      const declaration = ".__secret 42; ._guarded 21; " +
+        ".obj [.read-secret {secret}; .read-guarded {guarded}]; ";
+      for (const access of ["obj", "$.obj"]) {
+        expect(
+          evaluate(`${declaration}${access}.read-secret()`).at(0).toString(),
+        ).toContain("$!.is-private .secret");
+        expect(
+          evaluate(`${declaration}${access}.read-guarded()`).at(0).toString(),
+        ).toContain("$!.is-protected .guarded");
+      }
+
+      const object = new frame.FrameArray([], {
+        readSecret: new frame.FrameLazy([
+          new frame.FrameExpr([frame.FrameSymbol.for("secret")]),
+        ]),
+        readGuarded: new frame.FrameLazy([
+          new frame.FrameExpr([frame.FrameSymbol.for("guarded")]),
+        ]),
+      });
+      const context: frame.Context = { object };
+      expect(
+        evaluate(".__secret 42; $$.object.readSecret()", context).at(0)
+          .toString(),
+      ).toContain("$!.is-private .secret");
+      expect(
+        evaluate("._guarded 21; $$.object.readGuarded()", context).at(0)
+          .toString(),
+      ).toContain("$!.is-protected .guarded");
+    });
+
     it("does not let an alias write through the host namespace", () => {
       const context = make_context({ x: "2" });
       const result = evaluate("@x 9", context);

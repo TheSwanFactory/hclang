@@ -10,7 +10,8 @@
   host namespace whose bindings cannot be replaced by HC source. Host values
   passed to `evaluate`/`execute`, including CLI environment variables, must now
   be read explicitly as `$$.name`; bare names no longer depend on ambient host
-  state (#349).
+  state. Anchored reads preserve ordinary private and protected visibility
+  (#349).
 - Give each CLI input file an isolated `$` namespace while retaining the same
   host-selected `$$` namespace across files (#349).
 - Reject unsupported forms such as `$word`, `$<`, and `$$$` as lexical errors

@@ -33,6 +33,44 @@ describe("FrameScopeAnchor", () => {
     expect(host.call(FrameSymbol.for("value")).toString()).toEqual("2");
   });
 
+  it("grades namespace reads against the scope that bound the anchor", () => {
+    const { file, host, scope } = roots();
+    file.set("__secret", new FrameNumber("7"));
+    file.set("_guarded", new FrameNumber("6"));
+    host.set("__secret", new FrameNumber("8"));
+
+    const fileAnchor = FrameScopeAnchor.file().in(scope);
+    expect(fileAnchor.call(FrameSymbol.for("secret")).toString()).toEqual("7");
+    expect(
+      FrameScopeAnchor.host().in(scope).call(FrameSymbol.for("secret"))
+        .toString(),
+    ).toEqual("$!.is-private .secret");
+
+    const outsider = new Frame();
+    expect(fileAnchor.get("secret", outsider).toString()).toEqual(
+      "$!.is-private .secret",
+    );
+    expect(fileAnchor.get("guarded", outsider).toString()).toEqual(
+      "$!.is-protected .guarded",
+    );
+    const descendant = new Frame();
+    descendant.setParent(file);
+    expect(fileAnchor.get("secret", descendant).toString()).toEqual(
+      "$!.is-private .secret",
+    );
+    expect(fileAnchor.get("guarded", descendant).toString()).toEqual("6");
+
+    const nested = EvaluationScope.call(Frame.nil, Frame.nil, undefined, scope);
+    expect(
+      FrameScopeAnchor.file().in(nested).call(FrameSymbol.for("secret"))
+        .toString(),
+    ).toEqual("$!.is-private .secret");
+    expect(
+      FrameScopeAnchor.file().in(nested).call(FrameSymbol.for("guarded"))
+        .toString(),
+    ).toEqual("$!.is-protected .guarded");
+  });
+
   it("turns an explicit namespace miss into a terminal error", () => {
     const { scope } = roots();
     const result = FrameScopeAnchor.host().in(scope).call(
