@@ -13,6 +13,10 @@ on:
         description: "Publish to JSR and attach hcweb.html to a release"
         type: boolean
         default: false
+      publish_extension:
+        description: "Publish the VS Code extension to the Marketplace"
+        type: boolean
+        default: false
 
 jobs:
   build:
@@ -76,6 +80,38 @@ jobs:
           else
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
+      - name: Detect extension release
+        id: extension
+        env:
+          BEFORE_SHA: ${{ github.event.before }}
+          MANUAL_PUBLISH: ${{ inputs.publish_extension }}
+        run: |
+          manifest=vscode-extension/package.json
+          current_version=$(jq -r '.version' "$manifest")
+          echo "version=$current_version" >> "$GITHUB_OUTPUT"
+
+          if [ "$GITHUB_REF" != "refs/heads/master" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            echo "changed=$MANUAL_PUBLISH" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [ -z "$BEFORE_SHA" ] || [ "$BEFORE_SHA" = "0000000000000000000000000000000000000000" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # A manifest absent from the previous commit is a first publish.
+          previous_version=$(git show "$BEFORE_SHA:$manifest" 2>/dev/null | jq -r '.version' || true)
+          if [ -n "$previous_version" ] && [ "$current_version" = "$previous_version" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
       - name: Publish to JSR
         id: deno-publish
         if: steps.version.outputs.changed == 'true'
@@ -98,3 +134,13 @@ jobs:
           generateReleaseNotes: true
           artifacts: web/dist/hcweb.html,web/dist/hcweb.html.sha256
           artifactErrorsFailBuild: true
+      - name: Use Node 22 for the extension publisher
+        if: steps.extension.outputs.changed == 'true'
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - name: Publish the VS Code extension
+        if: steps.extension.outputs.changed == 'true'
+        run: deno task vscode:publish
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
