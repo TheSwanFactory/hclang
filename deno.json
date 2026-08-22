@@ -23,9 +23,9 @@
     "test:web": "cd web && deno task test",
     "test:bs": "cd cli && deno task test:bs",
     "test:all": "deno task test:cli && deno task test:lib && deno task test:scripts && deno task test:web && deno task test:bs",
-    "vscode:package": "cd vscode-extension && npx @vscode/vsce package",
-    "vscode:publish": "cd vscode-extension && npx @vscode/vsce publish",
-    "vscode:install": "cd vscode-extension && npx @vscode/vsce package && code --install-extension *.vsix"
+    "vscode:package": "cd vscode-extension && npx --yes @vscode/vsce@3.9.2 package",
+    "vscode:publish": "cd vscode-extension && npx --yes @vscode/vsce@3.9.2 publish",
+    "vscode:install": "cd vscode-extension && npx --yes @vscode/vsce@3.9.2 package && code --install-extension *.vsix"
   },
   "compilerOptions": {
     "lib": [

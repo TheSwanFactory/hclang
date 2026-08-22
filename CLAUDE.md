@@ -264,6 +264,12 @@ publishes to JSR: when a merge to `master` changes that version, the workflow
 runs `deno task vscode:publish` after the full test suite passes. Merges that
 leave the version alone do not publish.
 
+The three tasks pin `@vscode/vsce` to an exact version rather than resolving npm
+`latest`, because the publish task runs with a Marketplace credential: an
+unpinned resolve would hand that token to whatever upstream released most
+recently, with no change or review here. Bump the version in all three tasks
+together, deliberately.
+
 Publishing authenticates with a Marketplace personal access token, read from the
 `VSCE_PAT` repository secret. The token belongs to the `TheSwanFactory`
 publisher and is minted at
