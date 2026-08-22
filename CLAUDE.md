@@ -258,6 +258,29 @@ deno task vscode:publish    # Publish to marketplace
 deno task vscode:install    # Install locally
 ```
 
+The extension versions independently of the runtime packages, in
+`vscode-extension/package.json`. GitHub Actions publishes it the same way it
+publishes to JSR: when a merge to `master` changes that version, the workflow
+runs `deno task vscode:publish` after the full test suite passes. Merges that
+leave the version alone do not publish.
+
+Publishing authenticates with a Marketplace personal access token, read from the
+`VSCE_PAT` repository secret. The token belongs to the `TheSwanFactory`
+publisher and is minted at
+[Azure DevOps](https://dev.azure.com/ErnestPrabhakar/_usersSettings/tokens);
+these tokens expire within a year, so a publish that fails to authenticate
+usually needs a fresh one rather than a workflow change. Rotate it with:
+
+```bash
+gh secret set VSCE_PAT   # paste or pipe the token on stdin, never as an argument
+```
+
+Publishing a version the Marketplace already has is refused, so the version must
+be bumped before the merge. To publish a version the automation would otherwise
+skip, run the workflow manually from the Actions tab with **Publish the VS Code
+extension** checked. Running `deno task vscode:publish` locally also works and
+needs `VSCE_PAT` exported in the shell.
+
 ## Architecture Overview
 
 ### Library (lib/)
