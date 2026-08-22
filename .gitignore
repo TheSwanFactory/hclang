@@ -7,6 +7,9 @@ npm-debug.log*
 web/dist/
 web/tests/consumer/_fresh/
 
+# Packaged VS Code extension, rebuilt by `deno task vscode:package`
+*.vsix
+
 # Runtime data
 pids
 *.pid
