@@ -4,6 +4,12 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.11.3 2026-09-04
+
+- Add a deterministic exact-rational sedenion reference machine with ordered
+  event traces, exact JSON replay, conformance tests, dimension-16 failure
+  witnesses, ray execution, and reproducible experiment reports.
+
 ## v0.11.2 2026-08-21
 
 - **Breaking:** Define `$` as the current file/module namespace and `$$` as a
