@@ -1,5 +1,5 @@
 {
-  "version": "0.11.2",
+  "version": "0.11.3",
   "nodeModulesDir": "manual",
   "bin": {
     "hc": "scripts/hc"
@@ -19,10 +19,11 @@
     "test:doc": "cd cli && deno task test:doc",
     "test:lib": "deno test lib",
     "test:maml": "deno test maml",
+    "test:sedenion": "cd experiments/sedenion-machine && python3 -m unittest -v test_sedenion.py && python3 experiments.py",
     "test:scripts": "deno test scripts",
     "test:web": "cd web && deno task test",
     "test:bs": "cd cli && deno task test:bs",
-    "test:all": "deno task test:cli && deno task test:lib && deno task test:scripts && deno task test:web && deno task test:bs",
+    "test:all": "deno task test:cli && deno task test:lib && deno task test:scripts && deno task test:web && deno task test:bs && deno task test:sedenion",
     "vscode:package": "cd vscode-extension && npx --yes @vscode/vsce@3.9.2 package",
     "vscode:publish": "cd vscode-extension && npx --yes @vscode/vsce@3.9.2 publish",
     "vscode:install": "cd vscode-extension && npx --yes @vscode/vsce@3.9.2 package && code --install-extension *.vsix"
