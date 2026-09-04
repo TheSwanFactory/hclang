@@ -33,6 +33,13 @@ Run the deterministic witness searches and experiments, regenerating
 python3 experiments.py
 ```
 
+Rerun every experiment and verify the committed machine-readable results without
+rewriting either generated artifact:
+
+```bash
+python3 experiments.py --check
+```
+
 The tests cover all ordered imaginary-basis relations and finite samples from a
 documented PRNG seed. The generated report distinguishes conformance guarantees
 from observations; sampled success is not claimed as a universal algebraic

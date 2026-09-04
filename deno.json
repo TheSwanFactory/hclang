@@ -19,7 +19,7 @@
     "test:doc": "cd cli && deno task test:doc",
     "test:lib": "deno test lib",
     "test:maml": "deno test maml",
-    "test:sedenion": "cd experiments/sedenion-machine && python3 -m unittest -v test_sedenion.py && python3 experiments.py",
+    "test:sedenion": "cd experiments/sedenion-machine && python3 -m unittest -v test_sedenion.py && python3 experiments.py --check",
     "test:scripts": "deno test scripts",
     "test:web": "cd web && deno task test",
     "test:bs": "cd cli && deno task test:bs",
