@@ -360,7 +360,7 @@ Two consequences to accept knowingly:
 - **Exactness is lost where it was arithmetically available.** `0.3 / 0.1`
   yields `2.9999999999999996` rather than `3`.
 - **`Decimal ÷ Int` does not stay decimal-shaped.** `10.50 / 2` gives the ratio
-  `21/2`, not `5.25`. Exact, but not a decimal.
+  `21/4`, not `5.25`. Exact, but not a decimal.
 
 The compensation is that this makes `FrameNumber` reachable from ordinary
 source, which resolves **Q2**.
