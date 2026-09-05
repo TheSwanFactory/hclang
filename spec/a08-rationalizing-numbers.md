@@ -1,16 +1,17 @@
 # Rationalizing Numbers
 
 **Status:** Ready to ticket, behind two dependencies. All four tensions (§6) and
-all representation questions (§9) are answered, and the three migrations are
-specified. Two items are recorded best guesses rather than settled calls: `==`'s
-behavior (**Q3**) and the `Int ÷ Dec` asymmetry (**Q6**). Nothing here is
-implemented; this document records the reasoning so the ticket can be tuned
-against it rather than rediscovered.\
+all six representation questions (§9) are settled, and the three migrations are
+specified. Nothing is left as a best guess: the equality semantics that had been
+one are deferred wholesale to #358, and this design inherits them unchanged.
+Nothing here is implemented; this document records the reasoning so the ticket
+can be tuned against it rather than rediscovered.\
 **Issues:** [#355](https://github.com/TheSwanFactory/hclang/issues/355) (this
 design), [#356](https://github.com/TheSwanFactory/hclang/issues/356) and
 [#357](https://github.com/TheSwanFactory/hclang/issues/357) (dependencies),
-[#354](https://github.com/TheSwanFactory/hclang/issues/354) (consumer, out of
-scope).\
+[#358](https://github.com/TheSwanFactory/hclang/issues/358) (deferred equality
+semantics), [#354](https://github.com/TheSwanFactory/hclang/issues/354)
+(consumer, out of scope).\
 **Background:** [#293](https://github.com/TheSwanFactory/hclang/issues/293) is
 **closed**; it delivered the numeric-property composition that §1 describes, so
 it is the origin of the behavior this design extends, not a live dependency.\
@@ -148,11 +149,12 @@ makes **Q3** a real question rather than a detail.
   an opt-in.
 - **ND-003** — `FrameDecimal` is exact (scaled `bigint`), not a float. `number`
   is a projection through `valueOf()`.
-- **ND-004** — Division yields `FrameRational`, reduced and sign-normalized, for
-  every exact pairing **except decimal ÷ decimal**, which yields `FrameNumber`.
-  Two decimal operands are read as a deliberate signal that the computation is
-  in the approximate domain; any other pairing — including `Decimal ÷ Int` —
-  stays exact. Resolves **T-1**.
+- **ND-004** — **Division by a decimal yields `FrameNumber`.** Every other exact
+  pairing yields `FrameRational`, reduced and sign-normalized. The test is on
+  the **divisor alone**: dividing by a measured quantity cannot produce an exact
+  ratio, so `1 / (3 .0)` and `(1 .0) / (3 .0)` are equally inexact, while
+  `(10 .50) / 2` stays exact because its divisor is a count. Resolves **T-1**
+  and **Q6**.
 - **ND-005** — `FrameRational` collapses **only** to `FrameInt`, when the
   denominator reduces to 1. It never auto-collapses to `FrameDecimal`, so `1/2`
   renders as a ratio rather than `0.5`, keeping rendering predictable.
@@ -168,7 +170,9 @@ makes **Q3** a real question rather than a detail.
   #355 itself states. The narrow rule is confirmed.
 - **ND-008** — `=` compares exact values across `Int`/`Decimal`/`Rational`, so
   `3`, `3 .0`, and `6/2` are equal while each keeps its own spelling. `==` and
-  `===` diverge from it; see **Q3**.
+  `===` are **not** touched; they inherit their current semantics and diverge
+  from `=` as a consequence. See **Q3** and
+  [#358](https://github.com/TheSwanFactory/hclang/issues/358).
 - **ND-009** — `FrameSequence` is not numeric. Its full surface:
   - arithmetic (`+ - * / %% **`) → error frame;
   - ordering → error frame; equality → structural over segments, `nil` against a
@@ -231,32 +235,36 @@ This is what removes the visible artifact: `1 .1 + 2 .2` becomes
 
 ### 5.2 Division
 
-`↓` means reduce, normalize sign, and collapse to `Int` per **ND-005**. One cell
-departs from exactness, per **ND-004**.
+`↓` means reduce, normalize sign, and collapse to `Int` per **ND-005**. Per
+**ND-004** the **divisor's rung alone** decides exactness, so read this table by
+column.
 
 |         | Int  | Dec     | Rat  | Num | Seq |
 | ------- | ---- | ------- | ---- | --- | --- |
-| **Int** | Rat↓ | Rat↓    | Rat↓ | Num | err |
+| **Int** | Rat↓ | **Num** | Rat↓ | Num | err |
 | **Dec** | Rat↓ | **Num** | Rat↓ | Num | err |
-| **Rat** | Rat↓ | Rat↓    | Rat↓ | Num | err |
-| **Num** | Num  | Num     | Num  | Num | err |
+| **Rat** | Rat↓ | **Num** | Rat↓ | Num | err |
+| **Num** | Num  | **Num** | Num  | Num | err |
 | **Seq** | err  | err     | err  | err | err |
 
-`Dec ÷ Dec` is the sole exact-operand pairing that produces an inexact result.
-The rationale is that spelling both operands with decimal points signals intent:
-`(1 .0) / (3 .0)` asks for a measurement, while `1 / 3` asks for a ratio. HC
-already treats spelling as semantically load-bearing — `3 .10` and `3 .1` are
-distinct renderings of one value — so reading the decimal point as a domain
-marker fits the language's existing character rather than standing as an
-exception to it.
+The entire `Dec` column is inexact. Dividing **by** a decimal is dividing by a
+measured quantity, and no exact ratio can come out of that, so the result is
+honestly a `FrameNumber`. The dividend does not enter into it: `1 / (3 .0)` is
+as inexact as `(1 .0) / (3 .0)`.
+
+Division **by** an `Int` or a `Rat` stays exact whatever the dividend, so
+`(10 .50) / 2` is exact — its divisor is a count, not a measurement.
+
+Division is the only one of the four operators whose result depends on which
+operand is which, which is fitting, since it is also the only non-commutative
+one.
 
 Two consequences to accept knowingly:
 
-- **Exactness is lost where it was available.** `(0 .3) / (0 .1)` yields
-  `2.9999999999999996` rather than `3`. Mixing rungs avoids it: `(0 .3) / 3`
-  stays exact.
-- **`Decimal ÷ Int` does not stay decimal-shaped.** Dividing `10 .50` by `2`
-  gives the ratio `21/2`, not `5 .25`, because that pairing is not both-decimal.
+- **Exactness is lost where it was arithmetically available.** `(0 .3) / (0 .1)`
+  yields `2.9999999999999996` rather than `3`.
+- **`Decimal ÷ Int` does not stay decimal-shaped.** `(10 .50) / 2` gives the
+  ratio `21/2`, not `5 .25`. Exact, but not a decimal.
 
 The compensation is that this makes `FrameNumber` reachable from ordinary
 source, which resolves **Q2**.
@@ -344,13 +352,16 @@ return nil.
 All four are settled. T-3 and T-4 are accepted migrations rather than pure
 resolutions, and T-4 carries a prerequisite.
 
-### T-1 — Resolved: exact except decimal ÷ decimal
+### T-1 — Resolved: the divisor decides
 
-_Closed as a hybrid, recorded in **ND-004**. Rationale retained._
+_Closed on the divisor's rung, recorded in **ND-004**. Rationale retained._
 
-An earlier revision of this section closed T-1 as fully uniform. That
-over-generalized a decision that had only been taken for `Decimal ÷ Int`; the
-`Decimal ÷ Decimal` cell was settled separately and goes to `FrameNumber`.
+This section was revised twice. It first closed T-1 as fully uniform, which
+over-generalized a decision taken only for `Decimal ÷ Int`. It then split the
+single `Decimal ÷ Decimal` cell. The final rule is simpler than either: **the
+divisor decides**, so the whole `Dec` column is inexact and `Int ÷ Dec` goes
+with it. That also dissolves **Q6**, which existed only because the two-operand
+formulation left `Int ÷ Dec` on the exact side by accident.
 
 The intuition is that dividing a measured quantity by a count should stay a
 measured quantity, and for exact cases it works: `10.50 / 2` is `5.25` in host
@@ -382,18 +393,24 @@ Three coherent resolutions:
 3. **As stated** — `Dec ÷ Int → Dec` with documented rounding. Exactness is
    lost, and the loss is hidden inside a nominally exact frame.
 
-**Resolved as a hybrid of (1) and (3), split by cell:**
+**Resolved on the divisor's rung — a fourth option none of the three named:**
 
-- `Decimal ÷ Int` → `Rat↓`, per (1). Option (3) is rejected for this cell for
-  the reason above — it cannot be honored without rounding.
-- `Decimal ÷ Decimal` → `FrameNumber`, per (3), but with the inexactness
-  **explicit in the result type** rather than concealed inside a nominally exact
-  frame. That concealment was the actual objection to (3); a `FrameNumber` makes
-  no claim to exactness, so the objection does not apply.
+- Divisor is a `Dec` → `FrameNumber`, whatever the dividend.
+- Divisor is an `Int` or a `Rat` → `Rat↓`, whatever the dividend.
 
-That distinction is what makes the hybrid coherent rather than a split decision.
-The `0.3 / 0.1` imprecision noted above is still real, but it now surfaces in
-the result type, so no frame misrepresents its own precision.
+This keeps option (1)'s exactness wherever exactness is meaningful, and takes
+option (3)'s inexact result only where the divisor is a measurement — but with
+the imprecision **explicit in the result type** rather than concealed inside a
+nominally exact frame. That concealment was the real objection to (3); a
+`FrameNumber` makes no claim to exactness, so the objection does not apply.
+
+The `0.3 / 0.1` imprecision noted above is still real. It now surfaces in the
+result type, so no frame misrepresents its own precision.
+
+Framing it on the divisor rather than on the operand pair is what removes the
+arbitrariness. A two-operand rule had to answer why `1 / (3 .0)` should differ
+from `(1 .0) / (3 .0)` when both divide by the same measured quantity; the
+one-operand rule never raises the question.
 
 ND-005 stands unmodified: `Rat` collapses only to `Int`, never to `Dec`. Option
 (2) stays available later as a strict refinement rather than a reversal — the
@@ -483,9 +500,9 @@ move. Rule: every existing test asserting a decimal result from `/` is rewritten
 to the ratio rendering, and each gains a companion asserting exactness that the
 float form could not express.
 
-Programs wanting the old output spell both operands as decimals —
-`(1 .0) / (2 .0)` yields `0.5` per ND-004 — so the escape hatch needs no new
-syntax (**Q2**).
+Programs wanting the old output spell the **divisor** as a decimal —
+`1 / (2 .0)` yields `0.5` per ND-004 — so the escape hatch needs no new syntax
+(**Q2**).
 
 **M-2 — Modulo narrows to integers** (T-3). Rule: `%%` on any non-`Int` operand
 returns an error frame. Migration is mechanical because the operator is rare;
@@ -634,8 +651,10 @@ and unary `+` handling belongs on the shared base so all rungs inherit it.
 
 ## 9. Representation decisions
 
-All five are answered. Q3's `==` half and all of Q6 are recorded best guesses
-rather than settled calls, and are marked as such.
+All six are settled. Q2 and Q6 were closed by consequences of other decisions
+rather than answered directly, and Q3 is settled by deferral — this design
+overrides `=` and inherits the rest from
+[#358](https://github.com/TheSwanFactory/hclang/issues/358).
 
 ### Q1 — `FrameRational` renders with `/`
 
@@ -674,30 +693,37 @@ the host-facing projection and is not an HC-level operator; the HC-level path
 into `FrameNumber` is decimal ÷ decimal, plus fractional `**` (ND-007) and the
 host bridge (Q4).
 
-### Q3 — `=` is exact, `==` stays spelling-based, `===` adds a rung check
+### Q3 — `=` is exact; `==` and `===` are deferred to #358
+
+**Decided: override `=` only. Inherit `==` and `===` untouched.**
 
 `=` → `Equals`, `==` → `DataEquals`, `===` → `MetadataEquals` (`ops.ts:40-42`).
-`Frame.equals` compares `toString()`, `dataEquals` compares `dataString()`
-(`frame.ts:283,288`), so all three agree today.
+The three decompose the value: `=` compares `toString()`, which covers data and
+metadata; `==` compares `dataString()`, the data plane; `===` compares the
+metadata plane alone, ignoring data.
 
-**`===` is decided:** two numeric frames of different rungs are never `===`,
-even with identical metadata. So `3 === 3 .0` → nil.
+ND-008 overrides `=` to compare exact numeric values, because #355's acceptance
+criteria require trustworthy exact equality. Nothing else changes:
 
-Recording the mechanism honestly, because this is a change in `===`'s character
-rather than an extension of it: `metadataEquals` (`frame.ts:292-307`) compares
-**only** the metadata plane and ignores data entirely, so two frames with empty
-metadata are `===` today regardless of what they hold — `3 === “hello”` is
-currently `all`. Adding a rung check makes `===` partly data-sensitive. That is
-defensible for numerics, where the rung _is_ the identity, but it is a
-language-level change to an operator this document does not otherwise touch, and
-it may deserve its own ticket rather than riding in on the numeric work.
+| Expression   | After #355 | Source                        |
+| ------------ | ---------- | ----------------------------- |
+| `3 = 3 .0`   | all        | ND-008, new                   |
+| `3 == 3 .0`  | nil        | inherited — spellings differ  |
+| `3 === 3 .0` | all        | inherited — both un-annotated |
 
-**`==` is a best guess,** since only the `===` half was decided. Proposal: `==`
-stays spelling-based, so `3 == 3 .0` → nil while `3 = 3 .0` → all. Rationale:
-`==` is documented as the data plane, spelling is the data plane for atoms, and
-making `==` exact would duplicate `=` for every numeric pair, spending an
-operator for nothing. The divergence is then intentional and documented rather
-than emergent. Confirm or overturn.
+The last two rows are **inherited, not intended.** An earlier draft of this
+section gave `===` a rung check so `3 === 3 .0` would be nil. That is withdrawn:
+`metadataEquals` (`frame.ts:292-307`) ignores data entirely, so adding a rung
+check would make it partly data-sensitive and change the operator's character on
+the way past — a language-level decision that does not belong inside numeric
+work.
+
+The wider problem is real but separable, and is filed as
+[#358](https://github.com/TheSwanFactory/hclang/issues/358): `===` is true for
+**any** two frames without metadata, so `3 === 4`, `3 === “hello”`, and
+`“a” === “b”` are all `all` today (verified). Whether that is the right
+semantic, whether `===` deserves that spelling, and whether a "same value and
+same type" predicate should exist are all settled there rather than here.
 
 ### Q4 — The host bridge keeps strings as strings
 
@@ -715,19 +741,17 @@ where a program explicitly converts it.
 **Decided**, as proposed in ND-011. The bound governs how much a repetition may
 allocate, not what an integer may represent.
 
-### Q6 — Does `Int ÷ Dec` belong with the exact pairings? (best guess)
+### Q6 — Dissolved: `Int ÷ Dec` is inexact like the rest of the column
 
-Not raised in review, but ND-004's rule is stated as "except decimal ÷ decimal,"
-which places `Int ÷ Dec` — `1 / (3 .0)` — on the exact side, yielding `Rat↓`.
+Raised here rather than in review. The two-operand formulation of ND-004
+("except decimal ÷ decimal") left `Int ÷ Dec` on the exact side by accident,
+making `1 / (3 .0)` exact while `(1 .0) / (3 .0)` was not — an asymmetry with no
+justification behind it.
 
-That follows the letter of the rule, and the reading behind it is that the
-both-decimal spelling is the domain signal; one decimal operand is a mixed
-expression. But it does mean `1 / (3 .0)` is exact while `(1 .0) / (3 .0)` is
-not, which a reader may find arbitrary.
-
-Recorded as the operative rule. The alternative — any decimal operand makes the
-division inexact — is a one-cell change if the asymmetry proves more surprising
-than useful in practice.
+**Resolved by restating ND-004 on the divisor alone.** Division by a decimal is
+inexact regardless of the dividend, so the whole `Dec` column is `Num` and the
+question does not arise. The rule got shorter in the process, which is the usual
+sign it was the right cut.
 
 ## 10. Revisions
 
@@ -790,14 +814,14 @@ rendering is chosen.
 
 ### Fourth pass — questions answered
 
-| Question | Answer                                                                |
-| -------- | --------------------------------------------------------------------- |
-| **Q1**   | `numerator/denominator`, reusing `/`. Sign on the numerator.          |
-| **Q2**   | Closed by ND-004; no `.float` needed, so no new syntax.               |
-| **Q3**   | `===` gains a rung check. `==` stays spelling-based — best guess.     |
-| **Q4**   | Host strings stay `FrameString`; only the integer branch retargets.   |
-| **Q5**   | 65536 confirmed.                                                      |
-| **Q6**   | New. `Int ÷ Dec` stays exact, following ND-004's letter — best guess. |
+| Question | Answer                                                              |
+| -------- | ------------------------------------------------------------------- |
+| **Q1**   | `numerator/denominator`, reusing `/`. Sign on the numerator.        |
+| **Q2**   | Closed by ND-004; no `.float` needed, so no new syntax.             |
+| **Q3**   | `===` gains a rung check — _withdrawn in the fifth pass._           |
+| **Q4**   | Host strings stay `FrameString`; only the integer branch retargets. |
+| **Q5**   | 65536 confirmed.                                                    |
+| **Q6**   | New. `Int ÷ Dec` exact — _dissolved in the fifth pass._             |
 
 **A correction to the third pass.** T-1 had been closed as fully uniform
 division. That over-generalized: the decision taken covered `Decimal ÷ Int`, and
@@ -812,6 +836,29 @@ turned out to be one.
 Testing `-1 / 2` for **Q1** found that unary minus is missing entirely — a
 leading `-` evaluates to the module frame rather than negating or erroring —
 which became #357.
+
+### Fifth pass — simplification
+
+Two changes, both of which removed material rather than adding it.
+
+**ND-004 now tests the divisor alone.** "Exact except decimal ÷ decimal" became
+"division by a decimal is inexact." The whole `Dec` column of §5.2 is `Num`,
+which dissolves **Q6** — the asymmetry it recorded existed only because a
+two-operand rule had to place `Int ÷ Dec` somewhere, and it landed on the exact
+side by accident. The one-operand rule never raises the question, and it reads
+better: dividing by a measured quantity cannot yield an exact ratio, whatever
+the dividend.
+
+**Equality is deferred entirely to
+[#358](https://github.com/TheSwanFactory/hclang/issues/358).** The `===` rung
+check from the fourth pass is withdrawn. This design now overrides `=` and
+inherits `==` and `===` untouched, so no operator changes character as a side
+effect of numeric work. Testing for the issue confirmed the semantics are
+shakier than described: `3 === 4`, `3 === “hello”`, and `“a” === “b”` are all
+`all`, because `===` compares only the metadata plane and two un-annotated
+frames match trivially.
+
+Both changes reduce this design's surface. Nothing in it is now a best guess.
 
 Testing zero rather than reasoning about it changed its priority from cleanup to
 dependency: `00`, `01`, and `0123` raise host `RangeError`s, `0` renders as
