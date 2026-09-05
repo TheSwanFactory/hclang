@@ -1,15 +1,23 @@
 # Rationalizing Numbers
 
-**Status:** Design settled. All four tensions in §6 are resolved; two follow-on
-items remain, listed below. Nothing here is implemented; this document records
-the reasoning so the ticket can be tuned against it rather than rediscovered.\
-**Issues:** [#355](https://github.com/TheSwanFactory/hclang/issues/355),
-[#356](https://github.com/TheSwanFactory/hclang/issues/356),
-[#354](https://github.com/TheSwanFactory/hclang/issues/354),
-[#293](https://github.com/TheSwanFactory/hclang/issues/293)\
+**Status:** Shape settled, five representation questions open. All four tensions
+in §6 are resolved and the three migrations are specified, but **§9 Q1-Q3 must
+be answered before the ticket is written** — an implementer hits all three on
+the first arithmetic result they render. Nothing here is implemented; this
+document records the reasoning so the ticket can be tuned against it rather than
+rediscovered.\
+**Issues:** [#355](https://github.com/TheSwanFactory/hclang/issues/355) (this
+design), [#356](https://github.com/TheSwanFactory/hclang/issues/356)
+(dependency), [#354](https://github.com/TheSwanFactory/hclang/issues/354)
+(consumer, out of scope).\
+**Background:** [#293](https://github.com/TheSwanFactory/hclang/issues/293) is
+**closed**; it delivered the numeric-property composition that §1 describes, so
+it is the origin of the behavior this design extends, not a live dependency.\
 **Revised:** Review pass corrected operator spellings, `instanceof` counts, and
 the `valueOf()` guard claim; added **T-4** and **ND-012**. A second pass
-resolved all four tensions and filed #356. See §9.
+resolved all four tensions and filed #356. A third added spelling synthesis
+(§3), comparison grids (§5.5), migration rules (§6), and five open questions
+(§9). See §10.
 
 **Depends on [#356](https://github.com/TheSwanFactory/hclang/issues/356).**
 While `0` remains a `FrameBlob`, `0 .5` cannot produce a `FrameDecimal` and the
@@ -85,7 +93,43 @@ is `NaN`.
 
 So `data` is not storage, it is a cache — read only by `valueOf()`, the six
 arithmetic methods, the five comparisons, and `range()`. Replacing it is a
-narrow change.
+narrow change **on the lex path**.
+
+### Computed values have no source text
+
+The paragraph above holds only for values that were lexed. `1 .1 + 2 .2` has no
+source string, so every arithmetic result must **synthesize** a spelling rather
+than retain one. Today `add()` sidesteps this by doing
+`new FrameNumber(value.toString())` and letting the host format the number,
+which is exactly the path that leaks `3.3000000000000003`.
+
+Each rung therefore owes a total synthesis rule:
+
+| Rung            | Synthesis                                                                                   |
+| --------------- | ------------------------------------------------------------------------------------------- |
+| `FrameInt`      | the `bigint`'s decimal digits, `-` prefixed when negative                                   |
+| `FrameDecimal`  | insert `.` exactly `scale` digits from the right, left-padding the numerator with `0` first |
+| `FrameRational` | **undecided — see Q1**                                                                      |
+| `FrameNumber`   | host `Number.prototype.toString`, inexact by construction                                   |
+| `FrameSequence` | never synthesized; sequences are only ever lexed (ND-009 bars arithmetic)                   |
+
+The decimal rule needs the pad step to be stated, or `1/100` as scale-2 would
+render `.1` instead of `0.01`: the numerator `1` is shorter than the scale. Note
+that the padded form begins with `0`, so **every sub-one decimal depends on
+#356** to be re-lexable.
+
+**No negative literal exists.** `-1` does not lex as a number — verified, it
+does not produce a numeric frame — while `1 - 2` correctly yields `-1`. So a
+synthesized `-` prefix is a rendering that cannot be read back. Negative values
+are reachable only by subtraction, which means round-tripping is already
+one-directional for the entire negative range, independently of which rendering
+**Q1** picks.
+
+Two consequences worth stating plainly. Spelling stops being "the source text"
+and becomes "the canonical rendering," of which source text is one source. And a
+synthesized spelling is only equal to a lexed one up to canonical form, so
+`3 .10` and a computed `3 .1` agree in value but not in spelling — which is what
+makes **Q3** a real question rather than a detail.
 
 ## 4. Decisions
 
@@ -120,14 +164,33 @@ narrow change.
   #355 itself states. The narrow rule is confirmed.
 - **ND-008** — Equality compares exact values across `Int`/`Decimal`/`Rational`,
   so `3`, `3 .0`, and `6/2` are equal while each keeps its own spelling.
-- **ND-009** — `FrameSequence` is not numeric. Arithmetic on it returns an error
-  frame; equality is structural over segments.
+- **ND-009** — `FrameSequence` is not numeric. Its full surface:
+  - arithmetic (`+ - * / %% **`) → error frame;
+  - ordering → error frame; equality → structural over segments, `nil` against a
+    numeric (§5.5);
+  - `valueOf()` → **not implemented**; a sequence has no scalar value, and
+    returning `NaN` is what causes today's defect. Callers must use the exact
+    accessor (§7) and handle its failure;
+  - `apply` → error frame in both branches, so `(1 .408 .555)“Hi”` neither
+    repeats nor throws;
+  - `range()` → not implemented, since it exists only to serve repetition;
+  - `%%` → the same error frame as other arithmetic, not a distinct one. The
+    operand type is what is wrong, and ND-006's integer restriction is a
+    separate matter.
 - **ND-010** — Division and modulo by zero return stable error frames. Because
   zero has no literal spelling (ND-001), this is reachable only through computed
   values, so the guard belongs in the operators rather than at construction.
-- **ND-011** — Repetition (`3“Hello”`) is restricted to `FrameInt` with a bound
-  guard, returning an error frame otherwise. This covers only the `else` branch
-  of `FrameNumber.apply`.
+- **ND-011** — Repetition (`3“Hello”`) is restricted to `FrameInt`, returning an
+  error frame for every other rung. This covers only the `else` branch of
+  `FrameNumber.apply`. The count is bounded twice over:
+  - `range(): Array<number>` (`frame-number.ts:69`) is ill-defined once the
+    count is a `bigint`, so it takes the exact accessor (§7) and returns an
+    error frame rather than an array when the value will not convert;
+  - the ceiling is a **repetition** limit, not a representation limit, so
+    `Number.MAX_SAFE_INTEGER` is far too permissive — it would allocate.
+    Proposed ceiling **65536**, low enough to fail fast and high enough for any
+    plausible literal repetition. See **Q5**; the exact figure is the only open
+    part.
 - **ND-012** — The other branch of `FrameNumber.apply` — juxtaposed
   multiplication, `3 2 → 6` — routes through the same tower as §5.1. Its current
   form is `this.data * argument.data` (`frame-number.ts:52`), so it inherits
@@ -212,6 +275,33 @@ today's behavior, where `%%` accepts any two `FrameNumber` (**T-3**).
 
 Exact and total across `Int`/`Dec`/`Rat` by cross-multiplication, returning
 `Frame.all` or `Frame.nil`. `Seq` against `Seq` compares structurally.
+
+Ordering and equality differ in their `Seq` handling, so they need separate
+grids. `exact` means cross-multiplied and total; `float` means host comparison,
+non-total because `NaN` fails all four orderings; `struct` means segment-wise.
+
+Ordering — `<`, `<=`, `>`, `>=`:
+
+|         | Int   | Dec   | Rat   | Num   | Seq |
+| ------- | ----- | ----- | ----- | ----- | --- |
+| **Int** | exact | exact | exact | float | err |
+| **Dec** | exact | exact | exact | float | err |
+| **Rat** | exact | exact | exact | float | err |
+| **Num** | float | float | float | float | err |
+| **Seq** | err   | err   | err   | err   | err |
+
+Equality — `=` (see **Q3** for how `==` and `===` differ):
+
+|         | Int   | Dec   | Rat   | Num   | Seq    |
+| ------- | ----- | ----- | ----- | ----- | ------ |
+| **Int** | exact | exact | exact | float | nil    |
+| **Dec** | exact | exact | exact | float | nil    |
+| **Rat** | exact | exact | exact | float | nil    |
+| **Num** | float | float | float | float | nil    |
+| **Seq** | nil   | nil   | nil   | nil   | struct |
+
+Sequences have no ordering, so `err` there is a genuine absence rather than a
+type mismatch. They do have an identity, so equality answers `nil` instead.
 
 Comparison is the one place `nil` is deliberately retained over `err`: `Seq`
 against a numeric returns `Frame.nil`, because asking whether two values are
@@ -339,6 +429,39 @@ Zero interacts here too. Because zero has no literal spelling (ND-001, #356), no
 test can write `1 / 0` directly, so ND-010's error frames need either computed
 operands or #356 to land first before they can be exercised at all.
 
+### Migration rules
+
+#355 requires that existing programs "either retain behavior or have an
+explicit, tested migration rule." Three behaviors change. The rules, so the
+ticket does not have to reinvent them:
+
+**M-1 — Division renders differently.** The largest user-visible change, and
+previously unrecorded here. Verified today:
+
+| Source  | Today | Under ND-004     |
+| ------- | ----- | ---------------- |
+| `1 / 2` | `0.5` | a ratio (**Q1**) |
+| `3 / 2` | `1.5` | a ratio (**Q1**) |
+| `4 / 2` | `2`   | `2`, unchanged   |
+
+Exact division collapsing to `Int` is unaffected, so only non-integral results
+move. Rule: every existing test asserting a decimal result from `/` is rewritten
+to the ratio rendering, and each gains a companion asserting exactness that the
+float form could not express. Programs wanting the old output request the float
+projection (**Q2**).
+
+**M-2 — Modulo narrows to integers** (T-3). Rule: `%%` on any non-`Int` operand
+returns an error frame. Migration is mechanical because the operator is rare;
+`%%` — not `%` — is the string to search for.
+
+**M-3 — Type mismatch returns an error instead of `nil`** (T-4). Rule: the ten
+`return Frame.nil` fallbacks in `math.ts` become error frames naming the
+operator and both operand rungs. Tests: one per operator asserting the mismatch
+path, plus the conditional-position behavior once defined. This is the migration
+blocked on the language-level prerequisite above, so it lands last of the three.
+
+M-1 and M-2 can ship with the tower. M-3 cannot.
+
 ## 7. Affected code points
 
 Verified by reading. Two counts that are easy to conflate:
@@ -382,6 +505,28 @@ projects from a `bigint`, that conversion is lossy above the safe-integer range
 (`Number(12345678901234567890n)` → `12345678901234567000`), so the guard must
 move ahead of the conversion rather than after it. The existing checks would
 still pass a value that had already been rounded.
+
+**The accessor is a new interface point, not an override.** `valueOf` is
+declared only on `FrameNumber:85` — not on `Frame`, `MetaFrame`, or `FrameAtom`
+— so nothing today obliges a frame to yield a scalar. The proposal:
+
+```ts
+/** The exact integer this frame denotes, or an error frame explaining why not. */
+exactInt(max?: bigint): bigint | Frame;
+```
+
+- Declared on the shared numeric base, so `Int`, `Decimal`, and `Rational` all
+  answer it and `FrameSequence` inherits the failing default (ND-009).
+- Returns a `bigint`, never a `number`, so no conversion precedes the check.
+- Returns an error frame — not `NaN`, not `null` — when the value is not an
+  integer (`Decimal` with nonzero scale, `Rational` with denominator ≠ 1), is
+  negative where the caller forbids it, or exceeds `max`.
+- Callers narrow on the return type. `frame-bytes.ts` and
+  `schema-bit-matcher.ts` each pass their own `max` and surface the error rather
+  than re-deriving it.
+
+`valueOf()` stays as the lossy float projection for hosts that want one, which
+is a different job and should not be the path a bit width travels.
 
 ### Interning is safe; two narrower hazards are not
 
@@ -450,7 +595,84 @@ and unary `+` handling belongs on the shared base so all rungs inherit it.
 - Defining how error frames behave in conditional position. Required by **T-4**,
   but a language-level question wider than numerics.
 
-## 9. Revisions
+## 9. Open questions
+
+Five decisions the ticket cannot be written without. Q1-Q3 are the ones an
+implementer hits while rendering their first arithmetic result.
+
+### Q1 — How does `FrameRational` render?
+
+The most-produced new frame and the least specified. `Rat↓` appears throughout
+§5 and ND-005 says `1/2` "renders as a ratio," but no output string is defined.
+
+Options: reuse the division spelling (`1/2`); adopt a dedicated separator that
+cannot be confused with the operator; or render as a structured HCSON value.
+
+Reusing `/` has one attractive property — re-lexing `1/2` performs the division
+again and yields the same rational, so it round-trips semantically even though
+it is not a literal. It also has a cost: the rendering is an expression, so it
+is not idempotent under nesting, and `-1/2` cannot be read back at all because
+no negative literal exists (§3).
+
+Sub-questions once a form is chosen: is the sign carried on the numerator, and
+is a denominator of 1 ever rendered, or does ND-005's collapse make that
+unreachable?
+
+### Q2 — What requests the float projection?
+
+ND-003 calls `number` "a projection through `valueOf()`," but `valueOf()`
+returns a host number, not a frame. The only path that yields a
+**`FrameNumber`** is a fractional exponent, which leaves the `Num` rows and
+columns of §5.1, §5.2, and §5.5 almost unreachable and "explicit projection"
+undefined.
+
+Two coherent answers:
+
+1. **Give it a spelling** — a property such as `.float`, making the projection
+   requestable and the `Num` rows live. Also gives M-1 its escape hatch for
+   programs that want `0.5` back from `1 / 2`.
+2. **Accept that it is nearly unreachable** — `FrameNumber` becomes an internal
+   result of fractional `**` plus the host bridge (**Q4**), and the tables
+   shrink to say so.
+
+(1) is the better fit with M-1. (2) is more honest about the inexact domain
+being a dead end. Either way the tables need to match the answer.
+
+### Q3 — Should `=` and `==` disagree?
+
+Three equality operators are live: `=` → `Equals`, `==` → `DataEquals`, `===` →
+`MetadataEquals` (`ops.ts:40-42`). `Frame.equals` compares `toString()` and
+`dataEquals` compares `dataString()` (`frame.ts:283,288`) — both spelling-based
+today, so they agree.
+
+ND-008 makes `=` compare exact values. That splits them: `3 = 3 .0` → all, while
+`3 == 3 .0` → nil, because the spellings differ. The split is defensible — `==`
+is documented as the data plane, and spelling _is_ the data plane for atoms —
+but it is currently unstated, and §3's synthesis rules make it reachable for
+computed values too.
+
+Decide whether `==` follows `=` onto exact comparison, stays spelling-based, and
+what `===` does across rungs.
+
+### Q4 — How does the host bridge route numeric values?
+
+`make_context` (`hc-eval.ts:44-48`) routes with `Frame.isInteger`, which is
+`MetaFrame.isInteger` — `/^\p{N}+$/u`, digits only. Integers become
+`FrameNumber`; everything else, including `"1.5"`, becomes `FrameString`.
+
+`FrameInt` is the clear target for the integer branch. Undecided is whether a
+host `"1.5"` should now become `FrameDecimal`, become `FrameNumber`, or stay
+`FrameString` as today. Staying `FrameString` is the smallest change and keeps
+the bridge from silently minting inexact values; promoting to `FrameDecimal` is
+more useful and more surprising.
+
+### Q5 — What is the repetition ceiling?
+
+ND-011 proposes 65536. The mechanism matters more than the figure: the bound is
+about how much a repetition may allocate, not what an integer may represent.
+Confirm or replace the number.
+
+## 10. Revisions
 
 A review pass re-verified every claim against the code. The design held; these
 corrections did not.
@@ -486,6 +708,28 @@ The interning correction came from asking whether immutability and copy-on-write
 had already settled the question. They had. Re-checking turned up the two real
 hazards — inherited statics and `copy()`'s shallow `Object.assign` — which are
 mechanical rather than architectural.
+
+### Third pass — representation
+
+| Gap                                              | Resolution                       |
+| ------------------------------------------------ | -------------------------------- |
+| Computed values have no source text              | §3 synthesis rules; **Q1** open  |
+| `FrameRational` rendering undefined              | **Q1**                           |
+| `FrameNumber` unreachable as a frame             | **Q2**                           |
+| `=` and `==` will silently disagree              | **Q3**                           |
+| §5.5 had no grid                                 | two grids, ordering vs equality  |
+| ND-011's bound had no bound                      | 65536 proposed; **Q5**           |
+| Exact accessor unnamed, and not on `Frame`       | `exactInt(max?)` specified in §7 |
+| T-3/T-4 migrations unwritten                     | M-1, M-2, M-3 in §6              |
+| `FrameSequence` non-arithmetic surface undefined | ND-009 expanded                  |
+| `hc-eval.ts` routing undecided                   | **Q4**                           |
+| #293 listed as if live                           | it is closed; relabeled          |
+
+Two gaps surfaced from testing rather than from review. `1 / 2` renders `0.5`
+today, making ND-004 a user-visible migration that had gone unrecorded — now
+**M-1**. And `-1` does not lex, so no negative literal exists and synthesized
+negative spellings cannot be read back, which constrains **Q1** before any
+rendering is chosen.
 
 Testing zero rather than reasoning about it changed its priority from cleanup to
 dependency: `00`, `01`, and `0123` raise host `RangeError`s, `0` renders as
