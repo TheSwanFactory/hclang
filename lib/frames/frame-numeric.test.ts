@@ -14,12 +14,13 @@ import {
 import { Add } from "../ops/math.ts";
 
 describe("exact numeric frames", () => {
-  it("constructs and interns bigint integers while preserving source spelling", () => {
-    const value = FrameInt.for("0012345678901234567890");
+  it("constructs bigint integers without retaining parsed spellings", () => {
+    const source = "0012345678901234567890";
+    const value = FrameInt.for(source);
 
     expect(value.data).toEqual(12345678901234567890n);
-    expect(value.toString()).toEqual("0012345678901234567890");
-    expect(FrameInt.for("0012345678901234567890")).toBe(value);
+    expect(value.toString()).toEqual(source);
+    expect(FrameInt.for(source)).not.toBe(value);
   });
 
   it("stores decimal numerator and scale and pads synthesized decimals", () => {
@@ -189,9 +190,13 @@ describe("numeric domains", () => {
     expect(new FrameNumber(3).exactInt()).toBeInstanceOf(Frame);
   });
 
-  it("bounds repetition at 65536 without host range exceptions", () => {
+  it("bounds repetition work and text output without host exceptions", () => {
     const maximum = new FrameInt(65_536n).range();
     const tooLarge = new FrameInt(65_537n).range();
+    const oversizedText = new FrameInt(65_536n).apply(
+      new FrameString("0123456789abcdef"),
+      Frame.nil,
+    );
     const decimal = new FrameDecimal("3.0").apply(
       new FrameString("x"),
       Frame.nil,
@@ -200,6 +205,9 @@ describe("numeric domains", () => {
     expect(maximum).toBeInstanceOf(Array);
     expect((maximum as number[]).length).toEqual(65_536);
     expect(tooLarge.toString()).toEqual("$!.repetition-limit 65536");
+    expect(oversizedText.toString()).toEqual("$!.repetition-size 1000000");
+    expect(new FrameInt(3n).apply(new FrameString("x"), Frame.nil).toString())
+      .toEqual("“xxx”");
     expect(decimal.toString()).toEqual("$!.repetition-domain FrameDecimal");
   });
 });

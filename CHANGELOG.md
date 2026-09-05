@@ -11,8 +11,9 @@
   numbers. Integer and ratio divisors preserve exact results, decimal divisors
   produce inexact numbers, `%%` accepts integers only, and `=` compares numeric
   values across exact rungs (#355).
-- Bound integer repetition and exact exponentiation with stable domain, zero,
-  and range errors instead of host exceptions or unbounded allocation (#355).
+- Bound integer repetition counts and repeated text output, plus exact
+  exponentiation, with stable domain, zero, and range errors instead of host
+  exceptions or unbounded allocation (#355).
 - **Breaking:** Parse `0` and zero-led decimal chains such as `0.5` as numeric
   values rather than blobs; explicit `0b`, `0o`, and `0x` literals remain blobs
   (#356).

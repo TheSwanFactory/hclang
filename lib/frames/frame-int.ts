@@ -8,7 +8,9 @@ import {
   FrameNumeric,
   type NumericRank,
   REPETITION_LIMIT,
+  REPETITION_TEXT_LIMIT,
 } from "./frame-numeric.ts";
+import { hasCharacterContent } from "./frame-text.ts";
 import { FrameNumber } from "./frame-number.ts";
 import type { MetaFrame } from "./meta-frame.ts";
 import type { AtomSyntax, ScanResult, SigilStart } from "../scan.ts";
@@ -53,10 +55,8 @@ export class FrameInt extends FrameNumeric {
     fromSource: (source: string): Frame => FrameInt.for(source),
   };
 
-  private static readonly integers: Record<string, FrameInt> = {};
-
   public static for(source: string): FrameInt {
-    return FrameInt.integers[source] ??= new FrameInt(source);
+    return new FrameInt(source);
   }
 
   public readonly rank: NumericRank = 0;
@@ -97,13 +97,20 @@ export class FrameInt extends FrameNumeric {
   }
 
   public range(): number[] | Frame {
+    const count = this.repetitionCount();
+    return count instanceof Frame
+      ? count
+      : Array.from({ length: count }, (_, index) => index);
+  }
+
+  private repetitionCount(): number | Frame {
     if (this.data < 0n) {
       return Frame.error(`$!.repetition-count ${this.spelling}`);
     }
     if (this.data > REPETITION_LIMIT) {
       return Frame.error(`$!.repetition-limit ${REPETITION_LIMIT}`);
     }
-    return Array.from({ length: Number(this.data) }, (_, index) => index);
+    return Number(this.data);
   }
 
   public override string_start(): string {
@@ -192,11 +199,19 @@ export class FrameInt extends FrameNumeric {
   }
 
   protected override repeat(argument: Frame, parameter: Frame): Frame {
-    const indexes = this.range();
-    if (indexes instanceof Frame) return indexes;
+    const count = this.repetitionCount();
+    if (count instanceof Frame) return count;
+
+    if (
+      hasCharacterContent(argument) &&
+      BigInt(argument.characterContent().length) * this.data >
+        REPETITION_TEXT_LIMIT
+    ) {
+      return Frame.error(`$!.repetition-size ${REPETITION_TEXT_LIMIT}`);
+    }
 
     let result = Frame.nil;
-    for (const _index of indexes) {
+    for (let index = 0; index < count; index += 1) {
       result = result.apply(argument, parameter);
     }
     return result;
