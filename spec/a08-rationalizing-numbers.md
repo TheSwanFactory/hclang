@@ -1,14 +1,23 @@
 # Rationalizing Numbers
 
-**Status:** Design consensus, with four open tensions recorded in §6. Nothing
-here is implemented; this document records the reasoning so the ticket can be
-tuned against it rather than rediscovered.\
+**Status:** Design settled. All four tensions in §6 are resolved; two follow-on
+items remain, listed below. Nothing here is implemented; this document records
+the reasoning so the ticket can be tuned against it rather than rediscovered.\
 **Issues:** [#355](https://github.com/TheSwanFactory/hclang/issues/355),
+[#356](https://github.com/TheSwanFactory/hclang/issues/356),
 [#354](https://github.com/TheSwanFactory/hclang/issues/354),
 [#293](https://github.com/TheSwanFactory/hclang/issues/293)\
-**Revised:** Review pass against the code corrected the modulo and
-exponentiation operator spellings, the `instanceof` counts, and the claim about
-`valueOf()` guards; added **T-4** and **ND-012**. See §9.
+**Revised:** Review pass corrected operator spellings, `instanceof` counts, and
+the `valueOf()` guard claim; added **T-4** and **ND-012**. A second pass
+resolved all four tensions and filed #356. See §9.
+
+**Depends on [#356](https://github.com/TheSwanFactory/hclang/issues/356).**
+While `0` remains a `FrameBlob`, `0 .5` cannot produce a `FrameDecimal` and the
+entire sub-one decimal range is unspellable — including this document's own
+examples, `(0 .3) / (0 .1)`. #356 must land first.
+
+**Follow-on:** error frames in conditional position need defining before **T-4**
+can be implemented (see T-4).
 
 ## 1. HC has no float literal
 
@@ -92,7 +101,10 @@ narrow change.
   an opt-in.
 - **ND-003** — `FrameDecimal` is exact (scaled `bigint`), not a float. `number`
   is a projection through `valueOf()`.
-- **ND-004** — `Int ÷ Int` yields `FrameRational`, reduced, sign-normalized.
+- **ND-004** — Division over the exact tower is **uniform**: any of
+  `Int`/`Decimal`/`Rational` divided by any of them yields `FrameRational`,
+  reduced and sign-normalized. Decimals are rationals, so they get no separate
+  rule. Resolves **T-1** by option (1).
 - **ND-005** — `FrameRational` collapses **only** to `FrameInt`, when the
   denominator reduces to 1. It never auto-collapses to `FrameDecimal`, so `1/2`
   renders as a ratio rather than `0.5`, keeping rendering predictable.
@@ -103,9 +115,9 @@ narrow change.
   yields `Rat↓`, and a genuinely fractional exponent yields `FrameNumber`.
   Exponentiation is the only operator that can leave the rationals, but only in
   the fractional case (see §5.3).\
-  _Revised._ This originally read "`**` returns `FrameNumber` in the general
-  case," which **T-2** showed to violate an acceptance criterion #355 itself
-  states. The narrow rule preserves the original insight and needs sign-off.
+  _Revised and accepted._ This originally read "`**` returns `FrameNumber` in
+  the general case," which **T-2** showed to violate an acceptance criterion
+  #355 itself states. The narrow rule is confirmed.
 - **ND-008** — Equality compares exact values across `Int`/`Decimal`/`Rational`,
   so `3`, `3 .0`, and `6/2` are equal while each keeps its own spelling.
 - **ND-009** — `FrameSequence` is not numeric. Arithmetic on it returns an error
@@ -151,16 +163,20 @@ This is what removes the visible artifact: `1 .1 + 2 .2` becomes
 
 ### 5.2 Division
 
-`↓` means reduce, normalize sign, and collapse to `Int` per **ND-005**. The
-`Dec` row is unresolved — see **T-1**.
+`↓` means reduce, normalize sign, and collapse to `Int` per **ND-005**. Uniform
+across the exact tower per **ND-004**.
 
-|         | Int   | Dec   | Rat  | Num | Seq |
-| ------- | ----- | ----- | ---- | --- | --- |
-| **Int** | Rat↓  | Rat↓  | Rat↓ | Num | err |
-| **Dec** | _T-1_ | _T-1_ | Rat↓ | Num | err |
-| **Rat** | Rat↓  | Rat↓  | Rat↓ | Num | err |
-| **Num** | Num   | Num   | Num  | Num | err |
-| **Seq** | err   | err   | err  | err | err |
+|         | Int  | Dec  | Rat  | Num | Seq |
+| ------- | ---- | ---- | ---- | --- | --- |
+| **Int** | Rat↓ | Rat↓ | Rat↓ | Num | err |
+| **Dec** | Rat↓ | Rat↓ | Rat↓ | Num | err |
+| **Rat** | Rat↓ | Rat↓ | Rat↓ | Num | err |
+| **Num** | Num  | Num  | Num  | Num | err |
+| **Seq** | err  | err  | err  | err | err |
+
+The consequence to accept knowingly: dividing `10 .50` by `2` yields the ratio
+`21/2`, not `5 .25`. Exactness is preserved and the rule has no exceptions, but
+a decimal divided by a whole number does not stay decimal-shaped.
 
 ### 5.3 Exponentiation
 
@@ -213,9 +229,14 @@ This fixes a live defect. `FrameNumber.equals` compares
 identical phone-shaped values currently compare unequal and all four orderings
 return nil.
 
-## 6. Open tensions
+## 6. Tensions and resolutions
 
-### T-1 — `Decimal ÷ Int → Decimal` is not closed
+All four are settled. T-3 and T-4 are accepted migrations rather than pure
+resolutions, and T-4 carries a prerequisite.
+
+### T-1 — Resolved: division is uniform
+
+_Closed by option (1), recorded in **ND-004**. Rationale retained._
 
 The intuition is that dividing a measured quantity by a count should stay a
 measured quantity, and for exact cases it works: `10.50 / 2` is `5.25` in host
@@ -247,16 +268,19 @@ Three coherent resolutions:
 3. **As stated** — `Dec ÷ Int → Dec` with documented rounding. Exactness is
    lost, and the loss is hidden inside a nominally exact frame.
 
-Recommendation: (2) if the `5 .25` result matters, otherwise (1). (3) is not
-recommended.
+**Resolved as (1).** Exactness and a rule without exceptions were preferred over
+preserving decimal shape through division. ND-005 therefore stands unmodified:
+`Rat` collapses only to `Int`, never to `Dec`.
 
-Option (2) **refines ND-005 rather than contradicting it.** ND-005 forbids
-`Rat → Dec` collapse in order to keep rendering predictable, and the `2^a·5^b`
-test is precisely the condition under which that collapse is total and lossless.
-Adopting (2) narrows ND-005's prohibition to the cases that motivated it — `1/3`
-still renders as a ratio — rather than reversing it.
+Option (2) stays available later as a strict refinement rather than a reversal —
+the `2^a·5^b` test is exactly the condition under which `Rat → Dec` collapse is
+total and lossless — but it is not adopted now, and `1/3` renders as a ratio
+either way.
 
-### T-2 — Resolved into ND-007, pending sign-off
+Note that the `(0 .3) / (0 .1)` and `(1 .0) / 3` spellings used above are not
+yet lexable; see #356.
+
+### T-2 — Resolved into ND-007, accepted
 
 _Closed, retained for rationale._
 
@@ -272,10 +296,9 @@ rung; negative integer exponent → `Rat↓`; fractional exponent → `Num`. Tha
 retains the original insight — fractional exponents genuinely have no exact
 answer — while satisfying the acceptance criterion.
 
-This reverses a previously-taken decision, so it needs explicit confirmation
-before the ticket is written.
+This reversed a previously-taken decision and has been confirmed.
 
-### T-3 — Restricting modulo is a behavioral regression
+### T-3 — Accepted: restricting modulo is a behavioral regression
 
 `%%` currently accepts any two `FrameNumber`, so decimal modulo works today.
 **ND-006** narrows that to integers. If any existing program or test relies on
@@ -287,30 +310,34 @@ change.
 Note the operator is `%%`; searching for affected programs by grepping `%` will
 find nothing, since bare `%` is unbound.
 
-### T-4 — `nil` → `err` is an unlisted migration
+### T-4 — Resolved: `err`, pending a definition of errors in conditionals
+
+_Closed in favor of error frames. One prerequisite remains._
 
 Every `err` cell in §5 changes existing behavior. All ten gated operators in
 `lib/ops/math.ts` end with `return Frame.nil`, so a type mismatch is currently
 silently empty. The truth tables replace that with an error frame across ten
 operators at once.
 
-This lands on the same #355 requirement as T-3: it either retains behavior or
-needs an explicit, tested migration rule. Two considerations pull in opposite
-directions:
+**Resolved as `err`.** Silent `nil` on `1 + “text”` hides real mistakes, and
+#355 already asks for descriptive error frames on unsupported numeric
+combinations. ND-009 follows from this rather than needing a separate decision,
+and §5.5's comparison exception is retained.
 
-- **For `err`** — silent `nil` on `1 + “text”` hides real mistakes, and #355
-  already asks for descriptive error frames on unsupported numeric combinations.
-- **For `nil`** — `nil` is HC's normal absence value and may be load-bearing in
-  conditionals, where an error frame would propagate instead of testing falsy.
+The prerequisite that blocked the other direction still has to be discharged:
+`nil` is HC's normal absence value, so code that tests an arithmetic result for
+falsiness will now see an error frame propagate instead. **How error frames
+behave in conditional position must be defined before this is implemented.**
+That is a language-level question wider than numerics, and it is the gating item
+for the whole migration, not a detail of it.
 
-ND-009's "arithmetic on a sequence returns an error frame" is a specific
-instance of this and cannot be settled independently of it. §5.5 keeps
-comparison on `nil` deliberately; that exception should survive whichever way
-this resolves.
+Because this lands on #355's "retain behavior or provide an explicit, tested
+migration rule," the migration needs its own tests: one per operator confirming
+the mismatch path, plus coverage of the conditional behavior once defined.
 
-Zero interacts here too. Because zero has no literal spelling (ND-001), no test
-can write `1 / 0` directly, so ND-010's error frames need computed operands to
-exercise at all.
+Zero interacts here too. Because zero has no literal spelling (ND-001, #356), no
+test can write `1 / 0` directly, so ND-010's error frames need either computed
+operands or #356 to land first before they can be exercised at all.
 
 ## 7. Affected code points
 
@@ -356,14 +383,37 @@ projects from a `bigint`, that conversion is lossy above the safe-integer range
 move ahead of the conversion rather than after it. The existing checks would
 still pass a value that had already been rounded.
 
-### The interning cache needs a decision
+### Interning is safe; two narrower hazards are not
 
 `FrameNumber.for` memoizes instances in `protected static numbers`, keyed by
-digit string (`frame-number.ts:26-31`). Splitting the class raises three
-questions the ticket must answer: whether each rung keeps its own cache, whether
-an `Int` key and a `Decimal` spelling can collide in one table, and whether
-interned instances may be shared at all once metadata is attachable.
-`iterators.ts:11` is a caller, not the issue; the shared mutable table is.
+digit string (`frame-number.ts:26-31`).
+
+**Sharing interned atoms is already sound**, and this document previously
+overstated the risk. The copy-on-write architecture settled in #341 covers it:
+`Frame.instanceCopy()` returns `this` because "atoms are immutable and closures
+are shared bodies, so for them sharing is unobservable" (`frame.ts:398-407`),
+and every successful symbol read takes its own projection through `value.copy()`
+before re-parenting (`frame-symbol.ts:99-108`). A shared `3` cannot be
+re-parented or annotated in place by one reader. `FrameAlias` and `BoundMethod`
+return `$!.copy-on-write-boundary` where that would be violated.
+
+Two narrower hazards do need attention, and neither is about mutability:
+
+1. **A single static table on a shared base collides across rungs.** JavaScript
+   statics are inherited, not per-subclass, so one `for()` on a shared numeric
+   base gives `FrameInt` and `FrameDecimal` the same table. The key is a bare
+   digit string with no class discriminator, so `Int 3` and a `Decimal` spelling
+   of `3` would alias. Each rung needs its own table, or the key needs the rung
+   in it.
+2. **`copy()` is shallow, which `FrameSequence` breaks.** `Frame.copy()` is
+   `Object.assign(clone, this)` plus fresh `meta`, `is`, and `id`
+   (`frame.ts:388-396`). Primitive payloads — `bigint` numerator, `scale`,
+   numerator/denominator pairs — are safe. An **array** of segments is not: the
+   clone would share the array, while `instanceCopy()` returns `this` on the
+   grounds that the frame is an immutable atom. `FrameSequence` must therefore
+   store its segments as immutable spelling rather than a mutable array, or
+   override `copy()`. Storing spelling is the better answer, since spelling is
+   already the render path (§3).
 
 ### Behavior that must survive
 
@@ -393,8 +443,12 @@ and unary `+` handling belongs on the shared base so all rungs inherit it.
   ([#354](https://github.com/TheSwanFactory/hclang/issues/354)); this document
   only supplies the substrate that would make it faithful.
 - Candidate composition and lookahead, excluded by **CD-012**.
-- Giving zero a literal spelling. ND-001 records the gap; changing the `[1-9]`
-  sigil would collide with `FrameBlob` and belongs to its own ticket.
+- Giving zero a literal spelling. Filed as
+  [#356](https://github.com/TheSwanFactory/hclang/issues/356) — out of scope
+  here, but a **hard dependency** rather than a cleanup, since `0 .5` cannot
+  reach `FrameDecimal` until it lands.
+- Defining how error frames behave in conditional position. Required by **T-4**,
+  but a language-level question wider than numerics.
 
 ## 9. Revisions
 
@@ -417,3 +471,23 @@ corrections did not.
 
 Corrections not adopted: none. One correction was narrowed — `Frame.error` is
 defined at `frame.ts:110`; `frame-scope-anchor.ts:172` is a call site.
+
+### Second pass — tensions resolved
+
+| Item      | Resolution                                                          |
+| --------- | ------------------------------------------------------------------- |
+| **T-1**   | Option (1): division is uniform over the exact tower. See ND-004.   |
+| **T-2**   | ND-007's narrow rule accepted.                                      |
+| **T-4**   | `err` accepted; blocked on defining errors in conditional position. |
+| Interning | Overstated. #341's copy-on-write already makes shared atoms sound.  |
+| Zero      | Filed as #356 after testing found three host crashes.               |
+
+The interning correction came from asking whether immutability and copy-on-write
+had already settled the question. They had. Re-checking turned up the two real
+hazards — inherited statics and `copy()`'s shallow `Object.assign` — which are
+mechanical rather than architectural.
+
+Testing zero rather than reasoning about it changed its priority from cleanup to
+dependency: `00`, `01`, and `0123` raise host `RangeError`s, `0` renders as
+`0x0`, `1 + 0` is silently nil, and `0.5` reports `name-missing`, so no decimal
+below one can be written at all.
