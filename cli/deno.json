@@ -11,7 +11,7 @@
     "test": "deno test --allow-env --allow-read --allow-write",
     "test:bs": "deno task hc hc/BitScheme.hc -t",
     "test:classes": "deno task hc hc/class-support.hc -t",
-    "test:doc": "deno task hc hc/testdoc.hc -t"
+    "test:doc": "deno task hc hc/testdoc.hc -t && deno task hc hc/numerics.hc -t"
   },
   "imports": {
     "@nothing628/chalk": "jsr:@nothing628/chalk@^1.0.1",
