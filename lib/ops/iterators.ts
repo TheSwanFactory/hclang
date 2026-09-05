@@ -1,4 +1,4 @@
-import { Frame, FrameArray, FrameNumber, FrameString } from "../frames.ts";
+import { Frame, FrameArray, FrameInt, FrameString } from "../frames.ts";
 import type { ReceiverState } from "../frames/bound-method.ts";
 
 export const MapEnumerable = (
@@ -8,7 +8,7 @@ export const MapEnumerable = (
 ): FrameArray => {
   let i = 0;
   const array: Frame[] = source.asArray().map((value): Frame => {
-    const param = FrameNumber.for(i.toString());
+    const param = FrameInt.for(i.toString());
     i += 1;
     return block.call(value, param, receiverState);
   });

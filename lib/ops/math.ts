@@ -1,46 +1,34 @@
-import { Frame, FrameNumber } from "../frames.ts";
+import { Frame, FrameNumeric } from "../frames.ts";
 
-export const Add = (source: Frame, block: Frame): Frame => {
-  if (source instanceof FrameNumber && block instanceof FrameNumber) {
-    return source.add(block);
-  }
-  return Frame.nil;
+type NumericOperation = (left: FrameNumeric, right: FrameNumeric) => Frame;
+
+const numeric = (
+  source: Frame,
+  block: Frame,
+  operation: NumericOperation,
+): Frame => {
+  return source instanceof FrameNumeric && block instanceof FrameNumeric
+    ? operation(source, block)
+    : Frame.nil;
 };
 
-export const Subtract = (source: Frame, block: Frame): Frame => {
-  if (source instanceof FrameNumber && block instanceof FrameNumber) {
-    return source.subtract(block);
-  }
-  return Frame.nil;
-};
+export const Add = (source: Frame, block: Frame): Frame =>
+  numeric(source, block, (left, right) => left.add(right));
 
-export const Multiply = (source: Frame, block: Frame): Frame => {
-  if (source instanceof FrameNumber && block instanceof FrameNumber) {
-    return source.multiply(block);
-  }
-  return Frame.nil;
-};
+export const Subtract = (source: Frame, block: Frame): Frame =>
+  numeric(source, block, (left, right) => left.subtract(right));
 
-export const Divide = (source: Frame, block: Frame): Frame => {
-  if (source instanceof FrameNumber && block instanceof FrameNumber) {
-    return source.divide(block);
-  }
-  return Frame.nil;
-};
+export const Multiply = (source: Frame, block: Frame): Frame =>
+  numeric(source, block, (left, right) => left.multiply(right));
 
-export const Modulo = (source: Frame, block: Frame): Frame => {
-  if (source instanceof FrameNumber && block instanceof FrameNumber) {
-    return source.modulo(block);
-  }
-  return Frame.nil;
-};
+export const Divide = (source: Frame, block: Frame): Frame =>
+  numeric(source, block, (left, right) => left.divide(right));
 
-export const Power = (source: Frame, block: Frame): Frame => {
-  if (source instanceof FrameNumber && block instanceof FrameNumber) {
-    return source.power(block);
-  }
-  return Frame.nil;
-};
+export const Modulo = (source: Frame, block: Frame): Frame =>
+  numeric(source, block, (left, right) => left.modulo(right));
+
+export const Power = (source: Frame, block: Frame): Frame =>
+  numeric(source, block, (left, right) => left.power(right));
 
 export const Equals = (source: Frame, block: Frame): Frame => {
   return source.equals(block);
@@ -54,30 +42,14 @@ export const MetadataEquals = (source: Frame, block: Frame): Frame => {
   return source.metadataEquals(block);
 };
 
-export const GreaterThan = (source: Frame, block: Frame): Frame => {
-  if (source instanceof FrameNumber && block instanceof FrameNumber) {
-    return source.greaterThan(block);
-  }
-  return Frame.nil;
-};
+export const GreaterThan = (source: Frame, block: Frame): Frame =>
+  numeric(source, block, (left, right) => left.greaterThan(right));
 
-export const GreaterThanOrEqual = (source: Frame, block: Frame): Frame => {
-  if (source instanceof FrameNumber && block instanceof FrameNumber) {
-    return source.greaterThanOrEqual(block);
-  }
-  return Frame.nil;
-};
+export const GreaterThanOrEqual = (source: Frame, block: Frame): Frame =>
+  numeric(source, block, (left, right) => left.greaterThanOrEqual(right));
 
-export const LessThan = (source: Frame, block: Frame): Frame => {
-  if (source instanceof FrameNumber && block instanceof FrameNumber) {
-    return source.lessThan(block);
-  }
-  return Frame.nil;
-};
+export const LessThan = (source: Frame, block: Frame): Frame =>
+  numeric(source, block, (left, right) => left.lessThan(right));
 
-export const LessThanOrEqual = (source: Frame, block: Frame): Frame => {
-  if (source instanceof FrameNumber && block instanceof FrameNumber) {
-    return source.lessThanOrEqual(block);
-  }
-  return Frame.nil;
-};
+export const LessThanOrEqual = (source: Frame, block: Frame): Frame =>
+  numeric(source, block, (left, right) => left.lessThanOrEqual(right));

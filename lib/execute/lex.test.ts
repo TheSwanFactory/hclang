@@ -8,9 +8,9 @@ import {
   FrameBlob,
   FrameExpr,
   FrameGroup,
+  FrameInt,
   FrameName,
   FrameNote,
-  FrameNumber,
   FrameParam,
   FrameScopeAnchor,
   FrameString,
@@ -331,7 +331,7 @@ describe("Lex", () => {
       const atoms = lexAtoms(`${source} `);
 
       expect(atoms).toHaveLength(1);
-      expect(atoms[0]).toBeInstanceOf(FrameNumber);
+      expect(atoms[0]).toBeInstanceOf(FrameInt);
       expect(atoms[0].toString()).toEqual(source);
     }
   });
@@ -382,7 +382,7 @@ describe("Lex", () => {
 
   it("supplies live scope while preserving dynamic byte boundaries", () => {
     const output = new FrameArray([]);
-    output.set("size", new FrameNumber("1"));
+    output.set("size", new FrameInt("1"));
     const parser = new ParsePipe(output, FrameGroup);
     const lexer = new LexPipe(parser);
 
@@ -432,7 +432,7 @@ describe("Lex", () => {
 
   it("redispatches the first payload character after a dynamic zero length", () => {
     const output = new FrameArray([]);
-    output.set("size", new FrameNumber("0"));
+    output.set("size", new FrameInt("0"));
     const parser = new ParsePipe(output, FrameGroup);
     const lexer = new LexPipe(parser);
 

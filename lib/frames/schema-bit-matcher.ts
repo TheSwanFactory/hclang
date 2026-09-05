@@ -4,7 +4,7 @@ import { FrameArray } from "./frame-array.ts";
 import { FrameBlob } from "./frame-blob.ts";
 import { FrameList } from "./frame-list.ts";
 import { FrameName } from "./frame-name.ts";
-import { FrameNumber } from "./frame-number.ts";
+import { FrameNumeric } from "./frame-numeric.ts";
 import { matchFailure, type MatchResult, matchSuccess } from "./frame-match.ts";
 import {
   isSchemaFrame,
@@ -28,12 +28,12 @@ export function compileBitSchemaMatcher(
       ? expression.asArray().map(unwrapSchemaSyntax)
       : [];
     if (
-      terms.length === 2 && terms[0] instanceof FrameNumber &&
+      terms.length === 2 && terms[0] instanceof FrameNumeric &&
       isBitAlias(terms[1])
     ) {
-      const bits = Number(terms[0].valueOf());
-      return Number.isInteger(bits) && bits > 0
-        ? new ExactBitSchemaMatcher(bits)
+      const exact = terms[0].exactInt(BigInt(Number.MAX_SAFE_INTEGER));
+      return typeof exact === "bigint" && exact > 0n
+        ? new ExactBitSchemaMatcher(Number(exact))
         : new UnsupportedSchemaMatcher();
     }
 

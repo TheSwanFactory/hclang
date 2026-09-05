@@ -39,7 +39,7 @@ Division follows the divisor's rung
 ; 4 / 2
 # 2
 ; 10.50 / 2
-# 21/2
+# 21/4
 ; 1 / 2.0
 # 0.5
 ; 1.5 / 3
@@ -80,3 +80,41 @@ Integer-only repetition remains available
 ```
 ; 3“Hello”
 # “HelloHelloHello”
+
+```
+Cross-rung promotion and integer-only modulo
+```
+; 1 + 2.5
+# 3.5
+; 1.5 + (1 / 3)
+# 11/6
+; 3.%%2
+# 1
+; 3.0 %% 2
+# $!.numeric-domain %% FrameDecimal FrameInt
+```
+Zero and unsupported domains return stable errors
+```
+; 1 / (1 - 1)
+# $!.division-by-zero /
+; 1 %% (1 - 1)
+# $!.modulo-by-zero %%
+; 1.408.555 + 1
+# $!.numeric-domain + FrameSequence FrameInt
+; 1.408.555.< 2
+# $!.numeric-domain < FrameSequence FrameInt
+; 1.408.555 = 1
+# ()
+; -1.408.555
+# $!.numeric-domain unary- FrameSequence
+```
+Repetition and exact powers fail before unsafe allocation
+```
+; 3.14“Hello”
+# $!.repetition-domain FrameDecimal
+; 1.408.555“Hi”
+# $!.repetition-domain FrameSequence
+; 65537“x”
+# $!.repetition-limit 65536
+; 2 ** 1000000
+# $!.numeric-range ** FrameInt

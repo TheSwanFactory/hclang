@@ -1,7 +1,7 @@
 import { FrameAtom } from "./frame-atom.ts";
 import { type Context, NilContext } from "./context.ts";
 import { Frame } from "./frame.ts";
-import { FrameNumber } from "./frame-number.ts";
+import { FrameNumeric } from "./frame-numeric.ts";
 import {
   type AtomSyntax,
   ScanDisposition,
@@ -25,7 +25,10 @@ const canIncludeLengthCharacter = (source: string, char: string): boolean => {
  */
 const resolveLength = (source: string, context: Frame): number | string => {
   if (/^\d+$/.test(source)) {
-    return parseInt(source, 10);
+    const exact = BigInt(source);
+    return exact <= BigInt(Number.MAX_SAFE_INTEGER)
+      ? Number(exact)
+      : `invalid byte length: \\${source}\\`;
   }
   if (!/^[a-zA-Z][-\w]*$/.test(source)) {
     return `invalid byte length: \\${source}\\`;
@@ -35,15 +38,15 @@ const resolveLength = (source: string, context: Frame): number | string => {
   if (value.is.missing) {
     return `byte length not found: ${source}`;
   }
-  if (!(value instanceof FrameNumber)) {
+  if (!(value instanceof FrameNumeric)) {
     return `invalid byte length value for ${source}: ${value.toString()}`;
   }
 
-  const count = Number(value.valueOf());
-  if (!Number.isSafeInteger(count) || count < 0) {
+  const exact = value.exactInt(BigInt(Number.MAX_SAFE_INTEGER));
+  if (typeof exact !== "bigint" || exact < 0n) {
     return `invalid byte length value for ${source}: ${value.toString()}`;
   }
-  return count;
+  return Number(exact);
 };
 
 /**

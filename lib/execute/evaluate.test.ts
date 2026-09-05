@@ -199,19 +199,28 @@ describe("evaluate", () => {
 
     describe("numeric properties", () => {
       it("routes zero and zero-led decimals through the numeric ladder", () => {
-        expect(evaluate("0").toString()).toEqual("[0]");
+        const zero = evaluate("0");
+        const decimal = evaluate("0.5");
+
+        expect(zero.toString()).toEqual("[0]");
+        expect(zero.at(0)).toBeInstanceOf(frame.FrameInt);
         expect(evaluate("1 + 0").toString()).toEqual("[1]");
-        expect(evaluate("0.5").toString()).toEqual("[0.5]");
+        expect(decimal.toString()).toEqual("[0.5]");
+        expect(decimal.at(0)).toBeInstanceOf(frame.FrameDecimal);
       });
 
       it("composes an integer and numeric property into a decimal", () => {
-        expect(evaluate("1.408").toString()).toEqual("[1.408]");
+        const result = evaluate("1.408");
+
+        expect(result.toString()).toEqual("[1.408]");
+        expect(result.at(0)).toBeInstanceOf(frame.FrameDecimal);
       });
 
       it("preserves additional segments and their leading zeroes", () => {
-        expect(evaluate("1.408.055.1212").toString()).toEqual(
-          "[1.408.055.1212]",
-        );
+        const result = evaluate("1.408.055.1212");
+
+        expect(result.toString()).toEqual("[1.408.055.1212]");
+        expect(result.at(0)).toBeInstanceOf(frame.FrameSequence);
       });
 
       it("completes at an expression boundary", () => {
@@ -251,6 +260,14 @@ describe("evaluate", () => {
         expect(evaluate("-(1 - 2)").toString()).toEqual("[1]");
       });
 
+      it("rejects signed sequences consistently", () => {
+        const error = "[$!.numeric-domain unary- FrameSequence]";
+
+        expect(evaluate("-1.2.3").toString()).toEqual(error);
+        expect(evaluate("-(1.2.3)").toString()).toEqual(error);
+        expect(evaluate("-1.2.3 = 1.2.3").toString()).toEqual(error);
+      });
+
       it("does not change binary subtraction", () => {
         expect(evaluate("1 - 2").toString()).toEqual("[-1]");
       });
@@ -283,11 +300,11 @@ describe("evaluate", () => {
           override call(argument: frame.Frame): frame.Frame {
             this.calls++;
             expect(argument).toBe(frame.Frame.nil);
-            return new frame.FrameNumber("4");
+            return new frame.FrameInt("4");
           }
         })();
 
-        expect(frame.FrameNumber.for("1").get("?").call(callable).toString())
+        expect(frame.FrameInt.for("1").get("?").call(callable).toString())
           .toEqual("4");
         expect(callable.calls).toEqual(1);
         expect(frame.Frame.nil.get("?").call(callable)).toBe(frame.Frame.nil);
@@ -300,11 +317,11 @@ describe("evaluate", () => {
           override call(argument: frame.Frame): frame.Frame {
             this.calls++;
             expect(argument).toBe(frame.Frame.nil);
-            return new frame.FrameNumber("4");
+            return new frame.FrameInt("4");
           }
         })();
 
-        expect(frame.FrameNumber.for("1").get(":").call(callable)).toBe(
+        expect(frame.FrameInt.for("1").get(":").call(callable)).toBe(
           frame.Frame.nil,
         );
         expect(callable.calls).toEqual(0);
@@ -319,7 +336,7 @@ describe("evaluate", () => {
           }
         })();
 
-        expect(frame.FrameNumber.for("1").get("?").call(returnsNil)).toBe(
+        expect(frame.FrameInt.for("1").get("?").call(returnsNil)).toBe(
           frame.Frame.nil,
         );
         expect(frame.Frame.nil.get(":").call(returnsNil)).toBe(frame.Frame.nil);
@@ -608,6 +625,15 @@ describe("evaluate", () => {
         expect(evaluate("<[@Bit]> 0b101").toString()).toEqual("[0b101]");
       });
 
+      it("requires exact safe integers for bit widths", () => {
+        expect(evaluate("<1.0@Bit> 0b1").toString()).toEqual(
+          "[$!.unsupported-schema-match]",
+        );
+        expect(
+          evaluate("<9007199254740992@Bit> 0b1").toString(),
+        ).toEqual("[$!.unsupported-schema-match]");
+      });
+
       it("distinguishes invalid, short, and long bit inputs", () => {
         expect(evaluate("<3@Bit> 5").toString()).toEqual(
           "[$!.bit-input-invalid 5]",
@@ -866,8 +892,8 @@ describe("evaluate", () => {
         expect(parsed.is.sequence).toBe(true);
         expect(parsed.call(frame.Frame.nil).toString()).toEqual("2");
 
-        const first = new frame.FrameExpr([new frame.FrameNumber("1")]);
-        const second = new frame.FrameExpr([new frame.FrameNumber("2")]);
+        const first = new frame.FrameExpr([new frame.FrameInt("1")]);
+        const second = new frame.FrameExpr([new frame.FrameInt("2")]);
         first.is.statement = true;
         second.is.statement = true;
         const assembled = new frame.FrameLazy([first, second]);
@@ -929,8 +955,8 @@ describe("evaluate", () => {
         const explicit = evaluate("{(_.x * _.x) + (_.y * _.y)}").at(0);
 
         const arg = new frame.Frame();
-        arg.set("x", new frame.FrameNumber("3"));
-        arg.set("y", new frame.FrameNumber("4"));
+        arg.set("x", new frame.FrameInt("3"));
+        arg.set("y", new frame.FrameInt("4"));
 
         expect((implicit as frame.FrameLazy).call(arg).toString()).toEqual(
           "25",
@@ -955,9 +981,9 @@ describe("evaluate", () => {
         const inner = new frame.FrameLazy([innerExpr]);
         const outer = new frame.FrameLazy([inner]);
 
-        const afterOuter = outer.call(new frame.FrameNumber("10"));
+        const afterOuter = outer.call(new frame.FrameInt("10"));
         const result = (afterOuter as frame.Frame).call(
-          new frame.FrameNumber("5"),
+          new frame.FrameInt("5"),
         );
 
         expect(result.toString()).toEqual("15");
@@ -969,12 +995,12 @@ describe("evaluate", () => {
           frame.FrameSymbol.for("value"),
         ]);
         const parent = new frame.Frame();
-        parent.set("value", new frame.FrameNumber("5"));
+        parent.set("value", new frame.FrameInt("5"));
 
         const closure = new frame.FrameLazy([expr], parent.meta);
         const bound = closure.in([parent]);
 
-        const result = bound.call(new frame.FrameNumber("1"));
+        const result = bound.call(new frame.FrameInt("1"));
         expect(result.toString()).toEqual("5");
       });
 
@@ -1084,6 +1110,14 @@ describe("evaluate", () => {
       expect(context.x.toString()).toEqual("2");
     });
 
+    it("extends Unicode host integers with decimal properties", () => {
+      const context = make_context({ unicode: "١٢٣" });
+      const result = evaluate("$$.unicode.5", context);
+
+      expect(result.at(0).toString()).toEqual("123.5");
+      expect(context.unicode.toString()).toEqual("١٢٣");
+    });
+
     it("does not leak host bindings into bare-name lookup", () => {
       const result = evaluate("x", make_context({ x: "2" }));
 
@@ -1131,8 +1165,8 @@ describe("evaluate", () => {
 
     it("does not grant host-owner visibility through the host anchor", () => {
       const context: frame.Context = {
-        __secret: new frame.FrameNumber("42"),
-        _guarded: new frame.FrameNumber("21"),
+        __secret: new frame.FrameInt("42"),
+        _guarded: new frame.FrameInt("21"),
       };
 
       for (const source of ["$$.secret", "{{$$.secret}()}()"]) {
@@ -1189,7 +1223,7 @@ describe("evaluate", () => {
 
     it("does not give host closures ambient access to sibling bindings", () => {
       const context: frame.Context = {
-        secret: new frame.FrameNumber("42"),
+        secret: new frame.FrameInt("42"),
         implicit: new frame.FrameLazy([
           new frame.FrameExpr([frame.FrameSymbol.for("secret")]),
         ]),
@@ -1215,7 +1249,7 @@ describe("evaluate", () => {
       ]);
       const object = new frame.FrameArray([], { method });
       const context: frame.Context = {
-        secret: new frame.FrameNumber("42"),
+        secret: new frame.FrameInt("42"),
         object,
       };
 
@@ -1245,7 +1279,7 @@ describe("evaluate", () => {
         ]);
         const implicit = makeMethod([frame.FrameSymbol.for("hostValue")]);
         const metadata: frame.Context = {
-          localValue: new frame.FrameNumber("7"),
+          localValue: new frame.FrameInt("7"),
           local,
           file,
           explicit,
@@ -1269,7 +1303,7 @@ describe("evaluate", () => {
         {
           access: "$$.service",
           context: {
-            hostValue: new frame.FrameNumber("42"),
+            hostValue: new frame.FrameInt("42"),
             service: stringService.service,
           },
           ...stringService,
@@ -1277,7 +1311,7 @@ describe("evaluate", () => {
         {
           access: "$$.service",
           context: {
-            hostValue: new frame.FrameNumber("42"),
+            hostValue: new frame.FrameInt("42"),
             service: customService.service,
           },
           ...customService,
@@ -1285,7 +1319,7 @@ describe("evaluate", () => {
         {
           access: "$$.container.service",
           context: {
-            hostValue: new frame.FrameNumber("42"),
+            hostValue: new frame.FrameInt("42"),
             container: new frame.FrameArray([], {
               service: nestedService.service,
             }),

@@ -5,6 +5,8 @@ import {
   FrameArray,
   FrameBytePayload,
   FrameBytes,
+  FrameDecimal,
+  FrameInt,
   FrameNumber,
   FrameString,
   FrameSymbol,
@@ -38,9 +40,9 @@ describe("FrameBytes", () => {
     expect(bytes.toString()).toEqual(`\\${n}\\${js_string}`);
   });
 
-  it("resolves a symbolic length from the supplied context", () => {
+  it("resolves a symbolic exact integer length from the supplied context", () => {
     const context = new FrameArray([]);
-    context.set("size", new FrameNumber("3"));
+    context.set("size", new FrameInt(3n));
 
     const result = FrameBytes.SYNTAX.recognize(
       FrameSymbol.for("\\"),
@@ -55,7 +57,7 @@ describe("FrameBytes", () => {
 
   it("resolves a symbolic zero length to an empty byte string", () => {
     const context = new FrameArray([]);
-    context.set("size", new FrameNumber("0"));
+    context.set("size", new FrameInt(0n));
 
     const result = FrameBytes.SYNTAX.recognize(
       FrameSymbol.for("\\"),
@@ -96,10 +98,16 @@ describe("FrameBytes", () => {
     });
   });
 
-  for (const invalid of ["-1", "1.5", "Infinity", "9007199254740992"]) {
+  const invalidLengths = [
+    new FrameInt(-1n),
+    new FrameDecimal("1.5"),
+    new FrameNumber(Infinity),
+    new FrameInt(9007199254740992n),
+  ];
+  for (const invalid of invalidLengths) {
     it(`rejects the invalid numeric length ${invalid}`, () => {
       const context = new FrameArray([]);
-      context.set("size", new FrameNumber(invalid));
+      context.set("size", invalid);
 
       const result = FrameBytes.SYNTAX.recognize(
         FrameSymbol.for("\\"),
@@ -113,6 +121,20 @@ describe("FrameBytes", () => {
       });
     });
   }
+
+  it("rejects an unsafe literal length before number conversion", () => {
+    const source = "9007199254740992";
+    const result = FrameBytes.SYNTAX.recognize(
+      FrameSymbol.for("\\"),
+      source,
+      new FrameArray([]),
+    );
+
+    expect(result).toEqual({
+      disposition: ScanDisposition.Error,
+      message: `invalid byte length: \\${source}\\`,
+    });
+  });
 
   it("reports an unterminated symbolic length", () => {
     expect(FrameBytes.SYNTAX.finish("size")).toEqual({
