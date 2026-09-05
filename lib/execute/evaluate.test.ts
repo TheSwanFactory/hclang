@@ -198,6 +198,12 @@ describe("evaluate", () => {
     });
 
     describe("numeric properties", () => {
+      it("routes zero and zero-led decimals through the numeric ladder", () => {
+        expect(evaluate("0").toString()).toEqual("[0]");
+        expect(evaluate("1 + 0").toString()).toEqual("[1]");
+        expect(evaluate("0.5").toString()).toEqual("[0.5]");
+      });
+
       it("composes an integer and numeric property into a decimal", () => {
         expect(evaluate("1.408").toString()).toEqual("[1.408]");
       });

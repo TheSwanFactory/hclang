@@ -5,6 +5,7 @@ import {
   Frame,
   FrameArg,
   FrameArray,
+  FrameBlob,
   FrameExpr,
   FrameGroup,
   FrameName,
@@ -323,6 +324,38 @@ describe("Lex", () => {
 
     expect(atoms).toHaveLength(1);
     expect(atoms[0]).toBe(Frame.all);
+  });
+
+  it("routes zero-led decimal source to numbers", () => {
+    for (const source of ["0", "00", "01", "0123"]) {
+      const atoms = lexAtoms(`${source} `);
+
+      expect(atoms).toHaveLength(1);
+      expect(atoms[0]).toBeInstanceOf(FrameNumber);
+      expect(atoms[0].toString()).toEqual(source);
+    }
+  });
+
+  it("keeps explicitly prefixed zero source as blobs", () => {
+    for (const source of ["0b101", "0o17", "0xff"]) {
+      const atoms = lexAtoms(`${source} `);
+
+      expect(atoms).toHaveLength(1);
+      expect(atoms[0]).toBeInstanceOf(FrameBlob);
+      expect(atoms[0].toString()).toEqual(source);
+    }
+  });
+
+  it("routes zero source identically across chunk boundaries", () => {
+    for (const source of ["0123", "0b101"]) {
+      for (let split = 1; split < source.length; split++) {
+        expect(
+          lexChunkedAtoms([source.slice(0, split), source.slice(split)]).map(
+            String,
+          ),
+        ).toEqual([source]);
+      }
+    }
   });
 
   it("preserves phone-shaped property decomposition", () => {

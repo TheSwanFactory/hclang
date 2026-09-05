@@ -1,3 +1,4 @@
+import { FrameNumber } from "./frame-number.ts";
 import type { Frame } from "./frame.ts";
 import { FrameAtom } from "./frame-atom.ts";
 import { NilContext } from "./context.ts";
@@ -56,7 +57,12 @@ export class FrameBlob extends FrameAtom {
       return includeOrReserve(char, digits.test(char), lexeme);
     },
     finish: completeAtEnd,
-    fromSource: (source: string): Frame => new FrameBlob(source),
+    fromSource: (source: string): Frame => {
+      const lexeme = `${FrameBlob.BLOB_START}${source}`;
+      return /^\d+$/.test(lexeme)
+        ? new FrameNumber(lexeme)
+        : new FrameBlob(lexeme);
+    },
   };
 
   public static fix_source(source: string): string {
