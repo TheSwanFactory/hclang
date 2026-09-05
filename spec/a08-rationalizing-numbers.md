@@ -21,9 +21,9 @@ the division rule at `Dec ÷ Dec`, and filed #357.
 **Dependencies.** Neither blocks the design, both block usability:
 
 - [#356](https://github.com/TheSwanFactory/hclang/issues/356) — while `0`
-  remains a `FrameBlob`, `0 .5` cannot produce a `FrameDecimal`, so the entire
+  remains a `FrameBlob`, `0.5` cannot produce a `FrameDecimal`, so the entire
   sub-one decimal range is unspellable, including this document's own
-  `(0 .3) / (0 .1)` examples. Must land first.
+  `0.3 / 0.1` examples. Must land first.
 - [#357](https://github.com/TheSwanFactory/hclang/issues/357) — unary minus does
   not exist, so no negative rendering can be read back at any rung (§3, **Q1**).
 
@@ -52,6 +52,23 @@ already variable lookup. What the issue frames as "choose and document native
 construction syntax" is instead a question about which frame each lookup rung
 produces.
 
+### Notation
+
+Examples here are written `2.2`, without a space. Although the `.` is a property
+operator, the unspaced form is the one that groups correctly, because spacing
+participates in associativity. Verified:
+
+| Source            | Result               |
+| ----------------- | -------------------- |
+| `1.1 + 2.2`       | `3.3000000000000003` |
+| `(1 .1) + (2 .2)` | `3.3000000000000003` |
+| `1 .1 + 2 .2`     | `3.1.2` — **wrong**  |
+
+In the spaced form without parentheses, `+ 2` binds before the trailing `.2`, so
+`1 .1 + 2` evaluates to `3.1` and the `.2` then composes onto that. The spaced
+form is only safe inside explicit grouping, so this document uses the unspaced
+spelling throughout.
+
 ## 2. Two independent axes
 
 The confusion in #355 comes from collapsing two things that vary separately.
@@ -67,13 +84,13 @@ becomes a lossy projection you request, never a rung you land on.
 
 ## 3. The five frames
 
-| Frame           | Holds                            | Produced by                        |
-| --------------- | -------------------------------- | ---------------------------------- |
-| `FrameInt`      | `bigint`                         | bare digits — `3`                  |
-| `FrameDecimal`  | `bigint` numerator + `scale`     | one numeric lookup — `3 .14`       |
-| `FrameSequence` | ordered segments, spelling only  | two or more lookups — `1 .408 .55` |
-| `FrameRational` | `bigint` numerator + denominator | division only                      |
-| `FrameNumber`   | `number`                         | projection; fractional `**`        |
+| Frame           | Holds                            | Produced by                      |
+| --------------- | -------------------------------- | -------------------------------- |
+| `FrameInt`      | `bigint`                         | bare digits — `3`                |
+| `FrameDecimal`  | `bigint` numerator + `scale`     | one numeric lookup — `3.14`      |
+| `FrameSequence` | ordered segments, spelling only  | two or more lookups — `1.408.55` |
+| `FrameRational` | `bigint` numerator + denominator | division only                    |
+| `FrameNumber`   | `number`                         | projection; fractional `**`      |
 
 `FrameDecimal` stores `314` with scale `2`, recoverable from the spelling by
 dropping the `.` and counting following digits. Rendering stays total: insert a
@@ -100,7 +117,7 @@ narrow change **on the lex path**.
 
 ### Computed values have no source text
 
-The paragraph above holds only for values that were lexed. `1 .1 + 2 .2` has no
+The paragraph above holds only for values that were lexed. `1.1 + 2.2` has no
 source string, so every arithmetic result must **synthesize** a spelling rather
 than retain one. Today `add()` sidesteps this by doing
 `new FrameNumber(value.toString())` and letting the host format the number,
@@ -132,7 +149,7 @@ one-directional across the entire negative range, for every rung. Filed as
 Two consequences worth stating plainly. Spelling stops being "the source text"
 and becomes "the canonical rendering," of which source text is one source. And a
 synthesized spelling is only equal to a lexed one up to canonical form, so
-`3 .10` and a computed `3 .1` agree in value but not in spelling — which is what
+`3.10` and a computed `3.1` agree in value but not in spelling — which is what
 makes **Q3** a real question rather than a detail.
 
 ## 4. Decisions
@@ -152,9 +169,8 @@ makes **Q3** a real question rather than a detail.
 - **ND-004** — **Division by a decimal yields `FrameNumber`.** Every other exact
   pairing yields `FrameRational`, reduced and sign-normalized. The test is on
   the **divisor alone**: dividing by a measured quantity cannot produce an exact
-  ratio, so `1 / (3 .0)` and `(1 .0) / (3 .0)` are equally inexact, while
-  `(10 .50) / 2` stays exact because its divisor is a count. Resolves **T-1**
-  and **Q6**.
+  ratio, so `1 / 3.0` and `1.0 / 3.0` are equally inexact, while `10.50 / 2`
+  stays exact because its divisor is a count. Resolves **T-1** and **Q6**.
 - **ND-005** — `FrameRational` collapses **only** to `FrameInt`, when the
   denominator reduces to 1. It never auto-collapses to `FrameDecimal`, so `1/2`
   renders as a ratio rather than `0.5`, keeping rendering predictable.
@@ -169,7 +185,7 @@ makes **Q3** a real question rather than a detail.
   the general case," which **T-2** showed to violate an acceptance criterion
   #355 itself states. The narrow rule is confirmed.
 - **ND-008** — `=` compares exact values across `Int`/`Decimal`/`Rational`, so
-  `3`, `3 .0`, and `6/2` are equal while each keeps its own spelling. `==` and
+  `3`, `3.0`, and `6/2` are equal while each keeps its own spelling. `==` and
   `===` are **not** touched; they inherit their current semantics and diverge
   from `=` as a consequence. See **Q3** and
   [#358](https://github.com/TheSwanFactory/hclang/issues/358).
@@ -180,8 +196,8 @@ makes **Q3** a real question rather than a detail.
   - `valueOf()` → **not implemented**; a sequence has no scalar value, and
     returning `NaN` is what causes today's defect. Callers must use the exact
     accessor (§7) and handle its failure;
-  - `apply` → error frame in both branches, so `(1 .408 .555)“Hi”` neither
-    repeats nor throws;
+  - `apply` → error frame in both branches, so `1.408.555“Hi”` neither repeats
+    nor throws;
   - `range()` → not implemented, since it exists only to serve repetition;
   - `%%` → the same error frame as other arithmetic, not a distinct one. The
     operand type is what is wrong, and ND-006's integer restriction is a
@@ -211,6 +227,86 @@ makes **Q3** a real question rather than a detail.
 Rows are the left operand, columns the right. `err` is an HC error frame
 (`Frame.error`, `frame.ts:110`).
 
+### 5.0 Cross-rung dispatch
+
+The tables below are mostly not code. They fall out of one mechanism, which this
+section specifies because it is the central implementation question and the rest
+of the document assumes it.
+
+Today every arithmetic method is same-class by signature —
+`add(right: FrameNumber): FrameNumber` — and `math.ts` gates both operands with
+`instanceof FrameNumber` before calling `source.add(block)`. Five rungs would
+make that 25 pairings per operator if each pair were handled directly.
+
+They are not, because **the tower is a chain rather than a lattice**:
+
+| Rung       | Rank |
+| ---------- | ---- |
+| `Int`      | 0    |
+| `Decimal`  | 1    |
+| `Rational` | 2    |
+| `Number`   | 3    |
+| `Sequence` | none |
+
+Every binary numeric operator runs the same four steps:
+
+1. **Reject.** If either operand has no rank — a `FrameSequence`, or any
+   non-numeric frame — return an error frame naming the operator and both rungs.
+   This is the single place the type check lives, so the 20 `instanceof`
+   expressions in `math.ts` collapse to one gate on the shared numeric base, and
+   it is where ND-009's and M-3's error frames come from.
+2. **Promote.** Take `max(rank(left), rank(right))` and lift both operands to
+   it. Because the ranks form a chain, each rung only needs a promotion to its
+   immediate successor; longer lifts compose.
+3. **Operate.** Dispatch to the same-rung implementation. Each rung implements
+   the operators for its own type only — four implementations per operator,
+   not 25.
+4. **Canonicalize.** Collapse per ND-005 (`Rational` with denominator 1 → `Int`)
+   and synthesize the spelling per §3.
+
+So §5.1's table is a description of step 2, not a thing to be coded. Addition,
+subtraction, and multiplication need no per-cell logic whatsoever.
+
+Promotion is exact at every step but the last:
+
+| Promotion   | Rule                                   | Exact? |
+| ----------- | -------------------------------------- | ------ |
+| `Int → Dec` | same digits, `scale` 0                 | yes    |
+| `Dec → Rat` | numerator over `10^scale`              | yes    |
+| `Rat → Num` | numerator ÷ denominator in host floats | **no** |
+
+`Rat → Num` is the only lossy promotion and the only one that can fail outright.
+Converting each `bigint` separately and then dividing rounds above the
+safe-integer range and can reach `Infinity` on either side, so a rational that
+is perfectly representable as a float can project to `Infinity / Infinity` —
+`NaN`. The implementation must scale the ratio down before converting rather
+than converting and then dividing.
+
+Promotion produces new frames and never mutates its operands, consistent with
+the immutability discussion in §7.
+
+Four operators depart from the plain join. These exceptions are the only
+per-operator logic in the system:
+
+| Operator    | Departure                                                                                                  |
+| ----------- | ---------------------------------------------------------------------------------------------------------- |
+| `+ - *`     | none — pure join                                                                                           |
+| `/`         | **ND-004**: the divisor's rank alone decides. Divisor `Dec` or `Num` → `Num`; otherwise `Rat`, then step 4 |
+| `**`        | **ND-007**: the exponent's _value_ selects the rule, not its rank                                          |
+| `%%`        | **ND-006**: both operands must be rank 0; no promotion is attempted                                        |
+| `< <= > >=` | join, then compare at that rank — "cross-multiplication" is what comparing at rank 2 means                 |
+
+Two mechanisms were considered and rejected. **Double dispatch** would need 25
+cases per operator and would re-encode the join implicitly in each one. A
+**static join table** is equivalent to `max` for `+ - *`, but cannot express
+`**`'s dependence on the exponent's value or the divisor rule, so it would need
+the same exceptions while adding a table to maintain. Ranks give the table for
+free, and adding a rung later costs one promotion rather than a new row and
+column.
+
+The four-step pipeline belongs on the shared numeric base as a template method.
+Each of the ten exported operators in `math.ts` becomes a call into it.
+
 Every `err` cell below is a **behavior change**, not the status quo. All ten
 gated operators in `lib/ops/math.ts` currently `return Frame.nil` when either
 operand fails the `instanceof` test, so today a type mismatch is silently empty
@@ -228,9 +324,9 @@ Join on the tower. Nothing escapes; `Int` embeds as scale 0.
 | **Num** | Num | Num | Num | Num | err |
 | **Seq** | err | err | err | err | err |
 
-This is what removes the visible artifact: `1 .1 + 2 .2` becomes
-`11/10 +
-22/10`, rendering `3.3` rather than the `3.3000000000000003` that
+This is what removes the visible artifact: `1.1 + 2.2` becomes `11/10 +
+22/10`,
+rendering `3.3` rather than the `3.3000000000000003` that
 `(1.1 + 2.2).toString()` produces today.
 
 ### 5.2 Division
@@ -249,11 +345,11 @@ column.
 
 The entire `Dec` column is inexact. Dividing **by** a decimal is dividing by a
 measured quantity, and no exact ratio can come out of that, so the result is
-honestly a `FrameNumber`. The dividend does not enter into it: `1 / (3 .0)` is
-as inexact as `(1 .0) / (3 .0)`.
+honestly a `FrameNumber`. The dividend does not enter into it: `1 / 3.0` is as
+inexact as `1.0 / 3.0`.
 
 Division **by** an `Int` or a `Rat` stays exact whatever the dividend, so
-`(10 .50) / 2` is exact — its divisor is a count, not a measurement.
+`10.50 / 2` is exact — its divisor is a count, not a measurement.
 
 Division is the only one of the four operators whose result depends on which
 operand is which, which is fitting, since it is also the only non-commutative
@@ -261,10 +357,10 @@ one.
 
 Two consequences to accept knowingly:
 
-- **Exactness is lost where it was arithmetically available.** `(0 .3) / (0 .1)`
+- **Exactness is lost where it was arithmetically available.** `0.3 / 0.1`
   yields `2.9999999999999996` rather than `3`.
-- **`Decimal ÷ Int` does not stay decimal-shaped.** `(10 .50) / 2` gives the
-  ratio `21/2`, not `5 .25`. Exact, but not a decimal.
+- **`Decimal ÷ Int` does not stay decimal-shaped.** `10.50 / 2` gives the ratio
+  `21/2`, not `5.25`. Exact, but not a decimal.
 
 The compensation is that this makes `FrameNumber` reachable from ordinary
 source, which resolves **Q2**.
@@ -278,8 +374,8 @@ Note the spelling: exponentiation is `**`. Bare `^` is **not** exponentiation in
 HC — `lib/ops.ts:50` binds it to `BindType`.
 
 Per **ND-007** the result stays exact except for a fractional exponent, because
-`**` is the only operator that can escape the rationals entirely: `2 ** (1 .5)`
-is irrational, so no exact frame can hold it. Two host facts constrain any
+`**` is the only operator that can escape the rationals entirely: `2 ** 1.5` is
+irrational, so no exact frame can hold it. Two host facts constrain any
 alternative:
 
 - `2n ** -1n` throws `RangeError: Exponent must be positive`. A negative
@@ -367,29 +463,28 @@ The intuition is that dividing a measured quantity by a count should stay a
 measured quantity, and for exact cases it works: `10.50 / 2` is `5.25` in host
 floats and exactly `1050/100 ÷ 2 = 525/100` in scaled form.
 
-But the rule cannot be satisfied in general. `(1 .0) / 3` is one third, which
-has no decimal representation at any scale. Honoring `Decimal ÷ Int → Decimal`
+But the rule cannot be satisfied in general. `1.0 / 3` is one third, which has
+no decimal representation at any scale. Honoring `Decimal ÷ Int → Decimal`
 therefore requires choosing a precision and rounding, which reintroduces
 inexactness behind a class that claims to be exact — the precise failure #355
 exists to eliminate.
 
 `Decimal ÷ Decimal → Number` is representable but loses cases that visibly
-should be exact. Verified in the host: `0.3 / 0.1` is `2.9999999999999996` and
-`0.7 / 0.1` is `6.999999999999999`. Under that rule `(0 .3) / (0 .1)` renders
-`2.9999999999999996` instead of `3`.
+should be exact. Verified: `0.3 / 0.1` yields `2.9999999999999996` rather than
+`3`, and `0.7 / 0.1` yields `6.999999999999999` rather than `7`.
 
 There is also an asymmetry: every decimal _is_ a rational, so `Dec` and `Int`
 have identical closure behavior. Splitting them means `1 / 3` is exact while
-`1 .0 / 3 .0` is not, and the more precise-looking spelling yields the less
+`1.0 / 3.0` is not, and the more precise-looking spelling yields the less
 precise answer.
 
 Three coherent resolutions:
 
 1. **Uniform** — exact ÷ exact → `Rat↓`. Simplest, never lossy, but dividing
-   `10 .50` by `2` gives a ratio rather than `5 .25`.
+   `10.50` by `2` gives a ratio rather than `5.25`.
 2. **Collapse one rung further** — compute in `Rat`, then collapse to `Dec` when
    the denominator is of the form `2^a·5^b`, else stay `Rat`. This satisfies the
-   `5 .25` intuition _and_ stays exact.
+   `5.25` intuition _and_ stays exact.
 3. **As stated** — `Dec ÷ Int → Dec` with documented rounding. Exactness is
    lost, and the loss is hidden inside a nominally exact frame.
 
@@ -408,9 +503,9 @@ The `0.3 / 0.1` imprecision noted above is still real. It now surfaces in the
 result type, so no frame misrepresents its own precision.
 
 Framing it on the divisor rather than on the operand pair is what removes the
-arbitrariness. A two-operand rule had to answer why `1 / (3 .0)` should differ
-from `(1 .0) / (3 .0)` when both divide by the same measured quantity; the
-one-operand rule never raises the question.
+arbitrariness. A two-operand rule had to answer why `1 / 3.0` should differ from
+`1.0 / 3.0` when both divide by the same measured quantity; the one-operand rule
+never raises the question.
 
 ND-005 stands unmodified: `Rat` collapses only to `Int`, never to `Dec`. Option
 (2) stays available later as a strict refinement rather than a reversal — the
@@ -418,8 +513,8 @@ ND-005 stands unmodified: `Rat` collapses only to `Int`, never to `Dec`. Option
 total and lossless — but it is not adopted now, and `1/3` renders as a ratio
 either way.
 
-Note that the `(0 .3) / (0 .1)` and `(1 .0) / 3` spellings used above are not
-yet lexable; see #356.
+Note that the `0.3 / 0.1` and `1.0 / 3` spellings used above are not yet
+lexable; see #356.
 
 ### T-2 — Resolved into ND-007, accepted
 
@@ -500,9 +595,8 @@ move. Rule: every existing test asserting a decimal result from `/` is rewritten
 to the ratio rendering, and each gains a companion asserting exactness that the
 float form could not express.
 
-Programs wanting the old output spell the **divisor** as a decimal —
-`1 / (2 .0)` yields `0.5` per ND-004 — so the escape hatch needs no new syntax
-(**Q2**).
+Programs wanting the old output spell the **divisor** as a decimal — `1 / 2.0`
+yields `0.5` per ND-004 — so the escape hatch needs no new syntax (**Q2**).
 
 **M-2 — Modulo narrows to integers** (T-3). Rule: `%%` on any non-`Int` operand
 returns an error frame. Migration is mechanical because the operator is rare;
@@ -531,7 +625,8 @@ Verified by reading. Two counts that are easy to conflate:
 | `lib/frames/frame-number.ts`             | splits into the tower; `NUMBER_BEGIN` moves to `FrameInt`       |
 | `lib/frames/frame-number.ts:26-31`       | `for()` interning cache — see below                             |
 | `lib/frames/frame-number.ts:49-60`       | `apply`: repetition per ND-011, multiplication per **ND-012**   |
-| `lib/ops/math.ts`                        | 10 gated operators, 20 expressions → shared numeric base        |
+| `lib/ops/math.ts`                        | 10 gated operators, 20 expressions → one gate, per §5.0         |
+| shared numeric base (new)                | the §5.0 four-step pipeline, ranks, and promotions              |
 | `lib/ops/math.ts`                        | 10 `return Frame.nil` fallbacks → error frames, per **T-4**     |
 | `lib/ops.ts:38-39`                       | `%%` → `Modulo`, `**` → `Power`; `^` is `BindType`, not a power |
 | `lib/ops/iterators.ts:11`                | `FrameNumber.for(i.toString())` loop indices → `FrameInt`       |
@@ -628,7 +723,7 @@ Two narrower hazards do need attention, and neither is about mutability:
 Non-digit keys must therefore fall through to `super.lookup_here` at every rung,
 and unary `+` handling belongs on the shared base so all rungs inherit it.
 
-`(3 .14)“Hello”` currently throws a host `RangeError: Invalid array length` from
+`3.14“Hello”` currently throws a host `RangeError: Invalid array length` from
 `[...Array(this.data).keys()]` rather than returning an HC error frame.
 **ND-011** makes that an error frame, which is a strict improvement.
 
@@ -644,7 +739,7 @@ and unary `+` handling belongs on the shared base so all rungs inherit it.
 - Candidate composition and lookahead, excluded by **CD-012**.
 - Giving zero a literal spelling. Filed as
   [#356](https://github.com/TheSwanFactory/hclang/issues/356) — out of scope
-  here, but a **hard dependency** rather than a cleanup, since `0 .5` cannot
+  here, but a **hard dependency** rather than a cleanup, since `0.5` cannot
   reach `FrameDecimal` until it lands.
 - Defining how error frames behave in conditional position. Required by **T-4**,
   but a language-level question wider than numerics.
@@ -686,7 +781,7 @@ an entry point from ordinary source, so `FrameNumber` is no longer nearly
 unreachable and the `Num` rows in §5.1, §5.2, and §5.5 are live.
 
 That also supplies **M-1**'s escape hatch without new syntax. A program that
-wants `0.5` rather than `1/2` writes `(1 .0) / (2 .0)`.
+wants `0.5` rather than `1/2` writes `1.0 / 2.0`.
 
 A dedicated `.float` property is therefore **not** adopted. `valueOf()` remains
 the host-facing projection and is not an HC-level operator; the HC-level path
@@ -705,14 +800,14 @@ metadata plane alone, ignoring data.
 ND-008 overrides `=` to compare exact numeric values, because #355's acceptance
 criteria require trustworthy exact equality. Nothing else changes:
 
-| Expression   | After #355 | Source                        |
-| ------------ | ---------- | ----------------------------- |
-| `3 = 3 .0`   | all        | ND-008, new                   |
-| `3 == 3 .0`  | nil        | inherited — spellings differ  |
-| `3 === 3 .0` | all        | inherited — both un-annotated |
+| Expression  | After #355 | Source                        |
+| ----------- | ---------- | ----------------------------- |
+| `3 = 3.0`   | all        | ND-008, new                   |
+| `3 == 3.0`  | nil        | inherited — spellings differ  |
+| `3 === 3.0` | all        | inherited — both un-annotated |
 
 The last two rows are **inherited, not intended.** An earlier draft of this
-section gave `===` a rung check so `3 === 3 .0` would be nil. That is withdrawn:
+section gave `===` a rung check so `3 === 3.0` would be nil. That is withdrawn:
 `metadataEquals` (`frame.ts:292-307`) ignores data entirely, so adding a rung
 check would make it partly data-sensitive and change the operator's character on
 the way past — a language-level decision that does not belong inside numeric
@@ -745,7 +840,7 @@ allocate, not what an integer may represent.
 
 Raised here rather than in review. The two-operand formulation of ND-004
 ("except decimal ÷ decimal") left `Int ÷ Dec` on the exact side by accident,
-making `1 / (3 .0)` exact while `(1 .0) / (3 .0)` was not — an asymmetry with no
+making `1 / 3.0` exact while `1.0 / 3.0` was not — an asymmetry with no
 justification behind it.
 
 **Resolved by restating ND-004 on the divisor alone.** Division by a decimal is
@@ -859,6 +954,27 @@ shakier than described: `3 === 4`, `3 === “hello”`, and `“a” === “b”
 frames match trivially.
 
 Both changes reduce this design's surface. Nothing in it is now a best guess.
+
+### Sixth pass — dispatch and notation
+
+**§5.0 added.** Cross-rung dispatch was never specified, which left the central
+implementation mechanism to the reader: today's signatures are same-class
+(`add(right: FrameNumber)`) while §5.1 requires `Int + Dec → Dec` across five
+classes. Specified as rank-based promotion — reject, promote to `max(rank)`,
+operate at that rank, canonicalize — with double dispatch and a static join
+table considered and rejected. The consequence worth noting is that §5.1's table
+stops being a specification of code and becomes a description of the promotion
+step; `+ - *` need no per-cell logic at all.
+
+Writing it out surfaced one hazard not previously recorded: `Rat → Num` is the
+only lossy promotion, and converting each `bigint` separately before dividing
+can reach `Infinity` on both sides, so a rational well within float range can
+project to `NaN`. The ratio has to be scaled before conversion.
+
+**Notation corrected throughout.** Examples had been written `(2 .2)`, which is
+only safe inside explicit grouping — `1 .1 + 2 .2` evaluates to `3.1.2`, because
+`+ 2` binds before the trailing `.2`. Every example now uses the unspaced `2.2`
+form, which groups correctly, and §1 records the discrepancy.
 
 Testing zero rather than reasoning about it changed its priority from cleanup to
 dependency: `00`, `01`, and `0123` raise host `RangeError`s, `0` renders as
