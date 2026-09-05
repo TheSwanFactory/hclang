@@ -63,6 +63,12 @@ export class FrameNumber extends FrameAtom {
     if ("operator" in context && context.operator === "+") {
       return new FrameNumber(`+${this.spelling}`);
     }
+    if ("operator" in context && context.operator === "-") {
+      const unsigned = this.spelling.replace(/^[+-]/, "");
+      return new FrameNumber(
+        this.spelling.startsWith("-") ? unsigned : `-${unsigned}`,
+      );
+    }
     return super.called_by(context, parameter);
   }
 

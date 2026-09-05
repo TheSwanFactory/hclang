@@ -239,6 +239,23 @@ describe("evaluate", () => {
       });
     });
 
+    describe("unary minus", () => {
+      it("negates integer and decimal source", () => {
+        expect(evaluate("-1").toString()).toEqual("[-1]");
+        expect(evaluate("-1.5").toString()).toEqual("[-1.5]");
+        expect(evaluate("-0.5").toString()).toEqual("[-0.5]");
+      });
+
+      it("negates evaluated values and normalizes a double negative", () => {
+        expect(evaluate("-(1 + 2)").toString()).toEqual("[-3]");
+        expect(evaluate("-(1 - 2)").toString()).toEqual("[1]");
+      });
+
+      it("does not change binary subtraction", () => {
+        expect(evaluate("1 - 2").toString()).toEqual("[-1]");
+      });
+    });
+
     describe("dotted comparisons", () => {
       it("evaluates dotted less-than and greater-than properties", () => {
         expect(evaluate("1.< 3").toString()).toEqual("[<>]");
