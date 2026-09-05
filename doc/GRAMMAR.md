@@ -48,19 +48,19 @@ expressed through:
 
 ### Numeric Types
 
-#### Integers
+- **Integer**: `0`, `123` — exact, arbitrary-precision decimal integers.
+- **Decimal**: `0.5`, `123.456` — exact scaled decimal values.
+- **Rational**: `1 / 3` evaluates to the reduced exact result `1/3`; rationals
+  have no separate source-literal family.
+- **Number**: dividing by a decimal or raising to a fractional power produces an
+  inexact host number; inexact numbers have no separate source-literal family.
+- **Sequence**: `1.408.055.1212` — an inert, spelling-preserving multi-segment
+  value rather than a numeric rank.
 
-- **Decimal**: `123`
-- **Binary**: `0b11` (prefix: `0b`)
-- **Octal**: `0o1337` (prefix: `0o`)
-- **Hexadecimal**: `0xDEADBEEF` (prefix: `0x`)
-
-#### Non-Integers
-
-- **Rational**: `1/3`
-- **Float**: `123.456`
-- **Scientific**: `123.456.E.-10`
-- **Semver**: `123.456.p123`
+Unary `+` and `-` apply to numbers. Binary arithmetic promotes through integer,
+decimal, rational, and inexact ranks; division is exact unless its divisor is a
+decimal or inexact number. `%%` accepts integers only. Sequences reject
+arithmetic, ordering, signs, and repetition.
 
 #### Time Types
 
@@ -296,9 +296,10 @@ parent_.helper_ 10
 
 ### Number Literals
 
-- Integers: `123`, `0b11`, `0o1337`, `0xDEADBEEF`
-- Floats: `123.456`, `123.456.E.-10`, `123.456.p123`
-- Rationals: `1/3`
+- Decimal integers: `0`, `123`
+- Exact decimals: `0.5`, `123.456`
+- Numeric sequences: `1.408.055.1212`
+- Rationals and inexact numbers are computed values, not distinct literals
 
 ### Time Literals
 
@@ -307,11 +308,12 @@ parent_.helper_ 10
 ### Binary Literals
 
 - `\...\` - Raw bytes
+- `0b...`, `0o...`, `0x...` - Explicit-base blobs
 - `0s...` - Base64 data
 
 ### Operators
 
-- Math: `+`, `-`, `*`, `/`
+- Math: `+`, `-`, `*`, `/`, `%%`, `**` (`+` and `-` also have unary forms)
 - Comparison: `=`, `>`, `<`, `~`
 - Logic: `!`, `?`, `:`
 - Functional: `|`, `&`

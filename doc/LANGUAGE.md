@@ -210,19 +210,25 @@ rather than a swallowed remainder.
 
 ### Numeric
 
-#### Integer
+Decimal-digit source forms climb a forward-only ladder. A single component is an
+exact, arbitrary-precision integer (`0`, `123`); one numeric property is an
+exact scaled decimal (`0.5`, `123.456`); further numeric properties form an
+inert sequence (`1.408.055.1212`) that preserves every segment and leading zero.
+Sequences support structural `=` only and reject arithmetic, ordering, signs,
+and repetition.
 
-- _Decimal_: `123`
-- _Binary_: `0b11`
-- _Octal_: `0o1337`
-- _Hexadecimal_: `0xDEADBEEF`
+Reduced rationals and inexact numbers are arithmetic results rather than
+separate literal families. Dividing by an integer or rational stays exact, so
+`1 / 3` produces `1/3`; dividing by a decimal is inexact, so `1 / 2.0` produces
+`0.5`. Integral powers stay exact, while fractional powers are inexact.
 
-#### Non-Integer
+Unary `+` and `-` apply to numeric values. Binary `+`, `-`, and `*` promote to
+the highest numeric rank, `%%` accepts integers only, and integer juxtaposition
+performs multiplication or bounded repetition. Numeric `=` compares values
+across ranks; `==` and `===` retain their data-plane and metadata-plane
+meanings.
 
-- _Rational_: `1/3`
-- _Float_: `123.456`
-- _Scientific_: `123.456.E.-10`
-- _Semver_: `123.456.p123`
+Explicit `0b`, `0o`, and `0x` forms are blobs, not numeric integers.
 
 #### Times
 
@@ -241,6 +247,7 @@ makes it trivial to represent Binary Large OBjects directly inside a
 human-readable document.
 
 - `\5\Bytes`
+- `0b101`, `0o755`, `0xDEADBEEF`
 - `0sBASE64`
 
 ## Identifiers

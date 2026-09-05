@@ -157,11 +157,11 @@ makes **Q3** a real question rather than a detail.
 - **ND-001** — The syntactic ladder is forward-only and arity-driven:
   `FrameInt.lookup_here` → `FrameDecimal`, `FrameDecimal.lookup_here` →
   `FrameSequence`, `FrameSequence.lookup_here` → `FrameSequence`. Sequence is
-  absorbing. No demotion, no lookahead, no lexer change beyond `FrameInt`
-  inheriting the `[1-9]` sigil. That sigil deliberately excludes `0`, so **zero
-  has no literal spelling** and `FrameBlob` keeps `0` as its own sigil start.
-  Zero is reachable only as a computed value. This is preserved as-is rather
-  than fixed here; see **T-4** for why it matters to ND-010.
+  absorbing. There is no demotion or lookahead. `FrameInt` inherits the `[1-9]`
+  sigil, while `FrameBlob` keeps the `0` sigil but routes all-decimal zero-led
+  lexemes to `FrameInt`. Explicit `0b`, `0o`, and `0x` forms remain blobs, and
+  zero is available as a numeric literal. This resolves #356 and makes ND-010
+  directly testable.
 - **ND-002** — Integers are `bigint` by default. Exactness is the default, not
   an opt-in.
 - **ND-003** — `FrameDecimal` is exact (scaled `bigint`), not a float. `number`
@@ -202,9 +202,9 @@ makes **Q3** a real question rather than a detail.
   - `%%` → the same error frame as other arithmetic, not a distinct one. The
     operand type is what is wrong, and ND-006's integer restriction is a
     separate matter.
-- **ND-010** — Division and modulo by zero return stable error frames. Because
-  zero has no literal spelling (ND-001), this is reachable only through computed
-  values, so the guard belongs in the operators rather than at construction.
+- **ND-010** — Division and modulo by zero return stable error frames. Literal
+  `0` is numeric after #356, and computed values can also reach zero, so the
+  guard belongs in the operators rather than at construction.
 - **ND-011** — Repetition (`3“Hello”`) is restricted to `FrameInt`, returning an
   error frame for every other rung. This covers only the `else` branch of
   `FrameNumber.apply`. The count is bounded twice over:
@@ -571,9 +571,9 @@ Because this lands on #355's "retain behavior or provide an explicit, tested
 migration rule," the migration needs its own tests: one per operator confirming
 the mismatch path, plus coverage of the conditional behavior once defined.
 
-Zero interacts here too. Because zero has no literal spelling (ND-001, #356), no
-test can write `1 / 0` directly, so ND-010's error frames need either computed
-operands or #356 to land first before they can be exercised at all.
+Zero interacts here too. With #356 landed, tests can write `1 / 0` directly as
+well as reach zero through computed operands, and both paths exercise ND-010's
+stable error frames.
 
 ### Migration rules
 
@@ -820,21 +820,23 @@ The wider problem is real but separable, and is filed as
 semantic, whether `===` deserves that spelling, and whether a "same value and
 same type" predicate should exist are all settled there rather than here.
 
-### Q4 — The host bridge keeps strings as strings
+### Q4 — The host bridge preserves decimal integers
 
-**Decided.** `make_context` (`hc-eval.ts:44-48`) routes with
-`MetaFrame.isInteger` (`/^\p{N}+$/u`, digits only). The integer branch retargets
-to `FrameInt`; everything else, `"1.5"` included, **stays `FrameString`** as it
-does today.
+**Decided.** `make_context` routes Unicode decimal-digit strings
+(`/^\p{Nd}+$/u`) to `FrameInt` while preserving their spelling. Legacy numeric
+characters accepted by `Frame.isInteger` but outside `\p{Nd}` remain
+`FrameNumber`; every other value, including `"1.5"`, stays `FrameString`.
 
-Smallest change, and it keeps the bridge from silently minting inexact or
-approximate values from environment input. A host string becomes numeric only
-where a program explicitly converts it.
+This keeps the bridge from silently minting decimals, rationals, or approximate
+values from environment input while retaining compatibility for legacy numeric
+characters.
 
-### Q5 — Repetition ceiling is 65536
+### Q5 — Repetition ceilings bound work and text output
 
-**Decided**, as proposed in ND-011. The bound governs how much a repetition may
-allocate, not what an integer may represent.
+**Decided.** Integer repetition performs at most **65536** applications and
+produces at most **1000000** UTF-16 text units. The bounds govern work and
+allocation, not what an integer may represent; exceeding either returns a stable
+error frame before constructing the result.
 
 ### Q6 — Dissolved: `Int ÷ Dec` is inexact like the rest of the column
 
@@ -862,7 +864,7 @@ corrections did not.
 | `err` replaces today's `Frame.nil`, an unlisted behavior change           | §5 preamble, T-4  |
 | `apply`'s multiplication branch was uncovered by ND-011                   | ND-012, §7        |
 | `FrameNumber.for`'s interning cache was unaddressed                       | §7                |
-| Zero has no literal spelling, which ND-001 preserved silently             | ND-001, ND-010    |
+| Zero's old blob routing conflicted with numeric zero                      | ND-001, ND-010    |
 | T-1 option (2) refines ND-005 rather than contradicting it                | T-1               |
 | T-2 should supersede ND-007 rather than sit in tension with it            | ND-007, T-2       |
 | Overreaching claim that arithmetic never produces `FrameNumber`           | §5.5              |
@@ -909,14 +911,14 @@ rendering is chosen.
 
 ### Fourth pass — questions answered
 
-| Question | Answer                                                              |
-| -------- | ------------------------------------------------------------------- |
-| **Q1**   | `numerator/denominator`, reusing `/`. Sign on the numerator.        |
-| **Q2**   | Closed by ND-004; no `.float` needed, so no new syntax.             |
-| **Q3**   | `===` gains a rung check — _withdrawn in the fifth pass._           |
-| **Q4**   | Host strings stay `FrameString`; only the integer branch retargets. |
-| **Q5**   | 65536 confirmed.                                                    |
-| **Q6**   | New. `Int ÷ Dec` exact — _dissolved in the fifth pass._             |
+| Question | Answer                                                       |
+| -------- | ------------------------------------------------------------ |
+| **Q1**   | `numerator/denominator`, reusing `/`. Sign on the numerator. |
+| **Q2**   | Closed by ND-004; no `.float` needed, so no new syntax.      |
+| **Q3**   | `===` gains a rung check — _withdrawn in the fifth pass._    |
+| **Q4**   | Unicode decimal strings become exact `FrameInt` values.      |
+| **Q5**   | 65536 operations and 1000000 UTF-16 text units confirmed.    |
+| **Q6**   | New. `Int ÷ Dec` exact — _dissolved in the fifth pass._      |
 
 **A correction to the third pass.** T-1 had been closed as fully uniform
 division. That over-generalized: the decision taken covered `Decimal ÷ Int`, and
