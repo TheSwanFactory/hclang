@@ -27,8 +27,9 @@ a decision from a description.
 the code as built, and it is the authoritative list of what is still open.
 
 **Open, blocking:** error frames in conditional position need defining before
-**M-3** can be implemented (T-4, §11.1). Nothing else in this document is
-blocked.
+**M-3** can be implemented — filed as
+[#360](https://github.com/TheSwanFactory/hclang/issues/360) (T-4, §11.1).
+Nothing else in this document is blocked.
 
 ## 1. HC has no float literal
 
@@ -798,8 +799,10 @@ and unary `+` handling belongs on the shared base so all rungs inherit it.
   only supplies the substrate that would make it faithful.
 - Candidate composition and lookahead, excluded by **CD-012**.
 - Defining how error frames behave in conditional position. Required by **T-4**,
-  but a language-level question wider than numerics. **This is the one item that
-  still gates work in this document** — M-3 cannot ship until it is settled.
+  but a language-level question wider than numerics. Filed as
+  [#360](https://github.com/TheSwanFactory/hclang/issues/360). **This is the one
+  item that still gates work in this document** — M-3 cannot ship until it is
+  settled.
 
 ### Scope taken in, after the fact
 
@@ -1124,7 +1127,7 @@ ND-010, T-4's zero paragraph, Q4, and Q5 — were **edited after the fact to
 describe what had been built**. They read as decisions but were descriptions.
 Each is flagged in place, and the substantive consequences are below.
 
-### 11.1 M-3 is not shipped, and its prerequisite has no issue
+### 11.1 M-3 is not shipped; its prerequisite is #360
 
 `lib/ops/math.ts` still ends its single numeric gate with `: Frame.nil`, so
 `1 + “text”` evaluates to nil rather than an error frame naming the operator and
@@ -1138,10 +1141,34 @@ ship with the tower. Two things follow that are not code problems:
 - #355's acceptance criterion "return descriptive HC error frames for …
   unsupported numeric combinations" is **half met**: a `FrameSequence` operand
   errors (`$!.numeric-domain + FrameSequence FrameInt`), a non-numeric operand
-  still returns nil. Any PR claiming to close #355 should say so.
-- T-4's prerequisite — how error frames behave in conditional position — has
-  **no tracking issue**. It is the only thing gating M-3 and it is unowned. File
-  it.
+  still returns nil. Recorded in #359's own description as a carve-out.
+- T-4's prerequisite — how error frames behave in conditional position — is
+  filed as [#360](https://github.com/TheSwanFactory/hclang/issues/360). It is
+  the only thing gating M-3.
+
+Investigating for #360 found that **the semantics largely already exist**, in a
+form T-4 did not anticipate. Error frames never reach `?` or `:`, because
+`FrameExpr` short-circuits expression reduction on a failed term
+(`lib/frames/frame-expr.ts:83-89`). An error in the left position becomes the
+result of the whole expression, and no branch runs in either direction:
+
+```
+(1 / 0) ? {“then”}              => $!.division-by-zero /
+(1 / 0) : {“else”}              => $!.division-by-zero /
+(1 / 0) ? {“then”} : {“else”}   => $!.division-by-zero /
+```
+
+That is probably the right rule — an error is not a truth value — but it is
+emergent from `isFailedResult()` rather than written down, and `IfThen` tests
+only `source !== Frame.nil` (`lib/ops/conditionals.ts`), which would make an
+error frame **truthy** if the short-circuit ever stopped firing first. Two
+mechanisms, opposite answers.
+
+It also relocates M-3's risk. The regression is in the `nil` path M-3 replaces,
+not the error path: `(1 + “text”) : {“else”}` runs its branch today because the
+result is nil, and after M-3 it would not. Programs using `:` as a fallback for
+a failed computation are the ones that change behavior, and they are what M-3's
+migration tests need to cover.
 
 ### 11.2 Zero-led integers have two spellings for one value
 
