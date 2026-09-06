@@ -1132,7 +1132,7 @@ ND-010, T-4's zero paragraph, Q4, and Q5 — were **edited after the fact to
 describe what had been built**. They read as decisions but were descriptions.
 Each is flagged in place, and the substantive consequences are below.
 
-### 11.1 M-3 is not shipped; its prerequisite is #360
+### 11.1 M-3 is not shipped; it is #361, blocked by #360
 
 `lib/ops/math.ts` still ends its single numeric gate with `: Frame.nil`, so
 `1 + “text”` evaluates to nil rather than an error frame naming the operator and
@@ -1148,9 +1148,16 @@ ship with the tower. Two things follow that are not code problems:
   errors (`$!.numeric-domain + FrameSequence FrameInt`), a non-numeric operand
   still returns nil. Recorded in #359's own description as a carve-out.
 - T-4's prerequisite — how error frames behave in conditional position — is
-  filed as [#360](https://github.com/TheSwanFactory/hclang/issues/360). It is
-  the only thing gating M-3, reframed there as the single question "could `?:`
-  be extended for error detection and recovery?"
+  filed as [#360](https://github.com/TheSwanFactory/hclang/issues/360), reframed
+  there as the single question "could `?:` be extended for error detection and
+  recovery?" It is the only thing gating M-3.
+- **M-3 itself is filed as
+  [#361](https://github.com/TheSwanFactory/hclang/issues/361)**, blocked by
+  #360. It also records the narrower framing this section arrived at: the gap is
+  not that mismatch is untyped, but that a non-`FrameNumeric` operand returns
+  nil where a `FrameSequence` operand already errors through
+  `FrameNumeric.operationError`. Reusing that vocabulary — so `1 + “text”` gives
+  `$!.numeric-domain + FrameInt FrameString` — needs no new message design.
 
 Investigating for #360 found that **the semantics largely already exist**, in a
 form T-4 did not anticipate. Error frames never reach `?` or `:`, because
@@ -1264,6 +1271,7 @@ a test rather than a fix.
 | -------------------------- | ----------------------------------------------------------- |
 | Error propagation (§11.1)  | **Ratified.** Errors are terminal and never reach `?` / `:` |
 | Error detection (§11.1)    | **Deferred to #360**, reframed as one question              |
+| M-3 (§11.1)                | **Filed as #361**, blocked by #360                          |
 | Host bridge (§11.3)        | Route non-`\p{Nd}` to `FrameString` — **done**, `407afc8`   |
 | Scale limit (§11.4)        | Separate scale constant — **done**, `407afc8`               |
 | Error text (§11.7)         | Name the lookup, not `unary-` — **done**, `407afc8`         |
