@@ -219,10 +219,10 @@ makes **Q3** a real question rather than a detail.
     numeric (§5.5);
   - `valueOf()` → **not implemented**; a sequence has no scalar value, and
     returning `NaN` is what causes today's defect. Callers must use the exact
-    accessor (§7) and handle its failure. _Unmet:_ no override exists, so
-    `Object.prototype.valueOf` applies, `Number(seq.valueOf())` is still `NaN`,
-    and the failure is silent rather than explained. Latent only, because both
-    former consumers now route through `exactInt`; see §11.6;
+    accessor (§7) and handle its failure. _Met as of `407afc8`_ by an override
+    returning `$!.numeric-domain projection FrameSequence` — explicit rather
+    than the inherited `Object.prototype.valueOf`, which returned `this` and
+    left `Number(...)` silently `NaN`; see §11.6;
   - `apply` → error frame in both branches, so `1.408.555“Hi”` neither repeats
     nor throws;
   - `range()` → not implemented, since it exists only to serve repetition;
@@ -254,8 +254,9 @@ makes **Q3** a real question rather than a detail.
   to become. That rung transition returns an error frame instead. This is the
   one place the syntactic ladder is not total, and it exists because #357 added
   negation after ND-001 was written. _The error currently reads
-  `$!.numeric-domain unary- FrameSequence`, which names negation for what is a
-  property lookup; see §11.7._
+  `$!.numeric-domain property FrameDecimal`, naming the lookup. Negating an
+  existing sequence is a different rejection and keeps
+  `$!.numeric-domain unary- FrameSequence`; see §11.7._
 
 ## 5. Truth tables
 
@@ -929,18 +930,19 @@ same type" predicate should exist are all settled there rather than here.
 ### Q4 — The host bridge preserves decimal integers
 
 **Decided.** `make_context` routes Unicode decimal-digit strings
-(`/^\p{Nd}+$/u`) to `FrameInt` while preserving their spelling. Legacy numeric
-characters accepted by `Frame.isInteger` but outside `\p{Nd}` remain
-`FrameNumber`; every other value, including `"1.5"`, stays `FrameString`.
+(`/^\p{Nd}+$/u`) to `FrameInt` while preserving their spelling. **Everything
+else stays `FrameString`**, including `"1.5"` and numeric characters outside
+`\p{Nd}` such as `Ⅻ`, `½`, and `²`.
 
 This keeps the bridge from silently minting decimals, rationals, or approximate
-values from environment input while retaining compatibility for legacy numeric
-characters.
+values from environment input. A host string becomes numeric only where it is
+unambiguously an exact integer.
 
-**The legacy branch is a known defect, not a design intent** — see §11.3.
-Routing `\p{N}`-but-not-`\p{Nd}` strings to `FrameNumber` produces `NaN`-backed
-numeric frames from host input, which is the exact defect §5.5 says this design
-fixes. `FrameString` is the correct target and requires no other change.
+An intermediate implementation routed `\p{N}`-but-not-`\p{Nd}` strings to
+`FrameNumber` for compatibility, which produced `NaN`-backed numeric frames from
+host input — the exact defect §5.5 says this design fixes. Corrected in
+`407afc8`; see §11.3. Parsing such numerals into values (`½` really is a
+rational) was considered and rejected as scope nobody asked for.
 
 Note also that `FrameInt` normalizes non-ASCII digits on arithmetic and lookup
 while retaining the original spelling, so `١٢٣` renders `١٢٣` but `١٢٣.5`
@@ -952,11 +954,12 @@ renders `123.5`. Recorded, not resolved.
 value may represent. Exceeding any returns a stable error frame before the
 result is constructed.
 
-| Limit                   | Value          | Guards                             |
-| ----------------------- | -------------- | ---------------------------------- |
-| `REPETITION_LIMIT`      | 65536          | applications performed by `apply`  |
-| `REPETITION_TEXT_LIMIT` | 1000000 UTF-16 | size of a repetition's text result |
-| `EXACT_POWER_BIT_LIMIT` | 1000000 bits   | estimated width of an exact `**`   |
+| Limit                     | Value          | Guards                             |
+| ------------------------- | -------------- | ---------------------------------- |
+| `REPETITION_LIMIT`        | 65536          | applications performed by `apply`  |
+| `REPETITION_TEXT_LIMIT`   | 1000000 UTF-16 | size of a repetition's text result |
+| `EXACT_POWER_BIT_LIMIT`   | 1000000 bits   | estimated width of an exact `**`   |
+| `EXACT_POWER_SCALE_LIMIT` | 301029 digits  | scale growth of an exact `Dec **`  |
 
 The third **narrows ND-007**: `2 ** 1000000` returns
 `$!.numeric-range ** FrameInt` rather than an exact `bigint`, so "`**` stays
@@ -965,11 +968,12 @@ criterion that arithmetic stay exact beyond `Number.MAX_SAFE_INTEGER` is
 satisfied — the budget is far above that — but it is a bound on an
 acceptance-criterion path and belongs on the record.
 
-`FrameDecimal.powerIntegral` additionally rejects when `scale × exponent`
-exceeds the same constant. That guards unbounded scale growth, which is a real
-concern, but scale is a **decimal-digit count compared against a bit count**, so
-the decimal bound sits about 3.3× looser than the integer one. It wants its own
-constant; see §11.4.
+The fourth guards unbounded scale growth in `FrameDecimal.powerIntegral`. Its
+value is the bit budget expressed in decimal digits (`10^6 × log10 2`), so the
+two `**` bounds are the same budget in two units rather than two budgets. An
+intermediate implementation compared the scale against the bit constant
+directly, leaving the decimal bound about 3.3× looser; corrected in `407afc8`,
+see §11.4.
 
 ### Q6 — Dissolved: `Int ÷ Dec` is inexact like the rest of the column
 
@@ -1183,7 +1187,12 @@ so the two spellings are distinguishable there. Either normalize integer
 spelling on construction or state that leading zeros are preserved deliberately.
 Currently neither.
 
-### 11.3 The host bridge mints `NaN`-backed numeric frames
+### 11.3 The host bridge minted `NaN`-backed numeric frames — fixed
+
+**Fixed in `407afc8`.** The middle branch is gone: `make_context` now routes
+`/^\p{Nd}+$/u` to `FrameInt` and everything else to `FrameString`, so `Ⅻ`, `½`,
+and `²` arrive as strings. Q4's text is updated accordingly. The original
+finding follows, for the record.
 
 `make_context` splits `Frame.isInteger` into three branches: `/^\p{Nd}+$/u` →
 `FrameInt`, `\p{N}`-but-not-`\p{Nd}` → `FrameNumber.fromHost`, everything else →
@@ -1205,13 +1214,13 @@ not mint numeric values it cannot compute with.
 Separately, `FrameInt` retains non-ASCII spelling but normalizes on lookup, so
 `١٢٣` renders `١٢٣` while `١٢٣.5` renders `123.5`.
 
-### 11.4 `EXACT_POWER_BIT_LIMIT` compares digits to bits in the decimal path
+### 11.4 `EXACT_POWER_BIT_LIMIT` compared digits to bits — fixed
 
-Now documented in Q5. The unit mismatch is real: `FrameDecimal.powerIntegral`
-tests `scale × exponent`, a decimal-digit count, against a constant defined as a
-bit width. Both bounds are defensible; sharing one constant makes the decimal
-bound about 3.3× looser than the integer one and misnames what it measures.
-Wants a separate `EXACT_POWER_SCALE_LIMIT`.
+**Fixed in `407afc8`.** `FrameDecimal.powerIntegral` now tests
+`scale × exponent` against `EXACT_POWER_SCALE_LIMIT = 301_029`, the bit budget
+converted into decimal digits (`10^6 × log10 2`) rather than reused as one. That
+closes the ~3.3× discrepancy exactly rather than approximately, and the constant
+now names what it measures.
 
 ### 11.5 `%%` returns host truncated results where ND-006 now requires floored
 
@@ -1221,20 +1230,29 @@ adjustment — add the divisor when the remainder is nonzero and its sign differ
 from the divisor's — plus tests for all four sign combinations, which do not
 currently exist.
 
-### 11.6 `FrameSequence.valueOf()` is inherited, so failure is silent
+### 11.6 `FrameSequence.valueOf()` was inherited, so failure was silent — fixed
 
-ND-009 requires it be unimplemented so callers cannot get `NaN`. No override
-exists, so `Object.prototype.valueOf` returns `this` and `Number(...)` is `NaN`.
-Latent only — both former consumers route through `exactInt`, which correctly
-returns `$!.exact-integer-required FrameSequence` — but the guard ND-009 asked
-for is absent. An override returning an error frame, or a `TypeError`, would
-close it.
+**Fixed in `407afc8`**, and the resolution is better than the ruling asked for.
+The override returns `$!.numeric-domain projection FrameSequence` rather than
+throwing, which keeps the failure explicit and inspectable without making host
+code crash on a value that merely has no scalar form.
 
-### 11.7 ND-013's error text names the wrong operation
+One residual, worth knowing rather than fixing: `valueOf` is contractually
+host-facing, so a host that ignores the return and calls `Number(...)` on it
+still gets `NaN` — now from an error frame instead of from a sequence. The fix
+delivers explicitness, not prevention. That is the right trade, because every
+HC-level path reaches `exactInt` instead, which returns
+`$!.exact-integer-required
+FrameSequence`.
 
-`Decimal.lookup_here` on a negative receiver returns
-`$!.numeric-domain unary- FrameSequence`. The rejected operation is a property
-lookup, not negation. The behavior is right (ND-013); the message will mislead.
+### 11.7 ND-013's error text named the wrong operation — fixed
+
+**Fixed in `407afc8`**, and it drew a distinction the finding missed.
+`Decimal.lookup_here` on a negative receiver now returns
+`$!.numeric-domain property FrameDecimal`, naming the lookup. Negating an
+existing sequence keeps `$!.numeric-domain unary- FrameSequence`, which is a
+genuinely different rejection. So `-1.2.3` and `-(1.2.3)` now report distinct
+causes rather than sharing one misleading message.
 
 ### 11.8 Rulings
 
@@ -1246,12 +1264,12 @@ a test rather than a fix.
 | -------------------------- | ----------------------------------------------------------- |
 | Error propagation (§11.1)  | **Ratified.** Errors are terminal and never reach `?` / `:` |
 | Error detection (§11.1)    | **Deferred to #360**, reframed as one question              |
-| Host bridge (§11.3)        | **Change:** route `\p{N}` non-`\p{Nd}` to `FrameString`     |
-| Scale limit (§11.4)        | **Change:** separate `EXACT_POWER_SCALE_LIMIT`              |
-| Modulo sign (§11.5)        | **Change:** adopt floored, not host truncated               |
-| `Sequence.valueOf` (§11.6) | **Change:** override to throw `TypeError`                   |
-| Error text (§11.7)         | **Change:** name the lookup, not `unary-`                   |
-| Zero-led spelling (§11.2)  | **Preserved deliberately.** Document and test               |
+| Host bridge (§11.3)        | Route non-`\p{Nd}` to `FrameString` — **done**, `407afc8`   |
+| Scale limit (§11.4)        | Separate scale constant — **done**, `407afc8`               |
+| Error text (§11.7)         | Name the lookup, not `unary-` — **done**, `407afc8`         |
+| `Sequence.valueOf` (§11.6) | Error frame rather than a throw — **done**, `407afc8`       |
+| Modulo sign (§11.5)        | **Open change:** adopt floored, not host truncated          |
+| Zero-led spelling (§11.2)  | **Preserved deliberately.** Needs documenting and a test    |
 
 Three of these need their reasoning on the record.
 
