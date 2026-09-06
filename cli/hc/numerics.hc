@@ -106,7 +106,7 @@ Zero and unsupported domains return stable errors
 ; 1.408.555 = 1
 # ()
 ; -1.408.555
-# $!.numeric-domain unary- FrameSequence
+# $!.numeric-domain property FrameDecimal
 ```
 Repetition and exact powers fail before unsafe allocation
 ```

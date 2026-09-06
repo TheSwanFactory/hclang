@@ -260,12 +260,13 @@ describe("evaluate", () => {
         expect(evaluate("-(1 - 2)").toString()).toEqual("[1]");
       });
 
-      it("rejects signed sequences consistently", () => {
-        const error = "[$!.numeric-domain unary- FrameSequence]";
+      it("distinguishes invalid signed properties from sequence negation", () => {
+        const propertyError = "[$!.numeric-domain property FrameDecimal]";
+        const unaryError = "[$!.numeric-domain unary- FrameSequence]";
 
-        expect(evaluate("-1.2.3").toString()).toEqual(error);
-        expect(evaluate("-(1.2.3)").toString()).toEqual(error);
-        expect(evaluate("-1.2.3 = 1.2.3").toString()).toEqual(error);
+        expect(evaluate("-1.2.3").toString()).toEqual(propertyError);
+        expect(evaluate("-1.2.3 = 1.2.3").toString()).toEqual(propertyError);
+        expect(evaluate("-(1.2.3)").toString()).toEqual(unaryError);
       });
 
       it("does not change binary subtraction", () => {

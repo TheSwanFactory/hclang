@@ -167,9 +167,13 @@ describe("numeric domains", () => {
     expect(left.equals(new FrameInt(1n))).toBe(Frame.nil);
   });
 
-  it("rejects sequence arithmetic, ordering, signs, and repetition stably", () => {
+  it("rejects sequence projection, arithmetic, ordering, signs, and repetition stably", () => {
     const sequence = new FrameSequence("1.408.055");
+    const projection = sequence.valueOf();
 
+    expect(projection).toBeInstanceOf(Frame);
+    expect(projection.toString())
+      .toEqual("$!.numeric-domain projection FrameSequence");
     expect(sequence.add(new FrameInt(1n)).toString())
       .toEqual("$!.numeric-domain + FrameSequence FrameInt");
     expect(sequence.lessThan(new FrameInt(1n)).toString())
@@ -310,14 +314,17 @@ describe("numeric behavior matrices", () => {
       .toEqual("2.9999999999999996");
   });
 
-  it("bounds exact exponentiation before allocating unbounded bigints", () => {
+  it("bounds exact exponentiation and decimal scale independently", () => {
     const exponent = new FrameInt(1_000_000n);
 
     expect(new FrameInt(2n).power(exponent).toString())
       .toEqual("$!.numeric-range ** FrameInt");
     expect(new FrameInt(3n).power(new FrameInt(999_999n)).toString())
       .toEqual("$!.numeric-range ** FrameInt");
-    expect(new FrameDecimal("2.0").power(exponent).toString())
+    expect(
+      new FrameDecimal("0.1").power(new FrameInt(301_030n)).toString(),
+    ).toEqual("$!.numeric-range ** FrameDecimal");
+    expect(new FrameDecimal("2").power(exponent).toString())
       .toEqual("$!.numeric-range ** FrameDecimal");
     expect(new FrameRational(2n, 3n).power(exponent).toString())
       .toEqual("$!.numeric-range ** FrameRational");

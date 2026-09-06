@@ -3,7 +3,6 @@ import {
   Frame,
   FrameGroup,
   FrameInt,
-  FrameNumber,
   FrameString,
   FrameSymbol,
   type StringMap,
@@ -44,8 +43,6 @@ export function make_context(entries: StringMap): Context {
   Object.entries(entries).forEach(([key, value]) => {
     if (/^\p{Nd}+$/u.test(value)) {
       context[key] = FrameInt.for(value);
-    } else if (Frame.isInteger(value)) {
-      context[key] = FrameNumber.fromHost(value);
     } else {
       context[key] = new FrameString(value);
     }

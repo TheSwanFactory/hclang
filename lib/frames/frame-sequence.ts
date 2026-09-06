@@ -47,6 +47,10 @@ export class FrameSequence extends FrameNumeric {
     return false;
   }
 
+  public override valueOf(): Frame {
+    return Frame.error("$!.numeric-domain projection FrameSequence");
+  }
+
   protected override toData(): string {
     return this.spelling;
   }

@@ -788,11 +788,13 @@ describe("make_context", () => {
     expect(context.key).toBeInstanceOf(frame.FrameInt);
     expect(context.key.toString()).toEqual("2");
   });
-  it("keeps non-integer host strings as strings and normalizes Unicode integers", () => {
+  it("keeps non-decimal host strings as strings and normalizes Unicode integers", () => {
     const context = make_context({
       decimal: "1.5",
       unicode: "١٢٣",
-      legacyNumeric: "²",
+      superscript: "²",
+      roman: "Ⅻ",
+      fraction: "½",
     });
 
     expect(context.decimal).toBeInstanceOf(frame.FrameString);
@@ -800,8 +802,12 @@ describe("make_context", () => {
     expect(context.unicode).toBeInstanceOf(frame.FrameInt);
     expect(context.unicode.toString()).toEqual("١٢٣");
     expect(context.unicode.valueOf()).toEqual(123);
-    expect(context.legacyNumeric).toBeInstanceOf(frame.FrameNumber);
-    expect(context.legacyNumeric.toString()).toEqual("²");
+    expect(context.superscript).toBeInstanceOf(frame.FrameString);
+    expect(context.superscript.toString()).toEqual("“²”");
+    expect(context.roman).toBeInstanceOf(frame.FrameString);
+    expect(context.roman.toString()).toEqual("“Ⅻ”");
+    expect(context.fraction).toBeInstanceOf(frame.FrameString);
+    expect(context.fraction.toString()).toEqual("“½”");
   });
 
   it("correctly identifies isInteger", () => {

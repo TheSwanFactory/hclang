@@ -1,7 +1,6 @@
 import { type Context, NilContext } from "./context.ts";
 import { Frame } from "./frame.ts";
 import {
-  EXACT_POWER_BIT_LIMIT,
   exactBigIntPower,
   exactPowerWithinLimit,
   FrameNumeric,
@@ -14,6 +13,8 @@ import { FrameSequence } from "./frame-sequence.ts";
 import type { MetaFrame } from "./meta-frame.ts";
 
 const DECIMAL_SOURCE = /^([+-]?)(\d+)(?:\.(\d+))?$/;
+/** Maximum decimal scale whose power-of-ten denominator fits the bit budget. */
+const EXACT_POWER_SCALE_LIMIT = 301_029n;
 
 function powerOfTen(scale: number): bigint {
   return 10n ** BigInt(scale);
@@ -56,7 +57,7 @@ export class FrameDecimal extends FrameNumeric {
   protected override lookup_here(key: string, origin: MetaFrame): Frame {
     if (/^\d+$/.test(key)) {
       return this.spelling.startsWith("-")
-        ? Frame.error("$!.numeric-domain unary- FrameSequence")
+        ? Frame.error("$!.numeric-domain property FrameDecimal")
         : new FrameSequence(`${this.spelling}.${key}`);
     }
     return super.lookup_here(key, origin);
@@ -164,7 +165,7 @@ export class FrameDecimal extends FrameNumeric {
     }
     const resultScale = BigInt(this.scale) * exponent;
     if (
-      resultScale > EXACT_POWER_BIT_LIMIT ||
+      resultScale > EXACT_POWER_SCALE_LIMIT ||
       !exactPowerWithinLimit([this.numerator], exponent)
     ) {
       return Frame.error("$!.numeric-range ** FrameDecimal");
