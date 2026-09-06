@@ -192,13 +192,14 @@ makes **Q3** a real question rather than a detail.
   renders as a ratio rather than `0.5`, keeping rendering predictable.
 - **ND-006** — Modulo (spelled `%%`, per `lib/ops.ts:38`) is defined **only** on
   `FrameInt`. Every other operand combination returns an error frame.\
-  _Sign convention, now reachable and still unspecified._ The restriction to
-  `Int` was chosen so that sign and truncation conventions would not need
-  specifying. #357 landing makes negative integers reachable, so the convention
-  is observable: `-7 %% 3` is `-1` and `7 %% -3` is `1`, i.e. host truncated
-  semantics, sign following the dividend. That is the C/JavaScript convention
-  rather than the floored one (Python, Haskell), where the results would be `2`
-  and `-2`. Inherited by default rather than chosen; see §11.5.
+  _Sign convention: **floored**._ The restriction to `Int` was chosen so that
+  sign and truncation conventions would not need specifying; #357 made negatives
+  reachable, so the convention became observable and had to be picked. HC has no
+  truncating integer division — ND-004 makes `7 / 3` an exact rational — so the
+  identity that normally motivates truncated modulo does not exist here.
+  `a %% n` therefore takes the sign of `n` and is always a proper residue:
+  `-7 %% 3` is `2` and `7 %% -3` is `-2`. The code currently returns the host's
+  truncated `-1` and `1`; see §11.5 and §11.8.
 - **ND-007** — `**` stays exact where an exact answer exists: a non-negative
   integer exponent yields the base's own rung, a negative integer exponent
   yields `Rat↓`, and a genuinely fractional exponent yields `FrameNumber`.
@@ -1144,7 +1145,8 @@ ship with the tower. Two things follow that are not code problems:
   still returns nil. Recorded in #359's own description as a carve-out.
 - T-4's prerequisite — how error frames behave in conditional position — is
   filed as [#360](https://github.com/TheSwanFactory/hclang/issues/360). It is
-  the only thing gating M-3.
+  the only thing gating M-3, reframed there as the single question "could `?:`
+  be extended for error detection and recovery?"
 
 Investigating for #360 found that **the semantics largely already exist**, in a
 form T-4 did not anticipate. Error frames never reach `?` or `:`, because
@@ -1211,12 +1213,13 @@ bit width. Both bounds are defensible; sharing one constant makes the decimal
 bound about 3.3× looser than the integer one and misnames what it measures.
 Wants a separate `EXACT_POWER_SCALE_LIMIT`.
 
-### 11.5 `%%`'s sign convention is inherited, not chosen
+### 11.5 `%%` returns host truncated results where ND-006 now requires floored
 
-Recorded in ND-006. `-7 %% 3` is `-1`, `7 %% -3` is `1` — host truncated
-semantics. ND-006 restricted modulo to `Int` specifically to avoid specifying
-this, and #357 made it observable. Untested and undocumented outside this
-section. Decide it or test it; do not leave it as whatever the host does.
+`-7 %% 3` is `-1` and `7 %% -3` is `1`. ND-006 now specifies floored, so these
+must become `2` and `-2`. Reasoning in §11.8. `FrameInt.moduloSame` needs the
+adjustment — add the divisor when the remainder is nonzero and its sign differs
+from the divisor's — plus tests for all four sign combinations, which do not
+currently exist.
 
 ### 11.6 `FrameSequence.valueOf()` is inherited, so failure is silent
 
@@ -1233,7 +1236,57 @@ close it.
 `$!.numeric-domain unary- FrameSequence`. The rejected operation is a property
 lookup, not negation. The behavior is right (ND-013); the message will mislead.
 
-### 11.8 Not from this PR
+### 11.8 Rulings
+
+Every open item above is decided. Four are code changes, listed with the section
+that describes them; the rest are rulings that need a line of documentation and
+a test rather than a fix.
+
+| Item                       | Ruling                                                      |
+| -------------------------- | ----------------------------------------------------------- |
+| Error propagation (§11.1)  | **Ratified.** Errors are terminal and never reach `?` / `:` |
+| Error detection (§11.1)    | **Deferred to #360**, reframed as one question              |
+| Host bridge (§11.3)        | **Change:** route `\p{N}` non-`\p{Nd}` to `FrameString`     |
+| Scale limit (§11.4)        | **Change:** separate `EXACT_POWER_SCALE_LIMIT`              |
+| Modulo sign (§11.5)        | **Change:** adopt floored, not host truncated               |
+| `Sequence.valueOf` (§11.6) | **Change:** override to throw `TypeError`                   |
+| Error text (§11.7)         | **Change:** name the lookup, not `unary-`                   |
+| Zero-led spelling (§11.2)  | **Preserved deliberately.** Document and test               |
+
+Three of these need their reasoning on the record.
+
+**Error detection and the conditional operators are one question.** An earlier
+draft of this section treated "can a failure be tested" and "`conditionals.ts`
+encodes the opposite answer" as two items. They are not. `IfThen` tests
+`source !== Frame.nil`, so an error frame is **truthy** under it — the reverse
+of what the short-circuit produces. Any change that lets a program detect a
+failure is a change to what the conditional operators distinguish, and any
+reconciliation of `conditionals.ts` has to say what an error means there. #360
+asks the single question: **could `?:` be extended for error detection and
+recovery?** Until it is answered, errors stay terminal, which is the status quo
+and is safe.
+
+**Modulo adopts the floored convention**, changing `-7 %% 3` from `-1` to `2`
+and `7 %% -3` from `1` to `-2`. The usual argument for truncated modulo is that
+it satisfies `a = (a / n) × n + (a %% n)` alongside truncating integer division
+— but **HC has no truncating integer division.** ND-004 makes `7 / 3` an exact
+rational, so the identity that motivates truncated semantics does not exist in
+this language, and the reason to inherit the host's convention goes with it.
+Floored leaves `a %% n` always signed like `n` and always a proper residue,
+which is what wrapping, indexing, and clock arithmetic want. The migration cost
+is approximately zero: `%%` is a new surface with no negative-operand users,
+which is precisely why the moment to choose is now rather than after it has any.
+
+**Zero-led spelling is preserved, not normalized.** `0123` and `123` denote one
+value with two spellings, distinguishable through `==`. That is the same fact as
+`3 == 3.0` being nil, which ND-008 and Q3 already accept: `=` is exact, `==` is
+the data plane, and the data plane is spelling. Normalizing integer spelling
+would buy consistency in `==` at the cost of the spelling-preservation principle
+§3 is built on, and would still leave `3` and `3.0` distinct. Not worth it. It
+needs a documented line and a test asserting `0123 = 123` and `0123 == 123`, so
+the asymmetry is intentional rather than incidental.
+
+### 11.9 Not from this PR
 
 `0sQUJD` throws `Cannot convert 0sQUJD to a BigInt` from `frame-blob.ts` on
 `master` as well, while `GRAMMAR.md` still documents `0s…` base64. Pre-existing;
