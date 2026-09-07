@@ -71,6 +71,10 @@ Numeric equality is exact; data and metadata equality remain unchanged
 # <>
 ; 3 == 3.0
 # ()
+; 0123 = 123
+# <>
+; 0123 == 123
+# ()
 ; 3 === 3.0
 # <>
 ; 1.408.055.1212 = 1.408.055.1212

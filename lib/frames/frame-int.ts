@@ -175,7 +175,13 @@ export class FrameInt extends FrameNumeric {
   }
 
   protected override moduloSame(right: FrameNumeric): Frame {
-    return new FrameInt(this.data % (right as FrameInt).data);
+    const divisor = (right as FrameInt).data;
+    const remainder = this.data % divisor;
+    return new FrameInt(
+      remainder !== 0n && (remainder < 0n) !== (divisor < 0n)
+        ? remainder + divisor
+        : remainder,
+    );
   }
 
   protected override powerSame(right: FrameNumeric): Frame {

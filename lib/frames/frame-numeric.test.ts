@@ -102,6 +102,23 @@ describe("numeric tower", () => {
     expect(exactDecimal.toString()).toEqual("21/4");
   });
 
+  it("uses divisor-signed floored integer modulo", () => {
+    for (
+      const [dividend, divisor, expected] of [
+        [7n, 3n, 1n],
+        [-7n, 3n, 2n],
+        [7n, -3n, -2n],
+        [-7n, -3n, -1n],
+      ] as const
+    ) {
+      expect(new FrameInt(dividend).modulo(new FrameInt(divisor)).toString())
+        .toEqual(expected.toString());
+    }
+
+    expect(new FrameInt(-6n).modulo(new FrameInt(3n)).toString()).toEqual("0");
+    expect(new FrameInt(6n).modulo(new FrameInt(-3n)).toString()).toEqual("0");
+  });
+
   it("returns stable division and modulo errors", () => {
     expect(new FrameInt(1n).divide(new FrameInt(0n)).toString())
       .toEqual("$!.division-by-zero /");
