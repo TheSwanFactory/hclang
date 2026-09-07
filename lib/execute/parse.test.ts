@@ -142,7 +142,7 @@ describe("Parse", () => {
 
       expect(atoms.length).toEqual(2);
       expect(atoms[0]).toBeInstanceOf(frame.FrameDoc);
-      expect(atoms[1]).toBeInstanceOf(frame.FrameNumber);
+      expect(atoms[1]).toBeInstanceOf(frame.FrameInt);
       expect(atoms[1].toString()).toEqual("7");
     });
 
@@ -152,7 +152,7 @@ describe("Parse", () => {
       expect(atoms.length).toEqual(2);
       expect(atoms[0]).toBeInstanceOf(frame.FrameDoc);
       expect(atoms[0].toString()).toEqual("```body```");
-      expect(atoms[1]).toBeInstanceOf(frame.FrameNumber);
+      expect(atoms[1]).toBeInstanceOf(frame.FrameInt);
       expect(atoms[1].toString()).toEqual("7");
     });
   });

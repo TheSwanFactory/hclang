@@ -5,11 +5,12 @@ import {
   Frame,
   FrameArg,
   FrameArray,
+  FrameBlob,
   FrameExpr,
   FrameGroup,
+  FrameInt,
   FrameName,
   FrameNote,
-  FrameNumber,
   FrameParam,
   FrameScopeAnchor,
   FrameString,
@@ -325,6 +326,38 @@ describe("Lex", () => {
     expect(atoms[0]).toBe(Frame.all);
   });
 
+  it("routes zero-led decimal source to numbers", () => {
+    for (const source of ["0", "00", "01", "0123"]) {
+      const atoms = lexAtoms(`${source} `);
+
+      expect(atoms).toHaveLength(1);
+      expect(atoms[0]).toBeInstanceOf(FrameInt);
+      expect(atoms[0].toString()).toEqual(source);
+    }
+  });
+
+  it("keeps explicitly prefixed zero source as blobs", () => {
+    for (const source of ["0b101", "0o17", "0xff"]) {
+      const atoms = lexAtoms(`${source} `);
+
+      expect(atoms).toHaveLength(1);
+      expect(atoms[0]).toBeInstanceOf(FrameBlob);
+      expect(atoms[0].toString()).toEqual(source);
+    }
+  });
+
+  it("routes zero source identically across chunk boundaries", () => {
+    for (const source of ["0123", "0b101"]) {
+      for (let split = 1; split < source.length; split++) {
+        expect(
+          lexChunkedAtoms([source.slice(0, split), source.slice(split)]).map(
+            String,
+          ),
+        ).toEqual([source]);
+      }
+    }
+  });
+
   it("preserves phone-shaped property decomposition", () => {
     expect(lexAtoms("+1.408.555.1212 ").map(String)).toEqual([
       "+",
@@ -349,7 +382,7 @@ describe("Lex", () => {
 
   it("supplies live scope while preserving dynamic byte boundaries", () => {
     const output = new FrameArray([]);
-    output.set("size", new FrameNumber("1"));
+    output.set("size", new FrameInt("1"));
     const parser = new ParsePipe(output, FrameGroup);
     const lexer = new LexPipe(parser);
 
@@ -399,7 +432,7 @@ describe("Lex", () => {
 
   it("redispatches the first payload character after a dynamic zero length", () => {
     const output = new FrameArray([]);
-    output.set("size", new FrameNumber("0"));
+    output.set("size", new FrameInt("0"));
     const parser = new ParsePipe(output, FrameGroup);
     const lexer = new LexPipe(parser);
 

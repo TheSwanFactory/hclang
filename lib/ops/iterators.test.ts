@@ -14,15 +14,34 @@ describe("iterators", () => {
   const block = new frame.FrameString("Prefix: ");
 
   it("maps enumerable data with |", () => {
-    const result = frame.FrameNumber.for("1").get("|").call(block);
+    const result = frame.FrameInt.for("1").get("|").call(block);
     expect(result.toString()).toEqual("[“Prefix: 1”]");
+  });
+
+  it("supplies FrameInt iterator indexes", () => {
+    class IndexBlock extends frame.Frame {
+      public override call(
+        _argument: frame.Frame,
+        parameter: frame.Frame,
+      ): frame.Frame {
+        return parameter;
+      }
+    }
+
+    const result = MapEnumerable(
+      new frame.FrameArray([new frame.FrameString("value")]),
+      new IndexBlock(),
+    );
+
+    expect(result.at(0)).toBeInstanceOf(frame.FrameInt);
+    expect(result.at(0).toString()).toEqual("0");
   });
 
   it("reduces enumerable data with & using . as the accumulator", () => {
     const source = new frame.FrameArray([
-      frame.FrameNumber.for("1"),
-      frame.FrameNumber.for("2"),
-      frame.FrameNumber.for("3"),
+      frame.FrameInt.for("1"),
+      frame.FrameInt.for("2"),
+      frame.FrameInt.for("3"),
     ]);
     const reducer = new frame.FrameLazy([
       new frame.FrameName(""),
@@ -58,8 +77,8 @@ describe("iterators", () => {
       mutable: false,
     };
     const enumerable = new frame.FrameArray([
-      frame.FrameNumber.for("1"),
-      frame.FrameNumber.for("2"),
+      frame.FrameInt.for("1"),
+      frame.FrameInt.for("2"),
     ]);
     const enumerableBlock = new CapturingBlock();
     const propertyBlock = new CapturingBlock();

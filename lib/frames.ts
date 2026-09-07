@@ -38,6 +38,11 @@ export {
   FrameScopeAnchor,
   type ScopeAnchorKind,
 } from "./frames/frame-scope-anchor.ts";
+export { FrameNumeric, type NumericRank } from "./frames/frame-numeric.ts";
+export { FrameInt } from "./frames/frame-int.ts";
+export { FrameDecimal } from "./frames/frame-decimal.ts";
+export { FrameSequence } from "./frames/frame-sequence.ts";
+export { FrameRational } from "./frames/frame-rational.ts";
 export { FrameNumber } from "./frames/frame-number.ts";
 export { FrameSchema } from "./frames/frame-schema.ts";
 export { FrameString, FrameStringEnd } from "./frames/frame-string.ts";

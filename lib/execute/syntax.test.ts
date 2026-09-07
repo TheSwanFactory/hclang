@@ -5,7 +5,7 @@ import {
   FrameArg,
   FrameBytes,
   FrameDoc,
-  FrameNumber,
+  FrameInt,
   FrameString,
   FrameStringEnd,
 } from "../frames.ts";
@@ -51,7 +51,7 @@ describe("getSyntax", () => {
 
   it("rejects a run start without run metadata", () => {
     const atomOnly: SyntaxFacet = {
-      ...FrameNumber.SYNTAX,
+      ...FrameInt.SYNTAX,
       NAME: "AtomOnly",
       SIGIL_STARTS: [{ key: "%%", mode: "run" }],
     };
@@ -69,7 +69,7 @@ describe("getSyntax", () => {
 
   it("rejects two families that claim one start", () => {
     const clash: SyntaxFacet = {
-      ...FrameNumber.SYNTAX,
+      ...FrameInt.SYNTAX,
       NAME: "Clash",
       SIGIL_STARTS: FrameBytes.SIGIL_STARTS,
     };

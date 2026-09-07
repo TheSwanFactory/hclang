@@ -4,6 +4,30 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.12.0 2026-09-06
+
+- **Breaking:** Replace host-number arithmetic with an exact numeric tower of
+  arbitrary-precision integers, scaled decimals, reduced rationals, and inexact
+  numbers. Integer and rational divisors preserve exact results, decimal
+  divisors produce inexact numbers, `%%` accepts integers only and now floors,
+  and `=` compares numeric value across every rung (#355).
+- **Breaking:** Make dotted chains such as `1.408.055.1212` inert
+  spelling-preserving sequences: they now compare equal to themselves instead of
+  through `NaN`, and reject arithmetic, ordering, signs, and repetition with
+  stable domain errors (#355).
+- Bound integer repetition counts and repeated text output, plus exact
+  exponentiation, with stable domain, zero, and range errors instead of host
+  exceptions or unbounded allocation (#355).
+- Read host and CLI values as exact integers when every character is a decimal
+  digit and as text otherwise, so `$$` names no longer arrive as `NaN`-backed
+  numbers (#355).
+- **Breaking:** Parse `0` and zero-led decimal chains such as `0.5` as numeric
+  values rather than blobs; explicit `0b`, `0o`, and `0x` literals remain blobs.
+  Leading zeros are preserved, so `0123 = 123` holds while `0123 == 123` does
+  not (#356).
+- Add unary `-` for numeric values, including normalized double negation, while
+  a signed sequence reports a stable domain error (#357).
+
 ## v0.11.2 2026-08-21
 
 - **Breaking:** Define `$` as the current file/module namespace and `$$` as a

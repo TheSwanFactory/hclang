@@ -1,138 +1,107 @@
+import { type Context, NilContext } from "./context.ts";
 import { Frame } from "./frame.ts";
-import { FrameAtom } from "./frame-atom.ts";
-import { NilContext } from "./context.ts";
-import type { Context } from "./context.ts";
-import type { MetaFrame } from "./meta-frame.ts";
-import { completeAtEnd, includeOrReserve } from "./atom-syntax.ts";
-import type { AtomSyntax, ScanResult, SigilStart } from "../scan.ts";
-export class FrameNumber extends FrameAtom {
-  public static readonly NUMBER_BEGIN = /[1-9]/;
-  public static readonly NUMBER_CHAR = /\d/;
-  public static readonly SIGIL_STARTS = [
-    { key: FrameNumber.NUMBER_BEGIN.toString(), mode: "atom" },
-  ] as const satisfies readonly SigilStart[];
+import { FrameNumeric, type NumericRank } from "./frame-numeric.ts";
 
-  public static readonly SYNTAX: AtomSyntax = {
-    NAME: "FrameNumber",
-    SIGIL_STARTS: FrameNumber.SIGIL_STARTS,
-    recognize: (symbol: Frame, source = ""): ScanResult => {
-      const char = symbol.toString();
-      return includeOrReserve(char, FrameNumber.NUMBER_CHAR.test(char), source);
-    },
-    finish: completeAtEnd,
-    fromSource: (source: string): Frame => new FrameNumber(source),
-  };
+/** Inexact host-number rung, reached only by projection or inexact arithmetic. */
+export class FrameNumber extends FrameNumeric {
+  private static readonly numbers: Record<string, FrameNumber> = {};
 
-  public static for(digits: string): FrameNumber {
-    const exists = FrameNumber.numbers[digits];
-    return exists || (FrameNumber.numbers[digits] = new FrameNumber(digits));
+  public static for(value: string | number): FrameNumber {
+    const key = Number(value).toString();
+    return FrameNumber.numbers[key] ??= new FrameNumber(value);
   }
 
-  protected static numbers: { [key: string]: FrameNumber } = {};
-  protected data: number;
-  protected spelling: string;
+  /** Preserves the spelling of legacy host numeric strings that are inexact. */
+  public static fromHost(value: string): FrameNumber {
+    return new FrameNumber(value, NilContext, value);
+  }
 
-  constructor(source: string, meta: Context = NilContext) {
+  public readonly rank: NumericRank = 3;
+  public readonly data: number;
+  public readonly spelling: string;
+
+  public constructor(
+    value: string | number,
+    meta: Context = NilContext,
+    spelling?: string,
+  ) {
     super(meta);
-    this.data = Number(source);
-    this.spelling = source;
+    this.data = Number(value);
+    this.spelling = spelling ?? this.data.toString();
   }
 
-  protected override lookup_here(key: string, origin: MetaFrame): Frame {
-    if (/^\d+$/.test(key)) {
-      return new FrameNumber(`${this.spelling}.${key}`);
-    }
-    return super.lookup_here(key, origin);
+  public override valueOf(): number {
+    return this.data;
   }
 
-  public override apply(argument: Frame, _parameter: Frame): Frame {
-    // repeatedly apply argument `this.data` times
-    let result = Frame.nil;
-    if ((argument instanceof FrameNumber)) {
-      const value = this.data * argument.data;
-      result = new FrameNumber(value.toString());
-    } else {
-      this.range().forEach(() => {
-        result = result.apply(argument, _parameter);
-      });
-    }
-    return result;
-  }
-
-  public override called_by(context: Frame, parameter: Frame): Frame {
-    if ("operator" in context && context.operator === "+") {
-      return new FrameNumber(`+${this.spelling}`);
-    }
-    return super.called_by(context, parameter);
-  }
-
-  public range(): Array<number> {
-    return [...Array(this.data).keys()];
-  }
-
-  public override string_start(): string {
-    return FrameNumber.NUMBER_BEGIN.toString();
+  public override isZero(): boolean {
+    return this.data === 0;
   }
 
   protected override toData(): string {
     return this.spelling;
   }
 
-  /*
-   * Math Operations
-   */
-
-  public override valueOf(): number {
-    return this.data;
+  protected override promoteOne(): FrameNumeric {
+    return this;
   }
 
-  public add(right: FrameNumber): FrameNumber {
-    const value = this.data + right.data;
-    return new FrameNumber(value.toString());
+  protected override ratioParts(): null {
+    return null;
   }
 
-  public subtract(right: FrameNumber): FrameNumber {
-    const value = this.data - right.data;
-    return new FrameNumber(value.toString());
+  protected override inexactResult(value: number): Frame {
+    return new FrameNumber(value);
   }
 
-  public multiply(right: FrameNumber): FrameNumber {
-    const value = this.data * right.data;
-    return new FrameNumber(value.toString());
+  protected override integralValue(): bigint | null {
+    return Number.isFinite(this.data) && Number.isInteger(this.data)
+      ? BigInt(this.data)
+      : null;
   }
 
-  public divide(right: FrameNumber): FrameNumber {
-    const value = this.data / right.data;
-    return new FrameNumber(value.toString());
+  protected override unaryPlus(): Frame {
+    if (this.spelling.startsWith("+") || this.spelling.startsWith("-")) {
+      return this;
+    }
+    return new FrameNumber(this.data, NilContext, `+${this.spelling}`);
   }
 
-  public modulo(right: FrameNumber): FrameNumber {
-    const value = this.data % right.data;
-    return new FrameNumber(value.toString());
+  protected override unaryMinus(): Frame {
+    return new FrameNumber(-this.data);
   }
 
-  public power(right: FrameNumber): FrameNumber {
-    const value = this.data ** right.data;
-    return new FrameNumber(value.toString());
+  protected override addSame(right: FrameNumeric): Frame {
+    return new FrameNumber(this.data + (right as FrameNumber).data);
   }
 
-  public lessThan(right: FrameNumber): Frame {
-    return this.data < right.data ? Frame.all : Frame.nil;
+  protected override subtractSame(right: FrameNumeric): Frame {
+    return new FrameNumber(this.data - (right as FrameNumber).data);
   }
 
-  public greaterThan(right: FrameNumber): Frame {
-    return this.data > right.data ? Frame.all : Frame.nil;
+  protected override multiplySame(right: FrameNumeric): Frame {
+    return new FrameNumber(this.data * (right as FrameNumber).data);
   }
 
-  public override equals(right: FrameNumber): Frame {
-    return this.data === right.data ? Frame.all : Frame.nil;
+  protected override divideSame(right: FrameNumeric): Frame {
+    return new FrameNumber(this.data / (right as FrameNumber).data);
   }
 
-  public lessThanOrEqual(right: FrameNumber): Frame {
-    return this.data <= right.data ? Frame.all : Frame.nil;
+  protected override moduloSame(right: FrameNumeric): Frame {
+    return this.operationError("%%", right);
   }
 
-  public greaterThanOrEqual(right: FrameNumber): Frame {
-    return this.data >= right.data ? Frame.all : Frame.nil;
+  protected override powerSame(right: FrameNumeric): Frame {
+    return new FrameNumber(this.data ** (right as FrameNumber).data);
+  }
+
+  protected override powerIntegral(exponent: bigint): Frame {
+    return new FrameNumber(this.data ** Number(exponent));
+  }
+
+  protected override compareSame(right: FrameNumeric): -1 | 0 | 1 | null {
+    const value = (right as FrameNumber).data;
+    if (Number.isNaN(this.data) || Number.isNaN(value)) return null;
+    return this.data < value ? -1 : this.data > value ? 1 : 0;
   }
 }

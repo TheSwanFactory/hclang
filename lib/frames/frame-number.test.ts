@@ -4,32 +4,28 @@ import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 import { Frame, FrameNumber } from "../frames.ts";
 
 describe("FrameNumber", () => {
-  const source = "12345667890";
-  const frame_number = new FrameNumber(source);
+  it("stores the inexact host value and synthesizes host spelling", () => {
+    const value = new FrameNumber("1.2500");
 
-  it("is exported", () => {
-    expect(FrameNumber).toBeTruthy();
+    expect(value).toBeInstanceOf(FrameNumber);
+    expect(value.valueOf()).toEqual(1.25);
+    expect(value.toString()).toEqual("1.25");
   });
 
-  it("is created from a string", () => {
-    expect(frame_number).toBeInstanceOf(FrameNumber);
+  it("retains host-number arithmetic artifacts honestly", () => {
+    expect(
+      new FrameNumber(0.1).add(new FrameNumber(0.2)).toString(),
+    ).toEqual("0.30000000000000004");
   });
 
-  it("stringifies back to that string", () => {
-    expect(frame_number.toString()).toEqual(source);
+  it("does not expose an inexact value through exactInt", () => {
+    const result = new FrameNumber(3).exactInt();
+
+    expect(result).toBeInstanceOf(Frame);
+    expect(result.toString()).toEqual("$!.exact-integer-required FrameNumber");
   });
 
-  it("returns a range", () => {
-    const range = new FrameNumber("3").range();
-    expect(range).toBeInstanceOf(Array);
-    expect(range).toHaveLength(3);
-    expect(range).toEqual([0, 1, 2]);
-  });
-
-  it("is equal to the same number", () => {
-    const same = new FrameNumber(source);
-    expect(frame_number.equals(same)).toEqual(Frame.all);
-    expect(frame_number == same).toBe(false);
-    expect(frame_number).not.toEqual(same);
+  it("interns by synthesized host spelling", () => {
+    expect(FrameNumber.for("1.0")).toBe(FrameNumber.for(1));
   });
 });

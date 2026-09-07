@@ -29,7 +29,7 @@ export const syntaxFacets: Array<SyntaxFacet> = [
   frame.FrameDoc.SYNTAX,
   frame.FrameName.SYNTAX,
   frame.FrameScopeAnchor.SYNTAX,
-  frame.FrameNumber.SYNTAX,
+  frame.FrameInt.SYNTAX,
   frame.FrameOperator.SYNTAX,
   frame.FrameString.SYNTAX,
   frame.FrameStringEnd.SYNTAX,

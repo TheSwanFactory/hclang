@@ -249,7 +249,7 @@ describe("HCEval", () => {
 
     for (let split = 1; split < source.length; split++) {
       const splitOut = new frame.FrameArray([]);
-      splitOut.set("size", new frame.FrameNumber("3"));
+      splitOut.set("size", new frame.FrameInt("3"));
       const splitEval = new HCEval(splitOut);
       splitEval.call(source.slice(0, split), false);
       splitEval.call(source.slice(split), false);
@@ -294,7 +294,7 @@ describe("HCEval", () => {
   });
 
   it("reports a premature dynamic byte payload at EOF", () => {
-    out.set("size", new frame.FrameNumber("3"));
+    out.set("size", new frame.FrameInt("3"));
     hc_eval.call("\\size\\ab", false);
 
     expect(hc_eval.finish()).toEqual(false);
@@ -780,14 +780,36 @@ describe("make_context", () => {
     expect(context.key).toBeInstanceOf(frame.FrameString);
     expect(context.key.toString()).toEqual("“value”");
   });
-  it("return a context with FrameNumber for numeric values", () => {
+  it("return a context with FrameInt for numeric values", () => {
     const entries = { "key": "2" };
     const context = make_context(entries);
     expect(context).toBeTruthy();
     expect("key" in context).toBe(true);
-    expect(context.key).toBeInstanceOf(frame.FrameNumber);
+    expect(context.key).toBeInstanceOf(frame.FrameInt);
     expect(context.key.toString()).toEqual("2");
   });
+  it("keeps non-decimal host strings as strings and normalizes Unicode integers", () => {
+    const context = make_context({
+      decimal: "1.5",
+      unicode: "١٢٣",
+      superscript: "²",
+      roman: "Ⅻ",
+      fraction: "½",
+    });
+
+    expect(context.decimal).toBeInstanceOf(frame.FrameString);
+    expect(context.decimal.toString()).toEqual("“1.5”");
+    expect(context.unicode).toBeInstanceOf(frame.FrameInt);
+    expect(context.unicode.toString()).toEqual("١٢٣");
+    expect(context.unicode.valueOf()).toEqual(123);
+    expect(context.superscript).toBeInstanceOf(frame.FrameString);
+    expect(context.superscript.toString()).toEqual("“²”");
+    expect(context.roman).toBeInstanceOf(frame.FrameString);
+    expect(context.roman.toString()).toEqual("“Ⅻ”");
+    expect(context.fraction).toBeInstanceOf(frame.FrameString);
+    expect(context.fraction.toString()).toEqual("“½”");
+  });
+
   it("correctly identifies isInteger", () => {
     expect(frame.Frame.isInteger("1")).toBe(true);
     expect(frame.Frame.isInteger("1234567890")).toBe(true);
