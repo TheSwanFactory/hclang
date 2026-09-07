@@ -1190,9 +1190,13 @@ while `0123 = 123` and `00 = 0` hold and `0123 + 1` canonicalizes to `124`. Also
 `01b` now resolves to `$!.name-missing` where it was previously a blob.
 
 Exactness is unaffected — ND-008 compares values — but `==` is spelling-based,
-so the two spellings are distinguishable there. Either normalize integer
-spelling on construction or state that leading zeros are preserved deliberately.
-Currently neither.
+so the two spellings are distinguishable there.
+
+**Ruled in `325fdf4`: preserved deliberately, and asserted in the acceptance
+testdoc** (`cli/hc/numerics.hc`) as `0123 = 123` → `<>` and `0123 == 123` →
+`()`. Reasoning in §11.8. Putting it in the testdoc rather than a unit test is
+the right home, since it is a statement about the language's surface rather than
+about a class.
 
 ### 11.3 The host bridge minted `NaN`-backed numeric frames — fixed
 
@@ -1229,13 +1233,22 @@ converted into decimal digits (`10^6 × log10 2`) rather than reused as one. Tha
 closes the ~3.3× discrepancy exactly rather than approximately, and the constant
 now names what it measures.
 
-### 11.5 `%%` returns host truncated results where ND-006 now requires floored
+### 11.5 `%%` inherited host truncated results — fixed
 
-`-7 %% 3` is `-1` and `7 %% -3` is `1`. ND-006 now specifies floored, so these
-must become `2` and `-2`. Reasoning in §11.8. `FrameInt.moduloSame` needs the
-adjustment — add the divisor when the remainder is nonzero and its sign differs
-from the divisor's — plus tests for all four sign combinations, which do not
-currently exist.
+**Fixed in `325fdf4`.** `FrameInt.moduloSame` adds the divisor when the
+remainder is nonzero and its sign differs from the divisor's, so `%%` is now
+floored:
+
+| Expression | Was | Now |
+| ---------- | --- | --- |
+| `7 %% 3`   | 1   | 1   |
+| `-7 %% 3`  | -1  | 2   |
+| `7 %% -3`  | 1   | -2  |
+| `-7 %% -3` | -1  | -1  |
+
+Reasoning in §11.8. All four sign combinations are tested, plus the
+exact-division cases `-6 %% 3` and `6 %% -3`, which the nonzero guard exists to
+hold at `0` rather than shifting to `3` and `-3`.
 
 ### 11.6 `FrameSequence.valueOf()` was inherited, so failure was silent — fixed
 
@@ -1276,8 +1289,11 @@ a test rather than a fix.
 | Scale limit (§11.4)        | Separate scale constant — **done**, `407afc8`               |
 | Error text (§11.7)         | Name the lookup, not `unary-` — **done**, `407afc8`         |
 | `Sequence.valueOf` (§11.6) | Error frame rather than a throw — **done**, `407afc8`       |
-| Modulo sign (§11.5)        | **Open change:** adopt floored, not host truncated          |
-| Zero-led spelling (§11.2)  | **Preserved deliberately.** Needs documenting and a test    |
+| Modulo sign (§11.5)        | Adopt floored, not host truncated — **done**, `325fdf4`     |
+| Zero-led spelling (§11.2)  | Preserved deliberately, tested — **done**, `325fdf4`        |
+
+**Nothing in this section is open.** Every item is either fixed or filed: #360
+for error detection, #361 for M-3 behind it.
 
 Three of these need their reasoning on the record.
 
@@ -1308,9 +1324,9 @@ value with two spellings, distinguishable through `==`. That is the same fact as
 `3 == 3.0` being nil, which ND-008 and Q3 already accept: `=` is exact, `==` is
 the data plane, and the data plane is spelling. Normalizing integer spelling
 would buy consistency in `==` at the cost of the spelling-preservation principle
-§3 is built on, and would still leave `3` and `3.0` distinct. Not worth it. It
-needs a documented line and a test asserting `0123 = 123` and `0123 == 123`, so
-the asymmetry is intentional rather than incidental.
+§3 is built on, and would still leave `3` and `3.0` distinct. Not worth it.
+Asserted in the acceptance testdoc so the asymmetry is intentional rather than
+incidental.
 
 ### 11.9 Not from this PR
 
