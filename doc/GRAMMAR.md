@@ -56,11 +56,16 @@ expressed through:
   inexact host number; inexact numbers have no separate source-literal family.
 - **Sequence**: `1.408.055.1212` — an inert, spelling-preserving multi-segment
   value rather than a numeric rank.
+- **Typed number**: `9.8.m` — an alphabetic third segment on a decimal is an
+  inert quantity carrying an exact magnitude and an opaque unit spelling, where
+  a numeric third segment is a sequence. The unit is letters only, so `9.8.m2`
+  is a missing name, and no unit is validated: `9.8.frobnicate` is well formed.
 
 Unary `+` and `-` apply to numbers. Binary arithmetic promotes through integer,
 decimal, rational, and inexact ranks; division is exact unless its divisor is a
-decimal or inexact number. `%%` accepts integers only. Sequences reject
-arithmetic, ordering, signs, and repetition.
+decimal or inexact number. `%%` accepts integers only. Sequences and typed
+numbers reject arithmetic, ordering, signs, and repetition; a typed number
+refuses even a same-unit operand.
 
 #### Time Types
 
@@ -299,6 +304,7 @@ parent_.helper_ 10
 - Decimal integers: `0`, `123`
 - Exact decimals: `0.5`, `123.456`
 - Numeric sequences: `1.408.055.1212`
+- Typed numbers: `9.8.m`, `0.10.USD`
 - Rationals and inexact numbers are computed values, not distinct literals
 
 ### Time Literals

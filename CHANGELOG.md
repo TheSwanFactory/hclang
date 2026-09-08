@@ -4,6 +4,20 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.13.0 2026-09-07
+
+- Add typed numbers: an alphabetic property on an exact decimal is now an inert
+  quantity carrying that magnitude and an opaque unit spelling, so `9.8.m` and
+  `0.10.USD` render as written and compare structurally against the same unit at
+  the same value. Units are letters only, never validated, and take a single
+  segment; nothing composes yet, so every operator is a domain error even when
+  both operands share a unit. Only decimals receive the segment, so a count is
+  written `100.0.kg` and a decimal can no longer carry a named method (#362).
+- **Breaking:** Stop resolving a name through the numeric receiver a dotted
+  numeric value was read from, so `9.8.5.name` and `9.8.m.name` report
+  `$!.name-missing` instead of reaching the receiver or the enclosing scope.
+  Built-in operators are unaffected (#362).
+
 ## v0.12.0 2026-09-06
 
 - **Breaking:** Replace host-number arithmetic with an exact numeric tower of

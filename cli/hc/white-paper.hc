@@ -221,8 +221,8 @@ Table [#sec-table-literals].
 +----------|---------------+----------|---------------+--------------------+
 | 0b010    | _binary_      |1/3| _rational_| “_string_”         |
 | 0o1777   | _octal_       |123.456| _float_ | # _comment_ #      |
-| 1234     | _decimal_     |123.456.E.-10| _scientific_ | \\_length_\\_blob_ |
-| 0xCAFE   | _hexadecimal_ |123.456.p123| _version_ | '_resource_'       |
+| 1234     | _decimal_     |9.8.m| _quantity_ | \\_length_\\_blob_ |
+| 0xCAFE   | _hexadecimal_ |1.408.055| _sequence_ | '_resource_'       |
 | 0@Base64 | _Base64_      |+1.408.555.1212| _phone_ |                    |
 +----------|---------------+----------|---------------+--------------------+
 { tbody-tr-odd-background-color:Gainsboro; \

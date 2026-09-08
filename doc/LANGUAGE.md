@@ -217,6 +217,17 @@ inert sequence (`1.408.055.1212`) that preserves every segment and leading zero.
 Sequences support structural `=` only and reject arithmetic, ordering, signs,
 and repetition.
 
+An alphabetic property on a decimal is a typed number (`9.8.m`, `0.10.USD`)
+instead: an exact magnitude carrying an opaque unit spelling. It renders as
+written and compares structurally, matching only the same unit at the same
+value, so `9.80.m = 9.8.m` holds while `9.8.m = 9.8.kg` does not. Nothing
+composes: every operator is a domain error, including one whose operands share a
+unit, so units carry no arithmetic or conversion yet. The unit is letters only
+and is never validated, and the slot takes only one segment: `9.8.m2`,
+`9.8.m.s`, and `1.408.055.m` are all missing names. Only decimals receive the
+segment, so a count is written `100.0.kg`; the trade is that a decimal can carry
+no named method.
+
 Reduced rationals and inexact numbers are arithmetic results rather than
 separate literal families. Dividing by an integer or rational stays exact, so
 `1 / 3` produces `1/3`; dividing by a decimal is inexact, so `1 / 2.0` produces

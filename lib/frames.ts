@@ -42,6 +42,7 @@ export { FrameNumeric, type NumericRank } from "./frames/frame-numeric.ts";
 export { FrameInt } from "./frames/frame-int.ts";
 export { FrameDecimal } from "./frames/frame-decimal.ts";
 export { FrameSequence } from "./frames/frame-sequence.ts";
+export { FrameTypedNumber } from "./frames/frame-typed-number.ts";
 export { FrameRational } from "./frames/frame-rational.ts";
 export { FrameNumber } from "./frames/frame-number.ts";
 export { FrameSchema } from "./frames/frame-schema.ts";
