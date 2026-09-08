@@ -43,6 +43,12 @@ Equality planes
 ; 9.8.m = 9.8
 # ()
 ```
+The metadata plane is unchanged, and still answers every frame without metadata
+alike (#358). Locked so it reads as deliberate rather than as a units ruling
+```
+; 9.8.m === 9.8.kg
+# <>
+```
 Equality is spelling, not dimension: no segment is reordered, no exponent folded
 ```
 ; 9.8.m.s-1 = 9.8.m.s-1
@@ -85,6 +91,10 @@ Boundaries that do not move
 # 9.8.5
 ; 100.kg
 # $!.name-missing “$:FrameInt...
+; (1 / 3).m
+# $!.name-missing “$:FrameRational...
+; (1 / 2.0).m
+# $!.name-missing “$:FrameNumber...
 ; 1.408.055.m
 # $!.name-missing “$:FrameSequence...
 ; 9.8.m.5

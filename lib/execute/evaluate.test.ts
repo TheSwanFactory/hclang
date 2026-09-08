@@ -230,6 +230,33 @@ describe("evaluate", () => {
       it("reports a nonnumeric property as missing", () => {
         expect(evaluate("1.invalid").toString()).toContain("name-missing");
       });
+
+      // A dotted numeric value carries the receiver it was read from as its
+      // lexical `up`, so before FrameNumeric dropped that link an unhandled key
+      // climbed back through the receiver and on into the enclosing scope. At
+      // v0.12.0 this returned 7.
+      it("does not resolve a name through the numeric receiver it came from", () => {
+        const leaked = evaluate(".foo 7;\n.x 9.8;\nx.5.foo\n");
+        const quantity = evaluate(".foo 7;\n.x 9.8;\nx.m.foo\n");
+
+        expect(leaked.at(-1).toString()).toContain("name-missing");
+        expect(leaked.at(-1).toString()).not.toContain("7");
+        // A unit segment is absorbed before the link question arises, so this
+        // one is a quantity rather than a leak or a missing name.
+        expect(quantity.at(-1).toString()).toEqual("9.8.m.foo");
+      });
+
+      // Dropping the link is only safe because the lookup driver consults
+      // globals after the links rather than through them.
+      it("still reaches a built-in operator through the globals tier", () => {
+        expect(evaluate("9.8.m.< 10.2.m").toString()).toEqual(
+          "[$!.numeric-domain < FrameTypedNumber FrameTypedNumber]",
+        );
+        expect(evaluate("9.8.5.< 2").toString()).toEqual(
+          "[$!.numeric-domain < FrameSequence FrameInt]",
+        );
+        expect(evaluate("3.%%2").toString()).toEqual("[1]");
+      });
     });
 
     describe("unary plus", () => {
