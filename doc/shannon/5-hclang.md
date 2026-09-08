@@ -46,9 +46,9 @@ HC has three types of primitive Frames:
 #### 3.2.2 Non-Integer
 
 - Rational: `1/3`
-- Float: `123.456`
-- Scientific: `123.456E-10`
-- Semver: `123.456.p123`
+- Decimal: `123.456`
+- Sequence: `1.408.055.1212`
+- Quantity: `9.8.m`
 
 #### 3.2.3 Times
 
