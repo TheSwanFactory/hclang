@@ -1,6 +1,7 @@
 # Units of Measure: The `nn.nn.aa` Segment
 
-**Status:** Conjecture under test — not adopted, proposed, or preferred\
+**Status:** Conjecture under test — the mechanism is not adopted; four edge
+cases are now ruled and a composite-unit direction is recommended\
 **Inputs:** [03-uom-conjectures.md](03-uom-conjectures.md),
 [#362](https://github.com/TheSwanFactory/hclang/issues/362),
 [a08](../a08-rationalizing-numbers.md)\
@@ -18,7 +19,8 @@ segment that is numeric already promotes to `FrameSequence`:
 ```
 
 This document records what the conjecture clears, what it gets without asking,
-and what it leaves to be decided. It selects nothing.
+and what it leaves to be decided. Whether to adopt the mechanism at all is still
+open; the rulings and the composite-unit section below apply only if it is.
 
 ## Why the premise matters
 
@@ -114,21 +116,74 @@ the new frame takes a rank, making a08 §5.0's per-operator tables 5×5, or sits
 outside the ladder at rank `null` as `FrameSequence` does; what `9.8.m + 1` and
 `9.8.m * 2` produce; and whether the unit is held as a string or as an exponent
 vector. A string has nowhere to put the result of `m * m`; an exponent vector
-needs a dimension mapping, which is the validation question again.
+needs a dimension mapping, which is the validation question again. The composite
+section below forces the vector, but leaves the mapping open.
 
-## Undecided at the edges
+## Rulings on the edges
 
-- **Negative receivers.** `-9.8.m` currently falls through to `name-missing`,
-  while ND-013 blocks _digit_ keys on a negative decimal
-  (`$!.numeric-domain property FrameDecimal`). So the alphabetic segment could
-  work where the numeric one does not, which needs saying either way.
-- **Sequence receivers.** `1.408.055.m` reports `name-missing` on
-  `FrameSequence`. Whether a sequence accepts a unit segment is unspecified.
-- **Which rungs accept it.** `Dec` is the motivating case; `Int`, `Rat`, and
-  `Num` each have the same free slot.
-- **The word "typed".** It implies participation in `~~`, `<>`, and `~`. Whether
-  `m` is a type in that sense, and whether `9.8.m ~ ~~9.8.m` holds, is a
-  separate question from whether the magnitude carries a unit.
+Four edge cases were raised against the conjecture. Three are ruled; the fourth
+is delegated.
+
+| Edge                              | Ruling                                                                                                                                |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `1.408.055.m` — sequence receiver | **No.** A sequence takes no unit segment.                                                                                             |
+| Which rungs accept the segment    | **`Dec` only, for now.** `Int`, `Rat`, and `Num` keep the free slot unused.                                                           |
+| What "typed" participates in      | **`<>` only, at least to start** — not `~~` and not `~`.                                                                              |
+| Negative receivers                | **Delegated to [#363](https://github.com/TheSwanFactory/hclang/issues/363)**, which owns the sign rule for numeric property climbing. |
+
+The delegation runs in the right direction. `-9.8.m` currently falls through to
+`name-missing` while ND-013 refuses _digit_ keys on a negative decimal, and that
+asymmetry exists independently of units: #363 records that `+9.8.5` climbs while
+`-9.8.5` does not, traces it to `SEQUENCE_SOURCE` admitting `+` but not `-`
+where `INTEGER_SOURCE` and `DECIMAL_SOURCE` admit both, and notes a08 §8
+attributing the rule to unary minus landing without a design pass. Whatever #363
+decides, this conjecture inherits.
+
+Restricting the segment to `Dec` has one consequence worth stating: a count must
+carry a fractional part, `100.0.kg`, because `100.kg` is `nn.aa` on an `Int`
+receiver and stays `name-missing`.
+
+## Composite units
+
+`m/s` cannot be spelled inline. `/` is the division operator, so `9.8.m/s`
+parses as `9.8.m` divided by the name `s`, and making it a single lexeme
+requires the lexer change this conjecture exists to avoid.
+
+Three mechanisms cover the ground instead, none of them new syntax.
+
+**A segment chain with integer exponents** — `9.8.m.s-1`. Lexically available
+today: `s-1`, `m2`, and `m-s` all bind and read back as identifiers, and
+`9.8.s-1` reports `name-missing` with `s-1` as a single key. This coincides with
+established practice. UCUM makes `.` a mandatory strict-binary multiplication
+operator with integer exponents and `-` for negatives (rules quoted in
+[DICOM CP-1114](https://dicom.nema.org/medical/Dicom/Final/cp1114_ft.pdf), sign
+convention in the [UCUM-LHC demo](https://ucum.nlm.nih.gov/ucum-lhc/demo.html));
+the
+[VizieR catalog standard](https://vizier.cfa.harvard.edu/doc/catstd/catstd/catstd-3.2.htx)
+requires a unit to be a single word and accepts `km.s-1`; and
+[NIST's SI guide](https://physics.nist.gov/cuu/Units/checklist.html) treats a
+negative exponent as an alternative to the solidus. HC's dotted segment already
+means what UCUM's dot means.
+
+**Arithmetic** — dividing two typed numbers yields the composite, mirroring a08
+§9's ruling that rationals and inexact numbers are computed values rather than
+literal families. This settles an item above as a side effect: the unit must be
+an exponent vector, because a string has nowhere to put the result of `m * m`.
+
+**Named derived units** — SI avoids inline composites by naming them (newton,
+pascal, watt, hertz), so common cases come from the vocabulary rather than the
+spelling. That needs the unit table the validation gap already needs, so one
+mechanism closes both: a misspelled `9.8.frobnicate` and an undefined `9.8.mps`
+fail for the same reason.
+
+For rendering, the segment chain is the only candidate that round-trips and so
+satisfies **Q1**, with a declared derived-unit name preferred where the
+vocabulary supplies one. `m/s` would be presentation only.
+
+The cost, stated plainly: "a trailing `-<digits>` is an exponent" overloads a
+sequence that is already a legal identifier — `m-s` binds fine, and `.imm11-0`
+appears in the BitScheme corpus — so the convention has to be scoped to unit
+segment chains rather than applied to names generally.
 
 ## Untouched
 
