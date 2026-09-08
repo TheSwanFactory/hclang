@@ -1,8 +1,11 @@
 # Units of Measure: MVP Implementation Spec
 
-**Status:** Implementation spec — ready to build\
-**Scope:** The `nn.nn.aa` segment produces an inert `FrameTypedNumber`. No
-arithmetic, no vocabulary, no composites.\
+**Status:** Implemented in
+[#365](https://github.com/TheSwanFactory/hclang/pull/365), with the amendment
+below adopted during the build\
+**Scope:** The `nn.nn.aa` segment produces an inert `FrameTypedNumber`.
+Composite spelling is included per the amendment; no arithmetic and no
+vocabulary.\
 **Inputs:** [04-uom-typed-number.md](04-uom-typed-number.md),
 [#362](https://github.com/TheSwanFactory/hclang/issues/362),
 [a08](../a08-rationalizing-numbers.md)\
@@ -63,23 +66,27 @@ before any subclass dispatch (`lib/frames/frame-numeric.ts`):
 | `order` — `<` `<=` `>` `>=` | same null check                             | `$!.numeric-domain < …`                           |
 | `repeat`                    | default implementation                      | `$!.repetition-domain FrameTypedNumber`           |
 
-Only `equals` needs an override, because the base returns `Frame.nil` whenever
-either rank is null.
+Only `equals` needs an override for the operator behaviour, because the base
+returns `Frame.nil` whenever either rank is null. As built, two other overrides
+were required for reasons this section did not anticipate: `lookup_here` for
+segment chaining, and `FrameNumeric.lookup_links` for the receiver leak
+described under "Files to change".
 
 ## Files to change
 
-| File                                    | Change                                                  |
-| --------------------------------------- | ------------------------------------------------------- |
-| `lib/frames/frame-typed-number.ts`      | New. The class.                                         |
-| `lib/frames/frame-decimal.ts`           | New branch in `lookup_here` (currently lines 57-64).    |
-| `lib/frames.ts`                         | Export beside `FrameSequence` (line 44).                |
-| `lib/frames/frame-typed-number.test.ts` | New. Unit tests.                                        |
-| `cli/hc/units.hc`                       | New. Acceptance corpus.                                 |
-| `cli/deno.json`                         | Add `units.hc` to `test:doc`.                           |
-| `cli/hc.test.ts`                        | Assert the corpus totals, as `numerics.hc` is asserted. |
-| `doc/GRAMMAR.md`, `doc/LANGUAGE.md`     | Document the segment.                                   |
-| `cli/hc/white-paper.hc`                 | Correct the stale literal table. See "Doc corrections". |
-| `CHANGELOG.md`                          | One user-visible entry.                                 |
+| File                                    | Change                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `lib/frames/frame-typed-number.ts`      | New. The class.                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `lib/frames/frame-decimal.ts`           | New branch in `lookup_here` (currently lines 57-64).                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `lib/frames/frame-numeric.ts`           | **Not anticipated.** Override `lookup_links` to drop a numeric `up` link. Every successful read is a lexical projection whose `up` is the frame it was found on, so a dotted numeric value carries its receiver as a lookup link and an unhandled key re-enters it: `9.8.m.s` built `9.8.s`, and `1.408.055.m` built `1.408.m`. Globals stay reachable because the driver consults them after the links (`meta-frame.ts` `get`), so `9.8.m.< 10.2.m` still resolves. |
+| `lib/frames.ts`                         | Export beside `FrameSequence` (line 44).                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `lib/frames/frame-typed-number.test.ts` | New. Unit tests.                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `cli/hc/units.hc`                       | New. Acceptance corpus.                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `cli/deno.json`                         | Add `units.hc` to `test:doc`.                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `cli/hc.test.ts`                        | Assert the corpus totals, as `numerics.hc` is asserted.                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `doc/GRAMMAR.md`, `doc/LANGUAGE.md`     | Document the segment.                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `cli/hc/white-paper.hc`                 | Correct the stale literal table. See "Doc corrections".                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `CHANGELOG.md`                          | One user-visible entry.                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 
 ## The construction site
 
@@ -97,10 +104,11 @@ protected override lookup_here(key: string, origin: MetaFrame): Frame {
 ```
 
 Add a second branch with the **same negative-receiver guard**, so the sign rule
-stays in one place:
+stays in one place. As built, the key test lives on the new class so the widened
+segment pattern has one definition:
 
 ```ts
-if (/^[A-Za-z]+$/.test(key)) {
+if (FrameTypedNumber.isUnitSegment(key)) {
   return this.spelling.startsWith("-")
     ? Frame.error("$!.numeric-domain property FrameDecimal")
     : new FrameTypedNumber(this, key);
@@ -133,21 +141,27 @@ export class FrameTypedNumber extends FrameNumeric {
 
   public constructor(magnitude: FrameDecimal, unit: string, meta = NilContext) {
     super(meta);
-    if (!/^[A-Za-z]+$/.test(unit)) {
+    const segments = unit.split(".");
+    if (!segments.every(FrameTypedNumber.isUnitSegment)) {
       throw new TypeError(`invalid unit segment: ${unit}`);
     }
     this.magnitude = magnitude;
     this.unit = unit;
+    this.segments = Object.freeze(segments);
     this.spelling = `${magnitude.spelling}.${unit}`;
   }
 }
 ```
 
+As built, the segment pattern `/^[A-Za-z]+(?:-?\d+)?$/` is exposed as the static
+`FrameTypedNumber.isUnitSegment`, so `FrameDecimal` and the chaining branch
+share one definition, and `segments` holds the frozen split of a composite unit.
+
 Required members, with the exact behaviour:
 
 | Member                                   | Behaviour                                                                                                                                                     |
 | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `lookup_here`                            | Delegate to `super` for every key. No chaining.                                                                                                               |
+| `lookup_here`                            | Absorb a further unit segment per the amendment; delegate to `super` otherwise.                                                                               |
 | `equals(right)`                          | `Frame.all` when `right` is a `FrameTypedNumber`, units are string-equal, and `this.magnitude.equals(right.magnitude)` is `Frame.all`. Otherwise `Frame.nil`. |
 | `toData()`                               | `this.spelling`.                                                                                                                                              |
 | `valueOf()`                              | `Frame.error("$!.numeric-domain projection FrameTypedNumber")`, following a08 §11.6.                                                                          |
@@ -167,76 +181,25 @@ Required members, with the exact behaviour:
 ## Acceptance corpus
 
 `cli/hc/units.hc`, in the shape of `cli/hc/numerics.hc`, wired into
-`deno task test:doc`. Twenty-seven examples. `...` is a prefix match
-(`lib/execute/hc-test.ts:107-108`), which is required for `name-missing`
-assertions because the frame id in `$:` paths is positional.
+`deno task test:doc` with its totals asserted in `cli/hc.test.ts`. `...` is a
+prefix match (`lib/execute/hc-test.ts:107-108`), which is required for
+`name-missing` assertions because the frame id in `$:` paths is positional.
 
-```
-Syntax
-; 9.8.m
-# 9.8.m
-; 0.10.USD
-# 0.10.USD
-; 9.8.metres
-# 9.8.metres
-; 9.8.M
-# 9.8.M
+**The shipped file is authoritative**: 36 examples, grouped as syntax, composite
+spelling, equality planes, spelling-not-dimension equality, refused composition,
+and unmoved boundaries. The plan in this section was 27 examples; four things
+changed during the build, and only these:
 
-Equality planes
-; 9.8.m = 9.8.m
-# <>
-; 9.80.m = 9.8.m
-# <>
-; 9.8.m == 9.8.m
-# <>
-; 9.80.m == 9.8.m
-# ()
-; 9.8.m = 9.8.kg
-# ()
-; 9.8.m = 9.8
-# ()
+| Planned                    | Shipped                          | Why                                                                                                                   |
+| -------------------------- | -------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `9.8.m2` → `name-missing`  | `9.8.m2` → a quantity            | The amendment widened the segment pattern.                                                                            |
+| `9.8.m.s` → `name-missing` | `9.8.m.s` → a composite quantity | The amendment absorbs further segments.                                                                               |
+| `9.8.m < 10.2.m`           | `9.8.m.< 10.2.m`                 | Bare `<` is structural at the lexical level, so it is not a comparison. `numerics.hc` already spells `1.408.555.< 2`. |
+| 27 examples                | 36 examples                      | Composite spelling, composite equality, and two malformed-segment boundaries were added.                              |
 
-Composition refuses, including same-unit
-; 9.8.m + 1.2.m
-# $!.numeric-domain + FrameTypedNumber FrameTypedNumber
-; 9.8.m - 1.2.m
-# $!.numeric-domain - FrameTypedNumber FrameTypedNumber
-; 9.8.m + 1
-# $!.numeric-domain + FrameTypedNumber FrameInt
-; 1 + 9.8.m
-# $!.numeric-domain + FrameInt FrameTypedNumber
-; 9.8.m 2
-# $!.numeric-domain * FrameTypedNumber FrameInt
-; 9.8.m / 2
-# $!.numeric-domain / FrameTypedNumber FrameInt
-; 9.8.m %% 2
-# $!.numeric-domain %% FrameTypedNumber FrameInt
-; 9.8.m ** 2
-# $!.numeric-domain ** FrameTypedNumber FrameInt
-; 9.8.m < 10.2.m
-# $!.numeric-domain < FrameTypedNumber FrameTypedNumber
-; 9.8.m“Hi”
-# $!.repetition-domain FrameTypedNumber
-; -(9.8.m)
-# $!.numeric-domain unary- FrameTypedNumber
-
-Boundaries that do not move
-; 9.8.5
-# 9.8.5
-; 100.kg
-# $!.name-missing “$:FrameInt...
-; 1.408.055.m
-# $!.name-missing “$:FrameSequence...
-; 9.8.m2
-# $!.name-missing “$:FrameDecimal...
-; 9.8.m.s
-# $!.name-missing “$:FrameTypedNumber...
-; -9.8.m
-# $!.numeric-domain property FrameDecimal
-```
-
-Then assert the totals in `cli/hc.test.ts`, mirroring the existing `numerics.hc`
-case. If you add examples, update the count.
+Two rejections the corpus still does not assert, though they hold: `(1 / 3).m`
+and `(1 / 2.0).m` are both `name-missing`, so the "decimals only" ruling is
+carried by `100.kg` alone.
 
 ## Unit tests
 
@@ -251,6 +214,22 @@ case. If you add examples, update the count.
 - `exactInt` returns `$!.exact-integer-required FrameTypedNumber`.
 - `+9.8.m`, whatever it produces, is locked here rather than in the corpus.
 
+As built, this file also covers composite segments, `dataEquals` on the data
+plane, `isZero` delegation, and every arithmetic and ordering refusal.
+
+**Still missing.** The `lookup_links` override is the one behaviour change
+marked **Breaking** in the CHANGELOG, and it has no direct test — only the
+indirect `9.8.m.5` corpus line. Two assertions belong in
+`lib/frames/frame-numeric.test.ts` or `lib/execute/evaluate.test.ts`:
+
+- A name bound in an enclosing scope is **not** reachable through a numeric
+  receiver. On `v0.12.0`, `.foo 7; .x 9.8; x.5.foo` returned `7`; it must now
+  report `$!.name-missing`, so a later refactor cannot silently restore the
+  leak.
+- A built-in operator **is** still reachable through the globals tier, which is
+  what makes dropping the link safe: `9.8.m.< 10.2.m` resolves `<`. Only the
+  corpus covers this today.
+
 ## Doc corrections
 
 `cli/hc/white-paper.hc:224-225` still advertises two literals in this slot:
@@ -262,8 +241,13 @@ case. If you add examples, update the count.
 
 Neither works at `v0.12.0` — both are `name-missing` — and #355 already removed
 them from `GRAMMAR.md` and `LANGUAGE.md`. Correct the table as part of this
-change. Note the collision if they are ever revived: `E` is letters-only and
-would now be a unit, while `p123` would not match the key pattern.
+change. Note the collision if they are ever revived: `E` is a valid unit segment
+and `p123` is now one too, since the amendment admits a trailing integer.
+
+As built, the same stale table was found in two further places and corrected:
+`doc/onward2017/hc-paper-enp.mdk` and `doc/shannon/5-hclang.md`. The VS Code
+grammar also carried `constant.numeric.scientific` and `constant.numeric.semver`
+patterns, now replaced by quantity and sequence patterns.
 
 `GRAMMAR.md` and `LANGUAGE.md` gain the segment beside the sequence rule: a
 third alphabetic segment on a decimal is an inert quantity, distinct from a
@@ -274,8 +258,8 @@ third numeric segment, which is a sequence.
 **Status:** Accepted during implementation. Supersedes the "Key pattern",
 "Further segments", and first "Out of scope" bullets below.
 
-The MVP shipped `/^[A-Za-z]+$/` and no chaining, so `9.8.m2` and `9.8.m.s-1`
-were `name-missing`. Two facts moved the decision:
+This spec called for `/^[A-Za-z]+$/` and no chaining, which would have left
+`9.8.m2` and `9.8.m.s-1` as `name-missing`. Two facts moved the decision:
 
 1. The lexer already delivers `m2`, `s-1`, and `s-2` as single property keys, so
    composite spelling needed no lexical work — only a widened key pattern and a
@@ -301,8 +285,9 @@ The amended rulings:
 
 Two consequences to record rather than rediscover:
 
-- `9.8.m2` was an asserted `name-missing` corpus line and is now a quantity, so
-  this amendment is the one place where an existing assertion moved by intent.
+- `9.8.m2` was a planned `name-missing` corpus line and is now a quantity, so
+  this amendment is the one place where a line in this spec's corpus moved by
+  intent. No assertion inherited from `v0.12.0` moved.
 - A quantity can carry no named method either, which forecloses `.unit` and
   `.magnitude` as accessors. Introspection will need a symbolic spelling or a
   free function, not an alphabetic property.
