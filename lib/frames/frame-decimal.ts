@@ -61,7 +61,7 @@ export class FrameDecimal extends FrameNumeric {
         ? Frame.error("$!.numeric-domain property FrameDecimal")
         : new FrameSequence(`${this.spelling}.${key}`);
     }
-    if (/^[A-Za-z]+$/.test(key)) {
+    if (FrameTypedNumber.isUnitSegment(key)) {
       return this.spelling.startsWith("-")
         ? Frame.error("$!.numeric-domain property FrameDecimal")
         : new FrameTypedNumber(this, key);

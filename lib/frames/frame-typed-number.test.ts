@@ -7,10 +7,24 @@ const typed = (magnitude: string, unit: string): FrameTypedNumber =>
   new FrameTypedNumber(new FrameDecimal(magnitude), unit);
 
 describe("FrameTypedNumber", () => {
-  it("rejects a unit segment that is not letters only", () => {
-    for (const unit of ["m2", "s-1", "", "m/s", "µ"]) {
+  it("accepts letters with an optional signed integer exponent", () => {
+    for (const unit of ["m", "USD", "m2", "s-1", "m.s-1", "kg.m.s-2"]) {
+      expect(typed("9.8", unit).unit).toEqual(unit);
+    }
+  });
+
+  it("rejects a segment that is not letters plus an integer exponent", () => {
+    for (const unit of ["", "2s", "s_1", "m/s", "µ", "m-", "m.", "m..s"]) {
       expect(() => typed("9.8", unit)).toThrow(TypeError);
     }
+  });
+
+  it("exposes composite units as frozen segments", () => {
+    const quantity = typed("9.8", "kg.m.s-2");
+
+    expect(quantity.segments).toEqual(["kg", "m", "s-2"]);
+    expect(Object.isFrozen(quantity.segments)).toEqual(true);
+    expect(quantity.spelling).toEqual("9.8.kg.m.s-2");
   });
 
   it("round-trips the written spelling through data and rendering", () => {
@@ -99,9 +113,10 @@ describe("FrameTypedNumber", () => {
     expect(quantity.toString()).toEqual("9.8.m");
   });
 
-  it("leaves a mixed or negated property segment to the missing-name path", () => {
-    expect(new FrameDecimal("9.8").get("m2").is.missing).toEqual(true);
-    expect(new FrameDecimal("-9.8").get("m").toString())
+  it("leaves a malformed or negated property segment to its own path", () => {
+    expect(new FrameDecimal("9.8").get("2s").is.missing).toEqual(true);
+    expect(new FrameDecimal("9.8").get("s_1").is.missing).toEqual(true);
+    expect(new FrameDecimal("-9.8").get("m2").toString())
       .toEqual("$!.numeric-domain property FrameDecimal");
   });
 
@@ -114,10 +129,22 @@ describe("FrameTypedNumber", () => {
     expect(quantity.dataEquals(typed("9.8", "m"))).toBe(Frame.nil);
   });
 
-  it("takes no further segment, alphabetic or numeric", () => {
+  it("absorbs a further unit segment and refuses anything else", () => {
     const quantity = typed("9.8", "m");
+    const composite = quantity.get("s-1");
 
-    expect(quantity.get("s").is.missing).toEqual(true);
+    expect(composite).toBeInstanceOf(FrameTypedNumber);
+    expect(composite.toString()).toEqual("9.8.m.s-1");
+    expect(composite.get("kg").toString()).toEqual("9.8.m.s-1.kg");
     expect(quantity.get("5").is.missing).toEqual(true);
+    expect(quantity.get("2s").is.missing).toEqual(true);
+  });
+
+  it("compares composite units by spelling rather than by dimension", () => {
+    expect(typed("9.8", "m.s-1").equals(typed("9.8", "m.s-1")))
+      .toBe(Frame.all);
+    expect(typed("9.8", "m.s-1").equals(typed("9.8", "s-1.m")))
+      .toBe(Frame.nil);
+    expect(typed("9.8", "m2").equals(typed("9.8", "m.m"))).toBe(Frame.nil);
   });
 });

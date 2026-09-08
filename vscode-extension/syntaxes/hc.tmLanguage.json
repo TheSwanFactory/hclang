@@ -224,8 +224,8 @@
       "patterns": [
         {
           "name": "constant.numeric.quantity.hclang",
-          "match": "\\b\\d+\\.\\d+\\.[A-Za-z]+\\b",
-          "comment": "Typed number: 9.8.m, 0.10.USD"
+          "match": "\\b\\d+\\.\\d+(?:\\.[A-Za-z]+(?:-?\\d+)?)+\\b",
+          "comment": "Typed number: 9.8.m, 0.10.USD, 9.8.m2, 9.8.kg.m.s-2"
         },
         {
           "name": "constant.numeric.sequence.hclang",

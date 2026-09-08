@@ -2,14 +2,25 @@ import { type Context, NilContext } from "./context.ts";
 import { Frame } from "./frame.ts";
 import { FrameNumeric, type NumericRank } from "./frame-numeric.ts";
 import type { FrameDecimal } from "./frame-decimal.ts";
+import type { MetaFrame } from "./meta-frame.ts";
 
-const UNIT_SOURCE = /^[A-Za-z]+$/;
+/**
+ * One unit segment: letters, then an optional integer exponent whose sign is
+ * spelled with a hyphen. `m`, `m2`, and `s-1` qualify; `2s` and `s_1` do not.
+ */
+const UNIT_SEGMENT = /^[A-Za-z]+(?:-?\d+)?$/;
 
-/** Inert exact magnitude carrying an opaque unit spelling. */
+/** Inert exact magnitude carrying an opaque, dotted unit spelling. */
 export class FrameTypedNumber extends FrameNumeric {
+  /** Whether a property key spells a unit segment this frame would absorb. */
+  public static isUnitSegment(key: string): boolean {
+    return UNIT_SEGMENT.test(key);
+  }
+
   public readonly rank: NumericRank | null = null;
   public readonly magnitude: FrameDecimal;
   public readonly unit: string;
+  public readonly segments: readonly string[];
   public readonly spelling: string;
 
   public constructor(
@@ -18,12 +29,28 @@ export class FrameTypedNumber extends FrameNumeric {
     meta: Context = NilContext,
   ) {
     super(meta);
-    if (!UNIT_SOURCE.test(unit)) {
+    const segments = unit.split(".");
+    if (!segments.every(FrameTypedNumber.isUnitSegment)) {
       throw new TypeError(`invalid unit segment: ${unit}`);
     }
     this.magnitude = magnitude;
     this.unit = unit;
+    this.segments = Object.freeze(segments);
     this.spelling = `${magnitude.spelling}.${unit}`;
+  }
+
+  /**
+   * A further unit segment extends the unit rather than reporting a missing
+   * name, so a composite such as `9.8.m.s-1` is written as it is read. The unit
+   * stays an opaque spelling: no segment is reordered, and no exponent is
+   * folded, so `9.8.m2` and `9.8.m.m` are different quantities, exactly as
+   * `1000.0.m` and `1.0.km` already are.
+   */
+  protected override lookup_here(key: string, origin: MetaFrame): Frame {
+    if (FrameTypedNumber.isUnitSegment(key)) {
+      return new FrameTypedNumber(this.magnitude, `${this.unit}.${key}`);
+    }
+    return super.lookup_here(key, origin);
   }
 
   public override equals(right: Frame): Frame {

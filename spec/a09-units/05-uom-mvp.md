@@ -29,15 +29,15 @@ receiver already produces.
 
 | Question                  | Ruling                                                                                               |
 | ------------------------- | ---------------------------------------------------------------------------------------------------- |
-| Key pattern               | `/^[A-Za-z]+$/` — letters only. `m2` and `s-1` stay `name-missing`.                                  |
+| Key pattern               | ~~`/^[A-Za-z]+$/` — letters only.~~ Superseded by the amendment.                                     |
 | Receiving rungs           | `FrameDecimal` only. `Int`, `Rat`, and `Num` keep the slot unused, so a count is written `100.0.kg`. |
 | Same-unit arithmetic      | **Errors.** No operator succeeds on a typed number in this MVP.                                      |
 | `=`                       | Structural: same unit **and** equal magnitude by value. Everything else nil.                         |
 | `==` / `===`              | Unchanged. `==` separates units for free because the unit is in the spelling.                        |
 | Rank                      | `null`, as `FrameSequence`. It joins no promotion matrix.                                            |
-| Further segments          | `9.8.m.s` and `9.8.m.5` are `name-missing`. No chaining.                                             |
+| Further segments          | ~~`9.8.m.s` is `name-missing`.~~ Superseded by the amendment; `9.8.m.5` still is.                    |
 | Sequence receivers        | `1.408.055.m` stays `name-missing`.                                                                  |
-| Named methods on decimals | **Foreclosed, accepted.** See "The cost being accepted" below.                                       |
+| Named methods on decimals | **Foreclosed, accepted.** See "The cost being accepted" below, and quantities too per the amendment. |
 | `<>` / `~~` / `~`         | Out of scope. Verify nothing breaks; add no participation.                                           |
 
 ## The cost being accepted
@@ -269,13 +269,52 @@ would now be a unit, while `p123` would not match the key pattern.
 third alphabetic segment on a decimal is an inert quantity, distinct from a
 third numeric segment, which is a sequence.
 
+## Amendment: composite spelling is in scope after all
+
+**Status:** Accepted during implementation. Supersedes the "Key pattern",
+"Further segments", and first "Out of scope" bullets below.
+
+The MVP shipped `/^[A-Za-z]+$/` and no chaining, so `9.8.m2` and `9.8.m.s-1`
+were `name-missing`. Two facts moved the decision:
+
+1. The lexer already delivers `m2`, `s-1`, and `s-2` as single property keys, so
+   composite spelling needed no lexical work — only a widened key pattern and a
+   chaining branch on `FrameTypedNumber`, mirroring `FrameSequence`.
+2. The objection to composites was that `9.8.m.s-1` and `9.8.s-1.m` denote the
+   same quantity yet compare unequal, and that ordering them requires the
+   dimension work this spec defers. But the language already holds
+   `1000.0.m = 1.0.km` false for exactly the same reason. A unit is a spelling,
+   not a dimension, and spelling-sensitive equality across composites is the
+   same concession, not a new one.
+
+The amended rulings:
+
+| Question          | Ruling                                                                                               |
+| ----------------- | ---------------------------------------------------------------------------------------------------- |
+| Segment pattern   | `/^[A-Za-z]+(?:-?\d+)?$/` — letters, then an optional integer exponent signed with a hyphen.         |
+| Further segments  | **Absorbed.** `9.8.m.s-1` is one quantity with unit `m.s-1`. Chaining is unbounded, as for sequence. |
+| Canonicalization  | **None.** No segment is reordered and no exponent is folded, so `m2`, `m.m`, and `s-1.m` all differ. |
+| Division spelling | Still absent. `m/s` is written `m.s-1`; `9.8.m/s` divides by a missing name.                         |
+| Numeric segment   | Unchanged. `9.8.m.5` is `name-missing`.                                                              |
+| Malformed segment | `2s` and `s_1` stay `name-missing`, so a leading digit and the effect marker keep their meanings.    |
+| Named methods     | **Also foreclosed on `FrameTypedNumber`**, so `9.8.m.abs` has unit `m.abs`. See below.               |
+
+Two consequences to record rather than rediscover:
+
+- `9.8.m2` was an asserted `name-missing` corpus line and is now a quantity, so
+  this amendment is the one place where an existing assertion moved by intent.
+- A quantity can carry no named method either, which forecloses `.unit` and
+  `.magnitude` as accessors. Introspection will need a symbolic spelling or a
+  free function, not an alphabetic property.
+
 ## Out of scope
 
 Do not implement, and do not design around:
 
-- Composite units, exponents, `m/s`, and any use of `m2` or `s-1`.
 - A unit vocabulary, validation, or dimension mapping. `9.8.frobnicate` is a
-  well-formed quantity in this MVP.
+  well-formed quantity in this MVP, and so is `9.8.m.frobnicate2`.
+- Canonical ordering or exponent folding, which is what would make `m.s-1` equal
+  `s-1.m`.
 - Conversion between units, and any notion of equality across units.
 - Quantity kind, affine units such as `degC`.
 - Same-unit arithmetic. It is deliberately an error, so that adding it later is
@@ -289,7 +328,7 @@ Do not implement, and do not design around:
 ```
 deno fmt --check
 deno lint
-deno task test:doc        # numerics.hc 43/43, units.hc 27/27
+deno task test:doc        # numerics.hc 43/43, units.hc 36/36
 deno task test:all
 deno task build
 ```

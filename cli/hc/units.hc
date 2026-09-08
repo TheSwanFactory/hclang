@@ -17,6 +17,17 @@ Syntax
 ; 9.8.M
 # 9.8.M
 ```
+A unit segment may carry an integer exponent, and further segments compose
+```
+; 9.8.m2
+# 9.8.m2
+; 9.8.m.s-1
+# 9.8.m.s-1
+; 9.8.kg.m.s-2
+# 9.8.kg.m.s-2
+; 9.8.m.s
+# 9.8.m.s
+```
 Equality planes
 ```
 ; 9.8.m = 9.8.m
@@ -32,12 +43,23 @@ Equality planes
 ; 9.8.m = 9.8
 # ()
 ```
+Equality is spelling, not dimension: no segment is reordered, no exponent folded
+```
+; 9.8.m.s-1 = 9.8.m.s-1
+# <>
+; 9.8.m.s-1 = 9.8.s-1.m
+# ()
+; 9.8.m2 = 9.8.m.m
+# ()
+```
 Composition refuses, including same-unit
 ```
 ; 9.8.m + 1.2.m
 # $!.numeric-domain + FrameTypedNumber FrameTypedNumber
 ; 9.8.m - 1.2.m
 # $!.numeric-domain - FrameTypedNumber FrameTypedNumber
+; 9.8.m.s-1 + 1.0.m.s-1
+# $!.numeric-domain + FrameTypedNumber FrameTypedNumber
 ; 9.8.m + 1
 # $!.numeric-domain + FrameTypedNumber FrameInt
 ; 1 + 9.8.m
@@ -65,9 +87,11 @@ Boundaries that do not move
 # $!.name-missing “$:FrameInt...
 ; 1.408.055.m
 # $!.name-missing “$:FrameSequence...
-; 9.8.m2
-# $!.name-missing “$:FrameDecimal...
-; 9.8.m.s
+; 9.8.m.5
+# $!.name-missing “$:FrameTypedNumber...
+; 9.8.m.2s
+# $!.name-missing “$:FrameTypedNumber...
+; 9.8.m.s_1
 # $!.name-missing “$:FrameTypedNumber...
 ; -9.8.m
 # $!.numeric-domain property FrameDecimal

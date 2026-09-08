@@ -9,10 +9,17 @@
 - Add typed numbers: an alphabetic property on an exact decimal is now an inert
   quantity carrying that magnitude and an opaque unit spelling, so `9.8.m` and
   `0.10.USD` render as written and compare structurally against the same unit at
-  the same value. Units are letters only, never validated, and take a single
-  segment; nothing composes yet, so every operator is a domain error even when
-  both operands share a unit. Only decimals receive the segment, so a count is
-  written `100.0.kg` and a decimal can no longer carry a named method (#362).
+  the same value. Nothing composes arithmetically, so every operator is a domain
+  error even when both operands share a unit. Only decimals receive the segment,
+  so a count is written `100.0.kg` and a decimal can no longer carry a named
+  method (#362).
+- Spell composite units by extending the segment: a segment is letters plus an
+  optional integer exponent signed with a hyphen, and further segments absorb,
+  so `9.8.m2` is an area and `9.8.kg.m.s-2` is a force. Nothing is validated or
+  canonicalized, so `9.8.m.s-1`, `9.8.s-1.m`, and `9.8.m2` are three distinct
+  quantities, the same concession the language already makes by holding
+  `1000.0.m = 1.0.km` false. `9.8.m.5`, `9.8.m.2s`, and `9.8.m.s_1` remain
+  missing names (#362).
 - **Breaking:** Stop resolving a name through the numeric receiver a dotted
   numeric value was read from, so `9.8.5.name` and `9.8.m.name` report
   `$!.name-missing` instead of reaching the receiver or the enclosing scope.

@@ -12,7 +12,8 @@ for code and data.
   - Comments: inline `#...#` and end-of-line `#...`
   - Strings: double-quoted `"..."` and backtick `` `...` ``
   - Numbers: integer `123`, binary `0b`, octal `0o`, hex `0x`, exact decimal
-    `123.456`, rational `1/3`, sequence `1.408.055.1212`, quantity `9.8.m`
+    `123.456`, rational `1/3`, sequence `1.408.055.1212`, quantity `9.8.m` and
+    `9.8.kg.m.s-2`
   - Time literals: `%date%`, `%time%`, `%datetime%`
   - BLOB literals: raw bytes `\n\content\` and base64 `0sBase64`
   - Scope anchors: `$` (current file/module) and `$$` (host namespace)
@@ -67,6 +68,7 @@ square 5  # Returns 25
 1/3         # Rational
 1.408.055.1212  # Inert numeric sequence
 9.8.m       # Typed number, magnitude and unit
+9.8.kg.m.s-2   # Composite unit with exponents
 
 # Time and data
 %2025-01-01%  # Date literal

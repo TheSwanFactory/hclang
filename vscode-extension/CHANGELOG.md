@@ -7,9 +7,10 @@ this file.
 
 ### Added
 
-- Highlight a typed number such as `9.8.m` or `0.10.USD` as
-  `constant.numeric.quantity`, and an inert numeric sequence such as
-  `1.408.055.1212` as `constant.numeric.sequence`, matching HC v0.13.0.
+- Highlight a typed number as `constant.numeric.quantity`, including a composite
+  unit, so `9.8.m`, `0.10.USD`, `9.8.m2`, and `9.8.kg.m.s-2` all paint as one
+  literal. An inert numeric sequence such as `1.408.055.1212` highlights as
+  `constant.numeric.sequence`. Both match HC v0.13.0.
 
 ### Removed
 
