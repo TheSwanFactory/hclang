@@ -242,6 +242,20 @@ describe("main", () => {
     );
   });
 
+  it("keeps the units acceptance testdoc green", async () => {
+    const out = new FrameArray([]);
+    const file = new URL("./hc/units.hc", import.meta.url).pathname;
+    const status = await main(
+      new HCEval(out),
+      getOptions(["--testdoc", file]),
+    );
+
+    expect(status).toEqual(0);
+    expect(out.at(-1).toString()).toContain(
+      '“{"total":39,"pass":39,"fail":0,"unimplemented":0}”',
+    );
+  });
+
   it("traverses the BitScheme tutorial with authoritative totals", async () => {
     const out = new FrameArray([]);
     const file = new URL("./hc/BitScheme.hc", import.meta.url).pathname;

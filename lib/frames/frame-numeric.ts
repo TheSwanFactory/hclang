@@ -258,6 +258,20 @@ export abstract class FrameNumeric extends FrameAtom {
     return this.repetitionError();
   }
 
+  /**
+   * A numeric `up` link is the receiver a property lookup climbed from, not a
+   * lexical scope, so it must not answer a later segment. Without this, an
+   * unhandled key on a dotted numeric value would re-enter its own receiver:
+   * `9.8.m.s` would build `9.8.s` instead of reporting a missing name.
+   * Globals stay reachable, because the lookup driver consults them after the
+   * links rather than through them.
+   */
+  protected override lookup_links(): Frame[] {
+    return super.lookup_links().filter(
+      (link) => !(link instanceof FrameNumeric),
+    );
+  }
+
   private promoteTo(target: NumericRank): FrameNumeric {
     if (this.rank == null || this.rank >= target) return this;
 

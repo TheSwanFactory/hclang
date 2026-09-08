@@ -10,6 +10,7 @@ import {
 import { FrameNumber } from "./frame-number.ts";
 import { FrameRational } from "./frame-rational.ts";
 import { FrameSequence } from "./frame-sequence.ts";
+import { FrameTypedNumber } from "./frame-typed-number.ts";
 import type { MetaFrame } from "./meta-frame.ts";
 
 const DECIMAL_SOURCE = /^([+-]?)(\d+)(?:\.(\d+))?$/;
@@ -59,6 +60,11 @@ export class FrameDecimal extends FrameNumeric {
       return this.spelling.startsWith("-")
         ? Frame.error("$!.numeric-domain property FrameDecimal")
         : new FrameSequence(`${this.spelling}.${key}`);
+    }
+    if (FrameTypedNumber.isUnitSegment(key)) {
+      return this.spelling.startsWith("-")
+        ? Frame.error("$!.numeric-domain property FrameDecimal")
+        : new FrameTypedNumber(this, key);
     }
     return super.lookup_here(key, origin);
   }

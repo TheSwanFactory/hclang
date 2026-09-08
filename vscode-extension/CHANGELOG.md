@@ -3,6 +3,23 @@
 All notable changes to the Homoiconic C VS Code extension will be documented in
 this file.
 
+## [0.2.2] - 2026-09-07
+
+### Added
+
+- Highlight a typed number as `constant.numeric.quantity`, including a composite
+  unit, so `9.8.m`, `0.10.USD`, `9.8.m2`, and `9.8.kg.m.s-2` all paint as one
+  literal. An inert numeric sequence such as `1.408.055.1212` highlights as
+  `constant.numeric.sequence`. Both match HC v0.13.0.
+
+### Removed
+
+- Drop the scientific (`123.456.E.-10`) and semantic-version (`123.456.p123`)
+  patterns. Neither spelling has been a literal since HC v0.12.0, so both were
+  painting an error as a number. The letters-only part of the old scientific
+  form now highlights as the quantity it is: `123.456.E` is a magnitude with
+  unit `E`.
+
 ## [0.2.1] - 2026-08-21
 
 ### Changed

@@ -223,14 +223,14 @@
     "numbers": {
       "patterns": [
         {
-          "name": "constant.numeric.scientific.hclang",
-          "match": "\\b\\d+\\.\\d+\\.E\\.-?\\d+\\b",
-          "comment": "Scientific notation: 123.456.E.-10"
+          "name": "constant.numeric.quantity.hclang",
+          "match": "\\b\\d+\\.\\d+(?:\\.[A-Za-z]+(?:-?\\d+)?)+\\b",
+          "comment": "Typed number: 9.8.m, 0.10.USD, 9.8.m2, 9.8.kg.m.s-2"
         },
         {
-          "name": "constant.numeric.semver.hclang",
-          "match": "\\b\\d+\\.\\d+\\.p\\d+\\b",
-          "comment": "Semantic version: 123.456.p123"
+          "name": "constant.numeric.sequence.hclang",
+          "match": "\\b\\d+(?:\\.\\d+){2,}\\b",
+          "comment": "Numeric sequence: 1.408.055.1212"
         },
         {
           "name": "constant.numeric.float.hclang",
