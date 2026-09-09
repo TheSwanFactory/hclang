@@ -185,21 +185,23 @@ Required members, with the exact behaviour:
 prefix match (`lib/execute/hc-test.ts:107-108`), which is required for
 `name-missing` assertions because the frame id in `$:` paths is positional.
 
-**The shipped file is authoritative**: 36 examples, grouped as syntax, composite
+**The shipped file is authoritative**: 39 examples, grouped as syntax, composite
 spelling, equality planes, spelling-not-dimension equality, refused composition,
 and unmoved boundaries. The plan in this section was 27 examples; four things
 changed during the build, and only these:
 
-| Planned                    | Shipped                          | Why                                                                                                                   |
-| -------------------------- | -------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `9.8.m2` → `name-missing`  | `9.8.m2` → a quantity            | The amendment widened the segment pattern.                                                                            |
-| `9.8.m.s` → `name-missing` | `9.8.m.s` → a composite quantity | The amendment absorbs further segments.                                                                               |
-| `9.8.m < 10.2.m`           | `9.8.m.< 10.2.m`                 | Bare `<` is structural at the lexical level, so it is not a comparison. `numerics.hc` already spells `1.408.555.< 2`. |
-| 27 examples                | 36 examples                      | Composite spelling, composite equality, and two malformed-segment boundaries were added.                              |
+| Planned                    | Shipped                          | Why                                                                                                                                        |
+| -------------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `9.8.m2` → `name-missing`  | `9.8.m2` → a quantity            | The amendment widened the segment pattern.                                                                                                 |
+| `9.8.m.s` → `name-missing` | `9.8.m.s` → a composite quantity | The amendment absorbs further segments.                                                                                                    |
+| `9.8.m < 10.2.m`           | `9.8.m.< 10.2.m`                 | Bare `<` is structural at the lexical level, so it is not a comparison. `numerics.hc` already spells `1.408.555.< 2`.                      |
+| 27 examples                | 39 examples                      | Composite spelling, composite equality, two malformed-segment boundaries, the two non-decimal rungs, and the negative receiver were added. |
 
-Two rejections the corpus still does not assert, though they hold: `(1 / 3).m`
-and `(1 / 2.0).m` are both `name-missing`, so the "decimals only" ruling is
-carried by `100.kg` alone.
+The "decimals only" ruling is carried by three lines, not by `100.kg` alone:
+`(1 / 3).m` and `(1 / 2.0).m` are asserted `name-missing` beside it
+(`cli/hc/units.hc:92-97`). The negative receiver is asserted too
+(`cli/hc/units.hc:106-107`), which is the assertion #363 will move. `+9.8.m`
+remains in the unit tests only, as planned.
 
 ## Unit tests
 
@@ -313,7 +315,7 @@ Do not implement, and do not design around:
 ```
 deno fmt --check
 deno lint
-deno task test:doc        # numerics.hc 43/43, units.hc 36/36
+deno task test:doc        # numerics.hc 43/43, units.hc 39/39
 deno task test:all
 deno task build
 ```
