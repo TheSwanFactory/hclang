@@ -362,7 +362,10 @@ Only judgment that no tool records belongs here. Look elsewhere first:
   closes. Set one with
   `gh api -X POST repos/TheSwanFactory/hclang/issues/<n>/dependencies/blocked_by -F issue_id=<blocker database id>`.
 - **Doctest baselines** are asserted in `cli/hc.test.ts`. Never restate them in
-  prose; a wrong test fails, a wrong comment just misleads.
+  prose; a wrong test fails, a wrong comment just misleads. `test:all` also runs
+  `test:doc`, which executes the same files through the real CLI entry point, so
+  a corpus change has to hold under both the test harness and the shipped one.
+  The two do not construct the evaluator alike, which is #373.
 - **What shipped and why** is the [CHANGELOG](CHANGELOG.md) and the design docs
   in `spec/`.
 
