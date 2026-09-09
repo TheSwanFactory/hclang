@@ -349,6 +349,50 @@ See [web/CLAUDE.md](web/CLAUDE.md)
 - Read JSR documentation
 - Check GitHub issues
 
+## Work Queue
+
+Only judgment that no tool records belongs here. Look elsewhere first:
+
+- **Hard ordering** is on the issues as GitHub `blocked by` dependencies, so a
+  blocked issue is marked in the issues list and clears itself when its blocker
+  closes. Set one with
+  `gh api -X POST repos/TheSwanFactory/hclang/issues/<n>/dependencies/blocked_by -F issue_id=<blocker database id>`.
+- **Doctest baselines** are asserted in `cli/hc.test.ts`. Never restate them in
+  prose; a wrong test fails, a wrong comment just misleads.
+- **What shipped and why** is the [CHANGELOG](CHANGELOG.md) and the design docs
+  in `spec/`.
+
+### Priority among unblocked issues
+
+1. **#360** — what an error means in conditional position. Gates #361, and
+   #362's error-handling tension waits on the same answer.
+2. **#364** — `npx hclang@latest` serves a 2023 build. Independent of every
+   other issue, and the only defect a new user meets first.
+3. **#363** — the sign rule at the sequence rung. Small, and the units MVP
+   parked a placeholder assertion pending it.
+4. **#358** — `===` conflates frames without metadata. Quantities made it
+   reachable from ordinary source.
+
+### Safe parallelism
+
+- The BitScheme lane (#310 → #311 → #312 → #319) runs serially and can proceed
+  beside anything else. #319 is last because it and the BitScheme chain both
+  edit `cli/hc/BitScheme.hc`.
+- #277 and #301 may run in parallel as separate PRs, but rebase before merge if
+  both touch evaluator lookup or shared frame infrastructure. Neither absorbs
+  the other. Both are re-scoped by #351, so split #351 into its sub-issues
+  before planning either.
+
+### Pull-request boundaries
+
+- One issue per PR. Past consolidations were explicit decisions, not standing
+  permission to combine unrelated work.
+- A BitScheme PR updates only the assertions it makes executable.
+- #277 keeps its capability boundary intact in every PR and ships adversarial
+  authority probes for the behavior it adds.
+- #301 stays a module-loader contract and does not become a general
+  resource-loading API.
+
 ## Contributing
 
 1. Fork the repository
