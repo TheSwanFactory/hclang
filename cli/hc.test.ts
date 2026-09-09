@@ -2,7 +2,7 @@ import { expect } from "jsr:@std/expect@^0.219.1";
 import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 import { HCEval } from "../lib/execute/hc-eval.ts";
 import { Frame, FrameArray, FrameNumber } from "../lib/frames.ts";
-import { getEval, getOptions, main } from "./hc.ts";
+import { getEval, getHost, getOptions, main } from "./hc.ts";
 
 describe("getOptions", () => {
   it("is exported", () => {
@@ -322,6 +322,31 @@ describe("main", () => {
     expect(out.at(-1).toString()).toContain(
       '“{"total":7,"pass":7,"fail":0,"unimplemented":0}”',
     );
+  });
+
+  it("keeps the resource acceptance testdoc green under real authority", async () => {
+    const out = new FrameArray([]);
+    const file = new URL("./hc/resources.hc", import.meta.url).pathname;
+    // Run under the namespace the CLI actually installs: an empty one would
+    // leave every identifier inert and assert nothing about the primitive.
+    const status = await main(
+      new HCEval(out, new Frame(), getHost()),
+      getOptions(["--testdoc", file]),
+    );
+
+    expect(status).toEqual(0);
+    expect(out.at(-1).toString()).toContain(
+      '“{"total":21,"pass":21,"fail":0,"unimplemented":0}”',
+    );
+  });
+
+  it("leaves a resource identifier inert with no root binding installed", () => {
+    const out = new FrameArray([]);
+    const hcEval = new HCEval(out);
+
+    hcEval.call("'./out.txt' “hello”");
+    expect(hcEval.finish()).toEqual(true);
+    expect(out.at(0).toString()).toEqual("“hello”");
   });
 
   it("traverses the complete white paper with authoritative totals", async () => {

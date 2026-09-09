@@ -62,9 +62,23 @@ DTRB would collapse at the character level. So a resource identifier:
 - performs no network, filesystem, or registry access at lex or eval time;
 - evaluates to itself rather than to a lookup;
 - is comparable, printable, and round-trippable; and
-- resolves only when applied to, or by, a constructed resource Frame reachable
-  in the invocation context, which is what makes the same source text yield
-  different results under different ambient authority.
+- resolves only against a root binding reachable in the invocation context,
+  which is what makes the same source text yield different results under
+  different ambient authority.
+
+The fourth clause is revised by [`a10`](a10-resource-primitive.md), which
+implemented it in v0.14.0. This section originally required a separately
+constructed resource Frame to be applied to the identifier. Instead the
+identifier _is_ the resource: with a root binding reachable, `'…'` evaluates to
+a `FrameResource` that extends it, and applying that resource writes while `|`
+and `&` read. With no root binding reachable it evaluates to itself and stays
+powerless, which is still the default.
+
+That relocates the authority without weakening any clause above. Evaluation
+binds an identity to authority the context already held; it does not create
+authority, perform access, or consult anything the lexer knows. The three
+unrevised clauses hold exactly as written, and a `FrameResource` satisfies them
+by being a `FrameURI`: same spelling, same components, same comparisons.
 
 Content must be URI-shaped. Whitespace ends an identifier with
 `unterminated resource identifier`, the characters RFC 3986 excludes end it with

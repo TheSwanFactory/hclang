@@ -55,6 +55,27 @@ export {
 } from "./frames/frame-symbol.ts";
 export { FrameType } from "./frames/frame-type.ts";
 export { FrameURI } from "./frames/frame-uri.ts";
+export { FrameResource } from "./frames/frame-resource.ts";
+export {
+  isResourceBinding,
+  RESOURCE_ROOT_KEY,
+  type ResourceBinding,
+} from "./frames/resource-binding.ts";
+export {
+  containsResolved,
+  decomposeReference,
+  joinNormalized,
+  type Normalization,
+  normalizeReference,
+  type ReferenceParts,
+  URI_PART_KEYS,
+  type URIPartKey,
+} from "./frames/resource-reference.ts";
+export {
+  MemoryStore,
+  type ResourceStore,
+  type StoreResult,
+} from "./frames/resource-store.ts";
 export {
   type Any,
   type EvaluationRoots,

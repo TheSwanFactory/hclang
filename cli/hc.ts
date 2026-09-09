@@ -5,7 +5,14 @@ import { HCTest } from "../lib/execute/hc-test.ts";
 import { parseArgs } from "@std/cli/parse-args";
 import { runfile } from "./runfile.ts";
 import { Prompt } from "./prompt.ts";
-import { Frame, type StringMap } from "../lib/frames.ts";
+import { DenoFileStore } from "./resource-store.ts";
+import {
+  type Context,
+  Frame,
+  FrameResource,
+  RESOURCE_ROOT_KEY,
+  type StringMap,
+} from "../lib/frames.ts";
 
 /**
  * @module hc
@@ -43,15 +50,38 @@ export function getOptions(args: string[]): ReturnType<typeof parseArgs> {
 /**
  * Creates and returns an instance of `HCEval` initialized with the provided environment variables.
  *
+ * The host namespace also carries this harness's root binding, so a resource
+ * identifier resolves against a fresh temp directory rather than against the
+ * working directory. That is a narrowing: the process still holds whatever the
+ * harness granted it, and the root binding is the ceiling the language enforces
+ * inside it.
+ *
  * @param env - An object containing key-value pairs of environment variables.
  * @returns An instance of `HCEval` configured with the provided environment variables.
  */
 export function getEval(env: StringMap): HCEval {
   const context = make_context(env);
   const out = new HCLog(context);
-  const fileScope = new Frame();
-  const hostNamespace = new Frame(context);
-  return new HCEval(out, fileScope, hostNamespace);
+  return new HCEval(out, new Frame(), getHost(context));
+}
+
+/**
+ * Builds this harness's host namespace, root binding included.
+ *
+ * Exported so a test can run a source unit under the authority the CLI actually
+ * grants, rather than under an empty namespace that would make the resource
+ * primitive invisible.
+ *
+ * @param context - Host bindings, which are copied rather than adopted.
+ * @returns A frame reachable from HC source through `$$`.
+ */
+export function getHost(context: Context = {}): Frame {
+  // Copied, because a Frame adopts the Context object it is handed and the
+  // logger holds the same one: the root binding belongs to the host namespace
+  // and nowhere else.
+  const host = new Frame({ ...context });
+  host.set(RESOURCE_ROOT_KEY, FrameResource.root(new DenoFileStore()));
+  return host;
 }
 
 /**

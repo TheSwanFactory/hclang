@@ -4,6 +4,33 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.14.0 2026-09-09
+
+- Make `'…'` the resource. When a root binding is reachable in the invocation
+  context, a resource identifier evaluates to a resource frame extending it:
+  applying it writes, and `|` and `&` read. There is no new I/O primitive and no
+  separate resolver frame, and path extension is attenuation because a longer
+  reference names a location inside the root by construction. With no root
+  binding reachable, `'…'` still evaluates to itself and stays powerless (#348).
+- A write answers with the count of characters written rather than with the
+  receiver, so a refusal cannot hide inside a successful-looking result. A write
+  replaces. A read yields one string holding the whole content; typing the
+  element is still to come (#348).
+- Refuse anything that could leave the root, deterministically and before any
+  host call: `..` in any position, `\`, control characters, malformed
+  percent-escapes, escapes decoding to `.`, `/`, or `\`, a query, a fragment, an
+  authority, and any scheme. Each is a `$!.resource-…` value that flows back
+  through ordinary evaluation rather than an exception. `./`, `/`, and a bare
+  path name the same location, since there is no ambient working directory
+  (#348).
+- Re-verify containment against the resolved location, so a symlink inside the
+  root cannot serve bytes from outside it. A write to a symlinked ancestor is
+  refused before any directory is created (#348).
+- Give the Deno CLI a root binding at a fresh temp directory, created on first
+  use, and give an `HCLang` session an in-memory one that `reset()` replaces.
+  Both are reachable from HC source as `$$.root`, which prints as `'.'` and
+  never as the host location behind it (#348).
+
 ## v0.13.0 2026-09-07
 
 - Add typed numbers: an alphabetic property on an exact decimal is now an inert

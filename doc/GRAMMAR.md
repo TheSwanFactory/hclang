@@ -39,8 +39,8 @@ expressed through:
 - **ASCII quotes**: `"string content"` (input spelling of the same value; run
   length selects nesting depth, so `""` is empty and `"""…"""` allows interior
   `"` runs)
-- **Resource identifiers**: `'scheme:path?query#fragment'` (inert URI reference
-  naming something outside the program)
+- **Resource identifiers**: `'scheme:path?query#fragment'` (URI reference naming
+  something outside the program; see [Resources](#resources))
 - **Documents**: `` `GFM prose` `` (odd backtick run opens, an equal run closes)
 - **Comments** (also strings):
   - Inline: `#Comment text#`
@@ -80,6 +80,27 @@ refuses even a same-unit operand.
 
 - **Raw bytes**: `\5\Bytes` (backslash prefix)
 - **Base64**: `0sBASE64` (prefix: `0s`)
+
+### Resources
+
+A resource identifier is decomposed into `scheme`, `authority`, `path`, `query`,
+and `fragment` properties, readable like any others. Lexing and evaluating one
+performs no access.
+
+When the invocation context carries a root binding, `'…'` _is_ the resource and
+two ordinary operations reach it. There is no I/O primitive:
+
+| Source                | Means                   | Yields                  |
+| --------------------- | ----------------------- | ----------------------- |
+| `'./out.txt' “hello”` | application, so a write | `5`, characters written |
+| `'./out.txt' \| {…}`  | enumeration, so a read  | block results           |
+| `'./out.txt' & {…}`   | reduction, so a read    | the fold                |
+
+`./`, `/`, and a bare path all name the same location, because there is no
+ambient working directory. Every location is under the root: a `..` segment, an
+escape decoding to `.` or `/`, a `\`, a query, a fragment, and an unbound scheme
+all yield a `$!.resource-…` refusal rather than reaching a host. The root
+binding itself is `$$.root`.
 
 ## Identifiers
 

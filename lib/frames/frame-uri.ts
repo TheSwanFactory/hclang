@@ -3,16 +3,15 @@ import { FrameString } from "./frame-string.ts";
 import { type Context, NilContext } from "./context.ts";
 import { Frame } from "./frame.ts";
 import { unterminatedAtEnd } from "./atom-syntax.ts";
+import { type EvaluationInput, EvaluationScope } from "./evaluation-scope.ts";
+import { isResourceBinding, RESOURCE_ROOT_KEY } from "./resource-binding.ts";
+import { decomposeReference, URI_PART_KEYS } from "./resource-reference.ts";
 import {
   type AtomSyntax,
   ScanDisposition,
   type ScanResult,
   type SigilStart,
 } from "../scan.ts";
-
-/** RFC 3986 Appendix B decomposition of a URI reference. */
-const URI_REFERENCE =
-  /^(?:([^:/?#]+):)?(?:\/\/([^/?#]*))?([^?#]*)(?:\?([^#]*))?(?:#(.*))?$/;
 
 /** Characters a URI reference cannot contain, so an apostrophe fails fast. */
 const URI_EXCLUDED = /[\s<>"“”`\\^{}|]/;
@@ -46,10 +45,14 @@ const recognizeReference = (symbol: Frame, source = ""): ScanResult => {
  *
  * `'…'` denotes an identity, never an authority. Lexing and evaluating one
  * performs no network, filesystem, or registry access: the value is a
- * structured, comparable, printable, powerless URI reference. Resolution
- * happens only when a constructed resource Frame reachable in the invocation
- * context is applied to it, so the same source text under different ambient
- * authority yields a different result.
+ * structured, comparable, printable, powerless URI reference.
+ *
+ * Evaluation binds that identity to whatever authority the invocation context
+ * already carries. When a root binding is reachable, `'…'` evaluates to a
+ * `FrameResource` extending it; when none is, it evaluates to itself and stays
+ * powerless. Either way nothing is accessed, so the same source text yields a
+ * different result under different ambient authority without the lexer ever
+ * becoming an authority-granting construct.
  *
  * Delimiters are symmetric, so a resource identifier never nests. Its content
  * must be URI-shaped, which turns an English apostrophe into a fast lexical
@@ -62,13 +65,7 @@ export class FrameURI extends FrameText {
     { key: FrameURI.URI_BEGIN, mode: "atom" },
   ];
   /** Component names published as metadata for every decomposed reference. */
-  public static readonly PART_KEYS = [
-    "scheme",
-    "authority",
-    "path",
-    "query",
-    "fragment",
-  ] as const;
+  public static readonly PART_KEYS = URI_PART_KEYS;
 
   public static readonly SYNTAX: AtomSyntax = {
     NAME: "FrameURI",
@@ -96,20 +93,27 @@ export class FrameURI extends FrameText {
     return this.toStringData();
   }
 
-  /** Resource identifiers are values, not lookups. */
-  public override in(_contexts = [Frame.nil]): Frame {
-    return this;
+  /**
+   * Binds this identity to the authority the context already carries.
+   *
+   * A resource identifier is not a lookup: this resolves the root binding, not
+   * the reference. With no root binding reachable the identifier evaluates to
+   * itself, which is the powerless case and the default everywhere the harness
+   * has installed nothing.
+   */
+  public override in(input: EvaluationInput = []): Frame {
+    const root = EvaluationScope.from(input).hostNamespace.get_here(
+      RESOURCE_ROOT_KEY,
+    );
+    return isResourceBinding(root) ? root.extend(this.data) : this;
   }
 
   /** Publishes URI components as ordinary readable properties. */
   private decompose(): void {
-    const parts = URI_REFERENCE.exec(this.data);
-    if (parts === null) {
-      return;
-    }
-    FrameURI.PART_KEYS.forEach((key, index) => {
-      const value = parts[index + 1];
-      if (value !== undefined && value !== "") {
+    const parts = decomposeReference(this.data);
+    FrameURI.PART_KEYS.forEach((key) => {
+      const value = parts[key];
+      if (value !== undefined) {
         this.set(key, new FrameString(value));
       }
     });
