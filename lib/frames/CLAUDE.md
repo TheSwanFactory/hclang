@@ -126,6 +126,35 @@ to its braced form and break fence round-tripping. Reading `.body` does not
 change what a document denotes: it still evaluates to itself and still prints
 its fences.
 
+### Resources
+
+`FrameResource` is the one family whose application is effectful, and it extends
+`FrameURI` rather than replacing it. `'…'` lexes to the inert identity; when a
+root binding is reachable in the invocation context, `FrameURI.in` returns a
+`FrameResource` extending that binding, and when none is it returns itself. So a
+resource prints, compares, and decomposes exactly as the identifier it was
+written as, and the authority is the only difference.
+
+Three modules stand behind it, in dependency order:
+
+- `resource-reference.ts` decides what a reference means. Pure, total, and free
+  of `Frame`, so it is testable without an evaluator and callable before any
+  dispatch. Every refusal is decided here, named in the `$!.…` vocabulary
+  without the sigil.
+- `resource-store.ts` is the host seam, and the reason `lib/` has no `Deno` in
+  it. `MemoryStore` is the browser-safe default and the vehicle for
+  deterministic fixtures. The Deno CLI's filesystem store lives in
+  `cli/resource-store.ts`.
+- `resource-binding.ts` names the capability structurally, because a root
+  binding is a `FrameResource` and `FrameURI` has to ask one to extend itself.
+
+Two protocol points are load-bearing. Reads go through `asArray()`, since that
+is the entire enumerable protocol `|` and `&` require, and `isFailedResult()` is
+therefore overridden to consult the error flag alone — the inherited version
+calls `asArray()`, and `FrameExpr` calls it on every term of every statement.
+The store is a private TypeScript field, never metadata, so `&&` cannot
+enumerate the authority. See [`a10`](../../spec/a10-resource-primitive.md).
+
 ### Visibility
 
 A leading underscore grades a declaration, and `resolve_here` in `meta-frame.ts`

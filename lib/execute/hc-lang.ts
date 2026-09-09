@@ -5,6 +5,9 @@ import {
   contextString,
   Frame,
   FrameArray,
+  FrameResource,
+  MemoryStore,
+  RESOURCE_ROOT_KEY,
   type StringMap,
 } from "../frames.ts";
 
@@ -30,8 +33,25 @@ export class HCLang {
   public constructor(environment: StringMap = {}) {
     this.context = make_context(environment);
     this.fileScope = new Frame();
-    this.hostNamespace = new Frame(this.context);
+    this.hostNamespace = HCLang.makeHost(this.context);
     this.history = [];
+  }
+
+  /**
+   * Builds the host namespace, including this session's root binding.
+   *
+   * A session gets an in-memory root because the harnesses that use `HCLang`
+   * have no filesystem to offer, and because a session's resources should not
+   * outlive it. `reset()` installs a new one, so a cleared session cannot read
+   * what the previous one wrote.
+   */
+  private static makeHost(context: Context): Frame {
+    // A Frame adopts the Context object it is handed, so the binding is added
+    // to a copy: the embedder's declared host values are what `getContextString`
+    // reports, and installing a capability must not edit that record.
+    const host = new Frame({ ...context });
+    host.set(RESOURCE_ROOT_KEY, FrameResource.root(new MemoryStore("session")));
+    return host;
   }
 
   /** Returns the host namespace supplied by the embedding application. */
@@ -81,7 +101,7 @@ export class HCLang {
   public reset(): void {
     this.context = make_context({});
     this.fileScope = new Frame();
-    this.hostNamespace = new Frame(this.context);
+    this.hostNamespace = HCLang.makeHost(this.context);
     this.history = [];
   }
 }

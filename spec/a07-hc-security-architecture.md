@@ -1,7 +1,10 @@
 # HC Security Architecture
 
-**Status:** Design consensus. Nothing here is implemented; this document records
-the reasoning so the tickets can be tuned against it rather than rediscovered.\
+**Status:** Design consensus. Of the four mechanisms in §4, deterministic
+normalization shipped in v0.14.0 with the resource primitive
+([`a10`](a10-resource-primitive.md)); the other three are not implemented. This
+document records the reasoning so the tickets can be tuned against it rather
+than rediscovered.\
 **Issues:** [#277](https://github.com/TheSwanFactory/hclang/issues/277),
 [#301](https://github.com/TheSwanFactory/hclang/issues/301),
 [#338](https://github.com/TheSwanFactory/hclang/issues/338),
@@ -95,7 +98,9 @@ win. The HC-code type makes `<-` a typed read rather than a loader subsystem.
 
 **Deterministic normalization.** Pure and total, before any handler runs.
 Canonicalization does not disappear; it localizes to one handler with a bounded
-test surface.
+test surface. Shipped in v0.14.0 as `normalizeReference`, which is where every
+refusal is decided, and paired with `containsResolved` because prefix
+containment does not survive symlink indirection.
 
 ## 5. The program is the manifest
 
@@ -232,7 +237,8 @@ ambient in the first place.
   where an empty time literal would. [`a03`](a03-unified-quote-delimiters.md)
   settled the analogous `"` versus `"""` case with run-length parity, so there
   is precedent, but the collision needs deciding rather than assuming.
-- **Ticket hygiene.** #348 still carries a "Required, not optional" section that
-  is Deno CLI harness configuration, and its env/`$$` split with #349 was an
-  artifact of drafting rather than a design decision. Both need tuning against
-  this document.
+- ~~**Ticket hygiene.** #348 still carries a "Required, not optional" section
+  that is Deno CLI harness configuration, and its env/`$$` split with #349 was
+  an artifact of drafting rather than a design decision.~~ Settled. #349 landed
+  as v0.11.2, the harness configuration moved to #371, env to #366, and #348
+  shipped in v0.14.0 as [`a10`](a10-resource-primitive.md).

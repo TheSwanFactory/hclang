@@ -157,13 +157,17 @@ rule, so run length never selects a type.
 
 A delimiter earns its keep only when it changes what the delimited text denotes:
 
-| Delimiter | Denotes                                         |
-| --------- | ----------------------------------------------- |
-| `“ ”`     | the characters, canonical spelling              |
-| `" "`     | the characters, ASCII input spelling            |
-| `'…'`     | an inert name for something outside the program |
-| `` ` ``   | foreign content, verbatim GFM prose             |
-| `#…#`     | a comment, which is also a string               |
+| Delimiter | Denotes                              |
+| --------- | ------------------------------------ |
+| `“ ”`     | the characters, canonical spelling   |
+| `" "`     | the characters, ASCII input spelling |
+| `'…'`     | a resource outside the program       |
+| `` ` ``   | foreign content, verbatim GFM prose  |
+| `#…#`     | a comment, which is also a string    |
+
+A resource identifier is inert until a root binding is reachable in the
+invocation context. Applying one writes, `|` and `&` read, and path extension is
+attenuation. `spec/a10-resource-primitive.md` is the contract.
 
 ## Project Guidelines
 
@@ -358,7 +362,10 @@ Only judgment that no tool records belongs here. Look elsewhere first:
   closes. Set one with
   `gh api -X POST repos/TheSwanFactory/hclang/issues/<n>/dependencies/blocked_by -F issue_id=<blocker database id>`.
 - **Doctest baselines** are asserted in `cli/hc.test.ts`. Never restate them in
-  prose; a wrong test fails, a wrong comment just misleads.
+  prose; a wrong test fails, a wrong comment just misleads. `test:all` also runs
+  `test:doc`, which executes the same files through the real CLI entry point, so
+  a corpus change has to hold under both the test harness and the shipped one.
+  The two do not construct the evaluator alike, which is #373.
 - **What shipped and why** is the [CHANGELOG](CHANGELOG.md) and the design docs
   in `spec/`.
 
@@ -380,8 +387,12 @@ Only judgment that no tool records belongs here. Look elsewhere first:
   edit `cli/hc/BitScheme.hc`.
 - #277 and #301 may run in parallel as separate PRs, but rebase before merge if
   both touch evaluator lookup or shared frame infrastructure. Neither absorbs
-  the other. Both are re-scoped by #351, so split #351 into its sub-issues
-  before planning either.
+  the other. Both now build on the resource primitive that shipped for #348
+  (`spec/a10-resource-primitive.md`), so neither needs to invent a resolver.
+- #367 (per-scheme handler table), #368 (typed resources), and #371 (retire the
+  CLI's `-A`) each extend one named seam of that primitive and can run
+  independently. #367 owns `normalizeReference`'s scheme branch, #368 owns
+  `FrameResource.asArray`, and #371 owns nothing in `lib/` at all.
 
 ### Pull-request boundaries
 
