@@ -1,6 +1,6 @@
 #!/usr/bin/env hc
 ```
-Properties, enumerables, and folds — the proposed model (#368)
+Properties, enumerables, and folds — one coherent model (#368)
 
 This is the aspirational companion to `apply.hc`. `apply.hc` records 0.14.1;
 this tutorial records the minimax design in `spec/a11.3-key-properties.md` and
@@ -9,10 +9,34 @@ the map/fold spelling under consideration in a11.1:
 - a key creates a property, never an element;
 - an element is positional only when the source says it as a value;
 - `&` maps and `|` folds;
-- a single operator exposes scalar values;
-- a doubled operator exposes `[key-or-index, value]` entries;
+- a single operator exposes enumerable scalar elements;
+- a doubled operator exposes every public addressable entry as
+  `[key-or-index, value]`;
 - a resource read is a character fold.
 
+The four operators answer two independent questions:
+
+|                     | map results | fold into one result |
+| ------------------- | ----------- | -------------------- |
+| enumerable elements | `&`         | `|`                  |
+| complete entries    | `&&`        | `||`                 |
+
+The distinction answers the question raised by the first row immediately: **if
+I want a property, I choose the doubled form.** Properties are not positional
+elements, so the single forms do not mix them into the scalar stream. They are
+addressable entries, so the doubled forms include them, followed by the indexed
+positional elements. The tuple is synthesized for iteration; it is not the
+stored representation of either kind of entry
+```
+; [.meta 1; 2, 3] & {_}
+# $!.unimplemented [2, 3]
+; [.meta 1; 2, 3] && {_}
+# $!.unimplemented [[“meta”, 1], [0, 2], [1, 3]]
+; [.meta 1; 2, 3] | []
+# $!.unimplemented [2, 3]
+; [.meta 1; 2, 3] || []
+# $!.unimplemented [[“meta”, 1], [0, 2], [1, 3]]
+```
 An expectation prefixed with `$!.unimplemented` is the desired result. HCTest
 reports it without failing the suite, and deliberately fails when the behavior
 arrives before the marker is removed. Expectations without that prefix are
@@ -131,10 +155,11 @@ declaration receipts does not require changing them
 ; [1; 2;]
 # [(1); (2);]
 ```
-## `&` maps scalar values
+## `&` maps scalar elements
 
 A map applies its block once per enumerable element and returns the results.
-Properties are not silently mixed into that stream
+Properties remain available by name, but are not silently mixed into that
+stream
 ```
 ; [1, 2, 3] & {_ * 2}
 # $!.unimplemented [2, 4, 6]
@@ -143,28 +168,28 @@ Properties are not silently mixed into that stream
 ; [.meta 9; 1, 2] & {_}
 # $!.unimplemented [1, 2]
 ```
-The single operator exposes only the scalar value. The index still exists in the
-underlying entry, but a block asks for it by choosing the doubled form.
+The single operator exposes only the scalar element. To map properties as well,
+choose `&&`, the complete-entry form.
 
-## `&&` maps indexed entries
+## `&&` maps complete entries
 
-Doubling does not select a second storage plane. It exposes the key or index that
-already accompanies the same enumerable value, as `[key-or-index, value]`
+The complete addressable view contains visible public properties first, then
+indexed positional elements. `&&` maps each one as a synthesized
+`[key-or-index, value]` tuple
 ```
 ; [10, 20] && {_}
 # $!.unimplemented [[0, 10], [1, 20]]
 ; [10, 20] && {_.1 * 2}
 # $!.unimplemented [20, 40]
 ; [.meta 9; 10, 20] && {_}
-# $!.unimplemented [[0, 10], [1, 20]]
+# $!.unimplemented [[“meta”, 9], [0, 10], [1, 20]]
 ```
-The property `meta` is deliberately absent. Named-property iteration is an
-explicit public-property view still to be spelled by a11.1; it must not be
-smuggled into list iteration or exposed through raw `Object.entries(meta)`.
-Schema companions, private keys, and interpreter bookkeeping are not iterable
-properties merely because the host stores them in the same object.
+Properties do not enter `&` because they are not elements; they do enter `&&`
+because they are addressable entries. “Public” is important: schema companions,
+private keys, structural links, and interpreter bookkeeping do not become
+iterable merely because the host stores them alongside properties.
 
-## `|` folds scalar values
+## `|` folds scalar elements
 
 A block fold keeps the element in the underscore and the accumulator in the dot
 parameter. The first element seeds the accumulator, so a one-element fold is
@@ -195,18 +220,21 @@ An aggregate seed belongs to fold, not map. A map wraps one answer per input;
 using a stateful aggregate there would repeat aliases to the same accumulator and
 should be refused rather than half-work.
 
-## `||` folds indexed entries
+## `||` folds complete entries
 
-The doubled fold receives `[key-or-index, value]` in the underscore and keeps the
-accumulator in the dot parameter. A value seed can collect the complete entry
-stream without stealing the accumulator slot for the index
+The doubled fold receives each complete-view `[key-or-index, value]` tuple in the
+underscore and keeps the accumulator in the dot parameter. A value seed can
+collect the complete entry stream without stealing the accumulator slot for the
+key or index
 ```
 ; [10, 20] || []
 # $!.unimplemented [[0, 10], [1, 20]]
+; [.meta 9; 10, 20] || []
+# $!.unimplemented [[“meta”, 9], [0, 10], [1, 20]]
 ```
-That is why doubling must package key and value together. The old convention put
-index, property key, and accumulator in the same dot parameter; a keyed fold
-cannot do all three.
+That is why doubling packages key and value together. The old convention put
+index, property key, and accumulator in the same dot parameter; a complete-entry
+fold cannot do all three.
 
 ## Resources are character folds
 
@@ -246,7 +274,7 @@ The rules above imply the difficult cases without another representation:
 - evaluated rendering is canonical value rendering, not source recovery;
 - exact source and manifest analysis use the parsed frame graph.
 
-The payoff is a base value with two honest views — positional data and named
-properties — rather than a third keyed-slot map trying to make every declaration
-both at once.
+The payoff is a base value with two honest storage planes but two deliberately
+chosen iteration views: positional elements alone, or every public addressable
+entry. No third keyed-slot map is needed to make every declaration both at once.
 ```
