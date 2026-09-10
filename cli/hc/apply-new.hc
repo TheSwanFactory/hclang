@@ -1,32 +1,28 @@
 #!/usr/bin/env hc
 ```
-Application and iteration, as desired (#368)
+Properties, enumerables, and folds — the proposed model (#368)
 
-The companion to `apply.hc`, which records what the runtime does today. This
-records what it would do under two changes, so the difference is executable
-rather than argued:
+This is the aspirational companion to `apply.hc`. `apply.hc` records 0.14.1;
+this tutorial records the minimax design in `spec/a11.3-key-properties.md` and
+the map/fold spelling under consideration in a11.1:
 
-1. `|` folds and `&` maps, the reverse of today.
-2. A fold threads its accumulator as the receiver, so an accumulator value can
-   be the second operand and applying each element to it is the fold.
+- a key creates a property, never an element;
+- an element is positional only when the source says it as a value;
+- `&` maps and `|` folds;
+- a single operator exposes scalar values;
+- a doubled operator exposes `[key-or-index, value]` entries;
+- a resource read is a character fold.
 
-Expectations that differ from today are marked `$!.unimplemented` with the
-desired value, so this file reports rather than breaks, and reports again if the
-behavior arrives while a marker is still here. Expectations with no marker are
-invariants the change must not disturb.
+An expectation prefixed with `$!.unimplemented` is the desired result. HCTest
+reports it without failing the suite, and deliberately fails when the behavior
+arrives before the marker is removed. Expectations without that prefix are
+invariants the redesign must preserve.
 
-The naming argument, first. Today `&` reduces while `&&` maps the metadata
-plane, which is two unrelated meanings for one glyph. Under the swap `&` maps the
-data plane and `&&` maps the metadata plane, so the doubled operator is the same
-verb on the other plane. That consistency is the whole case for the rename, and
-it is independent of anything about resources
-```
-; (.a 1, .b 2) && {_}
-# [1, 2]
-```
-The application behavior a fold stands on does not change. Text joins and
-answers a new value; an aggregate collects and answers itself. These are why an
-accumulator value works at all
+## Application is still the one verb
+
+Nothing below introduces assignment or iteration special forms. Text joins by
+application, and an array collects by application. A value-seeded fold works
+because it repeatedly performs exactly this operation
 ```
 ; “” “h”
 # “h”
@@ -37,94 +33,220 @@ accumulator value works at all
 ; [1] 2
 # [1, 2]
 ```
-`&` maps. This is exactly what `|` does today, under the other glyph: the element
-in the underscore, the zero-based index in the dot parameter
+## Properties are not elements
+
+The dominant HC object is a list with configuration in its property plane. The
+property remains available by name, while ordinary iteration sees only `2` and
+`3`
 ```
-; [1, 2] & {_}
-# $!.unimplemented [1, 2]
-; [1, 2, 3] & {. }
-# $!.unimplemented [0, 1, 2]
-; [] & {_}
-# $!.unimplemented []
+; [.meta 1; 2, 3].meta
+# 1
+; [.meta 1; 2, 3] & {_}
+# $!.unimplemented [2, 3]
 ```
-Granularity is unchanged by the swap. A map over a non-aggregate is still one
+The evaluated value prints canonically: positional data first, then public
+properties. It does not pretend to reconstruct the source
+```
+; [.meta 1; 2, 3]
+# $!.unimplemented [2, 3, .meta 1;]
+```
+A comma does not create implicit dual membership. Both declarations below write
+the same property, so the later valid write wins and neither write creates an
 element
 ```
-; “abc” & {_}
-# $!.unimplemented [“abc”]
-; 1 & {_}
-# $!.unimplemented [1]
+; [.a 1, .a 2].a
+# 2
+; [.a 1, .a 2]
+# $!.unimplemented [.a 2;]
+; (.a 1, .a 2)
+# $!.unimplemented (.a 2;)
 ```
-`|` folds with a block exactly as `&` does today: the element in the underscore,
-the accumulator in the dot parameter, seeded from the first element, so one
-element folds to itself and an empty source answers nil
+If the value should also be positional, read it explicitly. This one extra read
+is the minimax price for not carrying a permanent key-to-index map on every
+aggregate
+```
+; [.a 1; a, 2]
+# $!.unimplemented [1, 2, .a 1;]
+```
+The read is a value at that moment, not a live alias. A later property write does
+not silently rewrite an earlier element
+```
+; [.a 1; a, .a 2]
+# $!.unimplemented [1, .a 2;]
+```
+Duplicate unkeyed values stay duplicate. Property override and set
+deduplication are different ideas; issue #374 owns whether multi-value `()`
+becomes an ordered set
+```
+; [.a 1; a, a, 2]
+# $!.unimplemented [1, 1, 2, .a 1;]
+```
+## Parentheses unbox only a property-free value
+
+The useful distinction remains: parentheses group and unbox one ordinary value,
+while square brackets preserve the box
+```
+; (1)
+# 1
+; [1]
+# [1]
+```
+A group that owns properties is itself an object and cannot disappear when its
+declaration receipt leaves the data plane. A property-only group is not nil,
+and a property-bearing singleton stays grouped rather than mutating or copying
+properties onto a possibly shared atom
+```
+; (.a 1)
+# $!.unimplemented (.a 1;)
+; (.meta 1; 2)
+# $!.unimplemented (2, .meta 1;)
+```
+This is conservative. A future identity-safe scalar-decoration operation could
+relax the second result without changing which values are enumerable.
+
+## Statements execute; declarations configure
+
+A semicolon still means execution order. A closure executes each statement and
+answers its last successful result
+```
+; {1; 2; 3}()
+# 3
+; {.x 1; @x 2; x}()
+# 2
+```
+Declaration remains setter application. The construction performs the write,
+but consumes the successful declaration evidence instead of storing it as an
+element. A failed declaration is never consumed: constants and schemas still
+stop execution with their ordinary errors
+```
+; {.A 1; .A 2; 3}()
+# $error{$is-constant .A}
+; {.x <1,2> 1; @x 3; 4}()
+# $!.type-error .x <1, 2> 3
+```
+This proposal does not settle whether *every* plain statement should be
+non-enumerable. Existing statement wrappers remain visible for now; removing
+declaration receipts does not require changing them
+```
+; [1; 2;]
+# [(1); (2);]
+```
+## `&` maps scalar values
+
+A map applies its block once per enumerable element and returns the results.
+Properties are not silently mixed into that stream
+```
+; [1, 2, 3] & {_ * 2}
+# $!.unimplemented [2, 4, 6]
+; [] & {_}
+# $!.unimplemented []
+; [.meta 9; 1, 2] & {_}
+# $!.unimplemented [1, 2]
+```
+The single operator exposes only the scalar value. The index still exists in the
+underlying entry, but a block asks for it by choosing the doubled form.
+
+## `&&` maps indexed entries
+
+Doubling does not select a second storage plane. It exposes the key or index that
+already accompanies the same enumerable value, as `[key-or-index, value]`
+```
+; [10, 20] && {_}
+# $!.unimplemented [[0, 10], [1, 20]]
+; [10, 20] && {_.1 * 2}
+# $!.unimplemented [20, 40]
+; [.meta 9; 10, 20] && {_}
+# $!.unimplemented [[0, 10], [1, 20]]
+```
+The property `meta` is deliberately absent. Named-property iteration is an
+explicit public-property view still to be spelled by a11.1; it must not be
+smuggled into list iteration or exposed through raw `Object.entries(meta)`.
+Schema companions, private keys, and interpreter bookkeeping are not iterable
+properties merely because the host stores them in the same object.
+
+## `|` folds scalar values
+
+A block fold keeps the element in the underscore and the accumulator in the dot
+parameter. The first element seeds the accumulator, so a one-element fold is
+itself and an empty block fold is nil
 ```
 ; [1, 2, 3] | {_ + .}
 # $!.unimplemented 6
-; [1] | {_}
-# $!.unimplemented 1
-; [] | {_}
+; [7] | {_ + .}
+# $!.unimplemented 7
+; [] | {_ + .}
 # $!.unimplemented ()
 ```
-Now the second change. When the second operand is a value rather than a block,
-it is the accumulator, and the fold applies each element to it. An aggregate
-therefore collects the elements
+A value can be the seed instead of a block. The fold applies every element to the
+value accumulated so far. An array collects and text concatenates
 ```
 ; [1, 2, 3] | []
 # $!.unimplemented [1, 2, 3]
-```
-and text therefore joins them, because text application concatenates
-```
 ; [1, 2, 3] | “”
 # $!.unimplemented “123”
 ```
-An empty source answers the seed untouched, which is the identity a block seed
-cannot express
+Unlike a first-element-seeded block, an explicit value seed gives an empty fold
+an identity
 ```
 ; [] | “seed”
 # $!.unimplemented “seed”
 ```
-That case already answers correctly for an aggregate, by coincidence rather than
-by design: mapping nothing and folding nothing into an empty aggregate are both
-the empty aggregate
-```
-; [] | []
-# []
-```
-The two threadings are different enough to be worth stating plainly. A block is a
-combiner: it is stateless, so the fold has to carry the accumulator beside it and
-hand it over in the dot parameter. A value is an accumulator: it holds the state
-itself, so the fold has nothing to carry. Both are folds and neither subsumes the
-other, which means `|` reads its second operand two ways and that seam is the
-part of this design still open.
+An aggregate seed belongs to fold, not map. A map wraps one answer per input;
+using a stateful aggregate there would repeat aliases to the same accumulator and
+should be refused rather than half-work.
 
-Where the desire does not help. The aggregate-in-a-map trap does not disappear
-under the swap, it relocates: the pushes land, the map wraps every answer, and
-the result is the same array once per element. It was `| []` yesterday and it is
-`& []` here
-```
-; [1, 2, 3] & []
-# $!.unimplemented [[1, 2, 3], [1, 2, 3], [1, 2, 3]]
-```
-So an aggregate in a map slot is worth refusing on its own merits, whichever
-glyph maps. The swap is a naming argument, not a fix for that.
+## `||` folds indexed entries
 
-What all of it is for. A write already answers the characters written, and under
-a11 a read is a character fold, so the whole-content read is a fold into text and
-the characters are a fold into an aggregate. These depend on the character read
-as well as on the operators, so they are further out than everything above
+The doubled fold receives `[key-or-index, value]` in the underscore and keeps the
+accumulator in the dot parameter. A value seed can collect the complete entry
+stream without stealing the accumulator slot for the index
+```
+; [10, 20] || []
+# $!.unimplemented [[0, 10], [1, 20]]
+```
+That is why doubling must package key and value together. The old convention put
+index, property key, and accumulator in the same dot parameter; a keyed fold
+cannot do all three.
+
+## Resources are character folds
+
+Writing remains resource application and answers the count of characters
+written
 ```
 ; './out.txt' “hello”
 # 5
+```
+Reading supplies characters. Mapping answers one result per character; folding
+into text rebuilds the whole content; folding into an array preserves the
+characters
+```
+; './out.txt' & {_}
+# $!.unimplemented [“h”, “e”, “l”, “l”, “o”]
 ; './out.txt' | “”
 # $!.unimplemented “hello”
 ; './out.txt' | []
 # $!.unimplemented [“h”, “e”, “l”, “l”, “o”]
-; './out.txt' & {_}
-# $!.unimplemented [“h”, “e”, “l”, “l”, “o”]
+; './out.txt' && {_}
+# $!.unimplemented [[0, “h”], [1, “e”], [2, “l”], [3, “l”], [4, “o”]]
 ```
-Two things those four do not settle. Whether a character element is a string or a
-symbol is open, and this file assumes strings. Whether a string enumerates its
-own characters is also open: if it does, `“abc” & {_}` answers three elements
-rather than one, and the expectation above is wrong in the other direction.
+This tutorial assumes one-character strings as the character value. Choosing a
+symbol instead would change only the rendered leaves, not the receiver or entry
+protocol.
+
+## Edge rules, all from one separation
+
+The rules above imply the difficult cases without another representation:
+
+- a rebind changes one property and no hidden element;
+- two property names may point to the same value without merging;
+- an integer key on a list refuses rather than hiding behind an index;
+- a structural parent declaration changes ancestry, not membership;
+- a declaration inside a nested aggregate belongs to the innermost construction;
+- failures remain values and cannot masquerade as omitted configuration;
+- evaluated rendering is canonical value rendering, not source recovery;
+- exact source and manifest analysis use the parsed frame graph.
+
+The payoff is a base value with two honest views — positional data and named
+properties — rather than a third keyed-slot map trying to make every declaration
+both at once.
 ```
