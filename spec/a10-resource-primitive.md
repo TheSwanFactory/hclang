@@ -144,6 +144,12 @@ type travel with the resource — characters, lines, or HC code — at which poi
 `|` and `&` stay generic and no single reading has to win. Choosing lines here
 would have been choosing that answer by accident.
 
+**Superseded in design by [`a11`](a11-resource-iteration.md).** The element type
+belongs to the receiver, not the resource: a read is a character fold, and
+chunking and parsing are what a receiver does. The whole-content element
+described here is what shipped and still what runs; a11 records why it changes
+and what the change has left to settle.
+
 Reading a location with nothing at it is `$!.resource-absent`, which flows back
 through ordinary evaluation per a07 §6: `'./nope' | {…}` yields an array whose
 element is the refusal, and that array reports itself as a failed result.
@@ -171,7 +177,8 @@ Out, with tickets:
   remedy is RFC 3986 §4.2's own, `'./C:/tmp/x'`. Single-letter schemes are not
   special-cased; `C` is a legal scheme and drive-letter heuristics do not belong
   in the trusted base.
-- **Typed resources** → #368, as above.
+- **The element type** → #368, redesigned as a character fold in
+  [`a11`](a11-resource-iteration.md).
 - **Harness permission flags** → #371. `deno.json`'s `deno run -A` still grants
   every HC program full filesystem, network, and subprocess authority, so the
   root binding attenuates the language and not yet the process.
