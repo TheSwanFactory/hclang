@@ -19,7 +19,8 @@ How to read this file. An expectation prefixed with `$!.unimplemented` is a
 promise: HCTest reports it without failing the suite, and fails deliberately if
 the behavior arrives while the marker remains. An expectation without that
 prefix is an invariant the redesign must not break. A large unimplemented count
-is the point; a failure is not. This file runs in `deno task test:doc`.
+is the point; a failure is not. This file is not in `deno task test:doc`, because
+it is transient: run it with `hc cli/hc/apply-new.hc -t`.
 
 Two independent choices — map or fold, and positional elements or complete
 entries:
