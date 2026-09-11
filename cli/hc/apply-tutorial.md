@@ -125,8 +125,9 @@ property you can see, then every indexed element — and apply a
 accumulator for the next one. You choose what to start from, and its family is
 the combining rule, because the rule is only ever what applying to that family
 does: an array answers itself and so collects, text answers new text and so
-joins, a number answers a new number and so multiplies. What you start from is
-also what an empty source answers
+joins, a number answers a new number and so multiplies. An empty source answers
+nil whatever you started from, because a reduce with nothing to work with has no
+result to report
 
 ```css
 ; [1, 2, 3] | []
@@ -136,14 +137,17 @@ also what an empty source answers
 ; [1, 2, 4] | 1
 # 8
 ; [] | “seed”
-# “seed”
+# ()
 ```
 
-A closure is the same move with the rule written out instead of inherited. The
-element is in the underscore and the accumulator is in the dot parameter, which
-is the receiver the other families thread for you. Starting from a closure
-leaves no accumulator, so the first element becomes one: a one-element reduce is
-that element, and an empty one is nil
+Start from a closure and the closure stays put instead of threading: the element
+is in the underscore and the running value is in the dot parameter. What a
+family answers is what decides this. An array answers itself, so threading it
+and holding it are the same thing, and text answers new text, so threading keeps
+the rule. A closure answers neither, so threading one would spend it on the
+first element and leave the rest of the source applying to that answer. Holding
+it also means no accumulator exists until the first element becomes one, so a
+one-element reduce is that element, and an empty one is nil by the rule above
 
 ```css
 ; [1, 2, 4] | {_ + .}
