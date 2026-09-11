@@ -1,26 +1,112 @@
-# Reads Are a Character Fold
+# Reads Are a Character Reduce
 
-**Status:** Design, not implemented. Expected to fluctuate before it settles,
-and patch-versioned by explicit exception while it does.\
+**Status:** Design, not implemented. The iteration half is now decided and lives
+in [`cli/hc/apply-tutorial.md`](../cli/hc/apply-tutorial.md), with the reasons
+in [`cli/hc/apply-new.hc`](../cli/hc/apply-new.hc). This document owns only the
+resource half, and records which of its former questions those decisions
+closed.\
 **Issues:** [#368](https://github.com/TheSwanFactory/hclang/issues/368), with
-[#338](https://github.com/TheSwanFactory/hclang/issues/338) on the critical path
-and [#301](https://github.com/TheSwanFactory/hclang/issues/301) as the caller
-that stops being a subsystem.\
+[#338](https://github.com/TheSwanFactory/hclang/issues/338) on the critical
+path, [#375](https://github.com/TheSwanFactory/hclang/issues/375) holding the
+custom accumulator, and
+[#301](https://github.com/TheSwanFactory/hclang/issues/301) as the caller that
+stops being a subsystem.\
 **Design rationale:** [`a07`](a07-hc-security-architecture.md) §4 and
 [`a10`](a10-resource-primitive.md), whose provisional whole-content read this
 replaces. Those documents describe an element type travelling with the resource;
 they stand as written until this lands, and this document is where the
-correction lives.
+correction lives.\
+**Supersedes:** the a11.1–a11.4 working notes. What stayed useful from them is
+folded in below, so they can be removed without losing anything.
 
 ## The correction
 
 The earlier design had the resource carry its element type — chars, lines, or HC
-code — so `|` and `&` could stay generic and no single reading had to win. That
-is backwards.
+code — so the iteration operators could stay generic and no single reading had
+to win. That is backwards.
 
 **The primitive is the character. A resource pushes characters; a receiver
 accepts them, chunks on whitespace or newlines, and parses or evaluates as HC
 code.** No part of the reading is a property of the source.
+
+## What the iteration decisions settled
+
+Five of this document's former open questions are answered, and the answers are
+not this document's to relitigate.
+
+**Reads are a reduce, and the accumulator is the receiver.** This was the live
+question: whether the accumulator travels in a parameter slot with the receiver
+fixed, or each element is applied to the value accumulated so far. It is the
+second. That is what makes an ordinary value work as the thing a read fills, and
+it is why no read needs a name, a global, or new syntax.
+
+**The two readings that matter are spellings, not receivers.** Reducing a read
+into empty text answers the whole content, because text joins. Reducing it into
+an empty array answers the characters, because an array collects. Both
+mechanisms already existed; the design contributes nothing but the threading.
+The temptation to invent a `content` receiver is gone with them.
+
+**A map is not the place for either.** A map answers one value per element, so
+an accumulator in that slot collects correctly and answers wrongly — the same
+value once per element. Whether that refuses or is merely useless is left open
+in `apply-new.hc`; either way it is not how a read is spelled.
+
+**There is no closure form of reduce.** A receiver carries a rule across
+elements only if it answers something that still holds the rule. Text answers
+new text; an array answers itself; a closure answers its body and is spent after
+one character. This kills the unification the a11.1 notes were most attracted to
+— that a block already is a receiver, so chunkers could be blocks. They cannot,
+and the reason is sharper than the one those notes gave: not only do blocks lack
+an end-of-input step, they lose the rule after the first character.
+
+**An empty source reduces to nil, whatever it started from.** For a resource
+that means reading an empty location answers nil rather than empty text, which
+is the one place the decision costs something here. It has to stay
+distinguishable from a missing location, which answers a refusal: absent and
+empty are different facts, and only one of them is a failure. Nothing in the
+reduce conflates them, but a receiver that treats nil as "nothing to do" would.
+
+**A custom accumulator is a class, not an operator feature.** Anything the
+families do not already do — counting characters, for instance, since applying a
+number multiplies — needs a receiver that answers itself while carrying state.
+That is #375, and it is the honest home for the `count` gap this document used
+to list as "not free."
+
+## What a doubled read yields, and why
+
+Doubling an iteration operator widens the stream from values to `[key, value]`
+tuples, where the key is the symbol that addresses the member. For a resource
+that means indexed characters, and nothing else.
+
+A resource publishes its RFC 3986 components as readable properties, and a10 is
+careful that reading one performs no access. They are still not part of the
+stream, because they are **derived from the reference the value is rather than
+declared into contents the value holds**. Collections iterate contents; streams
+iterate content. That distinction is what keeps identity metadata out of a
+content stream, and it is the reason a doubled read is positions and characters
+rather than a hybrid of the two.
+
+The tuple stream has no inverse. Applying a pair to a frame does not merge it,
+so reducing tuples back does not rebuild the value they came from.
+Reconstruction belongs to parsed syntax.
+
+## The symbol rendering fix
+
+This design now depends on a rendering change, so it is scoped here rather than
+left implicit.
+
+A tuple key is a symbol. In 0.14.1 a symbol in value position prints without its
+dot, so a stream of tuples prints in a form that cannot be read back — the
+printed key is a name lookup rather than a symbol. Canonical output being
+re-readable as input is the same principle that decided properties-first
+rendering, and it is load-bearing for a07 §5's claim that a program is a
+manifest.
+
+**The fix is rendering only.** A standalone symbol renders with its dot; applied
+symbols already do. It is not iteration-specific — it reaches any symbol a
+program can hold — so it wants its own change rather than riding along inside
+the resource work. Nothing else in this document depends on it, and it depends
+on nothing here.
 
 ## The runtime already works this way
 
@@ -31,14 +117,11 @@ and typed resources would have built a second, tag-dispatched answer beside it.
 | -------------------------- | --------------------------------------------------------- |
 | A source pushes characters | `FrameString.reduce` folds each character into a receiver |
 | A receiver decides bounds  | `lib/scan.ts` dispositions, including redispatch pushback |
-| A receiver retains state   | "Frames retain any input-dependent lexical state"         |
-| Chunk into structure       | `LexPipe`, whose `lex` is a `reduce` over the source      |
+| A receiver retains state   | Frames retain any input-dependent lexical state           |
+| Chunk into structure       | `LexPipe`, whose `lex` is a reduce over the source        |
 | Accumulate terms           | `ParsePipe`                                               |
 | Parse and evaluate         | `EvalPipe`                                                |
 | Resume across chunks       | `HCEval` pending-lexeme state; `cli/runfile.ts` buffers   |
-
-The receiver protocol is already resumable and already stateful, which is the
-whole of what "the receiver chunks" requires.
 
 **Half the protocol is already universal.** `scan` and `finishInput` are defined
 on `Frame` itself, defaulting to returning the frame unchanged, so every frame
@@ -46,92 +129,22 @@ is nominally a receiver already. Only the source half is stuck on one class. The
 asymmetry is the whole defect: receiving is a language protocol and pushing is a
 string method.
 
-## The receivers
+Two receivers nobody counted, both in production, are worth naming because they
+show the protocol is populated rather than aspirational. A backtick-fenced
+document is a receiver that treats its body as foreign text and looks for no
+structure inside it. And `HCTest` chunks on markers, evaluates, compares,
+counts, emits notes, and stays inert inside those fences — a chunk-and-evaluate
+receiver composed with another one, running today.
 
-Not a closed set — the point of putting the reading on the receiver is that the
-set stays open. This records the ones the design implies, so the base set is
-chosen deliberately rather than by whichever one got written first.
-
-_What a receiver is, and how one gets named, is still being worked out in
-[`a11.1`](a11.1-receivers.md); it merges back here when it settles._
-
-**Chunkers.** Characters in, coarser elements out. Composable in front of
-anything below.
-
-| Receiver  | Boundary                     | Note                                                                         |
-| --------- | ---------------------------- | ---------------------------------------------------------------------------- |
-| `chars`   | none; each character         | The degenerate case, and worth naming so the fold's default is spellable     |
-| `words`   | whitespace runs              | Whitespace class is a decision, not an obvious constant                      |
-| `lines`   | newlines                     | Line-ending convention is the same kind of decision                          |
-| counted   | a fixed character count      | Precedent exists: `FrameBytes` has a counted receiver already                |
-| delimited | an arbitrary given delimiter | Generalizes the three above; whether the base ships one or three is a choice |
-
-**Aggregators.** Characters in, one value out. **These are not receivers to
-design — they are literals, and `apply` is already the protocol.** Applying a
-string concatenates and answers a new string; applying an array pushes and
-answers itself. So an aggregator is spelled by writing the empty value to fill.
-
-This is a `&` question only. `|` maps, so mapping a character source already
-answers an array of characters — `[1, 2, 3] | {_}` answers `[1, 2, 3]` today —
-and needs no aggregate at all.
-
-| Spelling | Answers                | Mechanism                                    |
-| -------- | ---------------------- | -------------------------------------------- |
-| `& “”`   | the whole content      | `FrameString.apply` is `concatenateText`     |
-| `& []`   | an array of characters | `FrameArray.apply` pushes and returns itself |
-| `& {…}`  | the accumulated value  | What `&` threads today                       |
-
-Both require the accumulator to be threaded as the receiver rather than as the
-parameter; see the decision below. It costs no name, no global, and no syntax,
-and it removes the temptation to invent a `content` receiver.
-
-**The map spelling is a trap.** `[1, 2, 3] | []` answers
-`[[1, 2, 3], [1, 2, 3], [1, 2, 3]]`: the array does accumulate, because `apply`
-pushes and answers itself, but map wraps each answer, so the result is the same
-array repeated. The accumulation is right and the value is wrong, which is worse
-than failing. `| “”` does not accumulate at all — string application answers a
-fresh string, so `[1, 2, 3] | “”` answers `[“1”, “2”, “3”]`. An aggregate
-belongs to the fold, and putting one in a map should probably be refused rather
-than silently half-working.
-
-Not free: **count**. Applying a numeric multiplies, so no numeric literal counts
-characters. If a read should answer what a write answers, that is a receiver
-after all, or a property of the aggregate afterwards.
-
-**Code receivers.** These are the reason the element type looked necessary, and
-they are why a fold beats a tag: each is the next one's front end.
-
-| Receiver | Yields              | Note                                                             |
-| -------- | ------------------- | ---------------------------------------------------------------- |
-| lex      | lexemes             | `Lex`, `LexRun`, `LexPipe` already                               |
-| parse    | frames, unevaluated | Reading a program _as data_ — a07 §5's manifest claim needs this |
-| eval     | evaluated results   | `ParsePipe` into `EvalPipe`; this is what `<-` becomes           |
-
-Parse-without-eval deserves the emphasis. a07 §5 says the external identities a
-program names are extractable by reading it, and the analyzer is itself HC. That
-requires a receiver that builds frames and stops. Under the earlier design it
-would have been a fourth element type; here it is the eval receiver minus its
-last stage.
-
-**Already built, listed so the protocol does not look empty:** `Lex`, `LexRun`,
-`LexPipe`, `ParsePipe`, `EvalPipe`, the counted `FrameBytes` receiver, and
-`Malformed`, which absorbs every subsequent character by returning itself — the
-existing answer to what a receiver does after it fails.
-
-**Open, and interesting.** A resource is a frame, and a frame is nominally a
-receiver, so folding one resource into another would be a copy with no new
-primitive — application already writes. Whether that is elegant or a trap is not
-settled here, and it should not be settled by accident.
-
-## `asArray` was the shim, and the fold is what should be native
+## `asArray` was the shim, and the reduce is what should be native
 
 `Frame.asArray` defaults to a one-element array holding the frame itself, and
-its own documentation says it exists so frames can be passed to functions that
-expect arrays. That is host convenience, not a language protocol.
+its own documentation says it exists so frames can be passed to functions
+expecting arrays. That is host convenience, not a language protocol.
 
-Building `|` and `&` on it is _why_ an element type looked like something a
-source had to declare: **an eager array must commit to a granularity before any
-receiver is consulted.** A fold never materializes a list, so granularity is
+Building iteration on it is _why_ an element type looked like something a source
+had to declare: **an eager array must commit to a granularity before any
+receiver is consulted.** A reduce never materializes a list, so granularity is
 decided downstream, by composition, at no cost to the source. The element type
 was the shim's shape showing through.
 
@@ -141,45 +154,88 @@ substance of the change.
 
 Two uses of `asArray` must be separated, because only one is the shim:
 
-- **Enumerable protocol.** What the fold replaces.
+- **Enumerable protocol.** What the reduce replaces.
 - **Structural access to an aggregate's own terms.** Parsing, expressions, lazy
   frames, and both schema matchers ask a frame for its own terms. That is
   legitimate and stays.
 
 `Frame.isFailedResult` consults `asArray`, which is why `FrameResource` has to
 override it — otherwise a read happens once per mention, because every term of
-every statement is checked. A native fold removes that cause rather than
+every statement is checked. A native reduce removes that cause rather than
 patching the symptom a second time.
 
-## Composition replaces projection
+## Deferred, and why each can wait
 
-`chars`, `lines`, and HC code survive as names. They move from types on the
-source to receivers on the sink, and that move deletes the requirement the
-earlier design carried: projection between element types, so that choosing one
-was not lossy.
+The two readings that matter are settled, so everything below is additive. Each
+entry names what it is waiting on rather than only being postponed.
 
-Receivers compose natively — a line chunker feeds a parser feeds an evaluator.
-Types on a source have to be projected into one another. **Needing a projection
-rule was the tell that the type was in the wrong place.**
+**Chunkers** — words, lines, a counted boundary, an arbitrary delimiter. These
+are the receivers that still need spelling, and the blocker is not syntax. It is
+**completion**: something has to flush a partial chunk when the characters run
+out. The lexical protocol has `finishInput` and the pipe convention has
+`finish`; application has no completion step at all. Since a reduce is
+application and there is no closure form, a chunker cannot be written in HC
+today. It is host code with retained lexical state, or it waits for the language
+to grow an end-of-input step. Recording the rejected spelling too, so it is not
+re-proposed: a read spelled as a property, `'./f.txt'.lines`, would make `.`
+sometimes-effectful and break a10's inertness, and a reader could not tell which
+by looking.
 
-## Read and write agree on units
+**Code receivers** — lex, parse, evaluate. These were the reason an element type
+looked necessary, and they are why a reduce beats a tag: each is the next one's
+front end. Parse-without-evaluate deserves its own line, because a07 §5 says the
+external identities a program names are extractable by reading it and that the
+analyzer is itself HC. Under the earlier design that was a fourth element type;
+here it is the evaluate receiver minus its last stage.
 
-A write already answers the count of characters written. With the character as
-the element, both verbs are denominated the same way, and neither has a
-granularity the other lacks.
+**`<-` as a receiver.** A module load is a character reduce whose receiver is
+the parse-and-evaluate chain. #301 keeps what is genuinely its own — memoization
+by normalized reference, cycle detection, merge-versus-alias binding — and its
+I/O half becomes the reduce. Whether `<-` generalizes to take any receiver or
+stays the evaluate-shaped case with a general reduce beside it is open.
 
-## `<-` is a receiver
+**Streaming from the store.** The store reads a whole location, so a reduce
+splits an already-complete string: composition without streaming. An acceptable
+first cut, recorded as one, because the receiver protocol is resumable and can
+be fed incrementally later with no language change.
 
-Not a loader subsystem, and not an element type either. A module load is a
-character fold whose receiver is the parse-and-eval chain that already exists.
-#301 keeps the parts that are genuinely its own — memoization by normalized
-reference, cycle detection, merge-versus-alias binding — and its I/O half is the
-fold.
+**A resource as a receiver.** A resource is a frame and application already
+writes, so reducing one resource into another would be a copy with no new
+primitive. Elegant or a trap, but it should not happen by accident.
 
-The door [#348](https://github.com/TheSwanFactory/hclang/issues/348) flagged
-stays shut for the same reason as before: bytes arrive through the handler table
-([#367](https://github.com/TheSwanFactory/hclang/issues/367)) and never through
-Deno's module loader, so HC module authority is never Deno import authority.
+## Questions this document still owns
+
+**Does a string enumerate its characters?** It does not: a string is a single
+element, so mapping one answers the whole string. A resource that pushes
+characters while a string does not is an asymmetry that needs either a reason or
+a fix, and the fix reaches every iteration expression in the corpus.
+
+**Where does a refusal land mid-stream?** a10 relies on a refusal being the
+single element of a one-element array. In a reduce it arrives at a receiver
+mid-stream, or before any character does. #338 — an aggregate whose element is
+an error reading as success — is on the critical path. The existing answer to
+what a receiver does after it fails is `Malformed`, which absorbs every
+subsequent character by returning itself; reuse that rather than inventing a
+second story.
+
+**What scope does a parse-and-evaluate receiver evaluate in?** Reading HC code
+and evaluating it means choosing what the loaded code can reach. a07 §3's
+induction holds either way, but the answer decides whether a module sees its own
+file scope, the caller's, or a scope handed to the receiver. This is the one
+genuinely new security question, and it is open.
+
+**Does a reduce answer, or emit?** The pipes take an `out` and emit through it;
+the iteration operators answer a value. A receiver built from the pipe
+convention and a receiver that is an ordinary accumulator are different shapes,
+and the chunker work has to pick one.
+
+**Is a stateful receiver's state an observable effect?** A receiver that
+accumulates is mutating. Either it spells that with the trailing underscore, or
+its state is internal the way a resource's store is internal — present but
+unreachable, and therefore not an effect a program can observe. The second reads
+better and needs an argument rather than an assumption. Aggregate literals dodge
+the question, since a literal is fresh at every evaluation; a named or
+host-supplied chunker does not.
 
 ## The security position does not move
 
@@ -189,101 +245,43 @@ the receiver acquiring something.
 A receiver is handed characters. It is not handed the store, the root binding,
 or the resource frame. Authority still lives entirely in the three nested
 ceilings a10 records, normalization still runs before any dispatch, and a
-refusal is still a value that flows back through the fold. The fold changes what
-a read _yields_, not what a read is _allowed to reach_.
-
-The one genuinely new question is the last decision below: a receiver that
-evaluates HC code has to evaluate it in some scope, and per a07 §3 the authority
-that code sees is the frames reachable there. That is a scope decision, and it
-is open.
-
-## Decisions to settle
-
-**Do `|` and `&` become folds, or does `reduce` sit beside them?** `&` is a fold
-in name, but today it folds an eager array with the accumulator in the parameter
-slot, seeds from element zero, and answers nil on empty. A character fold wants
-a receiver in that slot, not a block plus an accumulator. Either `&`
-generalizes, or the two coexist with a stated division of labor.
-
-**Does a string enumerate its own characters?** It does not today — a string
-inherits the one-element default, so mapping over it yields the whole string. A
-resource folding characters while a string does not is an asymmetry that needs
-either a reason or a fix, and the fix reaches every `|` and `&` in the corpus.
-
-**How does the fold thread its accumulator?** This is the live question, and it
-replaces "what spells the whole-content read," which the aggregate literals
-answer. Two threadings:
-
-- **Accumulator as parameter, receiver fixed.** What `&` does today. Verified
-  against 0.14.1, `[1, 2, 3] & []` answers `[2, 3]` and `[1, 2, 3] & “”` answers
-  `“3”` — the aggregate in the parameter slot is ignored, and the seed element
-  is dropped or overwritten.
-- **Accumulator as receiver.** Each element is applied to the accumulated value,
-  which answers the next one. `“”` then rebuilds the content and `[]` collects
-  the characters, both by mechanisms that already exist.
-
-The second is what makes an aggregate literal work as a receiver, so adopting
-the literals means changing the threading. Whether `&` changes or the fold is
-spelled separately is the same question one level down.
-
-**Where does a refusal land in a fold?** a10 relies on the refusal being _the_
-single element of a one-element array. In a fold it arrives at a receiver
-mid-stream, or before any character does. #338 — an aggregate whose element is
-an error reading as success — is on the critical path. Note that the existing
-fold already has a refusal story, returning the note's parent on failure; reuse
-it rather than inventing a second one.
-
-**Does the store seam stay whole-value?** The store reads the whole location, so
-the fold would split an already-complete string: composition without streaming.
-That is an acceptable first cut and should be recorded as one, because the
-receiver protocol is resumable and could be fed incrementally later with no
-language change.
-
-**Which receivers are in the trusted base, and which are written in HC?** Only
-`&`'s accumulator threads state through an HC block today, while every real
-chunker is host code with retained lexical state. Shipping `chars`, `words`, and
-`lines` as base receivers is the same three names relocated; asking HC blocks to
-hold partial chunks is a different and larger ask. The enumeration above is the
-menu, not the answer — a base that ships one delimited chunker and a base that
-ships three named ones are different bets on how often the general case is
-wanted.
-
-**What scope does a parse-and-eval receiver evaluate in?** Reading HC code and
-evaluating it means choosing what the loaded code can reach. a07 §3's induction
-holds either way, but the answer decides whether a module sees its own file
-scope, the caller's, or a scope handed to the receiver.
+refusal is still a value that flows back through the reduce. The reduce changes
+what a read _yields_, not what a read is _allowed to reach_.
 
 ## Scope
 
 None of this is implemented.
 
-- [ ] The character fold native on `Frame`, with the receiver supplied rather
+- [ ] The character reduce native on `Frame`, with the receiver supplied rather
       than fixed.
-- [ ] A resource reads by folding characters into a receiver.
-- [ ] A base receiver set chosen from the enumeration above, chunkers and
-      aggregators both.
-- [ ] The parse-and-eval chain reachable as a receiver, which is what makes `<-`
-      a fold.
-- [ ] `|` and `&` reconciled with the fold, per the first decision above.
+- [ ] A resource reads by reducing characters into its receiver.
+- [ ] The two settled readings work through the real operators: empty text for
+      the whole content, an empty array for the characters.
+- [ ] A doubled read yields position-and-character tuples, with no URI component
+      in the stream.
 - [ ] `asArray` retired from the enumerable path, kept for structural access.
-- [ ] `cli/hc/resources.hc` re-spelled against whatever the whole-content read
-      turns out to be.
+- [ ] `cli/hc/resources.hc` re-spelled: it still reads in the 0.14.1 operator
+      roles, which the tutorial reverses.
 
-Out, with tickets:
+Adjacent, and separately scoped:
 
+- **Symbol rendering** — a standalone symbol prints with its dot. Reaches every
+  symbol, not just tuple keys.
 - **Aggregate error propagation** → #338, on the critical path rather than
   beside it.
-- **Scheme dispatch** → #367. Unchanged by this document: the fold consumes
+- **Scheme dispatch** → #367. Unchanged by this document: the reduce consumes
   whatever the handler table produced.
 - **Module semantics** → #301, minus the I/O half.
+- **Custom accumulators** → #375, which also owns what a receiver answering nil
+  mid-reduce does.
 
 ## Accepted cost
 
-A fold is less legible at a glance than an array literal. `'./out.txt' | {…}`
-answering one whole-content element reads immediately; a character fold does
-not, until the chunker receivers exist to name the intent. The corpus pays that
-cost between the two, which is an argument for landing the base receivers in the
-same change rather than after it.
+A reduce is less legible at a glance than an array literal. A read that answers
+one whole-content element reads immediately; a character reduce does not, until
+the chunker receivers exist to name the intent. The corpus pays that cost in
+between, which is an argument for landing chunkers sooner rather than treating
+them as indefinitely deferred.
 
 The version exception is the other cost, accepted deliberately: this ships under
 patch versions while the shape moves, rather than claiming stability it does not
