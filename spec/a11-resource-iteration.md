@@ -16,8 +16,8 @@ stops being a subsystem.\
 replaces. Those documents describe an element type travelling with the resource;
 they stand as written until this lands, and this document is where the
 correction lives.\
-**Supersedes:** the a11.1–a11.4 working notes. What stayed useful from them is
-folded in below, so they can be removed without losing anything.
+**Supersedes:** the a11.1–a11.4 working notes, now removed. What stayed useful
+from them is folded in below; the originals are in git history.
 
 ## The correction
 

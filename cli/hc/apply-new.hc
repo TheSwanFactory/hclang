@@ -17,10 +17,16 @@ an invariant these decisions must not break. A large unimplemented count is the
 point; a failure is not. This file is not in `deno task test:doc`, because it is
 transient: run it with `hc cli/hc/apply-new.hc -t`.
 
-`spec/a11.3` owns the property model — visibility, schemas, handles, equality
-planes, and what a declaration does. This file owns apply and iteration only.
-Four decisions below were taken after a11.3 was written and reverse it; they are
-collected at the end under what diverges.
+This file owns apply and iteration only. The wider property model — visibility,
+schemas, handles, equality planes, and what a declaration does beyond writing a
+property — was worked out in the a11.1 to a11.4 notes, which have been removed
+now that their conclusions live here and in `spec/a11`. Those parts of the model
+that iteration does not touch are therefore unspecified rather than settled, and
+the notes are in git history.
+
+Five decisions below were taken after those notes and reverse them. They are
+collected at the end under what diverges, so a reader who remembers the earlier
+design is corrected rather than left to notice.
 
 ## Application is the one verb
 
@@ -123,9 +129,10 @@ answers, and no answers is an empty collection rather than the absence of one
 The cost is accepted rather than denied. A collect is not type-stable across an
 empty source, so `xs | []` answers an array or nil depending on `xs`, and an
 empty resource read answers nil rather than empty text. The alternative — an
-explicit start value survives an empty source as its identity — is what a11.3
-argues and what this file said before. It buys type stability and pays by making
-the operator detect emptiness and answer with a value that never took part.
+explicit start value survives an empty source as its identity — is what the
+earlier notes argued and what this file said before. It buys type stability and
+pays by making the operator detect emptiness and answer with a value that never
+took part.
 
 ## Properties are not elements
 
@@ -250,35 +257,37 @@ aggregate
 ; 1 & {_}
 # $!.unimplemented [1]
 ```
-## Where this diverges from a11.3
+## Where this reverses the earlier design
 
-Named so that a later reconciliation has a list rather than a diff:
+The removed notes specified each of these the other way. Listed so that a reader
+who learned the earlier design gets corrected, and so a later reconciliation has
+a list rather than a diff:
 
-- **There is no closure form of reduce.** a11.3 gives a single fold
-  first-element seeding with the accumulator in the parameter slot, and refuses
+- **There is no closure form of reduce.** The notes gave a single fold
+  first-element seeding with the accumulator in the parameter slot, and refused
   a block form of the doubled fold. Both rules go: `|` and `||` thread, and
   nothing refuses.
-- **An empty reduce is nil**, whatever it started from. a11.3 gives an explicit
-  seed to an empty fold as its identity.
-- **Canonical rendering puts properties first.** Both a11.3's companion
-  spellings and this file's earlier ones rendered elements first.
-- **A tuple key is a symbol**, not a spelling. a11.3 pairs a value with a key or
-  an index, which put `“meta”` and `0` in that slot.
-- **`&` carries no address**, which a11.4 left as a question. Position is
-  reachable only as `.0` by tuple projection under `&&`.
+- **An empty reduce is nil**, whatever it started from. The notes gave an
+  explicit seed to an empty fold as its identity.
+- **Canonical rendering puts properties first.** Both the notes' spellings and
+  this file's earlier ones rendered elements first.
+- **A tuple key is a symbol**, not a spelling. The notes paired a value with a
+  key or an index, which put `“meta”` and `0` in that slot.
+- **`&` carries no address.** The notes left this open. Position is reachable
+  only as `.0` by tuple projection under `&&`.
 
 ## What this file does not decide
 
-- whether an aggregate in a map refuses. a11.3 refuses it, on the ground that
-  one accumulator cannot serve one-answer-per-input. But `[1, 2, 3] & []` is
-  ordinary application — each element collects into the array, which answers
+- whether an aggregate in a map refuses. The notes refused it, on the ground
+  that one accumulator cannot serve one answer per input. But `[1, 2, 3] & []`
+  is ordinary application — each element collects into the array, which answers
   itself, so the map answers three references to one array. That is useless
   rather than incoherent, and refusing it is the same paternalism the closure
   form was retired for. It needs an argument beyond "you probably meant `|`";
 - what a named accumulator does, which is #375 with the rest of the effect-axis
   question. An earlier draft of this file pinned an answer here by extrapolating
-  copy-on-write from mutating methods, which no rule covers, and which a11.3
-  contradicts by making a named seed mutated and uninsulated;
+  copy-on-write from mutating methods, which no rule covers, and which the notes
+  contradicted by making a named seed mutated and uninsulated;
 - whether a string should enumerate characters, closing a11's asymmetry;
 - what a receiver answering nil mid-reduce does to the accumulator;
 - what a class must do to serve as an accumulator, which is #375;
