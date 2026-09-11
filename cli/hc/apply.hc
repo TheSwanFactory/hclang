@@ -156,13 +156,14 @@ This reverses the spelling this file carried before. It makes print order agree
 with the order the doubled operators iterate, and it leaves canonical output
 re-readable as input, which elements-first rendering did not.
 
-Iteration now agrees with that order, and rendering does not yet. Print order is
-the one part of this decision still outstanding: an evaluated aggregate renders
-its elements first and repeats each declaration as a trailing echo, so canonical
-output is not yet re-readable
+A declaration prints once, from the property plane it wrote, rather than also as
+the data-plane echo an evaluated aggregate retains. Printing both put one value in
+two places, and re-reading it declared the same name twice. The echo does print
+when this value does not hold the property, because a declaration into an
+enclosing scope leaves its echo here and its property there
 ```
 ; [.a 1; a, 2]
-# $!.unimplemented [.a 1; 1, 2]
+# [.a 1; 1, 2]
 ```
 Whether a property written twice keeps the last write is a separate subject, and
 is parked rather than answered here.
@@ -235,13 +236,18 @@ not the index exists yet
 ; .0 9
 # $!.numeric-key .0
 ```
-Inside an aggregate literal the refusal is a failed statement rather than the
-literal's answer, which is the same shape every other refused declaration takes
-there. Promoting it is aggregate error propagation, `#338`, and not this file's
-to decide
+A literal is answered by that refusal rather than holding it as a failed
+statement, because the key collides with the addresses the aggregate itself
+assigns: the value cannot be well-formed at all, so there is nothing to hand back.
+
+That is narrow on purpose. A refused *write* — a schema mismatch, a constant, a
+visibility grade — leaves a well-formed value with one write undone, and a caller
+can still inspect it. Only an ill-formed key is promoted
 ```
 ; [.0 9; 1, 2]
-# $!.unimplemented $!.numeric-key .0
+# $!.numeric-key .0
+; [.A 1; .A 2; 3]
+# [.A 1; ($error{$is-constant .A}); 3]
 ```
 ## Resources are character reduces
 

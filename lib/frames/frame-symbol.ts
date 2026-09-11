@@ -223,8 +223,16 @@ export class FrameSymbol extends FrameAtom {
     // address two meanings, and would put two members under one key in a
     // doubled stream. Refusing it is what makes one key slot well-formed,
     // whether or not the index exists yet.
+    //
+    // The refusal is marked, because this one is the aggregate's rather than the
+    // write's: the key collides with the addresses the aggregate itself assigns,
+    // so the value cannot be well-formed at all. A schema mismatch, a constant,
+    // or a visibility grade refuses one write to a slot that was fine, and
+    // leaves a well-formed value with that write undone.
     if (Frame.isInteger(this.data)) {
-      return Frame.error(`$!.numeric-key .${this.data}`);
+      const refusal = Frame.error(`$!.numeric-key .${this.data}`);
+      refusal.is.addressTaken = true;
+      return refusal;
     }
     // `.^` declares the structural parent without visibility grading.
     if (this.data === "^") {

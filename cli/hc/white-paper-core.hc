@@ -13,7 +13,7 @@
 ; y
 # 3
 ; .base [.key 42;]
-# .base [(.key 42); .key 42;]
+# .base [.key 42;]
 ; base .key
 # 42
 ; {.key 113} base

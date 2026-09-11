@@ -1,7 +1,6 @@
 # Reads Are a Character Reduce
 
-**Status:** Implemented in v0.15.0, except where the Scope section says
-otherwise. The iteration half is decided and taught in
+**Status:** Implemented in v0.15.0. The iteration half is decided and taught in
 [`cli/hc/apply-tutorial.md`](../cli/hc/apply-tutorial.md), with the reasons and
 the executable corpus in [`cli/hc/apply.hc`](../cli/hc/apply.hc). This document
 owns only the resource half, and records which of its former questions those
@@ -294,19 +293,27 @@ them:
   is written, so dotting that would print a declaration instead.
 - **A numeric key is refused** — `.0` already addresses the first element, so
   allowing it as a property would put two members under one key in a doubled
-  stream.
+  stream. The literal answers that refusal, because a key colliding with the
+  aggregate's own addressing leaves nothing well-formed to hand back. A refused
+  _write_ is deliberately not promoted: a schema mismatch, a constant, or a
+  visibility grade leaves a value a caller can still inspect with that one write
+  undone, and collapsing it would lose both the object and the second refusal.
+- **Properties-first rendering** — print order and iteration order are one
+  order, and a declaration prints once, from the property plane it wrote. The
+  echo still prints where the frame does not _hold_ the property: a declaration
+  into an enclosing scope leaves its echo in the group and its property outside,
+  so there the echo is the only record of it.
 - **A refusal mid-stream** — an aggregate collects it; every other receiver is
   poisoned by it. a10 relies on the first, and the second is what an operation
   on an error already meant.
 
 Still adjacent, and still separately scoped:
 
-- **Properties-first rendering** → the one part of the iteration decisions not
-  implemented. Iteration uses that order; rendering does not yet, and an
-  evaluated aggregate still repeats each declaration as a trailing echo.
-- **Aggregate error propagation** → #338, on the critical path rather than
-  beside it. Visible here as a refused declaration staying a failed statement
-  inside an aggregate literal.
+- **Aggregate error propagation in general** → an aggregate whose _element_ is
+  an error still reads as success at a control boundary, which is the shallow
+  rule `isFailedResult` documents. Only the ill-formed-key case above is
+  promoted, and the general question wants the rule #338's notes asked for
+  rather than a deeper scan.
 - **Scheme dispatch** → #367. Unchanged by this document: the reduce consumes
   whatever the handler table produced.
 - **Module semantics** → #301, minus the I/O half.

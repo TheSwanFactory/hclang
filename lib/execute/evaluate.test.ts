@@ -468,13 +468,16 @@ describe("evaluate", () => {
   describe("schemas", () => {
     it("binds value with schema and reports assignment", () => {
       const result = evaluate(".one <1> 1");
-      expect(result.toString()).toEqual("[.one 1, .one.<> <1>; .one 1;]");
+      expect(result.toString()).toEqual("[.one.<> <1>; .one 1;]");
     });
 
     it("rejects values that do not match the schema", () => {
       const result = evaluate(".one <1> 1; @one 2");
+      // The program frame holds `one`, so its own echo prints once from the
+      // property plane. The statement group does not hold it, so the echo
+      // inside that group is the only record of what that statement did.
       expect(result.toString()).toEqual(
-        "[((.one 1); $!.type-error .one <1> 2), .one.<> <1>; .one 1;]",
+        "[.one.<> <1>; .one 1; ((.one 1); $!.type-error .one <1> 2)]",
       );
     });
 
@@ -482,7 +485,7 @@ describe("evaluate", () => {
     it("accepts any value with empty schema", () => {
       const result = evaluate(".x <> 42");
       // Empty schema stores differently than full schemas
-      expect(result.toString()).toEqual("[42, .x <>;]");
+      expect(result.toString()).toEqual("[.x <>; 42]");
     });
 
     it.skip("allows reassignment with empty schema", () => {
@@ -557,9 +560,12 @@ describe("evaluate", () => {
 
     it("maintains schema across assignments", () => {
       const result = evaluate(".x <1> 1; @x 1; @x 1");
-      const assignments = result.toStringArray();
-      // Result contains nested expressions, both match the filter
-      expect(assignments.filter((s) => s.includes(".x 1"))).toHaveLength(2);
+      const lines = result.toStringArray();
+
+      // Properties come first, and the schema prints beside the value it
+      // grades rather than after the statements.
+      expect(lines[0]).toEqual(".x.<> <1>; .x 1;");
+      expect(lines[1]).toEqual("((.x 1); (1); 1)");
     });
 
     describe("minimal deconstruction", () => {
@@ -1462,7 +1468,7 @@ describe("evaluate", () => {
         ".owner [.public 42; ._protected 21; .__private 7; .child {[public, protected, private]}];";
 
       expect(evaluate(`${declaration} owner.public`).at(0).toString())
-        .toContain("; 42)");
+        .toMatch(/; 42\)$/);
       expect(evaluate(`${declaration} owner.protected`).at(0).toString())
         .toContain("$!.is-protected .protected");
       expect(evaluate(`${declaration} owner.private`).at(0).toString())

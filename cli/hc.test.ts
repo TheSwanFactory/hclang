@@ -344,8 +344,7 @@ describe("main", () => {
     const out = new FrameArray([]);
     const file = new URL("./hc/apply.hc", import.meta.url).pathname;
     // A root binding, because the resource decisions are part of the model this
-    // file pins. The two unimplemented counts are promises the design records:
-    // properties-first rendering, and aggregate error propagation (#338).
+    // file pins. Every decision is executable, so nothing here is a promise.
     const status = await main(
       new HCEval(out, new Frame(), getHost()),
       getOptions(["--testdoc", file]),
@@ -353,7 +352,7 @@ describe("main", () => {
 
     expect(status).toEqual(0);
     expect(out.at(-1).toString()).toContain(
-      '“{"total":39,"pass":37,"fail":0,"unimplemented":2}”',
+      '“{"total":40,"pass":40,"fail":0,"unimplemented":0}”',
     );
   });
 

@@ -11,7 +11,7 @@ the answer it prints back. Input that itself ends in `;` is a statement, so it
 answers nothing and no `#` line follows it.
 
 > NOTE: This tutorial defines the model, and the interpreter implements it as of
-> v0.15.0. Two rendering details are still behind; they are named at the end.
+> v0.15.0.
 
 ## Applying a value
 
@@ -93,9 +93,10 @@ property by name and an element by index.
 ```
 
 A value prints its properties first and its elements second, which is also the
-order the doubled operators iterate them. So when you want one value to be both
-a property and an element, read it back explicitly. That read is the value at
-that moment, not a live alias
+order the doubled operators iterate them. A declaration prints once, from the
+property plane it wrote. So when you want one value to be both a property and an
+element, read it back explicitly. That read is the value at that moment, not a
+live alias
 
 ```css
 ; [.a 1; a, 2]
@@ -209,11 +210,21 @@ because it is a symbol you can apply it to read the member it names
 ```
 
 `.0` already addresses the first element, so declaring it as a property is
-refused rather than taking an address twice
+refused rather than taking an address twice. The literal answers that refusal:
+a key colliding with the aggregate's own addressing leaves nothing well-formed to
+hand back
 
 ```css
 ; [.0 9; 1, 2]
 # $!.numeric-key .0
+```
+
+A refused *write* is different, and leaves a value you can still inspect with
+that one write undone
+
+```css
+; [.A 1; .A 2; 3]
+# [.A 1; ($error{$is-constant .A}); 3]
 ```
 
 `||` reduces that same stream, threading the answer exactly as `|` does
@@ -260,22 +271,25 @@ rather than raising
 # [$!.resource-absent './missing.txt']
 ```
 
-## Where the interpreter is still behind
+## Where the current release differs
 
-This model is implemented as of v0.15.0. Two things above are still the tutorial
-speaking ahead of the interpreter, and both are about printing rather than
-iterating:
+Nowhere: this model is what v0.15.0 does, and `apply.hc` pins every part of it to
+an executable expectation.
 
-- A value prints its elements first and repeats each declaration as a trailing
-  echo, so `[.a 1; a, 2]` renders as `[(.a 1); 1, 2, .a 1;]` rather than
-  `[.a 1; 1, 2]`. Iteration already uses the properties-then-elements order this
-  section describes; canonical rendering does not yet agree with it.
-- A refused declaration inside an aggregate literal stays a failed statement
-  inside that literal instead of becoming its answer, so `[.0 9; 1, 2]` renders
-  the refusal in place rather than as `$!.numeric-key .0`.
+One detail worth knowing, because it looks like an exception and is not. A
+declaration prints once, from the property plane it wrote — but only the value
+that *holds* the property leaves the echo out. A declaration made inside a group
+writes to the enclosing scope, so the group prints the echo, because there the
+echo is the only record of what that term did.
+
+```css
+; [.a 1; 2]
+# [.a 1; 2]
+; (.a 1, .b 2)
+# (.a 1; .b 2;)
+```
 
 Before v0.15.0 the single operators were assigned the other way around: `|`
 mapped and `&` reduced, seeded from the first element, `&&` mapped the properties
 alone with the key in the dot parameter, and `||` was unbound. `apply.hc` records
-the decisions behind the model that replaced it, pins each one to an executable
-expectation, and marks the two above as promises.
+the decisions behind the model that replaced it, and why each one was taken.

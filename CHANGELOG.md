@@ -47,8 +47,19 @@
   the same symbol rather than as a name lookup: `.literal` answers `.literal`,
   and a tuple key prints `.meta`. A symbol still awaiting lookup prints as
   written, so `{a + b}` is unchanged (#368).
+- **Canonical rendering puts properties first, then elements** — the same order
+  the doubled operators iterate — and a declaration prints once, from the
+  property plane it wrote, instead of also as a data-plane echo. `[.a 1; a, 2]`
+  now renders `[.a 1; 1, 2]` rather than `[(.a 1); 1, 2, .a 1;]`, so canonical
+  output re-reads as the same value instead of declaring `.a` twice. A
+  declaration into an enclosing scope still prints its echo, because there the
+  echo is the only record of it (#368).
 - Declaring a numeric property is refused as `$!.numeric-key`, because `.0`
-  already addresses the first element (#368).
+  already addresses the first element, and the literal answers that refusal
+  rather than holding it as a failed statement: a key that collides with the
+  aggregate's own addressing leaves nothing well-formed to hand back. A refused
+  _write_ — a schema mismatch, a constant, a visibility grade — is unchanged,
+  and still leaves a value you can inspect with that one write undone (#368).
 - Library API: `Frame.elements` is the enumerable protocol and `Frame.reduce`
   folds it into a supplied receiver; `Frame.asArray` keeps structural access to
   an aggregate's own terms and no longer performs a resource read.
