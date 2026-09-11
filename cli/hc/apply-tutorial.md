@@ -113,8 +113,8 @@ you one per element.
 Doubling either operator changes what gets applied rather than what happens to
 the answer. `|` and `&` stream the elements and apply each value on its own,
 while `||` and `&&` stream everything the value can be asked for — every
-property you can see, then every indexed element — and apply a
-`[key-or-index, value]` tuple, so a step knows which address it is looking at.
+property you can see, then every indexed element — and apply a `[key, value]`
+tuple, so a step knows which address it is looking at.
 
 - `|` reduces values, `||` reduces tuples
 - `&` maps values, `&&` maps tuples
@@ -173,32 +173,44 @@ elements answers an empty array
 # []
 ```
 
+Anything that is not an aggregate is a single element, so text does not
+enumerate its characters. Read a resource when you want those
+
+```css
+; “abc” & {_}
+# [“abc”]
+; 1 & {_}
+# [1]
+```
+
 ## Doubling takes tuples
 
 `||` and `&&` widen the stream to the properties you can see, in declaration
-order, then the elements by index, each arriving as a `[key-or-index, value]`
-tuple. Mapping the tuples is the shortest way to see the whole stream
+order, then the elements by index, each arriving as a `[key, value]` tuple. The
+key is the symbol that addresses the member, not a spelling of it. Mapping the
+tuples is the shortest way to see the whole stream
 
 ```css
 ; [10, 20] && {_}
-# [[0, 10], [1, 20]]
+# [[.0, 10], [.1, 20]]
 ; [.meta 9; 10, 20] && {_}
-# [[“meta”, 9], [0, 10], [1, 20]]
+# [[.meta, 9], [.0, 10], [.1, 20]]
 ; [] && {_}
 # []
 ```
 
-Project by tuple position. This is where the index that `&` withholds comes back
+Project by tuple position. Position 0 is the address that `&` withholds, and
+because it is a symbol you can apply it to read the member it names
 
 ```css
 ; [10, 20, 30] && {_ .0}
-# [0, 1, 2]
+# [.0, .1, .2]
 ; [10, 20] && {_ .1 * 2}
 # [20, 40]
 ```
 
-Keys and indices share one slot, so a numeric key is refused rather than quietly
-becoming an index
+`.0` already addresses the first element, so declaring it as a property is
+refused rather than taking an address twice
 
 ```css
 ; [.0 9; 1, 2]
@@ -209,7 +221,7 @@ becoming an index
 
 ```css
 ; [.meta 9; 10, 20] || []
-# [[“meta”, 9], [0, 10], [1, 20]]
+# [[.meta, 9], [.0, 10], [.1, 20]]
 ```
 
 Reducing tuples does not rebuild the value they came from, because applying a
@@ -238,7 +250,7 @@ appear in a stream: a doubled read gives you indexed characters
 ; './out.txt' .path
 # “./out.txt”
 ; './out.txt' && {_}
-# [[0, “h”], [1, “e”], [2, “l”], [3, “l”], [4, “o”]]
+# [[.0, “h”], [.1, “e”], [.2, “l”], [.3, “l”], [.4, “o”]]
 ```
 
 A missing file answers a refusal, which iteration collects like any other value
@@ -247,50 +259,6 @@ rather than raising
 ```css
 ; './missing.txt' | []
 # [$!.resource-absent './missing.txt']
-```
-
-## Pitfalls
-
-An array belongs on the right of `|`, not `&`. Mapping over one is refused
-rather than answering the same array once per element
-
-```css
-; [1, 2, 3] & []
-# $!.aggregate-in-map
-```
-
-A literal start value is fresh at every evaluation, so two reduces into `[]`
-cannot collide. A *named* one behaves according to its effect type. An ordinary
-name is immutable, so the reduce copies on write: you get the accumulated value
-back and the name still holds what it held
-
-```css
-; .acc [];
-; [1, 2] | acc
-# [1, 2]
-; acc
-# []
-```
-
-A trailing underscore names a mutable handle, and reducing into that fills the
-array you named
-
-```css
-; .acc_ [];
-; [1, 2] | acc_
-# [1, 2]
-; acc_
-# [1, 2]
-```
-
-Anything that is not an aggregate iterates as a single element, so text does not
-enumerate its characters. Read a resource when you want characters
-
-```css
-; “abc” & {_}
-# [“abc”]
-; 1 & {_}
-# [1]
 ```
 
 ## Where the current release differs

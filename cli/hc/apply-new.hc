@@ -95,7 +95,7 @@ So the reduce rules are exactly the ones the families already provide — collec
 join, multiply — and a custom rule needs a receiver that answers itself while
 carrying state in its own properties. Classes are implemented, so that receiver
 is constructible today, but what a class must do to serve as an accumulator is
-not settled here. It is tracked separately as reducible closures.
+not settled here. It is #375, reducible closures.
 
 Nothing has to refuse a closure in the operator slot. It threads like any other
 receiver and is merely useless, which is why no `$!.needs-a-value` refusal
@@ -157,25 +157,45 @@ is parked rather than answered here.
 
 ## Tuples restore the index a map withholds
 
-`&` exposes only the element, so there is no index in the parameter slot. The
+`&` exposes only the element, so there is no address in the parameter slot. The
 doubled operators widen the stream to the properties a caller can see, in
 declaration order, then the elements by index, each synthesized as a
-`[key-or-index, value]` tuple. The tuple is what `&&` forces, since a map hands
-its receiver one argument, and it is an iteration argument only: no pair is
-stored
+`[key, value]` tuple. The tuple is what `&&` forces, since a map hands its
+receiver one argument, and it is an iteration argument only: no pair is stored
+
+**Decision.** The key half of a tuple is the symbol that addresses the member,
+not a spelling of it: `.meta` and `.0`, never `“meta”` and `0`
 ```
 ; [10, 20] && {_}
-# $!.unimplemented [[0, 10], [1, 20]]
+# $!.unimplemented [[.0, 10], [.1, 20]]
 ; [.meta 9; 10, 20] && {_}
-# $!.unimplemented [[“meta”, 9], [0, 10], [1, 20]]
+# $!.unimplemented [[.meta, 9], [.0, 10], [.1, 20]]
 ; [10, 20, 30] && {_ .0}
-# $!.unimplemented [0, 1, 2]
+# $!.unimplemented [.0, .1, .2]
 ```
+A symbol is an address a caller can use, and 0.14.1 already resolves one against
+both planes. Given `.pair [.meta, 9];` then `[.meta 1; 2, 3] (pair .0)` answers
+`1`, and given `.ipair [.1, 20];` then `[10, 20] (ipair .0)` answers `20`. Text
+is only a description of an address, and no legitimate operation turns it back
+into one.
+
+The cost is named rather than denied. A symbol argument addresses rather than
+contributing its spelling, so `“n=” (pair .0)` answers `$!.name-missing` today,
+and the position arrives as `.0` rather than `0`. Neither the spelling nor the
+number is reachable from a tuple key. Both are additive later, and
+recoverability runs only this way: an accessor can expose what a symbol spells,
+while nothing short of evaluation promotes text to an address.
+
+Canonical rendering therefore has to print the dot. `[meta, 9]` re-read is a
+name lookup rather than a symbol, so dropping it costs the re-readability that
+properties-first rendering was chosen for. 0.14.1 prints a standalone symbol
+without its dot, and this design depends on that being fixed.
+
 `||` reduces that same stream, threading the answer exactly as `|` does, so it
 needs no calling convention of its own
 ```
 ; [.meta 9; 10, 20] || []
-# $!.unimplemented [[“meta”, 9], [0, 10], [1, 20]]
+# $!.unimplemented [[.meta, 9], [.0, 10], [.1, 20]]
 ```
 **Decision.** The vocabulary of this design is map and reduce, values and
 tuples, properties and elements; `fold` and `entry` are retired, including
@@ -185,42 +205,14 @@ The complete view has no inverse. Folding tuples back does not rebuild the
 value, because applying a pair to a frame does not merge it. Reconstruction is a
 job for parsed syntax, not for iteration.
 
-## Two refusals the surface depends on
+## The one refusal the surface depends on
 
-Keys and indices share one slot in a tuple, so a numeric key would make one
-address mean two things. Refusing it is what makes the doubled stream
+`.0` already addresses the first element, so a `.0` property would be a second
+meaning for an address that is taken. Refusing it is what makes one key slot
 well-formed, whether or not the index exists yet
 ```
 ; [.0 9; 1, 2]
 # $!.unimplemented $!.numeric-key .0
-```
-An array answers itself, so a map over one would collect the same array once per
-element. It refuses rather than half-working, and this is the mistake a reader
-of the release will make, because it is how 0.14.1 spells a reduce
-```
-; [1, 2, 3] & []
-# $!.unimplemented $!.aggregate-in-map
-```
-## What a named accumulator does
-
-A literal start value is fresh at every evaluation and nothing else can see it,
-so reduces into `[]` cannot collide. A named one is reached through its effect
-type: an ordinary name is immutable and copies on write, so the reduce answers
-the accumulated value and the name still holds what it held
-```
-; .acc [];
-; [1, 2] | acc
-# [1, 2]
-; acc
-# []
-```
-A trailing underscore names a mutable handle, so the reduce fills the array
-```
-; .acc_ [];
-; [1, 2] | acc_
-# [1, 2]
-; acc_
-# $!.unimplemented [1, 2]
 ```
 ## Resources are character reduces
 
@@ -242,7 +234,7 @@ metadata never leaks into content
 ; './out.txt' .path
 # “./out.txt”
 ; './out.txt' && {_}
-# $!.unimplemented [[0, “h”], [1, “e”], [2, “l”], [3, “l”], [4, “o”]]
+# $!.unimplemented [[.0, “h”], [.1, “e”], [.2, “l”], [.3, “l”], [.4, “o”]]
 ```
 A refusal is a value the iteration collects like any other
 ```
@@ -270,14 +262,26 @@ Named so that a later reconciliation has a list rather than a diff:
   seed to an empty fold as its identity.
 - **Canonical rendering puts properties first.** Both a11.3's companion
   spellings and this file's earlier ones rendered elements first.
-- **`&` carries no index**, which a11.4 left as a question. The index is
-  reachable only by tuple position under `&&`.
+- **A tuple key is a symbol**, not a spelling. a11.3 pairs a value with a key or
+  an index, which put `“meta”` and `0` in that slot.
+- **`&` carries no address**, which a11.4 left as a question. Position is
+  reachable only as `.0` by tuple projection under `&&`.
 
 ## What this file does not decide
 
+- whether an aggregate in a map refuses. a11.3 refuses it, on the ground that
+  one accumulator cannot serve one-answer-per-input. But `[1, 2, 3] & []` is
+  ordinary application — each element collects into the array, which answers
+  itself, so the map answers three references to one array. That is useless
+  rather than incoherent, and refusing it is the same paternalism the closure
+  form was retired for. It needs an argument beyond "you probably meant `|`";
+- what a named accumulator does, which is #375 with the rest of the effect-axis
+  question. An earlier draft of this file pinned an answer here by extrapolating
+  copy-on-write from mutating methods, which no rule covers, and which a11.3
+  contradicts by making a named seed mutated and uninsulated;
 - whether a string should enumerate characters, closing a11's asymmetry;
 - what a receiver answering nil mid-reduce does to the accumulator;
-- what a class must do to serve as an accumulator, which is reducible closures;
+- what a class must do to serve as an accumulator, which is #375;
 - whether a stream's receiver contributes named entries;
 - whether `()` becomes an ordered set, which is #374;
 - what a property written twice does, which is parked above.
