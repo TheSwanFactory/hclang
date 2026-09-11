@@ -103,45 +103,87 @@ that moment, not a live alias
 # [.a 1; 1, 2]
 ```
 
-That split is why iteration comes in two widths: an operator either walks the
-elements, or walks the properties and the elements together.
-
 ## Iterating
 
-Iteration asks two questions, and they are independent. First how many answers
-you want back, then what each step gets to see.
+Iteration adds no verb either. Both operators apply each element to the value on
+their right, and they differ only in what becomes of each answer. `|` keeps the
+answer as the receiver for the next element, so it hands you one value in total.
+`&` keeps the answers apart, so it hands you one per element.
 
-**Map or reduce.** A map answers one value per item, so its answer is as long as
-what you iterated; reach for it to transform. A reduce answers one value in
-total, carrying an accumulator from item to item; reach for it to sum, join, or
-collect. `&` maps and `|` reduces.
+Doubling either operator changes what gets applied rather than what happens to
+the answer. `|` and `&` stream the elements and apply each value on its own,
+while `||` and `&&` stream everything the value can be asked for — every
+property you can see, then every indexed element — and apply a
+`[key-or-index, value]` tuple, so a step knows which address it is looking at.
 
-**Values or tuples.** A single operator streams the elements and hands your
-closure each value on its own. Doubling widens the stream to everything the
-value can be asked for — every property you can see, then every indexed
-element — and hands you a `[key-or-index, value]` tuple instead, so a step
-knows which address it is looking at. `&&` maps tuples and `||` reduces them.
+- `|` reduces values, `||` reduces tuples
+- `&` maps values, `&&` maps tuples
 
-The two choices combine freely, and that is the whole operator surface
+## `|` reduces elements
 
-- map, one answer per item: `&` for values, `&&` for tuples
-- reduce, one answer in total: `|` for values, `||` for tuples
+`|` applies each element to the accumulator and keeps the answer as the
+accumulator for the next one. You choose what to start from, and its family is
+the combining rule, because the rule is only ever what applying to that family
+does: an array answers itself and so collects, text answers new text and so
+joins, a number answers a new number and so multiplies. What you start from is
+also what an empty source answers
+
+```css
+; [1, 2, 3] | []
+# [1, 2, 3]
+; [1, 2, 3] | “”
+# “123”
+; [1, 2, 4] | 1
+# 8
+; [] | “seed”
+# “seed”
+```
+
+A closure is the same move with the rule written out instead of inherited. The
+element is in the underscore and the accumulator is in the dot parameter, which
+is the receiver the other families thread for you. Starting from a closure
+leaves no accumulator, so the first element becomes one: a one-element reduce is
+that element, and an empty one is nil
+
+```css
+; [1, 2, 4] | {_ + .}
+# 7
+; [7] | {_ + .}
+# 7
+; [] | {_ + .}
+# ()
+```
+
+Write a closure when no family performs the rule you want. Addition is the plain
+example: nothing applies as a sum, so the source a closure adds to 7 is the one
+a number multiplies to 8. A closure also covers the rules with no value to start
+from, like a maximum.
 
 ## `&` maps elements
 
-Put a closure on the right of `&` to get one answer per element
+`&` applies each element the same way, and keeps the answers apart instead of
+threading them. A closure is the usual receiver, though nothing here is special
+to closures
 
 ```css
 ; [1, 2, 3] & {_ * 2}
 # [2, 4, 6]
 ; [“a”, “b”] & {“<” _ “>”}
 # [“<a>”, “<b>”]
+; [1, 2, 3] & “n=”
+# [“n=1”, “n=2”, “n=3”]
 ```
 
-The element arrives in the underscore. The single form carries no index; if you
-need one, use `&&` below.
+The element is in the underscore, and there is no index; use `&&` when you need
+one. A named closure works the same way and usually reads better
 
-Only elements reach the closure, so properties stay behind, and a value with no
+```css
+; .double {_ * 2};
+; [1, 2, 3] & double
+# [2, 4, 6]
+```
+
+Only elements are streamed, so properties stay behind, and a value with no
 elements answers an empty array
 
 ```css
@@ -153,48 +195,11 @@ elements answers an empty array
 # []
 ```
 
-A named closure works the same way and usually reads better
+## Doubling takes tuples
 
-```css
-; .double {_ * 2};
-; [1, 2, 3] & double
-# [2, 4, 6]
-```
-
-## `|` reduces elements
-
-`|` answers a single value. With a closure, the element is in the underscore and
-the running accumulator is in the dot parameter. The first element seeds it, so
-a one-element reduce is itself and an empty one is nil
-
-```css
-; [1, 2, 3] | {_ + .}
-# 6
-; [7] | {_ + .}
-# 7
-; [] | {_ + .}
-# ()
-```
-
-You can seed with a value instead of a closure. Each element is applied to what
-you have accumulated so far, so an array collects and text concatenates —
-exactly what applying those receivers already does. A seed also gives an empty
-source an identity to answer with
-
-```css
-; [1, 2, 3] | []
-# [1, 2, 3]
-; [1, 2, 3] | “”
-# “123”
-; [] | “seed”
-# “seed”
-```
-
-## `&&` and `||` take tuples
-
-Doubling widens what you iterate. You get the properties you can see, in
-declaration order, then the elements by index, each as a `[key-or-index, value]`
-tuple
+`||` and `&&` widen the stream to the properties you can see, in declaration
+order, then the elements by index, each arriving as a `[key-or-index, value]`
+tuple. Mapping the tuples is the shortest way to see the whole stream
 
 ```css
 ; [10, 20] && {_}
@@ -222,9 +227,9 @@ becoming an index
 # $!.numeric-key .0
 ```
 
-`||` reduces that same stream, and it always needs a value seed. There is no
-closure form: the first item is already a pair, which makes a useless
-accumulator
+`||` reduces that same stream, and it always needs a value to start from.
+Starting from a closure has no coherent answer, because the first item is
+already a pair
 
 ```css
 ; [.meta 9; 10, 20] || []
@@ -239,8 +244,8 @@ not a way to copy one.
 
 ## Reading a resource
 
-Writing is application. Reading is a reduce over characters, so the seed you
-pick is what shapes them
+Writing is application. Reading is a reduce over characters, so what you start
+from is what shapes them
 
 ```css
 ; './out.txt' | “”
@@ -272,21 +277,21 @@ rather than raising
 
 ## Pitfalls
 
-An aggregate belongs in a reduce, not a map. A map wraps one answer per input,
-so an array in a map would hand every element the same accumulator; it is
-refused instead of half-working
+An array answers itself, so mapping over one would collect the same array once
+per element. It is refused rather than half-working. An array belongs on the
+right of `|`, where threading one answer forward is the whole point
 
 ```css
 ; [1, 2, 3] & []
 # $!.aggregate-in-map
 ```
 
-A literal seed is transient: it is fresh at every evaluation and nothing else
-can see it, so two reduces into `[]` cannot collide and you never have to ask
-whether the reduce wrote to it. Ask that question of a *named* seed, where the
-name's effect type answers it. An ordinary name is immutable, so the reduce
-copies on write: you get the accumulated value back and the name still holds
-what it held
+A value you start from is usually a literal, and a literal is transient: it is
+fresh at every evaluation and nothing else can see it, so two reduces into `[]`
+cannot collide and you never have to ask whether the reduce wrote to it. Ask
+that question of a *named* accumulator, where the name's effect type answers it.
+An ordinary name is immutable, so the reduce copies on write: you get the
+accumulated value back and the name still holds what it held
 
 ```css
 ; .acc [];
