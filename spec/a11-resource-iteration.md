@@ -96,9 +96,9 @@ Reconstruction belongs to parsed syntax.
 This design now depends on a rendering change, so it is scoped here rather than
 left implicit.
 
-A tuple key is a symbol. In 0.14.1 a symbol in value position prints without its
-dot, so a stream of tuples prints in a form that cannot be read back — the
-printed key is a name lookup rather than a symbol. Canonical output being
+A tuple key is a symbol. Before this change a symbol in value position printed
+without its dot, so a stream of tuples prints in a form that cannot be read back
+— the printed key is a name lookup rather than a symbol. Canonical output being
 re-readable as input is the same principle that decided properties-first
 rendering, and it is load-bearing for a07 §5's claim that a program is a
 manifest.
@@ -288,7 +288,7 @@ them:
 
 - **Operator roles** — `|` reduces and `&` maps, `||` is bound, and `&&` streams
   tuples. The readings above are spellings, so they need the operators the
-  tutorial defines rather than the 0.14.1 ones.
+  tutorial defines rather than the v0.14.0 ones.
 - **Symbol rendering** — a symbol _in value position_ prints with its dot. Not
   every symbol: an unevaluated one is a pending lookup, and `a` is how a lookup
   is written, so dotting that would print a declaration instead.

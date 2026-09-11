@@ -4,17 +4,56 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
-## v0.14.1 2026-09-10
+## v0.15.0 2026-09-11
 
-- Documentation only: no runtime behavior changed, and `&`, `|`, and `&&` still
-  iterate exactly as they did in v0.14.0 (#368).
-- Add `cli/hc/apply-tutorial.md`, a tutorial for the proposed apply-and-iterate
-  model: application is the one verb, a map collects each answer while a reduce
-  threads it as the next receiver, `&` and `|` stream elements, and `&&` and
-  `||` stream `[key, value]` tuples whose key is the symbol that addresses the
-  member. It documents the design ahead of the interpreter, including the
-  operator roles it reverses, so read `cli/hc/apply.hc` for what this release
-  actually does (#368).
+- **Breaking: `|` and `&` have swapped roles.** `|` now reduces and `&` now
+  maps, where v0.14.x had `|` map and `&` reduce. Existing iteration expressions
+  keep parsing and mean something else, so they must be re-read rather than
+  trusted. `cli/hc/apply-tutorial.md` teaches the model and `cli/hc/apply.hc`
+  pins each decision to an executable expectation (#368).
+- A reduce threads: each element is applied to the value the last step answered,
+  so what you start from is the combining rule and no operator carries one. Text
+  joins, an aggregate collects, a numeric multiplies, and any receiver that
+  answers itself accumulates. `[1, 2, 3] | “”` is `“123”`, `| []` is
+  `[1, 2, 3]`, and `| 1` is `6`. A closure threads too, and is spent after one
+  element rather than refused (#368).
+- A map applies each element on its own and keeps the answers apart, with no
+  index in the dot parameter. Use a doubled operator when you need the address
+  (#368).
+- Bind `||`, and give both doubled operators one stream: every visible property
+  in declaration order, then every element by index, each arriving as a
+  `[key, value]` tuple whose key is the symbol that addresses the member.
+  Project with `_ .0` and `_ .1`. The tuple is an iteration argument only; no
+  pair is stored, and folding tuples back does not rebuild the value they came
+  from (#368).
+- An empty source reduces to nil whatever it started from, and maps to an empty
+  array (#368).
+- **Reading a resource is a reduce over characters**, replacing v0.14.0's single
+  whole-content element. Nothing about the reading is a property of the source:
+  `'./out.txt' | “”` answers the whole content, `| []` answers the characters
+  apart, and `&& {_}` answers indexed characters. A resource's URI components
+  stay readable by name and never appear in the stream, because they describe
+  the reference the value is rather than contents it holds (#368).
+- Reading an empty location answers nil, which stays distinguishable from an
+  absent one: absent is a refusal, empty is not a failure (#368).
+- A refusal reaching a receiver mid-stream is collected by an aggregate and
+  consumed by nothing else, so a read that fails cannot answer as though it
+  succeeded (#368).
+- Properties are not elements. A declaration is not iterated, so
+  `[.meta 1; 2, 3] & {_}` answers `[2, 3]` and a value whose contents are all
+  properties has nothing to iterate. Anything which is not an aggregate is a
+  single element, so text still does not enumerate its characters (#368).
+- A symbol in value position now prints its dot, so canonical output re-reads as
+  the same symbol rather than as a name lookup: `.literal` answers `.literal`,
+  and a tuple key prints `.meta`. A symbol still awaiting lookup prints as
+  written, so `{a + b}` is unchanged (#368).
+- Declaring a numeric property is refused as `$!.numeric-key`, because `.0`
+  already addresses the first element (#368).
+- Library API: `Frame.elements` is the enumerable protocol and `Frame.reduce`
+  folds it into a supplied receiver; `Frame.asArray` keeps structural access to
+  an aggregate's own terms and no longer performs a resource read.
+  `FrameString.reduce` is renamed `FrameString.scanInto`, which is what it
+  always was — the sigilizer fold (#368).
 
 ## v0.14.0 2026-09-09
 

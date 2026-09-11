@@ -7,7 +7,7 @@ and pins each one to an expectation, so a claim cannot quietly rot into prose.
 The tutorial explains behavior and carries no argument; the argument lives here.
 
 The model is implemented, so almost every expectation below is now an executable
-assertion rather than a promise. The file that recorded v0.14.1's reversed
+assertion rather than a promise. The file that recorded v0.14.0's reversed
 operator roles example by example was this one, and it has been replaced rather
 than kept beside its own correction; git history holds it.
 
@@ -112,8 +112,8 @@ appears anywhere in this design.
 **Decision.** An empty source reduces to nil whatever it started from, and maps
 to an empty array.
 
-A reduce with nothing to work with has no result to report, and 0.14.1 already
-answers nil for every empty reduce regardless of what sits in the operator slot,
+A reduce with nothing to work with has no result to report, and v0.14.0 already
+answered nil for every empty reduce regardless of what sat in the operator slot,
 so this keeps behavior rather than inventing it. A map answers a collection of
 answers, and no answers is an empty collection rather than the absence of one
 ```
@@ -185,11 +185,11 @@ not a spelling of it: `.meta` and `.0`, never `“meta”` and `0`
 ; [10, 20, 30] && {_ .0}
 # [.0, .1, .2]
 ```
-A symbol is an address a caller can use, and 0.14.1 already resolves one against
-both planes. Given `.pair [.meta, 9];` then `[.meta 1; 2, 3] (pair .0)` answers
-`1`, and given `.ipair [.1, 20];` then `[10, 20] (ipair .0)` answers `20`. Text
-is only a description of an address, and no legitimate operation turns it back
-into one.
+A symbol is an address a caller can use, and the evaluator already resolves one
+against both planes. Given `.pair [.meta, 9];` then `[.meta 1; 2, 3] (pair .0)`
+answers `1`, and given `.ipair [.1, 20];` then `[10, 20] (ipair .0)` answers
+`20`. Text is only a description of an address, and no legitimate operation turns
+it back into one.
 
 The cost is named rather than denied. A symbol argument addresses rather than
 contributing its spelling, so `“n=” (pair .0)` answers `$!.name-missing` today,
@@ -200,8 +200,16 @@ while nothing short of evaluation promotes text to an address.
 
 Canonical rendering therefore has to print the dot. `[meta, 9]` re-read is a
 name lookup rather than a symbol, so dropping it costs the re-readability that
-properties-first rendering was chosen for. 0.14.1 prints a standalone symbol
-without its dot, and this design depends on that being fixed.
+properties-first rendering was chosen for. v0.14.0 printed every symbol without
+its dot, and the fix is narrower than reversing that: a symbol *in value
+position* prints the dot, while one still awaiting lookup prints as written,
+because `a` is exactly how a lookup is spelled
+```
+; .meta
+# .meta
+; {a + b}
+# { a + b }
+```
 
 `||` reduces that same stream, threading the answer exactly as `|` does, so it
 needs no calling convention of its own
