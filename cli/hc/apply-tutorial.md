@@ -78,37 +78,29 @@ A resource writes, and answers the number of characters written
 # 5
 ```
 
-## Properties and elements
+### Properties and elements
 
-An HC object holds two kinds of contents, and telling them apart is the one thing
-to learn before the operators. The typical object has keyed **properties**, each
-written with a terminating `;`, and enumerated **elements**, separated by `,`
-where the last separator is optional. Read a property by name and an element by
-index.
+An HC object holds two kinds of contents, and telling them apart is the one
+thing to learn before the operators. The typical object has keyed
+**properties**, each written with a terminating `;`, and enumerated
+**elements**, separated by `,` where the last separator is optional. Read a
+property by name and an element by index.
 
 ```css
-; [.meta 1; 2, 3].meta
+; [.meta 1; 2, 3] .meta
 # 1
-; [.meta 1; 2, 3].0
+; [.meta 1; 2, 3] .0
 # 2
 ```
 
-A comma does not make a declaration positional. The property plane keeps the last
-write, and only the unkeyed value is an element
-
-```css
-; [.a 1, 9, .a 2].a
-# 2
-; [.a 1, 9, .a 2]
-# [9, .a 2;]
-```
-
-When you want a value to be both, read it back explicitly. That read is the value
-at that moment, not a live alias
+A value prints its properties first and its elements second, which is also the
+order the doubled operators iterate them. So when you want one value to be both
+a property and an element, read it back explicitly. That read is the value at
+that moment, not a live alias
 
 ```css
 ; [.a 1; a, 2]
-# [1, 2, .a 1;]
+# [.a 1; 1, 2]
 ```
 
 That split is why iteration comes in two widths: an operator either walks the
@@ -125,10 +117,10 @@ total, carrying an accumulator from item to item; reach for it to sum, join, or
 collect. `&` maps and `|` reduces.
 
 **Values or tuples.** A single operator streams the elements and hands your
-closure each value on its own. Doubling widens the stream to everything the value
-can be asked for — every property you can see, then every indexed element — and
-hands you a `[key-or-index, value]` tuple instead, so a step knows which address
-it is looking at. `&&` maps tuples and `||` reduces them.
+closure each value on its own. Doubling widens the stream to everything the
+value can be asked for — every property you can see, then every indexed
+element — and hands you a `[key-or-index, value]` tuple instead, so a step
+knows which address it is looking at. `&&` maps tuples and `||` reduces them.
 
 The two choices combine freely, and that is the whole operator surface
 
@@ -172,8 +164,8 @@ A named closure works the same way and usually reads better
 ## `|` reduces elements
 
 `|` answers a single value. With a closure, the element is in the underscore and
-the running accumulator is in the dot parameter. The first element seeds it, so a
-one-element reduce is itself and an empty one is nil
+the running accumulator is in the dot parameter. The first element seeds it, so
+a one-element reduce is itself and an empty one is nil
 
 ```css
 ; [1, 2, 3] | {_ + .}
@@ -216,9 +208,9 @@ tuple
 Project by tuple position. This is where the index that `&` withholds comes back
 
 ```css
-; [10, 20, 30] && {_.0}
+; [10, 20, 30] && {_ .0}
 # [0, 1, 2]
-; [10, 20] && {_.1 * 2}
+; [10, 20] && {_ .1 * 2}
 # [20, 40]
 ```
 
@@ -231,7 +223,8 @@ becoming an index
 ```
 
 `||` reduces that same stream, and it always needs a value seed. There is no
-closure form: the first item is already a pair, which makes a useless accumulator
+closure form: the first item is already a pair, which makes a useless
+accumulator
 
 ```css
 ; [.meta 9; 10, 20] || []
@@ -240,14 +233,14 @@ closure form: the first item is already a pair, which makes a useless accumulato
 # $!.tuple-reduce-needs-seed
 ```
 
-Reducing tuples does not rebuild the value they came from, because applying a pair
-to an object does not merge it. The tuple stream is a way to read a value, not a
-way to copy one.
+Reducing tuples does not rebuild the value they came from, because applying a
+pair to an object does not merge it. The tuple stream is a way to read a value,
+not a way to copy one.
 
 ## Reading a resource
 
-Writing is application. Reading is a reduce over characters, so the seed you pick
-is what shapes them
+Writing is application. Reading is a reduce over characters, so the seed you
+pick is what shapes them
 
 ```css
 ; './out.txt' | “”
@@ -259,11 +252,11 @@ is what shapes them
 ```
 
 A resource also publishes its URI parts by name, and reading one performs no
-access. Those parts describe the reference, not the content, so they never appear
-in a stream: a doubled read gives you indexed characters
+access. Those parts describe the reference, not the content, so they never
+appear in a stream: a doubled read gives you indexed characters
 
 ```css
-; './out.txt'.path
+; './out.txt' .path
 # “./out.txt”
 ; './out.txt' && {_}
 # [[0, “h”], [1, “e”], [2, “l”], [3, “l”], [4, “o”]]
@@ -279,20 +272,21 @@ rather than raising
 
 ## Pitfalls
 
-An aggregate belongs in a reduce, not a map. A map wraps one answer per input, so
-an array in a map would hand every element the same accumulator; it is refused
-instead of half-working
+An aggregate belongs in a reduce, not a map. A map wraps one answer per input,
+so an array in a map would hand every element the same accumulator; it is
+refused instead of half-working
 
 ```css
 ; [1, 2, 3] & []
 # $!.aggregate-in-map
 ```
 
-A literal seed is transient: it is fresh at every evaluation and nothing else can
-see it, so two reduces into `[]` cannot collide and you never have to ask whether
-the reduce wrote to it. Ask that question of a *named* seed, where the name's
-effect type answers it. An ordinary name is immutable, so the reduce copies on
-write: you get the accumulated value back and the name still holds what it held
+A literal seed is transient: it is fresh at every evaluation and nothing else
+can see it, so two reduces into `[]` cannot collide and you never have to ask
+whether the reduce wrote to it. Ask that question of a *named* seed, where the
+name's effect type answers it. An ordinary name is immutable, so the reduce
+copies on write: you get the accumulated value back and the name still holds
+what it held
 
 ```css
 ; .acc [];
@@ -325,8 +319,9 @@ enumerate its characters. Read a resource when you want characters
 
 ## Where the current release differs
 
-Version 0.14.1 assigns the single operators the other way around: `|` maps and `&`
-reduces, seeded from the first element. Its `&&` maps the properties alone, with
-the value in the underscore and the key in the dot parameter rather than a tuple,
-and `||` is unbound. `apply.hc` records that behavior example by example, so reach
-for it when you are working against the release rather than against this tutorial.
+Version 0.14.1 assigns the single operators the other way around: `|` maps and
+`&` reduces, seeded from the first element. Its `&&` maps the properties alone,
+with the value in the underscore and the key in the dot parameter rather than a
+tuple, and `||` is unbound. `apply.hc` records that behavior example by example,
+so reach for it when you are working against the release rather than against
+this tutorial.
