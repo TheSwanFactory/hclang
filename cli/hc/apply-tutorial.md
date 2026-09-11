@@ -1,15 +1,18 @@
 # Applying and iterating: a tutorial
 
 HC has one verb. You write two values next to each other, and the left one — the
-receiver — decides what that means (with help from double-dispatch).
-Joining text, calling a function, collecting
-into a list, and writing a file are all the same move, which is why there is no
-assignment statement, no `for` loop, and no method-call syntax to learn.
+receiver — decides what that means (with help from double dispatch). Joining
+text, calling a function, collecting into a list, and writing a file are all the
+same move, which is why there is no assignment statement, no `for` loop, and no
+method-call syntax to learn.
 
-Every `;` line is input you can type into the REPL. Run the file with `hc
-cli/hc/apply-tutorial.hc`, or add `-t` to check the answers.
+Every `;` line below is input you can type into the REPL, and every `#` line is
+the answer it prints back. Input that itself ends in `;` is a statement, so it
+answers nothing and no `#` line follows it.
 
-> NOTE: This file is currently ahead of the implemetnation
+> NOTE: This tutorial defines the model; the implementation is still catching up
+> to it. Where the two disagree today, the tutorial is right and the interpreter
+> is behind.
 
 ## Applying a value
 
@@ -48,7 +51,7 @@ An array collects, so applying is how you push
 
 ### Nil
 
-Nil is never collected, which is what makes a filter safe
+Nil, written `()`, is never collected, which is what makes a filter safe
 
 ```css
 ; [1] ()
@@ -75,72 +78,19 @@ A resource writes, and answers the number of characters written
 # 5
 ```
 
-### Properties vs elements
+## Properties and elements
 
-The tpyical HC object has keyed **properties** (ending in ';') and enumerable **elements** (ending in ',', which can be omitted at the end).
-Read a property by name, and an element by index.
-
-```css
-; [.meta 1; 2, 3].meta
-# 1
-; [.meta 1; 2, 3].0
-# 2
-```
-
-## Iterating
-
-Iteration asks two questions, and they are independent. First how many answers
-you want back, then what each step gets to see.
-
-**Map or reduce.** A map answers one value per item, so its answer is as long as
-what you iterated; reach for it to transform. A reduce answers one value in
-total, carrying an accumulator from item to item; reach for it to sum, join, or
-collect. `&` maps and `|` reduces.
-
-**Values or tuples.** A single operator streams the value's ordered data and
-hands your closure each value on its own. Doubling widens the stream to
-everything the value can be asked for — every property you can see, then every
-indexed element — and hands you a `[key-or-index, value]` tuple instead, so a
-step knows which address it is looking at. `&&` maps tuples and `||` reduces
-them.
-
-The two choices combine freely, and that is the whole operator surface
-
-- map, one answer per item:     `&` values,   `&&` tuples
-- reduce, one answer in total:  `|` values,   `||` tuples
-
-One term for the rest of the file: the enuemrated data is the value's **elements**.
-The keyed data is the **properties**.
-A property is not an element, so the second choice is what decides whether you
-ever see one.
-
-## Properties are not elements
-
-The tpyical HC object has keyed properties (ending in ';') and enumerable elements (ending in ',', which can be omitted at the end).
-Read a property by name, and an element by index.
+An HC object holds two kinds of contents, and telling them apart is the one thing
+to learn before the operators. The typical object has keyed **properties**, each
+written with a terminating `;`, and enumerated **elements**, separated by `,`
+where the last separator is optional. Read a property by name and an element by
+index.
 
 ```css
 ; [.meta 1; 2, 3].meta
 # 1
 ; [.meta 1; 2, 3].0
 # 2
-; [.meta 1; 2, 3] & {_}
-# [2, 3]
-```
-
-So a property-only value has nothing to iterate with the single operators
-
-```css
-; [.a 1] & {_}
-# []
-```
-
-Use the doubled operators when you want the properties too. They come first, then
-the indexed elements
-
-```css
-; [.meta 1; 2, 3] && {_}
-# [[“meta”, 1], [0, 2], [1, 3]]
 ```
 
 A comma does not make a declaration positional. The property plane keeps the last
@@ -161,6 +111,30 @@ at that moment, not a live alias
 # [1, 2, .a 1;]
 ```
 
+That split is why iteration comes in two widths: an operator either walks the
+elements, or walks the properties and the elements together.
+
+## Iterating
+
+Iteration asks two questions, and they are independent. First how many answers
+you want back, then what each step gets to see.
+
+**Map or reduce.** A map answers one value per item, so its answer is as long as
+what you iterated; reach for it to transform. A reduce answers one value in
+total, carrying an accumulator from item to item; reach for it to sum, join, or
+collect. `&` maps and `|` reduces.
+
+**Values or tuples.** A single operator streams the elements and hands your
+closure each value on its own. Doubling widens the stream to everything the value
+can be asked for — every property you can see, then every indexed element — and
+hands you a `[key-or-index, value]` tuple instead, so a step knows which address
+it is looking at. `&&` maps tuples and `||` reduces them.
+
+The two choices combine freely, and that is the whole operator surface
+
+- map, one answer per item: `&` for values, `&&` for tuples
+- reduce, one answer in total: `|` for values, `||` for tuples
+
 ## `&` maps elements
 
 Put a closure on the right of `&` to get one answer per element
@@ -173,9 +147,16 @@ Put a closure on the right of `&` to get one answer per element
 ```
 
 The element arrives in the underscore. The single form carries no index; if you
-need one, use `&&` below. An empty source answers an empty array
+need one, use `&&` below.
+
+Only elements reach the closure, so properties stay behind, and a value with no
+elements answers an empty array
 
 ```css
+; [.meta 1; 2, 3] & {_}
+# [2, 3]
+; [.a 1] & {_}
+# []
 ; [] & {_}
 # []
 ```
@@ -219,9 +200,9 @@ source an identity to answer with
 
 ## `&&` and `||` take tuples
 
-Doubling widens what you iterate rather than switching to some other plane. You
-get the properties you can see, in declaration order, then the elements by index,
-each as a `[key-or-index, value]` tuple
+Doubling widens what you iterate. You get the properties you can see, in
+declaration order, then the elements by index, each as a `[key-or-index, value]`
+tuple
 
 ```css
 ; [10, 20] && {_}
@@ -232,7 +213,7 @@ each as a `[key-or-index, value]` tuple
 # []
 ```
 
-Project by position, which is where the index the single map dropped comes back
+Project by tuple position. This is where the index that `&` withholds comes back
 
 ```css
 ; [10, 20, 30] && {_.0}
@@ -256,17 +237,17 @@ closure form: the first item is already a pair, which makes a useless accumulato
 ; [.meta 9; 10, 20] || []
 # [[“meta”, 9], [0, 10], [1, 20]]
 ; [10, 20] || {_}
-# $!.entry-fold-needs-seed
+# $!.tuple-reduce-needs-seed
 ```
 
-Reducing tuples does not rebuild the value they came from. Applying a pair to an
-object does not merge it, so treat the tuple stream as a way to read a value, not
-as a way to copy one.
+Reducing tuples does not rebuild the value they came from, because applying a pair
+to an object does not merge it. The tuple stream is a way to read a value, not a
+way to copy one.
 
 ## Reading a resource
 
-Writing is application. Reading is a reduce, and what it supplies is characters,
-so pick the seed that shapes them the way you want
+Writing is application. Reading is a reduce over characters, so the seed you pick
+is what shapes them
 
 ```css
 ; './out.txt' | “”
@@ -296,11 +277,11 @@ rather than raising
 # [$!.resource-absent './missing.txt']
 ```
 
-## Three things to watch for
+## Pitfalls
 
 An aggregate belongs in a reduce, not a map. A map wraps one answer per input, so
 an array in a map would hand every element the same accumulator; it is refused
-instead. This is the shape a habit from the current release will produce
+instead of half-working
 
 ```css
 ; [1, 2, 3] & []
@@ -342,10 +323,10 @@ enumerate its characters. Read a resource when you want characters
 # [1]
 ```
 
-## Where to look next
+## Where the current release differs
 
-`apply.hc` records what the shipped interpreter does today, including the `|` and
-`&` roles this tutorial reverses. `apply-new.hc` is the full proposal, with the
-cases that motivate each rule and the questions still open.
-
-```css
+Version 0.14.1 assigns the single operators the other way around: `|` maps and `&`
+reduces, seeded from the first element. Its `&&` maps the properties alone, with
+the value in the underscore and the key in the dot parameter rather than a tuple,
+and `||` is unbound. `apply.hc` records that behavior example by example, so reach
+for it when you are working against the release rather than against this tutorial.

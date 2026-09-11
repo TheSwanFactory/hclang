@@ -42,7 +42,8 @@
       "**/_fresh/",
       "doc/out/",
       "doc/no_equal.md",
-      "doc/shannon/1-shannon.md"
+      "doc/shannon/1-shannon.md",
+      "cli/hc/apply-tutorial.md"
     ]
   },
   "exclude": [
