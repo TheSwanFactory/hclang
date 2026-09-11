@@ -105,10 +105,10 @@ that moment, not a live alias
 
 ## Iterating
 
-Iteration adds no verb either. Both operators apply each element to the value on
-their right, and they differ only in what becomes of each answer. `|` keeps the
-answer as the receiver for the next element, so it hands you one value in total.
-`&` keeps the answers apart, so it hands you one per element.
+Both operators apply each element to the value on their right. They differ in
+what becomes of each answer: `|` keeps it as the receiver for the next element
+and hands you one value in total, while `&` keeps the answers apart and hands
+you one per element.
 
 Doubling either operator changes what gets applied rather than what happens to
 the answer. `|` and `&` stream the elements and apply each value on its own,
@@ -122,12 +122,10 @@ property you can see, then every indexed element — and apply a
 ## `|` reduces elements
 
 `|` applies each element to the accumulator and keeps the answer as the
-accumulator for the next one. You choose what to start from, and its family is
-the combining rule, because the rule is only ever what applying to that family
-does: an array answers itself and so collects, text answers new text and so
-joins, a number answers a new number and so multiplies. An empty source answers
-nil whatever you started from, because a reduce with nothing to work with has no
-result to report
+accumulator for the next one. What you start from is the combining rule: an
+array collects, text joins, a number multiplies. Any receiver that answers
+itself accumulates the way an array does. An empty source answers nil, whatever
+you started from
 
 ```css
 ; [1, 2, 3] | []
@@ -140,34 +138,10 @@ result to report
 # ()
 ```
 
-Start from a closure and the closure stays put instead of threading: the element
-is in the underscore and the running value is in the dot parameter. What a
-family answers is what decides this. An array answers itself, so threading it
-and holding it are the same thing, and text answers new text, so threading keeps
-the rule. A closure answers neither, so threading one would spend it on the
-first element and leave the rest of the source applying to that answer. Holding
-it also means no accumulator exists until the first element becomes one, so a
-one-element reduce is that element, and an empty one is nil by the rule above
-
-```css
-; [1, 2, 4] | {_ + .}
-# 7
-; [7] | {_ + .}
-# 7
-; [] | {_ + .}
-# ()
-```
-
-Write a closure when no family performs the rule you want. Addition is the plain
-example: nothing applies as a sum, so the source a closure adds to 7 is the one
-a number multiplies to 8. A closure also covers the rules with no value to start
-from, like a maximum.
-
 ## `&` maps elements
 
-`&` applies each element the same way, and keeps the answers apart instead of
-threading them. A closure is the usual receiver, though nothing here is special
-to closures
+`&` applies each element the same way and keeps the answers apart, one per
+element. A closure is the usual receiver, though not the only one
 
 ```css
 ; [1, 2, 3] & {_ * 2}
@@ -231,15 +205,11 @@ becoming an index
 # $!.numeric-key .0
 ```
 
-`||` reduces that same stream, and it always needs a value to start from.
-Starting from a closure has no coherent answer, because the first item is
-already a pair
+`||` reduces that same stream, threading the answer exactly as `|` does
 
 ```css
 ; [.meta 9; 10, 20] || []
 # [[“meta”, 9], [0, 10], [1, 20]]
-; [10, 20] || {_}
-# $!.tuple-reduce-needs-seed
 ```
 
 Reducing tuples does not rebuild the value they came from, because applying a
@@ -281,21 +251,18 @@ rather than raising
 
 ## Pitfalls
 
-An array answers itself, so mapping over one would collect the same array once
-per element. It is refused rather than half-working. An array belongs on the
-right of `|`, where threading one answer forward is the whole point
+An array belongs on the right of `|`, not `&`. Mapping over one is refused
+rather than answering the same array once per element
 
 ```css
 ; [1, 2, 3] & []
 # $!.aggregate-in-map
 ```
 
-A value you start from is usually a literal, and a literal is transient: it is
-fresh at every evaluation and nothing else can see it, so two reduces into `[]`
-cannot collide and you never have to ask whether the reduce wrote to it. Ask
-that question of a *named* accumulator, where the name's effect type answers it.
-An ordinary name is immutable, so the reduce copies on write: you get the
-accumulated value back and the name still holds what it held
+A literal start value is fresh at every evaluation, so two reduces into `[]`
+cannot collide. A *named* one behaves according to its effect type. An ordinary
+name is immutable, so the reduce copies on write: you get the accumulated value
+back and the name still holds what it held
 
 ```css
 ; .acc [];
@@ -333,4 +300,5 @@ Version 0.14.1 assigns the single operators the other way around: `|` maps and
 with the value in the underscore and the key in the dot parameter rather than a
 tuple, and `||` is unbound. `apply.hc` records that behavior example by example,
 so reach for it when you are working against the release rather than against
-this tutorial.
+this tutorial. `apply-new.hc` records the decisions behind this model, and why
+each one was taken.
