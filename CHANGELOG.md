@@ -4,6 +4,18 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.14.1 2026-09-10
+
+- Documentation only: no runtime behavior changed, and `&`, `|`, and `&&` still
+  iterate exactly as they did in v0.14.0 (#368).
+- Add `cli/hc/apply-tutorial.md`, a tutorial for the proposed apply-and-iterate
+  model: application is the one verb, a map collects each answer while a reduce
+  threads it as the next receiver, `&` and `|` stream elements, and `&&` and
+  `||` stream `[key, value]` tuples whose key is the symbol that addresses the
+  member. It documents the design ahead of the interpreter, including the
+  operator roles it reverses, so read `cli/hc/apply.hc` for what this release
+  actually does (#368).
+
 ## v0.14.0 2026-09-09
 
 - Make `'…'` the resource. When a root binding is reachable in the invocation
