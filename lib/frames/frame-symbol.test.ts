@@ -12,8 +12,20 @@ describe("FrameSymbol", () => {
     expect(frame_symbol).toBeInstanceOf(FrameSymbol);
   });
 
-  it("stringifies back to that string", () => {
+  it("stringifies back to that string, because a bare symbol is a lookup", () => {
     expect(frame_symbol.toString()).toEqual(symbol);
+  });
+
+  it("stringifies an address with its dot, so output re-reads as input", () => {
+    expect(FrameSymbol.address(symbol).toString()).toEqual(`.${symbol}`);
+    expect(frame_symbol.setter(new frame.Frame()).toString())
+      .toEqual(`.${symbol}`);
+  });
+
+  it("interns lookups only, so an address never marks the shared symbol", () => {
+    FrameSymbol.address(symbol);
+
+    expect(FrameSymbol.for(symbol).toString()).toEqual(symbol);
   });
 
   it("stringifies meta into an expression", () => {

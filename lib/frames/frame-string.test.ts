@@ -1,7 +1,13 @@
 import { expect } from "jsr:@std/expect@^0.219.1";
 import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 
-import { Frame, FrameNote, FrameString, FrameStringEnd } from "../frames.ts";
+import {
+  Frame,
+  FrameArray,
+  FrameNote,
+  FrameString,
+  FrameStringEnd,
+} from "../frames.ts";
 import { nestingDepth } from "./atom-syntax.ts";
 import { ScanDisposition } from "../scan.ts";
 import { FrameSymbol } from "./frame-symbol.ts";
@@ -87,12 +93,19 @@ describe("FrameString", () => {
     expect(FrameStringEnd.SYNTAX.finish("")).toEqual(unmatched);
   });
 
-  it("returns Note parent on failed reduce", () => {
+  it("returns Note parent on a failed scan", () => {
     const note = FrameNote.key(key, value);
-    const result = frame_string.reduce(note);
+    const result = frame_string.scanInto(note);
     expect(result).toEqual(value);
 
     const extras = note.get(FrameNote.NOTE_EXTRAS);
     expect(extras.toString()).toContain("H, e, l, l, o");
+  });
+
+  it("is one element to the language, and does not enumerate characters", () => {
+    const plain = new FrameString("abc");
+
+    expect(plain.elements()).toEqual([plain]);
+    expect(plain.reduce(new FrameArray([])).toString()).toEqual("[“abc”]");
   });
 });

@@ -1,10 +1,11 @@
 # Reads Are a Character Reduce
 
-**Status:** Design, not implemented. The iteration half is now decided and lives
-in [`cli/hc/apply-tutorial.md`](../cli/hc/apply-tutorial.md), with the reasons
-in [`cli/hc/apply-new.hc`](../cli/hc/apply-new.hc). This document owns only the
-resource half, and records which of its former questions those decisions
-closed.\
+**Status:** Implemented in v0.15.0, except where the Scope section says
+otherwise. The iteration half is decided and taught in
+[`cli/hc/apply-tutorial.md`](../cli/hc/apply-tutorial.md), with the reasons and
+the executable corpus in [`cli/hc/apply.hc`](../cli/hc/apply.hc). This document
+owns only the resource half, and records which of its former questions those
+decisions closed.\
 **Issues:** [#368](https://github.com/TheSwanFactory/hclang/issues/368), with
 [#338](https://github.com/TheSwanFactory/hclang/issues/338) on the critical
 path, [#375](https://github.com/TheSwanFactory/hclang/issues/375) holding the
@@ -49,7 +50,7 @@ The temptation to invent a `content` receiver is gone with them.
 **A map is not the place for either.** A map answers one value per element, so
 an accumulator in that slot collects correctly and answers wrongly — the same
 value once per element. Whether that refuses or is merely useless is left open
-in `apply-new.hc`; either way it is not how a read is spelled.
+in `apply.hc`; either way it is not how a read is spelled.
 
 **There is no closure form of reduce.** A receiver carries a rule across
 elements only if it answers something that still holds the rule. Text answers
@@ -102,26 +103,33 @@ re-readable as input is the same principle that decided properties-first
 rendering, and it is load-bearing for a07 §5's claim that a program is a
 manifest.
 
-**The fix is rendering only.** A standalone symbol renders with its dot; applied
-symbols already do. It is not iteration-specific — it reaches any symbol a
-program can hold — so it wants its own change rather than riding along inside
-the resource work. Nothing else in this document depends on it, and it depends
-on nothing here.
+**The fix is rendering only**, and it turned out to be narrower than "every
+standalone symbol". A bare symbol is a _pending lookup_, and `a` is exactly how
+a lookup is written, so dotting every symbol would print a declaration where the
+program held a lookup — and would render `{a + b}` as `{.a + .b}`. Only a symbol
+already in value position is an address: what an evaluated `.name` answers, and
+what a tuple key is. Those print the dot; the rest print as written.
+
+The distinction is carried by a flag set at the two places a symbol becomes a
+value, not inferred from the spelling. Inferring it from the spelling was tried
+first and is wrong for a second reason: the front end's transport unit is also a
+symbol, so `0` as a source character and `.0` as an address would have shared
+one rendering, and the lexer builds its lexeme buffer from that rendering.
 
 ## The runtime already works this way
 
 This is not a mechanism to design. It is the mechanism the front end runs on,
 and typed resources would have built a second, tag-dispatched answer beside it.
 
-| Capability                 | Where it already lives                                    |
-| -------------------------- | --------------------------------------------------------- |
-| A source pushes characters | `FrameString.reduce` folds each character into a receiver |
-| A receiver decides bounds  | `lib/scan.ts` dispositions, including redispatch pushback |
-| A receiver retains state   | Frames retain any input-dependent lexical state           |
-| Chunk into structure       | `LexPipe`, whose `lex` is a reduce over the source        |
-| Accumulate terms           | `ParsePipe`                                               |
-| Parse and evaluate         | `EvalPipe`                                                |
-| Resume across chunks       | `HCEval` pending-lexeme state; `cli/runfile.ts` buffers   |
+| Capability                 | Where it already lives                                      |
+| -------------------------- | ----------------------------------------------------------- |
+| A source pushes characters | `FrameString.scanInto` folds each character into a receiver |
+| A receiver decides bounds  | `lib/scan.ts` dispositions, including redispatch pushback   |
+| A receiver retains state   | Frames retain any input-dependent lexical state             |
+| Chunk into structure       | `LexPipe`, whose `lex` is a reduce over the source          |
+| Accumulate terms           | `ParsePipe`                                                 |
+| Parse and evaluate         | `EvalPipe`                                                  |
+| Resume across chunks       | `HCEval` pending-lexeme state; `cli/runfile.ts` buffers     |
 
 **Half the protocol is already universal.** `scan` and `finishInput` are defined
 on `Frame` itself, defaulting to returning the frame unchanged, so every frame
@@ -148,21 +156,28 @@ receiver is consulted.** A reduce never materializes a list, so granularity is
 decided downstream, by composition, at no cost to the source. The element type
 was the shim's shape showing through.
 
-`reduce` is not on `Frame` today. It is one method on `FrameString`, hard-wired
-to the sigilizer. Lifting it to `Frame` with the receiver supplied is the
-substance of the change.
+`reduce` was not on `Frame`. It was one method on `FrameString`, hard-wired to
+the sigilizer. Lifting it to `Frame` with the receiver supplied was the
+substance of the change; the sigilizer fold stayed on `FrameString` under the
+name that says what it is, `scanInto`, because that one belongs to the front end
+and the general fold belongs to the language.
 
-Two uses of `asArray` must be separated, because only one is the shim:
+Two uses of `asArray` had to be separated, because only one was the shim:
 
-- **Enumerable protocol.** What the reduce replaces.
+- **Enumerable protocol.** What the reduce replaces, now `Frame.elements`.
 - **Structural access to an aggregate's own terms.** Parsing, expressions, lazy
   frames, and both schema matchers ask a frame for its own terms. That is
-  legitimate and stays.
+  legitimate and stays, so `asArray` kept the name and lost the other job.
 
-`Frame.isFailedResult` consults `asArray`, which is why `FrameResource` has to
-override it — otherwise a read happens once per mention, because every term of
-every statement is checked. A native reduce removes that cause rather than
-patching the symptom a second time.
+`Frame.isFailedResult` consults `asArray`, which is why `FrameResource` had to
+override it — otherwise a read happened once per mention, because every term of
+every statement is checked. Moving the read to `elements` removed that cause,
+and the override went with it rather than being patched a second time.
+
+The split also settled which view the two planes belong to. `elements` excludes
+a statement and a declaration echo, because neither answered a value of its own;
+`asArray` keeps them, because a parser needs the terms it was built from. That
+is what makes properties and elements two planes rather than one list.
 
 ## Deferred, and why each can wait
 
@@ -210,13 +225,16 @@ element, so mapping one answers the whole string. A resource that pushes
 characters while a string does not is an asymmetry that needs either a reason or
 a fix, and the fix reaches every iteration expression in the corpus.
 
-**Where does a refusal land mid-stream?** a10 relies on a refusal being the
-single element of a one-element array. In a reduce it arrives at a receiver
-mid-stream, or before any character does. #338 — an aggregate whose element is
-an error reading as success — is on the critical path. The existing answer to
-what a receiver does after it fails is `Malformed`, which absorbs every
-subsequent character by returning itself; reuse that rather than inventing a
-second story.
+**Where does a refusal land mid-stream?** Answered for the receiver, still open
+for the caller. a10 relies on a refusal being collectable, so an aggregate
+collects one and every other receiver is poisoned by it: an operation on an
+error is an error, and a collect is not such an operation. That is one rule,
+drawn in one place, and it makes `Frame.error` behave the way an aggregate
+already treated a missing-name note. What remains open is what a caller sees,
+which is #338 — an aggregate whose element is an error reading as success — and
+it is on the critical path. The existing answer to what a receiver does after it
+_itself_ fails is `Malformed`, which absorbs every subsequent character by
+returning itself; reuse that rather than inventing a second story.
 
 **What scope does a parse-and-evaluate receiver evaluate in?** Reading HC code
 and evaluating it means choosing what the loaded code can reach. a07 §3's
@@ -250,30 +268,52 @@ what a read _yields_, not what a read is _allowed to reach_.
 
 ## Scope
 
-None of this is implemented.
-
-- [ ] The character reduce native on `Frame`, with the receiver supplied rather
-      than fixed.
-- [ ] A resource reads by reducing characters into its receiver.
-- [ ] The two settled readings work through the real operators: empty text for
+- [x] The character reduce native on `Frame`, with the receiver supplied rather
+      than fixed. `Frame.reduce` threads a stream through a receiver, and
+      `Frame.elements` is what a stream answers; `FrameString`'s sigilizer fold
+      kept its own name, `scanInto`, because that one is the front end's.
+- [x] A resource reads by reducing characters into its receiver.
+- [x] The two settled readings work through the real operators: empty text for
       the whole content, an empty array for the characters.
-- [ ] A doubled read yields position-and-character tuples, with no URI component
-      in the stream.
-- [ ] `asArray` retired from the enumerable path, kept for structural access.
-- [ ] `cli/hc/resources.hc` re-spelled: it still reads in the 0.14.1 operator
-      roles, which the tutorial reverses.
+- [x] A doubled read yields position-and-character tuples, with no URI component
+      in the stream. `Frame.visibleKeys` is the seam, and a resource answers
+      none, because a stream iterates content rather than contents.
+- [x] `asArray` retired from the enumerable path, kept for structural access.
+      `FrameResource` no longer overrides it, so its `isFailedResult` override
+      went with the cause rather than being patched a second time.
+- [x] `cli/hc/resources.hc` re-spelled.
 
-Adjacent, and separately scoped:
+Landed alongside, because the model above is unreachable or ill-formed without
+them:
 
-- **Symbol rendering** — a standalone symbol prints with its dot. Reaches every
-  symbol, not just tuple keys.
+- **Operator roles** — `|` reduces and `&` maps, `||` is bound, and `&&` streams
+  tuples. The readings above are spellings, so they need the operators the
+  tutorial defines rather than the 0.14.1 ones.
+- **Symbol rendering** — a symbol _in value position_ prints with its dot. Not
+  every symbol: an unevaluated one is a pending lookup, and `a` is how a lookup
+  is written, so dotting that would print a declaration instead.
+- **A numeric key is refused** — `.0` already addresses the first element, so
+  allowing it as a property would put two members under one key in a doubled
+  stream.
+- **A refusal mid-stream** — an aggregate collects it; every other receiver is
+  poisoned by it. a10 relies on the first, and the second is what an operation
+  on an error already meant.
+
+Still adjacent, and still separately scoped:
+
+- **Properties-first rendering** → the one part of the iteration decisions not
+  implemented. Iteration uses that order; rendering does not yet, and an
+  evaluated aggregate still repeats each declaration as a trailing echo.
 - **Aggregate error propagation** → #338, on the critical path rather than
-  beside it.
+  beside it. Visible here as a refused declaration staying a failed statement
+  inside an aggregate literal.
 - **Scheme dispatch** → #367. Unchanged by this document: the reduce consumes
   whatever the handler table produced.
 - **Module semantics** → #301, minus the I/O half.
 - **Custom accumulators** → #375, which also owns what a receiver answering nil
   mid-reduce does.
+- **Chunkers and code receivers** → still deferred, for the reasons above:
+  application has no completion step, so a chunker cannot be written in HC.
 
 ## Accepted cost
 
@@ -283,6 +323,8 @@ the chunker receivers exist to name the intent. The corpus pays that cost in
 between, which is an argument for landing chunkers sooner rather than treating
 them as indefinitely deferred.
 
-The version exception is the other cost, accepted deliberately: this ships under
-patch versions while the shape moves, rather than claiming stability it does not
-have.
+The other cost is paid in the corpus rather than deferred: `|` and `&` swapped
+roles, so every iteration expression written against 0.14.x means something else
+now. That is a breaking change to source that will keep parsing, which is the
+worst kind, and it is why this ships as a minor version with the reversal named
+first in the release notes rather than folded into a list of additions.

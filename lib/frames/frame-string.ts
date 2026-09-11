@@ -122,8 +122,20 @@ export class FrameString extends FrameText implements CharacterContent {
     return FrameString.STRING_END;
   }
 
-  public reduce(starter: Frame, finish = true): Frame {
-    const final = this.data.split("").reduce(reducer, starter);
+  /**
+   * Scans these characters into a lexical receiver, one symbol at a time.
+   *
+   * This is the same shape as `Frame.reduce` — the receiver an early step
+   * answers is the receiver the next one advances — routed through the sigilizer
+   * so a syntax participant can consume, complete, redispatch, or transition
+   * rather than only answer a value. It is named for that contract, because the
+   * general fold is the language's and this one is the front end's.
+   *
+   * A string is one element to the language, so `reduce` is not this: `“abc”`
+   * does not enumerate its characters, and only a stream does.
+   */
+  public scanInto(receiver: Frame, finish = true): Frame {
+    const final = this.data.split("").reduce(reducer, receiver);
     return finish ? sigilizer.scan(final, FrameSymbol.end()) : final;
   }
 }

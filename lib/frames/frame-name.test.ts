@@ -24,10 +24,11 @@ describe("FrameName", () => {
     expect(frame_name.toString()).toEqual(`.${symbol}`);
   });
 
-  it("evaluates to a setter", () => {
-    const frame_symbol = FrameSymbol.for(symbol);
+  it("evaluates to a setter, which is an address and prints as one", () => {
     const result = frame_name.in();
-    expect(result.toString()).toEqual(frame_symbol.toString());
+
+    expect(result).toBeInstanceOf(FrameSymbol);
+    expect(result.toString()).toEqual(frame_name.toString());
   });
 
   it("extracts properties through a per-read projection", () => {

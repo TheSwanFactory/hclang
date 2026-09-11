@@ -28,7 +28,7 @@ const lexAtoms = (source: string): Frame[] => {
   const parser = new ParsePipe(output, FrameGroup);
   const lexer = new LexPipe(parser);
 
-  new FrameString(source).reduce(lexer);
+  new FrameString(source).scanInto(lexer);
 
   const group = output.at(0) as FrameGroup;
   const expr = group.asArray()[0] as FrameExpr;
@@ -40,7 +40,7 @@ const lexResult = (source: string): Frame => {
   const parser = new ParsePipe(output, FrameGroup);
   const lexer = new LexPipe(parser);
 
-  return new FrameString(source).reduce(lexer);
+  return new FrameString(source).scanInto(lexer);
 };
 
 const lexChunkedAtoms = (chunks: string[]): Frame[] => {
@@ -50,9 +50,9 @@ const lexChunkedAtoms = (chunks: string[]): Frame[] => {
   let receiver: Frame = lexer;
 
   chunks.forEach((chunk) => {
-    receiver = new FrameString(chunk).reduce(receiver, false);
+    receiver = new FrameString(chunk).scanInto(receiver, false);
   });
-  new FrameString("").reduce(receiver);
+  new FrameString("").scanInto(receiver);
 
   const group = output.at(0) as FrameGroup;
   const expr = group.asArray()[0] as FrameExpr;
@@ -386,7 +386,7 @@ describe("Lex", () => {
     const parser = new ParsePipe(output, FrameGroup);
     const lexer = new LexPipe(parser);
 
-    new FrameString("\\size\\a7 ").reduce(lexer);
+    new FrameString("\\size\\a7 ").scanInto(lexer);
 
     const group = output.at(0) as FrameGroup;
     const expr = group.asArray()[0] as FrameExpr;
@@ -406,7 +406,10 @@ describe("Lex", () => {
   it("reports an unterminated byte length at physical end of input", () => {
     const output = new FrameArray([]);
     const parser = new ParsePipe(output, FrameGroup);
-    const pending = new FrameString("\\12").reduce(new LexPipe(parser), false);
+    const pending = new FrameString("\\12").scanInto(
+      new LexPipe(parser),
+      false,
+    );
     const result = sigilizer.finish(pending, FrameSymbol.end());
 
     expect(result.is.error).toEqual(true);
@@ -436,7 +439,7 @@ describe("Lex", () => {
     const parser = new ParsePipe(output, FrameGroup);
     const lexer = new LexPipe(parser);
 
-    new FrameString("\\size\\7 ").reduce(lexer);
+    new FrameString("\\size\\7 ").scanInto(lexer);
 
     const group = output.at(0) as FrameGroup;
     const expr = group.asArray()[0] as FrameExpr;

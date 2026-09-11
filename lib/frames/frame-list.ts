@@ -87,6 +87,20 @@ export class FrameList extends Frame {
     return this.data;
   }
 
+  /**
+   * The elements, which are the terms that answered a value of their own.
+   *
+   * A statement answers nothing, and a declaration answers a property, so
+   * neither is an element. That is what makes properties and elements two
+   * planes rather than one list with configuration mixed into it, and it is why
+   * a value whose contents are all properties has nothing to iterate.
+   */
+  public override elements(): Array<Frame> {
+    return this.data.filter((item) =>
+      item.is.statement !== true && item.is.declaration !== true
+    );
+  }
+
   public size(): number {
     return this.data.length;
   }

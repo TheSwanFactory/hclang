@@ -26,12 +26,20 @@ export type FrameBinding = {
   value: Frame;
 };
 
+/**
+ * The echo a declaration answers, which is a declaration and not an element.
+ *
+ * An aggregate retains this in its data plane so the source it was built from
+ * still prints, but a declaration wrote a property: counting it as an element
+ * too would put one value in both planes and iterate it twice.
+ */
 export class FrameLiteral extends FrameAtom {
   constructor(
     protected data: string,
     public readonly binding?: FrameBinding,
   ) {
     super(NilContext);
+    this.is.declaration = true;
   }
 
   protected override toData(): string {
@@ -43,6 +51,8 @@ export class FrameSymbol extends FrameAtom {
   public static readonly SYMBOL_BEGIN = /[a-zA-Z]/;
   public static readonly SYMBOL_CHAR = /[-\w]/;
   public static readonly OPERATOR_CHARS = /[&|?:+\-/*%=<>!~^]/;
+  /** The prefix that makes a printed symbol read back as the same symbol. */
+  public static readonly ADDRESS_BEGIN = ".";
   public static readonly SIGIL_STARTS: readonly SigilStart[] = [
     { key: FrameSymbol.SYMBOL_BEGIN.toString(), mode: "atom" },
   ];
@@ -69,6 +79,20 @@ export class FrameSymbol extends FrameAtom {
 
   public static end(): FrameSymbol {
     return FrameSymbol.for(Frame.kEND);
+  }
+
+  /**
+   * A symbol in value position: an address rather than a pending lookup.
+   *
+   * Iteration synthesizes one per member, because a tuple key has to be the
+   * thing that addresses the member rather than a description of it. This is
+   * deliberately not interned: `for` hands back the shared symbol the front end
+   * uses as a source character, and marking that one would dot every lexeme.
+   */
+  public static address(key: string): FrameSymbol {
+    const symbol = new FrameSymbol(key);
+    symbol.is.address = true;
+    return symbol;
   }
 
   protected static symbols: { [key: string]: FrameSymbol } = {};
@@ -195,6 +219,13 @@ export class FrameSymbol extends FrameAtom {
     if (argument instanceof FrameHandle) {
       argument = argument.unwrap();
     }
+    // `.0` already addresses the first element, so declaring it would give one
+    // address two meanings, and would put two members under one key in a
+    // doubled stream. Refusing it is what makes one key slot well-formed,
+    // whether or not the index exists yet.
+    if (Frame.isInteger(this.data)) {
+      return Frame.error(`$!.numeric-key .${this.data}`);
+    }
     // `.^` declares the structural parent without visibility grading.
     if (this.data === "^") {
       const previous = out.hasDeclaredParent() ? out.parent : Frame.missing;
@@ -242,6 +273,9 @@ export class FrameSymbol extends FrameAtom {
       meta[Frame.kOUT] = out;
     }
     const setter = new FrameSymbol(this.data, meta);
+    // An evaluated `.name` is in value position, so it prints as the address it
+    // is rather than as the lookup its spelling alone would re-read as.
+    setter.is.address = true;
     return setter;
   }
 
@@ -270,6 +304,32 @@ export class FrameSymbol extends FrameAtom {
 
   public override string_start(): string {
     return FrameSymbol.SYMBOL_BEGIN.toString();
+  }
+
+  /**
+   * An address renders with its dot, so canonical output re-reads as input.
+   *
+   * Only a symbol in value position takes one, and that distinction is the whole
+   * rule. An unevaluated symbol is a pending lookup, and `a` is exactly how a
+   * lookup is written, so dotting it would print a declaration instead. An
+   * evaluated symbol is an address a caller can apply, and printing `meta` for
+   * one yields a lookup when re-read rather than the symbol `.meta` — which is
+   * the re-readability that properties-first rendering was chosen for, and what
+   * makes a stream of `[key, value]` tuples round-trip.
+   */
+  public override string_prefix(): string {
+    return this.is.address === true ? FrameSymbol.ADDRESS_BEGIN : "";
+  }
+
+  /**
+   * The name itself, which is the key this symbol addresses.
+   *
+   * Rendering decorates a symbol in value position with its address dot, so
+   * anything deciding meaning from the name asks for this rather than comparing
+   * printed forms.
+   */
+  public spelling(): string {
+    return this.data;
   }
 
   protected override toData(): string {

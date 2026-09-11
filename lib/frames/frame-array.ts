@@ -76,6 +76,11 @@ export class FrameArray extends FrameList {
     return super.lookup_here(key, origin);
   }
 
+  /** An aggregate collects, which is what makes applying to one a push. */
+  public override collects(): boolean {
+    return true;
+  }
+
   public override apply(argument: Frame, _parameter: Frame): FrameArray {
     if (!argument.is.void) {
       this.data.push(argument);

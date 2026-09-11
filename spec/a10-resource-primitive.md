@@ -24,12 +24,14 @@ Two verbs, both already dispatched by the evaluator:
 | Source                | Mechanism                             | Yields                  |
 | --------------------- | ------------------------------------- | ----------------------- |
 | `'./out.txt' “hello”` | `Frame.apply` — the left fold's write | `5`, characters written |
-| `'./out.txt' \| {…}`  | `MapEnumerable` via `asArray()`       | array of block results  |
-| `'./out.txt' & {…}`   | `ReduceEnumerable` via `asArray()`    | the fold                |
+| `'./out.txt' \| “”`   | `Frame.reduce` via `elements()`       | the whole content       |
+| `'./out.txt' \| []`   | `Frame.reduce` via `elements()`       | the characters, apart   |
 
-There is no `<-` I/O primitive and no separate resolver frame. Reads go through
-`asArray()`, which is the entire enumerable protocol `|` and `&` require, so a
-resource is enumerable for the same reason an array is.
+There is no `<-` I/O primitive and no separate resolver frame. A read is a
+reduce over characters, so a resource is a stream for the same reason an array
+is a collection, and what a read answers is decided by the receiver rather than
+by the source. `spec/a11-resource-iteration.md` owns that reading; this
+document's provisional whole-content element is what it replaced.
 
 Two properties fall out rather than being designed. **Path extension is
 attenuation**, because a child path is a subset by construction and `..` is
@@ -144,20 +146,26 @@ type travel with the resource — characters, lines, or HC code — at which poi
 `|` and `&` stay generic and no single reading has to win. Choosing lines here
 would have been choosing that answer by accident.
 
-**Superseded in design by [`a11`](a11-resource-iteration.md).** The element type
-belongs to the receiver, not the resource: a read is a character fold, and
-chunking and parsing are what a receiver does. The whole-content element
-described here is what shipped and still what runs; a11 records why it changes
-and what the change has left to settle.
+**Superseded by [`a11`](a11-resource-iteration.md), which shipped in v0.15.0.**
+The element type belongs to the receiver, not the resource: a read is a
+character reduce, and chunking and parsing are what a receiver does. Nothing
+above about authority moved; only what a read yields did. Read a11 for the
+reading, and the paragraphs above for why this one was provisional rather than
+wrong.
 
 Reading a location with nothing at it is `$!.resource-absent`, which flows back
-through ordinary evaluation per a07 §6: `'./nope' | {…}` yields an array whose
-element is the refusal, and that array reports itself as a failed result.
+through ordinary evaluation per a07 §6: `'./nope' | []` yields an array whose
+element is the refusal, and that array reports itself as a failed result. A
+refusal is a value an aggregate collects; every other receiver is poisoned by
+it, because an operation on an error is an error and a collect is not one.
+Reading an _empty_ location is different and must stay so: an empty stream
+reduces to nil, which is not a failure.
 
-`isFailedResult` is overridden to consult the error flag alone. The inherited
-implementation calls `asArray()`, and `FrameExpr` calls `isFailedResult` on
-every term of every statement, so inheriting it would have made a read happen
-once per mention.
+`isFailedResult` is inherited rather than overridden, because `asArray()` is the
+structural view and performs no access. `FrameExpr` calls `isFailedResult` on
+every term of every statement, so a reading `asArray()` would have made a read
+happen once per mention — which is why the reading moved to `elements()` instead
+of the check being patched a second time.
 
 ## Scope
 

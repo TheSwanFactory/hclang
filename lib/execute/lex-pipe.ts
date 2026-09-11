@@ -33,7 +33,7 @@ export class LexPipe extends Frame implements IFinish, IPerformer {
   }
 
   public lex(source: FrameString): Frame {
-    return source.reduce(this);
+    return source.scanInto(this);
   }
 
   public finish(_parameter: Frame): LexPipe {

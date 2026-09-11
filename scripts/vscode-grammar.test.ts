@@ -158,7 +158,7 @@ describe("VS Code scope-anchor grammar", () => {
 /** Lex one source and report the dollar verdict the highlighter must match. */
 const lexVerdict = (source: string): "invalid" | "clean" | "other-error" => {
   const output = new FrameArray([]);
-  const result = new FrameString(source).reduce(
+  const result = new FrameString(source).scanInto(
     new LexPipe(new ParsePipe(output, FrameGroup)),
   );
 

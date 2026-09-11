@@ -142,8 +142,8 @@ export class FrameLazy extends FrameExpr {
     }
 
     const missing = this.signature.asArray()
-      .filter((item) => item instanceof FrameSymbol)
-      .map((item) => item.toString())
+      .filter((item): item is FrameSymbol => item instanceof FrameSymbol)
+      .map((item) => item.spelling())
       .filter((key) => prepared.get_here(key).is.missing);
     if (missing.length === 0) return prepared;
 

@@ -10,9 +10,8 @@ Every `;` line below is input you can type into the REPL, and every `#` line is
 the answer it prints back. Input that itself ends in `;` is a statement, so it
 answers nothing and no `#` line follows it.
 
-> NOTE: This tutorial defines the model; the implementation is still catching up
-> to it. Where the two disagree today, the tutorial is right and the interpreter
-> is behind.
+> NOTE: This tutorial defines the model, and the interpreter implements it as of
+> v0.15.0. Two rendering details are still behind; they are named at the end.
 
 ## Applying a value
 
@@ -261,12 +260,22 @@ rather than raising
 # [$!.resource-absent './missing.txt']
 ```
 
-## Where the current release differs
+## Where the interpreter is still behind
 
-Version 0.14.1 assigns the single operators the other way around: `|` maps and
-`&` reduces, seeded from the first element. Its `&&` maps the properties alone,
-with the value in the underscore and the key in the dot parameter rather than a
-tuple, and `||` is unbound. `apply.hc` records that behavior example by example,
-so reach for it when you are working against the release rather than against
-this tutorial. `apply-new.hc` records the decisions behind this model, and why
-each one was taken.
+This model is implemented as of v0.15.0. Two things above are still the tutorial
+speaking ahead of the interpreter, and both are about printing rather than
+iterating:
+
+- A value prints its elements first and repeats each declaration as a trailing
+  echo, so `[.a 1; a, 2]` renders as `[(.a 1); 1, 2, .a 1;]` rather than
+  `[.a 1; 1, 2]`. Iteration already uses the properties-then-elements order this
+  section describes; canonical rendering does not yet agree with it.
+- A refused declaration inside an aggregate literal stays a failed statement
+  inside that literal instead of becoming its answer, so `[.0 9; 1, 2]` renders
+  the refusal in place rather than as `$!.numeric-key .0`.
+
+Before v0.15.0 the single operators were assigned the other way around: `|`
+mapped and `&` reduced, seeded from the first element, `&&` mapped the properties
+alone with the key in the dot parameter, and `||` was unbound. `apply.hc` records
+the decisions behind the model that replaced it, pins each one to an executable
+expectation, and marks the two above as promises.

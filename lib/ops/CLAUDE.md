@@ -24,11 +24,19 @@ power.
 
 ### Iteration and Collections
 
-- [iterators.ts](iterators.ts) - Collection operations
-  - `map` - Transform elements
-  - `filter` - Select elements
-  - `reduce` - Aggregate elements
-  - `each` - Iterate over elements
+- [iterators.ts](iterators.ts) - Iteration, which is application twice
+  - `&` - map elements: apply each to the receiver, keep the answers apart
+  - `|` - reduce elements: apply each to the value the last step answered
+  - `&&` / `||` - the same two, over a stream widened to `[key, value]` tuples
+
+  Both operators take the right operand as the receiver and hand it the element
+  as the argument. Neither inspects what it was handed, so a text or aggregate
+  receiver is as ordinary as a closure, and no operator carries a second calling
+  convention. The stream itself comes from `Frame.elements`, and the widened one
+  from `Frame.visibleKeys` followed by those elements by index.
+
+  `cli/hc/apply-tutorial.md` teaches the model and `cli/hc/apply.hc` is its
+  executable corpus.
 
 ### Functional Programming
 
@@ -93,14 +101,16 @@ execute("not true"); // "false"
 ### Iteration
 
 ```typescript
-// Map
-execute("[1 2 3] map {x => x * 2}"); // "[2 4 6]"
+// Map: one answer per element
+execute("[1, 2, 3] & {_ * 2}"); // "[2, 4, 6]"
 
-// Filter
-execute("[1 2 3 4] filter {x => x > 2}"); // "[3 4]"
+// Reduce: what you start from is the combining rule
+execute("[1, 2, 3] | []"); // "[1, 2, 3]"
+execute("[1, 2, 3] | “”"); // "“123”"
+execute("[1, 2, 4] | 1"); // "8"
 
-// Reduce
-execute("[1 2 3] reduce 0 {acc x => acc + x}"); // "6"
+// Doubling widens the stream to [key, value] tuples
+execute("[10, 20] && {_}"); // "[[.0, 10], [.1, 20]]"
 ```
 
 ### Currying

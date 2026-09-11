@@ -150,7 +150,7 @@ export class HCEval {
     if (!activeDocument) {
       this.checkInput(input);
     }
-    const result = source.reduce(this.lex, endOfLine);
+    const result = source.scanInto(this.lex, endOfLine);
     this.lex = result.is.lexical === true ? result : this.pipe;
     if (result.is.error === true) {
       this.lexicalError = result.toString();

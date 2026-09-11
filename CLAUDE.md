@@ -166,8 +166,25 @@ A delimiter earns its keep only when it changes what the delimited text denotes:
 | `#…#`     | a comment, which is also a string    |
 
 A resource identifier is inert until a root binding is reachable in the
-invocation context. Applying one writes, `|` and `&` read, and path extension is
-attenuation. `spec/a10-resource-primitive.md` is the contract.
+invocation context. Applying one writes, reducing one reads, and path extension
+is attenuation. `spec/a10-resource-primitive.md` is the contract for the
+authority, and `spec/a11-resource-iteration.md` for the reading.
+
+### Iteration
+
+Iteration is application, twice. Both operators apply each streamed value to the
+right operand and differ only in what becomes of each answer: `&` keeps the
+answers apart, one per element, while `|` keeps each answer as the receiver for
+the next element. What a reduce starts from is therefore the combining rule —
+text joins, an aggregate collects, a numeric multiplies — so no operator carries
+a rule of its own. Doubling either one widens the stream from values to
+`[key, value]` tuples, over the visible properties in declaration order and then
+the elements by index.
+
+A resource pushes characters, so what a read answers is decided downstream by
+composition rather than declared by the source. `cli/hc/apply-tutorial.md`
+teaches this and `cli/hc/apply.hc` is the executable corpus. Before v0.15.0 `|`
+and `&` were assigned the other way around.
 
 ## Project Guidelines
 
@@ -391,8 +408,9 @@ Only judgment that no tool records belongs here. Look elsewhere first:
   (`spec/a10-resource-primitive.md`), so neither needs to invent a resolver.
 - #367 (per-scheme handler table), #368 (typed resources), and #371 (retire the
   CLI's `-A`) each extend one named seam of that primitive and can run
-  independently. #367 owns `normalizeReference`'s scheme branch, #368 owns
-  `FrameResource.asArray`, and #371 owns nothing in `lib/` at all.
+  independently. #367 owns `normalizeReference`'s scheme branch, #368 owned
+  `FrameResource`'s reading path and has landed, and #371 owns nothing in `lib/`
+  at all.
 
 ### Pull-request boundaries
 

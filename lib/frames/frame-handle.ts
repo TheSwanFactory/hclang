@@ -129,4 +129,12 @@ export class FrameHandle extends Frame {
   public override asArray(): Frame[] {
     return this.target.asArray();
   }
+
+  public override elements(): Frame[] {
+    return this.target.elements();
+  }
+
+  public override visibleKeys(): string[] {
+    return this.target.visibleKeys();
+  }
 }

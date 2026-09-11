@@ -106,16 +106,16 @@ describe("FrameResource", () => {
       const grandchild = child.extend("./b/c.txt");
 
       grandchild.apply(new FrameString("deep"), Frame.nil);
-      expect(root.extend("./a/b/c.txt").asArray()[0].toString()).toEqual(
-        "“deep”",
-      );
+      expect(
+        root.extend("./a/b/c.txt").reduce(new FrameString("")).toString(),
+      ).toEqual("“deep”");
     });
 
     it("carries a refusal down every extension of it", () => {
       const refused = FrameResource.root(new MemoryStore())
         .extend("../escape") as FrameResource;
 
-      expect(refused.extend("./child").asArray()[0].toString()).toEqual(
+      expect(refused.extend("./child").elements()[0].toString()).toEqual(
         "$!.resource-parent-escape './child'",
       );
     });
@@ -133,13 +133,13 @@ describe("FrameResource", () => {
     it("contributes character content, and spelling from anything else", () => {
       const store = new MemoryStore();
 
-      expect(results("'./a.txt' “x”\n'./a.txt' | {_}", store)).toEqual([
+      expect(results("'./a.txt' “x”\n'./a.txt' | “”", store)).toEqual([
         "1",
-        "[“x”]",
+        "“x”",
       ]);
-      expect(results("'./b.txt' 'c/d'\n'./b.txt' | {_}", store)).toEqual([
+      expect(results("'./b.txt' 'c/d'\n'./b.txt' | “”", store)).toEqual([
         "5",
-        "[“'c/d'”]",
+        "“'c/d'”",
       ]);
     });
 
@@ -147,9 +147,9 @@ describe("FrameResource", () => {
       const store = new MemoryStore();
       results("'./a.txt' “first”", store);
 
-      expect(results("'./a.txt' “2nd”\n'./a.txt' | {_}", store)).toEqual([
+      expect(results("'./a.txt' “2nd”\n'./a.txt' | “”", store)).toEqual([
         "3",
-        "[“2nd”]",
+        "“2nd”",
       ]);
     });
 
@@ -170,35 +170,58 @@ describe("FrameResource", () => {
   });
 
   describe("reading", () => {
-    it("enumerates through the protocol `|` already requires", () => {
+    it("pushes characters, so the receiver decides what a read answers", () => {
       const store = new MemoryStore();
 
-      expect(results("'./a.txt' “hi”\n'./a.txt' | {_}", store)).toEqual([
-        "2",
-        "[“hi”]",
-      ]);
-    });
-
-    it("folds a single element with `&`", () => {
-      const store = new MemoryStore();
-
-      expect(results("'./a.txt' “hi”\n'./a.txt' & {_}", store)).toEqual([
+      // Nothing about the reading is a property of the source: text joins the
+      // characters back into whole content, an aggregate collects them apart.
+      expect(results("'./a.txt' “hi”\n'./a.txt' | “”", store)).toEqual([
         "2",
         "“hi”",
       ]);
+      expect(results("'./a.txt' | []", store)).toEqual(["[“h”, “i”]"]);
+      expect(results("'./a.txt' & {_}", store)).toEqual(["[“h”, “i”]"]);
     });
 
-    it("supplies the iterator index like any other enumerable", () => {
+    it("indexes those characters under a doubled read", () => {
       const store = new MemoryStore();
 
-      expect(results("'./a.txt' “hi”\n'./a.txt' | {.}", store)).toEqual([
+      expect(results("'./a.txt' “hi”\n'./a.txt' && {_}", store)).toEqual([
         "2",
-        "[0]",
+        "[[.0, “h”], [.1, “i”]]",
+      ]);
+    });
+
+    it("keeps its URI components out of the stream", () => {
+      const store = new MemoryStore();
+      results("'./a.txt' “hi”", store);
+
+      // The components describe the reference the value is, rather than
+      // contents it holds, so they stay readable by name and never iterate.
+      expect(results("'./a.txt'.path", store)).toEqual(["“./a.txt”"]);
+      expect(results("'./a.txt' || []", store)).toEqual([
+        "[[.0, “h”], [.1, “i”]]",
+      ]);
+    });
+
+    it("answers nil for an empty location, which is not an absent one", () => {
+      const store = new MemoryStore();
+      const root = FrameResource.root(store);
+      root.extend("./empty.txt").apply(new FrameString(""), Frame.nil);
+
+      // Absent and empty are different facts, and only one is a failure. An
+      // empty stream reduces to nil whatever it started from, while a missing
+      // location answers a refusal.
+      expect(root.extend("./empty.txt").elements()).toEqual([]);
+      expect(root.extend("./empty.txt").reduce(new FrameString("")))
+        .toEqual(Frame.nil);
+      expect(results("'./nope.txt' | “”", store)).toEqual([
+        "$!.resource-absent './nope.txt'",
       ]);
     });
 
     it("reports an absent location as a value the iterator collects", () => {
-      const collected = withRoot("'./nope.txt' | {_}").at(0);
+      const collected = withRoot("'./nope.txt' | []").at(0);
 
       expect(collected).toBeInstanceOf(FrameArray);
       expect(collected.at(0).toString()).toEqual(
@@ -212,11 +235,11 @@ describe("FrameResource", () => {
         "link.txt": "/etc/passwd",
       });
 
-      expect(results("'./link.txt' | {_}", store)).toEqual([
+      expect(results("'./link.txt' | []", store)).toEqual([
         "[$!.resource-escaped-root './link.txt']",
       ]);
-      expect(results("'./ordinary.txt' | {_}", store)).toEqual([
-        "[“bytes at ordinary.txt”]",
+      expect(results("'./ordinary.txt' | “”", store)).toEqual([
+        "“bytes at ordinary.txt”",
       ]);
     });
 
@@ -231,15 +254,18 @@ describe("FrameResource", () => {
     });
   });
 
-  describe("failure is read from the flag, never by enumerating", () => {
+  describe("only the enumerable path reads", () => {
     it("does not read the resource once per mention", () => {
       const store = new LinkingStore("/tmp/root");
       const resource = FrameResource.root(store).extend("./a.txt");
 
+      // A control boundary checks every term of every statement through the
+      // structural view, which is why that view must not be the reading one.
       expect(resource.isFailedResult()).toEqual(false);
+      expect(resource.asArray()).toEqual([resource]);
       expect(store.reads).toEqual([]);
 
-      resource.asArray();
+      resource.elements();
       expect(store.reads).toEqual(["a.txt"]);
     });
 
