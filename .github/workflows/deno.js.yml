@@ -172,12 +172,8 @@ jobs:
           VERSION: ${{ needs.build.outputs.version }}
         run: |
           jsr_exists() {
-            PACKAGE="$1" VERSION="$VERSION" deno eval --allow-env --allow-net '
-              const name = Deno.env.get("PACKAGE");
-              const version = Deno.env.get("VERSION");
-              const response = await fetch(`https://jsr.io/${name}/${version}_meta.json`);
-              Deno.exit(response.ok ? 0 : 1);
-            '
+            curl --fail --silent --output /dev/null \
+              "https://jsr.io/$1/${VERSION}_meta.json"
           }
 
           if jsr_exists "@swanfactory/hclang"; then
