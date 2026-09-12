@@ -226,6 +226,58 @@ describe("FrameTime", () => {
       expect(rendered("%1970-01-01T00:00:00.000000001Z% - %1970-01-01%"))
         .toEqual("%PT0.000000001S%");
     });
+
+    it("refuses an instant that would leave the range a literal accepts", () => {
+      // Canonical output is the contract, and `renderYear` can spell a year the
+      // grammar will not read back, so the overflow refuses like an inexact
+      // scaling rather than answering something the reader rejects.
+      expect(rendered("%999999-12-31T00:00:00Z% + %P1D%")).toEqual(
+        "$!.time-range + FrameDateTime FrameDuration",
+      );
+      expect(rendered("%-999999-01-01T00:00:00Z% - %P1D%")).toEqual(
+        "$!.time-range - FrameDateTime FrameDuration",
+      );
+      expect(rendered("%999999-12-30T00:00:00Z% + %P1D%")).toEqual(
+        "%+999999-12-31T00:00:00Z%",
+      );
+    });
+
+    it("leaves a duration unbounded, because its spelling is", () => {
+      // Only an instant is bounded: a duration renders `P…D` with no width
+      // limit, so a large one still re-reads as itself.
+      expect(rendered("%P999999999D% + %P1D%")).toEqual("%P1000000000D%");
+    });
+  });
+
+  describe("canonical output re-reads as the same value", () => {
+    /** Renders one source, then reads its own rendering back. */
+    const roundTrip = (source: string): [string, string] => {
+      const first = rendered(source);
+      return [first, rendered(first)];
+    };
+
+    it("holds across every rendering the algebra can produce", () => {
+      for (
+        const source of [
+          "%2026-08-21T08:30:00-07:00%",
+          "%2026-08-21%",
+          "%1970-01-01T00:00:00.000000001Z%",
+          "%999999-12-30T00:00:00Z% + %P1D%",
+          "%-999999-01-02T00:00:00Z% - %P1D%",
+          "%9999-12-31T23:59:59Z% + %PT1S%",
+          "%0000-01-01%",
+          "%PT90M%",
+          "%P1W%",
+          "- %PT1H%",
+          "%PT1S% * 1000000000",
+        ]
+      ) {
+        const [first, second] = roundTrip(source);
+
+        expect(first).not.toContain("$!.");
+        expect(second).toEqual(first);
+      }
+    });
   });
 
   describe("parsing performs no observation", () => {

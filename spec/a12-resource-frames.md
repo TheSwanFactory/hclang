@@ -116,8 +116,10 @@ clocks are three entries rather than three modes, and a budget is a duration
 plus a clock, where exhaustion is the clock refusing — which is the whole of
 #277's time budgets, without a limiter subsystem.
 
-A program cannot distinguish an absent clock from a refusing one: both arrive as
-refusal values through ordinary evaluation.
+A refused program gets no reading, whether the scheme was never bound or the
+clock declined, and either way the refusal is an ordinary value rather than
+something that raises. It is **not** true that the two are indistinguishable —
+see the note below.
 
 ## 7. One harness's flags
 
@@ -133,6 +135,25 @@ disable.
 
 ## Noted, not resolved here
 
+- **Refusal names are a discrimination channel, and a07 §7 says they must not
+  be.** §7 asks that an ungranted resource be nonexistent rather than forbidden,
+  so a program "cannot distinguish 'exists but refused' from 'does not exist'".
+  What ships is the opposite, and not only for the clock: a10 made refusals
+  nameable, so `$!.resource-scheme-unbound`, `$!.resource-absent`,
+  `$!.resource-escaped-root`, and `$!.clock-exhausted` are four different values
+  a program can read. A program can therefore learn whether its host bound a
+  clock at all.
+
+  Shipped as-is for two reasons: collapsing them would make an unbound scheme
+  lie about itself, and #367 specifies and pins that exact refusal; and a budget
+  that says why it stopped is debuggable where one that plays dead is not. But
+  the ruling has not been made. Either §7 weakens to "no ungranted operation
+  succeeds", or the vocabulary gains a split where the program sees one spelling
+  and the exported note carries the reason — which is the shape §7 already
+  implies, since it has notes _exported_ rather than returned.
+
+  Recorded rather than fixed, because it predates this group and changing it
+  edits every resource refusal rather than the clock.
 - **Typed resources.** A handler answers elements, which is enough for a clock,
   but the element _type_ still does not travel with a resource. Nothing here
   makes that harder.

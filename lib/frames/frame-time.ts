@@ -44,7 +44,7 @@
  *
  * @module
  */
-import { unterminatedAtEnd } from "./atom-syntax.ts";
+import { TIME_DELIMITER, unterminatedAtEnd } from "./atom-syntax.ts";
 import { type Context, NilContext } from "./context.ts";
 import {
   type DimensionalKind,
@@ -141,6 +141,21 @@ const civilFromEpochDay = (
   const year = yearOfEra + era * 400n + (month <= 2n ? 1n : 0n);
   return [year, month, day];
 };
+
+/**
+ * The widest year the literal grammar admits, and the instants it bounds.
+ *
+ * Rendering is the contract, so the range a literal accepts is the range an
+ * instant may hold: arithmetic that leaves it refuses rather than emitting a
+ * spelling the reader would reject.
+ */
+const MAX_INSTANT_YEAR = 999999n;
+
+const MIN_INSTANT_NANOS = epochDayFromCivil(-MAX_INSTANT_YEAR, 1n, 1n) *
+  NANOS_PER_DAY;
+
+const MAX_INSTANT_NANOS =
+  (epochDayFromCivil(MAX_INSTANT_YEAR, 12n, 31n) + 1n) * NANOS_PER_DAY - 1n;
 
 const pad = (value: bigint, width: number): string =>
   (value < 0n ? -value : value).toString().padStart(width, "0");
@@ -333,6 +348,26 @@ const inexact = (
   );
 
 /**
+ * An instant, or a refusal when it would fall outside the literal's range.
+ *
+ * Canonical output has to re-read as the same value, and `renderYear` can spell
+ * a year wider than the grammar accepts, so the overflow is refused here for the
+ * same reason an inexact scaling is: answering something the reader rejects is
+ * worse than answering nothing.
+ */
+const instantWithinRange = (
+  nanos: bigint,
+  operator: DimensionalOperator,
+  left: Frame,
+  right: Frame,
+): Frame =>
+  nanos < MIN_INSTANT_NANOS || nanos > MAX_INSTANT_NANOS
+    ? Frame.error(
+      `$!.time-range ${operator} ${left.className()} ${right.className()}`,
+    )
+    : new FrameDateTime(nanos);
+
+/**
  * Scales nanoseconds by an exact ratio, or refuses.
  *
  * Exactness is the contract, so a scaling that would not land on a whole
@@ -388,7 +423,7 @@ const combineOrdered = (
       ? left.nanos + right.nanos
       : left.nanos - right.nanos;
     return result === "point"
-      ? new FrameDateTime(nanos)
+      ? instantWithinRange(nanos, operator, left, right)
       : new FrameDuration(nanos);
   }
 
@@ -409,7 +444,7 @@ const combineOrdered = (
 
 /** An exact time value: nanoseconds, and the kind it plays in the algebra. */
 export abstract class FrameTime extends FrameNumeric {
-  public static readonly TIME_DELIMITER = "%";
+  public static readonly TIME_DELIMITER = TIME_DELIMITER;
   /** The operator that keeps the doubled delimiter. */
   public static readonly MODULO = "%%";
 

@@ -68,10 +68,12 @@ describe("VISIBLE_ENVIRONMENT", () => {
     expect(Object.isFrozen(VISIBLE_ENVIRONMENT)).toBe(true);
   });
 
-  it("covers the variables this dependency tree probes", () => {
-    // Colour support is read by the CLI's own dependencies, and the logger and
-    // the context builder read the debug pair. A dictionary that omitted them
-    // would look tidy and break the harness that uses it.
+  it("covers the colour and debug variables this harness's code reads", () => {
+    // Not the whole probe set: the CLI's dependency tree also reads a dozen
+    // CI-vendor names to detect colour support, and those stay out because
+    // detecting a vendor is the harness's business rather than a program's. They
+    // reach the dependency through the unscoped flag, never through `$$`, which
+    // is the point of the dictionary not being an `--allow-env` scope.
     for (const probed of ["TERM", "COLORTERM", "FORCE_COLOR", "NO_COLOR"]) {
       expect(VISIBLE_ENVIRONMENT).toContain(probed);
     }

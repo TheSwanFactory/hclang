@@ -112,13 +112,31 @@ describe("the clock as a grant", () => {
       )).toEqual(["<>"]);
     });
 
-    it("cannot distinguish an absent clock from a refusing one", () => {
+    it("yields no reading whether the clock is absent or refusing", () => {
       const spent = new ScriptedClock([]);
 
-      // Both answers are refusals reaching the program the same way, so there
-      // is nothing here to probe the host with.
-      expect(underClock(READ_NOW).at(0)).toContain("$!.");
-      expect(underClock(READ_NOW, spent).at(0)).toContain("$!.");
+      // What holds: neither path produces an instant, and both arrive as a
+      // value the iteration collects rather than as something that raises.
+      for (
+        const answer of [underClock(READ_NOW), underClock(READ_NOW, spent)]
+      ) {
+        expect(answer[0]).toContain("$!.");
+        expect(answer[0]).not.toContain("%");
+      }
+    });
+
+    it("names those two refusals differently, so they are distinguishable", () => {
+      // What does not hold is a07 §7's stronger claim. Refusals are nameable
+      // throughout the resource primitive, so a program reading one can tell an
+      // unbound scheme from a clock that declined. Pinned here because the
+      // property is a design tension worth failing loudly if it changes, not an
+      // implementation detail: see spec/a12-resource-frames.md.
+      expect(underClock(READ_NOW)).toEqual([
+        "[$!.resource-scheme-unbound 'clock:now']",
+      ]);
+      expect(underClock(READ_NOW, new ScriptedClock([]))).toEqual([
+        "[$!.clock-exhausted 'clock:now']",
+      ]);
     });
   });
 });

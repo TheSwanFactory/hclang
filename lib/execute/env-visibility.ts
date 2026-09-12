@@ -45,6 +45,13 @@ const UNIX_VARIABLES = [
  * tree reads the colour-support family, and `DEBUG`/`DEBUG_ENV` are read by the
  * logger and the context builder. Omitting them would leave a dictionary that
  * looks tidy and breaks the harness that uses it.
+ *
+ * Deliberately absent: the CI-vendor names that same dependency reads to guess
+ * at colour support — `TF_BUILD`, `GITHUB_ACTIONS`, `TRAVIS`, and a dozen more.
+ * Which CI a build runs under is the harness's business, not a property of the
+ * invocation a program should describe itself with, and they reach the dependency
+ * through the flag rather than through this dictionary. The vendor-neutral `CI`
+ * stays, because that one is a fact about the invocation.
  */
 const TOOLING_VARIABLES = [
   "CI",

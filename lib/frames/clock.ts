@@ -12,9 +12,14 @@
  * handler swap, which is what finally lets a `;` source and `#` expected pair say
  * something time-dependent.
  *
- * A program with no clock cannot distinguish "no clock" from "clock refused", so
- * it cannot probe its host for one: both answers are a refusal value flowing back
- * through ordinary evaluation.
+ * What holds for a program that is refused: no reading is available, whether the
+ * scheme was never bound or the clock declined, and either way the refusal is an
+ * ordinary value that flows back through evaluation rather than raising. It does
+ * *not* hold that the two are indistinguishable — `$!.resource-scheme-unbound`
+ * and `$!.clock-exhausted` are different values, and a program can read them.
+ * That is deliberate here and general to the resource primitive, whose refusals
+ * are nameable by design; `spec/a12-resource-frames.md` records the tension with
+ * a07 §7's stronger claim rather than resolving it in this one handler.
  *
  * @module
  */

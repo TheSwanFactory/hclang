@@ -346,6 +346,22 @@ describe("Lex", () => {
     expect(lexAtoms("3.%%2 ").map(String)).toEqual(["3", ".%%", "2"]);
   });
 
+  it("opens a time literal abutting an operator, not only after a space", () => {
+    // `%` is an operator continuation character, so an operator would otherwise
+    // swallow the sigil beside it and leave the rest of the line unterminated.
+    // Nothing else in the language cares whether you write `1+1` or `1 + 1`.
+    expect(lexAtoms("2*%PT1H% ").map(String)).toEqual(["2", "*", "%PT1H%"]);
+    expect(lexAtoms("-%PT1H% ").map(String)).toEqual(["-", "%PT1H%"]);
+    expect(lexAtoms("%PT1H%-%PT30M% ").map(String)).toEqual([
+      "%PT1H%",
+      "-",
+      "%PT30M%",
+    ]);
+    for (const source of ["2*%PT1H% ", "%PT1H%-%PT30M% ", "-%PT1H% "]) {
+      expect(lexResult(source).is.error).not.toBe(true);
+    }
+  });
+
   it("lexes a time literal identically across every two-chunk split", () => {
     const source = "%2026-08-21T00:00:00Z%";
 

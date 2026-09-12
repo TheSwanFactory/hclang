@@ -142,11 +142,30 @@ deterministic about a real clock is that its reading is an instant already past
 # <>
 ```
 The same source is byte-identical under a frozen or scripted clock, where the
-reading is pinned; only the installed entry decides what it answers. Refusal
-reaches the program the same way for an absent clock and a spent one, so there is
-nothing here to probe a host with
+reading is pinned; only the installed entry decides what it answers. A program
+that is refused gets no reading either way, and the refusal is an ordinary value
+rather than something that raises
 ```
 ; 'clock:now' “2020-01-01”
 # $!.clock-read-only 'clock:now'
 ; 'clock:yesterday' | []
 # [$!.clock-unreadable 'clock:yesterday']
+```
+Canonical rendering is the contract, so arithmetic that would leave the range a
+literal accepts refuses instead of answering a spelling the reader would reject
+```
+; %999999-12-30T00:00:00Z% + %P1D%
+# %+999999-12-31T00:00:00Z%
+; %999999-12-31T00:00:00Z% + %P1D%
+# $!.time-range + FrameDateTime FrameDuration
+```
+Nothing here is whitespace-sensitive. A time literal opens beside an operator
+exactly as it does after a space, because `%` is the family's delimiter and not an
+operator's continuation
+```
+; 2*%PT30M%
+# %PT1H%
+; %PT1H%-%PT30M%
+# %PT30M%
+; -%PT1H%
+# %-PT1H%

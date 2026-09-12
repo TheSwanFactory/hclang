@@ -34,7 +34,9 @@
   instant, duration times a number is a duration from either side, duration over
   duration is a plain number, and instant plus instant is a type error. Values
   are exact nanoseconds, so a scaling that would not land on a whole nanosecond
-  answers `$!.time-inexact` instead of rounding (#369).
+  answers `$!.time-inexact` instead of rounding, and arithmetic leaving the year
+  range a literal accepts answers `$!.time-range` rather than a spelling that
+  would not read back (#369).
 - **`%%` keeps its meaning as Modulo, and there is no empty time literal.** The
   doubled delimiter belongs to an operator that already had behavior, unlike the
   unused `"""` spelling a03 claimed, and a literal with no body would name
