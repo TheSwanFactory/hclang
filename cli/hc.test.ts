@@ -336,7 +336,23 @@ describe("main", () => {
 
     expect(status).toEqual(0);
     expect(out.at(-1).toString()).toContain(
-      '“{"total":21,"pass":21,"fail":0,"unimplemented":0}”',
+      '“{"total":26,"pass":26,"fail":0,"unimplemented":0}”',
+    );
+  });
+
+  it("keeps the apply-and-iterate decisions green under real authority", async () => {
+    const out = new FrameArray([]);
+    const file = new URL("./hc/apply.hc", import.meta.url).pathname;
+    // A root binding, because the resource decisions are part of the model this
+    // file pins. Every decision is executable, so nothing here is a promise.
+    const status = await main(
+      new HCEval(out, new Frame(), getHost()),
+      getOptions(["--testdoc", file]),
+    );
+
+    expect(status).toEqual(0);
+    expect(out.at(-1).toString()).toContain(
+      '“{"total":40,"pass":40,"fail":0,"unimplemented":0}”',
     );
   });
 
@@ -368,7 +384,7 @@ describe("main", () => {
       expect(diagnostics).toEqual([]);
       expect(summaries.length).toEqual(1);
       expect(summaries[0].toString()).toContain(
-        '“{"total":82,"pass":82,"fail":0,"unimplemented":0}”',
+        '“{"total":84,"pass":84,"fail":0,"unimplemented":0}”',
       );
     } finally {
       console.error = originalError;

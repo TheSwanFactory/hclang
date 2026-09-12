@@ -121,8 +121,15 @@ export class Frame extends MetaFrame {
         return this;
       }
 
-      public override called_by(_context: Frame): Frame {
-        return this;
+      /**
+       * An operation on an error is an error, but collecting is not an
+       * operation on the value. A refusal is a value, so an aggregate holds it
+       * and reports the failure through its own contents, exactly as it already
+       * holds a missing-name note. Preempting a collect would drop the refusal
+       * and let the reduce answer as though nothing had gone wrong.
+       */
+      public override called_by(context: Frame, parameter: Frame): Frame {
+        return context.collects() ? context.apply(this, parameter) : this;
       }
     })();
     error.is.error = true;
@@ -355,9 +362,13 @@ export class Frame extends MetaFrame {
   }
 
   /**
-   * asArray returns the Frame as an array of Frames.
-   * This is used to allow Frames to be passed to functions
-   * that expect arrays.
+   * asArray returns this aggregate's own terms.
+   *
+   * This is structural access, not the enumerable protocol: the parser, lazy
+   * frames, and the schema matchers ask a frame for the terms it is built from.
+   * Iteration asks `elements`, which a stream answers by producing content it
+   * does not hold. Keeping the two apart is what lets a resource enumerate
+   * characters without every structural walk performing a read.
    *
    * The default implementation is to return this frame inside an Array.
    * @returns an array of Frames
@@ -368,11 +379,88 @@ export class Frame extends MetaFrame {
   }
 
   /**
+   * Whether applying to this frame collects the argument rather than consuming it.
+   *
+   * Only an aggregate answers yes. The distinction matters for one argument: an
+   * error preempts application everywhere else, because an operation on an error
+   * is an error, and a collect is not such an operation.
+   */
+  public collects(): boolean {
+    return false;
+  }
+
+  /**
+   * The values this frame streams when it is iterated.
+   *
+   * Anything which is not an aggregate is a single element, so text does not
+   * enumerate its characters. An aggregate answers its elements; a stream, such
+   * as a resource, answers content it produces on demand.
+   */
+  public elements(): Array<Frame> {
+    return [this];
+  }
+
+  /**
+   * Property names a caller can see, in declaration order.
+   *
+   * Only the doubled operators widen a stream to properties, so this is the one
+   * place that decides what "visible" means for iteration: the public spellings
+   * a program declared, without the interpreter's own plumbing, the schema
+   * written beside a declaration, the lookup patterns, or the graded spellings
+   * whose logical name is only reachable through authorization.
+   */
+  public visibleKeys(): string[] {
+    return this.meta_keys().filter((key) =>
+      key !== Frame.kOUT &&
+      !key.startsWith("_") &&
+      !key.endsWith(".<>") &&
+      !/^\/.*\/$/.test(key)
+    );
+  }
+
+  /**
+   * Folds this frame's stream into a receiver, one element at a time.
+   *
+   * The receiver is supplied rather than fixed, and each element is applied to
+   * the value accumulated so far, so what a reduce answers is decided by what
+   * the receiver does when applied: text joins, an aggregate collects, a
+   * numeric multiplies. Granularity is therefore a property of the composition
+   * and never of the source, which is why no source has to declare an element
+   * type. Nothing is materialized on the receiver's behalf.
+   *
+   * An empty stream answers nil whatever it started from: a reduce with nothing
+   * to work with has no result to report, and answering the seed would report a
+   * value that never took part.
+   */
+  public reduce(receiver: Frame, receiverState?: ReceiverState): Frame {
+    return Frame.reduceInto(this.elements(), receiver, receiverState);
+  }
+
+  /** Threads one stream through a receiver, answering nil for an empty one. */
+  public static reduceInto(
+    values: readonly Frame[],
+    receiver: Frame,
+    receiverState?: ReceiverState,
+  ): Frame {
+    if (values.length === 0) {
+      return Frame.nil;
+    }
+    return values.reduce(
+      (accumulator, value) => accumulator.call(value, Frame.nil, receiverState),
+      receiver,
+    );
+  }
+
+  /**
    * Whether this frame is a failed result at a control boundary.
    *
    * An aggregate of operation results fails when one immediate element is an
    * error. This is deliberately shallow: nested error-valued arrays remain
    * ordinary values unless they are themselves the result being controlled.
+   *
+   * This asks the structural view rather than the enumerable one, because a
+   * control boundary checks every term of every statement: enumerating here
+   * would make a stream perform its read once per mention.
    */
   public isFailedResult(): boolean {
     return this.is.error === true ||
@@ -408,8 +496,16 @@ export class Frame extends MetaFrame {
     return this;
   }
 
+  /**
+   * Negation is decided by the symbol's name, never by how it prints.
+   *
+   * `().!` evaluates its name to a symbol in value position, which renders with
+   * the address dot, so comparing printed forms would stop recognizing it. The
+   * class check is what makes the structural read below safe; frame.ts cannot
+   * import the symbol module without closing a cycle through its own base.
+   */
   private static isBooleanNegation(argument: Frame): boolean {
     return argument.className() === "FrameSymbol" &&
-      argument.toString() === "!";
+      (argument as unknown as { spelling(): string }).spelling() === "!";
   }
 }

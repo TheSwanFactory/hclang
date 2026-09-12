@@ -88,7 +88,7 @@ reaches every property of its own receiver, including private ones.`
 
 `That access survives nesting: a scope inside a method body still runs against
 the same receiver.`
-; .nester [.__deep 3; .via-group {(deep)}; .via-block {[deep] | {_}}];
+; .nester [.__deep 3; .via-group {(deep)}; .via-block {[deep] & {_}}];
 ; nester.via-group()
 # 3
 ; nester.via-block()

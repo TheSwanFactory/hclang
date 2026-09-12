@@ -117,13 +117,15 @@ describe("execute", () => {
 
   describe("identifiers", () => {
     it("allows hyphens", () => {
+      // Properties first, then results, and the declaration prints once: from
+      // the property plane it wrote rather than also as a data-plane echo.
       const result = execute(".a-b 3\na-b");
-      expect(result).toEqual(".a-b 3\n3\n.a-b 3;");
+      expect(result).toEqual(".a-b 3;\n3");
     });
 
     it("allows multiple hyphens", () => {
       const result = execute(".a-long-name 4\na-long-name");
-      expect(result).toEqual(".a-long-name 4\n4\n.a-long-name 4;");
+      expect(result).toEqual(".a-long-name 4;\n4");
     });
   });
 

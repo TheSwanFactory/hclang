@@ -148,12 +148,18 @@ Three modules stand behind it, in dependency order:
 - `resource-binding.ts` names the capability structurally, because a root
   binding is a `FrameResource` and `FrameURI` has to ask one to extend itself.
 
-Two protocol points are load-bearing. Reads go through `asArray()`, since that
-is the entire enumerable protocol `|` and `&` require, and `isFailedResult()` is
-therefore overridden to consult the error flag alone — the inherited version
-calls `asArray()`, and `FrameExpr` calls it on every term of every statement.
-The store is a private TypeScript field, never metadata, so `&&` cannot
-enumerate the authority. See [`a10`](../../spec/a10-resource-primitive.md).
+Three protocol points are load-bearing. Reads go through `elements()`, which
+pushes one character at a time into whatever receiver the reduce was handed, so
+no part of the reading is a property of the resource. `asArray()` stays the
+structural view and performs no access, which is what lets `isFailedResult()` be
+inherited rather than overridden: `FrameExpr` calls it on every term of every
+statement, and consulting the reading view there would read once per mention.
+`visibleKeys()` answers none, so a doubled read yields indexed characters — the
+RFC 3986 components describe the reference the value _is_ rather than contents
+it holds. The store is a private TypeScript field, never metadata, so no
+iteration can reach the authority. See
+[`a10`](../../spec/a10-resource-primitive.md) and
+[`a11`](../../spec/a11-resource-iteration.md).
 
 ### Visibility
 

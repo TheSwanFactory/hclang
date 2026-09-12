@@ -123,7 +123,19 @@ export class FrameExpr extends FrameList {
     const statement = new FrameExpr([result]);
     statement.is.statement = true;
     statement.is.error = result.isFailedResult();
+    // A terminated declaration is still a declaration. The wrapper carries that
+    // so an aggregate can leave the echo out of its rendering without looking
+    // inside every statement it holds.
+    statement.is.declaration = result.is.declaration === true;
     return statement;
+  }
+
+  /** The value this frame answered, looking through a statement's wrapper. */
+  public static answeredValue(term: Frame): Frame {
+    return term.is.statement === true && term instanceof FrameExpr &&
+        term.size() === 1
+      ? term.asArray()[0]
+      : term;
   }
 }
 

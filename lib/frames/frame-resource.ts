@@ -96,32 +96,35 @@ export class FrameResource extends FrameURI implements ResourceBinding {
   }
 
   /**
-   * Reads, because `asArray` is the whole protocol `|` and `&` require.
+   * Reading pushes characters, because the character is the primitive.
    *
-   * One element holding the whole content: the element type travelling with the
-   * resource is #368, and choosing lines here would have decided that by
-   * accident. A refusal is the element, so it flows back through the iterator as
-   * an ordinary value.
+   * No part of the reading is a property of the source: a receiver accepts the
+   * characters and decides whether they are whole content, a list, chunks, or HC
+   * code. That is why nothing here declares an element type, and why choosing
+   * lines would have decided downstream composition by accident.
+   *
+   * A refusal arrives as the single element, so it flows back through the
+   * reduce as an ordinary value rather than raising.
    */
-  public override asArray(): Array<Frame> {
+  public override elements(): Array<Frame> {
     const path = this.contained();
     if (path === undefined) return [this.refusal()];
 
     const read = this.store.read(path);
-    return [
-      read.ok ? new FrameString(read.content) : this.storeRefusal(read.reason),
-    ];
+    if (!read.ok) return [this.storeRefusal(read.reason)];
+    return [...read.content].map((char) => new FrameString(char));
   }
 
   /**
-   * Failure is read from the flag alone, never by enumerating.
+   * A stream iterates content, so its properties are not members.
    *
-   * The inherited implementation asks `asArray`, and `FrameExpr` asks this of
-   * every term of every statement, so inheriting it would read the resource once
-   * per mention.
+   * The RFC 3986 components are derived from the reference this value *is*,
+   * rather than declared into contents it holds, so a doubled read answers
+   * indexed characters and identity metadata never leaks into a content stream.
+   * They stay readable by name, where reading one still performs no access.
    */
-  public override isFailedResult(): boolean {
-    return this.is.error === true;
+  public override visibleKeys(): string[] {
+    return [];
   }
 
   /** The root's identity, for a harness or a test, never for a program. */

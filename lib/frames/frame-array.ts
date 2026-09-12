@@ -1,4 +1,5 @@
 import { Frame } from "./frame.ts";
+import { FrameExpr } from "./frame-expr.ts";
 import { FrameList } from "./frame-list.ts";
 import { FrameNote } from "./frame-note.ts";
 import type { MetaFrame } from "./meta-frame.ts";
@@ -44,7 +45,25 @@ export class FrameArray extends FrameList {
     } finally {
       result.declares = false;
     }
-    return result;
+    return FrameArray.illFormed(result.data) ?? result;
+  }
+
+  /**
+   * The refusal that stopped this literal from being a well-formed value.
+   *
+   * Narrow on purpose. An aggregate whose element is an error is an ordinary
+   * value — that is exactly what a collected refusal looks like, and what keeps
+   * `'./nope.txt' | []` an array rather than a bare error — and a refused write
+   * leaves a value a caller can still inspect, with that one write undone. Only
+   * a declaration whose key collides with the addresses this aggregate itself
+   * assigns makes the value unbuildable, so only that one is promoted.
+   */
+  private static illFormed(terms: readonly Frame[]): Frame | undefined {
+    for (const term of terms) {
+      const value = FrameExpr.answeredValue(term);
+      if (value.is.addressTaken === true) return value;
+    }
+    return undefined;
   }
 
   /**
@@ -74,6 +93,11 @@ export class FrameArray extends FrameList {
       return this.at(Number(key));
     }
     return super.lookup_here(key, origin);
+  }
+
+  /** An aggregate collects, which is what makes applying to one a push. */
+  public override collects(): boolean {
+    return true;
   }
 
   public override apply(argument: Frame, _parameter: Frame): FrameArray {

@@ -1,9 +1,10 @@
 import { IfElse, IfThen } from "./ops/conditionals.ts";
 import { FrameOps } from "./ops/frame-ops.ts";
 import {
-  MapEnumerable,
-  MapProperties,
-  ReduceEnumerable,
+  MapElements,
+  MapMembers,
+  ReduceElements,
+  ReduceMembers,
 } from "./ops/iterators.ts";
 import {
   Add,
@@ -26,11 +27,12 @@ export { FrameCurry } from "./ops/frame-curry.ts";
 export type { ICurryFunction } from "./ops/frame-curry.ts";
 
 export const Ops = new FrameOps({
-  "&": ReduceEnumerable,
-  "&&": MapProperties,
+  "&": MapElements,
+  "&&": MapMembers,
   ":": IfElse,
   "?": IfThen,
-  "|": MapEnumerable,
+  "|": ReduceElements,
+  "||": ReduceMembers,
   "+": Add,
   "-": Subtract,
   "*": Multiply,

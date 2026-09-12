@@ -114,7 +114,7 @@ describe("Parse", () => {
       const parser = new ParsePipe(output, frame.FrameGroup);
       const lexer = new LexPipe(parser);
 
-      new frame.FrameString(source).reduce(lexer);
+      new frame.FrameString(source).scanInto(lexer);
 
       const group = output.at(0) as frame.FrameGroup;
       const expr = group.asArray()[0] as frame.FrameExpr;

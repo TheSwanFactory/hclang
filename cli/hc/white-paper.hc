@@ -199,7 +199,7 @@ output prompt:
 
 ```
 ; .literal
-# literal
+# .literal
 ```
 
 That's pretty much all there is. There are no special forms, keywords,
@@ -698,19 +698,30 @@ or metadata separately.
 ```
 #### Iterators
 
-We use `|` for map, in homage to the UNIX pipeline.
+We use `&` for map. Each element is applied to the value on the right, and the
+answers are kept apart.
 ```
-; [1, 2, 3] | { _ + 1 } # will warn, since `_` is not defined on generic frames
+; [1, 2, 3] & { _ + 1 }
 # [2, 3, 4]
 ```
-Similarly, we use `&` for reduce:
+We use `|` for reduce, in homage to the UNIX pipeline: each element is applied to
+the value the last one answered, so what you start from is the combining rule.
 ```
-; [1, 2, 3] & { . + _ }
+; [1, 2, 3] | “”
+# “123”
+; [1, 2, 3] | 1
 # 6
 ```
-The operators also work with files and network ports, reading one line
-(or object) at a time, greatly simplifying common I/O operations (a la
-the UNIX shell).
+Doubling either operator widens the stream to `[key, value]` tuples, so a step
+knows which address it is looking at.
+```
+; [10, 20] && { _ }
+# [[.0, 10], [.1, 20]]
+```
+The operators also work with resources, which push characters rather than lines
+or records, so what a read answers is decided by what it is reduced into rather
+than by the source. `cli/hc/resources.hc` is the executable corpus for that,
+since it needs a root binding this document is not granted.
 
 ### Conditionals
 
@@ -974,7 +985,7 @@ as CSV, with two important differences:
 * Strings must be (smart) quoted
 ```
 ; .first-name, .last-name, .phone-number
-# (first-name, last-name, phone-number)
+# (.first-name, .last-name, .phone-number)
 ; “John”, “Doe”, +1.408.555.1212
 # (“John”, “Doe”, +1.408.555.1212)
 ; “Jane”, “Smith”, +1.650.555.1212

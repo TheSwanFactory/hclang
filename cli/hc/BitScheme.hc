@@ -174,12 +174,16 @@ Operators are actually just non-alphanumeric properties.
 ```
 ===== Map
 ```
-; [0b101, 0b010] | AppendZero
+; [0b101, 0b010] & AppendZero
 # [0b1010, 0b0100]
 ```
 ===== Reduce
+
+Concatenation is what a blob does when applied, so reducing blobs joins them.
+There is no empty-bit spelling to start from, so the head is the receiver and the
+tail is the stream; a zero-width accumulator is `#375`.
 ```
-; [0b1010, 0b0100] & {. _}
+; [0b0100] | 0b1010
 # 0b10100100
 ```
 

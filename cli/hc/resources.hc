@@ -16,19 +16,22 @@ with the receiver, so a refusal cannot hide inside a successful-looking result
 ; './out.txt' “hello”
 # 5
 ```
-Reading is the enumerable protocol `|` and `&` already use. The element is the
-whole content, because the element type travelling with the resource is #368
+Reading is a reduce over characters, so what the read starts from is what shapes
+them. Text joins them back into whole content; an aggregate keeps them apart. No
+part of the reading is a property of the resource
 ```
-; './out.txt' | {_}
-# [“hello”]
-; './out.txt' & {_}
+; './out.txt' | “”
 # “hello”
+; './out.txt' | []
+# [“h”, “e”, “l”, “l”, “o”]
+; './out.txt' & {_}
+# [“h”, “e”, “l”, “l”, “o”]
 ```
 A write replaces, since there is no receiver to chain from
 ```
 ; './out.txt' “goodbye”
 # 7
-; './out.txt' & {_}
+; './out.txt' | “”
 # “goodbye”
 ```
 Path extension is attenuation: a longer reference names a location inside the
@@ -36,15 +39,15 @@ root by construction, and intermediate directories are created on the way
 ```
 ; './notes/day/1.txt' “deep”
 # 4
-; './notes/day/1.txt' & {_}
+; './notes/day/1.txt' | “”
 # “deep”
 ```
 `./`, `/`, and a bare path all name the same location. There is no ambient
 working directory to make them differ, because that would be ambient authority
 ```
-; '/out.txt' & {_}
+; '/out.txt' | “”
 # “goodbye”
-; 'out.txt' & {_}
+; 'out.txt' | “”
 # “goodbye”
 ```
 Evaluating an identifier still performs no access, so an identifier the root
@@ -54,6 +57,15 @@ binding could never reach is still an ordinary printable, decomposable value
 # 'https://theswanfactory.com/hc?v=1'
 ; 'https://theswanfactory.com/hc'.authority
 # “theswanfactory.com”
+```
+Those components describe the reference the value is rather than contents it
+holds, so they are readable by name and never part of the stream. A doubled read
+is therefore indexed characters, with no identity metadata mixed in
+```
+; './out.txt' .path
+# “./out.txt”
+; './out.txt' && {_}
+# [[.0, “g”], [.1, “o”], [.2, “o”], [.3, “d”], [.4, “b”], [.5, “y”], [.6, “e”]]
 ```
 Refusal is a value. A parent reference is refused at normalization, before any
 host call
@@ -86,10 +98,16 @@ belong in the trusted base. RFC 3986 §4.2 already supplies the remedy: `./`
 ; './C:/tmp/x' “ok”
 # 2
 ```
-An absent location is a refusal the iterator collects like any other value
+An absent location is a refusal the iteration collects like any other value, and
+it stays distinguishable from an empty one: absent and empty are different facts,
+and only one of them is a failure
 ```
-; './missing.txt' | {_}
+; './missing.txt' | []
 # [$!.resource-absent './missing.txt']
+; './empty.txt' “”
+# 0
+; './empty.txt' | []
+# ()
 ```
 The root binding is reachable by name, which is what makes the perimeter
 enumerable rather than ambient. It prints as the reference it denotes and never

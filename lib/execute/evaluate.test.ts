@@ -468,13 +468,16 @@ describe("evaluate", () => {
   describe("schemas", () => {
     it("binds value with schema and reports assignment", () => {
       const result = evaluate(".one <1> 1");
-      expect(result.toString()).toEqual("[.one 1, .one.<> <1>; .one 1;]");
+      expect(result.toString()).toEqual("[.one.<> <1>; .one 1;]");
     });
 
     it("rejects values that do not match the schema", () => {
       const result = evaluate(".one <1> 1; @one 2");
+      // The program frame holds `one`, so its own echo prints once from the
+      // property plane. The statement group does not hold it, so the echo
+      // inside that group is the only record of what that statement did.
       expect(result.toString()).toEqual(
-        "[((.one 1); $!.type-error .one <1> 2), .one.<> <1>; .one 1;]",
+        "[.one.<> <1>; .one 1; ((.one 1); $!.type-error .one <1> 2)]",
       );
     });
 
@@ -482,7 +485,7 @@ describe("evaluate", () => {
     it("accepts any value with empty schema", () => {
       const result = evaluate(".x <> 42");
       // Empty schema stores differently than full schemas
-      expect(result.toString()).toEqual("[42, .x <>;]");
+      expect(result.toString()).toEqual("[.x <>; 42]");
     });
 
     it.skip("allows reassignment with empty schema", () => {
@@ -557,9 +560,12 @@ describe("evaluate", () => {
 
     it("maintains schema across assignments", () => {
       const result = evaluate(".x <1> 1; @x 1; @x 1");
-      const assignments = result.toStringArray();
-      // Result contains nested expressions, both match the filter
-      expect(assignments.filter((s) => s.includes(".x 1"))).toHaveLength(2);
+      const lines = result.toStringArray();
+
+      // Properties come first, and the schema prints beside the value it
+      // grades rather than after the statements.
+      expect(lines[0]).toEqual(".x.<> <1>; .x 1;");
+      expect(lines[1]).toEqual("((.x 1); (1); 1)");
     });
 
     describe("minimal deconstruction", () => {
@@ -1053,37 +1059,57 @@ describe("evaluate", () => {
       });
 
       it("reaches the enclosing scope through _^ inside an iterator block", () => {
-        const result = evaluate(".k 7; [10] | { _^.k }");
+        const result = evaluate(".k 7; [10] & { _^.k }");
 
         expect(result.at(0).asArray().at(-1)?.toString()).toEqual("[7]");
       });
 
-      it("reads the iterator index through the bare name `.`", () => {
-        const result = evaluate("[10, 20, 30] | { . }");
+      it("reaches the address a map withholds by projecting a tuple", () => {
+        const result = evaluate("[10, 20, 30] && { _ .0 }");
 
-        expect(result.at(0).toString()).toEqual("[0, 1, 2]");
+        expect(result.at(0).toString()).toEqual("[.0, .1, .2]");
       });
 
-      it("reads the iterator key through the bare name `.`", () => {
-        const result = evaluate("(.a 1; .b 2;) && { . }");
+      it("reaches a property key the same way, in declaration order", () => {
+        const result = evaluate("(.a 1; .b 2;) && { _ .0 }");
 
-        expect(result.at(0).toString()).toEqual("[“a”, “b”]");
+        expect(result.at(0).toString()).toEqual("[.a, .b]");
       });
 
-      it("reads the reduce accumulator through the bare name `.`", () => {
-        const result = evaluate("[1, 2, 3] & { . + _ }");
-
-        expect(result.at(0).toString()).toEqual("6");
+      it("supplies no dot parameter to an iterator block", () => {
+        // The accumulator is the receiver and the address arrives in a tuple,
+        // so iteration has no parameter slot left to fill.
+        for (const source of ["[10, 20] & { . }", "[10, 20] && { . }"]) {
+          expect(evaluate(source).at(0).toString()).toContain(
+            "$!.name-missing",
+          );
+        }
       });
 
       it("reads exact enclosing parameter levels through repeated dots", () => {
-        const enclosing = evaluate("[10, 20] | { { .. } () }");
-        const exactMiss = evaluate("[10] | { { { .. } () } () }");
-        const twoLevels = evaluate("[10] | { { { ... } () } () }");
+        // Iteration no longer fills the parameter slot, so an explicit call
+        // parameter is what drives the ladder.
+        const own = new frame.FrameLazy([new frame.FrameName("")]);
+        const enclosing = new frame.FrameLazy([
+          new frame.FrameExpr([
+            new frame.FrameLazy([new frame.FrameName(".")]),
+            new frame.FrameGroup([]),
+          ]),
+        ]);
+        const exactMiss = new frame.FrameLazy([
+          new frame.FrameExpr([
+            new frame.FrameLazy([new frame.FrameName("")]),
+            new frame.FrameGroup([]),
+          ]),
+        ]);
+        const parameter = frame.FrameInt.for("7");
 
-        expect(enclosing.at(0).toString()).toEqual("[0, 1]");
-        expect(exactMiss.at(0).toString()).toContain("$!.name-missing");
-        expect(twoLevels.at(0).toString()).toEqual("[0]");
+        expect(own.in([]).call(frame.Frame.nil, parameter).toString())
+          .toEqual("7");
+        expect(enclosing.in([]).call(frame.Frame.nil, parameter).toString())
+          .toEqual("7");
+        expect(exactMiss.in([]).call(frame.Frame.nil, parameter).toString())
+          .toContain("$!.name-missing");
       });
 
       it("reports missing dot reads instead of a setter or `this`", () => {
@@ -1442,7 +1468,7 @@ describe("evaluate", () => {
         ".owner [.public 42; ._protected 21; .__private 7; .child {[public, protected, private]}];";
 
       expect(evaluate(`${declaration} owner.public`).at(0).toString())
-        .toContain("; 42)");
+        .toMatch(/; 42\)$/);
       expect(evaluate(`${declaration} owner.protected`).at(0).toString())
         .toContain("$!.is-protected .protected");
       expect(evaluate(`${declaration} owner.private`).at(0).toString())
@@ -1564,7 +1590,7 @@ describe("evaluate", () => {
 
     it("preserves functional receiver updates through iterator blocks", () => {
       const result = evaluate(
-        ".owner [.value 1; .write_ {[1] | {@value 9}}]; " +
+        ".owner [.value 1; .write_ {[1] & {@value 9}}]; " +
           ".updated_ (owner.write_ 0); [owner.value, updated_.value]",
       );
 
@@ -1633,7 +1659,7 @@ describe("evaluate", () => {
 
     it("preserves receiver authority through nested inline callbacks", () => {
       const result = evaluate(
-        ".owner [.value 1; .write_ {1 ? {[1] | {@value 9}}}]; " +
+        ".owner [.value 1; .write_ {1 ? {[1] & {@value 9}}}]; " +
           ".updated_ (owner.write_ 0); [owner.value, updated_.value]",
       );
 
@@ -2020,16 +2046,16 @@ describe("evaluate", () => {
         ".owner_ [.value <1> 1; .change_ {@value _;}]; owner_.change_ 2",
       );
       const aggregate = evaluate(
-        ".owner_ [.value <1> 1; .change_ {[1] | {@value 2}}]; " +
+        ".owner_ [.value <1> 1; .change_ {[1] & {@value 2}}]; " +
           "owner_.change_ 2",
       );
       const trailingStatement = evaluate(
-        ".owner_ [.value <1> 1; .change_ {[1] | {@value 2};}]; " +
+        ".owner_ [.value <1> 1; .change_ {[1] & {@value 2};}]; " +
           "owner_.change_ 2",
       );
       const sequenced = evaluate(
         ".owner_ [.value <1,3> 1; " +
-          ".change_ {[1] | {@value 2}; @value 3}]; owner_.change_ 0",
+          ".change_ {[1] & {@value 2}; @value 3}]; owner_.change_ 0",
       );
 
       expect(constant.at(0).toString()).toContain(
@@ -2057,7 +2083,7 @@ describe("evaluate", () => {
 
     it("covers #334's aggregate-error reproducer", () => {
       const result = evaluate(
-        ".b_ [.n <1,2,3> 2; .run_ {[1] | {@n 4}}]; [b_.run_ 0]",
+        ".b_ [.n <1,2,3> 2; .run_ {[1] & {@n 4}}]; [b_.run_ 0]",
       );
 
       expect(result.at(0).toString()).toContain(
@@ -2069,7 +2095,7 @@ describe("evaluate", () => {
     it("keeps nested error-valued aggregates as sequence data", () => {
       const result = evaluate(
         ".owner_ [.value <1,3> 1; " +
-          ".change_ {[[1] | {@value 2}]; @value 3}]; owner_.change_ 0",
+          ".change_ {[[1] & {@value 2}]; @value 3}]; owner_.change_ 0",
       );
 
       // The first result is [[type-error]], so the shallow rule continues to
