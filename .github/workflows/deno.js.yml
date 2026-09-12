@@ -194,15 +194,26 @@ jobs:
         env:
           VERSION: ${{ needs.build.outputs.version }}
         run: |
+          npm_version() {
+            npm view "hclang@$VERSION" version --json 2>/dev/null | tr -d '"' || true
+          }
+
           archive="./dist/hclang-$VERSION.tgz"
           test -f "$archive"
-          published=$(npm view "hclang@$VERSION" version --json 2>/dev/null | tr -d '"' || true)
+          published=$(npm_version)
           if [ "$published" = "$VERSION" ]; then
             echo "hclang@$VERSION already published"
           else
             deno task publish:npm "$archive"
           fi
-          test "$(npm view "hclang@$VERSION" version --json | tr -d '"')" = "$VERSION"
+
+          for attempt in {1..12}; do
+            published=$(npm_version)
+            [ "$published" = "$VERSION" ] && break
+            echo "Waiting for hclang@$VERSION to propagate ($attempt/12)"
+            sleep 5
+          done
+          test "$published" = "$VERSION"
       - name: Install Chromium for released artifact tests
         run: deno run -A npm:playwright@1.62.0 install --with-deps chromium
       - name: Build hcweb.html from the published package
