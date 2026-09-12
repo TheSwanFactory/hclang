@@ -4,6 +4,17 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.15.1 2026-09-11
+
+- Restore the current `hclang` CLI to npm: `npx hclang@latest` now runs the
+  Node.js 22+ build without Deno, for both the interactive REPL and HC files.
+  Every release builds, packs, and exercises that exact artifact through `npx`
+  before publishing it under the existing version gate (#364).
+- Run every successful CLI and doctest baseline through the same evaluator
+  factory users receive, including isolated file scopes, host bindings, and the
+  resource root; captured output is now the harness's only deliberate difference
+  (#373).
+
 ## v0.15.0 2026-09-11
 
 - **Breaking: `|` and `&` have swapped roles.** `|` now reduces and `&` now
