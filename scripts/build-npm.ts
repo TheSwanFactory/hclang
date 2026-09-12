@@ -50,7 +50,7 @@ await build({
       "cli",
     ],
     engines: {
-      node: ">=22",
+      node: ">=24",
     },
     dependencies: {
       "@deno/shim-deno": "0.19.2",

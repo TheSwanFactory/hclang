@@ -37,10 +37,10 @@ jobs:
         uses: denoland/setup-deno@v2
         with:
           deno-version: v2.9.5
-      - name: Use Node 22 for the supported npm runtime floor
+      - name: Use Node 24 for the supported npm runtime floor
         uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 24
           package-manager-cache: false
       - run: deno ci
       - name: Install Chromium for artifact tests

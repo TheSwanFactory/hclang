@@ -57,7 +57,7 @@ details.
 
 ### Run the CLI
 
-With Node.js 22 or newer, run the current CLI directly from npm. Deno is not
+With Node.js 24 or newer, run the current CLI directly from npm. Deno is not
 required:
 
 ```bash
