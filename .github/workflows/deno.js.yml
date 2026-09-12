@@ -194,11 +194,13 @@ jobs:
         env:
           VERSION: ${{ needs.build.outputs.version }}
         run: |
+          archive="./dist/hclang-$VERSION.tgz"
+          test -f "$archive"
           published=$(npm view "hclang@$VERSION" version --json 2>/dev/null | tr -d '"' || true)
           if [ "$published" = "$VERSION" ]; then
             echo "hclang@$VERSION already published"
           else
-            deno task publish:npm "dist/hclang-$VERSION.tgz"
+            deno task publish:npm "$archive"
           fi
           test "$(npm view "hclang@$VERSION" version --json | tr -d '"')" = "$VERSION"
       - name: Install Chromium for released artifact tests
