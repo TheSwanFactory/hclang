@@ -1,3 +1,4 @@
+import { visibleEnvironment } from "../lib/execute/env-visibility.ts";
 import { HCEval, make_context } from "../lib/execute/hc-eval.ts";
 import { HCLog } from "../lib/execute/hc-log.ts";
 import { HCTest } from "../lib/execute/hc-test.ts";
@@ -6,10 +7,14 @@ import { runfile } from "./runfile.ts";
 import { Prompt } from "./prompt.ts";
 import { DenoFileStore } from "./resource-store.ts";
 import {
+  CLOCK_SCHEME,
+  ClockHandler,
   type Context,
   Frame,
   FrameResource,
+  RealClock,
   RESOURCE_ROOT_KEY,
+  ResourceHandlers,
   type StringMap,
 } from "../lib/frames.ts";
 
@@ -80,8 +85,29 @@ export function getHost(context: Context = {}): Frame {
   // logger holds the same one: the root binding belongs to the host namespace
   // and nowhere else.
   const host = new Frame({ ...context });
-  host.set(RESOURCE_ROOT_KEY, FrameResource.root(new DenoFileStore()));
+  host.set(
+    RESOURCE_ROOT_KEY,
+    FrameResource.root(new DenoFileStore(), getHandlers()),
+  );
   return host;
+}
+
+/**
+ * This harness's scheme table.
+ *
+ * One entry, and the emptiness of every other slot is the point: `'https://…'`
+ * refuses because nothing is bound to `https`, not because a rule forbids it.
+ * The CLI installs the real clock, which is the only thing this harness can
+ * honestly implement that the root binding does not already cover.
+ *
+ * Exported so a test can run under the table the CLI actually grants.
+ *
+ * @returns The scheme handlers reachable from a CLI evaluation.
+ */
+export function getHandlers(): ResourceHandlers {
+  return ResourceHandlers.of({
+    [CLOCK_SCHEME]: new ClockHandler(new RealClock()),
+  });
 }
 
 /**
@@ -167,7 +193,10 @@ export async function main(
 }
 
 if (import.meta.main) {
-  const env = Deno.env.toObject();
+  // One name at a time, through the dictionary. A wholesale read would hand the
+  // whole process environment to `$$` again, and the flags this harness runs
+  // under are a derived artifact rather than the bound.
+  const env = visibleEnvironment((name) => Deno.env.get(name));
   const options = getOptions(Deno.args);
   const hc_eval = getEval(env);
   main(hc_eval, options).then((exitCode) => {

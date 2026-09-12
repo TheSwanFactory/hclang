@@ -1,5 +1,5 @@
 {
-  "version": "0.15.1",
+  "version": "0.16.0",
   "nodeModulesDir": "manual",
   "bin": {
     "hc": "scripts/hc"
@@ -12,7 +12,7 @@
     "build:web:release": "deno run -A scripts/build-hcweb.ts --jsr-version",
     "bump": "deno run -A scripts/bump-version.ts",
     "clean": "rm deno.lock */deno.lock",
-    "hc": "deno run -A cli/hc.ts",
+    "hc": "deno run --allow-read --allow-write --allow-env --deny-run --deny-ffi cli/hc.ts",
     "publish": "deno task publish:lib && deno task publish:web",
     "publish:lib": "cd lib && deno publish",
     "publish:npm": "npm publish",

@@ -13,6 +13,16 @@ import { ScanDisposition, type ScanResult } from "../scan.ts";
 /** A stateless end-of-input rule, as required by `AtomSyntax.finish`. */
 export type Finisher = (source?: string) => ScanResult;
 
+/**
+ * The delimiter that opens and closes a time literal.
+ *
+ * The time family owns it, but the operator family has to agree about it: `%` is
+ * an operator continuation character, so without a shared name an operator would
+ * swallow the sigil of a literal abutting it. It lives here, with the other
+ * facts both families read, rather than in either one of them.
+ */
+export const TIME_DELIMITER = "%";
+
 /** Counts non-overlapping occurrences of `token` in `source`. */
 const occurrences = (source: string, token: string): number =>
   source.split(token).length - 1;

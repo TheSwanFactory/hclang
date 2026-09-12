@@ -12,7 +12,11 @@ import { FrameCurry } from "../ops/frame-curry.ts";
 import { isFrameMatcher } from "./frame-match.ts";
 import { type Context, NilContext } from "./context.ts";
 import { type EvaluationInput, EvaluationScope } from "./evaluation-scope.ts";
-import { completeAtEnd, includeOrReserve } from "./atom-syntax.ts";
+import {
+  completeAtEnd,
+  includeOrReserve,
+  TIME_DELIMITER,
+} from "./atom-syntax.ts";
 import {
   type AtomSyntax,
   ScanDisposition,
@@ -354,7 +358,15 @@ export class FrameSymbol extends FrameAtom {
 }
 
 export class FrameOperator extends FrameSymbol {
-  public static readonly OPERATOR_START = /[&|?:+\-/*%=!~^]/;
+  /**
+   * Characters that begin an operator lexeme.
+   *
+   * `%` is absent because the time family registers it as an exact key, which
+   * wins dispatch over this pattern. Listing it here would claim a start the
+   * operator never receives, and the doubled spelling reaches this class from
+   * `FrameTime.recognize` rather than from a sigil start of its own.
+   */
+  public static readonly OPERATOR_START = /[&|?:+\-/*=!~^]/;
   public static override readonly SIGIL_STARTS: readonly SigilStart[] = [
     { key: FrameOperator.OPERATOR_START.toString(), mode: "atom" },
   ];
@@ -366,6 +378,15 @@ export class FrameOperator extends FrameSymbol {
       const char = symbol.toString();
       // Comparison brackets belong to the schema syntax, not to an operator.
       if (char === "<" || char === ">") {
+        return { disposition: ScanDisposition.CompleteRedispatch };
+      }
+      // So does a time delimiter. Without this an operator would swallow the
+      // sigil that opens the literal beside it, and `2*%PT1H%` would lex as an
+      // operator `*%` followed by an unterminated one — making the family
+      // whitespace-sensitive, which nothing else in the language is. `%` stays
+      // an operator *continuation* character for names, because `.%%` is how
+      // modulo is spelled as a property.
+      if (char === TIME_DELIMITER) {
         return { disposition: ScanDisposition.CompleteRedispatch };
       }
       // A hyphen is the one operator character that also continues an

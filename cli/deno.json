@@ -1,17 +1,17 @@
 {
-  "version": "0.15.1",
+  "version": "0.16.0",
   "description": "Homoiconic C command-line interface and REPL",
   "entry": "./hc.ts",
   "bin": {
     "hc": "./hc.ts"
   },
   "tasks": {
-    "build": "deno compile --allow-read --allow-write --allow-env --output ../scripts/hc ./hc.ts",
-    "hc": "deno run -A ./hc.ts",
+    "build": "deno compile --allow-read --allow-write --allow-env --deny-run --deny-ffi --output ../scripts/hc ./hc.ts",
+    "hc": "deno run --allow-read --allow-write --allow-env --deny-run --deny-ffi ./hc.ts",
     "test": "deno test --allow-env --allow-read --allow-write",
     "test:bs": "deno task hc hc/BitScheme.hc -t",
     "test:classes": "deno task hc hc/class-support.hc -t",
-    "test:doc": "deno task hc hc/testdoc.hc -t && deno task hc hc/numerics.hc -t && deno task hc hc/units.hc -t && deno task hc hc/resources.hc -t && deno task hc hc/apply.hc -t"
+    "test:doc": "deno task hc hc/testdoc.hc -t && deno task hc hc/numerics.hc -t && deno task hc hc/units.hc -t && deno task hc hc/resources.hc -t && deno task hc hc/apply.hc -t && deno task hc hc/time.hc -t"
   },
   "imports": {
     "@nothing628/chalk": "jsr:@nothing628/chalk@^1.0.1",

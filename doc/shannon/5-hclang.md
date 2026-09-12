@@ -52,9 +52,13 @@ HC has three types of primitive Frames:
 
 #### 3.2.3 Times
 
-- `%date%`
-- `%time%`
-- `%datetime%`
+- Instant: `%2026-08-21T00:00:00Z%`
+- Date, as the start of that UTC day: `%2026-08-21%`
+- Duration: `%PT1H30M%`
+
+An instant is a point and a duration is an interval, and the algebra between
+them is enforced. `%%` stays Modulo, so there is no empty time literal. The
+current instant is a harness grant, `'clock:now'`, rather than an ambient name.
 
 ### 3.3 BLOBs (Binary Large Objects)
 

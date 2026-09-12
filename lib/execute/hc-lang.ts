@@ -1,13 +1,17 @@
 import { renderResults } from "./execute.ts";
 import { HCEval, make_context } from "./hc-eval.ts";
 import {
+  CLOCK_SCHEME,
+  ClockHandler,
   type Context,
   contextString,
   Frame,
   FrameArray,
   FrameResource,
   MemoryStore,
+  RealClock,
   RESOURCE_ROOT_KEY,
+  ResourceHandlers,
   type StringMap,
 } from "../frames.ts";
 
@@ -44,13 +48,24 @@ export class HCLang {
    * have no filesystem to offer, and because a session's resources should not
    * outlive it. `reset()` installs a new one, so a cleared session cannot read
    * what the previous one wrote.
+   *
+   * The clock is the real one, because a browser has one and a session is a
+   * live session. Every other scheme is an empty slot.
    */
   private static makeHost(context: Context): Frame {
     // A Frame adopts the Context object it is handed, so the binding is added
     // to a copy: the embedder's declared host values are what `getContextString`
     // reports, and installing a capability must not edit that record.
     const host = new Frame({ ...context });
-    host.set(RESOURCE_ROOT_KEY, FrameResource.root(new MemoryStore("session")));
+    host.set(
+      RESOURCE_ROOT_KEY,
+      FrameResource.root(
+        new MemoryStore("session"),
+        ResourceHandlers.of({
+          [CLOCK_SCHEME]: new ClockHandler(new RealClock()),
+        }),
+      ),
+    );
     return host;
   }
 

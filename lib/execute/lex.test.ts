@@ -6,11 +6,14 @@ import {
   FrameArg,
   FrameArray,
   FrameBlob,
+  FrameDateTime,
+  FrameDuration,
   FrameExpr,
   FrameGroup,
   FrameInt,
   FrameName,
   FrameNote,
+  FrameOperator,
   FrameParam,
   FrameScopeAnchor,
   FrameString,
@@ -317,6 +320,68 @@ describe("Lex", () => {
     expect(atoms[0]).toBeInstanceOf(FrameURI);
     expect(atoms[0].toString()).toEqual("'jsr:@swanfactory/hclang'");
     expect(atoms[0].get("scheme").toString()).toEqual("“jsr”");
+  });
+
+  it("lexes a time literal as one atom of its own family", () => {
+    const atoms = lexAtoms("%2026-08-21T00:00:00Z% ");
+
+    expect(atoms).toHaveLength(1);
+    expect(atoms[0]).toBeInstanceOf(FrameDateTime);
+    expect(atoms[0].toString()).toEqual("%2026-08-21T00:00:00Z%");
+    expect(lexAtoms("%PT1H% ")[0]).toBeInstanceOf(FrameDuration);
+  });
+
+  it("hands the doubled delimiter back to the operator that owns it", () => {
+    // The `%…%` versus `%%` ruling: there is no empty time literal, because
+    // `%%` is Modulo and a literal with no body would name nothing.
+    const atoms = lexAtoms("%% ");
+
+    expect(atoms).toHaveLength(1);
+    expect(atoms[0]).toBeInstanceOf(FrameOperator);
+    expect(atoms[0].toString()).toEqual("%%");
+  });
+
+  it("leaves both modulo spellings reaching the operator", () => {
+    expect(lexAtoms("9 %% 4 ").map(String)).toEqual(["9", "((%%))", "((4))"]);
+    expect(lexAtoms("3.%%2 ").map(String)).toEqual(["3", ".%%", "2"]);
+  });
+
+  it("opens a time literal abutting an operator, not only after a space", () => {
+    // `%` is an operator continuation character, so an operator would otherwise
+    // swallow the sigil beside it and leave the rest of the line unterminated.
+    // Nothing else in the language cares whether you write `1+1` or `1 + 1`.
+    expect(lexAtoms("2*%PT1H% ").map(String)).toEqual(["2", "*", "%PT1H%"]);
+    expect(lexAtoms("-%PT1H% ").map(String)).toEqual(["-", "%PT1H%"]);
+    expect(lexAtoms("%PT1H%-%PT30M% ").map(String)).toEqual([
+      "%PT1H%",
+      "-",
+      "%PT30M%",
+    ]);
+    for (const source of ["2*%PT1H% ", "%PT1H%-%PT30M% ", "-%PT1H% "]) {
+      expect(lexResult(source).is.error).not.toBe(true);
+    }
+  });
+
+  it("lexes a time literal identically across every two-chunk split", () => {
+    const source = "%2026-08-21T00:00:00Z%";
+
+    for (let split = 1; split < source.length; split++) {
+      expect(
+        lexChunkedAtoms([source.slice(0, split), source.slice(split)]).map(
+          String,
+        ),
+      ).toEqual(["%2026-08-21T00:00:00Z%"]);
+    }
+  });
+
+  it("reports an unterminated time literal rather than consuming the line", () => {
+    for (const source of ["%2026-08-21", "%2026 08 21%"]) {
+      const result = lexResult(source);
+
+      expect(result.is.lexical).toBe(true);
+      expect(result.is.error).toBe(true);
+      expect(result.toString()).toContain("unterminated FrameTime");
+    }
   });
 
   it("keeps raw angle brackets structural", () => {

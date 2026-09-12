@@ -1,8 +1,14 @@
 import { expect } from "jsr:@std/expect@^0.219.1";
 import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
+import { visibleEnvironment } from "../lib/execute/env-visibility.ts";
 import { HCEval } from "../lib/execute/hc-eval.ts";
-import { FrameArray } from "../lib/frames.ts";
-import { getEval, getOptions, main } from "./hc.ts";
+import {
+  CLOCK_SCHEME,
+  FrameArray,
+  type FrameResource,
+  RESOURCE_ROOT_KEY,
+} from "../lib/frames.ts";
+import { getEval, getHandlers, getHost, getOptions, main } from "./hc.ts";
 
 // Malformed-input and no-authority tests intentionally bypass the CLI factory:
 // they exercise HCEval itself or prove behavior without a host root binding.
@@ -59,6 +65,58 @@ describe("getOptions", () => {
     const args = ["file1", "file2"];
     const options = getOptions(args);
     expect(options._).toEqual(["file1", "file2"]);
+  });
+});
+
+describe("this harness's grant", () => {
+  it("passes only the declared environment variables to a program", () => {
+    const environment = visibleEnvironment(
+      (name) => ({ HOME: "/home/x", SECRET_TOKEN: "leaked" })[name],
+    );
+    const evaluator = getEval(environment);
+
+    expect(evaluator.hostNamespace.get_here("HOME").toString()).toEqual(
+      "“/home/x”",
+    );
+    expect(evaluator.hostNamespace.get_here("SECRET_TOKEN").is.missing)
+      .toBe(true);
+  });
+
+  it("binds the clock and leaves every other scheme an empty slot", () => {
+    expect(getHandlers().schemes()).toEqual([CLOCK_SCHEME]);
+    expect(getHandlers().handler("https")).toBeUndefined();
+    expect(getHandlers().handler("file")).toBeUndefined();
+  });
+
+  it("installs that table on the root binding it grants", () => {
+    const root = getHost().get_here(RESOURCE_ROOT_KEY) as FrameResource;
+
+    expect(root.boundSchemes()).toEqual([CLOCK_SCHEME]);
+  });
+
+  it("derives its permission flags from what the harness needs", async () => {
+    // The flags are a derived artifact of this one harness, never the security
+    // model, so what is asserted is that they stay a floor: no `-A`, and
+    // subprocess and FFI authority denied outright, since either one voids
+    // every path scope the root binding enforces.
+    const manifest = JSON.parse(
+      await Deno.readTextFile(new URL("./deno.json", import.meta.url)),
+    );
+    const workspace = JSON.parse(
+      await Deno.readTextFile(new URL("../deno.json", import.meta.url)),
+    );
+    const tasks = [
+      manifest.tasks.hc,
+      manifest.tasks.build,
+      workspace.tasks.hc,
+    ];
+
+    for (const task of tasks) {
+      expect(task).not.toContain("-A");
+      expect(task).not.toContain("--allow-all");
+      expect(task).toContain("--deny-run");
+      expect(task).toContain("--deny-ffi");
+    }
   });
 });
 
@@ -338,7 +396,23 @@ describe("main", () => {
 
     expect(status).toEqual(0);
     expect(out.at(-1).toString()).toContain(
-      '“{"total":26,"pass":26,"fail":0,"unimplemented":0}”',
+      '“{"total":33,"pass":33,"fail":0,"unimplemented":0}”',
+    );
+  });
+
+  it("keeps the time acceptance testdoc green under the installed clock", async () => {
+    const out = new FrameArray([]);
+    const file = new URL("./hc/time.hc", import.meta.url).pathname;
+    // The clock is a handler entry, so this asserts the corpus under the table
+    // the CLI installs rather than under one arranged for the test.
+    const status = await main(
+      getEval({}, out),
+      getOptions(["--testdoc", file]),
+    );
+
+    expect(status).toEqual(0);
+    expect(out.at(-1).toString()).toContain(
+      '“{"total":47,"pass":47,"fail":0,"unimplemented":0}”',
     );
   });
 
