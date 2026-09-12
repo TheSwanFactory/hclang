@@ -7,9 +7,10 @@ document records the reasoning so the tickets can be tuned against it rather
 than rediscovered.\
 **Issues:** [#277](https://github.com/TheSwanFactory/hclang/issues/277),
 [#301](https://github.com/TheSwanFactory/hclang/issues/301),
-[#338](https://github.com/TheSwanFactory/hclang/issues/338),
 [#348](https://github.com/TheSwanFactory/hclang/issues/348),
-[#349](https://github.com/TheSwanFactory/hclang/issues/349)
+[#349](https://github.com/TheSwanFactory/hclang/issues/349).
+[#338](https://github.com/TheSwanFactory/hclang/issues/338) closed in v0.10.4;
+§6 records what it settled.
 
 ## Terms
 
@@ -131,10 +132,15 @@ identifiers, statically proven" is far stronger than refusing at runtime.
 ## 6. Refusal is a value, not an exception
 
 A refused operation yields `$!.…` and flows back through ordinary evaluation, so
-it composes: callers can handle it, iterators collect it. This puts
-[#338](https://github.com/TheSwanFactory/hclang/issues/338) on the critical path
-rather than beside it — an aggregate whose element is an error currently reads
-as success, and refusals will routinely arrive nested inside iterator results.
+it composes: callers can handle it, iterators collect it. That composition rests
+on how an aggregate holding a refusal reports itself, which
+[#338](https://github.com/TheSwanFactory/hclang/issues/338) settled in v0.10.4:
+one immediate error element makes the aggregate a failed result, while a nested
+one stays data. Refusals arrive from an iterator one aggregate deep, so they
+land where that rule sees them; a refusal buried deeper still reads as success,
+which is the known edge rather than an open dependency. This paragraph
+previously listed #338 as on the critical path, describing the defect that rule
+removed.
 
 ## 7. Two phases, with different channel topologies
 

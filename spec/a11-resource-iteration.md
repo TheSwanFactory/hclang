@@ -6,16 +6,17 @@ the executable corpus in [`cli/hc/apply.hc`](../cli/hc/apply.hc). This document
 owns only the resource half, and records which of its former questions those
 decisions closed.\
 **Issues:** [#368](https://github.com/TheSwanFactory/hclang/issues/368), with
-[#338](https://github.com/TheSwanFactory/hclang/issues/338) on the critical
-path, [#375](https://github.com/TheSwanFactory/hclang/issues/375) holding the
-custom accumulator, and
-[#301](https://github.com/TheSwanFactory/hclang/issues/301) as the caller that
-stops being a subsystem.\
+[#375](https://github.com/TheSwanFactory/hclang/issues/375) holding the custom
+accumulator and [#301](https://github.com/TheSwanFactory/hclang/issues/301) as
+the caller that stops being a subsystem.
+[#338](https://github.com/TheSwanFactory/hclang/issues/338) was listed here as
+being on the critical path; it is not, because it closed in v0.10.4 and the rule
+it settled is one this design relies on rather than waits for. See
+[Where a refusal lands](#where-a-refusal-lands).\
 **Design rationale:** [`a07`](a07-hc-security-architecture.md) §4 and
 [`a10`](a10-resource-primitive.md), whose provisional whole-content read this
 replaces. Those documents describe an element type travelling with the resource;
-they stand as written until this lands, and this document is where the
-correction lives.\
+this document is the correction, and a10 now points here for the reading.\
 **Supersedes:** the a11.1–a11.4 working notes, now removed. What stayed useful
 from them is folded in below; the originals are in git history.
 
@@ -217,23 +218,51 @@ be fed incrementally later with no language change.
 writes, so reducing one resource into another would be a copy with no new
 primitive. Elegant or a trap, but it should not happen by accident.
 
+## Where a refusal lands
+
+**Answered, on both halves.** This document previously listed the caller's half
+as open and named #338 as the blocker. That was wrong twice over, and the
+correction is worth stating because the reduce depends on the answer.
+
+**At the receiver.** a10 relies on a refusal being collectable, so an aggregate
+collects one and every other receiver is poisoned by it: an operation on an
+error is an error, and a collect is not such an operation. That is one rule,
+drawn in one place, and it makes `Frame.error` behave the way an aggregate
+already treated a missing-name note. What a receiver does after it _itself_
+fails is `Malformed`, which absorbs every subsequent character by returning
+itself; reuse that rather than inventing a second story.
+
+**At the caller.** #338 asked for a _rule_ for deciding when an aggregate result
+holds an error, rather than a deeper scan, because "an array of results where
+one element is an error frame may be a legitimate value in some contexts". That
+rule was supplied and shipped in v0.10.4: **one immediate element**.
+`isFailedResult` is "this frame is an error, or one of its own elements is", and
+a nested error-valued aggregate stays ordinary data. #338 closed as completed;
+nothing about it is outstanding, and the earlier framing here — an aggregate
+whose element is an error reading as _success_ — described the defect that rule
+removed, not a question it left.
+
+That rule is what makes a read report its own failure. `'./nope.txt' | []`
+collects the refusal as its one element, so the array reports itself as a failed
+result and a caller cannot mistake it for content. Shallow is the middle of two
+worse rules: an identity-only test would read that array as success, and a
+depth-first one would read every aggregate that merely holds an error frame as a
+failure, which is the legitimate value #338's notes were protecting.
+
+Its one deliberate edge is depth: a refusal two aggregates deep reads as
+success. That is the price of discriminating by **position** rather than by
+**provenance** — nothing distinguishes an aggregate an operation produced from
+one a program built to hold error frames, and shallowness stands in for that
+distinction because a result is shallow and held data tends not to be. The
+reduce does not widen the gap: a character stream is one aggregate deep, so a
+refusal from a read always lands where the rule sees it.
+
 ## Questions this document still owns
 
 **Does a string enumerate its characters?** It does not: a string is a single
 element, so mapping one answers the whole string. A resource that pushes
 characters while a string does not is an asymmetry that needs either a reason or
 a fix, and the fix reaches every iteration expression in the corpus.
-
-**Where does a refusal land mid-stream?** Answered for the receiver, still open
-for the caller. a10 relies on a refusal being collectable, so an aggregate
-collects one and every other receiver is poisoned by it: an operation on an
-error is an error, and a collect is not such an operation. That is one rule,
-drawn in one place, and it makes `Frame.error` behave the way an aggregate
-already treated a missing-name note. What remains open is what a caller sees,
-which is #338 — an aggregate whose element is an error reading as success — and
-it is on the critical path. The existing answer to what a receiver does after it
-_itself_ fails is `Malformed`, which absorbs every subsequent character by
-returning itself; reuse that rather than inventing a second story.
 
 **What scope does a parse-and-evaluate receiver evaluate in?** Reading HC code
 and evaluating it means choosing what the loaded code can reach. a07 §3's
@@ -309,11 +338,12 @@ them:
 
 Still adjacent, and still separately scoped:
 
-- **Aggregate error propagation in general** → an aggregate whose _element_ is
-  an error still reads as success at a control boundary, which is the shallow
-  rule `isFailedResult` documents. Only the ill-formed-key case above is
-  promoted, and the general question wants the rule #338's notes asked for
-  rather than a deeper scan.
+- **Discriminating a result from held data** → the shallow rule #338 decided
+  reads failure from one immediate element, which is what makes a collected
+  refusal report itself. Its edge is depth, and closing that needs provenance
+  rather than a deeper scan. Not blocking, and not this document's: a character
+  stream is one aggregate deep, so a refusal from a read always lands where the
+  rule sees it.
 - **Scheme dispatch** → #367. Unchanged by this document: the reduce consumes
   whatever the handler table produced.
 - **Module semantics** → #301, minus the I/O half.
