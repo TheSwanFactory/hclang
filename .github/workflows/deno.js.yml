@@ -1,4 +1,4 @@
-# This workflow will do a clean installation of Deno dependencies, cache/restore them, build the source code and run tests across different versions of Deno
+# Build and test every distribution; publish version bumps from trusted branches.
 
 name: Deno CI
 
@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
     inputs:
       release:
-        description: "Publish to JSR and attach hcweb.html to a release"
+        description: "Publish JSR, npm CLI, and the hcweb release artifact"
         type: boolean
         default: false
       publish_extension:
@@ -21,11 +21,12 @@ on:
 jobs:
   build:
     permissions:
-      contents: write
-      packages: write
-      id-token: write
+      contents: read
 
     runs-on: ubuntu-latest
+    outputs:
+      release: ${{ steps.version.outputs.changed }}
+      version: ${{ steps.version.outputs.version }}
 
     steps:
       - name: Checkout
@@ -36,16 +37,27 @@ jobs:
         uses: denoland/setup-deno@v2
         with:
           deno-version: v2.9.5
+      - name: Use Node 24 for the supported npm runtime floor
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          package-manager-cache: false
       - run: deno ci
       - name: Install Chromium for artifact tests
         run: deno run -A npm:playwright@1.62.0 install --with-deps chromium
       - run: deno task build
       - run: deno task test:all
-      - name: Upload candidate artifact
+      - name: Upload candidate web artifact
         uses: actions/upload-artifact@v7
         with:
           name: hcweb-candidate
           path: web/dist/hcweb.html
+          if-no-files-found: error
+      - name: Upload tested npm artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: hclang-npm-candidate
+          path: dist/hclang-*.tgz
           if-no-files-found: error
       - name: Validate hcweb package
         working-directory: web
@@ -112,28 +124,6 @@ jobs:
           else
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
-      - name: Publish to JSR
-        id: deno-publish
-        if: steps.version.outputs.changed == 'true'
-        run: deno task publish
-        env:
-          DENO_AUTH_TOKEN: ${{ secrets.DENO_AUTH_TOKEN }}
-      - name: Build hcweb.html from the published package
-        if: steps.version.outputs.changed == 'true'
-        run: deno task build:web:release ${{ steps.version.outputs.version }}
-      - name: Verify the released artifact
-        if: steps.version.outputs.changed == 'true'
-        working-directory: web
-        run: deno task test:artifact
-      - name: Create GitHub release
-        uses: ncipollo/release-action@v1
-        if: steps.version.outputs.changed == 'true'
-        with:
-          tag: v${{ steps.version.outputs.version }}
-          commit: ${{ github.sha }}
-          generateReleaseNotes: true
-          artifacts: web/dist/hcweb.html,web/dist/hcweb.html.sha256
-          artifactErrorsFailBuild: true
       - name: Use Node 22 for the extension publisher
         if: steps.extension.outputs.changed == 'true'
         uses: actions/setup-node@v6
@@ -144,3 +134,91 @@ jobs:
         run: deno task vscode:publish
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
+
+  release:
+    name: Publish release
+    needs: build
+    if: needs.build.outputs.release == 'true'
+    environment: npm-publish
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout trusted release source
+        uses: actions/checkout@v7
+      - name: Use Deno 2.9.5
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.9.5
+      - name: Use Node 24 for npm trusted publishing
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          registry-url: "https://registry.npmjs.org"
+          package-manager-cache: false
+      - run: deno ci
+      - name: Download tested npm artifact
+        uses: actions/download-artifact@v7
+        with:
+          name: hclang-npm-candidate
+          path: dist
+      - name: Publish missing JSR packages
+        env:
+          DENO_AUTH_TOKEN: ${{ secrets.DENO_AUTH_TOKEN }}
+          VERSION: ${{ needs.build.outputs.version }}
+        run: |
+          jsr_exists() {
+            PACKAGE="$1" VERSION="$VERSION" deno eval --allow-env --allow-net '
+              const name = Deno.env.get("PACKAGE");
+              const version = Deno.env.get("VERSION");
+              const response = await fetch(`https://jsr.io/${name}/${version}_meta.json`);
+              Deno.exit(response.ok ? 0 : 1);
+            '
+          }
+
+          if jsr_exists "@swanfactory/hclang"; then
+            echo "@swanfactory/hclang@$VERSION already published"
+          else
+            deno task publish:lib
+          fi
+
+          if jsr_exists "@swanfactory/hcweb"; then
+            echo "@swanfactory/hcweb@$VERSION already published"
+          else
+            deno task publish:web
+          fi
+
+          jsr_exists "@swanfactory/hclang"
+          jsr_exists "@swanfactory/hcweb"
+      - name: Publish missing npm package
+        env:
+          VERSION: ${{ needs.build.outputs.version }}
+        run: |
+          published=$(npm view "hclang@$VERSION" version --json 2>/dev/null | tr -d '"' || true)
+          if [ "$published" = "$VERSION" ]; then
+            echo "hclang@$VERSION already published"
+          else
+            deno task publish:npm "dist/hclang-$VERSION.tgz"
+          fi
+          test "$(npm view "hclang@$VERSION" version --json | tr -d '"')" = "$VERSION"
+      - name: Install Chromium for released artifact tests
+        run: deno run -A npm:playwright@1.62.0 install --with-deps chromium
+      - name: Build hcweb.html from the published package
+        run: deno task build:web:release ${{ needs.build.outputs.version }}
+      - name: Verify the released artifact
+        working-directory: web
+        run: deno task test:artifact
+      - name: Create or update GitHub release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: v${{ needs.build.outputs.version }}
+          commit: ${{ github.sha }}
+          generateReleaseNotes: true
+          allowUpdates: true
+          replacesArtifacts: true
+          artifacts: web/dist/hcweb.html,web/dist/hcweb.html.sha256
+          artifactErrorsFailBuild: true

@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 const RUNDOC = "#!/usr/bin/env hc \n```\n";
 const ENDDOC = "```\n";
 

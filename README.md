@@ -55,7 +55,21 @@ console.log(result); // Output: '2'
 See the [library documentation](https://jsr.io/@swanfactory/hclang/doc) for more
 details.
 
-### Run the REPL
+### Run the CLI
+
+With Node.js 24 or newer, run the current CLI directly from npm. Deno is not
+required:
+
+```bash
+# Interactive REPL
+npx hclang@latest
+
+# Evaluate a file
+npx hclang@latest path/to/program.hc
+
+# Verify executable examples in an HC document
+npx hclang@latest path/to/examples.hc --testdoc
+```
 
 From source:
 
@@ -79,19 +93,21 @@ deno task test
 
 The root `deno.json` provides several tasks:
 
-| Task                   | Description                                    |
-| ---------------------- | ---------------------------------------------- |
-| `deno task hc`         | Launch the HC REPL                             |
-| `deno task setup`      | Install pre-commit hooks                       |
-| `deno task test`       | Run all tests (setup, format, lint, and tests) |
-| `deno task test:setup` | Run all pre-commit hooks on all files          |
-| `deno task test:cli`   | Test CLI package                               |
-| `deno task test:lib`   | Test library package                           |
-| `deno task test:maml`  | Test MAML package                              |
-| `deno task test:web`   | Test web package                               |
-| `deno task test:bs`    | Test BitScheme documentation                   |
-| `deno task test:doc`   | Test HC documentation examples                 |
-| `deno task build`      | Build the HC CLI binary                        |
+| Task                   | Description                                       |
+| ---------------------- | ------------------------------------------------- |
+| `deno task hc`         | Launch the HC REPL                                |
+| `deno task setup`      | Install pre-commit hooks                          |
+| `deno task test`       | Run all tests (setup, format, lint, and tests)    |
+| `deno task test:setup` | Run all pre-commit hooks on all files             |
+| `deno task test:cli`   | Test CLI package                                  |
+| `deno task test:lib`   | Test library package                              |
+| `deno task test:maml`  | Test MAML package                                 |
+| `deno task test:web`   | Test web package                                  |
+| `deno task test:bs`    | Test BitScheme documentation                      |
+| `deno task test:doc`   | Test HC documentation examples                    |
+| `deno task build`      | Build native, npm, and web artifacts              |
+| `deno task build:npm`  | Generate the Node.js CLI package in `dist/npm`    |
+| `deno task test:npm`   | Pack and smoke-test the CLI package through `npx` |
 
 ### BitScheme
 
@@ -225,10 +241,20 @@ For maintainers publishing new versions:
 3. Merge the PR to the `master` branch.
 
    GitHub Actions compares the version in `deno.json` with the version before
-   the merge. When the version changed, it publishes the package to
-   [JSR](https://jsr.io/@swanfactory/hclang) and creates a GitHub Release tagged
-   `v<version>` with generated notes. Merges without a version bump do not
-   publish or create a release; no manual tag is required.
+   the merge. When the version changed, it publishes the libraries to
+   [JSR](https://jsr.io/@swanfactory/hclang), publishes the exact `hclang`
+   tarball exercised through `npx`, and creates a GitHub Release tagged
+   `v<version>` with generated notes. Each registry is checked independently, so
+   a rerun resumes a partial release instead of retrying versions that are
+   already immutable. Merges without a version bump do not publish or create a
+   release; no manual tag is required.
+
+   npm publishing runs in the protected `npm-publish` GitHub environment using a
+   trusted publisher for the public `hclang` package. Its npm settings must
+   authorize the `TheSwanFactory/hclang` repository,
+   `.github/workflows/deno.js.yml`, the `npm-publish` environment, and direct
+   `npm publish` before merging a release bump. The build/PR job has no OIDC
+   token permission.
 
 ## Links
 

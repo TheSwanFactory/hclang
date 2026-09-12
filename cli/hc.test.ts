@@ -1,8 +1,12 @@
 import { expect } from "jsr:@std/expect@^0.219.1";
 import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 import { HCEval } from "../lib/execute/hc-eval.ts";
-import { Frame, FrameArray, FrameNumber } from "../lib/frames.ts";
-import { getEval, getHost, getOptions, main } from "./hc.ts";
+import { FrameArray } from "../lib/frames.ts";
+import { getEval, getOptions, main } from "./hc.ts";
+
+// Malformed-input and no-authority tests intentionally bypass the CLI factory:
+// they exercise HCEval itself or prove behavior without a host root binding.
+const bareEval = (out = new FrameArray([])): HCEval => new HCEval(out);
 
 describe("getOptions", () => {
   it("is exported", () => {
@@ -80,11 +84,9 @@ describe("main", () => {
       await Deno.writeTextFile(first, ".x 7;\n$.x\n");
       await Deno.writeTextFile(second, "$.x\n$$.host\n");
       const out = new FrameArray([]);
-      const host = new Frame();
-      host.set("host", new FrameNumber("9"));
 
       const status = await main(
-        new HCEval(out, out, host),
+        getEval({ host: "9" }, out),
         getOptions([first, second]),
       );
       const rendered = out.asArray().map(String);
@@ -102,7 +104,7 @@ describe("main", () => {
     const file = await Deno.makeTempFile({ suffix: ".hc" });
     try {
       await Deno.writeTextFile(file, "; 1\n# 2\n");
-      const hcEval = new HCEval(new FrameArray([]));
+      const hcEval = bareEval();
       const status = await main(hcEval, getOptions(["--testdoc", file]));
       expect(status).toEqual(1);
     } finally {
@@ -117,7 +119,7 @@ describe("main", () => {
     console.error = (...args: unknown[]) => diagnostics.push(args.join(" "));
     try {
       await Deno.writeTextFile(file, "```unfinished ``");
-      const hcEval = new HCEval(new FrameArray([]));
+      const hcEval = bareEval();
       const status = await main(hcEval, getOptions([file]));
 
       expect(status).toEqual(1);
@@ -138,7 +140,7 @@ describe("main", () => {
     try {
       await Deno.writeTextFile(file, "```unfinished");
       const status = await main(
-        new HCEval(out),
+        bareEval(out),
         getOptions(["--testdoc", file]),
       );
 
@@ -161,7 +163,7 @@ describe("main", () => {
     console.error = (...args: unknown[]) => diagnostics.push(args.join(" "));
     try {
       await Deno.writeTextFile(file, "```body````");
-      const hcEval = new HCEval(new FrameArray([]));
+      const hcEval = bareEval();
       const status = await main(hcEval, getOptions([file]));
 
       expect(status).toEqual(1);
@@ -181,7 +183,7 @@ describe("main", () => {
     console.error = (...args: unknown[]) => diagnostics.push(args.join(" "));
     try {
       await Deno.writeTextFile(file, '"""body""');
-      const hcEval = new HCEval(new FrameArray([]));
+      const hcEval = bareEval();
       const status = await main(hcEval, getOptions([file]));
 
       expect(status).toEqual(1);
@@ -201,7 +203,7 @@ describe("main", () => {
     console.error = (...args: unknown[]) => diagnostics.push(args.join(" "));
     try {
       await Deno.writeTextFile(file, "don't stop\n");
-      const hcEval = new HCEval(new FrameArray([]));
+      const hcEval = bareEval();
       const status = await main(hcEval, getOptions([file]));
 
       expect(status).toEqual(1);
@@ -218,7 +220,7 @@ describe("main", () => {
     const out = new FrameArray([]);
     const file = new URL("./hc/testdoc.hc", import.meta.url).pathname;
     const status = await main(
-      new HCEval(out),
+      getEval({}, out),
       getOptions(["--testdoc", file]),
     );
 
@@ -232,7 +234,7 @@ describe("main", () => {
     const out = new FrameArray([]);
     const file = new URL("./hc/numerics.hc", import.meta.url).pathname;
     const status = await main(
-      new HCEval(out),
+      getEval({}, out),
       getOptions(["--testdoc", file]),
     );
 
@@ -246,7 +248,7 @@ describe("main", () => {
     const out = new FrameArray([]);
     const file = new URL("./hc/units.hc", import.meta.url).pathname;
     const status = await main(
-      new HCEval(out),
+      getEval({}, out),
       getOptions(["--testdoc", file]),
     );
 
@@ -264,7 +266,7 @@ describe("main", () => {
     console.error = (...args: unknown[]) => diagnostics.push(args);
     try {
       const status = await main(
-        new HCEval(out),
+        getEval({}, out),
         getOptions(["--testdoc", file]),
       );
       const summaries = out.asArray().filter((item) =>
@@ -286,7 +288,7 @@ describe("main", () => {
     const out = new FrameArray([]);
     const file = new URL("./hc/white-paper-core.hc", import.meta.url).pathname;
     const status = await main(
-      new HCEval(out),
+      getEval({}, out),
       getOptions(["--testdoc", file]),
     );
 
@@ -300,7 +302,7 @@ describe("main", () => {
     const out = new FrameArray([]);
     const file = new URL("./hc/class-support.hc", import.meta.url).pathname;
     const status = await main(
-      new HCEval(out),
+      getEval({}, out),
       getOptions(["--testdoc", file]),
     );
 
@@ -314,7 +316,7 @@ describe("main", () => {
     const out = new FrameArray([]);
     const file = new URL("./hc/format.hc", import.meta.url).pathname;
     const status = await main(
-      new HCEval(out),
+      getEval({}, out),
       getOptions(["--testdoc", file]),
     );
 
@@ -330,7 +332,7 @@ describe("main", () => {
     // Run under the namespace the CLI actually installs: an empty one would
     // leave every identifier inert and assert nothing about the primitive.
     const status = await main(
-      new HCEval(out, new Frame(), getHost()),
+      getEval({}, out),
       getOptions(["--testdoc", file]),
     );
 
@@ -346,7 +348,7 @@ describe("main", () => {
     // A root binding, because the resource decisions are part of the model this
     // file pins. Every decision is executable, so nothing here is a promise.
     const status = await main(
-      new HCEval(out, new Frame(), getHost()),
+      getEval({}, out),
       getOptions(["--testdoc", file]),
     );
 
@@ -358,7 +360,7 @@ describe("main", () => {
 
   it("leaves a resource identifier inert with no root binding installed", () => {
     const out = new FrameArray([]);
-    const hcEval = new HCEval(out);
+    const hcEval = bareEval(out);
 
     hcEval.call("'./out.txt' “hello”");
     expect(hcEval.finish()).toEqual(true);
@@ -373,7 +375,7 @@ describe("main", () => {
     console.error = (...args: unknown[]) => diagnostics.push(args);
     try {
       const status = await main(
-        new HCEval(out),
+        getEval({}, out),
         getOptions(["--testdoc", file]),
       );
       const summaries = out.asArray().filter((item) =>

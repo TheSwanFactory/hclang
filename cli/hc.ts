@@ -1,4 +1,3 @@
-#!/usr/bin/env -S deno run -A
 import { HCEval, make_context } from "../lib/execute/hc-eval.ts";
 import { HCLog } from "../lib/execute/hc-log.ts";
 import { HCTest } from "../lib/execute/hc-test.ts";
@@ -57,12 +56,13 @@ export function getOptions(args: string[]): ReturnType<typeof parseArgs> {
  * inside it.
  *
  * @param env - An object containing key-value pairs of environment variables.
+ * @param out - Optional output sink. Tests inject a capture frame; the CLI uses HCLog.
  * @returns An instance of `HCEval` configured with the provided environment variables.
  */
-export function getEval(env: StringMap): HCEval {
+export function getEval(env: StringMap, out?: Frame): HCEval {
   const context = make_context(env);
-  const out = new HCLog(context);
-  return new HCEval(out, new Frame(), getHost(context));
+  const output = out ?? new HCLog(context);
+  return new HCEval(output, new Frame(), getHost(context));
 }
 
 /**
@@ -171,7 +171,7 @@ if (import.meta.main) {
   const options = getOptions(Deno.args);
   const hc_eval = getEval(env);
   main(hc_eval, options).then((exitCode) => {
-    Deno.exitCode = exitCode;
+    Deno.exit(exitCode);
   }).catch((err) => {
     console.error(err);
     Deno.exit(1);
