@@ -72,9 +72,30 @@ refuses even a same-unit operand.
 
 #### Time Types
 
-- **Date**: `%date%`
-- **Time**: `%time%`
-- **DateTime**: `%datetime%`
+- **Instant**: `%2026-08-21T00:00:00Z%`, `%2026-08-21T08:30:00-07:00%`
+- **Date**: `%2026-08-21%`, which is the start of that UTC day
+- **Duration**: `%PT1H30M%`, `%P7D%`, `%-PT1H%`
+
+An instant is offset-bearing. A time of day with no offset is refused as
+`$!.time-offset-required`, because a civil time in a named zone cannot become an
+instant without tzdata; named-zone conversion is a handler entry, not a literal.
+A duration is fixed-length — weeks, days, hours, minutes, seconds — so `%P1Y%`
+and `%P1M%` are refused as `$!.time-duration-calendar`. Both kinds render
+canonically, in UTC for an instant, so output re-reads as the same value.
+
+Arithmetic is exact and enforced from one dimensional table: an instant is a
+point and a duration is an interval, so `point - point` is an interval,
+`point + interval` is a point, `interval * scalar` is an interval,
+`interval / interval` is a plain number, and every other combination — including
+`point + point` — answers `$!.numeric-domain`. A scaling that would not land on
+a whole nanosecond answers `$!.time-inexact` rather than rounding.
+
+`%%` remains Modulo, so there is no empty time literal: the doubled delimiter
+belongs to an operator with existing behavior, and a literal with no body would
+name nothing.
+
+Reading the current instant is a grant rather than a literal. It is spelled
+`'clock:now'`, answers one instant, and has no ambient `now`.
 
 ### BLOBs (Binary Large Objects)
 
@@ -333,7 +354,7 @@ parent_.helper_ 10
 
 ### Time Literals
 
-- `%...%` - Date/time/datetime
+- `%...%` - Instant or duration; `%%` stays Modulo
 
 ### Binary Literals
 

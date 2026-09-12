@@ -379,10 +379,16 @@ Only judgment that no tool records belongs here. Look elsewhere first:
   closes. Set one with
   `gh api -X POST repos/TheSwanFactory/hclang/issues/<n>/dependencies/blocked_by -F issue_id=<blocker database id>`.
 - **Doctest baselines** are asserted in `cli/hc.test.ts`. Never restate them in
-  prose; a wrong test fails, a wrong comment just misleads. `test:all` also runs
-  `test:doc`, which executes the same files through the real CLI entry point, so
-  a corpus change has to hold under both the test harness and the shipped one.
-  The two do not construct the evaluator alike, which is #373.
+  prose; a wrong test fails, a wrong comment just misleads. `test:all` now runs
+  `test:doc` too (landed for #372), which executes the same files through the
+  real CLI entry point, so a corpus change has to hold under both the test
+  harness and the shipped one. The two still do not construct the evaluator
+  alike, which is the part of #373 left open: `test:doc` covers six of eleven
+  doctest files, `test:bs` covers `BitScheme` separately, and the remaining four
+  (`white-paper`, `white-paper-core`, `class-support`, `format`) run under
+  `cli/hc.test.ts` only, unenforced against the real entry point. Not urgent —
+  every file passes under both harnesses today — but the next doctest that
+  disagrees between them will surface here first.
 - **What shipped and why** is the [CHANGELOG](CHANGELOG.md) and the design docs
   in `spec/`.
 
@@ -397,6 +403,15 @@ Only judgment that no tool records belongs here. Look elsewhere first:
 4. **#358** — `===` conflates frames without metadata. Quantities made it
    reachable from ordinary source.
 
+Not ranked above, because both are a design pass rather than a ruling to
+implement — each carries its own open scope checklist and neither has a recorded
+GitHub blocker:
+
+- **#374** — make multi-value `()` a set, distinct from `[]`. Also the proposal
+  that would settle the keyed-iteration axis a11.1 couldn't spell.
+- **#375** — what a class must answer to work as a reduce accumulator, split out
+  of #368 now that #368 has landed.
+
 ### Safe parallelism
 
 - The BitScheme lane (#310 → #311 → #312 → #319) runs serially and can proceed
@@ -404,13 +419,17 @@ Only judgment that no tool records belongs here. Look elsewhere first:
   edit `cli/hc/BitScheme.hc`.
 - #277 and #301 may run in parallel as separate PRs, but rebase before merge if
   both touch evaluator lookup or shared frame infrastructure. Neither absorbs
-  the other. Both now build on the resource primitive that shipped for #348
-  (`spec/a10-resource-primitive.md`), so neither needs to invent a resolver.
-- #367 (per-scheme handler table), #368 (typed resources), and #371 (retire the
-  CLI's `-A`) each extend one named seam of that primitive and can run
-  independently. #367 owns `normalizeReference`'s scheme branch, #368 owned
-  `FrameResource`'s reading path and has landed, and #371 owns nothing in `lib/`
-  at all.
+  the other. Both build on the resource primitive that shipped for #348
+  (`spec/a10-resource-primitive.md`), so neither needs to invent a resolver, and
+  both are unblocked now that the a07 group has landed
+  (`spec/a12-resource-frames.md`): #277's capability boundary is a table it can
+  read, and its time budgets are a duration plus a clock grant rather than a
+  limiter to build.
+- The a07 group (#366, #367, #369, #370, #371) shipped together in v0.16.0,
+  deliberately as one PR: #370 and #371 were blocked by #367, and #370 needs
+  #369's types, so the chain had no seam to split on that would have left each
+  half testable. What remains of a07 §4 is typed resources — the element type
+  travelling with a resource — which nothing in that group made harder.
 
 ### Pull-request boundaries
 

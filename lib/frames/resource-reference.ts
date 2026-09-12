@@ -58,12 +58,13 @@ export const decomposeReference = (reference: string): ReferenceParts => {
 };
 
 /**
- * Reduces a reference to a root-relative path, or refuses.
+ * Reduces a scheme-less reference to a root-relative path, or refuses.
  *
- * Every refusal is decided here, before dispatch, which is why a scheme is
- * refused rather than deferred: an unbound scheme is an empty handler slot, and
- * until #367 supplies the table every slot is empty. Presence of `scheme` is the
- * whole discriminator; a colon inside a path is an ordinary character.
+ * This is the path plane, and it runs before any handler exists to be wrong
+ * about containment. A scheme reaching here is a caller that skipped dispatch,
+ * so it is refused rather than guessed at: the handler table owns every scheme,
+ * and presence of `scheme` is the whole discriminator. A colon inside a path is
+ * an ordinary character.
  */
 export const normalizeReference = (reference: string): Normalization => {
   const parts = decomposeReference(reference);
@@ -78,7 +79,7 @@ export const normalizeReference = (reference: string): Normalization => {
     return { ok: false, reason: "resource-part-unsupported" };
   }
 
-  return normalizePath(parts.path ?? "");
+  return normalizeReferencePath(parts.path ?? "");
 };
 
 /**
@@ -108,7 +109,7 @@ export const joinNormalized = (parent: string, child: string): string => {
 };
 
 /**
- * Normalizes the path component, refusing anything that could leave the root.
+ * Normalizes a path component, refusing anything that could leave the root.
  *
  * The refusals are stricter than escape detection needs, deliberately. Every
  * `..` is refused rather than popped, so there is no canonicalization for a
@@ -116,8 +117,13 @@ export const joinNormalized = (parent: string, child: string): string => {
  * `\` is refused rather than decoded, so the encoded-dot-segment class does not
  * exist. Both costs are nameable refusals on spellings with no purpose inside a
  * rooted subtree.
+ *
+ * Exported because a scheme handler backed by a store needs the same rule: a
+ * scheme must not become a way to spell a path the root plane would refuse. It
+ * takes a path, not a reference, so a colon inside it stays an ordinary
+ * character rather than reading as a scheme.
  */
-const normalizePath = (path: string): Normalization => {
+export const normalizeReferencePath = (path: string): Normalization => {
   if (path.includes("\\")) {
     return { ok: false, reason: "resource-alternate-separator" };
   }

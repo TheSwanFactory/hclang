@@ -94,6 +94,29 @@ The CLI acts as a thin wrapper around the core library (`lib/`):
 3. Calls `execute()` or `evaluate()` from the library
 4. Formats and displays results
 
+## Permission flags are a derived artifact
+
+The `hc` and `build` tasks run with
+`--allow-read --allow-write --allow-env
+--deny-run --deny-ffi`. That list is a
+property of **this** harness and not the security model: `hcweb.html` is a
+harness with no permission flag to express, and the confinement it relies on is
+the same one. Read the flags as a floor derived from what the harness needs, and
+never as the boundary.
+
+- `--allow-env` is not the bound on what a program sees. The dictionary in
+  `lib/execute/env-visibility.ts` is, and the CLI reads one declared name at a
+  time through it. The flag stays unscoped because the dependency tree probes
+  the colour-support family, which is exactly the thing a per-invocation flag
+  cannot express.
+- `--allow-read` and `--allow-write` are wider than any program's reach. A
+  resource identifier resolves against the root binding, a fresh temp directory,
+  so the language enforces a ceiling inside whatever the process holds.
+- `--deny-run` and `--deny-ffi` are a hard floor, because `--deny-*` beats
+  `--allow-*` and either authority would void every path scope above.
+- Which schemes can reach a host is `getHandlers()`, not a flag. One entry is
+  bound, the clock; every other scheme is an empty slot and refuses.
+
 ## Important Notes
 
 - Debug mode: Set `DEBUG=true` environment variable

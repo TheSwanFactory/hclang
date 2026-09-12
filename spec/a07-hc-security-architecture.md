@@ -1,10 +1,12 @@
 # HC Security Architecture
 
-**Status:** Design consensus. Of the four mechanisms in §4, deterministic
-normalization shipped in v0.14.0 with the resource primitive
-([`a10`](a10-resource-primitive.md)); the other three are not implemented. This
-document records the reasoning so the tickets can be tuned against it rather
-than rediscovered.\
+**Status:** Design consensus, largely realized. Deterministic normalization
+shipped in v0.14.0 with the resource primitive
+([`a10`](a10-resource-primitive.md)). The env whitelist, the handler table, the
+time family, the clock grant, and the CLI's flag floor shipped in v0.16.0; the
+rulings a07 left open are recorded in [`a12`](a12-resource-frames.md). Typed
+resources remain the one §4 mechanism outstanding. This document records the
+reasoning so the tickets can be tuned against it rather than rediscovered.\
 **Issues:** [#277](https://github.com/TheSwanFactory/hclang/issues/277),
 [#301](https://github.com/TheSwanFactory/hclang/issues/301),
 [#348](https://github.com/TheSwanFactory/hclang/issues/348),
@@ -179,22 +181,21 @@ or narrows authority is a category error, and reliably a sign of importing the
 package-manager model where a module asks and a system grants. A data structure
 has no standing to ask.
 
-The related structural defect: `Frame.globals` is `Ops` (`lib/frames.ts:65`),
-consulted as the final lookup tier with no spelling at all
-(`lib/frames/meta-frame.ts:178-192`). `cli/hc.ts:121` feeds
-`Deno.env.toObject()` into the root context via `make_context` (`cli/hc.ts:50`),
-so a bare identifier resolves to a process environment variable while a
-one-character typo reports `$!.name-missing`. Whether a name is bound depends on
-ambient process state. #349's `$` and `$$` make the tiers nameable, which is
-what makes the perimeter enumerable.
+The related structural defect: `Frame.globals` is `Ops`, consulted as the final
+lookup tier with no spelling at all. #349's `$` and `$$` made the tiers
+nameable, which is what made the perimeter enumerable. ~~The CLI feeds
+`Deno.env.toObject()` into the root context, so whether a name is bound depends
+on ambient process state.~~ Settled twice over: #349 removed the unsigiled tier,
+so a bare identifier no longer resolves to a process variable, and #366 replaced
+the wholesale read with a declared dictionary, so `$$` is bounded as well as
+nameable.
 
 ## 8. Datetime is data; `now` is a grant
 
 Datetime is a first-class type, and `%…%` is its parser: text becomes a
-structured value exactly as a numeric literal does. This is documented and
-unimplemented — `doc/GRAMMAR.md:66-69` and `:299-300` define `%date%`, `%time%`,
-and `%datetime%`, `doc/shannon/5-hclang.md:54-57` repeats them, and no time
-family is registered in `lib/execute/syntax.ts`.
+structured value exactly as a numeric literal does. ~~This is documented and
+unimplemented.~~ Shipped in v0.16.0; [`a12`](a12-resource-frames.md) §3-§6
+records the rulings, including the `%%` collision below.
 
 The split that matters is between the literal and the reading:
 
@@ -234,15 +235,16 @@ ambient in the first place.
 
 ## Noted, not resolved here
 
-- **Nested harnesses.** An HC program acting as harness to another is desirable
-  — supervising untrusted code is the point — and at that moment handler
-  composition must be attenuation-only.
-- **Handler installation authority.** Presumed harness-only and not an HC value.
-  Stated as an invariant so it can be tested rather than assumed.
-- **`%…%` versus `%%`.** `%%` is Modulo (`lib/ops.ts:39`), which sits exactly
-  where an empty time literal would. [`a03`](a03-unified-quote-delimiters.md)
-  settled the analogous `"` versus `"""` case with run-length parity, so there
-  is precedent, but the collision needs deciding rather than assuming.
+- ~~**Nested harnesses.**~~ Settled. Handler composition is attenuation-only by
+  construction: a table's only composition operator intersects, so a child's
+  table is a subset of its parent's and there is no widening to audit for.
+- ~~**Handler installation authority.**~~ Settled as an invariant with tests.
+  The table is not an HC value, is absent from a resource's visible keys, and
+  has no spelling that installs, replaces, or enumerates an entry.
+- ~~**`%…%` versus `%%`.**~~ Ruled: the operator keeps the doubled spelling and
+  there is no empty time literal. The asymmetry with a03's `"` versus `"""` is
+  the reason — the doubled quote was unused, while `%%` had behavior to lose.
+  [`a12`](a12-resource-frames.md) §3.
 - ~~**Ticket hygiene.** #348 still carries a "Required, not optional" section
   that is Deno CLI harness configuration, and its env/`$$` split with #349 was
   an artifact of drafting rather than a design decision.~~ Settled. #349 landed

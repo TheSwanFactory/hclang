@@ -34,6 +34,7 @@ export const syntaxFacets: Array<SyntaxFacet> = [
   frame.FrameString.SYNTAX,
   frame.FrameStringEnd.SYNTAX,
   frame.FrameSymbol.SYNTAX,
+  frame.FrameTime.SYNTAX,
   frame.FrameURI.SYNTAX,
 ];
 

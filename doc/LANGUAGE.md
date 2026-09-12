@@ -256,9 +256,19 @@ Having times as a primitive avoids having to worry about epochs and whether to
 use milliseconds or nanoseconds. Eventually we plan to directly support parsing
 of ISO/RFC date strings in multiple languages.
 
-- `%date%`
-- `%time%`
-- `%datetime%`
+- Instant: `%2026-08-21T00:00:00Z%`
+- Date, meaning the start of that UTC day: `%2026-08-21%`
+- Duration: `%PT1H30M%`
+
+An instant is a point and a duration is an interval, so the difference of two
+instants is a duration, an instant displaced by a duration is an instant, and a
+duration scales by a number. Adding two instants is a type error. Values are
+exact nanoseconds, which is what removes the epoch-and-resolution question
+rather than answering it. `%%` remains Modulo, so there is no empty time
+literal.
+
+The current instant is not a literal, because reading it is an observation. It
+is a harness grant, spelled `'clock:now'`.
 
 ### BLOBs
 

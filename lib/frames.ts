@@ -43,6 +43,28 @@ export { FrameInt } from "./frames/frame-int.ts";
 export { FrameDecimal } from "./frames/frame-decimal.ts";
 export { FrameSequence } from "./frames/frame-sequence.ts";
 export { FrameTypedNumber } from "./frames/frame-typed-number.ts";
+export {
+  type DimensionalKind,
+  type DimensionalOperator,
+  dimensionalResult,
+} from "./frames/dimensional-algebra.ts";
+export {
+  FrameDateTime,
+  FrameDuration,
+  FrameTime,
+  NANOS_PER_MILLISECOND,
+  parseTimeLiteral,
+} from "./frames/frame-time.ts";
+export {
+  BudgetClock,
+  type Clock,
+  CLOCK_SCHEME,
+  ClockHandler,
+  type ClockReading,
+  FrozenClock,
+  RealClock,
+  ScriptedClock,
+} from "./frames/clock.ts";
 export { FrameRational } from "./frames/frame-rational.ts";
 export { FrameNumber } from "./frames/frame-number.ts";
 export { FrameSchema } from "./frames/frame-schema.ts";
@@ -67,10 +89,19 @@ export {
   joinNormalized,
   type Normalization,
   normalizeReference,
+  normalizeReferencePath,
   type ReferenceParts,
   URI_PART_KEYS,
   type URIPartKey,
 } from "./frames/resource-reference.ts";
+export {
+  characterElements,
+  type HandlerRead,
+  type HandlerWrite,
+  ResourceHandlers,
+  type SchemeHandler,
+  StoreHandler,
+} from "./frames/resource-handlers.ts";
 export {
   MemoryStore,
   type ResourceStore,

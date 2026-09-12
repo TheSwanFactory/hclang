@@ -4,6 +4,57 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.16.0 2026-09-12
+
+- **Only declared environment variables reach `$$`.** A curated dictionary of
+  standard UNIX and open-source variables replaces the wholesale
+  `Deno.env.toObject()`, and the harness now reads one declared name at a time.
+  A variable outside the dictionary is absent rather than refused, so
+  `$$.SECRET` answers exactly what a typo answers and there is nothing to probe
+  a host with. The dictionary is the bound, not the `--allow-env` flag (#366).
+- **A resource scheme is dispatched through a handler table, and a scheme with
+  no entry is an empty slot.** `'https://…'` still refuses, now because nothing
+  is bound to `https` rather than because schemes are unimplemented, and the
+  refusal is decided by a table read with no host call. Presence of a scheme is
+  the whole discriminator: a colon inside a path stays an ordinary path
+  character (#367).
+- A handler is a harness value with no HC spelling that installs, replaces, or
+  enumerates one, and table composition only ever narrows — a nested harness's
+  schemes are a subset of its parent's by construction. Swapping live for
+  simulated, or for a deterministic fixture, is swapping one entry, with the
+  program byte-identical across all three (#367).
+- **`%…%` ships as instants and durations.** An instant is offset-bearing and a
+  bare date is the start of that UTC day; a civil time with no offset is
+  refused, because it cannot become an instant without tzdata. A duration is
+  fixed-length, so `%P1Y%` and `%P1M%` are refused rather than given a calendar
+  meaning. Both render canonically, so `%2026-08-21T08:30:00-07:00%` answers
+  `%2026-08-21T15:30:00Z%` and output re-reads as the same value (#369).
+- The algebra between them is enforced from one dimensional table rather than
+  per operator: instant minus instant is a duration, instant plus duration is an
+  instant, duration times a number is a duration from either side, duration over
+  duration is a plain number, and instant plus instant is a type error. Values
+  are exact nanoseconds, so a scaling that would not land on a whole nanosecond
+  answers `$!.time-inexact` instead of rounding (#369).
+- **`%%` keeps its meaning as Modulo, and there is no empty time literal.** The
+  doubled delimiter belongs to an operator that already had behavior, unlike the
+  unused `"""` spelling a03 claimed, and a literal with no body would name
+  nothing (#369).
+- **`now` is a grant, spelled `'clock:now'`, with no ambient name.** Reading it
+  answers one instant and writing it is refused. Real, frozen, and scripted
+  clocks are three table entries rather than three modes, so a pinned clock
+  makes `%2026-08-21T00:00:00Z%` a legitimate expectation, and a time budget is
+  a duration plus a clock whose exhaustion is the clock refusing (#370).
+- **The CLI no longer runs with `-A`.** The `hc` and `build` tasks take only the
+  read, write, and env authority the harness needs, with `--deny-run` and
+  `--deny-ffi` as a hard floor, since either one would void every path scope the
+  root binding enforces. Those flags are a derived artifact of one harness and
+  never the security model, which `cli/CLAUDE.md` now records (#371).
+- Library API: `FrameDateTime`, `FrameDuration`, `ResourceHandlers`,
+  `StoreHandler`, `dimensionalResult`, and the `Clock` family are exported;
+  `FrameResource.root` takes an optional handler table; and `FrameNumeric` gains
+  `exactRatio`, so a value outside the promotion ladder can scale exactly (#367,
+  #369, #370).
+
 ## v0.15.1 2026-09-11
 
 - Restore the current `hclang` CLI to npm: `npx hclang@latest` now runs the

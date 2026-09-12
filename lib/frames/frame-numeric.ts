@@ -114,7 +114,7 @@ export abstract class FrameNumeric extends FrameAtom {
 
   public divide(right: FrameNumeric): Frame {
     if (this.rank == null || right.rank == null) {
-      return this.operationError("/", right);
+      return this.reflect("/", right) ?? this.operationError("/", right);
     }
     if (right.isZero()) return Frame.error("$!.division-by-zero /");
 
@@ -224,6 +224,18 @@ export abstract class FrameNumeric extends FrameAtom {
     return Frame.error(`$!.exact-integer-required ${this.className()}`);
   }
 
+  /**
+   * The exact ratio this frame denotes, or null when it denotes none.
+   *
+   * Published so a null-ranked peer outside the promotion ladder can scale by an
+   * exact scalar without joining the ladder to do it. An inexact value answers
+   * null, which is what keeps such a peer's arithmetic exact by construction
+   * rather than by rounding.
+   */
+  public exactRatio(): readonly [bigint, bigint] | null {
+    return this.ratioParts();
+  }
+
   public abstract isZero(): boolean;
 
   protected abstract promoteOne(): FrameNumeric;
@@ -259,6 +271,21 @@ export abstract class FrameNumeric extends FrameAtom {
   }
 
   /**
+   * A right operand's chance to define an operation its left cannot.
+   *
+   * A value outside the promotion ladder carries rules the ladder does not know:
+   * a duration times a number is a duration, whichever side the number was
+   * written on. Answering `undefined` — which every ranked type does — leaves the
+   * domain error exactly as it was, so this adds a case rather than changing one.
+   */
+  protected combineFrom(
+    _operator: "+" | "-" | "*" | "/",
+    _left: FrameNumeric,
+  ): Frame | undefined {
+    return undefined;
+  }
+
+  /**
    * A numeric `up` link is the receiver a property lookup climbed from, not a
    * lexical scope, so it must not answer a later segment. Without this, an
    * unhandled key on a dotted numeric value would re-enter its own receiver:
@@ -286,10 +313,21 @@ export abstract class FrameNumeric extends FrameAtom {
     operation: (left: FrameNumeric, joinedRight: FrameNumeric) => Frame,
   ): Frame {
     if (this.rank == null || right.rank == null) {
-      return this.operationError(operator, right);
+      return this.reflect(operator, right) ??
+        this.operationError(operator, right);
     }
     const target = Math.max(this.rank, right.rank) as NumericRank;
     return operation(this.promoteTo(target), right.promoteTo(target));
+  }
+
+  /** Offers an unranked right operand the operation, once, before refusing. */
+  private reflect(
+    operator: "+" | "-" | "*" | "/",
+    right: FrameNumeric,
+  ): Frame | undefined {
+    return this.rank != null && right.rank == null
+      ? right.combineFrom(operator, this)
+      : undefined;
   }
 
   private order(

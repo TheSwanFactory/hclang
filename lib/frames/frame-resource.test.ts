@@ -11,7 +11,9 @@ import {
   FrameURI,
   MemoryStore,
   RESOURCE_ROOT_KEY,
+  ResourceHandlers,
   type ResourceStore,
+  StoreHandler,
   type StoreResult,
 } from "../frames.ts";
 import { evaluate } from "../execute/evaluate.ts";
@@ -50,12 +52,22 @@ class LinkingStore implements ResourceStore {
 }
 
 /** Evaluates source with a root binding installed in the host namespace. */
-const withRoot = (source: string, store: ResourceStore = new MemoryStore()) =>
-  evaluate(source, { [RESOURCE_ROOT_KEY]: FrameResource.root(store) });
+const withRoot = (
+  source: string,
+  store: ResourceStore = new MemoryStore(),
+  handlers: ResourceHandlers = ResourceHandlers.none,
+) =>
+  evaluate(source, {
+    [RESOURCE_ROOT_KEY]: FrameResource.root(store, handlers),
+  });
 
 /** The rendered results of one source unit, one per line. */
-const results = (source: string, store?: ResourceStore): string[] =>
-  withRoot(source, store).toStringArray().map((line) =>
+const results = (
+  source: string,
+  store?: ResourceStore,
+  handlers?: ResourceHandlers,
+): string[] =>
+  withRoot(source, store, handlers).toStringArray().map((line) =>
     line.endsWith(",") ? line.slice(0, -1) : line
   );
 
@@ -251,6 +263,153 @@ describe("FrameResource", () => {
       expect(results("'./link.txt' “no”", store)).toEqual([
         "$!.resource-escaped-root './link.txt'",
       ]);
+    });
+  });
+
+  describe("scheme dispatch", () => {
+    /** A root whose `fixture` scheme resolves to a store of its own. */
+    const fixtured = (
+      fixtures = new MemoryStore("fixtures"),
+    ): { root: FrameResource; fixtures: MemoryStore } => ({
+      root: FrameResource.root(
+        new MemoryStore("paths"),
+        ResourceHandlers.of({ fixture: new StoreHandler(fixtures) }),
+      ),
+      fixtures,
+    });
+
+    it("dispatches a bound scheme to its entry", () => {
+      const { root, fixtures } = fixtured();
+      fixtures.write("a.txt", "hi");
+
+      expect(
+        root.extend("fixture:a.txt").reduce(new FrameString("")).toString(),
+      )
+        .toEqual("“hi”");
+    });
+
+    it("refuses an unbound scheme without a host call", () => {
+      const paths = new MemoryStore("paths");
+      const root = FrameResource.root(paths, ResourceHandlers.of({}));
+      const reads: string[] = [];
+      paths.read = (path: string): StoreResult => {
+        reads.push(path);
+        return { ok: false, reason: "resource-absent" };
+      };
+
+      expect(root.extend("https://example.com/x").elements().map(String))
+        .toEqual(["$!.resource-scheme-unbound 'https://example.com/x'"]);
+      expect(reads).toEqual([]);
+    });
+
+    it("never consults the colon, only the scheme a reference publishes", () => {
+      const { root, fixtures } = fixtured();
+      fixtures.write("a.txt", "scheme");
+
+      // Same colon, two outcomes: one reference publishes a scheme and the
+      // other does not, which is the whole discriminator.
+      expect(root.extend("fixture:a.txt").elements().map(String)).toEqual([
+        "“s”",
+        "“c”",
+        "“h”",
+        "“e”",
+        "“m”",
+        "“e”",
+      ]);
+      expect(
+        root.extend("./a:b.txt").apply(new FrameString("x"), Frame.nil)
+          .toString(),
+      ).toEqual("1");
+    });
+
+    it("keeps the path plane and a scheme's store apart", () => {
+      const paths = new MemoryStore("paths");
+      const fixtures = new MemoryStore("fixtures");
+      const root = FrameResource.root(
+        paths,
+        ResourceHandlers.of({ fixture: new StoreHandler(fixtures) }),
+      );
+
+      root.extend("fixture:a.txt").apply(new FrameString("scheme"), Frame.nil);
+      expect(paths.read("a.txt")).toEqual({
+        ok: false,
+        reason: "resource-absent",
+      });
+      expect(fixtures.read("a.txt")).toEqual({ ok: true, content: "scheme" });
+    });
+
+    it("resolves a scheme-less reference against the root binding", () => {
+      const { root, fixtures } = fixtured();
+      root.extend("./a.txt").apply(new FrameString("path"), Frame.nil);
+
+      expect(fixtures.read("a.txt")).toEqual({
+        ok: false,
+        reason: "resource-absent",
+      });
+      expect(root.extend("a.txt").reduce(new FrameString("")).toString())
+        .toEqual("“path”");
+    });
+
+    it("treats a handler's resource as a leaf rather than a root", () => {
+      const { root } = fixtured();
+      const resource = root.extend("fixture:a.txt") as FrameResource;
+
+      expect(resource.extend("./b.txt").elements().map(String)).toEqual([
+        "$!.resource-not-extensible './b.txt'",
+      ]);
+    });
+
+    it("swaps live for simulated by swapping one entry", () => {
+      const live = new MemoryStore("live");
+      const simulated = new MemoryStore("simulated");
+      live.write("a.txt", "from the host");
+      simulated.write("a.txt", "from the fixture");
+      const source = "'fixture:a.txt' | “”";
+
+      // The program is byte-identical; only the entry changed.
+      expect(results(
+        source,
+        new MemoryStore(),
+        ResourceHandlers.of({
+          fixture: new StoreHandler(live),
+        }),
+      )).toEqual(["“from the host”"]);
+      expect(results(
+        source,
+        new MemoryStore(),
+        ResourceHandlers.of({
+          fixture: new StoreHandler(simulated),
+        }),
+      )).toEqual(["“from the fixture”"]);
+    });
+
+    describe("installation authority is harness-only", () => {
+      it("does not publish the table to a program", () => {
+        const { root } = fixtured();
+
+        expect(root.visibleKeys()).toEqual([]);
+        expect(root.get("handlers").is.missing).toBe(true);
+        expect(root.get("fixture").is.missing).toBe(true);
+      });
+
+      it("leaves no HC spelling that binds a scheme", () => {
+        const store = new MemoryStore();
+        const handlers = ResourceHandlers.of({});
+
+        // Declaring onto the root binding, and reaching for the table by name,
+        // both leave the slot empty: there is no vocabulary for installing one.
+        expect(
+          results(
+            "$$.root .https 1;\n'https://example.com/x' “no”",
+            store,
+            handlers,
+          ).at(-1),
+        ).toEqual("$!.resource-scheme-unbound 'https://example.com/x'");
+        expect(results("$$.root .handlers", store, handlers)[0]).toContain(
+          "$!.name-missing",
+        );
+        expect(handlers.schemes()).toEqual([]);
+      });
     });
   });
 

@@ -243,8 +243,11 @@ CI MUST parse the completed HTML and assert:
 - release metadata matches the tag, package versions, and commit; and
 - a second build from the same inputs is byte-identical, excluding no fields.
 
-Use a deterministic UTC build timestamp derived from the commit or release
-metadata so reproducibility is not defeated by wall-clock time.
+Pin the clock rather than deriving a substitute for one. A build that needs a
+fixed instant installs a frozen clock in the harness handler table, so
+reproducibility is a configuration of the grant instead of a build-script
+obligation. Where a build timestamp is recorded outside the runtime, derive it
+from the commit or release metadata for the same reason.
 
 ### Browser checks
 

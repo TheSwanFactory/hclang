@@ -82,13 +82,37 @@ So is an escape that would reintroduce a separator or a dot segment
 ; './a%2fb' “no”
 # $!.resource-encoded-separator './a%2fb'
 ```
-A scheme is an empty slot in a handler table that #367 will supply, so it fails
-closed with a nameable refusal rather than reaching the network
+A scheme is dispatched through a handler table, and a scheme with no entry is an
+empty slot, so it fails closed with a nameable refusal rather than reaching the
+network. This harness binds one scheme, so every other one refuses
 ```
 ; 'https://example.com/x' “no”
 # $!.resource-scheme-unbound 'https://example.com/x'
 ; 'jsr:@swanfactory/hclang' “no”
 # $!.resource-scheme-unbound 'jsr:@swanfactory/hclang'
+; 'file:///etc/passwd' | “”
+# $!.resource-scheme-unbound 'file:///etc/passwd'
+```
+The bound one is the clock, which is a grant rather than a literal. Reading it
+answers one instant; writing it is refused, because an observation is not a
+setting; and no other location under the scheme names anything
+```
+; ('clock:now' | []) .0 .> %2000-01-01T00:00:00Z%
+# <>
+; 'clock:now' “2020-01-01”
+# $!.clock-read-only 'clock:now'
+; 'clock:tomorrow' | []
+# [$!.clock-unreadable 'clock:tomorrow']
+```
+Presence of a scheme is the whole discriminator, and the colon is never
+consulted: the same character inside a path is an ordinary path character
+```
+; 'clock:now' .scheme
+# “clock”
+; './a:b.txt' “colon”
+# 5
+; './a:b.txt' | “”
+# “colon”
 ```
 A single letter is a legal RFC 3986 scheme, and drive-letter heuristics do not
 belong in the trusted base. RFC 3986 §4.2 already supplies the remedy: `./`
