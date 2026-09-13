@@ -104,12 +104,28 @@ The read matches, so it recovers. The division does not match, so the test
 answers nil, the handler answers nil, and the failure keeps going — to a
 narrower handler nested inside, if one exists, or all the way out if none does.
 
-Write the test with `?` alone. `? … : …` is not an if/then/else in HC: `:` tests
-what the `?` branch answered, not what the condition was, so appending `: {…}`
-to a `?` that succeeded turns a good answer into nil. When you want to answer
-for several kinds of failure, declare several handlers at the scopes that care
-about them rather than fanning out inside one body — that is the grain of the
-language, and each handler stays a single `?`.
+Two things to get right, because both fail quietly rather than loudly.
+
+**Inside a branch, the reason is `__`.** `_` always names the innermost call's
+argument, and a branch is a call — one that `?` hands nothing. So a handler that
+tests the reason and then mentions it needs the outward spelling
+
+```css
+; .$: {_ = “division-by-zero” ? {“saw ” __}};
+; 1 / 0
+# “saw division-by-zero”
+```
+
+Write `_` inside that branch and you get `“saw ”`. Nothing refuses; the reason is
+simply gone.
+
+**Write the test with `?` alone.** `? … : …` is not an if/then/else in HC: `:`
+tests what the `?` branch answered, not what the condition was, so appending
+`: {…}` to a `?` that succeeded turns a good answer into nil. A body that fans
+out over two reasons therefore declines on *both* of them. When you want to
+answer for several kinds of failure, declare several handlers at the scopes that
+care about them rather than fanning out inside one body — that is the grain of
+the language, and each handler stays a single `?`.
 
 ## Reading a resource that might not be there
 
