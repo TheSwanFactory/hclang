@@ -6,8 +6,10 @@ design). Blocks [#361](https://github.com/TheSwanFactory/hclang/issues/361)
 (M-3, via [`a08`](a08-rationalizing-numbers.md) §11.1, T-4).\
 **Tutorial:** [`cli/hc/exception-tutorial.md`](../cli/hc/exception-tutorial.md)
 describes the result as if it had shipped.\
-**Spike:** [`a13a`](a13a-recovery-spike.md) is the brief;
-[`a13b`](a13b-recovery-spike-findings.md) is what it answered.\
+**Spikes:** [`a13a`](a13a-recovery-spike.md) is the first brief and
+[`a13b`](a13b-recovery-spike-findings.md) is what it answered;
+[`a13c`](a13c-masking-bound-spike.md) attacks the one ruling below whose failure
+would be unsafe rather than merely wrong.\
 **Revised:** One pass against the spike. The mechanism survives — parent-scope
 property, ordinary lookup, substitute-and-continue, nearest-wins, and the
 collecting opt-out were all confirmed by running them. What moved: §2 and §6 had
@@ -459,8 +461,10 @@ whether M-3 needs additional bridging, is not resolved here.
   case a use appears that makes the trade look wrong.
 - **The termination bound for §9's masking ruling.** Depth is bounded by the
   number of distinct handler templates only if each is genuinely masked for the
-  whole of its own call. Measured once; not proved. This is the one open item
-  that can make the design unsafe rather than merely awkward.
+  whole of its own call, and only if that set cannot grow at runtime. Measured
+  once; not proved. This is the one open item that can make the design unsafe
+  rather than merely awkward, and [`a13c`](a13c-masking-bound-spike.md) is the
+  brief for attacking it.
 - **Whether the refusal vocabulary is one family.** §7 says `_` is "the `$!.…`
   vocabulary without the sigil", and two of the trusted base's own spellings are
   not: `$error{$is-constant …}` and `$!invalid-argument-list …`, the latter in
