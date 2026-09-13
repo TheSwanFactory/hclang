@@ -1,8 +1,15 @@
 /**
- * SPIKE SCRATCH for a13c. Throwaway probe, deleted before the branch is pushed
- * if it stops being useful.
+ * SPIKE INSTRUMENTATION for a13c. Throwaway.
  *
- *     deno run --allow-all lib/frames/probe.ts
+ * Runs one source unit under every combination of masking rule, §6a setting,
+ * and handler identity, so an attack is reported as a matrix rather than as a
+ * single default. This is what produced the tables in a13d.
+ *
+ *     deno run --allow-all lib/frames/masking-bound.probe.ts -e '<statement>' …
+ *     deno run --allow-all lib/frames/masking-bound.probe.ts -a '<statement>' …
+ *
+ * `-e` prints the matrix; `-a` prints every statement's value under the
+ * defaults, which is how each corpus expectation was arrived at.
  */
 import { evaluate } from "../execute/evaluate.ts";
 import {
@@ -30,18 +37,22 @@ const host = () => ({
   ),
 });
 
-export const run = (source: string): string => {
+export const runAll = (source: string): string[] => {
   resetRecovery();
   setRecoveryTripwire(4000);
   try {
-    const lines = evaluate(source + "\n", host()).toStringArray()
-      .map((line) => line.replace(/[,;]$/, ""));
-    return lines[lines.length - 1].replace(/^\(|\)$/g, "");
+    return evaluate(source + "\n", host()).toStringArray()
+      .map((line) => line.replace(/[,;]$/, "").replace(/^\(|\)$/g, ""));
   } catch (error) {
-    if (error instanceof RecoveryRunaway) return `RUNAWAY: ${error.message}`;
-    if (error instanceof RangeError) return `RANGEERROR: ${error.message}`;
+    if (error instanceof RecoveryRunaway) return [`RUNAWAY: ${error.message}`];
+    if (error instanceof RangeError) return [`RANGEERROR: ${error.message}`];
     throw error;
   }
+};
+
+export const run = (source: string): string => {
+  const lines = runAll(source);
+  return lines[lines.length - 1];
 };
 
 export const report = (label: string, source: string): void => {
@@ -55,7 +66,12 @@ export const report = (label: string, source: string): void => {
 
 if (import.meta.main) {
   const [mode, ...rest] = Deno.args;
-  if (mode === "-e") {
+  if (mode === "-a") {
+    for (const line of runAll(rest.join("\n"))) console.log(`  ${line}`);
+    console.log(
+      `  calls=${recoveryCalls()} ids=${recoveryIdentityCount()} depth=${recoveryMaxDepth()}`,
+    );
+  } else if (mode === "-e") {
     for (const guard of ["value", "key", "none"] as const) {
       for (const once of [true, false]) {
         for (const id of ["first-term", "object"] as const) {
