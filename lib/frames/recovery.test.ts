@@ -261,6 +261,12 @@ describe("a13a Q4: is the handler visible as data", () => {
     expect(last(".a [.recover {0}, 1];", "(a & {_})")).toEqual("[1]");
   });
 
+  it("shifts positional addresses, as any declaration in a literal does", () => {
+    expect(last("[.recover {0}, 1] .0")).toEqual(".recover { 0 }");
+    expect(last("[.z {0}, 1] .0")).toEqual(".z { 0 }");
+    expect(last("[.recover {0}, 1] .1")).toEqual("1");
+  });
+
   it("recovers a term of the very aggregate that declares it", () => {
     // a13 §5 rules this out: the search is meant to start in the enclosing
     // scope, "not the failing expression manufacturing its own escape hatch".
@@ -326,12 +332,21 @@ describe("a13a Q6: a13 §7's proposed rulings", () => {
   });
 
   it("needs more than one pattern, because the vocabulary is not one family", () => {
+    // `$error{$is-constant …}` is outside the `$!.…` family a13 §7 names, and
+    // reaches the reduce wrapped in a statement.
     expect(
       last(
         ".constant_ [.Value 1; .change_ {@Value _;}];",
         "{.recover {_}; constant_.change_ 2} ()",
       ),
     ).toEqual("“is-constant”");
+    // `$!invalid-argument-list …` is in the family but carries no dot.
+    expect(
+      last(
+        ".join-name (.first “Jane”, .last) ^ {last “, ” first};",
+        "{.recover {_}; join-name (.middle “Q”)} ()",
+      ),
+    ).toEqual("“invalid-argument-list”");
   });
 
   it("spells a partial handler with the one operator that composes", () => {

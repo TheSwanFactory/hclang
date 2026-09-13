@@ -147,6 +147,22 @@ changes what the value is (a13a Q4)
 ; [.recover {0}, 1] & {_}
 # [1]
 ```
+An aggregate keeps a declaration's echo in its data plane, so the handler also
+shifts positional addresses. `[.z {0}, 1] .0` does the same, so recovery inherits
+this rather than causing it
+```
+; [.recover {0}, 1] .0
+# .recover { 0 }
+; [.recover {0}, 1] .1
+# 1
+```
+The refusal vocabulary a13 §7 slices the sigil from is not one family. A
+signature refusal is spelled with no dot at all, and it still has to name itself
+```
+; .join-name (.first “Jane”, .last) ^ {last “, ” first};
+; {.recover {_}; join-name (.middle “Q”)} ()
+# “invalid-argument-list”
+```
 A nil computation is not a failure, so nothing is consulted and the pre-M-3
 fallback idiom is untouched (a13 §12)
 ```
