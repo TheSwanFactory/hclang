@@ -111,6 +111,13 @@ way any other name would shadow an outer one of the same spelling (a13 §5)
 ; {.recover {“outer”}; {.x 1; 1 / 0} ()} ()
 # “outer”
 ```
+Lookup from the failing term's own scope does let an expression declare its own
+escape hatch, which is the shape a13 §5 rules out. An array literal declares
+into itself, so a handler and the term it recovers are terms of one aggregate
+```
+; [.recover {0}, 1 / 0]
+# [.recover { 0 }; 0]
+```
 A handler that fails the same way it was called for terminates rather than
 recursing, and the original failure survives (a13 §9)
 ```

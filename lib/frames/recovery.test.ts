@@ -236,6 +236,15 @@ describe("a13a Q3: masking a self-failing handler", () => {
   it("terminates when the handler reads the binding that declared it", () => {
     expect(last(".recover {recover};", "(1 / 0)")).toEqual("{ recover }");
   });
+
+  it("treats a missing name in the handler body as a successful answer", () => {
+    // a13 §9 names "a missing name" as a handler failing on its own, but a note
+    // is neither nil nor an error, so it is substituted and the real refusal is
+    // lost. The note's id varies per run, so only its head is pinned.
+    expect(last(".recover {nope-name};", "(1 / 0)")).toMatch(
+      /^\$!\.name-missing “\$:FrameString\.\d+\.nope-name”$/,
+    );
+  });
 });
 
 describe("a13a Q4: is the handler visible as data", () => {
@@ -250,6 +259,12 @@ describe("a13a Q4: is the handler visible as data", () => {
 
   it("is not an element, so a single stream leaves it out", () => {
     expect(last(".a [.recover {0}, 1];", "(a & {_})")).toEqual("[1]");
+  });
+
+  it("recovers a term of the very aggregate that declares it", () => {
+    // a13 §5 rules this out: the search is meant to start in the enclosing
+    // scope, "not the failing expression manufacturing its own escape hatch".
+    expect(last("[.recover {0}, 1 / 0]")).toEqual("[.recover { 0 }; 0]");
   });
 
   it("is not hidden from a doubled stream either", () => {
