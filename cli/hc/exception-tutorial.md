@@ -1,12 +1,12 @@
 # Handling errors: a tutorial
 
-An error is a value like any other, and it behaves like one everywhere except
-one place: applying anything to it, ever, answers the same error back
-unchanged. `1 + (1 / 0)` is `(1 / 0)`, and `(1 / 0) ? {…} : {…}` never reaches
-either branch, because the failure becomes the answer to the whole expression
-before either branch is asked. That is what makes a computation's own failure,
-by itself, impossible to recover from — until something in an enclosing scope
-declares a way out.
+A failure in HC is a value, and it is permanently a value: once something has
+failed, every expression that so much as reads it answers that same failure
+back. `1 + (1 / 0)` is the division by zero, not a sum. `(1 / 0) ? {“caught”}`
+is the division by zero, not `“caught”`, because the failure became the answer
+to the whole expression before `?` was ever asked. A computation cannot inspect
+its own failure, test it, or route around it — until something in an enclosing
+scope declares a way out.
 
 > NOTE: This tutorial follows the applying tutorial's conventions — every `;`
 > line is REPL input, every `#` line is the answer it prints, and a line
@@ -65,22 +65,48 @@ none, so the failure finds the outer one instead and gets `“(unknown)”`. Whe
 you put `.$:` is a decision about which failures you're claiming to know how to
 answer; everything else keeps going to whoever encloses you.
 
-## Declining to recover
+## Knowing what failed
 
-A handler is not obligated to answer for every failure it sees. Answering with
-the failure itself — unchanged — declines, and the failure propagates exactly
-as if no handler had been declared at all
+A handler is told the **name** of what went wrong, in `_`, as ordinary text —
+the `$!.…` vocabulary with the sigil stripped off
 
 ```css
 ; .$: {_};
 ; (1 / 0)
+# “division-by-zero”
+; './missing.txt' | “”
+# “resource-absent”
+```
+
+It is text, not the failure, and that is the whole point: text composes. You
+can compare it, join it, put it in a message, hand it to a closure. Had the
+handler been given the failure itself, reading it would have answered the
+failure right back, and a handler could never do anything but shrug.
+
+## Recovering from some failures and not others
+
+A handler that answers nothing — nil — declines, and the original failure
+carries on outward exactly as if no handler had been declared. That makes a
+partial handler a single `?`
+
+```css
+; .$: {_ = “resource-absent” ? {“(defaults)”}};
+; './config.txt' | “”
+# “(defaults)”
+; (1 / 0)
 # $!.division-by-zero /
 ```
 
-This is the difference between "I catch everything here" and "I only catch
-what I know how to fix." A handler that only wants to recover from some
-failures answers with `_` for the rest, and those keep going outward — to a
+The read matches, so it recovers. The division does not match, so the test
+answers nil, the handler answers nil, and the failure keeps going — to a
 narrower handler nested inside, if one exists, or all the way out if none does.
+
+Write the test with `?` alone. `? … : …` is not an if/then/else in HC: `:` tests
+what the `?` branch answered, not what the condition was, so appending `: {…}`
+to a `?` that succeeded turns a good answer into nil. When you want to answer
+for several kinds of failure, declare several handlers at the scopes that care
+about them rather than fanning out inside one body — that is the grain of the
+language, and each handler stays a single `?`.
 
 ## Reading a resource that might not be there
 
@@ -94,20 +120,39 @@ default than stop
 # “(defaults)”
 ```
 
-Reading `'./config.txt'` fails exactly as it does without a handler — a missing
-file is still `$!.resource-absent`. What's different is that something is now
-declared to answer for it, so the read that would have ended the whole
-expression instead becomes the fallback text, and whatever the program does
-next runs on that.
+Reading `'./config.txt'` fails exactly as it does without a handler. What's
+different is that something is now declared to answer for it, so the read that
+would have ended the whole expression instead becomes the fallback text, and
+whatever the program does next runs on that.
+
+Reducing into an array is the exception, and deliberately so. An array collects,
+so a refusal becomes an ordinary element and the read answers a perfectly good
+array — there is no failure left for a handler to answer for
+
+```css
+; .$: {“(defaults)”};
+; './missing.txt' | []
+# [$!.resource-absent './missing.txt']
+; './missing.txt' | “”
+# “(defaults)”
+```
+
+The two differ by what you seeded the reduce with. Collecting says you intend to
+look at the results yourself, so recovery stays out of the way; joining says you
+wanted the text, so a failure to produce it is a failure, and the handler
+answers.
 
 ## One boundary worth knowing
 
-A handler answers *instead of* the failing term — it does not get to inspect
-and rebuild around it. `_` inside a handler is the failure itself, and a
-failure stays a failure under everything: reading `_` and then applying
-anything further to what you read fails the same way `(1 / 0) + 1` does,
-because nothing distinguishes "a term that just failed" from "a value that
-happens to be a failure," including one sitting in your own parameter. A
-handler either answers with something that owes the failure nothing — `0`,
-`“(defaults)”`, another read, anything not built out of `_` — or it answers
-with `_` and declines. There is no third move where it takes the failure apart.
+The failure itself never reaches you — only its name. That is a consequence of
+the rule at the top of this page rather than a restriction bolted on: a failure
+stays a failure under everything, so any expression built from one answers it
+unchanged, including an expression inside the handler meant to examine it.
+Handing over text is what lets a handler work at all.
+
+So a handler has exactly two moves. Answer with something that owes the failure
+nothing — `0`, `“(defaults)”`, another read, a value built from `_`'s text — and
+the failure is replaced. Or answer nil and decline, and it carries on untouched.
+There is no third move where you take the failure apart, wrap it, or re-raise it
+with more context attached. What you can react to is its name, and what you can
+hand back is a value of your own.
