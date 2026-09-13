@@ -5,7 +5,9 @@
 design). Blocks [#361](https://github.com/TheSwanFactory/hclang/issues/361)
 (M-3, via [`a08`](a08-rationalizing-numbers.md) §11.1, T-4).\
 **Tutorial:** [`cli/hc/exception-tutorial.md`](../cli/hc/exception-tutorial.md)
-describes the result as if it had shipped.
+describes the result as if it had shipped.\
+**Spike:** [`a13a`](a13a-recovery-spike.md) is the brief for proving the
+mechanism before any of the proposed rulings below are ratified.
 
 ## 1. Why this is needed at all
 
