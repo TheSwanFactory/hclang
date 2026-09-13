@@ -111,17 +111,35 @@ that does not propagate) should come back.
 **Q7. What does it cost?** The error branch gains a scope walk. Rough numbers
 only — is there a measurable effect on the existing suite's runtime?
 
-## 5. Deliverables
+## 5. Deliverables, and where each one goes
 
-- A branch off `a13-error-handling`, **not merged, not squashed into a13's own
-  commits**.
-- Enough tests to pin each answer. They are expected to be discarded; do not
-  invest in coverage.
-- A short findings document — Q1 through Q7, each with the source you ran and
-  the output you got.
-- **An explicit list of everything in a13 the spike contradicts.** This is the
-  headline deliverable. a13 has been wrong before, in exactly the way a reading
-  of the evaluator does not catch and running it does.
+**Branch `a13a-recovery-spike`, off `a13-error-handling`.** Push it; do not
+merge it, do not open a PR, and do not rewrite the commits already on
+`a13-error-handling`.
+
+**Findings → `spec/a13b-recovery-spike-findings.md`.** One section per question,
+headed `## Q1` through `## Q7`, each carrying the source you ran and the output
+you actually got — paste real REPL or test output, not a description of it. Head
+the file with a `**Status:**` line naming the commit the findings were taken at,
+the way the other `spec/a*` documents open.
+
+Close that file with a section headed **`## Contradicts a13`**, listing every
+place the design is wrong, each naming the a13 section it breaks. Put it under
+that exact heading so it can be found without reading the rest. If the list is
+empty, say so explicitly and say what you tried that failed to break anything —
+an empty list is a claim, and it needs its evidence too.
+
+**Scratch corpus → `cli/hc/recovery-spike.hc`.** Both doctest harnesses name
+their files explicitly — `cli/deno.json`'s `test:doc` task and the `new URL(…)`
+list in `cli/hc.test.ts` — so a new file there is inert until registered.
+**Leave it unregistered.** It exists so the examples in the findings are real
+and re-runnable, not to become a baseline.
+
+**Tests → beside the code they cover**, following the existing `*.test.ts`
+convention. Enough to pin each answer and no more; they are expected to be
+discarded.
+
+Leave `spec/a13-error-handling.md` and this file unedited.
 
 ## 6. Out of scope
 
