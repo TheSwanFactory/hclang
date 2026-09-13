@@ -136,10 +136,12 @@ say so in the first commit message.
 **Findings → `spec/a13d-masking-bound-findings.md`, committed onto
 `a13-error-handling` itself**, as a single commit touching that one file. Head
 it with a `**Status:**` line naming the spike commit the findings were taken at.
-One section per attack, `## A1` through `## A6`, then
-`## Where the bound comes
-from`, then `## If the bound is false`, then
-`## Checking a13 §7's`__`claim`.
+Then, as second-level headings in this order:
+
+- one per attack, A1 through A6, headed exactly that way
+- Where the bound comes from
+- If the bound is false
+- Checking the outward spelling (§6 of this brief)
 
 Real pasted output throughout — the previous findings set that standard and it
 should hold.
