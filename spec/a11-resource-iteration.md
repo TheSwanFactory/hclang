@@ -1,10 +1,9 @@
 # Reads Are a Character Reduce
 
-**Status:** Implemented in v0.15.0. The iteration half is decided and taught in
-[`cli/hc/apply-tutorial.md`](../cli/hc/apply-tutorial.md), with the reasons and
-the executable corpus in [`cli/hc/apply.hc`](../cli/hc/apply.hc). This document
-owns only the resource half, and records which of its former questions those
-decisions closed.\
+**Status:** Implemented in v0.15.0. The iteration half is decided, taught, and
+pinned to an executable corpus in [`cli/hc/apply.hc`](../cli/hc/apply.hc). This
+document owns only the resource half, and records which of its former questions
+those decisions closed.\
 **Issues:** [#368](https://github.com/TheSwanFactory/hclang/issues/368), with
 [#375](https://github.com/TheSwanFactory/hclang/issues/375) holding the custom
 accumulator and [#301](https://github.com/TheSwanFactory/hclang/issues/301) as

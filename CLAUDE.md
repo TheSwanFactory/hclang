@@ -182,9 +182,9 @@ a rule of its own. Doubling either one widens the stream from values to
 the elements by index.
 
 A resource pushes characters, so what a read answers is decided downstream by
-composition rather than declared by the source. `cli/hc/apply-tutorial.md`
-teaches this and `cli/hc/apply.hc` is the executable corpus. Before v0.15.0 `|`
-and `&` were assigned the other way around.
+composition rather than declared by the source. `cli/hc/apply.hc` teaches this
+and is its own executable corpus. Before v0.15.0 `|` and `&` were assigned the
+other way around.
 
 ## Project Guidelines
 
