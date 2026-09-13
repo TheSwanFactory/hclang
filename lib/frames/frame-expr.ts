@@ -4,6 +4,7 @@ import { FrameName } from "./frame-name.ts";
 import { FrameSchema } from "./frame-schema.ts";
 import { FrameSymbol } from "./frame-symbol.ts";
 import { type EvaluationInput, EvaluationScope } from "./evaluation-scope.ts";
+import { recover } from "./recovery.ts";
 import { renderNested } from "./stringify.ts";
 
 /**
@@ -59,7 +60,16 @@ export class FrameExpr extends FrameList {
         : item.in(scope);
       // A sequence stops at the first failing statement, because later
       // statements were written to run after the earlier ones succeeded.
-      if (result.isFailedResult()) return result;
+      if (result.isFailedResult()) {
+        // SPIKE (a13a Q1): the third boundary, live only when asked for.
+        const recovered = recover(
+          "body",
+          FrameExpr.answeredValue(result),
+          scope,
+        );
+        if (recovered === undefined) return result;
+        result = recovered;
+      }
     }
     return result;
   }
@@ -86,12 +96,24 @@ export class FrameExpr extends FrameList {
       // operand that follows it.
       if (sum.isFailedResult()) return sum;
 
-      const value = item.in(scope);
-      if (value.is.error === true) return value;
-      if (index > 0 && value.is.operator === true) {
-        return value.called_by(sum, Frame.nil);
+      let value = item.in(scope);
+      if (value.is.error === true) {
+        // SPIKE (a13a): a13 §6's boundary. A handler that answers substitutes
+        // its answer for the failing term; anything else leaves the original
+        // failure terminal, exactly as before.
+        const recovered = recover("term", value, scope);
+        if (recovered === undefined) return value;
+        value = recovered;
       }
-      return sum.call(value);
+      const combined = index > 0 && value.is.operator === true
+        ? value.called_by(sum, Frame.nil)
+        : sum.call(value);
+      // SPIKE (a13a Q1): the boundary neither a13 nor a13a enumerated. `1 / 0`
+      // fails here, not above: the failing term is the *combination*, so the
+      // substitute replaces the accumulator rather than one term's value.
+      if (combined.is.error !== true) return combined;
+      const recovered = recover("apply", combined, scope);
+      return recovered === undefined ? combined : recovered;
     }, Frame.nil);
   }
 
