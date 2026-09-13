@@ -6,11 +6,18 @@ import { FrameSymbol } from "./frame-symbol.ts";
 import type { EvaluationScope } from "./evaluation-scope.ts";
 
 /**
- * SPIKE INSTRUMENTATION for a13a. Throwaway.
+ * SPIKE INSTRUMENTATION for a13a, extended by a13c. Throwaway.
  *
  * a13 spells the recovery property `.$:`, which does not lex today (a13 §10).
  * The spike uses an ordinary name so the spelling decision cannot gate the
  * mechanism, per a13a §3.
+ *
+ * a13c changes four things and nothing else:
+ *   - the guard defaults to `value` (a13 §9's ruling) rather than `key`;
+ *   - the depth counter a13b Q2 reported is gone (a13c §2);
+ *   - §6a's once-per-handler-per-failure rule exists and is on by default;
+ *   - handler identity is a switch, because the two candidate notions of
+ *     "the closure template" do not agree (a13c A1/A4).
  */
 export const RECOVERY_KEY = "recover";
 
@@ -36,15 +43,21 @@ export const setRecoverySites = (next: readonly RecoverySite[]): void => {
 export const recoverySites = (): RecoverySite[] => [...sites];
 
 /**
- * The masking rule under test, for a13a Q3.
+ * The masking rule under test, for a13a Q3 and a13c §1.
  *
  * - `none`: no masking. a13 §9 predicts unbounded recursion; it is right.
- * - `value`: the running handler cannot catch its own failure.
+ * - `value`: the running handler cannot catch its own failure. a13 §9's ruling,
+ *   and a13c's default.
  * - `key`: no handler is visible for the duration of any handler's call.
+ *
+ * a13b Q2 described the guard as "a set of running handler templates plus a
+ * depth counter". The counter was `keyMasked`, and it was read on the `key`
+ * branch only — under `value` masking it never had any effect. It is gone: key
+ * masking asks the same set whether anything at all is running.
  */
 export type RecoveryGuard = "none" | "value" | "key";
 
-let guard: RecoveryGuard = "key";
+let guard: RecoveryGuard = "value";
 
 export const setRecoveryGuard = (next: RecoveryGuard): void => {
   guard = next;
@@ -52,15 +65,82 @@ export const setRecoveryGuard = (next: RecoveryGuard): void => {
 
 export const recoveryGuard = (): RecoveryGuard => guard;
 
+/**
+ * What counts as "the same handler", for masking (§9) and for §6a alike.
+ *
+ * - `first-term`: a13b Q3's proxy — the first term object of the closure body,
+ *   on the grounds that `FrameList.copy` reuses term objects. Atom classes
+ *   intern their instances, so this collides across unrelated handlers.
+ * - `object`: the bound closure object itself. `FrameLazy.bind` answers `this`
+ *   when the value is already bound, so a declared handler read twice is the
+ *   same object twice, which a13 §9 and a13b Q3 both say it is not.
+ */
+export type RecoveryIdentity = "first-term" | "object";
+
+let identity: RecoveryIdentity = "first-term";
+
+export const setRecoveryIdentity = (next: RecoveryIdentity): void => {
+  identity = next;
+};
+
+export const recoveryIdentity = (): RecoveryIdentity => identity;
+
+/** a13 §6a: offer a failure to each distinct handler at most once. */
+let onceRule = true;
+
+export const setRecoveryOnce = (next: boolean): void => {
+  onceRule = next;
+};
+
+export const recoveryOnce = (): boolean => onceRule;
+
+/**
+ * A measurement tripwire, not a guard.
+ *
+ * A divergence that grows the stack announces itself as a RangeError, but one
+ * that does not — an unbounded number of *sibling* handler calls — would simply
+ * hang. This throws instead, so an attack that fails to terminate is reported
+ * rather than waited for. It is never consulted before the guard, so it cannot
+ * be mistaken for part of the bound.
+ */
+export class RecoveryRunaway extends Error {}
+
+let tripwire = 0;
+
+export const setRecoveryTripwire = (limit: number): void => {
+  tripwire = limit;
+};
+
 /** How many times a handler was invoked, so double-firing is countable. */
 let calls = 0;
+let depth = 0;
+let maxDepth = 0;
+const identities = new Set<unknown>();
+const trace: string[] = [];
+let tracing = false;
 
 export const recoveryCalls = (): number => calls;
 
+/** The deepest nesting of handler bodies inside handler bodies. */
+export const recoveryMaxDepth = (): number => maxDepth;
+
+/** How many distinct handler identities were invoked. */
+export const recoveryIdentityCount = (): number => identities.size;
+
+export const setRecoveryTrace = (on: boolean): void => {
+  tracing = on;
+};
+
+export const recoveryTrace = (): readonly string[] => trace;
+
 export const resetRecovery = (): void => {
   calls = 0;
+  depth = 0;
+  maxDepth = 0;
+  identities.clear();
+  trace.length = 0;
   running.clear();
-  keyMasked = 0;
+  offered = new WeakMap();
 };
 
 /**
@@ -71,8 +151,16 @@ export const resetRecovery = (): void => {
  * never reaches. A scope field set here would not be visible there. That is the
  * a13 §5 claim this spike breaks.
  */
-const running = new Set<Frame>();
-let keyMasked = 0;
+const running = new Set<unknown>();
+
+/**
+ * §6a's bookkeeping: which handlers have already been offered which failure.
+ *
+ * Keyed by the failure frame itself, so "the same failure" means the same
+ * object. Weak, because a failure that is no longer reachable can never be
+ * offered again.
+ */
+let offered = new WeakMap<Frame, Set<unknown>>();
 
 /**
  * The refusal name a13 §7 hands the handler, with the sigil stripped.
@@ -105,15 +193,33 @@ export const recover = (
   scope: EvaluationScope,
 ): Frame | undefined => {
   if (!sites.has(site)) return undefined;
-  if (guard === "key" && keyMasked > 0) return undefined;
+  if (guard === "key" && running.size > 0) return undefined;
 
   const handler = FrameSymbol.for(RECOVERY_KEY).in(scope);
   if (!(handler instanceof FrameLazy)) return undefined;
-  if (guard === "value" && running.has(template(handler))) return undefined;
+
+  const key = template(handler);
+  if (guard === "value" && running.has(key)) return undefined;
+
+  // a13 §6a: each distinct handler sees a given failure once. Identity is the
+  // same notion masking uses, which is what makes the two interact.
+  const subject = FrameExpr.answeredValue(failure);
+  if (onceRule) {
+    const seen = offered.get(subject);
+    if (seen?.has(key)) return undefined;
+    if (seen) seen.add(key);
+    else offered.set(subject, new Set([key]));
+  }
 
   calls += 1;
+  identities.add(key);
+  if (tripwire > 0 && calls > tripwire) {
+    throw new RecoveryRunaway(
+      `handler invoked ${calls} times for one source unit`,
+    );
+  }
   const answer = enter(
-    handler,
+    key,
     () => handler.call(new FrameString(refusalName(failure))),
   );
 
@@ -123,28 +229,39 @@ export const recover = (
   return answer;
 };
 
-const enter = (handler: FrameLazy, body: () => Frame): Frame => {
-  const key = template(handler);
+const enter = (key: unknown, body: () => Frame): Frame => {
   const reentered = running.has(key);
   running.add(key);
-  keyMasked += 1;
+  depth += 1;
+  if (depth > maxDepth) maxDepth = depth;
+  if (tracing) trace.push(`${" ".repeat(depth - 1)}enter ${label(key)}`);
   try {
     return body();
   } finally {
-    keyMasked -= 1;
+    depth -= 1;
     if (!reentered) running.delete(key);
+    if (tracing) trace.push(`${" ".repeat(depth)}leave ${label(key)}`);
   }
 };
 
+const label = (key: unknown): string =>
+  key instanceof Frame ? `${key.id} ${key.toString()}` : String(key);
+
 /**
- * The shared closure body behind a per-read bound copy.
+ * What "the same handler" means, under whichever identity is selected.
  *
- * `FrameSymbol.in` hands out a fresh bound copy for every read, so the handler
- * value is never the same object twice and identity masking has nothing stable
- * to compare. `FrameList.copy` reuses the term objects, so the first term of
- * the body is the same object across every copy of one source closure.
+ * `first-term` is a13b Q3's proxy: `FrameList.copy` reuses the term objects, so
+ * the first term of the body is the same object across every copy of one source
+ * closure. It is also the same object across every *other* closure whose body
+ * starts with the same atom, because FrameArg and FrameSymbol intern.
+ *
+ * `object` is the closure itself, which is stable for a different reason: a
+ * declared handler is bound when its declaration is evaluated, and
+ * `FrameLazy.bind` answers `this` for an already-bound closure, so the read
+ * does not copy.
  */
-const template = (handler: FrameLazy): Frame => {
+const template = (handler: FrameLazy): unknown => {
+  if (identity === "object") return handler;
   const body = handler.asArray();
   return body.length > 0 ? body[0] : handler;
 };

@@ -18,6 +18,7 @@ import {
   type RecoverySite,
   resetRecovery,
   setRecoveryGuard,
+  setRecoveryOnce,
   setRecoverySites,
 } from "./recovery.ts";
 
@@ -64,13 +65,24 @@ const withGuard = <T>(guard: RecoveryGuard, body: () => T): T => {
   try {
     return body();
   } finally {
-    setRecoveryGuard("key");
+    setRecoveryGuard("value");
+  }
+};
+
+/** a13c §3: §6a is on by default, so the repetition counts move. */
+const withoutOnce = <T>(body: () => T): T => {
+  setRecoveryOnce(false);
+  try {
+    return body();
+  } finally {
+    setRecoveryOnce(true);
   }
 };
 
 afterEach(() => {
   resetRecovery();
-  setRecoveryGuard("key");
+  setRecoveryGuard("value");
+  setRecoveryOnce(true);
   setRecoverySites(["term", "apply"]);
 });
 
@@ -110,21 +122,42 @@ describe("a13a Q1: which boundaries need the lookup", () => {
     });
   });
 
-  it("re-runs a declining handler once per enclosing reduce", () => {
-    withSites(["term", "apply"], () => {
-      expect(last(".recover {()};", "(1 / 0)")).toEqual(
-        "$!.division-by-zero /",
-      );
-      expect(recoveryCalls()).toEqual(4);
+  it("re-runs a declining handler once per enclosing reduce, without §6a", () => {
+    // a13b Q1's measurement, reproduced with a13c's §6a switched off.
+    withoutOnce(() => {
+      withSites(["term", "apply"], () => {
+        expect(last(".recover {()};", "(1 / 0)")).toEqual(
+          "$!.division-by-zero /",
+        );
+        expect(recoveryCalls()).toEqual(4);
+      });
     });
   });
 
   it("and once more for each further level of nesting", () => {
+    withoutOnce(() => {
+      withSites(["term", "apply"], () => {
+        expect(last(".recover {()};", "((1 / 0) + 5)")).toEqual(
+          "$!.division-by-zero /",
+        );
+        expect(recoveryCalls()).toEqual(5);
+      });
+    });
+  });
+
+  it("collapses both to a single call once §6a is on", () => {
+    withSites(["term", "apply"], () => {
+      expect(last(".recover {()};", "(1 / 0)")).toEqual(
+        "$!.division-by-zero /",
+      );
+      expect(recoveryCalls()).toEqual(1);
+    });
+    resetRecovery();
     withSites(["term", "apply"], () => {
       expect(last(".recover {()};", "((1 / 0) + 5)")).toEqual(
         "$!.division-by-zero /",
       );
-      expect(recoveryCalls()).toEqual(5);
+      expect(recoveryCalls()).toEqual(1);
     });
   });
 
@@ -188,12 +221,15 @@ describe("a13a Q3: masking a self-failing handler", () => {
 
   it("terminates under key masking too, and re-consults per enclosing reduce", () => {
     withGuard("key", () => {
-      expect(last(".recover {1 / 0};", "(1 / 0)")).toEqual(
-        "$!.division-by-zero /",
-      );
-      // Once inside the group's own reduce, then once more at each enclosing
-      // reduce the unrecovered failure passes through.
-      expect(recoveryCalls()).toEqual(4);
+      withoutOnce(() => {
+        expect(last(".recover {1 / 0};", "(1 / 0)")).toEqual(
+          "$!.division-by-zero /",
+        );
+        // Once inside the group's own reduce, then once more at each enclosing
+        // reduce the unrecovered failure passes through. §6a is what removes
+        // the repetition, so a13b's four needs §6a off to reproduce.
+        expect(recoveryCalls()).toEqual(4);
+      });
     });
   });
 

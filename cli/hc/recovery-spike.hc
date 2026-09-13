@@ -95,13 +95,14 @@ declines and the original failure is the one that survives (a13 §9)
 ; {.recover {'./nowhere.txt' | “”}; './primary.txt' | “”} ()
 # $!.resource-absent './primary.txt'
 ```
-Q6.5 — a handler nested inside another handler's scope. The inner one is never
-consulted, because masking a handler for the duration of its own call masks the
-key rather than the value (a13 §9's open question), so nothing inside a handler
-body can recover
+Q6.5 — a handler nested inside another handler's scope. Under a13a's key-masking
+default the inner one was never consulted, because masking for the duration of a
+call masked the key rather than the value. a13c defaults to a13 §9's actual
+ruling — mask the handler, not the key — so the inner handler fires and this one
+line is the only a13a example whose answer a13c changes
 ```
 ; {.recover {{.recover {“inner”}; 1 / 0} ()}; 1 / 0} ()
-# $!.division-by-zero /
+# “inner”
 ```
 Nesting outside a handler body is unaffected: the nearest declaration wins, the
 way any other name would shadow an outer one of the same spelling (a13 §5)
