@@ -113,15 +113,27 @@ only — is there a measurable effect on the existing suite's runtime?
 
 ## 5. Deliverables, and where each one goes
 
-**Branch `a13a-recovery-spike`, off `a13-error-handling`.** Push it; do not
-merge it, do not open a PR, and do not rewrite the commits already on
-`a13-error-handling`.
+The code and the findings go to different places, because they have different
+lifespans. The code is instrumentation and is expected to die. The findings are
+what a13 gets rewritten from, so they have to outlive it.
 
-**Findings → `spec/a13b-recovery-spike-findings.md`.** One section per question,
-headed `## Q1` through `## Q7`, each carrying the source you ran and the output
-you actually got — paste real REPL or test output, not a description of it. Head
-the file with a `**Status:**` line naming the commit the findings were taken at,
-the way the other `spec/a*` documents open.
+**Code, tests, and corpus → branch `a13a-recovery-spike`, off
+`a13-error-handling`.** Push it; do not merge it, do not open a PR, and do not
+rewrite the commits already on `a13-error-handling`.
+
+**Findings → `spec/a13b-recovery-spike-findings.md`, committed onto
+`a13-error-handling` itself** — not onto the spike branch, where they would be
+deleted along with the code they describe. a13 and this brief already live
+there, so that branch ends up holding the design, the question set, and the
+answers as one reviewable whole.
+
+Make it a single commit touching that one new file, and nothing else on that
+branch. One section per question, headed `## Q1` through `## Q7`, each carrying
+the source you ran and the output you actually got — paste real REPL or test
+output, not a description of it. Head the file with a `**Status:**` line naming
+the **spike branch commit** the findings were taken at, the way the other
+`spec/a*` documents open; that SHA is the only link back to the code, so it has
+to be exact.
 
 Close that file with a section headed **`## Contradicts a13`**, listing every
 place the design is wrong, each naming the a13 section it breaks. Put it under
