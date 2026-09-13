@@ -18,6 +18,7 @@ import {
   setRecoveryGuard,
   setRecoveryIdentity,
   setRecoveryOnce,
+  setRecoveryOnceIdentity,
   setRecoverySites,
   setRecoveryTripwire,
 } from "./recovery.ts";
@@ -78,6 +79,7 @@ afterEach(() => {
   setRecoveryGuard("value");
   setRecoveryIdentity("first-term");
   setRecoveryOnce(true);
+  setRecoveryOnceIdentity(undefined);
   setRecoverySites(["term", "apply"]);
   setRecoveryTripwire(0);
 });
@@ -373,6 +375,79 @@ describe("a13c §6: does `__` reach the reason at every depth", () => {
   it("over-counting fails as silently as under-counting", () => {
     expect(last(".recover {([1] & {1 ? {“saw ” ____}})};", "(1 / 0)"))
       .toMatch(/^\[“saw \[\.recover/);
+  });
+});
+
+describe("a13c: the split identity the findings recommend", () => {
+  const withSplit = <T>(body: () => T): T => {
+    setRecoveryOnceIdentity("object");
+    try {
+      return body();
+    } finally {
+      setRecoveryOnceIdentity(undefined);
+    }
+  };
+
+  it("keeps every attack bounded, because masking is unchanged", () => {
+    withSplit(() => {
+      expect(last(REDECLARED, "(f ())")).toEqual("$!.division-by-zero /");
+      expect(recoveryCalls()).toEqual(1);
+      resetRecovery();
+      expect(
+        last(
+          ".help {.recover {(help ())}; (1 / 0)};",
+          ".recover {(help ())};",
+          "(1 / 0)",
+        ),
+      ).toEqual("$!.division-by-zero /");
+      expect(recoveryMaxDepth()).toEqual(2);
+      resetRecovery();
+      expect(last(".mk {[.recover {(mk ())}, 1 / 0]};", "(mk ())")).toEqual(
+        "[.recover { ((mk ((())))) }; $!.division-by-zero /]",
+      );
+    });
+  });
+
+  it("makes A4's recovery, because §6a can tell the instances apart", () => {
+    const source = ".mk {.k _; .recover {_ = k ? {“answered by ” k}}; " +
+      "k = “division-by-zero” ? {(mk “resource-absent”)}; (1 / 0)};";
+    withSplit(() => {
+      expect(last(source, "(mk “division-by-zero”)")).toEqual(
+        "“answered by division-by-zero”",
+      );
+      expect(recoveryCalls()).toEqual(3);
+    });
+  });
+
+  it("keeps §6a's linear cost", () => {
+    const chained = (links: number): string[] => {
+      const statements = [".recover {(g1 ())};"];
+      for (let link = 1; link <= links; link += 1) {
+        statements.push(
+          link < links
+            ? `.g${link} {.recover {(g${link + 1} ())}; (1 / 0)};`
+            : `.g${link} {(1 / 0)};`,
+        );
+      }
+      return statements;
+    };
+    withSplit(() => {
+      for (const links of [2, 8, 16]) {
+        resetRecovery();
+        expect(last(...chained(links), "(1 / 0)")).toEqual(
+          "$!.division-by-zero /",
+        );
+        expect(recoveryCalls()).toEqual(links);
+      }
+    });
+  });
+
+  it("still lets a handler declared inside a handler body fire", () => {
+    withSplit(() => {
+      expect(
+        last(".recover {.g {.recover {“inner”}; (1 / 0)}; (g ())};", "(1 / 0)"),
+      ).toEqual("“inner”");
+    });
   });
 });
 

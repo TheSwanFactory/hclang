@@ -85,6 +85,22 @@ export const setRecoveryIdentity = (next: RecoveryIdentity): void => {
 
 export const recoveryIdentity = (): RecoveryIdentity => identity;
 
+/**
+ * §6a's identity, separately settable.
+ *
+ * a13 §6a says the two rulings share one notion of handler identity. A4 shows
+ * they cannot: the identity coarse enough to bound §9's recursion is too coarse
+ * for §6a's bookkeeping, which then discards a live recovery. `undefined` means
+ * "whatever §9 is using", which is a13 as written.
+ */
+let onceIdentity: RecoveryIdentity | undefined = undefined;
+
+export const setRecoveryOnceIdentity = (
+  next: RecoveryIdentity | undefined,
+): void => {
+  onceIdentity = next;
+};
+
 /** a13 §6a: offer a failure to each distinct handler at most once. */
 let onceRule = true;
 
@@ -198,17 +214,20 @@ export const recover = (
   const handler = FrameSymbol.for(RECOVERY_KEY).in(scope);
   if (!(handler instanceof FrameLazy)) return undefined;
 
-  const key = template(handler);
+  const key = template(handler, identity);
   if (guard === "value" && running.has(key)) return undefined;
 
   // a13 §6a: each distinct handler sees a given failure once. Identity is the
   // same notion masking uses, which is what makes the two interact.
   const subject = FrameExpr.answeredValue(failure);
   if (onceRule) {
+    const offerKey = onceIdentity === undefined
+      ? key
+      : template(handler, onceIdentity);
     const seen = offered.get(subject);
-    if (seen?.has(key)) return undefined;
-    if (seen) seen.add(key);
-    else offered.set(subject, new Set([key]));
+    if (seen?.has(offerKey)) return undefined;
+    if (seen) seen.add(offerKey);
+    else offered.set(subject, new Set([offerKey]));
   }
 
   calls += 1;
@@ -260,8 +279,11 @@ const label = (key: unknown): string =>
  * `FrameLazy.bind` answers `this` for an already-bound closure, so the read
  * does not copy.
  */
-const template = (handler: FrameLazy): unknown => {
-  if (identity === "object") return handler;
+const template = (
+  handler: FrameLazy,
+  mode: RecoveryIdentity = identity,
+): unknown => {
+  if (mode === "object") return handler;
   const body = handler.asArray();
   return body.length > 0 ? body[0] : handler;
 };
