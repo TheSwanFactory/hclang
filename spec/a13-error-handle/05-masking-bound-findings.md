@@ -1,14 +1,14 @@
 # Masking Bound Findings
 
-**Status:** Answers to [`a13c`](a13c-masking-bound-spike.md), taken at spike
+**Status:** Answers to [`a13c`](04-masking-bound-spike.md), taken at spike
 branch commit
 [`efcf7826d9e7b3b05e9bc6d10397e58f2d2e7206`](https://github.com/TheSwanFactory/hclang/commit/efcf7826d9e7b3b05e9bc6d10397e58f2d2e7206)
 on `a13c-masking-bound`, which starts from
 [`a4471f9`](https://github.com/TheSwanFactory/hclang/commit/a4471f9ef3cd8420531bafae52422068e8e7892f)
 on `a13a-recovery-spike`. That SHA is the only link back to the code, which is
 not merged and is not meant to be.\
-**Design record:** [`a13`](a13-error-handling.md) §9 and §6a, unedited.\
-**Prior findings:** [`a13b`](a13b-recovery-spike-findings.md).\
+**Design record:** [`a13`](01-error-handling.md) §9 and §6a, unedited.\
+**Prior findings:** [`a13b`](03-recovery-spike-findings.md).\
 **Issues:** [#360](https://github.com/TheSwanFactory/hclang/issues/360).
 
 **The short version.** a13 §9's bound holds, and its stated reason is wrong in a

@@ -1,11 +1,11 @@
 # Recovery Spike Findings
 
-**Status:** Answers to [`a13a`](a13a-recovery-spike.md) §4, taken at spike
-branch commit
+**Status:** Answers to [`a13a`](02-recovery-spike.md) §4, taken at spike branch
+commit
 [`a4471f9ef3cd8420531bafae52422068e8e7892f`](https://github.com/TheSwanFactory/hclang/commit/a4471f9ef3cd8420531bafae52422068e8e7892f)
 on `a13a-recovery-spike`. That commit is the only link back to the code, which
 is not merged and is not meant to be.\
-**Design record:** [`a13`](a13-error-handling.md), unedited. Every contradiction
+**Design record:** [`a13`](01-error-handling.md), unedited. Every contradiction
 is listed under [`## Contradicts a13`](#contradicts-a13).\
 **Issues:** [#360](https://github.com/TheSwanFactory/hclang/issues/360).
 

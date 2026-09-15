@@ -1,7 +1,7 @@
 # Recovery Spike: Answering a13 With Code
 
 **Status:** Spike brief. Throwaway by design — this is not a feature branch.\
-**Design record:** [`a13`](a13-error-handling.md), which proposes parent-scope
+**Design record:** [`a13`](01-error-handling.md), which proposes parent-scope
 error recovery and leaves four rulings unratified.\
 **Issues:** [#360](https://github.com/TheSwanFactory/hclang/issues/360).
 
@@ -16,7 +16,7 @@ contradicted it. Four of its rulings are proposals rather than decisions.
 valuable output is a list of places a13 is wrong. Working code is the
 instrument, not the deliverable.
 
-Do not edit `a13-error-handling.md`. Report what you find and let the design
+Do not edit `01-error-handling.md`. Report what you find and let the design
 record be updated deliberately.
 
 ## 2. Mechanics you will need
@@ -121,9 +121,9 @@ what a13 gets rewritten from, so they have to outlive it.
 `a13-error-handling`.** Push it; do not merge it, do not open a PR, and do not
 rewrite the commits already on `a13-error-handling`.
 
-**Findings → `spec/a13b-recovery-spike-findings.md`, committed onto
-`a13-error-handling` itself** — not onto the spike branch, where they would be
-deleted along with the code they describe. a13 and this brief already live
+**Findings → `spec/a13-error-handle/03-recovery-spike-findings.md`, committed
+onto `a13-error-handling` itself** — not onto the spike branch, where they would
+be deleted along with the code they describe. a13 and this brief already live
 there, so that branch ends up holding the design, the question set, and the
 answers as one reviewable whole.
 
@@ -151,7 +151,7 @@ and re-runnable, not to become a baseline.
 convention. Enough to pin each answer and no more; they are expected to be
 discarded.
 
-Leave `spec/a13-error-handling.md` and this file unedited.
+Leave `spec/a13-error-handle/01-error-handling.md` and this file unedited.
 
 ## 6. Out of scope
 
@@ -164,7 +164,7 @@ Leave `spec/a13-error-handling.md` and this file unedited.
   while they are still proposals. Leave `cli/hc.test.ts` alone.
 - Any decision about whether refusal names are a legitimate discrimination
   channel. That is a07 §7's open question, recorded in
-  [`a12`](a12-resource-frames.md), and this spike only reports what it makes
+  [`a12`](../a12-resource-frames.md), and this spike only reports what it makes
   possible.
 
 ## 7. How this will be judged

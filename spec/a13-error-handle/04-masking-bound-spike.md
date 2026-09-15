@@ -2,9 +2,9 @@
 
 **Status:** Spike brief. Adversarial, narrow, and throwaway — one claim, tested
 to destruction.\
-**Design record:** [`a13`](a13-error-handling.md) §9 and §6a.\
-**Prior spike:** [`a13a`](a13a-recovery-spike.md) (brief),
-[`a13b`](a13b-recovery-spike-findings.md) (findings). Its code is on
+**Design record:** [`a13`](01-error-handling.md) §9 and §6a.\
+**Prior spike:** [`a13a`](02-recovery-spike.md) (brief),
+[`a13b`](03-recovery-spike-findings.md) (findings). Its code is on
 `a13a-recovery-spike` and is the starting point for this one.\
 **Issues:** [#360](https://github.com/TheSwanFactory/hclang/issues/360).
 
@@ -17,10 +17,10 @@ calls — keeps working. Its entire safety case is one sentence:
 > depth is bounded by the number of distinct handler templates, since each is
 > masked while it runs
 
-[`a13b`](a13b-recovery-spike-findings.md) Q3 is candid that this was measured
-once rather than proved, and a13 now lists it as the only open item that can
-make the design **unsafe** rather than merely awkward. Every other question
-about recovery is about ergonomics or accuracy. This one is about whether the
+[`a13b`](03-recovery-spike-findings.md) Q3 is candid that this was measured once
+rather than proved, and a13 now lists it as the only open item that can make the
+design **unsafe** rather than merely awkward. Every other question about
+recovery is about ergonomics or accuracy. This one is about whether the
 interpreter halts.
 
 **Your job is to break it.** A spike that finds a divergent case is the good
@@ -29,7 +29,7 @@ tried, and "I ran the obvious cases" is not hard.
 
 ## 2. Start with the question the prior spike left hanging
 
-[`a13b`](a13b-recovery-spike-findings.md) Q2 says the guard is "a set of running
+[`a13b`](03-recovery-spike-findings.md) Q2 says the guard is "a set of running
 handler templates **plus a depth counter**." a13 §9's bound does not mention a
 counter, and if the counter is what actually stops the recursion, then the
 ruling's stated safety case is not the one the code relies on.
@@ -62,12 +62,11 @@ not work, and say why it did not.
 **A1. Mint templates at runtime.** The bound assumes the set of handler
 templates is finite and fixed. Find out whether a program can create a fresh one
 per invocation — a handler that declares a handler, a factory that answers a
-closure, a literal evaluated repeatedly.
-[`a13b`](a13b-recovery-spike-findings.md) Q3 says `FrameList.copy` reuses term
-objects so a template is stable across copies; test whether that holds when the
-literal is _re-evaluated_ rather than copied, and whether `instanceCopy` behaves
-the same as a plumbing copy here. If a new template can be minted per level, the
-bound is false outright.
+closure, a literal evaluated repeatedly. [`a13b`](03-recovery-spike-findings.md)
+Q3 says `FrameList.copy` reuses term objects so a template is stable across
+copies; test whether that holds when the literal is _re-evaluated_ rather than
+copied, and whether `instanceCopy` behaves the same as a plumbing copy here. If
+a new template can be minted per level, the bound is false outright.
 
 **A2. Mutual recursion between two handlers.** H1's body provokes H2, H2's body
 provokes H1. Both are masked while running, so this should terminate — but
@@ -114,7 +113,7 @@ whether it does.
 a13 §7 and §11 now claim the refusal is reachable inside a conditional branch
 spelled `__` rather than `_`, and on that basis a13 keeps
 `lib/ops/conditionals.ts` out of scope. That correction was made against
-[`a13b`](a13b-recovery-spike-findings.md) Q6, which had concluded the opposite
+[`a13b`](03-recovery-spike-findings.md) Q6, which had concluded the opposite
 from `_` alone.
 
 Verify it independently rather than assuming it. In particular: does `__` reach
@@ -125,7 +124,7 @@ discrimination story is worse than it now claims and §8 needs to say so.
 
 ## 7. Deliverables, and where each one goes
 
-Same rule as [`a13a`](a13a-recovery-spike.md) §5, and for the same reason: the
+Same rule as [`a13a`](02-recovery-spike.md) §5, and for the same reason: the
 code dies, the findings do not.
 
 **Code, tests, and corpus → branch `a13c-masking-bound`, off
@@ -133,10 +132,10 @@ code dies, the findings do not.
 rewrite existing commits. Starting it from `a13a-recovery-spike` is expected —
 say so in the first commit message.
 
-**Findings → `spec/a13d-masking-bound-findings.md`, committed onto
-`a13-error-handling` itself**, as a single commit touching that one file. Head
-it with a `**Status:**` line naming the spike commit the findings were taken at.
-Then, as second-level headings in this order:
+**Findings → `spec/a13-error-handle/05-masking-bound-findings.md`, committed
+onto `a13-error-handling` itself**, as a single commit touching that one file.
+Head it with a `**Status:**` line naming the spike commit the findings were
+taken at. Then, as second-level headings in this order:
 
 - one per attack, A1 through A6, headed exactly that way
 - Where the bound comes from
@@ -149,8 +148,8 @@ should hold.
 **Scratch corpus → `cli/hc/masking-bound.hc`, left unregistered.** Neither
 doctest harness globs, so an unregistered file stays inert.
 
-Leave `spec/a13-error-handling.md`, `spec/a13b-recovery-spike-findings.md`, and
-this file unedited.
+Leave `spec/a13-error-handle/01-error-handling.md`,
+`spec/a13-error-handle/03-recovery-spike-findings.md`, and this file unedited.
 
 ## 8. Out of scope
 

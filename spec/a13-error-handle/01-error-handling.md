@@ -3,12 +3,13 @@
 **Status:** Proposed. Not implemented — design points only, no code.\
 **Issues:** [#360](https://github.com/TheSwanFactory/hclang/issues/360) (this
 design). Blocks [#361](https://github.com/TheSwanFactory/hclang/issues/361)
-(M-3, via [`a08`](a08-rationalizing-numbers.md) §11.1, T-4).\
-**Tutorial:** [`cli/hc/exception-tutorial.md`](../cli/hc/exception-tutorial.md)
-describes the result as if it had shipped.\
-**Spikes:** [`a13a`](a13a-recovery-spike.md) is the first brief and
-[`a13b`](a13b-recovery-spike-findings.md) is what it answered;
-[`a13c`](a13c-masking-bound-spike.md) attacks the one ruling below whose failure
+(M-3, via [`a08`](../a08-rationalizing-numbers.md) §11.1, T-4).\
+**Tutorial:**
+[`cli/hc/exception-tutorial.md`](../../cli/hc/exception-tutorial.md) describes
+the result as if it had shipped.\
+**Spikes:** [`a13a`](02-recovery-spike.md) is the first brief and
+[`a13b`](03-recovery-spike-findings.md) is what it answered;
+[`a13c`](04-masking-bound-spike.md) attacks the one ruling below whose failure
 would be unsafe rather than merely wrong.\
 **Revised:** One pass against the spike. The mechanism survives — parent-scope
 property, ordinary lookup, substitute-and-continue, nearest-wins, and the
@@ -70,7 +71,7 @@ The commonest failing expression in the language does not qualify: `1 / 0` fails
 at `sum.call(value)`, the combination step, where the curried divide meets its
 second operand — and nothing inspects the result of that step at all. `(1 / 0)`
 trips the per-term check; `1 / 0` never does. The spike
-([`a13b`](a13b-recovery-spike-findings.md) Q1) measured the gap: with recovery
+([`a13b`](03-recovery-spike-findings.md) Q1) measured the gap: with recovery
 wired only at the per-term check, 14 of the 36 corpus examples it reaches fail,
 including every arithmetic failure and every resource read.
 
@@ -138,7 +139,7 @@ new leg of the ternary:
   one of the same spelling.
 
 Two things an earlier draft of this section claimed, corrected by
-[`a13b`](a13b-recovery-spike-findings.md):
+[`a13b`](03-recovery-spike-findings.md):
 
 - **A frame may recover its own terms.** This document used to say the search
   starts in the parent scope, "not the failing expression manufacturing its own
@@ -284,9 +285,9 @@ This is not specific to recovery or to conditionals — any closure invoked with
 nil shadows an enclosing `_` the same way, and a named binding made before the
 test works equally well. It is recorded here because a handler that both tests
 the reason and reports it is the shape most likely to meet it, and because
-[`a13b`](a13b-recovery-spike-findings.md) Q6 concluded from the `_` spelling
-alone that the reason was unreachable inside a branch. It is reachable; the
-spelling is `__`.
+[`a13b`](03-recovery-spike-findings.md) Q6 concluded from the `_` spelling alone
+that the reason was unreachable inside a branch. It is reachable; the spelling
+is `__`.
 
 ## 7a. Declining: a falsy answer propagates the original
 
@@ -450,7 +451,7 @@ whether M-3 needs additional bridging, is not resolved here.
   it stays available if a use for the value itself appears.
 - **Whether the refusal vocabulary is stable enough to match against.** §7 makes
   refusal names a program-visible discrimination channel, which is exactly the
-  question a07 §7 left open and [`a12`](a12-resource-frames.md) records as
+  question a07 §7 left open and [`a12`](../a12-resource-frames.md) records as
   unresolved: whether an ungranted resource may say _why_ it refused. Whatever a
   program can read here is exactly what it can branch on, so the two questions
   have to be answered together — and any split where the program sees one
@@ -463,7 +464,7 @@ whether M-3 needs additional bridging, is not resolved here.
   number of distinct handler templates only if each is genuinely masked for the
   whole of its own call, and only if that set cannot grow at runtime. Measured
   once; not proved. This is the one open item that can make the design unsafe
-  rather than merely awkward, and [`a13c`](a13c-masking-bound-spike.md) is the
+  rather than merely awkward, and [`a13c`](04-masking-bound-spike.md) is the
   brief for attacking it.
 - **Whether the refusal vocabulary is one family.** §7 says `_` is "the `$!.…`
   vocabulary without the sigil", and two of the trusted base's own spellings are

@@ -2,15 +2,14 @@
 
 **Status:** Analysis, not a design. One question, with the measurements that
 make it worth asking. It proposes no mechanism, no spelling, and no ruling, and
-it does not claim [`a13`](a13-error-handling.md) is wrong — both spikes ran
-a13's mechanism end to end and it works. What it claims is that a13's costs all
-have one cause, that the codebase already contains half of the alternative, and
-that the alternative is one line away from being testable.\
-**Design record:** [`a13`](a13-error-handling.md).\
-**Spikes:** [`a13a`](a13a-recovery-spike.md) /
-[`a13b`](a13b-recovery-spike-findings.md), and
-[`a13c`](a13c-masking-bound-spike.md) /
-[`a13d`](a13d-masking-bound-findings.md).\
+it does not claim [`a13`](01-error-handling.md) is wrong — both spikes ran a13's
+mechanism end to end and it works. What it claims is that a13's costs all have
+one cause, that the codebase already contains half of the alternative, and that
+the alternative is one line away from being testable.\
+**Design record:** [`a13`](01-error-handling.md).\
+**Spikes:** [`a13a`](02-recovery-spike.md) /
+[`a13b`](03-recovery-spike-findings.md), and [`a13c`](04-masking-bound-spike.md)
+/ [`a13d`](05-masking-bound-findings.md).\
 **Issues:** [#360](https://github.com/TheSwanFactory/hclang/issues/360), and
 [#361](https://github.com/TheSwanFactory/hclang/issues/361) behind it.\
 **Measured at:**

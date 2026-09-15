@@ -12,10 +12,11 @@ scope declares a way out.
 > line is REPL input, every `#` line is the answer it prints, and a line
 > ending in `;` is a statement that answers nothing. Unlike that corpus, none of
 > it is executed: it describes the design in
-> [`spec/a13-error-handling.md`](../../spec/a13-error-handling.md), written as if
-> it already shipped. It should become an executable corpus of its own once the
-> rulings it encodes are settled, for the same reason `apply.hc` absorbed its
-> tutorial — prose that is not run drifts from what the interpreter does.
+> [`spec/a13-error-handle/01-error-handling.md`](../../spec/a13-error-handle/01-error-handling.md),
+> written as if it already shipped. It should become an executable corpus of its
+> own once the rulings it encodes are settled, for the same reason `apply.hc`
+> absorbed its tutorial — prose that is not run drifts from what the interpreter
+> does.
 
 ## Declaring a recovery
 
