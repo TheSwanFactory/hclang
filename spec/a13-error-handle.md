@@ -1,8 +1,9 @@
 # Error Handling: Parent-Scope Recovery
 
 **Status:** Design settled. Every ruling below survived two adversarial spikes
-and is stated in its corrected form; the three genuinely open items are listed
-at the end and one of them blocks implementation.\
+and a review, and is stated in its corrected form. Nothing in the grammar blocks
+implementation; what remains open is listed at the end, and the one item that
+must be answered before code is what the guard at D3's site tests.\
 **Issues:** [#360](https://github.com/TheSwanFactory/hclang/issues/360). Blocks
 [#361](https://github.com/TheSwanFactory/hclang/issues/361) (M-3) — but see D13,
 which argues the dependency runs the other way.\
@@ -10,8 +11,13 @@ which argues the dependency runs the other way.\
 documents: [`01`](a13-error-handle/01-error-handling.md) is the long-form
 design, [`03`](a13-error-handle/03-recovery-spike-findings.md) and
 [`05`](a13-error-handle/05-masking-bound-findings.md) are measured findings that
-corrected it, and [`06`](a13-error-handle/06-applying-a-failure.md) asks a
-larger question this design does not answer.
+corrected it, [`06`](a13-error-handle/06-applying-a-failure.md) asks a larger
+question this design does not answer, and
+[`07`](a13-error-handle/07-what-blocks-implementation.md) reviews this record
+against the interpreter and dissolves the blocker it used to name,
+[`08`](a13-error-handle/08-handler-spelling.md) litigates the spelling, and
+[`09`](a13-error-handle/09-combination-step-guard.md) is the brief for the one
+open item that stops implementation.
 
 ## The problem
 
@@ -39,10 +45,20 @@ the ternary, `?` and `:` are untouched, and no new lookup mechanism exists.
 The alternatives were each rejected for a reason: bare `$` and `$$` are already
 the scope anchors; `::` as a third leg lexes freely but does not fix
 reachability, since the condition operand is still swallowed before any operator
-is dispatched; removing the reduce's short-circuit inverts one auditable
-invariant into a convention every operator must reimplement; and making the
-conditional's operand lazy cuts deeper into the evaluation model than the
-problem warrants.
+is dispatched; and making the conditional's operand lazy cuts deeper into the
+evaluation model than the problem warrants.
+
+**One rejection is withdrawn.** An earlier draft also rejected removing the
+reduce's short-circuit on the ground that it "inverts one auditable invariant
+into a convention every operator must reimplement." That is false as measured
+([`07`](a13-error-handle/07-what-blocks-implementation.md) §3): every built-in
+binary operator meets its second operand at one method, the curry's own `call`,
+so the invariant relocates from one method to another rather than distributing.
+What survives is narrower: terms after a failure would evaluate where a receiver
+answers, which is a ruling nothing but nil sets a precedent for, and the framing
+is a protocol, a frame type, and a vocabulary where this is a lookup and a
+guard. Both are reasons to sequence this design first. Neither is a reason to
+call the alternative rejected, so it is held open below instead.
 
 ## D2. Lookup is ordinary, outward, and nearest-wins
 
@@ -94,6 +110,14 @@ standing and none can make things worse.
   to prevent.
 - **The original failure survives**, never the handler's own. Broken diagnostic
   machinery must not overwrite the only information the program had.
+
+**M-3 puts that last part at risk, and a guard at D3's site is what protects
+it.** Once the numeric gate answers an error instead of nil, an operator handed
+a failing operand replaces the original failure with its own domain error —
+which renders the offending operand's class as empty, because a failure has no
+class name ([`07`](a13-error-handle/07-what-blocks-implementation.md) §3b). Two
+lines at the combination step answer it, so this is a sequencing constraint on
+#361, not a defect in D5.
 
 ## D6. The handler receives the reason as text, and discrimination is positional
 
@@ -243,15 +267,32 @@ inversion is right, #361 is unblocked and should be re-sequenced.
 
 ## Open
 
-- **The spelling, which blocks implementation.** `$:` is not valid source today
-  — the dollar family accepts only specific continuation characters, and `:` is
-  not one, so `.$: {…}` lexes as three tokens rather than one property name.
-  Making it atomic means whitelisting `:` in the family that owns the
-  diagnostic-note spellings, and it is not clear a recovery handler belongs
-  there: `$` reads as error-adjacent only because of how error values print,
-  which is a coincidence of string formatting rather than shared meaning. The
-  spikes used `.recover`, which lexes today and needs no grammar change, at the
-  cost of spending a plain name. Pick one before building.
+- **Which identifier the handler is spelled with.** This is a naming decision,
+  not a blocker: spellings satisfying every ruling above lex today with no
+  grammar change ([`07`](a13-error-handle/07-what-blocks-implementation.md) §1).
+  Two candidates are ruled out rather than left open. **`.$:` is not available
+  at a price worth paying** — the obstacle is not the dollar family but the
+  family that owns every property name in the language, which admits neither `$`
+  nor a mix of character kinds, so `.$:` needs both a leading-`$` rule and a
+  kind-mixing exception; `$:` is also not vacant, since it already resolves as a
+  member read on the file anchor. **`.:` shadows the if-else operator** on any
+  frame that declares it, which is the one ruling
+  [`a05c`](a05c-unified-effect-marker.md) most recently bought. Other
+  operator-class keys such as `.::` shadow nothing, but a missing dot silently
+  invokes them where an identifier raises a note, and none of them can be
+  written as a bare name. What remains is the class: an ordinary identifier such
+  as `.on-fail`, which costs nothing, against a reserved `.$…` namespace, which
+  costs one guarded line plus an amendment to a spelling `doc/GRAMMAR.md` pins
+  as legal and makes the handler unspellable in value position.
+  [`08`](a13-error-handle/08-handler-spelling.md) enumerates the space and
+  recommends; the choice turns on the next item rather than on taste.
+- **Whether the key must be reserved.** D1 makes the handler an ordinary
+  property and D2 finds it by ordinary outward lookup, so any frame in the
+  lookup chain can declare one — deliberately or by collision — and thereby
+  substitute values for failures in code it did not write. A reserved namespace
+  is the answer if that is a hazard, and the reason to decide it here rather
+  than as a naming question is that a07's threat model is the place that knows
+  whether it is one.
 - **Whether the refusal vocabulary can be matched against at all.** D6 makes
   refusal names a program-visible discrimination channel, which is the question
   a07 §7 left open and [`a12`](a12-resource-frames.md) records as unresolved:
@@ -261,7 +302,15 @@ inversion is right, #361 is unblocked and should be re-sequenced.
   three ways, and reading a name back took three patterns and an unwrap — so
   either it is regularized or D6 admits the name is computed rather than read
   off.
-- **Whether the whole framing should be receiver-side instead.**
+- **What the guard at the combination step tests, which does block code.** D3
+  puts recovery there and D5 now needs a guard there to survive M-3, and nobody
+  has decided whether it tests the error flag alone or the aggregate-shallow
+  predicate, what it does to receiver state, or what `?` and `:` answer to a
+  failing source. [`09`](a13-error-handle/09-combination-step-guard.md) is the
+  brief.
+- **Whether the whole framing should be receiver-side instead.** D1's
+  architectural objection to this is withdrawn, so what is left is cost and
+  sequencing rather than principle.
   [`06`](a13-error-handle/06-applying-a-failure.md) argues that every mechanism
   above — masking, two identity notions, per-failure bookkeeping, a synthesized
   text argument, the underscore ladder — exists because the evaluator locates
