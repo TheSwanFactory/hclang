@@ -77,8 +77,8 @@
     }
   },
   "imports": {
-    "@theswanfactory/deno-hooks": "jsr:@theswanfactory/deno-hooks@0.2.1-dev.1765778019",
-    "deno-hooks": "jsr:@theswanfactory/deno-hooks@0.2.1-dev.1765778019"
+    "@theswanfactory/deno-hooks": "jsr:@theswanfactory/deno-hooks@0.3.0",
+    "deno-hooks": "jsr:@theswanfactory/deno-hooks@0.3.0"
   },
   "workspace": [
     "cli",

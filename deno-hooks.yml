@@ -1,22 +1,17 @@
+# Deno Hooks configuration.
+#
+# Each hook is a list of shell commands, run in order, with `set -e` so the
+# first failure stops the commit or push. The installer inlines them into
+# `.git/hooks/`, so the generated scripts resolve nothing at run time.
+# Regenerate after editing with `deno task setup`.
+
 hooks:
   pre-commit:
-    # Format code with deno fmt
-    - id: deno-fmt
-      name: deno fmt
-      run: deno-fmt
-      glob: "*.{ts,js,json,md}"
-      pass_filenames: true
-
-    # Lint code with deno lint
-    - id: deno-lint
-      name: deno lint
-      run: deno-lint
-      glob: "*.{ts,js}"
-      pass_filenames: true
+    # Formatting is checked rather than applied: a mutating hook would edit
+    # files after they were staged, so the commit would keep the unformatted
+    # content while the tree looked clean.
+    - deno fmt --check
+    - deno lint
 
   pre-push:
-    # Run tests before pushing
-    - id: test
-      name: test
-      run: deno-test
-      pass_filenames: false
+    - deno task test:all
