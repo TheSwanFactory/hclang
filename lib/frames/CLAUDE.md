@@ -306,7 +306,7 @@ The three operators are a ladder, each strictly stronger than the last, and
 `referent()` is how a handle stays transparent: every rung unwraps through it,
 so a handle is equal, type-equal and identical to its target. No id is ever
 returned by a comparison. See
-[`a13/01`](../../spec/a13-bfg/01-equality-ladder.md).
+[`a14/01`](../../spec/a14-bfg/01-equality-ladder.md).
 
 ### Copy Contract
 
