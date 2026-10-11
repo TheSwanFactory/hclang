@@ -28,7 +28,8 @@ A unit segment may carry an integer exponent, and further segments compose
 ; 9.8.m.s
 # 9.8.m.s
 ```
-Equality planes
+The equality ladder: a unit is part of the value, and `==` also compares the
+magnitude's rung
 ```
 ; 9.8.m = 9.8.m
 # <>
@@ -37,17 +38,19 @@ Equality planes
 ; 9.8.m == 9.8.m
 # <>
 ; 9.80.m == 9.8.m
+# <>
+; 3.m == 3.0.m
 # ()
 ; 9.8.m = 9.8.kg
 # ()
 ; 9.8.m = 9.8
 # ()
 ```
-The metadata plane is unchanged, and still answers every frame without metadata
-alike (#358). Locked so it reads as deliberate rather than as a units ruling
+`===` asks for the same frame, and an atom owns no identity, so it is `==`:
+different units are never the same (#358)
 ```
 ; 9.8.m === 9.8.kg
-# <>
+# ()
 ```
 Equality is spelling, not dimension: no segment is reordered, no exponent folded
 ```

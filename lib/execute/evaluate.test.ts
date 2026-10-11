@@ -339,7 +339,7 @@ describe("evaluate", () => {
         expect(callable.calls).toEqual(1);
       });
 
-      it("calls the right operand of : only for nil", () => {
+      it("calls the right operand of : only for nil, else answers the receiver", () => {
         const callable = new (class extends frame.Frame {
           calls = 0;
           override call(argument: frame.Frame): frame.Frame {
@@ -349,9 +349,8 @@ describe("evaluate", () => {
           }
         })();
 
-        expect(frame.FrameInt.for("1").get(":").call(callable)).toBe(
-          frame.Frame.nil,
-        );
+        const one = frame.FrameInt.for("1");
+        expect(one.get(":").call(callable)).toBe(one);
         expect(callable.calls).toEqual(0);
         expect(frame.Frame.nil.get(":").call(callable).toString()).toEqual("4");
         expect(callable.calls).toEqual(1);
@@ -381,8 +380,8 @@ describe("evaluate", () => {
         expect(evaluate("1.> 5 ? (2 * 50) : 10").toString()).toEqual("[10]");
       });
 
-      it("returns nil when a true then call returns a truthy value", () => {
-        expect(evaluate("5.> 1 ? (2 * 50) : 10").toString()).toEqual("[]");
+      it("answers the then value when a true then call returns a frame", () => {
+        expect(evaluate("5.> 1 ? (2 * 50) : 10").toString()).toEqual("[100]");
       });
 
       it("does not evaluate a lazy then branch when false", () => {
@@ -882,6 +881,32 @@ describe("evaluate", () => {
   });
 
   describe("closures with arguments", () => {
+    describe("write target", () => {
+      const last = (source: string): string => {
+        const results = evaluate(source).asArray();
+        return results[results.length - 1].toString();
+      };
+
+      it("binds locally when the argument is a plain name", () => {
+        expect(last(".X [1];\n.f {.o 2; o};\nf X;\nX\n")).toEqual("[1]");
+      });
+
+      it("writes through a name declared mutable", () => {
+        expect(last(".X_ [1];\n.f {.o 2; o};\nf X_;\nX_\n")).toEqual(
+          "[.o 2; 1]",
+        );
+      });
+
+      it("leaves a child reached by name untouched under map", () => {
+        expect(last(".A [];\n.E [A];\nE & {.o 2; o};\nA\n")).toEqual("[]");
+      });
+
+      it("does not make a mapped Figure refer to itself (005.30c probe 6.4)", () => {
+        expect(last(".A [];\n.E5 [A, [A]];\n.r5 (E5 & {.o _; o});\nE5\n"))
+          .toEqual("[[], [[]]]");
+      });
+    });
+
     describe("anonymous parameter `_`", () => {
       it("applies closure {_} as identity function", () => {
         const result = evaluate("{_} 42");
@@ -1911,15 +1936,24 @@ describe("evaluate", () => {
       ).toContain("$!.is-private .private");
     });
 
-    it("compares handle metadata symmetrically through its target", () => {
-      expect(evaluate(".x [.a 1]; .y [.a 2]; x === y").at(0).toString())
+    it("compares handles symmetrically through their targets", () => {
+      expect(evaluate(".x [.a 1]; .y [.a 2]; x == y").at(0).toString())
         .toContain("; ())");
-      expect(evaluate(".x [.a 1]; x === [.a 2]").at(0).toString())
+      expect(evaluate(".x [.a 1]; [.a 2] == x").at(0).toString())
         .toContain("; ())");
-      expect(evaluate(".x [.a 1]; [.a 2] === x").at(0).toString())
-        .toContain("; ())");
-      expect(evaluate(".x [.a 1]; [.a 1] === x").at(0).toString())
+      expect(evaluate(".x [.a 1]; [.a 1] == x").at(0).toString())
         .toContain("; <>)");
+      expect(evaluate(".x [.a 1]; x == [.a 1]").at(0).toString())
+        .toContain("; <>)");
+    });
+
+    it("answers identity through handles with ===", () => {
+      expect(evaluate(".x [.a 1]; x === x").at(0).toString())
+        .toContain("; <>)");
+      expect(evaluate(".x [.a 1]; .y x; y === x").at(0).toString())
+        .toContain("; <>)");
+      expect(evaluate(".x [.a 1]; [.a 1] === x").at(0).toString())
+        .toContain("; ())");
     });
 
     it("copies immutable receivers before mutating methods", () => {

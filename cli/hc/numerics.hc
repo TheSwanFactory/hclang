@@ -65,7 +65,8 @@ Exponentiation stays exact when its exponent is integral
 ; 2 ** 1.5
 # 2.8284271247461903
 ```
-Numeric equality is exact; data and metadata equality remain unchanged
+Numeric equality is exact. `=` asks for the same value, `==` also asks for the
+same rung, and `===` asks for the same frame, which for a number is `==`
 ```
 ; 3 = 3.0
 # <>
@@ -74,8 +75,10 @@ Numeric equality is exact; data and metadata equality remain unchanged
 ; 0123 = 123
 # <>
 ; 0123 == 123
-# ()
+# <>
 ; 3 === 3.0
+# ()
+; 3 === 3
 # <>
 ; 1.408.055.1212 = 1.408.055.1212
 # <>

@@ -290,6 +290,24 @@ the write brand; a miss searches only the receiver's live lexical scope, never
 the prepared argument or parameter supplied by the caller. This preserves
 lexical alias behavior without making caller-owned values write targets.
 
+### Equality
+
+The three operators are a ladder, each strictly stronger than the last, and
+`Frame` owns one method per rung:
+
+- `equals` (`=`): the same value. Atom families override it, and `FrameArray`
+  compares its complete view, visible properties then elements, by `=`.
+- `typeEquals` (`==`): `equals` plus the same class at every node, so the
+  numeric rung counts.
+- `identical` (`===`): the same frame. A frame that `ownsIdentity()`, which is
+  every `FrameArray`, compares by reference; anything else falls back to
+  `typeEquals`, because the copy contract makes sharing it unobservable.
+
+`referent()` is how a handle stays transparent: every rung unwraps through it,
+so a handle is equal, type-equal and identical to its target. No id is ever
+returned by a comparison. See
+[`a13/01`](../../spec/a13-bfg/01-equality-ladder.md).
+
 ### Copy Contract
 
 Copying is two operations, not one, and every call site belongs to exactly one

@@ -125,11 +125,11 @@ Test types
 ```
 Conditionals
 ```
-## Binary truth table for ordinary frames and raw nil
+## Binary truth table for ordinary frames and raw nil: `:` answers a frame itself
 ; 1 ? {2 + 2}
 # 4
 ; 1 : {2 + 2}
-# ()
+# 1
 ; () ? {2 + 2}
 # ()
 ; () : {2 + 2}
@@ -147,14 +147,38 @@ Conditionals
 ; 5.> 1 ? {100}
 # 100
 ; 5.> 1 : {10}
-# ()
-## Chained conditionals follow ordinary left-to-right binary composition
+# <>
+## Chained conditionals answer the taken branch
 ; 1.> 5 ? (2 * 50) : 10
 # 10
 ; 5.> 1 ? (2 * 50) : 10
-# ()
+# 100
+## A taken branch that answers nil falls through to the else branch
 ; 5.> 1 ? {()} : {10}
 # 10
+```
+Figures: construct with optional children, observe with Figure answers
+```
+; .A []; .B [A]; .E [A, B]; .B2 [A];
+## Reuse and resemblance are different rungs of the equality ladder
+; [B = B2, B == B2, B === B2]
+# [<>, <>, ()]
+; (E .0) === A
+# <>
+## A plain conditional answers a Figure from either branch
+; .same {((_ .0) === (_ .1)) ? {B} : {A}};
+; same [B, B]
+# [[]]
+; same [B, B2]
+# []
+## Box a branch that answers nil, so it does not fall through
+; .rest {((_ && {(((_ .0) = .0) ? {[()]} : {[[__ .1]]}) .0}) | []) & {_ .0}};
+; rest E
+# [[[]]]
+## Observing a Figure through a plain name does not write onto it
+; E & {.o _; o};
+; E
+# [[], [[]]]
 ```
 Quote delimiters
 ```

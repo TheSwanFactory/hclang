@@ -447,15 +447,21 @@ use a _reference_ instead of a name. Here the array creates a child data context
 
 Names also provide an elegant way of manipulating data structures, still
 in the context of simple expressions. Arrays carry properties; a closure can
-apply a setter to an array passed as its argument:
+apply a setter to an array passed as its argument, when the name grants it.
+A trailing underscore declares a mutable name, and only a mutable name lets a
+callee write through it:
 
 ```
-; .base [.key 42;];
-; base .key # gets property
+; .base_ [.key 42;];
+; base_ .key # gets property
 # 42
-; {.key 113} base; # sets property
-; base .key
+; {.key 113} base_; # sets property
+; base_ .key
 # 113
+; .fixed [.key 42;];
+; {.key 113} fixed; # binds locally, fixed is untouched
+; fixed .key
+# 42
 ```
 The space between _base_ and _key is not necessary, but we use it to
 emphasize the fact that this is just an ordinary expression, not a
@@ -680,7 +686,8 @@ These flavors determine whether we consider the whole object, or just the data
 or metadata separately.
 
 #### Equality
-`=` is the usual equality test:
+Equality is a ladder, each rung strictly stronger than the last. `=` asks for
+the same value, `==` for the same value and type, and `===` for the same frame:
 ```
 ; .a [113, .p 887];
 ; .b [113, .p 661];
@@ -689,11 +696,17 @@ or metadata separately.
 # <>
 ; a = b
 # ()
-; a == b
+; a = [113, .p 887]
 # <>
-; a == c
+; [3] = [3.0]
+# <>
+; [3] == [3.0]
 # ()
-; a === c
+; a == [113, .p 887]
+# <>
+; a === [113, .p 887]
+# ()
+; a === a
 # <>
 ```
 #### Iterators
@@ -734,19 +747,19 @@ albeit with slightly different semantics. These are described in Table [#sec-tab
 | Operator   | Name| On Frame | On Nil |
 +-------+--------+-------+--------+
 | ?     | _if_   | Call with `()` | Return `()` |
-| :     | _else_ |Return `()` | Call with `()` |
+| :     | _else_ |Return the frame | Call with `()` |
 +-------+--------+-------+--------+
 { tbody-tr-odd-background-color:Gainsboro; \
   tr-even-background-color:Floralwhite }
 ~
 
 Note that these are not special forms, but simply defined with one behavior on nil
-and the opposite on regular frames.
+and the opposite on regular frames. `:` reads as "or else": a frame answers itself.
 ```
 ; 1 ? {2 + 2}
 # 4
 ; 1 : {2 + 2}
-# ()
+# 1
 
 ; () ? {2 + 2}
 # ()
@@ -754,12 +767,14 @@ and the opposite on regular frames.
 # 4
 ```
 Chaining applies those binary rules using HC's ordinary left-to-right
-evaluation. The result returned by `?` becomes the left operand of `:`:
+evaluation. The result returned by `?` becomes the left operand of `:`, so
+`c ? t : e` answers `t` or `e`. A taken branch that answers nil falls through
+to `e`, the price of composing two binary operators:
 ```
 ; 1.> 5 ? (2 * 50) : 10
 # 10
 ; 5.> 1 ? (2 * 50) : 10
-# ()
+# 100
 `````
 Note that applying nil to anything other than a closure has no effect, so
 conditionals work just as well with simple expressions as they do with

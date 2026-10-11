@@ -1,7 +1,14 @@
 import { expect } from "jsr:@std/expect@^0.219.1";
 import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 
-import { Frame, FrameArray, NilContext } from "../frames.ts";
+import {
+  Frame,
+  FrameArray,
+  FrameDecimal,
+  FrameInt,
+  NilContext,
+} from "../frames.ts";
+import { FrameHandle } from "./frame-handle.ts";
 
 describe("Frame", () => {
   const frame = new Frame({ nil: Frame.nil });
@@ -89,25 +96,74 @@ describe("Frame", () => {
     });
   });
 
-  describe("equality planes", () => {
-    const data = [new Frame()];
-    const left = new FrameArray(data, { tag: Frame.nil });
-    const sameData = new FrameArray(data, { tag: Frame.all });
-    const sameMetadata = new FrameArray([Frame.all], { tag: Frame.nil });
+  describe("equality ladder", () => {
+    const three = new FrameInt("3");
+    const threeDecimal = new FrameDecimal("3.0");
+    const a = new FrameArray([three], { p: new FrameInt("1") });
+    const sameShape = new FrameArray([new FrameInt("3")], {
+      p: new FrameInt("1"),
+    });
+    const decimalChild = new FrameArray([threeDecimal], {
+      p: new FrameInt("1"),
+    });
+    const otherProperty = new FrameArray([three], { p: new FrameInt("2") });
 
-    it("compares the whole frame with =", () => {
-      expect(left.get("=").call(left)).toBe(Frame.all);
-      expect(left.get("=").call(sameData)).toBe(Frame.nil);
+    const ask = (left: Frame, op: string, right: Frame): Frame =>
+      left.get(op).call(right);
+
+    it("compares values with =, across numeric rungs", () => {
+      expect(ask(three, "=", threeDecimal)).toBe(Frame.all);
+      expect(ask(a, "=", decimalChild)).toBe(Frame.all);
+      expect(ask(a, "=", otherProperty)).toBe(Frame.nil);
     });
 
-    it("compares only data with ==", () => {
-      expect(left.get("==").call(sameData)).toBe(Frame.all);
-      expect(left.get("==").call(sameMetadata)).toBe(Frame.nil);
+    it("also compares types at every node with ==", () => {
+      expect(ask(three, "==", threeDecimal)).toBe(Frame.nil);
+      expect(ask(a, "==", sameShape)).toBe(Frame.all);
+      expect(ask(a, "==", decimalChild)).toBe(Frame.nil);
     });
 
-    it("compares only metadata with ===", () => {
-      expect(left.get("===").call(sameMetadata)).toBe(Frame.all);
-      expect(left.get("===").call(sameData)).toBe(Frame.nil);
+    it("compares aggregates by identity with ===", () => {
+      expect(ask(a, "===", a)).toBe(Frame.all);
+      expect(ask(a, "===", sameShape)).toBe(Frame.nil);
+      expect(ask(a, "===", a.instanceCopy())).toBe(Frame.nil);
+    });
+
+    it("falls back to == for atoms under ===", () => {
+      expect(ask(three, "===", new FrameInt("3"))).toBe(Frame.all);
+      expect(ask(three, "===", threeDecimal)).toBe(Frame.nil);
+    });
+
+    it("sees through handles at every rung", () => {
+      const handle = new FrameHandle(a, false);
+      for (const op of ["=", "==", "==="]) {
+        expect(ask(handle, op, a)).toBe(Frame.all);
+        expect(ask(a, op, handle)).toBe(Frame.all);
+      }
+      expect(ask(handle, "===", sameShape)).toBe(Frame.nil);
+    });
+
+    it("is monotone: === implies == implies =", () => {
+      const values = [three, threeDecimal, a, sameShape, decimalChild];
+      for (const left of values) {
+        for (const right of values) {
+          if (ask(left, "===", right) === Frame.all) {
+            expect(ask(left, "==", right)).toBe(Frame.all);
+          }
+          if (ask(left, "==", right) === Frame.all) {
+            expect(ask(left, "=", right)).toBe(Frame.all);
+          }
+        }
+      }
+    });
+
+    it("terminates on frames reachable from themselves", () => {
+      const left = new FrameArray([]);
+      left.set("self", left);
+      const right = new FrameArray([]);
+      right.set("self", right);
+      expect(ask(left, "=", right)).toBe(Frame.all);
+      expect(ask(left, "===", right)).toBe(Frame.nil);
     });
   });
 });

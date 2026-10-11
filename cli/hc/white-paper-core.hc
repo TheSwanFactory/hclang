@@ -12,14 +12,19 @@
 # 42
 ; y
 # 3
-; .base [.key 42;]
-# .base [.key 42;]
-; base .key
+; .base_ [.key 42;]
+# .base_ [.key 42;]
+; base_ .key
 # 42
-; {.key 113} base
+; {.key 113} base_
 # 113
-; base .key
+; base_ .key
 # 113
+; .fixed [.key 42;];
+; {.key 113} fixed
+# .key 113
+; fixed .key
+# 42
 ; [.a 1; .b 2;].c
 # $!.name-missing “...
 ; .k 7

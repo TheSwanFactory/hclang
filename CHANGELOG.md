@@ -4,6 +4,28 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.17.0 2026-10-11
+
+- **Equality is a ladder, each rung strictly stronger than the last.** `=` asks
+  for the same value, `==` for the same value and the same type at every node,
+  and `===` for the same frame. An aggregate compares its visible properties and
+  elements, so `[3] = [3.0]` holds while `[3] == [3.0]` does not, and spelling
+  no longer matters: `0123 == 123` holds. `===` compares aggregates by identity
+  through any handle, so a reused Figure and an equal-looking construction are
+  finally distinguishable; an atom owns no identity, so for numbers and text
+  `===` is `==`. The old planes are gone: `===` no longer compares metadata
+  alone, so `3 === 4` is nil (#358, #382).
+- **`:` answers its left operand when it is not nil.** `“value” : {“else”}`
+  answers `“value”`, and only nil calls the fallback, so `c ? t : e` now answers
+  `t` instead of nil. A taken branch that itself answers nil still falls through
+  to `e`; box such a branch as `c ? {[t]} : {[e]}` and take `.0`. Programs that
+  used `x : {…}` to drop truthy values must now box instead (#382).
+- **A closure no longer writes onto an argument passed by a plain name.**
+  `{.key 113} base` binds `key` in the call's own frame and leaves `base` alone,
+  exactly as it already did for a literal argument. Writing through requires a
+  name declared mutable, `.base_ […]`, as the effect marker says. This also
+  stops a map from writing onto reused children (#382).
+
 ## v0.16.0 2026-09-12
 
 - **Only declared environment variables reach `$$`.** A curated dictionary of
