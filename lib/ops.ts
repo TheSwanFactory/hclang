@@ -8,18 +8,18 @@ import {
 } from "./ops/iterators.ts";
 import {
   Add,
-  DataEquals,
   Divide,
   Equals,
   GreaterThan,
   GreaterThanOrEqual,
+  Identical,
   LessThan,
   LessThanOrEqual,
-  MetadataEquals,
   Modulo,
   Multiply,
   Power,
   Subtract,
+  TypeEquals,
 } from "./ops/math.ts";
 import { BindType, HasType } from "./ops/type-operations.ts";
 
@@ -40,8 +40,8 @@ export const Ops = new FrameOps({
   "%%": Modulo,
   "**": Power,
   "=": Equals,
-  "==": DataEquals,
-  "===": MetadataEquals,
+  "==": TypeEquals,
+  "===": Identical,
   ">": GreaterThan,
   ">>": GreaterThan,
   ">=": GreaterThanOrEqual,

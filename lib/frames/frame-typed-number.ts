@@ -53,6 +53,16 @@ export class FrameTypedNumber extends FrameNumeric {
     return super.lookup_here(key, origin);
   }
 
+  /** `==` also asks the magnitude's rung: `3.m == 3.0.m` is nil. */
+  public override typeEquals(right: Frame): Frame {
+    if (
+      !(right instanceof FrameTypedNumber) || this.unit !== right.unit
+    ) {
+      return Frame.nil;
+    }
+    return this.magnitude.typeEquals(right.magnitude);
+  }
+
   public override equals(right: Frame): Frame {
     if (
       !(right instanceof FrameTypedNumber) || this.unit !== right.unit

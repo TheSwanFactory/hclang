@@ -88,14 +88,13 @@ execute("5 == 5"); // "true"
 ### Conditionals
 
 ```typescript
-// If-then-else
-execute("if true then 1 else 2"); // "1"
-execute("if false then 1 else 2"); // "2"
+// `?` calls its block on a frame; `:` answers a frame itself ("or else")
+execute("<> ? {“then”} : {“else”}"); // "“then”"
+execute("() ? {“then”} : {“else”}"); // "“else”"
+execute("“value” : {“else”}"); // "“value”"
 
-// Boolean logic
-execute("true and false"); // "false"
-execute("true or false"); // "true"
-execute("not true"); // "false"
+// A taken branch that answers nil falls through to the else branch
+execute("<> ? {()} : {“else”}"); // "“else”"
 ```
 
 ### Iteration

@@ -1,6 +1,6 @@
 # BFG: An Immutable Handle Is Not a Write Target
 
-**Status:** Proposal. A defect against #339's own stated intent\
+**Status:** Implemented in v0.17.0\
 **Issue:** [#382](https://github.com/TheSwanFactory/hclang/issues/382), item 3
 (005.18a H5)\
 **Scope:** Where a statement binding inside a closure body lands when the

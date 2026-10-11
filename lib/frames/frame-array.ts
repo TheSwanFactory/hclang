@@ -66,6 +66,66 @@ export class FrameArray extends FrameList {
     return undefined;
   }
 
+  /** Aggregates own identity, so `===` compares them by reference. */
+  public override ownsIdentity(): boolean {
+    return true;
+  }
+
+  /**
+   * `=` compares the complete view, the same one `&&` iterates: visible
+   * properties in declaration order, then elements by index, each by `=`.
+   * Spelling, private fields, the declared parent, and ids are not the value.
+   */
+  public override equals(other: Frame): Frame {
+    return this.sameMembers(other, (left, right) => left.equals(right));
+  }
+
+  /** `==` is the same walk with `==` at every node. */
+  public override typeEquals(other: Frame): Frame {
+    return this.sameMembers(other, (left, right) => left.typeEquals(right));
+  }
+
+  /** Pairs under comparison, so a frame reachable from itself terminates. */
+  private static readonly comparing = new Map<Frame, Set<Frame>>();
+
+  private sameMembers(
+    other: Frame,
+    same: (left: Frame, right: Frame) => Frame,
+  ): Frame {
+    const right = other.referent();
+    if (right === this) return Frame.all;
+    if (right.constructor !== this.constructor) return Frame.nil;
+
+    const inProgress = FrameArray.comparing.get(this) ?? new Set<Frame>();
+    if (inProgress.has(right)) return Frame.all;
+    inProgress.add(right);
+    FrameArray.comparing.set(this, inProgress);
+    try {
+      const keys = this.visibleKeys();
+      const rightKeys = right.visibleKeys();
+      if (
+        keys.length !== rightKeys.length ||
+        keys.some((key, index) => key !== rightKeys[index])
+      ) return Frame.nil;
+      for (const key of keys) {
+        if (same(this.get_here(key), right.get_here(key)) !== Frame.all) {
+          return Frame.nil;
+        }
+      }
+      const elements = this.elements();
+      const rightElements = right.elements();
+      if (elements.length !== rightElements.length) return Frame.nil;
+      return elements.every((element, index) =>
+          same(element, rightElements[index]) === Frame.all
+        )
+        ? Frame.all
+        : Frame.nil;
+    } finally {
+      inProgress.delete(right);
+      if (inProgress.size === 0) FrameArray.comparing.delete(this);
+    }
+  }
+
   /**
    * Aggregates are where identity matters, so an instance copy isolates them:
    * every nested aggregate, in the data plane and the metadata plane alike, gets

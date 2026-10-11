@@ -1,6 +1,6 @@
 # BFG: The Equality Ladder
 
-**Status:** Proposal. Replaces the plane decomposition of `=`, `==`, `===`\
+**Status:** Implemented in v0.17.0\
 **Issue:** [#382](https://github.com/TheSwanFactory/hclang/issues/382), item 1.
 Resolves
 [#358 — equality semantics](https://github.com/TheSwanFactory/hclang/issues/358)\

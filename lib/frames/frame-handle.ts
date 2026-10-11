@@ -41,6 +41,24 @@ export class FrameHandle extends Frame {
     return this.target;
   }
 
+  /** A handle is transparent to equality: it compares as its target. */
+  public override referent(): Frame {
+    return this.target.referent();
+  }
+
+  public override equals(other: Frame): Frame {
+    return this.target.equals(other);
+  }
+
+  public override typeEquals(other: Frame): Frame {
+    return this.target.typeEquals(other);
+  }
+
+  /** Whether the name that produced this handle carried the effect marker. */
+  public isMutable(): boolean {
+    return this.mutable;
+  }
+
   /** The lexical fallback selected for this particular read. */
   public readContextFrame(): Frame | undefined {
     return this.readContext;

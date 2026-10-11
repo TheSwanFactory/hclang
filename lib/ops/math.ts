@@ -34,12 +34,14 @@ export const Equals = (source: Frame, block: Frame): Frame => {
   return source.equals(block);
 };
 
-export const DataEquals = (source: Frame, block: Frame): Frame => {
-  return source.dataEquals(block);
+/** `==`: the same value and the same type at every node. */
+export const TypeEquals = (source: Frame, block: Frame): Frame => {
+  return source.typeEquals(block);
 };
 
-export const MetadataEquals = (source: Frame, block: Frame): Frame => {
-  return source.metadataEquals(block);
+/** `===`: the same frame. Atoms, which own no identity, fall back to `==`. */
+export const Identical = (source: Frame, block: Frame): Frame => {
+  return source.identical(block);
 };
 
 export const GreaterThan = (source: Frame, block: Frame): Frame =>

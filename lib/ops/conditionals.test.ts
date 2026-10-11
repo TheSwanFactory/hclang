@@ -1,7 +1,7 @@
 import { expect } from "jsr:@std/expect@^0.219.1";
 import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 
-import { Frame } from "../frames.ts";
+import { Frame, FrameArray, FrameNumber, FrameString } from "../frames.ts";
 import type { ReceiverState } from "../frames/bound-method.ts";
 import { IfElse, IfThen } from "./conditionals.ts";
 
@@ -42,7 +42,20 @@ describe("conditionals", () => {
 
     expect(IfElse(Frame.nil, selected, receiverState)).toBe(Frame.all);
     expect(selected.seen).toBe(receiverState);
-    expect(IfElse(Frame.all, skipped, receiverState)).toBe(Frame.nil);
+    expect(IfElse(Frame.all, skipped, receiverState)).toBe(Frame.all);
+    expect(skipped.calls).toEqual(0);
+  });
+
+  it("answers a non-nil source itself, as the same frame", () => {
+    const skipped = new CapturingBlock();
+    const values = [
+      new FrameNumber(1),
+      new FrameString("value"),
+      new FrameArray([]),
+    ];
+    for (const value of values) {
+      expect(IfElse(value, skipped)).toBe(value);
+    }
     expect(skipped.calls).toEqual(0);
   });
 });

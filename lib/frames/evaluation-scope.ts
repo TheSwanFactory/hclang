@@ -155,8 +155,10 @@ export class EvaluationScope {
    * the argument to the argument", which is what made a closure's write target
    * and its argument the same frame and produced a self-referential binding.
    *
-   * A handle argument is the one exception, because a handle is explicitly a
-   * mutable view requested by the caller for exactly this purpose.
+   * A mutable handle argument is the one exception, because the caller asked
+   * for a mutable view by spelling the name with the effect marker (`x_`). A
+   * plain name also arrives as a handle, but an immutable one, and it grants no
+   * write: `f x` must not change `x`.
    */
   public static call(
     argument: Frame,
@@ -166,10 +168,9 @@ export class EvaluationScope {
     receiverState?: ReceiverState,
   ): EvaluationScope {
     const local = new Frame();
-    const target = argument instanceof FrameHandle ? argument.unwrap() : local;
-    const targetRole: WriteTargetRole = argument instanceof FrameHandle
-      ? "handle"
-      : "statement";
+    const writable = argument instanceof FrameHandle && argument.isMutable();
+    const target = writable ? argument.unwrap() : local;
+    const targetRole: WriteTargetRole = writable ? "handle" : "statement";
 
     const lookupFrames = [local, argument];
     if (!parameter.is.void) lookupFrames.push(parameter);

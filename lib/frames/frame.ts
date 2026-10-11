@@ -291,6 +291,44 @@ export class Frame extends MetaFrame {
     return this.toString() === other.toString() ? Frame.all : Frame.nil;
   }
 
+  /**
+   * typeEquals is `==`: the same value, and the same type at every node.
+   * It is strictly stronger than `equals`, so `3 == 3.0` is nil while
+   * `3 = 3.0` holds.
+   */
+  public typeEquals(other: Frame): Frame {
+    const left = this.referent();
+    const right = other.referent();
+    return left.constructor === right.constructor
+      ? left.equals(right)
+      : Frame.nil;
+  }
+
+  /**
+   * identical is `===`: whether both references reach the same frame.
+   *
+   * Only a frame that owns identity can be told apart from an equal copy.
+   * Atoms and closure bodies are shared by the copy contract, so sharing them
+   * is unobservable and identity falls back to `typeEquals`, which keeps the
+   * ladder monotone: `===` implies `==` implies `=`. No id is ever exposed.
+   */
+  public identical(other: Frame): Frame {
+    const left = this.referent();
+    const right = other.referent();
+    if (left.ownsIdentity()) return left === right ? Frame.all : Frame.nil;
+    return left.typeEquals(right);
+  }
+
+  /** The frame a reference reaches. A handle answers its target. */
+  public referent(): Frame {
+    return this;
+  }
+
+  /** Whether a write can land on this frame, so that identity is observable. */
+  public ownsIdentity(): boolean {
+    return false;
+  }
+
   /** Compare only this frame's data plane, excluding metadata. */
   public dataEquals(other: Frame): Frame {
     return this.dataString() === other.dataString() ? Frame.all : Frame.nil;

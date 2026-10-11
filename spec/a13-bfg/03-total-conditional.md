@@ -1,7 +1,6 @@
 # BFG: `:` Answers Its Left Operand When It Is Not Nil
 
-**Status:** Proposal, ruled by the maintainer: `“value” : “else”` answers
-`“value”`\
+**Status:** Implemented in v0.17.0\
 **Issue:** [#382](https://github.com/TheSwanFactory/hclang/issues/382), item 4
 (005.18a H4). Must be reconciled with
 [#360 — extending `?:` for errors](https://github.com/TheSwanFactory/hclang/issues/360)\
