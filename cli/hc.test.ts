@@ -316,6 +316,20 @@ describe("main", () => {
     );
   });
 
+  it("keeps the Figures testdoc green", async () => {
+    const out = new FrameArray([]);
+    const file = new URL("./hc/figures.hc", import.meta.url).pathname;
+    const status = await main(
+      getEval({}, out),
+      getOptions(["--testdoc", file]),
+    );
+
+    expect(status).toEqual(0);
+    expect(out.at(-1).toString()).toContain(
+      '“{"total":27,"pass":27,"fail":0,"unimplemented":0}”',
+    );
+  });
+
   it("traverses the BitScheme tutorial with authoritative totals", async () => {
     const out = new FrameArray([]);
     const file = new URL("./hc/BitScheme.hc", import.meta.url).pathname;
