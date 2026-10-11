@@ -4,6 +4,13 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.17.1 2026-10-11
+
+- **The executable Figure model now derives recursive Size without host
+  numbers.** Its empty Figure is zero, a distinguished reused unit is one, and
+  every other Figure sums its children's Figure-valued Sizes, so nested cell
+  complexes compose, including two Size-4 children producing Size 8.
+
 ## v0.17.0 2026-10-11
 
 - **Equality is a ladder, each rung strictly stronger than the last.** `=` asks

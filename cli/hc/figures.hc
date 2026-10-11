@@ -62,6 +62,37 @@ The tally form is the native idiom: one `A` per child, with no recursion
 ; (tally G) = (tally E)
 # <>
 ```
+Size is recursive cell volume, not immediate Manyness. `Z` reuses `A` as the
+additive zero and `U` reuses `B` as the distinguished unit cell. `size_add`
+adds successor-shaped Figure numerals, and `size_children` adds the recursive
+Size of every immediate child. The special `U` case comes first because its
+child is `Z`. HC supplies recursive control, child traversal, structural `=`
+for Size values, and identity `===` to recognize the distinguished `U`; every
+mathematical value below is made only with the bracket Figure constructor
+```
+; .Z A; .U B;
+; .size_add {((_ .1) = Z) ? {__ .0} : {[size_add [(__ .0), ((__ .1) .0)]]}};
+; .size_children {(_ = Z) ? {Z} : {size_add [size (__ .0), size_children (rest __)]}};
+; .size {(_ === U) ? {U} : {size_children __}};
+; size Z
+# []
+; size U
+# [[]]
+; .Four [[[U]]]; .Eight [[[[[[[U]]]]]]];
+; .row4 [U, U, U, U];
+; size row4
+# [[[[[]]]]]
+; (size row4) = Four
+# <>
+; .deep4 [[[row4]]];
+; size deep4
+# [[[[[]]]]]
+; .two_fours [row4, row4];
+; size two_fours
+# [[[[[[[[[]]]]]]]]]
+; (size two_fours) = Eight
+# <>
+```
 Sameness has two rungs. Sameness of form is `=`, and sameness of the
 constructed Figure is `===`, which 30c recorded as unanswerable in v0.16.0
 ```
