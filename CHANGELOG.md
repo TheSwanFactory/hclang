@@ -10,6 +10,14 @@
   numbers.** Its empty Figure is zero, a distinguished reused unit is one, and
   every other Figure sums its children's Figure-valued Sizes, so nested cell
   complexes compose, including two Size-4 children producing Size 8.
+- **Size-equivalence classes of finite Figures now have executable semiring
+  witnesses.** Figure-valued addition and recursive row multiplication preserve
+  Size, including a 2×3 rectangle, with both identities, associativity, additive
+  commutativity, both distributive laws, and zero annihilation checked in HC.
+- **The same Figure constructor now hosts an executable Fano incidence
+  arrangement.** Seven reused originals form the seven required triples under
+  identity-based Withness, with all 21 original pairs, all 21 triple pairs, and
+  all four no-three subsets checked exhaustively.
 
 ## v0.17.0 2026-10-11
 
