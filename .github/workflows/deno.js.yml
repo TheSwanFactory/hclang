@@ -207,11 +207,13 @@ jobs:
             deno task publish:npm "$archive"
           fi
 
-          for attempt in {1..12}; do
+          # The registry can take minutes to serve a new version: v0.17.1 was
+          # still invisible after a minute, failing a publish that succeeded.
+          for attempt in {1..30}; do
             published=$(npm_version)
             [ "$published" = "$VERSION" ] && break
-            echo "Waiting for hclang@$VERSION to propagate ($attempt/12)"
-            sleep 5
+            echo "Waiting for hclang@$VERSION to propagate ($attempt/30)"
+            sleep 10
           done
           test "$published" = "$VERSION"
       - name: Install Chromium for released artifact tests

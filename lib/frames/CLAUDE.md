@@ -310,6 +310,23 @@ so a handle is equal, type-equal and identical to its target. No id is ever
 returned by a comparison. See
 [`a14/01`](../../spec/a14-bfg/01-equality-ladder.md).
 
+### Declared Application
+
+Applying an aggregate collects, unless it declares a method named `apply`, or
+`apply_` when the rule writes the receiver (#375).
+`FrameArray.applicationMethod` finds it on the aggregate and its declared
+parents only, never in the lexical scope, and `apply` runs it as a
+`BoundMethod`, so a handle's mutability decides whether `apply_` writes the
+target or answers an updated copy, exactly as for any mutating method. A step
+answering nil leaves the receiver unchanged. An aggregate with a declared
+application no longer `collects()`, so a refusal applied to it stays a refusal
+instead of being held.
+
+The interpreter's own output is not application. The evaluator's output array is
+also the file scope, so a top-level `.apply` lands on it; `Frame.collect` is the
+plumbing path that `EvalPipe` and `evaluate` use, and an aggregate collects
+there unconditionally.
+
 ### Copy Contract
 
 Copying is two operations, not one, and every call site belongs to exactly one

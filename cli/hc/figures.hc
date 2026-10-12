@@ -68,8 +68,10 @@ Size is recursive cell volume, not immediate Manyness. `Z` reuses `A` as the
 additive zero and `U` reuses `B` as the unit cell. Size answers a tally, one `U`
 for every unit cell, so a count is itself a Figure of units. `cat` adds two
 tallies by reducing one into the other, which collects into a fresh row and
-writes neither, and `size_children` adds the Size of every immediate child. The
-`U` case comes first because its child is `Z`. It tests form with `=`, so any
+writes neither. `Tally` is a receiver that declares its own application: each
+row applied to it is added to the row it holds. Size maps every immediate child
+to its Size and reduces those into `Tally`, or answers the empty `Tally` when
+there is nothing to reduce. The `U` case comes first because its child is `Z`. It tests form with `=`, so any
 Figure shaped like `U` is a unit cell and equal-looking Figures always have
 equal Size. HC supplies recursive control, child traversal, and structural `=`;
 Size needs no identity, and every mathematical value below is made only with
@@ -77,8 +79,8 @@ the bracket Figure constructor
 ```
 ; .Z A; .U B;
 ; .cat {((_ .1) = Z) ? {__ .0} : {(__ .1) | (__ .0)}};
-; .size_children {(_ = Z) ? {Z} : {cat [size (__ .0), size_children (rest __)]}};
-; .size {(_ = U) ? {[U]} : {size_children __}};
+; .Tally [.row Z; .apply_ {@row (cat [row, _]);}];
+; .size {(_ = U) ? {[U]} : {(((__ & {size _}) | Tally) : {Tally}) .row}};
 ; size Z
 # []
 ; size U
@@ -96,6 +98,8 @@ the bracket Figure constructor
 # [[[]], [[]], [[]], [[]], [[]], [[]], [[]], [[]]]
 ; [(size two_fours) = (cat [row4, row4]), row4 = [U, U, U, U], many two_fours]
 # [<>, <>, [[[]]]]
+; Tally .row
+# []
 ```
 A tally is its own Size, so Size is idempotent: every count it answers
 represents the class it names

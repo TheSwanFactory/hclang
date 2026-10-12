@@ -1,5 +1,8 @@
-import { Frame } from "./frame.ts";
+import { type DeclaredApplication, Frame } from "./frame.ts";
+import { BoundMethod } from "./bound-method.ts";
+import { methodEffect } from "./effect-marker.ts";
 import { FrameExpr } from "./frame-expr.ts";
+import type { FrameLazy } from "./frame-lazy.ts";
 import { FrameList } from "./frame-list.ts";
 import { FrameNote } from "./frame-note.ts";
 import type { MetaFrame } from "./meta-frame.ts";
@@ -155,9 +158,58 @@ export class FrameArray extends FrameList {
     return super.lookup_here(key, origin);
   }
 
-  /** An aggregate collects, which is what makes applying to one a push. */
+  /**
+   * An aggregate collects, which is what makes applying to one a push, unless
+   * it declares its own application. A declared application is an operation,
+   * so a refusal applied to one stays a refusal rather than being held.
+   */
   public override collects(): boolean {
-    return true;
+    return this.applicationMethod() === undefined;
+  }
+
+  /** The keys an aggregate declares its own application under, mutating first. */
+  public static readonly APPLICATION_KEYS = ["apply_", "apply"] as const;
+
+  /**
+   * The method this aggregate declares as its own application (#375).
+   *
+   * Applying an aggregate collects, and a receiver that wants another rule
+   * declares it as a method named `apply`, or `apply_` when the rule writes the
+   * receiver. It is found on the aggregate or its declared parents, the same
+   * chain a class's methods come from, and never in the scope around it, so a
+   * plain array keeps collecting wherever it is written.
+   */
+  public override applicationMethod(): DeclaredApplication | undefined {
+    for (const key of FrameArray.APPLICATION_KEYS) {
+      const seen = new Set<Frame>([this]);
+      let local = this.get_here(key);
+      let next = this.hasDeclaredParent() ? this.parent : undefined;
+      while (local.is.missing && next && !seen.has(next)) {
+        seen.add(next);
+        local = next.get_here(key);
+        next = next.hasDeclaredParent() ? next.parent : undefined;
+      }
+      if (local.className() === "FrameLazy") return { key, method: local };
+    }
+    return undefined;
+  }
+
+  /**
+   * Runs a declared application with the receiver it binds to.
+   *
+   * The effect axis decides writes, as it does for every method: `apply_`
+   * reached mutably writes the receiver and answers it, and reached immutably
+   * answers an updated copy. A step that answers nil leaves the receiver as it
+   * was, the way an aggregate ignores a nil argument, so a reduce can skip an
+   * element without losing what it accumulated.
+   */
+  public static applyDeclared(
+    bound: BoundMethod,
+    argument: Frame,
+    unchanged: Frame,
+  ): Frame {
+    const result = bound.call(argument);
+    return result.is.void ? unchanged : result;
   }
 
   /**
@@ -171,9 +223,27 @@ export class FrameArray extends FrameList {
     return result;
   }
 
-  public override apply(argument: Frame, _parameter: Frame): FrameArray {
-    if (!argument.is.void) {
-      this.data.push(argument);
+  public override apply(argument: Frame, _parameter: Frame): Frame {
+    const declared = this.applicationMethod();
+    if (declared) {
+      const bound = new BoundMethod(
+        declared.method as FrameLazy,
+        this,
+        true,
+        methodEffect(declared.key),
+      );
+      return FrameArray.applyDeclared(bound, argument, this);
+    }
+    return this.collect(argument);
+  }
+
+  /** Pushes a non-nil value, whatever application this aggregate declares. */
+  public override collect(
+    value: Frame,
+    _context: Frame = Frame.nil,
+  ): FrameArray {
+    if (!value.is.void) {
+      this.data.push(value);
     }
     return this;
   }

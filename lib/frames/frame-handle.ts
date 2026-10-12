@@ -142,10 +142,27 @@ export class FrameHandle extends Frame {
    * Applying through a name answers what applying the value would, without
    * writing through the name. A collect lands on a fresh aggregate, so `xs 3`
    * answers a new array and `xs` is unchanged, whether or not the name is
-   * mutable: a write goes through a mutating method or `@`, never application.
+   * mutable: a write goes through a mutating method or `@`, never a collect.
+   * An aggregate that declares its own application (#375) is the exception
+   * by declaration: its `apply_` method writes like any mutating method.
    */
   public override apply(argument: Frame, parameter: Frame): Frame {
-    return this.target.collectingCopy().apply(argument, parameter);
+    const declared = this.target.applicationMethod();
+    if (!declared) {
+      return this.target.collectingCopy().apply(argument, parameter);
+    }
+    // A declared application is a method, so this name's mutability decides
+    // whether it writes the target or answers an updated copy, and a nil
+    // answer leaves the accumulator as it was (`FrameArray.applyDeclared`).
+    const result = new BoundMethod(
+      declared.method as FrameLazy,
+      this.target,
+      this.mutable,
+      methodEffect(declared.key),
+      this.copyOnWrite,
+      this.readContext,
+    ).call(argument, parameter);
+    return result.is.void ? this : result;
   }
 
   public override toString(): string {

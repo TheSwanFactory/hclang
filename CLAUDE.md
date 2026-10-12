@@ -177,9 +177,10 @@ right operand and differ only in what becomes of each answer: `&` keeps the
 answers apart, one per element, while `|` keeps each answer as the receiver for
 the next element. What a reduce starts from is therefore the combining rule —
 text joins, an aggregate collects, a numeric multiplies — so no operator carries
-a rule of its own. Doubling either one widens the stream from values to
-`[key, value]` tuples, over the visible properties in declaration order and then
-the elements by index.
+a rule of its own. A class supplies any other rule by declaring a method named
+`apply` (`apply_` when it writes), which applying the aggregate calls (#375).
+Doubling either one widens the stream from values to `[key, value]` tuples, over
+the visible properties in declaration order and then the elements by index.
 
 A resource pushes characters, so what a read answers is decided downstream by
 composition rather than declared by the source. `cli/hc/apply-tutorial.md`
@@ -403,14 +404,11 @@ Only judgment that no tool records belongs here. Look elsewhere first:
 4. **#358** — `===` conflates frames without metadata. Quantities made it
    reachable from ordinary source.
 
-Not ranked above, because both are a design pass rather than a ruling to
-implement — each carries its own open scope checklist and neither has a recorded
-GitHub blocker:
+Not ranked above, because it is a design pass rather than a ruling to implement
+— it carries its own open scope checklist and has no recorded GitHub blocker:
 
 - **#374** — make multi-value `()` a set, distinct from `[]`. Also the proposal
   that would settle the keyed-iteration axis a11.1 couldn't spell.
-- **#375** — what a class must answer to work as a reduce accumulator, split out
-  of #368 now that #368 has landed.
 
 ### Safe parallelism
 

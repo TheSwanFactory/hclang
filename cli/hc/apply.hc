@@ -134,13 +134,66 @@ answer itself.
 
 So the reduce rules are exactly the ones the families already provide — collect,
 join, multiply — and a custom rule needs a receiver that answers itself while
-carrying state in its own properties. Classes are implemented, so that receiver
-is constructible today, but what a class must do to serve as an accumulator is
-not settled here. It is #375, reducible closures.
+carrying state in its own properties. The next section settles what such a
+receiver declares.
 
 Nothing has to refuse a closure in the operator slot. It threads like any other
 receiver and is merely useless, which is why no `$!.needs-a-value` refusal
 appears anywhere in this design.
+
+## An aggregate may declare its own application
+
+**Decision.** Applying an aggregate collects unless it declares a method named
+`apply`, or `apply_` when the rule writes the receiver. Then applying the
+aggregate calls that method with the argument, and the answer is the next
+receiver (#375).
+
+This is a rule about application, not about `|`, so a reduce needs no special
+case: it applies each element, and the receiver says what applying means. The
+method is found on the aggregate and its declared parents, the chain a class's
+methods come from, and never in the scope around it, so a plain array collects
+wherever it is written. A summing accumulator is an ordinary class
+```
+; .Summer {[.total _; .apply_ {@total (total + _);}]};
+; ([1, 2, 4] | (Summer 0)) .total
+# 7
+```
+The accumulated result is the receiver itself, and its state is read by name.
+Writes follow the effect axis exactly as a method call does, because a declared
+application is a method call. `apply_` reached through an immutable name updates
+a copy, so the name keeps its value. Reached through a mutable name, it fills
+the receiver in place. Without the declaration, application writes neither
+```
+; .summer (Summer 0);
+; [([1, 2, 4] | summer) .total, summer.total]
+# [7, 0]
+; .running_ (Summer 0);
+; [1, 2, 4] | running_;
+; running_.total
+# 7
+```
+A non-mutating `apply` answers whatever its body answers, usually a new
+instance. A step that answers nil leaves the receiver as it was, the same way an
+aggregate ignores a nil argument, so a step can decline an element
+```
+; .Max {[.best _; .apply {(_ .> best) ? {Max __}}]};
+; ([3, 9, 4] | (Max 0)) .best
+# 9
+; .Count {[.n _; .apply {Count (n + 1)}]};
+; ([“a”, “b”, “c”] | (Count 0)) .n
+# 3
+```
+The declaration is inherited like any method, and an `apply` in the surrounding
+scope is not a declaration
+```
+; .Tick [.apply_ {@n (n + 1);}];
+; .Ticks {[.^ Tick; .n 0]};
+; ([7, 7, 7] | (Ticks())) .n
+# 3
+; .apply {_};
+; [1] 2
+# [1, 2]
+```
 
 ## An empty reduce is nil; an empty map is empty
 
@@ -354,13 +407,10 @@ a list rather than a diff:
   itself, so the map answers three references to one array. That is useless
   rather than incoherent, and refusing it is the same paternalism the closure
   form was retired for. It needs an argument beyond "you probably meant `|`";
-- what a named accumulator does, which is #375 with the rest of the effect-axis
-  question. An earlier draft of this file pinned an answer here by extrapolating
-  copy-on-write from mutating methods, which no rule covers, and which the notes
-  contradicted by making a named seed mutated and uninsulated;
 - whether a string should enumerate characters, closing a11's asymmetry;
-- what a receiver answering nil mid-reduce does to the accumulator;
-- what a class must do to serve as an accumulator, which is #375;
+- what a receiver answering nil mid-reduce does when it declares no
+  application. A declared application keeps its receiver on nil, but a closure
+  that answers nil still hands the next element the role of receiver;
 - whether a stream's receiver contributes named entries;
 - whether `()` becomes an ordered set, which is #374;
 - what a property written twice does, which is parked above.

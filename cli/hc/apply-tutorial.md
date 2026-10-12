@@ -153,6 +153,28 @@ aggregate into another the way to concatenate them
 # [1, 2, 3, 4]
 ```
 
+A receiver can carry its own rule. An aggregate that declares a method named
+`apply` is applied by calling it, so any class can accumulate. Spell it `apply_`
+when the rule writes the receiver; the answer of each step is the receiver for
+the next, and the result is the receiver itself, whose state you read by name
+
+```css
+; .Summer {[.total _; .apply_ {@total (total + _);}]};
+; ([1, 2, 4] | (Summer 0)) .total
+# 7
+```
+
+The usual effect rules apply, because a declared application is a method call:
+through an immutable name it updates a copy and leaves the name alone, and
+through a mutable name such as `summer_` it fills the receiver in place. A step
+that answers nil keeps the receiver as it was, so a rule can decline an element
+
+```css
+; .Max {[.best _; .apply {(_ .> best) ? {Max __}}]};
+; ([3, 9, 4] | (Max 0)) .best
+# 9
+```
+
 ## `&` maps elements
 
 `&` applies each element the same way and keeps the answers apart, one per
