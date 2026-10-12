@@ -10,8 +10,10 @@ import {
   FrameGroup,
   FrameImport,
   FrameInt,
+  FrameName,
   FrameResource,
   FrameString,
+  FrameSymbol,
   type HandlerRead,
   type HandlerWrite,
   MemoryStore,
@@ -304,6 +306,40 @@ describe("resource import", () => {
       const output = evaluateOuterImport(".size 1; \\size\\a");
 
       expect(output.at(0).toString()).toEqual("\\1\\a");
+    });
+
+    it("makes call-local declarations visible to later lexical work", () => {
+      const file = new FrameArray([]);
+      const scope = EvaluationScope.call(
+        Frame.nil,
+        Frame.nil,
+        undefined,
+        EvaluationScope.root(file),
+      );
+      const result = new FrameImport(
+        { kind: "local" },
+        resourceWithSource(".size 1; \\size\\a"),
+        evaluateResourceSource,
+      ).in(scope);
+
+      expect(result.toString()).toEqual("\\1\\a");
+      expect(scope.writeTarget.get_here("size").toString()).toEqual("1");
+      expect(file.get_here("size").is.missing).toBe(true);
+    });
+
+    it("makes construction declarations visible to later lexical work", () => {
+      const file = new FrameArray([]);
+      const construction = new FrameArray([]);
+      const scope = EvaluationScope.root(file).withWriteTarget(construction);
+      const result = new FrameImport(
+        { kind: "local" },
+        resourceWithSource(".size 1; \\size\\a"),
+        evaluateResourceSource,
+      ).in(scope);
+
+      expect(result.toString()).toEqual("\\1\\a");
+      expect(construction.get_here("size").toString()).toEqual("1");
+      expect(file.get_here("size").is.missing).toBe(true);
     });
 
     it("retains nested syntax and supports an import inside imported source", () => {
@@ -679,26 +715,61 @@ describe("resource import", () => {
 
   it("Feature: resource-import, Property 4: Local import is scope-equivalent to direct evaluation", () => {
     const seed = 0x4a2b3c04;
+    const scopeKinds = ["root", "call", "construction"] as const;
     runProperty(
       seed,
-      (generator) => ({
+      (generator, index) => ({
+        scopeKind: scopeKinds[index % scopeKinds.length],
         base: generator.identifier("base"),
         copy: generator.identifier("copy"),
         own: generator.identifier("own"),
         parentValue: 1 + generator.integer(500),
         ownValue: 501 + generator.integer(500),
       }),
-      ({ base, copy, own, parentValue, ownValue }) => {
+      ({ scopeKind, base, copy, own, parentValue, ownValue }) => {
+        const makeScope = (file: FrameArray): {
+          scope: EvaluationScope;
+          owner: Frame;
+        } => {
+          const root = EvaluationScope.root(file);
+          if (scopeKind === "root") return { scope: root, owner: file };
+          if (scopeKind === "call") {
+            const scope = EvaluationScope.call(
+              Frame.nil,
+              Frame.nil,
+              undefined,
+              root,
+            );
+            return { scope, owner: scope.writeTarget };
+          }
+          const owner = new FrameArray([]);
+          return { scope: root.withWriteTarget(owner), owner };
+        };
+
         const source = `.${copy} ${base}; .${own} ${ownValue};\n${own}`;
         const directFile = new FrameArray([]);
         directFile.set(base, new FrameInt(`${parentValue}`));
-        const directOut = new FrameArray([]);
-        const direct = new HCEval(directOut, directFile);
-        direct.call(source);
-        direct.finish();
+        const direct = makeScope(directFile);
+        let directResult: Frame = Frame.nil;
+        for (
+          const form of [
+            new FrameExpr([
+              new FrameName(copy),
+              FrameSymbol.for(base),
+            ]),
+            new FrameExpr([
+              new FrameName(own),
+              new FrameInt(`${ownValue}`),
+            ]),
+            new FrameExpr([FrameSymbol.for(own)]),
+          ]
+        ) {
+          directResult = form.in(direct.scope);
+        }
 
         const importedFile = new FrameArray([]);
         importedFile.set(base, new FrameInt(`${parentValue}`));
+        const importedSide = makeScope(importedFile);
         const resource = resourceWithSource(source);
         let seen: EvaluationScope | undefined;
         const imported = new FrameImport(
@@ -709,17 +780,20 @@ describe("resource import", () => {
             return evaluateResourceSource(value, scope);
           },
         );
-        const scope = EvaluationScope.root(importedFile);
-        const result = imported.in(scope);
+        const result = imported.in(importedSide.scope);
 
-        expect(seen).toBe(scope);
-        expect(result.toString()).toEqual(directOut.at(-1).toString());
-        expect(importedFile.get_here(copy).toString()).toEqual(
-          directFile.get_here(copy).toString(),
+        expect(seen).toBe(importedSide.scope);
+        expect(result.toString()).toEqual(directResult.toString());
+        expect(importedSide.owner.get_here(copy).toString()).toEqual(
+          direct.owner.get_here(copy).toString(),
         );
-        expect(importedFile.get_here(own).toString()).toEqual(
-          directFile.get_here(own).toString(),
+        expect(importedSide.owner.get_here(own).toString()).toEqual(
+          direct.owner.get_here(own).toString(),
         );
+        if (scopeKind !== "root") {
+          expect(importedFile.get_here(copy).is.missing).toBe(true);
+          expect(importedFile.get_here(own).is.missing).toBe(true);
+        }
       },
     );
   });

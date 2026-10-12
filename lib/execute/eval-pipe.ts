@@ -1,5 +1,21 @@
 import { type Context, EvaluationScope, Frame, NilContext } from "../frames.ts";
 
+/** Live lexical lookup over every layer in one supplied evaluation scope. */
+class ScopedLexicalContext extends Frame {
+  public constructor(private readonly scope: EvaluationScope) {
+    super();
+  }
+
+  public override get(key: string): Frame {
+    const receiver = this.scope.receiverState?.receiver;
+    for (const context of this.scope.lookupFrames()) {
+      const value = context.get(key, receiver ?? context);
+      if (!value.is.missing) return value;
+    }
+    return Frame.missing;
+  }
+}
+
 /** Evaluates parsed groups against one source unit and emits to its output. */
 export class EvalPipe extends Frame {
   private scope?: EvaluationScope;
@@ -7,6 +23,7 @@ export class EvalPipe extends Frame {
   public static scoped(out: Frame, scope: EvaluationScope): EvalPipe {
     const pipe = new EvalPipe(out, scope.fileScope, scope.hostNamespace);
     pipe.scope = scope;
+    pipe.set(Frame.kOUT, new ScopedLexicalContext(scope));
     return pipe;
   }
 
@@ -17,8 +34,8 @@ export class EvalPipe extends Frame {
     meta: Context = NilContext,
   ) {
     super(meta);
-    // Lexical features that consult the live source context follow kOUT to the
-    // file scope, while evaluated results use the separate output capability.
+    // Legacy lexical features follow kOUT to the file scope. Scoped pipes
+    // replace it with a live view of every supplied lookup layer.
     this.set(Frame.kOUT, fileScope);
     this.up = out;
   }
