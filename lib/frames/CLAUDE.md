@@ -258,10 +258,12 @@ mutable binding.
 A handle is a name's effect-qualified reference to a value, and nothing more.
 Two rules define it:
 
-- **Transparency.** Wrapping does not change what a value prints, equals, or
-  exposes; rendering, data, metadata, and array views delegate to the target,
-  and assignment unwraps, so a mutation lands where it would have without the
-  wrapper.
+- **Transparency.** Wrapping does not change what a value prints, equals,
+  exposes, or answers when applied; rendering, data, metadata, array views, and
+  application delegate to the target, and assignment unwraps, so a mutation
+  lands where it would have without the wrapper. Application never writes
+  through the name: a collect lands on the target's `collectingCopy()`, a fresh
+  aggregate sharing its elements, whether or not the name is mutable.
 - **Caller-scoped lookup.** `get_here` answers missing by design, so explicit
   dotted lookup resolves against the caller's origin rather than the wrapper.
 
@@ -366,7 +368,7 @@ binding resolution.
 
 ### Type Hierarchy
 
-```
+```text
 Frame (base)
 ├── FrameAtom (primitives)
 │   ├── FrameNumber

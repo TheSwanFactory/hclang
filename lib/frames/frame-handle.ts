@@ -10,10 +10,11 @@ import type { Context } from "./context.ts";
  *
  * The handle's charter is that reference and nothing more. Two rules define it:
  *
- * - **Transparency.** Wrapping must not change what a value prints, equals, or
- *   exposes, so rendering, data, metadata, and array views all delegate to the
- *   target. A handle is invisible to comparison, and assignment unwraps it, so
- *   a mutation lands on the same frame it would have without the wrapper.
+ * - **Transparency.** Wrapping must not change what a value prints, equals,
+ *   exposes, or answers when applied, so rendering, data, metadata, array
+ *   views, and application all delegate to the target. A handle is invisible to
+ *   comparison, and assignment unwraps it, so a mutation lands on the same
+ *   frame it would have without the wrapper.
  * - **Caller-scoped lookup.** A handle created by symbol lookup carries that
  *   read's lexical context separately from the shared target. Local and
  *   declared-parent lookup remains live on the target, then falls back through
@@ -130,6 +131,21 @@ export class FrameHandle extends Frame {
 
   public override called_by(context: Frame, parameter: Frame): Frame {
     return context.apply(this.target, parameter);
+  }
+
+  /** Transparency covers application: a named aggregate collects like its literal. */
+  public override collects(): boolean {
+    return this.target.collects();
+  }
+
+  /**
+   * Applying through a name answers what applying the value would, without
+   * writing through the name. A collect lands on a fresh aggregate, so `xs 3`
+   * answers a new array and `xs` is unchanged, whether or not the name is
+   * mutable: a write goes through a mutating method or `@`, never application.
+   */
+  public override apply(argument: Frame, parameter: Frame): Frame {
+    return this.target.collectingCopy().apply(argument, parameter);
   }
 
   public override toString(): string {

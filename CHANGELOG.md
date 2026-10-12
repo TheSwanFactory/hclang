@@ -6,6 +6,12 @@
 
 ## v0.17.1 2026-10-11
 
+- **A name bound to an array now applies like the array.** `xs 3` collects into
+  a fresh copy of `xs` instead of answering `3`, and a named array seed starts a
+  reduce as its literal does instead of being skipped, so `[3, 4] | xs`
+  concatenates. The name itself is never written, and the elements keep their
+  identity (#386).
+
 - **The executable Figure model now derives recursive Size without host
   numbers.** Its empty Figure is zero, a Figure shaped like `[[]]` is one, and
   every other Figure sums its children's Figure-valued Sizes, so nested cell

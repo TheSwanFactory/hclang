@@ -160,6 +160,17 @@ export class FrameArray extends FrameList {
     return true;
   }
 
+  /**
+   * A fresh aggregate holding the same elements. Only the outer aggregate is
+   * new: the elements are shared, so collecting reuses them rather than
+   * copying, and `===` still finds each one.
+   */
+  public override collectingCopy(): FrameArray {
+    const result = this.copy();
+    result.data = [...this.data];
+    return result;
+  }
+
   public override apply(argument: Frame, _parameter: Frame): FrameArray {
     if (!argument.is.void) {
       this.data.push(argument);
