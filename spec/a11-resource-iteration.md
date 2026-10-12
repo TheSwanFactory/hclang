@@ -67,6 +67,11 @@ distinguishable from a missing location, which answers a refusal: absent and
 empty are different facts, and only one of them is a failure. Nothing in the
 reduce conflates them, but a receiver that treats nil as "nothing to do" would.
 
+> **Superseded in v0.19.0.** An empty source now reduces to the receiver it
+> started from, as every seeded fold does, so an empty read answers `“”` or
+> `[]`. Absent and empty stay distinct, since an absent location still answers a
+> refusal. `cli/hc/apply.hc` records the decision and the law behind it.
+
 **A custom accumulator is a class, not an operator feature.** Anything the
 families do not already do — counting characters, for instance, since applying a
 number multiplies — needs a receiver that answers itself while carrying state.

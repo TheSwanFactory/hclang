@@ -131,7 +131,9 @@ and only one of them is a failure
 ; './empty.txt' “”
 # 0
 ; './empty.txt' | []
-# ()
+# []
+; './empty.txt' | “”
+# “”
 ```
 The root binding is reachable by name, which is what makes the perimeter
 enumerable rather than ambient. It prints as the reference it denotes and never

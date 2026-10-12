@@ -124,8 +124,8 @@ tuple, so a step knows which address it is looking at.
 `|` applies each element to the accumulator and keeps the answer as the
 accumulator for the next one. What you start from is the combining rule: an
 array collects, text joins, a number multiplies. Any receiver that answers
-itself accumulates the way an array does. An empty source answers nil, whatever
-you started from
+itself accumulates the way an array does. An empty source answers what you
+started from, since that is the accumulator before any element arrives
 
 ```css
 ; [1, 2, 3] | []
@@ -135,7 +135,7 @@ you started from
 ; [1, 2, 4] | 1
 # 8
 ; [] | “seed”
-# ()
+# “seed”
 ```
 
 A name applies like the value it names, so a named seed starts a reduce exactly

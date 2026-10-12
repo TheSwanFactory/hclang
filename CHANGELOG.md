@@ -4,6 +4,21 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.19.0 2026-10-11
+
+- **Breaking: an empty reduce answers the receiver it started from.** `[] | []`
+  is `[]`, `[] | “”` is `“”`, `[] | 1` is `1`, and an empty resource read
+  answers empty text or an empty array instead of nil, as every seeded fold
+  does. This keeps a reduce compositional, so `(xs ++ ys) | s` is
+  `ys | (xs | s)` even when `xs` is empty. Code that tested for nil to detect an
+  empty source should compare with the seed instead.
+- **Withness answers correctly at its empty edges.** No Figure is with an empty
+  parent, and asking about no Figures answers yes; both were inverted while an
+  empty collect answered nil.
+- **Manyness counts as a tally**, one mark per immediate child in the same units
+  as Size, and the Figure corpus no longer needs `rest` or a fallback for an
+  empty Figure.
+
 ## v0.18.0 2026-10-11
 
 - **A class can declare how applying it accumulates.** An aggregate with a

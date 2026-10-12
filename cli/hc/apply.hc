@@ -195,32 +195,44 @@ scope is not a declaration
 # [1, 2]
 ```
 
-## An empty reduce is nil; an empty map is empty
+## An empty reduce answers its receiver; an empty map is empty
 
-**Decision.** An empty source reduces to nil whatever it started from, and maps
-to an empty array.
+**Decision.** An empty source reduces to the receiver it started from, and maps
+to an empty array (v0.19.0).
 
-A reduce with nothing to work with has no result to report, and v0.14.0 already
-answered nil for every empty reduce regardless of what sat in the operator slot,
-so this keeps behavior rather than inventing it. A map answers a collection of
-answers, and no answers is an empty collection rather than the absence of one
+The receiver is the accumulator before any element arrives, so a fold over
+nothing is that accumulator. Every built-in seed is its rule's identity, so the
+empty answers are the familiar ones: an empty collect is `[]`, an empty join is
+`“”`, and an empty product is `1`. A map answers a collection of answers, and no
+answers is an empty collection
 ```
 ; [] | “seed”
-# ()
+# “seed”
 ; [] | []
-# ()
+# []
+; [] | 1
+# 1
 ; [] & {_}
 # []
 ; [] && {_}
 # []
 ```
-The cost is accepted rather than denied. A collect is not type-stable across an
-empty source, so `xs | []` answers an array or nil depending on `xs`, and an
-empty resource read answers nil rather than empty text. The alternative — an
-explicit start value survives an empty source as its identity — is what the
-earlier notes argued and what this file said before. It buys type stability and
-pays by making the operator detect emptiness and answer with a value that never
-took part.
+This is the answer every seeded fold gives, from Haskell's `foldl` and Lisp's
+`reduce :initial-value` to Python, JavaScript, and Smalltalk, and the reason is
+one law. Folding a whole stream must equal folding its first part and then
+continuing from that answer, so `(xs ++ ys) | s` is `ys | (xs | s)`. When `xs`
+is empty, that requires `[] | s` to be `s`
+```
+; .xs [1, 2];
+; [[1, 2, 3] | [], [3] | (xs | []), [3] | ([] | [])]
+# [[1, 2, 3], [1, 2, 3], [3]]
+```
+Before v0.19.0 an empty reduce answered nil, on the ground that a seed which met
+no element never took part. That broke the law, so code that collected and then
+compared had to guard the empty case, the way SQL code wraps an empty `SUM` in
+`COALESCE`. The cost of the change is that nil no longer reports an empty source:
+compare the answer with the seed instead. An empty resource read is still
+distinct from an absent one, which answers a refusal.
 
 ## Properties are not elements
 
@@ -390,8 +402,6 @@ a list rather than a diff:
   first-element seeding with the accumulator in the parameter slot, and refused
   a block form of the doubled fold. Both rules go: `|` and `||` thread, and
   nothing refuses.
-- **An empty reduce is nil**, whatever it started from. The notes gave an
-  explicit seed to an empty fold as its identity.
 - **Canonical rendering puts properties first.** Both the notes' spellings and
   this file's earlier ones rendered elements first.
 - **A tuple key is a symbol**, not a spelling. The notes paired a value with a

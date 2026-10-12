@@ -508,22 +508,25 @@ export class Frame extends MetaFrame {
    * and never of the source, which is why no source has to declare an element
    * type. Nothing is materialized on the receiver's behalf.
    *
-   * An empty stream answers nil whatever it started from: a reduce with nothing
-   * to work with has no result to report, and answering the seed would report a
-   * value that never took part.
+   * An empty stream answers the receiver it started from. The receiver is the
+   * accumulator before any element arrives, so a fold over nothing is that
+   * accumulator: an empty collect is `[]`, an empty join `“”`, an empty product
+   * `1`. This is what keeps a reduce compositional, since folding a whole stream
+   * must equal folding its first part and continuing from that answer, even
+   * when the first part is empty.
    */
   public reduce(receiver: Frame, receiverState?: ReceiverState): Frame {
     return Frame.reduceInto(this.elements(), receiver, receiverState);
   }
 
-  /** Threads one stream through a receiver, answering nil for an empty one. */
+  /** Threads one stream through a receiver, answering the receiver for an empty one. */
   public static reduceInto(
     values: readonly Frame[],
     receiver: Frame,
     receiverState?: ReceiverState,
   ): Frame {
     if (values.length === 0) {
-      return Frame.nil;
+      return receiver;
     }
     return values.reduce(
       (accumulator, value) => accumulator.call(value, Frame.nil, receiverState),

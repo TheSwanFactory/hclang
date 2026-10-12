@@ -65,13 +65,13 @@ describe("iterators", () => {
         .toEqual("8");
     });
 
-    it("answers nil for an empty source, whatever it started from", () => {
+    it("answers the receiver it started from for an empty source", () => {
       const empty = new frame.FrameArray([]);
+      const seed = new frame.FrameString("seed");
+      const collector = new frame.FrameArray([]);
 
-      expect(ReduceElements(empty, new frame.FrameString("seed")))
-        .toEqual(frame.Frame.nil);
-      expect(ReduceElements(empty, new frame.FrameArray([])))
-        .toEqual(frame.Frame.nil);
+      expect(ReduceElements(empty, seed)).toBe(seed);
+      expect(ReduceElements(empty, collector)).toBe(collector);
     });
 
     it("threads a closure like any other receiver, and it is spent at once", () => {
