@@ -188,6 +188,14 @@ describe("FrameArray", () => {
   });
 
   describe("instanceCopy", () => {
+    it("holds its own declaration echoes, so it renders and iterates alike", () => {
+      const original = evaluate("[.v 1; 5]").at(-1);
+      for (const copy of [original.instanceCopy(), original.collectingCopy()]) {
+        expect(copy.toString()).toEqual(original.toString());
+        expect(copy.elements().map(String)).toEqual(["5"]);
+      }
+    });
+
     it("gives a nested aggregate fresh identity in both planes", () => {
       const inner = new FrameArray([new FrameNumber("1")]);
       const outer = new FrameArray([inner]);

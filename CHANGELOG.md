@@ -12,6 +12,10 @@
   immutable name updates a copy, a mutable one fills in place, a step answering
   nil keeps the receiver, and a top-level `apply` never changes how the
   interpreter collects its output (#375).
+- **A copy of an aggregate holds its own declarations.** A functional update,
+  such as `p.set_ 2` through an immutable name, and a collect through a name no
+  longer print the original's declarations a second time or iterate them as
+  elements, so the copy equals the same value written out.
 - **The Figure corpus now plays in tally form.** Size answers a row of units,
   computed as one fold over the children, so it is idempotent. The Fano
   incidence checks are generated 7×7 tables, and their equality is the plane's

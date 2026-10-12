@@ -144,7 +144,7 @@ export class FrameArray extends FrameList {
     }
     const clone = this.copy();
     seen.set(this, clone);
-    clone.data = this.data.map((item) => item.instanceCopy(seen));
+    clone.data = this.itemsFor(clone, (item) => item.instanceCopy(seen));
     for (const [key, value] of this.meta_pairs()) {
       clone.set(key, value.instanceCopy(seen));
     }
@@ -218,9 +218,7 @@ export class FrameArray extends FrameList {
    * copying, and `===` still finds each one.
    */
   public override collectingCopy(): FrameArray {
-    const result = this.copy();
-    result.data = [...this.data];
-    return result;
+    return this.copy();
   }
 
   public override apply(argument: Frame, _parameter: Frame): Frame {

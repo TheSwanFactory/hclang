@@ -48,6 +48,14 @@ the call evaluates to the new value, and the original is untouched at any depth.
 ; pair.inner_.n
 # 1
 
+`The functional copy holds its own declarations, so it prints, iterates, and
+compares exactly as the same value written out would.`
+; .point [.v 1; .set_ {@v _;}];
+; point.set_ 2
+# [.v 2; .set_ { @v _ };]
+; [(point.set_ 2) & {_}, (point.set_ 2) = [.v 2; .set_ {@v _;}]]
+# [[], <>]
+
 `A bare sibling mutator remains functional inside a non-mutating method.`
 ; .sibling-owner [.value 1; .write_ {@value _;}; .sneak {write_ _}];
 ; .sibling-copy (sibling-owner.sneak(9));
