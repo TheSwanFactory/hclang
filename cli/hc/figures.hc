@@ -32,12 +32,14 @@ children, write the bracket: a group passed to a closure stays one argument
 ; [B, A]
 # [[[]], []]
 ```
-rest: the children after the first. A then-branch that answers nil is boxed, so
-it does not fall through to the else branch
+rest: the children after the first. The doubled map hands each step its address,
+a one-armed conditional answers nil at address `.0`, and collecting drops nil
 ```
-; .rest {((_ && {(((_ .0) = .0) ? {[()]} : {[[__ .1]]}) .0}) | []) & {_ .0}};
+; .rest {(_ && {(((_ .0) = .0) = ()) ? {__ .1}}) | []};
 ; rest E
 # [[[]]]
+; rest B
+# []
 ```
 Manyness folds the immediate children into a successor-shaped Figure. A plain
 conditional answers either branch
@@ -63,106 +65,100 @@ The tally form is the native idiom: one `A` per child, with no recursion
 # <>
 ```
 Size is recursive cell volume, not immediate Manyness. `Z` reuses `A` as the
-additive zero and `U` reuses `B` as the unit cell. `size_add` adds
-successor-shaped Figure numerals, and `size_children` adds the recursive Size
-of every immediate child. The `U` case comes first because its child is `Z`.
-It tests form with `=`, so any Figure shaped like `U` is a unit cell and
-equal-looking Figures always have equal Size. HC supplies recursive control,
-child traversal, and structural `=`; Size needs no identity, and every
-mathematical value below is made only with the bracket Figure constructor
+additive zero and `U` reuses `B` as the unit cell. Size answers a tally, one `U`
+for every unit cell, so a count is itself a Figure of units. `cat` adds two
+tallies by reducing one into the other, which collects into a fresh row and
+writes neither, and `size_children` adds the Size of every immediate child. The
+`U` case comes first because its child is `Z`. It tests form with `=`, so any
+Figure shaped like `U` is a unit cell and equal-looking Figures always have
+equal Size. HC supplies recursive control, child traversal, and structural `=`;
+Size needs no identity, and every mathematical value below is made only with
+the bracket Figure constructor
 ```
 ; .Z A; .U B;
-; .size_add {((_ .1) = Z) ? {__ .0} : {[size_add [(__ .0), ((__ .1) .0)]]}};
-; .size_children {(_ = Z) ? {Z} : {size_add [size (__ .0), size_children (rest __)]}};
-; .size {(_ = U) ? {U} : {size_children __}};
+; .cat {((_ .1) = Z) ? {__ .0} : {(__ .1) | (__ .0)}};
+; .size_children {(_ = Z) ? {Z} : {cat [size (__ .0), size_children (rest __)]}};
+; .size {(_ = U) ? {[U]} : {size_children __}};
 ; size Z
 # []
 ; size U
-# [[]]
+# [[[]]]
 ; (size [U]) = (size [[A]])
 # <>
-; .Four [[[U]]]; .Eight [[[[[[[U]]]]]]];
 ; .row4 [U, U, U, U];
-; size row4
-# [[[[[]]]]]
-; (size row4) = Four
+; (size row4) = row4
 # <>
 ; .deep4 [[[row4]]];
-; size deep4
-# [[[[[]]]]]
+; (size deep4) = row4
+# <>
 ; .two_fours [row4, row4];
 ; size two_fours
-# [[[[[[[[[]]]]]]]]]
-; (size two_fours) = Eight
+# [[[]], [[]], [[]], [[]], [[]], [[]], [[]], [[]]]
+; [(size two_fours) = (cat [row4, row4]), row4 = [U, U, U, U], many two_fours]
+# [<>, <>, [[[]]]]
+```
+A tally is its own Size, so Size is idempotent: every count it answers
+represents the class it names
+```
+; (size (size two_fours)) = (size two_fours)
 # <>
-```
-Size is not idempotent. A numeral it answers is not a representative of the
-count it names: `Four` is a chain whose only cell is its innermost `U`, while
-`row4` represents four
-```
-; size Four
-# [[]]
-; (size (size row4)) = (size row4)
-# ()
 ```
 The semiring carrier is not raw Figures under structural or identity equality.
 Let `F` be the finite, well-founded Figures made with the bracket, with the
 form of `U` as the unit cell, and write `x ≈ y` when `(size x) = (size y)`.
-The carrier is the quotient `F/≈`; HC's structural `=` compares the canonical
-Figure-valued Size answers. Because Size reads only form, `x = y` implies
-`x ≈ y`. Its zero and one representatives are `Z` and `U`.
-Addition constructs `Figure(x, y)`. Multiplication first observes `size x`, then
-constructs a recursive row stack
-`rows(Z,y)=Z`; `rows([n],y)=Figure(y,rows(n,y))`. Thus a product reuses `y`
-once for every cell of `x` while every result remains a Figure
+The carrier is the quotient `F/≈`; HC's structural `=` compares the tallies
+Size answers. Because Size reads only form, `x = y` implies `x ≈ y`. Its zero
+and one are `Z` and `U`. Addition constructs `Figure(x, y)`. Multiplication maps
+every cell of `size x` to `y`, so a product reuses `y` once for every cell of
+`x` while every result remains a Figure. A product by `Z` is `Z`, because one
+row of nothing would be `[Z]`, which has the form of `U` and would count as a
+cell. On tallies, `size_mul` is the same map followed by Size
 ```
-; .figure_zero Z; .figure_one U;
 ; .figure_add {[(_ .0), (_ .1)]};
-; .size_mul {((_ .0) = Z) ? {Z} : {size_add [(__ .1), size_mul [((__ .0) .0), (__ .1)]]}};
-; .figure_mul_rows {((_ .0) = Z) ? {Z} : {[__ .1, figure_mul_rows [((__ .0) .0), (__ .1)]]}};
-; .figure_mul {figure_mul_rows [size (_ .0), (_ .1)]};
+; .figure_mul {.y (_ .1); (y = Z) ? {Z} : {(size (__ .0)) & {y}}};
+; .size_mul {size ((_ .0) & {__ .1})};
 ; .size_equivalent {((size (_ .0)) = (size (_ .1))) ? {U} : {Z}};
-; [figure_zero === Z, figure_one === U]
-# [<>, <>]
+; [figure_mul [U, Z], size [Z]]
+# [[], [[[]]]]
 ```
-A non-square product is two occurrences of one three-cell row. Its outer Figure
-holds the first row and the recursive remainder; both row positions reuse the
-same `row3`. Manyness sees that nesting, while Size sums six unit occurrences
+A non-square product is two occurrences of one three-cell row, and both
+positions reuse the same `row3`. Manyness sees two rows, while Size counts six
+unit cells
 ```
 ; .row2 [U, U]; .row3 [U, U, U];
 ; .rectangle23 (figure_mul [row2, row3]);
-; rectangle23 = [row3, [row3, Z]]
+; rectangle23 = [row3, row3]
 # <>
-; [(rectangle23 .0) === row3, ((rectangle23 .1) .0) === row3]
+; [(rectangle23 .0) === row3, (rectangle23 .1) === row3]
 # [<>, <>]
 ; size rectangle23
-# [[[[[[[]]]]]]]
+# [[[]], [[]], [[]], [[]], [[]], [[]]]
 ```
-The defining equations are executable: Size takes Figure addition to
-`size_add`, and the row recursion to `size_mul`. Induction on the first Size
-argument gives the multiplication equation. Therefore both recipes respect
-`≈`; the representative checks also use differently nested, equal-Size inputs
+The defining equations are executable: Size takes Figure addition to `cat`,
+and Figure multiplication to `size_mul`. Therefore both recipes respect `≈`;
+the representative checks also use differently nested, equal-Size inputs
 ```
-; [(size (figure_add [row2, row3])) = (size_add [size row2, size row3]), (size rectangle23) = (size_mul [size row2, size row3])]
+; [(size (figure_add [row2, row3])) = (cat [size row2, size row3]), (size rectangle23) = (size_mul [size row2, size row3])]
 # [<>, <>]
 ; .deep2 [[row2]]; .deep3 [[[row3]]];
 ; [size_equivalent [row2, deep2], size_equivalent [row3, deep3], size_equivalent [figure_add [row2, row3], figure_add [deep2, deep3]], size_equivalent [figure_mul [row2, row3], figure_mul [deep2, deep3]]]
 # [[[]], [[]], [[]], [[]]]
 ```
-On canonical Size Figures, `size_add` and `size_mul` are the usual zero/successor
-recurrences. Induction gives additive identity, associativity and commutativity;
-multiplicative identity, associativity and commutativity; both distributive
-laws; and both zero annihilations. Transport along Size proves those laws on
-`F/≈`. The raw product is not commutative: it observes only the Size of its
-left operand and reuses its right operand whole, so `row2` by `row3` and `row3`
-by `row2` differ in form and agree only in Size. These executed instances
-witness every law without pretending that testing replaces the inductive proof
+Tallies are the natural numbers in unary, one row of `n` units for each count
+`n`, with `cat` as addition and `size_mul` as multiplication. Induction gives
+additive identity, associativity and commutativity; multiplicative identity,
+associativity and commutativity; both distributive laws; and both zero
+annihilations. Transport along Size proves those laws on `F/≈`. The raw product
+is not commutative: it maps over the Size of its left operand and reuses its
+right operand whole, so `row2` by `row3` is two rows of three, `row3` by `row2`
+is three rows of two, and they agree only in Size. These executed instances
+witness every law without replacing the inductive proof
 ```
 ; [(figure_mul [row2, row3]) = (figure_mul [row3, row2]), size_equivalent [figure_mul [row2, row3], figure_mul [row3, row2]]]
 # [(), [[]]]
-; [size_equivalent [figure_add [figure_zero, row2], row2], size_equivalent [figure_add [row2, figure_zero], row2]]
+; [size_equivalent [figure_add [Z, row2], row2], size_equivalent [figure_add [row2, Z], row2]]
 # [[[]], [[]]]
-; [size_equivalent [figure_mul [figure_one, row2], row2], size_equivalent [figure_mul [row2, figure_one], row2]]
+; [size_equivalent [figure_mul [U, row2], row2], size_equivalent [figure_mul [row2, U], row2]]
 # [[[]], [[]]]
 ; [size_equivalent [figure_add [figure_add [row2, row3], row4], figure_add [row2, figure_add [row3, row4]]], size_equivalent [figure_add [row2, row3], figure_add [row3, row2]]]
 # [[[]], [[]]]
@@ -170,7 +166,7 @@ witness every law without pretending that testing replaces the inductive proof
 # [[]]
 ; [size_equivalent [figure_mul [row2, figure_add [row3, row4]], figure_add [figure_mul [row2, row3], figure_mul [row2, row4]]], size_equivalent [figure_mul [figure_add [row2, row3], row4], figure_add [figure_mul [row2, row4], figure_mul [row3, row4]]]]
 # [[[]], [[]]]
-; [size_equivalent [figure_mul [figure_zero, row3], figure_zero], size_equivalent [figure_mul [row3, figure_zero], figure_zero]]
+; [size_equivalent [figure_mul [Z, row3], Z], size_equivalent [figure_mul [row3, Z], Z]]
 # [[[]], [[]]]
 ```
 Sameness has two rungs. Sameness of form is `=`, and sameness of the
@@ -217,11 +213,10 @@ Withness checks that common immediate containment by identity. Under structural
 ; .abd [a, b, d]; .bce [b, c, e]; .cdf [c, d, f];
 ; .deg [d, e, g]; .efa [e, f, a]; .fgb [f, g, b]; .gac [g, a, c];
 ; .fano [abd, bce, cdf, deg, efa, fgb, gac];
-; .Three [[U]]; .Seven [[[[[[U]]]]]];
-; [(many originals) = Seven, (many fano) = Seven]
-# [<>, <>]
-; .triple_arity_checks (fano & {((many _) = Three) ? {U} : {Z}});
-; (size triple_arity_checks) = Seven
+; .Three [U, U, U];
+; [originals & {U}, (originals & {U}) = (fano & {U})]
+# [[[[]], [[]], [[]], [[]], [[]], [[]], [[]]], <>]
+; (fano & {_ & {U}}) = (fano & {Three})
 # <>
 ; [abd = bce, abd === bce]
 # [<>, ()]
@@ -239,51 +234,36 @@ Withness checks that common immediate containment by identity. Under structural
 ; withness [.parent abd; .figs [b_copy];]
 # []
 ```
-For the first exhaustive incidence check, `point_pairs` explicitly lists all
-6+5+4+3+2+1 = 21 unordered pairs. `containing_triples` returns the Figure-valued
-number of Fano triples containing both originals. There are 21 listed pairs,
-all originals in them are distinct by Sameness, and every count is exactly `U`
+Incidence is a table. `on` answers, for each triple, whether it holds every
+requested original, so its Size counts the triples that do. `point_table`
+applies it to every ordered pair of originals, generated with the Cartesian
+idiom of 005.30b rather than listed, so the check is exhaustive by
+construction. Two distinct originals lie in exactly one triple, and each
+original lies in three
 ```
-; .point_pairs [[a, b], [a, c], [a, d], [a, e], [a, f], [a, g], [b, c], [b, d], [b, e], [b, f], [b, g], [c, d], [c, e], [c, f], [c, g], [d, e], [d, f], [d, g], [e, f], [e, g], [f, g]];
-; .TwentyOne (size_add [Eight, size_add [Eight, size_add [Four, U]]]);
-; (many point_pairs) = TwentyOne
-# <>
-; (size (point_pairs & {sameness _})) = Z
-# <>
-; .containing_triples {size (fano & {withness [.parent _; .figs __;]})};
-; .is_one {(_ = U) ? {U} : {Z}};
-; .point_pair_checks (point_pairs & {is_one (containing_triples _)});
-; (size point_pair_checks) = TwentyOne
+; .on {fano & {withness [.parent _; .figs __;]}};
+; .point_table (originals & {.p _; originals & {size (on [p, _])}});
+; point_table = (originals & {.p _; originals & {(p === _) ? {Three} : {[U]}}})
 # <>
 ```
-For the dual exhaustive check, `triple_pairs` lists all 21 unordered pairs of
-the seven constructed triples. For each original, multiplying its two
-Figure-valued Withness answers contributes one cell exactly when that same
-original is an immediate child of both triples. Every shared-original count is
-one
+Dually, `meet` counts the originals two triples share. For each original,
+multiplying its two Figure-valued Withness answers leaves one cell exactly when
+both triples hold it. Two distinct triples share exactly one original, and each
+triple holds three. The two tables are equal, which is the plane's
+self-duality
 ```
-; .triple_pairs [[abd, bce], [abd, cdf], [abd, deg], [abd, efa], [abd, fgb], [abd, gac], [bce, cdf], [bce, deg], [bce, efa], [bce, fgb], [bce, gac], [cdf, deg], [cdf, efa], [cdf, fgb], [cdf, gac], [deg, efa], [deg, fgb], [deg, gac], [efa, fgb], [efa, gac], [fgb, gac]];
-; (many triple_pairs) = TwentyOne
+; .meet {size (originals & {figure_mul [withness [.parent (__ .0); .figs [_];], withness [.parent (__ .1); .figs [_];]]})};
+; .line_table (fano & {.l _; fano & {meet [l, _]}});
+; line_table = (fano & {.l _; fano & {(l === _) ? {Three} : {[U]}}})
 # <>
-; .shared_original_count {size (originals & {figure_mul [withness [.parent (__ .0); .figs [_];], withness [.parent (__ .1); .figs [_];]]})};
-; .triple_pair_checks (triple_pairs & {is_one (shared_original_count _)});
-; (size triple_pair_checks) = TwentyOne
+; point_table = line_table
 # <>
 ```
-Finally `a,b,c,f` are four originals with no three in a Fano triple. Their four
-3-subsets are listed rather than sampled, and every containing-triple count is
-zero
+Finally `a, b, c, f` are four originals with no three in a triple. All four of
+their 3-subsets are listed, and no triple holds any of them
 ```
-; .no_three_originals [a, b, c, f];
-; (many no_three_originals) = Four
-# <>
-; .no_three_subsets [[a, b, c], [a, b, f], [a, c, f], [b, c, f]];
-; (many no_three_subsets) = Four
-# <>
-; .is_zero {(_ = Z) ? {U} : {Z}};
-; .no_three_checks (no_three_subsets & {is_zero (containing_triples _)});
-; (size no_three_checks) = Four
-# <>
+; [[a, b, c], [a, b, f], [a, c, f], [b, c, f]] & {size (on _)}
+# [[], [], [], []]
 ```
 Both results use the bracket as their sole `Figure(children...)` constructor.
 HC, not the Figure theory, supplies child addressing and `&`/`|` traversal,
