@@ -63,21 +63,24 @@ The tally form is the native idiom: one `A` per child, with no recursion
 # <>
 ```
 Size is recursive cell volume, not immediate Manyness. `Z` reuses `A` as the
-additive zero and `U` reuses `B` as the distinguished unit cell. `size_add`
-adds successor-shaped Figure numerals, and `size_children` adds the recursive
-Size of every immediate child. The special `U` case comes first because its
-child is `Z`. HC supplies recursive control, child traversal, structural `=`
-for Size values, and identity `===` to recognize the distinguished `U`; every
+additive zero and `U` reuses `B` as the unit cell. `size_add` adds
+successor-shaped Figure numerals, and `size_children` adds the recursive Size
+of every immediate child. The `U` case comes first because its child is `Z`.
+It tests form with `=`, so any Figure shaped like `U` is a unit cell and
+equal-looking Figures always have equal Size. HC supplies recursive control,
+child traversal, and structural `=`; Size needs no identity, and every
 mathematical value below is made only with the bracket Figure constructor
 ```
 ; .Z A; .U B;
 ; .size_add {((_ .1) = Z) ? {__ .0} : {[size_add [(__ .0), ((__ .1) .0)]]}};
 ; .size_children {(_ = Z) ? {Z} : {size_add [size (__ .0), size_children (rest __)]}};
-; .size {(_ === U) ? {U} : {size_children __}};
+; .size {(_ = U) ? {U} : {size_children __}};
 ; size Z
 # []
 ; size U
 # [[]]
+; (size [U]) = (size [[A]])
+# <>
 ; .Four [[[U]]]; .Eight [[[[[[[U]]]]]]];
 ; .row4 [U, U, U, U];
 ; size row4
@@ -93,11 +96,21 @@ mathematical value below is made only with the bracket Figure constructor
 ; (size two_fours) = Eight
 # <>
 ```
+Size is not idempotent. A numeral it answers is not a representative of the
+count it names: `Four` is a chain whose only cell is its innermost `U`, while
+`row4` represents four
+```
+; size Four
+# [[]]
+; (size (size row4)) = (size row4)
+# ()
+```
 The semiring carrier is not raw Figures under structural or identity equality.
-Let `F` be the finite, well-founded Figures made with the bracket, with `U`
-distinguished as the unit cell, and write `x ≈ y` when `(size x) = (size y)`.
+Let `F` be the finite, well-founded Figures made with the bracket, with the
+form of `U` as the unit cell, and write `x ≈ y` when `(size x) = (size y)`.
 The carrier is the quotient `F/≈`; HC's structural `=` compares the canonical
-Figure-valued Size answers. Its zero and one representatives are `Z` and `U`.
+Figure-valued Size answers. Because Size reads only form, `x = y` implies
+`x ≈ y`. Its zero and one representatives are `Z` and `U`.
 Addition constructs `Figure(x, y)`. Multiplication first observes `size x`, then
 constructs a recursive row stack
 `rows(Z,y)=Z`; `rows([n],y)=Figure(y,rows(n,y))`. Thus a product reuses `y`
@@ -138,11 +151,15 @@ argument gives the multiplication equation. Therefore both recipes respect
 ```
 On canonical Size Figures, `size_add` and `size_mul` are the usual zero/successor
 recurrences. Induction gives additive identity, associativity and commutativity;
-multiplicative identity and associativity; both distributive laws; and both zero
-annihilations. Transport along Size proves those laws on `F/≈`. These executed
-instances witness every law without pretending that testing replaces the
-inductive proof
+multiplicative identity, associativity and commutativity; both distributive
+laws; and both zero annihilations. Transport along Size proves those laws on
+`F/≈`. The raw product is not commutative: it observes only the Size of its
+left operand and reuses its right operand whole, so `row2` by `row3` and `row3`
+by `row2` differ in form and agree only in Size. These executed instances
+witness every law without pretending that testing replaces the inductive proof
 ```
+; [(figure_mul [row2, row3]) = (figure_mul [row3, row2]), size_equivalent [figure_mul [row2, row3], figure_mul [row3, row2]]]
+# [(), [[]]]
 ; [size_equivalent [figure_add [figure_zero, row2], row2], size_equivalent [figure_add [row2, figure_zero], row2]]
 # [[[]], [[]]]
 ; [size_equivalent [figure_mul [figure_one, row2], row2], size_equivalent [figure_mul [row2, figure_one], row2]]
@@ -188,12 +205,14 @@ parent. It uses identity `===`, not equal-looking form: `B` is reused under both
 ; withness [.parent E; .figs [B2];]
 # []
 ```
-The Fano construction starts with seven distinguishable Figures. Lowercase `b`
-and `b_copy` have equal form but are separate constructions. The seven triples
-below reuse exactly `a,b,c,d,e,f,g`, and Withness checks their common immediate
-containment by identity
+The Fano construction starts with seven Figures of identical form: each original
+is a fresh `[]`, so all seven triples below have the same form `[[], [], []]`.
+The incidence pattern lives only in which originals each triple reuses, and
+Withness checks that common immediate containment by identity. Under structural
+`=` every original would be a child of every triple. `b_copy` is one more fresh
+`[]`, equal in form to every original and a child of no triple
 ```
-; .a []; .b [a]; .c [b]; .d [c]; .e [d]; .f [e]; .g [f];
+; .a []; .b []; .c []; .d []; .e []; .f []; .g [];
 ; .originals [a, b, c, d, e, f, g];
 ; .abd [a, b, d]; .bce [b, c, e]; .cdf [c, d, f];
 ; .deg [d, e, g]; .efa [e, f, a]; .fgb [f, g, b]; .gac [g, a, c];
@@ -204,9 +223,11 @@ containment by identity
 ; .triple_arity_checks (fano & {((many _) = Three) ? {U} : {Z}});
 ; (size triple_arity_checks) = Seven
 # <>
-; sameness [b, b]
-# [[]]
-; .b_copy [a];
+; [abd = bce, abd === bce]
+# [<>, ()]
+; [sameform [a, b], sameness [a, b], sameness [b, b]]
+# [[[]], [], [[]]]
+; .b_copy [];
 ; b = b_copy
 # <>
 ; sameness [b, b_copy]
@@ -214,6 +235,8 @@ containment by identity
 ; withness [.parent abd; .figs [a, b, d];]
 # [[]]
 ; withness [.parent abd; .figs [a, c];]
+# []
+; withness [.parent abd; .figs [b_copy];]
 # []
 ```
 For the first exhaustive incidence check, `point_pairs` explicitly lists all
@@ -268,10 +291,12 @@ closure calls, recursion and conditional control, fresh aggregate allocation,
 reference reuse and copy-on-write behavior, structural `=`, and identity
 `===`. The corpus derives Manyness, Size, Size-equivalence, the Figure-valued
 operations, Sameness, Withness, and the finite incidence checks from those
-services. Multiplication invokes no copy primitive: its identity assertions show
-that it reuses `row3`. `b_copy` is a fresh bracket construction, not a derived
-copy operation. Neither the semiring laws nor the Fano pattern is claimed for
-arbitrary Figure observations outside the stated quotient and construction.
+services. The semiring uses only form; identity enters where the Fano pattern
+needs it, in Sameness and Withness. Multiplication invokes no copy primitive:
+its identity assertions show that it reuses `row3`. `b_copy` is a fresh bracket
+construction, not a derived copy operation. Neither the semiring laws nor the
+Fano pattern is claimed for arbitrary Figure observations outside the stated
+quotient and construction.
 Observation does not mutate, even with a local name inside a map
 ```
 ; E = [A, B]

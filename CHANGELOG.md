@@ -7,17 +7,20 @@
 ## v0.17.1 2026-10-11
 
 - **The executable Figure model now derives recursive Size without host
-  numbers.** Its empty Figure is zero, a distinguished reused unit is one, and
+  numbers.** Its empty Figure is zero, a Figure shaped like `[[]]` is one, and
   every other Figure sums its children's Figure-valued Sizes, so nested cell
-  complexes compose, including two Size-4 children producing Size 8.
-- **Size-equivalence classes of finite Figures now have executable semiring
-  witnesses.** Figure-valued addition and recursive row multiplication preserve
-  Size, including a 2×3 rectangle, with both identities, associativity, additive
-  commutativity, both distributive laws, and zero annihilation checked in HC.
+  complexes compose, including two Size-4 children producing Size 8. Size reads
+  only form, so equal-looking Figures always have equal Size.
+- **Size-equivalence classes of finite Figures now have executable commutative
+  semiring witnesses.** Figure-valued addition and recursive row multiplication
+  preserve Size, including a 2×3 rectangle, with both identities, both
+  associativities, both commutativities, both distributive laws, and zero
+  annihilation checked in HC.
 - **The same Figure constructor now hosts an executable Fano incidence
-  arrangement.** Seven reused originals form the seven required triples under
-  identity-based Withness, with all 21 original pairs, all 21 triple pairs, and
-  all four no-three subsets checked exhaustively.
+  arrangement carried by reuse alone.** Seven originals of identical form make
+  seven triples of identical form, and identity-based Withness recovers the
+  pattern, with all 21 original pairs, all 21 triple pairs, and all four
+  no-three subsets checked exhaustively.
 
 ## v0.17.0 2026-10-11
 
