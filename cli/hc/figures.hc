@@ -56,18 +56,18 @@ of units, and the two observers agree on a flat row of units and part on
 nesting. `cat` adds two tallies by reducing one into the other, which collects
 into a fresh row and writes neither. `Tally` is a receiver that declares its own
 application: each row applied to it is added to the row it holds. Size maps
-every immediate child to its Size and reduces those into `Tally`, or answers the
-empty `Tally` when there is nothing to reduce. The `U` case comes first because
-its child is `Z`. It tests form with `=`, so any Figure shaped like `U` is a
-unit cell and equal-looking Figures always have equal Size. HC supplies
-recursive control, child traversal, and structural `=`; Size needs no identity,
-and every mathematical value below is made only with the bracket Figure
-constructor
+every immediate child to its Size and reduces those into `Tally`. With no
+children there is nothing to reduce, so the reduce answers `Tally` itself, whose
+row is empty. The `U` case comes first because its child is `Z`. It tests form
+with `=`, so any Figure shaped like `U` is a unit cell and equal-looking Figures
+always have equal Size. HC supplies recursive control, child traversal, and
+structural `=`; Size needs no identity, and every mathematical value below is
+made only with the bracket Figure constructor
 ```
 ; .Z A; .U B;
-; .cat {((_ .1) = Z) ? {__ .0} : {(__ .1) | (__ .0)}};
+; .cat {(_ .1) | (_ .0)};
 ; .Tally [.row Z; .apply_ {@row (cat [row, _]);}];
-; .size {(_ = U) ? {[U]} : {(((__ & {size _}) | Tally) : {Tally}) .row}};
+; .size {(_ = U) ? {[U]} : {((__ & {size _}) | Tally) .row}};
 ; size Z
 # []
 ; size U
@@ -193,6 +193,13 @@ parent. It uses identity `===`, not equal-looking form: `B` is reused under both
 # [[]]
 ; withness [.parent E; .figs [B2];]
 # []
+```
+Both edges follow from the empty reduce answering its receiver. An empty parent
+holds nothing, so no Figure is with it; and every one of no Figures is a child of
+any parent, so asking about none answers yes
+```
+; [withness [.parent A; .figs [B];], withness [.parent B; .figs [];]]
+# [[], [[]]]
 ```
 The Fano construction starts with seven Figures of identical form: each original
 is a fresh `[]`, so all seven triples below have the same form `[[], [], []]`.

@@ -216,17 +216,17 @@ describe("FrameResource", () => {
       ]);
     });
 
-    it("answers nil for an empty location, which is not an absent one", () => {
+    it("reads an empty location as empty, which is not an absent one", () => {
       const store = new MemoryStore();
       const root = FrameResource.root(store);
       root.extend("./empty.txt").apply(new FrameString(""), Frame.nil);
 
       // Absent and empty are different facts, and only one is a failure. An
-      // empty stream reduces to nil whatever it started from, while a missing
+      // empty stream reduces to the receiver it started from, while a missing
       // location answers a refusal.
+      const text = new FrameString("");
       expect(root.extend("./empty.txt").elements()).toEqual([]);
-      expect(root.extend("./empty.txt").reduce(new FrameString("")))
-        .toEqual(Frame.nil);
+      expect(root.extend("./empty.txt").reduce(text)).toBe(text);
       expect(results("'./nope.txt' | “”", store)).toEqual([
         "$!.resource-absent './nope.txt'",
       ]);
