@@ -32,50 +32,37 @@ children, write the bracket: a group passed to a closure stays one argument
 ; [B, A]
 # [[[]], []]
 ```
-rest: the children after the first. The doubled map hands each step its address,
-a one-armed conditional answers nil at address `.0`, and collecting drops nil
+Manyness is a tally of the immediate children: one mark `B` for each child, so
+a count is a row of marks rather than a nest of successors. It maps the children
+and looks no deeper, so it needs no recursion and no way to take the rest of a
+Figure
 ```
-; .rest {(_ && {(((_ .0) = .0) = ()) ? {__ .1}}) | []};
-; rest E
-# [[[]]]
-; rest B
-# []
-```
-Manyness folds the immediate children into a successor-shaped Figure. A plain
-conditional answers either branch
-```
-; .many {(_ = []) ? {A} : {[many (rest __)]}};
+; .many {_ & {B}};
 ; many A
 # []
 ; many B
-# [[]]
-; many E
 # [[[]]]
-; (many G) = C
+; many E
+# [[[]], [[]]]
+; (many G) = (many E)
 # <>
-; (many E) = B
+; (many E) = (many B)
 # ()
 ```
-The tally form is the native idiom: one `A` per child, with no recursion
-```
-; .tally {_ & {A}};
-; tally E
-# [[], []]
-; (tally G) = (tally E)
-# <>
-```
 Size is recursive cell volume, not immediate Manyness. `Z` reuses `A` as the
-additive zero and `U` reuses `B` as the unit cell. Size answers a tally, one `U`
-for every unit cell, so a count is itself a Figure of units. `cat` adds two
-tallies by reducing one into the other, which collects into a fresh row and
-writes neither. `Tally` is a receiver that declares its own application: each
-row applied to it is added to the row it holds. Size maps every immediate child
-to its Size and reduces those into `Tally`, or answers the empty `Tally` when
-there is nothing to reduce. The `U` case comes first because its child is `Z`. It tests form with `=`, so any
-Figure shaped like `U` is a unit cell and equal-looking Figures always have
-equal Size. HC supplies recursive control, child traversal, and structural `=`;
-Size needs no identity, and every mathematical value below is made only with
-the bracket Figure constructor
+additive zero and `U` reuses `B` as the unit cell, the same mark Manyness uses.
+Size answers a tally, one `U` for every unit cell, so a count is itself a Figure
+of units, and the two observers agree on a flat row of units and part on
+nesting. `cat` adds two tallies by reducing one into the other, which collects
+into a fresh row and writes neither. `Tally` is a receiver that declares its own
+application: each row applied to it is added to the row it holds. Size maps
+every immediate child to its Size and reduces those into `Tally`, or answers the
+empty `Tally` when there is nothing to reduce. The `U` case comes first because
+its child is `Z`. It tests form with `=`, so any Figure shaped like `U` is a
+unit cell and equal-looking Figures always have equal Size. HC supplies
+recursive control, child traversal, and structural `=`; Size needs no identity,
+and every mathematical value below is made only with the bracket Figure
+constructor
 ```
 ; .Z A; .U B;
 ; .cat {((_ .1) = Z) ? {__ .0} : {(__ .1) | (__ .0)}};
@@ -93,11 +80,13 @@ the bracket Figure constructor
 ; .deep4 [[[row4]]];
 ; (size deep4) = row4
 # <>
+; [(many row4) = (size row4), (many deep4) = (size deep4)]
+# [<>, ()]
 ; .two_fours [row4, row4];
 ; size two_fours
 # [[[]], [[]], [[]], [[]], [[]], [[]], [[]], [[]]]
 ; [(size two_fours) = (cat [row4, row4]), row4 = [U, U, U, U], many two_fours]
-# [<>, <>, [[[]]]]
+# [<>, <>, [[[]], [[]]]]
 ; Tally .row
 # []
 ```
@@ -218,9 +207,9 @@ Withness checks that common immediate containment by identity. Under structural
 ; .deg [d, e, g]; .efa [e, f, a]; .fgb [f, g, b]; .gac [g, a, c];
 ; .fano [abd, bce, cdf, deg, efa, fgb, gac];
 ; .Three [U, U, U];
-; [originals & {U}, (originals & {U}) = (fano & {U})]
+; [many originals, (many originals) = (many fano)]
 # [[[[]], [[]], [[]], [[]], [[]], [[]], [[]]], <>]
-; (fano & {_ & {U}}) = (fano & {Three})
+; (fano & {many _}) = (fano & {Three})
 # <>
 ; [abd = bce, abd === bce]
 # [<>, ()]
@@ -298,9 +287,9 @@ so `Figure` is applied once and the answer has the grid as its sole child
 ; .Pa [“a”, “b”]; .Pb [“c”, “d”];
 ; [(Pa & { Pb & { [__, _] } })] | Figure
 # [[[[“a”, “c”], [“a”, “d”]], [[“b”, “c”], [“b”, “d”]]]]
-; (many ([(Pa & { Pb & { [__, _] } })] | Figure)) = B
+; (many ([(Pa & { Pb & { [__, _] } })] | Figure)) = [U]
 # <>
 ; (([(Pa & { Pb & { [__, _] } })] | Figure) .0) = (Pa & { Pb & { [__, _] } })
 # <>
-; (many (Pa & { Pb & { [__, _] } })) = C
+; (many (Pa & { Pb & { [__, _] } })) = [U, U]
 # <>
