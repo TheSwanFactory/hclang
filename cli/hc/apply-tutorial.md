@@ -138,6 +138,21 @@ you started from
 # ()
 ```
 
+A name applies like the value it names, so a named seed starts a reduce exactly
+as its literal does. Collecting through a name never writes the name: the
+answer is a fresh aggregate holding the same elements. That makes reducing one
+aggregate into another the way to concatenate them
+
+```css
+; .xs [1, 2];
+; xs 3
+# [1, 2, 3]
+; xs
+# [1, 2]
+; [3, 4] | xs
+# [1, 2, 3, 4]
+```
+
 ## `&` maps elements
 
 `&` applies each element the same way and keeps the answers apart, one per
