@@ -428,6 +428,18 @@ export class Frame extends MetaFrame {
   }
 
   /**
+   * The receiver a collect lands on when it must not write this frame.
+   *
+   * A literal is a fresh aggregate each time it is evaluated, so collecting
+   * into it in place is unobservable. A value reached through a name is not,
+   * so the name asks for this instead. Anything that does not collect is its
+   * own receiver.
+   */
+  public collectingCopy(): Frame {
+    return this;
+  }
+
+  /**
    * The values this frame streams when it is iterated.
    *
    * Anything which is not an aggregate is a single element, so text does not

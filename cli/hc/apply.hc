@@ -82,6 +82,41 @@ the combining rule and no rule has to be specified
 ; [1, 2, 4] | 1
 # 8
 ```
+## A name applies like the value it names
+
+**Decision.** Naming a receiver does not change what applying it answers, so a
+named seed starts a reduce exactly as its literal does (#386).
+
+A name bound to an aggregate reads it through a handle, and before v0.17.1 the
+handle answered the argument instead of collecting it: `xs 3` was `3`, and a
+named array seed was skipped, so `[2, 3] | e` multiplied. A collect through a
+name lands on a fresh aggregate holding the same elements, so the name is never
+written, mutable or not, and every element keeps its identity
+```
+; .xs [1, 2];
+; xs 3
+# [1, 2, 3]
+; xs
+# [1, 2]
+; .e [];
+; [[2, 3] | e, [2, 3] | []]
+# [[2, 3], [2, 3]]
+; e
+# []
+; .ys_ [1];
+; [ys_ 2, ys_]
+# [[1, 2], [1]]
+; .row [xs, xs];
+; [((row xs) .2) === xs, (row xs) === row]
+# [<>, ()]
+```
+Concatenation therefore needs no operator of its own: reduce one aggregate into
+another, named or computed
+```
+; .cat {(_ .1) | (_ .0)};
+; cat [xs, [3, 4]]
+# [1, 2, 3, 4]
+```
 ## There is no closure form of reduce
 
 **Decision.** `|` threads, always. It does not inspect what it was handed, and

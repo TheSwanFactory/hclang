@@ -4,6 +4,30 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.17.1 2026-10-11
+
+- **A name bound to an array now applies like the array.** `xs 3` collects into
+  a fresh copy of `xs` instead of answering `3`, and a named array seed starts a
+  reduce as its literal does instead of being skipped, so `[3, 4] | xs`
+  concatenates. The name itself is never written, and the elements keep their
+  identity (#386).
+
+- **The executable Figure model now derives recursive Size without host
+  numbers.** Its empty Figure is zero, a Figure shaped like `[[]]` is one, and
+  every other Figure sums its children's Figure-valued Sizes, so nested cell
+  complexes compose, including two Size-4 children producing Size 8. Size reads
+  only form, so equal-looking Figures always have equal Size.
+- **Size-equivalence classes of finite Figures now have executable commutative
+  semiring witnesses.** Figure-valued addition and recursive row multiplication
+  preserve Size, including a 2×3 rectangle, with both identities, both
+  associativities, both commutativities, both distributive laws, and zero
+  annihilation checked in HC.
+- **The same Figure constructor now hosts an executable Fano incidence
+  arrangement carried by reuse alone.** Seven originals of identical form make
+  seven triples of identical form, and identity-based Withness recovers the
+  pattern, with all 21 original pairs, all 21 triple pairs, and all four
+  no-three subsets checked exhaustively.
+
 ## v0.17.0 2026-10-11
 
 - **Equality is a ladder, each rung strictly stronger than the last.** `=` asks

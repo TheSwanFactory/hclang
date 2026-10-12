@@ -44,6 +44,35 @@ describe("FrameHandle", () => {
 
       expect(handle.unwrap()).toBe(value);
     });
+
+    it("collects like its target, into a fresh aggregate", () => {
+      for (const mutable of [false, true]) {
+        const value = target();
+        const element = value.asArray()[0];
+        const handle = new FrameHandle(value, mutable);
+        const added = new FrameNumber("2");
+
+        const result = handle.call(added);
+
+        expect(handle.collects()).toBe(true);
+        expect(result).not.toBe(value);
+        expect(result.toString()).toEqual("[.field “value”; 1, 2]");
+        expect(result.asArray()[0]).toBe(element);
+        expect(result.asArray()[1]).toBe(added);
+        expect(value.toString()).toEqual("[.field “value”; 1]");
+      }
+    });
+
+    it("applies as its target does when the target does not collect", () => {
+      const value = new FrameString("text");
+      const handle = new FrameHandle(value, false);
+      const argument = new FrameNumber("3");
+
+      expect(handle.collects()).toBe(false);
+      expect(handle.apply(argument, Frame.nil).toString())
+        .toEqual(value.apply(argument).toString());
+      expect(value.toString()).toEqual("“text”");
+    });
   });
 
   describe("caller-scoped lookup", () => {
