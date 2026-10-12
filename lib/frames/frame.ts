@@ -17,6 +17,12 @@ export type EvaluationRoots = {
   hostNamespace: Frame;
 };
 
+/** A method an aggregate declared as its application, with the key it used. */
+export type DeclaredApplication = {
+  readonly key: string;
+  readonly method: Frame;
+};
+
 /**
  * inspectFlags returns a string representation of the Flags.
  *
@@ -437,6 +443,30 @@ export class Frame extends MetaFrame {
    */
   public collectingCopy(): Frame {
     return this;
+  }
+
+  /**
+   * Hands a result to this frame as the interpreter's output, not as an
+   * application written in the program.
+   *
+   * The evaluator's output array is also the file scope, where top-level
+   * declarations land, so a program can declare an application on it (#375).
+   * Collecting output must not run that declaration, so an aggregate collects
+   * here unconditionally. Any other output receiver, such as a test harness,
+   * is applied as usual.
+   */
+  public collect(value: Frame, context: Frame = Frame.nil): Frame {
+    return this.apply(value, context);
+  }
+
+  /**
+   * The method this frame declares as its own application, if any.
+   *
+   * Only an aggregate can declare one, so the base answers none. See
+   * `FrameArray.applicationMethod` for the protocol.
+   */
+  public applicationMethod(): DeclaredApplication | undefined {
+    return undefined;
   }
 
   /**

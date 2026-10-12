@@ -23,7 +23,7 @@ export const evaluate = (input: string, meta = NilContext): FrameArray => {
   const hcEval = new HCEval(out, out, hostNamespace);
   hcEval.call(input);
   if (!hcEval.finish()) {
-    out.apply(
+    out.collect(
       Frame.error(hcEval.error() ?? "incomplete lexical input"),
       Frame.nil,
     );

@@ -90,7 +90,7 @@ export class HCLang {
       );
       evaluator.call(input);
       if (!evaluator.finish()) {
-        out.apply(
+        out.collect(
           Frame.error(evaluator.error() ?? "incomplete lexical input"),
           Frame.nil,
         );

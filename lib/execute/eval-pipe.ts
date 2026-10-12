@@ -19,7 +19,7 @@ export class EvalPipe extends Frame {
     const result = expr.in(
       EvaluationScope.root(this.fileScope, this.hostNamespace),
     );
-    this.out.apply(result, context);
+    this.out.collect(result, context);
     return result;
   }
 }

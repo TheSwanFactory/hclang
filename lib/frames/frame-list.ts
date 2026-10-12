@@ -163,8 +163,40 @@ export class FrameList extends Frame {
 
   public override copy(): this {
     const clone = super.copy();
-    clone.data = [...this.data];
+    clone.data = this.itemsFor(clone, (item) => item);
     return clone;
+  }
+
+  /**
+   * This frame's items as a copy holds them.
+   *
+   * An echo records which frame holds its property, so an echo this frame
+   * holds is re-issued for the copy. Otherwise the copy would print and
+   * iterate its own declarations as though another frame held them.
+   */
+  protected itemsFor(clone: FrameList, other: (item: Frame) => Frame): Frame[] {
+    return this.data.map((item) =>
+      this.holdsAsProperty(item)
+        ? FrameList.reownedEcho(item, clone)
+        : other(item)
+    );
+  }
+
+  /**
+   * A declaration echo re-issued for `owner`, looking through a statement's
+   * wrapper. The echo is read structurally for the same reason as
+   * `echoedBinding`.
+   */
+  private static reownedEcho(term: Frame, owner: Frame): Frame {
+    if (term.is.statement === true && term instanceof FrameList) {
+      const wrapper = term.copy();
+      wrapper.data = term.data.map((inner) =>
+        FrameList.reownedEcho(inner, owner)
+      );
+      return wrapper;
+    }
+    const echo = term as unknown as { reownedBy?(owner: Frame): Frame };
+    return echo.reownedBy ? echo.reownedBy(owner) : term;
   }
 
   /** Evaluate source items with an explicit innermost declaration target. */

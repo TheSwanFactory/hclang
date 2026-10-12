@@ -112,6 +112,62 @@ describe("FrameArray", () => {
     expect(array.toString()).toEqual("[“a”]");
   });
 
+  describe("a declared application (#375)", () => {
+    const summer = (body: string): string => `.Summer {[.total _; ${body}]}; `;
+    /** The answer of the last statement in a source sequence. */
+    const last = (source: string): Frame =>
+      evaluate(source).at(-1).asArray().at(-1)!;
+
+    it("calls apply_ instead of collecting, answering the receiver", () => {
+      const result = last(
+        summer(".apply_ {@total (total + _);}") +
+          "([1, 2, 4] | (Summer 0)) .total",
+      );
+      expect(result.toString()).toEqual("7");
+    });
+
+    it("updates a copy through an immutable name and fills a mutable one", () => {
+      const result = last(
+        summer(".apply_ {@total (total + _);}") +
+          ".s (Summer 0); .r_ (Summer 0); " +
+          "[1, 2] | r_; [([1, 2] | s) .total, s.total, r_.total]",
+      );
+      expect(result.toString()).toEqual("[3, 0, 3]");
+    });
+
+    it("keeps the receiver when a non-mutating step answers nil", () => {
+      const result = last(
+        ".Max {[.best _; .apply {(_ .> best) ? {Max __}}]}; " +
+          "([3, 9, 4] | (Max 0)) .best",
+      );
+      expect(result.toString()).toEqual("9");
+    });
+
+    it("is found on declared parents but not in the surrounding scope", () => {
+      const setup = ".apply {_}; .Tick [.apply_ {@n (n + 1);}]; " +
+        ".Ticks {[.^ Tick; .n 0]}; ";
+      expect(last(setup + "([7, 7] | (Ticks())) .n").toString()).toEqual("2");
+      expect(last(setup + "([1] 2) = [1, 2]").toString()).toEqual("<>");
+    });
+
+    it("never runs while the interpreter collects its own output", () => {
+      // The file scope is the output array, so a top-level declaration lands
+      // on it; collecting each statement's result must not call it.
+      const result = evaluate(".apply {()}; 1; 2");
+      expect(result.at(-1).asArray().at(-1)!.toString()).toEqual("2");
+      expect(evaluate("[.apply {()}; 1, 2]").at(-1).toString())
+        .toEqual("[.apply { () }; 1, 2]");
+    });
+
+    it("stops collecting, so a refusal applied to it stays a refusal", () => {
+      const declared = last(
+        summer(".apply_ {@total (total + _);}") + "Summer 0",
+      );
+      expect(declared.collects()).toBe(false);
+      expect(new FrameArray([]).collects()).toBe(true);
+    });
+  });
+
   it("evaluates its components into an array", () => {
     const string = new FrameString("string");
     const array_of_expr = new FrameArray([
@@ -132,6 +188,14 @@ describe("FrameArray", () => {
   });
 
   describe("instanceCopy", () => {
+    it("holds its own declaration echoes, so it renders and iterates alike", () => {
+      const original = evaluate("[.v 1; 5]").at(-1);
+      for (const copy of [original.instanceCopy(), original.collectingCopy()]) {
+        expect(copy.toString()).toEqual(original.toString());
+        expect(copy.elements().map(String)).toEqual(["5"]);
+      }
+    });
+
     it("gives a nested aggregate fresh identity in both planes", () => {
       const inner = new FrameArray([new FrameNumber("1")]);
       const outer = new FrameArray([inner]);

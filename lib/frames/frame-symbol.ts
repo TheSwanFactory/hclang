@@ -49,6 +49,18 @@ export class FrameLiteral extends FrameAtom {
   protected override toData(): string {
     return this.data;
   }
+
+  /**
+   * The same echo, held by `owner`. A copy of the declaring aggregate holds
+   * the copied property, so it needs an echo that names it as the holder.
+   */
+  public reownedBy(owner: Frame): FrameLiteral {
+    if (!this.binding) return this;
+    return new FrameLiteral(this.data, {
+      ...this.binding,
+      target: new WeakRef(owner),
+    });
+  }
 }
 
 export class FrameSymbol extends FrameAtom {
