@@ -1,4 +1,5 @@
 import { type EvaluationRoots, Frame } from "./frame.ts";
+import type { FrameArray } from "./frame-array.ts";
 import { FrameHandle } from "./frame-handle.ts";
 import type { ReceiverState } from "./bound-method.ts";
 
@@ -212,6 +213,31 @@ export class EvaluationScope {
       fileScope: enclosing?.fileScope ?? carriedRoots?.fileScope ?? target,
       hostNamespace: enclosing?.hostNamespace ??
         carriedRoots?.hostNamespace ?? Frame.nil,
+    });
+  }
+
+  /**
+   * Creates a fresh named namespace with live lookup into this scope.
+   *
+   * Imported declarations stop at the namespace, while lookup retains exact
+   * references to the caller's existing layers. Call-only parameter and
+   * receiver authority are deliberately not inherited.
+   */
+  public namedChild(namespace: FrameArray): EvaluationScope {
+    const layers = EvaluationScope.layers([
+      namespace,
+      ...this.#lookupFrames,
+    ]);
+    return new EvaluationScope({
+      argument: namespace,
+      writeTarget: namespace,
+      writeTargetRole: "statement",
+      lookupFrames: layers.frames,
+      lookupMembers: layers.members,
+      enclosing: this,
+      lexicalTarget: namespace,
+      fileScope: namespace,
+      hostNamespace: this.hostNamespace,
     });
   }
 

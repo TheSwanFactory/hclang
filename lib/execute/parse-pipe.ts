@@ -5,20 +5,38 @@ import {
   FrameBind,
   FrameExpr,
   FrameGroup,
+  FrameImport,
+  FrameName,
+  FrameOperator,
   FrameSchema,
+  FrameSymbol,
   type IArrayConstructor,
+  type ImportSourceEvaluator,
+  type ImportTarget,
 } from "../frames.ts";
 import { type IFinish, Terminal } from "./terminals.ts";
 
+export type ParsePipeOptions = {
+  readonly importSource?: ImportSourceEvaluator;
+  readonly emitCompletedForms?: boolean;
+  readonly strictStructure?: boolean;
+};
+
 export class ParsePipe extends FrameArray implements IFinish {
   public collector: Array<Frame>;
+  public readonly strictStructure: boolean;
   protected Factory: IArrayConstructor;
   /** A nested pipe came from source grouping; the root pipe wraps statements. */
   protected readonly nested: boolean;
   /** Whether the source separated this group's terms with `;`. */
   protected sequenced = false;
+  private readonly options: ParsePipeOptions;
 
-  constructor(out: Frame, factory: IArrayConstructor) {
+  constructor(
+    out: Frame,
+    factory: IArrayConstructor,
+    options: ParsePipeOptions = {},
+  ) {
     const meta: Context = {};
     meta[ParsePipe.kOUT] = out;
     meta[Frame.kEND] = Terminal.end();
@@ -26,6 +44,8 @@ export class ParsePipe extends FrameArray implements IFinish {
     this.Factory = factory;
     this.collector = [];
     this.nested = out instanceof ParsePipe;
+    this.options = options;
+    this.strictStructure = options.strictStructure ?? false;
   }
 
   public next(statement: boolean = false): ParsePipe {
@@ -44,8 +64,12 @@ export class ParsePipe extends FrameArray implements IFinish {
     if (statement) {
       expr.is.statement = true;
     }
-    this.collector.push(expr);
+    this.collector.push(this.importExpression(expr));
     this.reset();
+
+    if (statement && this.emitsCompletedForms()) {
+      this.emitCompletedForm();
+    }
     return this;
   }
 
@@ -62,8 +86,7 @@ export class ParsePipe extends FrameArray implements IFinish {
   }
 
   public push(Factory: IArrayConstructor): ParsePipe {
-    const child = new ParsePipe(this, Factory);
-    return child;
+    return new ParsePipe(this, Factory, this.options);
   }
 
   public pop(_Factory: IArrayConstructor): ParsePipe {
@@ -74,7 +97,7 @@ export class ParsePipe extends FrameArray implements IFinish {
 
   public canPop(Factory: IArrayConstructor): boolean {
     const match = this.Factory.name === Factory.name;
-    if (!match) {
+    if (!match && !this.strictStructure) {
       console.error(
         `ParsePipe.canPop.failed: ${Factory.name} cannot pop ${this.Factory.name}`,
       );
@@ -82,9 +105,18 @@ export class ParsePipe extends FrameArray implements IFinish {
     return match;
   }
 
+  public factoryName(): string {
+    return this.Factory.name;
+  }
+
   public finish(terminal: Frame): Frame {
     this.next();
     const out = this.get(Frame.kOUT);
+    if (this.emitsCompletedForms() && this.collector.length === 0) {
+      out.call(terminal);
+      return out;
+    }
+
     let value = this.makeFrame();
     if (value instanceof FrameBind && value.isEmpty()) {
       return out;
@@ -111,4 +143,70 @@ export class ParsePipe extends FrameArray implements IFinish {
     this.sequenced = false;
     return group;
   }
+
+  private emitsCompletedForms(): boolean {
+    return !this.nested && (this.options.emitCompletedForms ?? false);
+  }
+
+  private emitCompletedForm(): void {
+    const out = this.get(Frame.kOUT);
+    out.call(this.makeFrame());
+  }
+
+  private importExpression(expr: FrameExpr): FrameExpr {
+    if (this.Factory === FrameBind) return expr;
+
+    const terms = expr.asArray().map(unwrapImportTerm);
+    const arrows = terms.filter((term) =>
+      term instanceof FrameOperator && term.operator === "<-"
+    );
+    if (arrows.length === 0) return expr;
+
+    const fail = (): FrameExpr =>
+      wrapExpression(
+        Frame.error(`$!.resource-import-syntax ${expr.toString()}`),
+        expr,
+      );
+    if (
+      arrows.length !== 1 || terms.length !== 3 ||
+      !(terms[1] instanceof FrameOperator) ||
+      terms[1].operator !== "<-" || this.options.importSource === undefined
+    ) {
+      return fail();
+    }
+
+    let target: ImportTarget;
+    if (terms[0] instanceof FrameName && terms[0].source === "") {
+      target = { kind: "local" };
+    } else if (
+      terms[0] instanceof FrameSymbol &&
+      !(terms[0] instanceof FrameOperator)
+    ) {
+      target = { kind: "named", key: terms[0].spelling() };
+    } else {
+      return fail();
+    }
+
+    return wrapExpression(
+      new FrameImport(target, terms[2], this.options.importSource),
+      expr,
+    );
+  }
+}
+
+function unwrapImportTerm(frame: Frame): Frame {
+  let result = frame;
+  while (
+    (result instanceof FrameBind || result instanceof FrameExpr) &&
+    result.size() === 1
+  ) {
+    result = result.asArray()[0];
+  }
+  return result;
+}
+
+function wrapExpression(value: Frame, source: FrameExpr): FrameExpr {
+  const result = new FrameExpr([value]);
+  if (source.is.statement === true) result.is.statement = true;
+  return result;
 }

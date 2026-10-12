@@ -106,6 +106,66 @@ describe("Parse", () => {
       expect(group).toBeInstanceOf(frame.FrameGroup);
       expect(group.toString()).toEqual(`((${content}); (${content}))`);
     });
+
+    it("parses local, named, and grouped resource imports", () => {
+      const parse = (source: string): frame.FrameImport => {
+        const output = new frame.FrameArray([]);
+        const parser = new ParsePipe(output, frame.FrameGroup, {
+          importSource: () => frame.Frame.nil,
+        });
+        new frame.FrameString(source).scanInto(new LexPipe(parser));
+        const group = output.at(0) as frame.FrameGroup;
+        const expr = group.asArray()[0] as frame.FrameExpr;
+        return expr.asArray()[0] as frame.FrameImport;
+      };
+
+      const local = parse(". <- './a.hc'");
+      const named = parse("module <- './a.hc'");
+      const grouped = parse("module <- ('./a.hc')");
+
+      expect(local).toBeInstanceOf(frame.FrameImport);
+      expect(local.target).toEqual({ kind: "local" });
+      expect(named).toBeInstanceOf(frame.FrameImport);
+      expect(named.target).toEqual({ kind: "named", key: "module" });
+      expect(named.resourceExpression.toString()).toEqual("'./a.hc'");
+      expect(grouped.resourceExpression).toBeInstanceOf(frame.FrameGroup);
+    });
+
+    for (
+      const source of [
+        "<- './a.hc'",
+        ".invalid <- './a.hc'",
+        "module <-",
+        "module <- './a.hc' extra",
+      ]
+    ) {
+      it(`reserves malformed import shape ${source}`, () => {
+        const output = new frame.FrameArray([]);
+        const parser = new ParsePipe(output, frame.FrameGroup, {
+          importSource: () => frame.Frame.nil,
+        });
+        new frame.FrameString(source).scanInto(new LexPipe(parser));
+
+        expect(output.at(0).toString()).toContain(
+          "$!.resource-import-syntax",
+        );
+      });
+    }
+
+    it("emits top-level semicolon forms immediately without a trailing empty", () => {
+      const output = new frame.FrameArray([]);
+      const parser = new ParsePipe(output, frame.FrameGroup, {
+        emitCompletedForms: true,
+      });
+      const lexer = new LexPipe(parser);
+      let receiver = new frame.FrameString("1;").scanInto(lexer, false);
+
+      expect(output.length()).toEqual(1);
+      receiver = new frame.FrameString("2;").scanInto(receiver, false);
+      expect(output.length()).toEqual(2);
+      new frame.FrameString("").scanInto(receiver);
+      expect(output.length()).toEqual(2);
+    });
   });
 
   describe("document lexer handoff", () => {

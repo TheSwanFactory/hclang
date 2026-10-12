@@ -10,6 +10,7 @@ import {
 import { EvalPipe } from "./eval-pipe.ts";
 import { LexPipe } from "./lex-pipe.ts";
 import { ParsePipe } from "./parse-pipe.ts";
+import { evaluateResourceSource } from "./resource-import.ts";
 import { sigilizer } from "./sigilizer.ts";
 
 /**
@@ -77,7 +78,9 @@ export class HCEval {
     hostNamespace: Frame = Frame.nil,
   ): LexPipe {
     const evaluator = new EvalPipe(out, fileScope, hostNamespace);
-    const parser = new ParsePipe(evaluator, FrameGroup);
+    const parser = new ParsePipe(evaluator, FrameGroup, {
+      importSource: evaluateResourceSource,
+    });
     return new LexPipe(parser);
   }
 

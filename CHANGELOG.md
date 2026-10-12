@@ -4,6 +4,13 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.20.0 2026-10-12
+
+- **Resources can supply HC source directly.** `. <- 'resource'` evaluates fresh
+  source in the current scope, while `name <- 'resource'` creates a fresh child
+  namespace with live caller lookup; either form retains successful effects
+  before the first read, parse, or evaluation failure.
+
 ## v0.19.0 2026-10-11
 
 - **Breaking: an empty reduce answers the receiver it started from.** `[] | []`

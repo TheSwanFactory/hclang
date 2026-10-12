@@ -47,4 +47,27 @@ describe("LexPipe", () => {
     expect(out2).not.toEqual(out);
     expect(result).toEqual(pipe);
   });
+
+  for (
+    const [source, diagnostic] of [
+      ["]", "$!.parse-unmatched-structure"],
+      ["[)", "$!.parse-mismatched-structure"],
+      ["[1", "$!.parse-unclosed-structure"],
+      ["<", "$!.parse-unclosed-structure"],
+    ]
+  ) {
+    it(`surfaces strict structural failure for ${source}`, () => {
+      const strictOut = new frame.FrameArray([]);
+      const parser = new ParsePipe(strictOut, frame.FrameGroup, {
+        strictStructure: true,
+      });
+      const result = new frame.FrameString(source).scanInto(
+        new LexPipe(parser),
+      );
+
+      expect(result.isFailedResult()).toBe(true);
+      expect(result.toString()).toContain(diagnostic);
+      expect(strictOut.length()).toEqual(0);
+    });
+  }
 });

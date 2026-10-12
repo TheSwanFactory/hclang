@@ -2,6 +2,14 @@ import { type Context, EvaluationScope, Frame, NilContext } from "../frames.ts";
 
 /** Evaluates parsed groups against one source unit and emits to its output. */
 export class EvalPipe extends Frame {
+  private scope?: EvaluationScope;
+
+  public static scoped(out: Frame, scope: EvaluationScope): EvalPipe {
+    const pipe = new EvalPipe(out, scope.fileScope, scope.hostNamespace);
+    pipe.scope = scope;
+    return pipe;
+  }
+
   constructor(
     public readonly out: Frame,
     public readonly fileScope: Frame = out,
@@ -16,9 +24,9 @@ export class EvalPipe extends Frame {
   }
 
   public override apply(expr: Frame, context: Frame): Frame {
-    const result = expr.in(
-      EvaluationScope.root(this.fileScope, this.hostNamespace),
-    );
+    const scope = this.scope ??
+      EvaluationScope.root(this.fileScope, this.hostNamespace);
+    const result = expr.in(scope);
     this.out.collect(result, context);
     return result;
   }

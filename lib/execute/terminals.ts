@@ -83,7 +83,10 @@ function addGroup(Grouper: GroupFactory): void {
     if (mode !== "push" && mode !== "pop") {
       throw new Error(`Invalid structural Sigil mode: ${mode}`);
     }
-    terminals[key] = new Terminal(perform({ [mode]: Grouper }));
+    const action = Grouper === FrameSchema && key === FrameSchema.BEGIN_SCHEMA
+      ? "angle"
+      : mode;
+    terminals[key] = new Terminal(perform({ [action]: Grouper }));
   }
 }
 
