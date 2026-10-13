@@ -1,5 +1,6 @@
 import {
   Frame,
+  FrameInt,
   FrameOperator,
   FrameSchema,
   FrameString,
@@ -9,6 +10,7 @@ import {
 import type { ScanResponse } from "../scan.ts";
 import { Token } from "./lex.ts";
 import type { ParsePipe } from "./parse-pipe.ts";
+import { sigilizer } from "./sigilizer.ts";
 import { getSyntax } from "./syntax.ts";
 import type { IAction, IFinish, IPerformer } from "./terminals.ts";
 
@@ -23,7 +25,7 @@ function ensure_factory(factory: IArrayConstructor | Frame): IArrayConstructor {
 
 export class LexPipe extends Frame implements IFinish, IPerformer {
   public level: number;
-  private pendingAngle = false;
+  private angleLookahead: "<" | "<-" | undefined;
 
   constructor(out: Frame) {
     const syntax = getSyntax();
@@ -42,24 +44,41 @@ export class LexPipe extends Frame implements IFinish, IPerformer {
   }
 
   public override scan(argument: Frame): ScanResponse {
-    if (!this.pendingAngle) return super.scan(argument);
+    const pending = this.angleLookahead;
+    if (pending === undefined) return super.scan(argument);
 
-    this.pendingAngle = false;
-    if (argument.toString() === "-") {
-      const parser = this.get(Frame.kOUT) as ParsePipe;
-      parser.call(new Token(new FrameOperator("<-")));
-      return this;
+    const symbol = argument.toString();
+    if (pending === "<") {
+      if (symbol === "-") {
+        this.angleLookahead = "<-";
+        return this;
+      }
+
+      this.angleLookahead = undefined;
+      const pushed = this.perform({ push: FrameSchema });
+      return pushed === this ? super.scan(argument) : pushed;
     }
 
-    const pushed = this.perform({ push: FrameSchema });
-    return pushed === this ? super.scan(argument) : pushed;
+    this.angleLookahead = undefined;
+    if (FrameInt.NUMBER_CHAR.test(symbol)) {
+      const pushed = this.perform({ push: FrameSchema });
+      if (pushed !== this) return pushed;
+      const withMinus = sigilizer.scan(this, FrameSymbol.for("-"));
+      return sigilizer.scan(withMinus, argument);
+    }
+
+    this.emitImportArrow();
+    return super.scan(argument);
   }
 
   public finish(_parameter: Frame): Frame {
-    if (this.pendingAngle) {
-      this.pendingAngle = false;
+    const pending = this.angleLookahead;
+    this.angleLookahead = undefined;
+    if (pending === "<") {
       const pushed = this.perform({ push: FrameSchema });
       if (pushed !== this) return pushed;
+    } else if (pending === "<-") {
+      this.emitImportArrow();
     }
 
     const parser = this.get(Frame.kOUT) as ParsePipe;
@@ -84,7 +103,7 @@ export class LexPipe extends Frame implements IFinish, IPerformer {
   public perform(action: IAction): Frame {
     for (const [key, value] of Object.entries(action)) {
       if (key === "angle") {
-        this.pendingAngle = true;
+        this.angleLookahead = "<";
         continue;
       }
 
@@ -150,6 +169,11 @@ export class LexPipe extends Frame implements IFinish, IPerformer {
       }
     }
     return this;
+  }
+
+  private emitImportArrow(): void {
+    const parser = this.get(Frame.kOUT) as ParsePipe;
+    parser.call(new Token(new FrameOperator("<-")));
   }
 
   private structureFailure(kind: string, detail: string): Frame {

@@ -120,22 +120,36 @@ describe("Parse", () => {
       };
 
       const local = parse(". <- './a.hc'");
-      const named = parse("module <- './a.hc'");
+      const named = [
+        "module<-'./a.hc'",
+        "module<- './a.hc'",
+        "module <-'./a.hc'",
+        "module <- './a.hc'",
+      ].map(parse);
       const grouped = parse("module <- ('./a.hc')");
 
       expect(local).toBeInstanceOf(frame.FrameImport);
       expect(local.target).toEqual({ kind: "local" });
-      expect(named).toBeInstanceOf(frame.FrameImport);
-      expect(named.target).toEqual({ kind: "named", key: "module" });
-      expect(named.resourceExpression.toString()).toEqual("'./a.hc'");
+      for (const imported of named) {
+        expect(imported).toBeInstanceOf(frame.FrameImport);
+        expect(imported.target).toEqual({ kind: "named", key: "module" });
+        expect(imported.resourceExpression.toString()).toEqual("'./a.hc'");
+      }
       expect(grouped.resourceExpression).toBeInstanceOf(frame.FrameGroup);
     });
 
     for (
       const source of [
         "<- './a.hc'",
+        "<-'./a.hc'",
         ".invalid <- './a.hc'",
+        "_ <- './a.hc'",
+        "__ <- './a.hc'",
+        "_^ <- './a.hc'",
+        "_^^ <- './a.hc'",
         "module <-",
+        "module<-",
+        "module<--'./a.hc'",
         "module <- './a.hc' extra",
       ]
     ) {
@@ -149,6 +163,7 @@ describe("Parse", () => {
         expect(output.at(0).toString()).toContain(
           "$!.resource-import-syntax",
         );
+        expect(output.at(0).toString()).not.toContain("$!.name-missing");
       });
     }
 

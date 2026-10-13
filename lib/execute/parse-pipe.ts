@@ -156,7 +156,19 @@ export class ParsePipe extends FrameArray implements IFinish {
   private importExpression(expr: FrameExpr): FrameExpr {
     if (this.Factory === FrameBind) return expr;
 
-    const terms = expr.asArray().map(unwrapImportTerm);
+    let terms = expr.asArray().map(unwrapImportTerm);
+    if (
+      terms.length === 2 &&
+      (terms[1] instanceof FrameBind || terms[1] instanceof FrameExpr)
+    ) {
+      const remainder = terms[1].asArray().map(unwrapImportTerm);
+      if (
+        remainder[0] instanceof FrameOperator &&
+        remainder[0].operator === "<-"
+      ) {
+        terms = [terms[0], ...remainder];
+      }
+    }
     const arrows = terms.filter((term) =>
       term instanceof FrameOperator && term.operator === "<-"
     );
@@ -180,7 +192,7 @@ export class ParsePipe extends FrameArray implements IFinish {
       target = { kind: "local" };
     } else if (
       terms[0] instanceof FrameSymbol &&
-      !(terms[0] instanceof FrameOperator)
+      Object.getPrototypeOf(terms[0]) === FrameSymbol.prototype
     ) {
       target = { kind: "named", key: terms[0].spelling() };
     } else {

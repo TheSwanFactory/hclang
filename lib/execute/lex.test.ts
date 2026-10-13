@@ -15,6 +15,7 @@ import {
   FrameNote,
   FrameOperator,
   FrameParam,
+  FrameSchema,
   FrameScopeAnchor,
   FrameString,
   FrameSymbol,
@@ -469,7 +470,15 @@ describe("Lex", () => {
   });
 
   it("recognizes both import arrows across every two-chunk split", () => {
-    for (const source of [". <- './a.hc'", "module <- './a.hc'"]) {
+    for (
+      const source of [
+        ". <- './a.hc'",
+        "module <- './a.hc'",
+        "module<-'./a.hc'",
+        "module<- './a.hc'",
+        "module <-'./a.hc'",
+      ]
+    ) {
       for (let split = 1; split < source.length; split++) {
         const output = new FrameArray([]);
         const parser = new ParsePipe(output, FrameGroup, {
@@ -485,6 +494,27 @@ describe("Lex", () => {
         const group = output.at(0) as FrameGroup;
         const expr = group.asArray()[0] as FrameExpr;
         expect(expr.asArray()[0].className()).toEqual("FrameImport");
+      }
+    }
+  });
+
+  it("keeps negative decimal values inside schema syntax", () => {
+    for (const source of ["<-1>", "<-0>", "<-01>"]) {
+      const atoms = lexAtoms(`${source} `);
+
+      const expected = `<(- ${source.slice(2, -1)})>`;
+      expect(atoms).toHaveLength(1);
+      expect(atoms[0]).toBeInstanceOf(FrameSchema);
+      expect(atoms[0].toString()).toEqual(expected);
+
+      for (let split = 1; split < source.length; split++) {
+        const chunked = lexChunkedAtoms([
+          source.slice(0, split),
+          source.slice(split),
+        ]);
+        expect(chunked).toHaveLength(1);
+        expect(chunked[0]).toBeInstanceOf(FrameSchema);
+        expect(chunked[0].toString()).toEqual(expected);
       }
     }
   });

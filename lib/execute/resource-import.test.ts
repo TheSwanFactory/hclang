@@ -704,8 +704,15 @@ describe("resource import", () => {
       for (
         const source of [
           `<- ${MODULE_REFERENCE}`,
+          `<-${MODULE_REFERENCE}`,
           `.invalid <- ${MODULE_REFERENCE}`,
+          `_ <- ${MODULE_REFERENCE}`,
+          `__ <- ${MODULE_REFERENCE}`,
+          `_^ <- ${MODULE_REFERENCE}`,
+          `_^^ <- ${MODULE_REFERENCE}`,
           "module <-",
+          "module<-",
+          `module<--${MODULE_REFERENCE}`,
           `module <- ${MODULE_REFERENCE} extra`,
         ]
       ) {
@@ -715,7 +722,13 @@ describe("resource import", () => {
         expect(output.at(0).toString()).toContain(
           "$!.resource-import-syntax",
         );
+        expect(output.at(0).toString()).not.toContain("$!.name-missing");
         expect(store.reads).toEqual([]);
+        for (const target of ["_", "__", "_^", "_^^"]) {
+          if (source.startsWith(`${target} `)) {
+            expect(output.get_here(target).is.missing).toBe(true);
+          }
+        }
       }
     });
 
@@ -793,16 +806,33 @@ describe("resource import", () => {
       (generator) => {
         const target = generator.identifier("module");
         const path = `${generator.identifier("path")}.hc`;
-        const before = " ".repeat(1 + generator.integer(3));
-        const after = " ".repeat(1 + generator.integer(3));
+        const before = " ".repeat(generator.integer(4));
+        const after = " ".repeat(generator.integer(4));
         const source = `${target}${before}<-${after}'./${path}'`;
-        return { target, path, chunks: randomChunks(source, generator) };
+        return {
+          target,
+          path,
+          source,
+          chunks: randomChunks(source, generator),
+        };
       },
-      ({ target, path, chunks }) => {
+      ({ target, path, source, chunks }) => {
         const imported = parsedImport(chunks);
         expect(imported).toBeInstanceOf(FrameImport);
         expect(imported.target).toEqual({ kind: "named", key: target });
         expect(imported.resourceExpression.toString()).toEqual(`'./${path}'`);
+
+        for (let split = 1; split < source.length; split += 1) {
+          const splitImport = parsedImport([
+            source.slice(0, split),
+            source.slice(split),
+          ]);
+          expect(splitImport).toBeInstanceOf(FrameImport);
+          expect(splitImport.target).toEqual({ kind: "named", key: target });
+          expect(splitImport.resourceExpression.toString()).toEqual(
+            `'./${path}'`,
+          );
+        }
       },
     );
   });
