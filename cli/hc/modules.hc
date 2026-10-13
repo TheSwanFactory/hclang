@@ -10,7 +10,9 @@ qualified, through `Figures`, and nothing it declares lands in this file.
 root binding, not to this file or to the working directory. The CLI's root is a
 fresh temporary directory, and the harness lays exactly one read-only entry over
 it, so this import reads the bytes of the maintained artifact,
-`lib/modules/figures.hc`. That artifact is a testdoc too: its claims count when
+`lib/modules/figures.hc`, which every host compiles in, so the same import works
+in the compiled binary, the npm package, and the browser playground. That
+artifact is a testdoc too: its claims count when
 it is run directly, and none of them count here. Importing does not yet skip its
 examples, which run as ordinary forms and leave their names in the namespace, so
 the claims below use only the module's reusable vocabulary
@@ -70,12 +72,12 @@ by `===`, so the module's own `A` is with a parent built here, while a fresh
 ```
 The overlay grants one read and nothing else. Writing to the module is refused,
 and every other path still resolves inside the fresh root, including
-`hc/numerics.hc`, which exists beside this file under the CLI's working
-directory, and a sibling of the module
+`deno.json`, which exists in the working directory whether the CLI runs from the
+repository root or from `cli/`, and a sibling of the module
 ```
 ; './modules/figures.hc' “overwrite”
 # $!.resource-read-only './modules/figures.hc'
-; './hc/numerics.hc' | “”
-# $!.resource-absent './hc/numerics.hc'
+; './deno.json' | “”
+# $!.resource-absent './deno.json'
 ; './modules/other.hc' | “”
 # $!.resource-absent './modules/other.hc'

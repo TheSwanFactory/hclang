@@ -62,11 +62,5 @@ await build({
   postBuild(): void {
     Deno.copyFileSync("LICENSE", `${OUTPUT_DIR}/LICENSE`);
     Deno.copyFileSync("README.md", `${OUTPUT_DIR}/README.md`);
-    // The CLI reads its standard modules beside `esm/cli`, as the maintained bytes.
-    Deno.mkdirSync(`${OUTPUT_DIR}/esm/lib/modules`, { recursive: true });
-    Deno.copyFileSync(
-      "lib/modules/figures.hc",
-      `${OUTPUT_DIR}/esm/lib/modules/figures.hc`,
-    );
   },
 });

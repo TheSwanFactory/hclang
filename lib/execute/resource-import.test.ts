@@ -729,6 +729,26 @@ describe("resource import", () => {
       );
     });
 
+    it("curries operators through a named import inside a named import", () => {
+      const store = new MemoryStore();
+      store.write("inner.hc", ".n 1; .u [[]];");
+      store.write(
+        MODULE_PATH,
+        [
+          "inner <- './inner.hc';",
+          ".r [inner.n = 1, inner.n + 1, inner.u = [[]], (inner.u .0) = []];",
+        ].join("\n"),
+      );
+      const output = evaluate(
+        `module <- ${MODULE_REFERENCE}`,
+        rootContext(store),
+      );
+
+      expect(output.get_here("module").get_here("r").toString()).toEqual(
+        "[<>, 2, <>, <>]",
+      );
+    });
+
     it("applies operators to caller values reached through live lookup", () => {
       const store = new MemoryStore();
       store.write(MODULE_PATH, ".r [caller = 7, caller + 1];");

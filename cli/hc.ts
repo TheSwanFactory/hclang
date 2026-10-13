@@ -6,7 +6,7 @@ import { parseArgs } from "@std/cli/parse-args";
 import { runfile } from "./runfile.ts";
 import { Prompt } from "./prompt.ts";
 import { DenoFileStore } from "./resource-store.ts";
-import { withStandardModules } from "./standard-modules.ts";
+import { withStandardModules } from "../lib/modules/standard-modules.ts";
 import {
   CLOCK_SCHEME,
   ClockHandler,

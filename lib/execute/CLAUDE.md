@@ -78,7 +78,14 @@ registry nor a persistent cache, and a later independent import starts clean.
 Imported source bypasses `HCEval.checkInput` and `HCTest`, so an example line
 (`; …`) runs as an ordinary form and an expectation line (`# …`) is a comment:
 importing a testdoc binds its examples' names, and none of its claims is
-counted.
+counted. Because the first failed form fails the whole import, an error-valued
+example added to an importable testdoc such as `lib/modules/figures.hc` would
+pass when that file runs directly and break every importer; the `HCLang`
+standard-module test in `hc-lang.test.ts` imports Figures to catch it.
+
+`HCLang.makeHost` lays the standard modules of `lib/modules/standard-modules.ts`
+over its in-memory session root, as the CLI does over its temp root, and
+`reset()` reinstalls them with the fresh root.
 
 ### Utilities
 

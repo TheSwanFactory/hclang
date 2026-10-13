@@ -6,7 +6,7 @@
     "hc": "./hc.ts"
   },
   "tasks": {
-    "build": "deno compile --allow-read --allow-write --allow-env --deny-run --deny-ffi --include ../lib/modules/figures.hc --output ../scripts/hc ./hc.ts",
+    "build": "deno compile --allow-read --allow-write --allow-env --deny-run --deny-ffi --output ../scripts/hc ./hc.ts",
     "hc": "deno run --allow-read --allow-write --allow-env --deny-run --deny-ffi ./hc.ts",
     "test": "deno test --allow-env --allow-read --allow-write",
     "test:bs": "deno task hc hc/BitScheme.hc -t",

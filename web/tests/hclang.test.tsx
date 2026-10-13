@@ -57,4 +57,13 @@ describe("HC playground", () => {
     expect(screen.queryByRole("alert")).toBeNull();
     expect(screen.getByTestId("latest-output").textContent).toBe("4");
   });
+
+  it("imports the Figures standard module", async () => {
+    render(h(Main, {}));
+    await submit("Figures <- './modules/figures.hc'");
+    expect(screen.queryByRole("alert")).toBeNull();
+
+    await submit("Figures.size Figures.U");
+    expect(screen.getByTestId("latest-output").textContent).toBe("[[[]]]");
+  });
 });

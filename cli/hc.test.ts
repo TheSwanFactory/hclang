@@ -118,18 +118,6 @@ describe("this harness's grant", () => {
       expect(task).toContain("--deny-ffi");
     }
   });
-
-  it("compiles the standard modules into the binary it builds", async () => {
-    // The compiled CLI reads its standard modules beside its own module URL,
-    // so a build that dropped them would fail on every invocation.
-    const manifest = JSON.parse(
-      await Deno.readTextFile(new URL("./deno.json", import.meta.url)),
-    );
-
-    expect(manifest.tasks.build).toContain(
-      "--include ../lib/modules/figures.hc",
-    );
-  });
 });
 
 describe("main", () => {

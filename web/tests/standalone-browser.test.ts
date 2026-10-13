@@ -84,6 +84,16 @@ describe("standalone artifact in a browser", () => {
     ).toBe("polite");
   });
 
+  it("imports the Figures standard module offline", async () => {
+    const source = "Figures <- './modules/figures.hc'";
+    await submit(source);
+    await page.getByRole("cell", { name: source }).waitFor();
+    expect(await page.locator("[role=alert]").count()).toBe(0);
+
+    await submit("Figures.size Figures.U");
+    await waitForText("[data-testid=latest-output]", "[[[]]]");
+  });
+
   it("resets interpreter state", async () => {
     await page.getByRole("button", { name: "Reset interpreter" }).click();
     await waitForText("[data-testid=latest-output]", "Output will appear here");

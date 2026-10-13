@@ -73,31 +73,9 @@ const packed = await run(
   ["pack", "--json", "--pack-destination", ".."],
   { cwd: PACKAGE_DIR },
 );
-const [{ filename, files }] = JSON.parse(packed.stdout);
+const [{ filename }] = JSON.parse(packed.stdout);
 if (filename !== expectedFilename) {
   throw new Error(`unexpected npm archive name: ${filename}`);
-}
-
-// The npm CLI reads its standard modules beside `esm/cli`, so the package has to
-// carry the maintained bytes themselves, and the archive has to ship them.
-const maintainedFigures = await Deno.readFile("lib/modules/figures.hc");
-const packagedFigures = await Deno.readFile(
-  `${PACKAGE_DIR}/esm/lib/modules/figures.hc`,
-);
-if (
-  maintainedFigures.length !== packagedFigures.length ||
-  !maintainedFigures.every((byte, index) => byte === packagedFigures[index])
-) {
-  throw new Error(
-    "npm package does not carry the maintained lib/modules/figures.hc bytes",
-  );
-}
-if (
-  !files.some((file: { path: string }) =>
-    file.path === "esm/lib/modules/figures.hc"
-  )
-) {
-  throw new Error("npm archive does not include esm/lib/modules/figures.hc");
 }
 
 const npx = async (args: string[], input?: string): Promise<CommandResult> =>
@@ -119,6 +97,26 @@ try {
   if (file.stdout.trim() !== "-1") {
     throw new Error(
       `npm file runner returned unexpected output\n${file.stdout}`,
+    );
+  }
+
+  // Run from an empty working directory, so Figures can only come from the
+  // package itself: every host compiles its standard modules in.
+  const emptyDirectory = `${workDirectory}/empty`;
+  await Deno.mkdir(emptyDirectory);
+  const figures = await run(
+    "npx",
+    [
+      "--yes",
+      `file:${await Deno.realPath(archive)}`,
+      "--evaluate",
+      "Figures <- './modules/figures.hc'; Figures.size Figures.U",
+    ],
+    { cwd: emptyDirectory },
+  );
+  if (figures.stdout.trim() !== "((<>); [[[]]])") {
+    throw new Error(
+      `npm CLI did not import the Figures standard module from an empty directory\n${figures.stdout}${figures.stderr}`,
     );
   }
 } finally {

@@ -16,6 +16,7 @@ hclang/
 ├── lib/              # Core library (published to JSR)
 │   ├── execute/      # Language processing pipeline
 │   ├── frames/       # Core data structures
+│   ├── modules/      # Standard HC modules (Figures), served by every host
 │   └── ops/          # Built-in operations
 ├── maml/             # MAML markup language
 ├── web/              # Web interface
@@ -92,6 +93,7 @@ deno task test              # Run all tests
 deno task test:cli          # Test CLI package
 deno task test:lib          # Test library package
 deno task test:web          # Test web package
+deno task test:compiled     # Build the CLI binary and run it from an empty dir
 ```
 
 ### Code Quality
@@ -169,6 +171,14 @@ A resource identifier is inert until a root binding is reachable in the
 invocation context. Applying one writes, reducing one reads, and path extension
 is attenuation. `spec/a10-resource-primitive.md` is the contract for the
 authority, and `spec/a11-resource-iteration.md` for the reading.
+
+Every host that installs a root, the CLI and `HCLang` (and so the playground),
+lays the read-only standard modules of `lib/modules/standard-modules.ts` over
+it, so `Figures <- './modules/figures.hc'` imports `lib/modules/figures.hc`
+there. The source is compiled in from the generated
+`lib/modules/figures-source.ts`; after editing the `.hc` file, run
+`deno task modules:embed`, or `lib/modules/standard-modules.test.ts` fails. A
+bare `evaluate` has no root, so it imports nothing, standard or otherwise.
 
 ### Iteration
 

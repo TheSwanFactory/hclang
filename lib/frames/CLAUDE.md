@@ -146,7 +146,8 @@ Three modules stand behind it, in dependency order:
   deterministic fixtures. The Deno CLI's filesystem store lives in
   `cli/resource-store.ts`. `ResourceMapStore` lays fixed entries under canonical
   keys over another store, read-only, so a harness can serve package-owned
-  source without widening its root.
+  source without widening its root; `lib/modules/standard-modules.ts` uses it to
+  serve the standard modules in the CLI and `HCLang`.
 - `resource-binding.ts` names the capability structurally, because a root
   binding is a `FrameResource` and `FrameURI` has to ask one to extend itself.
 
