@@ -182,8 +182,10 @@ metadata through the same physical declaration owners. Immutable identity
 projections may be reused while their target is unchanged; rebinding a caller
 name produces a projection for the new target. Closures derived from the child
 retain this lookup without a parallel metadata scope list. The live caller
-lookup stops before `Frame.globals`, so an operator found through a named import
-is curried with its own operand by the outer lookup's single global tier.
+lookup and its binding resolution both stop before `Frame.globals`, so a caller
+layer that shadows a global supplies both its value and its schema. An operator,
+or any other global no caller layer declares, is reached once through the outer
+lookup's single global tier, which curries an operator with its own operand.
 
 ### Visibility
 

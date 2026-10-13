@@ -64,8 +64,8 @@ deno task build
 ```
 
 The binary needs no extra assets: the standard modules are compiled in from
-`lib/modules/figures-source.ts`. `deno task test:compiled` (part of `test:all`)
-builds it and imports Figures from an empty working directory.
+`lib/modules/standard-sources.ts`. `deno task test:compiled` (part of
+`test:all`) builds it and imports Figures from an empty working directory.
 
 ## Development Guidelines
 

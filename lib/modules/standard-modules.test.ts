@@ -4,39 +4,35 @@ import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 // no read permission and compares against no private copy.
 import maintainedFigures from "./figures.hc" with { type: "text" };
 import { MemoryStore } from "../frames.ts";
-import { FIGURES_SOURCE } from "./figures-source.ts";
-import {
-  FIGURES_MODULE_KEY,
-  standardModules,
-  withStandardModules,
-} from "./standard-modules.ts";
+import { STANDARD_SOURCES } from "./standard-sources.ts";
+import { standardModules, withStandardModules } from "./standard-modules.ts";
 
+const FIGURES = "modules/figures.hc";
+
+// `standard-sources.test.ts`, generated with the embed, compares every embedded
+// module with its maintained file.
 describe("standard modules", () => {
-  it("embeds the maintained Figures source exactly", () => {
-    // A stale embed fails here. Regenerate it with `deno task modules:embed`.
-    expect(FIGURES_SOURCE).toEqual(maintainedFigures);
-  });
-
-  it("serves the embed under one canonical key", () => {
-    expect([...standardModules().keys()]).toEqual(["modules/figures.hc"]);
-    expect(standardModules().get(FIGURES_MODULE_KEY)).toEqual(
-      maintainedFigures,
-    );
+  it("serves every embedded module under its canonical key", () => {
+    expect(standardModules()).toBe(STANDARD_SOURCES);
+    for (const key of standardModules().keys()) {
+      expect(key).toMatch(/^modules\/[A-Za-z0-9][A-Za-z0-9_-]*\.hc$/);
+    }
+    expect(standardModules().get(FIGURES)).toEqual(maintainedFigures);
   });
 
   it("overlays them read-only and leaves every other path to the store", () => {
     const fresh = new MemoryStore("fresh");
     const store = withStandardModules(fresh);
 
-    expect(store.read(FIGURES_MODULE_KEY)).toEqual({
+    expect(store.read(FIGURES)).toEqual({
       ok: true,
       content: maintainedFigures,
     });
-    expect(store.write(FIGURES_MODULE_KEY, "overwrite")).toEqual({
+    expect(store.write(FIGURES, "overwrite")).toEqual({
       ok: false,
       reason: "resource-read-only",
     });
-    expect(fresh.read(FIGURES_MODULE_KEY)).toEqual({
+    expect(fresh.read(FIGURES)).toEqual({
       ok: false,
       reason: "resource-absent",
     });

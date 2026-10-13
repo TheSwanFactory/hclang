@@ -107,6 +107,48 @@ describe("FrameSymbol", () => {
     expect(FrameSymbol.for("one").bindingSchema(call)).toBe(schema);
   });
 
+  it("resolves a shadowed global's value and binding at the same caller layer", () => {
+    const globalSchema = new frame.FrameSchema([new frame.FrameNumber("1")]);
+    const layerSchema = new frame.FrameSchema([new frame.FrameNumber("2")]);
+    const onlySchema = new frame.FrameSchema([new frame.FrameNumber("3")]);
+    // A stand-in for Ops, so the shadowing does not depend on what Ops binds.
+    const globals = new frame.FrameArray([], {
+      shadowed: new frame.FrameNumber("1"),
+      "shadowed.<>": globalSchema,
+      globalOnly: new frame.FrameNumber("3"),
+      "globalOnly.<>": onlySchema,
+    });
+    // The first caller layer declares nothing, and a later one shadows the
+    // global, so a walk that reaches the globals early answers from them.
+    const first = new frame.FrameArray([]);
+    const layerValue = new frame.FrameNumber("2");
+    const later = new frame.FrameArray([], {
+      shadowed: layerValue,
+      "shadowed.<>": layerSchema,
+    });
+    const namespace = new frame.FrameArray([]);
+
+    const saved = frame.Frame.globals;
+    frame.Frame.globals = globals;
+    try {
+      const child = frame.EvaluationScope.from([first, later])
+        .namedChild(namespace);
+
+      expect(namespace.get("shadowed")).toBe(layerValue);
+      expect(namespace.resolve("shadowed")?.owner).toBe(later);
+      expect(FrameSymbol.for("shadowed").bindingSchema(child)).toBe(
+        layerSchema,
+      );
+      // A name no caller layer declares still resolves from the global tier.
+      expect(namespace.resolve("globalOnly")?.owner).toBe(globals);
+      expect(FrameSymbol.for("globalOnly").bindingSchema(child)).toBe(
+        onlySchema,
+      );
+    } finally {
+      frame.Frame.globals = saved;
+    }
+  });
+
   describe("setter", () => {
     const value = "value";
     const frame_value = new frame.FrameString(value);

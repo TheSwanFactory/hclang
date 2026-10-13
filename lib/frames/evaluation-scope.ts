@@ -57,7 +57,9 @@ class LiveLookupContext extends Frame {
     _origin: MetaFrame = this,
   ): BindingResolution | undefined {
     for (const context of this.#lookupFrames) {
-      const binding = context.resolve(key, context);
+      // The same non-global graph as `lookup_here`, so a value and its binding
+      // agree; the outer resolve keeps the single global tier.
+      const binding = this.resolve_graph_on(context, key, context);
       if (binding) return binding;
     }
     return undefined;

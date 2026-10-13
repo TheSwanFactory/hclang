@@ -2,19 +2,21 @@
  * The standard modules every supported host serves, read-only, under canonical
  * keys.
  *
- * A standard module is HC source the package maintains: `lib/modules/figures.hc`
- * is reached from a program as `'./modules/figures.hc'`. The key is
- * root-relative like every other path, so it names a location inside the root
- * binding, never one beside a source file or the working directory. A host lays
- * the modules over its root's store as fixed entries: reading one answers the
- * maintained source, writing one is refused, and every other path, a sibling
- * under `modules/` included, still resolves inside that root. No permission flag
- * and no root widens, so a program gains these reads and nothing else.
+ * A standard module is HC source the package maintains: every
+ * `lib/modules/*.hc` is one, under the key `modules/<file>`, so
+ * `lib/modules/figures.hc` is reached from a program as
+ * `'./modules/figures.hc'`. The key is root-relative like every other path, so
+ * it names a location inside the root binding, never one beside a source file
+ * or the working directory. A host lays the modules over its root's store as
+ * fixed entries: reading one answers the maintained source, writing one is
+ * refused, and every other path, a sibling under `modules/` included, still
+ * resolves inside that root. No permission flag and no root widens, so a program
+ * gains these reads and nothing else.
  *
- * The source is compiled into the program from a generated embed of the
- * maintained file (`deno task modules:embed`), so the CLI, the compiled binary,
- * the npm package, `HCLang`, and the browser playground serve the same text
- * without reading a file at run time.
+ * The sources are compiled into the program from the generated
+ * `lib/modules/standard-sources.ts` (`deno task modules:embed`), so the CLI, the
+ * compiled binary, the npm package, `HCLang`, and the browser playground serve
+ * the same text without reading a file at run time.
  *
  * @module
  */
@@ -22,14 +24,9 @@ import {
   ResourceMapStore,
   type ResourceStore,
 } from "../frames/resource-store.ts";
-import { FIGURES_SOURCE } from "./figures-source.ts";
+import { STANDARD_SOURCES } from "./standard-sources.ts";
 
-/** The canonical, root-relative key the Figures module is served under. */
-export const FIGURES_MODULE_KEY = "modules/figures.hc";
-
-const MODULES: ReadonlyMap<string, string> = new Map([
-  [FIGURES_MODULE_KEY, FIGURES_SOURCE],
-]);
+const MODULES: ReadonlyMap<string, string> = STANDARD_SOURCES;
 
 /**
  * The standard modules by canonical key.
