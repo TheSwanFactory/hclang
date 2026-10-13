@@ -161,6 +161,25 @@ iteration can reach the authority. See
 [`a10`](../../spec/a10-resource-primitive.md) and
 [`a11`](../../spec/a11-resource-iteration.md).
 
+### Resource Imports
+
+`FrameImport` represents the reserved `. <- resource` and `name <- resource`
+expressions while receiving its source evaluator as a callback, so the frames
+package does not depend on the execution pipeline. A local import evaluates in
+the exact current `EvaluationScope`. A named import evaluates and validates its
+right side, then evaluates source in one fresh, unbound child namespace; only
+complete success commits that exact child through the ordinary `FrameSymbol`
+setter. Any right-side, read, parse, evaluation, or setter failure leaves the
+previous target binding (or its absence) unchanged.
+
+The child namespace owns imported declarations and falls through to the caller's
+ordered live lookup graph. `LiveLookupContext` exposes that graph read-only,
+withholds receiver/write authority, and resolves values and binding schema
+metadata through the same physical declaration owners. Immutable identity
+projections may be reused while their target is unchanged; rebinding a caller
+name produces a projection for the new target. Closures derived from the child
+retain this lookup without a parallel metadata scope list.
+
 ### Visibility
 
 A leading underscore grades a declaration, and `resolve_here` in `meta-frame.ts`

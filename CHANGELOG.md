@@ -7,10 +7,13 @@
 ## v0.20.0 2026-10-12
 
 - **Resources can supply HC source directly.** `. <- 'resource'` evaluates fresh
-  source in the current scope, while `name <- 'resource'` creates a fresh child
-  namespace with complete ordered, live read-only caller lookup; either form
-  retains successful effects before the first read, parse, or evaluation
-  failure.
+  source in the exact current scope and retains completed local forms before a
+  failure. `name <- 'resource'` evaluates in a fresh child with complete
+  ordered, live read-only caller value and schema lookup, then replaces `name`
+  only after full success; any read, parse, evaluation, or setter failure
+  preserves its prior binding or absence. Imported arrays and closures may span
+  logical lines, malformed physical EOF still fails, and recursive self or
+  mutual imports return `$!.resource-import-cycle` instead of overflowing.
 
 ## v0.19.0 2026-10-11
 

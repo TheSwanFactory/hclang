@@ -88,6 +88,25 @@ describe("FrameSymbol", () => {
     expect(FrameSymbol.for("choice").bindingSchema([child])).toEqual(schema);
   });
 
+  it("retrieves caller schema metadata through a named child closure", () => {
+    const schema = new frame.FrameSchema([new frame.FrameNumber("1")]);
+    const file = new frame.FrameArray([], {
+      one: new frame.FrameNumber("1"),
+      "one.<>": schema,
+    });
+    const namespace = new frame.FrameArray([]);
+    const child = frame.EvaluationScope.root(file).namedChild(namespace);
+    const call = frame.EvaluationScope.call(
+      frame.Frame.nil,
+      frame.Frame.nil,
+      undefined,
+      child,
+    );
+
+    expect(FrameSymbol.for("one").bindingSchema(child)).toBe(schema);
+    expect(FrameSymbol.for("one").bindingSchema(call)).toBe(schema);
+  });
+
   describe("setter", () => {
     const value = "value";
     const frame_value = new frame.FrameString(value);

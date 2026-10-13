@@ -1,7 +1,7 @@
 import { type EvaluationRoots, Frame } from "./frame.ts";
 import type { FrameArray } from "./frame-array.ts";
 import { FrameHandle } from "./frame-handle.ts";
-import type { MetaFrame } from "./meta-frame.ts";
+import { type BindingResolution, type MetaFrame } from "./meta-frame.ts";
 import type { ReceiverState } from "./bound-method.ts";
 
 /** Why the current evaluation scope selected its declaration target. */
@@ -24,7 +24,6 @@ type ScopeOptions = {
   writeTargetRole: WriteTargetRole;
   lookupFrames: Frame[];
   lookupMembers: Set<Frame>;
-  bindingLookupFrames?: Frame[];
   enclosing?: EvaluationScope;
   closure?: Frame;
   lexicalTarget: Frame;
@@ -40,26 +39,49 @@ type LookupLayers = {
 
 /** Live, read-only lookup through an ordered set of existing frame identities. */
 class LiveLookupContext extends Frame {
+  readonly #lookupFrames: readonly Frame[];
+  readonly #identityHandles = new WeakMap<Frame, FrameHandle>();
+
   public constructor(
-    private readonly frames: readonly Frame[],
+    frames: readonly Frame[],
     private readonly continuation: Frame,
   ) {
     super();
+    this.#lookupFrames = frames.map((frame) =>
+      frame instanceof FrameHandle ? frame.withoutWriteAuthority() : frame
+    );
+  }
+
+  public override resolve_here(
+    key: string,
+    _origin: MetaFrame = this,
+  ): BindingResolution | undefined {
+    for (const context of this.#lookupFrames) {
+      const binding = context.resolve(key, context);
+      if (binding) return binding;
+    }
+    return undefined;
   }
 
   protected override lookup_here(key: string, _origin: MetaFrame): Frame {
-    for (const frame of this.frames) {
-      const context = frame instanceof FrameHandle
-        ? frame.withoutWriteAuthority()
-        : frame;
+    for (const context of this.#lookupFrames) {
       const value = context.get(key, context);
       if (value.is.missing) continue;
       if (value instanceof FrameHandle) {
         return value.withoutWriteAuthority();
       }
-      return value.ownsIdentity()
-        ? new FrameHandle(value, false, undefined, this.continuation)
-        : value;
+      if (!value.ownsIdentity()) return value;
+
+      const existing = this.#identityHandles.get(value);
+      if (existing) return existing;
+      const projected = new FrameHandle(
+        value,
+        false,
+        undefined,
+        this.continuation,
+      );
+      this.#identityHandles.set(value, projected);
+      return projected;
     }
     return Frame.missing;
   }
@@ -86,7 +108,6 @@ export class EvaluationScope {
 
   readonly #lookupFrames: Frame[];
   readonly #lookupMembers: Set<Frame>;
-  readonly #bindingLookupFrames?: Frame[];
 
   private constructor(options: ScopeOptions) {
     this.argument = options.argument;
@@ -101,7 +122,6 @@ export class EvaluationScope {
     this.hostNamespace = options.hostNamespace;
     this.#lookupFrames = options.lookupFrames;
     this.#lookupMembers = options.lookupMembers;
-    this.#bindingLookupFrames = options.bindingLookupFrames;
   }
 
   /** Creates the scope at the evaluator boundary. */
@@ -263,10 +283,6 @@ export class EvaluationScope {
       writeTargetRole: "statement",
       lookupFrames: layers.frames,
       lookupMembers: layers.members,
-      bindingLookupFrames: EvaluationScope.layers([
-        namespace,
-        ...this.bindingLookupFrames(),
-      ]).frames,
       enclosing: this,
       lexicalTarget: namespace,
       fileScope: namespace,
@@ -292,9 +308,6 @@ export class EvaluationScope {
       writeTargetRole: this.writeTargetRole,
       lookupFrames: layers.frames,
       lookupMembers: layers.members,
-      bindingLookupFrames: this.#bindingLookupFrames
-        ? EvaluationScope.layers([...this.#bindingLookupFrames, frame]).frames
-        : undefined,
       enclosing: this.enclosing,
       closure: this.closure,
       lexicalTarget: this.lexicalTarget,
@@ -317,9 +330,6 @@ export class EvaluationScope {
       writeTargetRole: role,
       lookupFrames: layers.frames,
       lookupMembers: layers.members,
-      bindingLookupFrames: this.#bindingLookupFrames
-        ? EvaluationScope.layers([...this.#bindingLookupFrames, target]).frames
-        : undefined,
       enclosing: this.enclosing,
       closure: this.closure,
       lexicalTarget: target,
@@ -344,11 +354,6 @@ export class EvaluationScope {
   /** Ordered lookup layers for symbol and alias resolution. */
   public lookupFrames(): readonly Frame[] {
     return this.#lookupFrames;
-  }
-
-  /** Ordered owners retained for read-only binding-schema lookup. */
-  public bindingLookupFrames(): readonly Frame[] {
-    return this.#bindingLookupFrames ?? this.#lookupFrames;
   }
 
   /** Resolves `_`, `__`, ... through enclosing call scopes. */

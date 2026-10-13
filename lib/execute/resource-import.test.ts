@@ -23,6 +23,7 @@ import {
   type SchemeHandler,
   type StoreResult,
 } from "../frames.ts";
+import { FrameHandle } from "../frames/frame-handle.ts";
 import { evaluate } from "./evaluate.ts";
 import { HCEval } from "./hc-eval.ts";
 import { LexPipe } from "./lex-pipe.ts";
@@ -646,6 +647,53 @@ describe("resource import", () => {
       expect(output.at(-1).toString()).toEqual("2");
     });
 
+    it("resolves caller binding schemas at top level and in a closure", () => {
+      const store = new MemoryStore();
+      store.write(
+        MODULE_PATH,
+        ".top [one.<>]; .f { one.<> }; f()",
+      );
+      const output = new FrameArray([]);
+      const evaluator = new HCEval(
+        output,
+        output,
+        new Frame(rootContext(store)),
+      );
+      evaluator.call(".one <1> 1");
+      evaluator.call(`module <- ${MODULE_REFERENCE}`);
+      const namespace = output.get_here("module");
+
+      expect(output.at(-1).toString()).toEqual("<1>");
+      expect(namespace.get_here("top").toString()).toEqual("[<1>]");
+    });
+
+    it("reuses safe live projections and replaces them after rebinding", () => {
+      const caller = evaluate(
+        ".box_ [.value 1; .write_ {@value _;}]; " +
+          ".replacement [.value 2; .write_ {@value _;}];",
+      );
+      const original = caller.get_here("box_");
+      const replacement = caller.get_here("replacement");
+      const namespace = new FrameArray([]);
+      EvaluationScope.root(caller).namedChild(namespace);
+
+      const first = namespace.get("box_") as FrameHandle;
+      const repeated = namespace.get("box_") as FrameHandle;
+
+      expect(first).toBeInstanceOf(FrameHandle);
+      expect(repeated).toBe(first);
+      expect(first.isMutable()).toBe(false);
+      first.get("write_").call(new FrameInt("9"));
+      expect(original.get_here("value").toString()).toEqual("1");
+
+      caller.set("box_", replacement);
+      const rebound = namespace.get("box_") as FrameHandle;
+      expect(rebound).toBeInstanceOf(FrameHandle);
+      expect(rebound).not.toBe(first);
+      expect(rebound.unwrap()).toBe(replacement);
+      expect(rebound.get("value").toString()).toEqual("2");
+    });
+
     it("allocates pairwise-fresh namespaces on repeated evaluation", () => {
       const file = new FrameArray([]);
       const scope = EvaluationScope.root(file);
@@ -750,6 +798,31 @@ describe("resource import", () => {
       expect(handler.reads).toEqual(1);
     });
 
+    it("preserves a successful named namespace across later failures", () => {
+      const store = new RecordingStore({ [MODULE_PATH]: ".value 1;" });
+      const output = new FrameArray([]);
+      const evaluator = new HCEval(
+        output,
+        output,
+        new Frame(rootContext(store)),
+      );
+
+      evaluator.call(`module <- ${MODULE_REFERENCE}`);
+      const namespace = output.get_here("module");
+      expect(namespace.get_here("value").toString()).toEqual("1");
+
+      evaluator.call("module <- './absent.hc'");
+      expect(output.get_here("module")).toBe(namespace);
+
+      evaluator.call("module <- 7");
+      expect(output.get_here("module")).toBe(namespace);
+
+      store.write(MODULE_PATH, ".kept 2; .X 1; .X 2;");
+      evaluator.call(`module <- ${MODULE_REFERENCE}`);
+      expect(output.get_here("module")).toBe(namespace);
+      expect(namespace.get_here("kept").is.missing).toBe(true);
+    });
+
     it("does not read after malformed outer import syntax", () => {
       for (
         const source of [
@@ -782,7 +855,7 @@ describe("resource import", () => {
       }
     });
 
-    it("stops before the right side on named binding failure", () => {
+    it("reports a named setter failure only after source success", () => {
       const file = new FrameArray([]);
       file.set("Module", new FrameInt("1"));
       const resource = resourceWithSource("7");
@@ -794,7 +867,8 @@ describe("resource import", () => {
       ).in(EvaluationScope.root(file));
 
       expect(result.toString()).toEqual("$error{$is-constant .Module}");
-      expect(expression.calls).toEqual(0);
+      expect(expression.calls).toEqual(1);
+      expect(file.get_here("Module").toString()).toEqual("1");
     });
 
     it("passes through right-side failure and rejects an inert URI", () => {
@@ -834,18 +908,21 @@ describe("resource import", () => {
       });
     }
 
-    it("keeps the same partially populated named namespace on evaluation failure", () => {
+    it("does not expose a partially populated named namespace on failure", () => {
       const { file, result, evaluatedScope } = runFrameImport(
         ".kept 1; .X 1; .X 2; .later 3;",
         "module",
       );
-      const namespace = file.get_here("module");
 
       expect(result.toString()).toEqual("$error{$is-constant .X}");
-      expect(namespace).toBe(evaluatedScope?.writeTarget);
-      expect(namespace.get_here("kept").toString()).toEqual("1");
-      expect(namespace.get_here("X").toString()).toEqual("1");
-      expect(namespace.get_here("later").is.missing).toBe(true);
+      expect(file.get_here("module").is.missing).toBe(true);
+      expect(evaluatedScope?.writeTarget.get_here("kept").toString()).toEqual(
+        "1",
+      );
+      expect(evaluatedScope?.writeTarget.get_here("X").toString()).toEqual("1");
+      expect(evaluatedScope?.writeTarget.get_here("later").is.missing).toBe(
+        true,
+      );
     });
   });
 
@@ -1222,7 +1299,9 @@ describe("resource import", () => {
           },
         );
         const result = imported.in(EvaluationScope.root(file));
-        const owner = form === "local" ? file : file.get_here(target);
+        const completedOwner = form === "local"
+          ? file
+          : importedScope?.writeTarget;
 
         if (selected === "read") expect(result).toBe(refusal);
         if (selected === "parse") {
@@ -1230,14 +1309,17 @@ describe("resource import", () => {
         }
         if (selected === "evaluation") {
           expect(result.toString()).toEqual("$error{$is-constant .X}");
-          expect(owner.get_here("X").toString()).toEqual("1");
+          expect(completedOwner?.get_here("X").toString()).toEqual("1");
         }
         for (const [index, key] of keys.entries()) {
-          expect(owner.get_here(key).toString()).toEqual(`${value + index}`);
+          expect(completedOwner?.get_here(key).toString()).toEqual(
+            `${value + index}`,
+          );
         }
-        expect(owner.get_here("later").is.missing).toBe(true);
+        expect(completedOwner?.get_here("later").is.missing).toBe(true);
         if (form === "named") {
-          expect(file.get_here(target)).toBe(importedScope?.writeTarget);
+          expect(file.get_here(target).is.missing).toBe(true);
+          expect(importedScope?.writeTarget).toBe(completedOwner);
         } else {
           expect(importedScope?.writeTarget).toBe(file);
         }

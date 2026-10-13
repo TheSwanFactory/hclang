@@ -25,18 +25,6 @@ export class FrameImport extends Frame {
 
   public override in(input: EvaluationInput = []): Frame {
     const scope = EvaluationScope.from(input);
-    let importScope = scope;
-
-    if (this.target.kind === "named") {
-      const namespace = new FrameArray([]);
-      const child = scope.namedChild(namespace);
-      const binding = FrameSymbol.for(this.target.key)
-        .setter(scope.writeTarget)
-        .apply(namespace, Frame.nil);
-      if (binding.isFailedResult()) return binding;
-      importScope = child;
-    }
-
     const resource = this.resourceExpression.in(scope);
     if (resource.isFailedResult()) return resource;
     if (!(resource instanceof FrameResource)) {
@@ -44,7 +32,20 @@ export class FrameImport extends Frame {
         `$!.resource-import-source-type ${resource.toString()}`,
       );
     }
-    return this.evaluateSource(resource, importScope);
+
+    if (this.target.kind === "local") {
+      return this.evaluateSource(resource, scope);
+    }
+
+    const namespace = new FrameArray([]);
+    const child = scope.namedChild(namespace);
+    const result = this.evaluateSource(resource, child);
+    if (result.isFailedResult()) return result;
+
+    const binding = FrameSymbol.for(this.target.key)
+      .setter(scope.writeTarget)
+      .apply(namespace, Frame.nil);
+    return binding.isFailedResult() ? binding : result;
   }
 
   public override toString(): string {
