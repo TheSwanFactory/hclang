@@ -212,7 +212,7 @@ export class FrameSymbol extends FrameAtom {
   public bindingSchema(input: EvaluationInput = []): Frame {
     const scope = EvaluationScope.from(input);
     const first = scope.argument;
-    for (const context of scope.lookupFrames()) {
+    for (const context of scope.bindingLookupFrames()) {
       const origin = context;
       const seen = new Set<Frame>();
       let owner: Frame | undefined = context;

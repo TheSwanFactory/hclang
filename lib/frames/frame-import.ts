@@ -29,12 +29,12 @@ export class FrameImport extends Frame {
 
     if (this.target.kind === "named") {
       const namespace = new FrameArray([]);
-      namespace.up = scope.lexicalTarget;
+      const child = scope.namedChild(namespace);
       const binding = FrameSymbol.for(this.target.key)
         .setter(scope.writeTarget)
         .apply(namespace, Frame.nil);
       if (binding.isFailedResult()) return binding;
-      importScope = scope.namedChild(namespace);
+      importScope = child;
     }
 
     const resource = this.resourceExpression.in(scope);

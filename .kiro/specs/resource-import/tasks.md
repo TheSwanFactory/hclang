@@ -18,9 +18,10 @@ evaluation and its focused automated coverage.
     `lib/frames/evaluation-scope.ts`
     - Add `EvaluationScope.namedChild(namespace: FrameArray)` with the namespace
       as argument, statement write target, first lookup layer, lexical target,
-      and file scope; retain references to the parent lookup frames, inherit
-      only the host namespace, and link the current scope as `enclosing` without
-      copying receiver write authority.
+      and file scope; persist the parent's complete ordered lookup through a
+      live read-only projection of its frame references, inherit only the host
+      namespace, and link the current scope as `enclosing` without copying
+      receiver write authority.
     - Keep the scope immutable so later replacement of bindings on referenced
       caller frames remains visible through lookup.
     - _Requirements: 3.1, 3.3, 3.4, 3.5, 3.6_
@@ -64,10 +65,10 @@ evaluation and its focused automated coverage.
     - In `FrameImport.in`, normalize the current scope once; for a local target
       pass that exact scope to source evaluation without creating a namespace.
     - For a named target, allocate a fresh empty `FrameArray`, attach its
-      lexical `up` link to `CurrentScope.lexicalTarget`, bind it on
-      `CurrentScope.writeTarget` through the existing
-      `FrameSymbol.setter(...).apply(...)` declaration path, and then derive
-      `namedChild(namespace)`.
+      lexical `up` link to a live read-only projection of `CurrentScope`'s
+      complete ordered lookup layers, bind it on `CurrentScope.writeTarget`
+      through the existing `FrameSymbol.setter(...).apply(...)` declaration
+      path, and then derive `namedChild(namespace)`.
     - Preserve the required named ordering: allocate and bind before evaluating
       the right-hand expression; stop before resource work if binding fails;
       evaluate the right-hand expression exactly once in the current scope; pass

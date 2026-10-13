@@ -61,8 +61,8 @@ outer HC source
            ▼
        FrameImport.in(CurrentScope)
            │
-           ├─ named only: create namespace, attach live lexical parent,
-           │              bind target in CurrentScope
+           ├─ named only: create namespace, attach a live ordered
+           │              read-only projection of caller lookup, bind target
            │
            ├─ evaluate ResourceExpression once in CurrentScope
            │
@@ -172,8 +172,10 @@ containing expression.
 
 Named import creates a fresh empty `FrameArray` because namespaces own mutable
 bindings and observable identity. It then sets the namespace's lexical `up` link
-to `CurrentScope.lexicalTarget`. This is a live frame link, not a copy of parent
-metadata.
+to a lightweight live, read-only projection of `CurrentScope`'s complete ordered
+lookup layers. The projection retains the existing frame identities rather than
+copying their bindings and carries neither `CurrentScope`'s write target nor its
+receiver capability.
 
 Add one focused scope constructor:
 

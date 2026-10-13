@@ -255,7 +255,7 @@ describe("resource import", () => {
       const namespace = output.get_here("module") as FrameArray;
 
       expect(namespace).toBeInstanceOf(FrameArray);
-      expect(namespace.up).toBe(output);
+      expect(namespace.up).not.toBe(output);
       expect(namespace.get_here("owned").toString()).toEqual("7");
       expect(namespace.get("caller").toString()).toEqual("7");
       expect(output.get_here("owned").is.missing).toBe(true);
@@ -376,7 +376,7 @@ describe("resource import", () => {
   });
 
   describe("scope and namespace invariants", () => {
-    it("passes the exact local scope and strips call authority from a child", () => {
+    it("passes the exact local scope and isolates named-child authority", () => {
       const file = new FrameArray([]);
       const host = new Frame({ host: new FrameInt("1") });
       const scope = EvaluationScope.root(file, host);
@@ -411,7 +411,159 @@ describe("resource import", () => {
       expect(child?.enclosing).toBe(scope);
       expect(child?.parameter).toBeUndefined();
       expect(child?.receiverState).toBeUndefined();
-      expect(child?.lookupFrames()).toEqual([namespace, file]);
+      expect(child?.lookupFrames()).toEqual([namespace]);
+      expect(namespace.up).not.toBe(file);
+    });
+
+    it("retains exact construction precedence and live named fallback", () => {
+      const file = new FrameArray([]);
+      const construction = new FrameArray([]);
+      file.set("collision", new FrameInt("1"));
+      file.set("fileOnly", new FrameInt("2"));
+      construction.set("collision", new FrameInt("3"));
+      construction.set("constructionOnly", new FrameInt("4"));
+      const scope = EvaluationScope.root(file).withWriteTarget(construction);
+      let child: EvaluationScope | undefined;
+      const result = new FrameImport(
+        { kind: "named", key: "module" },
+        resourceWithSource(
+          ".during collision; .fromFile fileOnly; " +
+            ".fromConstruction constructionOnly; .collision 9;",
+        ),
+        (value, importedScope) => {
+          child = importedScope;
+          return evaluateResourceSource(value, importedScope);
+        },
+      ).in(scope);
+      const namespace = construction.get_here("module");
+
+      expect(result.isFailedResult()).toBe(false);
+      expect(file.get_here("module").is.missing).toBe(true);
+      expect(construction.get_here("during").is.missing).toBe(true);
+      expect(namespace.get_here("during").toString()).toEqual("1");
+      expect(namespace.get_here("fromFile").toString()).toEqual("2");
+      expect(namespace.get_here("fromConstruction").toString()).toEqual("4");
+      expect(namespace.get_here("collision").toString()).toEqual("9");
+      expect(file.get_here("collision").toString()).toEqual("1");
+      expect(construction.get_here("collision").toString()).toEqual("3");
+      expect(namespace.get("fileOnly").toString()).toEqual("2");
+      expect(namespace.get("constructionOnly").toString()).toEqual("4");
+
+      file.set("fileOnly", new FrameInt("5"));
+      construction.set("constructionOnly", new FrameInt("6"));
+      expect(namespace.get("fileOnly").toString()).toEqual("5");
+      expect(namespace.get("constructionOnly").toString()).toEqual("6");
+      expect(child?.writeTarget).toBe(namespace);
+      expect(child?.receiverState).toBeUndefined();
+    });
+
+    it("retains every independent call lookup layer in order", () => {
+      const file = new FrameArray([]);
+      const argument = new FrameArray([]);
+      const parameter = new FrameArray([]);
+      const closure = new FrameArray([]);
+      const receiver = new FrameArray([]);
+      file.set("fileOnly", new FrameInt("1"));
+      argument.set("argumentOnly", new FrameInt("2"));
+      argument.set("collision", new FrameInt("3"));
+      parameter.set("parameterOnly", new FrameInt("4"));
+      parameter.set("collision", new FrameInt("5"));
+      closure.set("closureOnly", new FrameInt("6"));
+      receiver.set("receiverOnly", new FrameInt("7"));
+      const root = EvaluationScope.root(file);
+      const scope = EvaluationScope.call(
+        argument,
+        parameter,
+        closure,
+        root,
+        { receiver, mutable: true, lexicalContext: file },
+      );
+      scope.writeTarget.set("localOnly", new FrameInt("8"));
+      let child: EvaluationScope | undefined;
+      const result = new FrameImport(
+        { kind: "named", key: "module" },
+        resourceWithSource(
+          ".fromLocal localOnly; .fromArgument argumentOnly; " +
+            ".fromParameter parameterOnly; .fromReceiver receiverOnly; " +
+            ".fromClosure closureOnly; .fromFile fileOnly; " +
+            ".fromCollision collision; .argumentOnly 9;",
+        ),
+        (value, importedScope) => {
+          child = importedScope;
+          return evaluateResourceSource(value, importedScope);
+        },
+      ).in(scope);
+      const namespace = scope.writeTarget.get_here("module");
+
+      expect(result.isFailedResult()).toBe(false);
+      expect(namespace.get_here("fromLocal").toString()).toEqual("8");
+      expect(namespace.get_here("fromArgument").toString()).toEqual("2");
+      expect(namespace.get_here("fromParameter").toString()).toEqual("4");
+      expect(namespace.get_here("fromReceiver").toString()).toEqual("7");
+      expect(namespace.get_here("fromClosure").toString()).toEqual("6");
+      expect(namespace.get_here("fromFile").toString()).toEqual("1");
+      expect(namespace.get_here("fromCollision").toString()).toEqual("3");
+      expect(namespace.get_here("argumentOnly").toString()).toEqual("9");
+      expect(argument.get_here("argumentOnly").toString()).toEqual("2");
+      expect(argument.get_here("module").is.missing).toBe(true);
+      expect(parameter.get_here("module").is.missing).toBe(true);
+      expect(file.get_here("module").is.missing).toBe(true);
+
+      argument.set("collision", new FrameInt("10"));
+      parameter.set("parameterOnly", new FrameInt("11"));
+      receiver.set("receiverOnly", new FrameInt("12"));
+      closure.set("closureOnly", new FrameInt("13"));
+      file.set("fileOnly", new FrameInt("14"));
+      expect(namespace.get("collision").toString()).toEqual("10");
+      expect(namespace.get("parameterOnly").toString()).toEqual("11");
+      expect(namespace.get("receiverOnly").toString()).toEqual("12");
+      expect(namespace.get("closureOnly").toString()).toEqual("13");
+      expect(namespace.get("fileOnly").toString()).toEqual("14");
+      expect(child?.writeTarget).toBe(namespace);
+      expect(child?.parameter).toBeUndefined();
+      expect(child?.receiverState).toBeUndefined();
+    });
+
+    it("does not inherit caller mutation or receiver authority", () => {
+      const capabilities = evaluate(
+        ".box_ [.value 1; .write_ {@value _;}]; " +
+          ".receiver_ [.value 2; .write_ {@value _;}];",
+      );
+      const box = capabilities.get_here("box_");
+      const receiver = capabilities.get_here("receiver_");
+      const file = new FrameArray([]);
+      const argument = new FrameArray([]);
+      argument.set("box_", box);
+      argument.set("callerValue", new FrameInt("3"));
+      const scope = EvaluationScope.call(
+        argument,
+        Frame.nil,
+        undefined,
+        EvaluationScope.root(file),
+        { receiver, mutable: true, lexicalContext: file },
+      );
+      let child: EvaluationScope | undefined;
+      const result = new FrameImport(
+        { kind: "named", key: "module" },
+        resourceWithSource("box_.write_ 9; write_ 10"),
+        (value, importedScope) => {
+          child = importedScope;
+          return evaluateResourceSource(value, importedScope);
+        },
+      ).in(scope);
+
+      expect(result.isFailedResult()).toBe(false);
+      expect(box.get_here("value").toString()).toEqual("1");
+      expect(receiver.get_here("value").toString()).toEqual("2");
+      expect(child?.writeTarget).toBe(scope.writeTarget.get_here("module"));
+      expect(child?.receiverState).toBeUndefined();
+
+      new FrameImport(
+        { kind: "named", key: "aliasModule" },
+        resourceWithSource("@callerValue 11"),
+        evaluateResourceSource,
+      ).in(scope);
+      expect(argument.get_here("callerValue").toString()).toEqual("3");
     });
 
     it("keeps named declarations owned by the child and shadows the caller", () => {
@@ -800,37 +952,120 @@ describe("resource import", () => {
 
   it("Feature: resource-import, Property 5: Named imports isolate declarations behind a live parent", () => {
     const seed = 0x5a2b3c05;
+    const scopeKinds = ["root", "call", "construction"] as const;
     runProperty(
       seed,
-      (generator) => ({
+      (generator, index) => ({
+        scopeKind: scopeKinds[index % scopeKinds.length],
+        callLayer: Math.floor(index / scopeKinds.length) % 5,
         target: generator.identifier("module"),
         parent: generator.identifier("parent"),
+        collision: generator.identifier("collision"),
+        collisionCopy: generator.identifier("collisionCopy"),
         shadow: generator.identifier("shadow"),
         owned: generator.identifier("owned"),
         before: 1 + generator.integer(300),
         after: 301 + generator.integer(300),
         child: 601 + generator.integer(300),
       }),
-      ({ target, parent, shadow, owned, before, after, child }) => {
+      ({
+        scopeKind,
+        callLayer,
+        target,
+        parent,
+        collision,
+        collisionCopy,
+        shadow,
+        owned,
+        before,
+        after,
+        child,
+      }) => {
         const file = new FrameArray([]);
-        file.set(parent, new FrameInt(`${before}`));
-        file.set(shadow, new FrameInt(`${before}`));
-        const source = `.${shadow} ${child}; .${owned} ${parent};`;
-        const imported = new FrameImport(
+        const callers: Frame[] = [file];
+        let scope = EvaluationScope.root(file);
+        let targetOwner: Frame = file;
+        let parentOwner: Frame = file;
+        let collisionWinner: Frame = file;
+        let collisionLoser: Frame | undefined;
+
+        if (scopeKind === "call") {
+          const argument = new FrameArray([]);
+          const parameter = new FrameArray([]);
+          const receiver = new FrameArray([]);
+          const closure = new FrameArray([]);
+          callers.push(argument, parameter, receiver, closure);
+          const callLayers = [argument, parameter, receiver, closure, file];
+          parentOwner = callLayers[callLayer];
+          argument.set(collision, new FrameInt(`${before + 1}`));
+          parameter.set(collision, new FrameInt(`${before + 2}`));
+          collisionWinner = argument;
+          collisionLoser = parameter;
+          scope = EvaluationScope.call(
+            argument,
+            parameter,
+            closure,
+            EvaluationScope.root(file),
+            { receiver, mutable: true, lexicalContext: file },
+          );
+          targetOwner = scope.writeTarget;
+          callers.push(targetOwner);
+        } else if (scopeKind === "construction") {
+          const construction = new FrameArray([]);
+          callers.push(construction);
+          file.set(collision, new FrameInt(`${before + 1}`));
+          construction.set(collision, new FrameInt(`${before + 2}`));
+          collisionWinner = file;
+          collisionLoser = construction;
+          scope = EvaluationScope.root(file).withWriteTarget(construction);
+          targetOwner = construction;
+        } else {
+          file.set(collision, new FrameInt(`${before + 1}`));
+        }
+
+        parentOwner.set(parent, new FrameInt(`${before}`));
+        parentOwner.set(shadow, new FrameInt(`${before}`));
+        let importedScope: EvaluationScope | undefined;
+        const source = `.${owned} ${parent}; ` +
+          `.${collisionCopy} ${collision}; .${shadow} ${child};`;
+        const result = new FrameImport(
           { kind: "named", key: target },
           resourceWithSource(source),
-          evaluateResourceSource,
-        );
-        imported.in(EvaluationScope.root(file));
-        const namespace = file.get_here(target);
+          (value, childScope) => {
+            importedScope = childScope;
+            return evaluateResourceSource(value, childScope);
+          },
+        ).in(scope);
+        const namespace = targetOwner.get_here(target);
 
+        expect(result.isFailedResult()).toBe(false);
         expect(namespace).toBeInstanceOf(FrameArray);
-        expect(file.get_here(owned).is.missing).toBe(true);
+        expect(targetOwner.get_here(target)).toBe(namespace);
+        for (const caller of callers) {
+          expect(caller.get_here(owned).is.missing).toBe(true);
+          expect(caller.get_here(collisionCopy).is.missing).toBe(true);
+        }
         expect(namespace.get_here(owned).toString()).toEqual(`${before}`);
+        expect(namespace.get_here(collisionCopy).toString()).toEqual(
+          `${before + 1}`,
+        );
         expect(namespace.get(shadow).toString()).toEqual(`${child}`);
+        expect(parentOwner.get_here(shadow).toString()).toEqual(`${before}`);
         expect(namespace.get(parent).toString()).toEqual(`${before}`);
-        file.set(parent, new FrameInt(`${after}`));
+        expect(importedScope?.writeTarget).toBe(namespace);
+        expect(importedScope?.parameter).toBeUndefined();
+        expect(importedScope?.receiverState).toBeUndefined();
+        expect(importedScope?.lookupFrames()).toEqual([namespace]);
+
+        parentOwner.set(parent, new FrameInt(`${after}`));
         expect(namespace.get(parent).toString()).toEqual(`${after}`);
+        expect(namespace.get_here(owned).toString()).toEqual(`${before}`);
+        if (collisionLoser) {
+          collisionLoser.set(collision, new FrameInt(`${after + 1}`));
+          expect(namespace.get(collision).toString()).toEqual(`${before + 1}`);
+        }
+        collisionWinner.set(collision, new FrameInt(`${after + 2}`));
+        expect(namespace.get(collision).toString()).toEqual(`${after + 2}`);
       },
     );
   });

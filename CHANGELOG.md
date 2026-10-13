@@ -8,8 +8,9 @@
 
 - **Resources can supply HC source directly.** `. <- 'resource'` evaluates fresh
   source in the current scope, while `name <- 'resource'` creates a fresh child
-  namespace with live caller lookup; either form retains successful effects
-  before the first read, parse, or evaluation failure.
+  namespace with complete ordered, live read-only caller lookup; either form
+  retains successful effects before the first read, parse, or evaluation
+  failure.
 
 ## v0.19.0 2026-10-11
 

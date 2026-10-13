@@ -60,6 +60,19 @@ export class FrameHandle extends Frame {
     return this.mutable;
   }
 
+  /** Retains this live reference while withholding its write capability. */
+  public withoutWriteAuthority(): FrameHandle {
+    return this.mutable
+      ? new FrameHandle(
+        this.target,
+        false,
+        this.copyOnWrite,
+        this.readContext,
+        this.searchReadContext,
+      )
+      : this;
+  }
+
   /** The lexical fallback selected for this particular read. */
   public readContextFrame(): Frame | undefined {
     return this.readContext;
