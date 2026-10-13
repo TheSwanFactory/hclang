@@ -1,7 +1,48 @@
-import { type Context, EvaluationScope, Frame, NilContext } from "../frames.ts";
+import {
+  type Context,
+  EvaluationScope,
+  Frame,
+  FrameGroup,
+  NilContext,
+} from "../frames.ts";
+import { LexPipe } from "./lex-pipe.ts";
+import { ParsePipe, type ParsePipeOptions } from "./parse-pipe.ts";
+
+/** Builds the shared Lex/Parse/Eval pipeline for one HC source unit. */
+export function makeSourcePipe(
+  evaluator: EvalPipe,
+  options: ParsePipeOptions = {},
+): LexPipe {
+  return new LexPipe(new ParsePipe(evaluator, FrameGroup, options));
+}
+
+/** Live lexical lookup over every layer in one supplied evaluation scope. */
+class ScopedLexicalContext extends Frame {
+  public constructor(private readonly scope: EvaluationScope) {
+    super();
+  }
+
+  public override get(key: string): Frame {
+    const receiver = this.scope.receiverState?.receiver;
+    for (const context of this.scope.lookupFrames()) {
+      const value = context.get(key, receiver ?? context);
+      if (!value.is.missing) return value;
+    }
+    return Frame.missing;
+  }
+}
 
 /** Evaluates parsed groups against one source unit and emits to its output. */
 export class EvalPipe extends Frame {
+  private scope?: EvaluationScope;
+
+  public static scoped(out: Frame, scope: EvaluationScope): EvalPipe {
+    const pipe = new EvalPipe(out, scope.fileScope, scope.hostNamespace);
+    pipe.scope = scope;
+    pipe.set(Frame.kOUT, new ScopedLexicalContext(scope));
+    return pipe;
+  }
+
   constructor(
     public readonly out: Frame,
     public readonly fileScope: Frame = out,
@@ -9,16 +50,16 @@ export class EvalPipe extends Frame {
     meta: Context = NilContext,
   ) {
     super(meta);
-    // Lexical features that consult the live source context follow kOUT to the
-    // file scope, while evaluated results use the separate output capability.
+    // Legacy lexical features follow kOUT to the file scope. Scoped pipes
+    // replace it with a live view of every supplied lookup layer.
     this.set(Frame.kOUT, fileScope);
     this.up = out;
   }
 
   public override apply(expr: Frame, context: Frame): Frame {
-    const result = expr.in(
-      EvaluationScope.root(this.fileScope, this.hostNamespace),
-    );
+    const scope = this.scope ??
+      EvaluationScope.root(this.fileScope, this.hostNamespace);
+    const result = expr.in(scope);
     this.out.collect(result, context);
     return result;
   }

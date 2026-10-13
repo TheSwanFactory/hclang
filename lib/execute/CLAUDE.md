@@ -61,6 +61,20 @@ redispatch, transition, and lexical failure.
 - [hc-lang.ts](hc-lang.ts) - Language semantics and built-ins
 - [hc-test.ts](hc-test.ts) - Test execution support
 
+### Resource Imports
+
+`ParsePipe` recognizes `. <- resource` and `name <- resource` before ordinary
+expression evaluation. Both forms use `makeSourcePipe` to run resource
+characters through the same Lex/Parse/Eval stages as other HC source, with
+completed top-level forms emitted incrementally and unclosed structures checked
+at physical EOF rather than at logical newlines.
+
+`FrameResource.elements()` is the only read path and is called once per import
+evaluation. Nested imports carry an invocation-local active resource chain;
+re-entering the same host namespace and resource spelling returns
+`$!.resource-import-cycle` before another read. The chain is neither a module
+registry nor a persistent cache, and a later independent import starts clean.
+
 ### Utilities
 
 - [hc-log.ts](hc-log.ts) - Logging and debugging utilities

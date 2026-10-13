@@ -1,7 +1,8 @@
 import { expect } from "jsr:@std/expect@^0.219.1";
 import { beforeEach, describe, it } from "jsr:@std/testing@^1.0.10/bdd";
-import { EvalPipe } from "./eval-pipe.ts";
+import { EvalPipe, makeSourcePipe } from "./eval-pipe.ts";
 import * as frame from "../frames.ts";
+import { ParsePipe } from "./parse-pipe.ts";
 
 describe("EvalPipe", () => {
   const strA = new frame.FrameString("A");
@@ -23,6 +24,30 @@ describe("EvalPipe", () => {
 
   it("is constructed from an out parameter", () => {
     expect(pipe).toBeTruthy();
+  });
+
+  it("builds a source pipe with the supplied evaluator and options", () => {
+    const fileScope = new frame.FrameArray([]);
+    const evaluator = EvalPipe.scoped(
+      out,
+      frame.EvaluationScope.root(fileScope),
+    );
+    const sourcePipe = makeSourcePipe(evaluator, {
+      emitCompletedForms: true,
+      strictStructure: true,
+    });
+    const parser = sourcePipe.get(frame.Frame.kOUT) as ParsePipe;
+
+    expect(parser.get(frame.Frame.kOUT)).toBe(evaluator);
+    expect(parser.strictStructure).toBe(true);
+
+    new frame.FrameString("1;").scanInto(sourcePipe, false);
+    expect(out.at(0).toString()).toEqual("(1)");
+
+    new frame.FrameString("[2 ").scanInto(sourcePipe, false);
+    expect(sourcePipe.finish(frame.Frame.nil).toString()).toContain(
+      "$!.parse-unclosed-structure",
+    );
   });
 
   it("evaluates arguments", () => {
@@ -48,5 +73,64 @@ describe("EvalPipe", () => {
     const result = pipe.call(expr);
     expect(out.size()).toEqual(1);
     expect(out.at(0)).toEqual(result);
+  });
+
+  it("reuses the exact supplied scope for every form", () => {
+    class RecordingFrame extends frame.Frame {
+      public readonly scopes: frame.EvaluationInput[] = [];
+
+      public override in(input: frame.EvaluationInput = []): frame.Frame {
+        this.scopes.push(input);
+        return this;
+      }
+    }
+
+    const fileScope = new frame.FrameArray([]);
+    const scope = frame.EvaluationScope.root(fileScope);
+    const recording = new RecordingFrame();
+    const scoped = EvalPipe.scoped(out, scope);
+
+    scoped.call(recording);
+    scoped.call(recording);
+
+    expect(recording.scopes).toEqual([scope, scope]);
+  });
+
+  it("makes declarations from prior scoped forms visible", () => {
+    const fileScope = new frame.FrameArray([]);
+    const scope = frame.EvaluationScope.root(fileScope);
+    const scoped = EvalPipe.scoped(out, scope);
+    const declaration = new frame.FrameExpr([
+      new frame.FrameName("answer"),
+      new frame.FrameInt("42"),
+    ]);
+
+    scoped.call(declaration);
+    const result = scoped.call(
+      new frame.FrameExpr([frame.FrameSymbol.for("answer")]),
+    );
+
+    expect(result.toString()).toEqual("42");
+    expect(fileScope.get_here("answer").toString()).toEqual("42");
+  });
+
+  it("retains fresh root scopes for the legacy constructor", () => {
+    class RecordingFrame extends frame.Frame {
+      public readonly scopes: frame.EvaluationScope[] = [];
+
+      public override in(input: frame.EvaluationInput = []): frame.Frame {
+        this.scopes.push(frame.EvaluationScope.from(input));
+        return this;
+      }
+    }
+
+    const recording = new RecordingFrame();
+    pipe.call(recording);
+    pipe.call(recording);
+
+    expect(recording.scopes).toHaveLength(2);
+    expect(recording.scopes[0]).not.toBe(recording.scopes[1]);
+    expect(recording.scopes[0].writeTarget).toBe(out);
+    expect(recording.scopes[1].writeTarget).toBe(out);
   });
 });

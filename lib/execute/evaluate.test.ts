@@ -465,6 +465,17 @@ describe("evaluate", () => {
   });
 
   describe("schemas", () => {
+    it("evaluates negative schemas and installs their metadata", () => {
+      const schema = evaluate("<-1>");
+      const declaration = evaluate(".t <-1 | 2>");
+
+      expect(schema.at(0)).toBeInstanceOf(frame.FrameSchema);
+      expect(schema.at(0).toString()).toEqual("<-1>");
+      expect(declaration.meta["t.<>"]).toBeInstanceOf(frame.FrameSchema);
+      expect(declaration.meta["t.<>"]?.toString()).toEqual("<-2>");
+      expect(declaration.toString()).not.toContain("resource-import-syntax");
+    });
+
     it("binds value with schema and reports assignment", () => {
       const result = evaluate(".one <1> 1");
       expect(result.toString()).toEqual("[.one.<> <1>; .one 1;]");

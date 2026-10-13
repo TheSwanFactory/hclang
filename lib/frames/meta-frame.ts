@@ -13,8 +13,9 @@ export interface ISourced extends Frame {
   source: string;
 }
 
-/** A logical lookup resolved to its physical declaration key and value. */
+/** A logical lookup resolved to its physical declaration owner, key, and value. */
 export type BindingResolution = {
+  owner: MetaFrame;
   key: string;
   value: Frame;
 };
@@ -137,7 +138,9 @@ export class MetaFrame {
     }
 
     const publicValue = this.meta[key];
-    if (publicValue != null) return { key, value: publicValue };
+    if (publicValue != null) {
+      return { owner: this, key, value: publicValue };
+    }
     return this.authorize(
       `_${key}`,
       Visibility.Protected,
@@ -150,6 +153,27 @@ export class MetaFrame {
         key,
         origin,
       );
+  }
+
+  /** Resolves a binding through the same guarded graph as ordinary lookup. */
+  public resolve(
+    key: string,
+    origin: MetaFrame = this,
+  ): BindingResolution | undefined {
+    const local = this.resolve_here(key, origin);
+    if (local) return local;
+
+    const seen = new Set<MetaFrame>([this]);
+    for (const link of this.lookup_links()) {
+      const result = MetaFrame.resolveBinding(link, key, origin, seen);
+      if (result) return result;
+    }
+
+    const globals = Frame.globals;
+    if (globals && !globals.is.missing && !seen.has(globals)) {
+      return MetaFrame.resolveBinding(globals, key, origin, seen);
+    }
+    return undefined;
   }
 
   /**
@@ -233,6 +257,25 @@ export class MetaFrame {
       }
     }
     return Frame.missing;
+  }
+
+  /** Depth-first binding traversal without global fallback. */
+  private static resolveBinding(
+    frame: MetaFrame,
+    key: string,
+    origin: MetaFrame,
+    seen: Set<MetaFrame>,
+  ): BindingResolution | undefined {
+    if (seen.has(frame)) return undefined;
+    seen.add(frame);
+
+    const local = frame.resolve_here(key, origin);
+    if (local) return local;
+    for (const link of frame.lookup_links()) {
+      const result = MetaFrame.resolveBinding(link, key, origin, seen);
+      if (result) return result;
+    }
+    return undefined;
   }
 
   /**
@@ -353,9 +396,10 @@ export class MetaFrame {
         ? origin === this
         : this.isAncestorOf(origin));
     if (authorized) {
-      return { key: physicalKey, value };
+      return { owner: this, key: physicalKey, value };
     }
     return {
+      owner: this,
       key: physicalKey,
       value: Frame.error(`$!.is-${visibility} .${key}`),
     };

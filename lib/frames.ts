@@ -23,6 +23,11 @@ export {
   EvaluationScope,
 } from "./frames/evaluation-scope.ts";
 export { FrameGroup } from "./frames/frame-group.ts";
+export {
+  FrameImport,
+  type ImportSourceEvaluator,
+  type ImportTarget,
+} from "./frames/frame-import.ts";
 export { FrameLazy } from "./frames/frame-lazy.ts";
 export {
   type FrameMatcher,

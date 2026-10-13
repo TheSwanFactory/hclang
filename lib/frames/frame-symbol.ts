@@ -213,19 +213,11 @@ export class FrameSymbol extends FrameAtom {
     const scope = EvaluationScope.from(input);
     const first = scope.argument;
     for (const context of scope.lookupFrames()) {
-      const origin = context;
-      const seen = new Set<Frame>();
-      let owner: Frame | undefined = context;
-      while (owner && !owner.is.missing && !seen.has(owner)) {
-        seen.add(owner);
-        const binding = owner.resolve_here(this.data, origin);
-        if (binding) {
-          if (binding.value.is.error) return binding.value;
-          const schema = owner.meta[`${binding.key}.<>`];
-          return schema ?? Frame.error(`$!.schema-missing .${this.data}`);
-        }
-        owner = owner.up;
-      }
+      const binding = context.resolve(this.data, context);
+      if (!binding) continue;
+      if (binding.value.is.error) return binding.value;
+      const schema = binding.owner.meta[`${binding.key}.<>`];
+      return schema ?? Frame.error(`$!.schema-missing .${this.data}`);
     }
     return FrameNote.key(first.id + "." + this.data, first);
   }

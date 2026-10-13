@@ -15,6 +15,7 @@ import {
   FrameNote,
   FrameOperator,
   FrameParam,
+  FrameSchema,
   FrameScopeAnchor,
   FrameString,
   FrameSymbol,
@@ -466,6 +467,64 @@ describe("Lex", () => {
       "\\2\\bc",
     ]);
     expect(lexAtoms("“a”“b” ").map(String)).toEqual(["“a”", "“b”"]);
+  });
+
+  it("recognizes both import arrows across every two-chunk split", () => {
+    for (
+      const source of [
+        ". <- './a.hc'",
+        "module <- './a.hc'",
+        "module<-'./a.hc'",
+        "module<- './a.hc'",
+        "module <-'./a.hc'",
+      ]
+    ) {
+      for (let split = 1; split < source.length; split++) {
+        const output = new FrameArray([]);
+        const parser = new ParsePipe(output, FrameGroup, {
+          importSource: () => Frame.nil,
+        });
+        const lexer = new LexPipe(parser);
+        let receiver: Frame = lexer;
+        for (const chunk of [source.slice(0, split), source.slice(split)]) {
+          receiver = new FrameString(chunk).scanInto(receiver, false);
+        }
+        new FrameString("").scanInto(receiver);
+
+        const group = output.at(0) as FrameGroup;
+        const expr = group.asArray()[0] as FrameExpr;
+        expect(expr.asArray()[0].className()).toEqual("FrameImport");
+      }
+    }
+  });
+
+  it("keeps negative decimal values inside schema syntax", () => {
+    for (const source of ["<-1>", "<-0>", "<-01>"]) {
+      const atoms = lexAtoms(`${source} `);
+
+      const expected = `<(- ${source.slice(2, -1)})>`;
+      expect(atoms).toHaveLength(1);
+      expect(atoms[0]).toBeInstanceOf(FrameSchema);
+      expect(atoms[0].toString()).toEqual(expected);
+
+      for (let split = 1; split < source.length; split++) {
+        const chunked = lexChunkedAtoms([
+          source.slice(0, split),
+          source.slice(split),
+        ]);
+        expect(chunked).toHaveLength(1);
+        expect(chunked[0]).toBeInstanceOf(FrameSchema);
+        expect(chunked[0].toString()).toEqual(expected);
+      }
+    }
+  });
+
+  it("keeps populated and nested schema syntax beside the arrow", () => {
+    expect(lexAtoms("<.x 1> ").map(String)).toEqual(["<(.x ((1)))>"]);
+    expect(lexAtoms("<<>> ").map(String)).toEqual(["<(<>)>"]);
+    expect(lexResult("<").is.error).toBeFalsy();
+    expect(lexAtoms(".< ").map(String)).toEqual([".<"]);
+    expect(lexAtoms(".<= ").map(String)).toEqual([".<="]);
   });
 
   it("reports an unterminated byte length at physical end of input", () => {

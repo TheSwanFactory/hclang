@@ -1,5 +1,7 @@
 import { type EvaluationRoots, Frame } from "./frame.ts";
+import type { FrameArray } from "./frame-array.ts";
 import { FrameHandle } from "./frame-handle.ts";
+import { type BindingResolution, type MetaFrame } from "./meta-frame.ts";
 import type { ReceiverState } from "./bound-method.ts";
 
 /** Why the current evaluation scope selected its declaration target. */
@@ -34,6 +36,56 @@ type LookupLayers = {
   frames: Frame[];
   members: Set<Frame>;
 };
+
+/** Live, read-only lookup through an ordered set of existing frame identities. */
+class LiveLookupContext extends Frame {
+  readonly #lookupFrames: readonly Frame[];
+  readonly #identityHandles = new WeakMap<Frame, FrameHandle>();
+
+  public constructor(
+    frames: readonly Frame[],
+    private readonly continuation: Frame,
+  ) {
+    super();
+    this.#lookupFrames = frames.map((frame) =>
+      frame instanceof FrameHandle ? frame.withoutWriteAuthority() : frame
+    );
+  }
+
+  public override resolve_here(
+    key: string,
+    _origin: MetaFrame = this,
+  ): BindingResolution | undefined {
+    for (const context of this.#lookupFrames) {
+      const binding = context.resolve(key, context);
+      if (binding) return binding;
+    }
+    return undefined;
+  }
+
+  protected override lookup_here(key: string, _origin: MetaFrame): Frame {
+    for (const context of this.#lookupFrames) {
+      const value = context.get(key, context);
+      if (value.is.missing) continue;
+      if (value instanceof FrameHandle) {
+        return value.withoutWriteAuthority();
+      }
+      if (!value.ownsIdentity()) return value;
+
+      const existing = this.#identityHandles.get(value);
+      if (existing) return existing;
+      const projected = new FrameHandle(
+        value,
+        false,
+        undefined,
+        this.continuation,
+      );
+      this.#identityHandles.set(value, projected);
+      return projected;
+    }
+    return Frame.missing;
+  }
+}
 
 /**
  * Named, immutable state for one evaluation.
@@ -212,6 +264,29 @@ export class EvaluationScope {
       fileScope: enclosing?.fileScope ?? carriedRoots?.fileScope ?? target,
       hostNamespace: enclosing?.hostNamespace ??
         carriedRoots?.hostNamespace ?? Frame.nil,
+    });
+  }
+
+  /**
+   * Creates a fresh named namespace with live lookup into this scope.
+   *
+   * Imported declarations stop at the namespace, while lookup retains exact
+   * references to the caller's existing layers. Call-only parameter and
+   * receiver authority are deliberately not inherited.
+   */
+  public namedChild(namespace: FrameArray): EvaluationScope {
+    namespace.up = new LiveLookupContext(this.#lookupFrames, namespace);
+    const layers = EvaluationScope.layers([namespace]);
+    return new EvaluationScope({
+      argument: namespace,
+      writeTarget: namespace,
+      writeTargetRole: "statement",
+      lookupFrames: layers.frames,
+      lookupMembers: layers.members,
+      enclosing: this,
+      lexicalTarget: namespace,
+      fileScope: namespace,
+      hostNamespace: this.hostNamespace,
     });
   }
 
