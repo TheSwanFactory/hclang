@@ -73,9 +73,31 @@ const packed = await run(
   ["pack", "--json", "--pack-destination", ".."],
   { cwd: PACKAGE_DIR },
 );
-const [{ filename }] = JSON.parse(packed.stdout);
+const [{ filename, files }] = JSON.parse(packed.stdout);
 if (filename !== expectedFilename) {
   throw new Error(`unexpected npm archive name: ${filename}`);
+}
+
+// The npm CLI reads its standard modules beside `esm/cli`, so the package has to
+// carry the maintained bytes themselves, and the archive has to ship them.
+const maintainedFigures = await Deno.readFile("lib/modules/figures.hc");
+const packagedFigures = await Deno.readFile(
+  `${PACKAGE_DIR}/esm/lib/modules/figures.hc`,
+);
+if (
+  maintainedFigures.length !== packagedFigures.length ||
+  !maintainedFigures.every((byte, index) => byte === packagedFigures[index])
+) {
+  throw new Error(
+    "npm package does not carry the maintained lib/modules/figures.hc bytes",
+  );
+}
+if (
+  !files.some((file: { path: string }) =>
+    file.path === "esm/lib/modules/figures.hc"
+  )
+) {
+  throw new Error("npm archive does not include esm/lib/modules/figures.hc");
 }
 
 const npx = async (args: string[], input?: string): Promise<CommandResult> =>
@@ -108,6 +130,18 @@ const expected = '“{"total":43,"pass":43,"fail":0,"unimplemented":0}”';
 if (!numerics.stdout.includes(expected)) {
   throw new Error(
     `npm testdoc did not report the numeric baseline\n${numerics.stdout}`,
+  );
+}
+
+// Match the summary line, because every pass line carries a running total.
+const modules = await npx(["cli/hc/modules.hc", "--testdoc"]);
+const modulesSummary = modules.stdout.split("\n").find((line) =>
+  line.includes("$=.test-summary")
+);
+const modulesExpected = '“{"total":18,"pass":18,"fail":0,"unimplemented":0}”';
+if (!modulesSummary?.includes(modulesExpected)) {
+  throw new Error(
+    `npm testdoc did not import the Figures standard module\n${modules.stdout}`,
   );
 }
 

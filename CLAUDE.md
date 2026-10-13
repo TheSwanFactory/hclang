@@ -384,12 +384,12 @@ Only judgment that no tool records belongs here. Look elsewhere first:
   `test:doc` too (landed for #372), which executes the same files through the
   real CLI entry point, so a corpus change has to hold under both the test
   harness and the shipped one. The two still do not construct the evaluator
-  alike, which is the part of #373 left open: `test:doc` covers seven of twelve
-  doctest files, `test:bs` covers `BitScheme` separately, and the remaining four
-  (`white-paper`, `white-paper-core`, `class-support`, `format`) run under
-  `cli/hc.test.ts` only, unenforced against the real entry point. Not urgent —
-  every file passes under both harnesses today — but the next doctest that
-  disagrees between them will surface here first.
+  alike, which is the part of #373 left open: `test:doc` covers eight of
+  thirteen doctest files, `test:bs` covers `BitScheme` separately, and the
+  remaining four (`white-paper`, `white-paper-core`, `class-support`, `format`)
+  run under `cli/hc.test.ts` only, unenforced against the real entry point. Not
+  urgent — every file passes under both harnesses today — but the next doctest
+  that disagrees between them will surface here first.
 - **What shipped and why** is the [CHANGELOG](CHANGELOG.md) and the design docs
   in `spec/`.
 

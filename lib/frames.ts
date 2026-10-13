@@ -109,6 +109,7 @@ export {
 } from "./frames/resource-handlers.ts";
 export {
   MemoryStore,
+  ResourceMapStore,
   type ResourceStore,
   type StoreResult,
 } from "./frames/resource-store.ts";

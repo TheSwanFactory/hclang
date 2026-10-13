@@ -118,6 +118,18 @@ describe("this harness's grant", () => {
       expect(task).toContain("--deny-ffi");
     }
   });
+
+  it("compiles the standard modules into the binary it builds", async () => {
+    // The compiled CLI reads its standard modules beside its own module URL,
+    // so a build that dropped them would fail on every invocation.
+    const manifest = JSON.parse(
+      await Deno.readTextFile(new URL("./deno.json", import.meta.url)),
+    );
+
+    expect(manifest.tasks.build).toContain(
+      "--include ../lib/modules/figures.hc",
+    );
+  });
 });
 
 describe("main", () => {
@@ -318,7 +330,7 @@ describe("main", () => {
 
   it("keeps the Figures testdoc green", async () => {
     const out = new FrameArray([]);
-    const file = new URL("./hc/figures.hc", import.meta.url).pathname;
+    const file = new URL("../lib/modules/figures.hc", import.meta.url).pathname;
     const status = await main(
       getEval({}, out),
       getOptions(["--testdoc", file]),
@@ -327,6 +339,22 @@ describe("main", () => {
     expect(status).toEqual(0);
     expect(out.at(-1).toString()).toContain(
       '“{"total":62,"pass":62,"fail":0,"unimplemented":0}”',
+    );
+  });
+
+  it("imports the Figures standard module and counts only its own claims", async () => {
+    const out = new FrameArray([]);
+    const file = new URL("./hc/modules.hc", import.meta.url).pathname;
+    // The import reads the module through the overlay the CLI installs, so the
+    // harness under test is the real one; none of the module's claims count.
+    const status = await main(
+      getEval({}, out),
+      getOptions(["--testdoc", file]),
+    );
+
+    expect(status).toEqual(0);
+    expect(out.at(-1).toString()).toContain(
+      '“{"total":18,"pass":18,"fail":0,"unimplemented":0}”',
     );
   });
 

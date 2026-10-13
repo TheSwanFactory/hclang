@@ -712,6 +712,55 @@ describe("resource import", () => {
       expect(new Set(namespaces).size).toEqual(namespaces.length);
       expect(file.get_here("module")).toBe(namespaces.at(-1));
     });
+
+    it("curries operators on imported values with their own operand", () => {
+      const store = new MemoryStore();
+      store.write(
+        MODULE_PATH,
+        ".n 1; .u [[]]; .r [n = 1, n = n, u = u, (u .0) = []];",
+      );
+      const output = evaluate(
+        `module <- ${MODULE_REFERENCE}`,
+        rootContext(store),
+      );
+
+      expect(output.get_here("module").get_here("r").toString()).toEqual(
+        "[<>, <>, <>, <>]",
+      );
+    });
+
+    it("applies operators to caller values reached through live lookup", () => {
+      const store = new MemoryStore();
+      store.write(MODULE_PATH, ".r [caller = 7, caller + 1];");
+      const output = evaluate(
+        `.caller 7; module <- ${MODULE_REFERENCE}`,
+        rootContext(store),
+      );
+
+      expect(output.get_here("module").get_here("r").toString()).toEqual(
+        "[<>, 8]",
+      );
+    });
+
+    it("maps, reduces, and recurses over imported values while importing", () => {
+      const store = new MemoryStore();
+      store.write(
+        MODULE_PATH,
+        [
+          ".u [[]]; .xs [1, 2, 3];",
+          ".count {(_ = u) ? {[u]} : {(__ & {count _})}};",
+          ".r [xs & {_ * 2}, xs | [], count [u, u]];",
+        ].join("\n"),
+      );
+      const output = evaluate(
+        `module <- ${MODULE_REFERENCE}`,
+        rootContext(store),
+      );
+
+      expect(output.get_here("module").get_here("r").toString()).toEqual(
+        "[[2, 4, 6], [1, 2, 3], [[[[]]], [[[]]]]]",
+      );
+    });
   });
 
   describe("failure and authority", () => {

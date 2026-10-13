@@ -6,6 +6,7 @@ import { parseArgs } from "@std/cli/parse-args";
 import { runfile } from "./runfile.ts";
 import { Prompt } from "./prompt.ts";
 import { DenoFileStore } from "./resource-store.ts";
+import { withStandardModules } from "./standard-modules.ts";
 import {
   CLOCK_SCHEME,
   ClockHandler,
@@ -58,7 +59,9 @@ export function getOptions(args: string[]): ReturnType<typeof parseArgs> {
  * identifier resolves against a fresh temp directory rather than against the
  * working directory. That is a narrowing: the process still holds whatever the
  * harness granted it, and the root binding is the ceiling the language enforces
- * inside it.
+ * inside it. The root also overlays the read-only standard modules, so
+ * `'./modules/figures.hc'` reads the maintained Figures source and nothing else
+ * widens.
  *
  * @param env - An object containing key-value pairs of environment variables.
  * @param out - Optional output sink. Tests inject a capture frame; the CLI uses HCLog.
@@ -72,6 +75,9 @@ export function getEval(env: StringMap, out?: Frame): HCEval {
 
 /**
  * Builds this harness's host namespace, root binding included.
+ *
+ * The root is a fresh temp directory with the read-only standard modules laid
+ * over it, so a program can import them without reaching anything else.
  *
  * Exported so a test can run a source unit under the authority the CLI actually
  * grants, rather than under an empty namespace that would make the resource
@@ -87,7 +93,7 @@ export function getHost(context: Context = {}): Frame {
   const host = new Frame({ ...context });
   host.set(
     RESOURCE_ROOT_KEY,
-    FrameResource.root(new DenoFileStore(), getHandlers()),
+    FrameResource.root(withStandardModules(new DenoFileStore()), getHandlers()),
   );
   return host;
 }

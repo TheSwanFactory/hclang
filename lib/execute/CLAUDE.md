@@ -75,6 +75,11 @@ re-entering the same host namespace and resource spelling returns
 `$!.resource-import-cycle` before another read. The chain is neither a module
 registry nor a persistent cache, and a later independent import starts clean.
 
+Imported source bypasses `HCEval.checkInput` and `HCTest`, so an example line
+(`; …`) runs as an ordinary form and an expectation line (`# …`) is a comment:
+importing a testdoc binds its examples' names, and none of its claims is
+counted.
+
 ### Utilities
 
 - [hc-log.ts](hc-log.ts) - Logging and debugging utilities

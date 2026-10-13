@@ -19,6 +19,8 @@ HC interpreter from the command line.
 - [flatten.ts](flatten.ts) - Flattens nested structures for display
 - [prompt.ts](prompt.ts) - REPL prompt handling
 - [runfile.ts](runfile.ts) - File execution utilities
+- [standard-modules.ts](standard-modules.ts) - Read-only standard modules laid
+  over the root binding, such as `'./modules/figures.hc'`
 
 ### BitScheme
 
@@ -62,6 +64,9 @@ exits non-zero when any test fails.
 deno task build
 # Outputs to: ../scripts/hc
 ```
+
+The build passes `--include ../lib/modules/figures.hc`, which embeds the
+standard module the binary reads beside its own module URL.
 
 ## Development Guidelines
 
@@ -112,6 +117,10 @@ never as the boundary.
 - `--allow-read` and `--allow-write` are wider than any program's reach. A
   resource identifier resolves against the root binding, a fresh temp directory,
   so the language enforces a ceiling inside whatever the process holds.
+- The root also overlays the read-only standard modules:
+  `'./modules/figures.hc'` serves `lib/modules/figures.hc`. The harness reads
+  that file itself, so no flag or root widens, and every other path stays in the
+  temp root.
 - `--deny-run` and `--deny-ffi` are a hard floor, because `--deny-*` beats
   `--allow-*` and either authority would void every path scope above.
 - Which schemes can reach a host is `getHandlers()`, not a flag. One entry is
