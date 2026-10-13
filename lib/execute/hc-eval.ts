@@ -1,15 +1,13 @@
 import {
   type Context,
   Frame,
-  FrameGroup,
   FrameInt,
   FrameString,
   FrameSymbol,
   type StringMap,
 } from "../frames.ts";
-import { EvalPipe } from "./eval-pipe.ts";
+import { EvalPipe, makeSourcePipe } from "./eval-pipe.ts";
 import { LexPipe } from "./lex-pipe.ts";
-import { ParsePipe } from "./parse-pipe.ts";
 import { evaluateResourceSource } from "./resource-import.ts";
 import { sigilizer } from "./sigilizer.ts";
 
@@ -77,11 +75,10 @@ export class HCEval {
     fileScope: Frame = out,
     hostNamespace: Frame = Frame.nil,
   ): LexPipe {
-    const evaluator = new EvalPipe(out, fileScope, hostNamespace);
-    const parser = new ParsePipe(evaluator, FrameGroup, {
-      importSource: evaluateResourceSource,
-    });
-    return new LexPipe(parser);
+    return makeSourcePipe(
+      new EvalPipe(out, fileScope, hostNamespace),
+      { importSource: evaluateResourceSource },
+    );
   }
 
   protected pipe: LexPipe;

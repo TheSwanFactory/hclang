@@ -1,7 +1,8 @@
 import { expect } from "jsr:@std/expect@^0.219.1";
 import { beforeEach, describe, it } from "jsr:@std/testing@^1.0.10/bdd";
-import { EvalPipe } from "./eval-pipe.ts";
+import { EvalPipe, makeSourcePipe } from "./eval-pipe.ts";
 import * as frame from "../frames.ts";
+import { ParsePipe } from "./parse-pipe.ts";
 
 describe("EvalPipe", () => {
   const strA = new frame.FrameString("A");
@@ -23,6 +24,30 @@ describe("EvalPipe", () => {
 
   it("is constructed from an out parameter", () => {
     expect(pipe).toBeTruthy();
+  });
+
+  it("builds a source pipe with the supplied evaluator and options", () => {
+    const fileScope = new frame.FrameArray([]);
+    const evaluator = EvalPipe.scoped(
+      out,
+      frame.EvaluationScope.root(fileScope),
+    );
+    const sourcePipe = makeSourcePipe(evaluator, {
+      emitCompletedForms: true,
+      strictStructure: true,
+    });
+    const parser = sourcePipe.get(frame.Frame.kOUT) as ParsePipe;
+
+    expect(parser.get(frame.Frame.kOUT)).toBe(evaluator);
+    expect(parser.strictStructure).toBe(true);
+
+    new frame.FrameString("1;").scanInto(sourcePipe, false);
+    expect(out.at(0).toString()).toEqual("(1)");
+
+    new frame.FrameString("[2 ").scanInto(sourcePipe, false);
+    expect(sourcePipe.finish(frame.Frame.nil).toString()).toContain(
+      "$!.parse-unclosed-structure",
+    );
   });
 
   it("evaluates arguments", () => {

@@ -119,8 +119,9 @@ export class LexPipe extends Frame implements IFinish, IPerformer {
           break;
         }
         case "end": {
-          if (parser.strictStructure && this.level !== 0) {
-            return this.structureFailure("unclosed", `${this.level}`);
+          if (this.level !== 0) {
+            parser.next(false);
+            break;
           }
           if (value instanceof Frame) {
             parser.finish(value);

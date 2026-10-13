@@ -1,4 +1,20 @@
-import { type Context, EvaluationScope, Frame, NilContext } from "../frames.ts";
+import {
+  type Context,
+  EvaluationScope,
+  Frame,
+  FrameGroup,
+  NilContext,
+} from "../frames.ts";
+import { LexPipe } from "./lex-pipe.ts";
+import { ParsePipe, type ParsePipeOptions } from "./parse-pipe.ts";
+
+/** Builds the shared Lex/Parse/Eval pipeline for one HC source unit. */
+export function makeSourcePipe(
+  evaluator: EvalPipe,
+  options: ParsePipeOptions = {},
+): LexPipe {
+  return new LexPipe(new ParsePipe(evaluator, FrameGroup, options));
+}
 
 /** Live lexical lookup over every layer in one supplied evaluation scope. */
 class ScopedLexicalContext extends Frame {

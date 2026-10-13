@@ -302,6 +302,15 @@ describe("resource import", () => {
       }
     });
 
+    it("evaluates multiline arrays and closures", () => {
+      const array = evaluateOuterImport(".x [\n1, 2\n]\nx");
+      const closure = evaluateOuterImport(".f {\n_ + 1\n}\nf 2");
+
+      expect(array.at(0).toString()).toEqual("[1, 2]");
+      expect(array.get_here("x").toString()).toEqual("[1, 2]");
+      expect(closure.at(0).toString()).toEqual("3");
+    });
+
     it("makes prior declarations visible to later lexical work", () => {
       const output = evaluateOuterImport(".size 1; \\size\\a");
 
@@ -353,6 +362,47 @@ describe("resource import", () => {
 
       expect(output.at(0).toString()).toEqual("[9, [2]]");
       expect(output.get_here("inner").toString()).toEqual("9");
+    });
+
+    it("stops a self-import before rereading and clears the active chain", () => {
+      const store = new RecordingStore({
+        [MODULE_PATH]: ".started 1; . <- './module.hc'; .later 2;",
+      });
+      const output = new FrameArray([]);
+      const host = new Frame(rootContext(store));
+      const evaluator = new HCEval(output, output, host);
+
+      evaluator.call(`. <- ${MODULE_REFERENCE}`);
+
+      expect(output.at(0).toString()).toEqual(
+        "$!.resource-import-cycle './module.hc'",
+      );
+      expect(store.reads).toEqual([MODULE_PATH]);
+      expect(output.get_here("started").toString()).toEqual("1");
+      expect(output.get_here("later").is.missing).toBe(true);
+
+      store.write(MODULE_PATH, "7");
+      evaluator.call(`. <- ${MODULE_REFERENCE}`);
+
+      expect(output.at(1).toString()).toEqual("7");
+      expect(store.reads).toEqual([MODULE_PATH, MODULE_PATH]);
+    });
+
+    it("stops a mutual import at the repeated read prefix", () => {
+      const store = new RecordingStore({
+        "a.hc": ".aStarted 1; . <- './b.hc'; .aLater 3;",
+        "b.hc": ".bStarted 2; . <- './a.hc'; .bLater 4;",
+      });
+      const output = evaluate(". <- './a.hc'", rootContext(store));
+
+      expect(output.at(0).toString()).toEqual(
+        "$!.resource-import-cycle './a.hc'",
+      );
+      expect(store.reads).toEqual(["a.hc", "b.hc"]);
+      expect(output.get_here("aStarted").toString()).toEqual("1");
+      expect(output.get_here("bStarted").toString()).toEqual("2");
+      expect(output.get_here("aLater").is.missing).toBe(true);
+      expect(output.get_here("bLater").is.missing).toBe(true);
     });
 
     it("evaluates the right side and reads elements once per evaluation", () => {

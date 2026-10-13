@@ -2,14 +2,11 @@ import {
   EvaluationScope,
   Frame,
   FrameExpr,
-  FrameGroup,
   FrameResource,
   FrameSymbol,
   hasCharacterContent,
 } from "../frames.ts";
-import { EvalPipe } from "./eval-pipe.ts";
-import { LexPipe } from "./lex-pipe.ts";
-import { ParsePipe } from "./parse-pipe.ts";
+import { EvalPipe, makeSourcePipe } from "./eval-pipe.ts";
 import { sigilizer } from "./sigilizer.ts";
 
 /** Private output state for one imported source evaluation. */
@@ -30,6 +27,11 @@ class ImportProgress extends Frame {
   }
 }
 
+type ActiveImport = {
+  readonly hostNamespace: Frame;
+  readonly resource: string;
+};
+
 const sourceTypeFailure = (value: Frame): Frame =>
   Frame.error(`$!.resource-import-source-type ${value.toString()}`);
 
@@ -38,14 +40,39 @@ export function evaluateResourceSource(
   resource: FrameResource,
   scope: EvaluationScope,
 ): Frame {
+  return evaluateResourceSourceWithChain(resource, scope, []);
+}
+
+function evaluateResourceSourceWithChain(
+  resource: FrameResource,
+  scope: EvaluationScope,
+  activeImports: readonly ActiveImport[],
+): Frame {
+  const spelling = resource.toString();
+  if (
+    activeImports.some((active) =>
+      active.hostNamespace === scope.hostNamespace &&
+      active.resource === spelling
+    )
+  ) {
+    return Frame.error(`$!.resource-import-cycle ${spelling}`);
+  }
+
+  const nextActiveImports = [
+    ...activeImports,
+    { hostNamespace: scope.hostNamespace, resource: spelling },
+  ];
   const progress = new ImportProgress();
-  const evaluator = EvalPipe.scoped(progress, scope);
-  const parser = new ParsePipe(evaluator, FrameGroup, {
-    importSource: evaluateResourceSource,
+  const lexer = makeSourcePipe(EvalPipe.scoped(progress, scope), {
+    importSource: (nestedResource, nestedScope) =>
+      evaluateResourceSourceWithChain(
+        nestedResource,
+        nestedScope,
+        nextActiveImports,
+      ),
     emitCompletedForms: true,
     strictStructure: true,
   });
-  const lexer = new LexPipe(parser);
   let receiver: Frame = lexer;
   const elements = resource.elements();
 
