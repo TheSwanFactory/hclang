@@ -21,6 +21,7 @@ hclang/
 ├── maml/             # MAML markup language
 ├── web/              # Web interface
 ├── doc/              # Documentation and papers
+├── experiments/      # Research programs run on HC (not shipped)
 └── vscode-extension/ # VS Code syntax highlighting
 ```
 
