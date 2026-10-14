@@ -176,10 +176,11 @@ Every host that installs a root, the CLI and `HCLang` (and so the playground),
 lays the read-only standard modules of `lib/modules/standard-modules.ts` over
 it, so `Figures <- './modules/figures.hc'` imports `lib/modules/figures.hc`
 there. Every `lib/modules/*.hc` is a standard module, served as
-`'./modules/<file>'`. The sources are compiled in from the generated
-`lib/modules/standard-sources.ts`, so after adding or editing a module, run
-`deno task modules:embed`: an added module is not served until then, and an
-edited one fails the generated `lib/modules/standard-sources.test.ts`. A bare
+`'./modules/<file>'`. The sources are compiled in from the generated, committed
+`lib/modules/standard-sources.ts`, so after adding, editing, or removing a
+module, run `deno task modules:embed` and commit the result. Git is the drift
+check: `deno task modules:check` regenerates the embed and fails on any
+difference, and both the pre-commit hook and `test:all` run it. A bare
 `evaluate` has no root, so it imports nothing, standard or otherwise.
 
 ### Iteration

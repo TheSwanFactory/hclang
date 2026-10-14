@@ -8,12 +8,15 @@
  *
  * Every host serves a standard module from the program itself, never from the
  * filesystem: the CLI's root is a fresh temp directory, `HCLang` keeps an
- * in-memory root, and a browser has no files at all. A raw text import would
- * carry the bytes under Deno, but neither dnt (the npm build) nor Vite (the
- * Fresh consumer of `@swanfactory/hcweb`) accepts one, so this script writes the
- * maintained sources into one plain module that every bundler can carry. It also
- * writes the drift test, which compares every embed with its maintained file
- * through a text import and fails when they disagree.
+ * in-memory root, and a browser has no files at all. Deno takes a raw text
+ * import of the `.hc` file everywhere, but dnt (the npm build) refuses one and
+ * Vite (the Fresh consumer of `@swanfactory/hcweb`) parses the imported file as
+ * JavaScript, so this script writes the maintained sources into one plain
+ * module that every bundler can carry.
+ *
+ * The embed is committed, and git is the drift check: `deno task modules:check`
+ * regenerates it and fails on any difference. The pre-commit hook and
+ * `test:all` both run that, so a stale embed never lands.
  *
  * Usage: `deno task modules:embed`
  *
@@ -21,13 +24,10 @@
  */
 
 /** The directory of maintained modules, the only source of truth for them. */
-export const MODULES_DIR = "lib/modules";
+export const MODULES_DIR: URL = new URL("../lib/modules/", import.meta.url);
 
 /** The generated module every host imports. */
-export const EMBED_PATH = "lib/modules/standard-sources.ts";
-
-/** The generated test that compares the embed with the maintained files. */
-export const DRIFT_TEST_PATH = "lib/modules/standard-sources.test.ts";
+export const EMBED_PATH: URL = new URL("standard-sources.ts", MODULES_DIR);
 
 /** One maintained module: its file name in `MODULES_DIR` and its source. */
 export type ModuleSource = { file: string; source: string };
@@ -102,49 +102,8 @@ export function renderEmbed(modules: readonly ModuleSource[]): string {
   ].join("\n");
 }
 
-/**
- * Renders the drift test, which reads every maintained module through a text
- * import, so it needs no read permission, and compares each with the embed.
- *
- * @param modules The maintained modules the embed was rendered from.
- * @returns The TypeScript test module text, before formatting.
- */
-export function renderDriftTest(modules: readonly ModuleSource[]): string {
-  const imports = modules.map(({ file }, index) =>
-    `import source${index} from ${
-      JSON.stringify(`./${file}`)
-    } with { type: "text" };`
-  );
-  const entries = modules.map(({ file }, index) =>
-    `  [${JSON.stringify(moduleKey(file))}, source${index}],`
-  );
-  return [
-    ...HEADER,
-    'import { expect } from "jsr:@std/expect@^0.219.1";',
-    'import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";',
-    "// The maintained artifacts themselves, read by the module loader, so this",
-    "// test needs no read permission and compares against no private copy.",
-    ...imports,
-    'import { STANDARD_SOURCES } from "./standard-sources.ts";',
-    "",
-    "const MAINTAINED: ReadonlyMap<string, string> = new Map([",
-    ...entries,
-    "]);",
-    "",
-    'describe("standard module embed", () => {',
-    '  it("embeds every maintained module exactly", () => {',
-    "    // A stale embed fails here. Regenerate it with `deno task modules:embed`.",
-    "    expect([...STANDARD_SOURCES.keys()]).toEqual([...MAINTAINED.keys()]);",
-    "    for (const [key, source] of MAINTAINED) {",
-    "      expect(STANDARD_SOURCES.get(key)).toEqual(source);",
-    "    }",
-    "  });",
-    "});",
-    "",
-  ].join("\n");
-}
-
-if (import.meta.main) {
+/** Reads every maintained module, in the order the embed lists them. */
+async function readModules(): Promise<ModuleSource[]> {
   const names: string[] = [];
   for await (const entry of Deno.readDir(MODULES_DIR)) {
     if (entry.isFile) names.push(entry.name);
@@ -155,21 +114,19 @@ if (import.meta.main) {
   }
   const modules: ModuleSource[] = [];
   for (const file of files) {
-    const source = await Deno.readTextFile(`${MODULES_DIR}/${file}`);
+    const source = await Deno.readTextFile(new URL(file, MODULES_DIR));
     modules.push({ file, source });
   }
-  await Deno.writeTextFile(EMBED_PATH, renderEmbed(modules));
-  await Deno.writeTextFile(DRIFT_TEST_PATH, renderDriftTest(modules));
-  // Format here, so the committed output passes `deno fmt --check` unchanged.
-  const formatted = await new Deno.Command(Deno.execPath(), {
-    args: ["fmt", "--quiet", EMBED_PATH, DRIFT_TEST_PATH],
-    stdin: "null",
-  }).output();
-  if (!formatted.success) {
-    throw new Error(new TextDecoder().decode(formatted.stderr));
+  return modules;
+}
+
+if (import.meta.main) {
+  if (Deno.args.length > 0) {
+    throw new Error(`Unsupported argument(s): ${Deno.args.join(" ")}`);
   }
+  const modules = await readModules();
+  await Deno.writeTextFile(EMBED_PATH, renderEmbed(modules));
   console.log(
-    `Wrote ${EMBED_PATH} and ${DRIFT_TEST_PATH} from ${files.length} ` +
-      `module(s) in ${MODULES_DIR}`,
+    `Wrote ${EMBED_PATH.pathname} from ${modules.length} module(s)`,
   );
 }

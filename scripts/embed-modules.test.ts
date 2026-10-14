@@ -1,12 +1,7 @@
 import { expect } from "jsr:@std/expect@^0.219.1";
 import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 
-import {
-  moduleFiles,
-  moduleKey,
-  renderDriftTest,
-  renderEmbed,
-} from "./embed-modules.ts";
+import { moduleFiles, moduleKey, renderEmbed } from "./embed-modules.ts";
 
 /** Evaluates a rendered embed without writing it, so no permission is needed. */
 const importEmbed = async (
@@ -29,7 +24,7 @@ describe("moduleFiles", () => {
         "b.hc",
         "standard-modules.ts",
         "figures.hc",
-        "standard-sources.test.ts",
+        "standard-modules.test.ts",
         "a.hc",
       ]),
     ).toEqual(["a.hc", "b.hc", "figures.hc"]);
@@ -66,26 +61,5 @@ describe("renderEmbed", () => {
     for (const { file, source } of modules) {
       expect(embed.get(`modules/${file}`)).toEqual(source);
     }
-  });
-});
-
-describe("renderDriftTest", () => {
-  it("imports every module and compares each with the embed", () => {
-    const text = renderDriftTest([
-      { file: "a.hc", source: "" },
-      { file: "figures.hc", source: "" },
-    ]);
-
-    expect(text).toContain(
-      'import source0 from "./a.hc" with { type: "text" };',
-    );
-    expect(text).toContain(
-      'import source1 from "./figures.hc" with { type: "text" };',
-    );
-    expect(text).toContain(
-      'import { STANDARD_SOURCES } from "./standard-sources.ts";',
-    );
-    expect(text).toContain('["modules/a.hc", source0],');
-    expect(text).toContain('["modules/figures.hc", source1],');
   });
 });

@@ -68,6 +68,34 @@ export class MemoryStore implements ResourceStore {
 }
 
 /**
+ * The copies `canonicalEntries` made. None escapes this module except through
+ * `ResourceMapStore.overlay`, which hands it only back to the constructor, so a
+ * member is already checked and no caller can change it.
+ */
+const CANONICAL = new WeakSet<ReadonlyMap<string, string>>();
+
+/** Checks every key is a canonical nonempty path, and copies the entries. */
+function canonicalEntries(
+  entries: ReadonlyMap<string, string>,
+): ReadonlyMap<string, string> {
+  if (CANONICAL.has(entries)) return entries;
+  const copied = new Map<string, string>();
+  for (const [key, content] of entries) {
+    const normal = normalizeReferencePath(key);
+    if (key === "" || !normal.ok || normal.path !== key) {
+      throw new TypeError(
+        `ResourceMapStore key must be a canonical nonempty path: ${
+          JSON.stringify(key)
+        }`,
+      );
+    }
+    copied.set(key, content);
+  }
+  CANONICAL.add(copied);
+  return copied;
+}
+
+/**
  * A read-only overlay of fixed entries, keyed by canonical root-relative path,
  * on another store.
  *
@@ -77,6 +105,8 @@ export class MemoryStore implements ResourceStore {
  * path the root plane itself would produce can be installed; a key that fails is
  * a harness defect, and the constructor throws rather than refusing. The entries
  * are copied, so the caller's map cannot change what the overlay serves.
+ * `overlay` checks and copies once for a harness that lays the same entries over
+ * many stores.
  */
 export class ResourceMapStore implements ResourceStore {
   readonly #entries: ReadonlyMap<string, string>;
@@ -85,19 +115,20 @@ export class ResourceMapStore implements ResourceStore {
     private readonly underlying: ResourceStore,
     entries: ReadonlyMap<string, string>,
   ) {
-    const copied = new Map<string, string>();
-    for (const [key, content] of entries) {
-      const normal = normalizeReferencePath(key);
-      if (key === "" || !normal.ok || normal.path !== key) {
-        throw new TypeError(
-          `ResourceMapStore key must be a canonical nonempty path: ${
-            JSON.stringify(key)
-          }`,
-        );
-      }
-      copied.set(key, content);
-    }
-    this.#entries = copied;
+    this.#entries = canonicalEntries(entries);
+  }
+
+  /**
+   * Checks and copies fixed entries once, for laying over any number of stores.
+   *
+   * @param entries The fixed entries, by canonical root-relative path.
+   * @returns A function that lays those entries over a store.
+   */
+  public static overlay(
+    entries: ReadonlyMap<string, string>,
+  ): (underlying: ResourceStore) => ResourceMapStore {
+    const fixed = canonicalEntries(entries);
+    return (underlying) => new ResourceMapStore(underlying, fixed);
   }
 
   public describe(): string {
