@@ -4,6 +4,17 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## Unreleased
+
+- **Experiment: the classical Cayley–Dickson lane runs in HC.**
+  `experiments/017-classical-cd/` builds the sign tables of the 1-, 2-, 4-, 8-
+  and 16-dimensional algebras from w₀ = 0 with the literal Dickson/Schafer
+  doubling, checks each floor's lawful domain and K∘CD = S∘K on every triple,
+  and searches the sedenion floor for positive-holonomy squares and two-term
+  zero divisors, with an independent dense-arithmetic oracle, mutation and
+  causal controls, and a fail-closed driver. Research code: not shipped and not
+  part of `test:all`. No runtime change was needed.
+
 ## v0.20.1 2026-10-13
 
 - **Figures is a standard module in every host.** The corpus moved to
