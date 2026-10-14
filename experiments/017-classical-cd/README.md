@@ -41,7 +41,8 @@ variant file (shebangs stripped) and writes it to `<out>/build/`; that file is
 the exact source that ran. It fails closed when the runtime or experiment tree
 is dirty, and it rejects any composed file whose code lines (outside prose
 blocks) contain the integer tokens 168, 84, 42, 336 or 3168. No HC source reads
-anything the host computed, and no reference count is an input.
+anything the host computed, and no reference count is an input. The guard does
+not detect a hard-coded table literal (see Limits).
 
 ## Records
 
@@ -87,8 +88,19 @@ checker self-tests only and is recorded in `runtime.json`.
   relation, prove universal recovery or scaling, or close Issue 017.
 - The two-term search covers basis-pair elements only, not arbitrary sedenion
   zero divisors.
-- K∘CD = S∘K is checked on the constructed floors and, in the oracle tests, on
-  all of 𝒲₁ and 𝒲₂; it is not checked as an operator identity off 𝒲.
+- K∘CD = S∘K is asserted only on 𝒲. It is checked on the constructed floors and,
+  in the oracle tests, on all of 𝒲₁ and 𝒲₂; control C1 checks it off 𝒲 (r = 0 on
+  𝔽₂²) and finds it failing on 96 of 512 triples.
+- Two per-record checks are internal consistency checks, not independent support
+  for T03: the single-signed-monomial check on each doubling product (for a
+  basis input x + yℓ one of x, y is zero, so it cannot fail), and the per-pair
+  equal-displacement and forced-relative-sign check on each annihilating pair
+  (xy = 0 already forces both). The two-term search itself is cross-checked by
+  HC's label-sum test and by the oracle's dense products.
+- Hard-coding in `main.hc` itself is not gated. The literal guard blocks only
+  the reference counts, and C4 diffs against the controls' own rebuild of w₄, so
+  a correct table literal written into `main.hc` would pass every gate. That
+  `main.hc` builds w₁…w₄ through `succ` rests on source review.
 - C5 checks one alternate lawful seed, not all of 𝒲, and at 16 it reports the
   two-term counts up to supports but not the support graph or its components.
 - The 017.09 closure pitfall P5 still reproduces on this runtime (`p5-depth`
