@@ -381,6 +381,13 @@ export function expectControls(): Rec[] {
     }
   }
   out.push(rec("poke-diff", "C4-poke", diff.length, diff.join("")));
+  return out;
+}
+
+/** Everything alt-seed.hc (C5) should print, as computed by the oracle. */
+export function expectAltSeed(): Rec[] {
+  const w = classical("DS");
+  const out: Rec[] = [];
   // C5: w2' = w2 ⊕ f, f = 1 on (1, 2) and (2, 1).
   const a2 = poke(poke(w[2], 2, 1, 2), 2, 2, 1);
   const alt = lane(a2, 2, 4, "DS");
@@ -389,9 +396,10 @@ export function expectControls(): Rec[] {
     out.push(stepRec("C5-alt", d, alt[d], alt[d + 1]));
   }
   for (let d = 3; d <= 4; d++) out.push(squaresRec("C5-alt", d, alt[d]));
-  for (let d = 3; d <= 4; d++) {
-    out.push(twoTermRec("C5-alt", d, alt[d], twoTerm(d, tableMul(alt[d], d))));
-  }
+  out.push(twoTermRec("C5-alt", 3, alt[3], twoTerm(3, tableMul(alt[3], 3))));
+  const t4 = twoTermRec("C5-alt", 4, alt[4], twoTerm(4, tableMul(alt[4], 4)));
+  // ttpart: the same fields up to and including the support count.
+  out.push(rec("twoterm-partial", ...t4.fields.slice(0, 10)));
   return out;
 }
 
@@ -487,6 +495,7 @@ export function charDiff(x: string, y: string): number {
 export function expectedFor(variant: string): Rec[] {
   if (variant === "main") return expectMain();
   if (variant === "controls") return expectControls();
+  if (variant === "alt-seed") return expectAltSeed();
   if (variant === "closure-probe") return expectClosure();
   throw new Error(`unknown variant ${variant}`);
 }
@@ -545,6 +554,18 @@ export const SCHEMA: Record<string, string[]> = {
     "supports",
     "supportEdges",
     "supportComponents",
+  ],
+  "twoterm-partial": [
+    "lane",
+    "d",
+    "twoTermElements",
+    "orderedAnnihilatingPairs",
+    "ofThemAlsoYxZero",
+    "ofThemLabelSumZero",
+    "unorderedEdges",
+    "zeroDivisorVertices",
+    "degreeSum",
+    "supports",
   ],
   component: [
     "lane",

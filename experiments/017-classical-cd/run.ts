@@ -11,7 +11,7 @@
  *   --variant all --out <dir>
  * ```
  *
- * Options: `--variant main|controls|closure-probe|all`, `--out <dir>`,
+ * Options: `--variant main|controls|alt-seed|closure-probe|all`, `--out <dir>`,
  * `--src-dir <dir>` (HC sources; default this directory), `--heap <MB>`
  * (V8 old-space limit for HC; default 32768), `--budget-min <minutes>`
  * (per-variant wall budget; default 45), `--allow-dirty` (only for scratch
@@ -29,7 +29,7 @@ import { errorLines, parseRecords } from "./parse.ts";
 
 const HERE = new URL(".", import.meta.url).pathname;
 const REPO = new URL("../../", import.meta.url).pathname;
-const VARIANTS = ["main", "controls", "closure-probe"];
+const VARIANTS = ["main", "controls", "alt-seed", "closure-probe"];
 /** Reference counts that must never appear in executed HC code. */
 export const GUARDED = ["168", "84", "42", "336", "3168"];
 

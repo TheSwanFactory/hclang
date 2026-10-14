@@ -234,4 +234,9 @@ one floor, summarized
 ; .sqrec0 {.s0_T (_ .2); .s0_Q (allsq (_ .3)); sqcount [(_ .0), (_ .1), s0_T, s0_Q, possq [s0_T, s0_Q]]};
 ; .ttrec {.tt_l (_ .0); .tt_d (_ .1); .tt_T (_ .2); .tt_X (_ .3); .tt_AP (_ .4); .tt_E (_ .5); .tt_Z (_ .6); .tt_S (_ .7); .tt_SE (_ .8); .tt_C (_ .9); [“record”, “twoterm-summary”, tt_l, tt_d, cnt (tt_X & {1}), cnt (tt_AP & {1}), cnt (tt_AP & {.ty_e _; tzero [tt_T, (ty_e .1), (ty_e .0)]}), cnt (tt_AP & {.tu_e _; tzsum [tt_T, (tu_e .0), (tu_e .1)]}), cnt (tt_E & {1}), cnt (tt_Z & {1}), cnt (tt_Z & {degree [_, tt_E]}), cnt (tt_S & {1}), cnt (tt_SE & {1}), cnt (tt_C & {1})]};
 ; .ttall {.ta_T (_ .2); .ta_X (twos (_ .3)); .ta_AP (annpairs [ta_T, ta_X]); .ta_E (mkedges ta_AP); .ta_Z (zverts [ta_X, ta_E]); .ta_S (supps ta_Z); .ta_SE (suppedges [ta_S, ta_E]); ttrec [(_ .0), (_ .1), ta_T, ta_X, ta_AP, ta_E, ta_Z, ta_S, ta_SE, comps [ta_S, ta_SE]]};
+```
+ttpart is ttall without the support graph and its components. The alternate
+seed's sedenion floor uses it: the full search exhausted a 30 GB heap there
+```
+; .ttpart {.tp_l (_ .0); .tp_d (_ .1); .tp_T (_ .2); .tp_X (twos (_ .3)); .tp_AP (annpairs [tp_T, tp_X]); .tp_E (mkedges tp_AP); .tp_Z (zverts [tp_X, tp_E]); [“record”, “twoterm-partial”, tp_l, tp_d, cnt (tp_X & {1}), cnt (tp_AP & {1}), cnt (tp_AP & {.tv_e _; tzero [tp_T, (tv_e .1), (tv_e .0)]}), cnt (tp_AP & {.tx_e _; tzsum [tp_T, (tx_e .0), (tx_e .1)]}), cnt (tp_E & {1}), cnt (tp_Z & {1}), cnt (tp_Z & {degree [_, tp_E]}), cnt ((supps tp_Z) & {1})]};
 ; .witness {.wt_T (_ .0); .wt_l (_ .1); .wt_x (_ .2 .0); .wt_y (_ .2 .1); .wt_m (tprod [wt_T, wt_x, wt_y]); [“record”, “witness”, wt_l, xstr wt_x, xstr wt_y, join (wt_m & {.wt_u _; (ptstr (wt_u .0)) (“:” (sgn (wt_u .1)))}), join (wt_m & {.wt_v _; (ptstr (wt_v .0)) (“:” (tsum [wt_m, (wt_v .0)]))}), tzero [wt_T, wt_x, wt_y]]};

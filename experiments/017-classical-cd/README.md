@@ -88,4 +88,11 @@ checker self-tests only and is recorded in `runtime.json`.
   zero divisors.
 - K∘CD = S∘K is checked on the constructed floors and, in the oracle tests, on
   all of 𝒲₁ and 𝒲₂; it is not checked as an operator identity off 𝒲.
-- C5 checks one alternate lawful seed, not all of 𝒲.
+- C5 checks one alternate lawful seed, not all of 𝒲, and at 16 it reports the
+  two-term counts up to supports but not the support graph or its components.
+- The 017.09 closure pitfall P5 still reproduces on this runtime (`p5-depth`
+  answers 1, 3, 5 instead of 1, 2, 3). The lane avoids it by keeping floors as
+  data; the closure factories in `closure-probe.hc` that pass fresh argument
+  literals agree with the data route. It is recorded, not fixed: it is a
+  name-resolution design question in the evaluator, not a defect the lane needs
+  fixed.

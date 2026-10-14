@@ -18,7 +18,12 @@ import {
   tableMul,
   twoTerm,
 } from "./oracle.ts";
-import { expectClosure, expectControls, expectMain } from "./compare.ts";
+import {
+  expectAltSeed,
+  expectClosure,
+  expectControls,
+  expectMain,
+} from "./compare.ts";
 
 // These assertions test the oracle. The counts written here never reach HC.
 
@@ -171,6 +176,7 @@ describe("dense Cayley–Dickson oracle", () => {
   it("builds every expected record set without internal disagreement", () => {
     expect(expectMain().length).toBeGreaterThan(0);
     expect(expectControls().length).toBeGreaterThan(0);
+    expect(expectAltSeed().length).toBeGreaterThan(0);
     expect(expectClosure().length).toBe(9);
   });
 });
