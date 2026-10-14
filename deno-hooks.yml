@@ -14,9 +14,16 @@ hooks:
       glob: "*.{ts,js}"
       pass_filenames: true
 
+    # Fail on a standard-module embed that was not regenerated
+    - id: modules-check
+      name: modules check
+      run: deno task modules:check
+      pass_filenames: false
+
   pre-push:
-    # Run tests before pushing
+    # Run the full gate before pushing, the same command CI runs; the built-in
+    # `deno-test` is a bare `deno test -A`, which is not this project's gate
     - id: test
       name: test
-      run: deno-test
+      run: deno task test:all
       pass_filenames: false

@@ -21,10 +21,5 @@
   "exports": "./mod.ts",
   "compilerOptions": {
     "strict": true
-  },
-  "publish": {
-    "exclude": [
-      "!modules/standard-sources.ts"
-    ]
   }
 }

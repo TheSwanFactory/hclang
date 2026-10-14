@@ -4,8 +4,8 @@ import { MemoryStore } from "../frames.ts";
 import { STANDARD_SOURCES } from "./standard-sources.ts";
 import { withStandardModules } from "./standard-modules.ts";
 
-// The overlay's rules are `ResourceMapStore`'s own tests, and the embed is
-// regenerated from `lib/modules/*.hc` before every test task.
+// The overlay's rules are `ResourceMapStore`'s own tests, and
+// `deno task modules:check` keeps the embed equal to `lib/modules/*.hc`.
 describe("withStandardModules", () => {
   it("serves every embedded module read-only and delegates the rest", () => {
     const fresh = new MemoryStore("fresh");

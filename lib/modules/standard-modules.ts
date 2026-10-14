@@ -14,10 +14,10 @@
  * gains these reads and nothing else.
  *
  * The sources are compiled into the program from the generated
- * `lib/modules/standard-sources.ts`, which every task that loads `lib/`
- * regenerates first (`deno task modules:embed`), so the CLI, the compiled
- * binary, the npm package, `HCLang`, and the browser playground serve the same
- * text without reading a file at run time.
+ * `lib/modules/standard-sources.ts` (`deno task modules:embed`, checked by
+ * `deno task modules:check`), so the CLI, the compiled binary, the npm package,
+ * `HCLang`, and the browser playground serve the same text without reading a
+ * file at run time.
  *
  * @module
  */
