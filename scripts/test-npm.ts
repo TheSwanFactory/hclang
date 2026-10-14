@@ -131,6 +131,18 @@ if (!numerics.stdout.includes(expected)) {
   );
 }
 
+// Match the summary line, because every pass line carries a running total.
+const modules = await npx(["cli/hc/modules.hc", "--testdoc"]);
+const modulesSummary = modules.stdout.split("\n").find((line) =>
+  line.includes("$=.test-summary")
+);
+const modulesExpected = '“{"total":18,"pass":18,"fail":0,"unimplemented":0}”';
+if (!modulesSummary?.includes(modulesExpected)) {
+  throw new Error(
+    `npm testdoc did not import the Figures standard module\n${modules.stdout}`,
+  );
+}
+
 console.log(
   `Verified ${packageManifest.name}@${packageManifest.version} via npx (${archive})`,
 );

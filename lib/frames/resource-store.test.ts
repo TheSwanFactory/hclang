@@ -76,6 +76,31 @@ describe("ResourceMapStore", () => {
     });
   });
 
+  it("overlays the entries it checked once over every store it is given", () => {
+    const entries = new Map([[KEY, "mapped"]]);
+    const overlay = ResourceMapStore.overlay(entries);
+    entries.set(KEY, "changed");
+    const first = new MemoryStore("first");
+    const second = new MemoryStore("second");
+
+    for (const store of [overlay(first), overlay(second)]) {
+      expect(store.read(KEY)).toEqual({ ok: true, content: "mapped" });
+      expect(store.write(KEY, "x")).toEqual({
+        ok: false,
+        reason: "resource-read-only",
+      });
+    }
+    overlay(first).write("notes.txt", "kept");
+    expect(first.read("notes.txt")).toEqual({ ok: true, content: "kept" });
+    expect(second.read("notes.txt")).toEqual({
+      ok: false,
+      reason: "resource-absent",
+    });
+    expect(() => ResourceMapStore.overlay(new Map([["./bad", "x"]]))).toThrow(
+      TypeError,
+    );
+  });
+
   it("rejects every key that is not a canonical nonempty path", () => {
     const keys = [
       "",

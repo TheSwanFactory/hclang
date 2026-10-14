@@ -83,6 +83,10 @@ example added to an importable testdoc such as `lib/modules/figures.hc` would
 pass when that file runs directly and break every importer; the `HCLang`
 standard-module test in `hc-lang.test.ts` imports Figures to catch it.
 
+`HCLang.makeHost` lays the standard modules of `lib/modules/standard-modules.ts`
+over its in-memory session root, as the CLI does over its temp root, and
+`reset()` reinstalls them with the fresh root.
+
 ### Utilities
 
 - [hc-log.ts](hc-log.ts) - Logging and debugging utilities

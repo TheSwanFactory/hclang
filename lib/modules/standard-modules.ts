@@ -27,6 +27,9 @@ import {
 } from "../frames/resource-store.ts";
 import { STANDARD_SOURCES } from "./standard-sources.ts";
 
+/** Checked and copied once, so a host start or `reset()` only wraps a store. */
+const overlayStandardModules = ResourceMapStore.overlay(STANDARD_SOURCES);
+
 /**
  * Lays the standard modules over a store as read-only entries.
  *
@@ -34,5 +37,5 @@ import { STANDARD_SOURCES } from "./standard-sources.ts";
  * @returns A store that serves the standard modules and delegates the rest.
  */
 export function withStandardModules(store: ResourceStore): ResourceStore {
-  return new ResourceMapStore(store, STANDARD_SOURCES);
+  return overlayStandardModules(store);
 }
