@@ -1,12 +1,7 @@
 import { expect } from "jsr:@std/expect@^0.219.1";
 import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 
-import {
-  moduleFiles,
-  moduleKey,
-  renderEmbed,
-  staleKeys,
-} from "./embed-modules.ts";
+import { moduleFiles, moduleKey, renderEmbed } from "./embed-modules.ts";
 
 /** Evaluates a rendered embed without writing it, so no permission is needed. */
 const importEmbed = async (
@@ -66,30 +61,5 @@ describe("renderEmbed", () => {
     for (const { file, source } of modules) {
       expect(embed.get(`modules/${file}`)).toEqual(source);
     }
-  });
-});
-
-describe("staleKeys", () => {
-  const embedded = new Map([
-    ["modules/a.hc", "a"],
-    ["modules/b.hc", "b"],
-  ]);
-
-  it("is empty when the embed matches every module", () => {
-    expect(
-      staleKeys(embedded, [
-        { file: "a.hc", source: "a" },
-        { file: "b.hc", source: "b" },
-      ]),
-    ).toEqual([]);
-  });
-
-  it("names an edited, a removed, and an added module", () => {
-    expect(
-      staleKeys(embedded, [
-        { file: "a.hc", source: "a, edited" },
-        { file: "c.hc", source: "c" },
-      ]),
-    ).toEqual(["modules/a.hc", "modules/b.hc", "modules/c.hc"]);
   });
 });

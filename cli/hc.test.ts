@@ -105,10 +105,12 @@ describe("this harness's grant", () => {
     const workspace = JSON.parse(
       await Deno.readTextFile(new URL("../deno.json", import.meta.url)),
     );
+    // Each task first runs `modules:embed` as a dependency, in its own process
+    // that never evaluates HC, so the flags that matter are the command's.
     const tasks = [
-      manifest.tasks.hc,
-      manifest.tasks.build,
-      workspace.tasks.hc,
+      manifest.tasks.hc.command,
+      manifest.tasks.build.command,
+      workspace.tasks.hc.command,
     ];
 
     for (const task of tasks) {

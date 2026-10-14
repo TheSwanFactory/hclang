@@ -9,13 +9,33 @@
     "directory": "web"
   },
   "tasks": {
-    "check": "deno fmt --check . && deno lint . && deno check",
+    "check": {
+      "command": "deno fmt --check . && deno lint . && deno check",
+      "dependencies": [
+        "modules:embed"
+      ]
+    },
     "dev": "deno task build && deno task serve",
     "serve": "deno run -A jsr:@std/http@1.1.3/file-server dist",
-    "build": "deno run -A ../scripts/build-hcweb.ts",
+    "build": {
+      "command": "deno run -A ../scripts/build-hcweb.ts",
+      "dependencies": [
+        "modules:embed"
+      ]
+    },
     "test": "deno task build && deno task test:components && deno task test:consumer && deno task test:artifact",
-    "test:components": "deno test -A tests/hclang.test.tsx",
-    "test:consumer": "deno task --config tests/consumer/deno.json --lock ../deno.lock build",
+    "test:components": {
+      "command": "deno test -A tests/hclang.test.tsx",
+      "dependencies": [
+        "modules:embed"
+      ]
+    },
+    "test:consumer": {
+      "command": "deno task --config tests/consumer/deno.json --lock ../deno.lock build",
+      "dependencies": [
+        "modules:embed"
+      ]
+    },
     "test:artifact": "deno test -A tests/standalone.test.ts tests/standalone-browser.test.ts"
   },
   "exports": {

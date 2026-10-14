@@ -7,30 +7,64 @@
   "tasks": {
     "build": "deno task build:cli && deno task build:npm && deno task build:web",
     "build:cli": "cd cli && deno task build",
-    "build:npm": "deno run -A scripts/build-npm.ts",
+    "build:npm": {
+      "command": "deno run -A scripts/build-npm.ts",
+      "dependencies": [
+        "modules:embed"
+      ]
+    },
     "build:web": "cd web && deno task build",
     "build:web:release": "deno run -A scripts/build-hcweb.ts --jsr-version",
     "bump": "deno run -A scripts/bump-version.ts",
     "clean": "rm deno.lock */deno.lock",
-    "hc": "deno run --allow-read --allow-write --allow-env --deny-run --deny-ffi cli/hc.ts",
+    "hc": {
+      "command": "deno run --allow-read --allow-write --allow-env --deny-run --deny-ffi cli/hc.ts",
+      "dependencies": [
+        "modules:embed"
+      ]
+    },
     "publish": "deno task publish:lib && deno task publish:web",
-    "publish:lib": "cd lib && deno publish",
+    "publish:lib": {
+      "command": "cd lib && deno publish",
+      "dependencies": [
+        "modules:embed"
+      ]
+    },
     "publish:npm": "npm publish",
-    "publish:web": "cd web && deno publish",
+    "publish:web": {
+      "command": "cd web && deno publish",
+      "dependencies": [
+        "modules:embed"
+      ]
+    },
     "setup": "deno run -A deno-hooks",
     "test": "deno fmt && deno lint --fix && deno task test:all",
     "test:cli": "cd cli && deno task test",
     "test:doc": "cd cli && deno task test:doc",
-    "test:lib": "deno test lib",
-    "test:maml": "deno test maml",
+    "test:lib": {
+      "command": "deno test lib",
+      "dependencies": [
+        "modules:embed"
+      ]
+    },
+    "test:maml": {
+      "command": "deno test maml",
+      "dependencies": [
+        "modules:embed"
+      ]
+    },
     "test:npm": "deno task build:npm && deno run -A scripts/test-npm.ts",
-    "test:scripts": "deno test scripts",
+    "test:scripts": {
+      "command": "deno test scripts",
+      "dependencies": [
+        "modules:embed"
+      ]
+    },
     "test:web": "cd web && deno task test",
     "test:bs": "cd cli && deno task test:bs",
     "test:compiled": "deno task build:cli && deno run --allow-read --allow-write --allow-env --allow-run scripts/test-compiled.ts",
-    "modules:embed": "deno run --allow-read --allow-write --allow-run scripts/embed-modules.ts",
-    "modules:check": "deno run --allow-read scripts/embed-modules.ts --check",
-    "test:all": "deno task modules:check && deno task test:cli && deno task test:lib && deno task test:scripts && deno task test:web && deno task test:doc && deno task test:bs && deno task test:npm && deno task test:compiled",
+    "modules:embed": "deno run --allow-read --allow-write scripts/embed-modules.ts",
+    "test:all": "deno task test:cli && deno task test:lib && deno task test:scripts && deno task test:web && deno task test:doc && deno task test:bs && deno task test:npm && deno task test:compiled",
     "vscode:package": "cd vscode-extension && npx --yes @vscode/vsce@3.9.2 package",
     "vscode:publish": "cd vscode-extension && npx --yes @vscode/vsce@3.9.2 publish",
     "vscode:install": "cd vscode-extension && npx --yes @vscode/vsce@3.9.2 package && code --install-extension *.vsix"
