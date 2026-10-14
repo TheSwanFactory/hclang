@@ -16,6 +16,7 @@ hclang/
 ├── lib/              # Core library (published to JSR)
 │   ├── execute/      # Language processing pipeline
 │   ├── frames/       # Core data structures
+│   ├── modules/      # Standard HC modules (Figures), served by every host
 │   └── ops/          # Built-in operations
 ├── maml/             # MAML markup language
 ├── web/              # Web interface
@@ -92,6 +93,7 @@ deno task test              # Run all tests
 deno task test:cli          # Test CLI package
 deno task test:lib          # Test library package
 deno task test:web          # Test web package
+deno task test:compiled     # Build the CLI binary and run it from an empty dir
 ```
 
 ### Code Quality
@@ -169,6 +171,16 @@ A resource identifier is inert until a root binding is reachable in the
 invocation context. Applying one writes, reducing one reads, and path extension
 is attenuation. `spec/a10-resource-primitive.md` is the contract for the
 authority, and `spec/a11-resource-iteration.md` for the reading.
+
+Every host that installs a root, the CLI and `HCLang` (and so the playground),
+lays the read-only standard modules of `lib/modules/standard-modules.ts` over
+it, so `Figures <- './modules/figures.hc'` imports `lib/modules/figures.hc`
+there. Every `lib/modules/*.hc` is a standard module, served as
+`'./modules/<file>'`. The sources are compiled in from the generated
+`lib/modules/standard-sources.ts`, so after adding or editing a module, run
+`deno task modules:embed`: an added module is not served until then, and an
+edited one fails the generated `lib/modules/standard-sources.test.ts`. A bare
+`evaluate` has no root, so it imports nothing, standard or otherwise.
 
 ### Iteration
 
@@ -384,12 +396,12 @@ Only judgment that no tool records belongs here. Look elsewhere first:
   `test:doc` too (landed for #372), which executes the same files through the
   real CLI entry point, so a corpus change has to hold under both the test
   harness and the shipped one. The two still do not construct the evaluator
-  alike, which is the part of #373 left open: `test:doc` covers seven of twelve
-  doctest files, `test:bs` covers `BitScheme` separately, and the remaining four
-  (`white-paper`, `white-paper-core`, `class-support`, `format`) run under
-  `cli/hc.test.ts` only, unenforced against the real entry point. Not urgent —
-  every file passes under both harnesses today — but the next doctest that
-  disagrees between them will surface here first.
+  alike, which is the part of #373 left open: `test:doc` covers eight of
+  thirteen doctest files, `test:bs` covers `BitScheme` separately, and the
+  remaining four (`white-paper`, `white-paper-core`, `class-support`, `format`)
+  run under `cli/hc.test.ts` only, unenforced against the real entry point. Not
+  urgent — every file passes under both harnesses today — but the next doctest
+  that disagrees between them will surface here first.
 - **What shipped and why** is the [CHANGELOG](CHANGELOG.md) and the design docs
   in `spec/`.
 

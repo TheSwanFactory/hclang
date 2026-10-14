@@ -99,6 +99,26 @@ try {
       `npm file runner returned unexpected output\n${file.stdout}`,
     );
   }
+
+  // Run from an empty working directory, so Figures can only come from the
+  // package itself: every host compiles its standard modules in.
+  const emptyDirectory = `${workDirectory}/empty`;
+  await Deno.mkdir(emptyDirectory);
+  const figures = await run(
+    "npx",
+    [
+      "--yes",
+      `file:${await Deno.realPath(archive)}`,
+      "--evaluate",
+      "Figures <- './modules/figures.hc'; Figures.size Figures.U",
+    ],
+    { cwd: emptyDirectory },
+  );
+  if (figures.stdout.trim() !== "((<>); [[[]]])") {
+    throw new Error(
+      `npm CLI did not import the Figures standard module from an empty directory\n${figures.stdout}${figures.stderr}`,
+    );
+  }
 } finally {
   await Deno.remove(workDirectory, { recursive: true });
 }
@@ -108,6 +128,18 @@ const expected = '“{"total":43,"pass":43,"fail":0,"unimplemented":0}”';
 if (!numerics.stdout.includes(expected)) {
   throw new Error(
     `npm testdoc did not report the numeric baseline\n${numerics.stdout}`,
+  );
+}
+
+// Match the summary line, because every pass line carries a running total.
+const modules = await npx(["cli/hc/modules.hc", "--testdoc"]);
+const modulesSummary = modules.stdout.split("\n").find((line) =>
+  line.includes("$=.test-summary")
+);
+const modulesExpected = '“{"total":18,"pass":18,"fail":0,"unimplemented":0}”';
+if (!modulesSummary?.includes(modulesExpected)) {
+  throw new Error(
+    `npm testdoc did not import the Figures standard module\n${modules.stdout}`,
   );
 }
 

@@ -57,7 +57,9 @@ class LiveLookupContext extends Frame {
     _origin: MetaFrame = this,
   ): BindingResolution | undefined {
     for (const context of this.#lookupFrames) {
-      const binding = context.resolve(key, context);
+      // The same non-global graph as `lookup_here`, so a value and its binding
+      // agree; the outer resolve keeps the single global tier.
+      const binding = this.resolve_graph_on(context, key, context);
       if (binding) return binding;
     }
     return undefined;
@@ -65,7 +67,9 @@ class LiveLookupContext extends Frame {
 
   protected override lookup_here(key: string, _origin: MetaFrame): Frame {
     for (const context of this.#lookupFrames) {
-      const value = context.get(key, context);
+      // Non-global graph only: an operator falls through to the outer lookup's
+      // global tier, which curries it with that lookup's own operand.
+      const value = this.lookup_graph_on(context, key, context);
       if (value.is.missing) continue;
       if (value instanceof FrameHandle) {
         return value.withoutWriteAuthority();

@@ -13,6 +13,7 @@
  *
  * @module
  */
+import { normalizeReferencePath } from "./resource-reference.ts";
 
 /** One access outcome, where a refusal names its reason without the sigil. */
 export type StoreResult =
@@ -63,5 +64,56 @@ export class MemoryStore implements ResourceStore {
   public write(path: string, content: string): StoreResult {
     this.contents.set(path, content);
     return { ok: true, content };
+  }
+}
+
+/**
+ * A read-only overlay of fixed entries, keyed by canonical root-relative path,
+ * on another store.
+ *
+ * A harness uses it to serve package-owned HC source without widening its root:
+ * exact keys read their entry and refuse writes, and every other path, plus
+ * `describe`, is the underlying store's. Keys are checked once, here, so only a
+ * path the root plane itself would produce can be installed; a key that fails is
+ * a harness defect, and the constructor throws rather than refusing. The entries
+ * are copied, so the caller's map cannot change what the overlay serves.
+ */
+export class ResourceMapStore implements ResourceStore {
+  readonly #entries: ReadonlyMap<string, string>;
+
+  public constructor(
+    private readonly underlying: ResourceStore,
+    entries: ReadonlyMap<string, string>,
+  ) {
+    const copied = new Map<string, string>();
+    for (const [key, content] of entries) {
+      const normal = normalizeReferencePath(key);
+      if (key === "" || !normal.ok || normal.path !== key) {
+        throw new TypeError(
+          `ResourceMapStore key must be a canonical nonempty path: ${
+            JSON.stringify(key)
+          }`,
+        );
+      }
+      copied.set(key, content);
+    }
+    this.#entries = copied;
+  }
+
+  public describe(): string {
+    return this.underlying.describe();
+  }
+
+  public read(path: string): StoreResult {
+    const content = this.#entries.get(path);
+    return content === undefined
+      ? this.underlying.read(path)
+      : { ok: true, content };
+  }
+
+  public write(path: string, content: string): StoreResult {
+    return this.#entries.has(path)
+      ? { ok: false, reason: "resource-read-only" }
+      : this.underlying.write(path, content);
   }
 }

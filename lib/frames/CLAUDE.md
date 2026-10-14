@@ -144,7 +144,10 @@ Three modules stand behind it, in dependency order:
 - `resource-store.ts` is the host seam, and the reason `lib/` has no `Deno` in
   it. `MemoryStore` is the browser-safe default and the vehicle for
   deterministic fixtures. The Deno CLI's filesystem store lives in
-  `cli/resource-store.ts`.
+  `cli/resource-store.ts`. `ResourceMapStore` lays fixed entries under canonical
+  keys over another store, read-only, so a harness can serve package-owned
+  source without widening its root; `lib/modules/standard-modules.ts` uses it to
+  serve the standard modules in the CLI and `HCLang`.
 - `resource-binding.ts` names the capability structurally, because a root
   binding is a `FrameResource` and `FrameURI` has to ask one to extend itself.
 
@@ -178,7 +181,11 @@ withholds receiver/write authority, and resolves values and binding schema
 metadata through the same physical declaration owners. Immutable identity
 projections may be reused while their target is unchanged; rebinding a caller
 name produces a projection for the new target. Closures derived from the child
-retain this lookup without a parallel metadata scope list.
+retain this lookup without a parallel metadata scope list. The live caller
+lookup and its binding resolution both stop before `Frame.globals`, so a caller
+layer that shadows a global supplies both its value and its schema. An operator,
+or any other global no caller layer declares, is reached once through the outer
+lookup's single global tier, which curries an operator with its own operand.
 
 ### Visibility
 

@@ -52,6 +52,10 @@ Two rules are easy to break:
 - Keep build metadata derived from the commit, not wall-clock time, so builds
   stay reproducible.
 
+The standard modules ship inside the bundle too: `HCLang` serves them from
+compiled-in source, so `Figures <- './modules/figures.hc'` works offline, and
+`tests/standalone-browser.test.ts` submits it through the UI.
+
 ## Changes
 
 Keep REPL state in one owner, preserve labels/keyboard/focus behavior, and when

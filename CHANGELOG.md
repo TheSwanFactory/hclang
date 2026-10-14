@@ -4,6 +4,19 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.20.1 2026-10-13
+
+- **Figures is a standard module in every host.** The corpus moved to
+  `lib/modules/figures.hc`, and `Figures <- './modules/figures.hc'` imports it
+  in the CLI, the compiled binary, the npm package, `HCLang`, and the offline
+  web playground, including after `reset()`. The module is served read-only
+  through a `ResourceMapStore` overlay compiled into the program, so writing it
+  is refused and no other path, scheme, or permission widens.
+  `cli/hc/modules.hc` is the importing testdoc.
+- **Named imports curry operators with their own operand.** On v0.20.0,
+  `.n 1; [n = 1, n = n]` inside a named import answered `[(), ()]`, and
+  importing Figures by name overflowed the stack.
+
 ## v0.20.0 2026-10-12
 
 - **Resources can supply HC source directly.** `. <- 'resource'` evaluates fresh

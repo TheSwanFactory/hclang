@@ -115,6 +115,37 @@ export class MetaFrame {
     return frame.lookup_here(key, origin);
   }
 
+  /**
+   * Lets a forwarding link search another frame's non-global lookup graph.
+   *
+   * `Frame.globals` stays the one final tier of the outer `get`, which
+   * curries an operator with that lookup's own origin; a forwarded `get`
+   * would reach the globals early, from the wrong frame.
+   */
+  protected lookup_graph_on(
+    frame: MetaFrame,
+    key: string,
+    origin: MetaFrame,
+  ): Frame {
+    return MetaFrame.lookup(frame, key, origin, new Set<MetaFrame>());
+  }
+
+  /**
+   * Lets a forwarding link resolve a binding through another frame's
+   * non-global graph.
+   *
+   * The binding counterpart of `lookup_graph_on`, with the same tiers, so a
+   * forwarded value and its binding metadata come from the same declaration
+   * owner. `Frame.globals` stays the one final tier of the outer `resolve`.
+   */
+  protected resolve_graph_on(
+    frame: MetaFrame,
+    key: string,
+    origin: MetaFrame,
+  ): BindingResolution | undefined {
+    return MetaFrame.resolveBinding(frame, key, origin, new Set<MetaFrame>());
+  }
+
   /** Resolves a logical name to the declaration key visible from origin. */
   public resolve_here(
     key: string,
