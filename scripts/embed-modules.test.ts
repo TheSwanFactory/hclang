@@ -4,8 +4,8 @@ import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 import {
   moduleFiles,
   moduleKey,
-  renderDriftTest,
   renderEmbed,
+  staleKeys,
 } from "./embed-modules.ts";
 
 /** Evaluates a rendered embed without writing it, so no permission is needed. */
@@ -29,7 +29,7 @@ describe("moduleFiles", () => {
         "b.hc",
         "standard-modules.ts",
         "figures.hc",
-        "standard-sources.test.ts",
+        "standard-modules.test.ts",
         "a.hc",
       ]),
     ).toEqual(["a.hc", "b.hc", "figures.hc"]);
@@ -69,23 +69,27 @@ describe("renderEmbed", () => {
   });
 });
 
-describe("renderDriftTest", () => {
-  it("imports every module and compares each with the embed", () => {
-    const text = renderDriftTest([
-      { file: "a.hc", source: "" },
-      { file: "figures.hc", source: "" },
-    ]);
+describe("staleKeys", () => {
+  const embedded = new Map([
+    ["modules/a.hc", "a"],
+    ["modules/b.hc", "b"],
+  ]);
 
-    expect(text).toContain(
-      'import source0 from "./a.hc" with { type: "text" };',
-    );
-    expect(text).toContain(
-      'import source1 from "./figures.hc" with { type: "text" };',
-    );
-    expect(text).toContain(
-      'import { STANDARD_SOURCES } from "./standard-sources.ts";',
-    );
-    expect(text).toContain('["modules/a.hc", source0],');
-    expect(text).toContain('["modules/figures.hc", source1],');
+  it("is empty when the embed matches every module", () => {
+    expect(
+      staleKeys(embedded, [
+        { file: "a.hc", source: "a" },
+        { file: "b.hc", source: "b" },
+      ]),
+    ).toEqual([]);
+  });
+
+  it("names an edited, a removed, and an added module", () => {
+    expect(
+      staleKeys(embedded, [
+        { file: "a.hc", source: "a, edited" },
+        { file: "c.hc", source: "c" },
+      ]),
+    ).toEqual(["modules/a.hc", "modules/b.hc", "modules/c.hc"]);
   });
 });

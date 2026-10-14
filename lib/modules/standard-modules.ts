@@ -14,9 +14,10 @@
  * gains these reads and nothing else.
  *
  * The sources are compiled into the program from the generated
- * `lib/modules/standard-sources.ts` (`deno task modules:embed`), so the CLI, the
- * compiled binary, the npm package, `HCLang`, and the browser playground serve
- * the same text without reading a file at run time.
+ * `lib/modules/standard-sources.ts` (`deno task modules:embed`, checked by
+ * `deno task modules:check`), so the CLI, the compiled binary, the npm package,
+ * `HCLang`, and the browser playground serve the same text without reading a
+ * file at run time.
  *
  * @module
  */
@@ -26,17 +27,6 @@ import {
 } from "../frames/resource-store.ts";
 import { STANDARD_SOURCES } from "./standard-sources.ts";
 
-const MODULES: ReadonlyMap<string, string> = STANDARD_SOURCES;
-
-/**
- * The standard modules by canonical key.
- *
- * @returns Each module's source under its key.
- */
-export function standardModules(): ReadonlyMap<string, string> {
-  return MODULES;
-}
-
 /**
  * Lays the standard modules over a store as read-only entries.
  *
@@ -44,5 +34,5 @@ export function standardModules(): ReadonlyMap<string, string> {
  * @returns A store that serves the standard modules and delegates the rest.
  */
 export function withStandardModules(store: ResourceStore): ResourceStore {
-  return new ResourceMapStore(store, MODULES);
+  return new ResourceMapStore(store, STANDARD_SOURCES);
 }

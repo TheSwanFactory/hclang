@@ -177,9 +177,9 @@ lays the read-only standard modules of `lib/modules/standard-modules.ts` over
 it, so `Figures <- './modules/figures.hc'` imports `lib/modules/figures.hc`
 there. Every `lib/modules/*.hc` is a standard module, served as
 `'./modules/<file>'`. The sources are compiled in from the generated
-`lib/modules/standard-sources.ts`, so after adding or editing a module, run
-`deno task modules:embed`: an added module is not served until then, and an
-edited one fails the generated `lib/modules/standard-sources.test.ts`. A bare
+`lib/modules/standard-sources.ts`, so after adding, editing, or removing a
+module, run `deno task modules:embed`. Until then hosts serve the old embed, and
+`deno task modules:check`, the first step of `test:all`, fails. A bare
 `evaluate` has no root, so it imports nothing, standard or otherwise.
 
 ### Iteration

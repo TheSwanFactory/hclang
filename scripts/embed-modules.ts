@@ -1,21 +1,23 @@
 /**
- * Regenerates the TypeScript embed of every standard module.
+ * Regenerates, or checks, the TypeScript embed of every standard module.
  *
  * Every `lib/modules/*.hc` is a standard module, served as
  * `'./modules/<file>'`, so adding one means adding the file and rerunning this
- * script. It reads only that directory, never `lib/` code, so it still runs
- * when the embed is stale or a module was just added.
+ * script. Generating reads only that directory, never `lib/` code, so it still
+ * runs when the embed is stale or a module was just added.
  *
  * Every host serves a standard module from the program itself, never from the
  * filesystem: the CLI's root is a fresh temp directory, `HCLang` keeps an
  * in-memory root, and a browser has no files at all. A raw text import would
  * carry the bytes under Deno, but neither dnt (the npm build) nor Vite (the
  * Fresh consumer of `@swanfactory/hcweb`) accepts one, so this script writes the
- * maintained sources into one plain module that every bundler can carry. It also
- * writes the drift test, which compares every embed with its maintained file
- * through a text import and fails when they disagree.
+ * maintained sources into one plain module that every bundler can carry.
  *
- * Usage: `deno task modules:embed`
+ * With `--check` it writes nothing. It compares the committed embed with the
+ * maintained files and exits 1 when a module was added, removed, or edited
+ * since the embed was generated. `test:all` runs the check.
+ *
+ * Usage: `deno task modules:embed`, or `deno task modules:check`
  *
  * @module
  */
@@ -25,9 +27,6 @@ export const MODULES_DIR = "lib/modules";
 
 /** The generated module every host imports. */
 export const EMBED_PATH = "lib/modules/standard-sources.ts";
-
-/** The generated test that compares the embed with the maintained files. */
-export const DRIFT_TEST_PATH = "lib/modules/standard-sources.test.ts";
 
 /** One maintained module: its file name in `MODULES_DIR` and its source. */
 export type ModuleSource = { file: string; source: string };
@@ -103,48 +102,28 @@ export function renderEmbed(modules: readonly ModuleSource[]): string {
 }
 
 /**
- * Renders the drift test, which reads every maintained module through a text
- * import, so it needs no read permission, and compares each with the embed.
+ * Lists the keys whose embedded source differs from its maintained file: a
+ * module added or edited since the embed was generated, or one removed.
  *
- * @param modules The maintained modules the embed was rendered from.
- * @returns The TypeScript test module text, before formatting.
+ * @param embedded The committed embed, by key.
+ * @param modules The maintained modules, each source exactly as read.
+ * @returns The stale keys, sorted; empty when the embed is current.
  */
-export function renderDriftTest(modules: readonly ModuleSource[]): string {
-  const imports = modules.map(({ file }, index) =>
-    `import source${index} from ${
-      JSON.stringify(`./${file}`)
-    } with { type: "text" };`
+export function staleKeys(
+  embedded: ReadonlyMap<string, string>,
+  modules: readonly ModuleSource[],
+): string[] {
+  const maintained = new Map(
+    modules.map(({ file, source }) => [moduleKey(file), source]),
   );
-  const entries = modules.map(({ file }, index) =>
-    `  [${JSON.stringify(moduleKey(file))}, source${index}],`
-  );
-  return [
-    ...HEADER,
-    'import { expect } from "jsr:@std/expect@^0.219.1";',
-    'import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";',
-    "// The maintained artifacts themselves, read by the module loader, so this",
-    "// test needs no read permission and compares against no private copy.",
-    ...imports,
-    'import { STANDARD_SOURCES } from "./standard-sources.ts";',
-    "",
-    "const MAINTAINED: ReadonlyMap<string, string> = new Map([",
-    ...entries,
-    "]);",
-    "",
-    'describe("standard module embed", () => {',
-    '  it("embeds every maintained module exactly", () => {',
-    "    // A stale embed fails here. Regenerate it with `deno task modules:embed`.",
-    "    expect([...STANDARD_SOURCES.keys()]).toEqual([...MAINTAINED.keys()]);",
-    "    for (const [key, source] of MAINTAINED) {",
-    "      expect(STANDARD_SOURCES.get(key)).toEqual(source);",
-    "    }",
-    "  });",
-    "});",
-    "",
-  ].join("\n");
+  const keys = new Set([...embedded.keys(), ...maintained.keys()]);
+  return [...keys]
+    .filter((key) => embedded.get(key) !== maintained.get(key))
+    .sort();
 }
 
-if (import.meta.main) {
+/** Reads every maintained module, in the order the embed lists them. */
+async function readModules(): Promise<ModuleSource[]> {
   const names: string[] = [];
   for await (const entry of Deno.readDir(MODULES_DIR)) {
     if (entry.isFile) names.push(entry.name);
@@ -158,18 +137,43 @@ if (import.meta.main) {
     const source = await Deno.readTextFile(`${MODULES_DIR}/${file}`);
     modules.push({ file, source });
   }
-  await Deno.writeTextFile(EMBED_PATH, renderEmbed(modules));
-  await Deno.writeTextFile(DRIFT_TEST_PATH, renderDriftTest(modules));
-  // Format here, so the committed output passes `deno fmt --check` unchanged.
-  const formatted = await new Deno.Command(Deno.execPath(), {
-    args: ["fmt", "--quiet", EMBED_PATH, DRIFT_TEST_PATH],
-    stdin: "null",
-  }).output();
-  if (!formatted.success) {
-    throw new Error(new TextDecoder().decode(formatted.stderr));
+  return modules;
+}
+
+if (import.meta.main) {
+  const unsupported = Deno.args.filter((arg) => arg !== "--check");
+  if (unsupported.length > 0) {
+    throw new Error(`Unsupported argument(s): ${unsupported.join(" ")}`);
   }
-  console.log(
-    `Wrote ${EMBED_PATH} and ${DRIFT_TEST_PATH} from ${files.length} ` +
-      `module(s) in ${MODULES_DIR}`,
-  );
+  const modules = await readModules();
+  if (Deno.args.includes("--check")) {
+    // Imported only here, so generating never depends on the embed it replaces.
+    const embed = await import(
+      new URL(`../${EMBED_PATH}`, import.meta.url).href
+    );
+    const stale = staleKeys(embed.STANDARD_SOURCES, modules);
+    if (stale.length > 0) {
+      console.error(
+        `${EMBED_PATH} is stale for ${stale.join(", ")}. ` +
+          "Run `deno task modules:embed`.",
+      );
+      Deno.exit(1);
+    }
+    console.log(
+      `${EMBED_PATH} matches ${modules.length} module(s) in ${MODULES_DIR}`,
+    );
+  } else {
+    await Deno.writeTextFile(EMBED_PATH, renderEmbed(modules));
+    // Format here, so the committed embed passes `deno fmt --check` unchanged.
+    const formatted = await new Deno.Command(Deno.execPath(), {
+      args: ["fmt", "--quiet", EMBED_PATH],
+      stdin: "null",
+    }).output();
+    if (!formatted.success) {
+      throw new Error(new TextDecoder().decode(formatted.stderr));
+    }
+    console.log(
+      `Wrote ${EMBED_PATH} from ${modules.length} module(s) in ${MODULES_DIR}`,
+    );
+  }
 }
