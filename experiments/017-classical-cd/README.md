@@ -27,7 +27,8 @@ compared only on 𝒲.
 | ------------------ | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `cd-core.hc`       | HC                   | Definitions: F₂ helpers, label order, lookup trees, signed monomials, the doubling (Dickson/Schafer, Baez, two mutants), the closed form, 𝒲, K, S, squares, two-term products, graphs, components. Prints only prose. |
 | `main.hc`          | HC                   | The classical lane d = 0…4 and the sedenion interrogation.                                                                                                                                                            |
-| `controls.hc`      | HC                   | C1 r = 0 on 𝔽₂² (off 𝒲); C2 Baez law; C3 mutants “Ma” (drops the minus) and “Mb” (drops the conjugations); C4 one flipped w₃ entry; C5 a second lawful seed w₂′.                                                      |
+| `controls.hc`      | HC                   | C1 r = 0 on 𝔽₂² (off 𝒲); C2 Baez law; C3 mutants “Ma” (drops the minus) and “Mb” (drops the conjugations); C4 one flipped w₃ entry.                                                                                   |
+| `alt-seed.hc`      | HC                   | C5, a second lawful seed w₂′ = w₂ ⊕ f doubled to 16, in its own process. At 16 its two-term search stops before the support graph: the full search exhausted a 30 GB V8 heap.                                         |
 | `closure-probe.hc` | HC                   | C6: the same successor as closure factories, plus the 017.09 P5 shape. An observation about the runtime, not a gate.                                                                                                  |
 | `gate0.hc`         | HC testdoc           | The language behaviors the lane relies on.                                                                                                                                                                            |
 | `oracle.ts`        | host                 | Independent dense Cayley–Dickson arithmetic, rank by elimination, BFS components. Never reads HC output.                                                                                                              |
@@ -64,7 +65,7 @@ From the repository root, on a clean checkout:
 deno test experiments/017-classical-cd
 (cd cli && deno task hc ../experiments/017-classical-cd/gate0.hc -t)
 deno run --allow-read --allow-write --allow-run experiments/017-classical-cd/run.ts \
-  --variant all --out /tmp/017.11-out
+  --variant all --budget-min 120 --out /tmp/017.11-out
 ```
 
 Each HC variant runs as
