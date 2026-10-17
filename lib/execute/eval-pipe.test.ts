@@ -42,7 +42,7 @@ describe("EvalPipe", () => {
     expect(parser.strictStructure).toBe(true);
 
     new frame.FrameString("1;").scanInto(sourcePipe, false);
-    expect(out.at(0).toString()).toEqual("(1)");
+    expect(out.asArray()[0].toString()).toEqual("(1)");
 
     new frame.FrameString("[2 ").scanInto(sourcePipe, false);
     expect(sourcePipe.finish(frame.Frame.nil).toString()).toContain(

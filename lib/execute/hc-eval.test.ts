@@ -763,7 +763,7 @@ describe("HCEval", () => {
       hc_eval.call(input);
 
       expect(out.length()).toEqual(2);
-      const output = out.at(1);
+      const output = out.asArray()[1];
       expect(output.toString()).toEqual(frame_value.toString());
     });
   });

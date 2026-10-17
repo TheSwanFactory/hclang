@@ -1918,10 +1918,10 @@ describe("evaluate", () => {
       );
       const owner = result.meta.owner;
 
-      expect(result.at(0).toString()).toContain(
+      expect(result.asArray()[0].toString()).toContain(
         "$error{$is-constant .Protected}",
       );
-      expect(result.at(0).toString()).toContain(
+      expect(result.asArray()[0].toString()).toContain(
         "$error{$is-constant .Private}",
       );
       expect(owner.get_here("_Protected").toString()).toEqual("7");
