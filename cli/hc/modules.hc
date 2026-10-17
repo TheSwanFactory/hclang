@@ -19,55 +19,56 @@ the claims below use only the module's reusable vocabulary
 ```
 ; Figures <- './modules/figures.hc';
 ```
-The bracket is the only constructor, and every observer answers a Figure. Size
-answers a tally, one unit cell `U` for every cell, while Manyness marks only the
-immediate children
+`Figure [c, …]` is the constructor, and every observer is a method that answers
+a Figure. Size answers a tally, one unit cell `U` for every cell, while Manyness
+marks only the immediate children
 ```
-; Figures.size Figures.Z
+; Figures.Z.size()
 # []
-; Figures.size Figures.U
+; Figures.U.size()
 # [[[]]]
-; Figures.many [Figures.U, Figures.U]
+; (Figures.Figure [Figures.U, Figures.U]).many()
 # [[[]], [[]]]
-; Figures.Figure (Figures.B)
+; Figures.Figure [Figures.B]
 # [[[]]]
 ```
 Sameness of form is `=` and sameness of the constructed Figure is `===`, so `B`
-and a fresh `[A]` agree in form and in Size but are not the same Figure
+and a fresh `Figure [A]` agree in form and in Size but are not the same Figure
 ```
-; Figures.sameform [Figures.B, [Figures.A]]
+; Figures.B.sameform [Figures.Figure [Figures.A]]
 # [[]]
-; Figures.size_equivalent [Figures.B, [Figures.A]]
+; Figures.B.size_equivalent [Figures.Figure [Figures.A]]
 # [[]]
-; Figures.sameness [Figures.B, Figures.B]
+; Figures.B.sameness [Figures.B]
 # [[]]
-; Figures.sameness [Figures.B, [Figures.A]]
+; Figures.B.sameness [Figures.Figure [Figures.A]]
 # []
 ```
-Imported operations compose with Figures built in this file. Size counts the
-cells of a Figure sum and of a Figure product, and on tallies `cat` adds,
-`size_mul` multiplies, and `Tally` collects a reduce
+Imported methods compose with Figures built in this file, each with
+`Figures.Figure`. Size counts the cells of a Figure sum and of a Figure product.
+On tallies, joining is a reduce, `ys | x`. `size_mul` multiplies, and `Tally Z`
+collects a reduce
 ```
-; (Figures.size (Figures.figure_add [Figures.U, Figures.U])) = [Figures.U, Figures.U]
+; ((Figures.Figure [Figures.U, Figures.U]).size()) = (Figures.Figure [Figures.U, Figures.U])
 # <>
-; .trio [Figures.U, Figures.U, Figures.U];
-; Figures.size (Figures.figure_mul [[Figures.U, Figures.U], trio])
+; .trio (Figures.Figure [Figures.U, Figures.U, Figures.U]);
+; ((Figures.Figure [Figures.U, Figures.U]).mul [trio]).size()
 # [[[]], [[]], [[]], [[]], [[]], [[]]]
-; Figures.cat [[Figures.U], trio]
+; trio | (Figures.Figure [Figures.U])
 # [[[]], [[]], [[]], [[]]]
-; Figures.size_mul [[Figures.U, Figures.U], trio]
+; (Figures.Figure [Figures.U, Figures.U]).size_mul [trio]
 # [[[]], [[]], [[]], [[]], [[]], [[]]]
-; ([[Figures.U], [Figures.U]] | Figures.Tally) .row
+; ([Figures.Figure [Figures.U], Figures.Figure [Figures.U]] | (Figures.Tally Figures.Z)) .row
 # [[[]], [[]]]
 ```
 Identity crosses the import boundary. Withness asks for immediate containment
 by `===`, so the module's own `A` is with a parent built here, while a fresh
-`[]` of the same form is not
+`Figure []` of the same form is not
 ```
-; .pair [Figures.A, Figures.B];
-; Figures.withness [.parent pair; .figs [Figures.A];]
+; .pair (Figures.Figure [Figures.A, Figures.B]);
+; pair.withness [Figures.A]
 # [[]]
-; Figures.withness [.parent pair; .figs [[]];]
+; pair.withness [Figures.Figure []]
 # []
 ```
 The overlay grants one read and nothing else. Writing to the module is refused,
