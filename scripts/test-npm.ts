@@ -110,11 +110,11 @@ try {
       "--yes",
       `file:${await Deno.realPath(archive)}`,
       "--evaluate",
-      "Figures <- './modules/figures.hc'; Figures.U.size()",
+      "Figures <- './modules/figures.hc'; (Figures.U.size()) = (Figures.Figure [Figures.U])",
     ],
     { cwd: emptyDirectory },
   );
-  if (figures.stdout.trim() !== "((<>); [[[]]])") {
+  if (figures.stdout.trim() !== "((<>); <>)") {
     throw new Error(
       `npm CLI did not import the Figures standard module from an empty directory\n${figures.stdout}${figures.stderr}`,
     );
@@ -136,7 +136,7 @@ const modules = await npx(["cli/hc/modules.hc", "--testdoc"]);
 const modulesSummary = modules.stdout.split("\n").find((line) =>
   line.includes("$=.test-summary")
 );
-const modulesExpected = '“{"total":18,"pass":18,"fail":0,"unimplemented":0}”';
+const modulesExpected = '“{"total":11,"pass":11,"fail":0,"unimplemented":0}”';
 if (!modulesSummary?.includes(modulesExpected)) {
   throw new Error(
     `npm testdoc did not import the Figures standard module\n${modules.stdout}`,

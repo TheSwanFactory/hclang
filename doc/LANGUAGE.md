@@ -519,10 +519,10 @@ primitives:
 For a worked example, see the Figures standard module,
 [`lib/modules/figures.hc`](../lib/modules/figures.hc), imported with
 `Figures <- './modules/figures.hc'`. `Figure [c, …]` is a constructor closure
-that answers a fresh aggregate of its children. Because an inherited method
-cannot name its receiver, each Figure adopts its own method table through a
-mutating `adopt_`, so it prints and compares as the bracket of its children
-while answering `x.many()`, `x.size()` and the other observers.
+that answers a fresh object holding its `children` and declaring `x.many()`,
+`x.size()` and the other observers as methods. Each method names its own Figure
+`_^`, because a bare name is looked up on the argument first, and the argument
+is usually another Figure.
 
 ### TODO: Class variables
 
