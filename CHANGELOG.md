@@ -4,8 +4,20 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
-## Unreleased
+## v0.20.2 2026-10-17
 
+- **Breaking: Figures is a class.** `Figure [c, …]` answers a fresh Figure with
+  exactly those children, and Manyness, Size, `mul`, `size_mul`,
+  `size_equivalent`, `sameform`, `sameness` and Withness are its methods, each
+  answering a Figure: `many x` → `x.many()`, `size x` → `x.size()`,
+  `figure_add [x, y]` → `Figure [x, y]`, `cat [x, y]` → `y | x`,
+  `figure_mul [x, y]` → `x.mul [y]`, `withness [.parent P; .figs [f…];]` →
+  `P.withness [f…]`, `xs | Tally` → `xs | (Tally Z)`. Applying a Figure appends
+  a child, so `cs | (Figure [])` constructs. Every node must be built with
+  `Figure`; a bare bracket compares equal but has no methods. `absent`, `cat`,
+  `figure_add` and `figure_mul` are removed, with no aliases. Programs written
+  against v0.20.1's Figures, including explore 017.09's, run unchanged on hclang
+  0.20.1; port them with the mapping above.
 - **Experiment: the classical Cayley–Dickson lane runs in HC.**
   `experiments/017-classical-cd/` builds the sign tables of the 1-, 2-, 4-, 8-
   and 16-dimensional algebras from w₀ = 0 with the literal Dickson/Schafer

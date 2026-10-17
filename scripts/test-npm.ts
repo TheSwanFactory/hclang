@@ -110,7 +110,7 @@ try {
       "--yes",
       `file:${await Deno.realPath(archive)}`,
       "--evaluate",
-      "Figures <- './modules/figures.hc'; Figures.size Figures.U",
+      "Figures <- './modules/figures.hc'; Figures.U.size()",
     ],
     { cwd: emptyDirectory },
   );
