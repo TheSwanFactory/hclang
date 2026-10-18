@@ -84,8 +84,8 @@ describe("standalone artifact in a browser", () => {
     ).toBe("polite");
   });
 
-  it("imports the Figures standard module offline", async () => {
-    const source = "Figures <- './modules/figures.hc'";
+  it("imports the bundled Figures module offline", async () => {
+    const source = "Figures <- './hc/figures.hc'";
     await submit(source);
     await page.getByRole("cell", { name: source }).waitFor();
     expect(await page.locator("[role=alert]").count()).toBe(0);

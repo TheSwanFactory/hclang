@@ -140,9 +140,9 @@ language.
 ## Verification
 
 - `deno task test` green, including the doctest corpus and BitScheme.
-- `cli/hc/class-support.hc` passes with every mutating method respelled, plus a
-  new example pinning a mutable field and a mutating method sharing the marker
-  on one aggregate.
+- `hc/class-support.hc` passes with every mutating method respelled, plus a new
+  example pinning a mutable field and a mutating method sharing the marker on
+  one aggregate.
 - `lex.test.ts` pins the freed colon: a name completes at `:`, and the trailing
   underscore needs no chunk-boundary rule of its own.
 - `deno publish --dry-run` green from `lib/`.

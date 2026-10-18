@@ -733,7 +733,7 @@ knows which address it is looking at.
 ```
 The operators also work with resources, which push characters rather than lines
 or records, so what a read answers is decided by what it is reduced into rather
-than by the source. `cli/hc/resources.hc` is the executable corpus for that,
+than by the source. `hc/resources.hc` is the executable corpus for that,
 since it needs a root binding this document is not granted.
 
 ### Conditionals

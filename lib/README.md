@@ -76,12 +76,12 @@ by a host remains a mutable capability under HC's ordinary effect rules.
 remain in the separate `$$` host namespace. `reset()` clears both namespaces and
 history.
 
-Each session has an in-memory resource root with the read-only standard modules
-laid over it, so `Figures <- './modules/figures.hc'` imports the Figures class
-(`Figure [c, …]` and its observers) in any session, including after `reset()`.
-Writing a standard module is refused, and no other path or scheme is reachable
-through it. The bare `evaluate` and `execute` entry points install no root, so
-they import nothing.
+Each session has an in-memory resource root with the package's `hc/` files laid
+over it read-only, so a session can include any of them with `<-`:
+`Figures <- './hc/figures.hc'` imports the Figures class (`Figure [c, …]` and
+its observers) in any session, including after `reset()`. Writing a bundled file
+is refused, and no other path or scheme is reachable through it. The bare
+`evaluate` and `execute` entry points install no root, so they import nothing.
 
 Each CLI input file receives its own `$` namespace, while all files share the
 host-selected `$$` namespace.

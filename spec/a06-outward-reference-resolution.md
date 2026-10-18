@@ -66,14 +66,14 @@ exactly.
 - `lib/maml.ts` reads the `&&` key through the empty name instead of
   `FrameParam.there()`, as do the iterator tests.
 - Pinned in `evaluate.test.ts` (lexical reach from an iterator block; all three
-  `.` readings) and `cli/hc/white-paper-core.hc` (executed corpus).
+  `.` readings) and `hc/white-paper-core.hc` (executed corpus).
 - `doc/GRAMMAR.md` documents the iterator parameter spelling and the
   invocation-independent caret count. Its "skips the argument" gloss on `_^` is
   dropped in both places: it was accurate under the old positional model, where
   `_^` was literally slot 1, but with `_`/`__` walking argument scopes and
   `_^`/`_^^` walking lexical scopes as two unrelated ladders it invites exactly
   the phantom-level counting this change removes.
-- `cli/hc/white-paper.hc` no longer calls `_^` a `super` reference. It names the
+- `hc/white-paper.hc` no longer calls `_^` a `super` reference. It names the
   scope the closure was written in, not a declared parent, which is read by
   plain name.
 - `spec/1-fix-closures/02-underbar-reqs.md` carries a superseded-by pointer
@@ -100,7 +100,7 @@ maintained grammar and executable white paper document the parameter ladder.
 ## Executable format corpus follow-up
 
 v0.11.1 also resolves #344 by choosing the executable-document interpretation
-for `cli/hc/format.hc`. Its outer document fence is removed, the cases are kept
+for `hc/format.hc`. Its outer document fence is removed, the cases are kept
 within HCTest's line-oriented model, the stale `_^` expectation now checks the
 missing-name diagnostic, and `cli/hc.test.ts` enforces authoritative totals. A
 parse-only, width-aware formatter remains separate future work.

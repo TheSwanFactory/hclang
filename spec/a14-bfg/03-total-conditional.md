@@ -83,13 +83,13 @@ short-circuits a failed term before `:` is reached (#360).
 
 ## Corpus and prose changes
 
-| File                    | Line | Expression              | Today | Proposed |
-| ----------------------- | ---- | ----------------------- | ----- | -------- |
-| `cli/hc/testdoc.hc`     | 131  | `1 : {2 + 2}`           | `()`  | `1`      |
-| `cli/hc/testdoc.hc`     | 149  | `5.> 1 : {10}`          | `()`  | `<>`     |
-| `cli/hc/testdoc.hc`     | 154  | `5.> 1 ? (2 * 50) : 10` | `()`  | `100`    |
-| `cli/hc/white-paper.hc` | 748  | `1 : {2 + 2}`           | `()`  | `1`      |
-| `cli/hc/white-paper.hc` | 761  | `5.> 1 ? (2 * 50) : 10` | `()`  | `100`    |
+| File                | Line | Expression              | Today | Proposed |
+| ------------------- | ---- | ----------------------- | ----- | -------- |
+| `hc/testdoc.hc`     | 131  | `1 : {2 + 2}`           | `()`  | `1`      |
+| `hc/testdoc.hc`     | 149  | `5.> 1 : {10}`          | `()`  | `<>`     |
+| `hc/testdoc.hc`     | 154  | `5.> 1 ? (2 * 50) : 10` | `()`  | `100`    |
+| `hc/white-paper.hc` | 748  | `1 : {2 + 2}`           | `()`  | `1`      |
+| `hc/white-paper.hc` | 761  | `5.> 1 ? (2 * 50) : 10` | `()`  | `100`    |
 
 These keep their current answers and stay as regression anchors: `testdoc.hc`
 lines 135, 140, 145, 152 and 156 (the accepted edge), and `BitScheme.hc:172`.

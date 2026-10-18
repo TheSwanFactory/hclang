@@ -1,8 +1,7 @@
 # BitScheme Test Failures - Type and Selector Issues
 
-**Date**: 2025-12-21 **Source**: BitScheme test suite (`cli/hc/BitScheme.hc`)
-**Test Command**: `deno task test:bs` **Results**: 14 passed, 17 failed (31
-total)
+**Date**: 2025-12-21 **Source**: BitScheme test suite (`hc/BitScheme.hc`) **Test
+Command**: `deno task test:bs` **Results**: 14 passed, 17 failed (31 total)
 
 > **Historical analysis:** This document records the December 2025 failure
 > state. The subsequently implemented deterministic schema-retrieval,
@@ -134,7 +133,7 @@ properties from a dictionary/record.
 **Expected Behavior**:
 
 - Schema `<.x, .z>` should act as a "deconstructor" (see
-  [cli/hc/BitScheme.hc:203-214](cli/hc/BitScheme.hc#L203-L214))
+  [hc/BitScheme.hc:203-214](hc/BitScheme.hc#L203-L214))
 - When applied to `[.x 1; .y 2; .z 3;]`, it should extract only the values for
   `.x` and `.z`
 - Result should be `[1, 3]`
@@ -146,7 +145,7 @@ properties from a dictionary/record.
 - Output format: `<x, z, [(.x 1); (.y 2); (.z 3);]>`
 
 **Documentation Reference**: From
-[BitScheme.hc:203-214](cli/hc/BitScheme.hc#L203-L214):
+[BitScheme.hc:203-214](hc/BitScheme.hc#L203-L214):
 
 ```hc
 === Deconstructors
@@ -365,7 +364,7 @@ unimplemented.
 deno task hc -e '.x 42; x'
 
 # Check if BitScheme.hc runs line-by-line or all-at-once
-deno task hc cli/hc/BitScheme.hc
+deno task hc hc/BitScheme.hc
 ```
 
 **Expected**: Should reveal if context is preserved between statements.
@@ -403,7 +402,7 @@ deconstructor logic.
 
 ### BitScheme Specification Accuracy
 
-The [BitScheme.hc](cli/hc/BitScheme.hc) file serves as both tutorial and
+The [BitScheme.hc](hc/BitScheme.hc) file serves as both tutorial and
 specification. Failing tests indicate:
 
 1. **Documentation Ahead of Implementation**: Many documented features aren't

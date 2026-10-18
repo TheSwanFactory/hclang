@@ -101,7 +101,7 @@ try {
   }
 
   // Run from an empty working directory, so Figures can only come from the
-  // package itself: every host compiles its standard modules in.
+  // package itself: every host compiles the hc/ bundle in.
   const emptyDirectory = `${workDirectory}/empty`;
   await Deno.mkdir(emptyDirectory);
   const figures = await run(
@@ -110,20 +110,20 @@ try {
       "--yes",
       `file:${await Deno.realPath(archive)}`,
       "--evaluate",
-      "Figures <- './modules/figures.hc'; (Figures.U.size()) = (Figures.Figure [Figures.U])",
+      "Figures <- './hc/figures.hc'; (Figures.U.size()) = (Figures.Figure [Figures.U])",
     ],
     { cwd: emptyDirectory },
   );
   if (figures.stdout.trim() !== "((<>); <>)") {
     throw new Error(
-      `npm CLI did not import the Figures standard module from an empty directory\n${figures.stdout}${figures.stderr}`,
+      `npm CLI did not import the bundled Figures module from an empty directory\n${figures.stdout}${figures.stderr}`,
     );
   }
 } finally {
   await Deno.remove(workDirectory, { recursive: true });
 }
 
-const numerics = await npx(["cli/hc/numerics.hc", "--testdoc"]);
+const numerics = await npx(["hc/numerics.hc", "--testdoc"]);
 const expected = '“{"total":43,"pass":43,"fail":0,"unimplemented":0}”';
 if (!numerics.stdout.includes(expected)) {
   throw new Error(
@@ -132,14 +132,14 @@ if (!numerics.stdout.includes(expected)) {
 }
 
 // Match the summary line, because every pass line carries a running total.
-const modules = await npx(["cli/hc/modules.hc", "--testdoc"]);
+const modules = await npx(["hc/modules.hc", "--testdoc"]);
 const modulesSummary = modules.stdout.split("\n").find((line) =>
   line.includes("$=.test-summary")
 );
 const modulesExpected = '“{"total":12,"pass":12,"fail":0,"unimplemented":0}”';
 if (!modulesSummary?.includes(modulesExpected)) {
   throw new Error(
-    `npm testdoc did not import the Figures standard module\n${modules.stdout}`,
+    `npm testdoc did not import the bundled Figures module\n${modules.stdout}`,
   );
 }
 

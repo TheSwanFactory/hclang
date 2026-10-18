@@ -116,14 +116,14 @@ This is the "same value and same type" predicate that #358 found unreachable.
 
 Every flip below is intended, and each doctest's prose changes with it:
 
-| File                    | Line | Expression                   | Today | Proposed |
-| ----------------------- | ---- | ---------------------------- | ----- | -------- |
-| `cli/hc/numerics.hc`    | 76   | `0123 == 123`                | `()`  | `<>`     |
-| `cli/hc/numerics.hc`    | 78   | `3 === 3.0`                  | `<>`  | `()`     |
-| `cli/hc/units.hc`       | 39   | `9.80.m == 9.8.m`            | `()`  | `<>`     |
-| `cli/hc/units.hc`       | 49   | `9.8.m === 9.8.kg`           | `<>`  | `()`     |
-| `cli/hc/white-paper.hc` | 692  | `a == b` (properties differ) | `<>`  | `()`     |
-| `cli/hc/white-paper.hc` | 696  | `a === c` (different frames) | `<>`  | `()`     |
+| File                | Line | Expression                   | Today | Proposed |
+| ------------------- | ---- | ---------------------------- | ----- | -------- |
+| `hc/numerics.hc`    | 76   | `0123 == 123`                | `()`  | `<>`     |
+| `hc/numerics.hc`    | 78   | `3 === 3.0`                  | `<>`  | `()`     |
+| `hc/units.hc`       | 39   | `9.80.m == 9.8.m`            | `()`  | `<>`     |
+| `hc/units.hc`       | 49   | `9.8.m === 9.8.kg`           | `<>`  | `()`     |
+| `hc/white-paper.hc` | 692  | `a == b` (properties differ) | `<>`  | `()`     |
+| `hc/white-paper.hc` | 696  | `a === c` (different frames) | `<>`  | `()`     |
 
 The units doctest prose "The metadata plane is unchanged, and still answers
 every frame without metadata alike (#358)" is removed, along with the numerics

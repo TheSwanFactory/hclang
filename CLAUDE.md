@@ -12,11 +12,12 @@ This is a Deno workspace (monorepo) organized into several packages:
 
 ```
 hclang/
+├── hc/               # HC programs, modules and testdocs, shipped in the package
 ├── cli/              # Command-line interface and REPL
 ├── lib/              # Core library (published to JSR)
 │   ├── execute/      # Language processing pipeline
 │   ├── frames/       # Core data structures
-│   ├── modules/      # Standard HC modules (Figures), served by every host
+│   ├── bundle/       # The generated embed of hc/, served by every host
 │   └── ops/          # Built-in operations
 ├── maml/             # MAML markup language
 ├── web/              # Web interface
@@ -174,15 +175,16 @@ is attenuation. `spec/a10-resource-primitive.md` is the contract for the
 authority, and `spec/a11-resource-iteration.md` for the reading.
 
 Every host that installs a root, the CLI and `HCLang` (and so the playground),
-lays the read-only standard modules of `lib/modules/standard-modules.ts` over
-it, so `Figures <- './modules/figures.hc'` imports `lib/modules/figures.hc`
-there. Every `lib/modules/*.hc` is a standard module, served as
-`'./modules/<file>'`. The sources are compiled in from the generated, committed
-`lib/modules/standard-sources.ts`, so after adding, editing, or removing a
-module, run `deno task modules:embed` and commit the result. Git is the drift
-check: `deno task modules:check` regenerates the embed and fails on any
-difference, and both the pre-commit hook and `test:all` run it. A bare
-`evaluate` has no root, so it imports nothing, standard or otherwise.
+lays the top-level `hc/` folder over it read-only. Those files are ordinary HC
+programs, modules and testdocs alike, and the package ships all of them so a
+session can include any one with `<-`: `Figures <- './hc/figures.hc'` imports
+`hc/figures.hc`. Nothing is in scope until a program imports it. The sources are
+compiled in from the generated, committed `lib/bundle/hc-sources.ts`, so after
+adding, editing, or removing an `hc/*.hc`, run `deno task bundle:embed` and
+commit the result. Git is the drift check: `deno task bundle:check` regenerates
+the embed and fails on any difference, and both the pre-commit hook and
+`test:all` run it. A bare `evaluate` has no root, so it imports nothing, bundled
+or otherwise.
 
 ### Iteration
 
@@ -197,9 +199,9 @@ Doubling either one widens the stream from values to `[key, value]` tuples, over
 the visible properties in declaration order and then the elements by index.
 
 A resource pushes characters, so what a read answers is decided downstream by
-composition rather than declared by the source. `cli/hc/apply-tutorial.md`
-teaches this and `cli/hc/apply.hc` is the executable corpus. Before v0.15.0 `|`
-and `&` were assigned the other way around.
+composition rather than declared by the source. `hc/apply-tutorial.md` teaches
+this and `hc/apply.hc` is the executable corpus. Before v0.15.0 `|` and `&` were
+assigned the other way around.
 
 ## Project Guidelines
 
@@ -428,7 +430,7 @@ Not ranked above, because it is a design pass rather than a ruling to implement
 
 - The BitScheme lane (#310 → #311 → #312 → #319) runs serially and can proceed
   beside anything else. #319 is last because it and the BitScheme chain both
-  edit `cli/hc/BitScheme.hc`.
+  edit `hc/BitScheme.hc`.
 - #277 and #301 may run in parallel as separate PRs, but rebase before merge if
   both touch evaluator lookup or shared frame infrastructure. Neither absorbs
   the other. Both build on the resource primitive that shipped for #348

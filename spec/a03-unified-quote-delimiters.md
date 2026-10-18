@@ -133,16 +133,16 @@ conventions are dropped. This is a documentation-format decision, not a lexical
 one: a fence toggles _out_ of HC into prose, where GFM's own containment rules
 apply to the prose, not to HC's fence.
 
-- `cli/hc/white-paper.hc` prose is GFM. Its former `[source,hc]` and `----`
-  listing blocks are GFM fenced blocks, and the two prose regions that contain
-  them are opened by five-backtick HC fences so interior three- and
-  four-backtick GFM fences remain content.
+- `hc/white-paper.hc` prose is GFM. Its former `[source,hc]` and `----` listing
+  blocks are GFM fenced blocks, and the two prose regions that contain them are
+  opened by five-backtick HC fences so interior three- and four-backtick GFM
+  fences remain content.
 - `spec/5-inline-code-spans.md` documents GFM conventions in place of AsciiDoc
   listing blocks and source attributes.
 - `cli/runfile.ts` keeps synthetic wrapping for `.md`; `.adoc` remains only as a
   compatibility shim.
 - Converting the `.adoc` files under `doc/`, and the AsciiDoc prose in
-  `cli/hc/BitScheme.hc`, is tracked separately in #319.
+  `hc/BitScheme.hc`, is tracked separately in #319.
 
 The white paper retains its Madoko constructs (`[TITLE]`, `~ Abstract`,
 `[@Cite]` citations, header attributes). Madoko is a Markdown dialect, so those
@@ -185,7 +185,7 @@ loud.
 - Backtick parity behavior is unchanged.
 - Chunk-independence, EOF detection, evaluator reuse, and evaluator isolation
   hold for every delimiter family.
-- The full `cli/hc/white-paper.hc` doctest reaches EOF with one summary and zero
+- The full `hc/white-paper.hc` doctest reaches EOF with one summary and zero
   failures.
 - Existing library, CLI, doc, and web suites remain green.
 
@@ -195,5 +195,5 @@ loud.
     deno test lib/execute/lex.test.ts lib/execute/hc-eval.test.ts
     deno task test:doc
     deno task test:bs
-    deno task hc cli/hc/white-paper.hc -t
+    deno task hc hc/white-paper.hc -t
     deno task test

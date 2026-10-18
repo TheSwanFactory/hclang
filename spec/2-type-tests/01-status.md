@@ -167,7 +167,7 @@ Before proceeding, need to:
 ## Files To Modify (Pending)
 
 - `lib/execute/evaluate.test.ts`: Fix failing tests, add Phase 2-3 tests
-- `cli/hc/testdoc.hc`: Add examples (lines 50+)
+- `hc/testdoc.hc`: Add examples (lines 50+)
 
 ## Test Statistics
 

@@ -111,7 +111,7 @@ The root `deno.json` provides several tasks:
 
 ### BitScheme
 
-[BitScheme](cli/hc/BitScheme.hc) is a specialized scripting language for
+[BitScheme](hc/BitScheme.hc) is a specialized scripting language for
 declaratively parsing, manipulating, and generating binary data. It includes
 executable documentation that can be tested:
 

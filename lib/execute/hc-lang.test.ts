@@ -56,36 +56,36 @@ describe("HCLang", () => {
     });
   });
 
-  describe("standard modules", () => {
-    it("imports the Figures standard module by name", async () => {
+  describe("bundled hc/ files", () => {
+    it("imports Figures from the bundle by name", async () => {
       const session = new HCLang();
 
       // Every `; ` example in figures.hc runs as an ordinary form on import, so
       // an error-valued example added there fails this import, and this test.
-      const imported = await session.call("Figures <- './modules/figures.hc'");
+      const imported = await session.call("Figures <- './hc/figures.hc'");
       expect(imported).not.toContain("$!");
       expect(
         await session.call("(Figures.U.size()) = (Figures.Figure [Figures.U])"),
       ).toEqual("<>");
     });
 
-    it("refuses writes to a standard module and keeps every other path", async () => {
+    it("refuses writes to a bundled file and keeps every other path", async () => {
       const session = new HCLang();
 
-      expect(await session.call("'./modules/figures.hc' “overwrite”"))
+      expect(await session.call("'./hc/figures.hc' “overwrite”"))
         .toContain("$!.resource-read-only");
-      expect(await session.call("'./modules/other.hc' | “”"))
+      expect(await session.call("'./hc/other.hc' | “”"))
         .toContain("$!.resource-absent");
     });
 
-    it("serves the standard modules again after reset", async () => {
+    it("serves the bundle again after reset", async () => {
       const session = new HCLang();
       await session.call("'./notes.txt' “kept”");
 
       session.reset();
       expect(await session.call("'./notes.txt' | “”"))
         .toContain("$!.resource-absent");
-      await session.call("Figures <- './modules/figures.hc'");
+      await session.call("Figures <- './hc/figures.hc'");
       expect(
         await session.call("(Figures.U.size()) = (Figures.Figure [Figures.U])"),
       ).toEqual("<>");

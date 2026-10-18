@@ -4,6 +4,14 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## Unreleased
+
+- **Breaking: the package ships `hc/`.** Every `.hc` file in the top-level `hc/`
+  folder, the testdocs and Figures alike, is bundled with the package and served
+  read-only at the same path, so a session includes one with `<-`:
+  `Figures <- './hc/figures.hc'`. `'./modules/figures.hc'` is gone, with no
+  alias. The testdocs moved there from `cli/hc/`.
+
 ## v0.20.2 2026-10-17
 
 - **Breaking: Figures is a class.** `Figure [c, …]` answers a fresh object

@@ -14,7 +14,7 @@ import {
   ResourceHandlers,
   type StringMap,
 } from "../frames.ts";
-import { withStandardModules } from "../modules/standard-modules.ts";
+import { withHCBundle } from "../bundle/hc-bundle.ts";
 
 /** One submitted source string and its rendered output. */
 export type HistoryPair = { input: string; output: string };
@@ -50,8 +50,8 @@ export class HCLang {
    * outlive it. `reset()` installs a new one, so a cleared session cannot read
    * what the previous one wrote.
    *
-   * The root also overlays the read-only standard modules, as the CLI's does,
-   * so `Figures <- './modules/figures.hc'` works in every session, including
+   * The root also overlays the bundled, read-only `hc/` files, as the CLI's
+   * does, so `Figures <- './hc/figures.hc'` works in every session, including
    * the browser playground and every session after `reset()`.
    *
    * The clock is the real one, because a browser has one and a session is a
@@ -65,7 +65,7 @@ export class HCLang {
     host.set(
       RESOURCE_ROOT_KEY,
       FrameResource.root(
-        withStandardModules(new MemoryStore("session")),
+        withHCBundle(new MemoryStore("session")),
         ResourceHandlers.of({
           [CLOCK_SCHEME]: new ClockHandler(new RealClock()),
         }),
