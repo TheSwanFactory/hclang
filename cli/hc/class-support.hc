@@ -164,3 +164,9 @@ contributes its spelling, and the printer always shows the spelling.`
 # “at (3, 5)”
 ; “” [.x 1; 2]
 # “[.x 1; 2]”
+
+`A functional update copies only what it writes. A member the call never writes
+is shared with the original, so it keeps its identity.`
+; .shelf [.item [.n 1]; .count 0; .tick_ {@count (count + 1);}];
+; [(shelf.tick_ ()).count, shelf.count, (shelf.tick_ ()).item === shelf.item]
+# [1, 0, <>]

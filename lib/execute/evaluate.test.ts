@@ -1784,6 +1784,37 @@ describe("evaluate", () => {
       expect(derived.meta.count).toBeUndefined();
     });
 
+    describe("copy on write (#401)", () => {
+      const answer = (source: string): string | undefined =>
+        evaluate(source).at(0).asArray().at(-1)?.toString();
+
+      it("shares what a functional update never writes", () => {
+        expect(answer(
+          ".kid [.n 1]; .k [.fig kid; .touch_ {@fig fig;}]; " +
+            ".c (k.touch_ ()); [c.fig === kid, c === k]",
+        )).toEqual("[<>, ()]");
+        expect(answer(
+          ".p [.v 1; .w [.n 2]; .set_ {@v _;}]; .q (p.set_ 9); " +
+            "[q.v, p.v, q.w === p.w]",
+        )).toEqual("[9, 1, <>]");
+      });
+
+      it("copies the path down to a nested write and nothing beside it", () => {
+        expect(answer(
+          ".a [.b_ [.c_ [.n 1; .set_ {@n _;}]; .side [.m 0]]; " +
+            ".go_ {b_.c_.set_ _}]; .r (a.go_ 7); " +
+            "[r.b_.c_.n, a.b_.c_.n, r.b_ === a.b_, r.b_.side === a.b_.side]",
+        )).toEqual("[7, 1, (), <>]");
+      });
+
+      it("lands repeated writes in one call on the same copy", () => {
+        expect(answer(
+          ".t [.x_ [.n 0; .inc_ {@n (n + 1);}]; .go_ {x_.inc_ (); x_.inc_ ()}]; " +
+            "[(t.go_ ()).x_.n, t.x_.n]",
+        )).toEqual("[2, 0]");
+      });
+    });
+
     it("rejects inherited writes through a copy-on-write receiver", () => {
       const result = evaluate(
         ".base_ [._count 41]; " +

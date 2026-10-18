@@ -27,7 +27,7 @@ import type { Context } from "./context.ts";
  */
 export class FrameHandle extends Frame {
   constructor(
-    private readonly target: Frame,
+    private target: Frame,
     private readonly mutable: boolean,
     private readonly copyOnWrite?: WeakSet<Frame>,
     private readonly readContext?: Frame,
@@ -38,8 +38,47 @@ export class FrameHandle extends Frame {
     this.up = target;
   }
 
+  /** What this handle was read from during a functional update (#401). */
+  private holder?: Frame;
+
   public unwrap(): Frame {
     return this.target;
+  }
+
+  /**
+   * Records what this handle was read from, so a write through it during a
+   * functional update can copy the path down to its target.
+   */
+  public heldBy(holder: Frame): this {
+    this.holder = holder;
+    return this;
+  }
+
+  /**
+   * The target a write through this handle may land on during a functional
+   * update, copied into the copy-on-write graph first (#401).
+   *
+   * A functional update copies only its receiver. When a write is about to
+   * reach a member the call has not copied yet, that member is copied now and
+   * installed in the copy that holds it, copying that holder first if it too
+   * is still shared, and this handle follows the copy. A target reached
+   * through a shared declared parent has no copied holder, so it answers
+   * nothing and the write meets `$!.copy-on-write-boundary`.
+   */
+  public copyOnWriteTarget(): Frame | undefined {
+    const graph = this.copyOnWrite;
+    if (!graph || graph.has(this.target)) return this.target;
+
+    const holder = this.holder instanceof FrameHandle
+      ? this.holder.copyOnWriteTarget()
+      : this.holder;
+    if (!holder || !graph.has(holder)) return undefined;
+
+    const copy = this.target.instanceCopy();
+    if (!holder.replaceMember(this.target, copy)) return undefined;
+    graph.add(copy);
+    this.target = copy;
+    return copy;
   }
 
   /** A handle is transparent to equality: it compares as its target. */
@@ -103,11 +142,13 @@ export class FrameHandle extends Frame {
 
   protected override lookup_result(value: Frame, key: string): Frame {
     if (value instanceof FrameLazy) {
+      const effect = methodEffect(key);
+      if (effect.mutating && this.mutable) this.copyOnWriteTarget();
       return new BoundMethod(
         value,
         this.target,
         this.mutable,
-        methodEffect(key),
+        effect,
         this.copyOnWrite,
         this.readContext,
       );

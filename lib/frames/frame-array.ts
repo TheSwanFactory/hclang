@@ -130,25 +130,26 @@ export class FrameArray extends FrameList {
   }
 
   /**
-   * Aggregates are where identity matters, so an instance copy isolates them:
-   * every nested aggregate, in the data plane and the metadata plane alike, gets
-   * fresh identity, and writing through the copy is invisible through the
-   * original at any depth. Atoms and closure bodies are shared, since neither
-   * carries identity a write can land on. A declared parent rides along in its
-   * own field, and the id is always fresh.
+   * An instance copy is a fresh aggregate whose members are shared, so a
+   * member keeps its identity until a write is about to land on it. Copy on
+   * write copies that member then, into the copy that holds it
+   * (`FrameHandle.copyOnWriteTarget`, #401), so writing through the copy is
+   * still invisible through the original at any depth. A declared parent rides
+   * along in its own field, and the id is always fresh.
    */
-  public override instanceCopy(seen: Map<Frame, Frame> = new Map()): Frame {
-    const copied = seen.get(this);
-    if (copied) {
-      return copied;
-    }
-    const clone = this.copy();
-    seen.set(this, clone);
-    clone.data = this.itemsFor(clone, (item) => item.instanceCopy(seen));
-    for (const [key, value] of this.meta_pairs()) {
-      clone.set(key, value.instanceCopy(seen));
-    }
-    return clone;
+  public override instanceCopy(): Frame {
+    return this.copy();
+  }
+
+  /** Elements are members too, so a held element can be replaced in place. */
+  public override replaceMember(member: Frame, replacement: Frame): boolean {
+    let replaced = super.replaceMember(member, replacement);
+    this.data = this.data.map((item) => {
+      if (item !== member) return item;
+      replaced = true;
+      return replacement;
+    });
+    return replaced;
   }
 
   protected override lookup_here(key: string, origin: MetaFrame): Frame {
