@@ -370,28 +370,41 @@ of them:
   and nothing more. It promises no object semantics; nested aggregates are
   shared.
 - **Instance copy** — `Frame.instanceCopy()`. The object-semantic operation,
-  with exactly one caller: copy-on-write in `BoundMethod`, where a mutating
-  method is reached through an immutable handle. Nested aggregates get fresh
-  identity at every depth in both planes, so a write through the copy is
-  invisible through the original; atoms and closure bodies are shared, because
-  neither owns identity a write can land on. A declared parent is preserved in
-  its own field and the id is always fresh.
+  taken only by copy-on-write, where a mutating method is reached through an
+  immutable handle. It gives an aggregate fresh identity and shares its members;
+  atoms and closure bodies are shared too, because neither owns identity a write
+  can land on. A declared parent is preserved in its own field and the id is
+  always fresh.
 
 Copy-on-write therefore means functional update: `p.set_ 2` leaves `p` alone and
 evaluates to the new value. Bodies are never copied — a bound method passes its
 receiver as an explicit argument rather than rewriting a copied closure.
 
+The copy is lazy (#401). `BoundMethod` copies only the receiver. A handle read
+during the call records what it was read from (`FrameHandle.heldBy`), and when a
+mutating method is about to run through a mutable one whose target the call has
+not copied, `FrameHandle.copyOnWriteTarget` copies that target, installs the
+copy in its holder with `replaceMember`, copying the holder first if it is still
+shared, and follows the copy. So a call copies exactly the path down to what it
+writes, and whatever it never writes keeps its identity: a Figure the receiver
+holds is still the same Figure in the result. The original is still untouched at
+any depth, because nothing is written before it is copied. The result shares its
+unwritten members with the original, as a persistent data structure does, so a
+later in-place write through a mutable name reaches that shared member like any
+other alias of it.
+
 A declared parent remains shared rather than joining the instance copy. During a
-copy-on-write call, `BoundMethod` therefore records the aggregates actually
-produced by `instanceCopy` as call-scoped ownership provenance. Before a nested
-mutable method receives any write brand, its receiver must belong to that copied
-graph; otherwise the call returns `$!.copy-on-write-boundary .method`. Alias
-resolution also checks that its physical declaration owner belongs to the graph,
-so reaching a shared declared parent returns `$!.copy-on-write-boundary .name`
-instead of mutating shared state. The provenance follows repeated dotted handle
-traversal, and the authority-minting check protects structural writes such as
-`.^` as well as aliases. An ordinary mutable receiver still updates an inherited
-owner directly.
+copy-on-write call, `BoundMethod` therefore records the aggregates the call has
+copied as call-scoped ownership provenance. Before a nested mutable method
+receives any write brand, its receiver must belong to that copied graph, which a
+path copy arranges for anything held by a copy; a receiver reached through a
+shared declared parent has no copied holder, so the call returns
+`$!.copy-on-write-boundary .method`. Alias resolution also checks that its
+physical declaration owner belongs to the graph, so reaching a shared declared
+parent returns `$!.copy-on-write-boundary .name` instead of mutating shared
+state. The provenance follows repeated dotted handle traversal, and the
+authority-minting check protects structural writes such as `.^` as well as
+aliases. An ordinary mutable receiver still updates an inherited owner directly.
 
 The boundary belongs to the invocation, not to the returned aggregate. A
 functional result can later be bound through a mutable name and then exercise

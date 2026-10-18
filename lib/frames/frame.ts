@@ -581,13 +581,26 @@ export class Frame extends MetaFrame {
    * shields an immutable receiver from a mutating method. Atoms are immutable
    * and closures are shared bodies, so for them sharing is unobservable and the
    * default is to share. Aggregates own identity, so `FrameArray` overrides this
-   * to hand back a fresh one at every depth.
-   *
-   * The map memoizes aggregates already copied in this operation, so a nested
-   * aggregate reached twice stays one aggregate and a cyclic chain terminates.
+   * to hand back a fresh aggregate whose members are still shared (#401).
    */
-  public instanceCopy(_seen: Map<Frame, Frame> = new Map()): Frame {
+  public instanceCopy(): Frame {
     return this;
+  }
+
+  /**
+   * Replaces a member that is exactly `member` with `replacement`, answering
+   * whether one was found. Copy-on-write uses it to install a copy of a member
+   * into the copy that holds it, so only declared slots are searched here.
+   */
+  public replaceMember(member: Frame, replacement: Frame): boolean {
+    let replaced = false;
+    for (const [key, value] of this.meta_pairs()) {
+      if (value === member) {
+        this.meta[key] = replacement;
+        replaced = true;
+      }
+    }
+    return replaced;
   }
 
   /**

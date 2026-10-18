@@ -6,6 +6,12 @@
 
 ## Unreleased
 
+- **A functional update copies only what it writes.** A mutating method reached
+  through an immutable handle copied every aggregate its receiver held; it now
+  copies the receiver and then the path down to each write, so anything the call
+  never writes keeps its identity in the result (#401). The original is still
+  untouched at any depth. The result shares its unwritten members with the
+  original, so an in-place write through a mutable name reaches both.
 - **A class can declare how text spells its instances.** Text that receives an
   aggregate declaring `toText` contributes that method's answer, so
   `“at ” (Pair [3, 5])` can read `“at (3, 5)”` instead of spelling every field

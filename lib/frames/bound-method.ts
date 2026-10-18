@@ -131,12 +131,12 @@ export class BoundMethod extends Frame {
       );
     }
 
-    const copied = new Map<Frame, Frame>();
-    const target = this.receiverTarget.instanceCopy(copied);
+    // Only the receiver is copied now. A member is copied when a write is
+    // about to land on it, so whatever the call never writes keeps its
+    // identity (#401).
+    const target = this.receiverTarget.instanceCopy();
     const copyOnWrite = this.copyOnWrite ?? new WeakSet<Frame>();
-    for (const aggregate of copied.values()) {
-      copyOnWrite.add(aggregate);
-    }
+    copyOnWrite.add(target);
     return receiverState(
       target,
       true,
