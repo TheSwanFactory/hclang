@@ -1292,14 +1292,16 @@ describe("evaluate", () => {
         ]),
       });
       const context: frame.Context = { object };
+      // A host-built method was written in no HC scope, so its free names are
+      // missing rather than acquired from the scope it was read from (#400).
       expect(
         evaluate(".__secret 42; $$.object.readSecret()", context).at(0)
           .toString(),
-      ).toContain("$!.is-private .secret");
+      ).toContain("$!.name-missing");
       expect(
         evaluate("._guarded 21; $$.object.readGuarded()", context).at(0)
           .toString(),
-      ).toContain("$!.is-protected .guarded");
+      ).toContain("$!.name-missing");
     });
 
     it("does not let an alias write through the host namespace", () => {
@@ -1602,15 +1604,16 @@ describe("evaluate", () => {
       expect(result.meta.arg.get_here("x").toString()).toEqual("5");
     });
 
-    it("preserves inherited-method lexical alias fallback", () => {
+    it("writes an inherited method's alias miss where the method was written", () => {
+      // `write_` is written where `x` is 1, and its receiver is read through
+      // `inner`, which binds its own `x`. The read path supplies no name (#400).
       const result = evaluate(
-        ".parent [.write_ {@x _;}]; " +
-          ".inner [.x 1; .child_ [.^ parent]]; " +
-          "inner.child_.write_ 9; inner.x",
+        ".x 1; .parent [.write_ {@x _;}]; " +
+          ".inner [.x 5; .child_ [.^ parent]]; " +
+          "inner.child_.write_ 9; [x, inner.x]",
       );
 
-      expect(result.at(-1).toString()).toMatch(/; 9\)$/);
-      expect(result.meta.inner.get_here("x").toString()).toEqual("9");
+      expect(result.at(0).asArray().at(-1)?.toString()).toEqual("[9, 5]");
     });
 
     it("preserves receiver authority through conditional blocks", () => {
@@ -2049,7 +2052,10 @@ describe("evaluate", () => {
       expect(shared.at(-1).toString()).toContain("[1, 2, 1]");
     });
 
-    it("preserves caller context through aggregates returned by shared methods", () => {
+    it("resolves a shared method's free names where it was written", () => {
+      // `left` and `right` each bind `lexical` and hold the same `shared`, but
+      // `read` was written where `lexical` is “root”, and that is what it reads
+      // however it is reached (#400, overriding #347's read-path lookup).
       const result = evaluate(
         ".lexical “root”; " +
           ".shared [.inner [.read {lexical}]; .get {inner}]; " +
@@ -2058,7 +2064,21 @@ describe("evaluate", () => {
           "[left.shared.get().read(), right.shared.get().read()]",
       );
 
-      expect(result.toString()).toContain("[“left”, “right”]");
+      expect(result.toString()).toContain("[“root”, “root”]");
+    });
+
+    it("never lets the scope holding a receiver bind its method's names", () => {
+      const result = evaluate(
+        ".f 9; .O {[.m {f}]}; .s {.f 5; .o (O()); o.m()}; s()",
+      );
+
+      expect(result.at(0).asArray().at(-1)?.toString()).toEqual("9");
+    });
+
+    it("never acquires a missing member from the scope holding the aggregate", () => {
+      expect(evaluate(".k 1; .o [.v 2]; o.k").at(0).toString()).toContain(
+        "$!.name-missing",
+      );
     });
 
     it("reads each instance's own private fields through a shared body", () => {
