@@ -48,8 +48,9 @@ export class FrameAlias extends FrameAtom {
       scope.argument;
 
     // Receiver and declared-parent hits are writes to object state, so they
-    // require the method capability. A miss searches the closure's captured
-    // lexical scope, never caller-owned argument or parameter values.
+    // require the method capability. A miss searches the method's own scope and
+    // the scope it was written in, never the scope its receiver was read from
+    // (#400) and never caller-owned argument or parameter values.
     const receiverFound = receiver
       ? this.find(receiver, key, origin, new Set(), false)
       : undefined;
@@ -64,12 +65,19 @@ export class FrameAlias extends FrameAtom {
     }
 
     if (receiver) {
-      const lexicalContext = receiverState?.lexicalContext ?? receiver.up;
-      const lexicalFound = this.find(lexicalContext, key, origin);
-      if (lexicalFound instanceof Frame) return lexicalFound;
-      return lexicalFound
-        ? this.setterFor(lexicalFound, key, receiverState?.copyOnWrite)
-        : FrameNote.key(key, this);
+      const seen = new Set<Frame>();
+      for (const context of scope.lookupFrames()) {
+        if (
+          context === scope.argument || context === scope.parameter ||
+          context.referent() === receiver
+        ) continue;
+        const lexicalFound = this.find(context, key, origin, seen);
+        if (lexicalFound instanceof Frame) return lexicalFound;
+        if (lexicalFound) {
+          return this.setterFor(lexicalFound, key, receiverState?.copyOnWrite);
+        }
+      }
+      return FrameNote.key(key, this);
     }
 
     for (const context of scope.lookupFrames()) {
@@ -107,23 +115,11 @@ export class FrameAlias extends FrameAtom {
     }
     seen.add(context);
 
-    // A contextual handle represents target-local/declared lookup followed by
-    // the context of this read. Traverse those explicit links rather than the
-    // target's historical `up`, which belongs to neither this receiver nor this
-    // invocation.
+    // A handle created by a read reaches its target and declared parents only:
+    // neither the target's historical `up`, which belongs to neither this
+    // receiver nor this invocation, nor the scope of the read (#400).
     if (context instanceof FrameHandle && context.readContextFrame()) {
-      const targetFound = this.find(
-        context.unwrap(),
-        key,
-        origin,
-        seen,
-        false,
-        true,
-      );
-      if (targetFound) return targetFound;
-      return followLexical
-        ? this.find(context.readContextFrame()!, key, origin, seen)
-        : undefined;
+      return this.find(context.unwrap(), key, origin, seen, false, true);
     }
 
     const binding = context.resolve_here(key, origin);

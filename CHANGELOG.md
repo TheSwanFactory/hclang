@@ -6,6 +6,12 @@
 
 ## Unreleased
 
+- **Breaking: a method's free names are lexical.** A method reads and writes
+  free names where it was written, never through the path its receiver was
+  reached by, so a scope that rebinds one of them no longer captures it (#400,
+  #382 H11). `left.shared.read()` now reads the `lexical` visible where `read`
+  was written, not `left`'s, and `o.k` misses when `o` has no `k` instead of
+  finding a `k` beside `o`. This overrides #347's contextual lookup.
 - **A class can declare how text spells its instances.** Text that receives an
   aggregate declaring `toText` contributes that method's answer, so
   `“at ” (Pair [3, 5])` can read `“at (3, 5)”` instead of spelling every field
