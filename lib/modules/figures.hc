@@ -13,7 +13,8 @@ so it is a statement of the object rather than one of its elements, and it
 never affects `=`. Every observer answers a Figure, never a number or a
 Boolean: `A`, with no children, means no, and `B` means yes. So every answer can
 be a child, a receiver, or an argument, and the class is closed under its own
-methods.
+methods. Only Form and Text leave the class, on purpose: they answer a plain
+bracket tree and its text, for reading a Figure rather than computing with it.
 
 A method names its own Figure `_^`, because a bare name is looked up on the
 argument first (spec 7), and the argument is usually another Figure. For the
@@ -82,7 +83,19 @@ them. A requested Figure is absent when no child is identical to it
     .absent ((_ & {.f _;
       .found ((kids & {(_ === f) ? {f}}) | []);
       (found = []) ? {f}}) | []);
-    (absent = []) ? {B} : {A}}
+    (absent = []) ? {B} : {A}};
+```
+**Form**, `x.form()`: the plain bracket tree of x, one bracket per Figure, the
+way 005.30c wrote Figures before they were a class. It keeps shape and order,
+and forgets identity and the methods
+```;
+  .form {_^.children & {_.form()}};
+```
+**Text**, `“” x`: the form spelled as text, so a Figure interpolates as
+`[[], [[]]]` rather than as every method it declares (#398). Printing x still
+shows its full spelling, which reads back
+```;
+  .toText {“” (_^.form())}
 ]};
 ```
 **Tally** is a helper receiver, not a Figure. Its `row` starts at `Z`, and
@@ -100,6 +113,13 @@ child itself, not a copy
 ; .E (Figure [A, B]); .F (Figure [B, C]); .G (Figure [E, F]);
 ; [(G.children .0) === E, (E.children .1) === B, (F.children .0) === B, (E.children .0) === (B.children .0)]
 # [<>, <>, <>, <>]
+```
+Form is the bracket tree a Figure is built as, and text spells it
+```
+; [(E.form()) = [[], [[]]], (E.form()) = [A.form(), B.form()], ((Figure []).form()) = []]
+# [<>, <>, <>]
+; [(“” E) = “[[], [[]]]”, (“G is ” G) = “G is [[[], [[]]], [[[]], [[[]]]]]”]
+# [<>, <>]
 ```
 Equal children make equal Figures, but each construction is a different Figure
 ```

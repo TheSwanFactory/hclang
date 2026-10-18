@@ -14,11 +14,13 @@
   `figure_mul [x, y]` → `x.mul y`, `withness [.parent P; .figs [f…];]` →
   `P.withness [f…]`, `xs | Tally` → `xs | (Tally Z)`, `x .0` → `x.children .0`.
   A Figure prints with its methods and equals other Figures, not the bracket of
-  its children. Applying a Figure appends a child, so `xs | (Figure [])`
-  constructs. `Figure (x)` with a Figure x answers an empty Figure: write
-  `Figure [x]`. `absent`, `cat`, `figure_add` and `figure_mul` are removed, with
-  no aliases. Programs written against v0.20.1's Figures, including explore
-  017.09's, run unchanged on hclang 0.20.1; port them with the mapping above.
+  its children; `x.form()` answers that bracket tree, and `“” x` spells it, so a
+  Figure interpolates as `[[], [[]]]` (#398). Applying a Figure appends a child,
+  so `xs | (Figure [])` constructs. `Figure (x)` with a Figure x answers an
+  empty Figure: write `Figure [x]`. `absent`, `cat`, `figure_add` and
+  `figure_mul` are removed, with no aliases. Programs written against v0.20.1's
+  Figures, including explore 017.09's, run unchanged on hclang 0.20.1; port them
+  with the mapping above.
 - **`.N` indexes elements.** A declared property no longer shifts an index:
   `[.k 1; 4, 5] .0` is `4`, not the `.k` declaration.
 - **Multi-line aggregates read alike everywhere.** A line break inside an open

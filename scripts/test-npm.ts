@@ -136,7 +136,7 @@ const modules = await npx(["cli/hc/modules.hc", "--testdoc"]);
 const modulesSummary = modules.stdout.split("\n").find((line) =>
   line.includes("$=.test-summary")
 );
-const modulesExpected = '“{"total":11,"pass":11,"fail":0,"unimplemented":0}”';
+const modulesExpected = '“{"total":12,"pass":12,"fail":0,"unimplemented":0}”';
 if (!modulesSummary?.includes(modulesExpected)) {
   throw new Error(
     `npm testdoc did not import the Figures standard module\n${modules.stdout}`,

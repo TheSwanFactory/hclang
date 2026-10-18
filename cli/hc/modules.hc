@@ -29,6 +29,8 @@ marks only the immediate children
 # <>
 ; ((Figures.Figure [Figures.B]).children .0) === Figures.B
 # <>
+; (“E is ” Figures.E) = “E is [[], [[]]]”
+# <>
 ```
 Sameness of form is `=` and sameness of the constructed Figure is `===`, so `B`
 and a fresh `Figure [A]` agree in form and in Size but are not the same Figure
