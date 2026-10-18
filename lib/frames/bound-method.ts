@@ -10,9 +10,10 @@ const RECEIVER_WRITE_AUTHORIZED = Symbol("receiverWriteAuthorized");
  *
  * `receiver` is the exact read target, `mutable` controls how a bare sibling
  * method is rebound, `copyOnWrite` records the aggregate graph isolated for an
- * outer functional update, and `lexicalContext` is the fallback selected by
- * the read that produced the method. The private symbol is present only when
- * this invocation may write its receiver.
+ * outer functional update, and `lexicalContext` is the scope of the read that
+ * produced the method, which supplies the call's evaluation roots but never its
+ * names (#400). The private symbol is present only when this invocation may
+ * write its receiver.
  */
 export type ReceiverState = {
   readonly receiver: Frame;

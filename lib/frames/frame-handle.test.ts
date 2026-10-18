@@ -125,7 +125,7 @@ describe("FrameHandle", () => {
       expect(bound.call(Frame.nil).toString()).toEqual("“value”");
     });
 
-    it("keeps each read context live through a bound method", () => {
+    it("never supplies a method's free names from its read context", () => {
       const value = new FrameArray([], {
         read: new FrameLazy([FrameSymbol.for("lexical")]),
       });
@@ -138,15 +138,13 @@ describe("FrameHandle", () => {
       const left = new FrameHandle(value, false, undefined, leftContext);
       const right = new FrameHandle(value, false, undefined, rightContext);
 
-      expect(boundOn(left, "read").call(Frame.nil).toString()).toEqual(
-        "“left”",
+      // `read` was written in no scope that binds `lexical`, so reaching it
+      // through either context answers missing rather than acquiring (#400).
+      expect(boundOn(left, "read").call(Frame.nil).toString()).toContain(
+        "$!.name-missing",
       );
-      expect(boundOn(right, "read").call(Frame.nil).toString()).toEqual(
-        "“right”",
-      );
-      leftContext.set("lexical", new FrameString("updated"));
-      expect(boundOn(left, "read").call(Frame.nil).toString()).toEqual(
-        "“updated”",
+      expect(boundOn(right, "read").call(Frame.nil).toString()).toContain(
+        "$!.name-missing",
       );
       expect(value.up).toBe(Frame.missing);
     });

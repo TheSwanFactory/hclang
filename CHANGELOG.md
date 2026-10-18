@@ -6,6 +6,12 @@
 
 ## Unreleased
 
+- **Breaking: a method's free names are lexical.** A method reads and writes
+  free names where it was written, never through the path its receiver was
+  reached by, so a scope that rebinds one of them no longer captures it (#400,
+  #382 H11). `left.shared.read()` now reads the `lexical` visible where `read`
+  was written, not `left`'s, and `o.k` misses when `o` has no `k` instead of
+  finding a `k` beside `o`. This overrides #347's contextual lookup.
 - **A functional update copies only what it writes.** A mutating method reached
   through an immutable handle copied every aggregate its receiver held; it now
   copies the receiver and then the path down to each write, so anything the call

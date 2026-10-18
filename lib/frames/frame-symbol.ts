@@ -140,7 +140,7 @@ export class FrameSymbol extends FrameAtom {
         // re-parented for the benefit of one reader.
         const isCanonicalBoolean = value === Frame.nil || value === Frame.all;
         const continuation = context instanceof FrameHandle
-          ? context.resultContext()
+          ? context
           : context.projectionContext();
         const resolved = value instanceof FrameLazy
           ? value.bind(scope.captureScope())

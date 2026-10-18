@@ -297,8 +297,11 @@ Two rules define it:
   lands where it would have without the wrapper. Application never writes
   through the name: a collect lands on the target's `collectingCopy()`, a fresh
   aggregate sharing its elements, whether or not the name is mutable.
-- **Caller-scoped lookup.** `get_here` answers missing by design, so explicit
-  dotted lookup resolves against the caller's origin rather than the wrapper.
+- **Target lookup.** `get_here` answers missing by design, so explicit dotted
+  lookup resolves against the caller's origin rather than the wrapper. A handle
+  created by a read records the scope of that read for its evaluation roots
+  only: lookup through it reaches the target and its declared parents, never
+  that scope, so `o.k` misses when `o` has no `k` (#400).
 
 Discovering a method through a handle or by bare name on the active raw receiver
 yields a `BoundMethod`, which owns the effect rules for that pairing: a mutating
@@ -321,9 +324,10 @@ nested inline blocks retain the decision while unrelated named helpers and
 ordinary helper calls cannot acquire it.
 
 An alias first searches the receiver and its declared parents. A hit consumes
-the write brand; a miss searches only the receiver's live lexical scope, never
-the prepared argument or parameter supplied by the caller. This preserves
-lexical alias behavior without making caller-owned values write targets.
+the write brand; a miss searches the method's own scope and the scope it was
+written in, never the prepared argument or parameter supplied by the caller and
+never the scope its receiver was read from. Reads and writes therefore agree: a
+method's free names are lexical (#400).
 
 ### Equality
 

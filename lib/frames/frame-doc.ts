@@ -1,5 +1,4 @@
 import type { Frame } from "./frame.ts";
-import { FrameAtom } from "./frame-atom.ts";
 import { type CharacterContent, FrameText } from "./frame-text.ts";
 import { concatenateText, FrameString } from "./frame-string.ts";
 import { type Context, NilContext } from "./context.ts";
