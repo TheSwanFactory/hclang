@@ -13,6 +13,7 @@ import {
 import { BoundMethod } from "./bound-method.ts";
 import { FrameHandle } from "./frame-handle.ts";
 import { methodEffect } from "./effect-marker.ts";
+import { EvaluationScope } from "./evaluation-scope.ts";
 
 describe("FrameAlias", () => {
   const key = "atom";
@@ -101,18 +102,23 @@ describe("FrameAlias", () => {
     expect(lexical.get_here("atom")).toBe(value_1);
   });
 
-  it("writes lexical scope after a receiver miss, never the argument", () => {
+  it("writes the scope the method was written in after a receiver miss", () => {
+    // Not the argument, and not whatever scope holds the receiver (#400).
     const lexical = new Frame({ atom: value_1 });
+    const holder = new Frame({ atom: value_1 });
     const receiver = new FrameArray([]);
-    receiver.up = lexical;
+    receiver.up = holder;
     const argument = new Frame({ atom: new FrameString("argument") });
-    const method = new FrameLazy([frame_alias, value_2]);
+    const method = new FrameLazy([frame_alias, value_2]).bind(
+      EvaluationScope.root(lexical),
+    );
 
     new BoundMethod(method, receiver, true, methodEffect("write")).call(
       argument,
     );
 
     expect(lexical.get_here("atom")).toBe(value_2);
+    expect(holder.get_here("atom")).toBe(value_1);
     expect(argument.get_here("atom").toString()).toEqual("“argument”");
   });
 

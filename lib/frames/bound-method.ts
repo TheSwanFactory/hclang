@@ -10,9 +10,10 @@ const RECEIVER_WRITE_AUTHORIZED = Symbol("receiverWriteAuthorized");
  *
  * `receiver` is the exact read target, `mutable` controls how a bare sibling
  * method is rebound, `copyOnWrite` records the aggregate graph isolated for an
- * outer functional update, and `lexicalContext` is the fallback selected by
- * the read that produced the method. The private symbol is present only when
- * this invocation may write its receiver.
+ * outer functional update, and `lexicalContext` is the scope of the read that
+ * produced the method, which supplies the call's evaluation roots but never its
+ * names (#400). The private symbol is present only when this invocation may
+ * write its receiver.
  */
 export type ReceiverState = {
   readonly receiver: Frame;
@@ -131,12 +132,12 @@ export class BoundMethod extends Frame {
       );
     }
 
-    const copied = new Map<Frame, Frame>();
-    const target = this.receiverTarget.instanceCopy(copied);
+    // Only the receiver is copied now. A member is copied when a write is
+    // about to land on it, so whatever the call never writes keeps its
+    // identity (#401).
+    const target = this.receiverTarget.instanceCopy();
     const copyOnWrite = this.copyOnWrite ?? new WeakSet<Frame>();
-    for (const aggregate of copied.values()) {
-      copyOnWrite.add(aggregate);
-    }
+    copyOnWrite.add(target);
     return receiverState(
       target,
       true,

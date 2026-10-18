@@ -213,22 +213,25 @@ describe("FrameArray", () => {
       }
     });
 
-    it("gives a nested aggregate fresh identity in both planes", () => {
+    it("shares a nested aggregate until a write copies it (#401)", () => {
       const inner = new FrameArray([new FrameNumber("1")]);
       const outer = new FrameArray([inner]);
       outer.set("inner", inner);
 
       const clone = outer.instanceCopy();
-      const copiedInner = clone.get("inner");
 
       expect(clone).not.toBe(outer);
-      expect(copiedInner).not.toBe(inner);
-      // One source aggregate stays one aggregate in the copy, so the data-plane
-      // item and the metadata binding do not drift apart.
-      expect(clone.at(0)).toBe(copiedInner);
+      expect(clone.get("inner")).toBe(inner);
+      expect(clone.at(0)).toBe(inner);
 
-      copiedInner.set("added", new FrameString("written through the copy"));
-      expect(inner.get_here("added").is.missing).toBe(true);
+      // A write installs a copy of the member in both planes of the copy that
+      // holds it, and leaves the original holding the original.
+      const copiedInner = inner.instanceCopy();
+      expect(clone.replaceMember(inner, copiedInner)).toBe(true);
+      expect(clone.get("inner")).toBe(copiedInner);
+      expect(clone.at(0)).toBe(copiedInner);
+      expect(outer.get("inner")).toBe(inner);
+      expect(outer.at(0)).toBe(inner);
     });
 
     it("shares atoms and closure bodies, which own no identity to write to", () => {
@@ -243,14 +246,15 @@ describe("FrameArray", () => {
       expect(clone.get("method")).toBe(method);
     });
 
-    it("terminates when nested aggregates refer to each other", () => {
+    it("copies an aggregate that refers to itself without walking it", () => {
       const left = new FrameArray([]);
       const right = new FrameArray([left]);
       left.set("right", right);
 
       const clone = left.instanceCopy();
 
-      expect(clone.get("right").at(0)).toBe(clone);
+      expect(clone.get("right")).toBe(right);
+      expect(clone.get("right").at(0)).toBe(left);
     });
 
     it("preserves a declared parent and takes a fresh id", () => {

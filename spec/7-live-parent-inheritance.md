@@ -152,9 +152,16 @@ binding. An unauthorized parent write MUST likewise return
 `$!.method-not-mutating .^`. Neither refusal may change the receiver.
 
 If `@name` misses the receiver path, it retains lexical alias behavior through
-the receiver's live enclosing scope. That fallback MUST skip the method argument
-and parameter layers, which are values supplied by the caller rather than alias
-write targets.
+the method's own enclosing scope, where the method was written. That fallback
+MUST skip the method argument and parameter layers, which are values supplied by
+the caller rather than alias write targets, and MUST NOT consult the scope the
+receiver was read from (#400).
+
+> [!NOTE]
+> #400 amends this section and overrides #347. A method's free names, read or
+> written, are lexical: they resolve where the method was written, and the path
+> its receiver was reached by supplies none. Contextual lookup along that path
+> is no longer implicit; a later issue may add it as an explicit request.
 
 A mutable handle alone MUST NOT grant a missing method effect. Once authorized,
 a mutable handle targets the receiver itself and an immutable handle targets the

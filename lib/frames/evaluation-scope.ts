@@ -247,13 +247,9 @@ export class EvaluationScope {
           receiverState.mutable,
           receiverState.copyOnWrite,
           receiverState.lexicalContext,
-          false,
         )
         : receiverState.receiver;
       lookupFrames.push(receiverLookup);
-      if (receiverState.lexicalContext) {
-        lookupFrames.push(receiverState.lexicalContext);
-      }
     }
     if (closure) lookupFrames.push(closure);
     if (enclosing) lookupFrames.push(...enclosing.lookupFrames());

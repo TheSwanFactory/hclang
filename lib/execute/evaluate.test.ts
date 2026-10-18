@@ -1320,14 +1320,16 @@ describe("evaluate", () => {
         ]),
       });
       const context: frame.Context = { object };
+      // A host-built method was written in no HC scope, so its free names are
+      // missing rather than acquired from the scope it was read from (#400).
       expect(
         evaluate(".__secret 42; $$.object.readSecret()", context).at(0)
           .toString(),
-      ).toContain("$!.is-private .secret");
+      ).toContain("$!.name-missing");
       expect(
         evaluate("._guarded 21; $$.object.readGuarded()", context).at(0)
           .toString(),
-      ).toContain("$!.is-protected .guarded");
+      ).toContain("$!.name-missing");
     });
 
     it("does not let an alias write through the host namespace", () => {
@@ -1630,15 +1632,16 @@ describe("evaluate", () => {
       expect(result.meta.arg.get_here("x").toString()).toEqual("5");
     });
 
-    it("preserves inherited-method lexical alias fallback", () => {
+    it("writes an inherited method's alias miss where the method was written", () => {
+      // `write_` is written where `x` is 1, and its receiver is read through
+      // `inner`, which binds its own `x`. The read path supplies no name (#400).
       const result = evaluate(
-        ".parent [.write_ {@x _;}]; " +
-          ".inner [.x 1; .child_ [.^ parent]]; " +
-          "inner.child_.write_ 9; inner.x",
+        ".x 1; .parent [.write_ {@x _;}]; " +
+          ".inner [.x 5; .child_ [.^ parent]]; " +
+          "inner.child_.write_ 9; [x, inner.x]",
       );
 
-      expect(result.at(-1).toString()).toMatch(/; 9\)$/);
-      expect(result.meta.inner.get_here("x").toString()).toEqual("9");
+      expect(result.at(0).asArray().at(-1)?.toString()).toEqual("[9, 5]");
     });
 
     it("preserves receiver authority through conditional blocks", () => {
@@ -1807,6 +1810,37 @@ describe("evaluate", () => {
       expect(base.get_here("_count").toString()).toEqual("99");
       expect(derived.get_here("_count").is.missing).toBe(true);
       expect(derived.meta.count).toBeUndefined();
+    });
+
+    describe("copy on write (#401)", () => {
+      const answer = (source: string): string | undefined =>
+        evaluate(source).at(0).asArray().at(-1)?.toString();
+
+      it("shares what a functional update never writes", () => {
+        expect(answer(
+          ".kid [.n 1]; .k [.fig kid; .touch_ {@fig fig;}]; " +
+            ".c (k.touch_ ()); [c.fig === kid, c === k]",
+        )).toEqual("[<>, ()]");
+        expect(answer(
+          ".p [.v 1; .w [.n 2]; .set_ {@v _;}]; .q (p.set_ 9); " +
+            "[q.v, p.v, q.w === p.w]",
+        )).toEqual("[9, 1, <>]");
+      });
+
+      it("copies the path down to a nested write and nothing beside it", () => {
+        expect(answer(
+          ".a [.b_ [.c_ [.n 1; .set_ {@n _;}]; .side [.m 0]]; " +
+            ".go_ {b_.c_.set_ _}]; .r (a.go_ 7); " +
+            "[r.b_.c_.n, a.b_.c_.n, r.b_ === a.b_, r.b_.side === a.b_.side]",
+        )).toEqual("[7, 1, (), <>]");
+      });
+
+      it("lands repeated writes in one call on the same copy", () => {
+        expect(answer(
+          ".t [.x_ [.n 0; .inc_ {@n (n + 1);}]; .go_ {x_.inc_ (); x_.inc_ ()}]; " +
+            "[(t.go_ ()).x_.n, t.x_.n]",
+        )).toEqual("[2, 0]");
+      });
     });
 
     it("rejects inherited writes through a copy-on-write receiver", () => {
@@ -2077,7 +2111,10 @@ describe("evaluate", () => {
       expect(shared.at(-1).toString()).toContain("[1, 2, 1]");
     });
 
-    it("preserves caller context through aggregates returned by shared methods", () => {
+    it("resolves a shared method's free names where it was written", () => {
+      // `left` and `right` each bind `lexical` and hold the same `shared`, but
+      // `read` was written where `lexical` is “root”, and that is what it reads
+      // however it is reached (#400, overriding #347's read-path lookup).
       const result = evaluate(
         ".lexical “root”; " +
           ".shared [.inner [.read {lexical}]; .get {inner}]; " +
@@ -2086,7 +2123,21 @@ describe("evaluate", () => {
           "[left.shared.get().read(), right.shared.get().read()]",
       );
 
-      expect(result.toString()).toContain("[“left”, “right”]");
+      expect(result.toString()).toContain("[“root”, “root”]");
+    });
+
+    it("never lets the scope holding a receiver bind its method's names", () => {
+      const result = evaluate(
+        ".f 9; .O {[.m {f}]}; .s {.f 5; .o (O()); o.m()}; s()",
+      );
+
+      expect(result.at(0).asArray().at(-1)?.toString()).toEqual("9");
+    });
+
+    it("never acquires a missing member from the scope holding the aggregate", () => {
+      expect(evaluate(".k 1; .o [.v 2]; o.k").at(0).toString()).toContain(
+        "$!.name-missing",
+      );
     });
 
     it("reads each instance's own private fields through a shared body", () => {

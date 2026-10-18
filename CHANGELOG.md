@@ -21,6 +21,12 @@
   `figure_mul` are removed, with no aliases. Programs written against v0.20.1's
   Figures, including explore 017.09's, run unchanged on hclang 0.20.1; port them
   with the mapping above.
+- **Breaking: a method's free names are lexical.** A method reads and writes
+  free names where it was written, never through the path its receiver was
+  reached by, so a scope that rebinds one of them no longer captures it (#400,
+  #382 H11). `left.shared.read()` now reads the `lexical` visible where `read`
+  was written, not `left`'s, and `o.k` misses when `o` has no `k` instead of
+  finding a `k` beside `o`. This overrides #347's contextual lookup.
 - **`.N` indexes elements.** A declared property no longer shifts an index:
   `[.k 1; 4, 5] .0` is `4`, not the `.k` declaration.
 - **Multi-line aggregates read alike everywhere.** A line break inside an open
@@ -30,7 +36,13 @@
   argument's own and inherited properties but never the scope that built it
   (spec 7), and a block inside a method reads the method's locals ahead of the
   caller's bindings. Each had let a caller's names leak into a method (#382
-  H11). A method's free names still resolve first where its receiver was read.
+  H11).
+- **A functional update copies only what it writes.** A mutating method reached
+  through an immutable handle copied every aggregate its receiver held; it now
+  copies the receiver and then the path down to each write, so anything the call
+  never writes keeps its identity in the result (#401). The original is still
+  untouched at any depth. The result shares its unwritten members with the
+  original, so an in-place write through a mutable name reaches both.
 - **A class can declare how text spells its instances.** Text that receives an
   aggregate declaring `toText` contributes that method's answer, so
   `“at ” (Pair [3, 5])` can read `“at (3, 5)”` instead of spelling every field

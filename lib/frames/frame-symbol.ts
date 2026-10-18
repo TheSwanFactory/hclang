@@ -142,7 +142,7 @@ export class FrameSymbol extends FrameAtom {
         // re-parented for the benefit of one reader.
         const isCanonicalBoolean = value === Frame.nil || value === Frame.all;
         const continuation = context instanceof FrameHandle
-          ? context.resultContext()
+          ? context
           : context.projectionContext();
         const resolved = value instanceof FrameLazy
           ? value.bind(scope.captureScope())
@@ -180,14 +180,14 @@ export class FrameSymbol extends FrameAtom {
         const copyOnWrite = context instanceof FrameHandle
           ? context.copyOnWriteScope() ?? receiverState?.copyOnWrite
           : receiverState?.copyOnWrite;
-        return resolved instanceof FrameArray
-          ? new FrameHandle(
-            resolved,
-            touchesIdentity(this.data),
-            copyOnWrite,
-            continuation,
-          )
-          : resolved;
+        if (!(resolved instanceof FrameArray)) return resolved;
+        const handle = new FrameHandle(
+          resolved,
+          touchesIdentity(this.data),
+          copyOnWrite,
+          continuation,
+        );
+        return copyOnWrite ? handle.heldBy(context) : handle;
       }
     }
     return FrameNote.key(first.id + "." + this.data, first);
