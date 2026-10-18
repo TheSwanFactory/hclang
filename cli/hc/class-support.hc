@@ -155,3 +155,12 @@ syntax or a built-in policy.`
 # 1
 ; combined.right
 # 2
+
+`A class declares how text spells its instances with a toText method. Text that
+receives an instance contributes that method's answer; an aggregate without one
+contributes its spelling, and the printer always shows the spelling.`
+; .Pair {[.X (_ .0); .Y (_ .1); .toText {“(” X “, ” Y “)”}]};
+; “at ” (Pair [3, 5])
+# “at (3, 5)”
+; “” [.x 1; 2]
+# “[.x 1; 2]”

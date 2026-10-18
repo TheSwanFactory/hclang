@@ -11,6 +11,7 @@ import {
   FrameURI,
   hasCharacterContent,
 } from "../frames.ts";
+import { evaluate } from "../execute/evaluate.ts";
 
 describe("FrameText", () => {
   it("holds the body of every delimited text family", () => {
@@ -40,6 +41,53 @@ describe("FrameText", () => {
       expect(hasCharacterContent(new FrameComment("a"))).toEqual(false);
       expect(hasCharacterContent(new FrameURI("hc/doc"))).toEqual(false);
       expect(hasCharacterContent(new FrameBytes([0x61]))).toEqual(false);
+    });
+  });
+
+  describe("an aggregate's declared toText (#398)", () => {
+    const answer = (source: string): string | undefined =>
+      evaluate(source).at(0).asArray().at(-1)?.toString();
+    const point =
+      ".Point {[.X (_ .0); .Y (_ .1); .toText {“(” X “, ” Y “)”}]}; " +
+      ".p (Point [3, 5]); ";
+
+    it("contributes the method's answer", () => {
+      expect(answer(point + "“p = ” p")).toEqual("“p = (3, 5)”");
+      expect(answer(point + "`doc ` p")).toEqual("“doc (3, 5)”");
+    });
+
+    it("is found on a declared parent", () => {
+      expect(
+        answer(".Base [.toText {“base”}]; .Kid {[.^ Base; .v _]}; “” (Kid 1)"),
+      ).toEqual("“base”");
+    });
+
+    it("contributes the spelling of an answer that is not text", () => {
+      expect(answer(".Num {[.toText {42}]}; “n=” (Num())")).toEqual("“n=42”");
+    });
+
+    it("falls back to the spelling when none is declared", () => {
+      expect(answer("“” [.x 1; 2]")).toEqual("“[.x 1; 2]”");
+    });
+
+    it("is never found in the scope around a plain aggregate", () => {
+      expect(answer(".toText {“x”}; “” [1]")).toEqual("“[1]”");
+    });
+
+    it("leaves printing and reduction alone", () => {
+      expect(answer(point + "p")).toEqual(
+        "[.X 3; .Y 5; .toText { “(” X “, ” Y “)” };]",
+      );
+      expect(answer("[1, 2] | “”")).toEqual("“12”");
+    });
+
+    it("keeps a refusal a refusal", () => {
+      expect(
+        answer(
+          ".c_ [.Value 1; .change_ {@Value _;}]; " +
+            ".Err {[.toText {c_.change_ 2}]}; [“a” (Err())]",
+        ),
+      ).toContain("$error{$is-constant .Value}");
     });
   });
 

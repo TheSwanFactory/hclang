@@ -470,6 +470,17 @@ export class Frame extends MetaFrame {
   }
 
   /**
+   * What this frame contributes when text receives it (#398).
+   *
+   * A frame contributes itself, so text takes its characters or its spelling.
+   * An aggregate may declare `toText` to answer something more readable; see
+   * `FrameArray.toText`.
+   */
+  public toText(): Frame {
+    return this;
+  }
+
+  /**
    * The values this frame streams when it is iterated.
    *
    * Anything which is not an aggregate is a single element, so text does not

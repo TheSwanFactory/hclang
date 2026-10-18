@@ -25,18 +25,23 @@ const reducer = (current: Frame, char: string): Frame => {
 };
 
 /**
- * Joins one text value with a juxtaposed argument, always yielding a string.
+ * Joins one text value with a juxtaposed argument, yielding a string.
  *
- * Character content contributes its characters; anything else contributes its
- * spelling, so `“a” #c# ` keeps the comment delimiters it was written with.
+ * The argument contributes what its `toText` answers, which is itself unless
+ * an aggregate declared one (#398). Character content contributes its
+ * characters; anything else contributes its spelling, so `“a” #c# ` keeps the
+ * comment delimiters it was written with. A refusal from a declared `toText`
+ * stays a refusal rather than being spelled into the text.
  */
 export const concatenateText = (
   receiver: CharacterContent,
-  argument: FrameAtom,
-): FrameString => {
-  const value = hasCharacterContent(argument)
-    ? argument.characterContent()
-    : argument.toString();
+  argument: Frame,
+): Frame => {
+  const text = argument.referent().toText();
+  if (text !== argument.referent() && text.isFailedResult()) return text;
+  const value = hasCharacterContent(text)
+    ? text.characterContent()
+    : text.toString();
 
   return new FrameString(receiver.characterContent() + value);
 };
@@ -110,7 +115,7 @@ export class FrameString extends FrameText implements CharacterContent {
     return this.data;
   }
 
-  public override apply(argument: FrameAtom): FrameString {
+  public override apply(argument: Frame): Frame {
     return concatenateText(this, argument);
   }
 
