@@ -68,7 +68,7 @@ export class FrameDoc extends FrameText implements CharacterContent {
     return super.lookup_here(key, origin);
   }
 
-  public override apply(argument: FrameAtom): FrameString {
+  public override apply(argument: Frame): Frame {
     return concatenateText(this, argument);
   }
 

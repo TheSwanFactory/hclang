@@ -29,6 +29,11 @@
   (spec 7), and a block inside a method reads the method's locals ahead of the
   caller's bindings. Each had let a caller's names leak into a method (#382
   H11). A method's free names still resolve first where its receiver was read.
+- **A class can declare how text spells its instances.** Text that receives an
+  aggregate declaring `toText` contributes that method's answer, so
+  `“at ” (Pair [3, 5])` can read `“at (3, 5)”` instead of spelling every field
+  and method. Without one, text contributes the spelling as before, and the
+  printer always shows the spelling (#398).
 - **Experiment: the classical Cayley–Dickson lane runs in HC.**
   `experiments/017-classical-cd/` builds the sign tables of the 1-, 2-, 4-, 8-
   and 16-dimensional algebras from w₀ = 0 with the literal Dickson/Schafer

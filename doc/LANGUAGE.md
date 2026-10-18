@@ -516,6 +516,13 @@ primitives:
 - The class itself is the constructor (as a closure)
 - When evaluated, that closure inherits the class as its parent
 
+A class decides how text spells its instances by declaring `toText`. Text that
+receives an instance contributes that method's answer, so
+`.Pair {[.X (_ .0); .Y (_ .1); .toText {“(” X “, ” Y “)”}]}` makes
+`“at ” (Pair [3, 5])` answer `“at (3, 5)”`. An aggregate without one contributes
+its spelling, which reads back as the same value, and the printer always shows
+that spelling.
+
 For a worked example, see the Figures standard module,
 [`lib/modules/figures.hc`](../lib/modules/figures.hc), imported with
 `Figures <- './modules/figures.hc'`. `Figure [c, …]` is a constructor closure

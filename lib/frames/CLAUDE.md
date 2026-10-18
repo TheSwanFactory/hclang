@@ -115,6 +115,13 @@ and juxtaposition tests for that capability rather than for a class. A comment
 or a resource identifier therefore keeps its delimiters when it joins a string,
 which is why `“a” #b#` yields `“a#b#”`.
 
+What a value contributes is first asked of `Frame.toText()`, which answers the
+value itself. An aggregate that declares a `toText` method, on itself or a
+declared parent, answers that method's result instead (#398), found the way
+`apply` is (#375) and never in the surrounding scope. The answer then follows
+the same rule: characters if it has character content, its spelling otherwise.
+The printer never asks, so a printed value still reads back.
+
 Two families stay out. `FrameBytes` is byte-backed, with a printable form
 derived from a `Uint8Array`. `FrameNote` holds a string, but that string is a
 label key resolved through `LABELS`, and a note renders through `toString()`

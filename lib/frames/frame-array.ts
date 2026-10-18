@@ -181,17 +181,52 @@ export class FrameArray extends FrameList {
    */
   public override applicationMethod(): DeclaredApplication | undefined {
     for (const key of FrameArray.APPLICATION_KEYS) {
-      const seen = new Set<Frame>([this]);
-      let local = this.get_here(key);
-      let next = this.hasDeclaredParent() ? this.parent : undefined;
-      while (local.is.missing && next && !seen.has(next)) {
-        seen.add(next);
-        local = next.get_here(key);
-        next = next.hasDeclaredParent() ? next.parent : undefined;
-      }
-      if (local.className() === "FrameLazy") return { key, method: local };
+      const method = this.declaredMethod(key);
+      if (method) return { key, method };
     }
     return undefined;
+  }
+
+  /** The key an aggregate declares its readable text under (#398). */
+  public static readonly TEXT_KEY = "toText";
+
+  /**
+   * What this aggregate contributes when text receives it (#398).
+   *
+   * Text contributes an aggregate's spelling, which reads back as the same
+   * value but spells every declaration, methods included. An aggregate that
+   * declares `toText`, on itself or a declared parent, contributes that
+   * method's answer instead, the way one that declares `apply` decides its own
+   * application. The printer never calls it, so a printed value still reads
+   * back.
+   */
+  public override toText(): Frame {
+    const method = this.declaredMethod(FrameArray.TEXT_KEY);
+    if (!method) return this;
+    return new BoundMethod(
+      method as FrameLazy,
+      this,
+      false,
+      methodEffect(FrameArray.TEXT_KEY),
+    ).call(Frame.nil);
+  }
+
+  /**
+   * A method declared under `key` on this aggregate or its declared parents.
+   *
+   * Never the scope around it, so a plain array keeps its default behavior
+   * wherever it is written.
+   */
+  private declaredMethod(key: string): Frame | undefined {
+    const seen = new Set<Frame>([this]);
+    let local = this.get_here(key);
+    let next = this.hasDeclaredParent() ? this.parent : undefined;
+    while (local.is.missing && next && !seen.has(next)) {
+      seen.add(next);
+      local = next.get_here(key);
+      next = next.hasDeclaredParent() ? next.parent : undefined;
+    }
+    return local.className() === "FrameLazy" ? local : undefined;
   }
 
   /**
