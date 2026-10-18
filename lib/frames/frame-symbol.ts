@@ -130,7 +130,9 @@ export class FrameSymbol extends FrameAtom {
         (context instanceof FrameHandle && !explicitOrigin.is.missing
           ? explicitOrigin
           : context);
-      const value = context.get(this.data, origin);
+      const value = scope.isArgumentLayer(context)
+        ? context.getOwn(this.data, origin)
+        : context.get(this.data, origin);
       if (!value.is.missing) {
         if (value.is.error) return value;
 

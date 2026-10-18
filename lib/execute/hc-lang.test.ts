@@ -64,7 +64,9 @@ describe("HCLang", () => {
       // an error-valued example added there fails this import, and this test.
       const imported = await session.call("Figures <- './modules/figures.hc'");
       expect(imported).not.toContain("$!");
-      expect(await session.call("Figures.size Figures.U")).toEqual("[[[]]]");
+      expect(
+        await session.call("(Figures.U.size()) = (Figures.Figure [Figures.U])"),
+      ).toEqual("<>");
     });
 
     it("refuses writes to a standard module and keeps every other path", async () => {
@@ -84,7 +86,9 @@ describe("HCLang", () => {
       expect(await session.call("'./notes.txt' | “”"))
         .toContain("$!.resource-absent");
       await session.call("Figures <- './modules/figures.hc'");
-      expect(await session.call("Figures.size Figures.U")).toEqual("[[[]]]");
+      expect(
+        await session.call("(Figures.U.size()) = (Figures.Figure [Figures.U])"),
+      ).toEqual("<>");
     });
   });
 });

@@ -523,6 +523,14 @@ receives an instance contributes that method's answer, so
 its spelling, which reads back as the same value, and the printer always shows
 that spelling.
 
+For a worked example, see the Figures standard module,
+[`lib/modules/figures.hc`](../lib/modules/figures.hc), imported with
+`Figures <- './modules/figures.hc'`. `Figure [c, …]` is a constructor closure
+that answers a fresh object holding its `children` and declaring `x.many()`,
+`x.size()` and the other observers as methods. Each method names its own Figure
+`_^`, because a bare name is looked up on the argument first, and the argument
+is usually another Figure.
+
 ### TODO: Class variables
 
 #### Singletons

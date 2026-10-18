@@ -116,6 +116,25 @@ describe("HCEval", () => {
     expect(out.at(0).toString()).toEqual("123");
   });
 
+  it("parses a multi-line aggregate as one aggregate", () => {
+    // Each line ends a term inside an open structure, as a newline character
+    // does, so the declarations stay properties of the outer aggregate.
+    hc_eval.call("[.k 1;\n  .m 2;\n  4,\n  5]");
+
+    expect(out.at(0).toString()).toEqual("[.k 1; .m 2; 4, 5]");
+  });
+
+  it("parses a multi-line aggregate alike whichever way the lines arrive", () => {
+    for (const lines of [["[1\n", "2]"], ["[1", "2]"]]) {
+      const lineOut = new frame.FrameArray([]);
+      const evaluator = new HCEval(lineOut);
+      for (const line of lines) evaluator.call(line);
+
+      expect(evaluator.finish()).toBe(true);
+      expect(lineOut.at(0).toString()).toEqual("[1, 2]");
+    }
+  });
+
   it("parses multi-line docStrings", () => {
     hc_eval.call("`");
     expect(out.length()).toEqual(0);
@@ -763,7 +782,7 @@ describe("HCEval", () => {
       hc_eval.call(input);
 
       expect(out.length()).toEqual(2);
-      const output = out.at(1);
+      const output = out.asArray()[1];
       expect(output.toString()).toEqual(frame_value.toString());
     });
   });

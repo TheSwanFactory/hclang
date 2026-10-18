@@ -85,6 +85,13 @@ export class LexPipe extends Frame implements IFinish, IPerformer {
     if (parser.strictStructure && this.level !== 0) {
       return this.structureFailure("unclosed", `${this.level}`);
     }
+    // A line that ends inside an open structure ends a term, as a newline
+    // character does there, so a line-fed source and a character-fed one
+    // parse a multi-line aggregate alike rather than closing it row by row.
+    if (this.level !== 0) {
+      this.unbind().next(false);
+      return this;
+    }
 
     const next_parser = this.unbind();
     const output = FrameSymbol.end();

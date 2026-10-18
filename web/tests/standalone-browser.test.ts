@@ -90,8 +90,8 @@ describe("standalone artifact in a browser", () => {
     await page.getByRole("cell", { name: source }).waitFor();
     expect(await page.locator("[role=alert]").count()).toBe(0);
 
-    await submit("Figures.size Figures.U");
-    await waitForText("[data-testid=latest-output]", "[[[]]]");
+    await submit("(Figures.U.size()) = (Figures.Figure [Figures.U])");
+    await waitForText("[data-testid=latest-output]", "<>");
   });
 
   it("resets interpreter state", async () => {

@@ -4,14 +4,39 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
-## Unreleased
+## v0.20.2 2026-10-17
 
+- **Breaking: Figures is a class.** `Figure [c, …]` answers a fresh object
+  holding its `children` and declaring Manyness, Size, `mul`, `size_mul`,
+  `size_equivalent`, `sameform`, `sameness` and Withness as methods, each
+  answering a Figure (#395): `many x` → `x.many()`, `size x` → `x.size()`,
+  `figure_add [x, y]` → `Figure [x, y]`, `cat [x, y]` → `y.children | x`,
+  `figure_mul [x, y]` → `x.mul y`, `withness [.parent P; .figs [f…];]` →
+  `P.withness [f…]`, `xs | Tally` → `xs | (Tally Z)`, `x .0` → `x.children .0`.
+  A Figure prints with its methods and equals other Figures, not the bracket of
+  its children; `x.form()` answers that bracket tree, and `“” x` spells it, so a
+  Figure interpolates as `[[], [[]]]` (#398). Applying a Figure appends a child,
+  so `xs | (Figure [])` constructs. `Figure (x)` with a Figure x answers an
+  empty Figure: write `Figure [x]`. `absent`, `cat`, `figure_add` and
+  `figure_mul` are removed, with no aliases. Programs written against v0.20.1's
+  Figures, including explore 017.09's, run unchanged on hclang 0.20.1; port them
+  with the mapping above.
 - **Breaking: a method's free names are lexical.** A method reads and writes
   free names where it was written, never through the path its receiver was
   reached by, so a scope that rebinds one of them no longer captures it (#400,
   #382 H11). `left.shared.read()` now reads the `lexical` visible where `read`
   was written, not `left`'s, and `o.k` misses when `o` has no `k` instead of
   finding a `k` beside `o`. This overrides #347's contextual lookup.
+- **`.N` indexes elements.** A declared property no longer shifts an index:
+  `[.k 1; 4, 5] .0` is `4`, not the `.k` declaration.
+- **Multi-line aggregates read alike everywhere.** A line break inside an open
+  bracket ends a term, as LANGUAGE.md says, in the CLI and testdoc as it already
+  did on import. `[.k 1;` / `.m 2;` / `4]` was `[.k 1; [.m 2;], [4]]` there.
+- **A closure reads only its argument's own properties.** Names now reach an
+  argument's own and inherited properties but never the scope that built it
+  (spec 7), and a block inside a method reads the method's locals ahead of the
+  caller's bindings. Each had let a caller's names leak into a method (#382
+  H11).
 - **A functional update copies only what it writes.** A mutating method reached
   through an immutable handle copied every aggregate its receiver held; it now
   copies the receiver and then the path down to each write, so anything the call

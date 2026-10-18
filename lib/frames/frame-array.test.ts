@@ -51,6 +51,21 @@ describe("FrameArray", () => {
     });
   });
 
+  describe("indexing", () => {
+    it("addresses elements, so a property never shifts an index", () => {
+      const aggregate = evaluate("[.k 1; 4, 5]").at(0);
+
+      expect(aggregate.at(0).toString()).toEqual("4");
+      expect(aggregate.at(-1).toString()).toEqual("5");
+      expect(aggregate.at(2).toString()).toContain("[0..2].2");
+      expect(evaluate("[.k 1; 4, 5] .1").at(0).toString()).toEqual("5");
+    });
+
+    it("skips a declared parent's echo", () => {
+      expect(evaluate("[.^ [.m 1]; 4, 5] .0").at(0).toString()).toEqual("4");
+    });
+  });
+
   describe("a key the aggregate already assigns", () => {
     it("answers the refusal, because nothing well-formed was built", () => {
       expect(evaluate("[.0 9; 1, 2]").at(0).toString())
@@ -60,7 +75,9 @@ describe("FrameArray", () => {
     it("leaves a refused write inspectable, with that write undone", () => {
       const result = evaluate(".owner [.A 1; .A 2; 3]");
 
-      expect(result.at(0).toString()).toContain("$error{$is-constant .A}");
+      expect(result.asArray()[0].toString()).toContain(
+        "$error{$is-constant .A}",
+      );
       expect(result.meta.owner.get_here("A").toString()).toEqual("1");
     });
 

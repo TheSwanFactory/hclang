@@ -330,6 +330,28 @@ export class Frame extends MetaFrame {
     return this;
   }
 
+  /**
+   * Get a frame by key from this frame's own properties and its declared
+   * parents only, never its lexical scope.
+   *
+   * This is how a call reads its explicit argument (spec 7, layer 2). The
+   * argument's lexical scope is wherever that value was built, which the
+   * closure did not choose, so following it would let any scope that built an
+   * argument bind the closure's names. A handle reads its target, and still
+   * binds a method it finds to that target.
+   */
+  public getOwn(key: string, origin: MetaFrame = this): Frame {
+    const seen = new Set<Frame>();
+    let frame: Frame | undefined = this.referent();
+    while (frame && !seen.has(frame)) {
+      seen.add(frame);
+      const local = frame.lookup_here(key, origin);
+      if (!local.is.missing) return this.lookup_result(local, key);
+      frame = frame.hasDeclaredParent() ? frame.parent : undefined;
+    }
+    return Frame.missing;
+  }
+
   /** Whether a write can land on this frame, so that identity is observable. */
   public ownsIdentity(): boolean {
     return false;

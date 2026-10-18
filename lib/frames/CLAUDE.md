@@ -532,6 +532,13 @@ write-target roles plus an enclosing-scope link. Syntax derives scopes rather
 than pushing positional frames, and closure literals capture a per-evaluation
 scope without rewriting shared closure or body ancestry.
 
+A call reads its explicit argument through `Frame.getOwn`: the argument's own
+properties and its declared parents, never its lexical scope, so the scope that
+built an argument cannot bind a closure's names (spec 7, layer 2). A block
+nested in a method runs with the receiver state its method forwarded, and
+`EvaluationScope.call` does not push those receiver layers again, so the
+method's locals stay ahead of the scope its receiver was read from.
+
 Context bindings remain homoiconic Frames and are created with `make_context`
 when entering through the public evaluator.
 

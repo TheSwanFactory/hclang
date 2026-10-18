@@ -282,16 +282,20 @@ export class FrameArray extends FrameList {
     return this;
   }
 
+  /**
+   * The element at `index`, counting from the end when negative.
+   *
+   * An index addresses the element plane, the one `&` iterates, so declaring a
+   * property never shifts an element's index: `[.k 1; 4, 5] .0` is `4`.
+   */
   public override at(index: number): Frame {
-    if (index >= this.size() || -index > this.size()) {
-      const source = "[0.." + this.size() + "]." + index;
+    const elements = this.elements();
+    const n = elements.length;
+    if (index >= n || -index > n) {
+      const source = "[0.." + n + "]." + index;
       return FrameNote.index(source);
     }
-    if (index >= 0) {
-      return this.data[index];
-    }
-    const n = this.data.length;
-    return this.data[n + index];
+    return elements[index >= 0 ? index : n + index];
   }
 
   public length(): number {

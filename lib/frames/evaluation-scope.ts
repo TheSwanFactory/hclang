@@ -24,6 +24,7 @@ type ScopeOptions = {
   writeTargetRole: WriteTargetRole;
   lookupFrames: Frame[];
   lookupMembers: Set<Frame>;
+  argumentLayer?: Frame;
   enclosing?: EvaluationScope;
   closure?: Frame;
   lexicalTarget: Frame;
@@ -112,6 +113,7 @@ export class EvaluationScope {
 
   readonly #lookupFrames: Frame[];
   readonly #lookupMembers: Set<Frame>;
+  readonly #argumentLayer?: Frame;
 
   private constructor(options: ScopeOptions) {
     this.argument = options.argument;
@@ -126,6 +128,7 @@ export class EvaluationScope {
     this.hostNamespace = options.hostNamespace;
     this.#lookupFrames = options.lookupFrames;
     this.#lookupMembers = options.lookupMembers;
+    this.#argumentLayer = options.argumentLayer;
   }
 
   /** Creates the scope at the evaluator boundary. */
@@ -230,7 +233,14 @@ export class EvaluationScope {
 
     const lookupFrames = [local, argument];
     if (!parameter.is.void) lookupFrames.push(parameter);
-    if (receiverState) {
+    // A block nested in a method runs with the receiver state its method
+    // forwarded, and the enclosing method scope already holds the receiver
+    // layers behind the method's own locals. Pushing them again here would put
+    // the scope the receiver was read from ahead of those locals, so a caller
+    // that binds a local's name would capture it (#382 H11).
+    const forwarded = receiverState !== undefined &&
+      receiverState === enclosing?.receiverState;
+    if (receiverState && !forwarded) {
       const receiverLookup = receiverState.lexicalContext
         ? new FrameHandle(
           receiverState.receiver,
@@ -258,6 +268,7 @@ export class EvaluationScope {
       writeTargetRole: targetRole,
       lookupFrames: layers.frames,
       lookupMembers: layers.members,
+      argumentLayer: argument,
       enclosing,
       closure,
       lexicalTarget: target,
@@ -308,6 +319,7 @@ export class EvaluationScope {
       writeTargetRole: this.writeTargetRole,
       lookupFrames: layers.frames,
       lookupMembers: layers.members,
+      argumentLayer: this.#argumentLayer,
       enclosing: this.enclosing,
       closure: this.closure,
       lexicalTarget: this.lexicalTarget,
@@ -330,6 +342,7 @@ export class EvaluationScope {
       writeTargetRole: role,
       lookupFrames: layers.frames,
       lookupMembers: layers.members,
+      argumentLayer: this.#argumentLayer,
       enclosing: this.enclosing,
       closure: this.closure,
       lexicalTarget: target,
@@ -354,6 +367,15 @@ export class EvaluationScope {
   /** Ordered lookup layers for symbol and alias resolution. */
   public lookupFrames(): readonly Frame[] {
     return this.#lookupFrames;
+  }
+
+  /**
+   * Whether `layer` is this call's explicit argument, which lookup reads for
+   * its own and inherited properties only (spec 7, layer 2), never through the
+   * scope that built it.
+   */
+  public isArgumentLayer(layer: Frame): boolean {
+    return layer === this.#argumentLayer;
   }
 
   /** Resolves `_`, `__`, ... through enclosing call scopes. */

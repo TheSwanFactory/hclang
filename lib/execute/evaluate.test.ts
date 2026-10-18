@@ -1188,6 +1188,34 @@ describe("evaluate", () => {
         expect(result.at(0).asArray().at(-1)?.toString()).toEqual("3");
       });
     });
+
+    describe("the argument layer (spec 7, layer 2)", () => {
+      it("reads the argument's own and inherited properties", () => {
+        const answer = (source: string): string | undefined =>
+          evaluate(source).at(0).asArray().at(-1)?.toString();
+
+        expect(answer(".f {v}; f [.v 1]")).toEqual("1");
+        expect(answer(".base [.v 2]; .f {v}; f [.^ base]")).toEqual("2");
+      });
+
+      it("never reads through the scope that built the argument", () => {
+        // `a` is built where `f` is 5, and `g` is written where `f` is 9. The
+        // argument contributes only its own `v`, so `g` reads its own `f`.
+        const result = evaluate(
+          ".f 5; .a [.v 1]; .outer {.f 9; .g {f}; g a}; outer()",
+        );
+
+        expect(result.at(0).asArray().at(-1)?.toString()).toEqual("9");
+      });
+
+      it("keeps a method's locals ahead of a caller's bindings in its blocks", () => {
+        const result = evaluate(
+          ".P {[.m {.y _; [0] & {y}}]}; .p (P []); .y 99; p.m 7",
+        );
+
+        expect(result.at(0).asArray().at(-1)?.toString()).toEqual("[7]");
+      });
+    });
   });
 
   describe("contexts", () => {
@@ -1952,10 +1980,10 @@ describe("evaluate", () => {
       );
       const owner = result.meta.owner;
 
-      expect(result.at(0).toString()).toContain(
+      expect(result.asArray()[0].toString()).toContain(
         "$error{$is-constant .Protected}",
       );
-      expect(result.at(0).toString()).toContain(
+      expect(result.asArray()[0].toString()).toContain(
         "$error{$is-constant .Private}",
       );
       expect(owner.get_here("_Protected").toString()).toEqual("7");
