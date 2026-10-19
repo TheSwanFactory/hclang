@@ -431,14 +431,14 @@ Not ranked above, because it is a design pass rather than a ruling to implement
 - The BitScheme lane (#310 → #311 → #312 → #319) runs serially and can proceed
   beside anything else. #319 is last because it and the BitScheme chain both
   edit `hc/BitScheme.hc`.
-- #277 and #301 may run in parallel as separate PRs, but rebase before merge if
-  both touch evaluator lookup or shared frame infrastructure. Neither absorbs
-  the other. Both build on the resource primitive that shipped for #348
-  (`spec/a10-resource-primitive.md`), so neither needs to invent a resolver, and
-  both are unblocked now that the a07 group has landed
-  (`spec/a12-resource-frames.md`): #277's capability boundary is a table it can
+- #277 builds on the resource primitive that shipped for #348
+  (`spec/a10-resource-primitive.md`), so it needs no resolver of its own, and it
+  is unblocked now that the a07 group has landed
+  (`spec/a12-resource-frames.md`): its capability boundary is a table it can
   read, and its time budgets are a duration plus a clock grant rather than a
-  limiter to build.
+  limiter to build. Module import (#301) needed nothing beyond that primitive:
+  `<-` reads a resource, and the package's `hc/` files are bundled under the
+  root rather than resolved through a registry.
 - The a07 group (#366, #367, #369, #370, #371) shipped together in v0.16.0,
   deliberately as one PR: #370 and #371 were blocked by #367, and #370 needs
   #369's types, so the chain had no seam to split on that would have left each
@@ -452,8 +452,6 @@ Not ranked above, because it is a design pass rather than a ruling to implement
 - A BitScheme PR updates only the assertions it makes executable.
 - #277 keeps its capability boundary intact in every PR and ships adversarial
   authority probes for the behavior it adds.
-- #301 stays a module-loader contract and does not become a general
-  resource-loading API.
 
 ## Contributing
 
