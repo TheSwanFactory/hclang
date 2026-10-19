@@ -2,7 +2,7 @@
 
 **Status:** Implemented in v0.10.1. Corrections 1–3 landed together as this
 document required, with the suite green only at the end; the peer-method and
-nested-aggregate refusals are pinned in `cli/hc/class-support.hc`. The `.^`
+nested-aggregate refusals are pinned in `hc/class-support.hc`. The `.^`
 respelling needs no lexer rule, so its one condition holds, and no compatibility
 recognizer or evaluator branch remains for the old spelling. One amendment
 remains open, the evaluation-scope and shared-body cleanup

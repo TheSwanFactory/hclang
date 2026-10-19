@@ -104,12 +104,19 @@ applying a tally to it appends that tally's units, one at a time, through
 ```
 .Tally {[.row _; .apply {Tally (_.children | _^.row)}]};
 ```
+**The marks.** The observers answer `A`, the Figure with no children, for no
+and `B`, the Figure holding `A`, for yes. Size counts in the same two: `Z`
+reuses `A` as the additive zero and `U` reuses `B` as the unit cell. The class
+reads all four, so they are declared with it rather than in the examples below
+```
+.A (Figure []); .B (Figure [A]); .Z A; .U B;
+```
 ## Construction
 
 The example family reuses one `A` under both `B` and `E`. Indexing reaches a
 child itself, not a copy
 ```
-; .A (Figure []); .B (Figure [A]); .C (Figure [B]); .D (Figure [C]);
+; .C (Figure [B]); .D (Figure [C]);
 ; .E (Figure [A, B]); .F (Figure [B, C]); .G (Figure [E, F]);
 ; [(G.children .0) === E, (E.children .1) === B, (F.children .0) === B, (E.children .0) === (B.children .0)]
 # [<>, <>, <>, <>]
@@ -143,13 +150,13 @@ Manyness marks the immediate children and looks no deeper
 ; [(A.many()) = A, (E.many()) = (Figure [B, B]), (G.many()) = (E.many()), (E.many()) = (B.many())]
 # [<>, <>, <>, ()]
 ```
-Size is recursive cell volume. `Z` reuses `A` as the additive zero and `U`
-reuses `B` as the unit cell, the same mark Manyness uses, so a count is itself a
-Figure of units. Size maps each child to its Size and joins them into
+Size is recursive cell volume. `Z` is `A` and `U` is `B`, the same mark
+Manyness uses, so a count is itself a Figure of units. Size maps each child to its Size and joins them into
 `Tally Z`; the unit case comes first because a unit's only child is `Z`, and it
 tests form, so any Figure shaped like `U` is a cell
 ```
-; .Z A; .U B;
+; [Z === A, U === B]
+# [<>, <>]
 ; [(Z.size()) = Z, (U.size()) = (Figure [U]), ((Figure [U]).size()) = ((Figure [Figure [A]]).size())]
 # [<>, <>, <>]
 ; .row2 (Figure [U, U]); .row3 (Figure [U, U, U]); .row4 (Figure [U, U, U, U]);
@@ -344,9 +351,11 @@ only properties has none. Write `Figure [B]`
 ```
 ; [(Figure (B)) = A, (Figure [B]) = C]
 # [<>, <>]
-```
-Importing this file answers its last form, which the hosts' smoke tests read,
-so the file ends on a claim that holds however the rest of it changes
-```
 ; (Figure [A, B]) = E
 # <>
+```
+Importing this file skips its examples and answers its last form, which the
+hosts' smoke tests read, so the file ends on code that holds however the rest of
+it changes
+```
+B = (Figure [A])

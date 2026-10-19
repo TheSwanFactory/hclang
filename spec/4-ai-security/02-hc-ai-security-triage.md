@@ -51,8 +51,8 @@ The assessment used the following implementation facts:
 - Assignment mutates Frame metadata through `set`. Arrays and schemas mutate
   their backing data through `push`; Frames and their `up` links are mutable.
 - The effect and access syntax in [`doc/LANGUAGE.md`](../../doc/LANGUAGE.md) and
-  [`white-paper.hc`](../../cli/hc/white-paper.hc) is ahead of the evaluator.
-  Parsing and binding do not enforce uppercase constancy, trailing-underscore
+  [`white-paper.hc`](../../hc/white-paper.hc) is ahead of the evaluator. Parsing
+  and binding do not enforce uppercase constancy, trailing-underscore
   mutability, trailing-colon mutation, or privacy prefixes.
 - Numeric schema membership is implemented in
   [`FrameSymbol`](../../lib/frames/frame-symbol.ts), but string schemas and

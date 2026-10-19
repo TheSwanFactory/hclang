@@ -6,18 +6,18 @@ that source in a fresh namespace and binds the namespace to `name` only once
 every form has succeeded, so everything the module declares is reached here
 qualified, through `Figures`, and nothing it declares lands in this file.
 
-`'./modules/figures.hc'` names a standard module. The path is relative to the
-root binding, not to this file or to the working directory. The CLI's root is a
-fresh temporary directory, and the harness lays exactly one read-only entry over
-it, so this import reads the bytes of the maintained artifact,
-`lib/modules/figures.hc`, which every host compiles in, so the same import works
-in the compiled binary, the npm package, and the browser playground. That
-artifact is a testdoc too: its claims count when
-it is run directly, and none of them count here. Importing does not yet skip its
-examples, which run as ordinary forms and leave their names in the namespace, so
-the claims below use only the module's reusable vocabulary
+Every file in the repository's `hc/` folder ships with the package, so a
+session can include any of them. `'./hc/figures.hc'` names one. The path is
+relative to the root binding, not to this file or to the working directory. The
+CLI's root is a fresh temporary directory, and the harness lays the bundled
+files over it read-only, so this import reads the bytes of `hc/figures.hc`,
+which every host compiles in, so the same import works in the compiled binary,
+the npm package, and the browser playground. That file is a testdoc too: its
+claims count when it is run directly, and none of them count here. Importing
+skips its examples, the lines that begin `; ` outside prose, so only its code
+runs and the namespace holds only what the module declares
 ```
-; Figures <- './modules/figures.hc';
+; Figures <- './hc/figures.hc';
 ```
 `Figure [c, …]` is the constructor, and every observer is a method that answers
 a Figure. Size answers a tally, one unit cell `U` for every cell, while Manyness
@@ -29,7 +29,7 @@ marks only the immediate children
 # <>
 ; ((Figures.Figure [Figures.B]).children .0) === Figures.B
 # <>
-; (“E is ” Figures.E) = “E is [[], [[]]]”
+; (“E is ” (Figures.Figure [Figures.A, Figures.B])) = “E is [[], [[]]]”
 # <>
 ```
 Sameness of form is `=` and sameness of the constructed Figure is `===`, so `B`
@@ -62,14 +62,15 @@ by `===`, so the module's own `A` is with a parent built here, while a fresh
 ; [pair.withness [Figures.A], pair.withness [Figures.Figure []]] = [Figures.B, Figures.A]
 # <>
 ```
-The overlay grants one read and nothing else. Writing to the module is refused,
+The overlay grants reads of the bundled files and nothing else. Writing to one is
+refused,
 and every other path still resolves inside the fresh root, including
 `deno.json`, which exists in the working directory whether the CLI runs from the
-repository root or from `cli/`, and a sibling of the module
+repository root or from `cli/`, and a path under `hc/` that ships no file
 ```
-; './modules/figures.hc' “overwrite”
-# $!.resource-read-only './modules/figures.hc'
+; './hc/figures.hc' “overwrite”
+# $!.resource-read-only './hc/figures.hc'
 ; './deno.json' | “”
 # $!.resource-absent './deno.json'
-; './modules/other.hc' | “”
-# $!.resource-absent './modules/other.hc'
+; './hc/other.hc' | “”
+# $!.resource-absent './hc/other.hc'

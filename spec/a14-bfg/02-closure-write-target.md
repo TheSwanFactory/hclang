@@ -93,10 +93,10 @@ reads the argument's members. Only where writes go changes.
 
 ## What else could break
 
-- **Corpus programs that relied on the write.** Search `cli/hc/*.hc` and the
-  test suite for closures that bind through a plain-named argument and then read
-  the binding back _from the argument_ after the call. Each one must either
-  spell the name with `_` or be recorded as depending on the defect.
+- **Corpus programs that relied on the write.** Search `hc/*.hc` and the test
+  suite for closures that bind through a plain-named argument and then read the
+  binding back _from the argument_ after the call. Each one must either spell
+  the name with `_` or be recorded as depending on the defect.
 - **Methods are not affected.** Receiver writes go through `ReceiverState` and
   `authorizedReceiverWriteTarget`, not through this path.
 - **Construction is not affected.** `writeTargetRole === "construction"` is set

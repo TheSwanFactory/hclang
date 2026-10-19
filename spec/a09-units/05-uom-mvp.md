@@ -81,11 +81,11 @@ described under "Files to change".
 | `lib/frames/frame-numeric.ts`           | **Not anticipated.** Override `lookup_links` to drop a numeric `up` link. Every successful read is a lexical projection whose `up` is the frame it was found on, so a dotted numeric value carries its receiver as a lookup link and an unhandled key re-enters it: `9.8.m.s` built `9.8.s`, and `1.408.055.m` built `1.408.m`. Globals stay reachable because the driver consults them after the links (`meta-frame.ts` `get`), so `9.8.m.< 10.2.m` still resolves. |
 | `lib/frames.ts`                         | Export beside `FrameSequence` (line 44).                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | `lib/frames/frame-typed-number.test.ts` | New. Unit tests.                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| `cli/hc/units.hc`                       | New. Acceptance corpus.                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `hc/units.hc`                           | New. Acceptance corpus.                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | `cli/deno.json`                         | Add `units.hc` to `test:doc`.                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | `cli/hc.test.ts`                        | Assert the corpus totals, as `numerics.hc` is asserted.                                                                                                                                                                                                                                                                                                                                                                                                              |
 | `doc/GRAMMAR.md`, `doc/LANGUAGE.md`     | Document the segment.                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| `cli/hc/white-paper.hc`                 | Correct the stale literal table. See "Doc corrections".                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `hc/white-paper.hc`                     | Correct the stale literal table. See "Doc corrections".                                                                                                                                                                                                                                                                                                                                                                                                              |
 | `CHANGELOG.md`                          | One user-visible entry.                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 
 ## The construction site
@@ -180,10 +180,10 @@ Required members, with the exact behaviour:
 
 ## Acceptance corpus
 
-`cli/hc/units.hc`, in the shape of `cli/hc/numerics.hc`, wired into
-`deno task test:doc` with its totals asserted in `cli/hc.test.ts`. `...` is a
-prefix match (`lib/execute/hc-test.ts:107-108`), which is required for
-`name-missing` assertions because the frame id in `$:` paths is positional.
+`hc/units.hc`, in the shape of `hc/numerics.hc`, wired into `deno task test:doc`
+with its totals asserted in `cli/hc.test.ts`. `...` is a prefix match
+(`lib/execute/hc-test.ts:107-108`), which is required for `name-missing`
+assertions because the frame id in `$:` paths is positional.
 
 **The shipped file is authoritative**: 39 examples, grouped as syntax, composite
 spelling, equality planes, spelling-not-dimension equality, refused composition,
@@ -199,9 +199,9 @@ changed during the build, and only these:
 
 The "decimals only" ruling is carried by three lines, not by `100.kg` alone:
 `(1 / 3).m` and `(1 / 2.0).m` are asserted `name-missing` beside it
-(`cli/hc/units.hc:92-97`). The negative receiver is asserted too
-(`cli/hc/units.hc:106-107`), which is the assertion #363 will move. `+9.8.m`
-remains in the unit tests only, as planned.
+(`hc/units.hc:92-97`). The negative receiver is asserted too
+(`hc/units.hc:106-107`), which is the assertion #363 will move. `+9.8.m` remains
+in the unit tests only, as planned.
 
 ## Unit tests
 
@@ -234,7 +234,7 @@ indirect `9.8.m.5` corpus line. Two assertions belong in
 
 ## Doc corrections
 
-`cli/hc/white-paper.hc:224-225` still advertises two literals in this slot:
+`hc/white-paper.hc:224-225` still advertises two literals in this slot:
 
 ```
 |123.456.E.-10| _scientific_ |

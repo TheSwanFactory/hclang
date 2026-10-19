@@ -512,8 +512,7 @@ The fix will be successful when:
 
 - [lib/execute/evaluate.test.ts:97-116](../../lib/execute/evaluate.test.ts#L97-L116) -
   Failing closure tests
-- [cli/hc/testdoc.hc:24-36](../../cli/hc/testdoc.hc#L24-L36) - End-to-end test
-  cases
+- [hc/testdoc.hc:24-36](../../hc/testdoc.hc#L24-L36) - End-to-end test cases
 
 ### Implementation Files
 

@@ -1,10 +1,10 @@
 # Reads Are a Character Reduce
 
 **Status:** Implemented in v0.15.0. The iteration half is decided and taught in
-[`cli/hc/apply-tutorial.md`](../cli/hc/apply-tutorial.md), with the reasons and
-the executable corpus in [`cli/hc/apply.hc`](../cli/hc/apply.hc). This document
-owns only the resource half, and records which of its former questions those
-decisions closed.\
+[`hc/apply-tutorial.md`](../hc/apply-tutorial.md), with the reasons and the
+executable corpus in [`hc/apply.hc`](../hc/apply.hc). This document owns only
+the resource half, and records which of its former questions those decisions
+closed.\
 **Issues:** [#368](https://github.com/TheSwanFactory/hclang/issues/368), with
 [#375](https://github.com/TheSwanFactory/hclang/issues/375) holding the custom
 accumulator and [#301](https://github.com/TheSwanFactory/hclang/issues/301) as
@@ -70,7 +70,7 @@ reduce conflates them, but a receiver that treats nil as "nothing to do" would.
 > **Superseded in v0.19.0.** An empty source now reduces to the receiver it
 > started from, as every seeded fold does, so an empty read answers `“”` or
 > `[]`. Absent and empty stay distinct, since an absent location still answers a
-> refusal. `cli/hc/apply.hc` records the decision and the law behind it.
+> refusal. `hc/apply.hc` records the decision and the law behind it.
 
 **A custom accumulator is a class, not an operator feature.** Anything the
 families do not already do — counting characters, for instance, since applying a
@@ -314,7 +314,7 @@ what a read _yields_, not what a read is _allowed to reach_.
 - [x] `asArray` retired from the enumerable path, kept for structural access.
       `FrameResource` no longer overrides it, so its `isFailedResult` override
       went with the cause rather than being patched a second time.
-- [x] `cli/hc/resources.hc` re-spelled.
+- [x] `hc/resources.hc` re-spelled.
 
 Landed alongside, because the model above is unreachable or ill-formed without
 them:

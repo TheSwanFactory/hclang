@@ -58,9 +58,9 @@ describe("HC playground", () => {
     expect(screen.getByTestId("latest-output").textContent).toBe("4");
   });
 
-  it("imports the Figures standard module", async () => {
+  it("imports the bundled Figures module", async () => {
     render(h(Main, {}));
-    await submit("Figures <- './modules/figures.hc'");
+    await submit("Figures <- './hc/figures.hc'");
     expect(screen.queryByRole("alert")).toBeNull();
 
     await submit("(Figures.U.size()) = (Figures.Figure [Figures.U])");

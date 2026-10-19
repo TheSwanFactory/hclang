@@ -1,6 +1,7 @@
 import { describe, it } from "jsr:@std/testing@1.0.15/bdd";
 import { expect } from "jsr:@std/expect@1.0.17";
 import { dirname, fromFileUrl, join } from "jsr:@std/path@1.1.6";
+import { HC_SOURCES } from "../../lib/bundle/hc-sources.ts";
 
 const webDir = dirname(dirname(fromFileUrl(import.meta.url)));
 const rootDir = dirname(webDir);
@@ -16,6 +17,37 @@ function inlineScripts(source: string): string[] {
     ),
   ]
     .map((match) => match[1]);
+}
+
+/** Every line of every bundled `hc/*.hc`, which the script carries as data. */
+const hcLines = new Set(
+  [...HC_SOURCES.values()].flatMap((source) => source.split("\n")),
+);
+
+/** Decodes a quoted JavaScript string literal, or answers undefined. */
+function decodeLiteral(literal: string): string | undefined {
+  const body = literal.slice(1, -1).replace(
+    /\\(.)|"/g,
+    (match, escaped) =>
+      escaped === undefined ? '\\"' : escaped === "'" ? "'" : match,
+  );
+  try {
+    return JSON.parse(`"${body}"`);
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Blanks the string literals that are lines of bundled HC source, so a scan for
+ * loader syntax reads the program and not the HC prose it ships, which may
+ * mention `jsr:` or say `from "…"`.
+ */
+function withoutHCText(script: string): string {
+  return script.replace(
+    /"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'/g,
+    (literal) => hcLines.has(decodeLiteral(literal) ?? "\0") ? '""' : literal,
+  );
 }
 
 function metaContent(name: string): string | undefined {
@@ -61,7 +93,7 @@ describe("standalone artifact", () => {
   it("loads no external script, style, or module", () => {
     expect(/<script[^>]*\bsrc=/i.test(html)).toBe(false);
     expect(/<link[^>]*rel=["']?stylesheet/i.test(html)).toBe(false);
-    const script = inlineScripts(html)[0];
+    const script = withoutHCText(inlineScripts(html)[0]);
     expect(/\bimport\s*\(/.test(script)).toBe(false);
     expect(/\bfrom\s*["']/.test(script)).toBe(false);
     expect(script.includes("jsr:")).toBe(false);

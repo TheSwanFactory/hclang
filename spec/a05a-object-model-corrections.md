@@ -34,7 +34,7 @@ This correction promotes three storage and threading decisions from "open" to
 "decided," retires the checklist items those decisions subsume, bounds the copy
 contract to the one case that needs it, and records two syntax simplifications
 that make a05's own goals cheaper to reach. It does not change the diagnosis or
-the behavior a05 sets out to preserve; `cli/hc/class-support.hc` still governs.
+the behavior a05 sets out to preserve; `hc/class-support.hc` still governs.
 
 ## Corrections
 

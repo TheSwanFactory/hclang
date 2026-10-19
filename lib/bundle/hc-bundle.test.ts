@@ -1,18 +1,19 @@
 import { expect } from "jsr:@std/expect@^0.219.1";
 import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 import { MemoryStore } from "../frames.ts";
-import { STANDARD_SOURCES } from "./standard-sources.ts";
-import { withStandardModules } from "./standard-modules.ts";
+import { HC_SOURCES } from "./hc-sources.ts";
+import { withHCBundle } from "./hc-bundle.ts";
 
 // The overlay's rules are `ResourceMapStore`'s own tests, and
-// `deno task modules:check` keeps the embed equal to `lib/modules/*.hc`.
-describe("withStandardModules", () => {
-  it("serves every embedded module read-only and delegates the rest", () => {
+// `deno task bundle:check` keeps the embed equal to `hc/*.hc`.
+describe("withHCBundle", () => {
+  it("serves every bundled file read-only and delegates the rest", () => {
     const fresh = new MemoryStore("fresh");
-    const store = withStandardModules(fresh);
+    const store = withHCBundle(fresh);
 
-    expect(STANDARD_SOURCES.size).toBeGreaterThan(0);
-    for (const [key, content] of STANDARD_SOURCES) {
+    expect(HC_SOURCES.size).toBeGreaterThan(0);
+    for (const [key, content] of HC_SOURCES) {
+      expect(key.startsWith("hc/")).toBe(true);
       expect(store.read(key)).toEqual({ ok: true, content });
       expect(store.write(key, "overwrite")).toEqual({
         ok: false,

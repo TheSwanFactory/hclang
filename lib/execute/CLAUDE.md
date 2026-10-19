@@ -75,17 +75,19 @@ re-entering the same host namespace and resource spelling returns
 `$!.resource-import-cycle` before another read. The chain is neither a module
 registry nor a persistent cache, and a later independent import starts clean.
 
-Imported source bypasses `HCEval.checkInput` and `HCTest`, so an example line
-(`; …`) runs as an ordinary form and an expectation line (`# …`) is a comment:
-importing a testdoc binds its examples' names, and none of its claims is
-counted. Because the first failed form fails the whole import, an error-valued
-example added to an importable testdoc such as `lib/modules/figures.hc` would
-pass when that file runs directly and break every importer; the `HCLang`
-standard-module test in `hc-lang.test.ts` imports Figures to catch it.
+Importing a testdoc runs its code and not its examples. A line that begins with
+a semicolon and a space outside prose, the line `HCEval.checkInput` reads as an
+example, is dropped up to its newline, and an expectation line (`# …`) is
+already a comment, so none of its claims is counted and none of its examples'
+names is bound. A name the module's code needs, such as Figures' `A`, `B`, `Z`
+and `U`, is therefore declared in code, not in an example. Because the first
+failed form fails the whole import, an error in a testdoc's code would pass when
+that file runs directly and break every importer; the `HCLang` bundle test in
+`hc-lang.test.ts` imports Figures to catch it.
 
-`HCLang.makeHost` lays the standard modules of `lib/modules/standard-modules.ts`
-over its in-memory session root, as the CLI does over its temp root, and
-`reset()` reinstalls them with the fresh root.
+`HCLang.makeHost` lays the bundled `hc/` files of `lib/bundle/hc-bundle.ts` over
+its in-memory session root, as the CLI does over its temp root, and `reset()`
+reinstalls them with the fresh root.
 
 ### Utilities
 

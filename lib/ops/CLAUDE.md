@@ -35,8 +35,8 @@ power.
   convention. The stream itself comes from `Frame.elements`, and the widened one
   from `Frame.visibleKeys` followed by those elements by index.
 
-  `cli/hc/apply-tutorial.md` teaches the model and `cli/hc/apply.hc` is its
-  executable corpus.
+  `hc/apply-tutorial.md` teaches the model and `hc/apply.hc` is its executable
+  corpus.
 
 ### Functional Programming
 

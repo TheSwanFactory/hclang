@@ -12,11 +12,12 @@ This is a Deno workspace (monorepo) organized into several packages:
 
 ```
 hclang/
+├── hc/               # HC programs, modules and testdocs, shipped in the package
 ├── cli/              # Command-line interface and REPL
 ├── lib/              # Core library (published to JSR)
 │   ├── execute/      # Language processing pipeline
 │   ├── frames/       # Core data structures
-│   ├── modules/      # Standard HC modules (Figures), served by every host
+│   ├── bundle/       # The generated embed of hc/, served by every host
 │   └── ops/          # Built-in operations
 ├── maml/             # MAML markup language
 ├── web/              # Web interface
@@ -174,15 +175,16 @@ is attenuation. `spec/a10-resource-primitive.md` is the contract for the
 authority, and `spec/a11-resource-iteration.md` for the reading.
 
 Every host that installs a root, the CLI and `HCLang` (and so the playground),
-lays the read-only standard modules of `lib/modules/standard-modules.ts` over
-it, so `Figures <- './modules/figures.hc'` imports `lib/modules/figures.hc`
-there. Every `lib/modules/*.hc` is a standard module, served as
-`'./modules/<file>'`. The sources are compiled in from the generated, committed
-`lib/modules/standard-sources.ts`, so after adding, editing, or removing a
-module, run `deno task modules:embed` and commit the result. Git is the drift
-check: `deno task modules:check` regenerates the embed and fails on any
-difference, and both the pre-commit hook and `test:all` run it. A bare
-`evaluate` has no root, so it imports nothing, standard or otherwise.
+lays the top-level `hc/` folder over it read-only. Those files are ordinary HC
+programs, modules and testdocs alike, and the package ships all of them so a
+session can include any one with `<-`: `Figures <- './hc/figures.hc'` imports
+`hc/figures.hc`. Nothing is in scope until a program imports it. The sources are
+compiled in from the generated, committed `lib/bundle/hc-sources.ts`, so after
+adding, editing, or removing an `hc/*.hc`, run `deno task bundle:embed` and
+commit the result. Git is the drift check: `deno task bundle:check` regenerates
+the embed and fails on any difference, and both the pre-commit hook and
+`test:all` run it. A bare `evaluate` has no root, so it imports nothing, bundled
+or otherwise.
 
 ### Iteration
 
@@ -197,9 +199,9 @@ Doubling either one widens the stream from values to `[key, value]` tuples, over
 the visible properties in declaration order and then the elements by index.
 
 A resource pushes characters, so what a read answers is decided downstream by
-composition rather than declared by the source. `cli/hc/apply-tutorial.md`
-teaches this and `cli/hc/apply.hc` is the executable corpus. Before v0.15.0 `|`
-and `&` were assigned the other way around.
+composition rather than declared by the source. `hc/apply-tutorial.md` teaches
+this and `hc/apply.hc` is the executable corpus. Before v0.15.0 `|` and `&` were
+assigned the other way around.
 
 ## Project Guidelines
 
@@ -384,74 +386,6 @@ See [web/CLAUDE.md](web/CLAUDE.md)
 - Review tests for usage examples
 - Read JSR documentation
 - Check GitHub issues
-
-## Work Queue
-
-Only judgment that no tool records belongs here. Look elsewhere first:
-
-- **Hard ordering** is on the issues as GitHub `blocked by` dependencies, so a
-  blocked issue is marked in the issues list and clears itself when its blocker
-  closes. Set one with
-  `gh api -X POST repos/TheSwanFactory/hclang/issues/<n>/dependencies/blocked_by -F issue_id=<blocker database id>`.
-- **Doctest baselines** are asserted in `cli/hc.test.ts`. Never restate them in
-  prose; a wrong test fails, a wrong comment just misleads. `test:all` now runs
-  `test:doc` too (landed for #372), which executes the same files through the
-  real CLI entry point, so a corpus change has to hold under both the test
-  harness and the shipped one. The two still do not construct the evaluator
-  alike, which is the part of #373 left open: `test:doc` covers eight of
-  thirteen doctest files, `test:bs` covers `BitScheme` separately, and the
-  remaining four (`white-paper`, `white-paper-core`, `class-support`, `format`)
-  run under `cli/hc.test.ts` only, unenforced against the real entry point. Not
-  urgent — every file passes under both harnesses today — but the next doctest
-  that disagrees between them will surface here first.
-- **What shipped and why** is the [CHANGELOG](CHANGELOG.md) and the design docs
-  in `spec/`.
-
-### Priority among unblocked issues
-
-1. **#360** — what an error means in conditional position. Gates #361, and
-   #362's error-handling tension waits on the same answer.
-2. **#364** — `npx hclang@latest` serves a 2023 build. Independent of every
-   other issue, and the only defect a new user meets first.
-3. **#363** — the sign rule at the sequence rung. Small, and the units MVP
-   parked a placeholder assertion pending it.
-4. **#358** — `===` conflates frames without metadata. Quantities made it
-   reachable from ordinary source.
-
-Not ranked above, because it is a design pass rather than a ruling to implement
-— it carries its own open scope checklist and has no recorded GitHub blocker:
-
-- **#374** — make multi-value `()` a set, distinct from `[]`. Also the proposal
-  that would settle the keyed-iteration axis a11.1 couldn't spell.
-
-### Safe parallelism
-
-- The BitScheme lane (#310 → #311 → #312 → #319) runs serially and can proceed
-  beside anything else. #319 is last because it and the BitScheme chain both
-  edit `cli/hc/BitScheme.hc`.
-- #277 and #301 may run in parallel as separate PRs, but rebase before merge if
-  both touch evaluator lookup or shared frame infrastructure. Neither absorbs
-  the other. Both build on the resource primitive that shipped for #348
-  (`spec/a10-resource-primitive.md`), so neither needs to invent a resolver, and
-  both are unblocked now that the a07 group has landed
-  (`spec/a12-resource-frames.md`): #277's capability boundary is a table it can
-  read, and its time budgets are a duration plus a clock grant rather than a
-  limiter to build.
-- The a07 group (#366, #367, #369, #370, #371) shipped together in v0.16.0,
-  deliberately as one PR: #370 and #371 were blocked by #367, and #370 needs
-  #369's types, so the chain had no seam to split on that would have left each
-  half testable. What remains of a07 §4 is typed resources — the element type
-  travelling with a resource — which nothing in that group made harder.
-
-### Pull-request boundaries
-
-- One issue per PR. Past consolidations were explicit decisions, not standing
-  permission to combine unrelated work.
-- A BitScheme PR updates only the assertions it makes executable.
-- #277 keeps its capability boundary intact in every PR and ships adversarial
-  authority probes for the behavior it adds.
-- #301 stays a module-loader contract and does not become a general
-  resource-loading API.
 
 ## Contributing
 

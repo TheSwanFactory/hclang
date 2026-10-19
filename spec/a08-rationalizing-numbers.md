@@ -1193,9 +1193,9 @@ Exactness is unaffected — ND-008 compares values — but `==` is spelling-base
 so the two spellings are distinguishable there.
 
 **Ruled in `325fdf4`: preserved deliberately, and asserted in the acceptance
-testdoc** (`cli/hc/numerics.hc`) as `0123 = 123` → `<>` and `0123 == 123` →
-`()`. Reasoning in §11.8. Putting it in the testdoc rather than a unit test is
-the right home, since it is a statement about the language's surface rather than
+testdoc** (`hc/numerics.hc`) as `0123 = 123` → `<>` and `0123 == 123` → `()`.
+Reasoning in §11.8. Putting it in the testdoc rather than a unit test is the
+right home, since it is a statement about the language's surface rather than
 about a class.
 
 ### 11.3 The host bridge minted `NaN`-backed numeric frames — fixed

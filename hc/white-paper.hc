@@ -733,7 +733,7 @@ knows which address it is looking at.
 ```
 The operators also work with resources, which push characters rather than lines
 or records, so what a read answers is decided by what it is reduced into rather
-than by the source. `cli/hc/resources.hc` is the executable corpus for that,
+than by the source. `hc/resources.hc` is the executable corpus for that,
 since it needs a root binding this document is not granted.
 
 ### Conditionals
@@ -783,9 +783,12 @@ lazy blocks.
 ### Importing Modules
 
 > [!NOTE]
-> Module loading remains aspirational and environment-dependent; its
-> executable semantics are tracked in
-> [#301](https://github.com/TheSwanFactory/hclang/issues/301).
+> `<-` imports a resource: `Figures <- './hc/figures.hc'` evaluates that
+> file in a fresh namespace and binds the namespace to `Figures`, and
+> `. <- '…'` imports into the current namespace. Every file in the
+> package's `hc/` folder is bundled and can be imported this way, its
+> examples skipped. Matching a bare name such as `.module` against a
+> registry, as sketched below, is not implemented.
 
 Importing external modules into a program has come a long way from C's
 text-based `#include` statement. Modern imports are typically expected

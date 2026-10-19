@@ -312,6 +312,48 @@ describe("resource import", () => {
       expect(closure.at(0).toString()).toEqual("3");
     });
 
+    it("skips testdoc example lines and runs the code around them", () => {
+      const output = evaluateOuterImport(
+        ".a 1;\n; .b 2;\n# 2\n; missing_name\n# $!.name-missing\n.c a;\nc",
+      );
+
+      expect(output.at(0).toString()).toEqual("1");
+      expect(output.get_here("a").toString()).toEqual("1");
+      expect(output.get_here("c").toString()).toEqual("1");
+      expect(output.get_here("b").toString()).not.toEqual("2");
+    });
+
+    it("keeps `; ` in prose and a `;` that starts a line of code", () => {
+      const prose = evaluateOuterImport(
+        "```\n; prose, not an example\n```\n.d 4;\nd",
+      );
+      const bare = evaluateOuterImport(";.e 5;\n;\ne");
+
+      expect(prose.at(0).toString()).toEqual("4");
+      expect(bare.at(0).toString()).toEqual("5");
+    });
+
+    it("recognizes an example line split across resource elements", () => {
+      const handler = new RecordingHandler({
+        ok: true,
+        elements: [
+          new FrameString(".a 1;\n;"),
+          new FrameString(" missing_name\n"),
+          new FrameString(";"),
+        ],
+      });
+      const output = evaluate(
+        ". <- 'fixture:module'",
+        rootContext(
+          new RecordingStore(),
+          ResourceHandlers.of({ fixture: handler }),
+        ),
+      );
+
+      expect(output.get_here("a").toString()).toEqual("1");
+      expect(output.at(0).isFailedResult()).toBe(false);
+    });
+
     it("makes prior declarations visible to later lexical work", () => {
       const output = evaluateOuterImport(".size 1; \\size\\a");
 

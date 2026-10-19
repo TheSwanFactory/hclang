@@ -65,7 +65,7 @@ with four rungs there are two cases: dimensioned against dimensioned, and
 dimensioned against a scalar that promotes.
 
 **Migration risk against the shipped tower, entirely.** Every example in
-`cli/hc/numerics.hc` lives on rungs that would never carry a unit.
+`hc/numerics.hc` lives on rungs that would never carry a unit.
 
 ### What it does not dissolve
 

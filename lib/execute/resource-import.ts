@@ -27,6 +27,63 @@ class ImportProgress extends Frame {
   }
 }
 
+/** The prefix of a testdoc example line, `HCEval.SOURCE`. */
+const EXAMPLE = "; ";
+
+/**
+ * Drops a testdoc's example lines from imported source, so importing a file
+ * runs its code and not its examples.
+ *
+ * A line is an example when it begins with `; ` outside prose, the same test
+ * `HCEval.checkInput` applies when the file runs as a testdoc. Every example is
+ * one line, and its expectation line (`# …`) is already a comment, so dropping
+ * the line up to its newline leaves the rest of the source as written.
+ */
+class ExampleFilter {
+  private head = "";
+  private atLineStart = true;
+  private skipping = false;
+
+  /**
+   * Answers the characters to scan for one character of source.
+   *
+   * @param character The next character of the source.
+   * @param prose Whether the lexer is inside a document, where `; ` is text.
+   * @returns The characters to scan now, possibly none.
+   */
+  public filter(character: string, prose: boolean): string[] {
+    if (this.skipping) {
+      if (character !== "\n") return [];
+      this.skipping = false;
+      this.atLineStart = true;
+      return [character];
+    }
+    if (!this.atLineStart || prose) {
+      this.atLineStart = character === "\n";
+      return [character];
+    }
+    this.head += character;
+    if (this.head === EXAMPLE) {
+      this.head = "";
+      this.atLineStart = false;
+      this.skipping = true;
+      return [];
+    }
+    if (EXAMPLE.startsWith(this.head)) return [];
+    const kept = this.head.split("");
+    this.head = "";
+    this.atLineStart = character === "\n";
+    return kept;
+  }
+
+  /** Answers any characters still held when the source ends. */
+  public flush(): string[] {
+    const kept = this.head.split("");
+    this.head = "";
+    return kept;
+  }
+}
+
 type ActiveImport = {
   readonly hostNamespace: Frame;
   readonly resource: string;
@@ -74,6 +131,12 @@ function evaluateResourceSourceWithChain(
     strictStructure: true,
   });
   let receiver: Frame = lexer;
+  const scan = (character: string): Frame | undefined => {
+    receiver = sigilizer.scan(receiver, FrameSymbol.for(character));
+    if (receiver.isFailedResult()) return receiver;
+    return progress.firstFailure;
+  };
+  const examples = new ExampleFilter();
   const elements = resource.elements();
 
   for (const element of elements) {
@@ -81,10 +144,16 @@ function evaluateResourceSourceWithChain(
     if (!hasCharacterContent(element)) return sourceTypeFailure(element);
 
     for (const character of element.characterContent().split("")) {
-      receiver = sigilizer.scan(receiver, FrameSymbol.for(character));
-      if (receiver.isFailedResult()) return receiver;
-      if (progress.firstFailure) return progress.firstFailure;
+      const prose = receiver.is.document === true;
+      for (const kept of examples.filter(character, prose)) {
+        const failure = scan(kept);
+        if (failure) return failure;
+      }
     }
+  }
+  for (const kept of examples.flush()) {
+    const failure = scan(kept);
+    if (failure) return failure;
   }
 
   if (receiver !== lexer) {

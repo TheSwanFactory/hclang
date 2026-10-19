@@ -27,10 +27,10 @@ one- and two-backtick GFM spans inside them, supports larger odd fences without
 adding named delimiter levels, and preserves the established two- backtick
 spelling of an empty document.
 
-Issue #284 also requires migrating `cli/hc/white-paper.hc` so executable
-examples use HC document fences, non-executable examples remain document
-content, and a full-document doctest reaches EOF with authoritative counts and
-no prose-derived diagnostics.
+Issue #284 also requires migrating `hc/white-paper.hc` so executable examples
+use HC document fences, non-executable examples remain document content, and a
+full-document doctest reaches EOF with authoritative counts and no prose-derived
+diagnostics.
 
 This document specifies required behavior and affected areas. It intentionally
 does not prescribe implementation code, classes, algorithms, or internal data
@@ -38,7 +38,7 @@ structures.
 
 ## Problem
 
-`cli/hc/white-paper.hc` alternates between prose and executable examples.
+`hc/white-paper.hc` alternates between prose and executable examples.
 Triple-backtick lines are intended to switch between document content and HC
 input. The original lexer instead treated each backtick as an independent
 single-character delimiter.
@@ -582,10 +582,10 @@ Cover:
 - nonzero status for unterminated documents;
 - nonzero status for greater interior runs;
 - lexical completion at EOF;
-- the maintained `cli/hc/testdoc.hc` examples containing one- and two-backtick
-  spans inside a triple document; and
-- complete `cli/hc/white-paper.hc` traversal with exactly one reviewed summary,
-  zero failures, and no name-resolution, missing-test, lexer, parser-stack, or
+- the maintained `hc/testdoc.hc` examples containing one- and two-backtick spans
+  inside a triple document; and
+- complete `hc/white-paper.hc` traversal with exactly one reviewed summary, zero
+  failures, and no name-resolution, missing-test, lexer, parser-stack, or
   prose-derived diagnostics.
 
 ## Alternatives considered
@@ -629,7 +629,7 @@ suite:
     deno test lib/frames/frame-doc.test.ts lib/execute/evaluate.test.ts
     deno test lib/execute/hc-eval.test.ts lib/execute/hc-test.test.ts
     deno test --allow-env --allow-read --allow-write cli/runfile.test.ts cli/hc.test.ts
-    deno task hc cli/hc/white-paper.hc -t
+    deno task hc hc/white-paper.hc -t
     deno task test:lib
     deno task test:cli
     deno task test:doc
@@ -676,8 +676,8 @@ A conforming change is expected to assess or modify:
 - `lib/execute/hc-test.ts` only if doctest tests expose an independent defect;
 - `cli/runfile.ts` and `cli/hc.ts` for file boundaries and final status;
 - the corresponding test files identified above;
-- `cli/hc/testdoc.hc`;
-- `cli/hc/white-paper.hc`; and
+- `hc/testdoc.hc`;
+- `hc/white-paper.hc`; and
 - `cli/hc.test.ts` for the full-document baseline.
 
 Expression evaluation, aggregate grammar, and documentation markup parsing are

@@ -160,8 +160,8 @@ contract and gets pinned by a test.
 
 ## Behavior to preserve
 
-`cli/hc/class-support.hc` is the executable statement of current semantics and
-must keep passing unmodified, then grow cases for what this spec clarifies:
+`hc/class-support.hc` is the executable statement of current semantics and must
+keep passing unmodified, then grow cases for what this spec clarifies:
 
 - a mutable singleton shares identity through its trailing-underscore handle;
 - repeated construction yields fresh instances, proven by uppercase constant
@@ -228,8 +228,8 @@ visibility through an inherited receiver reached via a handle.
 
 ### Verification
 
-- [ ] `cli/hc/class-support.hc` passes unmodified, then extended with the
-      clarified semantics.
+- [ ] `hc/class-support.hc` passes unmodified, then extended with the clarified
+      semantics.
 - [ ] Focused unit tests accompany each extracted abstraction: receiver mark,
       parent link, bound method, instance copy.
 - [ ] `deno task test` green, including doctests and BitScheme.

@@ -99,7 +99,7 @@ square 5  # Returns 25
 
 **Description**: `_` works with string concatenation and repetition.
 
-**Example from [cli/hc/white-paper.hc:476](cli/hc/white-paper.hc#L476)**:
+**Example from [hc/white-paper.hc:476](hc/white-paper.hc#L476)**:
 
 ```hc
 ; .triplicate {3 _}
@@ -234,7 +234,7 @@ argument. Use `__` for outer closure's argument.
 **Description**: `_^` (also called `super`) accesses the **parent context**,
 skipping over the current argument.
 
-**Example from [cli/hc/white-paper.hc:493](cli/hc/white-paper.hc#L493)**:
+**Example from [hc/white-paper.hc:493](hc/white-paper.hc#L493)**:
 
 ```hc
 ; .print-arg {var}        # Accesses var from argument
@@ -647,8 +647,7 @@ stacks and scope chains to ensure correct evaluation.
 
 - [doc/LANGUAGE.md:358-380](doc/LANGUAGE.md#L358-L380) - Anonymous argument
   specification
-- [cli/hc/white-paper.hc:471-497](cli/hc/white-paper.hc#L471-L497) - Detailed
-  examples
+- [hc/white-paper.hc:471-497](hc/white-paper.hc#L471-L497) - Detailed examples
 - [doc/GRAMMAR.md:261](doc/GRAMMAR.md#L261) - Grammar examples
 
 ### Implementation

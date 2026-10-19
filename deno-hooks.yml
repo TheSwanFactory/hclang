@@ -14,10 +14,10 @@ hooks:
       glob: "*.{ts,js}"
       pass_filenames: true
 
-    # Fail on a standard-module embed that was not regenerated
-    - id: modules-check
-      name: modules check
-      run: deno task modules:check
+    # Fail on an hc/ bundle embed that was not regenerated
+    - id: bundle-check
+      name: bundle check
+      run: deno task bundle:check
       pass_filenames: false
 
   pre-push:

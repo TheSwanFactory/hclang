@@ -276,7 +276,7 @@ describe("main", () => {
 
   it("keeps the maintained testdoc fixture green with authoritative totals", async () => {
     const out = new FrameArray([]);
-    const file = new URL("./hc/testdoc.hc", import.meta.url).pathname;
+    const file = new URL("../hc/testdoc.hc", import.meta.url).pathname;
     const status = await main(
       getEval({}, out),
       getOptions(["--testdoc", file]),
@@ -290,7 +290,7 @@ describe("main", () => {
 
   it("keeps the numeric acceptance testdoc green", async () => {
     const out = new FrameArray([]);
-    const file = new URL("./hc/numerics.hc", import.meta.url).pathname;
+    const file = new URL("../hc/numerics.hc", import.meta.url).pathname;
     const status = await main(
       getEval({}, out),
       getOptions(["--testdoc", file]),
@@ -304,7 +304,7 @@ describe("main", () => {
 
   it("keeps the units acceptance testdoc green", async () => {
     const out = new FrameArray([]);
-    const file = new URL("./hc/units.hc", import.meta.url).pathname;
+    const file = new URL("../hc/units.hc", import.meta.url).pathname;
     const status = await main(
       getEval({}, out),
       getOptions(["--testdoc", file]),
@@ -318,7 +318,7 @@ describe("main", () => {
 
   it("keeps the Figures testdoc green", async () => {
     const out = new FrameArray([]);
-    const file = new URL("../lib/modules/figures.hc", import.meta.url).pathname;
+    const file = new URL("../hc/figures.hc", import.meta.url).pathname;
     const status = await main(
       getEval({}, out),
       getOptions(["--testdoc", file]),
@@ -326,13 +326,13 @@ describe("main", () => {
 
     expect(status).toEqual(0);
     expect(out.at(-1).toString()).toContain(
-      '“{"total":43,"pass":43,"fail":0,"unimplemented":0}”',
+      '“{"total":44,"pass":44,"fail":0,"unimplemented":0}”',
     );
   });
 
-  it("imports the Figures standard module and counts only its own claims", async () => {
+  it("imports the bundled Figures module and counts only its own claims", async () => {
     const out = new FrameArray([]);
-    const file = new URL("./hc/modules.hc", import.meta.url).pathname;
+    const file = new URL("../hc/modules.hc", import.meta.url).pathname;
     // The import reads the module through the overlay the CLI installs, so the
     // harness under test is the real one; none of the module's claims count.
     const status = await main(
@@ -348,7 +348,7 @@ describe("main", () => {
 
   it("traverses the BitScheme tutorial with authoritative totals", async () => {
     const out = new FrameArray([]);
-    const file = new URL("./hc/BitScheme.hc", import.meta.url).pathname;
+    const file = new URL("../hc/BitScheme.hc", import.meta.url).pathname;
     const originalError = console.error;
     const diagnostics: unknown[][] = [];
     console.error = (...args: unknown[]) => diagnostics.push(args);
@@ -374,7 +374,7 @@ describe("main", () => {
 
   it("passes the white-paper core examples independently", async () => {
     const out = new FrameArray([]);
-    const file = new URL("./hc/white-paper-core.hc", import.meta.url).pathname;
+    const file = new URL("../hc/white-paper-core.hc", import.meta.url).pathname;
     const status = await main(
       getEval({}, out),
       getOptions(["--testdoc", file]),
@@ -388,7 +388,7 @@ describe("main", () => {
 
   it("passes the annotated class-support examples independently", async () => {
     const out = new FrameArray([]);
-    const file = new URL("./hc/class-support.hc", import.meta.url).pathname;
+    const file = new URL("../hc/class-support.hc", import.meta.url).pathname;
     const status = await main(
       getEval({}, out),
       getOptions(["--testdoc", file]),
@@ -402,7 +402,7 @@ describe("main", () => {
 
   it("passes executable rendering coverage with authoritative totals", async () => {
     const out = new FrameArray([]);
-    const file = new URL("./hc/format.hc", import.meta.url).pathname;
+    const file = new URL("../hc/format.hc", import.meta.url).pathname;
     const status = await main(
       getEval({}, out),
       getOptions(["--testdoc", file]),
@@ -416,7 +416,7 @@ describe("main", () => {
 
   it("keeps the resource acceptance testdoc green under real authority", async () => {
     const out = new FrameArray([]);
-    const file = new URL("./hc/resources.hc", import.meta.url).pathname;
+    const file = new URL("../hc/resources.hc", import.meta.url).pathname;
     // Run under the namespace the CLI actually installs: an empty one would
     // leave every identifier inert and assert nothing about the primitive.
     const status = await main(
@@ -432,7 +432,7 @@ describe("main", () => {
 
   it("keeps the time acceptance testdoc green under the installed clock", async () => {
     const out = new FrameArray([]);
-    const file = new URL("./hc/time.hc", import.meta.url).pathname;
+    const file = new URL("../hc/time.hc", import.meta.url).pathname;
     // The clock is a handler entry, so this asserts the corpus under the table
     // the CLI installs rather than under one arranged for the test.
     const status = await main(
@@ -448,7 +448,7 @@ describe("main", () => {
 
   it("keeps the apply-and-iterate decisions green under real authority", async () => {
     const out = new FrameArray([]);
-    const file = new URL("./hc/apply.hc", import.meta.url).pathname;
+    const file = new URL("../hc/apply.hc", import.meta.url).pathname;
     // A root binding, because the resource decisions are part of the model this
     // file pins. Every decision is executable, so nothing here is a promise.
     const status = await main(
@@ -473,7 +473,7 @@ describe("main", () => {
 
   it("traverses the complete white paper with authoritative totals", async () => {
     const out = new FrameArray([]);
-    const file = new URL("./hc/white-paper.hc", import.meta.url).pathname;
+    const file = new URL("../hc/white-paper.hc", import.meta.url).pathname;
     const originalError = console.error;
     const diagnostics: unknown[][] = [];
     console.error = (...args: unknown[]) => diagnostics.push(args);

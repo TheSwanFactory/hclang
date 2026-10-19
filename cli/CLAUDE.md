@@ -63,8 +63,8 @@ deno task build
 # Outputs to: ../scripts/hc
 ```
 
-The binary needs no extra assets, because the standard modules are compiled into
-the program. `deno task test:compiled` (part of `test:all`) builds it and
+The binary needs no extra assets, because the bundled `hc/` files are compiled
+into the program. `deno task test:compiled` (part of `test:all`) builds it and
 imports Figures from an empty working directory.
 
 ## Development Guidelines
@@ -116,7 +116,7 @@ never as the boundary.
 - `--allow-read` and `--allow-write` are wider than any program's reach. A
   resource identifier resolves against the root binding, a fresh temp directory,
   so the language enforces a ceiling inside whatever the process holds.
-- The root also overlays the read-only standard modules (see the root
+- The root also overlays the bundled `hc/` files, read-only (see the root
   CLAUDE.md). They are compiled into the program, so no file is read, no flag or
   root widens, and every other path stays in the temp root.
 - `--deny-run` and `--deny-ffi` are a hard floor, because `--deny-*` beats
