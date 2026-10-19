@@ -26,10 +26,8 @@ export class FrameType extends Frame implements FrameMatcher {
     return this.match(value).matched;
   }
 
-  /** The type `==` asks for, so `~~1` matches every integer, as `==` does. */
   public match(value: Frame): MatchResult {
-    return value.constructor === this.FrameClass ||
-        this.representative.sameTypeAs(value)
+    return value.constructor === this.FrameClass
       ? matchSuccess(value)
       : matchFailure(
         Frame.error(`$!.type-error ${this.toString()} ${value.toString()}`),

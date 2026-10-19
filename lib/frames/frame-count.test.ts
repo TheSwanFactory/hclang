@@ -10,6 +10,7 @@ import {
   type FrameNumeric,
   FrameRational,
   FrameResource,
+  FrameType,
   MemoryStore,
   NUMERIC_RANK,
   RESOURCE_ROOT_KEY,
@@ -223,21 +224,70 @@ describe("FrameCount", () => {
       expect(count(0n).greaterThan(int(-1n))).toBe(Frame.all);
     });
 
-    it("shares one integer type with FrameInt for ==, ===, and ~~", () => {
+    it("is `=` to a FrameInt of the same value, and ordered against every rung", () => {
+      for (
+        const source of [
+          "2 = (5 - 3)",
+          "(5 - 3) = 2",
+          "[2] = [5 - 3]",
+          "[.a 1; .b 2;] = [.a 1; .b (4 - 2);]",
+          "2.< 2.5",
+          "3.> (1 / 2)",
+          "(0 - 1).< 0",
+        ]
+      ) {
+        expect(value(source)).toBe(Frame.all);
+      }
+      // An enumeration schema matches by `=`, so it admits the FrameInt.
+      expectClass(value("<1, 2, 3> (5 - 3)"), "FrameInt");
+    });
+
+    it("is a distinct type from FrameInt for ==, ===, and ~~", () => {
       for (
         const source of [
           "2 == (5 - 3)",
           "(5 - 3) == 2",
           "2 === (5 - 3)",
+          "(5 - 3) === 2",
           "[2] == [5 - 3]",
+          "[.a 1; .b 2;] == [.a 1; .b (4 - 2);]",
+          "(5 - 3) ~ ~~2",
+          "2 ~ ~~(5 - 3)",
           "5 ~ ~~(0 - 1)",
           "(0 - 1) ~ ~~5",
+          // Exactly as a FrameInt and a FrameDecimal are.
+          "2 == 2.0",
+          "2 == (4 / 2.0)",
+        ]
+      ) {
+        expect(evaluate(source).toString()).toEqual("[]");
+      }
+      expect(value("~~2 (5 - 3)").toString()).toEqual("$!.type-error ~~2 2");
+      expect(value("~~(5 - 3) 2").toString()).toEqual("$!.type-error ~~2 2");
+      expect(count(2n).typeEquals(int(2n))).toBe(Frame.nil);
+      expect(int(2n).typeEquals(count(2n))).toBe(Frame.nil);
+      expect(count(2n).identical(int(2n))).toBe(Frame.nil);
+      expect(FrameType.of(count(2n)).matches(int(2n))).toBe(false);
+      expect(FrameType.of(int(2n)).matches(count(2n))).toBe(false);
+    });
+
+    it("keeps ==, ===, and ~~ holding within one rung", () => {
+      for (
+        const source of [
+          "2 == 2",
+          "2 == (1 + 1)",
+          "2 === (1 + 1)",
+          "(0 - 2) == (0 - 2)",
+          "(5 - 3) == (4 - 2)",
+          "(5 - 3) === (4 - 2)",
+          "3 ~ ~~2",
+          "(0 - 5) ~ ~~(0 - 1)",
         ]
       ) {
         expect(value(source)).toBe(Frame.all);
       }
-      expect(evaluate("3 == 3.0").toString()).toEqual("[]");
-      expect(evaluate("2 == (4 / 2.0)").toString()).toEqual("[]");
+      expect(value("~~2 3").toString()).toEqual("3");
+      expect(value("~~(0 - 1) (0 - 5)").toString()).toEqual("-5");
     });
 
     it("leaves the data plane comparing spellings", () => {
@@ -257,7 +307,12 @@ describe("FrameCount", () => {
     });
 
     it("answers a count for a host's decimal-digit value", () => {
-      expectClass(make_context({ size: "3" }).size, "FrameCount");
+      const host = make_context({ size: "3" });
+
+      expectClass(host.size, "FrameCount");
+      // Typed as the same digits in source are, so `==` holds against them.
+      expect(evaluate("$$.size == 3", host).at(0)).toBe(Frame.all);
+      expect(evaluate("($$.size - 3) == 0", host).toString()).toEqual("[]");
     });
 
     it("is accepted wherever an integer is", () => {

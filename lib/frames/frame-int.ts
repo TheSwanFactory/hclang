@@ -87,14 +87,6 @@ export class FrameInt extends FrameNumeric {
       : this.data;
   }
 
-  /**
-   * Every integer has one type for `==` and `~~`. A count is an integer that
-   * cannot be negative, so `2 == (5 - 3)` holds while `3 == 3.0` does not.
-   */
-  public override sameTypeAs(other: Frame): boolean {
-    return other instanceof FrameInt;
-  }
-
   public range(): number[] | Frame {
     const count = this.repetitionCount();
     return count instanceof Frame
