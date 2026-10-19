@@ -4,6 +4,16 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.21.0 2026-10-19
+
+- **Breaking: nonnegative integer literals are `FrameCount`.** `0`, `1234567890`
+  and `+5` are counts, the new root of the ladder
+  `FrameCount → FrameInt → FrameDecimal → FrameRational → FrameNumber`; `+`,
+  `*`, `%%` and nonnegative `**` keep a count, while `-`, unary `-` and negative
+  literals give `FrameInt` and `/` gives a ratio (or `FrameInt` when whole).
+  Values print the same and `2 == (5 - 3)` holds; only class names change
+  (#407).
+
 ## v0.20.3 2026-10-19
 
 - **Breaking: the package ships `hc/`.** Every `.hc` file in the top-level `hc/`
