@@ -48,7 +48,10 @@ expressed through:
 
 ### Numeric Types
 
-- **Integer**: `0`, `123` — exact, arbitrary-precision decimal integers.
+- **Count**: `0`, `123` — every decimal-digit literal is an exact,
+  arbitrary-precision nonnegative integer, the root of the numeric ladder.
+- **Integer**: `-1`, `5 - 3` — exact signed integers, produced by negation and
+  subtraction; integers have no separate source-literal family.
 - **Decimal**: `0.5`, `123.456` — exact scaled decimal values.
 - **Rational**: `1 / 3` evaluates to the reduced exact result `1/3`; rationals
   have no separate source-literal family.
@@ -64,10 +67,13 @@ expressed through:
   validated and no spelling is canonicalized: `9.8.frobnicate` is well formed,
   and `9.8.m.s-1`, `9.8.s-1.m`, and `9.8.m2` are three distinct quantities.
 
-Unary `+` and `-` apply to numbers. Binary arithmetic promotes through integer,
-decimal, rational, and inexact ranks; division is exact unless its divisor is a
-decimal or inexact number. `%%` accepts integers only. Sequences and typed
-numbers reject arithmetic, ordering, signs, and repetition; a typed number
+Unary `+` and `-` apply to numbers. Binary arithmetic promotes through count,
+integer, decimal, rational, and inexact ranks; division is exact unless its
+divisor is a decimal or inexact number. Counts stay counts under `+`, `*`, `%%`,
+and a nonnegative integral `**`, while unary `-` and binary `-` answer an
+integer whatever the sign, and division answers a rational, or an integer when
+the quotient is whole. `%%` accepts counts and integers only. Sequences and
+typed numbers reject arithmetic, ordering, signs, and repetition; a typed number
 refuses even a same-unit operand.
 
 #### Time Types
@@ -346,11 +352,12 @@ parent_.helper_ 10
 
 ### Number Literals
 
-- Decimal integers: `0`, `123`
+- Counts (nonnegative decimal integers): `0`, `123`
 - Exact decimals: `0.5`, `123.456`
 - Numeric sequences: `1.408.055.1212`
 - Typed numbers: `9.8.m`, `0.10.USD`, `9.8.m2`, `9.8.kg.m.s-2`
-- Rationals and inexact numbers are computed values, not distinct literals
+- Signed integers, rationals, and inexact numbers are computed values, not
+  distinct literals
 
 ### Time Literals
 

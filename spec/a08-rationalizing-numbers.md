@@ -1333,3 +1333,40 @@ incidental.
 `0sQUJD` throws `Cannot convert 0sQUJD to a BigInt` from `frame-blob.ts` on
 `master` as well, while `GRAMMAR.md` still documents `0s…` base64. Pre-existing;
 noted so it is not attributed to the tower.
+
+## 12. Amendment: counts (#407)
+
+[#407](https://github.com/TheSwanFactory/hclang/issues/407) puts `FrameCount`, a
+nonnegative integer, below `FrameInt` as the root of the semantic tower:
+
+```text
+FrameCount → FrameInt → FrameDecimal → FrameRational → FrameNumber
+```
+
+Every decimal-digit literal is a count, `0` and zero-led digits included, so the
+syntactic ladder of §2 (ND-001) now reads `Count → Decimal → Sequence`, and the
+`[1-9]` `SYNTAX` descriptor belongs to `FrameCount`. A FrameInt is an
+operation's result; since the lexer has no signed literal, `-1` is unary minus
+applied to a count. `NUMERIC_RANK` names the rungs in one table, so a rung below
+the root, such as a future `FrameBit`, renumbers that table alone.
+
+The truth tables of §5 gain a count row and column. A count promotes to a
+FrameInt like any lower rung, so mixed operands follow the ladder. Two counts
+stay a count under `+`, `*`, and `%%` (ND-006 now admits both integer rungs),
+and a count raised to a nonnegative integral power stays a count, because such
+an exponent leaves the result on the base's rung for every rung. Unary minus and
+`-` answer a FrameInt even when the result is nonnegative. `/` answers a ratio
+by the divisor rule of §5.2, and ND-005 still collapses a whole ratio to a
+FrameInt, never a count, so `6 / 3` is FrameInt `2`, exactly as integer division
+was before. Zero divisors keep their errors.
+
+A count prints as the same integer does, so no printed value changes, but a
+domain error names its class: `1.408.555 + 1` is
+`$!.numeric-domain + FrameSequence FrameCount`. `=` is unchanged, and `==` (spec
+a14) counts a count and a FrameInt as one rung, so `2 == (5 - 3)` holds, and
+`~~1` matches every integer.
+
+The language counts in one place today: a resource write answers the characters
+it wrote, which is now a count. `make_context` turns a host's digit string into
+a count, as the same digits in source would be. Element indices are not numbers
+at all (iteration addresses them as `.0`, `.1`, …), so nothing changes there.

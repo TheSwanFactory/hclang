@@ -69,6 +69,8 @@ the same rung:
 
 - `3 == 3.0` is nil (an integer and a decimal), but `0123 == 123` holds (both
   integers, same value).
+- A count and a signed integer are one rung here, although promotion tells them
+  apart (#407): `2 == (5 - 3)` holds, because `5 - 3` is the FrameInt `2`.
 - `9.80.m == 9.8.m` holds; `9.8.m == 9.8.kg` does not.
 - `[3] == [3.0]` is nil, because the type differs at a child.
 

@@ -20,7 +20,14 @@ and program is composed of frames. This unified representation enables:
 
 ### Basic Types
 
-- [frame-number.ts](frame-number.ts) - Numeric values (integers, floats)
+- [frame-numeric.ts](frame-numeric.ts) - Rank-based numeric dispatch and the
+  promotion ladder; see [Numeric Ladder](#numeric-ladder)
+- [frame-count.ts](frame-count.ts) - Nonnegative integers, the value of every
+  digit literal
+- [frame-int.ts](frame-int.ts) - Signed integers
+- [frame-decimal.ts](frame-decimal.ts), [frame-rational.ts](frame-rational.ts),
+  [frame-number.ts](frame-number.ts) - Exact decimals, exact ratios, inexact
+  host numbers
 - [frame-string.ts](frame-string.ts) - String literals
 - [frame-bytes.ts](frame-bytes.ts) - Raw byte data
 - [frame-symbol.ts](frame-symbol.ts) - Identifiers and symbols
@@ -337,7 +344,8 @@ The three operators are a ladder, each strictly stronger than the last, and
 - `equals` (`=`): the same value. Atom families override it, and `FrameArray`
   compares its complete view, visible properties then elements, by `=`.
 - `typeEquals` (`==`): `equals` plus the same class at every node, so the
-  numeric rung counts.
+  numeric rung counts. The class question is `sameTypeAs`, under which a
+  `FrameCount` and a `FrameInt` are both integers.
 - `identical` (`===`): the same frame. A frame that `ownsIdentity()`, which is
   every `FrameArray`, compares by reference; anything else falls back to
   `typeEquals`, because the copy contract makes sharing it unobservable.
@@ -424,6 +432,37 @@ declares how a name may be used, not a promise that an enclosing copy will share
 its target. Reach the inner identity through a mutable outer handle when sharing
 is the point.
 
+### Numeric Ladder
+
+Ranked numerics promote along one ladder, root first:
+
+```text
+FrameCount → FrameInt → FrameDecimal → FrameRational → FrameNumber
+```
+
+`NUMERIC_RANK` in `frame-numeric.ts` is the only place that orders the rungs, so
+inserting one below the root, such as a future `FrameBit`, renumbers that table
+and nothing else. `+`, `-`, `*`, `%%`, ordering, and `=` promote both operands
+to the higher rank; `/` and `**` choose their rung as before.
+
+`FrameCount` is the root and the value of every digit literal, `0` included: a
+negative number is a FrameInt because it is an operation's result, the lexer
+having no signed literal. It extends `FrameInt`, so whatever accepts an integer
+(repetition, ranges, byte lengths, bit widths, `exactInt`) accepts a count. A
+count prints exactly as the same integer does and reports its own class name.
+Counts are closed under `+`, `*`, `%%`, and a nonnegative integral `**`, which
+answer counts through `FrameInt.sameRung`. The operations that can leave the
+domain answer the rung that holds the result whatever its sign: unary minus and
+`-` answer a FrameInt (`5 - 3` included), and `/` answers a ratio, which
+collapses to a FrameInt, never a count, when it is whole. The decimal-digit
+`SYNTAX` descriptor belongs to `FrameCount`, and `FrameBlob` routes zero-led
+digits to it. A count is also what the language answers when it counts: a
+resource write answers the characters written, and `make_context` turns a host's
+digit string into a count.
+
+`==` and `~~` ask `sameTypeAs`, which `FrameInt` widens to every integer, so
+`2 == (5 - 3)` holds while `3 == 3.0` does not.
+
 ### Type Matching
 
 First-class types implement the `FrameMatcher` protocol. A pure match returns
@@ -438,7 +477,12 @@ binding resolution.
 ```text
 Frame (base)
 ├── FrameAtom (primitives)
-│   ├── FrameNumber
+│   ├── FrameNumeric
+│   │   ├── FrameInt
+│   │   │   └── FrameCount
+│   │   ├── FrameDecimal
+│   │   ├── FrameRational
+│   │   └── FrameNumber
 │   ├── FrameString
 │   ├── FrameBytes
 │   └── FrameSymbol
