@@ -1,7 +1,7 @@
 import {
   type Context,
   Frame,
-  FrameInt,
+  FrameCount,
   FrameString,
   FrameSymbol,
   type StringMap,
@@ -21,7 +21,8 @@ import { sigilizer } from "./sigilizer.ts";
  * This method iterates over the entries and determines the type of each value
  * based on its first character:
  * - If alphabetic, the value is wrapped in a `FrameString`.
- * - If numeric, the value is wrapped in a `FrameInt`.
+ * - If numeric, the value is wrapped in a `FrameCount`, as the same digits
+ *   written in source would be.
  * - If neither, an error is logged and the key is set to `Frame.nil`.
  *
  * If the context contains a `DEBUG_ENV` key, the context is logged to the console
@@ -41,7 +42,7 @@ export function make_context(entries: StringMap): Context {
   const context: Context = {};
   Object.entries(entries).forEach(([key, value]) => {
     if (/^\p{Nd}+$/u.test(value)) {
-      context[key] = FrameInt.for(value);
+      context[key] = FrameCount.for(value);
     } else {
       context[key] = new FrameString(value);
     }

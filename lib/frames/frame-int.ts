@@ -1,4 +1,3 @@
-import { completeAtEnd, includeOrReserve } from "./atom-syntax.ts";
 import { type Context, NilContext } from "./context.ts";
 import { FrameDecimal } from "./frame-decimal.ts";
 import { Frame } from "./frame.ts";
@@ -6,6 +5,7 @@ import {
   exactBigIntPower,
   exactPowerWithinLimit,
   FrameNumeric,
+  NUMERIC_RANK,
   type NumericRank,
   REPETITION_LIMIT,
   REPETITION_TEXT_LIMIT,
@@ -13,7 +13,6 @@ import {
 import { hasCharacterContent } from "./frame-text.ts";
 import { FrameNumber } from "./frame-number.ts";
 import type { MetaFrame } from "./meta-frame.ts";
-import type { AtomSyntax, ScanResult, SigilStart } from "../scan.ts";
 
 const INTEGER_SOURCE = /^[+-]?[\p{Nd}]+$/u;
 
@@ -36,30 +35,22 @@ function normalizeDecimalDigits(source: string): string {
   }).join("");
 }
 
-/** Exact bigint-backed integer and owner of decimal-digit source syntax. */
+/**
+ * Exact bigint-backed signed integer.
+ *
+ * No literal produces one: the digits a source spells are a `FrameCount`, which
+ * owns that syntax. A FrameInt is what an operation answers once its result may
+ * be negative, such as unary minus or subtraction.
+ */
 export class FrameInt extends FrameNumeric {
   public static readonly NUMBER_BEGIN = /[1-9]/;
   public static readonly NUMBER_CHAR = /\d/;
-  public static readonly SIGIL_STARTS = [
-    { key: FrameInt.NUMBER_BEGIN.toString(), mode: "atom" },
-  ] as const satisfies readonly SigilStart[];
-
-  public static readonly SYNTAX: AtomSyntax = {
-    NAME: "FrameInt",
-    SIGIL_STARTS: FrameInt.SIGIL_STARTS,
-    recognize: (symbol: Frame, source = ""): ScanResult => {
-      const char = symbol.toString();
-      return includeOrReserve(char, FrameInt.NUMBER_CHAR.test(char), source);
-    },
-    finish: completeAtEnd,
-    fromSource: (source: string): Frame => FrameInt.for(source),
-  };
 
   public static for(source: string): FrameInt {
     return new FrameInt(source);
   }
 
-  public readonly rank: NumericRank = 0;
+  public readonly rank: NumericRank = NUMERIC_RANK.int;
   public readonly data: bigint;
   public readonly spelling: string;
 
@@ -94,6 +85,14 @@ export class FrameInt extends FrameNumeric {
     return max != null && this.data > max
       ? Frame.error(`$!.integer-range ${this.spelling} ${max}`)
       : this.data;
+  }
+
+  /**
+   * Every integer has one type for `==` and `~~`. A count is an integer that
+   * cannot be negative, so `2 == (5 - 3)` holds while `3 == 3.0` does not.
+   */
+  public override sameTypeAs(other: Frame): boolean {
+    return other instanceof FrameInt;
   }
 
   public range(): number[] | Frame {
@@ -158,8 +157,18 @@ export class FrameInt extends FrameNumeric {
     return new FrameInt(-this.data, NilContext, spelling);
   }
 
+  /**
+   * The integer `value` on this frame's own rung, for the operations every
+   * integer rung is closed under: `+`, `*`, `%%`, and a nonnegative integral
+   * `**`. A count is not closed under `-`, which is why subtraction builds a
+   * FrameInt rather than asking here.
+   */
+  protected sameRung(value: bigint): FrameInt {
+    return new FrameInt(value);
+  }
+
   protected override addSame(right: FrameNumeric): Frame {
-    return new FrameInt(this.data + (right as FrameInt).data);
+    return this.sameRung(this.data + (right as FrameInt).data);
   }
 
   protected override subtractSame(right: FrameNumeric): Frame {
@@ -167,17 +176,17 @@ export class FrameInt extends FrameNumeric {
   }
 
   protected override multiplySame(right: FrameNumeric): Frame {
-    return new FrameInt(this.data * (right as FrameInt).data);
+    return this.sameRung(this.data * (right as FrameInt).data);
   }
 
   protected override divideSame(_right: FrameNumeric): Frame {
-    return Frame.error("$!.numeric-internal / FrameInt");
+    return Frame.error(`$!.numeric-internal / ${this.className()}`);
   }
 
   protected override moduloSame(right: FrameNumeric): Frame {
     const divisor = (right as FrameInt).data;
     const remainder = this.data % divisor;
-    return new FrameInt(
+    return this.sameRung(
       remainder !== 0n && (remainder < 0n) !== (divisor < 0n)
         ? remainder + divisor
         : remainder,
@@ -191,12 +200,12 @@ export class FrameInt extends FrameNumeric {
 
   protected override powerIntegral(exponent: bigint): Frame {
     if (exponent < 0n) {
-      return Frame.error("$!.numeric-internal ** FrameInt");
+      return Frame.error(`$!.numeric-internal ** ${this.className()}`);
     }
     if (!exactPowerWithinLimit([this.data], exponent)) {
-      return Frame.error("$!.numeric-range ** FrameInt");
+      return Frame.error(`$!.numeric-range ** ${this.className()}`);
     }
-    return new FrameInt(exactBigIntPower(this.data, exponent));
+    return this.sameRung(exactBigIntPower(this.data, exponent));
   }
 
   protected override compareSame(right: FrameNumeric): -1 | 0 | 1 {

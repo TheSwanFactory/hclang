@@ -98,7 +98,7 @@ Cross-rung promotion and integer-only modulo
 ; 3.%%2
 # 1
 ; 3.0 %% 2
-# $!.numeric-domain %% FrameDecimal FrameInt
+# $!.numeric-domain %% FrameDecimal FrameCount
 ```
 Zero and unsupported domains return stable errors
 ```
@@ -107,9 +107,9 @@ Zero and unsupported domains return stable errors
 ; 1 %% (1 - 1)
 # $!.modulo-by-zero %%
 ; 1.408.555 + 1
-# $!.numeric-domain + FrameSequence FrameInt
+# $!.numeric-domain + FrameSequence FrameCount
 ; 1.408.555.< 2
-# $!.numeric-domain < FrameSequence FrameInt
+# $!.numeric-domain < FrameSequence FrameCount
 ; 1.408.555 = 1
 # ()
 ; -1.408.555
@@ -124,4 +124,65 @@ Repetition and exact powers fail before unsafe allocation
 ; 65537“x”
 # $!.repetition-limit 65536
 ; 2 ** 1000000
-# $!.numeric-range ** FrameInt
+# $!.numeric-range ** FrameCount
+```
+Counts (#407). Every nonnegative integer literal is a `FrameCount`, the root of
+the ladder, and prints as the same integer does. A sequence's refusal names the
+class of its other operand, which is how these examples observe the rung
+```
+; 1.408.555 + 0
+# $!.numeric-domain + FrameSequence FrameCount
+; 1.408.555 + 1234567890
+# $!.numeric-domain + FrameSequence FrameCount
+; 1.408.555 + -1
+# $!.numeric-domain + FrameSequence FrameInt
+```
+Counts are closed under `+`, `*`, `%%`, and a nonnegative integral `**`
+```
+; 1.408.555 + (2 + 3)
+# $!.numeric-domain + FrameSequence FrameCount
+; 1.408.555 + (2 3)
+# $!.numeric-domain + FrameSequence FrameCount
+; 1.408.555 + (7 %% 3)
+# $!.numeric-domain + FrameSequence FrameCount
+; 1.408.555 + (2 ** 3)
+# $!.numeric-domain + FrameSequence FrameCount
+```
+Negation and subtraction answer `FrameInt` whatever the sign of the result, and
+division answers a ratio, which collapses to `FrameInt` when it is whole
+```
+; 5 - 3
+# 2
+; 1.408.555 + (5 - 3)
+# $!.numeric-domain + FrameSequence FrameInt
+; 1.408.555 + -0
+# $!.numeric-domain + FrameSequence FrameInt
+; 1.408.555 + (6 / 3)
+# $!.numeric-domain + FrameSequence FrameInt
+; 7 / 2
+# 7/2
+```
+Mixed operands follow the ladder
+```
+; 1.408.555 + (2 + (0 - 3))
+# $!.numeric-domain + FrameSequence FrameInt
+; 1.408.555 + (2 * 1.5)
+# $!.numeric-domain + FrameSequence FrameDecimal
+; 7 %% (0 - 3)
+# -2
+```
+Comparison and equality keep their numeric meaning, and `==` sees one integer
+type, so a count and a FrameInt of the same value are `==`
+```
+; 2 = (5 - 3)
+# <>
+; 2 == (5 - 3)
+# <>
+; 2 == 2.0
+# ()
+; (0 - 1).< 0
+# <>
+; 2.<= (5 - 3)
+# <>
+; 2.< 2.5
+# <>

@@ -799,12 +799,12 @@ describe("make_context", () => {
     expect(context.key).toBeInstanceOf(frame.FrameString);
     expect(context.key.toString()).toEqual("“value”");
   });
-  it("return a context with FrameInt for numeric values", () => {
+  it("return a context with FrameCount for numeric values", () => {
     const entries = { "key": "2" };
     const context = make_context(entries);
     expect(context).toBeTruthy();
     expect("key" in context).toBe(true);
-    expect(context.key).toBeInstanceOf(frame.FrameInt);
+    expect(context.key).toBeInstanceOf(frame.FrameCount);
     expect(context.key.toString()).toEqual("2");
   });
   it("keeps non-decimal host strings as strings and normalizes Unicode integers", () => {
@@ -818,7 +818,7 @@ describe("make_context", () => {
 
     expect(context.decimal).toBeInstanceOf(frame.FrameString);
     expect(context.decimal.toString()).toEqual("“1.5”");
-    expect(context.unicode).toBeInstanceOf(frame.FrameInt);
+    expect(context.unicode).toBeInstanceOf(frame.FrameCount);
     expect(context.unicode.toString()).toEqual("١٢٣");
     expect(context.unicode.valueOf()).toEqual(123);
     expect(context.superscript).toBeInstanceOf(frame.FrameString);

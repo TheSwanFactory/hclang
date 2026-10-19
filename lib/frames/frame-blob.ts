@@ -1,4 +1,4 @@
-import { FrameInt } from "./frame-int.ts";
+import { FrameCount } from "./frame-count.ts";
 import type { Frame } from "./frame.ts";
 import { FrameAtom } from "./frame-atom.ts";
 import { NilContext } from "./context.ts";
@@ -60,7 +60,7 @@ export class FrameBlob extends FrameAtom {
     fromSource: (source: string): Frame => {
       const lexeme = `${FrameBlob.BLOB_START}${source}`;
       return /^\d+$/.test(lexeme)
-        ? FrameInt.for(lexeme)
+        ? FrameCount.for(lexeme)
         : new FrameBlob(lexeme);
     },
   };

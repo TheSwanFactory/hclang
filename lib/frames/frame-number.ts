@@ -1,6 +1,10 @@
 import { type Context, NilContext } from "./context.ts";
 import { Frame } from "./frame.ts";
-import { FrameNumeric, type NumericRank } from "./frame-numeric.ts";
+import {
+  FrameNumeric,
+  NUMERIC_RANK,
+  type NumericRank,
+} from "./frame-numeric.ts";
 
 /** Inexact host-number rung, reached only by projection or inexact arithmetic. */
 export class FrameNumber extends FrameNumeric {
@@ -16,7 +20,7 @@ export class FrameNumber extends FrameNumeric {
     return new FrameNumber(value, NilContext, value);
   }
 
-  public readonly rank: NumericRank = 3;
+  public readonly rank: NumericRank = NUMERIC_RANK.number;
   public readonly data: number;
   public readonly spelling: string;
 

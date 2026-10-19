@@ -305,9 +305,16 @@ export class Frame extends MetaFrame {
   public typeEquals(other: Frame): Frame {
     const left = this.referent();
     const right = other.referent();
-    return left.constructor === right.constructor
-      ? left.equals(right)
-      : Frame.nil;
+    return left.sameTypeAs(right) ? left.equals(right) : Frame.nil;
+  }
+
+  /**
+   * Whether `other` has this frame's type, which both `==` and a `~~` type ask.
+   * A type is a class, except where a family declares one type for several
+   * classes, as the integers do for `FrameCount` and `FrameInt`.
+   */
+  public sameTypeAs(other: Frame): boolean {
+    return this.constructor === other.constructor;
   }
 
   /**

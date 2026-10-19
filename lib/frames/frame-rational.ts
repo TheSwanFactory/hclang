@@ -5,6 +5,7 @@ import {
   exactBigIntPower,
   exactPowerWithinLimit,
   FrameNumeric,
+  NUMERIC_RANK,
   type NumericRank,
   projectBigIntRatio,
 } from "./frame-numeric.ts";
@@ -21,6 +22,7 @@ function greatestCommonDivisor(left: bigint, right: bigint): bigint {
 
 /** Reduced exact ratio with a positive denominator. */
 export class FrameRational extends FrameNumeric {
+  /** A whole result collapses to FrameInt, never to a count, whatever its sign. */
   public static create(numerator: bigint, denominator: bigint): Frame {
     if (denominator === 0n) return Frame.error("$!.division-by-zero /");
     const rational = new FrameRational(numerator, denominator);
@@ -29,7 +31,7 @@ export class FrameRational extends FrameNumeric {
       : rational;
   }
 
-  public readonly rank: NumericRank = 2;
+  public readonly rank: NumericRank = NUMERIC_RANK.rational;
   public readonly numerator: bigint;
   public readonly denominator: bigint;
   public readonly spelling: string;

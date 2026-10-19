@@ -5,7 +5,7 @@ import {
   containsResolved,
   Frame,
   FrameArray,
-  FrameInt,
+  FrameCount,
   FrameResource,
   FrameString,
   FrameURI,
@@ -137,7 +137,7 @@ describe("FrameResource", () => {
     it("returns the characters written, not the receiver", () => {
       const write = withRoot("'./out.txt' “hello”").at(0);
 
-      expect(write).toBeInstanceOf(FrameInt);
+      expect(write).toBeInstanceOf(FrameCount);
       expect(write.toString()).toEqual("5");
       expect(write.toString()).not.toEqual("'./out.txt'");
     });
