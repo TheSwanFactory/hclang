@@ -344,8 +344,8 @@ The three operators are a ladder, each strictly stronger than the last, and
 - `equals` (`=`): the same value. Atom families override it, and `FrameArray`
   compares its complete view, visible properties then elements, by `=`.
 - `typeEquals` (`==`): `equals` plus the same class at every node, so the
-  numeric rung counts. The class question is `sameTypeAs`, under which a
-  `FrameCount` and a `FrameInt` are both integers.
+  numeric rung counts. The class is the exact constructor, so a subclass is a
+  type of its own: a `FrameCount` is never `==` a `FrameInt`.
 - `identical` (`===`): the same frame. A frame that `ownsIdentity()`, which is
   every `FrameArray`, compares by reference; anything else falls back to
   `typeEquals`, because the copy contract makes sharing it unobservable.
@@ -460,8 +460,12 @@ digits to it. A count is also what the language answers when it counts: a
 resource write answers the characters written, and `make_context` turns a host's
 digit string into a count.
 
-`==` and `~~` ask `sameTypeAs`, which `FrameInt` widens to every integer, so
-`2 == (5 - 3)` holds while `3 == 3.0` does not.
+A count and a FrameInt are distinct types, as a FrameInt and a FrameDecimal are.
+`=` and ordering compare values across rungs, so `2 = (5 - 3)` holds, while
+`==`, `===`, and `~~` compare exact types: `2 == (5 - 3)` is nil and `~~2` does
+not match `5 - 3`, nor `~~(5 - 3)` a `2`. Subclassing only lets integer
+consumers accept a count; `typeEquals` and `FrameType.match` compare exact
+constructors.
 
 ### Type Matching
 

@@ -249,9 +249,10 @@ inexact. A count is closed under `+`, `*`, `%%`, and a nonnegative integral
 is nonnegative, so `5 - 3` is the integer `2`, and division answers a rational,
 or an integer when it is whole. `%%` accepts counts and integers only, and
 integer juxtaposition performs multiplication or bounded repetition. A count
-prints as the same integer does. Numeric `=` compares values across ranks; `==`
-also asks for the same rung, and counts a count and an integer as one, so
-`2 == (5 - 3)` holds while `3 == 3.0` does not.
+prints as the same integer does. Numeric `=` compares values across ranks, while
+`==`, `===`, and `~~` compare exact types, so a count and an integer are
+distinct: `2 = (5 - 3)` holds, but `2 == (5 - 3)` is nil, as `3 == 3.0` is, and
+`~~2` does not match `5 - 3`.
 
 Explicit `0b`, `0o`, and `0x` forms are blobs, not numeric integers.
 
