@@ -1,7 +1,20 @@
 import { FrameAtom } from "./frame-atom.ts";
 import { Frame } from "./frame.ts";
 
-export type NumericRank = 0 | 1 | 2 | 3;
+/**
+ * The promotion ladder, root first: a rung's rank is its position here. The
+ * dispatch below names rungs only through this table, so a rung inserted below
+ * the root, such as a future `FrameBit`, renumbers this table and nothing else.
+ */
+export const NUMERIC_RANK = {
+  count: 0,
+  int: 1,
+  decimal: 2,
+  rational: 3,
+  number: 4,
+} as const;
+
+export type NumericRank = (typeof NUMERIC_RANK)[keyof typeof NUMERIC_RANK];
 
 type ArithmeticOperator = "+" | "-" | "*" | "/" | "%%" | "**";
 type OrderingOperator = "<" | "<=" | ">" | ">=";
@@ -118,13 +131,16 @@ export abstract class FrameNumeric extends FrameAtom {
     }
     if (right.isZero()) return Frame.error("$!.division-by-zero /");
 
-    const target: NumericRank = this.rank === 3 || right.rank === 1 ||
-        right.rank === 3
-      ? 3
-      : 2;
-    if (target === 3 && this.rank !== 3 && right.rank !== 3) {
-      const projectedLeft = this.promoteTo(3);
-      const projectedRight = right.promoteTo(3);
+    const { decimal, number, rational } = NUMERIC_RANK;
+    // Never below the rational rung: an exact quotient is a ratio, and one
+    // whose denominator reduces to 1 collapses to FrameInt, never to a count.
+    const target: NumericRank =
+      this.rank === number || right.rank === decimal || right.rank === number
+        ? number
+        : rational;
+    if (target === number && this.rank !== number && right.rank !== number) {
+      const projectedLeft = this.promoteTo(number);
+      const projectedRight = right.promoteTo(number);
       const leftValue = Number(projectedLeft.valueOf());
       const rightValue = Number(projectedRight.valueOf());
       if (
@@ -150,12 +166,17 @@ export abstract class FrameNumeric extends FrameAtom {
     return this.promoteTo(target).divideSame(right.promoteTo(target));
   }
 
+  /** Integer rungs only, joined like `+`, so two counts answer a count. */
   public modulo(right: FrameNumeric): Frame {
-    if (this.rank !== 0 || right.rank !== 0) {
+    if (
+      this.rank == null || right.rank == null ||
+      this.rank > NUMERIC_RANK.int || right.rank > NUMERIC_RANK.int
+    ) {
       return this.operationError("%%", right);
     }
     if (right.isZero()) return Frame.error("$!.modulo-by-zero %%");
-    return this.moduloSame(right);
+    const target = Math.max(this.rank, right.rank) as NumericRank;
+    return this.promoteTo(target).moduloSame(right.promoteTo(target));
   }
 
   public power(right: FrameNumeric): Frame {
@@ -165,15 +186,15 @@ export abstract class FrameNumeric extends FrameAtom {
 
     const exponent = right.integralValue();
     if (exponent == null) {
-      const leftNumber = this.promoteTo(3);
-      const rightNumber = right.promoteTo(3);
+      const leftNumber = this.promoteTo(NUMERIC_RANK.number);
+      const rightNumber = right.promoteTo(NUMERIC_RANK.number);
       return leftNumber.powerSame(rightNumber);
     }
     if (exponent < 0n && this.isZero()) {
       return Frame.error("$!.division-by-zero **");
     }
-    if (exponent < 0n && this.rank !== 3) {
-      return this.promoteTo(2).powerIntegral(exponent);
+    if (exponent < 0n && this.rank !== NUMERIC_RANK.number) {
+      return this.promoteTo(NUMERIC_RANK.rational).powerIntegral(exponent);
     }
     return this.powerIntegral(exponent);
   }

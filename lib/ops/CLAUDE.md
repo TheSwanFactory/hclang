@@ -15,6 +15,19 @@ power.
   - Comparison: `<`, `>`, `<=`, `>=`, `==`, `!=`
   - Mathematical functions: `abs`, `min`, `max`, `pow`, etc.
 
+  Each operator defers to `FrameNumeric`, which promotes along the ladder
+  `FrameCount → FrameInt → FrameDecimal → FrameRational → FrameNumber`, so mixed
+  operands answer the higher rung: `2 + (0 - 3)` is a FrameInt and `2 * 1.5` a
+  FrameDecimal. Digit literals are counts. Two counts stay a count under `+`,
+  `*`, `%%`, and a nonnegative integral `**`. Unary minus and `-` answer a
+  FrameInt even when the result is nonnegative, so `5 - 3` is FrameInt `2`. `/`
+  answers a ratio, collapsing to FrameInt (never a count) when whole, so `7 / 2`
+  is `7/2` and `6 / 3` is FrameInt `2`. Division and modulo by zero are
+  `$!.division-by-zero /` and `$!.modulo-by-zero %%`. Ordering and `=` compare
+  values across rungs, while `==`, `===`, and `~~` compare exact types, so
+  `2 = (5 - 3)` holds and `2 == (5 - 3)` is nil. See
+  [`../frames/CLAUDE.md`](../frames/CLAUDE.md#numeric-ladder).
+
 ### Control Flow
 
 - [conditionals.ts](conditionals.ts) - Conditional operations

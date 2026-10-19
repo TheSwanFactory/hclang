@@ -4,6 +4,7 @@ import {
   exactBigIntPower,
   exactPowerWithinLimit,
   FrameNumeric,
+  NUMERIC_RANK,
   type NumericRank,
   projectBigIntRatio,
 } from "./frame-numeric.ts";
@@ -38,7 +39,7 @@ export class FrameDecimal extends FrameNumeric {
     return new FrameDecimal(renderDecimal(numerator, scale));
   }
 
-  public readonly rank: NumericRank = 1;
+  public readonly rank: NumericRank = NUMERIC_RANK.decimal;
   public readonly numerator: bigint;
   public readonly scale: number;
   public readonly spelling: string;

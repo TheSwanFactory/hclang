@@ -70,17 +70,17 @@ Composition refuses, including same-unit
 ; 9.8.m.s-1 + 1.0.m.s-1
 # $!.numeric-domain + FrameTypedNumber FrameTypedNumber
 ; 9.8.m + 1
-# $!.numeric-domain + FrameTypedNumber FrameInt
+# $!.numeric-domain + FrameTypedNumber FrameCount
 ; 1 + 9.8.m
-# $!.numeric-domain + FrameInt FrameTypedNumber
+# $!.numeric-domain + FrameCount FrameTypedNumber
 ; 9.8.m 2
-# $!.numeric-domain * FrameTypedNumber FrameInt
+# $!.numeric-domain * FrameTypedNumber FrameCount
 ; 9.8.m / 2
-# $!.numeric-domain / FrameTypedNumber FrameInt
+# $!.numeric-domain / FrameTypedNumber FrameCount
 ; 9.8.m %% 2
-# $!.numeric-domain %% FrameTypedNumber FrameInt
+# $!.numeric-domain %% FrameTypedNumber FrameCount
 ; 9.8.m ** 2
-# $!.numeric-domain ** FrameTypedNumber FrameInt
+# $!.numeric-domain ** FrameTypedNumber FrameCount
 ; 9.8.m.< 10.2.m
 # $!.numeric-domain < FrameTypedNumber FrameTypedNumber
 ; 9.8.m“Hi”
@@ -93,7 +93,7 @@ Boundaries that do not move
 ; 9.8.5
 # 9.8.5
 ; 100.kg
-# $!.name-missing “$:FrameInt...
+# $!.name-missing “$:FrameCount...
 ; (1 / 3).m
 # $!.name-missing “$:FrameRational...
 ; (1 / 2.0).m

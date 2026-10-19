@@ -22,7 +22,7 @@
  * @module
  */
 import { Frame } from "./frame.ts";
-import { FrameInt } from "./frame-int.ts";
+import { FrameCount } from "./frame-count.ts";
 import { FrameString } from "./frame-string.ts";
 import { FrameURI } from "./frame-uri.ts";
 import { hasCharacterContent } from "./frame-text.ts";
@@ -133,13 +133,13 @@ export class FrameResource extends FrameURI implements ResourceBinding {
     if (placement.kind === "scheme") {
       const written = placement.handler.write(placement.parts, content);
       return written.ok
-        ? FrameInt.for(written.count.toString())
+        ? FrameCount.for(written.count.toString())
         : this.storeRefusal(written.reason);
     }
 
     const written = this.store.write(placement.path, content);
     return written.ok
-      ? FrameInt.for(written.content.length.toString())
+      ? FrameCount.for(written.content.length.toString())
       : this.storeRefusal(written.reason);
   }
 

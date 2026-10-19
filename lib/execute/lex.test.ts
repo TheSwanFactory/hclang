@@ -6,6 +6,7 @@ import {
   FrameArg,
   FrameArray,
   FrameBlob,
+  FrameCount,
   FrameDateTime,
   FrameDuration,
   FrameExpr,
@@ -397,7 +398,7 @@ describe("Lex", () => {
       const atoms = lexAtoms(`${source} `);
 
       expect(atoms).toHaveLength(1);
-      expect(atoms[0]).toBeInstanceOf(FrameInt);
+      expect(atoms[0]).toBeInstanceOf(FrameCount);
       expect(atoms[0].toString()).toEqual(source);
     }
   });

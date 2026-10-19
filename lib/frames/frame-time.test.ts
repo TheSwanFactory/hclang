@@ -170,13 +170,13 @@ describe("FrameTime", () => {
 
     it("refuses an instant scaled, and a duration displaced by a number", () => {
       expect(rendered("%2026-08-21% * 2")).toEqual(
-        "$!.numeric-domain * FrameDateTime FrameInt",
+        "$!.numeric-domain * FrameDateTime FrameCount",
       );
       expect(rendered("%PT1H% + 1")).toEqual(
-        "$!.numeric-domain + FrameDuration FrameInt",
+        "$!.numeric-domain + FrameDuration FrameCount",
       );
       expect(rendered("1 + %PT1H%")).toEqual(
-        "$!.numeric-domain + FrameInt FrameDuration",
+        "$!.numeric-domain + FrameCount FrameDuration",
       );
       expect(rendered("%PT1H% - %2026-08-21%")).toEqual(
         "$!.numeric-domain - FrameDuration FrameDateTime",
@@ -188,13 +188,13 @@ describe("FrameTime", () => {
         "$!.numeric-domain %% FrameDuration FrameDuration",
       );
       expect(rendered("%PT1H% ** 2")).toEqual(
-        "$!.numeric-domain ** FrameDuration FrameInt",
+        "$!.numeric-domain ** FrameDuration FrameCount",
       );
     });
 
     it("scales exactly, refusing rather than rounding into place", () => {
       expect(rendered("%PT1S% / 3")).toEqual(
-        "$!.time-inexact / FrameDuration FrameInt",
+        "$!.time-inexact / FrameDuration FrameCount",
       );
       expect(rendered("%PT1H% / 0")).toEqual("$!.division-by-zero /");
     });

@@ -210,12 +210,12 @@ rather than a swallowed remainder.
 
 ### Numeric
 
-Decimal-digit source forms climb a forward-only ladder. A single component is an
-exact, arbitrary-precision integer (`0`, `123`); one numeric property is an
-exact scaled decimal (`0.5`, `123.456`); further numeric properties form an
-inert sequence (`1.408.055.1212`) that preserves every segment and leading zero.
-Sequences support structural `=` only and reject arithmetic, ordering, signs,
-and repetition.
+Decimal-digit source forms climb a forward-only ladder. A single component is a
+count, an exact, arbitrary-precision nonnegative integer (`0`, `123`); one
+numeric property is an exact scaled decimal (`0.5`, `123.456`); further numeric
+properties form an inert sequence (`1.408.055.1212`) that preserves every
+segment and leading zero. Sequences support structural `=` only and reject
+arithmetic, ordering, signs, and repetition.
 
 An alphabetic property on a decimal is a typed number (`9.8.m`, `0.10.USD`)
 instead: an exact magnitude carrying an opaque unit spelling. It renders as
@@ -243,10 +243,16 @@ separate literal families. Dividing by an integer or rational stays exact, so
 `0.5`. Integral powers stay exact, while fractional powers are inexact.
 
 Unary `+` and `-` apply to numeric values. Binary `+`, `-`, and `*` promote to
-the highest numeric rank, `%%` accepts integers only, and integer juxtaposition
-performs multiplication or bounded repetition. Numeric `=` compares values
-across ranks; `==` and `===` retain their data-plane and metadata-plane
-meanings.
+the highest numeric rank along the ladder count, integer, decimal, rational,
+inexact. A count is closed under `+`, `*`, `%%`, and a nonnegative integral
+`**`, but unary `-` and binary `-` answer a signed integer even when the result
+is nonnegative, so `5 - 3` is the integer `2`, and division answers a rational,
+or an integer when it is whole. `%%` accepts counts and integers only, and
+integer juxtaposition performs multiplication or bounded repetition. A count
+prints as the same integer does. Numeric `=` compares values across ranks, while
+`==`, `===`, and `~~` compare exact types, so a count and an integer are
+distinct: `2 = (5 - 3)` holds, but `2 == (5 - 3)` is nil, as `3 == 3.0` is, and
+`~~2` does not match `5 - 3`.
 
 Explicit `0b`, `0o`, and `0x` forms are blobs, not numeric integers.
 

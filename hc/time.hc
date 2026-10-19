@@ -83,11 +83,11 @@ The fourth row is a type error, and it is a value like any other refusal
 ; %2026-08-21T00:00:00Z% + %2026-08-21T00:00:00Z%
 # $!.numeric-domain + FrameDateTime FrameDateTime
 ; %2026-08-21% * 2
-# $!.numeric-domain * FrameDateTime FrameInt
+# $!.numeric-domain * FrameDateTime FrameCount
 ; %PT1H% + 1
-# $!.numeric-domain + FrameDuration FrameInt
+# $!.numeric-domain + FrameDuration FrameCount
 ; 1 + %PT1H%
-# $!.numeric-domain + FrameInt FrameDuration
+# $!.numeric-domain + FrameCount FrameDuration
 ```
 Division follows the same table: an interval over a scalar is an interval, and an
 interval over an interval is the plain number relating them
@@ -105,7 +105,7 @@ refused rather than rounded into place
 ; %PT1H% * 1.5
 # %PT1H30M%
 ; %PT1S% / 3
-# $!.time-inexact / FrameDuration FrameInt
+# $!.time-inexact / FrameDuration FrameCount
 ; (%PT1S% * 1000000000) / 1000000000
 # %PT1S%
 ```

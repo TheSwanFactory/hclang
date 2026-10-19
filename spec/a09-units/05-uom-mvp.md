@@ -28,6 +28,10 @@ receiver already produces.
 9.8.m + 1   => $!.numeric-domain + FrameTypedNumber FrameInt
 ```
 
+Since v0.21.0 nonnegative integer literals are `FrameCount`, so the last line
+now names `FrameCount` where it shows `FrameInt`; see
+[a08 §12](../a08-rationalizing-numbers.md#12-amendment-counts-407).
+
 ## Decisions
 
 | Question                  | Ruling                                                                                               |

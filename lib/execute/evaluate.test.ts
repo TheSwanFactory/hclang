@@ -203,7 +203,7 @@ describe("evaluate", () => {
         const decimal = evaluate("0.5");
 
         expect(zero.toString()).toEqual("[0]");
-        expect(zero.at(0)).toBeInstanceOf(frame.FrameInt);
+        expect(zero.at(0)).toBeInstanceOf(frame.FrameCount);
         expect(evaluate("1 + 0").toString()).toEqual("[1]");
         expect(decimal.toString()).toEqual("[0.5]");
         expect(decimal.at(0)).toBeInstanceOf(frame.FrameDecimal);
@@ -253,7 +253,7 @@ describe("evaluate", () => {
           "[$!.numeric-domain < FrameTypedNumber FrameTypedNumber]",
         );
         expect(evaluate("9.8.5.< 2").toString()).toEqual(
-          "[$!.numeric-domain < FrameSequence FrameInt]",
+          "[$!.numeric-domain < FrameSequence FrameCount]",
         );
         expect(evaluate("3.%%2").toString()).toEqual("[1]");
       });
