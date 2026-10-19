@@ -4,19 +4,19 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
-## Unreleased
+## v0.20.3 2026-10-19
 
 - **Breaking: the package ships `hc/`.** Every `.hc` file in the top-level `hc/`
   folder, the testdocs and Figures alike, is bundled with the package and served
   read-only at the same path, so a session includes one with `<-`:
   `Figures <- './hc/figures.hc'`. `'./modules/figures.hc'` is gone, with no
-  alias. The testdocs moved there from `cli/hc/`.
+  alias. The testdocs moved there from `cli/hc/` (#405).
 - **Breaking: importing a testdoc skips its examples.** `<-` drops every line
   that begins with a semicolon and a space outside prose, an example line, so a
   testdoc imports its code alone: an example that fails on purpose no longer
   fails the import, and an example's names are no longer bound. Figures now
   declares `A`, `B`, `Z` and `U` in code; its example family (`C` through `G`)
-  is no longer importable.
+  is no longer importable (#405).
 
 ## v0.20.2 2026-10-17
 
