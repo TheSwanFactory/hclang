@@ -13,9 +13,9 @@ CLI's root is a fresh temporary directory, and the harness lays the bundled
 files over it read-only, so this import reads the bytes of `hc/figures.hc`,
 which every host compiles in, so the same import works in the compiled binary,
 the npm package, and the browser playground. That file is a testdoc too: its
-claims count when it is run directly, and none of them count here. Importing does not yet skip its
-examples, which run as ordinary forms and leave their names in the namespace, so
-the claims below use only the module's reusable vocabulary
+claims count when it is run directly, and none of them count here. Importing
+skips its examples, the lines that begin `; ` outside prose, so only its code
+runs and the namespace holds only what the module declares
 ```
 ; Figures <- './hc/figures.hc';
 ```
@@ -29,7 +29,7 @@ marks only the immediate children
 # <>
 ; ((Figures.Figure [Figures.B]).children .0) === Figures.B
 # <>
-; (“E is ” Figures.E) = “E is [[], [[]]]”
+; (“E is ” (Figures.Figure [Figures.A, Figures.B])) = “E is [[], [[]]]”
 # <>
 ```
 Sameness of form is `=` and sameness of the constructed Figure is `===`, so `B`

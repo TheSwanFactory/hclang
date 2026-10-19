@@ -11,6 +11,12 @@
   read-only at the same path, so a session includes one with `<-`:
   `Figures <- './hc/figures.hc'`. `'./modules/figures.hc'` is gone, with no
   alias. The testdocs moved there from `cli/hc/`.
+- **Breaking: importing a testdoc skips its examples.** `<-` drops every line
+  that begins with a semicolon and a space outside prose, an example line, so a
+  testdoc imports its code alone: an example that fails on purpose no longer
+  fails the import, and an example's names are no longer bound. Figures now
+  declares `A`, `B`, `Z` and `U` in code; its example family (`C` through `G`)
+  is no longer importable.
 
 ## v0.20.2 2026-10-17
 
