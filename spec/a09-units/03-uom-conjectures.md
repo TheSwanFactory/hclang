@@ -40,6 +40,10 @@ Established by reading `lib/frames/` and confirmed by evaluation:
   (1 / 2) %% 2       => $!.numeric-domain %% FrameRational FrameInt
   (1 / 2.0) %% 2     => $!.numeric-domain %% FrameNumber FrameInt
   ```
+
+  Since v0.21.0 nonnegative integer literals are `FrameCount`, so these now name
+  `FrameCount` where they show `FrameInt`; see
+  [a08 §12](../a08-rationalizing-numbers.md#12-amendment-counts-407).
 - **The inexact door is one-way, and nothing reopens it.** Searching `lib/` for
   `exactify`, `rationalize`, `toRational`, and `fromNumber` finds nothing.
   `promoteOne` moves upward only, which ND-004 and T-1 made a principle rather

@@ -63,6 +63,10 @@ varies):
 | `9.8.<10`  | `<>`                                         | and do so on decimals                        |
 | `1.5.%%2`  | `$!.numeric-domain %% FrameDecimal FrameInt` | lookup succeeded; only the operation refused |
 
+Since v0.21.0 nonnegative integer literals are `FrameCount`, so these rows now
+name `FrameCount` where they show `FrameInt`; see
+[a08 §12](../a08-rationalizing-numbers.md#12-amendment-counts-407).
+
 Two further facts from the same run:
 
 - **Scope is not consulted.** With `.m 5;` bound in file scope, `9.8.m` still
