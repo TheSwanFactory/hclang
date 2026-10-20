@@ -21,7 +21,7 @@
     "test": "deno fmt && deno lint --fix && deno task test:all",
     "test:cli": "cd cli && deno task test",
     "test:doc": "cd cli && deno task test:doc",
-    "test:lib": "deno test lib",
+    "test:lib": "deno test --allow-env --allow-read lib",
     "test:maml": "deno test maml",
     "test:npm": "deno task build:npm && deno run -A scripts/test-npm.ts",
     "test:scripts": "deno test scripts",
