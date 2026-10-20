@@ -8,10 +8,10 @@ import { beforeAll, describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 
 /**
  * The bases whose own imports reach a class that extends them, so no import
- * order lets them load first: `Frame extends MetaFrame`, and the imports of
- * frame-list.ts and frame-expr.ts reach `FrameArray`, `FrameGroup` and
- * `FrameLazy` first. Commit f9ff1a8 fixed the other cycles and explains why
- * these three need late binding. Remove an entry once it loads first.
+ * order lets them load first: meta-frame.ts reaches `Frame`, frame-list.ts
+ * reaches `FrameArray`, and frame-expr.ts reaches `FrameLazy`. Commit f9ff1a8
+ * fixed every other cycle; these need a base that does not import its
+ * subclasses while it loads. Remove an entry once it loads first.
  */
 const ALLOWED_TO_FAIL = [
   "frames/frame-expr.ts",
@@ -24,10 +24,10 @@ const CONCURRENCY = 8;
 const TIMEOUT_MS = 10_000;
 const LIB = new URL("./", import.meta.url);
 /**
- * The Worker's whole program: import the module URL it is sent, then report.
- * The URL arrives as a message, not as a literal, because Deno type-checks a
- * Worker's static graph, a literal `import()` included, and that check would
- * take seconds per module. The modules are type-checked by the other tests.
+ * Each Worker's whole program: import the module URL it is sent, then report.
+ * The URL comes as a message, not as a literal, because Deno type-checks a
+ * Worker's static graph, a literal `import()` included: checking every
+ * module's graph took about 13 s, and loading them all takes under 0.5 s.
  */
 const BOOTSTRAP = `data:text/javascript,${
   encodeURIComponent(`self.onmessage = (event) =>
@@ -120,8 +120,9 @@ describe("importing a lib/ module first", () => {
       )
       .map(([module, error]) => `${module}: ${error}`)
       .sort();
-    expect(failing, `${failing.length} lib/ modules fail to load first`)
-      .toEqual([]);
+    const summary =
+      `${failing.length} of ${results.size} lib/ modules fail to load first`;
+    expect(failing, summary).toEqual([]);
   });
   it("still fails for every module in ALLOWED_TO_FAIL", () => {
     const stale = ALLOWED_TO_FAIL
