@@ -1,3 +1,6 @@
+// Load the FrameList cycle from FrameLazy, where it closes, so FrameList and
+// FrameExpr exist before any subclass, whichever module is imported first.
+import "./frame-lazy.ts";
 import { Frame } from "./frame.ts";
 import { FrameList } from "./frame-list.ts";
 import { NilContext } from "./context.ts";

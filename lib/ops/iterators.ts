@@ -1,4 +1,7 @@
-import { Frame, FrameArray, FrameSymbol } from "../frames.ts";
+// Direct, not ../frames.ts, whose ../ops.ts needs this module loaded first.
+import { Frame } from "../frames/frame.ts";
+import { FrameArray } from "../frames/frame-array.ts";
+import { FrameSymbol } from "../frames/frame-symbol.ts";
 import type { ReceiverState } from "../frames/bound-method.ts";
 
 /**
