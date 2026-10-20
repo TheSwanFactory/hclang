@@ -20,6 +20,7 @@ for code and data.
   - Effect typing: `CONST`, `variable`, `mutable_`, `method_`
   - Access modifiers: `public`, `_protected`, `__private`
   - Operators: `+`, `-`, `*`, `/`, `=`, `<`, `>`, `~`, `!`, `?`, `:`, `|`, `&`
+  - Size operators: `.#` and `.##`, highlighted as names
   - Frame delimiters: `{}` (lazy), `[]` (array), `()` (expr)
 
 - **Smart Bracket Matching** for all frame types

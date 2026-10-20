@@ -58,6 +58,11 @@
           "comment": "anonymous argument"
         },
         {
+          "name": "entity.name.function.setter.hclang",
+          "match": "(?<!\\.)\\.##?",
+          "comment": "Size operators .# and .## (#411), scoped as the dotted names they lex as. The lexer joins # to a name only to spell exactly .# or .##, so .### is .## before a comment and .foo#bar# is .foo before one; the lookbehind leaves ..# as the .. ladder before one. This precedes the standalone-dot rule, which matches the same dot and would leave the # to open a comment"
+        },
+        {
           "name": "variable.language.this.hclang",
           "match": "(?<!\\.)\\b\\.(?!\\w)",
           "comment": "this context (standalone dot)"

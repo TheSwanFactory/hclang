@@ -248,3 +248,53 @@ describe("grammar and lexer agree on every dollar spelling", () => {
     });
   }
 });
+
+const SIZE_SCOPE = "entity.name.function.setter.hclang";
+const THIS_SCOPE = "variable.language.this.hclang";
+const sizeRule = ruleFor(SIZE_SCOPE);
+
+/** Every span the size-operator rule claims, left to right. */
+const sizeMatches = (source: string): AnchorMatch[] =>
+  [...source.matchAll(new RegExp(sizeRule.pattern, "g"))].map((match) => ({
+    scope: SIZE_SCOPE,
+    text: match[0],
+    index: match.index,
+  }));
+
+const size = (text: string, index: number): AnchorMatch => ({
+  scope: SIZE_SCOPE,
+  text,
+  index,
+});
+
+// `#` joins a dotted name only to spell exactly `.#` or `.##` (#411), so these
+// mirror the size-operator cases in lib/execute/lex.test.ts. They check the
+// rule's own matches, so they cannot show that a comment opening first, as in
+// `x #.## …#`, still wins by TextMate's earliest-match order.
+describe("VS Code size-operator grammar (#411)", () => {
+  it("highlights .# and .## as the dotted names they lex as", () => {
+    expect(sizeMatches("x.#")).toEqual([size(".#", 1)]);
+    expect(sizeMatches("x.##")).toEqual([size(".##", 1)]);
+    expect(sizeMatches("5.#")).toEqual([size(".#", 1)]);
+    expect(sizeMatches("x.#a")).toEqual([size(".#", 1)]);
+    expect(sizeMatches("x.##.#")).toEqual([size(".##", 1), size(".#", 4)]);
+    // Nothing extends `.##`, so a third `#` is left to open a comment.
+    expect(sizeMatches("x.###c#")).toEqual([size(".##", 1)]);
+  });
+
+  it("leaves every other # to the comment rule", () => {
+    for (const source of ["#c#", ".foo#bar#", "..#"]) {
+      expect(sizeMatches(source)).toEqual([]);
+    }
+  });
+
+  // The standalone-dot rule matches the dot of `x.#` too, and TextMate breaks
+  // a tie at one start index by rule order.
+  it("precedes the standalone-dot rule", () => {
+    const thisRule = new RegExp(ruleFor(THIS_SCOPE).pattern);
+    const order = specialValues.map((rule) => rule.name);
+
+    expect(thisRule.exec("x.#")?.index).toBe(1);
+    expect(order.indexOf(SIZE_SCOPE)).toBeLessThan(order.indexOf(THIS_SCOPE));
+  });
+});
