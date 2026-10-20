@@ -251,6 +251,19 @@ Reading a property or an index is application, and is spelled as application
 ; [.a 1] & {_}
 # []
 ```
+`.#` and `.##` count the elements too, the immediate ones and the leaves below
+them, so neither counts a property. A count is its own size, and any other value
+has none (#411)
+```
+; [.meta 1; 2, 3] .#
+# 2
+; [.meta [1, 2]; [3, []], 4] .##
+# 2
+; 5.#
+# 5
+; “abc”.#
+# ()
+```
 **Decision.** Canonical rendering puts the properties first, then the elements.
 This reverses the spelling this file carried before. It makes print order agree
 with the order the doubled operators iterate, and it leaves canonical output

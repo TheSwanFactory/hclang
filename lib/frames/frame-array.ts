@@ -1,6 +1,7 @@
 import { type DeclaredApplication, Frame } from "./frame.ts";
 import { BoundMethod } from "./bound-method.ts";
 import { methodEffect } from "./effect-marker.ts";
+import { FrameCount } from "./frame-count.ts";
 import { FrameExpr } from "./frame-expr.ts";
 import type { FrameLazy } from "./frame-lazy.ts";
 import { FrameList } from "./frame-list.ts";
@@ -157,6 +158,41 @@ export class FrameArray extends FrameList {
       return this.at(Number(key));
     }
     return super.lookup_here(key, origin);
+  }
+
+  /**
+   * `.#` counts this aggregate's elements and `.##` the leaves below them
+   * (#411), so neither counts a property.
+   */
+  public override sizeFor(key: string): Frame {
+    if (key === Frame.kCOUNT) {
+      return new FrameCount(BigInt(this.elements().length));
+    }
+    const leaves = this.leafCount(new Set());
+    return leaves === undefined
+      ? Frame.error(`$!.cyclic-aggregate .${key}`)
+      : new FrameCount(leaves);
+  }
+
+  /**
+   * The leaves below this aggregate: each element that is not itself an
+   * aggregate counts once, at any depth, so an empty aggregate adds none.
+   * `path` holds only the aggregates from the root down to this one, so a
+   * branch reached twice counts twice, and one that contains itself answers
+   * undefined.
+   */
+  private leafCount(path: Set<Frame>): bigint | undefined {
+    if (path.has(this)) return undefined;
+    path.add(this);
+    let leaves = 0n;
+    for (const element of this.elements()) {
+      const value = element.referent();
+      const below = value instanceof FrameArray ? value.leafCount(path) : 1n;
+      if (below === undefined) return undefined;
+      leaves += below;
+    }
+    path.delete(this);
+    return leaves;
   }
 
   /**

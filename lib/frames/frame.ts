@@ -71,6 +71,14 @@ export class Frame extends MetaFrame {
    */
   public static readonly kEND = "$$";
   /**
+   * kCOUNT is the size operator `.#`, an aggregate's element count (#411).
+   */
+  public static readonly kCOUNT = "#";
+  /**
+   * kLEAVES is the size operator `.##`, an aggregate's leaf count (#411).
+   */
+  public static readonly kLEAVES = "##";
+  /**
    * BEGIN_EXPR is the symbol for the beginning of an expression.
    */
   public static readonly BEGIN_EXPR = "(";
@@ -328,6 +336,14 @@ export class Frame extends MetaFrame {
   /** The frame a reference reaches. A handle answers its target. */
   public referent(): Frame {
     return this;
+  }
+
+  /**
+   * What this frame answers for a size operator, `.#` or `.##` (#411). Only an
+   * aggregate counts and a count is its own size, so anything else is nil.
+   */
+  public sizeFor(_key: string): Frame {
+    return Frame.nil;
   }
 
   /**

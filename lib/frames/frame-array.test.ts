@@ -66,6 +66,69 @@ describe("FrameArray", () => {
     });
   });
 
+  describe("size operators (#411)", () => {
+    /** The answer of the last statement in a source sequence. */
+    const last = (source: string): Frame =>
+      evaluate(source).at(-1).asArray().at(-1)!;
+    const names = ".a 1; .b 2; .c 3; ";
+
+    it("counts elements with .# and leaves with .##, as counts", () => {
+      const table = [
+        ["[a, b, c]", "3", "3"],
+        ["[[a, b], [c]]", "2", "3"],
+        ["[]", "0", "0"],
+        ["[[], [a]]", "2", "1"],
+      ];
+      for (const [aggregate, count, leaves] of table) {
+        const immediate = last(`${names}${aggregate}.#`);
+        const recursive = last(`${names}${aggregate}.##`);
+
+        expect(immediate.className()).toEqual("FrameCount");
+        expect(immediate.toString()).toEqual(count);
+        expect(recursive.className()).toEqual("FrameCount");
+        expect(recursive.toString()).toEqual(leaves);
+      }
+    });
+
+    it("counts elements, never properties", () => {
+      expect(last("[.meta 1; 2, 3] .#").toString()).toEqual("2");
+      expect(last("[.meta [1, 2]; [3]] .##").toString()).toEqual("1");
+    });
+
+    it("counts every other element as one leaf, a count included", () => {
+      expect(last("[5, 6].##").toString()).toEqual("2");
+      // A group has no size of its own, so `.##` does not enter it either.
+      expect(last("[“ab”, (1, 2), [12345]].##").toString()).toEqual("3");
+    });
+
+    it("counts a shared branch at every occurrence", () => {
+      const shared = `${names}.x [a, b]; `;
+
+      expect(last(`${shared}x.#`).toString()).toEqual("2");
+      expect(last(`${shared}[x, x].##`).toString()).toEqual("4");
+      expect(last(`${shared}[x, [x]].##`).toString()).toEqual("4");
+    });
+
+    it("refuses .## on an aggregate that contains itself, while .# counts", () => {
+      // Built directly, since the cycle is the subject and not how one arises.
+      const direct = new FrameArray([a_frame]);
+      direct.collect(direct);
+      const indirect = new FrameArray([]);
+      indirect.collect(new FrameArray([indirect]));
+
+      for (const xs of [direct, indirect]) {
+        const refusal = evaluate("$$.xs.##", { xs }).at(0);
+
+        expect(refusal.is.error).toBe(true);
+        expect(refusal.toString()).toEqual("$!.cyclic-aggregate .##");
+      }
+      expect(evaluate("$$.xs.#", { xs: direct }).at(0).toString())
+        .toEqual("2");
+      expect(evaluate("$$.xs.#", { xs: indirect }).at(0).toString())
+        .toEqual("1");
+    });
+  });
+
   describe("a key the aggregate already assigns", () => {
     it("answers the refusal, because nothing well-formed was built", () => {
       expect(evaluate("[.0 9; 1, 2]").at(0).toString())

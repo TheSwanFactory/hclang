@@ -54,6 +54,11 @@ export class FrameCount extends FrameInt {
     }
   }
 
+  /** A count is its own size, so `.#` and `.##` both answer it (#411). */
+  public override sizeFor(_key: string): Frame {
+    return this;
+  }
+
   protected override promoteOne(): FrameNumeric {
     return new FrameInt(this.data);
   }
