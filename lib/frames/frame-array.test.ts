@@ -97,8 +97,25 @@ describe("FrameArray", () => {
 
     it("counts every other element as one leaf, a count included", () => {
       expect(last("[5, 6].##").toString()).toEqual("2");
-      // A group has no size of its own, so `.##` does not enter it either.
-      expect(last("[“ab”, (1, 2), [12345]].##").toString()).toEqual("3");
+      expect(last("[“ab”, 12345, ()].##").toString()).toEqual("3");
+    });
+
+    it("enters every nested list, a group or a schema as well as an array", () => {
+      // Every aggregate is a list, so `.##` walks a group exactly as it walks
+      // an array, and the one inside it.
+      expect(last("[“ab”, (1, 2), [12345]].##").toString()).toEqual("4");
+      expect(last("[1, (2, [3, (4, 5)])].##").toString()).toEqual("5");
+      expect(last("[<1, 2>, 3].##").toString()).toEqual("3");
+      // `.#` still counts each of them as one element.
+      expect(last("[“ab”, (1, 2), [12345]].#").toString()).toEqual("3");
+    });
+
+    it("enters a closure, whose elements are the terms of its body", () => {
+      // A closure is a list too. Applying one calls it, so it has no size as a
+      // receiver, but inside an aggregate `.##` counts its body's terms.
+      expect(last("[{}, 1].##").toString()).toEqual("1");
+      expect(last("[{_ + 1}].##").toString()).toEqual("3");
+      expect(last("[{_ + 1}].#").toString()).toEqual("1");
     });
 
     it("counts a shared branch at every occurrence", () => {

@@ -152,7 +152,7 @@ describe("FrameSymbol", () => {
 
   describe("size operators (#411)", () => {
     it("answers nil on anything but an aggregate or a count", () => {
-      for (const receiver of ["“abc”", "`abc`", "'./x.txt'", "(1, 2)"]) {
+      for (const receiver of ["“abc”", "`abc`", "'./x.txt'"]) {
         for (const operator of [".#", ".##"]) {
           expect(evaluate(`${receiver}${operator}`).toString()).toEqual("[]");
         }
@@ -161,9 +161,30 @@ describe("FrameSymbol", () => {
 
     it("answers for a named value, never for the scope it was read in", () => {
       // A named atom looks other names up through that scope, which here is
-      // an aggregate under construction with elements of its own.
+      // an aggregate under construction with elements of its own: an array,
+      // a group, and the file scope itself.
       expect(evaluate("[1, 2, .s “abc”; s.#, s.##]").at(0).toString())
         .toEqual("[.s “abc”; 1, 2, (), ()]");
+      expect(evaluate("(1, 2, .s “abc”; s.#, s.##)").at(0).toString())
+        .toEqual("(.s “abc”; 1, 2, (), ())");
+      expect(evaluate(".s “abc”; s.#").toString())
+        .toEqual("[.s “abc”; ((.s “abc”); ())]");
+    });
+
+    it("stays an address with no receiver before it", () => {
+      // No enclosing aggregate counts in a missing receiver's place: not the
+      // file scope, a group, an array, or a closure's argument.
+      const table = [
+        [".#", "[.#]"],
+        ["(.#)", "[.#]"],
+        ["1; .##", "[((1); .##)]"],
+        ["(1, .#)", "[(1, .#)]"],
+        ["[1, (2, .##)]", "[[1, (2, .##)]]"],
+        ["{.#} (1, 2)", "[.#]"],
+      ];
+      for (const [source, printed] of table) {
+        expect(evaluate(source).toString()).toEqual(printed);
+      }
     });
 
     it("leaves the lexer's `#` a lookup, since only an address is one", () => {

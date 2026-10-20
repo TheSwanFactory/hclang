@@ -10,6 +10,7 @@ import {
   FrameString,
   FrameSymbol,
 } from "../frames.ts";
+import { evaluate } from "../execute/evaluate.ts";
 
 describe("FrameExpr", () => {
   const frame = new Frame();
@@ -102,5 +103,16 @@ describe("FrameExpr", () => {
 
       expect(frame_expr.call(turtle).toString()).toEqual("“slow turtle”");
     });
+  });
+
+  it("evaluates when a size operator is applied, rather than counting (#411)", () => {
+    // Calling an expression evaluates it, so the operator is only the
+    // argument: “a” “b” joins whatever it is called with.
+    const frame_expr = new FrameExpr([frame_string, new FrameString("!")]);
+
+    expect(frame_expr.call(FrameSymbol.address("#")).toString())
+      .toEqual("“Hello!”");
+    // An expression codified from source is called the same way.
+    expect(evaluate("({} [5, 7]).#").at(0).toString()).toEqual("35");
   });
 });

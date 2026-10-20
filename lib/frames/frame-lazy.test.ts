@@ -3,6 +3,7 @@ import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 
 import * as frame from "../frames.ts";
 import type { ReceiverState } from "./bound-method.ts";
+import { evaluate } from "../execute/evaluate.ts";
 
 describe("FrameLazy", () => {
   const slow = new frame.FrameString("slow");
@@ -185,6 +186,22 @@ describe("FrameLazy", () => {
       );
 
       expect(result.toString()).toEqual("“outer receiver”");
+    });
+  });
+
+  describe("size operators (#411)", () => {
+    /** The answer of the last statement in a source sequence. */
+    const last = (source: string): frame.Frame =>
+      evaluate(source).at(-1).asArray().at(-1)!;
+
+    it("calls a closure with the operator rather than counting it", () => {
+      // Applying a closure calls it, so the operator is only its argument and
+      // the answer is whatever the body makes of that.
+      expect(last("{_}.#").toString()).toEqual(".#");
+      expect(last("{_}.##").toString()).toEqual(".##");
+      expect(last("{5, 7}.#").toString()).toEqual("35");
+      expect(last(".f {_}; f.#").toString()).toEqual(".#");
+      expect(last(".o [.m {_}]; o.m.#").toString()).toEqual(".#");
     });
   });
 });
