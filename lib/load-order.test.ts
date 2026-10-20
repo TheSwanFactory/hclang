@@ -12,6 +12,10 @@ import { beforeAll, describe, it } from "jsr:@std/testing@^1.0.10/bdd";
  * reaches `FrameArray`, and frame-expr.ts reaches `FrameLazy`. Commit f9ff1a8
  * fixed every other cycle; these need a base that does not import its
  * subclasses while it loads. Remove an entry once it loads first.
+ *
+ * Each base's cycle chain, and the late binding that would break it, is in
+ * "Remaining failures and why" of the local (gitignored) code report
+ * .agents/tasks/size-operators-411-2026-10-19/import-order/code-report.md
  */
 const ALLOWED_TO_FAIL = [
   "frames/frame-expr.ts",
