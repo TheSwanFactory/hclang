@@ -1,4 +1,4 @@
-import { Frame } from "./frame.ts";
+import type { Frame } from "./frame.ts";
 
 /**
  * StringMap is a map of strings to strings.
@@ -59,7 +59,9 @@ export function contextString(
   context: Context,
 ): string {
   return Object.entries(context).map(([key, value]) => {
-    if (key === Frame.kOUT) {
+    // `Frame.kOUT`, spelled out so this module imports Frame only as a type:
+    // a value import would evaluate frame.ts, which needs NilContext, first.
+    if (key === ">>") {
       return `.${key} ${value.id};`;
     } else {
       return `.${key} ${value};`;

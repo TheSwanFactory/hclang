@@ -32,6 +32,15 @@ const recognizeName = (symbol: Frame, source = ""): ScanResult => {
   if (source.endsWith("^")) {
     return { disposition: ScanDisposition.CompleteRedispatch };
   }
+  // `#` begins a comment except where it spells a size operator, `.#` or `.##`
+  // (#411), which nothing extends: `.foo#bar` still ends at its `#`, and `.###`
+  // is `.##` before a comment.
+  if ([Frame.kCOUNT, Frame.kLEAVES].includes(source + char)) {
+    return { disposition: ScanDisposition.Consume };
+  }
+  if (source.startsWith(Frame.kCOUNT)) {
+    return { disposition: ScanDisposition.CompleteRedispatch };
+  }
   // `.^` needs no rule of its own: `^` is an operator character, so it is
   // consumed and completed like any other name.
   if (!includes(char)) {

@@ -10,6 +10,7 @@ import {
   FrameSymbol,
   FrameType,
 } from "../frames.ts";
+import { evaluate } from "../execute/evaluate.ts";
 
 describe("FrameSchema", () => {
   const a_frame = new FrameString("a");
@@ -101,5 +102,31 @@ describe("FrameSchema", () => {
     expect(scoped.up).toBe(Frame.missing);
     expect(contexts).toHaveLength(1);
     expect(contexts[0]).toBe(scope);
+  });
+
+  describe("size operators (#411)", () => {
+    /** The answer of the last statement in a source sequence. */
+    const last = (source: string): Frame =>
+      evaluate(source).at(-1).asArray().at(-1)!;
+
+    it("counts a schema's members, as an aggregate's elements", () => {
+      expect(last("<1, 2>.#").className()).toEqual("FrameCount");
+      expect(last("<1, 2>.#").toString()).toEqual("2");
+      expect(last("<1, [2, 3]>.##").toString()).toEqual("3");
+      expect(last(".T <1, 2>; T.#").toString()).toEqual("2");
+    });
+
+    it("counts the source terms a compiled schema keeps", () => {
+      // A structural or bit-layout schema holds the terms it was written as,
+      // unevaluated, so those are what it counts.
+      expect(last("<.a, .b>.#").toString()).toEqual("2");
+      expect(last("<8 @Bit>.#").toString()).toEqual("1");
+      expect(last("<8 @Bit>.##").toString()).toEqual("2");
+    });
+
+    it("leaves `<>` the total type, which answers itself", () => {
+      expect(last("<>.#")).toBe(Frame.all);
+      expect(last("<>.##")).toBe(Frame.all);
+    });
   });
 });

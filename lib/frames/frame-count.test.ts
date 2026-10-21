@@ -296,6 +296,28 @@ describe("FrameCount", () => {
     });
   });
 
+  describe("size operators (#411)", () => {
+    it("is its own size under .# and .##, not its digit length", () => {
+      for (const digits of ["5", "12345"]) {
+        for (const operator of [".#", ".##"]) {
+          for (const source of [digits, `.n ${digits};\nn`]) {
+            const size = evaluate(`${source}${operator}`).at(-1);
+
+            expectClass(size, "FrameCount");
+            expect(size.toString()).toEqual(digits);
+          }
+        }
+      }
+    });
+
+    it("leaves every other numeric rung without a size", () => {
+      for (const source of ["(5 - 3)", "(0 - 5)", "1.5", "(1 / 3)"]) {
+        expect(evaluate(`${source}.#`).toString()).toEqual("[]");
+        expect(evaluate(`${source}.##`).toString()).toEqual("[]");
+      }
+    });
+  });
+
   describe("counts the language answers", () => {
     it("answers a count for the characters a resource write wrote", () => {
       const written = evaluate("'./out.txt' “hello”", {

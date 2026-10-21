@@ -1,4 +1,8 @@
-import { Frame, FrameLazy, FrameLiteral, isFrameMatcher } from "../frames.ts";
+// Direct, not ../frames.ts, whose ../ops.ts needs this module loaded first.
+import { Frame } from "../frames/frame.ts";
+import { FrameLazy } from "../frames/frame-lazy.ts";
+import { FrameLiteral } from "../frames/frame-symbol.ts";
+import { isFrameMatcher } from "../frames/frame-match.ts";
 
 /** Test whether a value belongs to a first-class type or schema. */
 export const HasType = (source: Frame, type: Frame): Frame => {

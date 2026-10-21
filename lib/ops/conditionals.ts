@@ -1,4 +1,5 @@
-import { Frame } from "../frames.ts";
+// Direct, not ../frames.ts, whose ../ops.ts needs this module loaded first.
+import { Frame } from "../frames/frame.ts";
 import type { ReceiverState } from "../frames/bound-method.ts";
 
 export const IfThen = (

@@ -4,6 +4,14 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.21.1 2026-10-19
+
+- **Size operators `.#` and `.##`.** `.#` answers an aggregate's element count
+  and `.##` its leaves at any depth, each a `FrameCount`: `[[a, b], [c]]` is `2`
+  and `3`. Neither counts a property, a count is its own size, any other value
+  answers nil, and `.##` on an aggregate that contains itself is
+  `$!.cyclic-aggregate .##`. `#` still begins a comment everywhere else (#411).
+
 ## v0.21.0 2026-10-19
 
 - **Breaking: nonnegative integer literals are `FrameCount`.** `0`, `1234567890`

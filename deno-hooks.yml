@@ -1,17 +1,24 @@
 hooks:
   pre-commit:
+    # The runner matches each glob against the repo-relative path, and its `*`
+    # stops at a `/`, so `**/` is what reaches nested files; it also matches
+    # zero directories, so root-level files still match.
+
     # Format code with deno fmt
     - id: deno-fmt
       name: deno fmt
       run: deno-fmt
-      glob: "*.{ts,js,json,md}"
+      glob: "**/*.{ts,tsx,js,jsx,json,md}"
+      # The tracked paths in deno.json's fmt.exclude. deno fmt skips them when
+      # given them too, but given only those it fails "No target files found".
+      exclude: "**/{doc/out/**,doc/no_equal.md,doc/shannon/1-shannon.md,hc/apply-tutorial.md}"
       pass_filenames: true
 
     # Lint code with deno lint
     - id: deno-lint
       name: deno lint
       run: deno-lint
-      glob: "*.{ts,js}"
+      glob: "**/*.{ts,tsx,js,jsx}"
       pass_filenames: true
 
     # Fail on an hc/ bundle embed that was not regenerated

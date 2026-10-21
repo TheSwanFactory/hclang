@@ -317,6 +317,15 @@ export class FrameSymbol extends FrameAtom {
   }
 
   public override called_by(context: Frame): Frame {
+    // A size operator answers for the receiver itself rather than looking a
+    // name up, so the scope a value was read from never answers for it (#411).
+    // Only an address is one, since the lexer looks `#` up as the comment.
+    if (
+      this.is.address === true &&
+      (this.data === Frame.kCOUNT || this.data === Frame.kLEAVES)
+    ) {
+      return context.referent().sizeFor(this.data);
+    }
     return this.in([context]);
   }
 

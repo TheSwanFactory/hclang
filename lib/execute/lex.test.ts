@@ -203,6 +203,43 @@ describe("Lex", () => {
     });
   }
 
+  describe("size operators (#411)", () => {
+    for (const name of [".#", ".##"]) {
+      it(`lexes ${name} as one dotted name across every two-chunk split`, () => {
+        const atoms = lexAtoms(`${name} `);
+
+        expect(atoms).toHaveLength(1);
+        expect(atoms[0]).toBeInstanceOf(FrameName);
+        expect(atoms[0].toString()).toEqual(name);
+        for (let split = 1; split < name.length; split++) {
+          expect(
+            lexChunkedAtoms([name.slice(0, split), name.slice(split)]).map(
+              String,
+            ),
+          ).toEqual([name]);
+        }
+      });
+    }
+
+    it("ends a size operator where the next term begins", () => {
+      expect(lexAtoms("x.## ").map(String)).toEqual(["x", ".##"]);
+      // A digit literal ends at its dot, so a count literal reaches `.#`.
+      expect(lexAtoms("5.# ").map(String)).toEqual(["5", ".#"]);
+      expect(lexAtoms("x.#a ").map(String)).toEqual(["x", ".#", "a"]);
+      expect(lexAtoms("x.##.# ").map(String)).toEqual(["x", ".##", ".#"]);
+    });
+
+    it("leaves every other `#` beginning a comment", () => {
+      expect(lexAtoms("x #c# ").map(String)).toEqual(["x"]);
+      expect(lexAtoms("x #.## ").map(String)).toEqual(["x"]);
+      // No name contains `#`, so `.foo#bar` is a name before a comment.
+      expect(lexAtoms(".foo#bar# ").map(String)).toEqual([".foo"]);
+      expect(lexAtoms("..# ").map(String)).toEqual([".."]);
+      // Nothing extends `.##`, so a third `#` begins a comment after it.
+      expect(lexAtoms("x.###c# ").map(String)).toEqual(["x", ".##"]);
+    });
+  });
+
   it("lexes a trailing-underscore mutating name across chunk boundaries", () => {
     for (const name of [".mutator_", "mutator_", "@mutator_"]) {
       expect(lexAtoms(`${name} `).map(String)).toEqual([name]);

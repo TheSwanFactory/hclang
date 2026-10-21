@@ -3,6 +3,13 @@
 All notable changes to the Homoiconic C VS Code extension will be documented in
 this file.
 
+## [0.2.3] - 2026-10-20
+
+### Changed
+
+- Highlight the `.#` and `.##` size operators as names, not comment starts
+  (#411).
+
 ## [0.2.2] - 2026-09-07
 
 ### Added

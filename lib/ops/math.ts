@@ -1,4 +1,6 @@
-import { Frame, FrameNumeric } from "../frames.ts";
+// Direct, not ../frames.ts, whose ../ops.ts needs this module loaded first.
+import { Frame } from "../frames/frame.ts";
+import { FrameNumeric } from "../frames/frame-numeric.ts";
 
 type NumericOperation = (left: FrameNumeric, right: FrameNumeric) => Frame;
 
