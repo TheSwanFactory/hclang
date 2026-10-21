@@ -4,7 +4,9 @@ import { beforeAll, describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 // imported, so an import cycle that bites only a direct import cannot return.
 // Each module is imported alone in its own module Worker, which has a fresh
 // module graph, like a fresh `deno` process. A Worker inherits this test's
-// permissions, so a module loads there as it would under `deno task test:lib`.
+// permissions. `deno task test:load-order` grants read, to list and import the
+// modules, and env, which execute/hc-log.ts reads while it loads; the rest of
+// `deno task test:lib` runs with no permissions.
 
 /**
  * The bases whose own imports reach a class that extends them, so no import
@@ -12,10 +14,6 @@ import { beforeAll, describe, it } from "jsr:@std/testing@^1.0.10/bdd";
  * reaches `FrameArray`, and frame-expr.ts reaches `FrameLazy`. Commit f9ff1a8
  * fixed every other cycle; these need a base that does not import its
  * subclasses while it loads. Remove an entry once it loads first.
- *
- * Each base's cycle chain, and the late binding that would break it, is in
- * "Remaining failures and why" of the local (gitignored) code report
- * .agents/tasks/size-operators-411-2026-10-19/import-order/code-report.md
  */
 const ALLOWED_TO_FAIL = [
   "frames/frame-expr.ts",
