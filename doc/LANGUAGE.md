@@ -533,9 +533,11 @@ For a worked example, see the Figures module, shipped with the package as
 [`hc/figures.hc`](../hc/figures.hc), imported with
 `Figures <- './hc/figures.hc'`. `Figure [c, …]` is a constructor closure that
 answers a fresh object holding its `children` and declaring `x.many()`,
-`x.size()` and the other observers as methods. Each method names its own Figure
-`_^`, because a bare name is looked up on the argument first, and the argument
-is usually another Figure.
+`x.size()` and the other observers as methods. `x.cells()` answers a bracket
+tree with a `1` for each cell, so its leaf count `(x.cells()).##` is the Size of
+x as a natural number. Each method names its own Figure `_^`, because a bare
+name is looked up on the argument first, and the argument is usually another
+Figure.
 
 ### TODO: Class variables
 

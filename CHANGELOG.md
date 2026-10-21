@@ -4,6 +4,23 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.21.2 2026-10-21
+
+- **`x.size_mul Z` is `Z` for every Figure.** A Figure with exactly one child,
+  `U` among them, answered a one-cell tally, because one row of nothing,
+  `Figure [Z]`, has the form of `U` and counts as a cell. `x.size_mul y` now
+  answers `Z` when y is `Z`, as `x.mul y` already did, so Size takes `mul` to
+  `size_mul` at a zero factor too.
+- **`x.cells()` reads a Figure's Size as a natural number.** It answers the
+  bracket tree of x with `1` in place of each cell, so its leaf count `.##` is
+  the Size as a `FrameCount`: `(Figure [U, Figure [U, U]]).cells()` is
+  `[1, [1, 1]]`, whose `.##` is `3`. Like `x.form()`, it answers a plain bracket
+  tree rather than a Figure, and every Figure's full spelling now includes it.
+- **`size_equivalent` counts instead of joining tallies.** `x.size_equivalent y`
+  now compares `(x.cells()).##` with `(y.cells()).##` rather than the two Sizes,
+  so it gives the same answers 3 to 5 times faster on the module's example
+  Figures.
+
 ## v0.21.1 2026-10-19
 
 - **Size operators `.#` and `.##`.** `.#` answers an aggregate's element count
