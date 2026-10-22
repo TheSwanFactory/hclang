@@ -41,8 +41,8 @@ and a fresh `Figure [A]` agree in form and in Size but are not the same Figure
 ```
 Imported methods compose with Figures built in this file, each with
 `Figures.Figure`. Size counts the cells of a Figure sum and of a Figure product.
-On tallies, joining is a reduce, `ys | x`. `size_mul` multiplies, and `Tally Z`
-collects a reduce
+On tallies, joining is a reduce, `ys | x`, `size_mul` multiplies, and the Size
+of a Figure holding two tallies adds them
 ```
 ; .duo (Figures.Figure [Figures.U, Figures.U]);
 ; .trio (Figures.Figure [Figures.U, Figures.U, Figures.U]);
@@ -51,7 +51,7 @@ collects a reduce
 # [<>, <>, <>]
 ; (trio.children | (Figures.Figure [Figures.U])) = (Figures.Figure [Figures.U, Figures.U, Figures.U, Figures.U])
 # <>
-; (([Figures.Figure [Figures.U], Figures.Figure [Figures.U]] | (Figures.Tally Figures.Z)).row) = duo
+; ((Figures.Figure [Figures.Figure [Figures.U], Figures.Figure [Figures.U]]).size()) = duo
 # <>
 ```
 Identity crosses the import boundary. Withness asks for immediate containment
