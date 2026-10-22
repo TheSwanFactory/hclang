@@ -55,6 +55,33 @@ export class FrameSchema extends FrameList implements FrameMatcher {
     return result.matched ? result.evidence : result.error;
   }
 
+  /**
+   * A schema's terms are all type terms, so repetition repeats every one, a
+   * statement too: `<.x; .y;>` and `<.x, .y>` are one type and repeat alike.
+   * A schema holds no properties, so only a held echo, were there one, would
+   * stay once.
+   */
+  protected override repeatsTerm(term: Frame): boolean {
+    return !this.holdsAsProperty(term);
+  }
+
+  /**
+   * A repeated schema matches what the literal with its terms written n times
+   * matches. With no term left that literal is `<>`, the total type. An
+   * enumeration matches by its terms, so it keeps its matcher. A compiled
+   * matcher was built from the terms, so it is rebuilt from the repeated ones;
+   * otherwise the schema would print and match as the one it repeated.
+   * `2 <.x, .y>` is `<.x, .y, .x, .y>`.
+   */
+  protected override finishRepetition(): Frame {
+    if (this.size() === 0) return Frame.all;
+    if (!(this.matcher instanceof EnumerationSchemaMatcher)) {
+      this.matcher = compileSchemaMatcher(this.data) ??
+        new EnumerationSchemaMatcher();
+    }
+    return this;
+  }
+
   public match(value: Frame, origin = Frame.nil): MatchResult {
     return this.matcher.match(this, value, origin);
   }

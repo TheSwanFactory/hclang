@@ -41,6 +41,8 @@ below rests on these
 # 6
 ; 2 “a”
 # “aa”
+; 2 [1, 2]
+# [1, 2, 1, 2]
 ; [] 1
 # [1]
 ; [1] 2
@@ -193,6 +195,16 @@ scope is not a declaration
 ; .apply {_};
 ; [1] 2
 # [1, 2]
+```
+Integer repetition consults the same declaration. A count concatenates a plain
+aggregate's elements, even where the scope binds `apply`, but repeats an
+aggregate that declares `apply` by its rule: the first of the n steps answers
+the receiver, and each later step applies the running answer to it, so here the
+rule runs four times
+```
+; .Units {[.row _; .apply {Units (_^.row + 1)}]};
+; [(5 (Units 0)).row, (5 [Units 0]).#]
+# [4, 5]
 ```
 
 ## An empty reduce answers its receiver; an empty map is empty

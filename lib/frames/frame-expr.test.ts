@@ -5,7 +5,9 @@ import {
   Frame,
   FrameArg,
   FrameArray,
+  FrameCount,
   FrameExpr,
+  FrameLazy,
   FrameName,
   FrameString,
   FrameSymbol,
@@ -114,5 +116,20 @@ describe("FrameExpr", () => {
       .toEqual("“Hello!”");
     // An expression codified from source is called the same way.
     expect(evaluate("({} [5, 7]).#").at(0).toString()).toEqual("35");
+  });
+
+  describe("integer repetition (v0.22.0)", () => {
+    it("has no repetition rule of its own", () => {
+      // An expression or closure is applied repeatedly, as before, rather
+      // than concatenating its terms, which are code.
+      expect(new FrameExpr([new FrameString("a")]).repetitionFor(3n))
+        .toBeUndefined();
+      expect(new FrameLazy([new FrameString("a")]).repetitionFor(3n))
+        .toBeUndefined();
+      // Text and a number have none either, by the base default: only an
+      // aggregate has a rule.
+      expect(new FrameString("ab").repetitionFor(3n)).toBeUndefined();
+      expect(new FrameCount(2n).repetitionFor(3n)).toBeUndefined();
+    });
   });
 });

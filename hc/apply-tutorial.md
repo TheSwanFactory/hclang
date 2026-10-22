@@ -28,13 +28,16 @@ Text joins, and a non-text argument contributes its spelling
 
 ### Numbers
 
-A number multiplies another number, and repeats text
+A number multiplies another number, repeats text, and repeats an array's
+elements into a new array
 
 ```css
 ; 2 3
 # 6
 ; 2 “a”
 # “aa”
+; 2 [1, 2]
+# [1, 2, 1, 2]
 ```
 
 ### Arrays

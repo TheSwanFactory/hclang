@@ -204,4 +204,20 @@ describe("FrameLazy", () => {
       expect(last(".o [.m {_}]; o.m.#").toString()).toEqual(".#");
     });
   });
+
+  describe("integer repetition (v0.22.0)", () => {
+    /** The answer of the last line; earlier lines are setup statements. */
+    const answer = (...lines: string[]): frame.Frame =>
+      evaluate(lines.join("\n")).at(-1);
+
+    it("leaves a closure's repetition as it was", () => {
+      // A closure's terms are its body, which is code rather than elements,
+      // so repetition applies it rather than concatenating the body.
+      const repeated = answer("3 {_ + 1}");
+
+      expect(repeated).toBeInstanceOf(frame.FrameLazy);
+      expect(repeated.toString()).toEqual("{ _ + 1 }");
+      expect(answer("(3 {_ + 1}) 5").toString()).toEqual("6");
+    });
+  });
 });

@@ -2,6 +2,7 @@ import { Frame } from "./frame.ts";
 import { type Context, NilContext } from "./context.ts";
 import { type EvaluationInput, EvaluationScope } from "./evaluation-scope.ts";
 import { FrameCount } from "./frame-count.ts";
+import { REPETITION_ELEMENT_LIMIT } from "./frame-numeric.ts";
 import { renderNested } from "./stringify.ts";
 import type { FrameBinding } from "./frame-symbol.ts";
 
@@ -127,9 +128,12 @@ export class FrameList extends Frame {
    * iterate.
    */
   public override elements(): Array<Frame> {
-    return this.data.filter((item) =>
-      item.is.statement !== true && !this.holdsAsProperty(item)
-    );
+    return this.data.filter((item) => this.isElement(item));
+  }
+
+  /** Whether this term is one of the elements, as `elements()` reads them. */
+  private isElement(term: Frame): boolean {
+    return term.is.statement !== true && !this.holdsAsProperty(term);
   }
 
   /**
@@ -166,6 +170,56 @@ export class FrameList extends Frame {
     }
     path.delete(this);
     return leaves;
+  }
+
+  /**
+   * `n x` for an aggregate concatenates (v0.22.0). The answer is a fresh
+   * aggregate of x's kind holding the terms x keeps once, its properties and
+   * statements, followed by the terms it repeats, its elements, n times in
+   * order. The repeated terms are shared, as a collect shares what it
+   * collects, so each keeps its identity. x itself is never answered or
+   * written, so repeating a value builds no cycle. Properties stay once, as a
+   * reduce keeps only its receiver's: `[3, 4] | xs` concatenates into a copy
+   * of `xs`.
+   *
+   * An aggregate that declares its own application (#375) answers none, so
+   * repetition runs that application, as before. No application is performed
+   * here, so the answer is bounded by its size, at `REPETITION_ELEMENT_LIMIT`
+   * repeated terms, and refused with the error repeated text uses.
+   */
+  public override repetitionFor(count: bigint): Frame | undefined {
+    if (this.applicationMethod() !== undefined) return undefined;
+    const repeated = this.data.filter((term) => this.repeatsTerm(term));
+    if (BigInt(repeated.length) * count > REPETITION_ELEMENT_LIMIT) {
+      return Frame.error(`$!.repetition-size ${REPETITION_ELEMENT_LIMIT}`);
+    }
+    const result = this.copy();
+    const terms = result.data.filter((term) => !result.repeatsTerm(term));
+    // Within the limit, the loop runs at most that many times, and an
+    // aggregate with nothing to repeat skips it however large the count is.
+    const times = repeated.length === 0 ? 0 : Number(count);
+    for (let time = 0; time < times; time += 1) {
+      for (const term of repeated) terms.push(term);
+    }
+    result.data = terms;
+    return result.finishRepetition();
+  }
+
+  /**
+   * Whether repetition repeats this term, rather than keeping it once. An
+   * aggregate repeats its elements and keeps its properties and statements
+   * once, as a reduce into it would.
+   */
+  protected repeatsTerm(term: Frame): boolean {
+    return this.isElement(term);
+  }
+
+  /**
+   * What a repetition answers once its terms are in place: this aggregate,
+   * unless its kind has no value of that shape.
+   */
+  protected finishRepetition(): Frame {
+    return this;
   }
 
   /**

@@ -26,6 +26,9 @@ export const REPETITION_LIMIT = 65_536n;
 /** The largest UTF-16 text result accepted by integer repetition. */
 export const REPETITION_TEXT_LIMIT = 1_000_000n;
 
+/** The largest element count an aggregate's repetition may answer. */
+export const REPETITION_ELEMENT_LIMIT = 1_000_000n;
+
 /** Maximum estimated bit width of an exact power result. */
 export const EXACT_POWER_BIT_LIMIT = 1_000_000n;
 

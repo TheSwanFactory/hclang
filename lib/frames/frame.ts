@@ -347,6 +347,17 @@ export class Frame extends MetaFrame {
   }
 
   /**
+   * What integer repetition `n x` answers when this frame, x, has a rule of
+   * its own, or undefined when x is repeated by application: `FrameInt.repeat`
+   * then starts from nil and applies the running answer to x, n times. Only an
+   * aggregate has a rule (`FrameList`), so the base answers none. The caller
+   * has already refused a negative count.
+   */
+  public repetitionFor(_count: bigint): Frame | undefined {
+    return undefined;
+  }
+
+  /**
    * Get a frame by key from this frame's own properties and its declared
    * parents only, never its lexical scope.
    *

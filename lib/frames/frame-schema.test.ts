@@ -129,4 +129,40 @@ describe("FrameSchema", () => {
       expect(last("<>.##")).toBe(Frame.all);
     });
   });
+
+  describe("integer repetition (v0.22.0)", () => {
+    /** The answer of the last line; earlier lines are setup statements. */
+    const answer = (...lines: string[]): Frame =>
+      evaluate(lines.join("\n")).at(-1);
+    const text = (...lines: string[]): string => answer(...lines).toString();
+
+    it("concatenates an enumeration, which matches what it did", () => {
+      expect(text("3 <1, 2>")).toEqual("<1, 2, 1, 2, 1, 2>");
+      expect(answer("3 <1, 2>")).toBeInstanceOf(FrameSchema);
+      expect(text("(2 <1, 2>) 2")).toEqual("2");
+      expect(answer("(2 <1, 2>) 3").is.error).toBe(true);
+    });
+
+    it("rebuilds a compiled matcher as the repeated literal's", () => {
+      expect(text("2 <.x, .y>")).toEqual(text("<.x, .y, .x, .y>"));
+      expect(text("(2 <.x, .y>) [.x 1; .y 2;]")).toEqual("[1, 2, 1, 2]");
+      // Two Bit terms match as the literal holding both does. The two print
+      // differently, so only the match is compared.
+      expect(text("(2 <8@Bit>) 0xff")).toEqual(text("<8@Bit, 8@Bit> 0xff"));
+      expect(text("(2 <8@Bit>) 0xff")).toEqual("$!.unsupported-schema-match");
+    });
+
+    it("repeats every term, so both spellings of a type repeat alike", () => {
+      expect(answer("2 <.x; .y;>")).toBeInstanceOf(FrameSchema);
+      expect(text("2 <.x; .y;>")).toEqual("<.x, .y, .x, .y>");
+      expect(text("(2 <.x; .y;>) [.x 1; .y 2;]")).toEqual("[1, 2, 1, 2]");
+      expect(answer("0 <.x; .y;>")).toBe(Frame.all);
+    });
+
+    it("answers the total type for no terms, as `<>` is", () => {
+      expect(answer("0 <1, 2>")).toBe(Frame.all);
+      expect(answer("0 <.x, .y>")).toBe(Frame.all);
+      expect(text("[(0 <1, 2>) === <>]")).toEqual("[<>]");
+    });
+  });
 });
