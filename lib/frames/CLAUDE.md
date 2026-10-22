@@ -372,6 +372,20 @@ also the file scope, so a top-level `.apply` lands on it; `Frame.collect` is the
 plumbing path that `EvalPipe` and `evaluate` use, and an aggregate collects
 there unconditionally.
 
+Integer repetition asks first (v0.22.0). `FrameInt.repeat` refuses a negative
+count, then asks the argument's `repetitionFor(count)`, which `Frame` answers
+`undefined`. `FrameList` answers a plumbing `copy()` holding the terms it keeps
+once, its properties and statements, followed by the terms it repeats, its
+elements, n times and shared, and refuses more than `REPETITION_ELEMENT_LIMIT`
+repeated terms with `$!.repetition-size`. `repeatsTerm` decides which terms
+repeat: `FrameSchema` repeats every term it does not hold as a property,
+statements included, because a schema's terms are all type terms, and it
+recompiles a compiled matcher from the repeated terms. A result left with no
+term at all is the literal's empty value: nil for a `FrameGroup` and `Frame.all`
+for a `FrameSchema`. An aggregate with a declared application answers
+`undefined`, as `FrameExpr` does for every expression and closure, so repetition
+applies it from nil within `REPETITION_LIMIT`, as before.
+
 ### Copy Contract
 
 Copying is two operations, not one, and every call site belongs to exactly one

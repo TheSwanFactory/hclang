@@ -197,6 +197,10 @@ a rule of its own. A class supplies any other rule by declaring a method named
 `apply` (`apply_` when it writes), which applying the aggregate calls (#375).
 Doubling either one widens the stream from values to `[key, value]` tuples, over
 the visible properties in declaration order and then the elements by index.
+Integer repetition `n x` is likewise decided by x: `3 “ab”` joins three copies,
+`3 [1, 2]` concatenates the elements into a fresh aggregate of the same kind
+with its properties once (v0.22.0), and a closure, or a class that declares
+`apply`, is applied repeatedly.
 
 A resource pushes characters, so what a read answers is decided downstream by
 composition rather than declared by the source. `hc/apply-tutorial.md` teaches

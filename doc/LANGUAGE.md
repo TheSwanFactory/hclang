@@ -248,11 +248,16 @@ inexact. A count is closed under `+`, `*`, `%%`, and a nonnegative integral
 `**`, but unary `-` and binary `-` answer a signed integer even when the result
 is nonnegative, so `5 - 3` is the integer `2`, and division answers a rational,
 or an integer when it is whole. `%%` accepts counts and integers only, and
-integer juxtaposition performs multiplication or bounded repetition. A count
-prints as the same integer does. Numeric `=` compares values across ranks, while
-`==`, `===`, and `~~` compare exact types, so a count and an integer are
-distinct: `2 = (5 - 3)` holds, but `2 == (5 - 3)` is nil, as `3 == 3.0` is, and
-`~~2` does not match `5 - 3`.
+integer juxtaposition performs multiplication or bounded repetition. Repeated
+text joins its copies, so `3 “ab”` is `“ababab”`, and a repeated aggregate
+concatenates its elements into a fresh aggregate of the same kind, keeping its
+properties once, so `3 [1, 2]` is `[1, 2, 1, 2, 1, 2]`. A schema repeats every
+term, so it matches what its literal written n times matches. A closure, or a
+class that declares `apply`, is applied repeatedly instead. A count prints as
+the same integer does. Numeric `=` compares values across ranks, while `==`,
+`===`, and `~~` compare exact types, so a count and an integer are distinct:
+`2 = (5 - 3)` holds, but `2 == (5 - 3)` is nil, as `3 == 3.0` is, and `~~2` does
+not match `5 - 3`.
 
 Explicit `0b`, `0o`, and `0x` forms are blobs, not numeric integers.
 
@@ -535,9 +540,11 @@ For a worked example, see the Figures module, shipped with the package as
 answers a fresh object holding its `children` and declaring `x.many()`,
 `x.size()` and the other observers as methods. `x.cells()` answers a bracket
 tree with a `1` for each cell, so its leaf count `(x.cells()).##` is the Size of
-x as a natural number. Each method names its own Figure `_^`, because a bare
-name is looked up on the argument first, and the argument is usually another
-Figure.
+x as a natural number. Size and `x.size_mul y` build their tallies from such a
+count by repetition, `Figure (n [U])`, `x.mul y` builds `Figure (n [y])` the
+same way, and two tallies add as `(Figure [x, y]).size()`. Each method names its
+own Figure `_^`, because a bare name is looked up on the argument first, and the
+argument is usually another Figure.
 
 ### TODO: Class variables
 
