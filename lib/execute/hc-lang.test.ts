@@ -60,8 +60,8 @@ describe("HCLang", () => {
     it("imports Figures from the bundle by name", async () => {
       const session = new HCLang();
 
-      // Every `; ` example in figures.hc runs as an ordinary form on import, so
-      // an error-valued example added there fails this import, and this test.
+      // Importing skips figures.hc's `; ` examples (#405) and runs only its
+      // code, so an error-valued code line fails this import, and this test.
       const imported = await session.call("Figures <- './hc/figures.hc'");
       expect(imported).not.toContain("$!");
       expect(
