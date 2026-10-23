@@ -46,4 +46,13 @@ export class FrameGroup extends FrameList {
     this.data = this.data.map((frame: Frame) => frame.in(scope));
     return this;
   }
+
+  /**
+   * `()` is nil, so a repetition left with no term at all answers nil:
+   * `0 (1, 2)` is `()`, as the literal is. A group that holds properties keeps
+   * them, as every aggregate does, so `0 (.k 1; 4, 5)` holds `.k` alone.
+   */
+  protected override finishRepetition(): Frame {
+    return this.size() === 0 ? Frame.nil : this;
+  }
 }

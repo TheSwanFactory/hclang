@@ -4,7 +4,9 @@ import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 import {
   Frame,
   FrameArray,
+  FrameCount,
   FrameExpr,
+  FrameInt,
   FrameLazy,
   FrameNumber,
   FrameString,
@@ -347,6 +349,98 @@ describe("FrameArray", () => {
       expect(clone.parent).toBe(base);
       expect(clone.hasDeclaredParent()).toBe(true);
       expect(clone.id).not.toEqual(derived.id);
+    });
+  });
+
+  describe("integer repetition (v0.22.0)", () => {
+    /** The answer of the last line; earlier lines are setup statements. */
+    const answer = (...lines: string[]): Frame =>
+      evaluate(lines.join("\n")).at(-1);
+    const text = (...lines: string[]): string => answer(...lines).toString();
+
+    it("concatenates the elements n times into a fresh array", () => {
+      expect(text("3 [1, 2]")).toEqual("[1, 2, 1, 2, 1, 2]");
+      expect(answer("3 [1, 2]")).toBeInstanceOf(FrameArray);
+      expect(text("1 [1, 2]")).toEqual("[1, 2]");
+      expect(text("0 [1, 2]")).toEqual("[]");
+      expect(text("(3 [1, 2]).#")).toEqual("6");
+    });
+
+    it("never answers or writes the receiver, so it builds no cycle", () => {
+      expect(text(".r (3 [1]);", "[r.#, r.##, (r.1) === r]"))
+        .toEqual("[3, 3, ()]");
+      expect(text(".xs [1, 2];", "[(1 xs) === xs, (1 xs) = xs]"))
+        .toEqual("[(), <>]");
+      expect(text(".xs [1, 2];", "3 xs;", "xs")).toEqual("[1, 2]");
+      // A mutable name is not written either.
+      expect(text(".xs_ [1, 2];", "3 xs_;", "xs_")).toEqual("[1, 2]");
+      expect(text("(2 [[1, 2]]).##")).toEqual("4");
+    });
+
+    it("keeps a statement once, as a reduce's receiver does", () => {
+      expect(text("2 [1; 2, 3]")).toEqual("[(1); 2, 3, 2, 3]");
+      expect(text("0 [1; 2, 3]")).toEqual("[(1);]");
+    });
+
+    it("shares the elements rather than copying them", () => {
+      expect(text(
+        ".y [7];",
+        ".t (3 [y]);",
+        "[(t .0) === y, (t .1) === y, (t .2) === y]",
+      )).toEqual("[<>, <>, <>]");
+
+      const y = new FrameArray([new FrameString("y")]);
+      const repeated = new FrameCount(2n).apply(new FrameArray([y]), Frame.nil);
+      expect(repeated.elements()[0]).toBe(y);
+      expect(repeated.elements()[1]).toBe(y);
+    });
+
+    it("keeps the receiver's properties and declared parent once", () => {
+      expect(text("3 [.k 1; 4, 5]")).toEqual("[.k 1; 4, 5, 4, 5, 4, 5]");
+      expect(text("(3 [.k 1; 4, 5]).k")).toEqual("1");
+      expect(text("0 [.k 1; 4, 5]")).toEqual("[.k 1;]");
+      expect(text(".p [.^ [.hi {“hi”}]; 1];", "[(2 p).hi(), (2 p).#]"))
+        .toEqual("[“hi”, 2]");
+    });
+
+    it("concatenates as reducing the receiver into itself does", () => {
+      expect(text(".xs [1, 2];", "(3 xs) = (xs | (xs | xs))")).toEqual("<>");
+    });
+
+    it("refuses a negative, fractional or non-integer count as text does", () => {
+      for (const count of ["(0 - 1)", "1.5", "2.0", "(3 / 2)", "1.408.555"]) {
+        expect(text(`${count} [1]`)).toEqual(text(`${count} “x”`));
+        expect(answer(`${count} [1]`).is.error).toBe(true);
+      }
+      // A whole integer repeats as a count does.
+      expect(text("(4 / 2) [1]")).toEqual("[1, 1]");
+      expect(text("(5 - 3) [1]")).toEqual("[1, 1]");
+    });
+
+    it("bounds the answer's elements, not the applications", () => {
+      const repeat = (count: bigint, items: number): Frame =>
+        new FrameInt(count).apply(
+          new FrameArray(
+            Array.from({ length: items }, () => new FrameString("x")),
+          ),
+          Frame.nil,
+        );
+
+      expect(repeat(65_537n, 1).elements().length).toEqual(65_537);
+      expect(repeat(1_000_000n, 1).elements().length).toEqual(1_000_000);
+      for (const refused of [repeat(1_000_001n, 1), repeat(500_001n, 2)]) {
+        expect(refused.is.error).toBe(true);
+        expect(refused.toString()).toEqual("$!.repetition-size 1000000");
+      }
+      // Nothing to repeat answers at once, however large the count.
+      expect(repeat(2n ** 100n, 0).toString()).toEqual("[]");
+    });
+
+    it("repeats an aggregate that declares apply by its rule, as before", () => {
+      const units = ".Units {[.row _; .apply {Units (_^.row + 1)}]};";
+
+      expect(text(units, "(5 (Units 0)).row")).toEqual("4");
+      expect(text(units, "(5 [Units 0]).#")).toEqual("5");
     });
   });
 });

@@ -4,6 +4,29 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.22.0 2026-10-23
+
+- **Breaking: repeating an aggregate concatenates its elements.** `n x` for an
+  array, group or schema answers a fresh aggregate of the same kind holding x's
+  properties once and its elements n times (every term, for a schema), shared
+  rather than copied: `3 [1, 2]` is `[1, 2, 1, 2, 1, 2]`, `0 [1, 2]` is `[]` and
+  `0 (1, 2)` is nil. It used to apply x to itself, so `3 [1]` held its own array
+  twice and `3 xs` wrote the array named `xs`. The answer holds at most
+  1,000,000 elements, refused with `$!.repetition-size 1000000` as repeated text
+  is, instead of the 65,536-application bound. Text, closures, and a class that
+  declares `apply`, a Figure among them, repeat as before (#414).
+- **Size, `mul` and `size_mul` build from a native count.** Each counts cells
+  with `x.cells()` and `.##` and builds its Figure by repetition,
+  `Figure (n [U])`, or `Figure (n [y])` for `mul`, so every answer and every
+  identity is as before, and building and sizing a 256-cell Figure takes about
+  0.7 s rather than 12 s. A count above 1,000,000 answers
+  `$!.repetition-size 1000000` (#414).
+- **Breaking: `Figures.Tally` is removed.** Nothing in the class uses it. Two
+  tallies add as the Size of a Figure holding both, `(Figure [x, y]).size()`,
+  and a list of them as `(xs | (Figure [Z, Z])).size()`, which is also right for
+  an empty list and a lone `Z`. `(Figure [Z]).size()` alone is one cell, because
+  `Figure [Z]` has the form of `U` (#414).
+
 ## v0.21.2 2026-10-21
 
 - **`x.size_mul Z` is `Z` for every Figure.** A Figure with exactly one child,

@@ -89,6 +89,25 @@ Integer-only repetition remains available
 # “HelloHelloHello”
 
 ```
+Repeating an aggregate concatenates its elements (v0.22.0). The answer is a
+fresh aggregate of the same kind holding the receiver's properties once and its
+elements n times, shared rather than copied, so the receiver is never answered
+or written and no element holds its own aggregate
+```
+; 3 [1, 2]
+# [1, 2, 1, 2, 1, 2]
+; 0 [1, 2]
+# []
+; 2 [.k 1; 4, 5]
+# [.k 1; 4, 5, 4, 5]
+; 2 (1, 2)
+# (1, 2, 1, 2)
+; .xs [1, 2];
+; [3 xs, xs]
+# [[1, 2, 1, 2, 1, 2], [1, 2]]
+; [(1 xs) = xs, (1 xs) === xs, ((3 [xs]) .2) === xs, (2 [[1, 2]]).##]
+# [<>, (), <>, 4]
+```
 Cross-rung promotion and integer-only modulo
 ```
 ; 1 + 2.5
@@ -125,6 +144,20 @@ Repetition and exact powers fail before unsafe allocation
 # $!.repetition-limit 65536
 ; 2 ** 1000000
 # $!.numeric-range ** FrameCount
+```
+An aggregate's repetition applies nothing, so the application bound leaves it
+alone. Its answer is bounded instead, at 1,000,000 elements, and refused with
+the error repeated text uses. A negative or fractional count fails as it does
+for text
+```
+; (65537 [1]).#
+# 65537
+; 1000001 [1]
+# $!.repetition-size 1000000
+; (0 - 1) [1]
+# $!.repetition-count -1
+; 3.14 [1]
+# $!.repetition-domain FrameDecimal
 ```
 Counts (#407). Every nonnegative integer literal is a `FrameCount`, the root of
 the ladder, and prints as the same integer does. A sequence's refusal names the

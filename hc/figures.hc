@@ -20,6 +20,20 @@ are an aggregate, so `(x.size()).children.#` is the FrameCount it spells and
 `x.children.#` counts x's children. A Figure's own `.#` and `.##` are `0`,
 because its children are a property rather than its elements (#407, #411).
 
+Size, Multiplication and Tally multiplication count first and then construct.
+Each computes a count n natively, with Cells and the size operators, and builds
+`Figure (n [U])` or `Figure (n [y])`, with the guards for zero that their
+paragraphs give. Repeating an aggregate concatenates its elements and shares
+them, so `n [U]` is n units, each `U` itself. Before v0.22.0 Size joined its
+children's Sizes one unit at a time, so tallies added by joining. Tallies still
+are the natural numbers in unary, they still join, `ys | x`, and two of them
+add as the Size of a Figure holding both, `(Figure [x, y]).size()`. Size now
+trades the joining derivation for construction from a native count.
+Repetition holds at most 1,000,000 elements, so Size, Multiplication and Tally
+multiplication answer `$!.repetition-size 1000000` once their count passes
+that. The joining Size had no such ceiling, but its time grew quadratically
+with the cells.
+
 A method names its own Figure `_^`, because a bare name is looked up on the
 argument first (spec 7), and the argument is usually another Figure. For the
 same reason, a block inside a method reads only names the method bound
@@ -44,36 +58,36 @@ them, their order and their identity
   .many {Figure (_^.children & {B})};
 ```
 **Size**, `x.size()`: a tally with one unit cell `U` per cell. Any Figure shaped
-like `U` is a cell; every other Figure adds up the Sizes of its children by
-joining them into `Tally Z`. It keeps the cell count and forgets shape, nesting,
-order, reuse and identity. The unit case comes first, because a unit's only
-child is `Z`
+like `U` is a cell. Size counts them with Cells, below, and repeats `U` that
+many times, and a Figure with no cells answers `Z` itself. It keeps the cell
+count and forgets shape, nesting, order, reuse and identity
 ```;
-  .size {.kids _^.children;
-    (kids = U.children) ? {Figure [U]} : {((kids & {_.size()}) | (Tally Z)).row}};
+  .size {.n ((_^.cells()).##); (n = 0) ? {Z} : {Figure (n [U])}};
 ```
 **Cells**, `x.cells()`: the bracket tree of x with `1` in place of each cell,
 so `(x.cells()).##` is the Size of x as a natural number, counted without
 joining a tally. A count is its own size, so the `1` of a unit is already its
 count. It keeps the cell count and where the cells are, and forgets identity.
-The unit case comes first, as in Size
+The unit case comes first, because a unit's only child is `Z`
 ```;
   .cells {.kids _^.children;
     (kids = U.children) ? {1} : {kids & {_.cells()}}};
 ```
-**Multiplication**, `x.mul y`: y once for every cell of x, and `Z` when y is
-`Z`. It keeps y's identity in every position and forgets x's shape
+**Multiplication**, `x.mul y`: y once for every cell of x, counted as Size
+counts them, and `Z` when y is `Z`. Repetition shares what it repeats, so it
+keeps y's identity in every position, and it forgets x's shape
 ```;
-  .mul {.y _; .units ((_^.size()).children);
-    (y = Z) ? {Z} : {Figure (units & {y})}};
+  .mul {.y _; .n ((_^.cells()).##); (y = Z) ? {Z} : {Figure (n [y])}};
 ```
 **Tally multiplication**, `x.size_mul y`: the Size of a Figure holding y once
-per child of x, and `Z` when y is `Z`, as in Multiplication: one row of
-nothing, `Figure [Z]`, has the form of `U` and would count as a cell. It keeps
-the cell count and forgets both shapes
+per child of x. That is x's number of children times y's cells, so it is
+counted rather than built, and it is `Z` when the product is `0`, a y of `Z`
+included. Building the Figure would go wrong there, as Multiplication would
+without its guard: one row of nothing, `Figure [Z]`, has the form of `U` and
+would count as a cell. It keeps the cell count and forgets both shapes
 ```;
-  .size_mul {.y _; .kids _^.children;
-    (y = Z) ? {Z} : {(Figure (kids & {y})).size()}};
+  .size_mul {.n ((_^.children.#) * ((_.cells()).##));
+    (n = 0) ? {Z} : {Figure (n [U])}};
 ```
 **Size-equivalence**, `x.size_equivalent y`: `U` when the two Sizes agree and
 `Z` otherwise. It compares the two cell counts as natural numbers, which
@@ -116,12 +130,6 @@ shows its full spelling, which reads back
   .toText {“” (_^.form())}
 ]};
 ```
-**Tally** is a helper receiver, not a Figure. Its `row` starts at `Z`, and
-applying a tally to it appends that tally's units, one at a time, through
-`x y`, so a reduce into `Tally Z` adds counts
-```
-.Tally {[.row _; .apply {Tally (_.children | _^.row)}]};
-```
 **The marks.** The observers answer `A`, the Figure with no children, for no
 and `B`, the Figure holding `A`, for yes. Size counts in the same two: `Z`
 reuses `A` as the additive zero and `U` reuses `B` as the unit cell. The class
@@ -161,6 +169,13 @@ an empty Figure constructs, and a map extends one Figure per element
 ; ([A, B] & (Figure [C])) = [Figure [C, A], Figure [C, B]]
 # <>
 ```
+Repetition applies a Figure rather than concatenating, because a Figure
+declares its application: `3 U` is `(U U) U`, and each child it appends is `U`
+itself
+```
+; [(3 U) = ((U U) U), ((3 U).children .0) === Z, ((3 U).children .2) === U]
+# [<>, <>, <>]
+```
 ## Manyness and Size
 
 Manyness marks the immediate children and looks no deeper
@@ -169,9 +184,9 @@ Manyness marks the immediate children and looks no deeper
 # [<>, <>, <>, ()]
 ```
 Size is recursive cell volume. `Z` is `A` and `U` is `B`, the same mark
-Manyness uses, so a count is itself a Figure of units. Size maps each child to its Size and joins them into
-`Tally Z`; the unit case comes first because a unit's only child is `Z`, and it
-tests form, so any Figure shaped like `U` is a cell
+Manyness uses, so a count is itself a Figure of units. Size counts the cells
+with Cells and repeats `U` that many times. Cells tests form, so any Figure
+shaped like `U` is a cell
 ```
 ; [Z === A, U === B]
 # [<>, <>]
@@ -183,13 +198,32 @@ tests form, so any Figure shaped like `U` is a cell
 # [<>, <>, <>]
 ; [(row4.many()) = (row4.size()), (deep4.many()) = (deep4.size()), (two_fours.many()) = row2]
 # [<>, (), <>]
-; ((Tally Z).row) = Z
-# <>
+```
+Tallies add without a helper: the Size of a Figure holding two tallies joins
+them, and two `Z`s add to `Z`. Add two at a time, because two children are
+never shaped like `U`. One child can be: `Figure [Z]` has the form of `U`, so
+its Size is one cell, the rule that makes Multiplication and Tally
+multiplication guard `Z`
+```
+; [((Figure [row2, row3]).size()) = (row3.children | row2), ((Figure [Z, Z]).size()) = Z, ((Figure [Z]).size()) = (Figure [U])]
+# [<>, <>, <>]
+```
+Size answers `Z` itself for a Figure with no cells, and every unit of a Size is
+`U` itself, because repetition shares what it repeats
+```
+; [(Z.size()) === Z, ((Figure [Z, Z]).size()) === Z, ((U.size()).children .0) === U]
+# [<>, <>, <>]
 ```
 A tally is its own Size, so Size is idempotent
 ```
 ; ((two_fours.size()).size()) = (two_fours.size())
 # <>
+```
+Counting first keeps a large Size quick: 256 cells, built by Multiplication
+```
+; .row16 (row4.mul row4); .row256 (row16.mul row16);
+; [(row256.size()).children.#, ((row256.size()).children .255) === U]
+# [256, <>]
 ```
 A tally reads as a natural number, because its children are an aggregate and
 `.#` counts them. A Figure's own `.#` and `.##` are `0`: its children are a
@@ -350,7 +384,8 @@ observing does not mutate, even with a local name inside a map
 
 A bare name inside a block that a map applies to Figures reads each Figure's
 own members first (spec 7), so it cannot reach the method's. That is why a
-method names its own Figure `_^` and binds `kids` before its blocks read it
+method names its own Figure `_^` and binds `kids` or `n` before its blocks read
+it
 ```
 ; (E.children & {children}) = [A.children, B.children]
 # <>
@@ -360,9 +395,9 @@ Figure passed as an argument contributes only its members, never the names of
 the scope that built it. The Fano plane above already binds `f`, the name
 Withness uses inside its blocks; these bind the other locals
 ```
-; .kids 9; .y 9; .units 9; .cells 9; .found 9; .absent 9;
-; [(E.withness [A, B]) = B, (row2.mul row3) = rectangle23, (E.size()) = (Figure [U])]
-# [<>, <>, <>]
+; .kids 9; .y 9; .n 9; .cells 9; .found 9; .absent 9;
+; [(E.withness [A, B]) = B, (row2.mul row3) = rectangle23, (E.size()) = (Figure [U]), (row2.size_mul row3) = (rectangle23.size())]
+# [<>, <>, <>, <>]
 ```
 A method's free names resolve where the method was written, never where its
 receiver was read (#400). So a scope that binds its own `B` and reads a Figure

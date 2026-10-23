@@ -3,6 +3,7 @@ import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 
 import {
   Frame,
+  FrameArray,
   FrameDecimal,
   FrameInt,
   FrameNumber,
@@ -230,6 +231,22 @@ describe("numeric domains", () => {
     expect(new FrameInt(3n).apply(new FrameString("x"), Frame.nil).toString())
       .toEqual("“xxx”");
     expect(decimal.toString()).toEqual("$!.repetition-domain FrameDecimal");
+
+    // Text keeps the application bound; only an aggregate's repetition
+    // bounds its answer instead (v0.22.0).
+    expect(
+      new FrameInt(65_537n).apply(new FrameString("x"), Frame.nil).toString(),
+    ).toEqual("$!.repetition-limit 65536");
+    // A count on another rung refuses an aggregate by class, as it does text.
+    const counts: [FrameNumeric, string][] = [
+      [new FrameDecimal("3.0"), "FrameDecimal"],
+      [new FrameRational(1n, 2n), "FrameRational"],
+      [new FrameSequence("1.408.055"), "FrameSequence"],
+    ];
+    for (const [count, rung] of counts) {
+      expect(count.apply(new FrameArray([]), Frame.nil).toString())
+        .toEqual(`$!.repetition-domain ${rung}`);
+    }
   });
 });
 

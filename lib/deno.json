@@ -1,6 +1,6 @@
 {
   "name": "@swanfactory/hclang",
-  "version": "0.21.2",
+  "version": "0.22.0",
   "description": "Homoiconic C - pure JavaScript library",
   "license": "MIT",
   "repository": {

@@ -94,10 +94,16 @@ export class FrameInt extends FrameNumeric {
       : Array.from({ length: count }, (_, index) => index);
   }
 
+  /** The refusal of a negative count, which every repetition answers first. */
+  private negativeCount(): Frame | undefined {
+    return this.data < 0n
+      ? Frame.error(`$!.repetition-count ${this.spelling}`)
+      : undefined;
+  }
+
   private repetitionCount(): number | Frame {
-    if (this.data < 0n) {
-      return Frame.error(`$!.repetition-count ${this.spelling}`);
-    }
+    const negative = this.negativeCount();
+    if (negative) return negative;
     if (this.data > REPETITION_LIMIT) {
       return Frame.error(`$!.repetition-limit ${REPETITION_LIMIT}`);
     }
@@ -206,6 +212,13 @@ export class FrameInt extends FrameNumeric {
   }
 
   protected override repeat(argument: Frame, parameter: Frame): Frame {
+    const negative = this.negativeCount();
+    if (negative) return negative;
+    // An aggregate concatenates rather than applying itself (v0.22.0), and
+    // bounds the elements it answers rather than applications it performs.
+    const own = argument.referent().repetitionFor(this.data);
+    if (own !== undefined) return own;
+
     const count = this.repetitionCount();
     if (count instanceof Frame) return count;
 

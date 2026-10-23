@@ -68,6 +68,14 @@ export class FrameExpr extends FrameList {
     return this.in(EvaluationScope.call(argument, parameter));
   }
 
+  /**
+   * An expression or a closure is called, not collected, so its terms are code
+   * rather than elements to concatenate: repetition applies it, as before.
+   */
+  public override repetitionFor(_count: bigint): Frame | undefined {
+    return undefined;
+  }
+
   public override toStringDataArray(): string[] {
     const body = this.data
       .map((obj: Frame) => renderNested(obj, () => obj.toString()))

@@ -85,4 +85,36 @@ describe("FrameGroup", () => {
       }
     });
   });
+
+  describe("integer repetition (v0.22.0)", () => {
+    /** The answer of the last line; earlier lines are setup statements. */
+    const answer = (...lines: string[]): frame.Frame =>
+      evaluate(lines.join("\n")).at(-1);
+    const text = (...lines: string[]): string => answer(...lines).toString();
+
+    it("concatenates a group's elements into a group", () => {
+      expect(text("3 (1, 2)")).toEqual("(1, 2, 1, 2, 1, 2)");
+      expect(answer("3 (1, 2)")).toBeInstanceOf(frame.FrameGroup);
+      expect(text(".g (7, 8);", "[2 g, g]")).toEqual("[(7, 8, 7, 8), (7, 8)]");
+    });
+
+    it("answers nil only when no term is left, since `()` is nil", () => {
+      const pair = new frame.FrameGroup([a_frame, b_frame]);
+
+      expect(new frame.FrameCount(0n).apply(pair, frame.Frame.nil))
+        .toBe(frame.Frame.nil);
+      expect(text("[(0 (1, 2)) === (), [] (0 (1, 2))]")).toEqual("[<>, []]");
+    });
+
+    it("keeps a group's properties once, with or without elements", () => {
+      // A held property leaves its echo as a term, so a group of properties
+      // alone is still a group, whatever the count.
+      expect(text(".gr (.k 1; .j 2;);", "[(2 gr).k, (2 gr).#, (2 gr) === ()]"))
+        .toEqual("[1, 0, ()]");
+      expect(answer(".gp (.k 1; 4, 5);", "0 gp"))
+        .toBeInstanceOf(frame.FrameGroup);
+      expect(text(".gp (.k 1; 4, 5);", "[0 gp, (0 gp).k, 2 gp]"))
+        .toEqual("[(.k 1;), 1, (.k 1; 4, 5, 4, 5)]");
+    });
+  });
 });
