@@ -51,6 +51,15 @@ describe("iterators", () => {
       expect(MapElements(new frame.FrameArray([]), block).toString())
         .toEqual("[]");
     });
+
+    it("applies each element to a fresh copy of an aggregate receiver", () => {
+      const receiver = ints(0);
+      const result = MapElements(ints(1, 2), receiver);
+
+      expect(result.toString()).toEqual("[[0, 1], [0, 2]]");
+      expect(result.at(0)).not.toBe(result.at(1));
+      expect(receiver.toString()).toEqual("[0]");
+    });
   });
 
   describe("| reduces elements", () => {
@@ -114,6 +123,14 @@ describe("iterators", () => {
       const result = ReduceMembers(properties(), new frame.FrameArray([]));
 
       expect(result.toString()).toEqual("[[.meta, 9], [.0, 10]]");
+    });
+
+    it("maps into a fresh copy of an aggregate receiver, as & does", () => {
+      const receiver = ints(0);
+      const result = MapMembers(ints(7), receiver);
+
+      expect(result.toString()).toEqual("[[0, [.0, 7]]]");
+      expect(receiver.toString()).toEqual("[0]");
     });
 
     it("answers an empty array for a value with no members", () => {

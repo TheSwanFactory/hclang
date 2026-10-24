@@ -84,6 +84,25 @@ the combining rule and no rule has to be specified
 ; [1, 2, 4] | 1
 # 8
 ```
+## A map keeps its answers apart, from a literal too
+
+**Decision.** A map never accumulates into its receiver (#417). Each element is
+applied to the receiver's collecting copy, a fresh aggregate holding the same
+members, as applying through an immutable name already does. A reduce may
+write its fresh accumulator in place, since only the final answer escapes, but
+a map answers once per element. Before v0.23.1 an aggregate that no name held
+collected every element and was answered each time, so `[1, 2] & [0]` was one
+array `[0, 1, 2]`, twice
+```
+; [1, 2, 3] & []
+# [[1], [2], [3]]
+; .m ([1, 2] & [0]);
+; [m, (m .0) === (m .1)]
+# [[[0, 1], [0, 2]], ()]
+; .r [0];
+; [([1, 2] & r) = m, r]
+# [<>, [0]]
+```
 ## A name applies like the value it names
 
 **Decision.** Naming a receiver does not change what applying it answers, so a
@@ -438,12 +457,6 @@ a list rather than a diff:
 
 ## What this file does not decide
 
-- whether an aggregate in a map refuses. The notes refused it, on the ground
-  that one accumulator cannot serve one answer per input. But `[1, 2, 3] & []`
-  is ordinary application — each element collects into the array, which answers
-  itself, so the map answers three references to one array. That is useless
-  rather than incoherent, and refusing it is the same paternalism the closure
-  form was retired for. It needs an argument beyond "you probably meant `|`";
 - whether a string should enumerate characters, closing a11's asymmetry;
 - what a receiver answering nil mid-reduce does when it declares no
   application. A declared application keeps its receiver on nil, but a closure
