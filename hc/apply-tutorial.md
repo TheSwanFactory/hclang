@@ -121,6 +121,7 @@ tuple, so a step knows which address it is looking at.
 
 - `|` reduces values, `||` reduces tuples
 - `&` maps values, `&&` maps tuples
+- `&|` maps values and splices the answers into one array
 
 ## `|` reduces elements
 
@@ -221,6 +222,19 @@ enumerate its characters. Read a resource when you want those
 # [“abc”]
 ; 1 & {_}
 # [1]
+```
+
+## `&|` splices the answers
+
+`&|` maps as `&` does, then splices the answers into one array: each answer
+contributes its elements, and anything that is not an aggregate is one element.
+A nil answer contributes nothing, so a conditional filters
+
+```css
+; [[1], [2, 3]] &| {_}
+# [1, 2, 3]
+; [1, 2, 3, 4] &| {(_ = 2) ? {__}}
+# [2]
 ```
 
 ## Doubling takes tuples

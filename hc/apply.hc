@@ -103,6 +103,35 @@ array `[0, 1, 2]`, twice
 ; [([1, 2] & r) = m, r]
 # [<>, [0]]
 ```
+## A splice joins the answers
+
+**Decision.** `&|` is the third thing that can become of each answer (#421).
+It applies each element as `&` does, to a fresh copy of the receiver, and
+splices the answers into one fresh array: each answer contributes its elements,
+in order and shared. Anything which is not an aggregate is its own single
+element, and nil contributes nothing. So concatenation is a splice of the
+aggregates themselves, and filtering is a splice of a conditional
+```
+; [[1], [2, 3], []] &| {_}
+# [1, 2, 3]
+; [1, 2, 3, 4] &| {(_ = 2) ? {__}}
+# [2]
+; [1, 2] &| {[_, _]}
+# [1, 1, 2, 2]
+; [1, 2] &| [0]
+# [0, 1, 0, 2]
+; .inner [9];
+; [(([inner] &| {[_]}) .0) === inner, [] &| {_}]
+# [<>, []]
+```
+A splice is native and linear, where a reduce into an accumulator that streams
+each answer in would copy what it has so far at every step. Repetition is the
+special case of one aggregate spliced n times: `3 [1, 2]` is
+`[0, 1, 2] &| {[1, 2]}`
+```
+; (3 [1, 2]) = ([0, 1, 2] &| {[1, 2]})
+# <>
+```
 ## A name applies like the value it names
 
 **Decision.** Naming a receiver does not change what applying it answers, so a

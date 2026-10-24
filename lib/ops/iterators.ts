@@ -60,6 +60,29 @@ export const MapElements = (
     ),
   );
 
+/**
+ * `&|` applies each element on its own, as `&` does, and splices the answers
+ * into one fresh array: each answer contributes its elements, in order and
+ * shared, and a nil answer contributes nothing (#421). Anything which is not
+ * an aggregate is its own single element, so `xs &| {_}` concatenates the
+ * aggregates xs holds, and a block that answers nil for some elements filters.
+ */
+export const SpliceElements = (
+  source: Frame,
+  receiver: Frame,
+  receiverState?: ReceiverState,
+): FrameArray =>
+  new FrameArray(
+    source.elements().flatMap((value) => {
+      const answer = receiver.collectingCopy().call(
+        value,
+        Frame.nil,
+        receiverState,
+      );
+      return answer.is.void ? [] : answer.elements();
+    }),
+  );
+
 /** `|` threads each element through the receiver the last step answered. */
 export const ReduceElements = (
   source: Frame,

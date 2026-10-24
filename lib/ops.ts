@@ -5,6 +5,7 @@ import {
   MapMembers,
   ReduceElements,
   ReduceMembers,
+  SpliceElements,
 } from "./ops/iterators.ts";
 import {
   Add,
@@ -29,6 +30,7 @@ export type { ICurryFunction } from "./ops/frame-curry.ts";
 export const Ops = new FrameOps({
   "&": MapElements,
   "&&": MapMembers,
+  "&|": SpliceElements,
   ":": IfElse,
   "?": IfThen,
   "|": ReduceElements,
