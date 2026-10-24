@@ -117,4 +117,47 @@ describe("FrameGroup", () => {
         .toEqual("[(.k 1;), 1, (.k 1; 4, 5, 4, 5)]");
     });
   });
+
+  describe("evaluation, every time afresh (#404)", () => {
+    /** The answer of the last line; earlier lines are setup statements. */
+    const text = (...lines: string[]): string =>
+      evaluate(lines.join("\n")).at(-1).toString();
+
+    it("answers a fresh group and leaves the one it evaluated alone", () => {
+      const group = new frame.FrameGroup([a_frame, b_frame], { c: c_frame });
+      const result = group.in();
+
+      expect(result).toBeInstanceOf(frame.FrameGroup);
+      expect(result).not.toBe(group);
+      expect(result.get("c")).toEqual(c_frame);
+      expect(group.asArray()).toEqual([a_frame, b_frame]);
+    });
+
+    it("answers each call's values as a closure's body, as brackets do", () => {
+      expect(text(".f {(.a _; .b (a + 1);)};", "[f 1, f 2]"))
+        .toEqual("[(.a 1; .b 2;), (.a 2; .b 3;)]");
+      expect(text(".f {[.a _; .b (a + 1);]};", "[f 1, f 2]"))
+        .toEqual("[[.a 1; .b 2;], [.a 2; .b 3;]]");
+      expect(text(".g {(_, 1)};", "[g 1, g 2]")).toEqual("[(1, 1), (2, 1)]");
+      expect(text(".c {(.a _, 7)};", "[(c 1).a, (c 2).a, (c 3).#]"))
+        .toEqual("[1, 2, 1]");
+    });
+
+    it("answers each element's values in a map block", () => {
+      expect(text("[1, 2] & {(_, _)}")).toEqual("[(1, 1), (2, 2)]");
+    });
+
+    it("keeps a closure's source, which used to print the first answer", () => {
+      expect(text(".q {(_, 1)};", "q 5;", "q"))
+        .toEqual(text(".q {(_, 1)};", "q"));
+    });
+
+    it("collects a group of one's declarations on each call alone", () => {
+      // Each call answers what the literal with that call's value answers. The
+      // first call used to leave its declaration on the group, so later calls
+      // answered a different shape.
+      expect(text(".h {(.a _;)};", "[h 1, h 2]"))
+        .toEqual(text("[(.a 1;), (.a 2;)]"));
+    });
+  });
 });

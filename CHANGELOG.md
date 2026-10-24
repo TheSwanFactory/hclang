@@ -4,6 +4,15 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.24.2 2026-10-24
+
+- **A closure evaluates a group body on every call.** A parenthesised group in a
+  closure or block body was evaluated in place by the first call, so every later
+  call answered that first value and the closure printed it as its body.
+  `.f {(.a _; .b (a + 1);)}; [f 1, f 2]` is now
+  `[(.a 1; .b 2;), (.a 2; .b 3;)]`, as the bracket form already was, and
+  `[1, 2] & {(_, _)}` is `[(1, 1), (2, 2)]` (#404).
+
 ## v0.24.0 2026-10-23
 
 - **Splice operator `&|`.** `xs &| f` applies each element as `&` does and
