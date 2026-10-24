@@ -4,6 +4,24 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.23.0 2026-10-23
+
+- **Breaking: in a method, `_^` is the receiver.** The caret count is still
+  lexical, but the level that reaches the aggregate a method was written in now
+  reads the receiver the call is bound to: `_^` from the method body, `_^^` from
+  a block one level in. An inherited method reads the descendant, and a
+  functional copy's methods read the copy, so chained updates such as
+  `((Q.push_ 1).push_ 2)` keep every write. Unlike a bare name, `_^` still skips
+  an argument that has the same field. The receiver keeps the authority the call
+  was granted: a non-mutating method's `_^.bump_ ()` is a functional update, and
+  a mutating method reached through an immutable name writes only its own copy,
+  where both used to write the original. A closure written outside an aggregate
+  and stored as its method now reaches that aggregate through `_^`; bind an
+  outer value where the closure is written to read it instead (#416).
+- **A method read by dot from a value no name holds is bound to it.**
+  `[.^ Base; .x 2].get()` and `(Q.push_ 1).push_ 2` bind their method to that
+  value immutably, as a name would, instead of running it unbound (#416).
+
 ## v0.22.0 2026-10-23
 
 - **Breaking: repeating an aggregate concatenates its elements.** `n x` for an

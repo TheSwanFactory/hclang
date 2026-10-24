@@ -180,7 +180,10 @@ complete at a colon with or without intervening space.
   closure was written, never on how it was invoked. `_`/`__` and `_^`/`_^^` are
   two unrelated ladders — one walks argument scopes, the other lexical scopes —
   so `_^` is not "`_` plus one" and never skips a level to compensate for how it
-  was called.
+  was called. In a method, the level that reaches the aggregate the method was
+  written in is the method's receiver: `_^` from the body, `_^^` from a block
+  one level in. So an inherited method or a functional copy reads its own
+  fields, which a bare name cannot do when the argument has the same field.
 - **Iterator parameter**: `.` (dot by itself) reads the parameter supplied to
   the current call: the element index for `|`, property key for `&&`, or running
   accumulator for `&`, as in `[1, 2, 3] & { . + _ }`. Repeat the dot to walk
@@ -321,7 +324,8 @@ parent_.helper_ 10
 
 - **Argument context**: `_` (applied context)
 - **Enclosing context**: `_^` (defined context; one lexical scope per caret,
-  regardless of how the closure was invoked)
+  regardless of how the closure was invoked; in a method, the receiver stands in
+  for the aggregate the method was written in)
 - **Declared parent**: `.^ base` (inheritance, read by plain name)
 - **Iterator parameter**: `.` is the current call's index, key, or accumulator;
   repeat the dot for exact enclosing call levels (`..`, `...`, and so on)

@@ -1005,12 +1005,86 @@ describe("evaluate", () => {
           .toEqual("[1, 2, 1]");
       });
 
-      it("uses the lexical construction target for _^", () => {
+      it("reads a method's own aggregate through _^", () => {
         const result = evaluate(
           ".owner [.x 1; .read {_^.x}]; owner.read()",
         );
 
         expect(result.at(0).asArray().at(-1)?.toString()).toEqual("1");
+      });
+
+      describe("_^ in a method is its receiver (v0.23.0)", () => {
+        const last = (source: string): string | undefined =>
+          evaluate(source).at(0).asArray().at(-1)?.toString();
+
+        it("reads the descendant an inherited method was found on", () => {
+          expect(last(
+            ".Base [.x 1; .get {_^.x}]; .Kid [.^ Base; .x 2]; " +
+              "[Base.get(), Kid.get()]",
+          )).toEqual("[1, 2]");
+        });
+
+        it("reads a functional copy's own fields", () => {
+          expect(last(
+            ".Pt [.n 1; .read {_^.n}; .bump_ {@n (_^.n + 1);}]; " +
+              ".p2 (Pt.bump_ ()); [p2.read(), (p2.bump_ ()).n, Pt.n]",
+          )).toEqual("[2, 3, 1]");
+        });
+
+        it("still skips an argument that shadows a field", () => {
+          expect(last(".Pt [.n 1; .peek {[n, _^.n]}]; Pt.peek [.n 7]"))
+            .toEqual("[7, 1]");
+        });
+
+        it("keeps a non-mutating method from writing through it", () => {
+          expect(last(
+            ".C [.k 0; .bump_ {@k (k + 1);}; .sneak {(_^.bump_ ()).k}]; " +
+              "[C.sneak(), C.k]",
+          )).toEqual("[1, 0]");
+        });
+
+        it("writes only the copy behind an immutable handle", () => {
+          expect(last(
+            ".E [.k 0; .bump_ {@k (k + 1);}; " +
+              ".twice_ {_^.bump_ (); _^.bump_ ();}]; [(E.twice_ ()).k, E.k]",
+          )).toEqual("[2, 0]");
+        });
+
+        it("writes the receiver itself behind a mutable handle", () => {
+          expect(last(
+            ".D_ [.k 0; .bump_ {@k (k + 1);}; " +
+              ".twice_ {_^.bump_ (); _^.bump_ ();}]; D_.twice_ (); D_.k",
+          )).toEqual("2");
+        });
+
+        it("keeps every write of chained functional updates", () => {
+          expect(last(
+            ".Q [.items []; .push_ {@items (_^.items _);}]; " +
+              "((Q.push_ 1).push_ 2).items",
+          )).toEqual("[1, 2]");
+        });
+
+        it("reaches the receiver from a nested block one caret further out", () => {
+          expect(last(
+            ".Outer [.k 1; .ks {[1, 2] & {_^^.k}}]; " +
+              ".Inner [.^ Outer; .k 5]; [Outer.ks(), Inner.ks()]",
+          )).toEqual("[[1, 1], [5, 5]]");
+        });
+
+        it("binds a method read by dot from a value no name holds", () => {
+          expect(last(
+            '.Base [.x "base"; .get {_^.x}]; ' +
+              ".Ticker {[.k _; .bump_ {@k (k + 1);}]}; " +
+              '[[.^ Base; .x "kid"].get(), ' +
+              "([1, 2] & {Ticker _}) & {(_.bump_ ()).k}]",
+          )).toEqual("[“kid”, [2, 3]]");
+        });
+
+        it("names the receiver for a closure stored as a method", () => {
+          expect(last(
+            '.x "file"; .f {_^.x}; .obj [.x "obj"; .m f]; [f(), obj.m()]',
+          )).toEqual("[“file”, “obj”]");
+        });
       });
 
       it("implicitly accesses properties from the argument", () => {

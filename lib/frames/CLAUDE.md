@@ -311,7 +311,9 @@ Two rules define it:
   that scope, so `o.k` misses when `o` has no `k` (#400).
 
 Discovering a method through a handle or by bare name on the active raw receiver
-yields a `BoundMethod`, which owns the effect rules for that pairing: a mutating
+yields a `BoundMethod`, and so does reading one by dot from a value no name
+holds, which binds it immutably because such a value may still be shared
+(v0.23.0). The `BoundMethod` owns the effect rules for that pairing: a mutating
 method acts on the receiver itself through a mutable handle, and on an instance
 copy through an immutable one. A method without the mutating suffix retains
 receiver read access but receives no receiver-write capability, so a
@@ -320,6 +322,14 @@ kind of handle. A bare sibling mutator called from such a method is rebound
 functionally instead of escalating the outer method to an in-place write. Handle
 mutability selects original identity versus functional copy only after the
 method contract authorizes mutation.
+
+The receiver is also reachable by caret. `EvaluationScope.lexicalAt` answers the
+receiver at the level that reaches the scope a method was written in, `_^` from
+its body and `_^^` from a block one level in, reading it through the same
+`receiverLayer` that bare-name lookup pushes. The count stays lexical (spec
+a06), and the receiver keeps exactly the authority the call was granted, so an
+inherited method or a functional copy reads its own fields, and a non-mutating
+method's `_^.m_ ()` is a functional update.
 
 One immutable `ReceiverState` carries the exact receiver, copy provenance, bare
 sibling binding mode, and private write brand from `BoundMethod` to the

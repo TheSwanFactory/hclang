@@ -104,3 +104,48 @@ for `hc/format.hc`. Its outer document fence is removed, the cases are kept
 within HCTest's line-oriented model, the stale `_^` expectation now checks the
 missing-name diagnostic, and `cli/hc.test.ts` enforces authoritative totals. A
 parse-only, width-aware formatter remains separate future work.
+
+## Method receiver follow-up
+
+v0.23.0 resolves the question 3 follow-up on
+[#415](https://github.com/TheSwanFactory/hclang/issues/415). The caret count is
+unchanged. What changes is the frame denoted at one level.
+
+**The level that reaches the scope a method was written in denotes the method's
+receiver.** A method is written in its aggregate, and a call binds it to the
+aggregate it was found on: the aggregate itself, an instance copy of it, or a
+declared descendant. `_^` from a method body, or `_^^` from a block nested one
+level in it, therefore reads the receiver. Every other level is the enclosing
+lexical scope, as before.
+
+Three facts forced it:
+
+1. **No spelling named the receiver.** Bare names read it, but the argument is
+   looked up first (spec 7), so a method that takes an argument of its own
+   class, such as every Figure method, cannot reach its own fields by bare name.
+   Lexical `_^` read the aggregate the method was written in, which is the
+   receiver only until the object is copied or inherited from.
+2. **The copy contract failed.** An instance copy is its own owner, with no
+   residual claim on its source. With lexical `_^`, a functional copy's methods
+   read the source's fields: after `.p2 (Pt.bump_ ())`, `p2.n` was `2` while a
+   method reading `_^.n` saw `1`, and chained updates lost writes.
+3. **The effect axis leaked.** `_^` answered the defining aggregate raw. A
+   non-mutating method calling `_^.bump_ ()` wrote its receiver in place, and a
+   mutating method reached through an immutable name wrote the original while
+   its functional result lost the write.
+
+The receiver is read through the same layer bare-name lookup already uses, a
+handle carrying the call's mutability and copy provenance, so `_^` has exactly
+the authority bare names have and no more. The count still depends only on where
+the closure was written. The receiver is a fact of the call, as the argument `_`
+is.
+
+A method read by dot from a value no name holds, such as `(Q.push_ 1).push_ 2`
+or `[.^ Base; .x 2].get()`, is bound to that value as a name would bind it,
+immutably, because such a value may still be shared. Before v0.23.0 it ran
+unbound, so its `_^` fell back to the defining aggregate.
+
+One reading changes: a closure written outside an aggregate and stored as its
+method now reaches that aggregate through `_^`, not the scope it was written in.
+To read the outer scope, bind the value where the closure is written, as in
+`.outer x; .f {outer}`, which resolves lexically (#400).
