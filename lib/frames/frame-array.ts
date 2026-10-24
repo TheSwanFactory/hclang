@@ -5,6 +5,7 @@ import { type DeclaredApplication, Frame } from "./frame.ts";
 import { BoundMethod } from "./bound-method.ts";
 import { methodEffect } from "./effect-marker.ts";
 import { FrameExpr } from "./frame-expr.ts";
+import { FrameHandle } from "./frame-handle.ts";
 import type { FrameLazy } from "./frame-lazy.ts";
 import { FrameList } from "./frame-list.ts";
 import { FrameNote } from "./frame-note.ts";
@@ -75,6 +76,14 @@ export class FrameArray extends FrameList {
   /** Aggregates own identity, so `===` compares them by reference. */
   public override ownsIdentity(): boolean {
     return true;
+  }
+
+  /**
+   * An immutable handle on this aggregate, as a name reads it: applying it
+   * collects onto a copy and its mutating methods answer functional updates.
+   */
+  public override readOnly(): Frame {
+    return new FrameHandle(this, false);
   }
 
   /**

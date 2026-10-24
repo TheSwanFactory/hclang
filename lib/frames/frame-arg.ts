@@ -104,7 +104,7 @@ export class FrameArg extends FrameSymbol {
   public override in(input: EvaluationInput = []): Frame {
     const scope = EvaluationScope.from(input);
     const level = this.data.length;
-    const target = scope.argumentAt(level);
+    const target = scope.argumentRead(level);
     if (target) return target;
 
     // Outside a closure, an unresolved level remains an argument expression at

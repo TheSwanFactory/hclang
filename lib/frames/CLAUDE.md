@@ -396,6 +396,15 @@ for a `FrameSchema`. An aggregate with a declared application answers
 `undefined`, as `FrameExpr` does for every expression and closure, so repetition
 applies it from nil within `REPETITION_LIMIT`, as before.
 
+What an operation is handed is read-only (#419). `Frame.readOnly()` answers the
+frame itself, `FrameArray` an immutable handle on itself, and `FrameHandle`
+itself, so a handle the caller passed keeps its mutability. `_` and deeper
+argument levels read through `EvaluationScope.argumentRead`, and
+`FrameInt.repeat` applies through the operand's read-only view, so a map's
+element, a closure's argument and a repetition's operand are never written in
+place. Only what the operation created is written in place: a fresh literal, and
+a reduce's accumulator after the step that copied it.
+
 ### Copy Contract
 
 Copying is two operations, not one, and every call site belongs to exactly one

@@ -81,6 +81,11 @@ export class FrameHandle extends Frame {
     return copy;
   }
 
+  /** A handle already says whether its reader may write; keep it as it is. */
+  public override readOnly(): Frame {
+    return this;
+  }
+
   /** A handle is transparent to equality: it compares as its target. */
   public override referent(): Frame {
     return this.target.referent();

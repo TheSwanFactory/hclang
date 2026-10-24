@@ -170,7 +170,8 @@ complete at a colon with or without intervening space.
 ### Special Identifiers
 
 - **Anonymous argument**: `_` (single underscore; `__` reaches the enclosing
-  call's argument, and so on per underscore)
+  call's argument, and so on per underscore). An argument is read-only, as a
+  name is: applying an aggregate read through `_` collects onto a copy
 - **Parent declaration**: `.^` (declares the parent; `.^ base`)
 - **Size**: `.#` is an aggregate's element count and `.##` its leaf count at any
   depth, each a count; a count is its own size and any other value answers nil.

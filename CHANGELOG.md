@@ -4,6 +4,19 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.23.2 2026-10-23
+
+- **An argument is never written in place.** `_` reads an aggregate as a name
+  does, and repetition applies through its operand, so a map block applying its
+  element collects onto a copy: with `.xs [[1], [2]]`, `xs & {_ 9}` leaves `xs`
+  as `[[1], [2]]`. A class that declares `apply_` repeats on a copy, so `3 a` no
+  longer writes `a`. Only a fresh literal or a reduce's own accumulator is
+  written in place (#420).
+- **Figure application is a functional update.** `x y` is the mutating method
+  `apply_`, so it still answers a new Figure and leaves x alone, but a join
+  `ys | x` copies x once and appends in place after that: 512 units join in 0.15
+  s rather than 17 s (#420).
+
 ## v0.23.1 2026-10-23
 
 - **A map keeps its answers apart when its receiver is a literal aggregate.**
