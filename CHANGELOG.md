@@ -13,6 +13,15 @@
   `[(.a 1; .b 2;), (.a 2; .b 3;)]`, as the bracket form already was, and
   `[1, 2] & {(_, _)}` is `[(1, 1), (2, 2)]` (#404).
 
+## v0.24.1 2026-10-24
+
+- **A closure keeps its scope wherever it is read.** Reading a bound closure
+  through a name re-parented it to the read site, so a closure handed to another
+  closure resolved its free names in the reader's call, and a closure factory
+  nested one level too many with no error. With
+  `.Mk {.lower _; {[“level”, lower _]}}; .L0 {“base”};`, `(Mk (Mk L0)) 7` is now
+  `[“level”, [“level”, “base”]]` rather than three levels deep (#424).
+
 ## v0.24.0 2026-10-23
 
 - **Splice operator `&|`.** `xs &| f` applies each element as `&` does and
