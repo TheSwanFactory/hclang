@@ -16,23 +16,39 @@ export class FrameGroup extends FrameList {
     super(data, meta);
   }
 
-  private scoped(input: EvaluationInput): EvaluationScope {
-    const scope = EvaluationScope.from(input).withLayer(this);
-    return this.declares ? scope.withWriteTarget(this, "construction") : scope;
+  /**
+   * The scope this group's terms are evaluated in. `target` is the layer they
+   * read the group's properties from and, for a group written in source, the
+   * frame their declarations land on.
+   */
+  private scoped(input: EvaluationInput, target: Frame): EvaluationScope {
+    const scope = EvaluationScope.from(input).withLayer(target);
+    return this.declares
+      ? scope.withWriteTarget(target, "construction")
+      : scope;
   }
 
+  /**
+   * A group of one answers its term, carrying the group's properties. They
+   * are collected on a fresh copy, so one evaluation's declarations reach its
+   * own answer and never a later evaluation of the same group (#404).
+   */
   public eval_one(input: EvaluationInput = []): Frame {
-    const scope = this.scoped(input);
-    const expr = this.data[0];
-    const result = expr.in(scope);
+    const target = this.copy();
+    const result = this.data[0].in(this.scoped(input, target));
 
-    const symbols = this.meta_pairs();
-    symbols.forEach(([key, value]) => {
+    target.meta_pairs().forEach(([key, value]) => {
       result.set(key, value);
     });
     return result;
   }
 
+  /**
+   * A parsed group is source, and a closure evaluates the same one on every
+   * call, so the value is always a fresh group and this one is never written.
+   * Evaluating in place replaced its terms with the first call's answers,
+   * which every later call then answered again (#404).
+   */
   public override in(input: EvaluationInput = []): Frame {
     switch (this.size()) {
       case 0: {
@@ -42,9 +58,10 @@ export class FrameGroup extends FrameList {
         return this.eval_one(input);
       }
     }
-    const scope = this.scoped(input);
-    this.data = this.data.map((frame: Frame) => frame.in(scope));
-    return this;
+    const result = this.copy();
+    const scope = this.scoped(input, result);
+    result.data = result.data.map((frame: Frame) => frame.in(scope));
+    return result;
   }
 
   /**
