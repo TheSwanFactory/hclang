@@ -150,6 +150,16 @@ describe("FrameSymbol", () => {
     }
   });
 
+  it("never re-parents a bound closure it reads (#424)", () => {
+    // Reading `lower` inside the outer call used to point the inner closure's
+    // `up` at that call, so the inner closure found the outer `lower`.
+    expect(
+      evaluate(
+        ".Mk {.lower _; {[“level”, lower _]}}; .L0 {“base”}; (Mk (Mk L0)) 7",
+      ).at(0).toString(),
+    ).toContain("[“level”, [“level”, “base”]])");
+  });
+
   describe("size operators (#411)", () => {
     it("answers nil on anything but an aggregate or a count", () => {
       for (const receiver of ["“abc”", "`abc`", "'./x.txt'"]) {

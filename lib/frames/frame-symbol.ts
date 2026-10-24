@@ -139,7 +139,9 @@ export class FrameSymbol extends FrameAtom {
         // Every successful read gets its own lexical projection. Closures bind
         // a scoped copy, aggregates keep their exact identity behind a handle,
         // and immutable values use a plumbing copy. The shared binding is never
-        // re-parented for the benefit of one reader.
+        // re-parented for the benefit of one reader, so only a projection this
+        // read created takes the read site as its `up`: a closure that is
+        // already bound answers itself and keeps the scope it was made in.
         const isCanonicalBoolean = value === Frame.nil || value === Frame.all;
         const continuation = context instanceof FrameHandle
           ? context
@@ -149,7 +151,7 @@ export class FrameSymbol extends FrameAtom {
           : value instanceof FrameArray || isCanonicalBoolean
           ? value
           : value.copy();
-        if (!(resolved instanceof FrameArray) && !isCanonicalBoolean) {
+        if (resolved !== value) {
           resolved.up = continuation;
         }
 
