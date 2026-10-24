@@ -538,13 +538,13 @@ For a worked example, see the Figures module, shipped with the package as
 [`hc/figures.hc`](../hc/figures.hc), imported with
 `Figures <- './hc/figures.hc'`. `Figure [c, …]` is a constructor closure that
 answers a fresh object holding its `children` and declaring `x.many()`,
-`x.size()` and the other observers as methods. `x.cells()` answers a bracket
-tree with a `1` for each cell, so its leaf count `(x.cells()).##` is the Size of
-x as a natural number. Size and `x.size_mul y` build their tallies from such a
-count by repetition, `Figure (n [U])`, `x.mul y` builds `Figure (n [y])` the
-same way, and two tallies add as `(Figure [x, y]).size()`. Each method names its
-own Figure `_^`, because a bare name is looked up on the argument first, and the
-argument is usually another Figure.
+`x.size()` and the other observers as methods. The observers construct and never
+count: `x.cells()` splices the cells of x into one array with `&|`, `x.size()`
+is `Figure (x.cells() & {U})`, as Manyness is `Figure (x.children & {B})`, and
+`x.mul y` puts y at each cell. Two tallies add as `(Figure [x, y]).size()`, and
+a tally reads as a natural number through `(x.size()).children.#`. Each method
+names its own Figure `_^`, because a bare name is looked up on the argument
+first, and the argument is usually another Figure.
 
 ### TODO: Class variables
 

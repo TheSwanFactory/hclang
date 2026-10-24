@@ -4,6 +4,22 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.24.0 2026-10-23
+
+- **Splice operator `&|`.** `xs &| f` applies each element as `&` does and
+  splices the answers into one fresh array: each answer contributes its
+  elements, in order and shared, anything that is not an aggregate is one
+  element, and nil contributes nothing. So `[[1], [2, 3]] &| {_}` is
+  `[1, 2, 3]`, and `[1, 2, 3, 4] &| {(_ = 2) ? {__}}` filters to `[2]` (#422).
+- **Breaking: Figures construct and never count.** `x.cells()` answers the cells
+  of x themselves, spliced into one array, rather than a bracket tree of `1`s,
+  so `(x.cells()).#` replaces `(x.cells()).##`. `x.size()` is
+  `Figure (x.cells() & {U})`, `x.mul y` is `Figure (x.cells() & {y})`,
+  `x.size_mul y` sizes a constructed Figure, and `x.size_equivalent y` compares
+  two Sizes. The Size of a Figure with no cells is a new Figure equal to `Z`
+  rather than `Z` itself, and no observer has a size limit. Sizes are as fast as
+  counting was (#422).
+
 ## v0.23.2 2026-10-23
 
 - **An argument is never written in place.** `_` reads an aggregate as a name

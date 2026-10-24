@@ -221,8 +221,10 @@ All mathematical operators can use optional `.` prefix:
 
 ### Functional Operators
 
-- **Map**: `|` (pipeline/map operation)
-- **Reduce**: `&` (fold/reduce operation)
+- **Map**: `&` applies each element and keeps the answers apart
+- **Reduce**: `|` applies each element to the answer before it
+- **Splice**: `&|` maps, then splices each answer's elements into one array
+- **Tuples**: `&&` and `||` map and reduce `[key, value]` tuples
 
 ### Type Operators
 
@@ -382,7 +384,7 @@ parent_.helper_ 10
 - Math: `+`, `-`, `*`, `/`, `%%`, `**` (`+` and `-` also have unary forms)
 - Comparison: `=`, `>`, `<`, `~`
 - Logic: `!`, `?`, `:`
-- Functional: `|`, `&`
+- Functional: `&`, `|`, `&|`, `&&`, `||`
 
 ### Identifiers by Category
 

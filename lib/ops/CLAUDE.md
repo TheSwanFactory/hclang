@@ -40,7 +40,8 @@ power.
 - [iterators.ts](iterators.ts) - Iteration, which is application twice
   - `&` - map elements: apply each to the receiver, keep the answers apart
   - `|` - reduce elements: apply each to the value the last step answered
-  - `&&` / `||` - the same two, over a stream widened to `[key, value]` tuples
+  - `&|` - splice: map, then join each answer's elements into one fresh array
+  - `&&` / `||` - map and reduce, over a stream widened to `[key, value]` tuples
 
   Both operators take the right operand as the receiver and hand it the element
   as the argument. Neither inspects what it was handed, so a text or aggregate

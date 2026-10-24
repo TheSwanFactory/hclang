@@ -8,6 +8,7 @@ import {
   MapMembers,
   ReduceElements,
   ReduceMembers,
+  SpliceElements,
 } from "./iterators.ts";
 
 const ints = (...values: number[]): frame.FrameArray =>
@@ -59,6 +60,44 @@ describe("iterators", () => {
       expect(result.toString()).toEqual("[[0, 1], [0, 2]]");
       expect(result.at(0)).not.toBe(result.at(1));
       expect(receiver.toString()).toEqual("[0]");
+    });
+  });
+
+  describe("&| splices the answers", () => {
+    const identity = new frame.FrameLazy([frame.FrameArg.here()]);
+
+    it("joins each answer's elements into one fresh array", () => {
+      const inner = ints(2, 3);
+      const source = new frame.FrameArray([ints(1), inner, ints()]);
+      const result = SpliceElements(source, identity);
+
+      expect(result.toString()).toEqual("[1, 2, 3]");
+      expect(result.at(1).referent()).toBe(inner.at(0));
+      expect(source.toString()).toEqual("[[1], [2, 3], []]");
+    });
+
+    it("treats an answer that is not an aggregate as one element", () => {
+      expect(SpliceElements(ints(1, 2), identity).toString())
+        .toEqual("[1, 2]");
+    });
+
+    it("splices a fresh copy of an aggregate receiver per element", () => {
+      const receiver = ints(0);
+
+      expect(SpliceElements(ints(1, 2), receiver).toString())
+        .toEqual("[0, 1, 0, 2]");
+      expect(receiver.toString()).toEqual("[0]");
+    });
+
+    it("lets a nil answer contribute nothing", () => {
+      class Nothing extends frame.Frame {
+        public override call(): frame.Frame {
+          return frame.Frame.nil;
+        }
+      }
+
+      expect(SpliceElements(ints(1, 2), new Nothing()).toString())
+        .toEqual("[]");
     });
   });
 
