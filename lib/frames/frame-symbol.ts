@@ -177,6 +177,21 @@ export class FrameSymbol extends FrameAtom {
             receiverState.lexicalContext,
           );
         }
+        // A method read by dot from a value no name holds binds to that value
+        // as a name would, immutably: it may still be shared, so a mutating
+        // method answers a functional update rather than writing it.
+        if (
+          resolved instanceof FrameLazy && this.is.address === true &&
+          !(context instanceof FrameHandle) && context.ownsIdentity() &&
+          this.isReceiverPathValue(context, value, origin)
+        ) {
+          return new BoundMethod(
+            resolved,
+            context,
+            false,
+            methodEffect(this.data),
+          );
+        }
         const copyOnWrite = context instanceof FrameHandle
           ? context.copyOnWriteScope() ?? receiverState?.copyOnWrite
           : receiverState?.copyOnWrite;

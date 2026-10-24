@@ -170,3 +170,36 @@ is shared with the original, so it keeps its identity.`
 ; .shelf [.item [.n 1]; .count 0; .tick_ {@count (count + 1);}];
 ; [(shelf.tick_ ()).count, shelf.count, (shelf.tick_ ()).item === shelf.item]
 # [1, 0, <>]
+
+`A method reaches its receiver one caret out, because the scope a method is
+written in is its aggregate, and a call binds it to the aggregate it was found
+on. An inherited method therefore reads the descendant, and bare names, which
+read the argument first, are not needed to reach it.`
+; .Base [.x “base”; .get {_^.x}];
+; .Kid [.^ Base; .x “kid”];
+; [Base.get(), Kid.get()]
+# [“base”, “kid”]
+; .Pt [.n 1; .peek {[n, _^.n]}];
+; Pt.peek [.n 7]
+# [7, 1]
+
+`A functional copy is its own receiver, so its methods read the fields the copy
+holds rather than those of the value it was copied from.`
+; .Tally [.n 1; .read {_^.n}; .bump_ {@n (_^.n + 1);}];
+; .tally2 (Tally.bump_ ());
+; [tally2.read(), (tally2.bump_ ()).n, Tally.n]
+# [2, 3, 1]
+
+`The receiver keeps the authority its method was granted. A non-mutating method
+that calls a mutator through it gets a functional update, and a mutating method
+reached through an immutable handle writes only its own copy.`
+; .Ticker [.k 0; .bump_ {@k (k + 1);}; .sneak {(_^.bump_ ()).k}; .twice_ {_^.bump_ (); _^.bump_ ();}];
+; [Ticker.sneak(), (Ticker.twice_ ()).k, Ticker.k]
+# [1, 2, 0]
+
+`A block nested in a method counts its carets lexically, so the method's
+receiver is one caret further out.`
+; .Outer [.k 1; .ks {[1, 2] & {_^^.k}}];
+; .Inner [.^ Outer; .k 5];
+; [Outer.ks(), Inner.ks()]
+# [[1, 1], [5, 5]]

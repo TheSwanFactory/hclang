@@ -241,15 +241,7 @@ export class EvaluationScope {
     const forwarded = receiverState !== undefined &&
       receiverState === enclosing?.receiverState;
     if (receiverState && !forwarded) {
-      const receiverLookup = receiverState.lexicalContext
-        ? new FrameHandle(
-          receiverState.receiver,
-          receiverState.mutable,
-          receiverState.copyOnWrite,
-          receiverState.lexicalContext,
-        )
-        : receiverState.receiver;
-      lookupFrames.push(receiverLookup);
+      lookupFrames.push(EvaluationScope.receiverLayer(receiverState));
     }
     if (closure) lookupFrames.push(closure);
     if (enclosing) lookupFrames.push(...enclosing.lookupFrames());
@@ -410,11 +402,46 @@ export class EvaluationScope {
   public lexicalAt(level: number): Frame | undefined {
     if (level <= 0) return this.lexicalTarget;
 
-    let scope = this.enclosing;
-    for (let current = 1; current < level; current += 1) {
-      scope = scope?.enclosing;
-    }
-    return scope?.lexicalTarget;
+    const inner = this.outward(level - 1);
+    // A method's body is written in its aggregate, and a call binds it to a
+    // receiver: the aggregate itself, an instance copy of it, or a declared
+    // descendant. The level that reaches the scope the method was written in
+    // reaches that receiver instead, so the caret count stays lexical while a
+    // copy or a descendant reads its own fields rather than its source's.
+    const receiverState = inner?.methodReceiverState();
+    if (receiverState) return EvaluationScope.receiverLayer(receiverState);
+    return inner?.enclosing?.lexicalTarget;
+  }
+
+  /** The scope `steps` enclosing scopes out from this one. */
+  private outward(steps: number): EvaluationScope | undefined {
+    return steps <= 0 ? this : this.enclosing?.outward(steps - 1);
+  }
+
+  /**
+   * The receiver state this scope's call bound, when this scope is a method
+   * body rather than a block nested in one, which runs with the receiver state
+   * its method forwarded.
+   */
+  private methodReceiverState(): ReceiverState | undefined {
+    const state = this.receiverState;
+    return state && state !== this.enclosing?.receiverState ? state : undefined;
+  }
+
+  /**
+   * The receiver as a method call reads it: through a handle carrying the
+   * call's mutability and copy provenance when the read recorded a scope, so
+   * lookup through it reaches the receiver and its declared parents only.
+   */
+  private static receiverLayer(state: ReceiverState): Frame {
+    return state.lexicalContext
+      ? new FrameHandle(
+        state.receiver,
+        state.mutable,
+        state.copyOnWrite,
+        state.lexicalContext,
+      )
+      : state.receiver;
   }
 
   /** Copies this scope's lookup layers with additions that are not present. */
