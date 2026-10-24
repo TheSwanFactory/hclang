@@ -131,6 +131,20 @@ written, mutable or not, and every element keeps its identity
 ; [((row xs) .2) === xs, (row xs) === row]
 # [<>, ()]
 ```
+An argument applies like a name, too (#419). A value an operation is handed,
+an element a map gives its block or the operand of a repetition, is read-only:
+applying it collects onto a copy, and its declared `apply_` answers a
+functional update. Only what the operation created, a fresh literal or a
+reduce's own accumulator, is written in place
+```
+; .nest [[1], [2]];
+; [nest & {_ 9}, nest]
+# [[[1, 9], [2, 9]], [[1], [2]]]
+; .Acc {[.n _; .apply_ {@n (_^.n + 1);}]};
+; .acc (Acc 0);
+; [(3 acc).n, acc.n]
+# [2, 0]
+```
 Concatenation therefore needs no operator of its own: reduce one aggregate into
 another, named or computed
 ```

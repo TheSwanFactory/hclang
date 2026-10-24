@@ -1013,6 +1013,24 @@ describe("evaluate", () => {
         expect(result.at(0).asArray().at(-1)?.toString()).toEqual("1");
       });
 
+      describe("an argument is read-only (#419)", () => {
+        const last = (source: string): string | undefined =>
+          evaluate(source).at(0).asArray().at(-1)?.toString();
+
+        it("collects onto a copy when a block applies its element", () => {
+          expect(last(".xs [[1], [2]]; [xs & {_ 9}, xs, {_ 9} (xs .0)]"))
+            .toEqual("[[[1, 9], [2, 9]], [[1], [2]], [1, 9]]");
+          expect(last(".xs [[1], [2]]; xs & {_ 9}; xs")).toEqual("[[1], [2]]");
+        });
+
+        it("repeats a declared apply_ on a copy of its operand", () => {
+          expect(last(
+            ".Acc {[.n _; .apply_ {@n (_^.n + 1);}]}; .a (Acc 0); " +
+              "[(3 a).n, a.n]",
+          )).toEqual("[2, 0]");
+        });
+      });
+
       describe("_^ in a method is its receiver (v0.23.0)", () => {
         const last = (source: string): string | undefined =>
           evaluate(source).at(0).asArray().at(-1)?.toString();

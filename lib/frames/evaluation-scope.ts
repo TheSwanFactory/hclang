@@ -381,6 +381,17 @@ export class EvaluationScope {
     return scope?.argument;
   }
 
+  /**
+   * The argument `_`, `__`, ... as source reads it: an aggregate the call was
+   * handed raw is read through an immutable handle, as a name would read it,
+   * so applying it collects onto a copy and its mutating methods answer
+   * functional updates. An argument is never the call's to write (#419). A
+   * handle the caller passed, mutable or not, is kept as it is.
+   */
+  public argumentRead(level: number): Frame | undefined {
+    return this.argumentAt(level)?.readOnly();
+  }
+
   /** Resolves `.`, `..`, ... through exact enclosing call parameters. */
   public parameterAt(level: number): Frame | undefined {
     if (level <= 1) return this.parameter;

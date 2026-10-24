@@ -230,9 +230,14 @@ export class FrameInt extends FrameNumeric {
       return Frame.error(`$!.repetition-size ${REPETITION_TEXT_LIMIT}`);
     }
 
+    // The operand arrives unwrapped, and applying to nil answers it as it is.
+    // Read it as a name would, so a later step that writes, such as a declared
+    // `apply_`, updates a copy rather than the operand itself (#419).
+    const operand = argument.readOnly();
     let result = Frame.nil;
     for (let index = 0; index < count; index += 1) {
-      result = result.apply(argument, parameter);
+      const next = result.apply(operand, parameter);
+      result = next === operand.referent() ? operand : next;
     }
     return result;
   }

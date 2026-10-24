@@ -45,11 +45,13 @@ order, each one itself rather than a copy, so `(x.children .0) === c`
 ```;
   .children (_ | []);
 ```
-**Application**, `x y` (#375): a new Figure with x's children followed by y.
-It leaves x unchanged and forgets nothing, so `ys | x` joins two Figures and
-`cs | (Figure [])` constructs one out of a stream
+**Application**, `x y` (#375): x's children followed by y. It is a mutating
+method, `apply_`, so through a name, `x y` is a functional update: it answers a
+new Figure and leaves x unchanged. A reduce writes only the Figure its own
+first step answered, so `ys | x` joins two Figures, copying x once, and
+`cs | (Figure [])` constructs one out of a stream. It forgets nothing
 ```;
-  .apply {Figure ((_^.children | []) _)};
+  .apply_ {@children (_^.children _);};
 ```
 **Manyness**, `x.many()`: a tally with one mark `B` per immediate child. It
 keeps how many children there are and forgets what they are, everything below
@@ -171,9 +173,18 @@ an empty Figure constructs, and a map extends one Figure per element
 ```
 Repetition applies a Figure rather than concatenating, because a Figure
 declares its application: `3 U` is `(U U) U`, and each child it appends is `U`
-itself
+itself. U is the operand, never the receiver written
 ```
-; [(3 U) = ((U U) U), ((3 U).children .0) === Z, ((3 U).children .2) === U]
+; [(3 U) = ((U U) U), ((3 U).children .0) === Z, ((3 U).children .2) === U, U = (Figure [Z])]
+# [<>, <>, <>, <>]
+```
+A join copies its receiver once and appends in place after that, so it is
+quick, and the receiver and every child keep their identity
+```
+; .joined ((512 [U]) | Z);
+; [joined.children.#, Z = (Figure []), (joined.children .511) === U]
+# [512, <>, <>]
+; [(E.children & {_ A}) = [Figure [A], Figure [Z, A]], A = (Figure []), B = (Figure [A])]
 # [<>, <>, <>]
 ```
 ## Manyness and Size

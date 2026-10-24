@@ -384,6 +384,15 @@ export class Frame extends MetaFrame {
     return false;
   }
 
+  /**
+   * This frame as a value its reader may not write (#419). Only an aggregate
+   * owns identity a write can land on, so every other frame is its own
+   * read-only view; `FrameArray` answers an immutable handle on itself.
+   */
+  public readOnly(): Frame {
+    return this;
+  }
+
   /** Compare only this frame's data plane, excluding metadata. */
   public dataEquals(other: Frame): Frame {
     return this.dataString() === other.dataString() ? Frame.all : Frame.nil;

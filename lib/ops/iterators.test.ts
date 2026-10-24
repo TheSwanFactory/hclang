@@ -115,8 +115,10 @@ describe("iterators", () => {
         new frame.FrameLazy([frame.FrameArg.here()]),
       );
 
-      expect(result.at(0).at(0)).toBeInstanceOf(frame.FrameSymbol);
-      expect(result.at(0).at(0).toString()).toEqual(".0");
+      // `_` reads the tuple through a read-only handle (#419).
+      const tuple = result.at(0).referent();
+      expect(tuple.at(0)).toBeInstanceOf(frame.FrameSymbol);
+      expect(tuple.at(0).toString()).toEqual(".0");
     });
 
     it("reduces that same stream, threading as | does", () => {
