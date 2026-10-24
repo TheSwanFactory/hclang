@@ -39,7 +39,16 @@ const members = (source: Frame): Frame[] => {
   return [...properties, ...elements];
 };
 
-/** `&` applies each element on its own and keeps the answers apart. */
+/**
+ * `&` applies each element on its own and keeps the answers apart.
+ *
+ * A map never accumulates into its receiver (#417): each element is applied
+ * to the receiver's collecting copy, a fresh aggregate sharing its members,
+ * as applying through an immutable name already does. A reduce may write its
+ * fresh intermediate in place because only the final answer escapes; a map
+ * answers once per element, so an aggregate that no name holds would
+ * otherwise collect every element and be answered each time.
+ */
 export const MapElements = (
   source: Frame,
   receiver: Frame,
@@ -47,7 +56,7 @@ export const MapElements = (
 ): FrameArray =>
   new FrameArray(
     source.elements().map((value) =>
-      receiver.call(value, Frame.nil, receiverState)
+      receiver.collectingCopy().call(value, Frame.nil, receiverState)
     ),
   );
 
@@ -58,7 +67,7 @@ export const ReduceElements = (
   receiverState?: ReceiverState,
 ): Frame => source.reduce(receiver, receiverState);
 
-/** `&&` maps the same stream widened to `[key, value]` tuples. */
+/** `&&` maps the same stream widened to `[key, value]` tuples, as `&` does. */
 export const MapMembers = (
   source: Frame,
   receiver: Frame,
@@ -66,7 +75,7 @@ export const MapMembers = (
 ): FrameArray =>
   new FrameArray(
     members(source).map((member) =>
-      receiver.call(member, Frame.nil, receiverState)
+      receiver.collectingCopy().call(member, Frame.nil, receiverState)
     ),
   );
 

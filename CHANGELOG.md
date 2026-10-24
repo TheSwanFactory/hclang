@@ -4,6 +4,14 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.23.1 2026-10-23
+
+- **A map keeps its answers apart when its receiver is a literal aggregate.**
+  `&` and `&&` apply each element to a fresh copy of the receiver, as through an
+  immutable name, so `[1, 2] & [0]` is `[[0, 1], [0, 2]]` rather than one array
+  `[0, 1, 2]` answered twice, and `[1, 2, 3] & []` is `[[1], [2], [3]]`. A
+  reduce still writes its fresh accumulator in place (#418).
+
 ## v0.23.0 2026-10-23
 
 - **Breaking: in a method, `_^` is the receiver.** The caret count is still
