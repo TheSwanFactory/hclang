@@ -46,6 +46,32 @@ and program is composed of frames. This unified representation enables:
 - [frame-lazy.ts](frame-lazy.ts) - Lazy evaluation wrappers
 - [frame-arg.ts](frame-arg.ts) - Function arguments
 - [frame-name.ts](frame-name.ts) - Named bindings
+- [frame-word.ts](frame-word.ts) - A word: an atom of source held as data
+
+### Walking a Closure
+
+A closure is an aggregate of its body's atoms, so `&` walks it without
+evaluating anything, and `.#` counts the atoms (#429, `spec/a15`). `atomsOf` in
+`frame-expr.ts` flattens the parser's `FrameBind` and one-term `FrameExpr`
+wrappers, keeps a `;` statement terminator as the word `;`, and turns every
+symbol, operator and name into a `FrameWord`: a lookup yields `a`, a declaration
+`.a`. A word never resolves, however it is carried, so a program can hold,
+compare and re-collect the names of a body. Every other atom, a count, a string,
+a nested closure or an aggregate written in the body, is yielded as the
+template's own frame, and `Frame.walked()` is what lets an aggregate written in
+a body walk by the same rule. The walk never copies and never writes, so two
+walks yield the same frames and a call in between changes nothing. A size
+operator reaches a closure as its argument, where the body would run, so
+`FrameLazy.call` answers it first. A fold is the one place words turn back into
+code: `|` over a closure calls it with the receiver, and `|` over a stream that
+holds a word re-reads the stream as a closure (`closureFromAtoms` in
+`reread.ts`, the inverse of the walk) and calls that, so `{x + 1} | (.x 5)` is
+`6` and `{…} | (args)` is a second spelling of `{…} (args)`. Folding the atoms
+one at a time cannot be the call, because the evaluator keeps the scope apart
+from the running answer and a fold has only the one receiver. `reread.ts` is its
+own module because it needs `FrameArg`, a subclass of `FrameSymbol`, and
+`frame-symbol.ts` imports `frame-lazy.ts`. Before v0.25.0 the walk yielded
+parsed terms, dropped statements and declarations, and `.#` called the closure.
 
 ### Advanced Types
 

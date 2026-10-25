@@ -339,6 +339,15 @@ export class Frame extends MetaFrame {
   }
 
   /**
+   * What a walk over an aggregate yields for this element (#429). A value is
+   * itself. A parsed term is syntax, and answers the atom it wraps, so the
+   * parser's trivial wrappers never reach a program.
+   */
+  public walked(): Frame {
+    return this;
+  }
+
+  /**
    * What this frame answers for a size operator, `.#` or `.##` (#411). Only an
    * aggregate counts and a count is its own size, so anything else is nil.
    */

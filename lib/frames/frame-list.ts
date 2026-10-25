@@ -128,7 +128,9 @@ export class FrameList extends Frame {
    * iterate.
    */
   public override elements(): Array<Frame> {
-    return this.data.filter((item) => this.isElement(item));
+    return this.data.filter((item) => this.isElement(item)).map((item) =>
+      item.walked()
+    );
   }
 
   /** Whether this term is one of the elements, as `elements()` reads them. */

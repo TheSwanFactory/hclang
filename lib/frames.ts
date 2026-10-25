@@ -38,6 +38,7 @@ export {
 } from "./frames/frame-match.ts";
 export { FrameList, type IArrayConstructor } from "./frames/frame-list.ts";
 export { FrameName } from "./frames/frame-name.ts";
+export { FrameWord } from "./frames/frame-word.ts";
 export { FrameNote } from "./frames/frame-note.ts";
 export {
   FrameScopeAnchor,
