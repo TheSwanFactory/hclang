@@ -1,8 +1,8 @@
 # Closure Inspection: Walking Code Without Running It
 
-**Status:** Implemented in v0.25.0, with the warts listed in [Warts](#warts).
-Each example gives the answer at v0.25.0, and a line marked _before_ gives what
-v0.24.3 (`b1867e8`) answered, measured.\
+**Status:** Implemented in v0.25.0, with names as values in v0.26.0, and the
+warts listed in [Warts](#warts). Each example gives the answer at v0.25.0, and a
+line marked _before_ gives what v0.24.3 (`b1867e8`) answered, measured.\
 **Issues:** [#429](https://github.com/TheSwanFactory/hclang/issues/429), whose
 three design questions this document answers;
 [#374](https://github.com/TheSwanFactory/hclang/issues/374), which owns the
@@ -94,18 +94,55 @@ spelled or compared, and the `.x` that `[.x 5] && {_}` yields becomes a lookup
 again as soon as it is bound to a name.
 
 **Ruling: a walked name is a word, printed as it was written.** A lookup yields
-`x` and a declaration yields `.x`, so the walk's text re-reads as the source,
-and the two are distinct names. The class is `FrameWord`
-(`lib/frames/frame-word.ts`). Whether a bare `.x` in value position should also
-be a word, rather than the valueless declaration it is today, is left open:
-`obj .x` reaches a property through that same address symbol, so it is not a
-change to make lightly.
+`x` and a declaration yields `.x`, so the walk's text re-reads as the source.
+The class is `FrameWord` (`lib/frames/frame-word.ts`).
 
-**Ruling: `=` on names compares spelling.** Two walks of `x` are `=`, and `x`
-and `y` are not. Whether `===` on two names can distinguish _which_ `x`, the
-binding identity #429 asks for, is left open: it is answerable only for a walk
-over a bound closure, and only if the walk can carry the binding without
-exposing the scope (§5). Until ruled, `===` on names is `=`.
+**Ruling: a bare `.x` is a name too, and keeps its two live roles.** The address
+`.x` written in a program already printed and collected as a name. It now stays
+one when it is kept: bound by a declaration, compared, or spelled as text. It
+still does its two jobs: applied to a value it declares, `.x 5`, and applied by
+an aggregate it reads that member, `o .x`. So a key can be kept in a variable
+and used later (v0.26.0):
+
+```text
+.o [.x 5]; .k .x; o k                          → 5
+.o [.x 5, .y 6]; .ks [.x, .y]; ks & {o _}      → [5, 6]
+.k .x; [k, “” k, k = (.x), k = (.y)]           → [.x, “.x”, <>, ()]
+```
+
+_before:_ `.k .x` answered `$!.name-missing x`: the pending declaration `.k` was
+the receiver `.x` was read from. `“” .x` failed the same way.
+
+The name `.k` keeps is a fresh address, so it carries no write authority over
+the scope `.x` was written in: `.k .x; k 7` declares nothing. Text spells a name
+only when it has no such member, so a document still answers `.body`. `@x` is
+not a name: it is the write alias of the binding `x`, and `.k (@x)` keeps only
+its name.
+
+**Ruling: `=` on names compares the name.** A lookup `x`, a declaration `.x`,
+and the written name `.x` are all equal, in either order, and `x` and `y` are
+not.
+
+**Ruling: `===` on walked names compares the declaration they resolve to.** A
+name at the head of an expression declares, and a lookup resolves to the nearest
+declaration before it, in its own body or in a body around it, which is the
+order a call evaluates them in. A closure's locals come ahead of its argument,
+so that much is static, and `===` tells shadowed names apart:
+
+```text
+.c {.a 1; {.a 2; a}}; .o ((c & {_}) .0); .i (((c & {_}) .3) & {_});
+[(i .3) === (i .0), (i .3) === o, (i .3) = o]  → [<>, (), <>]
+.f {a; .a 1}; .w (f & {_}); (w .0) === (w .2)  → ()     a lookup before it is free
+.f {.a 1; o .a}; .w (f & {_}); (w .4) === (w .0)  → ()  a member name is not the local
+```
+
+A name declared nowhere its body can see is **free**. It resolves per call,
+argument first (spec 7), so which `x` it means is not a fact about the closure,
+and two free words are `===` when they are spelled alike. A walk of a nested
+closure sees the declarations around it whether or not anything walked the outer
+closure first: they are recorded when the outer closure's call binds the inner
+one. `===` on a word and a written `.x` is nil, and the ladder holds, since
+`===` implies the same spelling and so `==` and `=`.
 
 A name answers nothing about the value it would name. `.x.#` is nil, and
 applying a name is applying a symbol: `(.x) 5` is the declaration `.x 5`,
@@ -188,18 +225,18 @@ captured names still resolve.
 
 ## 7. The acceptance tests of #429, in HC
 
-| #429 asks                                                  | Test                                    | Today                                        |
-| ---------------------------------------------------------- | --------------------------------------- | -------------------------------------------- |
-| No effect executes under the walk                          | §4 clock example                        | holds                                        |
-| Terms recovered in order, no execution                     | §2 join re-reads; `.#` counts atoms     | fails: statements dropped, `.#` evaluates    |
-| Calling afterwards leaves the snapshot unchanged           | §4 `before = after`                     | holds                                        |
-| Nested closures and shadowed names keep their distinctions | §1 nested closure; §3 names; `===` open | fails: a yielded `x` resolves on touch       |
-| No private values exposed, no AST mutation                 | §5; §4 functional update                | holds for exposure; mutation ruled, untested |
+| #429 asks                                                  | Test                                  | Status                                             |
+| ---------------------------------------------------------- | ------------------------------------- | -------------------------------------------------- |
+| No effect executes under the walk                          | §4 clock example                      | holds                                              |
+| Terms recovered in order, no execution                     | §2 walk re-reads; `.#` counts atoms   | holds (before: statements dropped, `.#` evaluated) |
+| Calling afterwards leaves the snapshot unchanged           | §4 `before = after`                   | holds                                              |
+| Nested closures and shadowed names keep their distinctions | §1 nested closure; §3 names and `===` | holds (before: a yielded `x` resolved on touch)    |
+| No private values exposed, no AST mutation                 | §6; §4 functional update              | holds for exposure; mutation ruled, untested       |
 
 ## Warts
 
-Accepted in v0.25.0, each small enough to live with and each a candidate for its
-own ruling:
+Accepted in v0.25.0 and v0.26.0, each small enough to live with and each a
+candidate for its own ruling:
 
 - **`,` is not an atom.** A `,` between terms of a closure body separates two
   terms, as it does today, and the walk yields the terms with nothing between
@@ -214,12 +251,15 @@ own ruling:
 - **A word has no members.** `{x} & {_ .0}` answers `$!.name-missing`, for the
   member `0` of the word, rather than for `x`. That is the point, but a word
   could reasonably answer its spelling as text instead.
-- **A bare `.x` is still a declaration** (§3).
+- **A lookup inside an aggregate written in a body is free.** `{.a 1; [a]}`
+  walks to an array whose own walk does not see `.a`, so its `a` is free for
+  `===`. Closures nested in a body do see their enclosing declarations.
+- **Applying a kept name to a value echoes a declaration it does not make.**
+  `.k .x; k 7` answers `(.x 7)` and writes nothing, because the kept name has no
+  write target. Refusing it would be clearer.
 
 ## Not in scope
 
 Inference over the walk (what an operation preserves), certification of a
 derivation, and any proof kernel: these are Figure 004's questions, and this
-document only makes their input stable and traversable. Whether `===` on names
-carries binding identity, and whether a bare `.x` is a word, are left to later
-rulings.
+document only makes their input stable and traversable.

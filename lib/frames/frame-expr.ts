@@ -71,7 +71,7 @@ export class FrameExpr extends FrameList {
 
   /** A parsed expression walks as its atoms (#429). */
   public override elements(): Frame[] {
-    return atomsOf(this.data);
+    return atomsOf(this.data, sitesAround(this.data));
   }
 
   /** A parsed expression of one atom is that atom; anything else is itself. */
@@ -171,6 +171,27 @@ const isPlainExpr = (term: Frame): term is FrameExpr =>
   Object.getPrototypeOf(term) === FrameExpr.prototype;
 
 /**
+ * A closure literal. `FrameLazy` is the one other subclass of `FrameExpr`, and
+ * it cannot be imported here, because it extends this module's class.
+ */
+const isClosure = (term: Frame): term is FrameExpr =>
+  term instanceof FrameExpr && !isPlainExpr(term) &&
+  !((term as Frame) instanceof FrameBind);
+
+/** The declarations a body can see, by spelling: each is its `FrameName` node. */
+type Sites = ReadonlyMap<string, FrameName>;
+
+/**
+ * The declarations visible to each closure body a walk has passed through.
+ *
+ * A nested closure walks lazily, when a program walks the atom it is, so the
+ * declarations around it are recorded as its enclosing body walks past it.
+ * The key is the body's first term: a bound copy holds a fresh body array but
+ * the same terms, and a body with no terms has no names to resolve.
+ */
+const enclosingSites = new WeakMap<Frame, Sites>();
+
+/**
  * The atoms of parsed terms, in source order, as data (#429).
  *
  * The parser wraps each atom of a juxtaposition as `FrameBind` holding a
@@ -180,24 +201,84 @@ const isPlainExpr = (term: Frame): term is FrameExpr =>
  * a `,` between terms is not kept. Any other atom, a count, a string, a
  * closure or an aggregate written in the body, is yielded itself, unevaluated,
  * and an aggregate walks in turn by the same rule.
+ *
+ * Each word carries the declaration it resolves to, so `===` tells apart two
+ * names with one spelling. A name at the head of an expression declares, and
+ * a lookup resolves to the nearest declaration before it in its own body or in
+ * a body around it, which is the order a call evaluates them in. A closure's
+ * locals come ahead of its argument, so that is static. A name declared
+ * nowhere it can see is free: it resolves per call, argument first (spec 7),
+ * so its word carries no declaration.
  */
-export function atomsOf(terms: readonly Frame[]): Frame[] {
+export function atomsOf(
+  terms: readonly Frame[],
+  sites: Sites = new Map(),
+): Frame[] {
+  const scope = new Map(sites);
   const atoms: Frame[] = [];
-  for (const term of terms) {
+  const walk = (term: Frame): void => {
     if (term instanceof FrameBind) {
-      atoms.push(...atomsOf(term.asArray()));
+      for (const inner of term.asArray()) walk(inner);
     } else if (isPlainExpr(term)) {
-      atoms.push(...atomsOf(term.asArray()));
+      const declared = declaredName(term);
+      for (const inner of term.asArray()) walk(inner);
+      if (declared) scope.set(declared.source, declared);
       if (term.is.statement) atoms.push(FrameWord.word(";"));
     } else if (term instanceof FrameName) {
-      atoms.push(FrameWord.address(term.source));
+      // A name at the head of an expression is its own declaration. Anywhere
+      // else it is a value or a member, `o .a`, which no local declares.
+      atoms.push(
+        FrameWord.address(term.source, heads.has(term) ? term : undefined),
+      );
     } else if (term instanceof FrameSymbol) {
-      atoms.push(FrameWord.word(term.spelling()));
+      const spelling = term.spelling();
+      atoms.push(FrameWord.word(spelling, scope.get(spelling)));
     } else {
+      const first = isClosure(term) ? term.asArray()[0] : undefined;
+      if (first) enclosingSites.set(first, scope);
       atoms.push(term);
     }
-  }
+  };
+  const heads = new Set<Frame>();
+  const declaredName = (expr: FrameExpr): FrameName | undefined => {
+    const terms = expr.asArray();
+    if (terms.length < 2) return undefined;
+    const head = firstAtom(terms[0]);
+    if (!(head instanceof FrameName) || /^\.*$/.test(head.source)) {
+      return undefined;
+    }
+    heads.add(head);
+    return head;
+  };
+  for (const term of terms) walk(term);
   return atoms;
+}
+
+/** The atom a term begins with, through the parser's one-term wrappers. */
+function firstAtom(term: Frame): Frame {
+  let atom = term;
+  while (
+    (atom instanceof FrameBind || isPlainExpr(atom)) && atom.size() === 1
+  ) {
+    atom = atom.asArray()[0];
+  }
+  return atom;
+}
+
+/**
+ * Records the declarations around `inner`, a closure literal being evaluated
+ * while `outer` is called. Walking `outer` records them for every closure it
+ * holds, so a walk of `inner` sees the same names whether or not anything
+ * walked `outer` first. It runs once per body.
+ */
+export function noteEnclosing(inner: FrameExpr, outer: FrameExpr): void {
+  const first = inner.asArray()[0];
+  if (first && !enclosingSites.has(first)) outer.elements();
+}
+
+/** The declarations around a closure body, as far as a walk has seen them. */
+export function sitesAround(body: readonly Frame[]): Sites {
+  return (body[0] && enclosingSites.get(body[0])) ?? new Map();
 }
 
 function unwrapSingleton(frame: Frame): Frame {
