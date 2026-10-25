@@ -278,7 +278,18 @@ export class EvaluationScope {
    * receiver authority are deliberately not inherited.
    */
   public namedChild(namespace: FrameArray): EvaluationScope {
-    namespace.up = new LiveLookupContext(this.#lookupFrames, namespace);
+    // A module imported during a construction is not that construction's
+    // child: its statements are its own file's, and the aggregate under
+    // construction is an accident of where the import was written. So the
+    // namespace sees the importing file before the construction, as #391
+    // designed, though the construction's own terms see it first (spec a16).
+    const frames = this.writeTargetRole === "construction"
+      ? [
+        ...this.#lookupFrames.filter((frame) => frame !== this.writeTarget),
+        this.writeTarget,
+      ]
+      : this.#lookupFrames;
+    namespace.up = new LiveLookupContext(frames, namespace);
     const layers = EvaluationScope.layers([namespace]);
     return new EvaluationScope({
       argument: namespace,
@@ -302,7 +313,25 @@ export class EvaluationScope {
   public withLayer(frame: Frame): EvaluationScope {
     if (this.#lookupMembers.has(frame)) return this;
 
-    const layers = this.appended(frame);
+    return this.withLayers(this.appended(frame));
+  }
+
+  /**
+   * Adds an aggregate literal's own frame ahead of every other layer.
+   *
+   * An aggregate under construction is the current child of spec 7 §2, so
+   * its own properties are searched first: a name it declares shadows the
+   * same name in an enclosing scope, as a closure's local does. Appending it
+   * instead searched it last, so `.gb 1; (.gb 2; gb)` read the outer `gb`
+   * (Figure 004.09a).
+   */
+  public withOwnLayer(frame: Frame): EvaluationScope {
+    if (this.#lookupFrames[0] === frame) return this;
+
+    return this.withLayers(this.prepended(frame));
+  }
+
+  private withLayers(layers: LookupLayers): EvaluationScope {
     return new EvaluationScope({
       argument: this.argument,
       parameter: this.parameter,
@@ -325,7 +354,11 @@ export class EvaluationScope {
     target: Frame,
     role: WriteTargetRole = "construction",
   ): EvaluationScope {
-    const layers = this.appended(target);
+    // A construction target is the aggregate itself, searched first; any
+    // other target is a destination for writes, and joins lookup last.
+    const layers = role === "construction"
+      ? this.prepended(target)
+      : this.appended(target);
     return new EvaluationScope({
       argument: this.argument,
       parameter: this.parameter,
@@ -453,6 +486,14 @@ export class EvaluationScope {
         state.lexicalContext,
       )
       : state.receiver;
+  }
+
+  /** Copies this scope's lookup layers with `frame` first, wherever it was. */
+  private prepended(frame: Frame): LookupLayers {
+    const frames = [frame, ...this.#lookupFrames.filter((f) => f !== frame)];
+    const members = new Set(this.#lookupMembers);
+    members.add(frame);
+    return { frames, members };
   }
 
   /** Copies this scope's lookup layers with additions that are not present. */

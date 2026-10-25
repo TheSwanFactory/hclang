@@ -78,13 +78,15 @@ address `.x` included, and `===` compares the declaration each walked word
 resolves to. `atomsOf` resolves them as it walks, statement by statement, so
 shadowing is kept; a name at the head of an expression declares, a member name
 after a receiver (`o .a`) declares nothing, and a name declared nowhere in view
-is free and resolves per call. A nested closure's enclosing declarations are
-recorded when its outer closure walks past it, or when the outer's call binds it
-(`noteEnclosing`, from `FrameLazy.bind`), keyed by the body's first term, which
-a bound copy shares. The address `.x` written in a program is a name too:
-`FrameSymbol.called_by` hands it to a pending declaration as a value, so `.k .x`
-keeps a key, and to text without that member as its spelling, so `“” .x` is
-`“.x”`. Every other receiver reads the member, `o .x`, as before.
+is free and resolves per call. An aggregate written in a body is scoped inside
+it (`spec/a16`): its names keep their bindings, and its own declarations shadow.
+A nested closure's enclosing declarations are recorded when its outer closure
+walks past it, or when the outer's call binds it (`noteEnclosing`, from
+`FrameLazy.bind`), keyed by the body's first term, which a bound copy shares.
+The address `.x` written in a program is a name too: `FrameSymbol.called_by`
+hands it to a pending declaration as a value, so `.k .x` keeps a key, and to
+text without that member as its spelling, so `“” .x` is `“.x”`. Every other
+receiver reads the member, `o .x`, as before.
 
 ### Advanced Types
 

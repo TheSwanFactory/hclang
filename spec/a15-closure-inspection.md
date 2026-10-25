@@ -251,9 +251,10 @@ candidate for its own ruling:
 - **A word has no members.** `{x} & {_ .0}` answers `$!.name-missing`, for the
   member `0` of the word, rather than for `x`. That is the point, but a word
   could reasonably answer its spelling as text instead.
-- **A lookup inside an aggregate written in a body is free.** `{.a 1; [a]}`
-  walks to an array whose own walk does not see `.a`, so its `a` is free for
-  `===`. Closures nested in a body do see their enclosing declarations.
+- **A lookup inside an aggregate written in a body was free** for `===`, until
+  v0.27.0. [`a16`](a16-aggregate-literals-are-scoped-syntax.md) supersedes this:
+  an aggregate written in a body is scoped inside it, and its names keep their
+  bindings.
 - **Applying a kept name to a value echoes a declaration it does not make.**
   `.k .x; k 7` answers `(.x 7)` and writes nothing, because the kept name has no
   write target. Refusing it would be clearer.

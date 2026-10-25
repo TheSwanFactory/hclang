@@ -79,7 +79,7 @@ export class FrameExpr extends FrameList {
     if (!isPlainExpr(this) && !((this as Frame) instanceof FrameBind)) {
       return this;
     }
-    const atoms = atomsOf([this]);
+    const atoms = atomsOf([this], sitesAround(this.data));
     return atoms.length === 1 ? atoms[0] : this;
   }
 
@@ -234,8 +234,20 @@ export function atomsOf(
       const spelling = term.spelling();
       atoms.push(FrameWord.word(spelling, scope.get(spelling)));
     } else {
-      const first = isClosure(term) ? term.asArray()[0] : undefined;
-      if (first) enclosingSites.set(first, scope);
+      if (isClosure(term)) {
+        const first = term.asArray()[0];
+        if (first) enclosingSites.set(first, scope);
+      } else if (term instanceof FrameList) {
+        // An aggregate written in the body is scoped inside it: its terms see
+        // the declarations before it, and its own declarations shadow them
+        // within it, as they do when it is evaluated. Its terms are walked
+        // now so the closures and aggregates it holds are recorded too.
+        for (const element of term.asArray()) {
+          const terms = isPlainExpr(element) ? element.asArray() : [element];
+          if (terms[0]) enclosingSites.set(terms[0], scope);
+          atomsOf(terms, scope);
+        }
+      }
       atoms.push(term);
     }
   };

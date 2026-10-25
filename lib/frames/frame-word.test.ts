@@ -104,6 +104,18 @@ describe("walking a closure (#429)", () => {
         .toContain("[(), <>]");
     });
 
+    it("keeps a lookup's binding below a group or an array written in the body", () => {
+      // A group is scoped inside the body that holds it, so a name inside it
+      // resolves to the declaration before it, exactly as execution does.
+      // The walk used to lose the binding at every group (Figure 004.08).
+      const cond =
+        ".f {.k _; (k = 3) ? {1} : {2}}; .w (f & {_}); .c ((((w .3) & {_}) .0) & {_}); [(c .0) === (w .0), (c .0) === (({k} & {_}) .0)]";
+      expect(answer(cond)).toContain("[<>, ()]");
+      const array =
+        ".f {.a 1; [a]}; .w (f & {_}); .e (((w .3) & {_}) .0); [e === (w .0)]";
+      expect(answer(array)).toContain("[<>]");
+    });
+
     it("gives a member name no local binding", () => {
       expect(
         answer(
