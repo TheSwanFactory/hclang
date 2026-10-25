@@ -245,7 +245,7 @@ export class FrameList extends Frame {
    */
   protected holdsAsProperty(term: Frame): boolean {
     const binding = echoedBinding(this.answeredValue(term));
-    return binding !== undefined && binding.target.deref() === this;
+    return binding !== undefined && binding.target === this;
   }
 
   public size(): number {

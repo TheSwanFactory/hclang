@@ -160,6 +160,29 @@ describe("FrameSymbol", () => {
     ).toContain("[“level”, [“level”, “base”]])");
   });
 
+  it("holds a declared scope without a WeakRef, which a job keeps alive (#426)", () => {
+    // Every WeakRef created during a job is kept alive until the job ends, and
+    // the CLI runs a whole file as one job, so an echo holding its call scope
+    // through one leaked that scope for the rest of the program.
+    const Original = globalThis.WeakRef;
+    let made = 0;
+    globalThis.WeakRef = class<T extends WeakKey> extends Original<T> {
+      constructor(target: T) {
+        super(target);
+        made++;
+      }
+    };
+    try {
+      const out = evaluate(
+        ".f {.x _; .y [x, x]; [y, y]}; .z (f 1); [(f 2) .0, z]",
+      );
+      expect(out.at(0).toString()).toContain("[[2, 2], [[1, 1], [1, 1]]]");
+    } finally {
+      globalThis.WeakRef = Original;
+    }
+    expect(made).toEqual(0);
+  });
+
   describe("size operators (#411)", () => {
     it("answers nil on anything but an aggregate or a count", () => {
       for (const receiver of ["“abc”", "`abc`", "'./x.txt'"]) {

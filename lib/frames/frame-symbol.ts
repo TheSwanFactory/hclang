@@ -24,8 +24,17 @@ import {
   type SigilStart,
 } from "../scan.ts";
 
+/**
+ * What a declaration echo records: the scope it wrote, the key and the value.
+ *
+ * The scope is held directly. A `WeakRef` would look lighter, but every one an
+ * evaluation creates is kept alive until the host's current job ends, and the
+ * CLI runs a whole file as one job, so each call scope a closure declared into
+ * outlived the program's use of it (#426). The echo and its scope form an
+ * ordinary cycle, which the collector frees once neither is reachable.
+ */
 export type FrameBinding = {
-  target: WeakRef<Frame>;
+  target: Frame;
   key: string;
   value: Frame;
 };
@@ -58,7 +67,7 @@ export class FrameLiteral extends FrameAtom {
     if (!this.binding) return this;
     return new FrameLiteral(this.data, {
       ...this.binding,
-      target: new WeakRef(owner),
+      target: owner,
     });
   }
 }
@@ -295,7 +304,7 @@ export class FrameSymbol extends FrameAtom {
     out.set(assignmentKey, argument);
     return previous.is.missing
       ? new FrameLiteral(`.${this.data} ${argument.toString()}`, {
-        target: new WeakRef(out),
+        target: out,
         key: assignmentKey,
         value: argument,
       })
@@ -327,7 +336,7 @@ export class FrameSymbol extends FrameAtom {
     out.set(assignmentKey, schema);
     out.set(`${assignmentKey}.<>`, schema);
     return new FrameLiteral(`.${this.data} ${schema.toString()}`, {
-      target: new WeakRef(out),
+      target: out,
       key: assignmentKey,
       value: schema,
     });
