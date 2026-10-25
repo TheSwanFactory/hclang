@@ -160,6 +160,29 @@ describe("FrameSymbol", () => {
     ).toContain("[“level”, [“level”, “base”]])");
   });
 
+  it("renders a declaration's echo only when it is printed (#435)", () => {
+    // Rendering at declaration spelled out the declared value every time, so a
+    // closure that declared a large aggregate spent most of its time printing
+    // text nobody read. The echo still spells the value when it is printed.
+    let rendered = 0;
+    class Counted extends frame.FrameAtom {
+      protected override toData(): string {
+        rendered++;
+        return "counted";
+      }
+    }
+    const scope = new frame.Frame();
+    const echo = FrameSymbol.for("x").setter(scope).apply(
+      new Counted(),
+      frame.Frame.nil,
+    );
+    expect(rendered).toEqual(0);
+    expect(echo.toString()).toEqual(".x counted");
+    expect(rendered).toEqual(1);
+    expect(echo.toString()).toEqual(".x counted");
+    expect(rendered).toEqual(1);
+  });
+
   it("holds a declared scope without a WeakRef, which a job keeps alive (#426)", () => {
     // Every WeakRef created during a job is kept alive until the job ends, and
     // the CLI runs a whole file as one job, so an echo holding its call scope
