@@ -159,6 +159,20 @@ describe("walking a closure (#429)", () => {
     });
   });
 
+  describe("a method read through its receiver", () => {
+    const method = ".o [.m {_^.n + _}; .n 1]";
+
+    it("walks as its closure, without being called", () => {
+      expect(answer(`${method}; (o.m) & {“” _}`))
+        .toContain("[“_^”, “.n”, “+”, “_”]");
+      expect(answer(`${method}; (o.m).#`)).toContain("; 4)");
+    });
+
+    it("is called against its receiver when folded", () => {
+      expect(answer(`${method}; (o.m) | 2`)).toContain("; 3)");
+    });
+  });
+
   it("prints a word as it was written", () => {
     expect(FrameWord.word("a").toString()).toEqual("a");
     expect(FrameWord.address("a").toString()).toEqual(".a");
