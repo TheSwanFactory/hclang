@@ -3,6 +3,7 @@ import { FrameList } from "./frame-list.ts";
 import { FrameName } from "./frame-name.ts";
 import { FrameSchema } from "./frame-schema.ts";
 import { FrameSymbol } from "./frame-symbol.ts";
+import { FrameWord } from "./frame-word.ts";
 import { type EvaluationInput, EvaluationScope } from "./evaluation-scope.ts";
 import { renderNested } from "./stringify.ts";
 
@@ -66,6 +67,20 @@ export class FrameExpr extends FrameList {
 
   public override call(argument: Frame, parameter = Frame.nil): Frame {
     return this.in(EvaluationScope.call(argument, parameter));
+  }
+
+  /** A parsed expression walks as its atoms (#429). */
+  public override elements(): Frame[] {
+    return atomsOf(this.data);
+  }
+
+  /** A parsed expression of one atom is that atom; anything else is itself. */
+  public override walked(): Frame {
+    if (!isPlainExpr(this) && !((this as Frame) instanceof FrameBind)) {
+      return this;
+    }
+    const atoms = atomsOf([this]);
+    return atoms.length === 1 ? atoms[0] : this;
   }
 
   /**
@@ -148,6 +163,41 @@ export class FrameExpr extends FrameList {
 }
 
 export class FrameBind extends FrameExpr {
+}
+
+/** A parsed expression itself, not a closure or a bind. */
+const isPlainExpr = (term: Frame): term is FrameExpr =>
+  term instanceof FrameExpr &&
+  Object.getPrototypeOf(term) === FrameExpr.prototype;
+
+/**
+ * The atoms of parsed terms, in source order, as data (#429).
+ *
+ * The parser wraps each atom of a juxtaposition as `FrameBind` holding a
+ * one-term `FrameExpr`, and those wrappers vanish here. A symbol, operator or
+ * name becomes a word, so it never resolves. A term that ended in `;` is
+ * followed by the word `;`, so the walk's text re-reads as the same source;
+ * a `,` between terms is not kept. Any other atom, a count, a string, a
+ * closure or an aggregate written in the body, is yielded itself, unevaluated,
+ * and an aggregate walks in turn by the same rule.
+ */
+export function atomsOf(terms: readonly Frame[]): Frame[] {
+  const atoms: Frame[] = [];
+  for (const term of terms) {
+    if (term instanceof FrameBind) {
+      atoms.push(...atomsOf(term.asArray()));
+    } else if (isPlainExpr(term)) {
+      atoms.push(...atomsOf(term.asArray()));
+      if (term.is.statement) atoms.push(FrameWord.word(";"));
+    } else if (term instanceof FrameName) {
+      atoms.push(FrameWord.address(term.source));
+    } else if (term instanceof FrameSymbol) {
+      atoms.push(FrameWord.word(term.spelling()));
+    } else {
+      atoms.push(term);
+    }
+  }
+  return atoms;
 }
 
 function unwrapSingleton(frame: Frame): Frame {

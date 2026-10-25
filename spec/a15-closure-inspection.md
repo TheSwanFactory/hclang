@@ -1,8 +1,8 @@
 # Closure Inspection: Walking Code Without Running It
 
-**Status:** Proposed. Nothing in this document is implemented. Each example
-gives the intended answer, and a line marked _today_ gives what v0.24.3
-(`b1867e8`) answers instead, measured.\
+**Status:** Implemented in v0.25.0, with the warts listed in [Warts](#warts).
+Each example gives the answer at v0.25.0, and a line marked _before_ gives what
+v0.24.3 (`b1867e8`) answered, measured.\
 **Issues:** [#429](https://github.com/TheSwanFactory/hclang/issues/429), whose
 three design questions this document answers;
 [#374](https://github.com/TheSwanFactory/hclang/issues/374), which owns the
@@ -29,22 +29,21 @@ Iterating a closure yields each atom of its body, in source order, as syntax. An
 atom that is itself an aggregate, a closure or a `[…]` written in the body, is
 one atom, and walks in turn by the same rule, still unevaluated.
 
-```
-{4 + 5} & {_}                → [4, +, 5]
-{4 + 5}.#                    → 3
-{{1 + 2}} & {_}              → [{ 1 + 2 }]
-{[1, [2, 3]]} & {_}          → [[1, [2, 3]]]
-({[1, [2, 3]]} & {_}) .0 & {_}  → [1, [2, 3]]
+```text
+{4 + 5} & {_}                        → [4, +, 5]
+{4 + 5}.#                            → 3
+{{1 + 2}} & {_}                      → [{ 1 + 2 }]
+(({[1, [2, 3]]} & {_}) .0) & {“” _}  → [“1”, “[2, 3]”]
 ```
 
-_today:_ `{4 + 5} & {_}` yields one term, `(4 + 5)`, and `{4 + 5} &| {_}` yields
-`[4, ((+)), ((5))]`, each atom in parser wrappers. `{4 + 5}.#` is `9`, because a
-size operator evaluates the closure before counting (#411 asks the receiver's
-referent, and a closure's referent is its answer).
+_before:_ `{4 + 5} & {_}` yields one term, `(4 + 5)`, and `{4 + 5} &| {_}`
+yields `[4, ((+)), ((5))]`, each atom in parser wrappers. `{4 + 5}.#` is `9`,
+because a size operator evaluates the closure before counting (#411 asks the
+receiver's referent, and a closure's referent is its answer).
 
 **Ruling: `.#` on a closure counts the atoms `&` yields, and `.##` the atoms
 below them, so the two agree by construction.** A closure is an aggregate, and
-#411's rule for aggregates applies without a special case.
+the #411 rule for aggregates applies without a special case.
 
 **Ruling: the parser's trivial `()` wrappers vanish.** A single-value `()`
 already unboxes everywhere else (#374), so a wrapper with nothing of its own has
@@ -53,17 +52,17 @@ stays, as the one aggregate it is.
 
 ## 2. Statements and declarations are visible
 
-Every atom of the body is yielded, including declarations and the terminators
-that make a term a statement. `;` and `,` are atoms. So the walk's text, joined
-back, re-reads as the same closure.
+Every atom of the body is yielded, including declarations and the terminator
+that makes a term a statement: `;` is an atom. So the walk's text, read back in
+order, is the same closure.
 
-```
-{.a 1; a + 2} & {“” _}         → [“.a”, “1”, “;”, “a”, “+”, “2”]
-({.a 1; a + 2} & {“” _}) | “”  → “.a 1; a + 2”
-{1 + 2; 3 * 4}.#               → 7
+```text
+{.a 1; a + 2} & {“” _}    → [“.a”, “1”, “;”, “a”, “+”, “2”]
+{1 + 2; 3 * 4}.#          → 7
+{.a 1} && {_}             → [[.0, .a], [.1, 1]]
 ```
 
-_today:_ `{1 + 2; 3 * 4} & {_}` yields only `(3 * 4)`; the `;` statement and
+_before:_ `{1 + 2; 3 * 4} & {_}` yields only `(3 * 4)`; the `;` statement and
 every declaration are dropped, because `elements()` reads the data plane and an
 unevaluated declaration is not yet a property. `“” {1 + 2; 3 * 4}` prints
 `“{ 1 + 2 3 * 4 }”`, without the `;`, so the text does not re-read.
@@ -80,31 +79,33 @@ The only new value this design needs. A symbol the walk yields is **the name**,
 not a lookup: it never resolves, in any scope, however it is carried, indexed,
 compared or re-constructed into something else.
 
-```
-.x 5; {x} & {_}                   → [.x]
-.x 5; {x} & {_ = (.x)}            → [<>]
-.x 5; .n (({x} & {_}) .0); [n, “” n, n = (.y)]   → [.x, “.x”, ()]
-{x + 1} & {_ = (.+)}              → [(), <>, ()]
+```text
+.x 5; {x} & {_}                              → [x]
+.x 5; .n (({x} & {_}) .0); [n, (“” n) = “x”]  → [x, <>]
+(({x} & {_}) .0) = (({y} & {_}) .0)          → ()
+.w (({x} & {_}) .0); .z [w]; z               → [x]
 ```
 
-_today:_ `.x 5; {x} & {_ .0}` answers `$!.name-missing x`: touching the yielded
+_before:_ `.x 5; {x} & {_ .0}` answers `$!.name-missing x`: touching the yielded
 symbol looked it up. `{x} &| {_ === x}` answers `[]`, because the right-hand `x`
 was looked up and found nothing. No existing value is a name: `(.x)` in value
 position is a declaration with no value, `@x` answers an address that cannot be
 spelled or compared, and the `.x` that `[.x 5] && {_}` yields becomes a lookup
 again as soon as it is bound to a name.
 
-**Ruling: a bare address with no value is the name itself.** `.x` written alone
-in value position is a name, as `&&` already prints a key. It prints as `.x`,
-which re-reads as the same name, so the walk's text round-trips. Today that
-spelling is a declaration whose value is missing, and answers an error; this
-ruling gives it a meaning instead.
+**Ruling: a walked name is a word, printed as it was written.** A lookup yields
+`x` and a declaration yields `.x`, so the walk's text re-reads as the source,
+and the two are distinct names. The class is `FrameWord`
+(`lib/frames/frame-word.ts`). Whether a bare `.x` in value position should also
+be a word, rather than the valueless declaration it is today, is left open:
+`obj .x` reaches a property through that same address symbol, so it is not a
+change to make lightly.
 
-**Ruling: `=` on names compares spelling.** `.x = .x` holds and `.x = .y` does
-not. Whether `===` on two names can distinguish _which_ `x`, the binding
-identity #429 asks for, is left open: it is answerable only for a walk over a
-bound closure, and only if the walk can carry the binding without exposing the
-scope (§5). Until ruled, `===` on names is `=`.
+**Ruling: `=` on names compares spelling.** Two walks of `x` are `=`, and `x`
+and `y` are not. Whether `===` on two names can distinguish _which_ `x`, the
+binding identity #429 asks for, is left open: it is answerable only for a walk
+over a bound closure, and only if the walk can carry the binding without
+exposing the scope (§5). Until ruled, `===` on names is `=`.
 
 A name answers nothing about the value it would name. `.x.#` is nil, and
 applying a name is applying a symbol: `(.x) 5` is the declaration `.x 5`,
@@ -114,20 +115,20 @@ walk of another, and it is evaluation, so it is not the walk's business.
 
 ## 4. The snapshot is the closure
 
-#429 asks for an immutable, unevaluated snapshot. No new operation is needed:
-the closure literal already is one. `bind` copies the template and `call`
-evaluates the copy's body in a fresh scope; nothing ever writes to the template
-(`lib/frames/frame-lazy.ts`). So the walk yields the template's own atoms, and
-two walks yield the same frames.
+Issue #429 asks for an immutable, unevaluated snapshot. No new operation is
+needed: the closure literal already is one. `bind` copies the template and
+`call` evaluates the copy's body in a fresh scope; nothing ever writes to the
+template (`lib/frames/frame-lazy.ts`). So the walk yields the template's own
+atoms, and two walks yield the same frames.
 
-```
+```text
 .f {.a _; [a, a]};
 .before (f & {“” _}); .r (f 1); .after (f & {“” _});
 [before = after, r]              → [<>, [1, 1]]
 .t ((f & {_}) .0); .u ((f & {_}) .0); t === u   → <>
 ```
 
-_today:_ both hold already, at term granularity.
+_before:_ both hold already, at term granularity.
 
 **Ruling: the walk never copies and never writes.** A yielded aggregate is the
 template's own frame, and a write through it is a functional update, so the
@@ -138,11 +139,11 @@ governs a Figure read through a name (#401).
 written in the body is an atom like any other, and walking past it performs
 nothing.
 
-```
+```text
 {'clock:now' | []} & {“” _}      → [“'clock:now'”, “|”, “[]”]
 ```
 
-_today:_ holds, as one term.
+_before:_ holds, as one term.
 
 ## 5. What the walk never shows
 
@@ -164,9 +165,30 @@ _today:_ holds, as one term.
 | Nested closures and shadowed names keep their distinctions | §1 nested closure; §3 names; `===` open | fails: a yielded `x` resolves on touch       |
 | No private values exposed, no AST mutation                 | §5; §4 functional update                | holds for exposure; mutation ruled, untested |
 
+## Warts
+
+Accepted in v0.25.0, each small enough to live with and each a candidate for its
+own ruling:
+
+- **`,` is not an atom.** A `,` between terms of a closure body separates two
+  terms, as it does today, and the walk yields the terms with nothing between
+  them, so `{1, 2} & {_}` is `[1, 2]`. A body joined back from its walk loses
+  the comma, which only matters where juxtaposition and separation differ.
+- **A parsed aggregate prints with its wrappers.** `{[1, [2, 3]]} & {_}` is one
+  atom, the array as written, and printing it shows the parser's terms:
+  `[[(1), ((([(2), (((3)))])))]]`. Walking it is clean, as §1 shows; only its
+  spelling is not. The fix belongs to rendering, not to the walk.
+- **A decimal literal walks as two atoms.** The parser holds `1.5` as `1` and
+  `.5`, and evaluation joins them, so `{1.5} & {_}` is `[1, .5]`.
+- **A word has no members.** `{x} & {_ .0}` answers `$!.name-missing`, for the
+  member `0` of the word, rather than for `x`. That is the point, but a word
+  could reasonably answer its spelling as text instead.
+- **A bare `.x` is still a declaration** (§3).
+
 ## Not in scope
 
 Inference over the walk (what an operation preserves), certification of a
 derivation, and any proof kernel: these are Figure 004's questions, and this
 document only makes their input stable and traversable. Whether `===` on names
-carries binding identity is the one question here left to a later ruling.
+carries binding identity, and whether a bare `.x` is a word, are left to later
+rulings.

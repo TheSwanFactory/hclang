@@ -194,14 +194,17 @@ describe("FrameLazy", () => {
     const last = (source: string): frame.Frame =>
       evaluate(source).at(-1).asArray().at(-1)!;
 
-    it("calls a closure with the operator rather than counting it", () => {
-      // Applying a closure calls it, so the operator is only its argument and
-      // the answer is whatever the body makes of that.
-      expect(last("{_}.#").toString()).toEqual(".#");
-      expect(last("{_}.##").toString()).toEqual(".##");
-      expect(last("{5, 7}.#").toString()).toEqual("35");
-      expect(last(".f {_}; f.#").toString()).toEqual(".#");
-      expect(last(".o [.m {_}]; o.m.#").toString()).toEqual(".#");
+    it("counts a closure's atoms rather than calling it (#429)", () => {
+      // A closure is an aggregate of its body's atoms, so the operator counts
+      // them as it counts any aggregate's elements. Before v0.25.0 applying
+      // the closure called it, and the answer was whatever the body made of
+      // the operator as its argument.
+      expect(last("{_}.#").toString()).toEqual("1");
+      expect(last("{_}.##").toString()).toEqual("1");
+      expect(last("{5, 7}.#").toString()).toEqual("2");
+      expect(last(".f {_}; f.#").toString()).toEqual("1");
+      expect(last(".o [.m {_}]; o.m.#").toString()).toEqual("1");
+      expect(last(".o [.m {_ + 1}]; (o.m).#").toString()).toEqual("3");
     });
   });
 

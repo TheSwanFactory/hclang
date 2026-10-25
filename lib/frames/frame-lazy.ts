@@ -98,12 +98,37 @@ export class FrameLazy extends FrameExpr {
       : undefined;
   }
 
+  /**
+   * A closure walks as the atoms of its body (#429), so `.#` counts them and
+   * `.##` the atoms below them, as for any aggregate (#411). The operator
+   * reaches a closure as its argument, where a body would otherwise run, so
+   * it is answered here before the body is.
+   */
+  private sizeOperator(argument: Frame): Frame | undefined {
+    if (
+      argument instanceof FrameSymbol && argument.is.address === true &&
+      (argument.spelling() === Frame.kCOUNT ||
+        argument.spelling() === Frame.kLEAVES)
+    ) {
+      return this.sizeFor(argument.spelling());
+    }
+    return undefined;
+  }
+
+  /** A closure is one atom of the body that holds it, never unwrapped. */
+  public override walked(): Frame {
+    return this;
+  }
+
   /** Evaluates this closure with optional bound receiver capability. */
   public override call(
     argument: Frame,
     parameter: Frame = Frame.nil,
     receiverState?: ReceiverState,
   ): Frame {
+    const size = this.sizeOperator(argument);
+    if (size) return size;
+
     if (this.data.length === 0) {
       // Codify the value, not the caller's captured evaluation context.
       const codified = new FrameExpr(argument.asArray(), argument.meta_copy());
