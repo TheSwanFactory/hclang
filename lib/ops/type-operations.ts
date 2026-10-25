@@ -20,10 +20,8 @@ export const BindType = (source: Frame, body: Frame): Frame => {
     source instanceof FrameLiteral && source.binding &&
     body instanceof FrameLazy
   ) {
-    const target = source.binding.target.deref();
-    if (!target) return source;
     body.bindSignature(source.binding.value);
-    target.set(source.binding.key, body);
+    source.binding.target.set(source.binding.key, body);
   }
   return source;
 };
