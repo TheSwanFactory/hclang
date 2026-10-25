@@ -2,6 +2,10 @@
 import { Frame } from "../frames/frame.ts";
 import { FrameArray } from "../frames/frame-array.ts";
 import { FrameSymbol } from "../frames/frame-symbol.ts";
+import { FrameLazy } from "../frames/frame-lazy.ts";
+import { FrameList } from "../frames/frame-list.ts";
+import { FrameWord } from "../frames/frame-word.ts";
+import { closureFromAtoms } from "../frames/reread.ts";
 import type { ReceiverState } from "../frames/bound-method.ts";
 
 /**
@@ -83,12 +87,36 @@ export const SpliceElements = (
     }),
   );
 
-/** `|` threads each element through the receiver the last step answered. */
+/**
+ * `|` threads each element through the receiver the last step answered.
+ *
+ * Folding code runs it (#429). A fold applies each element to the answer so
+ * far, which is what the evaluator does with terms, except that the evaluator
+ * keeps the scope apart from the running answer: folding atoms one at a time
+ * would look the second name up in the first answer. So a closure is called
+ * with the receiver, and a stream holding a walked word is re-read as the
+ * closure it spells and called the same way: `{x + 1} | (.x 5)` is `6`, and
+ * `{…} | (args)` is a second spelling of `{…} (args)`.
+ */
 export const ReduceElements = (
   source: Frame,
   receiver: Frame,
   receiverState?: ReceiverState,
-): Frame => source.reduce(receiver, receiverState);
+): Frame => {
+  const code = source.referent();
+  if (code instanceof FrameLazy) {
+    return code.call(receiver, Frame.nil, receiverState);
+  }
+  // Only an aggregate is inspected: a stream's elements are produced by
+  // reading it, and the read belongs to the fold.
+  if (code instanceof FrameList) {
+    const values = code.elements();
+    if (values.some((value) => value instanceof FrameWord)) {
+      return closureFromAtoms(values).call(receiver, Frame.nil, receiverState);
+    }
+  }
+  return source.reduce(receiver, receiverState);
+};
 
 /** `&&` maps the same stream widened to `[key, value]` tuples, as `&` does. */
 export const MapMembers = (

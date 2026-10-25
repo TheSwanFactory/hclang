@@ -13,7 +13,10 @@ import { NilContext } from "./context.ts";
  * and `=` compares that spelling.
  *
  * A word answers nothing about the value its spelling would name, and it is
- * not an operator, so a walked `+` is an element like any other.
+ * not an operator, so a walked `+` is an element like any other. The one
+ * place words turn back into code is a fold: `|` over a stream that holds a
+ * word re-reads the stream as a closure, `FrameLazy.fromAtoms`, and calls it
+ * with the receiver, so `{x + 1} | (.x 5)` is `6`.
  */
 export class FrameWord extends FrameAtom {
   constructor(
@@ -32,6 +35,16 @@ export class FrameWord extends FrameAtom {
   /** The word for a declaration or address, `.a`. */
   public static address(spelling: string): FrameWord {
     return new FrameWord(spelling, true);
+  }
+
+  /** The spelling without its dot. */
+  public spelling(): string {
+    return this.data;
+  }
+
+  /** Whether this word was written with a dot, as a declaration or address. */
+  public isAddress(): boolean {
+    return this.dotted;
   }
 
   public override string_prefix(): string {

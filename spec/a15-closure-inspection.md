@@ -145,7 +145,38 @@ nothing.
 
 _before:_ holds, as one term.
 
-## 5. What the walk never shows
+## 5. Folding a walk runs it
+
+`|` applies each element to the receiver the last step answered, which is what
+the evaluator does with the terms of a body. So a fold over code is a call: a
+closure folded is called with the receiver, and a stream that holds a word is
+re-read as the closure it spells and called the same way. `{…} | (args)` is a
+second spelling of `{…} (args)`, and a walk that was taken apart and put back
+together runs as the original did.
+
+```text
+{4 + 5} | ()                              → 9
+{x * y} | (.x 6, .y 7)                    → 42
+{_ + 1} | 3                               → 4
+{.a 1; a + 2} | ()                        → 3
+.f {x * y}; (f & {_}) | (.x 6, .y 7)      → 42
+.y 1; .f {x + y}; f | (.x 5)              → 6
+```
+
+_before:_ `{4 + 5} | ()` answered the one wrapped term, `(4 ((+)) ((5)))`.
+
+**Ruling: a fold re-reads, it does not apply atom by atom.** Applying a walked
+`x` to `(.x 6, .y 7)` does read `x` from the group, but the answer so far is
+then `6`, and `y` would be looked up in the curry `6 *`. The evaluator keeps the
+scope apart from the running answer, and a fold has only the one receiver, so
+the stream is re-read as a body (`closureFromAtoms`, the inverse of the walk)
+and the receiver becomes the argument. A closure folded is simply called, so its
+captured names still resolve.
+
+**Ruling: a fold over a closure is a call, whatever the receiver.**
+`{4 + 5} | []` is `9`, not `[4, +, 5]`; a walk is `&`. `|` runs, `&` walks.
+
+## 6. What the walk never shows
 
 - **Captured values.** A bound closure's scope is not an atom, and no atom
   reaches it. `.x 5; .f {x}; f & {_}` yields `.x`, never `5`.
@@ -155,7 +186,7 @@ _before:_ holds, as one term.
   kinds would go if one is needed (#429, noted and not ruled).
 - **Evaluation history.** The walk is the source, not a trace.
 
-## 6. The acceptance tests of #429, in HC
+## 7. The acceptance tests of #429, in HC
 
 | #429 asks                                                  | Test                                    | Today                                        |
 | ---------------------------------------------------------- | --------------------------------------- | -------------------------------------------- |
@@ -172,8 +203,8 @@ own ruling:
 
 - **`,` is not an atom.** A `,` between terms of a closure body separates two
   terms, as it does today, and the walk yields the terms with nothing between
-  them, so `{1, 2} & {_}` is `[1, 2]`. A body joined back from its walk loses
-  the comma, which only matters where juxtaposition and separation differ.
+  them, so `{1, 2} & {_}` is `[1, 2]`. A walk re-read by a fold loses the comma,
+  which only matters where juxtaposition and separation differ.
 - **A parsed aggregate prints with its wrappers.** `{[1, [2, 3]]} & {_}` is one
   atom, the array as written, and printing it shows the parser's terms:
   `[[(1), ((([(2), (((3)))])))]]`. Walking it is clean, as §1 shows; only its

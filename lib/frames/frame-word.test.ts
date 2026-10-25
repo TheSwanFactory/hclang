@@ -57,6 +57,28 @@ describe("walking a closure (#429)", () => {
     )).toContain("[<>, [1, 1]]");
   });
 
+  it("runs the atoms when they are folded, with the receiver as the scope", () => {
+    // `|` applies each element to the running answer, which is what the
+    // evaluator does with terms, so a fold over a walk is a call.
+    expect(answer("{4 + 5} | ()")).toEqual("9");
+    expect(answer("{x + 1} | (.x 5)")).toEqual("6");
+    expect(answer("{x * y} | (.x 6, .y 7)")).toEqual("42");
+    expect(answer("{_ + 1} | 3")).toEqual("4");
+    expect(answer("{.a 1; a + 2} | ()")).toEqual("3");
+    expect(answer("{1; 2} | ()")).toEqual("2");
+    expect(answer("{4 + 5} | []")).toEqual("9");
+    expect(answer(".y 1; .f {x + y}; f | (.x 5)")).toContain("; 6)");
+    expect(answer(".f {x * y}; (f & {_}) | (.x 6, .y 7)")).toContain("; 42)");
+    expect(answer(".f {x + 1}; .g (f & {_}); [g | (.x 5), g | (.x 10)]"))
+      .toContain("[6, 11]");
+    expect(answer("{x} | (.y 5)")).toContain("$!.name-missing");
+  });
+
+  it("keeps a word under every application that is not a fold", () => {
+    expect(answer("{x} & {“” _}")).toEqual("[“x”]");
+    expect(answer(".w (({x} & {_}) .0); [w]")).toContain("[x]");
+  });
+
   it("prints a word as it was written", () => {
     expect(FrameWord.word("a").toString()).toEqual("a");
     expect(FrameWord.address("a").toString()).toEqual(".a");
