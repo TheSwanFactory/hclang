@@ -79,6 +79,86 @@ describe("walking a closure (#429)", () => {
     expect(answer(".w (({x} & {_}) .0); [w]")).toContain("[x]");
   });
 
+  it("equals the written name with its spelling, either way round", () => {
+    expect(answer("[({x} & {_}) .0 = (.x), (.x) = (({x} & {_}) .0)]"))
+      .toEqual("[<>, <>]");
+    expect(answer("[(({x} & {_}) .0) = (.y)]")).toEqual("[()]");
+  });
+
+  describe("binding identity, `===`", () => {
+    it("tells shadowed names apart, and keeps a lookup with its declaration", () => {
+      expect(answer(
+        ".c {.a 1; {.a 2; a}}; .o ((c & {_}) .0); .i (((c & {_}) .3) & {_}); [(i .3) === (i .0), (i .3) === o, (i .3) = o]",
+      )).toContain("[<>, (), <>]");
+    });
+
+    it("resolves a lookup to the declaration before it, in order", () => {
+      expect(answer(
+        ".f {.a 1; .b a; b}; .w (f & {_}); [(w .4) === (w .0), (w .6) === (w .3), (w .6) === (w .0)]",
+      )).toContain("[<>, <>, ()]");
+      expect(
+        answer(
+          ".f {a; .a 1}; .w (f & {_}); [(w .0) === (w .2), (w .0) = (w .2)]",
+        ),
+      )
+        .toContain("[(), <>]");
+    });
+
+    it("gives a member name no local binding", () => {
+      expect(
+        answer(
+          ".f {.a 1; o .a}; .w (f & {_}); [(w .4) === (w .0), (w .4) = (w .0)]",
+        ),
+      )
+        .toContain("[(), <>]");
+    });
+
+    it("answers alike for a closure walked before or after the one around it", () => {
+      expect(
+        answer(".f {.a _; {a}}; .g (f 1); ((g & {_}) .0) === ((f & {_}) .0)"),
+      )
+        .toContain("; <>)");
+      expect(
+        answer(
+          ".c {.a 1; {a}}; .i (((c & {_}) .3) & {_}); (i .0) === ((c & {_}) .0)",
+        ),
+      )
+        .toContain("; <>)");
+    });
+
+    it("identifies free names by spelling, because each call resolves them", () => {
+      expect(
+        answer(
+          "[({x} & {_}) .0 === (({x} & {_}) .0), ({x} & {_}) .0 === (({y} & {_}) .0)]",
+        ),
+      )
+        .toEqual("[<>, ()]");
+    });
+  });
+
+  describe("a name kept in a variable", () => {
+    it("reads the member later, applied by an aggregate", () => {
+      expect(answer(".o [.x 5]; .k .x; o k")).toContain("; 5)");
+      expect(answer(".o [.x 5, .y 6]; .ks [.x, .y]; ks & {o _}")).toContain(
+        "[5, 6]",
+      );
+    });
+
+    it("prints and compares as the name", () => {
+      expect(answer(".k .x; [k, “” k, k = (.x), k = (.y)]"))
+        .toContain("[.x, “.x”, <>, ()]");
+      expect(answer("“” .x")).toEqual("“.x”");
+    });
+
+    it("carries no write authority over the scope it was written in", () => {
+      expect(answer(".k .x; k 7; x")).toContain("$!.name-missing");
+    });
+
+    it("keeps an alias as the name only", () => {
+      expect(answer(".x 1; .k (@x); k")).toContain("; .x)");
+    });
+  });
+
   it("prints a word as it was written", () => {
     expect(FrameWord.word("a").toString()).toEqual("a");
     expect(FrameWord.address("a").toString()).toEqual(".a");

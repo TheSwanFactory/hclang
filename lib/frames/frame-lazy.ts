@@ -1,5 +1,5 @@
 import { Frame } from "./frame.ts";
-import { FrameExpr } from "./frame-expr.ts";
+import { FrameExpr, noteEnclosing } from "./frame-expr.ts";
 import { FrameGroup } from "./frame-group.ts";
 import { FrameSymbol } from "./frame-symbol.ts";
 import { type Context, NilContext } from "./context.ts";
@@ -76,6 +76,7 @@ export class FrameLazy extends FrameExpr {
     if (capturedScopes.has(this)) return this;
 
     const scope = EvaluationScope.from(input);
+    if (scope.closure instanceof FrameLazy) noteEnclosing(this, scope.closure);
     const bound = this.copy();
     bound.up = scope.lexicalTarget;
     capturedScopes.set(bound, scope);

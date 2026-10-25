@@ -1,5 +1,7 @@
 import { Frame } from "./frame.ts";
 import { FrameAtom } from "./frame-atom.ts";
+import { hasCharacterContent } from "./frame-text.ts";
+import { FrameWord } from "./frame-word.ts";
 import { FrameNote } from "./frame-note.ts";
 import { FrameHandle } from "./frame-handle.ts";
 import { FrameArray } from "./frame-array.ts";
@@ -352,7 +354,45 @@ export class FrameSymbol extends FrameAtom {
     ) {
       return context.referent().sizeFor(this.data);
     }
+    // An address applied by a receiver reads that member, `o .x`. Two
+    // receivers take the name itself instead (#429). A pending declaration
+    // stores it, so `.k .x` keeps the key and `o k` reads `o.x` later; the
+    // stored name is a fresh address, so it carries no write authority over
+    // the scope `.x` was written in. Text with no such member, which is all
+    // text but a document's `.body`, spells it: `“” .x` is `“.x”`.
+    if (this.is.address === true && FrameSymbol.isIdentifier(this.data)) {
+      if (context instanceof FrameSymbol && context.isPendingDeclaration()) {
+        return context.apply(FrameSymbol.address(this.data), Frame.nil);
+      }
+      if (hasCharacterContent(context) && context.get(this.data).is.missing) {
+        return context.apply(this, Frame.nil);
+      }
+    }
     return this.in([context]);
+  }
+
+  /**
+   * An address is a name, and equals a walked word with its spelling (#429).
+   * Anything else compares as it prints, as for every frame.
+   */
+  public override equals(other: Frame): Frame {
+    if (this.is.address === true) {
+      const right = other.referent();
+      if (right instanceof FrameWord) {
+        return right.spelling() === this.data ? Frame.all : Frame.nil;
+      }
+    }
+    return super.equals(other);
+  }
+
+  /** Whether this is a declaration still waiting for its value, `.k`. */
+  public isPendingDeclaration(): boolean {
+    return this.is.address === true && !this.get_here(Frame.kOUT).is.missing;
+  }
+
+  /** Whether a spelling is an ordinary name rather than an operator or key. */
+  public static isIdentifier(spelling: string): boolean {
+    return /^[a-zA-Z][-\w]*$/.test(spelling);
   }
 
   public override string_start(): string {
