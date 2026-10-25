@@ -50,14 +50,21 @@ export type FrameBinding = {
  */
 export class FrameLiteral extends FrameAtom {
   constructor(
-    protected data: string,
+    protected data: string | (() => string),
     public readonly binding?: FrameBinding,
   ) {
     super(NilContext);
     this.is.declaration = true;
   }
 
+  /**
+   * The echo's text, rendered the first time it is asked for. Rendering it at
+   * declaration spelled out the whole declared value every time, and the echo
+   * is rarely printed: a Figure built from 16,384 children rendered all of
+   * them, each with its methods, and spent most of its time there (#435).
+   */
   protected override toData(): string {
+    if (typeof this.data !== "string") this.data = this.data();
     return this.data;
   }
 
@@ -278,7 +285,7 @@ export class FrameSymbol extends FrameAtom {
       const refused = out.setParent(argument);
       if (refused) return refused;
       return previous.is.missing
-        ? new FrameLiteral(`.^ ${argument.toString()}`)
+        ? new FrameLiteral(() => `.^ ${argument.toString()}`)
         : argument;
     }
     const binding = out.resolve_here(this.data, out);
@@ -305,7 +312,7 @@ export class FrameSymbol extends FrameAtom {
 
     out.set(assignmentKey, argument);
     return previous.is.missing
-      ? new FrameLiteral(`.${this.data} ${argument.toString()}`, {
+      ? new FrameLiteral(() => `.${this.data} ${argument.toString()}`, {
         target: out,
         key: assignmentKey,
         value: argument,
@@ -337,7 +344,7 @@ export class FrameSymbol extends FrameAtom {
     }
     out.set(assignmentKey, schema);
     out.set(`${assignmentKey}.<>`, schema);
-    return new FrameLiteral(`.${this.data} ${schema.toString()}`, {
+    return new FrameLiteral(() => `.${this.data} ${schema.toString()}`, {
       target: out,
       key: assignmentKey,
       value: schema,
