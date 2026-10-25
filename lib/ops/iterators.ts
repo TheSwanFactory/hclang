@@ -2,6 +2,7 @@
 import { Frame } from "../frames/frame.ts";
 import { FrameArray } from "../frames/frame-array.ts";
 import { FrameSymbol } from "../frames/frame-symbol.ts";
+import { BoundMethod } from "../frames/bound-method.ts";
 import { FrameLazy } from "../frames/frame-lazy.ts";
 import { FrameList } from "../frames/frame-list.ts";
 import { FrameWord } from "../frames/frame-word.ts";
@@ -104,7 +105,7 @@ export const ReduceElements = (
   receiverState?: ReceiverState,
 ): Frame => {
   const code = source.referent();
-  if (code instanceof FrameLazy) {
+  if (code instanceof FrameLazy || code instanceof BoundMethod) {
     return code.call(receiver, Frame.nil, receiverState);
   }
   // Only an aggregate is inspected: a stream's elements are produced by

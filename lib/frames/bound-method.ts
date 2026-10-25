@@ -85,6 +85,15 @@ export class BoundMethod extends Frame {
     super();
   }
 
+  /**
+   * A method walks as its closure does, the atoms of its body (#429), so a
+   * method read through its receiver, `e.cells`, can be inspected without
+   * being called. The receiver is not an atom, and the walk never reaches it.
+   */
+  public override elements(): Frame[] {
+    return this.method.elements();
+  }
+
   /** Whether this method was declared to mutate the frame it runs against. */
   public isMutating(): boolean {
     return this.effect.mutating;
