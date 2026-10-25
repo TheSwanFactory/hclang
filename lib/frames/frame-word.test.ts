@@ -26,6 +26,26 @@ describe("walking a closure (#429)", () => {
     expect(answer("{.a 1} && {_}")).toEqual("[[.0, .a], [.1, 1]]");
   });
 
+  it("keeps `,` and a tight expression, so the walk is the source (a16)", () => {
+    expect(answer("{.a 1; a + 2, b} & {“” _}"))
+      .toEqual("[“.a”, “1”, “;”, “a”, “+”, “2”, “,”, “b”]");
+    expect(answer("{1, 2}.#")).toEqual("3");
+    // Terms that abut bind before their neighbour applies: one atom.
+    expect(answer("{f o.x} & {“” _}")).toEqual("[“f”, “(o .x)”]");
+    expect(answer(".o [.x 5]; .f {_ + 1}; [{f o.x} (), {f (o .x)} ()]"))
+      .toContain("[6, 6]");
+    // A fold re-reads both: the comma as a term boundary, the tight
+    // expression as itself.
+    expect(answer("({x + y.v} & {_}) | (.x 1, .y [.v 5])")).toEqual("6");
+    expect(answer("({1, 2} & {_}) | ()")).toEqual("2");
+  });
+
+  it("prints a closure as it was written, so it reads back (a16)", () => {
+    expect(answer("“” {.a 1; a + 2, b}")).toEqual("“{ .a 1; a + 2, b }”");
+    expect(answer("“” {f o.x}")).toEqual("“{ f (o .x) }”");
+    expect(answer("“” {4 + 5}")).toEqual("“{ 4 + 5 }”");
+  });
+
   it("yields a name that never resolves, wherever it is carried", () => {
     expect(answer(".x 5; {x} & {_}")).toContain("[x]");
     expect(answer(".x 5; .n (({x} & {_}) .0); [n, “” n, (“” n) = “x”]"))

@@ -4,6 +4,74 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.27.0 2026-10-25
+
+- **The Concrete Semantics Graph.** The parser no longer emits its `FrameBind`
+  and one-term `FrameExpr` wrappers, which did nothing at evaluation but printed
+  as `((+))` and doubled the depth of every walk. Terms that abut, as `o.x` in
+  `f o.x`, stay one tight expression, since they bind before `f` applies
+  (`spec/a16`).
+- **An aggregate literal's own declarations are searched first.** A name a group
+  or array literal declared read the enclosing binding when one existed:
+  `.gb 1; (.gb 2; gb)` was `(.gb 2; 1)` and is now `(.gb 2; 2)`, as spec 7 §2
+  orders. A named import evaluated during a construction keeps seeing the file
+  first (#391).
+- **A walk keeps every distinction.** `,` between terms is an atom, as `;` is; a
+  tight expression is one atom that walks in turn; and a name inside a group or
+  array written in a body keeps its binding for `===`. So
+  `{.a 1; a + 2, b} & {“” _}` is `[“.a”, “1”, “;”, “a”, “+”, “2”, “,”, “b”]` and
+  re-reads by a fold as written.
+- **A closure prints as it was written.** `“” {.a 1; a + 2, b}` is
+  `“{ .a 1; a + 2, b }”`, with `;` and `,` kept and a tight expression in
+  parentheses, `“{ f (o .x) }”`, so printed closures read back.
+
+## v0.26.2 2026-10-25
+
+- **A declaration's echo renders when printed, not when declared.** Building a
+  Figure of 16,384 children spelled out every child at declaration, methods
+  included, which was most of its 1.7 s. It now takes 6 ms, and so does any
+  program declaring large values inside closures (#435).
+- **Figures count, and never compute.** Cells answers the children themselves
+  when every child is a cell, and Multiplication counts the cells and constructs
+  `n [y]`. Every observer answers as before; Size of a 16,384-unit row drops
+  from 5.8 s to 8 ms (#435).
+
+## v0.26.1 2026-10-25
+
+- **A method walks as its closure.** `(E.size) & {“” _}` is
+  `[“_^”, “.mul”, “U”]`, and `|` over a method calls it against its receiver
+  (#429).
+- **Figures: Size is Multiplication by the unit** and Tally multiplication is
+  Multiplication of a Manyness, so Multiplication holds the module's only zero
+  guard; Withness filters with `&|`.
+
+## v0.26.0 2026-10-25
+
+- **A key can be kept in a variable.** `.o [.x 5]; .k .x; o k` is `5`; it was
+  `$!.name-missing x`, because the pending declaration was the receiver `.x`
+  read from. `“” .x` is `“.x”` (#429).
+- **`=` compares names and `===` compares bindings.** A walked `x`, a walked
+  `.x` and a written `.x` are `=`; two walked names are `===` when they resolve
+  to the same declaration, so `{.a 1; {.a 2; a}}` keeps its inner and outer `a`
+  apart (#429).
+
+## v0.25.0 2026-10-25
+
+- **A closure walks as its atoms.** `{4 + 5} & {_}` is `[4, +, 5]`, unevaluated,
+  with declarations and `;` kept, and `{4 + 5}.#` is `3` rather than calling the
+  closure. A walked symbol is a word that never resolves, however it is carried
+  (#429, `spec/a15`).
+- **Folding a walk runs it.** `|` over a closure calls it with the receiver, and
+  `|` over a stream holding walked words re-reads it as a closure, so
+  `{x * y} | (.x 6, .y 7)` is `42` and `{…} | (args)` is `{…} (args)` (#429).
+
+## v0.24.3 2026-10-24
+
+- **A file run frees its call scopes.** A declaration's echo held its scope
+  through a `WeakRef`, which the host keeps alive until its job ends, so every
+  closure call's scope lived until the program exited, about 1.4 KB per call. A
+  200,000-call program that ran out of a 1 GB heap now peaks at 185 MB (#426).
+
 ## v0.24.2 2026-10-24
 
 - **A closure evaluates a group body on every call.** A parenthesised group in a

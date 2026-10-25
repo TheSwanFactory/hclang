@@ -52,12 +52,13 @@ and program is composed of frames. This unified representation enables:
 
 A closure is an aggregate of its body's atoms, so `&` walks it without
 evaluating anything, and `.#` counts the atoms (#429, `spec/a15`). `atomsOf` in
-`frame-expr.ts` flattens the parser's `FrameBind` and one-term `FrameExpr`
-wrappers, keeps a `;` statement terminator as the word `;`, and turns every
-symbol, operator and name into a `FrameWord`: a lookup yields `a`, a declaration
-`.a`. A word never resolves, however it is carried, so a program can hold,
-compare and re-collect the names of a body. Every other atom, a count, a string,
-a nested closure or an aggregate written in the body, is yielded as the
+`frame-expr.ts` walks a body statement by statement: a tight expression,
+abutting terms, is one atom (`spec/a16`); the parser emits no `FrameBind` into
+the graph, wrappers, keeps a `;` statement terminator as the word `;`, and turns
+every symbol, operator and name into a `FrameWord`: a lookup yields `a`, a
+declaration `.a`. A word never resolves, however it is carried, so a program can
+hold, compare and re-collect the names of a body. Every other atom, a count, a
+string, a nested closure or an aggregate written in the body, is yielded as the
 template's own frame, and `Frame.walked()` is what lets an aggregate written in
 a body walk by the same rule. The walk never copies and never writes, so two
 walks yield the same frames and a call in between changes nothing. A size

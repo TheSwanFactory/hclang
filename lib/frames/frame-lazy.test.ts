@@ -201,7 +201,8 @@ describe("FrameLazy", () => {
       // the operator as its argument.
       expect(last("{_}.#").toString()).toEqual("1");
       expect(last("{_}.##").toString()).toEqual("1");
-      expect(last("{5, 7}.#").toString()).toEqual("2");
+      // The comma is an atom since v0.27.0 (spec a16), as `;` is.
+      expect(last("{5, 7}.#").toString()).toEqual("3");
       expect(last(".f {_}; f.#").toString()).toEqual("1");
       expect(last(".o [.m {_}]; o.m.#").toString()).toEqual("1");
       expect(last(".o [.m {_ + 1}]; (o.m).#").toString()).toEqual("3");

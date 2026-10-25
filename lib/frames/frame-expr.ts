@@ -76,9 +76,7 @@ export class FrameExpr extends FrameList {
 
   /** A parsed expression of one atom is that atom; anything else is itself. */
   public override walked(): Frame {
-    if (!isPlainExpr(this) && !((this as Frame) instanceof FrameBind)) {
-      return this;
-    }
+    if (!isPlainExpr(this)) return this;
     const atoms = atomsOf([this], sitesAround(this.data));
     return atoms.length === 1 ? atoms[0] : this;
   }
@@ -162,6 +160,11 @@ export class FrameExpr extends FrameList {
   }
 }
 
+/**
+ * The parser's marker for a bind pipe, what one whitespace started. It names
+ * the pipe only: a bind emits its one term bare, or several abutting terms as
+ * a tight `FrameExpr`, so no `FrameBind` is ever a node of the graph (a16).
+ */
 export class FrameBind extends FrameExpr {
 }
 
@@ -175,8 +178,7 @@ const isPlainExpr = (term: Frame): term is FrameExpr =>
  * it cannot be imported here, because it extends this module's class.
  */
 const isClosure = (term: Frame): term is FrameExpr =>
-  term instanceof FrameExpr && !isPlainExpr(term) &&
-  !((term as Frame) instanceof FrameBind);
+  term instanceof FrameExpr && !isPlainExpr(term);
 
 /** The declarations a body can see, by spelling: each is its `FrameName` node. */
 type Sites = ReadonlyMap<string, FrameName>;
@@ -194,17 +196,18 @@ const enclosingSites = new WeakMap<Frame, Sites>();
 /**
  * The atoms of parsed terms, in source order, as data (#429).
  *
- * The parser wraps each atom of a juxtaposition as `FrameBind` holding a
- * one-term `FrameExpr`, and those wrappers vanish here. A symbol, operator or
- * name becomes a word, so it never resolves. A term that ended in `;` is
- * followed by the word `;`, so the walk's text re-reads as the same source;
- * a `,` between terms is not kept. Any other atom, a count, a string, a
- * closure or an aggregate written in the body, is yielded itself, unevaluated,
- * and an aggregate walks in turn by the same rule.
+ * The terms are a body's statements. Each statement's atoms are yielded in
+ * order; a statement that ended in `;` is followed by the word `;`, and two
+ * statements the source separated with `,` get the word `,` between them, so
+ * the walk's text re-reads as the same source. A symbol, operator or name
+ * becomes a word, so it never resolves. Every other atom is yielded itself,
+ * unevaluated: a count, a string, a closure, an aggregate, or a tight
+ * expression, terms that abut as `o.x` does, which is evaluated before its
+ * neighbour applies and so is one atom that walks in turn (a16).
  *
  * Each word carries the declaration it resolves to, so `===` tells apart two
- * names with one spelling. A name at the head of an expression declares, and
- * a lookup resolves to the nearest declaration before it in its own body or in
+ * names with one spelling. A name at the head of a statement declares, and a
+ * lookup resolves to the nearest declaration before it in its own body or in
  * a body around it, which is the order a call evaluates them in. A closure's
  * locals come ahead of its argument, so that is static. A name declared
  * nowhere it can see is free: it resolves per call, argument first (spec 7),
@@ -216,41 +219,6 @@ export function atomsOf(
 ): Frame[] {
   const scope = new Map(sites);
   const atoms: Frame[] = [];
-  const walk = (term: Frame): void => {
-    if (term instanceof FrameBind) {
-      for (const inner of term.asArray()) walk(inner);
-    } else if (isPlainExpr(term)) {
-      const declared = declaredName(term);
-      for (const inner of term.asArray()) walk(inner);
-      if (declared) scope.set(declared.source, declared);
-      if (term.is.statement) atoms.push(FrameWord.word(";"));
-    } else if (term instanceof FrameName) {
-      // A name at the head of an expression is its own declaration. Anywhere
-      // else it is a value or a member, `o .a`, which no local declares.
-      atoms.push(
-        FrameWord.address(term.source, heads.has(term) ? term : undefined),
-      );
-    } else if (term instanceof FrameSymbol) {
-      const spelling = term.spelling();
-      atoms.push(FrameWord.word(spelling, scope.get(spelling)));
-    } else {
-      if (isClosure(term)) {
-        const first = term.asArray()[0];
-        if (first) enclosingSites.set(first, scope);
-      } else if (term instanceof FrameList) {
-        // An aggregate written in the body is scoped inside it: its terms see
-        // the declarations before it, and its own declarations shadow them
-        // within it, as they do when it is evaluated. Its terms are walked
-        // now so the closures and aggregates it holds are recorded too.
-        for (const element of term.asArray()) {
-          const terms = isPlainExpr(element) ? element.asArray() : [element];
-          if (terms[0]) enclosingSites.set(terms[0], scope);
-          atomsOf(terms, scope);
-        }
-      }
-      atoms.push(term);
-    }
-  };
   const heads = new Set<Frame>();
   const declaredName = (expr: FrameExpr): FrameName | undefined => {
     const terms = expr.asArray();
@@ -262,16 +230,64 @@ export function atomsOf(
     heads.add(head);
     return head;
   };
-  for (const term of terms) walk(term);
+  /** Records the declarations in view for a term that walks on its own. */
+  const noteTerms = (held: readonly Frame[]): void => {
+    if (held[0]) enclosingSites.set(held[0], scope);
+    atomsOf(held, scope);
+  };
+  const walkAtom = (term: Frame): void => {
+    if (isPlainExpr(term)) {
+      const held = term.asArray();
+      if (held.length === 1) {
+        walkAtom(held[0]);
+      } else {
+        noteTerms(held);
+        atoms.push(term);
+      }
+    } else if (term instanceof FrameName) {
+      atoms.push(
+        FrameWord.address(term.source, heads.has(term) ? term : undefined),
+      );
+    } else if (term instanceof FrameSymbol) {
+      const spelling = term.spelling();
+      atoms.push(FrameWord.word(spelling, scope.get(spelling)));
+    } else {
+      if (isClosure(term)) {
+        const first = term.asArray()[0];
+        if (first) enclosingSites.set(first, scope);
+      } else if (term instanceof FrameList) {
+        for (const element of term.asArray()) {
+          noteTerms(isPlainExpr(element) ? element.asArray() : [element]);
+        }
+      }
+      atoms.push(term);
+    }
+  };
+  let previous: Frame | undefined;
+  for (const term of terms) {
+    if (
+      isPlainExpr(term) && previous && isPlainExpr(previous) &&
+      previous.is.statement !== true
+    ) {
+      atoms.push(FrameWord.word(","));
+    }
+    if (isPlainExpr(term)) {
+      const declared = declaredName(term);
+      for (const inner of term.asArray()) walkAtom(inner);
+      if (declared) scope.set(declared.source, declared);
+      if (term.is.statement) atoms.push(FrameWord.word(";"));
+    } else {
+      walkAtom(term);
+    }
+    previous = term;
+  }
   return atoms;
 }
 
 /** The atom a term begins with, through the parser's one-term wrappers. */
 function firstAtom(term: Frame): Frame {
   let atom = term;
-  while (
-    (atom instanceof FrameBind || isPlainExpr(atom)) && atom.size() === 1
-  ) {
+  while (isPlainExpr(atom) && atom.size() === 1) {
     atom = atom.asArray()[0];
   }
   return atom;

@@ -57,16 +57,40 @@ export class FrameLazy extends FrameExpr {
   }
 
   public override toStringDataArray(): string[] {
+    // A body prints as it was written, so it reads back: `;` after a
+    // statement, `, ` between terms the source separated, and a tight
+    // expression, terms that abut as `o.x` does, in parentheses, since the
+    // spacing that bound them cannot be restored (spec a16).
     const stringify = (obj: Frame): string =>
       renderNested(
         obj,
         () =>
-          obj instanceof FrameExpr
-            ? obj.asArray().map(stringify).join(" ")
+          obj instanceof FrameExpr && Object.getPrototypeOf(obj) ===
+              FrameExpr.prototype
+            ? `(${obj.asArray().map(stringify).join(" ")})`
             : obj.toString(),
       );
-    const parts = this.data.map(stringify);
-    const body = parts.join(" ").trim();
+    const parts: string[] = [];
+    this.data.forEach((term: Frame, index) => {
+      const statement = term instanceof FrameExpr &&
+        Object.getPrototypeOf(term) ===
+          FrameExpr.prototype;
+      const text = statement
+        ? term.asArray().map(stringify).join(" ")
+        : stringify(term);
+      // Only two statements the source separated take a comma; a body built
+      // from bare terms, as a test may build one, is one juxtaposition.
+      const previous = this.data[index - 1];
+      const separated = index > 0 && statement &&
+        previous instanceof FrameExpr &&
+        Object.getPrototypeOf(previous) === FrameExpr.prototype &&
+        previous.is.statement !== true;
+      parts.push(
+        (separated ? ", " : index > 0 ? " " : "") + text +
+          (term.is.statement ? ";" : ""),
+      );
+    });
+    const body = parts.join("").trim();
     const display = body.length > 0 ? ` ${body} ` : body;
     return [display + ","];
   }

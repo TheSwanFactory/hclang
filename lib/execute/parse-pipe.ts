@@ -118,8 +118,23 @@ export class ParsePipe extends FrameArray implements IFinish {
     }
 
     let value = this.makeFrame();
-    if (value instanceof FrameBind && value.isEmpty()) {
-      return out;
+    if (value instanceof FrameBind) {
+      // A bind pipe holds what followed one whitespace. One term is itself:
+      // wrapping it added a node with no meaning, which printed as `((x))`
+      // and doubled the depth of every walk. Several terms that abut, as in
+      // `f o.x`, are one tight expression, evaluated before the term beside
+      // it applies, so they stay one `FrameExpr` node. No `FrameBind` reaches
+      // the graph (spec a16).
+      if (value.isEmpty()) return out;
+      const [expr] = value.asArray();
+      const term = expr instanceof FrameExpr && expr.size() === 1
+        ? expr.asArray()[0]
+        : expr;
+      // Collected as a token is, by `apply`: `call` would double-dispatch,
+      // and a bare symbol or operator answers a call by resolving itself.
+      const result = out.apply(term, Frame.nil);
+      out.call(terminal);
+      return result;
     }
     if (value instanceof FrameSchema && value.isEmpty()) {
       value = Frame.all;

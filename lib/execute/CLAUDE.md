@@ -166,8 +166,14 @@ text -> FrameSymbol -> scan protocol -> lex-pipe -> parse-pipe -> eval-pipe -> r
 
 1. Takes token stream
 2. Groups into expressions
-3. Builds syntax tree (Frame structures)
+3. Builds the Concrete Semantics Graph (`spec/a16`): Frames that are the
+   program's own executable nodes, with no node the parser alone needed
 4. Outputs Frame objects
+
+A whitespace starts a bind pipe, whose `FrameBind` factory names the pipe and
+never reaches the graph: the pipe emits its one term bare, or several abutting
+terms, as `o.x` in `f o.x`, as one tight `FrameExpr` that evaluates before its
+neighbour applies.
 
 ### Eval Pipe
 

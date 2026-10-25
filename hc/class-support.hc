@@ -52,7 +52,7 @@ the call evaluates to the new value, and the original is untouched at any depth.
 compares exactly as the same value written out would.`
 ; .point [.v 1; .set_ {@v _;}];
 ; point.set_ 2
-# [.v 2; .set_ { @v _ };]
+# [.v 2; .set_ { @v _; };]
 ; [(point.set_ 2) & {_}, (point.set_ 2) = [.v 2; .set_ {@v _;}]]
 # [[], <>]
 
