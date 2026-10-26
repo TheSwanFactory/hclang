@@ -249,7 +249,9 @@ previous target binding (or its absence) unchanged.
 The child namespace owns imported declarations and falls through to the caller's
 ordered live lookup graph. `LiveLookupContext` exposes that graph read-only,
 withholds receiver/write authority, and resolves values and binding schema
-metadata through the same physical declaration owners. Immutable identity
+metadata through the same physical declaration owners. An alias that finds a
+caller binding through it is refused, `$!.read-only-scope @a` (#441), so the
+import fails rather than answering as though it had written. Immutable identity
 projections may be reused while their target is unchanged; rebinding a caller
 name produces a projection for the new target. Closures derived from the child
 retain this lookup without a parallel metadata scope list. The live caller

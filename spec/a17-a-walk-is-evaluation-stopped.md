@@ -128,8 +128,9 @@ A call exercises the closure's authority as the closure uses it. A walk can be
 taken apart and recombined, so a resumed write would be authority the closure
 never grants: `{@a b}` walked holds `@a`, and `[@a, 42]` would write `42` where
 the closure only ever writes `b`. Reads disclose no more than the body names
-(§4); writes would. The refusal applies to a resumed walk's view only. A named
-import reads its caller through the same kind of lookup, and is unchanged.
+(§4); writes would. A named import reads its caller through the same kind of
+lookup, and since v0.29.1 its alias of a caller binding is refused too, with
+`$!.read-only-scope` (#441).
 
 The scope is live, not a snapshot, as a closure's is (spec 7). A resumed word
 sees exactly what its closure would see if it were called now.

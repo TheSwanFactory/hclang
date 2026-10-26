@@ -8,6 +8,7 @@ import { NilContext } from "./context.ts";
 import {
   type EvaluationInput,
   EvaluationScope,
+  isReadOnlyLookup,
   isResumedLookup,
 } from "./evaluation-scope.ts";
 import { completeAtEnd, includeOrReserve } from "./atom-syntax.ts";
@@ -171,6 +172,12 @@ export class FrameAlias extends FrameAtom {
     // never makes (spec a17).
     if (isResumedLookup(found.out)) {
       return Frame.error(`$!.resumed-write @${key}`);
+    }
+    // A named import reads its caller and never writes it. The write used to
+    // land on the read-only projection, answering as though it had written
+    // while nothing read it again (#441).
+    if (isReadOnlyLookup(found.out)) {
+      return Frame.error(`$!.read-only-scope @${key}`);
     }
     return FrameSymbol.for(found.key).setter(found.out);
   }

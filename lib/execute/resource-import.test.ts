@@ -651,12 +651,40 @@ describe("resource import", () => {
       expect(child?.writeTarget).toBe(scope.writeTarget.get_here("module"));
       expect(child?.receiverState).toBeUndefined();
 
-      new FrameImport(
+      const aliased = new FrameImport(
         { kind: "named", key: "aliasModule" },
         resourceWithSource("@callerValue 11"),
         evaluateResourceSource,
       ).in(scope);
+      expect(aliased.toString()).toContain("$!.read-only-scope @callerValue");
       expect(argument.get_here("callerValue").toString()).toEqual("3");
+    });
+
+    it("refuses a named import's alias of a caller binding (#441)", () => {
+      // The caller is read through a read-only view, so the alias is refused
+      // rather than answering as though it wrote: the write used to land on
+      // the view, and neither the caller nor the module held it.
+      const file = new FrameArray([]);
+      file.set("a", new FrameInt("1"));
+      const scope = EvaluationScope.root(file);
+      const named = new FrameImport(
+        { kind: "named", key: "module" },
+        resourceWithSource(".r (@a 5);"),
+        evaluateResourceSource,
+      ).in(scope);
+
+      expect(named.isFailedResult()).toBe(true);
+      expect(named.toString()).toContain("$!.read-only-scope @a");
+      expect(file.get_here("a").toString()).toEqual("1");
+      expect(file.get_here("module").is.missing).toBe(true);
+
+      // A local import evaluates in the caller's own scope, so it writes.
+      new FrameImport(
+        { kind: "local" },
+        resourceWithSource(".r (@a 5);"),
+        evaluateResourceSource,
+      ).in(scope);
+      expect(file.get_here("a").toString()).toEqual("5");
     });
 
     it("keeps named declarations owned by the child and shadows the caller", () => {

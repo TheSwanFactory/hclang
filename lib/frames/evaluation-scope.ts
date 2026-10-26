@@ -39,9 +39,14 @@ type LookupLayers = {
 };
 
 /**
- * Whether `frame` is a resumed walk's view of its closure's scope, through
- * which a binding can be read and never written (spec a17).
+ * Whether `frame` is a read-only view of another scope, through which a
+ * binding can be read and never written: a named import's view of its caller
+ * (#441), or a resumed walk's view of its closure's scope (spec a17).
  */
+export const isReadOnlyLookup = (frame: Frame): boolean =>
+  frame instanceof LiveLookupContext;
+
+/** Whether `frame` is a resumed walk's view of its closure's scope (a17). */
 export const isResumedLookup = (frame: Frame): boolean =>
   frame instanceof LiveLookupContext && frame.resumed;
 
