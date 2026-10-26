@@ -339,6 +339,16 @@ export class Frame extends MetaFrame {
   }
 
   /**
+   * Whether this is a plain parsed expression: a statement of a body or an
+   * aggregate, or a tight expression nested in one (spec a16). A closure is
+   * not, though it extends the same class. Asked here so an aggregate's
+   * printer can tell, without importing the expression module.
+   */
+  public isPlainExpression(): boolean {
+    return false;
+  }
+
+  /**
    * What a walk over an aggregate yields for this element (#429). A value is
    * itself. A parsed term is syntax, and answers the atom it wraps, so the
    * parser's trivial wrappers never reach a program.

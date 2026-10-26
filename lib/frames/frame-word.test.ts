@@ -40,6 +40,27 @@ describe("walking a closure (#429)", () => {
     expect(answer("({1, 2} & {_}) | ()")).toEqual("2");
   });
 
+  it("walks a source aggregate as a body, statements and bindings kept (a16)", () => {
+    expect(answer(".f {.a 1; (.a 2; a)}; ((f & {_}) .3) & {“” _}"))
+      .toContain("[“.a”, “2”, “;”, “a”]");
+    // Its own declaration shadows the enclosing one, as it does when run.
+    expect(answer(
+      ".f {.a 1; (.a 2; a)}; .w (f & {_}); .i ((w .3) & {_}); [(i .3) === (i .0), (i .3) === (w .0), f ()]",
+    )).toContain("[<>, (), (.a 2; 2)]");
+    expect(answer(".f {.a 1; [a, b]}; ((f & {_}) .3) & {“” _}"))
+      .toContain("[“a”, “,”, “b”]");
+    // A value walks as its elements, statements left out, as before.
+    expect(answer("(.a 2; a) & {_}")).toEqual("[2]");
+  });
+
+  it("prints a source aggregate as it was written (a16)", () => {
+    expect(answer("“” {.a 1; (.a 2; a)}")).toEqual("“{ .a 1; (.a 2; a) }”");
+    expect(answer("“” {.a 1; [a + 1, b]}")).toEqual("“{ .a 1; [a + 1, b] }”");
+    expect(answer(".f {(1 + 2) * 3}; [“” f, f ()]")).toContain(
+      "[“{ (1 + 2) * 3 }”, 9]",
+    );
+  });
+
   it("prints a closure as it was written, so it reads back (a16)", () => {
     expect(answer("“” {.a 1; a + 2, b}")).toEqual("“{ .a 1; a + 2, b }”");
     expect(answer("“” {f o.x}")).toEqual("“{ f (o .x) }”");
@@ -65,9 +86,11 @@ describe("walking a closure (#429)", () => {
   });
 
   it("walks an aggregate written in the body as its own atoms", () => {
-    expect(answer("(({[1, [2, 3]]} & {_}) .0) & {_.#}")).toEqual("[1, 2]");
-    expect(answer("(((({[1, [2, 3]]} & {_}) .0) & {_}) .1) & {_}"))
-      .toEqual("[2, 3]");
+    // A source aggregate walks as a body, its `,` kept (spec a16).
+    expect(answer("(({[1, [2, 3]]} & {_}) .0) & {“” _}"))
+      .toEqual("[“1”, “,”, “[2, 3]”]");
+    expect(answer("(((({[1, [2, 3]]} & {_}) .0) & {_}) .2) & {“” _}"))
+      .toEqual("[“2”, “,”, “3”]");
     expect(answer("[1 + 2] & {_}")).toEqual("[3]");
   });
 

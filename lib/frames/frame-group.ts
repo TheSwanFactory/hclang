@@ -35,6 +35,7 @@ export class FrameGroup extends FrameList {
    */
   public eval_one(input: EvaluationInput = []): Frame {
     const target = this.copy();
+    target.is.source = false;
     const result = this.data[0].in(this.scoped(input, target));
 
     target.meta_pairs().forEach(([key, value]) => {
@@ -59,6 +60,7 @@ export class FrameGroup extends FrameList {
       }
     }
     const result = this.copy();
+    result.is.source = false;
     const scope = this.scoped(input, result);
     result.data = result.data.map((frame: Frame) => frame.in(scope));
     return result;

@@ -541,7 +541,8 @@ describe("Lex", () => {
     for (const source of ["<-1>", "<-0>", "<-01>"]) {
       const atoms = lexAtoms(`${source} `);
 
-      const expected = `<(- ${source.slice(2, -1)})>`;
+      // As written, since v0.28.0: a source aggregate prints bare (spec a16).
+      const expected = `<- ${source.slice(2, -1)}>`;
       expect(atoms).toHaveLength(1);
       expect(atoms[0]).toBeInstanceOf(FrameSchema);
       expect(atoms[0].toString()).toEqual(expected);
@@ -559,8 +560,8 @@ describe("Lex", () => {
   });
 
   it("keeps populated and nested schema syntax beside the arrow", () => {
-    expect(lexAtoms("<.x 1> ").map(String)).toEqual(["<(.x 1)>"]);
-    expect(lexAtoms("<<>> ").map(String)).toEqual(["<(<>)>"]);
+    expect(lexAtoms("<.x 1> ").map(String)).toEqual(["<.x 1>"]);
+    expect(lexAtoms("<<>> ").map(String)).toEqual(["<<>>"]);
     expect(lexResult("<").is.error).toBeFalsy();
     expect(lexAtoms(".< ").map(String)).toEqual([".<"]);
     expect(lexAtoms(".<= ").map(String)).toEqual([".<="]);

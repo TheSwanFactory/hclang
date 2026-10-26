@@ -151,6 +151,10 @@ export class ParsePipe extends FrameArray implements IFinish {
     if (this.nested && group instanceof FrameGroup) {
       group.declares = true;
     }
+    // A nested aggregate is source until it is evaluated: it walks as a body
+    // does, statements and all, where a value's statements answer nothing
+    // (spec a16). Evaluation builds a value without the mark.
+    if (this.nested) group.is.source = true;
     if (this.sequenced) {
       group.is.sequence = true;
     }
