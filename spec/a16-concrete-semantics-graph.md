@@ -1,7 +1,7 @@
 # The Concrete Semantics Graph
 
 **Status:** Implemented in v0.27.0; source aggregates walk and print as bodies
-in v0.28.0.\
+in v0.28.0; a comma expression is a group in a closure body in v0.30.0.\
 **Issues:** Figure 004.08 and 004.09a in `occurrence/figure`
 (`issues/004-proof-by-observation/`), which found the symptoms; spec 7 §2, whose
 lookup order this document brings the runtime into line with.\
@@ -148,6 +148,49 @@ prints as it was written (v0.28.0):
   “” f                              → “{ .a 1; (.a 2; a) }”    (before: “{ .a 1; ((.a 2); (a)) }”)
 (.a 2; a) & {_}                     → [2]                      a value, unchanged
 ```
+
+## A comma means one thing (v0.30.0, #443)
+
+A newline inside brackets is the same separator as `,`, in values and in the
+walk alike. Between them, `,` and newline separate the terms of one expression,
+and that expression is the group of its terms' values. That is how the top level
+reads `3, 4` and how a group reads `(3, 4)`.
+
+A closure body used to be the exception. Without a `;`, it evaluated its
+comma-separated terms as one juxtaposition:
+
+```text
+{3, 4} ()            → 12       3 applied to 4
+{_, 1} 5             → 5
+[1, 2] & {_, 0}      → [0, 0]
+{.a 1; a, 2} ()      → 2
+```
+
+**Ruling: a comma expression is a group wherever it is written.** In a closure
+body, a run of terms the source separated with `,` evaluates as a group of their
+values, and `;` still sequences statements:
+
+```text
+{3, 4} ()                → (3, 4)          as 3, 4 at top level
+{_, 1} 5                 → (5, 1)
+[1, 2] & {_, 0}          → [(1, 0), (2, 0)]
+{.a 1; a, 2} ()          → (1, 2)
+{.a 1, .b 2; a + b} ()   → 3               the group declares into the call's frame
+```
+
+**The group does not declare.** It is the non-declaring group the parser already
+builds for a top-level comma expression, so its declarations land in the call's
+own frame. That is where top level's land, in the file. A parenthesized group,
+`(.a 1, .b 2)`, still keeps its declarations to itself.
+
+**What stays a juxtaposition.** A body assembled through the Frame API from bare
+atoms, or from statements with no recorded `;`, is still one juxtaposed
+expression, as that API has always meant. `lib/maml.ts` builds such a body.
+
+**Why it matters.** #443 asks for an HC file to be read as an unevaluated root
+closure. A file's lines are implicit commas, so a file is one comma expression.
+Only with this ruling does a file's quote, called, answer what running the file
+answers.
 
 ## What remains
 

@@ -33,15 +33,22 @@ export class FrameExpr extends FrameList {
   }
 
   /**
-   * Evaluates a closure body, as a sequence when the source asked for one.
+   * Evaluates a closure body: `;` sequences, and `,` collects, as everywhere.
    *
    * `sequence` records that the author wrote `;` between terms, so intent comes
-   * from the parser rather than from inspecting flags on the body's children. A
-   * body assembled programmatically therefore stays one juxtaposed expression,
-   * which is what the Frame API has always meant by a multi-item body.
+   * from the parser rather than from inspecting flags on the body's children.
+   * Terms the source separated with `,`, or with a newline, which is the same
+   * separator, form one comma expression, and a comma expression is the group
+   * of its terms' values, as it is at top level and in a group (#443). So
+   * `{3, 4} ()` answers `(3, 4)`, as `3, 4` does. The group does not declare,
+   * so its declarations land in the call's own frame, as top level's land in
+   * the file: `{.a 1, .b 2; a + b} ()` is `3`.
    *
-   * A one-term body keeps its existing value and representation either way, so
-   * a trailing separator alone does not unwrap a single statement.
+   * A body assembled programmatically from bare atoms, or from statements with
+   * no recorded `;`, stays one juxtaposed expression, which is what the Frame
+   * API has always meant by a multi-item body. A one-term body keeps its
+   * existing value and representation either way, so a trailing separator
+   * alone does not unwrap a single statement.
    */
   public static evaluateBody(
     body: readonly Frame[],
@@ -49,13 +56,19 @@ export class FrameExpr extends FrameList {
     sequence = false,
   ): Frame {
     const scope = EvaluationScope.from(input);
-    if (body.length === 1 || !sequence) {
-      return FrameExpr.evaluateTerms(body, scope);
+    if (body.length === 1) return FrameExpr.evaluateTerms(body, scope);
+    if (!sequence) {
+      return isCommaExpression(body)
+        ? FrameExpr.commaGroup(body, scope)
+        : FrameExpr.evaluateTerms(body, scope);
     }
 
     let result = Frame.nil;
-    for (const item of body) {
-      result = item instanceof FrameExpr
+    for (const run of commaRuns(body)) {
+      const [item] = run;
+      result = run.length > 1
+        ? FrameExpr.commaGroup(run, scope)
+        : item instanceof FrameExpr
         ? item.evaluate(scope)
         : item.in(scope);
       // A sequence stops at the first failing statement, because later
@@ -64,6 +77,16 @@ export class FrameExpr extends FrameList {
     }
     return result;
   }
+
+  /**
+   * The value of a comma expression: a group of its terms' values that
+   * declares nothing of its own. Installed by `frame-group.ts`, which this
+   * module cannot import without closing a cycle.
+   */
+  public static commaGroup: (
+    terms: readonly Frame[],
+    scope: EvaluationScope,
+  ) => Frame;
 
   public override call(argument: Frame, parameter = Frame.nil): Frame {
     return this.in(EvaluationScope.call(argument, parameter));
@@ -299,6 +322,35 @@ export function atomsOf(
     previous = term;
   }
   return atoms;
+}
+
+/**
+ * Whether a body's terms are one comma expression: two or more parsed terms
+ * the source separated with `,`, rather than bare atoms or statements.
+ */
+function isCommaExpression(terms: readonly Frame[]): boolean {
+  return terms.length > 1 &&
+    terms.every((term) =>
+      term.isPlainExpression() && term.is.statement !== true
+    );
+}
+
+/**
+ * A sequenced body split at its `;`s: each run is the terms of one statement,
+ * a comma expression when it has more than one.
+ */
+function commaRuns(body: readonly Frame[]): Frame[][] {
+  const runs: Frame[][] = [];
+  let run: Frame[] = [];
+  for (const term of body) {
+    run.push(term);
+    if (term.is.statement === true) {
+      runs.push(run);
+      run = [];
+    }
+  }
+  if (run.length > 0) runs.push(run);
+  return runs;
 }
 
 /** The atom a term begins with, through the parser's one-term wrappers. */

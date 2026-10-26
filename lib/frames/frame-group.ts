@@ -1,6 +1,7 @@
 // Load the FrameList cycle from FrameLazy, where it closes, so FrameList and
 // FrameExpr exist before any subclass, whichever module is imported first.
 import "./frame-lazy.ts";
+import { FrameExpr } from "./frame-expr.ts";
 import { Frame } from "./frame.ts";
 import { FrameList } from "./frame-list.ts";
 import { NilContext } from "./context.ts";
@@ -75,3 +76,11 @@ export class FrameGroup extends FrameList {
     return this.size() === 0 ? Frame.nil : this;
   }
 }
+
+/**
+ * A comma expression in a closure body is a group that declares nothing of
+ * its own, as the parser's top-level wrapper is, so its declarations land in
+ * the call's frame (#443).
+ */
+FrameExpr.commaGroup = (terms, scope) =>
+  new FrameGroup([...terms], {}).in(scope);

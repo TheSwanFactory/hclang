@@ -4,6 +4,15 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.30.0 2026-10-26
+
+- **A comma in a closure body collects, as everywhere else.** Terms separated by
+  `,`, or by a newline, are one expression whose value is the group of their
+  values, so `{3, 4} ()` is `(3, 4)`, as `3, 4` is at top level. It was `12`,
+  the terms juxtaposed. Likewise `[1, 2] & {_, 0}` is `[(1, 0), (2, 0)]`. `;`
+  still sequences, and the group's declarations land in the call's frame, so
+  `{.a 1, .b 2; a + b} ()` is still `3` (#443, `spec/a16`).
+
 ## v0.29.1 2026-10-26
 
 - **A named import's alias of a caller binding is refused.** The module reads
