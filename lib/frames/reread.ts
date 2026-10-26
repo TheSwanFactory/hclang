@@ -3,12 +3,12 @@
 // live on FrameLazy without loading the subclass before its base.
 import { Frame } from "./frame.ts";
 import { FrameArg } from "./frame-arg.ts";
-import { FrameExpr, FrameScoped } from "./frame-expr.ts";
+import { FrameExpr, FrameScoped, resumeAt } from "./frame-expr.ts";
 import { FrameLazy } from "./frame-lazy.ts";
 import { FrameName } from "./frame-name.ts";
 import { FrameOperator, FrameSymbol } from "./frame-symbol.ts";
 import { FrameWord } from "./frame-word.ts";
-import { type EvaluationInput, EvaluationScope } from "./evaluation-scope.ts";
+import type { EvaluationScope } from "./evaluation-scope.ts";
 
 /**
  * The closure a walk resumes as (#429, spec a17): the inverse of
@@ -49,48 +49,25 @@ export function closureFromAtoms(
     }
   }
   close(false);
-  const body = statements.length === 1 && !sequence
-    ? statements[0].asArray()
-    : statements;
-  const closure = new FrameLazy(body);
+  // Statements stay statements, as the parser holds them, so a statement's
+  // own forms, such as `x .<>`, resume as they run.
+  const closure = new FrameLazy(statements);
   if (sequence) closure.is.sequence = true;
   return site ? closure.bind(site) : closure;
 }
 
 function atomOf(atom: Frame, site?: EvaluationScope): Frame {
   if (atom instanceof FrameScoped) {
-    return new Resumed(atom.term, atom.scope, site);
+    return resumeAt(atom.term.copy(), atom.scope, site);
   }
   if (!(atom instanceof FrameWord)) return atom;
   const spelling = atom.spelling();
   if (atom.isAddress()) return new FrameName(spelling);
-  if (/^_+$/.test(spelling)) return FrameArg.level(spelling.length);
   if (FrameOperator.Accepts(spelling[0])) return new FrameOperator(spelling);
-  const symbol = FrameSymbol.for(spelling);
-  return atom.scope ? new Resumed(symbol, atom.scope, site) : symbol;
-}
-
-/**
- * A term of a resumed body that finishes evaluating where its closure was
- * bound: the resumption's own layers first, then `scope`, read-only, and
- * never the fold's site in between (spec a17).
- */
-class Resumed extends Frame {
-  constructor(
-    private readonly term: Frame,
-    private readonly scope: EvaluationScope,
-    private readonly site?: EvaluationScope,
-  ) {
-    super();
-  }
-
-  public override in(input: EvaluationInput = []): Frame {
-    return this.term.in(
-      EvaluationScope.from(input).resumedIn(this.site, this.scope),
-    );
-  }
-
-  public override toString(): string {
-    return this.term.toString();
-  }
+  // A fresh term, never an interned one, so the resumption it is marked for
+  // belongs to this body alone.
+  const term = /^_+$/.test(spelling)
+    ? new FrameArg(spelling)
+    : new FrameSymbol(spelling);
+  return atom.scope ? resumeAt(term, atom.scope, site) : term;
 }

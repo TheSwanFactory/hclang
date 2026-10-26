@@ -116,8 +116,16 @@ export const ReduceElements = (
   // Only an aggregate is inspected: a stream's elements are produced by
   // reading it, and the read belongs to the fold.
   if (code instanceof FrameList) {
-    const values = code.elements();
-    if (values.some((value) => value instanceof FrameWord)) {
+    // A held aggregate walks with its closure's scope, so its words resume
+    // there rather than at the site.
+    const values = (source instanceof FrameScoped ? source : code).elements();
+    // A walk is code when it holds a word or a term held with its closure's
+    // scope, so `{(…)} & {_}` resumes as `{x}` does.
+    if (
+      values.some((value) =>
+        value instanceof FrameWord || value instanceof FrameScoped
+      )
+    ) {
       return closureFromAtoms(values, site).call(
         receiver,
         Frame.nil,

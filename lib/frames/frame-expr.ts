@@ -111,10 +111,10 @@ export class FrameExpr extends FrameList {
       // operand that follows it.
       if (sum.isFailedResult()) return sum;
 
-      const value = item.in(scope);
+      const value = item.in(resumedScope(item, scope));
       if (value.is.error === true) return value;
       if (index > 0 && value.is.operator === true) {
-        return value.called_by(sum, Frame.nil);
+        return value.called_by(sum, Frame.nil).atSite(scope);
       }
       return sum.call(value);
     }, Frame.nil);
@@ -125,7 +125,7 @@ export class FrameExpr extends FrameList {
       this.data.length !== 2 || !(this.data[0] instanceof FrameSymbol) ||
       !(this.data[1] instanceof FrameName) || this.data[1].source !== "<>"
     ) return undefined;
-    return this.data[0].bindingSchema(scope);
+    return this.data[0].bindingSchema(resumedScope(this.data[0], scope));
   }
 
   private schemaDefinition(scope: EvaluationScope): Frame | undefined {
@@ -263,6 +263,10 @@ export function atomsOf(
       const first = term.asArray()[0];
       if (first) enclosingSites.set(first, scope);
       atoms.push(scoped(term));
+    } else if (resume && term.resolvesInScope()) {
+      // An alias resolves its binding where it is evaluated, so it is held
+      // with its closure's scope as a word is (spec a17).
+      atoms.push(scoped(term));
     } else if (term instanceof FrameList) {
       // Keyed by its first element, which is how its own walk asks, and by
       // each element's first term, which is how a walked element asks.
@@ -314,7 +318,11 @@ function firstAtom(term: Frame): Frame {
  */
 export function noteEnclosing(inner: FrameExpr, outer: FrameExpr): void {
   const first = inner.asArray()[0];
-  if (first && !enclosingSites.has(first)) outer.elements();
+  if (first && !enclosingSites.has(first)) {
+    // Walked for the sites it records, so without the scope wrappers.
+    const body = outer.asArray();
+    atomsOf(body, sitesAround(body));
+  }
 }
 
 /**
@@ -392,6 +400,38 @@ export class FrameScoped extends Frame {
   public override dataString(): string {
     return this.term.dataString();
   }
+}
+
+/** Where a resumed term finishes evaluating: its closure's scope, past a site. */
+type Resumption = {
+  readonly scope: EvaluationScope;
+  readonly site?: EvaluationScope;
+};
+
+// Keyed by a term made for one resumption, a fresh symbol or a plumbing copy,
+// never a shared template, so two resumptions cannot see each other's scope.
+const resumptions = new WeakMap<Frame, Resumption>();
+
+/**
+ * Marks `term`, made for one resumption, to finish evaluating in `scope` past
+ * `site` (spec a17). The term keeps its own class, so every structural check
+ * the evaluator makes on it still holds.
+ */
+export function resumeAt(
+  term: Frame,
+  scope: EvaluationScope,
+  site?: EvaluationScope,
+): Frame {
+  resumptions.set(term, { scope, site });
+  return term;
+}
+
+/** The scope a body's term evaluates in: its resumption's, or the body's. */
+function resumedScope(term: Frame, scope: EvaluationScope): EvaluationScope {
+  const resumption = resumptions.get(term);
+  return resumption
+    ? scope.resumedIn(resumption.site, resumption.scope)
+    : scope;
 }
 
 /** A source aggregate walks as a body does. */

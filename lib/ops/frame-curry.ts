@@ -30,10 +30,11 @@ export class FrameCurry extends Frame {
   private site?: EvaluationScope;
 
   /**
-   * Records the scope the operator was written in, for the one operation
-   * whose answer depends on it: a fold resumes a walk there (spec a17).
+   * Records the scope the operator was written in. The curry is fresh for
+   * each evaluation, so this costs a field: no copy, and the scope is held
+   * only as long as the curry is. A fold alone reads it (spec a17).
    */
-  public withSite(site: EvaluationScope): this {
+  public override atSite(site: EvaluationScope): this {
     this.site = site;
     return this;
   }

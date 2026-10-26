@@ -67,21 +67,27 @@ operator reaches a closure as its argument, where the body would run, so
 term's last step (`spec/a17`), so a bound closure's walk holds each atom with
 the scope the closure was bound in: a word carries it, and a compound atom,
 which is a tight expression, an aggregate or a nested closure, is a transparent
-`FrameScoped`. A fold is the one place words turn back into code, and it resumes
-them: `|` over a closure calls it with the receiver, and `|` over a stream that
-holds a word reassembles the body (`closureFromAtoms` in `reread.ts`), binds it
-where the `|` is written, and calls that. A held term resolves in the
-resumption's fresh frame, then the receiver, then its own scope read-only
+`FrameScoped`, as is an alias. A fold is the one place words turn back into
+code, and it resumes them: `|` over a closure calls it with the receiver, and
+`|` over a stream that holds a word or a held term reassembles the body
+(`closureFromAtoms` in `reread.ts`), binds it where the `|` is written, and
+calls that. Each held term is rebuilt as its own class, a fresh symbol or a
+plumbing copy, and registered with its scope (`resumeAt` in `frame-expr.ts`),
+which `FrameExpr.evaluateTerms` consults. A held term resolves in the
+resumption's fresh frame, then the receiver, then its own scope read-only, with
+that scope as the enclosing one for `__` and carets
 (`EvaluationScope.resumedIn`), never the fold's site; any other term resolves at
-the site. So `{x + 1} | (.x 5)` is `6`, `{…} | (args)` is a second spelling of
-`{…} (args)`, and atoms from two closures folded together each resume where
-their own closure was bound. `|` is the one operator that keeps the scope it was
-written in (`FrameOperator.in`, `FrameCurry.withSite`). Folding the atoms one at
-a time cannot be the call, because the evaluator keeps the scope apart from the
-running answer and a fold has only the one receiver. `reread.ts` is its own
-module because it needs `FrameArg`, a subclass of `FrameSymbol`, and
-`frame-symbol.ts` imports `frame-lazy.ts`. Before v0.25.0 the walk yielded
-parsed terms, dropped statements and declarations, and `.#` called the closure.
+the site. A resumed alias that would write the closure's scope is refused,
+`$!.resumed-write`. So `{x + 1} | (.x 5)` is `6`, `{…} | (args)` is a second
+spelling of `{…} (args)`, and atoms from two closures folded together each
+resume where their own closure was bound. The evaluator hands the scope an
+operator was written in to the fresh curry it answers (`Frame.atSite`), which
+only a fold reads. Folding the atoms one at a time cannot be the call, because
+the evaluator keeps the scope apart from the running answer and a fold has only
+the one receiver. `reread.ts` is its own module because it needs `FrameArg`, a
+subclass of `FrameSymbol`, and `frame-symbol.ts` imports `frame-lazy.ts`. Before
+v0.25.0 the walk yielded parsed terms, dropped statements and declarations, and
+`.#` called the closure.
 
 A word is a name (v0.26.0): `=` compares spellings with any other name, the
 address `.x` included, and `===` compares the declaration each walked word

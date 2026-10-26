@@ -11,7 +11,9 @@
   closure was bound in, and `|` finishes the evaluation there:
   `({f o.x} & {_}) | ()` finds `f` and `o` as `{f o.x} | ()` does. The receiver
   still comes first, declarations land in a fresh frame, and atoms walked from
-  two closures each resume in their own scope, never the fold's (`spec/a17`).
+  two closures each resume in their own scope, never the fold's. A resumed alias
+  that would write the closure's scope is refused, `$!.resumed-write`
+  (`spec/a17`).
 - **A walk discloses what its closure names, read-only.** Resuming a word reads
   the value its name is bound to, even one the closure never returns:
   `.s 42; .f {.k s; 0}; [((f & {_}) .1)] | ()` is `42` (`spec/a17` §4).

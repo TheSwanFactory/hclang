@@ -163,6 +163,14 @@ export class FrameList extends Frame {
    */
   public static walkSource?: (terms: readonly Frame[]) => Frame[];
 
+  /**
+   * The elements a size operator counts: `elements()`, unless a kind can
+   * count them more cheaply, as a closure does without its scope (a17).
+   */
+  protected countedElements(): Array<Frame> {
+    return this.elements();
+  }
+
   /** Whether this term is one of the elements, as `elements()` reads them. */
   private isElement(term: Frame): boolean {
     return term.is.statement !== true && !this.holdsAsProperty(term);
@@ -175,7 +183,7 @@ export class FrameList extends Frame {
    */
   public override sizeFor(key: string): Frame {
     if (key === Frame.kCOUNT) {
-      return new FrameCount(BigInt(this.elements().length));
+      return new FrameCount(BigInt(this.countedElements().length));
     }
     const leaves = this.leafCount(new Set());
     return leaves === undefined
@@ -194,7 +202,7 @@ export class FrameList extends Frame {
     if (path.has(this)) return undefined;
     path.add(this);
     let leaves = 0n;
-    for (const element of this.elements()) {
+    for (const element of this.countedElements()) {
       const value = element.referent();
       const below = value instanceof FrameList ? value.leafCount(path) : 1n;
       if (below === undefined) return undefined;

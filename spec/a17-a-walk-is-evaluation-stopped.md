@@ -32,9 +32,12 @@ in (`FrameLazy.bind`):
   `===` compares, and now that scope too.
 - **A compound atom**, which is a tight expression, an aggregate or a closure
   written in the body, is held as a `FrameScoped`: the template's own term and
-  the scope. It is transparent. It prints, compares and counts as the term, and
-  it walks as the term does with the scope passed on, so a walk of a walk keeps
-  resuming where the first closure was bound.
+  the scope. So is an alias, `@a`, which resolves its binding where it is
+  evaluated. A `FrameScoped` is transparent. It prints, compares and counts as
+  the term, and it walks as the term does with the scope passed on, so a walk of
+  a walk keeps resuming where the first closure was bound. Folding one directly
+  resumes it in that scope too, so `(w .0) | ()` and `((w .0) & {_}) | ()`
+  agree.
 
 A closure that no evaluation has bound, such as a template built by a program,
 holds no scope, and nor do its atoms.
@@ -47,17 +50,23 @@ holds no scope, and nor do its atoms.
 
 ## 2. A fold resumes evaluation
 
-**Ruling: a fold over a walk resumes it, it does not re-read it.**
-`closureFromAtoms` reassembles the body and binds it where the `|` is written,
-the fold's _site_. The body is then called with the receiver, as before. A term
-held with a scope finishes evaluating in this order:
+**Ruling: a fold over a walk resumes it, it does not re-read it.** A walk is
+code when it holds a word or a held term. `closureFromAtoms` reassembles the
+body, keeping each statement a statement as the parser does, and binds it where
+the `|` is written, the fold's _site_. The body is then called with the
+receiver, as before. Each held term is rebuilt as its own class, a fresh symbol
+or a plumbing copy, so every check the evaluator makes on a term still holds,
+and is registered with its scope. The evaluator consults that registry wherever
+it evaluates a term, and a held term finishes evaluating in this order:
 
 1. **The resumption's own frame**, a fresh one, where every declaration the body
    makes lands (`a16`'s order: the current child first).
 2. **The receiver**, the argument of the call, so `{x + 1} | (.x 5)` is still
-   `6`.
+   `6`. It is kept whatever its identity, even when it is also one of the site's
+   own layers, as `_` passed on is.
 3. **The scope the term's closure was bound in**, read-only. The site is not
-   consulted at all.
+   consulted at all. That scope is also the enclosing one, so `__` and deeper
+   argument levels, and carets, read the closure's chain rather than the site's.
 
 A term with no scope, such as a punctuation word, a word from an unbound
 template, or an operator, resolves at the site, as a name written there would.
@@ -67,6 +76,9 @@ template, or an operator, resolves at the site, as a name written there would.
 .a 1; .f {{a}}; ((f & {_}) .0) | ()                    → 1
 .f {x + 1}; .g (f & {_}); [g | (.x 5), g | (.x 10)]    → [6, 11]   unchanged
 .a 1; .p {a}; (p & {_}) | (.a 7)                       → 7   the receiver comes first
+.p {x}; .o [.x 7]; {(p & {_}) | _} o                   → 7   the receiver is also a site layer
+.mk {{__}}; .p (mk 7); [p 9, (p & {_}) | 9]            → [7, 7]   `__` is the closure's chain
+.x 5; .f {x .<>}; [f (), (f & {_}) | ()]               → both $!.schema-missing .x
 ```
 
 **Ruling: each atom resumes in its own scope.** Atoms walked from two closures
@@ -98,7 +110,26 @@ scope among words is then as unobservable as Figures sharing children.
 
 ```text
 .a 1; .r (({.a 9; a} & {_}) | ()); [r, a]              → [9, 1]
+.a 1; .f {.a 9; @a 10; a}; [f (), (f & {_}) | (), a]   → [10, 10, 1]
 ```
+
+**Ruling: a resumed alias writes only the resumption's own frame.** An alias
+that would reach the closure's scope is refused, `$!.resumed-write @a`, at top
+level or nested in a held term, and nothing is written, neither the closure's
+binding nor the site's:
+
+```text
+.a 1; .b 9; .f {@a b}
+  [{.a 3; [f (), a]} (), a]                   → [[9, 3], 9]    a call writes f's a
+  [{.a 3; [(f & {_}) | (), a]} (), a]         → [[$!.resumed-write @a, 3], 1]
+```
+
+A call exercises the closure's authority as the closure uses it. A walk can be
+taken apart and recombined, so a resumed write would be authority the closure
+never grants: `{@a b}` walked holds `@a`, and `[@a, 42]` would write `42` where
+the closure only ever writes `b`. Reads disclose no more than the body names
+(§4); writes would. The refusal applies to a resumed walk's view only. A named
+import reads its caller through the same kind of lookup, and is unchanged.
 
 The scope is live, not a snapshot, as a closure's is (spec 7). A resumed word
 sees exactly what its closure would see if it were called now.
@@ -131,10 +162,12 @@ data is code, with nothing to tell them apart.
 ## 5. `|` reads its site
 
 A fold is the one operation whose answer depends on where it is written, because
-it finishes an evaluation there. `FrameOperator.in` records the scope for `|`
-alone, and the curry hands it to `ReduceElements` as the site. No other operator
-copies itself to do this, and the Figures testdoc runs in the same 0.37 s as
-before.
+it finishes an evaluation there. The evaluator already holds that scope when it
+applies an operator, and the operator answers a fresh curry each time, so
+`FrameExpr` hands the scope to that curry (`Frame.atSite`), and the curry hands
+it to `ReduceElements`. Nothing is copied, and the curry holds the scope only as
+long as it lives. 8,000 folds take 26.7–27.9 ms against master's 26.2–26.3 ms,
+and the Figures testdoc runs in the same 0.37 s.
 
 ## 6. A whole walk resumed is the call; a part resumed is a call of that part
 
@@ -164,7 +197,11 @@ one step from a fresh frame, without the `.a 1;` before it, exactly as calling
 .f {{a}}; (f ()) ()      → $!.name-missing a    the same step, as a body of its own
 ```
 
-There is no place where a walk and a call answer differently. A part answers as
-a part, which is what makes a walk both freeze-dried execution and an aggregate:
-every step is a frame that can be walked, counted, compared or resumed on its
-own.
+A part answers as a part, which is what makes a walk both freeze-dried execution
+and an aggregate: every step is a frame that can be walked, counted, compared or
+resumed on its own.
+
+**The one difference is a write.** A closure that writes through an alias to a
+binding outside its own frame writes it when called, and is refused when its
+walk is resumed (§3). Everything a closure reads, and everything it declares,
+resumes as it runs.

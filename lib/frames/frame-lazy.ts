@@ -141,6 +141,11 @@ export class FrameLazy extends FrameExpr {
     return atomsOf(this.data, sitesAround(this.data), capturedScopes.get(this));
   }
 
+  /** Counting needs the atoms only, so it skips the scope wrappers. */
+  protected override countedElements(): Frame[] {
+    return atomsOf(this.data, sitesAround(this.data));
+  }
+
   /** A closure is one atom of the body that holds it, never unwrapped. */
   public override walked(): Frame {
     return this;
