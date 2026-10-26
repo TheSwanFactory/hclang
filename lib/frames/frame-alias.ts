@@ -5,7 +5,11 @@ import { FrameHandle } from "./frame-handle.ts";
 import { FrameLazy } from "./frame-lazy.ts";
 import { FrameSymbol } from "./frame-symbol.ts";
 import { NilContext } from "./context.ts";
-import { type EvaluationInput, EvaluationScope } from "./evaluation-scope.ts";
+import {
+  type EvaluationInput,
+  EvaluationScope,
+  isResumedLookup,
+} from "./evaluation-scope.ts";
 import { completeAtEnd, includeOrReserve } from "./atom-syntax.ts";
 import { authorizedReceiverWriteTarget } from "./bound-method.ts";
 import type { AtomSyntax, ScanResult, SigilStart } from "../scan.ts";
@@ -92,6 +96,10 @@ export class FrameAlias extends FrameAtom {
     return FrameNote.key(key, this);
   }
 
+  public override resolvesInScope(): boolean {
+    return true;
+  }
+
   public override string_prefix(): string {
     return FrameAlias.ALIAS_BEGIN;
   }
@@ -157,6 +165,12 @@ export class FrameAlias extends FrameAtom {
   ): Frame {
     if (copyOnWrite && !copyOnWrite.has(found.out)) {
       return Frame.error(`$!.copy-on-write-boundary .${key}`);
+    }
+    // A resumed walk reads its closure's scope and never writes it: a walk
+    // can be recombined, so a resumed write would be one the closure itself
+    // never makes (spec a17).
+    if (isResumedLookup(found.out)) {
+      return Frame.error(`$!.resumed-write @${key}`);
     }
     return FrameSymbol.for(found.key).setter(found.out);
   }

@@ -4,7 +4,7 @@ import type { ICurryFunction } from "../ops.ts";
 import type { IArrayConstructor } from "../frames.ts";
 import type { ScanResponse } from "../scan.ts";
 import type { ReceiverState } from "./bound-method.ts";
-import type { EvaluationInput } from "./evaluation-scope.ts";
+import type { EvaluationInput, EvaluationScope } from "./evaluation-scope.ts";
 
 /**
  * Flags map strings to booleans.
@@ -345,6 +345,24 @@ export class Frame extends MetaFrame {
    * printer can tell, without importing the expression module.
    */
   public isPlainExpression(): boolean {
+    return false;
+  }
+
+  /**
+   * Records the scope an operation was written in, on the fresh value an
+   * operator answered for it. Only a fold reads it, to resume a walk there
+   * (spec a17); anything else is unchanged.
+   */
+  public atSite(_site: EvaluationScope): Frame {
+    return this;
+  }
+
+  /**
+   * Whether evaluating this atom resolves a binding where it is evaluated, as
+   * an alias does, rather than being a value or a name a walk already holds
+   * as a word. A walk holds such an atom with its closure's scope (spec a17).
+   */
+  public resolvesInScope(): boolean {
     return false;
   }
 

@@ -117,6 +117,106 @@ describe("walking a closure (#429)", () => {
     expect(answer("{x} | (.y 5)")).toContain("$!.name-missing");
   });
 
+  describe("resuming where the closure was bound (a17)", () => {
+    it("finishes a walk's evaluation in its closure's scope", () => {
+      expect(answer(".o [.x 5]; .f {_ + 1}; ({f o.x} & {_}) | ()"))
+        .toContain("; 6)");
+      expect(answer(".a 1; .f {{a}}; ((f & {_}) .0) | ()")).toContain("; 1)");
+    });
+
+    it("resolves the receiver ahead of the closure's scope", () => {
+      expect(answer(".a 1; .p {a}; (p & {_}) | (.a 7)")).toContain("; 7)");
+    });
+
+    it("resumes each atom in its own scope, never the fold's", () => {
+      expect(answer(
+        ".a 1; .p {a}; .q ({.a 2; {a}} ()); ([p, {+}, q] &| {_ & {_}}) | ()",
+      )).toContain("; 3)");
+      expect(answer(".a 1; .p {a}; {.a 5; (p & {_}) | ()} ()"))
+        .toContain("; 1)");
+      expect(answer(".b 10; .p {x + b}; {.b 20; (p & {_}) | (.x 1)} ()"))
+        .toContain("; 11)");
+    });
+
+    it("keeps the receiver when it is also one of the site's layers", () => {
+      expect(answer(".p {x}; .o [.x 7]; {(p & {_}) | _} o")).toContain("; 7)");
+    });
+
+    it("folds a held aggregate in its closure's scope, either way", () => {
+      expect(answer(".a 1; .f {[a]}; {.a 5; ((f & {_}) .0) | ()} ()"))
+        .toContain("; 1)");
+      expect(answer(".a 1; .f {[a]}; {.a 5; (((f & {_}) .0) & {_}) | ()} ()"))
+        .toContain("; 1)");
+      expect(answer("[({[1, 2]} & {_}) | (), ({(1 + 2)} & {_}) | ()]"))
+        .toEqual("[[1, 2], 3]");
+    });
+
+    it("reads deeper argument levels in the closure's chain", () => {
+      expect(answer(
+        ".mk {{__}}; .p (mk 7); [p 9, (p & {_}) | 9, {(p & {_}) | 9} 4]",
+      )).toContain("[7, 7, 7]");
+    });
+
+    it("keeps each resumed term its own class", () => {
+      expect(answer(".x 5; .f {x .<>}; [f (), (f & {_}) | ()]"))
+        .toContain("[$!.schema-missing .x, $!.schema-missing .x]");
+    });
+
+    it("refuses a resumed write outside its own frame", () => {
+      for (const body of ["{@a b}", "{(@a b)}"]) {
+        expect(answer(
+          `.a 1; .b 9; .f ${body}; [{.a 3; [(f & {_}) | (), a]} (), a]`,
+        )).toContain("[[$!.resumed-write @a, 3], 1]");
+      }
+      expect(answer(".a 1; .f {.a 9; @a 10; a}; [f (), (f & {_}) | (), a]"))
+        .toContain("[10, 10, 1]");
+    });
+
+    it("declares into its own frame, never the closure's scope", () => {
+      expect(answer(".a 1; .r (({.a 9; a} & {_}) | ()); [r, a]"))
+        .toContain("[9, 1]");
+    });
+
+    it("discloses the values the body names, read-only", () => {
+      expect(answer(".s 42; .f {.k s; 0}; [f (), [((f & {_}) .1)] | ()]"))
+        .toContain("[0, 42]");
+    });
+
+    it("keeps a compound atom transparent: printed, walked and counted", () => {
+      expect(answer("“” ({f o.x} & {_})")).toEqual("“[f, (o .x)]”");
+      expect(answer("(({f o.x} & {_}) .1) & {“” _}")).toEqual("[“o”, “.x”]");
+      expect(answer("(({f o.x} & {_}) .1).#")).toEqual("2");
+    });
+
+    it("answers as the call when the whole walk resumes", () => {
+      for (
+        const body of [
+          "{.a 1; .b (a + 1); [a, b]}",
+          "{.a 1; {.a 2; a} ()}",
+          "{x * 2}",
+          "{.a 1; (.a 2; a)}",
+          "{.n 3; n [7]}",
+        ]
+      ) {
+        const [called, resumed] = evaluate(
+          `.x 5; .f ${body}; [f (.x 5), (f & {_}) | (.x 5)]`,
+        ).at(0).asArray().at(-1)!.asArray();
+        expect(resumed.toString()).toEqual(called.toString());
+      }
+      expect(answer(".f {.a 1; {a}}; [(f ()) (), ((f & {_}) | ()) ()]"))
+        .toContain("[1, 1]");
+    });
+
+    it("answers as a call of that part when part of a walk resumes", () => {
+      // The inner `{a}` is a step of the outer's execution, frozen as a
+      // closure of its own only once that execution reaches it.
+      const part = answer(".f {.a 1; {a}}; ((f & {_}) .3) | ()");
+      const alone = answer(".f {{a}}; (f ()) ()");
+      expect(part).toContain("$!.name-missing");
+      expect(alone).toContain("$!.name-missing");
+    });
+  });
+
   it("keeps a word under every application that is not a fold", () => {
     expect(answer("{x} & {“” _}")).toEqual("[“x”]");
     expect(answer(".w (({x} & {_}) .0); [w]")).toContain("[x]");

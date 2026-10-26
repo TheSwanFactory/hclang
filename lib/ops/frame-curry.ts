@@ -1,6 +1,7 @@
 import { Frame } from "../frames/frame.ts";
 import { FrameLazy } from "../frames/frame-lazy.ts";
 import type { ReceiverState } from "../frames/bound-method.ts";
+import type { EvaluationScope } from "../frames/evaluation-scope.ts";
 
 /**
  * Converts a source Frame and block into a result, optionally preserving the
@@ -10,6 +11,7 @@ export type ICurryFunction = (
   source: Frame,
   block: Frame,
   receiverState?: ReceiverState,
+  site?: EvaluationScope,
 ) => Frame;
 
 /** A curried built-in operation bound to its source Frame. */
@@ -23,6 +25,18 @@ export class FrameCurry extends Frame {
   ) {
     super();
     this.id += "." + key;
+  }
+
+  private site?: EvaluationScope;
+
+  /**
+   * Records the scope the operator was written in. The curry is fresh for
+   * each evaluation, so this costs a field: no copy, and the scope is held
+   * only as long as the curry is. A fold alone reads it (spec a17).
+   */
+  public override atSite(site: EvaluationScope): this {
+    this.site = site;
+    return this;
   }
 
   /** Captures method state on this fresh operation lookup for its callbacks. */
@@ -44,7 +58,7 @@ export class FrameCurry extends Frame {
     const callbackReceiverState = receiverState && argument instanceof FrameLazy
       ? argument.receiverStateForCallback(receiverState)
       : undefined;
-    return this.Func(this.Source, argument, callbackReceiverState);
+    return this.Func(this.Source, argument, callbackReceiverState, this.site);
   }
 
   public override toString(): string {

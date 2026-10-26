@@ -14,7 +14,7 @@ export { FrameBlob } from "./frames/frame-blob.ts";
 export { FrameBytePayload, FrameBytes } from "./frames/frame-bytes.ts";
 export { FrameComment } from "./frames/frame-comment.ts";
 export { FrameDoc } from "./frames/frame-doc.ts";
-export { FrameBind, FrameExpr } from "./frames/frame-expr.ts";
+export { FrameBind, FrameExpr, FrameScoped } from "./frames/frame-expr.ts";
 // Evaluation scope is interpreter-internal: `EvaluationInput` appears in the
 // `Frame.in` signature, so the type is re-exported here for implementors and
 // tests, while `WriteTargetRole` stays private to the scope module.

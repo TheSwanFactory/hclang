@@ -201,6 +201,10 @@ together runs as the original did.
 
 _before:_ `{4 + 5} | ()` answered the one wrapped term, `(4 ((+)) ((5)))`.
 
+**Ruling, superseded by [`a17`](a17-a-walk-is-evaluation-stopped.md):** a fold
+resumes the walk's evaluation, each atom in the scope its closure was bound in;
+it does not re-read text. What follows stands for why it is not atom by atom.
+
 **Ruling: a fold re-reads, it does not apply atom by atom.** Applying a walked
 `x` to `(.x 6, .y 7)` does read `x` from the group, but the answer so far is
 then `6`, and `y` would be looked up in the curry `6 *`. The evaluator keeps the
@@ -214,8 +218,10 @@ captured names still resolve.
 
 ## 6. What the walk never shows
 
-- **Captured values.** A bound closure's scope is not an atom, and no atom
-  reaches it. `.x 5; .f {x}; f & {_}` yields `.x`, never `5`.
+- **Captured values.** A bound closure's scope is not an atom, and walking never
+  reads it: `.x 5; .f {x}; f & {_}` yields `x`, never `5`. Since v0.29.0 a word
+  holds that scope, and a fold resumes it there, read-only
+  ([`a17`](a17-a-walk-is-evaluation-stopped.md) §4).
 - **The interpreter's own plumbing.** The parser's wrappers (§1) and the schema
   written beside a declaration are not atoms; the latter is the `.<>` key, which
   `visibleKeys` already hides, and which is where a representation of internal

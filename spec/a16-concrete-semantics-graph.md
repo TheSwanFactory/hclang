@@ -151,8 +151,6 @@ prints as it was written (v0.28.0):
 
 ## What remains
 
-- **A re-read closure has no captured scope.** `|` over a walked _array_
-  re-reads it as a fresh closure, so free names it holds resolve only against
-  the receiver. `|` over the closure itself calls the bound closure. This is
-  `a15` §5's rule, unchanged. Binding the re-read closure where the fold is
-  written would be hygienic, and needs the operator to see its scope.
+Nothing from this document. Its last item, that a re-read closure has no
+captured scope, is closed by [`a17`](a17-a-walk-is-evaluation-stopped.md): a
+walk is evaluation stopped, so each atom resumes where its closure was bound.

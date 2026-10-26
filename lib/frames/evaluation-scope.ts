@@ -38,6 +38,13 @@ type LookupLayers = {
   members: Set<Frame>;
 };
 
+/**
+ * Whether `frame` is a resumed walk's view of its closure's scope, through
+ * which a binding can be read and never written (spec a17).
+ */
+export const isResumedLookup = (frame: Frame): boolean =>
+  frame instanceof LiveLookupContext && frame.resumed;
+
 /** Live, read-only lookup through an ordered set of existing frame identities. */
 class LiveLookupContext extends Frame {
   readonly #lookupFrames: readonly Frame[];
@@ -46,6 +53,8 @@ class LiveLookupContext extends Frame {
   public constructor(
     frames: readonly Frame[],
     private readonly continuation: Frame,
+    /** Whether a resumed walk reads through this, rather than an import. */
+    public readonly resumed = false,
   ) {
     super();
     this.#lookupFrames = frames.map((frame) =>
@@ -371,6 +380,54 @@ export class EvaluationScope {
       enclosing: this.enclosing,
       closure: this.closure,
       lexicalTarget: target,
+      fileScope: this.fileScope,
+      hostNamespace: this.hostNamespace,
+    });
+  }
+
+  /**
+   * This scope continued through `scope` instead of past `site`, read-only.
+   *
+   * A fold resumes a walk where the fold is written (`site`), but a term the
+   * walk held resumes where its own closure was bound (`scope`), as the
+   * closure itself would have: the resumption's own layers come first, its
+   * fresh local frame and the receiver, then that scope. The receiver is kept
+   * whatever its identity, since it may also be one of the site's layers. The
+   * enclosing scope is `scope` too, so `__` and deeper levels and carets read
+   * the closure's chain, never the site's. The scope is read through a live
+   * lookup that withholds write authority, and declarations land in the
+   * resumption's own frame, so a resumed term never writes where its closure
+   * was made (spec a17).
+   */
+  public resumedIn(
+    site: EvaluationScope | undefined,
+    scope: EvaluationScope,
+  ): EvaluationScope {
+    // The resumed closure is not one of its own layers here: its `up` is the
+    // site, so reading through it would reach the site after all.
+    const past = new Set(site?.lookupFrames() ?? []);
+    if (this.closure) past.add(this.closure);
+    const own = this.#lookupFrames.filter((frame) =>
+      frame === this.#argumentLayer || !past.has(frame)
+    );
+    const live = new LiveLookupContext(
+      scope.lookupFrames(),
+      scope.lexicalTarget,
+      true,
+    );
+    const layers = EvaluationScope.layers([...own, live]);
+    return new EvaluationScope({
+      argument: this.argument,
+      parameter: this.parameter,
+      receiverState: this.receiverState,
+      writeTarget: this.writeTarget,
+      writeTargetRole: this.writeTargetRole,
+      lookupFrames: layers.frames,
+      lookupMembers: layers.members,
+      argumentLayer: this.#argumentLayer,
+      enclosing: scope,
+      closure: this.closure,
+      lexicalTarget: this.lexicalTarget,
       fileScope: this.fileScope,
       hostNamespace: this.hostNamespace,
     });

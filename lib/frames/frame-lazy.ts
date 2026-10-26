@@ -1,5 +1,10 @@
 import { Frame } from "./frame.ts";
-import { FrameExpr, noteEnclosing } from "./frame-expr.ts";
+import {
+  atomsOf,
+  FrameExpr,
+  noteEnclosing,
+  sitesAround,
+} from "./frame-expr.ts";
 import { FrameGroup } from "./frame-group.ts";
 import { FrameSymbol } from "./frame-symbol.ts";
 import { type Context, NilContext } from "./context.ts";
@@ -125,6 +130,20 @@ export class FrameLazy extends FrameExpr {
       return this.sizeFor(argument.spelling());
     }
     return undefined;
+  }
+
+  /**
+   * A closure walks as the atoms of its body, each held with the scope this
+   * copy was bound in, so a fold resumes them where the closure would have
+   * run (spec a17). A template no evaluation has bound holds none.
+   */
+  public override elements(): Frame[] {
+    return atomsOf(this.data, sitesAround(this.data), capturedScopes.get(this));
+  }
+
+  /** Counting needs the atoms only, so it skips the scope wrappers. */
+  protected override countedElements(): Frame[] {
+    return atomsOf(this.data, sitesAround(this.data));
   }
 
   /** A closure is one atom of the body that holds it, never unwrapped. */
