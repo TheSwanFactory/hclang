@@ -1,6 +1,6 @@
 # A Walk Is Evaluation, Stopped
 
-**Status:** Implemented in v0.29.0.\
+**Status:** Implemented in v0.29.0. Nothing remains open.\
 **Issues:** #429, the walk; `a15`, which defined it, and `a16`, which left one
 item open.\
 **Supersedes:** `a15` §5's ruling that "a fold re-reads", and §6's bullet that
@@ -136,16 +136,35 @@ alone, and the curry hands it to `ReduceElements` as the site. No other operator
 copies itself to do this, and the Figures testdoc runs in the same 0.37 s as
 before.
 
-## What remains
+## 6. A whole walk resumed is the call; a part resumed is a call of that part
 
-- **A closure's words resume past the body around it.** A nested closure literal
-  is bound when its outer closure runs. A walk stops before that, so the walk
-  holds the nested closure with the _outer's_ scope. A name the outer body
-  declares, which the nested closure reads, is therefore not found where the
-  walk resumes it: the outer body never ran. That is faithful to the metaphor,
-  since that evaluation never happened, but it is a place where the walk and a
-  call can answer differently:
+**Ruling: resuming a whole walk is calling the closure.** Checked across
+declarations, nested closures, shadowing, an aggregate written in the body, a
+repetition and a free name:
 
-  ```text
-  .f {.a 1; {a}}; [((f & {_}) .3) | (), (f ()) ()]     → [$!.name-missing a, 1]
-  ```
+```text
+.x 5; .f {.a 1; .b (a + 1); [a, b]}; [f (.x 5), (f & {_}) | (.x 5)]   → [[1, 2], [1, 2]]
+.x 5; .f {.a 1; {.a 2; a} ()}; [f (.x 5), (f & {_}) | (.x 5)]         → [2, 2]
+.x 5; .f {x * 2}; [f (.x 5), (f & {_}) | (.x 5)]                      → [10, 10]
+.x 5; .f {.n 3; n [7]}; [f (.x 5), (f & {_}) | (.x 5)]                → [[7, 7, 7], [7, 7, 7]]
+```
+
+**Ruling: resuming part of a walk is calling a closure whose body is that
+part.** What a walk freezes is its closure's execution. A closure literal inside
+that body is a step of it, and is frozen as a closure of its own only when that
+execution reaches it. So resuming the inner `{a}` of `{.a 1; {a}}` alone runs
+one step from a fresh frame, without the `.a 1;` before it, exactly as calling
+`{{a}}` would:
+
+```text
+.f {.a 1; {a}}
+  (f ()) ()              → 1
+  ((f & {_}) | ()) ()    → 1                    the whole walk, resumed, then called
+  ((f & {_}) .3) | ()    → $!.name-missing a    the inner step alone
+.f {{a}}; (f ()) ()      → $!.name-missing a    the same step, as a body of its own
+```
+
+There is no place where a walk and a call answer differently. A part answers as
+a part, which is what makes a walk both freeze-dried execution and an aggregate:
+every step is a frame that can be walked, counted, compared or resumed on its
+own.

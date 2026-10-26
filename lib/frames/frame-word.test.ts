@@ -154,9 +154,32 @@ describe("walking a closure (#429)", () => {
       expect(answer("(({f o.x} & {_}) .1).#")).toEqual("2");
     });
 
-    it("leaves a name an unrun outer body declares unresolved", () => {
-      expect(answer(".f {.a 1; {a}}; [((f & {_}) .3) | (), (f ()) ()]"))
-        .toContain("$!.name-missing");
+    it("answers as the call when the whole walk resumes", () => {
+      for (
+        const body of [
+          "{.a 1; .b (a + 1); [a, b]}",
+          "{.a 1; {.a 2; a} ()}",
+          "{x * 2}",
+          "{.a 1; (.a 2; a)}",
+          "{.n 3; n [7]}",
+        ]
+      ) {
+        const [called, resumed] = evaluate(
+          `.x 5; .f ${body}; [f (.x 5), (f & {_}) | (.x 5)]`,
+        ).at(0).asArray().at(-1)!.asArray();
+        expect(resumed.toString()).toEqual(called.toString());
+      }
+      expect(answer(".f {.a 1; {a}}; [(f ()) (), ((f & {_}) | ()) ()]"))
+        .toContain("[1, 1]");
+    });
+
+    it("answers as a call of that part when part of a walk resumes", () => {
+      // The inner `{a}` is a step of the outer's execution, frozen as a
+      // closure of its own only once that execution reaches it.
+      const part = answer(".f {.a 1; {a}}; ((f & {_}) .3) | ()");
+      const alone = answer(".f {{a}}; (f ()) ()");
+      expect(part).toContain("$!.name-missing");
+      expect(alone).toContain("$!.name-missing");
     });
   });
 
