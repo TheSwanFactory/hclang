@@ -381,7 +381,8 @@ describe("Lex", () => {
   });
 
   it("leaves both modulo spellings reaching the operator", () => {
-    expect(lexAtoms("9 %% 4 ").map(String)).toEqual(["9", "((%%))", "((4))"]);
+    // Bare since v0.27.0: a bind emits its term, not a wrapper (spec a16).
+    expect(lexAtoms("9 %% 4 ").map(String)).toEqual(["9", "%%", "4"]);
     expect(lexAtoms("3.%%2 ").map(String)).toEqual(["3", ".%%", "2"]);
   });
 
@@ -558,7 +559,7 @@ describe("Lex", () => {
   });
 
   it("keeps populated and nested schema syntax beside the arrow", () => {
-    expect(lexAtoms("<.x 1> ").map(String)).toEqual(["<(.x ((1)))>"]);
+    expect(lexAtoms("<.x 1> ").map(String)).toEqual(["<(.x 1)>"]);
     expect(lexAtoms("<<>> ").map(String)).toEqual(["<(<>)>"]);
     expect(lexResult("<").is.error).toBeFalsy();
     expect(lexAtoms(".< ").map(String)).toEqual([".<"]);

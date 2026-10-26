@@ -33,6 +33,8 @@ export function closureFromAtoms(atoms: readonly Frame[]): FrameLazy {
     if (atom instanceof FrameWord && atom.spelling() === ";") {
       sequence = true;
       close(true);
+    } else if (atom instanceof FrameWord && atom.spelling() === ",") {
+      close(false);
     } else {
       terms.push(atomOf(atom));
     }

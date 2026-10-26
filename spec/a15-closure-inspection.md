@@ -45,10 +45,9 @@ receiver's referent, and a closure's referent is its answer).
 below them, so the two agree by construction.** A closure is an aggregate, and
 the #411 rule for aggregates applies without a special case.
 
-**Ruling: the parser's trivial `()` wrappers vanish.** A single-value `()`
-already unboxes everywhere else (#374), so a wrapper with nothing of its own has
-nothing for the walk to show. A `(…)` the program wrote with more than one value
-stays, as the one aggregate it is.
+**Ruling, superseded by [`a16`](a16-concrete-semantics-graph.md):** the parser
+no longer emits trivial wrappers, so nothing vanishes; a tight expression, terms
+that abut as `o.x` does, is one atom that walks in turn.
 
 ## 2. Statements and declarations are visible
 
@@ -238,10 +237,9 @@ captured names still resolve.
 Accepted in v0.25.0 and v0.26.0, each small enough to live with and each a
 candidate for its own ruling:
 
-- **`,` is not an atom.** A `,` between terms of a closure body separates two
-  terms, as it does today, and the walk yields the terms with nothing between
-  them, so `{1, 2} & {_}` is `[1, 2]`. A walk re-read by a fold loses the comma,
-  which only matters where juxtaposition and separation differ.
+- **`,` was not an atom** until v0.27.0.
+  [`a16`](a16-concrete-semantics-graph.md) makes it one, as `;` is, so a walk
+  re-reads as its source.
 - **A parsed aggregate prints with its wrappers.** `{[1, [2, 3]]} & {_}` is one
   atom, the array as written, and printing it shows the parser's terms:
   `[[(1), ((([(2), (((3)))])))]]`. Walking it is clean, as §1 shows; only its
@@ -251,9 +249,10 @@ candidate for its own ruling:
 - **A word has no members.** `{x} & {_ .0}` answers `$!.name-missing`, for the
   member `0` of the word, rather than for `x`. That is the point, but a word
   could reasonably answer its spelling as text instead.
-- **A lookup inside an aggregate written in a body is free.** `{.a 1; [a]}`
-  walks to an array whose own walk does not see `.a`, so its `a` is free for
-  `===`. Closures nested in a body do see their enclosing declarations.
+- **A lookup inside an aggregate written in a body was free** for `===`, until
+  v0.27.0. [`a16`](a16-concrete-semantics-graph.md) supersedes this: an
+  aggregate written in a body is scoped inside it, and its names keep their
+  bindings.
 - **Applying a kept name to a value echoes a declaration it does not make.**
   `.k .x; k 7` answers `(.x 7)` and writes nothing, because the kept name has no
   write target. Refusing it would be clearer.

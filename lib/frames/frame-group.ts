@@ -22,7 +22,7 @@ export class FrameGroup extends FrameList {
    * frame their declarations land on.
    */
   private scoped(input: EvaluationInput, target: Frame): EvaluationScope {
-    const scope = EvaluationScope.from(input).withLayer(target);
+    const scope = EvaluationScope.from(input).withOwnLayer(target);
     return this.declares
       ? scope.withWriteTarget(target, "construction")
       : scope;

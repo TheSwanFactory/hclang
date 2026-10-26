@@ -934,7 +934,7 @@ export const HC_SOURCES: ReadonlyMap<string, string> = new Map([
       "compares exactly as the same value written out would.`",
       "; .point [.v 1; .set_ {@v _;}];",
       "; point.set_ 2",
-      "# [.v 2; .set_ { @v _ };]",
+      "# [.v 2; .set_ { @v _; };]",
       "; [(point.set_ 2) & {_}, (point.set_ 2) = [.v 2; .set_ {@v _;}]]",
       "# [[], <>]",
       "",

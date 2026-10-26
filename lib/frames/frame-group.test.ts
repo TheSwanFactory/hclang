@@ -152,6 +152,20 @@ describe("FrameGroup", () => {
         .toEqual(text(".q {(_, 1)};", "q"));
     });
 
+    it("searches an aggregate's own declarations first, as spec 7 §2 orders", () => {
+      // A name an aggregate literal declares shadows the same name in the
+      // enclosing scope, as a closure's local does. The literal's own layer
+      // used to join lookup last, so it read the outer value (Figure 004.09a).
+      const answers = (source: string, expected: string) =>
+        expect(evaluate(source).toString()).toContain(expected);
+      answers(".gb 1; (.gb 2; gb)", "(.gb 2; 2)");
+      answers(".gb 1; [.gb 2; gb]", "[.gb 2; 2]");
+      answers("{.a 1; (.a 2; a)} ()", "(.a 2; 2)");
+      answers("{.a 1; [.a 2; a]} ()", "[.a 2; 2]");
+      // A name the literal does not declare still reads the enclosing one.
+      answers("{.e 1; (.f 2; [e, f])} ()", "(.f 2; [1, 2])");
+    });
+
     it("collects a group of one's declarations on each call alone", () => {
       // Each call answers what the literal with that call's value answers. The
       // first call used to leave its declaration on the group, so later calls

@@ -5,6 +5,7 @@ import { Token } from "./lex.ts";
 import { LexPipe } from "./lex-pipe.ts";
 import { ParsePipe } from "./parse-pipe.ts";
 import * as frame from "../frames.ts";
+import { evaluate } from "./evaluate.ts";
 
 describe("Parse", () => {
   const content = new frame.FrameString("content");
@@ -229,6 +230,29 @@ describe("Parse", () => {
       expect(atoms[0].toString()).toEqual("```body```");
       expect(atoms[1]).toBeInstanceOf(frame.FrameInt);
       expect(atoms[1].toString()).toEqual("7");
+    });
+  });
+
+  describe("the Concrete Semantics Graph (spec a16)", () => {
+    const body = (source: string): frame.Frame[] =>
+      (evaluate(source).at(0) as frame.FrameLazy).asArray();
+
+    it("emits no FrameBind and no one-term wrapper", () => {
+      const [expr] = body("{4 + 5}");
+      expect(expr).toBeInstanceOf(frame.FrameExpr);
+      const terms = (expr as frame.FrameExpr).asArray();
+      expect(terms.length).toEqual(3);
+      expect(terms.some((term) => term instanceof frame.FrameBind)).toBe(false);
+      expect(terms.some((term) => term instanceof frame.FrameExpr)).toBe(false);
+    });
+
+    it("keeps abutting terms as one tight expression", () => {
+      const [expr] = body("{f o.x}");
+      const terms = (expr as frame.FrameExpr).asArray();
+      expect(terms.length).toEqual(2);
+      expect(terms[1]).toBeInstanceOf(frame.FrameExpr);
+      expect(terms[1]).not.toBeInstanceOf(frame.FrameBind);
+      expect((terms[1] as frame.FrameExpr).asArray().length).toEqual(2);
     });
   });
 });

@@ -52,12 +52,13 @@ and program is composed of frames. This unified representation enables:
 
 A closure is an aggregate of its body's atoms, so `&` walks it without
 evaluating anything, and `.#` counts the atoms (#429, `spec/a15`). `atomsOf` in
-`frame-expr.ts` flattens the parser's `FrameBind` and one-term `FrameExpr`
-wrappers, keeps a `;` statement terminator as the word `;`, and turns every
-symbol, operator and name into a `FrameWord`: a lookup yields `a`, a declaration
-`.a`. A word never resolves, however it is carried, so a program can hold,
-compare and re-collect the names of a body. Every other atom, a count, a string,
-a nested closure or an aggregate written in the body, is yielded as the
+`frame-expr.ts` walks a body statement by statement: a tight expression,
+abutting terms, is one atom (`spec/a16`); the parser emits no `FrameBind` into
+the graph, wrappers, keeps a `;` statement terminator as the word `;`, and turns
+every symbol, operator and name into a `FrameWord`: a lookup yields `a`, a
+declaration `.a`. A word never resolves, however it is carried, so a program can
+hold, compare and re-collect the names of a body. Every other atom, a count, a
+string, a nested closure or an aggregate written in the body, is yielded as the
 template's own frame, and `Frame.walked()` is what lets an aggregate written in
 a body walk by the same rule. The walk never copies and never writes, so two
 walks yield the same frames and a call in between changes nothing. A size
@@ -78,13 +79,15 @@ address `.x` included, and `===` compares the declaration each walked word
 resolves to. `atomsOf` resolves them as it walks, statement by statement, so
 shadowing is kept; a name at the head of an expression declares, a member name
 after a receiver (`o .a`) declares nothing, and a name declared nowhere in view
-is free and resolves per call. A nested closure's enclosing declarations are
-recorded when its outer closure walks past it, or when the outer's call binds it
-(`noteEnclosing`, from `FrameLazy.bind`), keyed by the body's first term, which
-a bound copy shares. The address `.x` written in a program is a name too:
-`FrameSymbol.called_by` hands it to a pending declaration as a value, so `.k .x`
-keeps a key, and to text without that member as its spelling, so `“” .x` is
-`“.x”`. Every other receiver reads the member, `o .x`, as before.
+is free and resolves per call. An aggregate written in a body is scoped inside
+it (`spec/a16`): its names keep their bindings, and its own declarations shadow.
+A nested closure's enclosing declarations are recorded when its outer closure
+walks past it, or when the outer's call binds it (`noteEnclosing`, from
+`FrameLazy.bind`), keyed by the body's first term, which a bound copy shares.
+The address `.x` written in a program is a name too: `FrameSymbol.called_by`
+hands it to a pending declaration as a value, so `.k .x` keeps a key, and to
+text without that member as its spelling, so `“” .x` is `“.x”`. Every other
+receiver reads the member, `o .x`, as before.
 
 ### Advanced Types
 
