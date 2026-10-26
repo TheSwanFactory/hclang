@@ -7,6 +7,20 @@ import { renderNested } from "./stringify.ts";
 import type { FrameBinding } from "./frame-symbol.ts";
 
 /**
+ * A term of a source statement, as it was written: a tight expression, terms
+ * that abut as `o.x` does, in parentheses, since the spacing that bound them
+ * cannot be restored and `(o .x)` means the same; anything else as itself.
+ */
+export const renderSourceTerm = (term: Frame): string =>
+  renderNested(
+    term,
+    () =>
+      term.isPlainExpression()
+        ? `(${term.asArray().map(renderSourceTerm).join(" ")})`
+        : term.toString(),
+  );
+
+/**
  * The declaration a term recorded, when it is a declaration echo.
  *
  * Read structurally rather than by class, because the type is only needed to
@@ -66,7 +80,13 @@ export class FrameList extends Frame {
   public toStringDataArray(): Array<string> {
     const result = this.renderedTerms().map((obj: Frame) => {
       const sep = (obj.is.statement) ? ";" : ",";
-      return renderNested(obj, () => obj.toString()) + sep;
+      // A source aggregate prints as it was written: each statement bare,
+      // with a tight expression nested in it parenthesised (spec a16). A
+      // value's terms print as themselves.
+      const text = this.is.source === true && obj.isPlainExpression()
+        ? obj.asArray().map(renderSourceTerm).join(" ")
+        : renderNested(obj, () => obj.toString());
+      return text + sep;
     });
     return result;
   }
@@ -128,10 +148,20 @@ export class FrameList extends Frame {
    * iterate.
    */
   public override elements(): Array<Frame> {
+    if (this.is.source === true && FrameList.walkSource) {
+      return FrameList.walkSource(this.data);
+    }
     return this.data.filter((item) => this.isElement(item)).map((item) =>
       item.walked()
     );
   }
+
+  /**
+   * How a source aggregate walks: as a closure body does, its statements'
+   * atoms with `;` and `,` kept (spec a16). Installed by `frame-expr.ts`,
+   * which this module cannot import without closing a cycle.
+   */
+  public static walkSource?: (terms: readonly Frame[]) => Frame[];
 
   /** Whether this term is one of the elements, as `elements()` reads them. */
   private isElement(term: Frame): boolean {

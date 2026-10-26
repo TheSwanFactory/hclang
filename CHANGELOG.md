@@ -4,6 +4,15 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.28.0 2026-10-25
+
+- **A source aggregate walks and prints as a body.** A group or array written in
+  a closure body walked to its values' positions only, dropping its `;`
+  statements, and printed each statement in parentheses. It now walks as the
+  closure does, with `;` and `,` kept and its names bound, and prints as
+  written: `.f {.a 1; (.a 2; a)}` walks its group to `[.a, 2, ;, a]` and prints
+  `{ .a 1; (.a 2; a) }` (`spec/a16`). An evaluated aggregate is unchanged.
+
 ## v0.27.0 2026-10-25
 
 - **The Concrete Semantics Graph.** The parser no longer emits its `FrameBind`

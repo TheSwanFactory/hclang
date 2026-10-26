@@ -1,6 +1,7 @@
 # The Concrete Semantics Graph
 
-**Status:** Implemented in v0.27.0.\
+**Status:** Implemented in v0.27.0; source aggregates walk and print as bodies
+in v0.28.0.\
 **Issues:** Figure 004.08 and 004.09a in `occurrence/figure`
 (`issues/004-proof-by-observation/`), which found the symptoms; spec 7 §2, whose
 lookup order this document brings the runtime into line with.\
@@ -128,15 +129,30 @@ statements are its own file's, and the construction is an accident of where the
 import was written. Its namespace sees the importing file before the
 construction, as #391 designed and its property test pins.
 
+**A source aggregate walks and prints as a body does.** `FrameList.elements`
+leaves statements out, because a statement answers nothing when an aggregate is
+a _value_; applied to a parsed aggregate that dropped syntax, and `FrameList`'s
+printer parenthesised each statement, so `(.a 2; a)` walked to `[a]` and printed
+as `((.a 2); (a))`.
+
+**Ruling: the parser marks a nested aggregate as source, and evaluation makes a
+value without the mark.** A source aggregate walks exactly as a closure body
+does, statements and `;` and `,` kept, with the declarations in view, and it
+prints as it was written (v0.28.0):
+
+```text
+.f {.a 1; (.a 2; a)}
+  ((f & {_}) .3) & {“” _}           → [“.a”, “2”, “;”, “a”]    (before: [“a”])
+  the inner a === the inner .a      → <>
+  the inner a === the outer .a      → ()
+  “” f                              → “{ .a 1; (.a 2; a) }”    (before: “{ .a 1; ((.a 2); (a)) }”)
+(.a 2; a) & {_}                     → [2]                      a value, unchanged
+```
+
 ## What remains
 
-- **A parsed aggregate's walk omits its `;` statements.** `FrameList.elements`
-  leaves statements out, because a statement answers nothing when an aggregate
-  is a value. For a parsed aggregate that drops syntax: `(.a 2; a)` walks to
-  `[a]`, so a declaration the group makes cannot be seen by walking the group,
-  though execution honours it. A closure's walk keeps `;`. Whether a parsed
-  aggregate's should too is the next ruling this document owes.
 - **A re-read closure has no captured scope.** `|` over a walked _array_
   re-reads it as a fresh closure, so free names it holds resolve only against
   the receiver. `|` over the closure itself calls the bound closure. This is
-  `a15` §5's rule, unchanged.
+  `a15` §5's rule, unchanged. Binding the re-read closure where the fold is
+  written would be hygienic, and needs the operator to see its scope.

@@ -69,6 +69,10 @@ export class FrameExpr extends FrameList {
     return this.in(EvaluationScope.call(argument, parameter));
   }
 
+  public override isPlainExpression(): boolean {
+    return Object.getPrototypeOf(this) === FrameExpr.prototype;
+  }
+
   /** A parsed expression walks as its atoms (#429). */
   public override elements(): Frame[] {
     return atomsOf(this.data, sitesAround(this.data));
@@ -256,6 +260,10 @@ export function atomsOf(
         const first = term.asArray()[0];
         if (first) enclosingSites.set(first, scope);
       } else if (term instanceof FrameList) {
+        // Keyed by its first element, which is how its own walk asks, and by
+        // each element's first term, which is how a walked element asks.
+        const [first] = term.asArray();
+        if (first) enclosingSites.set(first, scope);
         for (const element of term.asArray()) {
           noteTerms(isPlainExpr(element) ? element.asArray() : [element]);
         }
@@ -303,6 +311,9 @@ export function noteEnclosing(inner: FrameExpr, outer: FrameExpr): void {
   const first = inner.asArray()[0];
   if (first && !enclosingSites.has(first)) outer.elements();
 }
+
+/** A source aggregate walks as a body does. */
+FrameList.walkSource = (terms) => atomsOf(terms, sitesAround(terms));
 
 /** The declarations around a closure body, as far as a walk has seen them. */
 export function sitesAround(body: readonly Frame[]): Sites {
