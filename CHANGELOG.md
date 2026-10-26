@@ -12,6 +12,11 @@
   the terms juxtaposed. Likewise `[1, 2] & {_, 0}` is `[(1, 0), (2, 0)]`. `;`
   still sequences, and the group's declarations land in the call's frame, so
   `{.a 1, .b 2; a + b} ()` is still `3` (#443, `spec/a16`).
+- **A file can be read as a closure, without running it.** `'./f.hc' | {}`
+  answers the file's source as an unevaluated closure. Nothing in it runs, and
+  no import in it is read, until it is called. Walking it shows its syntax
+  exactly as the same text written in braces would show it, and calling it
+  answers the group of its lines' values (#443, `spec/a18`).
 
 ## v0.29.1 2026-10-26
 

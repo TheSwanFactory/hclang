@@ -5,6 +5,7 @@ import { FrameSymbol } from "../frames/frame-symbol.ts";
 import { BoundMethod } from "../frames/bound-method.ts";
 import { FrameLazy } from "../frames/frame-lazy.ts";
 import { FrameList } from "../frames/frame-list.ts";
+import { FrameResource } from "../frames/frame-resource.ts";
 import { FrameWord } from "../frames/frame-word.ts";
 import { FrameScoped } from "../frames/frame-expr.ts";
 import type { EvaluationScope } from "../frames/evaluation-scope.ts";
@@ -107,6 +108,14 @@ export const ReduceElements = (
   receiverState?: ReceiverState,
   site?: EvaluationScope,
 ): Frame => {
+  // A resource folded into the empty closure is read as one: parsed, not
+  // evaluated, so a file can be walked before anything in it runs (#443).
+  if (
+    FrameLazy.quote && receiver instanceof FrameLazy &&
+    receiver.size() === 0 && source.referent() instanceof FrameResource
+  ) {
+    return FrameLazy.quote(source.referent(), site);
+  }
   const code = source instanceof FrameScoped
     ? source.live()
     : source.referent();
