@@ -4,6 +4,14 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.29.1 2026-10-26
+
+- **A named import's alias of a caller binding is refused.** The module reads
+  its caller through a read-only view, and `@a 5` aimed at the caller's `a`
+  answered `5` while writing nothing anywhere. It now answers
+  `$!.read-only-scope @a`, so the import fails visibly. A local import,
+  `. <- …`, still writes the caller's binding (#441).
+
 ## v0.29.0 2026-10-25
 
 - **A fold resumes a walk where its closure was bound.** A walk is evaluation
