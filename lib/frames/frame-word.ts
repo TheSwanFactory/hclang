@@ -1,6 +1,7 @@
 import { Frame } from "./frame.ts";
 import { FrameAtom } from "./frame-atom.ts";
 import { NilContext } from "./context.ts";
+import type { EvaluationScope } from "./evaluation-scope.ts";
 
 /**
  * A word: an atom of source held as data, which never resolves (#429).
@@ -20,24 +21,32 @@ import { NilContext } from "./context.ts";
  * identical when they are spelled alike.
  *
  * A word answers nothing about the value its spelling would name, and it is
- * not an operator, so a walked `+` is an element like any other. The one
- * place words turn back into code is a fold: `|` over a stream that holds a
- * word re-reads the stream as a closure, `closureFromAtoms`, and calls it with
- * the receiver, so `{x + 1} | (.x 5)` is `6`.
+ * not an operator, so a walked `+` is an element like any other. A walk is
+ * evaluation stopped before each term's last step, so a word also carries the
+ * scope its closure was bound in. The one place words turn back into code is
+ * a fold, which resumes them: `|` over a stream that holds a word calls the
+ * body it spells with the receiver, and each word resolves after the receiver
+ * where its closure would have, so `{x + 1} | (.x 5)` is `6` (spec a17).
  */
 export class FrameWord extends FrameAtom {
   constructor(
     protected data: string,
     private readonly dotted: boolean,
     private readonly site?: Frame,
+    /** The scope the word's closure was bound in, where it resumes (a17). */
+    public readonly scope?: EvaluationScope,
     meta = NilContext,
   ) {
     super(meta);
   }
 
   /** The word for a lookup, `a`, or an operator, `+`. */
-  public static word(spelling: string, site?: Frame): FrameWord {
-    return new FrameWord(spelling, false, site);
+  public static word(
+    spelling: string,
+    site?: Frame,
+    scope?: EvaluationScope,
+  ): FrameWord {
+    return new FrameWord(spelling, false, site, scope);
   }
 
   /** The word for a declaration or address, `.a`. */

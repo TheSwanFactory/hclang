@@ -220,6 +220,7 @@ const enclosingSites = new WeakMap<Frame, Sites>();
 export function atomsOf(
   terms: readonly Frame[],
   sites: Sites = new Map(),
+  resume?: EvaluationScope,
 ): Frame[] {
   const scope = new Map(sites);
   const atoms: Frame[] = [];
@@ -239,6 +240,9 @@ export function atomsOf(
     if (held[0]) enclosingSites.set(held[0], scope);
     atomsOf(held, scope);
   };
+  /** A compound atom resumes where its closure was bound, as a word does. */
+  const scoped = (term: Frame): Frame =>
+    resume ? new FrameScoped(term, resume) : term;
   const walkAtom = (term: Frame): void => {
     if (isPlainExpr(term)) {
       const held = term.asArray();
@@ -246,7 +250,7 @@ export function atomsOf(
         walkAtom(held[0]);
       } else {
         noteTerms(held);
-        atoms.push(term);
+        atoms.push(scoped(term));
       }
     } else if (term instanceof FrameName) {
       atoms.push(
@@ -254,20 +258,21 @@ export function atomsOf(
       );
     } else if (term instanceof FrameSymbol) {
       const spelling = term.spelling();
-      atoms.push(FrameWord.word(spelling, scope.get(spelling)));
-    } else {
-      if (isClosure(term)) {
-        const first = term.asArray()[0];
-        if (first) enclosingSites.set(first, scope);
-      } else if (term instanceof FrameList) {
-        // Keyed by its first element, which is how its own walk asks, and by
-        // each element's first term, which is how a walked element asks.
-        const [first] = term.asArray();
-        if (first) enclosingSites.set(first, scope);
-        for (const element of term.asArray()) {
-          noteTerms(isPlainExpr(element) ? element.asArray() : [element]);
-        }
+      atoms.push(FrameWord.word(spelling, scope.get(spelling), resume));
+    } else if (isClosure(term)) {
+      const first = term.asArray()[0];
+      if (first) enclosingSites.set(first, scope);
+      atoms.push(scoped(term));
+    } else if (term instanceof FrameList) {
+      // Keyed by its first element, which is how its own walk asks, and by
+      // each element's first term, which is how a walked element asks.
+      const [first] = term.asArray();
+      if (first) enclosingSites.set(first, scope);
+      for (const element of term.asArray()) {
+        noteTerms(isPlainExpr(element) ? element.asArray() : [element]);
       }
+      atoms.push(scoped(term));
+    } else {
       atoms.push(term);
     }
   };
@@ -310,6 +315,83 @@ function firstAtom(term: Frame): Frame {
 export function noteEnclosing(inner: FrameExpr, outer: FrameExpr): void {
   const first = inner.asArray()[0];
   if (first && !enclosingSites.has(first)) outer.elements();
+}
+
+/**
+ * A compound atom of a walk, a tight expression, an aggregate or a closure
+ * written in a body, held with the scope its closure was bound in (spec a17).
+ *
+ * A walk is evaluation stopped before each term's last step, so what it holds
+ * is what evaluation holds: the term, and where it would be evaluated. The term
+ * is the template's own frame, so this is transparent. It prints, compares and
+ * counts as the term, and walks as the term does with the scope passed on, so
+ * a walk of a walk keeps resuming where the first closure was bound. Applying
+ * it, or folding it, binds a closure there first.
+ */
+export class FrameScoped extends Frame {
+  constructor(
+    public readonly term: Frame,
+    public readonly scope: EvaluationScope,
+  ) {
+    super();
+  }
+
+  /** The term, a closure bound where it would have been. */
+  public live(): Frame {
+    return isClosure(this.term) ? this.term.in(this.scope) : this.term;
+  }
+
+  public override referent(): Frame {
+    return this.term.referent();
+  }
+
+  public override elements(): Frame[] {
+    const terms = this.term.asArray();
+    return atomsOf(terms, sitesAround(terms), this.scope);
+  }
+
+  public override asArray(): Frame[] {
+    return this.term.asArray();
+  }
+
+  public override walked(): Frame {
+    return this;
+  }
+
+  public override sizeFor(key: string): Frame {
+    return this.term.sizeFor(key);
+  }
+
+  /** Counts as its term walks, `.#` and `.##`; anything else is applied. */
+  public override call(
+    argument: Frame,
+    parameter: Frame = Frame.nil,
+  ): Frame {
+    if (
+      argument instanceof FrameSymbol && argument.is.address === true &&
+      (argument.spelling() === Frame.kCOUNT ||
+        argument.spelling() === Frame.kLEAVES)
+    ) {
+      return this.sizeFor(argument.spelling());
+    }
+    return this.live().call(argument, parameter);
+  }
+
+  public override equals(other: Frame): Frame {
+    return this.term.equals(other.referent());
+  }
+
+  public override isPlainExpression(): boolean {
+    return this.term.isPlainExpression();
+  }
+
+  public override toString(): string {
+    return this.term.toString();
+  }
+
+  public override dataString(): string {
+    return this.term.dataString();
+  }
 }
 
 /** A source aggregate walks as a body does. */

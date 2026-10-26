@@ -6,6 +6,8 @@ import { BoundMethod } from "../frames/bound-method.ts";
 import { FrameLazy } from "../frames/frame-lazy.ts";
 import { FrameList } from "../frames/frame-list.ts";
 import { FrameWord } from "../frames/frame-word.ts";
+import { FrameScoped } from "../frames/frame-expr.ts";
+import type { EvaluationScope } from "../frames/evaluation-scope.ts";
 import { closureFromAtoms } from "../frames/reread.ts";
 import type { ReceiverState } from "../frames/bound-method.ts";
 
@@ -103,8 +105,11 @@ export const ReduceElements = (
   source: Frame,
   receiver: Frame,
   receiverState?: ReceiverState,
+  site?: EvaluationScope,
 ): Frame => {
-  const code = source.referent();
+  const code = source instanceof FrameScoped
+    ? source.live()
+    : source.referent();
   if (code instanceof FrameLazy || code instanceof BoundMethod) {
     return code.call(receiver, Frame.nil, receiverState);
   }
@@ -113,7 +118,11 @@ export const ReduceElements = (
   if (code instanceof FrameList) {
     const values = code.elements();
     if (values.some((value) => value instanceof FrameWord)) {
-      return closureFromAtoms(values).call(receiver, Frame.nil, receiverState);
+      return closureFromAtoms(values, site).call(
+        receiver,
+        Frame.nil,
+        receiverState,
+      );
     }
   }
   return source.reduce(receiver, receiverState);

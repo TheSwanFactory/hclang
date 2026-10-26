@@ -376,6 +376,33 @@ export class EvaluationScope {
     });
   }
 
+  /**
+   * This scope continued through `scope` instead of past `site`, read-only.
+   *
+   * A fold resumes a walk where the fold is written (`site`), but a word the
+   * walk yielded resumes where its own closure was bound (`scope`), as the
+   * closure itself would have: the resumption's own layers come first, its
+   * fresh local frame and the receiver, then that scope. The scope is read
+   * through a live lookup that withholds write authority, and declarations
+   * land in the resumption's own frame, so a resumed word never writes where
+   * its closure was made (spec a17).
+   */
+  public resumedIn(
+    site: EvaluationScope | undefined,
+    scope: EvaluationScope,
+  ): EvaluationScope {
+    // The resumed closure is not one of its own layers here: its `up` is the
+    // site, so reading through it would reach the site after all.
+    const past = new Set(site?.lookupFrames() ?? []);
+    if (this.closure) past.add(this.closure);
+    const own = this.#lookupFrames.filter((frame) => !past.has(frame));
+    const live = new LiveLookupContext(
+      scope.lookupFrames(),
+      scope.lexicalTarget,
+    );
+    return this.withLayers(EvaluationScope.layers([...own, live]));
+  }
+
   /** Accessor whose identity grades private and protected reads. */
   public accessOrigin(): Frame {
     return this.receiverState?.receiver ?? this.writeTarget;

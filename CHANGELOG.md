@@ -4,6 +4,18 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.29.0 2026-10-25
+
+- **A fold resumes a walk where its closure was bound.** A walk is evaluation
+  stopped before each term's last step, so each atom now holds the scope its
+  closure was bound in, and `|` finishes the evaluation there:
+  `({f o.x} & {_}) | ()` finds `f` and `o` as `{f o.x} | ()` does. The receiver
+  still comes first, declarations land in a fresh frame, and atoms walked from
+  two closures each resume in their own scope, never the fold's (`spec/a17`).
+- **A walk discloses what its closure names, read-only.** Resuming a word reads
+  the value its name is bound to, even one the closure never returns:
+  `.s 42; .f {.k s; 0}; [((f & {_}) .1)] | ()` is `42` (`spec/a17` §4).
+
 ## v0.28.0 2026-10-25
 
 - **A source aggregate walks and prints as a body.** A group or array written in

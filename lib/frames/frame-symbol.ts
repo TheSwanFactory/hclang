@@ -487,6 +487,8 @@ export class FrameOperator extends FrameSymbol {
   };
 
   public readonly operator: string;
+  /** Where a `|` was written, which a fold resumes a walk in (spec a17). */
+  private site?: EvaluationScope;
 
   constructor(source: string, meta: Context = NilContext) {
     super(source, meta);
@@ -504,10 +506,14 @@ export class FrameOperator extends FrameSymbol {
   }
 
   public override in(input: EvaluationInput = []): Frame {
-    const receiverState = EvaluationScope.from(input).receiverState;
-    if (!receiverState) return this;
+    const scope = EvaluationScope.from(input);
+    const receiverState = scope.receiverState;
+    // A fold resumes a walk where it is written, so `|` alone keeps its site.
+    const sited = this.operator === "|";
+    if (!receiverState && !sited) return this;
     const bound = this.copy();
-    bound.receiverState = receiverState;
+    if (receiverState) bound.receiverState = receiverState;
+    if (sited) bound.site = scope;
     return bound;
   }
 
@@ -520,9 +526,10 @@ export class FrameOperator extends FrameSymbol {
 
   public override called_by(context: Frame): Frame {
     const value = FrameSymbol.for(this.data).called_by(context);
-    return value instanceof FrameCurry && this.receiverState
-      ? value.withReceiverState(this.receiverState)
-      : value;
+    if (!(value instanceof FrameCurry)) return value;
+    if (this.receiverState) value.withReceiverState(this.receiverState);
+    if (this.site) value.withSite(this.site);
+    return value;
   }
 
   public override string_start(): string {

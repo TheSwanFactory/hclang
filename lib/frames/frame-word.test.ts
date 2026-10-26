@@ -117,6 +117,49 @@ describe("walking a closure (#429)", () => {
     expect(answer("{x} | (.y 5)")).toContain("$!.name-missing");
   });
 
+  describe("resuming where the closure was bound (a17)", () => {
+    it("finishes a walk's evaluation in its closure's scope", () => {
+      expect(answer(".o [.x 5]; .f {_ + 1}; ({f o.x} & {_}) | ()"))
+        .toContain("; 6)");
+      expect(answer(".a 1; .f {{a}}; ((f & {_}) .0) | ()")).toContain("; 1)");
+    });
+
+    it("resolves the receiver ahead of the closure's scope", () => {
+      expect(answer(".a 1; .p {a}; (p & {_}) | (.a 7)")).toContain("; 7)");
+    });
+
+    it("resumes each atom in its own scope, never the fold's", () => {
+      expect(answer(
+        ".a 1; .p {a}; .q ({.a 2; {a}} ()); ([p, {+}, q] &| {_ & {_}}) | ()",
+      )).toContain("; 3)");
+      expect(answer(".a 1; .p {a}; {.a 5; (p & {_}) | ()} ()"))
+        .toContain("; 1)");
+      expect(answer(".b 10; .p {x + b}; {.b 20; (p & {_}) | (.x 1)} ()"))
+        .toContain("; 11)");
+    });
+
+    it("declares into its own frame, never the closure's scope", () => {
+      expect(answer(".a 1; .r (({.a 9; a} & {_}) | ()); [r, a]"))
+        .toContain("[9, 1]");
+    });
+
+    it("discloses the values the body names, read-only", () => {
+      expect(answer(".s 42; .f {.k s; 0}; [f (), [((f & {_}) .1)] | ()]"))
+        .toContain("[0, 42]");
+    });
+
+    it("keeps a compound atom transparent: printed, walked and counted", () => {
+      expect(answer("“” ({f o.x} & {_})")).toEqual("“[f, (o .x)]”");
+      expect(answer("(({f o.x} & {_}) .1) & {“” _}")).toEqual("[“o”, “.x”]");
+      expect(answer("(({f o.x} & {_}) .1).#")).toEqual("2");
+    });
+
+    it("leaves a name an unrun outer body declares unresolved", () => {
+      expect(answer(".f {.a 1; {a}}; [((f & {_}) .3) | (), (f ()) ()]"))
+        .toContain("$!.name-missing");
+    });
+  });
+
   it("keeps a word under every application that is not a fold", () => {
     expect(answer("{x} & {“” _}")).toEqual("[“x”]");
     expect(answer(".w (({x} & {_}) .0); [w]")).toContain("[x]");

@@ -1,0 +1,151 @@
+# A Walk Is Evaluation, Stopped
+
+**Status:** Implemented in v0.29.0.\
+**Issues:** #429, the walk; `a15`, which defined it, and `a16`, which left one
+item open.\
+**Supersedes:** `a15` §5's ruling that "a fold re-reads", and §6's bullet that
+no atom reaches a bound closure's scope. `a16`'s one remaining item, "a re-read
+closure has no captured scope", is closed here.
+
+## The one sentence
+
+A walk is not a projection of a closure, and not a capture of one: it is the
+evaluator's own traversal of the closure's terms, stopped before each term's
+last step, and a fold finishes it.
+
+## Why the old reading had a limit
+
+`a15` described the walk as a view of the closure and the fold as re-reading
+that view as text. A view has no scope, so a re-read closure resolved its names
+against the receiver alone, and `({f o.x} & {_}) | ()` failed to find `f`,
+though `{f o.x} | ()` found it. The limit came from the description. In the
+walk's code the closure's terms were already there, the same frames evaluation
+uses. What the walk dropped was the one other thing evaluation holds at that
+point: where each term would be evaluated.
+
+## 1. An atom holds its term and where it would be evaluated
+
+A walk of a bound closure holds each atom with the scope that closure was bound
+in (`FrameLazy.bind`):
+
+- **A word** (`FrameWord`) is a spelling, the declaration it resolves to, which
+  `===` compares, and now that scope too.
+- **A compound atom**, which is a tight expression, an aggregate or a closure
+  written in the body, is held as a `FrameScoped`: the template's own term and
+  the scope. It is transparent. It prints, compares and counts as the term, and
+  it walks as the term does with the scope passed on, so a walk of a walk keeps
+  resuming where the first closure was bound.
+
+A closure that no evaluation has bound, such as a template built by a program,
+holds no scope, and nor do its atoms.
+
+```text
+.o [.x 5]; ((({f o.x} & {_}) .1) & {“” _})   → [“o”, “.x”]
+.o [.x 5]; (({f o.x} & {_}) .1).#            → 2
+{4 + 5}.#                                    → 3      unchanged
+```
+
+## 2. A fold resumes evaluation
+
+**Ruling: a fold over a walk resumes it, it does not re-read it.**
+`closureFromAtoms` reassembles the body and binds it where the `|` is written,
+the fold's _site_. The body is then called with the receiver, as before. A term
+held with a scope finishes evaluating in this order:
+
+1. **The resumption's own frame**, a fresh one, where every declaration the body
+   makes lands (`a16`'s order: the current child first).
+2. **The receiver**, the argument of the call, so `{x + 1} | (.x 5)` is still
+   `6`.
+3. **The scope the term's closure was bound in**, read-only. The site is not
+   consulted at all.
+
+A term with no scope, such as a punctuation word, a word from an unbound
+template, or an operator, resolves at the site, as a name written there would.
+
+```text
+.o [.x 5]; .f {_ + 1}; ({f o.x} & {_}) | ()            → 6   (before: $!.name-missing f)
+.a 1; .f {{a}}; ((f & {_}) .0) | ()                    → 1
+.f {x + 1}; .g (f & {_}); [g | (.x 5), g | (.x 10)]    → [6, 11]   unchanged
+.a 1; .p {a}; (p & {_}) | (.a 7)                       → 7   the receiver comes first
+```
+
+**Ruling: each atom resumes in its own scope.** Atoms walked from two closures
+and folded together never meet. Each finishes the evaluation its own closure
+began, and the site's names do not shadow them:
+
+```text
+.a 1; .p {a}; .q ({.a 2; {a}} ());
+  ([p, {+}, q] &| {_ & {_}}) | ()                      → 3   a from p is 1, a from q is 2
+.a 1; .p {a}; {.a 5; (p & {_}) | ()} ()                → 1   not the site's 5
+.b 10; .p {x + b}; {.b 20; (p & {_}) | (.x 1)} ()      → 11
+```
+
+This is hygiene. Scheme gets it with syntax objects, where an identifier carries
+its lexical context and Racket gives each identifier a set of scopes. It needs
+that machinery because Scheme environments are mutable, so sharing one between
+code fragments lets one fragment's `set!` reach another's.
+
+## 3. Why sharing a scope is safe: copy-on-write
+
+Many words can hold one scope, and two streams can mix words from many scopes,
+without any rule about who owns what. Copy-on-write is what makes that safe. A
+write never lands on shared state: a functional update leaves the original
+untouched at any depth (`lib/frames/CLAUDE.md`, Copy Contract), and every call
+declares into a fresh frame of its own (#404). So a resumption declares into its
+own frame and reads each scope through a live lookup that withholds write
+authority (`LiveLookupContext`, the view a named import already gets). Sharing a
+scope among words is then as unobservable as Figures sharing children.
+
+```text
+.a 1; .r (({.a 9; a} & {_}) | ()); [r, a]              → [9, 1]
+```
+
+The scope is live, not a snapshot, as a closure's is (spec 7). A resumed word
+sees exactly what its closure would see if it were called now.
+
+## 4. What a walk discloses
+
+**Ruling: a walk discloses its closure's references, read-only.** This
+supersedes `a15` §6, which said no atom reaches a bound closure's scope. Now a
+word does, and resuming it reads the value the name is bound to, even when the
+closure itself never returns it:
+
+```text
+.s 42; .f {.k s; 0}; [f (), [((f & {_}) .1)] | ()]     → [0, 42]
+```
+
+The disclosure has three bounds:
+
+- **Only names the body mentions.** A scope is reached only through a word the
+  walk yielded, and the walk yields only the body's own atoms.
+- **Never a write.** The scope is read through a lookup without write authority,
+  and declarations land in the resumption's own frame.
+- **No more than evaluation reads.** Every value a resumed word reads is one the
+  closure's own evaluation could read at that point.
+
+Holding a closure has always meant being able to run it. Under this ruling,
+holding its walk also means being able to run any part of it. That is what
+"evaluation, stopped" means, and it is the homoiconic promise: code is data and
+data is code, with nothing to tell them apart.
+
+## 5. `|` reads its site
+
+A fold is the one operation whose answer depends on where it is written, because
+it finishes an evaluation there. `FrameOperator.in` records the scope for `|`
+alone, and the curry hands it to `ReduceElements` as the site. No other operator
+copies itself to do this, and the Figures testdoc runs in the same 0.37 s as
+before.
+
+## What remains
+
+- **A closure's words resume past the body around it.** A nested closure literal
+  is bound when its outer closure runs. A walk stops before that, so the walk
+  holds the nested closure with the _outer's_ scope. A name the outer body
+  declares, which the nested closure reads, is therefore not found where the
+  walk resumes it: the outer body never ran. That is faithful to the metaphor,
+  since that evaluation never happened, but it is a place where the walk and a
+  call can answer differently:
+
+  ```text
+  .f {.a 1; {a}}; [((f & {_}) .3) | (), (f ()) ()]     → [$!.name-missing a, 1]
+  ```
