@@ -85,6 +85,17 @@ failed form fails the whole import, an error in a testdoc's code would pass when
 that file runs directly and break every importer; the `HCLang` bundle test in
 `hc-lang.test.ts` imports Figures to catch it.
 
+**Quoting a file**, `'./f.hc' | {}` (#443, `spec/a18`), is the import stopped
+before evaluation. `quoteResourceSource` feeds the file's characters through the
+same `ExampleFilter`, lexer and parser, between `{` and `}`, into a sink that
+keeps the parsed closure instead of evaluating it. It binds that closure where
+the fold is written. `<-` in the file parses to an inert `FrameImport`, so
+quoting reads no other file and runs nothing. The file's lines are the comma
+terms of one body, so calling the quote answers the group of their values. It
+installs itself as `FrameLazy.quote`, which `ReduceElements` calls when a
+resource is folded into the empty closure, since `lib/frames` and `lib/ops`
+cannot import the parser.
+
 `HCLang.makeHost` lays the bundled `hc/` files of `lib/bundle/hc-bundle.ts` over
 its in-memory session root, as the CLI does over its temp root, and `reset()`
 reinstalls them with the fresh root.

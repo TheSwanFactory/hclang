@@ -33,6 +33,13 @@ export class FrameLazy extends FrameExpr {
 
   private signature?: FrameGroup;
 
+  /**
+   * Reads a resource as an unevaluated closure, bound at `site` (#443). The
+   * parser lives in `lib/execute`, which installs this, since this module
+   * cannot import it.
+   */
+  public static quote?: (resource: Frame, site?: EvaluationScope) => Frame;
+
   public bindSignature(signature: Frame): this {
     if (signature instanceof FrameGroup) {
       this.signature = signature;

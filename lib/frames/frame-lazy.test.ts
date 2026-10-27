@@ -189,6 +189,41 @@ describe("FrameLazy", () => {
     });
   });
 
+  describe("a comma expression in the body (#443)", () => {
+    /** The answer of the last line; earlier lines are setup statements. */
+    const text = (source: string): string => evaluate(source).at(-1).toString();
+
+    it("collects its terms into a group, as top level does", () => {
+      // A comma, or a newline, separates the terms of one expression, and
+      // that expression is the group of their values wherever it is written.
+      // A closure body used to juxtapose them, so `{3, 4} ()` was 3·4.
+      expect(text("{3, 4} ()")).toEqual(text("3, 4"));
+      expect(text("{3, 4} ()")).toEqual("(3, 4)");
+      expect(text("{3\n4} ()")).toEqual("(3, 4)");
+      expect(text("{_, 1} 5")).toEqual("(5, 1)");
+      expect(text("[1, 2] & {_, 0}")).toEqual("[(1, 0), (2, 0)]");
+    });
+
+    it("declares into the call's frame, as top level declares into the file", () => {
+      expect(text("{.a 1, .b 2; a + b} ()")).toEqual("3");
+      expect(text("{.a 1, a + 2} ()")).toEqual("(.a 1, 3)");
+    });
+
+    it("is one statement of a sequence when `;` follows or precedes it", () => {
+      expect(text("{.a 1; a, 2} ()")).toEqual("(1, 2)");
+      expect(text("{1, 2; 3} ()")).toEqual("3");
+      expect(text("{.a 1; a + 2} ()")).toEqual("3");
+    });
+
+    it("leaves a body assembled from bare atoms one juxtaposition", () => {
+      const assembled = new frame.FrameLazy([
+        new frame.FrameInt("3"),
+        new frame.FrameInt("4"),
+      ]);
+      expect(assembled.call(frame.Frame.nil).toString()).toEqual("12");
+    });
+  });
+
   describe("size operators (#411)", () => {
     /** The answer of the last statement in a source sequence. */
     const last = (source: string): frame.Frame =>

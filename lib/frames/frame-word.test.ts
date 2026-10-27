@@ -37,7 +37,8 @@ describe("walking a closure (#429)", () => {
     // A fold re-reads both: the comma as a term boundary, the tight
     // expression as itself.
     expect(answer("({x + y.v} & {_}) | (.x 1, .y [.v 5])")).toEqual("6");
-    expect(answer("({1, 2} & {_}) | ()")).toEqual("2");
+    // A comma expression is a group, in a closure as at top level (#443).
+    expect(answer("({1, 2} & {_}) | ()")).toEqual("(1, 2)");
   });
 
   it("walks a source aggregate as a body, statements and bindings kept (a16)", () => {
