@@ -4,6 +4,16 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.32.0 2026-10-28
+
+- **A Figure has a Spin.** `x.spin N` answers the signed alternating sum of the
+  Sizes of x's immediate children, `Size(F₁) − Size(F₂) + Size(F₃) − …`, divided
+  by a positive resolution N, as an exact FrameRational in revolutions. It folds
+  the same readings Gap does and keeps the sign Gap drops, so `(2,5)` reads
+  `−3/4` and `(5,2)` reads `+3/4` at N=4, and Gap stays `|Spin × N|`. A
+  non-positive N is the native `$!.division-by-zero`. A zero Spin is an
+  observation, not a claim that a Walk is closed (#447).
+
 ## v0.31.0 2026-10-28
 
 - **A Figure has a Gap.** `x.gap()` answers the absolute value of the

@@ -146,6 +146,29 @@ and the sign of the whole is dropped last
     .signed (alt kids);
     (signed .< 0) ? {0 - signed} : {signed}};
 ```
+**Spin**, `x.spin N`: the signed alternating sum of the Sizes of x's immediate
+children, `Size(F₁) − Size(F₂) + Size(F₃) − …`, divided by a positive integer
+resolution N, read as an exact FrameRational in revolutions (#447). It folds the
+same readings Gap does, in the same order and with the same alternating signs
+that start positive, but it keeps the sign Gap drops, so the two directions read
+as `−` and `+`; the empty Figure has Spin `0` at every N. The signed sum is a
+whole count of revolutions, and `signed / N` divides it into N-ths, which the
+divisor's rung makes an exact ratio that collapses to a whole FrameInt when N
+divides it (#445, FrameCount). Gap is `|signed|`; Spin is `signed / N`, so Spin
+at N and Gap read the same fold and never disagree, and neither constructs: a
+zero Spin is an observed value, not a Fact that a Walk closed. N must be a
+positive resolution: `N=0` is the native `$!.division-by-zero`, and a non-positive
+N is refused the same way, by dividing into zero, so the observable never answers
+a sign-flipped ratio for a negative N. `_^` names the receiver so the fold can
+read the children in order, and N is bound as `n` before the fold reads it
+```;
+  .spin {.n _; .kids _^.children;
+    .count {(_.size()).children.#};
+    .tail {(_ && {(((_ .0) = .0) ? {[()]} : {[[__ .1]]}) .0}) &| {_}};
+    .alt {.cs _; (cs = []) ? {0} : {(count (cs .0)) - (alt (tail cs))}};
+    .signed (alt kids);
+    (n .< 1) ? {signed / 0} : {signed / n}};
+```
 **Form**, `x.form()`: the plain bracket tree of x, one bracket per Figure, the
 way 005.30c wrote Figures before they were a class. It keeps shape and order,
 and forgets identity and the methods
@@ -453,6 +476,53 @@ interpretation stay apart: Gap reports a number, not a meaning
 ```
 ; [((Figure [deep4, row2, row3]).gap()) = ((Figure [row4, row2, row3]).gap()), ((Figure [Z, U]).gap()) = 1]
 # [<>, <>]
+```
+## Spin
+
+Spin folds the same Sizes Gap does, in the same order with the same signs that
+start positive, but keeps the sign and divides by a positive resolution N,
+answering an exact FrameRational in revolutions. The division selects its rung
+from the divisor, so `signed / N` is a ratio that collapses to a whole FrameInt
+when N divides it, and a positive reading prints without a `+`. The same three
+children of Sizes 2, 5 and 3 whose Gap is `0` have Spin `0` at every N, and
+reversing the two children of a two-child Figure flips the sign: `(2,5)` reads
+`−3/4` and `(5,2)` reads `+3/4` at N=4. The Sizes come from ordinary Figures,
+`row5` of Size 5 above among them, and `Figure [U, Z, U]` has children of Sizes
+1, 0 and 1
+```
+; [((Figure [row2, row5, row3]).spin 4) = 0, ((Figure [row2, row5]).spin 4) = (0 - (3 / 4)), ((Figure [row5, row2]).spin 4) = (3 / 4), ((Figure [U, Z, U]).spin 4) = (1 / 2)]
+# [<>, <>, <>, <>]
+```
+Spin reads each child's Size the way Gap does, so it equals the signed fold
+divided by N, and Gap is its absolute value: the two observers never disagree on
+the same fold
+```
+; [((Figure [row2, row5]).spin 4) = ((((row2.size()).children.#) - ((row5.size()).children.#)) / 4), ((Figure [row5, row2]).spin 4) = (((Figure [row5, row2]).gap()) / 4), ((Figure [row2, row5]).spin 4) = (0 - (((Figure [row2, row5]).gap()) / 4))]
+# [<>, <>, <>]
+```
+The resolution N scales the same signed sum, and `N=1` reads whole signed
+revolutions, so `(2,5)` is `−3` at N=1, `−1` at N=3, and `(5,2)` is `+3/2` at
+N=2. Every reading is exact, keeping both direction and resolution
+```
+; [((Figure [row2, row5]).spin 1) = (0 - 3), ((Figure [row2, row5]).spin 3) = (0 - 1), ((Figure [row5, row2]).spin 2) = (3 / 2)]
+# [<>, <>, <>]
+```
+Spin keeps the sign Gap drops, so a one-child Figure reads its child's Size as a
+positive reading, the empty Figure reads `0` at every N, and nesting reaches a
+child only through its Size: `deep4` contributes 4 just as `row4` does
+```
+; [((Figure [row2]).spin 1) = 2, ((Figure [row2]).spin 4) = (1 / 2), (A.spin 4) = 0, (A.spin 1) = 0]
+# [<>, <>, <>, <>]
+; [((Figure [deep4, row2, row3]).spin 4) = ((Figure [row4, row2, row3]).spin 4), ((Figure [Z, U]).spin 4) = (0 - (1 / 4))]
+# [<>, <>]
+```
+A positive resolution is required: `N=0` is the native division-by-zero, and a
+negative N is refused the same way rather than answering a sign-flipped ratio
+```
+; (Figure [row2, row5]).spin 0
+# $!.division-by-zero /
+; (Figure [row5, row2]).spin (0 - 4)
+# $!.division-by-zero /
 ```
 ## The Fano plane
 
