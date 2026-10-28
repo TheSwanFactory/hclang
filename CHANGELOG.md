@@ -4,6 +4,14 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.31.0 2026-10-28
+
+- **A Figure has a Gap.** `x.gap()` answers the absolute value of the
+  alternating sum of the Sizes of x's immediate children,
+  `|Size(F₁) − Size(F₂) + Size(F₃) − …|`, as a FrameCount. The empty Figure has
+  Gap `0`, and children of Sizes 2, 5 and 3 have Gap `0`. A zero Gap is an
+  observation, not a claim that a Walk is closed (#445).
+
 ## v0.30.0 2026-10-26
 
 - **A comma in a closure body collects, as everywhere else.** Terms separated by
