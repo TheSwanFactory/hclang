@@ -1,187 +1,189 @@
 import { expect } from "jsr:@std/expect@^0.219.1";
 import { HCLang } from "../mod.ts";
 
-type Form = Form[];
-
-// All ordered rooted forms with exactly n nodes, counting Z as one node.
-function forms(n: number): Form[] {
-  return forests(n - 1);
-}
-
-function forests(n: number): Form[][] {
-  if (n === 0) return [[]];
-  const result: Form[][] = [];
-  for (let size = 1; size <= n; size++) {
-    for (const first of forms(size)) {
-      for (const rest of forests(n - size)) result.push([first, ...rest]);
-    }
-  }
-  return result;
-}
-
-// Unguarded U-form substitution on bracket trees, independent of HC dispatch.
-function referenceInlay(x: Form, y: Form): Form {
-  function sub(node: Form): Form {
-    return node.length === 1 && node[0].length === 0 ? y : node.map(sub);
-  }
-  return sub(x);
-}
-
-function countCells(form: Form): number {
-  return form.length === 1 && form[0].length === 0
-    ? 1
-    : form.reduce((sum, child) => sum + countCells(child), 0);
-}
-
-function construct(form: Form): string {
-  return `(Figures.Figure [${form.map(construct).join(", ")}])`;
-}
-
-Deno.test("bundled Figure inlay matches unguarded form and Size on all forms through five nodes", async () => {
-  const session = new HCLang();
-  expect(await session.call("Figures <- './hc/figures.hc'"))
-    .not.toContain("$!");
-  const domain = [1, 2, 3, 4, 5].flatMap(forms);
-  expect(domain.length).toEqual(23);
-  for (const x of domain) {
-    for (const y of domain) {
-      const source = `((${construct(x)}.inlay ${construct(y)}).form()) = ${
-        JSON.stringify(referenceInlay(x, y))
-      }`;
-      expect(await session.call(source), source).toEqual("<>");
-      const expectedSize = Array.from(
-        { length: countCells(referenceInlay(x, y)) },
-        (): Form => [[]],
-      );
-      const sizeSource = `((${construct(x)}.inlay ${
-        construct(y)
-      }).size()).form() = ${JSON.stringify(expectedSize)}`;
-      expect(await session.call(sizeSource), sizeSource).toEqual("<>");
-    }
-  }
-});
+// Issue occurrence/figure 009.09: Figures are now ordinary native nested frames
+// and the module is an observational layer over them. A cell/terminal is the
+// empty frame `[]`; a nonempty array recurses over its elements. Inlay replaces
+// each native terminal with the right operand, preserving nonterminal nesting,
+// with no right-zero guard. These are focused unit tests, not a combinatorial
+// oracle.
 
 async function figuresSession(): Promise<HCLang> {
   const session = new HCLang();
   expect(await session.call("Figures <- './hc/figures.hc'"))
     .not.toContain("$!");
+  // Bring the operations into scope unqualified for terse assertions.
   await session.call(
-    ".Figure {Figures.Figure _}; .Z Figures.Z; .U Figures.U;",
+    ".inlay {Figures.inlay _}; .size {Figures.size _}; " +
+      ".count {Figures.count _}; .cells {Figures.cells _}; " +
+      ".form {Figures.form _}; .many {Figures.many _}; " +
+      ".mul {Figures.mul _}; .gap {Figures.gap _}; " +
+      ".spin {Figures.spin _}; .pure {Figures.pure _}; " +
+      ".need {Figures.need _}; .Z Figures.Z; .U Figures.U;",
   );
   return session;
 }
 
-Deno.test("inlay zero boundary preserves form, Size, and replacement identity", async () => {
+Deno.test("inlay replaces native terminals, preserving nonterminal nesting", async () => {
   const session = await figuresSession();
-  for (const form of [1, 2, 3, 4, 5].flatMap(forms)) {
-    await session.call(`.right ${construct(form)};`);
-    for (
-      const source of [
-        "(U.inlay right) === right",
-        "((Figure [Figure []]).inlay right) === right",
-        "((Z.inlay right).form()) = []",
-        "((Z.inlay right).size()) = Z",
-        "((Z.inlay right) === Z) = ()",
-      ]
-    ) {
-      expect(await session.call(source), source).toEqual("<>");
-    }
+  for (
+    const [source, expected] of [
+      // empty host: the empty frame is a single terminal, so it becomes y.
+      ["(inlay [] [[]]) = [[]]", "<>"],
+      // singleton host wraps the replacement once.
+      ["(inlay [[]] [[], []]) = [[[], []]]", "<>"],
+      // nested nonempty host: each terminal becomes y, nesting preserved.
+      ["(inlay [[], [], [[], []]] [[]]) = [[[]], [[]], [[[]], [[]]]]", "<>"],
+    ] as const
+  ) {
+    expect(await session.call(source), source).toEqual(expected);
   }
-  await session.call(
-    ".empty (Figure []); .left (Figure [U]); .result (left.inlay empty);",
-  );
+  // Atomic host is outside the supported pure domain: the terminal is the
+  // empty frame, and a bare atom is rejected rather than treated as a cell.
+  expect(await session.call("pure 7")).toEqual("");
+});
+
+Deno.test("inlay with an empty replacement does not annihilate the host", async () => {
+  const session = await figuresSession();
   for (
     const source of [
-      "(U.inlay Z) === Z",
-      "(U.inlay empty) === empty",
-      "(result.form()) = [[]]",
-      "(result.size()) = (Figure [U])",
-      "(result.children .0) === empty",
-      "(result === left) = ()",
-      "(left.size()) = (U.size())",
-      "((U.inlay empty).size()) = Z",
-      "((Figure [U, U]).inlay empty).form() = [[], []]",
-      "(((Figure [U, U]).inlay empty).size()) = Z",
-      "(left.form()) = [[[]]]",
-      "(empty.form()) = []",
+      // No right-zero guard: an empty y still replaces each terminal.
+      "(inlay [[], []] []) = [[], []]",
+      "(inlay [[]] []) = [[]]",
+      "(inlay [[], []] [[], []]) = [[[], []], [[], []]]",
     ]
   ) {
     expect(await session.call(source), source).toEqual("<>");
   }
 });
 
-Deno.test("inlay captures survive member and caller name collisions", async () => {
+Deno.test("inlay reuses the right operand by identity and leaves the host unchanged", async () => {
   const session = await figuresSession();
-  // Inherited Figures retain the real bundled methods while supplying extra
-  // members. Exercise collisions on cells, noncell nodes, and the right operand.
-  const collisions = ".x 91; .y 92; .sub 93; .kids 94; " +
-    ".receiver 95; .replacement 96; .visit 97; .node 98;";
   await session.call(
-    `.cell [.^ (Figure [Z]); ${collisions}]; ` +
-      `.branch [.^ (Figure [cell, Z, cell]); ${collisions}]; ` +
-      `.right [.^ (Figure [Z, U]); ${collisions}]; ` +
-      `.left (Figure [branch, cell]); ${collisions}`,
+    ".y [[], [[[]], []]]; .host [[], [[], []]]; .shared [[], []]; " +
+      ".sharedhost [shared, shared]; .r (inlay host y); " +
+      ".rs (inlay sharedhost y);",
   );
   for (
     const source of [
-      "(cell.inlay right) === right",
-      "((branch.inlay right).form()) = [right.form(), [], right.form()]",
-      "((left.inlay right).form()) = [[right.form(), [], right.form()], right.form()]",
-      "((left.inlay Z).form()) = [[[], [], []], []]",
-      "((left.inlay (Figure [])).form()) = [[[], [], []], []]",
+      // y is the very same frame at every terminal.
+      "(r .0) === y",
+      "((r .1) .0) === y",
+      "((r .1) .1) === y",
+      // nonterminal ancestors are freshly built, not the host.
+      "(r === host) = ()",
+      // a shared left subtree is rebuilt as independent occurrences.
+      "((rs .0) === (rs .1)) = ()",
+      // operands are not written.
+      "(host = [[], [[], []]])",
+      "(y = [[], [[[]], []]])",
+      "(shared = [[], []])",
     ]
   ) {
     expect(await session.call(source), source).toEqual("<>");
   }
 });
 
-Deno.test("inlay reuses replacements and rebuilds ancestors without child dispatch", async () => {
+Deno.test("size, cells, form, many observe native structure", async () => {
   const session = await figuresSession();
-  await session.call(
-    ".cell [.^ (Figure [Z]); .inlay {Z}]; " +
-      ".shared (Figure [cell, U]); .left (Figure [shared, shared]); " +
-      ".right (Figure [Z, Figure [U, Z]]); .result (left.inlay right);",
-  );
   for (
-    const source of [
-      "(cell.inlay right) === Z",
-      "(result.form()) = [[right.form(), right.form()], [right.form(), right.form()]]",
-      "(U.inlay right) === right",
-      "((result.children .0).children .0) === right",
-      "((result.children .1).children .1) === right",
-      "(result === left) = ()",
-      "((result.children .0) === shared) = ()",
-      "((result.children .0) === (result.children .1)) = ()",
-      "(left.children .0) === (left.children .1)",
-      "(left.form()) = [[[[]], [[]]], [[[]], [[]]]]",
-      "(right.form()) = [[], [[[]], []]]",
-    ]
+    const [source, expected] of [
+      // size counts native terminals; the empty frame is one terminal.
+      ["count Z", "1"],
+      ["count U", "1"],
+      ["count [[], []]", "2"],
+      ["count [[[], []], [[], [], []]]", "5"],
+      ["(size [[], []]) = [[[]], [[]]]", "<>"],
+      // cells are the terminals in order, each itself.
+      ["(cells [[[], []], [[], [], []]]) = [[], [], [], [], []]", "<>"],
+      ["(cells Z) = [[]]", "<>"],
+      // form is the native bracket tree; text spells it.
+      ["(form [[], [[]]]) = [[], [[]]]", "<>"],
+      ["(“” (form [[], [[]]])) = “[[], [[]]]”", "<>"],
+      // many marks each immediate element.
+      ["(many [[], [[]], []]) = [[[]], [[]], [[]]]", "<>"],
+    ] as const
   ) {
-    expect(await session.call(source), source).toEqual("<>");
+    expect(await session.call(source), source).toEqual(expected);
   }
 });
 
-Deno.test("retained callbacks keep inlay receivers and arguments across calls", async () => {
+Deno.test("gap and spin fold immediate element counts with alternating signs", async () => {
   const session = await figuresSession();
-  await session.call(
-    ".Deferred [.^ Z; .later {.receiver _^; .replacement _; " +
-      "{(_^.receiver).inlay _^.replacement}}]; " +
-      ".left [.^ Deferred; .children [U, U]]; " +
-      ".other [.^ Deferred; .children [Figure [U]]]; " +
-      ".right (Figure [Z, U]); .second (Figure [U, Z, U]); " +
-      ".first_call (left.later right); .second_call (other.later second);",
-  );
   for (
-    const source of [
-      "(first_call().form()) = [right.form(), right.form()]",
-      "(second_call().form()) = [[second.form()]]",
-      "(first_call().children .0) === right",
-      "((second_call().children .0).children .0) === second",
-      "(first_call().children .1) === right",
-      "(left.form()) = [[[]], [[]]]",
-      "(other.form()) = [[[[]]]]",
-    ]
+    const [source, expected] of [
+      ["(gap []) = 0", "<>"],
+      ["(gap [[[], []]]) = 2", "<>"],
+      ["(gap [[[], []], [[], [], []]]) = 1", "<>"],
+      ["(spin [[[], []], [[], [], [], [], []]] 4) = (0 - (3 / 4))", "<>"],
+      ["(spin [[[], [], [], [], []], [[], []]] 4) = (3 / 4)", "<>"],
+      ["(spin [] 4) = 0", "<>"],
+      // N must be a positive count.
+      ["spin [[[], []]] 0", "$!.division-by-zero /"],
+    ] as const
   ) {
-    expect(await session.call(source), source).toEqual("<>");
+    expect(await session.call(source), source).toEqual(expected);
+  }
+});
+
+Deno.test("positive counting: size observes multiplication without an arithmetic rule", async () => {
+  const session = await figuresSession();
+  // Two hosts (m=2) with three-terminal replacements (n=3) -> six terminals,
+  // observed through size, with no hardcoded multiplication law in inlay.
+  await session.call(".host [[], []]; .rep [[], [], []];");
+  for (
+    const [source, expected] of [
+      ["(inlay host rep) = [[[], [], []], [[], [], []]]", "<>"],
+      ["count (inlay host rep)", "6"],
+      // the same count for a differently shaped two-terminal host.
+      ["count (inlay [[[]], [[]]] rep)", "6"],
+      // mul forgets nesting but agrees on the count.
+      ["count (mul host rep)", "6"],
+    ] as const
+  ) {
+    expect(await session.call(source), source).toEqual(expected);
+  }
+});
+
+Deno.test("unsupported inputs are rejected explicitly rather than silently degraded", async () => {
+  const session = await figuresSession();
+  for (
+    const [source, expected] of [
+      // pure accepts well-founded property-free nested frames.
+      ["pure [[], [[], []]]", "<>"],
+      // and rejects atoms, strings, and property-bearing frames (nil prints
+      // as the empty string).
+      ["pure 5", ""],
+      ["pure “hi”", ""],
+      ["pure [.k 1; []]", ""],
+      ["pure [[], 5]", ""],
+      // need returns a pure frame and refuses an impure one.
+      ["(need [[], []]) = [[], []]", "<>"],
+      ["(need 5) = 5", ""],
+    ] as const
+  ) {
+    expect(await session.call(source), source).toEqual(expected);
+  }
+  // A property-bearing frame must not be silently accepted as a figure.
+  expect(await session.call("need [.k 1; []]")).toContain("$!");
+});
+
+Deno.test("native inlay differs from the old Figure-specific U-cell inlay", async () => {
+  const session = await figuresSession();
+  // Old semantics (009.05/009.06): a U-form cell Figure[Z] was the substitution
+  // site and the empty Figure Z had Size 0. Natively the empty frame [] is a
+  // terminal with Size 1, and the substitution site is any native terminal.
+  for (
+    const [source, expected] of [
+      // The empty frame is now one terminal (old Size(Z) was 0).
+      ["count Z", "1"],
+      // A bare empty list is an eligible inlay site (old Z was not a cell).
+      ["(inlay [] [[]]) = [[]]", "<>"],
+      // On the form [[]] the native inlay recurses and replaces the inner
+      // terminal, where the old U-cell inlay treated the whole thing as a cell.
+      ["(inlay U [[], []]) = [[[], []]]", "<>"],
+    ] as const
+  ) {
+    expect(await session.call(source), source).toEqual(expected);
   }
 });
