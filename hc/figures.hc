@@ -47,8 +47,15 @@ property-bearing frames, because `&` reconstruction would silently drop their
 non-enumerable content. A bare declared parent with no own visible properties is
 not observable in pure HC and is outside the validated domain: the operations
 preserve elements and order, and neither rely on nor claim to preserve parent
-links. `need` returns its argument when `pure` and a native refusal otherwise,
-so a caller can reject unsupported forms rather than observe a degraded result.
+links. `need` returns its argument when `pure` and a native refusal otherwise.
+The public observers and transforms — `size`, `count`, `cells`, `form`, `many`,
+`inlay`, `mul`, `gap`, `spin` — enforce this domain at their own boundary: each
+gates on `pure` and refuses an unsupported argument through `need`, so a direct
+call such as `inlay` on a property-bearing frame, or `size` on an atom, yields
+an explicit `$!` refusal rather than silently dropping non-enumerable content or
+treating an atom as structure. The comparisons `sameform`, `sameness`,
+`size_equivalent` and `withness` read native `=`/`===` identity and delegate
+counting to the guarded `count`, so they stay honest without a separate gate.
 
 A free name in an operation resolves where the operation is written — this file's
 top level — so `count` reaching `size` and `gap` reaching `count` keep working
@@ -90,40 +97,47 @@ observed
 .need {.x _; (pure x) ? {x} : {unsupported-figure}};
 ```
 **Form**, `form x`: the plain bracket tree of x, which a native Figure already
-is. Form is the identity, and text spells it: `“” x` prints `[[], [[]]]`
-directly, with no wrapper methods to hide
+is. Form is the identity on a supported frame, and text spells it: `“” x` prints
+`[[], [[]]]` directly, with no wrapper methods to hide. It guards its argument
+first so an unsupported input is refused rather than returned as if it were a
+pure Figure
 ```
-.form {_};
+.form {.x _; (pure x) ? {x} : {need x}};
 ```
 **Size**, `size x`: a tally with one `U` per native terminal `[]`. It keeps the
 terminal count and forgets shape, nesting, order, reuse and identity. The empty
 frame is one terminal, so `size []` is one cell; a nonempty frame's size splices
-its elements' sizes. A tally reads as a number through its elements, `(size x).#`
+its elements' sizes. A tally reads as a number through its elements, `(size x).#`.
+Like every public observer here it guards its argument first: an unsupported
+input is refused through `need` rather than observed as a degraded tally
 ```
-.size {.x _;
+.size {.x _; (pure x) ? {
   .go {.n _; (n = []) ? {[[[]]]} : {n &| {go _}}};
-  go x};
+  go x} : {need x}};
 ```
 **Count**, `count x`: the terminal count of x read as a native FrameCount, the
 size tally's element count. It observes a number, so it leaves the Figures on
-purpose, the way `cells` and `form` do
+purpose, the way `cells` and `form` do. It inherits `size`'s guard: an
+unsupported x makes `size` refuse, and the refusal carries through `.#`
 ```
 .count {.x _; (size x).#};
 ```
 **Cells**, `cells x`: the terminals of x, in order, each one itself. The empty
 frame is its own only cell; every other frame's cells are its elements',
 spliced into one array by `&|`. It keeps the cells and their order, and forgets
-where they were nested
+where they were nested. It guards its argument first, refusing an unsupported
+input through `need`
 ```
-.cells {.x _;
+.cells {.x _; (pure x) ? {
   .go {.n _; (n = []) ? {[n]} : {n &| {go _}}};
-  go x};
+  go x} : {need x}};
 ```
 **Manyness**, `many x`: a tally with one mark `B` per immediate element. It
 keeps how many children there are and forgets what they are, everything below
-them, their order and their identity
+them, their order and their identity. It guards its argument first, refusing an
+unsupported input through `need` rather than marking a degraded element count
 ```
-.many {.x _; x & {[[]]}};
+.many {.x _; (pure x) ? {x & {[[]]}} : {need x}};
 ```
 **Inlay**, `inlay x y`: replace each native terminal of x with y, preserving the
 ordered nesting around those terminals. This is the frame-native enumerable
@@ -132,21 +146,27 @@ its elements in order. There is no right-zero guard; an empty y still replaces
 each terminal, so the surrounding construction is not annihilated. The operation
 is curried, so `inlay x y` reads as placing y throughout x. The local recursion
 returns y itself at each terminal, reusing y by identity, and builds fresh
-nonterminal ancestors
+nonterminal ancestors. Inlay guards its host x first: an unsupported host is
+refused through `need` rather than rebuilt by `&`, which would silently drop a
+property-bearing frame's non-enumerable content
 ```
 .inlay {.x _; .host x;
-  {.y _;
-    .go {.n _; (n = []) ? {y} : {n & {go _}}};
-    go host}};
+  (pure host) ? {
+    {.y _;
+      .go {.n _; (n = []) ? {y} : {n & {go _}}};
+      go host}} : {
+    {.y _; need host}}};
 ```
 **Multiplication**, `mul x y`: y once per terminal of x, spliced into one flat
 array, so it keeps the terminal count and forgets x's shape. Where `inlay`
 preserves nesting, `mul` forgets it: `count (mul x y)` is `(count x) × (count y)`
 for every y, which is how positive counting multiplies. It is curried like
-`inlay`
+`inlay` and guards its host x first, refusing an unsupported host through `need`
 ```
 .mul {.x _; .host x;
-  {.y _; (count host) [y]}};
+  (pure host) ? {
+    {.y _; (count host) [y]}} : {
+    {.y _; need host}}};
 ```
 **Sameness of form**, `sameform x y`: `<>` when `x = y`. It compares element by
 element and forgets identity and reuse. Curried
@@ -179,14 +199,15 @@ immediate elements, `|count(F₁) − count(F₂) + count(F₃) − …|`, read 
 FrameCount. The empty frame has Gap `0`; each element contributes its count with
 a sign that starts positive and flips element by element; Gap drops the sign, so
 it is never negative. It observes rather than constructs, so it leaves the
-Figures, answering a number
+Figures, answering a number. It guards its argument first, refusing an
+unsupported input through `need`
 ```
-.gap {.x _;
+.gap {.x _; (pure x) ? {
   .cnt {(count _)};
   .tail {(_ && {(((_ .0) = .0) ? {[()]} : {[[__ .1]]}) .0}) &| {_}};
   .alt {.cs _; (cs = []) ? {0} : {(cnt (cs .0)) - (alt (tail cs))}};
   .signed (alt x);
-  (signed .< 0) ? {0 - signed} : {signed}};
+  (signed .< 0) ? {0 - signed} : {signed}} : {need x}};
 ```
 **Spin**, `spin x N`: the signed alternating sum of the counts of x's immediate
 elements divided by a positive resolution N, an exact FrameRational in
@@ -195,15 +216,18 @@ same signs that start positive, but keeps the sign Gap drops, so the two
 directions read as `−` and `+`; the empty frame has Spin `0` at every N. N must
 be a positive count, bound as `.n <~~1>`, so a non-count N is refused with a
 native `$!.type-error` and `N=0` is the native `$!.division-by-zero`. Curried on
-N
+N. Spin guards its host x first; an unsupported host is refused through `need`
+before N is read, so the host-domain refusal wins over the N type check
 ```
 .spin {.x _; .host x;
-  {.n <~~1> _;
-    .cnt {(count _)};
-    .tail {(_ && {(((_ .0) = .0) ? {[()]} : {[[__ .1]]}) .0}) &| {_}};
-    .alt {.cs _; (cs = []) ? {0} : {(cnt (cs .0)) - (alt (tail cs))}};
-    .signed (alt host);
-    (n .< 1) ? {signed / 0} : {signed / n}}};
+  (pure host) ? {
+    {.n <~~1> _;
+      .cnt {(count _)};
+      .tail {(_ && {(((_ .0) = .0) ? {[()]} : {[[__ .1]]}) .0}) &| {_}};
+      .alt {.cs _; (cs = []) ? {0} : {(cnt (cs .0)) - (alt (tail cs))}};
+      .signed (alt host);
+      (n .< 1) ? {signed / 0} : {signed / n}}} : {
+    {.n _; need host}}};
 ```
 ## Native construction
 
@@ -251,6 +275,26 @@ native refusal otherwise
 # [<>, <>]
 ; ((need 5) = 5)
 # ()
+```
+The public operations enforce the domain at their own boundary, so a direct call
+on an unsupported input is an explicit `$!` refusal, not a silently degraded
+observation. A property-bearing frame is refused rather than rebuilt by `&`
+```
+; size [.k 1; []]
+# $!.name-missing “$:Frame.0.unsupported-figure”;
+; many [.k 1; []]
+# $!.name-missing “$:Frame.0.unsupported-figure”;
+; inlay [.k 1; []] [[]]
+# $!.name-missing “$:Frame.0.unsupported-figure”;
+; gap [.k 1; [[], []]]
+# $!.name-missing “$:Frame.0.unsupported-figure”;
+```
+An atom or string is refused the same way, not read as structure
+```
+; size 5
+# $!.name-missing “$:Frame.0.unsupported-figure”;
+; form “hi”
+# $!.name-missing “$:Frame.0.unsupported-figure”;
 ```
 ## Size and counting
 

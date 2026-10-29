@@ -168,6 +168,67 @@ Deno.test("unsupported inputs are rejected explicitly rather than silently degra
   expect(await session.call("need [.k 1; []]")).toContain("$!");
 });
 
+Deno.test("public operations enforce the domain at their boundary (review #5705321282)", async () => {
+  // Regression for PR #453 review: the module claims unsupported inputs are
+  // "rejected explicitly rather than silently degraded", but the exported
+  // operations did not call pure/need and so could silently drop a
+  // property-bearing frame's non-enumerable content (e.g. inlay rebuilding a
+  // nonempty host with `n & {go _}`). Each public observer/transform now gates
+  // on `pure` and refuses an unsupported argument through `need`.
+  const session = await figuresSession();
+
+  // Each direct call on a property-bearing frame is an explicit $! refusal,
+  // not a degraded observation. Before the fix these returned a value such as
+  // `[[[]]]` while silently discarding the `.k` property.
+  for (
+    const source of [
+      "size [.k 1; []]",
+      "cells [.k 1; []]",
+      "form [.k 1; []]",
+      "many [.k 1; []]",
+      "inlay [.k 1; []] [[]]",
+      "mul [.k 1; []] [[]]",
+      "gap [.k 1; [[], []]]",
+      "spin [.k 1; [[], []]] 4",
+      // count inherits size's guard; the refusal carries through `.#`.
+      "count [.k 1; []]",
+    ]
+  ) {
+    expect(await session.call(source), source).toContain("$!");
+  }
+
+  // Atoms and strings are refused the same way, not treated as structure.
+  for (
+    const source of [
+      "size 5",
+      "count 5",
+      "cells “hi”",
+      "inlay 5 [[]]",
+    ]
+  ) {
+    expect(await session.call(source), source).toContain("$!");
+  }
+
+  // The guard does not disturb the supported domain: valid frames observe and
+  // transform exactly as before.
+  for (
+    const [source, expected] of [
+      ["(size [[], []]) = [[[]], [[]]]", "<>"],
+      ["count [[], []]", "2"],
+      ["(inlay [[], []] [[]]) = [[[]], [[]]]", "<>"],
+      ["(form [[], [[]]]) = [[], [[]]]", "<>"],
+      ["(gap [[[], []], [[], [], []]]) = 1", "<>"],
+    ] as const
+  ) {
+    expect(await session.call(source), source).toEqual(expected);
+  }
+
+  // The documented alternative contract — raw operations are unchecked and
+  // callers must use need — is NOT what we chose: need itself still refuses,
+  // and a pre-validated pure frame flows through unchanged.
+  expect(await session.call("(need [[], []]) = [[], []]")).toEqual("<>");
+});
+
 Deno.test("native inlay differs from the old Figure-specific U-cell inlay", async () => {
   const session = await figuresSession();
   // Old semantics (009.05/009.06): a U-form cell Figure[Z] was the substitution
