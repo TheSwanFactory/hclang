@@ -19,48 +19,49 @@ runs and the namespace holds only what the module declares
 ```
 ; Figures <- './hc/figures.hc';
 ```
-`Figure [c, …]` is the constructor, and every observer is a method that answers
-a Figure. Size answers a tally, one unit cell `U` for every cell, while Manyness
-marks only the immediate children
+A Figure is now an ordinary native nested frame, so `Figure [c, …]` is the
+identity on the native array `[c, …]` and the Figures module is an observational
+layer of top-level operations, each taking the frame as its argument. Size
+counts native terminals `[]`, while Manyness marks only the immediate elements
 ```
-; [(Figures.Z.size()) = Figures.Z, (Figures.U.size()) = (Figures.Figure [Figures.U])]
+; [(Figures.count Figures.Z) = 1, (Figures.count Figures.U) = 1]
 # [<>, <>]
-; ((Figures.Figure [Figures.U, Figures.U]).many()) = (Figures.Figure [Figures.B, Figures.B])
+; (Figures.many [Figures.U, Figures.U]) = [Figures.B, Figures.B]
 # <>
-; ((Figures.Figure [Figures.B]).children .0) === Figures.B
+; ([Figures.A, Figures.B] .1) === Figures.B
 # <>
 ; (“E is ” (Figures.Figure [Figures.A, Figures.B])) = “E is [[], [[]]]”
 # <>
 ```
-Sameness of form is `=` and sameness of the constructed Figure is `===`, so `B`
-and a fresh `Figure [A]` agree in form and in Size but are not the same Figure
+Sameness of form is `=` and sameness of the constructed frame is `===`, so `B`
+and a fresh `Figure [A]` agree in form but are not the same frame. A native
+frame owns identity, so `===` is reference equality
 ```
 ; .fresh (Figures.Figure [Figures.A]);
-; [Figures.B.sameform fresh, Figures.B.size_equivalent fresh, Figures.B.sameness Figures.B, Figures.B.sameness fresh] = [Figures.B, Figures.U, Figures.B, Figures.A]
-# <>
+; [(Figures.sameform Figures.B fresh), (Figures.sameness Figures.B Figures.B), (Figures.sameness Figures.B fresh)]
+# [<>, <>, ()]
 ```
-Imported methods compose with Figures built in this file, each with
-`Figures.Figure`. Size counts the cells of a Figure sum and of a Figure product.
-On tallies, joining is a reduce, `ys | x`, `size_mul` multiplies, and the Size
-of a Figure holding two tallies adds them
+Imported operations compose with Figures built in this file as native arrays.
+Count reads the terminals of a sum and of a product. Inlay places y at each
+terminal preserving nesting, while `mul` splices y once per terminal flat, so
+their terminal counts agree
 ```
-; .duo (Figures.Figure [Figures.U, Figures.U]);
-; .trio (Figures.Figure [Figures.U, Figures.U, Figures.U]);
-; .six (Figures.Figure [Figures.U, Figures.U, Figures.U, Figures.U, Figures.U, Figures.U]);
-; [(duo.size()) = duo, ((duo.mul trio).size()) = six, (duo.size_mul trio) = six]
+; .duo [[], []];
+; .trio [[], [], []];
+; [(Figures.count duo) = 2, (Figures.count ((Figures.inlay duo) trio)) = 6, (Figures.count ((Figures.mul duo) trio)) = 6]
 # [<>, <>, <>]
-; (trio.children | (Figures.Figure [Figures.U])) = (Figures.Figure [Figures.U, Figures.U, Figures.U, Figures.U])
+; (Figures.form [[[]], [[]]]) = [[[]], [[]]]
 # <>
-; ((Figures.Figure [Figures.Figure [Figures.U], Figures.Figure [Figures.U]]).size()) = duo
+; (Figures.count [[[], []], [[], [], []]]) = 5
 # <>
 ```
 Identity crosses the import boundary. Withness asks for immediate containment
-by `===`, so the module's own `A` is with a parent built here, while a fresh
-`Figure []` of the same form is not
+by `===`, so a shared child built here is with a parent built here, while a
+fresh `Figure []` of the same form is not
 ```
-; .pair (Figures.Figure [Figures.A, Figures.B]);
-; [pair.withness [Figures.A], pair.withness [Figures.Figure []]] = [Figures.B, Figures.A]
-# <>
+; .a0 (Figures.Figure []); .pair [a0, Figures.B];
+; [(Figures.withness pair [a0]), (Figures.withness pair [Figures.Figure []])]
+# [[[]], []]
 ```
 The overlay grants reads of the bundled files and nothing else. Writing to one is
 refused,

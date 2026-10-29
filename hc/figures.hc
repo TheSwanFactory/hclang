@@ -1,763 +1,441 @@
 #!/usr/bin/env hc
 ```
-Figures (#382, #395)
+Figures over native frames (#382, #395, #451; issue occurrence/figure 009.09)
 
 Relational Construction Theory has one generative operation: construct a Figure
-out of zero or more already constructed Figures, its children. This module
-ports History 005.30c, "The Figure class as idiomatic HC", in
-`quilt+s3://protology#package=occurrence/history`.
+out of zero or more already constructed Figures, its children. v0.27.0 makes
+that construction *native*. A Figure is now an ordinary nested HC frame — a
+`FrameArray` whose elements are its children — rather than a bespoke wrapper
+that hid its children in a `.children` property. `Figure [c, …]` is written
+`[c, …]`, the empty Figure is `[]`, and a cell is `[[]]`. There is no separate
+tree constructor and no hidden child plane: a Figure's children *are* its
+native elements, so `.#` counts them, `&` maps them, `x .0` indexes them, and
+`=`/`===` compare them, all with the runtime's own array semantics.
 
-`Figure` is a constructor closure, and the object it returns is the class: each
-method below is documented by the paragraph above it. A paragraph ends in `;`,
-so it is a statement of the object rather than one of its elements, and it
-never affects `=`. Every observer answers a Figure, never a number or a
-Boolean: `A`, with no children, means no, and `B` means yes. So every answer can
-be a child, a receiver, or an argument, and the class is closed under its own
-methods. Only Cells, Form and Text leave the class, on purpose: Cells answers
-a plain array of Figures, Form a bracket tree, and Text spells one, for reading
-a Figure rather than computing with it.
+This module is therefore an *observational layer*, not a class. Its operations
+read and transform native nested frames: `size`, `cells`, `form`, `many`, `mul`,
+`inlay`, `gap`, `spin`, `sameform`, `sameness`, `withness`, `size_equivalent`,
+plus `pure` and `need` that police the supported domain. Each is a top-level
+closure that takes the frame as its argument, because a bare native frame carries
+no methods to dispatch; an import reaches them qualified, `Figures.size x`. The
+constructor `Figure` is kept as the identity on its argument, so historical
+construction spellings keep reading, while `Figure [A, B]` now denotes the plain
+array `[A, B]`.
 
-Three observers share one form: a stream, a mark for each thing in it, and one
-construction. Manyness marks each child, Size marks each cell, and
-Multiplication puts y at each cell. They are fewer than three constructions:
-Size is Multiplication by the unit, and Tally multiplication is Multiplication
-of a Manyness, so Multiplication holds the only zero guard. No observer
-computes: an observer may count, and may construct n things for a count n, but
-it never does arithmetic on counts (#435). A tally reads as a number because
-its children are an aggregate, so
-`(x.size()).children.#` is the FrameCount it spells, as `(x.cells()).#` is, and
-`x.children.#` counts x's children. A Figure's own `.#` and `.##` are `0`,
-because its children are a property rather than its elements (#407, #411).
-v0.22.0 counted cells and built from the count, but Tally multiplication also
-multiplied two counts (#414). v0.24.0 removed the counting along with the
-arithmetic (#415), and v0.26.2 restores the counting alone (#435). Before
-v0.22.0, Size joined its children's Sizes one unit at a time through a helper.
+Why the migration. Issue 009.07 proposed one Inlay that substitutes at every
+*native terminal*, traversing only enumerable structure. Issue 009.08a showed
+that the old `.children` wrapper made that impossible: a real Figure enumerated
+zero elements, so a frame-native operation could not reach its children and the
+`&` reconstruction dropped properties. 009.09 authorises removing the wrapper
+rather than faking enumeration, so the native operation and the Figure observer
+become the *same* operation on the *same* carrier. The cost is a changed public
+surface and some changed observations, documented explicitly below.
 
-Three Figures play the roles of zero and one, and keeping them apart is what
-the guards below are for. `Z` is zero. `U` is the unit cell that Size counts.
-`Figure [U]` is the tally one, the Size of `U`. `U` is itself `Figure [Z]`,
-one row of nothing, so wrapping zero in one Figure makes a cell: construction
-of two or more Figures adds, and construction of one wraps (#415).
+What a cell is now. A Figure is built from the empty frame by nesting, so the
+natural native terminal is the empty frame `[]` itself. `size` counts those
+terminals. This differs from the old Size, which counted `U`-form cells and read
+the empty Figure `Z` as `0`. Natively the empty frame is one terminal, so
+`size []` is one, not zero; `size [[]]` is also one, counting the inner `[]`;
+and `size [[], []]` is two. The counting law is unchanged in spirit: inserting a
+Figure of n terminals at each of a host's m terminals yields m×n terminals.
 
-A method names its own Figure `_^`, because a bare name is looked up on the
-argument first (spec 7), and the argument is usually another Figure. For the
-same reason, a block inside a method reads only names the method bound
+Supported inputs. The operations are defined for finite, well-founded,
+property-free nested frames: every node is either `[]` or a plain array of
+supported children, with no extra visible properties. `pure` answers `<>` for
+exactly those and `()` otherwise; it rejects atoms, strings, and
+property-bearing frames, because `&` reconstruction would silently drop their
+non-enumerable content. A bare declared parent with no own visible properties is
+not observable in pure HC and is outside the validated domain: the operations
+preserve elements and order, and neither rely on nor claim to preserve parent
+links. `need` returns its argument when `pure` and a native refusal otherwise.
+The public observers and transforms — `size`, `count`, `cells`, `form`, `many`,
+`inlay`, `mul`, `gap`, `spin` — enforce this domain at their own boundary: each
+gates on `pure` and refuses an unsupported argument through `need`, so a direct
+call such as `inlay` on a property-bearing frame, or `size` on an atom, yields
+an explicit `$!` refusal rather than silently dropping non-enumerable content or
+treating an atom as structure. The comparisons `sameform`, `sameness`,
+`size_equivalent` and `withness` read native `=`/`===` identity and delegate
+counting to the guarded `count`, so they stay honest without a separate gate.
+
+A free name in an operation resolves where the operation is written — this file's
+top level — so `count` reaching `size` and `gap` reaching `count` keep working
+after an import carries the operation elsewhere (#400). Every operation names its
+host and binds any second operand through currying, so a native-array argument
+never shadows the operation's own helpers.
 ```
-.Figure {[
 ```
-**Children.** `Figure [c, …]` keeps exactly the Figures in the bracket, in
-order, each one itself rather than a copy, so `(x.children .0) === c`
-```;
-  .children (_ | []);
+**Marks and roles.** The observers answer `A`, the empty frame, for no and `B`,
+the frame holding `A`, for yes. Counting reuses the same two: `Z` is `A`, the
+empty frame, and `U` is `B`, the one cell `size` counts. All four are ordinary
+native frames — `[]` and `[[]]`
 ```
-**Application**, `x y` (#375): x's children followed by y. It is a mutating
-method, `apply_`, so through a name, `x y` is a functional update: it answers a
-new Figure and leaves x unchanged. A reduce writes only the Figure its own
-first step answered, so `ys | x` joins two Figures, copying x once, and
-`cs | (Figure [])` constructs one out of a stream. It forgets nothing
-```;
-  .apply_ {@children (_^.children _);};
+.A []; .B [[]]; .Z []; .U [[]];
 ```
-**Manyness**, `x.many()`: a tally with one mark `B` per immediate child. It
+**Constructor**, `Figure x`: the identity on its argument, kept so historical
+construction spellings keep reading. `Figure [A, B]` is the native array
+`[A, B]`, each child itself
+```
+.Figure {_};
+```
+**Supported domain**, `pure x`: `<>` when x is a finite, well-founded,
+property-free nested frame, `()` otherwise. The empty frame is pure; a nonempty
+frame is pure when it carries no extra properties — its native reconstruction
+`x & {.e _; e}` equals it — and every element is pure. Atoms, strings, and
+property-bearing frames are not pure. The helper recurses the element plane
+```
+.pure {.x _;
+  .go {.n _;
+    (n = []) ? {<>} : {
+      .rebuilt (n & {.e _; e});
+      (rebuilt = n) ? {(n &| {(go _) ? {[]} : {[0]}}) = []} : {()}}};
+  go x};
+```
+**Guard**, `need x`: x itself when x is pure, and a native name-missing refusal
+otherwise, so an unsupported input is rejected explicitly rather than silently
+observed
+```
+.need {.x _; (pure x) ? {x} : {unsupported-figure}};
+```
+**Form**, `form x`: the plain bracket tree of x, which a native Figure already
+is. Form is the identity on a supported frame, and text spells it: `“” x` prints
+`[[], [[]]]` directly, with no wrapper methods to hide. It guards its argument
+first so an unsupported input is refused rather than returned as if it were a
+pure Figure
+```
+.form {.x _; (pure x) ? {x} : {need x}};
+```
+**Size**, `size x`: a tally with one `U` per native terminal `[]`. It keeps the
+terminal count and forgets shape, nesting, order, reuse and identity. The empty
+frame is one terminal, so `size []` is one cell; a nonempty frame's size splices
+its elements' sizes. A tally reads as a number through its elements, `(size x).#`.
+Like every public observer here it guards its argument first: an unsupported
+input is refused through `need` rather than observed as a degraded tally
+```
+.size {.x _; (pure x) ? {
+  .go {.n _; (n = []) ? {[[[]]]} : {n &| {go _}}};
+  go x} : {need x}};
+```
+**Count**, `count x`: the terminal count of x read as a native FrameCount, the
+size tally's element count. It observes a number, so it leaves the Figures on
+purpose, the way `cells` and `form` do. It inherits `size`'s guard: an
+unsupported x makes `size` refuse, and the refusal carries through `.#`
+```
+.count {.x _; (size x).#};
+```
+**Cells**, `cells x`: the terminals of x, in order, each one itself. The empty
+frame is its own only cell; every other frame's cells are its elements',
+spliced into one array by `&|`. It keeps the cells and their order, and forgets
+where they were nested. It guards its argument first, refusing an unsupported
+input through `need`
+```
+.cells {.x _; (pure x) ? {
+  .go {.n _; (n = []) ? {[n]} : {n &| {go _}}};
+  go x} : {need x}};
+```
+**Manyness**, `many x`: a tally with one mark `B` per immediate element. It
 keeps how many children there are and forgets what they are, everything below
-them, their order and their identity
-```;
-  .many {Figure (_^.children & {B})};
+them, their order and their identity. It guards its argument first, refusing an
+unsupported input through `need` rather than marking a degraded element count
 ```
-**Size**, `x.size()`: a tally with one unit cell `U` per cell, as Manyness has
-one mark per child. That is Multiplication by `U`, which puts a `U` at every
-cell. It keeps the cell count and forgets shape, nesting, order, reuse and
-identity
-```;
-  .size {_^.mul U};
+.many {.x _; (pure x) ? {x & {[[]]}} : {need x}};
 ```
-**Cells**, `x.cells()`: the cells of x, in order, each one itself. Any Figure
-shaped like `U` is a cell, and every other Figure's cells are its children's,
-spliced into one array by `&|` (#421). The unit case comes first, because a
-unit's only child is `Z`. When every child is already a cell, the cells are the
-children themselves. Cells sees that by comparing the children with as many
-units, which counts rather than walks, so a tally answers at once. It keeps the
-cells and their order, and forgets where they were. A block in a method counts
-carets lexically, so the cell itself is `_^^` inside the branch
-```;
-  .cells {.kids _^.children;
-    (kids = U.children) ? {[_^^]} : {(kids = ((kids.#) [U])) ? {kids} : {kids &| {_.cells()}}}};
+**Inlay**, `inlay x y`: replace each native terminal of x with y, preserving the
+ordered nesting around those terminals. This is the frame-native enumerable
+Inlay of 009.07: a terminal `[]` becomes y, and a nonempty frame reconstructs
+its elements in order. There is no right-zero guard; an empty y still replaces
+each terminal, so the surrounding construction is not annihilated. The operation
+is curried, so `inlay x y` reads as placing y throughout x. The local recursion
+returns y itself at each terminal, reusing y by identity, and builds fresh
+nonterminal ancestors. Inlay guards its host x first: an unsupported host is
+refused through `need` rather than rebuilt by `&`, which would silently drop a
+property-bearing frame's non-enumerable content
 ```
-**Multiplication**, `x.mul y`: y at every cell of x, and `Z` when y is `Z`. It
-counts x's cells and constructs y that many times, so it keeps y's identity in
-every position and forgets x's shape. Without the guard, a one-cell x would
-answer `Figure [Z]`, which is a cell rather than zero
-```;
-  .mul {.y _; .n ((_^.cells()).#); (y = Z) ? {Z} : {Figure (n [y])}};
+.inlay {.x _; .host x;
+  (pure host) ? {
+    {.y _;
+      .go {.n _; (n = []) ? {y} : {n & {go _}}};
+      go host}} : {
+    {.y _; need host}}};
 ```
-**Inlay**, `x.inlay y`: replace each U-form cell of x with y, preserving
-the ordered nesting around those cells. A terminal `Z` stays empty; a cell is
-recognized by its children's form, as Cells recognizes it. The local recursion
-returns y itself at each cell and constructs new noncell ancestors, even when
-y has the form of `Z`. There is no right-zero guard. This construction is defined
-for finite, well-founded Figures. The helper names the original receiver,
-replacement and current node. Qualified lexical reads keep a node's members
-from shadowing the captured replacement or recursive helper: `_^^` reaches
-the method locals from the cell branch, and `_^^^` reaches them from the map
-inside the other branch. These distances follow lexical nesting, not recursion
-depth. A local helper traverses children structurally even if a child declares
-its own Inlay method
-```;
-  .inlay {.receiver _^; .replacement _;
-    .visit {.node _; .kids node.children;
-      (kids = U.children) ? {_^^.replacement} : {Figure (kids & {_^^^.visit _})}};
-    visit receiver};
+**Multiplication**, `mul x y`: y once per terminal of x, spliced into one flat
+array, so it keeps the terminal count and forgets x's shape. Where `inlay`
+preserves nesting, `mul` forgets it: `count (mul x y)` is `(count x) × (count y)`
+for every y, which is how positive counting multiplies. It is curried like
+`inlay` and guards its host x first, refusing an unsupported host through `need`
 ```
-**Tally multiplication**, `x.size_mul y`: the Size of a Figure holding y once
-per child of x, and `Z` when y is `Z`. Manyness marks each child with `B`,
-which is `U`, so it is a tally of the children, and multiplying it by y holds y
-once per child. Multiplication's guard answers `Z` for a zero factor, so this
-needs no guard of its own. It keeps the cell count and forgets both shapes
-```;
-  .size_mul {((_^.many()).mul _).size()};
+.mul {.x _; .host x;
+  (pure host) ? {
+    {.y _; (count host) [y]}} : {
+    {.y _; need host}}};
 ```
-**Size-equivalence**, `x.size_equivalent y`: `U` when the two Sizes are the
-same tally and `Z` otherwise. It keeps only whether the cell counts agree
-```;
-  .size_equivalent {((_^.size()) = (_.size())) ? {U} : {Z}};
+**Sameness of form**, `sameform x y`: `<>` when `x = y`. It compares element by
+element and forgets identity and reuse. Curried
 ```
-**Sameness of form**, `x.sameform y`: `B` when `x = y`. It compares child by
-child and forgets identity and reuse
-```;
-  .sameform {(_^ = _) ? {B} : {A}};
+.sameform {.x _; {.y _; (x = y)}};
 ```
-**Sameness**, `x.sameness y`: `B` when `x === y`, the same constructed Figure.
-It keeps identity only and forgets form
-```;
-  .sameness {(_^ === _) ? {B} : {A}};
+**Sameness**, `sameness x y`: `<>` when `x === y`, the same constructed frame. A
+native array owns identity, so `===` is reference equality. Curried
 ```
-**Withness**, `x.withness [f, …]`: `B` when every f is an immediate child of x,
-the same Figure rather than an equal-looking one. It is relative to one parent,
-the receiver, and forgets the children's order, repeats, and everything below
-them. A requested Figure is absent when no child is identical to it
-```;
-  .withness {.kids _^.children;
-    .absent (_ &| {.f _; ((kids &| {(_ === f) ? {[f]}}) = []) ? {[f]}});
-    (absent = []) ? {B} : {A}};
+.sameness {.x _; {.y _; (x === y)}};
 ```
-**Gap**, `x.gap()`: the absolute value of the alternating sum of the Sizes of
-x's immediate children, `|Size(F₁) − Size(F₂) + Size(F₃) − …|`, read as a
-FrameCount. The empty Figure has Gap `0`, and each child contributes its
-existing Size with a sign that starts positive and flips child by child; Gap
-keeps the sum's size and drops its sign, so it is never negative. Nesting
-reaches a child only through that Size, never through its construction. Gap
-observes rather than constructs, so like Cells, Form and Text it leaves the
-class on purpose: the sum it folds can go negative where no Figure does, so it
-is read as a number rather than a tally (#445). It reads each child's Size the
-way the semiring examples do, as `(_.size()).children.#`, and folds those
-readings with native arithmetic without touching construction, so it never
-asserts arithmetic equations or actual closure: a zero Gap is an observed
-value, not a proof. `_^`
-names the receiver so the alternating fold can read the children in order; the
-fold subtracts the sum of the rest, which flips the sign of every later child,
-and the sign of the whole is dropped last
-```;
-  .gap {.kids _^.children;
-    .count {(_.size()).children.#};
-    .tail {(_ && {(((_ .0) = .0) ? {[()]} : {[[__ .1]]}) .0}) &| {_}};
-    .alt {.cs _; (cs = []) ? {0} : {(count (cs .0)) - (alt (tail cs))}};
-    .signed (alt kids);
-    (signed .< 0) ? {0 - signed} : {signed}};
+**Size-equivalence**, `size_equivalent x y`: `U` when the two terminal counts
+agree and `Z` otherwise. It keeps only whether the counts are equal. Curried
 ```
-**Spin**, `x.spin N`: the signed alternating sum of the Sizes of x's immediate
-children, `Size(F₁) − Size(F₂) + Size(F₃) − …`, divided by a positive integer
-resolution N, read as an exact FrameRational in revolutions (#447). It folds the
-same readings Gap does, in the same order and with the same alternating signs
-that start positive, but it keeps the sign Gap drops, so the two directions read
-as `−` and `+`; the empty Figure has Spin `0` at every N. The signed sum is a
-whole count of revolutions, and `signed / N` divides it into N-ths, which the
-divisor's rung makes an exact ratio that collapses to a whole FrameInt when N
-divides it (#445, FrameCount). Gap is `|signed|`; Spin is `signed / N`, so Spin
-at N and Gap read the same fold and never disagree, and neither constructs: a
-zero Spin is an observed value, not a Fact that a Walk closed. N must be a
-count, bound as `.n <~~1>`, the count type read off a literal, so a non-count N
-— a fraction, a float, a negative, a string — is refused with a native
-`$!.type-error` before any fold, and the observable never answers a sign-flipped
-ratio for a negative N. A count N must also be positive: `N=0` passes the count
-type and is then the native `$!.division-by-zero`, and an empty argument `()`
-binds nothing and falls through to the same division-by-zero. `_^` names the
-receiver so the fold can read the children in order, and N is bound as `n`
-before the fold reads it
-```;
-  .spin {.n <~~1> _; .kids _^.children;
-    .count {(_.size()).children.#};
-    .tail {(_ && {(((_ .0) = .0) ? {[()]} : {[[__ .1]]}) .0}) &| {_}};
-    .alt {.cs _; (cs = []) ? {0} : {(count (cs .0)) - (alt (tail cs))}};
-    .signed (alt kids);
-    (n .< 1) ? {signed / 0} : {signed / n}};
+.size_equivalent {.x _;
+  {.y _; ((count x) = (count y)) ? {[[]]} : {[]}}};
 ```
-**Form**, `x.form()`: the plain bracket tree of x, one bracket per Figure, the
-way 005.30c wrote Figures before they were a class. It keeps shape and order,
-and forgets identity and the methods
-```;
-  .form {_^.children & {_.form()}};
+**Withness**, `withness x [f, …]`: `B` when every f is an immediate element of x,
+the same frame rather than an equal-looking one. It is relative to one parent, x,
+and forgets order, repeats and everything below the elements. A requested frame
+is absent when no element is identical to it. Curried
 ```
-**Text**, `“” x`: the form spelled as text, so a Figure interpolates as
-`[[], [[]]]` rather than as every method it declares (#398). Printing x still
-shows its full spelling, which reads back
-```;
-  .toText {“” (_^.form())}
-]};
+.withness {.x _; .host x;
+  {.fs _;
+    .absent (fs &| {.f _; ((host &| {(_ === f) ? {[f]}}) = []) ? {[f]}});
+    (absent = []) ? {[[]]} : {[]}}};
 ```
-**The marks.** The observers answer `A`, the Figure with no children, for no
-and `B`, the Figure holding `A`, for yes. Size counts in the same two: `Z`
-reuses `A` as the additive zero and `U` reuses `B` as the unit cell. The class
-reads all four, so they are declared with it rather than in the examples below
+**Gap**, `gap x`: the absolute value of the alternating sum of the counts of x's
+immediate elements, `|count(F₁) − count(F₂) + count(F₃) − …|`, read as a
+FrameCount. The empty frame has Gap `0`; each element contributes its count with
+a sign that starts positive and flips element by element; Gap drops the sign, so
+it is never negative. It observes rather than constructs, so it leaves the
+Figures, answering a number. It guards its argument first, refusing an
+unsupported input through `need`
 ```
-.A (Figure []); .B (Figure [A]); .Z A; .U B;
+.gap {.x _; (pure x) ? {
+  .cnt {(count _)};
+  .tail {(_ && {(((_ .0) = .0) ? {[()]} : {[[__ .1]]}) .0}) &| {_}};
+  .alt {.cs _; (cs = []) ? {0} : {(cnt (cs .0)) - (alt (tail cs))}};
+  .signed (alt x);
+  (signed .< 0) ? {0 - signed} : {signed}} : {need x}};
 ```
-## Construction
+**Spin**, `spin x N`: the signed alternating sum of the counts of x's immediate
+elements divided by a positive resolution N, an exact FrameRational in
+revolutions. It folds the same counts Gap does, in the same order and with the
+same signs that start positive, but keeps the sign Gap drops, so the two
+directions read as `−` and `+`; the empty frame has Spin `0` at every N. N must
+be a positive count, bound as `.n <~~1>`, so a non-count N is refused with a
+native `$!.type-error` and `N=0` is the native `$!.division-by-zero`. Curried on
+N. Spin guards its host x first; an unsupported host is refused through `need`
+before N is read, so the host-domain refusal wins over the N type check
+```
+.spin {.x _; .host x;
+  (pure host) ? {
+    {.n <~~1> _;
+      .cnt {(count _)};
+      .tail {(_ && {(((_ .0) = .0) ? {[()]} : {[[__ .1]]}) .0}) &| {_}};
+      .alt {.cs _; (cs = []) ? {0} : {(cnt (cs .0)) - (alt (tail cs))}};
+      .signed (alt host);
+      (n .< 1) ? {signed / 0} : {signed / n}}} : {
+    {.n _; need host}}};
+```
+## Native construction
 
-The example family reuses one `A` under both `B` and `E`. Indexing reaches a
-child itself, not a copy
+A Figure is a native nested frame, so construction is native bracketing and the
+marks are ordinary arrays. Indexing reaches an element itself, not a copy
 ```
-; .C (Figure [B]); .D (Figure [C]);
-; .E (Figure [A, B]); .F (Figure [B, C]); .G (Figure [E, F]);
-; [(G.children .0) === E, (E.children .1) === B, (F.children .0) === B, (E.children .0) === (B.children .0)]
+; [A, B, Z, U] = [[], [[]], [], [[]]]
+# <>
+; [(Figure [A, B]) = [A, B], (Figure [A, B]) = [[], [[]]]]
+# [<>, <>]
+; .E (Figure [A, B]); .G (Figure [E, Figure [B, Figure [B]]]);
+; [(E .0) === A, (E .1) === B, E.# = 2, E.## = 0]
 # [<>, <>, <>, <>]
 ```
-Form is the bracket tree a Figure is built as, and text spells it
+A Figure's children are its native elements, so `.#` counts them and `&` maps
+them — the facts the old wrapper hid behind a `.children` property
 ```
-; [(E.form()) = [[], [[]]], (E.form()) = [A.form(), B.form()], ((Figure []).form()) = []]
-# [<>, <>, <>]
-; [(“” E) = “[[], [[]]]”, (“G is ” G) = “G is [[[], [[]]], [[[]], [[[]]]]]”]
-# [<>, <>]
-```
-Equal children make equal Figures, but each construction is a different Figure
-```
-; [E = (Figure [A, B]), E == (Figure [A, B]), E === (Figure [A, B]), E = (Figure [B, A])]
-# [<>, <>, (), ()]
-```
-Application appends one child and leaves the receiver alone, so a reduce into
-an empty Figure constructs, and a map extends one Figure per element
-```
-; [(E B) = (Figure [A, B, B]), ((E B).children .2) === B, E = (Figure [A, B])]
-# [<>, <>, <>]
-; [([A, B] | (Figure [])) = E, ([A, B] | (Figure [])) === E]
-# [<>, ()]
-; ([A, B] & (Figure [C])) = [Figure [C, A], Figure [C, B]]
+; [E.#, (E & {_}).#, (Figure [U, U]).#]
+# [2, 2, 2]
+; (E & {_}) = [A, B]
 # <>
 ```
-Repetition applies a Figure rather than concatenating, because a Figure
-declares its application: `3 U` is `(U U) U`, and each child it appends is `U`
-itself. U is the operand, never the receiver written
+Form is the bracket tree a Figure already is, and text spells it
 ```
-; [(3 U) = ((U U) U), ((3 U).children .0) === Z, ((3 U).children .2) === U, U = (Figure [Z])]
-# [<>, <>, <>, <>]
-```
-So `n U` is not the tally n. Repetition starts from nil, so its first step
-answers U itself, whose child is `Z`, and `3 U` holds `Z` and two units. A tally
-starts from zero instead: join n units onto `Z`, or construct them. Repetition
-keeps nil as its start, because a declared zero would be a new protocol point
-with this one use (#415)
-```
-; [((3 U).size()).children.#, (((3 [U]) | Z).size()).children.#, ((3 [U]) | Z) = (Figure (3 [U]))]
-# [2, 3, <>]
-```
-A join copies its receiver once and appends in place after that, so it is
-quick, and the receiver and every child keep their identity. Each step still
-copies the children it has so far, because a collect through a name always lands
-on a fresh array (#386). That keeps a join quadratic in pointer copies, about
-0.2 s for 4,096 units, and the observers never join: they construct from a
-stream in one step (#415)
-```
-; .joined ((512 [U]) | Z);
-; [joined.children.#, Z = (Figure []), (joined.children .511) === U]
-# [512, <>, <>]
-; [(E.children & {_ A}) = [Figure [A], Figure [Z, A]], A = (Figure []), B = (Figure [A])]
+; [(form E) = [[], [[]]], (“” (form E)) = “[[], [[]]]”, (form Z) = []]
 # [<>, <>, <>]
 ```
-## Manyness and Size
-
-Manyness marks the immediate children and looks no deeper
+Equal children make equal Figures by `=`, each construction a distinct frame by
+`===`
 ```
-; [(A.many()) = A, (E.many()) = (Figure [B, B]), (G.many()) = (E.many()), (E.many()) = (B.many())]
-# [<>, <>, <>, ()]
-```
-Size is recursive cell volume. `Z` is `A` and `U` is `B`, the same mark
-Manyness uses, so a count is itself a Figure of units. Size marks each of the
-cells Cells finds, as Manyness marks each child. Cells tests form, so any Figure
-shaped like `U` is a cell
-```
-; [Z === A, U === B]
-# [<>, <>]
-; [(Z.size()) = Z, (U.size()) = (Figure [U]), ((Figure [U]).size()) = ((Figure [Figure [A]]).size())]
-# [<>, <>, <>]
-; .row2 (Figure [U, U]); .row3 (Figure [U, U, U]); .row4 (Figure [U, U, U, U]);
-; .deep4 (Figure [Figure [Figure [row4]]]); .two_fours (Figure [row4, row4]);
-; [(row4.size()) = row4, (deep4.size()) = row4, (two_fours.size()) = (row4.children | row4)]
-# [<>, <>, <>]
-; [(row4.many()) = (row4.size()), (deep4.many()) = (deep4.size()), (two_fours.many()) = row2]
-# [<>, (), <>]
-```
-Tallies add without a helper: the Size of a Figure holding two tallies joins
-them, and two `Z`s add to `Z`. Add two at a time, because two children are
-never shaped like `U`. One child can be: `Figure [Z]` has the form of `U`, so
-its Size is one cell, the rule that makes Multiplication guard `Z`, for
-itself and for Tally multiplication
-```
-; [((Figure [row2, row3]).size()) = (row3.children | row2), ((Figure [Z, Z]).size()) = Z, ((Figure [Z]).size()) = (Figure [U])]
-# [<>, <>, <>]
-```
-Size constructs its answer, so a Figure with no cells has a Size equal to `Z`
-in form but not `Z` itself: having no cells and being zero are different facts,
-and Size promises the first. Every unit of a Size is `U` itself
-```
-; [(Z.size()) = Z, (Z.size()) === Z, ((Figure [Z, Z]).size()) = Z, ((U.size()).children .0) === U]
-# [<>, (), <>, <>]
-```
-A tally is its own Size, so Size is idempotent
-```
-; ((two_fours.size()).size()) = (two_fours.size())
-# <>
-```
-Construction from a stream is linear, so a large Size is quick: 256 cells,
-built by Multiplication
-```
-; .row16 (row4.mul row4); .row256 (row16.mul row16);
-; [(row256.size()).children.#, ((row256.size()).children .255) === U]
-# [256, <>]
-```
-A tally reads as a natural number, because its children are an aggregate and
-`.#` counts them. A Figure's own `.#` and `.##` are `0`: its children are a
-property, not its elements, and `.##` counts only what is not an aggregate
-```
-; [E.children.#, (E.many()).children.#, (two_fours.size()).children.#, E.#, E.##, E.children.##] = [2, 2, 8, 0, 0, 0]
-# <>
-```
-A tally built by repetition is its own cells and its own Size, and every cell
-is `U` itself. Multiplication of it constructs y once per cell, each one y
-itself. A Figure whose children are not all cells is still walked
-```
-; .rep (Figure (6 [U]));
-; [(rep.cells()) = rep.children, ((rep.cells()) .5) === U, (rep.size()) = rep, (rep.mul row2) = (Figure (6 [row2])), ((rep.mul row2).children .5) === row2]
-# [<>, <>, <>, <>, <>]
-; [((Figure [row2, U]).cells()) = [U, U, U], (((Figure [row2, U]).cells()) .2) === U]
-# [<>, <>]
-```
-Zero is a quotient of zeros. A Figure made of nothing, or of several nothings,
-has no cells and a Size of `Z`'s form, but it is not `Z`, and it keeps its own
-form
-```
-; [((Figure [Z, Z]).cells()) = [], ((Figure [Z, Z]).size()) = Z, (Figure (0 [U])) = Z, (Figure (0 [U])) === Z, (Figure [Z, Z]) = Z]
-# [<>, <>, <>, (), ()]
-```
-Cells answers the cells themselves, in order, wherever they were nested, and
-`.#` reads how many there are, as it reads a tally
-```
-; [(E.cells()) = [B], ((E.cells()) .0) === B, (deep4.cells()) = row4.children, (Z.cells()) = [], ((U.cells()) .0) === U]
-# [<>, <>, <>, <>, <>]
-; [(two_fours.cells()).#, (deep4.cells()).#, (two_fours.size()).children.#] = [8, 4, 8]
-# <>
-```
-## Inlay construction
-
-Inlay replaces U-form cells and retains noncell nesting even for an empty right
-operand. Cells are recognized by form, including a freshly constructed unit
-```
-; .inlay_unit (Figure [Figure []]);
-; [(Z.inlay row2) = Z, (U.inlay row2) = row2, (inlay_unit.inlay row2) = row2, (inlay_unit === U)]
-# [<>, <>, <>, ()]
-; [(row2.inlay Z) = (Figure [Z, Z]), (row2.inlay (Figure [])) = (Figure [Z, Z]), (Z.inlay Z) = Z, (U.inlay Z) = Z]
-# [<>, <>, <>, <>]
-; [((Figure [Z, Z]).inlay row2) = (Figure [Z, Z]), ((Figure [Z, Z]).inlay Z) = (Figure [Z, Z])]
-# [<>, <>]
-```
-Branching and nested Figures retain every noncell wrapper. A structured right
-operand is inserted whole, even when it contains its own cells and zeros
-```
-; .inlay_y (Figure [Z, Figure [U, Z]]); .inlay_left (Figure [Z, Figure [U, U], U]);
-; [(row2.inlay inlay_y) = (Figure [inlay_y, inlay_y]), ((Figure [row2]).inlay inlay_y) = (Figure [Figure [inlay_y, inlay_y]])]
-# [<>, <>]
-; (inlay_left.inlay inlay_y) = (Figure [Z, Figure [inlay_y, inlay_y], inlay_y])
-# <>
-; [(inlay_left.inlay U) = inlay_left, (inlay_left.inlay inlay_y) = (Figure [inlay_y, Figure [inlay_y, inlay_y], Z])]
-# [<>, ()]
-```
-Identity is a separate question from form: replacements reuse y, while noncell
-ancestors are freshly constructed, including separate occurrences of a shared
-left subtree. Neither operand is written
-```
-; .inlaid (inlay_left.inlay inlay_y); .inlay_shared (Figure [row2, row2]); .inlay_shared_result (inlay_shared.inlay inlay_y);
-; [(inlay_unit.inlay inlay_y) === inlay_y, (inlaid.children .2) === inlay_y, (((inlaid.children .1).children) .0) === inlay_y, inlaid === inlay_left]
-# [<>, <>, <>, ()]
-; [((inlay_shared_result.children .0) = (inlay_shared_result.children .1)), ((inlay_shared_result.children .0) === (inlay_shared_result.children .1)), (Z.inlay inlay_y) === Z]
+; [E = [A, B], E === [A, B], E = [B, A]]
 # [<>, (), ()]
-; [inlay_left = (Figure [Z, Figure [U, U], U]), inlay_y = (Figure [Z, Figure [U, Z]])]
-# [<>, <>]
 ```
-Multiplication forgets the left nesting. These constructions differ in Form
-even though their Sizes agree
-```
-; [((Figure [row2]).inlay inlay_y) = ((Figure [row2]).mul inlay_y), ((Figure [row2]).mul inlay_y) = (Figure [inlay_y, inlay_y]), (((Figure [row2]).inlay inlay_y).size()) = (((Figure [row2]).mul inlay_y).size())]
-# [(), <>, <>]
-```
-For positive canonical counting Figures `N_m = Figure [m copies of U]`,
-Inlay constructs `Figure [m copies of N_n]`. Counting those inserted cells gives
-`Size(Inlay(N_m, N_n)) = m × n` for m,n ≥ 1; arithmetic on counts is not a
-primitive of Inlay. The two-by-three example checks form and Size separately
-```
-; [(row2.inlay row3) = (Figure [row3, row3]), ((row2.inlay row3).size()) = (Figure (6 [U]))]
-# [<>, <>]
-```
-Size forgets structure: the Size-equivalent hosts U and `Figure [U]` give
-results of different Sizes with right operand Z. No annihilation law is imposed
-```
-; [(U.inlay Z) === Z, ((Figure [U]).inlay Z) = U, ((Figure [U, U]).inlay Z) = (Figure [Z, Z])]
-# [<>, <>, <>]
-; [((U.inlay Z).size()) = Z, (((Figure [U]).inlay Z).size()) = (Figure [U]), (((Figure [U, U]).inlay Z).size()) = Z]
-# [<>, <>, <>]
-```
-These constructions concern finite, well-founded Figures. They make no promise
-of global DAG sharing or cyclic support, and these examples and bounded tests
-do not establish universal associativity or a universal VACT theorem.
+## The supported domain
 
-## The semiring
+`pure` accepts finite well-founded property-free nested frames and rejects
+atoms, strings, and property-bearing frames. `need` returns a pure frame and a
+native refusal otherwise
+```
+; [(pure []), (pure [[], [[]]]), (pure [[[]], [[], []]])]
+# [<>, <>, <>]
+; [(pure 5), (pure “hi”), (pure [[], 5]), (pure [.k 1; []])]
+# [(), (), (), ()]
+; [(need E) = E, (need E) === E]
+# [<>, <>]
+; ((need 5) = 5)
+# ()
+```
+The public operations enforce the domain at their own boundary, so a direct call
+on an unsupported input is an explicit `$!` refusal, not a silently degraded
+observation. A property-bearing frame is refused rather than rebuilt by `&`
+```
+; size [.k 1; []]
+# $!.name-missing “$:Frame.0.unsupported-figure”;
+; many [.k 1; []]
+# $!.name-missing “$:Frame.0.unsupported-figure”;
+; inlay [.k 1; []] [[]]
+# $!.name-missing “$:Frame.0.unsupported-figure”;
+; gap [.k 1; [[], []]]
+# $!.name-missing “$:Frame.0.unsupported-figure”;
+```
+An atom or string is refused the same way, not read as structure
+```
+; size 5
+# $!.name-missing “$:Frame.0.unsupported-figure”;
+; form “hi”
+# $!.name-missing “$:Frame.0.unsupported-figure”;
+```
+## Size and counting
 
-The carrier is not raw Figures. Let `F` be the finite, well-founded Figures,
-with the form of `U` as the unit cell, and write `x ≈ y` when
-`(x.size()) = (y.size())`. The carrier is the quotient `F/≈`, with zero `Z` and
-one `U`. Addition is construction, `Figure [x, y]`. Multiplication maps every
-cell of `x.size()` to `y`, so a product reuses `y` once per cell of `x`. A
-product by `Z` is `Z`, because one row of nothing, `Figure [Z]`, has the form of
-`U` and would count as a cell
+Size marks each native terminal with a `U`, and `count` reads the tally as a
+number. The empty frame is one terminal, so `size []` is one cell — the
+documented change from the old Size, which read `Z` as zero
 ```
-; [(U.mul Z) = Z, ((Figure [Z]).size()) = (Figure [U])]
-# [<>, <>]
-```
-That exception is the price of a unit defined by form, and the module pays it
-on purpose (#415). Construction of two or more Figures adds, and construction
-of one wraps: wrapping keeps the Size of anything that is not shaped like zero,
-and wrapping zero makes a cell. Counting cells by identity instead, as `_^ === U`,
-would remove both guards, but a separately built `Figure [Figure []]`, equal to
-`U` in every child, would then have no cells, so Size would no longer be a
-function of form. Tried against the 55 claims this file held at v0.24.0,
-identity cells failed only the three that say a form-equal unit is a cell
-```
-; [(Figure [row2]).size_equivalent row2, (Figure [Z]).size_equivalent U, (Figure [Z]).size_equivalent Z] = [U, U, Z]
-# <>
-; .U2 (Figure [Figure []]);
-; [U2 = U, U2 === U, (U2.size()) = (U.size())]
-# [<>, (), <>]
-```
-A non-square product is two occurrences of one three-cell row, and both
-positions are the same `row3`. Manyness sees two rows, while Size counts six
-```
-; .rectangle23 (row2.mul row3);
-; [rectangle23 = (Figure [row3, row3]), (rectangle23.children .0) === row3, (rectangle23.children .1) === row3]
-# [<>, <>, <>]
-; [(rectangle23.many()) = row2, (rectangle23.size()) = (Figure [U, U, U, U, U, U])]
-# [<>, <>]
-```
-Size takes construction to joining and multiplication to `size_mul`, so both
-recipes respect `≈`; the checks also use differently nested, equal-Size inputs.
-Size, `size_mul` and `size_equivalent` all construct, and none counts, so every
-check here and below compares two constructions (#415)
-```
-; [((Figure [row2, row3]).size()) = (Figure [U, U, U, U, U]), (rectangle23.size()) = ((row2.size()).size_mul (row3.size()))]
-# [<>, <>]
-```
-Size is Multiplication by the unit, and Tally multiplication is Multiplication
-of a Manyness, whatever the nesting
-```
-; [(row2.size()) = (row2.mul U), (deep4.size()) = (deep4.mul U), (Z.size()) = (Z.mul U)]
-# [<>, <>, <>]
-; [(row2.size_mul row3) = (((row2.many()).mul row3).size()), (deep4.size_mul row3) = (((deep4.many()).mul row3).size())]
-# [<>, <>]
-```
-At a zero factor both recipes answer `Z`, a one-cell factor included
-```
-; [(U.size_mul Z) = Z, ((Figure [U]).size_mul Z) = Z, ((U.mul Z).size()) = ((U.size()).size_mul (Z.size()))]
-# [<>, <>, <>]
-; .deep2 (Figure [Figure [row2]]); .deep3 (Figure [Figure [Figure [row3]]]);
-; [row2.size_equivalent deep2, row3.size_equivalent deep3, (Figure [row2, row3]).size_equivalent (Figure [deep2, deep3]), (row2.mul row3).size_equivalent (deep2.mul deep3)] = [U, U, U, U]
-# <>
-```
-Tallies are the natural numbers in unary, so induction gives every semiring law
-on tallies, and transport along Size gives them on `F/≈`. The raw product is not
-commutative: `row2` by `row3` is two rows of three, `row3` by `row2` three rows
-of two, and they agree only in Size. These instances witness each law without
-replacing the proof
-```
-; [(row2.mul row3) = (row3.mul row2), ((row2.mul row3).size_equivalent (row3.mul row2)) = U]
-# [(), <>]
-; [(Figure [Z, row2]).size_equivalent row2, (Figure [row2, Z]).size_equivalent row2, (U.mul row2).size_equivalent row2, (row2.mul U).size_equivalent row2] = [U, U, U, U]
-# <>
-```
-Read as natural numbers, Size takes construction to `+` and multiplication to
-`*`, so the same laws hold of FrameCount arithmetic, where they are native.
-Each side reads a tally that was constructed, so the reading checks the
-construction rather than replacing it
-```
-; [((Figure [row2, row3]).size()).children.# = (((row2.size()).children.#) + ((row3.size()).children.#)), (rectangle23.size()).children.# = (((row2.size()).children.#) * ((row3.size()).children.#)), (rectangle23.size()).children.# = 6]
-# [<>, <>, <>]
-; [(Figure [Figure [row2, row3], row4]).size_equivalent (Figure [row2, Figure [row3, row4]]), (Figure [row2, row3]).size_equivalent (Figure [row3, row2])] = [U, U]
-# <>
-; (((row2.mul row3).mul row4).size_equivalent (row2.mul (row3.mul row4))) = U
-# <>
-; [(row2.mul (Figure [row3, row4])).size_equivalent (Figure [row2.mul row3, row2.mul row4]), ((Figure [row2, row3]).mul row4).size_equivalent (Figure [row2.mul row4, row3.mul row4])] = [U, U]
-# <>
-; [(Z.mul row3).size_equivalent Z, (row3.mul Z).size_equivalent Z] = [U, U]
-# <>
-```
-## Sameness and Withness
-
-Sameness of form is `=` and sameness of the constructed Figure is `===`
-```
-; .B2 (Figure [A]);
-; [B.sameform B2, B.sameness B, B.sameness B2, (E.children .0).sameness A] = [B, B, A, B]
-# <>
-```
-Withness asks whether every requested Figure is an immediate child of the
-receiver, by identity rather than form: `B` is reused under both `E` and `F`,
-while the separately constructed `B2` is a child of neither. An empty parent
-holds nothing, and every one of no Figures is a child of any parent
-```
-; [E.withness [A, B], F.withness [A, B], G.withness [E, F], E.withness [B2]] = [B, A, B, A]
-# <>
-; [A.withness [B], B.withness []] = [A, B]
-# <>
-```
-## Gap
-
-Gap reads the Sizes of a Figure's immediate children, folds them with
-alternating signs, `Size(F₁) − Size(F₂) + Size(F₃) − …`, starting positive, and
-drops the sign. It observes rather than constructs, so it answers a FrameCount,
-never negative, and the empty Figure has Gap `0`. One child is its
-own Size, so `A` and `U` both have Gap `0` because `U`'s one child `Z` has Size
-`0`, while a Figure holding `row2` has Gap `2`. Two children are the difference
-of their Sizes, whichever comes first
-```
-; [(A.gap()) = 0, (U.gap()) = 0, ((Figure [row2]).gap()) = 2, ((Figure [row2, row3]).gap()) = 1, ((Figure [row3, row2]).gap()) = 1]
-# [<>, <>, <>, <>, <>]
-```
-Each child contributes its existing Size, so nesting reaches a child only
-through that Size: a one-child Figure's Gap is that child's Size whatever its
-nesting, and `deep4` nests `row4` to Size 4. The minimal witness is three
-children of Sizes 2, 5 and 3, whose Gap is `0`; the Sizes come from ordinary
-Figures and `row5` is one of Size 5
-```
-; .row5 (Figure [U, U, U, U, U]);
-; [(row5.size()).children.# = 5, ((Figure [row2, row5, row3]).gap()) = 0, ((Figure [row4]).gap()) = 4]
-# [<>, <>, <>]
-; [((Figure [row2, row5, row3]).gap()) = (((row2.size()).children.#) - ((row5.size()).children.#) + ((row3.size()).children.#))]
-# [<>]
-```
-Order still matters: reordering the same three children can change Gap,
-and it is an observation only, never a claim that a Walk is closed
-```
-; [((Figure [row2, row3, row5]).gap()) = 4, ((Figure [row5, row2, row3]).gap()) = 6, ((Figure [row3, row2, row5]).gap()) = 6]
+; [(count Z), (count U), (count [[], []]), (count [[[], []], [[], [], []]])]
+# [1, 1, 2, 5]
+; [(size Z) = [[[]]], (size [[], []]) = [[[]], [[]]], ((size [[[],[]],[[],[],[]]]).#) = 5]
 # [<>, <>, <>]
 ```
-A child's own Size decides its contribution, so a child built differently but of
-equal Size contributes the same, and construction, observation and
-interpretation stay apart: Gap reports a number, not a meaning
+Cells answers the terminals themselves, in order, wherever they were nested, and
+`.#` reads how many there are
 ```
-; [((Figure [deep4, row2, row3]).gap()) = ((Figure [row4, row2, row3]).gap()), ((Figure [Z, U]).gap()) = 1]
+; [(cells [[[], []], [[], [], []]]) = [[], [], [], [], []], (cells Z) = [[]]]
+# [<>, <>]
+; [(cells E) = [[], []], ((cells E) .0) === A]
 # [<>, <>]
 ```
-## Spin
-
-Spin folds the same Sizes Gap does, in the same order with the same signs that
-start positive, but keeps the sign and divides by a positive resolution N,
-answering an exact FrameRational in revolutions. The division selects its rung
-from the divisor, so `signed / N` is a ratio that collapses to a whole FrameInt
-when N divides it, and a positive reading prints without a `+`. The same three
-children of Sizes 2, 5 and 3 whose Gap is `0` have Spin `0` at every N, and
-reversing the two children of a two-child Figure flips the sign: `(2,5)` reads
-`−3/4` and `(5,2)` reads `+3/4` at N=4. The Sizes come from ordinary Figures,
-`row5` of Size 5 above among them, and `Figure [U, Z, U]` has children of Sizes
-1, 0 and 1
+Manyness marks the immediate elements and looks no deeper
 ```
-; [((Figure [row2, row5, row3]).spin 4) = 0, ((Figure [row2, row5]).spin 4) = (0 - (3 / 4)), ((Figure [row5, row2]).spin 4) = (3 / 4), ((Figure [U, Z, U]).spin 4) = (1 / 2)]
-# [<>, <>, <>, <>]
-```
-Spin reads each child's Size the way Gap does, so it equals the signed fold
-divided by N, and Gap is its absolute value: the two observers never disagree on
-the same fold
-```
-; [((Figure [row2, row5]).spin 4) = ((((row2.size()).children.#) - ((row5.size()).children.#)) / 4), ((Figure [row5, row2]).spin 4) = (((Figure [row5, row2]).gap()) / 4), ((Figure [row2, row5]).spin 4) = (0 - (((Figure [row2, row5]).gap()) / 4))]
+; [(many Z) = [], (many E) = [[[]], [[]]], (many [U, U, U]) = [[[]], [[]], [[]]]]
 # [<>, <>, <>]
 ```
-The resolution N scales the same signed sum, and `N=1` reads whole signed
-revolutions, so `(2,5)` is `−3` at N=1, `−1` at N=3, and `(5,2)` is `+3/2` at
-N=2. Every reading is exact, keeping both direction and resolution
+## Inlay
+
+Inlay replaces native terminals and retains nonterminal nesting even for an
+empty right operand. A terminal `[]` becomes y; a nonempty frame reconstructs
+its elements
 ```
-; [((Figure [row2, row5]).spin 1) = (0 - 3), ((Figure [row2, row5]).spin 3) = (0 - 1), ((Figure [row5, row2]).spin 2) = (3 / 2)]
+; [(inlay Z [[], []]) = [[], []], (inlay U [[], []]) = [[[], []]], (inlay [[], []] [[]]) = [[[]], [[]]]]
+# [<>, <>, <>]
+; (inlay [[], [], [[], []]] “x”) = [“x”, “x”, [“x”, “x”]]
+# <>
+```
+An empty right operand still replaces each terminal, so the surrounding
+construction is not annihilated — the 009.07 contrast with a right-zero guard
+```
+; [(inlay [[], []] []) = [[], []], (inlay U []) = [[]], (inlay [[], []] [[], []]) = [[[], []], [[], []]]]
 # [<>, <>, <>]
 ```
-Spin keeps the sign Gap drops, so a one-child Figure reads its child's Size as a
-positive reading, the empty Figure reads `0` at every N, and nesting reaches a
-child only through its Size: `deep4` contributes 4 just as `row4` does
+The right operand is reused by identity at each terminal, and nonterminal
+ancestors are freshly built, including separate occurrences of a shared left
+subtree. Neither operand is written
 ```
-; [((Figure [row2]).spin 1) = 2, ((Figure [row2]).spin 4) = (1 / 2), (A.spin 4) = 0, (A.spin 1) = 0]
-# [<>, <>, <>, <>]
-; [((Figure [deep4, row2, row3]).spin 4) = ((Figure [row4, row2, row3]).spin 4), ((Figure [Z, U]).spin 4) = (0 - (1 / 4))]
+; .yy (Figure [Z, Figure [U, Z]]); .host (Figure [[], Figure [[], []]]);
+; .rr (inlay host yy);
+; [((rr .0) === yy), (((rr .1) .0) === yy), (((rr .1) .1) === yy), (rr === host)]
+# [<>, <>, <>, ()]
+; [host = [[], [[], []]], yy = [[], [[[]], []]]]
 # [<>, <>]
 ```
-N must be a count. The argument is bound as `.n <~~1>`, the count type read off
-a literal, so a non-count N is refused with a native `$!.type-error` before any
-fold or division: a fraction `1/2`, a float `2.5`, a negative `-1` and a string
-`“3”` are all not counts and all refused. A nonzero whole N divides the signed
-sum exactly, so `(5,2)` at N=3 is `1`
+The counting law. For a host of m terminals and a y of n terminals, Inlay places
+a copy of y at each terminal, so the result has m×n terminals. Two by three
+observes six through Size, without hardcoding a multiplication rule
 ```
-; (Figure [row2, row5]).spin 2.5
-# $!.type-error .n <~~1> 2.5
-; (Figure [row2, row5]).spin (1 / 2)
-# $!.type-error .n <~~1> 1/2
-; (Figure [row2, row5]).spin (0 - 1)
-# $!.type-error .n <~~1> -1
-; (Figure [row2, row5]).spin “3”
-# $!.type-error .n <~~1> “3”
-; (Figure [row5, row2]).spin 3
-# 1
+; .h2 [[], []]; .y3 [[], [], []];
+; [(inlay h2 y3) = [[[], [], []], [[], [], []]], (count (inlay h2 y3)) = 6]
+# [<>, <>]
+; [(count (inlay [[], [], []] [[], []])) = 6, (count (inlay [[[]], [[]]] y3)) = 6]
+# [<>, <>]
 ```
-A positive resolution is still required of a count N: `N=0` passes the count
-type and is then the native division-by-zero, and the empty argument `()` is not
-a count either but binds nothing, so it falls through to the same
-division-by-zero rather than a type error
-```
-; (Figure [row2, row5]).spin 0
-# $!.division-by-zero /
-; (Figure [row2, row5]).spin ()
-# $!.division-by-zero /
-```
-## The Fano plane
+## Multiplication
 
-Seven originals of identical form, each a fresh `Figure []`, and seven triples
-of identical form `[[], [], []]`. The incidence lives only in which originals
-each triple reuses, so only Withness, by identity, can see it. `b_copy` equals
-every original in form and is a child of no triple
+Multiplication puts y once per terminal of x and splices the copies flat,
+forgetting x's nesting, so it differs from Inlay on a nested host even though the
+terminal counts agree
 ```
-; .a (Figure []); .b (Figure []); .c (Figure []); .d (Figure []); .e (Figure []); .f (Figure []); .g (Figure []);
-; .originals (Figure [a, b, c, d, e, f, g]);
-; .abd (Figure [a, b, d]); .bce (Figure [b, c, e]); .cdf (Figure [c, d, f]);
-; .deg (Figure [d, e, g]); .efa (Figure [e, f, a]); .fgb (Figure [f, g, b]); .gac (Figure [g, a, c]);
-; .fano (Figure [abd, bce, cdf, deg, efa, fgb, gac]);
-; .Three (Figure [U, U, U]); .b_copy (Figure []);
-; [(originals.many()) = (fano.many()), (fano.children & {_.many()}) = (fano.children & {Three})]
+; .nested [[[], []]];
+; [(mul nested [[]]) = [[[]], [[]]], (inlay nested [[]]) = [[[[]], [[]]]]]
 # [<>, <>]
-; [abd = bce, abd === bce, b = b_copy, b === b_copy]
-# [<>, (), <>, ()]
-; [abd.withness [a, b, d], abd.withness [a, c], abd.withness [b_copy]] = [B, A, A]
+; [(count (mul nested [[]])) = (count (inlay nested [[]])), (mul nested [[]]) = (inlay nested [[]])]
+# [<>, ()]
+; (count (mul h2 y3)) = 6
 # <>
 ```
-`on` answers one Withness mark per triple, so its Size counts the triples that
-hold every requested original. Over every ordered pair, generated rather than
-listed, two distinct originals lie in exactly one triple and each lies in three
-```
-; .on {.points _; Figure (fano.children & {_.withness points})};
-; .point_table (originals.children & {.p _; originals.children & {(on [p, _]).size()}});
-; point_table = (originals.children & {.p _; originals.children & {(p === _) ? {Three} : {Figure [U]}}})
-# <>
-```
-Read as natural numbers, the table counts three on the diagonal and one
-everywhere else
-```
-; (point_table & {_ & {_.children.#}}) = (originals.children & {.p _; originals.children & {(p === _) ? {3} : {1}}})
-# <>
-```
-Dually, `meet` counts the originals two triples share: multiplying their two
-Withness marks leaves one cell exactly when both hold it. The two tables are
-equal, which is the plane's self-duality
-```
-; .meet {.lines _; (Figure (originals.children & {.o _; ((lines .0).withness [o]).mul ((lines .1).withness [o])})).size()};
-; .line_table (fano.children & {.l _; fano.children & {meet [l, _]}});
-; [line_table = (fano.children & {.l _; fano.children & {(l === _) ? {Three} : {Figure [U]}}}), point_table = line_table]
-# [<>, <>]
-```
-`a, b, c, f` are four originals with no three in a triple
-```
-; ([[a, b, c], [a, b, f], [a, c, f], [b, c, f]] & {(on _).size()}) = [Z, Z, Z, Z]
-# <>
-```
-## Closure
+## Sameness, Withness, Size-equivalence
 
-Every answer is a Figure, so it can be observed again or become a child, and
-observing does not mutate, even with a local name inside a map
+Sameness of form is `=` and sameness of the constructed frame is `===`. A fresh
+array equals `B` in form but is not the same frame
 ```
-; [((E.many()).many()) = (E.many()), ((Figure [E.many(), F.size()]).size()) = row4]
-# [<>, <>]
-; .E5 (Figure [A, Figure [A]]);
-; E5.children & {.o _; o};
-; [E5 = (Figure [A, B]), A = (Figure [])]
-# [<>, <>]
-```
-## Reading the methods
-
-A method read through a Figure walks as the atoms of its body, unevaluated
-(#429), so the module can read what an observer is built from. Size is
-Multiplication by the unit, and its body says so
-```
-; (E.size) & {“” _}
-# [“_^”, “.mul”, “U”]
-```
-## Names
-
-A bare name inside a block that a map applies to Figures reads each Figure's
-own members first (spec 7), so it cannot reach the method's. That is why a
-method names its own Figure `_^` and binds `kids` or `n` before its blocks read
-it
-```
-; (E.children & {children}) = [A.children, B.children]
-# <>
-```
-A method's own locals come ahead of any binding where it is called, and a
-Figure passed as an argument contributes only its members, never the names of
-the scope that built it. The Fano plane above already binds `f`, the name
-Withness uses inside its blocks; these bind the other locals
-```
-; .kids 9; .y 9; .n 9; .cells 9; .found 9; .absent 9;
-; [(E.withness [A, B]) = B, (row2.mul row3) = rectangle23, (E.size()) = (Figure [U]), (row2.size_mul row3) = (rectangle23.size())]
-# [<>, <>, <>, <>]
-```
-A method's free names resolve where the method was written, never where its
-receiver was read (#400). So a scope that binds its own `B` and reads a Figure
-by name there still gets the class's `B` back from Manyness
-```
-; .theB B;
-; .rebinds {.B 5; .mine (Figure [A]); ((mine.many()).children .0) === theB};
-; rebinds()
-# <>
-```
-## Functional updates
-
-A mutating method reached through an immutable handle is a functional update,
-and it copies only what it writes (#401). A Figure the receiver holds is never
-written, so the result holds the very same Figure, and identity observers
-answer about it
-```
-; .keeper [.fig E; .touch_ {@fig fig;}];
-; .kept ((keeper.touch_ ()).fig);
-; [kept === E, (kept.children .0) === A]
-# [<>, <>]
-; [kept.sameness kept, kept.withness [kept.children .0]] = [B, B]
-# <>
-```
-A write that constructs answers a new Figure, which is a Figure like any other
-```
-; .grower [.fig E; .grow_ {@fig (fig B);}];
-; .grown ((grower.grow_ ()).fig);
-; [(grown.sameness grown) = B, (grown.withness [grown.children .2]) = B, grown === E]
+; .fresh [[]];
+; [(sameform B fresh), (sameness B B), (sameness B fresh)]
 # [<>, <>, ()]
 ```
-## Spelling
-
-`(x)` is `x`, so `Figure (B)` collects B's elements, of which an object with
-only properties has none. Write `Figure [B]`
+Withness asks whether every requested frame is an immediate element of x by
+identity. One child reused under two parents is with both; a fresh look-alike is
+with neither. An empty parent holds nothing, and every one of no frames is with
+any parent
 ```
-; [(Figure (B)) = A, (Figure [B]) = C]
-# [<>, <>]
-; (Figure [A, B]) = E
+; .shared [[]]; .p1 [shared, []]; .p2 [[], shared];
+; [(withness p1 [shared]), (withness p2 [shared]), (withness p1 [[[]]])]
+# [[[]], [[]], []]
+; [(withness [] [[[]]]), (withness [shared] [])]
+# [[], [[]]]
+```
+Size-equivalence keeps only whether the terminal counts agree. Note the native
+boundary: `U` and `Z` both have count 1, so they are size-equivalent here, where
+the old `Z`-is-zero reading made them differ
+```
+; [(size_equivalent [[], []] [[[], []]]), (size_equivalent [[], []] U), (size_equivalent U Z)]
+# [[[]], [], [[]]]
+```
+## Gap and Spin
+
+Gap folds the counts of x's immediate elements with alternating signs, starting
+positive, and drops the sign. The empty frame has Gap `0`; one element is its own
+count; two elements are the difference of their counts
+```
+; [(gap Z) = 0, (gap [[[], []]]) = 2, (gap [[[], []], [[], [], []]]) = 1, (gap [[[], [], []], [[], []]]) = 1]
+# [<>, <>, <>, <>]
+; (gap [[[], []], [[], [], [], [], []], [[], [], []]]) = 0
 # <>
 ```
-Importing this file skips its examples and answers its last form, which the
-hosts' smoke tests read, so the file ends on code that holds however the rest of
-it changes
+Spin keeps the sign Gap drops and divides by a positive resolution N, answering
+an exact FrameRational. Reversing two elements flips the sign; the empty frame
+is `0` at every N
 ```
-B = (Figure [A])
+; [(spin [[[], []], [[], [], [], [], []]] 4) = (0 - (3 / 4)), (spin [[[], [], [], [], []], [[], []]] 4) = (3 / 4)]
+# [<>, <>]
+; [(spin [[[], []]] 1) = 2, (spin Z 4) = 0]
+# [<>, <>]
+```
+N must be a positive count: a non-count is a type error and zero is a
+division-by-zero
+```
+; spin [[[], []], [[], [], [], [], []]] 2.5
+# $!.type-error .n <~~1> 2.5
+; spin [[[], []], [[], [], [], [], []]] 0
+# $!.division-by-zero /
+```
+## Closure and importing
+
+Every observer that stays in the Figures answers a native Figure, so it can be
+observed again; `count`, `form`, `cells`, `gap` and `spin` observe numbers,
+arrays or ratios on purpose. Importing this file skips the examples and answers
+its last form, which the hosts' smoke tests read, so the file ends on code that
+holds however the rest of it changes
+```
+; [(many (many E)) = (many E), (size (size [U, U])) = (size [U, U])]
+# [<>, <>]
+
+U = [[]]

@@ -65,7 +65,9 @@ describe("HCLang", () => {
       const imported = await session.call("Figures <- './hc/figures.hc'");
       expect(imported).not.toContain("$!");
       expect(
-        await session.call("(Figures.U.size()) = (Figures.Figure [Figures.U])"),
+        await session.call(
+          "(Figures.size Figures.U) = (Figures.Figure [Figures.U])",
+        ),
       ).toEqual("<>");
     });
 
@@ -87,7 +89,9 @@ describe("HCLang", () => {
         .toContain("$!.resource-absent");
       await session.call("Figures <- './hc/figures.hc'");
       expect(
-        await session.call("(Figures.U.size()) = (Figures.Figure [Figures.U])"),
+        await session.call(
+          "(Figures.size Figures.U) = (Figures.Figure [Figures.U])",
+        ),
       ).toEqual("<>");
     });
   });

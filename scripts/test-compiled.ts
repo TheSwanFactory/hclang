@@ -14,7 +14,7 @@ const BINARY = new URL(
   import.meta.url,
 );
 const SOURCE =
-  "Figures <- './hc/figures.hc'; (Figures.U.size()) = (Figures.Figure [Figures.U])";
+  "Figures <- './hc/figures.hc'; (Figures.size Figures.U) = (Figures.Figure [Figures.U])";
 const EXPECTED = "((<>); <>)";
 
 const workDirectory = await Deno.makeTempDir({ prefix: "hclang-compiled-" });
