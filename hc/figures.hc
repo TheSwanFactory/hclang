@@ -90,23 +90,23 @@ answer `Figure [Z]`, which is a cell rather than zero
 ```;
   .mul {.y _; .n ((_^.cells()).#); (y = Z) ? {Z} : {Figure (n [y])}};
 ```
-**Graft**, `x.graft y`: replace each U-form cell of x with y, preserving
+**Inlay**, `x.inlay y`: replace each U-form cell of x with y, preserving
 the ordered nesting around those cells. A terminal `Z` stays empty; a cell is
 recognized by its children's form, as Cells recognizes it. The local recursion
-returns y itself at each cell and constructs new noncell ancestors. The outer
-guard answers `Z` whenever y has the form of `Z`. This construction is defined
+returns y itself at each cell and constructs new noncell ancestors, even when
+y has the form of `Z`. There is no right-zero guard. This construction is defined
 for finite, well-founded Figures. The helper names the original receiver,
 replacement and current node. Qualified lexical reads keep a node's members
 from shadowing the captured replacement or recursive helper: `_^^` reaches
 the method locals from the cell branch, and `_^^^` reaches them from the map
 inside the other branch. These distances follow lexical nesting, not recursion
 depth. A local helper traverses children structurally even if a child declares
-its own Graft method
+its own Inlay method
 ```;
-  .graft {.receiver _^; .replacement _;
+  .inlay {.receiver _^; .replacement _;
     .visit {.node _; .kids node.children;
       (kids = U.children) ? {_^^.replacement} : {Figure (kids & {_^^^.visit _})}};
-    (replacement = Z) ? {Z} : {visit receiver}};
+    visit receiver};
 ```
 **Tally multiplication**, `x.size_mul y`: the Size of a Figure holding y once
 per child of x, and `Z` when y is `Z`. Manyness marks each child with `B`,
@@ -355,49 +355,68 @@ Cells answers the cells themselves, in order, wherever they were nested, and
 ; [(two_fours.cells()).#, (deep4.cells()).#, (two_fours.size()).children.#] = [8, 4, 8]
 # <>
 ```
-## Graft construction
+## Inlay construction
 
-Graft replaces U-form cells. Its zero guard compares form, including a freshly
-constructed zero; a noncell with no cells keeps its nesting for a nonzero right
-operand
+Inlay replaces U-form cells and retains noncell nesting even for an empty right
+operand. Cells are recognized by form, including a freshly constructed unit
 ```
-; .graft_unit (Figure [Figure []]);
-; [(Z.graft row2) = Z, (U.graft row2) = row2, (graft_unit.graft row2) = row2, (graft_unit === U)]
+; .inlay_unit (Figure [Figure []]);
+; [(Z.inlay row2) = Z, (U.inlay row2) = row2, (inlay_unit.inlay row2) = row2, (inlay_unit === U)]
 # [<>, <>, <>, ()]
-; [(row2.graft Z) = Z, (row2.graft (Figure [])) = Z, (Z.graft Z) = Z, (U.graft Z) = Z]
+; [(row2.inlay Z) = (Figure [Z, Z]), (row2.inlay (Figure [])) = (Figure [Z, Z]), (Z.inlay Z) = Z, (U.inlay Z) = Z]
 # [<>, <>, <>, <>]
-; [((Figure [Z, Z]).graft row2) = (Figure [Z, Z]), ((Figure [Z, Z]).graft Z) = Z]
+; [((Figure [Z, Z]).inlay row2) = (Figure [Z, Z]), ((Figure [Z, Z]).inlay Z) = (Figure [Z, Z])]
 # [<>, <>]
 ```
 Branching and nested Figures retain every noncell wrapper. A structured right
 operand is inserted whole, even when it contains its own cells and zeros
 ```
-; .graft_y (Figure [Z, Figure [U, Z]]); .graft_left (Figure [Z, Figure [U, U], U]);
-; [(row2.graft graft_y) = (Figure [graft_y, graft_y]), ((Figure [row2]).graft graft_y) = (Figure [Figure [graft_y, graft_y]])]
+; .inlay_y (Figure [Z, Figure [U, Z]]); .inlay_left (Figure [Z, Figure [U, U], U]);
+; [(row2.inlay inlay_y) = (Figure [inlay_y, inlay_y]), ((Figure [row2]).inlay inlay_y) = (Figure [Figure [inlay_y, inlay_y]])]
 # [<>, <>]
-; (graft_left.graft graft_y) = (Figure [Z, Figure [graft_y, graft_y], graft_y])
+; (inlay_left.inlay inlay_y) = (Figure [Z, Figure [inlay_y, inlay_y], inlay_y])
 # <>
-; [(graft_left.graft U) = graft_left, (graft_left.graft graft_y) = (Figure [graft_y, Figure [graft_y, graft_y], Z])]
+; [(inlay_left.inlay U) = inlay_left, (inlay_left.inlay inlay_y) = (Figure [inlay_y, Figure [inlay_y, inlay_y], Z])]
 # [<>, ()]
 ```
 Identity is a separate question from form: replacements reuse y, while noncell
 ancestors are freshly constructed, including separate occurrences of a shared
 left subtree. Neither operand is written
 ```
-; .grafted (graft_left.graft graft_y); .graft_shared (Figure [row2, row2]); .graft_shared_result (graft_shared.graft graft_y);
-; [(graft_unit.graft graft_y) === graft_y, (grafted.children .2) === graft_y, (((grafted.children .1).children) .0) === graft_y, grafted === graft_left]
+; .inlaid (inlay_left.inlay inlay_y); .inlay_shared (Figure [row2, row2]); .inlay_shared_result (inlay_shared.inlay inlay_y);
+; [(inlay_unit.inlay inlay_y) === inlay_y, (inlaid.children .2) === inlay_y, (((inlaid.children .1).children) .0) === inlay_y, inlaid === inlay_left]
 # [<>, <>, <>, ()]
-; [((graft_shared_result.children .0) = (graft_shared_result.children .1)), ((graft_shared_result.children .0) === (graft_shared_result.children .1)), (Z.graft graft_y) === Z]
+; [((inlay_shared_result.children .0) = (inlay_shared_result.children .1)), ((inlay_shared_result.children .0) === (inlay_shared_result.children .1)), (Z.inlay inlay_y) === Z]
 # [<>, (), ()]
-; [graft_left = (Figure [Z, Figure [U, U], U]), graft_y = (Figure [Z, Figure [U, Z]])]
+; [inlay_left = (Figure [Z, Figure [U, U], U]), inlay_y = (Figure [Z, Figure [U, Z]])]
 # [<>, <>]
 ```
 Multiplication forgets the left nesting. These constructions differ in Form
 even though their Sizes agree
 ```
-; [((Figure [row2]).graft graft_y) = ((Figure [row2]).mul graft_y), ((Figure [row2]).mul graft_y) = (Figure [graft_y, graft_y]), (((Figure [row2]).graft graft_y).size()) = (((Figure [row2]).mul graft_y).size())]
+; [((Figure [row2]).inlay inlay_y) = ((Figure [row2]).mul inlay_y), ((Figure [row2]).mul inlay_y) = (Figure [inlay_y, inlay_y]), (((Figure [row2]).inlay inlay_y).size()) = (((Figure [row2]).mul inlay_y).size())]
 # [(), <>, <>]
 ```
+For positive canonical counting Figures `N_m = Figure [m copies of U]`,
+Inlay constructs `Figure [m copies of N_n]`. Counting those inserted cells gives
+`Size(Inlay(N_m, N_n)) = m × n` for m,n ≥ 1; arithmetic on counts is not a
+primitive of Inlay. The two-by-three example checks form and Size separately
+```
+; [(row2.inlay row3) = (Figure [row3, row3]), ((row2.inlay row3).size()) = (Figure (6 [U]))]
+# [<>, <>]
+```
+Size forgets structure: the Size-equivalent hosts U and `Figure [U]` give
+results of different Sizes with right operand Z. No annihilation law is imposed
+```
+; [(U.inlay Z) === Z, ((Figure [U]).inlay Z) = U, ((Figure [U, U]).inlay Z) = (Figure [Z, Z])]
+# [<>, <>, <>]
+; [((U.inlay Z).size()) = Z, (((Figure [U]).inlay Z).size()) = (Figure [U]), (((Figure [U, U]).inlay Z).size()) = Z]
+# [<>, <>, <>]
+```
+These constructions concern finite, well-founded Figures. They make no promise
+of global DAG sharing or cyclic support, and these examples and bounded tests
+do not establish universal associativity or a universal VACT theorem.
+
 ## The semiring
 
 The carrier is not raw Figures. Let `F` be the finite, well-founded Figures,

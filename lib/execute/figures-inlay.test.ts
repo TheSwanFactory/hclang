@@ -19,20 +19,25 @@ function forests(n: number): Form[][] {
   return result;
 }
 
-// Historical gsub/graft, interpreted on bracket trees independently of HC
-// method dispatch. The outer zero guard is deliberately separate from sub.
-function historicalGraft(x: Form, y: Form): Form {
+// Unguarded U-form substitution on bracket trees, independent of HC dispatch.
+function referenceInlay(x: Form, y: Form): Form {
   function sub(node: Form): Form {
     return node.length === 1 && node[0].length === 0 ? y : node.map(sub);
   }
-  return y.length === 0 ? [] : sub(x);
+  return sub(x);
+}
+
+function countCells(form: Form): number {
+  return form.length === 1 && form[0].length === 0
+    ? 1
+    : form.reduce((sum, child) => sum + countCells(child), 0);
 }
 
 function construct(form: Form): string {
   return `(Figures.Figure [${form.map(construct).join(", ")}])`;
 }
 
-Deno.test("bundled Figure graft matches historical construction on all forms through five nodes", async () => {
+Deno.test("bundled Figure inlay matches unguarded form and Size on all forms through five nodes", async () => {
   const session = new HCLang();
   expect(await session.call("Figures <- './hc/figures.hc'"))
     .not.toContain("$!");
@@ -40,10 +45,18 @@ Deno.test("bundled Figure graft matches historical construction on all forms thr
   expect(domain.length).toEqual(23);
   for (const x of domain) {
     for (const y of domain) {
-      const source = `((${construct(x)}.graft ${construct(y)}).form()) = ${
-        JSON.stringify(historicalGraft(x, y))
+      const source = `((${construct(x)}.inlay ${construct(y)}).form()) = ${
+        JSON.stringify(referenceInlay(x, y))
       }`;
       expect(await session.call(source), source).toEqual("<>");
+      const expectedSize = Array.from(
+        { length: countCells(referenceInlay(x, y)) },
+        (): Form => [[]],
+      );
+      const sizeSource = `((${construct(x)}.inlay ${
+        construct(y)
+      }).size()).form() = ${JSON.stringify(expectedSize)}`;
+      expect(await session.call(sizeSource), sizeSource).toEqual("<>");
     }
   }
 });
@@ -58,7 +71,46 @@ async function figuresSession(): Promise<HCLang> {
   return session;
 }
 
-Deno.test("graft captures survive member and caller name collisions", async () => {
+Deno.test("inlay zero boundary preserves form, Size, and replacement identity", async () => {
+  const session = await figuresSession();
+  for (const form of [1, 2, 3, 4, 5].flatMap(forms)) {
+    await session.call(`.right ${construct(form)};`);
+    for (
+      const source of [
+        "(U.inlay right) === right",
+        "((Figure [Figure []]).inlay right) === right",
+        "((Z.inlay right).form()) = []",
+        "((Z.inlay right).size()) = Z",
+        "((Z.inlay right) === Z) = ()",
+      ]
+    ) {
+      expect(await session.call(source), source).toEqual("<>");
+    }
+  }
+  await session.call(
+    ".empty (Figure []); .left (Figure [U]); .result (left.inlay empty);",
+  );
+  for (
+    const source of [
+      "(U.inlay Z) === Z",
+      "(U.inlay empty) === empty",
+      "(result.form()) = [[]]",
+      "(result.size()) = (Figure [U])",
+      "(result.children .0) === empty",
+      "(result === left) = ()",
+      "(left.size()) = (U.size())",
+      "((U.inlay empty).size()) = Z",
+      "((Figure [U, U]).inlay empty).form() = [[], []]",
+      "(((Figure [U, U]).inlay empty).size()) = Z",
+      "(left.form()) = [[[]]]",
+      "(empty.form()) = []",
+    ]
+  ) {
+    expect(await session.call(source), source).toEqual("<>");
+  }
+});
+
+Deno.test("inlay captures survive member and caller name collisions", async () => {
   const session = await figuresSession();
   // Inherited Figures retain the real bundled methods while supplying extra
   // members. Exercise collisions on cells, noncell nodes, and the right operand.
@@ -72,29 +124,29 @@ Deno.test("graft captures survive member and caller name collisions", async () =
   );
   for (
     const source of [
-      "(cell.graft right) === right",
-      "((branch.graft right).form()) = [right.form(), [], right.form()]",
-      "((left.graft right).form()) = [[right.form(), [], right.form()], right.form()]",
-      "(left.graft Z) === Z",
-      "(left.graft (Figure []) ) === Z",
+      "(cell.inlay right) === right",
+      "((branch.inlay right).form()) = [right.form(), [], right.form()]",
+      "((left.inlay right).form()) = [[right.form(), [], right.form()], right.form()]",
+      "((left.inlay Z).form()) = [[[], [], []], []]",
+      "((left.inlay (Figure [])).form()) = [[[], [], []], []]",
     ]
   ) {
     expect(await session.call(source), source).toEqual("<>");
   }
 });
 
-Deno.test("graft reuses replacements and rebuilds ancestors without child dispatch", async () => {
+Deno.test("inlay reuses replacements and rebuilds ancestors without child dispatch", async () => {
   const session = await figuresSession();
   await session.call(
-    ".cell [.^ (Figure [Z]); .graft {Z}]; " +
+    ".cell [.^ (Figure [Z]); .inlay {Z}]; " +
       ".shared (Figure [cell, U]); .left (Figure [shared, shared]); " +
-      ".right (Figure [Z, Figure [U, Z]]); .result (left.graft right);",
+      ".right (Figure [Z, Figure [U, Z]]); .result (left.inlay right);",
   );
   for (
     const source of [
-      "(cell.graft right) === Z",
+      "(cell.inlay right) === Z",
       "(result.form()) = [[right.form(), right.form()], [right.form(), right.form()]]",
-      "(U.graft right) === right",
+      "(U.inlay right) === right",
       "((result.children .0).children .0) === right",
       "((result.children .1).children .1) === right",
       "(result === left) = ()",
@@ -109,11 +161,11 @@ Deno.test("graft reuses replacements and rebuilds ancestors without child dispat
   }
 });
 
-Deno.test("retained callbacks keep graft receivers and arguments across calls", async () => {
+Deno.test("retained callbacks keep inlay receivers and arguments across calls", async () => {
   const session = await figuresSession();
   await session.call(
     ".Deferred [.^ Z; .later {.receiver _^; .replacement _; " +
-      "{(_^.receiver).graft _^.replacement}}]; " +
+      "{(_^.receiver).inlay _^.replacement}}]; " +
       ".left [.^ Deferred; .children [U, U]]; " +
       ".other [.^ Deferred; .children [Figure [U]]]; " +
       ".right (Figure [Z, U]); .second (Figure [U, Z, U]); " +
