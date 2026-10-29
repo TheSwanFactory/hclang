@@ -4,13 +4,21 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.32.1 2026-10-28
+
+- **Spin's N is typed as a count.** `x.spin N` now binds N as `.n <~~1>`, the
+  count type, so a non-count N — a fraction `1/2`, a float `2.5`, a negative
+  `-1`, a string `“3”` — is refused with a native `$!.type-error` instead of
+  being hidden behind a division-by-zero. A count N=0 still passes the type and
+  is the native `$!.division-by-zero`, and `(5,2).spin 3` is `1` (#449, #447).
+
 ## v0.32.0 2026-10-28
 
 - **A Figure has a Spin.** `x.spin N` answers the signed alternating sum of the
   Sizes of x's immediate children, `Size(F₁) − Size(F₂) + Size(F₃) − …`, divided
   by a positive resolution N, as an exact FrameRational in revolutions. It folds
   the same readings Gap does and keeps the sign Gap drops, so `(2,5)` reads
-  `−3/4` and `(5,2)` reads `+3/4` at N=4, and Gap stays `|Spin × N|`. A
+  `−3/4` and `(5,2)` reads `3/4` at N=4, and Gap stays `|Spin × N|`. A
   non-positive N is the native `$!.division-by-zero`. A zero Spin is an
   observation, not a claim that a Walk is closed (#447).
 
