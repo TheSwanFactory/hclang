@@ -191,7 +191,7 @@ The Schema constrains which values can be bound to a Symbol, and can be retrieve
 ; @enum123 2;
 ; enum123
 # 2
-; enum123.<>
+; enum123.<^>
 # <1,2,3>
 ; @enum123 4
 # $@enum123<1,2,3> 4

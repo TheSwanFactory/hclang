@@ -6,7 +6,7 @@ describe("FrameType", () => {
   it("represents and matches an extracted runtime frame class", () => {
     const type = FrameType.of(new FrameString(""));
 
-    expect(type.toString()).toEqual("~~“”");
+    expect(type.toString()).toEqual("(“”).<>");
     expect(type.matches(new FrameString("Q"))).toEqual(true);
     expect(type.matches(new FrameNumber("1"))).toEqual(false);
   });
@@ -17,7 +17,7 @@ describe("FrameType", () => {
 
     expect(type.call(string)).toEqual(string);
     expect(type.call(new FrameNumber("1")).toString()).toEqual(
-      "$!.type-error ~~“” 1",
+      "$!.type-error (“”).<> 1",
     );
   });
 });

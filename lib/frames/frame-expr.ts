@@ -146,7 +146,7 @@ export class FrameExpr extends FrameList {
   private schemaRetrieval(scope: EvaluationScope): Frame | undefined {
     if (
       this.data.length !== 2 || !(this.data[0] instanceof FrameSymbol) ||
-      !(this.data[1] instanceof FrameName) || this.data[1].source !== "<>"
+      !(this.data[1] instanceof FrameName) || this.data[1].source !== "<^>"
     ) return undefined;
     return this.data[0].bindingSchema(resumedScope(this.data[0], scope));
   }

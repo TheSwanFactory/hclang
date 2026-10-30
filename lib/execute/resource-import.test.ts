@@ -722,7 +722,7 @@ describe("resource import", () => {
       const store = new MemoryStore();
       store.write(
         MODULE_PATH,
-        ".top [one.<>]; .f { one.<> }; f()",
+        ".top [one.<^>]; .f { one.<^> }; f()",
       );
       const output = new FrameArray([]);
       const evaluator = new HCEval(

@@ -678,12 +678,12 @@ The return type is usually inferred, but can be specified explicitly using a tra
 
 #### Type Values
 
-The simplest way to construct a type is to use the `~~` operator to extract the type
+The simplest way to construct a type is to use the `.<>` accessor to extract the runtime type
 of a known object:
 ```
-; “Q” ~ ~~“”
+; “Q” ~ (“”).<>
 # <>
-; “Q” ~ ~~1
+; “Q” ~ (1).<>
 # ()
 ```
 ### Content

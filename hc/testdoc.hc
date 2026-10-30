@@ -110,9 +110,9 @@ Test types
 # <>
 ; 2 ~ ()
 # ()
-; “Q” ~ ~~“”
+; “Q” ~ (“”).<>
 # <>
-; “Q” ~ ~~1
+; “Q” ~ (1).<>
 # ()
 ## Closure signatures apply defaults, require bare fields, and allow extras
 ; .join-name (.first “Jane”, .last) ^ {last “, ” first};

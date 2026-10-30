@@ -1364,9 +1364,9 @@ A count prints as the same integer does, so no printed value changes, but a
 domain error names its class: `1.408.555 + 1` is
 `$!.numeric-domain + FrameSequence FrameCount`. `=` is unchanged, so
 `2 = (5 - 3)` holds, but a count and a FrameInt are distinct types. `==` and
-`===` (spec a14) and `~~` compare exact types, so `2 == (5 - 3)` is nil, as
-`3 == 3.0` is, and `~~2` does not match `5 - 3`. Promotion makes the rungs
-interoperate; it does not make them one type.
+`===` (spec a14) and runtime types from `.<>` compare exact types, so
+`2 == (5 - 3)` is nil, as `3 == 3.0` is, and `2.<>` does not match `5 - 3`.
+Promotion makes the rungs interoperate; it does not make them one type.
 
 The language counts in one place today: a resource write answers the characters
 it wrote, which is now a count. `make_context` turns a host's digit string into

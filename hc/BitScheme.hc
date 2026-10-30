@@ -218,7 +218,7 @@ The current declaration syntax binds a schema and an initial value in one expres
 
 The `<>` property retrieves the schema attached to the binding:
 ```
-; enum123.<>
+; enum123.<^>
 # <1, 2, 3>
 ```
 

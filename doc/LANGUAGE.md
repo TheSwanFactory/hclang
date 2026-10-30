@@ -255,9 +255,9 @@ properties once, so `3 [1, 2]` is `[1, 2, 1, 2, 1, 2]`. A schema repeats every
 term, so it matches what its literal written n times matches. A closure, or a
 class that declares `apply`, is applied repeatedly instead. A count prints as
 the same integer does. Numeric `=` compares values across ranks, while `==`,
-`===`, and `~~` compare exact types, so a count and an integer are distinct:
-`2 = (5 - 3)` holds, but `2 == (5 - 3)` is nil, as `3 == 3.0` is, and `~~2` does
-not match `5 - 3`.
+`===`, and runtime types from `.<>` compare exact types, so a count and an
+integer are distinct: `2 = (5 - 3)` holds, but `2 == (5 - 3)` is nil, as
+`3 == 3.0` is, and `2.<>` does not match `5 - 3`.
 
 Explicit `0b`, `0o`, and `0x` forms are blobs, not numeric integers.
 
@@ -439,6 +439,32 @@ This is also used as boolean `true`.
 
 All has the property that every object is a member (`~`), in contrast to nil of
 which nothing is a member:
+
+Immediate membership uses the existing comparison ladder. The host is on the
+right: `f ~ P` uses `=`, `f ~~ P` uses `==`, and `f ~~~ P` uses `===`. Arrays,
+groups and closures expose their ordinary immediate elements (closures expose
+walked syntax words). Properties, declared parents and descendants are excluded;
+repeated elements need only one match. Scalar hosts return nil. Atoms have no
+reference identity, so `2 ~~~ [2]` is true just as `2 === 2` is. Operators
+follow ordinary HC application and spacing: parenthesize a computed candidate,
+e.g. `(1 + 1) ~~ [2]`.
+
+`~` retains rich matching for schema and runtime-type hosts, including nested
+selectors and bit splitters; `<>` is total and `()` matches nothing. This
+matcher interpretation applies only to `~`. `~~` and `~~~` compare immediate
+schema terms literally and do not invoke the schema matcher.
+
+`F.<>` extracts the exact runtime class of F, transparently through a name or
+handle. It replaces unary `~~F`: `“”.<> “Q”` returns `“Q”`, while `“Q” ~ “”.<>`
+returns `<>`. A closure's `.<>` reads its type without running its body. Nested
+type terms use `<1.<>>`, replacing `<~~1>`.
+
+**Breaking migration (v0.36.0):** binding schema retrieval moves from `name.<>`
+to `name.<^>`; `.x <1,2> 1; x.<^>` retrieves `<1,2>`, while `x.<>` retrieves the
+runtime count type. The internal stored schema key `x.<>` and schema validation
+on assignment are unchanged. Existing `value ~ schema` expressions retain rich
+matching; ordinary arrays now support immediate membership, so `[] ~ [[]]` is
+true.
 
     ; 1 ~ <>
     # <>

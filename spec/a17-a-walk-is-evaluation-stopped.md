@@ -78,7 +78,7 @@ template, or an operator, resolves at the site, as a name written there would.
 .a 1; .p {a}; (p & {_}) | (.a 7)                       → 7   the receiver comes first
 .p {x}; .o [.x 7]; {(p & {_}) | _} o                   → 7   the receiver is also a site layer
 .mk {{__}}; .p (mk 7); [p 9, (p & {_}) | 9]            → [7, 7]   `__` is the closure's chain
-.x 5; .f {x .<>}; [f (), (f & {_}) | ()]               → both $!.schema-missing .x
+.x 5; .f {x .<^>}; [f (), (f & {_}) | ()]               → both $!.schema-missing .x
 ```
 
 **Ruling: each atom resumes in its own scope.** Atoms walked from two closures

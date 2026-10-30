@@ -50,7 +50,7 @@ export function closureFromAtoms(
   }
   close(false);
   // Statements stay statements, as the parser holds them, so a statement's
-  // own forms, such as `x .<>`, resume as they run.
+  // own forms, such as `x .<^>`, resume as they run.
   const closure = new FrameLazy(statements);
   if (sequence) closure.is.sequence = true;
   return site ? closure.bind(site) : closure;

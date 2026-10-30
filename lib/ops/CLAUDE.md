@@ -24,8 +24,8 @@ power.
   answers a ratio, collapsing to FrameInt (never a count) when whole, so `7 / 2`
   is `7/2` and `6 / 3` is FrameInt `2`. Division and modulo by zero are
   `$!.division-by-zero /` and `$!.modulo-by-zero %%`. Ordering and `=` compare
-  values across rungs, while `==`, `===`, and `~~` compare exact types, so
-  `2 = (5 - 3)` holds and `2 == (5 - 3)` is nil. See
+  values across rungs, while `==`, `===`, and runtime types from `.<>` compare
+  exact types, so `2 = (5 - 3)` holds and `2 == (5 - 3)` is nil. See
   [`../frames/CLAUDE.md`](../frames/CLAUDE.md#numeric-ladder).
 
 ### Control Flow

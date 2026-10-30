@@ -1,5 +1,9 @@
 # Minimal Schema Typing, Retrieval, and Deconstruction
 
+> v0.36.0 migration: binding schema retrieval below is now `name.<^>`.
+> `value.<>` extracts the value's runtime type. Stored schema keys remain
+> `name.<>`.
+
 **Status:** Implemented on the #310 feature branch\
 **Issue:**
 [#310 — Implement BitScheme schema retrieval, deconstructors, and bit captures](https://github.com/TheSwanFactory/hclang/issues/310)\

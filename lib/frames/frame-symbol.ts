@@ -352,6 +352,9 @@ export class FrameSymbol extends FrameAtom {
   }
 
   public override called_by(context: Frame): Frame {
+    if (this.is.address === true && this.data === "<>") {
+      return FrameType.of(context);
+    }
     // A size operator answers for the receiver itself rather than looking a
     // name up, so the scope a value was read from never answers for it (#411).
     // Only an address is one, since the lexer looks `#` up as the comment.
@@ -508,13 +511,6 @@ export class FrameOperator extends FrameSymbol {
     const bound = this.copy();
     bound.receiverState = receiverState;
     return bound;
-  }
-
-  public override apply(argument: Frame, parameter: Frame): Frame {
-    if (this.operator === "~~") {
-      return FrameType.of(argument);
-    }
-    return super.apply(argument, parameter);
   }
 
   public override called_by(context: Frame): Frame {

@@ -205,7 +205,7 @@ Mixed operands follow the ladder
 # -2
 ```
 Comparison and `=` compare values across rungs, so a count and a FrameInt of the
-same value are `=`. `==`, `===` and `~~` compare exact types, so the two are
+same value are `=`. `==`, `===` and runtime types from `.<>` compare exact types, so the two are
 not `==`, just as `2` and `2.0` are not
 ```
 ; 2 = (5 - 3)
@@ -220,10 +220,10 @@ not `==`, just as `2` and `2.0` are not
 # ()
 ; 2 == 2.0
 # ()
-; ~~2 (5 - 3)
-# $!.type-error ~~2 2
-; ~~(5 - 3) 2
-# $!.type-error ~~2 2
+; (2).<> (5 - 3)
+# $!.type-error (2).<> 2
+; (5 - 3).<> 2
+# $!.type-error (2).<> 2
 ; (0 - 1).< 0
 # <>
 ; 2.<= (5 - 3)
@@ -231,13 +231,13 @@ not `==`, just as `2` and `2.0` are not
 ; 2.< 2.5
 # <>
 ```
-Within one rung, `==` and `~~` hold as they always have
+Within one rung, `==` and type application hold as they always have
 ```
 ; 2 == (1 + 1)
 # <>
 ; (5 - 3) == (4 - 2)
 # <>
-; ~~2 3
+; (2).<> 3
 # 3
-; ~~(0 - 1) (0 - 5)
+; (0 - 1).<> (0 - 5)
 # -5
