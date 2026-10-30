@@ -11,10 +11,10 @@
   FrameInt: `[].###` is `0`, `[[]].###` is `1` and `[[], [[], []]].###` is `-1`.
   Atoms, strings, mixed trees, groups, schemas, closures and arrays with
   properties or a declared parent answer `$!.unsupported-figure .###`; `.####`
-  is `.###` before a comment.
+  is `.###` before a comment (#455).
 - **Gap and Spin read `.###`.** `gap x` is `|x.###|` and `spin x N` is
   `x.### / N`. `gap []` is now the FrameInt `0`, like every other Gap, and an
-  array with a declared parent is refused instead of measured.
+  array with a declared parent is refused instead of measured (#455).
 
 ## v0.33.0 2026-10-30
 
