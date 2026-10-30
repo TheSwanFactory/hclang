@@ -2,7 +2,7 @@ import { expect } from "jsr:@std/expect@^0.219.1";
 import { HCLang } from "../mod.ts";
 
 // Issue occurrence/figure 009.09: Figures are now ordinary native nested frames
-// and the module is an observational layer over them. A cell/terminal is the
+// and the module keeps only nontrivial operations over them. A cell/terminal is the
 // empty frame `[]`; a nonempty array recurses over its elements. Inlay replaces
 // each native terminal with the right operand, preserving nonterminal nesting,
 // with no right-zero guard. These are focused unit tests, not a combinatorial
@@ -12,14 +12,10 @@ async function figuresSession(): Promise<HCLang> {
   const session = new HCLang();
   expect(await session.call("Figures <- './hc/figures.hc'"))
     .not.toContain("$!");
-  // Bring the operations into scope unqualified for terse assertions.
   await session.call(
-    ".inlay {Figures.inlay _}; .size {Figures.size _}; " +
-      ".count {Figures.count _}; .cells {Figures.cells _}; " +
-      ".form {Figures.form _}; .many {Figures.many _}; " +
-      ".mul {Figures.mul _}; .gap {Figures.gap _}; " +
-      ".spin {Figures.spin _}; .pure {Figures.pure _}; " +
-      ".need {Figures.need _}; .A Figures.A; .B Figures.B;",
+    ".inlay {Figures.inlay _}; .cells {Figures.cells _}; " +
+      ".gap {Figures.gap _}; .spin {Figures.spin _}; " +
+      ".pure {Figures.pure _}; .need {Figures.need _};",
   );
   return session;
 }
@@ -84,28 +80,13 @@ Deno.test("inlay reuses the right operand by identity and leaves the host unchan
   }
 });
 
-Deno.test("size, cells, form, many observe native structure", async () => {
+Deno.test("cells lists native terminals in order, retaining identity", async () => {
   const session = await figuresSession();
-  for (
-    const [source, expected] of [
-      // size counts native terminals; the empty frame is one terminal.
-      ["count A", "1"],
-      ["count B", "1"],
-      ["count [[], []]", "2"],
-      ["count [[[], []], [[], [], []]]", "5"],
-      ["(size [[], []]) = [[[]], [[]]]", "<>"],
-      // cells are the terminals in order, each itself.
-      ["(cells [[[], []], [[], [], []]]) = [[], [], [], [], []]", "<>"],
-      ["(cells A) = [[]]", "<>"],
-      // form is the native bracket tree; text spells it.
-      ["(form [[], [[]]]) = [[], [[]]]", "<>"],
-      ["(“” (form [[], [[]]])) = “[[], [[]]]”", "<>"],
-      // many marks each immediate element.
-      ["(many [[], [[]], []]) = [[[]], [[]], [[]]]", "<>"],
-    ] as const
-  ) {
-    expect(await session.call(source), source).toEqual(expected);
-  }
+  await session.call(".a []; .host [a, [[], []]];");
+  expect(await session.call("cells host")).toEqual("[[], [], []]");
+  expect(await session.call("((cells host) .0) === a")).toEqual("<>");
+  expect(await session.call("(cells host).# = host.##")).toEqual("<>");
+  expect(await session.call("cells []")).toEqual("[[]]");
 });
 
 Deno.test("gap and spin fold immediate element counts with alternating signs", async () => {
@@ -126,22 +107,19 @@ Deno.test("gap and spin fold immediate element counts with alternating signs", a
   }
 });
 
-Deno.test("positive counting: size observes multiplication without an arithmetic rule", async () => {
+Deno.test("native terminal count observes inlay and flat repetition", async () => {
   const session = await figuresSession();
-  // Two hosts (m=2) with three-terminal replacements (n=3) -> six terminals,
-  // observed through size, with no hardcoded multiplication law in inlay.
   await session.call(".host [[], []]; .rep [[], [], []];");
   for (
-    const [source, expected] of [
-      ["(inlay host rep) = [[[], [], []], [[], [], []]]", "<>"],
-      ["count (inlay host rep)", "6"],
-      // the same count for a differently shaped two-terminal host.
-      ["count (inlay [[[]], [[]]] rep)", "6"],
-      // mul forgets nesting but agrees on the count.
-      ["count (mul host rep)", "6"],
-    ] as const
+    const source of [
+      "(inlay host rep).## = 6",
+      "(inlay [[[]], [[]]] rep).## = 6",
+      "(host.## [rep]).## = 6",
+      "([[[], []]].## [[[]]]) = [[[]], [[]]]",
+      "(inlay [[[], []]] [[]]) = [[[[]], [[]]]]",
+    ]
   ) {
-    expect(await session.call(source), source).toEqual(expected);
+    expect(await session.call(source), source).toEqual("<>");
   }
 });
 
@@ -168,65 +146,29 @@ Deno.test("unsupported inputs are rejected explicitly rather than silently degra
   expect(await session.call("need [.k 1; []]")).toContain("$!");
 });
 
-Deno.test("public operations enforce the domain at their boundary (review #5705321282)", async () => {
-  // Regression for PR #453 review: the module claims unsupported inputs are
-  // "rejected explicitly rather than silently degraded", but the exported
-  // operations did not call pure/need and so could silently drop a
-  // property-bearing frame's non-enumerable content (e.g. inlay rebuilding a
-  // nonempty host with `n & {go _}`). Each public observer/transform now gates
-  // on `pure` and refuses an unsupported argument through `need`.
+Deno.test("remaining traversals validate their public host boundary", async () => {
   const session = await figuresSession();
-
-  // Each direct call on a property-bearing frame is an explicit $! refusal,
-  // not a degraded observation. Before the fix these returned a value such as
-  // `[[[]]]` while silently discarding the `.k` property.
   for (
     const source of [
-      "size [.k 1; []]",
       "cells [.k 1; []]",
-      "form [.k 1; []]",
-      "many [.k 1; []]",
       "inlay [.k 1; []] [[]]",
-      "mul [.k 1; []] [[]]",
       "gap [.k 1; [[], []]]",
       "spin [.k 1; [[], []]] 4",
-      // count inherits size's guard; the refusal carries through `.#`.
-      "count [.k 1; []]",
-    ]
-  ) {
-    expect(await session.call(source), source).toContain("$!");
-  }
-
-  // Atoms and strings are refused the same way, not treated as structure.
-  for (
-    const source of [
-      "size 5",
-      "count 5",
+      "cells 5",
       "cells “hi”",
       "inlay 5 [[]]",
+      "gap [[], 5]",
     ]
   ) {
-    expect(await session.call(source), source).toContain("$!");
+    expect(await session.call(source), source).toContain("unsupported-figure");
   }
-
-  // The guard does not disturb the supported domain: valid frames observe and
-  // transform exactly as before.
-  for (
-    const [source, expected] of [
-      ["(size [[], []]) = [[[]], [[]]]", "<>"],
-      ["count [[], []]", "2"],
-      ["(inlay [[], []] [[]]) = [[[]], [[]]]", "<>"],
-      ["(form [[], [[]]]) = [[], [[]]]", "<>"],
-      ["(gap [[[], []], [[], [], []]]) = 1", "<>"],
-    ] as const
-  ) {
-    expect(await session.call(source), source).toEqual(expected);
-  }
-
-  // The documented alternative contract — raw operations are unchecked and
-  // callers must use need — is NOT what we chose: need itself still refuses,
-  // and a pre-validated pure frame flows through unchanged.
-  expect(await session.call("(need [[], []]) = [[], []]")).toEqual("<>");
+  expect(await session.call("(inlay [[], []] [[]]) = [[[]], [[]]]"))
+    .toEqual("<>");
+  expect(await session.call("(gap [[[], []], [[], [], []]]) = 1"))
+    .toEqual("<>");
+  // An unsupported host is still refused when the resolution is invalid.
+  expect(await session.call("spin [.k 1; []] 2.5"))
+    .toContain("$!");
 });
 
 Deno.test("native inlay differs from the old Figure-specific U-cell inlay", async () => {
@@ -237,12 +179,12 @@ Deno.test("native inlay differs from the old Figure-specific U-cell inlay", asyn
   for (
     const [source, expected] of [
       // The empty frame is now one terminal (old Size(Z) was 0).
-      ["count A", "1"],
+      ["[].##", "1"],
       // A bare empty list is an eligible inlay site (old Z was not a cell).
       ["(inlay [] [[]]) = [[]]", "<>"],
       // On the form [[]] the native inlay recurses and replaces the inner
       // terminal, where the old U-cell inlay treated the whole thing as a cell.
-      ["(inlay B [[], []]) = [[[], []]]", "<>"],
+      ["(inlay [[]] [[], []]) = [[[], []]]", "<>"],
     ] as const
   ) {
     expect(await session.call(source), source).toEqual(expected);

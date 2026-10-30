@@ -63,7 +63,7 @@ describe("HC playground", () => {
     await submit("Figures <- './hc/figures.hc'");
     expect(screen.queryByRole("alert")).toBeNull();
 
-    await submit("Figures.B = [[]]");
+    await submit("(Figures.inlay [] []) = []");
     expect(screen.getByTestId("latest-output").textContent).toBe("<>");
   });
 });

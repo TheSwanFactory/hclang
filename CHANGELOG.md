@@ -8,11 +8,14 @@
 
 - **Breaking: `.##` counts structural terminals.** Empty aggregates now count as
   one, including nested empty frames, empty closures and property-only
-  aggregates; `[].##` is `1` and `[1, [2, []]].##` is `3`. Figure `count` reads
-  guarded native `.##`; `.#` and `size`'s fresh tally marks are unchanged
+  aggregates; `[].##` is `1` and `[1, [2, []]].##` is `3`; `.#` is unchanged
   (#454).
-- **Breaking: Figure counting aliases are removed.** Replace `Figures.Z` with
-  `Figures.A` and `Figures.U` with `Figures.B` (#454).
+- **Breaking: Figures use native operations directly.** `Figure`, `form`,
+  `count`, `size`, `many`, `mul`, `sameform`, `sameness`, `size_equivalent` and
+  the `A`/`B`/`Z`/`U` aliases are removed; use brackets, `.##`, `.#`, native
+  repetition, `=` and `===`. Gap and Spin read `.##` directly (#454).
+- **Breaking: Withness returns a native boolean.** Immediate containment by
+  identity now answers `<>` or `()`, replacing `[[]]` or `[]` (#454).
 - **The bundled `hc/modules.hc` tutorial is removed.** Import documentation
   lives in `doc/LANGUAGE.md`; reading `'./hc/modules.hc'` now answers
   `$!.resource-absent` (#454).

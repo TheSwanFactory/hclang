@@ -370,7 +370,7 @@ source in a fresh namespace. It binds the namespace to `name` only once every
 form has succeeded, so a failed import binds nothing.
 
     ; Figures <- './hc/figures.hc';
-    ; Figures.B
+    ; Figures.inlay [] [[]]
     # [[]]
 
 - **Namespace isolation.** Everything the module declares is reached qualified,
@@ -562,14 +562,18 @@ that spelling.
 
 For a worked example, see the Figures module, shipped with the package as
 [`hc/figures.hc`](../hc/figures.hc), imported with
-`Figures <- './hc/figures.hc'`. A Figure is an ordinary nested array: `[]` is
-the empty Figure, and `Figure [c, …]` is the identity on the array `[c, …]`. The
-module is a set of top-level operations that take the frame as their argument,
-such as `Figures.size x`, `Figures.count x`, `Figures.cells x` and
-`Figures.inlay x y`. Each refuses anything outside finite, property-free nested
-arrays. `count x` is the terminal count `x.##`, `cells x` lists the terminals
-themselves, and `size x` is a tally holding one fresh `[[]]` per terminal. The
-marks `A` and `B` are `[]` and `[[]]`.
+`Figures <- './hc/figures.hc'`. A Figure is an ordinary property-free nested
+array: `[]` is the empty Figure, and `[c, …]` constructs a frame. Use native
+`.#` for immediate element count, `.##` for terminal count, `=` for form
+equality and `===` for identity. A flat product is `x.## [y]`; no constructor,
+count, size, comparison or multiplication wrapper is needed.
+
+The module keeps `cells`, `inlay`, `withness`, `gap` and `spin`, plus `pure` and
+`need` for domain validation. `cells` lists the terminal frames themselves;
+`inlay` replaces them while preserving nesting; `withness` tests immediate
+containment by identity and returns a native boolean. `cells`, `inlay`, `gap`
+and `spin` reject unsupported hosts so traversals cannot silently discard
+properties. Native `.##` also counts mixed atom/array trees.
 
 ### TODO: Class variables
 

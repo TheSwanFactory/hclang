@@ -326,7 +326,7 @@ describe("main", () => {
 
     expect(status).toEqual(0);
     expect(out.at(-1).toString()).toContain(
-      '“{"total":49,"pass":49,"fail":0,"unimplemented":0}”',
+      '“{"total":23,"pass":23,"fail":0,"unimplemented":0}”',
     );
   });
 
@@ -351,7 +351,7 @@ describe("main", () => {
     // through the overlay the CLI installs and skips its examples, so the only
     // claim that counts is the one written here.
     const { status, summary } = await runTestdoc(
-      "Figures <- './hc/figures.hc';\n; Figures.B = [[]]\n# <>\n",
+      "Figures <- './hc/figures.hc';\n; (Figures.inlay [] []) = []\n# <>\n",
     );
 
     expect(status).toEqual(0);

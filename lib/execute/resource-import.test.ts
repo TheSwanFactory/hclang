@@ -1567,13 +1567,13 @@ describe("quoting a source as a closure (#443)", () => {
   it("reads what an import would run: no examples, and imports inert", () => {
     expect(quote({ "t.hc": "5\n; 1 + 1\n6\n" }, "('./t.hc' | {}) & {“” _}"))
       .toEqual("[“5”, “,”, “6”]");
-    const fig = ". <- './figures.hc';\nFigure [B, B]";
+    const fig = ". <- './figures.hc';\ninlay [] [[], []]";
     const figures = HC_SOURCES.get("hc/figures.hc")!;
     expect(quote(
       { "fig.hc": fig, "figures.hc": figures },
       ".fq ('./fig.hc' | {}); [(fq & {“” _}), (“” (fq ()))]",
     )).toContain(
-      "[[“. <- './figures.hc'”, “;”, “Figure”, “[B, B]”], “[[[]], [[]]]”])",
+      "[[“. <- './figures.hc'”, “;”, “inlay”, “[]”, “[[], []]”], “[[], []]”])",
     );
   });
 

@@ -78,10 +78,11 @@ history.
 
 Each session has an in-memory resource root with the package's `hc/` files laid
 over it read-only, so a session can include any of them with `<-`:
-`Figures <- './hc/figures.hc'` imports the Figures module (`Figure [c, …]` and
-its observers) in any session, including after `reset()`. Writing a bundled file
-is refused, and no other path or scheme is reachable through it. The bare
-`evaluate` and `execute` entry points install no root, so they import nothing.
+`Figures <- './hc/figures.hc'` imports the Figures traversals (`cells`, `inlay`,
+`withness`, `gap` and `spin`) in any session, including after `reset()`. Writing
+a bundled file is refused, and no other path or scheme is reachable through it.
+The bare `evaluate` and `execute` entry points install no root, so they import
+nothing.
 
 Each CLI input file receives its own `$` namespace, while all files share the
 host-selected `$$` namespace.
