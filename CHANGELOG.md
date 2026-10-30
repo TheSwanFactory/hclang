@@ -6,9 +6,10 @@
 
 ## v0.36.0 2026-10-30
 
-- **Native immediate membership mirrors equality.** `f ~ P`, `f ~~ P` and
-  `f ~~~ P` use `=`, `==` and `===` over P's immediate elements, returning
-  native truth or nil. Properties, parents and descendants are excluded;
+- **Immediate membership on ordinary element hosts mirrors equality.** `f ~ P`,
+  `f ~~ P` and `f ~~~ P` use `=`, `==` and `===` over P's immediate elements,
+  returning native truth or nil. On schema/runtime matcher hosts, `~` retains
+  rich matcher acceptance. Properties, parents and descendants are excluded;
   `point ~~~ line` expresses incidence. `Figures.withness` derives collective
   membership through ordinary iteration and retains vacuous truth.
 - **Breaking: runtime type extraction is `F.<>`.** Replace `~~F` with `F.<>`,

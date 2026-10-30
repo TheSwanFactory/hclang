@@ -1,7 +1,8 @@
 #!/usr/bin/env hc
 ```
-Immediate membership follows the equality ladder: ~ uses =, ~~ uses ==,
+On ordinary element hosts, immediate membership follows the equality ladder: ~ uses =, ~~ uses ==,
 and ~~~ uses ===. The host is on the right. No descendant search or metadata.
+On schema/runtime matcher hosts, ~ retains rich matcher acceptance.
 ```
 ; [] ~ [[]]
 # <>
@@ -23,6 +24,8 @@ Fano incidence uses shared point objects. Equal form alone is not incidence.
 .point [];
 .other [];
 .line [point];
+; [other ~ line, other ~~ line, other ~~~ line, point ~~~ line]
+# [<>, <>, (), <>]
 ; point ~~~ line
 # <>
 ; other ~~~ line

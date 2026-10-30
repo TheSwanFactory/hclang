@@ -10,6 +10,7 @@ import {
   FrameString,
   FrameType,
 } from "../frames.ts";
+import { HasType } from "../ops/type-operations.ts";
 import { IdenticalMember, Member, TypedMember } from "../ops/membership.ts";
 
 Deno.test("membership uses the original equality ladder, including atom identity", () => {
@@ -121,4 +122,42 @@ Deno.test("type accessor extracts the runtime referent, including named and clos
     .toContain("<1, 2>");
   expect(evaluate("2 ~~ [2]").at(0)).toBe(Frame.all);
   expect(evaluate("~~2").at(0)).not.toBeInstanceOf(FrameType);
+});
+
+Deno.test("named and handled candidates retain nested schema acceptance and rejection", () => {
+  for (
+    const [schemaSource, accepted, rejected] of [
+      ["<<[1, 2]>>", "[1, 2]", "[1, 3]"],
+      ["<<.x>>", "[.x 1;]", "[.y 1;]"],
+      ["<[].<>>", "[]", "“wrong type”"],
+    ]
+  ) {
+    const schema = evaluate(schemaSource).at(0);
+    for (
+      const [source, expected] of [
+        [accepted, Frame.all],
+        [rejected, Frame.nil],
+      ] as const
+    ) {
+      const value = evaluate(source).at(0);
+      for (const mutable of [false, true]) {
+        const candidate = new FrameHandle(value, mutable);
+        // Compare transparent membership with the established raw-value
+        // matcher predicate, including its nested rejection paths.
+        expect(HasType(value, schema), schemaSource).toBe(expected);
+        expect(Member(candidate, schema), schemaSource).toBe(expected);
+        expect(Member(candidate, new FrameHandle(schema, false)), schemaSource)
+          .toBe(expected);
+      }
+    }
+    const source = `{.Allowed ${schemaSource}; .good ${accepted};
+      .bad ${rejected}; [good ~ Allowed, bad ~ Allowed]} ()`;
+    expect(evaluate(source).at(0).toString(), source).toEqual("[<>, ()]");
+  }
+});
+
+Deno.test("distinct Fano points exercise the complete membership ladder in HC", () => {
+  const source = `{.p []; .q []; .line [p];
+    [q ~ line, q ~~ line, q ~~~ line, p ~~~ line]} ()`;
+  expect(evaluate(source).at(0).toString()).toEqual("[<>, <>, (), <>]");
 });

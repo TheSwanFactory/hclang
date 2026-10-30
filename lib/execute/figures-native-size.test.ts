@@ -80,6 +80,8 @@ Deno.test("withness returns native booleans and compares immediate identity", as
       ["Figures.withness [shared] []", "<>"],
       ["Figures.withness [shared] [shared, shared]", "<>"],
       ["Figures.withness [[shared]] [shared]", ""],
+      ["Figures.withness p1 [shared, (p1 .1)]", "<>"],
+      ["Figures.withness [shared, shared] [shared, []]", ""],
     ]
   ) {
     expect(await session.call(source), source).toEqual(expected);
