@@ -249,15 +249,27 @@ describe("FrameArray", () => {
       expect(evaluate("$$.xs.###", { xs }).at(0).toString()).toEqual("-1");
     });
 
-    it("refuses every receiver that is not a Figure", () => {
+    it("ignores properties and a declared parent at every level", () => {
+      const table = [
+        ["[.k 1; []]", "1"],
+        ["[[], [.k 1; [], []]]", "-1"],
+        ["[.^ [.m 1]; [[], []]]", "2"],
+        ["[.k 1]", "0"],
+      ];
+      for (const [figure, residual] of table) {
+        const answer = last(`${figure}.###`);
+
+        expect(answer.className(), figure).toEqual("FrameInt");
+        expect(answer.toString(), figure).toEqual(residual);
+      }
+    });
+
+    it("answers nil on every receiver that is not a Figure", () => {
       for (
         const source of [
           "[1, []]",
           "[[], [1]]",
           "[[], [“ab”]]",
-          "[.k 1; []]",
-          "[[], [.k 1; []]]",
-          "[.^ [.m 1]; []]",
           "[[], ([], [])]",
           "([], [])",
           "<[], []>",
@@ -268,25 +280,19 @@ describe("FrameArray", () => {
           "1.5",
         ]
       ) {
-        const refusal = last(`${source}.###`);
-
-        expect(refusal.is.error, source).toBe(true);
-        expect(refusal.toString(), source)
-          .toEqual("$!.unsupported-figure .###");
+        // nil, so the source answers no value.
+        expect(evaluate(`${source}.###`).toString(), source).toEqual("[]");
       }
     });
 
-    it("refuses an aggregate that contains itself", () => {
+    it("answers nil on an aggregate that contains itself", () => {
       const direct = new FrameArray([new FrameArray([])]);
       direct.collect(direct);
       const indirect = new FrameArray([new FrameArray([])]);
       indirect.collect(new FrameArray([new FrameArray([]), indirect]));
 
       for (const xs of [direct, indirect]) {
-        const refusal = evaluate("$$.xs.###", { xs }).at(0);
-
-        expect(refusal.is.error).toBe(true);
-        expect(refusal.toString()).toEqual("$!.cyclic-aggregate .###");
+        expect(evaluate("$$.xs.###", { xs }).toString()).toEqual("[]");
       }
     });
   });

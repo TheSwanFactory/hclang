@@ -131,12 +131,34 @@ Deno.test("Gap is |.###| and Spin is .### / N, with .### a FrameInt (010.04)", a
 
 Deno.test("Gap and Spin keep refusing unsupported hosts (010.04)", async () => {
   const session = await figuresSession();
-  for (const host of ["[1, []]", "[.k 1; []]", "5"]) {
+  for (const host of ["[1, []]", "([], [])", "5"]) {
     expect(await session.call(`Figures.gap ${host}`), host)
       .toContain("unsupported-figure");
     expect(await session.call(`Figures.spin ${host} 2`), host)
       .toContain("unsupported-figure");
-    expect(await session.call(`${host}.###`), host)
-      .toEqual("$!.unsupported-figure .###");
+    // nil prints as the empty string.
+    expect(await session.call(`${host}.###`), host).toEqual("");
+  }
+});
+
+Deno.test("Figures ignore properties, and Inlay keeps only elements (010.04)", async () => {
+  const session = await figuresSession();
+  await session.call(".p [.k 1; [], [.j 2; []]]; .q (Figures.inlay p [[]]);");
+  for (
+    const [source, expected] of [
+      ["Figures.pure p", "<>"],
+      ["(Figures.need p) === p", "<>"],
+      ["p.###", "0"],
+      ["Figures.gap [.k 1; [[], []]]", "2"],
+      ["Figures.spin [.k 1; [], [[], []]] 2", "-1/2"],
+      // Inlay builds fresh frames from elements, so no property survives,
+      // and the host is left as it was.
+      ["q = [[[]], [[[]]]]", "<>"],
+      ["(q .1) = [[[]]]", "<>"],
+      ["p.k", "1"],
+      ["p = [.k 1; [], [.j 2; []]]", "<>"],
+    ] as const
+  ) {
+    expect(await session.call(source), source).toEqual(expected);
   }
 });

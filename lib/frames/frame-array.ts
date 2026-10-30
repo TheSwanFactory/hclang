@@ -79,12 +79,11 @@ export class FrameArray extends FrameList {
   }
 
   /**
-   * An array is a Figure node when it holds no property and declares no
-   * parent, so `.###` never drops either to read the rest as structure
-   * (010.04).
+   * Every array is a Figure node, read through its elements; its properties
+   * and declared parent are ignored (010.04).
    */
   protected override isFigureNode(): boolean {
-    return this.meta_length() === 0 && !this.hasDeclaredParent();
+    return true;
   }
 
   /**

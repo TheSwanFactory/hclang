@@ -125,7 +125,7 @@ export class FrameLazy extends FrameExpr {
   /**
    * A closure walks as the atoms of its body (#429), so `.#` counts them and
    * `.##` the terminals below them, as for any aggregate (#411); an empty
-   * body is one terminal. A closure is not a Figure, so it refuses `.###`
+   * body is one terminal. A closure is not a Figure, so `.###` is nil
    * (010.04). The operator
    * reaches a closure as its argument, where a body would otherwise run, so
    * it is answered here before the body is.

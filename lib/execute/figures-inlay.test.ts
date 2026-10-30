@@ -118,13 +118,14 @@ Deno.test("unsupported inputs are rejected explicitly rather than silently degra
   const session = await figuresSession();
   for (
     const [source, expected] of [
-      // pure accepts well-founded property-free nested frames.
+      // pure accepts well-founded nested arrays, ignoring properties (010.04).
       ["pure [[], [[], []]]", "<>"],
-      // and rejects atoms, strings, and property-bearing frames (nil prints
-      // as the empty string).
+      ["pure [.k 1; []]", "<>"],
+      // and rejects atoms, strings, and groups (nil prints as the empty
+      // string).
       ["pure 5", ""],
       ["pure “hi”", ""],
-      ["pure [.k 1; []]", ""],
+      ["pure ([], [])", ""],
       ["pure [[], 5]", ""],
       // need returns a pure frame and refuses an impure one.
       ["(need [[], []]) = [[], []]", "<>"],
@@ -133,17 +134,17 @@ Deno.test("unsupported inputs are rejected explicitly rather than silently degra
   ) {
     expect(await session.call(source), source).toEqual(expected);
   }
-  // A property-bearing frame must not be silently accepted as a figure.
-  expect(await session.call("need [.k 1; []]")).toContain("$!");
+  // A frame holding an atom must not be silently accepted as a figure.
+  expect(await session.call("need [[], 5]")).toContain("$!");
 });
 
 Deno.test("remaining traversals validate their public host boundary", async () => {
   const session = await figuresSession();
   for (
     const source of [
-      "inlay [.k 1; []] [[]]",
-      "gap [.k 1; [[], []]]",
-      "spin [.k 1; [[], []]] 4",
+      "inlay [[], “a”] [[]]",
+      "gap ([], [[], []])",
+      "spin [[], 5] 4",
       "inlay 5 [[]]",
       "gap [[], 5]",
     ]
@@ -155,7 +156,7 @@ Deno.test("remaining traversals validate their public host boundary", async () =
   expect(await session.call("(gap [[[], []], [[], [], []]]) = 1"))
     .toEqual("<>");
   // An unsupported host is still refused when the resolution is invalid.
-  expect(await session.call("spin [.k 1; []] 2.5"))
+  expect(await session.call("spin [[], 5] 2.5"))
     .toContain("$!");
 });
 

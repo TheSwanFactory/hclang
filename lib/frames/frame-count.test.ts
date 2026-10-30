@@ -317,12 +317,9 @@ describe("FrameCount", () => {
       }
     });
 
-    it("refuses .###, since a count is not a Figure (010.04)", () => {
+    it("answers nil to .###, since a count is not a Figure (010.04)", () => {
       for (const source of ["5", "0", "(5 - 3)", "1.5"]) {
-        const refusal = evaluate(`${source}.###`).at(0);
-
-        expect(refusal.is.error).toBe(true);
-        expect(refusal.toString()).toEqual("$!.unsupported-figure .###");
+        expect(evaluate(`${source}.###`).toString()).toEqual("[]");
       }
     });
   });

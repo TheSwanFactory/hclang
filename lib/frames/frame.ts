@@ -394,17 +394,11 @@ export class Frame extends MetaFrame {
   /**
    * What this frame answers for a size operator, `.#`, `.##` or `.###`
    * (#411). Only an aggregate counts and a count is its own size, so anything
-   * else is nil. `.###` is defined only on Figures, property-free nested
-   * arrays, so every other receiver refuses it (issue occurrence/figure
-   * 010.04).
+   * else is nil. `.###` answers only on Figures, nested arrays (issue
+   * occurrence/figure 010.04).
    */
-  public sizeFor(key: string): Frame {
-    return key === Frame.kRESIDUAL ? Frame.unsupportedFigure(key) : Frame.nil;
-  }
-
-  /** The refusal of `.###` on a receiver that is not a Figure (010.04). */
-  public static unsupportedFigure(key: string): Frame {
-    return Frame.error(`$!.unsupported-figure .${key}`);
+  public sizeFor(_key: string): Frame {
+    return Frame.nil;
   }
 
   /**

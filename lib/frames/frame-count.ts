@@ -56,7 +56,7 @@ export class FrameCount extends FrameInt {
 
   /**
    * A count is its own size, so `.#` and `.##` both answer it (#411). A count
-   * is not a Figure, so `.###` refuses it as any atom does (010.04). The
+   * is not a Figure, so `.###` answers nil, as for any atom (010.04). The
    * spelling is the literal `Frame.kRESIDUAL`, since this module imports
    * `Frame` as a type only.
    */
