@@ -206,6 +206,99 @@ describe("FrameArray", () => {
     });
   });
 
+  describe("signed residual .### (010.04)", () => {
+    /** The answer of the last statement in a source sequence. */
+    const last = (source: string): Frame =>
+      evaluate(source).at(-1).asArray().at(-1)!;
+
+    it("folds immediate terminal counts with alternating signs, as a FrameInt", () => {
+      const table = [
+        ["[]", "0"],
+        ["[[]]", "1"],
+        ["[[], []]", "0"],
+        ["[[], [[], []]]", "-1"],
+        ["[[[], []], []]", "1"],
+        ["[[], [[], []], [[], [], []]]", "2"],
+        // Three levels: the children have 2, 3 and 3 terminals, and each
+        // child takes one sign however deep its terminals lie.
+        ["[[[], [[]]], [[[], []], []], [[[[], [], []]]]]", "2"],
+        ["[[[], []], [[], [], [], [], []]]", "-3"],
+      ];
+      for (const [figure, residual] of table) {
+        const answer = last(`${figure}.###`);
+
+        expect(answer, figure).toBeInstanceOf(FrameInt);
+        expect(answer, figure).not.toBeInstanceOf(FrameCount);
+        expect(answer.className(), figure).toEqual("FrameInt");
+        expect(answer.toString(), figure).toEqual(residual);
+      }
+    });
+
+    it("leaves .# and .## counts on the same Figures", () => {
+      const answer = last("[[], [[], []]].##");
+
+      expect(answer.className()).toEqual("FrameCount");
+      expect(answer.toString()).toEqual("3");
+      expect(last("[[], [[], []]].#").toString()).toEqual("2");
+    });
+
+    it("counts a shared branch at every occurrence", () => {
+      expect(last(".x [[], []]; [x, x, [x]].###").toString()).toEqual("2");
+      const empty = new FrameArray([]);
+      const xs = new FrameArray([empty, new FrameArray([empty, empty])]);
+      expect(evaluate("$$.xs.###", { xs }).at(0).toString()).toEqual("-1");
+    });
+
+    it("ignores properties and a declared parent at every level", () => {
+      const table = [
+        ["[.k 1; []]", "1"],
+        ["[[], [.k 1; [], []]]", "-1"],
+        ["[.^ [.m 1]; [[], []]]", "2"],
+        ["[.k 1]", "0"],
+        ["[[], [.^ [.m 1]; .k 2; [], []]]", "-1"],
+        ["[.^ [.m 1]; .k 2]", "0"],
+      ];
+      for (const [figure, residual] of table) {
+        const answer = last(`${figure}.###`);
+
+        expect(answer.className(), figure).toEqual("FrameInt");
+        expect(answer.toString(), figure).toEqual(residual);
+      }
+    });
+
+    it("answers nil on every receiver that is not a Figure", () => {
+      for (
+        const source of [
+          "[1, []]",
+          "[[], [1]]",
+          "[[], [“ab”]]",
+          "[[], ([], [])]",
+          "([], [])",
+          "<[], []>",
+          "{[]}",
+          "“ab”",
+          "5",
+          "(0 - 5)",
+          "1.5",
+        ]
+      ) {
+        // nil, so the source answers no value.
+        expect(evaluate(`${source}.###`).toString(), source).toEqual("[]");
+      }
+    });
+
+    it("answers nil on an aggregate that contains itself", () => {
+      const direct = new FrameArray([new FrameArray([])]);
+      direct.collect(direct);
+      const indirect = new FrameArray([new FrameArray([])]);
+      indirect.collect(new FrameArray([new FrameArray([]), indirect]));
+
+      for (const xs of [direct, indirect]) {
+        expect(evaluate("$$.xs.###", { xs }).toString()).toEqual("[]");
+      }
+    });
+  });
+
   describe("a key the aggregate already assigns", () => {
     it("answers the refusal, because nothing well-formed was built", () => {
       expect(evaluate("[.0 9; 1, 2]").at(0).toString())

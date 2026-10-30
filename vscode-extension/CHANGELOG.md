@@ -3,6 +3,13 @@
 All notable changes to the Homoiconic C VS Code extension will be documented in
 this file.
 
+## [0.2.4] - 2026-10-30
+
+### Changed
+
+- Highlight the `.###` signed-residual size operator as a name, not a comment
+  start (occurrence/figure 010.04).
+
 ## [0.2.3] - 2026-10-20
 
 ### Changed

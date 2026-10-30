@@ -79,6 +79,14 @@ export class FrameArray extends FrameList {
   }
 
   /**
+   * Every array is a Figure node, read through its elements; its properties
+   * and declared parent are ignored (010.04).
+   */
+  protected override isFigureNode(): boolean {
+    return true;
+  }
+
+  /**
    * An immutable handle on this aggregate, as a name reads it: applying it
    * collects onto a copy and its mutating methods answer functional updates.
    */

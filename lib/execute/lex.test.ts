@@ -203,8 +203,8 @@ describe("Lex", () => {
     });
   }
 
-  describe("size operators (#411)", () => {
-    for (const name of [".#", ".##"]) {
+  describe("size operators (#411, 010.04)", () => {
+    for (const name of [".#", ".##", ".###"]) {
       it(`lexes ${name} as one dotted name across every two-chunk split`, () => {
         const atoms = lexAtoms(`${name} `);
 
@@ -227,6 +227,7 @@ describe("Lex", () => {
       expect(lexAtoms("5.# ").map(String)).toEqual(["5", ".#"]);
       expect(lexAtoms("x.#a ").map(String)).toEqual(["x", ".#", "a"]);
       expect(lexAtoms("x.##.# ").map(String)).toEqual(["x", ".##", ".#"]);
+      expect(lexAtoms("x.###.## ").map(String)).toEqual(["x", ".###", ".##"]);
     });
 
     it("leaves every other `#` beginning a comment", () => {
@@ -235,8 +236,8 @@ describe("Lex", () => {
       // No name contains `#`, so `.foo#bar` is a name before a comment.
       expect(lexAtoms(".foo#bar# ").map(String)).toEqual([".foo"]);
       expect(lexAtoms("..# ").map(String)).toEqual([".."]);
-      // Nothing extends `.##`, so a third `#` begins a comment after it.
-      expect(lexAtoms("x.###c# ").map(String)).toEqual(["x", ".##"]);
+      // Nothing extends `.###`, so a fourth `#` begins a comment after it.
+      expect(lexAtoms("x.####c# ").map(String)).toEqual(["x", ".###"]);
     });
   });
 

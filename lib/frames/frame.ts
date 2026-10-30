@@ -80,6 +80,21 @@ export class Frame extends MetaFrame {
    */
   public static readonly kLEAVES = "##";
   /**
+   * kRESIDUAL is the size operator `.###`, a Figure's signed alternating sum
+   * of its immediate elements' terminal counts, as a FrameInt (issue
+   * occurrence/figure 010.04).
+   */
+  public static readonly kRESIDUAL = "###";
+  /**
+   * The size operators, the only names spelled with `#` (#411). Each answers
+   * for its receiver through `sizeFor`, never through name lookup.
+   */
+  public static readonly SIZE_OPERATORS: readonly string[] = [
+    Frame.kCOUNT,
+    Frame.kLEAVES,
+    Frame.kRESIDUAL,
+  ];
+  /**
    * BEGIN_EXPR is the symbol for the beginning of an expression.
    */
   public static readonly BEGIN_EXPR = "(";
@@ -377,8 +392,10 @@ export class Frame extends MetaFrame {
   }
 
   /**
-   * What this frame answers for a size operator, `.#` or `.##` (#411). Only an
-   * aggregate counts and a count is its own size, so anything else is nil.
+   * What this frame answers for a size operator, `.#`, `.##` or `.###`
+   * (#411). Only an aggregate counts and a count is its own size, so anything
+   * else is nil. `.###` answers only on Figures, nested arrays (issue
+   * occurrence/figure 010.04).
    */
   public sizeFor(_key: string): Frame {
     return Frame.nil;

@@ -356,8 +356,7 @@ export class FrameSymbol extends FrameAtom {
     // name up, so the scope a value was read from never answers for it (#411).
     // Only an address is one, since the lexer looks `#` up as the comment.
     if (
-      this.is.address === true &&
-      (this.data === Frame.kCOUNT || this.data === Frame.kLEAVES)
+      this.is.address === true && Frame.SIZE_OPERATORS.includes(this.data)
     ) {
       return context.referent().sizeFor(this.data);
     }

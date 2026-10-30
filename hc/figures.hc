@@ -2,45 +2,46 @@
 ```
 Figures are native frames (#454; issue occurrence/figure 010.02)
 
-A Figure is a finite, property-free nested array built from `[]`. Construction
-is brackets, form is the value itself, immediate size is `.#`, terminal count
+A Figure is a finite nested array built from `[]`, read through its elements
+only: properties and declared parents are ignored by observations. Inlay keeps
+nonterminal metadata when rebuilding frames. Construction is brackets, form is the value itself, immediate size is `.#`, terminal count
 is `.##`, form equality is `=`, and identity is `===`. The empty frame is one
-terminal: `[].#` is 0 and `[].##` is 1.
+terminal: `[].#` is 0 and `[].##` is 1. The signed residual `.###` is
+`x₁.## − x₂.## + x₃.## − …` over the immediate elements, a FrameInt that is 0
+for `[]` (issue occurrence/figure 010.04).
 
 There are no Figure constructors, marks, tally observers, count aliases or
 comparison wrappers. Use native operations directly. Multiplication that places
 y once per terminal of x is `x.## [y]`. A tally, when wanted, is an explicit
 construction, such as `x & {[[]]}` for one fresh mark per immediate element.
-Native `.##` also counts atoms in mixed trees; this module's traversals stay
-within the Figure domain so reconstruction cannot silently discard properties.
+Native `.##` also counts atoms in mixed trees; native `.###` answers nil on
+anything that is not a Figure, so this module's traversals stay in the domain.
 
 Only operations that add a traversal or calculation remain: `inlay`, `withness`, `gap` and `spin`, with `pure` and `need` for domain validation.
 The traversals validate at their public boundary; their recursive steps use
 native operations directly. Withness returns a native boolean, `<>` or `()`.
 ```
 ```
-Supported domain: `pure x` accepts property-free nested arrays and rejects
-atoms, strings and property-bearing frames.
+Supported domain: `pure x` accepts nested arrays, ignoring their properties
+and declared parents at every level, and rejects atoms, strings, groups, schemas and closures anywhere in them. It is
+the native `.###` check: a FrameInt, even 0, is true, and nil is false.
 ```
-.pure {.x _;
-  .go {.n _;
-    (n = []) ? {<>} : {
-      .rebuilt (n & {.e _; e});
-      (rebuilt = n) ? {(n &| {(go _) ? {[]} : {[0]}}) = []} : {()}}};
-  go x};
+.pure {.x _; (x.###) ? {<>} : {()}};
 ```
 `need x` returns a supported frame itself, or a native refusal.
 ```
 .need {.x _; (pure x) ? {x} : {unsupported-figure}};
 ```
 `inlay x y` replaces every terminal of x with y, retaining nonterminal nesting.
-The replacement is reused by identity; ancestors are freshly constructed.
+The replacement is reused by identity; ancestors are freshly constructed,
+preserving their properties and declared parents. A terminal is recognized by
+its element count; its replacement is y itself, including y’s metadata.
 The host is validated once, and the replacement can be any native value.
 ```
 .inlay {.x _; .host x;
   (pure host) ? {
     {.y _;
-      .go {.n _; (n = []) ? {y} : {n & {go _}}};
+      .go {.n _; (n.# = 0) ? {y} : {(n & {go _}) | (0 n)}};
       go host}} : {
     {.y _; need host}}};
 ```
@@ -52,25 +53,22 @@ of x by native identity. It returns a native boolean. No requested frames is tru
     .absent (fs &| {.f _; ((host &| {(_ === f) ? {[f]}}) = []) ? {[f]}});
     absent = []}};
 ```
-`gap x` is the absolute alternating sum of its immediate elements' `.##`
-counts. The empty frame has Gap 0. The validated host needs no per-child guard.
+`gap x` is the absolute value of native `x.###`, the alternating sum of its
+immediate elements' `.##` counts, always a nonnegative FrameInt (Owner decision
+for #455). The empty frame has Gap 0 as a FrameInt too.
 ```
 .gap {.x _; (pure x) ? {
-  .tail {(_ && {(((_ .0) = .0) ? {[()]} : {[[__ .1]]}) .0}) &| {_}};
-  .alt {.cs _; (cs = []) ? {0} : {(cs .0).## - (alt (tail cs))}};
-  .signed (alt x);
+  .signed (x.###);
   (signed .< 0) ? {0 - signed} : {signed}} : {need x}};
 ```
-`spin x N` keeps the sign of the alternating sum and divides by a positive
-count N. Non-count N is a type error; zero is division-by-zero. The host is
-validated before the resolution is checked.
+`spin x N` keeps the sign of `x.###` and divides by a positive count N.
+Non-count N is a type error; zero is division-by-zero. The host is validated
+before the resolution is checked.
 ```
 .spin {.x _; .host x;
   (pure host) ? {
     {.n <~~1> _;
-      .tail {(_ && {(((_ .0) = .0) ? {[()]} : {[[__ .1]]}) .0}) &| {_}};
-      .alt {.cs _; (cs = []) ? {0} : {(cs .0).## - (alt (tail cs))}};
-      .signed (alt host);
+      .signed (host.###);
       (n .< 1) ? {signed / 0} : {signed / n}}} : {
     {.n _; need host}}};
 ```
@@ -87,15 +85,27 @@ Native construction, counting and comparisons need no module helpers.
 Native terminal counting needs no enumeration or tally construction.
 ```
 ; [(pure []), (pure [[], [[]]]), (pure [[], 5]), (pure [.k 1; []])]
-# [<>, <>, (), ()]
+# [<>, <>, (), <>]
 ; [(need e) = e, (need e) === e]
 # [<>, <>]
-; inlay [.k 1; []] [[]]
+; inlay [[], 5] [[]]
 # $!.name-missing “$:Frame.0.unsupported-figure”;
 ; inlay 5 [[]]
 # $!.name-missing “$:Frame.0.unsupported-figure”;
-; gap [.k 1; [[], []]]
+; gap ([], [[], []])
 # $!.name-missing “$:Frame.0.unsupported-figure”;
+```
+Properties and declared parents never decide the domain or an observation.
+Inlay preserves metadata on rebuilt nonterminal ancestors and leaves its host
+unchanged.
+```
+; [(gap [.k 1; [[], []]]) = 2, [.k 1; [], [[], []]].### = -1]
+# [<>, <>]
+; (inlay [.k 1; [], [.j 2; []]] [[]]) = [.k 1; [[]], [.j 2; [[]]]]
+# <>
+; .p [.k 1; []]; .q (inlay p [[]]);
+; [q = [.k 1; [[]]], p.k, p = [.k 1; []]]
+# [<>, 1, <>]
 ```
 Inlay preserves nesting and empty replacements; native repetition constructs a
 flat product. Both have the same terminal count on Figures.
@@ -122,7 +132,22 @@ Withness uses identity, and its answer is the native boolean.
 ; [(withness [] [[[]]]), (withness [shared] [])]
 # [(), <>]
 ```
-Gap and Spin read native terminal counts, including shared branches at every
+Native `.###` folds the immediate elements' terminal counts with alternating
+signs, one sign per element, and answers a FrameInt even when it is 0 or
+positive. Anything that is not a Figure answers nil.
+```
+; [[].###, [[]].###, [[], []].###, [[], [[], []]].###, [[[], []], []].###]
+# [0, 1, 0, -1, 1]
+; [[], [[], []], [[], [], []]].###
+# 2
+; [([].###) == (0 - 0), ([[]].###) == (1 - 0), ([[]].###) == 1]
+# [<>, <>, ()]
+; [[[], [[]]], [[[], []], []], [[[[], [], []]]]].###
+# 2
+; [[1, []].###, [[], “ab”].###, [[], ([], [])].###, 5.###]
+# [(), (), (), ()]
+```
+Gap is `|x.###|` and Spin is `x.### / N`, including shared branches at every
 occurrence. Reversing two unequal branches reverses Spin's sign.
 ```
 ; [(gap []) = 0, (gap [[[], []]]) = 2, (gap [[[], []], [[], [], []]]) = 1]
@@ -133,6 +158,9 @@ occurrence. Reversing two unequal branches reverses Spin's sign.
 # [<>, <>]
 ; [(spin [[[], []]] 1) = 2, (spin [] 4) = 0]
 # [<>, <>]
+; .z [[[], []], [[], [], [], [], []]];
+; [z.###, (gap z) = (0 - z.###), (spin z 4) = (z.### / 4)]
+# [-3, <>, <>]
 ; spin [[[], []]] 2.5
 # $!.type-error .n <~~1> 2.5
 ; spin [[[], []]] 0
