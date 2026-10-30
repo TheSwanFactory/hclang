@@ -169,10 +169,6 @@ occurrence. Reversing two unequal branches reverses Spin's sign.
 # $!.type-error .n <~~1> 2.5
 ; spin [[[], []]] 0
 # $!.division-by-zero /
-```
-Importing skips the examples and ends on a native true value.
-```
-[] = []
 
 ```
 Star uses native `*` dispatch; numeric pairs keep arithmetic.
@@ -185,3 +181,7 @@ Star uses native `*` dispatch; numeric pairs keep arithmetic.
 # [[[]], [[[]], [[]]]]
 ; [.tag 1;] * [[]]
 # $!.star-metadata *
+```
+Importing skips the examples and ends on a native true value.
+```
+[] = []
