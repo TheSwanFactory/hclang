@@ -15,8 +15,9 @@
   Nested count leaves use the same rule, so `([[], []] * 3) * [[]]` can compose
   again.
 - **Breaking: nested counts contribute their Size to `.##`.** `[3, 3].##` is now
-  6, so `([[], []] * 3).##` is 6. Other atoms still contribute one; `[]` still
-  contributes one, and `.#` and `.###` are unchanged.
+  6, so `([[], []] * 3).##` is 6. This applies to all aggregate kinds, including
+  groups, schemas, closures and mixed trees: `{4 + 5}.##` is now 10. Other atoms
+  and `[]` still contribute one; `.#` and `.###` are unchanged.
 
 ## v0.34.0 2026-10-30
 
