@@ -106,7 +106,7 @@ or written and no element holds its own aggregate
 ; [3 xs, xs]
 # [[1, 2, 1, 2, 1, 2], [1, 2]]
 ; [(1 xs) = xs, (1 xs) === xs, ((3 [xs]) .2) === xs, (2 [[1, 2]]).##]
-# [<>, (), <>, 4]
+# [<>, (), <>, 6]
 ```
 Cross-rung promotion and integer-only modulo
 ```

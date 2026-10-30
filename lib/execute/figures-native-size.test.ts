@@ -87,8 +87,8 @@ Deno.test("withness returns native booleans and compares immediate identity", as
 
 Deno.test("native .## counts mixed trees while Figure traversals reject them", async () => {
   const session = await figuresSession();
-  expect(await session.call("[1, [2, []]].##")).toEqual("3");
-  expect(await session.call("[[], 5, [[], “ab”]].##")).toEqual("4");
+  expect(await session.call("[1, [2, []]].##")).toEqual("4");
+  expect(await session.call("[[], 5, [[], “ab”]].##")).toEqual("8");
   expect(await session.call("Figures.inlay [1, [2, []]] []"))
     .toContain("unsupported-figure");
 });
@@ -187,7 +187,7 @@ Deno.test("parented Figures share the observer domain at every level", async () 
   }
   await session.call(
     ".parent [.m 9]; .child [.^ parent; .k 2; []]; " +
-      ".host [.^ parent; .k 1; child, [.tag 3]]; " +
+      ".host [.^ parent; .k 1; child, []]; " +
       ".y [[]]; .result (Figures.inlay host y);",
   );
   for (
@@ -200,7 +200,7 @@ Deno.test("parented Figures share the observer domain at every level", async () 
       "(result .1) === y",
       "(result === host) = ()",
       "(host .0) === child",
-      "(host .1).tag = 3",
+      "(host .1) = []",
       "host.m = 9",
     ]
   ) {

@@ -26,6 +26,51 @@ export class FrameArray extends FrameList {
     super(data, meta);
   }
 
+  /**
+   * Star / Inlay: replace empty-array terminals, sharing the replacement.
+   * Copy the same native metadata and declaration echoes as ordinary array
+   * reconstruction. A decorated terminal cannot be replaced without loss.
+   * Validate before rebuilding; neither operand is evaluated or mutated here.
+   */
+  public inlay(replacement: Frame): Frame {
+    const path = new Set<Frame>();
+    const validate = (node: Frame): Frame | undefined => {
+      const value = node.referent();
+      if (!(value instanceof FrameArray) || path.has(value)) {
+        return Frame.error("$!.star-domain *");
+      }
+      const elements = value.elements();
+      if (
+        !elements.length &&
+        (value.meta_pairs().length || value.hasDeclaredParent())
+      ) {
+        return Frame.error("$!.star-metadata *");
+      }
+      path.add(value);
+      for (const element of elements) {
+        const error = validate(element);
+        if (error) return error;
+      }
+      path.delete(value);
+      return undefined;
+    };
+    const error = validate(this);
+    if (error) return error;
+    const go = (node: FrameArray): Frame => {
+      if (!node.elements().length) return replacement;
+      const result = node.copy();
+      result.data = node.itemsFor(
+        result,
+        (item) =>
+          node.repeatsTerm(item)
+            ? go(item.walked().referent() as FrameArray)
+            : item,
+      );
+      return result;
+    };
+    return go(this);
+  }
+
   public override string_open(): string {
     return FrameArray.BEGIN_ARRAY;
   }

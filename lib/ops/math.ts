@@ -1,6 +1,8 @@
 // Direct, not ../frames.ts, whose ../ops.ts needs this module loaded first.
 import { Frame } from "../frames/frame.ts";
-import { FrameNumeric } from "../frames/frame-numeric.ts";
+import { FrameNumeric, REPETITION_LIMIT } from "../frames/frame-numeric.ts";
+import { FrameArray } from "../frames/frame-array.ts";
+import { FrameCount } from "../frames/frame-count.ts";
 
 type NumericOperation = (left: FrameNumeric, right: FrameNumeric) => Frame;
 
@@ -20,8 +22,26 @@ export const Add = (source: Frame, block: Frame): Frame =>
 export const Subtract = (source: Frame, block: Frame): Frame =>
   numeric(source, block, (left, right) => left.subtract(right));
 
-export const Multiply = (source: Frame, block: Frame): Frame =>
-  numeric(source, block, (left, right) => left.multiply(right));
+/** Star constructs a frame; numeric pairs retain the existing arithmetic ladder. */
+export const Multiply = (source: Frame, block: Frame): Frame => {
+  const left = source.referent();
+  const right = block.referent();
+  if (left instanceof FrameNumeric && right instanceof FrameNumeric) {
+    return left.multiply(right);
+  }
+  if (left instanceof FrameArray) return left.inlay(block);
+  if (left instanceof FrameCount) {
+    if (left.meta_pairs().length || left.hasDeclaredParent()) {
+      return Frame.error("$!.star-metadata *");
+    }
+    if (left.data === 0n) return left;
+    if (left.data > REPETITION_LIMIT) {
+      return Frame.error(`$!.repetition-limit ${REPETITION_LIMIT}`);
+    }
+    return new FrameArray(Array<Frame>(Number(left.data)).fill(block));
+  }
+  return Frame.error("$!.star-domain *");
+};
 
 export const Divide = (source: Frame, block: Frame): Frame =>
   numeric(source, block, (left, right) => left.divide(right));

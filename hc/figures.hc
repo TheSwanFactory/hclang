@@ -11,10 +11,11 @@ terminal: `[].#` is 0 and `[].##` is 1. The signed residual `.###` is
 for `[]` (issue occurrence/figure 010.04).
 
 There are no Figure constructors, marks, tally observers, count aliases or
-comparison wrappers. Use native operations directly. Multiplication that places
-y once per terminal of x is `x.## [y]`. A tally, when wanted, is an explicit
+comparison wrappers. Use native operations directly. Star `x * y` places y at each terminal of x, preserving nesting.
+Flat repetition is `x.## [y]`. A tally, when wanted, is an explicit
 construction, such as `x & {[[]]}` for one fresh mark per immediate element.
-Native `.##` also counts atoms in mixed trees; native `.###` answers nil on
+Native `.##` weights nested counts by their Size and other atoms by one;
+native `.###` answers nil on
 anything that is not a Figure, so this module's traversals stay in the domain.
 
 Only operations that add a traversal or calculation remain: `inlay`, `withness`, `gap` and `spin`, with `pure` and `need` for domain validation.
@@ -36,13 +37,16 @@ the native `.###` check: a FrameInt, even 0, is true, and nil is false.
 The replacement is reused by identity; ancestors are freshly constructed,
 preserving their properties and declared parents. A terminal is recognized by
 its element count; its replacement is y itself, including y’s metadata.
+A terminal with properties or a declared parent is refused by Star rather than
+silently losing its metadata. Count hosts use native Star directly: `n * y`
+constructs n occurrences for nonnumeric y; `0 * y` is count 0 (Size 0).
+Numeric pairs keep numeric multiplication.
 The host is validated once, and the replacement can be any native value.
 ```
 .inlay {.x _; .host x;
   (pure host) ? {
     {.y _;
-      .go {.n _; (n.# = 0) ? {y} : {(n & {go _}) | (0 n)}};
-      go host}} : {
+      host * y}} : {
     {.y _; need host}}};
 ```
 `withness x [f, …]` asks whether every requested frame is an immediate element
@@ -169,3 +173,15 @@ occurrence. Reversing two unequal branches reverses Spin's sign.
 Importing skips the examples and ends on a native true value.
 ```
 [] = []
+
+```
+Star uses native `*` dispatch; numeric pairs keep arithmetic.
+```
+; [2 * 3, 2 * [[], []], [[], []] * 3, [] * [[], []]]
+# [6, [[[], []], [[], []]], [3, 3], [[], []]]
+; [(2 * [[], [], []]).##, ([[], []] * 3).##, (0 * [[]]).##]
+# [6, 6, 0]
+; [[], [[], []]] * [[]]
+# [[[]], [[[]], [[]]]]
+; [.tag 1;] * [[]]
+# $!.star-metadata *
