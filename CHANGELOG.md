@@ -4,6 +4,19 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## Unreleased
+
+- **Breaking: `.##` counts structural terminals.** Empty aggregates now count as
+  one, including nested empty frames, empty closures and property-only
+  aggregates; `[].##` is `1` and `[1, [2, []]].##` is `3`. Figure `count` reads
+  guarded native `.##`; `.#` and `size`'s fresh tally marks are unchanged
+  (#454).
+- **Breaking: Figure counting aliases are removed.** Replace `Figures.Z` with
+  `Figures.A` and `Figures.U` with `Figures.B` (#454).
+- **The bundled `hc/modules.hc` tutorial is removed.** Import documentation
+  lives in `doc/LANGUAGE.md`; reading `'./hc/modules.hc'` now answers
+  `$!.resource-absent` (#454).
+
 ## v0.32.1 2026-10-28
 
 - **Spin's N is typed as a count.** `x.spin N` now binds N as `.n <~~1>`, the
