@@ -566,11 +566,12 @@ For a worked example, see the Figures module, shipped with the package as
 through its elements; properties and declared parents are ignored at every
 level. `[]` is the empty Figure, and `[c, …]` constructs a frame. Use native
 `.#` for immediate element count, `.##` for terminal count, `=` for form
-equality and `===` for identity. A flat product is `x.## [y]`; no constructor,
-count, size, comparison or multiplication wrapper is needed. Native `.###` is a
-Figure's signed residual, the alternating sum of its immediate elements' `.##`
-counts as a FrameInt (`[[], [[], []]].###` is -1); anything that is not a Figure
-answers nil.
+equality and `===` for identity. Star `x * y` retains the nesting of x and
+places y at each empty-array terminal. A flat product is `x.## [y]`; no
+constructor, count, size, comparison or multiplication wrapper is needed. Native
+`.###` is a Figure's signed residual, the alternating sum of its immediate
+elements' `.##` counts as a FrameInt (`[[], [[], []]].###` is -1); anything that
+is not a Figure answers nil.
 
 The module keeps `inlay`, `withness`, `gap` and `spin`, plus `pure` and `need`
 for domain validation. `inlay` replaces terminals while preserving nesting;
@@ -578,10 +579,20 @@ for domain validation. `inlay` replaces terminals while preserving nesting;
 `gap x` is `|x.###|`, always a nonnegative FrameInt, and `spin x N` is
 `x.### / N`. `pure x` is the native `.###` check. `inlay`, `gap` and `spin`
 reject hosts that are not Figures; `inlay` preserves properties and declared
-parents on freshly rebuilt nonterminal ancestors. A terminal (zero elements,
-regardless of metadata) is replaced by the replacement itself, shared by
-identity; neither operand is mutated. Native `.##` also counts mixed atom/array
-trees.
+parents on freshly rebuilt nonterminal ancestors. A plain terminal (zero
+elements) is replaced by the replacement itself, shared by identity; neither
+operand is mutated. Star and `inlay` refuse terminals carrying properties,
+statements or declared parents, rather than discarding them.
+
+Numeric pairs keep existing `*` arithmetic. A FrameCount host and nonnumeric
+replacement construct n occurrences: `2 * [[]]` is `[[[]], [[]]]`. Zero returns
+count `0`, whose Size is 0; `[]` is a single terminal with Size 1. Other numeric
+hosts with nonnumeric replacements receive a domain refusal. Count expansion
+uses the existing repetition limit. `inlay` remains the array-host entry point.
+Native `.##` also counts mixed atom/array trees: nested FrameCounts contribute
+their own Size, including zero, while other atoms contribute one. Thus
+`([[], []] * 3).##` and `(2 * [[], [], []]).##` are both 6, though both Star
+results are arrays. Native `.###` continues to accept only nested arrays.
 
 ### TODO: Class variables
 
