@@ -14,8 +14,7 @@ construction, such as `x & {[[]]}` for one fresh mark per immediate element.
 Native `.##` also counts atoms in mixed trees; this module's traversals stay
 within the Figure domain so reconstruction cannot silently discard properties.
 
-Only operations that add a traversal or calculation remain: `cells`, `inlay`,
-`withness`, `gap` and `spin`, with `pure` and `need` for domain validation.
+Only operations that add a traversal or calculation remain: `inlay`, `withness`, `gap` and `spin`, with `pure` and `need` for domain validation.
 The traversals validate at their public boundary; their recursive steps use
 native operations directly. Withness returns a native boolean, `<>` or `()`.
 ```
@@ -33,12 +32,6 @@ atoms, strings and property-bearing frames.
 `need x` returns a supported frame itself, or a native refusal.
 ```
 .need {.x _; (pure x) ? {x} : {unsupported-figure}};
-```
-`cells x` lists the native terminal frames, retaining their order and identity.
-```
-.cells {.x _; (pure x) ? {
-  .go {.n _; (n = []) ? {[n]} : {n &| {go _}}};
-  go x} : {need x}};
 ```
 `inlay x y` replaces every terminal of x with y, retaining nonterminal nesting.
 The replacement is reused by identity; ancestors are freshly constructed.
@@ -91,15 +84,13 @@ Native construction, counting and comparisons need no module helpers.
 ; [e.## = [[], []].##, [].## = [[]].##]
 # [<>, <>]
 ```
-Terminal enumeration keeps identity, while counting needs no construction.
+Native terminal counting needs no enumeration or tally construction.
 ```
-; [(cells e) = [[], []], ((cells e) .0) === a, (cells e).# = e.##]
-# [<>, <>, <>]
 ; [(pure []), (pure [[], [[]]]), (pure [[], 5]), (pure [.k 1; []])]
 # [<>, <>, (), ()]
 ; [(need e) = e, (need e) === e]
 # [<>, <>]
-; cells [.k 1; []]
+; inlay [.k 1; []] [[]]
 # $!.name-missing “$:Frame.0.unsupported-figure”;
 ; inlay 5 [[]]
 # $!.name-missing “$:Frame.0.unsupported-figure”;

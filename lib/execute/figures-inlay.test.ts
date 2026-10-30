@@ -13,7 +13,7 @@ async function figuresSession(): Promise<HCLang> {
   expect(await session.call("Figures <- './hc/figures.hc'"))
     .not.toContain("$!");
   await session.call(
-    ".inlay {Figures.inlay _}; .cells {Figures.cells _}; " +
+    ".inlay {Figures.inlay _}; " +
       ".gap {Figures.gap _}; .spin {Figures.spin _}; " +
       ".pure {Figures.pure _}; .need {Figures.need _};",
   );
@@ -80,15 +80,6 @@ Deno.test("inlay reuses the right operand by identity and leaves the host unchan
   }
 });
 
-Deno.test("cells lists native terminals in order, retaining identity", async () => {
-  const session = await figuresSession();
-  await session.call(".a []; .host [a, [[], []]];");
-  expect(await session.call("cells host")).toEqual("[[], [], []]");
-  expect(await session.call("((cells host) .0) === a")).toEqual("<>");
-  expect(await session.call("(cells host).# = host.##")).toEqual("<>");
-  expect(await session.call("cells []")).toEqual("[[]]");
-});
-
 Deno.test("gap and spin fold immediate element counts with alternating signs", async () => {
   const session = await figuresSession();
   for (
@@ -150,12 +141,9 @@ Deno.test("remaining traversals validate their public host boundary", async () =
   const session = await figuresSession();
   for (
     const source of [
-      "cells [.k 1; []]",
       "inlay [.k 1; []] [[]]",
       "gap [.k 1; [[], []]]",
       "spin [.k 1; [[], []]] 4",
-      "cells 5",
-      "cells “hi”",
       "inlay 5 [[]]",
       "gap [[], 5]",
     ]

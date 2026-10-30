@@ -568,12 +568,11 @@ array: `[]` is the empty Figure, and `[c, …]` constructs a frame. Use native
 equality and `===` for identity. A flat product is `x.## [y]`; no constructor,
 count, size, comparison or multiplication wrapper is needed.
 
-The module keeps `cells`, `inlay`, `withness`, `gap` and `spin`, plus `pure` and
-`need` for domain validation. `cells` lists the terminal frames themselves;
-`inlay` replaces them while preserving nesting; `withness` tests immediate
-containment by identity and returns a native boolean. `cells`, `inlay`, `gap`
-and `spin` reject unsupported hosts so traversals cannot silently discard
-properties. Native `.##` also counts mixed atom/array trees.
+The module keeps `inlay`, `withness`, `gap` and `spin`, plus `pure` and `need`
+for domain validation. `inlay` replaces terminals while preserving nesting;
+`withness` tests immediate containment by identity and returns a native boolean.
+`inlay`, `gap` and `spin` reject unsupported hosts so traversals cannot silently
+discard properties. Native `.##` also counts mixed atom/array trees.
 
 ### TODO: Class variables
 

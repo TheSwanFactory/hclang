@@ -17,12 +17,11 @@ async function figuresSession(): Promise<HCLang> {
   return session;
 }
 
-Deno.test("native sizes and terminal enumeration agree without count helpers", async () => {
+Deno.test("native sizes distinguish immediate elements from structural terminals", async () => {
   const session = await figuresSession();
   for (const [frame, elements, terminals] of shapes) {
     expect(await session.call(`${frame}.#`)).toEqual(elements);
     expect(await session.call(`${frame}.##`)).toEqual(terminals);
-    expect(await session.call(`(Figures.cells ${frame}).#`)).toEqual(terminals);
   }
 });
 
@@ -38,6 +37,7 @@ Deno.test("Figures exports no wrappers for native construction and observation",
       "form",
       "size",
       "count",
+      "cells",
       "many",
       "mul",
       "sameform",
@@ -89,7 +89,7 @@ Deno.test("native .## counts mixed trees while Figure traversals reject them", a
   const session = await figuresSession();
   expect(await session.call("[1, [2, []]].##")).toEqual("3");
   expect(await session.call("[[], 5, [[], “ab”]].##")).toEqual("4");
-  expect(await session.call("Figures.cells [1, [2, []]]"))
+  expect(await session.call("Figures.inlay [1, [2, []]] []"))
     .toContain("unsupported-figure");
 });
 
