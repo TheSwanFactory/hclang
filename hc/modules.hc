@@ -24,9 +24,9 @@ identity on the native array `[c, …]` and the Figures module is an observation
 layer of top-level operations, each taking the frame as its argument. Size
 counts native terminals `[]`, while Manyness marks only the immediate elements
 ```
-; [(Figures.count Figures.Z) = 1, (Figures.count Figures.U) = 1]
+; [(Figures.count Figures.A) = 1, (Figures.count Figures.B) = 1]
 # [<>, <>]
-; (Figures.many [Figures.U, Figures.U]) = [Figures.B, Figures.B]
+; (Figures.many [Figures.B, Figures.B]) = [Figures.B, Figures.B]
 # <>
 ; ([Figures.A, Figures.B] .1) === Figures.B
 # <>

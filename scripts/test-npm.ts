@@ -110,7 +110,7 @@ try {
       "--yes",
       `file:${await Deno.realPath(archive)}`,
       "--evaluate",
-      "Figures <- './hc/figures.hc'; (Figures.size Figures.U) = (Figures.Figure [Figures.U])",
+      "Figures <- './hc/figures.hc'; (Figures.size Figures.B) = (Figures.Figure [Figures.B])",
     ],
     { cwd: emptyDirectory },
   );

@@ -536,15 +536,14 @@ that spelling.
 
 For a worked example, see the Figures module, shipped with the package as
 [`hc/figures.hc`](../hc/figures.hc), imported with
-`Figures <- './hc/figures.hc'`. `Figure [c, …]` is a constructor closure that
-answers a fresh object holding its `children` and declaring `x.many()`,
-`x.size()` and the other observers as methods. The observers construct and never
-count: `x.cells()` splices the cells of x into one array with `&|`, `x.size()`
-is `Figure (x.cells() & {U})`, as Manyness is `Figure (x.children & {B})`, and
-`x.mul y` puts y at each cell. Two tallies add as `(Figure [x, y]).size()`, and
-a tally reads as a natural number through `(x.size()).children.#`. Each method
-names its own Figure `_^`, because a bare name is looked up on the argument
-first, and the argument is usually another Figure.
+`Figures <- './hc/figures.hc'`. A Figure is an ordinary nested array: `[]` is
+the empty Figure, and `Figure [c, …]` is the identity on the array `[c, …]`. The
+module is a set of top-level operations that take the frame as their argument,
+such as `Figures.size x`, `Figures.count x`, `Figures.cells x` and
+`Figures.inlay x y`. Each refuses anything outside finite, property-free nested
+arrays. `count x` is the terminal count `x.##`, `cells x` lists the terminals
+themselves, and `size x` is a tally holding one fresh `[[]]` per terminal. The
+marks `A` and `B` are `[]` and `[[]]`.
 
 ### TODO: Class variables
 

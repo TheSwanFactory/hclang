@@ -34,8 +34,8 @@ surface and some changed observations, documented explicitly below.
 
 What a cell is now. A Figure is built from the empty frame by nesting, so the
 natural native terminal is the empty frame `[]` itself. `size` counts those
-terminals. This differs from the old Size, which counted `U`-form cells and read
-the empty Figure `Z` as `0`. Natively the empty frame is one terminal, so
+terminals. This differs from the old Size, which counted cells of the form
+`[[]]` and read the empty Figure as `0`. Natively the empty frame is one terminal, so
 `size []` is one, not zero; `size [[]]` is also one, counting the inner `[]`;
 and `size [[], []]` is two. The counting law is unchanged in spirit: inserting a
 Figure of n terminals at each of a host's m terminals yields m×n terminals.
@@ -44,9 +44,9 @@ That terminal count is the runtime's own. Native `.##` counts the terminals of
 any aggregate's structure, the elements that are not aggregates and the
 aggregates with no elements (issue 010.02), so on the supported domain, where
 every terminal is an empty frame, `count x` is `x.##`. This module reads it
-there rather than recounting: `count` is the guarded `.##` and `size` repeats
-`U` that many times. Only `cells`, which answers the terminals themselves,
-still walks the frame here.
+there rather than recounting: `count` is the guarded `.##`. `size` and `cells`
+still walk the frame, because they construct: `size` builds a fresh mark per
+terminal, and `cells` answers the terminals themselves.
 
 Supported inputs. The operations are defined for finite, well-founded,
 property-free nested frames: every node is either `[]` or a plain array of
@@ -74,11 +74,11 @@ never shadows the operation's own helpers.
 ```
 ```
 **Marks and roles.** The observers answer `A`, the empty frame, for no and `B`,
-the frame holding `A`, for yes. Counting reuses the same two: `Z` is `A`, the
-empty frame, and `U` is `B`, the one cell `size` counts. All four are ordinary
-native frames — `[]` and `[[]]`
+the frame holding `A`, for yes. Both are ordinary native frames, `[]` and
+`[[]]`, and `B` is also the form of the mark `size` writes per terminal. The
+old counting aliases `Z` and `U` were the same two frames and are gone
 ```
-.A []; .B [[]]; .Z []; .U [[]];
+.A []; .B [[]];
 ```
 **Constructor**, `Figure x`: the identity on its argument, kept so historical
 construction spellings keep reading. `Figure [A, B]` is the native array
@@ -122,14 +122,19 @@ strings, so an unsupported input is refused through `need` rather than counted
 ```
 .count {.x _; (pure x) ? {x.##} : {need x}};
 ```
-**Size**, `size x`: a tally with one `U` per native terminal `[]`, so
-`(size x).#` is `count x`. It keeps the terminal count and forgets shape,
-nesting, order and identity. The empty frame is one terminal, so `size []` is
-one cell. The tally repeats `U` itself, so each mark is `U` by identity. Like
-every public observer here it guards its argument first: an unsupported input
-is refused through `need` rather than observed as a degraded tally
+**Size**, `size x`: a tally with one fresh mark `[[]]`, equal to `B`, per
+native terminal `[]`, so `(size x).#` is `count x`. It keeps the terminal count
+and forgets shape, nesting, order, reuse and identity. The empty frame is one
+terminal, so `size []` is one cell; a nonempty frame's size splices its
+elements' sizes. Each mark is built where its terminal is visited, so no mark is
+`B` itself or another mark, and the tally is not built by repetition, so it has
+no element cap. Like every public observer here it guards its argument first:
+an unsupported input is refused through `need` rather than observed as a
+degraded tally
 ```
-.size {.x _; (pure x) ? {(x.##) [U]} : {need x}};
+.size {.x _; (pure x) ? {
+  .go {.n _; (n = []) ? {[[[]]]} : {n &| {go _}}};
+  go x} : {need x}};
 ```
 **Cells**, `cells x`: the terminals of x, in order, each one itself. The empty
 frame is its own only cell; every other frame's cells are its elements',
@@ -187,8 +192,8 @@ native array owns identity, so `===` is reference equality. Curried
 ```
 .sameness {.x _; {.y _; (x === y)}};
 ```
-**Size-equivalence**, `size_equivalent x y`: `U` when the two terminal counts
-agree and `Z` otherwise. It keeps only whether the counts are equal. Curried
+**Size-equivalence**, `size_equivalent x y`: `B` when the two terminal counts
+agree and `A` otherwise. It keeps only whether the counts are equal. Curried
 ```
 .size_equivalent {.x _;
   {.y _; ((count x) = (count y)) ? {[[]]} : {[]}}};
@@ -243,7 +248,7 @@ before N is read, so the host-domain refusal wins over the N type check
 A Figure is a native nested frame, so construction is native bracketing and the
 marks are ordinary arrays. Indexing reaches an element itself, not a copy
 ```
-; [A, B, Z, U] = [[], [[]], [], [[]]]
+; [A, B] = [[], [[]]]
 # <>
 ; [(Figure [A, B]) = [A, B], (Figure [A, B]) = [[], [[]]]]
 # [<>, <>]
@@ -254,14 +259,14 @@ marks are ordinary arrays. Indexing reaches an element itself, not a copy
 A Figure's children are its native elements, so `.#` counts them and `&` maps
 them — the facts the old wrapper hid behind a `.children` property
 ```
-; [E.#, (E & {_}).#, (Figure [U, U]).#]
+; [E.#, (E & {_}).#, (Figure [B, B]).#]
 # [2, 2, 2]
 ; (E & {_}) = [A, B]
 # <>
 ```
 Form is the bracket tree a Figure already is, and text spells it
 ```
-; [(form E) = [[], [[]]], (“” (form E)) = “[[], [[]]]”, (form Z) = []]
+; [(form E) = [[], [[]]], (“” (form E)) = “[[], [[]]]”, (form A) = []]
 # [<>, <>, <>]
 ```
 Equal children make equal Figures by `=`, each construction a distinct frame by
@@ -307,19 +312,19 @@ An atom or string is refused the same way, not read as structure
 ```
 ## Size and counting
 
-Size marks each native terminal with a `U`, and `count` reads the tally as a
-number. The empty frame is one terminal, so `size []` is one cell — the
-documented change from the old Size, which read `Z` as zero
+Size marks each native terminal with a fresh `[[]]`, and `count` reads how many
+terminals there are. The empty frame is one terminal, so `size []` is one cell —
+the documented change from the old Size, which read the empty Figure as zero
 ```
-; [(count Z), (count U), (count [[], []]), (count [[[], []], [[], [], []]])]
+; [(count A), (count B), (count [[], []]), (count [[[], []], [[], [], []]])]
 # [1, 1, 2, 5]
-; [(size Z) = [[[]]], (size [[], []]) = [[[]], [[]]], ((size [[[],[]],[[],[],[]]]).#) = 5]
+; [(size A) = [[[]]], (size [[], []]) = [[[]], [[]]], ((size [[[],[]],[[],[],[]]]).#) = 5]
 # [<>, <>, <>]
 ```
 Cells answers the terminals themselves, in order, wherever they were nested, and
 `.#` reads how many there are
 ```
-; [(cells [[[], []], [[], [], []]]) = [[], [], [], [], []], (cells Z) = [[]]]
+; [(cells [[[], []], [[], [], []]]) = [[], [], [], [], []], (cells A) = [[]]]
 # [<>, <>]
 ; [(cells E) = [[], []], ((cells E) .0) === A]
 # [<>, <>]
@@ -342,17 +347,18 @@ counts
 ; [[1, [2, []]].##, [[], 5, [[], “ab”]].##, (pure [1, [2, []]])]
 # [3, 4, ()]
 ```
-The tally's marks are `U` itself, and `count x` is also the number of terminals
-`cells` lists
+Each mark in the tally is a fresh frame: equal to `B`, but neither `B` itself
+nor another mark. `count x` is also the number of terminals `cells` lists
 ```
-; [((size [[], []]) .0) === U, ((size [[], []]) .1) === U]
-# [<>, <>]
-; [(count [[], [[], []]]) = ((cells [[], [[], []]]).#), (count Z) = ((cells Z).#)]
+; .t (size [[], []]);
+; [(t .0) = B, (t .0) === B, (t .0) === (t .1)]
+# [<>, (), ()]
+; [(count [[], [[], []]]) = ((cells [[], [[], []]]).#), (count A) = ((cells A).#)]
 # [<>, <>]
 ```
 Manyness marks the immediate elements and looks no deeper
 ```
-; [(many Z) = [], (many E) = [[[]], [[]]], (many [U, U, U]) = [[[]], [[]], [[]]]]
+; [(many A) = [], (many E) = [[[]], [[]]], (many [B, B, B]) = [[[]], [[]], [[]]]]
 # [<>, <>, <>]
 ```
 ## Inlay
@@ -361,7 +367,7 @@ Inlay replaces native terminals and retains nonterminal nesting even for an
 empty right operand. A terminal `[]` becomes y; a nonempty frame reconstructs
 its elements
 ```
-; [(inlay Z [[], []]) = [[], []], (inlay U [[], []]) = [[[], []]], (inlay [[], []] [[]]) = [[[]], [[]]]]
+; [(inlay A [[], []]) = [[], []], (inlay B [[], []]) = [[[], []]], (inlay [[], []] [[]]) = [[[]], [[]]]]
 # [<>, <>, <>]
 ; (inlay [[], [], [[], []]] “x”) = [“x”, “x”, [“x”, “x”]]
 # <>
@@ -369,14 +375,14 @@ its elements
 An empty right operand still replaces each terminal, so the surrounding
 construction is not annihilated — the 009.07 contrast with a right-zero guard
 ```
-; [(inlay [[], []] []) = [[], []], (inlay U []) = [[]], (inlay [[], []] [[], []]) = [[[], []], [[], []]]]
+; [(inlay [[], []] []) = [[], []], (inlay B []) = [[]], (inlay [[], []] [[], []]) = [[[], []], [[], []]]]
 # [<>, <>, <>]
 ```
 The right operand is reused by identity at each terminal, and nonterminal
 ancestors are freshly built, including separate occurrences of a shared left
 subtree. Neither operand is written
 ```
-; .yy (Figure [Z, Figure [U, Z]]); .host (Figure [[], Figure [[], []]]);
+; .yy (Figure [A, Figure [B, A]]); .host (Figure [[], Figure [[], []]]);
 ; .rr (inlay host yy);
 ; [((rr .0) === yy), (((rr .1) .0) === yy), (((rr .1) .1) === yy), (rr === host)]
 # [<>, <>, <>, ()]
@@ -428,10 +434,10 @@ any parent
 # [[], [[]]]
 ```
 Size-equivalence keeps only whether the terminal counts agree. Note the native
-boundary: `U` and `Z` both have count 1, so they are size-equivalent here, where
-the old `Z`-is-zero reading made them differ
+boundary: `B` and `A` both have count 1, so they are size-equivalent here, where
+the old reading of the empty Figure as zero made them differ
 ```
-; [(size_equivalent [[], []] [[[], []]]), (size_equivalent [[], []] U), (size_equivalent U Z)]
+; [(size_equivalent [[], []] [[[], []]]), (size_equivalent [[], []] B), (size_equivalent B A)]
 # [[[]], [], [[]]]
 ```
 ## Gap and Spin
@@ -440,7 +446,7 @@ Gap folds the counts of x's immediate elements with alternating signs, starting
 positive, and drops the sign. The empty frame has Gap `0`; one element is its own
 count; two elements are the difference of their counts
 ```
-; [(gap Z) = 0, (gap [[[], []]]) = 2, (gap [[[], []], [[], [], []]]) = 1, (gap [[[], [], []], [[], []]]) = 1]
+; [(gap A) = 0, (gap [[[], []]]) = 2, (gap [[[], []], [[], [], []]]) = 1, (gap [[[], [], []], [[], []]]) = 1]
 # [<>, <>, <>, <>]
 ; (gap [[[], []], [[], [], [], [], []], [[], [], []]]) = 0
 # <>
@@ -451,7 +457,7 @@ is `0` at every N
 ```
 ; [(spin [[[], []], [[], [], [], [], []]] 4) = (0 - (3 / 4)), (spin [[[], [], [], [], []], [[], []]] 4) = (3 / 4)]
 # [<>, <>]
-; [(spin [[[], []]] 1) = 2, (spin Z 4) = 0]
+; [(spin [[[], []]] 1) = 2, (spin A 4) = 0]
 # [<>, <>]
 ```
 N must be a positive count: a non-count is a type error and zero is a
@@ -470,7 +476,7 @@ arrays or ratios on purpose. Importing this file skips the examples and answers
 its last form, which the hosts' smoke tests read, so the file ends on code that
 holds however the rest of it changes
 ```
-; [(many (many E)) = (many E), (size (size [U, U])) = (size [U, U])]
+; [(many (many E)) = (many E), (size (size [B, B])) = (size [B, B])]
 # [<>, <>]
 
-U = [[]]
+B = [[]]

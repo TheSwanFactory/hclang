@@ -22,7 +22,7 @@ async function figuresSession(): Promise<HCLang> {
   await session.call(
     ".size {Figures.size _}; .count {Figures.count _}; " +
       ".cells {Figures.cells _}; .pure {Figures.pure _}; " +
-      ".inlay {Figures.inlay _}; .U Figures.U;",
+      ".inlay {Figures.inlay _}; .B Figures.B;",
   );
   return session;
 }
@@ -57,12 +57,23 @@ Deno.test("Figure count and size agree with native .## on the pure domain", asyn
   }
 });
 
-Deno.test("count keeps its FrameCount answer and size its tally of U", async () => {
+Deno.test("count keeps its FrameCount answer and size its tally of fresh marks", async () => {
   const session = await figuresSession();
   expect(await session.call("(count [[], []]) == 2")).toEqual("<>");
   expect(await session.call("(size [[], []]) = [[[]], [[]]]")).toEqual("<>");
-  // The tally repeats U itself, so each mark is U by identity.
-  expect(await session.call("((size [[], [[], []]]) .2) === U")).toEqual("<>");
+  // size builds each mark where it visits a terminal, as it did before
+  // 010.02: every mark equals B but is neither B itself nor another mark.
+  await session.call(".t (size [[], [[], []]]);");
+  for (
+    const [source, expected] of [
+      ["(t .2) = B", "<>"],
+      ["(t .2) === B", ""],
+      ["(t .0) === (t .1)", ""],
+      ["(t .1) === (t .2)", ""],
+    ] as const
+  ) {
+    expect(await session.call(source), source).toEqual(expected);
+  }
 });
 
 Deno.test("mixed atom/array trees: .## counts atoms and empty frames, Figures refuse", async () => {

@@ -19,7 +19,7 @@ async function figuresSession(): Promise<HCLang> {
       ".form {Figures.form _}; .many {Figures.many _}; " +
       ".mul {Figures.mul _}; .gap {Figures.gap _}; " +
       ".spin {Figures.spin _}; .pure {Figures.pure _}; " +
-      ".need {Figures.need _}; .Z Figures.Z; .U Figures.U;",
+      ".need {Figures.need _}; .A Figures.A; .B Figures.B;",
   );
   return session;
 }
@@ -89,14 +89,14 @@ Deno.test("size, cells, form, many observe native structure", async () => {
   for (
     const [source, expected] of [
       // size counts native terminals; the empty frame is one terminal.
-      ["count Z", "1"],
-      ["count U", "1"],
+      ["count A", "1"],
+      ["count B", "1"],
       ["count [[], []]", "2"],
       ["count [[[], []], [[], [], []]]", "5"],
       ["(size [[], []]) = [[[]], [[]]]", "<>"],
       // cells are the terminals in order, each itself.
       ["(cells [[[], []], [[], [], []]]) = [[], [], [], [], []]", "<>"],
-      ["(cells Z) = [[]]", "<>"],
+      ["(cells A) = [[]]", "<>"],
       // form is the native bracket tree; text spells it.
       ["(form [[], [[]]]) = [[], [[]]]", "<>"],
       ["(“” (form [[], [[]]])) = “[[], [[]]]”", "<>"],
@@ -237,12 +237,12 @@ Deno.test("native inlay differs from the old Figure-specific U-cell inlay", asyn
   for (
     const [source, expected] of [
       // The empty frame is now one terminal (old Size(Z) was 0).
-      ["count Z", "1"],
+      ["count A", "1"],
       // A bare empty list is an eligible inlay site (old Z was not a cell).
       ["(inlay [] [[]]) = [[]]", "<>"],
       // On the form [[]] the native inlay recurses and replaces the inner
       // terminal, where the old U-cell inlay treated the whole thing as a cell.
-      ["(inlay U [[], []]) = [[[], []]]", "<>"],
+      ["(inlay B [[], []]) = [[[], []]]", "<>"],
     ] as const
   ) {
     expect(await session.call(source), source).toEqual(expected);

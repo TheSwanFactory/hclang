@@ -66,7 +66,7 @@ describe("HCLang", () => {
       expect(imported).not.toContain("$!");
       expect(
         await session.call(
-          "(Figures.size Figures.U) = (Figures.Figure [Figures.U])",
+          "(Figures.size Figures.B) = (Figures.Figure [Figures.B])",
         ),
       ).toEqual("<>");
     });
@@ -90,7 +90,7 @@ describe("HCLang", () => {
       await session.call("Figures <- './hc/figures.hc'");
       expect(
         await session.call(
-          "(Figures.size Figures.U) = (Figures.Figure [Figures.U])",
+          "(Figures.size Figures.B) = (Figures.Figure [Figures.B])",
         ),
       ).toEqual("<>");
     });

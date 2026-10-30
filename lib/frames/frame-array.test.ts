@@ -174,6 +174,36 @@ describe("FrameArray", () => {
       expect(evaluate("$$.xs.#", { xs: indirect }).at(0).toString())
         .toEqual("1");
     });
+
+    it("still refuses a cycle when empty frames sit beside it (010.02)", () => {
+      // An empty frame answers 1 before it joins the walk's path, so a cycle
+      // must still be found past one, at the root and nested.
+      const empty = new FrameArray([]);
+      const beside = new FrameArray([empty]);
+      beside.collect(beside);
+      const deep = new FrameArray([new FrameArray([])]);
+      deep.collect(new FrameArray([new FrameArray([]), deep]));
+
+      for (const xs of [beside, deep]) {
+        const refusal = evaluate("$$.xs.##", { xs }).at(0);
+
+        expect(refusal.is.error).toBe(true);
+        expect(refusal.toString()).toEqual("$!.cyclic-aggregate .##");
+      }
+    });
+
+    it("counts a shared empty frame at every occurrence (010.02)", () => {
+      // The empty frame is never added to the path, so meeting it again,
+      // beside itself or below, is a second terminal rather than a cycle.
+      const empty = new FrameArray([]);
+      const twice = new FrameArray([empty, empty]);
+      const below = new FrameArray([empty, new FrameArray([empty, empty])]);
+
+      expect(evaluate("$$.xs.##", { xs: twice }).at(0).toString())
+        .toEqual("2");
+      expect(evaluate("$$.xs.##", { xs: below }).at(0).toString())
+        .toEqual("3");
+    });
   });
 
   describe("a key the aggregate already assigns", () => {
