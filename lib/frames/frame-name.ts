@@ -32,10 +32,10 @@ const recognizeName = (symbol: Frame, source = ""): ScanResult => {
   if (source.endsWith("^")) {
     return { disposition: ScanDisposition.CompleteRedispatch };
   }
-  // `#` begins a comment except where it spells a size operator, `.#` or `.##`
-  // (#411), which nothing extends: `.foo#bar` still ends at its `#`, and `.###`
-  // is `.##` before a comment.
-  if ([Frame.kCOUNT, Frame.kLEAVES].includes(source + char)) {
+  // `#` begins a comment except where it spells a size operator, `.#`, `.##`
+  // or `.###` (#411, 010.04), which nothing extends: `.foo#bar` still ends at
+  // its `#`, and `.####` is `.###` before a comment.
+  if (Frame.SIZE_OPERATORS.includes(source + char)) {
     return { disposition: ScanDisposition.Consume };
   }
   if (source.startsWith(Frame.kCOUNT)) {

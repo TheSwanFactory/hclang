@@ -5,7 +5,9 @@ Figures are native frames (#454; issue occurrence/figure 010.02)
 A Figure is a finite, property-free nested array built from `[]`. Construction
 is brackets, form is the value itself, immediate size is `.#`, terminal count
 is `.##`, form equality is `=`, and identity is `===`. The empty frame is one
-terminal: `[].#` is 0 and `[].##` is 1.
+terminal: `[].#` is 0 and `[].##` is 1. The signed residual `.###` is
+`x₁.## − x₂.## + x₃.## − …` over the immediate elements, a FrameInt that is 0
+for `[]` (issue occurrence/figure 010.04).
 
 There are no Figure constructors, marks, tally observers, count aliases or
 comparison wrappers. Use native operations directly. Multiplication that places
@@ -52,25 +54,21 @@ of x by native identity. It returns a native boolean. No requested frames is tru
     .absent (fs &| {.f _; ((host &| {(_ === f) ? {[f]}}) = []) ? {[f]}});
     absent = []}};
 ```
-`gap x` is the absolute alternating sum of its immediate elements' `.##`
-counts. The empty frame has Gap 0. The validated host needs no per-child guard.
+`gap x` is the absolute value of native `x.###`, the alternating sum of its
+immediate elements' `.##` counts. The empty frame has Gap 0.
 ```
 .gap {.x _; (pure x) ? {
-  .tail {(_ && {(((_ .0) = .0) ? {[()]} : {[[__ .1]]}) .0}) &| {_}};
-  .alt {.cs _; (cs = []) ? {0} : {(cs .0).## - (alt (tail cs))}};
-  .signed (alt x);
+  .signed (x.###);
   (signed .< 0) ? {0 - signed} : {signed}} : {need x}};
 ```
-`spin x N` keeps the sign of the alternating sum and divides by a positive
-count N. Non-count N is a type error; zero is division-by-zero. The host is
-validated before the resolution is checked.
+`spin x N` keeps the sign of `x.###` and divides by a positive count N.
+Non-count N is a type error; zero is division-by-zero. The host is validated
+before the resolution is checked.
 ```
 .spin {.x _; .host x;
   (pure host) ? {
     {.n <~~1> _;
-      .tail {(_ && {(((_ .0) = .0) ? {[()]} : {[[__ .1]]}) .0}) &| {_}};
-      .alt {.cs _; (cs = []) ? {0} : {(cs .0).## - (alt (tail cs))}};
-      .signed (alt host);
+      .signed (host.###);
       (n .< 1) ? {signed / 0} : {signed / n}}} : {
     {.n _; need host}}};
 ```
@@ -122,7 +120,24 @@ Withness uses identity, and its answer is the native boolean.
 ; [(withness [] [[[]]]), (withness [shared] [])]
 # [(), <>]
 ```
-Gap and Spin read native terminal counts, including shared branches at every
+Native `.###` folds the immediate elements' terminal counts with alternating
+signs, one sign per element, and answers a FrameInt even when it is 0 or
+positive. It refuses anything that is not a Figure.
+```
+; [[].###, [[]].###, [[], []].###, [[], [[], []]].###, [[[], []], []].###]
+# [0, 1, 0, -1, 1]
+; [[], [[], []], [[], [], []]].###
+# 2
+; [([].###) == (0 - 0), ([[]].###) == (1 - 0), ([[]].###) == 1]
+# [<>, <>, ()]
+; [[[], [[]]], [[[], []], []], [[[[], [], []]]]].###
+# 2
+; [1, []].###
+# $!.unsupported-figure .###
+; [.k 1; []].###
+# $!.unsupported-figure .###
+```
+Gap is `|x.###|` and Spin is `x.### / N`, including shared branches at every
 occurrence. Reversing two unequal branches reverses Spin's sign.
 ```
 ; [(gap []) = 0, (gap [[[], []]]) = 2, (gap [[[], []], [[], [], []]]) = 1]
@@ -133,6 +148,9 @@ occurrence. Reversing two unequal branches reverses Spin's sign.
 # [<>, <>]
 ; [(spin [[[], []]] 1) = 2, (spin [] 4) = 0]
 # [<>, <>]
+; .z [[[], []], [[], [], [], [], []]];
+; [z.###, (gap z) = (0 - z.###), (spin z 4) = (z.### / 4)]
+# [-3, <>, <>]
 ; spin [[[], []]] 2.5
 # $!.type-error .n <~~1> 2.5
 ; spin [[[], []]] 0

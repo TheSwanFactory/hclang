@@ -422,15 +422,14 @@ export class FrameScoped extends Frame {
     return this.term.sizeFor(key);
   }
 
-  /** Counts as its term walks, `.#` and `.##`; anything else is applied. */
+  /** Sizes as its term does, `.#`, `.##` and `.###`; anything else is applied. */
   public override call(
     argument: Frame,
     parameter: Frame = Frame.nil,
   ): Frame {
     if (
       argument instanceof FrameSymbol && argument.is.address === true &&
-      (argument.spelling() === Frame.kCOUNT ||
-        argument.spelling() === Frame.kLEAVES)
+      Frame.SIZE_OPERATORS.includes(argument.spelling())
     ) {
       return this.sizeFor(argument.spelling());
     }

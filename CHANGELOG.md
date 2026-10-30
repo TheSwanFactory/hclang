@@ -4,6 +4,18 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.34.0 2026-10-30
+
+- **`.###` is a Figure's signed residual.** On a property-free nested array it
+  answers `x₁.## − x₂.## + x₃.## − …` over the immediate elements, always as a
+  FrameInt: `[].###` is `0`, `[[]].###` is `1` and `[[], [[], []]].###` is `-1`.
+  Atoms, strings, mixed trees, groups, schemas, closures and arrays with
+  properties or a declared parent answer `$!.unsupported-figure .###`; `.####`
+  is `.###` before a comment.
+- **Gap and Spin read `.###`.** `gap x` is `|x.###|` and `spin x N` is
+  `x.### / N`. `gap []` is now the FrameInt `0`, like every other Gap, and an
+  array with a declared parent is refused instead of measured.
+
 ## v0.33.0 2026-10-30
 
 - **Breaking: `.##` counts structural terminals.** Empty aggregates now count as

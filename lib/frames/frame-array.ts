@@ -79,6 +79,15 @@ export class FrameArray extends FrameList {
   }
 
   /**
+   * An array is a Figure node when it holds no property and declares no
+   * parent, so `.###` never drops either to read the rest as structure
+   * (010.04).
+   */
+  protected override isFigureNode(): boolean {
+    return this.meta_length() === 0 && !this.hasDeclaredParent();
+  }
+
+  /**
    * An immutable handle on this aggregate, as a name reads it: applying it
    * collects onto a copy and its mutating methods answer functional updates.
    */

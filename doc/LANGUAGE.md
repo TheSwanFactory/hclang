@@ -566,13 +566,17 @@ For a worked example, see the Figures module, shipped with the package as
 array: `[]` is the empty Figure, and `[c, …]` constructs a frame. Use native
 `.#` for immediate element count, `.##` for terminal count, `=` for form
 equality and `===` for identity. A flat product is `x.## [y]`; no constructor,
-count, size, comparison or multiplication wrapper is needed.
+count, size, comparison or multiplication wrapper is needed. Native `.###` is a
+Figure's signed residual, the alternating sum of its immediate elements' `.##`
+counts as a FrameInt (`[[], [[], []]].###` is -1); it refuses anything that is
+not a Figure.
 
 The module keeps `inlay`, `withness`, `gap` and `spin`, plus `pure` and `need`
 for domain validation. `inlay` replaces terminals while preserving nesting;
 `withness` tests immediate containment by identity and returns a native boolean.
-`inlay`, `gap` and `spin` reject unsupported hosts so traversals cannot silently
-discard properties. Native `.##` also counts mixed atom/array trees.
+`gap x` is `|x.###|` and `spin x N` is `x.### / N`. `inlay`, `gap` and `spin`
+reject unsupported hosts so traversals cannot silently discard properties.
+Native `.##` also counts mixed atom/array trees.
 
 ### TODO: Class variables
 

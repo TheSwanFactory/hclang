@@ -316,6 +316,15 @@ describe("FrameCount", () => {
         expect(evaluate(`${source}.##`).toString()).toEqual("[]");
       }
     });
+
+    it("refuses .###, since a count is not a Figure (010.04)", () => {
+      for (const source of ["5", "0", "(5 - 3)", "1.5"]) {
+        const refusal = evaluate(`${source}.###`).at(0);
+
+        expect(refusal.is.error).toBe(true);
+        expect(refusal.toString()).toEqual("$!.unsupported-figure .###");
+      }
+    });
   });
 
   describe("counts the language answers", () => {

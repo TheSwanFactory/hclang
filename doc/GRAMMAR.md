@@ -176,8 +176,13 @@ complete at a colon with or without intervening space.
 - **Size**: `.#` is an aggregate's element count and `.##` its terminal count at
   any depth, each a count. A terminal is an element that is not an aggregate, or
   an aggregate with no elements, so `[].##` is 1 and `[[], [5]].##` is 2. A
-  count is its own size and any other value answers nil. These are the only
-  names spelled with `#`, which otherwise begins a comment
+  count is its own size and any other value answers nil. `.###` is defined only
+  on Figures, finite property-free nested arrays: it is the signed alternating
+  sum `x₁.## − x₂.## + x₃.## − …` over the immediate elements, always a
+  FrameInt, so `[].###` is 0 and `[[], [[], []]].###` is -1. Any other receiver
+  answers `$!.unsupported-figure .###`, and one that contains itself
+  `$!.cyclic-aggregate .###`. These are the only names spelled with `#`, which
+  otherwise begins a comment, so `.####` is `.###` before a comment
 - **Enclosing scope**: `_^` (`_^.var`). Each caret is exactly one enclosing
   lexical scope: `_^^` is two scopes out. The count depends only on where the
   closure was written, never on how it was invoked. `_`/`__` and `_^`/`_^^` are

@@ -2,6 +2,7 @@ import { Frame } from "./frame.ts";
 import { type Context, NilContext } from "./context.ts";
 import { type EvaluationInput, EvaluationScope } from "./evaluation-scope.ts";
 import { FrameCount } from "./frame-count.ts";
+import { FrameInt } from "./frame-int.ts";
 import { REPETITION_ELEMENT_LIMIT } from "./frame-numeric.ts";
 import { renderNested } from "./stringify.ts";
 import type { FrameBinding } from "./frame-symbol.ts";
@@ -179,13 +180,14 @@ export class FrameList extends Frame {
   /**
    * `.#` counts this aggregate's elements (#411) and `.##` the terminals of
    * its structure (issue occurrence/figure 010.02), so neither counts a
-   * property. Every aggregate is a list, so each one answers here rather than
-   * in its own class.
+   * property. `.###` is a Figure's signed residual (010.04). Every aggregate
+   * is a list, so each one answers here rather than in its own class.
    */
   public override sizeFor(key: string): Frame {
     if (key === Frame.kCOUNT) {
       return new FrameCount(BigInt(this.countedElements().length));
     }
+    if (key === Frame.kRESIDUAL) return this.residual(key);
     const terminals = this.terminalCount(new Set());
     return terminals === undefined
       ? Frame.error(`$!.cyclic-aggregate .${key}`)
@@ -222,6 +224,70 @@ export class FrameList extends Frame {
       terminals += below;
     }
     path.delete(this);
+    return terminals;
+  }
+
+  /**
+   * Whether this aggregate can be a node of a Figure, a finite, property-free
+   * nested array (010.04). Only an array holding no properties and no declared
+   * parent can, so groups, schemas and closures answer false here.
+   */
+  protected isFigureNode(): boolean {
+    return false;
+  }
+
+  /**
+   * `.###`, the signed alternating sum of the terminal counts of a Figure's
+   * immediate elements, `T(x₁) − T(x₂) + T(x₃) − …`, always a FrameInt and 0
+   * for `[]` (issue occurrence/figure 010.04). A terminal is an empty frame,
+   * so on a Figure `T` is `.##`. Each element is folded with one sign; the
+   * signs do not alternate over the terminals below it.
+   *
+   * Only Figures answer, so the whole structure is checked: an atom, a string,
+   * a group, a schema, a closure, or an array holding a property anywhere is
+   * refused as `$!.unsupported-figure .###` rather than read as structure, and
+   * an aggregate that contains itself as `$!.cyclic-aggregate .###`.
+   */
+  private residual(key: string): Frame {
+    if (!this.isFigureNode()) return Frame.unsupportedFigure(key);
+    const path = new Set<Frame>([this]);
+    let signed = 0n;
+    let positive = true;
+    for (const element of this.countedElements()) {
+      const terminals = FrameList.figureTerminals(element.referent(), path);
+      if (terminals === undefined) {
+        return Frame.error(`$!.cyclic-aggregate .${key}`);
+      }
+      if (terminals === null) return Frame.unsupportedFigure(key);
+      signed += positive ? terminals : -terminals;
+      positive = !positive;
+    }
+    return new FrameInt(signed);
+  }
+
+  /**
+   * The terminal count of `value` as a Figure: 1 for an empty frame, else the
+   * sum over its elements. Answers null when any node is not a Figure node,
+   * and undefined when a node contains itself. `path` holds the nodes from
+   * the root down, as for `terminalCount`, so a shared branch counts at every
+   * occurrence.
+   */
+  private static figureTerminals(
+    value: Frame,
+    path: Set<Frame>,
+  ): bigint | null | undefined {
+    if (!(value instanceof FrameList) || !value.isFigureNode()) return null;
+    if (path.has(value)) return undefined;
+    const elements = value.countedElements();
+    if (elements.length === 0) return 1n;
+    path.add(value);
+    let terminals = 0n;
+    for (const element of elements) {
+      const below = FrameList.figureTerminals(element.referent(), path);
+      if (typeof below !== "bigint") return below;
+      terminals += below;
+    }
+    path.delete(value);
     return terminals;
   }
 

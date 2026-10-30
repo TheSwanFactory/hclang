@@ -102,3 +102,41 @@ Deno.test("Inlay terminal product law uses native .## across 25 pairs", async ()
     }
   }
 });
+
+Deno.test("Gap is |.###| and Spin is .### / N, with .### a FrameInt (010.04)", async () => {
+  const session = await figuresSession();
+  const residuals = [
+    ["[]", "0"],
+    ["[[]]", "1"],
+    ["[[], []]", "0"],
+    ["[[], [[], []]]", "-1"],
+    ["[[[], []], []]", "1"],
+    ["[[], [[], []], [[], [], []]]", "2"],
+    ["[[[], []], [[], [], [], [], []]]", "-3"],
+  ] as const;
+  for (const [x, s] of residuals) {
+    expect(await session.call(`${x}.###`), x).toEqual(s);
+    // `==` compares the exact type, and a FrameInt is what `-` answers.
+    expect(await session.call(`(${x}.###) == (${s} - 0)`), x).toEqual("<>");
+    const gap = s.startsWith("-") ? s.slice(1) : s;
+    expect(await session.call(`(Figures.gap ${x}) = ${gap}`), x)
+      .toEqual("<>");
+    expect(await session.call(`(Figures.spin ${x} 4) = (${x}.### / 4)`), x)
+      .toEqual("<>");
+  }
+  // A negative residual keeps its sign in Spin and loses it in Gap.
+  expect(await session.call("Figures.spin [[], [[], []]] 2")).toEqual("-1/2");
+  expect(await session.call("Figures.gap [[], [[], []]]")).toEqual("1");
+});
+
+Deno.test("Gap and Spin keep refusing unsupported hosts (010.04)", async () => {
+  const session = await figuresSession();
+  for (const host of ["[1, []]", "[.k 1; []]", "5"]) {
+    expect(await session.call(`Figures.gap ${host}`), host)
+      .toContain("unsupported-figure");
+    expect(await session.call(`Figures.spin ${host} 2`), host)
+      .toContain("unsupported-figure");
+    expect(await session.call(`${host}.###`), host)
+      .toEqual("$!.unsupported-figure .###");
+  }
+});

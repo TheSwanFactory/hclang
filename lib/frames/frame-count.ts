@@ -54,9 +54,14 @@ export class FrameCount extends FrameInt {
     }
   }
 
-  /** A count is its own size, so `.#` and `.##` both answer it (#411). */
-  public override sizeFor(_key: string): Frame {
-    return this;
+  /**
+   * A count is its own size, so `.#` and `.##` both answer it (#411). A count
+   * is not a Figure, so `.###` refuses it as any atom does (010.04). The
+   * spelling is the literal `Frame.kRESIDUAL`, since this module imports
+   * `Frame` as a type only.
+   */
+  public override sizeFor(key: string): Frame {
+    return key === "###" ? super.sizeFor(key) : this;
   }
 
   protected override promoteOne(): FrameNumeric {
