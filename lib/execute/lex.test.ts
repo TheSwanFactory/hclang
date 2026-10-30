@@ -65,6 +65,15 @@ const lexChunkedAtoms = (chunks: string[]): Frame[] => {
 };
 
 describe("Lex", () => {
+  it("recognizes membership runs and terminates type/schema accessors", () => {
+    for (const op of ["~", "~~", "~~~"]) {
+      expect(lexAtoms(`1${op}[1]`).map(String)).toEqual(["1", op, "[1]"]);
+    }
+    expect(lexAtoms("x.<>").map(String)).toEqual(["x", ".<>"]);
+    expect(lexAtoms("x.<^>").map(String)).toEqual(["x", ".<^>"]);
+    expect(lexAtoms("<1.<>>").map(String)).toEqual(["<1 .<>>"]);
+  });
+
   it("lexes file and host anchors with longest-match dollar rules", () => {
     const file = lexAtoms("$");
     const host = lexAtoms("$$");

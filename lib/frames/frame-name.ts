@@ -29,7 +29,12 @@ const recognizeName = (symbol: Frame, source = ""): ScanResult => {
   if (source.startsWith(".")) {
     return { disposition: ScanDisposition.CompleteRedispatch };
   }
-  if (source.endsWith("^")) {
+  // Reserve observation spellings and leave a following schema closer alone.
+  // The caret inside .<^> is not an effect suffix.
+  if (
+    source === "<>" || source === "<^>" ||
+    (source.endsWith("^") && source !== "<^")
+  ) {
     return { disposition: ScanDisposition.CompleteRedispatch };
   }
   // `#` begins a comment except where it spells a size operator, `.#`, `.##`

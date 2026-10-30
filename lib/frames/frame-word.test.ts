@@ -159,7 +159,7 @@ describe("walking a closure (#429)", () => {
     });
 
     it("keeps each resumed term its own class", () => {
-      expect(answer(".x 5; .f {x .<>}; [f (), (f & {_}) | ()]"))
+      expect(answer(".x 5; .f {x .<^>}; [f (), (f & {_}) | ()]"))
         .toContain("[$!.schema-missing .x, $!.schema-missing .x]");
     });
 

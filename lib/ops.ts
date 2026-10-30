@@ -22,7 +22,8 @@ import {
   Subtract,
   TypeEquals,
 } from "./ops/math.ts";
-import { BindType, HasType } from "./ops/type-operations.ts";
+import { IdenticalMember, Member, TypedMember } from "./ops/membership.ts";
+import { BindType } from "./ops/type-operations.ts";
 
 export { FrameCurry } from "./ops/frame-curry.ts";
 export type { ICurryFunction } from "./ops/frame-curry.ts";
@@ -50,6 +51,8 @@ export const Ops = new FrameOps({
   "<": LessThan,
   "<<": LessThan,
   "<=": LessThanOrEqual,
-  "~": HasType,
+  "~": Member,
+  "~~": TypedMember,
+  "~~~": IdenticalMember,
   "^": BindType,
 });

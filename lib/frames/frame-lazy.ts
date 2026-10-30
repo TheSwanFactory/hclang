@@ -1,4 +1,5 @@
 import { Frame } from "./frame.ts";
+import { FrameType } from "./frame-type.ts";
 import {
   atomsOf,
   FrameExpr,
@@ -165,6 +166,10 @@ export class FrameLazy extends FrameExpr {
     parameter: Frame = Frame.nil,
     receiverState?: ReceiverState,
   ): Frame {
+    if (
+      argument instanceof FrameSymbol && argument.is.address === true &&
+      argument.spelling() === "<>"
+    ) return FrameType.of(this);
     const size = this.sizeOperator(argument);
     if (size) return size;
 

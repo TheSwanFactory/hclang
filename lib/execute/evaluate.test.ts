@@ -624,11 +624,11 @@ describe("evaluate", () => {
         );
 
         const runtime = evaluate(
-          ".Text <~~“”>; .value <Text> “Q”; @value 1",
+          ".Text <(“”).<>>; .value <Text> “Q”; @value 1",
         );
         expect(runtime.meta.value.toString()).toEqual("“Q”");
         expect(runtime.at(0).toString()).toContain(
-          "$!.type-error .value <<~~“”>> 1",
+          "$!.type-error .value <<(“”).<>>> 1",
         );
       });
 
@@ -637,13 +637,13 @@ describe("evaluate", () => {
       });
 
       it("retrieves the schema attached to a binding after reassignment", () => {
-        const result = evaluate(".x <1,2> 1; @x 2; x.<>");
+        const result = evaluate(".x <1,2> 1; @x 2; x.<^>");
         expect(result.at(0).toString()).toContain("<1, 2>");
         expect(result.meta.x.toString()).toEqual("2");
       });
 
       it("reports a missing binding schema", () => {
-        const result = evaluate(".plain 1; plain.<>");
+        const result = evaluate(".plain 1; plain.<^>");
         expect(result.at(0).toString()).toContain("$!.schema-missing .plain");
       });
 
@@ -693,7 +693,7 @@ describe("evaluate", () => {
       it("defines and reuses a named bit splitter with exact-width results", () => {
         const result = evaluate(
           ".Split <[.head <3@Bit>; .tail <[@Bit]>;]>; " +
-            "Split 0b00101; Split 0b11000; Split.<>",
+            "Split 0b00101; Split 0b11000; Split.<^>",
         );
         const output = result.at(0).toString();
         expect(output).toContain("[.head 0b001; .tail 0b01;]");
@@ -863,9 +863,9 @@ describe("evaluate", () => {
     });
 
     it("extracts first-class runtime types for membership", () => {
-      expect(evaluate("~~“”").at(0)).toBeInstanceOf(frame.FrameType);
-      expect(evaluate("“Q” ~ ~~“”").at(0)).toBe(frame.Frame.all);
-      expect(evaluate("“Q” ~ ~~1").toString()).toEqual("[]");
+      expect(evaluate("(“”).<>").at(0)).toBeInstanceOf(frame.FrameType);
+      expect(evaluate("“Q” ~ (“”).<>").at(0)).toBe(frame.Frame.all);
+      expect(evaluate("“Q” ~ (1).<>").toString()).toEqual("[]");
     });
 
     it("enforces closure signature defaults and required properties", () => {

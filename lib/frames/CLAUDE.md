@@ -554,10 +554,10 @@ digit string into a count.
 
 A count and a FrameInt are distinct types, as a FrameInt and a FrameDecimal are.
 `=` and ordering compare values across rungs, so `2 = (5 - 3)` holds, while
-`==`, `===`, and `~~` compare exact types: `2 == (5 - 3)` is nil and `~~2` does
-not match `5 - 3`, nor `~~(5 - 3)` a `2`. Subclassing only lets integer
-consumers accept a count; `typeEquals` and `FrameType.match` compare exact
-constructors.
+`==`, `===`, and runtime types from `.<>` compare exact types: `2 == (5 - 3)` is
+nil and `2.<>` does not match `5 - 3`, nor `(5 - 3).<>` a `2`. Subclassing only
+lets integer consumers accept a count; `typeEquals` and `FrameType.match`
+compare exact constructors.
 
 ### Type Matching
 

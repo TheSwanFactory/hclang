@@ -4,6 +4,23 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.36.0 2026-10-30
+
+- **Native immediate membership mirrors equality.** `f ~ P`, `f ~~ P` and
+  `f ~~~ P` use `=`, `==` and `===` over P's immediate elements, returning
+  native truth or nil. Properties, parents and descendants are excluded;
+  `point ~~~ line` expresses incidence. `Figures.withness` derives collective
+  membership through ordinary iteration and retains vacuous truth.
+- **Breaking: runtime type extraction is `F.<>`.** Replace `~~F` with `F.<>`,
+  e.g. `~~1` → `1.<>` and `<~~1>` → `<1.<>>`. Named values extract the
+  referent's runtime class; closure access does not execute the body. Binary
+  `~~` now means typed membership.
+- **Breaking: binding schema retrieval is `name.<^>`.** Replace `name.<>` with
+  `name.<^>` to read its declared schema; `name.<>` consistently reads the
+  value's runtime type. Stored schema metadata and assignment validation are
+  unchanged. Existing `value ~ schema` (including nested structural and bit
+  matchers) retains rich matching; `value ~ [elements]` now tests membership.
+
 ## v0.35.0 2026-10-30
 
 - **Star composes frames through `*`.** Nested-array hosts replace each empty

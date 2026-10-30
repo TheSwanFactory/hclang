@@ -44,7 +44,7 @@ of x by native identity. It returns a native boolean. No requested frames is tru
 ```
 .withness {.x _; .host x;
   {.fs _;
-    .absent (fs &| {.f _; ((host &| {(_ === f) ? {[f]}}) = []) ? {[f]}});
+    .absent (fs &| {.f _; (f ~~~ host) ? {[]} : {[f]}});
     absent = []}};
 ```
 `gap x` is the absolute value of native `x.###`, the alternating sum of its
@@ -61,7 +61,7 @@ before the resolution is checked.
 ```
 .spin {.x _; .host x;
   (pure host) ? {
-    {.n <~~1> _;
+    {.n <(1).<>> _;
       .signed (host.###);
       (n .< 1) ? {signed / 0} : {signed / n}}} : {
     {.n _; need host}}};
@@ -156,7 +156,7 @@ occurrence. Reversing two unequal branches reverses Spin's sign.
 ; [z.###, (gap z) = (0 - z.###), (spin z 4) = (z.### / 4)]
 # [-3, <>, <>]
 ; spin [[[], []]] 2.5
-# $!.type-error .n <~~1> 2.5
+# $!.type-error .n <(1).<>> 2.5
 ; spin [[[], []]] 0
 # $!.division-by-zero /
 

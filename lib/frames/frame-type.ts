@@ -16,6 +16,7 @@ export class FrameType extends Frame implements FrameMatcher {
   }
 
   public static of(representative: Frame): FrameType {
+    representative = representative.referent();
     return new FrameType(
       representative.constructor as typeof Frame,
       representative,
@@ -27,7 +28,7 @@ export class FrameType extends Frame implements FrameMatcher {
   }
 
   public match(value: Frame): MatchResult {
-    return value.constructor === this.FrameClass
+    return value.referent().constructor === this.FrameClass
       ? matchSuccess(value)
       : matchFailure(
         Frame.error(`$!.type-error ${this.toString()} ${value.toString()}`),
@@ -40,7 +41,7 @@ export class FrameType extends Frame implements FrameMatcher {
   }
 
   public override toString(): string {
-    return `~~${this.representative.toString()}`;
+    return `(${this.representative.toString()}).<>`;
   }
 
   public override dataString(): string {

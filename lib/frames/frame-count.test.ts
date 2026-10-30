@@ -242,7 +242,7 @@ describe("FrameCount", () => {
       expectClass(value("<1, 2, 3> (5 - 3)"), "FrameInt");
     });
 
-    it("is a distinct type from FrameInt for ==, ===, and ~~", () => {
+    it("is a distinct type from FrameInt for ==, ===, and runtime types", () => {
       for (
         const source of [
           "2 == (5 - 3)",
@@ -251,10 +251,10 @@ describe("FrameCount", () => {
           "(5 - 3) === 2",
           "[2] == [5 - 3]",
           "[.a 1; .b 2;] == [.a 1; .b (4 - 2);]",
-          "(5 - 3) ~ ~~2",
-          "2 ~ ~~(5 - 3)",
-          "5 ~ ~~(0 - 1)",
-          "(0 - 1) ~ ~~5",
+          "(5 - 3) ~ (2).<>",
+          "2 ~ (5 - 3).<>",
+          "5 ~ (0 - 1).<>",
+          "(0 - 1) ~ (5).<>",
           // Exactly as a FrameInt and a FrameDecimal are.
           "2 == 2.0",
           "2 == (4 / 2.0)",
@@ -262,8 +262,12 @@ describe("FrameCount", () => {
       ) {
         expect(evaluate(source).toString()).toEqual("[]");
       }
-      expect(value("~~2 (5 - 3)").toString()).toEqual("$!.type-error ~~2 2");
-      expect(value("~~(5 - 3) 2").toString()).toEqual("$!.type-error ~~2 2");
+      expect(value("(2).<> (5 - 3)").toString()).toEqual(
+        "$!.type-error (2).<> 2",
+      );
+      expect(value("(5 - 3).<> 2").toString()).toEqual(
+        "$!.type-error (2).<> 2",
+      );
       expect(count(2n).typeEquals(int(2n))).toBe(Frame.nil);
       expect(int(2n).typeEquals(count(2n))).toBe(Frame.nil);
       expect(count(2n).identical(int(2n))).toBe(Frame.nil);
@@ -271,7 +275,7 @@ describe("FrameCount", () => {
       expect(FrameType.of(int(2n)).matches(count(2n))).toBe(false);
     });
 
-    it("keeps ==, ===, and ~~ holding within one rung", () => {
+    it("keeps ==, ===, and runtime type matching holding within one rung", () => {
       for (
         const source of [
           "2 == 2",
@@ -280,14 +284,14 @@ describe("FrameCount", () => {
           "(0 - 2) == (0 - 2)",
           "(5 - 3) == (4 - 2)",
           "(5 - 3) === (4 - 2)",
-          "3 ~ ~~2",
-          "(0 - 5) ~ ~~(0 - 1)",
+          "3 ~ (2).<>",
+          "(0 - 5) ~ (0 - 1).<>",
         ]
       ) {
         expect(value(source)).toBe(Frame.all);
       }
-      expect(value("~~2 3").toString()).toEqual("3");
-      expect(value("~~(0 - 1) (0 - 5)").toString()).toEqual("-5");
+      expect(value("(2).<> 3").toString()).toEqual("3");
+      expect(value("(0 - 1).<> (0 - 5)").toString()).toEqual("-5");
     });
 
     it("leaves the data plane comparing spellings", () => {
