@@ -12,6 +12,8 @@
   carrying metadata or statements are refused to avoid discarding them.
 - **Counts construct occurrences.** `2 * [[]]` is `[[[]], [[]]]`; `0 * [[]]`
   remains count `0` with Size 0. Numeric pairs retain existing multiplication.
+  Nested count leaves use the same rule, so `([[], []] * 3) * [[]]` can compose
+  again.
 - **Breaking: nested counts contribute their Size to `.##`.** `[3, 3].##` is now
   6, so `([[], []] * 3).##` is 6. Other atoms still contribute one; `[]` still
   contributes one, and `.#` and `.###` are unchanged.

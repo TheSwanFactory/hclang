@@ -93,7 +93,7 @@ Deno.test("Star refuses unsupported hosts and bounded count overflow", async () 
   const session = new HCLang();
   for (
     const source of [
-      "[[], 1] * []",
+      "[[], (1 - 0)] * []",
       "“host” * []",
       "(0 - 2) * []",
       "(3 - 1) * []",
@@ -118,4 +118,40 @@ Deno.test("Star neither invokes effectful application nor follows cyclic hosts",
   expect((Multiply(host, replacement) as FrameArray).at(0)).toBe(replacement);
   host.asArray().push(host);
   expect(Multiply(host, replacement).toString()).toContain("star-domain");
+});
+
+Deno.test("Star composes nested counts using the root count rule", async () => {
+  const session = new HCLang();
+  for (
+    const [source, expected] of [
+      ["[2] * [[]]", "[[[[]], [[]]]]"],
+      ["[2] * 3", "[6]"],
+      ["([[], []] * 3) * [[]]", "[[[[]], [[]], [[]]], [[[]], [[]], [[]]]]"],
+    ]
+  ) expect(await session.call(source), source).toEqual(expected);
+  expect(await session.call("([2] * [[]]).##")).toEqual("2");
+  expect(await session.call("([65537] * [[]])")).toContain("repetition-limit");
+});
+
+Deno.test("Star retains zero-count leaves and their zero Size through composition", async () => {
+  const session = new HCLang();
+  expect(await session.call("[0, [2, []]] * [[]]"))
+    .toEqual("[0, [[[[]], [[]]], [[]]]]");
+  expect(await session.call("([0, [2, []]] * [[]]).##")).toEqual("3");
+  expect(await session.call("([0] * [[]]).##")).toEqual("0");
+});
+
+Deno.test("Star iterates a count-valued result with shared replacement identity", async () => {
+  const session = new HCLang();
+  await session.call(".x [[], []]; .y [.tag 9; []]; .r ((x * 3) * y);");
+  for (
+    const source of [
+      "r = (x * (3 * y))",
+      "r.## = 6",
+      "((r .0) .0) === y",
+      "((r .1) .2) === y",
+      "x = [[], []]",
+      "y = [.tag 9; []]",
+    ]
+  ) expect(await session.call(source), source).toEqual("<>");
 });

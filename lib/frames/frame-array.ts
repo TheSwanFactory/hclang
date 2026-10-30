@@ -5,6 +5,8 @@ import { type DeclaredApplication, Frame } from "./frame.ts";
 import { BoundMethod } from "./bound-method.ts";
 import { methodEffect } from "./effect-marker.ts";
 import { FrameExpr } from "./frame-expr.ts";
+import { FrameCount } from "./frame-count.ts";
+import { FrameNumeric, REPETITION_LIMIT } from "./frame-numeric.ts";
 import { FrameHandle } from "./frame-handle.ts";
 import type { FrameLazy } from "./frame-lazy.ts";
 import { FrameList } from "./frame-list.ts";
@@ -26,8 +28,34 @@ export class FrameArray extends FrameList {
     super(data, meta);
   }
 
+  /** Count leaves use the same Star rule at the root and inside an array. */
+  public static starCount(count: FrameCount, replacement: Frame): Frame {
+    const right = replacement.referent();
+    if (right instanceof FrameNumeric) return count.multiply(right);
+    const refusal = FrameArray.starCountRefusal(count, replacement);
+    if (refusal) return refusal;
+    if (count.data === 0n) return count;
+    return new FrameArray(Array<Frame>(Number(count.data)).fill(replacement));
+  }
+
+  /** Validate expansion before any ancestor is rebuilt or count is expanded. */
+  private static starCountRefusal(
+    count: FrameCount,
+    replacement: Frame,
+  ): Frame | undefined {
+    if (replacement.referent() instanceof FrameNumeric) return undefined;
+    if (count.meta_pairs().length || count.hasDeclaredParent()) {
+      return Frame.error("$!.star-metadata *");
+    }
+    if (count.data > REPETITION_LIMIT) {
+      return Frame.error(`$!.repetition-limit ${REPETITION_LIMIT}`);
+    }
+    return undefined;
+  }
+
   /**
-   * Star / Inlay: replace empty-array terminals, sharing the replacement.
+   * Star / Inlay: replace empty-array terminals and compose count leaves,
+   * sharing the replacement.
    * Copy the same native metadata and declaration echoes as ordinary array
    * reconstruction. A decorated terminal cannot be replaced without loss.
    * Validate before rebuilding; neither operand is evaluated or mutated here.
@@ -36,6 +64,9 @@ export class FrameArray extends FrameList {
     const path = new Set<Frame>();
     const validate = (node: Frame): Frame | undefined => {
       const value = node.referent();
+      if (value instanceof FrameCount) {
+        return FrameArray.starCountRefusal(value, replacement);
+      }
       if (!(value instanceof FrameArray) || path.has(value)) {
         return Frame.error("$!.star-domain *");
       }
@@ -57,14 +88,17 @@ export class FrameArray extends FrameList {
     };
     const error = validate(this);
     if (error) return error;
-    const go = (node: FrameArray): Frame => {
+    const go = (node: FrameArray | FrameCount): Frame => {
+      if (node instanceof FrameCount) {
+        return FrameArray.starCount(node, replacement);
+      }
       if (!node.elements().length) return replacement;
       const result = node.copy();
       result.data = node.itemsFor(
         result,
         (item) =>
           node.repeatsTerm(item)
-            ? go(item.walked().referent() as FrameArray)
+            ? go(item.walked().referent() as FrameArray | FrameCount)
             : item,
       );
       return result;

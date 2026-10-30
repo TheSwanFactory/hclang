@@ -588,8 +588,20 @@ Numeric pairs keep existing `*` arithmetic. A FrameCount host and nonnumeric
 replacement construct n occurrences: `2 * [[]]` is `[[[]], [[]]]`. Zero returns
 count `0`, whose Size is 0; `[]` is a single terminal with Size 1. Other numeric
 hosts with nonnumeric replacements receive a domain refusal. Count expansion
-uses the existing repetition limit. `inlay` remains the array-host entry point.
-Native `.##` also counts mixed atom/array trees: nested FrameCounts contribute
+uses the existing repetition limit. Nested FrameCount leaves use exactly the
+same numeric/expansion rule as a root count: `[2] * [[]]` is `[[[[]], [[]]]]`,
+`[2] * 3` is `[6]`, and `[0] * [[]]` is `[0]` with Size 0. Thus
+`([[], []] * 3) * [[]]` can compose again and equals `[[], []] * (3 * [[]])`,
+sharing every replacement. Named `inlay` retains its pure-Figure host guard;
+native `*` accepts arrays containing count leaves.
+
+Repeated Star is supported when the resulting host is a finite array/count
+structure within these metadata and expansion limits. Arbitrary replacements
+such as strings, negative integers or ratios remain valid right operands but are
+refused if later used as structural hosts. No general structural associativity
+is claimed across numeric arithmetic and structural expansion. Native `.##`
+weights counts throughout **all aggregate kinds**, including groups, schemas,
+closures and mixed trees (`{4 + 5}.##` is 10): nested FrameCounts contribute
 their own Size, including zero, while other atoms contribute one. Thus
 `([[], []] * 3).##` and `(2 * [[], [], []]).##` are both 6, though both Star
 results are arrays. Native `.###` continues to accept only nested arrays.
