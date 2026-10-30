@@ -42,7 +42,8 @@ export class FrameArray extends FrameList {
       const elements = value.elements();
       if (
         !elements.length &&
-        (value.meta_pairs().length || value.hasDeclaredParent())
+        (value.asArray().length || value.meta_pairs().length ||
+          value.hasDeclaredParent())
       ) {
         return Frame.error("$!.star-metadata *");
       }

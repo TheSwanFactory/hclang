@@ -76,8 +76,8 @@ describe("FrameArray", () => {
 
     it("counts elements with .# and terminals with .##, as counts", () => {
       const table = [
-        ["[a, b, c]", "3", "3"],
-        ["[[a, b], [c]]", "2", "3"],
+        ["[a, b, c]", "3", "6"],
+        ["[[a, b], [c]]", "2", "6"],
         ["[]", "0", "1"],
         ["[[], [a]]", "2", "2"],
       ];
@@ -94,7 +94,7 @@ describe("FrameArray", () => {
 
     it("counts elements, never properties", () => {
       expect(last("[.meta 1; 2, 3] .#").toString()).toEqual("2");
-      expect(last("[.meta [1, 2]; [3]] .##").toString()).toEqual("1");
+      expect(last("[.meta [1, 2]; [3]] .##").toString()).toEqual("3");
     });
 
     it("counts an aggregate with no elements as one terminal (010.02)", () => {
@@ -115,26 +115,26 @@ describe("FrameArray", () => {
         expect(answer.toString()).toEqual(terminals);
       }
       // An atom is a terminal and an empty frame is one, side by side.
-      expect(last("[1, [2, []]].##").toString()).toEqual("3");
-      expect(last("[[], 5, [[], “ab”]].##").toString()).toEqual("4");
+      expect(last("[1, [2, []]].##").toString()).toEqual("4");
+      expect(last("[[], 5, [[], “ab”]].##").toString()).toEqual("8");
       // Properties are not elements, so a frame holding only properties is a
       // terminal, and repeating a frame zero times leaves one terminal.
       expect(last("[.k 1] .##").toString()).toEqual("1");
-      expect(last("[[.k 1], 2] .##").toString()).toEqual("2");
+      expect(last("[[.k 1], 2] .##").toString()).toEqual("3");
       expect(last("(0 [1, 2]).##").toString()).toEqual("1");
     });
 
-    it("counts every other element as one leaf, a count included", () => {
-      expect(last("[5, 6].##").toString()).toEqual("2");
-      expect(last("[“ab”, 12345, ()].##").toString()).toEqual("3");
+    it("weights nested counts by Size and counts other atoms as one", () => {
+      expect(last("[5, 6].##").toString()).toEqual("11");
+      expect(last("[“ab”, 12345, ()].##").toString()).toEqual("12347");
     });
 
     it("enters every nested list, a group or a schema as well as an array", () => {
       // Every aggregate is a list, so `.##` walks a group exactly as it walks
       // an array, and the one inside it.
-      expect(last("[“ab”, (1, 2), [12345]].##").toString()).toEqual("4");
-      expect(last("[1, (2, [3, (4, 5)])].##").toString()).toEqual("5");
-      expect(last("[<1, 2>, 3].##").toString()).toEqual("3");
+      expect(last("[“ab”, (1, 2), [12345]].##").toString()).toEqual("12349");
+      expect(last("[1, (2, [3, (4, 5)])].##").toString()).toEqual("15");
+      expect(last("[<1, 2>, 3].##").toString()).toEqual("6");
       // `.#` still counts each of them as one element.
       expect(last("[“ab”, (1, 2), [12345]].#").toString()).toEqual("3");
     });
@@ -152,8 +152,8 @@ describe("FrameArray", () => {
       const shared = `${names}.x [a, b]; `;
 
       expect(last(`${shared}x.#`).toString()).toEqual("2");
-      expect(last(`${shared}[x, x].##`).toString()).toEqual("4");
-      expect(last(`${shared}[x, [x]].##`).toString()).toEqual("4");
+      expect(last(`${shared}[x, x].##`).toString()).toEqual("6");
+      expect(last(`${shared}[x, [x]].##`).toString()).toEqual("6");
     });
 
     it("refuses .## on an aggregate that contains itself, while .# counts", () => {
@@ -525,7 +525,7 @@ describe("FrameArray", () => {
       expect(text(".xs [1, 2];", "3 xs;", "xs")).toEqual("[1, 2]");
       // A mutable name is not written either.
       expect(text(".xs_ [1, 2];", "3 xs_;", "xs_")).toEqual("[1, 2]");
-      expect(text("(2 [[1, 2]]).##")).toEqual("4");
+      expect(text("(2 [[1, 2]]).##")).toEqual("6");
     });
 
     it("keeps a statement once, as a reduce's receiver does", () => {

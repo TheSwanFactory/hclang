@@ -38,10 +38,10 @@ describe("FrameGroup", () => {
 
     it("counts a group's elements and leaves, as an array's", () => {
       const table = [
-        ["(1, 2)", "2", "2"],
-        ["(1, [2, 3])", "2", "3"],
-        ["((1, 2), (3, 4))", "2", "4"],
-        ["(.a 1, 2, 3)", "2", "2"],
+        ["(1, 2)", "2", "3"],
+        ["(1, [2, 3])", "2", "6"],
+        ["((1, 2), (3, 4))", "2", "10"],
+        ["(.a 1, 2, 3)", "2", "5"],
       ];
       for (const [group, count, leaves] of table) {
         const immediate = last(`${group}.#`);
@@ -56,7 +56,7 @@ describe("FrameGroup", () => {
 
     it("counts a named group, and every occurrence of a shared one", () => {
       expect(last(".g (1, 2); g.#").toString()).toEqual("2");
-      expect(last(".g (1, 2); [g, (g, 3)].##").toString()).toEqual("5");
+      expect(last(".g (1, 2); [g, (g, 3)].##").toString()).toEqual("9");
     });
 
     it("leaves a group of one or none to the value it evaluates to", () => {

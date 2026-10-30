@@ -112,7 +112,7 @@ describe("FrameSchema", () => {
     it("counts a schema's members, as an aggregate's elements", () => {
       expect(last("<1, 2>.#").className()).toEqual("FrameCount");
       expect(last("<1, 2>.#").toString()).toEqual("2");
-      expect(last("<1, [2, 3]>.##").toString()).toEqual("3");
+      expect(last("<1, [2, 3]>.##").toString()).toEqual("6");
       expect(last(".T <1, 2>; T.#").toString()).toEqual("2");
     });
 
@@ -121,7 +121,7 @@ describe("FrameSchema", () => {
       // unevaluated, so those are what it counts.
       expect(last("<.a, .b>.#").toString()).toEqual("2");
       expect(last("<8 @Bit>.#").toString()).toEqual("1");
-      expect(last("<8 @Bit>.##").toString()).toEqual("2");
+      expect(last("<8 @Bit>.##").toString()).toEqual("9");
     });
 
     it("leaves `<>` the total type, which answers itself", () => {

@@ -37,7 +37,7 @@ the native `.###` check: a FrameInt, even 0, is true, and nil is false.
 The replacement is reused by identity; ancestors are freshly constructed,
 preserving their properties and declared parents. A terminal is recognized by
 its element count; its replacement is y itself, including y’s metadata.
-A terminal with properties or a declared parent is refused by Star rather than
+A terminal with properties, statements or a declared parent is refused by Star rather than
 silently losing its metadata. Count hosts use native Star directly: `n * y`
 constructs n occurrences for nonnumeric y; `0 * y` is count 0 (Size 0).
 Numeric pairs keep numeric multiplication.

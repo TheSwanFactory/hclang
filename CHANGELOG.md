@@ -4,6 +4,18 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## Unreleased
+
+- **Star composes frames through `*`.** Nested-array hosts replace each empty
+  terminal with the right operand, sharing its identity and preserving nesting
+  and nonterminal metadata; named `inlay` uses the same traversal. Terminals
+  carrying metadata or statements are refused to avoid discarding them.
+- **Counts construct occurrences.** `2 * [[]]` is `[[[]], [[]]]`; `0 * [[]]`
+  remains count `0` with Size 0. Numeric pairs retain existing multiplication.
+- **Breaking: nested counts contribute their Size to `.##`.** `[3, 3].##` is now
+  6, so `([[], []] * 3).##` is 6. Other atoms still contribute one; `[]` still
+  contributes one, and `.#` and `.###` are unchanged.
+
 ## v0.34.0 2026-10-30
 
 - **`.###` is a Figure's signed residual.** On a nested array it answers

@@ -33,6 +33,7 @@ Deno.test("Star Size observes construction including count zero", async () => {
       ["[[], [[], []]]", "[[], []]"],
       ["[]", "[[], []]"],
       ["0", "[[], []]"],
+      ["[[], []]", "0"],
     ]
   ) {
     expect(await session.call(`(${x} * ${y}).## = (${x}.## * ${y}.##)`))
@@ -82,6 +83,7 @@ Deno.test("Star and named Inlay preserve reconstructible metadata and refuse los
       "[.tag 3] * [[]]",
       "[[], [.tag 3]] * [[]]",
       "[.^ parent;] * [[]]",
+      "[1;] * [[]]",
       "Figures.inlay [.tag 3] [[]]",
     ]
   ) expect(await session.call(source), source).toContain("star-metadata");
@@ -107,6 +109,9 @@ Deno.test("Star neither invokes effectful application nor follows cyclic hosts",
   const terminal = new FrameArray([]);
   const host = new FrameArray([terminal]);
   const replacement = new FrameArray([]);
+  host.apply = (): Frame => {
+    throw new Error("must not apply host");
+  };
   replacement.apply = (): Frame => {
     throw new Error("must not apply replacement");
   };
