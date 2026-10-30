@@ -15,7 +15,7 @@ describe("walking a closure (#429)", () => {
 
   it("counts the atoms it yields, instead of running the body", () => {
     expect(answer("{4 + 5}.#")).toEqual("3");
-    expect(answer("{4 + 5}.##")).toEqual("3");
+    expect(answer("{4 + 5}.##")).toEqual("10");
     expect(answer(".f {4 + 5}; [f.#, f ()]")).toContain("[3, 9]");
   });
 

@@ -197,9 +197,9 @@ export class FrameList extends Frame {
   /**
    * The terminals of this aggregate's structure, the nodes with no elements
    * below them. An aggregate with no elements is itself one terminal, at the
-   * root or nested, so `[]` counts 1 and `.##` never answers 0 for an
-   * aggregate. A nonempty aggregate counts its elements' terminals: each
-   * element that is not an aggregate is one terminal, and each aggregate
+   * root or nested, so `[]` counts 1. A nonempty aggregate counts its elements' terminals: each
+   * count element contributes its count (including zero); another atom is one
+   * terminal, and each aggregate
    * element counts its own, at any depth. Properties are not elements, so an
    * aggregate holding only properties is one terminal too.
    *
@@ -219,7 +219,11 @@ export class FrameList extends Frame {
     let terminals = 0n;
     for (const element of elements) {
       const value = element.referent();
-      const below = value instanceof FrameList ? value.terminalCount(path) : 1n;
+      const below = value instanceof FrameList
+        ? value.terminalCount(path)
+        : value instanceof FrameCount
+        ? value.data
+        : 1n;
       if (below === undefined) return undefined;
       terminals += below;
     }

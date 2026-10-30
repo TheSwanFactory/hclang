@@ -4,6 +4,22 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.35.0 2026-10-30
+
+- **Star composes frames through `*`.** Nested-array hosts replace each empty
+  terminal with the right operand, sharing its identity and preserving nesting
+  and nonterminal metadata. Use native `*` directly; the named `Figures.inlay`
+  wrapper is removed. Terminals carrying metadata or statements are refused to
+  avoid discarding them.
+- **Counts construct occurrences.** `2 * [[]]` is `[[[]], [[]]]`; `0 * [[]]`
+  remains count `0` with Size 0. Numeric pairs retain existing multiplication.
+  Nested count leaves use the same rule, so `([[], []] * 3) * [[]]` can compose
+  again.
+- **Breaking: nested counts contribute their Size to `.##`.** `[3, 3].##` is now
+  6, so `([[], []] * 3).##` is 6. This applies to all aggregate kinds, including
+  groups, schemas, closures and mixed trees: `{4 + 5}.##` is now 10. Other atoms
+  and `[]` still contribute one; `.#` and `.###` are unchanged.
+
 ## v0.34.0 2026-10-30
 
 - **`.###` is a Figure's signed residual.** On a nested array it answers

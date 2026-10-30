@@ -43,6 +43,7 @@ Deno.test("Figures exports no wrappers for native construction and observation",
       "sameform",
       "sameness",
       "size_equivalent",
+      "inlay",
     ]
   ) {
     expect(await session.call(`Figures.${name}`), name)
@@ -85,19 +86,18 @@ Deno.test("withness returns native booleans and compares immediate identity", as
   }
 });
 
-Deno.test("native .## counts mixed trees while Figure traversals reject them", async () => {
+Deno.test("native Star and .## support mixed count/array trees", async () => {
   const session = await figuresSession();
-  expect(await session.call("[1, [2, []]].##")).toEqual("3");
-  expect(await session.call("[[], 5, [[], “ab”]].##")).toEqual("4");
-  expect(await session.call("Figures.inlay [1, [2, []]] []"))
-    .toContain("unsupported-figure");
+  expect(await session.call("[1, [2, []]].##")).toEqual("4");
+  expect(await session.call("[[], 5, [[], “ab”]].##")).toEqual("8");
+  expect(await session.call("([1, [2, []]] * []).##")).toEqual("4");
 });
 
-Deno.test("Inlay terminal product law uses native .## across 25 pairs", async () => {
+Deno.test("Star terminal product law uses native .## across 25 pairs", async () => {
   const session = await figuresSession();
   for (const [x, , m] of shapes) {
     for (const [y, , n] of shapes) {
-      expect(await session.call(`(Figures.inlay ${x} ${y}).##`), `${x}, ${y}`)
+      expect(await session.call(`(${x} * ${y}).##`), `${x}, ${y}`)
         .toEqual(String(Number(m) * Number(n)));
     }
   }
@@ -141,9 +141,9 @@ Deno.test("Gap and Spin keep refusing unsupported hosts (010.04)", async () => {
   }
 });
 
-Deno.test("Figure observations ignore metadata and Inlay preserves it (010.04)", async () => {
+Deno.test("Figure observations ignore metadata and Star preserves it (010.04)", async () => {
   const session = await figuresSession();
-  await session.call(".p [.k 1; [], [.j 2; []]]; .q (Figures.inlay p [[]]);");
+  await session.call(".p [.k 1; [], [.j 2; []]]; .q (p * [[]]);");
   for (
     const [source, expected] of [
       ["Figures.pure p", "<>"],
@@ -151,7 +151,7 @@ Deno.test("Figure observations ignore metadata and Inlay preserves it (010.04)",
       ["p.###", "0"],
       ["Figures.gap [.k 1; [[], []]]", "2"],
       ["Figures.spin [.k 1; [], [[], []]] 2", "-1/2"],
-      // Inlay preserves ancestor metadata and leaves the host unchanged.
+      // Star preserves ancestor metadata and leaves the host unchanged.
       ["q = [.k 1; [[]], [.j 2; [[]]]]", "<>"],
       ["(q .1) = [.j 2; [[]]]", "<>"],
       ["p.k", "1"],
@@ -187,8 +187,8 @@ Deno.test("parented Figures share the observer domain at every level", async () 
   }
   await session.call(
     ".parent [.m 9]; .child [.^ parent; .k 2; []]; " +
-      ".host [.^ parent; .k 1; child, [.tag 3]]; " +
-      ".y [[]]; .result (Figures.inlay host y);",
+      ".host [.^ parent; .k 1; child, []]; " +
+      ".y [[]]; .result (host * y);",
   );
   for (
     const source of [
@@ -200,7 +200,7 @@ Deno.test("parented Figures share the observer domain at every level", async () 
       "(result .1) === y",
       "(result === host) = ()",
       "(host .0) === child",
-      "(host .1).tag = 3",
+      "(host .1) = []",
       "host.m = 9",
     ]
   ) {

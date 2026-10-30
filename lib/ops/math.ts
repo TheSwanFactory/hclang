@@ -1,6 +1,8 @@
 // Direct, not ../frames.ts, whose ../ops.ts needs this module loaded first.
 import { Frame } from "../frames/frame.ts";
 import { FrameNumeric } from "../frames/frame-numeric.ts";
+import { FrameArray } from "../frames/frame-array.ts";
+import { FrameCount } from "../frames/frame-count.ts";
 
 type NumericOperation = (left: FrameNumeric, right: FrameNumeric) => Frame;
 
@@ -20,8 +22,17 @@ export const Add = (source: Frame, block: Frame): Frame =>
 export const Subtract = (source: Frame, block: Frame): Frame =>
   numeric(source, block, (left, right) => left.subtract(right));
 
-export const Multiply = (source: Frame, block: Frame): Frame =>
-  numeric(source, block, (left, right) => left.multiply(right));
+/** Star constructs a frame; numeric pairs retain the existing arithmetic ladder. */
+export const Multiply = (source: Frame, block: Frame): Frame => {
+  const left = source.referent();
+  const right = block.referent();
+  if (left instanceof FrameNumeric && right instanceof FrameNumeric) {
+    return left.multiply(right);
+  }
+  if (left instanceof FrameArray) return left.star(block);
+  if (left instanceof FrameCount) return FrameArray.starCount(left, block);
+  return Frame.error("$!.star-domain *");
+};
 
 export const Divide = (source: Frame, block: Frame): Frame =>
   numeric(source, block, (left, right) => left.divide(right));
