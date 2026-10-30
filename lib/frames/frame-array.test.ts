@@ -255,6 +255,8 @@ describe("FrameArray", () => {
         ["[[], [.k 1; [], []]]", "-1"],
         ["[.^ [.m 1]; [[], []]]", "2"],
         ["[.k 1]", "0"],
+        ["[[], [.^ [.m 1]; .k 2; [], []]]", "-1"],
+        ["[.^ [.m 1]; .k 2]", "0"],
       ];
       for (const [figure, residual] of table) {
         const answer = last(`${figure}.###`);

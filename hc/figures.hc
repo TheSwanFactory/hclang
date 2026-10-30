@@ -3,8 +3,8 @@
 Figures are native frames (#454; issue occurrence/figure 010.02)
 
 A Figure is a finite nested array built from `[]`, read through its elements
-only: properties are ignored, and `inlay` preserves only elements. Construction
-is brackets, form is the value itself, immediate size is `.#`, terminal count
+only: properties and declared parents are ignored by observations. Inlay keeps
+nonterminal metadata when rebuilding frames. Construction is brackets, form is the value itself, immediate size is `.#`, terminal count
 is `.##`, form equality is `=`, and identity is `===`. The empty frame is one
 terminal: `[].#` is 0 and `[].##` is 1. The signed residual `.###` is
 `x₁.## − x₂.## + x₃.## − …` over the immediate elements, a FrameInt that is 0
@@ -22,8 +22,8 @@ The traversals validate at their public boundary; their recursive steps use
 native operations directly. Withness returns a native boolean, `<>` or `()`.
 ```
 ```
-Supported domain: `pure x` accepts nested arrays, ignoring their properties,
-and rejects atoms, strings, groups, schemas and closures anywhere in them. It is
+Supported domain: `pure x` accepts nested arrays, ignoring their properties
+and declared parents at every level, and rejects atoms, strings, groups, schemas and closures anywhere in them. It is
 the native `.###` check: a FrameInt, even 0, is true, and nil is false.
 ```
 .pure {.x _; (x.###) ? {<>} : {()}};
@@ -33,13 +33,15 @@ the native `.###` check: a FrameInt, even 0, is true, and nil is false.
 .need {.x _; (pure x) ? {x} : {unsupported-figure}};
 ```
 `inlay x y` replaces every terminal of x with y, retaining nonterminal nesting.
-The replacement is reused by identity; ancestors are freshly constructed.
+The replacement is reused by identity; ancestors are freshly constructed,
+preserving their properties and declared parents. A terminal is recognized by
+its element count; its replacement is y itself, including y’s metadata.
 The host is validated once, and the replacement can be any native value.
 ```
 .inlay {.x _; .host x;
   (pure host) ? {
     {.y _;
-      .go {.n _; (n = []) ? {y} : {n & {go _}}};
+      .go {.n _; (n.# = 0) ? {y} : {(n & {go _}) | (0 n)}};
       go host}} : {
     {.y _; need host}}};
 ```
@@ -52,7 +54,8 @@ of x by native identity. It returns a native boolean. No requested frames is tru
     absent = []}};
 ```
 `gap x` is the absolute value of native `x.###`, the alternating sum of its
-immediate elements' `.##` counts. The empty frame has Gap 0.
+immediate elements' `.##` counts, always a nonnegative FrameInt (Owner decision
+for #455). The empty frame has Gap 0 as a FrameInt too.
 ```
 .gap {.x _; (pure x) ? {
   .signed (x.###);
@@ -92,15 +95,16 @@ Native terminal counting needs no enumeration or tally construction.
 ; gap ([], [[], []])
 # $!.name-missing “$:Frame.0.unsupported-figure”;
 ```
-Properties are ignored: they never decide the domain or a count, and Inlay
-builds fresh frames from elements only, so its answer holds no property.
+Properties and declared parents never decide the domain or an observation.
+Inlay preserves metadata on rebuilt nonterminal ancestors and leaves its host
+unchanged.
 ```
 ; [(gap [.k 1; [[], []]]) = 2, [.k 1; [], [[], []]].### = -1]
 # [<>, <>]
-; (inlay [.k 1; [], [.j 2; []]] [[]]) = [[[]], [[[]]]]
+; (inlay [.k 1; [], [.j 2; []]] [[]]) = [.k 1; [[]], [.j 2; [[]]]]
 # <>
 ; .p [.k 1; []]; .q (inlay p [[]]);
-; [q = [[[]]], p.k, p = [.k 1; []]]
+; [q = [.k 1; [[]]], p.k, p = [.k 1; []]]
 # [<>, 1, <>]
 ```
 Inlay preserves nesting and empty replacements; native repetition constructs a

@@ -119,7 +119,7 @@ Deno.test("Gap is |.###| and Spin is .### / N, with .### a FrameInt (010.04)", a
     // `==` compares the exact type, and a FrameInt is what `-` answers.
     expect(await session.call(`(${x}.###) == (${s} - 0)`), x).toEqual("<>");
     const gap = s.startsWith("-") ? s.slice(1) : s;
-    expect(await session.call(`(Figures.gap ${x}) = ${gap}`), x)
+    expect(await session.call(`(Figures.gap ${x}) == (${gap} - 0)`), x)
       .toEqual("<>");
     expect(await session.call(`(Figures.spin ${x} 4) = (${x}.### / 4)`), x)
       .toEqual("<>");
@@ -141,7 +141,7 @@ Deno.test("Gap and Spin keep refusing unsupported hosts (010.04)", async () => {
   }
 });
 
-Deno.test("Figures ignore properties, and Inlay keeps only elements (010.04)", async () => {
+Deno.test("Figure observations ignore metadata and Inlay preserves it (010.04)", async () => {
   const session = await figuresSession();
   await session.call(".p [.k 1; [], [.j 2; []]]; .q (Figures.inlay p [[]]);");
   for (
@@ -151,14 +151,59 @@ Deno.test("Figures ignore properties, and Inlay keeps only elements (010.04)", a
       ["p.###", "0"],
       ["Figures.gap [.k 1; [[], []]]", "2"],
       ["Figures.spin [.k 1; [], [[], []]] 2", "-1/2"],
-      // Inlay builds fresh frames from elements, so no property survives,
-      // and the host is left as it was.
-      ["q = [[[]], [[[]]]]", "<>"],
-      ["(q .1) = [[[]]]", "<>"],
+      // Inlay preserves ancestor metadata and leaves the host unchanged.
+      ["q = [.k 1; [[]], [.j 2; [[]]]]", "<>"],
+      ["(q .1) = [.j 2; [[]]]", "<>"],
       ["p.k", "1"],
       ["p = [.k 1; [], [.j 2; []]]", "<>"],
     ] as const
   ) {
     expect(await session.call(source), source).toEqual(expected);
+  }
+});
+
+Deno.test("parented Figures share the observer domain at every level", async () => {
+  const session = await figuresSession();
+  for (
+    const host of [
+      "[.^ [.m 9]; .k 1; [], [[], []]]",
+      "[[], [.^ [.m 9]; .k 1; [], []]]",
+    ]
+  ) {
+    await session.call(`.host ${host};`);
+    for (
+      const source of [
+        "Figures.pure host",
+        "(Figures.need host) === host",
+        "host.### == (0 - 1)",
+        "host.## = 3",
+        "(Figures.gap host) == (1 - 0)",
+        "(Figures.spin host 2) = (0 - (1 / 2))",
+        `(host = ${host})`,
+      ]
+    ) {
+      expect(await session.call(source), source).toEqual("<>");
+    }
+  }
+  await session.call(
+    ".parent [.m 9]; .child [.^ parent; .k 2; []]; " +
+      ".host [.^ parent; .k 1; child, [.tag 3]]; " +
+      ".y [[]]; .result (Figures.inlay host y);",
+  );
+  for (
+    const source of [
+      "result.k = 1",
+      "(result .0).k = 2",
+      "result.m = 9",
+      "(result .0).m = 9",
+      "((result .0) .0) === y",
+      "(result .1) === y",
+      "(result === host) = ()",
+      "(host .0) === child",
+      "(host .1).tag = 3",
+      "host.m = 9",
+    ]
+  ) {
+    expect(await session.call(source), source).toEqual("<>");
   }
 });

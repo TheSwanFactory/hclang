@@ -9,12 +9,14 @@
 - **`.###` is a Figure's signed residual.** On a nested array it answers
   `x₁.## − x₂.## + x₃.## − …` over the immediate elements, always as a FrameInt:
   `[].###` is `0`, `[[]].###` is `1` and `[[], [[], []]].###` is `-1`.
-  Properties are ignored. Atoms, strings, mixed trees, groups, schemas, closures
-  and cycles answer nil; `.####` is `.###` before a comment (#455).
-- **Figures ignore properties.** `pure x` is now the native `.###` check, so an
-  array with properties is a Figure: `inlay` keeps only its elements, and
-  `gap`/`spin` measure them. `gap x` is `|x.###|` and `spin x N` is `x.### / N`;
-  `gap []` is now the FrameInt `0`, like every other Gap (#455).
+  Properties and declared parents are ignored at every level. Atoms, strings,
+  mixed trees, groups, schemas, closures and cycles answer nil; `.####` is
+  `.###` before a comment (#455).
+- **Figure observations ignore metadata.** `pure x` is now the native `.###`
+  check, so an array with properties or a declared parent is a Figure;
+  `gap`/`spin` measure only elements. `inlay` preserves nonterminal properties
+  and parents. `gap x` is `|x.###|` and `spin x N` is `x.### / N`; `gap []` is
+  now the FrameInt `0`, like every other Gap (#455).
 
 ## v0.33.0 2026-10-30
 
