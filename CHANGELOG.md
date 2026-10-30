@@ -4,7 +4,7 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
-## Unreleased
+## v0.35.0 2026-10-30
 
 - **Star composes frames through `*`.** Nested-array hosts replace each empty
   terminal with the right operand, sharing its identity and preserving nesting
