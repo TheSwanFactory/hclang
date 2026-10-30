@@ -363,6 +363,32 @@ Applying a name to a dict (or any Frame) returns the value of that property. The
 space before `.min` is optional, but emphasizes that property access is just
 another expression
 
+### Importing Modules
+
+A module is HC source read through a resource. `name <- resource` evaluates that
+source in a fresh namespace. It binds the namespace to `name` only once every
+form has succeeded, so a failed import binds nothing.
+
+    ; Figures <- './hc/figures.hc';
+    ; Figures.B
+    # [[]]
+
+- **Namespace isolation.** Everything the module declares is reached qualified,
+  through `Figures`, and nothing it declares lands in the importing file.
+  `. <- resource` imports into the current namespace instead.
+- **Root-relative paths.** A path is relative to the root binding the host
+  supplies, not to the importing file or the working directory. The CLI's root
+  is a fresh temporary directory, so `'./deno.json'` is absent there even when
+  the working directory holds one.
+- **Bundled, read-only files.** Every file in the repository's `hc/` folder is
+  compiled into every host (the CLI binary, the npm package and the browser
+  playground) and laid over the root read-only. So `'./hc/figures.hc'` reads the
+  same bytes everywhere, writing to it answers `$!.resource-read-only`, and a
+  path under `hc/` that ships no file is `$!.resource-absent`.
+- **Testdoc examples are skipped.** An imported testdoc runs only its code: its
+  example lines, the ones beginning `;` outside prose, are skipped, so its
+  claims count when the file is run directly and never in the importer.
+
 ## Expressions
 
 ### Binary Operators

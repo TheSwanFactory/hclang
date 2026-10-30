@@ -13,8 +13,7 @@ const BINARY = new URL(
   Deno.build.os === "windows" ? "./hc.exe" : "./hc",
   import.meta.url,
 );
-const SOURCE =
-  "Figures <- './hc/figures.hc'; (Figures.size Figures.B) = (Figures.Figure [Figures.B])";
+const SOURCE = "Figures <- './hc/figures.hc'; Figures.B = [[]]";
 const EXPECTED = "((<>); <>)";
 
 const workDirectory = await Deno.makeTempDir({ prefix: "hclang-compiled-" });

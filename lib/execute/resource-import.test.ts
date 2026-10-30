@@ -784,6 +784,27 @@ describe("resource import", () => {
       expect(file.get_here("module")).toBe(namespaces.at(-1));
     });
 
+    it("keeps a caller's frame identity through an imported closure", () => {
+      // An imported operation handed a frame built by the importer answers
+      // that frame itself, not a copy, and compares identity with `===`. This
+      // was hc/modules.hc's Withness example, kept without the Figure API.
+      const store = new MemoryStore();
+      store.write(
+        MODULE_PATH,
+        ".first {_ .0}; .same {.x _; {.y _; x === y}}; .fresh {[[]]};",
+      );
+      const output = evaluate(
+        `module <- ${MODULE_REFERENCE}; .a [[]]; .pair [a, [[]]]; ` +
+          "[(module.first pair) === a, module.same a a, module.same a [[]], " +
+          "module.same (module.fresh ()) (module.fresh ())]",
+        rootContext(store),
+      );
+
+      expect(output.at(-1).asArray().at(-1)!.toString()).toEqual(
+        "[<>, <>, (), ()]",
+      );
+    });
+
     it("curries operators on imported values with their own operand", () => {
       const store = new MemoryStore();
       store.write(

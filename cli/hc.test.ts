@@ -330,19 +330,49 @@ describe("main", () => {
     );
   });
 
-  it("imports the bundled Figures module and counts only its own claims", async () => {
+  /** Runs `source` as a temporary testdoc under the CLI's real harness. */
+  const runTestdoc = async (source: string) => {
     const out = new FrameArray([]);
-    const file = new URL("../hc/modules.hc", import.meta.url).pathname;
-    // The import reads the module through the overlay the CLI installs, so the
-    // harness under test is the real one; none of the module's claims count.
-    const status = await main(
-      getEval({}, out),
-      getOptions(["--testdoc", file]),
+    const file = await Deno.makeTempFile({ suffix: ".hc" });
+    try {
+      await Deno.writeTextFile(file, source);
+      const status = await main(
+        getEval({}, out),
+        getOptions(["--testdoc", file]),
+      );
+      return { status, summary: out.at(-1).toString() };
+    } finally {
+      await Deno.remove(file);
+    }
+  };
+
+  it("imports a bundled testdoc and counts only the importer's claims", async () => {
+    // figures.hc is itself a testdoc with dozens of claims. The import reads it
+    // through the overlay the CLI installs and skips its examples, so the only
+    // claim that counts is the one written here.
+    const { status, summary } = await runTestdoc(
+      "Figures <- './hc/figures.hc';\n; Figures.B = [[]]\n# <>\n",
     );
 
     expect(status).toEqual(0);
-    expect(out.at(-1).toString()).toContain(
-      '“{"total":12,"pass":12,"fail":0,"unimplemented":0}”',
+    expect(summary).toContain(
+      '“{"total":1,"pass":1,"fail":0,"unimplemented":0}”',
+    );
+  });
+
+  it("overlays the bundled files read-only on a fresh root", async () => {
+    // The root is a fresh temporary directory, so the working directory's
+    // deno.json is absent, as is a path under hc/ that ships no file.
+    const { status, summary } = await runTestdoc(
+      "; './hc/figures.hc' “overwrite”\n" +
+        "# $!.resource-read-only './hc/figures.hc'\n" +
+        "; './deno.json' | “”\n# $!.resource-absent './deno.json'\n" +
+        "; './hc/other.hc' | “”\n# $!.resource-absent './hc/other.hc'\n",
+    );
+
+    expect(status).toEqual(0);
+    expect(summary).toContain(
+      '“{"total":3,"pass":3,"fail":0,"unimplemented":0}”',
     );
   });
 
