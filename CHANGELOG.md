@@ -4,7 +4,7 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
-## Unreleased
+## v0.33.0 2026-10-30
 
 - **Breaking: `.##` counts structural terminals.** Empty aggregates now count as
   one, including nested empty frames, empty closures and property-only
