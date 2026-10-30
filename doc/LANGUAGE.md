@@ -370,8 +370,8 @@ source in a fresh namespace. It binds the namespace to `name` only once every
 form has succeeded, so a failed import binds nothing.
 
     ; Figures <- './hc/figures.hc';
-    ; [] * [[]]
-    # [[]]
+    ; Figures.gap [[], [[], []]]
+    # 1
 
 - **Namespace isolation.** Everything the module declares is reached qualified,
   through `Figures`, and nothing it declares lands in the importing file.

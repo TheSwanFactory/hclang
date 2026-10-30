@@ -90,7 +90,7 @@ describe("standalone artifact in a browser", () => {
     await page.getByRole("cell", { name: source }).waitFor();
     expect(await page.locator("[role=alert]").count()).toBe(0);
 
-    await submit("(Figures.inlay [] []) = []");
+    await submit("([] * []) = []");
     await waitForText("[data-testid=latest-output]", "<>");
   });
 
