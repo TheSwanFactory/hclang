@@ -8,8 +8,9 @@
 
 - **Star composes frames through `*`.** Nested-array hosts replace each empty
   terminal with the right operand, sharing its identity and preserving nesting
-  and nonterminal metadata; named `inlay` uses the same traversal. Terminals
-  carrying metadata or statements are refused to avoid discarding them.
+  and nonterminal metadata. Use native `*` directly; the named `Figures.inlay`
+  wrapper is removed. Terminals carrying metadata or statements are refused to
+  avoid discarding them.
 - **Counts construct occurrences.** `2 * [[]]` is `[[[]], [[]]]`; `0 * [[]]`
   remains count `0` with Size 0. Numeric pairs retain existing multiplication.
   Nested count leaves use the same rule, so `([[], []] * 3) * [[]]` can compose

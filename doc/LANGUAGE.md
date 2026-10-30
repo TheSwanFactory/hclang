@@ -370,7 +370,7 @@ source in a fresh namespace. It binds the namespace to `name` only once every
 form has succeeded, so a failed import binds nothing.
 
     ; Figures <- './hc/figures.hc';
-    ; Figures.inlay [] [[]]
+    ; [] * [[]]
     # [[]]
 
 - **Namespace isolation.** Everything the module declares is reached qualified,
@@ -573,16 +573,16 @@ constructor, count, size, comparison or multiplication wrapper is needed. Native
 elements' `.##` counts as a FrameInt (`[[], [[], []]].###` is -1); anything that
 is not a Figure answers nil.
 
-The module keeps `inlay`, `withness`, `gap` and `spin`, plus `pure` and `need`
-for domain validation. `inlay` replaces terminals while preserving nesting;
-`withness` tests immediate containment by identity and returns a native boolean.
-`gap x` is `|x.###|`, always a nonnegative FrameInt, and `spin x N` is
-`x.### / N`. `pure x` is the native `.###` check. `inlay`, `gap` and `spin`
-reject hosts that are not Figures; `inlay` preserves properties and declared
-parents on freshly rebuilt nonterminal ancestors. A plain terminal (zero
-elements) is replaced by the replacement itself, shared by identity; neither
-operand is mutated. Star and `inlay` refuse terminals carrying properties,
-statements or declared parents, rather than discarding them.
+The module keeps `withness`, `gap` and `spin`, plus `pure` and `need` for
+observation domain validation. Use native Star `*` for composition; `withness`
+tests immediate containment by identity and returns a native boolean. `gap x` is
+`|x.###|`, always a nonnegative FrameInt, and `spin x N` is `x.### / N`.
+`pure x` is the native `.###` check. `gap` and `spin` reject hosts that are not
+Figures; Star preserves properties and declared parents on freshly rebuilt
+nonterminal ancestors. A plain terminal (zero elements) is replaced by the
+replacement itself, shared by identity; neither operand is mutated. Star refuses
+terminals carrying properties, statements or declared parents, rather than
+discarding them.
 
 Numeric pairs keep existing `*` arithmetic. A FrameCount host and nonnumeric
 replacement construct n occurrences: `2 * [[]]` is `[[[]], [[]]]`. Zero returns
@@ -592,8 +592,8 @@ uses the existing repetition limit. Nested FrameCount leaves use exactly the
 same numeric/expansion rule as a root count: `[2] * [[]]` is `[[[[]], [[]]]]`,
 `[2] * 3` is `[6]`, and `[0] * [[]]` is `[0]` with Size 0. Thus
 `([[], []] * 3) * [[]]` can compose again and equals `[[], []] * (3 * [[]])`,
-sharing every replacement. Named `inlay` retains its pure-Figure host guard;
-native `*` accepts arrays containing count leaves.
+sharing every replacement. The module provides no `inlay` wrapper or separate
+composition guard; native `*` accepts arrays containing count leaves.
 
 Repeated Star is supported when the resulting host is a finite array/count
 structure within these metadata and expansion limits. Arbitrary replacements

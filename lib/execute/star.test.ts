@@ -62,9 +62,8 @@ Deno.test("Star shares replacement identity, rebuilds ancestors and preserves in
   ) expect(await session.call(source), source).toEqual("<>");
 });
 
-Deno.test("Star and named Inlay preserve reconstructible metadata and refuse loss", async () => {
+Deno.test("Star preserves reconstructible metadata and refuses loss", async () => {
   const session = new HCLang();
-  await session.call("Figures <- './hc/figures.hc'");
   await session.call(
     ".parent [.m 9]; .host [.^ parent; .k 1; [], [.j 2; []]]; .r (host * [[]]);",
   );
@@ -73,7 +72,6 @@ Deno.test("Star and named Inlay preserve reconstructible metadata and refuse los
       "r.m = 9",
       "r.k = 1",
       "(r .1).j = 2",
-      "r = (Figures.inlay host [[]])",
       "host.k = 1",
       "(host .0) = []",
     ]
@@ -84,7 +82,6 @@ Deno.test("Star and named Inlay preserve reconstructible metadata and refuse los
       "[[], [.tag 3]] * [[]]",
       "[.^ parent;] * [[]]",
       "[1;] * [[]]",
-      "Figures.inlay [.tag 3] [[]]",
     ]
   ) expect(await session.call(source), source).toContain("star-metadata");
 });

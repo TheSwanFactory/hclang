@@ -29,7 +29,7 @@ export const Multiply = (source: Frame, block: Frame): Frame => {
   if (left instanceof FrameNumeric && right instanceof FrameNumeric) {
     return left.multiply(right);
   }
-  if (left instanceof FrameArray) return left.inlay(block);
+  if (left instanceof FrameArray) return left.star(block);
   if (left instanceof FrameCount) return FrameArray.starCount(left, block);
   return Frame.error("$!.star-domain *");
 };

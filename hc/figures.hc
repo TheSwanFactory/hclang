@@ -3,7 +3,7 @@
 Figures are native frames (#454; issue occurrence/figure 010.02)
 
 A Figure is a finite nested array built from `[]`, read through its elements
-only: properties and declared parents are ignored by observations. Inlay keeps
+only: properties and declared parents are ignored by observations. Star keeps
 nonterminal metadata when rebuilding frames. Construction is brackets, form is the value itself, immediate size is `.#`, terminal count
 is `.##`, form equality is `=`, and identity is `===`. The empty frame is one
 terminal: `[].#` is 0 and `[].##` is 1. The signed residual `.###` is
@@ -18,7 +18,7 @@ Native `.##` weights nested counts by their Size and other atoms by one;
 native `.###` answers nil on
 anything that is not a Figure, so this module's traversals stay in the domain.
 
-Only operations that add a traversal or calculation remain: `inlay`, `withness`, `gap` and `spin`, with `pure` and `need` for domain validation.
+Only observation operations remain: `withness`, `gap` and `spin`, with `pure` and `need` for domain validation.
 The traversals validate at their public boundary; their recursive steps use
 native operations directly. Withness returns a native boolean, `<>` or `()`.
 ```
@@ -33,24 +33,12 @@ the native `.###` check: a FrameInt, even 0, is true, and nil is false.
 ```
 .need {.x _; (pure x) ? {x} : {unsupported-figure}};
 ```
-`inlay x y` replaces every terminal of x with y, retaining nonterminal nesting.
-The replacement is reused by identity; ancestors are freshly constructed,
-preserving their properties and declared parents. A terminal is recognized by
-its element count; its replacement is y itself, including y’s metadata.
-A terminal with properties, statements or a declared parent is refused by Star rather than
-silently losing its metadata. Count hosts use native Star directly: `n * y`
-constructs n occurrences for nonnumeric y; `0 * y` is count 0 (Size 0).
-Numeric pairs keep numeric multiplication. Native Star also composes nested
-FrameCount leaves with that same count rule, including zero. Named `inlay`
-retains its pure-Figure host guard; use native `*` for count-bearing hosts.
-The host is validated once, and the replacement can be any native value.
-```
-.inlay {.x _; .host x;
-  (pure host) ? {
-    {.y _;
-      host * y}} : {
-    {.y _; need host}}};
-```
+Native Star `x * y` replaces empty-array terminals with y and composes
+FrameCount leaves using the same rule as a root count, including zero.
+Replacements are shared by identity; ancestors preserve native metadata.
+Terminals carrying metadata or statements are refused to avoid losing them.
+Use `*` directly; the Figures module provides no composition wrapper.
+
 `withness x [f, …]` asks whether every requested frame is an immediate element
 of x by native identity. It returns a native boolean. No requested frames is true.
 ```
@@ -94,40 +82,40 @@ Native terminal counting needs no enumeration or tally construction.
 # [<>, <>, (), <>]
 ; [(need e) = e, (need e) === e]
 # [<>, <>]
-; inlay [[], 5] [[]]
-# $!.name-missing “$:Frame.0.unsupported-figure”;
-; inlay 5 [[]]
-# $!.name-missing “$:Frame.0.unsupported-figure”;
+; [[], “a”] * [[]]
+# $!.star-domain *
+; (0 - 5) * [[]]
+# $!.star-domain *
 ; gap ([], [[], []])
 # $!.name-missing “$:Frame.0.unsupported-figure”;
 ```
-Properties and declared parents never decide the domain or an observation.
-Inlay preserves metadata on rebuilt nonterminal ancestors and leaves its host
+Properties and declared parents never decide the observer domain or an observation.
+Star preserves metadata on rebuilt nonterminal ancestors and leaves its host
 unchanged.
 ```
 ; [(gap [.k 1; [[], []]]) = 2, [.k 1; [], [[], []]].### = -1]
 # [<>, <>]
-; (inlay [.k 1; [], [.j 2; []]] [[]]) = [.k 1; [[]], [.j 2; [[]]]]
+; ([.k 1; [], [.j 2; []]] * [[]]) = [.k 1; [[]], [.j 2; [[]]]]
 # <>
-; .p [.k 1; []]; .q (inlay p [[]]);
+; .p [.k 1; []]; .q (p * [[]]);
 ; [q = [.k 1; [[]]], p.k, p = [.k 1; []]]
 # [<>, 1, <>]
 ```
-Inlay preserves nesting and empty replacements; native repetition constructs a
+Star preserves nesting and empty replacements; native repetition constructs a
 flat product. Both have the same terminal count on Figures.
 ```
-; [(inlay [] [[], []]) = [[], []], (inlay [[]] [[], []]) = [[[], []]]]
+; [([] * [[], []]) = [[], []], ([[]] * [[], []]) = [[[], []]]]
 # [<>, <>]
-; [(inlay [[], []] []) = [[], []], (inlay [[]] []) = [[]]]
+; [([[], []] * []) = [[], []], ([[]] * []) = [[]]]
 # [<>, <>]
-; (inlay [[], [], [[], []]] “x”) = [“x”, “x”, [“x”, “x”]]
+; ([[], [], [[], []]] * “x”) = [“x”, “x”, [“x”, “x”]]
 # <>
-; .y [[], [], []]; .host [[], [[], []]]; .r (inlay host y);
+; .y [[], [], []]; .host [[], [[], []]]; .r (host * y);
 ; [((r .0) === y), (((r .1) .0) === y), (((r .1) .1) === y), r === host]
 # [<>, <>, <>, ()]
-; [(inlay [[], []] y).##, ([[], []].## [y]).##]
+; [([[], []] * y).##, ([[], []].## [y]).##]
 # [6, 6]
-; [([[[], []]].## [[[]]]) = [[[]], [[]]], (inlay [[[], []]] [[]]) = [[[[]], [[]]]]]
+; [([[[], []]].## [[[]]]) = [[[]], [[]]], ([[[], []]] * [[]]) = [[[[]], [[]]]]]
 # [<>, <>]
 ```
 Withness uses identity, and its answer is the native boolean.

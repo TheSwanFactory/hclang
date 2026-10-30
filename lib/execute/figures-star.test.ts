@@ -3,7 +3,7 @@ import { HCLang } from "../mod.ts";
 
 // Issue occurrence/figure 009.09: Figures are now ordinary native nested frames
 // and the module keeps only nontrivial operations over them. A cell/terminal is the
-// empty frame `[]`; a nonempty array recurses over its elements. Inlay replaces
+// empty frame `[]`; a nonempty array recurses over its elements. Star replaces
 // each native terminal with the right operand, preserving nonterminal nesting,
 // with no right-zero guard. These are focused unit tests, not a combinatorial
 // oracle.
@@ -13,23 +13,22 @@ async function figuresSession(): Promise<HCLang> {
   expect(await session.call("Figures <- './hc/figures.hc'"))
     .not.toContain("$!");
   await session.call(
-    ".inlay {Figures.inlay _}; " +
-      ".gap {Figures.gap _}; .spin {Figures.spin _}; " +
+    ".gap {Figures.gap _}; .spin {Figures.spin _}; " +
       ".pure {Figures.pure _}; .need {Figures.need _};",
   );
   return session;
 }
 
-Deno.test("inlay replaces native terminals, preserving nonterminal nesting", async () => {
+Deno.test("Star replaces native terminals, preserving nonterminal nesting", async () => {
   const session = await figuresSession();
   for (
     const [source, expected] of [
       // empty host: the empty frame is a single terminal, so it becomes y.
-      ["(inlay [] [[]]) = [[]]", "<>"],
+      ["([] * [[]]) = [[]]", "<>"],
       // singleton host wraps the replacement once.
-      ["(inlay [[]] [[], []]) = [[[], []]]", "<>"],
+      ["([[]] * [[], []]) = [[[], []]]", "<>"],
       // nested nonempty host: each terminal becomes y, nesting preserved.
-      ["(inlay [[], [], [[], []]] [[]]) = [[[]], [[]], [[[]], [[]]]]", "<>"],
+      ["([[], [], [[], []]] * [[]]) = [[[]], [[]], [[[]], [[]]]]", "<>"],
     ] as const
   ) {
     expect(await session.call(source), source).toEqual(expected);
@@ -39,26 +38,26 @@ Deno.test("inlay replaces native terminals, preserving nonterminal nesting", asy
   expect(await session.call("pure 7")).toEqual("");
 });
 
-Deno.test("inlay with an empty replacement does not annihilate the host", async () => {
+Deno.test("Star with an empty replacement does not annihilate the host", async () => {
   const session = await figuresSession();
   for (
     const source of [
       // No right-zero guard: an empty y still replaces each terminal.
-      "(inlay [[], []] []) = [[], []]",
-      "(inlay [[]] []) = [[]]",
-      "(inlay [[], []] [[], []]) = [[[], []], [[], []]]",
+      "([[], []] * []) = [[], []]",
+      "([[]] * []) = [[]]",
+      "([[], []] * [[], []]) = [[[], []], [[], []]]",
     ]
   ) {
     expect(await session.call(source), source).toEqual("<>");
   }
 });
 
-Deno.test("inlay reuses the right operand by identity and leaves the host unchanged", async () => {
+Deno.test("Star reuses the right operand by identity and leaves the host unchanged", async () => {
   const session = await figuresSession();
   await session.call(
     ".y [[], [[[]], []]]; .host [[], [[], []]]; .shared [[], []]; " +
-      ".sharedhost [shared, shared]; .r (inlay host y); " +
-      ".rs (inlay sharedhost y);",
+      ".sharedhost [shared, shared]; .r (host * y); " +
+      ".rs (sharedhost * y);",
   );
   for (
     const source of [
@@ -98,16 +97,16 @@ Deno.test("gap and spin fold immediate element counts with alternating signs", a
   }
 });
 
-Deno.test("native terminal count observes inlay and flat repetition", async () => {
+Deno.test("native terminal count observes Star and flat repetition", async () => {
   const session = await figuresSession();
   await session.call(".host [[], []]; .rep [[], [], []];");
   for (
     const source of [
-      "(inlay host rep).## = 6",
-      "(inlay [[[]], [[]]] rep).## = 6",
+      "(host * rep).## = 6",
+      "([[[]], [[]]] * rep).## = 6",
       "(host.## [rep]).## = 6",
       "([[[], []]].## [[[]]]) = [[[]], [[]]]",
-      "(inlay [[[], []]] [[]]) = [[[[]], [[]]]]",
+      "([[[], []]] * [[]]) = [[[[]], [[]]]]",
     ]
   ) {
     expect(await session.call(source), source).toEqual("<>");
@@ -142,16 +141,15 @@ Deno.test("remaining traversals validate their public host boundary", async () =
   const session = await figuresSession();
   for (
     const source of [
-      "inlay [[], “a”] [[]]",
       "gap ([], [[], []])",
       "spin [[], 5] 4",
-      "inlay 5 [[]]",
       "gap [[], 5]",
     ]
   ) {
     expect(await session.call(source), source).toContain("unsupported-figure");
   }
-  expect(await session.call("(inlay [[], []] [[]]) = [[[]], [[]]]"))
+  expect(await session.call("[[], “a”] * [[]]")).toContain("star-domain");
+  expect(await session.call("([[], []] * [[]]) = [[[]], [[]]]"))
     .toEqual("<>");
   expect(await session.call("(gap [[[], []], [[], [], []]]) = 1"))
     .toEqual("<>");
@@ -160,7 +158,7 @@ Deno.test("remaining traversals validate their public host boundary", async () =
     .toContain("$!");
 });
 
-Deno.test("native inlay differs from the old Figure-specific U-cell inlay", async () => {
+Deno.test("native Star differs from the old Figure-specific U-cell Star", async () => {
   const session = await figuresSession();
   // Old semantics (009.05/009.06): a U-form cell Figure[Z] was the substitution
   // site and the empty Figure Z had Size 0. Natively the empty frame [] is a
@@ -169,11 +167,11 @@ Deno.test("native inlay differs from the old Figure-specific U-cell inlay", asyn
     const [source, expected] of [
       // The empty frame is now one terminal (old Size(Z) was 0).
       ["[].##", "1"],
-      // A bare empty list is an eligible inlay site (old Z was not a cell).
-      ["(inlay [] [[]]) = [[]]", "<>"],
-      // On the form [[]] the native inlay recurses and replaces the inner
-      // terminal, where the old U-cell inlay treated the whole thing as a cell.
-      ["(inlay [[]] [[], []]) = [[[], []]]", "<>"],
+      // A bare empty list is an eligible Star site (old Z was not a cell).
+      ["([] * [[]]) = [[]]", "<>"],
+      // On the form [[]] the native Star recurses and replaces the inner
+      // terminal, where the old U-cell Star treated the whole thing as a cell.
+      ["([[]] * [[], []]) = [[[], []]]", "<>"],
     ] as const
   ) {
     expect(await session.call(source), source).toEqual(expected);

@@ -110,7 +110,7 @@ try {
       "--yes",
       `file:${await Deno.realPath(archive)}`,
       "--evaluate",
-      "Figures <- './hc/figures.hc'; (Figures.inlay [] []) = []",
+      "Figures <- './hc/figures.hc'; ([] * []) = []",
     ],
     { cwd: emptyDirectory },
   );

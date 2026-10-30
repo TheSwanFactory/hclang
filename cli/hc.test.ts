@@ -351,7 +351,7 @@ describe("main", () => {
     // through the overlay the CLI installs and skips its examples, so the only
     // claim that counts is the one written here.
     const { status, summary } = await runTestdoc(
-      "Figures <- './hc/figures.hc';\n; (Figures.inlay [] []) = []\n# <>\n",
+      "Figures <- './hc/figures.hc';\n; ([] * []) = []\n# <>\n",
     );
 
     expect(status).toEqual(0);

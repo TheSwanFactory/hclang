@@ -54,13 +54,13 @@ export class FrameArray extends FrameList {
   }
 
   /**
-   * Star / Inlay: replace empty-array terminals and compose count leaves,
+   * Star: replace empty-array terminals and compose count leaves,
    * sharing the replacement.
    * Copy the same native metadata and declaration echoes as ordinary array
    * reconstruction. A decorated terminal cannot be replaced without loss.
    * Validate before rebuilding; neither operand is evaluated or mutated here.
    */
-  public inlay(replacement: Frame): Frame {
+  public star(replacement: Frame): Frame {
     const path = new Set<Frame>();
     const validate = (node: Frame): Frame | undefined => {
       const value = node.referent();
