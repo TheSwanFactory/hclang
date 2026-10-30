@@ -4,6 +4,12 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.36.1 2026-10-30
+
+- **Restore JSR publication.** Explicitly type the count syntax metadata so
+  public declarations resolve correctly. CI now validates the library package
+  before release. Includes the v0.36.0 membership and type-accessor changes.
+
 ## v0.36.0 2026-10-30
 
 - **Immediate membership on ordinary element hosts mirrors equality.** `f ~ P`,
