@@ -325,16 +325,21 @@ Reading a property or an index is application, and is spelled as application
 ; [.a 1] & {_}
 # []
 ```
-`.#` and `.##` count the elements too, the immediate ones and the leaves below
-them, so neither counts a property. Every aggregate counts this way, a group as
-well as an array. A count is its own size, and any other value has none (#411)
+`.#` and `.##` count the elements too, the immediate ones and the terminals
+below them, so neither counts a property. A terminal is an element that is not
+an aggregate, or an aggregate with no elements: the empty frame is one terminal,
+at the root or nested. Every aggregate counts this way, a group as well as an
+array. A count is its own size, and any other value has none (#411, issue
+occurrence/figure 010.02)
 ```
 ; [.meta 1; 2, 3] .#
 # 2
 ; [.meta [1, 2]; [3, []], 4] .##
-# 2
+# 3
 ; (1, [2, 3]) .##
 # 3
+; [[].#, [].##, [[], [[], []]].#, [[], [[], []]].##]
+# [0, 1, 2, 3]
 ; 5.#
 # 5
 ; “abc”.#

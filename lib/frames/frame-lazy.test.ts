@@ -236,6 +236,9 @@ describe("FrameLazy", () => {
       // the operator as its argument.
       expect(last("{_}.#").toString()).toEqual("1");
       expect(last("{_}.##").toString()).toEqual("1");
+      // An empty body has no atoms, so it is one terminal, as `[]` is (010.02).
+      expect(last("{}.#").toString()).toEqual("0");
+      expect(last("{}.##").toString()).toEqual("1");
       // The comma is an atom since v0.27.0 (spec a16), as `;` is.
       expect(last("{5, 7}.#").toString()).toEqual("3");
       expect(last(".f {_}; f.#").toString()).toEqual("1");

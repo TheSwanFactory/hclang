@@ -110,7 +110,7 @@ try {
       "--yes",
       `file:${await Deno.realPath(archive)}`,
       "--evaluate",
-      "Figures <- './hc/figures.hc'; (Figures.size Figures.U) = (Figures.Figure [Figures.U])",
+      "Figures <- './hc/figures.hc'; (Figures.inlay [] []) = []",
     ],
     { cwd: emptyDirectory },
   );
@@ -128,18 +128,6 @@ const expected = '“{"total":43,"pass":43,"fail":0,"unimplemented":0}”';
 if (!numerics.stdout.includes(expected)) {
   throw new Error(
     `npm testdoc did not report the numeric baseline\n${numerics.stdout}`,
-  );
-}
-
-// Match the summary line, because every pass line carries a running total.
-const modules = await npx(["hc/modules.hc", "--testdoc"]);
-const modulesSummary = modules.stdout.split("\n").find((line) =>
-  line.includes("$=.test-summary")
-);
-const modulesExpected = '“{"total":12,"pass":12,"fail":0,"unimplemented":0}”';
-if (!modulesSummary?.includes(modulesExpected)) {
-  throw new Error(
-    `npm testdoc did not import the bundled Figures module\n${modules.stdout}`,
   );
 }
 

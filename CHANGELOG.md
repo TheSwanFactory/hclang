@@ -4,6 +4,23 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.33.0 2026-10-30
+
+- **Breaking: `.##` counts structural terminals.** Empty aggregates now count as
+  one, including nested empty frames, empty closures and property-only
+  aggregates; `[].##` is `1` and `[1, [2, []]].##` is `3`; `.#` is unchanged
+  (#454).
+- **Breaking: Figures use native operations directly.** `Figure`, `form`,
+  `count`, `size`, `cells`, `many`, `mul`, `sameform`, `sameness`,
+  `size_equivalent` and the `A`/`B`/`Z`/`U` aliases are removed; use brackets,
+  `.##`, `.#`, native repetition (`x.## [[]]` gives terminal-shaped output), `=`
+  and `===`. Gap and Spin read `.##` directly (#454).
+- **Breaking: Withness returns a native boolean.** Immediate containment by
+  identity now answers `<>` or `()`, replacing `[[]]` or `[]` (#454).
+- **The bundled `hc/modules.hc` tutorial is removed.** Import documentation
+  lives in `doc/LANGUAGE.md`; reading `'./hc/modules.hc'` now answers
+  `$!.resource-absent` (#454).
+
 ## v0.32.1 2026-10-28
 
 - **Spin's N is typed as a count.** `x.spin N` now binds N as `.n <~~1>`, the

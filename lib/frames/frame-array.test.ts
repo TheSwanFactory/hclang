@@ -74,12 +74,12 @@ describe("FrameArray", () => {
       evaluate(source).at(-1).asArray().at(-1)!;
     const names = ".a 1; .b 2; .c 3; ";
 
-    it("counts elements with .# and leaves with .##, as counts", () => {
+    it("counts elements with .# and terminals with .##, as counts", () => {
       const table = [
         ["[a, b, c]", "3", "3"],
         ["[[a, b], [c]]", "2", "3"],
-        ["[]", "0", "0"],
-        ["[[], [a]]", "2", "1"],
+        ["[]", "0", "1"],
+        ["[[], [a]]", "2", "2"],
       ];
       for (const [aggregate, count, leaves] of table) {
         const immediate = last(`${names}${aggregate}.#`);
@@ -95,6 +95,33 @@ describe("FrameArray", () => {
     it("counts elements, never properties", () => {
       expect(last("[.meta 1; 2, 3] .#").toString()).toEqual("2");
       expect(last("[.meta [1, 2]; [3]] .##").toString()).toEqual("1");
+    });
+
+    it("counts an aggregate with no elements as one terminal (010.02)", () => {
+      // The terminals of a nested frame are the nodes with nothing below
+      // them, so the empty frame is one, at the root or nested. This is
+      // Figure terminal count on property-free nested arrays.
+      const table = [
+        ["[]", "1"],
+        ["[[]]", "1"],
+        ["[[], []]", "2"],
+        ["[[], [[], []]]", "3"],
+        ["[[[], []], [[], [], []]]", "5"],
+      ];
+      for (const [aggregate, terminals] of table) {
+        const answer = last(`${aggregate}.##`);
+
+        expect(answer.className()).toEqual("FrameCount");
+        expect(answer.toString()).toEqual(terminals);
+      }
+      // An atom is a terminal and an empty frame is one, side by side.
+      expect(last("[1, [2, []]].##").toString()).toEqual("3");
+      expect(last("[[], 5, [[], “ab”]].##").toString()).toEqual("4");
+      // Properties are not elements, so a frame holding only properties is a
+      // terminal, and repeating a frame zero times leaves one terminal.
+      expect(last("[.k 1] .##").toString()).toEqual("1");
+      expect(last("[[.k 1], 2] .##").toString()).toEqual("2");
+      expect(last("(0 [1, 2]).##").toString()).toEqual("1");
     });
 
     it("counts every other element as one leaf, a count included", () => {
@@ -114,8 +141,9 @@ describe("FrameArray", () => {
 
     it("enters a closure, whose elements are the terms of its body", () => {
       // A closure is a list too. Applying one calls it, so it has no size as a
-      // receiver, but inside an aggregate `.##` counts its body's terms.
-      expect(last("[{}, 1].##").toString()).toEqual("1");
+      // receiver, but inside an aggregate `.##` counts its body's terms, and an
+      // empty body is one terminal.
+      expect(last("[{}, 1].##").toString()).toEqual("2");
       expect(last("[{_ + 1}].##").toString()).toEqual("3");
       expect(last("[{_ + 1}].#").toString()).toEqual("1");
     });
@@ -145,6 +173,36 @@ describe("FrameArray", () => {
         .toEqual("2");
       expect(evaluate("$$.xs.#", { xs: indirect }).at(0).toString())
         .toEqual("1");
+    });
+
+    it("still refuses a cycle when empty frames sit beside it (010.02)", () => {
+      // An empty frame answers 1 before it joins the walk's path, so a cycle
+      // must still be found past one, at the root and nested.
+      const empty = new FrameArray([]);
+      const beside = new FrameArray([empty]);
+      beside.collect(beside);
+      const deep = new FrameArray([new FrameArray([])]);
+      deep.collect(new FrameArray([new FrameArray([]), deep]));
+
+      for (const xs of [beside, deep]) {
+        const refusal = evaluate("$$.xs.##", { xs }).at(0);
+
+        expect(refusal.is.error).toBe(true);
+        expect(refusal.toString()).toEqual("$!.cyclic-aggregate .##");
+      }
+    });
+
+    it("counts a shared empty frame at every occurrence (010.02)", () => {
+      // The empty frame is never added to the path, so meeting it again,
+      // beside itself or below, is a second terminal rather than a cycle.
+      const empty = new FrameArray([]);
+      const twice = new FrameArray([empty, empty]);
+      const below = new FrameArray([empty, new FrameArray([empty, empty])]);
+
+      expect(evaluate("$$.xs.##", { xs: twice }).at(0).toString())
+        .toEqual("2");
+      expect(evaluate("$$.xs.##", { xs: below }).at(0).toString())
+        .toEqual("3");
     });
   });
 
