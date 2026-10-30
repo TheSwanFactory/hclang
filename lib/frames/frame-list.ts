@@ -177,39 +177,52 @@ export class FrameList extends Frame {
   }
 
   /**
-   * `.#` counts this aggregate's elements and `.##` the leaves below them
-   * (#411), so neither counts a property. Every aggregate is a list, so each
-   * one answers here rather than in its own class.
+   * `.#` counts this aggregate's elements (#411) and `.##` the terminals of
+   * its structure (issue occurrence/figure 010.02), so neither counts a
+   * property. Every aggregate is a list, so each one answers here rather than
+   * in its own class.
    */
   public override sizeFor(key: string): Frame {
     if (key === Frame.kCOUNT) {
       return new FrameCount(BigInt(this.countedElements().length));
     }
-    const leaves = this.leafCount(new Set());
-    return leaves === undefined
+    const terminals = this.terminalCount(new Set());
+    return terminals === undefined
       ? Frame.error(`$!.cyclic-aggregate .${key}`)
-      : new FrameCount(leaves);
+      : new FrameCount(terminals);
   }
 
   /**
-   * The leaves below this aggregate: each element that is not itself an
-   * aggregate counts once, at any depth, so an empty aggregate adds none.
+   * The terminals of this aggregate's structure, the nodes with no elements
+   * below them. An aggregate with no elements is itself one terminal, at the
+   * root or nested, so `[]` counts 1 and `.##` never answers 0 for an
+   * aggregate. A nonempty aggregate counts its elements' terminals: each
+   * element that is not an aggregate is one terminal, and each aggregate
+   * element counts its own, at any depth. Properties are not elements, so an
+   * aggregate holding only properties is one terminal too.
+   *
+   * On finite, property-free nested arrays this is Figure terminal count:
+   * `[[], [[], []]].##` is 3. Through v0.32.1 an empty aggregate counted 0,
+   * so `.##` counted only the non-aggregate leaves (#411).
+   *
    * `path` holds only the aggregates from the root down to this one, so a
    * branch reached twice counts twice, and one that contains itself answers
    * undefined.
    */
-  private leafCount(path: Set<Frame>): bigint | undefined {
+  private terminalCount(path: Set<Frame>): bigint | undefined {
     if (path.has(this)) return undefined;
+    const elements = this.countedElements();
+    if (elements.length === 0) return 1n;
     path.add(this);
-    let leaves = 0n;
-    for (const element of this.countedElements()) {
+    let terminals = 0n;
+    for (const element of elements) {
       const value = element.referent();
-      const below = value instanceof FrameList ? value.leafCount(path) : 1n;
+      const below = value instanceof FrameList ? value.terminalCount(path) : 1n;
       if (below === undefined) return undefined;
-      leaves += below;
+      terminals += below;
     }
     path.delete(this);
-    return leaves;
+    return terminals;
   }
 
   /**

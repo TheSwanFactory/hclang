@@ -74,12 +74,12 @@ describe("FrameArray", () => {
       evaluate(source).at(-1).asArray().at(-1)!;
     const names = ".a 1; .b 2; .c 3; ";
 
-    it("counts elements with .# and leaves with .##, as counts", () => {
+    it("counts elements with .# and terminals with .##, as counts", () => {
       const table = [
         ["[a, b, c]", "3", "3"],
         ["[[a, b], [c]]", "2", "3"],
-        ["[]", "0", "0"],
-        ["[[], [a]]", "2", "1"],
+        ["[]", "0", "1"],
+        ["[[], [a]]", "2", "2"],
       ];
       for (const [aggregate, count, leaves] of table) {
         const immediate = last(`${names}${aggregate}.#`);
@@ -95,6 +95,33 @@ describe("FrameArray", () => {
     it("counts elements, never properties", () => {
       expect(last("[.meta 1; 2, 3] .#").toString()).toEqual("2");
       expect(last("[.meta [1, 2]; [3]] .##").toString()).toEqual("1");
+    });
+
+    it("counts an aggregate with no elements as one terminal (010.02)", () => {
+      // The terminals of a nested frame are the nodes with nothing below
+      // them, so the empty frame is one, at the root or nested. This is
+      // Figure terminal count on property-free nested arrays.
+      const table = [
+        ["[]", "1"],
+        ["[[]]", "1"],
+        ["[[], []]", "2"],
+        ["[[], [[], []]]", "3"],
+        ["[[[], []], [[], [], []]]", "5"],
+      ];
+      for (const [aggregate, terminals] of table) {
+        const answer = last(`${aggregate}.##`);
+
+        expect(answer.className()).toEqual("FrameCount");
+        expect(answer.toString()).toEqual(terminals);
+      }
+      // An atom is a terminal and an empty frame is one, side by side.
+      expect(last("[1, [2, []]].##").toString()).toEqual("3");
+      expect(last("[[], 5, [[], “ab”]].##").toString()).toEqual("4");
+      // Properties are not elements, so a frame holding only properties is a
+      // terminal, and repeating a frame zero times leaves one terminal.
+      expect(last("[.k 1] .##").toString()).toEqual("1");
+      expect(last("[[.k 1], 2] .##").toString()).toEqual("2");
+      expect(last("(0 [1, 2]).##").toString()).toEqual("1");
     });
 
     it("counts every other element as one leaf, a count included", () => {
@@ -114,8 +141,9 @@ describe("FrameArray", () => {
 
     it("enters a closure, whose elements are the terms of its body", () => {
       // A closure is a list too. Applying one calls it, so it has no size as a
-      // receiver, but inside an aggregate `.##` counts its body's terms.
-      expect(last("[{}, 1].##").toString()).toEqual("1");
+      // receiver, but inside an aggregate `.##` counts its body's terms, and an
+      // empty body is one terminal.
+      expect(last("[{}, 1].##").toString()).toEqual("2");
       expect(last("[{_ + 1}].##").toString()).toEqual("3");
       expect(last("[{_ + 1}].#").toString()).toEqual("1");
     });

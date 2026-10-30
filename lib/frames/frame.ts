@@ -75,7 +75,8 @@ export class Frame extends MetaFrame {
    */
   public static readonly kCOUNT = "#";
   /**
-   * kLEAVES is the size operator `.##`, an aggregate's leaf count (#411).
+   * kLEAVES is the size operator `.##`, an aggregate's terminal count (#411,
+   * issue occurrence/figure 010.02).
    */
   public static readonly kLEAVES = "##";
   /**

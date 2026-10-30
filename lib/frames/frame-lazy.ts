@@ -124,7 +124,8 @@ export class FrameLazy extends FrameExpr {
 
   /**
    * A closure walks as the atoms of its body (#429), so `.#` counts them and
-   * `.##` the atoms below them, as for any aggregate (#411). The operator
+   * `.##` the terminals below them, as for any aggregate (#411); an empty
+   * body is one terminal. The operator
    * reaches a closure as its argument, where a body would otherwise run, so
    * it is answered here before the body is.
    */

@@ -1,6 +1,7 @@
 #!/usr/bin/env hc
 ```
-Figures over native frames (#382, #395, #451; issue occurrence/figure 009.09)
+Figures over native frames (#382, #395, #451; issue occurrence/figure 009.09,
+010.02)
 
 Relational Construction Theory has one generative operation: construct a Figure
 out of zero or more already constructed Figures, its children. v0.27.0 makes
@@ -38,6 +39,14 @@ the empty Figure `Z` as `0`. Natively the empty frame is one terminal, so
 `size []` is one, not zero; `size [[]]` is also one, counting the inner `[]`;
 and `size [[], []]` is two. The counting law is unchanged in spirit: inserting a
 Figure of n terminals at each of a host's m terminals yields m×n terminals.
+
+That terminal count is the runtime's own. Native `.##` counts the terminals of
+any aggregate's structure, the elements that are not aggregates and the
+aggregates with no elements (issue 010.02), so on the supported domain, where
+every terminal is an empty frame, `count x` is `x.##`. This module reads it
+there rather than recounting: `count` is the guarded `.##` and `size` repeats
+`U` that many times. Only `cells`, which answers the terminals themselves,
+still walks the frame here.
 
 Supported inputs. The operations are defined for finite, well-founded,
 property-free nested frames: every node is either `[]` or a plain array of
@@ -104,23 +113,23 @@ pure Figure
 ```
 .form {.x _; (pure x) ? {x} : {need x}};
 ```
-**Size**, `size x`: a tally with one `U` per native terminal `[]`. It keeps the
-terminal count and forgets shape, nesting, order, reuse and identity. The empty
-frame is one terminal, so `size []` is one cell; a nonempty frame's size splices
-its elements' sizes. A tally reads as a number through its elements, `(size x).#`.
-Like every public observer here it guards its argument first: an unsupported
-input is refused through `need` rather than observed as a degraded tally
+**Count**, `count x`: the terminal count of x read as a native FrameCount. On
+the supported domain that is native `.##`, which reads each empty frame as one
+terminal at any depth, so `count []` is `1` and `count [[], [[], []]]` is `3`.
+It observes a number, so it leaves the Figures on purpose, the way `cells` and
+`form` do. It guards its argument first: `.##` would also count atoms and
+strings, so an unsupported input is refused through `need` rather than counted
 ```
-.size {.x _; (pure x) ? {
-  .go {.n _; (n = []) ? {[[[]]]} : {n &| {go _}}};
-  go x} : {need x}};
+.count {.x _; (pure x) ? {x.##} : {need x}};
 ```
-**Count**, `count x`: the terminal count of x read as a native FrameCount, the
-size tally's element count. It observes a number, so it leaves the Figures on
-purpose, the way `cells` and `form` do. It inherits `size`'s guard: an
-unsupported x makes `size` refuse, and the refusal carries through `.#`
+**Size**, `size x`: a tally with one `U` per native terminal `[]`, so
+`(size x).#` is `count x`. It keeps the terminal count and forgets shape,
+nesting, order and identity. The empty frame is one terminal, so `size []` is
+one cell. The tally repeats `U` itself, so each mark is `U` by identity. Like
+every public observer here it guards its argument first: an unsupported input
+is refused through `need` rather than observed as a degraded tally
 ```
-.count {.x _; (size x).#};
+.size {.x _; (pure x) ? {(x.##) [U]} : {need x}};
 ```
 **Cells**, `cells x`: the terminals of x, in order, each one itself. The empty
 frame is its own only cell; every other frame's cells are its elements',
@@ -239,7 +248,7 @@ marks are ordinary arrays. Indexing reaches an element itself, not a copy
 ; [(Figure [A, B]) = [A, B], (Figure [A, B]) = [[], [[]]]]
 # [<>, <>]
 ; .E (Figure [A, B]); .G (Figure [E, Figure [B, Figure [B]]]);
-; [(E .0) === A, (E .1) === B, E.# = 2, E.## = 0]
+; [(E .0) === A, (E .1) === B, E.# = 2, E.## = 2]
 # [<>, <>, <>, <>]
 ```
 A Figure's children are its native elements, so `.#` counts them and `&` maps
@@ -315,25 +324,29 @@ Cells answers the terminals themselves, in order, wherever they were nested, and
 ; [(cells E) = [[], []], ((cells E) .0) === A]
 # [<>, <>]
 ```
-Terminal count is not native `.##`. The native leaf operator `.##` counts
-*non-aggregate* leaves, so an empty aggregate adds none: `[].##` is `0`, and on
-the pure Figure domain — nested empty frames with no atoms — `.##` is always
-`0`. Figure `count` instead reads the empty frame `[]` as the one terminal, so
-`count []` is `1`. The two observers disagree at exactly the node each is built
-around, the empty frame, and so terminal count cannot be `.##` without reversing
-`.##`'s own rule that an empty aggregate adds no leaf (issue 010.02, #411)
+Terminal count is native `.##` (issue 010.02). `.##` reads each empty frame as
+one terminal, so on the supported domain it answers exactly what `count` does,
+and `.#` stays the immediate element count
 ```
-; [[].##, (count [])]
-# [0, 1]
-; [[[], []].##, (count [[], []])]
-# [0, 2]
-; [[[], [[], []]].##, (count [[], [[], []]])]
-# [0, 3]
+; [[].##, [[]].##, [[], []].##, [[], [[], []]].##]
+# [1, 1, 2, 3]
+; [(count []), (count [[]]), (count [[], []]), (count [[], [[], []]])]
+# [1, 1, 2, 3]
+; [[].#, [[]].#, [[], []].#, [[], [[], []]].#]
+# [0, 1, 2, 2]
 ```
-Where native structure is available on the pure domain is `.#` over the
-terminals: `count x` is the element count of the terminals `cells` lists, the
-same number the size tally's length reads
+`.##` is defined for every aggregate, so it also counts an atom as a terminal.
+`count` stays inside the supported domain and refuses a mixed tree that `.##`
+counts
 ```
+; [[1, [2, []]].##, [[], 5, [[], “ab”]].##, (pure [1, [2, []]])]
+# [3, 4, ()]
+```
+The tally's marks are `U` itself, and `count x` is also the number of terminals
+`cells` lists
+```
+; [((size [[], []]) .0) === U, ((size [[], []]) .1) === U]
+# [<>, <>]
 ; [(count [[], [[], []]]) = ((cells [[], [[], []]]).#), (count Z) = ((cells Z).#)]
 # [<>, <>]
 ```
