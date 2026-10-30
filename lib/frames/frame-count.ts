@@ -22,9 +22,9 @@ import type { AtomSyntax, ScanResult, SigilStart } from "../scan.ts";
  * `/` answers a ratio, which collapses to a FrameInt when it is whole.
  */
 export class FrameCount extends FrameInt {
-  public static readonly SIGIL_STARTS = [
+  public static readonly SIGIL_STARTS: readonly SigilStart[] = [
     { key: FrameCount.NUMBER_BEGIN.toString(), mode: "atom" },
-  ] as const satisfies readonly SigilStart[];
+  ];
 
   public static readonly SYNTAX: AtomSyntax = {
     NAME: "FrameCount",

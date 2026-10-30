@@ -59,6 +59,9 @@ jobs:
           name: hclang-npm-candidate
           path: dist/hclang-*.tgz
           if-no-files-found: error
+      - name: Validate hclang package
+        working-directory: lib
+        run: deno publish --dry-run
       - name: Validate hcweb package
         working-directory: web
         run: deno publish --dry-run
