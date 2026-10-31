@@ -24,7 +24,7 @@ construction, such as `x & {[[]]}` for one fresh mark per immediate element.
 Native `.##` uses each child's native Size, including numeric magnitude and
 text length. Native `.###` also accepts mixed arrays, groups, and non-schema list syntax/closures. Counts answer
 FrameInt parity (`n mod 2`), including valid zero; ordinary atoms and schemas answer nil.
-Ordinary non-numeric atoms have Count zero. Other missing Count rules fall back to Size.
+Missing Count rules fall back to Size, including sized atoms. Explicit Counts take precedence.
 Stored errors and failed child quantities propagate rather than acquiring a load.
 Star keeps its narrower array/Count composition domain.
 

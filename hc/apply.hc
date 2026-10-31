@@ -326,8 +326,8 @@ Reading a property or an index is application, and is spelled as application
 # []
 ```
 `.#` counts immediate elements or represented words; properties do not count.
-Ordinary non-numeric atoms have Count zero; Count values retain their magnitude. A missing
-Count rule otherwise falls back to native Size. `.##` measures represented
+A missing Count rule falls back to native Size, including numbers, text, blobs,
+bytes and opaque atoms. Explicit list, schema and nil/all Count rules take precedence. `.##` measures represented
 quantity: lists sum complete child Sizes, with Size 1 for an empty list. Numeric
 magnitude, Unicode text length, blob bits and payload bytes have their own native
 Sizes; schemas retain their description/alternative quantities. Other opaque
@@ -346,7 +346,7 @@ returning nil at zero Count or nil residual and propagating failed observations.
 ; 5.#
 # 5
 ; “abc”.#
-# 0
+# 3
 ```
 **Decision.** Canonical rendering puts the properties first, then the elements.
 This reverses the spelling this file carried before. It makes print order agree

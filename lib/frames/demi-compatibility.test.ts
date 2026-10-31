@@ -65,9 +65,8 @@ Deno.test("Demi compatibility matrix: all concrete Frame families stay non-execu
       expect(value.sizeFor("####")).toBe(failure);
       continue;
     }
-    const n = value instanceof f.FrameAtom || value instanceof f.FrameType ||
-        value === f.Frame.nil || value === f.Frame.all ||
-        value === f.Frame.missing
+    const n = value === f.Frame.nil || value === f.Frame.all ||
+        value === f.Frame.missing || value instanceof f.FrameComment
       ? "0"
       : "1";
     expect(observations(value), value.className()).toEqual([n, "1", "nil"]);
@@ -85,11 +84,11 @@ Deno.test("Demi compatibility matrix: all concrete Frame families stay non-execu
       "$!.nonquantifiable-size .##",
       "$!.nonquantifiable-size .##",
     ]],
-    [new f.FrameString("é😀"), ["0", "2", "nil"]],
+    [new f.FrameString("é😀"), ["2", "2", "nil"]],
     [new f.FrameString(""), ["0", "0", "nil"]],
-    [new f.FrameDoc("é😀"), ["0", "2", "nil"]],
-    [new f.FrameBlob("0b0001"), ["0", "4", "nil"]],
-    [new f.FrameBytes([0, 255]), ["0", "2", "nil"]],
+    [new f.FrameDoc("é😀"), ["2", "2", "nil"]],
+    [new f.FrameBlob("0b0001"), ["4", "4", "nil"]],
+    [new f.FrameBytes([0, 255]), ["2", "2", "nil"]],
     [new f.FrameBytes([]), ["0", "0", "nil"]],
     [array, ["2", "8", "2"]],
     [new f.FrameArray([]), ["0", "1", "0"]],

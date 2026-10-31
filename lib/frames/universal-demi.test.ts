@@ -3,9 +3,13 @@ import {
   EvaluationScope,
   Frame,
   FrameArray,
+  FrameAtom,
+  FrameBlob,
+  FrameBytes,
   FrameCount,
   FrameDecimal,
   FrameDemi,
+  FrameDoc,
   FrameExpr,
   FrameInt,
   FrameLazy,
@@ -15,6 +19,7 @@ import {
   FrameSchema,
   FrameScoped,
   FrameString,
+  FrameType,
   MemoryStore,
 } from "../frames.ts";
 import { evaluate } from "../execute/evaluate.ts";
@@ -23,7 +28,7 @@ import { FrameHandle } from "./frame-handle.ts";
 const last = (source: string): Frame =>
   evaluate(source).at(-1).asArray().at(-1)!;
 
-Deno.test("finite numeric Count uses magnitude rather than the non-numeric atom default", () => {
+Deno.test("sized values inherit Count from Size without installing a residual", () => {
   for (
     const value of [
       new FrameInt(5n),
@@ -35,6 +40,14 @@ Deno.test("finite numeric Count uses magnitude rather than the non-numeric atom 
       new FrameDecimal("0.9"),
       new FrameRational(-1n, 2n),
       new FrameNumber(-0),
+      new FrameString("é😀"),
+      new FrameString(""),
+      new FrameDoc("é😀"),
+      new FrameBlob("0b0001"),
+      new FrameBytes([0, 255]),
+      new FrameBytes([]),
+      new FrameAtom(),
+      FrameType.of(new FrameCount(5n)),
     ]
   ) {
     const count = value.sizeFor("#");
@@ -48,7 +61,7 @@ Deno.test("finite numeric Count uses magnitude rather than the non-numeric atom 
   expect(last("(10 - 5).#").toString()).toEqual("5");
   expect(last("5.#").toString()).toEqual("5");
   expect(last("(-5.9).#").toString()).toEqual("5");
-  expect(new FrameString("hello").sizeFor("#").toString()).toEqual("0");
+  expect(new FrameString("hello").sizeFor("#").toString()).toEqual("5");
   for (const value of [Infinity, -Infinity, NaN]) {
     expect(new FrameNumber(value).sizeFor("#").toString()).toEqual(
       "$!.nonquantifiable-size .##",

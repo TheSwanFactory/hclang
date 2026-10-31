@@ -207,9 +207,11 @@ describe("FrameSymbol", () => {
   });
 
   describe("size operators (#411)", () => {
-    it("gives atoms explicit Count zero and gives text and URIs a Size", () => {
+    it("uses native Size as Count for text and URIs", () => {
       for (const receiver of ["“abc”", "`abc`", "'./x.txt'"]) {
-        expect(evaluate(`${receiver}.#`).at(0).toString()).toEqual("0");
+        expect(evaluate(`${receiver}.#`).at(0).toString()).toEqual(
+          receiver.startsWith("'") ? "1" : "3",
+        );
         expect(evaluate(`${receiver}.##`).at(0).toString()).toEqual(
           receiver.startsWith("'") ? "1" : "3",
         );
@@ -221,11 +223,11 @@ describe("FrameSymbol", () => {
       // an aggregate under construction with elements of its own: an array,
       // a group, and the file scope itself.
       expect(evaluate("[1, 2, .s “abc”; s.#, s.##]").at(0).toString())
-        .toEqual("[.s “abc”; 1, 2, 0, 3]");
+        .toEqual("[.s “abc”; 1, 2, 3, 3]");
       expect(evaluate("(1, 2, .s “abc”; s.#, s.##)").at(0).toString())
-        .toEqual("(.s “abc”; 1, 2, 0, 3)");
+        .toEqual("(.s “abc”; 1, 2, 3, 3)");
       expect(evaluate(".s “abc”; s.#").toString())
-        .toEqual("[.s “abc”; ((.s “abc”); 0)]");
+        .toEqual("[.s “abc”; ((.s “abc”); 3)]");
     });
 
     it("stays an address with no receiver before it", () => {

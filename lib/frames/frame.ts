@@ -901,7 +901,8 @@ export class Frame extends MetaFrame {
 
   /**
    * Native Count, Size, residual and derived Demi. Missing Count falls back to
-   * Size; atoms and aggregates supply explicit Counts. Nil residual is absence.
+   * Size; kinds with their own cardinality supply explicit Counts.
+   * Nil residual is absence.
    */
   public sizeFor(key: string): Frame {
     if (!Frame.SIZE_OPERATORS.includes(key)) return Frame.nil;

@@ -17,13 +17,13 @@
   and residual; zero Count or nil residual yields nil, while observation
   failures and incoherent loads return errors. A fifth hash now opens a comment:
   prior `.###` immediately followed by a hash comment changes tokenization.
-- **Consistent observation defaults.** Ordinary non-numeric atoms and nil/all
-  have Count zero; finite numeric Counts use absolute truncated magnitude,
-  matching Size. Missing Count otherwise falls back to Size. All non-schema
-  lists, including stored source/closure words, have alternating residuals
-  without execution. Schemas keep nil residual and their existing Size. Child
-  Size contributes regardless of child residual. Cycle/nonquantifiable residuals
-  and stored errors now propagate failures instead of nil or opaque Size 1.
+- **Consistent observation defaults.** Missing Count falls back to Size for
+  numbers, text, blobs, bytes and other sized atoms. Explicit list, schema and
+  nil/all Counts take precedence. All non-schema lists, including stored
+  source/closure words, have alternating residuals without execution. Schemas
+  keep nil residual and their existing Size. Child Size contributes regardless
+  of child residual. Cycle/nonquantifiable residuals and stored errors now
+  propagate failures instead of nil or opaque Size 1.
 
 ## v0.37.3 2026-10-31
 

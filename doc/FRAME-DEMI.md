@@ -64,13 +64,13 @@ Existing failures retain their original value. An error value's observations do
 not turn it into an opaque quantity or successful zero. Nonfinite FrameNumbers
 fail Count as well as Size/residual/Demi.
 
-The base Frame's missing Count rule falls back to Size. Ordinary non-numeric
-FrameAtom values explicitly override Count with zero, so fallback never replaces
-an explicit zero. Nil/all/missing and atomic runtime type descriptions also have
-explicit Count zero. Nil/all source dispatch is intercepted, while receiverless
-observer names remain addresses. Count retains its explicit magnitude Count and
-parity residual. Finite Int, Decimal, Rational and Number values use their
-absolute truncated magnitude for Count and Size; their residual remains nil.
+The base Frame's missing Count rule falls back to Size for every kind, including
+numbers, text, blobs, bytes, opaque atoms and runtime type descriptions.
+Explicit Count rules take precedence: lists count immediate elements/words,
+schemas retain their own rules, and nil/all/missing and void comments retain
+Count zero. Nil/all source dispatch is intercepted, while receiverless observer
+names remain addresses. FrameCount retains its explicit magnitude Count and
+parity residual; other sized atoms retain the default nil residual.
 
 Non-schema lists observe their stored ordered elements/words for Count, Size and
 residual, without executing the host. Source syntax uses the existing pure Size
@@ -87,33 +87,33 @@ normally.
 boundaries, references, mutation, bigint values and non-execution. Internal
 hosts are source-audited for inherited rules and covered by import-first checks.
 
-| Family                                                                | #                               | ##                                                | ###                                       | ####                                                            |
-| --------------------------------------------------------------------- | ------------------------------- | ------------------------------------------------- | ----------------------------------------- | --------------------------------------------------------------- |
-| FrameCount(n)                                                         | n                               | n                                                 | FrameInt n mod 2                          | nil at zero; otherwise balanced native Demi                     |
-| FrameInt, Decimal, Rational, finite Number                            | Absolute truncated magnitude    | Absolute truncated magnitude                      | nil                                       | nil                                                             |
-| String, Doc; Blob; Bytes                                              | 0                               | Code points; bits; bytes                          | nil                                       | nil                                                             |
-| FrameAtom; Arg, Param, Name, Word, Alias, Literal, Symbol, Operator   | 0                               | One opaque occurrence                             | nil                                       | nil                                                             |
-| URI, Resource, Comment; Time/DateTime/Duration, TypedNumber, Sequence | 0                               | One opaque occurrence; no reads or unit inference | nil                                       | nil                                                             |
-| ScopeAnchor, StringEnd, BytePayload; non-error Note; Demi             | 0                               | One opaque occurrence                             | nil                                       | nil                                                             |
-| Type; nil, all, missing                                               | 0                               | One description/occurrence                        | nil                                       | nil                                                             |
-| Array, Group, generic List, Expr, Bind, Lazy, source arrays/groups    | Immediate stored elements/words | Sum of complete child Sizes, empty=1              | Alternating complete child Sizes, empty=0 | nil at zero Count; otherwise derived Demi or propagated failure |
-| Enumeration Schema                                                    | Existing element Count          | Declared candidates, empty=1                      | nil                                       | nil                                                             |
-| Compiled structural/bit/custom Schema                                 | Existing syntax Count           | One description                                   | nil                                       | nil                                                             |
-| Handle, Scoped                                                        | Delegate                        | Delegate                                          | Delegate                                  | Delegate                                                        |
-| Error value / diagnostic failure Note                                 | Original error                  | Original error                                    | Original error                            | Original error                                                  |
-| Nonfinite Number                                                      | Nonquantifiable error           | Same error                                        | Same error                                | Same error                                                      |
-| Containment/reference cycles                                          | Immediate Count or cycle error  | Existing cycle error                              | Propagated cycle error                    | Propagated cycle error                                          |
-| Shared descendants; metadata/declared-parent cycles                   | Immediate Count                 | Sharing per occurrence; metadata excluded         | Same child Size rule                      | Coherent; no mutable cache                                      |
-| Base Frame; Import, BoundMethod; internal hosts derived from Frame    | Size fallback                   | One opaque occurrence                             | nil                                       | nil                                                             |
-| Internal ParsePipe (Array subtype)                                    | Inherited stored element Count  | Inherited Size                                    | Inherited residual                        | Inherited derivation                                            |
+| Family                                                                   | #                               | ##                                                | ###                                       | ####                                                            |
+| ------------------------------------------------------------------------ | ------------------------------- | ------------------------------------------------- | ----------------------------------------- | --------------------------------------------------------------- |
+| FrameCount(n)                                                            | n                               | n                                                 | FrameInt n mod 2                          | nil at zero; otherwise balanced native Demi                     |
+| FrameInt, Decimal, Rational, finite Number                               | Absolute truncated magnitude    | Absolute truncated magnitude                      | nil                                       | nil                                                             |
+| String, Doc; Blob; Bytes                                                 | Code points; bits; bytes        | Code points; bits; bytes                          | nil                                       | nil                                                             |
+| FrameAtom; Arg, Param, Name, Word, Alias, Literal, Symbol, Operator      | 1                               | One opaque occurrence                             | nil                                       | nil                                                             |
+| URI, Resource; Time/DateTime/Duration, TypedNumber, Sequence             | 1                               | One opaque occurrence; no reads or unit inference | nil                                       | nil                                                             |
+| ScopeAnchor, StringEnd, BytePayload; non-error Note; Demi                | 1                               | One opaque occurrence                             | nil                                       | nil                                                             |
+| nil, all, missing; void Comment                                          | 0                               | One description/occurrence                        | nil                                       | nil                                                             |
+| Array, Group, generic List, Expr, Bind, Lazy, source arrays/groups       | Immediate stored elements/words | Sum of complete child Sizes, empty=1              | Alternating complete child Sizes, empty=0 | nil at zero Count; otherwise derived Demi or propagated failure |
+| Enumeration Schema                                                       | Existing element Count          | Declared candidates, empty=1                      | nil                                       | nil                                                             |
+| Compiled structural/bit/custom Schema                                    | Existing syntax Count           | One description                                   | nil                                       | nil                                                             |
+| Handle, Scoped                                                           | Delegate                        | Delegate                                          | Delegate                                  | Delegate                                                        |
+| Error value / diagnostic failure Note                                    | Original error                  | Original error                                    | Original error                            | Original error                                                  |
+| Nonfinite Number                                                         | Nonquantifiable error           | Same error                                        | Same error                                | Same error                                                      |
+| Containment/reference cycles                                             | Immediate Count or cycle error  | Existing cycle error                              | Propagated cycle error                    | Propagated cycle error                                          |
+| Shared descendants; metadata/declared-parent cycles                      | Immediate Count                 | Sharing per occurrence; metadata excluded         | Same child Size rule                      | Coherent; no mutable cache                                      |
+| Type; Base Frame; Import, BoundMethod; internal hosts derived from Frame | Size fallback                   | One opaque occurrence                             | nil                                       | nil                                                             |
+| Internal ParsePipe (Array subtype)                                       | Inherited stored element Count  | Inherited Size                                    | Inherited residual                        | Inherited derivation                                            |
 
 Abstract Numeric/Text/Time/LexHost bases inherit the listed concrete-family
 rules. Internal hosts audited include LiveLookupContext, ScopedLexicalContext,
 ImportProgress, QuoteSink, LexicalError, MetadataHead, Token, Lex, LexRun,
-Terminal, EvalPipe, LexPipe, FrameOps, FrameCurry, HCTest and HCLog. Token
-inherits FrameAtom Count zero; other Frame-based internal hosts use the Size
-fallback. BoundMethod/Import are opaque host Frames, not list bodies; Count
-fallback does not invoke their methods.
+Terminal, EvalPipe, LexPipe, FrameOps, FrameCurry, HCTest and HCLog. Token and
+other Frame-based internal hosts use the Size fallback. BoundMethod/Import are
+opaque host Frames, not list bodies; Count fallback does not invoke their
+methods.
 
 ## Examples and compatibility changes
 
@@ -129,10 +129,10 @@ fallback does not invoke their methods.
 Count residual changes nil to FrameInt parity, including present/truthy zero.
 Figures Gap/Spin therefore accept Counts. They also now accept non-schema list
 syntax/closures with valid residuals. Cycle/nonquantifiable residuals now
-propagate errors instead of returning nil. Ordinary non-numeric atom Count
-changes absent/nil to zero; nil/all Count changes name passthrough/absorption to
-zero. Their native Sizes are preserved. Stored errors now propagate instead of
-contributing opaque Size 1.
+propagate errors instead of returning nil. Sized atom Count falls back to Size;
+nil/all Count changes name passthrough/absorption to zero. Their native Sizes
+are preserved. Stored errors now propagate instead of contributing opaque
+Size 1.
 
 The lexer, runtime dispatch and editor recognize `.####` together. A fifth hash
 starts a comment; `..#` remains the parameter ladder followed by a comment.

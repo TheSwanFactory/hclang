@@ -104,14 +104,6 @@ export function projectBigIntRatio(
 export abstract class FrameNumeric extends FrameAtom {
   public abstract readonly rank: NumericRank | null;
 
-  /** Quantifiable numbers use their magnitude, not the non-numeric atom default. */
-  public override sizeFor(key: string): Frame {
-    if (key === Frame.kCOUNT && this.rank !== null) {
-      return this.sizeFor(Frame.kLEAVES);
-    }
-    return super.sizeFor(key);
-  }
-
   public override observationError(): Frame | undefined {
     return super.observationError() ??
       (this.rank === NUMERIC_RANK.number && !Number.isFinite(this.valueOf())

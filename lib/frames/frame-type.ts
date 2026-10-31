@@ -23,12 +23,6 @@ export class FrameType extends Frame implements FrameMatcher {
     );
   }
 
-  public override sizeFor(key: string): Frame {
-    return key === Frame.kCOUNT
-      ? this.observationError() ?? Frame.count(0n)
-      : super.sizeFor(key);
-  }
-
   public matches(value: Frame): boolean {
     return this.match(value).matched;
   }
