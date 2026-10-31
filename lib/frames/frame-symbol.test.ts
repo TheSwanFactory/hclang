@@ -207,11 +207,12 @@ describe("FrameSymbol", () => {
   });
 
   describe("size operators (#411)", () => {
-    it("answers nil on anything but an aggregate or a count", () => {
+    it("keeps immediate count partial and gives text and URIs a Size", () => {
       for (const receiver of ["“abc”", "`abc`", "'./x.txt'"]) {
-        for (const operator of [".#", ".##"]) {
-          expect(evaluate(`${receiver}${operator}`).toString()).toEqual("[]");
-        }
+        expect(evaluate(`${receiver}.#`).toString()).toEqual("[]");
+        expect(evaluate(`${receiver}.##`).at(0).toString()).toEqual(
+          receiver.startsWith("'") ? "1" : "3",
+        );
       }
     });
 
@@ -220,9 +221,9 @@ describe("FrameSymbol", () => {
       // an aggregate under construction with elements of its own: an array,
       // a group, and the file scope itself.
       expect(evaluate("[1, 2, .s “abc”; s.#, s.##]").at(0).toString())
-        .toEqual("[.s “abc”; 1, 2, (), ()]");
+        .toEqual("[.s “abc”; 1, 2, (), 3]");
       expect(evaluate("(1, 2, .s “abc”; s.#, s.##)").at(0).toString())
-        .toEqual("(.s “abc”; 1, 2, (), ())");
+        .toEqual("(.s “abc”; 1, 2, (), 3)");
       expect(evaluate(".s “abc”; s.#").toString())
         .toEqual("[.s “abc”; ((.s “abc”); ())]");
     });

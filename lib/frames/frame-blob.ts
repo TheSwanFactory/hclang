@@ -130,6 +130,10 @@ export class FrameBlob extends FrameAtom {
     return this.string_prefix() + digits + this.string_suffix();
   }
 
+  public override nativeSize(): bigint {
+    return this.n_bits;
+  }
+
   /** The exact rendered width of this blob, including leading zero bits. */
   public bitLength(): number {
     return Number(this.n_bits);

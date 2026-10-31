@@ -25,6 +25,12 @@ export abstract class FrameText extends FrameAtom {
     super(meta);
   }
 
+  public override nativeSize(path: Set<Frame>): bigint | Frame {
+    return hasCharacterContent(this)
+      ? BigInt(this.characterContent().length)
+      : super.nativeSize(path);
+  }
+
   protected override toData(): string {
     return this.data;
   }

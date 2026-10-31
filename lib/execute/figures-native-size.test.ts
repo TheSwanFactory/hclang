@@ -91,7 +91,7 @@ Deno.test("withness returns native booleans and compares immediate identity", as
 Deno.test("native Star and .## support mixed count/array trees", async () => {
   const session = await figuresSession();
   expect(await session.call("[1, [2, []]].##")).toEqual("4");
-  expect(await session.call("[[], 5, [[], “ab”]].##")).toEqual("8");
+  expect(await session.call("[[], 5, [[], “ab”]].##")).toEqual("9");
   expect(await session.call("([1, [2, []]] * []).##")).toEqual("4");
 });
 
@@ -133,7 +133,7 @@ Deno.test("Gap is |.###| and Spin is .### / N, with .### a FrameInt (010.04)", a
 
 Deno.test("Gap and Spin keep refusing unsupported hosts (010.04)", async () => {
   const session = await figuresSession();
-  for (const host of ["[1, []]", "([], [])", "5"]) {
+  for (const host of ["“hi”", "{[]}", "5"]) {
     expect(await session.call(`Figures.gap ${host}`), host)
       .toContain("unsupported-figure");
     expect(await session.call(`Figures.spin ${host} 2`), host)

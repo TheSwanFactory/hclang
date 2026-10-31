@@ -82,6 +82,15 @@ export class FrameSchema extends FrameList implements FrameMatcher {
     return this;
   }
 
+  public override nativeSize(): bigint {
+    // Empty enumeration means the total type, not an empty finite domain.
+    // Inspect the installed matcher only; never traverse/compile candidates.
+    return this.matcher instanceof EnumerationSchemaMatcher &&
+        this.data.length > 0
+      ? BigInt(this.data.length)
+      : 1n;
+  }
+
   public match(value: Frame, origin = Frame.nil): MatchResult {
     return this.matcher.match(this, value, origin);
   }

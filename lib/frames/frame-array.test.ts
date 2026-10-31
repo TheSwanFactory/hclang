@@ -116,7 +116,7 @@ describe("FrameArray", () => {
       }
       // An atom is a terminal and an empty frame is one, side by side.
       expect(last("[1, [2, []]].##").toString()).toEqual("4");
-      expect(last("[[], 5, [[], “ab”]].##").toString()).toEqual("8");
+      expect(last("[[], 5, [[], “ab”]].##").toString()).toEqual("9");
       // Properties are not elements, so a frame holding only properties is a
       // terminal, and repeating a frame zero times leaves one terminal.
       expect(last("[.k 1] .##").toString()).toEqual("1");
@@ -124,17 +124,16 @@ describe("FrameArray", () => {
       expect(last("(0 [1, 2]).##").toString()).toEqual("1");
     });
 
-    it("weights nested counts by Size and counts other atoms as one", () => {
+    it("weights nested values by their native Size", () => {
       expect(last("[5, 6].##").toString()).toEqual("11");
-      expect(last("[“ab”, 12345, ()].##").toString()).toEqual("12347");
+      expect(last("[“ab”, 12345, ()].##").toString()).toEqual("12348");
     });
 
-    it("enters every nested list, a group or a schema as well as an array", () => {
-      // Every aggregate is a list, so `.##` walks a group exactly as it walks
-      // an array, and the one inside it.
-      expect(last("[“ab”, (1, 2), [12345]].##").toString()).toEqual("12349");
+    it("uses group data Sizes and schema alternative counts", () => {
+      // Groups sum their data; schemas count alternatives without descending.
+      expect(last("[“ab”, (1, 2), [12345]].##").toString()).toEqual("12350");
       expect(last("[1, (2, [3, (4, 5)])].##").toString()).toEqual("15");
-      expect(last("[<1, 2>, 3].##").toString()).toEqual("6");
+      expect(last("[<1, 2>, 3].##").toString()).toEqual("5");
       // `.#` still counts each of them as one element.
       expect(last("[“ab”, (1, 2), [12345]].#").toString()).toEqual("3");
     });
@@ -266,14 +265,21 @@ describe("FrameArray", () => {
       }
     });
 
-    it("answers nil on every receiver that is not a Figure", () => {
+    it("extends residual to mixed arrays and evaluated groups", () => {
+      for (
+        const [host, expected] of [
+          ["[1, []]", "0"],
+          ["[[], [1]]", "0"],
+          ["[[], [“ab”]]", "-1"],
+          ["[[], ([], [])]", "-1"],
+          ["([], [])", "0"],
+        ]
+      ) expect(last(`${host}.###`).toString(), host).toEqual(expected);
+    });
+
+    it("answers nil on atoms, schemas and executable syntax", () => {
       for (
         const source of [
-          "[1, []]",
-          "[[], [1]]",
-          "[[], [“ab”]]",
-          "[[], ([], [])]",
-          "([], [])",
           "<[], []>",
           "{[]}",
           "“ab”",

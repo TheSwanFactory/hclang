@@ -91,6 +91,14 @@ export class FrameHandle extends Frame {
     return this.target.referent();
   }
 
+  public override sizeFor(key: string): Frame {
+    return this.referent().sizeFor(key);
+  }
+
+  public override nativeSize(path: Set<Frame>): bigint | Frame {
+    return this.referent().nativeSize(path);
+  }
+
   public override equals(other: Frame): Frame {
     return this.target.equals(other);
   }

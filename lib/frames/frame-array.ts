@@ -159,10 +159,10 @@ export class FrameArray extends FrameList {
   }
 
   /**
-   * Every array is a Figure node, read through its elements; its properties
-   * and declared parent are ignored (010.04).
+   * An evaluated array exposes ordered data for residual; properties and
+   * declared parents are excluded.
    */
-  protected override isFigureNode(): boolean {
+  protected override supportsResidual(): boolean {
     return true;
   }
 

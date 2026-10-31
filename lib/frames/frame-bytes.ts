@@ -116,6 +116,10 @@ export class FrameBytes extends FrameAtom {
     this.length = values.length;
   }
 
+  public override nativeSize(): bigint {
+    return BigInt(this.data.length);
+  }
+
   public override string_prefix(): string {
     return FrameBytes.BYTES_BEGIN;
   }

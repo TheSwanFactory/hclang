@@ -109,24 +109,23 @@ describe("FrameSchema", () => {
     const last = (source: string): Frame =>
       evaluate(source).at(-1).asArray().at(-1)!;
 
-    it("counts a schema's members, as an aggregate's elements", () => {
+    it("counts declared alternatives without weighting their values", () => {
       expect(last("<1, 2>.#").className()).toEqual("FrameCount");
       expect(last("<1, 2>.#").toString()).toEqual("2");
-      expect(last("<1, [2, 3]>.##").toString()).toEqual("6");
+      expect(last("<1, [2, 3]>.##").toString()).toEqual("2");
       expect(last(".T <1, 2>; T.#").toString()).toEqual("2");
     });
 
-    it("counts the source terms a compiled schema keeps", () => {
-      // A structural or bit-layout schema holds the terms it was written as,
-      // unevaluated, so those are what it counts.
+    it("keeps immediate syntax count but sizes a compiled type as one", () => {
+      // Immediate count retains syntax terms; Size counts a type description.
       expect(last("<.a, .b>.#").toString()).toEqual("2");
       expect(last("<8 @Bit>.#").toString()).toEqual("1");
-      expect(last("<8 @Bit>.##").toString()).toEqual("9");
+      expect(last("<8 @Bit>.##").toString()).toEqual("1");
     });
 
-    it("leaves `<>` the total type, which answers itself", () => {
+    it("sizes the total type as one while preserving its immediate count", () => {
       expect(last("<>.#")).toBe(Frame.all);
-      expect(last("<>.##")).toBe(Frame.all);
+      expect(last("<>.##").toString()).toEqual("1");
     });
   });
 

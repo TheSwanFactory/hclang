@@ -4,6 +4,23 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.37.0 2026-10-30
+
+- **Native Size covers represented quantities.** `.##` now returns exact
+  truncated numeric magnitude, UTF-16 string/document length, blob bit width,
+  byte payload length, enumeration alternative count, or one opaque occurrence
+  for other atoms and type descriptions. Nonfinite numeric values refuse Size;
+  temporal and unit-bearing atoms acquire no implicit measurement unit.
+- **Changed aggregate weighting:** recursive `.##` uses each child's native
+  Size: `[5, “hello”].##` changes from 6 to 10 and `[<1, 2>, 3].##` from 6 to 5.
+  Empty aggregates retain Size 1; sharing counts per occurrence, metadata stays
+  excluded, and true containment cycles refuse.
+- **Signed residual accepts mixed arrays and evaluated groups.** `.###`
+  alternates complete immediate child Sizes as a FrameInt: `[5, “hello”].###` is
+  0 and `(5, 3).###` is 2. Existing pure-array results remain. Atoms, schemas,
+  expressions and closures have no residual; cyclic/nonquantifiable walks yield
+  nil. Figures helpers remain available and follow this native domain.
+
 ## v0.36.1 2026-10-30
 
 - **Restore JSR publication.** Explicitly type the count syntax metadata so

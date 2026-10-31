@@ -1,6 +1,6 @@
 import { completeAtEnd, includeOrReserve } from "./atom-syntax.ts";
 import { type Context, NilContext } from "./context.ts";
-import type { Frame } from "./frame.ts";
+import { Frame } from "./frame.ts";
 import { FrameInt } from "./frame-int.ts";
 import {
   type FrameNumeric,
@@ -78,3 +78,5 @@ export class FrameCount extends FrameInt {
       : new FrameCount(this.data, NilContext, `+${this.spelling}`);
   }
 }
+
+Frame.count = (value: bigint): FrameCount => new FrameCount(value);
