@@ -1,5 +1,5 @@
 {
-  "version": "0.37.1",
+  "version": "0.37.2",
   "nodeModulesDir": "manual",
   "bin": {
     "hc": "scripts/hc"
@@ -59,14 +59,6 @@
     "web/dist/",
     "**/_fresh/"
   ],
-  "deploy": {
-    "install": "deno install",
-    "build": "deno task build:web",
-    "runtime": {
-      "type": "static",
-      "cwd": "./web/dist"
-    }
-  },
   "lint": {
     "rules": {
       "tags": [

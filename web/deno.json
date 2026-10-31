@@ -1,6 +1,6 @@
 {
   "name": "@swanfactory/hcweb",
-  "version": "0.37.1",
+  "version": "0.37.2",
   "description": "Homoiconic C - Web Components",
   "license": "MIT",
   "repository": {
@@ -16,7 +16,8 @@
     "test": "deno task build && deno task test:components && deno task test:consumer && deno task test:artifact",
     "test:components": "deno test -A tests/hclang.test.tsx",
     "test:consumer": "deno task --config tests/consumer/deno.json --lock ../deno.lock build",
-    "test:artifact": "deno test -A tests/standalone.test.ts tests/standalone-browser.test.ts"
+    "test:artifact": "deno test -A tests/standalone.test.ts tests/standalone-browser.test.ts",
+    "test:production": "deno test -A tests/production.test.ts"
   },
   "exports": {
     ".": "./mod.ts",
@@ -37,14 +38,6 @@
     "dist/",
     "tests/consumer/_fresh/"
   ],
-  "deploy": {
-    "install": "deno install",
-    "build": "deno task build",
-    "runtime": {
-      "type": "static",
-      "cwd": "./dist"
-    }
-  },
   "imports": {
     "@preact/signals": "npm:@preact/signals@2.11.0",
     "@testing-library/preact": "npm:@testing-library/preact@3.2.4",
