@@ -30,8 +30,11 @@ formats (e.g., HCSV, HCSON).
 
 ### Try it Online
 
-Visit [hclang.deno.dev](https://hclang.deno.dev) to try HC directly in your
-browser with no installation required.
+Visit [The Swan Factory HC playground](https://theswanfactory.github.io/hclang/)
+to try HC directly in your browser with no installation required. For offline
+use, download
+[`hcweb.html` from the latest release](https://github.com/TheSwanFactory/hclang/releases/latest/download/hcweb.html)
+and open it in your browser.
 
 ### Use as a Library
 
@@ -248,6 +251,11 @@ For maintainers publishing new versions:
    a rerun resumes a partial release instead of retrying versions that are
    already immutable. Merges without a version bump do not publish or create a
    release; no manual tag is required.
+
+   The tested web release also deploys to GitHub Pages. CI verifies the live
+   version and evaluates HC in a browser after deployment; a daily availability
+   workflow checks the public demo between releases. See the
+   [web publishing setup](web/README.md#how-the-release-artifact-is-built).
 
    npm publishing runs in the protected `npm-publish` GitHub environment using a
    trusted publisher for the public `hclang` package. Its npm settings must

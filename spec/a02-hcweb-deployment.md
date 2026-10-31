@@ -211,19 +211,30 @@ workflow-scoped and retention-limited. GitHub release assets are public,
 versioned distribution objects and are already part of this repository's release
 model.
 
-A hosted copy is optional and MUST serve the same bytes. The builder therefore
-writes `dist/index.html` as a byte-identical copy of `dist/hcweb.html`, and a
-static host MAY publish `dist/` directly. The mirror MUST NOT become the
-authoritative artifact, and hosting MUST NOT reintroduce a server runtime.
+The hosted playground at
+[theswanfactory.github.io/hclang](https://theswanfactory.github.io/hclang/) MUST
+serve the same bytes as the offline artifact. The builder writes
+`dist/index.html` as a byte-identical copy of `dist/hcweb.html`. After release
+verification and asset upload succeed, CI MUST upload that `dist/` directory as
+a GitHub Pages artifact and deploy it without another build. The release asset
+remains authoritative, and hosting MUST NOT introduce a server runtime.
 
-Deno Deploy is configured from source through the `deploy` key using a static
-runtime over the build output. Source configuration overrides dashboard
-settings, so a stale framework preset MUST NOT remain in effect. Because the
-application directory is the one dashboard-owned setting, the key MUST be
-declared in both the root and `web/` manifests so the mirror builds under either
-application directory. Because a host MAY build without a git checkout, the
-builder MUST fall back to non-git metadata rather than failing; byte
-reproducibility is only required where commit metadata is available.
+The deployment job MUST have `pages: write` and `id-token: write` permissions,
+use the `github-pages` environment, and serialize Pages deployments. Package
+publication and production deployment MUST remain unavailable to pull-request
+builds. A merge without a version bump does not deploy the site; release reruns
+and manual release dispatches can retry publication and deployment.
+
+The repository's Pages source MUST be set to GitHub Actions, and the
+`github-pages` environment MUST permit `master`. The obsolete Deno Deploy
+integration must be disconnected in the service settings. Root and web manifests
+no longer carry a Deno `deploy` key; removing those keys alone does not remove
+the external integration. See the
+[web README](../web/README.md#how-the-release-artifact-is-built) for setup.
+
+Build provenance remains derived from git metadata when available. Builds
+outside a git checkout MAY use fallback metadata; release builds MUST record the
+source commit and retain reproducibility.
 
 ## Verification
 
@@ -272,6 +283,24 @@ The release test SHOULD intercept all network attempts and fail on any request,
 rather than merely running with the network unavailable. This detects accidental
 telemetry, fonts, CDN imports, or lazy chunks.
 
+### Production checks
+
+After Pages reports deployment success, CI MUST open the returned public URL in
+Chromium and require HTTP 200, the expected hcweb version and source commit, a
+visible playground, successful evaluation of `2 + 2` to `4`, and no browser
+errors or HC diagnostic. Navigation and metadata checks MAY retry a bounded
+number of times for Pages/CDN propagation; a stale release MUST eventually fail.
+
+A separate scheduled workflow MUST run the browser smoke check daily and allow
+manual dispatch without publishing a release. It checks the canonical public URL
+and working HC evaluation, without assuming that the current workspace version
+has been released. DNS, HTTP, and application failures MUST fail the workflow.
+Maintainers should enable GitHub Actions failure notifications.
+
+Production checks require network access and MUST remain separate from the
+local/offline test gate. Passing offline artifact tests cannot establish public
+site availability.
+
 ## Security and privacy
 
 The artifact executes code when opened and MUST be treated as software, not as a
@@ -292,16 +321,18 @@ acceptable.
 
 ## Documentation
 
-The root README and `web/README.md` SHOULD lead with two production actions:
-
-1. download `hcweb.html` from the latest release; and
-2. open it directly in a browser.
+The root README and `web/README.md` MUST link to the GitHub Pages playground and
+explain how to download `hcweb.html` from the latest release and open it
+directly in a browser for offline use. Hosting setup and monitoring instructions
+MUST identify the production URL, release trigger, and daily availability check.
 
 They MUST distinguish package installation from application distribution:
 
 - JSR is the source and provenance of the code bundled at release time;
-- the GitHub release asset is the runnable offline application; and
-- no registry, CDN, Deno process, or web server is contacted at runtime.
+- the GitHub release asset is the runnable offline application;
+- GitHub Pages serves the same HTML as a convenient online mirror; and
+- after the HTML is loaded, evaluation needs no registry, CDN, Deno process, or
+  backend request. The downloaded file also loads without a web server.
 
 The release notes SHOULD include the immutable asset URL, latest-download URL,
 checksum, hcweb version, hclang version, and source commit.
@@ -323,6 +354,12 @@ checksum, hcweb version, hclang version, and source commit.
       asset, lazy chunk, or automatic network request.
 - [ ] GitHub releases attach `hcweb.html` and its SHA-256 checksum.
 - [ ] Immutable and latest-download links are documented.
+- [ ] Pages deploys the verified release bytes without rebuilding.
+- [ ] The deployment job verifies public HTTP access, release metadata, and HC
+      evaluation in a real browser.
+- [ ] Daily and manually dispatched availability checks fail on hosting or
+      application errors independently of releases.
+- [ ] Documentation identifies the Pages URL and required repository settings.
 - [ ] A downloaded release asset passes manual Chrome, Firefox, and Safari smoke
       tests.
 
@@ -396,16 +433,15 @@ specifiers that must be resolved before an offline browser can execute it.
 It is not viable as a runtime deployment. This specification still uses JSR as
 the authoritative release input, but resolves and bundles it in CI.
 
-### GitHub Pages or Deno Deploy as the only distribution
+### Hosted website as the only distribution
 
-Either can provide a convenient clickable URL, and Pages is especially suitable
-for static content. A hosted mirror of the verified artifact is compatible with
-this design.
+GitHub Pages provides the convenient clickable URL and hosts a mirror of the
+verified release artifact. Deno Deploy is no longer used.
 
 Hosting alone is not selected as the authoritative product because it does not
 produce an emailable offline file and can change independently of a recipient's
-copy. If a mirror is added, it must deploy the release asset bytes rather than
-perform another build.
+copy. The Pages mirror must deploy the release asset bytes rather than perform
+another build.
 
 ### GitHub Actions workflow artifact
 
