@@ -203,7 +203,10 @@ Star uses native `*` dispatch; numeric pairs keep arithmetic.
 The fourth observer derives a native immutable Demi from Count, Size and residual.
 A zero Count or absent residual gives no Demi; errors propagate. A schema used
 as an explicit element contributes Size normally, even though its own Demi is nil.
-A present Demi has Size L+R and residual L−R, with explicit Count zero.
+A present Demi has Size L+R and residual L−R. Its Count is the least positive
+representative of its stored parity: 2 for all/even and 1 for nil/odd. The same
+universal derivation therefore reconstructs its data value on repeated fourth
+observation, including present zero loads, without a special fourth-hash rule.
 The scalar append and Inlay laws apply to nonempty Figure hosts. For an empty
 host, observe [Y] for append and Y for Inlay; nil arithmetic stays unchanged.
 Count is a terminal quantity: positive Counts agree with pure Figures of that

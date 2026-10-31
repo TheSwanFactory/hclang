@@ -16,9 +16,11 @@ export type DemiEncoding = readonly ["all" | "nil", string, string];
 export class FrameDemi extends FrameAtom {
   private readonly state: readonly [Frame, bigint, bigint];
 
-  /** A carrier exposes its loads but has no immediate elements of its own. */
+  /** The least positive Count of the stored parity allows data reconstruction. */
   public override sizeFor(key: string): Frame {
-    if (key === Frame.kCOUNT) return Frame.count(0n);
+    if (key === Frame.kCOUNT) {
+      return Frame.count(this.orientation === Frame.all ? 2n : 1n);
+    }
     if (key === Frame.kRESIDUAL) {
       return new FrameInt(this.state[1] - this.state[2]);
     }

@@ -1,7 +1,7 @@
 # FrameDemi and universal fourth-hash observation
 
 Implemented for the v0.38.0 target, following occurrence/figure decisions
-011.18b–c and 011.18f. Every Frame has a fourth observation: a native Demi
+011.18b–c and 011.18f–g. Every Frame has a fourth observation: a native Demi
 value, nil, or a propagated error. Nil means zero Count or absent residual; it
 does not invariably mean an empty receiver.
 
@@ -53,11 +53,17 @@ decode API; there is no claim of an HC textual round trip.
 ## Demi quantities and constructor laws
 
 A Demi exposes its exact stored loads through native observers: `d.##` is the
-Count `L+R`, and `d.###` is the signed FrameInt `L−R`. Its explicit `d.#` is
-zero, so `d.####` is nil. Observation reads the immutable bigint fields
-directly. Arrays containing Demis use their load sums as child Sizes. A present
-zero-load Demi has Size zero and remains distinct from nil. For any source F
-with a present Demi, `F.####.## = F.##` and `F.####.### = F.###`.
+Count `L+R`, and `d.###` is the signed FrameInt `L−R`. Its explicit `d.#` is 2
+for all/even/left-next orientation and 1 for nil/odd/right-next orientation.
+This is the least positive representative of its stored parity, not full source
+arity or representation field count. The unchanged universal observer therefore
+reconstructs the same Demi data value: `d.####` is data-equal to d, and repeated
+fourth observation is idempotent. It may allocate a new carrier and does not
+copy outer metadata. No special fourth-hash branch is added. Observation reads
+the immutable bigint fields directly. Arrays containing Demis use their load
+sums as child Sizes. A present zero-load Demi has Size zero and remains distinct
+from nil. For any source F with a present Demi, `F.####.## = F.##` and
+`F.####.### = F.###`.
 
 For pure Figures X and Y, write D(F) for `F.####`. The scalar constructor laws
 hold when the host X is nonempty (`X.# > 0`):
@@ -96,10 +102,10 @@ The base Frame's missing Count rule falls back to Size for every kind, including
 numbers, text, blobs, bytes, opaque atoms and runtime type descriptions.
 Explicit Count rules take precedence: lists count immediate elements/words,
 schemas retain their own rules, and nil/all/missing and void comments retain
-Count zero. Demi also has an explicit carrier Count zero. Nil/all source
-dispatch is intercepted, while receiverless observer names remain addresses.
-FrameCount retains its explicit magnitude Count and parity residual; other sized
-atoms retain the default nil residual.
+Count zero. Demi explicitly supplies its positive parity Count (2 or 1). Nil/all
+source dispatch is intercepted, while receiverless observer names remain
+addresses. FrameCount retains its explicit magnitude Count and parity residual;
+other sized atoms retain the default nil residual.
 
 Non-schema lists observe their stored ordered elements/words for Count, Size and
 residual, without executing the host. Source syntax uses the existing pure Size
@@ -119,7 +125,7 @@ hosts are source-audited for inherited rules and covered by import-first checks.
 | Family                                                                   | #                               | ##                                                | ###                                       | ####                                                            |
 | ------------------------------------------------------------------------ | ------------------------------- | ------------------------------------------------- | ----------------------------------------- | --------------------------------------------------------------- |
 | FrameCount(n)                                                            | n                               | n                                                 | FrameInt n mod 2                          | nil at zero; otherwise balanced native Demi                     |
-| FrameDemi                                                                | 0                               | L+R                                               | FrameInt L−R                              | nil                                                             |
+| FrameDemi                                                                | 2 for all/even, 1 for nil/odd   | L+R                                               | FrameInt L−R                              | Same Demi data value, derived universally                       |
 | FrameInt, Decimal, Rational, finite Number                               | Absolute truncated magnitude    | Absolute truncated magnitude                      | nil                                       | nil                                                             |
 | String, Doc; Blob; Bytes                                                 | Code points; bits; bytes        | Code points; bits; bytes                          | nil                                       | nil                                                             |
 | FrameAtom; Arg, Param, Name, Word, Alias, Literal, Symbol, Operator      | 1                               | One opaque occurrence                             | nil                                       | nil                                                             |

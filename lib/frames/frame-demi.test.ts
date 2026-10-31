@@ -73,7 +73,7 @@ Deno.test("Demi keeps immutable magnitudes and present zero states", () => {
   expect(value.copy().encode()).toEqual(value.encode());
 });
 
-Deno.test("Demi exposes exact load quantities with explicit zero Count", () => {
+Deno.test("Demi positive parity Count reconstructs exact state through universal observations", () => {
   const huge = 9007199254740993123456789n;
   for (const phase of [Frame.all, Frame.nil]) {
     for (const [l, r] of [[0n, 0n], [0n, 3n], [huge, 2n], [2n, huge]]) {
@@ -93,8 +93,16 @@ Deno.test("Demi exposes exact load quantities with explicit zero Count", () => {
         expect((size as FrameCount).data).toEqual(l + r);
         expect(residual).toBeInstanceOf(FrameInt);
         expect((residual as FrameInt).data).toEqual(l - r);
-        expect(receiver.sizeFor("#").toString()).toEqual("0");
-        expect(receiver.sizeFor("####")).toBe(Frame.nil);
+        expect(receiver.sizeFor("#").toString()).toEqual(
+          phase === Frame.all ? "2" : "1",
+        );
+        let restored: Frame = receiver;
+        for (let i = 0; i < 3; i++) {
+          restored = restored.sizeFor("####");
+          expect(restored).toBeInstanceOf(FrameDemi);
+          expect(restored.dataEquals(value)).toBe(Frame.all);
+          expect(restored.metadataView()).toEqual({});
+        }
         expect(new FrameArray([receiver]).nativeSize(new Set())).toEqual(l + r);
       }
     }
@@ -105,8 +113,12 @@ Deno.test("Demi exposes exact load quantities with explicit zero Count", () => {
         evaluate(`${source}.${key}`).at(0).toString(),
       );
     }
-    expect(evaluate(`${source}.####.#`).at(0).toString()).toEqual("0");
-    expect(evaluate(`${source}.####.####`).toString()).toEqual("[]");
+    const original = evaluate(`${source}.####`).at(0) as FrameDemi;
+    expect(evaluate(`${source}.####.#`).at(0).toString()).toEqual(
+      original.orientation === Frame.all ? "2" : "1",
+    );
+    expect(evaluate(`${source}.####.####`).at(0).dataEquals(original))
+      .toBe(Frame.all);
   }
 });
 
@@ -127,6 +139,14 @@ Deno.test("Demi scalar arithmetic covers both phases, zero, bigint and unchanged
       expect(added.left.data).toEqual(huge + (phase === Frame.all ? k : 0n));
       expect(added.right.data).toEqual(3n + (phase === Frame.nil ? k : 0n));
       expect(scaled.orientation).toBe(phase);
+      expect(added.sizeFor("#").toString()).toEqual(
+        phase === Frame.all ? "1" : "2",
+      );
+      expect(scaled.sizeFor("#").toString()).toEqual(
+        phase === Frame.all ? "2" : "1",
+      );
+      expect(added.sizeFor("####").dataEquals(added)).toBe(Frame.all);
+      expect(scaled.sizeFor("####").dataEquals(scaled)).toBe(Frame.all);
       expect(scaled.left.data).toEqual(huge * k);
       expect(scaled.right.data).toEqual(3n * k);
       expect(value.encode()).toEqual(before);
