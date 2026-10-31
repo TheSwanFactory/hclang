@@ -52,7 +52,6 @@ Deno.test("Demi compatibility matrix: all concrete Frame families stay non-execu
     new f.FrameSequence("1.2.3"),
     f.parseTimeLiteral("2026-10-30"),
     f.parseTimeLiteral("PT1.5S"),
-    new f.FrameDemi(f.Frame.nil, c, new f.FrameCount(0n)),
   ];
   for (const value of opaque) {
     const failure = value.observationError();
@@ -75,6 +74,7 @@ Deno.test("Demi compatibility matrix: all concrete Frame families stay non-execu
   const rows: [f.Frame, string[]][] = [
     [new f.FrameCount(0n), ["0", "0", "0"]],
     [c, ["5", "5", "1"]],
+    [new f.FrameDemi(f.Frame.nil, c, new f.FrameCount(0n)), ["0", "5", "5"]],
     [new f.FrameInt(-3n), ["3", "3", "nil"]],
     [new f.FrameDecimal("-7.9"), ["7", "7", "nil"]],
     [new f.FrameRational(-7n, 2n), ["3", "3", "nil"]],

@@ -73,6 +73,43 @@ Deno.test("Demi keeps immutable magnitudes and present zero states", () => {
   expect(value.copy().encode()).toEqual(value.encode());
 });
 
+Deno.test("Demi exposes exact load quantities with explicit zero Count", () => {
+  const huge = 9007199254740993123456789n;
+  for (const phase of [Frame.all, Frame.nil]) {
+    for (const [l, r] of [[0n, 0n], [0n, 3n], [huge, 2n], [2n, huge]]) {
+      const value = demi(phase, l, r);
+      value.set("ignored", new FrameArray([value]));
+      for (
+        const receiver of [
+          value,
+          value.copy(),
+          new FrameHandle(value, false),
+          new FrameScoped(value, EvaluationScope.from([])),
+        ]
+      ) {
+        const size = receiver.sizeFor("##");
+        const residual = receiver.sizeFor("###");
+        expect(size).toBeInstanceOf(FrameCount);
+        expect((size as FrameCount).data).toEqual(l + r);
+        expect(residual).toBeInstanceOf(FrameInt);
+        expect((residual as FrameInt).data).toEqual(l - r);
+        expect(receiver.sizeFor("#").toString()).toEqual("0");
+        expect(receiver.sizeFor("####")).toBe(Frame.nil);
+        expect(new FrameArray([receiver]).nativeSize(new Set())).toEqual(l + r);
+      }
+    }
+  }
+  for (const source of ["7", "[[],[]]", "[0]", "[<2,3,5>,2]"]) {
+    for (const key of ["##", "###"]) {
+      expect(evaluate(`${source}.####.${key}`).at(0).toString()).toEqual(
+        evaluate(`${source}.${key}`).at(0).toString(),
+      );
+    }
+    expect(evaluate(`${source}.####.#`).at(0).toString()).toEqual("0");
+    expect(evaluate(`${source}.####.####`).toString()).toEqual("[]");
+  }
+});
+
 Deno.test("Demi scalar arithmetic covers both phases, zero, bigint and unchanged inputs", () => {
   const huge = 9007199254740993123456789n;
   for (const phase of [Frame.all, Frame.nil]) {

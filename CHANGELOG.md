@@ -7,9 +7,9 @@
 ## v0.38.0 (unreleased target)
 
 - **Native immutable FrameDemi.** Exact singleton orientation and two bigint
-  Count loads, value equality and lossless native data encoding; scalar-only
-  `Demi + Count` deposits then flips, and `Demi * Count` scales without
-  flipping.
+  Count loads, Size `L+R`, signed residual `L−R`, explicit Count zero, value
+  equality and lossless native data encoding; scalar-only `Demi + Count`
+  deposits then flips, and `Demi * Count` scales without flipping.
 - **Count residual now means parity.** `n.###` returns FrameInt `n mod 2`
   instead of nil, including present zero; Figures Gap/Spin now accept Counts.
   Unknown native Count observation keys no longer return Count accidentally.

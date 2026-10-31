@@ -252,7 +252,8 @@ Deno.test("native append and Star commute with Demi scalar laws on pure shapes",
       const k = y.sizeFor("##") as FrameCount;
       const appended = new FrameArray([...x.asArray(), y]).sizeFor("####");
       const expectedAppend = dx === Frame.nil
-        ? new FrameDemi(Frame.nil, k, new FrameCount(0n))
+        ? (new FrameArray([new FrameArray([])]).sizeFor("####") as FrameDemi)
+          .multiplyCount(k)
         : (dx as FrameDemi).addCount(k);
       expect(appended.equals(expectedAppend)).toBe(Frame.all);
       const inlaid = x.star(y).sizeFor("####");
