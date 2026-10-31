@@ -1,7 +1,9 @@
 import { FrameHandle } from "./frame-handle.ts";
 import { expect } from "jsr:@std/expect@^0.219.1";
 import {
+  EvaluationScope,
   Frame,
+  FrameAlias,
   FrameArray,
   FrameBlob,
   FrameBytes,
@@ -12,6 +14,7 @@ import {
   FrameNumber,
   FrameResource,
   FrameSchema,
+  FrameScoped,
   FrameString,
   FrameSymbol,
   MemoryStore,
@@ -248,4 +251,47 @@ Deno.test("observation neither executes, matches nor reads resources", () => {
   );
   expect(new FrameArray([resource, closure, matcher]).sizeFor("###").toString())
     .toEqual("-4");
+});
+
+Deno.test("reference chains refuse cycles before entering the aggregate Size walk", () => {
+  const value = new FrameCount(7n);
+  const left = new FrameHandle(value, false);
+  const right = new FrameHandle(left, false);
+  expect(right.referent()).toBe(value);
+  expect(right.sizeFor("##").toString()).toEqual("7");
+  expect(new FrameArray([right, right]).sizeFor("##").toString()).toEqual("14");
+  const alias = new FrameAlias("value");
+  expect(alias.referent()).toBe(alias); // Aliases are setter syntax, not referent edges.
+  expect(new FrameHandle(alias, false).sizeFor("##").toString()).toEqual("1");
+
+  // Mirrors the existing frame-handle.test.ts lookup fixture. No HC source
+  // operation exposes target retargeting; reflection can still build this graph.
+  Reflect.set(left, "target", right);
+  for (const handle of [left, right]) {
+    expect(handle.referent().toString()).toEqual("$!.cyclic-reference");
+    expect(handle.sizeFor("##").toString()).toEqual("$!.cyclic-reference");
+    expect(handle.nativeSize(new Set()).toString()).toEqual(
+      "$!.cyclic-reference",
+    );
+    expect(handle.sizeFor("###")).toBe(Frame.nil);
+    const array = new FrameArray([handle]);
+    expect(array.sizeFor("##").toString()).toEqual("$!.cyclic-reference");
+    expect(array.sizeFor("###")).toBe(Frame.nil);
+    expect(array.sizeFor("#").toString()).toEqual("1");
+  }
+  expect(left.unwrap()).toBe(right);
+  expect(right.unwrap()).toBe(left); // Observation leaves the graph untouched.
+
+  // Scope wrappers are the other built-in transparent referent implementation.
+  const scoped = new FrameScoped(left, EvaluationScope.from([]));
+  Reflect.set(left, "target", scoped);
+  expect(scoped.referent().toString()).toEqual("$!.cyclic-reference");
+  expect(new FrameArray([scoped]).sizeFor("###")).toBe(Frame.nil);
+  Reflect.set(scoped, "term", scoped);
+  expect(scoped.sizeFor("##").toString()).toEqual("$!.cyclic-reference");
+  expect(scoped.nativeSize(new Set()).toString()).toEqual(
+    "$!.cyclic-reference",
+  );
+  expect(scoped.sizeFor("###")).toBe(Frame.nil);
+  expect(Frame.error("$!.stored-error").sizeFor("##").toString()).toEqual("1");
 });

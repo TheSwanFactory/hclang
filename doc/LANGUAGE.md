@@ -672,8 +672,16 @@ walk (`{4 + 5}.##` is 10), without executing that body. A nonfinite child
 propagates a Size refusal. Properties and declared parents are excluded. Handles
 observe their referents; repeated shared descendants count once per occurrence.
 A true containment cycle in the traversed plane refuses with
-`$!.cyclic-aggregate .##`; the graph is never changed by observation. Schema
-alternatives are counted without descending into their candidate graphs.
+`$!.cyclic-aggregate .##`; the graph is never changed by observation. Reference
+chains have a separate guard: a cycle of FrameHandle/FrameScoped referents
+refuses with `$!.cyclic-reference` before recursive Size starts; residual is
+nil. HC lookup creates handles targeting existing arrays, and the only internal
+retargeting copies an existing target for a functional update. There is no HC
+source operation that creates a handle-only target cycle. Runtime reflection can
+construct one (as the existing handle lookup tests do), so it is defended too.
+FrameAlias is setter syntax and inherits the identity referent; observing an
+alias does not resolve a binding. Schema alternatives are counted without
+descending into their candidate graphs.
 
 `.###` alternates over immediate data positions, using each child's **complete**
 Size: `x₁.## − x₂.## + x₃.## − …`. Mixed FrameArrays and evaluated FrameGroups

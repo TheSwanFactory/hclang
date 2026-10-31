@@ -14,7 +14,8 @@
 - **Changed aggregate weighting:** recursive `.##` uses each child's native
   Size: `[5, “hello”].##` changes from 6 to 10 and `[<1, 2>, 3].##` from 6 to 5.
   Empty aggregates retain Size 1; sharing counts per occurrence, metadata stays
-  excluded, and true containment cycles refuse.
+  excluded, and true containment cycles refuse. Cyclic handle/scope reference
+  chains refuse with `$!.cyclic-reference` before Size traversal starts.
 - **Signed residual accepts mixed arrays and evaluated groups.** `.###`
   alternates complete immediate child Sizes as a FrameInt: `[5, “hello”].###` is
   0 and `(5, 3).###` is 2. Existing pure-array results remain. Atoms, schemas,

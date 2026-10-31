@@ -458,8 +458,8 @@ export class FrameScoped extends Frame {
     return isClosure(this.term) ? this.term.in(this.scope) : this.term;
   }
 
-  public override referent(): Frame {
-    return this.term.referent();
+  public override referent(path = new Set<Frame>()): Frame {
+    return this.referenceThrough(this.term, path);
   }
 
   public override elements(): Frame[] {
@@ -476,11 +476,11 @@ export class FrameScoped extends Frame {
   }
 
   public override sizeFor(key: string): Frame {
-    return this.term.sizeFor(key);
+    return this.referent().sizeFor(key);
   }
 
   public override nativeSize(path: Set<Frame>): bigint | Frame {
-    return this.term.referent().nativeSize(path);
+    return this.referent().nativeSize(path);
   }
 
   /** Sizes as its term does, `.#`, `.##` and `.###`; anything else is applied. */

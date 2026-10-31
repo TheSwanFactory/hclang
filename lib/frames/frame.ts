@@ -352,8 +352,24 @@ export class Frame extends MetaFrame {
   }
 
   /** The frame a reference reaches. A handle answers its target. */
-  public referent(): Frame {
+  public referent(_path?: Set<Frame>): Frame {
     return this;
+  }
+
+  /** Reference ancestry is separate from aggregate containment ancestry. */
+  protected referenceThrough(target: Frame, path: Set<Frame>): Frame {
+    if (path.has(this)) {
+      const refusal = Frame.error("$!.cyclic-reference");
+      // This failed traversal is not a stored opaque error atom of Size 1.
+      refusal.is.cyclicReference = true;
+      return refusal;
+    }
+    path.add(this);
+    try {
+      return target.referent(path);
+    } finally {
+      path.delete(this);
+    }
   }
 
   /**
@@ -409,7 +425,7 @@ export class Frame extends MetaFrame {
 
   /** Nonnegative represented quantity; path tracks recursive containment only. */
   public nativeSize(_path: Set<Frame>): bigint | Frame {
-    return 1n;
+    return this.is.cyclicReference ? this : 1n;
   }
 
   /**
