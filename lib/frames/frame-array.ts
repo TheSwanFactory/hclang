@@ -156,8 +156,8 @@ export class FrameArray extends FrameList {
   }
 
   /**
-   * An evaluated array exposes ordered data for residual; properties and
-   * declared parents are excluded.
+   * An array exposes its ordered stored contents for residual; properties
+   * and declared parents are excluded. Source forms are not executed.
    */
   protected override supportsResidual(): boolean {
     return true;

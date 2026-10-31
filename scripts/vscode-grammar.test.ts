@@ -273,7 +273,7 @@ const size = (text: string, index: number): AnchorMatch => ({
 // rule's own matches, so they cannot show that a comment opening first, as in
 // `x #.## …#`, still wins by TextMate's earliest-match order.
 describe("VS Code size-operator grammar (#411)", () => {
-  it("highlights .#, .## and .### as the dotted names they lex as", () => {
+  it("highlights .#, .##, .### and .#### as the dotted names they lex as", () => {
     expect(sizeMatches("x.#")).toEqual([size(".#", 1)]);
     expect(sizeMatches("x.##")).toEqual([size(".##", 1)]);
     expect(sizeMatches("5.#")).toEqual([size(".#", 1)]);
@@ -281,8 +281,9 @@ describe("VS Code size-operator grammar (#411)", () => {
     expect(sizeMatches("x.##.#")).toEqual([size(".##", 1), size(".#", 4)]);
     expect(sizeMatches("x.###")).toEqual([size(".###", 1)]);
     expect(sizeMatches("x.###.#")).toEqual([size(".###", 1), size(".#", 5)]);
-    // Nothing extends `.###`, so a fourth `#` is left to open a comment.
-    expect(sizeMatches("x.####c#")).toEqual([size(".###", 1)]);
+    expect(sizeMatches("x.####")).toEqual([size(".####", 1)]);
+    // A fifth hash is left to open a comment.
+    expect(sizeMatches("x.#####c#")).toEqual([size(".####", 1)]);
   });
 
   it("leaves every other # to the comment rule", () => {

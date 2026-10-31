@@ -83,6 +83,10 @@ export class FrameSchema extends FrameList implements FrameMatcher {
     return this;
   }
 
+  protected override supportsResidual(): boolean {
+    return false;
+  }
+
   public override nativeSize(): bigint {
     // Empty enumeration means the total type, not an empty finite domain.
     // Inspect the installed matcher only; never traverse/compile candidates.

@@ -145,7 +145,7 @@ Deno.test("Gap is |.###| and Spin is .### / N, with .### a FrameInt (010.04)", a
 
 Deno.test("Gap and Spin keep refusing unsupported hosts (010.04)", async () => {
   const session = await figuresSession();
-  for (const host of ["“hi”", "{[]}"]) {
+  for (const host of ["“hi”", "(-3)"]) {
     expect(await session.call(`Figures.gap ${host}`), host)
       .toContain("unsupported-figure");
     expect(await session.call(`Figures.spin ${host} 2`), host)
@@ -231,7 +231,7 @@ Deno.test("native residual availability distinguishes valid zero from unsupporte
       ["([5, “hello”].###) == (0 - 0)", "<>"],
       ["5.### ? {<>} : {()}", "<>"],
       ["<2, 3>.###", ""],
-      ["{[]}.###", ""],
+      ["{[]}.###", "1"],
       ["[].##", "1"],
       ["[].###", "0"],
       ["Figures.gap [5, “hello”]", "0"],
@@ -277,7 +277,7 @@ Deno.test("derived Gap and Spin preserve refusal and resolution typing at zero",
         .toContain("$!.type-error");
     }
   }
-  for (const host of ["“hi”", "{[]}"]) {
+  for (const host of ["“hi”", "(-3)"]) {
     for (const divisor of ["0", "(0 - 2)", "2.5"]) {
       expect(await session.call(`Figures.spin ${host} ${divisor}`), host)
         .toContain("unsupported-figure");

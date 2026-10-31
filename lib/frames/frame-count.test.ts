@@ -321,7 +321,7 @@ describe("FrameCount", () => {
           "1",
         ], ["(1 / 3)", "0"]]
       ) {
-        expect(evaluate(`${source}.#`).toString()).toEqual("[]");
+        expect(evaluate(`${source}.#`).at(0).toString()).toEqual("0");
         expect(evaluate(`${source}.##`).at(0).toString()).toEqual(size);
       }
     });
@@ -342,7 +342,7 @@ describe("FrameCount", () => {
       expect(value.sizeFor(Frame.kCOUNT)).toBe(value);
       expect(value.sizeFor(Frame.kLEAVES)).toBe(value);
       expect(value.sizeFor(Frame.kRESIDUAL).toString()).toEqual("1");
-      for (const key of ["", "unknown", "####", "#####", "#x"]) {
+      for (const key of ["", "unknown", "#####", "#x"]) {
         expect(value.sizeFor(key)).toBe(Frame.nil);
       }
     });

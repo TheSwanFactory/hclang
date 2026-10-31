@@ -152,7 +152,7 @@ Deno.test("derived observations retain their native host boundary", async () => 
   ) {
     expect(await session.call(source), source).toEqual(expected);
   }
-  for (const source of ["gap {[]}"]) {
+  for (const source of ["gap (-3)"]) {
     expect(await session.call(source), source).toContain("unsupported-figure");
   }
   expect(await session.call("[[], “a”] * [[]]")).toContain("star-domain");

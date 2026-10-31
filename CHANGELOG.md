@@ -4,7 +4,7 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
-## v0.38.0 (unreleased target; partial, universal fourth hash blocked)
+## v0.38.0 (unreleased target)
 
 - **Native immutable FrameDemi.** Exact singleton orientation and two bigint
   Count loads, value equality and lossless native data encoding; scalar-only
@@ -13,11 +13,16 @@
 - **Count residual now means parity.** `n.###` returns FrameInt `n mod 2`
   instead of nil, including present zero; Figures Gap/Spin now accept Counts.
   Unknown native Count observation keys no longer return Count accidentally.
-- **Universal fourth hash is blocked.** The Frame-class audit records missing
-  atom/syntax/schema observations and cyclic/nonfinite Size failures. `.####`
-  and the coordinated lexer/editor change are deferred. When implemented, `.###`
-  followed immediately by a hash comment will become a four-hash name; that
-  source compatibility change is not part of this partial patch.
+- **Universal fourth hash.** `.####` derives native Demi loads from Count, Size
+  and residual; zero Count or nil residual yields nil, while observation
+  failures and incoherent loads return errors. A fifth hash now opens a comment:
+  prior `.###` immediately followed by a hash comment changes tokenization.
+- **Consistent observation defaults.** Ordinary atoms and nil/all have Count
+  zero; missing Count otherwise falls back to Size. All non-schema lists,
+  including stored source/closure words, have alternating residuals without
+  execution. Schemas keep nil residual and their existing Size. Child Size
+  contributes regardless of child residual. Cycle/nonquantifiable residuals and
+  stored errors now propagate failures instead of nil or opaque Size 1.
 
 ## v0.37.3 2026-10-31
 

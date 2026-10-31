@@ -21,8 +21,8 @@ and program is composed of frames. This unified representation enables:
 ### Basic Types
 
 - [frame-demi.ts](frame-demi.ts) - Immutable orientation and two exact Count
-  loads, scalar deposit/scaling and data encoding. Universal fourth-hash
-  observation remains blocked; see
+  loads, scalar deposit/scaling and data encoding. Derived fourth-hash
+  observation uses Count/Size/residual; see
   [compatibility audit](../../doc/FRAME-DEMI.md).
 
 - [frame-numeric.ts](frame-numeric.ts) - Rank-based numeric dispatch and the

@@ -536,10 +536,12 @@ export class Frame extends MetaFrame {
   public static readonly kLEAVES = "##";
   /**
    * kRESIDUAL is `.###`: a FrameInt alternating sum of immediate child native
-   * Sizes on evaluated arrays/groups, or Count parity (occurrence/figure
-   * 010.04, 011.18). Other receivers currently have no residual.
+   * Sizes on non-schema lists, or Count parity (occurrence/figure 011.18c).
+   * Other receivers default to nil residual.
    */
   public static readonly kRESIDUAL = "###";
+  /** Derived nullable two-channel state (occurrence/figure 011.18c). */
+  public static readonly kDEMI = "####";
   /**
    * The size operators, the only names spelled with `#` (#411). Each answers
    * for its receiver through `sizeFor`, never through name lookup.
@@ -548,6 +550,7 @@ export class Frame extends MetaFrame {
     Frame.kCOUNT,
     Frame.kLEAVES,
     Frame.kRESIDUAL,
+    Frame.kDEMI,
   ];
   /**
    * BEGIN_EXPR is the symbol for the beginning of an expression.
@@ -734,6 +737,8 @@ export class Frame extends MetaFrame {
     _receiverState?: ReceiverState,
   ): Frame {
     if (this.is.void) {
+      const key = Frame.quantityOperator(argument);
+      if (key) return this.sizeFor(key);
       return Frame.isBooleanNegation(argument) ? Frame.all : argument;
     }
     return argument.called_by(this, parameter);
@@ -880,20 +885,42 @@ export class Frame extends MetaFrame {
   /** Installed by FrameCount without importing a subclass into its base. */
   public static count: (value: bigint) => Frame;
 
+  /** Installed by FrameDemi, avoiding a base-to-subclass import cycle. */
+  public static demi: (source: Frame) => Frame;
+
+  /** A failure carried by this value, without executing or enumerating it. */
+  public observationError(): Frame | undefined {
+    return this.is.error || this.is.cyclicReference ? this : undefined;
+  }
+
   /**
-   * What this frame answers for a size operator, `.#`, `.##` or `.###`
-   * (#411). Size counts represented quantity; opaque atoms count once.
-   * Immediate count and signed residual are partial, with kind-specific rules.
+   * Native Count, Size, residual and derived Demi. Missing Count falls back to
+   * Size; atoms and aggregates supply explicit Counts. Nil residual is absence.
    */
   public sizeFor(key: string): Frame {
-    if (key !== Frame.kLEAVES) return Frame.nil;
-    const size = this.nativeSize(new Set());
-    return typeof size === "bigint" ? Frame.count(size) : size;
+    if (!Frame.SIZE_OPERATORS.includes(key)) return Frame.nil;
+    const failure = this.observationError();
+    if (failure) return failure;
+    switch (key) {
+      case Frame.kCOUNT:
+        return this === Frame.nil || this === Frame.all ||
+            this === Frame.missing
+          ? Frame.count(0n)
+          : this.sizeFor(Frame.kLEAVES);
+      case Frame.kLEAVES: {
+        const size = this.nativeSize(new Set());
+        return typeof size === "bigint" ? Frame.count(size) : size;
+      }
+      case Frame.kDEMI:
+        return Frame.demi(this);
+      default:
+        return Frame.nil;
+    }
   }
 
   /** Nonnegative represented quantity; path tracks recursive containment only. */
   public nativeSize(_path: Set<Frame>): bigint | Frame {
-    return this.is.cyclicReference ? this : 1n;
+    return this.observationError() ?? 1n;
   }
 
   /**
@@ -1216,7 +1243,7 @@ export class Frame extends MetaFrame {
       return undefined;
     }
     const key = (argument as unknown as { spelling(): string }).spelling();
-    return key === Frame.kLEAVES || key === Frame.kRESIDUAL ? key : undefined;
+    return Frame.SIZE_OPERATORS.includes(key) ? key : undefined;
   }
 
   /**

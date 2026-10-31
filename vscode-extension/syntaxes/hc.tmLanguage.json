@@ -59,8 +59,8 @@
         },
         {
           "name": "entity.name.function.setter.hclang",
-          "match": "(?<!\\.)\\.#{1,3}",
-          "comment": "Size operators .#, .## and .### (#411, occurrence/figure 010.04), scoped as the dotted names they lex as. The lexer joins # to a name only to spell exactly .#, .## or .###, so .#### is .### before a comment and .foo#bar# is .foo before one; the lookbehind leaves ..# as the .. ladder before one. This precedes the standalone-dot rule, which matches the same dot and would leave the # to open a comment"
+          "match": "(?<!\\.)\\.#{1,4}",
+          "comment": "Size operators .#, .##, .### and .#### (occurrence/figure 011.18), scoped as the dotted names they lex as. The lexer joins # to a name only to spell exactly .#, .##, .### or .####, so a fifth hash opens a comment and .foo#bar# is .foo before one; the lookbehind leaves ..# as the .. ladder before one. This precedes the standalone-dot rule, which matches the same dot and would leave the # to open a comment"
         },
         {
           "name": "variable.language.this.hclang",

@@ -207,9 +207,9 @@ describe("FrameSymbol", () => {
   });
 
   describe("size operators (#411)", () => {
-    it("keeps immediate count partial and gives text and URIs a Size", () => {
+    it("gives atoms explicit Count zero and gives text and URIs a Size", () => {
       for (const receiver of ["“abc”", "`abc`", "'./x.txt'"]) {
-        expect(evaluate(`${receiver}.#`).toString()).toEqual("[]");
+        expect(evaluate(`${receiver}.#`).at(0).toString()).toEqual("0");
         expect(evaluate(`${receiver}.##`).at(0).toString()).toEqual(
           receiver.startsWith("'") ? "1" : "3",
         );
@@ -221,11 +221,11 @@ describe("FrameSymbol", () => {
       // an aggregate under construction with elements of its own: an array,
       // a group, and the file scope itself.
       expect(evaluate("[1, 2, .s “abc”; s.#, s.##]").at(0).toString())
-        .toEqual("[.s “abc”; 1, 2, (), 3]");
+        .toEqual("[.s “abc”; 1, 2, 0, 3]");
       expect(evaluate("(1, 2, .s “abc”; s.#, s.##)").at(0).toString())
-        .toEqual("(.s “abc”; 1, 2, (), 3)");
+        .toEqual("(.s “abc”; 1, 2, 0, 3)");
       expect(evaluate(".s “abc”; s.#").toString())
-        .toEqual("[.s “abc”; ((.s “abc”); ())]");
+        .toEqual("[.s “abc”; ((.s “abc”); 0)]");
     });
 
     it("stays an address with no receiver before it", () => {
@@ -250,7 +250,7 @@ describe("FrameSymbol", () => {
       const table = new frame.Frame({ "#": new frame.FrameString("comment") });
 
       expect(table.call(FrameSymbol.for("#")).toString()).toEqual("“comment”");
-      expect(table.call(FrameSymbol.address("#"))).toBe(frame.Frame.nil);
+      expect(table.call(FrameSymbol.address("#")).toString()).toEqual("1");
     });
   });
 

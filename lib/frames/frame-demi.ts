@@ -1,5 +1,6 @@
 import { type Context, NilContext } from "./context.ts";
 import { FrameAtom } from "./frame-atom.ts";
+import { FrameInt } from "./frame-int.ts";
 import { FrameCount } from "./frame-count.ts";
 import { Frame } from "./frame.ts";
 
@@ -10,7 +11,7 @@ export type DemiEncoding = readonly ["all" | "nil", string, string];
  * Immutable two-channel value. All means left-next; nil means right-next.
  * A constructed zero-load value is present, even with nil orientation.
  * Counts are captured by magnitude, never by mutable host object reference.
- * No source literal or fourth-hash observer is registered by this class.
+ * The fourth-hash observer derives this value from native observations.
  */
 export class FrameDemi extends FrameAtom {
   private readonly state: readonly [Frame, bigint, bigint];
@@ -58,6 +59,41 @@ export class FrameDemi extends FrameAtom {
       }
       throw error;
     }
+  }
+
+  /** Derive only from existing observers; never fold, execute or cache a Frame. */
+  public static observe(source: Frame): Frame {
+    const failure = source.observationError();
+    if (failure) return failure;
+    const n = source.sizeFor(Frame.kCOUNT);
+    if (n.observationError()) return n;
+    if (
+      !(n instanceof FrameCount) || typeof n.data !== "bigint" || n.data < 0n
+    ) {
+      return Frame.error("$!.demi-count");
+    }
+    if (n.data === 0n) return Frame.nil;
+    const s = source.sizeFor(Frame.kLEAVES);
+    if (s.observationError()) return s;
+    const r = source.sizeFor(Frame.kRESIDUAL);
+    if (r.observationError()) return r;
+    if (r === Frame.nil) return Frame.nil;
+    if (
+      !(s instanceof FrameCount) || !(r instanceof FrameInt) ||
+      typeof s.data !== "bigint" || typeof r.data !== "bigint" || s.data < 0n
+    ) return Frame.error("$!.demi-observations");
+    const sum = s.data + r.data;
+    const difference = s.data - r.data;
+    if (
+      sum < 0n || difference < 0n || sum % 2n !== 0n || difference % 2n !== 0n
+    ) {
+      return Frame.error("$!.demi-coherence");
+    }
+    return new FrameDemi(
+      n.data % 2n === 0n ? Frame.all : Frame.nil,
+      new FrameCount(sum / 2n),
+      new FrameCount(difference / 2n),
+    );
   }
 
   public get orientation(): Frame {
@@ -139,3 +175,5 @@ export class FrameDemi extends FrameAtom {
     return `FrameDemi(${phase},${this.state[1]},${this.state[2]})`;
   }
 }
+
+Frame.demi = FrameDemi.observe;

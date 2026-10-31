@@ -22,8 +22,10 @@ each terminal of x, preserving nesting.
 Flat repetition is `x.## [y]`. A tally, when wanted, is an explicit
 construction, such as `x & {[[]]}` for one fresh mark per immediate element.
 Native `.##` uses each child's native Size, including numeric magnitude and
-text length. Native `.###` also accepts mixed arrays and evaluated groups. Counts answer
-FrameInt parity (`n mod 2`), including valid zero; other atoms still answer nil.
+text length. Native `.###` also accepts mixed arrays, groups, and non-schema list syntax/closures. Counts answer
+FrameInt parity (`n mod 2`), including valid zero; ordinary atoms and schemas answer nil.
+Ordinary atoms have Count zero. Other missing Count rules fall back to Size.
+Stored errors and failed child quantities propagate rather than acquiring a load.
 Star keeps its narrower array/Count composition domain.
 
 For Counts, Gap and Spin now use parity too: `gap 7` is 1 and `spin 2 4` is 0.
@@ -197,6 +199,21 @@ Star uses native `*` dispatch; numeric pairs keep arithmetic.
 # [[[]], [[[]], [[]]]]
 ; [.tag 1;] * [[]]
 # $!.star-metadata *
+```
+The fourth observer derives a native immutable Demi from Count, Size and residual.
+A zero Count or absent residual gives no Demi; errors propagate. A schema used
+as an explicit element contributes Size normally, even though its own Demi is nil.
+The following displays are diagnostic native values, not HC reconstruction syntax.
+```
+; [[].####, 0.####, “hello”.####, <2,3,5>.####]
+# [(), (), (), ()]
+; [1.####, 2.####, 3.####, 7.####]
+# [FrameDemi((),1,0), FrameDemi(<>,1,1), FrameDemi((),2,1), FrameDemi((),4,3)]
+; [[0].####, [“hello”].####, [<2,3,5>,2].####, {5 + 3}.####]
+# [FrameDemi((),0,0), FrameDemi((),5,0), FrameDemi(<>,3,2), FrameDemi((),8,1)]
+; [[[],[]].#### + 3, 7.#### * 2]
+# [FrameDemi((),4,1), FrameDemi((),8,6)]
+
 ```
 Importing skips the examples and ends on a native true value.
 ```

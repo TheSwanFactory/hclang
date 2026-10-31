@@ -277,11 +277,10 @@ describe("FrameArray", () => {
       ) expect(last(`${host}.###`).toString(), host).toEqual(expected);
     });
 
-    it("answers nil on atoms, schemas and executable syntax", () => {
+    it("answers nil on ordinary atoms and schemas", () => {
       for (
         const source of [
           "<[], []>",
-          "{[]}",
           "“ab”",
           "(0 - 5)",
           "1.5",
@@ -292,14 +291,15 @@ describe("FrameArray", () => {
       }
     });
 
-    it("answers nil on an aggregate that contains itself", () => {
+    it("propagates the cycle error on an aggregate that contains itself", () => {
       const direct = new FrameArray([new FrameArray([])]);
       direct.collect(direct);
       const indirect = new FrameArray([new FrameArray([])]);
       indirect.collect(new FrameArray([new FrameArray([]), indirect]));
 
       for (const xs of [direct, indirect]) {
-        expect(evaluate("$$.xs.###", { xs }).toString()).toEqual("[]");
+        expect(evaluate("$$.xs.###", { xs }).at(0).toString())
+          .toEqual("$!.cyclic-aggregate .##");
       }
     });
   });
