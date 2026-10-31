@@ -144,13 +144,13 @@ positive. Mixed arrays and evaluated groups use the same rule.
 # [0, -1, -1, ()]
 ```
 Native Size also measures mixed values, independently of structural Star.
-Numeric magnitude truncates exactly; text length uses UTF-16 code units,
+Numeric magnitude truncates exactly; text length uses native Unicode code-point iteration,
 blob width uses bits, and schemas count declared alternatives.
 ```
 ; [(7.9).##, (-7.9).##, (-3).##, (0.9).##, 0.##, (-7 / 2).##]
 # [7, 7, 3, 0, 0, 3]
 ; [“”.##, “hello”.##, “é😀”.##, 0x00ff.##]
-# [0, 5, 3, 16]
+# [0, 5, 2, 16]
 ; [(1).<>.##, <2, 3, 5>.##, <2, 2, [3, 5]>.##, <.a, .b>.##, <>.##]
 # [1, 3, 3, 1, 1]
 ; [[5, “hello”].##, [5, “hello”].###, (5, 3).###, [5, 3, 2, 7].###]

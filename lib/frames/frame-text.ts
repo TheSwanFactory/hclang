@@ -26,9 +26,11 @@ export abstract class FrameText extends FrameAtom {
   }
 
   public override nativeSize(path: Set<Frame>): bigint | Frame {
-    return hasCharacterContent(this)
-      ? BigInt(this.characterContent().length)
-      : super.nativeSize(path);
+    if (!hasCharacterContent(this)) return super.nativeSize(path);
+    // Native string iteration counts a surrogate pair as one Unicode code point.
+    let characters = 0n;
+    for (const _character of this.characterContent()) characters += 1n;
+    return characters;
   }
 
   protected override toData(): string {

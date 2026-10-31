@@ -7,10 +7,11 @@
 ## v0.37.0 2026-10-30
 
 - **Native Size covers represented quantities.** `.##` now returns exact
-  truncated numeric magnitude, UTF-16 string/document length, blob bit width,
-  byte payload length, enumeration alternative count, or one opaque occurrence
-  for other atoms and type descriptions. Nonfinite numeric values refuse Size;
-  temporal and unit-bearing atoms acquire no implicit measurement unit.
+  truncated numeric magnitude, Unicode code-point string/document length, blob
+  bit width, byte payload length, enumeration alternative count, or one opaque
+  occurrence for other atoms and type descriptions. Nonfinite numeric values
+  refuse Size; temporal and unit-bearing atoms acquire no implicit measurement
+  unit.
 - **Changed aggregate weighting:** recursive `.##` uses each child's native
   Size: `[5, “hello”].##` changes from 6 to 10 and `[<1, 2>, 3].##` from 6 to 5.
   Empty aggregates retain Size 1; sharing counts per occurrence, metadata stays

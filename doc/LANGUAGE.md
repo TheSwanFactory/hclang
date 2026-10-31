@@ -633,19 +633,19 @@ is claimed across numeric arithmetic and structural expansion.
 
 `.##` observes nonnegative integral represented quantity as a FrameCount:
 
-| Runtime family                                          | Size                                                                                                                        |
-| ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| FrameCount                                              | Its count, including zero; `.#` still answers that same count                                                               |
-| FrameInt, FrameDecimal, FrameRational                   | `trunc(∣x∣)`, using exact bigint ratios                                                                                     |
-| FrameNumber                                             | Truncated absolute stored host value; nonfinite values refuse with `$!.nonquantifiable-size .##`                            |
-| FrameString, FrameDoc                                   | Represented text length in UTF-16 code units, excluding delimiters; `“é😀”.##` is 3, not two Unicode scalars or graphemes   |
-| FrameBlob                                               | Stored bit width, including leading zero bits; `0x00ff.##` is 16                                                            |
-| FrameBytes                                              | Stored byte length; an empty payload has Size 0                                                                             |
-| FrameType, non-enumerated FrameSchema                   | One represented type description                                                                                            |
-| Enumeration FrameSchema                                 | Number of declared alternatives, including duplicates and each nested candidate once; `<2, 2, [3, 5]>.##` is 3              |
-| Empty schema `<>` / Frame.all                           | One total type description, not a zero-alternative domain                                                                   |
-| FrameArray, FrameGroup and other FrameList syntax hosts | Sum of native child Sizes; an empty element plane retains Size 1                                                            |
-| Other atoms                                             | One opaque occurrence; includes symbols/operators, errors, nil, URI/resource references, comments and parser/control tokens |
+| Runtime family                                          | Size                                                                                                                                      |
+| ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| FrameCount                                              | Its count, including zero; `.#` still answers that same count                                                                             |
+| FrameInt, FrameDecimal, FrameRational                   | `trunc(∣x∣)`, using exact bigint ratios                                                                                                   |
+| FrameNumber                                             | Truncated absolute stored host value; nonfinite values refuse with `$!.nonquantifiable-size .##`                                          |
+| FrameString, FrameDoc                                   | Represented Unicode code-point count via native string iteration, excluding delimiters; `“é😀”.##` is 2; combining marks count separately |
+| FrameBlob                                               | Stored bit width, including leading zero bits; `0x00ff.##` is 16                                                                          |
+| FrameBytes                                              | Stored byte length; an empty payload has Size 0                                                                                           |
+| FrameType, non-enumerated FrameSchema                   | One represented type description                                                                                                          |
+| Enumeration FrameSchema                                 | Number of declared alternatives, including duplicates and each nested candidate once; `<2, 2, [3, 5]>.##` is 3                            |
+| Empty schema `<>` / Frame.all                           | One total type description, not a zero-alternative domain                                                                                 |
+| FrameArray, FrameGroup and other FrameList syntax hosts | Sum of native child Sizes; an empty element plane retains Size 1                                                                          |
+| Other atoms                                             | One opaque occurrence; includes symbols/operators, errors, nil, URI/resource references, comments and parser/control tokens               |
 
 Temporal values (FrameDateTime and FrameDuration), unit-bearing
 FrameTypedNumber, and dotted FrameSequence are opaque one-occurrence atoms. Time

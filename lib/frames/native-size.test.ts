@@ -60,14 +60,14 @@ Deno.test("Size evaluates exact truncated magnitudes without Number projection",
   }
 });
 
-Deno.test("text uses represented UTF-16 units; blobs use bits and payloads bytes", () => {
+Deno.test("text uses native Unicode code points; blobs use bits and payloads bytes", () => {
   for (
     const [source, size] of [
       ['""', "0"],
       ['"hello"', "5"],
-      ['"é😀"', "3"],
+      ['"é😀"', "2"],
       ['"é"', "2"],
-      ["`é😀`", "3"],
+      ["`é😀`", "2"],
       ["0b0001", "4"],
       ["0x00ff", "16"],
       ["\\0\\", "0"],
@@ -133,6 +133,8 @@ Deno.test("mixed arrays and evaluated groups alternate complete immediate Sizes"
   for (
     const [source, size, residual, count] of [
       ['[5, "hello"]', "10", "0", "2"],
+      ['[2, "é😀"]', "4", "0", "2"],
+      ['["😀", "é"]', "3", "-1", "2"],
       ['[5, 3, "ab"]', "10", "4", "3"],
       ['[5, 3, "ab", 7]', "17", "-3", "4"],
       ['[[5, "ab"], [3, []], 2]', "13", "5", "3"],
