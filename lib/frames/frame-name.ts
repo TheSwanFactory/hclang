@@ -68,6 +68,10 @@ const recognizeName = (symbol: Frame, source = ""): ScanResult => {
 };
 
 export class FrameName extends FrameAtom implements ISourced {
+  public override isName(): this is FrameName {
+    return true;
+  }
+
   public static readonly NAME_BEGIN = ".";
   /** The spelling that declares a parent, as `.^ base`. */
   public static readonly PARENT_DECLARATION = "^";

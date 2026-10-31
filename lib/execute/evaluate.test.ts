@@ -171,16 +171,16 @@ describe("evaluate", () => {
       expect(output).toBeInstanceOf(frame.FrameArray);
     });
 
-    it("returns FrameNote for mis-matched brackets", () => {
-      const result = evaluate("[}");
-      const output = result.at(0);
-      expect(output).toBeInstanceOf(frame.FrameNote);
+    it("returns a parse failure for mismatched brackets", () => {
+      const output = evaluate("[}").at(0);
+      expect(output.isFailedResult()).toBe(true);
+      expect(output.toString()).toContain("$!.parse-mismatched-structure");
     });
 
-    it("returns FrameNote for un-opened close bracket", () => {
-      const result = evaluate("}");
-      const output = result.at(0);
-      expect(output).toBeInstanceOf(frame.FrameNote);
+    it("returns a parse failure for an unopened close bracket", () => {
+      const output = evaluate("}").at(0);
+      expect(output.isFailedResult()).toBe(true);
+      expect(output.toString()).toContain("$!.parse-unmatched-structure");
     });
   });
 
@@ -498,23 +498,17 @@ describe("evaluate", () => {
       expect(result.toString()).toEqual("[.x <>; 42]");
     });
 
-    it.skip("allows reassignment with empty schema", () => {
-      // SKIPPED: Empty schema binding returns empty result []
-      // This may be a bug or intended behavior - needs investigation
+    it("allows reassignment with empty schema", () => {
       const result = evaluate('.x <> 42; @x "hello"');
-      expect(result.toString()).toContain('.x "hello"');
+      expect(result.toString()).toContain(".x “hello”");
     });
 
-    // String enumeration tests - SKIPPED: Not implemented
-    it.skip("accepts values from string enumeration", () => {
-      // SKIPPED: String schemas return empty []
-      // Current implementation only supports numeric schema validation
+    it("accepts values from string enumeration", () => {
       const result = evaluate('.color <"red","green","blue"> "red"');
-      expect(result.toString()).toContain('.color "red"');
+      expect(result.toString()).toContain(".color “red”");
     });
 
-    it.skip("rejects values not in string enumeration", () => {
-      // SKIPPED: String schemas not implemented
+    it("rejects values not in string enumeration", () => {
       const result = evaluate(
         '.color <"red","green","blue"> "red"; @color "yellow"',
       );
@@ -542,10 +536,9 @@ describe("evaluate", () => {
       expect(result.toString()).toContain("$!.type-error");
     });
 
-    it.skip("enforces string literal type", () => {
-      // SKIPPED: String schemas not implemented
+    it("enforces string literal type", () => {
       const result = evaluate('.status <"ok"> "ok"');
-      expect(result.toString()).toContain('.status "ok"');
+      expect(result.toString()).toContain(".status “ok”");
     });
 
     // Reassignment tests

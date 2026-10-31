@@ -14,8 +14,8 @@
  * JavaScript, so this script writes the maintained sources into one plain
  * module that every bundler can carry.
  *
- * The embed is committed, and git is the drift check: `deno task bundle:check`
- * regenerates it and fails on any difference. The pre-commit hook and
+ * The embed is committed: `deno task bundle:check` compares the shipped sources
+ * without writing the embed. The pre-commit hook and
  * `test:all` both run that, so a stale embed never lands.
  *
  * Usage: `deno task bundle:embed`
@@ -121,11 +121,39 @@ async function readSources(): Promise<HCSource[]> {
   return sources;
 }
 
+/** Refuses missing, changed, or obsolete embedded sources without modifying them. */
+export function checkEmbed(
+  sources: readonly HCSource[],
+  embedded: ReadonlyMap<string, string>,
+): void {
+  const expected = new Map(
+    sources.map(({ file, source }) => [hcKey(file), source]),
+  );
+  const keys = new Set([...expected.keys(), ...embedded.keys()]);
+  const stale = [...keys].filter((key) =>
+    expected.get(key) !== embedded.get(key)
+  );
+  if (stale.length > 0) {
+    throw new Error(
+      `Bundled HC sources are stale: ${
+        stale.join(", ")
+      }. Run deno task bundle:embed.`,
+    );
+  }
+}
+
 if (import.meta.main) {
-  if (Deno.args.length > 0) {
+  const check = Deno.args.length === 1 && Deno.args[0] === "--check";
+  if (Deno.args.length > 0 && !check) {
     throw new Error(`Unsupported argument(s): ${Deno.args.join(" ")}`);
   }
   const sources = await readSources();
-  await Deno.writeTextFile(EMBED_PATH, renderEmbed(sources));
-  console.log(`Wrote ${EMBED_PATH.pathname} from ${sources.length} file(s)`);
+  if (check) {
+    const { HC_SOURCES } = await import("../lib/bundle/hc-sources.ts");
+    checkEmbed(sources, HC_SOURCES);
+    console.log(`Verified ${sources.length} bundled HC file(s)`);
+  } else {
+    await Deno.writeTextFile(EMBED_PATH, renderEmbed(sources));
+    console.log(`Wrote ${EMBED_PATH.pathname} from ${sources.length} file(s)`);
+  }
 }

@@ -1,5 +1,5 @@
 import { type EvaluationRoots, Frame } from "./frame.ts";
-import { FrameLazy } from "./frame-lazy.ts";
+import type { FrameLazy } from "./frame-lazy.ts";
 import { BoundMethod } from "./bound-method.ts";
 import { methodEffect } from "./effect-marker.ts";
 import type { MetaFrame } from "./meta-frame.ts";
@@ -154,7 +154,7 @@ export class FrameHandle extends Frame {
   }
 
   protected override lookup_result(value: Frame, key: string): Frame {
-    if (value instanceof FrameLazy) {
+    if (value.isClosure()) {
       const effect = methodEffect(key);
       if (effect.mutating && this.mutable) this.copyOnWriteTarget();
       return new BoundMethod(

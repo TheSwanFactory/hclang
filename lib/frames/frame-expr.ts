@@ -1,8 +1,6 @@
 import { Frame } from "./frame.ts";
 import { FrameList } from "./frame-list.ts";
-import { FrameName } from "./frame-name.ts";
-import { FrameSchema } from "./frame-schema.ts";
-import { FrameSymbol } from "./frame-symbol.ts";
+import type { FrameName } from "./frame-name.ts";
 import { FrameWord } from "./frame-word.ts";
 import { type EvaluationInput, EvaluationScope } from "./evaluation-scope.ts";
 import { renderNested } from "./stringify.ts";
@@ -143,7 +141,7 @@ export class FrameExpr extends FrameList {
       // An explicit nil receiver still has a Size. The initial nil accumulator
       // is not a receiver, so a leading .## remains an address (#411).
       if (
-        index > 0 && sum.is.void && value instanceof FrameSymbol &&
+        index > 0 && sum.is.void && value.isSymbol() &&
         value.is.address &&
         [Frame.kLEAVES, Frame.kRESIDUAL].includes(value.spelling())
       ) {
@@ -158,8 +156,8 @@ export class FrameExpr extends FrameList {
 
   private schemaRetrieval(scope: EvaluationScope): Frame | undefined {
     if (
-      this.data.length !== 2 || !(this.data[0] instanceof FrameSymbol) ||
-      !(this.data[1] instanceof FrameName) || this.data[1].source !== "<^>"
+      this.data.length !== 2 || !this.data[0].isSymbol() ||
+      !this.data[1].isName() || this.data[1].source !== "<^>"
     ) return undefined;
     return this.data[0].bindingSchema(resumedScope(this.data[0], scope));
   }
@@ -168,12 +166,12 @@ export class FrameExpr extends FrameList {
     if (!this.is.statement || this.data.length !== 2) return undefined;
     const name = unwrapSingleton(this.data[0]);
     const schema = unwrapSingleton(this.data[1]);
-    if (!(name instanceof FrameName) || !(schema instanceof FrameSchema)) {
+    if (!name.isName() || !schema.isSchema()) {
       return undefined;
     }
     const setter = name.in(scope);
     const value = schema.in(scope);
-    if (!(setter instanceof FrameSymbol) || !(value instanceof FrameSchema)) {
+    if (!setter.isSymbol() || !value.isSchema()) {
       return Frame.error("$!.unsupported-schema-definition");
     }
     return setter.defineSchema(value);
@@ -265,7 +263,7 @@ export function atomsOf(
     const terms = expr.asArray();
     if (terms.length < 2) return undefined;
     const head = firstAtom(terms[0]);
-    if (!(head instanceof FrameName) || /^\.*$/.test(head.source)) {
+    if (!head.isName() || /^\.*$/.test(head.source)) {
       return undefined;
     }
     heads.add(head);
@@ -288,11 +286,11 @@ export function atomsOf(
         noteTerms(held);
         atoms.push(scoped(term));
       }
-    } else if (term instanceof FrameName) {
+    } else if (term.isName()) {
       atoms.push(
         FrameWord.address(term.source, heads.has(term) ? term : undefined),
       );
-    } else if (term instanceof FrameSymbol) {
+    } else if (term.isSymbol()) {
       const spelling = term.spelling();
       atoms.push(FrameWord.word(spelling, scope.get(spelling), resume));
     } else if (isClosure(term)) {
@@ -354,9 +352,9 @@ export function sizeAtomsOf(terms: readonly Frame[]): Frame[] | Frame {
       path.add(term);
       walkAtom(term.asArray()[0], path);
       path.delete(term);
-    } else if (term instanceof FrameName) {
+    } else if (term.isName()) {
       atoms.push(FrameWord.address(term.source));
-    } else if (term instanceof FrameSymbol) {
+    } else if (term.isSymbol()) {
       atoms.push(FrameWord.word(term.spelling()));
     } else {
       atoms.push(term);
@@ -489,7 +487,7 @@ export class FrameScoped extends Frame {
     parameter: Frame = Frame.nil,
   ): Frame {
     if (
-      argument instanceof FrameSymbol && argument.is.address === true &&
+      argument.isSymbol() && argument.is.address === true &&
       Frame.SIZE_OPERATORS.includes(argument.spelling())
     ) {
       return this.sizeFor(argument.spelling());
@@ -558,7 +556,7 @@ export function sitesAround(body: readonly Frame[]): Sites {
 function unwrapSingleton(frame: Frame): Frame {
   let result = frame;
   while (
-    result instanceof FrameList && !(result instanceof FrameSchema) &&
+    result instanceof FrameList && !result.isSchema() &&
     result.size() === 1
   ) {
     result = result.asArray()[0];

@@ -138,6 +138,7 @@ export async function main(
   let evaluated = false;
   let sourceStarted = false;
   let lexicalComplete = true;
+  let runtimeFailed = false;
   let test: HCTest | undefined;
 
   if (options.verbose) {
@@ -152,6 +153,7 @@ export async function main(
 
   const finishSource = (evaluator: HCEval): boolean => {
     const complete = evaluator.finish();
+    runtimeFailed ||= evaluator.hasFailures();
     if (!complete) {
       const reason = evaluator.error() ?? "incomplete lexical input";
       console.error(`HCEval.finish.failed: ${reason}`);
@@ -195,7 +197,7 @@ export async function main(
     test.finish();
   }
 
-  return lexicalComplete ? test?.exitCode ?? 0 : 1;
+  return lexicalComplete ? test?.exitCode ?? (runtimeFailed ? 1 : 0) : 1;
 }
 
 if (import.meta.main) {

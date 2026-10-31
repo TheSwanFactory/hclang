@@ -149,12 +149,61 @@ describe("main", () => {
       );
       const rendered = out.asArray().map(String);
 
-      expect(status).toEqual(0);
+      expect(status).toEqual(1);
       expect(rendered.some((value) => value.includes("$!.name-missing $.x")))
         .toBe(true);
       expect(rendered.at(-1)).toEqual("9");
     } finally {
       await Deno.remove(directory, { recursive: true });
+    }
+  });
+
+  for (const source of ["1 / 0", "missing_name", "1; 1 / 0; 2"]) {
+    it(`returns failure for an unhandled runtime error: ${source}`, async () => {
+      const out = new FrameArray([]);
+      expect(await main(bareEval(out), getOptions(["-e", source]))).toBe(1);
+      expect(out.toString()).toContain("$!.");
+    });
+  }
+
+  for (const source of ["]", "[1)", "[1"]) {
+    it(`reports structural failure for ${source}`, async () => {
+      const originalError = console.error;
+      const errors: string[] = [];
+      console.error = (...args: unknown[]) => errors.push(args.join(" "));
+      try {
+        expect(await main(bareEval(), getOptions(["-e", source]))).toBe(1);
+        expect(errors.join("\n")).toContain("$!.parse-");
+      } finally {
+        console.error = originalError;
+      }
+    });
+  }
+
+  it("retains runtime failure status when a later source file succeeds", async () => {
+    const failing = await Deno.makeTempFile({ suffix: ".hc" });
+    const succeeding = await Deno.makeTempFile({ suffix: ".hc" });
+    try {
+      await Deno.writeTextFile(failing, "1 / 0");
+      await Deno.writeTextFile(succeeding, "7");
+      const out = new FrameArray([]);
+      expect(await main(bareEval(out), getOptions([failing, succeeding]))).toBe(
+        1,
+      );
+      expect(out.toString()).toContain("7");
+    } finally {
+      await Deno.remove(failing);
+      await Deno.remove(succeeding);
+    }
+  });
+
+  it("accepts expected runtime errors in executable documentation", async () => {
+    const file = await Deno.makeTempFile({ suffix: ".hc" });
+    try {
+      await Deno.writeTextFile(file, "; 1 / 0\n# $!.division-by-zero /\n");
+      expect(await main(bareEval(), getOptions(["--testdoc", file]))).toBe(0);
+    } finally {
+      await Deno.remove(file);
     }
   });
 
@@ -284,7 +333,7 @@ describe("main", () => {
 
     expect(status).toEqual(0);
     expect(out.at(-1).toString()).toContain(
-      '“{"total":78,"pass":75,"fail":0,"unimplemented":3}”',
+      '“{"total":77,"pass":75,"fail":0,"unimplemented":2}”',
     );
   });
 

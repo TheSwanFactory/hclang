@@ -1,6 +1,3 @@
-// Load the FrameList cycle from FrameLazy, where it closes, so FrameList and
-// FrameExpr exist before any subclass, whichever module is imported first.
-import "./frame-lazy.ts";
 import { Frame } from "./frame.ts";
 import { FrameList } from "./frame-list.ts";
 import { FrameNote } from "./frame-note.ts";
@@ -15,6 +12,10 @@ import type { EvaluationInput } from "./evaluation-scope.ts";
 import type { SigilStart } from "../scan.ts";
 
 export class FrameSchema extends FrameList implements FrameMatcher {
+  public override isSchema(): this is FrameSchema {
+    return true;
+  }
+
   public static readonly BEGIN_SCHEMA = "<";
   public static readonly END_SCHEMA = ">";
   public static readonly SIGIL_STARTS = [

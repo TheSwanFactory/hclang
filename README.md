@@ -93,21 +93,21 @@ deno task test
 
 The root `deno.json` provides several tasks:
 
-| Task                   | Description                                       |
-| ---------------------- | ------------------------------------------------- |
-| `deno task hc`         | Launch the HC REPL                                |
-| `deno task setup`      | Install pre-commit hooks                          |
-| `deno task test`       | Run all tests (setup, format, lint, and tests)    |
-| `deno task test:setup` | Run all pre-commit hooks on all files             |
-| `deno task test:cli`   | Test CLI package                                  |
-| `deno task test:lib`   | Test library package                              |
-| `deno task test:maml`  | Test MAML package                                 |
-| `deno task test:web`   | Test web package                                  |
-| `deno task test:bs`    | Test BitScheme documentation                      |
-| `deno task test:doc`   | Test HC documentation examples                    |
-| `deno task build`      | Build native, npm, and web artifacts              |
-| `deno task build:npm`  | Generate the Node.js CLI package in `dist/npm`    |
-| `deno task test:npm`   | Pack and smoke-test the CLI package through `npx` |
+| Task                  | Description                                       |
+| --------------------- | ------------------------------------------------- |
+| `deno task hc`        | Launch the HC REPL                                |
+| `deno task setup`     | Install pre-commit hooks                          |
+| `deno task test`      | Check formatting and lint, then run all tests     |
+| `deno task fix`       | Format sources and apply lint fixes               |
+| `deno task test:cli`  | Test CLI package                                  |
+| `deno task test:lib`  | Test library package                              |
+| `deno task test:maml` | Test MAML package                                 |
+| `deno task test:web`  | Test web package                                  |
+| `deno task test:bs`   | Test BitScheme documentation                      |
+| `deno task test:doc`  | Test HC documentation examples                    |
+| `deno task build`     | Build native, npm, and web artifacts              |
+| `deno task build:npm` | Generate the Node.js CLI package in `dist/npm`    |
+| `deno task test:npm`  | Pack and smoke-test the CLI package through `npx` |
 
 ### BitScheme
 
@@ -161,8 +161,7 @@ deno task hc
    # Other platforms: pip install pre-commit
    ```
 
-   Pre-commit hooks are automatically installed when you run `deno task test` or
-   manually with `deno task setup`.
+   Install pre-commit hooks explicitly with `deno task setup`.
 
 4. Run tests:
 
@@ -170,8 +169,11 @@ deno task hc
    deno task test
    ```
 
-   This will automatically set up pre-commit hooks, format code, run linters,
-   and execute the test suite.
+   This checks formatting and lint without fixing sources, then runs the test
+   suite. Use `deno task fix` to format and apply lint fixes.
+
+   `deno task bundle:check` checks bundled HC sources without rewriting them;
+   after editing `hc/*.hc`, regenerate them with `deno task bundle:embed`.
 
 ### Project Structure
 

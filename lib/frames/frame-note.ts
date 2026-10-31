@@ -62,13 +62,18 @@ export class FrameNote extends FrameAtom {
   constructor(
     protected data: string,
     source: string = "",
-    public where = Frame.nil,
+    public where: Frame = Frame.nil,
   ) {
     super(NilContext);
     this.up = where;
     this.is.note = true;
     this.setLabel(data, source);
     this.id += this.data;
+  }
+
+  /** Diagnostic notes that represent failures, rather than test progress. */
+  public isDiagnosticFailure(): boolean {
+    return ["!", "<>", ">", "-"].includes(this.data);
   }
 
   public override in(_contexts = [Frame.nil]): Frame {

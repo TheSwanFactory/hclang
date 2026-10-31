@@ -1,5 +1,5 @@
 {
-  "version": "0.37.1",
+  "version": "0.37.3",
   "nodeModulesDir": "manual",
   "bin": {
     "hc": "scripts/hc"
@@ -18,7 +18,7 @@
     "publish:npm": "npm publish",
     "publish:web": "cd web && deno publish",
     "setup": "deno run -A deno-hooks",
-    "test": "deno fmt && deno lint --fix && deno task test:all",
+    "test": "deno fmt --check && deno lint && deno task test:all",
     "test:cli": "cd cli && deno task test",
     "test:doc": "cd cli && deno task test:doc",
     "test:lib": "deno test --ignore=lib/load-order.test.ts lib && deno task test:load-order",
@@ -30,11 +30,12 @@
     "test:bs": "cd cli && deno task test:bs",
     "test:compiled": "deno task build:cli && deno run --allow-read --allow-write --allow-env --allow-run scripts/test-compiled.ts",
     "bundle:embed": "deno run --allow-read --allow-write scripts/embed-hc.ts && deno fmt --quiet lib/bundle/hc-sources.ts",
-    "bundle:check": "deno task bundle:embed && git diff --exit-code -- lib/bundle/hc-sources.ts",
+    "bundle:check": "deno run --allow-read scripts/embed-hc.ts --check",
     "test:all": "deno task bundle:check && deno task test:cli && deno task test:lib && deno task test:maml && deno task test:scripts && deno task test:web && deno task test:doc && deno task test:bs && deno task test:npm && deno task test:compiled",
     "vscode:package": "cd vscode-extension && npx --yes @vscode/vsce@3.9.2 package",
     "vscode:publish": "cd vscode-extension && npx --yes @vscode/vsce@3.9.2 publish",
-    "vscode:install": "cd vscode-extension && npx --yes @vscode/vsce@3.9.2 package && code --install-extension *.vsix"
+    "vscode:install": "cd vscode-extension && npx --yes @vscode/vsce@3.9.2 package && code --install-extension *.vsix",
+    "fix": "deno fmt && deno lint --fix"
   },
   "compilerOptions": {
     "lib": [

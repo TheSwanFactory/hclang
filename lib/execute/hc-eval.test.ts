@@ -98,6 +98,36 @@ describe("HCEval", () => {
     });
   }
 
+  for (
+    const [source, reason] of [
+      ["]", "unmatched"],
+      ["[1)", "mismatched"],
+      ["[1", "unclosed"],
+    ]
+  ) {
+    it(`rejects structural failure ${source} across transport boundaries`, () => {
+      for (let split = 0; split <= source.length; split++) {
+        const captured = new frame.FrameArray([]);
+        const evaluator = new HCEval(captured);
+        evaluator.call(source.slice(0, split), false);
+        evaluator.call(source.slice(split), true);
+        expect(evaluator.finish()).toBe(false);
+        expect(evaluator.error()).toContain(`$!.parse-${reason}-structure`);
+        expect(captured.length()).toBe(0);
+        evaluator.call("7");
+        expect(evaluator.finish()).toBe(true);
+        expect(captured.at(0).toString()).toBe("7");
+      }
+    });
+  }
+
+  it("keeps open structures across logical lines until physical EOF", () => {
+    hc_eval.call("[1,");
+    hc_eval.call("2]");
+    expect(hc_eval.finish()).toBe(true);
+    expect(out.at(0).toString()).toBe("[1, 2]");
+  });
+
   it("can be reused after an invalid dollar form", () => {
     hc_eval.call("$foo");
     expect(hc_eval.finish()).toBe(false);
