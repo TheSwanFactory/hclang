@@ -26,7 +26,7 @@ describe("maml", () => {
     const tag = maml.get("tag");
 
     expect(tag).toBeInstanceOf(FrameExpr);
-    expect(result_string).not.toContain(".missing");
+    expect(result_string).not.toContain("$!");
   });
 
   it("wraps everything in an HTML tag", () => {
@@ -48,5 +48,54 @@ describe("maml", () => {
   it("wraps all metas in their keyed tag", () => {
     expect(result_string).toMatch(/<author>([\s\S]*)<\/author>/);
     expect(result_string).toMatch(/<title>([\s\S]*)<\/title>/);
+  });
+});
+
+describe("MAML metadata rendering", () => {
+  it("joins metadata tags as text and keeps body contents out of head", () => {
+    const body = new FrameString("Body text", {
+      author: new FrameString("An author"),
+      title: new FrameString("A title"),
+    });
+    expect(maml.call(body).toString()).toEqual(
+      "“<!DOCTYPE html><html><head><author>An author</author><title>A title</title></head><body>Body text</body></html>”",
+    );
+  });
+
+  it("renders an empty head when no metadata is present", () => {
+    expect(maml.call(new FrameString("Body")).toString()).toEqual(
+      "“<!DOCTYPE html><html><head></head><body>Body</body></html>”",
+    );
+  });
+
+  it("uses public metadata only and preserves the source", () => {
+    const body = new FrameString("Body", {
+      _private: new FrameString("secret"),
+      "title.<>": new FrameString("schema"),
+      "/pattern/": new FrameString("matcher"),
+      title: new FrameString("Visible"),
+    });
+    const before = body.toString();
+    expect(maml.call(body).toString()).toEqual(
+      "“<!DOCTYPE html><html><head><title>Visible</title></head><body>Body</body></html>”",
+    );
+    expect(body.toString()).toEqual(before);
+  });
+
+  it("does not retain metadata between calls", () => {
+    const first = maml.call(
+      new FrameString("One", {
+        title: new FrameString("First"),
+      }),
+    );
+    const second = maml.call(
+      new FrameString("Two", {
+        author: new FrameString("Second"),
+      }),
+    );
+    expect(first.toString()).toContain("<title>First</title>");
+    expect(second.toString()).toEqual(
+      "“<!DOCTYPE html><html><head><author>Second</author></head><body>Two</body></html>”",
+    );
   });
 });

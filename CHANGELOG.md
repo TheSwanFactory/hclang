@@ -4,6 +4,12 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## Unreleased
+
+- **Fix MAML metadata rendering.** Render public metadata as joined head tags
+  without iterator argument errors or duplicate body content; run the MAML suite
+  in the required local and CI test gate.
+
 ## v0.37.0 2026-10-30
 
 - **Native Size covers represented quantities.** `.##` now returns exact
