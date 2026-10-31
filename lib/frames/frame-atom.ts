@@ -6,6 +6,15 @@ export class FrameAtom extends Frame {
     super(meta);
   }
 
+  /** R1 (011.18h): an atom's residual is the parity of its Count. */
+  public override sizeFor(key: string): Frame {
+    if (key !== Frame.kRESIDUAL) return super.sizeFor(key);
+    const n = this.sizeFor(Frame.kCOUNT);
+    if (n.observationError()) return n;
+    const data = (n as unknown as { data?: unknown }).data;
+    return typeof data === "bigint" ? Frame.signed(data % 2n) : Frame.nil;
+  }
+
   public string_prefix(): string {
     return "";
   }

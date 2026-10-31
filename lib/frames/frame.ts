@@ -578,9 +578,9 @@ export class Frame extends MetaFrame {
     }
 
     override sizeFor(key: string): Frame {
-      return key === Frame.kCOUNT
-        ? this.observationError() ?? Frame.count(0n)
-        : super.sizeFor(key);
+      if (key === Frame.kCOUNT) return this.observationError() ?? Frame.count(0n);
+      if (key === Frame.kRESIDUAL) return Frame.signed(0n); // R4 (011.18h)
+      return super.sizeFor(key);
     }
 
     override call(argument: Frame): Frame {
@@ -891,6 +891,9 @@ export class Frame extends MetaFrame {
   /** Installed by FrameCount without importing a subclass into its base. */
   public static count: (value: bigint) => Frame;
 
+  /** Installed by FrameInt: an exact signed integer (scratch 011.18h). */
+  public static signed: (value: bigint) => Frame;
+
   /** Installed by FrameDemi, avoiding a base-to-subclass import cycle. */
   public static demi: (source: Frame) => Frame;
 
@@ -910,7 +913,8 @@ export class Frame extends MetaFrame {
     if (failure) return failure;
     switch (key) {
       case Frame.kCOUNT:
-        return this.is.void || this.is.missing
+        if (this.is.void) return Frame.nil; // R3 (011.18h): absence
+        return this.is.missing
           ? Frame.count(0n)
           : this.sizeFor(Frame.kLEAVES);
       case Frame.kLEAVES: {

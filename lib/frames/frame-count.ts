@@ -64,8 +64,6 @@ export class FrameCount extends FrameInt {
       case Frame.kCOUNT:
       case Frame.kLEAVES:
         return this;
-      case Frame.kRESIDUAL:
-        return new FrameInt(this.data % 2n);
       default:
         return super.sizeFor(key);
     }
