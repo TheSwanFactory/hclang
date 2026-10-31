@@ -577,6 +577,12 @@ export class Frame extends MetaFrame {
       return "<>";
     }
 
+    override sizeFor(key: string): Frame {
+      return key === Frame.kCOUNT
+        ? this.observationError() ?? Frame.count(0n)
+        : super.sizeFor(key);
+    }
+
     override call(argument: Frame): Frame {
       const key = Frame.quantityOperator(argument);
       if (key) return this.sizeFor(key);
@@ -903,8 +909,7 @@ export class Frame extends MetaFrame {
     if (failure) return failure;
     switch (key) {
       case Frame.kCOUNT:
-        return this === Frame.nil || this === Frame.all ||
-            this === Frame.missing
+        return this.is.void || this.is.missing
           ? Frame.count(0n)
           : this.sizeFor(Frame.kLEAVES);
       case Frame.kLEAVES: {

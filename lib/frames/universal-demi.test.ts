@@ -62,6 +62,12 @@ Deno.test("fourth hash distinguishes atom/schema absence, empty hosts and presen
   for (const singleton of ["()", "<>"]) {
     expect(last(`${singleton}.#`).toString()).toEqual("0");
   }
+  for (const value of [Frame.nil, Frame.all, Frame.missing]) {
+    const copy = value.copy();
+    copy.set("label", new FrameString("metadata"));
+    expect(copy.sizeFor("#").toString()).toEqual("0");
+    expect(copy.sizeFor("####")).toBe(Frame.nil);
+  }
   expect(last(".####").toString()).toEqual(".####");
 });
 
