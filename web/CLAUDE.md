@@ -5,7 +5,9 @@
 `web/` produces two things from one source: the `@swanfactory/hcweb` JSR package
 and `web/dist/hcweb.html`, a single offline file distributed as a GitHub release
 asset. `web/dist/index.html` is a byte-identical copy so the same output can be
-served as a static site.
+served on [GitHub Pages](https://theswanfactory.github.io/hclang/). The release
+workflow publishes the tested release output, without another build. Deno Deploy
+is no longer configured.
 
 `Main` is the sole owner of the `HCLang` interpreter, latest output, error, and
 history state. `mount.ts` is the public entry that renders it into an element.
@@ -30,7 +32,8 @@ Run from `web/`:
 deno task build     # dist/hcweb.html + checksum
 deno task dev       # build, then serve dist/
 deno task check
-deno task test      # build + components + consumer + artifact
+deno task test      # build + components + consumer + offline artifact
+deno task test:production # live GitHub Pages browser smoke test
 deno publish --dry-run
 ```
 
@@ -60,3 +63,22 @@ compiled-in source, so `Figures <- './hc/figures.hc'` works offline, and
 
 Keep REPL state in one owner, preserve labels/keyboard/focus behavior, and when
 public exports or commands change, update `README.md` and the artifact tests.
+
+## Hosting and monitoring
+
+`.github/workflows/deno.js.yml` publishes the site only after a version-bump
+release succeeds. Its `pages` job deploys `web/dist/` through the `github-pages`
+environment, then runs `tests/production.test.ts` against the deployment URL.
+The check requires the expected version and source commit, evaluates `2 + 2`,
+and fails on HTTP or browser errors. Navigation and metadata checks retry for
+Pages propagation.
+
+`.github/workflows/demo-availability.yml` runs the same browser check daily and
+on manual dispatch. It checks the public Pages URL without requiring the current
+workspace version, since `master` can contain unreleased changes. Production
+checks require network access and stay outside the local/offline test gate.
+
+`HCWEB_URL` overrides the URL for local static-server checks;
+`HCWEB_EXPECTED_VERSION` and `HCWEB_EXPECTED_COMMIT` optionally require an exact
+release. See [the web README](README.md#how-the-release-artifact-is-built) for
+Pages setup, removal of the old Deno integration, and failure notifications.

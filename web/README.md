@@ -1,5 +1,8 @@
 # Homoiconic C Web Interface
 
+Try the [online HC playground](https://theswanfactory.github.io/hclang/) on
+GitHub Pages, or download the same application for offline use.
+
 Two products live here:
 
 - **`hcweb.html`** — a single self-contained file that runs the HC playground
@@ -75,14 +78,23 @@ Deno Deploy is no longer used.
 
 In the repository's **Settings → Pages → Build and deployment**, select **GitHub
 Actions** as the source before merging the first Pages release. The
-`github-pages` environment must allow deployments from `master`.
+`github-pages` environment must allow deployments from `master`. Disconnect the
+old Deno Deploy GitHub integration; removing source configuration does not
+remove its connection or stop it from reporting deployment statuses on PRs.
 
 Each patch/minor release deploys the same bytes as the GitHub release download.
 The deployment job then opens the production URL in Chromium, checks its version
 and source commit, and evaluates `2 + 2`. A separate **Demo availability**
 workflow runs the same browser check daily and on manual dispatch, so DNS, HTTP,
 and application failures surface as failed Actions runs even without a new
-release. Enable GitHub Actions failure notifications to receive alerts.
+release. Enable GitHub Actions failure notifications to receive alerts. These
+production checks run separately from the local/offline test gate: a successful
+artifact build does not establish that the public hostname or site works.
+
+Merges without a version bump do not redeploy the site. To retry a failed
+release, rerun the failed workflow jobs, or dispatch **Deno CI** from `master`
+with the **release** input enabled. To check availability without publishing,
+dispatch **Demo availability**.
 
 To run the production check locally:
 
