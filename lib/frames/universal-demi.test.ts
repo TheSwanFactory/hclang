@@ -4,11 +4,13 @@ import {
   Frame,
   FrameArray,
   FrameCount,
+  FrameDecimal,
   FrameDemi,
   FrameExpr,
   FrameInt,
   FrameLazy,
   FrameNumber,
+  FrameRational,
   FrameResource,
   FrameSchema,
   FrameScoped,
@@ -20,6 +22,39 @@ import { FrameHandle } from "./frame-handle.ts";
 
 const last = (source: string): Frame =>
   evaluate(source).at(-1).asArray().at(-1)!;
+
+Deno.test("finite numeric Count uses magnitude rather than the non-numeric atom default", () => {
+  for (
+    const value of [
+      new FrameInt(5n),
+      new FrameInt(-5n),
+      new FrameDecimal("-5.9"),
+      new FrameRational(-11n, 2n),
+      new FrameNumber(-5.9),
+      new FrameInt(9007199254740993123456789n),
+      new FrameDecimal("0.9"),
+      new FrameRational(-1n, 2n),
+      new FrameNumber(-0),
+    ]
+  ) {
+    const count = value.sizeFor("#");
+    expect(count).toBeInstanceOf(FrameCount);
+    expect((count as FrameCount).data).toEqual(
+      (value.sizeFor("##") as FrameCount).data,
+    );
+    expect(value.sizeFor("###")).toBe(Frame.nil);
+    expect(value.sizeFor("####")).toBe(Frame.nil);
+  }
+  expect(last("(10 - 5).#").toString()).toEqual("5");
+  expect(last("5.#").toString()).toEqual("5");
+  expect(last("(-5.9).#").toString()).toEqual("5");
+  expect(new FrameString("hello").sizeFor("#").toString()).toEqual("0");
+  for (const value of [Infinity, -Infinity, NaN]) {
+    expect(new FrameNumber(value).sizeFor("#").toString()).toEqual(
+      "$!.nonquantifiable-size .##",
+    );
+  }
+});
 
 Deno.test("fourth hash distinguishes atom/schema absence, empty hosts and present zero loads", () => {
   for (

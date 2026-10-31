@@ -6,7 +6,7 @@ export class FrameAtom extends Frame {
     super(meta);
   }
 
-  /** Ordinary atoms explicitly have no immediate elements. */
+  /** Ordinary non-numeric atoms explicitly have no immediate elements. */
   public override sizeFor(key: string): Frame {
     if (key === Frame.kCOUNT) {
       return this.observationError() ?? Frame.count(0n);

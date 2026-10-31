@@ -76,10 +76,10 @@ Deno.test("Demi compatibility matrix: all concrete Frame families stay non-execu
   const rows: [f.Frame, string[]][] = [
     [new f.FrameCount(0n), ["0", "0", "0"]],
     [c, ["5", "5", "1"]],
-    [new f.FrameInt(-3n), ["0", "3", "nil"]],
-    [new f.FrameDecimal("-7.9"), ["0", "7", "nil"]],
-    [new f.FrameRational(-7n, 2n), ["0", "3", "nil"]],
-    [new f.FrameNumber(7.9), ["0", "7", "nil"]],
+    [new f.FrameInt(-3n), ["3", "3", "nil"]],
+    [new f.FrameDecimal("-7.9"), ["7", "7", "nil"]],
+    [new f.FrameRational(-7n, 2n), ["3", "3", "nil"]],
+    [new f.FrameNumber(7.9), ["7", "7", "nil"]],
     [new f.FrameNumber(Infinity), [
       "$!.nonquantifiable-size .##",
       "$!.nonquantifiable-size .##",

@@ -64,12 +64,13 @@ Existing failures retain their original value. An error value's observations do
 not turn it into an opaque quantity or successful zero. Nonfinite FrameNumbers
 fail Count as well as Size/residual/Demi.
 
-The base Frame's missing Count rule falls back to Size. Ordinary FrameAtom
-values explicitly override Count with zero, so fallback never replaces an
-explicit zero. Nil/all/missing and atomic runtime type descriptions also have
+The base Frame's missing Count rule falls back to Size. Ordinary non-numeric
+FrameAtom values explicitly override Count with zero, so fallback never replaces
+an explicit zero. Nil/all/missing and atomic runtime type descriptions also have
 explicit Count zero. Nil/all source dispatch is intercepted, while receiverless
 observer names remain addresses. Count retains its explicit magnitude Count and
-parity residual.
+parity residual. Finite Int, Decimal, Rational and Number values use their
+absolute truncated magnitude for Count and Size; their residual remains nil.
 
 Non-schema lists observe their stored ordered elements/words for Count, Size and
 residual, without executing the host. Source syntax uses the existing pure Size
@@ -89,7 +90,7 @@ hosts are source-audited for inherited rules and covered by import-first checks.
 | Family                                                                | #                               | ##                                                | ###                                       | ####                                                            |
 | --------------------------------------------------------------------- | ------------------------------- | ------------------------------------------------- | ----------------------------------------- | --------------------------------------------------------------- |
 | FrameCount(n)                                                         | n                               | n                                                 | FrameInt n mod 2                          | nil at zero; otherwise balanced native Demi                     |
-| FrameInt, Decimal, Rational, finite Number                            | 0                               | Absolute truncated magnitude                      | nil                                       | nil                                                             |
+| FrameInt, Decimal, Rational, finite Number                            | Absolute truncated magnitude    | Absolute truncated magnitude                      | nil                                       | nil                                                             |
 | String, Doc; Blob; Bytes                                              | 0                               | Code points; bits; bytes                          | nil                                       | nil                                                             |
 | FrameAtom; Arg, Param, Name, Word, Alias, Literal, Symbol, Operator   | 0                               | One opaque occurrence                             | nil                                       | nil                                                             |
 | URI, Resource, Comment; Time/DateTime/Duration, TypedNumber, Sequence | 0                               | One opaque occurrence; no reads or unit inference | nil                                       | nil                                                             |
@@ -128,9 +129,9 @@ fallback does not invoke their methods.
 Count residual changes nil to FrameInt parity, including present/truthy zero.
 Figures Gap/Spin therefore accept Counts. They also now accept non-schema list
 syntax/closures with valid residuals. Cycle/nonquantifiable residuals now
-propagate errors instead of returning nil. Ordinary atom Count changes
-absent/nil to zero; nil/all Count changes name passthrough/absorption to zero.
-Their native Sizes are preserved. Stored errors now propagate instead of
+propagate errors instead of returning nil. Ordinary non-numeric atom Count
+changes absent/nil to zero; nil/all Count changes name passthrough/absorption to
+zero. Their native Sizes are preserved. Stored errors now propagate instead of
 contributing opaque Size 1.
 
 The lexer, runtime dispatch and editor recognize `.####` together. A fifth hash
