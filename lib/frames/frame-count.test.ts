@@ -314,14 +314,14 @@ describe("FrameCount", () => {
       }
     });
 
-    it("sizes other numeric rungs without changing immediate count", () => {
+    it("uses absolute truncated magnitude for Count and Size on other numeric rungs", () => {
       for (
         const [source, size] of [["(5 - 3)", "2"], ["(0 - 5)", "5"], [
           "1.5",
           "1",
         ], ["(1 / 3)", "0"]]
       ) {
-        expect(evaluate(`${source}.#`).at(0).toString()).toEqual("0");
+        expect(evaluate(`${source}.#`).at(0).toString()).toEqual(size);
         expect(evaluate(`${source}.##`).at(0).toString()).toEqual(size);
       }
     });
