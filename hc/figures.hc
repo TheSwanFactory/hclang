@@ -1,13 +1,18 @@
 #!/usr/bin/env hc
 ```
-Figures are native frames (#454; issue occurrence/figure 010.02)
+Figures as projections of native HC frames (#454; occurrence/figure 010.09)
 
-A Figure is a finite nested array built from `[]`, read through its elements
-only: properties and declared parents are ignored by observations. Star keeps
-nonterminal metadata when rebuilding frames. Construction is brackets, form is
-the value itself, immediate arity is `.#`, Size is `.##`, form equality is `=`,
-and identity is `===`. The empty frame is one
-terminal: `[].#` is 0 and `[].##` is 1. The signed residual `.###` is
+A figure is a projection of HC frames through which we observe invariants that
+embody mathematical relations. This is a working definition: each investigation
+specifies its projection, transformations and invariants.
+
+Finite nested arrays built from `[]` are the simplest construction family used
+below. They do not define the full domain of native observations. Size, residual
+and immediate identity membership exclude properties and declared parents;
+Star keeps nonterminal metadata when rebuilding frames. Construction is brackets,
+form is the value itself, immediate arity is `.#`, Size is `.##`, form equality
+is `=`, and identity is `===`. The empty frame is one terminal: `[].#` is 0 and
+`[].##` is 1. The signed residual `.###` is
 `x₁.## − x₂.## + x₃.## − …` over the immediate elements, a FrameInt that is 0
 for `[]` (issue occurrence/figure 010.04).
 

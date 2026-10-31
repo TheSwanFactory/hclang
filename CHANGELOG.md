@@ -6,6 +6,10 @@
 
 ## v0.37.1 2026-10-30
 
+- **Clarify Figure's working definition.** A figure is a projection of HC frames
+  through which we observe invariants that embody mathematical relations;
+  distinguish the nested-array examples from each native operation's domain.
+
 - **Figures uses native observations and incidence.** Remove `pure`, `need` and
   `withness`: branch on `x.###` (including valid zero), use the observed frame
   directly, and replace collective membership with ordinary iteration over

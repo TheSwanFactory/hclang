@@ -588,15 +588,22 @@ that spelling.
 
 For a worked example, see the Figures module, shipped with the package as
 [`hc/figures.hc`](../hc/figures.hc), imported with
-`Figures <- './hc/figures.hc'`. A Figure is an ordinary nested array, read
-through its elements; properties and declared parents are ignored at every
-level. `[]` is the empty Figure, and `[c, …]` constructs a frame. Use native
-`.#` for immediate element count, `.##` for terminal count, `=` for form
-equality and `===` for identity. Star `x * y` retains the nesting of x and
+`Figures <- './hc/figures.hc'`.
+
+A figure is a projection of HC frames through which we observe invariants that
+embody mathematical relations. This working definition leaves each investigation
+to specify its projection, transformations and invariants.
+
+Finite nested arrays built from `[]` are the simplest construction family in the
+examples. Their element observations exclude properties and declared parents at
+every level. `[c, …]` constructs a frame; use native `.#` for immediate arity,
+`.##` for Size, `=` for form equality and `===` for identity. The domains of the
+individual native operations remain explicit; eligibility for an observation
+does not itself define a figure. Star `x * y` retains the nesting of x and
 places y at each empty-array terminal. A flat product is `x.## [y]`; no
 constructor, count, size, comparison or multiplication wrapper is needed. Native
-`.###` is a Figure's signed residual, the alternating sum of its immediate
-elements' `.##` counts as a FrameInt (`[[], [[], []]].###` is -1). It also
+`.###` is the signed residual, the alternating sum of an eligible host's
+immediate child Sizes as a FrameInt (`[[], [[], []]].###` is -1). It also
 accepts mixed arrays and evaluated groups; standalone atoms, schemas,
 expressions and closures answer nil.
 
