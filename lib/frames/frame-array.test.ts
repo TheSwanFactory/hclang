@@ -277,17 +277,17 @@ describe("FrameArray", () => {
       ) expect(last(`${host}.###`).toString(), host).toEqual(expected);
     });
 
-    it("answers nil on ordinary atoms and schemas", () => {
+    it("answers nil on schemas and Count parity on atoms (011.18k)", () => {
+      // nil, so the source answers no value.
+      expect(evaluate("<[], []>.###").toString()).toEqual("[]");
       for (
-        const source of [
-          "<[], []>",
-          "“ab”",
-          "(0 - 5)",
+        const [source, parity] of [["“ab”", "0"], ["(0 - 5)", "1"], [
           "1.5",
-        ]
+          "1",
+        ]]
       ) {
-        // nil, so the source answers no value.
-        expect(evaluate(`${source}.###`).toString(), source).toEqual("[]");
+        expect(evaluate(`${source}.###`).toString(), source)
+          .toEqual(`[${parity}]`);
       }
     });
 

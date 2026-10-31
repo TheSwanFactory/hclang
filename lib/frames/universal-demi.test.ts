@@ -28,7 +28,7 @@ import { FrameHandle } from "./frame-handle.ts";
 const last = (source: string): Frame =>
   evaluate(source).at(-1).asArray().at(-1)!;
 
-Deno.test("sized values inherit Count from Size without installing a residual", () => {
+Deno.test("sized atoms take Count from Size and residual from Count parity (011.18k)", () => {
   for (
     const value of [
       new FrameInt(5n),
@@ -47,17 +47,30 @@ Deno.test("sized values inherit Count from Size without installing a residual", 
       new FrameBytes([0, 255]),
       new FrameBytes([]),
       new FrameAtom(),
-      FrameType.of(new FrameCount(5n)),
     ]
   ) {
     const count = value.sizeFor("#");
     expect(count).toBeInstanceOf(FrameCount);
-    expect((count as FrameCount).data).toEqual(
-      (value.sizeFor("##") as FrameCount).data,
-    );
-    expect(value.sizeFor("###")).toBe(Frame.nil);
-    expect(value.sizeFor("####")).toBe(Frame.nil);
+    const n = (count as FrameCount).data;
+    expect(n).toEqual((value.sizeFor("##") as FrameCount).data);
+    const residual = value.sizeFor("###");
+    expect(residual.className()).toEqual("FrameInt");
+    expect(residual.toString()).toEqual((n % 2n).toString());
+    const demi = value.sizeFor("####");
+    if (n === 0n) {
+      expect(demi).toBe(Frame.nil);
+    } else {
+      const d = demi as FrameDemi;
+      expect(d.left.data + d.right.data).toEqual(n);
+      expect(d.left.data - d.right.data).toEqual(n % 2n);
+      expect(d.orientation).toBe(n % 2n === 0n ? Frame.all : Frame.nil);
+    }
   }
+  // A non-atom with Count from Size keeps nil residual (011.18k scope).
+  const type = FrameType.of(new FrameCount(5n));
+  expect(type.sizeFor("#").toString()).toEqual("1");
+  expect(type.sizeFor("###")).toBe(Frame.nil);
+  expect(type.sizeFor("####")).toBe(Frame.nil);
   expect(last("(10 - 5).#").toString()).toEqual("5");
   expect(last("5.#").toString()).toEqual("5");
   expect(last("(-5.9).#").toString()).toEqual("5");
@@ -76,9 +89,6 @@ Deno.test("fourth hash distinguishes atom/schema absence, empty hosts and presen
       "0",
       "()",
       "<>",
-      "“hello”",
-      "7.9",
-      "(-7)",
       "<2,3,5>",
       "<.a,.b>",
       "<8 @Bit>",
@@ -89,6 +99,10 @@ Deno.test("fourth hash distinguishes atom/schema absence, empty hosts and presen
   for (
     const [source, encoding] of [
       ["1", ["nil", "1", "0"]],
+      ["“hello”", ["nil", "3", "2"]],
+      ["7.9", ["nil", "4", "3"]],
+      ["(-7)", ["nil", "4", "3"]],
+      ["(10 - 5)", ["nil", "3", "2"]],
       ["2", ["all", "1", "1"]],
       ["3", ["nil", "2", "1"]],
       ["7", ["nil", "4", "3"]],
@@ -107,15 +121,18 @@ Deno.test("fourth hash distinguishes atom/schema absence, empty hosts and presen
   }
   expect(last("[[],[]].#### + 3").toString()).toEqual("FrameDemi((),4,1)");
   expect(last("7.#### * 2").toString()).toEqual("FrameDemi((),8,6)");
-  for (const singleton of ["()", "<>"]) {
-    expect(last(`${singleton}.#`).toString()).toEqual("0");
-  }
+  // Nil has no Count; all is the present empty, observed exactly as [] (011.18k).
+  expect(evaluate("().#").toString()).toEqual("[]");
+  expect(last("<>.#").toString()).toEqual("0");
+  expect(last("<>.###").toString()).toEqual("0");
   for (const value of [Frame.nil, Frame.all, Frame.missing]) {
     const copy = value.copy();
     copy.set("label", new FrameString("metadata"));
-    expect(copy.sizeFor("#").toString()).toEqual("0");
+    expect(copy.sizeFor("#").toString())
+      .toEqual(value === Frame.nil ? "()" : "0");
     expect(copy.sizeFor("####")).toBe(Frame.nil);
   }
+  expect(Frame.all.copy().sizeFor("###").toString()).toEqual("0");
   expect(last(".####").toString()).toEqual(".####");
 });
 
@@ -204,7 +221,12 @@ Deno.test("observation failures propagate without converting nil/zero or executi
     "5",
     "3",
   ]);
-  expect(resource.sizeFor("####")).toBe(Frame.nil);
+  // A resource is an atom of Size 1: one terminal, observed without a read.
+  expect((resource.sizeFor("####") as FrameDemi).encode()).toEqual([
+    "nil",
+    "1",
+    "0",
+  ]);
   expect(schema.sizeFor("####")).toBe(Frame.nil);
   expect(new FrameArray([resource, closure, schema]).sizeFor("####"))
     .toBeInstanceOf(FrameDemi);

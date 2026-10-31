@@ -6,8 +6,14 @@ export class FrameAtom extends Frame {
     super(meta);
   }
 
-  /** R1 (011.18h): an atom's residual is the parity of its Count. */
+  /**
+   * An atom's residual is the parity of its Count (011.18k). A void atom, such
+   * as a comment, keeps an explicit Count zero; only nil itself has no Count.
+   */
   public override sizeFor(key: string): Frame {
+    if (key === Frame.kCOUNT && this.is.void) {
+      return this.observationError() ?? Frame.count(0n);
+    }
     if (key !== Frame.kRESIDUAL) return super.sizeFor(key);
     const n = this.sizeFor(Frame.kCOUNT);
     if (n.observationError()) return n;

@@ -332,8 +332,10 @@ describe("FrameCount", () => {
         expectClass(result, "FrameInt");
         expect(result.toString()).toEqual((n % 2n).toString());
       }
-      for (const source of ["(5 - 3)", "1.5"]) {
-        expect(evaluate(`${source}.###`).toString()).toEqual("[]");
+      // Every numeric rung shares the atom rule, so the rung is unobservable
+      // here (011.18k).
+      for (const [source, parity] of [["(5 - 3)", "0"], ["1.5", "1"]]) {
+        expect(evaluate(`${source}.###`).toString()).toEqual(`[${parity}]`);
       }
     });
 

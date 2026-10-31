@@ -174,18 +174,19 @@ complete at a colon with or without intervening space.
   name is: applying an aggregate read through `_` collects onto a copy
 - **Parent declaration**: `.^` (declares the parent; `.^ base`)
 - **Size and Demi**: `.#` counts immediate elements/represented words of lists,
-  returns a Count's own magnitude, and explicitly returns zero for ordinary
-  atoms and nil/all. A missing kind-specific Count falls back to `.##`; an
-  explicit zero wins. `.##` measures represented quantity: exact truncated
-  numeric magnitude, Unicode code points, blob bits, payload bytes, enumeration
-  alternatives or one opaque occurrence. Lists sum complete child Sizes; empty
-  lists retain Size 1. Metadata and declared parents are excluded; sharing
-  counts per occurrence. `.###` is FrameInt Count parity, or the alternating sum
-  of immediate child Sizes on all non-schema lists, including stored source
-  syntax and closure words without execution. Other Frames default to nil
-  residual, including schemas. `.####` returns nil for zero Count or nil
-  residual; otherwise it derives native FrameDemi loads `(Size+residual)/2` and
-  `(Size−residual)/2`, with left-next orientation for even Count. Errors
+  returns a Count's own magnitude, returns zero for `<>` and void comments, and
+  returns nil for `()`, which has no Count. A missing kind-specific Count falls
+  back to `.##`; an explicit Count wins. `.##` measures represented quantity:
+  exact truncated numeric magnitude, Unicode code points, blob bits, payload
+  bytes, enumeration alternatives or one opaque occurrence. Lists sum complete
+  child Sizes; empty lists retain Size 1. Metadata and declared parents are
+  excluded; sharing counts per occurrence. `.###` is FrameInt Count parity
+  (`.# mod 2`) on every atom and on `<>`, or the alternating sum of immediate
+  child Sizes on all non-schema lists, including stored source syntax and
+  closure words without execution. Other Frames default to nil residual,
+  including schemas and non-atom hosts. `.####` returns nil for zero Count or
+  nil residual; otherwise it derives native FrameDemi loads `(Size+residual)/2`
+  and `(Size−residual)/2`, with left-next orientation for even Count. Errors
   propagate, including cycles and nonfinite quantities; incoherent loads are
   explicit errors. Four hashes form an observer name; a fifth starts a comment.
   Earlier `.###` immediately followed by a hash comment therefore changes

@@ -153,17 +153,13 @@ Deno.test("mixed arrays and evaluated groups alternate complete immediate Sizes"
     expect(signed.toString(), source).toEqual(residual);
     expect(last(`${source}.#`).toString(), source).toEqual(count);
   }
-  for (
-    const source of [
-      "(-3)",
-      '"hi"',
-      "(1).<>",
-      "<2,3>",
-      "<>",
-      "()",
-    ]
-  ) {
+  // Non-atoms, schemas and nil keep nil residual (011.18k).
+  for (const source of ["(1).<>", "<2,3>", "()"]) {
     expect(evaluate(`${source}.###`).toString(), source).toEqual("[]");
+  }
+  // Atoms take Count parity; all is the present empty.
+  for (const [source, parity] of [["(-3)", "1"], ['"hi"', "0"], ["<>", "0"]]) {
+    expect(evaluate(`${source}.###`).toString(), source).toEqual(`[${parity}]`);
   }
   expect(
     new FrameExpr([new FrameCount(5n), new FrameCount(3n)]).sizeFor("###")

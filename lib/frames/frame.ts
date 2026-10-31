@@ -536,8 +536,8 @@ export class Frame extends MetaFrame {
   public static readonly kLEAVES = "##";
   /**
    * kRESIDUAL is `.###`: a FrameInt alternating sum of immediate child native
-   * Sizes on non-schema lists, or Count parity (occurrence/figure 011.18c).
-   * Other receivers default to nil residual.
+   * Sizes on non-schema lists, or Count parity on atoms (occurrence/figure
+   * 011.18k). Other receivers default to nil residual.
    */
   public static readonly kRESIDUAL = "###";
   /** Derived nullable two-channel state (occurrence/figure 011.18c). */
@@ -581,7 +581,7 @@ export class Frame extends MetaFrame {
       if (key === Frame.kCOUNT) {
         return this.observationError() ?? Frame.count(0n);
       }
-      if (key === Frame.kRESIDUAL) return Frame.signed(0n); // R4 (011.18h)
+      if (key === Frame.kRESIDUAL) return Frame.signed(0n); // 011.18k
       return super.sizeFor(key);
     }
 
@@ -893,7 +893,7 @@ export class Frame extends MetaFrame {
   /** Installed by FrameCount without importing a subclass into its base. */
   public static count: (value: bigint) => Frame;
 
-  /** Installed by FrameInt: an exact signed integer (scratch 011.18h). */
+  /** Installed by FrameInt without importing a subclass into its base. */
   public static signed: (value: bigint) => Frame;
 
   /** Installed by FrameDemi, avoiding a base-to-subclass import cycle. */
@@ -915,7 +915,7 @@ export class Frame extends MetaFrame {
     if (failure) return failure;
     switch (key) {
       case Frame.kCOUNT:
-        if (this.is.void) return Frame.nil; // R3 (011.18h): absence
+        if (this.is.void) return Frame.nil; // nil has no Count (011.18k)
         return this.is.missing ? Frame.count(0n) : this.sizeFor(Frame.kLEAVES);
       case Frame.kLEAVES: {
         const size = this.nativeSize(new Set());

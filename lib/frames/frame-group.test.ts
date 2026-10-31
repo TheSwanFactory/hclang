@@ -61,10 +61,10 @@ describe("FrameGroup", () => {
 
     it("leaves a group of one or none to the value it evaluates to", () => {
       // Neither is a group once evaluated: `(x)` is `x`, and `()` is nil,
-      // which has explicit Count zero.
+      // which has no Count (011.18k), so it answers no value.
       expect(last("([1, 2]).#").toString()).toEqual("2");
       expect(last("(5).##").toString()).toEqual("5");
-      expect(last("().#").toString()).toEqual("0");
+      expect(evaluate("().#").toString()).toEqual("[]");
     });
 
     it("refuses .## on a group that contains itself, while .# counts", () => {

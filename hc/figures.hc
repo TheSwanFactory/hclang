@@ -22,8 +22,9 @@ each terminal of x, preserving nesting.
 Flat repetition is `x.## [y]`. A tally, when wanted, is an explicit
 construction, such as `x & {[[]]}` for one fresh mark per immediate element.
 Native `.##` uses each child's native Size, including numeric magnitude and
-text length. Native `.###` also accepts mixed arrays, groups, and non-schema list syntax/closures. Counts answer
-FrameInt parity (`n mod 2`), including valid zero; ordinary atoms and schemas answer nil.
+text length. Native `.###` also accepts mixed arrays, groups, and non-schema list syntax/closures. Every atom
+answers its Count parity (`.# mod 2`, a FrameInt), including valid zero, so equal quantities observe alike
+whatever their numeric type; schemas and other non-atoms answer nil. `()` has no Count; `<>` observes as `[]`.
 Missing Count rules fall back to Size, including sized atoms. Explicit Counts take precedence.
 Stored errors and failed child quantities propagate rather than acquiring a load.
 Star keeps its narrower array/Count composition domain.
@@ -218,7 +219,11 @@ FrameDemi(<>,1,1) three times.
 The following displays are diagnostic native values, not HC reconstruction syntax.
 ```
 ; [[].####, 0.####, “hello”.####, <2,3,5>.####]
-# [(), (), (), ()]
+# [(), (), FrameDemi((),3,2), ()]
+; [(10 - 5).#### = 5.####, (0 - 5).#### = 5.####, (5.0).#### = 5.####, “hello”.#### = 5.####]
+# [<>, <>, <>, <>]
+; [<>.#, <>.##, <>.###, ().##]
+# [0, 1, 0, 1]
 ; [1.####, 2.####, 3.####, 7.####]
 # [FrameDemi((),1,0), FrameDemi(<>,1,1), FrameDemi((),2,1), FrameDemi((),4,3)]
 ; [[0].####, [“hello”].####, [<2,3,5>,2].####, {5 + 3}.####]

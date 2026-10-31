@@ -82,7 +82,7 @@ export class FrameDemi extends FrameAtom {
     if (failure) return failure;
     const n = source.sizeFor(Frame.kCOUNT);
     if (n.observationError()) return n;
-    if (n === Frame.nil) return Frame.nil; // R3 (011.18h)
+    if (n === Frame.nil) return Frame.nil; // no Count, no Demi (011.18k)
     if (
       !(n instanceof FrameCount) || typeof n.data !== "bigint" || n.data < 0n
     ) {

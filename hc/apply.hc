@@ -327,12 +327,13 @@ Reading a property or an index is application, and is spelled as application
 ```
 `.#` counts immediate elements or represented words; properties do not count.
 A missing Count rule falls back to native Size, including numbers, text, blobs,
-bytes and opaque atoms. Explicit list, schema and nil/all Count rules take precedence. `.##` measures represented
+bytes and opaque atoms. Explicit list, schema and all Count rules take precedence; `()` has no Count. `.##` measures represented
 quantity: lists sum complete child Sizes, with Size 1 for an empty list. Numeric
 magnitude, Unicode text length, blob bits and payload bytes have their own native
 Sizes; schemas retain their description/alternative quantities. Other opaque
 values have Size 1. `.###` alternates child Sizes on non-schema lists, or returns
-Count parity; other values default to nil residual. `.####` derives native Demi,
+Count parity (`.# mod 2`) on every atom; schemas and other non-atoms default to nil
+residual, and `<>` observes as `[]`. `.####` derives native Demi,
 returning nil at zero Count or nil residual and propagating failed observations.
 ```
 ; [.meta 1; 2, 3] .#

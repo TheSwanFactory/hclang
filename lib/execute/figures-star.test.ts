@@ -118,9 +118,11 @@ Deno.test("unsupported inputs are rejected explicitly rather than silently degra
       // Native observation determines availability, including valid zero.
       ["[[], [[], []]].### ? {<>} : {()}", "<>"],
       ["[.k 1; []].### ? {<>} : {()}", "<>"],
-      // Counts now have parity; strings remain excluded (nil prints as empty).
+      // Every atom has Count parity (011.18k); schemas stay excluded (nil
+      // prints as empty).
       ["5.### ? {<>} : {()}", "<>"],
-      ["“hi”.### ? {<>} : {()}", ""],
+      ["“hi”.### ? {<>} : {()}", "<>"],
+      ["<2, 3>.### ? {<>} : {()}", ""],
       ["([], []).### ? {<>} : {()}", "<>"],
       ["[[], 5].### ? {<>} : {()}", "<>"],
       // A local observation branch preserves identity or refuses at the use site.
@@ -148,11 +150,12 @@ Deno.test("derived observations retain their native host boundary", async () => 
       ["spin 5 4", "1/4"],
       ["gap 2", "0"],
       ["spin 0 4", "0"],
+      ["gap (-3)", "1"],
     ]
   ) {
     expect(await session.call(source), source).toEqual(expected);
   }
-  for (const source of ["gap (-3)"]) {
+  for (const source of ["gap (1).<>"]) {
     expect(await session.call(source), source).toContain("unsupported-figure");
   }
   expect(await session.call("[[], “a”] * [[]]")).toContain("star-domain");

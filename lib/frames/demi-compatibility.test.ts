@@ -64,33 +64,55 @@ Deno.test("Demi compatibility matrix: all concrete Frame families stay non-execu
       expect(value.sizeFor("####")).toBe(failure);
       continue;
     }
-    const n = value === f.Frame.nil || value === f.Frame.all ||
-        value === f.Frame.missing || value instanceof f.FrameComment
+    // 011.18k: nil has no Count; all is the present empty (residual 0);
+    // atoms take residual from Count parity; non-atoms keep nil residual.
+    if (value === f.Frame.nil) {
+      expect(observations(value)).toEqual(["nil", "1", "nil"]);
+      expect(value.sizeFor("####")).toBe(f.Frame.nil);
+      continue;
+    }
+    if (value === f.Frame.all) {
+      expect(observations(value)).toEqual(["0", "1", "0"]);
+      expect(value.sizeFor("####")).toBe(f.Frame.nil);
+      continue;
+    }
+    const n = value === f.Frame.missing || value instanceof f.FrameComment
       ? "0"
       : "1";
-    expect(observations(value), value.className()).toEqual([n, "1", "nil"]);
-    expect(value.sizeFor("####")).toBe(f.Frame.nil);
+    if (!(value instanceof f.FrameAtom)) {
+      expect(observations(value), value.className()).toEqual([n, "1", "nil"]);
+      expect(value.sizeFor("####")).toBe(f.Frame.nil);
+      continue;
+    }
+    expect(observations(value), value.className()).toEqual([n, "1", n]);
+    const observed = value.sizeFor("####");
+    if (n === "0") {
+      expect(observed).toBe(f.Frame.nil);
+    } else {
+      expect((observed as f.FrameDemi).encode(), value.className())
+        .toEqual(["nil", "1", "0"]);
+    }
   }
   const rows: [f.Frame, string[]][] = [
     [new f.FrameCount(0n), ["0", "0", "0"]],
     [c, ["5", "5", "1"]],
     [new f.FrameDemi(f.Frame.nil, c, new f.FrameCount(0n)), ["1", "5", "5"]],
     [new f.FrameDemi(f.Frame.all, c, new f.FrameCount(0n)), ["2", "5", "5"]],
-    [new f.FrameInt(-3n), ["3", "3", "nil"]],
-    [new f.FrameDecimal("-7.9"), ["7", "7", "nil"]],
-    [new f.FrameRational(-7n, 2n), ["3", "3", "nil"]],
-    [new f.FrameNumber(7.9), ["7", "7", "nil"]],
+    [new f.FrameInt(-3n), ["3", "3", "1"]],
+    [new f.FrameDecimal("-7.9"), ["7", "7", "1"]],
+    [new f.FrameRational(-7n, 2n), ["3", "3", "1"]],
+    [new f.FrameNumber(7.9), ["7", "7", "1"]],
     [new f.FrameNumber(Infinity), [
       "$!.nonquantifiable-size .##",
       "$!.nonquantifiable-size .##",
       "$!.nonquantifiable-size .##",
     ]],
-    [new f.FrameString("é😀"), ["2", "2", "nil"]],
-    [new f.FrameString(""), ["0", "0", "nil"]],
-    [new f.FrameDoc("é😀"), ["2", "2", "nil"]],
-    [new f.FrameBlob("0b0001"), ["4", "4", "nil"]],
-    [new f.FrameBytes([0, 255]), ["2", "2", "nil"]],
-    [new f.FrameBytes([]), ["0", "0", "nil"]],
+    [new f.FrameString("é😀"), ["2", "2", "0"]],
+    [new f.FrameString(""), ["0", "0", "0"]],
+    [new f.FrameDoc("é😀"), ["2", "2", "0"]],
+    [new f.FrameBlob("0b0001"), ["4", "4", "0"]],
+    [new f.FrameBytes([0, 255]), ["2", "2", "0"]],
+    [new f.FrameBytes([]), ["0", "0", "0"]],
     [array, ["2", "8", "2"]],
     [new f.FrameArray([]), ["0", "1", "0"]],
     [new f.FrameArray([new f.FrameCount(0n)]), ["1", "0", "0"]],

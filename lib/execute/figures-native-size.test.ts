@@ -143,9 +143,21 @@ Deno.test("Gap is |.###| and Spin is .### / N, with .### a FrameInt (010.04)", a
   expect(await session.call("Figures.gap [[], [[], []]]")).toEqual("1");
 });
 
-Deno.test("Gap and Spin keep refusing unsupported hosts (010.04)", async () => {
+Deno.test("Gap and Spin accept atoms and refuse residual-less hosts (011.18k)", async () => {
   const session = await figuresSession();
-  for (const host of ["“hi”", "(-3)"]) {
+  // Atoms have Count parity residual.
+  for (
+    const [host, residual, gap, spin] of [
+      ["“hi”", "0", "0", "0"],
+      ["(-3)", "1", "1", "1/2"],
+    ]
+  ) {
+    expect(await session.call(`${host}.###`), host).toEqual(residual);
+    expect(await session.call(`Figures.gap ${host}`), host).toEqual(gap);
+    expect(await session.call(`Figures.spin ${host} 2`), host).toEqual(spin);
+  }
+  // A runtime type (a non-atom) keeps nil residual and is still refused.
+  for (const host of ["(1).<>"]) {
     expect(await session.call(`Figures.gap ${host}`), host)
       .toContain("unsupported-figure");
     expect(await session.call(`Figures.spin ${host} 2`), host)
@@ -256,7 +268,7 @@ Deno.test("native residual availability distinguishes valid zero from unsupporte
 
 Deno.test("derived Gap and Spin preserve refusal and resolution typing at zero", async () => {
   const session = await figuresSession();
-  for (const host of ["[]", "[5, “hello”]", "[3, 5]"]) {
+  for (const host of ["[]", "[5, “hello”]", "[3, 5]", "“hi”", "(-3)"]) {
     expect(await session.call(`Figures.spin ${host} 0`), host)
       .toEqual("$!.division-by-zero /");
     for (
@@ -277,7 +289,7 @@ Deno.test("derived Gap and Spin preserve refusal and resolution typing at zero",
         .toContain("$!.type-error");
     }
   }
-  for (const host of ["“hi”", "(-3)"]) {
+  for (const host of ["(1).<>"]) {
     for (const divisor of ["0", "(0 - 2)", "2.5"]) {
       expect(await session.call(`Figures.spin ${host} ${divisor}`), host)
         .toContain("unsupported-figure");
