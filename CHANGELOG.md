@@ -4,8 +4,19 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
-## Unreleased
+## v0.37.1 2026-10-30
 
+- **Clarify Figure's working definition.** A figure is a projection of HC frames
+  through which we observe invariants that embody mathematical relations;
+  distinguish the nested-array examples from each native operation's domain.
+
+- **Figures uses native observations and incidence.** Remove `pure`, `need` and
+  `withness`: branch on `x.###` (including valid zero), use the observed frame
+  directly, and replace collective membership with ordinary iteration over
+  `~~~`. This deliberately removes the three bundled module exports.
+- **Gap and Spin remain derived mathematical abbreviations.** Preserve FrameInt
+  Gap, signed Spin, host refusal and positive Count divisor checks;
+  construction, Size, residual, identity incidence and Star use native HC.
 - **Fix MAML metadata rendering.** Render public metadata as joined head tags
   without iterator argument errors or duplicate body content; run the MAML suite
   in the required local and CI test gate.

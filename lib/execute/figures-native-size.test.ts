@@ -29,6 +29,9 @@ Deno.test("Figures exports no wrappers for native construction and observation",
   const session = await figuresSession();
   for (
     const name of [
+      "pure",
+      "need",
+      "withness",
       "Figure",
       "A",
       "B",
@@ -68,20 +71,29 @@ Deno.test("native equality, identity and repetition replace Figure wrappers", as
   }
 });
 
-Deno.test("withness returns native booleans and compares immediate identity", async () => {
+Deno.test("native single and collective incidence compare immediate identity", async () => {
   const session = await figuresSession();
   await session.call(".shared [[]]; .p1 [shared, []]; .p2 [[], shared];");
   for (
     const [source, expected] of [
-      ["Figures.withness p1 [shared]", "<>"],
-      ["Figures.withness p2 [shared]", "<>"],
-      ["Figures.withness p1 [[[]]]", ""],
-      ["Figures.withness [] [[[]]]", ""],
-      ["Figures.withness [shared] []", "<>"],
-      ["Figures.withness [shared] [shared, shared]", "<>"],
-      ["Figures.withness [[shared]] [shared]", ""],
-      ["Figures.withness p1 [shared, (p1 .1)]", "<>"],
-      ["Figures.withness [shared, shared] [shared, []]", ""],
+      ["shared ~~~ p1", "<>"],
+      ["shared ~~~ p2", "<>"],
+      ["[[]] ~~~ p1", ""],
+      ["[[]] ~~~ []", ""],
+      ["([] &| {.f _; (f ~~~ [shared]) ? {[]} : {[f]}}) = []", "<>"],
+      [
+        "([shared, shared] &| {.f _; (f ~~~ [shared]) ? {[]} : {[f]}}) = []",
+        "<>",
+      ],
+      ["([shared] &| {.f _; (f ~~~ [[shared]]) ? {[]} : {[f]}}) = []", ""],
+      ["([shared, (p1 .1)] &| {.f _; (f ~~~ p1) ? {[]} : {[f]}}) = []", "<>"],
+      [
+        "([shared, []] &| {.f _; (f ~~~ [shared, shared]) ? {[]} : {[f]}}) = []",
+        "",
+      ],
+      ["([shared, [[]]] &| {.f _; (f ~~~ p1) ? {[]} : {[f]}}) = []", ""],
+      ["([2, 2] &| {.f _; (f ~~~ [2]) ? {[]} : {[f]}}) = []", "<>"],
+      ["([(2 - 0)] &| {.f _; (f ~~~ [2]) ? {[]} : {[f]}}) = []", ""],
     ]
   ) {
     expect(await session.call(source), source).toEqual(expected);
@@ -148,8 +160,8 @@ Deno.test("Figure observations ignore metadata and Star preserves it (010.04)", 
   await session.call(".p [.k 1; [], [.j 2; []]]; .q (p * [[]]);");
   for (
     const [source, expected] of [
-      ["Figures.pure p", "<>"],
-      ["(Figures.need p) === p", "<>"],
+      ["p.### ? {<>} : {()}", "<>"],
+      ["(p.### ? {p} : {unsupported-figure}) === p", "<>"],
       ["p.###", "0"],
       ["Figures.gap [.k 1; [[], []]]", "2"],
       ["Figures.spin [.k 1; [], [[], []]] 2", "-1/2"],
@@ -175,8 +187,8 @@ Deno.test("parented Figures share the observer domain at every level", async () 
     await session.call(`.host ${host};`);
     for (
       const source of [
-        "Figures.pure host",
-        "(Figures.need host) === host",
+        "host.### ? {<>} : {()}",
+        "(host.### ? {host} : {unsupported-figure}) === host",
         "host.### == (0 - 1)",
         "host.## = 3",
         "(Figures.gap host) == (1 - 0)",
@@ -207,5 +219,83 @@ Deno.test("parented Figures share the observer domain at every level", async () 
     ]
   ) {
     expect(await session.call(source), source).toEqual("<>");
+  }
+});
+
+Deno.test("native residual availability distinguishes valid zero from unsupported hosts", async () => {
+  const session = await figuresSession();
+  for (
+    const [source, expected] of [
+      ["[5, “hello”].###", "0"],
+      ["[5, “hello”].### ? {<>} : {()}", "<>"],
+      ["([5, “hello”].###) == (0 - 0)", "<>"],
+      ["5.### ? {<>} : {()}", ""],
+      ["<2, 3>.###", ""],
+      ["{[]}.###", ""],
+      ["[].##", "1"],
+      ["[].###", "0"],
+      ["Figures.gap [5, “hello”]", "0"],
+      ["Figures.spin [5, “hello”] 4", "0"],
+      ["Figures.gap (5, 3)", "2"],
+      ["Figures.spin (3, 5) 4", "-1/2"],
+      ["{.x <[].<>> _; x.###} [[], [“nested atom”]]", "-10"],
+    ]
+  ) {
+    expect(await session.call(source), source).toEqual(expected);
+  }
+  // An outer array type checks neither descendants nor the full residual domain.
+  expect(await session.call("{.x <[].<>> _; x.###} (5, 3)"))
+    .toContain("$!.type-error");
+  expect(await session.call("[[], [“nested atom”]] * [[]]"))
+    .toContain("$!.star-domain");
+  expect(await session.call("(5, 3) * [[]]"))
+    .toContain("$!.star-domain");
+  expect(await session.call("5.### ? {5} : {unsupported-figure}"))
+    .toContain("unsupported-figure");
+});
+
+Deno.test("derived Gap and Spin preserve refusal and resolution typing at zero", async () => {
+  const session = await figuresSession();
+  for (const host of ["[]", "[5, “hello”]", "[3, 5]"]) {
+    expect(await session.call(`Figures.spin ${host} 0`), host)
+      .toEqual("$!.division-by-zero /");
+    for (
+      const divisor of [
+        "(0 - 2)",
+        "(2 - 0)",
+        "2.5",
+        "(1 / 2)",
+        "“2”",
+        "[]",
+        "<>",
+      ]
+    ) {
+      expect(
+        await session.call(`Figures.spin ${host} ${divisor}`),
+        `${host}, ${divisor}`,
+      )
+        .toContain("$!.type-error");
+    }
+  }
+  for (const host of ["5", "“hi”", "{[]}"]) {
+    for (const divisor of ["0", "(0 - 2)", "2.5"]) {
+      expect(await session.call(`Figures.spin ${host} ${divisor}`), host)
+        .toContain("unsupported-figure");
+    }
+    expect(await session.call(`Figures.gap ${host}`), host)
+      .toContain("unsupported-figure");
+  }
+  // Concrete reasons to retain the two derived definitions: Size changes
+  // Gap's type and accepts nil; bare division accepts non-Count resolutions.
+  for (
+    const [source, expected] of [
+      ["([3, 5].###).## == (Figures.gap [3, 5])", ""],
+      ["(5.###).##", "1"],
+      ["(5.###) / 2", ""],
+      ["([3, 5].###) / (0 - 2)", "1"],
+      ["([3, 5].###) / 2.5", "-0.8"],
+    ]
+  ) {
+    expect(await session.call(source), source).toEqual(expected);
   }
 });
