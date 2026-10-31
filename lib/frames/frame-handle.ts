@@ -87,8 +87,16 @@ export class FrameHandle extends Frame {
   }
 
   /** A handle is transparent to equality: it compares as its target. */
-  public override referent(): Frame {
-    return this.target.referent();
+  public override referent(path = new Set<Frame>()): Frame {
+    return this.referenceThrough(this.target, path);
+  }
+
+  public override sizeFor(key: string): Frame {
+    return this.referent().sizeFor(key);
+  }
+
+  public override nativeSize(path: Set<Frame>): bigint | Frame {
+    return this.referent().nativeSize(path);
   }
 
   public override equals(other: Frame): Frame {

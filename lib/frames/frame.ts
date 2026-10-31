@@ -120,6 +120,8 @@ export class Frame extends MetaFrame {
     }
 
     override call(argument: Frame): Frame {
+      const key = Frame.quantityOperator(argument);
+      if (key) return this.sizeFor(key);
       return Frame.isBooleanNegation(argument) ? Frame.nil : this;
     }
   })();
@@ -350,8 +352,24 @@ export class Frame extends MetaFrame {
   }
 
   /** The frame a reference reaches. A handle answers its target. */
-  public referent(): Frame {
+  public referent(_path?: Set<Frame>): Frame {
     return this;
+  }
+
+  /** Reference ancestry is separate from aggregate containment ancestry. */
+  protected referenceThrough(target: Frame, path: Set<Frame>): Frame {
+    if (path.has(this)) {
+      const refusal = Frame.error("$!.cyclic-reference");
+      // This failed traversal is not a stored opaque error atom of Size 1.
+      refusal.is.cyclicReference = true;
+      return refusal;
+    }
+    path.add(this);
+    try {
+      return target.referent(path);
+    } finally {
+      path.delete(this);
+    }
   }
 
   /**
@@ -391,14 +409,23 @@ export class Frame extends MetaFrame {
     return this;
   }
 
+  /** Installed by FrameCount without importing a subclass into its base. */
+  public static count: (value: bigint) => Frame;
+
   /**
    * What this frame answers for a size operator, `.#`, `.##` or `.###`
-   * (#411). Only an aggregate counts and a count is its own size, so anything
-   * else is nil. `.###` answers only on Figures, nested arrays (issue
-   * occurrence/figure 010.04).
+   * (#411). Size counts represented quantity; opaque atoms count once.
+   * Immediate count and signed residual are partial, with kind-specific rules.
    */
-  public sizeFor(_key: string): Frame {
-    return Frame.nil;
+  public sizeFor(key: string): Frame {
+    if (key !== Frame.kLEAVES) return Frame.nil;
+    const size = this.nativeSize(new Set());
+    return typeof size === "bigint" ? Frame.count(size) : size;
+  }
+
+  /** Nonnegative represented quantity; path tracks recursive containment only. */
+  public nativeSize(_path: Set<Frame>): bigint | Frame {
+    return this.is.cyclicReference ? this : 1n;
   }
 
   /**
@@ -714,6 +741,14 @@ export class Frame extends MetaFrame {
       }
     }
     return replaced;
+  }
+
+  private static quantityOperator(argument: Frame): string | undefined {
+    if (argument.className() !== "FrameSymbol" || !argument.is.address) {
+      return undefined;
+    }
+    const key = (argument as unknown as { spelling(): string }).spelling();
+    return key === Frame.kLEAVES || key === Frame.kRESIDUAL ? key : undefined;
   }
 
   /**

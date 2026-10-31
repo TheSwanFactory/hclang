@@ -104,6 +104,21 @@ export function projectBigIntRatio(
 export abstract class FrameNumeric extends FrameAtom {
   public abstract readonly rank: NumericRank | null;
 
+  public override nativeSize(path: Set<Frame>): bigint | Frame {
+    // Dimensional and dotted values have no implicit unit or magnitude.
+    if (this.rank === null) return super.nativeSize(path);
+    const ratio = this.exactRatio();
+    if (ratio) {
+      const [numerator, denominator] = ratio;
+      const quotient = numerator / denominator;
+      return quotient < 0n ? -quotient : quotient;
+    }
+    const value = this.valueOf();
+    return typeof value === "number" && Number.isFinite(value)
+      ? BigInt(Math.trunc(Math.abs(value)))
+      : Frame.error("$!.nonquantifiable-size .##");
+  }
+
   public add(right: FrameNumeric): Frame {
     return this.join(
       right,

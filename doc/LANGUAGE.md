@@ -596,15 +596,17 @@ equality and `===` for identity. Star `x * y` retains the nesting of x and
 places y at each empty-array terminal. A flat product is `x.## [y]`; no
 constructor, count, size, comparison or multiplication wrapper is needed. Native
 `.###` is a Figure's signed residual, the alternating sum of its immediate
-elements' `.##` counts as a FrameInt (`[[], [[], []]].###` is -1); anything that
-is not a Figure answers nil.
+elements' `.##` counts as a FrameInt (`[[], [[], []]].###` is -1). It also
+accepts mixed arrays and evaluated groups; standalone atoms, schemas,
+expressions and closures answer nil.
 
 The module keeps `withness`, `gap` and `spin`, plus `pure` and `need` for
 observation domain validation. Use native Star `*` for composition; `withness`
 tests immediate containment by identity and returns a native boolean. `gap x` is
 `|x.###|`, always a nonnegative FrameInt, and `spin x N` is `x.### / N`.
-`pure x` is the native `.###` check. `gap` and `spin` reject hosts that are not
-Figures; Star preserves properties and declared parents on freshly rebuilt
+`pure x` is the native `.###` check, retained with `need` for compatibility; its
+accepted domain follows the expanded native residual. Helper retirement is
+deferred. Star preserves properties and declared parents on freshly rebuilt
 nonterminal ancestors. A plain terminal (zero elements) is replaced by the
 replacement itself, shared by identity; neither operand is mutated. Star refuses
 terminals carrying properties, statements or declared parents, rather than
@@ -625,12 +627,78 @@ Repeated Star is supported when the resulting host is a finite array/count
 structure within these metadata and expansion limits. Arbitrary replacements
 such as strings, negative integers or ratios remain valid right operands but are
 refused if later used as structural hosts. No general structural associativity
-is claimed across numeric arithmetic and structural expansion. Native `.##`
-weights counts throughout **all aggregate kinds**, including groups, schemas,
-closures and mixed trees (`{4 + 5}.##` is 10): nested FrameCounts contribute
-their own Size, including zero, while other atoms contribute one. Thus
-`([[], []] * 3).##` and `(2 * [[], [], []]).##` are both 6, though both Star
-results are arrays. Native `.###` continues to accept only nested arrays.
+is claimed across numeric arithmetic and structural expansion.
+
+#### Native Size and signed residual (v0.37.0)
+
+`.##` observes nonnegative integral represented quantity as a FrameCount:
+
+| Runtime family                                          | Size                                                                                                                                      |
+| ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| FrameCount                                              | Its count, including zero; `.#` still answers that same count                                                                             |
+| FrameInt, FrameDecimal, FrameRational                   | `trunc(∣x∣)`, using exact bigint ratios                                                                                                   |
+| FrameNumber                                             | Truncated absolute stored host value; nonfinite values refuse with `$!.nonquantifiable-size .##`                                          |
+| FrameString, FrameDoc                                   | Represented Unicode code-point count via native string iteration, excluding delimiters; `“é😀”.##` is 2; combining marks count separately |
+| FrameBlob                                               | Stored bit width, including leading zero bits; `0x00ff.##` is 16                                                                          |
+| FrameBytes                                              | Stored byte length; an empty payload has Size 0                                                                                           |
+| FrameType, non-enumerated FrameSchema                   | One represented type description                                                                                                          |
+| Enumeration FrameSchema                                 | Number of declared alternatives, including duplicates and each nested candidate once; `<2, 2, [3, 5]>.##` is 3                            |
+| Empty schema `<>` / Frame.all                           | One total type description, not a zero-alternative domain                                                                                 |
+| FrameArray, FrameGroup and other FrameList syntax hosts | Sum of native child Sizes; an empty element plane retains Size 1                                                                          |
+| Other atoms                                             | One opaque occurrence; includes symbols/operators, errors, nil, URI/resource references, comments and parser/control tokens               |
+
+Temporal values (FrameDateTime and FrameDuration), unit-bearing
+FrameTypedNumber, and dotted FrameSequence are opaque one-occurrence atoms. Time
+stores exact nanoseconds, but neither epoch offsets nor duration nanoseconds
+become an implicit Size unit. No unit conversion or numeric projection occurs
+for these null-ranked numeric families. Only strings and documents advertise
+character content: the common FrameText storage does not make a URI or comment
+text data. There is no valid zero-width FrameBlob literal/constructor;
+zero-length binary content is represented by FrameBytes.
+
+Enumeration classification uses the runtime's EnumerationSchemaMatcher; compiled
+structural, bit-layout and unsupported matchers count as one description. Empty
+enumeration matching is universal in the existing runtime and retains Size 1.
+Nested type candidates count once even if their extensions are infinite; this is
+representation count, not semantic cardinality. Size does not evaluate
+candidates or perform matching; ordinary schema construction retains its
+existing evaluation rules. Source structural schemas are recognized by the same
+pure compiler that selects their matcher, without executing terms.
+
+Aggregate Size now consistently includes each child's native quantity: formerly
+`[5, “hello”].##` was 6, now 10; `[<1, 2>, 3].##` changes from 6 to 5. `[].##`
+stays 1, but `[0, 0].##` is 0. Closures retain the existing stored-body Size
+walk (`{4 + 5}.##` is 10), without executing that body. A nonfinite child
+propagates a Size refusal. Properties and declared parents are excluded. Handles
+observe their referents; repeated shared descendants count once per occurrence.
+A true containment cycle in the traversed plane refuses with
+`$!.cyclic-aggregate .##`; the graph is never changed by observation. Reference
+chains have a separate guard: a cycle of FrameHandle/FrameScoped referents
+refuses with `$!.cyclic-reference` before recursive Size starts; residual is
+nil. HC lookup creates handles targeting existing arrays, and the only internal
+retargeting copies an existing target for a functional update. There is no HC
+source operation that creates a handle-only target cycle. Runtime reflection can
+construct one (as the existing handle lookup tests do), so it is defended too.
+FrameAlias is setter syntax and inherits the identity referent; observing an
+alias does not resolve a binding. Schema alternatives are counted without
+descending into their candidate graphs.
+
+`.###` alternates over immediate data positions, using each child's **complete**
+Size: `x₁.## − x₂.## + x₃.## − …`. Mixed FrameArrays and evaluated FrameGroups
+are included: `[5, “hello”].###` is 0 and `(5, 3).###` is 2. It always answers a
+FrameInt, including `[].### = 0`; pure nested-array results are preserved.
+Source arrays/groups have a syntax walk and must be evaluated before becoming
+residual hosts. FrameExpr (including FrameBind), FrameLazy, and FrameSchema are
+excluded as hosts: their walks expose executable words or matcher instructions,
+not ordered data. Generic FrameList also has no residual capability. These kinds
+can occur as children where their native Size is finite. Standalone atoms have
+Size but no alternating data plane, so their residual is nil. Cycles or
+nonquantifiable children also yield nil for residual. No closure execution,
+resource read, stream consumption or schema match is needed for either observer.
+`.#` retains its existing behavior, including the special nil/all application
+behavior; a leading receiverless `.##` remains an address. Runtime errors retain
+the evaluator's normal short-circuit propagation even though their stored atom
+has Size 1.
 
 ### TODO: Class variables
 

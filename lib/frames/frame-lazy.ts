@@ -124,12 +124,11 @@ export class FrameLazy extends FrameExpr {
   }
 
   /**
-   * A closure walks as the atoms of its body (#429), so `.#` counts them and
-   * `.##` the terminals below them, as for any aggregate (#411); an empty
-   * body is one terminal. A closure is not a Figure, so `.###` is nil
-   * (010.04). The operator
-   * reaches a closure as its argument, where a body would otherwise run, so
-   * it is answered here before the body is.
+   * `.#` counts the body's represented words (#429). `.##` sums their native
+   * Sizes without execution or evaluation-site registration; an empty body
+   * retains Size 1. A closure's words are executable syntax, so it has no
+   * ordered data plane for `.###` and answers nil (010.08). The operator
+   * reaches a closure as its argument and is answered before its body runs.
    */
   private sizeOperator(argument: Frame): Frame | undefined {
     if (

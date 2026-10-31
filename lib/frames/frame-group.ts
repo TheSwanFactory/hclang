@@ -17,6 +17,10 @@ export class FrameGroup extends FrameList {
     super(data, meta);
   }
 
+  protected override supportsResidual(): boolean {
+    return true;
+  }
+
   /**
    * The scope this group's terms are evaluated in. `target` is the layer they
    * read the group's properties from and, for a group written in source, the

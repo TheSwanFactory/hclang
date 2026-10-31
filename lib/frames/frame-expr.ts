@@ -101,6 +101,10 @@ export class FrameExpr extends FrameList {
     return atomsOf(this.data, sitesAround(this.data));
   }
 
+  protected override sizeElements(): Frame[] | Frame {
+    return sizeAtomsOf(this.data);
+  }
+
   /** A parsed expression of one atom is that atom; anything else is itself. */
   public override walked(): Frame {
     if (!isPlainExpr(this)) return this;
@@ -136,6 +140,15 @@ export class FrameExpr extends FrameList {
 
       const value = item.in(resumedScope(item, scope));
       if (value.is.error === true) return value;
+      // An explicit nil receiver still has a Size. The initial nil accumulator
+      // is not a receiver, so a leading .## remains an address (#411).
+      if (
+        index > 0 && sum.is.void && value instanceof FrameSymbol &&
+        value.is.address &&
+        [Frame.kLEAVES, Frame.kRESIDUAL].includes(value.spelling())
+      ) {
+        return value.called_by(sum);
+      }
       if (index > 0 && value.is.operator === true) {
         return value.called_by(sum, Frame.nil).atSite(scope);
       }
@@ -325,6 +338,50 @@ export function atomsOf(
 }
 
 /**
+ * The same represented words as a syntax walk, without recording scope sites or
+ * binding names. Compound atoms stay whole; only trivial wrappers are unwrapped.
+ * A malformed cyclic wrapper is refused before it can recurse forever.
+ */
+export function sizeAtomsOf(terms: readonly Frame[]): Frame[] | Frame {
+  const atoms: Frame[] = [];
+  let cyclic = false;
+  const walkAtom = (term: Frame, path = new Set<Frame>()): void => {
+    if (isPlainExpr(term) && term.size() === 1) {
+      if (path.has(term)) {
+        cyclic = true;
+        return;
+      }
+      path.add(term);
+      walkAtom(term.asArray()[0], path);
+      path.delete(term);
+    } else if (term instanceof FrameName) {
+      atoms.push(FrameWord.address(term.source));
+    } else if (term instanceof FrameSymbol) {
+      atoms.push(FrameWord.word(term.spelling()));
+    } else {
+      atoms.push(term);
+    }
+  };
+  let previous: Frame | undefined;
+  for (const term of terms) {
+    if (
+      isPlainExpr(term) && previous && isPlainExpr(previous) &&
+      !previous.is.statement
+    ) {
+      atoms.push(FrameWord.word(","));
+    }
+    if (isPlainExpr(term)) {
+      for (const inner of term.asArray()) walkAtom(inner);
+      if (term.is.statement) atoms.push(FrameWord.word(";"));
+    } else {
+      walkAtom(term);
+    }
+    previous = term;
+  }
+  return cyclic ? Frame.error("$!.cyclic-aggregate .##") : atoms;
+}
+
+/**
  * Whether a body's terms are one comma expression: two or more parsed terms
  * the source separated with `,`, rather than bare atoms or statements.
  */
@@ -401,8 +458,8 @@ export class FrameScoped extends Frame {
     return isClosure(this.term) ? this.term.in(this.scope) : this.term;
   }
 
-  public override referent(): Frame {
-    return this.term.referent();
+  public override referent(path = new Set<Frame>()): Frame {
+    return this.referenceThrough(this.term, path);
   }
 
   public override elements(): Frame[] {
@@ -419,7 +476,11 @@ export class FrameScoped extends Frame {
   }
 
   public override sizeFor(key: string): Frame {
-    return this.term.sizeFor(key);
+    return this.referent().sizeFor(key);
+  }
+
+  public override nativeSize(path: Set<Frame>): bigint | Frame {
+    return this.referent().nativeSize(path);
   }
 
   /** Sizes as its term does, `.#`, `.##` and `.###`; anything else is applied. */
@@ -487,6 +548,7 @@ function resumedScope(term: Frame, scope: EvaluationScope): EvaluationScope {
 
 /** A source aggregate walks as a body does. */
 FrameList.walkSource = (terms) => atomsOf(terms, sitesAround(terms));
+FrameList.sizeSource = sizeAtomsOf;
 
 /** The declarations around a closure body, as far as a walk has seen them. */
 export function sitesAround(body: readonly Frame[]): Sites {

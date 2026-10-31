@@ -117,35 +117,36 @@ Deno.test("unsupported inputs are rejected explicitly rather than silently degra
   const session = await figuresSession();
   for (
     const [source, expected] of [
-      // pure accepts well-founded nested arrays, ignoring properties (010.04).
+      // Compatibility pure now follows the expanded native residual domain.
       ["pure [[], [[], []]]", "<>"],
       ["pure [.k 1; []]", "<>"],
-      // and rejects atoms, strings, and groups (nil prints as the empty
-      // string).
+      // Atoms and strings remain excluded (nil prints as empty).
       ["pure 5", ""],
       ["pure “hi”", ""],
-      ["pure ([], [])", ""],
-      ["pure [[], 5]", ""],
-      // need returns a pure frame and refuses an impure one.
+      ["pure ([], [])", "<>"],
+      ["pure [[], 5]", "<>"],
+      // need retains accepted values and refuses standalone atoms.
       ["(need [[], []]) = [[], []]", "<>"],
       ["(need 5) = 5", ""],
     ] as const
   ) {
     expect(await session.call(source), source).toEqual(expected);
   }
-  // A frame holding an atom must not be silently accepted as a figure.
-  expect(await session.call("need [[], 5]")).toContain("$!");
+  expect(await session.call("(need [[], 5]) = [[], 5]")).toEqual("<>");
 });
 
 Deno.test("remaining traversals validate their public host boundary", async () => {
   const session = await figuresSession();
   for (
-    const source of [
-      "gap ([], [[], []])",
-      "spin [[], 5] 4",
-      "gap [[], 5]",
+    const [source, expected] of [
+      ["gap ([], [[], []])", "1"],
+      ["spin [[], 5] 4", "-1"],
+      ["gap [[], 5]", "4"],
     ]
   ) {
+    expect(await session.call(source), source).toEqual(expected);
+  }
+  for (const source of ["gap 5", "spin 5 4", "gap {[]}"]) {
     expect(await session.call(source), source).toContain("unsupported-figure");
   }
   expect(await session.call("[[], “a”] * [[]]")).toContain("star-domain");
@@ -153,7 +154,7 @@ Deno.test("remaining traversals validate their public host boundary", async () =
     .toEqual("<>");
   expect(await session.call("(gap [[[], []], [[], [], []]]) = 1"))
     .toEqual("<>");
-  // An unsupported host is still refused when the resolution is invalid.
+  // A supported mixed host still rejects an invalid resolution.
   expect(await session.call("spin [[], 5] 2.5"))
     .toContain("$!");
 });
