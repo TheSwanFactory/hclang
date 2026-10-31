@@ -1,6 +1,3 @@
-// Load the FrameList cycle from FrameLazy, where it closes, so FrameList and
-// FrameExpr exist before any subclass, whichever module is imported first.
-import "./frame-lazy.ts";
 import { type DeclaredApplication, Frame } from "./frame.ts";
 import { BoundMethod } from "./bound-method.ts";
 import { methodEffect } from "./effect-marker.ts";

@@ -4,6 +4,20 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.37.3 2026-10-31
+
+- **Reject malformed grouping consistently.** Evaluation and CLI commands report
+  unmatched, mismatched, and unclosed brackets as parse errors, including across
+  multiple input lines.
+- **Fail CLI commands on runtime errors.** Missing names and arithmetic errors
+  now return a nonzero status; executable documentation still accepts errors
+  that match its expectations.
+- **Make direct core imports reliable.** Metadata, list, and expression modules
+  load independently without import-order workarounds.
+- **Separate verification from source fixes.** Tests check formatting and lint
+  without autofixing sources, and bundle checks report stale HC files without
+  regenerating them; use `deno task fix` or `deno task bundle:embed` explicitly.
+
 ## v0.37.1 2026-10-30
 
 - **Clarify Figure's working definition.** A figure is a projection of HC frames

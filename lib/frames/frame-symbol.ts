@@ -82,6 +82,10 @@ export class FrameLiteral extends FrameAtom {
 }
 
 export class FrameSymbol extends FrameAtom {
+  public override isSymbol(): this is FrameSymbol {
+    return true;
+  }
+
   public static readonly SYMBOL_BEGIN = /[a-zA-Z]/;
   public static readonly SYMBOL_CHAR = /[-\w]/;
   public static readonly OPERATOR_CHARS = /[&|?:+\-/*%=<>!~^]/;

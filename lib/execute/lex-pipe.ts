@@ -10,7 +10,7 @@ import {
 import type { ScanResponse } from "../scan.ts";
 import { Token } from "./lex.ts";
 import type { ParsePipe } from "./parse-pipe.ts";
-import { sigilizer } from "./sigilizer.ts";
+import { lexicalError, sigilizer } from "./sigilizer.ts";
 import { getSyntax } from "./syntax.ts";
 import type { IAction, IFinish, IPerformer } from "./terminals.ts";
 
@@ -25,6 +25,7 @@ function ensure_factory(factory: IArrayConstructor | Frame): IArrayConstructor {
 
 export class LexPipe extends Frame implements IFinish, IPerformer {
   public level: number;
+  private logicalEnd = false;
   private angleLookahead: "<" | "<-" | undefined;
 
   constructor(out: Frame) {
@@ -71,6 +72,16 @@ export class LexPipe extends Frame implements IFinish, IPerformer {
     return super.scan(argument);
   }
 
+  /** Flush a logical source line while leaving open structures for later lines. */
+  public endLine(receiver: Frame): Frame {
+    this.logicalEnd = true;
+    try {
+      return sigilizer.scan(receiver, FrameSymbol.end());
+    } finally {
+      this.logicalEnd = false;
+    }
+  }
+
   public finish(_parameter: Frame): Frame {
     const pending = this.angleLookahead;
     this.angleLookahead = undefined;
@@ -82,7 +93,7 @@ export class LexPipe extends Frame implements IFinish, IPerformer {
     }
 
     const parser = this.get(Frame.kOUT) as ParsePipe;
-    if (parser.strictStructure && this.level !== 0) {
+    if (parser.strictStructure && !this.logicalEnd && this.level !== 0) {
       return this.structureFailure("unclosed", `${this.level}`);
     }
     // A line that ends inside an open structure ends a term, as a newline
@@ -185,6 +196,6 @@ export class LexPipe extends Frame implements IFinish, IPerformer {
   }
 
   private structureFailure(kind: string, detail: string): Frame {
-    return Frame.error(`$!.parse-${kind}-structure ${detail}`);
+    return lexicalError(`$!.parse-${kind}-structure ${detail}`);
   }
 }

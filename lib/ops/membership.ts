@@ -1,5 +1,3 @@
-// Enter the aggregate cycle at FrameLazy, as schema matchers do.
-import "../frames/frame-lazy.ts";
 import { Frame } from "../frames/frame.ts";
 import { FrameList } from "../frames/frame-list.ts";
 import { isFrameMatcher } from "../frames/frame-match.ts";

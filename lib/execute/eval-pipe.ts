@@ -3,6 +3,7 @@ import {
   EvaluationScope,
   Frame,
   FrameGroup,
+  FrameNote,
   NilContext,
 } from "../frames.ts";
 import { LexPipe } from "./lex-pipe.ts";
@@ -35,6 +36,8 @@ class ScopedLexicalContext extends Frame {
 /** Evaluates parsed groups against one source unit and emits to its output. */
 export class EvalPipe extends Frame {
   private scope?: EvaluationScope;
+  /** Whether this source unit emitted an unhandled evaluation failure. */
+  public failed = false;
 
   public static scoped(out: Frame, scope: EvaluationScope): EvalPipe {
     const pipe = new EvalPipe(out, scope.fileScope, scope.hostNamespace);
@@ -60,7 +63,17 @@ export class EvalPipe extends Frame {
     const scope = this.scope ??
       EvaluationScope.root(this.fileScope, this.hostNamespace);
     const result = expr.in(scope);
+    this.failed ||= outputFailed(result, new Set());
     this.out.collect(result, context);
     return result;
   }
+}
+
+/** Inspect emitted values without evaluating them or following metadata links. */
+function outputFailed(result: Frame, seen: Set<Frame>): boolean {
+  if (seen.has(result)) return false;
+  seen.add(result);
+  return result.isFailedResult() ||
+    (result instanceof FrameNote && result.isDiagnosticFailure()) ||
+    result.asArray().some((item) => outputFailed(item, seen));
 }

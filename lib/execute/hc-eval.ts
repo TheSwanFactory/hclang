@@ -78,10 +78,11 @@ export class HCEval {
   ): LexPipe {
     return makeSourcePipe(
       new EvalPipe(out, fileScope, hostNamespace),
-      { importSource: evaluateResourceSource },
+      { importSource: evaluateResourceSource, strictStructure: true },
     );
   }
 
+  private evaluator: EvalPipe;
   protected pipe: LexPipe;
   protected lex: Frame;
   private lexicalError: string | null = null;
@@ -93,7 +94,11 @@ export class HCEval {
     public readonly fileScope: Frame = out,
     public readonly hostNamespace: Frame = Frame.nil,
   ) {
-    this.pipe = HCEval.make_pipe(out, fileScope, hostNamespace);
+    this.evaluator = new EvalPipe(out, fileScope, hostNamespace);
+    this.pipe = makeSourcePipe(this.evaluator, {
+      importSource: evaluateResourceSource,
+      strictStructure: true,
+    });
     this.lex = this.pipe;
   }
 
@@ -151,7 +156,8 @@ export class HCEval {
     if (!activeDocument) {
       this.checkInput(input);
     }
-    const result = source.scanInto(this.lex, endOfLine);
+    const scanned = source.scanInto(this.lex, false);
+    const result = endOfLine ? this.pipe.endLine(scanned) : scanned;
     this.lex = result.is.lexical === true ? result : this.pipe;
     if (result.is.error === true) {
       this.lexicalError = result.toString();
@@ -172,24 +178,34 @@ export class HCEval {
       const result = sigilizer.finish(this.lex, FrameSymbol.end());
       complete = result.is.error !== true;
       this.lexicalError = complete ? null : result.toString();
-    } else if (this.needsFinish) {
-      this.pipe.finish(Frame.nil);
-      this.lexicalError = null;
+    } else if (this.needsFinish || this.pipe.level !== 0) {
+      const result = this.pipe.finish(Frame.nil);
+      complete = result.is.error !== true;
+      this.lexicalError = complete ? null : result.toString();
     } else {
       this.lexicalError = null;
     }
 
     if (!complete) {
-      this.pipe = HCEval.make_pipe(
+      this.evaluator = new EvalPipe(
         this.out,
         this.fileScope,
         this.hostNamespace,
       );
+      this.pipe = makeSourcePipe(this.evaluator, {
+        importSource: evaluateResourceSource,
+        strictStructure: true,
+      });
     }
     this.lex = this.pipe;
     this.inputBuffer = "";
     this.needsFinish = false;
     return complete;
+  }
+
+  /** Runtime failures are separate from lexical completion (testdocs may expect them). */
+  public hasFailures(): boolean {
+    return this.evaluator.failed;
   }
 
   public error(): string | null {

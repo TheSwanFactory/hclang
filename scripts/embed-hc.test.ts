@@ -1,7 +1,7 @@
 import { expect } from "jsr:@std/expect@^0.219.1";
 import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 
-import { hcFiles, hcKey, renderEmbed } from "./embed-hc.ts";
+import { checkEmbed, hcFiles, hcKey, renderEmbed } from "./embed-hc.ts";
 
 /** Evaluates a rendered embed without writing it, so no permission is needed. */
 const importEmbed = async (
@@ -60,6 +60,32 @@ describe("renderEmbed", () => {
     );
     for (const { file, source } of sources) {
       expect(embed.get(`hc/${file}`)).toEqual(source);
+    }
+  });
+});
+
+describe("checkEmbed", () => {
+  const sources = [{ file: "a.hc", source: "1 + 1\n" }];
+
+  it("accepts matching sources without modifying the map", () => {
+    const embedded = new Map([["hc/a.hc", "1 + 1\n"]]);
+    checkEmbed(sources, embedded);
+    expect([...embedded]).toEqual([["hc/a.hc", "1 + 1\n"]]);
+  });
+
+  it("refuses missing, changed, and obsolete sources without repairing them", () => {
+    for (
+      const embedded of [
+        new Map<string, string>(),
+        new Map([["hc/a.hc", "old"]]),
+        new Map([["hc/a.hc", "1 + 1\n"], ["hc/old.hc", "obsolete"]]),
+      ]
+    ) {
+      const before = [...embedded];
+      expect(() => checkEmbed(sources, embedded)).toThrow(
+        "deno task bundle:embed",
+      );
+      expect([...embedded]).toEqual(before);
     }
   });
 });

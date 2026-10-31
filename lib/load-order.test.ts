@@ -8,18 +8,6 @@ import { beforeAll, describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 // modules, and env, which execute/hc-log.ts reads while it loads; the rest of
 // `deno task test:lib` runs with no permissions.
 
-/**
- * The bases whose own imports reach a class that extends them, so no import
- * order lets them load first: meta-frame.ts reaches `Frame`, frame-list.ts
- * reaches `FrameArray`, and frame-expr.ts reaches `FrameLazy`. Commit f9ff1a8
- * fixed every other cycle; these need a base that does not import its
- * subclasses while it loads. Remove an entry once it loads first.
- */
-const ALLOWED_TO_FAIL = [
-  "frames/frame-expr.ts",
-  "frames/frame-list.ts",
-  "frames/meta-frame.ts",
-];
 /** How many Workers load at once. */
 const CONCURRENCY = 8;
 /** How long a module may take to load before it counts as a hang. */
@@ -115,21 +103,13 @@ describe("importing a lib/ module first", () => {
   beforeAll(async () => {
     results = await loadEachFirst(await modulesUnder(LIB));
   });
-  it("loads every module outside ALLOWED_TO_FAIL", () => {
+  it("loads every module when imported first", () => {
     const failing = [...results]
-      .filter(([module, error]) =>
-        error !== null && !ALLOWED_TO_FAIL.includes(module)
-      )
+      .filter(([, error]) => error !== null)
       .map(([module, error]) => `${module}: ${error}`)
       .sort();
     const summary =
       `${failing.length} of ${results.size} lib/ modules fail to load first`;
     expect(failing, summary).toEqual([]);
-  });
-  it("still fails for every module in ALLOWED_TO_FAIL", () => {
-    const stale = ALLOWED_TO_FAIL
-      .filter((module) => typeof results.get(module) !== "string")
-      .map((module) => `${module} loads first now, or is gone`);
-    expect(stale, "remove these from ALLOWED_TO_FAIL").toEqual([]);
   });
 });
