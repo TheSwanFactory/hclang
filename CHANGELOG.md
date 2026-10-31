@@ -4,6 +4,12 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.37.2 2026-10-31
+
+- **Restore the online playground on GitHub Pages.** Publish the tested release
+  artifact, verify the deployed version and HC evaluation, and check
+  availability daily so hosting failures appear in GitHub Actions.
+
 ## v0.37.1 2026-10-30
 
 - **Clarify Figure's working definition.** A figure is a projection of HC frames
