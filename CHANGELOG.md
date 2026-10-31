@@ -4,6 +4,16 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.37.1 2026-10-30
+
+- **Figures uses native observations and incidence.** Remove `pure`, `need` and
+  `withness`: branch on `x.###` (including valid zero), use the observed frame
+  directly, and replace collective membership with ordinary iteration over
+  `~~~`. This deliberately removes the three bundled module exports.
+- **Gap and Spin remain derived mathematical abbreviations.** Preserve FrameInt
+  Gap, signed Spin, host refusal and positive Count divisor checks;
+  construction, Size, residual, identity incidence and Star use native HC.
+
 ## v0.37.0 2026-10-30
 
 - **Native Size covers represented quantities.** `.##` now returns exact

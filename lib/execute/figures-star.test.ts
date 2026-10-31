@@ -2,7 +2,7 @@ import { expect } from "jsr:@std/expect@^0.219.1";
 import { HCLang } from "../mod.ts";
 
 // Issue occurrence/figure 009.09: Figures are now ordinary native nested frames
-// and the module keeps only nontrivial operations over them. A cell/terminal is the
+// and the module keeps only derived Gap and Spin abbreviations. A cell/terminal is the
 // empty frame `[]`; a nonempty array recurses over its elements. Star replaces
 // each native terminal with the right operand, preserving nonterminal nesting,
 // with no right-zero guard. These are focused unit tests, not a combinatorial
@@ -13,8 +13,7 @@ async function figuresSession(): Promise<HCLang> {
   expect(await session.call("Figures <- './hc/figures.hc'"))
     .not.toContain("$!");
   await session.call(
-    ".gap {Figures.gap _}; .spin {Figures.spin _}; " +
-      ".pure {Figures.pure _}; .need {Figures.need _};",
+    ".gap {Figures.gap _}; .spin {Figures.spin _};",
   );
   return session;
 }
@@ -33,9 +32,8 @@ Deno.test("Star replaces native terminals, preserving nonterminal nesting", asyn
   ) {
     expect(await session.call(source), source).toEqual(expected);
   }
-  // Atomic host is outside the supported pure domain: the terminal is the
-  // empty frame, and a bare atom is rejected rather than treated as a cell.
-  expect(await session.call("pure 7")).toEqual("");
+  // Count hosts expand structurally, but an atom has no signed residual.
+  expect(await session.call("7.###")).toEqual("");
 });
 
 Deno.test("Star with an empty replacement does not annihilate the host", async () => {
@@ -117,25 +115,29 @@ Deno.test("unsupported inputs are rejected explicitly rather than silently degra
   const session = await figuresSession();
   for (
     const [source, expected] of [
-      // Compatibility pure now follows the expanded native residual domain.
-      ["pure [[], [[], []]]", "<>"],
-      ["pure [.k 1; []]", "<>"],
+      // Native observation determines availability, including valid zero.
+      ["[[], [[], []]].### ? {<>} : {()}", "<>"],
+      ["[.k 1; []].### ? {<>} : {()}", "<>"],
       // Atoms and strings remain excluded (nil prints as empty).
-      ["pure 5", ""],
-      ["pure “hi”", ""],
-      ["pure ([], [])", "<>"],
-      ["pure [[], 5]", "<>"],
-      // need retains accepted values and refuses standalone atoms.
-      ["(need [[], []]) = [[], []]", "<>"],
-      ["(need 5) = 5", ""],
+      ["5.### ? {<>} : {()}", ""],
+      ["“hi”.### ? {<>} : {()}", ""],
+      ["([], []).### ? {<>} : {()}", "<>"],
+      ["[[], 5].### ? {<>} : {()}", "<>"],
+      // A local observation branch preserves identity or refuses at the use site.
+      ["([[], []].### ? {[[], []]} : {unsupported-figure}) = [[], []]", "<>"],
+      ["5.###", ""],
     ] as const
   ) {
     expect(await session.call(source), source).toEqual(expected);
   }
-  expect(await session.call("(need [[], 5]) = [[], 5]")).toEqual("<>");
+  expect(
+    await session.call(
+      "([[], 5].### ? {[[], 5]} : {unsupported-figure}) = [[], 5]",
+    ),
+  ).toEqual("<>");
 });
 
-Deno.test("remaining traversals validate their public host boundary", async () => {
+Deno.test("derived observations retain their native host boundary", async () => {
   const session = await figuresSession();
   for (
     const [source, expected] of [

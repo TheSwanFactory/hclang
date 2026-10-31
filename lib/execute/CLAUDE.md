@@ -79,10 +79,10 @@ Importing a testdoc runs its code and not its examples. A line that begins with
 a semicolon and a space outside prose, the line `HCEval.checkInput` reads as an
 example, is dropped up to its newline, and an expectation line (`# …`) is
 already a comment, so none of its claims is counted and none of its examples'
-names is bound. A name the module's code needs, such as Figures' `pure` and
-`need`, is therefore declared in code, not in an example. Because the first
-failed form fails the whole import, an error in a testdoc's code would pass when
-that file runs directly and break every importer; the `HCLang` bundle test in
+names is bound. A name the module exports, such as Figures' `gap` and `spin`, is
+therefore declared in code, not in an example. Because the first failed form
+fails the whole import, an error in a testdoc's code would pass when that file
+runs directly and break every importer; the `HCLang` bundle test in
 `hc-lang.test.ts` imports Figures to catch it.
 
 **Quoting a file**, `'./f.hc' | {}` (#443, `spec/a18`), is the import stopped

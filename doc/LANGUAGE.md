@@ -600,17 +600,43 @@ elements' `.##` counts as a FrameInt (`[[], [[], []]].###` is -1). It also
 accepts mixed arrays and evaluated groups; standalone atoms, schemas,
 expressions and closures answer nil.
 
-The module keeps `withness`, `gap` and `spin`, plus `pure` and `need` for
-observation domain validation. Use native Star `*` for composition; `withness`
-tests immediate containment by identity and returns a native boolean. `gap x` is
-`|x.###|`, always a nonnegative FrameInt, and `spin x N` is `x.### / N`.
-`pure x` is the native `.###` check, retained with `need` for compatibility; its
-accepted domain follows the expanded native residual. Helper retirement is
-deferred. Star preserves properties and declared parents on freshly rebuilt
-nonterminal ancestors. A plain terminal (zero elements) is replaced by the
-replacement itself, shared by identity; neither operand is mutated. Star refuses
-terminals carrying properties, statements or declared parents, rather than
-discarding them.
+The module exports only `gap` and `spin`, as derived mathematical abbreviations.
+`gap x` is |x.###|, always a nonnegative FrameInt; `spin x N` is x.### / N for a
+positive Count. Both use native observations directly and retain
+unsupported-host refusal. Spin validates the host first, then refuses non-Count
+divisors with a type error and zero with division-by-zero, including when the
+residual is zero. Bare division would accept negative or fractional resolutions;
+`(x.###).##` would change Gap's type to Count and turn nil into Size 1. The
+abbreviations preserve these distinctions without defining a separate Figure
+language domain.
+
+`pure`, `need` and `withness` were removed in v0.37.1. Migrate `pure x` to
+`x.### ? {<>} : {()}` when a boolean is needed, or branch directly on `x.###`. A
+zero FrameInt is true; nil means unsupported. Use `x` directly where its
+observation already establishes availability; an explicit local refusal is
+`x.### ? {x} : {unsupported-figure}`. An outer array binding such as
+`{.x <[].<>> _; x}` accepts `[[], [“nested atom”]]` and rejects the group
+`(5, 3)` despite its valid residual. It proves neither recursive array-only
+content nor the full native observer domain.
+
+Single-point incidence is `point ~~~ line`. Replace `withness host requested`
+with ordinary iteration:
+
+```hc
+(requested &| {.f _; (f ~~~ host) ? {[]} : {[f]}}) = []
+```
+
+This checks that no requested element is absent: empty requests are true,
+repeated requests need one match, and nested-only or merely equal-form points
+fail. Atoms follow native `===`, including its type distinction. See the
+executable incidence examples in `hc/figures.hc` and Fano points in
+[`hc/membership.hc`](../hc/membership.hc).
+
+Star preserves properties and declared parents on freshly rebuilt nonterminal
+ancestors. A plain terminal (zero elements) is replaced by the replacement
+itself, shared by identity; neither operand is mutated. Star refuses terminals
+carrying properties, statements or declared parents, rather than discarding
+them.
 
 Numeric pairs keep existing `*` arithmetic. A FrameCount host and nonnumeric
 replacement construct n occurrences: `2 * [[]]` is `[[[]], [[]]]`. Zero returns
