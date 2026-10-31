@@ -1,0 +1,26 @@
+name: Demo availability
+
+on:
+  schedule:
+    - cron: "23 16 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Check live playground
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.9.5
+      - run: deno ci
+      - name: Install Chromium
+        run: deno run -A npm:playwright@1.62.0 install --with-deps chromium
+      - name: Evaluate HC on the public site
+        working-directory: web
+        run: deno task test:production

@@ -4,6 +4,13 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.38.2 2026-11-01
+
+- **Restore the online playground on GitHub Pages.** Publish the tested release
+  artifact to https://theswanfactory.github.io/hclang/, verify the deployed
+  version and HC evaluation, and check availability daily so hosting failures
+  appear in GitHub Actions (#463).
+
 ## v0.38.1 2026-11-01
 
 - **RotorRouter is an HC class.** `Routers <- './hc/rotor-router.hc'` binds
