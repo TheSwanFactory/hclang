@@ -55,13 +55,20 @@ export class FrameCount extends FrameInt {
   }
 
   /**
-   * A count is its own size, so `.#` and `.##` both answer it (#411). A count
-   * is not a Figure, so `.###` answers nil, as for any atom (010.04). The
-   * spelling is the literal `Frame.kRESIDUAL`, since this module imports
-   * `Frame` as a type only.
+   * A count is its own immediate count and Size (#411). Its signed residual
+   * is parity: n elementary units have imbalance n mod 2 (011.18).
+   * Unknown keys must not inherit the old accidental Count fallback.
    */
   public override sizeFor(key: string): Frame {
-    return key === "###" ? super.sizeFor(key) : this;
+    switch (key) {
+      case Frame.kCOUNT:
+      case Frame.kLEAVES:
+        return this;
+      case Frame.kRESIDUAL:
+        return new FrameInt(this.data % 2n);
+      default:
+        return super.sizeFor(key);
+    }
   }
 
   protected override promoteOne(): FrameNumeric {

@@ -145,7 +145,7 @@ Deno.test("Gap is |.###| and Spin is .### / N, with .### a FrameInt (010.04)", a
 
 Deno.test("Gap and Spin keep refusing unsupported hosts (010.04)", async () => {
   const session = await figuresSession();
-  for (const host of ["“hi”", "{[]}", "5"]) {
+  for (const host of ["“hi”", "{[]}"]) {
     expect(await session.call(`Figures.gap ${host}`), host)
       .toContain("unsupported-figure");
     expect(await session.call(`Figures.spin ${host} 2`), host)
@@ -229,7 +229,7 @@ Deno.test("native residual availability distinguishes valid zero from unsupporte
       ["[5, “hello”].###", "0"],
       ["[5, “hello”].### ? {<>} : {()}", "<>"],
       ["([5, “hello”].###) == (0 - 0)", "<>"],
-      ["5.### ? {<>} : {()}", ""],
+      ["5.### ? {<>} : {()}", "<>"],
       ["<2, 3>.###", ""],
       ["{[]}.###", ""],
       ["[].##", "1"],
@@ -251,7 +251,7 @@ Deno.test("native residual availability distinguishes valid zero from unsupporte
   expect(await session.call("(5, 3) * [[]]"))
     .toContain("$!.star-domain");
   expect(await session.call("5.### ? {5} : {unsupported-figure}"))
-    .toContain("unsupported-figure");
+    .toEqual("5");
 });
 
 Deno.test("derived Gap and Spin preserve refusal and resolution typing at zero", async () => {
@@ -277,7 +277,7 @@ Deno.test("derived Gap and Spin preserve refusal and resolution typing at zero",
         .toContain("$!.type-error");
     }
   }
-  for (const host of ["5", "“hi”", "{[]}"]) {
+  for (const host of ["“hi”", "{[]}"]) {
     for (const divisor of ["0", "(0 - 2)", "2.5"]) {
       expect(await session.call(`Figures.spin ${host} ${divisor}`), host)
         .toContain("unsupported-figure");
@@ -291,7 +291,7 @@ Deno.test("derived Gap and Spin preserve refusal and resolution typing at zero",
     const [source, expected] of [
       ["([3, 5].###).## == (Figures.gap [3, 5])", ""],
       ["(5.###).##", "1"],
-      ["(5.###) / 2", ""],
+      ["(5.###) / 2", "1/2"],
       ["([3, 5].###) / (0 - 2)", "1"],
       ["([3, 5].###) / 2.5", "-0.8"],
     ]

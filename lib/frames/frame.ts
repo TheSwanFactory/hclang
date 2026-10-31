@@ -535,9 +535,9 @@ export class Frame extends MetaFrame {
    */
   public static readonly kLEAVES = "##";
   /**
-   * kRESIDUAL is the size operator `.###`, a Figure's signed alternating sum
-   * of its immediate elements' terminal counts, as a FrameInt (issue
-   * occurrence/figure 010.04).
+   * kRESIDUAL is `.###`: a FrameInt alternating sum of immediate child native
+   * Sizes on evaluated arrays/groups, or Count parity (occurrence/figure
+   * 010.04, 011.18). Other receivers currently have no residual.
    */
   public static readonly kRESIDUAL = "###";
   /**

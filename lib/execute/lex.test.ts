@@ -247,6 +247,16 @@ describe("Lex", () => {
       expect(lexAtoms("..# ").map(String)).toEqual([".."]);
       // Nothing extends `.###`, so a fourth `#` begins a comment after it.
       expect(lexAtoms("x.####c# ").map(String)).toEqual(["x", ".###"]);
+      // Fourth-hash rollout is gated on universal observation. Preserve the
+      // current fourth/fifth-hash comment boundary across every input split.
+      for (const source of ["x.####c# ", "x.##### "]) {
+        for (let split = 1; split < source.length; split++) {
+          expect(
+            lexChunkedAtoms([source.slice(0, split), source.slice(split)])
+              .map(String),
+          ).toEqual(["x", ".###"]);
+        }
+      }
     });
   });
 

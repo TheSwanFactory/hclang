@@ -32,8 +32,8 @@ Deno.test("Star replaces native terminals, preserving nonterminal nesting", asyn
   ) {
     expect(await session.call(source), source).toEqual(expected);
   }
-  // Count hosts expand structurally, but an atom has no signed residual.
-  expect(await session.call("7.###")).toEqual("");
+  // Count hosts expand structurally and now have parity residual.
+  expect(await session.call("7.###")).toEqual("1");
 });
 
 Deno.test("Star with an empty replacement does not annihilate the host", async () => {
@@ -118,14 +118,14 @@ Deno.test("unsupported inputs are rejected explicitly rather than silently degra
       // Native observation determines availability, including valid zero.
       ["[[], [[], []]].### ? {<>} : {()}", "<>"],
       ["[.k 1; []].### ? {<>} : {()}", "<>"],
-      // Atoms and strings remain excluded (nil prints as empty).
-      ["5.### ? {<>} : {()}", ""],
+      // Counts now have parity; strings remain excluded (nil prints as empty).
+      ["5.### ? {<>} : {()}", "<>"],
       ["“hi”.### ? {<>} : {()}", ""],
       ["([], []).### ? {<>} : {()}", "<>"],
       ["[[], 5].### ? {<>} : {()}", "<>"],
       // A local observation branch preserves identity or refuses at the use site.
       ["([[], []].### ? {[[], []]} : {unsupported-figure}) = [[], []]", "<>"],
-      ["5.###", ""],
+      ["5.###", "1"],
     ] as const
   ) {
     expect(await session.call(source), source).toEqual(expected);
@@ -144,11 +144,15 @@ Deno.test("derived observations retain their native host boundary", async () => 
       ["gap ([], [[], []])", "1"],
       ["spin [[], 5] 4", "-1"],
       ["gap [[], 5]", "4"],
+      ["gap 5", "1"],
+      ["spin 5 4", "1/4"],
+      ["gap 2", "0"],
+      ["spin 0 4", "0"],
     ]
   ) {
     expect(await session.call(source), source).toEqual(expected);
   }
-  for (const source of ["gap 5", "spin 5 4", "gap {[]}"]) {
+  for (const source of ["gap {[]}"]) {
     expect(await session.call(source), source).toContain("unsupported-figure");
   }
   expect(await session.call("[[], “a”] * [[]]")).toContain("star-domain");

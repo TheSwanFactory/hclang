@@ -326,9 +326,24 @@ describe("FrameCount", () => {
       }
     });
 
-    it("answers nil to .###, since a count is not a Figure (010.04)", () => {
-      for (const source of ["5", "0", "(5 - 3)", "1.5"]) {
+    it("answers exact signed parity to .### (011.18)", () => {
+      for (const n of [0n, 1n, 2n, 3n, 7n, 9007199254740993123456789n]) {
+        const result = evaluate(`${n}.###`).at(0);
+        expectClass(result, "FrameInt");
+        expect(result.toString()).toEqual((n % 2n).toString());
+      }
+      for (const source of ["(5 - 3)", "1.5"]) {
         expect(evaluate(`${source}.###`).toString()).toEqual("[]");
+      }
+    });
+
+    it("dispatches only recognized size keys", () => {
+      const value = count(7n);
+      expect(value.sizeFor(Frame.kCOUNT)).toBe(value);
+      expect(value.sizeFor(Frame.kLEAVES)).toBe(value);
+      expect(value.sizeFor(Frame.kRESIDUAL).toString()).toEqual("1");
+      for (const key of ["", "unknown", "####", "#####", "#x"]) {
+        expect(value.sizeFor(key)).toBe(Frame.nil);
       }
     });
   });

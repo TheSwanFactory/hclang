@@ -20,6 +20,11 @@ and program is composed of frames. This unified representation enables:
 
 ### Basic Types
 
+- [frame-demi.ts](frame-demi.ts) - Immutable orientation and two exact Count
+  loads, scalar deposit/scaling and data encoding. Universal fourth-hash
+  observation remains blocked; see
+  [compatibility audit](../../doc/FRAME-DEMI.md).
+
 - [frame-numeric.ts](frame-numeric.ts) - Rank-based numeric dispatch and the
   promotion ladder; see [Numeric Ladder](#numeric-ladder)
 - [frame-count.ts](frame-count.ts) - Nonnegative integers, the value of every

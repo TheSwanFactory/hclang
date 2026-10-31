@@ -22,8 +22,11 @@ each terminal of x, preserving nesting.
 Flat repetition is `x.## [y]`. A tally, when wanted, is an explicit
 construction, such as `x & {[[]]}` for one fresh mark per immediate element.
 Native `.##` uses each child's native Size, including numeric magnitude and
-text length. Native `.###` also accepts mixed arrays and evaluated groups.
+text length. Native `.###` also accepts mixed arrays and evaluated groups. Counts answer
+FrameInt parity (`n mod 2`), including valid zero; other atoms still answer nil.
 Star keeps its narrower array/Count composition domain.
+
+For Counts, Gap and Spin now use parity too: `gap 7` is 1 and `spin 2 4` is 0.
 
 Only two derived mathematical abbreviations remain: Gap = |signed residual|
 and Spin = signed residual / positive Count. They define no Figure domain.
@@ -136,7 +139,7 @@ positive. Mixed arrays and evaluated groups use the same rule.
 ; [[[], [[]]], [[[], []], []], [[[[], [], []]]]].###
 # 2
 ; [[1, []].###, [[], “ab”].###, [[], ([], [])].###, 5.###]
-# [0, -1, -1, ()]
+# [0, -1, -1, 1]
 ```
 Native Size also measures mixed values, independently of structural Star.
 Numeric magnitude truncates exactly; text length uses native Unicode code-point iteration,
@@ -151,7 +154,7 @@ blob width uses bits, and schemas count declared alternatives.
 ; [[5, “hello”].##, [5, “hello”].###, (5, 3).###, [5, 3, 2, 7].###]
 # [10, 0, 2, -3]
 ; [([5, “hello”].### ? {<>} : {()}), (5.### ? {<>} : {()})]
-# [<>, ()]
+# [<>, <>]
 ; { .x <[].<>> _; x.### } [[], [“nested atom”]]
 # -10
 ```

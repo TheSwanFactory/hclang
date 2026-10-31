@@ -154,7 +154,6 @@ Deno.test("mixed arrays and evaluated groups alternate complete immediate Sizes"
   }
   for (
     const source of [
-      "5",
       "(-3)",
       '"hi"',
       "(1).<>",

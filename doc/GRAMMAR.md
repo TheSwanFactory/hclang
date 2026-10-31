@@ -173,17 +173,21 @@ complete at a colon with or without intervening space.
   call's argument, and so on per underscore). An argument is read-only, as a
   name is: applying an aggregate read through `_` collects onto a copy
 - **Parent declaration**: `.^` (declares the parent; `.^ base`)
-- **Size**: `.#` is an aggregate's element count and `.##` its terminal count at
-  any depth, each a count. A terminal is an element that is not an aggregate, or
-  an aggregate with no elements, so `[].##` is 1 and `[[], [5]].##` is 2. A
-  count is its own size and any other value answers nil. `.###` answers only on
-  Figures, finite nested arrays read through their elements (properties and
-  declared parents are ignored at every level): it is the signed alternating sum
-  `x₁.## − x₂.## + x₃.## − …` over the immediate elements, always a FrameInt, so
-  `[].###` is 0 and `[[], [[], []]].###` is -1. Anything else answers nil: an
-  atom, string, group, schema or closure anywhere in the structure, or an
-  aggregate that contains itself. These are the only names spelled with `#`,
-  which otherwise begins a comment, so `.####` is `.###` before a comment
+- **Size**: `.#` counts immediate aggregate elements or returns a Count's own
+  magnitude; other atoms have no immediate count. `.##` measures represented
+  quantity: exact truncated numeric magnitude, Unicode code-point text length,
+  blob bits, payload bytes, enumeration alternatives, or one opaque occurrence.
+  Aggregates sum their children's native Sizes; empty aggregates retain Size 1.
+  Thus `[].##` is 1 and `[[], [5]].##` is 6. Metadata and declared parents do
+  not contribute; sharing counts per occurrence, containment/reference cycles
+  refuse Size. `.###` returns a FrameInt: Count parity (`n mod 2`), or
+  `x₁.## − x₂.## + x₃.## − …` on evaluated arrays and groups. Empty arrays have
+  residual 0. Mixed children are allowed; source aggregates, generic lists,
+  schemas, closures, other atoms and failed traversals answer nil residual.
+  These are the only names spelled with `#`, which otherwise begins a comment;
+  `.####` still means `.###` followed by a comment. Universal fourth-hash
+  observation is blocked on unresolved native observer compatibility (see
+  `doc/FRAME-DEMI.md`).
 - **Enclosing scope**: `_^` (`_^.var`). Each caret is exactly one enclosing
   lexical scope: `_^^` is two scopes out. The count depends only on where the
   closure was written, never on how it was invoked. `_`/`__` and `_^`/`_^^` are

@@ -4,6 +4,21 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.38.0 (unreleased target; partial, universal fourth hash blocked)
+
+- **Native immutable FrameDemi.** Exact singleton orientation and two bigint
+  Count loads, value equality and lossless native data encoding; scalar-only
+  `Demi + Count` deposits then flips, and `Demi * Count` scales without
+  flipping.
+- **Count residual now means parity.** `n.###` returns FrameInt `n mod 2`
+  instead of nil, including present zero; Figures Gap/Spin now accept Counts.
+  Unknown native Count observation keys no longer return Count accidentally.
+- **Universal fourth hash is blocked.** The Frame-class audit records missing
+  atom/syntax/schema observations and cyclic/nonfinite Size failures. `.####`
+  and the coordinated lexer/editor change are deferred. When implemented, `.###`
+  followed immediately by a hash comment will become a four-hash name; that
+  source compatibility change is not part of this partial patch.
+
 ## v0.37.3 2026-10-31
 
 - **Reject malformed grouping consistently.** Evaluation and CLI commands report
