@@ -578,7 +578,9 @@ export class Frame extends MetaFrame {
     }
 
     override sizeFor(key: string): Frame {
-      if (key === Frame.kCOUNT) return this.observationError() ?? Frame.count(0n);
+      if (key === Frame.kCOUNT) {
+        return this.observationError() ?? Frame.count(0n);
+      }
       if (key === Frame.kRESIDUAL) return Frame.signed(0n); // R4 (011.18h)
       return super.sizeFor(key);
     }
@@ -914,9 +916,7 @@ export class Frame extends MetaFrame {
     switch (key) {
       case Frame.kCOUNT:
         if (this.is.void) return Frame.nil; // R3 (011.18h): absence
-        return this.is.missing
-          ? Frame.count(0n)
-          : this.sizeFor(Frame.kLEAVES);
+        return this.is.missing ? Frame.count(0n) : this.sizeFor(Frame.kLEAVES);
       case Frame.kLEAVES: {
         const size = this.nativeSize(new Set());
         return typeof size === "bigint" ? Frame.count(size) : size;
