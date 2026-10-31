@@ -332,7 +332,7 @@ quantity: lists sum complete child Sizes, with Size 1 for an empty list. Numeric
 magnitude, Unicode text length, blob bits and payload bytes have their own native
 Sizes; schemas retain their description/alternative quantities. Other opaque
 values have Size 1. `.###` alternates child Sizes on non-schema lists, or returns
-Count parity (`.# mod 2`) on every atom; schemas and other non-atoms default to nil
+Count parity (`.# mod 2`) on every other value with a Count; schemas have nil
 residual, and `<>` observes as `[]`. `.####` derives native Demi,
 returning nil at zero Count or nil residual and propagating failed observations.
 ```

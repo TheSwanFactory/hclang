@@ -22,9 +22,9 @@ each terminal of x, preserving nesting.
 Flat repetition is `x.## [y]`. A tally, when wanted, is an explicit
 construction, such as `x & {[[]]}` for one fresh mark per immediate element.
 Native `.##` uses each child's native Size, including numeric magnitude and
-text length. Native `.###` also accepts mixed arrays, groups, and non-schema list syntax/closures. Every atom
-answers its Count parity (`.# mod 2`, a FrameInt), including valid zero, so equal quantities observe alike
-whatever their numeric type; schemas and other non-atoms answer nil. `()` has no Count; `<>` observes as `[]`.
+text length. Native `.###` also accepts mixed arrays, groups, and non-schema list syntax/closures. Every other
+value with a Count answers its parity (`.# mod 2`, a FrameInt), including valid zero, so equal quantities
+observe alike whatever their kind or numeric type; schemas answer nil. `()` has no Count; `<>` observes as `[]`.
 Missing Count rules fall back to Size, including sized atoms. Explicit Counts take precedence.
 Stored errors and failed child quantities propagate rather than acquiring a load.
 Star keeps its narrower array/Count composition domain.

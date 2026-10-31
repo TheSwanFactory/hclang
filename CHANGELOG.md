@@ -11,12 +11,13 @@
   / 1 odd), value equality and lossless native data encoding; scalar-only
   `Demi + Count` deposits then flips, and `Demi * Count` scales without
   flipping.
-- **Atom residual now means Count parity.** Every atom's `.###` returns FrameInt
-  `.# mod 2` instead of nil, including present zero, so Counts, other numeric
-  rungs, text, blobs, bytes and opaque atoms observe alike by quantity:
-  `(10 - 5).####` equals `5.####`. Figures Gap/Spin accept atoms; non-atom hosts
-  keep nil residual. Unknown native Count observation keys no longer return
-  Count accidentally.
+- **Residual defaults to Count parity.** Every Frame with a Count and no
+  residual rule of its own answers `.###` as FrameInt `.# mod 2` instead of nil,
+  including present zero, so Counts, other numeric rungs, text, blobs, bytes,
+  opaque atoms and runtime types observe alike by quantity: `(10 - 5).####`
+  equals `5.####`. Figures Gap/Spin accept all of them; schemas keep nil
+  residual. Unknown native Count observation keys no longer return Count
+  accidentally.
 - **Universal fourth hash.** `.####` derives native Demi loads from Count, Size
   and residual; zero Count or nil residual yields nil, while observation
   failures and incoherent loads return errors. A fifth hash now opens a comment:

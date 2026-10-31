@@ -28,7 +28,7 @@ import { FrameHandle } from "./frame-handle.ts";
 const last = (source: string): Frame =>
   evaluate(source).at(-1).asArray().at(-1)!;
 
-Deno.test("sized atoms take Count from Size and residual from Count parity (011.18k)", () => {
+Deno.test("sized values take Count from Size and residual from Count parity (011.18k)", () => {
   for (
     const value of [
       new FrameInt(5n),
@@ -66,11 +66,15 @@ Deno.test("sized atoms take Count from Size and residual from Count parity (011.
       expect(d.orientation).toBe(n % 2n === 0n ? Frame.all : Frame.nil);
     }
   }
-  // A non-atom with Count from Size keeps nil residual (011.18k scope).
+  // A non-atom with Count from Size follows the same rule (011.18m).
   const type = FrameType.of(new FrameCount(5n));
   expect(type.sizeFor("#").toString()).toEqual("1");
-  expect(type.sizeFor("###")).toBe(Frame.nil);
-  expect(type.sizeFor("####")).toBe(Frame.nil);
+  expect(type.sizeFor("###").toString()).toEqual("1");
+  expect((type.sizeFor("####") as FrameDemi).encode()).toEqual([
+    "nil",
+    "1",
+    "0",
+  ]);
   expect(last("(10 - 5).#").toString()).toEqual("5");
   expect(last("5.#").toString()).toEqual("5");
   expect(last("(-5.9).#").toString()).toEqual("5");
@@ -125,12 +129,19 @@ Deno.test("fourth hash distinguishes atom/schema absence, empty hosts and presen
   expect(evaluate("().#").toString()).toEqual("[]");
   expect(last("<>.#").toString()).toEqual("0");
   expect(last("<>.###").toString()).toEqual("0");
-  for (const value of [Frame.nil, Frame.all, Frame.missing]) {
+  for (const value of [Frame.nil, Frame.all]) {
     const copy = value.copy();
     copy.set("label", new FrameString("metadata"));
     expect(copy.sizeFor("#").toString())
       .toEqual(value === Frame.nil ? "()" : "0");
     expect(copy.sizeFor("####")).toBe(Frame.nil);
+  }
+  // The internal missing sentinel is never a value; observing it fails
+  // (011.18m), including through a metadata copy.
+  const missing = Frame.missing.copy();
+  missing.set("label", new FrameString("metadata"));
+  for (const key of Frame.SIZE_OPERATORS) {
+    expect(missing.sizeFor(key).toString()).toEqual("$!.name-missing");
   }
   expect(Frame.all.copy().sizeFor("###").toString()).toEqual("0");
   expect(last(".####").toString()).toEqual(".####");
@@ -240,7 +251,7 @@ Deno.test("observation failures propagate without converting nil/zero or executi
   expect(new Empty().sizeFor("####")).toBe(Frame.nil);
 });
 
-Deno.test("missing Count falls back to Size, but does not install a residual", () => {
+Deno.test("missing Count falls back to Size, and missing residual to Count parity (011.18m)", () => {
   class Sized extends Frame {
     public override nativeSize(): bigint {
       return 7n;
@@ -248,8 +259,12 @@ Deno.test("missing Count falls back to Size, but does not install a residual", (
   }
   const sized = new Sized();
   expect(sized.sizeFor("#").toString()).toEqual("7");
-  expect(sized.sizeFor("###")).toBe(Frame.nil);
-  expect(sized.sizeFor("####")).toBe(Frame.nil);
+  expect(sized.sizeFor("###").toString()).toEqual("1");
+  expect((sized.sizeFor("####") as FrameDemi).encode()).toEqual([
+    "nil",
+    "4",
+    "3",
+  ]);
   class Invalid extends Frame {
     public override sizeFor(key: string): Frame {
       if (key === "#") return new FrameCount(1n);

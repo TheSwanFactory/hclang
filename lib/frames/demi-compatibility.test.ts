@@ -64,8 +64,18 @@ Deno.test("Demi compatibility matrix: all concrete Frame families stay non-execu
       expect(value.sizeFor("####")).toBe(failure);
       continue;
     }
-    // 011.18k: nil has no Count; all is the present empty (residual 0);
-    // atoms take residual from Count parity; non-atoms keep nil residual.
+    // 011.18k/m: nil has no Count; all is the present empty (residual 0); the
+    // internal missing sentinel is an error; every other value takes its
+    // residual from Count parity.
+    if (value === f.Frame.missing) {
+      expect(observations(value)).toEqual([
+        "$!.name-missing",
+        "$!.name-missing",
+        "$!.name-missing",
+      ]);
+      expect(value.sizeFor("####").toString()).toEqual("$!.name-missing");
+      continue;
+    }
     if (value === f.Frame.nil) {
       expect(observations(value)).toEqual(["nil", "1", "nil"]);
       expect(value.sizeFor("####")).toBe(f.Frame.nil);
@@ -76,14 +86,7 @@ Deno.test("Demi compatibility matrix: all concrete Frame families stay non-execu
       expect(value.sizeFor("####")).toBe(f.Frame.nil);
       continue;
     }
-    const n = value === f.Frame.missing || value instanceof f.FrameComment
-      ? "0"
-      : "1";
-    if (!(value instanceof f.FrameAtom)) {
-      expect(observations(value), value.className()).toEqual([n, "1", "nil"]);
-      expect(value.sizeFor("####")).toBe(f.Frame.nil);
-      continue;
-    }
+    const n = value instanceof f.FrameComment ? "0" : "1";
     expect(observations(value), value.className()).toEqual([n, "1", n]);
     const observed = value.sizeFor("####");
     if (n === "0") {

@@ -101,14 +101,16 @@ fail Count as well as Size/residual/Demi.
 The base Frame's missing Count rule falls back to Size for every kind, including
 numbers, text, blobs, bytes, opaque atoms and runtime type descriptions.
 Explicit Count rules take precedence: lists count immediate elements/words,
-schemas retain their own rules, all/missing and void comments retain Count zero,
-and nil has no Count (`().#` is nil, so `().####` is nil without reading Size or
+schemas retain their own rules, all and void comments retain Count zero, and nil
+has no Count (`().#` is nil, so `().####` is nil without reading Size or
 residual). Demi explicitly supplies its positive parity Count (2 or 1). Nil/all
 source dispatch is intercepted, while receiverless observer names remain
-addresses. Every atom, FrameCount included, takes its residual from Count
-parity, `.# mod 2` (011.18k); `<>` has residual 0, so it observes as `[]`.
-Non-atom hosts (runtime types, imports, bound methods, internal hosts) keep the
-default nil residual.
+addresses. Missing residual falls back to Count parity, `.# mod 2`, on the base
+Frame (011.18k, 011.18m): every atom, FrameCount included, and every non-atom
+host (runtime types, imports, bound methods, internal hosts) takes it. `<>` has
+residual 0, so it observes as `[]`. Lists, schemas and Demi keep their explicit
+residual rules. The internal lookup sentinel `Frame.missing` is never an HC
+value; observing it natively answers `$!.name-missing`.
 
 Non-schema lists observe their stored ordered elements/words for Count, Size and
 residual, without executing the host. Source syntax uses the existing pure Size
@@ -125,28 +127,28 @@ normally.
 boundaries, references, mutation, bigint values and non-execution. Internal
 hosts are source-audited for inherited rules and covered by import-first checks.
 
-| Family                                                                   | #                               | ##                                                | ###                                       | ####                                                            |
-| ------------------------------------------------------------------------ | ------------------------------- | ------------------------------------------------- | ----------------------------------------- | --------------------------------------------------------------- |
-| FrameCount(n)                                                            | n                               | n                                                 | FrameInt n mod 2 (atom rule)              | nil at zero; otherwise balanced native Demi                     |
-| FrameDemi                                                                | 2 for all/even, 1 for nil/odd   | L+R                                               | FrameInt L−R                              | Same Demi data value, derived universally                       |
-| FrameInt, Decimal, Rational, finite Number                               | Absolute truncated magnitude    | Absolute truncated magnitude                      | FrameInt # mod 2                          | nil at zero; otherwise balanced native Demi                     |
-| String, Doc; Blob; Bytes                                                 | Code points; bits; bytes        | Code points; bits; bytes                          | FrameInt # mod 2                          | nil at zero; otherwise balanced native Demi                     |
-| FrameAtom; Arg, Param, Name, Word, Alias, Literal, Symbol, Operator      | 1                               | One opaque occurrence                             | 1                                         | FrameDemi((),1,0)                                               |
-| URI, Resource; Time/DateTime/Duration, TypedNumber, Sequence             | 1                               | One opaque occurrence; no reads or unit inference | 1                                         | FrameDemi((),1,0)                                               |
-| ScopeAnchor, StringEnd, BytePayload; non-error Note                      | 1                               | One opaque occurrence                             | 1                                         | FrameDemi((),1,0)                                               |
-| all; void Comment                                                        | 0                               | One description/occurrence                        | 0                                         | nil                                                             |
-| nil                                                                      | nil (no Count)                  | 1                                                 | nil                                       | nil                                                             |
-| missing (internal lookup sentinel)                                       | 0                               | One occurrence                                    | nil                                       | nil                                                             |
-| Array, Group, generic List, Expr, Bind, Lazy, source arrays/groups       | Immediate stored elements/words | Sum of complete child Sizes, empty=1              | Alternating complete child Sizes, empty=0 | nil at zero Count; otherwise derived Demi or propagated failure |
-| Enumeration Schema                                                       | Existing element Count          | Declared candidates, empty=1                      | nil                                       | nil                                                             |
-| Compiled structural/bit/custom Schema                                    | Existing syntax Count           | One description                                   | nil                                       | nil                                                             |
-| Handle, Scoped                                                           | Delegate                        | Delegate                                          | Delegate                                  | Delegate                                                        |
-| Error value / diagnostic failure Note                                    | Original error                  | Original error                                    | Original error                            | Original error                                                  |
-| Nonfinite Number                                                         | Nonquantifiable error           | Same error                                        | Same error                                | Same error                                                      |
-| Containment/reference cycles                                             | Immediate Count or cycle error  | Existing cycle error                              | Propagated cycle error                    | Propagated cycle error                                          |
-| Shared descendants; metadata/declared-parent cycles                      | Immediate Count                 | Sharing per occurrence; metadata excluded         | Same child Size rule                      | Coherent; no mutable cache                                      |
-| Type; Base Frame; Import, BoundMethod; internal hosts derived from Frame | Size fallback                   | One opaque occurrence                             | nil                                       | nil                                                             |
-| Internal ParsePipe (Array subtype)                                       | Inherited stored element Count  | Inherited Size                                    | Inherited residual                        | Inherited derivation                                            |
+| Family                                                                   | #                                     | ##                                                | ###                                       | ####                                                            |
+| ------------------------------------------------------------------------ | ------------------------------------- | ------------------------------------------------- | ----------------------------------------- | --------------------------------------------------------------- |
+| FrameCount(n)                                                            | n                                     | n                                                 | FrameInt n mod 2 (atom rule)              | nil at zero; otherwise balanced native Demi                     |
+| FrameDemi                                                                | 2 for all/even, 1 for nil/odd         | L+R                                               | FrameInt L−R                              | Same Demi data value, derived universally                       |
+| FrameInt, Decimal, Rational, finite Number                               | Absolute truncated magnitude          | Absolute truncated magnitude                      | FrameInt # mod 2                          | nil at zero; otherwise balanced native Demi                     |
+| String, Doc; Blob; Bytes                                                 | Code points; bits; bytes              | Code points; bits; bytes                          | FrameInt # mod 2                          | nil at zero; otherwise balanced native Demi                     |
+| FrameAtom; Arg, Param, Name, Word, Alias, Literal, Symbol, Operator      | 1                                     | One opaque occurrence                             | 1                                         | FrameDemi((),1,0)                                               |
+| URI, Resource; Time/DateTime/Duration, TypedNumber, Sequence             | 1                                     | One opaque occurrence; no reads or unit inference | 1                                         | FrameDemi((),1,0)                                               |
+| ScopeAnchor, StringEnd, BytePayload; non-error Note                      | 1                                     | One opaque occurrence                             | 1                                         | FrameDemi((),1,0)                                               |
+| all; void Comment                                                        | 0                                     | One description/occurrence                        | 0                                         | nil                                                             |
+| nil                                                                      | nil (no Count)                        | 1                                                 | nil                                       | nil                                                             |
+| missing (internal lookup sentinel)                                       | `$!.name-missing` (never an HC value) | Same error                                        | Same error                                | Same error                                                      |
+| Array, Group, generic List, Expr, Bind, Lazy, source arrays/groups       | Immediate stored elements/words       | Sum of complete child Sizes, empty=1              | Alternating complete child Sizes, empty=0 | nil at zero Count; otherwise derived Demi or propagated failure |
+| Enumeration Schema                                                       | Existing element Count                | Declared candidates, empty=1                      | nil                                       | nil                                                             |
+| Compiled structural/bit/custom Schema                                    | Existing syntax Count                 | One description                                   | nil                                       | nil                                                             |
+| Handle, Scoped                                                           | Delegate                              | Delegate                                          | Delegate                                  | Delegate                                                        |
+| Error value / diagnostic failure Note                                    | Original error                        | Original error                                    | Original error                            | Original error                                                  |
+| Nonfinite Number                                                         | Nonquantifiable error                 | Same error                                        | Same error                                | Same error                                                      |
+| Containment/reference cycles                                             | Immediate Count or cycle error        | Existing cycle error                              | Propagated cycle error                    | Propagated cycle error                                          |
+| Shared descendants; metadata/declared-parent cycles                      | Immediate Count                       | Sharing per occurrence; metadata excluded         | Same child Size rule                      | Coherent; no mutable cache                                      |
+| Type; Base Frame; Import, BoundMethod; internal hosts derived from Frame | Size fallback                         | One opaque occurrence                             | 1                                         | FrameDemi((),1,0)                                               |
+| Internal ParsePipe (Array subtype)                                       | Inherited stored element Count        | Inherited Size                                    | Inherited residual                        | Inherited derivation                                            |
 
 Abstract Numeric/Text/Time/LexHost bases inherit the listed concrete-family
 rules. Internal hosts audited include LiveLookupContext, ScopedLexicalContext,
@@ -170,13 +172,13 @@ methods.
 
 Atom residual changes nil to FrameInt Count parity, including present/truthy
 zero, for every atom (011.18k); Count no longer has a rule of its own. Figures
-Gap/Spin therefore accept Counts, other numbers, text and opaque atoms; non-atom
-hosts are still refused. `().#` changes from zero to nil. They also now accept
-non-schema list syntax/closures with valid residuals. Cycle/nonquantifiable
-residuals now propagate errors instead of returning nil. Sized atom Count falls
-back to Size; nil/all Count changes name passthrough/absorption to zero. Their
-native Sizes are preserved. Stored errors now propagate instead of contributing
-opaque Size 1.
+Gap/Spin therefore accept Counts, other numbers, text, opaque atoms and runtime
+types (011.18m); only schemas have no residual. `().#` changes from zero to nil.
+They also now accept non-schema list syntax/closures with valid residuals.
+Cycle/nonquantifiable residuals now propagate errors instead of returning nil.
+Sized atom Count falls back to Size; nil/all Count changes name
+passthrough/absorption to zero. Their native Sizes are preserved. Stored errors
+now propagate instead of contributing opaque Size 1.
 
 The lexer, runtime dispatch and editor recognize `.####` together. A fifth hash
 starts a comment; `..#` remains the parameter ladder followed by a comment.

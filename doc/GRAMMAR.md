@@ -180,18 +180,17 @@ complete at a colon with or without intervening space.
   exact truncated numeric magnitude, Unicode code points, blob bits, payload
   bytes, enumeration alternatives or one opaque occurrence. Lists sum complete
   child Sizes; empty lists retain Size 1. Metadata and declared parents are
-  excluded; sharing counts per occurrence. `.###` is FrameInt Count parity
-  (`.# mod 2`) on every atom and on `<>`, or the alternating sum of immediate
-  child Sizes on all non-schema lists, including stored source syntax and
-  closure words without execution. Other Frames default to nil residual,
-  including schemas and non-atom hosts. `.####` returns nil for zero Count or
-  nil residual; otherwise it derives native FrameDemi loads `(Size+residual)/2`
-  and `(Size−residual)/2`, with left-next orientation for even Count. Errors
-  propagate, including cycles and nonfinite quantities; incoherent loads are
-  explicit errors. Four hashes form an observer name; a fifth starts a comment.
-  Earlier `.###` immediately followed by a hash comment therefore changes
-  tokenization. See `doc/FRAME-DEMI.md` for the native API and compatibility
-  matrix.
+  excluded; sharing counts per occurrence. `.###` is the alternating sum of
+  immediate child Sizes on all non-schema lists, including stored source syntax
+  and closure words without execution, and FrameInt Count parity (`.# mod 2`) on
+  every other Frame with a Count, `<>` included. Schemas and nil have nil
+  residual. `.####` returns nil for zero Count or nil residual; otherwise it
+  derives native FrameDemi loads `(Size+residual)/2` and `(Size−residual)/2`,
+  with left-next orientation for even Count. Errors propagate, including cycles
+  and nonfinite quantities; incoherent loads are explicit errors. Four hashes
+  form an observer name; a fifth starts a comment. Earlier `.###` immediately
+  followed by a hash comment therefore changes tokenization. See
+  `doc/FRAME-DEMI.md` for the native API and compatibility matrix.
 - **Enclosing scope**: `_^` (`_^.var`). Each caret is exactly one enclosing
   lexical scope: `_^^` is two scopes out. The count depends only on where the
   closure was written, never on how it was invoked. `_`/`__` and `_^`/`_^^` are

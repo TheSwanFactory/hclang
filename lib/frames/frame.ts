@@ -536,8 +536,8 @@ export class Frame extends MetaFrame {
   public static readonly kLEAVES = "##";
   /**
    * kRESIDUAL is `.###`: a FrameInt alternating sum of immediate child native
-   * Sizes on non-schema lists, or Count parity on atoms (occurrence/figure
-   * 011.18k). Other receivers default to nil residual.
+   * Sizes on non-schema lists, or Count parity on any other Frame with a Count
+   * (occurrence/figure 011.18k, 011.18m). Schemas and nil have nil residual.
    */
   public static readonly kRESIDUAL = "###";
   /** Derived nullable two-channel state (occurrence/figure 011.18c). */
@@ -906,20 +906,30 @@ export class Frame extends MetaFrame {
 
   /**
    * Native Count, Size, residual and derived Demi. Missing Count falls back to
-   * Size; kinds with their own cardinality supply explicit Counts.
-   * Nil residual is absence.
+   * Size, and missing residual to Count parity; kinds with their own rules
+   * (lists, schemas, Demi, all) supply them explicitly (011.18k, 011.18m).
+   * Nil has no Count, so no residual or Demi.
    */
   public sizeFor(key: string): Frame {
     if (!Frame.SIZE_OPERATORS.includes(key)) return Frame.nil;
     const failure = this.observationError();
     if (failure) return failure;
+    // The internal lookup sentinel is never a value: observing it is the
+    // same failure HC reports for a missing name (011.18m).
+    if (this.is.missing) return Frame.error("$!.name-missing");
     switch (key) {
       case Frame.kCOUNT:
         if (this.is.void) return Frame.nil; // nil has no Count (011.18k)
-        return this.is.missing ? Frame.count(0n) : this.sizeFor(Frame.kLEAVES);
+        return this.sizeFor(Frame.kLEAVES);
       case Frame.kLEAVES: {
         const size = this.nativeSize(new Set());
         return typeof size === "bigint" ? Frame.count(size) : size;
+      }
+      case Frame.kRESIDUAL: {
+        const n = this.sizeFor(Frame.kCOUNT);
+        if (n.observationError()) return n;
+        const data = (n as unknown as { data?: unknown }).data;
+        return typeof data === "bigint" ? Frame.signed(data % 2n) : Frame.nil;
       }
       case Frame.kDEMI:
         return Frame.demi(this);

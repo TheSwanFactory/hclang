@@ -56,7 +56,7 @@ export class FrameCount extends FrameInt {
 
   /**
    * A count is its own immediate count and Size (#411). Its residual, Count
-   * parity n mod 2, comes from the atom rule like every atom's (011.18k).
+   * parity n mod 2, comes from the base Frame rule (011.18k, 011.18m).
    * Unknown keys must not inherit the old accidental Count fallback.
    */
   public override sizeFor(key: string): Frame {
