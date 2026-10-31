@@ -103,15 +103,16 @@ hosts are source-audited for inherited rules and covered by import-first checks.
 | Nonfinite Number                                                      | Nonquantifiable error           | Same error                                        | Same error                                | Same error                                                      |
 | Containment/reference cycles                                          | Immediate Count or cycle error  | Existing cycle error                              | Propagated cycle error                    | Propagated cycle error                                          |
 | Shared descendants; metadata/declared-parent cycles                   | Immediate Count                 | Sharing per occurrence; metadata excluded         | Same child Size rule                      | Coherent; no mutable cache                                      |
-| Base Frame; Import, BoundMethod; internal pipeline/control hosts      | Size fallback                   | One opaque occurrence                             | nil                                       | nil                                                             |
+| Base Frame; Import, BoundMethod; internal hosts derived from Frame    | Size fallback                   | One opaque occurrence                             | nil                                       | nil                                                             |
 | Internal ParsePipe (Array subtype)                                    | Inherited stored element Count  | Inherited Size                                    | Inherited residual                        | Inherited derivation                                            |
 
 Abstract Numeric/Text/Time/LexHost bases inherit the listed concrete-family
-rules. Opaque internal hosts include LiveLookupContext, ScopedLexicalContext,
+rules. Internal hosts audited include LiveLookupContext, ScopedLexicalContext,
 ImportProgress, QuoteSink, LexicalError, MetadataHead, Token, Lex, LexRun,
-Terminal, EvalPipe, LexPipe, FrameOps, FrameCurry, HCTest and HCLog.
-BoundMethod/Import are opaque host Frames, not list bodies; Count fallback does
-not invoke their methods.
+Terminal, EvalPipe, LexPipe, FrameOps, FrameCurry, HCTest and HCLog. Token
+inherits FrameAtom Count zero; other Frame-based internal hosts use the Size
+fallback. BoundMethod/Import are opaque host Frames, not list bodies; Count
+fallback does not invoke their methods.
 
 ## Examples and compatibility changes
 
