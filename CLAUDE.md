@@ -109,7 +109,7 @@ deno task setup             # Install pre-commit hooks
 ### Building
 
 ```bash
-deno task build             # Build the CLI and Fresh web application
+deno task build             # Build the CLI, npm package, and offline web artifact
 ```
 
 ## Key Concepts
@@ -286,13 +286,29 @@ The task updates the five `deno.json` files and `lib/version.ts`, runs
 `deno install`, then stages and commits the result. Any other argument is
 refused rather than ignored.
 
-### Publishing to JSR and GitHub Releases
+### Publishing packages, releases, and the online demo
 
 Merge the PR to the `master` branch. GitHub Actions compares the version in
 `deno.json` with the version before the merge. When the version changed, it
-publishes the package to [JSR](https://jsr.io/@swanfactory/hclang) and creates a
-GitHub Release tagged `v<version>` with generated notes. Merges without a
-version bump do not publish or create a release; no manual tag is required.
+publishes hclang and hcweb to JSR, publishes the tested hclang npm tarball, and
+creates a GitHub Release tagged `v<version>` with generated notes and the tested
+`hcweb.html` download. Merges without a version bump do not publish packages,
+create a release, or deploy the demo; no manual tag is required.
+
+The release workflow uploads `web/dist/` to GitHub Pages and verifies the public
+page's version, source commit, and HC evaluation in Chromium. A separate
+`demo-availability.yml` workflow runs the browser check daily and on manual
+dispatch. Offline artifact tests alone cannot detect a production DNS or hosting
+failure. Keep the production check separate from the local `test:all` gate.
+
+The online demo is
+[theswanfactory.github.io/hclang](https://theswanfactory.github.io/hclang/).
+Select **GitHub Actions** as the repository's Pages source and allow `master` in
+the `github-pages` environment before the first deployment. Disconnect the old
+Deno Deploy GitHub integration so it stops posting obsolete deployment statuses.
+See
+[web publishing and monitoring](web/README.md#how-the-release-artifact-is-built)
+for setup and local smoke-test commands.
 
 ### VS Code Extension
 
@@ -361,7 +377,9 @@ See [cli/CLAUDE.md](cli/CLAUDE.md)
 
 Preact playground distributed two ways:
 
-- `web/dist/hcweb.html`, one offline file attached to each GitHub release
+- `web/dist/hcweb.html`, one offline file attached to each GitHub release;
+  GitHub Pages serves its byte-identical `index.html` mirror at
+  [the online playground](https://theswanfactory.github.io/hclang/)
 - `@swanfactory/hcweb` on JSR for embedding, loading hclang transitively
 - One authoritative browser-based HC interpreter, no server or SSR
 - Bundled by `scripts/build-hcweb.ts` using Deno's browser bundler

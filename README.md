@@ -31,7 +31,10 @@ formats (e.g., HCSV, HCSON).
 ### Try it Online
 
 Visit [The Swan Factory HC playground](https://theswanfactory.github.io/hclang/)
-to try HC directly in your browser with no installation required.
+to try HC directly in your browser with no installation required. For offline
+use, download
+[`hcweb.html` from the latest release](https://github.com/TheSwanFactory/hclang/releases/latest/download/hcweb.html)
+and open it in your browser.
 
 ### Use as a Library
 

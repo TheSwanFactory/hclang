@@ -235,7 +235,7 @@ Well... what if we just used fold?
 Then use fold all the way down!
 
 It sounds insane, but it actually works. You can
-[check it out](https://hclang.deno.dev) for yourself.
+[check it out](https://theswanfactory.github.io/hclang/) for yourself.
 
 There's even a name for that too:
 [monadic parsing](https://gabrijel-boduljak.com/functional-pearl-monadic-parsing/)
@@ -294,10 +294,12 @@ real loss of expressive power.
 ### Existing Implementation
 
 As mentioned, you can interact with the current implementation directly at the
-[HCLang Playground](https://hclang.deno.dev). This version is written in
-TypeScript, and available as a JSR module. It runs in the brower, and can even
-be distributed as a single HTML file with no back-end (though it uses a CDN to
-download the module and UI).
+[HCLang Playground](https://theswanfactory.github.io/hclang/), hosted on GitHub
+Pages. This version is written in TypeScript, and available as a JSR module.
+You can also download
+[`hcweb.html` from the latest release](https://github.com/TheSwanFactory/hclang/releases/latest/download/hcweb.html)
+and open it directly in a browser. The single file bundles the interpreter and
+UI, works offline, and needs no backend or CDN at runtime.
 
 ### Open Issues
 
