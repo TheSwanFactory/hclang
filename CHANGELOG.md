@@ -13,6 +13,9 @@
 - **Gap and Spin remain derived mathematical abbreviations.** Preserve FrameInt
   Gap, signed Spin, host refusal and positive Count divisor checks;
   construction, Size, residual, identity incidence and Star use native HC.
+- **Fix MAML metadata rendering.** Render public metadata as joined head tags
+  without iterator argument errors or duplicate body content; run the MAML suite
+  in the required local and CI test gate.
 
 ## v0.37.0 2026-10-30
 
