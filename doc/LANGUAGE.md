@@ -803,15 +803,43 @@ effect.
 
 ### Iterators
 
-We use `|` for map, in homage to the UNIX pipeline.
+Iteration is application, twice. Both operators apply each element of the left
+operand to the right operand, and differ only in what becomes of each answer.
 
-    ; [1, 2, 3] | { _ + 1 }
+We use `&` for map: it keeps the answers apart, one per element.
+
+    ; [1, 2, 3] & { _ + 1 }
     # [2, 3, 4]
 
-Similarly, we use `&` for reduce:
+We use `|` for reduce, in homage to the UNIX pipeline: each answer becomes the
+receiver for the next element. No operator carries a combining rule of its own;
+what the reduce starts from supplies it. An aggregate collects, text joins, and
+a number multiplies:
 
-    ; [1, 2, 3] & { . + _ }
-    # 6
+    ; [1, 2, 3] | []
+    # [1, 2, 3]
+    ; [1, 2, 3] | “”
+    # “123”
+    ; [1, 2, 4] | 1
+    # 8
+
+A class supplies any other rule by declaring a method named `apply` (`apply_`
+when it writes the receiver):
+
+    ; .Summer {[.total _; .apply_ {@total (total + _);}]};
+    ; ([1, 2, 4] | (Summer 0)) .total
+    # 7
+
+`&|` maps and then splices each answer's elements into one fresh array, so it
+concatenates and, with a conditional, filters:
+
+    ; [1, 2, 3] &| { [_, _] }
+    # [1, 1, 2, 2, 3, 3]
+
+Doubling either operator (`&&`, `||`) streams `[key, value]` tuples instead of
+values: the visible properties in declaration order, then the elements by index.
+See `hc/apply-tutorial.md` for the full treatment. (Before v0.15.0, `|` and `&`
+were assigned the other way around.)
 
 ## Appendices
 
