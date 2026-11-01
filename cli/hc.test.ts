@@ -393,6 +393,21 @@ describe("main", () => {
     );
   });
 
+  it("keeps the constructed-state VACT testdoc green (Explore 022.05a)", async () => {
+    const out = new FrameArray([]);
+    const file =
+      new URL("../hc/constructed-state.hc", import.meta.url).pathname;
+    const status = await main(
+      getEval({}, out),
+      getOptions(["--testdoc", file]),
+    );
+
+    expect(status).toEqual(0);
+    expect(out.at(-1).toString()).toContain(
+      '“{"total":22,"pass":22,"fail":0,"unimplemented":0}”',
+    );
+  });
+
   /** Runs `source` as a temporary testdoc under the CLI's real harness. */
   const runTestdoc = async (source: string) => {
     const out = new FrameArray([]);

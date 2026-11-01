@@ -269,3 +269,20 @@ fourth-hash observation followed by `c`. This is an intentional source break.
 Use whitespace before a hash comment after `.###` to preserve the old meaning.
 The executable Figures fixture and grammar/chunk-boundary tests cover the
 change.
+
+## Constructed-state VACT witness
+
+[`hc/constructed-state.hc`](../hc/constructed-state.hc) implements Explore
+022.05a's corrected constructive-state handoff as an executable testdoc. Run
+`deno task hc hc/constructed-state.hc -t` from the repository root. It records
+native construction, the exact observer contract, compression collisions,
+append/Inlay evolution, the empty-host boundary, channel relabeling, and the
+scope of future Demi equivalence. Its uniform recipe covers finite nested arrays
+with ordinary nonterminal metadata ignored, unadorned empty terminals, and no
+declared observers; mixed-value examples are labeled separately.
+
+The testdoc also specifies a finite stick/bin apparatus and a five-criterion
+verdict. Software execution supplies the executable witness; the material
+apparatus is proposed as physically realizable and has not been executed.
+Neither full origin invariance nor sufficiency for arbitrary HC observations is
+claimed. This witness is included in `deno task test:doc` and the CLI tests.
