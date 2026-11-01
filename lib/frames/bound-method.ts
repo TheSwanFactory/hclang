@@ -107,7 +107,10 @@ export class BoundMethod extends Frame {
     // the lookup order, and a shared body's captured scope is whichever instance
     // was built last, so a method would read another instance's fields.
     const result = this.method.call(argument, Frame.nil, state);
-    if (result.isFailedResult()) return result;
+    // A mutating method answers its receiver, unless it answered an error. A
+    // diagnostic note such as `$!.name-missing` is one too, though it is not
+    // flagged, so it is answered rather than replaced by the receiver (011.20).
+    if (result.isFailedResult() || result.referent().isError()) return result;
     return this.isMutating() ? state.receiver : result;
   }
 

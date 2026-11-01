@@ -201,35 +201,35 @@ Star uses native `*` dispatch; numeric pairs keep arithmetic.
 ; [.tag 1;] * [[]]
 # $!.star-metadata *
 ```
-The fourth observer derives a native immutable Demi from Count, Size and residual.
+The fourth observer derives a Demi from Count, Size and residual.
 A zero Count or absent residual gives no Demi; errors propagate. A schema used
 as an explicit element contributes Size normally, even though its own Demi is nil.
 A present Demi has Size L+R and residual L−R. Its Count is the least positive
 representative of its stored parity: 2 for all/even and 1 for nil/odd. The same
 universal derivation therefore reconstructs its data value on repeated fourth
 observation, including present zero loads, without a special fourth-hash rule.
-The scalar append and Inlay laws apply to nonempty Figure hosts. For an empty
-host, observe [Y] for append and Y for Inlay; nil arithmetic stays unchanged.
-Count is a terminal quantity: positive Counts agree with pure Figures of that
-terminal Size, but 0 has Size 0 while [] has Size 1. Mixed values may have
-present zero-load Demis, including [0].####.
-Demi * Count scales; Count * Demi repeats by existing Star dispatch. For example,
-[[],[]].#### * 3 scales to FrameDemi(<>,3,3), while 3 * [[],[]].#### repeats
-FrameDemi(<>,1,1) three times.
-The following displays are diagnostic native values, not HC reconstruction syntax.
+A present Demi is an instance of the HC class in `hc/demi.hc` (011.20), and
+reads as text `Demi(phase,left,right)`. Applying a Demi to Y deposits Y's Size
+and flips the phase, so for a nonempty Figure host X, (X Y).#### is
+X.#### Y; for an empty host, start from the zero-load Demi in phase 2 instead,
+because [].#### is nil. Scaling is the method `scale_`, the shadow of Star:
+(X * Y).#### is X.####.scale_ (Y.##) for a nonempty host. Count is a terminal
+quantity: positive Counts agree with pure Figures of that terminal Size, but 0
+has Size 0 while [] has Size 1. Mixed values may have present zero-load Demis,
+including [0].####.
 ```
-; [[].####, 0.####, “hello”.####, <2,3,5>.####]
-# [(), (), FrameDemi((),3,2), ()]
+; [[].####, 0.####, “” “hello”.####, <2,3,5>.####]
+# [(), (), “Demi((),3,2)”, ()]
 ; [(10 - 5).#### = 5.####, (0 - 5).#### = 5.####, (5.0).#### = 5.####, “hello”.#### = 5.####]
 # [<>, <>, <>, <>]
 ; [<>.#, <>.##, <>.###, ().##]
 # [0, 1, 0, 1]
-; [1.####, 2.####, 3.####, 7.####]
-# [FrameDemi((),1,0), FrameDemi(<>,1,1), FrameDemi((),2,1), FrameDemi((),4,3)]
-; [[0].####, [“hello”].####, [<2,3,5>,2].####, {5 + 3}.####]
-# [FrameDemi((),0,0), FrameDemi((),5,0), FrameDemi(<>,3,2), FrameDemi((),8,1)]
-; [[[],[]].#### + 3, 7.#### * 2]
-# [FrameDemi((),4,1), FrameDemi((),8,6)]
+; [1, 2, 3, 7] & {“” _.####}
+# [“Demi((),1,0)”, “Demi(<>,1,1)”, “Demi((),2,1)”, “Demi((),4,3)”]
+; [[0], [“hello”], [<2,3,5>,2], {5 + 3}] & {“” _.####}
+# [“Demi((),0,0)”, “Demi((),5,0)”, “Demi(<>,3,2)”, “Demi((),8,1)”]
+; [“” ([[],[]].#### 3), “” (7.####.scale_ 2), ([[],[]] 3).#### = ([[],[]].#### 3)]
+# [“Demi((),4,1)”, “Demi((),8,6)”, <>]
 
 ```
 Importing skips the examples and ends on a native true value.

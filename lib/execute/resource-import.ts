@@ -5,6 +5,7 @@ import {
   FrameGroup,
   FrameLazy,
   FrameResource,
+  FrameString,
   FrameSymbol,
   hasCharacterContent,
 } from "../frames.ts";
@@ -123,6 +124,31 @@ function evaluateResourceSourceWithChain(
     ...activeImports,
     { hostNamespace: scope.hostNamespace, resource: spelling },
   ];
+  return evaluateElements(resource.elements(), scope, nextActiveImports);
+}
+
+/**
+ * Evaluates HC source text as an import would: example lines dropped, the first
+ * failed form failing the whole, and the last answer returned. Declarations
+ * land in the scope's write target. Used for source the program carries rather
+ * than reads, such as the Demi class (`demi-prologue.ts`).
+ *
+ * @param source The source text.
+ * @param scope The scope it evaluates in.
+ * @returns The last answer, or the first failure.
+ */
+export function evaluateSourceText(
+  source: string,
+  scope: EvaluationScope,
+): Frame {
+  return evaluateElements([new FrameString(source)], scope, []);
+}
+
+function evaluateElements(
+  elements: Iterable<Frame>,
+  scope: EvaluationScope,
+  nextActiveImports: readonly ActiveImport[],
+): Frame {
   const progress = new ImportProgress();
   const lexer = makeSourcePipe(EvalPipe.scoped(progress, scope), {
     importSource: (nestedResource, nestedScope) =>
@@ -141,7 +167,6 @@ function evaluateResourceSourceWithChain(
     return progress.firstFailure;
   };
   const examples = new ExampleFilter();
-  const elements = resource.elements();
 
   for (const element of elements) {
     if (element.isFailedResult()) return element;
