@@ -447,8 +447,11 @@ declares a method named `#`, `##` or `###`, which `FrameArray.sizeFor` and
 `nativeSize` run immutably in place of the list rule, through the same
 `declaredMethod` lookup. The answer must be a Count (`#`, `##`) or an exact
 integer (`###`), else `$!.declared-observation`; a method that observes its own
-receiver is `$!.cyclic-observation`. `.####` is never declared: it derives from
-the three, so the Demi class declares them and gets its fourth hash.
+receiver and key already being observed is `$!.cyclic-observation`, and nesting
+past `OBSERVATION_DEPTH_LIMIT` (32) is `$!.observation-depth`. The method runs
+on every observation and cannot write its receiver, but may act on other state
+it reaches. `.####` is never declared: it derives from the three, so the Demi
+class declares them and gets its fourth hash.
 
 The interpreter's own output is not application. The evaluator's output array is
 also the file scope, so a top-level `.apply` lands on it; `Frame.collect` is the

@@ -4,7 +4,7 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
-## v0.37.4 2026-11-01
+## v0.38.0 2026-11-01
 
 - **Demi is an HC class.** `.####` answers an instance of `Demi`, defined and
   specified in the testdoc `hc/demi.hc`, rather than a native value: fields
@@ -13,15 +13,23 @@
   `scale_ k`, and text `Demi(<>,12,3)`. It works in a bare `evaluate` with no
   root. A Demi prints as HC that reads back as an equal Demi; equal Demis are
   `=` but not `===`. `Demi + Count` and `Demi * Count` are retired: `+` and `*`
-  are ordinary on a Demi, so scale with `d.scale_ k` and deposit with `d x`. The
-  native `FrameDemi` class and its `encode`/`decode` are removed from the
-  library API.
+  are ordinary on a Demi, so scale with `d.scale_ k` and deposit with `d x`.
+  **Breaking (library API):** the native `FrameDemi` class, `DemiEncoding` and
+  `encode`/`decode` are removed; `observeDemi`, `installDemiConstructor` and
+  `DemiConstructor` are added.
 - **Classes can declare observation.** An aggregate that declares a method named
   `#`, `##` or `###` answers it for that size operator, and nested, its declared
-  Size; `.####` derives from them. Wrong kinds and self-observation are errors.
+  Size; `.####` derives from them. Unlike built-in observation this runs the
+  class's code, on every observation: it cannot write its receiver but may act
+  on other state it reaches. Wrong kinds are `$!.declared-observation`,
+  recursion through the same receivers `$!.cyclic-observation`, and nesting past
+  32 `$!.observation-depth`.
 - **Arithmetic propagates errors.** `+`, `-`, `*`, `/`, `%%` and `**` answer an
   error operand, such as `$!.name-missing`, instead of nil, so a failed read can
-  no longer vanish into a write that ignores nil. Ordering still answers nil.
+  no longer vanish into a write that ignores nil. This does not unify errors: a
+  diagnostic note such as `$!.name-missing` is still true under `?`, still nil
+  on the right of ordering or `=`, and still passes import and statement
+  boundaries that a flagged error such as `$!.division-by-zero` stops (#467).
 - **Mutating methods return their errors.** A method like `apply_` that answers
   a diagnostic error such as `$!.name-missing` now answers it rather than its
   receiver.

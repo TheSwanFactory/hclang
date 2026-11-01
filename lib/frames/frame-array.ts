@@ -324,6 +324,16 @@ export class FrameArray extends FrameList {
   private static readonly observing = new Map<FrameArray, Set<string>>();
 
   /**
+   * How deeply declared observations may nest. A cycle through the same
+   * receivers is caught exactly; one that builds a fresh receiver each step
+   * is not, so nesting is bounded too, far above any real class's need.
+   */
+  public static readonly OBSERVATION_DEPTH_LIMIT = 32;
+
+  /** Declared observations now running, across every receiver. */
+  private static observationDepth = 0;
+
+  /**
    * An aggregate observes its elements, so a class that keeps its state in
    * fields observes as its empty element list: Count 0, Size 1, residual 0.
    * One that declares a method named `#`, `##` or `###`, on itself or a
@@ -334,9 +344,15 @@ export class FrameArray extends FrameList {
    * The answer must be the kind the operator answers: a Count for `#` and
    * `##`, an exact integer for `###`. Anything else is
    * `$!.declared-observation`, an error the method answered is answered as it
-   * is, and a method that observes its own receiver the same way is
-   * `$!.cyclic-observation`. The method runs immutably, so observing never
-   * writes.
+   * is, and a method that observes its own receiver the same way, directly
+   * or through other declared observations, is `$!.cyclic-observation`.
+   * Nesting deeper than `OBSERVATION_DEPTH_LIMIT`, as a method that observes
+   * a fresh instance of its own class does, is `$!.observation-depth`.
+   *
+   * The method runs immutably, so it cannot write its receiver. It is still
+   * code the class wrote: it runs on every observation, with no caching, and
+   * may act on anything else it can reach, a mutable handle in scope
+   * included. Observation is pure only for classes that keep it pure.
    *
    * @param key A size operator.
    * @returns The declared answer, or undefined when none is declared.
@@ -347,8 +363,12 @@ export class FrameArray extends FrameList {
     if (!method) return undefined;
     const active = FrameArray.observing.get(this) ?? new Set<string>();
     if (active.has(key)) return Frame.error(`$!.cyclic-observation .${key}`);
+    if (FrameArray.observationDepth >= FrameArray.OBSERVATION_DEPTH_LIMIT) {
+      return Frame.error(`$!.observation-depth .${key}`);
+    }
     active.add(key);
     FrameArray.observing.set(this, active);
+    FrameArray.observationDepth++;
     let answer: Frame;
     try {
       answer = new BoundMethod(
@@ -358,6 +378,7 @@ export class FrameArray extends FrameList {
         methodEffect(key),
       ).call(Frame.nil).referent();
     } finally {
+      FrameArray.observationDepth--;
       active.delete(key);
       if (active.size === 0) FrameArray.observing.delete(this);
     }

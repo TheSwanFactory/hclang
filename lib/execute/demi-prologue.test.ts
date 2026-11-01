@@ -232,3 +232,51 @@ Deno.test("an aggregate may declare its Count, Size and residual (011.20)", () =
   expect(value("[.#### {7}; 5, 3].#### = [5, 3].####").toString())
     .toEqual("<>");
 });
+
+Deno.test("declared observations terminate on every recursion and report their effects (review of #466)", () => {
+  // Through the same receiver, directly or across keys or objects: cyclic.
+  expect(value(".a [.## {b.##}]; .b [.## {a.##}]; [a.##, b.##]").toString())
+    .toEqual("[$!.cyclic-observation .##, $!.cyclic-observation .##]");
+  expect(value(".c [.# {_^.##}; .## {_^.#}]; [c.#, c.##]").toString())
+    .toEqual("[$!.cyclic-observation .#, $!.cyclic-observation .##]");
+  // Through a fresh receiver each step: bounded, not a stack overflow.
+  expect(value(".Mk {[.## {(Mk ()).##}]}; (Mk ()).##").toString())
+    .toEqual("$!.observation-depth .##");
+  // The bound is released after a failure, so later observations still run.
+  expect(value(".Mk {[.## {(Mk ()).##}]}; (Mk ()).##; [.## {4}].##").toString())
+    .toEqual("4");
+  // Legitimate nesting well inside the bound is answered.
+  expect(
+    value(
+      ".In {[.v _; .## {_^.v.##}]}; (In (In (In (In (In [1, 2]))))).##",
+    ).toString(),
+  ).toEqual("3");
+});
+
+Deno.test("a declared observer runs on every observation, cannot write its receiver, and may act elsewhere", () => {
+  // No caching: each observation runs the method again. `.####` reads each of
+  // the three declared observers exactly once.
+  const runs = value(
+    ".counter_ [.n 0; .inc_ {@n (_^.n + 1);}];" +
+      " .k [.# {counter_.inc_ (); 1}; .## {counter_.inc_ (); 5}; .### {counter_.inc_ (); 1}];" +
+      " k.##; k.##; k.####; counter_.n",
+  );
+  expect(runs.toString()).toEqual("5");
+  // The receiver is read-only to its observer; a write is refused and lands
+  // nowhere.
+  expect(value(".w [.v 1; .## {@v 9; 3}]; [w.##, w.v]").toString())
+    .toEqual("[$!.method-not-mutating @v, 1]");
+});
+
+Deno.test("failures of declared observations propagate through the fourth hash and application", () => {
+  expect(
+    value(".q [.# {1}; .## {2}; .### {[].nope}]; q.####").toString(),
+  ).toContain("$!.name-missing");
+  // A Demi applied to a Frame whose declared Size fails answers that failure.
+  expect(
+    value(".bad [.## {[].nope}]; [5, 3].#### bad").toString(),
+  ).toContain("$!.name-missing");
+  expect(
+    value(".bad [.## {“x”}]; [5, 3].#### bad").toString(),
+  ).toEqual("$!.declared-observation .##");
+});

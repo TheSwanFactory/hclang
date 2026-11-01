@@ -3,7 +3,7 @@
 Every Frame has a fourth observation, `.####`: a Demi, nil, or a propagated
 error, following occurrence/figure decisions 011.18b–m. Nil means no Count, zero
 Count or absent residual; it does not invariably mean an empty receiver. Since
-v0.37.4 (011.20) a Demi is an instance of an HC class, `Demi` in
+v0.38.0 (011.20) a Demi is an instance of an HC class, `Demi` in
 [`hc/demi.hc`](../hc/demi.hc), which is its definition and its executable
 specification. The native `FrameDemi` carrier of v0.37.3 and its `+` and `*`
 overloads are gone.
@@ -68,11 +68,52 @@ them gets its fourth hash for free.
 
 A declared answer must be a Count for `#` and `##` and an exact integer for
 `###`; anything else is `$!.declared-observation .key`. An error the method
-answers is answered as it is, and a method that observes its own receiver the
-same way is `$!.cyclic-observation .key`. The method runs immutably. Nothing
-declares one by default, so every other aggregate observes as before. Unlike
-every built-in rule, a declared observation runs code the class wrote; the class
-opts into that, as it does for `toText`.
+answers is answered as it is, so it reaches `.####` and a Demi applied to the
+value. Nothing declares one by default, so every other aggregate observes as
+before.
+
+Unlike every built-in rule, a declared observation runs code the class wrote;
+the class opts into that, as it does for `toText`. What that means, tested in
+`lib/execute/demi-prologue.test.ts`:
+
+- **Every observation runs the method.** Nothing is cached and there is no
+  at-most-once guarantee across observations; one `.####` reads each of `#`,
+  `##` and `###` exactly once.
+- **It cannot write its receiver.** The method runs immutably, so `@v` inside it
+  answers `$!.method-not-mutating @v` and the field is unchanged.
+- **It may act on anything else it reaches,** such as a mutable handle in scope.
+  Observation is pure only for a class that keeps it pure; the Demi class does.
+- **Recursion terminates.** Observing a receiver and key already being observed,
+  directly, across keys (`# {_^.##}` with `## {_^.#}`) or across objects (`a`
+  observing `b` observing `a`), is `$!.cyclic-observation .key`. A method that
+  builds a fresh receiver each step escapes that check, so nesting deeper than
+  32 declared observations is `$!.observation-depth .key` rather than a stack
+  overflow.
+
+## Error propagation, as it stands
+
+HC has two kinds of error value. A flagged error, such as
+`$!.division-by-zero /`, propagates through every operator and through `?`. A
+diagnostic note, such as `$!.name-missing`, carries no flag, and before 011.20
+it could vanish. 011.20 fixed the two places the class depends on:
+
+- **Arithmetic** (`+ - * / %% **`) answers an error operand of either kind,
+  where it answered nil.
+- **A mutating method** that answers one returns it, where it returned its
+  receiver.
+
+So a failed Size reaches the caller of `d x`, and a misread load shows in the
+field instead of as a write that silently did nothing. `Frame.isError()` is the
+predicate that recognizes both kinds.
+
+This is not a uniform policy. A diagnostic note still differs from a flagged
+error in three places (#467):
+
+- It is **true under `?`**: `(1 + ([].nope)) ? {1} : {2}` is `1`.
+- On the **right of ordering or `=`** it answers nil: `1 .> ([].nope)` is `()`.
+  On the left it answers itself, with the rest of the expression absorbed.
+- **Import and statement boundaries** stop on a flagged error but bind a note
+  and go on.
 
 ## How `.####` reaches the class
 
