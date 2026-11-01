@@ -1,5 +1,10 @@
 # Change Log
 
+## Unreleased
+
+- Recognize `.####` as a native observer name; a fifth hash starts a comment.
+  Existing `.###` immediately followed by a hash comment changes tokenization.
+
 All notable changes to the Homoiconic C VS Code extension will be documented in
 this file.
 

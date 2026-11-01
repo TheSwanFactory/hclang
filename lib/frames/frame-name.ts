@@ -38,8 +38,8 @@ const recognizeName = (symbol: Frame, source = ""): ScanResult => {
     return { disposition: ScanDisposition.CompleteRedispatch };
   }
   // `#` begins a comment except where it spells a size operator, `.#`, `.##`
-  // or `.###` (#411, 010.04), which nothing extends: `.foo#bar` still ends at
-  // its `#`, and `.####` is `.###` before a comment.
+  // `.###` or `.####` (011.18). A fifth hash starts a comment;
+  // `.foo#bar` still ends at its first hash.
   if (Frame.SIZE_OPERATORS.includes(source + char)) {
     return { disposition: ScanDisposition.Consume };
   }

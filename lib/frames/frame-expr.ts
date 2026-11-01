@@ -138,12 +138,16 @@ export class FrameExpr extends FrameList {
 
       const value = item.in(resumedScope(item, scope));
       if (value.is.error === true) return value;
+      if (
+        index === 0 && value.isSymbol() && value.is.address &&
+        Frame.SIZE_OPERATORS.includes(value.spelling())
+      ) return value;
       // An explicit nil receiver still has a Size. The initial nil accumulator
       // is not a receiver, so a leading .## remains an address (#411).
       if (
         index > 0 && sum.is.void && value.isSymbol() &&
         value.is.address &&
-        [Frame.kLEAVES, Frame.kRESIDUAL].includes(value.spelling())
+        Frame.SIZE_OPERATORS.includes(value.spelling())
       ) {
         return value.called_by(sum);
       }

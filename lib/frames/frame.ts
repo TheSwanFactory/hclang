@@ -535,11 +535,13 @@ export class Frame extends MetaFrame {
    */
   public static readonly kLEAVES = "##";
   /**
-   * kRESIDUAL is the size operator `.###`, a Figure's signed alternating sum
-   * of its immediate elements' terminal counts, as a FrameInt (issue
-   * occurrence/figure 010.04).
+   * kRESIDUAL is `.###`: a FrameInt alternating sum of immediate child native
+   * Sizes on non-schema lists, or Count parity on any other Frame with a Count
+   * (occurrence/figure 011.18k, 011.18m). Schemas and nil have nil residual.
    */
   public static readonly kRESIDUAL = "###";
+  /** Derived nullable two-channel state (occurrence/figure 011.18c). */
+  public static readonly kDEMI = "####";
   /**
    * The size operators, the only names spelled with `#` (#411). Each answers
    * for its receiver through `sizeFor`, never through name lookup.
@@ -548,6 +550,7 @@ export class Frame extends MetaFrame {
     Frame.kCOUNT,
     Frame.kLEAVES,
     Frame.kRESIDUAL,
+    Frame.kDEMI,
   ];
   /**
    * BEGIN_EXPR is the symbol for the beginning of an expression.
@@ -572,6 +575,14 @@ export class Frame extends MetaFrame {
 
     override dataString(): string {
       return "<>";
+    }
+
+    override sizeFor(key: string): Frame {
+      if (key === Frame.kCOUNT) {
+        return this.observationError() ?? Frame.count(0n);
+      }
+      if (key === Frame.kRESIDUAL) return Frame.signed(0n); // 011.18k
+      return super.sizeFor(key);
     }
 
     override call(argument: Frame): Frame {
@@ -734,6 +745,8 @@ export class Frame extends MetaFrame {
     _receiverState?: ReceiverState,
   ): Frame {
     if (this.is.void) {
+      const key = Frame.quantityOperator(argument);
+      if (key) return this.sizeFor(key);
       return Frame.isBooleanNegation(argument) ? Frame.all : argument;
     }
     return argument.called_by(this, parameter);
@@ -880,20 +893,54 @@ export class Frame extends MetaFrame {
   /** Installed by FrameCount without importing a subclass into its base. */
   public static count: (value: bigint) => Frame;
 
+  /** Installed by FrameInt without importing a subclass into its base. */
+  public static signed: (value: bigint) => Frame;
+
+  /** Installed by FrameDemi, avoiding a base-to-subclass import cycle. */
+  public static demi: (source: Frame) => Frame;
+
+  /** A failure carried by this value, without executing or enumerating it. */
+  public observationError(): Frame | undefined {
+    return this.is.error || this.is.cyclicReference ? this : undefined;
+  }
+
   /**
-   * What this frame answers for a size operator, `.#`, `.##` or `.###`
-   * (#411). Size counts represented quantity; opaque atoms count once.
-   * Immediate count and signed residual are partial, with kind-specific rules.
+   * Native Count, Size, residual and derived Demi. Missing Count falls back to
+   * Size, and missing residual to Count parity; kinds with their own rules
+   * (lists, schemas, Demi, all) supply them explicitly (011.18k, 011.18m).
+   * Nil has no Count, so no residual or Demi.
    */
   public sizeFor(key: string): Frame {
-    if (key !== Frame.kLEAVES) return Frame.nil;
-    const size = this.nativeSize(new Set());
-    return typeof size === "bigint" ? Frame.count(size) : size;
+    if (!Frame.SIZE_OPERATORS.includes(key)) return Frame.nil;
+    const failure = this.observationError();
+    if (failure) return failure;
+    // The internal lookup sentinel is never a value: observing it is the
+    // same failure HC reports for a missing name (011.18m).
+    if (this.is.missing) return Frame.error("$!.name-missing");
+    switch (key) {
+      case Frame.kCOUNT:
+        if (this.is.void) return Frame.nil; // nil has no Count (011.18k)
+        return this.sizeFor(Frame.kLEAVES);
+      case Frame.kLEAVES: {
+        const size = this.nativeSize(new Set());
+        return typeof size === "bigint" ? Frame.count(size) : size;
+      }
+      case Frame.kRESIDUAL: {
+        const n = this.sizeFor(Frame.kCOUNT);
+        if (n.observationError()) return n;
+        const data = (n as unknown as { data?: unknown }).data;
+        return typeof data === "bigint" ? Frame.signed(data % 2n) : Frame.nil;
+      }
+      case Frame.kDEMI:
+        return Frame.demi(this);
+      default:
+        return Frame.nil;
+    }
   }
 
   /** Nonnegative represented quantity; path tracks recursive containment only. */
   public nativeSize(_path: Set<Frame>): bigint | Frame {
-    return this.is.cyclicReference ? this : 1n;
+    return this.observationError() ?? 1n;
   }
 
   /**
@@ -1216,7 +1263,7 @@ export class Frame extends MetaFrame {
       return undefined;
     }
     const key = (argument as unknown as { spelling(): string }).spelling();
-    return key === Frame.kLEAVES || key === Frame.kRESIDUAL ? key : undefined;
+    return Frame.SIZE_OPERATORS.includes(key) ? key : undefined;
   }
 
   /**

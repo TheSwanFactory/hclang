@@ -277,30 +277,29 @@ describe("FrameArray", () => {
       ) expect(last(`${host}.###`).toString(), host).toEqual(expected);
     });
 
-    it("answers nil on atoms, schemas and executable syntax", () => {
+    it("answers nil on schemas and Count parity on atoms (011.18k)", () => {
+      // nil, so the source answers no value.
+      expect(evaluate("<[], []>.###").toString()).toEqual("[]");
       for (
-        const source of [
-          "<[], []>",
-          "{[]}",
-          "“ab”",
-          "5",
-          "(0 - 5)",
+        const [source, parity] of [["“ab”", "0"], ["(0 - 5)", "1"], [
           "1.5",
-        ]
+          "1",
+        ]]
       ) {
-        // nil, so the source answers no value.
-        expect(evaluate(`${source}.###`).toString(), source).toEqual("[]");
+        expect(evaluate(`${source}.###`).toString(), source)
+          .toEqual(`[${parity}]`);
       }
     });
 
-    it("answers nil on an aggregate that contains itself", () => {
+    it("propagates the cycle error on an aggregate that contains itself", () => {
       const direct = new FrameArray([new FrameArray([])]);
       direct.collect(direct);
       const indirect = new FrameArray([new FrameArray([])]);
       indirect.collect(new FrameArray([new FrameArray([]), indirect]));
 
       for (const xs of [direct, indirect]) {
-        expect(evaluate("$$.xs.###", { xs }).toString()).toEqual("[]");
+        expect(evaluate("$$.xs.###", { xs }).at(0).toString())
+          .toEqual("$!.cyclic-aggregate .##");
       }
     });
   });

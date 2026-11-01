@@ -173,17 +173,24 @@ complete at a colon with or without intervening space.
   call's argument, and so on per underscore). An argument is read-only, as a
   name is: applying an aggregate read through `_` collects onto a copy
 - **Parent declaration**: `.^` (declares the parent; `.^ base`)
-- **Size**: `.#` is an aggregate's element count and `.##` its terminal count at
-  any depth, each a count. A terminal is an element that is not an aggregate, or
-  an aggregate with no elements, so `[].##` is 1 and `[[], [5]].##` is 2. A
-  count is its own size and any other value answers nil. `.###` answers only on
-  Figures, finite nested arrays read through their elements (properties and
-  declared parents are ignored at every level): it is the signed alternating sum
-  `x₁.## − x₂.## + x₃.## − …` over the immediate elements, always a FrameInt, so
-  `[].###` is 0 and `[[], [[], []]].###` is -1. Anything else answers nil: an
-  atom, string, group, schema or closure anywhere in the structure, or an
-  aggregate that contains itself. These are the only names spelled with `#`,
-  which otherwise begins a comment, so `.####` is `.###` before a comment
+- **Size and Demi**: `.#` counts immediate elements/represented words of lists,
+  returns a Count's own magnitude, returns zero for `<>` and void comments, and
+  returns nil for `()`, which has no Count. A missing kind-specific Count falls
+  back to `.##`; an explicit Count wins. `.##` measures represented quantity:
+  exact truncated numeric magnitude, Unicode code points, blob bits, payload
+  bytes, enumeration alternatives or one opaque occurrence. Lists sum complete
+  child Sizes; empty lists retain Size 1. Metadata and declared parents are
+  excluded; sharing counts per occurrence. `.###` is the alternating sum of
+  immediate child Sizes on all non-schema lists, including stored source syntax
+  and closure words without execution, and FrameInt Count parity (`.# mod 2`) on
+  every other Frame with a Count, `<>` included. Schemas and nil have nil
+  residual. `.####` returns nil for zero Count or nil residual; otherwise it
+  derives native FrameDemi loads `(Size+residual)/2` and `(Size−residual)/2`,
+  with left-next orientation for even Count. Errors propagate, including cycles
+  and nonfinite quantities; incoherent loads are explicit errors. Four hashes
+  form an observer name; a fifth starts a comment. Earlier `.###` immediately
+  followed by a hash comment therefore changes tokenization. See
+  `doc/FRAME-DEMI.md` for the native API and compatibility matrix.
 - **Enclosing scope**: `_^` (`_^.var`). Each caret is exactly one enclosing
   lexical scope: `_^^` is two scopes out. The count depends only on where the
   closure was written, never on how it was invoked. `_`/`__` and `_^`/`_^^` are

@@ -6,6 +6,17 @@ export class FrameAtom extends Frame {
     super(meta);
   }
 
+  /**
+   * A void atom, such as a comment, keeps an explicit Count zero; only nil
+   * itself has no Count (011.18k).
+   */
+  public override sizeFor(key: string): Frame {
+    if (key === Frame.kCOUNT && this.is.void) {
+      return this.observationError() ?? Frame.count(0n);
+    }
+    return super.sizeFor(key);
+  }
+
   public string_prefix(): string {
     return "";
   }

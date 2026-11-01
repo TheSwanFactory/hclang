@@ -187,14 +187,21 @@ export class FrameList extends Frame {
 
   /** Immediate count is unchanged; Size and residual share native child sizes. */
   public override sizeFor(key: string): Frame {
+    const failure = this.observationError();
+    if (failure && Frame.SIZE_OPERATORS.includes(key)) return failure;
     if (key === Frame.kCOUNT) {
-      return new FrameCount(BigInt(this.countedElements().length));
+      const elements = this.sizeElements();
+      return elements instanceof Frame
+        ? elements
+        : new FrameCount(BigInt(elements.length));
     }
     return key === Frame.kRESIDUAL ? this.residual() : super.sizeFor(key);
   }
 
   /** Empty aggregates retain one terminal; shared descendants count per occurrence. */
   public override nativeSize(path: Set<Frame>): bigint | Frame {
+    const failure = this.observationError();
+    if (failure) return failure;
     if (path.has(this)) return Frame.error("$!.cyclic-aggregate .##");
     path.add(this);
     try {
@@ -213,20 +220,22 @@ export class FrameList extends Frame {
     }
   }
 
-  /** Only concrete ordered data hosts opt in, never executable/matcher syntax. */
+  /** Lists observe stored contents; schemas retain their separate semantics. */
   protected supportsResidual(): boolean {
-    return false;
+    return true;
   }
 
   /** Alternate over immediate positions, using each child's complete Size. */
   private residual(): Frame {
-    if (!this.supportsResidual() || this.is.source === true) return Frame.nil;
+    if (!this.supportsResidual()) return Frame.nil;
+    const elements = this.sizeElements();
+    if (elements instanceof Frame) return elements;
     const path = new Set<Frame>([this]);
     let signed = 0n;
     let positive = true;
-    for (const element of this.countedElements()) {
+    for (const element of elements) {
       const size = element.referent().nativeSize(path);
-      if (typeof size !== "bigint") return Frame.nil;
+      if (typeof size !== "bigint") return size;
       signed += positive ? size : -size;
       positive = !positive;
     }

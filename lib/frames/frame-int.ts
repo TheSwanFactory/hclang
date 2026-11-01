@@ -242,3 +242,5 @@ export class FrameInt extends FrameNumeric {
     return result;
   }
 }
+
+Frame.signed = (value: bigint): FrameInt => new FrameInt(value);

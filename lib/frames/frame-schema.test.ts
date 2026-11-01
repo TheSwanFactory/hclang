@@ -124,7 +124,7 @@ describe("FrameSchema", () => {
     });
 
     it("sizes the total type as one while preserving its immediate count", () => {
-      expect(last("<>.#")).toBe(Frame.all);
+      expect(last("<>.#").toString()).toEqual("0");
       expect(last("<>.##").toString()).toEqual("1");
     });
   });

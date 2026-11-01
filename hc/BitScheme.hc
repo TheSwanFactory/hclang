@@ -216,7 +216,8 @@ The current declaration syntax binds a schema and an initial value in one expres
 
 === Schema Retrieval and Captures (implemented, #310)
 
-The `<>` property retrieves the schema attached to the binding:
+The `<^>` property retrieves the schema attached to the binding; `.<>` observes
+the runtime type:
 ```
 ; enum123.<^>
 # <1, 2, 3>

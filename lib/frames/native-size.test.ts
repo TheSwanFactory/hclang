@@ -56,7 +56,8 @@ Deno.test("Size evaluates exact truncated magnitudes without Number projection",
     );
     expect(new FrameArray([atom]).sizeFor("##").toString())
       .toEqual("$!.nonquantifiable-size .##");
-    expect(new FrameArray([atom]).sizeFor("###")).toBe(Frame.nil);
+    expect(new FrameArray([atom]).sizeFor("###").toString())
+      .toEqual("$!.nonquantifiable-size .##");
   }
 });
 
@@ -152,25 +153,29 @@ Deno.test("mixed arrays and evaluated groups alternate complete immediate Sizes"
     expect(signed.toString(), source).toEqual(residual);
     expect(last(`${source}.#`).toString(), source).toEqual(count);
   }
-  for (
-    const source of [
-      "5",
-      "(-3)",
-      '"hi"',
-      "(1).<>",
-      "<2,3>",
-      "{5,3}",
-      "<>",
-      "()",
-    ]
-  ) {
+  // Schemas and nil keep nil residual (011.18k).
+  for (const source of ["<2,3>", "()"]) {
     expect(evaluate(`${source}.###`).toString(), source).toEqual("[]");
   }
-  expect(new FrameExpr([new FrameCount(5n), new FrameCount(3n)]).sizeFor("###"))
-    .toBe(Frame.nil);
+  // Values with a Count take its parity; all is the present empty (011.18m).
+  for (
+    const [source, parity] of [
+      ["(-3)", "1"],
+      ['"hi"', "0"],
+      ["(1).<>", "1"],
+      ["<>", "0"],
+    ]
+  ) {
+    expect(evaluate(`${source}.###`).toString(), source).toEqual(`[${parity}]`);
+  }
+  expect(
+    new FrameExpr([new FrameCount(5n), new FrameCount(3n)]).sizeFor("###")
+      .toString(),
+  )
+    .toEqual("2");
   const sourceArray = new FrameArray([new FrameCount(5n)]);
   sourceArray.is.source = true;
-  expect(sourceArray.sizeFor("###")).toBe(Frame.nil);
+  expect(sourceArray.sizeFor("###").toString()).toEqual("5");
 });
 
 Deno.test("recursive Size distinguishes sharing, mutual cycles, and metadata cycles", () => {
@@ -191,7 +196,7 @@ Deno.test("recursive Size distinguishes sharing, mutual cycles, and metadata cyc
     );
     for (const node of nodes) {
       expect(node.sizeFor("##").toString()).toEqual("$!.cyclic-aggregate .##");
-      expect(node.sizeFor("###")).toBe(Frame.nil);
+      expect(node.sizeFor("###").toString()).toEqual("$!.cyclic-aggregate .##");
       expect(node.sizeFor("#").toString()).toEqual("1");
       expect(node.asArray()).toHaveLength(1);
     }
@@ -202,7 +207,9 @@ Deno.test("recursive Size distinguishes sharing, mutual cycles, and metadata cyc
   const containing = new FrameArray([closure]);
   body.push(containing);
   expect(closure.sizeFor("##").toString()).toEqual("$!.cyclic-aggregate .##");
-  expect(containing.sizeFor("###")).toBe(Frame.nil);
+  expect(containing.sizeFor("###").toString()).toEqual(
+    "$!.cyclic-aggregate .##",
+  );
   const syntax: Frame[] = [];
   const expr = new FrameExpr(syntax);
   syntax.push(expr);
@@ -211,7 +218,7 @@ Deno.test("recursive Size distinguishes sharing, mutual cycles, and metadata cyc
   const group = new FrameGroup(a);
   a.push(group);
   expect(group.sizeFor("##").toString()).toEqual("$!.cyclic-aggregate .##");
-  expect(group.sizeFor("###")).toBe(Frame.nil);
+  expect(group.sizeFor("###").toString()).toEqual("$!.cyclic-aggregate .##");
 });
 
 Deno.test("observation neither executes, matches nor reads resources", () => {
@@ -237,7 +244,6 @@ Deno.test("observation neither executes, matches nor reads resources", () => {
   });
   const opaque = [
     resource,
-    Frame.error("$!.example"),
     FrameSymbol.for("+"),
     parseTimeLiteral("2026-10-30"),
     parseTimeLiteral("PT1.5S"),
@@ -247,9 +253,9 @@ Deno.test("observation neither executes, matches nor reads resources", () => {
   expect(last("9.8.m.##").toString()).toEqual("1");
   expect(last("1.2.3.##").toString()).toEqual("1");
   expect(closure.sizeFor("##").toString()).toEqual("6");
-  expect(closure.sizeFor("###")).toBe(Frame.nil);
+  expect(closure.sizeFor("###").toString()).toEqual("4");
   expect(new FrameArray([...opaque, closure]).sizeFor("##").toString()).toEqual(
-    "12",
+    "11",
   );
   expect(new FrameArray([resource, closure, matcher]).sizeFor("###").toString())
     .toEqual("-4");
@@ -275,10 +281,10 @@ Deno.test("reference chains refuse cycles before entering the aggregate Size wal
     expect(handle.nativeSize(new Set()).toString()).toEqual(
       "$!.cyclic-reference",
     );
-    expect(handle.sizeFor("###")).toBe(Frame.nil);
+    expect(handle.sizeFor("###").toString()).toEqual("$!.cyclic-reference");
     const array = new FrameArray([handle]);
     expect(array.sizeFor("##").toString()).toEqual("$!.cyclic-reference");
-    expect(array.sizeFor("###")).toBe(Frame.nil);
+    expect(array.sizeFor("###").toString()).toEqual("$!.cyclic-reference");
     expect(array.sizeFor("#").toString()).toEqual("1");
   }
   expect(left.unwrap()).toBe(right);
@@ -288,12 +294,16 @@ Deno.test("reference chains refuse cycles before entering the aggregate Size wal
   const scoped = new FrameScoped(left, EvaluationScope.from([]));
   Reflect.set(left, "target", scoped);
   expect(scoped.referent().toString()).toEqual("$!.cyclic-reference");
-  expect(new FrameArray([scoped]).sizeFor("###")).toBe(Frame.nil);
+  expect(new FrameArray([scoped]).sizeFor("###").toString()).toEqual(
+    "$!.cyclic-reference",
+  );
   Reflect.set(scoped, "term", scoped);
   expect(scoped.sizeFor("##").toString()).toEqual("$!.cyclic-reference");
   expect(scoped.nativeSize(new Set()).toString()).toEqual(
     "$!.cyclic-reference",
   );
-  expect(scoped.sizeFor("###")).toBe(Frame.nil);
-  expect(Frame.error("$!.stored-error").sizeFor("##").toString()).toEqual("1");
+  expect(scoped.sizeFor("###").toString()).toEqual("$!.cyclic-reference");
+  expect(Frame.error("$!.stored-error").sizeFor("##").toString()).toEqual(
+    "$!.stored-error",
+  );
 });

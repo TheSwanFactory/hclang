@@ -325,14 +325,16 @@ Reading a property or an index is application, and is spelled as application
 ; [.a 1] & {_}
 # []
 ```
-`.#` and `.##` count the elements too, the immediate ones and the terminals
-below them, so neither counts a property. A terminal is an element that is not
-an aggregate, or an aggregate with no elements: the empty frame is one terminal,
-at the root or nested. A nested count contributes its own Size, including zero
-(`[[3], 0].##` is 3); other atoms contribute one. Every aggregate counts this
-way, a group as well as an array. A count is its own size, and any other value
-has none (#411, issue
-occurrence/figure 010.02)
+`.#` counts immediate elements or represented words; properties do not count.
+A missing Count rule falls back to native Size, including numbers, text, blobs,
+bytes and opaque atoms. Explicit list, schema and all Count rules take precedence; `()` has no Count. `.##` measures represented
+quantity: lists sum complete child Sizes, with Size 1 for an empty list. Numeric
+magnitude, Unicode text length, blob bits and payload bytes have their own native
+Sizes; schemas retain their description/alternative quantities. Other opaque
+values have Size 1. `.###` alternates child Sizes on non-schema lists, or returns
+Count parity (`.# mod 2`) on every other value with a Count; schemas have nil
+residual, and `<>` observes as `[]`. `.####` derives native Demi,
+returning nil at zero Count or nil residual and propagating failed observations.
 ```
 ; [.meta 1; 2, 3] .#
 # 2
@@ -345,7 +347,7 @@ occurrence/figure 010.02)
 ; 5.#
 # 5
 ; “abc”.#
-# ()
+# 3
 ```
 **Decision.** Canonical rendering puts the properties first, then the elements.
 This reverses the spelling this file carried before. It makes print order agree

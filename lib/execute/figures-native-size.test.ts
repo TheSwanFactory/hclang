@@ -143,16 +143,25 @@ Deno.test("Gap is |.###| and Spin is .### / N, with .### a FrameInt (010.04)", a
   expect(await session.call("Figures.gap [[], [[], []]]")).toEqual("1");
 });
 
-Deno.test("Gap and Spin keep refusing unsupported hosts (010.04)", async () => {
+Deno.test("Gap and Spin accept every value with a Count; schemas have no residual (011.18m)", async () => {
   const session = await figuresSession();
-  for (const host of ["“hi”", "{[]}", "5"]) {
-    expect(await session.call(`Figures.gap ${host}`), host)
-      .toContain("unsupported-figure");
-    expect(await session.call(`Figures.spin ${host} 2`), host)
-      .toContain("unsupported-figure");
-    // nil prints as the empty string.
-    expect(await session.call(`${host}.###`), host).toEqual("");
+  // Any Frame with a Count and no residual rule of its own has Count parity.
+  for (
+    const [host, residual, gap, spin] of [
+      ["“hi”", "0", "0", "0"],
+      ["(-3)", "1", "1", "1/2"],
+      ["(1).<>", "1", "1", "1/2"],
+    ]
+  ) {
+    expect(await session.call(`${host}.###`), host).toEqual(residual);
+    expect(await session.call(`Figures.gap ${host}`), host).toEqual(gap);
+    expect(await session.call(`Figures.spin ${host} 2`), host).toEqual(spin);
   }
+  // A schema keeps nil residual (nil prints as the empty string), so the
+  // observation guard Gap and Spin use refuses it.
+  expect(await session.call("<2, 3>.###")).toEqual("");
+  expect(await session.call("<2, 3>.### ? {<>} : {unsupported-figure}"))
+    .toContain("unsupported-figure");
 });
 
 Deno.test("Figure observations ignore metadata and Star preserves it (010.04)", async () => {
@@ -229,9 +238,9 @@ Deno.test("native residual availability distinguishes valid zero from unsupporte
       ["[5, “hello”].###", "0"],
       ["[5, “hello”].### ? {<>} : {()}", "<>"],
       ["([5, “hello”].###) == (0 - 0)", "<>"],
-      ["5.### ? {<>} : {()}", ""],
+      ["5.### ? {<>} : {()}", "<>"],
       ["<2, 3>.###", ""],
-      ["{[]}.###", ""],
+      ["{[]}.###", "1"],
       ["[].##", "1"],
       ["[].###", "0"],
       ["Figures.gap [5, “hello”]", "0"],
@@ -251,12 +260,14 @@ Deno.test("native residual availability distinguishes valid zero from unsupporte
   expect(await session.call("(5, 3) * [[]]"))
     .toContain("$!.star-domain");
   expect(await session.call("5.### ? {5} : {unsupported-figure}"))
-    .toContain("unsupported-figure");
+    .toEqual("5");
 });
 
 Deno.test("derived Gap and Spin preserve refusal and resolution typing at zero", async () => {
   const session = await figuresSession();
-  for (const host of ["[]", "[5, “hello”]", "[3, 5]"]) {
+  for (
+    const host of ["[]", "[5, “hello”]", "[3, 5]", "“hi”", "(-3)", "(1).<>"]
+  ) {
     expect(await session.call(`Figures.spin ${host} 0`), host)
       .toEqual("$!.division-by-zero /");
     for (
@@ -277,21 +288,13 @@ Deno.test("derived Gap and Spin preserve refusal and resolution typing at zero",
         .toContain("$!.type-error");
     }
   }
-  for (const host of ["5", "“hi”", "{[]}"]) {
-    for (const divisor of ["0", "(0 - 2)", "2.5"]) {
-      expect(await session.call(`Figures.spin ${host} ${divisor}`), host)
-        .toContain("unsupported-figure");
-    }
-    expect(await session.call(`Figures.gap ${host}`), host)
-      .toContain("unsupported-figure");
-  }
   // Concrete reasons to retain the two derived definitions: Size changes
   // Gap's type and accepts nil; bare division accepts non-Count resolutions.
   for (
     const [source, expected] of [
       ["([3, 5].###).## == (Figures.gap [3, 5])", ""],
       ["(5.###).##", "1"],
-      ["(5.###) / 2", ""],
+      ["(5.###) / 2", "1/2"],
       ["([3, 5].###) / (0 - 2)", "1"],
       ["([3, 5].###) / 2.5", "-0.8"],
     ]

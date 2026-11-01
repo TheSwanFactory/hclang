@@ -213,7 +213,7 @@ describe("Lex", () => {
   }
 
   describe("size operators (#411, 010.04)", () => {
-    for (const name of [".#", ".##", ".###"]) {
+    for (const name of [".#", ".##", ".###", ".####"]) {
       it(`lexes ${name} as one dotted name across every two-chunk split`, () => {
         const atoms = lexAtoms(`${name} `);
 
@@ -245,8 +245,17 @@ describe("Lex", () => {
       // No name contains `#`, so `.foo#bar` is a name before a comment.
       expect(lexAtoms(".foo#bar# ").map(String)).toEqual([".foo"]);
       expect(lexAtoms("..# ").map(String)).toEqual([".."]);
-      // Nothing extends `.###`, so a fourth `#` begins a comment after it.
-      expect(lexAtoms("x.####c# ").map(String)).toEqual(["x", ".###"]);
+      // Nothing extends `.####`, so a fifth hash begins a comment.
+      expect(lexAtoms("x.#####c# ").map(String)).toEqual(["x", ".####"]);
+      // Preserve the fifth-hash comment boundary across every input split.
+      for (const source of ["x.#####c# ", "x.###### "]) {
+        for (let split = 1; split < source.length; split++) {
+          expect(
+            lexChunkedAtoms([source.slice(0, split), source.slice(split)])
+              .map(String),
+          ).toEqual(["x", ".####"]);
+        }
+      }
     });
   });
 

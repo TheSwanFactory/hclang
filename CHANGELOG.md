@@ -4,6 +4,33 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.38.0 (unreleased target)
+
+- **Native immutable FrameDemi.** Exact singleton orientation and two bigint
+  Count loads, Size `L+R`, signed residual `L−R`, positive parity Count (2 even
+  / 1 odd), value equality and lossless native data encoding; scalar-only
+  `Demi + Count` deposits then flips, and `Demi * Count` scales without
+  flipping.
+- **Residual defaults to Count parity.** Every Frame with a Count and no
+  residual rule of its own answers `.###` as FrameInt `.# mod 2` instead of nil,
+  including present zero, so Counts, other numeric rungs, text, blobs, bytes,
+  opaque atoms and runtime types observe alike by quantity: `(10 - 5).####`
+  equals `5.####`. Figures Gap/Spin accept all of them; schemas keep nil
+  residual. Unknown native Count observation keys no longer return Count
+  accidentally.
+- **Universal fourth hash.** `.####` derives native Demi loads from Count, Size
+  and residual; zero Count or nil residual yields nil, while observation
+  failures and incoherent loads return errors. A fifth hash now opens a comment:
+  prior `.###` immediately followed by a hash comment changes tokenization.
+- **Consistent observation defaults.** Missing Count falls back to Size for
+  numbers, text, blobs, bytes and other sized atoms. Explicit list, schema and
+  all Counts take precedence; `().#` is nil because nil has no Count, and `<>`
+  observes as `[]`. All non-schema lists, including stored source/closure words,
+  have alternating residuals without execution. Schemas keep nil residual and
+  their existing Size. Child Size contributes regardless of child residual.
+  Cycle/nonquantifiable residuals and stored errors now propagate failures
+  instead of nil or opaque Size 1.
+
 ## v0.37.3 2026-10-31
 
 - **Reject malformed grouping consistently.** Evaluation and CLI commands report

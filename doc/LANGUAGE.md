@@ -725,13 +725,13 @@ residual hosts. FrameExpr (including FrameBind), FrameLazy, and FrameSchema are
 excluded as hosts: their walks expose executable words or matcher instructions,
 not ordered data. Generic FrameList also has no residual capability. These kinds
 can occur as children where their native Size is finite. Standalone atoms have
-Size but no alternating data plane, so their residual is nil. Cycles or
-nonquantifiable children also yield nil for residual. No closure execution,
-resource read, stream consumption or schema match is needed for either observer.
-`.#` retains its existing behavior, including the special nil/all application
-behavior; a leading receiverless `.##` remains an address. Runtime errors retain
-the evaluator's normal short-circuit propagation even though their stored atom
-has Size 1.
+no alternating data plane; their residual is the parity of their Count
+(011.18k). Cycles or nonquantifiable children also yield nil for residual. No
+closure execution, resource read, stream consumption or schema match is needed
+for either observer. `.#` retains its existing behavior, including the special
+nil/all application behavior; a leading receiverless `.##` remains an address.
+Runtime errors retain the evaluator's normal short-circuit propagation even
+though their stored atom has Size 1.
 
 ### TODO: Class variables
 

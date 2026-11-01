@@ -314,21 +314,38 @@ describe("FrameCount", () => {
       }
     });
 
-    it("sizes other numeric rungs without changing immediate count", () => {
+    it("uses absolute truncated magnitude for Count and Size on other numeric rungs", () => {
       for (
         const [source, size] of [["(5 - 3)", "2"], ["(0 - 5)", "5"], [
           "1.5",
           "1",
         ], ["(1 / 3)", "0"]]
       ) {
-        expect(evaluate(`${source}.#`).toString()).toEqual("[]");
+        expect(evaluate(`${source}.#`).at(0).toString()).toEqual(size);
         expect(evaluate(`${source}.##`).at(0).toString()).toEqual(size);
       }
     });
 
-    it("answers nil to .###, since a count is not a Figure (010.04)", () => {
-      for (const source of ["5", "0", "(5 - 3)", "1.5"]) {
-        expect(evaluate(`${source}.###`).toString()).toEqual("[]");
+    it("answers exact signed parity to .### (011.18)", () => {
+      for (const n of [0n, 1n, 2n, 3n, 7n, 9007199254740993123456789n]) {
+        const result = evaluate(`${n}.###`).at(0);
+        expectClass(result, "FrameInt");
+        expect(result.toString()).toEqual((n % 2n).toString());
+      }
+      // Every numeric rung shares the atom rule, so the rung is unobservable
+      // here (011.18k).
+      for (const [source, parity] of [["(5 - 3)", "0"], ["1.5", "1"]]) {
+        expect(evaluate(`${source}.###`).toString()).toEqual(`[${parity}]`);
+      }
+    });
+
+    it("dispatches only recognized size keys", () => {
+      const value = count(7n);
+      expect(value.sizeFor(Frame.kCOUNT)).toBe(value);
+      expect(value.sizeFor(Frame.kLEAVES)).toBe(value);
+      expect(value.sizeFor(Frame.kRESIDUAL).toString()).toEqual("1");
+      for (const key of ["", "unknown", "#####", "#x"]) {
+        expect(value.sizeFor(key)).toBe(Frame.nil);
       }
     });
   });

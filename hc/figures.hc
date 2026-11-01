@@ -22,8 +22,14 @@ each terminal of x, preserving nesting.
 Flat repetition is `x.## [y]`. A tally, when wanted, is an explicit
 construction, such as `x & {[[]]}` for one fresh mark per immediate element.
 Native `.##` uses each child's native Size, including numeric magnitude and
-text length. Native `.###` also accepts mixed arrays and evaluated groups.
+text length. Native `.###` also accepts mixed arrays, groups, and non-schema list syntax/closures. Every other
+value with a Count answers its parity (`.# mod 2`, a FrameInt), including valid zero, so equal quantities
+observe alike whatever their kind or numeric type; schemas answer nil. `()` has no Count; `<>` observes as `[]`.
+Missing Count rules fall back to Size, including sized atoms. Explicit Counts take precedence.
+Stored errors and failed child quantities propagate rather than acquiring a load.
 Star keeps its narrower array/Count composition domain.
+
+For Counts, Gap and Spin now use parity too: `gap 7` is 1 and `spin 2 4` is 0.
 
 Only two derived mathematical abbreviations remain: Gap = |signed residual|
 and Spin = signed residual / positive Count. They define no Figure domain.
@@ -136,7 +142,7 @@ positive. Mixed arrays and evaluated groups use the same rule.
 ; [[[], [[]]], [[[], []], []], [[[[], [], []]]]].###
 # 2
 ; [[1, []].###, [[], “ab”].###, [[], ([], [])].###, 5.###]
-# [0, -1, -1, ()]
+# [0, -1, -1, 1]
 ```
 Native Size also measures mixed values, independently of structural Star.
 Numeric magnitude truncates exactly; text length uses native Unicode code-point iteration,
@@ -151,7 +157,7 @@ blob width uses bits, and schemas count declared alternatives.
 ; [[5, “hello”].##, [5, “hello”].###, (5, 3).###, [5, 3, 2, 7].###]
 # [10, 0, 2, -3]
 ; [([5, “hello”].### ? {<>} : {()}), (5.### ? {<>} : {()})]
-# [<>, ()]
+# [<>, <>]
 ; { .x <[].<>> _; x.### } [[], [“nested atom”]]
 # -10
 ```
@@ -194,6 +200,37 @@ Star uses native `*` dispatch; numeric pairs keep arithmetic.
 # [[[]], [[[]], [[]]]]
 ; [.tag 1;] * [[]]
 # $!.star-metadata *
+```
+The fourth observer derives a native immutable Demi from Count, Size and residual.
+A zero Count or absent residual gives no Demi; errors propagate. A schema used
+as an explicit element contributes Size normally, even though its own Demi is nil.
+A present Demi has Size L+R and residual L−R. Its Count is the least positive
+representative of its stored parity: 2 for all/even and 1 for nil/odd. The same
+universal derivation therefore reconstructs its data value on repeated fourth
+observation, including present zero loads, without a special fourth-hash rule.
+The scalar append and Inlay laws apply to nonempty Figure hosts. For an empty
+host, observe [Y] for append and Y for Inlay; nil arithmetic stays unchanged.
+Count is a terminal quantity: positive Counts agree with pure Figures of that
+terminal Size, but 0 has Size 0 while [] has Size 1. Mixed values may have
+present zero-load Demis, including [0].####.
+Demi * Count scales; Count * Demi repeats by existing Star dispatch. For example,
+[[],[]].#### * 3 scales to FrameDemi(<>,3,3), while 3 * [[],[]].#### repeats
+FrameDemi(<>,1,1) three times.
+The following displays are diagnostic native values, not HC reconstruction syntax.
+```
+; [[].####, 0.####, “hello”.####, <2,3,5>.####]
+# [(), (), FrameDemi((),3,2), ()]
+; [(10 - 5).#### = 5.####, (0 - 5).#### = 5.####, (5.0).#### = 5.####, “hello”.#### = 5.####]
+# [<>, <>, <>, <>]
+; [<>.#, <>.##, <>.###, ().##]
+# [0, 1, 0, 1]
+; [1.####, 2.####, 3.####, 7.####]
+# [FrameDemi((),1,0), FrameDemi(<>,1,1), FrameDemi((),2,1), FrameDemi((),4,3)]
+; [[0].####, [“hello”].####, [<2,3,5>,2].####, {5 + 3}.####]
+# [FrameDemi((),0,0), FrameDemi((),5,0), FrameDemi(<>,3,2), FrameDemi((),8,1)]
+; [[[],[]].#### + 3, 7.#### * 2]
+# [FrameDemi((),4,1), FrameDemi((),8,6)]
+
 ```
 Importing skips the examples and ends on a native true value.
 ```
