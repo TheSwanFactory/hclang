@@ -9,9 +9,10 @@
 - **RotorRouter is an HC class.** `Routers <- './hc/rotor-router.hc'` binds
   `RotorRouter [phase, left, right]`, a two-channel router that keeps what it
   routes: `router x` appends x itself to the active channel and flips the phase,
-  without evaluating or measuring it, and `router.demi ()` projects to the Demi
-  of the channels' summed child Sizes, an empty channel counting 0. The testdoc
-  is the specification, including the commuting law with `.####`.
+  without evaluating or measuring it. It declares `#`, `##` and `###` (phase,
+  L+R, L−R over the channels' summed child Sizes, an empty channel counting 0),
+  so `router.####` is its Demi. The testdoc is the specification, including the
+  commuting law `(X | router).#### = X.####`.
 
 ## v0.38.0 2026-11-01
 

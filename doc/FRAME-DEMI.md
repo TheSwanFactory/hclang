@@ -299,12 +299,13 @@ without evaluating, measuring or applying it. Through a name it is a functional
 update, through a mutable name it writes in place, and a channel argument is
 copied to its elements, so routers never share a writable channel.
 
-`router.demi ()` projects a router to a Demi with its phase and the summed child
-Sizes of each channel, where an empty channel is 0 rather than `[].##`. The
-projection is where children are measured, so a failed or cyclic Size shows
-there and not on routing. Routing an array's children in turn, `X | r0`, gives
-the interleaved state whose projection is `X.####`, and for every router
-`(r y).demi ()` is `(r.demi ()) y`. The initial router is the empty host lifted:
-it projects to `Demi(<>,0,0)` while `[].####` stays nil. A router declares no
-observers, so its own `.####` is that of an aggregate with no elements, nil. The
-file imports `hc/demi.hc`, so importing it needs a resource root.
+A router declares its Count, Size and residual as the Demi class does: its
+phase, L+R and L−R, where each load is the summed child Sizes of a channel and
+an empty channel is 0 rather than `[].##`. So `router.####` derives the router's
+Demi through the ordinary fourth hash, with no projection method. Observation is
+where children are measured, so a failed or cyclic Size shows there and not on
+routing, and observing runs no route and writes nothing. Routing an array's
+children in turn, `X | r0`, gives the interleaved state whose fourth hash is
+`X.####`, and for every router `(r y).####` is `r.#### y`. The initial router is
+the empty host lifted: its fourth hash is `Demi(<>,0,0)` while `[].####` stays
+nil.

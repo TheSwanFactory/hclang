@@ -73,16 +73,18 @@ Deno.test("routing neither measures nor applies the routed Frame (011.21)", () =
   expect(right[0].referent()).toBe(watched);
 });
 
-Deno.test("projection measures each routed child, by Size only", () => {
+Deno.test("observing a router measures each routed child, by Size only", () => {
   Watched.seen.length = 0;
   const watched = new Watched([new FrameCount(4n)]);
-  const demi = run("((r0 $$.w) $$.w).demi ()", { w: watched });
+  const demi = run("((r0 $$.w) $$.w).####", { w: watched });
   expect(demi.toText().toString()).toEqual("“Demi(<>,4,4)”");
   expect(Watched.seen.includes("call")).toBe(false);
-  expect(Watched.seen.filter((key) => key === "##").length).toBe(2);
+  // `.####` reads the declared Size and residual, and each sums both channels,
+  // so each of the two routed occurrences is measured twice.
+  expect(Watched.seen.filter((key) => key === "##").length).toBe(4);
 });
 
-Deno.test("a non-finite or cyclic child is routed, and its projection fails", () => {
+Deno.test("a non-finite or cyclic child is routed, and observing it fails", () => {
   const cycle = new FrameArray([]);
   cycle.collect(cycle);
   const hosted = { inf: new FrameNumber(Infinity), cyc: cycle };
@@ -92,19 +94,19 @@ Deno.test("a non-finite or cyclic child is routed, and its projection fails", ()
   expect(routed.getOwn("right").referent().asArray()[0].referent())
     .toBe(cycle);
 
-  expect(`${run("(r0 $$.inf).demi ()", hosted)}`)
+  expect(`${run("(r0 $$.inf).####", hosted)}`)
     .toEqual("$!.nonquantifiable-size .##");
-  expect(`${run("((r0 5) $$.cyc).demi ()", hosted)}`)
+  expect(`${run("((r0 5) $$.cyc).####", hosted)}`)
     .toEqual("$!.cyclic-aggregate .##");
   // The first failed load is the answer.
-  expect(`${run("((r0 $$.inf) $$.cyc).demi ()", hosted)}`)
+  expect(`${run("((r0 $$.inf) $$.cyc).####", hosted)}`)
     .toEqual("$!.nonquantifiable-size .##");
 });
 
-Deno.test("the projection answers the bundled Demi class", () => {
-  const demi = run("((r0 “hello”) 7).demi ()", {});
+Deno.test("a router's fourth hash is an instance of the bundled Demi class", () => {
+  const demi = run("((r0 “hello”) 7).####", {});
   expect(["phase", "left", "right"].map((key) => `${demi.getOwn(key)}`))
     .toEqual(["2", "5", "7"]);
   expect(demi.equals(run("[“hello”, 7].####", {}))).toBe(Frame.all);
-  expect(`${run("r0.demi ()", {}).toText()}`).toEqual("“Demi(<>,0,0)”");
+  expect(`${run("r0.####", {}).toText()}`).toEqual("“Demi(<>,0,0)”");
 });
