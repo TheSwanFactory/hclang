@@ -50,6 +50,15 @@ export class MetaFrame {
   }
 
   /**
+   * Whether a key addresses an element by index rather than naming a field.
+   * An aggregate reads such a key as a position, so `xs.0` is its first
+   * element, and an element is data, never a method of the aggregate.
+   */
+  public static isIndexKey(key: string): boolean {
+    return /^\d+$/.test(key);
+  }
+
+  /**
    * Checks if the given character is alphabetic.
    *
    * @param {string} char - The character to check.

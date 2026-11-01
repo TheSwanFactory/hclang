@@ -250,7 +250,7 @@ export class FrameArray extends FrameList {
   }
 
   protected override lookup_here(key: string, origin: MetaFrame): Frame {
-    if (/^\d+$/.test(key)) {
+    if (Frame.isIndexKey(key)) {
       return this.at(Number(key));
     }
     return super.lookup_here(key, origin);

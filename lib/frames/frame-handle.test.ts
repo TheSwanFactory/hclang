@@ -125,6 +125,16 @@ describe("FrameHandle", () => {
       expect(bound.call(Frame.nil).toString()).toEqual("“value”");
     });
 
+    it("answers a closure held as an element as itself, not bound", () => {
+      const element = method();
+      const value = new FrameArray([element], { read: method() });
+      const handle = new FrameHandle(value, true);
+
+      // An element is data the aggregate holds; only a field is a method.
+      expect(handle.get("0")).toBe(element);
+      expect(handle.get("read")).toBeInstanceOf(BoundMethod);
+    });
+
     it("never supplies a method's free names from its read context", () => {
       const value = new FrameArray([], {
         read: new FrameLazy([FrameSymbol.for("lexical")]),
