@@ -8,7 +8,6 @@ import {
   FrameBytes,
   FrameCount,
   FrameDecimal,
-  FrameDemi,
   FrameDoc,
   FrameExpr,
   FrameInt,
@@ -27,6 +26,47 @@ import { FrameHandle } from "./frame-handle.ts";
 
 const last = (source: string): Frame =>
   evaluate(source).at(-1).asArray().at(-1)!;
+
+/** The value of a one-expression source that answers an aggregate, a Demi. */
+const value = (source: string): Frame =>
+  FrameExpr.answeredValue(evaluate(source).at(-1)).referent();
+
+/**
+ * A Demi's state as the retired native encoding spelled it, orientation then
+ * loads, read from the fields of the HC instance (011.20); undefined when the
+ * value is not a Demi.
+ */
+const encode = (
+  value: Frame,
+): readonly [string, string, string] | undefined => {
+  const [phase, left, right] = ["phase", "left", "right"].map((key) =>
+    value.getOwn(key)
+  );
+  if (phase.is.missing || left.is.missing || right.is.missing) return undefined;
+  return [phase.toString() === "2" ? "all" : "nil", `${left}`, `${right}`];
+};
+
+/** The loads and phase of a Demi, as bigints and the orientation. */
+const loads = (
+  value: Frame,
+): { left: bigint; right: bigint; even: boolean } => {
+  const state = encode(value);
+  if (!state) throw new Error(`not a Demi: ${value}`);
+  return {
+    left: BigInt(state[1]),
+    right: BigInt(state[2]),
+    even: state[0] === "all",
+  };
+};
+
+/** `d x`, through an immutable name as HC reads one: a functional update. */
+const deposit = (d: Frame, x: Frame): Frame =>
+  FrameExpr.answeredValue(new FrameHandle(d, false).call(x)).referent();
+
+/** `d.scale_ k`, through an immutable name. */
+const scale = (d: Frame, k: Frame): Frame =>
+  FrameExpr.answeredValue(new FrameHandle(d, false).get("scale_").call(k))
+    .referent();
 
 Deno.test("sized values take Count from Size and residual from Count parity (011.18k)", () => {
   for (
@@ -60,17 +100,17 @@ Deno.test("sized values take Count from Size and residual from Count parity (011
     if (n === 0n) {
       expect(demi).toBe(Frame.nil);
     } else {
-      const d = demi as FrameDemi;
-      expect(d.left.data + d.right.data).toEqual(n);
-      expect(d.left.data - d.right.data).toEqual(n % 2n);
-      expect(d.orientation).toBe(n % 2n === 0n ? Frame.all : Frame.nil);
+      const d = loads(demi);
+      expect(d.left + d.right).toEqual(n);
+      expect(d.left - d.right).toEqual(n % 2n);
+      expect(d.even).toBe(n % 2n === 0n);
     }
   }
   // A non-atom with Count from Size follows the same rule (011.18m).
   const type = FrameType.of(new FrameCount(5n));
   expect(type.sizeFor("#").toString()).toEqual("1");
   expect(type.sizeFor("###").toString()).toEqual("1");
-  expect((type.sizeFor("####") as FrameDemi).encode()).toEqual([
+  expect(encode(type.sizeFor("####"))).toEqual([
     "nil",
     "1",
     "0",
@@ -119,12 +159,14 @@ Deno.test("fourth hash distinguishes atom/schema absence, empty hosts and presen
       ["(5,3)", ["all", "5", "3"]],
     ] as const
   ) {
-    const value = last(`${source}.####`);
-    expect(value, source).toBeInstanceOf(FrameDemi);
-    expect((value as FrameDemi).encode(), source).toEqual(encoding);
+    expect(encode(value(`${source}.####`)), source).toEqual(encoding);
   }
-  expect(last("[[],[]].#### + 3").toString()).toEqual("FrameDemi((),4,1)");
-  expect(last("7.#### * 2").toString()).toEqual("FrameDemi((),8,6)");
+  // Deposit is application and scaling a method; neither operator is
+  // overloaded (011.20).
+  expect(value("“” ([[],[]].#### 3)").toString()).toEqual("“Demi((),4,1)”");
+  expect(value("“” (7.####.scale_ 2)").toString()).toEqual("“Demi((),8,6)”");
+  expect(evaluate("[[],[]].#### + 3").toString()).toEqual("[]");
+  expect(value("7.#### * 2").toString()).toEqual("$!.star-metadata *");
   // Nil has no Count; all is the present empty, observed exactly as [] (011.18k).
   expect(evaluate("().#").toString()).toEqual("[]");
   expect(last("<>.#").toString()).toEqual("0");
@@ -164,24 +206,19 @@ Deno.test("derived Demi obeys projections over nested mixed values, sharing and 
         new FrameScoped(value, EvaluationScope.from([])),
       ]
     ) {
-      const state = receiver.sizeFor("####") as FrameDemi;
-      expect(state).toBeInstanceOf(FrameDemi);
+      const state = loads(receiver.sizeFor("####"));
       const n = receiver.sizeFor("#") as FrameCount;
       const s = receiver.sizeFor("##") as FrameCount;
       const r = receiver.sizeFor("###") as FrameInt;
-      expect(state.left.data + state.right.data).toEqual(s.data);
-      expect(state.left.data - state.right.data).toEqual(r.data);
-      expect(state.orientation).toBe(
-        n.data % 2n === 0n ? Frame.all : Frame.nil,
-      );
+      expect(state.left + state.right).toEqual(s.data);
+      expect(state.left - state.right).toEqual(r.data);
+      expect(state.even).toBe(n.data % 2n === 0n);
     }
   }
   const parent = new FrameArray([shared]);
-  const first = parent.sizeFor("####") as FrameDemi;
+  const first = loads(parent.sizeFor("####"));
   shared.collect(new FrameCount(2n));
-  expect((parent.sizeFor("####") as FrameDemi).left.data).toEqual(
-    first.left.data + 2n,
-  );
+  expect(loads(parent.sizeFor("####")).left).toEqual(first.left + 2n);
 });
 
 Deno.test("observation failures propagate without converting nil/zero or executing hosts", () => {
@@ -227,20 +264,20 @@ Deno.test("observation failures propagate without converting nil/zero or executi
       throw new Error("matched");
     },
   });
-  expect((closure.sizeFor("####") as FrameDemi).encode()).toEqual([
+  expect(encode(closure.sizeFor("####"))).toEqual([
     "all",
     "5",
     "3",
   ]);
   // A resource is an atom of Size 1: one terminal, observed without a read.
-  expect((resource.sizeFor("####") as FrameDemi).encode()).toEqual([
+  expect(encode(resource.sizeFor("####"))).toEqual([
     "nil",
     "1",
     "0",
   ]);
   expect(schema.sizeFor("####")).toBe(Frame.nil);
-  expect(new FrameArray([resource, closure, schema]).sizeFor("####"))
-    .toBeInstanceOf(FrameDemi);
+  expect(encode(new FrameArray([resource, closure, schema]).sizeFor("####")))
+    .toBeDefined();
   class Empty extends Frame {
     public override sizeFor(key: string): Frame {
       if (key === "#") return new FrameCount(0n);
@@ -260,7 +297,7 @@ Deno.test("missing Count falls back to Size, and missing residual to Count parit
   const sized = new Sized();
   expect(sized.sizeFor("#").toString()).toEqual("7");
   expect(sized.sizeFor("###").toString()).toEqual("1");
-  expect((sized.sizeFor("####") as FrameDemi).encode()).toEqual([
+  expect(encode(sized.sizeFor("####"))).toEqual([
     "nil",
     "4",
     "3",
@@ -276,27 +313,27 @@ Deno.test("missing Count falls back to Size, and missing residual to Count parit
   expect(new Invalid().sizeFor("####").toString()).toEqual("$!.demi-coherence");
 });
 
-Deno.test("native append and Star commute with Demi scalar laws on pure shapes", () => {
+Deno.test("native append and Star commute with Demi application and scaling on pure shapes", () => {
   const shapes: FrameArray[] = [new FrameArray([])];
   for (let i = 0; i < 6; i++) {
     shapes.push(new FrameArray([shapes[i]]));
     shapes.push(new FrameArray([shapes[0], shapes[i]]));
   }
+  // The empty host has no Demi; it lifts to the zero-load Demi in phase 2.
+  const lifted = new FrameArray([new FrameCount(0n), new FrameCount(0n)])
+    .sizeFor("####");
+  expect(encode(lifted)).toEqual(["all", "0", "0"]);
   for (const x of shapes) {
     for (const y of shapes) {
       const dx = x.sizeFor("####");
       const dy = y.sizeFor("####");
       const k = y.sizeFor("##") as FrameCount;
       const appended = new FrameArray([...x.asArray(), y]).sizeFor("####");
-      const expectedAppend = dx === Frame.nil
-        ? (new FrameArray([new FrameArray([])]).sizeFor("####") as FrameDemi)
-          .multiplyCount(k)
-        : (dx as FrameDemi).addCount(k);
+      // (X Y).#### = X.#### Y, observing commutes with applying.
+      const expectedAppend = deposit(dx === Frame.nil ? lifted : dx, y);
       expect(appended.equals(expectedAppend)).toBe(Frame.all);
       const inlaid = x.star(y).sizeFor("####");
-      const expectedStar = dx === Frame.nil
-        ? dy
-        : (dx as FrameDemi).multiplyCount(k);
+      const expectedStar = dx === Frame.nil ? dy : scale(dx, k);
       expect(inlaid.equals(expectedStar)).toBe(Frame.all);
     }
   }

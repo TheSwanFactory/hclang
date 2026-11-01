@@ -540,7 +540,7 @@ export class Frame extends MetaFrame {
    * (occurrence/figure 011.18k, 011.18m). Schemas and nil have nil residual.
    */
   public static readonly kRESIDUAL = "###";
-  /** Derived nullable two-channel state (occurrence/figure 011.18c). */
+  /** Derived nullable Demi, an instance of the HC class in `hc/demi.hc` (011.20). */
   public static readonly kDEMI = "####";
   /**
    * The size operators, the only names spelled with `#` (#411). Each answers
@@ -896,8 +896,19 @@ export class Frame extends MetaFrame {
   /** Installed by FrameInt without importing a subclass into its base. */
   public static signed: (value: bigint) => Frame;
 
-  /** Installed by FrameDemi, avoiding a base-to-subclass import cycle. */
+  /** Installed by `fourth-hash.ts`, avoiding a base-to-subclass import cycle. */
   public static demi: (source: Frame) => Frame;
+
+  /**
+   * Whether this value is itself an error: one flagged as such, or a
+   * diagnostic note such as `$!.name-missing`, which `FrameNote` answers for.
+   * Unlike `isFailedResult`, it never looks inside an aggregate, and unlike
+   * `observationError`, a non-finite number or a cycle is not one: those fail
+   * to be measured, not to be computed (011.20).
+   */
+  public isError(): boolean {
+    return this.is.error === true;
+  }
 
   /** A failure carried by this value, without executing or enumerating it. */
   public observationError(): Frame | undefined {

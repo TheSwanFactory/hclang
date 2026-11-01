@@ -4,13 +4,27 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
-## v0.38.0 (unreleased target)
+## v0.37.4 2026-11-01
 
-- **Native immutable FrameDemi.** Exact singleton orientation and two bigint
-  Count loads, Size `L+R`, signed residual `L−R`, positive parity Count (2 even
-  / 1 odd), value equality and lossless native data encoding; scalar-only
-  `Demi + Count` deposits then flips, and `Demi * Count` scales without
-  flipping.
+- **Demi is an HC class.** `.####` answers an instance of `Demi`, defined and
+  specified in the testdoc `hc/demi.hc`, rather than a native value: fields
+  `phase` (2 even, 1 odd), `left` and `right`, application `d x` that deposits
+  `x.##` into the active load and flips the phase (functional through a name),
+  `scale_ k`, and text `Demi(<>,12,3)`. It works in a bare `evaluate` with no
+  root. A Demi prints as HC that reads back as an equal Demi; equal Demis are
+  `=` but not `===`. `Demi + Count` and `Demi * Count` are retired: `+` and `*`
+  are ordinary on a Demi, so scale with `d.scale_ k` and deposit with `d x`. The
+  native `FrameDemi` class and its `encode`/`decode` are removed from the
+  library API.
+- **Classes can declare observation.** An aggregate that declares a method named
+  `#`, `##` or `###` answers it for that size operator, and nested, its declared
+  Size; `.####` derives from them. Wrong kinds and self-observation are errors.
+- **Arithmetic propagates errors.** `+`, `-`, `*`, `/`, `%%` and `**` answer an
+  error operand, such as `$!.name-missing`, instead of nil, so a failed read can
+  no longer vanish into a write that ignores nil. Ordering still answers nil.
+- **Mutating methods return their errors.** A method like `apply_` that answers
+  a diagnostic error such as `$!.name-missing` now answers it rather than its
+  receiver.
 - **Residual defaults to Count parity.** Every Frame with a Count and no
   residual rule of its own answers `.###` as FrameInt `.# mod 2` instead of nil,
   including present zero, so Counts, other numeric rungs, text, blobs, bytes,
@@ -18,10 +32,10 @@
   equals `5.####`. Figures Gap/Spin accept all of them; schemas keep nil
   residual. Unknown native Count observation keys no longer return Count
   accidentally.
-- **Universal fourth hash.** `.####` derives native Demi loads from Count, Size
-  and residual; zero Count or nil residual yields nil, while observation
-  failures and incoherent loads return errors. A fifth hash now opens a comment:
-  prior `.###` immediately followed by a hash comment changes tokenization.
+- **Universal fourth hash.** `.####` derives Demi loads from Count, Size and
+  residual; zero Count or nil residual yields nil, while observation failures
+  and incoherent loads return errors. A fifth hash now opens a comment: prior
+  `.###` immediately followed by a hash comment changes tokenization.
 - **Consistent observation defaults.** Missing Count falls back to Size for
   numbers, text, blobs, bytes and other sized atoms. Explicit list, schema and
   all Counts take precedence; `().#` is nil because nil has no Count, and `<>`

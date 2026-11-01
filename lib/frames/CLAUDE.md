@@ -20,10 +20,10 @@ and program is composed of frames. This unified representation enables:
 
 ### Basic Types
 
-- [frame-demi.ts](frame-demi.ts) - Immutable orientation and two exact Count
-  loads, scalar deposit/scaling and data encoding. Derived fourth-hash
-  observation uses Count/Size/residual; see
-  [compatibility audit](../../doc/FRAME-DEMI.md).
+- [fourth-hash.ts](fourth-hash.ts) - The derivation of `.####` from Count, Size
+  and residual. The Demi it answers is an HC class, `hc/demi.hc`, whose
+  constructor the evaluator installs (`installDemiConstructor`); see
+  [the Demi document](../../doc/FRAME-DEMI.md).
 
 - [frame-numeric.ts](frame-numeric.ts) - Rank-based numeric dispatch and the
   promotion ladder; see [Numeric Ladder](#numeric-ladder)
@@ -440,6 +440,15 @@ target or answers an updated copy, exactly as for any mutating method. A step
 answering nil leaves the receiver unchanged. An aggregate with a declared
 application no longer `collects()`, so a refusal applied to it stays a refusal
 instead of being held.
+
+Observation can be declared the same way (011.20). An aggregate observes its
+elements, so one that keeps state in fields observes as 0, 1, 0, unless it
+declares a method named `#`, `##` or `###`, which `FrameArray.sizeFor` and
+`nativeSize` run immutably in place of the list rule, through the same
+`declaredMethod` lookup. The answer must be a Count (`#`, `##`) or an exact
+integer (`###`), else `$!.declared-observation`; a method that observes its own
+receiver is `$!.cyclic-observation`. `.####` is never declared: it derives from
+the three, so the Demi class declares them and gets its fourth hash.
 
 The interpreter's own output is not application. The evaluator's output array is
 also the file scope, so a top-level `.apply` lands on it; `Frame.collect` is the

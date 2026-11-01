@@ -3,10 +3,10 @@ import { Frame } from "../frames/frame.ts";
 import { FrameNumeric } from "../frames/frame-numeric.ts";
 import { FrameArray } from "../frames/frame-array.ts";
 import { FrameCount } from "../frames/frame-count.ts";
-import { FrameDemi } from "../frames/frame-demi.ts";
 
 type NumericOperation = (left: FrameNumeric, right: FrameNumeric) => Frame;
 
+/** Applies a numeric operation, or answers nil for any other pair. */
 const numeric = (
   source: Frame,
   block: Frame,
@@ -17,40 +17,39 @@ const numeric = (
     : Frame.nil;
 };
 
-/** Keep native validation exceptions inside an explicit HC operand boundary. */
-const demiScalar = (left: FrameDemi, right: Frame, key: "+" | "*"): Frame => {
-  try {
-    if (!(right instanceof FrameCount) || right.constructor !== FrameCount) {
-      return Frame.error(`$!.demi-operand ${key}`);
-    }
-    return key === "+" ? left.addCount(right) : left.multiplyCount(right);
-  } catch (error) {
-    if (error instanceof TypeError || error instanceof RangeError) {
-      return Frame.error(`$!.demi-operand ${key}`);
-    }
-    throw error;
-  }
+/**
+ * Arithmetic answers an operand that is already an error, left first, rather
+ * than nil, so a failed read such as `$!.name-missing` reaches whatever uses
+ * the result. As nil it vanished: a write of nil leaves a field unchanged, so a
+ * misread load looked like an update that never landed (011.20). Ordering
+ * still answers nil, because an error is truthy under `?`, and a comparison
+ * that answered one would take the branch.
+ */
+const arithmetic = (
+  source: Frame,
+  block: Frame,
+  operation: NumericOperation,
+): Frame =>
+  failure(source) ?? failure(block) ?? numeric(source, block, operation);
+
+/** An operand that is an error value (`Frame.isError`), unwrapped. */
+const failure = (operand: Frame): Frame | undefined => {
+  const value = operand.referent();
+  return value.isError() ? value : undefined;
 };
 
-export const Add = (source: Frame, block: Frame): Frame => {
-  const left = source.referent();
-  if (left instanceof FrameDemi) {
-    const right = block.referent();
-    return demiScalar(left, right, "+");
-  }
-  return numeric(source, block, (left, right) => left.add(right));
-};
+export const Add = (source: Frame, block: Frame): Frame =>
+  arithmetic(source, block, (left, right) => left.add(right));
 
 export const Subtract = (source: Frame, block: Frame): Frame =>
-  numeric(source, block, (left, right) => left.subtract(right));
+  arithmetic(source, block, (left, right) => left.subtract(right));
 
 /** Star constructs a frame; numeric pairs retain the existing arithmetic ladder. */
 export const Multiply = (source: Frame, block: Frame): Frame => {
   const left = source.referent();
   const right = block.referent();
-  if (left instanceof FrameDemi) {
-    return demiScalar(left, right, "*");
-  }
+  const refused = failure(left) ?? failure(right);
+  if (refused) return refused;
   if (left instanceof FrameNumeric && right instanceof FrameNumeric) {
     return left.multiply(right);
   }
@@ -60,13 +59,13 @@ export const Multiply = (source: Frame, block: Frame): Frame => {
 };
 
 export const Divide = (source: Frame, block: Frame): Frame =>
-  numeric(source, block, (left, right) => left.divide(right));
+  arithmetic(source, block, (left, right) => left.divide(right));
 
 export const Modulo = (source: Frame, block: Frame): Frame =>
-  numeric(source, block, (left, right) => left.modulo(right));
+  arithmetic(source, block, (left, right) => left.modulo(right));
 
 export const Power = (source: Frame, block: Frame): Frame =>
-  numeric(source, block, (left, right) => left.power(right));
+  arithmetic(source, block, (left, right) => left.power(right));
 
 export const Equals = (source: Frame, block: Frame): Frame => {
   return source.equals(block);

@@ -310,6 +310,88 @@ export class FrameArray extends FrameList {
   }
 
   /**
+   * The size operators an aggregate may declare its own answer to (011.20):
+   * Count, Size and residual. `.####` is not among them, because it is always
+   * derived from these three, so a class that declares them gets it for free.
+   */
+  public static readonly OBSERVATION_KEYS: readonly string[] = [
+    Frame.kCOUNT,
+    Frame.kLEAVES,
+    Frame.kRESIDUAL,
+  ];
+
+  /** Declared observations in progress, so one that reads itself fails. */
+  private static readonly observing = new Map<FrameArray, Set<string>>();
+
+  /**
+   * An aggregate observes its elements, so a class that keeps its state in
+   * fields observes as its empty element list: Count 0, Size 1, residual 0.
+   * One that declares a method named `#`, `##` or `###`, on itself or a
+   * declared parent, answers that method's result instead, the way one that
+   * declares `apply` decides its own application (011.20). Nothing declares
+   * one by default, so every other aggregate observes exactly as before.
+   *
+   * The answer must be the kind the operator answers: a Count for `#` and
+   * `##`, an exact integer for `###`. Anything else is
+   * `$!.declared-observation`, an error the method answered is answered as it
+   * is, and a method that observes its own receiver the same way is
+   * `$!.cyclic-observation`. The method runs immutably, so observing never
+   * writes.
+   *
+   * @param key A size operator.
+   * @returns The declared answer, or undefined when none is declared.
+   */
+  private declaredObservation(key: string): Frame | undefined {
+    if (!FrameArray.OBSERVATION_KEYS.includes(key)) return undefined;
+    const method = this.declaredMethod(key);
+    if (!method) return undefined;
+    const active = FrameArray.observing.get(this) ?? new Set<string>();
+    if (active.has(key)) return Frame.error(`$!.cyclic-observation .${key}`);
+    active.add(key);
+    FrameArray.observing.set(this, active);
+    let answer: Frame;
+    try {
+      answer = new BoundMethod(
+        method as FrameLazy,
+        this,
+        false,
+        methodEffect(key),
+      ).call(Frame.nil).referent();
+    } finally {
+      active.delete(key);
+      if (active.size === 0) FrameArray.observing.delete(this);
+    }
+    const failure = answer.observationError();
+    if (failure) return failure;
+    const data = (answer as unknown as { data?: unknown }).data;
+    const valid = key === Frame.kRESIDUAL
+      ? answer.className() === "FrameInt" || answer instanceof FrameCount
+      : answer instanceof FrameCount;
+    return valid && typeof data === "bigint"
+      ? answer
+      : Frame.error(`$!.declared-observation .${key}`);
+  }
+
+  /** A declared Count, Size or residual first; the list's own rule otherwise. */
+  public override sizeFor(key: string): Frame {
+    const failure = this.observationError();
+    if (failure && Frame.SIZE_OPERATORS.includes(key)) return failure;
+    return this.declaredObservation(key) ?? super.sizeFor(key);
+  }
+
+  /**
+   * A declared Size is also what this aggregate contributes inside another,
+   * so `[d, d].##` adds the declared Sizes rather than one terminal for each.
+   */
+  public override nativeSize(path: Set<Frame>): bigint | Frame {
+    const failure = this.observationError();
+    if (failure) return failure;
+    const declared = this.declaredObservation(Frame.kLEAVES);
+    if (declared === undefined) return super.nativeSize(path);
+    return declared instanceof FrameCount ? declared.data : declared;
+  }
+
+  /**
    * A method declared under `key` on this aggregate or its declared parents.
    *
    * Never the scope around it, so a plain array keeps its default behavior

@@ -184,13 +184,15 @@ complete at a colon with or without intervening space.
   immediate child Sizes on all non-schema lists, including stored source syntax
   and closure words without execution, and FrameInt Count parity (`.# mod 2`) on
   every other Frame with a Count, `<>` included. Schemas and nil have nil
-  residual. `.####` returns nil for zero Count or nil residual; otherwise it
-  derives native FrameDemi loads `(Size+residual)/2` and `(Size−residual)/2`,
-  with left-next orientation for even Count. Errors propagate, including cycles
-  and nonfinite quantities; incoherent loads are explicit errors. Four hashes
-  form an observer name; a fifth starts a comment. Earlier `.###` immediately
-  followed by a hash comment therefore changes tokenization. See
-  `doc/FRAME-DEMI.md` for the native API and compatibility matrix.
+  residual. An aggregate may declare its own `.#`, `.##` and `.###` as methods
+  of those names. `.####` returns nil for no Count, zero Count or nil residual;
+  otherwise it derives the loads `(Size+residual)/2` and `(Size−residual)/2` and
+  answers an instance of the HC class `Demi` in `hc/demi.hc`, phase 2 for even
+  Count and 1 for odd. Errors propagate, including cycles and nonfinite
+  quantities; incoherent loads are explicit errors. Four hashes form an observer
+  name; a fifth starts a comment. Earlier `.###` immediately followed by a hash
+  comment therefore changes tokenization. See `doc/FRAME-DEMI.md` for the Demi
+  class and compatibility matrix.
 - **Enclosing scope**: `_^` (`_^.var`). Each caret is exactly one enclosing
   lexical scope: `_^^` is two scopes out. The count depends only on where the
   closure was written, never on how it was invoked. `_`/`__` and `_^`/`_^^` are

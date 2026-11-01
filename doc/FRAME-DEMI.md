@@ -1,80 +1,118 @@
-# FrameDemi and universal fourth-hash observation
+# Demi and universal fourth-hash observation
 
-Implemented for the v0.38.0 target, following occurrence/figure decisions
-011.18b–c and 011.18f–g. Every Frame has a fourth observation: a native Demi
-value, nil, or a propagated error. Nil means zero Count or absent residual; it
-does not invariably mean an empty receiver.
+Every Frame has a fourth observation, `.####`: a Demi, nil, or a propagated
+error, following occurrence/figure decisions 011.18b–m. Nil means no Count, zero
+Count or absent residual; it does not invariably mean an empty receiver. Since
+v0.37.4 (011.20) a Demi is an instance of an HC class, `Demi` in
+[`hc/demi.hc`](../hc/demi.hc), which is its definition and its executable
+specification. The native `FrameDemi` carrier of v0.37.3 and its `+` and `*`
+overloads are gone.
 
-## Native API
+## The HC class
 
-```ts
-import { Frame, FrameCount, FrameDemi } from "../lib/frames.ts";
-const d = new FrameDemi(Frame.nil, new FrameCount(7n), new FrameCount(2n));
-d.addCount(new FrameCount(3n)); // FrameDemi(<>,7,5)
-d.multiplyCount(new FrameCount(3n)); // FrameDemi((),21,6)
-const restored = FrameDemi.decode(JSON.parse(JSON.stringify(d.encode())));
-```
+`Demi [phase, left, right]` takes three Counts and answers a fresh aggregate
+whose fields are its state and whose methods are the class:
 
-Orientation must be exactly `Frame.all` (left receives next) or `Frame.nil`
-(right receives next). Loads/scalars must be concrete `FrameCount` instances,
-not signed integers, other numeric rungs or subclasses. Native invalid arguments
-throw TypeError/RangeError. `FrameDemi.create(orientation, left, right)` is the
-dynamic native factory returning `$!.demi-constructor` on invalid inputs; it
-does not introduce an HC constructor spelling. Hosts can supply these Frames
-through the existing namespace: `evaluate("$$.d + 3", { d })`.
+| Member    | Meaning                                                                                                                       |
+| --------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `.phase`  | 2 when even (left next), 1 when odd (right next): the least positive Count of the parity (011.18g)                            |
+| `.left`   | Left load, an exact Count                                                                                                     |
+| `.right`  | Right load, an exact Count                                                                                                    |
+| `.#`      | Declared Count: the phase                                                                                                     |
+| `.##`     | Declared Size: L+R                                                                                                            |
+| `.###`    | Declared residual: L−R                                                                                                        |
+| `.apply_` | `d x`: deposit `x.##` into the active load and flip the phase, even for Size zero; a failed Size is the answer, not a deposit |
+| `.scale_` | `d.scale_ k`: multiply both loads by a Count k, keeping the phase                                                             |
+| `.toText` | Text `Demi(<>,12,3)`, the phase spelled as the orientation it stands for                                                      |
 
-Read-only `orientation`, `left`, `right` expose state. Loads are captured as
-exact bigints; getters produce Count snapshots, so mutation of a
-supplied/returned Count cannot change the state. Load spelling and load metadata
-are not data fields. The inherited plumbing copy preserves the value. Outer
-metadata remains the HC metadata plane: `dataEquals` ignores it; `equals`
-includes it. Separately allocated equal values compare equal with `=`, `==`,
-`===`, following immutable atom identity. Arithmetic produces fresh values
-without outer metadata, as numeric arithmetic does. There is no full arity
-coordinate or Truth class.
+Anything else is refused with `$!.name-missing .invalid-demi` (or
+`.invalid-scale`), the idiom Figures uses for an unsupported host. The phase is
+a Count because a field cannot hold nil, and a Count keeps the odd phase
+present: a Demi in phase 1 is a value, distinct from the nil `.####` answers
+where there is no Demi.
 
-HC `FrameDemi + FrameCount` deposits into the active load and flips phase, even
-for zero; `FrameDemi * FrameCount` scales both loads and preserves phase, even
-for zero. Invalid right operands return `$!.demi-operand +` /
-`$!.demi-operand *`. References are normalized for these branches. Numeric and
-structural Star rules are retained: `Count * Demi` still repeats an opaque value
-by the existing Star rule, rather than acquiring a reverse scalar action. For
-example, `[[],[]].#### * 3` gives `FrameDemi(<>,3,3)`, while `3 * [[],[]].####`
-gives three copies of `FrameDemi(<>,1,1)`. No Demi/Demi overload or nil/Demi
-convenience overload is added.
+Methods read their own state through `_^`, never a bare name, because a bare
+name inside a method is looked up on the argument first (spec 7) and a Demi is
+applied to arbitrary Frames. Inside a branch the receiver is `_^^`: carets count
+lexically (spec a06).
 
-`FrameDemi((),0,0)` is present. Standalone `()` is absence. Diagnostic display
-`FrameDemi((),7,2)` is not HC source. `encode()` yields the frozen,
-JSON-compatible data tuple `["nil","7","2"]` (or `"all"`); `decode()` validates
-its canonical unsigned decimal magnitudes and reconstructs it exactly. Metadata
-is separate. Executable reconstruction currently uses the native constructor or
-decode API; there is no claim of an HC textual round trip.
+**Application is functional by default.** `apply_` is a mutating method, so
+through a name (an immutable handle) `d x` answers a new Demi and leaves d
+unchanged, holding exactly the same three fields, with no history. Through a
+mutable name, `d_ x` writes d in place, as for any HC class.
+
+**Display, equality, identity and persistence.** A Demi prints as what it is, an
+aggregate of fields and methods, and that printed form reads back as an equal
+Demi: the HC source is its serialization, replacing the native `encode`/`decode`
+tuple. Two Demis are `=` and `==` exactly when their fields are, since their
+methods are the same source. `===` is aggregate identity, so separately built
+equal Demis are not `===`, and `d.####` is a new instance equal to d. Text reads
+`Demi(phase,left,right)`.
+
+**No operator is overloaded.** `d + k` is ordinary addition, which answers nil
+for a non-number. `d * k` is ordinary Star, which refuses an aggregate with
+properties (`$!.star-metadata *`); `k * d` repeats d by the existing Count Star
+rule. Scaling is the method `scale_`, because a class cannot declare an
+operator. Ordinary `+` and Star are unchanged for every other Frame.
+
+## Declared observations
+
+An aggregate observes its elements, so a class that keeps its state in fields
+observes as its empty element list, 0, 1, 0. Any aggregate may instead declare a
+method named `#`, `##` or `###`, on itself or a declared parent, and answers
+that method's result for the operator, found the way `apply` and `toText` are
+(#375, #398) and never in the surrounding scope. The declared Size is also what
+the aggregate contributes inside another, so `[d, d].##` is 2(L+R). `.####` is
+not declarable: it is always derived from the three, so a class that declares
+them gets its fourth hash for free.
+
+A declared answer must be a Count for `#` and `##` and an exact integer for
+`###`; anything else is `$!.declared-observation .key`. An error the method
+answers is answered as it is, and a method that observes its own receiver the
+same way is `$!.cyclic-observation .key`. The method runs immutably. Nothing
+declares one by default, so every other aggregate observes as before. Unlike
+every built-in rule, a declared observation runs code the class wrote; the class
+opts into that, as it does for `toText`.
+
+## How `.####` reaches the class
+
+The derivation stays native (`lib/frames/fourth-hash.ts`), because it is the
+universal observation contract: read `#`, `##` and `###` in order with their
+absence and error rules, check that the loads are whole, and only then
+construct. Construction goes through `installDemiConstructor`, which the
+evaluator fills (`lib/execute/demi-prologue.ts`): the first time a Demi is
+needed it evaluates `hc/demi.hc` from the compiled-in bundle, the way an import
+evaluates a testdoc, with example lines dropped and the first failure failing
+the whole. It runs in a namespace of its own, with no host bindings and no root,
+so `.####` works in a bare `evaluate`, nothing a program declares can reach the
+class, and the file can import nothing (its own import example is an example
+line for that reason). The outcome is kept, failure included, so the file is
+evaluated once per process. A Demi requested while the file is still loading is
+`$!.demi-prologue-reentrant`; without an evaluator, as in the frames package
+alone, `.####` is `$!.demi-unavailable`.
 
 ## Demi quantities and constructor laws
 
-A Demi exposes its exact stored loads through native observers: `d.##` is the
-Count `L+R`, and `d.###` is the signed FrameInt `L−R`. Its explicit `d.#` is 2
-for all/even/left-next orientation and 1 for nil/odd/right-next orientation.
-This is the least positive representative of its stored parity, not full source
-arity or representation field count. The unchanged universal observer therefore
-reconstructs the same Demi data value: `d.####` is data-equal to d, and repeated
-fourth observation is idempotent. It may allocate a new carrier and does not
-copy outer metadata. No special fourth-hash branch is added. Observation reads
-the immutable bigint fields directly. Arrays containing Demis use their load
-sums as child Sizes. A present zero-load Demi has Size zero and remains distinct
-from nil. For any source F with a present Demi, `F.####.## = F.##` and
+A present Demi observes as its declared `#`, `##` and `###`, so the unchanged
+universal observer rebuilds an equal Demi: `d.####` equals d, and repeated
+fourth observation is idempotent. Arrays containing Demis use their load sums as
+child Sizes. A present zero-load Demi has Size zero and remains distinct from
+nil. For any source F with a present Demi, `F.####.## = F.##` and
 `F.####.### = F.###`.
 
-For pure Figures X and Y, write D(F) for `F.####`. The scalar constructor laws
-hold when the host X is nonempty (`X.# > 0`):
+Observing commutes with applying. For a nonempty host X (`X.# > 0`):
 
-- Append: `D(Apply(X,Y)) = D(X) + Y.##`.
-- Inlay (native Star): `D(X * Y) = D(X) * Y.##`.
+- Append: `(X Y).#### = X.#### Y`, and both equal `[...X, Y].####`.
+- Inlay (native Star): `(X * Y).#### = X.####.scale_ (Y.##)`.
 
-The empty-host boundaries are constructed separately:
-`D(Apply([],Y)) = [Y].#### = [[]].#### * Y.##`, and `D([] * Y) = Y.####`.
-Existing nil arithmetic is unchanged: `() + Count` passes through nil, while
-`() * Count` returns Star's domain error.
+The empty host is the boundary, by convention rather than theorem: `[].####` is
+nil (011.15g), and applying nil answers its argument, so the append law as
+written fails there. Lifting the empty host to the zero-load Demi in phase 2,
+`Demi [2, 0, 0]`, restores it, `([] Y).#### = (Demi [2, 0, 0]) Y`, which is also
+what a reduce starts from: `xs | (Demi [2, 0, 0])` equals `xs.####` for a
+nonempty xs. For Star, `([] * Y).#### = Y.####`. Retiring `+` gives up the
+state-only append evaluation of 011.16 §9.5: a step is computed by applying the
+Demi to the Frame, which reads its Size.
 
 Count is a terminal quantity. A positive Count n agrees on all observers with an
 n-terminal pure Figure. At zero, `0.##` is zero while `[].##` is one. Pure
@@ -88,9 +126,9 @@ Let n=F.#. If it fails, propagate the failure; if n=0, return nil without asking
 Size or residual. Otherwise read s=F.##, then r=F.###, propagating errors in
 that order. A nil residual gives nil Demi. A present residual must be a signed
 exact integer and Size a nonnegative exact Count. Require L=(s+r)/2 and
-R=(s−r)/2 to be exact nonnegative integers; construct `FrameDemi(all,L,R)` for
-even n, or `FrameDemi(nil,L,R)` for odd n. The implementation introduces no fold
-or cache.
+R=(s−r)/2 to be exact nonnegative integers; construct `Demi [2, L, R]` for even
+n, or `Demi [1, L, R]` for odd n. The implementation introduces no fold or
+cache.
 
 Diagnostics distinguish invalid Count (`$!.demi-count`), invalid present Size or
 residual (`$!.demi-observations`) and inconsistent halves (`$!.demi-coherence`).
@@ -103,14 +141,15 @@ numbers, text, blobs, bytes, opaque atoms and runtime type descriptions.
 Explicit Count rules take precedence: lists count immediate elements/words,
 schemas retain their own rules, all and void comments retain Count zero, and nil
 has no Count (`().#` is nil, so `().####` is nil without reading Size or
-residual). Demi explicitly supplies its positive parity Count (2 or 1). Nil/all
-source dispatch is intercepted, while receiverless observer names remain
-addresses. Missing residual falls back to Count parity, `.# mod 2`, on the base
-Frame (011.18k, 011.18m): every atom, FrameCount included, and every non-atom
-host (runtime types, imports, bound methods, internal hosts) takes it. `<>` has
-residual 0, so it observes as `[]`. Lists, schemas and Demi keep their explicit
-residual rules. The internal lookup sentinel `Frame.missing` is never an HC
-value; observing it natively answers `$!.name-missing`.
+residual). A Demi declares its positive parity Count (2 or 1). Nil/all source
+dispatch is intercepted, while receiverless observer names remain addresses.
+Missing residual falls back to Count parity, `.# mod 2`, on the base Frame
+(011.18k, 011.18m): every atom, FrameCount included, and every non-atom host
+(runtime types, imports, bound methods, internal hosts) takes it. `<>` has
+residual 0, so it observes as `[]`. Lists and schemas keep their explicit
+residual rules, and an aggregate that declares one, a Demi included, its own.
+The internal lookup sentinel `Frame.missing` is never an HC value; observing it
+natively answers `$!.name-missing`.
 
 Non-schema lists observe their stored ordered elements/words for Count, Size and
 residual, without executing the host. Source syntax uses the existing pure Size
@@ -123,19 +162,21 @@ normally.
 ## Verified Frame-family compatibility
 
 `demi-compatibility.test.ts` exercises every public concrete Frame family;
-`universal-demi.test.ts` checks derived projections, HC dispatch, absence/error
-boundaries, references, mutation, bigint values and non-execution. Internal
-hosts are source-audited for inherited rules and covered by import-first checks.
+`universal-demi.test.ts` checks derived projections, absence/error boundaries,
+references, mutation, bigint values and non-execution, and
+`demi-prologue.test.ts` the class, its loading and declared observations. In the
+`####` column, `Demi((),1,0)` is the text of the Demi answered. Internal hosts
+are source-audited for inherited rules and covered by import-first checks.
 
 | Family                                                                   | #                                     | ##                                                | ###                                       | ####                                                            |
 | ------------------------------------------------------------------------ | ------------------------------------- | ------------------------------------------------- | ----------------------------------------- | --------------------------------------------------------------- |
-| FrameCount(n)                                                            | n                                     | n                                                 | FrameInt n mod 2 (atom rule)              | nil at zero; otherwise balanced native Demi                     |
-| FrameDemi                                                                | 2 for all/even, 1 for nil/odd         | L+R                                               | FrameInt L−R                              | Same Demi data value, derived universally                       |
-| FrameInt, Decimal, Rational, finite Number                               | Absolute truncated magnitude          | Absolute truncated magnitude                      | FrameInt # mod 2                          | nil at zero; otherwise balanced native Demi                     |
-| String, Doc; Blob; Bytes                                                 | Code points; bits; bytes              | Code points; bits; bytes                          | FrameInt # mod 2                          | nil at zero; otherwise balanced native Demi                     |
-| FrameAtom; Arg, Param, Name, Word, Alias, Literal, Symbol, Operator      | 1                                     | One opaque occurrence                             | 1                                         | FrameDemi((),1,0)                                               |
-| URI, Resource; Time/DateTime/Duration, TypedNumber, Sequence             | 1                                     | One opaque occurrence; no reads or unit inference | 1                                         | FrameDemi((),1,0)                                               |
-| ScopeAnchor, StringEnd, BytePayload; non-error Note                      | 1                                     | One opaque occurrence                             | 1                                         | FrameDemi((),1,0)                                               |
+| FrameCount(n)                                                            | n                                     | n                                                 | FrameInt n mod 2 (atom rule)              | nil at zero; otherwise balanced Demi                            |
+| Demi instance (declared observers)                                       | Declared phase: 2 even, 1 odd         | Declared L+R                                      | Declared FrameInt L−R                     | An equal Demi, derived universally                              |
+| FrameInt, Decimal, Rational, finite Number                               | Absolute truncated magnitude          | Absolute truncated magnitude                      | FrameInt # mod 2                          | nil at zero; otherwise balanced Demi                            |
+| String, Doc; Blob; Bytes                                                 | Code points; bits; bytes              | Code points; bits; bytes                          | FrameInt # mod 2                          | nil at zero; otherwise balanced Demi                            |
+| FrameAtom; Arg, Param, Name, Word, Alias, Literal, Symbol, Operator      | 1                                     | One opaque occurrence                             | 1                                         | Demi((),1,0)                                                    |
+| URI, Resource; Time/DateTime/Duration, TypedNumber, Sequence             | 1                                     | One opaque occurrence; no reads or unit inference | 1                                         | Demi((),1,0)                                                    |
+| ScopeAnchor, StringEnd, BytePayload; non-error Note                      | 1                                     | One opaque occurrence                             | 1                                         | Demi((),1,0)                                                    |
 | all; void Comment                                                        | 0                                     | One description/occurrence                        | 0                                         | nil                                                             |
 | nil                                                                      | nil (no Count)                        | 1                                                 | nil                                       | nil                                                             |
 | missing (internal lookup sentinel)                                       | `$!.name-missing` (never an HC value) | Same error                                        | Same error                                | Same error                                                      |
@@ -147,7 +188,7 @@ hosts are source-audited for inherited rules and covered by import-first checks.
 | Nonfinite Number                                                         | Nonquantifiable error                 | Same error                                        | Same error                                | Same error                                                      |
 | Containment/reference cycles                                             | Immediate Count or cycle error        | Existing cycle error                              | Propagated cycle error                    | Propagated cycle error                                          |
 | Shared descendants; metadata/declared-parent cycles                      | Immediate Count                       | Sharing per occurrence; metadata excluded         | Same child Size rule                      | Coherent; no mutable cache                                      |
-| Type; Base Frame; Import, BoundMethod; internal hosts derived from Frame | Size fallback                         | One opaque occurrence                             | 1                                         | FrameDemi((),1,0)                                               |
+| Type; Base Frame; Import, BoundMethod; internal hosts derived from Frame | Size fallback                         | One opaque occurrence                             | 1                                         | Demi((),1,0)                                                    |
 | Internal ParsePipe (Array subtype)                                       | Inherited stored element Count        | Inherited Size                                    | Inherited residual                        | Inherited derivation                                            |
 
 Abstract Numeric/Text/Time/LexHost bases inherit the listed concrete-family
@@ -160,15 +201,15 @@ methods.
 
 ## Examples and compatibility changes
 
-| HC receiver                               | #### diagnostic display                                                            |
-| ----------------------------------------- | ---------------------------------------------------------------------------------- |
-| `[]`, `0`, `()`, `<>`, `“”`, any schema   | nil                                                                                |
-| `“hello”`, `(10 - 5)`, `(0 - 5)`, `(5.0)` | `FrameDemi((),3,2)`, the same as `5.####`                                          |
-| `1`, `2`, `3`, `7`                        | `FrameDemi((),1,0)`, `FrameDemi(<>,1,1)`, `FrameDemi((),2,1)`, `FrameDemi((),4,3)` |
-| `[0]`                                     | Present `FrameDemi((),0,0)`                                                        |
-| `[“hello”]`                               | `FrameDemi((),5,0)`                                                                |
-| `[<2,3,5>,2]`                             | `FrameDemi(<>,3,2)`; schema Size participates, schema residual does not            |
-| `{5 + 3}`                                 | `FrameDemi((),8,1)` from three stored words with Sizes 5,1,3; no execution         |
+| HC receiver                               | `“” x.####`                                                           |
+| ----------------------------------------- | --------------------------------------------------------------------- |
+| `[]`, `0`, `()`, `<>`, `“”`, any schema   | nil                                                                   |
+| `“hello”`, `(10 - 5)`, `(0 - 5)`, `(5.0)` | `Demi((),3,2)`, the same as `5.####`                                  |
+| `1`, `2`, `3`, `7`                        | `Demi((),1,0)`, `Demi(<>,1,1)`, `Demi((),2,1)`, `Demi((),4,3)`        |
+| `[0]`                                     | Present `Demi((),0,0)`                                                |
+| `[“hello”]`                               | `Demi((),5,0)`                                                        |
+| `[<2,3,5>,2]`                             | `Demi(<>,3,2)`; schema Size participates, schema residual does not    |
+| `{5 + 3}`                                 | `Demi((),8,1)` from three stored words with Sizes 5,1,3; no execution |
 
 Atom residual changes nil to FrameInt Count parity, including present/truthy
 zero, for every atom (011.18k); Count no longer has a rule of its own. Figures

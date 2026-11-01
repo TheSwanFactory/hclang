@@ -2,6 +2,8 @@ import { expect } from "jsr:@std/expect@^0.219.1";
 import * as f from "../frames.ts";
 import { BoundMethod } from "./bound-method.ts";
 import { FrameHandle } from "./frame-handle.ts";
+// Installs the HC Demi class that `.####` answers (011.20).
+import { constructDemi } from "../execute/demi-prologue.ts";
 
 // Compatibility evidence, not a fourth observer. Nil here records a missing
 // integer observation; it must never be converted to a numerical zero.
@@ -10,6 +12,14 @@ const observations = (value: f.Frame): string[] =>
     const result = value.sizeFor(key);
     return result === f.Frame.nil ? "nil" : result.toString();
   });
+
+/** A Demi instance's phase and loads, read from its fields (011.20). */
+const state = (value: f.Frame): [string, string, string] =>
+  ["phase", "left", "right"].map((key) => `${value.getOwn(key)}`) as [
+    string,
+    string,
+    string,
+  ];
 
 Deno.test("Demi compatibility matrix: all concrete Frame families stay non-executing", () => {
   const c = new f.FrameCount(5n);
@@ -92,15 +102,22 @@ Deno.test("Demi compatibility matrix: all concrete Frame families stay non-execu
     if (n === "0") {
       expect(observed).toBe(f.Frame.nil);
     } else {
-      expect((observed as f.FrameDemi).encode(), value.className())
-        .toEqual(["nil", "1", "0"]);
+      expect(state(observed), value.className()).toEqual(["1", "1", "0"]);
     }
   }
   const rows: [f.Frame, string[]][] = [
     [new f.FrameCount(0n), ["0", "0", "0"]],
     [c, ["5", "5", "1"]],
-    [new f.FrameDemi(f.Frame.nil, c, new f.FrameCount(0n)), ["1", "5", "5"]],
-    [new f.FrameDemi(f.Frame.all, c, new f.FrameCount(0n)), ["2", "5", "5"]],
+    [constructDemi(new f.FrameCount(1n), c, new f.FrameCount(0n)), [
+      "1",
+      "5",
+      "5",
+    ]],
+    [constructDemi(new f.FrameCount(2n), c, new f.FrameCount(0n)), [
+      "2",
+      "5",
+      "5",
+    ]],
     [new f.FrameInt(-3n), ["3", "3", "1"]],
     [new f.FrameDecimal("-7.9"), ["7", "7", "1"]],
     [new f.FrameRational(-7n, 2n), ["3", "3", "1"]],
@@ -145,13 +162,10 @@ Deno.test("Demi compatibility matrix: all concrete Frame families stay non-execu
     } else if (expected[0] === "0" || expected[2] === "nil") {
       expect(observed).toBe(f.Frame.nil);
     } else {
-      expect(observed).toBeInstanceOf(f.FrameDemi);
-      const d = observed as f.FrameDemi;
-      expect(d.left.data + d.right.data).toEqual(BigInt(expected[1]));
-      expect(d.left.data - d.right.data).toEqual(BigInt(expected[2]));
-      expect(d.orientation).toBe(
-        BigInt(expected[0]) % 2n === 0n ? f.Frame.all : f.Frame.nil,
-      );
+      const [phase, left, right] = state(observed).map(BigInt);
+      expect(left + right).toEqual(BigInt(expected[1]));
+      expect(left - right).toEqual(BigInt(expected[2]));
+      expect(phase).toEqual(BigInt(expected[0]) % 2n === 0n ? 2n : 1n);
     }
   }
   for (const value of [new f.FrameArray([c]), new f.FrameGroup([c])]) {
