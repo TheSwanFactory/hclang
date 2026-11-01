@@ -230,6 +230,17 @@ including [0].####.
 # [“Demi((),0,0)”, “Demi((),5,0)”, “Demi(<>,3,2)”, “Demi((),8,1)”]
 ; [“” ([[],[]].#### 3), “” (7.####.scale_ 2), ([[],[]] 3).#### = ([[],[]].#### 3)]
 # [“Demi((),4,1)”, “Demi((),8,6)”, <>]
+```
+A RotorRouter, the class in `hc/rotor-router.hc` (011.21), keeps the routed
+Figures themselves in two ordered channels and declares the observers that make
+its fourth hash their Demi. Routing a Figure's children in turn from the initial
+router sends the even positions left and the odd ones right, and that router's
+fourth hash is the Figure's.
+```
+; Routers <- './hc/rotor-router.hc';
+; .fr ([[], [[], []], []] | (Routers.RotorRouter [2, [], []]));
+; [fr.left, fr.right, fr.#### = [[], [[], []], []].####]
+# [[[], []], [[[], []]], <>]
 
 ```
 Importing skips the examples and ends on a native true value.
