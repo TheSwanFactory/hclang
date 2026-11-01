@@ -286,3 +286,25 @@ verdict. Software execution supplies the executable witness; the material
 apparatus is proposed as physically realizable and has not been executed.
 Neither full origin invariance nor sufficiency for arbitrary HC observations is
 claimed. This witness is included in `deno task test:doc` and the CLI tests.
+
+## RotorRouter
+
+[`hc/rotor-router.hc`](../hc/rotor-router.hc) (011.21) is the constructive
+counterpart of the Demi: an ordinary HC class,
+`RotorRouter [phase, left,
+right]`, that keeps the Frames it routes rather than
+their Sizes. Applying a router appends the argument, the same Frame, as one
+member of the active channel and flips the phase (2 left next, 1 right next),
+without evaluating, measuring or applying it. Through a name it is a functional
+update, through a mutable name it writes in place, and a channel argument is
+copied to its elements, so routers never share a writable channel.
+
+`router.demi ()` projects a router to a Demi with its phase and the summed child
+Sizes of each channel, where an empty channel is 0 rather than `[].##`. The
+projection is where children are measured, so a failed or cyclic Size shows
+there and not on routing. Routing an array's children in turn, `X | r0`, gives
+the interleaved state whose projection is `X.####`, and for every router
+`(r y).demi ()` is `(r.demi ()) y`. The initial router is the empty host lifted:
+it projects to `Demi(<>,0,0)` while `[].####` stays nil. A router declares no
+observers, so its own `.####` is that of an aggregate with no elements, nil. The
+file imports `hc/demi.hc`, so importing it needs a resource root.

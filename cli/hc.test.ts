@@ -375,7 +375,7 @@ describe("main", () => {
 
     expect(status).toEqual(0);
     expect(out.at(-1).toString()).toContain(
-      '“{"total":53,"pass":53,"fail":0,"unimplemented":0}”',
+      '“{"total":54,"pass":54,"fail":0,"unimplemented":0}”',
     );
   });
 
@@ -405,6 +405,20 @@ describe("main", () => {
     expect(status).toEqual(0);
     expect(out.at(-1).toString()).toContain(
       '“{"total":22,"pass":22,"fail":0,"unimplemented":0}”',
+    );
+  });
+
+  it("keeps the RotorRouter class testdoc green (011.21)", async () => {
+    const out = new FrameArray([]);
+    const file = new URL("../hc/rotor-router.hc", import.meta.url).pathname;
+    const status = await main(
+      getEval({}, out),
+      getOptions(["--testdoc", file]),
+    );
+
+    expect(status).toEqual(0);
+    expect(out.at(-1).toString()).toContain(
+      '“{"total":45,"pass":45,"fail":0,"unimplemented":0}”',
     );
   });
 
