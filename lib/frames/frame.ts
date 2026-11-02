@@ -1,5 +1,6 @@
 import { type Context, type IKeyValuePair, NilContext } from "./context.ts";
 import { renderNested } from "./stringify.ts";
+import { hasEffectSubscribers, notifyEffect } from "./effect-registry.ts";
 import type { FrameName } from "./frame-name.ts";
 import type { FrameSymbol } from "./frame-symbol.ts";
 import type { FrameSchema } from "./frame-schema.ts";
@@ -327,12 +328,24 @@ export class MetaFrame {
 
   /**
    * set adds a new key-value pair to the current context.
+   *
+   * This is the single commit point for a named-property mutation, so it is
+   * where an `A -> B` effect boundary observes a *committed* change (006.17
+   * §3-4): after the write lands, any callback registered on this value is a
+   * new invocation. Firing is a no-op for the common case of a value with no
+   * subscribers (a `WeakMap.has` check), and is skipped for a write that does
+   * not change the stored value, so a re-assignment of the same frame is not a
+   * mutation.
    */
   public set(key: string, value: Frame): MetaFrame {
     if (this.meta === NilContext) {
       this.meta = {};
     }
+    const previous = this.meta[key];
     this.meta[key] = value;
+    if (previous !== value && hasEffectSubscribers(this as unknown as Frame)) {
+      notifyEffect(this as unknown as Frame);
+    }
     return this;
   }
 
@@ -1294,6 +1307,11 @@ export class Frame extends MetaFrame {
         this.meta[key] = replacement;
         replaced = true;
       }
+    }
+    // An element-plane commit is a mutation too; a copy-on-write install lands
+    // on a fresh copy that carries no subscribers, so it never fires here.
+    if (replaced && hasEffectSubscribers(this as unknown as Frame)) {
+      notifyEffect(this as unknown as Frame);
     }
     return replaced;
   }

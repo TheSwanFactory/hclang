@@ -23,7 +23,7 @@ import {
   TypeEquals,
 } from "./ops/math.ts";
 import { IdenticalMember, Member, TypedMember } from "./ops/membership.ts";
-import { BindReturn, BindType } from "./ops/type-operations.ts";
+import { Arrow, BindReturn, BindType } from "./ops/type-operations.ts";
 
 export { FrameCurry } from "./ops/frame-curry.ts";
 export type { ICurryFunction } from "./ops/frame-curry.ts";
@@ -56,4 +56,5 @@ export const Ops = new FrameOps({
   "~~~": IdenticalMember,
   "^": BindType,
   "^^": BindReturn,
+  "->": Arrow,
 });

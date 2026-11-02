@@ -16,6 +16,7 @@ import { type Context, NilContext } from "./context.ts";
 import { type EvaluationInput, EvaluationScope } from "./evaluation-scope.ts";
 import {
   completeAtEnd,
+  includeOrEnd,
   includeOrReserve,
   TIME_DELIMITER,
 } from "./atom-syntax.ts";
@@ -470,6 +471,15 @@ export class FrameOperator extends FrameSymbol {
     SIGIL_STARTS: FrameOperator.SIGIL_STARTS,
     recognize: (symbol: Frame, source = ""): ScanResult => {
       const char = symbol.toString();
+      // `->` is one operator, the effect-boundary arrow (006.17 §3-4). The
+      // hyphen that opens it is an ordinary operator start; the `>` that would
+      // otherwise redispatch to schema syntax is swallowed here so `a -> b`
+      // lexes as subject, arrow, callback rather than `a -` then an
+      // unterminated `<...>`. Only a lone trailing `-` claims the `>`; a longer
+      // operator run ending in `-` keeps the old boundary.
+      if (char === ">" && source === "-") {
+        return includeOrEnd(true);
+      }
       // Comparison brackets belong to the schema syntax, not to an operator.
       if (char === "<" || char === ">") {
         return { disposition: ScanDisposition.CompleteRedispatch };

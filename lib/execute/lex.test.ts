@@ -245,6 +245,31 @@ describe("Lex", () => {
     expect(lexAtoms(".plain, ").map(String)).toEqual([".plain"]);
   });
 
+  describe("effect-boundary arrow `->` (006.17)", () => {
+    it("lexes `->` as one operator between its operands", () => {
+      const atoms = lexAtoms("a -> b ");
+      expect(atoms.map(String)).toEqual(["a", "->", "b"]);
+      expect(atoms[1]).toBeInstanceOf(FrameOperator);
+    });
+
+    it("lexes `->` as one operator identically across every split", () => {
+      // The `>` must not redispatch to schema syntax after the opening `-`.
+      expect(lexChunkedAtoms(["a -", "> b "]).map(String)).toEqual(
+        ["a", "->", "b"],
+      );
+      expect(lexChunkedAtoms(["a ", "-", ">", " b "]).map(String)).toEqual(
+        ["a", "->", "b"],
+      );
+    });
+
+    it("keeps a lone `-` as subtraction when no `>` follows it", () => {
+      // Only a hyphen immediately followed by `>` fuses; a spaced hyphen is
+      // ordinary subtraction, so the arrow does not disturb `-`.
+      expect(lexAtoms("a - b ").map(String)).toEqual(["a", "-", "b"]);
+      expect(lexAtoms("a-b ").map(String)).toEqual(["a-b"]);
+    });
+  });
+
   for (const name of [".<", ".>", ".<=", ".>="]) {
     it(`lexes ${name} as one selected dotted name`, () => {
       const atoms = lexAtoms(`${name} `);
