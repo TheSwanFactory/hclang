@@ -167,7 +167,21 @@ Deno.test("aggregates still collect failures and construct successful siblings",
   expect(result.get_here("b").toString()).toBe("2");
   expect(result.isError()).toBe(false);
   expect(result.isFailedResult()).toBe(true);
-  expect(answer("[([].nope)] .0").toString()).toContain("[$!.name-missing");
+});
+
+Deno.test("an aggregate that collected a failure can still be read", () => {
+  // Only a term that is itself an error ends an expression; the aggregate
+  // holding one is an ordinary value (PR #472 review).
+  expect(answer("[.a ([].nope); .b 2].b").toString()).toBe("2");
+  expect(answer(".o [.a ([].nope); .b 2]; o.b").toString()).toBe("2");
+  expect(answer("[([].nope), 7] .1").toString()).toBe("7");
+  expect(answer("[([].nope), 7] .#").toString()).toBe("2");
+  const element = answer("[([].nope)] .0");
+  expect(element.isError()).toBe(true);
+  expect(element.toString()).toMatch(/^\$!\.name-missing/);
+  expect(answer("[(1 / 0)] .0").toString()).toBe("$!.division-by-zero /");
+  // The aggregate is present, so it selects the then branch.
+  expect(answer("[(1 / 0)] ? {1} : {2}").toString()).toBe("1");
 });
 
 Deno.test("imports stop on diagnostic declarations and preserve only completed work", () => {
@@ -255,6 +269,15 @@ Deno.test("bundled refusals are named errors even with colliding caller bindings
     .toContain("$!.invalid-scale");
   expect(await session.call("[5, 3].#### = (Demis.Demi [2, 5, 3])"))
     .toBe("<>");
+});
+
+Deno.test("the bundled testdoc imports: its headings are text, not code", async () => {
+  // Its `## heading` lines once evaluated their words as names; under
+  // constructor flagging the first one stopped the import (PR #472 review).
+  const session = new HCLang();
+  const result = await session.call("T <- './hc/testdoc.hc'");
+  expect(result).not.toContain("$!");
+  expect(await session.call("T.#")).not.toContain("$!");
 });
 
 Deno.test("test reports retain failed, passed, unimplemented and summary notes", () => {

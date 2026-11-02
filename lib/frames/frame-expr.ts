@@ -133,8 +133,10 @@ export class FrameExpr extends FrameList {
     return terms.reduce((sum: Frame, item: Frame, index): Frame => {
       // A failed term is the result of the expression. In particular, a
       // missing dot-parameter read must not be replaced by the operator or
-      // operand that follows it.
-      if (sum.isFailedResult()) return sum;
+      // operand that follows it. Only the value itself counts: an aggregate
+      // that collected a failure is still an ordinary value its later terms
+      // can read (`[E, 7] .1` is 7), as it was before #467 flagged notes.
+      if (sum.isError()) return sum;
 
       const value = item.in(resumedScope(item, scope));
       if (value.is.error === true) return value;

@@ -362,7 +362,7 @@
         {
           "name": "constant.other.diagnostic.hclang",
           "match": "\\$(?:!(?!\\.)|[+\\-~=>]|<>)[^;]*;",
-          "comment": "Diagnostic notes such as $!.name-missing …;"
+          "comment": "Diagnostic notes such as $!missing; or $>bounds;. Every $!.label is the error literal above, printed notes included"
         },
         {
           "name": "variable.other.constant.private.hclang",

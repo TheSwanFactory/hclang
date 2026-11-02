@@ -106,9 +106,7 @@ export class FrameName extends FrameAtom implements ISourced {
       const target = scope.parameterAt(this.source.length + 1);
       if (target) return target;
 
-      const missing = FrameNote.key(this.toString(), this);
-      missing.is.error = true;
-      return missing;
+      return FrameNote.key(this.toString(), this);
     }
 
     // Construction declares the new aggregate's parent. Method-position `.^`

@@ -180,10 +180,15 @@ binding is installed, the failed statement is held, and `b` may still be
 constructed. Do not turn aggregate construction into a fail-fast closure
 sequence. Its result is then failed under the existing shallow predicate.
 
-Likewise, a literal aggregate can retain an error element. This does not make
-that error inspectable through later source operations: at the baseline,
-`[(1 / 0)] .0` answers the failed aggregate itself. Changing this, or making
-dynamic application `[] E` equivalent to literal collection, belongs to the
+Likewise, a literal aggregate can retain an error element. Expression reduction
+stops only on a term that is itself an error, not on an aggregate holding one,
+so the aggregate stays readable: `[.a E; .b 2].b` is `2`, `[E, 7] .1` is `7`,
+`[E, 7] .#` is `2`, and `[(1 / 0)] .0` answers the division error. At the
+baseline `[(1 / 0)] .0` answered the failed aggregate itself, and once #467
+flagged diagnostic notes that also made every aggregate holding a missing-name
+note unreadable (PR #472 review). Statement sequences, imports and the other
+control boundaries keep the shallow `isFailedResult()` test. Making dynamic
+application `[] E` equivalent to literal collection still belongs to the
 receiver-side design raised in 06 and 09.
 
 The existing low-level `FrameNote.call`, extras and end-of-output protocol need
@@ -295,6 +300,13 @@ Existing rendered diagnostic notes can include subjects and metadata after
 string as a round-trippable structured error literal. The new source value is
 the named atom; arbitrary following source is ordinary expression syntax.
 
+This applies to every `$!.label` prefix, including the notes the interpreter
+itself prints; no label is reserved for the old note syntax. Read back as
+source, `$!.name-missing “x”;` is the literal `$!.name-missing` applied to
+`“x”`, which answers that same error, then a statement terminator. The reason
+round-trips and the subject does not (PR #472 review). `$!word;` with no dot,
+`$<>…;`, `$>…;` and the test labels keep the semicolon-delimited note syntax.
+
 ### 6.3 Ownership in the current lexer
 
 The `$` family is registered by `FrameScopeAnchor.SYNTAX`, not `FrameNote`.
@@ -331,6 +343,16 @@ not blindly replace words inside prose or examples. Imports filter testdoc
 example lines beginning semicolon followed by a space, so expected-error
 examples are distinct from module initialization. Ordinary closure bodies remain
 lazy: a refusal in an untaken branch must not fail definition or import.
+
+The audit must also cover prose written in code position. `hc/testdoc.hc` wrote
+its section headings as `## heading` lines outside any document. `##` is an
+empty comment, so each heading's words were evaluated as code and answered a
+missing-name note. Master's import continued past those notes, so the file
+imported; under constructor flagging the import stopped at the first heading (PR
+#472 review). The headings are now one-line documents, `` ```## heading``` ``,
+which keeps them as text in both the testdoc run and an import. `hc/gerbil.hc`,
+`hc/white-paper.hc` and `hc/led_blink.hc` already failed to import at the
+baseline, for unrelated reasons, and are unchanged.
 
 Update affected testdoc expectations and prose to name the intentional error
 rather than a missing variable, then regenerate `lib/bundle/hc-sources.ts` with

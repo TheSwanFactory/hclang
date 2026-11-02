@@ -72,11 +72,6 @@ export class FrameNote extends FrameAtom {
     this.id += this.data;
   }
 
-  /** Observations preserve diagnostic failures as values. */
-  public override observationError(): Frame | undefined {
-    return this.isDiagnosticFailure() ? this : super.observationError();
-  }
-
   /** Diagnostic notes that represent failures, rather than test progress. */
   public isDiagnosticFailure(): boolean {
     return ["!", "<>", ">", "-"].includes(this.data);

@@ -253,9 +253,18 @@ All mathematical operators can use optional `.` prefix:
 `[A-Za-z_][A-Za-z0-9_-]*`; a boundary or EOF ends the atom, and a following `;`
 is an ordinary statement terminator. For example, `{ $!.invalid-scale }` is a
 closure whose call fails, while an untaken branch containing it does not run.
-`$!.`, `$!.;` and `$!.1bad` are lexical errors. Other diagnostic note spellings
-retain their semicolon-delimited syntax. Diagnostic failures propagate through
-expressions, closure sequences and imports; `:` falls back only on nil.
+`$!.`, `$!.;` and `$!.1bad` are lexical errors.
+
+Every `$!.label` prefix is this literal, including the diagnostics the
+interpreter prints. Read back, `$!.name-missing “x”;` is the error
+`$!.name-missing` applied to `“x”`, which answers the same error: the reason
+survives and the subject is dropped. Only the other diagnostic note spellings
+(`$!word;` with no dot, `$<>…;`, `$>…;`, and the test labels `$+`, `$-`, `$~`,
+`$=`) keep their semicolon-delimited syntax.
+
+Diagnostic failures propagate through expressions, closure sequences and
+imports; `:` falls back only on nil. An aggregate that collects a failure is
+still an ordinary value: `[E, 7] .1` is `7`, and `[E] .0` answers `E`.
 
 ## Special Values
 
