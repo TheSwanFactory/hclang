@@ -23,9 +23,12 @@ corrected it, [`06`](a13-error-handle/06-applying-a-failure.md) asks a larger
 question this design does not answer, and
 [`07`](a13-error-handle/07-what-blocks-implementation.md) reviews this record
 against the interpreter and dissolves the blocker it used to name,
-[`08`](a13-error-handle/08-handler-spelling.md) litigates the spelling, and
+[`08`](a13-error-handle/08-handler-spelling.md) litigates the spelling,
 [`09`](a13-error-handle/09-combination-step-guard.md) is the brief for the one
-open item that stops implementation.
+open item that stops implementation,
+[`10`](a13-error-handle/10-unified-diagnostic-failures.md) is the propagation
+rule shipped in v0.39.0, and [`11`](a13-error-handle/11-recovery-semantics.md)
+proposes recovery semantics for review.
 
 ## The problem
 
