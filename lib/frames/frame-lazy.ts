@@ -12,6 +12,7 @@ import { type Context, NilContext } from "./context.ts";
 import type { ReceiverState } from "./bound-method.ts";
 import { type EvaluationInput, EvaluationScope } from "./evaluation-scope.ts";
 import { renderSourceTerm } from "./frame-list.ts";
+import { isFrameMatcher } from "./frame-match.ts";
 import type { SigilStart } from "../scan.ts";
 
 // Both maps describe per-evaluation bound copies. The parsed/shared closure is
@@ -38,6 +39,12 @@ export class FrameLazy extends FrameExpr {
 
   private signature?: FrameGroup;
 
+  // The optional `^^` output contract, complementary to the `^` input
+  // signature above. A declared return schema gates the body's result the way
+  // `signature` gates the argument, and nothing else: it is a type assertion
+  // on the exposed value, not a freeze, copy, conversion, or callback.
+  private returnContract?: Frame;
+
   /**
    * Reads a resource as an unevaluated closure, bound at `site` (#443). The
    * parser lives in `lib/execute`, which installs this, since this module
@@ -50,6 +57,41 @@ export class FrameLazy extends FrameExpr {
       this.signature = signature;
     }
     return this;
+  }
+
+  /**
+   * Records the `^^` return contract. The schema is kept as written and only
+   * consulted after the body runs, so copying the closure template, which the
+   * per-evaluation `bind` above does, carries the contract to the bound copy.
+   */
+  public bindReturn(returnContract: Frame): this {
+    this.returnContract = returnContract;
+    return this;
+  }
+
+  /** The declared `^^` output schema, or undefined when none was bound. */
+  public returnSchema(): Frame | undefined {
+    return this.returnContract;
+  }
+
+  /**
+   * Checks a completed body result against the declared `^^` contract. An
+   * undeclared closure keeps HC's implicit constructive behavior and returns
+   * the result unchanged. A result that is already a failure is propagated
+   * without a second complaint, since the body never produced a value to
+   * expose. Otherwise a non-conforming result is refused as a `$!.type-error`,
+   * naming the declared schema and the offending value.
+   */
+  private checkReturn(result: Frame): Frame {
+    const contract = this.returnContract;
+    if (!contract) return result;
+    if (result.is.error) return result;
+    if (isFrameMatcher(contract) && !contract.match(result).matched) {
+      return Frame.error(
+        `$!.type-error ${contract.toString()} ${result.toString()}`,
+      );
+    }
+    return result;
   }
 
   public override string_open(): string {
@@ -194,7 +236,12 @@ export class FrameLazy extends FrameExpr {
       enclosing,
       receiverState,
     );
-    return FrameExpr.evaluateBody(this.data, scope, this.is.sequence === true);
+    const result = FrameExpr.evaluateBody(
+      this.data,
+      scope,
+      this.is.sequence === true,
+    );
+    return this.checkReturn(result);
   }
 
   private legacyCapture(): EvaluationScope | undefined {

@@ -882,6 +882,56 @@ describe("evaluate", () => {
           "$!missing-required-argument .last;)",
       );
     });
+
+    describe("closure return contracts `^^` (006.17)", () => {
+      // The last value an evaluation answered, the closure call rather than the
+      // declaration echo that precedes it in these two-statement sources.
+      const result = (source: string): string => {
+        const results = evaluate(source).asArray();
+        return results[results.length - 1].toString();
+      };
+
+      it("accepts a return that conforms to the declared output schema", () => {
+        const declaration = ".pick (.x) ^ {x} ^^ <1, 2, 3>; ";
+        expect(result(declaration + "pick (.x 2)")).toContain("2");
+      });
+
+      it("refuses a return that violates the declared output schema", () => {
+        const declaration = ".pick (.x) ^ {x} ^^ <1, 2, 3>; ";
+        expect(result(declaration + "pick (.x 9)")).toContain(
+          "$!.type-error <1, 2, 3> 9",
+        );
+      });
+
+      it("binds a return contract without an input signature", () => {
+        expect(result(".three {3} ^^ <1, 2, 3>; three ()")).toContain("3");
+        expect(result(".four {4} ^^ <1, 2, 3>; four ()")).toContain(
+          "$!.type-error <1, 2, 3> 4",
+        );
+      });
+
+      it("leaves an undeclared closure's implicit behavior unchanged", () => {
+        expect(result(".id (.x) ^ {x}; id (.x 9)")).toContain("9");
+      });
+
+      it("checks the computed result, not the input", () => {
+        // `x + x` doubles, so only an even input lands in <2, 4>.
+        const declaration = ".twice (.x) ^ {x + x} ^^ <2, 4>; ";
+        expect(result(declaration + "twice (.x 1)")).toContain("2");
+        expect(result(declaration + "twice (.x 2)")).toContain("4");
+        expect(result(declaration + "twice (.x 3)")).toContain(
+          "$!.type-error <2, 4> 6",
+        );
+      });
+
+      it("propagates a body failure instead of masking it as a type error", () => {
+        // The body never produced a value to expose, so the contract adds no
+        // second complaint over the original refusal.
+        expect(result(".boom {missingName} ^^ <1>; boom ()")).toContain(
+          "$!.name-missing",
+        );
+      });
+    });
   });
 
   describe("closures with arguments", () => {
