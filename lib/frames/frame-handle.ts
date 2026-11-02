@@ -153,8 +153,14 @@ export class FrameHandle extends Frame {
     return links;
   }
 
+  /**
+   * A closure found under a field is a method of the target, so it answers
+   * bound to it. One found under an element index is data the target holds,
+   * so it answers as itself, as it does when read from a literal or by
+   * iteration: `xs.0 === C` holds for `.xs [C]`.
+   */
   protected override lookup_result(value: Frame, key: string): Frame {
-    if (value.isClosure()) {
+    if (value.isClosure() && !Frame.isIndexKey(key)) {
       const effect = methodEffect(key);
       if (effect.mutating && this.mutable) this.copyOnWriteTarget();
       return new BoundMethod(

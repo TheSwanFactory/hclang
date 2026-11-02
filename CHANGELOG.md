@@ -4,6 +4,13 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## Unreleased
+
+- **An element is data, not a method.** A closure read by index from a named
+  aggregate answers as itself, as it already did from a literal or by iteration,
+  so `.xs [C]; xs.0 === C` holds and `xs.0 4` calls `C` with no receiver. Only a
+  closure read by field name is bound to the aggregate as a method.
+
 ## v0.38.0 2026-11-01
 
 - **Demi is an HC class.** `.####` answers an instance of `Demi`, defined and
