@@ -355,9 +355,14 @@
           "comment": "Controls: @control, @variable"
         },
         {
+          "name": "constant.other.error.hclang",
+          "match": "\\$!\\.[A-Za-z_][A-Za-z0-9_-]*",
+          "comment": "Named error literal; its following semicolon belongs to the statement"
+        },
+        {
           "name": "constant.other.diagnostic.hclang",
-          "match": "\\$(?:[!+\\-~=>]|<>)[^;]*;",
-          "comment": "Diagnostic notes such as $!.name-missing …;"
+          "match": "\\$(?:!(?!\\.)|[+\\-~=>]|<>)[^;]*;",
+          "comment": "Diagnostic notes such as $!missing; or $>bounds;. Every $!.label is the error literal above, printed notes included"
         },
         {
           "name": "variable.other.constant.private.hclang",

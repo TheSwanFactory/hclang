@@ -621,7 +621,7 @@ language domain.
 `x.### ? {<>} : {()}` when a boolean is needed, or branch directly on `x.###`. A
 zero FrameInt is true; nil means unsupported. Use `x` directly where its
 observation already establishes availability; an explicit local refusal is
-`x.### ? {x} : {unsupported-figure}`. An outer array binding such as
+`x.### ? {x} : {$!.unsupported-figure}`. An outer array binding such as
 `{.x <[].<>> _; x}` accepts `[[], [“nested atom”]]` and rejects the group
 `(5, 3)` despite its valid residual. It proves neither recursive array-only
 content nor the full native observer domain.

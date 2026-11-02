@@ -307,3 +307,59 @@ Deno.test("reference chains refuse cycles before entering the aggregate Size wal
     "$!.stored-error",
   );
 });
+
+Deno.test("nil, [], 0, <> and [0] answer the four hashes distinctly (#462)", () => {
+  // Nil has no Count, so no residual and no Demi, but one Size like any opaque
+  // atom; the present empties differ from it and from each other.
+  const rows: [string, Frame, string[], string[]][] = [
+    ["()", Frame.nil, ["()", "1", "()"], ["", "FrameCount", ""]],
+    ["[]", new FrameArray([]), ["0", "1", "0"], [
+      "FrameCount",
+      "FrameCount",
+      "FrameInt",
+    ]],
+    ["0", Frame.count(0n), ["0", "0", "0"], [
+      "FrameCount",
+      "FrameCount",
+      "FrameInt",
+    ]],
+    ["<>", Frame.all, ["0", "1", "0"], [
+      "FrameCount",
+      "FrameCount",
+      "FrameInt",
+    ]],
+    ["[0]", new FrameArray([Frame.count(0n)]), ["1", "0", "0"], [
+      "FrameCount",
+      "FrameCount",
+      "FrameInt",
+    ]],
+  ];
+  for (const [source, frame, answers, classes] of rows) {
+    ["#", "##", "###"].forEach((key, i) => {
+      const direct = frame.sizeFor(key);
+      if (answers[i] === "()") {
+        expect(direct, `${source}.${key}`).toBe(Frame.nil);
+      } else {
+        expect(direct.toString(), `${source}.${key}`).toEqual(answers[i]);
+        expect(direct.className(), `${source}.${key}`).toEqual(classes[i]);
+      }
+    });
+    // Evaluated HC agrees with the runtime, and `().#` is not the address.
+    expect(evaluate(`[${source}.#, ${source}.##, ${source}.###]`).toString())
+      .toEqual(`[[${answers.join(", ")}]]`);
+  }
+  // Only the zero-load aggregate is a present Demi; nil's absent Count and the
+  // other empties' Count 0 answer none.
+  for (const source of ["()", "[]", "0", "<>"]) {
+    // A nil answer leaves the statement group empty.
+    expect(evaluate(`${source}.#### ? {<>} : {()}`).toString(), source)
+      .toEqual("[]");
+  }
+  expect(last("[0].#### ? {<>} : {()}").toString()).toEqual("<>");
+  expect(evaluate("[[0].####.#, [0].####.##]").toString()).toEqual(
+    "[[1, 0]]",
+  );
+  // Nil inside an aggregate adds its one Size like any other atom.
+  expect(last("[()].##").toString()).toEqual("1");
+  expect(last("[(), 1].##").toString()).toEqual("2");
+});

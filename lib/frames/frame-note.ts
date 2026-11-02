@@ -67,18 +67,9 @@ export class FrameNote extends FrameAtom {
     super(NilContext);
     this.up = where;
     this.is.note = true;
+    this.is.error = this.isDiagnosticFailure();
     this.setLabel(data, source);
     this.id += this.data;
-  }
-
-  /** A diagnostic failure is an error value, though not flagged as one. */
-  public override isError(): boolean {
-    return super.isError() || this.isDiagnosticFailure();
-  }
-
-  /** Observations preserve diagnostic failures as values. */
-  public override observationError(): Frame | undefined {
-    return this.isDiagnosticFailure() ? this : super.observationError();
   }
 
   /** Diagnostic notes that represent failures, rather than test progress. */

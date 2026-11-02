@@ -28,6 +28,12 @@ const invalidDollar = (source: string, char = ""): ScanResult => ({
   message: `invalid dollar form: $${source}${char === "\n" ? "\\n" : char}`,
 });
 
+/** A named error is a source atom; its flag is not a lexical failure. */
+const namedError = (source: string): ScanResult =>
+  /^[A-Za-z_][A-Za-z0-9_-]*$/.test(source.slice(2))
+    ? complete(Frame.error(`$${source}`))
+    : invalidDollar(source);
+
 /** A boundary starts another token rather than extending a dollar form. */
 const isBoundary = (char: string): boolean => !/[$\w-]/.test(char);
 
@@ -67,6 +73,18 @@ const recognizeDollar = (symbol: Frame, source = ""): ScanResult => {
       : invalidDollar(source, char);
   }
 
+  if (source === "!" && char === ".") {
+    return { disposition: ScanDisposition.Consume };
+  }
+  if (source.startsWith("!.")) {
+    const accepted = source.length === 2
+      ? /^[A-Za-z_]$/.test(char)
+      : /^[A-Za-z0-9_-]$/.test(char);
+    return accepted
+      ? { disposition: ScanDisposition.Consume }
+      : namedError(source);
+  }
+
   if (char === FrameNote.NOTE_END) {
     return { disposition: ScanDisposition.CompleteRedispatch };
   }
@@ -77,6 +95,7 @@ const finishDollar = (source = ""): ScanResult => {
   if (source === "") return complete(FrameScopeAnchor.file());
   if (source === "$") return complete(FrameScopeAnchor.host());
   if (source === "<") return invalidDollar(source);
+  if (source.startsWith("!.")) return namedError(source);
   return {
     disposition: ScanDisposition.Error,
     message: `unterminated FrameNote: $${source}`,

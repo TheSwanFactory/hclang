@@ -120,7 +120,9 @@ receiver reads the member, `o .x`, as before.
 - [schema-structural-matcher.ts](schema-structural-matcher.ts) - Direct-property
   structural matcher
 - [schema-bit-matcher.ts](schema-bit-matcher.ts) - Built-in bit-layout matcher
-- [frame-note.ts](frame-note.ts) - Annotations and metadata
+- [frame-note.ts](frame-note.ts) - Diagnostic notes; failure labels `!`, `<>`,
+  `>` and `-` carry `is.error`, while test progress and summary notes do not.
+  `$!.reason` constructs a named error independently of name lookup (#467).
 - [frame-doc.ts](frame-doc.ts) - Documentation frames
 - [frame-uri.ts](frame-uri.ts) - Inert, structured resource identifiers `'…'`
   that name external things without authorizing them

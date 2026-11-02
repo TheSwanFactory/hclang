@@ -64,6 +64,43 @@ const lexChunkedAtoms = (chunks: string[]): Frame[] => {
   return expr.asArray();
 };
 
+Deno.test("named errors complete at EOF and redispatch each source boundary", () => {
+  for (const name of ["zero", "invalid-scale", "_private", "Reason_12"]) {
+    const source = `$!.${name}`;
+    const atoms = lexAtoms(source);
+    expect(atoms.map(String)).toEqual([source]);
+    expect(atoms[0].isError()).toBe(true);
+    for (let split = 1; split < source.length; split++) {
+      expect(
+        lexChunkedAtoms([source.slice(0, split), source.slice(split)]).map(
+          String,
+        ),
+      )
+        .toEqual([source]);
+    }
+    expect(lexAtoms(source + " 2").map(String)).toEqual([source, "2"]);
+    expect(lexAtoms(source + "+2").map(String)).toEqual([source, "+", "2"]);
+    for (const [open, close] of [["{", "}"], ["[", "]"], ["(", ")"]]) {
+      for (const semi of ["", ";"]) {
+        const nested = `${open}${source}${semi}${close}`;
+        for (let split = 1; split < nested.length; split++) {
+          expect(
+            lexChunkedAtoms([nested.slice(0, split), nested.slice(split)]).map(
+              String,
+            ),
+          )
+            .toEqual(lexAtoms(nested).map(String));
+        }
+        expect(lexResult(nested).is.lexical).not.toBe(true);
+      }
+    }
+  }
+  for (const source of ["$!.", "$!.;", "$!.1bad"]) {
+    expect(lexResult(source).is.lexical).toBe(true);
+    expect(lexResult(source).toString()).toContain("invalid dollar form");
+  }
+});
+
 describe("Lex", () => {
   it("recognizes membership runs and terminates type/schema accessors", () => {
     for (const op of ["~", "~~", "~~~"]) {

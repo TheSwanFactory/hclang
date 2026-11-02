@@ -4,6 +4,28 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.39.0 2026-11-02
+
+- **Breaking: diagnostic failures propagate consistently.** Missing names, type
+  mismatches, bounds errors and failed-test notes carry the error flag.
+  Comparisons, conditionals, closure sequences and imports preserve these
+  failures instead of treating them as nil or success. Aggregate construction
+  still collects failures, and the aggregate stays readable: `[E, 7] .1` is `7`
+  and `[E] .0` answers `E`. `:` remains a fallback only for nil (#467).
+- **Named error literals.** `$!.reason` is an error value, completed by a token
+  boundary or EOF; a following `;` terminates the statement. Every `$!.label`
+  prefix is the literal, so a printed `$!.name-missing “x”;` reads back as the
+  error `$!.name-missing` without its subject. Figure, Demi and RotorRouter
+  refusals now use `$!.unsupported-figure`, `$!.invalid-demi`,
+  `$!.invalid-scale` and `$!.invalid-router`, independent of ordinary bindings
+  (#467).
+- `hc/testdoc.hc` imports again: its section headings are documents rather than
+  code that evaluated their words as names (#467).
+- Tests pin how nil, `[]`, `0`, `<>` and `[0]` answer `.#`, `.##`, `.###` and
+  `.####`; nil has no Count, residual or Demi and one Size (#462).
+- The VS Code extension highlights the new literals without consuming the
+  surrounding closure (#467).
+
 ## v0.38.2 2026-11-01
 
 - **Restore the online playground on GitHub Pages.** Publish the tested release

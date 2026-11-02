@@ -22,8 +22,7 @@ const numeric = (
  * than nil, so a failed read such as `$!.name-missing` reaches whatever uses
  * the result. As nil it vanished: a write of nil leaves a field unchanged, so a
  * misread load looked like an update that never landed (011.20). Ordering
- * still answers nil, because an error is truthy under `?`, and a comparison
- * that answered one would take the branch.
+ * uses the same rule: diagnostic failures now short-circuit before `?` (#467).
  */
 const arithmetic = (
   source: Frame,
@@ -68,27 +67,27 @@ export const Power = (source: Frame, block: Frame): Frame =>
   arithmetic(source, block, (left, right) => left.power(right));
 
 export const Equals = (source: Frame, block: Frame): Frame => {
-  return source.equals(block);
+  return failure(source) ?? failure(block) ?? source.equals(block);
 };
 
 /** `==`: the same value and the same type at every node. */
 export const TypeEquals = (source: Frame, block: Frame): Frame => {
-  return source.typeEquals(block);
+  return failure(source) ?? failure(block) ?? source.typeEquals(block);
 };
 
 /** `===`: the same frame. Atoms, which own no identity, fall back to `==`. */
 export const Identical = (source: Frame, block: Frame): Frame => {
-  return source.identical(block);
+  return failure(source) ?? failure(block) ?? source.identical(block);
 };
 
 export const GreaterThan = (source: Frame, block: Frame): Frame =>
-  numeric(source, block, (left, right) => left.greaterThan(right));
+  arithmetic(source, block, (left, right) => left.greaterThan(right));
 
 export const GreaterThanOrEqual = (source: Frame, block: Frame): Frame =>
-  numeric(source, block, (left, right) => left.greaterThanOrEqual(right));
+  arithmetic(source, block, (left, right) => left.greaterThanOrEqual(right));
 
 export const LessThan = (source: Frame, block: Frame): Frame =>
-  numeric(source, block, (left, right) => left.lessThan(right));
+  arithmetic(source, block, (left, right) => left.lessThan(right));
 
 export const LessThanOrEqual = (source: Frame, block: Frame): Frame =>
-  numeric(source, block, (left, right) => left.lessThanOrEqual(right));
+  arithmetic(source, block, (left, right) => left.lessThanOrEqual(right));

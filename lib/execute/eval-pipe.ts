@@ -3,7 +3,6 @@ import {
   EvaluationScope,
   Frame,
   FrameGroup,
-  FrameNote,
   NilContext,
 } from "../frames.ts";
 import { LexPipe } from "./lex-pipe.ts";
@@ -74,6 +73,5 @@ function outputFailed(result: Frame, seen: Set<Frame>): boolean {
   if (seen.has(result)) return false;
   seen.add(result);
   return result.isFailedResult() ||
-    (result instanceof FrameNote && result.isDiagnosticFailure()) ||
     result.asArray().some((item) => outputFailed(item, seen));
 }

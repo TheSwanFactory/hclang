@@ -1,12 +1,16 @@
 # Change Log
 
-## Unreleased
-
-- Recognize `.####` as a native observer name; a fifth hash starts a comment.
-  Existing `.###` immediately followed by a hash comment changes tokenization.
-
 All notable changes to the Homoiconic C VS Code extension will be documented in
 this file.
+
+## [0.2.5] - 2026-11-02
+
+### Changed
+
+- Highlight `$!.reason` error literals through their identifier boundary,
+  keeping surrounding statements and closure braces separate (#467).
+- Recognize `.####` as a native observer name; a fifth hash starts a comment.
+  Existing `.###` immediately followed by a hash comment changes tokenization.
 
 ## [0.2.4] - 2026-10-30
 

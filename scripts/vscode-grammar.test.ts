@@ -52,6 +52,27 @@ const anchorMatches = (source: string): AnchorMatch[] =>
 const invalidMatches = (source: string): AnchorMatch[] =>
   matchesFor(invalidRules, source);
 
+Deno.test("named error highlighting stops before surrounding source (#467)", () => {
+  const patterns = grammar.repository.identifiers.patterns;
+  const literal = patterns.find((rule) =>
+    rule.name === "constant.other.error.hclang"
+  )!;
+  const diagnostic = patterns.find((rule) =>
+    rule.name === "constant.other.diagnostic.hclang"
+  )!;
+  const source = "{ $!.invalid-scale; } : {1}";
+  expect(new RegExp(literal.match).exec(source)?.[0]).toEqual(
+    "$!.invalid-scale",
+  );
+  expect(new RegExp(diagnostic.match).test(source)).toBe(false);
+  expect(new RegExp(diagnostic.match).exec("$!missing;")?.[0]).toEqual(
+    "$!missing;",
+  );
+  for (const malformed of ["$!.", "$!.;", "$!.1bad"]) {
+    expect(new RegExp(literal.match).test(malformed)).toBe(false);
+  }
+});
+
 describe("VS Code scope-anchor grammar", () => {
   it("highlights only complete file and host anchors", () => {
     expect(anchorMatches("$")).toEqual([
