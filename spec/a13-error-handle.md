@@ -16,19 +16,8 @@ fiction, moved here from `cli/hc/`.\
 [#361](https://github.com/TheSwanFactory/hclang/issues/361) (M-3) — but see D13,
 which argues the dependency runs the other way.\
 **Record:** [`a13-error-handle/`](a13-error-handle/) holds the working
-documents: [`01`](a13-error-handle/01-error-handling.md) is the long-form
-design, [`03`](a13-error-handle/03-recovery-spike-findings.md) and
-[`05`](a13-error-handle/05-masking-bound-findings.md) are measured findings that
-corrected it, [`06`](a13-error-handle/06-applying-a-failure.md) asks a larger
-question this design does not answer, and
-[`07`](a13-error-handle/07-what-blocks-implementation.md) reviews this record
-against the interpreter and dissolves the blocker it used to name,
-[`08`](a13-error-handle/08-handler-spelling.md) litigates the spelling,
-[`09`](a13-error-handle/09-combination-step-guard.md) is the brief for the one
-open item that stops implementation,
-[`10`](a13-error-handle/10-unified-diagnostic-failures.md) is the propagation
-rule shipped in v0.39.0, and [`11`](a13-error-handle/11-recovery-semantics.md)
-proposes recovery semantics for review.
+documents, numbered in the order they were written. Each states its own status
+and the documents it builds on.
 
 ## The problem
 
