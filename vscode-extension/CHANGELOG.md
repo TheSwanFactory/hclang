@@ -3,7 +3,7 @@
 All notable changes to the Homoiconic C VS Code extension will be documented in
 this file.
 
-## [0.2.5] - 2026-11-01
+## [0.2.5] - 2026-11-02
 
 ### Changed
 

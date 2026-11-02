@@ -4,7 +4,7 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
-## v0.39.0 2026-11-01
+## v0.39.0 2026-11-02
 
 - **Breaking: diagnostic failures propagate consistently.** Missing names, type
   mismatches, bounds errors and failed-test notes carry the error flag.
