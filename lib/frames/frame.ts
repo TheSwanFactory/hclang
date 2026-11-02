@@ -1056,6 +1056,26 @@ export class Frame extends MetaFrame {
   }
 
   /**
+   * Whether this frame is an observed error of the kind `candidate` names
+   * (spec a13/14 §7). Only a catch handler's observation answers yes; a
+   * schema candidate written as `$!.reason` or `$!!.reason` names the kind.
+   */
+  public matchesKind(_candidate: Frame): boolean {
+    return false;
+  }
+
+  /**
+   * Handles `failure` with the catch handler that `handler` evaluates to
+   * (spec a13/14 §5). The observation is current while the handler is both
+   * evaluated and called. `frame-observation.ts` installs the real one when it
+   * loads; it is late bound so that expression reduction need not import it
+   * (load order).
+   */
+  public static catchWith: (failure: Frame, handler: () => Frame) => Frame = (
+    failure,
+  ) => failure;
+
+  /**
    * className returns the name of the class as a string.
    * @returns a string
    */

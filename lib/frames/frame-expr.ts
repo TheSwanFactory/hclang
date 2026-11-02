@@ -126,24 +126,61 @@ export class FrameExpr extends FrameList {
     return [body];
   }
 
+  /**
+   * Reduces an expression's terms left to right, with the catch operator `$!`
+   * as its one boundary (spec a13/14 §5).
+   *
+   * Spaced, `E $! H₁ $! H₂` guards everything to its left: the expression
+   * splits at each bare `$!`, and each handler part is evaluated only while
+   * the result so far is an error. A tight catcher, `x $!{H}`, is one term
+   * (a16) that handles the failure just before it: the preceding term's, or
+   * else the expression so far.
+   */
   private static evaluateTerms(
     terms: readonly Frame[],
     scope: EvaluationScope,
   ): Frame {
-    return terms.reduce((sum: Frame, item: Frame, index): Frame => {
+    return terms.some(isCatch)
+      ? FrameExpr.catchSpaced(terms, scope)
+      : FrameExpr.reduceTerms(terms, scope);
+  }
+
+  private static reduceTerms(
+    terms: readonly Frame[],
+    scope: EvaluationScope,
+  ): Frame {
+    let sum = Frame.nil;
+    for (let index = 0; index < terms.length; index++) {
+      const item = terms[index];
+      if (isCatcher(item)) {
+        if (index === 0) return Frame.error("$!.catch-operand-missing");
+        // A catcher after a success has nothing to handle and is not run.
+        if (sum.isError()) sum = FrameExpr.handle(sum, item, scope);
+        continue;
+      }
       // A failed term is the result of the expression. In particular, a
       // missing dot-parameter read must not be replaced by the operator or
       // operand that follows it. Only the value itself counts: an aggregate
       // that collected a failure is still an ordinary value its later terms
       // can read (`[E, 7] .1` is 7), as it was before #467 flagged notes.
-      if (sum.isError()) return sum;
+      // Later terms are skipped; only a catcher can still handle it.
+      if (sum.isError()) continue;
 
-      const value = item.in(resumedScope(item, scope));
-      if (value.is.error === true) return value;
+      let value = item.in(resumedScope(item, scope));
+      while (value.is.error === true && isCatcher(terms[index + 1])) {
+        value = FrameExpr.handle(value, terms[++index] as FrameExpr, scope);
+      }
+      if (value.is.error === true) {
+        sum = value;
+        continue;
+      }
       if (
         index === 0 && value.isSymbol() && value.is.address &&
         Frame.SIZE_OPERATORS.includes(value.spelling())
-      ) return value;
+      ) {
+        sum = value;
+        continue;
+      }
       // An explicit nil receiver still has a Size. The initial nil accumulator
       // is not a receiver, so a leading .## remains an address (#411).
       if (
@@ -151,13 +188,60 @@ export class FrameExpr extends FrameList {
         value.is.address &&
         Frame.SIZE_OPERATORS.includes(value.spelling())
       ) {
-        return value.called_by(sum);
+        sum = value.called_by(sum);
+        continue;
       }
       if (index > 0 && value.is.operator === true) {
-        return value.called_by(sum, Frame.nil).atSite(scope);
+        sum = value.called_by(sum, Frame.nil).atSite(scope);
+        continue;
       }
-      return sum.call(value);
-    }, Frame.nil);
+      sum = sum.call(value);
+    }
+    return sum;
+  }
+
+  /** `E $! H₁ $! H₂ …`: guard everything to the left of each handler. */
+  private static catchSpaced(
+    terms: readonly Frame[],
+    scope: EvaluationScope,
+  ): Frame {
+    const parts: Frame[][] = [[]];
+    for (const term of terms) {
+      if (isCatch(term)) parts.push([]);
+      else parts.at(-1)!.push(term);
+    }
+    const [guarded, ...handlers] = parts;
+    if (guarded.length === 0) return Frame.error("$!.catch-operand-missing");
+    if (handlers.some((part) => part.length === 0)) {
+      return Frame.error("$!.catch-handler-missing");
+    }
+    let result = FrameExpr.reduceTerms(guarded, scope);
+    for (const part of handlers) {
+      if (!result.isError()) break;
+      result = Frame.catchWith(
+        result,
+        () => FrameExpr.reduceTerms(part, scope),
+      );
+    }
+    return result;
+  }
+
+  /**
+   * A tight catcher `$!H` handles `failure` with the handler `H`. The handler
+   * is evaluated only on failure, with the observation already current, so
+   * `$#` reads it whether `H` is a closure or not.
+   */
+  private static handle(
+    failure: Frame,
+    catcher: FrameExpr,
+    scope: EvaluationScope,
+  ): Frame {
+    const body = catcher.data.slice(1);
+    if (body.length === 0) return Frame.error("$!.catch-handler-missing");
+    return Frame.catchWith(
+      failure,
+      () => FrameExpr.evaluateTerms(body, scope),
+    );
   }
 
   private schemaRetrieval(scope: EvaluationScope): Frame | undefined {
@@ -568,4 +652,15 @@ function unwrapSingleton(frame: Frame): Frame {
     result = result.asArray()[0];
   }
   return result;
+}
+
+/** The catch operator `$!`, as the lexer completes it (`FrameCatch`). */
+function isCatch(term: Frame | undefined): boolean {
+  return term?.className() === "FrameCatch";
+}
+
+/** A tight expression that begins with `$!`: `$!{H}` written after a term. */
+function isCatcher(term: Frame | undefined): term is FrameExpr {
+  return term instanceof FrameExpr && term.constructor === FrameExpr &&
+    isCatch(term.asArray()[0]);
 }

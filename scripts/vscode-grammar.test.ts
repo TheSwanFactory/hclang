@@ -60,15 +60,19 @@ Deno.test("named error highlighting stops before surrounding source (#467)", () 
   const diagnostic = patterns.find((rule) =>
     rule.name === "constant.other.diagnostic.hclang"
   )!;
-  const source = "{ $!.invalid-scale; } : {1}";
-  expect(new RegExp(literal.match).exec(source)?.[0]).toEqual(
-    "$!.invalid-scale",
+  for (const literalSource of ["$!!.invalid-scale", "$!.division-by-zero"]) {
+    const source = `{ ${literalSource}; } : {1}`;
+    expect(new RegExp(literal.match).exec(source)?.[0]).toEqual(literalSource);
+    expect(new RegExp(diagnostic.match).test(source)).toBe(false);
+  }
+  expect(new RegExp(diagnostic.match).exec("$+pass;")?.[0]).toEqual(
+    "$+pass;",
   );
-  expect(new RegExp(diagnostic.match).test(source)).toBe(false);
-  expect(new RegExp(diagnostic.match).exec("$!missing;")?.[0]).toEqual(
-    "$!missing;",
-  );
-  for (const malformed of ["$!.", "$!.;", "$!.1bad"]) {
+  // The removed legacy note forms are not notes any more (a13/14 §2).
+  for (const removed of ["$!missing;", "$>bounds;", "$<>type;"]) {
+    expect(new RegExp(diagnostic.match).test(removed)).toBe(false);
+  }
+  for (const malformed of ["$!.", "$!.;", "$!.1bad", "$!!.", "$!!.1bad"]) {
     expect(new RegExp(literal.match).test(malformed)).toBe(false);
   }
 });
@@ -117,7 +121,22 @@ describe("VS Code scope-anchor grammar", () => {
   // Every spelling the lexer rejects with `invalid dollar form` should read as
   // an error rather than as unstyled text, so the two stay in step.
   it("flags the dollar spellings the lexer rejects", () => {
-    const malformed = ["$$$", "$$$$", "$foo", "$$HOME", "$_x", "$1", "$$-foo"];
+    const malformed = [
+      "$$$",
+      "$$$$",
+      "$foo",
+      "$$HOME",
+      "$_x",
+      "$1",
+      "$$-foo",
+      "$!missing;",
+      "$>bounds;",
+      "$<>type;",
+      "$!!",
+      "$!!x",
+      "$!x",
+      "$!.",
+    ];
     for (const source of malformed) {
       expect(invalidMatches(source).map((match) => match.scope)).toContain(
         BAD_FORM,
@@ -157,13 +176,16 @@ describe("VS Code scope-anchor grammar", () => {
       ".+$",
       "_^$",
       "1 $",
-      "$!missing;",
       "$+pass;",
       "$-fail;",
       "$~todo;",
       "$=summary;",
-      "$>bounds;",
-      "$<>type;",
+      "$!.reason",
+      "$!!.reason",
+      "1 $! {0}",
+      "x $!{0}",
+      "$#",
+      "$#.!",
       "name",
       ".set",
       "@ctl",
@@ -212,14 +234,28 @@ describe("grammar and lexer agree on every dollar spelling", () => {
     "_^$",
     "+$",
     "<=$",
-    // Diagnostic notes, which the dollar family still owns.
-    "$!missing;",
+    // Testdoc notes, which the dollar family still owns.
     "$+pass;",
     "$-fail;",
     "$~todo;",
     "$=summary;",
+    // Error literals, the catch operator and the observation anchor, and the
+    // removed legacy note forms (a13/14 §2).
+    "$!.reason",
+    "$!!.reason",
+    "1 $! {0}",
+    "x $!{0}",
+    "$#",
+    "$#.!",
+    "$#.#",
+    "$!x",
+    "$!-",
+    "$!.",
+    "$!missing;",
     "$>bounds;",
     "$<>type;",
+    "$!!",
+    "$!!x",
     // Malformed dollar runs.
     "$$$",
     "$$$$",
@@ -322,4 +358,18 @@ describe("VS Code size-operator grammar (#411)", () => {
     expect(thisRule.exec("x.#")?.index).toBe(1);
     expect(order.indexOf(SIZE_SCOPE)).toBeLessThan(order.indexOf(THIS_SCOPE));
   });
+});
+
+Deno.test("the catch operator and observation anchor have their own scopes (a13/14)", () => {
+  const catchRule = ruleFor("keyword.operator.catch.hclang");
+  const observationRule = ruleFor("variable.language.observation.hclang");
+  const first = (pattern: string, source: string): string | undefined =>
+    new RegExp(pattern).exec(source)?.[0];
+  expect(first(catchRule.pattern, "1 / 0 $! {0}")).toEqual("$!");
+  expect(first(catchRule.pattern, "x $!{0}")).toEqual("$!");
+  for (const other of ["$!.reason", "$!!.reason", "$!x", "$", "$$"]) {
+    expect(first(catchRule.pattern, other), other).toBeUndefined();
+  }
+  expect(first(observationRule.pattern, "$#.!")).toEqual("$#");
+  expect(anchorMatches("$#")).toEqual([]);
 });

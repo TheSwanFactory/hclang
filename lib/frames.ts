@@ -41,9 +41,12 @@ export { FrameName } from "./frames/frame-name.ts";
 export { FrameWord } from "./frames/frame-word.ts";
 export { FrameNote } from "./frames/frame-note.ts";
 export {
+  FrameCatch,
+  FrameObservationAnchor,
   FrameScopeAnchor,
   type ScopeAnchorKind,
 } from "./frames/frame-scope-anchor.ts";
+export { FrameObservation } from "./frames/frame-observation.ts";
 export {
   FrameNumeric,
   NUMERIC_RANK,

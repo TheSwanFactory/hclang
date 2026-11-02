@@ -32,7 +32,7 @@ export class EnumerationSchemaMatcher implements SchemaMatcher {
         ) {
           return matchSuccess(value);
         }
-      } else if (candidate.isEqualTo(value)) {
+      } else if (candidate.isEqualTo(value) || value.matchesKind(candidate)) {
         return matchSuccess(value);
       }
     }

@@ -23,7 +23,7 @@ least positive Count of its parity (011.18g): 2 when even, left next, and 1
 when odd, right next. It is a Count rather than all or nil because a field
 cannot hold nil, and a Count keeps the odd phase present: a Demi in phase 1 is
 a value, unlike the nil `.####` answers for a Frame with no Demi. Anything else
-is refused with `$!.invalid-demi`, a named error, as Figures refuses an
+is refused with `$!!.invalid-demi`, a named error, as Figures refuses an
 unsupported host. The fields are the whole state, so two Demis are `=` exactly
 when their fields are.
 
@@ -67,9 +67,9 @@ level, where nested blocks read it.
     .apply_ {.s (_ .##); .l (_^ .left); .r (_^ .right);
       (s ~ (0.<>)) ? {((_^^ .phase) = 2) ? {@left (l + s); @phase 1;} : {@right (r + s); @phase 2;}; _^^} : {s}};
     .scale_ {.k _; .l (_^ .left); .r (_^ .right);
-      (k ~ (0.<>)) ? {@left (l * k); @right (r * k); _^^} : {$!.invalid-scale}};
+      (k ~ (0.<>)) ? {@left (l * k); @right (r * k); _^^} : {$!!.invalid-scale}};
     .toText {“Demi(” (((_^ .phase) = 2) ? {“<>”} : {“()”}) “,” (_^ .left) “,” (_^ .right) “)”}
-  ]} : {$!.invalid-demi}} : {$!.invalid-demi}};
+  ]} : {$!!.invalid-demi}} : {$!!.invalid-demi}};
 ```
 ## Construction
 
@@ -86,9 +86,9 @@ from the same constructor share nothing
 Anything but three Counts with phase 1 or 2 is refused
 ```
 ; Demi [3, 0, 0]
-# $!.invalid-demi
+# $!!.invalid-demi
 ; [Demi [2, (0 - 1), 0], Demi [2, (5 - 3), 0], Demi [2, 0], Demi 5, Demi [(5 - 3), 0, 0]]
-# [$!.invalid-demi, $!.invalid-demi, $!.invalid-demi, $!.invalid-demi, $!.invalid-demi]
+# [$!!.invalid-demi, $!!.invalid-demi, $!!.invalid-demi, $!!.invalid-demi, $!!.invalid-demi]
 ```
 ## Application
 
@@ -219,7 +219,7 @@ the identity, and scaling composes
 ; [“” (e.scale_ 2), “” (e.scale_ 0), (e.scale_ 1) = e, ((e.scale_ 2).scale_ 3) = (e.scale_ 6)]
 # [“Demi((),24,6)”, “Demi((),0,0)”, <>, <>]
 ; e.scale_ (0 - 2)
-# $!.invalid-scale
+# $!!.invalid-scale
 ```
 It is the shadow of Star on a nonempty host
 ```

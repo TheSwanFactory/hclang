@@ -19,10 +19,16 @@ export class FrameNote extends FrameAtom {
       "-": "test-fail",
       "~": "test-unimplemented",
       "=": "test-summary",
-      "<>": "type-mismatch",
       ">": "bounds-exceeded",
     },
   };
+
+  /**
+   * Note labels that render as a system error, `$!.<label name>` (spec a13/14
+   * §3). Every failure the interpreter reports starts with `$!`; only the
+   * testdoc report labels keep their own sigils.
+   */
+  private static readonly SYSTEM_ERROR_LABELS = new Set(["!", ">"]);
 
   public static test(data: string, source: string, sum: string): FrameNote {
     const note = new FrameNote(data, source);
@@ -33,10 +39,6 @@ export class FrameNote extends FrameAtom {
 
   public static key(source: string, where: Frame): FrameNote {
     return new FrameNote("!", source, where);
-  }
-
-  public static type(source: string): FrameNote {
-    return new FrameNote("<>", source);
   }
 
   public static index(source: string): FrameNote {
@@ -74,7 +76,7 @@ export class FrameNote extends FrameAtom {
 
   /** Diagnostic notes that represent failures, rather than test progress. */
   public isDiagnosticFailure(): boolean {
-    return ["!", "<>", ">", "-"].includes(this.data);
+    return ["!", ">", "-"].includes(this.data);
   }
 
   public override in(_contexts = [Frame.nil]): Frame {
@@ -101,7 +103,10 @@ export class FrameNote extends FrameAtom {
   }
 
   public override toString(): string {
-    return this.string_prefix() + this.data + this.meta_string();
+    const label = FrameNote.SYSTEM_ERROR_LABELS.has(this.data)
+      ? "!"
+      : this.data;
+    return this.string_prefix() + label + this.meta_string();
   }
 
   protected setLabel(data: string, source: string): void {

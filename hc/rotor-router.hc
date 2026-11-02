@@ -20,8 +20,8 @@ arrays. The phase is the state of the next route, encoded as a Demi's is:
 array's properties are configuration, not routed Frames, so the constructor
 keeps the elements in a fresh array of its own, and a channel argument that
 declares `apply` cannot change what appending means. Anything else is refused
-with `$!.invalid-router`, a named error, as `Demi` refuses with
-`$!.invalid-demi`.
+with `$!!.invalid-router`, a named error, as `Demi` refuses with
+`$!!.invalid-demi`.
 Any phase and any two channels are a state; nothing requires the channels to
 be a history the router could have produced.
 
@@ -68,7 +68,7 @@ the method body. What a branch needs is bound as a local at method level.
     .## {(channel-load (_^ .left)) + (channel-load (_^ .right))};
     .### {(channel-load (_^ .left)) - (channel-load (_^ .right))};
     .toText {“RotorRouter(” (((_^ .phase) = 2) ? {“<>”} : {“()”}) “,” (_^ .left) “,” (_^ .right) “)”}
-  ]} : {$!.invalid-router}} : {$!.invalid-router}};
+  ]} : {$!!.invalid-router}} : {$!!.invalid-router}};
 ```
 ## Construction
 
@@ -82,9 +82,9 @@ present, phase 2 with both channels empty
 Anything but a phase of 1 or 2 and two arrays is refused
 ```
 ; RotorRouter [3, [], []]
-# $!.invalid-router
+# $!!.invalid-router
 ; [RotorRouter [(5 - 3), [], []], RotorRouter [2, [], 5], RotorRouter [2, (1, 2), []], RotorRouter [2, []], RotorRouter 5]
-# [$!.invalid-router, $!.invalid-router, $!.invalid-router, $!.invalid-router, $!.invalid-router]
+# [$!!.invalid-router, $!!.invalid-router, $!!.invalid-router, $!!.invalid-router, $!!.invalid-router]
 ```
 A channel is its elements. The router keeps them in an array of its own, so a
 channel's properties and a declared `apply` do not come with it

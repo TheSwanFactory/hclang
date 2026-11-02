@@ -38,9 +38,9 @@ const answer = (source: string): Frame => {
 };
 
 Deno.test("diagnostic classification agrees at shallow control boundaries", () => {
-  for (const label of ["!", "<>", ">", "-", "+", "~", "=", "unknown"]) {
+  for (const label of ["!", ">", "-", "+", "~", "=", "unknown"]) {
     const note = new FrameNote(label, "probe");
-    const failed = ["!", "<>", ">", "-"].includes(label);
+    const failed = ["!", ">", "-"].includes(label);
     expect(note.is.note).toBe(true);
     expect(note.is.error === true).toBe(failed);
     expect(note.isError()).toBe(failed);
@@ -55,7 +55,6 @@ Deno.test("diagnostic classification agrees at shallow control boundaries", () =
   for (
     const note of [
       FrameNote.key("x", Frame.nil),
-      FrameNote.type("x"),
       FrameNote.index("x"),
       FrameNote.fail("x", "0"),
     ]
@@ -83,7 +82,6 @@ Deno.test("all math operations preserve either error operand and its referent", 
   for (
     const error of [
       FrameNote.key("x", Frame.nil),
-      FrameNote.type("x"),
       FrameNote.index("x"),
       FrameNote.fail("x", "0"),
       Frame.error("$!.first"),
@@ -221,17 +219,31 @@ Deno.test("imports stop on diagnostic declarations and preserve only completed w
 
 Deno.test("named literals are lazy atoms, independent of same-named bindings", () => {
   for (const semi of ["", ";"]) {
-    const declaration = `.zero 99; .f {(_ = 0) ? {$!.zero${semi}} : {__}}; `;
+    const declaration = `.zero 99; .f {(_ = 0) ? {$!!.zero${semi}} : {__}}; `;
     expect(answer(declaration + "f 1").toString()).toBe("1");
-    expect(answer(declaration + "f 0").toString()).toBe("$!.zero");
-    expect(answer("{ $!.zero" + semi + " }").isError()).toBe(false);
+    expect(answer(declaration + "f 0").toString()).toBe("$!!.zero");
+    expect(answer("{ $!!.zero" + semi + " }").isError()).toBe(false);
   }
-  expect(answer("$!.zero").isError()).toBe(true);
-  expect(answer("$!.zero;").toString()).toBe("$!.zero");
-  expect(answer("[$!.zero, 2]").asArray().map(String)).toEqual([
-    "$!.zero",
+  expect(answer("$!!.zero").isError()).toBe(true);
+  expect(answer("$!!.zero;").toString()).toBe("$!!.zero");
+  expect(answer("[$!!.zero, 2]").asArray().map(String)).toEqual([
+    "$!!.zero",
     "2",
   ]);
+});
+
+Deno.test("user code writes system kinds but raises only user errors (a13/14 §4)", () => {
+  // Written as a system kind, raised as the user error with the same reason.
+  expect(answer("$!.division-by-zero").toString()).toBe(
+    "$!!.division-by-zero",
+  );
+  expect(answer("$!.division-by-zero").isError()).toBe(true);
+  // The interpreter's own error keeps the system namespace.
+  expect(answer("1 / 0").toString()).toBe("$!.division-by-zero /");
+  // A schema of kinds builds and holds them without propagating.
+  expect(evaluate("5 ~ <$!.division-by-zero, $!!.zero>").toString()).toBe(
+    "[]",
+  );
 });
 
 Deno.test("mutating methods return failures without undoing completed writes", () => {
@@ -251,22 +263,22 @@ Deno.test("bundled refusals are named errors even with colliding caller bindings
   // A closure cannot bind a schema or nil argument, so no source input reaches
   // Gap's refusing branch; check the literal it holds and the same refusal.
   expect(await session.call("Figures"))
-    .toContain(": { $!.unsupported-figure } };");
-  expect(await session.call("<2, 3>.### ? {<>} : {$!.unsupported-figure}"))
-    .toBe("$!.unsupported-figure");
+    .toContain(": { $!!.unsupported-figure } };");
+  expect(await session.call("<2, 3>.### ? {<>} : {$!!.unsupported-figure}"))
+    .toBe("$!!.unsupported-figure");
   for (
     const input of ["[2, 0]", "[2, 0, 0, 0]", "(2, 0, 0)", "“abc”", "()", "5"]
   ) {
-    expect(await session.call(`Demis.Demi ${input}`)).toBe("$!.invalid-demi");
+    expect(await session.call(`Demis.Demi ${input}`)).toBe("$!!.invalid-demi");
   }
   for (
     const input of ["[2, []]", "[2, [], [], []]", "(2, [], [])", "“abc”", "()"]
   ) {
     expect(await session.call(`Routers.RotorRouter ${input}`))
-      .toBe("$!.invalid-router");
+      .toBe("$!!.invalid-router");
   }
   expect(await session.call("(Demis.Demi [2, 0, 0]).scale_ (0 - 1)"))
-    .toContain("$!.invalid-scale");
+    .toContain("$!!.invalid-scale");
   expect(await session.call("[5, 3].#### = (Demis.Demi [2, 5, 3])"))
     .toBe("<>");
 });
