@@ -1,8 +1,10 @@
 # Error Namespaces and the `$!` Catch Operator
 
-**Status:** Decided, ready to implement. §1 records the owner's decisions; §9
-lists the smaller choices this spec made on the owner's instruction to use
-judgement, for review before implementation. Nothing is implemented.\
+**Status:** Implemented in v0.40.0 (PR
+[#473](https://github.com/TheSwanFactory/hclang/pull/473)). §1 records the
+owner's decisions; §9 lists the smaller choices made on the owner's instruction
+to use judgement, which the owner approved. §10 notes where the implementation
+settled details this spec left open.\
 **Issues:** [#360](https://github.com/TheSwanFactory/hclang/issues/360);
 error-name translation is split out to
 [#474](https://github.com/TheSwanFactory/hclang/issues/474).\
@@ -169,10 +171,12 @@ the spelling.
 
 ### 5.2 Lexing
 
-`$!` followed by a boundary or by `{`, `(`, `[`, a name or another atom is the
-operator. `$!.` and `$!!.` are the literals. `$!!` without a dot is a lexical
-error. With the legacy notes gone, `(1 / 0) $!{0}` lexes; at v0.39.0 `$!{0}`
-scans as a legacy note that never closes.
+`$!` followed by a boundary, such as a space, `{`, `(`, `[` or a quote, is the
+operator. `$!.` and `$!!.` are the literals. `$!` followed by a word character
+(`$!x`, the removed `$!word;` form) and `$!!` without a dot are lexical errors,
+so a handler held in a name needs the spaced form, `x $! h`. With the legacy
+notes gone, `(1 / 0) $!{0}` lexes; at v0.39.0 `$!{0}` scans as a legacy note
+that never closes.
 
 ### 5.3 Nothing to guard
 
@@ -259,3 +263,18 @@ implementation:
    anchor, so it does not round-trip as source, as error renderings with
    subjects already do not (spec 10 §6.2).
 6. **`.text` is dropped** (§7).
+
+## 10. Implementation notes
+
+- **A handler that is not a closure** is the replacement itself: `(1 / 0) $! 5`
+  is `5`. A closure is called with the observation.
+- **`$#` is dynamic.** It names the observation of the innermost handler that is
+  running, so a closure a handler builds sees it only while the handler runs.
+- **The observation's members** are its own: `_ .!` and `_ .#` read them too,
+  since `_` is the same observation.
+- **The kind written in a `$!.reason` literal** is recorded beside the user
+  error it raises (`lib/frames/error-kind.ts`), and a schema keeps that frame as
+  its candidate, which is how `<$!.reason>` names the system kind.
+- **Expression reduction calls handlers late-bound** through `Frame.catchWith`,
+  which `frame-observation.ts` installs, so `frame-expr.ts` imports nothing new
+  (`lib/load-order.test.ts`).

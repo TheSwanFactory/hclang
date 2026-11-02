@@ -4,6 +4,29 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.40.0 2026-11-02
+
+- **Breaking: two error namespaces.** Errors the interpreter makes are system
+  errors, `$!.reason`, and errors HC code raises are user errors, `$!!.reason`.
+  Source can write `$!.reason` but raises the user error with that reason; a
+  schema holding it names the system kind. The bundled refusals are now
+  `$!!.invalid-demi`, `$!!.invalid-scale`, `$!!.unsupported-figure` and
+  `$!!.invalid-router` (#360).
+- **Breaking: bounds errors render as `$!.bounds-exceeded`,** so every error
+  begins with `$!`. The unused `type-mismatch` note is removed, and the
+  `$!word;`, `$>…;` and `$<>…;` note forms no longer lex. The testdoc report
+  notes `$+ $- $~ $=` are unchanged (#360).
+- **Catch errors with `$!`.** `E $! H` guards its whole expression and `x $!{H}`
+  guards the term before it. The handler is called only on failure, with an
+  observation of the error; its answer replaces the error, nil included, and a
+  handler's own failure wins. Handlers chain left to right (#360).
+- **`$#` is the current handler's observation.** `$#.!` is the original error,
+  so answering it declines; `$#.#` is the reason as text; and
+  `$# ~ <$!.division-by-zero>` matches error kinds by namespace and reason.
+  Outside a handler `$#` answers `$!.observation-missing` (#360).
+- The VS Code extension highlights `$!`, `$#` and `$!!.reason`, and flags the
+  removed note forms (#360).
+
 ## v0.39.0 2026-11-02
 
 - **Breaking: diagnostic failures propagate consistently.** Missing names, type

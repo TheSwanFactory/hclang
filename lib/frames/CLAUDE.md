@@ -128,6 +128,12 @@ receiver reads the member, `o .x`, as before.
   `$!.reason`; source that writes `$!.reason` raises the user error with that
   reason, and a schema holding it names the system kind (`error-kind.ts`, spec
   a13/14).
+- [frame-observation.ts](frame-observation.ts) - What a catch handler receives
+  (`$#`): a non-error view of one error, with `.!` the original and `.#` its
+  reason. It installs `Frame.catchWith`, which `FrameExpr` calls late-bound so
+  that expression reduction need not import it. The catch operator `$!`
+  (`FrameCatch`) and the `$#` anchor live in `frame-scope-anchor.ts`; the `$!`
+  boundary is in `FrameExpr.evaluateTerms`.
 - [frame-doc.ts](frame-doc.ts) - Documentation frames
 - [frame-uri.ts](frame-uri.ts) - Inert, structured resource identifiers `'…'`
   that name external things without authorizing them

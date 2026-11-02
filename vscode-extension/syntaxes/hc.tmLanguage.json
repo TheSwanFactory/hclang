@@ -68,19 +68,29 @@
           "comment": "this context (standalone dot)"
         },
         {
+          "name": "keyword.operator.catch.hclang",
+          "match": "(?<![$\\w-])\\$!(?![!.$\\w-])",
+          "comment": "Catch operator: E $! H guards its whole expression; x $!{H} guards the term before it"
+        },
+        {
+          "name": "variable.language.observation.hclang",
+          "match": "(?<![$\\w-])\\$#(?![$\\w-])",
+          "comment": "The current catch handler's observation; $#.! is the original error and $#.# its reason"
+        },
+        {
           "name": "variable.language.host-scope.hclang",
           "match": "(?<![$\\w-])\\$\\$(?![$\\w-])",
           "comment": "Explicit host namespace anchor"
         },
         {
           "name": "variable.language.file-scope.hclang",
-          "match": "(?<![$\\w-])\\$(?![$!+\\-~=><\\w-])",
+          "match": "(?<![$\\w-])\\$(?![$!#+\\-~=><\\w-])",
           "comment": "Current file or module namespace anchor"
         },
         {
           "name": "invalid.illegal.dollar-form.hclang",
-          "match": "(?<![$\\w-])(?:(?!\\$\\$?(?![$\\w-])|\\$-)\\$[$\\w-]*(?![$\\w-])|\\$!(?!!?\\.[A-Za-z_])[!\\w-]*|\\$<>?|\\$>)",
-          "comment": "Malformed dollar run: any $-led token that is neither $ nor $$, such as $$$, $foo, or $$HOME; a $! not followed by an error literal's dot, such as the removed $!word; note or $!!; and the removed $>…; and $<>…; notes. A testdoc note ends the run at its own prefix, and $- is exempted because a hyphen is the one note prefix that continues a token"
+          "match": "(?<![$\\w-])(?:(?!\\$\\$?(?![$\\w-])|\\$-)\\$[$\\w-]*(?![$\\w-])|\\$!(?:[\\w-][!\\w-]*|!(?!\\.[A-Za-z_])[!\\w-]*|\\.(?![A-Za-z_]))|\\$<>?|\\$>)",
+          "comment": "Malformed dollar run: any $-led token that is neither $ nor $$, such as $$$, $foo, or $$HOME; a $! run that is neither the catch operator nor an error literal, such as the removed $!word; note, $!! or $!.; and the removed $>…; and $<>…; notes. A testdoc note ends the run at its own prefix, and $- is exempted because a hyphen is the one note prefix that continues a token"
         },
         {
           "name": "invalid.illegal.dollar-suffix.hclang",

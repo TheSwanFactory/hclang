@@ -301,6 +301,8 @@ which can be:
 - `@Controls`
 - `$` (the current file or module namespace)
 - `$$` (the explicit host namespace)
+- `$#` (the current catch handler's observation; see
+  [Catching Errors](GRAMMAR.md#catching-errors))
 
 A sequence of identifiers and primitives is an expression.
 

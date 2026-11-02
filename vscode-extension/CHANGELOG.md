@@ -3,6 +3,15 @@
 All notable changes to the Homoiconic C VS Code extension will be documented in
 this file.
 
+## [0.2.6] - 2026-11-02
+
+### Changed
+
+- Highlight the catch operator `$!`, the observation anchor `$#` and user error
+  literals `$!!.reason` (#360).
+- Flag the removed `$!word;`, `$>…;` and `$<>…;` note forms as malformed, and
+  highlight only the testdoc report notes as notes (#360).
+
 ## [0.2.5] - 2026-11-02
 
 ### Changed

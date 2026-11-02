@@ -263,7 +263,8 @@ containing it does not run.
 Source code can write `$!.reason` but cannot raise a system error with it.
 Raised, `$!.division-by-zero` answers the user error `$!!.division-by-zero`.
 Inside a schema it names the system kind: `<$!.division-by-zero>` holds the kind
-without raising it.
+without raising it, so a handler can match the errors the interpreter makes (see
+[Catching Errors](#catching-errors)).
 
 `$!.`, `$!.;`, `$!.1bad`, `$!!.`, and `$!!` without a dot are lexical errors.
 Every printed error begins with its namespace. Read back, a printed
@@ -277,6 +278,75 @@ and `$<>…;` note forms were removed in v0.40.0 and are lexical errors.
 Diagnostic failures propagate through expressions, closure sequences and
 imports; `:` falls back only on nil. An aggregate that collects a failure is
 still an ordinary value: `[E, 7] .1` is `7`, and `[E] .0` answers `E`.
+
+## Catching Errors
+
+`$!` is the catch operator. On success the guarded value is the answer and the
+handler is not evaluated. On failure the handler is called with an
+**observation** of the error, and its answer replaces the error. Answering nil
+is a recovery like any other.
+
+```hc
+1 / 0 $! {0}                 # 0
+7 $! {0}                     # 7, and the handler never runs
+(1 / 0) $!{()}               # nil
+```
+
+Spacing sets what is guarded:
+
+- **Spaced, `E $! H`,** guards everything to its left in its expression.
+- **Tight, `x $!{H}`,** with the handler abutting `$!`, guards only the term
+  before it. When that term succeeded and the expression failed earlier, it
+  guards the expression so far.
+
+```hc
+1 + (1 / 0) $!{0}            # 1: only (1 / 0) is guarded
+1 + (1 / 0) $! {0}           # 0: the whole sum is guarded
+.x (1 / 0) $!{0}; x          # 0: x is bound to the recovered value
+.x (1 / 0) $! {0}; x         # the declaration itself fails, so x is missing
+```
+
+Write the tight form in declarations. `x$!` with no space is a lexical error, as
+`x$` is. A tight handler starts with `{`, `(` or `[`; a handler held in a name
+needs the spaced form, `x $! h`. A handler that is not a closure is the
+replacement itself: `(1 / 0) $! 5` is `5`. A missing operand or handler is an
+error: `$! {0}` answers `$!.catch-operand-missing` and `1 $!` answers
+`$!.catch-handler-missing`.
+
+**The observation.** Inside a handler, at any depth, `$#` is the observation of
+the error that handler was called with; the handler's argument `_` is the same
+value. Outside every handler `$#` answers `$!.observation-missing`, and inside
+nested handlers it is the innermost one's.
+
+| Read   | Answers                                                          |
+| ------ | ---------------------------------------------------------------- |
+| `$#`   | The observation, which prints as `$#.reason` and is not an error |
+| `$#.!` | The original error itself; answering it declines or re-raises    |
+| `$#.#` | The reason as text, such as `“division-by-zero”`                 |
+| `$# ~` | Kind matching: `$# ~ <$!.division-by-zero, $!.numeric-range>`    |
+
+`$#.!` and `$#.#` are members of the observation; elsewhere `.!` is still
+negation and `.#` is still Count. A handler that fails answers its own error,
+which an outer `$!` can catch. Handlers chain left to right, and each sees the
+error the previous one left:
+
+```hc
+(1 / 0) $!{$#.!} $!{$#.#}        # “division-by-zero”: the first declines
+(1 / 0) $!{[].nope} $!{$#.#}     # “name-missing”: the first failed
+```
+
+An observation matches a schema of error kinds by namespace and reason, so
+`<$!.bounds-exceeded>` matches an interpreter bounds error and `<$!!.zero>`
+matches the user error `$!!.zero`. To recover to nil only on a match, put nil in
+the else branch, because `:` tests the then-branch's answer:
+
+```hc
+x $!{(($# ~ <$!.division-by-zero>) .!) ? {$#.!} : {()}}
+```
+
+An aggregate that collected a failure is not one, so `[(1 / 0), 7] $! {0}` is
+the array. The guarded expression runs once, and recovery does not resume it:
+statements after the failure do not run.
 
 ## Special Values
 

@@ -1,6 +1,7 @@
 import { type EvaluationRoots, Frame } from "./frame.ts";
 import { FrameAtom } from "./frame-atom.ts";
 import { FrameNote } from "./frame-note.ts";
+import { FrameObservation } from "./frame-observation.ts";
 import { FrameSymbol } from "./frame-symbol.ts";
 import { describeAs } from "./error-kind.ts";
 import type { MetaFrame } from "./meta-frame.ts";
@@ -49,9 +50,9 @@ const errorLiteral = (source: string): ScanResult => {
 const isBoundary = (char: string): boolean => !/[$\w-]/.test(char);
 
 /**
- * Recognizes the dollar family behind one `$` registration: the anchors `$`
- * and `$$`, the error literals `$!.reason` and `$!!.reason`, and the testdoc
- * report notes. Longest match keeps `$$` atomic,
+ * Recognizes the dollar family behind one `$` registration: the anchors `$`,
+ * `$$` and `$#`, the catch operator `$!`, the error literals `$!.reason` and
+ * `$!!.reason`, and the testdoc report notes. Longest match keeps `$$` atomic,
  * while unsupported `$word` forms fail on their first character instead of
  * consuming an expression.
  */
@@ -59,7 +60,7 @@ const recognizeDollar = (symbol: Frame, source = ""): ScanResult => {
   const char = symbol.toString();
 
   if (source === "") {
-    if (char === "$" || char === "!") {
+    if (char === "$" || char === "!" || char === "#") {
       return { disposition: ScanDisposition.Consume };
     }
     if (NOTE_PREFIXES.has(char)) {
@@ -81,11 +82,20 @@ const recognizeDollar = (symbol: Frame, source = ""): ScanResult => {
       : invalidDollar(source, char);
   }
 
-  // `$!` must be followed by a dot or a second `!`. A word character is the
-  // removed `$!word;` note form, so it is rejected.
+  if (source === "#") {
+    return isBoundary(char)
+      ? complete(new FrameObservationAnchor())
+      : invalidDollar(source, char);
+  }
+
+  // `$!` is the catch operator unless a dot or a second `!` follows. A word
+  // character is the removed `$!word;` note form, so it is rejected.
   if (source === "!") {
-    return char === "." || char === "!"
-      ? { disposition: ScanDisposition.Consume }
+    if (char === "." || char === "!") {
+      return { disposition: ScanDisposition.Consume };
+    }
+    return isBoundary(char)
+      ? complete(new FrameCatch())
       : invalidDollar(source, char);
   }
   if (source === "!!") {
@@ -112,7 +122,9 @@ const recognizeDollar = (symbol: Frame, source = ""): ScanResult => {
 const finishDollar = (source = ""): ScanResult => {
   if (source === "") return complete(FrameScopeAnchor.file());
   if (source === "$") return complete(FrameScopeAnchor.host());
-  if (source === "!" || source === "!!") return invalidDollar(source);
+  if (source === "#") return complete(new FrameObservationAnchor());
+  if (source === "!") return complete(new FrameCatch());
+  if (source === "!!") return invalidDollar(source);
   if (source.startsWith("!.") || source.startsWith("!!.")) {
     return errorLiteral(source);
   }
@@ -222,5 +234,43 @@ export class FrameScopeAnchor extends FrameAtom {
 
   private target(): Frame {
     return this.kind === "file" ? this.fileScope : this.hostNamespace;
+  }
+}
+
+/**
+ * The catch operator `$!` (spec a13/14 §5). It is syntax: expression
+ * reduction (`FrameExpr`) recognizes it among an expression's terms, so it
+ * never evaluates as a value of its own.
+ */
+export class FrameCatch extends FrameAtom {
+  public override in(_input: EvaluationInput = []): Frame {
+    return this;
+  }
+
+  public override string_prefix(): string {
+    return "$!";
+  }
+
+  protected override toData(): string {
+    return "";
+  }
+}
+
+/**
+ * `$#`, the anchor for the observation of the innermost catch handler now
+ * running (spec a13/14 §6). Outside every handler it is an error.
+ */
+export class FrameObservationAnchor extends FrameAtom {
+  public override in(_input: EvaluationInput = []): Frame {
+    return FrameObservation.current() ??
+      Frame.error("$!.observation-missing");
+  }
+
+  public override string_prefix(): string {
+    return "$#";
+  }
+
+  protected override toData(): string {
+    return "";
   }
 }
