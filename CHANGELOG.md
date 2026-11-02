@@ -4,12 +4,19 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
-## Unreleased
+## v0.38.1 2026-11-01
 
+- **RotorRouter is an HC class.** `Routers <- './hc/rotor-router.hc'` binds
+  `RotorRouter [phase, left, right]`, a two-channel router that keeps what it
+  routes: `router x` appends x itself to the active channel and flips the phase,
+  without evaluating or measuring it. It declares `#`, `##` and `###` (phase,
+  L+R, L−R over the channels' summed child Sizes, an empty channel counting 0),
+  so `router.####` is its Demi. The testdoc is the specification, including the
+  commuting law `(X | router).#### = X.####` (#469).
 - **An element is data, not a method.** A closure read by index from a named
   aggregate answers as itself, as it already did from a literal or by iteration,
   so `.xs [C]; xs.0 === C` holds and `xs.0 4` calls `C` with no receiver. Only a
-  closure read by field name is bound to the aggregate as a method.
+  closure read by field name is bound to the aggregate as a method (#471).
 
 ## v0.38.0 2026-11-01
 
