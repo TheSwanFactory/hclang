@@ -206,7 +206,7 @@ replaced globally, because the bundled refusals and the literal tests keep
    types make `$!.type-error` (`schema-matcher.ts`, `frame-symbol.ts`,
    `frame-type.ts`). The `<>` note label renders `$<>.type-mismatch`, but
    nothing in `lib/` outside tests constructs it; only `FrameNote.index`, the
-   bounds note, is used (`frame-list.ts`). Should `type-mismatch` be dropped,
-   leaving `$!!.type-error` as the one kind?
+   bounds note, is used (`frame-array.ts`, `frame-schema.ts`). Should
+   `type-mismatch` be dropped, leaving `$!!.type-error` as the one kind?
 6. **Ordering in the PR:** rename first and then add `$!`, as separate commits
    that each pass `test:all`?
