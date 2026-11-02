@@ -20,7 +20,8 @@ arrays. The phase is the state of the next route, encoded as a Demi's is:
 array's properties are configuration, not routed Frames, so the constructor
 keeps the elements in a fresh array of its own, and a channel argument that
 declares `apply` cannot change what appending means. Anything else is refused
-with `invalid-router`, a missing name, as `Demi` refuses with `invalid-demi`.
+with `$!.invalid-router`, a named error, as `Demi` refuses with
+`$!.invalid-demi`.
 Any phase and any two channels are a state; nothing requires the channels to
 be a history the router could have produced.
 
@@ -56,7 +57,7 @@ first (spec 7), so a router reads its fields through the receiver, `_^` from
 the method body. What a branch needs is bound as a local at method level.
 ```
 .channel-load {.c _; (c.# = 0) ? {0} : {c.##}};
-.RotorRouter {.p (_ .0); .l (_ .1); .r (_ .2);
+.RotorRouter {((_ ~ ([].<>)) ? {(__ .#) = 3}) ? {.p (__ .0); .l (__ .1); .r (__ .2);
   ((((p = 2) : {p = 1}) ? {p ~ (0.<>)}) ? {(l ~ ([].<>)) ? {r ~ ([].<>)}}) ? {[
     .phase p;
     .left (l | []);
@@ -67,7 +68,7 @@ the method body. What a branch needs is bound as a local at method level.
     .## {(channel-load (_^ .left)) + (channel-load (_^ .right))};
     .### {(channel-load (_^ .left)) - (channel-load (_^ .right))};
     .toText {“RotorRouter(” (((_^ .phase) = 2) ? {“<>”} : {“()”}) “,” (_^ .left) “,” (_^ .right) “)”}
-  ]} : {invalid-router}};
+  ]} : {$!.invalid-router}} : {$!.invalid-router}};
 ```
 ## Construction
 
@@ -81,9 +82,9 @@ present, phase 2 with both channels empty
 Anything but a phase of 1 or 2 and two arrays is refused
 ```
 ; RotorRouter [3, [], []]
-# $!.name-missing “$:Frame.0.invalid-router”;
+# $!.invalid-router
 ; [RotorRouter [(5 - 3), [], []], RotorRouter [2, [], 5], RotorRouter [2, (1, 2), []], RotorRouter [2, []], RotorRouter 5]
-# [$!.name-missing “$:Frame.0.invalid-router”;, $!.name-missing “$:Frame.0.invalid-router”;, $!.name-missing “$:Frame.0.invalid-router”;, $!.name-missing “$:Frame.0.invalid-router”;, $!.name-missing “$:Frame.0.invalid-router”;]
+# [$!.invalid-router, $!.invalid-router, $!.invalid-router, $!.invalid-router, $!.invalid-router]
 ```
 A channel is its elements. The router keeps them in an array of its own, so a
 channel's properties and a declared `apply` do not come with it
@@ -197,16 +198,13 @@ residual, and each measures both channels, so a child's Size is read twice
 ; counter_.n
 # 2
 ```
-A flagged error is the answer of the expression that applies the router, so it
-is never routed. A diagnostic note such as a missing name is a value and is
-routed like one, until #467 decides otherwise, and observing it fails
+An error is the answer of the expression that applies the router, so it is
+never routed. A diagnostic failure such as a missing name is an error too
+(#467), so it is not routed either
 ```
 ; r0 (1 / 0)
 # $!.division-by-zero /
-; .noted (r0 ([].nope));
-; [noted.phase, noted.left.#]
-# [1, 1]
-; noted.####
+; r0 ([].nope)
 # $!.name-missing “...
 ```
 Routing nil routes nothing
@@ -327,13 +325,17 @@ as one member, and the router reads only its own fields
 # [1, 1, 9, []]
 ```
 Carets count lexically (spec a06). Inside a branch, `_^` is the method's own
-scope, so a router that reads its channel there reads nothing, and the failure
-is written to the field. `_^^` is the receiver from inside the branch
+scope, so a router that reads its channel there reads nothing. That failure is
+the method's answer and ends it at the failed write (#467), so even through a
+mutable name the router is unchanged. `_^^` is the receiver from inside the
+branch
 ```
 ; .WrongRouter {[.phase 2; .left []; .apply_ {.x _; ((_^ .phase) = 2) ? {@left (_^ .left x); @phase 1;};}]};
-; .w ((WrongRouter ()) 5);
-; [w.phase, w.left]
-# [1, $!.name-missing “...
+; .w_ (WrongRouter ());
+; w_ 5
+# $!.name-missing “...
+; [w_.phase, w_.left]
+# [2, []]
 ; .RightRouter {[.phase 2; .left []; .apply_ {.x _; ((_^ .phase) = 2) ? {@left (_^^ .left x); @phase 1;};}]};
 ; .rr ((RightRouter ()) 5);
 ; [rr.phase, rr.left]

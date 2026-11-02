@@ -160,8 +160,8 @@ Deno.test("Gap and Spin accept every value with a Count; schemas have no residua
   // A schema keeps nil residual (nil prints as the empty string), so the
   // observation guard Gap and Spin use refuses it.
   expect(await session.call("<2, 3>.###")).toEqual("");
-  expect(await session.call("<2, 3>.### ? {<>} : {unsupported-figure}"))
-    .toContain("unsupported-figure");
+  expect(await session.call("<2, 3>.### ? {<>} : {$!.unsupported-figure}"))
+    .toEqual("$!.unsupported-figure");
 });
 
 Deno.test("Figure observations ignore metadata and Star preserves it (010.04)", async () => {
@@ -170,7 +170,7 @@ Deno.test("Figure observations ignore metadata and Star preserves it (010.04)", 
   for (
     const [source, expected] of [
       ["p.### ? {<>} : {()}", "<>"],
-      ["(p.### ? {p} : {unsupported-figure}) === p", "<>"],
+      ["(p.### ? {p} : {$!.unsupported-figure}) === p", "<>"],
       ["p.###", "0"],
       ["Figures.gap [.k 1; [[], []]]", "2"],
       ["Figures.spin [.k 1; [], [[], []]] 2", "-1/2"],
@@ -197,7 +197,7 @@ Deno.test("parented Figures share the observer domain at every level", async () 
     for (
       const source of [
         "host.### ? {<>} : {()}",
-        "(host.### ? {host} : {unsupported-figure}) === host",
+        "(host.### ? {host} : {$!.unsupported-figure}) === host",
         "host.### == (0 - 1)",
         "host.## = 3",
         "(Figures.gap host) == (1 - 0)",
@@ -259,7 +259,7 @@ Deno.test("native residual availability distinguishes valid zero from unsupporte
     .toContain("$!.star-domain");
   expect(await session.call("(5, 3) * [[]]"))
     .toContain("$!.star-domain");
-  expect(await session.call("5.### ? {5} : {unsupported-figure}"))
+  expect(await session.call("5.### ? {5} : {$!.unsupported-figure}"))
     .toEqual("5");
 });
 

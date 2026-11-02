@@ -352,7 +352,8 @@ describe("resource import", () => {
       );
 
       expect(output.get_here("a").toString()).toEqual("1");
-      expect(output.at(0).isFailedResult()).toBe(false);
+      // This import ends in an empty statement: there is no result at .0.
+      expect(output.isFailedResult()).toBe(false);
     });
 
     it("makes prior declarations visible to later lexical work", () => {

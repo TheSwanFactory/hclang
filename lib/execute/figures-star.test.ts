@@ -126,7 +126,10 @@ Deno.test("unsupported inputs are rejected explicitly rather than silently degra
       ["([], []).### ? {<>} : {()}", "<>"],
       ["[[], 5].### ? {<>} : {()}", "<>"],
       // A local observation branch preserves identity or refuses at the use site.
-      ["([[], []].### ? {[[], []]} : {unsupported-figure}) = [[], []]", "<>"],
+      [
+        "([[], []].### ? {[[], []]} : {$!.unsupported-figure}) = [[], []]",
+        "<>",
+      ],
       ["5.###", "1"],
     ] as const
   ) {
@@ -134,7 +137,7 @@ Deno.test("unsupported inputs are rejected explicitly rather than silently degra
   }
   expect(
     await session.call(
-      "([[], 5].### ? {[[], 5]} : {unsupported-figure}) = [[], 5]",
+      "([[], 5].### ? {[[], 5]} : {$!.unsupported-figure}) = [[], 5]",
     ),
   ).toEqual("<>");
 });
@@ -156,8 +159,8 @@ Deno.test("derived observations retain their native host boundary", async () => 
   ) {
     expect(await session.call(source), source).toEqual(expected);
   }
-  expect(await session.call("<2, 3>.### ? {<>} : {unsupported-figure}"))
-    .toContain("unsupported-figure");
+  expect(await session.call("<2, 3>.### ? {<>} : {$!.unsupported-figure}"))
+    .toEqual("$!.unsupported-figure");
   expect(await session.call("[[], “a”] * [[]]")).toContain("star-domain");
   expect(await session.call("([[], []] * [[]]) = [[[]], [[]]]"))
     .toEqual("<>");

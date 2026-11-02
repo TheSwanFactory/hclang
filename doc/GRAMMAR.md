@@ -247,6 +247,16 @@ All mathematical operators can use optional `.` prefix:
 
 - **Type specification**: `<` and `>` (used for static typing)
 
+## Named Error Literals
+
+`$!.reason` constructs a flagged error without a name lookup. The reason matches
+`[A-Za-z_][A-Za-z0-9_-]*`; a boundary or EOF ends the atom, and a following `;`
+is an ordinary statement terminator. For example, `{ $!.invalid-scale }` is a
+closure whose call fails, while an untaken branch containing it does not run.
+`$!.`, `$!.;` and `$!.1bad` are lexical errors. Other diagnostic note spellings
+retain their semicolon-delimited syntax. Diagnostic failures propagate through
+expressions, closure sequences and imports; `:` falls back only on nil.
+
 ## Special Values
 
 ### Nil (False)

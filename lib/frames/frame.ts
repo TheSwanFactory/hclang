@@ -909,8 +909,8 @@ export class Frame extends MetaFrame {
   public static demi: (source: Frame) => Frame;
 
   /**
-   * Whether this value is itself an error: one flagged as such, or a
-   * diagnostic note such as `$!.name-missing`, which `FrameNote` answers for.
+   * Whether this value is itself an error, flagged as such. A diagnostic
+   * failure such as `$!.name-missing` is flagged when constructed (#467).
    * Unlike `isFailedResult`, it never looks inside an aggregate, and unlike
    * `observationError`, a non-finite number or a cycle is not one: those fail
    * to be measured, not to be computed (011.20).

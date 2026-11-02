@@ -44,7 +44,7 @@ availability directly, then bind its value and choose its sign with native HC.
 ```
 .gap {.x _; (x.###) ? {
   .signed (x.###);
-  (signed .< 0) ? {0 - signed} : {signed}} : {unsupported-figure}};
+  (signed .< 0) ? {0 - signed} : {signed}} : {$!.unsupported-figure}};
 ```
 Spin retains a typed positive Count divisor. Bare `x.### / N` would accept
 negative or fractional divisors and silently answer nil for an unsupported
@@ -56,7 +56,7 @@ definitions are mathematical conveniences, not constructors or type guards.
   (host.###) ? {
     {.n <(1).<>> _; .signed (host.###);
       (n .< 1) ? {signed / 0} : {signed / n}}} : {
-    {.n _; unsupported-figure}}};
+    {.n _; $!.unsupported-figure}}};
 ```
 Native construction, counting and comparisons need no module helpers.
 ```
@@ -72,7 +72,7 @@ Native observations need no domain wrapper, enumeration or tally construction.
 ```
 ; [([].### ? {<>} : {()}), ([[], [[]]].### ? {<>} : {()}), ([[], 5].### ? {<>} : {()}), ([.k 1; []].### ? {<>} : {()})]
 # [<>, <>, <>, <>]
-; [(e.### ? {e} : {unsupported-figure}) = e, (e.### ? {e} : {unsupported-figure}) === e]
+; [(e.### ? {e} : {$!.unsupported-figure}) = e, (e.### ? {e} : {$!.unsupported-figure}) === e]
 # [<>, <>]
 ; [[], “a”] * [[]]
 # $!.star-domain *

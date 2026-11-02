@@ -186,12 +186,12 @@ Deno.test("arithmetic answers an error operand instead of nil (011.20)", () => {
   const stored = Frame.error("$!.stored");
   expect(Add(stored, missing)).toBe(stored);
   // A non-numeric pair is still nil, a non-finite number still a number, and
-  // ordering still answers nil, since an error would be truthy under `?`.
+  // comparisons now preserve the same failure as arithmetic (#467).
   expect(Add(new FrameString("a"), count(1n))).toBe(Frame.nil);
   expect(Add(new FrameNumber(Infinity), count(1n)).toString())
     .toEqual("Infinity");
   expect(new FrameNumber(Infinity).isError()).toBe(false);
-  expect(GreaterThan(missing, count(1n))).toBe(Frame.nil);
+  expect(GreaterThan(missing, count(1n))).toBe(missing);
   expect(value("[].nope + 1").toString()).toContain("$!.name-missing");
 });
 

@@ -108,8 +108,8 @@ export class BoundMethod extends Frame {
     // was built last, so a method would read another instance's fields.
     const result = this.method.call(argument, Frame.nil, state);
     // A mutating method answers its receiver, unless it answered an error. A
-    // diagnostic note such as `$!.name-missing` is one too, though it is not
-    // flagged, so it is answered rather than replaced by the receiver (011.20).
+    // diagnostic failure such as `$!.name-missing` carries the same flag.
+    // Preserve referent checks for programmatic reference wrappers (011.20).
     if (result.isFailedResult() || result.referent().isError()) return result;
     return this.isMutating() ? state.receiver : result;
   }

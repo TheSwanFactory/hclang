@@ -25,11 +25,12 @@ power.
   is `7/2` and `6 / 3` is FrameInt `2`. Division and modulo by zero are
   `$!.division-by-zero /` and `$!.modulo-by-zero %%`. An operand that is already
   an error, `$!.name-missing` included, is the answer of `+`, `-`, `*`, `/`,
-  `%%` and `**`, left first, rather than nil (011.20); ordering is unchanged: a
-  flagged error already propagates through it, but a diagnostic note on its
-  right answers nil, and a note is truthy under `?` (#467). Ordering and `=`
-  compare values across rungs, while `==`, `===`, and runtime types from `.<>`
-  compare exact types, so `2 = (5 - 3)` holds and `2 == (5 - 3)` is nil. See
+  `%%`, `**`, ordering and all three equalities, left first, rather than nil
+  (#467). Diagnostic failures carry `is.error`, so expression and closure
+  sequencing, imports and conditionals propagate them like other errors.
+  Ordering and `=` compare values across rungs, while `==`, `===`, and runtime
+  types from `.<>` compare exact types, so `2 = (5 - 3)` holds and
+  `2 == (5 - 3)` is nil. See
   [`../frames/CLAUDE.md`](../frames/CLAUDE.md#numeric-ladder).
 
 ### Control Flow

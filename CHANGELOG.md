@@ -4,6 +4,21 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.39.0 2026-11-01
+
+- **Breaking: diagnostic failures propagate consistently.** Missing names, type
+  mismatches, bounds errors and failed-test notes carry the error flag.
+  Comparisons, conditionals, closure sequences and imports preserve these
+  failures instead of treating them as nil or success. Aggregate construction
+  still collects failures; `:` remains a fallback only for nil (#467).
+- **Named error literals.** `$!.reason` is an error value, completed by a token
+  boundary or EOF; a following `;` terminates the statement. Figure, Demi and
+  RotorRouter refusals now use `$!.unsupported-figure`, `$!.invalid-demi`,
+  `$!.invalid-scale` and `$!.invalid-router`, independent of ordinary bindings
+  (#467).
+- The VS Code extension highlights the new literals without consuming the
+  surrounding closure (#467).
+
 ## v0.38.2 2026-11-01
 
 - **Restore the online playground on GitHub Pages.** Publish the tested release

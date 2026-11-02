@@ -25,11 +25,11 @@ whose fields are its state and whose methods are the class:
 | `.scale_` | `d.scale_ k`: multiply both loads by a Count k, keeping the phase                                                             |
 | `.toText` | Text `Demi(<>,12,3)`, the phase spelled as the orientation it stands for                                                      |
 
-Anything else is refused with `$!.name-missing .invalid-demi` (or
-`.invalid-scale`), the idiom Figures uses for an unsupported host. The phase is
-a Count because a field cannot hold nil, and a Count keeps the odd phase
-present: a Demi in phase 1 is a value, distinct from the nil `.####` answers
-where there is no Demi.
+Anything else is refused with the named error `$!.invalid-demi` (or
+`$!.invalid-scale`), as Figures refuses an unsupported host. The phase is a
+Count because a field cannot hold nil, and a Count keeps the odd phase present:
+a Demi in phase 1 is a value, distinct from the nil `.####` answers where there
+is no Demi.
 
 Methods read their own state through `_^`, never a bare name, because a bare
 name inside a method is looked up on the argument first (spec 7) and a Demi is
@@ -92,28 +92,22 @@ the class opts into that, as it does for `toText`. What that means, tested in
 
 ## Error propagation, as it stands
 
-HC has two kinds of error value. A flagged error, such as
-`$!.division-by-zero /`, propagates through every operator and through `?`. A
-diagnostic note, such as `$!.name-missing`, carries no flag, and before 011.20
-it could vanish. 011.20 fixed the two places the class depends on:
+Before 011.20 a diagnostic note, such as `$!.name-missing`, could vanish. 011.20
+made arithmetic (`+ - * / %% **`) answer an error operand, where it answered
+nil, and made a mutating method that answers one return it, where it returned
+its receiver.
 
-- **Arithmetic** (`+ - * / %% **`) answers an error operand of either kind,
-  where it answered nil.
-- **A mutating method** that answers one returns it, where it returned its
-  receiver.
+Since v0.39.0 (#467) a diagnostic failure (`$!`, `$<>`, `$>` and a failed test,
+`$-`) carries the error flag from construction, so it is an error like
+`$!.division-by-zero /` everywhere:
 
-So a failed Size reaches the caller of `d x`, and a misread load shows in the
-field instead of as a write that silently did nothing. `Frame.isError()` is the
-predicate that recognizes both kinds.
+- Arithmetic, ordering and all three equalities answer it from either side.
+- `?` and `:` answer it without running a branch.
+- A closure stops at the statement that fails, and an import fails as a whole.
 
-This is not a uniform policy. A diagnostic note still differs from a flagged
-error in three places (#467):
-
-- It is **true under `?`**: `(1 + ([].nope)) ? {1} : {2}` is `1`.
-- On the **right of ordering or `=`** it answers nil: `1 .> ([].nope)` is `()`.
-  On the left it answers itself, with the rest of the expression absorbed.
-- **Import and statement boundaries** stop on a flagged error but bind a note
-  and go on.
+So a failed Size reaches the caller of `d x`, and a misread load ends the method
+before any later write. The constructor refuses with the named error literals
+`$!.invalid-demi` and `$!.invalid-scale`, which no binding can shadow.
 
 ## How `.####` reaches the class
 

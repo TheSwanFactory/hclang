@@ -39,12 +39,17 @@ magnitude's rung
 # <>
 ; 9.80.m == 9.8.m
 # <>
-; 3.m == 3.0.m
-# ()
 ; 9.8.m = 9.8.kg
 # ()
 ; 9.8.m = 9.8
 # ()
+```
+A Count literal has no unit suffix: `3.m` reads a missing property, so comparing
+it propagates that failure rather than answering nil. Use `3.0.m` for a typed
+number.
+```
+; 3.m == 3.0.m
+# $!.name-missing “...
 ```
 `===` asks for the same frame, and an atom owns no identity, so it is `==`:
 different units are never the same (#358)
