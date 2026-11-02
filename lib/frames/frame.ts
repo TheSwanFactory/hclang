@@ -1065,12 +1065,13 @@ export class Frame extends MetaFrame {
   }
 
   /**
-   * Calls a catch handler with an observation of `failure` (spec a13/14 §5).
-   * `frame-observation.ts` installs the real one when it loads; it is late
-   * bound so that expression reduction need not import it (load order).
+   * Handles `failure` with the catch handler that `handler` evaluates to
+   * (spec a13/14 §5). The observation is current while the handler is both
+   * evaluated and called. `frame-observation.ts` installs the real one when it
+   * loads; it is late bound so that expression reduction need not import it
+   * (load order).
    */
-  public static catchWith: (handler: Frame, failure: Frame) => Frame = (
-    _handler,
+  public static catchWith: (failure: Frame, handler: () => Frame) => Frame = (
     failure,
   ) => failure;
 

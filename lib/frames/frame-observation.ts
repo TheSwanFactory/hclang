@@ -10,7 +10,16 @@ const spelling = (frame: Frame): string | undefined =>
     ? (frame as unknown as { spelling(): string }).spelling()
     : undefined;
 
-/** The observations of the handlers now running, innermost last. */
+/**
+ * The observations of the handlers now running, innermost last.
+ *
+ * This relies on evaluation being synchronous: a handler runs to completion
+ * inside `during`, so pushes and pops nest exactly, and `finally` pops even
+ * when evaluation throws. Nothing in `lib/` suspends evaluation (`HCLang.call`
+ * returns a promise but evaluates synchronously before resolving it). If
+ * evaluation ever suspends while a handler runs, this stack must move into the
+ * evaluation context, or `$#` would leak into an interleaved evaluation.
+ */
 const running: FrameObservation[] = [];
 
 /**
@@ -81,12 +90,16 @@ export class FrameObservation extends FrameAtom {
 }
 
 /**
- * A closure handler is called with the observation; any other value is the
- * replacement itself. Either runs with the observation as the current `$#`.
+ * Evaluates a handler and handles `failure` with it, both with the
+ * observation as the current `$#`. A closure is called with the observation;
+ * any other value is the replacement itself. A handler that is itself an error
+ * is the result (spec a13/12 §2.3).
  */
-Frame.catchWith = (handler: Frame, failure: Frame): Frame => {
+Frame.catchWith = (failure: Frame, evaluate: () => Frame): Frame => {
   const observation = new FrameObservation(failure);
-  return observation.during(() =>
-    handler.isClosure() ? handler.call(observation) : handler
-  );
+  return observation.during(() => {
+    const handler = evaluate();
+    if (handler.isError()) return handler;
+    return handler.isClosure() ? handler.call(observation) : handler;
+  });
 };

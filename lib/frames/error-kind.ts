@@ -15,7 +15,14 @@ import type { Frame } from "./frame.ts";
  */
 const KIND = /^\$(!!?)\.([A-Za-z_][A-Za-z0-9_-]*)/;
 
-const written = new WeakMap<Frame, string>();
+/**
+ * The kind a literal was written as, stored on the frame itself. It is an own
+ * enumerable property, so `Frame.copy` (`Object.assign`) carries it to every
+ * copy, and the kind survives wherever the literal's frame is copied.
+ */
+const WRITTEN: unique symbol = Symbol("written error kind");
+
+type Described = Frame & { [WRITTEN]?: string };
 
 /** The kind an error renders with, `$!.reason` or `$!!.reason`, if any. */
 export const kindOf = (error: Frame): string | undefined => {
@@ -29,10 +36,10 @@ export const reasonOf = (error: Frame): string | undefined =>
 
 /** Records that a user error was written as the system kind `kind`. */
 export const describeAs = (error: Frame, kind: string): Frame => {
-  written.set(error, kind);
+  (error as Described)[WRITTEN] = kind;
   return error;
 };
 
 /** The kind a schema candidate names: as written, or as it renders. */
 export const describedKind = (candidate: Frame): string | undefined =>
-  written.get(candidate) ?? kindOf(candidate);
+  (candidate as Described)[WRITTEN] ?? kindOf(candidate);

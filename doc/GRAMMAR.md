@@ -313,10 +313,13 @@ replacement itself: `(1 / 0) $! 5` is `5`. A missing operand or handler is an
 error: `$! {0}` answers `$!.catch-operand-missing` and `1 $!` answers
 `$!.catch-handler-missing`.
 
-**The observation.** Inside a handler, at any depth, `$#` is the observation of
-the error that handler was called with; the handler's argument `_` is the same
-value. Outside every handler `$#` answers `$!.observation-missing`, and inside
-nested handlers it is the innermost one's.
+**The observation.** While a handler runs, `$#` is the observation of the error
+it handles, at any depth. That includes evaluating the handler expression
+itself, so `(1 / 0) $! $#.#` is `“division-by-zero”` without a closure. A
+closure handler's argument `_` is the same value. `$#` is dynamic: outside every
+running handler it answers `$!.observation-missing`, including in a closure a
+handler built and returned, and inside nested handlers it is the innermost
+one's.
 
 | Read   | Answers                                                          |
 | ------ | ---------------------------------------------------------------- |

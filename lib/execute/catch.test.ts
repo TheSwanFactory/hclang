@@ -1,6 +1,7 @@
 import { expect } from "jsr:@std/expect@^0.219.1";
 import { evaluate } from "./evaluate.ts";
 import { Frame, FrameExpr, FrameObservation } from "../frames.ts";
+import { describedKind, kindOf } from "../frames/error-kind.ts";
 
 /**
  * The catch operator `$!` and observations `$#` (spec a13/14), with the
@@ -135,6 +136,50 @@ Deno.test("$# is the innermost running handler's observation", () => {
   expect(answer("$#").toString()).toBe("$!.observation-missing");
   expect(answer("(1 / 0) $!{$#.x}").toString())
     .toMatch(/^\$!\.name-missing/);
+});
+
+Deno.test("$# is current while the handler expression is evaluated, not only called", () => {
+  // A non-closure handler reads the observation too (PR #473 review).
+  expect(answer("(1 / 0) $! $#.#").toString()).toBe("“division-by-zero”");
+  expect(answer("(1 / 0) $!($#.#)").toString()).toBe("“division-by-zero”");
+  expect(answer("(1 / 0) $!{$#.#}").toString()).toBe("“division-by-zero”");
+  // On success the handler expression is not evaluated, so nothing reads $#.
+  expect(answer("7 $! $#.#").toString()).toBe("7");
+});
+
+Deno.test("$# is dynamic and nests exactly (a13/14 §10)", () => {
+  // An inner handler's observation is popped when it returns.
+  expect(answer("(1 / 0) $!{[([].nope $!{$#.#}), $#.#]}").toString())
+    .toBe("[“name-missing”, “division-by-zero”]");
+  // After a handler returns, $# is gone.
+  expect(answer("[(1 / 0) $!{0}, $#]").toString())
+    .toBe("[0, $!.observation-missing]");
+  // A closure a handler builds sees $# only while the handler runs.
+  expect(answer(".c ((1 / 0) $!{{$#}}); c ()").toString())
+    .toBe("$!.observation-missing");
+  // A handler that fails still pops its observation.
+  expect(answer("[((1 / 0) $!{[].nope}) $!{0}, $#]").toString())
+    .toBe("[0, $!.observation-missing]");
+});
+
+Deno.test("a written system kind survives binding, arguments and copies", () => {
+  // PR #473 review: the kind is carried by the literal's frame.
+  expect(text(".k <$!.division-by-zero>; (1 / 0) $!{$# ~ k}"))
+    .toContain("<>)]");
+  expect(text(".o [1, <$!.division-by-zero>]; (1 / 0) $!{$# ~ (o .1)}"))
+    .toContain("<>)]");
+  expect(text(".o [1, <$!.name-missing>]; (1 / 0) $!{$# ~ (o .1)}"))
+    .toContain("())]");
+  expect(text(".k <$!.division-by-zero>; .g {_}; (1 / 0) $!{$# ~ (g k)}"))
+    .toContain("<>)]");
+  expect(text(".f {(1 / 0) $!{$# ~ __}}; f <$!.division-by-zero>"))
+    .toContain("<>)]");
+  expect(text(".f {(1 / 0) $!{$# ~ __}}; f <$!.name-missing>"))
+    .toContain("())]");
+  const literal = answer("$!.division-by-zero");
+  expect(describedKind(literal)).toBe("$!.division-by-zero");
+  expect(describedKind(literal.copy())).toBe("$!.division-by-zero");
+  expect(kindOf(literal.copy())).toBe("$!!.division-by-zero");
 });
 
 Deno.test("kinds match by namespace and reason", () => {

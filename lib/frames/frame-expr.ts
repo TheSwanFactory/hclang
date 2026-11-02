@@ -218,12 +218,19 @@ export class FrameExpr extends FrameList {
     let result = FrameExpr.reduceTerms(guarded, scope);
     for (const part of handlers) {
       if (!result.isError()) break;
-      result = FrameExpr.invoke(FrameExpr.reduceTerms(part, scope), result);
+      result = Frame.catchWith(
+        result,
+        () => FrameExpr.reduceTerms(part, scope),
+      );
     }
     return result;
   }
 
-  /** A tight catcher `$!H` handles `failure` with the handler `H`. */
+  /**
+   * A tight catcher `$!H` handles `failure` with the handler `H`. The handler
+   * is evaluated only on failure, with the observation already current, so
+   * `$#` reads it whether `H` is a closure or not.
+   */
   private static handle(
     failure: Frame,
     catcher: FrameExpr,
@@ -231,16 +238,10 @@ export class FrameExpr extends FrameList {
   ): Frame {
     const body = catcher.data.slice(1);
     if (body.length === 0) return Frame.error("$!.catch-handler-missing");
-    return FrameExpr.invoke(FrameExpr.evaluateTerms(body, scope), failure);
-  }
-
-  /**
-   * Calls a handler with an observation of the failure, as the current `$#`.
-   * A closure is called; any other value is the replacement itself. A handler
-   * that is itself an error is the result (spec a13/12 §2.3).
-   */
-  private static invoke(handler: Frame, failure: Frame): Frame {
-    return handler.isError() ? handler : Frame.catchWith(handler, failure);
+    return Frame.catchWith(
+      failure,
+      () => FrameExpr.evaluateTerms(body, scope),
+    );
   }
 
   private schemaRetrieval(scope: EvaluationScope): Frame | undefined {

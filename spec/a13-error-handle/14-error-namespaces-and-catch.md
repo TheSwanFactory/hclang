@@ -269,12 +269,23 @@ implementation:
 - **A handler that is not a closure** is the replacement itself: `(1 / 0) $! 5`
   is `5`. A closure is called with the observation.
 - **`$#` is dynamic.** It names the observation of the innermost handler that is
-  running, so a closure a handler builds sees it only while the handler runs.
+  running, so a closure a handler builds and returns does not see it. The
+  observation is current while the handler expression is evaluated as well as
+  while it is called, so a non-closure handler can read it: `(1 / 0) $! $#.#` is
+  `“division-by-zero”` (PR #473 review). On success the handler expression is
+  not evaluated at all.
+- **The observation stack assumes synchronous evaluation.** Handlers nest
+  exactly because nothing in `lib/` suspends evaluation; `finally` pops an
+  observation even when evaluation throws. If evaluation ever suspends, the
+  stack must move into the evaluation context (PR #473 review).
 - **The observation's members** are its own: `_ .!` and `_ .#` read them too,
   since `_` is the same observation.
-- **The kind written in a `$!.reason` literal** is recorded beside the user
-  error it raises (`lib/frames/error-kind.ts`), and a schema keeps that frame as
-  its candidate, which is how `<$!.reason>` names the system kind.
+- **The kind written in a `$!.reason` literal** is stored on the user error it
+  raises, as an own property that `Frame.copy` carries to every copy
+  (`lib/frames/error-kind.ts`). A schema keeps that frame as its candidate,
+  which is how `<$!.reason>` names the system kind, through bindings, arguments
+  and copies alike (PR #473 review; an earlier side table keyed by frame lost
+  the kind on copy).
 - **Expression reduction calls handlers late-bound** through `Frame.catchWith`,
   which `frame-observation.ts` installs, so `frame-expr.ts` imports nothing new
   (`lib/load-order.test.ts`).
