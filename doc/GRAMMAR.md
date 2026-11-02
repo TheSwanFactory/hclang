@@ -249,18 +249,30 @@ All mathematical operators can use optional `.` prefix:
 
 ## Named Error Literals
 
-`$!.reason` constructs a flagged error without a name lookup. The reason matches
-`[A-Za-z_][A-Za-z0-9_-]*`; a boundary or EOF ends the atom, and a following `;`
-is an ordinary statement terminator. For example, `{ $!.invalid-scale }` is a
-closure whose call fails, while an untaken branch containing it does not run.
-`$!.`, `$!.;` and `$!.1bad` are lexical errors.
+Errors have two namespaces. `$!.reason` is a **system error**, made by the
+interpreter: `$!.division-by-zero`, `$!.name-missing`, `$!.bounds-exceeded`.
+`$!!.reason` is a **user error**, raised by HC code, bundled modules included:
+`$!!.invalid-demi`, `$!!.unsupported-figure`.
 
-Every `$!.label` prefix is this literal, including the diagnostics the
-interpreter prints. Read back, `$!.name-missing “x”;` is the error
-`$!.name-missing` applied to `“x”`, which answers the same error: the reason
-survives and the subject is dropped. Only the other diagnostic note spellings
-(`$!word;` with no dot, `$<>…;`, `$>…;`, and the test labels `$+`, `$-`, `$~`,
-`$=`) keep their semicolon-delimited syntax.
+`$!!.reason` constructs a flagged user error without a name lookup. The reason
+matches `[A-Za-z_][A-Za-z0-9_-]*`; a boundary or EOF ends the atom, and a
+following `;` is an ordinary statement terminator. For example,
+`{ $!!.invalid-scale }` is a closure whose call fails, while an untaken branch
+containing it does not run.
+
+Source code can write `$!.reason` but cannot raise a system error with it.
+Raised, `$!.division-by-zero` answers the user error `$!!.division-by-zero`.
+Inside a schema it names the system kind: `<$!.division-by-zero>` holds the kind
+without raising it.
+
+`$!.`, `$!.;`, `$!.1bad`, `$!!.`, and `$!!` without a dot are lexical errors.
+Every printed error begins with its namespace. Read back, a printed
+`$!.name-missing “x”;` is the user error `$!!.name-missing` applied to `“x”`,
+which answers that error: the reason survives and the subject is dropped.
+
+The other dollar notes are the testdoc reports `$+…;`, `$-…;`, `$~…;` and
+`$=…;`, which keep their semicolon-delimited syntax. The older `$!word;`, `$>…;`
+and `$<>…;` note forms were removed in v0.40.0 and are lexical errors.
 
 Diagnostic failures propagate through expressions, closure sequences and
 imports; `:` falls back only on nil. An aggregate that collects a failure is

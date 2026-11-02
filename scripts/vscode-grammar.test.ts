@@ -60,15 +60,19 @@ Deno.test("named error highlighting stops before surrounding source (#467)", () 
   const diagnostic = patterns.find((rule) =>
     rule.name === "constant.other.diagnostic.hclang"
   )!;
-  const source = "{ $!.invalid-scale; } : {1}";
-  expect(new RegExp(literal.match).exec(source)?.[0]).toEqual(
-    "$!.invalid-scale",
+  for (const literalSource of ["$!!.invalid-scale", "$!.division-by-zero"]) {
+    const source = `{ ${literalSource}; } : {1}`;
+    expect(new RegExp(literal.match).exec(source)?.[0]).toEqual(literalSource);
+    expect(new RegExp(diagnostic.match).test(source)).toBe(false);
+  }
+  expect(new RegExp(diagnostic.match).exec("$+pass;")?.[0]).toEqual(
+    "$+pass;",
   );
-  expect(new RegExp(diagnostic.match).test(source)).toBe(false);
-  expect(new RegExp(diagnostic.match).exec("$!missing;")?.[0]).toEqual(
-    "$!missing;",
-  );
-  for (const malformed of ["$!.", "$!.;", "$!.1bad"]) {
+  // The removed legacy note forms are not notes any more (a13/14 §2).
+  for (const removed of ["$!missing;", "$>bounds;", "$<>type;"]) {
+    expect(new RegExp(diagnostic.match).test(removed)).toBe(false);
+  }
+  for (const malformed of ["$!.", "$!.;", "$!.1bad", "$!!.", "$!!.1bad"]) {
     expect(new RegExp(literal.match).test(malformed)).toBe(false);
   }
 });
@@ -117,7 +121,20 @@ describe("VS Code scope-anchor grammar", () => {
   // Every spelling the lexer rejects with `invalid dollar form` should read as
   // an error rather than as unstyled text, so the two stay in step.
   it("flags the dollar spellings the lexer rejects", () => {
-    const malformed = ["$$$", "$$$$", "$foo", "$$HOME", "$_x", "$1", "$$-foo"];
+    const malformed = [
+      "$$$",
+      "$$$$",
+      "$foo",
+      "$$HOME",
+      "$_x",
+      "$1",
+      "$$-foo",
+      "$!missing;",
+      "$>bounds;",
+      "$<>type;",
+      "$!!",
+      "$!!x",
+    ];
     for (const source of malformed) {
       expect(invalidMatches(source).map((match) => match.scope)).toContain(
         BAD_FORM,
@@ -157,13 +174,12 @@ describe("VS Code scope-anchor grammar", () => {
       ".+$",
       "_^$",
       "1 $",
-      "$!missing;",
       "$+pass;",
       "$-fail;",
       "$~todo;",
       "$=summary;",
-      "$>bounds;",
-      "$<>type;",
+      "$!.reason",
+      "$!!.reason",
       "name",
       ".set",
       "@ctl",
@@ -212,14 +228,19 @@ describe("grammar and lexer agree on every dollar spelling", () => {
     "_^$",
     "+$",
     "<=$",
-    // Diagnostic notes, which the dollar family still owns.
-    "$!missing;",
+    // Testdoc notes, which the dollar family still owns.
     "$+pass;",
     "$-fail;",
     "$~todo;",
     "$=summary;",
+    // Error literals, and the removed legacy note forms (a13/14 §2).
+    "$!.reason",
+    "$!!.reason",
+    "$!missing;",
     "$>bounds;",
     "$<>type;",
+    "$!!",
+    "$!!x",
     // Malformed dollar runs.
     "$$$",
     "$$$$",

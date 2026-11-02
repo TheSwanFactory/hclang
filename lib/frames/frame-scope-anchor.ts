@@ -2,6 +2,7 @@ import { type EvaluationRoots, Frame } from "./frame.ts";
 import { FrameAtom } from "./frame-atom.ts";
 import { FrameNote } from "./frame-note.ts";
 import { FrameSymbol } from "./frame-symbol.ts";
+import { describeAs } from "./error-kind.ts";
 import type { MetaFrame } from "./meta-frame.ts";
 import { type EvaluationInput, EvaluationScope } from "./evaluation-scope.ts";
 import {
@@ -14,9 +15,8 @@ import {
 /** The two namespaces selected by the dollar family. */
 export type ScopeAnchorKind = "file" | "host";
 
-const NOTE_PREFIXES = new Set(["!", "+", "-", "~", "=", ">"]) as ReadonlySet<
-  string
->;
+/** The testdoc report labels, the only semicolon-delimited notes left. */
+const NOTE_PREFIXES = new Set(["+", "-", "~", "="]) as ReadonlySet<string>;
 
 const complete = (frame: Frame): ScanResult => ({
   disposition: ScanDisposition.CompleteRedispatch,
@@ -28,30 +28,46 @@ const invalidDollar = (source: string, char = ""): ScanResult => ({
   message: `invalid dollar form: $${source}${char === "\n" ? "\\n" : char}`,
 });
 
-/** A named error is a source atom; its flag is not a lexical failure. */
-const namedError = (source: string): ScanResult =>
-  /^[A-Za-z_][A-Za-z0-9_-]*$/.test(source.slice(2))
-    ? complete(Frame.error(`$${source}`))
-    : invalidDollar(source);
+const REASON = /^[A-Za-z_][A-Za-z0-9_-]*$/;
+
+/**
+ * An error literal is a source atom; its flag is not a lexical failure.
+ *
+ * Source code raises only user errors (spec a13/14 §1). `$!!.reason` is one.
+ * `$!.reason` names the system kind: it raises the user error with the same
+ * reason, and a schema holding it matches that system kind (§4).
+ */
+const errorLiteral = (source: string): ScanResult => {
+  const user = source.startsWith("!!.");
+  const reason = source.slice(user ? 3 : 2);
+  if (!REASON.test(reason)) return invalidDollar(source);
+  const error = Frame.error(`$!!.${reason}`);
+  return complete(user ? error : describeAs(error, `$!.${reason}`));
+};
 
 /** A boundary starts another token rather than extending a dollar form. */
 const isBoundary = (char: string): boolean => !/[$\w-]/.test(char);
 
 /**
- * Recognizes anchors and the retained diagnostic-note spellings behind one `$`
- * registration. Longest match keeps `$$` atomic, while unsupported `$word`
- * forms fail on their first character instead of consuming an expression.
+ * Recognizes the dollar family behind one `$` registration: the anchors `$`
+ * and `$$`, the error literals `$!.reason` and `$!!.reason`, and the testdoc
+ * report notes. Longest match keeps `$$` atomic,
+ * while unsupported `$word` forms fail on their first character instead of
+ * consuming an expression.
  */
 const recognizeDollar = (symbol: Frame, source = ""): ScanResult => {
   const char = symbol.toString();
 
   if (source === "") {
-    if (char === "$") {
+    if (char === "$" || char === "!") {
       return { disposition: ScanDisposition.Consume };
     }
-    if (NOTE_PREFIXES.has(char) || char === "<") {
+    if (NOTE_PREFIXES.has(char)) {
       return { disposition: ScanDisposition.Consume };
     }
+    // The removed `$>…;` and `$<>…;` note forms stay lexical errors rather
+    // than reading as an anchor followed by an operator.
+    if (char === "<" || char === ">") return invalidDollar(source, char);
     return isBoundary(char)
       ? complete(FrameScopeAnchor.file())
       : invalidDollar(source, char);
@@ -65,24 +81,26 @@ const recognizeDollar = (symbol: Frame, source = ""): ScanResult => {
       : invalidDollar(source, char);
   }
 
-  // `<>` is the only retained note label beginning with `<`; `$<` and `$<<`
-  // were vestigial control spellings and are rejected cleanly.
-  if (source === "<") {
-    return char === ">"
+  // `$!` must be followed by a dot or a second `!`. A word character is the
+  // removed `$!word;` note form, so it is rejected.
+  if (source === "!") {
+    return char === "." || char === "!"
       ? { disposition: ScanDisposition.Consume }
       : invalidDollar(source, char);
   }
-
-  if (source === "!" && char === ".") {
-    return { disposition: ScanDisposition.Consume };
+  if (source === "!!") {
+    return char === "."
+      ? { disposition: ScanDisposition.Consume }
+      : invalidDollar(source, char);
   }
-  if (source.startsWith("!.")) {
-    const accepted = source.length === 2
+  if (source.startsWith("!.") || source.startsWith("!!.")) {
+    const start = source.startsWith("!!.") ? 3 : 2;
+    const accepted = source.length === start
       ? /^[A-Za-z_]$/.test(char)
       : /^[A-Za-z0-9_-]$/.test(char);
     return accepted
       ? { disposition: ScanDisposition.Consume }
-      : namedError(source);
+      : errorLiteral(source);
   }
 
   if (char === FrameNote.NOTE_END) {
@@ -94,8 +112,10 @@ const recognizeDollar = (symbol: Frame, source = ""): ScanResult => {
 const finishDollar = (source = ""): ScanResult => {
   if (source === "") return complete(FrameScopeAnchor.file());
   if (source === "$") return complete(FrameScopeAnchor.host());
-  if (source === "<") return invalidDollar(source);
-  if (source.startsWith("!.")) return namedError(source);
+  if (source === "!" || source === "!!") return invalidDollar(source);
+  if (source.startsWith("!.") || source.startsWith("!!.")) {
+    return errorLiteral(source);
+  }
   return {
     disposition: ScanDisposition.Error,
     message: `unterminated FrameNote: $${source}`,

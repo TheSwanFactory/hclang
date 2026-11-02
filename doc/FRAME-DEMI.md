@@ -25,8 +25,8 @@ whose fields are its state and whose methods are the class:
 | `.scale_` | `d.scale_ k`: multiply both loads by a Count k, keeping the phase                                                             |
 | `.toText` | Text `Demi(<>,12,3)`, the phase spelled as the orientation it stands for                                                      |
 
-Anything else is refused with the named error `$!.invalid-demi` (or
-`$!.invalid-scale`), as Figures refuses an unsupported host. The phase is a
+Anything else is refused with the named error `$!!.invalid-demi` (or
+`$!!.invalid-scale`), as Figures refuses an unsupported host. The phase is a
 Count because a field cannot hold nil, and a Count keeps the odd phase present:
 a Demi in phase 1 is a value, distinct from the nil `.####` answers where there
 is no Demi.
@@ -97,8 +97,8 @@ made arithmetic (`+ - * / %% **`) answer an error operand, where it answered
 nil, and made a mutating method that answers one return it, where it returned
 its receiver.
 
-Since v0.39.0 (#467) a diagnostic failure (`$!`, `$<>`, `$>` and a failed test,
-`$-`) carries the error flag from construction, so it is an error like
+Since v0.39.0 (#467) a diagnostic failure (`$!` errors and a failed test, `$-`)
+carries the error flag from construction, so it is an error like
 `$!.division-by-zero /` everywhere:
 
 - Arithmetic, ordering and all three equalities answer it from either side.
@@ -107,7 +107,7 @@ Since v0.39.0 (#467) a diagnostic failure (`$!`, `$<>`, `$>` and a failed test,
 
 So a failed Size reaches the caller of `d x`, and a misread load ends the method
 before any later write. The constructor refuses with the named error literals
-`$!.invalid-demi` and `$!.invalid-scale`, which no binding can shadow.
+`$!!.invalid-demi` and `$!!.invalid-scale`, which no binding can shadow.
 
 ## How `.####` reaches the class
 

@@ -65,10 +65,15 @@ const lexChunkedAtoms = (chunks: string[]): Frame[] => {
 };
 
 Deno.test("named errors complete at EOF and redispatch each source boundary", () => {
-  for (const name of ["zero", "invalid-scale", "_private", "Reason_12"]) {
-    const source = `$!.${name}`;
+  for (
+    const [prefix, name] of ["zero", "invalid-scale", "_private", "Reason_12"]
+      .flatMap((name) => [["$!.", name], ["$!!.", name]])
+  ) {
+    const source = `${prefix}${name}`;
+    // Source raises only user errors: `$!.reason` raises `$!!.reason`.
+    const raised = `$!!.${name}`;
     const atoms = lexAtoms(source);
-    expect(atoms.map(String)).toEqual([source]);
+    expect(atoms.map(String)).toEqual([raised]);
     expect(atoms[0].isError()).toBe(true);
     for (let split = 1; split < source.length; split++) {
       expect(
@@ -76,10 +81,10 @@ Deno.test("named errors complete at EOF and redispatch each source boundary", ()
           String,
         ),
       )
-        .toEqual([source]);
+        .toEqual([raised]);
     }
-    expect(lexAtoms(source + " 2").map(String)).toEqual([source, "2"]);
-    expect(lexAtoms(source + "+2").map(String)).toEqual([source, "+", "2"]);
+    expect(lexAtoms(source + " 2").map(String)).toEqual([raised, "2"]);
+    expect(lexAtoms(source + "+2").map(String)).toEqual([raised, "+", "2"]);
     for (const [open, close] of [["{", "}"], ["[", "]"], ["(", ")"]]) {
       for (const semi of ["", ";"]) {
         const nested = `${open}${source}${semi}${close}`;
@@ -95,8 +100,22 @@ Deno.test("named errors complete at EOF and redispatch each source boundary", ()
       }
     }
   }
-  for (const source of ["$!.", "$!.;", "$!.1bad"]) {
-    expect(lexResult(source).is.lexical).toBe(true);
+  for (
+    const source of [
+      "$!.",
+      "$!.;",
+      "$!.1bad",
+      "$!!.",
+      "$!!.1bad",
+      "$!!",
+      "$!!x",
+      // The removed legacy note forms (a13/14 §2).
+      "$!missing;",
+      "$>bounds;",
+      "$<>type;",
+    ]
+  ) {
+    expect(lexResult(source).is.lexical, source).toBe(true);
     expect(lexResult(source).toString()).toContain("invalid dollar form");
   }
 });
@@ -204,16 +223,13 @@ describe("Lex", () => {
 
   for (
     const source of [
-      "$!missing;",
       "$+pass;",
       "$-fail;",
       "$~todo;",
       "$=summary;",
-      "$>bounds;",
-      "$<>type;",
     ]
   ) {
-    it(`retains diagnostic note ${source} behind the dollar family`, () => {
+    it(`retains testdoc note ${source} behind the dollar family`, () => {
       const atoms = lexAtoms(`${source} `);
 
       expect(atoms).toHaveLength(1);

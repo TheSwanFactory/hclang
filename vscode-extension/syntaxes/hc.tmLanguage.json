@@ -79,8 +79,8 @@
         },
         {
           "name": "invalid.illegal.dollar-form.hclang",
-          "match": "(?<![$\\w-])(?!\\$\\$?(?![$\\w-])|\\$-)\\$[$\\w-]*(?![$\\w-])",
-          "comment": "Malformed dollar run: any $-led token that is neither $ nor $$, such as $$$, $foo, or $$HOME. A diagnostic note ends the run at its own prefix, and $- is exempted because a hyphen is the one note prefix that continues a token"
+          "match": "(?<![$\\w-])(?:(?!\\$\\$?(?![$\\w-])|\\$-)\\$[$\\w-]*(?![$\\w-])|\\$!(?!!?\\.[A-Za-z_])[!\\w-]*|\\$<>?|\\$>)",
+          "comment": "Malformed dollar run: any $-led token that is neither $ nor $$, such as $$$, $foo, or $$HOME; a $! not followed by an error literal's dot, such as the removed $!word; note or $!!; and the removed $>…; and $<>…; notes. A testdoc note ends the run at its own prefix, and $- is exempted because a hyphen is the one note prefix that continues a token"
         },
         {
           "name": "invalid.illegal.dollar-suffix.hclang",
@@ -356,13 +356,13 @@
         },
         {
           "name": "constant.other.error.hclang",
-          "match": "\\$!\\.[A-Za-z_][A-Za-z0-9_-]*",
-          "comment": "Named error literal; its following semicolon belongs to the statement"
+          "match": "\\$!!?\\.[A-Za-z_][A-Za-z0-9_-]*",
+          "comment": "Error literals: $!.reason names a system error kind, $!!.reason raises a user error; a following semicolon belongs to the statement"
         },
         {
           "name": "constant.other.diagnostic.hclang",
-          "match": "\\$(?:!(?!\\.)|[+\\-~=>]|<>)[^;]*;",
-          "comment": "Diagnostic notes such as $!missing; or $>bounds;. Every $!.label is the error literal above, printed notes included"
+          "match": "\\$[+\\-~=][^;]*;",
+          "comment": "Testdoc report notes: $+pass; $-fail; $~todo; $=summary;"
         },
         {
           "name": "variable.other.constant.private.hclang",
