@@ -92,31 +92,6 @@ and flips the phase, while `+`, `-` and `*` choose a channel explicitly and
 keep it. So `+` and `-` reach states a run cannot, a phase-2 Demi with a load
 on the odd side, and `*` is the Star shadow, not a repeated deposit.
 
-**No division (015.11).** A Demi declares **no** `/` operator. Division is not a
-Router construction: the router constructs tally, alternator and inlay — Count,
-residual and Size — and nothing in that native structure earns a quotient. The
-earlier signed-ratio `d / x` (015.02) and the Size-uniform `d / x` (015.09a)
-are both removed. There is no modular Spin, renamed quotient, `phase`, or other
-division surrogate in their place. A `D / x` now falls back to the global `/`
-operator (`lib/ops/math.ts`), which has no numeric meaning for a non-numeric
-Demi left operand and **answers nil**; it does **not** silently preserve a Demi
-signed quotient through another path. An operand that is already an error still
-propagates, left operand first, as it does for `+`, `-` and `*`. This removes
-only the Demi-specific operator: the global language `/` and `hc/figures.hc`'s
-`spin` observation (signed residual over a positive Count, on any host) are
-untouched.
-
-**Compatibility (015.11).** The three constructive operators `+`, `-` and `*`
-read their operand through the one Size observer `x.##`; `+` and `-` are
-unchanged from 015.02, and `*` keeps its 015.09a Size-uniform domain. `D * 3` is
-unchanged, because `3.## = 3`; a non-Count sized operand such as another Demi,
-an aggregate, or a decimal scales by its Size (`D * 2.5` scales by `2`, since
-`(2.5).## = 2`); and a sizeless operand propagates its own failure. `scale_` is
-unchanged and still takes a Count directly; `*` equals `d.scale_ (x.##)` for
-every sized `x`. The only removal is the Demi `/` operator: a call that
-previously answered a signed Spin, such as `D / 2`, is no longer a Demi
-operation.
-
 **Text.** A Demi prints as what it is, an aggregate of fields and methods, and
 that reads back as the same Demi. As text it reads `Demi(<>,12,3)`, with the
 phase spelled as the orientation it stands for.
@@ -314,8 +289,7 @@ and `*` **construct a fresh Demi** from observations of their operands: `+` is
 tally, depositing `x.##` on the right; `-` is alternator, depositing on the
 left; and `*` is inlay, scaling both loads by `x.##` through `scale_`, the Star
 shadow. Each keeps the phase, answers a fresh value and leaves its operand as it
-was, so they compose by nesting. There is **no** `/`: a Demi declares no
-division operator
+was, so they compose by nesting
 ```
 ; .D (Demi [2, 5, 3]);
 ; [“” (D + 4), “” (D - 4), “” (D * 3)]
@@ -376,32 +350,6 @@ so `D + 4` is not “larger” than `D`, and `D - 4` is not `D` made smaller
 ```
 ; [(D + 4).### .< D.###, (D - 4).### .> D.###]
 # [<>, <>]
-```
-## No Demi division (015.11)
-
-A Demi declares **no** `/` operator: division is not a Router construction. A
-`D / x` is not a Demi operation at all; dispatch falls through to the global
-`/`, which has no numeric meaning for a non-numeric left operand and answers
-nil, never a signed quotient. A zero or a Demi divisor is nil the same way, so
-there is no hidden division-by-zero path and no Demi-as-Spin through another
-name. Only a failing operand changes the answer, because the global `/`
-propagates an operand that is already an error, exactly as `+`, `-` and `*` do
-```
-; .Dp (Demi [2, 3, 5]); .E (Demi [1, 2, 4]);
-; [D / 2, D / 4, Dp / 2, D / E]
-# [(), (), (), ()]
-; [D / 0, (Demi [2, 4, 4]) / 0, D / (0 - 4), D / 2.5]
-# [(), (), (), ()]
-; D / ([].nope)
-# $!.name-missing “...
-```
-The global language `/` and the `spin` observation in `hc/figures.hc` are
-untouched: `spin` still answers the signed residual over a positive Count on
-any host, and a plain numeric `/` still divides. Removing the Demi operator
-removes only the Demi-specific division
-```
-; [“” (6 / 2), (D.### / 2) = 1]
-# [“3”, <>]
 ```
 ## A precise regression: a load read at the wrong depth
 

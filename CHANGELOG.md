@@ -6,9 +6,9 @@
 
 ## v0.42.0 2026-11-02
 
-- **Constructive Demi arithmetic, without division.** `Demi` declares three
-  constructive operators, each reading its operand through the one Size observer
-  `x.##`: `D + x` is the tally, depositing `x.##` on the right; `D - x` is the
+- **Constructive Demi arithmetic.** `Demi` declares three constructive
+  operators, each reading its operand through the one Size observer `x.##`:
+  `D + x` is the tally, depositing `x.##` on the right; `D - x` is the
   alternator, depositing on the left; and `D * x` is the inlay, scaling both
   loads by `x.##` as `scale_` does. The `+`/`-` deposits are fixed-channel load
   transformations consistent with a `RotorRouter`'s channel loads
@@ -19,12 +19,6 @@
   sizeless operand propagates its own failure. `D * 3` and the `+`/`-` deposits
   are unchanged; phase, immutability, load integrality and the `scale_`/Star
   shadow are preserved, with `D * x` equal to `D.scale_ (x.##)`.
-- **Removed the Demi `/` operator.** `Demi` no longer declares division: neither
-  the earlier signed-ratio `D / n` nor a Size-uniform `D / x` is defined on a
-  Demi. A `D / x` now falls through to the global `/`, which answers nil for a
-  non-numeric left operand and never a signed quotient; an operand that is
-  already an error still propagates. The global language `/` and the `spin`
-  observation in `hc/figures.hc` are unchanged (occurrence/figure 015).
 
 ## v0.41.1 2026-11-02
 
