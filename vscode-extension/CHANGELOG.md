@@ -3,6 +3,12 @@
 All notable changes to the Homoiconic C VS Code extension will be documented in
 this file.
 
+## [0.2.7] - 2026-11-02
+
+### Changed
+
+- Highlight the effect arrow `->` as one operator (#475).
+
 ## [0.2.6] - 2026-11-02
 
 ### Changed
