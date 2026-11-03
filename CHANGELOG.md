@@ -4,6 +4,22 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.42.0 2026-11-02
+
+- **Size-uniform Demi arithmetic.** All four Demi operators now read their
+  operand through the one Size observer `x.##`, the symmetry `+` and `-` already
+  had. `D * x` scales both loads by `x.##` and `D / x` divides the signed
+  residual by `x.##`, rather than requiring a bare Count. Any sized Frame works:
+  `D * E` / `D / E` use a Demi's `L + R`, `D * [[], []]` / `D / [[], []]` an
+  aggregate's element count, and `D * 2.5` / `D / 2.5` a decimal's truncated
+  Size `2`; `D / (0 - 4)` divides by the Size `4` rather than refusing a
+  negative numeric operand. Division keeps the existing signed, unwrapped Spin
+  (no modulo or phase wrapping), still fails `D / 0` with division-by-zero, and
+  a sizeless operand propagates its own failure. `D * 3`, `D / 2`, `D / 4` and
+  the `+`/`-` deposits are unchanged; phase, immutability, load integrality and
+  the `scale_`/Star shadow are preserved, with `D * x` equal to
+  `D.scale_ (x.##)` (occurrence/figure 015).
+
 ## v0.41.1 2026-11-02
 
 - **Class-declared arithmetic operators.** An HC class answers `+`, `-`, `*` or
