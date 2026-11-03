@@ -6,19 +6,23 @@
 
 ## v0.42.0 2026-11-02
 
-- **Size-uniform Demi arithmetic.** All four Demi operators now read their
-  operand through the one Size observer `x.##`, the symmetry `+` and `-` already
-  had. `D * x` scales both loads by `x.##` and `D / x` divides the signed
-  residual by `x.##`, rather than requiring a bare Count. Any sized Frame works:
-  `D * E` / `D / E` use a Demi's `L + R`, `D * [[], []]` / `D / [[], []]` an
-  aggregate's element count, and `D * 2.5` / `D / 2.5` a decimal's truncated
-  Size `2`; `D / (0 - 4)` divides by the Size `4` rather than refusing a
-  negative numeric operand. Division keeps the existing signed, unwrapped Spin
-  (no modulo or phase wrapping), still fails `D / 0` with division-by-zero, and
-  a sizeless operand propagates its own failure. `D * 3`, `D / 2`, `D / 4` and
-  the `+`/`-` deposits are unchanged; phase, immutability, load integrality and
-  the `scale_`/Star shadow are preserved, with `D * x` equal to
-  `D.scale_ (x.##)` (occurrence/figure 015).
+- **Router-grounded constructive Demi arithmetic, without division.** `Demi`
+  declares three constructive operators, each the Demi shadow of a native
+  `RotorRouter` construction (`hc/rotor-router.hc`) and each reading its operand
+  through the one Size observer `x.##`: `D + x` is the tally, depositing `x.##`
+  on the right; `D - x` is the alternator, depositing on the left; and `D * x`
+  is the inlay, scaling both loads by `x.##` as `scale_` does. Any sized Frame
+  is an operand — a Demi contributes `L + R`, an aggregate its element count, a
+  decimal its truncated Size (`D * 2.5` scales by `2`) — and a sizeless operand
+  propagates its own failure. `D * 3` and the `+`/`-` deposits are unchanged;
+  phase, immutability, load integrality and the `scale_`/Star shadow are
+  preserved, with `D * x` equal to `D.scale_ (x.##)`.
+- **Removed the Demi `/` operator.** `Demi` no longer declares division: a
+  quotient is not a Router construction, so neither the earlier signed-ratio
+  `D / n` nor a Size-uniform `D / x` is defined on a Demi. A `D / x` now falls
+  through to the global `/`, which answers nil for a non-numeric left operand
+  and never a signed quotient. The global language `/` and the `spin`
+  observation in `hc/figures.hc` are unchanged (occurrence/figure 015).
 
 ## v0.41.1 2026-11-02
 
