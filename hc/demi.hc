@@ -45,33 +45,77 @@ phase. It is the numerical shadow of Star: `(x * y).####` is
 fourth hash and Star correspondence use; `d * k` now answers the same Demi
 through the operator below.
 
-**Arithmetic**, `d + x`, `d - x`, `d * k` and `d / n` (015.02). A class answers
-an operator by declaring a method under its name, found on the operand and its
+**Arithmetic**, `d + x`, `d - x` and `d * x` (015.11). A class answers an
+operator by declaring a method under its name, found on the operand and its
 declared parents, the chain its other methods come from, so an operator in a
 method body keeps its global meaning rather than recurring into the class that
-is running. `+`, `-` and `*` **construct a fresh Demi state** from Size and
-Count observations of their operands, keeping Figure 008's distinction between
-construction and observation; `/` is the one that answers a Spin observation, a
-number rather than a Demi. None of the four is application: none flips the
-phase, and each answers a fresh value and leaves `d` as it was.
+is running. All three **construct a fresh Demi state** from the one Size
+observation `x.##` of their operand, keeping Figure 008's distinction between
+construction and observation. They are **fixed-channel load transformations**
+on the two-load shadow, consistent with what a `RotorRouter`
+(`hc/rotor-router.hc`) does to its channel loads: `+` and `-` add `x.##` to one
+fixed channel's load the way a route adds a Frame's Size to the channel it lands
+in, and `*` is the Star shadow `scale_`. These are correspondences, not a claim
+that the Router declares named `+`, `-` or `*` methods: the Router declares only
+`apply_` (alternating route-and-flip), `.#`, `.##` and `.###` (its phase, total
+load and signed residual). None of the three Demi operators is application: none
+flips the phase, and each answers a fresh value and leaves `d` as it was.
 
-- `d + x` deposits `x.##` on the **right**: `Demi [p, L, R + x.##]`. A sizeless
-  host's failure is the answer, as it is for application.
-- `d - x` deposits on the **left**: `Demi [p, L + x.##, R]`. It is not
-  subtraction: a deposit only ever adds, so a load never goes negative and
-  stays a whole Count. Right deposition lowers the signed residual `L − R` and
-  left deposition raises it, the reverse of ordinary signed-scalar `+` and `-`.
-- `d * k` scales both loads by an admissible Count k, `Demi [p, kL, kR]`, the
-  same rule as `scale_`, refusing a non-Count with `$!!.invalid-scale`.
-- `d / n` observes Spin, the signed residual over a strictly positive Count,
-  `(L − R) / n`. It answers a number, not a Demi, and keeps the typed divisor:
-  a non-Count, including a negative, is a type error, and a zero divisor is
-  `$!.division-by-zero`.
+- `d + x` is the **tally** operator: it deposits `x.##` on the **right**,
+  `Demi [p, L, R + x.##]`. This is the transformation a route into the router's
+  right channel induces on the loads — that channel's load grows by the routed
+  Frame's Size — but it targets a fixed channel without flipping the phase,
+  rather than invoking the Router's alternating `apply_`. A sizeless host's
+  failure is the answer, as it is for application.
+- `d - x` is the **alternator** operator: it deposits on the **left**,
+  `Demi [p, L + x.##, R]`, the load transformation a route into the left channel
+  induces. It is not subtraction: a deposit only ever adds, so a load never goes
+  negative and stays a whole Count. Right deposition lowers the signed residual
+  `L − R` and left deposition raises it, the reverse of ordinary signed-scalar
+  `+` and `-`.
+- `d * x` is the **inlay** operator: it scales both loads by the operand's Size
+  `x.##`, `Demi [p, sL, sR]` for `s = x.##`, keeping the phase. It reads the
+  operand through the one Size observer, as `+` and `-` do, so any sized Frame
+  scales a Demi, not only a bare Count. A sizeless host's failure is the answer,
+  as it is for application. Because `x.##` is always a nonnegative whole Count
+  when present, the loads stay whole Counts and the result is a valid Demi. It
+  is literally `d.scale_ (x.##)`: `*` reads the Size, then hands it to `scale_`,
+  which is the Star shadow (`(x * y).####` is `x.####.scale_ (y.##)` for a
+  nonempty host x) and already takes a Size. Delegating to `scale_` builds the
+  fresh Demi by a load-only functional update, never naming the `Demi`
+  constructor inside the method, so a unit-taggable operand such as a decimal
+  cannot shadow the constructor through the argument scope; `D * 2.5` scales by
+  `(2.5).## = 2`.
 
 None of these is sequential application: `d x` deposits in the active channel
 and flips the phase, while `+`, `-` and `*` choose a channel explicitly and
 keep it. So `+` and `-` reach states a run cannot, a phase-2 Demi with a load
 on the odd side, and `*` is the Star shadow, not a repeated deposit.
+
+**No division (015.11).** A Demi declares **no** `/` operator. Division is not a
+Router construction: the router constructs tally, alternator and inlay — Count,
+residual and Size — and nothing in that native structure earns a quotient. The
+earlier signed-ratio `d / x` (015.02) and the Size-uniform `d / x` (015.09a)
+are both removed. There is no modular Spin, renamed quotient, `phase`, or other
+division surrogate in their place. A `D / x` now falls back to the global `/`
+operator (`lib/ops/math.ts`), which has no numeric meaning for a non-numeric
+Demi left operand and **answers nil**; it does **not** silently preserve a Demi
+signed quotient through another path. An operand that is already an error still
+propagates, left operand first, as it does for `+`, `-` and `*`. This removes
+only the Demi-specific operator: the global language `/` and `hc/figures.hc`'s
+`spin` observation (signed residual over a positive Count, on any host) are
+untouched.
+
+**Compatibility (015.11).** The three constructive operators `+`, `-` and `*`
+read their operand through the one Size observer `x.##`; `+` and `-` are
+unchanged from 015.02, and `*` keeps its 015.09a Size-uniform domain. `D * 3` is
+unchanged, because `3.## = 3`; a non-Count sized operand such as another Demi,
+an aggregate, or a decimal scales by its Size (`D * 2.5` scales by `2`, since
+`(2.5).## = 2`); and a sizeless operand propagates its own failure. `scale_` is
+unchanged and still takes a Count directly; `*` equals `d.scale_ (x.##)` for
+every sized `x`. The only removal is the Demi `/` operator: a call that
+previously answered a signed Spin, such as `D / 2`, is no longer a Demi
+operation.
 
 **Text.** A Demi prints as what it is, an aggregate of fields and methods, and
 that reads back as the same Demi. As text it reads `Demi(<>,12,3)`, with the
@@ -100,10 +144,8 @@ level, where nested blocks read it.
       (s ~ (0.<>)) ? {Demi [p, l, (r + s)]} : {s}};
     .- {.s (_ .##); .p (_^ .phase); .l (_^ .left); .r (_^ .right);
       (s ~ (0.<>)) ? {Demi [p, (l + s), r]} : {s}};
-    .* {.k _; .p (_^ .phase); .l (_^ .left); .r (_^ .right);
-      (k ~ (0.<>)) ? {Demi [p, (l * k), (r * k)]} : {$!!.invalid-scale}};
-    ./ {.n <(1).<>> _; .signed (_^ .###);
-      (n .< 1) ? {signed / 0} : {signed / n}};
+    .* {.s (_ .##);
+      (s ~ (0.<>)) ? {(_^^ .scale_ s)} : {s}};
     .toText {“Demi(” (((_^ .phase) = 2) ? {“<>”} : {“()”}) “,” (_^ .left) “,” (_^ .right) “)”}
   ]} : {$!!.invalid-demi}} : {$!!.invalid-demi}};
 ```
@@ -264,18 +306,20 @@ It is the shadow of Star on a nonempty host
 ```
 ## Arithmetic
 
-Four operators act on a Demi's state. `+`, `-` and `*` **construct a fresh
-Demi** from observations of their operands: `+` deposits on the right and `-`
-on the left, each by the operand's Size, keeping the phase, and `*` scales both
-loads by a Count. `/` is the one observation among them: it observes Spin and
-answers a number, not a Demi. Each answers a fresh value and leaves its operand
-as it was, so they compose by nesting
+Three operators act on a Demi's state, each reading its operand through the one
+Size observer `x.##`. They are fixed-channel load transformations consistent
+with a `RotorRouter`'s channel loads (`hc/rotor-router.hc`), not named Router
+methods: the Router declares only `apply_`, `.#`, `.##` and `.###`. `+`, `-`
+and `*` **construct a fresh Demi** from observations of their operands: `+` is
+tally, depositing `x.##` on the right; `-` is alternator, depositing on the
+left; and `*` is inlay, scaling both loads by `x.##` through `scale_`, the Star
+shadow. Each keeps the phase, answers a fresh value and leaves its operand as it
+was, so they compose by nesting. There is **no** `/`: a Demi declares no
+division operator
 ```
 ; .D (Demi [2, 5, 3]);
 ; [“” (D + 4), “” (D - 4), “” (D * 3)]
 # [“Demi(<>,5,7)”, “Demi(<>,9,3)”, “Demi(<>,15,9)”]
-; [(D / 2), ((D + 4) / 2)]
-# [1, -1]
 ; [“” ((D + 4) - 2), “” ((D - 2) + 4), “” ((D + 4) * 3)]
 # [“Demi(<>,7,7)”, “Demi(<>,7,7)”, “Demi(<>,15,21)”]
 ; “” D
@@ -309,26 +353,55 @@ balanced deposit is the Star shadow of scaling first
 ; [((D + 4) - 2) = ((D - 2) + 4), ((D + 4) * 3) = ((D * 3) + 12)]
 # [<>, <>]
 ```
-A sizeless host refuses, its failure the answer, as application refuses it.
-`*` keeps the `scale_` domain, refusing a non-Count, and never flips to Star on
-the aggregate. `/` keeps Spin's typed, strictly positive Count divisor: a
-non-Count, a negative among them, is a type error, and a zero divisor is
-division by zero, even for a zero residual
+A sizeless host refuses on all three operators, its failure the answer, as
+application refuses it. `*` reads its operand's Size rather than demanding a
+bare Count, so a Demi, an aggregate or a decimal works through its `.##`, while
+`D * 0` still annihilates
 ```
-; [D + ([].nope), D - ([].nope)]
-# [$!.name-missing “..., $!.name-missing “...]
-; [D * (0 - 1), D * 2.5]
-# [$!!.invalid-scale, $!!.invalid-scale]
-; [D / 0, D / (0 - 1), D / 2.5]
-# [$!.division-by-zero /, $!.type-error .n <(1).<>> -1, $!.type-error .n <(1).<>> 2.5]
-; (Demi [2, 4, 4]) / 0
-# $!.division-by-zero /
+; [D + ([].nope), D - ([].nope), D * ([].nope)]
+# [$!.name-missing “..., $!.name-missing “..., $!.name-missing “...]
+```
+`*` scales by the operand's Size, so its domain is every sized Frame: a Demi
+contributes `L + R`, an aggregate its element count, a decimal its truncated
+magnitude, and a zero Size annihilates both loads. `D * 3` is unchanged, since
+`3.## = 3`, and the result keeps the phase in either parity
+```
+; [“” (D * (Demi [1, 2, 4])), “” (D * [[], []]), “” (D * 2.5), “” (D * 0)]
+# [“Demi(<>,30,18)”, “Demi(<>,10,6)”, “Demi(<>,10,6)”, “Demi(<>,0,0)”]
+; [“” (D * 1), (D * 3).#, (P * 3).#, “” (P * 3)]
+# [“Demi(<>,5,3)”, 2, 1, “Demi((),15,9)”]
 ```
 The signed-scalar reading misleads: `+` lowers the residual and `-` raises it,
 so `D + 4` is not “larger” than `D`, and `D - 4` is not `D` made smaller
 ```
 ; [(D + 4).### .< D.###, (D - 4).### .> D.###]
 # [<>, <>]
+```
+## No Demi division (015.11)
+
+A Demi declares **no** `/` operator: division is not a Router construction. A
+`D / x` is not a Demi operation at all; dispatch falls through to the global
+`/`, which has no numeric meaning for a non-numeric left operand and answers
+nil, never a signed quotient. A zero or a Demi divisor is nil the same way, so
+there is no hidden division-by-zero path and no Demi-as-Spin through another
+name. Only a failing operand changes the answer, because the global `/`
+propagates an operand that is already an error, exactly as `+`, `-` and `*` do
+```
+; .Dp (Demi [2, 3, 5]); .E (Demi [1, 2, 4]);
+; [D / 2, D / 4, Dp / 2, D / E]
+# [(), (), (), ()]
+; [D / 0, (Demi [2, 4, 4]) / 0, D / (0 - 4), D / 2.5]
+# [(), (), (), ()]
+; D / ([].nope)
+# $!.name-missing “...
+```
+The global language `/` and the `spin` observation in `hc/figures.hc` are
+untouched: `spin` still answers the signed residual over a positive Count on
+any host, and a plain numeric `/` still divides. Removing the Demi operator
+removes only the Demi-specific division
+```
+; [“” (6 / 2), (D.### / 2) = 1]
+# [“3”, <>]
 ```
 ## A precise regression: a load read at the wrong depth
 
