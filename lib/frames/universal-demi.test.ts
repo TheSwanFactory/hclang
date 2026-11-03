@@ -161,12 +161,14 @@ Deno.test("fourth hash distinguishes atom/schema absence, empty hosts and presen
   ) {
     expect(encode(value(`${source}.####`)), source).toEqual(encoding);
   }
-  // Deposit is application and scaling a method; neither operator is
-  // overloaded (011.20).
+  // Deposit is application and scaling a method; the Demi class also declares
+  // the arithmetic operators as methods, so `+` deposits on the right and `*`
+  // scales, each answering a fresh Demi rather than nil or a Star refusal
+  // (015.02).
   expect(value("“” ([[],[]].#### 3)").toString()).toEqual("“Demi((),4,1)”");
   expect(value("“” (7.####.scale_ 2)").toString()).toEqual("“Demi((),8,6)”");
-  expect(evaluate("[[],[]].#### + 3").toString()).toEqual("[]");
-  expect(value("7.#### * 2").toString()).toEqual("$!.star-metadata *");
+  expect(value("“” ([[],[]].#### + 3)").toString()).toEqual("“Demi(<>,1,4)”");
+  expect(value("“” (7.#### * 2)").toString()).toEqual("“Demi((),8,6)”");
   // Nil has no Count; all is the present empty, observed exactly as [] (011.18k).
   expect(evaluate("().#").toString()).toEqual("[]");
   expect(last("<>.#").toString()).toEqual("0");
