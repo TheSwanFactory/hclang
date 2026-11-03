@@ -1,5 +1,5 @@
 import type { Frame } from "./frame.ts";
-import { hasEffectSubscribers } from "./effect-registry.ts";
+import { isEffectObserver } from "./effect-registry.ts";
 
 /**
  * A bounded, executable partition/dependency check for HC effect boundaries
@@ -21,10 +21,13 @@ import { hasEffectSubscribers } from "./effect-registry.ts";
  * precisely what re-invokes the dependent observer when the value later
  * mutates.
  *
- * The check consults the live effect registry (`hasEffectSubscribers`), so a
- * dependency is covered exactly when an `->` arrow was actually registered on
- * the managed value. A caller may also pass an explicit set of covered values
- * for static analysis of a plan that has not been evaluated yet.
+ * Coverage is specific to the observer: a dependency of observer C on managed
+ * A is covered only by an arrow that notifies C itself, `A -> C`. An arrow
+ * `A -> B` to some other callback B does not cover C, which B's registration
+ * never notifies (PR #475 review). The check consults the live effect
+ * registry (`isEffectObserver`) by default. A caller may instead pass the
+ * explicit `[managed, observer]` arrows of a plan that has not been evaluated
+ * yet.
  *
  * @module
  */
@@ -93,17 +96,20 @@ function crosses(a: string | undefined, b: string | undefined): boolean {
  * dependencies anywhere, and rejects a cross-partition *mutable* dependency
  * that lacks an explicit effect boundary on its managed value.
  *
- * `covered` lets a static (pre-evaluation) caller declare which managed values
- * carry an explicit arrow; when omitted, coverage is read from the live effect
- * registry, so an `A -> B` that actually ran makes the dependency legal.
+ * `arrows` lets a static (pre-evaluation) caller declare the explicit
+ * `[managed, observer]` effect boundaries of a plan; when omitted, coverage is
+ * read from the live effect registry, so an `A -> C` that actually ran makes
+ * C's dependency on A legal, and nothing else.
  */
 export function checkPartitions(
   edges: ReadonlyArray<DependencyEdge>,
   plan: PartitionPlan,
-  covered?: ReadonlySet<Frame>,
+  arrows?: ReadonlyArray<readonly [managed: Frame, observer: Frame]>,
 ): PartitionCheckResult {
-  const isCovered = (managed: Frame): boolean =>
-    covered ? covered.has(managed) : hasEffectSubscribers(managed);
+  const isCovered = (managed: Frame, observer: Frame): boolean =>
+    arrows
+      ? arrows.some(([a, c]) => a === managed && c === observer)
+      : isEffectObserver(managed, observer);
 
   const errors: PartitionError[] = [];
   for (const edge of edges) {
@@ -111,7 +117,7 @@ export function checkPartitions(
     const from = plan.partitionOf(edge.observer);
     const to = plan.partitionOf(edge.managed);
     if (!crosses(from, to)) continue; // local mutable dependency is fine
-    if (isCovered(edge.managed)) continue; // explicit effect boundary present
+    if (isCovered(edge.managed, edge.observer)) continue; // its own arrow
     errors.push({
       managed: edge.managed,
       observer: edge.observer,

@@ -27,12 +27,23 @@ import type { Frame } from "./frame.ts";
  * - **Delivery.** Synchronous, immediately after the write commits, in
  *   registration order. Deterministic, no queue or event loop.
  * - **Callback failure.** A callback that fails does not undo the already
- *   committed mutation and does not stop its siblings; its result is observed
- *   by the registry only (the mutator is not interrupted).
- * - **Nested mutation / reentrancy.** While a value's callbacks are running, a
- *   further committed mutation of that same value does not re-enter its
- *   callback set. The nested write still commits; it simply does not recurse
- *   the notification in flight, which bounds delivery.
+ *   committed mutation and does not stop its siblings. An HC failure is a
+ *   returned Frame, observed by the registry only (the mutator is not
+ *   interrupted). A host exception thrown by a callback is caught so that the
+ *   remaining callbacks and rounds still run; the first such exception is
+ *   rethrown once delivery for the outermost commit has finished, so a host
+ *   bug is never silently swallowed (PR #475 review).
+ * - **Nested mutation / reentrancy.** Every committed mutation is a new
+ *   invocation, nested ones included (PR #475 review). While a value's
+ *   callbacks are running, a further committed mutation of that same value
+ *   does not recurse into the round in flight: it is counted, and each counted
+ *   commit is delivered as one more round, in order, after the current round
+ *   finishes. A callback that keeps mutating its own value would never
+ *   finish, so delivery for one outermost commit is bounded at
+ *   `EFFECT_DELIVERY_LIMIT` rounds; past it, delivery stops by throwing a
+ *   `RangeError` (`$!.effect-delivery-limit`), as unbounded recursion stops
+ *   with a stack overflow. A mutation of a *different* managed value during
+ *   delivery fires that value's callbacks immediately, depth first.
  *
  * No cancellation, unsubscription, lifetime, or GC management is modeled:
  * registrations persist, matching 006.17's "defined once, lives forever" model.
@@ -48,6 +59,12 @@ const subscribers = new WeakMap<Frame, Frame[]>();
 
 /** Managed values whose callbacks are currently running, to bound reentrancy. */
 const firing = new WeakSet<Frame>();
+
+/** Committed nested mutations of a firing value, each owed one more round. */
+const pending = new Map<Frame, number>();
+
+/** The most delivery rounds one outermost commit may cause (nested included). */
+export const EFFECT_DELIVERY_LIMIT = 65_536;
 
 /**
  * The invoker is installed once by the runtime so this module need not import
@@ -84,24 +101,54 @@ export function hasEffectSubscribers(managed: Frame): boolean {
 }
 
 /**
+ * Whether `observer` itself is registered on `managed` by an `A -> B` arrow,
+ * so a committed mutation of `managed` invokes it. Another callback on the
+ * same value does not count (PR #475 review).
+ */
+export function isEffectObserver(managed: Frame, observer: Frame): boolean {
+  return subscribers.get(managed)?.includes(observer) ?? false;
+}
+
+/**
  * Notifies a managed value's subscribers that it committed a mutation.
  *
  * The single seam called from the mutation commit points. It is a no-op for the
  * overwhelming majority of frames, which carry no subscribers, so ordinary
- * construction and mutation pay only a `WeakMap.has` check. A value already
- * firing is skipped to bound reentrant nested mutation.
+ * construction and mutation pay only a `WeakMap.has` check. A commit to a value
+ * already firing is deferred to a later round rather than dropped.
  */
 export function notifyEffect(managed: Frame): void {
-  const observers = subscribers.get(managed);
-  if (!observers || !invoke || firing.has(managed)) return;
+  if (!subscribers.has(managed) || !invoke) return;
+  if (firing.has(managed)) {
+    pending.set(managed, (pending.get(managed) ?? 0) + 1);
+    return;
+  }
   firing.add(managed);
+  let thrown: { error: unknown } | undefined;
   try {
-    // Snapshot so a callback that registers another arrow on this same value
-    // does not extend the set being delivered this round.
-    for (const callback of [...observers]) {
-      invoke(callback, managed);
+    let due = 1;
+    for (let rounds = 1; due > 0; rounds++) {
+      if (rounds > EFFECT_DELIVERY_LIMIT) {
+        throw new RangeError(
+          `$!.effect-delivery-limit ${EFFECT_DELIVERY_LIMIT}`,
+        );
+      }
+      due--;
+      // Snapshot each round, so an arrow registered by a callback joins the
+      // next round rather than the one being delivered.
+      for (const callback of [...subscribers.get(managed)!]) {
+        try {
+          invoke(callback, managed);
+        } catch (error) {
+          thrown ??= { error };
+        }
+      }
+      due += pending.get(managed) ?? 0;
+      pending.delete(managed);
     }
   } finally {
     firing.delete(managed);
+    pending.delete(managed);
   }
+  if (thrown) throw thrown.error;
 }

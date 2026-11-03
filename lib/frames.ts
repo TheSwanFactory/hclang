@@ -153,6 +153,7 @@ export {
   type EffectInvoker,
   hasEffectSubscribers,
   installEffectInvoker,
+  isEffectObserver,
   notifyEffect,
   registerEffect,
 } from "./frames/effect-registry.ts";

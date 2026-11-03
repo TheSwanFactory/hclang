@@ -20,7 +20,7 @@ describe("partition check (006.17 §6)", () => {
     const edges: DependencyEdge[] = [{ managed, observer, kind: "mutable" }];
     const plan = partitionPlan([[managed, "p1"], [observer, "p1"]]);
 
-    const result = checkPartitions(edges, plan, new Set());
+    const result = checkPartitions(edges, plan, []);
     expect(result.ok).toBe(true);
     expect(result.errors.length).toBe(0);
   });
@@ -33,7 +33,7 @@ describe("partition check (006.17 §6)", () => {
     const edges: DependencyEdge[] = [{ managed, observer, kind: "mutable" }];
     const plan = partitionPlan([]);
 
-    expect(checkPartitions(edges, plan, new Set()).ok).toBe(true);
+    expect(checkPartitions(edges, plan, []).ok).toBe(true);
   });
 
   it("rejects a cross-partition mutable dependency with no effect boundary", () => {
@@ -42,7 +42,7 @@ describe("partition check (006.17 §6)", () => {
     const edges: DependencyEdge[] = [{ managed, observer, kind: "mutable" }];
     const plan = partitionPlan([[managed, "p1"], [observer, "p2"]]);
 
-    const result = checkPartitions(edges, plan, new Set());
+    const result = checkPartitions(edges, plan, []);
     expect(result.ok).toBe(false);
     expect(result.errors.length).toBe(1);
     expect(result.errors[0].reason).toContain("$!.partition-error");
@@ -56,9 +56,8 @@ describe("partition check (006.17 §6)", () => {
     const edges: DependencyEdge[] = [{ managed, observer, kind: "mutable" }];
     const plan = partitionPlan([[managed, "p1"], [observer, "p2"]]);
 
-    // Static coverage: the plan declares an arrow on the managed value.
-    const covered = new Set<Frame>([managed]);
-    expect(checkPartitions(edges, plan, covered).ok).toBe(true);
+    // Static coverage: the plan declares the observer's own arrow.
+    expect(checkPartitions(edges, plan, [[managed, observer]]).ok).toBe(true);
   });
 
   it("reads coverage from the live effect registry when none is supplied", () => {
@@ -70,9 +69,9 @@ describe("partition check (006.17 §6)", () => {
     // Before any arrow: rejected.
     expect(checkPartitions(edges, plan).ok).toBe(false);
 
-    // An actual `A -> B` registration (the arrow operator's effect) now covers
-    // the crossing, so the same plan is accepted.
-    registerEffect(managed, node());
+    // An actual registration of the observer itself (the arrow operator's
+    // effect) now covers the crossing, so the same plan is accepted.
+    registerEffect(managed, observer);
     expect(checkPartitions(edges, plan).ok).toBe(true);
   });
 
@@ -86,7 +85,7 @@ describe("partition check (006.17 §6)", () => {
     ];
     const plan = partitionPlan([[managed, "p1"], [observer, "p2"]]);
 
-    expect(checkPartitions(edges, plan, new Set()).ok).toBe(true);
+    expect(checkPartitions(edges, plan, []).ok).toBe(true);
   });
 
   it("reports every offending edge, covering only those with a boundary", () => {
@@ -106,9 +105,34 @@ describe("partition check (006.17 §6)", () => {
     ]);
 
     // Only `a` has a boundary; `b`'s crossing is still an error.
-    const result = checkPartitions(edges, plan, new Set([a]));
+    const result = checkPartitions(edges, plan, [[a, oa]]);
     expect(result.ok).toBe(false);
     expect(result.errors.length).toBe(1);
     expect(result.errors[0].managed).toBe(b);
+  });
+  it("does not let an arrow to one callback cover another observer (PR #475 review)", () => {
+    // A -> B notifies B only. C's cross-partition mutable dependency on A is
+    // still uncovered, live and static alike.
+    const a = node();
+    const b = node();
+    const c = node();
+    const plan = partitionPlan([[a, "p1"], [b, "p2"], [c, "p2"]]);
+    const toC: DependencyEdge[] = [{
+      managed: a,
+      observer: c,
+      kind: "mutable",
+    }];
+    const toB: DependencyEdge[] = [{
+      managed: a,
+      observer: b,
+      kind: "mutable",
+    }];
+    registerEffect(a, b);
+    const live = checkPartitions(toC, plan);
+    expect(live.ok).toBe(false);
+    expect(live.errors[0].observer).toBe(c);
+    expect(checkPartitions(toB, plan).ok).toBe(true);
+    expect(checkPartitions(toC, plan, [[a, b]]).ok).toBe(false);
+    expect(checkPartitions(toC, plan, [[a, c]]).ok).toBe(true);
   });
 });

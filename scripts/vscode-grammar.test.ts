@@ -373,3 +373,21 @@ Deno.test("the catch operator and observation anchor have their own scopes (a13/
   expect(first(observationRule.pattern, "$#.!")).toEqual("$#");
   expect(anchorMatches("$#")).toEqual([]);
 });
+
+Deno.test("the effect arrow -> is one operator scope (006.17)", () => {
+  const operators = grammar.repository.operators.patterns;
+  const arrow = operators.find((rule) =>
+    rule.name === "keyword.operator.effect.hclang"
+  )!;
+  const first = (source: string): string | undefined =>
+    new RegExp(arrow.match).exec(source)?.[0];
+  expect(first("owner_ -> {log_.tick_ ()}")).toEqual("->");
+  expect(operators.indexOf(arrow)).toBeLessThan(
+    operators.findIndex((rule) =>
+      rule.name === "keyword.operator.arithmetic.hclang"
+    ),
+  );
+  for (const other of ["a - b", "a > b", "a --> b"]) {
+    expect(first(other), other).toBeUndefined();
+  }
+});
