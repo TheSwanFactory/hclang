@@ -4,6 +4,23 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.41.1 2026-11-02
+
+- **Class-declared arithmetic operators.** An HC class answers `+`, `-`, `*` or
+  `/` on its own instances by declaring a method under the operator's name,
+  found on the left operand and its declared parents, the way it declares
+  `apply`, `#` or `toText`. An operator resolves against its operand and the
+  global table only, never the lexical scope the operand was read from, so an
+  operator written inside a method body keeps its global meaning. A plain
+  aggregate is unchanged: `+`/`-` stay nil, `*` stays Star, `/` stays numeric,
+  and `2 .+ 2` is untouched (occurrence/figure 015).
+- **Demi arithmetic.** `Demi` declares the four operators: `D + x` deposits
+  `x.##` on the right and `D - x` on the left, both keeping the phase; `D * k`
+  scales both loads by a Count as `scale_` does; and `D / n` observes Spin,
+  `(L − R) / n`, with Spin's strictly positive Count divisor. Each answers a
+  fresh value and leaves `D` unchanged, and none flips the phase, so they differ
+  from sequential application `D x` (occurrence/figure 015).
+
 ## v0.41.0 2026-11-02
 
 - **Closure return contracts with `^^`.** `.f (.x) ^ {…} ^^ <schema>` refuses a

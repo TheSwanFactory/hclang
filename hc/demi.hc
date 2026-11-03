@@ -41,9 +41,37 @@ d unchanged, holding exactly the same three fields.
 
 **Scaling**, `d.scale_ k`: multiply both loads by a Count k, keeping the
 phase. It is the numerical shadow of Star: `(x * y).####` is
-`x.####.scale_ (y.##)` for a nonempty host x. Scaling is a method because a
-class cannot declare an operator, so `d * k` is ordinary Star, which refuses
-an aggregate with properties.
+`x.####.scale_ (y.##)` for a nonempty host x. `scale_` stays, as the name the
+fourth hash and Star correspondence use; `d * k` now answers the same Demi
+through the operator below.
+
+**Arithmetic**, `d + x`, `d - x`, `d * k` and `d / n` (015.02). A class answers
+an operator by declaring a method under its name, found on the operand and its
+declared parents, the chain its other methods come from, so an operator in a
+method body keeps its global meaning rather than recurring into the class that
+is running. `+`, `-` and `*` **construct a fresh Demi state** from Size and
+Count observations of their operands, keeping Figure 008's distinction between
+construction and observation; `/` is the one that answers a Spin observation, a
+number rather than a Demi. None of the four is application: none flips the
+phase, and each answers a fresh value and leaves `d` as it was.
+
+- `d + x` deposits `x.##` on the **right**: `Demi [p, L, R + x.##]`. A sizeless
+  host's failure is the answer, as it is for application.
+- `d - x` deposits on the **left**: `Demi [p, L + x.##, R]`. It is not
+  subtraction: a deposit only ever adds, so a load never goes negative and
+  stays a whole Count. Right deposition lowers the signed residual `L − R` and
+  left deposition raises it, the reverse of ordinary signed-scalar `+` and `-`.
+- `d * k` scales both loads by an admissible Count k, `Demi [p, kL, kR]`, the
+  same rule as `scale_`, refusing a non-Count with `$!!.invalid-scale`.
+- `d / n` observes Spin, the signed residual over a strictly positive Count,
+  `(L − R) / n`. It answers a number, not a Demi, and keeps the typed divisor:
+  a non-Count, including a negative, is a type error, and a zero divisor is
+  `$!.division-by-zero`.
+
+None of these is sequential application: `d x` deposits in the active channel
+and flips the phase, while `+`, `-` and `*` choose a channel explicitly and
+keep it. So `+` and `-` reach states a run cannot, a phase-2 Demi with a load
+on the odd side, and `*` is the Star shadow, not a repeated deposit.
 
 **Text.** A Demi prints as what it is, an aggregate of fields and methods, and
 that reads back as the same Demi. As text it reads `Demi(<>,12,3)`, with the
@@ -68,6 +96,14 @@ level, where nested blocks read it.
       (s ~ (0.<>)) ? {((_^^ .phase) = 2) ? {@left (l + s); @phase 1;} : {@right (r + s); @phase 2;}; _^^} : {s}};
     .scale_ {.k _; .l (_^ .left); .r (_^ .right);
       (k ~ (0.<>)) ? {@left (l * k); @right (r * k); _^^} : {$!!.invalid-scale}};
+    .+ {.s (_ .##); .p (_^ .phase); .l (_^ .left); .r (_^ .right);
+      (s ~ (0.<>)) ? {Demi [p, l, (r + s)]} : {s}};
+    .- {.s (_ .##); .p (_^ .phase); .l (_^ .left); .r (_^ .right);
+      (s ~ (0.<>)) ? {Demi [p, (l + s), r]} : {s}};
+    .* {.k _; .p (_^ .phase); .l (_^ .left); .r (_^ .right);
+      (k ~ (0.<>)) ? {Demi [p, (l * k), (r * k)]} : {$!!.invalid-scale}};
+    ./ {.n <(1).<>> _; .signed (_^ .###);
+      (n .< 1) ? {signed / 0} : {signed / n}};
     .toText {“Demi(” (((_^ .phase) = 2) ? {“<>”} : {“()”}) “,” (_^ .left) “,” (_^ .right) “)”}
   ]} : {$!!.invalid-demi}} : {$!!.invalid-demi}};
 ```
@@ -226,11 +262,73 @@ It is the shadow of Star on a nonempty host
 ; [([5, 3] * 3).#### = ([5, 3].####.scale_ 3), ([[[]], []] * [[], []]).#### = ([[[]], []].####.scale_ ([[], []].##))]
 # [<>, <>]
 ```
-No operator is overloaded: `+` is ordinary addition, which a Demi is not a
-number for, and `*` is ordinary Star, which refuses an aggregate with fields
+## Arithmetic
+
+Four operators act on a Demi's state. `+`, `-` and `*` **construct a fresh
+Demi** from observations of their operands: `+` deposits on the right and `-`
+on the left, each by the operand's Size, keeping the phase, and `*` scales both
+loads by a Count. `/` is the one observation among them: it observes Spin and
+answers a number, not a Demi. Each answers a fresh value and leaves its operand
+as it was, so they compose by nesting
 ```
-; [e + 3, e * 3]
-# [(), $!.star-metadata *]
+; .D (Demi [2, 5, 3]);
+; [“” (D + 4), “” (D - 4), “” (D * 3)]
+# [“Demi(<>,5,7)”, “Demi(<>,9,3)”, “Demi(<>,15,9)”]
+; [(D / 2), ((D + 4) / 2)]
+# [1, -1]
+; [“” ((D + 4) - 2), “” ((D - 2) + 4), “” ((D + 4) * 3)]
+# [“Demi(<>,7,7)”, “Demi(<>,7,7)”, “Demi(<>,15,21)”]
+; “” D
+# “Demi(<>,5,3)”
+```
+A deposit keeps the phase, including phase 1, where application would flip it,
+and a zero Size deposits nothing while still answering a Demi. The operand is
+measured by its Size, so any sized Frame deposits
+```
+; [(D + 4).#, (D - 4).#, (D * 3).#]
+# [2, 2, 2]
+; .P (Demi [1, 5, 3]);
+; [“” (P + 4), (P + 4).#, “” (P - 4)]
+# [“Demi((),5,7)”, 1, “Demi((),9,3)”]
+; [“” (D + 0), “” (D - 0), “” (D [3, 4])]
+# [“Demi(<>,5,3)”, “Demi(<>,5,3)”, “Demi((),12,3)”]
+```
+Deposit is not application and deposit is not subtraction. `D x` flips the
+phase and `D + x` does not, so they reach different states; `D - x` adds to the
+left load and never takes from the right, so a load stays a whole Count and the
+signed residual only rises
+```
+; [(D + 4).###, (D - 4).###, D.###]
+# [-2, 6, 2]
+; [((D 4).# = (D + 4).#), (D 4).###, (D + 4).###]
+# [(), 6, -2]
+```
+Order of a right then a left deposit does not matter, and scaling after a
+balanced deposit is the Star shadow of scaling first
+```
+; [((D + 4) - 2) = ((D - 2) + 4), ((D + 4) * 3) = ((D * 3) + 12)]
+# [<>, <>]
+```
+A sizeless host refuses, its failure the answer, as application refuses it.
+`*` keeps the `scale_` domain, refusing a non-Count, and never flips to Star on
+the aggregate. `/` keeps Spin's typed, strictly positive Count divisor: a
+non-Count, a negative among them, is a type error, and a zero divisor is
+division by zero, even for a zero residual
+```
+; [D + ([].nope), D - ([].nope)]
+# [$!.name-missing “..., $!.name-missing “...]
+; [D * (0 - 1), D * 2.5]
+# [$!!.invalid-scale, $!!.invalid-scale]
+; [D / 0, D / (0 - 1), D / 2.5]
+# [$!.division-by-zero /, $!.type-error .n <(1).<>> -1, $!.type-error .n <(1).<>> 2.5]
+; (Demi [2, 4, 4]) / 0
+# $!.division-by-zero /
+```
+The signed-scalar reading misleads: `+` lowers the residual and `-` raises it,
+so `D + 4` is not “larger” than `D`, and `D - 4` is not `D` made smaller
+```
+; [(D + 4).### .< D.###, (D - 4).### .> D.###]
+# [<>, <>]
 ```
 ## A precise regression: a load read at the wrong depth
 

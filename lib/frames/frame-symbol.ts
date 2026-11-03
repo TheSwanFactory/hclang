@@ -528,7 +528,28 @@ export class FrameOperator extends FrameSymbol {
   }
 
   public override called_by(context: Frame): Frame {
-    const value = FrameSymbol.for(this.data).called_by(context);
+    // An operator resolves against its left operand and the global table only,
+    // never the lexical scope the operand was read from (015.02). A class may
+    // answer an operator on its own instances by declaring a method under the
+    // operator's name, found on the operand and its declared parents, the chain
+    // its other methods come from. Resolving nothing else keeps an operator
+    // written inside a method body meaning the global operation rather than
+    // recurring into the class that is running, which a lexical walk would do
+    // for a load read back from the receiver.
+    const left = context.referent();
+    if (left instanceof FrameArray) {
+      const declared = left.declaredOperator(this.data);
+      if (declared) return declared;
+    }
+    const globals = Frame.globals as unknown as {
+      operation?: (key: string, origin: Frame) => Frame;
+    };
+    const resolved = typeof globals.operation === "function"
+      ? globals.operation(this.data, context)
+      : Frame.missing;
+    const value = resolved.is.missing
+      ? FrameSymbol.for(this.data).called_by(context)
+      : resolved;
     return value instanceof FrameCurry && this.receiverState
       ? value.withReceiverState(this.receiverState)
       : value;

@@ -285,6 +285,45 @@ export class FrameArray extends FrameList {
     return undefined;
   }
 
+  /**
+   * The operators an aggregate may declare its own answer to (015.02).
+   *
+   * These are the ordinary binary arithmetic spellings. A class declares one
+   * as a method under the operator's own name, `+`, `-`, `*` or `/`, the way
+   * it declares `apply`, `#` or `toText`. The method takes the right operand
+   * and answers the operation's result, so the class decides what the operator
+   * means on its instances without any special case in the evaluator.
+   */
+  public static readonly OPERATOR_KEYS: readonly string[] = [
+    "+",
+    "-",
+    "*",
+    "/",
+  ];
+
+  /**
+   * The method this aggregate declares for the operator `key`, bound to it as
+   * the left operand, or undefined when it declares none (015.02).
+   *
+   * Found on the aggregate or its declared parents, the same class chain its
+   * other methods come from, and never in the scope around it, so an operator
+   * written inside a method body keeps its ordinary meaning rather than
+   * recurring into the class that is running. The method runs immutably, like a
+   * declared observation: a deposit answers a fresh instance, as a functional
+   * update does, and leaves the left operand unchanged.
+   */
+  public declaredOperator(key: string): BoundMethod | undefined {
+    if (!FrameArray.OPERATOR_KEYS.includes(key)) return undefined;
+    const method = this.declaredMethod(key);
+    if (!method) return undefined;
+    return new BoundMethod(
+      method as FrameLazy,
+      this,
+      false,
+      methodEffect(key),
+    );
+  }
+
   /** The key an aggregate declares its readable text under (#398). */
   public static readonly TEXT_KEY = "toText";
 
