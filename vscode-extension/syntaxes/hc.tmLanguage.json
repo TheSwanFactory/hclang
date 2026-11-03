@@ -282,6 +282,11 @@
     "operators": {
       "patterns": [
         {
+          "name": "keyword.operator.effect.hclang",
+          "match": "(?<!-)->",
+          "comment": "Effect boundary: A -> B registers B on the value A manages; the lexer fuses -> only after a lone -"
+        },
+        {
           "name": "keyword.operator.arithmetic.dotted.hclang",
           "match": "\\.[+\\-*/]",
           "comment": "Dotted arithmetic operators: .+ .- .* ./"

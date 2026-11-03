@@ -4,6 +4,25 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.41.0 2026-11-02
+
+- **Closure return contracts with `^^`.** `.f (.x) ^ {…} ^^ <schema>` refuses a
+  result outside its declared schema with `$!.type-error`, the output complement
+  of `^`. A closure without `^^` is unchanged, and a body that already failed
+  answers its own failure (#475).
+- **Effect boundaries with `A -> B`.** The arrow registers B on the value A
+  manages; each later committed mutation of that value, by any actor through any
+  alias, invokes B anew. Refused writes and writes to a copy do not fire. A
+  commit made during delivery is delivered as a later round, bounded by
+  `$!.effect-delivery-limit`, and a failing callback stops neither its siblings
+  nor the commit (#475).
+- **Checked schemas and typed elements.** A checked schema refines a value's
+  type without copying it, and a declared element schema is re-checked on every
+  write through any alias (#475).
+- A bounded partition check rejects a cross-partition mutable dependency unless
+  the observer itself is registered by an arrow (#475).
+- The VS Code extension highlights `->` as one operator (#475).
+
 ## v0.40.0 2026-11-02
 
 - **Breaking: two error namespaces.** Errors the interpreter makes are system

@@ -149,4 +149,21 @@ export {
   NilContext,
   type StringMap,
 } from "./frames/context.ts";
+export {
+  type EffectInvoker,
+  hasEffectSubscribers,
+  installEffectInvoker,
+  isEffectObserver,
+  notifyEffect,
+  registerEffect,
+} from "./frames/effect-registry.ts";
+export {
+  checkPartitions,
+  type DependencyEdge,
+  type DependencyKind,
+  type PartitionCheckResult,
+  type PartitionError,
+  type PartitionPlan,
+  partitionPlan,
+} from "./frames/partition-check.ts";
 Frame.globals = Ops;
