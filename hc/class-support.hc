@@ -211,3 +211,60 @@ receiver is one caret further out.`
 ; .Inner [.^ Outer; .k 5];
 ; [Outer.ks(), Inner.ks()]
 # [[1, 1], [5, 5]]
+
+`A class answers a binary arithmetic operator on its instances by declaring a
+method under the operator's own name, + - * or /, the way it declares apply or
+toText (015.02). The operator resolves against its left operand's declared
+method and the global built-in, and never the lexical scope the operand was
+read from. A declared method takes the right operand and answers the result.`
+; .Vec [.n 3; .+ {.a (_^ .n); .b (_ .n); [.n (a + b)]}];
+; (Vec + [.n 4]).n
+# 7
+
+`The declared operator overrides the global built-in only when the aggregate is
+the left operand. Ordinary numeric arithmetic keeps the global operation.`
+; 2 + 3
+# 5
+
+`A declared operator resolves through the declared-parent chain, the same chain
+an aggregate's other methods come from, so a child inherits it.`
+; .AddBase [.n 0; .+ {.a (_^ .n); .b (_ .n); [.n (a + b)]}];
+; .AddKid [.^ AddBase; .n 10];
+; (AddKid + [.n 5]).n
+# 15
+
+`A lexical operator-named method in the surrounding scope does not shadow global
+arithmetic for an ordinary numeric left operand, which carries no lexical scope
+into the operator.`
+; .+ {999};
+; 2 + 3
+# 5
+
+`Nor does a receiver's own declared + shadow the global + used inside that
+receiver's other methods. A numeric load read back from the receiver and used
+with + takes the global operation, so there is no receiver-scope recursion or
+stack overflow. A lexical walk would find the class's own + and recur; before
+015.02 this spelling overflowed the stack.`
+; .Ring [.base 2; .+ {_ + 100}; .inc {(_^ .base) + 3}];
+; Ring.inc()
+# 5
+
+`The same receiver still answers + when it is itself the left operand, resolving
+its own declared method rather than the global built-in.`
+; Ring + 100
+# 200
+
+`The declared-operator hook is scoped to the arithmetic spellings + - * / only.
+A built-in operator outside that set, such as membership ~, is unaffected: a
+class that declares .~ does not intercept it, and the global operation answers
+for an aggregate and for a number alike.`
+; .Thing [.~ {999}; .v 5];
+; Thing ~ ([].<>)
+# <>
+; 5 ~ (0.<>)
+# <>
+
+`A named arithmetic spelling, 2 .+ 2, is ordinary application and not the binary
+operator, so it is unchanged.`
+; 2 .+ 2
+# 4

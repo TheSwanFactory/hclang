@@ -49,8 +49,11 @@ through the operator below.
 an operator by declaring a method under its name, found on the operand and its
 declared parents, the chain its other methods come from, so an operator in a
 method body keeps its global meaning rather than recurring into the class that
-is running. These four are observations of a Demi's state, not application:
-none flips the phase, and each answers a fresh value and leaves `d` as it was.
+is running. `+`, `-` and `*` **construct a fresh Demi state** from Size and
+Count observations of their operands, keeping Figure 008's distinction between
+construction and observation; `/` is the one that answers a Spin observation, a
+number rather than a Demi. None of the four is application: none flips the
+phase, and each answers a fresh value and leaves `d` as it was.
 
 - `d + x` deposits `x.##` on the **right**: `Demi [p, L, R + x.##]`. A sizeless
   host's failure is the answer, as it is for application.
@@ -261,10 +264,12 @@ It is the shadow of Star on a nonempty host
 ```
 ## Arithmetic
 
-Four operators observe a Demi's state. `+` deposits on the right and `-` on
-the left, each by the operand's Size, keeping the phase; `*` scales both loads
-by a Count; `/` observes Spin. Each answers a fresh value and leaves its
-operand as it was, so they compose by nesting
+Four operators act on a Demi's state. `+`, `-` and `*` **construct a fresh
+Demi** from observations of their operands: `+` deposits on the right and `-`
+on the left, each by the operand's Size, keeping the phase, and `*` scales both
+loads by a Count. `/` is the one observation among them: it observes Spin and
+answers a number, not a Demi. Each answers a fresh value and leaves its operand
+as it was, so they compose by nesting
 ```
 ; .D (Demi [2, 5, 3]);
 ; [“” (D + 4), “” (D - 4), “” (D * 3)]
