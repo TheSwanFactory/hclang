@@ -466,8 +466,12 @@ receiver and key already being observed is `$!.cyclic-observation`, and nesting
 past `OBSERVATION_DEPTH_LIMIT` (32) is `$!.observation-depth`. The method runs
 on every observation and cannot write its receiver, but may act on other state
 it reaches. `.####` is derived from the three, so a class that declares them
-gets its fourth hash. The Demi class also declares `.####` (`declaredDemi`),
-because the three cannot tell a Demi of Count zero from an empty host.
+gets its fourth hash. No class declares `.####`: a method under that name is an
+ordinary property `.####` never runs. Because the three cannot tell a Demi of
+Count zero from an empty host, `fourth-hash.ts` recognizes an instance of the
+shipped Demi class intrinsically: stored Counts `count`, `left`, `right` and
+`==` to the Demi the constructor builds from them, answering that fresh
+reconstruction (007.25e). Anything else takes the derived path.
 
 The interpreter's own output is not application. The evaluator's output array is
 also the file scope, so a top-level `.apply` lands on it; `Frame.collect` is the

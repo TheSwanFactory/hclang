@@ -311,22 +311,72 @@ Deno.test("an aggregate may declare its Count, Size and residual (011.20)", () =
     expect(value(source).toString(), source).toEqual(answer);
   }
   expect(value("[.## {[].nope}].##").toString()).toContain("$!.name-missing");
-  // `####` is derived unless a class declares it (007.25c). A declared answer
-  // must be nil or an aggregate with the host's own Count, Size and residual.
-  expect(value("[.#### {7}; 5, 3].####").toString())
-    .toEqual("$!.declared-observation .####");
-  expect(value("[.#### {[]}; 5, 3].####").toString())
-    .toEqual("$!.declared-observation .####");
-  expect(value("[.#### {()}; 5, 3].#### = ()").toString()).toEqual("<>");
-  expect(value("[.#### {[].nope}].####").toString())
-    .toContain("$!.name-missing");
-  expect(value("[.#### {_^.####}].####").toString())
-    .toEqual("$!.cyclic-observation .####");
+  // No class declares `####` (007.25e): a method under that name is an
+  // ordinary property the fourth hash never runs, so it is derived as usual.
+  expect(value("[.#### {7}; 5, 3].####").toText().toString())
+    .toEqual("“Demi(2,5,3)”");
+  expect(value("[.#### {[]}; 5, 3].####").toText().toString())
+    .toEqual("“Demi(2,5,3)”");
+  expect(value("[.#### {()}; 5, 3].#### = [5, 3].####").toString())
+    .toEqual("<>");
+  expect(value("([.#### {[].nope}].####) = ()").toString()).toEqual("<>");
+  expect(value("([.#### {_^.####}].####) = ()").toString()).toEqual("<>");
   expect(
     value(
-      "[.# {0}; .## {0}; .### {0}; .#### {[.# {0}; .## {0}; .### {0}]}].####.#",
+      "([.# {0}; .## {0}; .### {0}; .#### {[.# {0}; .## {0}; .### {0}]}].####) = ()",
+    ).toString(),
+  ).toEqual("<>");
+});
+
+Deno.test("only an instance of the shipped Demi class takes the intrinsic fourth-hash path (007.25e)", () => {
+  const zero = constructDemi(count(0n), count(0n), count(0n));
+  const answer = zero.sizeFor(Frame.kDEMI);
+  // Present, equal, fresh: a reconstruction, never the source itself.
+  expect(answer).not.toBe(Frame.nil);
+  expect(answer).not.toBe(zero);
+  expect(answer.typeEquals(zero)).toBe(Frame.all);
+  expect(state(answer)).toEqual(["0", "0", "0"]);
+  // Through an immutable handle, the same.
+  expect(new FrameHandle(zero, false).sizeFor(Frame.kDEMI).typeEquals(zero))
+    .toBe(Frame.all);
+  // A zero-Count Demi over nonzero loads, reached without application.
+  const loaded = constructDemi(count(0n), count(3n), count(4n));
+  expect(state(loaded.sizeFor(Frame.kDEMI))).toEqual(["0", "3", "4"]);
+
+  // Foreign aggregates: forged observers, Demi-named fields with the wrong
+  // phase, the wrong types, or an extra field are not Demis. With Count zero
+  // they have no fourth hash; nothing of theirs runs.
+  for (
+    const source of [
+      "[.# {0}; .## {0}; .### {0}]",
+      "[.count 0; .phase 2; .left 0; .right 0]",
+      "[.count 0; .phase 1; .left 0; .right 0; .# {_^ .count}; .## {_^ .left + _^ .right}; .### {_^ .left - _^ .right}]",
+      "[.count 0.0; .phase 2; .left 0; .right 0]",
+      "[.count “0”; .phase 2; .left 0; .right 0]",
+      "[.extra 1; .count 0; .phase 2; .left 0; .right 0]",
+    ]
+  ) {
+    expect(value(`(${source}.####) = ()`).toString(), source).toEqual("<>");
+  }
+  expect(
+    value(
+      ".n_ [.v 0; .b_ {@v 1;}]; .f [.count 0; .left 0; .right 0; .#### {n_.b_ (); 7}]; f.####; n_.v",
     ).toString(),
   ).toEqual("0");
+  // A Demi edited by a foreign copy with one method changed is foreign too:
+  // it falls back to the derived path, here its declared observers.
+  const edited = constructDemi(count(2n), count(5n), count(3n)) as FrameArray;
+  const forged = new FrameArray([]);
+  for (const key of edited.visibleKeys()) {
+    forged.set(
+      key,
+      key === "toText" ? new FrameString("forged") : edited.get_here(key),
+    );
+  }
+  expect(forged.typeEquals(edited)).toBe(Frame.nil);
+  const derived = forged.sizeFor(Frame.kDEMI);
+  expect(derived).not.toBe(forged);
+  expect(derived.typeEquals(edited)).toBe(Frame.all);
 });
 
 Deno.test("declared observations terminate on every recursion and report their effects (review of #466)", () => {

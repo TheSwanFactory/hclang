@@ -27,7 +27,7 @@ const run = (source: string, hosted: Record<string, Frame>): Frame => {
     ResourceHandlers.of({}),
   );
   const out = evaluate(
-    "Routers <- './hc/rotor-router.hc'; .r0 (Routers.RotorRouter [2, [], []]); " +
+    "Routers <- './hc/rotor-router.hc'; .r0 (Routers.RotorRouter [[], []]); " +
       source,
     { [RESOURCE_ROOT_KEY]: root, ...hosted },
   );
@@ -118,4 +118,47 @@ Deno.test("a router's fourth hash is an instance of the bundled Demi class", () 
   expect(`${run("((r0 5) 7).#", {})}`).toEqual("2");
   expect(`${run("(r0 5).phase", {})}`).toEqual("1");
   expect(`${run("(((r0 5) 7) 9).####.count", {})}`).toEqual("3");
+});
+
+Deno.test("a router's phase is its Count's parity, and only alternating histories construct (007.25e)", () => {
+  // Admissible preloads of every small Count: the phase and the Demi's phase
+  // are both the parity of left.# + right.#.
+  for (
+    const [channels, c, phase] of [
+      ["[[], []]", "0", "2"],
+      ["[[5], []]", "1", "1"],
+      ["[[5], [6]]", "2", "2"],
+      ["[[5, 7], [6]]", "3", "1"],
+    ] as const
+  ) {
+    const router = run(`Routers.RotorRouter ${channels}`, {});
+    expect(`${router.getOwn("phase")}`, channels).toEqual(phase);
+    expect(`${router.sizeFor(Frame.kCOUNT)}`, channels).toEqual(c);
+    if (c !== "0") {
+      expect(`${router.sizeFor(Frame.kDEMI).getOwn("phase")}`, channels)
+        .toEqual(phase);
+    }
+  }
+  // Not a left-first alternating history, or the removed phase-first form.
+  for (
+    const channels of [
+      "[[], [5]]",
+      "[[5, 6], []]",
+      "[[5], [6, 7]]",
+      "[2, [], []]",
+      "[1, [5], []]",
+    ]
+  ) {
+    expect(`${run(`Routers.RotorRouter ${channels}`, {})}`, channels)
+      .toEqual("$!!.invalid-router");
+  }
+  // Routing commutes with observing at every Count where the Demi exists.
+  expect(
+    `${
+      run(
+        "[r0 5, (r0 5) 6, ((r0 5) 6) 7] & {.k _; ((k 9).####) = ((k.####) 9)}",
+        {},
+      )
+    }`,
+  ).toEqual("[<>, <>, <>]");
 });

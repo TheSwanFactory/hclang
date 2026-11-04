@@ -272,7 +272,16 @@ Deno.test("bundled refusals are named errors even with colliding caller bindings
     expect(await session.call(`Demis.Demi ${input}`)).toBe("$!!.invalid-demi");
   }
   for (
-    const input of ["[2, []]", "[2, [], [], []]", "(2, [], [])", "“abc”", "()"]
+    const input of [
+      "[[]]",
+      "[[], [], []]",
+      "([], [])",
+      "“abc”",
+      "()",
+      "[[], [5]]",
+      "[[5, 6], []]",
+      "[2, [], []]",
+    ]
   ) {
     expect(await session.call(`Routers.RotorRouter ${input}`))
       .toBe("$!!.invalid-router");

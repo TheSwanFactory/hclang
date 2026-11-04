@@ -240,7 +240,7 @@ router sends the even positions left and the odd ones right, and that router's
 fourth hash is the Figure's.
 ```
 ; Routers <- './hc/rotor-router.hc';
-; .fr ([[], [[], []], []] | (Routers.RotorRouter [2, [], []]));
+; .fr ([[], [[], []], []] | (Routers.RotorRouter [[], []]));
 ; [fr.left, fr.right, fr.#### = [[], [[], []], []].####]
 # [[[], []], [[[], []]], <>]
 

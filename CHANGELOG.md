@@ -11,20 +11,29 @@
   `d.#` and `d.count` are `C`; `d.phase` is derived (2 when `C` is even, 1 when
   odd). `d x` adds one to `C`; `+ - * scale_` keep it; equality includes it, so
   `Demi [2, 5, 1]` and `Demi [4, 5, 1]` differ. `x.####` now keeps `x.#` instead
-  of its parity. Text is `Demi(C,L,R)`. A Demi of Count zero is present: `Demi`
-  declares its own `.####`, while `[].####` stays nil. No conversion exists,
-  because the old state never recorded its Count: the old neutral start
-  `Demi [2, 0, 0]` is now `Demi [0, 0, 0]`, and any other old state needs a
-  Count chosen of the parity its phase stood for.
+  of its parity. Text is `Demi(C,L,R)`. A Demi of Count zero is present: the
+  fourth hash recognizes an instance of `Demi` intrinsically, while `[].####`
+  stays nil. No conversion exists, because the old state never recorded its
+  Count: the old neutral start `Demi [2, 0, 0]` is now `Demi [0, 0, 0]`, and any
+  other old state needs a Count chosen of the parity its phase stood for.
 - **Exact ratios.** `d.size-ratio ()` is `S/C` and `d.residual-ratio ()` is
   `Δ/C`, exact (FrameInt when whole, FrameRational otherwise) and nil at
   `C = 0`. Neither takes a divisor.
-- **RotorRouter.** A router's `.#` is now the number of children it holds,
-  `left.# + right.#`, not its phase (`router.phase`), so `router.####` carries
-  that Count. The initial router has Count zero and, like `[]`, no Demi.
-- **Declared `.####`.** An aggregate may declare `.####` as nil or an aggregate
-  with its own Count, Size and residual; anything else is
-  `$!.declared-observation .####`.
+- **Breaking: `RotorRouter [left, right]` (007.25e).** The router's state is its
+  two channels; `RotorRouter [phase, left, right]` is removed with no alias. Its
+  `.#` is `left.# + right.#` and its phase is that Count's parity, so routing,
+  Count and `router.####` agree. Only left-first alternating pairs
+  (`left.# = right.#` or `left.# = right.# + 1`) are admitted; others are
+  `$!!.invalid-router`. `(r y).#### = r.#### y` whenever `r.####` exists; the
+  initial router has Count zero and, like `[]`, no Demi.
+- **`.####` is not declarable.** Only `#`, `##` and `###` may be declared; a
+  `.####` method is ignored by the fourth hash. A constructed `Demi` is
+  recognized intrinsically by typed equality with its own reconstruction.
+- **Fix: `Demi + x` and `Demi - x` on decimals.** `(Demi [0, 0, 0]) + 2.5` is
+  `Demi(0,0,2)` and `- 1.5` is `Demi(0,1,0)`, deposited by Size as documented,
+  instead of `$!.repetition-domain`: the methods no longer name the `Demi`
+  constructor, which a unit-taggable argument shadowed. New load-only updates
+  `deposit-right_` and `deposit-left_` back them.
 
 ## v0.42.0 2026-11-02
 

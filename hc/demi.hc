@@ -41,12 +41,18 @@ States with the same phase and loads but different Counts stay distinguishable.
 **Observers.** A Demi declares its own Count, Size and residual (011.20): its
 Count `C`, its total load `L+R` and the signed difference `L−R`. An aggregate
 otherwise observes its elements, and a Demi has none, so without these it
-would observe as 0, 1, 0. Its fourth hash is also declared. The derivation
-from the three observers cannot tell an empty host from a Demi of Count zero,
-because both read 0, 0, 0, and it answers nil for either. A Demi of Count zero
-is a present state, so `d.####` is declared as the Demi of `d`'s own Count and
-loads, an equal instance for every `C`. `[].####` and `0.####` stay nil: those
-are hosts with no children, and a host with no children has no Demi.
+would observe as 0, 1, 0. Its fourth hash is not declared: no class can
+declare `.####`. The derivation from the three observers cannot tell an empty
+host from a Demi of Count zero, because both read 0, 0, 0, and it answers nil
+for either. A Demi of Count zero is a present state, so the fourth hash
+recognizes an instance of this class intrinsically (007.25e,
+`lib/frames/fourth-hash.ts`): a Frame whose stored `count`, `left` and `right`
+are Counts and which is `==` to the Demi this constructor builds from them
+answers that fresh reconstruction, an equal instance for every `C`. Nothing of
+the source runs, so a foreign aggregate that forges `#`, `##`, `###` or a
+`.####` method gets only the ordinary derived fourth hash. `[].####` and
+`0.####` stay nil: those are hosts with no children, and a host with no
+children has no Demi.
 
 **Application**, `d x`: observe x's Size once, deposit it into the channel the
 phase selects (left in phase 2, right in phase 1) and add one to the Count,
@@ -79,20 +85,26 @@ no run of applications reaches, such as `C = 0` with a nonzero load.
 
 - `d + x` is the **tally** operator: it deposits `x.##` on the **right**,
   `Demi [C, L, R + x.##]`. A sizeless host's failure is the answer, as it is for
-  application.
+  application. It is `d.deposit-right_ (x.##)`, a load-only functional update.
 - `d - x` is the **alternator** operator: it deposits on the **left**,
-  `Demi [C, L + x.##, R]`. It is not subtraction: a deposit only ever adds, so
+  `Demi [C, L + x.##, R]`, as `d.deposit-left_ (x.##)`. It is not subtraction: a deposit only ever adds, so
   a load never goes negative and stays a whole Count. Right deposition lowers
   the signed residual `L − R` and left deposition raises it, the reverse of
   ordinary signed-scalar `+` and `-`.
 - `d * x` is the **inlay** operator: it scales both loads by the operand's Size
   `x.##`, `Demi [C, sL, sR]` for `s = x.##`, keeping `C`. It reads the operand
   through the one Size observer, as `+` and `-` do, so any sized Frame scales a
-  Demi, not only a bare Count. It is literally `d.scale_ (x.##)`, which builds
-  the fresh Demi by a load-only functional update and never names the `Demi`
-  constructor inside the method, so a unit-taggable operand such as a decimal
-  cannot shadow the constructor through the argument scope; `D * 2.5` scales by
-  `(2.5).## = 2`.
+  Demi, not only a bare Count. It is literally `d.scale_ (x.##)`.
+
+None of the three names the `Demi` constructor inside its method. A bare name
+in a method is looked up on the argument first (spec 7), and a decimal is
+unit-taggable, so inside `d + 2.5` the name `Demi` read `2.5.Demi`, a tagged
+number, and applying that to `[C, L, R]` was `$!.repetition-domain` (007.25e,
+PR #480 review). Each operator now hands the one Size it observed to a
+load-only functional update on the receiver, `deposit-right_`, `deposit-left_`
+or `scale_`, so `D + 2.5`, `D - 2.5` and `D * 2.5` all read `(2.5).## = 2`.
+`deposit-right_ k` and `deposit-left_ k` take a Count and refuse anything else
+with `$!!.invalid-demi`, since a negative deposit is no Demi.
 
 **Rational readings (007.25).** Because `C` is kept, two exact ratios are read
 from the state. They are unary observations of the stored state, not `/` and
@@ -135,15 +147,18 @@ level, where nested blocks read it.
     .# {_^.count};
     .## {_^.left + _^.right};
     .### {_^.left - _^.right};
-    .#### {Demi [(_^ .count), (_^ .left), (_^ .right)]};
     .apply_ {.s (_ .##); .c (_^ .count); .l (_^ .left); .r (_^ .right); .p (_^ .phase);
       (s ~ (0.<>)) ? {(p = 2) ? {@left (l + s); @phase 1;} : {@right (r + s); @phase 2;}; @count (c + 1); _^^} : {s}};
     .scale_ {.k _; .l (_^ .left); .r (_^ .right);
       (k ~ (0.<>)) ? {@left (l * k); @right (r * k); _^^} : {$!!.invalid-scale}};
-    .+ {.s (_ .##); .c (_^ .count); .l (_^ .left); .r (_^ .right);
-      (s ~ (0.<>)) ? {Demi [c, l, (r + s)]} : {s}};
-    .- {.s (_ .##); .c (_^ .count); .l (_^ .left); .r (_^ .right);
-      (s ~ (0.<>)) ? {Demi [c, (l + s), r]} : {s}};
+    .deposit-right_ {.k _; .r (_^ .right);
+      (k ~ (0.<>)) ? {@right (r + k); _^^} : {$!!.invalid-demi}};
+    .deposit-left_ {.k _; .l (_^ .left);
+      (k ~ (0.<>)) ? {@left (l + k); _^^} : {$!!.invalid-demi}};
+    .+ {.s (_ .##);
+      (s ~ (0.<>)) ? {(_^^ .deposit-right_ s)} : {s}};
+    .- {.s (_ .##);
+      (s ~ (0.<>)) ? {(_^^ .deposit-left_ s)} : {s}};
     .* {.s (_ .##);
       (s ~ (0.<>)) ? {(_^^ .scale_ s)} : {s}};
     .size-ratio {.c (_^ .count); .s (_^ .##); .u ((_ = ()) ? {1} : {0});
@@ -330,13 +345,66 @@ elements
 ```
 The two zero-Count cases are different. A constructed `Demi [0, 0, 0]` is a
 present value, while the empty host and the Count 0 have none. They agree on
-Count, Size and residual, so the difference is declared by the Demi, not read
-from the observers
+Count, Size and residual, so the difference is not read from the observers: the
+fourth hash recognizes an instance of this class (007.25e)
 ```
 ; [[].# = d.#, [].## = d.##, 0.## = d.##, 0.### = d.###]
 # [<>, (), <>, <>]
 ; [[].#### = (), 0.#### = (), d.#### = d, ((Demi [0, 0, 0]).####).count]
 # [<>, <>, <>, 0]
+```
+Zero-Count Demis reached without an application are present too, and so is
+each functional update of one
+```
+; [“” ((Demi [0, 3, 0]).####), “” ((d + 4).####), “” ((d - 2.5).####), “” ((d * 7).####)]
+# [“Demi(0,3,0)”, “Demi(0,0,4)”, “Demi(0,2,0)”, “Demi(0,0,0)”]
+```
+## Only a Demi is a Demi
+
+No class declares its own `.####`. An aggregate that declares a method under
+that name keeps it as an ordinary property, which the fourth hash never runs:
+its fourth hash is derived from its observers like any other Frame's. So a
+method answering a foreign aggregate, an error, nil, itself, or a write
+changes nothing, and nothing in it runs
+```
+; .noted_ [.n 0; .bump_ {@n (_^.n + 1);}];
+; .Liar [.#### {[.# {0}; .## {0}; .### {0}]}];
+; .Loud [.#### {noted_.bump_ (); Demi [0, 0, 0]}];
+; .Selfish [.#### {_^.####}];
+; .Broken [.#### {[].nope}];
+; [Liar.####, Loud.####, Selfish.####, Broken.####, noted_.n]
+# [(), (), (), (), 0]
+; [“” ([.#### {Demi [9, 9, 9]}; 5, 3].####), [.#### {Demi [9, 9, 9]}; 5, 3].#### = [5, 3].####]
+# [“Demi(2,5,3)”, <>]
+```
+Forged observers do not make a Demi. An aggregate declaring Count, Size and
+residual 0, 0, 0 reads exactly as `Demi [0, 0, 0]` does, and still has no Demi,
+because it is not one; with a nonzero Count it gets the derived Demi of those
+observers, a fresh instance of this class, never the aggregate itself
+```
+; .Zero [.# {0}; .## {0}; .### {0}];
+; .Three [.# {3}; .## {5}; .### {1}];
+; [[Zero.#, Zero.##, Zero.###] = [d.#, d.##, d.###], Zero.####, “” Three.####, Three.#### = Three]
+# [<>, (), “Demi(3,3,2)”, ()]
+```
+Fields named like a Demi's are not enough either. Recognition compares the
+whole instance, fields and methods, by typed equality `==` with the Demi the
+constructor builds from the stored `count`, `left` and `right`. So a bare record
+of those fields, one whose phase disagrees with its Count, one whose Count is a
+decimal, and one that adds a field are foreign, and with Count zero they have
+no Demi
+```
+; .Rec [.count 0; .phase 2; .left 0; .right 0];
+; .Fake [.count 0; .phase 1; .left 0; .right 0; .# {_^ .count}; .## {_^ .left + _^ .right}; .### {_^ .left - _^ .right}];
+; .Dec [.count 0.0; .phase 2; .left 0; .right 0; .# {0}; .## {0}; .### {0}];
+; [Rec.####, Fake.####, Dec.####, [.extra 1; .count 0; .left 0; .right 0].####]
+# [(), (), (), ()]
+```
+A Demi with a Count is recognized as one, and what it answers is a fresh
+reconstruction from its stored state, equal to it and not it
+```
+; [(Demi [3, 5, 1]).#### == (Demi [3, 5, 1]), (Demi [3, 5, 1]).#### === (Demi [3, 5, 1]), “” (Demi [3, 5, 1]).####]
+# [<>, (), “Demi(3,5,1)”]
 ```
 ## Observing commutes with applying
 
@@ -427,6 +495,50 @@ bare Count, so a Demi, an aggregate or a decimal works through its `.##`, while
 ```
 ; [D + ([].nope), D - ([].nope), D * ([].nope)]
 # [$!.name-missing “..., $!.name-missing “..., $!.name-missing “...]
+```
+## Deposits by Size
+
+`+` and `-` read their operand through the one Size observer as `*` does, so
+any sized Frame deposits its Size: a decimal its truncated magnitude, text its
+characters, an aggregate its element count, a Demi `L + R`, and a closure one
+per word. These are the review's own examples, from `Demi [0, 0, 0]`
+```
+; [(2.5).##, (1.5).##, (0 - 1.5).##]
+# [2, 1, 1]
+; [“” ((Demi [0, 0, 0]) + 2), “” ((Demi [0, 0, 0]) + 2.5), “” ((Demi [0, 0, 0]) - 1.5), “” ((Demi [1, 2, 2]) * 2.5)]
+# [“Demi(0,0,2)”, “Demi(0,0,2)”, “Demi(0,1,0)”, “Demi(1,4,4)”]
+; [“” (D + 2.5), “” (D - 2.5), “” (P + 0.5), “” (P - (0 - 3.5))]
+# [“Demi(2,5,5)”, “Demi(2,7,3)”, “Demi(1,5,3)”, “Demi(1,8,3)”]
+; [“” (D + “abc”), “” (D - [[], []]), “” (D + (Demi [1, 2, 4])), “” (D - {5 + 3}), “” (D + <>), “” (D - [])]
+# [“Demi(2,5,6)”, “Demi(2,7,3)”, “Demi(2,5,9)”, “Demi(2,14,3)”, “Demi(2,5,4)”, “Demi(2,6,3)”]
+```
+Each keeps the full Count, and with it the phase, in both parities; leaves the
+receiver as it was, even through a mutable name; and refuses a sizeless operand
+with its failure
+```
+; [(D + 2.5).#, (D + 2.5).phase, (P - 1.5).#, (P - 1.5).phase, “” D, “” P]
+# [2, 2, 1, 1, “Demi(2,5,3)”, “Demi(1,5,3)”]
+; .q_ (Demi [2, 5, 3]);
+; [“” (q_ + 2.5), “” (q_ - 2.5), “” (q_ * 2.5), “” q_]
+# [“Demi(2,5,5)”, “Demi(2,7,3)”, “Demi(2,10,6)”, “Demi(2,5,3)”]
+; [D + ([2.5].nope), D - ([2.5].nope), (Demi [0, 0, 0]) + ([].nope)]
+# [$!.name-missing “..., $!.name-missing “..., $!.name-missing “...]
+```
+The argument cannot reach the receiver's names. A decimal is unit-taggable,
+`2.5.Demi` is a tagged number, and an aggregate can hold fields named like the
+receiver's or its locals; none of them changes which state is updated, and
+such an aggregate deposits only its elements' Size, here 4
+```
+; (2.5).Demi
+# 2.5.Demi
+; [“” (D + [.Demi 9; .right 99; .left 99; .count 7; .k 50; 4]), “” (D - [.Demi 9; .left 99; .l 99; .s 50; 4])]
+# [“Demi(2,5,7)”, “Demi(2,9,3)”]
+```
+The functional updates behind them take a Count, so a negative or fractional
+deposit is not a Demi
+```
+; [D.deposit-right_ (0 - 1), D.deposit-left_ 2.5, “” (D.deposit-right_ 2), “” (D.deposit-left_ 2), “” D]
+# [$!!.invalid-demi, $!!.invalid-demi, “Demi(2,5,5)”, “Demi(2,7,3)”, “Demi(2,5,3)”]
 ```
 `*` scales by the operand's Size, so its domain is every sized Frame: a Demi
 contributes `L + R`, an aggregate its element count, a decimal its truncated
@@ -594,7 +706,7 @@ two Sizes, and so does its fourth hash. This is a comparison of readings, not
 an identity: the router keeps the Frames and a Demi forgets them
 ```
 ; Routers <- './hc/rotor-router.hc';
-; .rr (((Routers.RotorRouter [2, [], []]) 5) 1);
+; .rr (((Routers.RotorRouter [[], []]) 5) 1);
 ; .kk (((Demi [0, 0, 0]) 5) 1);
 ; [rr.#, rr.##, rr.###, kk.count, kk.#, kk.##, kk.###, (rr.left.# + rr.right.#), rr.#### = kk.####, rr.phase = kk.phase]
 # [2, 6, 4, 2, 2, 6, 4, 2, <>, <>]

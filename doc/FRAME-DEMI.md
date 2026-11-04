@@ -66,9 +66,11 @@ that method's result for the operator, found the way `apply` and `toText` are
 (#375, #398) and never in the surrounding scope. The declared Size is also what
 the aggregate contributes inside another, so `[d, d].##` is 2(L+R). `.####` is
 not declared by default: it is derived from the three, so a class that declares
-them gets its fourth hash for free. The Demi class declares `.####` as well
-(`FrameArray.declaredDemi`), because the three cannot tell a Demi of Count zero
-from an empty host.
+them gets its fourth hash for free. `.####` itself is never declarable: a method
+under that name is an ordinary property the fourth hash never runs. The three
+cannot tell a Demi of Count zero from an empty host, so the fourth hash
+recognizes an instance of the shipped Demi class intrinsically (007.25e; see
+"The empty-host boundary" below).
 
 A declared answer must be a Count for `#` and `##` and an exact integer for
 `###`; anything else is `$!.declared-observation .key`. An error the method
@@ -288,14 +290,18 @@ claimed. This witness is included in `deno task test:doc` and the CLI tests.
 ## RotorRouter
 
 [`hc/rotor-router.hc`](../hc/rotor-router.hc) (011.21) is the constructive
-counterpart of the Demi: an ordinary HC class,
-`RotorRouter [phase, left,
-right]`, that keeps the Frames it routes rather than
-their Sizes. Applying a router appends the argument, the same Frame, as one
-member of the active channel and flips the phase (2 left next, 1 right next),
-without evaluating, measuring or applying it. Through a name it is a functional
-update, through a mutable name it writes in place, and a channel argument is
-copied to its elements, so routers never share a writable channel.
+counterpart of the Demi: an ordinary HC class, `RotorRouter [left, right]`, that
+keeps the Frames it routes rather than their Sizes. Its state is the two ordered
+channels and nothing else (007.25e): its Count is `C = left.# + right.#`, and
+its phase is the parity of C, 2 when even (left next) and 1 when odd (right
+next), exactly as a Demi's is. The constructor admits exactly the left-first
+alternating histories, `left.# = right.#` or `left.# = right.# + 1`, and refuses
+every other pair with `$!!.invalid-router`; there is no phase argument, offset
+or compatibility form. Applying a router appends the argument, the same Frame,
+as one member of the channel the parity of C selects, without evaluating,
+measuring or applying it, and so keeps the invariant. Through a name it is a
+functional update, through a mutable name it writes in place, and a channel
+argument is copied to its elements, so routers never share a writable channel.
 
 A router declares its Count, Size and residual as the Demi class does: its Count
 (the children it holds, `left.# + right.#`, not its phase), L+R and L−R, where
@@ -304,9 +310,11 @@ rather than `[].##`. So `router.####` derives the router's Demi through the
 ordinary fourth hash, with no projection method. Observation is where children
 are measured, so a failed or cyclic Size shows there and not on routing, and
 observing runs no route and writes nothing. Routing an array's children in turn,
-`X | r0`, gives the interleaved state whose fourth hash is `X.####`, and for
-every router whose phase is the parity of its Count, `(r y).####` is `r.#### y`.
-The initial router has routed nothing, so like the empty host it has no Demi;
+`X | r0`, gives the interleaved state `RotorRouter [evens, odds]` whose fourth
+hash is `X.####`. For every router whose fourth hash exists (C ≥ 1, children
+sized), `(r y).####` is `r.#### y`, because the router's phase and its Demi's
+are the parity of the same C. The initial router `RotorRouter [[], []]` has
+routed nothing, so like the empty host it has no Demi and none is faked;
 `(r0 y).####` is `(Demi [0, 0, 0]) y`.
 
 ## Full-Count Demi (007.25c)
@@ -335,7 +343,7 @@ compatibility twin.
 | `d.count`, `d.#`                        | The stored Count `C`                                                       |
 | `d.phase`                               | 2 when `C` is even (0 included), 1 when odd; derived, written with `C`     |
 | `d.##`, `d.###`                         | Size `L+R` and signed residual `L-R`                                       |
-| `d.####`                                | Declared: an equal Demi, for every `C` including 0                         |
+| `d.####`                                | Intrinsic: a fresh equal Demi, for every `C` including 0                   |
 | `d x`                                   | Deposit `x.##` into the phase's load, `C` + 1, even for Size zero          |
 | `d + x`, `d - x`, `d * x`, `d.scale_ k` | Fixed-channel or Size-mediated load change, `C` unchanged                  |
 | `d.size-ratio ()`                       | `S/C`, exact: FrameInt when whole, FrameRational otherwise; nil at `C = 0` |
@@ -353,20 +361,35 @@ different. `.####` of a host with Count zero is still nil.
 
 **The empty-host boundary.** The three observers read 0, 0, 0 for both `[]` and
 `Demi [0, 0, 0]`, so a derivation from them cannot tell the two apart. The
-`Demi` class therefore declares `.####` itself, as the Demi of its own Count and
-loads, answered through `FrameArray.declaredDemi` under the same cycle and depth
-guards as a declared observation. `[].####` and `0.####` stay nil: a host with
-no children has no Demi. `Demi [0, 0, 0]` is a present value and its fourth hash
-is itself.
+fourth hash therefore recognizes an instance of the shipped `Demi` class
+intrinsically (`lib/frames/fourth-hash.ts`, 007.25e), not through any declarable
+override. A source is a Demi exactly when its own stored `count`, `left` and
+`right` are Counts and it is `==` (typed equality, fields and methods included)
+to the Demi the class constructor builds from those Counts; the answer is that
+fresh reconstruction. No observer, method or closure of the source runs, so a
+foreign aggregate with forged `#`, `##`, `###`, a `.####` method, a phase that
+disagrees with its Count, a decimal or text Count, or an extra field is not a
+Demi and takes the ordinary derived path, nil at Count zero. `[].####` and
+`0.####` stay nil: a host with no children has no Demi. `Demi [0, 0, 0]` is a
+present value and its fourth hash is an equal instance.
 
-**RotorRouter.** A router now declares its Count as `left.# + right.#`, the
-children it holds, instead of its phase, so `router.####` carries that Count and
-not the two-state phase. It is read from the channels, not stored, and no
-numeric history is invented. The phase stays `router.phase`. The Demi derives
-its own phase from its Count's parity, so a router whose phase is not that
-parity, such as `RotorRouter [1, [], []]` or `RotorRouter [2, [A], []]`, has a
-Demi in a different phase, and `(r y).#### = r.#### y` fails for it. The initial
-router has Count zero and no Demi, as the empty host has none.
+The earlier revision of this change let any aggregate declare `.####` and
+accepted an answer whose `#`, `##`, `###` spelled the same as the host's. That
+is removed: `.####` is not declarable. The limitation is deliberate: a user
+class whose state is Demi-like but is not the shipped class gets only the
+derived fourth hash, so at Count zero it has none.
+
+**RotorRouter (breaking, 007.25e).** `RotorRouter [phase, left, right]` is
+replaced by `RotorRouter [left, right]`, with no alias. A router declares its
+Count as `left.# + right.#`, the children it holds, and derives its phase from
+that Count's parity, so `router.####` is `Demi(C, L, R)` in the router's own
+phase. Channel pairs that are not a left-first alternating history, such as
+`RotorRouter [[A, B], []]` or `RotorRouter [[], [A]]`, are refused with
+`$!!.invalid-router`, so no router can disagree with its Demi about which
+channel receives the next Frame. Migrate `RotorRouter [2, L, R]` to
+`RotorRouter [L, R]` when the pair is admissible; a former state whose phase
+disagreed with its channels, such as `RotorRouter [2, [A], []]`, has no new
+form. The initial router has Count zero and no Demi, as the empty host has none.
 
 **Provenance.** The Count is a number the state stores or an application adds
 to, in HC. It is not a Frame-native history theorem. `S/C` and `Δ/C` are

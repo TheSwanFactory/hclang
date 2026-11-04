@@ -351,9 +351,10 @@ export class FrameArray extends FrameList {
   /**
    * The size operators an aggregate may declare its own answer to (011.20):
    * Count, Size and residual. `.####` is not among them, because it is derived
-   * from these three, so a class that declares them gets it for free. A class
-   * that must answer a Demi these cannot derive, a zero-Count one, declares
-   * `.####` itself (`declaredDemi`).
+   * from these three, so a class that declares them gets it for free. No
+   * class declares `.####`: a method under that name is an ordinary property
+   * the fourth hash never runs. The one Demi these cannot derive, a constructed
+   * zero-Count Demi, is recognized intrinsically (`fourth-hash.ts`).
    */
   public static readonly OBSERVATION_KEYS: readonly string[] = [
     Frame.kCOUNT,
@@ -434,72 +435,10 @@ export class FrameArray extends FrameList {
       : Frame.error(`$!.declared-observation .${key}`);
   }
 
-  /**
-   * A declared fourth hash (007.25c). `.####` is derived from the three size
-   * operators, and those cannot tell an empty host from a Demi of Count zero,
-   * both of which read 0, 0, 0. A class whose own state is a Demi, `Demi`
-   * itself, declares `.####` as the Demi of its own Count and loads, so a
-   * constructed zero-Count Demi is present while `[].####` stays nil.
-   *
-   * The method runs immutably and under the same cycle and depth guards as a
-   * declared observation. A failure it answers is answered as it is, nil is
-   * no Demi, and any other answer must be an aggregate whose Count, Size and
-   * residual are this host's, else it is `$!.declared-observation .####`.
-   *
-   * @returns The declared answer, or undefined when none is declared.
-   */
-  private declaredDemi(): Frame | undefined {
-    const method = this.declaredMethod(Frame.kDEMI);
-    if (!method) return undefined;
-    const key = Frame.kDEMI;
-    const active = FrameArray.observing.get(this) ?? new Set<string>();
-    if (active.has(key)) return Frame.error(`$!.cyclic-observation .${key}`);
-    if (FrameArray.observationDepth >= FrameArray.OBSERVATION_DEPTH_LIMIT) {
-      return Frame.error(`$!.observation-depth .${key}`);
-    }
-    active.add(key);
-    FrameArray.observing.set(this, active);
-    FrameArray.observationDepth++;
-    let answer: Frame;
-    try {
-      answer = new BoundMethod(
-        method as FrameLazy,
-        this,
-        false,
-        methodEffect(key),
-      ).call(Frame.nil).referent();
-    } finally {
-      FrameArray.observationDepth--;
-      active.delete(key);
-      if (active.size === 0) FrameArray.observing.delete(this);
-    }
-    const failure = answer.observationError();
-    if (failure) return failure;
-    if (answer === Frame.nil) return answer;
-    // The declared Demi must be the one the three observers describe, as any
-    // derived one is: an aggregate with this host's Count, Size and residual.
-    if (!(answer instanceof FrameArray)) {
-      return Frame.error(`$!.declared-observation .${key}`);
-    }
-    for (
-      const observer of [Frame.kCOUNT, Frame.kLEAVES, Frame.kRESIDUAL]
-    ) {
-      const own = this.sizeFor(observer);
-      if (own.observationError()) return own;
-      const declared = answer.sizeFor(observer);
-      if (declared.observationError()) return declared;
-      if (own.toString() !== declared.toString()) {
-        return Frame.error(`$!.declared-observation .${key}`);
-      }
-    }
-    return answer;
-  }
-
-  /** A declared Count, Size, residual or Demi first; the list's own rule otherwise. */
+  /** A declared Count, Size or residual first; the list's own rule otherwise. */
   public override sizeFor(key: string): Frame {
     const failure = this.observationError();
     if (failure && Frame.SIZE_OPERATORS.includes(key)) return failure;
-    if (key === Frame.kDEMI) return this.declaredDemi() ?? super.sizeFor(key);
     return this.declaredObservation(key) ?? super.sizeFor(key);
   }
 
