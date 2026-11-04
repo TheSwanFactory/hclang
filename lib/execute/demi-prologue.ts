@@ -3,7 +3,7 @@
  *
  * `.####` answers a Demi, and a Demi is an HC class, `Demi` in `hc/demi.hc`,
  * not a native one (occurrence/figure 011.20). The frames package derives the
- * phase and loads natively but cannot run HC, so this module installs the
+ * Count and loads natively but cannot run HC, so this module installs the
  * constructor it calls (`installDemiConstructor`).
  *
  * The class is read from the compiled-in bundle, not through a resource root,
@@ -82,15 +82,15 @@ export function demiClass(): Frame {
 }
 
 /**
- * Constructs a Demi with the HC class: `Demi [phase, left, right]`.
+ * Constructs a Demi with the HC class: `Demi [count, left, right]`.
  *
- * @param phase 2 when even, 1 when odd.
+ * @param count The full application Count; the Demi derives its phase from it.
  * @param left The left load.
  * @param right The right load.
  * @returns The new instance, or the class's failure.
  */
 export function constructDemi(
-  phase: FrameCount,
+  count: FrameCount,
   left: FrameCount,
   right: FrameCount,
 ): Frame {
@@ -98,7 +98,7 @@ export function constructDemi(
   if (constructor.isFailedResult() || constructor.observationError()) {
     return constructor;
   }
-  const state = new FrameArray([phase, left, right]);
+  const state = new FrameArray([count, left, right]);
   return FrameExpr.answeredValue(constructor.call(state)).referent();
 }
 

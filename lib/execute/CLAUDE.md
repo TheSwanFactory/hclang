@@ -97,7 +97,7 @@ resource is folded into the empty closure, since `lib/frames` and `lib/ops`
 cannot import the parser.
 
 **The Demi class** (`demi-prologue.ts`, 011.20) is the one bundled file the
-evaluator reads without a root. `.####` derives its phase and loads natively in
+evaluator reads without a root. `.####` derives its Count and loads natively in
 `lib/frames/fourth-hash.ts` and constructs an instance of `Demi` from
 `hc/demi.hc`. `hc-eval.ts` imports the module, which installs the constructor;
 the first construction evaluates the file once per process through

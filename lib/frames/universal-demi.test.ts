@@ -22,6 +22,7 @@ import {
   MemoryStore,
 } from "../frames.ts";
 import { evaluate } from "../execute/evaluate.ts";
+import { constructDemi } from "../execute/demi-prologue.ts";
 import { FrameHandle } from "./frame-handle.ts";
 
 const last = (source: string): Frame =>
@@ -45,6 +46,9 @@ const encode = (
   if (phase.is.missing || left.is.missing || right.is.missing) return undefined;
   return [phase.toString() === "2" ? "all" : "nil", `${left}`, `${right}`];
 };
+
+/** The full Count a Demi keeps (007.25c), as a bigint. */
+const countOf = (value: Frame): bigint => BigInt(`${value.getOwn("count")}`);
 
 /** The loads and phase of a Demi, as bigints and the orientation. */
 const loads = (
@@ -104,6 +108,8 @@ Deno.test("sized values take Count from Size and residual from Count parity (011
       expect(d.left + d.right).toEqual(n);
       expect(d.left - d.right).toEqual(n % 2n);
       expect(d.even).toBe(n % 2n === 0n);
+      // The Count is kept whole, not reduced to its parity (007.25c).
+      expect(countOf(demi)).toEqual(n);
     }
   }
   // A non-atom with Count from Size follows the same rule (011.18m).
@@ -161,14 +167,43 @@ Deno.test("fourth hash distinguishes atom/schema absence, empty hosts and presen
   ) {
     expect(encode(value(`${source}.####`)), source).toEqual(encoding);
   }
+  // The same fourth hashes keep the whole source Count, not its parity.
+  for (
+    const [source, n] of [
+      ["1", 1n],
+      ["“hello”", 5n],
+      ["7.9", 7n],
+      ["(-7)", 7n],
+      ["(10 - 5)", 5n],
+      ["2", 2n],
+      ["3", 3n],
+      ["7", 7n],
+      ["[0]", 1n],
+      ["[0,0]", 2n],
+      ["[“hello”]", 1n],
+      ["[<2,3,5>,2]", 2n],
+      ["{5 + 3}", 3n],
+      ["(5,3)", 2n],
+    ] as const
+  ) {
+    expect(countOf(value(`${source}.####`)), source).toEqual(n);
+    expect(value(`${source}.####.#`).toString(), source).toEqual(`${n}`);
+  }
+  // Same phase and loads, different Counts: different Demis.
+  expect(
+    value("[5, 3].####").equals(value("[5, 3, 0, 0].####")),
+  ).toBe(Frame.nil);
+  expect(
+    value("[5, 3].####.left = [5, 3, 0, 0].####.left").toString(),
+  ).toEqual("<>");
   // Deposit is application and scaling a method; the Demi class also declares
   // the arithmetic operators as methods, so `+` deposits on the right and `*`
   // scales, each answering a fresh Demi rather than nil or a Star refusal
   // (015.02).
-  expect(value("“” ([[],[]].#### 3)").toString()).toEqual("“Demi((),4,1)”");
-  expect(value("“” (7.####.scale_ 2)").toString()).toEqual("“Demi((),8,6)”");
-  expect(value("“” ([[],[]].#### + 3)").toString()).toEqual("“Demi(<>,1,4)”");
-  expect(value("“” (7.#### * 2)").toString()).toEqual("“Demi((),8,6)”");
+  expect(value("“” ([[],[]].#### 3)").toString()).toEqual("“Demi(3,4,1)”");
+  expect(value("“” (7.####.scale_ 2)").toString()).toEqual("“Demi(7,8,6)”");
+  expect(value("“” ([[],[]].#### + 3)").toString()).toEqual("“Demi(2,1,4)”");
+  expect(value("“” (7.#### * 2)").toString()).toEqual("“Demi(7,8,6)”");
   // Nil has no Count; all is the present empty, observed exactly as [] (011.18k).
   expect(evaluate("().#").toString()).toEqual("[]");
   expect(last("<>.#").toString()).toEqual("0");
@@ -215,6 +250,7 @@ Deno.test("derived Demi obeys projections over nested mixed values, sharing and 
       expect(state.left + state.right).toEqual(s.data);
       expect(state.left - state.right).toEqual(r.data);
       expect(state.even).toBe(n.data % 2n === 0n);
+      expect(countOf(receiver.sizeFor("####"))).toEqual(n.data);
     }
   }
   const parent = new FrameArray([shared]);
@@ -321,10 +357,20 @@ Deno.test("native append and Star commute with Demi application and scaling on p
     shapes.push(new FrameArray([shapes[i]]));
     shapes.push(new FrameArray([shapes[0], shapes[i]]));
   }
-  // The empty host has no Demi; it lifts to the zero-load Demi in phase 2.
-  const lifted = new FrameArray([new FrameCount(0n), new FrameCount(0n)])
-    .sizeFor("####");
+  // The empty host has no Demi; it lifts to the Demi of Count zero, which is
+  // present (007.25c), where the two zero children of `[0, 0]` are Count two.
+  const lifted = constructDemi(
+    new FrameCount(0n),
+    new FrameCount(0n),
+    new FrameCount(0n),
+  );
   expect(encode(lifted)).toEqual(["all", "0", "0"]);
+  expect(countOf(lifted)).toEqual(0n);
+  expect(
+    countOf(
+      new FrameArray([new FrameCount(0n), new FrameCount(0n)]).sizeFor("####"),
+    ),
+  ).toEqual(2n);
   for (const x of shapes) {
     for (const y of shapes) {
       const dx = x.sizeFor("####");
@@ -334,9 +380,15 @@ Deno.test("native append and Star commute with Demi application and scaling on p
       // (X Y).#### = X.#### Y, observing commutes with applying.
       const expectedAppend = deposit(dx === Frame.nil ? lifted : dx, y);
       expect(appended.equals(expectedAppend)).toBe(Frame.all);
+      // Application adds exactly one to the Count (007.25c).
+      expect(countOf(appended)).toEqual(
+        dx === Frame.nil ? 1n : countOf(dx) + 1n,
+      );
       const inlaid = x.star(y).sizeFor("####");
       const expectedStar = dx === Frame.nil ? dy : scale(dx, k);
       expect(inlaid.equals(expectedStar)).toBe(Frame.all);
+      // Star keeps the Count of a nonempty host.
+      if (dx !== Frame.nil) expect(countOf(inlaid)).toEqual(countOf(dx));
     }
   }
 });

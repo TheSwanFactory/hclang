@@ -34,10 +34,11 @@ For each host read Count n = X.#, Size S = X.##, and alternating residual
 A = X.###. An empty terminal has Size 1. A nonempty host has Size equal to
 the sum of its immediate child Sizes, and A alternates + and - across those
 children, starting +. Properties do not enter these sums. D(X) = X.#### is
-nil for the empty host; otherwise it has loads L = (S+A)/2, R = (S-A)/2 and
-phase p = 2 for even n (left next), 1 for odd n (right next). Read these with
-`.left`, `.right`, `.phase`. n is forgotten except for parity. Nesting,
-identities, properties and the distribution within each load are forgotten.
+nil for the empty host; otherwise it has Count n, loads L = (S+A)/2, R = (S-A)/2
+and phase p = 2 for even n (left next), 1 for odd n (right next). Read these
+with `.count` (or `.#`), `.left`, `.right`, `.phase`. n is kept whole (007.25c);
+the phase is its parity. Nesting, identities, properties and the distribution
+within each load are forgotten.
 ```
 ; .E []; .X [[], [[], []], []];
 ; [E.#, E.##, E.###, E.####]
@@ -56,36 +57,39 @@ identities, properties and the distribution within each load are forgotten.
 Generation and selective compression
 
 No Demi is initialized when building X. The native reading derives from the
-constructed host. Equal readings can hide different nesting and even different
-Counts, while another construction gives a different reading.
+constructed host. Equal readings can hide different nesting, while another
+construction gives a different reading. The reading keeps the Count, so two
+hosts with the same loads and phase but different Counts have different
+readings.
 ```
 ; .A [[]]; .B [[[]]];
 ; [A = B, A.#### = B.####, A.#### === B.####]
 # [(), <>, ()]
 ; .C [[[], []], [[], []]]; .F [[], [], [], []];
-; [C.#, F.#, C = F, C.#### = F.####, A.#### = C.####]
-# [2, 4, (), <>, ()]
-; [“” A.####, “” C.####, “” [[], [[], []]].####]
-# [“Demi((),1,0)”, “Demi(<>,2,2)”, “Demi(<>,1,2)”]
+; [C.#, F.#, C = F, C.#### = F.####, C.####.left = F.####.left, C.####.right = F.####.right, C.####.phase = F.####.phase, A.#### = C.####]
+# [2, 4, (), (), <>, <>, <>, ()]
+; [“” A.####, “” C.####, “” F.####, “” [[], [[], []]].####]
+# [“Demi(1,1,0)”, “Demi(2,2,2)”, “Demi(4,2,2)”, “Demi(2,1,2)”]
 ```
 Uniform append and Inlay, including successive compositions
 
 For any nonempty X in the contract, appending Y deposits Y.## into the active
 load and flips phase. This is precisely how native append adds one term to
-the Size sum and the alternating sum: (X Y).#### = (X.#### Y).
+the Size sum and the alternating sum, and adds one to the Count: (X Y).#### =
+(X.#### Y).
 It works for either parity, independent of the shape or size of Y.
 ```
 ; .Y [[], [], []];
 ; [(A Y).#### = (A.#### Y), (C Y).#### = (C.#### Y), (X Y).#### = (X.#### Y)]
 # [<>, <>, <>]
 ; [“” (A Y).####, “” (C Y).####, “” ((C Y) []).####]
-# [“Demi(<>,1,3)”, “Demi((),5,2)”, “Demi(<>,5,3)”]
+# [“Demi(2,1,3)”, “Demi(3,5,2)”, “Demi(4,5,3)”]
 ; ([5, “ab”] []).#### = ([5, “ab”].#### [])
 # <>
 ```
 Inlay replaces every terminal with Y. Each immediate child's Size is multiplied
 by Y.##, so both alternating loads scale by that same quantity. A nonempty
-host retains its immediate Count and phase. Thus for every such X and Y,
+host retains its immediate Count, so its phase. Thus for every such X and Y,
 (X * Y).#### = X.####.scale_ (Y.##). For empty X, [] * Y is Y itself:
 the empty case is substitution, not scaling a missing state.
 These are uniform recipes for every finite input in the contract. Enumerating
@@ -103,37 +107,45 @@ Origin and channel names
 
 The empty host has no Demi, despite Size 1. Its first append generates a
 present reading. Applying nil is not the append update; a zero-load phase-2
-Demi is an explicit initialized-router convention, not a preconstruction state
-secretly stored in []. A zero Size deposit still changes routing phase.
+Demi of Count zero is an explicit initialized-router convention, not a
+preconstruction state secretly stored in []. A zero Size deposit still adds one
+to the Count and so changes routing phase.
 ```
 ; [([] []).####.phase, ([] []).####.left, ([] []).####.right]
 # [1, 1, 0]
 ; [([] Y).#### = ([].#### Y), ([] * Y).#### = Y.####]
 # [(), <>]
 ; Demis <- './hc/demi.hc';
-; ([] Y).#### = ((Demis.Demi [2, 0, 0]) Y)
+; ([] Y).#### = ((Demis.Demi [0, 0, 0]) Y)
 # <>
-; [“” [0].####, “” ([0].#### 0), [].#### = [0].####]
-# [“Demi((),0,0)”, “Demi(<>,0,0)”, ()]
+; [“” [0].####, “” ([0].#### 0), [].#### = [0].####, [].#### = (Demis.Demi [0, 0, 0]), (Demis.Demi [0, 0, 0]).#### = (Demis.Demi [0, 0, 0])]
+# [“Demi(1,0,0)”, “Demi(2,0,0)”, (), (), <>]
 ```
 For a proposed relabeling, exchange the loads AND toggle which named channel
-is next: J(p,L,R) = (3-p,R,L). Total load stays fixed and residual changes
-sign. J commutes with deposit and scale; this is equivariance of a named
-router representation, not invariance of its signed readout, not reversal of
-the host, and not a new native constructor. The following closure only checks
-that explicit relabeling using the existing Demi class.
+is next: J(n,L,R) = (n+1,R,L). Toggling the phase changes the parity of the
+Count, and a Demi derives its phase from its Count, so the relabeling moves the
+Count by one rather than leaving it fixed; the Count has no mirror image of its
+own. Total load stays fixed and residual changes sign. J commutes with deposit
+and scale; this is equivariance of a named router representation, not
+invariance of its signed readout, not reversal of the host, and not a new native
+constructor. Applying J twice returns the loads and the phase, with the Count
+two higher, so it is an involution on phase and loads and not on Count. The
+following closure only checks that explicit relabeling using the existing Demi
+class.
 ```
-; .swap {.d _; Demis.Demi [(d.phase = 2) ? {1} : {2}, d.right, d.left]};
+; .swap {.d _; Demis.Demi [(d.count + 1), d.right, d.left]};
 ; .q [[], [[], []]].####;
 ; [“” q, “” (swap q), (swap q).## = q.##, (swap q).### = (0 - q.###)]
-# [“Demi(<>,1,2)”, “Demi((),2,1)”, <>, <>]
-; [(swap (q Y)) = ((swap q) Y), (swap ((q Y) [])) = (((swap q) Y) []), (swap (q.scale_ 3)) = ((swap q).scale_ 3), (swap (swap q)) = q]
-# [<>, <>, <>, <>]
+# [“Demi(2,1,2)”, “Demi(3,2,1)”, <>, <>]
+; [(swap (q Y)) = ((swap q) Y), (swap ((q Y) [])) = (((swap q) Y) []), (swap (q.scale_ 3)) = ((swap q).scale_ 3)]
+# [<>, <>, <>]
+; [(swap (swap q)).phase = q.phase, (swap (swap q)).left = q.left, (swap (swap q)).right = q.right, (swap (swap q)).count = (q.count + 2), (swap (swap q)) = q]
+# [<>, <>, <>, <>, ()]
 ```
 Future sufficiency, at its earned scope
 
-For equal nonempty D readings, equal loads imply equal total Size and equal
-phase. The append recipe uses only those fields and the appended Size; the
+For equal nonempty D readings, equal Count and loads imply equal total Size
+and equal phase. The append recipe uses only those fields and the appended Size; the
 Inlay recipe uses only those fields and the replacement Size. Consequently
 any finite sequence of the SAME right-append and right-Inlay constructions
 preserves D equality. If both starting hosts are empty, they are the same
@@ -143,12 +155,15 @@ One may also use equivalent hosts as common right operands, since Size agrees;
 the empty case must be treated separately (its Size is 1, not zero).
 This is a uniform construction/observer relationship, not a claim that every
 HC observer or arbitrary operation factors through D. Count already separates
-C and F; inspecting stored metadata can separate decorated and undecorated X.
+C and F, and the fourth hash keeps it, so their readings differ; inspecting
+stored metadata can separate decorated and undecorated X, which the reading does
+not.
 ```
-; [((A Y) * Y).#### = ((B Y) * Y).####, (((C []) * Y) A).#### = (((F []) * Y) A).####]
-# [<>, <>]
+; .P [[], [[], []]]; .Q [[[]], [[], []]];
+; [((A Y) * Y).#### = ((B Y) * Y).####, (((P []) * Y) A).#### = (((Q []) * Y) A).####, P = Q, P.#### = Q.####]
+# [<>, <>, (), <>]
 ; [C.#### = F.####, C.# = F.#, decorated.#### = X.####, decorated = X]
-# [<>, (), <>, ()]
+# [(), (), <>, ()]
 ```
 Physically realizable readout (proposed material apparatus)
 
@@ -156,7 +171,8 @@ Use a finite tray tree with one unit stick for each empty terminal. To read a
 nonempty host, count the sticks in each immediate child tray, deposit that many
 unit marks in alternating left and right bins, and toggle a two-position pointer
 after EACH child. Start left. Read bin populations as L,R and the next-bin
-pointer as phase 2 or 1. Read n by counting immediate trays, S by counting all
+pointer as phase 2 or 1. Read n by counting immediate trays, which the pointer's
+position repeats only in parity, S by counting all
 terminal sticks, and A by subtracting the bin populations. No separately
 supplied state vector or stochastic routing law is needed. The empty host's
 one terminal stick is not an immediate child deposit: report no Demi until
@@ -185,7 +201,8 @@ Five-criterion verdict and evidence scope
 1. Derived: VACTED by execution for the examples; uniformly vacted under the
    construction/observer contract. Hosts are built before their Demi is read.
 2. Compressive: VACTED by distinct equal-reading constructions. Representation
-   has two unbounded Counts plus parity; fixed dimension is not bounded bits.
+   has three unbounded Counts, n, L and R, with the phase derived from n; fixed
+   dimension is not bounded bits.
 3. Forced update: VACTED by execution for the displayed compositions; uniformly
    vacted by the append and substitution recipes on the declared domain.
 4. Origin: VACTED for no supplied host Demi and the first-construction boundary.
@@ -193,7 +210,8 @@ Five-criterion verdict and evidence scope
    equivariance above. Full origin/gauge invariance is NOT YET VACTED.
 5. Earned forgetting: uniformly vacted for the specified future constructor
    language and D observations, with executable witnesses. Sufficiency for all
-   other HC observations is false, as the Count counterexample demonstrates.
+   other HC observations is false, as the nesting and metadata counterexamples
+   above demonstrate.
 
 Actual apparatus executed here: the HC interpreter and testdoc harness, using
 native Frame construction and .####. The command's per-claim output and final

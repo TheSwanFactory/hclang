@@ -350,8 +350,11 @@ export class FrameArray extends FrameList {
 
   /**
    * The size operators an aggregate may declare its own answer to (011.20):
-   * Count, Size and residual. `.####` is not among them, because it is always
-   * derived from these three, so a class that declares them gets it for free.
+   * Count, Size and residual. `.####` is not among them, because it is derived
+   * from these three, so a class that declares them gets it for free. No
+   * class declares `.####`: a method under that name is an ordinary property
+   * the fourth hash never runs. The one Demi these cannot derive, a constructed
+   * zero-Count Demi, is recognized intrinsically (`fourth-hash.ts`).
    */
   public static readonly OBSERVATION_KEYS: readonly string[] = [
     Frame.kCOUNT,

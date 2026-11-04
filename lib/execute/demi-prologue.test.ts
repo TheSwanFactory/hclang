@@ -3,7 +3,9 @@ import {
   Frame,
   FrameArray,
   FrameCount,
+  FrameDecimal,
   FrameExpr,
+  FrameInt,
   FrameNote,
   FrameNumber,
   FrameString,
@@ -34,9 +36,12 @@ const value = (source: string): Frame => {
   return answer;
 };
 
-/** A Demi's phase and loads, read from the fields of the HC instance. */
+/** A Demi's Count and loads, read from the fields of the HC instance. */
 const state = (demi: Frame): string[] =>
-  ["phase", "left", "right"].map((key) => `${demi.getOwn(key)}`);
+  ["count", "left", "right"].map((key) => `${demi.getOwn(key)}`);
+
+/** A Demi's derived phase: 2 for an even Count, 1 for an odd one. */
+const phase = (demi: Frame): string => `${demi.getOwn("phase")}`;
 
 /** `d x` through an immutable name, as HC applies a named Demi. */
 const deposit = (d: Frame, x: Frame): Frame =>
@@ -48,11 +53,13 @@ Deno.test("the fourth hash constructs the HC class in a bare evaluator with no r
   // Yet .#### answers an instance of the class in hc/demi.hc.
   const d = value("[5, 3, 7].####");
   expect(d).toBeInstanceOf(FrameArray);
-  expect(state(d)).toEqual(["1", "12", "3"]);
-  expect(d.toText().toString()).toEqual("“Demi((),12,3)”");
+  // The host's whole Count is kept, three, not its parity (007.25c).
+  expect(state(d)).toEqual(["3", "12", "3"]);
+  expect(phase(d)).toEqual("1");
+  expect(d.toText().toString()).toEqual("“Demi(3,12,3)”");
   // Its declared observers are the Demi laws; its own fourth hash is itself.
   expect(["#", "##", "###"].map((k) => `${d.sizeFor(k)}`))
-    .toEqual(["1", "15", "9"]);
+    .toEqual(["3", "15", "9"]);
   expect(d.sizeFor("####").equals(d)).toBe(Frame.all);
   expect(d.sizeFor("####")).not.toBe(d);
 });
@@ -66,11 +73,15 @@ Deno.test("the class is evaluated once, from the bundle, in a namespace of its o
   // A program's declarations cannot reach the class: the names the class
   // refuses with, and the names of its methods, stay its own.
   const answer = value(
-    ".invalid-scale 7; .Demi 5; .phase 9; [5, 3].####.scale_ (0 - 1)",
+    ".invalid-scale 7; .Demi 5; .phase 9; .count 8; [5, 3].####.scale_ (0 - 1)",
   );
   expect(answer.toString()).toContain("invalid-scale");
   expect(answer.toString()).not.toEqual("7");
-  expect(state(value(".left 99; [5, 3].####"))).toEqual(["2", "5", "3"]);
+  expect(state(value(".left 99; .count 8; [5, 3].####"))).toEqual([
+    "2",
+    "5",
+    "3",
+  ]);
 });
 
 Deno.test("loading failures are answered, never a fabricated class", () => {
@@ -97,14 +108,85 @@ Deno.test("the constructor validates its three Counts in HC", () => {
   expect(
     state(constructDemi(count(1n), count(10n ** 30n), count(0n))),
   ).toEqual(["1", `${10n ** 30n}`, "0"]);
-  for (const phase of [0n, 3n]) {
-    expect(constructDemi(count(phase), count(0n), count(0n)).toString())
-      .toContain("invalid-demi");
+  // Any Count is a state, zero included, and the phase is read from its
+  // parity: 2 when even, 1 when odd (007.25c). Nothing is refused by size.
+  for (
+    const [n, expected] of [
+      [0n, "2"],
+      [1n, "1"],
+      [2n, "2"],
+      [3n, "1"],
+      [4n, "2"],
+      [100n, "2"],
+      [101n, "1"],
+      [10n ** 30n, "2"],
+    ] as const
+  ) {
+    const demi = constructDemi(count(n), count(5n), count(1n));
+    expect(state(demi), `${n}`).toEqual([`${n}`, "5", "1"]);
+    expect(phase(demi), `${n}`).toEqual(expected);
+  }
+  // What is not three Counts is refused: negative, fractional, short or long.
+  const refused = (...elements: Frame[]) =>
+    FrameExpr.answeredValue(
+      (demiClass() as Frame).call(new FrameArray(elements)),
+    ).referent().toString();
+  for (
+    const answer of [
+      refused(new FrameInt(-1n), count(0n), count(0n)),
+      refused(count(2n), new FrameInt(-1n), count(0n)),
+      refused(count(2n), count(0n), new FrameDecimal("1.5")),
+      refused(count(2n), count(1n)),
+      refused(count(2n), count(1n), count(0n), count(0n)),
+    ]
+  ) {
+    expect(answer).toContain("invalid-demi");
   }
 });
 
+Deno.test("equal phase and loads with different Counts are different Demis (007.25c)", () => {
+  const two = constructDemi(count(2n), count(5n), count(1n));
+  const four = constructDemi(count(4n), count(5n), count(1n));
+  for (const key of ["phase", "left", "right"]) {
+    expect(`${two.getOwn(key)}`).toEqual(`${four.getOwn(key)}`);
+  }
+  for (const key of ["#", "##", "###"].slice(1)) {
+    expect(`${two.sizeFor(key)}`).toEqual(`${four.sizeFor(key)}`);
+  }
+  expect(`${two.sizeFor("#")}`).toEqual("2");
+  expect(`${four.sizeFor("#")}`).toEqual("4");
+  expect(two.equals(four)).toBe(Frame.nil);
+  // The fourth hash keeps the Count it is given, so the two stay apart.
+  expect(`${two.sizeFor("####").sizeFor("#")}`).toEqual("2");
+  expect(`${four.sizeFor("####").sizeFor("#")}`).toEqual("4");
+  expect(two.sizeFor("####").equals(four.sizeFor("####"))).toBe(Frame.nil);
+  expect(four.sizeFor("####").equals(four)).toBe(Frame.all);
+});
+
+Deno.test("a Demi of Count zero is present, while an empty host has no Demi (007.25c)", () => {
+  const zero = constructDemi(count(0n), count(0n), count(0n));
+  // The three observers read 0, 0, 0 for it and for the empty host alike.
+  const hosts: Frame[] = [new FrameArray([]), count(0n)];
+  for (const host of hosts) {
+    expect(host.sizeFor("#").toString()).toEqual("0");
+    expect(host.sizeFor("###").toString()).toEqual("0");
+    expect(host.sizeFor("####")).toBe(Frame.nil);
+  }
+  expect(["#", "##", "###"].map((k) => `${zero.sizeFor(k)}`))
+    .toEqual(["0", "0", "0"]);
+  // Only the class tells them apart, by declaring its own fourth hash.
+  const same = zero.sizeFor("####");
+  expect(same).not.toBe(Frame.nil);
+  expect(same.equals(zero)).toBe(Frame.all);
+  expect(same).not.toBe(zero);
+  // A zero Count over nonzero loads is present too.
+  const loaded = constructDemi(count(0n), count(3n), count(0n));
+  expect(loaded.sizeFor("####").equals(loaded)).toBe(Frame.all);
+  expect(state(loaded.sizeFor("####"))).toEqual(["0", "3", "0"]);
+});
+
 Deno.test("deposit observes the argument's Size once and propagates its failure", () => {
-  const d = constructDemi(count(2n), count(0n), count(0n));
+  const d = constructDemi(count(0n), count(0n), count(0n));
   expect(state(deposit(d, count(0n)))).toEqual(["1", "0", "0"]);
   expect(state(deposit(deposit(d, count(0n)), count(0n))))
     .toEqual(["2", "0", "0"]);
@@ -118,7 +200,7 @@ Deno.test("deposit observes the argument's Size once and propagates its failure"
     "$!.nonquantifiable-size .##",
   );
   expect(deposit(d, Frame.error("$!.stored")).toString()).toEqual("$!.stored");
-  expect(state(d)).toEqual(["2", "0", "0"]);
+  expect(state(d)).toEqual(["0", "0", "0"]);
   // An argument is never run to be measured.
   const counted: Frame[] = [];
   class Watched extends FrameArray {
@@ -134,14 +216,15 @@ Deno.test("deposit observes the argument's Size once and propagates its failure"
 Deno.test("a Demi prints as HC that reads back as an equal Demi", () => {
   const d = value("[5, 3, 7].####");
   const printed = d.toString();
-  expect(printed.startsWith("[.phase 1; .left 12; .right 3; .# {")).toBe(true);
+  expect(printed.startsWith("[.count 3; .phase 1; .left 12; .right 3; .# {"))
+    .toBe(true);
   const restored = value(printed);
   expect(state(restored)).toEqual(state(d));
   expect(restored.equals(d)).toBe(Frame.all);
   expect(restored.typeEquals(d)).toBe(Frame.all);
   expect(restored.identical(d)).toBe(Frame.nil);
   expect(value(`${printed} 4`).toText().toString()).toEqual(
-    "“Demi(<>,12,7)”",
+    "“Demi(4,12,7)”",
   );
 });
 
@@ -228,9 +311,72 @@ Deno.test("an aggregate may declare its Count, Size and residual (011.20)", () =
     expect(value(source).toString(), source).toEqual(answer);
   }
   expect(value("[.## {[].nope}].##").toString()).toContain("$!.name-missing");
-  // `####` is not declarable; it is always derived.
-  expect(value("[.#### {7}; 5, 3].#### = [5, 3].####").toString())
+  // No class declares `####` (007.25e): a method under that name is an
+  // ordinary property the fourth hash never runs, so it is derived as usual.
+  expect(value("[.#### {7}; 5, 3].####").toText().toString())
+    .toEqual("“Demi(2,5,3)”");
+  expect(value("[.#### {[]}; 5, 3].####").toText().toString())
+    .toEqual("“Demi(2,5,3)”");
+  expect(value("[.#### {()}; 5, 3].#### = [5, 3].####").toString())
     .toEqual("<>");
+  expect(value("([.#### {[].nope}].####) = ()").toString()).toEqual("<>");
+  expect(value("([.#### {_^.####}].####) = ()").toString()).toEqual("<>");
+  expect(
+    value(
+      "([.# {0}; .## {0}; .### {0}; .#### {[.# {0}; .## {0}; .### {0}]}].####) = ()",
+    ).toString(),
+  ).toEqual("<>");
+});
+
+Deno.test("only an instance of the shipped Demi class takes the intrinsic fourth-hash path (007.25e)", () => {
+  const zero = constructDemi(count(0n), count(0n), count(0n));
+  const answer = zero.sizeFor(Frame.kDEMI);
+  // Present, equal, fresh: a reconstruction, never the source itself.
+  expect(answer).not.toBe(Frame.nil);
+  expect(answer).not.toBe(zero);
+  expect(answer.typeEquals(zero)).toBe(Frame.all);
+  expect(state(answer)).toEqual(["0", "0", "0"]);
+  // Through an immutable handle, the same.
+  expect(new FrameHandle(zero, false).sizeFor(Frame.kDEMI).typeEquals(zero))
+    .toBe(Frame.all);
+  // A zero-Count Demi over nonzero loads, reached without application.
+  const loaded = constructDemi(count(0n), count(3n), count(4n));
+  expect(state(loaded.sizeFor(Frame.kDEMI))).toEqual(["0", "3", "4"]);
+
+  // Foreign aggregates: forged observers, Demi-named fields with the wrong
+  // phase, the wrong types, or an extra field are not Demis. With Count zero
+  // they have no fourth hash; nothing of theirs runs.
+  for (
+    const source of [
+      "[.# {0}; .## {0}; .### {0}]",
+      "[.count 0; .phase 2; .left 0; .right 0]",
+      "[.count 0; .phase 1; .left 0; .right 0; .# {_^ .count}; .## {_^ .left + _^ .right}; .### {_^ .left - _^ .right}]",
+      "[.count 0.0; .phase 2; .left 0; .right 0]",
+      "[.count “0”; .phase 2; .left 0; .right 0]",
+      "[.extra 1; .count 0; .phase 2; .left 0; .right 0]",
+    ]
+  ) {
+    expect(value(`(${source}.####) = ()`).toString(), source).toEqual("<>");
+  }
+  expect(
+    value(
+      ".n_ [.v 0; .b_ {@v 1;}]; .f [.count 0; .left 0; .right 0; .#### {n_.b_ (); 7}]; f.####; n_.v",
+    ).toString(),
+  ).toEqual("0");
+  // A Demi edited by a foreign copy with one method changed is foreign too:
+  // it falls back to the derived path, here its declared observers.
+  const edited = constructDemi(count(2n), count(5n), count(3n)) as FrameArray;
+  const forged = new FrameArray([]);
+  for (const key of edited.visibleKeys()) {
+    forged.set(
+      key,
+      key === "toText" ? new FrameString("forged") : edited.get_here(key),
+    );
+  }
+  expect(forged.typeEquals(edited)).toBe(Frame.nil);
+  const derived = forged.sizeFor(Frame.kDEMI);
+  expect(derived).not.toBe(forged);
+  expect(derived.typeEquals(edited)).toBe(Frame.all);
 });
 
 Deno.test("declared observations terminate on every recursion and report their effects (review of #466)", () => {
