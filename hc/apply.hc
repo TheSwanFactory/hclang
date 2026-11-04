@@ -334,8 +334,8 @@ Sizes; schemas retain their description/alternative quantities. Other opaque
 values have Size 1. `.###` alternates child Sizes on non-schema lists, or returns
 Count parity (`.# mod 2`) on every other value with a Count; schemas have nil
 residual, and `<>` observes as `[]`. `.####` derives a Demi, an instance of
-the class in `hc/demi.hc`, returning nil at zero Count or nil residual and
-propagating failed observations.
+the class in `hc/demi.hc`, which keeps the source's whole Count, returning nil at
+zero Count or nil residual and propagating failed observations.
 ```
 ; [.meta 1; 2, 3] .#
 # 2

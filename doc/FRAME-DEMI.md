@@ -10,26 +10,28 @@ overloads are gone.
 
 ## The HC class
 
-`Demi [phase, left, right]` takes three Counts and answers a fresh aggregate
+`Demi [count, left, right]` takes three Counts and answers a fresh aggregate
 whose fields are its state and whose methods are the class:
 
-| Member    | Meaning                                                                                                                       |
-| --------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `.phase`  | 2 when even (left next), 1 when odd (right next): the least positive Count of the parity (011.18g)                            |
-| `.left`   | Left load, an exact Count                                                                                                     |
-| `.right`  | Right load, an exact Count                                                                                                    |
-| `.#`      | Declared Count: the phase                                                                                                     |
-| `.##`     | Declared Size: L+R                                                                                                            |
-| `.###`    | Declared residual: L−R                                                                                                        |
-| `.apply_` | `d x`: deposit `x.##` into the active load and flip the phase, even for Size zero; a failed Size is the answer, not a deposit |
-| `.scale_` | `d.scale_ k`: multiply both loads by a Count k, keeping the phase                                                             |
-| `.toText` | Text `Demi(<>,12,3)`, the phase spelled as the orientation it stands for                                                      |
+| Member    | Meaning                                                                                                              |
+| --------- | -------------------------------------------------------------------------------------------------------------------- |
+| `.count`  | The full application Count (007.25c)                                                                                 |
+| `.phase`  | 2 when the Count is even (left next), 1 when odd (right next): the least positive Count of the parity (011.18g)      |
+| `.left`   | Left load, an exact Count                                                                                            |
+| `.right`  | Right load, an exact Count                                                                                           |
+| `.#`      | Declared Count: the stored Count                                                                                     |
+| `.##`     | Declared Size: L+R                                                                                                   |
+| `.###`    | Declared residual: L−R                                                                                               |
+| `.apply_` | `d x`: deposit `x.##` into the active load and add one to the Count, even for Size zero; a failed Size is the answer |
+| `.scale_` | `d.scale_ k`: multiply both loads by a Count k, keeping the Count                                                    |
+| `.####`   | Declared: the Demi of its own Count and loads, so a Count of zero is present                                         |
+| `.toText` | Text `Demi(3,12,3)`: Count, left, right                                                                              |
 
 Anything else is refused with the named error `$!!.invalid-demi` (or
 `$!!.invalid-scale`), as Figures refuses an unsupported host. The phase is a
 Count because a field cannot hold nil, and a Count keeps the odd phase present:
 a Demi in phase 1 is a value, distinct from the nil `.####` answers where there
-is no Demi.
+is no Demi. The rational readings `size-ratio` and `residual-ratio` are below.
 
 Methods read their own state through `_^`, never a bare name, because a bare
 name inside a method is looked up on the argument first (spec 7) and a Demi is
@@ -38,16 +40,16 @@ lexically (spec a06).
 
 **Application is functional by default.** `apply_` is a mutating method, so
 through a name (an immutable handle) `d x` answers a new Demi and leaves d
-unchanged, holding exactly the same three fields, with no history. Through a
-mutable name, `d_ x` writes d in place, as for any HC class.
+unchanged, holding exactly the same Count and loads. Through a mutable name,
+`d_ x` writes d in place, as for any HC class.
 
 **Display, equality, identity and persistence.** A Demi prints as what it is, an
 aggregate of fields and methods, and that printed form reads back as an equal
 Demi: the HC source is its serialization, replacing the native `encode`/`decode`
-tuple. Two Demis are `=` and `==` exactly when their fields are, since their
-methods are the same source. `===` is aggregate identity, so separately built
-equal Demis are not `===`, and `d.####` is a new instance equal to d. Text reads
-`Demi(phase,left,right)`.
+tuple. Two Demis are `=` and `==` exactly when their Count and loads are (their
+phase is derived from the Count), since their methods are the same source. `===`
+is aggregate identity, so separately built equal Demis are not `===`, and
+`d.####` is a new instance equal to d. Text reads `Demi(count,left,right)`.
 
 **No operator is overloaded.** `d + k` is ordinary addition, which answers nil
 for a non-number. `d * k` is ordinary Star, which refuses an aggregate with
@@ -63,8 +65,10 @@ method named `#`, `##` or `###`, on itself or a declared parent, and answers
 that method's result for the operator, found the way `apply` and `toText` are
 (#375, #398) and never in the surrounding scope. The declared Size is also what
 the aggregate contributes inside another, so `[d, d].##` is 2(L+R). `.####` is
-not declarable: it is always derived from the three, so a class that declares
-them gets its fourth hash for free.
+not declared by default: it is derived from the three, so a class that declares
+them gets its fourth hash for free. The Demi class declares `.####` as well
+(`FrameArray.declaredDemi`), because the three cannot tell a Demi of Count zero
+from an empty host.
 
 A declared answer must be a Count for `#` and `##` and an exact integer for
 `###`; anything else is `$!.declared-observation .key`. An error the method
@@ -142,9 +146,9 @@ Observing commutes with applying. For a nonempty host X (`X.# > 0`):
 
 The empty host is the boundary, by convention rather than theorem: `[].####` is
 nil (011.15g), and applying nil answers its argument, so the append law as
-written fails there. Lifting the empty host to the zero-load Demi in phase 2,
-`Demi [2, 0, 0]`, restores it, `([] Y).#### = (Demi [2, 0, 0]) Y`, which is also
-what a reduce starts from: `xs | (Demi [2, 0, 0])` equals `xs.####` for a
+written fails there. Lifting the empty host to the Demi of Count zero,
+`Demi [0, 0, 0]`, restores it, `([] Y).#### = (Demi [0, 0, 0]) Y`, which is also
+what a reduce starts from: `xs | (Demi [0, 0, 0])` equals `xs.####` for a
 nonempty xs. For Star, `([] * Y).#### = Y.####`. Retiring `+` gives up the
 state-only append evaluation of 011.16 §9.5: a step is computed by applying the
 Demi to the Frame, which reads its Size.
@@ -161,9 +165,9 @@ Let n=F.#. If it fails, propagate the failure; if n=0, return nil without asking
 Size or residual. Otherwise read s=F.##, then r=F.###, propagating errors in
 that order. A nil residual gives nil Demi. A present residual must be a signed
 exact integer and Size a nonnegative exact Count. Require L=(s+r)/2 and
-R=(s−r)/2 to be exact nonnegative integers; construct `Demi [2, L, R]` for even
-n, or `Demi [1, L, R]` for odd n. The implementation introduces no fold or
-cache.
+R=(s−r)/2 to be exact nonnegative integers; construct `Demi [n, L, R]`, which
+derives its phase 2 or 1 from the parity of n. The implementation introduces no
+fold or cache.
 
 Diagnostics distinguish invalid Count (`$!.demi-count`), invalid present Size or
 residual (`$!.demi-observations`) and inconsistent halves (`$!.demi-coherence`).
@@ -176,15 +180,15 @@ numbers, text, blobs, bytes, opaque atoms and runtime type descriptions.
 Explicit Count rules take precedence: lists count immediate elements/words,
 schemas retain their own rules, all and void comments retain Count zero, and nil
 has no Count (`().#` is nil, so `().####` is nil without reading Size or
-residual). A Demi declares its positive parity Count (2 or 1). Nil/all source
-dispatch is intercepted, while receiverless observer names remain addresses.
-Missing residual falls back to Count parity, `.# mod 2`, on the base Frame
-(011.18k, 011.18m): every atom, FrameCount included, and every non-atom host
-(runtime types, imports, bound methods, internal hosts) takes it. `<>` has
-residual 0, so it observes as `[]`. Lists and schemas keep their explicit
-residual rules, and an aggregate that declares one, a Demi included, its own.
-The internal lookup sentinel `Frame.missing` is never an HC value; observing it
-natively answers `$!.name-missing`.
+residual). A Demi declares its stored Count. Nil/all source dispatch is
+intercepted, while receiverless observer names remain addresses. Missing
+residual falls back to Count parity, `.# mod 2`, on the base Frame (011.18k,
+011.18m): every atom, FrameCount included, and every non-atom host (runtime
+types, imports, bound methods, internal hosts) takes it. `<>` has residual 0, so
+it observes as `[]`. Lists and schemas keep their explicit residual rules, and
+an aggregate that declares one, a Demi included, its own. The internal lookup
+sentinel `Frame.missing` is never an HC value; observing it natively answers
+`$!.name-missing`.
 
 Non-schema lists observe their stored ordered elements/words for Count, Size and
 residual, without executing the host. Source syntax uses the existing pure Size
@@ -200,18 +204,18 @@ normally.
 `universal-demi.test.ts` checks derived projections, absence/error boundaries,
 references, mutation, bigint values and non-execution, and
 `demi-prologue.test.ts` the class, its loading and declared observations. In the
-`####` column, `Demi((),1,0)` is the text of the Demi answered. Internal hosts
+`####` column, `Demi(1,1,0)` is the text of the Demi answered. Internal hosts
 are source-audited for inherited rules and covered by import-first checks.
 
 | Family                                                                   | #                                     | ##                                                | ###                                       | ####                                                            |
 | ------------------------------------------------------------------------ | ------------------------------------- | ------------------------------------------------- | ----------------------------------------- | --------------------------------------------------------------- |
 | FrameCount(n)                                                            | n                                     | n                                                 | FrameInt n mod 2 (atom rule)              | nil at zero; otherwise balanced Demi                            |
-| Demi instance (declared observers)                                       | Declared phase: 2 even, 1 odd         | Declared L+R                                      | Declared FrameInt L−R                     | An equal Demi, derived universally                              |
+| Demi instance (declared observers)                                       | Declared Count `C`                    | Declared L+R                                      | Declared FrameInt L−R                     | An equal Demi, declared (so `C = 0` is present)                 |
 | FrameInt, Decimal, Rational, finite Number                               | Absolute truncated magnitude          | Absolute truncated magnitude                      | FrameInt # mod 2                          | nil at zero; otherwise balanced Demi                            |
 | String, Doc; Blob; Bytes                                                 | Code points; bits; bytes              | Code points; bits; bytes                          | FrameInt # mod 2                          | nil at zero; otherwise balanced Demi                            |
-| FrameAtom; Arg, Param, Name, Word, Alias, Literal, Symbol, Operator      | 1                                     | One opaque occurrence                             | 1                                         | Demi((),1,0)                                                    |
-| URI, Resource; Time/DateTime/Duration, TypedNumber, Sequence             | 1                                     | One opaque occurrence; no reads or unit inference | 1                                         | Demi((),1,0)                                                    |
-| ScopeAnchor, StringEnd, BytePayload; non-error Note                      | 1                                     | One opaque occurrence                             | 1                                         | Demi((),1,0)                                                    |
+| FrameAtom; Arg, Param, Name, Word, Alias, Literal, Symbol, Operator      | 1                                     | One opaque occurrence                             | 1                                         | Demi(1,1,0)                                                     |
+| URI, Resource; Time/DateTime/Duration, TypedNumber, Sequence             | 1                                     | One opaque occurrence; no reads or unit inference | 1                                         | Demi(1,1,0)                                                     |
+| ScopeAnchor, StringEnd, BytePayload; non-error Note                      | 1                                     | One opaque occurrence                             | 1                                         | Demi(1,1,0)                                                     |
 | all; void Comment                                                        | 0                                     | One description/occurrence                        | 0                                         | nil                                                             |
 | nil                                                                      | nil (no Count)                        | 1                                                 | nil                                       | nil                                                             |
 | missing (internal lookup sentinel)                                       | `$!.name-missing` (never an HC value) | Same error                                        | Same error                                | Same error                                                      |
@@ -223,7 +227,7 @@ are source-audited for inherited rules and covered by import-first checks.
 | Nonfinite Number                                                         | Nonquantifiable error                 | Same error                                        | Same error                                | Same error                                                      |
 | Containment/reference cycles                                             | Immediate Count or cycle error        | Existing cycle error                              | Propagated cycle error                    | Propagated cycle error                                          |
 | Shared descendants; metadata/declared-parent cycles                      | Immediate Count                       | Sharing per occurrence; metadata excluded         | Same child Size rule                      | Coherent; no mutable cache                                      |
-| Type; Base Frame; Import, BoundMethod; internal hosts derived from Frame | Size fallback                         | One opaque occurrence                             | 1                                         | Demi((),1,0)                                                    |
+| Type; Base Frame; Import, BoundMethod; internal hosts derived from Frame | Size fallback                         | One opaque occurrence                             | 1                                         | Demi(1,1,0)                                                     |
 | Internal ParsePipe (Array subtype)                                       | Inherited stored element Count        | Inherited Size                                    | Inherited residual                        | Inherited derivation                                            |
 
 Abstract Numeric/Text/Time/LexHost bases inherit the listed concrete-family
@@ -236,15 +240,15 @@ methods.
 
 ## Examples and compatibility changes
 
-| HC receiver                               | `“” x.####`                                                           |
-| ----------------------------------------- | --------------------------------------------------------------------- |
-| `[]`, `0`, `()`, `<>`, `“”`, any schema   | nil                                                                   |
-| `“hello”`, `(10 - 5)`, `(0 - 5)`, `(5.0)` | `Demi((),3,2)`, the same as `5.####`                                  |
-| `1`, `2`, `3`, `7`                        | `Demi((),1,0)`, `Demi(<>,1,1)`, `Demi((),2,1)`, `Demi((),4,3)`        |
-| `[0]`                                     | Present `Demi((),0,0)`                                                |
-| `[“hello”]`                               | `Demi((),5,0)`                                                        |
-| `[<2,3,5>,2]`                             | `Demi(<>,3,2)`; schema Size participates, schema residual does not    |
-| `{5 + 3}`                                 | `Demi((),8,1)` from three stored words with Sizes 5,1,3; no execution |
+| HC receiver                               | `“” x.####`                                                          |
+| ----------------------------------------- | -------------------------------------------------------------------- |
+| `[]`, `0`, `()`, `<>`, `“”`, any schema   | nil                                                                  |
+| `“hello”`, `(10 - 5)`, `(0 - 5)`, `(5.0)` | `Demi(5,3,2)`, the same as `5.####`                                  |
+| `1`, `2`, `3`, `7`                        | `Demi(1,1,0)`, `Demi(2,1,1)`, `Demi(3,2,1)`, `Demi(7,4,3)`           |
+| `[0]`                                     | Present `Demi(1,0,0)`                                                |
+| `[“hello”]`                               | `Demi(1,5,0)`                                                        |
+| `[<2,3,5>,2]`                             | `Demi(2,3,2)`; schema Size participates, schema residual does not    |
+| `{5 + 3}`                                 | `Demi(3,8,1)` from three stored words with Sizes 5,1,3; no execution |
 
 Atom residual changes nil to FrameInt Count parity, including present/truthy
 zero, for every atom (011.18k); Count no longer has a rule of its own. Figures
@@ -293,38 +297,77 @@ without evaluating, measuring or applying it. Through a name it is a functional
 update, through a mutable name it writes in place, and a channel argument is
 copied to its elements, so routers never share a writable channel.
 
-A router declares its Count, Size and residual as the Demi class does: its
-phase, L+R and L−R, where each load is the summed child Sizes of a channel and
-an empty channel is 0 rather than `[].##`. So `router.####` derives the router's
-Demi through the ordinary fourth hash, with no projection method. Observation is
-where children are measured, so a failed or cyclic Size shows there and not on
-routing, and observing runs no route and writes nothing. Routing an array's
-children in turn, `X | r0`, gives the interleaved state whose fourth hash is
-`X.####`, and for every router `(r y).####` is `r.#### y`. The initial router is
-the empty host lifted: its fourth hash is `Demi(<>,0,0)` while `[].####` stays
-nil.
+A router declares its Count, Size and residual as the Demi class does: its Count
+(the children it holds, `left.# + right.#`, not its phase), L+R and L−R, where
+each load is the summed child Sizes of a channel and an empty channel is 0
+rather than `[].##`. So `router.####` derives the router's Demi through the
+ordinary fourth hash, with no projection method. Observation is where children
+are measured, so a failed or cyclic Size shows there and not on routing, and
+observing runs no route and writes nothing. Routing an array's children in turn,
+`X | r0`, gives the interleaved state whose fourth hash is `X.####`, and for
+every router whose phase is the parity of its Count, `(r y).####` is `r.#### y`.
+The initial router has routed nothing, so like the empty host it has no Demi;
+`(r0 y).####` is `(Demi [0, 0, 0]) y`.
 
-## Counted Demi (007.25a)
+## Full-Count Demi (007.25c)
 
-`Demi` keeps the parity of its applications, not the Count. A second class in
-`hc/demi.hc`, `CountedDemi [count, left, right]`, keeps the Count beside the
-loads and reads exact rational ratios from it. It is separate because `Demi`
-equality is fieldwise and `.####` rebuilds a Demi from the phase alone, so a
-Count stored in `Demi` would break `[5, 3].#### = Demi [2, 5, 3]` and the
-observing-commutes-with-applying equations.
+`Demi [C, L, R]` keeps the full application Count beside the loads. v0.43.0
+migrates the class directly, a breaking change: the earlier phase-only
+`Demi [phase, L, R]`, its phase-valued `.#`, its fieldwise equality and its
+parity-only `.####` are replaced. The separate `CountedDemi` class that an
+earlier revision of this change added is removed; there is no alias or
+compatibility twin.
+
+| Old                                      | New                                                            |
+| ---------------------------------------- | -------------------------------------------------------------- |
+| `Demi [p, L, R]`, `p` is 1 or 2          | `Demi [C, L, R]`, `C` any Count; the phase is derived from `C` |
+| `d.#` is the phase                       | `d.#` and `d.count` are `C`; `d.phase` is the phase            |
+| `d x` flips the phase                    | `d x` adds one to `C`, which flips the phase                   |
+| `+ - * scale_` keep the phase            | They keep `C`, so the phase                                    |
+| `x.####` keeps only the parity of `x.#`  | `x.####` keeps `x.#`                                           |
+| `Demi [2, L, R]` equals `Demi [4, L, R]` | Different Counts are different Demis                           |
+| text `Demi(<>,L,R)` or `Demi((),L,R)`    | text `Demi(C,L,R)`                                             |
+| `[]` lifts to `Demi [2, 0, 0]`           | `[]` lifts to `Demi [0, 0, 0]`                                 |
+| `CountedDemi [C, L, R]` (unreleased)     | `Demi [C, L, R]`                                               |
 
 | Member                                  | Answer                                                                     |
 | --------------------------------------- | -------------------------------------------------------------------------- |
-| `d.count`                               | The stored Count `C`                                                       |
-| `d.#`                                   | The phase: 2 when `C` is even (0 included), 1 when odd. Not the Count      |
-| `d.##`, `d.###`                         | Size `L+R` and signed residual `L-R`, as for `Demi`                        |
-| `d x`                                   | Deposit `x.##` into the phase's load, `C` + 1                              |
-| `d + x`, `d - x`, `d * x`, `d.scale_ k` | As for `Demi`, `C` unchanged                                               |
+| `d.count`, `d.#`                        | The stored Count `C`                                                       |
+| `d.phase`                               | 2 when `C` is even (0 included), 1 when odd; derived, written with `C`     |
+| `d.##`, `d.###`                         | Size `L+R` and signed residual `L-R`                                       |
+| `d.####`                                | Declared: an equal Demi, for every `C` including 0                         |
+| `d x`                                   | Deposit `x.##` into the phase's load, `C` + 1, even for Size zero          |
+| `d + x`, `d - x`, `d * x`, `d.scale_ k` | Fixed-channel or Size-mediated load change, `C` unchanged                  |
 | `d.size-ratio ()`                       | `S/C`, exact: FrameInt when whole, FrameRational otherwise; nil at `C = 0` |
 | `d.residual-ratio ()`                   | `Δ/C`, signed, same typing; nil at `C = 0`                                 |
 
 A ratio takes no divisor: it is applied to nil because HC runs a method only
-when applied, and any other operand is `$!!.unary-observation`. `d.####` is the
-Demi of the phase, so the Count is the one thing it forgets. There is no
-conversion from a `Demi`, which would invent history. The Count is supplied or
-accumulated, not a Frame-native witness.
+when applied, and any other operand is `$!!.unary-observation`. At `C = 0` both
+are nil even when `S > 0`: there is no `0/0`, infinity or invented zero.
+
+**Fourth hash and equality.** `x.####` for a host builds `Demi [x.#, L, R]`, so
+`(X Y).#### = X.#### Y` and `(X * Y).#### = X.####.scale_ (Y.##)` hold with the
+Count included. Two Demis are `=` exactly when `C`, `L` and `R` are, so
+`Demi [2, 5, 1]` and `Demi [4, 5, 1]` share phase, Size and residual and are
+different. `.####` of a host with Count zero is still nil.
+
+**The empty-host boundary.** The three observers read 0, 0, 0 for both `[]` and
+`Demi [0, 0, 0]`, so a derivation from them cannot tell the two apart. The
+`Demi` class therefore declares `.####` itself, as the Demi of its own Count and
+loads, answered through `FrameArray.declaredDemi` under the same cycle and depth
+guards as a declared observation. `[].####` and `0.####` stay nil: a host with
+no children has no Demi. `Demi [0, 0, 0]` is a present value and its fourth hash
+is itself.
+
+**RotorRouter.** A router now declares its Count as `left.# + right.#`, the
+children it holds, instead of its phase, so `router.####` carries that Count and
+not the two-state phase. It is read from the channels, not stored, and no
+numeric history is invented. The phase stays `router.phase`. The Demi derives
+its own phase from its Count's parity, so a router whose phase is not that
+parity, such as `RotorRouter [1, [], []]` or `RotorRouter [2, [A], []]`, has a
+Demi in a different phase, and `(r y).#### = r.#### y` fails for it. The initial
+router has Count zero and no Demi, as the empty host has none.
+
+**Provenance.** The Count is a number the state stores or an application adds
+to, in HC. It is not a Frame-native history theorem. `S/C` and `Δ/C` are
+arithmetic readings of it, not a construction of rational geometry.

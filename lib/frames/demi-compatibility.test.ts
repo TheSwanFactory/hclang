@@ -21,6 +21,9 @@ const state = (value: f.Frame): [string, string, string] =>
     string,
   ];
 
+/** The full Count a Demi keeps (007.25c). */
+const countOf = (value: f.Frame): string => `${value.getOwn("count")}`;
+
 Deno.test("Demi compatibility matrix: all concrete Frame families stay non-executing", () => {
   const c = new f.FrameCount(5n);
   const array = new f.FrameArray([c, new f.FrameCount(3n)]);
@@ -103,6 +106,7 @@ Deno.test("Demi compatibility matrix: all concrete Frame families stay non-execu
       expect(observed).toBe(f.Frame.nil);
     } else {
       expect(state(observed), value.className()).toEqual(["1", "1", "0"]);
+      expect(countOf(observed), value.className()).toEqual("1");
     }
   }
   const rows: [f.Frame, string[]][] = [
@@ -115,6 +119,11 @@ Deno.test("Demi compatibility matrix: all concrete Frame families stay non-execu
     ]],
     [constructDemi(new f.FrameCount(2n), c, new f.FrameCount(0n)), [
       "2",
+      "5",
+      "5",
+    ]],
+    [constructDemi(new f.FrameCount(7n), c, new f.FrameCount(0n)), [
+      "7",
       "5",
       "5",
     ]],
@@ -166,6 +175,8 @@ Deno.test("Demi compatibility matrix: all concrete Frame families stay non-execu
       expect(left + right).toEqual(BigInt(expected[1]));
       expect(left - right).toEqual(BigInt(expected[2]));
       expect(phase).toEqual(BigInt(expected[0]) % 2n === 0n ? 2n : 1n);
+      // The whole Count is kept, not only its parity (007.25c).
+      expect(countOf(observed)).toEqual(expected[0]);
     }
   }
   for (const value of [new f.FrameArray([c]), new f.FrameGroup([c])]) {

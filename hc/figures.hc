@@ -204,14 +204,16 @@ Star uses native `*` dispatch; numeric pairs keep arithmetic.
 The fourth observer derives a Demi from Count, Size and residual.
 A zero Count or absent residual gives no Demi; errors propagate. A schema used
 as an explicit element contributes Size normally, even though its own Demi is nil.
-A present Demi has Size L+R and residual L−R. Its Count is the least positive
-representative of its stored parity: 2 for all/even and 1 for nil/odd. The same
-universal derivation therefore reconstructs its data value on repeated fourth
-observation, including present zero loads, without a special fourth-hash rule.
+A present Demi has Count C, Size L+R and residual L−R. Its Count is its full
+application Count (007.25c), and its phase is derived from the parity of that
+Count: 2 for even and 1 for odd. The derivation therefore reconstructs its data
+value on repeated fourth observation, including present zero loads; a Demi of
+Count zero, which the observers cannot tell from an empty host, declares its own
+fourth hash (`hc/demi.hc`).
 A present Demi is an instance of the HC class in `hc/demi.hc` (011.20), and
-reads as text `Demi(phase,left,right)`. Applying a Demi to Y deposits Y's Size
-and flips the phase, so for a nonempty Figure host X, (X Y).#### is
-X.#### Y; for an empty host, start from the zero-load Demi in phase 2 instead,
+reads as text `Demi(count,left,right)`. Applying a Demi to Y deposits Y's Size
+and adds one to the Count, so for a nonempty Figure host X, (X Y).#### is
+X.#### Y; for an empty host, start from the Demi of Count zero instead,
 because [].#### is nil. Scaling is the method `scale_`, the shadow of Star:
 (X * Y).#### is X.####.scale_ (Y.##) for a nonempty host. Count is a terminal
 quantity: positive Counts agree with pure Figures of that terminal Size, but 0
@@ -219,17 +221,17 @@ has Size 0 while [] has Size 1. Mixed values may have present zero-load Demis,
 including [0].####.
 ```
 ; [[].####, 0.####, “” “hello”.####, <2,3,5>.####]
-# [(), (), “Demi((),3,2)”, ()]
+# [(), (), “Demi(5,3,2)”, ()]
 ; [(10 - 5).#### = 5.####, (0 - 5).#### = 5.####, (5.0).#### = 5.####, “hello”.#### = 5.####]
 # [<>, <>, <>, <>]
 ; [<>.#, <>.##, <>.###, ().##]
 # [0, 1, 0, 1]
 ; [1, 2, 3, 7] & {“” _.####}
-# [“Demi((),1,0)”, “Demi(<>,1,1)”, “Demi((),2,1)”, “Demi((),4,3)”]
+# [“Demi(1,1,0)”, “Demi(2,1,1)”, “Demi(3,2,1)”, “Demi(7,4,3)”]
 ; [[0], [“hello”], [<2,3,5>,2], {5 + 3}] & {“” _.####}
-# [“Demi((),0,0)”, “Demi((),5,0)”, “Demi(<>,3,2)”, “Demi((),8,1)”]
+# [“Demi(1,0,0)”, “Demi(1,5,0)”, “Demi(2,3,2)”, “Demi(3,8,1)”]
 ; [“” ([[],[]].#### 3), “” (7.####.scale_ 2), ([[],[]] 3).#### = ([[],[]].#### 3)]
-# [“Demi((),4,1)”, “Demi((),8,6)”, <>]
+# [“Demi(3,4,1)”, “Demi(7,8,6)”, <>]
 ```
 A RotorRouter, the class in `hc/rotor-router.hc` (011.21), keeps the routed
 Figures themselves in two ordered channels and declares the observers that make

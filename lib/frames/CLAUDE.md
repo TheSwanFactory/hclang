@@ -465,8 +465,9 @@ integer (`###`), else `$!.declared-observation`; a method that observes its own
 receiver and key already being observed is `$!.cyclic-observation`, and nesting
 past `OBSERVATION_DEPTH_LIMIT` (32) is `$!.observation-depth`. The method runs
 on every observation and cannot write its receiver, but may act on other state
-it reaches. `.####` is never declared: it derives from the three, so the Demi
-class declares them and gets its fourth hash.
+it reaches. `.####` is derived from the three, so a class that declares them
+gets its fourth hash. The Demi class also declares `.####` (`declaredDemi`),
+because the three cannot tell a Demi of Count zero from an empty host.
 
 The interpreter's own output is not application. The evaluator's output array is
 also the file scope, so a top-level `.apply` lands on it; `Frame.collect` is the

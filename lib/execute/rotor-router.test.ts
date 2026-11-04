@@ -77,7 +77,7 @@ Deno.test("observing a router measures each routed child, by Size only", () => {
   Watched.seen.length = 0;
   const watched = new Watched([new FrameCount(4n)]);
   const demi = run("((r0 $$.w) $$.w).####", { w: watched });
-  expect(demi.toText().toString()).toEqual("“Demi(<>,4,4)”");
+  expect(demi.toText().toString()).toEqual("“Demi(2,4,4)”");
   expect(Watched.seen.includes("call")).toBe(false);
   // `.####` reads the declared Size and residual, and each sums both channels,
   // so each of the two routed occurrences is measured twice.
@@ -105,8 +105,17 @@ Deno.test("a non-finite or cyclic child is routed, and observing it fails", () =
 
 Deno.test("a router's fourth hash is an instance of the bundled Demi class", () => {
   const demi = run("((r0 “hello”) 7).####", {});
-  expect(["phase", "left", "right"].map((key) => `${demi.getOwn(key)}`))
-    .toEqual(["2", "5", "7"]);
+  // The Count is the two children routed, not the router's phase.
+  expect(
+    ["count", "phase", "left", "right"].map((key) => `${demi.getOwn(key)}`),
+  ).toEqual(["2", "2", "5", "7"]);
   expect(demi.equals(run("[“hello”, 7].####", {}))).toBe(Frame.all);
-  expect(`${run("r0.####", {}).toText()}`).toEqual("“Demi(<>,0,0)”");
+  // The initial router has routed nothing, so it has Count zero and no Demi,
+  // like the empty host; the Demi of Count zero is a different, present value.
+  expect(run("r0.#", {}).toString()).toEqual("0");
+  expect(run("r0.####", {})).toBe(Frame.nil);
+  expect(run("[].####", {})).toBe(Frame.nil);
+  expect(`${run("((r0 5) 7).#", {})}`).toEqual("2");
+  expect(`${run("(r0 5).phase", {})}`).toEqual("1");
+  expect(`${run("(((r0 5) 7) 9).####.count", {})}`).toEqual("3");
 });

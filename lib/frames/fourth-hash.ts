@@ -3,11 +3,12 @@ import { FrameCount } from "./frame-count.ts";
 import { FrameInt } from "./frame-int.ts";
 
 /**
- * Builds a Demi from its phase and two loads. The phase is the least positive
- * Count of the observed parity: 2 when even, 1 when odd (011.18g).
+ * Builds a Demi from its Count and two loads. The Count is the full observed
+ * Count of the source, not its parity; the Demi derives its own phase from it,
+ * 2 when even and 1 when odd (011.18g, 007.25).
  */
 export type DemiConstructor = (
-  phase: FrameCount,
+  count: FrameCount,
   left: FrameCount,
   right: FrameCount,
 ) => Frame;
@@ -27,9 +28,14 @@ export function installDemiConstructor(constructor: DemiConstructor): void {
 
 /**
  * The fourth hash, `.####`, derived only from the existing observers: Count n,
- * Size s and residual r give the loads (s+r)/2 and (s−r)/2, and n's parity
- * the phase. It never folds, executes or caches the source, and reads each
- * observer at most once.
+ * Size s and residual r give the loads (s+r)/2 and (s−r)/2, and n itself is
+ * the Demi's Count, kept whole rather than reduced to its parity (007.25c).
+ * It never folds, executes or caches the source, and reads each observer at
+ * most once.
+ *
+ * A source with Count zero is nil: the three observers cannot tell an empty
+ * host from a Demi of Count zero, so a class that must answer a zero-Count
+ * Demi declares `.####` itself, as `Demi` does (`FrameArray.sizeFor`).
  *
  * In order: a failure of the source or of any observer is answered as it is;
  * no Count (nil) or Count zero is nil; nil residual is nil; observations that
@@ -70,7 +76,7 @@ export function observeDemi(source: Frame): Frame {
   }
   if (!construct) return Frame.error("$!.demi-unavailable");
   return construct(
-    new FrameCount(n.data % 2n === 0n ? 2n : 1n),
+    new FrameCount(n.data),
     new FrameCount(sum / 2n),
     new FrameCount(difference / 2n),
   );

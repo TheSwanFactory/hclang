@@ -6,13 +6,25 @@
 
 ## v0.43.0 2026-11-04
 
-- **Counted Demi.** `hc/demi.hc` adds `CountedDemi [count, left, right]`, which
-  keeps the application Count beside the two loads. The phase is its parity
-  (`.#`, 2 when even, 1 when odd), application adds one, and `+ - *` keep the
-  Count. `d.size-ratio ()` and `d.residual-ratio ()` answer the exact `S/C` and
-  `Δ/C` (FrameInt when whole, FrameRational otherwise, nil at `C = 0`), taking
-  no divisor. `Demi` and the fourth hash are unchanged (occurrence/figure
-  007.25a).
+- **Breaking: `Demi` keeps the full application Count (occurrence/figure
+  007.25c).** `Demi [C, L, R]` replaces the phase-only `Demi [phase, L, R]`.
+  `d.#` and `d.count` are `C`; `d.phase` is derived (2 when `C` is even, 1 when
+  odd). `d x` adds one to `C`; `+ - * scale_` keep it; equality includes it, so
+  `Demi [2, 5, 1]` and `Demi [4, 5, 1]` differ. `x.####` now keeps `x.#` instead
+  of its parity. Text is `Demi(C,L,R)`. A Demi of Count zero is present: `Demi`
+  declares its own `.####`, while `[].####` stays nil. No conversion exists,
+  because the old state never recorded its Count: the old neutral start
+  `Demi [2, 0, 0]` is now `Demi [0, 0, 0]`, and any other old state needs a
+  Count chosen of the parity its phase stood for.
+- **Exact ratios.** `d.size-ratio ()` is `S/C` and `d.residual-ratio ()` is
+  `Δ/C`, exact (FrameInt when whole, FrameRational otherwise) and nil at
+  `C = 0`. Neither takes a divisor.
+- **RotorRouter.** A router's `.#` is now the number of children it holds,
+  `left.# + right.#`, not its phase (`router.phase`), so `router.####` carries
+  that Count. The initial router has Count zero and, like `[]`, no Demi.
+- **Declared `.####`.** An aggregate may declare `.####` as nil or an aggregate
+  with its own Count, Size and residual; anything else is
+  `$!.declared-observation .####`.
 
 ## v0.42.0 2026-11-02
 

@@ -36,11 +36,20 @@ Routing nil routes nothing and leaves the router as it was, as applying a Demi
 to nil does. A flagged error such as `1 / 0` is the answer of the expression
 that applies the router, so it is never routed.
 
-**Observers.** A router declares its Count, Size and residual as a Demi does:
-its phase, its total load L+R and the signed difference L−R, where each load is
-the sum of the Sizes of the children routed into that channel. So `router.####`
+**Observers.** A router declares its Count, Size and residual as a Demi does
+(007.25c): its Count, its total load L+R and the signed difference L−R, where
+each load is the sum of the Sizes of the children routed into that channel. The
+Count is the number of children routed, `left.# + right.#`, read from the
+channels; it is not a counter the router keeps and it is not the phase, which
+is `router.phase`. A Demi's Count is its full application Count, so a router
+reports the same kind of Count rather than its two-state phase, and routing
+history is not turned into a number the channels do not hold. So `router.####`
 derives the router's Demi as it derives any Frame's, and that Demi is the
-router's numerical shadow. An empty channel has load 0, the empty sum; a
+router's numerical shadow. The empty router has no children, so its Count is
+zero and, like the empty host, it has no Demi. The Demi takes its own phase from
+the parity of that Count, so a router whose phase is not the parity of its
+children, such as one built in phase 1 with empty channels, has a Demi whose
+phase differs from its own. An empty channel has load 0, the empty sum; a
 nonempty channel's load is its native Size, which is that sum. Observation is
 where children are measured, so it is where their failures show, and declared
 observers run only when the router is observed: routing runs none of them, and
@@ -64,7 +73,7 @@ the method body. What a branch needs is bound as a local at method level.
     .right (r | []);
     .apply_ {.x _; .l (_^ .left); .r (_^ .right);
       ((_^ .phase) = 2) ? {@left (l x); @phase 1;} : {@right (r x); @phase 2;};};
-    .# {_^.phase};
+    .# {.l (_^ .left); .r (_^ .right); l.# + r.#};
     .## {(channel-load (_^ .left)) + (channel-load (_^ .right))};
     .### {(channel-load (_^ .left)) - (channel-load (_^ .right))};
     .toText {“RotorRouter(” (((_^ .phase) = 2) ? {“<>”} : {“()”}) “,” (_^ .left) “,” (_^ .right) “)”}
@@ -194,7 +203,7 @@ residual, and each measures both channels, so a child's Size is read twice
 ; (r0 Cyclic).####
 # $!.cyclic-observation .##
 ; “” ((r0 Counted).####)
-# “Demi((),5,0)”
+# “Demi(1,5,0)”
 ; counter_.n
 # 2
 ```
@@ -214,21 +223,25 @@ Routing nil routes nothing
 ```
 ## Empty and zero
 
-The initial router observes as the present zero-load Demi in phase 2. That is
-the router's state, and it leaves the fourth hash's convention alone: the
-empty host still has no Demi
+The initial router has routed no children, so its Count is zero, and like the
+empty host it has no Demi. Its Size and residual still read zero, and it is a
+present router in phase 2. The Demi of Count zero is a different thing, a Demi
+constructed as such, which routing from the router reaches after one route
 ```
-; [“” (r0.####), (r0.####) = [0, 0].####, [].####]
-# [“Demi(<>,0,0)”, <>, ()]
+; [r0.#, r0.##, r0.###, r0.phase, r0.####, [].####]
+# [0, 0, 0, 2, (), ()]
+; Demis <- './hc/demi.hc';
+; [((r0 0).####) = ((Demis.Demi [0, 0, 0]) 0), ((r0 []).####) = ([] []).####]
+# [<>, <>]
 ```
 A Frame of Size zero takes a slot and flips the phase, and an empty array
 routed as a child has Size 1, while an empty channel has load 0
 ```
 ; .z (r0 0);
-; [z.phase, z.left, “” (z.####)]
-# [1, [0], “Demi((),0,0)”]
+; [z.phase, z.left, z.#, “” (z.####)]
+# [1, [0], 1, “Demi(1,0,0)”]
 ; [“” ((r0 []).####), “” (((r0 []) []).####), “” ((((r0 0) 0) 0).####)]
-# [“Demi((),1,0)”, “Demi(<>,1,1)”, “Demi((),0,0)”]
+# [“Demi(1,1,0)”, “Demi(2,1,1)”, “Demi(3,0,0)”]
 ```
 ## The router's Demi
 
@@ -241,9 +254,9 @@ counts each time it was routed
 ; [mix.left, mix.right]
 # [[“hello”, [[1, 2], [3]], [[], []], { 5 + 3 }], [7, (4, 5), [[], []], <>]]
 ; [mix.left & {_.##}, mix.right & {_.##}, “” (mix.####)]
-# [[5, 6, 2, 9], [7, 9, 2, 1], “Demi(<>,22,19)”]
+# [[5, 6, 2, 9], [7, 9, 2, 1], “Demi(8,22,19)”]
 ; “” (((r0 123456789012345678901234567890) 987654321098765432109876543210).####)
-# “Demi(<>,123456789012345678901234567890,987654321098765432109876543210)”
+# “Demi(2,123456789012345678901234567890,987654321098765432109876543210)”
 ```
 ## Observing commutes with routing
 
@@ -258,42 +271,49 @@ as many children as right in phase 2, and one more in phase 1
 ; [rx.left, rx.right, rx.phase, rx = (RotorRouter [1, [5, [1, 2]], [“ab”]])]
 # [[5, [1, 2]], [“ab”], 1, <>]
 ```
-For such a router its fourth hash is X's, and routing Y then observing is
-observing X Y. The state-level law holds for every router: observing after a
-route is applying the router's Demi to the routed Frame
+For such a router its fourth hash is X's, Count included, and routing Y then
+observing is observing X Y. The law holds for every router whose phase is the
+parity of its Count, the phase its Demi derives: observing after a route is
+applying the router's Demi to the routed Frame, which adds one to the Count
 ```
 ; .Y [[], [], []];
-; [(rx.####) = X.####, ((rx Y).####) = (X Y).####, ((rx Y).####) = ((rx.####) Y)]
-# [<>, <>, <>]
-; [((p1 Y).####) = ((p1.####) Y), ((p2 {5 + 3}).####) = ((p2.####) {5 + 3}), ((r0 0).####) = ((r0.####) 0)]
-# [<>, <>, <>]
+; [(rx.####) = X.####, ((rx Y).####) = (X Y).####, ((rx Y).####) = ((rx.####) Y), (rx.####).# = X.#, ((rx Y).####).# = (X.# + 1)]
+# [<>, <>, <>, <>, <>]
+; [((p1 Y).####) = ((p1.####) Y), ((p2 {5 + 3}).####) = ((p2.####) {5 + 3})]
+# [<>, <>]
 ```
 The empty host is the boundary. `[].####` is nil, so `X.####` fails the first
-equation when X is empty, while the initial router observes as a present Demi.
-The router is the empty host lifted: routing nothing from it leaves it as it
-is, and after one route the two agree again
+equation when X is empty, and so does the initial router, which has routed
+nothing and so has Count zero. The router and the empty host agree, and after
+one route the equation holds again
 ```
-; [([] | r0) = r0, (([] | r0).####) = [].####, (([Y] | r0).####) = ([] Y).####]
-# [<>, (), <>]
+; [([] | r0) = r0, (([] | r0).####) = [].####, (([Y] | r0).####) = ([] Y).####, ((r0 Y).####) = ((Demis.Demi [0, 0, 0]) Y)]
+# [<>, <>, <>, <>]
 ```
 The equation with the fourth hash needs the interleaving. A preloaded router
 can break it: one child left and none right in phase 2 is a state no array's
-routing reaches, yet its fourth hash equals that of an array whose
-history is different
+routing reaches. Its Count is the one child it holds, so its Demi is in phase 1,
+the parity of that Count, while the router is in phase 2. The router routes its
+next child left and the Demi deposits it right, so the law fails for it, and its
+fourth hash differs from that of the array that routes its one child, whose
+phase is 1
 ```
 ; .pre (RotorRouter [2, [A], []]);
-; [(pre.####) = [A, 0].####, ([A, 0] | r0) = pre]
-# [<>, ()]
+; [pre.phase, pre.#, pre.####.phase, (pre.####) = [A].####, ([A] | r0) = pre]
+# [2, 1, 1, <>, ()]
+; [((pre Y).####) = ((pre.####) Y), (pre Y).left.#, (pre Y).right.#, ((pre Y).####).###, ((pre.####) Y).###]
+# [(), 2, 0, 6, 0]
 ```
 ## The Demi forgets
 
-Distinct routers can share a Demi: the fourth hash keeps only the
-phase and two sums, not which Frames were routed, nor their order, nor how
-the load was split among them
+Distinct routers can share a Demi: the fourth hash keeps only the Count and two
+sums, not which Frames were routed, nor their order, nor how the load was split
+among them. It does keep how many were routed, so a router with one fewer child
+and the same loads has a different Demi
 ```
-; .s1 (RotorRouter [2, [2, 3], [1]]); .s2 (RotorRouter [2, [5], [1]]); .s3 (RotorRouter [2, [3, 2], [1]]);
-; [s1 = s2, s1 = s3, (s1.####) = (s2.####), (s1.####) = (s3.####)]
-# [(), (), <>, <>]
+; .s1 (RotorRouter [2, [2, 3], [1]]); .s2 (RotorRouter [2, [5], [1]]); .s3 (RotorRouter [2, [3, 2], [1]]); .s4 (RotorRouter [2, [1, 4], [1]]);
+; [s1 = s2, s1 = s3, (s1.####) = (s3.####), (s1.####) = (s4.####), (s1.####) = (s2.####), s1.#, s2.#, s1.##, s2.##]
+# [(), (), <>, <>, (), 3, 2, 6, 6]
 ```
 ## Observers, declared
 
@@ -350,7 +370,7 @@ printed form is matched here by its beginning
 ```
 ; RotorRouter [1, [5], []]
 # [.phase 1; .left [5]; .right []; .apply_ {...
-; (RotorRouter [1, [5], []]) = [.phase 1; .left [5]; .right []; .apply_ { .x _; .l (_^ .left); .r (_^ .right); ((_^ .phase) = 2) ? { @left (l x); @phase 1; } : { @right (r x); @phase 2; }; }; .# { _^ .phase }; .## { (channel-load (_^ .left)) + (channel-load (_^ .right)) }; .### { (channel-load (_^ .left)) - (channel-load (_^ .right)) }; .toText { “RotorRouter(” (((_^ .phase) = 2) ? { “<>” } : { “()” }) “,” (_^ .left) “,” (_^ .right) “)” };]
+; (RotorRouter [1, [5], []]) = [.phase 1; .left [5]; .right []; .apply_ { .x _; .l (_^ .left); .r (_^ .right); ((_^ .phase) = 2) ? { @left (l x); @phase 1; } : { @right (r x); @phase 2; }; }; .# { .l (_^ .left); .r (_^ .right); l.# + r.# }; .## { (channel-load (_^ .left)) + (channel-load (_^ .right)) }; .### { (channel-load (_^ .left)) - (channel-load (_^ .right)) }; .toText { “RotorRouter(” (((_^ .phase) = 2) ? { “<>” } : { “()” }) “,” (_^ .left) “,” (_^ .right) “)” };]
 # <>
 ```
 ## Importing
