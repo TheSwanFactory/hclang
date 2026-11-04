@@ -12,23 +12,23 @@
   `[A, B, C, D, E, F, G] ./ 3` is `[[A, D, G], [B, E], [C, F]]`, the same
   Frames, whole and in order. A divisor of zero is `$!.division-by-zero /`;
   anything but a Count is `$!.division-domain /`. Before, `[1, 2] / 2` answered
-  nil.
+  nil (#482).
 - **Channel Demi.** `Demi [C, loads]` takes a nonempty list of loads; two are
   the binary `Demi [C, L, R]`. A k-load Demi deposits into channel `C mod k`,
   observes its Size as the sum of its loads and its residual as their
   alternating sum, and prints as `Demi(C,[…])`. `D ./ n` keeps `C` and the Size
   and deals the Size units round-robin into n loads (`Demi(3,[5,2]) ./ 3` is
   `Demi(3,[3,2,2])`). Every Demi now stores `.loads`, so its printed form
-  changes; `+` and `-` on a non-binary Demi are `$!!.invalid-arity`.
+  changes; `+` and `-` on a non-binary Demi are `$!!.invalid-arity` (#482).
 - **Channel RotorRouter.** `RotorRouter [ch0, …, chk−1]` takes k ≥ 1 channels
   and routes to channel `C mod k`; only round-robin histories are admitted.
   `r ./ n` re-deals the routed Frames, in routed order, into n channels, keeping
   the Count. Every router now stores `.channels`, so its printed form changes;
   `RotorRouter [[]]` and `RotorRouter [[], [], []]`, refused before, are routers
-  of one and three channels.
+  of one and three channels (#482).
 - **Fix: dotted operators on named values.** `xs .* 2`, `xs ./ 3` and the other
   dotted arithmetic spellings now dispatch as the bare operator. With `xs` a
-  name they used to answer for the scope the name was read in.
+  name they used to answer for the scope the name was read in (#482).
 
 ## v0.43.0 2026-11-04
 
