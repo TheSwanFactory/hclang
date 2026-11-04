@@ -4,6 +4,32 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.44.0 2026-11-04
+
+- **Literal division `./ n` (occurrence/figure 007.27).** `./` and `/` are one
+  operator; numbers keep exact division. An array or group divided by a positive
+  Count n is dealt into exactly n channel arrays, element i to channel i mod n:
+  `[A, B, C, D, E, F, G] ./ 3` is `[[A, D, G], [B, E], [C, F]]`, the same
+  Frames, whole and in order. A divisor of zero is `$!.division-by-zero /`;
+  anything but a Count is `$!.division-domain /`. Before, `[1, 2] / 2` answered
+  nil.
+- **Channel Demi.** `Demi [C, loads]` takes a nonempty list of loads; two are
+  the binary `Demi [C, L, R]`. A k-load Demi deposits into channel `C mod k`,
+  observes its Size as the sum of its loads and its residual as their
+  alternating sum, and prints as `Demi(C,[…])`. `D ./ n` keeps `C` and the Size
+  and deals the Size units round-robin into n loads (`Demi(3,[5,2]) ./ 3` is
+  `Demi(3,[3,2,2])`). Every Demi now stores `.loads`, so its printed form
+  changes; `+` and `-` on a non-binary Demi are `$!!.invalid-arity`.
+- **Channel RotorRouter.** `RotorRouter [ch0, …, chk−1]` takes k ≥ 1 channels
+  and routes to channel `C mod k`; only round-robin histories are admitted.
+  `r ./ n` re-deals the routed Frames, in routed order, into n channels, keeping
+  the Count. Every router now stores `.channels`, so its printed form changes;
+  `RotorRouter [[]]` and `RotorRouter [[], [], []]`, refused before, are routers
+  of one and three channels.
+- **Fix: dotted operators on named values.** `xs .* 2`, `xs ./ 3` and the other
+  dotted arithmetic spellings now dispatch as the bare operator. With `xs` a
+  name they used to answer for the scope the name was read in.
+
 ## v0.43.0 2026-11-04
 
 - **Breaking: `Demi` keeps the full application Count (occurrence/figure

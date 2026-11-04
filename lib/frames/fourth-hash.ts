@@ -3,14 +3,15 @@ import { FrameCount } from "./frame-count.ts";
 import { FrameInt } from "./frame-int.ts";
 
 /**
- * Builds a Demi from its Count and two loads. The Count is the full observed
- * Count of the source, not its parity; the Demi derives its own phase from it,
- * 2 when even and 1 when odd (011.18g, 007.25).
+ * Builds a Demi from its Count and its ordered channel loads, at least one.
+ * The Count is the full observed Count of the source, not its parity. Two
+ * loads are the binary Demi, left and right, which derives its own phase from
+ * the Count, 2 when even and 1 when odd (011.18g, 007.25); any other number is
+ * the channel Demi of that arity (007.27).
  */
 export type DemiConstructor = (
   count: FrameCount,
-  left: FrameCount,
-  right: FrameCount,
+  loads: readonly FrameCount[],
 ) => Frame;
 
 let construct: DemiConstructor | undefined;
@@ -26,20 +27,30 @@ export function installDemiConstructor(constructor: DemiConstructor): void {
   construct = constructor;
 }
 
-/** The stored fields a Demi instance is reconstructed from, in order. */
-const DEMI_STATE = ["count", "left", "right"] as const;
-
-/**
- * A stored field read as an exact nonnegative Count, or undefined.
- *
- * Only the instance's own field is read (`get_here`), never a declared parent
- * or a method, so nothing runs.
- */
-function storedCount(source: Frame, key: string): FrameCount | undefined {
-  const value = source.get_here(key).referent();
+/** A Frame read as an exact nonnegative Count, or undefined. */
+function exactCount(frame: Frame): FrameCount | undefined {
+  const value = frame.referent();
   return value instanceof FrameCount && typeof value.data === "bigint" &&
       value.data >= 0n
     ? value
+    : undefined;
+}
+
+/**
+ * The stored loads of a Demi instance: its own `loads` field, a nonempty list
+ * whose elements are all exact Counts, or undefined.
+ *
+ * Only the instance's own field is read (`get_here`), never a declared parent
+ * or a method, and the list's elements are read as stored, so nothing runs.
+ */
+function storedLoads(source: Frame): FrameCount[] | undefined {
+  const value = source.get_here("loads").referent();
+  if (!value.ownsIdentity()) return undefined;
+  const elements = value.elements();
+  if (elements.length === 0) return undefined;
+  const loads = elements.map(exactCount);
+  return loads.every((load) => load !== undefined)
+    ? loads as FrameCount[]
     : undefined;
 }
 
@@ -50,10 +61,12 @@ function storedCount(source: Frame, key: string): FrameCount | undefined {
  * class declare its own `.####`, the fourth hash recognizes an instance of the
  * shipped class itself, and nothing else.
  *
- * A source is a Demi exactly when it has stored Counts `count`, `left` and
- * `right`, and it is `==` (same value and same type at every node, fields and
- * methods included) to the Demi the shipped constructor builds from those
- * three Counts. The answer is then that fresh reconstruction, never the source
+ * A source is a Demi exactly when it has a stored Count `count` and a stored
+ * nonempty list of Counts `loads`, and it is `==` (same value and same type at
+ * every node, fields and methods included) to the Demi the shipped constructor
+ * builds from them. A binary Demi stores `left` and `right` too, and the
+ * comparison covers them. The answer is then that fresh reconstruction, of
+ * the source's own arity, never the source
  * and never anything the source computed. No observer, method or closure of
  * the source runs, so a forged `#`, `##`, `###` or `####` cannot steer it, and
  * comparison is the language's own typed equality, not a spelling. Anything
@@ -68,12 +81,12 @@ function intrinsicDemi(source: Frame): Frame | undefined {
   if (!construct) return undefined;
   const host = source.referent();
   if (!host.ownsIdentity()) return undefined;
-  const [count, left, right] = DEMI_STATE.map((key) => storedCount(host, key));
-  if (!count || !left || !right) return undefined;
+  const count = exactCount(host.get_here("count"));
+  const loads = storedLoads(host);
+  if (!count || !loads) return undefined;
   const candidate = construct(
     new FrameCount(count.data),
-    new FrameCount(left.data),
-    new FrameCount(right.data),
+    loads.map((load) => new FrameCount(load.data)),
   );
   if (candidate.isFailedResult() || candidate.observationError()) {
     return undefined;
@@ -134,11 +147,10 @@ export function observeDemi(source: Frame): Frame {
     return Frame.error("$!.demi-coherence");
   }
   if (!construct) return Frame.error("$!.demi-unavailable");
-  return construct(
-    new FrameCount(n.data),
+  return construct(new FrameCount(n.data), [
     new FrameCount(sum / 2n),
     new FrameCount(difference / 2n),
-  );
+  ]);
 }
 
 Frame.demi = observeDemi;

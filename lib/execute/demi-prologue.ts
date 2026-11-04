@@ -82,7 +82,28 @@ export function demiClass(): Frame {
 }
 
 /**
- * Constructs a Demi with the HC class: `Demi [count, left, right]`.
+ * Constructs a Demi of any arity with the HC class: `Demi [count, loads]`.
+ * Two loads give the binary Demi, the same instance `Demi [count, left,
+ * right]` builds; any other nonzero number gives the channel Demi (007.27).
+ *
+ * @param count The full application Count.
+ * @param loads The ordered channel loads.
+ * @returns The new instance, or the class's failure.
+ */
+export function constructDemiLoads(
+  count: FrameCount,
+  loads: readonly FrameCount[],
+): Frame {
+  const constructor = demiClass();
+  if (constructor.isFailedResult() || constructor.observationError()) {
+    return constructor;
+  }
+  const state = new FrameArray([count, new FrameArray([...loads])]);
+  return FrameExpr.answeredValue(constructor.call(state)).referent();
+}
+
+/**
+ * Constructs a binary Demi with the HC class: `Demi [count, left, right]`.
  *
  * @param count The full application Count; the Demi derives its phase from it.
  * @param left The left load.
@@ -94,12 +115,7 @@ export function constructDemi(
   left: FrameCount,
   right: FrameCount,
 ): Frame {
-  const constructor = demiClass();
-  if (constructor.isFailedResult() || constructor.observationError()) {
-    return constructor;
-  }
-  const state = new FrameArray([count, left, right]);
-  return FrameExpr.answeredValue(constructor.call(state)).referent();
+  return constructDemiLoads(count, [left, right]);
 }
 
-installDemiConstructor(constructDemi);
+installDemiConstructor(constructDemiLoads);

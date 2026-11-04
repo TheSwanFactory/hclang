@@ -368,6 +368,17 @@ export class FrameSymbol extends FrameAtom {
     ) {
       return context.referent().sizeFor(this.data);
     }
+    // A dotted arithmetic operator is the operator itself: `xs ./ 3` is
+    // `xs / 3` (GRAMMAR "Mathematical Operators"). Resolved as a name, it
+    // missed a named aggregate and was found in the scope the name was read
+    // in, so `xs .* 2` answered for that scope (007.27).
+    if (
+      this.is.address === true &&
+      FrameSymbol.DOTTED_OPERATORS.includes(this.data) &&
+      !(context instanceof FrameSymbol && context.isPendingDeclaration())
+    ) {
+      return new FrameOperator(this.data).called_by(context);
+    }
     // An address applied by a receiver reads that member, `o .x`. Two
     // receivers take the name itself instead (#429). A pending declaration
     // stores it, so `.k .x` keeps the key and `o k` reads `o.x` later; the
@@ -403,6 +414,20 @@ export class FrameSymbol extends FrameAtom {
   public isPendingDeclaration(): boolean {
     return this.is.address === true && !this.get_here(Frame.kOUT).is.missing;
   }
+
+  /**
+   * The arithmetic operators a dot may prefix and still mean the operator,
+   * `.+ .- .* ./ .%% .**`. They dispatch as the bare operator does: the left
+   * operand's declared method, then the global operation.
+   */
+  public static readonly DOTTED_OPERATORS: readonly string[] = [
+    "+",
+    "-",
+    "*",
+    "/",
+    "%%",
+    "**",
+  ];
 
   /** Whether a spelling is an ordinary name rather than an operator or key. */
   public static isIdentifier(spelling: string): boolean {
