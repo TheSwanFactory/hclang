@@ -4,6 +4,16 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.43.0 2026-11-04
+
+- **Counted Demi.** `hc/demi.hc` adds `CountedDemi [count, left, right]`, which
+  keeps the application Count beside the two loads. The phase is its parity
+  (`.#`, 2 when even, 1 when odd), application adds one, and `+ - *` keep the
+  Count. `d.size-ratio ()` and `d.residual-ratio ()` answer the exact `S/C` and
+  `Δ/C` (FrameInt when whole, FrameRational otherwise, nil at `C = 0`), taking
+  no divisor. `Demi` and the fourth hash are unchanged (occurrence/figure
+  007.25a).
+
 ## v0.42.0 2026-11-02
 
 - **Constructive Demi arithmetic.** `Demi` declares three constructive

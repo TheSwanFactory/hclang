@@ -303,3 +303,28 @@ children in turn, `X | r0`, gives the interleaved state whose fourth hash is
 `X.####`, and for every router `(r y).####` is `r.#### y`. The initial router is
 the empty host lifted: its fourth hash is `Demi(<>,0,0)` while `[].####` stays
 nil.
+
+## Counted Demi (007.25a)
+
+`Demi` keeps the parity of its applications, not the Count. A second class in
+`hc/demi.hc`, `CountedDemi [count, left, right]`, keeps the Count beside the
+loads and reads exact rational ratios from it. It is separate because `Demi`
+equality is fieldwise and `.####` rebuilds a Demi from the phase alone, so a
+Count stored in `Demi` would break `[5, 3].#### = Demi [2, 5, 3]` and the
+observing-commutes-with-applying equations.
+
+| Member                                  | Answer                                                                     |
+| --------------------------------------- | -------------------------------------------------------------------------- |
+| `d.count`                               | The stored Count `C`                                                       |
+| `d.#`                                   | The phase: 2 when `C` is even (0 included), 1 when odd. Not the Count      |
+| `d.##`, `d.###`                         | Size `L+R` and signed residual `L-R`, as for `Demi`                        |
+| `d x`                                   | Deposit `x.##` into the phase's load, `C` + 1                              |
+| `d + x`, `d - x`, `d * x`, `d.scale_ k` | As for `Demi`, `C` unchanged                                               |
+| `d.size-ratio ()`                       | `S/C`, exact: FrameInt when whole, FrameRational otherwise; nil at `C = 0` |
+| `d.residual-ratio ()`                   | `Δ/C`, signed, same typing; nil at `C = 0`                                 |
+
+A ratio takes no divisor: it is applied to nil because HC runs a method only
+when applied, and any other operand is `$!!.unary-observation`. `d.####` is the
+Demi of the phase, so the Count is the one thing it forgets. There is no
+conversion from a `Demi`, which would invent history. The Count is supplied or
+accumulated, not a Frame-native witness.

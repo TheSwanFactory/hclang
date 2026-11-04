@@ -389,7 +389,7 @@ describe("main", () => {
 
     expect(status).toEqual(0);
     expect(out.at(-1).toString()).toContain(
-      '“{"total":49,"pass":49,"fail":0,"unimplemented":0}”',
+      '“{"total":87,"pass":87,"fail":0,"unimplemented":0}”',
     );
   });
 
