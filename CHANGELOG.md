@@ -4,6 +4,22 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.42.1 2026-11-03
+
+- **Demi winding and mod.** `Demi` declares `D / x` and `D %% x`, reading its
+  signed residual `Δ = L − R` against the divisor `N = x.##`. For `N > 0`,
+  `D / x` answers the winding `floor(Δ / N)` as a FrameInt and `D %% x` the mod
+  `Δ − N·q` as a FrameCount, with `Δ = N·q + r` and `0 ≤ r < N` (for example
+  `Δ = −1`, `N = 4` gives `(−1, 3)`). Neither answers a Demi, flips the phase or
+  changes the receiver. The modulo is spelled `%%`, as everywhere in HC; there
+  is no `%`. `N = 0` answers the global `$!.division-by-zero /` or
+  `$!.modulo-by-zero %%`, and a sizeless operand its own failure. This is an
+  observational arithmetic implementation over the host's integer operators, not
+  a Frame-native construction of Tierce (occurrence/figure 007.24a).
+- **Class-declared `%%`.** A class may now declare the modulo `%%` on its own
+  instances, alongside `+`, `-`, `*` and `/`; plain numbers keep the global
+  modulo.
+
 ## v0.42.0 2026-11-02
 
 - **Constructive Demi arithmetic.** `Demi` declares three constructive

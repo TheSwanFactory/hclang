@@ -92,6 +92,37 @@ and flips the phase, while `+`, `-` and `*` choose a channel explicitly and
 keep it. So `+` and `-` reach states a run cannot, a phase-2 Demi with a load
 on the odd side, and `*` is the Star shadow, not a repeated deposit.
 
+**Winding and mod**, `d / x` and `d %% x` (007.24a). Read the signed residual
+`Δ = L − R` against a divisor `N`, the operand's one Size observation `x.##`
+(a nonnegative Count, so the operand's sign is never read: `d / (0 - 4)` divides
+by 4). With `N > 0` the pair is the Euclidean one, `Δ = N·q + r` and
+`0 ≤ r < N`:
+
+- `d / x` is the **winding** `q = floor(Δ / N)`, a signed FrameInt: the count of
+  completed whole turns of Size `N`, negative when `Δ` is.
+- `d %% x` is the **mod** `r = Δ − N·q`, a FrameCount: the position within the
+  turn. The spelling is `%%`, the language's only modulo operator, and Demi
+  declares it as the method `.%%`; HC has no single `%`, and no `d % x` is
+  claimed here.
+
+They are two observations of the same residual and the same resolution, not a
+construction: neither answers a Demi, neither flips the phase, and `d` is left
+as it was. Winding keeps the whole turns that mod forgets, so `Δ = 4` and
+`Δ = 0` have the same mod at `N = 4` but different windings. A sizeless operand
+answers its own failure, as application does, and `N = 0` is refused by the
+global operators, `$!.division-by-zero /` and `$!.modulo-by-zero %%`, rather
+than answered with an invented quotient.
+
+**Provenance (007.24).** This is an *observational arithmetic implementation*.
+Each method reads `Δ` and `N` once and applies the host's integer division and
+divisor-signed modulo, `q = (Δ − Δ %% N) / N` and `r = Δ %% N`. It does not
+construct the turn-counting witness 007.24 asks for, that is, it does not
+extract completed positive and negative turns of Size `N` from admissible Frame
+operations and retain the within-turn position. It therefore establishes the
+observational contract for Demi, not a Frame-native construction of Tierce and
+not a native Frame witness of unit resolution: at `N = 1` the result is
+`(Δ, 0)` by arithmetic, which does not say what Frame supplies the unit.
+
 **Text.** A Demi prints as what it is, an aggregate of fields and methods, and
 that reads back as the same Demi. As text it reads `Demi(<>,12,3)`, with the
 phase spelled as the orientation it stands for.
@@ -121,6 +152,10 @@ level, where nested blocks read it.
       (s ~ (0.<>)) ? {Demi [p, (l + s), r]} : {s}};
     .* {.s (_ .##);
       (s ~ (0.<>)) ? {(_^^ .scale_ s)} : {s}};
+    ./ {.s (_ .##); .d (_^ .###);
+      (s ~ (0.<>)) ? {((s = 0) ? {d / s} : {(d - (d %% s)) / s})} : {s}};
+    .%% {.s (_ .##); .d (_^ .###); .r (d %% s);
+      (s ~ (0.<>)) ? {((s = 0) ? {r} : {r.##})} : {s}};
     .toText {“Demi(” (((_^ .phase) = 2) ? {“<>”} : {“()”}) “,” (_^ .left) “,” (_^ .right) “)”}
   ]} : {$!!.invalid-demi}} : {$!!.invalid-demi}};
 ```
@@ -350,6 +385,122 @@ so `D + 4` is not “larger” than `D`, and `D - 4` is not `D` made smaller
 ```
 ; [(D + 4).### .< D.###, (D - 4).### .> D.###]
 # [<>, <>]
+```
+## Winding and mod (007.24a)
+
+`D / x` is the winding `floor(Δ / N)` and `D %% x` the mod `Δ − N·q`, for the
+signed residual `Δ = D.###` and the divisor `N = x.##`. The spelling is `%%`,
+the language's modulo, declared on Demi as `.%%`. Each answer is a pair read
+off the same residual, here as `[winding, mod]`. The worked cases at `N = 4`
+are a positive residual, a negative one that borrows from the turn below, a
+negative one of more than a turn, and the exact turn
+```
+; .N (Demi [2, 9, 0]);
+; .A (Demi [2, 0, 1]);
+; .B (Demi [2, 0, 9]);
+; .C (Demi [2, 4, 0]);
+; [[N.###, N / 4, N %% 4], [A.###, A / 4, A %% 4], [B.###, B / 4, B %% 4], [C.###, C / 4, C %% 4]]
+# [[9, 2, 1], [-1, -1, 3], [-9, -3, 3], [4, 1, 0]]
+```
+Zero residual is ordinary, and a balanced nonempty Demi has it too, so a whole
+turn is not the same observation as none. Both give mod 0, but winding 1 against
+0. An empty Demi has Size 0 and residual 0 in either phase
+```
+; .Z (Demi [2, 3, 3]);
+; .E2 (Demi [2, 0, 0]);
+; .E1 (Demi [1, 0, 0]);
+; [[Z.##, Z / 4, Z %% 4], [E2.##, E2 / 4, E2 %% 4], [E1.##, E1 / 4, E1 %% 4]]
+# [[6, 0, 0], [0, 0, 0], [0, 0, 0]]
+; [C %% 4 = (Z %% 4), C / 4 = (Z / 4), (C / 4) = 1]
+# [<>, (), <>]
+```
+At `N = 1` the winding is the residual itself and the mod is 0, in both phases
+and for a negative residual
+```
+; .P1 (Demi [1, 7, 2]);
+; .Q1 (Demi [1, 2, 7]);
+; [[P1.###, P1 / 1, P1 %% 1], [Q1.###, Q1 / 1, Q1 %% 1], [(N.###), N / 1, N %% 1], [B.###, B / 1, B %% 1]]
+# [[5, 5, 0], [-5, -5, 0], [9, 9, 0], [-9, -9, 0]]
+```
+The winding is a FrameInt, so it is signed, and the mod is a FrameCount. They
+are distinct observations, and the second is never the host's truncated
+remainder, which would be negative for a negative residual
+```
+; [(N / 4) ~ ((0 - 1).<>), (A / 4) ~ ((0 - 1).<>), (C / 4) ~ ((0 - 1).<>), (Z / 4) ~ ((0 - 1).<>)]
+# [<>, <>, <>, <>]
+; [(N %% 4) ~ (0.<>), (A %% 4) ~ (0.<>), (C %% 4) ~ (0.<>), (Z %% 4) ~ (0.<>), (E2 %% 4) ~ (0.<>)]
+# [<>, <>, <>, <>, <>]
+; [(N / 4) ~ (0.<>), (A %% 4) ~ ((0 - 1).<>)]
+# [(), ()]
+```
+Neither flips the phase, answers a Demi, nor changes the receiver, and the
+operand's sign is not read, only its Size, which is the divisor
+```
+; [“” N, “” A, “” P1, “” Q1]
+# [“Demi(<>,9,0)”, “Demi(<>,0,1)”, “Demi((),7,2)”, “Demi((),2,7)”]
+; [N / (0 - 4), N %% (0 - 4), A / (0 - 4), A %% (0 - 4)]
+# [2, 1, -1, 3]
+; [P1 / 4, P1 %% 4, Q1 / 4, Q1 %% 4]
+# [1, 1, -2, 3]
+```
+The divisor is the operand's Size, so any sized Frame divides: text by its length, an aggregate by the sum of its elements' Sizes, nil by one, a decimal by its truncated magnitude, and a Demi by its total load
+```
+; [N / “abc”, N / [1, 2, 3, 4], N / (), N / 2.5, N / (Demi [1, 2, 2])]
+# [3, 0, 9, 4, 2]
+; [N %% “abc”, N %% [1, 2, 3, 4], N %% (), N %% 2.5, N %% (Demi [1, 2, 2])]
+# [0, 9, 0, 1, 1]
+```
+A zero Size is not a divisor. It is refused by the global operator, whose error
+is the answer, and no quotient is invented, for any residual or phase
+```
+; [N / 0, N %% 0, Z / 0, Z %% 0, E2 / 0, E2 %% 0, E1 / “”, E1 %% “”, A / (Demi [1, 0, 0])]
+# [$!.division-by-zero /, $!.modulo-by-zero %%, $!.division-by-zero /, $!.modulo-by-zero %%, $!.division-by-zero /, $!.modulo-by-zero %%, $!.division-by-zero /, $!.modulo-by-zero %%, $!.division-by-zero /]
+```
+A divisor with no Size fails as application does, and its failure is the answer
+```
+; [N / ([].nope), N %% ([].nope), A / ([].nope), A %% ([].nope)]
+# [$!.name-missing “..., $!.name-missing “..., $!.name-missing “..., $!.name-missing “...]
+```
+Loads too large for a machine integer divide exactly. With `L = 123456789012345678901234567890`
+and `R = 987654321098765432109876543210` the residual is `L − R`, and the pair obeys
+`Δ = N·q + r`
+```
+; .G (Demi [2, 123456789012345678901234567890, 987654321098765432109876543210]);
+; [G / 1000000007, G %% 1000000007, G / 7, G %% 7]
+# [-864197526037037070950, 617521330, -123456790298059964744091710760, 0]
+; [G / 100000000000000000000, G %% 100000000000000000000]
+# [-8641975321, 13580246791358024680]
+; [(G / 1000000007) * 1000000007 + (G %% 1000000007) = G.###, (G %% 1000000007) .< 1000000007]
+# [<>, <>]
+```
+The law `Δ = N·q + r` with `0 ≤ r < N` holds across every phase, every pair of
+loads `0..6` and every divisor `1..5`, 490 states in all, checked as three tests
+each
+```
+; .cs [0, 1, 2, 3, 4, 5, 6];
+; .ns [1, 2, 3, 4, 5];
+; .states ([1, 2] &| {.p _; cs &| {.l _; cs &| {.r _; ns & {[p, l, r, _]}}}});
+; .law {.t _; .S (Demi [(t .0), (t .1), (t .2)]); .n (t .3); .q (S / n); .r (S %% n); [(((q * n) + r) = S.###), (r .>= 0), (r .< n)]};
+; .checks (states &| law);
+; [states.#, checks.#, checks = (checks & {<>})]
+# [490, 1470, <>]
+```
+Both are reads of the residual, so a deposit that lowers it lowers them with it.
+Phase 1 applies to the right, so applying 4 to a Demi of residual 9 and tallying
+4 with `+` reach the same residual 5, hence the same winding 1 and mod 1,
+though application flips the phase and `+` keeps it
+```
+; .W (Demi [1, 9, 0]);
+; [W / 4, W %% 4, (W 4) / 4, (W 4) %% 4, (W + 4) / 4, (W + 4) %% 4]
+# [2, 1, 1, 1, 1, 1]
+; [(W 4).###, (W + 4).###, (W 4).#, (W + 4).#]
+# [5, 5, 2, 1]
+```
+Declaring `.%%` and `./` does not change the global operators on plain numbers,
+nor on an aggregate that declares neither
+```
+; [9 / 4, 9 %% 4, (0 - 9) %% 4, [1, 2] %% 3, 12 %% 5]
+# [9/4, 1, 3, (), 2]
 ```
 ## A precise regression: a load read at the wrong depth
 

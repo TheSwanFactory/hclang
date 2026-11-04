@@ -289,8 +289,8 @@ export class FrameArray extends FrameList {
    * The operators an aggregate may declare its own answer to (015.02).
    *
    * These are the ordinary binary arithmetic spellings. A class declares one
-   * as a method under the operator's own name, `+`, `-`, `*` or `/`, the way
-   * it declares `apply`, `#` or `toText`. The method takes the right operand
+   * as a method under the operator's own name, `+`, `-`, `*`, `/` or the modulo
+   * `%%` (007.24a), the way it declares `apply`, `#` or `toText`. The method takes the right operand
    * and answers the operation's result, so the class decides what the operator
    * means on its instances without any special case in the evaluator.
    */
@@ -299,6 +299,7 @@ export class FrameArray extends FrameList {
     "-",
     "*",
     "/",
+    "%%",
   ];
 
   /**

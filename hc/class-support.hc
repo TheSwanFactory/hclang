@@ -254,7 +254,7 @@ its own declared method rather than the global built-in.`
 ; Ring + 100
 # 200
 
-`The declared-operator hook is scoped to the arithmetic spellings + - * / only.
+`The declared-operator hook is scoped to the arithmetic spellings + - * / %% only.
 A built-in operator outside that set, such as membership ~, is unaffected: a
 class that declares .~ does not intercept it, and the global operation answers
 for an aggregate and for a number alike.`
@@ -263,6 +263,12 @@ for an aggregate and for a number alike.`
 # <>
 ; 5 ~ (0.<>)
 # <>
+
+`The modulo %% is declarable too (007.24a). It resolves against the left
+operand's declared method, while ordinary numbers keep the global modulo.`
+; .Wheel [.n 10; .%% {(_^ .n) + (_ .n)}];
+; [Wheel %% [.n 5], 7 %% 4, (0 - 9) %% 4]
+# [15, 3, 3]
 
 `A named arithmetic spelling, 2 .+ 2, is ordinary application and not the binary
 operator, so it is unchanged.`
