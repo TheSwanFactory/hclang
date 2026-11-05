@@ -109,6 +109,19 @@ hands it to a pending declaration as a value, so `.k .x` keeps a key, and to
 text without that member as its spelling, so `“” .x` is `“.x”`. Every other
 receiver reads the member, `o .x`, as before.
 
+### Reference Tracking and Dispatch
+
+- [reference-tracking.ts](reference-tracking.ts) - Automated Reference Tracking
+  (ART): the inverse index from an aggregate to the bindings that hold it,
+  graded by the effect marker; a per-identity state version; and the actual
+  reads and writes of an active `AccessRecord`, fed from the commit seams.
+- [access-footprint.ts](access-footprint.ts) - The potential footprint of an
+  event, read off its body as data before it runs: the identities it may read or
+  write, or the names that make it opaque.
+- [event-dispatch.ts](event-dispatch.ts) - Statement-granular stepping of events
+  (`FrameLazy.steps`, `BoundMethod.steps`) under three policies, with footprint
+  conflicts deciding which events may interleave.
+
 ### Advanced Types
 
 - [frame-alias.ts](frame-alias.ts) - Aliases and references
@@ -560,6 +573,69 @@ outer value immutably would observe a write through it. A trailing underscore
 declares how a name may be used, not a promise that an enclosing copy will share
 its target. Reach the inner identity through a mutable outer handle when sharing
 is the point.
+
+### Reference Tracking (ART)
+
+The effect marker grants authority; it does not record use.
+`reference-tracking.ts` keeps three runtime facts apart that the marker alone
+cannot answer (`spec/a12-reference-tracking-and-event-dispatch.md`):
+
+- **Possession.** `holdersOf(x)` lists every live binding that holds the
+  aggregate `x`: holder frame, key, and whether the key's spelling claims
+  mutation authority. The index is maintained at `MetaFrame.set` and
+  `replaceMember`, and at `copy()`, which duplicates bindings without going
+  through `set`. Only identity-owning values are indexed; a holding says a name
+  _could_ write, not that anything is writing.
+- **Version.** `versionOf(x)` counts the mutations committed on `x`. It advances
+  at every commit point, `set` (when the stored frame changes), `replaceMember`,
+  `setParent`, `collect` and `reset`, so a read can be dated against the
+  versions xᵢ an identity passed through.
+- **Actual access.** `withAccessRecord(record, work)` makes `record` receive
+  every committed write and every keyed or element read that happens while
+  `work` runs, each dated by version, with the frames constructed meanwhile kept
+  apart so a functional-update copy is not mistaken for shared state. Writes are
+  observed completely, because every commit lands at the seams above. Reads are
+  observed at `get_here` and `FrameArray.elements`, where evaluation reads
+  state; a host that reaches into `meta` directly is not seen.
+
+Outside an active record a read costs one length check and a write one `WeakMap`
+update. Holders are held strongly: a `WeakRef` would be kept alive for the whole
+job (#426), and a strong edge from a value to its holder only closes a cycle the
+collector frees once neither is reachable.
+
+### Potential Footprints and Event Dispatch
+
+An **event** is one call of a `BoundMethod` or a bound closure with an argument.
+`potentialFootprint(target, argument)` walks the body as data, grades each name
+by `touchesIdentity`, and resolves it against the scope the call would run in
+(`scopeForCall`) to the identity it denotes now. A write can land only through a
+marked key, so a marked name handed on whole, a marked method reached with
+authority, a marked local declaration, the owner of an `@name`, and the members
+under marked keys of a writable identity are the potential writes; every
+resolved referent and everything reachable from it is a potential read. The walk
+carries the authority the path holds: an unmarked name hands out an immutable
+handle, through which a mutating method is a functional update, while a marked
+name or an element index hands out the identity itself (so `h.inner_.set_ 9`
+through immutable `h` writes the shared inner identity, as the runtime does).
+Inside a functional update every write forks or meets
+`$!.copy-on-write-boundary`, so nothing reached there counts as written. A name
+the walk cannot resolve, an import or a resource makes the footprint _opaque_.
+The walk over-approximates and refuses rather than guesses; it is not an alias
+analysis.
+
+`dispatch(events, policy)` steps events statement by statement
+(`FrameExpr.stepBody`): the statement is the finest effect boundary a body
+defines, so it is the unit two events may interleave at, and nothing inside one
+is a boundary. Under `footprint`, an event starts only when no unfinished
+earlier event and no running event has a conflicting footprint (a write meeting
+a read or write, or either side opaque), so conflicting events run in program
+order and the final state is the sequential one; readers are serialized against
+writers rather than given snapshots. `interleave` coordinates nothing and is the
+executable counterexample: two read-then-write events on one `x` lose an update,
+which is what shows that separate statements, and separate calls, are not a
+transaction. Each event runs under an `AccessRecord`, and a shared identity it
+wrote outside its potential footprint is reported as an **escape**. None of this
+is threads, a transaction, or rollback.
 
 ### Numeric Ladder
 

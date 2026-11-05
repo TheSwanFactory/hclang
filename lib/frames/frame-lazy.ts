@@ -160,6 +160,30 @@ export class FrameLazy extends FrameExpr {
     return this.bind(input);
   }
 
+  /** The scope this bound copy captured; a template no read bound has none. */
+  public capturedScope(): EvaluationScope | undefined {
+    return capturedScopes.get(this) ?? this.legacyCapture();
+  }
+
+  /**
+   * The scope a call of this closure would evaluate its body in, built as
+   * `call` builds it, without running the body. A static walk of the body
+   * resolves names against this scope's lookup frames (`access-footprint.ts`).
+   */
+  public scopeForCall(
+    argument: Frame,
+    parameter: Frame = Frame.nil,
+    receiverState?: ReceiverState,
+  ): EvaluationScope {
+    return EvaluationScope.call(
+      argument,
+      parameter,
+      this,
+      this.capturedScope(),
+      receiverState,
+    );
+  }
+
   /** Returns state only when this literal was evaluated in that invocation. */
   public receiverStateForCallback(
     receiverState: ReceiverState,
@@ -211,6 +235,46 @@ export class FrameLazy extends FrameExpr {
     parameter: Frame = Frame.nil,
     receiverState?: ReceiverState,
   ): Frame {
+    const scope = this.prelude(argument, parameter, receiverState);
+    if (scope instanceof Frame) return scope;
+    const result = FrameExpr.evaluateBody(
+      this.data,
+      scope,
+      this.is.sequence === true,
+    );
+    return this.checkReturn(result);
+  }
+
+  /**
+   * `call`, one statement at a time (`FrameExpr.stepBody`). The generator
+   * yields after each statement and returns what `call` would have answered.
+   * A call that never reaches the body, a size operator, an empty body, or a
+   * refused argument, is one step.
+   */
+  public *steps(
+    argument: Frame,
+    parameter: Frame = Frame.nil,
+    receiverState?: ReceiverState,
+  ): Generator<Frame, Frame> {
+    const scope = this.prelude(argument, parameter, receiverState);
+    if (scope instanceof Frame) {
+      yield scope;
+      return scope;
+    }
+    const result = yield* FrameExpr.stepBody(
+      this.data,
+      scope,
+      this.is.sequence === true,
+    );
+    return this.checkReturn(result);
+  }
+
+  /** Everything `call` does before the body: an answer, or the body's scope. */
+  private prelude(
+    argument: Frame,
+    parameter: Frame,
+    receiverState?: ReceiverState,
+  ): Frame | EvaluationScope {
     if (
       argument instanceof FrameSymbol && argument.is.address === true &&
       argument.spelling() === "<>"
@@ -227,21 +291,7 @@ export class FrameLazy extends FrameExpr {
 
     const prepared = this.prepareArgument(argument);
     if (prepared.is.error) return prepared;
-
-    const enclosing = capturedScopes.get(this) ?? this.legacyCapture();
-    const scope = EvaluationScope.call(
-      prepared,
-      parameter,
-      this,
-      enclosing,
-      receiverState,
-    );
-    const result = FrameExpr.evaluateBody(
-      this.data,
-      scope,
-      this.is.sequence === true,
-    );
-    return this.checkReturn(result);
+    return this.scopeForCall(prepared, parameter, receiverState);
   }
 
   private legacyCapture(): EvaluationScope | undefined {

@@ -10,6 +10,7 @@ import { FrameList } from "./frame-list.ts";
 import { FrameNote } from "./frame-note.ts";
 import type { MetaFrame } from "./meta-frame.ts";
 import { NilContext } from "./context.ts";
+import { noteRead, noteWrite } from "./reference-tracking.ts";
 import type { EvaluationInput } from "./evaluation-scope.ts";
 import type { SigilStart } from "../scan.ts";
 
@@ -238,15 +239,23 @@ export class FrameArray extends FrameList {
     return this.copy();
   }
 
+  /** Reading the element plane is a read of this aggregate's state. */
+  public override elements(): Frame[] {
+    noteRead(this);
+    return super.elements();
+  }
+
   /** Elements are members too, so a held element can be replaced in place. */
   public override replaceMember(member: Frame, replacement: Frame): boolean {
-    let replaced = super.replaceMember(member, replacement);
+    const replaced = super.replaceMember(member, replacement);
+    let elementReplaced = false;
     this.data = this.data.map((item) => {
       if (item !== member) return item;
-      replaced = true;
+      elementReplaced = true;
       return replacement;
     });
-    return replaced;
+    if (elementReplaced && !replaced) noteWrite(this);
+    return replaced || elementReplaced;
   }
 
   protected override lookup_here(key: string, origin: MetaFrame): Frame {
@@ -520,6 +529,7 @@ export class FrameArray extends FrameList {
   ): FrameArray {
     if (!value.is.void) {
       this.data.push(value);
+      noteWrite(this);
     }
     return this;
   }
@@ -546,5 +556,6 @@ export class FrameArray extends FrameList {
 
   public reset(): void {
     this.data = [];
+    noteWrite(this);
   }
 }

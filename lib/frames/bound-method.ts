@@ -1,6 +1,7 @@
 import { Frame } from "./frame.ts";
 import type { FrameLazy } from "./frame-lazy.ts";
 import type { MethodEffect } from "./effect-marker.ts";
+import type { EvaluationScope } from "./evaluation-scope.ts";
 
 /** Runtime brand for receiver writes authorized only by BoundMethod. */
 const RECEIVER_WRITE_AUTHORIZED = Symbol("receiverWriteAuthorized");
@@ -99,6 +100,33 @@ export class BoundMethod extends Frame {
     return this.effect.mutating;
   }
 
+  /** The frame this method was bound to, before any functional-update copy. */
+  public receiverFrame(): Frame {
+    return this.receiverTarget;
+  }
+
+  /** Whether the handle this method was reached through claims mutability. */
+  public hasMutableReceiver(): boolean {
+    return this.mutable;
+  }
+
+  /** The shared closure this binding runs. */
+  public methodBody(): FrameLazy {
+    return this.method;
+  }
+
+  /**
+   * The scope a call would run the body in, with the receiver capability a
+   * call would select, without running the body (`access-footprint.ts`). The
+   * selection is the real one: a functional update's scope reads its instance
+   * copy as receiver, so a walk over it sees writes land on the copy.
+   */
+  public scopeForCall(argument: Frame): EvaluationScope | Frame {
+    const state = this.receiverStateForCall();
+    if (state instanceof Frame) return state;
+    return this.method.scopeForCall(argument, Frame.nil, state);
+  }
+
   public override call(argument: Frame, _parameter = Frame.nil): Frame {
     const state = this.receiverStateForCall();
     if (state instanceof Frame) return state;
@@ -107,6 +135,25 @@ export class BoundMethod extends Frame {
     // the lookup order, and a shared body's captured scope is whichever instance
     // was built last, so a method would read another instance's fields.
     const result = this.method.call(argument, Frame.nil, state);
+    return this.answer(result, state);
+  }
+
+  /** `call`, one statement at a time (`FrameLazy.steps`). */
+  public *steps(
+    argument: Frame,
+    _parameter = Frame.nil,
+  ): Generator<Frame, Frame> {
+    const state = this.receiverStateForCall();
+    if (state instanceof Frame) {
+      yield state;
+      return state;
+    }
+    const result = yield* this.method.steps(argument, Frame.nil, state);
+    return this.answer(result, state);
+  }
+
+  /** What a call answers once the body has: the receiver, or the value. */
+  private answer(result: Frame, state: ReceiverState): Frame {
     // A mutating method answers its receiver, unless it answered an error. A
     // diagnostic failure such as `$!.name-missing` carries the same flag.
     // Preserve referent checks for programmatic reference wrappers (011.20).

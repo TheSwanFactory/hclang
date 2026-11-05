@@ -1,6 +1,13 @@
 import { type Context, type IKeyValuePair, NilContext } from "./context.ts";
 import { renderNested } from "./stringify.ts";
 import { hasEffectSubscribers, notifyEffect } from "./effect-registry.ts";
+import {
+  noteCopiedHoldings,
+  noteCreated,
+  noteHolding,
+  noteRead,
+  noteWrite,
+} from "./reference-tracking.ts";
 import type { FrameName } from "./frame-name.ts";
 import type { FrameSymbol } from "./frame-symbol.ts";
 import type { FrameSchema } from "./frame-schema.ts";
@@ -110,6 +117,7 @@ export class MetaFrame {
     const name = this.constructor.name;
     const id = name + "." + MetaFrame.id_count++;
     this.id = "$:" + id;
+    noteCreated(this as unknown as Frame);
   }
 
   /**
@@ -118,6 +126,8 @@ export class MetaFrame {
   public get_here(key: string, _origin: MetaFrame = this): Frame {
     const exact = this.resolve_here(key, _origin);
     if (exact != null) {
+      // A keyed hit is a read of this frame's state (reference-tracking.ts).
+      noteRead(this as unknown as Frame);
       return exact.value;
     }
     return this.match_here(key);
@@ -343,8 +353,12 @@ export class MetaFrame {
     }
     const previous = this.meta[key];
     this.meta[key] = value;
-    if (previous !== value && hasEffectSubscribers(this as unknown as Frame)) {
-      notifyEffect(this as unknown as Frame);
+    noteHolding(this as unknown as Frame, key, value, previous);
+    if (previous !== value) {
+      noteWrite(this as unknown as Frame);
+      if (hasEffectSubscribers(this as unknown as Frame)) {
+        notifyEffect(this as unknown as Frame);
+      }
     }
     return this;
   }
@@ -364,6 +378,7 @@ export class MetaFrame {
       return Frame.error("$!.cyclic-parent .^");
     }
     this.parent = parent;
+    noteWrite(this as unknown as Frame);
     return undefined;
   }
 
@@ -1281,6 +1296,12 @@ export class Frame extends MetaFrame {
     clone.meta = this.meta_copy();
     clone.is = { ...this.is };
     clone.id = `$:${this.className()}.${MetaFrame.id_count++}`;
+    // `Object.create` bypasses the constructor, so the clone registers its
+    // construction and its duplicated holdings here (reference-tracking.ts).
+    noteCreated(clone as unknown as Frame);
+    if (clone.meta !== NilContext) {
+      noteCopiedHoldings(clone as unknown as Frame);
+    }
     return clone;
   }
 
@@ -1305,13 +1326,17 @@ export class Frame extends MetaFrame {
     for (const [key, value] of this.meta_pairs()) {
       if (value === member) {
         this.meta[key] = replacement;
+        noteHolding(this as unknown as Frame, key, replacement, member);
         replaced = true;
       }
     }
     // An element-plane commit is a mutation too; a copy-on-write install lands
     // on a fresh copy that carries no subscribers, so it never fires here.
-    if (replaced && hasEffectSubscribers(this as unknown as Frame)) {
-      notifyEffect(this as unknown as Frame);
+    if (replaced) {
+      noteWrite(this as unknown as Frame);
+      if (hasEffectSubscribers(this as unknown as Frame)) {
+        notifyEffect(this as unknown as Frame);
+      }
     }
     return replaced;
   }

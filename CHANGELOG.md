@@ -4,6 +4,21 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## Unreleased
+
+- **Automated Reference Tracking and effect-aware dispatch (occurrence/figure
+  015.23a, 015.24f).** The runtime now keeps an inverse index from an aggregate
+  to the bindings that hold it, graded by the effect marker (`holdersOf`), a
+  per-identity state version advanced at every commit point (`versionOf`), and
+  the actual reads and writes of an active `AccessRecord`. A new
+  `potentialFootprint` reads an event's possible reads and writes off its body
+  before it runs, and `dispatch` steps events one statement at a time
+  (`FrameLazy.steps`, `BoundMethod.steps`, `FrameExpr.stepBody`), letting events
+  with disjoint footprints interleave while conflicting ones run in program
+  order. Library API only; HC source syntax and semantics are unchanged, and
+  ordinary evaluation pays one length check per read and one `WeakMap` update
+  per write.
+
 ## v0.43.0 2026-11-04
 
 - **Breaking: `Demi` keeps the full application Count (occurrence/figure
