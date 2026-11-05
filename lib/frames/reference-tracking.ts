@@ -111,6 +111,13 @@ export class AccessRecord {
   public readonly reads = new Map<Frame, number>();
   public readonly writes = new Map<Frame, number>();
   public readonly created = new WeakSet<Frame>();
+  /**
+   * The certificate this record's accesses are confined to, if any. While a
+   * guard is installed, an access to a shared frame the guard does not allow
+   * is refused before it happens (`guardAccess`), so the record can never
+   * show an access outside what its guard admits.
+   */
+  public guard?: AccessGuard;
 
   /** The frames this record saw written that it did not itself create. */
   public sharedWrites(): Frame[] {
@@ -125,6 +132,48 @@ export class AccessRecord {
 
 /** The records currently receiving access notes, innermost last. */
 const active: AccessRecord[] = [];
+
+/** One of the two things an event can do to a frame's state. */
+export type AccessKind = "read" | "write";
+
+/**
+ * Whether an active record may perform `access` on `frame`. Installed on an
+ * `AccessRecord` by whoever admitted the event it belongs to; the frames the
+ * record itself created are never asked about.
+ */
+export type AccessGuard = (frame: Frame, access: AccessKind) => boolean;
+
+/**
+ * An access a guard refused. It is thrown from the commit or read point
+ * *before* the access happens, so the state is as it was; the dispatcher
+ * that installed the guard reports it as the event's failure.
+ */
+export class UncertifiedAccess extends Error {
+  constructor(
+    public readonly frame: Frame,
+    public readonly access: AccessKind,
+  ) {
+    super(`$!.uncertified-${access} ${frame.className()}`);
+    this.name = "UncertifiedAccess";
+  }
+}
+
+/**
+ * Refuses `access` to `frame` if any active record's guard does not allow
+ * it. Called at every commit point before the mutation lands and at every
+ * keyed or indexed read before the value is handed out, so a refusal leaves
+ * the state untouched and the value unseen. Costs one length check when no
+ * record is active and one `WeakSet` lookup per guarded record otherwise.
+ */
+export function guardAccess(frame: Frame, access: AccessKind): void {
+  if (active.length === 0) return;
+  for (const record of active) {
+    if (!record.guard || record.created.has(frame)) continue;
+    if (!record.guard(frame, access)) {
+      throw new UncertifiedAccess(frame, access);
+    }
+  }
+}
 
 /** Runs `work` with `record` receiving every access note it causes. */
 export function withAccessRecord<T>(record: AccessRecord, work: () => T): T {

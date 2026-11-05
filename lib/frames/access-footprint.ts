@@ -7,6 +7,7 @@ import { FrameLazy } from "./frame-lazy.ts";
 import { FrameSymbol } from "./frame-symbol.ts";
 import { BoundMethod } from "./bound-method.ts";
 import { touchesIdentity } from "./effect-marker.ts";
+import { effectSubscribersOf } from "./effect-registry.ts";
 
 /**
  * The potential access footprint of an event, read off its code before it runs
@@ -48,12 +49,17 @@ import { touchesIdentity } from "./effect-marker.ts";
  *
  * Code the event may run that is not reached by name is handled so that it
  * cannot be admitted silently: a closure handed in as the argument is walked
- * where it was written (`.apply {_ ()}`); a `BoundMethod` reached as the
- * argument or as a value makes the footprint opaque, since its receiver is
- * not visible from here. A closure that a call *returns* and the body then
- * calls is the known remaining gap: it is reached through a value, so it is
- * not walked, and a write it makes is reported as an escape after the fact
- * (`event-dispatch.ts`).
+ * where it was written (`.apply {_ ()}`), and so is every callback an arrow
+ * `x -> callback` registered on an identity the event may write, since a
+ * committed write invokes it; a `BoundMethod` reached as the argument or as
+ * a value makes the footprint opaque, since its receiver is not visible from
+ * here. Code reached only through a value the walk does not inspect is the
+ * known remaining gap: a closure held as an element of an aggregate and
+ * called by iterating it (`fns & {_ ()}`), or handed in inside a data
+ * argument (`_ & {_ ()}`). Such a call is not walked, so the footprint misses
+ * its accesses; under `footprint` dispatch the guard installed on the event
+ * refuses the first such access before it happens (`event-dispatch.ts`),
+ * which is what keeps the under-inference from admitting an interference.
  *
  * @module
  */
@@ -132,6 +138,12 @@ class Walk {
     // member it holds, so a write may continue through it.
     for (const [key, member] of target.meta_pairs()) {
       if (touchesIdentity(key)) this.write(member);
+    }
+    // A committed write to a managed value invokes the callbacks an arrow
+    // `target -> callback` registered on it, so their effects are this
+    // event's: each is walked where it was written, as a closure argument is.
+    for (const callback of effectSubscribersOf(target)) {
+      walkCallable(this, callback, `${target.className()} ->`);
     }
   }
 

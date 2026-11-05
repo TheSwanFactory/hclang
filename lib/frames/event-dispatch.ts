@@ -2,7 +2,9 @@ import { Frame } from "./frame.ts";
 import { FrameLazy } from "./frame-lazy.ts";
 import { BoundMethod } from "./bound-method.ts";
 import {
+  type AccessKind,
   AccessRecord,
+  UncertifiedAccess,
   versionOf,
   withAccessRecord,
 } from "./reference-tracking.ts";
@@ -57,19 +59,30 @@ import {
  * walk: two events the walk sees to conflict run in program order, whatever
  * anyone declares.
  *
- * ## Escapes are a diagnostic of the walk, not a safety net
+ * ## The certificate is enforced, not merely checked afterwards
  *
  * Each event runs with an `AccessRecord` active, so its actual reads and
- * writes are dated by version. When it finishes, every shared state frame it
- * wrote outside its potential footprint is reported as an **escape**, and
- * every shared state frame it read outside its potential reads as a
- * **read escape**. Shared state is what the walk counts as state: an
- * aggregate, or a plain scope frame whose binding a `@name` can rebind. An
- * escape means the walk under-inferred, so the schedule that admitted the
- * event was not justified; it is reported after the writes have committed,
- * and nothing is rolled back. The known gaps of the walk are listed in
- * `access-footprint.ts`; an event the walk cannot read at all is opaque and
- * is serialized against everything, which is the fail-closed case.
+ * writes are dated by version. Under `footprint` the record also carries a
+ * **guard**: the footprint admission rested on is the event's certificate,
+ * and every keyed or indexed read and every commit of shared state is
+ * checked against it *before* it happens (`guardAccess`). Shared state is
+ * what the walk counts as state: an aggregate, or a plain scope frame whose
+ * binding a `@name` can rebind; state the event created itself is its own.
+ * An access outside the certificate is refused where it would have occurred:
+ * the value is not read, the mutation does not land, and the event ends
+ * there with the failed result `$!.uncertified-read` or
+ * `$!.uncertified-write` (`EventOutcome.refused`). So a walk that
+ * under-inferred cannot admit an interference; it can only make an event
+ * fail closed, and the statements of every event that completes stayed
+ * within a footprint the dispatcher saw not to conflict with any concurrent
+ * one. An event the walk cannot read at all is opaque and is serialized
+ * against everything, so its guard allows everything.
+ *
+ * Under `sequential` and `interleave` no guard is installed: the first is
+ * the baseline, the second the counterexample. For those, every shared state
+ * frame written outside the potential footprint is still reported afterwards
+ * as an **escape** and every one read outside it as a **read escape**, which
+ * is the diagnostic of the walk's reach that the guard turns into a refusal.
  *
  * What this is not: it is not threads, it is not a transaction, and it does
  * not roll anything back. An event that fails stops at its failing statement
@@ -113,6 +126,12 @@ export interface EventOutcome {
   readonly undeclared: readonly Frame[];
   /** Labels of the events this one waited for before starting. */
   readonly waitedFor: readonly string[];
+  /**
+   * The access the guard refused, if the event ended on one: the frame it
+   * would have touched and how. Its `result` is then the failed result
+   * `$!.uncertified-read` or `$!.uncertified-write`.
+   */
+  readonly refused?: { readonly frame: Frame; readonly access: AccessKind };
 }
 
 export interface DispatchReport {
@@ -133,6 +152,21 @@ interface Running {
   steps: number;
   done: boolean;
   result: Frame;
+  refused?: { readonly frame: Frame; readonly access: AccessKind };
+}
+
+/**
+ * The guard an admitted event runs under: its certificate, the footprint
+ * admission rested on. An opaque event was serialized against everything, so
+ * nothing it does can interfere and nothing is refused.
+ */
+function guardFor(
+  certificate: PotentialFootprint,
+): (frame: Frame, access: AccessKind) => boolean {
+  if (isOpaque(certificate)) return () => true;
+  return (frame, access) =>
+    !isState(frame) ||
+    (access === "write" ? certificate.writes : certificate.reads).has(frame);
 }
 
 /** The inferred footprint, widened by the caller's declaration if any. */
@@ -231,10 +265,26 @@ export function dispatch(
           state.event.target,
           state.event.argument ?? Frame.nil,
         );
+        // The certificate is frozen with the footprint admission rested on.
+        if (policy === "footprint") {
+          state.record.guard = guardFor(state.potential);
+        }
       }
       const generator = state.generator;
-      const step = withAccessRecord(state.record, () => generator.next());
       progressed = true;
+      let step: IteratorResult<Frame, Frame>;
+      try {
+        step = withAccessRecord(state.record, () => generator.next());
+      } catch (error) {
+        if (!(error instanceof UncertifiedAccess)) throw error;
+        // Refused before the access happened: the event ends here, at the
+        // statement it was in, with nothing of that access committed.
+        state.refused = { frame: error.frame, access: error.access };
+        step = {
+          done: true,
+          value: Frame.error(`$!.uncertified-${error.access}`),
+        };
+      }
       if (step.done) {
         state.done = true;
         state.result = step.value;
@@ -273,6 +323,7 @@ export function dispatch(
           ? accessesOutside(state.record, declared)
           : [],
         waitedFor: [...state.waitedFor],
+        refused: state.refused,
       };
     }),
   };

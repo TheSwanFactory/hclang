@@ -120,7 +120,11 @@ receiver reads the member, `o .x`, as before.
   write, or the names that make it opaque.
 - [event-dispatch.ts](event-dispatch.ts) - Statement-granular stepping of events
   (`FrameLazy.steps`, `BoundMethod.steps`) under three policies, with footprint
-  conflicts deciding which events may interleave.
+  conflicts deciding which events may interleave, and the admitted footprint
+  enforced as a guard on every access while the event runs.
+- [dispatch-host.ts](dispatch-host.ts) - The three policies as host-namespace
+  callables (`$$.dispatch.footprint [e₁, e₂]`), so an HC testdoc can hand its
+  closures to the dispatcher under test (`hc/art-dispatch-vact.hc`).
 
 ### Advanced Types
 
@@ -604,6 +608,11 @@ cannot answer (`spec/a12-reference-tracking-and-event-dispatch.md`):
   observed completely, because every commit lands at the seams above. Reads are
   observed at `get_here` and `FrameArray.elements`, where evaluation reads
   state; a host that reaches into `meta` directly is not seen.
+- **Guard.** A record may carry a `guard`, a predicate over (frame, access).
+  `guardAccess` runs at the same seams, before the mutation lands or the value
+  is handed out, and throws `UncertifiedAccess` when an active record's guard
+  refuses a frame it did not create. This is how an admitted footprint becomes
+  an enforced certificate rather than an after-the-fact comparison.
 
 Outside an active record a read costs one length check and a write one `WeakMap`
 update. Holders are held strongly: a `WeakRef` would be kept alive for the whole
@@ -627,9 +636,13 @@ through immutable `h` writes the shared inner identity, as the runtime does).
 Inside a functional update every write forks or meets
 `$!.copy-on-write-boundary`, so nothing reached there counts as written. A
 closure handed in as the argument is walked where it was written, since the body
-may call it. A name the walk cannot resolve, an import, a resource, or a
-`BoundMethod` reached as a value makes the footprint _opaque_. The walk
-over-approximates and refuses rather than guesses; it is not an alias analysis.
+may call it, and so is every callback an arrow registered on an identity the
+event may write (`effectSubscribersOf`), since a committed write invokes it. A
+name the walk cannot resolve, an import, a resource, or a `BoundMethod` reached
+as a value makes the footprint _opaque_. The walk over-approximates and refuses
+rather than guesses; it is not an alias analysis, and a closure it reaches only
+through a value, an element of an aggregate it reads or of a data argument, is
+not walked.
 
 `dispatch(events, policy)` steps events statement by statement
 (`FrameExpr.stepBody`): the statement is the finest effect boundary a body
@@ -647,14 +660,21 @@ Admission rests only on the footprint the walk infers, read when the event is
 about to start, so a name an earlier event rebound is resolved to what it
 denotes then. A caller's `declared` footprint can widen the inferred one and is
 checked against what the event did (`undeclared`); it can never narrow it, so no
-unverified claim admits a conflict. Each event runs under an `AccessRecord`, and
-shared state it wrote or read outside its potential footprint is reported as an
-**escape** (`escapes`, `readEscapes`), where state is what the walk counts as
-state: an aggregate or a plain scope `Frame` whose binding a `@name` can rebind.
-An escape is a diagnostic of the walk, reported after the writes committed; the
-policy is sound relative to the walk, and an event the walk cannot read is
-opaque and serialized against everything. None of this is threads, a
-transaction, or rollback.
+unverified claim admits a conflict. Each event runs under an `AccessRecord`;
+under `footprint` the record's guard is the footprint admission rested on, so
+every keyed or indexed read and every commit of shared state is checked against
+it before it happens, where state is what the walk counts as state: an aggregate
+or a plain scope `Frame` whose binding a `@name` can rebind. An access outside
+the certificate is refused there, with nothing read or written, and the event
+ends with `$!.uncertified-read` or `$!.uncertified-write` (`refused`); an event
+that completes therefore stayed within a footprint the dispatcher saw not to
+conflict with any concurrent one, which is what makes its observation the
+sequential one. Under `sequential` and `interleave` no guard is installed and
+shared state touched outside the potential footprint is reported afterwards as
+an **escape** (`escapes`, `readEscapes`), the diagnostic the guard turns into a
+refusal. An event the walk cannot read is opaque and serialized against
+everything. None of this is threads, a transaction, or rollback: a refused event
+keeps the certified writes it committed before the refusal.
 
 ### Numeric Ladder
 

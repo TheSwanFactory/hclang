@@ -11,6 +11,7 @@ import { FrameNote } from "./frame-note.ts";
 import type { MetaFrame } from "./meta-frame.ts";
 import { NilContext } from "./context.ts";
 import {
+  guardAccess,
   noteElements,
   noteHolding,
   noteRead,
@@ -260,6 +261,7 @@ export class FrameArray extends FrameList {
 
   /** Reading the element plane is a read of this aggregate's state. */
   public override elements(): Frame[] {
+    guardAccess(this, "read");
     noteRead(this);
     return super.elements();
   }
@@ -270,6 +272,7 @@ export class FrameArray extends FrameList {
     let elementReplaced = false;
     this.data.forEach((item, index) => {
       if (item !== member) return;
+      if (!replaced && !elementReplaced) guardAccess(this, "write");
       this.data[index] = replacement;
       noteHolding(this, String(index), replacement, member);
       elementReplaced = true;
@@ -548,6 +551,7 @@ export class FrameArray extends FrameList {
     _context: Frame = Frame.nil,
   ): FrameArray {
     if (!value.is.void) {
+      guardAccess(this, "write");
       this.data.push(value);
       noteHolding(this, String(this.data.length - 1), value);
       noteWrite(this);
@@ -576,6 +580,7 @@ export class FrameArray extends FrameList {
   }
 
   public reset(): void {
+    guardAccess(this, "write");
     this.adoptData([]);
     noteWrite(this);
   }

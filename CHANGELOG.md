@@ -6,6 +6,22 @@
 
 ## Unreleased
 
+- **The footprint certificate is enforced (occurrence/figure 015.24j).** Under
+  the `footprint` policy an event's admitted footprint is now its certificate:
+  every keyed or indexed read and every commit of shared state is checked
+  against it before it happens, and an access outside it is refused where it
+  would have occurred, with nothing read or written, ending the event with
+  `$!.uncertified-read` or `$!.uncertified-write` (`EventOutcome.refused`).
+  Before, such an access committed and was reported afterwards as an escape, so
+  a walk that under-inferred, as it does for a closure reached only through data
+  (`fns & {_ ()}`), could admit a lost update. The walk also follows the
+  callbacks an arrow `x -> callback` registered on any identity the event may
+  write. `$$.dispatch.sequential`, `.interleave` and `.footprint` are bound in
+  the CLI's host namespace so HC source can hand its own closures to the
+  dispatcher; `hc/art-dispatch-vact.hc` is the executable witness and
+  `lib/frames/event-dispatch.vact.test.ts` re-runs its construction from the
+  host side. The guard costs one length check per read or commit when no record
+  is active.
 - **Automated Reference Tracking and effect-aware dispatch (occurrence/figure
   015.23a, 015.24f).** The runtime now keeps an inverse index from an aggregate
   to the bindings that hold it, graded by the effect marker (`holdersOf`), a

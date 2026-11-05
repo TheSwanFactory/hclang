@@ -101,6 +101,15 @@ export function hasEffectSubscribers(managed: Frame): boolean {
 }
 
 /**
+ * The callbacks a committed mutation of `managed` would invoke, in order.
+ * Read by the footprint walk (`access-footprint.ts`): a write to a managed
+ * value runs its callbacks, so their effects belong to the writer's event.
+ */
+export function effectSubscribersOf(managed: Frame): readonly Frame[] {
+  return subscribers.get(managed) ?? [];
+}
+
+/**
  * Whether `observer` itself is registered on `managed` by an `A -> B` arrow,
  * so a committed mutation of `managed` invokes it. Another callback on the
  * same value does not count (PR #475 review).

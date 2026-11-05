@@ -11,6 +11,8 @@ import {
   CLOCK_SCHEME,
   ClockHandler,
   type Context,
+  DISPATCH_KEY,
+  dispatchNamespace,
   Frame,
   FrameResource,
   RealClock,
@@ -78,6 +80,8 @@ export function getEval(env: StringMap, out?: Frame): HCEval {
  *
  * The root is a fresh temp directory with the bundled, read-only `hc/` files
  * laid over it, so a program can import them without reaching anything else.
+ * The dispatcher is bound beside it (`$$.dispatch`), so a testdoc can hand
+ * its own closures to each dispatch policy (`hc/art-dispatch-vact.hc`).
  *
  * Exported so a test can run a source unit under the authority the CLI actually
  * grants, rather than under an empty namespace that would make the resource
@@ -95,6 +99,7 @@ export function getHost(context: Context = {}): Frame {
     RESOURCE_ROOT_KEY,
     FrameResource.root(withHCBundle(new DenoFileStore()), getHandlers()),
   );
+  host.set(DISPATCH_KEY, dispatchNamespace());
   return host;
 }
 
