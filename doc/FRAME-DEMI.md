@@ -451,12 +451,14 @@ binary router. Every router stores `channels`; the binary one also keeps
 round-robin history from channel 0 leaves, whose Counts are the dealing of C
 into k, and routes to channel `C mod k`. `r ./ n` reconstructs the routed order
 from the channels and routes it into a fresh n-channel router, so it is the
-router of the history divided as a list. Its observers are a channel Demi's, but
-its fourth hash is still the ordinary derived binary Demi, because `.####` is
-not declarable and only the shipped Demi class is intrinsic; the projection law
-`(r y).#### = r.#### y` holds for a k-channel router only where binary parity
-agrees with routing to C mod k (it does for k = 4 in the testdoc, not for k =
-3).
+router of the history divided as a list. Its observers are a channel Demi's, and
+its fourth hash is its channel Demi, `Demi [C, [load0, …]]`, one load per
+channel: `lib/frames/fourth-hash.ts` recognizes an instance of the shipped class
+with other than two channels intrinsically (rebuilt through its constructor and
+compared with `==`, as a Demi is), since the binary Demi derived from the
+observers follows parity, not C mod k. The binary router keeps its derived
+`Demi(C, L, R)`. So `(r y).#### = r.#### y` holds for every arity with C ≥ 1; at
+C = 0 there is no Demi.
 
 **Whole Frames and Size units do not commute.** Children of Sizes 5 and 2, dealt
 whole into two channels, load them 5 and 2; the Demi of the same list normalizes
@@ -477,5 +479,4 @@ was nil and is now a redistribution.
 
 **Not established.** This shows cyclic position as Count modulo arity on
 existing HC frames. It does not prove a cyclic Fact closure, the Stick reversal
-bridge or Gaussian arithmetic, and a k-channel router's fourth hash is not its
-channel Demi.
+bridge or Gaussian arithmetic.

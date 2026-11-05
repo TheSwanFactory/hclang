@@ -27,6 +27,24 @@ export function installDemiConstructor(constructor: DemiConstructor): void {
   construct = constructor;
 }
 
+/**
+ * Answers the channels of an instance of the shipped `RotorRouter` class with
+ * other than two channels, or undefined for any other Frame. The router is an
+ * HC class, so the evaluator installs this (`lib/execute/router-prologue.ts`).
+ */
+export type RouterRecognizer = (source: Frame) => Frame[] | undefined;
+
+let recognizeRouter: RouterRecognizer | undefined;
+
+/**
+ * Installs how `.####` recognizes a channel router (007.27).
+ *
+ * @param recognizer Answers a channel router's channels, or undefined.
+ */
+export function installRouterRecognizer(recognizer: RouterRecognizer): void {
+  recognizeRouter = recognizer;
+}
+
 /** A Frame read as an exact nonnegative Count, or undefined. */
 function exactCount(frame: Frame): FrameCount | undefined {
   const value = frame.referent();
@@ -95,6 +113,48 @@ function intrinsicDemi(source: Frame): Frame | undefined {
 }
 
 /**
+ * The channel-router path (007.27). A router of k channels routes to channel
+ * C mod k, which only a Demi of k loads follows; the binary Demi the observers
+ * derive follows parity, so for k other than two it would not be the router's
+ * shadow. An instance of the shipped `RotorRouter` class with other than two
+ * channels therefore answers the channel Demi of its Count and channel loads,
+ * `Demi [C, [load0, …]]`, where a load is the summed Size of a channel's
+ * children and an empty channel's load is 0. The binary router keeps the
+ * derived path, which already answers `Demi(C, L, R)`.
+ *
+ * Its Count is the children it holds; at Count zero it has no Demi, as the
+ * empty binary router and the empty host have none. Each child's Size is read
+ * once, and a failed Size is answered as it is.
+ *
+ * @param source The observed Frame.
+ * @returns The router's channel Demi, nil, an error, or undefined when the
+ *   source is not a channel router.
+ */
+function channelRouterDemi(source: Frame): Frame | undefined {
+  const channels = recognizeRouter?.(source);
+  if (!channels) return undefined;
+  const count = channels.reduce(
+    (total, channel) => total + BigInt(channel.elements().length),
+    0n,
+  );
+  if (count === 0n) return Frame.nil;
+  const loads: FrameCount[] = [];
+  for (const channel of channels) {
+    if (channel.elements().length === 0) {
+      loads.push(new FrameCount(0n));
+      continue;
+    }
+    const size = channel.sizeFor(Frame.kLEAVES);
+    if (size.observationError()) return size;
+    const load = exactCount(size);
+    if (!load) return Frame.error("$!.demi-observations");
+    loads.push(new FrameCount(load.data));
+  }
+  if (!construct) return Frame.error("$!.demi-unavailable");
+  return construct(new FrameCount(count), loads);
+}
+
+/**
  * The fourth hash, `.####`. For a constructed Demi it is that Demi's own state
  * (`intrinsicDemi`), Count zero included. For every other Frame it is derived
  * only from the existing observers: Count n, Size s and residual r give the
@@ -121,6 +181,8 @@ export function observeDemi(source: Frame): Frame {
   if (failure) return failure;
   const intrinsic = intrinsicDemi(source);
   if (intrinsic) return intrinsic;
+  const routed = channelRouterDemi(source);
+  if (routed) return routed;
   const n = source.sizeFor(Frame.kCOUNT);
   if (n.observationError()) return n;
   if (n === Frame.nil) return Frame.nil; // no Count, no Demi (011.18k)

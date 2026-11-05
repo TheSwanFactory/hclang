@@ -25,7 +25,9 @@
 - **Channel RotorRouter.** `RotorRouter [ch0, …, chk−1]` takes k ≥ 1 channels
   and routes to channel `C mod k`; only round-robin histories are admitted.
   `r ./ n` re-deals the routed Frames, in routed order, into n channels, keeping
-  the Count. Every router now stores `.channels`, so its printed form changes;
+  the Count. A router of other than two channels answers its channel Demi,
+  `Demi [C, loads]`, as its fourth hash, so `(r y).#### = r.#### y` holds for
+  every arity. Every router now stores `.channels`, so its printed form changes;
   `RotorRouter [[]]` and `RotorRouter [[], [], []]`, refused before, are routers
   of one and three channels (#482).
 - **Fix: dotted operators on named values.** `xs .* 2`, `xs ./ 3` and the other

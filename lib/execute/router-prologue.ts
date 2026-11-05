@@ -16,7 +16,13 @@
  *
  * @module
  */
-import { EvaluationScope, Frame, FrameArray, FrameExpr } from "../frames.ts";
+import {
+  EvaluationScope,
+  Frame,
+  FrameArray,
+  FrameExpr,
+  installRouterRecognizer,
+} from "../frames.ts";
 import { installDivisionCarrier } from "../ops/math.ts";
 import { HC_SOURCES } from "../bundle/hc-sources.ts";
 import { evaluateSourceText } from "./resource-import.ts";
@@ -82,4 +88,38 @@ export function constructRouter(channels: FrameArray): Frame {
   return FrameExpr.answeredValue(constructor.call(channels)).referent();
 }
 
+/**
+ * The channels of an instance of the shipped class with other than two
+ * channels, for `.####` (007.27); undefined for anything else.
+ *
+ * Recognition mirrors the Demi's (007.25e): the source's own stored
+ * `channels`, a list of arrays, must rebuild through the constructor into a
+ * router `==` to the source, fields and methods included. Nothing of the
+ * source runs, so a record that only spells `channels` is not a router.
+ *
+ * @param source The observed Frame.
+ * @returns The stored channel arrays, or undefined.
+ */
+export function channelRouterChannels(source: Frame): Frame[] | undefined {
+  const host = source.referent();
+  if (!host.ownsIdentity()) return undefined;
+  const stored = host.get_here("channels").referent();
+  if (!(stored instanceof FrameArray)) return undefined;
+  const channels = stored.elements().map((channel) => channel.referent());
+  if (channels.length === 0 || channels.length === 2) return undefined;
+  if (!channels.every((channel) => channel instanceof FrameArray)) {
+    return undefined;
+  }
+  const candidate = constructRouter(
+    new FrameArray(
+      channels.map((channel) => new FrameArray([...channel.elements()])),
+    ),
+  );
+  if (candidate.isFailedResult() || candidate.observationError()) {
+    return undefined;
+  }
+  return candidate.typeEquals(host) === Frame.all ? channels : undefined;
+}
+
 installDivisionCarrier(constructRouter);
+installRouterRecognizer(channelRouterChannels);

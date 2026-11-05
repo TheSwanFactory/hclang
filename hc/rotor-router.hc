@@ -87,10 +87,12 @@ into k, `round-robin [C, k]`, and refuses every other with
 `$!!.invalid-router`.
 Routing appends to channel C mod k, which for k = 2 is the phase's channel.
 Its Size is the sum of its channel loads and its residual their alternating
-sum, as a channel Demi's are. Its fourth hash is still the ordinary derived
-one, a binary Demi, since no class declares `.####`; so the projection law
-holds for it only where the binary Demi's parity agrees with routing to
-C mod k. Text reads `RotorRouter([ch0, ch1, …])`.
+sum, as a channel Demi's are. Its fourth hash is the channel Demi of its
+Count and channel loads, `Demi [C, [load0, …]]`: the fourth hash recognizes an
+instance of this class with other than two channels intrinsically, as it
+recognizes a Demi, because the binary Demi the observers derive follows
+parity and not C mod k. So the projection law `(r y).#### = r.#### y` holds
+for every arity; at Count zero there is no Demi. Text reads `RotorRouter([ch0, ch1, …])`.
 
 `router ./ n`, also spelled `router / n`, re-deals the Frames it holds: it
 reconstructs the order they were routed in from its channels, which their

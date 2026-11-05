@@ -378,19 +378,31 @@ The divisor is refused as for a list
 
 A router of any arity declares its Count C, its Size, the sum of its channel
 loads, and its residual, their alternating sum, as a channel Demi does. Its
-fourth hash is the ordinary derived Demi of those three, which is binary: no
-class declares `.####`, and only the shipped Demi class is recognized
-intrinsically. So a router of k channels does not answer a channel Demi, and
-the projection law `(r y).#### = r.#### y` holds where the binary Demi's
-parity agrees with routing to C mod k. It does with four channels and not with
-three
+fourth hash is the Demi of the same arity: a router of k channels other than
+two is recognized intrinsically, as an instance of the shipped class, and
+answers `Demi [C, loads]`, one load per channel, so it routes to channel
+C mod k as its Demi deposits there. The binary router answers the binary Demi
+it always did. At Count zero there is no Demi, for any arity
 ```
-; [t3.#, t3.##, t3.###, “” t3.####, t3.#### = (Demi [7, [3, 2, 2]])]
-# [7, 42, 30, “Demi(7,36,6)”, ()]
+; [t3.#, t3.##, t3.###, “” t3.####, t3.#### = (Demi [7, [14, 6, 22]]), t3.####.## = t3.##, t3.####.### = t3.###]
+# [7, 42, 30, “Demi(7,[14, 6, 22])”, <>, <>, <>]
+; [“” (r7.####), ([] ./ 3).####, (RotorRouter [[], [], []]).####, “” ((([] ./ 3) 5).####)]
+# [“Demi(7,24,18)”, (), (), “Demi(1,[5, 0, 0])”]
+```
+So the projection law `(r y).#### = r.#### y` holds for every arity: routing y
+to channel C mod k and observing is depositing `y.##` there
+```
 ; .nine [1, 2, 3, 4, 5, 6, 7, 8, 9];
-; .n3 (nine | (RotorRouter [[], [], []])); .n4 (nine | (RotorRouter [[], [], [], []]));
-; [((n3 10).####) = ((n3.####) 10), ((n4 10).####) = ((n4.####) 10)]
-# [(), <>]
+; [1, 2, 3, 4, 5] & {.r (nine ./ _); ((r 10).####) = ((r.####) 10)}
+# [<>, <>, <>, <>, <>]
+; [“” ((t3 10).####), “” ((nine ./ 1).####), “” ((nine ./ 4).####)]
+# [“Demi(8,[14, 16, 22])”, “Demi(9,[45])”, “Demi(9,[15, 8, 10, 12])”]
+```
+Recognition reads nothing the router computes: a record that only spells
+`channels` is not a router, and a failed child Size is answered as it is
+```
+; [[.channels [[1], [], []]].####, ([Failing] ./ 3).####]
+# [(), $!.name-missing “...]
 ```
 ## Whole Frames and Size units
 
