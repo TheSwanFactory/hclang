@@ -63,17 +63,56 @@ export class FrameExpr extends FrameList {
 
     let result = Frame.nil;
     for (const run of commaRuns(body)) {
-      const [item] = run;
-      result = run.length > 1
-        ? FrameExpr.commaGroup(run, scope)
-        : item instanceof FrameExpr
-        ? item.evaluate(scope)
-        : item.in(scope);
+      result = FrameExpr.evaluateRun(run, scope);
       // A sequence stops at the first failing statement, because later
       // statements were written to run after the earlier ones succeeded.
       if (result.isFailedResult()) return result;
     }
     return result;
+  }
+
+  /**
+   * `evaluateBody`, one statement at a time.
+   *
+   * The generator yields after each statement of a sequenced body and returns
+   * the body's value, with the same stops and the same scope as
+   * `evaluateBody`, so a body stepped to completion answers what a called one
+   * answers. A body that is not a sequence, or has one term, is one step. The
+   * statement is the finest boundary the language defines between two
+   * effects of one body, so it is the unit an event dispatcher may interleave
+   * at (`event-dispatch.ts`); nothing inside a statement is a boundary.
+   */
+  public static *stepBody(
+    body: readonly Frame[],
+    input: EvaluationInput,
+    sequence = false,
+  ): Generator<Frame, Frame> {
+    const scope = EvaluationScope.from(input);
+    if (body.length === 1 || !sequence) {
+      const result = FrameExpr.evaluateBody(body, scope, sequence);
+      yield result;
+      return result;
+    }
+    let result = Frame.nil;
+    for (const run of commaRuns(body)) {
+      result = FrameExpr.evaluateRun(run, scope);
+      yield result;
+      if (result.isFailedResult()) return result;
+    }
+    return result;
+  }
+
+  /** One statement of a sequenced body: a comma group, or a single term. */
+  private static evaluateRun(
+    run: readonly Frame[],
+    scope: EvaluationScope,
+  ): Frame {
+    const [item] = run;
+    return run.length > 1
+      ? FrameExpr.commaGroup(run, scope)
+      : item instanceof FrameExpr
+      ? item.evaluate(scope)
+      : item.in(scope);
   }
 
   /**

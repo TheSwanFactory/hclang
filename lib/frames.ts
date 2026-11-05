@@ -160,6 +160,38 @@ export {
   registerEffect,
 } from "./frames/effect-registry.ts";
 export {
+  AccessRecord,
+  holdersOf,
+  type Holding,
+  type HoldingKind,
+  isTracking,
+  keyGrantsMutation,
+  mutableHoldersOf,
+  PARENT_KEY,
+  versionOf,
+  withAccessRecord,
+} from "./frames/reference-tracking.ts";
+export {
+  footprintsConflict,
+  isOpaque,
+  isState,
+  type PotentialFootprint,
+  potentialFootprint,
+} from "./frames/access-footprint.ts";
+export {
+  accessesOutside,
+  dispatch,
+  type DispatchEvent,
+  type DispatchPolicy,
+  type DispatchReport,
+  type EventOutcome,
+  stepsOf,
+  versionRead,
+  versionWritten,
+} from "./frames/event-dispatch.ts";
+export { BoundMethod, type ReceiverState } from "./frames/bound-method.ts";
+export { FrameHandle } from "./frames/frame-handle.ts";
+export {
   checkPartitions,
   type DependencyEdge,
   type DependencyKind,
