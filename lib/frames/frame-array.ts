@@ -10,7 +10,13 @@ import { FrameList } from "./frame-list.ts";
 import { FrameNote } from "./frame-note.ts";
 import type { MetaFrame } from "./meta-frame.ts";
 import { NilContext } from "./context.ts";
-import { noteRead, noteWrite } from "./reference-tracking.ts";
+import {
+  noteElements,
+  noteHolding,
+  noteRead,
+  noteWrite,
+  PARENT_KEY,
+} from "./reference-tracking.ts";
 import type { EvaluationInput } from "./evaluation-scope.ts";
 import type { SigilStart } from "../scan.ts";
 
@@ -24,6 +30,18 @@ export class FrameArray extends FrameList {
 
   constructor(data: Array<Frame>, meta = NilContext) {
     super(data, meta);
+    // An aggregate holds its elements from birth (reference-tracking.ts).
+    noteElements(this, data);
+  }
+
+  /**
+   * Assigning the element plane whole releases the elements held before and
+   * holds the new ones, element i under the key `i`.
+   */
+  protected override adoptData(data: Array<Frame>): void {
+    const previous = this.data;
+    super.adoptData(data);
+    if (previous !== data) noteElements(this, data, previous);
   }
 
   /** Count leaves use the same Star rule at the root and inside an array. */
@@ -92,13 +110,13 @@ export class FrameArray extends FrameList {
       }
       if (!node.elements().length) return replacement;
       const result = node.copy();
-      result.data = node.itemsFor(
+      result.adoptData(node.itemsFor(
         result,
         (item) =>
           node.repeatsTerm(item)
             ? go(item.walked().referent() as FrameArray | FrameCount)
             : item,
-      );
+      ));
       return result;
     };
     return go(this);
@@ -118,6 +136,7 @@ export class FrameArray extends FrameList {
     // of that field rather than a flag dance over the lexical pointer.
     if (this.hasDeclaredParent()) {
       result.parent = this.parent;
+      noteHolding(result, PARENT_KEY, this.parent);
     }
     // An aggregate accepts declarations while it is under construction, and
     // says so rather than leaving a name to infer it from the context stack.
@@ -126,7 +145,7 @@ export class FrameArray extends FrameList {
     // does not make it absorb declarations.
     result.declares = true;
     try {
-      result.data = this.array_eval(input, result);
+      result.adoptData(this.array_eval(input, result));
     } finally {
       result.declares = false;
     }
@@ -249,10 +268,11 @@ export class FrameArray extends FrameList {
   public override replaceMember(member: Frame, replacement: Frame): boolean {
     const replaced = super.replaceMember(member, replacement);
     let elementReplaced = false;
-    this.data = this.data.map((item) => {
-      if (item !== member) return item;
+    this.data.forEach((item, index) => {
+      if (item !== member) return;
+      this.data[index] = replacement;
+      noteHolding(this, String(index), replacement, member);
       elementReplaced = true;
-      return replacement;
     });
     if (elementReplaced && !replaced) noteWrite(this);
     return replaced || elementReplaced;
@@ -529,6 +549,7 @@ export class FrameArray extends FrameList {
   ): FrameArray {
     if (!value.is.void) {
       this.data.push(value);
+      noteHolding(this, String(this.data.length - 1), value);
       noteWrite(this);
     }
     return this;
@@ -555,7 +576,7 @@ export class FrameArray extends FrameList {
   }
 
   public reset(): void {
-    this.data = [];
+    this.adoptData([]);
     noteWrite(this);
   }
 }

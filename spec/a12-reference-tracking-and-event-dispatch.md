@@ -64,8 +64,15 @@ running the interpreter at the baseline commit:
 
 `reference-tracking.ts` keeps, keyed weakly by the identity:
 
-- the **holders** of each identity: holder frame and key, maintained at `set`,
-  `replaceMember`, and `copy()` (which duplicates bindings without `set`);
+- the **holders** of each identity: holder frame, key and plane, maintained at
+  every commit of a binding. A **member** holding is a named binding graded by
+  its marker; an **element** holding is an index into an aggregate's data plane,
+  mutable because an index hands out the identity itself (`xs.0.set_ 5` through
+  immutable `xs` writes the shared element); a **parent** holding is the
+  declared-parent edge, keyed `^`, which conveys lookup and no authority. The
+  commit points are `set`, `replaceMember` (both planes), `setParent`,
+  `collect`, `reset`, whole data-plane assignment, and the copy paths that
+  duplicate bindings without `set`;
 - a **version** per identity, advanced at every commit point;
 - the **actual access** of each active `AccessRecord`: reads at `get_here` and
   `FrameArray.elements`, writes at the commit points, each dated by version, and
@@ -93,8 +100,10 @@ own, read conservatively:
 - inside a functional update nothing counts as written, because every write
   forks or meets `$!.copy-on-write-boundary`;
 - a nested callee found by name is walked too, as a method of the receiver when
-  found there;
-- an unresolved name, an import or a resource makes the footprint **opaque**.
+  found there; a closure handed in as the argument is walked where it was
+  written, since the body may call it;
+- an unresolved name, an import, a resource, or a `BoundMethod` reached as a
+  value makes the footprint **opaque**.
 
 ### Dispatch
 
@@ -108,32 +117,52 @@ prelude and statement loop with `call` and `evaluateBody`). Three policies:
   running event has a conflicting footprint. Conflicting events run in program
   order; disjoint ones interleave.
 
-Every event runs under an `AccessRecord`; a shared identity written outside the
-potential footprint is an **escape**, which is the runtime's check that the
-authority it inferred covered the access that happened.
+Admission rests only on the footprint the walk infers, and the walk runs when
+the event is about to start: an earlier event may have rebound a name the body
+uses, and names resolve to what they denote then. A caller may `declare` a
+footprint, which widens the inferred one for scheduling and is checked against
+the event's actual writes (`undeclared`); it cannot narrow the inferred one, so
+no unverified claim admits a conflict the walk would refuse. The policy is sound
+relative to the walk: two events the walk sees to conflict run in program order.
+
+Every event runs under an `AccessRecord`; shared state written outside the
+potential footprint is an **escape** and shared state read outside it a **read
+escape**, where state is what the walk counts as state, an aggregate or a plain
+scope `Frame` whose binding a `@name` can rebind. An escape means the walk
+under-inferred; it is reported after the writes committed and nothing is rolled
+back, so it is a diagnostic of the walk, not a safety net. An event the walk
+cannot read is opaque and serialized against everything, which is the
+fail-closed case.
 
 ## What the tests establish
 
 `event-dispatch.test.ts` runs one HC program, unchanged across policies:
 
-| Scenario                                        | `interleave`      | `footprint`                             |
-| ----------------------------------------------- | ----------------- | --------------------------------------- |
-| two `incr-x` (read x, write x)                  | lost update: 6    | 7, second waits                         |
-| `incr-x` with `incr-y`                          | interleaved       | interleaved, no wait                    |
-| `incr-x` then `read-x`                          | —                 | reader waits, reads the written version |
-| `read-x` then `incr-x`                          | —                 | reader first, writer waits              |
-| two `poke-inner` (nested callee writes x.inner) | —                 | serialized, k = 2                       |
-| `alias-write` (`.w_ x_` local) with `read-x`    | —                 | serialized                              |
-| two `move` (x − 1, y + 1)                       | sum not conserved | conserved                               |
-| `move` with a two-statement reader              | torn sum          | consistent sum                          |
-| opaque event                                    | —                 | serialized against everything           |
-| functional update through an immutable alias    | —                 | no shared write, no wait                |
+| Scenario                                         | `interleave`      | `footprint`                             |
+| ------------------------------------------------ | ----------------- | --------------------------------------- |
+| two `incr-x` (read x, write x)                   | lost update: 6    | 7, second waits                         |
+| `incr-x` with `incr-y`                           | interleaved       | interleaved, no wait                    |
+| `incr-x` then `read-x`                           | —                 | reader waits, reads the written version |
+| `read-x` then `incr-x`                           | —                 | reader first, writer waits              |
+| two `poke-inner` (nested callee writes x.inner)  | —                 | serialized, k = 2                       |
+| `alias-write` (`.w_ x_` local) with `read-x`     | —                 | serialized                              |
+| two `move` (x − 1, y + 1)                        | sum not conserved | conserved                               |
+| `move` with a two-statement reader               | torn sum          | consistent sum                          |
+| opaque event                                     | —                 | serialized against everything           |
+| functional update through an immutable alias     | —                 | no shared write, no wait                |
+| `incr-x` declared empty, with `incr-x`           | —                 | still serialized, 7; `undeclared` = x   |
+| `retarget` (`@t_ y_`), `via-t`, `incr-y`         | —                 | `via-t` re-read at start, writes y; 12  |
+| `apply` with closure argument `incr-x`, `incr-x` | —                 | argument walked, serialized, 7          |
+| `bump` (`@count`) on a plain `Frame` scope       | —                 | writer and reader serialized            |
 
 The walk over-approximates where the runtime's own behaviour is permissive: a
 marked name used only to read, then handed to another closure, is counted as a
 write; a path through an argument index is counted as a write although the
 argument arrives read-only. The escape check is one-sided: it detects a write
-the walk missed, not a write it over-counted.
+the walk missed, not a write it over-counted. Known gaps of the walk, each of
+which fails closed (opaque) or is reported as an escape rather than admitted
+silently: a `BoundMethod` reached as a value; a closure returned from a call and
+called later; a callable reached through a native.
 
 ## What this is not
 
@@ -148,8 +177,10 @@ the walk missed, not a write it over-counted.
   later one. Versions xᵢ are recorded, not published; a read-your-own-version
   policy is the next step, and `instanceCopy` would be its cheap shallow
   snapshot, with the caveat that members are shared.
-- Not an alias analysis. Names are resolved to the identities they denote _now_;
-  a value the event constructs at run time is not followed.
+- Not an alias analysis. Names are resolved to the identities they denote when
+  the event starts; a value the event constructs at run time is not followed.
+- Not a verified contract. A declared footprint is checked, not trusted:
+  scheduling never rests on a declaration narrower than the walk's own reading.
 
 ## Cost
 

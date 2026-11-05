@@ -46,6 +46,15 @@ import { touchesIdentity } from "./effect-marker.ts";
  * event's actual accesses against (`reference-tracking.ts`), which is the
  * relationship 015.24c asks for between permission and actual access.
  *
+ * Code the event may run that is not reached by name is handled so that it
+ * cannot be admitted silently: a closure handed in as the argument is walked
+ * where it was written (`.apply {_ ()}`); a `BoundMethod` reached as the
+ * argument or as a value makes the footprint opaque, since its receiver is
+ * not visible from here. A closure that a call *returns* and the body then
+ * calls is the known remaining gap: it is reached through a value, so it is
+ * not walked, and a write it makes is reported as an escape after the fact
+ * (`event-dispatch.ts`).
+ *
  * @module
  */
 
@@ -236,8 +245,10 @@ function unwrap(frame: Frame): Frame {
  * Whether a frame is state an event could share: an aggregate, which owns
  * identity, or a plain scope frame, which holds bindings a `@name` can write.
  * Atoms, closures and parsed expressions are values or code, never state.
+ * The dispatcher applies the same test to an event's actual accesses, so a
+ * write to a plain scope is as visible after the fact as one to an aggregate.
  */
-function isState(frame: Frame): boolean {
+export function isState(frame: Frame): boolean {
   if (frame.is.missing || frame.is.void) return false;
   return frame.ownsIdentity() || frame.className() === "Frame";
 }
@@ -418,6 +429,7 @@ function walkSymbol(
   const name = term.className();
   if (name === "FrameArg" || name === "FrameParam") {
     if (spelling === "_") {
+      walkCallable(walk, site.argument, spelling);
       return { frames: [site.argument], mutable: site.argumentMutable };
     }
     if (spelling === "_^" && site.receiver) {
@@ -571,6 +583,11 @@ function walkReferent(
     });
     return fresh;
   }
+  if (value instanceof BoundMethod) {
+    // A method already bound to a receiver the walk cannot see from here.
+    walk.refuse(`${spelling} ${value.className()}`);
+    return fresh;
+  }
   // An element index hands out the element itself; a marked key hands out a
   // mutable handle; an unmarked key an immutable one. Inside a functional
   // update every write is forked or refused, so nothing shared is written.
@@ -578,6 +595,28 @@ function walkReferent(
   if (mutable && handedOn) walk.write(value);
   else walk.read(value);
   return { frames: [value], mutable };
+}
+
+/**
+ * An argument that is code may be called by the body (`.apply {_ ()}`), so
+ * its effects are the event's: a closure's body is walked where it was
+ * written, and a bound method, whose receiver the walk cannot see from here,
+ * makes the event opaque. An argument that is data contributes nothing.
+ */
+function walkCallable(walk: Walk, argument: Frame, spelling: string): void {
+  const value = unwrap(argument);
+  if (value instanceof FrameLazy) {
+    walkBody(walk, value, {
+      frames: lexicalChain(value),
+      receiverMutable: false,
+      isolated: false,
+      argument: Frame.nil,
+      argumentMutable: false,
+      locals: new Map(),
+    });
+  } else if (value instanceof BoundMethod) {
+    walk.refuse(`${spelling} ${value.className()}`);
+  }
 }
 
 /** Whether `owner` is the receiver itself or one of its declared parents. */

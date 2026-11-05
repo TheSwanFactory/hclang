@@ -83,6 +83,100 @@ describe("reference tracking: holders of an identity (ART inverse index)", () =>
   });
 });
 
+describe("reference tracking: element and parent holdings", () => {
+  const where = (
+    holdings: { holder: Frame; key: string; kind: string; mutable: boolean }[],
+    holder: Frame,
+  ): string[] =>
+    holdings.filter((h) => h.holder === holder).map((h) =>
+      `${h.kind}:${describeHolding(h)}`
+    ).sort();
+
+  it("indexes an element of an aggregate literal under its index, mutably", () => {
+    const scope = evaluate(`
+      .x_ [.n 5; .set_ {@n _;}];
+      .xs [x_, 7];
+    `);
+    const x = scope.get_here("x_");
+    const xs = scope.get_here("xs");
+    expect(where(holdersOf(x), xs)).toEqual(["element:0!"]);
+    expect(where(holdersOf(x), scope)).toEqual(["member:x_!"]);
+    // The index hands out the identity itself: a write through an immutable
+    // outer name lands on the shared element.
+    read(scope, "xs").get("0").get("set_").call(FrameCount.for("9"));
+    expect(x.get_here("n").toString()).toBe("9");
+    expect(mutableHoldersOf(x).map((h) => h.holder)).toContain(xs);
+  });
+
+  it("registers an appended element and releases every element on reset", () => {
+    const scope = evaluate(`.x_ [.n 1]; .y_ [.n 2]; .xs_ [y_];`);
+    const x = scope.get_here("x_");
+    const y = scope.get_here("y_");
+    const xs = scope.get_here("xs_") as FrameArray;
+    expect(where(holdersOf(x), xs)).toEqual([]);
+    xs.collect(x);
+    expect(where(holdersOf(x), xs)).toEqual(["element:1!"]);
+    expect(where(holdersOf(y), xs)).toEqual(["element:0!"]);
+    xs.reset();
+    expect(where(holdersOf(x), xs)).toEqual([]);
+    expect(where(holdersOf(y), xs)).toEqual([]);
+    expect(xs.length()).toBe(0);
+  });
+
+  it("swaps the holding when an element is replaced in place", () => {
+    const a = new FrameArray([FrameCount.for("1")]);
+    const b = new FrameArray([FrameCount.for("2")]);
+    const xs = new FrameArray([a, FrameCount.for("0"), a]);
+    expect(where(holdersOf(a), xs)).toEqual(["element:0!", "element:2!"]);
+    expect(xs.replaceMember(a, b)).toBe(true);
+    expect(where(holdersOf(a), xs)).toEqual([]);
+    expect(where(holdersOf(b), xs)).toEqual(["element:0!", "element:2!"]);
+  });
+
+  it("counts a copy as a holder of the elements it shares", () => {
+    const scope = evaluate(`.x_ [.n 1]; .xs [x_];`);
+    const x = scope.get_here("x_");
+    const xs = scope.get_here("xs") as FrameArray;
+    const copy = xs.instanceCopy();
+    expect(where(holdersOf(x), copy)).toEqual(["element:0!"]);
+    const collected = xs.collectingCopy();
+    expect(where(holdersOf(x), collected)).toEqual(["element:0!"]);
+  });
+
+  it("indexes a declared parent under ^ without authority, and follows a rebind", () => {
+    const scope = evaluate(`
+      .p_ [.n 1];
+      .q_ [.n 2];
+      .c_ [.^ p_; .m 3];
+    `);
+    const p = scope.get_here("p_");
+    const q = scope.get_here("q_");
+    const c = scope.get_here("c_");
+    expect(where(holdersOf(p), c)).toEqual(["parent:^"]);
+    expect(mutableHoldersOf(p).map((h) => h.holder)).not.toContain(c);
+    expect(c.setParent(q)).toBeUndefined();
+    expect(where(holdersOf(p), c)).toEqual([]);
+    expect(where(holdersOf(q), c)).toEqual(["parent:^"]);
+    // A copy carries the parent edge, so it holds the parent too.
+    const copy = c.instanceCopy();
+    expect(where(holdersOf(q), copy)).toEqual(["parent:^"]);
+  });
+
+  it("holds a parent reached through an element and a member at once", () => {
+    const scope = evaluate(`.p [.n 1]; .h [.inner_ p; [.^ p]];`);
+    const p = scope.get_here("p");
+    const h = scope.get_here("h") as FrameArray;
+    const child = h.at(0);
+    expect(where(holdersOf(p), h)).toEqual(["member:inner_!"]);
+    expect(where(holdersOf(p), child)).toEqual(["parent:^"]);
+    expect(holdersOf(p).map((h) => h.kind).sort()).toEqual([
+      "member",
+      "member",
+      "parent",
+    ]);
+  });
+});
+
 describe("reference tracking: state versions", () => {
   it("advances an aggregate's version on each committed write", () => {
     const x = new FrameArray([]);

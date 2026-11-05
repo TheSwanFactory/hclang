@@ -7,6 +7,7 @@ import {
   noteHolding,
   noteRead,
   noteWrite,
+  PARENT_KEY,
 } from "./reference-tracking.ts";
 import type { FrameName } from "./frame-name.ts";
 import type { FrameSymbol } from "./frame-symbol.ts";
@@ -377,7 +378,16 @@ export class MetaFrame {
     if (this.wouldCreateParentCycle(parent)) {
       return Frame.error("$!.cyclic-parent .^");
     }
+    const previous = this.parent;
     this.parent = parent;
+    // The parent edge is a holding too (reference-tracking.ts): it is how a
+    // name reaches the parent, though it conveys no authority of its own.
+    noteHolding(
+      this as unknown as Frame,
+      PARENT_KEY,
+      parent,
+      previous && !previous.is.missing ? previous : undefined,
+    );
     noteWrite(this as unknown as Frame);
     return undefined;
   }

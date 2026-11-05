@@ -17,7 +17,14 @@
   with disjoint footprints interleave while conflicting ones run in program
   order. Library API only; HC source syntax and semantics are unchanged, and
   ordinary evaluation pays one length check per read and one `WeakMap` update
-  per write.
+  per write. Holdings cover all three planes a frame holds a value in, named
+  members, indexed elements and the declared-parent edge (`Holding.kind`).
+  Admission under `footprint` rests only on the footprint inferred from the
+  event's code when it starts; a caller's `declared` footprint can widen it and
+  is checked against the event's writes (`undeclared`), never narrow it. A
+  closure passed as the argument is walked; a write or read of any shared state,
+  a plain scope included, outside the inferred footprint is reported (`escapes`,
+  `readEscapes`).
 
 ## v0.44.0 2026-11-04
 

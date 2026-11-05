@@ -163,18 +163,23 @@ export {
   AccessRecord,
   holdersOf,
   type Holding,
+  type HoldingKind,
   isTracking,
+  keyGrantsMutation,
   mutableHoldersOf,
+  PARENT_KEY,
   versionOf,
   withAccessRecord,
 } from "./frames/reference-tracking.ts";
 export {
   footprintsConflict,
   isOpaque,
+  isState,
   type PotentialFootprint,
   potentialFootprint,
 } from "./frames/access-footprint.ts";
 export {
+  accessesOutside,
   dispatch,
   type DispatchEvent,
   type DispatchPolicy,

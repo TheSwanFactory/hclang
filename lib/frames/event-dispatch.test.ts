@@ -2,11 +2,16 @@ import { expect } from "jsr:@std/expect@^0.219.1";
 import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 
 import { evaluate } from "../execute/evaluate.ts";
+import { HCEval } from "../execute/hc-eval.ts";
 import { Frame } from "./frame.ts";
+import { FrameArray } from "./frame-array.ts";
 import { FrameCount } from "./frame-count.ts";
 import { FrameSymbol } from "./frame-symbol.ts";
 import { EvaluationScope } from "./evaluation-scope.ts";
+import { potentialFootprint } from "./access-footprint.ts";
+import { AccessRecord, withAccessRecord } from "./reference-tracking.ts";
 import {
+  accessesOutside,
   dispatch,
   type DispatchEvent,
   type DispatchPolicy,
@@ -41,7 +46,17 @@ const PROGRAM = `
 .ghost {nowhere.set_ 1; x_.set_ 0;};
 .via-alias {.a y-of-x_.n; y-of-x_.set_ (a + 1);};
 .functional {z.set_ 0};
+.t_ x_;
+.retarget {@t_ y_;};
+.via-t {.a t_.n; t_.set_ (a + 1);};
+.apply {_ ()};
 `;
+
+const EMPTY = {
+  reads: new Set<Frame>(),
+  writes: new Set<Frame>(),
+  unresolved: [] as string[],
+};
 
 interface Program {
   scope: Frame;
@@ -278,15 +293,29 @@ describe("event dispatch: opaque events and escapes", () => {
     expect(report.outcomes[0].result.isFailedResult()).toBe(true);
   });
 
-  it("reports a shared write outside a declared footprint as an escape", () => {
+  it("reports a shared write outside a caller's declaration as undeclared, not as an escape", () => {
     const { x, event } = program();
-    const declared = {
-      reads: new Set<Frame>(),
-      writes: new Set<Frame>(),
-      unresolved: [],
-    };
-    const report = dispatch([{ ...event("a", "incr-x"), potential: declared }]);
-    expect(report.outcomes[0].escapes).toEqual([x]);
+    const report = dispatch([{ ...event("a", "incr-x"), declared: EMPTY }]);
+    expect(report.outcomes[0].undeclared).toEqual([x]);
+    expect(report.outcomes[0].escapes).toEqual([]);
+    expect(report.outcomes[0].inferred.writes.has(x)).toBe(true);
+    expect(report.outcomes[0].potential.writes.has(x)).toBe(true);
+  });
+
+  it("reports no read escape when the inferred footprint covers the actual reads", () => {
+    const { run } = program();
+    const report = run(
+      ["incr-x", "read-x", "sum-slow", "poke-inner", "via-alias", "move"],
+      "footprint",
+    );
+    expect(report.outcomes.map((o) => o.readEscapes)).toEqual([
+      [],
+      [],
+      [],
+      [],
+      [],
+      [],
+    ]);
   });
 
   it("reports no escape when the inferred footprint covers the actual writes", () => {
@@ -307,5 +336,164 @@ describe("event dispatch: opaque events and escapes", () => {
       );
       expect([p.n(p.x), p.n(p.y)]).toEqual([6, 12]);
     }
+  });
+});
+
+describe("event dispatch: admission cannot be narrowed by a declaration", () => {
+  it("footprint: an under-declared writer is still serialized against a conflicting writer", () => {
+    const { n, x, event } = program();
+    // Review thread on event-dispatch.ts:114: an empty declaration for a real
+    // writer must not let two read-then-write events on x interleave.
+    const report = dispatch([
+      { ...event("under", "incr-x"), declared: EMPTY },
+      event("other", "incr-x"),
+    ]);
+    expect(report.trace).toEqual([
+      "under:1",
+      "under:2",
+      "other:1",
+      "other:2",
+    ]);
+    expect(report.outcomes[1].waitedFor).toEqual(["under"]);
+    expect(n(x)).toBe(7);
+    expect(report.outcomes[0].undeclared).toEqual([x]);
+    expect(report.outcomes.map((o) => o.escapes)).toEqual([[], []]);
+  });
+
+  it("footprint: an under-declared writer still blocks a later reader of x", () => {
+    const { event } = program();
+    const report = dispatch([
+      { ...event("under", "incr-x"), declared: EMPTY },
+      event("reader", "read-x"),
+    ]);
+    expect(report.outcomes[1].waitedFor).toEqual(["under"]);
+    expect(report.outcomes[1].result.toString()).toBe("6");
+  });
+
+  it("footprint: a declaration widens the inferred footprint", () => {
+    const { x, event } = program();
+    const wider = { ...EMPTY, writes: new Set([x]) };
+    const report = dispatch([
+      { ...event("y-claims-x", "incr-y"), declared: wider },
+      event("writer", "incr-x"),
+    ]);
+    expect(report.outcomes[0].inferred.writes.has(x)).toBe(false);
+    expect(report.outcomes[0].potential.writes.has(x)).toBe(true);
+    expect(report.outcomes[1].waitedFor).toEqual(["y-claims-x"]);
+  });
+
+  it("footprint: an alias rebound by an earlier event is re-read when the writer starts", () => {
+    const { n, x, y, run } = program();
+    // retarget rebinds t_ from x to y; via-t then writes through t_. Its
+    // footprint, read when the dispatch was assembled, named x; read when it
+    // starts, after retarget, it names y, so incr-y waits for it.
+    const report = run(["retarget", "via-t", "incr-y"], "footprint");
+    const [, viaT, incrY] = report.outcomes;
+    expect(viaT.waitedFor).toEqual(["retarget0"]);
+    expect(viaT.inferred.writes.has(y)).toBe(true);
+    expect(viaT.inferred.writes.has(x)).toBe(false);
+    expect(incrY.waitedFor).toContain("via-t1");
+    expect(n(x)).toBe(5);
+    expect(n(y)).toBe(12);
+    expect(report.outcomes.map((o) => o.escapes)).toEqual([[], [], []]);
+  });
+
+  it("footprint: a closure passed as the argument is walked, so its writes are inferred", () => {
+    const { n, x, event, scope } = program();
+    const read = (key: string): Frame =>
+      FrameSymbol.for(key).in(EvaluationScope.root(scope));
+    const applied = potentialFootprint(read("apply"), read("incr-x"));
+    expect(applied.writes.has(x)).toBe(true);
+    const report = dispatch([
+      event("applied", "apply", read("incr-x")),
+      event("direct", "incr-x"),
+    ]);
+    expect(report.outcomes[1].waitedFor).toEqual(["applied"]);
+    expect(n(x)).toBe(7);
+    expect(report.outcomes.map((o) => o.escapes)).toEqual([[], []]);
+    const reading = dispatch([
+      event("applied", "apply", read("read-x")),
+      event("other", "incr-y"),
+    ]);
+    expect(reading.outcomes.map((o) => o.waitedFor)).toEqual([[], []]);
+  });
+
+  it("footprint: a bound method passed as the argument makes the event opaque", () => {
+    const { event, scope } = program();
+    const setter = FrameSymbol.for("x_").in(EvaluationScope.root(scope)).get(
+      "set_",
+    );
+    const report = dispatch([
+      event("applied", "apply", setter),
+      event("other", "incr-y"),
+    ]);
+    expect(report.outcomes[0].potential.unresolved.length).toBeGreaterThan(0);
+    expect(report.outcomes[1].waitedFor).toEqual(["applied"]);
+  });
+});
+
+describe("event dispatch: escapes on a plain scope Frame", () => {
+  /** An HC file whose scope is a plain Frame rather than an aggregate. */
+  const plainScope = (source: string): Frame => {
+    const out = new FrameArray([]);
+    const scope = new Frame();
+    const hc = new HCEval(out, scope, Frame.nil);
+    hc.call(source);
+    expect(hc.finish()).toBe(true);
+    return scope;
+  };
+
+  const SOURCE = `
+    .count 0;
+    .bump {@count (count + 1);};
+    .peek {count};
+  `;
+
+  it("infers a lexical @name write as a write of the plain scope", () => {
+    const scope = plainScope(SOURCE);
+    expect(scope.className()).toBe("Frame");
+    expect(scope.ownsIdentity()).toBe(false);
+    const bump = FrameSymbol.for("bump").in(EvaluationScope.root(scope));
+    const footprint = potentialFootprint(bump);
+    expect(footprint.writes.has(scope)).toBe(true);
+  });
+
+  it("footprint: a writer and a reader of the plain scope are serialized", () => {
+    const scope = plainScope(SOURCE);
+    const read = (key: string): Frame =>
+      FrameSymbol.for(key).in(EvaluationScope.root(scope));
+    const report = dispatch([
+      { label: "bump", target: read("bump") },
+      { label: "peek", target: read("peek") },
+      { label: "bump2", target: read("bump") },
+    ]);
+    expect(report.outcomes[1].waitedFor).toEqual(["bump"]);
+    expect(report.outcomes[2].waitedFor).toContain("peek");
+    expect(report.outcomes[1].result.toString()).toBe("1");
+    expect(scope.get_here("count").toString()).toBe("2");
+    expect(report.outcomes.map((o) => o.escapes)).toEqual([[], [], []]);
+  });
+
+  it("reports a write to a plain scope outside a footprint, with no help from other events", () => {
+    // Review thread on event-dispatch.ts:189: the old filter kept only
+    // identity owners and frames some potential mentioned, so a plain scope
+    // written outside every footprint was never reported.
+    const scope = plainScope(SOURCE);
+    const bump = FrameSymbol.for("bump").in(EvaluationScope.root(scope));
+    const record = new AccessRecord();
+    withAccessRecord(record, () => bump.call(Frame.nil, Frame.nil));
+    expect(record.sharedWrites()).toContain(scope);
+    expect(accessesOutside(record, EMPTY)).toEqual([scope]);
+    const report = dispatch([{ label: "bump", target: bump, declared: EMPTY }]);
+    expect(report.outcomes[0].undeclared).toEqual([scope]);
+  });
+
+  it("reports a read outside a footprint as a read escape", () => {
+    const { x, scope } = program();
+    const readX = FrameSymbol.for("read-x").in(EvaluationScope.root(scope));
+    const record = new AccessRecord();
+    withAccessRecord(record, () => readX.call(Frame.nil, Frame.nil));
+    expect(accessesOutside(record, EMPTY, "reads")).toContain(x);
+    expect(accessesOutside(record, EMPTY, "reads")).toContain(scope);
   });
 });

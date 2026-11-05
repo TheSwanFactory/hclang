@@ -581,11 +581,18 @@ The effect marker grants authority; it does not record use.
 cannot answer (`spec/a12-reference-tracking-and-event-dispatch.md`):
 
 - **Possession.** `holdersOf(x)` lists every live binding that holds the
-  aggregate `x`: holder frame, key, and whether the key's spelling claims
-  mutation authority. The index is maintained at `MetaFrame.set` and
-  `replaceMember`, and at `copy()`, which duplicates bindings without going
-  through `set`. Only identity-owning values are indexed; a holding says a name
-  _could_ write, not that anything is writing.
+  aggregate `x`: holder frame, key, the plane the key addresses (`kind`), and
+  whether the key claims mutation authority. A **member** holding is a named
+  binding, graded by its marker; an **element** holding is an index into a
+  `FrameArray`'s data plane, always mutable because an index hands out the
+  identity itself; a **parent** holding is the declared-parent edge, keyed `^`,
+  never mutable because the edge conveys lookup and no authority of its own. The
+  index is maintained at every commit of a binding: `MetaFrame.set`,
+  `replaceMember` (both planes), `setParent`, `FrameArray.collect`, `reset`,
+  every whole assignment of the data plane (`adoptData`), and the copy paths
+  that duplicate bindings without `set`. A value stored as a handle is indexed
+  by the identity behind it. Only identity-owning values are indexed; a holding
+  says a name _could_ write, not that anything is writing.
 - **Version.** `versionOf(x)` counts the mutations committed on `x`. It advances
   at every commit point, `set` (when the stored frame changes), `replaceMember`,
   `setParent`, `collect` and `reset`, so a read can be dated against the
@@ -618,10 +625,11 @@ handle, through which a mutating method is a functional update, while a marked
 name or an element index hands out the identity itself (so `h.inner_.set_ 9`
 through immutable `h` writes the shared inner identity, as the runtime does).
 Inside a functional update every write forks or meets
-`$!.copy-on-write-boundary`, so nothing reached there counts as written. A name
-the walk cannot resolve, an import or a resource makes the footprint _opaque_.
-The walk over-approximates and refuses rather than guesses; it is not an alias
-analysis.
+`$!.copy-on-write-boundary`, so nothing reached there counts as written. A
+closure handed in as the argument is walked where it was written, since the body
+may call it. A name the walk cannot resolve, an import, a resource, or a
+`BoundMethod` reached as a value makes the footprint _opaque_. The walk
+over-approximates and refuses rather than guesses; it is not an alias analysis.
 
 `dispatch(events, policy)` steps events statement by statement
 (`FrameExpr.stepBody`): the statement is the finest effect boundary a body
@@ -633,9 +641,20 @@ order and the final state is the sequential one; readers are serialized against
 writers rather than given snapshots. `interleave` coordinates nothing and is the
 executable counterexample: two read-then-write events on one `x` lose an update,
 which is what shows that separate statements, and separate calls, are not a
-transaction. Each event runs under an `AccessRecord`, and a shared identity it
-wrote outside its potential footprint is reported as an **escape**. None of this
-is threads, a transaction, or rollback.
+transaction.
+
+Admission rests only on the footprint the walk infers, read when the event is
+about to start, so a name an earlier event rebound is resolved to what it
+denotes then. A caller's `declared` footprint can widen the inferred one and is
+checked against what the event did (`undeclared`); it can never narrow it, so no
+unverified claim admits a conflict. Each event runs under an `AccessRecord`, and
+shared state it wrote or read outside its potential footprint is reported as an
+**escape** (`escapes`, `readEscapes`), where state is what the walk counts as
+state: an aggregate or a plain scope `Frame` whose binding a `@name` can rebind.
+An escape is a diagnostic of the walk, reported after the writes committed; the
+policy is sound relative to the walk, and an event the walk cannot read is
+opaque and serialized against everything. None of this is threads, a
+transaction, or rollback.
 
 ### Numeric Ladder
 

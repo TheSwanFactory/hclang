@@ -271,7 +271,7 @@ export class FrameList extends Frame {
     for (let time = 0; time < times; time += 1) {
       for (const term of repeated) terms.push(term);
     }
-    result.data = terms;
+    result.adoptData(terms);
     return result.finishRepetition();
   }
 
@@ -324,8 +324,16 @@ export class FrameList extends Frame {
 
   public override copy(): this {
     const clone = super.copy();
-    clone.data = this.itemsFor(clone, (item) => item);
+    clone.adoptData(this.itemsFor(clone, (item) => item));
     return clone;
+  }
+
+  /**
+   * Replaces the whole data plane. The one assignment point, so an aggregate
+   * can observe the elements it stops and starts holding (`FrameArray`).
+   */
+  protected adoptData(data: Array<Frame>): void {
+    this.data = data;
   }
 
   /**

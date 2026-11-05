@@ -12,11 +12,18 @@ import { touchesIdentity } from "./effect-marker.ts";
  *
  * - **Possession with permission.** `holdersOf(x)` lists every binding that
  *   currently holds the aggregate `x`: the holder frame, the key, and whether
- *   that key's spelling claims mutation authority (`touchesIdentity`). It is
- *   the inverse of the binding relation, maintained at the one place a binding
- *   is committed, `MetaFrame.set`, plus the copy paths that duplicate bindings
- *   without going through it. A holding is a fact about a name, not about an
- *   active computation: a frame can hold `x` mutably and never touch it.
+ *   that key's spelling claims mutation authority. A holding is one of three
+ *   kinds, after the three planes a frame holds a value in: a **member**
+ *   under a name (`.inner_ x`), graded by `touchesIdentity` of the name; an
+ *   **element** under an index (`[x]`, `xs.0`), which hands out the identity
+ *   itself and so is always mutable; and the **parent** edge (`.^ x`), keyed
+ *   `^`, which conveys lookup and no authority of its own, so it is never
+ *   mutable. The index is the inverse of the binding relation, maintained at
+ *   every place a binding is committed: `MetaFrame.set`, `replaceMember`,
+ *   `setParent`, the element-plane commits of `FrameArray`, and the copy
+ *   paths that duplicate bindings without going through them. A holding is a
+ *   fact about a name, not about an active computation: a frame can hold `x`
+ *   mutably and never touch it.
  * - **State version.** `versionOf(x)` is the number of mutations committed on
  *   `x`, so that a read can be dated against the versions xᵢ an identity has
  *   passed through. It is bumped at the commit points and nowhere else.
@@ -49,13 +56,24 @@ import { touchesIdentity } from "./effect-marker.ts";
  * @module
  */
 
+/** The plane a holding lives in: a named member, an indexed element, or the parent edge. */
+export type HoldingKind = "member" | "element" | "parent";
+
+/** The key a declared parent is held under. */
+export const PARENT_KEY = "^";
+
 /** One place an identity is held: a holder frame's key, graded by its marker. */
 export interface Holding {
   /** The frame whose binding holds the identity. */
   readonly holder: Frame;
-  /** The key the identity is bound under in that holder. */
+  /** The key the identity is bound under: a name, an index, or `^`. */
   readonly key: string;
-  /** Whether the key's spelling claims mutation authority over the identity. */
+  /** Which plane of the holder the key addresses. */
+  readonly kind: HoldingKind;
+  /**
+   * Whether the key claims mutation authority over the identity: a marked
+   * name or an index does; an unmarked name and the parent edge do not.
+   */
   readonly mutable: boolean;
 }
 
@@ -64,6 +82,15 @@ interface HoldingRecord {
   readonly holder: Frame;
   readonly key: string;
 }
+
+const isIndexKey = (key: string): boolean => /^\d+$/.test(key);
+
+const kindOf = (key: string): HoldingKind =>
+  key === PARENT_KEY ? "parent" : isIndexKey(key) ? "element" : "member";
+
+/** Whether a key, by its spelling alone, hands out mutation authority. */
+export const keyGrantsMutation = (key: string): boolean =>
+  key !== PARENT_KEY && (isIndexKey(key) || touchesIdentity(key));
 
 /** Identity → the bindings that hold it. Keyed weakly by the identity. */
 const holdings = new WeakMap<Frame, Set<HoldingRecord>>();
@@ -142,7 +169,8 @@ export function noteCreated(frame: Frame): void {
 }
 
 /**
- * Notes that `holder` bound `value` under `key`, replacing `previous`.
+ * Notes that `holder` bound `value` under `key`, replacing `previous`. The
+ * key is a member name, an element index, or `PARENT_KEY`.
  *
  * Only an identity-owning value is indexed: an atom or a closure has no
  * identity a handle could claim authority over. Rebinding a key releases the
@@ -154,22 +182,74 @@ export function noteHolding(
   value: Frame,
   previous?: Frame,
 ): void {
-  if (previous && previous !== value && previous.ownsIdentity()) {
-    dropHolding(previous, holder, key);
-  }
-  if (value.ownsIdentity()) addHolding(value, holder, key);
+  const identity = identityOf(value);
+  const released = previous === undefined ? undefined : identityOf(previous);
+  if (released && released !== identity) dropHolding(released, holder, key);
+  if (identity) addHolding(identity, holder, key);
 }
 
 /**
- * Indexes the identity-owning bindings `clone` holds. A copy duplicates its
+ * The identity a stored value holds, if it holds one: the value itself when
+ * it owns identity, or the identity behind a handle, which is how an element
+ * plane stores a name's value (`[x_]` holds a handle on `x_`).
+ */
+function identityOf(value: Frame): Frame | undefined {
+  const target = value.referent();
+  return target.ownsIdentity() ? target : undefined;
+}
+
+/** Notes that `holder` no longer holds `previous` under `key`. */
+export function noteReleased(
+  holder: Frame,
+  key: string,
+  previous: Frame,
+): void {
+  const released = identityOf(previous);
+  if (released) dropHolding(released, holder, key);
+}
+
+/**
+ * Notes that `holder` now holds `elements` in its element plane, element i
+ * under the index key `i`, releasing whatever it held under those indexes
+ * before. This is the commit point for every assignment of an aggregate's
+ * element plane as a whole; an append goes through `noteHolding` with its
+ * index.
+ */
+export function noteElements(
+  holder: Frame,
+  elements: readonly Frame[],
+  previous: readonly Frame[] = [],
+): void {
+  for (let index = 0; index < previous.length; index++) {
+    const released = identityOf(previous[index]);
+    if (released) dropHolding(released, holder, String(index));
+  }
+  for (let index = 0; index < elements.length; index++) {
+    const identity = identityOf(elements[index]);
+    if (identity) addHolding(identity, holder, String(index));
+  }
+}
+
+/**
+ * Indexes the identity-owning bindings `clone` holds: its members, its
+ * declared parent, and, when given, its elements. A copy duplicates its
  * source's bindings without committing them through `set`, so the index would
  * otherwise miss every holder that is a copy, functional-update copies
  * included.
  */
-export function noteCopiedHoldings(clone: Frame): void {
+export function noteCopiedHoldings(
+  clone: Frame,
+  elements: readonly Frame[] = [],
+): void {
   for (const [key, value] of clone.meta_pairs()) {
-    if (value.ownsIdentity()) addHolding(value, clone, key);
+    const identity = identityOf(value);
+    if (identity) addHolding(identity, clone, key);
   }
+  if (clone.hasDeclaredParent()) {
+    const parent = identityOf(clone.parent);
+    if (parent) addHolding(parent, clone, PARENT_KEY);
+  }
+  noteElements(clone, elements);
 }
 
 /**
@@ -188,7 +268,8 @@ export function holdersOf(identity: Frame): Holding[] {
     result.push({
       holder: record.holder,
       key: record.key,
-      mutable: touchesIdentity(record.key),
+      kind: kindOf(record.key),
+      mutable: keyGrantsMutation(record.key),
     });
   }
   return result;
