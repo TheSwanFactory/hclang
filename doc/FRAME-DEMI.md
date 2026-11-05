@@ -403,8 +403,10 @@ n channels in turn, round-robin from channel 0. Parity is the case n = 2.
 divisor is always the channel Count: a positive Count, refused as
 `$!.division-by-zero /` at zero and `$!.division-domain /` for anything else
 (negative, fractional, decimal, text, an aggregate, a Demi), never read as a
-Size; more than 1,000,000 channels is `$!.repetition-size 1000000`. A pair of
-numbers keeps exact numeric division, `7 ./ 2` is `7/2`.
+Size. A divisor above both 1,000,000 and the element count is
+`$!.repetition-size 1000000`, checked before anything is built; up to the
+element count is always allowed, so the answer stays proportional to the list. A
+pair of numbers keeps exact numeric division, `7 ./ 2` is `7/2`.
 
 | Receiver       | `x ./ n` deals                        | Answer                                                      |
 | -------------- | ------------------------------------- | ----------------------------------------------------------- |

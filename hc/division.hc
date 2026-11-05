@@ -41,8 +41,7 @@ normalizes to 4 and 3. No law makes them commute, and none is claimed here.
 Refusals are the native ones for all three: a divisor of zero is
 `$!.division-by-zero /`, as it is for numbers, and anything but a Count is
 `$!.division-domain /`, a negative or fractional number, a decimal, text, an
-aggregate or a Demi included. More than 1,000,000 channels is
-`$!.repetition-size 1000000`, checked before anything is built.
+aggregate or a Demi included. A divisor above both 1,000,000 and the element count is `$!.repetition-size 1000000`, checked before anything is built; up to the element count is always allowed, so the answer stays proportional to the list.
 ```
 ```
 ## Lists
@@ -137,8 +136,8 @@ answered as it is
 # [$!.division-by-zero /, $!.division-domain /, $!.division-domain /, $!.division-domain /, $!.division-domain /, $!.division-domain /, $!.division-domain /]
 ; [1, 2] ./ (1 / 0)
 # $!.division-by-zero /
-; [[1, 2] ./ (2 ** 30), ([1] ./ 1000).channels.#]
-# [$!.repetition-size 1000000, 1000]
+; [[1, 2] ./ (2 ** 30), [1, 2] ./ 1000001, ([1] ./ 1000).channels.#]
+# [$!.repetition-size 1000000, $!.repetition-size 1000000, 1000]
 ```
 Numbers keep exact numeric division, and a Frame that is neither a number nor
 an ordered list still answers nil
@@ -378,6 +377,21 @@ children and empty arrays take slots, and nested arrays stay whole
 # [[[0, <>], [[]]], 2, 0]
 ; [((RotorRouter [[[1, 2]], [[3]]]) ./ 1).channels, ((RotorRouter [[[1, 2]], [[3]]]) ./ 1).## = (RotorRouter [[[1, 2]], [[3]]]).##]
 # [[[[1, 2], [3]]], <>]
+```
+A router's history is not bounded by the channel limit: its readout divides by
+its longest channel's length, which never exceeds the Frames it holds, so a
+one-channel router of 1,000,001 Frames divides into two (PR #482 review)
+```
+; .big ((500001 [1]) | (500000 [1]));
+; [big.#, ((RotorRouter [big]) ./ 2).channels & {_.#}]
+# [1000001, [500001, 500000]]
+```
+Routing appends to channel C mod k directly, without replaying the history, so
+routing grows linearly: three thousand Frames route into three channels in turn
+```
+; .grown ((3000 [1]) | (RotorRouter [[], [], []]));
+; [grown.#, grown.channels & {_.#}, (grown ./ 3) = grown, ((grown ./ 1).channels .0).# ]
+# [3000, [1000, 1000, 1000], <>, 3000]
 ```
 The divisor is refused as for a list
 ```

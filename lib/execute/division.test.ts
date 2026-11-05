@@ -39,6 +39,22 @@ Deno.test("literal division deals a list into n channels (007.27)", async () => 
   ]);
 });
 
+Deno.test("routing a channel router grows linearly (PR #482 review)", async () => {
+  // Each route used to replay and re-deal the whole history, so building a
+  // router by n routes cost O(n²): about 700 s for 8,000 Frames into three
+  // channels. A direct append to channel C mod k takes about 2 s; the bound
+  // leaves room for slow machines and still fails the quadratic path.
+  const hc = new HCLang();
+  await hc.call("Routers <- './hc/rotor-router.hc';");
+  const started = performance.now();
+  const counts = await hc.call(
+    "((8000 [1]) | (Routers.RotorRouter [[], [], []])).channels & {_.#}",
+  );
+  const seconds = (performance.now() - started) / 1000;
+  expect(counts).toEqual("[2667, 2667, 2666]");
+  expect(seconds).toBeLessThan(60);
+});
+
 Deno.test("dotted arithmetic operators dispatch as the bare operator", async () => {
   await answers([
     // Resolved as a name, `.*` missed the named array and was found in the

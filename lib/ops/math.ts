@@ -94,9 +94,13 @@ export const Divide = (source: Frame, block: Frame): Frame => {
  * The divisor is the channel Count itself, never a Size read from it: it must
  * be a Count, and zero is `$!.division-by-zero /` as it is for numbers. Any
  * other divisor, a negative or fractional number, text, an aggregate or a
- * Demi, is `$!.division-domain /`. More than 1,000,000 channels is
- * `$!.repetition-size 1000000`, the limit repetition uses for elements,
- * checked before anything is allocated.
+ * Demi, is `$!.division-domain /`. The answer allocates one array per
+ * channel, so a divisor that is both above 1,000,000, the limit repetition
+ * uses for elements, and above the element count is
+ * `$!.repetition-size 1000000`, checked before anything is allocated. Up to
+ * the element count is always allowed, so the answer stays proportional to
+ * its input: a router's breadth-first readout divides by its longest
+ * channel's length, which never exceeds the Frames it holds (PR #482 review).
  */
 /**
  * Builds the value a list division answers from its n channel arrays: a
@@ -123,12 +127,16 @@ const deal = (source: FrameArray | FrameGroup, block: Frame): Frame => {
     return Frame.error("$!.division-domain /");
   }
   if (divisor.data === 0n) return Frame.error("$!.division-by-zero /");
-  if (divisor.data > REPETITION_ELEMENT_LIMIT) {
+  const elements = source.elements();
+  if (
+    divisor.data > REPETITION_ELEMENT_LIMIT &&
+    divisor.data > BigInt(elements.length)
+  ) {
     return Frame.error(`$!.repetition-size ${REPETITION_ELEMENT_LIMIT}`);
   }
   const n = Number(divisor.data);
   const channels: Frame[][] = Array.from({ length: n }, () => []);
-  source.elements().forEach((element, index) => {
+  elements.forEach((element, index) => {
     channels[index % n].push(element);
   });
   if (!carrier) return Frame.error("$!.router-unavailable /");

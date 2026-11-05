@@ -85,7 +85,10 @@ leaves the first C mod k channels one longer than the rest, so a channel
 router admits exactly the channels whose Counts are the dealing of C children
 into k, `round-robin [C, k]`, and refuses every other with
 `$!!.invalid-router`.
-Routing appends to channel C mod k, which for k = 2 is the phase's channel.
+Routing appends to channel C mod k, which for k = 2 is the phase's channel,
+directly, as the binary router does: a small cursor, `append-at`, rebuilds the
+list of channels with the Frame added to that one, so a route costs one pass
+over the k channels and never replays the history (PR #482 review).
 Its Size is the sum of its channel loads and its residual their alternating
 sum, as a channel Demi's are. Its fourth hash is the channel Demi of its
 Count and channel loads, `Demi [C, [load0, …]]`: the fourth hash recognizes an
@@ -105,8 +108,11 @@ same Frame, whole, in order, exactly once, and nothing is evaluated or
 measured; the Count is kept and the next route goes to channel C mod n. The
 history is the dealing inverted: the channels, the short ones padded with a
 sentinel to the longest, are concatenated and dealt into that many channels,
-which are the rounds, and the sentinels removed. The divisor is refused as a
-list refuses it. `hc/division.hc` is its specification.
+which are the rounds, and the sentinels removed. One channel is its own
+history, and channels of equal length need no sentinel. The readout divides by
+the longest channel's length, which never exceeds the Frames held, so it is
+never refused by the channel limit. The divisor is refused as a list refuses
+it. `hc/division.hc` is its specification.
 
 **Methods read their own state through `_^`.** A router is applied to
 arbitrary Frames, and a bare name in a method is looked up on the argument
@@ -117,11 +123,19 @@ caret ladder reaches, `(_^^ .history)` from the method body, so an argument's
 fields never stand in for them.
 ```
 .channel-load {.c _; (c.# = 0) ? {0} : {c.##}};
-.history {.cs _; .w ((cs .0).#); .pad [];
-  (w = 0) ? {[]} : {.padded (cs & {.ch _; (ch.# = w) ? {ch} : {ch pad}});
-    (((padded &| {_}) / w) .channels) &| {.round _; round &| {.x _; (x === (_^^^ .pad)) ? {[]} : {[x]}}}}};
-.round-robin {.s (_ .0); .ways (_ .1); .r (s %% ways); .q (((s - r) / ways).##);
-  ((ways - r) [q]) | (r [(q + 1)])};
+.history {.cs _; .k (cs.#); .w ((cs .0).#); .pad [];
+  (k = 1) ? {cs .0} : {(w = 0) ? {[]} : {
+    .even ((((cs &| {_}).#) = (k * w)) ? {1} : {0});
+    .padded ((even = 1) ? {cs} : {cs & {.ch _; (ch.# = w) ? {ch} : {ch pad}}});
+    .flat ((((padded &| {_}) / w) .channels) &| {_});
+    (even = 1) ? {flat} : {flat &| {.x _; (x === (_^^^^ .pad)) ? {[]} : {[x]}}}}}};
+.append-at {.at (_ .0); .item (_ .1); [.index 0; .target at; .item item; .out [];
+  .apply_ {.v _; .i (_^ .index); .t (_^ .target); .it (_^ .item); .o (_^ .out);
+    @out (o ((i = t) ? {it | v} : {v})); @index (i + 1);}]};
+.round-robin {.s (_ .0); .ways (_ .1); .q (((s - (s %% ways)) / ways).##);
+  [.low q; .short 0; .ok 1;
+    .apply_ {.c _; .lo (_^ .low); .seen (_^ .short); .fine (_^ .ok);
+      @ok ((((c = (lo + 1)) ? {seen = 0} : {c = lo}) ? {fine = 1}) ? {1} : {0}); @short ((c = lo) ? {1} : {seen});}]};
 .binary-router {.cs _; .lc (cs .0); .rc (cs .1); [
     .phase (((lc.#) = (rc.#)) ? {2} : {1});
     .left lc;
@@ -137,8 +151,8 @@ fields never stand in for them.
   ]};
 .channel-router {.cs _; [
     .channels cs;
-    .apply_ {.x _; .cs (_^ .channels);
-      @channels (((((_^^ .history) cs) x) / (cs.#)) .channels);};
+    .apply_ {.x _; .cs (_^ .channels); .n ((cs & {_.#}).##);
+      @channels ((cs | ((_^^ .append-at) [(n %% (cs.#)), [x]])) .out);};
     .# {((_^ .channels) &| {_}).#};
     .## {((_^ .channels) & {channel-load _}).##};
     .### {((_^ .channels) & {channel-load _}).###};
@@ -147,7 +161,7 @@ fields never stand in for them.
   ]};
 .RotorRouter {((_ ~ ([].<>)) ? {(__ .#) .> 0}) ? {.a __;
   ((a &| {.x _; (x ~ ([].<>)) ? {[]} : {[x]}}).# = 0) ? {.cs (a & {_ | []}); .k (cs.#); .n ((cs &| {_}).#);
-    ((k .> 0) ? {(cs & {_.#}) = (round-robin [n, k])}) ? {(k = 2) ? {binary-router cs} : {channel-router cs}} : {$!!.invalid-router}
+    ((k .> 0) ? {(((cs & {_.#}) | (round-robin [n, k])) .ok) = 1}) ? {(k = 2) ? {binary-router cs} : {channel-router cs}} : {$!!.invalid-router}
   } : {$!!.invalid-router}} : {$!!.invalid-router}};
 ```
 ## Construction

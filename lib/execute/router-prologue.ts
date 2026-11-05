@@ -33,7 +33,16 @@ export const ROUTER_SOURCE = "hc/rotor-router.hc";
 /** The name the file declares the constructor under. */
 export const ROUTER_CLASS = "RotorRouter";
 
+/**
+ * The builders the class file declares beside its constructor, which make an
+ * instance from channels already known to be admissible, without validating
+ * or copying them: `binary-router` for two channels, `channel-router` for any
+ * other number.
+ */
+export const ROUTER_BUILDERS = ["binary-router", "channel-router"] as const;
+
 let loaded: Frame | undefined;
+let builders: { binary: Frame; channel: Frame } | undefined;
 let loading = false;
 
 /**
@@ -51,9 +60,15 @@ export function loadRouterClass(source: string | undefined): Frame {
   const result = evaluateSourceText(source, EvaluationScope.root(namespace));
   if (result.isFailedResult() || result.observationError()) return result;
   const constructor = namespace.getOwn(ROUTER_CLASS);
-  return constructor.is.missing
-    ? Frame.error(`$!.router-prologue-missing ${ROUTER_CLASS}`)
-    : constructor;
+  if (constructor.is.missing) {
+    return Frame.error(`$!.router-prologue-missing ${ROUTER_CLASS}`);
+  }
+  const [binary, channel] = ROUTER_BUILDERS.map((key) => namespace.getOwn(key));
+  if (binary.is.missing || channel.is.missing) {
+    return Frame.error(`$!.router-prologue-missing ${ROUTER_BUILDERS}`);
+  }
+  builders = { binary, channel };
+  return constructor;
 }
 
 /**
@@ -121,5 +136,30 @@ export function channelRouterChannels(source: Frame): Frame[] | undefined {
   return candidate.typeEquals(host) === Frame.all ? channels : undefined;
 }
 
-installDivisionCarrier(constructRouter);
+/**
+ * The router a list division answers, from the channels it just dealt.
+ *
+ * Dealt channels are fresh arrays and a round-robin profile by construction,
+ * so they go straight to the class's own builder: validating and copying them
+ * through the public constructor costs a closure call per channel, which made
+ * a router's breadth-first readout (a division by its longest channel's
+ * length) dominate its division (PR #482 review). The instance is the one the
+ * constructor would build from the same channels.
+ *
+ * @param channels The dealt channel arrays, at least one.
+ * @returns The new router, or the class's failure.
+ */
+export function dealtRouter(channels: FrameArray): Frame {
+  const constructor = routerClass();
+  if (constructor.isFailedResult() || constructor.observationError()) {
+    return constructor;
+  }
+  if (!builders) return Frame.error("$!.router-unavailable /");
+  const build = channels.elements().length === 2
+    ? builders.binary
+    : builders.channel;
+  return FrameExpr.answeredValue(build.call(channels)).referent();
+}
+
+installDivisionCarrier(dealtRouter);
 installRouterRecognizer(channelRouterChannels);
