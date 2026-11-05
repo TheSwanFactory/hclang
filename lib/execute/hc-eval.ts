@@ -8,6 +8,8 @@ import {
 } from "../frames.ts";
 // Installs the Demi class that `.####` constructs (011.20).
 import "./demi-prologue.ts";
+// Installs the RotorRouter class that list division answers (007.27c).
+import "./router-prologue.ts";
 import { EvalPipe, makeSourcePipe } from "./eval-pipe.ts";
 import { LexPipe } from "./lex-pipe.ts";
 import { evaluateResourceSource } from "./resource-import.ts";

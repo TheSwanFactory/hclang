@@ -83,7 +83,7 @@ stores `channels`; only the binary one also has `left`, `right` and `phase`,
 which it writes together with `channels`. A round-robin history from channel 0
 leaves the first C mod k channels one longer than the rest, so a channel
 router admits exactly the channels whose Counts are the dealing of C children
-into k, compared with `(C [0]) / k`, and refuses every other with
+into k, `round-robin [C, k]`, and refuses every other with
 `$!!.invalid-router`.
 Routing appends to channel C mod k, which for k = 2 is the phase's channel.
 Its Size is the sum of its channel loads and its residual their alternating
@@ -95,7 +95,10 @@ C mod k. Text reads `RotorRouter([ch0, ch1, …])`.
 `router ./ n`, also spelled `router / n`, re-deals the Frames it holds: it
 reconstructs the order they were routed in from its channels, which their
 admissibility fixes, and routes that history through a fresh router of n
-channels, that is, it divides the history as a list. Every Frame stays the
+channels, that is, it is the history divided as a list, `history / n`, since
+list division answers the n-channel router of its channels (007.27c).
+Reconstructing the history is the breadth-first readout of 007.27c: the first
+Frame of each channel in channel order, then the second of each, and so on. Every Frame stays the
 same Frame, whole, in order, exactly once, and nothing is evaluated or
 measured; the Count is kept and the next route goes to channel C mod n. The
 history is the dealing inverted: the channels, the short ones padded with a
@@ -114,7 +117,9 @@ fields never stand in for them.
 .channel-load {.c _; (c.# = 0) ? {0} : {c.##}};
 .history {.cs _; .w ((cs .0).#); .pad [];
   (w = 0) ? {[]} : {.padded (cs & {.ch _; (ch.# = w) ? {ch} : {ch pad}});
-    ((padded &| {_}) / w) &| {.round _; round &| {.x _; (x === (_^^^ .pad)) ? {[]} : {[x]}}}}};
+    (((padded &| {_}) / w) .channels) &| {.round _; round &| {.x _; (x === (_^^^ .pad)) ? {[]} : {[x]}}}}};
+.round-robin {.s (_ .0); .ways (_ .1); .r (s %% ways); .q (((s - r) / ways).##);
+  ((ways - r) [q]) | (r [(q + 1)])};
 .binary-router {.cs _; .lc (cs .0); .rc (cs .1); [
     .phase (((lc.#) = (rc.#)) ? {2} : {1});
     .left lc;
@@ -125,24 +130,22 @@ fields never stand in for them.
     .# {.l (_^ .left); .r (_^ .right); l.# + r.#};
     .## {(channel-load (_^ .left)) + (channel-load (_^ .right))};
     .### {(channel-load (_^ .left)) - (channel-load (_^ .right))};
-    ./ {.ways _; .h ((_^^ .history) (_^ .channels)); .v (h / ways);
-      (v ~ ([].<>)) ? {(_^^^ .RotorRouter) v} : {v}};
+    ./ {.ways _; ((_^^ .history) (_^ .channels)) / ways};
     .toText {“RotorRouter(” (_^ .left) “,” (_^ .right) “)”}
   ]};
 .channel-router {.cs _; [
     .channels cs;
     .apply_ {.x _; .cs (_^ .channels);
-      @channels ((((_^^ .history) cs) x) / (cs.#));};
+      @channels (((((_^^ .history) cs) x) / (cs.#)) .channels);};
     .# {((_^ .channels) &| {_}).#};
     .## {((_^ .channels) & {channel-load _}).##};
     .### {((_^ .channels) & {channel-load _}).###};
-    ./ {.ways _; .h ((_^^ .history) (_^ .channels)); .v (h / ways);
-      (v ~ ([].<>)) ? {(_^^^ .RotorRouter) v} : {v}};
+    ./ {.ways _; ((_^^ .history) (_^ .channels)) / ways};
     .toText {“RotorRouter(” (_^ .channels) “)”}
   ]};
 .RotorRouter {((_ ~ ([].<>)) ? {(__ .#) .> 0}) ? {.a __;
   ((a &| {.x _; (x ~ ([].<>)) ? {[]} : {[x]}}).# = 0) ? {.cs (a & {_ | []}); .k (cs.#); .n ((cs &| {_}).#);
-    ((cs & {_.#}) = (((n [0]) / k) & {_.#})) ? {(k = 2) ? {binary-router cs} : {channel-router cs}} : {$!!.invalid-router}
+    ((k .> 0) ? {(cs & {_.#}) = (round-robin [n, k])}) ? {(k = 2) ? {binary-router cs} : {channel-router cs}} : {$!!.invalid-router}
   } : {$!!.invalid-router}} : {$!!.invalid-router}};
 ```
 ## Construction
@@ -477,7 +480,7 @@ printed form is matched here by its beginning
 ```
 ; RotorRouter [[5], []]
 # [.phase 1; .left [5]; .right []; .channels [[5], []]; .apply_ {...
-; (RotorRouter [[5], []]) = [.phase 1; .left [5]; .right []; .channels [[5], []]; .apply_ { .x _; .l (_^ .left); .r (_^ .right); .n (l.# + r.#); ((n %% 2) = 0) ? { .nl (l x); @left nl; @channels [nl, r]; @phase 1; } : { .nr (r x); @right nr; @channels [l, nr]; @phase 2; }; }; .# { .l (_^ .left); .r (_^ .right); l.# + r.# }; .## { (channel-load (_^ .left)) + (channel-load (_^ .right)) }; .### { (channel-load (_^ .left)) - (channel-load (_^ .right)) }; ./ { .ways _; .h ((_^^ .history) (_^ .channels)); .v (h / ways); (v ~ ([].<>)) ? { (_^^^ .RotorRouter) v } : { v } }; .toText { “RotorRouter(” (_^ .left) “,” (_^ .right) “)” };]
+; (RotorRouter [[5], []]) = [.phase 1; .left [5]; .right []; .channels [[5], []]; .apply_ { .x _; .l (_^ .left); .r (_^ .right); .n (l.# + r.#); ((n %% 2) = 0) ? { .nl (l x); @left nl; @channels [nl, r]; @phase 1; } : { .nr (r x); @right nr; @channels [l, nr]; @phase 2; }; }; .# { .l (_^ .left); .r (_^ .right); l.# + r.# }; .## { (channel-load (_^ .left)) + (channel-load (_^ .right)) }; .### { (channel-load (_^ .left)) - (channel-load (_^ .right)) }; ./ { .ways _; ((_^^ .history) (_^ .channels)) / ways }; .toText { “RotorRouter(” (_^ .left) “,” (_^ .right) “)” };]
 # <>
 ```
 ## Importing

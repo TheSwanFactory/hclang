@@ -1,6 +1,6 @@
 #!/usr/bin/env hc
 ```
-Literal division (occurrence/figure 007.26, 007.27)
+Literal division (occurrence/figure 007.26, 007.27, 007.27c)
 
 Division by n, taken literally, is dealing a pile into n channels in turn: the
 first to channel 0, the next to channel 1, and so on round the n channels.
@@ -14,10 +14,14 @@ The divisor is always the channel Count itself: a positive Count, never a Size
 read from some other Frame.
 
 - **A list** (an array or a group) deals its immediate elements whole, in
-  order, and answers exactly n channel arrays: the element at index i goes to
-  channel i mod n. Elements are the same Frames, never copied, evaluated,
-  measured or flattened, so identity, nesting and duplicates are kept.
-  Properties are not elements and are not dealt. This is native, in `/`.
+  order, into n channels: the element at index i goes to channel i mod n.
+  Elements are the same Frames, never copied, evaluated, measured or
+  flattened, so identity, nesting and duplicates are kept. Properties are not
+  elements and are not dealt. The answer is a `RotorRouter` of those n
+  channels, read as `.channels`, not a bare list of lists (007.27c): a list
+  whose children happen to be lists is a plain list, and a router keeps its
+  channels as channels, so dividing the answer again re-deals the same Frames.
+  The dealing is native, in `/`.
 - **A RotorRouter** (`hc/rotor-router.hc`) keeps the Frames it routed, so it
   re-deals them: it reconstructs the order they were routed in from its
   channels, which a round-robin history fixes, and routes that history through
@@ -45,42 +49,82 @@ aggregate or a Demi included. More than 1,000,000 channels is
 
 Seven Frames dealt into three channels: the element at index i goes to channel
 i mod 3. Nested arrays, an aggregate with a property, a closure and a group are
-each one element, dealt whole
+each one element, dealt whole. The answer is the router of those channels
 ```
 ; .A [1, [2]]; .B “b”; .C {5 + 3}; .D [.k 9; 4]; .E 5; .F (6, 7); .G 7;
 ; .xs [A, B, C, D, E, F, G];
-; xs ./ 3
-# [[[1, [2]], [.k 9; 4], 7], [“b”, 5], [{ 5 + 3 }, (6, 7)]]
-; .t (xs ./ 3);
-; [t & {_.#}, (xs / 3) = t, ((t .0) .1).k]
-# [[3, 2, 2], <>, 9]
+; “” (xs ./ 3)
+# “RotorRouter([[[1, [2]], [.k 9; 4], 7], [“b”, 5], [{ 5 + 3 }, (6, 7)]])”
+; .t ((xs ./ 3).channels);
+; [t, t & {_.#}, (xs / 3) = (xs ./ 3), ((t .0) .1).k, (xs ./ 3).#]
+# [[[[1, [2]], [.k 9; 4], 7], [“b”, 5], [{ 5 + 3 }, (6, 7)]], [3, 2, 2], <>, 9, 7]
 ```
 Each channel holds the same Frames, in their original order, each once. A
 Frame that occurs twice is dealt twice, and both are it
 ```
 ; [(t .0) &| {[_ === A]}, (t .2) &| {[_ === C]}, (t &| {_}).#, (t &| {_}) = [A, D, G, B, E, C, F]]
 # [[<>, (), ()], [<>, ()], 7, <>]
-; [[A, A, A] ./ 2, ([A, A, A] ./ 2) &| {_} &| {[_ === A]}]
+; [([A, A, A] ./ 2).channels, ([A, A, A] ./ 2).channels &| {_} &| {[_ === A]}]
 # [[[[1, [2]], [1, [2]]], [[1, [2]]]], [<>, <>, <>]]
 ```
-One channel is the whole list, and more channels than elements leave the last
-ones empty. An empty list deals into n empty channels; empty elements are
-dealt like any other
+Two channels are the binary router, with its `left`, `right` and `phase`. One
+channel is the whole list, and more channels than elements leave the last ones
+empty. An empty list deals into n empty channels; empty elements are dealt
+like any other
 ```
-; [xs ./ 1, [1, 2] ./ 5, [] ./ 3, [[], []] ./ 2]
+; [“” ([1, 2, 3] ./ 2), ([1, 2, 3] ./ 2).left, ([1, 2, 3] ./ 2).phase]
+# [“RotorRouter([1, 3],[2])”, [1, 3], 1]
+; [(xs ./ 1).channels, ([1, 2] ./ 5).channels, ([] ./ 3).channels, ([[], []] ./ 2).channels]
 # [[[[1, [2]], “b”, { 5 + 3 }, [.k 9; 4], 5, (6, 7), 7]], [[1], [2], [], [], []], [[], [], []], [[[]], [[]]]]
 ```
 Properties are not elements, so they are not dealt. A group deals its elements
 too, and its channels are arrays
 ```
-; [[.k 1; 1, 2, 3] ./ 2, (1, 2, 3) ./ 2]
+; [([.k 1; 1, 2, 3] ./ 2).channels, ((1, 2, 3) ./ 2).channels]
 # [[[1, 3], [2]], [[1, 3], [2]]]
 ```
 The channel Counts are the canonical dealing: for seven elements into three
 channels they are 3, 2, 2, whatever the elements are
 ```
-; [(xs ./ 3) & {_.#}, ((7 [0]) ./ 3) & {_.#}, ([1, 2, 3, 4, 5, 6, 7, 8, 9, 10] ./ 4) & {_.#}]
+; [(xs ./ 3).channels & {_.#}, ((7 [0]) ./ 3).channels & {_.#}, ([1, 2, 3, 4, 5, 6, 7, 8, 9, 10] ./ 4).channels & {_.#}]
 # [[3, 2, 2], [3, 2, 2], [3, 3, 2, 2]]
+```
+## Dividing a division (007.27c)
+
+A division keeps its channels as channels, so dividing it again reads them
+breadth-first, the first of each channel, then the second of each, and deals
+that sequence: `(X ./ n) ./ m` is `X ./ m`, the same Frames in the same
+order, with no extra nesting. Dividing by the same n again changes nothing
+```
+; .X [A, 2, 3, 4, 5, 6];
+; [“” (X ./ 2), “” ((X ./ 2) ./ 2), ((X ./ 2) ./ 2) = (X ./ 2), ((X ./ 2) ./ 3) = (X ./ 3), ((X ./ 3) ./ 2) = (X ./ 2)]
+# [“RotorRouter([[1, [2]], 3, 5],[2, 4, 6])”, “RotorRouter([[1, [2]], 3, 5],[2, 4, 6])”, <>, <>, <>]
+; [((X ./ 2) ./ 3).channels, (((X ./ 2) ./ 3).channels .0 .0) === A]
+# [[[[1, [2]], 4], [2, 5], [3, 6]], <>]
+```
+A plain list whose children are lists is not a division: its two children are
+two whole Frames, dealt as such, even when they look like channels
+```
+; .N [[1, 3, 5], [2, 4, 6]];
+; [“” (N ./ 2), (N ./ 2).left .0 = [1, 3, 5], (N ./ 2).# , “” ((N ./ 2) ./ 2)]
+# [“RotorRouter([[1, 3, 5]],[[2, 4, 6]])”, <>, 2, “RotorRouter([[1, 3, 5]],[[2, 4, 6]])”]
+```
+Uneven channels read back in dealt order: seven Frames into three channels,
+then into one, give the seven in order; into two they are dealt again from
+that order
+```
+; .Y [1, 2, 3, 4, 5, 6, 7];
+; [“” (Y ./ 3), (((Y ./ 3) ./ 1).channels .0) = Y, “” ((Y ./ 3) ./ 2), ((Y ./ 3) ./ 2) = (Y ./ 2)]
+# [“RotorRouter([[1, 4, 7], [2, 5], [3, 6]])”, <>, “RotorRouter([1, 3, 5, 7],[2, 4, 6])”, <>]
+```
+Channels that no round-robin history left have no dealt order to read, so no
+router holds them and they are not divided: the constructor refuses them, and
+a plain list of such lists is a plain list
+```
+; Routers <- './hc/rotor-router.hc';
+; .RotorRouter Routers.RotorRouter;
+; [RotorRouter [[1], [2, 3]], ([[1], [2, 3]] ./ 2).channels]
+# [$!!.invalid-router, [[[1]], [[2, 3]]]]
 ```
 ## Refusals
 
@@ -93,7 +137,7 @@ answered as it is
 # [$!.division-by-zero /, $!.division-domain /, $!.division-domain /, $!.division-domain /, $!.division-domain /, $!.division-domain /, $!.division-domain /]
 ; [1, 2] ./ (1 / 0)
 # $!.division-by-zero /
-; [[1, 2] ./ (2 ** 30), ([1] ./ 1000).#]
+; [[1, 2] ./ (2 ** 30), ([1] ./ 1000).channels.#]
 # [$!.repetition-size 1000000, 1000]
 ```
 Numbers keep exact numeric division, and a Frame that is neither a number nor
@@ -106,26 +150,27 @@ an ordered list still answers nil
 
 The summed Size of the dealt children is the list's Size: each child is in
 exactly one channel. Each channel's load is the sum of its children's Sizes,
-and an empty channel's load is 0. The outer array's own `.##` is not that sum,
-because an empty array has Size 1, so an empty channel adds one
+and an empty channel's load is 0. The router's `.##` is that sum. The `.##`
+of its channels taken as a plain list of lists is not, because an empty array
+has Size 1, so an empty channel adds one
 ```
 ; .load {.c _; (c.# = 0) ? {0} : {c.##}};
 ; .loads {_ & {load _}};
-; [loads ([5, 2] ./ 2), loads ([5, 2] ./ 3), (loads ([5, 2] ./ 3)).##, [5, 2].##, ([5, 2] ./ 3).##]
-# [[5, 2], [5, 2, 0], 7, 7, 8]
+; [loads ([5, 2] ./ 2).channels, loads ([5, 2] ./ 3).channels, (loads ([5, 2] ./ 3).channels).##, [5, 2].##, ([5, 2] ./ 3).##, ([5, 2] ./ 3).channels.##]
+# [[5, 2], [5, 2, 0], 7, 7, 7, 8]
 ```
 Zero-Size children take a slot, and empty children count their own Size 1
 ```
-; [loads ([0, 0, 0] ./ 2), loads ([[], [], 0] ./ 2), [[], [], 0].##]
+; [loads ([0, 0, 0] ./ 2).channels, loads ([[], [], 0] ./ 2).channels, [[], [], 0].##]
 # [[0, 0], [1, 1], 2]
 ```
 Dealing measures nothing, so a child whose Size fails is dealt like any other.
 Its failure shows where the channel is measured
 ```
 ; .Failing [.## {[].nope}; 1];
-; ([Failing, 1] ./ 2) & {_.#}
+; ([Failing, 1] ./ 2).channels & {_.#}
 # [1, 1]
-; ([Failing, 1] ./ 2) .0 .##
+; ([Failing, 1] ./ 2).##
 # $!.name-missing “...
 ```
 ## Demi
@@ -221,7 +266,7 @@ m from 1 to 4 dividing by n then m is dividing by m
 ```
 ; .cs [0, 1, 2, 3]; .ls [0, 1, 2, 3, 4]; .ns [1, 2, 3, 4];
 ; .states (cs &| {.c _; ls &| {.l _; ls & {Demi [c, l, _]}}});
-; .law {.k _; ns &| {.n _; .q (k ./ n); [q.# = k.#, q.## = k.##, q.loads.# = n, q.loads = (((k.## [1]) ./ n) & {_.#}), (q ./ n) = q]}};
+; .law {.k _; ns &| {.n _; .q (k ./ n); [q.# = k.#, q.## = k.##, q.loads.# = n, q.loads = (((k.## [1]) ./ n).channels & {_.#}), (q ./ n) = q]}};
 ; .renorm {.k _; ns &| {.n _; ns & {.m _; ((k ./ n) ./ m) = (k ./ m)}}};
 ; .checks ((states &| law) | (states &| renorm));
 ; [states.#, checks.#, checks = (checks & {<>})]
@@ -257,8 +302,6 @@ A round-robin history from channel 0 fills the channels so that the first
 C mod k hold one more than the rest, so the constructor admits exactly the
 channels whose Counts are the dealing of C into k, and refuses every other
 ```
-; Routers <- './hc/rotor-router.hc';
-; .RotorRouter Routers.RotorRouter;
 ; [[[]], [[], []], [[], [], []], [[], [], [], []]] & {“” (RotorRouter _)}
 # [“RotorRouter([[]])”, “RotorRouter([],[])”, “RotorRouter([[], [], []])”, “RotorRouter([[], [], [], []])”]
 ; [[[5]], [[5], [6]], [[5], [], []], [[5], [6], []], [[5, 8], [6], [7]], [[5, 9], [6], [7], [8]]] & {(RotorRouter _).#}
@@ -284,7 +327,7 @@ and dividing by one gives the history back in routed order
 ```
 ; .r0 (RotorRouter [[], []]);
 ; .r7 (xs | r0); .t3 (r7 ./ 3);
-; [“” t3, t3.channels & {_.#}, t3.# = r7.#, t3.## = r7.##, t3 = (RotorRouter (xs ./ 3))]
+; [“” t3, t3.channels & {_.#}, t3.# = r7.#, t3.## = r7.##, t3 = (xs ./ 3)]
 # [“RotorRouter([[[1, [2]], [.k 9; 4], 7], [“b”, 5], [{ 5 + 3 }, (6, 7)]])”, [3, 2, 2], <>, <>, <>]
 ; [(t3.channels .0) &| {[_ === A]}, (t3.channels .2) &| {[_ === C]}, ((t3.channels .0) .1).k, ((t3 ./ 1).channels .0) = xs]
 # [[<>, (), ()], [<>, ()], 9, <>]
@@ -357,12 +400,12 @@ and 2, as list and router; the Demi of the same list, normalized, loads them 4
 and 3. They are different states with the same Size, and neither is wrong
 ```
 ; .two [5, 2];
-; [loads (two ./ 2), ((two | r0) ./ 2).channels & {load _}, “” (two.#### ./ 2), ((two | r0) ./ 2).#### = (two.#### ./ 2), ((two | r0) ./ 2).####.## = (two.#### ./ 2).##]
+; [loads (two ./ 2).channels, ((two | r0) ./ 2).channels & {load _}, “” (two.#### ./ 2), ((two | r0) ./ 2).#### = (two.#### ./ 2), ((two | r0) ./ 2).####.## = (two.#### ./ 2).##]
 # [[5, 2], [5, 2], “Demi(2,4,3)”, (), <>]
 ```
 They agree when every child has Size one, since then each Frame is one Size
 unit. With other Sizes they need not
 ```
 ; .ones [1, 1, 1, 1, 1, 1, 1];
-; [((ones | r0) ./ 3).channels & {load _}, (ones.#### ./ 3).loads, loads ([5, 2, 9, 1] ./ 3), ([5, 2, 9, 1].#### ./ 3).loads]
+; [((ones | r0) ./ 3).channels & {load _}, (ones.#### ./ 3).loads, loads ([5, 2, 9, 1] ./ 3).channels, ([5, 2, 9, 1].#### ./ 3).loads]
 # [[3, 2, 2], [3, 2, 2], [6, 2, 9], [6, 6, 5]]

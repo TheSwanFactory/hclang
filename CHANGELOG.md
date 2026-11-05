@@ -6,13 +6,15 @@
 
 ## v0.44.0 2026-11-04
 
-- **Literal division `./ n` (occurrence/figure 007.27).** `./` and `/` are one
-  operator; numbers keep exact division. An array or group divided by a positive
-  Count n is dealt into exactly n channel arrays, element i to channel i mod n:
-  `[A, B, C, D, E, F, G] ./ 3` is `[[A, D, G], [B, E], [C, F]]`, the same
-  Frames, whole and in order. A divisor of zero is `$!.division-by-zero /`;
-  anything but a Count is `$!.division-domain /`. Before, `[1, 2] / 2` answered
-  nil (#482).
+- **Literal division `./ n` (occurrence/figure 007.27, 007.27c).** `./` and `/`
+  are one operator; numbers keep exact division. An array or group divided by a
+  positive Count n deals its elements, whole and in order, into n channels,
+  element i to channel i mod n, and answers the `RotorRouter` of those channels:
+  `([A, B, C, D, E, F, G] ./ 3).channels` is `[[A, D, G], [B, E], [C, F]]`.
+  Because the answer keeps its channels, dividing it again re-deals the same
+  elements breadth-first, so `(X ./ n) ./ m` is `X ./ m`. A divisor of zero is
+  `$!.division-by-zero /`; anything but a Count is `$!.division-domain /`.
+  Before, `[1, 2] / 2` answered nil (#482).
 - **Channel Demi.** `Demi [C, loads]` takes a nonempty list of loads; two are
   the binary `Demi [C, L, R]`. A k-load Demi deposits into channel `C mod k`,
   observes its Size as the sum of its loads and its residual as their

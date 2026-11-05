@@ -226,9 +226,11 @@ All mathematical operators can use optional `.` prefix:
 - Multiplication: `*` or `.*`
 - Division: `/` or `./`. Two numbers divide exactly (`7 / 2` is `7/2`). An array
   or group divided by a positive Count n is dealt into n channels, element i to
-  channel i mod n: `[A, B, C, D, E] ./ 2` is `[[A, C, E], [B, D]]` (007.27).
-  `Demi` and `RotorRouter` declare their own `/`, which redistributes into n
-  channels (`doc/FRAME-DEMI.md`).
+  channel i mod n, and answers the `RotorRouter` of those channels:
+  `([A, B, C, D, E] ./ 2).channels` is `[[A, C, E], [B, D]]` (007.27). Dividing
+  that router again re-deals the same elements, so `(X ./ n) ./ m` is `X ./ m`
+  (007.27c). `Demi` and `RotorRouter` declare their own `/`, which redistributes
+  into n channels (`doc/FRAME-DEMI.md`).
 
 The dotted spellings dispatch exactly as the bare ones, on every receiver
 (`xs .* 2` is `xs * 2`).

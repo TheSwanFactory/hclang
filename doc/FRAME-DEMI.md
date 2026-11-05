@@ -408,16 +408,23 @@ numbers keeps exact numeric division, `7 ./ 2` is `7/2`.
 
 | Receiver       | `x ./ n` deals                        | Answer                                                      |
 | -------------- | ------------------------------------- | ----------------------------------------------------------- |
-| Array or group | its immediate elements, whole         | exactly n channel arrays; element i in channel i mod n      |
+| Array or group | its immediate elements, whole         | `RotorRouter` of n channels; element i in channel i mod n   |
 | RotorRouter    | the Frames it routed, in routed order | `RotorRouter` of n channels; Count kept, next route C mod n |
 | Demi           | S Size units                          | Demi of n loads; Count and Size kept, next deposit C mod n  |
 
-**Lists** (native, in `/`). Elements are the same Frames, never copied,
+**Lists** (dealing native, in `/`). Elements are the same Frames, never copied,
 evaluated, measured or flattened, so identity, nesting and duplicates are kept
 and each lands in exactly one channel. Properties are not elements and are not
-dealt; a group's channels are arrays. The summed Size of the children is
-conserved, but the outer array's `.##` is not that sum when a channel is empty,
-because `[].##` is 1 while an empty channel's load is 0.
+dealt; a group's channels are arrays. The answer is the `RotorRouter` of the n
+channels (built by `lib/execute/router-prologue.ts`, as `.####` builds a Demi;
+without an evaluator it is `$!.router-unavailable /`), not a bare list of lists.
+007.27c is why: a plain list whose children are lists cannot be told from a
+division by its shape, and dividing it must deal those children whole, while
+dividing a division must read its channels breadth-first and re-deal the same
+Frames. The router carries that distinction, so `(X ./ n) ./ m = X ./ m` and
+`(X ./ n) ./ n = X ./ n`. Its `.##` is the summed child Size; the `.##` of
+`.channels` taken as a plain list is not, when a channel is empty, because
+`[].##` is 1 while an empty channel's load is 0.
 
 **Demi.** `Demi [C, loads]` takes a Count and a nonempty list of Counts. Two
 loads are the binary `Demi [C, L, R]`, the same instance; any other arity is a
@@ -465,8 +472,8 @@ did are unchanged except their printed form, which now includes `.loads
 [L, R]`
 and `.channels [left, right]`, and a `./` method. `RotorRouter [[]]` and
 `RotorRouter [[], [], []]`, refused before, are routers of one and three
-channels. `[1, 2] / 2` was nil and is now `[[1], [2]]`; `Demi / n` was nil and
-is now a redistribution.
+channels. `[1, 2] / 2` was nil and is now `RotorRouter [[1], [2]]`; `Demi / n`
+was nil and is now a redistribution.
 
 **Not established.** This shows cyclic position as Count modulo arity on
 existing HC frames. It does not prove a cyclic Fact closure, the Stick reversal

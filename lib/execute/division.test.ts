@@ -19,10 +19,15 @@ const answers = async (cases: Array<[string, string]>): Promise<void> => {
 
 Deno.test("literal division deals a list into n channels (007.27)", async () => {
   await answers([
-    ["xs ./ 2", "[[1, 3, 5], [2, 4]]"],
-    ["xs / 2", "[[1, 3, 5], [2, 4]]"],
-    ["[1, 2, 3] ./ 3", "[[1], [2], [3]]"],
-    ["(1, 2, 3) ./ 2", "[[1, 3], [2]]"],
+    ["(xs ./ 2).channels", "[[1, 3, 5], [2, 4]]"],
+    ["(xs / 2) = (xs ./ 2)", "<>"],
+    ["“” (xs ./ 2)", "“RotorRouter([1, 3, 5],[2, 4])”"],
+    // A division keeps its channels, so dividing it again re-deals the same
+    // Frames breadth-first (007.27c).
+    ["((xs ./ 2) ./ 3) = (xs ./ 3)", "<>"],
+    ["((xs ./ 2) ./ 2) = (xs ./ 2)", "<>"],
+    ["([1, 2, 3] ./ 3).channels", "[[1], [2], [3]]"],
+    ["((1, 2, 3) ./ 2).channels", "[[1, 3], [2]]"],
     ["7 ./ 2", "7/2"],
     ["6 / 3", "2"],
     ["ys ./ 0", "$!.division-by-zero /"],
@@ -39,7 +44,7 @@ Deno.test("dotted arithmetic operators dispatch as the bare operator", async () 
     // Resolved as a name, `.*` missed the named array and was found in the
     // scope the name was read in, so `ys .* 2` refused that scope's Star.
     ["ys .* 2", "[2, 4]"],
-    ["[ys ./ 2]", "[[[1], [2]]]"],
+    ["[(ys ./ 2).channels]", "[[[1], [2]]]"],
     // A class's declared operator still answers its dotted spelling.
     ["plus .+ 5", "[“plus”, 5]"],
     ["over ./ 5", "[“over”, 5]"],
