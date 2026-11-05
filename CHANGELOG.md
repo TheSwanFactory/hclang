@@ -19,6 +19,38 @@
   ordinary evaluation pays one length check per read and one `WeakMap` update
   per write.
 
+## v0.44.0 2026-11-04
+
+- **Literal division `./ n` (occurrence/figure 007.27, 007.27c).** `./` and `/`
+  are one operator; numbers keep exact division. An array or group divided by a
+  positive Count n deals its elements, whole and in order, into n channels,
+  element i to channel i mod n, and answers the `RotorRouter` of those channels:
+  `([A, B, C, D, E, F, G] ./ 3).channels` is `[[A, D, G], [B, E], [C, F]]`.
+  Because the answer keeps its channels, dividing it again re-deals the same
+  elements breadth-first, so `(X ./ n) ./ m` is `X ./ m`. A divisor of zero is
+  `$!.division-by-zero /`; anything but a Count is `$!.division-domain /`.
+  Before, `[1, 2] / 2` answered nil (#482).
+- **Channel Demi.** `Demi [C, loads]` takes a nonempty list of loads; two are
+  the binary `Demi [C, L, R]`. A k-load Demi deposits into channel `C mod k`,
+  observes its Size as the sum of its loads and its residual as their
+  alternating sum, and prints as `Demi(C,[…])`. `D ./ n` keeps `C` and the Size
+  and deals the Size units round-robin into n loads (`Demi(3,[5,2]) ./ 3` is
+  `Demi(3,[3,2,2])`). Every Demi now stores `.loads`, so its printed form
+  changes. `-` deposits on load 0 and `+` on load 1, the first even and odd
+  loads, as left and right do for two (#482).
+- **Channel RotorRouter.** `RotorRouter [ch0, …, chk−1]` takes k ≥ 1 channels
+  and routes to channel `C mod k` by direct append; only round-robin histories
+  are admitted. `r ./ n` re-deals the routed Frames, in routed order, into n
+  channels, keeping the Count. A router of other than two channels answers its
+  channel Demi, `Demi [C, loads]`, as its fourth hash, so
+  `(r y).#### = r.#### y` holds for every arity. Every router now stores
+  `.channels`, so its printed form changes; `RotorRouter [[]]` and
+  `RotorRouter [[], [], []]`, refused before, are routers of one and three
+  channels (#482).
+- **Fix: dotted operators on named values.** `xs .* 2`, `xs ./ 3` and the other
+  dotted arithmetic spellings now dispatch as the bare operator. With `xs` a
+  name they used to answer for the scope the name was read in (#482).
+
 ## v0.43.0 2026-11-04
 
 - **Breaking: `Demi` keeps the full application Count (occurrence/figure

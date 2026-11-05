@@ -394,3 +394,93 @@ form. The initial router has Count zero and no Demi, as the empty host has none.
 **Provenance.** The Count is a number the state stores or an application adds
 to, in HC. It is not a Frame-native history theorem. `S/C` and `Δ/C` are
 arithmetic readings of it, not a construction of rational geometry.
+
+## Literal division and channel arity (007.27)
+
+`x ./ n` (also `x / n`, the same operator) divides by n literally: it deals into
+n channels in turn, round-robin from channel 0. Parity is the case n = 2.
+[`hc/division.hc`](../hc/division.hc) is the executable specification. The
+divisor is always the channel Count: a positive Count, refused as
+`$!.division-by-zero /` at zero and `$!.division-domain /` for anything else
+(negative, fractional, decimal, text, an aggregate, a Demi), never read as a
+Size. A divisor above both 1,000,000 and the element count is
+`$!.repetition-size 1000000`, checked before anything is built; up to the
+element count is always allowed, so the answer stays proportional to the list. A
+pair of numbers keeps exact numeric division, `7 ./ 2` is `7/2`.
+
+| Receiver       | `x ./ n` deals                        | Answer                                                      |
+| -------------- | ------------------------------------- | ----------------------------------------------------------- |
+| Array or group | its immediate elements, whole         | `RotorRouter` of n channels; element i in channel i mod n   |
+| RotorRouter    | the Frames it routed, in routed order | `RotorRouter` of n channels; Count kept, next route C mod n |
+| Demi           | S Size units                          | Demi of n loads; Count and Size kept, next deposit C mod n  |
+
+**Lists** (dealing native, in `/`). Elements are the same Frames, never copied,
+evaluated, measured or flattened, so identity, nesting and duplicates are kept
+and each lands in exactly one channel. Properties are not elements and are not
+dealt; a group's channels are arrays. The answer is the `RotorRouter` of the n
+channels (built by `lib/execute/router-prologue.ts`, as `.####` builds a Demi;
+without an evaluator it is `$!.router-unavailable /`), not a bare list of lists.
+007.27c is why: a plain list whose children are lists cannot be told from a
+division by its shape, and dividing it must deal those children whole, while
+dividing a division must read its channels breadth-first and re-deal the same
+Frames. The router carries that distinction, so `(X ./ n) ./ m = X ./ m` and
+`(X ./ n) ./ n = X ./ n`. Its `.##` is the summed child Size; the `.##` of
+`.channels` taken as a plain list is not, when a channel is empty, because
+`[].##` is 1 while an empty channel's load is 0.
+
+**Demi.** `Demi [C, loads]` takes a Count and a nonempty list of Counts. Two
+loads are the binary `Demi [C, L, R]`, the same instance; any other arity is a
+channel Demi. Every Demi now stores `count` and `loads`; the binary one also
+keeps `phase`, `left` and `right`, written together with `loads`. A channel Demi
+of arity k deposits into channel `C mod k`; its Size is the sum of its loads and
+its residual their alternating sum `e0 − e1 + e2 − …` (the list residual,
+`L − R` for two); its fourth hash is intrinsic, a fresh equal Demi of its own
+arity, Count zero included; `*`, `scale_` and the ratios work as for the binary
+Demi. `-` deposits `x.##` on load 0, the first even load, raising the residual,
+and `+` on load 1, the first odd load, lowering it: for two loads that is the
+binary left and right. With one load there is no odd load, and `+` is
+`$!!.invalid-arity`. Text is `Demi(C,[e0, e1, …])`.
+
+`D ./ n` keeps C and S and canonicalizes the loads to S units dealt into n
+channels: with q = ⌊S/n⌋ and r = S mod n, the first r hold q + 1 and the rest q.
+So for S = 7, `./ 2` is [4, 3], `./ 3` is [3, 2, 2] and `./ 4` is [2, 2, 2, 1].
+It is idempotent, `(D ./ n) ./ m = D ./ m`, equal (C, S) give equal results, and
+it is many-to-one: `Demi(3,[5,2])` and `Demi(3,[4,3])` both give
+`Demi(3,[3,2,2])`. It answers no number, so it is neither scalar division nor
+the ratios.
+
+**RotorRouter.** `RotorRouter [ch0, …, chk−1]` takes k ≥ 1 arrays; two are the
+binary router. Every router stores `channels`; the binary one also keeps
+`phase`, `left` and `right`. A channel router admits exactly the channels a
+round-robin history from channel 0 leaves, whose Counts are the dealing of C
+into k, and routes to channel `C mod k`. `r ./ n` reconstructs the routed order
+from the channels and routes it into a fresh n-channel router, so it is the
+router of the history divided as a list. Its observers are a channel Demi's, and
+its fourth hash is its channel Demi, `Demi [C, [load0, …]]`, one load per
+channel: `lib/frames/fourth-hash.ts` recognizes an instance of the shipped class
+with other than two channels intrinsically (rebuilt through its constructor and
+compared with `==`, as a Demi is), since the binary Demi derived from the
+observers follows parity, not C mod k. The binary router keeps its derived
+`Demi(C, L, R)`. So `(r y).#### = r.#### y` holds for every arity with C ≥ 1; at
+C = 0 there is no Demi.
+
+**Whole Frames and Size units do not commute.** Children of Sizes 5 and 2, dealt
+whole into two channels, load them 5 and 2; the Demi of the same list normalizes
+to 4 and 3. Both conserve Size. They agree when every child has Size one.
+
+**Dotted operators.** `.+ .- .* ./ .%% .**` now dispatch as the bare operator on
+every receiver. Before, the dotted name missed a named aggregate and was found
+in the scope the name was read in, so `xs ./ 3` or `xs .* 2` with `xs` a name
+answered for that scope.
+
+**Migration.** `Demi [C, L, R]`, `RotorRouter [left, right]` and everything they
+did are unchanged except their printed form, which now includes `.loads
+[L, R]`
+and `.channels [left, right]`, and a `./` method. `RotorRouter [[]]` and
+`RotorRouter [[], [], []]`, refused before, are routers of one and three
+channels. `[1, 2] / 2` was nil and is now `RotorRouter [[1], [2]]`; `Demi / n`
+was nil and is now a redistribution.
+
+**Not established.** This shows cyclic position as Count modulo arity on
+existing HC frames. It does not prove a cyclic Fact closure, the Stick reversal
+bridge or Gaussian arithmetic.

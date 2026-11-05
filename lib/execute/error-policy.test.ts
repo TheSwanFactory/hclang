@@ -273,8 +273,9 @@ Deno.test("bundled refusals are named errors even with colliding caller bindings
   }
   for (
     const input of [
-      "[[]]",
-      "[[], [], []]",
+      "[]",
+      "[[], [5], []]",
+      "[[5], [], [6]]",
       "([], [])",
       "“abc”",
       "()",

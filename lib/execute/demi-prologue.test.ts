@@ -216,8 +216,11 @@ Deno.test("deposit observes the argument's Size once and propagates its failure"
 Deno.test("a Demi prints as HC that reads back as an equal Demi", () => {
   const d = value("[5, 3, 7].####");
   const printed = d.toString();
-  expect(printed.startsWith("[.count 3; .phase 1; .left 12; .right 3; .# {"))
-    .toBe(true);
+  expect(
+    printed.startsWith(
+      "[.count 3; .phase 1; .left 12; .right 3; .loads [12, 3]; .# {",
+    ),
+  ).toBe(true);
   const restored = value(printed);
   expect(state(restored)).toEqual(state(d));
   expect(restored.equals(d)).toBe(Frame.all);
