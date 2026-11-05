@@ -19,7 +19,9 @@ evaluator uses and its specification, and it works without a resource root.
 Import it to construct Demis directly: `Demis <- './hc/demi.hc'`, then
 `Demis.Demi [0, 0, 0]`.
 
-**State (007.25c).** `Demi [C, L, R]` takes three Counts, any of them zero. `C`
+**State (007.25c).** `Demi [C, L, R]` takes three Counts, any of them zero
+(`Demi [C, loads]` takes a Count and a list of loads; see "Channels and
+division" below). `C`
 is the full application Count the state has recorded, not its parity, so
 `Demi [2, 5, 1]` and `Demi [4, 5, 1]` are different states that agree in phase
 and in both loads. Anything else is refused with `$!!.invalid-demi`, a named
@@ -131,42 +133,114 @@ rational geometry.
 **Text.** A Demi prints as what it is, an aggregate of fields and methods. As
 text it reads `Demi(C,L,R)`, with the Count and both loads.
 
+**Channels and division (007.27).** The two loads are the arity-two case of an
+ordered list of channel loads. `Demi [C, loads]` takes a Count and a nonempty
+list of Counts: two loads are this binary Demi, the same instance
+`Demi [C, L, R]` builds, and any other number is a channel Demi. Every Demi
+stores `count` and `loads`; only the binary one also has `left`, `right` and
+`phase`, which it writes together with `loads`. A channel Demi of arity k
+deposits into channel `C mod k`, which for k = 2 is the phase's channel. Its
+Size is the sum of its loads and its residual their alternating sum
+`e0 − e1 + e2 − …`, the list residual, which for two loads is `L − R`. Its
+fourth hash is intrinsic too: a fresh equal Demi of the same arity. Its `*`,
+`scale_` and ratios are as here. Its `+` and `-` follow the residual's signs:
+`-` deposits on the first even load, load 0, raising the residual, and `+` on
+the first odd load, load 1, lowering it, which for two loads are left and
+right; with one load `+` is `$!!.invalid-arity`. Text reads `Demi(C,[e0, e1,
+…])`.
+
+`d ./ n`, also spelled `d / n`, redistributes the Size: it keeps C and the
+total S and deals S Size units round-robin into n channels, so the first
+S mod n hold ⌈S/n⌉ and the rest ⌊S/n⌋. It is idempotent, `(d ./ n) ./ m` is
+`d ./ m`, and equal Count and Size give equal results, so `Demi(3,[5,2])` and
+`Demi(3,[4,3])` divide into the same `Demi(3,[3,2,2])`. It is not scalar
+division and not the ratios: no number is answered. The divisor is a positive
+Count, refused as a list refuses it (`$!.division-by-zero /`,
+`$!.division-domain /`), never read as a Size. `hc/division.hc` is its
+specification, with the list and RotorRouter divisions beside it.
+
 **Methods read their own state through `_^`.** A bare name inside a method is
 looked up on the argument first (spec 7), and a Demi is applied to arbitrary
 Frames, so a bare `left` could read the argument's field. `_^` is the receiver
 from a method's body, and `_^^` from a block one level in, because carets
 count lexically (spec a06). What a branch needs is bound as a local at method
-level, where nested blocks read it.
+level, where nested blocks read it. The file's own names, the constructor
+`Demi` and the helpers `deposit-at` (a cursor that adds a Size at one channel
+index, applied by reduce) and `redistribution` (the round-robin loads of S
+units in n channels), are read the same way, through the scope a caret ladder
+reaches, `(_^^^ .Demi)` from a branch, so an argument's fields never stand in
+for them.
 ```
-.Demi {((_ ~ ([].<>)) ? {(__ .#) = 3}) ? {.c (__ .0); .l (__ .1); .r (__ .2);
-  (((c ~ (0.<>)) ? {l ~ (0.<>)}) ? {r ~ (0.<>)}) ? {.p (((c %% 2) = 0) ? {2} : {1}); [
+.deposit-at {.at (_ .0); .by (_ .1); [.index 0; .target at; .amount by; .out [];
+  .apply_ {.v _; .i (_^ .index); .t (_^ .target); .a (_^ .amount); .o (_^ .out);
+    @out (o ((i = t) ? {v + a} : {v})); @index (i + 1);}]};
+.redistribution {.s (_ .0); .ways (_ .1); .r (s %% ways); .q (((s - r) / ways).##);
+  ((ways - r) [q]) | (r [(q + 1)])};
+.binary-demi {.c (_ .0); .l (_ .1); .r (_ .2); .p (((c %% 2) = 0) ? {2} : {1}); [
     .count c;
     .phase p;
     .left l;
     .right r;
+    .loads [l, r];
     .# {_^.count};
     .## {_^.left + _^.right};
     .### {_^.left - _^.right};
     .apply_ {.s (_ .##); .c (_^ .count); .l (_^ .left); .r (_^ .right); .p (_^ .phase);
-      (s ~ (0.<>)) ? {(p = 2) ? {@left (l + s); @phase 1;} : {@right (r + s); @phase 2;}; @count (c + 1); _^^} : {s}};
+      (s ~ (0.<>)) ? {(p = 2) ? {@left (l + s); @loads [(l + s), r]; @phase 1;} : {@right (r + s); @loads [l, (r + s)]; @phase 2;}; @count (c + 1); _^^} : {s}};
     .scale_ {.k _; .l (_^ .left); .r (_^ .right);
-      (k ~ (0.<>)) ? {@left (l * k); @right (r * k); _^^} : {$!!.invalid-scale}};
-    .deposit-right_ {.k _; .r (_^ .right);
-      (k ~ (0.<>)) ? {@right (r + k); _^^} : {$!!.invalid-demi}};
-    .deposit-left_ {.k _; .l (_^ .left);
-      (k ~ (0.<>)) ? {@left (l + k); _^^} : {$!!.invalid-demi}};
+      (k ~ (0.<>)) ? {@left (l * k); @right (r * k); @loads [(l * k), (r * k)]; _^^} : {$!!.invalid-scale}};
+    .deposit-right_ {.k _; .l (_^ .left); .r (_^ .right);
+      (k ~ (0.<>)) ? {@right (r + k); @loads [l, (r + k)]; _^^} : {$!!.invalid-demi}};
+    .deposit-left_ {.k _; .l (_^ .left); .r (_^ .right);
+      (k ~ (0.<>)) ? {@left (l + k); @loads [(l + k), r]; _^^} : {$!!.invalid-demi}};
     .+ {.s (_ .##);
       (s ~ (0.<>)) ? {(_^^ .deposit-right_ s)} : {s}};
     .- {.s (_ .##);
       (s ~ (0.<>)) ? {(_^^ .deposit-left_ s)} : {s}};
     .* {.s (_ .##);
       (s ~ (0.<>)) ? {(_^^ .scale_ s)} : {s}};
+    ./ {.ways _; .c (_^ .count); .s (_^ .##); .v ([] / ways);
+      (v ~ ([].<>)) ? {(_^^^ .Demi) [c, ((_^^^ .redistribution) [s, ways])]} : {v}};
     .size-ratio {.c (_^ .count); .s (_^ .##); .u ((_ = ()) ? {1} : {0});
       (c .> 0) ? {(u = 1) ? {s / c} : {$!!.unary-observation}}};
     .residual-ratio {.c (_^ .count); .d (_^ .###); .u ((_ = ()) ? {1} : {0});
       (c .> 0) ? {(u = 1) ? {d / c} : {$!!.unary-observation}}};
     .toText {“Demi(” (_^ .count) “,” (_^ .left) “,” (_^ .right) “)”}
-  ]} : {$!!.invalid-demi}} : {$!!.invalid-demi}};
+  ]};
+.channel-demi {.c (_ .0); .e (_ .1); [
+    .count c;
+    .loads e;
+    .# {_^.count};
+    .## {(_^ .loads).##};
+    .### {(_^ .loads).###};
+    .apply_ {.s (_ .##); .c (_^ .count); .e (_^ .loads);
+      (s ~ (0.<>)) ? {@loads ((e | ((_^^^ .deposit-at) [(c %% (e.#)), s])) .out); @count (c + 1); _^^} : {s}};
+    .scale_ {.k _; .e (_^ .loads);
+      (k ~ (0.<>)) ? {@loads (e & {_ * k}); _^^} : {$!!.invalid-scale}};
+    .deposit-right_ {.k _; .e (_^ .loads);
+      ((k ~ (0.<>)) ? {(e.#) .> 1}) ? {@loads ((e | ((_^^^ .deposit-at) [1, k])) .out); _^^} : {(k ~ (0.<>)) ? {$!!.invalid-arity} : {$!!.invalid-demi}}};
+    .deposit-left_ {.k _; .e (_^ .loads);
+      (k ~ (0.<>)) ? {@loads ((e | ((_^^^ .deposit-at) [0, k])) .out); _^^} : {$!!.invalid-demi}};
+    .+ {.s (_ .##);
+      (s ~ (0.<>)) ? {(_^^ .deposit-right_ s)} : {s}};
+    .- {.s (_ .##);
+      (s ~ (0.<>)) ? {(_^^ .deposit-left_ s)} : {s}};
+    .* {.s (_ .##);
+      (s ~ (0.<>)) ? {(_^^ .scale_ s)} : {s}};
+    ./ {.ways _; .c (_^ .count); .s (_^ .##); .v ([] / ways);
+      (v ~ ([].<>)) ? {(_^^^ .Demi) [c, ((_^^^ .redistribution) [s, ways])]} : {v}};
+    .size-ratio {.c (_^ .count); .s (_^ .##); .u ((_ = ()) ? {1} : {0});
+      (c .> 0) ? {(u = 1) ? {s / c} : {$!!.unary-observation}}};
+    .residual-ratio {.c (_^ .count); .d (_^ .###); .u ((_ = ()) ? {1} : {0});
+      (c .> 0) ? {(u = 1) ? {d / c} : {$!!.unary-observation}}};
+    .toText {“Demi(” (_^ .count) “,” (_^ .loads) “)”}
+  ]};
+.Demi {((_ ~ ([].<>)) ? {(__ .#) ~ <2, 3>}) ? {.a __; .c (a .0);
+  .boxed (((a.#) = 3) ? {[[a .1, a .2]]} : {[a .1]});
+  ((c ~ (0.<>)) ? {(boxed .0) ~ ([].<>)}) ? {.e (boxed .0); .k (e.#);
+  ((k .> 0) ? {(e &| {.x _; (x ~ (0.<>)) ? {[]} : {[x]}}).# = 0}) ? {
+    (k = 2) ? {binary-demi [c, (e .0), (e .1)]} : {channel-demi [c, (e | [])]}
+  } : {$!!.invalid-demi}} : {$!!.invalid-demi}} : {$!!.invalid-demi}};
 ```
 ## Construction
 
@@ -643,12 +717,15 @@ and the readings are the Size and the residual
 
 A reading takes no divisor. It is applied to nil, and an operand is refused
 rather than read as the divisor, so it is neither `/` nor `%%`. The class
-declares neither operator, so they answer nil as for any aggregate without one
+declares no `%%`, which answers nil as for any aggregate without one. Its `/`,
+also spelled `./`, is not a ratio either: it redistributes the Size into that
+many channels and keeps the Count (007.27, below), so `A / 4` is a Demi of four
+loads and no number
 ```
 ; [A.size-ratio 4, A.residual-ratio [], A.size-ratio 0, A.residual-ratio “abc”]
 # [$!!.unary-observation, $!!.unary-observation, $!!.unary-observation, $!!.unary-observation]
-; [A / 4, A %% 4]
-# [(), ()]
+; [“” (A / 4), A %% 4]
+# [“Demi(2,[2, 2, 1, 1])”, ()]
 ```
 A reading at the wrong depth fails safe. Inside a branch `_^` is not the
 receiver, so a reading written that way answers `$!.name-missing` and no ratio

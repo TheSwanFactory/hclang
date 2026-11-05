@@ -34,7 +34,8 @@ every router a program can hold satisfies it. A channel is its elements: an
 array's properties are configuration, not routed Frames, so the constructor
 keeps the elements in a fresh array of its own, counts them there, and a
 channel argument that declares `apply` cannot change what appending means.
-Anything that is not two arrays is refused the same way.
+Anything that is not a nonempty list of arrays is refused the same way; one
+array or three are routers of another arity (below).
 
 **Routing**, `router x`: append x as one member of the channel the parity of C
 selects; the Count grows by one and the phase flips with it. `router.phase` is
@@ -75,25 +76,93 @@ There the law reads through the zero-Count lifting the Demi class names,
 `RotorRouter([…],[…])`, each channel as its spelling, the constructor's own
 shape.
 
+**Channels and division (007.27).** Two channels are the arity-two case of k
+ordered channels. `RotorRouter [ch0, …, chk−1]` takes k ≥ 1 arrays; two are
+this binary router, and any other number is a channel router. Every router
+stores `channels`; only the binary one also has `left`, `right` and `phase`,
+which it writes together with `channels`. A round-robin history from channel 0
+leaves the first C mod k channels one longer than the rest, so a channel
+router admits exactly the channels whose Counts are the dealing of C children
+into k, `round-robin [C, k]`, and refuses every other with
+`$!!.invalid-router`.
+Routing appends to channel C mod k, which for k = 2 is the phase's channel,
+directly, as the binary router does: a small cursor, `append-at`, rebuilds the
+list of channels with the Frame added to that one, so a route costs one pass
+over the k channels and never replays the history (PR #482 review).
+Its Size is the sum of its channel loads and its residual their alternating
+sum, as a channel Demi's are. Its fourth hash is the channel Demi of its
+Count and channel loads, `Demi [C, [load0, …]]`: the fourth hash recognizes an
+instance of this class with other than two channels intrinsically, as it
+recognizes a Demi, because the binary Demi the observers derive follows
+parity and not C mod k. So the projection law `(r y).#### = r.#### y` holds
+for every arity; at Count zero there is no Demi. Text reads `RotorRouter([ch0, ch1, …])`.
+
+`router ./ n`, also spelled `router / n`, re-deals the Frames it holds: it
+reconstructs the order they were routed in from its channels, which their
+admissibility fixes, and routes that history through a fresh router of n
+channels, that is, it is the history divided as a list, `history / n`, since
+list division answers the n-channel router of its channels (007.27c).
+Reconstructing the history is the breadth-first readout of 007.27c: the first
+Frame of each channel in channel order, then the second of each, and so on. Every Frame stays the
+same Frame, whole, in order, exactly once, and nothing is evaluated or
+measured; the Count is kept and the next route goes to channel C mod n. The
+history is the dealing inverted: the channels, the short ones padded with a
+sentinel to the longest, are concatenated and dealt into that many channels,
+which are the rounds, and the sentinels removed. One channel is its own
+history, and channels of equal length need no sentinel. The readout divides by
+the longest channel's length, which never exceeds the Frames held, so it is
+never refused by the channel limit. The divisor is refused as a list refuses
+it. `hc/division.hc` is its specification.
+
 **Methods read their own state through `_^`.** A router is applied to
 arbitrary Frames, and a bare name in a method is looked up on the argument
 first (spec 7), so a router reads its fields through the receiver, `_^` from
-the method body. What a branch needs is bound as a local at method level.
+the method body. What a branch needs is bound as a local at method level. The
+file's own names, `RotorRouter` and `history`, are read through the scope a
+caret ladder reaches, `(_^^ .history)` from the method body, so an argument's
+fields never stand in for them.
 ```
 .channel-load {.c _; (c.# = 0) ? {0} : {c.##}};
-.RotorRouter {((_ ~ ([].<>)) ? {(__ .#) = 2}) ? {.l (__ .0); .r (__ .1);
-  ((l ~ ([].<>)) ? {r ~ ([].<>)}) ? {.lc (l | []); .rc (r | []); .a (lc.#); .b (rc.#);
-  ((a = b) : {a = (b + 1)}) ? {[
-    .phase ((a = b) ? {2} : {1});
+.history {.cs _; .k (cs.#); .w ((cs .0).#); .pad [];
+  (k = 1) ? {cs .0} : {(w = 0) ? {[]} : {
+    .even ((((cs &| {_}).#) = (k * w)) ? {1} : {0});
+    .padded ((even = 1) ? {cs} : {cs & {.ch _; (ch.# = w) ? {ch} : {ch pad}}});
+    .flat ((((padded &| {_}) / w) .channels) &| {_});
+    (even = 1) ? {flat} : {flat &| {.x _; (x === (_^^^^ .pad)) ? {[]} : {[x]}}}}}};
+.append-at {.at (_ .0); .item (_ .1); [.index 0; .target at; .item item; .out [];
+  .apply_ {.v _; .i (_^ .index); .t (_^ .target); .it (_^ .item); .o (_^ .out);
+    @out (o ((i = t) ? {it | v} : {v})); @index (i + 1);}]};
+.round-robin {.s (_ .0); .ways (_ .1); .q (((s - (s %% ways)) / ways).##);
+  [.low q; .short 0; .ok 1;
+    .apply_ {.c _; .lo (_^ .low); .seen (_^ .short); .fine (_^ .ok);
+      @ok ((((c = (lo + 1)) ? {seen = 0} : {c = lo}) ? {fine = 1}) ? {1} : {0}); @short ((c = lo) ? {1} : {seen});}]};
+.binary-router {.cs _; .lc (cs .0); .rc (cs .1); [
+    .phase (((lc.#) = (rc.#)) ? {2} : {1});
     .left lc;
     .right rc;
+    .channels [lc, rc];
     .apply_ {.x _; .l (_^ .left); .r (_^ .right); .n (l.# + r.#);
-      ((n %% 2) = 0) ? {@left (l x); @phase 1;} : {@right (r x); @phase 2;};};
+      ((n %% 2) = 0) ? {.nl (l x); @left nl; @channels [nl, r]; @phase 1;} : {.nr (r x); @right nr; @channels [l, nr]; @phase 2;};};
     .# {.l (_^ .left); .r (_^ .right); l.# + r.#};
     .## {(channel-load (_^ .left)) + (channel-load (_^ .right))};
     .### {(channel-load (_^ .left)) - (channel-load (_^ .right))};
+    ./ {.ways _; ((_^^ .history) (_^ .channels)) / ways};
     .toText {“RotorRouter(” (_^ .left) “,” (_^ .right) “)”}
-  ]} : {$!!.invalid-router}} : {$!!.invalid-router}} : {$!!.invalid-router}};
+  ]};
+.channel-router {.cs _; [
+    .channels cs;
+    .apply_ {.x _; .cs (_^ .channels); .n ((cs & {_.#}).##);
+      @channels ((cs | ((_^^ .append-at) [(n %% (cs.#)), [x]])) .out);};
+    .# {((_^ .channels) &| {_}).#};
+    .## {((_^ .channels) & {channel-load _}).##};
+    .### {((_^ .channels) & {channel-load _}).###};
+    ./ {.ways _; ((_^^ .history) (_^ .channels)) / ways};
+    .toText {“RotorRouter(” (_^ .channels) “)”}
+  ]};
+.RotorRouter {((_ ~ ([].<>)) ? {(__ .#) .> 0}) ? {.a __;
+  ((a &| {.x _; (x ~ ([].<>)) ? {[]} : {[x]}}).# = 0) ? {.cs (a & {_ | []}); .k (cs.#); .n ((cs &| {_}).#);
+    ((k .> 0) ? {(((cs & {_.#}) | (round-robin [n, k])) .ok) = 1}) ? {(k = 2) ? {binary-router cs} : {channel-router cs}} : {$!!.invalid-router}
+  } : {$!!.invalid-router}} : {$!!.invalid-router}};
 ```
 ## Construction
 
@@ -120,9 +189,10 @@ arguments are not two channels. No history is invented for them
 ; [RotorRouter [2, [], []], RotorRouter [1, [5], []], RotorRouter [2, [5]], RotorRouter [1, []]]
 # [$!!.invalid-router, $!!.invalid-router, $!!.invalid-router, $!!.invalid-router]
 ```
-Anything but two arrays is refused
+Anything but a nonempty list of arrays is refused. One channel or three are
+not refused: they are routers of another arity (007.27, `hc/division.hc`)
 ```
-; [RotorRouter [[], 5], RotorRouter [(1, 2), []], RotorRouter [[]], RotorRouter [[], [], []], RotorRouter 5, RotorRouter ()]
+; [RotorRouter [[], 5], RotorRouter [(1, 2), []], RotorRouter [], RotorRouter [[], [5], []], RotorRouter 5, RotorRouter ()]
 # [$!!.invalid-router, $!!.invalid-router, $!!.invalid-router, $!!.invalid-router, $!!.invalid-router, $!!.invalid-router]
 ```
 A channel is its elements. The router keeps them in an array of its own, so a
@@ -425,8 +495,8 @@ source, is an equal router. Its declared observers are spelled `.#`, `.##` and
 printed form is matched here by its beginning
 ```
 ; RotorRouter [[5], []]
-# [.phase 1; .left [5]; .right []; .apply_ {...
-; (RotorRouter [[5], []]) = [.phase 1; .left [5]; .right []; .apply_ { .x _; .l (_^ .left); .r (_^ .right); .n (l.# + r.#); ((n %% 2) = 0) ? { @left (l x); @phase 1; } : { @right (r x); @phase 2; }; }; .# { .l (_^ .left); .r (_^ .right); l.# + r.# }; .## { (channel-load (_^ .left)) + (channel-load (_^ .right)) }; .### { (channel-load (_^ .left)) - (channel-load (_^ .right)) }; .toText { “RotorRouter(” (_^ .left) “,” (_^ .right) “)” };]
+# [.phase 1; .left [5]; .right []; .channels [[5], []]; .apply_ {...
+; (RotorRouter [[5], []]) = [.phase 1; .left [5]; .right []; .channels [[5], []]; .apply_ { .x _; .l (_^ .left); .r (_^ .right); .n (l.# + r.#); ((n %% 2) = 0) ? { .nl (l x); @left nl; @channels [nl, r]; @phase 1; } : { .nr (r x); @right nr; @channels [l, nr]; @phase 2; }; }; .# { .l (_^ .left); .r (_^ .right); l.# + r.# }; .## { (channel-load (_^ .left)) + (channel-load (_^ .right)) }; .### { (channel-load (_^ .left)) - (channel-load (_^ .right)) }; ./ { .ways _; ((_^^ .history) (_^ .channels)) / ways }; .toText { “RotorRouter(” (_^ .left) “,” (_^ .right) “)” };]
 # <>
 ```
 ## Importing
