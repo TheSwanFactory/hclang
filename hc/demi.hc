@@ -143,8 +143,10 @@ deposits into channel `C mod k`, which for k = 2 is the phase's channel. Its
 Size is the sum of its loads and its residual their alternating sum
 `e0 − e1 + e2 − …`, the list residual, which for two loads is `L − R`. Its
 fourth hash is intrinsic too: a fresh equal Demi of the same arity. Its `*`,
-`scale_` and ratios are as here; `+` and `-` deposit on a right or a left it
-does not have, so they are `$!!.invalid-arity`. Text reads `Demi(C,[e0, e1,
+`scale_` and ratios are as here. Its `+` and `-` follow the residual's signs:
+`-` deposits on the first even load, load 0, raising the residual, and `+` on
+the first odd load, load 1, lowering it, which for two loads are left and
+right; with one load `+` is `$!!.invalid-arity`. Text reads `Demi(C,[e0, e1,
 …])`.
 
 `d ./ n`, also spelled `d / n`, redistributes the Size: it keeps C and the
@@ -215,8 +217,14 @@ for them.
       (s ~ (0.<>)) ? {@loads ((e | ((_^^^ .deposit-at) [(c %% (e.#)), s])) .out); @count (c + 1); _^^} : {s}};
     .scale_ {.k _; .e (_^ .loads);
       (k ~ (0.<>)) ? {@loads (e & {_ * k}); _^^} : {$!!.invalid-scale}};
-    .+ {$!!.invalid-arity};
-    .- {$!!.invalid-arity};
+    .deposit-right_ {.k _; .e (_^ .loads);
+      ((k ~ (0.<>)) ? {(e.#) .> 1}) ? {@loads ((e | ((_^^^ .deposit-at) [1, k])) .out); _^^} : {(k ~ (0.<>)) ? {$!!.invalid-arity} : {$!!.invalid-demi}}};
+    .deposit-left_ {.k _; .e (_^ .loads);
+      (k ~ (0.<>)) ? {@loads ((e | ((_^^^ .deposit-at) [0, k])) .out); _^^} : {$!!.invalid-demi}};
+    .+ {.s (_ .##);
+      (s ~ (0.<>)) ? {(_^^ .deposit-right_ s)} : {s}};
+    .- {.s (_ .##);
+      (s ~ (0.<>)) ? {(_^^ .deposit-left_ s)} : {s}};
     .* {.s (_ .##);
       (s ~ (0.<>)) ? {(_^^ .scale_ s)} : {s}};
     ./ {.ways _; .c (_^ .count); .s (_^ .##); .v ([] / ways);

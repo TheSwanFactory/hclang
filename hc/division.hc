@@ -284,15 +284,25 @@ not one, and forged observers give the ordinary derived binary Demi
 # [(), “Demi(3,5,2)”]
 ```
 `*` and `scale_` scale every load and keep the Count; the ratios read Size and
-residual over the Count, nil at Count zero. `+` and `-` deposit on the binary
-Demi's right or left, which a channel Demi does not have, so they are refused
-with `$!!.invalid-arity`, and `deposit-left_` and `deposit-right_` are not its
-methods. Divided into two, a Demi is binary again and they work
+residual over the Count, nil at Count zero
 ```
 ; [“” (q3 * 2), “” (q3.scale_ 3), q3.size-ratio (), q3.residual-ratio (), (Demi [0, [3, 2, 2]]).size-ratio ()]
 # [“Demi(3,[6, 4, 4])”, “Demi(3,[9, 6, 6])”, 7/3, 1, ()]
-; [q3 + 1, q3 - 1, “” ((d7 ./ 2) + 1), “” ((d7 ./ 2) - 1), (d7 ./ 2).phase]
-# [$!!.invalid-arity, $!!.invalid-arity, “Demi(3,4,4)”, “Demi(3,5,3)”, 1]
+```
+`+` and `-` follow the residual's signs. The residual adds the loads at even
+indices and subtracts those at odd ones, so `-` deposits `x.##` on the first
+even load, load 0, and raises the residual, and `+` deposits on the first odd
+load, load 1, and lowers it. For two loads these are the binary Demi's left and
+right. Both keep the Count, and both are `deposit-left_` and `deposit-right_`
+by the operand's Size. One load has no odd index, so there `+` is
+`$!!.invalid-arity`
+```
+; [“” (q3 + 1), “” (q3 - 1), q3.###, (q3 + 1).###, (q3 - 1).###, (q3 + 1).#]
+# [“Demi(3,[3, 3, 2])”, “Demi(3,[4, 2, 2])”, 3, 2, 4, 3]
+; [“” ((d7 ./ 4) + 1), “” ((d7 ./ 4) - 2.5), (d7 ./ 1) + 1, “” ((d7 ./ 1) - 1), “” (d7 + 1), “” (d7 - 1)]
+# [“Demi(3,[2, 3, 2, 1])”, “Demi(3,[4, 2, 2, 1])”, $!!.invalid-arity, “Demi(3,[8])”, “Demi(3,5,3)”, “Demi(3,6,2)”]
+; [((q3 + 4) - 2) = ((q3 - 2) + 4), ((q3 + 1) ./ 3) = ((q3 - 1) ./ 3), q3 + ([].nope), q3.deposit-right_ (0 - 1), q3.deposit-left_ 1.5, “” q3]
+# [<>, <>, $!.name-missing “..., $!!.invalid-demi, $!!.invalid-demi, “Demi(3,[3, 2, 2])”]
 ```
 ## RotorRouter
 

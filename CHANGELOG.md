@@ -21,7 +21,8 @@
   alternating sum, and prints as `Demi(C,[…])`. `D ./ n` keeps `C` and the Size
   and deals the Size units round-robin into n loads (`Demi(3,[5,2]) ./ 3` is
   `Demi(3,[3,2,2])`). Every Demi now stores `.loads`, so its printed form
-  changes; `+` and `-` on a non-binary Demi are `$!!.invalid-arity` (#482).
+  changes. `-` deposits on load 0 and `+` on load 1, the first even and odd
+  loads, as left and right do for two (#482).
 - **Channel RotorRouter.** `RotorRouter [ch0, …, chk−1]` takes k ≥ 1 channels
   and routes to channel `C mod k`; only round-robin histories are admitted.
   `r ./ n` re-deals the routed Frames, in routed order, into n channels, keeping

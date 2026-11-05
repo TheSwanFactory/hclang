@@ -434,8 +434,10 @@ of arity k deposits into channel `C mod k`; its Size is the sum of its loads and
 its residual their alternating sum `e0 − e1 + e2 − …` (the list residual,
 `L − R` for two); its fourth hash is intrinsic, a fresh equal Demi of its own
 arity, Count zero included; `*`, `scale_` and the ratios work as for the binary
-Demi, and `+`, `-`, which name a right and a left, are `$!!.invalid-arity`. Text
-is `Demi(C,[e0, e1, …])`.
+Demi. `-` deposits `x.##` on load 0, the first even load, raising the residual,
+and `+` on load 1, the first odd load, lowering it: for two loads that is the
+binary left and right. With one load there is no odd load, and `+` is
+`$!!.invalid-arity`. Text is `Demi(C,[e0, e1, …])`.
 
 `D ./ n` keeps C and S and canonicalizes the loads to S units dealt into n
 channels: with q = ⌊S/n⌋ and r = S mod n, the first r hold q + 1 and the rest q.
