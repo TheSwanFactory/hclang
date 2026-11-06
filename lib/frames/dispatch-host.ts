@@ -18,11 +18,12 @@ import {
  * under test from the testdoc that constructs its state).
  *
  * A harness that installs `dispatchNamespace()` under `DISPATCH_KEY` in its
- * host namespace gives HC source three callables:
+ * host namespace gives HC source four callables:
  *
- *     $$.dispatch.sequential [e₁, e₂, …]
- *     $$.dispatch.interleave [e₁, e₂, …]
- *     $$.dispatch.footprint  [e₁, e₂, …]
+ *     $$.dispatch.sequential           [e₁, e₂, …]
+ *     $$.dispatch.certified-sequential [e₁, e₂, …]
+ *     $$.dispatch.interleave           [e₁, e₂, …]
+ *     $$.dispatch.footprint            [e₁, e₂, …]
  *
  * Each `eᵢ` is a bound closure or bound method, called with nil, or a pair
  * `[callable, argument]`. The answer is one aggregate: its elements are the
@@ -36,8 +37,12 @@ import {
  *
  * This is a bridge, not a language feature: the policies are host values
  * reached through `$$`, which a bare name never searches, and nothing here
- * changes how HC evaluates. It is installed by the CLI (`cli/hc.ts`) and by
- * the companion Deno test; a host that does not install it has no `dispatch`.
+ * changes how HC evaluates, and it grants no authority: every event is a
+ * closure the program already holds, run with the authority it already has.
+ * It is installed in every program the CLI runs (`cli/hc.ts`), in every
+ * `HCLang` session and so the playground (`lib/execute/hc-lang.ts`), and by
+ * the companion Deno test; a host that does not install it has no
+ * `dispatch`, and `$$.dispatch` answers `$!.name-missing` there.
  *
  * @module
  */
@@ -47,6 +52,7 @@ export const DISPATCH_KEY = "dispatch";
 
 const POLICIES: readonly DispatchPolicy[] = [
   "sequential",
+  "certified-sequential",
   "interleave",
   "footprint",
 ];

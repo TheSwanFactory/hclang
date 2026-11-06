@@ -167,17 +167,21 @@ describe("event dispatch: disjoint x and y", () => {
     expect(n(y)).toBe(11);
   });
 
-  it("footprint: a later disjoint event overtakes an earlier blocked one", () => {
+  it("footprint: a later disjoint event waits for an earlier blocked one to start, then overlaps it", () => {
+    // Admission is in program order (PR #484 review): the earlier event's
+    // footprint is read only when it starts, and could by then name what the
+    // later one had already written.
     const { run } = program();
     const report = run(["incr-x", "incr-x", "incr-y"], "footprint");
     expect(report.trace).toEqual([
       "incr-x0:1",
-      "incr-y2:1",
       "incr-x0:2",
-      "incr-y2:2",
       "incr-x1:1",
+      "incr-y2:1",
       "incr-x1:2",
+      "incr-y2:2",
     ]);
+    expect(report.outcomes[2].waitedFor).toEqual(["incr-x1"]);
   });
 });
 

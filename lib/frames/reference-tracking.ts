@@ -28,20 +28,23 @@ import { touchesIdentity } from "./effect-marker.ts";
  *   `x`, so that a read can be dated against the versions xᵢ an identity has
  *   passed through. It is bumped at the commit points and nowhere else.
  * - **Actual access.** An `AccessRecord` made active with `withAccessRecord`
- *   receives every committed write and every keyed or indexed read that
+ *   receives every committed write and every keyed or indexed lookup that
  *   happens while it is active, each dated by version. This is the footprint
  *   an event *actually* had, as distinct from the footprint its code *could*
  *   have (`access-footprint.ts`), and from any consistency contract.
  *
  * ## What is and is not observed
  *
- * Writes are complete: every committed mutation in the runtime lands at
- * `MetaFrame.set`, `MetaFrame.replaceMember`, `Frame.setParent`,
- * `FrameArray.collect` or `FrameArray.reset`, and each one reports here.
- * Reads are observed at keyed lookup (`MetaFrame.get_here`) and element access
- * (`FrameArray.elements`), which is where evaluation reads state; a host that
- * reaches into `meta` or `data` directly is not seen. A missing read therefore
- * means an under-report, never a false report.
+ * Writes are observed at every commit point the runtime routes a mutation
+ * through: `MetaFrame.set`, `MetaFrame.replaceMember`, `Frame.setParent`,
+ * `FrameArray.collect`, `FrameArray.reset`, an arrow registration
+ * (`registerEffect`, which changes what a later write of the value invokes)
+ * and a pattern match that rewrites the matched value's source
+ * (`MetaFrame.match_here`). Reads are observed at keyed lookup
+ * (`MetaFrame.get_here`), a miss included, since a miss is the frame's answer
+ * that the key is absent, and at element access (`FrameArray.elements`). A
+ * native that reaches into `meta` or `data` directly is not seen. A missing
+ * read therefore means an under-report, never a false report.
  *
  * ## Cost
  *
@@ -145,13 +148,16 @@ export type AccessGuard = (frame: Frame, access: AccessKind) => boolean;
 
 /**
  * An access a guard refused. It is thrown from the commit or read point
- * *before* the access happens, so the state is as it was; the dispatcher
- * that installed the guard reports it as the event's failure.
+ * *before* the access happens, so the state is as it was. It carries the
+ * record whose guard refused, so that only the dispatcher that installed that
+ * guard handles it: when dispatches nest, an inner dispatcher rethrows a
+ * refusal that belongs to an outer event, and the outer event ends there.
  */
 export class UncertifiedAccess extends Error {
   constructor(
     public readonly frame: Frame,
     public readonly access: AccessKind,
+    public readonly record: AccessRecord,
   ) {
     super(`$!.uncertified-${access} ${frame.className()}`);
     this.name = "UncertifiedAccess";
@@ -160,17 +166,18 @@ export class UncertifiedAccess extends Error {
 
 /**
  * Refuses `access` to `frame` if any active record's guard does not allow
- * it. Called at every commit point before the mutation lands and at every
- * keyed or indexed read before the value is handed out, so a refusal leaves
- * the state untouched and the value unseen. Costs one length check when no
- * record is active and one `WeakSet` lookup per guarded record otherwise.
+ * it, naming the outermost such record. Called at every commit point before
+ * the mutation lands and at every keyed or indexed lookup (hit or miss)
+ * before the value is handed out, so a refusal leaves the state untouched and
+ * the value unseen. Costs one length check when no record is active and one
+ * `WeakSet` lookup per guarded record otherwise.
  */
 export function guardAccess(frame: Frame, access: AccessKind): void {
   if (active.length === 0) return;
   for (const record of active) {
     if (!record.guard || record.created.has(frame)) continue;
     if (!record.guard(frame, access)) {
-      throw new UncertifiedAccess(frame, access);
+      throw new UncertifiedAccess(frame, access, record);
     }
   }
 }

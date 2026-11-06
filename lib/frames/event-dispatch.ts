@@ -28,23 +28,31 @@ import {
  * (`FrameExpr.stepBody`), so it is the unit of overlap here, and nothing
  * finer is: a statement runs to completion, nested calls included.
  *
- * Three policies make the dispatch question testable:
+ * Four policies make the dispatch question testable:
  *
- * - **sequential**: each event runs to completion in program order. The
- *   baseline every other policy must agree with on the final state.
+ * - **sequential**: each event runs to completion in program order, with no
+ *   guard. The plain serial run.
+ * - **certified-sequential**: each event runs in program order, alone, under
+ *   the guard of the certificate inferred when it starts, and so stops at its
+ *   first refused access with whatever it committed before that access
+ *   (its certified prefix) left in place. This is the serial
+ *   **prefix-and-failure** baseline the `footprint` policy is held to: where
+ *   no event is refused it is the `sequential` run.
  * - **interleave**: statements of all events alternate round-robin with no
  *   coordination at all. This is the executable counterexample: two
  *   read-then-write events on one `x` lose an update, which shows that
  *   separate statements, and separate calls, are not a transaction.
- * - **footprint**: an event may start only when no unfinished event that
- *   precedes it in program order, and no running event, has a potential
- *   footprint that conflicts with its own (`footprintsConflict`: a write in
- *   one meets a read or write in the other, or either is opaque). Events that
- *   may both run interleave; the rest wait. Conflicting events therefore
- *   execute in program order, one after another, which is what makes the
- *   final state the sequential one. Readers are not given snapshots: a reader
- *   of `x` waits for an earlier writer of `x` and blocks a later one, so
- *   every read sees one committed version xᵢ and never a torn pair of values.
+ * - **footprint**: events start in program order, and an event may start
+ *   only when no unfinished earlier event and no running event has a
+ *   potential footprint that conflicts with its own (`footprintsConflict`: a
+ *   write in one meets a read or write in the other, or either is opaque).
+ *   Events that may both run interleave; the rest wait. A later event never
+ *   starts ahead of an earlier one that has not started: the earlier event's
+ *   footprint is read only when it starts, and may by then name what the
+ *   later one already wrote. Conflicting events therefore execute in program
+ *   order, one after another. Readers are not given snapshots: a reader of
+ *   `x` waits for an earlier writer of `x` and blocks a later one, so every
+ *   read sees one committed version xᵢ and never a torn pair of values.
  *
  * ## Admission is decided on the inferred footprint, at start
  *
@@ -62,16 +70,20 @@ import {
  * ## The certificate is enforced, not merely checked afterwards
  *
  * Each event runs with an `AccessRecord` active, so its actual reads and
- * writes are dated by version. Under `footprint` the record also carries a
- * **guard**: the footprint admission rested on is the event's certificate,
- * and every keyed or indexed read and every commit of shared state is
- * checked against it *before* it happens (`guardAccess`). Shared state is
+ * writes are dated by version. Under `footprint` and `certified-sequential`
+ * the record also carries a **guard**: the footprint admission rested on is
+ * the event's certificate, and every keyed or indexed lookup and every commit
+ * of shared state (an arrow registration included) is checked against it
+ * *before* it happens (`guardAccess`). Shared state is
  * what the walk counts as state: an aggregate, or a plain scope frame whose
  * binding a `@name` can rebind; state the event created itself is its own.
  * An access outside the certificate is refused where it would have occurred:
  * the value is not read, the mutation does not land, and the event ends
  * there with the failed result `$!.uncertified-read` or
- * `$!.uncertified-write` (`EventOutcome.refused`). So a walk that
+ * `$!.uncertified-write` (`EventOutcome.refused`). A refusal belongs to the
+ * record whose guard refused: a dispatcher handles only its own events'
+ * refusals and rethrows any other, so a dispatch nested inside an event
+ * cannot absorb a refusal of the outer event. So a walk that
  * under-inferred cannot admit an interference; it can only make an event
  * fail closed, and the statements of every event that completes stayed
  * within a footprint the dispatcher saw not to conflict with any concurrent
@@ -79,14 +91,18 @@ import {
  * against everything, so its guard allows everything.
  *
  * Under `sequential` and `interleave` no guard is installed: the first is
- * the baseline, the second the counterexample. For those, every shared state
+ * the plain serial run, the second the counterexample. For those, every shared state
  * frame written outside the potential footprint is still reported afterwards
  * as an **escape** and every one read outside it as a **read escape**, which
  * is the diagnostic of the walk's reach that the guard turns into a refusal.
  *
  * What this is not: it is not threads, it is not a transaction, and it does
  * not roll anything back. An event that fails stops at its failing statement
- * as a call would; the dispatcher reports the failure and runs the others.
+ * as a call would, keeping what it committed before; the dispatcher reports
+ * the failure and runs the others. It does not decide whether an event stays
+ * inside the fragment the guard can see: a native that reads `meta` or
+ * `data` without a seam is neither certified nor refused (spec a12
+ * §Soundness states the claim conditionally on that).
  *
  * @module
  */
@@ -105,7 +121,11 @@ export interface DispatchEvent {
   readonly declared?: PotentialFootprint;
 }
 
-export type DispatchPolicy = "sequential" | "interleave" | "footprint";
+export type DispatchPolicy =
+  | "sequential"
+  | "certified-sequential"
+  | "interleave"
+  | "footprint";
 
 /** What one event did under a dispatch. */
 export interface EventOutcome {
@@ -231,6 +251,9 @@ export function dispatch(
     state.potential = widen(state.inferred, state.event.declared);
   };
 
+  const serial = policy === "sequential" || policy === "certified-sequential";
+  const guarded = policy === "footprint" || policy === "certified-sequential";
+
   const mayStart = (index: number): boolean => {
     if (policy === "interleave") return true;
     const state = states[index];
@@ -239,11 +262,12 @@ export function dispatch(
       if (other === index) continue;
       const peer = states[other];
       if (peer.done) continue;
-      // An earlier unfinished event keeps program order; a later one matters
-      // only once it is running.
+      // A later event matters only once it is running.
       if (other > index && !peer.generator) continue;
-      refresh(peer);
-      const conflicts = policy === "sequential" ||
+      // An earlier event that has not started holds back every later one:
+      // its footprint is read when it starts and may name what a later event
+      // would already have written.
+      const conflicts = serial || !peer.generator ||
         footprintsConflict(state.potential, peer.potential);
       if (conflicts) {
         state.waitedFor.add(peer.event.label);
@@ -266,9 +290,7 @@ export function dispatch(
           state.event.argument ?? Frame.nil,
         );
         // The certificate is frozen with the footprint admission rested on.
-        if (policy === "footprint") {
-          state.record.guard = guardFor(state.potential);
-        }
+        if (guarded) state.record.guard = guardFor(state.potential);
       }
       const generator = state.generator;
       progressed = true;
@@ -276,7 +298,11 @@ export function dispatch(
       try {
         step = withAccessRecord(state.record, () => generator.next());
       } catch (error) {
-        if (!(error instanceof UncertifiedAccess)) throw error;
+        // Only this event's own guard ends it; a refusal by an enclosing
+        // event's guard belongs to that event's dispatcher.
+        if (
+          !(error instanceof UncertifiedAccess) || error.record !== state.record
+        ) throw error;
         // Refused before the access happened: the event ends here, at the
         // statement it was in, with nothing of that access committed.
         state.refused = { frame: error.frame, access: error.access };
@@ -293,8 +319,8 @@ export function dispatch(
         state.steps++;
         trace.push(`${state.event.label}:${state.steps}`);
       }
-      // Sequential runs each event to completion before looking further.
-      if (policy === "sequential" && !state.done) index--;
+      // A serial policy runs each event to completion before looking further.
+      if (serial && !state.done) index--;
     }
     if (!progressed) {
       throw new Error("$!.dispatch-stalled: no event could start");

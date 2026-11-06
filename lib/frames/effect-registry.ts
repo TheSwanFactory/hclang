@@ -1,4 +1,9 @@
 import type { Frame } from "./frame.ts";
+import {
+  guardAccess,
+  noteWrite,
+  UncertifiedAccess,
+} from "./reference-tracking.ts";
 
 /**
  * The effect-boundary registry for the `A -> B` arrow (occurrence/history
@@ -32,7 +37,15 @@ import type { Frame } from "./frame.ts";
  *   interrupted). A host exception thrown by a callback is caught so that the
  *   remaining callbacks and rounds still run; the first such exception is
  *   rethrown once delivery for the outermost commit has finished, so a host
- *   bug is never silently swallowed (PR #475 review).
+ *   bug is never silently swallowed (PR #475 review). The one exception is a
+ *   guard refusal (`UncertifiedAccess`, `reference-tracking.ts`): it is not a
+ *   callback failure but the end of the event the commit belongs to, so it
+ *   propagates at once and no later callback or round runs.
+ * - **Registration is a write of the managed value.** The subscriber list is
+ *   part of the value's state: it decides what every later committed write of
+ *   the value invokes. So registering is guarded and noted as a write of the
+ *   managed value, like any commit, and an event that registers an arrow
+ *   conflicts with every event that reads or writes that value.
  * - **Nested mutation / reentrancy.** Every committed mutation is a new
  *   invocation, nested ones included (PR #475 review). While a value's
  *   callbacks are running, a further committed mutation of that same value
@@ -86,12 +99,17 @@ export function installEffectInvoker(invoker: EffectInvoker): void {
  * answer it unchanged.
  */
 export function registerEffect(managed: Frame, callback: Frame): Frame {
+  // Refused before the subscriber list changes, so a refusal registers nothing.
+  guardAccess(managed, "write");
   const existing = subscribers.get(managed);
   if (!existing) {
     subscribers.set(managed, [callback]);
+    noteWrite(managed);
     return managed;
   }
-  if (!existing.includes(callback)) existing.push(callback);
+  if (existing.includes(callback)) return managed;
+  existing.push(callback);
+  noteWrite(managed);
   return managed;
 }
 
@@ -104,6 +122,8 @@ export function hasEffectSubscribers(managed: Frame): boolean {
  * The callbacks a committed mutation of `managed` would invoke, in order.
  * Read by the footprint walk (`access-footprint.ts`): a write to a managed
  * value runs its callbacks, so their effects belong to the writer's event.
+ * The list can change only by a registration, which is a write of `managed`,
+ * so a certificate that writes `managed` cannot see it change while it runs.
  */
 export function effectSubscribersOf(managed: Frame): readonly Frame[] {
   return subscribers.get(managed) ?? [];
@@ -149,6 +169,8 @@ export function notifyEffect(managed: Frame): void {
         try {
           invoke(callback, managed);
         } catch (error) {
+          // A refusal ends the event here: no sibling runs after it.
+          if (error instanceof UncertifiedAccess) throw error;
           thrown ??= { error };
         }
       }
