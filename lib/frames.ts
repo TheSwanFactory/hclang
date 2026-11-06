@@ -160,7 +160,10 @@ export {
   registerEffect,
 } from "./frames/effect-registry.ts";
 export {
+  type AccessGuard,
+  type AccessKind,
   AccessRecord,
+  guardAccess,
   holdersOf,
   type Holding,
   type HoldingKind,
@@ -168,6 +171,7 @@ export {
   keyGrantsMutation,
   mutableHoldersOf,
   PARENT_KEY,
+  UncertifiedAccess,
   versionOf,
   withAccessRecord,
 } from "./frames/reference-tracking.ts";
@@ -189,6 +193,7 @@ export {
   versionRead,
   versionWritten,
 } from "./frames/event-dispatch.ts";
+export { DISPATCH_KEY, dispatchNamespace } from "./frames/dispatch-host.ts";
 export { BoundMethod, type ReceiverState } from "./frames/bound-method.ts";
 export { FrameHandle } from "./frames/frame-handle.ts";
 export {

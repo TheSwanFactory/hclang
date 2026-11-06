@@ -7,6 +7,8 @@ import { FrameLazy } from "./frame-lazy.ts";
 import { FrameSymbol } from "./frame-symbol.ts";
 import { BoundMethod } from "./bound-method.ts";
 import { touchesIdentity } from "./effect-marker.ts";
+import { effectSubscribersOf } from "./effect-registry.ts";
+import { AccessRecord, withAccessRecord } from "./reference-tracking.ts";
 
 /**
  * The potential access footprint of an event, read off its code before it runs
@@ -20,8 +22,10 @@ import { touchesIdentity } from "./effect-marker.ts";
  * denotes *now*. The walk answers two sets of identities and a list of names:
  *
  * - **writes**: identities the event may mutate. A write can land on an
- *   identity only through a key spelled with the marker, so the walk marks
- *   as writable the referent of every marked name it meets, the receiver of a
+ *   identity only through a key spelled with the marker or by registering an
+ *   arrow `managed -> callback` on it, so the walk marks as writable the left
+ *   operand of every arrow, the referent of every marked name it meets, the
+ *   receiver of a
  *   mutating method reached through a mutable handle, the owner of every
  *   `@name` alias write, and, through a marked key, each identity held under
  *   a marked key of a writable identity. A local declaration spelled with
@@ -29,8 +33,9 @@ import { touchesIdentity } from "./effect-marker.ts";
  *   that referent is writable too.
  * - **reads**: identities the event may observe. Every resolved referent is
  *   readable, with all identities reachable from it through its members and
- *   declared parent, and so is the frame a name was resolved in, since
- *   reading the binding reads that frame.
+ *   declared parent, and so is every frame a name was looked up in, the one
+ *   it was found in and the ones it missed in before, since the runtime
+ *   counts a keyed lookup, hit or miss, as a read of that frame.
  * - **unresolved**: names the walk could not resolve to a value, and terms
  *   whose referent is not a name path (an import, a resource, a call result
  *   that a marked name is then applied to). An event with any is *opaque*:
@@ -48,12 +53,17 @@ import { touchesIdentity } from "./effect-marker.ts";
  *
  * Code the event may run that is not reached by name is handled so that it
  * cannot be admitted silently: a closure handed in as the argument is walked
- * where it was written (`.apply {_ ()}`); a `BoundMethod` reached as the
- * argument or as a value makes the footprint opaque, since its receiver is
- * not visible from here. A closure that a call *returns* and the body then
- * calls is the known remaining gap: it is reached through a value, so it is
- * not walked, and a write it makes is reported as an escape after the fact
- * (`event-dispatch.ts`).
+ * where it was written (`.apply {_ ()}`), and so is every callback an arrow
+ * `x -> callback` registered on an identity the event may write, since a
+ * committed write invokes it; a `BoundMethod` reached as the argument or as
+ * a value makes the footprint opaque, since its receiver is not visible from
+ * here. Code reached only through a value the walk does not inspect is the
+ * known remaining gap: a closure held as an element of an aggregate and
+ * called by iterating it (`fns & {_ ()}`), or handed in inside a data
+ * argument (`_ & {_ ()}`). Such a call is not walked, so the footprint misses
+ * its accesses; under `footprint` dispatch the guard installed on the event
+ * refuses the first such access before it happens (`event-dispatch.ts`),
+ * which is what keeps the under-inference from admitting an interference.
  *
  * @module
  */
@@ -98,33 +108,50 @@ class Walk {
   public readonly unresolved: string[] = [];
   /** Bodies already walked, by closure and receiver, so recursion ends. */
   private readonly walked = new Set<string>();
+  /**
+   * Frames the walk itself made to stand for the call (`scopeForCall`): the
+   * call frame the event will make afresh when it runs, never shared state.
+   */
+  public readonly scratch = new AccessRecord();
+  private readonly standIns = new Set<Frame>();
+
+  /** Whether a frame is state the event could share with another. */
+  private shared(target: Frame): boolean {
+    return isState(target) && !this.scratch.created.has(target);
+  }
 
   /** Reads the identity and everything reachable from it. */
   public read(frame: Frame): void {
     const target = unwrap(frame);
-    if (!isState(target)) return;
-    if (this.reads.has(target)) return;
-    this.reads.add(target);
+    if (!isState(target) || this.reads.has(target)) return;
+    if (this.scratch.created.has(target)) {
+      // A stand-in (a functional update's receiver copy) is not shared, but
+      // the members it shares with its original are.
+      if (this.standIns.has(target)) return;
+      this.standIns.add(target);
+    } else {
+      this.reads.add(target);
+    }
     for (const member of membersOf(target)) this.read(member);
   }
 
   /** Reads one binding of a frame: the frame, not what it holds. */
   public readBinding(frame: Frame): void {
     const target = unwrap(frame);
-    if (isState(target)) this.reads.add(target);
+    if (this.shared(target)) this.reads.add(target);
   }
 
   /** Writes one binding of a frame: the frame, not what it holds. */
   public writeBinding(frame: Frame): void {
     const target = unwrap(frame);
-    if (!isState(target)) return;
+    if (!this.shared(target)) return;
     this.reads.add(target);
     this.writes.add(target);
   }
 
   public write(frame: Frame): void {
     const target = unwrap(frame);
-    if (!isState(target)) return;
+    if (!this.shared(target)) return;
     this.read(target);
     if (this.writes.has(target)) return;
     this.writes.add(target);
@@ -132,6 +159,12 @@ class Walk {
     // member it holds, so a write may continue through it.
     for (const [key, member] of target.meta_pairs()) {
       if (touchesIdentity(key)) this.write(member);
+    }
+    // A committed write to a managed value invokes the callbacks an arrow
+    // `target -> callback` registered on it, so their effects are this
+    // event's: each is walked where it was written, as a closure argument is.
+    for (const callback of effectSubscribersOf(target)) {
+      walkCallable(this, callback, `${target.className()} ->`);
     }
   }
 
@@ -194,7 +227,10 @@ export function potentialFootprint(
   const argumentMutable = argument instanceof FrameHandle &&
     argument.isMutable();
   if (target instanceof BoundMethod) {
-    const scope = target.scopeForCall(argument);
+    const scope = withAccessRecord(
+      walk.scratch,
+      () => target.scopeForCall(argument),
+    );
     if (scope instanceof Frame) {
       // The call is refused before the body, so it touches nothing.
       return finish(walk);
@@ -213,7 +249,10 @@ export function potentialFootprint(
       locals: new Map(),
     });
   } else if (target instanceof FrameLazy) {
-    const scope = target.scopeForCall(argument);
+    const scope = withAccessRecord(
+      walk.scratch,
+      () => target.scopeForCall(argument),
+    );
     walkBody(walk, target, {
       frames: scope.lookupFrames(),
       receiverMutable: false,
@@ -329,6 +368,12 @@ function walkPath(
     // the referent may be written.
     const handedOn = !(next !== undefined && next.isName());
     if (term.is.operator === true) {
+      // An arrow `managed -> callback` registers on its left operand's
+      // referent, which changes what every later write of it invokes, so it
+      // is a write of that referent, whatever the handle's authority.
+      if (isArrow(term) && current !== undefined) {
+        for (const frame of current.frames) walk.write(frame);
+      }
       // An operator combines its operands into a value no name holds.
       current = refused ? undefined : fresh;
       continue;
@@ -399,6 +444,10 @@ function walkPath(
   return current;
 }
 
+/** Whether an operator term is the effect arrow `->` (`registerEffect`). */
+const isArrow = (term: Frame): boolean =>
+  (term as Frame & { operator?: string }).operator === "->";
+
 /** A term through the parser's one-term wrappers and a walk's scope wrapper. */
 function plainAtom(term: Frame): Frame {
   let atom = term instanceof FrameScoped ? term.term : term;
@@ -452,7 +501,7 @@ function walkSymbol(
     }
     return { frames: referents.frames, mutable };
   }
-  const found = resolveName(spelling, site.frames);
+  const found = resolveName(walk, spelling, site.frames);
   if (!found) {
     walk.refuse(spelling);
     return undefined;
@@ -489,7 +538,13 @@ function walkName(
   let mutable = false;
   for (const frame of current.frames) {
     const member = memberOf(frame, source);
-    if (!member) continue;
+    if (!member) {
+      // A pattern binding answers a name no key spells, and rewrites the
+      // matched value's source when it does (`MetaFrame.match_here`): the
+      // walk does not follow it, so the event is opaque.
+      if (patternAnswers(frame, source)) walk.refuse(`/pattern/ ${source}`);
+      continue;
+    }
     const receiver = unwrap(frame);
     const referents = walkReferent(
       walk,
@@ -513,7 +568,7 @@ function walkAlias(
 ): Referents | undefined {
   if (site.locals.has(key)) return site.locals.get(key) ?? fresh;
   if (site.receiver) {
-    const onReceiver = resolveName(key, [site.receiver]);
+    const onReceiver = resolveName(walk, key, [site.receiver]);
     if (onReceiver) {
       // The write lands on the receiver, or on its functional copy.
       if (site.receiverMutable && !site.isolated) {
@@ -525,6 +580,7 @@ function walkAlias(
     }
   }
   const lexical = resolveName(
+    walk,
     key,
     site.frames.filter((frame) =>
       frame !== site.argument && unwrap(frame) !== site.receiver
@@ -658,17 +714,41 @@ function memberOf(frame: Frame, key: string): Frame | undefined {
 }
 
 /**
+ * Whether a pattern key (`/re/`) on `frame` or a declared parent matches
+ * `key`. Such a binding has no HC spelling; a host can install one.
+ */
+function patternAnswers(frame: Frame, key: string): boolean {
+  const seen = new Set<Frame>();
+  let current: Frame | undefined = unwrap(frame);
+  while (current && !current.is.missing && !seen.has(current)) {
+    seen.add(current);
+    for (const pattern of current.meta_keys()) {
+      const body = pattern.match(/\/(.*)\//);
+      if (body && new RegExp(body[1]).test(key)) return true;
+    }
+    current = current.hasDeclaredParent() ? current.parent : undefined;
+  }
+  return false;
+}
+
+/**
  * Resolves a bare name the way a call's lookup would: each lookup frame in
  * order, then its declared parents, then the lexical `up` chain, and the
  * globals last. A handle resolves on its target and parents only (#400).
+ *
+ * Every frame consulted is read, the ones that miss included: a miss is that
+ * frame's answer that the name is absent there, and a binding added to it
+ * would change where the name resolves.
  */
 function resolveName(
+  walk: Walk,
   key: string,
   frames: readonly Frame[],
 ): Resolution | undefined {
   const seen = new Set<Frame>();
   for (const frame of frames) {
     const found = resolveThrough(
+      walk,
       key,
       frame,
       seen,
@@ -678,6 +758,7 @@ function resolveName(
   }
   const globals = Frame.globals;
   if (globals && !globals.is.missing && !seen.has(globals)) {
+    walk.readBinding(globals);
     const binding = globals.resolve_here(key, globals);
     if (binding && !binding.value.is.error) {
       return { owner: globals, value: binding.value };
@@ -687,6 +768,7 @@ function resolveName(
 }
 
 function resolveThrough(
+  walk: Walk,
   key: string,
   frame: Frame,
   seen: Set<Frame>,
@@ -695,6 +777,7 @@ function resolveThrough(
   const target = unwrap(frame);
   if (target.is.missing || seen.has(target)) return undefined;
   seen.add(target);
+  walk.readBinding(target);
   const binding = target.resolve_here(key, target);
   if (binding) {
     return binding.value.is.error
@@ -702,14 +785,14 @@ function resolveThrough(
       : { owner: target, value: binding.value };
   }
   if (target.hasDeclaredParent()) {
-    const inherited = resolveThrough(key, target.parent, seen, false);
+    const inherited = resolveThrough(walk, key, target.parent, seen, false);
     if (inherited) return inherited;
   }
   if (
     followLexical && target.up && !target.up.is.missing &&
     target.up !== Frame.globals
   ) {
-    return resolveThrough(key, target.up, seen, true);
+    return resolveThrough(walk, key, target.up, seen, true);
   }
   return undefined;
 }

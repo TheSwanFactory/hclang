@@ -6,6 +6,38 @@
 
 ## Unreleased
 
+- **Footprint dispatch repaired after the PR #484 review (occurrence/figure
+  015.24l).** `footprint` is now held to a new `certified-sequential` policy,
+  the events alone in program order each stopping at its first refused access
+  with its certified prefix kept, rather than to the serial run of the completed
+  events, which a refused event's committed prefix made false. An arrow
+  registration `x -> cb` is a write of `x`, guarded and inferred, so it can no
+  longer change unseen which callbacks another event's write fires; a keyed
+  lookup that misses is a guarded read, and a pattern match that rewrites the
+  bound value's source a guarded write; a refusal inside an arrow callback stops
+  delivery at once; a refusal carries the record that refused, so a nested
+  dispatcher no longer absorbs an outer event's refusal; and events start in
+  program order, so a later event can no longer overtake an earlier waiting one
+  and swap their results. `$$.dispatch` is also installed in every `HCLang`
+  session (and so the playground). The soundness claim in spec a12 is now a
+  conditional theorem, with the native paths that bypass the seams listed and a
+  boundary witness.
+- **The footprint certificate is enforced (occurrence/figure 015.24j).** Under
+  the `footprint` policy an event's admitted footprint is now its certificate:
+  every keyed or indexed read and every commit of shared state is checked
+  against it before it happens, and an access outside it is refused where it
+  would have occurred, with nothing read or written, ending the event with
+  `$!.uncertified-read` or `$!.uncertified-write` (`EventOutcome.refused`).
+  Before, such an access committed and was reported afterwards as an escape, so
+  a walk that under-inferred, as it does for a closure reached only through data
+  (`fns & {_ ()}`), could admit a lost update. The walk also follows the
+  callbacks an arrow `x -> callback` registered on any identity the event may
+  write. `$$.dispatch.sequential`, `.interleave` and `.footprint` are bound in
+  the CLI's host namespace so HC source can hand its own closures to the
+  dispatcher; `hc/art-dispatch-vact.hc` is the executable witness and
+  `lib/frames/event-dispatch.vact.test.ts` re-runs its construction from the
+  host side. The guard costs one length check per read or commit when no record
+  is active.
 - **Automated Reference Tracking and effect-aware dispatch (occurrence/figure
   015.23a, 015.24f).** The runtime now keeps an inverse index from an aggregate
   to the bindings that hold it, graded by the effect marker (`holdersOf`), a

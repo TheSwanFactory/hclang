@@ -2,6 +2,7 @@ import { type Context, type IKeyValuePair, NilContext } from "./context.ts";
 import { renderNested } from "./stringify.ts";
 import { hasEffectSubscribers, notifyEffect } from "./effect-registry.ts";
 import {
+  guardAccess,
   noteCopiedHoldings,
   noteCreated,
   noteHolding,
@@ -125,12 +126,15 @@ export class MetaFrame {
    * get_here retrieves a Frame by key from the current context.
    */
   public get_here(key: string, _origin: MetaFrame = this): Frame {
+    // A keyed lookup is a read of this frame's state, a miss included: the
+    // miss is this frame's answer that the key is absent, and it decides
+    // whether the lookup falls through or matches a pattern. Guarded before
+    // anything is resolved, so a refusal sees and changes nothing
+    // (reference-tracking.ts).
+    guardAccess(this as unknown as Frame, "read");
+    noteRead(this as unknown as Frame);
     const exact = this.resolve_here(key, _origin);
-    if (exact != null) {
-      // A keyed hit is a read of this frame's state (reference-tracking.ts).
-      noteRead(this as unknown as Frame);
-      return exact.value;
-    }
+    if (exact != null) return exact.value;
     return this.match_here(key);
   }
 
@@ -353,6 +357,8 @@ export class MetaFrame {
       this.meta = {};
     }
     const previous = this.meta[key];
+    // Refused before the write lands, so a refusal changes nothing.
+    if (previous !== value) guardAccess(this as unknown as Frame, "write");
     this.meta[key] = value;
     noteHolding(this as unknown as Frame, key, value, previous);
     if (previous !== value) {
@@ -378,6 +384,7 @@ export class MetaFrame {
     if (this.wouldCreateParentCycle(parent)) {
       return Frame.error("$!.cyclic-parent .^");
     }
+    guardAccess(this as unknown as Frame, "write");
     const previous = this.parent;
     this.parent = parent;
     // The parent edge is a holding too (reference-tracking.ts): it is how a
@@ -449,6 +456,10 @@ export class MetaFrame {
 
   /**
    * match_here checks if a target string matches any key in the current context.
+   *
+   * A match rewrites the bound value's `source` to the target, which changes
+   * what every later reader of that binding sees, so it is a write of this
+   * frame: guarded before the value is touched, and noted after.
    */
   protected match_here(target: string): Frame {
     let result = Frame.missing;
@@ -459,8 +470,10 @@ export class MetaFrame {
         if (pattern.test(target)) {
           result = value;
           if ("source" in result) {
+            guardAccess(this as unknown as Frame, "write");
             const sourced = result as ISourced;
             sourced.source = target;
+            noteWrite(this as unknown as Frame);
           }
         }
       }
@@ -1335,6 +1348,7 @@ export class Frame extends MetaFrame {
     let replaced = false;
     for (const [key, value] of this.meta_pairs()) {
       if (value === member) {
+        if (!replaced) guardAccess(this as unknown as Frame, "write");
         this.meta[key] = replacement;
         noteHolding(this as unknown as Frame, key, replacement, member);
         replaced = true;

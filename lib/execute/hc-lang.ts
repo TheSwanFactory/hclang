@@ -5,6 +5,8 @@ import {
   ClockHandler,
   type Context,
   contextString,
+  DISPATCH_KEY,
+  dispatchNamespace,
   Frame,
   FrameArray,
   FrameResource,
@@ -71,6 +73,9 @@ export class HCLang {
         }),
       ),
     );
+    // The same bridge the CLI installs, so a bundled testdoc that dispatches
+    // (`hc/art-dispatch-vact.hc`) runs in a session as it does under the CLI.
+    host.set(DISPATCH_KEY, dispatchNamespace());
     return host;
   }
 
