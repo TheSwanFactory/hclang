@@ -123,6 +123,14 @@ never as the boundary.
   `--allow-*` and either authority would void every path scope above.
 - Which schemes can reach a host is `getHandlers()`, not a flag. One entry is
   bound, the clock; every other scheme is an empty slot and refuses.
+- `$$.dispatch` is part of the host surface of **every** program the CLI runs
+  (`getHost`), not only `-t` testdocs: the four dispatch policies (`sequential`,
+  `certified-sequential`, `interleave`, `footprint`) as host values. It grants
+  no authority: each event is a closure the program already holds, run with the
+  authority it already has. `HCLang` sessions, and so the playground, install
+  the same bridge, so a bundled testdoc that dispatches
+  (`hc/art-dispatch-vact.hc`) runs there too; a host that installs neither has
+  no `$$.dispatch` and answers `$!.name-missing`.
 
 ## Important Notes
 

@@ -122,9 +122,10 @@ receiver reads the member, `o .x`, as before.
   (`FrameLazy.steps`, `BoundMethod.steps`) under three policies, with footprint
   conflicts deciding which events may interleave, and the admitted footprint
   enforced as a guard on every access while the event runs.
-- [dispatch-host.ts](dispatch-host.ts) - The three policies as host-namespace
-  callables (`$$.dispatch.footprint [e₁, e₂]`), so an HC testdoc can hand its
-  closures to the dispatcher under test (`hc/art-dispatch-vact.hc`).
+- [dispatch-host.ts](dispatch-host.ts) - The four policies as host-namespace
+  callables (`$$.dispatch.footprint [e₁, e₂]`), installed by the CLI and by
+  `HCLang`, so an HC testdoc can hand its closures to the dispatcher under test
+  (`hc/art-dispatch-vact.hc`).
 
 ### Advanced Types
 
@@ -647,34 +648,41 @@ not walked.
 `dispatch(events, policy)` steps events statement by statement
 (`FrameExpr.stepBody`): the statement is the finest effect boundary a body
 defines, so it is the unit two events may interleave at, and nothing inside one
-is a boundary. Under `footprint`, an event starts only when no unfinished
-earlier event and no running event has a conflicting footprint (a write meeting
-a read or write, or either side opaque), so conflicting events run in program
-order and the final state is the sequential one; readers are serialized against
-writers rather than given snapshots. `interleave` coordinates nothing and is the
-executable counterexample: two read-then-write events on one `x` lose an update,
-which is what shows that separate statements, and separate calls, are not a
-transaction.
+is a boundary. Under `footprint`, events start in program order, and an event
+starts only when no unfinished earlier event and no running event has a
+conflicting footprint (a write meeting a read or write, or either side opaque),
+so conflicting events run in program order; a later event never starts ahead of
+an earlier one that has not started, since the earlier footprint is read only at
+its start and could by then name what the later one wrote. Readers are
+serialized against writers rather than given snapshots. `interleave` coordinates
+nothing and is the executable counterexample: two read-then-write events on one
+`x` lose an update, which is what shows that separate statements, and separate
+calls, are not a transaction.
 
 Admission rests only on the footprint the walk infers, read when the event is
 about to start, so a name an earlier event rebound is resolved to what it
 denotes then. A caller's `declared` footprint can widen the inferred one and is
 checked against what the event did (`undeclared`); it can never narrow it, so no
 unverified claim admits a conflict. Each event runs under an `AccessRecord`;
-under `footprint` the record's guard is the footprint admission rested on, so
-every keyed or indexed read and every commit of shared state is checked against
+under `footprint` and `certified-sequential` the record's guard is the footprint
+admission rested on, so every keyed or indexed lookup (a miss included), every
+commit of shared state, every arrow registration (a write of the managed value)
+and every pattern match that rewrites a bound value's source is checked against
 it before it happens, where state is what the walk counts as state: an aggregate
 or a plain scope `Frame` whose binding a `@name` can rebind. An access outside
 the certificate is refused there, with nothing read or written, and the event
-ends with `$!.uncertified-read` or `$!.uncertified-write` (`refused`); an event
-that completes therefore stayed within a footprint the dispatcher saw not to
-conflict with any concurrent one, which is what makes its observation the
-sequential one. Under `sequential` and `interleave` no guard is installed and
-shared state touched outside the potential footprint is reported afterwards as
-an **escape** (`escapes`, `readEscapes`), the diagnostic the guard turns into a
-refusal. An event the walk cannot read is opaque and serialized against
-everything. None of this is threads, a transaction, or rollback: a refused event
-keeps the certified writes it committed before the refusal.
+ends with `$!.uncertified-read` or `$!.uncertified-write` (`refused`); a refusal
+inside an arrow callback stops delivery at once, and a dispatcher handles only
+refusals by its own events' guards (`UncertifiedAccess.record`). The baseline
+`footprint` is held to is `certified-sequential`: the same events alone in
+program order, each stopping at its first refused access with its certified
+prefix kept (spec a12 §Soundness, conditional on seam-complete natives). Under
+`sequential` and `interleave` no guard is installed and shared state touched
+outside the potential footprint is reported afterwards as an **escape**
+(`escapes`, `readEscapes`), the diagnostic the guard turns into a refusal. An
+event the walk cannot read is opaque and serialized against everything. None of
+this is threads, a transaction, or rollback: a refused event keeps the certified
+writes it committed before the refusal.
 
 ### Numeric Ladder
 
