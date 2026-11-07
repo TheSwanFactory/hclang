@@ -487,22 +487,36 @@ bridge or Gaussian arithmetic.
 
 ## Denum and the ranked hash
 
-`x.#n` (n from 0 to 5) answers a **Denum**, the signed-load carrier of the
-binary Cayley–Dickson ladder, defined by the HC class in
+`x.#n` (n from 0 to 5) answers a **CD**, the signed-load carrier of the binary
+Cayley–Dickson ladder, defined by the HC class in
 [`hc/denum.hc`](../hc/denum.hc) (occurrence/figure 007.32). It is additive and
 leaves Demi as it is: `.####`, `Demi` and its `+`, `-`, `*` and `./` are
 unchanged, and for an ordinary or binary host `x.#1` carries the same Count and
 left and right loads as `x.####`. A `RotorRouter` of more than two channels is
 the exception: `.####` answers its channel Demi, while `.#n` is built from its
-three observers (Count, Size, residual) and never reads the channels. A Denum is
+three observers (Count, Size, residual) and never reads the channels. A CD is
 not a Demi, its operators are its own, and its Count follows separate candidate
 laws (`C(a+b)=C(a)+C(b)`, `C(a*b)=C(a)·C(b)`, `C(Opp a)=C(a)`) that are not the
 Demi's phase `C mod
-arity`. A Denum retains only its Count and loads,
-`Denum [count, loads]`; its rank is the derived observation `d.rank ()` =
-`⌊log₂ A⌋` of the arity `A = d.loads.#` (never the Count `d.#`). Any positive
-arity is representable, but only A = 1, 2, 4, 8, 16, 32 is a Cayley–Dickson
-rung: other arities keep their raw loads, report `Arity[A]`, and refuse every
-CD-dependent operation with `$!.denum-unsupported-arity`. The class is a thin HC
-shell over the pure native `denum-engine`; the typed reference is
-`lib/frames/denum.ts`.
+arity`. There are two public constructors over the same
+retained Count and loads, and neither stores a rank: its rank is the derived
+observation `d.rank ()` = `⌊log₂ A⌋` of the arity `A = d.loads.#` (never the
+Count `d.#`).
+
+- `Denum [count, loads]` is the generic state for every positive arity,
+  including 1, 2, 4, 8, 16 and 32. It reports `Arity[A]`, never `CD[n]`, and its
+  only operation is `+` with a generic Denum of the same arity (componentwise,
+  Counts add, no cancellation; a different arity is `$!.denum-arity-mismatch`).
+  Signed operations, products, coordinates, signatures and `d.###` answer
+  `$!.denum-not-cd`.
+- `CD [count, loads]` is the explicit Cayley–Dickson construction on the shipped
+  arities 1, 2, 4, 8, 16, 32 (any other arity is `$!.denum-unsupported-arity`).
+  It alone has `+`, `-`, `*`, `opp`, `conj`, `promote`, `coordinates`,
+  `signatures` and `d.###`, and reports `CD[n]`.
+
+The signed algebra is an interpretation imposed by the CD constructor, never a
+theorem inferred from a channel count, and the only algebra published is the
+binary Cayley–Dickson ladder. A Denum and a CD do not combine in either order
+(`$!.denum-mixed`), `x.#n` never takes a generic Denum as a source, and there is
+no conversion between the two. The classes are a thin HC shell over the pure
+native `denum-engine`; the typed reference is `lib/frames/denum.ts`.

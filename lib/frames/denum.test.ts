@@ -1,11 +1,13 @@
 import { expect } from "jsr:@std/expect@^0.219.1";
 import {
   add,
+  addDenum,
   arity,
+  CD,
+  cd,
   cdRank,
   conjugate,
   coordinates,
-  type Denum,
   denum as denumState,
   DenumError,
   denumText,
@@ -31,12 +33,12 @@ import {
 
 /**
  * Test constructor of a CD rung: checks `loads.length === arity(rank)` and
- * builds the two-field state, so a test names the rung it means without the
+ * builds the explicit CD, so a test names the rung it means without the
  * state storing it.
  */
-function denum(rank: number, count: bigint, loads: readonly bigint[]): Denum {
+function denum(rank: number, count: bigint, loads: readonly bigint[]): CD {
   expect(loads.length).toBe(arity(rank));
-  return denumState(count, loads);
+  return cd(count, loads);
 }
 
 /**
@@ -63,7 +65,7 @@ function vectorMultiply(a: bigint[], b: bigint[]): bigint[] {
 }
 
 /** A Denum of `rank` carrying the given loads by native signature name. */
-function make(rank: number, loads: Record<string, bigint>, count = 1n): Denum {
+function make(rank: number, loads: Record<string, bigint>, count = 1n): CD {
   const channels = Array<bigint>(arity(rank)).fill(0n);
   for (const [name, load] of Object.entries(loads)) {
     channels[parseSignature(rank, name)] = load;
@@ -72,7 +74,7 @@ function make(rank: number, loads: Record<string, bigint>, count = 1n): Denum {
 }
 
 /** The single signature of a one-channel product, by name. */
-function only(source: Denum): string {
+function only(source: CD): string {
   const present = source.loads
     .map((load, channel) => ({ load, channel }))
     .filter(({ load }) => load !== 0n);
@@ -81,7 +83,7 @@ function only(source: Denum): string {
   return signatureName(rankOf(source), present[0].channel);
 }
 
-const unit = (rank: number, name: string): Denum => make(rank, { [name]: 1n });
+const unit = (rank: number, name: string): CD => make(rank, { [name]: 1n });
 
 Deno.test("native signature spelling follows 007.32b, no sign bit", () => {
   const names = (rank: number) =>
@@ -229,7 +231,7 @@ function pseudo(seed: number): () => bigint {
   };
 }
 
-function random(rank: number, next: () => bigint, count: bigint): Denum {
+function random(rank: number, next: () => bigint, count: bigint): CD {
   return denum(rank, count, Array.from({ length: arity(rank) }, next));
 }
 
@@ -417,7 +419,10 @@ Deno.test("host construction: fromHost agrees with the Demi derivation", () => {
 
 Deno.test("text shows schema, Count and loads separately", () => {
   expect(denumText(denum(2, 7n, [3n, 2n, 0n, 1n]))).toBe(
-    "Denum(CD[2], C=7, W=[3, 2, 0, 1])",
+    "CD[2](C=7, W=[3, 2, 0, 1])",
+  );
+  expect(denumText(denumState(7n, [3n, 2n, 0n, 1n]))).toBe(
+    "Denum(Arity[4], C=7, W=[3, 2, 0, 1])",
   );
 });
 
@@ -524,54 +529,185 @@ Deno.test("Denum [7, [3, 2, 1]] is a three-channel Denum of rank 1", () => {
   expect(kindOf(() => denumState(1n, []))).toBe("$!!.invalid-denum");
 });
 
-Deno.test("CD eligibility needs a power-of-two arity in the shipped range", () => {
+Deno.test("CD eligibility is explicit construction on a shipped arity", () => {
   for (const a of [1, 2, 4, 8, 16, 32]) {
     expect(isCDArity(a)).toBe(true);
-    expect(isCD(denumState(0n, Array(a).fill(0n)))).toBe(true);
-    expect(schemaOf(denumState(0n, Array(a).fill(0n)))).toBe(
-      `CD[${rankOfArity(a)}]`,
-    );
+    const built = cd(0n, Array(a).fill(0n));
+    expect(isCD(built)).toBe(true);
+    expect(CD.is(built)).toBe(true);
+    expect(schemaOf(built)).toBe(`CD[${rankOfArity(a)}]`);
+    expect(cdRank(built)).toBe(rankOfArity(a));
+    // A generic Denum of the same arity is not a CD and keeps `Arity[A]`.
+    const generic = denumState(0n, Array(a).fill(0n));
+    expect(isCD(generic)).toBe(false);
+    expect(schemaOf(generic)).toBe(`Arity[${a}]`);
+    expect(kindOf(() => cdRank(generic))).toBe("$!.denum-not-cd");
   }
   for (const a of [3, 5, 6, 7, 9, 12, 33, 64, 128]) {
     expect(isCDArity(a)).toBe(false);
+    expect(kindOf(() => cd(1n, Array(a).fill(1n)))).toBe(
+      "$!.denum-unsupported-arity",
+    );
+    // The generic constructor accepts every positive arity.
     const d = denumState(1n, Array(a).fill(1n));
     expect(isCD(d)).toBe(false);
     expect(schemaOf(d)).toBe(`Arity[${a}]`);
-    expect(kindOf(() => cdRank(d))).toBe("$!.denum-unsupported-arity");
+  }
+  // Malformed states are still the shared invalid-denum failure.
+  expect(kindOf(() => cd(1n, []))).toBe("$!!.invalid-denum");
+  expect(kindOf(() => cd(-1n, [0n, 0n]))).toBe("$!!.invalid-denum");
+  expect(kindOf(() => cd(0n, [0n, -1n]))).toBe("$!!.invalid-denum");
+  expect(kindOf(() => cd(0n, [0n, 1.5 as unknown as bigint]))).toBe(
+    "$!!.invalid-denum",
+  );
+});
+
+Deno.test("equal shape, different constructors: Denum [7,[3,2,1,4]] versus CD", () => {
+  const generic = denumState(7n, [3n, 2n, 1n, 4n]);
+  const explicit = cd(7n, [3n, 2n, 1n, 4n]);
+  for (const d of [generic, explicit]) {
+    expect(d.loads.length).toBe(4);
+    expect(rankOf(d)).toBe(2);
+    expect(d.count).toBe(7n);
+    expect(d.loads.reduce((a, b) => a + b, 0n)).toBe(10n);
+  }
+  expect(schemaOf(generic)).toBe("Arity[4]");
+  expect(schemaOf(explicit)).toBe("CD[2]");
+  expect(denumText(generic)).toBe("Denum(Arity[4], C=7, W=[3, 2, 1, 4])");
+  expect(denumText(explicit)).toBe("CD[2](C=7, W=[3, 2, 1, 4])");
+  expect(isCD(generic)).toBe(false);
+  expect(isCD(explicit)).toBe(true);
+  // The same data, but not the same value: the type is part of the identity.
+  expect(Object.getPrototypeOf(generic)).not.toBe(
+    Object.getPrototypeOf(explicit),
+  );
+  // The CD has the verified projections; the generic has no CD reading.
+  expect(coordinates(explicit)).toEqual([2n, -2n]);
+  expect(coordinates(explicit, true)).toEqual([4n, 6n]);
+  for (
+    const op of [
+      () => coordinates(generic as unknown as CD),
+      () => coordinates(generic as unknown as CD, true),
+      () => observe(generic as unknown as CD),
+      () => residual(generic as unknown as CD),
+      () => opposite(generic as unknown as CD),
+      () => conjugate(generic as unknown as CD),
+      () => promote(generic as unknown as CD, 3),
+      () => multiply(generic as unknown as CD, generic as unknown as CD),
+      () => subtract(generic as unknown as CD, generic as unknown as CD),
+      () => add(generic as unknown as CD, generic as unknown as CD),
+    ]
+  ) {
+    expect(kindOf(op)).toBe("$!.denum-not-cd");
   }
 });
 
-Deno.test("non-CD arities refuse every CD operation and keep their loads", () => {
-  const refused = "$!.denum-unsupported-arity";
-  for (const a of [3, 5, 6, 33, 64]) {
-    const d = denumState(
-      4n,
-      Array.from({ length: a }, (_, i) => BigInt(i + 1)),
-    );
-    const cd = denumState(1n, [1n, 0n]);
-    for (
-      const op of [
-        () => promote(d, 5),
-        () => opposite(d),
-        () => conjugate(d),
-        () => observe(d),
-        () => coordinates(d),
-        () => coordinates(d, true),
-        () => residual(d),
-        () => add(d, d),
-        () => add(d, cd),
-        () => add(cd, d),
-        () => subtract(d, d),
-        () => multiply(d, d),
-        () => multiply(cd, d),
-      ]
-    ) {
-      expect(kindOf(op)).toBe(refused);
-    }
-    // Nothing was dropped, padded or promoted.
-    expect(d.loads.length).toBe(a);
-    expect(rankOf(d)).toBe(rankOfArity(a));
-  }
+Deno.test("generic addition: equal arity, componentwise, no cancellation", () => {
+  // A = 3: odd arity.
+  const a3 = denumState(7n, [3n, 2n, 1n]);
+  const b3 = denumState(2n, [4n, 0n, 0n]);
+  const s3 = addDenum(a3, b3);
+  expect(s3.count).toBe(9n);
+  expect(s3.loads).toEqual([7n, 2n, 1n]);
+  expect(s3.loads.reduce((x, y) => x + y, 0n)).toBe(10n);
+  expect(rankOf(s3)).toBe(1);
+  expect(schemaOf(s3)).toBe("Arity[3]");
+  expect(isCD(s3)).toBe(false);
+  expect(s3).not.toBe(a3);
+  expect(s3.loads).not.toBe(a3.loads);
+  expect(a3.loads).toEqual([3n, 2n, 1n]);
+  expect(b3.loads).toEqual([4n, 0n, 0n]);
+  // A = 4: a power of two, still generic: no CD promotion, no sign cancellation.
+  const a4 = denumState(7n, [3n, 2n, 1n, 4n]);
+  const b4 = denumState(2n, [4n, 0n, 0n, 5n]);
+  const s4 = addDenum(a4, b4);
+  expect(s4.count).toBe(9n);
+  expect(s4.loads).toEqual([7n, 2n, 1n, 9n]);
+  expect(rankOf(s4)).toBe(2);
+  expect(s4.loads.reduce((x, y) => x + y, 0n)).toBe(19n);
+  expect(isCD(s4)).toBe(false);
+  expect(schemaOf(s4)).toBe("Arity[4]");
+  // Channels that a CD would read as opposites do not cancel or swap.
+  expect(
+    addDenum(denumState(1n, [2n, 0n, 1n, 0n]), denumState(1n, [0n, 3n, 0n, 2n]))
+      .loads,
+  ).toEqual([2n, 3n, 1n, 2n]);
+  // Arity 1, and arities beyond the CD maximum, add too.
+  expect(addDenum(denumState(1n, [2n]), denumState(2n, [5n]))).toEqual({
+    count: 3n,
+    loads: [7n],
+  });
+  expect(
+    addDenum(
+      denumState(0n, Array(64).fill(1n)),
+      denumState(1n, Array(64).fill(2n)),
+    )
+      .loads,
+  ).toEqual(Array(64).fill(3n));
+  // Count is independent of the Size, and the sum's Count stays additive.
+  expect(
+    addDenum(denumState(0n, [5n, 5n, 5n]), denumState(0n, [0n, 0n, 0n])).count,
+  )
+    .toBe(0n);
+});
+
+Deno.test("generic addition refuses different arities and mixed operands", () => {
+  const a3 = denumState(1n, [1n, 1n, 1n]);
+  const a4 = denumState(1n, [1n, 1n, 1n, 1n]);
+  expect(kindOf(() => addDenum(a3, a4))).toBe("$!.denum-arity-mismatch");
+  expect(kindOf(() => addDenum(a4, a3))).toBe("$!.denum-arity-mismatch");
+  expect(kindOf(() => addDenum(a3, denumState(1n, [1n])))).toBe(
+    "$!.denum-arity-mismatch",
+  );
+  // A CD in either position, at equal arity, is never reinterpreted.
+  const c4 = cd(1n, [1n, 1n, 1n, 1n]);
+  expect(kindOf(() => addDenum(a4, c4))).toBe("$!.denum-mixed");
+  expect(kindOf(() => addDenum(c4, a4))).toBe("$!.denum-mixed");
+  expect(kindOf(() => addDenum(c4, c4))).toBe("$!.denum-not-generic");
+  expect(kindOf(() => add(a4 as unknown as CD, c4))).toBe("$!.denum-mixed");
+  expect(kindOf(() => add(c4, a4 as unknown as CD))).toBe("$!.denum-mixed");
+  expect(kindOf(() => multiply(a4 as unknown as CD, c4))).toBe(
+    "$!.denum-mixed",
+  );
+  expect(kindOf(() => subtract(c4, a4 as unknown as CD))).toBe(
+    "$!.denum-mixed",
+  );
+  // The CD operands are untouched by the refusals.
+  expect(c4.loads).toEqual([1n, 1n, 1n, 1n]);
+});
+
+Deno.test("anti-spoof: copying count and loads does not forge CD identity", () => {
+  const real = cd(1n, [1n, 0n]);
+  const lookalike = { count: 1n, loads: [1n, 0n] } as unknown as CD;
+  expect(CD.is(real)).toBe(true);
+  expect(CD.is(lookalike)).toBe(false);
+  expect(CD.is(Object.create(CD.prototype))).toBe(false);
+  expect(CD.is({ ...real })).toBe(false);
+  expect(CD.is(structuredClone({ count: real.count, loads: real.loads }))).toBe(
+    false,
+  );
+  expect(CD.is(denumState(1n, [1n, 0n]))).toBe(false);
+  expect(CD.is(null)).toBe(false);
+  expect(CD.is(undefined)).toBe(false);
+  expect(CD.is("CD")).toBe(false);
+  expect(isCD(lookalike)).toBe(false);
+  expect(kindOf(() => add(lookalike, real))).toBe("$!.denum-mixed");
+  expect(kindOf(() => add(lookalike, lookalike))).toBe("$!.denum-not-cd");
+  expect(kindOf(() => multiply(real, lookalike))).toBe("$!.denum-mixed");
+  expect(kindOf(() => promote(lookalike, 2))).toBe("$!.denum-not-cd");
+  expect(kindOf(() => coordinates(lookalike))).toBe("$!.denum-not-cd");
+  // Operations on a real CD answer real CDs, and a lookalike never becomes one.
+  expect(CD.is(add(real, real))).toBe(true);
+  expect(CD.is(multiply(real, real))).toBe(true);
+  expect(CD.is(opposite(real))).toBe(true);
+  expect(CD.is(conjugate(real))).toBe(true);
+  expect(CD.is(promote(real, 3))).toBe(true);
+  expect(CD.is(subtract(real, real))).toBe(true);
+  expect(CD.is(fromHost(2, 3n, 8n, 2n))).toBe(true);
+  expect(CD.is(zero(3))).toBe(true);
+  expect(CD.is(addDenum(denumState(1n, [1n]), denumState(1n, [1n])))).toBe(
+    false,
+  );
 });
 
 Deno.test("fromHost and promote name the target rung; the rank is then derived", () => {
@@ -583,4 +719,5 @@ Deno.test("fromHost and promote name the target rung; the rank is then derived",
   }
   expect(kindOf(() => promote(zero(3), 2))).toBe("$!.denum-demotion");
   expect(kindOf(() => promote(zero(1), 6))).toBe("$!.denum-rank");
+  expect(CD.is(fromHost(3, 1n, 2n, 0n))).toBe(true);
 });

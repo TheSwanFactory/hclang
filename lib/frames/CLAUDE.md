@@ -26,11 +26,15 @@ and program is composed of frames. This unified representation enables:
   [the Demi document](../../doc/FRAME-DEMI.md).
 
 - [denum.ts](denum.ts) and [denum-hash.ts](denum-hash.ts) - The typed
-  Cayley–Dickson reference (schema `CD[n]`, signed-channel loads, Count,
-  `add`/`multiply`/`opposite`/`conjugate`/`promote`/`coordinates`; state is
-  `{count, loads}` with the rank derived by `rankOf`, and `cdRank`/`isCD` guard
-  every CD-only entry point) and the ranked hash `.#n`, which answers the HC
-  class `Denum` in `hc/denum.hc` through `installDenumConstructor`
+  Cayley–Dickson reference and the ranked hash `.#n`. Two types share the
+  retained state `{count, loads}` with the rank derived by `rankOf`: the generic
+  `Denum` (any positive arity, `addDenum` only) and the explicit `CD` class
+  (private brand `CD.is`, built only by `cd()` on arities 1, 2, 4, 8, 16, 32,
+  with schema `CD[n]` and `add`/`multiply`/`opposite`/`conjugate`/`promote`/
+  `coordinates`). Arity never selects the algebra: `requireCD` guards every
+  CD-only entry point, and there is no Denum to CD conversion. `.#n` answers the
+  HC class `CD` in `hc/denum.hc` and refuses a generic `Denum` source; both
+  constructors are installed together through `installDenumConstructors`
   (`lib/execute/denum-prologue.ts`). `Frame.isSizeOperator` accepts the four
   fixed hashes and `#n`; `Frame.SIZE_OPERATORS` is still only the four.
 

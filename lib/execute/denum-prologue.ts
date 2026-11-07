@@ -1,11 +1,13 @@
 /**
- * The Denum class, loaded from HC for the ranked hash.
+ * The Denum and CD classes, loaded from HC for the ranked hash.
  *
- * `x.#n` answers a Denum, and a Denum is an HC class, `Denum` in
- * `hc/denum.hc` (occurrence/figure 007.32). The frames package derives the
- * state natively but cannot run HC, so this module installs the constructor it
- * calls (`installDenumConstructor`), exactly as `demi-prologue.ts` does for
- * `.####`.
+ * `x.#n` answers a CD, and both CD and the generic Denum are HC classes,
+ * `CD` and `Denum` in `hc/denum.hc` (occurrence/figure 007.32, 007.35b). The
+ * frames package derives the state natively but cannot run HC, so this module
+ * installs the constructors it calls (`installDenumConstructors`), exactly as
+ * `demi-prologue.ts` does for `.####`. The CD constructor builds every
+ * answer; the generic one is installed so a generic Denum source can be
+ * recognized and refused, never converted.
  *
  * The class is read from the compiled-in bundle, not through a resource root,
  * so `.#n` works in a bare `evaluate`, which has no root and imports nothing.
@@ -26,7 +28,7 @@ import {
   FrameArray,
   FrameCount,
   FrameExpr,
-  installDenumConstructor,
+  installDenumConstructors,
 } from "../frames.ts";
 import { HC_SOURCES } from "../bundle/hc-sources.ts";
 import { evaluateSourceText } from "./resource-import.ts";
@@ -34,60 +36,70 @@ import { evaluateSourceText } from "./resource-import.ts";
 /** The bundled file that defines the class. */
 export const DENUM_SOURCE = "hc/denum.hc";
 
-/** The name the file declares the constructor under. */
+/** The names the file declares its two public constructors under. */
 export const DENUM_CLASS = "Denum";
+export const CD_CLASS = "CD";
 
-let loaded: Frame | undefined;
+/** Both constructor closures of the file, or the failure that loading gave. */
+export type DenumClasses = { denum: Frame; cd: Frame } | Frame;
+
+let loaded: DenumClasses | undefined;
 let loading = false;
 
+const failed = (frame: Frame): boolean =>
+  frame.isFailedResult() || frame.observationError() !== undefined;
+
 /**
- * Evaluates class source in a namespace of its own, answering its `Denum` or
- * the failure. Uncached: `denumClass` keeps the one result the process uses.
+ * Evaluates class source in a namespace of its own, answering its `Denum` and
+ * `CD` constructors or the failure. Uncached: `denumClasses` keeps the one
+ * result the process uses.
  *
  * @param source The source text, or undefined when the bundle lacks it.
- * @returns The constructor, or an error.
+ * @returns Both constructors, or an error.
  */
-export function loadDenumClass(source: string | undefined): Frame {
+export function loadDenumClasses(source: string | undefined): DenumClasses {
   if (source === undefined) {
     return Frame.error(`$!.denum-prologue-missing ${DENUM_SOURCE}`);
   }
   const namespace = new FrameArray([]);
   const result = evaluateSourceText(source, EvaluationScope.root(namespace));
-  if (result.isFailedResult() || result.observationError()) return result;
-  const constructor = namespace.getOwn(DENUM_CLASS);
-  return constructor.is.missing
-    ? Frame.error(`$!.denum-prologue-missing ${DENUM_CLASS}`)
-    : constructor;
+  if (failed(result)) return result;
+  const denum = namespace.getOwn(DENUM_CLASS);
+  if (denum.is.missing) {
+    return Frame.error(`$!.denum-prologue-missing ${DENUM_CLASS}`);
+  }
+  const cd = namespace.getOwn(CD_CLASS);
+  if (cd.is.missing) {
+    return Frame.error(`$!.denum-prologue-missing ${CD_CLASS}`);
+  }
+  return { denum, cd };
 }
 
 /**
- * The `Denum` constructor closure, evaluated from the bundle on first use.
+ * The `Denum` and `CD` constructor closures, evaluated from the bundle on
+ * first use.
  *
- * @returns The constructor, or the error that loading it answered.
+ * @returns The constructors, or the error that loading them answered.
  */
-export function denumClass(): Frame {
+export function denumClasses(): DenumClasses {
   if (loaded) return loaded;
   if (loading) return Frame.error("$!.denum-prologue-reentrant");
   loading = true;
   try {
-    loaded = loadDenumClass(HC_SOURCES.get(DENUM_SOURCE));
+    loaded = loadDenumClasses(HC_SOURCES.get(DENUM_SOURCE));
   } finally {
     loading = false;
   }
   return loaded;
 }
 
-/**
- * Constructs a Denum with the HC class: `Denum [count, loads]`.
- *
- * @param state The Count and loads, already admissible.
- * @returns The new instance, or the class's failure.
- */
-export function constructDenum(state: denum.Denum): Frame {
-  const constructor = denumClass();
-  if (constructor.isFailedResult() || constructor.observationError()) {
-    return constructor;
-  }
+function construct(
+  which: "denum" | "cd",
+  state: denum.Denum,
+): Frame {
+  const classes = denumClasses();
+  if (classes instanceof Frame) return classes;
+  const constructor = classes[which];
   const argument = new FrameArray([
     new FrameCount(state.count),
     new FrameArray(state.loads.map((load) => new FrameCount(load))),
@@ -95,4 +107,24 @@ export function constructDenum(state: denum.Denum): Frame {
   return FrameExpr.answeredValue(constructor.call(argument)).referent();
 }
 
-installDenumConstructor(constructDenum);
+/**
+ * Constructs a generic Denum with the HC class: `Denum [count, loads]`.
+ *
+ * @param state The Count and loads, already admissible.
+ * @returns The new instance, or the class's failure.
+ */
+export function constructDenum(state: denum.Denum): Frame {
+  return construct("denum", state);
+}
+
+/**
+ * Constructs an explicit CD with the HC class: `CD [count, loads]`.
+ *
+ * @param state The Count and loads, already admissible as a CD.
+ * @returns The new instance, or the class's failure.
+ */
+export function constructCD(state: denum.Denum): Frame {
+  return construct("cd", state);
+}
+
+installDenumConstructors({ cd: constructCD, denum: constructDenum });

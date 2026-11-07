@@ -2,10 +2,10 @@ import { expect } from "jsr:@std/expect@^0.219.1";
 import {
   add,
   arity,
+  type CD,
+  cd as cdState,
   conjugate,
   coordinates,
-  type Denum,
-  denum as denumState,
   multiply,
   observe,
   opposite,
@@ -17,12 +17,12 @@ import {
 
 /**
  * Test constructor of a CD rung: checks `loads.length === arity(rank)` and
- * builds the two-field state, so a test names the rung it means without the
+ * builds the explicit CD, so a test names the rung it means without the
  * state storing it.
  */
-function denum(rank: number, count: bigint, loads: readonly bigint[]): Denum {
+function denum(rank: number, count: bigint, loads: readonly bigint[]): CD {
   expect(loads.length).toBe(arity(rank));
-  return denumState(count, loads);
+  return cdState(count, loads);
 }
 
 /**
@@ -33,7 +33,7 @@ function denum(rank: number, count: bigint, loads: readonly bigint[]): Denum {
  */
 
 /** Test-only reference: the unsigned load of each direction, straight from W. */
-function unsignedOf(x: Denum): bigint[] {
+function unsignedOf(x: CD): bigint[] {
   if (rankOf(x) === 0) return [x.loads[0]];
   const half = x.loads.length / 2;
   const out: bigint[] = [];
@@ -68,7 +68,7 @@ function lcg(seed: number): () => number {
 
 const big = (...values: number[]): bigint[] => values.map(BigInt);
 
-const unit = (rank: number, name: string): Denum => {
+const unit = (rank: number, name: string): CD => {
   const loads = Array<bigint>(arity(rank)).fill(0n);
   loads[parseSignature(rank, name)] = 1n;
   return denum(rank, 1n, loads);
@@ -157,7 +157,7 @@ Deno.test("non-destructive and independent of Count", () => {
 });
 
 Deno.test("joint completeness on valid states: W± = (U ± S)/2", () => {
-  const check = (x: Denum) => {
+  const check = (x: CD) => {
     const s = coordinates(x);
     const u = coordinates(x, true);
     expect(s.length).toBe(u.length);
@@ -278,7 +278,7 @@ Deno.test("D4: unsigned product on mixed loads, symmetries, associativity", () =
 
 /** The directions of the nonzero basis Denums, from their shipped product. */
 function derivedLines(): Set<string> {
-  const basis = new Map<number, Denum>();
+  const basis = new Map<number, CD>();
   for (let d = 1; d < 8; d++) {
     basis.set(d, unit(4, `e_${d.toString(2).padStart(3, "0")}`));
   }
@@ -404,12 +404,12 @@ Deno.test("the D4 mixed-load fixtures contain odd and even loads", () => {
 });
 
 /** Test-only Size: the plain total of every load, `Σ W`. */
-const sizeOf = (x: Denum): bigint => x.loads.reduce((a, b) => a + b, 0n);
+const sizeOf = (x: CD): bigint => x.loads.reduce((a, b) => a + b, 0n);
 const total = (values: bigint[]): bigint => values.reduce((a, b) => a + b, 0n);
 
 Deno.test("projections agree with the native observers: Σ U = Size, Σ S = residual", () => {
   const next = lcg(31);
-  const states: Denum[] = [];
+  const states: CD[] = [];
   for (let rank = 0; rank <= 5; rank++) {
     const width = arity(rank);
     const fill = (value: (k: number) => bigint, count: bigint) =>

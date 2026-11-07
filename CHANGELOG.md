@@ -6,21 +6,32 @@
 
 ## Unreleased
 
-- **Denum rank is derived from the loads, not stored (occurrence/figure 007.35,
-  007.34c).** **Breaking:** `Denum [count, loads]` replaces
-  `Denum [rank, count, loads]` (the three-field form is `$!!.invalid-denum`),
-  and the data fields `d.rank` and `d.schema` are now the calls `d.rank ()` and
-  `d.schema ()`; any other argument is `$!!.unary-observation`. The rank is
-  `⌊log₂ A⌋` with `A = d.loads.#`, by integer arithmetic and never from the
-  Count `d.#`. The `denum-engine` payload is `[op, count, loads, ...]` per
-  operand (legacy rank-bearing payloads are refused) and opcode 11 observes the
-  rank. Any positive number of loads is now a Denum (`Denum [7, [3, 2, 1]]` has
-  rank 1); only the arities 1, 2, 4, 8, 16 and 32 are Cayley–Dickson, and every
-  CD-dependent operation or observer on another arity (`+`, `-`, `*`, `opp`,
-  `conj`, `promote`, `coordinates`, `observe`, `signatures`, `d.###`, `d.#n`)
-  answers `$!.denum-unsupported-arity` with its loads untouched. Its schema text
-  is `Arity[A]`, never `CD[n]`. `x.#n` keeps naming the target rung, D0–D5
-  behavior is unchanged, and no `#D` or runtime `dim` is added.
+- **Denum rank is derived, and CD is a separate explicit constructor
+  (occurrence/figure 007.35, 007.35b, 007.34c).** **Breaking:** there are two
+  public constructors over the same retained Count and loads, and neither stores
+  a rank. `Denum [count, loads]` replaces `Denum [rank, count, loads]` (the
+  three-field form is `$!!.invalid-denum` for both) and is **generic**: any
+  positive arity, including 1, 2, 4, 8, 16 and 32, reports `Arity[A]`, supports
+  equal-arity componentwise `+` (Counts add, nothing cancels; a different arity
+  is `$!.denum-arity-mismatch`), and refuses every signed operation, product,
+  `opp`, `conj`, `promote`, `coordinates`, `observe`, `signatures` and `d.###`
+  with `$!.denum-not-cd`. `CD [count, loads]` is the **explicit** Cayley–Dickson
+  construction on 1, 2, 4, 8, 16 or 32 channels (any other arity is
+  `$!.denum-unsupported-arity`) and keeps all D0–D5 behavior: `+`, `-`, `*`,
+  `opp`, `conj`, `promote`, `coordinates`, `signatures`, `d.###`, schema `CD[n]`
+  and text `CD[n](C=.., W=[..])`. The algebra comes from the CD constructor, not
+  from the arity; `Denum [7, [3, 2, 1, 4]]` is not a CD[2]. A Denum and a CD
+  never combine (`$!.denum-mixed`), there is no conversion API, and a lookalike
+  with the same fields is neither (`$!!.invalid-denum`). `x.#n` answers a CD,
+  promotes a CD, and refuses a generic Denum source with `$!.denum-not-cd`
+  without converting it. `d.rank` and `d.schema` are now the calls `d.rank ()`
+  and `d.schema ()` (rank `⌊log₂ A⌋`, integer arithmetic, never the Count); any
+  other argument is `$!!.unary-observation`. The `denum-engine` payload is
+  `[op, count, loads, ...]`, with new ops 12 to 17 (generic add, generic schema,
+  CD build, two refusals, CD-arity test) and op 9 now CD-only. In TypeScript
+  `installDenumConstructor` becomes `installDenumConstructors({cd, denum})` and
+  `denum.CD` / `denum.cd()` / `denum.addDenum()` are new. No `#D` or runtime
+  `dim` is added.
 
 ## v0.46.0 2026-11-07
 
