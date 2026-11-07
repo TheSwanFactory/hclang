@@ -4,7 +4,7 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
-## Unreleased
+## v0.45.0 2026-11-06
 
 - **The ranked hash `x.#n` answers a Denum (occurrence/figure 007.32d,
   007.32b).** `x.#0` … `x.#5` answer the Denum of Cayley–Dickson rung n: one
