@@ -343,6 +343,16 @@ describe("Lex", () => {
       expect(lexAtoms("x.# 2 ").map(String)).toEqual(["x", ".#", "2"]);
     });
 
+    it("spells each rung once: a leading zero ends the name (007.32)", () => {
+      expect(lexAtoms("x.#05 ").map(String)).toEqual(["x", ".#0", "5"]);
+      expect(lexAtoms("x.#00 ").map(String)).toEqual(["x", ".#0", "0"]);
+      expect(lexAtoms("x.#005 ").map(String)).toEqual(["x", ".#0", "05"]);
+      expect(lexAtoms("x.#10 ").map(String)).toEqual(["x", ".#10"]);
+      expect(Frame.hashRank("#05")).toBeUndefined();
+      expect(Frame.hashRank("#5")).toBe(5);
+      expect(Frame.hashRank("#12")).toBe(12);
+    });
+
     it("gives the ranked hash only to a lone hash (007.32)", () => {
       // `.##2` and `.####2` are the fixed hashes followed by the count 2.
       expect(lexAtoms("x.##2 ").map(String)).toEqual(["x", ".##", "2"]);

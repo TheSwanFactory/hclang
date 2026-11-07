@@ -614,11 +614,12 @@ export class Frame extends MetaFrame {
   ];
   /**
    * The ranked hash `.#n` (occurrence/figure 007.32): `#` and decimal digits,
-   * as `.#2`. Its n is the Cayley–Dickson rung and not a hash count, so it is
+   * as `.#2`, in canonical decimal (no leading zero, so each rung has one
+   * spelling). Its n is the Cayley–Dickson rung and not a hash count, so it is
    * not one of {@link SIZE_OPERATORS}, whose spellings are the four fixed
    * hashes. Bare `.#` stays the Count.
    */
-  public static readonly RANKED_HASH = /^#[0-9]+$/;
+  public static readonly RANKED_HASH = /^#(0|[1-9][0-9]*)$/;
 
   /**
    * Whether `key` names an observer a Frame answers for itself: one of the four

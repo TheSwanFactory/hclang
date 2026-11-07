@@ -60,7 +60,11 @@ function readState(
 ): Denum {
   const r = rank === undefined ? undefined : counts(rank);
   const c = count === undefined ? undefined : counts(count);
-  const elements = loads?.referent().elements();
+  // Base Frame.elements() answers [this] for any non-aggregate, so a bare Count
+  // would read as a one-element list: require an aggregate, as the hash reader
+  // `storedState` does.
+  const list = loads?.referent();
+  const elements = list?.ownsIdentity() ? list.elements() : undefined;
   const l = elements?.map(counts);
   if (
     r === undefined || c === undefined || !l || l.some((x) => x === undefined)

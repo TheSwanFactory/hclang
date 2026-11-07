@@ -138,12 +138,12 @@ has one unsigned channel, and an explicit zero-load D0 is present
 The loads are Counts, one per channel, and the Count is kept apart from them: a
 Denum may hold loads at Count zero, or a Count over zero loads. A rank beyond 5,
 a negative Count or load, a fractional load, the wrong number of loads and a
-non-list are all refused
+non-list (a bare Count or text for the loads included) are all refused
 ```
 ; [“” (Denum [2, 7, [3, 2, 0, 1]]), “” (Denum [1, 0, [4, 0]]), “” (Denum [1, 5, [0, 0]])]
 # [“Denum(CD[2], C=7, W=[3, 2, 0, 1])”, “Denum(CD[1], C=0, W=[4, 0])”, “Denum(CD[1], C=5, W=[0, 0])”]
-; [Denum [6, 0, [0]], Denum [1, (0 - 1), [0, 0]], Denum [1, 0, [0, (0 - 1)]], Denum [1, 0, [0, 1.5]], Denum [2, 0, [0, 0, 0]], Denum [0, 0, [0, 0]], Denum 5, Denum [1, 0], Denum [1, 0, [0, 0], 9]]
-# [$!!.invalid-denum, $!!.invalid-denum, $!!.invalid-denum, $!!.invalid-denum, $!!.invalid-denum, $!!.invalid-denum, $!!.invalid-denum, $!!.invalid-denum, $!!.invalid-denum]
+; [Denum [6, 0, [0]], Denum [1, (0 - 1), [0, 0]], Denum [1, 0, [0, (0 - 1)]], Denum [1, 0, [0, 1.5]], Denum [2, 0, [0, 0, 0]], Denum [0, 0, [0, 0]], Denum 5, Denum [1, 0], Denum [1, 0, [0, 0], 9], Denum [0, 0, 5], Denum [1, 0, 5], Denum [0, 0, “x”]]
+# [$!!.invalid-denum, $!!.invalid-denum, $!!.invalid-denum, $!!.invalid-denum, $!!.invalid-denum, $!!.invalid-denum, $!!.invalid-denum, $!!.invalid-denum, $!!.invalid-denum, $!!.invalid-denum, $!!.invalid-denum, $!!.invalid-denum]
 ```
 ## Signatures
 
