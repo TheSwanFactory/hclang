@@ -113,6 +113,12 @@ function intrinsicDenum(source: Frame): Denum | undefined {
  *   state promoted to rank n, keeping Count and every load, and below its own
  *   rank `$!.denum-demotion`. A Denum of Count zero is present.
  *
+ * A multi-channel `RotorRouter` is not special-cased here as it is under
+ * `.####` (`channelRouterDemi`): `.#n` reads only Count, Size and residual, so
+ * `x.#1` equals `x.####` for ordinary and binary hosts, and for a router of
+ * more than two channels is the binary projection while `.####` keeps its
+ * channel Demi (pinned in `hc/denum.hc`).
+ *
  * Nothing folds, executes or caches the source, and each observer is read at
  * most once. A rank above 5 is `$!.denum-rank`.
  *

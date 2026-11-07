@@ -18,9 +18,31 @@ import {
   promote,
   signatureName,
   subtract,
-  vectorMultiply,
   zero,
 } from "./denum.ts";
+
+/**
+ * Independent oracle: the standard Cayley–Dickson doubling over integer
+ * vectors. Test-only, so the shipped module has exactly one multiplier.
+ */
+function vectorMultiply(a: bigint[], b: bigint[]): bigint[] {
+  if (a.length === 1) return [a[0] * b[0]];
+  const half = a.length / 2;
+  const [p, q] = [a.slice(0, half), a.slice(half)];
+  const [r, s] = [b.slice(0, half), b.slice(half)];
+  const conj = (v: bigint[]): bigint[] =>
+    v.length === 1 ? [v[0]] : [
+      ...conj(v.slice(0, v.length / 2)),
+      ...v.slice(v.length / 2).map((c) => -c),
+    ];
+  const sum = (u: bigint[], v: bigint[]) => u.map((c, i) => c + v[i]);
+  const diff = (u: bigint[], v: bigint[]) => u.map((c, i) => c - v[i]);
+  // (p,q)(r,s) = (pr − s̄q, sp + qr̄)
+  return [
+    ...diff(vectorMultiply(p, r), vectorMultiply(conj(s), q)),
+    ...sum(vectorMultiply(s, p), vectorMultiply(q, conj(r))),
+  ];
+}
 
 /** A Denum of `rank` carrying the given loads by native signature name. */
 function make(rank: number, loads: Record<string, bigint>, count = 1n): Denum {
@@ -379,4 +401,35 @@ Deno.test("text shows schema, Count and loads separately", () => {
   expect(denumText(denum(2, 7n, [3n, 2n, 0n, 1n]))).toBe(
     "Denum(CD[2], C=7, W=[3, 2, 0, 1])",
   );
+});
+
+Deno.test("results are fresh: no operation returns its argument or aliases its loads", () => {
+  const sources = [0, 1, 2, 3].map((rank) =>
+    denum(
+      rank,
+      3n,
+      Array.from({ length: arity(rank) }, (_, i) => BigInt(i + 1)),
+    )
+  );
+  for (const source of sources) {
+    const before = [...source.loads];
+    const results = [
+      promote(source, source.rank),
+      conjugate(source),
+      opposite(source),
+      add(source, zero(source.rank)),
+      multiply(source, make(source.rank, {})),
+    ];
+    for (const result of results) {
+      expect(result).not.toBe(source);
+      expect(result.loads).not.toBe(source.loads);
+      // Mutating a returned carrier must not reach the original.
+      (result.loads as bigint[]).fill(99n);
+      expect(source.loads).toEqual(before);
+    }
+  }
+  // Same-rank promotion and D0 conjugation equal their argument, but are copies.
+  const d0 = denum(0, 2n, [5n]);
+  expect(conjugate(d0)).toEqual(d0);
+  expect(promote(d0, 0)).toEqual(d0);
 });

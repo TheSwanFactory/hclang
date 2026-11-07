@@ -22,6 +22,13 @@
  * the Cayley–Dickson recurrence `(a,b)(c,d) = (ac − d̄b, da + bc̄)` in
  * {@link cdTwist}. No multiplication table is written by hand.
  *
+ * Freshness: a Denum is a value. `loads` is only `readonly` in the type, not
+ * frozen at runtime, so every operation here ({@link promote},
+ * {@link opposite}, {@link conjugate}, {@link add}, {@link multiply}, ...)
+ * answers a new object with its own `loads` array and never the argument or
+ * an alias of its loads, even when the result equals the argument (same-rank
+ * promotion, D0 conjugation). Callers must not mutate a Denum they are given.
+ *
  * Count is carried, never derived from loads: `C(X+Y) = C(X)+C(Y)`,
  * `C(X⊗Y) = C(X)·C(Y)`, `C(Opp X) = C(X)` and promotion keeps it. These are
  * the explicit candidate laws of 007.32 §6, implemented for pure Denum
@@ -221,7 +228,12 @@ export function promote(source: Denum, rank: number): Denum {
   if (rank < source.rank) {
     throw new DenumError("$!.denum-demotion", `${source.rank} to ${rank}`);
   }
-  let current = source;
+  // Always fresh: a same-rank promotion is a copy, never the argument itself.
+  let current = {
+    rank: source.rank,
+    count: source.count,
+    loads: [...source.loads],
+  };
   while (current.rank < rank) {
     const next = current.rank + 1;
     const loads = Array<bigint>(arity(next)).fill(0n);
@@ -281,7 +293,9 @@ export function subtract(left: Denum, right: Denum): Denum {
  * identity. Counts and loads are kept, only moved between channels.
  */
 export function conjugate(source: Denum): Denum {
-  if (source.rank === 0) return source;
+  if (source.rank === 0) {
+    return { rank: 0, count: source.count, loads: [...source.loads] };
+  }
   const half = source.loads.length / 2;
   return {
     rank: source.rank,
@@ -385,24 +399,4 @@ export function denumText(source: Denum): string {
   return `Denum(${schemaName(source.rank)}, C=${source.count}, W=[${
     source.loads.join(", ")
   }])`;
-}
-
-/** Rank-indexed standard CD doubling over integer vectors, as an independent check. */
-export function vectorMultiply(a: bigint[], b: bigint[]): bigint[] {
-  if (a.length === 1) return [a[0] * b[0]];
-  const half = a.length / 2;
-  const [p, q] = [a.slice(0, half), a.slice(half)];
-  const [r, s] = [b.slice(0, half), b.slice(half)];
-  const conj = (v: bigint[]): bigint[] =>
-    v.length === 1 ? [v[0]] : [
-      ...conj(v.slice(0, v.length / 2)),
-      ...v.slice(v.length / 2).map((c) => -c),
-    ];
-  const sum = (u: bigint[], v: bigint[]) => u.map((c, i) => c + v[i]);
-  const diff = (u: bigint[], v: bigint[]) => u.map((c, i) => c - v[i]);
-  // (p,q)(r,s) = (pr − s̄q, sp + qr̄)
-  return [
-    ...diff(vectorMultiply(p, r), vectorMultiply(conj(s), q)),
-    ...sum(vectorMultiply(s, p), vectorMultiply(q, conj(r))),
-  ];
 }
