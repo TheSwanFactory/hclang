@@ -470,7 +470,7 @@ export class FrameArray extends FrameList {
   /** A declared Count, Size or residual first; the list's own rule otherwise. */
   public override sizeFor(key: string): Frame {
     const failure = this.observationError();
-    if (failure && Frame.SIZE_OPERATORS.includes(key)) return failure;
+    if (failure && Frame.isSizeOperator(key)) return failure;
     return this.declaredObservation(key) ?? super.sizeFor(key);
   }
 

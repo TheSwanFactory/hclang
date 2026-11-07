@@ -196,6 +196,19 @@ complete at a colon with or without intervening space.
   form an observer name; a fifth starts a comment. Earlier `.###` immediately
   followed by a hash comment therefore changes tokenization. See
   `doc/FRAME-DEMI.md` for the Demi class and compatibility matrix.
+- **Ranked hash `.#n`** (occurrence/figure 007.32): `.#` followed directly by
+  decimal digits is one name, `x.#2`, and answers the **Denum** of
+  Cayley–Dickson rung n for n from 0 to 5 (`CD[n]`: 1, 2, 4, 8, 16 and 32
+  channels), an instance of the HC class `Denum` in `hc/denum.hc`. Its n is the
+  rung, not a hash count, and it is additive: bare `.#` stays the Count, and
+  `.##`, `.###` and `.####` are unchanged. There is no `#n=`. Like `.####` it
+  answers nil for no Count or Count zero and propagates failures; a rank above 5
+  is `$!.denum-rank`. A host is built from the Count, Size and residual it
+  answers (rank 0 keeps the Size, higher ranks put `(Size+residual)/2` on
+  `e_0…0` and `(Size−residual)/2` on `-e_0…0`); a Denum instance answers by
+  promotion (`±e_b ↦ ±e_(0b)`). Only a lone hash takes digits, so `.##2` is
+  `.##` then the Count 2, and `.# 2` is still `.#` applied to 2. Before this
+  change `x.#2` lexed as `.#` followed by `2`. See `hc/denum.hc`.
 - **Enclosing scope**: `_^` (`_^.var`). Each caret is exactly one enclosing
   lexical scope: `_^^` is two scopes out. The count depends only on where the
   closure was written, never on how it was invoked. `_`/`__` and `_^`/`_^^` are

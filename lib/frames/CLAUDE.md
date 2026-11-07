@@ -25,6 +25,14 @@ and program is composed of frames. This unified representation enables:
   constructor the evaluator installs (`installDemiConstructor`); see
   [the Demi document](../../doc/FRAME-DEMI.md).
 
+- [denum.ts](denum.ts) and [denum-hash.ts](denum-hash.ts) - The typed
+  Cayley–Dickson reference (schema `CD[n]`, signed-channel loads, Count,
+  `add`/`multiply`/`opposite`/`conjugate`/`promote`/`observe`) and the ranked
+  hash `.#n`, which answers the HC class `Denum` in `hc/denum.hc` through
+  `installDenumConstructor` (`lib/execute/denum-prologue.ts`).
+  `Frame.isSizeOperator` accepts the four fixed hashes and `#n`;
+  `Frame.SIZE_OPERATORS` is still only the four.
+
 - [frame-numeric.ts](frame-numeric.ts) - Rank-based numeric dispatch and the
   promotion ladder; see [Numeric Ladder](#numeric-ladder)
 - [frame-count.ts](frame-count.ts) - Nonnegative integers, the value of every
