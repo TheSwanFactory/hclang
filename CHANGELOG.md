@@ -4,7 +4,7 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
-## Unreleased
+## v0.46.0 2026-11-07
 
 - **Denum `coordinates`: signed and unsigned (occurrence/figure 007.32i,
   007.32j, 007.33).** `d.coordinates ()` is the signed coordinate list `W₊ − W₋`
