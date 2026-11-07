@@ -6,11 +6,17 @@
  * HC class in `hc/denum.hc` and the exhaustive tests can be checked against it.
  * A Denum is a constructed state, not a conventional number:
  *
- * - a **rank** `n` in 0..MAX_RANK, the schema `CD[n]`;
  * - a retained application **Count** `C ∈ ℕ₀`;
- * - a nonnegative **load** `W ∈ ℕ₀` on every signature channel.
+ * - a nonempty ordered list of **loads**, each `W ∈ ℕ₀`, one per channel.
  *
- * Rank 0 has one unsigned channel `e_ε`. Rank `n ≥ 1` has `2ⁿ` channels, `±e_b`
+ * There is no stored rank (occurrence/figure 007.35). The arity is `A =
+ * loads.length`, positive and independent of the Count, and the rank is the
+ * derived integer reading {@link rankOf}` = ⌊log₂ A⌋`. Any positive arity is a
+ * representable Denum. Only the arities `1, 2, 4, 8, 16, 32` are Cayley–Dickson
+ * ({@link isCD}); every CD-dependent operation refuses the others with
+ * `$!.denum-unsupported-arity` rather than guess a signature law.
+ *
+ * On a CD arity, rank 0 has one unsigned channel `e_ε`. Rank `n ≥ 1` has `2ⁿ` channels, `±e_b`
  * for every direction `b` of `n − 1` bits. Channels are ordered positives
  * first, then negatives, each by direction value: channel `b` is `+e_b` and
  * channel `2ⁿ⁻¹ + b` is `−e_b`. A minus names a *signature*; a load is never
@@ -41,9 +47,8 @@
 /** The highest rung implemented: D5, the sedenions, 32 channels. */
 export const MAX_RANK = 5;
 
-/** A Denum: schema rank, retained application Count, one load per channel. */
+/** A Denum: retained application Count and one load per channel. */
 export interface Denum {
-  readonly rank: number;
   readonly count: bigint;
   readonly loads: readonly bigint[];
 }
@@ -76,6 +81,73 @@ function checkRank(rank: number): void {
   if (!Number.isInteger(rank) || rank < 0 || rank > MAX_RANK) {
     throw new DenumError("$!.denum-rank", String(rank));
   }
+}
+
+/**
+ * The derived rank of a channel arity: `⌊log₂ A⌋`, the greatest `n` with
+ * `2ⁿ ≤ A`, by integer arithmetic only (no floating-point logarithm). A is a
+ * positive integer: 1→0, 2,3→1, 4..7→2, 8..15→3, 32..63→5, 64→6.
+ *
+ * @throws DenumError `$!!.invalid-denum` for a non-positive or non-integer A.
+ */
+export function rankOfArity(channels: number): number {
+  if (!Number.isInteger(channels) || channels < 1) {
+    throw new DenumError("$!!.invalid-denum", `arity ${channels}`);
+  }
+  let rank = 0;
+  let threshold = 2;
+  while (threshold <= channels) {
+    rank++;
+    threshold *= 2;
+  }
+  return rank;
+}
+
+/** The derived rank of a Denum, `⌊log₂ loads.length⌋`; never `count`. */
+export function rankOf(source: Denum): number {
+  return rankOfArity(source.loads.length);
+}
+
+/**
+ * The one CD capability predicate: the arity is a power of two whose rung is
+ * implemented, `A = 2ʳ` with `0 ≤ r ≤ MAX_RANK`. Rank alone is not enough:
+ * A = 3 has rank 1 and A = 6 rank 2, and neither is a CD rung.
+ */
+export function isCDArity(channels: number): boolean {
+  const rank = Number.isInteger(channels) && channels >= 1
+    ? rankOfArity(channels)
+    : -1;
+  return rank >= 0 && rank <= MAX_RANK && channels === 2 ** rank;
+}
+
+/** True when the Denum's arity is a shipped Cayley–Dickson rung. */
+export function isCD(source: Denum): boolean {
+  return isCDArity(source.loads.length);
+}
+
+/**
+ * The rank of a CD Denum, the guard at every CD-only entry point.
+ *
+ * @throws DenumError `$!.denum-unsupported-arity` for any other arity.
+ */
+export function cdRank(source: Denum): number {
+  if (!isCD(source)) {
+    throw new DenumError(
+      "$!.denum-unsupported-arity",
+      `${source.loads.length}`,
+    );
+  }
+  return rankOf(source);
+}
+
+/**
+ * The schema description of a Denum: `CD[n]` on a CD arity, otherwise
+ * `Arity[A]`, which never claims a Cayley–Dickson rung.
+ */
+export function schemaOf(source: Denum): string {
+  return isCD(source)
+    ? schemaName(rankOf(source))
+    : `Arity[${source.loads.length}]`;
 }
 
 /**
@@ -197,24 +269,22 @@ function nonnegative(value: bigint, what: string): void {
   }
 }
 
-/** Builds a Denum, refusing a bad rank, a negative Count or load, or a bad width. */
-export function denum(
-  rank: number,
-  count: bigint,
-  loads: readonly bigint[],
-): Denum {
-  checkRank(rank);
+/**
+ * Builds a Denum, refusing a negative Count or load or an empty load list.
+ * Any positive arity is accepted; the loads are copied.
+ */
+export function denum(count: bigint, loads: readonly bigint[]): Denum {
   nonnegative(count, "count");
-  if (loads.length !== arity(rank)) {
-    throw new DenumError("$!!.invalid-denum", `loads ${loads.length}`);
+  if (loads.length < 1) {
+    throw new DenumError("$!!.invalid-denum", "loads 0");
   }
   loads.forEach((load) => nonnegative(load, "load"));
-  return { rank, count, loads: [...loads] };
+  return { count, loads: [...loads] };
 }
 
-/** The zero-load Denum of a rank with a Count: present, unlike a missing host. */
+/** The zero-load CD Denum of a rank with a Count: present, unlike a missing host. */
 export function zero(rank: number, count = 0n): Denum {
-  return denum(rank, count, Array(arity(rank)).fill(0n));
+  return denum(count, Array(arity(rank)).fill(0n));
 }
 
 /**
@@ -225,31 +295,31 @@ export function zero(rank: number, count = 0n): Denum {
  */
 export function promote(source: Denum, rank: number): Denum {
   checkRank(rank);
-  if (rank < source.rank) {
-    throw new DenumError("$!.denum-demotion", `${source.rank} to ${rank}`);
+  const from = cdRank(source);
+  if (rank < from) {
+    throw new DenumError("$!.denum-demotion", `${from} to ${rank}`);
   }
   // Always fresh: a same-rank promotion is a copy, never the argument itself.
   let current = {
-    rank: source.rank,
     count: source.count,
     loads: [...source.loads],
   };
-  while (current.rank < rank) {
-    const next = current.rank + 1;
+  for (let at = from; at < rank; at++) {
+    const next = at + 1;
     const loads = Array<bigint>(arity(next)).fill(0n);
     for (let channel = 0; channel < current.loads.length; channel++) {
-      const { negative, direction } = signatureOf(current.rank, channel);
+      const { negative, direction } = signatureOf(at, channel);
       // Leading zero bit leaves the direction value unchanged.
       loads[channelOf(next, { negative, direction })] = current.loads[channel];
     }
-    current = { rank: next, count: current.count, loads };
+    current = { count: current.count, loads };
   }
   return current;
 }
 
 /** Both operands at the larger rank, by promotion. */
 function align(left: Denum, right: Denum): [Denum, Denum, number] {
-  const rank = Math.max(left.rank, right.rank);
+  const rank = Math.max(cdRank(left), cdRank(right));
   return [promote(left, rank), promote(right, rank), rank];
 }
 
@@ -258,9 +328,8 @@ function align(left: Denum, right: Denum): [Denum, Denum, number] {
  * Counts add (C(X+Y) = C(X)+C(Y)).
  */
 export function add(left: Denum, right: Denum): Denum {
-  const [x, y, rank] = align(left, right);
+  const [x, y] = align(left, right);
   return {
-    rank,
     count: x.count + y.count,
     loads: x.loads.map((load, channel) => load + y.loads[channel]),
   };
@@ -271,10 +340,9 @@ export function add(left: Denum, right: Denum): Denum {
  * so it is promoted to D1 first. The Count is kept.
  */
 export function opposite(source: Denum): Denum {
-  const x = promote(source, Math.max(source.rank, 1));
+  const x = promote(source, Math.max(cdRank(source), 1));
   const half = x.loads.length / 2;
   return {
-    rank: x.rank,
     count: x.count,
     loads: x.loads.map((_, channel) =>
       x.loads[channel < half ? channel + half : channel - half]
@@ -293,12 +361,11 @@ export function subtract(left: Denum, right: Denum): Denum {
  * identity. Counts and loads are kept, only moved between channels.
  */
 export function conjugate(source: Denum): Denum {
-  if (source.rank === 0) {
-    return { rank: 0, count: source.count, loads: [...source.loads] };
+  if (cdRank(source) === 0) {
+    return { count: source.count, loads: [...source.loads] };
   }
   const half = source.loads.length / 2;
   return {
-    rank: source.rank,
     count: source.count,
     loads: source.loads.map((load, channel) => {
       const direction = channel % half;
@@ -325,7 +392,7 @@ export function multiply(left: Denum, right: Denum): Denum {
       loads[multiplyChannels(rank, i, j)] += x.loads[i] * y.loads[j];
     }
   }
-  return { rank, count: x.count * y.count, loads };
+  return { count: x.count * y.count, loads };
 }
 
 /**
@@ -344,7 +411,7 @@ export function multiply(left: Denum, right: Denum): Denum {
  * the Denum itself are not recovered. Always a fresh array.
  */
 export function coordinates(source: Denum, unsigned = false): bigint[] {
-  if (source.rank === 0) return [source.loads[0]];
+  if (cdRank(source) === 0) return [source.loads[0]];
   const half = source.loads.length / 2;
   return Array.from(
     { length: half },
@@ -372,7 +439,7 @@ export function observe(source: Denum): bigint[] {
  * the directions; it is an observer of the state, not the state.
  */
 export function residual(source: Denum): bigint {
-  return source.rank === 0
+  return cdRank(source) === 0
     ? 0n
     : coordinates(source).reduce((a, b) => a + b, 0n);
 }
@@ -406,7 +473,7 @@ export function fromHost(
   residual: bigint,
 ): Denum {
   checkRank(rank);
-  if (rank === 0) return denum(0, count, [size]);
+  if (rank === 0) return denum(count, [size]);
   const sum = size + residual;
   const difference = size - residual;
   if (
@@ -417,12 +484,12 @@ export function fromHost(
   const loads = Array<bigint>(arity(rank)).fill(0n);
   loads[0] = sum / 2n;
   loads[arity(rank) / 2] = difference / 2n;
-  return denum(rank, count, loads);
+  return denum(count, loads);
 }
 
 /** Text: `Denum(CD[2], C=7, W=[3, 2, 0, 1])` lists loads in channel order. */
 export function denumText(source: Denum): string {
-  return `Denum(${schemaName(source.rank)}, C=${source.count}, W=[${
+  return `Denum(${schemaOf(source)}, C=${source.count}, W=[${
     source.loads.join(", ")
   }])`;
 }

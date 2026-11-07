@@ -78,9 +78,9 @@ export function denumClass(): Frame {
 }
 
 /**
- * Constructs a Denum with the HC class: `Denum [rank, count, loads]`.
+ * Constructs a Denum with the HC class: `Denum [count, loads]`.
  *
- * @param state The rank, Count and loads, already admissible.
+ * @param state The Count and loads, already admissible.
  * @returns The new instance, or the class's failure.
  */
 export function constructDenum(state: denum.Denum): Frame {
@@ -89,7 +89,6 @@ export function constructDenum(state: denum.Denum): Frame {
     return constructor;
   }
   const argument = new FrameArray([
-    new FrameCount(BigInt(state.rank)),
     new FrameCount(state.count),
     new FrameArray(state.loads.map((load) => new FrameCount(load))),
   ]);

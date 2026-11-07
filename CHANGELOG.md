@@ -4,6 +4,24 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## Unreleased
+
+- **Denum rank is derived from the loads, not stored (occurrence/figure 007.35,
+  007.34c).** **Breaking:** `Denum [count, loads]` replaces
+  `Denum [rank, count, loads]` (the three-field form is `$!!.invalid-denum`),
+  and the data fields `d.rank` and `d.schema` are now the calls `d.rank ()` and
+  `d.schema ()`; any other argument is `$!!.unary-observation`. The rank is
+  `⌊log₂ A⌋` with `A = d.loads.#`, by integer arithmetic and never from the
+  Count `d.#`. The `denum-engine` payload is `[op, count, loads, ...]` per
+  operand (legacy rank-bearing payloads are refused) and opcode 11 observes the
+  rank. Any positive number of loads is now a Denum (`Denum [7, [3, 2, 1]]` has
+  rank 1); only the arities 1, 2, 4, 8, 16 and 32 are Cayley–Dickson, and every
+  CD-dependent operation or observer on another arity (`+`, `-`, `*`, `opp`,
+  `conj`, `promote`, `coordinates`, `observe`, `signatures`, `d.###`, `d.#n`)
+  answers `$!.denum-unsupported-arity` with its loads untouched. Its schema text
+  is `Arity[A]`, never `CD[n]`. `x.#n` keeps naming the target rung, D0–D5
+  behavior is unchanged, and no `#D` or runtime `dim` is added.
+
 ## v0.46.0 2026-11-07
 
 - **Denum `coordinates`: signed and unsigned (occurrence/figure 007.32i,

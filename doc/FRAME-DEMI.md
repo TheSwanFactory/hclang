@@ -498,5 +498,11 @@ three observers (Count, Size, residual) and never reads the channels. A Denum is
 not a Demi, its operators are its own, and its Count follows separate candidate
 laws (`C(a+b)=C(a)+C(b)`, `C(a*b)=C(a)·C(b)`, `C(Opp a)=C(a)`) that are not the
 Demi's phase `C mod
-arity`. The class is a thin HC shell over the pure native
-`denum-engine`; the typed reference is `lib/frames/denum.ts`.
+arity`. A Denum retains only its Count and loads,
+`Denum [count, loads]`; its rank is the derived observation `d.rank ()` =
+`⌊log₂ A⌋` of the arity `A = d.loads.#` (never the Count `d.#`). Any positive
+arity is representable, but only A = 1, 2, 4, 8, 16, 32 is a Cayley–Dickson
+rung: other arities keep their raw loads, report `Arity[A]`, and refuse every
+CD-dependent operation with `$!.denum-unsupported-arity`. The class is a thin HC
+shell over the pure native `denum-engine`; the typed reference is
+`lib/frames/denum.ts`.

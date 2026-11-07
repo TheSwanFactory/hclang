@@ -6,6 +6,7 @@ import { FrameString } from "../frames/frame-string.ts";
 import {
   add,
   arity,
+  cdRank,
   conjugate,
   coordinates,
   type Denum,
@@ -14,16 +15,19 @@ import {
   multiply,
   opposite,
   promote,
+  rankOf,
   residual,
-  schemaName,
+  schemaOf,
   signatureName,
   subtract,
 } from "../frames/denum.ts";
 
 /**
  * The operations `denum-engine` performs, selected by the first element of its
- * argument. The argument is `[op, rank, count, loads, rank, count, loads]`: the
- * left Denum state, then the right one for the binary operations.
+ * argument. The argument is `[op, count, loads, count, loads]`: the left Denum
+ * state, then the right one for the binary operations. A state is exactly
+ * `[count, loads]`: there is no rank slot, so a legacy `[rank, count, loads]`
+ * payload is refused, not reinterpreted (occurrence/figure 007.35).
  */
 export const DENUM_OPERATIONS = {
   /** Validate a state and answer it as built. */
@@ -33,10 +37,10 @@ export const DENUM_OPERATIONS = {
   multiply: 3,
   opposite: 4,
   conjugate: 5,
-  /** Promote the left state to the rank of the right state's first slot. */
+  /** Promote the left state to the target rung in the third slot. */
   promote: 6,
   /**
-   * The integer coordinate of each direction, an observation. The fifth slot
+   * The integer coordinate of each direction, an observation. The third slot
    * is the mode: 0 signed `W₊ − W₋`, 1 unsigned `W₊ + W₋`.
    */
   coordinates: 7,
@@ -44,10 +48,12 @@ export const DENUM_OPERATIONS = {
   observe: 7,
   /** The native signature names of the left state's channels, as text. */
   names: 8,
-  /** The schema name `CD[n]` of the left state's rank, as text. */
+  /** The schema description, `CD[n]` or `Arity[A]`, of the left state. */
   schema: 9,
   /** Positive minus negative load total: the declared residual, an integer. */
   residual: 10,
+  /** The derived rank `⌊log₂ A⌋` of the left state's loads, an observation. */
+  rank: 11,
 } as const;
 
 const counts = (frame: Frame): bigint | undefined => {
@@ -57,13 +63,8 @@ const counts = (frame: Frame): bigint | undefined => {
     : undefined;
 };
 
-/** The state a triple of Frames holds, or the contract failure. */
-function readState(
-  rank: Frame | undefined,
-  count: Frame | undefined,
-  loads: Frame | undefined,
-): Denum {
-  const r = rank === undefined ? undefined : counts(rank);
+/** The state a pair of Frames holds, or the contract failure. */
+function readState(count: Frame | undefined, loads: Frame | undefined): Denum {
   const c = count === undefined ? undefined : counts(count);
   // Base Frame.elements() answers [this] for any non-aggregate, so a bare Count
   // would read as a one-element list: require an aggregate, as the hash reader
@@ -71,18 +72,14 @@ function readState(
   const list = loads?.referent();
   const elements = list?.ownsIdentity() ? list.elements() : undefined;
   const l = elements?.map(counts);
-  if (
-    r === undefined || c === undefined || !l || l.some((x) => x === undefined)
-  ) {
+  if (c === undefined || !l || l.some((x) => x === undefined)) {
     throw new DenumError("$!!.invalid-denum");
   }
-  if (r > 5n) throw new DenumError("$!!.invalid-denum", `rank ${r}`);
-  return denum(Number(r), c, l as bigint[]);
+  return denum(c, l as bigint[]);
 }
 
 const stateFrame = (state: Denum): Frame =>
   new FrameArray([
-    Frame.count(BigInt(state.rank)),
     Frame.count(state.count),
     new FrameArray(state.loads.map((load) => Frame.count(load))),
   ]);
@@ -103,7 +100,7 @@ export const DenumEngine = (_source: Frame, block: Frame): Frame => {
   const op = args[0] === undefined ? undefined : counts(args[0]);
   if (op === undefined) return Frame.error("$!!.invalid-denum");
   try {
-    const left = readState(args[1], args[2], args[3]);
+    const left = readState(args[1], args[2]);
     switch (Number(op)) {
       case DENUM_OPERATIONS.build:
         return stateFrame(left);
@@ -113,7 +110,7 @@ export const DenumEngine = (_source: Frame, block: Frame): Frame => {
         return stateFrame(conjugate(left));
       case DENUM_OPERATIONS.coordinates: {
         // Absent (the v0.45.0 call shape) is signed; otherwise exactly 0 or 1.
-        const mode = args[4] === undefined ? 0n : counts(args[4]);
+        const mode = args[3] === undefined ? 0n : counts(args[3]);
         if (mode !== 0n && mode !== 1n) {
           return Frame.error("$!!.invalid-denum");
         }
@@ -124,16 +121,19 @@ export const DenumEngine = (_source: Frame, block: Frame): Frame => {
       case DENUM_OPERATIONS.names:
         return new FrameArray(
           Array.from(
-            { length: arity(left.rank) },
-            (_, channel) => new FrameString(signatureName(left.rank, channel)),
+            { length: arity(cdRank(left)) },
+            (_, channel) =>
+              new FrameString(signatureName(cdRank(left), channel)),
           ),
         );
       case DENUM_OPERATIONS.residual:
         return Frame.signed(residual(left));
       case DENUM_OPERATIONS.schema:
-        return new FrameString(schemaName(left.rank));
+        return new FrameString(schemaOf(left));
+      case DENUM_OPERATIONS.rank:
+        return Frame.count(BigInt(rankOf(left)));
       case DENUM_OPERATIONS.promote: {
-        const target = args[4] === undefined ? undefined : counts(args[4]);
+        const target = args[3] === undefined ? undefined : counts(args[3]);
         if (target === undefined || target > 5n) {
           return Frame.error("$!.denum-rank");
         }
@@ -142,7 +142,7 @@ export const DenumEngine = (_source: Frame, block: Frame): Frame => {
       case DENUM_OPERATIONS.add:
       case DENUM_OPERATIONS.subtract:
       case DENUM_OPERATIONS.multiply: {
-        const right = readState(args[4], args[5], args[6]);
+        const right = readState(args[3], args[4]);
         const operate = Number(op) === DENUM_OPERATIONS.add
           ? add
           : Number(op) === DENUM_OPERATIONS.subtract

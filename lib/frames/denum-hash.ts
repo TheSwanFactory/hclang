@@ -38,36 +38,27 @@ function exactCount(frame: Frame): bigint | undefined {
 }
 
 /**
- * The stored state of a Denum instance: its own `rank`, `count` and `loads`
- * fields. Only the instance's own fields are read (`get_here`), never a
+ * The stored state of a Denum instance: its own `count` and `loads` fields
+ * (there is no stored rank). Only the instance's own fields are read (`get_here`), never a
  * declared parent or a method, and the loads are read as stored, so nothing
  * runs. Undefined when any field is absent or not an exact Count of the right
  * shape.
  */
 function storedState(host: Frame): Denum | undefined {
-  const rank = exactCount(host.get_here("rank"));
   const count = exactCount(host.get_here("count"));
   const list = host.get_here("loads").referent();
-  if (rank === undefined || count === undefined || rank > BigInt(MAX_RANK)) {
-    return undefined;
-  }
+  if (count === undefined) return undefined;
   if (!list.ownsIdentity()) return undefined;
   const loads = list.elements().map(exactCount);
-  if (loads.some((load) => load === undefined)) return undefined;
-  try {
-    return {
-      rank: Number(rank),
-      count,
-      loads: loads as bigint[],
-    };
-  } catch {
+  if (loads.length === 0 || loads.some((load) => load === undefined)) {
     return undefined;
   }
+  return { count, loads: loads as bigint[] };
 }
 
 /**
  * The intrinsic path, as `.####` has for a Demi. A source is a Denum exactly
- * when its stored `rank`, `count` and `loads` are a valid state and it is `==`
+ * when its stored `count` and `loads` are a valid state and it is `==`
  * (same value and same type at every node, fields and methods included) to the
  * Denum the shipped constructor builds from them. The answer is then built
  * from that reconstruction, never from the source: no observer, method or
@@ -110,8 +101,11 @@ function intrinsicDenum(source: Frame): Denum | undefined {
  *   unusable observations are `$!.denum-count`, `$!.denum-observations` and
  *   `$!.denum-coherence`.
  * - **Promotion of a Denum.** An instance of the shipped class answers its own
- *   state promoted to rank n, keeping Count and every load, and below its own
- *   rank `$!.denum-demotion`. A Denum of Count zero is present.
+ *   state promoted to rung n, keeping Count and every load, and below its own
+ *   derived rank `$!.denum-demotion`. A Denum of Count zero is present. The
+ *   target n is an explicit CD rung, never inferred from the source: a Denum
+ *   whose arity is not a CD rung (3, 5, 6, 64, ...) is refused with
+ *   `$!.denum-unsupported-arity` and its loads are not reinterpreted.
  *
  * A multi-channel `RotorRouter` is not special-cased here as it is under
  * `.####` (`channelRouterDemi`): `.#n` reads only Count, Size and residual, so

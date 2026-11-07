@@ -2,12 +2,16 @@ import { expect } from "jsr:@std/expect@^0.219.1";
 import {
   add,
   arity,
+  cdRank,
   conjugate,
+  coordinates,
   type Denum,
-  denum,
+  denum as denumState,
   DenumError,
   denumText,
   fromHost,
+  isCD,
+  isCDArity,
   isEmpty,
   MAX_RANK,
   multiply,
@@ -16,10 +20,24 @@ import {
   opposite,
   parseSignature,
   promote,
+  rankOf,
+  rankOfArity,
+  residual,
+  schemaOf,
   signatureName,
   subtract,
   zero,
 } from "./denum.ts";
+
+/**
+ * Test constructor of a CD rung: checks `loads.length === arity(rank)` and
+ * builds the two-field state, so a test names the rung it means without the
+ * state storing it.
+ */
+function denum(rank: number, count: bigint, loads: readonly bigint[]): Denum {
+  expect(loads.length).toBe(arity(rank));
+  return denumState(count, loads);
+}
 
 /**
  * Independent oracle: the standard Cayley–Dickson doubling over integer
@@ -60,7 +78,7 @@ function only(source: Denum): string {
     .filter(({ load }) => load !== 0n);
   expect(present.length).toBe(1);
   expect(present[0].load).toBe(1n);
-  return signatureName(source.rank, present[0].channel);
+  return signatureName(rankOf(source), present[0].channel);
 }
 
 const unit = (rank: number, name: string): Denum => make(rank, { [name]: 1n });
@@ -108,9 +126,9 @@ Deno.test("malformed signatures and ranks are refused", () => {
   expect(kind(() => parseSignature(3, "+e_01"))).toBe("$!.denum-signature");
   expect(kind(() => arity(6))).toBe("$!.denum-rank");
   expect(kind(() => arity(-1))).toBe("$!.denum-rank");
-  expect(kind(() => denum(2, 0n, [0n, 0n, 0n]))).toBe("$!!.invalid-denum");
-  expect(kind(() => denum(1, -1n, [0n, 0n]))).toBe("$!!.invalid-denum");
-  expect(kind(() => denum(1, 0n, [0n, -1n]))).toBe("$!!.invalid-denum");
+  expect(kind(() => denumState(0n, []))).toBe("$!!.invalid-denum");
+  expect(kind(() => denumState(-1n, [0n, 0n]))).toBe("$!!.invalid-denum");
+  expect(kind(() => denumState(0n, [0n, -1n]))).toBe("$!!.invalid-denum");
 });
 
 Deno.test("witness 1: D0 Size and D1 pairwise sign algebra", () => {
@@ -315,13 +333,13 @@ Deno.test("witness 7c: mixed-rank products promote to the larger rank", () => {
   const d3 = random(3, next, 3n);
   const d5 = random(5, next, 4n);
   const mixed = multiply(d2, d3);
-  expect(mixed.rank).toBe(3);
+  expect(rankOf(mixed)).toBe(3);
   expect(mixed).toEqual(multiply(promote(d2, 3), d3));
-  expect(multiply(d3, d5).rank).toBe(5);
+  expect(rankOf(multiply(d3, d5))).toBe(5);
   expect(observe(multiply(d3, d5))).toEqual(
     vectorMultiply(observe(promote(d3, 5)), observe(d5)),
   );
-  expect(add(d2, d3).rank).toBe(3);
+  expect(rankOf(add(d2, d3))).toBe(3);
   expect(add(d2, d3).count).toBe(5n);
   // Order is kept across ranks.
   expect(observe(multiply(d3, d2))).toEqual(
@@ -414,11 +432,11 @@ Deno.test("results are fresh: no operation returns its argument or aliases its l
   for (const source of sources) {
     const before = [...source.loads];
     const results = [
-      promote(source, source.rank),
+      promote(source, rankOf(source)),
       conjugate(source),
       opposite(source),
-      add(source, zero(source.rank)),
-      multiply(source, make(source.rank, {})),
+      add(source, zero(rankOf(source))),
+      multiply(source, make(rankOf(source), {})),
     ];
     for (const result of results) {
       expect(result).not.toBe(source);
@@ -432,4 +450,137 @@ Deno.test("results are fresh: no operation returns its argument or aliases its l
   const d0 = denum(0, 2n, [5n]);
   expect(conjugate(d0)).toEqual(d0);
   expect(promote(d0, 0)).toEqual(d0);
+});
+
+const kindOf = (fn: () => unknown): string => {
+  try {
+    fn();
+  } catch (error) {
+    return (error as DenumError).kind;
+  }
+  return "no error";
+};
+
+Deno.test("rank is exactly ⌊log₂ A⌋ of the load count, by integers", () => {
+  const expected: Record<number, number> = {
+    1: 0,
+    2: 1,
+    3: 1,
+    4: 2,
+    5: 2,
+    6: 2,
+    7: 2,
+    8: 3,
+    16: 4,
+    32: 5,
+    33: 5,
+    64: 6,
+  };
+  for (const [a, rank] of Object.entries(expected)) {
+    expect(rankOfArity(Number(a))).toBe(rank);
+  }
+  // Every threshold and its neighbours agree with the definition.
+  for (let n = 0; n < 30; n++) {
+    expect(rankOfArity(2 ** n)).toBe(n);
+    expect(rankOfArity(2 ** (n + 1) - 1)).toBe(n);
+  }
+  expect(kindOf(() => rankOfArity(0))).toBe("$!!.invalid-denum");
+  expect(kindOf(() => rankOfArity(-2))).toBe("$!!.invalid-denum");
+  expect(kindOf(() => rankOfArity(2.5))).toBe("$!!.invalid-denum");
+});
+
+Deno.test("rank reads the load list, never the Count or the Size", () => {
+  for (const a of [1, 2, 3, 4, 5, 6, 7, 8, 16, 32, 33, 64]) {
+    const zeros = denumState(0n, Array(a).fill(0n));
+    const loaded = denumState(10n ** 9n, Array(a).fill(7n));
+    const odd = denumState(3n, Array.from({ length: a }, (_, i) => BigInt(i)));
+    expect(rankOf(zeros)).toBe(rankOfArity(a));
+    expect(rankOf(loaded)).toBe(rankOfArity(a));
+    expect(rankOf(odd)).toBe(rankOfArity(a));
+  }
+  // The state has no rank slot at all.
+  expect(Object.keys(denumState(7n, [3n, 2n, 1n])).sort()).toEqual([
+    "count",
+    "loads",
+  ]);
+});
+
+Deno.test("Denum [7, [3, 2, 1]] is a three-channel Denum of rank 1", () => {
+  const d = denumState(7n, [3n, 2n, 1n]);
+  expect(d.count).toBe(7n);
+  expect(d.loads).toEqual([3n, 2n, 1n]);
+  expect(d.loads.reduce((a, b) => a + b, 0n)).toBe(6n);
+  expect(rankOf(d)).toBe(1);
+  expect(schemaOf(d)).toBe("Arity[3]");
+  expect(denumText(d)).toBe("Denum(Arity[3], C=7, W=[3, 2, 1])");
+  // Count may be zero over nonzero loads, and nonzero over zero loads.
+  expect(denumState(0n, [4n, 0n, 0n]).count).toBe(0n);
+  expect(denumState(5n, [0n, 0n, 0n]).loads).toEqual([0n, 0n, 0n]);
+  // Freshness: the loads are copied.
+  const loads = [1n, 2n, 3n];
+  const copy = denumState(1n, loads);
+  loads[0] = 9n;
+  expect(copy.loads).toEqual([1n, 2n, 3n]);
+  expect(kindOf(() => denumState(1n, []))).toBe("$!!.invalid-denum");
+});
+
+Deno.test("CD eligibility needs a power-of-two arity in the shipped range", () => {
+  for (const a of [1, 2, 4, 8, 16, 32]) {
+    expect(isCDArity(a)).toBe(true);
+    expect(isCD(denumState(0n, Array(a).fill(0n)))).toBe(true);
+    expect(schemaOf(denumState(0n, Array(a).fill(0n)))).toBe(
+      `CD[${rankOfArity(a)}]`,
+    );
+  }
+  for (const a of [3, 5, 6, 7, 9, 12, 33, 64, 128]) {
+    expect(isCDArity(a)).toBe(false);
+    const d = denumState(1n, Array(a).fill(1n));
+    expect(isCD(d)).toBe(false);
+    expect(schemaOf(d)).toBe(`Arity[${a}]`);
+    expect(kindOf(() => cdRank(d))).toBe("$!.denum-unsupported-arity");
+  }
+});
+
+Deno.test("non-CD arities refuse every CD operation and keep their loads", () => {
+  const refused = "$!.denum-unsupported-arity";
+  for (const a of [3, 5, 6, 33, 64]) {
+    const d = denumState(
+      4n,
+      Array.from({ length: a }, (_, i) => BigInt(i + 1)),
+    );
+    const cd = denumState(1n, [1n, 0n]);
+    for (
+      const op of [
+        () => promote(d, 5),
+        () => opposite(d),
+        () => conjugate(d),
+        () => observe(d),
+        () => coordinates(d),
+        () => coordinates(d, true),
+        () => residual(d),
+        () => add(d, d),
+        () => add(d, cd),
+        () => add(cd, d),
+        () => subtract(d, d),
+        () => multiply(d, d),
+        () => multiply(cd, d),
+      ]
+    ) {
+      expect(kindOf(op)).toBe(refused);
+    }
+    // Nothing was dropped, padded or promoted.
+    expect(d.loads.length).toBe(a);
+    expect(rankOf(d)).toBe(rankOfArity(a));
+  }
+});
+
+Deno.test("fromHost and promote name the target rung; the rank is then derived", () => {
+  for (let n = 0; n <= MAX_RANK; n++) {
+    const built = fromHost(n, 3n, 6n, n === 0 ? 0n : 2n);
+    expect(rankOf(built)).toBe(n);
+    expect(built.loads.length).toBe(arity(n));
+    expect(rankOf(promote(built, MAX_RANK))).toBe(MAX_RANK);
+  }
+  expect(kindOf(() => promote(zero(3), 2))).toBe("$!.denum-demotion");
+  expect(kindOf(() => promote(zero(1), 6))).toBe("$!.denum-rank");
 });

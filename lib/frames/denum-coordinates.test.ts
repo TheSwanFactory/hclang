@@ -5,14 +5,25 @@ import {
   conjugate,
   coordinates,
   type Denum,
-  denum,
+  denum as denumState,
   multiply,
   observe,
   opposite,
   parseSignature,
   promote,
+  rankOf,
   residual,
 } from "./denum.ts";
+
+/**
+ * Test constructor of a CD rung: checks `loads.length === arity(rank)` and
+ * builds the two-field state, so a test names the rung it means without the
+ * state storing it.
+ */
+function denum(rank: number, count: bigint, loads: readonly bigint[]): Denum {
+  expect(loads.length).toBe(arity(rank));
+  return denumState(count, loads);
+}
 
 /**
  * Dual coordinates (occurrence/figure 007.32j, 007.32k, 007.33). The expected
@@ -23,7 +34,7 @@ import {
 
 /** Test-only reference: the unsigned load of each direction, straight from W. */
 function unsignedOf(x: Denum): bigint[] {
-  if (x.rank === 0) return [x.loads[0]];
+  if (rankOf(x) === 0) return [x.loads[0]];
   const half = x.loads.length / 2;
   const out: bigint[] = [];
   for (let b = 0; b < half; b++) out.push(x.loads[b] + x.loads[b + half]);
@@ -150,7 +161,7 @@ Deno.test("joint completeness on valid states: W± = (U ± S)/2", () => {
     const s = coordinates(x);
     const u = coordinates(x, true);
     expect(s.length).toBe(u.length);
-    if (x.rank === 0) {
+    if (rankOf(x) === 0) {
       expect(s).toEqual(u);
       return;
     }
@@ -430,7 +441,7 @@ Deno.test("projections agree with the native observers: Σ U = Size, Σ S = resi
     const u = coordinates(x, true);
     // Size is the unsigned total at every rank, D0 included.
     expect(total(u)).toBe(sizeOf(x));
-    if (x.rank === 0) {
+    if (rankOf(x) === 0) {
       // The exception: D0's coordinate is its load but its declared residual
       // is 0. The residual is not changed to make these agree.
       expect(s).toEqual([x.loads[0]]);
@@ -448,7 +459,7 @@ Deno.test("projections agree with the native observers: Σ U = Size, Σ S = resi
     }
     if (x.loads.some((v) => v % 2n === 1n)) sawOdd = true;
     // Count never enters: the same loads at another Count agree.
-    const other = denum(x.rank, x.count + 3n, x.loads);
+    const other = denum(rankOf(x), x.count + 3n, x.loads);
     expect(coordinates(other)).toEqual(s);
     expect(coordinates(other, true)).toEqual(u);
     expect(sizeOf(other)).toBe(sizeOf(x));
