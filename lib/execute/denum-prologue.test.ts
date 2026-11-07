@@ -161,3 +161,47 @@ Deno.test("denum-engine coordinates mode is exactly 0, 1 or absent", () => {
   expect(call(...state, n(2))).toEqual("$!!.invalid-denum");
   expect(call(...state, new FrameArray([]))).toEqual("$!!.invalid-denum");
 });
+
+Deno.test("coordinates agree with the HC observers d.## and d.### on ranks 0 to 5", () => {
+  const sum = (list: string): bigint =>
+    list.replace(/[[\]\s]/g, "").split(",").reduce((a, v) => a + BigInt(v), 0n);
+  let checked = 0;
+  // Hosts of several shapes; `.opp ()` and `+` give balanced and empty-ish states.
+  for (const host of ["[1, 2, 3]", "[4, 4, 4, 4]", "[5]", "[2, 0]"]) {
+    for (let rank = 0; rank <= 5; rank++) {
+      const d = `(${host}.#${rank})`;
+      const read = (expression: string): string => text(`${d}${expression}`);
+      const states = [
+        d,
+        `(${d} + (${d}.opp ()))`, // present and balanced, never empty
+        `(${d} * ${d})`,
+      ];
+      for (const s of states) {
+        if (text(`${s}.rank`) === "()") continue;
+        const size = BigInt(text(`${s}.##`));
+        const residual = BigInt(text(`${s}.###`));
+        const unsigned = text(`${s}.coordinates <>`);
+        const signed = text(`${s}.coordinates ()`);
+        // Σ U = d.## at every rank, Σ S = d.### from rank 1.
+        expect(sum(unsigned)).toBe(size);
+        checked++;
+        if (s === d && rank === 0) {
+          expect(sum(signed)).toBe(size);
+          expect(residual).toBe(0n);
+        } else if (text(`${s}.rank`) === "0") {
+          expect(residual).toBe(0n);
+        } else {
+          expect(sum(signed)).toBe(residual);
+        }
+      }
+      expect(read(".coordinates ()")).toEqual(read(".observe ()"));
+    }
+  }
+  // The loop is not vacuous: most host/rank/state combinations are Denums.
+  expect(checked).toBeGreaterThan(40);
+  // Zero and positive Count over the same loads, and the D0 exception by name.
+  expect(text("[0, 0, 0].#0.coordinates ()")).toEqual("[0]");
+  expect(text("[1, 2, 3].#0.##")).toEqual("6");
+  expect(text("[1, 2, 3].#0.###")).toEqual("0");
+  expect(text("[1, 2, 3].#1.###")).toEqual("2");
+});

@@ -11,6 +11,7 @@ import {
   opposite,
   parseSignature,
   promote,
+  residual,
 } from "./denum.ts";
 
 /**
@@ -38,10 +39,20 @@ function convolve(u: bigint[], v: bigint[]): bigint[] {
   return out;
 }
 
-/** Deterministic pseudo-random loads so failures reproduce. */
+/**
+ * Deterministic pseudo-random numbers so failures reproduce. The state is an
+ * exact unsigned 32-bit word: `Math.imul` wraps the product to 32 bits without
+ * leaving the safe-integer range, and `>>> 0` keeps it unsigned. (A plain
+ * `state * 1103515245` exceeds 2⁵³ and loses its low bits, which once left the
+ * generated loads almost all even.) The high bits are returned because the low
+ * bits of a power-of-two-modulus LCG have short periods.
+ */
 function lcg(seed: number): () => number {
-  let state = seed;
-  return () => (state = (state * 1103515245 + 12345) % 2147483648);
+  let state = seed >>> 0;
+  return () => {
+    state = (Math.imul(state, 1103515245) + 12345) >>> 0;
+    return state >>> 8;
+  };
 }
 
 const big = (...values: number[]): bigint[] => values.map(BigInt);
@@ -326,4 +337,158 @@ Deno.test("the D4 associator differs signed and agrees unsigned", () => {
   expect(coordinates(left)).not.toEqual(coordinates(right));
   expect(coordinates(left, true)).toEqual(big(0, 0, 0, 0, 0, 0, 0, 1));
   expect(coordinates(left, true)).toEqual(coordinates(right, true));
+});
+
+Deno.test("the seeded generator is exact 32-bit and yields even and odd loads", () => {
+  // Reference: the same recurrence in BigInt, which cannot lose precision.
+  const exact = (seed: number): () => number => {
+    let state = BigInt(seed);
+    return () => {
+      state = (state * 1103515245n + 12345n) % (1n << 32n);
+      return Number(state >> 8n);
+    };
+  };
+  for (const seed of [7, 11, 23]) {
+    const fast = lcg(seed);
+    const slow = exact(seed);
+    for (let k = 0; k < 2000; k++) expect(fast()).toBe(slow());
+  }
+  // Reproducible from the seed, and different seeds differ.
+  const a = lcg(23);
+  const b = lcg(23);
+  expect(Array.from({ length: 8 }, a)).toEqual(Array.from({ length: 8 }, b));
+  expect(Array.from({ length: 8 }, lcg(23))).not.toEqual(
+    Array.from({ length: 8 }, lcg(24)),
+  );
+  // Diversity: the loads the tests draw are about half odd, not a rare accident.
+  for (
+    const [seed, modulus] of [[23, 6], [7, 1000], [11, 9]] as const
+  ) {
+    const next = lcg(seed);
+    const draws = Array.from({ length: 1920 }, () => next() % modulus);
+    const odd = draws.filter((v) => v % 2 === 1).length;
+    expect(odd).toBeGreaterThan(draws.length * 0.4);
+    expect(odd).toBeLessThan(draws.length * 0.6);
+    // Every residue below a small modulus occurs, so the draws are not collapsed.
+    if (modulus <= 9) expect(new Set(draws).size).toBe(modulus);
+    else expect(new Set(draws).size).toBeGreaterThan(500);
+  }
+});
+
+Deno.test("the D4 mixed-load fixtures contain odd and even loads", () => {
+  // The exact fixtures of the mixed-load test (lcg(23), 40 trials × 3 × 16).
+  const next = lcg(23);
+  const loads = Array.from({ length: 40 * 3 * 16 }, () => next() % 6);
+  const odd = loads.filter((v) => v % 2 === 1).length;
+  expect(loads.length).toBe(1920);
+  expect(odd).toBeGreaterThan(loads.length * 0.4);
+  expect(odd).toBeLessThan(loads.length * 0.6);
+  // Every load value 0..5 occurs, and every direction sees both parities.
+  expect(new Set(loads).size).toBe(6);
+  for (let k = 0; k < 16; k++) {
+    const column = loads.filter((_, i) => i % 16 === k);
+    expect(column.some((v) => v % 2 === 1)).toBe(true);
+    expect(column.some((v) => v % 2 === 0)).toBe(true);
+  }
+});
+
+/** Test-only Size: the plain total of every load, `Σ W`. */
+const sizeOf = (x: Denum): bigint => x.loads.reduce((a, b) => a + b, 0n);
+const total = (values: bigint[]): bigint => values.reduce((a, b) => a + b, 0n);
+
+Deno.test("projections agree with the native observers: Σ U = Size, Σ S = residual", () => {
+  const next = lcg(31);
+  const states: Denum[] = [];
+  for (let rank = 0; rank <= 5; rank++) {
+    const width = arity(rank);
+    const fill = (value: (k: number) => bigint, count: bigint) =>
+      denum(rank, count, Array.from({ length: width }, (_, k) => value(k)));
+    states.push(
+      fill(() => 0n, 0n), // empty loads, zero Count
+      fill(() => 0n, 9n), // empty loads, positive Count
+      fill((k) => BigInt(k + 1), 0n), // positive loads, zero Count
+      fill((k) => BigInt(k + 1), 4n), // positive loads, positive Count
+      // Positive channels only.
+      fill((k) => (rank === 0 || k < width / 2 ? 3n : 0n), 1n),
+      // Balanced: equal positive and negative loads in every direction.
+      fill((k) => BigInt((k % Math.max(1, width / 2)) + 2), 1n),
+      // Negative-dominant, positive-dominant, and seeded mixed parities.
+      fill((k) => (rank === 0 || k >= width / 2 ? 5n : 1n), 2n),
+      fill((k) => (rank === 0 || k >= width / 2 ? 1n : 5n), 2n),
+    );
+    for (let trial = 0; trial < 10; trial++) {
+      states.push(
+        fill(() => BigInt(next() % 7), BigInt(next() % 4)),
+      );
+    }
+  }
+  let balanced = 0;
+  let negative = 0;
+  let sawOdd = false;
+  for (const x of states) {
+    const s = coordinates(x);
+    const u = coordinates(x, true);
+    // Size is the unsigned total at every rank, D0 included.
+    expect(total(u)).toBe(sizeOf(x));
+    if (x.rank === 0) {
+      // The exception: D0's coordinate is its load but its declared residual
+      // is 0. The residual is not changed to make these agree.
+      expect(s).toEqual([x.loads[0]]);
+      expect(u).toEqual([x.loads[0]]);
+      expect(residual(x)).toBe(0n);
+    } else {
+      // The signed total is the declared residual, Σ W₊ − Σ W₋.
+      expect(total(s)).toBe(residual(x));
+      const half = x.loads.length / 2;
+      const plus = x.loads.slice(0, half);
+      const minus = x.loads.slice(half);
+      expect(residual(x)).toBe(total(plus) - total(minus));
+      if (total(s) === 0n && total(u) > 0n) balanced++;
+      if (total(s) < 0n) negative++;
+    }
+    if (x.loads.some((v) => v % 2n === 1n)) sawOdd = true;
+    // Count never enters: the same loads at another Count agree.
+    const other = denum(x.rank, x.count + 3n, x.loads);
+    expect(coordinates(other)).toEqual(s);
+    expect(coordinates(other, true)).toEqual(u);
+    expect(sizeOf(other)).toBe(sizeOf(x));
+    expect(residual(other)).toBe(residual(x));
+  }
+  // The fixtures really cover the named states.
+  expect(balanced).toBeGreaterThan(0);
+  expect(negative).toBeGreaterThan(0);
+  expect(sawOdd).toBe(true);
+  // Named D0 example: S = U = [W_ε], residual 0.
+  const d0 = denum(0, 4n, big(3));
+  expect(coordinates(d0)).toEqual(big(3));
+  expect(coordinates(d0, true)).toEqual(big(3));
+  expect(sizeOf(d0)).toBe(3n);
+  expect(residual(d0)).toBe(0n);
+});
+
+Deno.test("the bridge also holds after arithmetic, with Count independent", () => {
+  const next = lcg(41);
+  const make = (rank: number) =>
+    denum(
+      rank,
+      BigInt(next() % 3),
+      Array.from({ length: arity(rank) }, () => BigInt(next() % 5)),
+    );
+  for (let rank = 1; rank <= 5; rank++) {
+    for (let trial = 0; trial < 10; trial++) {
+      const x = make(rank);
+      const y = make(rank);
+      for (
+        const r of [add(x, y), multiply(x, y), opposite(x), conjugate(x)]
+      ) {
+        expect(total(coordinates(r, true))).toBe(sizeOf(r));
+        expect(total(coordinates(r))).toBe(residual(r));
+      }
+      // Addition adds Size and residual; the product's Size is the product of
+      // Sizes only through U's convolution, so only that is asserted here.
+      expect(sizeOf(add(x, y))).toBe(sizeOf(x) + sizeOf(y));
+      expect(residual(add(x, y))).toBe(residual(x) + residual(y));
+      expect(sizeOf(multiply(x, y))).toBe(sizeOf(x) * sizeOf(y));
+    }
+  }
 });
