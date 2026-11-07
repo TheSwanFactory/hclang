@@ -317,6 +317,53 @@ describe("Lex", () => {
       expect(lexAtoms("x.###.## ").map(String)).toEqual(["x", ".###", ".##"]);
     });
 
+    for (const name of [".#0", ".#1", ".#2", ".#3", ".#4", ".#5", ".#12"]) {
+      it(`lexes the ranked hash ${name} as one name across every split`, () => {
+        const atoms = lexAtoms(`${name} `);
+        expect(atoms).toHaveLength(1);
+        expect(atoms[0]).toBeInstanceOf(FrameName);
+        expect(atoms[0].toString()).toEqual(name);
+        for (let split = 1; split < name.length; split++) {
+          expect(
+            lexChunkedAtoms([name.slice(0, split), name.slice(split)]).map(
+              String,
+            ),
+          ).toEqual([name]);
+        }
+      });
+    }
+
+    it("ends a ranked hash where the next term begins (007.32)", () => {
+      expect(lexAtoms("x.#2 ").map(String)).toEqual(["x", ".#2"]);
+      expect(lexAtoms("x.#2.## ").map(String)).toEqual(["x", ".#2", ".##"]);
+      expect(lexAtoms("x.#2.#3 ").map(String)).toEqual(["x", ".#2", ".#3"]);
+      expect(lexAtoms("x.#5a ").map(String)).toEqual(["x", ".#5", "a"]);
+      expect(lexAtoms("5.#2 ").map(String)).toEqual(["5", ".#2"]);
+      // A space ends the bare Count, so `.# 2` is still `.#` applied to 2.
+      expect(lexAtoms("x.# 2 ").map(String)).toEqual(["x", ".#", "2"]);
+    });
+
+    it("spells each rung once: a leading zero ends the name (007.32)", () => {
+      expect(lexAtoms("x.#05 ").map(String)).toEqual(["x", ".#0", "5"]);
+      expect(lexAtoms("x.#00 ").map(String)).toEqual(["x", ".#0", "0"]);
+      expect(lexAtoms("x.#005 ").map(String)).toEqual(["x", ".#0", "05"]);
+      expect(lexAtoms("x.#10 ").map(String)).toEqual(["x", ".#10"]);
+      expect(Frame.hashRank("#05")).toBeUndefined();
+      expect(Frame.hashRank("#5")).toBe(5);
+      expect(Frame.hashRank("#12")).toBe(12);
+    });
+
+    it("gives the ranked hash only to a lone hash (007.32)", () => {
+      // `.##2` and `.####2` are the fixed hashes followed by the count 2.
+      expect(lexAtoms("x.##2 ").map(String)).toEqual(["x", ".##", "2"]);
+      expect(lexAtoms("x.###2 ").map(String)).toEqual(["x", ".###", "2"]);
+      expect(lexAtoms("x.####2 ").map(String)).toEqual(["x", ".####", "2"]);
+      // A hash anywhere else still begins a comment.
+      expect(lexAtoms("x #2 ").map(String)).toEqual(["x"]);
+      expect(lexAtoms(".foo#2# ").map(String)).toEqual([".foo"]);
+      expect(lexAtoms("x.#2#c# ").map(String)).toEqual(["x", ".#2"]);
+    });
+
     it("leaves every other `#` beginning a comment", () => {
       expect(lexAtoms("x #c# ").map(String)).toEqual(["x"]);
       expect(lexAtoms("x #.## ").map(String)).toEqual(["x"]);

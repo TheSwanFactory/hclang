@@ -1,4 +1,5 @@
 import { IfElse, IfThen } from "./ops/conditionals.ts";
+import { DenumEngine } from "./ops/denum.ts";
 import { FrameOps } from "./ops/frame-ops.ts";
 import {
   MapElements,
@@ -57,4 +58,6 @@ export const Ops = new FrameOps({
   "^": BindType,
   "^^": BindReturn,
   "->": Arrow,
+  // The one native seam under `hc/denum.hc`: pure Cayley–Dickson arithmetic.
+  "denum-engine": DenumEngine,
 });

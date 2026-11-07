@@ -188,7 +188,7 @@ export class FrameList extends Frame {
   /** Immediate count is unchanged; Size and residual share native child sizes. */
   public override sizeFor(key: string): Frame {
     const failure = this.observationError();
-    if (failure && Frame.SIZE_OPERATORS.includes(key)) return failure;
+    if (failure && Frame.isSizeOperator(key)) return failure;
     if (key === Frame.kCOUNT) {
       const elements = this.sizeElements();
       return elements instanceof Frame

@@ -215,7 +215,7 @@ export class FrameExpr extends FrameList {
       }
       if (
         index === 0 && value.isSymbol() && value.is.address &&
-        Frame.SIZE_OPERATORS.includes(value.spelling())
+        Frame.isSizeOperator(value.spelling())
       ) {
         sum = value;
         continue;
@@ -225,7 +225,7 @@ export class FrameExpr extends FrameList {
       if (
         index > 0 && sum.is.void && value.isSymbol() &&
         value.is.address &&
-        Frame.SIZE_OPERATORS.includes(value.spelling())
+        Frame.isSizeOperator(value.spelling())
       ) {
         sum = value.called_by(sum);
         continue;
@@ -617,7 +617,7 @@ export class FrameScoped extends Frame {
   ): Frame {
     if (
       argument.isSymbol() && argument.is.address === true &&
-      Frame.SIZE_OPERATORS.includes(argument.spelling())
+      Frame.isSizeOperator(argument.spelling())
     ) {
       return this.sizeFor(argument.spelling());
     }

@@ -203,7 +203,7 @@ export class FrameLazy extends FrameExpr {
   private sizeOperator(argument: Frame): Frame | undefined {
     if (
       argument instanceof FrameSymbol && argument.is.address === true &&
-      Frame.SIZE_OPERATORS.includes(argument.spelling())
+      Frame.isSizeOperator(argument.spelling())
     ) {
       return this.sizeFor(argument.spelling());
     }

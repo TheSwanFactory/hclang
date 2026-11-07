@@ -6,6 +6,27 @@
 
 ## Unreleased
 
+- **The ranked hash `x.#n` answers a Denum (occurrence/figure 007.32d,
+  007.32b).** `x.#0` … `x.#5` answer the Denum of Cayley–Dickson rung n: one
+  unsigned D0 channel, then 2, 4, 8, 16 and 32 signed signature channels, each
+  with a nonnegative load, and a retained application Count kept apart from the
+  loads. A Denum is an HC class (`hc/denum.hc`), and its `+`, `-` and `*` take
+  another Denum only (a lookalike aggregate is `$!!.invalid-denum`), promote the
+  lower rank by `±e_b ↦ ±e_(0b)`, and compute the signed product from the
+  Cayley–Dickson recurrence with no hand-written table; `opp`, `conj`,
+  `promote k`, `observe ()` and `signatures ()` are methods, and the algebraic
+  value is the observation, not the Denum. It is additive: bare `x.#` is still
+  the Count, `.##`, `.###` and `.####` and every Demi operator are unchanged,
+  there is no `#n=`, and for an ordinary or binary host `x.#1` carries the
+  Demi's Count and left and right loads (a `RotorRouter` of more than two
+  channels keeps its channel Demi under `.####`, while `.#n` is the projection
+  of its three observers). The only break is tokenization: `x.#2` used to lex as
+  `.#` followed by `2` and now is one name. A host builds its Denum from Count,
+  Size and residual (higher ranks use the two real channels); an unrouted
+  application carries no higher signature. Count follows candidate laws for
+  Denum arithmetic only and is not derived from the loads or the phase. The
+  global name `denum-engine` is the one native seam under the class.
+
 - **Footprint dispatch repaired after the PR #484 review (occurrence/figure
   015.24l).** `footprint` is now held to a new `certified-sequential` policy,
   the events alone in program order each stopping at its first refused access

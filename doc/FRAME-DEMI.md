@@ -484,3 +484,19 @@ was nil and is now a redistribution.
 **Not established.** This shows cyclic position as Count modulo arity on
 existing HC frames. It does not prove a cyclic Fact closure, the Stick reversal
 bridge or Gaussian arithmetic.
+
+## Denum and the ranked hash
+
+`x.#n` (n from 0 to 5) answers a **Denum**, the signed-load carrier of the
+binary Cayley–Dickson ladder, defined by the HC class in
+[`hc/denum.hc`](../hc/denum.hc) (occurrence/figure 007.32). It is additive and
+leaves Demi as it is: `.####`, `Demi` and its `+`, `-`, `*` and `./` are
+unchanged, and for an ordinary or binary host `x.#1` carries the same Count and
+left and right loads as `x.####`. A `RotorRouter` of more than two channels is
+the exception: `.####` answers its channel Demi, while `.#n` is built from its
+three observers (Count, Size, residual) and never reads the channels. A Denum is
+not a Demi, its operators are its own, and its Count follows separate candidate
+laws (`C(a+b)=C(a)+C(b)`, `C(a*b)=C(a)·C(b)`, `C(Opp a)=C(a)`) that are not the
+Demi's phase `C mod
+arity`. The class is a thin HC shell over the pure native
+`denum-engine`; the typed reference is `lib/frames/denum.ts`.

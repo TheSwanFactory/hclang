@@ -613,6 +613,28 @@ export class Frame extends MetaFrame {
     Frame.kDEMI,
   ];
   /**
+   * The ranked hash `.#n` (occurrence/figure 007.32): `#` and decimal digits,
+   * as `.#2`, in canonical decimal (no leading zero, so each rung has one
+   * spelling). Its n is the Cayley–Dickson rung and not a hash count, so it is
+   * not one of {@link SIZE_OPERATORS}, whose spellings are the four fixed
+   * hashes. Bare `.#` stays the Count.
+   */
+  public static readonly RANKED_HASH = /^#(0|[1-9][0-9]*)$/;
+
+  /**
+   * Whether `key` names an observer a Frame answers for itself: one of the four
+   * fixed hashes `#`, `##`, `###`, `####`, or a ranked hash `#n`.
+   */
+  public static isSizeOperator(key: string): boolean {
+    return Frame.SIZE_OPERATORS.includes(key) || Frame.RANKED_HASH.test(key);
+  }
+
+  /** The rung n of a ranked hash `#n`, or undefined for any other key. */
+  public static hashRank(key: string): number | undefined {
+    return Frame.RANKED_HASH.test(key) ? Number(key.slice(1)) : undefined;
+  }
+
+  /**
    * BEGIN_EXPR is the symbol for the beginning of an expression.
    */
   public static readonly BEGIN_EXPR = "(";
@@ -960,6 +982,12 @@ export class Frame extends MetaFrame {
   public static demi: (source: Frame) => Frame;
 
   /**
+   * The ranked hash `.#n`: the Denum of rank `rank` a Frame answers
+   * (`lib/frames/denum-hash.ts`).
+   */
+  public static denum: (source: Frame, rank: number) => Frame;
+
+  /**
    * Whether this value is itself an error, flagged as such. A diagnostic
    * failure such as `$!.name-missing` is flagged when constructed (#467).
    * Unlike `isFailedResult`, it never looks inside an aggregate, and unlike
@@ -982,7 +1010,7 @@ export class Frame extends MetaFrame {
    * Nil has no Count, so no residual or Demi.
    */
   public sizeFor(key: string): Frame {
-    if (!Frame.SIZE_OPERATORS.includes(key)) return Frame.nil;
+    if (!Frame.isSizeOperator(key)) return Frame.nil;
     const failure = this.observationError();
     if (failure) return failure;
     // The internal lookup sentinel is never a value: observing it is the
@@ -1004,8 +1032,10 @@ export class Frame extends MetaFrame {
       }
       case Frame.kDEMI:
         return Frame.demi(this);
-      default:
-        return Frame.nil;
+      default: {
+        const rank = Frame.hashRank(key);
+        return rank === undefined ? Frame.nil : Frame.denum(this, rank);
+      }
     }
   }
 
@@ -1370,7 +1400,7 @@ export class Frame extends MetaFrame {
       return undefined;
     }
     const key = (argument as unknown as { spelling(): string }).spelling();
-    return Frame.SIZE_OPERATORS.includes(key) ? key : undefined;
+    return Frame.isSizeOperator(key) ? key : undefined;
   }
 
   /**

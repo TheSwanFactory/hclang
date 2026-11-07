@@ -43,6 +43,14 @@ const recognizeName = (symbol: Frame, source = ""): ScanResult => {
   if (Frame.SIZE_OPERATORS.includes(source + char)) {
     return { disposition: ScanDisposition.Consume };
   }
+  // A single hash followed by decimal digits is the ranked hash `.#n`
+  // (occurrence/figure 007.32). Only the lone `#` takes digits: `.##2` is
+  // `.##` and then the count 2, as before, and `.#2x` is `.#2` then `x`.
+  // The spelling is canonical decimal, one name per rung: a zero ends the name,
+  // so `.#05` is `.#0` and then the number 5.
+  if (/^#(|[1-9][0-9]*)$/.test(source) && /^[0-9]$/.test(char)) {
+    return { disposition: ScanDisposition.Consume };
+  }
   if (source.startsWith(Frame.kCOUNT)) {
     return { disposition: ScanDisposition.CompleteRedispatch };
   }

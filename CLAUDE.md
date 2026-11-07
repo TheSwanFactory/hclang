@@ -184,9 +184,11 @@ adding, editing, or removing an `hc/*.hc`, run `deno task bundle:embed` and
 commit the result. Git is the drift check: `deno task bundle:check` regenerates
 the embed and fails on any difference, and both the pre-commit hook and
 `test:all` run it. A bare `evaluate` has no root, so it imports nothing, bundled
-or otherwise. The one exception is the Demi class that `.####` answers, which
-the evaluator reads from `hc/demi.hc` in the embed, in a namespace of its own
-(`lib/execute/demi-prologue.ts`), so that file's code must not import.
+or otherwise. The exceptions are the Demi class that `.####` answers and the
+Denum class that the ranked hash `.#n` answers, which the evaluator reads from
+`hc/demi.hc` and `hc/denum.hc` in the embed, each in a namespace of its own
+(`lib/execute/demi-prologue.ts`, `lib/execute/denum-prologue.ts`), so those
+files' code must not import.
 
 ### Iteration
 
