@@ -14,7 +14,7 @@
  * for every direction `b` of `n − 1` bits. Channels are ordered positives
  * first, then negatives, each by direction value: channel `b` is `+e_b` and
  * channel `2ⁿ⁻¹ + b` is `−e_b`. A minus names a *signature*; a load is never
- * negative. The algebraic value is the observation {@link observe}, not the
+ * negative. The algebraic value is the signed observation {@link coordinates}, not the
  * Denum.
  *
  * The product of two signed signatures is
@@ -329,16 +329,40 @@ export function multiply(left: Denum, right: Denum): Denum {
 }
 
 /**
- * The algebraic observation Φ: the signed integer coordinate of each
- * direction, `W₍₊,b₎ − W₍₋,b₎`, in direction order. At D0 it is the one Size.
+ * The Denum coordinates (occurrence/figure 007.32j, 007.33): an ordered list of
+ * integers, one per direction `b`, read from the preserved state without
+ * changing it. The one projection behind both HC spellings:
+ *
+ * - signed (`d.coordinates ()`): `S_b = W₍₊,b₎ − W₍₋,b₎`, the algebraic value;
+ * - unsigned (`d.coordinates <>`): `U_b = W₍₊,b₎ + W₍₋,b₎`, the direction load
+ *   with the ± signature forgotten (so `U ≠ |S|`).
+ *
+ * Width is 1 at D0 and `2ⁿ⁻¹` at Dn, n ≥ 1, in the direction order of
+ * {@link signatureOf}. D0 has one unsigned channel `e_ε`, so both modes answer
+ * `[W_ε]`. Count is neither used nor returned. Given the rank, the pair (S, U)
+ * recovers the loads, `W₊ = (U+S)/2` and `W₋ = (U−S)/2`; Count, history and
+ * the Denum itself are not recovered. Always a fresh array.
  */
-export function observe(source: Denum): bigint[] {
+export function coordinates(source: Denum, unsigned = false): bigint[] {
   if (source.rank === 0) return [source.loads[0]];
   const half = source.loads.length / 2;
   return Array.from(
     { length: half },
-    (_, b) => source.loads[b] - source.loads[half + b],
+    (_, b) =>
+      unsigned
+        ? source.loads[b] + source.loads[half + b]
+        : source.loads[b] - source.loads[half + b],
   );
+}
+
+/**
+ * The signed coordinates of v0.45.0.
+ *
+ * @deprecated Legacy compatibility alias of `coordinates(source)`, the signed
+ * mode; `d.observe ()` in HC is its deprecated spelling. Use {@link coordinates}.
+ */
+export function observe(source: Denum): bigint[] {
+  return coordinates(source);
 }
 
 /**
@@ -348,12 +372,14 @@ export function observe(source: Denum): bigint[] {
  * the directions; it is an observer of the state, not the state.
  */
 export function residual(source: Denum): bigint {
-  return source.rank === 0 ? 0n : observe(source).reduce((a, b) => a + b, 0n);
+  return source.rank === 0
+    ? 0n
+    : coordinates(source).reduce((a, b) => a + b, 0n);
 }
 
 /** True when every observed coordinate is zero. */
 export function observesZero(source: Denum): boolean {
-  return observe(source).every((coordinate) => coordinate === 0n);
+  return coordinates(source).every((coordinate) => coordinate === 0n);
 }
 
 /** True when no channel carries a load. */

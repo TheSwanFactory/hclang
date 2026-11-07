@@ -27,8 +27,8 @@ and program is composed of frames. This unified representation enables:
 
 - [denum.ts](denum.ts) and [denum-hash.ts](denum-hash.ts) - The typed
   Cayley–Dickson reference (schema `CD[n]`, signed-channel loads, Count,
-  `add`/`multiply`/`opposite`/`conjugate`/`promote`/`observe`) and the ranked
-  hash `.#n`, which answers the HC class `Denum` in `hc/denum.hc` through
+  `add`/`multiply`/`opposite`/`conjugate`/`promote`/`coordinates`) and the
+  ranked hash `.#n`, which answers the HC class `Denum` in `hc/denum.hc` through
   `installDenumConstructor` (`lib/execute/denum-prologue.ts`).
   `Frame.isSizeOperator` accepts the four fixed hashes and `#n`;
   `Frame.SIZE_OPERATORS` is still only the four.

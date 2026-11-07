@@ -7,11 +7,11 @@ import {
   add,
   arity,
   conjugate,
+  coordinates,
   type Denum,
   denum,
   DenumError,
   multiply,
-  observe,
   opposite,
   promote,
   residual,
@@ -35,7 +35,12 @@ export const DENUM_OPERATIONS = {
   conjugate: 5,
   /** Promote the left state to the rank of the right state's first slot. */
   promote: 6,
-  /** The signed integer coordinate of each direction, an observation. */
+  /**
+   * The integer coordinate of each direction, an observation. The fifth slot
+   * is the mode: 0 signed `W₊ − W₋`, 1 unsigned `W₊ + W₋`.
+   */
+  coordinates: 7,
+  /** Legacy name of {@link DENUM_OPERATIONS.coordinates} (the signed mode). */
   observe: 7,
   /** The native signature names of the left state's channels, as text. */
   names: 8,
@@ -106,8 +111,16 @@ export const DenumEngine = (_source: Frame, block: Frame): Frame => {
         return stateFrame(opposite(left));
       case DENUM_OPERATIONS.conjugate:
         return stateFrame(conjugate(left));
-      case DENUM_OPERATIONS.observe:
-        return new FrameArray(observe(left).map((c) => Frame.signed(c)));
+      case DENUM_OPERATIONS.coordinates: {
+        // Absent (the v0.45.0 call shape) is signed; otherwise exactly 0 or 1.
+        const mode = args[4] === undefined ? 0n : counts(args[4]);
+        if (mode !== 0n && mode !== 1n) {
+          return Frame.error("$!!.invalid-denum");
+        }
+        return new FrameArray(
+          coordinates(left, mode === 1n).map((c) => Frame.signed(c)),
+        );
+      }
       case DENUM_OPERATIONS.names:
         return new FrameArray(
           Array.from(

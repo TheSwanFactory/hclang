@@ -126,3 +126,38 @@ Deno.test("denum-engine refuses malformed requests with named errors", () => {
     call(n(3), n(1), n(1), counts(0, 1), n(2), n(1), counts(0, 1, 0, 0)),
   ).toEqual("[2, 1, [0, 0, 0, 1]]");
 });
+
+Deno.test("coordinates: nil is signed, true is unsigned, native not truthiness", () => {
+  // Instances come from the ranked hash: this bare evaluator cannot import the
+  // class file, and the exact loads are pinned by the testdocs in hc/denum.hc.
+  const opposed = "(([1, 2, 3].#2).opp ())";
+  expect(text("[1, 2, 3].#1.coordinates ()")).toEqual("[2]");
+  expect(text("[1, 2, 3].#1.coordinates <>")).toEqual("[6]");
+  expect(text("[1, 2, 3].#1.observe ()")).toEqual("[2]");
+  expect(text(`${opposed}.loads`)).toEqual("[2, 0, 4, 0]");
+  expect(text(`${opposed}.coordinates ()`)).toEqual("[-2, 0]");
+  expect(text(`${opposed}.coordinates <>`)).toEqual("[6, 0]");
+  expect(text(`${opposed}.count`)).toEqual("3");
+  // D0 answers [W] in both modes.
+  expect(text("[1, 2, 3].#0.coordinates ()")).toEqual("[6]");
+  expect(text("[1, 2, 3].#0.coordinates <>")).toEqual("[6]");
+  expect(text("[1, 2, 3].#5.coordinates <>").split(",").length).toBe(16);
+  for (const bad of ["1", "0", "“x”", "[1]", "[]", "{1}"]) {
+    expect(text(`[1, 2, 3].#2.coordinates ${bad}`)).toEqual(
+      "$!!.unary-observation",
+    );
+  }
+  expect(text("[1, 2, 3].#2.observe <>")).toEqual("$!!.unary-observation");
+});
+
+Deno.test("denum-engine coordinates mode is exactly 0, 1 or absent", () => {
+  const call = (...args: Frame[]): string =>
+    `${DenumEngine(Frame.nil, new FrameArray(args))}`;
+  const n = (v: number): FrameCount => new FrameCount(BigInt(v));
+  const state = [n(7), n(2), n(1), counts(3, 2, 1, 4)];
+  expect(call(...state)).toEqual("[2, -2]");
+  expect(call(...state, n(0))).toEqual("[2, -2]");
+  expect(call(...state, n(1))).toEqual("[4, 6]");
+  expect(call(...state, n(2))).toEqual("$!!.invalid-denum");
+  expect(call(...state, new FrameArray([]))).toEqual("$!!.invalid-denum");
+});

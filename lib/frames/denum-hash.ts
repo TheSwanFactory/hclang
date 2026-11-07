@@ -98,7 +98,7 @@ function intrinsicDenum(source: Frame): Denum | undefined {
 /**
  * The ranked hash, `.#n` (occurrence/figure 007.32, 007.32b): the Denum of
  * rung n, n from 0 to 5. There is no `#n=`, and a Denum is not a scalar
- * observation; the algebraic value is `d.observe ()`.
+ * observation; the algebraic value is `d.coordinates ()`.
  *
  * Two different operations answer it, and they are not the same:
  *
