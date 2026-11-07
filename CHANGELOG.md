@@ -4,6 +4,20 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.46.0 2026-11-07
+
+- **Denum `coordinates`: signed and unsigned (occurrence/figure 007.32i,
+  007.32j, 007.33).** `d.coordinates ()` is the signed coordinate list `W₊ − W₋`
+  and `d.coordinates <>` is the unsigned direction-load list `W₊ + W₋`, one
+  integer per direction (width 1 at D0, 2ⁿ⁻¹ at Dn; both are `[W_ε]` at D0).
+  Only nil `()` and true `<>` are accepted; any other argument is
+  `$!!.unary-observation`. Neither mode changes the Denum or returns its Count.
+  `d.observe ()` is kept as a **deprecated** compatibility alias with exactly
+  the signed result; it takes no unsigned argument. The typed reference gains
+  `coordinates(source, unsigned = false)` (`observe` is a deprecated wrapper),
+  and `denum-engine` opcode 7 takes the mode. There is no Fano primitive: the
+  seven lines are tested as a quotient derived from the CD[4] product.
+
 ## v0.45.0 2026-11-06
 
 - **The ranked hash `x.#n` answers a Denum (occurrence/figure 007.32d,
