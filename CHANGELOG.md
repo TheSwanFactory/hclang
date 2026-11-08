@@ -15,7 +15,9 @@
   hash `x.#n`, along with `hc/denum.hc` and the Denum docs. Frame and Demi
   behavior (Size-mediated `*`, application, `+ −`, residual and arbitrary-arity
   redistribution), native Inlay and RotorRouter are exactly those of v0.44.1.
-  The v0.45.0–v0.47.0 tags and releases stay in Git history, untouched. A
+  The v0.45.0–v0.47.0 Git tags and GitHub releases remain available, and the
+  already-published JSR and npm package versions remain available independently
+  in their registries; no historical artifact was unpublished or rewritten. A
   corrected Denum design is separate, future work.
 
 ## v0.47.0 2026-11-07
