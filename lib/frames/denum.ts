@@ -25,7 +25,8 @@
  * loads is not a CD[2] until it is viewed as one. View identity is a private
  * class brand (`#cd in x`), so a lookalike `{count, loads}` object, or a Denum
  * with `2ⁿ` loads, is not a view. There is no public raw-payload view
- * constructor: `CD.of` is private to this module's operations.
+ * constructor: `new CD` refuses without a module-private token, and the
+ * module's `mintCD` is not exported.
  *
  * On a view, rank 0 has one unsigned channel `e_ε`. Rank `n ≥ 1` has `2ⁿ`
  * channels, `±e_b` for every direction `b` of `n − 1` bits. Channels are
@@ -57,7 +58,8 @@
  * `$!.denum-not-generic` (a generic operation given two views),
  * `$!.denum-arity-mismatch` (generic addition of different arities),
  * `$!.denum-unsupported-arity` (a view or ranked embedding of a non-binary
- * arity) and `$!.denum-view-source` (a view given to the ranked embedding).
+ * arity), `$!.denum-view-source` (a view given to the ranked embedding) and
+ * `$!.denum-view-forged` (`new CD` without the module-private token).
  *
  * @module
  */
@@ -82,7 +84,13 @@ export class CD implements Denum {
   readonly #cd = true;
   /** The retained Count and loads: the one source of truth, frozen. */
   readonly source: Denum;
-  private constructor(count: bigint, loads: readonly bigint[]) {
+  /**
+   * Not callable from outside this module: the first argument must be the
+   * module-private mint token, so `new CD(...)` and `new view.constructor(...)`
+   * both refuse at runtime, whatever TypeScript is told.
+   */
+  constructor(token: symbol, count: bigint, loads: readonly bigint[]) {
+    if (token !== MINT) throw new DenumError("$!.denum-view-forged");
     this.source = Object.freeze({
       count,
       loads: Object.freeze([...loads]),
@@ -97,15 +105,27 @@ export class CD implements Denum {
     return this.source.loads;
   }
 
-  /** True exactly for views built by this class: not for lookalikes. */
+  /** True exactly for views built by this module: not for lookalikes. */
   static is(value: unknown): value is CD {
     return typeof value === "object" && value !== null && #cd in value;
   }
+}
 
-  /** Unchecked: callers have already validated count, loads and CD arity. */
-  static of(count: bigint, loads: readonly bigint[]): CD {
-    return new CD(count, loads);
+/** The module-private token that authorizes the {@link CD} constructor. */
+const MINT = Symbol("CD.mint");
+
+/**
+ * The only way to make a view: module-private, never exported. It re-validates
+ * Count, loads and shipped CD arity, so no operation can brand an invalid state
+ * even by mistake. Callers outside the module can only reach a view through
+ * {@link cdViewOf} or an operation that answers one.
+ */
+function mintCD(count: bigint, loads: readonly bigint[]): CD {
+  const state = denum(count, loads);
+  if (!isCDArity(state.loads.length)) {
+    throw new DenumError("$!.denum-unsupported-arity", `${state.loads.length}`);
   }
+  return new CD(MINT, state.count, state.loads);
 }
 
 /** A failure of the Denum contract, named like an HC error. */
@@ -359,7 +379,7 @@ export function cdViewOf(source: Denum): CD {
   if (!isCDArity(state.loads.length)) {
     throw new DenumError("$!.denum-unsupported-arity", `${state.loads.length}`);
   }
-  return CD.of(state.count, state.loads);
+  return mintCD(state.count, state.loads);
 }
 
 /** The zero-load view of a rank with a Count: present, unlike a missing host. */
@@ -423,7 +443,7 @@ export function promote(source: CD, rank: number): CD {
     throw new DenumError("$!.denum-demotion", `${from} to ${rank}`);
   }
   // Always fresh: a same-rank promotion is a copy, never the argument itself.
-  return CD.of(source.count, embed(source.loads, from, rank));
+  return mintCD(source.count, embed(source.loads, from, rank));
 }
 
 /**
@@ -464,7 +484,7 @@ function align(left: CD, right: CD): [CD, CD, number] {
  */
 export function add(left: CD, right: CD): CD {
   const [x, y] = align(left, right);
-  return CD.of(
+  return mintCD(
     x.count + y.count,
     x.loads.map((load, channel) => load + y.loads[channel]),
   );
@@ -477,7 +497,7 @@ export function add(left: CD, right: CD): CD {
 export function opposite(source: CD): CD {
   const x = promote(source, Math.max(cdRank(source), 1));
   const half = x.loads.length / 2;
-  return CD.of(
+  return mintCD(
     x.count,
     x.loads.map((_, channel) =>
       x.loads[channel < half ? channel + half : channel - half]
@@ -497,9 +517,9 @@ export function subtract(left: CD, right: CD): CD {
  * identity. Counts and loads are kept, only moved between channels.
  */
 export function conjugate(source: CD): CD {
-  if (cdRank(source) === 0) return CD.of(source.count, source.loads);
+  if (cdRank(source) === 0) return mintCD(source.count, source.loads);
   const half = source.loads.length / 2;
-  return CD.of(
+  return mintCD(
     source.count,
     source.loads.map((load, channel) => {
       const direction = channel % half;
@@ -526,7 +546,7 @@ export function multiply(left: CD, right: CD): CD {
       loads[multiplyChannels(rank, i, j)] += x.loads[i] * y.loads[j];
     }
   }
-  return CD.of(x.count * y.count, loads);
+  return mintCD(x.count * y.count, loads);
 }
 
 /**

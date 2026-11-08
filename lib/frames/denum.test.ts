@@ -31,6 +31,7 @@ import {
   subtract,
   zero,
 } from "./denum.ts";
+import * as denumModule from "./denum.ts";
 
 /** The derived view of a Denum built from the payload: the test shorthand. */
 function cd(count: bigint, loads: readonly bigint[]): CD {
@@ -795,4 +796,106 @@ Deno.test("promoteDenum: the ranked hash's embedding answers a Denum, never a vi
   expect(promoteDenum(denumState(0n, [5n]), 1)).toEqual(
     denumState(0n, [5n, 0n]),
   );
+});
+
+// PR #489 review (figure 007.36b/007.36c): no runtime-callable raw Count/loads
+// factory may confer CD identity through the exported module surface.
+Deno.test("no exported raw factory can manufacture a CD view", () => {
+  const cdClass = CD as unknown as Record<string, unknown>;
+  // The removed `CD.of` is not there at runtime, and no other static factory is.
+  expect(cdClass.of).toBeUndefined();
+  expect(Object.getOwnPropertyNames(CD).sort()).toEqual(
+    ["is", "length", "name", "prototype"],
+  );
+  // Every export is a function or constant of the intended surface; none of
+  // the exported functions named like a raw factory exists.
+  for (const name of ["of", "cd", "makeCD", "mintCD", "newCD", "createCD"]) {
+    expect(name in denumModule).toBe(false);
+  }
+
+  const Forge = CD as unknown as new (...args: unknown[]) => unknown;
+  const attempts: unknown[][] = [
+    [-1n, [0n, 0n, 0n]], // invalid Count, non-CD arity
+    [0n, [0n, 0n]], // valid payload, no token
+    [0n, []],
+    [Symbol("CD.mint"), 0n, [0n, 0n]], // a lookalike token
+    [Symbol.for("CD.mint"), 0n, [0n, 0n]],
+    [undefined, 0n, [0n]],
+  ];
+  for (const args of attempts) {
+    expect(kindOf(() => new Forge(...args))).toBe("$!.denum-view-forged");
+  }
+  // Calling without `new` is a TypeError, not a view.
+  expect(() => (CD as unknown as (...a: unknown[]) => unknown)(0n, [0n]))
+    .toThrow(
+      TypeError,
+    );
+});
+
+Deno.test("a legitimate view's constructor cannot forge another view", () => {
+  const view = cdViewOf(denumState(2n, [1n, 2n]));
+  const Forge = view.constructor as unknown as new (
+    ...args: unknown[]
+  ) => unknown;
+  expect(Forge).toBe(CD);
+  expect(kindOf(() => new Forge(-1n, [0n, 0n, 0n]))).toBe(
+    "$!.denum-view-forged",
+  );
+  expect(kindOf(() => new Forge(2n, [1n, 2n]))).toBe("$!.denum-view-forged");
+  expect(kindOf(() => new Forge(Symbol("x"), -1n, [0n, 0n, 0n]))).toBe(
+    "$!.denum-view-forged",
+  );
+  // Prototype tricks carry no private brand either.
+  const fake = Object.create(CD.prototype, {
+    source: { value: { count: 1n, loads: [1n, 2n] } },
+  });
+  expect(CD.is(fake)).toBe(false);
+  expect(isCD(fake)).toBe(false);
+  expect(kindOf(() => multiply(fake, fake))).toBe("$!.denum-not-cd");
+});
+
+Deno.test("every external route to a view validates its Denum", () => {
+  // Invalid Count, load and empty loads are refused before any view exists.
+  expect(kindOf(() => cdViewOf({ count: -1n, loads: [0n, 0n, 0n] }))).toBe(
+    "$!!.invalid-denum",
+  );
+  expect(kindOf(() => cdViewOf({ count: 0n, loads: [0n, -1n] }))).toBe(
+    "$!!.invalid-denum",
+  );
+  expect(kindOf(() => cdViewOf({ count: 0n, loads: [] }))).toBe(
+    "$!!.invalid-denum",
+  );
+  // Unsupported arities, including a negative Count combined with one.
+  for (const a of [3, 5, 6, 33, 64]) {
+    expect(kindOf(() => cdViewOf({ count: 0n, loads: Array(a).fill(0n) })))
+      .toBe("$!.denum-unsupported-arity");
+  }
+  expect(kindOf(() => cdViewOf({ count: -1n, loads: [0n, 0n, 0n] }))).toBe(
+    "$!!.invalid-denum",
+  );
+  // A power-of-two Denum is generic until `.cd ()` is asked for.
+  const generic = denumState(3n, [1n, 2n, 3n, 4n]);
+  expect(isCD(generic)).toBe(false);
+  expect(kindOf(() => multiply(generic as CD, generic as CD))).toBe(
+    "$!.denum-not-cd",
+  );
+  const view = cdViewOf(generic);
+  expect(isCD(view)).toBe(true);
+  expect(CD.is(view)).toBe(true);
+  expect(view.source).toEqual(generic);
+  // Lookalike payloads are refused as views.
+  expect(isCD({ count: 1n, loads: [1n, 2n] })).toBe(false);
+  expect(kindOf(() => add({ count: 1n, loads: [1n] } as unknown as CD, view)))
+    .toBe(
+      "$!.denum-mixed",
+    );
+  // Legitimate arithmetic still answers valid views.
+  const sum = add(view, view);
+  expect(isCD(sum)).toBe(true);
+  expect(sum.loads).toEqual([2n, 4n, 6n, 8n]);
+  expect(isCD(multiply(view, view))).toBe(true);
+  expect(isCD(promote(view, 3))).toBe(true);
+  expect(isCD(conjugate(view))).toBe(true);
+  expect(isCD(opposite(view))).toBe(true);
+  expect(isCD(zero(5, 2n))).toBe(true);
 });
