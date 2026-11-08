@@ -3,9 +3,10 @@ import {
   add,
   arity,
   type CD,
-  cd as cdState,
+  cdViewOf,
   conjugate,
   coordinates,
+  denum as denumOf,
   multiply,
   observe,
   opposite,
@@ -22,7 +23,7 @@ import {
  */
 function denum(rank: number, count: bigint, loads: readonly bigint[]): CD {
   expect(loads.length).toBe(arity(rank));
-  return cdState(count, loads);
+  return cdViewOf(denumOf(count, loads));
 }
 
 /**

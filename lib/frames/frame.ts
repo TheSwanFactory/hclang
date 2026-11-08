@@ -982,7 +982,7 @@ export class Frame extends MetaFrame {
   public static demi: (source: Frame) => Frame;
 
   /**
-   * The ranked hash `.#n`: the Denum of rank `rank` a Frame answers
+   * The ranked hash `.#n`: the Denum (never a CD view) of rank `rank` a Frame answers
    * (`lib/frames/denum-hash.ts`).
    */
   public static denum: (source: Frame, rank: number) => Frame;

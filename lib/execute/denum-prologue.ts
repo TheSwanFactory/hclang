@@ -1,13 +1,15 @@
 /**
- * The Denum and CD classes, loaded from HC for the ranked hash.
+ * The Denum class, loaded from HC for the ranked hash.
  *
- * `x.#n` answers a CD, and both CD and the generic Denum are HC classes,
- * `CD` and `Denum` in `hc/denum.hc` (occurrence/figure 007.32, 007.35b). The
- * frames package derives the state natively but cannot run HC, so this module
- * installs the constructors it calls (`installDenumConstructors`), exactly as
- * `demi-prologue.ts` does for `.####`. The CD constructor builds every
- * answer; the generic one is installed so a generic Denum source can be
- * recognized and refused, never converted.
+ * `x.#n` answers a Denum, and the only public constructor is the HC class
+ * `Denum` in `hc/denum.hc` (occurrence/figure 007.32, 007.36). The CD algebra
+ * is a view derived by `d.cd ()`, not a second constructor. The frames package
+ * derives the state natively but cannot run HC, so this module installs what
+ * it calls (`installDenumConstructors`), exactly as `demi-prologue.ts` does for
+ * `.####`. The `Denum` constructor builds every answer; the internal view
+ * derivation `view-of` is installed only so a view source can be recognized
+ * and refused. It is not a constructor of retained state and is never
+ * exported.
  *
  * The class is read from the compiled-in bundle, not through a resource root,
  * so `.#n` works in a bare `evaluate`, which has no root and imports nothing.
@@ -36,12 +38,13 @@ import { evaluateSourceText } from "./resource-import.ts";
 /** The bundled file that defines the class. */
 export const DENUM_SOURCE = "hc/denum.hc";
 
-/** The names the file declares its two public constructors under. */
+/** The name the file declares its one public constructor under. */
 export const DENUM_CLASS = "Denum";
-export const CD_CLASS = "CD";
+/** The internal view derivation: `view-of d` is `d.cd ()`. Not a constructor. */
+export const VIEW_FACTORY = "view-of";
 
-/** Both constructor closures of the file, or the failure that loading gave. */
-export type DenumClasses = { denum: Frame; cd: Frame } | Frame;
+/** The closures of the file the ranked hash uses, or the failure it gave. */
+export type DenumClasses = { denum: Frame; view: Frame } | Frame;
 
 let loaded: DenumClasses | undefined;
 let loading = false;
@@ -50,12 +53,12 @@ const failed = (frame: Frame): boolean =>
   frame.isFailedResult() || frame.observationError() !== undefined;
 
 /**
- * Evaluates class source in a namespace of its own, answering its `Denum` and
- * `CD` constructors or the failure. Uncached: `denumClasses` keeps the one
+ * Evaluates class source in a namespace of its own, answering its `Denum`
+ * constructor and `view-of` derivation or the failure. Uncached: `denumClasses` keeps the one
  * result the process uses.
  *
  * @param source The source text, or undefined when the bundle lacks it.
- * @returns Both constructors, or an error.
+ * @returns The `Denum` constructor and the view derivation, or an error.
  */
 export function loadDenumClasses(source: string | undefined): DenumClasses {
   if (source === undefined) {
@@ -68,18 +71,18 @@ export function loadDenumClasses(source: string | undefined): DenumClasses {
   if (denum.is.missing) {
     return Frame.error(`$!.denum-prologue-missing ${DENUM_CLASS}`);
   }
-  const cd = namespace.getOwn(CD_CLASS);
-  if (cd.is.missing) {
-    return Frame.error(`$!.denum-prologue-missing ${CD_CLASS}`);
+  const view = namespace.getOwn(VIEW_FACTORY);
+  if (view.is.missing) {
+    return Frame.error(`$!.denum-prologue-missing ${VIEW_FACTORY}`);
   }
-  return { denum, cd };
+  return { denum, view };
 }
 
 /**
- * The `Denum` and `CD` constructor closures, evaluated from the bundle on
+ * The `Denum` constructor and `view-of` closures, evaluated from the bundle on
  * first use.
  *
- * @returns The constructors, or the error that loading them answered.
+ * @returns The closures, or the error that loading them answered.
  */
 export function denumClasses(): DenumClasses {
   if (loaded) return loaded;
@@ -93,38 +96,38 @@ export function denumClasses(): DenumClasses {
   return loaded;
 }
 
-function construct(
-  which: "denum" | "cd",
-  state: denum.Denum,
-): Frame {
-  const classes = denumClasses();
-  if (classes instanceof Frame) return classes;
-  const constructor = classes[which];
-  const argument = new FrameArray([
+const stateArgument = (state: denum.Denum): Frame =>
+  new FrameArray([
     new FrameCount(state.count),
     new FrameArray(state.loads.map((load) => new FrameCount(load))),
   ]);
-  return FrameExpr.answeredValue(constructor.call(argument)).referent();
-}
 
 /**
- * Constructs a generic Denum with the HC class: `Denum [count, loads]`.
+ * Constructs a Denum with the HC class: `Denum [count, loads]`.
  *
  * @param state The Count and loads, already admissible.
  * @returns The new instance, or the class's failure.
  */
 export function constructDenum(state: denum.Denum): Frame {
-  return construct("denum", state);
+  const classes = denumClasses();
+  if (classes instanceof Frame) return classes;
+  return FrameExpr.answeredValue(classes.denum.call(stateArgument(state)))
+    .referent();
 }
 
 /**
- * Constructs an explicit CD with the HC class: `CD [count, loads]`.
+ * Derives the CD view of the Denum the state builds, as `d.cd ()` does. Only
+ * the ranked hash's recognition of a view source uses it.
  *
- * @param state The Count and loads, already admissible as a CD.
- * @returns The new instance, or the class's failure.
+ * @param state The Count and loads, already admissible.
+ * @returns The view instance, or the class's failure.
  */
-export function constructCD(state: denum.Denum): Frame {
-  return construct("cd", state);
+function deriveView(state: denum.Denum): Frame {
+  const classes = denumClasses();
+  if (classes instanceof Frame) return classes;
+  const source = constructDenum(state);
+  if (source.isFailedResult() || source.observationError()) return source;
+  return FrameExpr.answeredValue(classes.view.call(source)).referent();
 }
 
-installDenumConstructors({ cd: constructCD, denum: constructDenum });
+installDenumConstructors({ denum: constructDenum, view: deriveView });

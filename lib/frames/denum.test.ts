@@ -4,8 +4,8 @@ import {
   addDenum,
   arity,
   CD,
-  cd,
   cdRank,
+  cdViewOf,
   conjugate,
   coordinates,
   denum as denumState,
@@ -22,6 +22,7 @@ import {
   opposite,
   parseSignature,
   promote,
+  promoteDenum,
   rankOf,
   rankOfArity,
   residual,
@@ -30,6 +31,11 @@ import {
   subtract,
   zero,
 } from "./denum.ts";
+
+/** The derived view of a Denum built from the payload: the test shorthand. */
+function cd(count: bigint, loads: readonly bigint[]): CD {
+  return cdViewOf(denumState(count, loads));
+}
 
 /**
  * Test constructor of a CD rung: checks `loads.length === arity(rank)` and
@@ -386,8 +392,8 @@ Deno.test("boundaries: empty host, explicit zero D0, balanced D1, zero-size", ()
   // D0 opposite promotes to D1 first.
   expect(opposite(denum(0, 1n, [4n]))).toEqual(denum(1, 1n, [0n, 4n]));
   // Zero-size application counts and loads nothing.
-  expect(fromHost(1, 3n, 0n, 0n)).toEqual(denum(1, 3n, [0n, 0n]));
-  expect(fromHost(0, 3n, 0n, 0n)).toEqual(denum(0, 3n, [0n]));
+  expect(fromHost(1, 3n, 0n, 0n)).toEqual(denumState(3n, [0n, 0n]));
+  expect(fromHost(0, 3n, 0n, 0n)).toEqual(denumState(3n, [0n]));
   // Conjugation at D0 is the identity, and D1 scalars are fixed.
   expect(conjugate(denum(0, 1n, [4n]))).toEqual(denum(0, 1n, [4n]));
   expect(conjugate(denum(1, 1n, [4n, 2n]))).toEqual(denum(1, 1n, [4n, 2n]));
@@ -398,10 +404,14 @@ Deno.test("boundaries: empty host, explicit zero D0, balanced D1, zero-size", ()
 
 Deno.test("host construction: fromHost agrees with the Demi derivation", () => {
   // Count 3, Size 8, residual 2: loads (8+2)/2 = 5 and (8-2)/2 = 3.
-  expect(fromHost(1, 3n, 8n, 2n)).toEqual(denum(1, 3n, [5n, 3n]));
+  // The ranked hash answers a generic Denum, never a view.
+  expect(fromHost(1, 3n, 8n, 2n)).toEqual(denumState(3n, [5n, 3n]));
+  expect(CD.is(fromHost(1, 3n, 8n, 2n))).toBe(false);
   // Higher ranks fill the same two real channels and zero elsewhere.
-  expect(fromHost(2, 3n, 8n, 2n)).toEqual(denum(2, 3n, [5n, 0n, 3n, 0n]));
-  expect(fromHost(2, 3n, 8n, 2n)).toEqual(promote(fromHost(1, 3n, 8n, 2n), 2));
+  expect(fromHost(2, 3n, 8n, 2n)).toEqual(denumState(3n, [5n, 0n, 3n, 0n]));
+  expect(fromHost(2, 3n, 8n, 2n)).toEqual(
+    promoteDenum(fromHost(1, 3n, 8n, 2n), 2),
+  );
   expect(fromHost(5, 3n, 8n, 2n).loads.filter((w) => w !== 0n)).toEqual([
     5n,
     3n,
@@ -446,8 +456,10 @@ Deno.test("results are fresh: no operation returns its argument or aliases its l
     for (const result of results) {
       expect(result).not.toBe(source);
       expect(result.loads).not.toBe(source.loads);
-      // Mutating a returned carrier must not reach the original.
-      (result.loads as bigint[]).fill(99n);
+      // A returned view's loads are frozen: it cannot be mutated, and so
+      // nothing can reach the original through it.
+      expect(Object.isFrozen(result.loads)).toBe(true);
+      expect(() => (result.loads as bigint[]).fill(99n)).toThrow(TypeError);
       expect(source.loads).toEqual(before);
     }
   }
@@ -703,7 +715,7 @@ Deno.test("anti-spoof: copying count and loads does not forge CD identity", () =
   expect(CD.is(conjugate(real))).toBe(true);
   expect(CD.is(promote(real, 3))).toBe(true);
   expect(CD.is(subtract(real, real))).toBe(true);
-  expect(CD.is(fromHost(2, 3n, 8n, 2n))).toBe(true);
+  expect(CD.is(fromHost(2, 3n, 8n, 2n))).toBe(false);
   expect(CD.is(zero(3))).toBe(true);
   expect(CD.is(addDenum(denumState(1n, [1n]), denumState(1n, [1n])))).toBe(
     false,
@@ -715,9 +727,72 @@ Deno.test("fromHost and promote name the target rung; the rank is then derived",
     const built = fromHost(n, 3n, 6n, n === 0 ? 0n : 2n);
     expect(rankOf(built)).toBe(n);
     expect(built.loads.length).toBe(arity(n));
-    expect(rankOf(promote(built, MAX_RANK))).toBe(MAX_RANK);
+    expect(rankOf(promoteDenum(built, MAX_RANK))).toBe(MAX_RANK);
   }
   expect(kindOf(() => promote(zero(3), 2))).toBe("$!.denum-demotion");
   expect(kindOf(() => promote(zero(1), 6))).toBe("$!.denum-rank");
-  expect(CD.is(fromHost(3, 1n, 2n, 0n))).toBe(true);
+  expect(CD.is(fromHost(3, 1n, 2n, 0n))).toBe(false);
+});
+
+Deno.test("a view holds its source Denum: no second Count, loads or rank", () => {
+  const source = denumState(7n, [3n, 2n, 1n, 4n]);
+  const view = cdViewOf(source);
+  expect(CD.is(view)).toBe(true);
+  expect(CD.is(source)).toBe(false);
+  // The view reads the retained state; the recovered source is equal, frozen
+  // and not the caller's object, so the caller cannot mutate the view.
+  expect(view.count).toBe(7n);
+  expect(view.loads).toEqual([3n, 2n, 1n, 4n]);
+  expect(view.source).toEqual(source);
+  expect(view.source).not.toBe(source);
+  expect(Object.isFrozen(view.source)).toBe(true);
+  expect(Object.isFrozen(view.source.loads)).toBe(true);
+  (source.loads as bigint[])[0] = 99n;
+  expect(view.loads[0]).toBe(3n);
+  // The view derivation is deterministic and leaves the source alone.
+  expect(cdViewOf(denumState(7n, [3n, 2n, 1n, 4n]))).toEqual(view);
+  expect(schemaOf(source)).toBe("Arity[4]");
+  // Every operation answers a view of a newly derived Denum.
+  for (const result of [add(view, view), multiply(view, view)]) {
+    expect(CD.is(result)).toBe(true);
+    expect(CD.is(result.source)).toBe(false);
+    expect(result.source).not.toBe(view.source);
+    expect(result.source.loads).not.toBe(view.source.loads);
+  }
+  expect(cdViewOf(opposite(view).source)).toEqual(opposite(view));
+  // No raw-payload view: arity and shape are checked on every derivation.
+  expect(kindOf(() => cdViewOf({ count: 1n, loads: [1n, 1n, 1n] }))).toBe(
+    "$!.denum-unsupported-arity",
+  );
+  expect(kindOf(() => cdViewOf({ count: 1n, loads: [] }))).toBe(
+    "$!!.invalid-denum",
+  );
+  expect(kindOf(() => cdViewOf({ count: -1n, loads: [1n] }))).toBe(
+    "$!!.invalid-denum",
+  );
+});
+
+Deno.test("promoteDenum: the ranked hash's embedding answers a Denum, never a view", () => {
+  const d = denumState(7n, [3n, 2n, 1n, 4n]);
+  const up = promoteDenum(d, 3);
+  expect(CD.is(up)).toBe(false);
+  expect(up).toEqual(denumState(7n, [3n, 2n, 0n, 0n, 1n, 4n, 0n, 0n]));
+  // It is the map the view applies, with no CD operation attached.
+  expect(up.loads).toEqual(promote(cdViewOf(d), 3).loads);
+  expect(promoteDenum(d, 2)).toEqual(d);
+  expect(promoteDenum(d, 2)).not.toBe(d);
+  expect(kindOf(() => promoteDenum(d, 1))).toBe("$!.denum-demotion");
+  expect(kindOf(() => promoteDenum(d, 6))).toBe("$!.denum-rank");
+  // A view is not a source; a nonbinary arity has no embedding.
+  expect(kindOf(() => promoteDenum(cdViewOf(d), 3))).toBe(
+    "$!.denum-view-source",
+  );
+  for (const a of [3, 5, 6, 7, 9, 33, 64]) {
+    expect(kindOf(() => promoteDenum(denumState(1n, Array(a).fill(1n)), 5)))
+      .toBe("$!.denum-unsupported-arity");
+  }
+  // Count zero and rank 0 are present and ordinary.
+  expect(promoteDenum(denumState(0n, [5n]), 1)).toEqual(
+    denumState(0n, [5n, 0n]),
+  );
 });

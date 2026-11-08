@@ -2,12 +2,11 @@ import { Frame } from "./frame.ts";
 import { FrameCount } from "./frame-count.ts";
 import { FrameInt } from "./frame-int.ts";
 import {
-  cd,
   type Denum,
   DenumError,
   fromHost,
   MAX_RANK,
-  promote,
+  promoteDenum,
 } from "./denum.ts";
 
 /**
@@ -16,25 +15,28 @@ import {
  */
 export type DenumConstructor = (state: Denum) => Frame;
 
-/** The two public constructors of `hc/denum.hc`, installed together. */
+/** What the evaluator installs for the ranked hash, together. */
 export interface DenumConstructors {
-  /** The explicit `CD [count, loads]` constructor: what `.#n` answers. */
-  readonly cd: DenumConstructor;
-  /** The generic `Denum [count, loads]` constructor: only to recognize one. */
+  /** The public `Denum [count, loads]` constructor: what `.#n` answers. */
   readonly denum: DenumConstructor;
+  /**
+   * The derived CD view of the `Denum` the state builds, `d.cd ()`. It is used
+   * only to *recognize* a view source, which `.#n` refuses; the frames package
+   * never exposes what it builds, and it is not a constructor of retained state.
+   */
+  readonly view: DenumConstructor;
 }
 
 let constructors: DenumConstructors | undefined;
 
 /**
  * Installs what `.#n` answers with and recognizes. The classes are HC, so the
- * frames package, which cannot run HC, takes both constructors from the
- * evaluator (`lib/execute/denum-prologue.ts`), as `.####` takes its Demi. They
- * are installed as a pair: the CD constructor builds every answer, and the
- * generic one is used only to recognize a generic Denum source, which is
- * refused and never converted.
+ * frames package, which cannot run HC, takes them from the evaluator
+ * (`lib/execute/denum-prologue.ts`), as `.####` takes its Demi. They are
+ * installed as a pair: the Denum constructor builds every answer, and the view
+ * derivation is used only to recognize a view source, which is refused.
  *
- * @param installed Both constructors, called once per present observation.
+ * @param installed Both, called once per present observation.
  */
 export function installDenumConstructors(installed: DenumConstructors): void {
   constructors = installed;
@@ -86,37 +88,38 @@ function rebuilds(
 }
 
 /**
- * The intrinsic path, as `.####` has for a Demi. A source is a CD (or a
- * generic Denum) exactly when its stored `count` and `loads` are a valid state
- * and it is `==` (same value and same type at every node, fields and methods
- * included) to the instance the shipped `CD` (or `Denum`) constructor builds
+ * The intrinsic path, as `.####` has for a Demi. A source is a Denum (or a CD
+ * view) exactly when its stored `count` and `loads` are a valid state and it is
+ * `==` (same value and same type at every node, fields and methods included) to
+ * the instance the shipped `Denum` constructor (or its `.cd ()` view) builds
  * from them. The answer is then built from that reconstruction, never from the
  * source: no observer, method or closure of the source runs, so a forged `#`,
  * `##` or `###` cannot steer it. A zero Count is therefore present, unlike a
- * host with no children. The arity decides nothing: the CD reconstruction of a
- * generic Denum with `2ⁿ` loads is a different type, so it is not a CD.
+ * host with no children. The arity decides nothing: a Denum with `2ⁿ` loads is
+ * not a view, and a view is not rebuilt by the Denum constructor.
  *
- * @returns Which constructor rebuilds the source, and its state; or undefined.
+ * @returns Which construction rebuilds the source, and its state; or undefined.
  */
 function intrinsicDenum(
   source: Frame,
-): { kind: "cd" | "denum"; state: Denum } | undefined {
+): { kind: "view" | "denum"; state: Denum } | undefined {
   if (!constructors) return undefined;
   const host = source.referent();
   if (!host.ownsIdentity()) return undefined;
   const state = storedState(host);
   if (!state) return undefined;
-  if (rebuilds(constructors.cd, state, host)) return { kind: "cd", state };
   if (rebuilds(constructors.denum, state, host)) {
     return { kind: "denum", state };
   }
+  if (rebuilds(constructors.view, state, host)) return { kind: "view", state };
   return undefined;
 }
 
 /**
- * The ranked hash, `.#n` (occurrence/figure 007.32, 007.32b, 007.35b): the CD of
- * rung n, n from 0 to 5. There is no `#n=`, and a Denum is not a scalar
- * observation; the algebraic value is `d.coordinates ()`.
+ * The ranked hash, `.#n` (occurrence/figure 007.32, 007.32b, 007.35b, 007.36):
+ * a generic Denum of rung n, n from 0 to 5. It never answers a CD view, and
+ * there is no `#n=`; the algebraic value is `d.coordinates ()` of a view
+ * derived by `d.cd ()`.
  *
  * Three different cases answer it, and they are not the same:
  *
@@ -127,14 +130,17 @@ function intrinsicDenum(
  *   Demi; rank 0 reads no residual. Failures are answered as they are, and
  *   unusable observations are `$!.denum-count`, `$!.denum-observations` and
  *   `$!.denum-coherence`.
- * - **Promotion of a CD.** An instance of the shipped `CD` class answers its
- *   own state promoted to rung n, keeping Count and every load, and below its
- *   own derived rank `$!.denum-demotion`. A CD of Count zero is present.
- * - **Refusal of a generic Denum.** An instance of the shipped `Denum` class is
- *   never a CD source, even with `A = 1, 2, 4, 8, 16, 32` loads: its loads are
- *   not signed channels. It is not promoted, interpreted or converted, and it
- *   is not measured as a host from its Count and Size either. The answer is
- *   `$!.denum-not-cd`, and the source is unchanged.
+ * - **Promotion of a Denum.** An instance of the shipped `Denum` class with a
+ *   shipped binary arity (1, 2, 4, 8, 16, 32) answers its own state under the
+ *   load-preserving embedding at rung n, keeping Count and every load, and
+ *   below its own derived rank `$!.denum-demotion`. The embedding is
+ *   structural: it does not invoke the CD interpretation, and the answer is a
+ *   Denum. A Denum of Count zero is present. Any other arity is
+ *   `$!.denum-unsupported-arity`: nothing is truncated, padded or read as
+ *   `2^rank`.
+ * - **Refusal of a CD view.** A view derived by `d.cd ()` is never a source:
+ *   the answer is `$!.denum-view-source`, and it is not measured as a host from
+ *   its Count and Size either. Ask the Denum it views, `v.denum ()`.
  *
  * A multi-channel `RotorRouter` is not special-cased here as it is under
  * `.####` (`channelRouterDemi`): `.#n` reads only Count, Size and residual, so
@@ -147,7 +153,7 @@ function intrinsicDenum(
  *
  * @param source The observed Frame.
  * @param rank The rung n of `.#n`.
- * @returns A CD, nil, or an error.
+ * @returns A Denum, nil, or an error.
  */
 export function observeDenum(source: Frame, rank: number): Frame {
   const failure = source.observationError();
@@ -156,15 +162,11 @@ export function observeDenum(source: Frame, rank: number): Frame {
     return Frame.error("$!.denum-rank");
   }
   if (!constructors) return Frame.error("$!.denum-unavailable");
-  const construct = constructors.cd;
+  const construct = constructors.denum;
   try {
     const intrinsic = intrinsicDenum(source);
-    if (intrinsic?.kind === "denum") return Frame.error("$!.denum-not-cd");
-    if (intrinsic) {
-      return construct(
-        promote(cd(intrinsic.state.count, intrinsic.state.loads), rank),
-      );
-    }
+    if (intrinsic?.kind === "view") return Frame.error("$!.denum-view-source");
+    if (intrinsic) return construct(promoteDenum(intrinsic.state, rank));
     const n = source.sizeFor(Frame.kCOUNT);
     if (n.observationError()) return n;
     if (n === Frame.nil) return Frame.nil; // no Count, no Denum
