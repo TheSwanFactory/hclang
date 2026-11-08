@@ -4,7 +4,7 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
-## Unreleased
+## v0.47.0 2026-11-07
 
 - **One Denum constructor, an explicit derived CD view, and a Denum-returning
   ranked hash (occurrence/figure 007.35, 007.36, 007.34c).** This correction
@@ -37,7 +37,9 @@
   In TypeScript `installDenumConstructor` becomes
   `installDenumConstructors({denum, view})`, `denum.cdViewOf()` replaces any raw
   view constructor, and `denum.addDenum()` and `denum.promoteDenum()` are new.
-  No `#D` or runtime `dim` is added.
+  The exported `CD` class has no `CD.of`, and `new CD(...)` refuses with
+  `$!.denum-view-forged` without a module-private token, so a view comes only
+  from a validated Denum. No `#D` or runtime `dim` is added.
 
 ## v0.46.0 2026-11-07
 
