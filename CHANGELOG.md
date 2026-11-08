@@ -4,6 +4,20 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.48.0 2026-11-08
+
+- **Restore the pre-Denum tree (occurrence/figure 007.37c, 007.37d).**
+  **Breaking, intentional rollback:** the whole tracked tree returns to the
+  v0.44.1 baseline (`49b3f68`), withdrawing the Denum feature set shipped in
+  v0.45.0–v0.47.0 from the live API. Removed: the `Denum` constructor and its
+  native engine, the `d.cd ()` Cayley–Dickson view and its coordinate algebra
+  (signed `()` and unsigned `<>` modes), derived rank and schema, and the ranked
+  hash `x.#n`, along with `hc/denum.hc` and the Denum docs. Frame and Demi
+  behavior (Size-mediated `*`, application, `+ −`, residual and arbitrary-arity
+  redistribution), native Inlay and RotorRouter are exactly those of v0.44.1.
+  The v0.45.0–v0.47.0 tags and releases stay in Git history, untouched. A
+  corrected Denum design is separate, future work.
+
 ## v0.47.0 2026-11-07
 
 - **One Denum constructor, an explicit derived CD view, and a Denum-returning

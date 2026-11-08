@@ -8,8 +8,6 @@ import {
 } from "../frames.ts";
 // Installs the Demi class that `.####` constructs (011.20).
 import "./demi-prologue.ts";
-// Installs the Denum class that the ranked hash `.#n` constructs (007.32).
-import "./denum-prologue.ts";
 // Installs the RotorRouter class that list division answers (007.27c).
 import "./router-prologue.ts";
 import { EvalPipe, makeSourcePipe } from "./eval-pipe.ts";
