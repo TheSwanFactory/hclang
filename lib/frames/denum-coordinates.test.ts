@@ -2,17 +2,29 @@ import { expect } from "jsr:@std/expect@^0.219.1";
 import {
   add,
   arity,
+  type CD,
+  cdViewOf,
   conjugate,
   coordinates,
-  type Denum,
-  denum,
+  denum as denumOf,
   multiply,
   observe,
   opposite,
   parseSignature,
   promote,
+  rankOf,
   residual,
 } from "./denum.ts";
+
+/**
+ * Test constructor of a CD rung: checks `loads.length === arity(rank)` and
+ * builds the explicit CD, so a test names the rung it means without the
+ * state storing it.
+ */
+function denum(rank: number, count: bigint, loads: readonly bigint[]): CD {
+  expect(loads.length).toBe(arity(rank));
+  return cdViewOf(denumOf(count, loads));
+}
 
 /**
  * Dual coordinates (occurrence/figure 007.32j, 007.32k, 007.33). The expected
@@ -22,8 +34,8 @@ import {
  */
 
 /** Test-only reference: the unsigned load of each direction, straight from W. */
-function unsignedOf(x: Denum): bigint[] {
-  if (x.rank === 0) return [x.loads[0]];
+function unsignedOf(x: CD): bigint[] {
+  if (rankOf(x) === 0) return [x.loads[0]];
   const half = x.loads.length / 2;
   const out: bigint[] = [];
   for (let b = 0; b < half; b++) out.push(x.loads[b] + x.loads[b + half]);
@@ -57,7 +69,7 @@ function lcg(seed: number): () => number {
 
 const big = (...values: number[]): bigint[] => values.map(BigInt);
 
-const unit = (rank: number, name: string): Denum => {
+const unit = (rank: number, name: string): CD => {
   const loads = Array<bigint>(arity(rank)).fill(0n);
   loads[parseSignature(rank, name)] = 1n;
   return denum(rank, 1n, loads);
@@ -146,11 +158,11 @@ Deno.test("non-destructive and independent of Count", () => {
 });
 
 Deno.test("joint completeness on valid states: W± = (U ± S)/2", () => {
-  const check = (x: Denum) => {
+  const check = (x: CD) => {
     const s = coordinates(x);
     const u = coordinates(x, true);
     expect(s.length).toBe(u.length);
-    if (x.rank === 0) {
+    if (rankOf(x) === 0) {
       expect(s).toEqual(u);
       return;
     }
@@ -267,7 +279,7 @@ Deno.test("D4: unsigned product on mixed loads, symmetries, associativity", () =
 
 /** The directions of the nonzero basis Denums, from their shipped product. */
 function derivedLines(): Set<string> {
-  const basis = new Map<number, Denum>();
+  const basis = new Map<number, CD>();
   for (let d = 1; d < 8; d++) {
     basis.set(d, unit(4, `e_${d.toString(2).padStart(3, "0")}`));
   }
@@ -393,12 +405,12 @@ Deno.test("the D4 mixed-load fixtures contain odd and even loads", () => {
 });
 
 /** Test-only Size: the plain total of every load, `Σ W`. */
-const sizeOf = (x: Denum): bigint => x.loads.reduce((a, b) => a + b, 0n);
+const sizeOf = (x: CD): bigint => x.loads.reduce((a, b) => a + b, 0n);
 const total = (values: bigint[]): bigint => values.reduce((a, b) => a + b, 0n);
 
 Deno.test("projections agree with the native observers: Σ U = Size, Σ S = residual", () => {
   const next = lcg(31);
-  const states: Denum[] = [];
+  const states: CD[] = [];
   for (let rank = 0; rank <= 5; rank++) {
     const width = arity(rank);
     const fill = (value: (k: number) => bigint, count: bigint) =>
@@ -430,7 +442,7 @@ Deno.test("projections agree with the native observers: Σ U = Size, Σ S = resi
     const u = coordinates(x, true);
     // Size is the unsigned total at every rank, D0 included.
     expect(total(u)).toBe(sizeOf(x));
-    if (x.rank === 0) {
+    if (rankOf(x) === 0) {
       // The exception: D0's coordinate is its load but its declared residual
       // is 0. The residual is not changed to make these agree.
       expect(s).toEqual([x.loads[0]]);
@@ -448,7 +460,7 @@ Deno.test("projections agree with the native observers: Σ U = Size, Σ S = resi
     }
     if (x.loads.some((v) => v % 2n === 1n)) sawOdd = true;
     // Count never enters: the same loads at another Count agree.
-    const other = denum(x.rank, x.count + 3n, x.loads);
+    const other = denum(rankOf(x), x.count + 3n, x.loads);
     expect(coordinates(other)).toEqual(s);
     expect(coordinates(other, true)).toEqual(u);
     expect(sizeOf(other)).toBe(sizeOf(x));

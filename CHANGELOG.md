@@ -4,6 +4,43 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.47.0 2026-11-07
+
+- **One Denum constructor, an explicit derived CD view, and a Denum-returning
+  ranked hash (occurrence/figure 007.35, 007.36, 007.34c).** This correction
+  supersedes the separate-`CD`-constructor narrative of the earlier draft of
+  this entry (007.35b), still unreleased. **Breaking:** the only public
+  constructor of retained state is `Denum [count, loads]`, for any positive
+  arity, replacing `Denum [rank, count, loads]` (the three-field form is
+  `$!!.invalid-denum`). Nothing stores a rank: `d.rank ()` is `⌊log₂ A⌋` of the
+  arity (integer arithmetic, never the Count), `d.schema ()` is always
+  `Arity[A]`, and `d.rank` and `d.schema` are now calls (any other argument is
+  `$!!.unary-observation`). A Denum has the observers and equal-arity
+  componentwise `+` (Counts add, nothing cancels; a different arity is
+  `$!.denum-arity-mismatch`), and refuses `-`, `*`, `opp`, `conj`, `promote`,
+  `coordinates`, `observe`, `signatures` and `d.###` with `$!.denum-not-cd`,
+  whatever its arity. `d.cd ()` is the sole request for the Cayley–Dickson
+  interpretation: a unary, pure view of that Denum for the arities 1, 2, 4, 8,
+  16 and 32 (any other is `$!.denum-unsupported-arity`). The view reads its
+  Count and loads from the Denum and keeps all D0–D5 behavior (`+`, `-`, `*`,
+  `opp`, `conj`, `promote`, `coordinates`, `signatures`, `d.###`, schema
+  `CD[n]`, text `CD[n](C=.., W=[..])`); its operations answer views of newly
+  derived Denums, and `v.denum ()` recovers the Denum. There is no
+  `CD [count, loads]` constructor and no conversion constructor. A Denum and a
+  view never combine (`$!.denum-mixed`), and a lookalike with the same fields is
+  neither (`$!!.invalid-denum`). `x.#n` answers a **Denum**, never a view: a
+  host is built as before, a Denum of a binary arity is promoted by the
+  load-preserving embedding (other arities are `$!.denum-unsupported-arity`),
+  and a view is not a source (`$!.denum-view-source`). The `denum-engine` CD
+  operations take native view frames only, which only the `view` op makes from a
+  native Denum state, so a raw `[count, loads]` payload is `$!.denum-not-view`.
+  In TypeScript `installDenumConstructor` becomes
+  `installDenumConstructors({denum, view})`, `denum.cdViewOf()` replaces any raw
+  view constructor, and `denum.addDenum()` and `denum.promoteDenum()` are new.
+  The exported `CD` class has no `CD.of`, and `new CD(...)` refuses with
+  `$!.denum-view-forged` without a module-private token, so a view comes only
+  from a validated Denum. No `#D` or runtime `dim` is added.
+
 ## v0.46.0 2026-11-07
 
 - **Denum `coordinates`: signed and unsigned (occurrence/figure 007.32i,

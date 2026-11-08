@@ -63,7 +63,8 @@ export {
 } from "./frames/fourth-hash.ts";
 export {
   type DenumConstructor,
-  installDenumConstructor,
+  type DenumConstructors,
+  installDenumConstructors,
   observeDenum,
 } from "./frames/denum-hash.ts";
 export * as denum from "./frames/denum.ts";

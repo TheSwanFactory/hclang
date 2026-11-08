@@ -26,12 +26,19 @@ and program is composed of frames. This unified representation enables:
   [the Demi document](../../doc/FRAME-DEMI.md).
 
 - [denum.ts](denum.ts) and [denum-hash.ts](denum-hash.ts) - The typed
-  Cayley–Dickson reference (schema `CD[n]`, signed-channel loads, Count,
-  `add`/`multiply`/`opposite`/`conjugate`/`promote`/`coordinates`) and the
-  ranked hash `.#n`, which answers the HC class `Denum` in `hc/denum.hc` through
-  `installDenumConstructor` (`lib/execute/denum-prologue.ts`).
-  `Frame.isSizeOperator` accepts the four fixed hashes and `#n`;
-  `Frame.SIZE_OPERATORS` is still only the four.
+  Cayley–Dickson reference and the ranked hash `.#n`. One retained state
+  `{count, loads}` (the generic `Denum`, any positive arity, `addDenum` only)
+  with the rank derived by `rankOf`; `CD` is a _view_ derived by `cdViewOf` (HC
+  `d.cd ()`) that holds its source Denum, has the private brand `CD.is`, arities
+  1, 2, 4, 8, 16, 32, schema `CD[n]` and
+  `add`/`multiply`/`opposite`/`conjugate`/`promote`/`coordinates`. Arity never
+  selects the algebra: `requireCD` guards every CD-only entry point, and there
+  is no public raw-payload view constructor. `.#n` answers a generic Denum (host
+  construction, or `promoteDenum` for a binary-arity Denum) and refuses a view;
+  `installDenumConstructors({denum, view})` (`lib/execute/denum-prologue.ts`)
+  supplies the HC `Denum` constructor and the view derivation used only to
+  recognize a view. `Frame.isSizeOperator` accepts the four fixed hashes and
+  `#n`; `Frame.SIZE_OPERATORS` is still only the four.
 
 - [frame-numeric.ts](frame-numeric.ts) - Rank-based numeric dispatch and the
   promotion ladder; see [Numeric Ladder](#numeric-ladder)
