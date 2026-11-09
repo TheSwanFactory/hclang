@@ -4,7 +4,7 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
-## Unreleased
+## v0.50.0 2026-11-09
 
 - **One Denum class and one RotorRouter class for every arity.** The separate
   two-channel builders are gone: a Denum of two loads and a router of two
