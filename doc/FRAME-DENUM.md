@@ -368,15 +368,16 @@ different. `.####` of a host with Count zero is still nil.
 `Denum [0, 0, 0]`, so a derivation from them cannot tell the two apart. The
 fourth hash therefore recognizes an instance of the shipped `Denum` class
 intrinsically (`lib/frames/fourth-hash.ts`, 007.25e), not through any declarable
-override. A source is a Denum exactly when its own stored `count`, `left` and
-`right` are Counts and it is `==` (typed equality, fields and methods included)
-to the Denum the class constructor builds from those Counts; the answer is that
-fresh reconstruction. No observer, method or closure of the source runs, so a
-foreign aggregate with forged `#`, `##`, `###`, a `.####` method, a phase that
-disagrees with its Count, a decimal or text Count, or an extra field is not a
-Denum and takes the ordinary derived path, nil at Count zero. `[].####` and
-`0.####` stay nil: a host with no children has no Denum. `Denum [0, 0, 0]` is a
-present value and its fourth hash is an equal instance.
+override. A source is a Denum exactly when its own stored `count` is a Count,
+its own stored `loads` is a nonempty list of Counts, and it is `==` (typed
+equality, fields and methods included) to the Denum the class constructor builds
+from those Counts; the answer is that fresh reconstruction. No observer, method
+or closure of the source runs, so a foreign aggregate with forged `#`, `##`,
+`###`, a `.####` method, a phase that disagrees with its Count, a decimal or
+text Count, or an extra field is not a Denum and takes the ordinary derived
+path, nil at Count zero. `[].####` and `0.####` stay nil: a host with no
+children has no Denum. `Denum [0, 0, 0]` is a present value and its fourth hash
+is an equal instance.
 
 The earlier revision of this change let any aggregate declare `.####` and
 accepted an answer whose `#`, `##`, `###` spelled the same as the host's. That
@@ -457,19 +458,20 @@ it is many-to-one: `Denum(3,[5,2])` and `Denum(3,[4,3])` both give
 the ratios.
 
 **RotorRouter.** `RotorRouter [ch0, …, chk−1]` takes k ≥ 1 arrays; two are the
-binary router. Every router stores `channels`; the binary one also keeps
-`phase`, `left` and `right`. A channel router admits exactly the channels a
-round-robin history from channel 0 leaves, whose Counts are the dealing of C
-into k, and routes to channel `C mod k`. `r ./ n` reconstructs the routed order
-from the channels and routes it into a fresh n-channel router, so it is the
-router of the history divided as a list. Its observers are a channel Denum's,
-and its fourth hash is its channel Denum, `Denum [C, [load0, …]]`, one load per
-channel: `lib/frames/fourth-hash.ts` recognizes an instance of the shipped class
-with other than two channels intrinsically (rebuilt through its constructor and
-compared with `==`, as a Denum is), since the binary Denum derived from the
-observers follows parity, not C mod k. The binary router keeps its derived
-`Denum(C, L, R)`. So `(r y).#### = r.#### y` holds for every arity with C ≥ 1;
-at C = 0 there is no Denum.
+binary router. Every router stores `channels` and nothing else; the binary one
+answers the readings `phase ()`, `left ()` and `right ()`. A channel router
+admits exactly the channels a round-robin history from channel 0 leaves, whose
+Counts are the dealing of C into k, and routes to channel `C mod k`. `r ./ n`
+reconstructs the routed order from the channels and routes it into a fresh
+n-channel router, so it is the router of the history divided as a list. Its
+observers are a channel Denum's, and its fourth hash is its channel Denum,
+`Denum [C, [load0, …]]`, one load per channel: `lib/frames/fourth-hash.ts`
+recognizes an instance of the shipped class with other than two channels
+intrinsically (rebuilt through its constructor and compared with `==`, as a
+Denum is), since the binary Denum derived from the observers follows parity, not
+C mod k. The binary router keeps its derived `Denum(C, L, R)`. So
+`(r y).#### = r.#### y` holds for every arity with C ≥ 1; at C = 0 there is no
+Denum.
 
 **Whole Frames and Size units do not commute.** Children of Sizes 5 and 2, dealt
 whole into two channels, load them 5 and 2; the Denum of the same list

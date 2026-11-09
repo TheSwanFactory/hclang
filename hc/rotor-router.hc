@@ -22,6 +22,14 @@ odd (right next). Earlier versions took `RotorRouter [phase, left, right]`, a
 free phase beside the channels; that form is removed, with no alias, so the
 router's routing phase, its Count and the phase of its Denum are one fact.
 
+**State is the channels (007.40 follow-up).** A router stores exactly one
+field, `channels`, the ordered list of its channels. Nothing else is stored, so
+nothing can disagree with it. The binary router answers three readings
+computed from it when applied to nil, as a Denum's are: `router.phase ()`,
+`router.left ()` and `router.right ()`: the parity reading of
+`C = left.# + right.#`, and `channels .0` and `channels .1`. Any other operand
+is `$!!.unary-observation`. Through v0.49.0 these were fields written alongside
+`channels`.
 **Admissibility.** Routing from empty channels starts left and alternates, so
 every routed history has `left.# = right.#` (C even) or
 `left.# = right.# + 1` (C odd), and conversely every such pair is the one
@@ -38,9 +46,7 @@ Anything that is not a nonempty list of arrays is refused the same way; one
 array or three are routers of another arity (below).
 
 **Routing**, `router x`: append x as one member of the channel the parity of C
-selects; the Count grows by one and the phase flips with it. `router.phase` is
-a field written only together with that append, read from the same parity, so
-it is never independent state. Routing never evaluates x, never measures it,
+selects; the Count grows by one and the phase flips with it. Routing never evaluates x, never measures it,
 and never runs its methods, so a closure is kept uncalled, an array or group is
 kept as one member, and a Frame whose Size fails or runs code is routed like any
 other. A Frame of Size zero still takes a slot and flips the phase. It is a
@@ -79,8 +85,8 @@ shape.
 **Channels and division (007.27).** Two channels are the arity-two case of k
 ordered channels. `RotorRouter [ch0, …, chk−1]` takes k ≥ 1 arrays; two are
 this binary router, and any other number is a channel router. Every router
-stores `channels`; only the binary one also has `left`, `right` and `phase`,
-which it writes together with `channels`. A round-robin history from channel 0
+stores `channels` and nothing else; only the binary one also answers the
+readings `phase ()`, `left ()` and `right ()`. A round-robin history from channel 0
 leaves the first C mod k channels one longer than the rest, so a channel
 router admits exactly the channels whose Counts are the dealing of C children
 into k, `round-robin [C, k]`, and refuses every other with
@@ -137,17 +143,20 @@ fields never stand in for them.
     .apply_ {.c _; .lo (_^ .low); .seen (_^ .short); .fine (_^ .ok);
       @ok ((((c = (lo + 1)) ? {seen = 0} : {c = lo}) ? {fine = 1}) ? {1} : {0}); @short ((c = lo) ? {1} : {seen});}]};
 .binary-router {.cs _; .lc (cs .0); .rc (cs .1); [
-    .phase (((lc.#) = (rc.#)) ? {2} : {1});
-    .left lc;
-    .right rc;
     .channels [lc, rc];
-    .apply_ {.x _; .l (_^ .left); .r (_^ .right); .n (l.# + r.#);
-      ((n %% 2) = 0) ? {.nl (l x); @left nl; @channels [nl, r]; @phase 1;} : {.nr (r x); @right nr; @channels [l, nr]; @phase 2;};};
-    .# {.l (_^ .left); .r (_^ .right); l.# + r.#};
-    .## {(channel-load (_^ .left)) + (channel-load (_^ .right))};
-    .### {(channel-load (_^ .left)) - (channel-load (_^ .right))};
+    .phase {.cs (_^ .channels); .u ((_ = ()) ? {1} : {0});
+      (u = 1) ? {((((cs .0).#) = ((cs .1).#)) ? {2} : {1})} : {$!!.unary-observation}};
+    .left {.cs (_^ .channels); .u ((_ = ()) ? {1} : {0});
+      (u = 1) ? {cs .0} : {$!!.unary-observation}};
+    .right {.cs (_^ .channels); .u ((_ = ()) ? {1} : {0});
+      (u = 1) ? {cs .1} : {$!!.unary-observation}};
+    .apply_ {.x _; .cs (_^ .channels); .l (cs .0); .r (cs .1); .n (l.# + r.#);
+      ((n %% 2) = 0) ? {@channels [(l x), r];} : {@channels [l, (r x)];};};
+    .# {.cs (_^ .channels); (cs .0).# + (cs .1).#};
+    .## {.cs (_^ .channels); (channel-load (cs .0)) + (channel-load (cs .1))};
+    .### {.cs (_^ .channels); (channel-load (cs .0)) - (channel-load (cs .1))};
     ./ {.ways _; ((_^^ .history) (_^ .channels)) / ways};
-    .toText {“RotorRouter(” (_^ .left) “,” (_^ .right) “)”}
+    .toText {.cs (_^ .channels); “RotorRouter(” (cs .0) “,” (cs .1) “)”}
   ]};
 .channel-router {.cs _; [
     .channels cs;
@@ -166,18 +175,18 @@ fields never stand in for them.
 ```
 ## Construction
 
-A router holds exactly its two channels, and the phase they fix. The initial
+A router holds exactly its two channels; its phase is read from them. The initial
 router is present, both channels empty, Count zero, phase 2
 ```
 ; .r0 (RotorRouter [[], []]);
-; [r0.phase, r0.left, r0.right, r0.#, “” r0]
+; [(r0.phase ()), (r0.left ()), (r0.right ()), r0.#, “” r0]
 # [2, [], [], 0, “RotorRouter([],[])”]
 ```
 Every admissible pair is a router, in the phase its Count fixes: as many
 children left as right is even and phase 2, one more left is odd and phase 1.
 Preloads of any length are admitted on the same terms
 ```
-; [RotorRouter [[5], []], RotorRouter [[5], [6]], RotorRouter [[5, 7], [6]], RotorRouter [[1, 2, 3, 4], [5, 6, 7, 8]], RotorRouter [[1, 2, 3, 4, 5], [6, 7, 8, 9]]] & {[_.#, _.phase]}
+; [RotorRouter [[5], []], RotorRouter [[5], [6]], RotorRouter [[5, 7], [6]], RotorRouter [[1, 2, 3, 4], [5, 6, 7, 8]], RotorRouter [[1, 2, 3, 4, 5], [6, 7, 8, 9]]] & {[_.#, (_.phase ())]}
 # [[1, 1], [2, 2], [3, 1], [8, 2], [9, 1]]
 ```
 A pair that is not a left-first alternating history is refused: right ahead of
@@ -200,7 +209,7 @@ channel's properties and a declared `apply` do not come with it, and only the
 elements are counted for admissibility
 ```
 ; .Hijack [.apply {“hijack”}; 1];
-; [(RotorRouter [[.tag 9; 5], []]).left, ((RotorRouter [Hijack, []]) 7).right, RotorRouter [[.a 1; .b 2], [5]]]
+; [((RotorRouter [[.tag 9; 5], []]).left ()), (((RotorRouter [Hijack, []]) 7).right ()), RotorRouter [[.a 1; .b 2], [5]]]
 # [[5], [7], $!!.invalid-router]
 ```
 ## Routing alternates
@@ -210,14 +219,14 @@ and the next route goes right
 ```
 ; .A [1, [2]]; .B “b”; .C {5 + 3};
 ; .r3 (((r0 A) B) C);
-; [r3.phase, r3.left, r3.right, r3.#]
+; [(r3.phase ()), (r3.left ()), (r3.right ()), r3.#]
 # [1, [[1, [2]], { 5 + 3 }], [“b”], 3]
 ; “” r3
 # “RotorRouter([[1, [2]], { 5 + 3 }],[“b”])”
 ```
 The router that was routed into is left as it was
 ```
-; [r0.phase, r0.left, r0.right]
+; [(r0.phase ()), (r0.left ()), (r0.right ())]
 # [2, [], []]
 ```
 The phase is the parity of the Count after every route, so each successor is
@@ -225,9 +234,9 @@ admissible again: routing from Count 0 through Count 6 alternates
 left, right, left, …
 ```
 ; .steps [r0, (r0 1), ((r0 1) 2), (((r0 1) 2) 3), ((((r0 1) 2) 3) 4), (((((r0 1) 2) 3) 4) 5), ((((((r0 1) 2) 3) 4) 5) 6)];
-; [steps & {_.#}, steps & {_.phase}, steps & {_.left.#}, steps & {_.right.#}]
+; [steps & {_.#}, steps & {(_.phase ())}, steps & {(_.left ()).#}, steps & {(_.right ()).#}]
 # [[0, 1, 2, 3, 4, 5, 6], [2, 1, 2, 1, 2, 1, 2], [0, 1, 1, 2, 2, 3, 3], [0, 0, 1, 1, 2, 2, 3]]
-; steps & {(RotorRouter [_.left, _.right]) = _}
+; steps & {(RotorRouter [(_.left ()), (_.right ())]) = _}
 # [<>, <>, <>, <>, <>, <>, <>]
 ```
 ## Routing keeps the Frame
@@ -235,13 +244,13 @@ left, right, left, …
 A channel member is the routed Frame itself. An array or a group is routed as
 one member, never spread into its elements, and a closure is kept, not called.
 Iterating a channel yields its members as they are. Reading a closure by dot
-from an aggregate, `r3.left.1`, answers a method bound to that aggregate,
+from an aggregate, `(r3.left ()) .1`, answers a method bound to that aggregate,
 which is the general rule for methods and not the router's, so the closure's
 identity is seen by iterating
 ```
-; [r3.left.0 === A, r3.right.0 === B, r3.left & {_ === C}]
+; [(r3.left ()) .0 === A, (r3.right ()) .0 === B, (r3.left ()) & {_ === C}]
 # [<>, <>, [(), <>]]
-; [(r0 [1, 2]).left, (r0 (4, 5)).left, (r0 {5 + 3}).left, (r0 []).left]
+; [((r0 [1, 2]).left ()), ((r0 (4, 5)).left ()), ((r0 {5 + 3}).left ()), ((r0 []).left ())]
 # [[[1, 2]], [(4, 5)], [{ 5 + 3 }], [[]]]
 ```
 A Frame held through a mutable name is the same Frame in the channel, so a
@@ -251,9 +260,9 @@ router is a functional update, as it is everywhere, so it changes neither
 ; .kid_ [.n 1; .set_ {@n _;}];
 ; .rk (r0 kid_);
 ; kid_.set_ 5;
-; [rk.left.0 === kid_, rk.left.0.n]
+; [((rk.left ()) .0) === kid_, ((rk.left ()) .0).n]
 # [<>, 5]
-; [(rk.left.0.set_ 9).n, kid_.n, rk.left.0.n]
+; [(((rk.left ()) .0).set_ 9).n, kid_.n, ((rk.left ()) .0).n]
 # [9, 5, 5]
 ```
 ## Preloaded states
@@ -263,7 +272,7 @@ and phase 1, and the next two routes go right then left
 ```
 ; .p1 (RotorRouter [[A], []]);
 ; .p2 ((p1 B) C);
-; [p1.phase, p1.#, p2.phase, p2.left, p2.right, p1.right]
+; [(p1.phase ()), p1.#, (p2.phase ()), (p2.left ()), (p2.right ()), (p1.right ())]
 # [1, 1, 1, [[1, [2]], { 5 + 3 }], [“b”], []]
 ; [p2 = r3, p2 = (RotorRouter [[A, C], [B]])]
 # [<>, <>]
@@ -277,18 +286,18 @@ and no other
 ; .m_ (RotorRouter [ch, []]);
 ; m_ B;
 ; m_ C;
-; [m_.phase, m_.left, m_.right, u.left, v.left, ch]
+; [(m_.phase ()), (m_.left ()), (m_.right ()), (u.left ()), (v.left ()), ch]
 # [1, [[1, [2]], { 5 + 3 }], [“b”], [[1, [2]]], [[1, [2]]], [[1, [2]]]]
-; [u.left === ch, u.left === v.left, u.left.0 === v.left.0]
+; [(u.left ()) === ch, (u.left ()) === (v.left ()), ((u.left ()) .0) === ((v.left ()) .0)]
 # [(), (), <>]
 ```
 A router captured by a closure, mapped, or reduced into routes the same way,
 and the captured one stays as it was
 ```
 ; .start (RotorRouter [[], []]); .step {start _};
-; [(step 5).left, (step 3).left, start.left]
+; [((step 5).left ()), ((step 3).left ()), (start.left ())]
 # [[5], [3], []]
-; [r0, p1] & {(_ 5).right}
+; [r0, p1] & {((_ 5).right ())}
 # [[], [5]]
 ; “” ([A, B, C] | r0)
 # “RotorRouter([[1, [2]], { 5 + 3 }],[“b”])”
@@ -304,7 +313,7 @@ like any other, and nothing ran
 ; .Failing [.## {[].nope}; 1];
 ; .Cyclic [.## {_^.##}];
 ; .rf ((((r0 Counted) Failing) Cyclic) Counted);
-; [rf.phase, rf.left.#, rf.right.#, counter_.n]
+; [(rf.phase ()), (rf.left ()).#, (rf.right ()).#, counter_.n]
 # [2, 2, 2, 0]
 ```
 Observing the router is where they are measured, so it is where they fail and
@@ -331,7 +340,7 @@ never routed. A diagnostic failure such as a missing name is an error too
 ```
 Routing nil routes nothing
 ```
-; [(r0 ()).phase, (r0 ()).left, (p1 ()).#]
+; [((r0 ()).phase ()), ((r0 ()).left ()), (p1 ()).#]
 # [2, [], 1]
 ```
 ## Empty and zero
@@ -341,7 +350,7 @@ empty host it has no Denum. Its Size and residual still read zero, and it is a
 present router in phase 2. The Denum of Count zero is a different thing, a Denum
 constructed as such, which routing from the router reaches after one route
 ```
-; [r0.#, r0.##, r0.###, r0.phase, r0.####, [].####]
+; [r0.#, r0.##, r0.###, (r0.phase ()), r0.####, [].####]
 # [0, 0, 0, 2, (), ()]
 ; Denums <- './hc/denum.hc';
 ; [((r0 0).####) = ((Denums.Denum [0, 0, 0]) 0), ((r0 []).####) = ([] []).####]
@@ -351,7 +360,7 @@ A Frame of Size zero takes a slot and flips the phase, and an empty array
 routed as a child has Size 1, while an empty channel has load 0
 ```
 ; .z (r0 0);
-; [z.phase, z.left, z.#, “” (z.####)]
+; [(z.phase ()), (z.left ()), z.#, “” (z.####)]
 # [1, [0], 1, “Denum(1,0,0)”]
 ; [“” ((r0 []).####), “” (((r0 []) []).####), “” ((((r0 0) 0) 0).####)]
 # [“Denum(1,1,0)”, “Denum(2,1,1)”, “Denum(3,0,0)”]
@@ -364,9 +373,9 @@ counts each time it was routed
 ```
 ; .shared [[], []];
 ; .mix ((((((((r0 “hello”) 7) [[1, 2], [3]]) (4, 5)) shared) shared) {5 + 3}) <>);
-; [mix.left, mix.right]
+; [(mix.left ()), (mix.right ())]
 # [[“hello”, [[1, 2], [3]], [[], []], { 5 + 3 }], [7, (4, 5), [[], []], <>]]
-; [mix.left & {_.##}, mix.right & {_.##}, “” (mix.####)]
+; [(mix.left ()) & {_.##}, (mix.right ()) & {_.##}, “” (mix.####)]
 # [[5, 6, 2, 9], [7, 9, 2, 1], “Denum(8,22,19)”]
 ; “” (((r0 123456789012345678901234567890) 987654321098765432109876543210).####)
 # “Denum(2,123456789012345678901234567890,987654321098765432109876543210)”
@@ -377,7 +386,7 @@ router's phase, for every Count from 1 to 6 and for preloads
 ; .sh (steps & {_.####});
 ; [sh & {_ = ()}, sh & {_.#}]
 # [[<>, (), (), (), (), (), ()], [(), 1, 2, 3, 4, 5, 6]]
-; [steps &| {.k _; (k.# .> 0) ? {[k.phase = (k.####.phase ())]} : {[]}}, (RotorRouter [[2, 3], [1]]).#### = (Denums.Denum [3, 5, 1])]
+; [steps &| {.k _; (k.# .> 0) ? {[(k.phase ()) = (k.####.phase ())]} : {[]}}, (RotorRouter [[2, 3], [1]]).#### = (Denums.Denum [3, 5, 1])]
 # [[<>, <>, <>, <>, <>, <>], <>]
 ```
 ## Observing commutes with routing
@@ -390,7 +399,7 @@ constructed directly from the two channels
 ```
 ; .X [5, “ab”, [1, 2]];
 ; .rx (X | r0);
-; [rx.left, rx.right, rx.phase, rx = (RotorRouter [[5, [1, 2]], [“ab”]])]
+; [(rx.left ()), (rx.right ()), (rx.phase ()), rx = (RotorRouter [[5, [1, 2]], [“ab”]])]
 # [[5, [1, 2]], [“ab”], 1, <>]
 ```
 For every router whose fourth hash exists, routing Y then observing is applying
@@ -404,7 +413,7 @@ preloads alike, in both phases, and for a zero-Size child
 ; [((p1 Y).####) = ((p1.####) Y), ((p2 {5 + 3}).####) = ((p2.####) {5 + 3}), ((p1 0).####) = ((p1.####) 0)]
 # [<>, <>, <>]
 ; .pre [RotorRouter [[A], []], RotorRouter [[A], [B]], RotorRouter [[A, B], [C]], RotorRouter [[1, 2, 3, 4], [5, 6, 7, 8]], RotorRouter [[1, 2, 3, 4, 5], [6, 7, 8, 9]]];
-; [pre & {((_ Y).####) = ((_.####) Y)}, pre & {((_ 0).####) = ((_.####) 0)}, pre & {(_ Y).phase = (((_.####) Y).phase ())}]
+; [pre & {((_ Y).####) = ((_.####) Y)}, pre & {((_ 0).####) = ((_.####) 0)}, pre & {((_ Y).phase ()) = (((_.####) Y).phase ())}]
 # [[<>, <>, <>, <>, <>], [<>, <>, <>, <>, <>], [<>, <>, <>, <>, <>]]
 ```
 The same holds at every step of a walk, Count 1 to 6, and a router can never
@@ -412,7 +421,7 @@ route to the channel its Denum does not deposit into
 ```
 ; steps &| {.k _; (k.# .> 0) ? {[((k Y).####) = ((k.####) Y)]} : {[]}}
 # [<>, <>, <>, <>, <>, <>]
-; steps &| {.k _; (k.# .> 0) ? {[[((k 4).left.# - k.left.#), ((((k.####) 4).left ()) - (k.####.left ()))]]} : {[]}}
+; steps &| {.k _; (k.# .> 0) ? {[[(((k 4).left ()).# - (k.left ()).#), ((((k.####) 4).left ()) - (k.####.left ()))]]} : {[]}}
 # [[0, 0], [1, 4], [0, 0], [1, 4], [0, 0], [1, 4]]
 ```
 A failed Size is the answer on both sides: the router routes the Frame and its
@@ -458,7 +467,7 @@ nothing and writes nothing, so the router is as it was
 ```
 ; .seen (((r0 A) B) C);
 ; seen.####;
-; [seen = r3, seen.phase, seen.left.#, seen.right.#]
+; [seen = r3, (seen.phase ()), (seen.left ()).#, (seen.right ()).#]
 # [<>, 1, 2, 1]
 ```
 ## Reading the receiver
@@ -467,7 +476,7 @@ An argument whose fields share the router's names, or its locals', is routed
 as one member, and the router reads only its own fields and its own Count
 ```
 ; .masked (r0 [.phase 1; .left [8]; .x 9; .l [7]; .n 1; 4]);
-; [masked.phase, masked.left.#, masked.left.0.x, masked.right]
+; [(masked.phase ()), (masked.left ()).#, ((masked.left ()) .0).x, (masked.right ())]
 # [1, 1, 9, []]
 ```
 Carets count lexically (spec a06). Inside a branch, `_^` is the method's own
@@ -495,8 +504,8 @@ source, is an equal router. Its declared observers are spelled `.#`, `.##` and
 printed form is matched here by its beginning
 ```
 ; RotorRouter [[5], []]
-# [.phase 1; .left [5]; .right []; .channels [[5], []]; .apply_ {...
-; (RotorRouter [[5], []]) = [.phase 1; .left [5]; .right []; .channels [[5], []]; .apply_ { .x _; .l (_^ .left); .r (_^ .right); .n (l.# + r.#); ((n %% 2) = 0) ? { .nl (l x); @left nl; @channels [nl, r]; @phase 1; } : { .nr (r x); @right nr; @channels [l, nr]; @phase 2; }; }; .# { .l (_^ .left); .r (_^ .right); l.# + r.# }; .## { (channel-load (_^ .left)) + (channel-load (_^ .right)) }; .### { (channel-load (_^ .left)) - (channel-load (_^ .right)) }; ./ { .ways _; ((_^^ .history) (_^ .channels)) / ways }; .toText { “RotorRouter(” (_^ .left) “,” (_^ .right) “)” };]
+# [.channels [[5], []]; .phase {...
+; (RotorRouter [[5], []]) = [.channels [[5], []]; .phase { .cs (_^ .channels); .u ((_ = ()) ? { 1 } : { 0 }); (u = 1) ? { ((((cs .0) .#) = ((cs .1) .#)) ? { 2 } : { 1 }) } : { $!!.unary-observation } }; .left { .cs (_^ .channels); .u ((_ = ()) ? { 1 } : { 0 }); (u = 1) ? { cs .0 } : { $!!.unary-observation } }; .right { .cs (_^ .channels); .u ((_ = ()) ? { 1 } : { 0 }); (u = 1) ? { cs .1 } : { $!!.unary-observation } }; .apply_ { .x _; .cs (_^ .channels); .l (cs .0); .r (cs .1); .n (l .# + (r .#)); ((n %% 2) = 0) ? { @channels [(l x), r]; } : { @channels [l, (r x)]; }; }; .# { .cs (_^ .channels); ((cs .0) .#) + ((cs .1) .#) }; .## { .cs (_^ .channels); (channel-load (cs .0)) + (channel-load (cs .1)) }; .### { .cs (_^ .channels); (channel-load (cs .0)) - (channel-load (cs .1)) }; ./ { .ways _; ((_^^ .history) (_^ .channels)) / ways }; .toText { .cs (_^ .channels); “RotorRouter(” (cs .0) “,” (cs .1) “)” };]
 # <>
 ```
 ## Importing

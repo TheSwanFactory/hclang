@@ -4,6 +4,14 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## Unreleased
+
+- **A RotorRouter stores only its channels.** The binary router's `phase`,
+  `left` and `right` are no longer stored fields but readings applied to nil,
+  `router.phase ()`, `router.left ()` and `router.right ()`, derived from
+  `channels`, as v0.49.0 did for Denum. **Breaking:** `router.phase`,
+  `router.left` and `router.right` without `()` no longer answer a value.
+
 ## v0.49.0 2026-11-09
 
 - **Breaking: `Demi` is renamed `Denum` (occurrence/figure 007.40).** The HC

@@ -66,12 +66,12 @@ Frame that occurs twice is dealt twice, and both are it
 ; [([A, A, A] ./ 2).channels, ([A, A, A] ./ 2).channels &| {_} &| {[_ === A]}]
 # [[[[1, [2]], [1, [2]]], [[1, [2]]]], [<>, <>, <>]]
 ```
-Two channels are the binary router, with its `left`, `right` and `phase`. One
+Two channels are the binary router, with its `left ()`, `right ()` and `phase ()`. One
 channel is the whole list, and more channels than elements leave the last ones
 empty. An empty list deals into n empty channels; empty elements are dealt
 like any other
 ```
-; [“” ([1, 2, 3] ./ 2), ([1, 2, 3] ./ 2).left, ([1, 2, 3] ./ 2).phase]
+; [“” ([1, 2, 3] ./ 2), (([1, 2, 3] ./ 2).left ()), (([1, 2, 3] ./ 2).phase ())]
 # [“RotorRouter([1, 3],[2])”, [1, 3], 1]
 ; [(xs ./ 1).channels, ([1, 2] ./ 5).channels, ([] ./ 3).channels, ([[], []] ./ 2).channels]
 # [[[[1, [2]], “b”, { 5 + 3 }, [.k 9; 4], 5, (6, 7), 7]], [[1], [2], [], [], []], [[], [], []], [[[]], [[]]]]
@@ -105,7 +105,7 @@ A plain list whose children are lists is not a division: its two children are
 two whole Frames, dealt as such, even when they look like channels
 ```
 ; .N [[1, 3, 5], [2, 4, 6]];
-; [“” (N ./ 2), (N ./ 2).left .0 = [1, 3, 5], (N ./ 2).# , “” ((N ./ 2) ./ 2)]
+; [“” (N ./ 2), ((N ./ 2).left ()) .0 = [1, 3, 5], (N ./ 2).# , “” ((N ./ 2) ./ 2)]
 # [“RotorRouter([[1, 3, 5]],[[2, 4, 6]])”, <>, 2, “RotorRouter([[1, 3, 5]],[[2, 4, 6]])”]
 ```
 Uneven channels read back in dealt order: seven Frames into three channels,
@@ -176,7 +176,7 @@ Its failure shows where the channel is measured
 
 A Denum of any arity is `Denum [C, loads]`, a Count and a nonempty list of
 Counts. Two loads are the binary Denum `Denum [C, L, R]` itself, the same
-instance, with its `left`, `right` and `phase`; any other arity is a channel
+instance, with its `left ()`, `right ()` and `phase ()`; any other arity is a channel
 Denum, which reads as `Denum(C,[…])`. Every Denum stores `count` and `loads`
 ```
 ; Denums <- './hc/denum.hc';
@@ -306,7 +306,7 @@ by the operand's Size. One load has no odd index, so there `+` is
 ## RotorRouter
 
 `RotorRouter [ch0, …, chk−1]` takes k ≥ 1 channel arrays. Two are the binary
-router, with its `left`, `right` and `phase`; every router stores `channels`.
+router, with its `left ()`, `right ()` and `phase ()`; every router stores `channels`.
 A round-robin history from channel 0 fills the channels so that the first
 C mod k hold one more than the rest, so the constructor admits exactly the
 channels whose Counts are the dealing of C into k, and refuses every other

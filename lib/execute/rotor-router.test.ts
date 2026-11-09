@@ -38,6 +38,12 @@ const run = (source: string, hosted: Record<string, Frame>): Frame => {
   return answer;
 };
 
+/** A router's channels, read from its one stored field, `channels`. */
+const channelsOf = (router: Frame): Frame[][] =>
+  router.getOwn("channels").referent().elements().map((channel) =>
+    channel.referent().asArray()
+  );
+
 /** A Frame that records each size operator and each application it receives. */
 class Watched extends FrameArray {
   public static readonly seen: string[] = [];
@@ -64,10 +70,9 @@ Deno.test("routing neither measures nor applies the routed Frame (011.21)", () =
   const watched = new Watched([new FrameCount(4n)]);
   const routed = run("((r0 $$.w) $$.w)", { w: watched });
   expect(Watched.seen).toEqual([]);
-  expect(`${routed.getOwn("phase")}`).toEqual("2");
-  const [left, right] = ["left", "right"].map((key) =>
-    routed.getOwn(key).referent().asArray()
-  );
+  expect(`${run("((r0 $$.w) $$.w).phase ()", { w: watched })}`).toEqual("2");
+  expect(Watched.seen).toEqual([]);
+  const [left, right] = channelsOf(routed);
   expect(left.length).toBe(1);
   expect(left[0].referent()).toBe(watched);
   expect(right[0].referent()).toBe(watched);
@@ -90,9 +95,8 @@ Deno.test("a non-finite or cyclic child is routed, and observing it fails", () =
   const hosted = { inf: new FrameNumber(Infinity), cyc: cycle };
 
   const routed = run("((r0 $$.inf) $$.cyc)", hosted);
-  expect(`${routed.getOwn("phase")}`).toEqual("2");
-  expect(routed.getOwn("right").referent().asArray()[0].referent())
-    .toBe(cycle);
+  expect(`${run("((r0 $$.inf) $$.cyc).phase ()", hosted)}`).toEqual("2");
+  expect(channelsOf(routed)[1][0].referent()).toBe(cycle);
 
   expect(`${run("(r0 $$.inf).####", hosted)}`)
     .toEqual("$!.nonquantifiable-size .##");
@@ -117,7 +121,7 @@ Deno.test("a router's fourth hash is an instance of the bundled Denum class", ()
   expect(run("r0.####", {})).toBe(Frame.nil);
   expect(run("[].####", {})).toBe(Frame.nil);
   expect(`${run("((r0 5) 7).#", {})}`).toEqual("2");
-  expect(`${run("(r0 5).phase", {})}`).toEqual("1");
+  expect(`${run("(r0 5).phase ()", {})}`).toEqual("1");
   expect(`${run("(((r0 5) 7) 9).####.count", {})}`).toEqual("3");
 });
 
@@ -133,7 +137,8 @@ Deno.test("a router's phase is its Count's parity, and only alternating historie
     ] as const
   ) {
     const router = run(`Routers.RotorRouter ${channels}`, {});
-    expect(`${router.getOwn("phase")}`, channels).toEqual(phase);
+    expect(`${run(`(Routers.RotorRouter ${channels}).phase ()`, {})}`, channels)
+      .toEqual(phase);
     expect(`${router.sizeFor(Frame.kCOUNT)}`, channels).toEqual(c);
     if (c !== "0") {
       expect(
@@ -165,4 +170,46 @@ Deno.test("a router's phase is its Count's parity, and only alternating historie
       )
     }`,
   ).toEqual("[<>, <>, <>]");
+});
+
+Deno.test("a router stores only its channels, so its readings cannot diverge (007.40 follow-up)", () => {
+  /** The instance's stored fields: every own property that is not a method. */
+  const stored = (router: Frame): string[] =>
+    router.meta_keys().filter((key) =>
+      !(router.getOwn(key) instanceof FrameExpr)
+    );
+  for (
+    const source of [
+      "r0",
+      "r0 5",
+      "((r0 5) [1, 2]) “ab”",
+      "Routers.RotorRouter [[5, 7], [6]]",
+      "[1, 2, 3] ./ 2",
+      "[1, 2, 3, 4] ./ 3",
+    ]
+  ) {
+    const router = run(source, {});
+    expect(stored(router), source).toEqual(["channels"]);
+  }
+  // The binary readings agree with the channels at every step of a run.
+  for (
+    const source of [
+      "r0",
+      "r0 5",
+      "(r0 5) 6",
+      "((r0 5) 6) 7",
+      "(((r0 5) 6) 7) 8",
+    ]
+  ) {
+    const [left, right] = channelsOf(run(source, {}));
+    const phase = (left.length + right.length) % 2 === 0 ? "2" : "1";
+    expect(`${run(`(${source}).phase ()`, {})}`, source).toEqual(phase);
+    expect(`${run(`(${source}).left ()`, {})}`, source).toEqual(
+      `${new FrameArray(left)}`,
+    );
+    expect(`${run(`(${source}).right ()`, {})}`, source).toEqual(
+      `${new FrameArray(right)}`,
+    );
+  }
+  expect(`${run("r0.phase 0", {})}`).toEqual("$!!.unary-observation");
 });

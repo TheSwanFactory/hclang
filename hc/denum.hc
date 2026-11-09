@@ -847,10 +847,10 @@ an identity: the router keeps the Frames and a Denum forgets them
 ; Routers <- './hc/rotor-router.hc';
 ; .rr (((Routers.RotorRouter [[], []]) 5) 1);
 ; .kk (((Denum [0, 0, 0]) 5) 1);
-; [rr.#, rr.##, rr.###, kk.count, kk.#, kk.##, kk.###, (rr.left.# + rr.right.#), rr.#### = kk.####, rr.phase = (kk.phase ())]
+; [rr.#, rr.##, rr.###, kk.count, kk.#, kk.##, kk.###, ((rr.left ()).# + (rr.right ()).#), rr.#### = kk.####, (rr.phase ()) = (kk.phase ())]
 # [2, 6, 4, 2, 2, 6, 4, 2, <>, <>]
 ; .r4 (((rr 7) 2)); .k4 (((kk 7) 2));
-; [r4.#, k4.count, r4.phase, k4.phase (), r4.#### = k4.####, (k4.size-ratio ()), (k4.residual-ratio ())]
+; [r4.#, k4.count, (r4.phase ()), k4.phase (), r4.#### = k4.####, (k4.size-ratio ()), (k4.residual-ratio ())]
 # [4, 4, 2, 2, <>, 15/4, 9/4]
 ```
 ## Count binding, `.#%`

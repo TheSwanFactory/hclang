@@ -241,7 +241,7 @@ fourth hash is the Figure's.
 ```
 ; Routers <- './hc/rotor-router.hc';
 ; .fr ([[], [[], []], []] | (Routers.RotorRouter [[], []]));
-; [fr.left, fr.right, fr.#### = [[], [[], []], []].####]
+; [(fr.left ()), (fr.right ()), fr.#### = [[], [[], []], []].####]
 # [[[], []], [[[], []]], <>]
 
 ```
