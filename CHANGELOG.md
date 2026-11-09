@@ -4,6 +4,23 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.50.0 2026-11-09
+
+- **One Denum class and one RotorRouter class for every arity.** The separate
+  two-channel builders are gone: a Denum of two loads and a router of two
+  channels are the same class as any other arity, storing only `count` and
+  `loads`, or `channels`, and routing to `C mod k`. **Breaking:** two loads now
+  print like any other arity, `Denum(2,[5, 3])` and `RotorRouter([[5], [3]])`;
+  the two-channel `phase`, `left` and `right` fields and readings are removed
+  (read `d.loads .0`, `r.channels .1`, `d.# %% 2`). A router's fourth hash now
+  reads each channel's Size once (#493).
+- **Breaking: `Denum [C, L, R]` is removed.** Write `Denum [C, [L, R]]`; the
+  three-argument form is `$!!.invalid-denum`. The TypeScript bridge
+  `constructDenum(count, loads)` takes a list of loads (#493).
+- **Breaking: `deposit-left_` and `deposit-right_` are replaced by the indexed
+  `d.deposit_ [i, k]`**, which adds the Count k to load i of any arity; an index
+  past the loads is `$!!.invalid-arity` (#493).
+
 ## v0.49.0 2026-11-09
 
 - **Breaking: `Demi` is renamed `Denum` (occurrence/figure 007.40).** The HC

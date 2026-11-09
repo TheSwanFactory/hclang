@@ -10,31 +10,24 @@ overloads are gone.
 
 ## The HC class
 
-`Denum [count, left, right]` takes three Counts and answers a fresh aggregate
-whose two fields, `count` and `loads`, are its state and whose methods are the
-class. The phase, left and right are readings of that state, applied to nil
-(007.40):
+`Denum [C, loads]` takes a Count and a nonempty list of Counts and answers a
+fresh aggregate whose two fields, `count` and `loads`, are its state and whose
+methods are the class. Every arity is the same class (007.40):
 
-| Member      | Meaning                                                                                                              |
-| ----------- | -------------------------------------------------------------------------------------------------------------------- |
-| `.count`    | The full application Count (007.25c)                                                                                 |
-| `.loads`    | The ordered loads, `[L, R]`                                                                                          |
-| `.phase ()` | 2 when the Count is even (left next), 1 when odd (right next): the least positive Count of the parity (011.18g)      |
-| `.left ()`  | Left load, `loads .0`, an exact Count                                                                                |
-| `.right ()` | Right load, `loads .1`, an exact Count                                                                               |
-| `.#`        | Declared Count: the stored Count                                                                                     |
-| `.##`       | Declared Size: L+R                                                                                                   |
-| `.###`      | Declared residual: L−R                                                                                               |
-| `.apply_`   | `d x`: deposit `x.##` into the active load and add one to the Count, even for Size zero; a failed Size is the answer |
-| `.scale_`   | `d.scale_ k`: multiply both loads by a Count k, keeping the Count                                                    |
-| `.####`     | Declared: the Denum of its own Count and loads, so a Count of zero is present                                        |
-| `.toText`   | Text `Denum(3,12,3)`: Count, left, right                                                                             |
+| Member    | Meaning                                                                                                             |
+| --------- | ------------------------------------------------------------------------------------------------------------------- |
+| `.count`  | The full application Count (007.25c)                                                                                |
+| `.loads`  | The ordered loads `[e0, e1, …]`, exact Counts                                                                       |
+| `.#`      | Declared Count: the stored Count                                                                                    |
+| `.##`     | Declared Size: the sum of the loads                                                                                 |
+| `.###`    | Declared residual: the alternating sum `e0 − e1 + e2 − …`                                                           |
+| `.apply_` | `d x`: deposit `x.##` into load `C mod k` and add one to the Count, even for Size zero; a failed Size is the answer |
+| `.scale_` | `d.scale_ k`: multiply every load by a Count k, keeping the Count                                                   |
+| `.toText` | Text `Denum(3,[12, 3])`: Count, loads                                                                               |
 
 Anything else is refused with the named error `$!!.invalid-denum` (or
-`$!!.invalid-scale`), as Figures refuses an unsupported host. The phase is a
-Count because a field cannot hold nil, and a Count keeps the odd phase present:
-a Denum in phase 1 is a value, distinct from the nil `.####` answers where there
-is no Denum. The rational readings `size-ratio` and `residual-ratio` are below.
+`$!!.invalid-scale`), as Figures refuses an unsupported host. The rational
+readings `size-ratio` and `residual-ratio` are below.
 
 Methods read their own state through `_^`, never a bare name, because a bare
 name inside a method is looked up on the argument first (spec 7) and a Denum is
@@ -153,9 +146,9 @@ Observing commutes with applying. For a nonempty host X (`X.# > 0`):
 The empty host is the boundary, by convention rather than theorem: `[].####` is
 nil (011.15g), and applying nil answers its argument, so the append law as
 written fails there. Lifting the empty host to the Denum of Count zero,
-`Denum [0, 0, 0]`, restores it, `([] Y).#### = (Denum [0, 0, 0]) Y`, which is
-also what a reduce starts from: `xs | (Denum [0, 0, 0])` equals `xs.####` for a
-nonempty xs. For Star, `([] * Y).#### = Y.####`. Retiring `+` gives up the
+`Denum [0, [0, 0]]`, restores it, `([] Y).#### = (Denum [0, [0, 0]]) Y`, which
+is also what a reduce starts from: `xs | (Denum [0, [0, 0]])` equals `xs.####`
+for a nonempty xs. For Star, `([] * Y).#### = Y.####`. Retiring `+` gives up the
 state-only append evaluation of 011.16 §9.5: a step is computed by applying the
 Denum to the Frame, which reads its Size.
 
@@ -171,7 +164,7 @@ Let n=F.#. If it fails, propagate the failure; if n=0, return nil without asking
 Size or residual. Otherwise read s=F.##, then r=F.###, propagating errors in
 that order. A nil residual gives nil Denum. A present residual must be a signed
 exact integer and Size a nonnegative exact Count. Require L=(s+r)/2 and
-R=(s−r)/2 to be exact nonnegative integers; construct `Denum [n, L, R]`, which
+R=(s−r)/2 to be exact nonnegative integers; construct `Denum [n, [L, R]]`, which
 derives its phase 2 or 1 from the parity of n. The implementation introduces no
 fold or cache.
 
@@ -210,7 +203,7 @@ normally.
 `universal-denum.test.ts` checks derived projections, absence/error boundaries,
 references, mutation, bigint values and non-execution, and
 `denum-prologue.test.ts` the class, its loading and declared observations. In
-the `####` column, `Denum(1,1,0)` is the text of the Denum answered. Internal
+the `####` column, `Denum(1,[1, 0])` is the text of the Denum answered. Internal
 hosts are source-audited for inherited rules and covered by import-first checks.
 
 | Family                                                                   | #                                     | ##                                                | ###                                       | ####                                                             |
@@ -219,9 +212,9 @@ hosts are source-audited for inherited rules and covered by import-first checks.
 | Denum instance (declared observers)                                      | Declared Count `C`                    | Declared L+R                                      | Declared FrameInt L−R                     | An equal Denum, declared (so `C = 0` is present)                 |
 | FrameInt, Decimal, Rational, finite Number                               | Absolute truncated magnitude          | Absolute truncated magnitude                      | FrameInt # mod 2                          | nil at zero; otherwise balanced Denum                            |
 | String, Doc; Blob; Bytes                                                 | Code points; bits; bytes              | Code points; bits; bytes                          | FrameInt # mod 2                          | nil at zero; otherwise balanced Denum                            |
-| FrameAtom; Arg, Param, Name, Word, Alias, Literal, Symbol, Operator      | 1                                     | One opaque occurrence                             | 1                                         | Denum(1,1,0)                                                     |
-| URI, Resource; Time/DateTime/Duration, TypedNumber, Sequence             | 1                                     | One opaque occurrence; no reads or unit inference | 1                                         | Denum(1,1,0)                                                     |
-| ScopeAnchor, StringEnd, BytePayload; non-error Note                      | 1                                     | One opaque occurrence                             | 1                                         | Denum(1,1,0)                                                     |
+| FrameAtom; Arg, Param, Name, Word, Alias, Literal, Symbol, Operator      | 1                                     | One opaque occurrence                             | 1                                         | Denum(1,[1, 0])                                                  |
+| URI, Resource; Time/DateTime/Duration, TypedNumber, Sequence             | 1                                     | One opaque occurrence; no reads or unit inference | 1                                         | Denum(1,[1, 0])                                                  |
+| ScopeAnchor, StringEnd, BytePayload; non-error Note                      | 1                                     | One opaque occurrence                             | 1                                         | Denum(1,[1, 0])                                                  |
 | all; void Comment                                                        | 0                                     | One description/occurrence                        | 0                                         | nil                                                              |
 | nil                                                                      | nil (no Count)                        | 1                                                 | nil                                       | nil                                                              |
 | missing (internal lookup sentinel)                                       | `$!.name-missing` (never an HC value) | Same error                                        | Same error                                | Same error                                                       |
@@ -233,7 +226,7 @@ hosts are source-audited for inherited rules and covered by import-first checks.
 | Nonfinite Number                                                         | Nonquantifiable error                 | Same error                                        | Same error                                | Same error                                                       |
 | Containment/reference cycles                                             | Immediate Count or cycle error        | Existing cycle error                              | Propagated cycle error                    | Propagated cycle error                                           |
 | Shared descendants; metadata/declared-parent cycles                      | Immediate Count                       | Sharing per occurrence; metadata excluded         | Same child Size rule                      | Coherent; no mutable cache                                       |
-| Type; Base Frame; Import, BoundMethod; internal hosts derived from Frame | Size fallback                         | One opaque occurrence                             | 1                                         | Denum(1,1,0)                                                     |
+| Type; Base Frame; Import, BoundMethod; internal hosts derived from Frame | Size fallback                         | One opaque occurrence                             | 1                                         | Denum(1,[1, 0])                                                  |
 | Internal ParsePipe (Array subtype)                                       | Inherited stored element Count        | Inherited Size                                    | Inherited residual                        | Inherited derivation                                             |
 
 Abstract Numeric/Text/Time/LexHost bases inherit the listed concrete-family
@@ -246,15 +239,15 @@ methods.
 
 ## Examples and compatibility changes
 
-| HC receiver                               | `“” x.####`                                                           |
-| ----------------------------------------- | --------------------------------------------------------------------- |
-| `[]`, `0`, `()`, `<>`, `“”`, any schema   | nil                                                                   |
-| `“hello”`, `(10 - 5)`, `(0 - 5)`, `(5.0)` | `Denum(5,3,2)`, the same as `5.####`                                  |
-| `1`, `2`, `3`, `7`                        | `Denum(1,1,0)`, `Denum(2,1,1)`, `Denum(3,2,1)`, `Denum(7,4,3)`        |
-| `[0]`                                     | Present `Denum(1,0,0)`                                                |
-| `[“hello”]`                               | `Denum(1,5,0)`                                                        |
-| `[<2,3,5>,2]`                             | `Denum(2,3,2)`; schema Size participates, schema residual does not    |
-| `{5 + 3}`                                 | `Denum(3,8,1)` from three stored words with Sizes 5,1,3; no execution |
+| HC receiver                               | `“” x.####`                                                                |
+| ----------------------------------------- | -------------------------------------------------------------------------- |
+| `[]`, `0`, `()`, `<>`, `“”`, any schema   | nil                                                                        |
+| `“hello”`, `(10 - 5)`, `(0 - 5)`, `(5.0)` | `Denum(5,[3, 2])`, the same as `5.####`                                    |
+| `1`, `2`, `3`, `7`                        | `Denum(1,[1, 0])`, `Denum(2,[1, 1])`, `Denum(3,[2, 1])`, `Denum(7,[4, 3])` |
+| `[0]`                                     | Present `Denum(1,[0, 0])`                                                  |
+| `[“hello”]`                               | `Denum(1,[5, 0])`                                                          |
+| `[<2,3,5>,2]`                             | `Denum(2,[3, 2])`; schema Size participates, schema residual does not      |
+| `{5 + 3}`                                 | `Denum(3,[8, 1])` from three stored words with Sizes 5,1,3; no execution   |
 
 Atom residual changes nil to FrameInt Count parity, including present/truthy
 zero, for every atom (011.18k); Count no longer has a rule of its own. Figures
@@ -320,7 +313,7 @@ hash is `X.####`. For every router whose fourth hash exists (C ≥ 1, children
 sized), `(r y).####` is `r.#### y`, because the router's phase and its Denum's
 are the parity of the same C. The initial router `RotorRouter [[], []]` has
 routed nothing, so like the empty host it has no Denum and none is faked;
-`(r0 y).####` is `(Denum [0, 0, 0]) y`.
+`(r0 y).####` is `(Denum [0, [0, 0]]) y`.
 
 ## Full-Count Denum (007.25c)
 
@@ -346,10 +339,10 @@ compatibility twin.
 | Member                                  | Answer                                                                     |
 | --------------------------------------- | -------------------------------------------------------------------------- |
 | `d.count`, `d.#`                        | The stored Count `C`                                                       |
-| `d.phase ()`                            | 2 when `C` is even (0 included), 1 when odd; a reading, never stored       |
-| `d.##`, `d.###`                         | Size `L+R` and signed residual `L-R`                                       |
+| `d.loads`                               | The stored loads                                                           |
+| `d.##`, `d.###`                         | Size (sum of loads) and residual (alternating sum)                         |
 | `d.####`                                | Intrinsic: a fresh equal Denum, for every `C` including 0                  |
-| `d x`                                   | Deposit `x.##` into the phase's load, `C` + 1, even for Size zero          |
+| `d x`                                   | Deposit `x.##` into load `C mod k`, `C` + 1, even for Size zero            |
 | `d + x`, `d - x`, `d * x`, `d.scale_ k` | Fixed-channel or Size-mediated load change, `C` unchanged                  |
 | `d.size-ratio ()`                       | `S/C`, exact: FrameInt when whole, FrameRational otherwise; nil at `C = 0` |
 | `d.residual-ratio ()`                   | `Δ/C`, signed, same typing; nil at `C = 0`                                 |
@@ -358,25 +351,26 @@ A ratio takes no divisor: it is applied to nil because HC runs a method only
 when applied, and any other operand is `$!!.unary-observation`. At `C = 0` both
 are nil even when `S > 0`: there is no `0/0`, infinity or invented zero.
 
-**Fourth hash and equality.** `x.####` for a host builds `Denum [x.#, L, R]`, so
-`(X Y).#### = X.#### Y` and `(X * Y).#### = X.####.scale_ (Y.##)` hold with the
-Count included. Two Denums are `=` exactly when `C`, `L` and `R` are, so
-`Denum [2, 5, 1]` and `Denum [4, 5, 1]` share phase, Size and residual and are
-different. `.####` of a host with Count zero is still nil.
+**Fourth hash and equality.** `x.####` for a host builds `Denum [x.#, [L, R]]`,
+so `(X Y).#### = X.#### Y` and `(X * Y).#### = X.####.scale_ (Y.##)` hold with
+the Count included. Two Denums are `=` exactly when `C`, `L` and `R` are, so
+`Denum [2, [5, 1]]` and `Denum [4, [5, 1]]` share phase, Size and residual and
+are different. `.####` of a host with Count zero is still nil.
 
 **The empty-host boundary.** The three observers read 0, 0, 0 for both `[]` and
-`Denum [0, 0, 0]`, so a derivation from them cannot tell the two apart. The
+`Denum [0, [0, 0]]`, so a derivation from them cannot tell the two apart. The
 fourth hash therefore recognizes an instance of the shipped `Denum` class
 intrinsically (`lib/frames/fourth-hash.ts`, 007.25e), not through any declarable
-override. A source is a Denum exactly when its own stored `count`, `left` and
-`right` are Counts and it is `==` (typed equality, fields and methods included)
-to the Denum the class constructor builds from those Counts; the answer is that
-fresh reconstruction. No observer, method or closure of the source runs, so a
-foreign aggregate with forged `#`, `##`, `###`, a `.####` method, a phase that
-disagrees with its Count, a decimal or text Count, or an extra field is not a
-Denum and takes the ordinary derived path, nil at Count zero. `[].####` and
-`0.####` stay nil: a host with no children has no Denum. `Denum [0, 0, 0]` is a
-present value and its fourth hash is an equal instance.
+override. A source is a Denum exactly when its own stored `count` is a Count,
+its own stored `loads` is a nonempty list of Counts, and it is `==` (typed
+equality, fields and methods included) to the Denum the class constructor builds
+from those Counts; the answer is that fresh reconstruction. No observer, method
+or closure of the source runs, so a foreign aggregate with forged `#`, `##`,
+`###`, a `.####` method, a phase that disagrees with its Count, a decimal or
+text Count, or an extra field is not a Denum and takes the ordinary derived
+path, nil at Count zero. `[].####` and `0.####` stay nil: a host with no
+children has no Denum. `Denum [0, [0, 0]]` is a present value and its fourth
+hash is an equal instance.
 
 The earlier revision of this change let any aggregate declare `.####` and
 accepted an answer whose `#`, `##`, `###` spelled the same as the host's. That
@@ -434,19 +428,16 @@ Frames. The router carries that distinction, so `(X ./ n) ./ m = X ./ m` and
 `.channels` taken as a plain list is not, when a channel is empty, because
 `[].##` is 1 while an empty channel's load is 0.
 
-**Denum.** `Denum [C, loads]` takes a Count and a nonempty list of Counts. Two
-loads are the binary `Denum [C, L, R]`, the same instance; any other arity is a
-channel Denum. Every Denum stores `count` and `loads` and nothing else; the
-binary one also answers the readings `phase ()`, `left ()` and `right ()`
-(007.40). A channel Denum of arity k deposits into channel `C mod k`; its Size
-is the sum of its loads and its residual their alternating sum
-`e0 − e1 + e2 − …` (the list residual, `L − R` for two); its fourth hash is
-intrinsic, a fresh equal Denum of its own arity, Count zero included; `*`,
-`scale_` and the ratios work as for the binary Denum. `-` deposits `x.##` on
-load 0, the first even load, raising the residual, and `+` on load 1, the first
-odd load, lowering it: for two loads that is the binary left and right. With one
-load there is no odd load, and `+` is `$!!.invalid-arity`. Text is
-`Denum(C,[e0, e1, …])`.
+**Denum.** `Denum [C, loads]` takes a Count and a nonempty list of Counts. Every
+arity is one class that stores `count` and `loads` and nothing else (since
+007.40; through v0.49.0 two loads were a separate binary builder). A Denum of
+arity k deposits into load `C mod k`; its Size is the sum of its loads and its
+residual their alternating sum `e0 − e1 + e2 − …` (the list residual, `L − R`
+for two); its fourth hash is intrinsic, a fresh equal Denum of its own arity,
+Count zero included; `*`, `scale_` and the ratios work for every arity. `-`
+deposits `x.##` on load 0, the first even load, raising the residual, and `+` on
+load 1, the first odd load, lowering it. With one load there is no odd load, and
+`+` is `$!!.invalid-arity`. Text is `Denum(C,[e0, e1, …])`.
 
 `D ./ n` keeps C and S and canonicalizes the loads to S units dealt into n
 channels: with q = ⌊S/n⌋ and r = S mod n, the first r hold q + 1 and the rest q.
@@ -456,20 +447,20 @@ it is many-to-one: `Denum(3,[5,2])` and `Denum(3,[4,3])` both give
 `Denum(3,[3,2,2])`. It answers no number, so it is neither scalar division nor
 the ratios.
 
-**RotorRouter.** `RotorRouter [ch0, …, chk−1]` takes k ≥ 1 arrays; two are the
-binary router. Every router stores `channels`; the binary one also keeps
-`phase`, `left` and `right`. A channel router admits exactly the channels a
-round-robin history from channel 0 leaves, whose Counts are the dealing of C
-into k, and routes to channel `C mod k`. `r ./ n` reconstructs the routed order
-from the channels and routes it into a fresh n-channel router, so it is the
-router of the history divided as a list. Its observers are a channel Denum's,
-and its fourth hash is its channel Denum, `Denum [C, [load0, …]]`, one load per
-channel: `lib/frames/fourth-hash.ts` recognizes an instance of the shipped class
-with other than two channels intrinsically (rebuilt through its constructor and
-compared with `==`, as a Denum is), since the binary Denum derived from the
-observers follows parity, not C mod k. The binary router keeps its derived
-`Denum(C, L, R)`. So `(r y).#### = r.#### y` holds for every arity with C ≥ 1;
-at C = 0 there is no Denum.
+**RotorRouter.** `RotorRouter [ch0, …, chk−1]` takes k ≥ 1 arrays. Every number
+of channels is one class that stores `channels` and nothing else (since 007.40;
+through v0.49.0 two channels were a separate binary builder). A router admits
+exactly the channels a round-robin history from channel 0 leaves, whose Counts
+are the dealing of C into k, and routes to channel `C mod k`. `r ./ n`
+reconstructs the routed order from the channels and routes it into a fresh
+n-channel router, so it is the router of the history divided as a list. Its
+observers are its Denum's, and its fourth hash is its Denum,
+`Denum [C, [load0, …]]`, one load per channel: `lib/frames/fourth-hash.ts`
+recognizes an instance of the shipped class intrinsically (rebuilt through its
+constructor and compared with `==`, as a Denum is), since a Denum derived from
+the observers has two loads and follows parity, not C mod k. So
+`(r y).#### = r.#### y` holds for every arity with C ≥ 1; at C = 0 there is no
+Denum.
 
 **Whole Frames and Size units do not commute.** Children of Sizes 5 and 2, dealt
 whole into two channels, load them 5 and 2; the Denum of the same list
@@ -503,19 +494,20 @@ Count C and the ordered nonnegative loads, of any arity of one or more. It is
 not the withdrawn v0.45–v0.47 Denum: there is no CD view, rank, schema, sign or
 coordinate algebra, and Frame `*` is unchanged.
 
-**Constructors.** `Denum [C, loads]` and `Denum [C, L, R]` take an explicit
-exact nonnegative Count. `Denum [loads]` is the default-Count form, C = 1, so
-`Denum [[2, 5]]` is `Denum [1, [2, 5]]`, while `Denum [0, [2, 5]]` keeps Count
-zero. Anything else, a fractional, negative or non-Count Count or load, an empty
-load list or a bare number, is `$!!.invalid-denum`. A `(.# C;)` constructor
-option is not part of the grammar and is deferred until specified.
+**Constructors.** `Denum [C, loads]` takes an explicit exact nonnegative Count;
+the three-argument `Denum [C, L, R]` is removed. `Denum [loads]` is the
+default-Count form, C = 1, so `Denum [[2, 5]]` is `Denum [1, [2, 5]]`, while
+`Denum [0, [2, 5]]` keeps Count zero. Anything else, a fractional, negative or
+non-Count Count or load, an empty load list or a bare number, is
+`$!!.invalid-denum`. A `(.# C;)` constructor option is not part of the grammar
+and is deferred until specified.
 
-**State is Count and loads.** A Denum stores exactly `count` and `loads`. The
-binary Denum's `d.phase ()` is a reading of the Count's parity, 2 for even and 1
-for odd, and `d.left ()` and `d.right ()` read `loads .0` and `loads .1`; any
-other operand is `$!!.unary-observation`. They were stored fields before 007.40.
-Application routes by the parity of the Count itself, and no write can make a
-reading disagree with the state.
+**State is Count and loads.** A Denum stores exactly `count` and `loads`, and a
+RotorRouter exactly `channels`, for every arity: there is no separate
+two-channel class. The two-channel `phase`, `left` and `right` fields are gone;
+read `d.loads .0`, `r.channels .1` or `d.# %% 2` instead. Two loads print like
+any other arity, `Denum(2,[5, 3])` and `RotorRouter([[5], [3]])`. Application
+routes to load `C mod k`.
 
 **Count binding.** `d.#%` is a native observer token. For
 `d = (C; [a0, …, a(A−1)])` with C > 0 it answers the new Denum

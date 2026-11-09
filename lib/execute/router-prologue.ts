@@ -34,15 +34,14 @@ export const ROUTER_SOURCE = "hc/rotor-router.hc";
 export const ROUTER_CLASS = "RotorRouter";
 
 /**
- * The builders the class file declares beside its constructor, which make an
- * instance from channels already known to be admissible, without validating
- * or copying them: `binary-router` for two channels, `channel-router` for any
- * other number.
+ * The builder the class file declares beside its constructor, which makes an
+ * instance of any number of channels from channels already known to be
+ * admissible, without validating or copying them.
  */
-export const ROUTER_BUILDERS = ["binary-router", "channel-router"] as const;
+export const ROUTER_BUILDER = "router-instance";
 
 let loaded: Frame | undefined;
-let builders: { binary: Frame; channel: Frame } | undefined;
+let builder: Frame | undefined;
 let loading = false;
 
 /**
@@ -63,11 +62,11 @@ export function loadRouterClass(source: string | undefined): Frame {
   if (constructor.is.missing) {
     return Frame.error(`$!.router-prologue-missing ${ROUTER_CLASS}`);
   }
-  const [binary, channel] = ROUTER_BUILDERS.map((key) => namespace.getOwn(key));
-  if (binary.is.missing || channel.is.missing) {
-    return Frame.error(`$!.router-prologue-missing ${ROUTER_BUILDERS}`);
+  const instance = namespace.getOwn(ROUTER_BUILDER);
+  if (instance.is.missing) {
+    return Frame.error(`$!.router-prologue-missing ${ROUTER_BUILDER}`);
   }
-  builders = { binary, channel };
+  builder = instance;
   return constructor;
 }
 
@@ -104,8 +103,8 @@ export function constructRouter(channels: FrameArray): Frame {
 }
 
 /**
- * The channels of an instance of the shipped class with other than two
- * channels, for `.####` (007.27); undefined for anything else.
+ * The channels of an instance of the shipped class, for `.####` (007.27);
+ * undefined for anything else.
  *
  * Recognition mirrors the Denum's (007.25e): the source's own stored
  * `channels`, a list of arrays, must rebuild through the constructor into a
@@ -121,7 +120,7 @@ export function channelRouterChannels(source: Frame): Frame[] | undefined {
   const stored = host.get_here("channels").referent();
   if (!(stored instanceof FrameArray)) return undefined;
   const channels = stored.elements().map((channel) => channel.referent());
-  if (channels.length === 0 || channels.length === 2) return undefined;
+  if (channels.length === 0) return undefined;
   if (!channels.every((channel) => channel instanceof FrameArray)) {
     return undefined;
   }
@@ -154,11 +153,8 @@ export function dealtRouter(channels: FrameArray): Frame {
   if (constructor.isFailedResult() || constructor.observationError()) {
     return constructor;
   }
-  if (!builders) return Frame.error("$!.router-unavailable /");
-  const build = channels.elements().length === 2
-    ? builders.binary
-    : builders.channel;
-  return FrameExpr.answeredValue(build.call(channels)).referent();
+  if (!builder) return Frame.error("$!.router-unavailable /");
+  return FrameExpr.answeredValue(builder.call(channels)).referent();
 }
 
 installDivisionCarrier(dealtRouter);

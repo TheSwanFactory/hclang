@@ -35,15 +35,14 @@ A = X.###. An empty terminal has Size 1. A nonempty host has Size equal to
 the sum of its immediate child Sizes, and A alternates + and - across those
 children, starting +. Properties do not enter these sums. D(X) = X.#### is
 nil for the empty host; otherwise it has Count n, loads L = (S+A)/2, R = (S-A)/2
-and phase p = 2 for even n (left next), 1 for odd n (right next). Read these
-with `.count` (or `.#`), `.left ()`, `.right ()`, `.phase ()`. n is kept whole (007.25c);
-the phase is its parity. Nesting, identities, properties and the distribution
+and the next load is n %% 2. Read these with `.count` (or `.#`), `.loads .0`,
+`.loads .1` and `.# %% 2`. n is kept whole (007.25c). Nesting, identities, properties and the distribution
 within each load are forgotten.
 ```
 ; .E []; .X [[], [[], []], []];
 ; [E.#, E.##, E.###, E.####]
 # [0, 1, 0, ()]
-; [X.#, X.##, X.###, X.####.phase (), X.####.left (), X.####.right ()]
+; [X.#, X.##, X.###, X.#### .# %% 2, X.#### .loads .0, X.#### .loads .1]
 # [3, 4, 0, 1, 2, 2]
 ; .decorated [.label 99; [], [[], []], []];
 ; [decorated.#### = X.####, decorated.label, X.#### = X.####]
@@ -66,10 +65,10 @@ readings.
 ; [A = B, A.#### = B.####, A.#### === B.####]
 # [(), <>, ()]
 ; .C [[[], []], [[], []]]; .F [[], [], [], []];
-; [C.#, F.#, C = F, C.#### = F.####, (C.####.left ()) = (F.####.left ()), (C.####.right ()) = (F.####.right ()), (C.####.phase ()) = (F.####.phase ()), A.#### = C.####]
+; [C.#, F.#, C = F, C.#### = F.####, (C.#### .loads .0) = (F.#### .loads .0), (C.#### .loads .1) = (F.#### .loads .1), (C.#### .# %% 2) = (F.#### .# %% 2), A.#### = C.####]
 # [2, 4, (), (), <>, <>, <>, ()]
 ; [“” A.####, “” C.####, “” F.####, “” [[], [[], []]].####]
-# [“Denum(1,1,0)”, “Denum(2,2,2)”, “Denum(4,2,2)”, “Denum(2,1,2)”]
+# [“Denum(1,[1, 0])”, “Denum(2,[2, 2])”, “Denum(4,[2, 2])”, “Denum(2,[1, 2])”]
 ```
 Uniform append and Inlay, including successive compositions
 
@@ -83,7 +82,7 @@ It works for either parity, independent of the shape or size of Y.
 ; [(A Y).#### = (A.#### Y), (C Y).#### = (C.#### Y), (X Y).#### = (X.#### Y)]
 # [<>, <>, <>]
 ; [“” (A Y).####, “” (C Y).####, “” ((C Y) []).####]
-# [“Denum(2,1,3)”, “Denum(3,5,2)”, “Denum(4,5,3)”]
+# [“Denum(2,[1, 3])”, “Denum(3,[5, 2])”, “Denum(4,[5, 3])”]
 ; ([5, “ab”] []).#### = ([5, “ab”].#### [])
 # <>
 ```
@@ -111,15 +110,15 @@ Denum of Count zero is an explicit initialized-router convention, not a
 preconstruction state secretly stored in []. A zero Size deposit still adds one
 to the Count and so changes routing phase.
 ```
-; [([] []).####.phase (), ([] []).####.left (), ([] []).####.right ()]
+; [([] []).#### .# %% 2, ([] []).#### .loads .0, ([] []).#### .loads .1]
 # [1, 1, 0]
 ; [([] Y).#### = ([].#### Y), ([] * Y).#### = Y.####]
 # [(), <>]
 ; Denums <- './hc/denum.hc';
-; ([] Y).#### = ((Denums.Denum [0, 0, 0]) Y)
+; ([] Y).#### = ((Denums.Denum [0, [0, 0]]) Y)
 # <>
-; [“” [0].####, “” ([0].#### 0), [].#### = [0].####, [].#### = (Denums.Denum [0, 0, 0]), (Denums.Denum [0, 0, 0]).#### = (Denums.Denum [0, 0, 0])]
-# [“Denum(1,0,0)”, “Denum(2,0,0)”, (), (), <>]
+; [“” [0].####, “” ([0].#### 0), [].#### = [0].####, [].#### = (Denums.Denum [0, [0, 0]]), (Denums.Denum [0, [0, 0]]).#### = (Denums.Denum [0, [0, 0]])]
+# [“Denum(1,[0, 0])”, “Denum(2,[0, 0])”, (), (), <>]
 ```
 For a proposed relabeling, exchange the loads AND toggle which named channel
 is next: J(n,L,R) = (n+1,R,L). Toggling the phase changes the parity of the
@@ -133,13 +132,13 @@ two higher, so it is an involution on phase and loads and not on Count. The
 following closure only checks that explicit relabeling using the existing Denum
 class.
 ```
-; .swap {.d _; Denums.Denum [(d.count + 1), d.right (), d.left ()]};
+; .swap {.d _; Denums.Denum [(d.count + 1), [d.loads .1, d.loads .0]]};
 ; .q [[], [[], []]].####;
 ; [“” q, “” (swap q), (swap q).## = q.##, (swap q).### = (0 - q.###)]
-# [“Denum(2,1,2)”, “Denum(3,2,1)”, <>, <>]
+# [“Denum(2,[1, 2])”, “Denum(3,[2, 1])”, <>, <>]
 ; [(swap (q Y)) = ((swap q) Y), (swap ((q Y) [])) = (((swap q) Y) []), (swap (q.scale_ 3)) = ((swap q).scale_ 3)]
 # [<>, <>, <>]
-; [((swap (swap q)).phase ()) = (q.phase ()), ((swap (swap q)).left ()) = (q.left ()), ((swap (swap q)).right ()) = (q.right ()), (swap (swap q)).count = (q.count + 2), (swap (swap q)) = q]
+; [((swap (swap q)).# %% 2) = (q.# %% 2), ((swap (swap q)).loads .0) = (q.loads .0), ((swap (swap q)).loads .1) = (q.loads .1), (swap (swap q)).count = (q.count + 2), (swap (swap q)) = q]
 # [<>, <>, <>, <>, ()]
 ```
 Future sufficiency, at its earned scope

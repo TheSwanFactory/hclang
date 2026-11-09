@@ -21,7 +21,7 @@ Deno.test("literal division deals a list into n channels (007.27)", async () => 
   await answers([
     ["(xs ./ 2).channels", "[[1, 3, 5], [2, 4]]"],
     ["(xs / 2) = (xs ./ 2)", "<>"],
-    ["“” (xs ./ 2)", "“RotorRouter([1, 3, 5],[2, 4])”"],
+    ["“” (xs ./ 2)", "“RotorRouter([[1, 3, 5], [2, 4]])”"],
     // A division keeps its channels, so dividing it again re-deals the same
     // Frames breadth-first (007.27c).
     ["((xs ./ 2) ./ 3) = (xs ./ 3)", "<>"],

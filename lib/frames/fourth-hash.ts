@@ -4,10 +4,8 @@ import { FrameInt } from "./frame-int.ts";
 
 /**
  * Builds a Denum from its Count and its ordered channel loads, at least one.
- * The Count is the full observed Count of the source, not its parity. Two
- * loads are the binary Denum, left and right, which derives its own phase from
- * the Count, 2 when even and 1 when odd (011.18g, 007.25); any other number is
- * the channel Denum of that arity (007.27).
+ * The Count is the full observed Count of the source, not its parity. Every
+ * arity is the same class (007.27, 007.40).
  */
 export type DenumConstructor = (
   count: FrameCount,
@@ -28,8 +26,8 @@ export function installDenumConstructor(constructor: DenumConstructor): void {
 }
 
 /**
- * Answers the channels of an instance of the shipped `RotorRouter` class with
- * other than two channels, or undefined for any other Frame. The router is an
+ * Answers the channels of an instance of the shipped `RotorRouter` class, or
+ * undefined for any other Frame. The router is an
  * HC class, so the evaluator installs this (`lib/execute/router-prologue.ts`).
  */
 export type RouterRecognizer = (source: Frame) => Frame[] | undefined;
@@ -74,7 +72,7 @@ function storedLoads(source: Frame): FrameCount[] | undefined {
 
 /**
  * The intrinsic Denum path (007.25e). A constructed Denum is the one Frame whose
- * fourth hash the three observers cannot decide: `Denum [0, 0, 0]` reads 0, 0,
+ * fourth hash the three observers cannot decide: `Denum [0, [0, 0]]` reads 0, 0,
  * 0, exactly as `[]` does, yet it is a present state. Rather than let any
  * class declare its own `.####`, the fourth hash recognizes an instance of the
  * shipped class itself, and nothing else.
@@ -182,17 +180,14 @@ export function bindDenumCount(source: Frame): Frame {
 }
 
 /**
- * The channel-router path (007.27). A router of k channels routes to channel
- * C mod k, which only a Denum of k loads follows; the binary Denum the observers
- * derive follows parity, so for k other than two it would not be the router's
- * shadow. An instance of the shipped `RotorRouter` class with other than two
- * channels therefore answers the channel Denum of its Count and channel loads,
- * `Denum [C, [load0, …]]`, where a load is the summed Size of a channel's
- * children and an empty channel's load is 0. The binary router keeps the
- * derived path, which already answers `Denum(C, L, R)`.
+ * The router path (007.27). A router of k channels routes to channel C mod k,
+ * which only a Denum of k loads follows, so an instance of the shipped
+ * `RotorRouter` class, of any number of channels, answers the Denum of its
+ * Count and channel loads, `Denum [C, [load0, …]]`, where a load is the summed
+ * Size of a channel's children and an empty channel's load is 0.
  *
  * Its Count is the children it holds; at Count zero it has no Denum, as the
- * empty binary router and the empty host have none. Each child's Size is read
+ * empty host has none. Each child's Size is read
  * once, and a failed Size is answered as it is.
  *
  * @param source The observed Frame.
@@ -232,7 +227,7 @@ function channelRouterDenum(source: Frame): Frame | undefined {
  * caches the source, and reads each observer at most once.
  *
  * A derived source with Count zero is nil: a host with no children has no
- * Denum, so `[].####` and `0.####` are nil while `(Denum [0, 0, 0]).####` is
+ * Denum, so `[].####` and `0.####` are nil while `(Denum [0, [0, 0]]).####` is
  * present. No class can declare `.####` for itself; only the three observers
  * are declarable (`FrameArray.OBSERVATION_KEYS`).
  *

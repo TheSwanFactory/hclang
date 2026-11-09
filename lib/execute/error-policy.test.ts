@@ -289,9 +289,9 @@ Deno.test("bundled refusals are named errors even with colliding caller bindings
     expect(await session.call(`Routers.RotorRouter ${input}`))
       .toBe("$!!.invalid-router");
   }
-  expect(await session.call("(Denums.Denum [2, 0, 0]).scale_ (0 - 1)"))
+  expect(await session.call("(Denums.Denum [2, [0, 0]]).scale_ (0 - 1)"))
     .toContain("$!!.invalid-scale");
-  expect(await session.call("[5, 3].#### = (Denums.Denum [2, 5, 3])"))
+  expect(await session.call("[5, 3].#### = (Denums.Denum [2, [5, 3]])"))
     .toBe("<>");
 });
 
