@@ -131,7 +131,7 @@ function evaluateResourceSourceWithChain(
  * Evaluates HC source text as an import would: example lines dropped, the first
  * failed form failing the whole, and the last answer returned. Declarations
  * land in the scope's write target. Used for source the program carries rather
- * than reads, such as the Demi class (`demi-prologue.ts`).
+ * than reads, such as the Denum class (`denum-prologue.ts`).
  *
  * @param source The source text.
  * @param scope The scope it evaluates in.

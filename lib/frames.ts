@@ -55,10 +55,10 @@ export {
 export { FrameInt } from "./frames/frame-int.ts";
 export { FrameCount } from "./frames/frame-count.ts";
 export {
-  type DemiConstructor,
-  installDemiConstructor,
+  type DenumConstructor,
+  installDenumConstructor,
   installRouterRecognizer,
-  observeDemi,
+  observeDenum,
   type RouterRecognizer,
 } from "./frames/fourth-hash.ts";
 export { FrameDecimal } from "./frames/frame-decimal.ts";

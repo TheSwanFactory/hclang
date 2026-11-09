@@ -27,21 +27,21 @@ read from some other Frame.
   channels, which a round-robin history fixes, and routes that history through
   a fresh router of n channels. Its Count is unchanged and its next route goes
   to channel C mod n.
-- **A Demi** (`hc/demi.hc`) forgot its Frames and kept only their Sizes, so it
+- **A Denum** (`hc/denum.hc`) forgot its Frames and kept only their Sizes, so it
   deals Size units. `D ./ n` keeps the Count C and the total Size S and
   canonicalizes the loads to S units dealt round-robin into n channels, so the
   first S mod n channels hold ⌈S/n⌉ and the rest ⌊S/n⌋. Its next application
   deposits into channel C mod n.
 
-Router and list deal whole Frames, and a Demi deals Size units. Both conserve
+Router and list deal whole Frames, and a Denum deals Size units. Both conserve
 the summed Size, but their channel loads differ in general: children of Sizes
-5 and 2 dealt whole into two channels load them 5 and 2, while a Demi of Size 7
+5 and 2 dealt whole into two channels load them 5 and 2, while a Denum of Size 7
 normalizes to 4 and 3. No law makes them commute, and none is claimed here.
 
 Refusals are the native ones for all three: a divisor of zero is
 `$!.division-by-zero /`, as it is for numbers, and anything but a Count is
 `$!.division-domain /`, a negative or fractional number, a decimal, text, an
-aggregate or a Demi included. A divisor above both 1,000,000 and the element count is `$!.repetition-size 1000000`, checked before anything is built; up to the element count is always allowed, so the answer stays proportional to the list.
+aggregate or a Denum included. A divisor above both 1,000,000 and the element count is `$!.repetition-size 1000000`, checked before anything is built; up to the element count is always allowed, so the answer stays proportional to the list.
 ```
 ```
 ## Lists
@@ -129,7 +129,7 @@ a plain list of such lists is a plain list
 
 The divisor is a positive Count. Zero is division by zero, and anything else is
 outside the domain, whatever its Size: a negative or fractional number, a
-decimal, text, an aggregate, a Demi. A divisor that is already an error is
+decimal, text, an aggregate, a Denum. A divisor that is already an error is
 answered as it is
 ```
 ; [[1, 2] ./ 0, [1, 2] ./ (3 - 1), [1, 2] ./ (0 - 2), [1, 2] ./ (1 / 2), [1, 2] ./ 1.5, [1, 2] ./ “two”, [1, 2] ./ [2]]
@@ -172,34 +172,34 @@ Its failure shows where the channel is measured
 ; ([Failing, 1] ./ 2).##
 # $!.name-missing “...
 ```
-## Demi
+## Denum
 
-A Demi of any arity is `Demi [C, loads]`, a Count and a nonempty list of
-Counts. Two loads are the binary Demi `Demi [C, L, R]` itself, the same
+A Denum of any arity is `Denum [C, loads]`, a Count and a nonempty list of
+Counts. Two loads are the binary Denum `Denum [C, L, R]` itself, the same
 instance, with its `left`, `right` and `phase`; any other arity is a channel
-Demi, which reads as `Demi(C,[…])`. Every Demi stores `count` and `loads`
+Denum, which reads as `Denum(C,[…])`. Every Denum stores `count` and `loads`
 ```
-; Demis <- './hc/demi.hc';
-; .Demi Demis.Demi;
-; [“” (Demi [3, [5, 2]]), (Demi [3, [5, 2]]) == (Demi [3, 5, 2]), (Demi [3, [5, 2]]).left, (Demi [3, 5, 2]).loads]
-# [“Demi(3,5,2)”, <>, 5, [5, 2]]
-; [“” (Demi [0, [0, 0, 0]]), “” (Demi [4, [7]]), “” (Demi [2, [1, 2, 3, 4]]), (Demi [2, [1, 2, 3]]).loads, (Demi [2, [1, 2, 3]]).count]
-# [“Demi(0,[0, 0, 0])”, “Demi(4,[7])”, “Demi(2,[1, 2, 3, 4])”, [1, 2, 3], 2]
+; Denums <- './hc/denum.hc';
+; .Denum Denums.Denum;
+; [“” (Denum [3, [5, 2]]), (Denum [3, [5, 2]]) == (Denum [3, 5, 2]), (Denum [3, [5, 2]]).left (), (Denum [3, 5, 2]).loads]
+# [“Denum(3,5,2)”, <>, 5, [5, 2]]
+; [“” (Denum [0, [0, 0, 0]]), “” (Denum [4, [7]]), “” (Denum [2, [1, 2, 3, 4]]), (Denum [2, [1, 2, 3]]).loads, (Denum [2, [1, 2, 3]]).count]
+# [“Denum(0,[0, 0, 0])”, “Denum(4,[7])”, “Denum(2,[1, 2, 3, 4])”, [1, 2, 3], 2]
 ```
 No channels, a load that is not a Count, and any other shape are refused
 ```
-; [Demi [2, []], Demi [2, [1, (0 - 1), 3]], Demi [2, [1, 1.5]], Demi [2, [1, [2]]], Demi [(0 - 2), [1]], Demi [2, 5], Demi [2, [1], 3], Demi [2, [1, 2], 3, 4]]
-# [$!!.invalid-demi, $!!.invalid-demi, $!!.invalid-demi, $!!.invalid-demi, $!!.invalid-demi, $!!.invalid-demi, $!!.invalid-demi, $!!.invalid-demi]
+; [Denum [2, []], Denum [2, [1, (0 - 1), 3]], Denum [2, [1, 1.5]], Denum [2, [1, [2]]], Denum [(0 - 2), [1]], Denum [2, 5], Denum [2, [1], 3], Denum [2, [1, 2], 3, 4]]
+# [$!!.invalid-denum, $!!.invalid-denum, $!!.invalid-denum, $!!.invalid-denum, $!!.invalid-denum, $!!.invalid-denum, $!!.invalid-denum, $!!.invalid-denum]
 ```
-A channel Demi observes as its loads do: its Count is C, its Size the sum of
+A channel Denum observes as its loads do: its Count is C, its Size the sum of
 its loads, and its residual their alternating sum, `e0 − e1 + e2 − …`, the
 list residual, which for two loads is `L − R`
 ```
-; .d7 (Demi [3, 5, 2]); .q3 (d7 ./ 3);
+; .d7 (Denum [3, 5, 2]); .q3 (d7 ./ 3);
 ; [q3.#, q3.##, q3.###, q3.count, q3.loads]
 # [3, 7, 3, 3, [3, 2, 2]]
 ```
-## Demi division redistributes Size units
+## Denum division redistributes Size units
 
 `D ./ n` keeps the Count and the Size and deals the Size units round-robin into
 n channels. For S = 7: into 2, 4 and 3; into 3, 3, 2 and 2; into 4, 2, 2, 2
@@ -207,30 +207,30 @@ and 1. Into one channel it is the whole Size, and into more channels than units
 the last are empty
 ```
 ; [“” (d7 ./ 2), “” (d7 ./ 3), “” (d7 ./ 4), “” (d7 ./ 1), “” (d7 ./ 9)]
-# [“Demi(3,4,3)”, “Demi(3,[3, 2, 2])”, “Demi(3,[2, 2, 2, 1])”, “Demi(3,[7])”, “Demi(3,[1, 1, 1, 1, 1, 1, 1, 0, 0])”]
+# [“Denum(3,4,3)”, “Denum(3,[3, 2, 2])”, “Denum(3,[2, 2, 2, 1])”, “Denum(3,[7])”, “Denum(3,[1, 1, 1, 1, 1, 1, 1, 0, 0])”]
 ```
-`Demi(3,[5,2]) ./ 3` is `Demi(3,[3,2,2])`, and so is the different state
-`Demi(3,[4,3]) ./ 3`. Normalization is many-to-one: equal Count and Size give
+`Denum(3,[5,2]) ./ 3` is `Denum(3,[3,2,2])`, and so is the different state
+`Denum(3,[4,3]) ./ 3`. Normalization is many-to-one: equal Count and Size give
 the same result, and the original distribution cannot be recovered
 ```
-; [q3 = (Demi [3, [3, 2, 2]]), ((Demi [3, 4, 3]) ./ 3) = q3, (Demi [3, 4, 3]) = d7, (d7 / 3) = q3, q3 = d7]
+; [q3 = (Denum [3, [3, 2, 2]]), ((Denum [3, 4, 3]) ./ 3) = q3, (Denum [3, 4, 3]) = d7, (d7 / 3) = q3, q3 = d7]
 # [<>, <>, (), <>, ()]
 ```
 It is idempotent, and dividing again renormalizes from the same Count and Size,
 so the earlier division leaves no trace
 ```
 ; [(q3 ./ 3) = q3, (q3 ./ 2) = (d7 ./ 2), ((d7 ./ 4) ./ 3) = q3, “” (q3 ./ 2), ((q3 ./ 2) ./ 3) = q3]
-# [<>, <>, <>, “Demi(3,4,3)”, <>]
+# [<>, <>, <>, “Denum(3,4,3)”, <>]
 ```
 Zero Size, zero Count, one channel, and more channels than Size or Count
 ```
-; [“” ((Demi [0, 0, 0]) ./ 3), “” ((Demi [0, 9, 0]) ./ 4), “” ((Demi [0, 9, 0]) ./ 1), “” ((Demi [2, 1, 1]) ./ 5), “” ((Demi [1, 0, 0]) ./ 2)]
-# [“Demi(0,[0, 0, 0])”, “Demi(0,[3, 2, 2, 2])”, “Demi(0,[9])”, “Demi(2,[1, 1, 0, 0, 0])”, “Demi(1,0,0)”]
+; [“” ((Denum [0, 0, 0]) ./ 3), “” ((Denum [0, 9, 0]) ./ 4), “” ((Denum [0, 9, 0]) ./ 1), “” ((Denum [2, 1, 1]) ./ 5), “” ((Denum [1, 0, 0]) ./ 2)]
+# [“Denum(0,[0, 0, 0])”, “Denum(0,[3, 2, 2, 2])”, “Denum(0,[9])”, “Denum(2,[1, 1, 0, 0, 0])”, “Denum(1,0,0)”]
 ```
 The divisor is a channel Count, refused as a list refuses it, never coerced to
 its Size
 ```
-; [d7 ./ 0, d7 ./ (3 - 1), d7 ./ 1.5, d7 ./ (1 / 2), d7 ./ [3], d7 ./ “three”, d7 ./ (Demi [1, 1, 1])]
+; [d7 ./ 0, d7 ./ (3 - 1), d7 ./ 1.5, d7 ./ (1 / 2), d7 ./ [3], d7 ./ “three”, d7 ./ (Denum [1, 1, 1])]
 # [$!.division-by-zero /, $!.division-domain /, $!.division-domain /, $!.division-domain /, $!.division-domain /, $!.division-domain /, $!.division-domain /]
 ```
 ## Applying after division
@@ -240,23 +240,23 @@ the Count, a Size of zero included. `q3` has Count 3, so it deposits into
 channels 0, 1, 2, 0 in turn
 ```
 ; [“” (q3 10), “” ((q3 10) 1), “” (((q3 10) 1) 1), “” ((((q3 10) 1) 1) 1)]
-# [“Demi(4,[13, 2, 2])”, “Demi(5,[13, 3, 2])”, “Demi(6,[13, 3, 3])”, “Demi(7,[14, 3, 3])”]
-; [“” ((Demi [0, [0, 0, 0]]) 4), “” (((Demi [0, [0, 0, 0]]) 4) 0), “” ((((Demi [0, [0, 0, 0]]) 4) 0) 6)]
-# [“Demi(1,[4, 0, 0])”, “Demi(2,[4, 0, 0])”, “Demi(3,[4, 0, 6])”]
+# [“Denum(4,[13, 2, 2])”, “Denum(5,[13, 3, 2])”, “Denum(6,[13, 3, 3])”, “Denum(7,[14, 3, 3])”]
+; [“” ((Denum [0, [0, 0, 0]]) 4), “” (((Denum [0, [0, 0, 0]]) 4) 0), “” ((((Denum [0, [0, 0, 0]]) 4) 0) 6)]
+# [“Denum(1,[4, 0, 0])”, “Denum(2,[4, 0, 0])”, “Denum(3,[4, 0, 6])”]
 ```
 A reduce applies it the same way, and through a mutable name it writes in
-place. One channel takes every deposit, and two channels are the binary Demi's
+place. One channel takes every deposit, and two channels are the binary Denum's
 parity
 ```
-; “” ([5, 2, 7, 1, 0] | (Demi [0, [0, 0, 0]]))
-# “Demi(5,[6, 2, 7])”
-; .m_ (Demi [0, [0, 0, 0]]);
+; “” ([5, 2, 7, 1, 0] | (Denum [0, [0, 0, 0]]))
+# “Denum(5,[6, 2, 7])”
+; .m_ (Denum [0, [0, 0, 0]]);
 ; m_ 5;
 ; m_ 6;
 ; [“” m_, “” ((d7 ./ 1) 4), “” ((d7 ./ 2) 4), “” (d7 4)]
-# [“Demi(2,[5, 6, 0])”, “Demi(4,[11])”, “Demi(4,4,7)”, “Demi(4,5,6)”]
+# [“Denum(2,[5, 6, 0])”, “Denum(4,[11])”, “Denum(4,4,7)”, “Denum(4,5,6)”]
 ```
-## Demi laws
+## Denum laws
 
 For every Count 0 to 3, every pair of loads 0 to 4 (100 states) and every n
 from 1 to 4: the Count and Size are kept, there are n loads, they are the
@@ -264,44 +264,44 @@ dealing of S unit Frames into n channels, division is idempotent, and for every
 m from 1 to 4 dividing by n then m is dividing by m
 ```
 ; .cs [0, 1, 2, 3]; .ls [0, 1, 2, 3, 4]; .ns [1, 2, 3, 4];
-; .states (cs &| {.c _; ls &| {.l _; ls & {Demi [c, l, _]}}});
+; .states (cs &| {.c _; ls &| {.l _; ls & {Denum [c, l, _]}}});
 ; .law {.k _; ns &| {.n _; .q (k ./ n); [q.# = k.#, q.## = k.##, q.loads.# = n, q.loads = (((k.## [1]) ./ n).channels & {_.#}), (q ./ n) = q]}};
 ; .renorm {.k _; ns &| {.n _; ns & {.m _; ((k ./ n) ./ m) = (k ./ m)}}};
 ; .checks ((states &| law) | (states &| renorm));
 ; [states.#, checks.#, checks = (checks & {<>})]
 # [100, 3600, <>]
 ```
-## Channel Demi operations
+## Channel Denum operations
 
-Its fourth hash is intrinsic, as for the binary Demi: a fresh equal channel Demi
+Its fourth hash is intrinsic, as for the binary Denum: a fresh equal channel Denum
 of the same arity, Count zero included. A record that only spells the fields is
-not one, and forged observers give the ordinary derived binary Demi
+not one, and forged observers give the ordinary derived binary Denum
 ```
-; [(q3.####) == q3, (q3.####) === q3, ((Demi [0, [0, 0, 0]]).####) = (Demi [0, [0, 0, 0]]), ([5, 2].#### ./ 3) = (Demi [2, [3, 2, 2]])]
+; [(q3.####) == q3, (q3.####) === q3, ((Denum [0, [0, 0, 0]]).####) = (Denum [0, [0, 0, 0]]), ([5, 2].#### ./ 3) = (Denum [2, [3, 2, 2]])]
 # [<>, (), <>, <>]
 ; [[.count 3; .loads [3, 2, 2]].####, “” ([.count 3; .loads [3, 2, 2]; .# {3}; .## {7}; .### {3}].####)]
-# [(), “Demi(3,5,2)”]
+# [(), “Denum(3,5,2)”]
 ```
 `*` and `scale_` scale every load and keep the Count; the ratios read Size and
 residual over the Count, nil at Count zero
 ```
-; [“” (q3 * 2), “” (q3.scale_ 3), q3.size-ratio (), q3.residual-ratio (), (Demi [0, [3, 2, 2]]).size-ratio ()]
-# [“Demi(3,[6, 4, 4])”, “Demi(3,[9, 6, 6])”, 7/3, 1, ()]
+; [“” (q3 * 2), “” (q3.scale_ 3), q3.size-ratio (), q3.residual-ratio (), (Denum [0, [3, 2, 2]]).size-ratio ()]
+# [“Denum(3,[6, 4, 4])”, “Denum(3,[9, 6, 6])”, 7/3, 1, ()]
 ```
 `+` and `-` follow the residual's signs. The residual adds the loads at even
 indices and subtracts those at odd ones, so `-` deposits `x.##` on the first
 even load, load 0, and raises the residual, and `+` deposits on the first odd
-load, load 1, and lowers it. For two loads these are the binary Demi's left and
+load, load 1, and lowers it. For two loads these are the binary Denum's left and
 right. Both keep the Count, and both are `deposit-left_` and `deposit-right_`
 by the operand's Size. One load has no odd index, so there `+` is
 `$!!.invalid-arity`
 ```
 ; [“” (q3 + 1), “” (q3 - 1), q3.###, (q3 + 1).###, (q3 - 1).###, (q3 + 1).#]
-# [“Demi(3,[3, 3, 2])”, “Demi(3,[4, 2, 2])”, 3, 2, 4, 3]
+# [“Denum(3,[3, 3, 2])”, “Denum(3,[4, 2, 2])”, 3, 2, 4, 3]
 ; [“” ((d7 ./ 4) + 1), “” ((d7 ./ 4) - 2.5), (d7 ./ 1) + 1, “” ((d7 ./ 1) - 1), “” (d7 + 1), “” (d7 - 1)]
-# [“Demi(3,[2, 3, 2, 1])”, “Demi(3,[4, 2, 2, 1])”, $!!.invalid-arity, “Demi(3,[8])”, “Demi(3,5,3)”, “Demi(3,6,2)”]
+# [“Denum(3,[2, 3, 2, 1])”, “Denum(3,[4, 2, 2, 1])”, $!!.invalid-arity, “Denum(3,[8])”, “Denum(3,5,3)”, “Denum(3,6,2)”]
 ; [((q3 + 4) - 2) = ((q3 - 2) + 4), ((q3 + 1) ./ 3) = ((q3 - 1) ./ 3), q3 + ([].nope), q3.deposit-right_ (0 - 1), q3.deposit-left_ 1.5, “” q3]
-# [<>, <>, $!.name-missing “..., $!!.invalid-demi, $!!.invalid-demi, “Demi(3,[3, 2, 2])”]
+# [<>, <>, $!.name-missing “..., $!!.invalid-denum, $!!.invalid-denum, “Denum(3,[3, 2, 2])”]
 ```
 ## RotorRouter
 
@@ -395,23 +395,23 @@ routing grows linearly: three thousand Frames route into three channels in turn
 ```
 The divisor is refused as for a list
 ```
-; [r7 ./ 0, r7 ./ (3 - 1), r7 ./ 1.5, r7 ./ [2], r7 ./ (Demi [1, 1, 1]), r7 ./ “two”]
+; [r7 ./ 0, r7 ./ (3 - 1), r7 ./ 1.5, r7 ./ [2], r7 ./ (Denum [1, 1, 1]), r7 ./ “two”]
 # [$!.division-by-zero /, $!.division-domain /, $!.division-domain /, $!.division-domain /, $!.division-domain /, $!.division-domain /]
 ```
 ## A router's observers and fourth hash
 
 A router of any arity declares its Count C, its Size, the sum of its channel
-loads, and its residual, their alternating sum, as a channel Demi does. Its
-fourth hash is the Demi of the same arity: a router of k channels other than
+loads, and its residual, their alternating sum, as a channel Denum does. Its
+fourth hash is the Denum of the same arity: a router of k channels other than
 two is recognized intrinsically, as an instance of the shipped class, and
-answers `Demi [C, loads]`, one load per channel, so it routes to channel
-C mod k as its Demi deposits there. The binary router answers the binary Demi
-it always did. At Count zero there is no Demi, for any arity
+answers `Denum [C, loads]`, one load per channel, so it routes to channel
+C mod k as its Denum deposits there. The binary router answers the binary Denum
+it always did. At Count zero there is no Denum, for any arity
 ```
-; [t3.#, t3.##, t3.###, “” t3.####, t3.#### = (Demi [7, [14, 6, 22]]), t3.####.## = t3.##, t3.####.### = t3.###]
-# [7, 42, 30, “Demi(7,[14, 6, 22])”, <>, <>, <>]
+; [t3.#, t3.##, t3.###, “” t3.####, t3.#### = (Denum [7, [14, 6, 22]]), t3.####.## = t3.##, t3.####.### = t3.###]
+# [7, 42, 30, “Denum(7,[14, 6, 22])”, <>, <>, <>]
 ; [“” (r7.####), ([] ./ 3).####, (RotorRouter [[], [], []]).####, “” ((([] ./ 3) 5).####)]
-# [“Demi(7,24,18)”, (), (), “Demi(1,[5, 0, 0])”]
+# [“Denum(7,24,18)”, (), (), “Denum(1,[5, 0, 0])”]
 ```
 So the projection law `(r y).#### = r.#### y` holds for every arity: routing y
 to channel C mod k and observing is depositing `y.##` there
@@ -420,7 +420,7 @@ to channel C mod k and observing is depositing `y.##` there
 ; [1, 2, 3, 4, 5] & {.r (nine ./ _); ((r 10).####) = ((r.####) 10)}
 # [<>, <>, <>, <>, <>]
 ; [“” ((t3 10).####), “” ((nine ./ 1).####), “” ((nine ./ 4).####)]
-# [“Demi(8,[14, 16, 22])”, “Demi(9,[45])”, “Demi(9,[15, 8, 10, 12])”]
+# [“Denum(8,[14, 16, 22])”, “Denum(9,[45])”, “Denum(9,[15, 8, 10, 12])”]
 ```
 Recognition reads nothing the router computes: a record that only spells
 `channels` is not a router, and a failed child Size is answered as it is
@@ -432,12 +432,12 @@ Recognition reads nothing the router computes: a record that only spells
 
 Whole-Frame division and Size-unit division agree on the total and differ on
 the channels. Children of Sizes 5 and 2 dealt into two channels load them 5
-and 2, as list and router; the Demi of the same list, normalized, loads them 4
+and 2, as list and router; the Denum of the same list, normalized, loads them 4
 and 3. They are different states with the same Size, and neither is wrong
 ```
 ; .two [5, 2];
 ; [loads (two ./ 2).channels, ((two | r0) ./ 2).channels & {load _}, “” (two.#### ./ 2), ((two | r0) ./ 2).#### = (two.#### ./ 2), ((two | r0) ./ 2).####.## = (two.#### ./ 2).##]
-# [[5, 2], [5, 2], “Demi(2,4,3)”, (), <>]
+# [[5, 2], [5, 2], “Denum(2,4,3)”, (), <>]
 ```
 They agree when every child has Size one, since then each Frame is one Size
 unit. With other Sizes they need not

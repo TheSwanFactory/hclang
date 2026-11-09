@@ -96,10 +96,10 @@ installs itself as `FrameLazy.quote`, which `ReduceElements` calls when a
 resource is folded into the empty closure, since `lib/frames` and `lib/ops`
 cannot import the parser.
 
-**The Demi class** (`demi-prologue.ts`, 011.20) is the one bundled file the
+**The Denum class** (`denum-prologue.ts`, 011.20) is the one bundled file the
 evaluator reads without a root. `.####` derives its Count and loads natively in
-`lib/frames/fourth-hash.ts` and constructs an instance of `Demi` from
-`hc/demi.hc`. `hc-eval.ts` imports the module, which installs the constructor;
+`lib/frames/fourth-hash.ts` and constructs an instance of `Denum` from
+`hc/denum.hc`. `hc-eval.ts` imports the module, which installs the constructor;
 the first construction evaluates the file once per process through
 `evaluateSourceText`, the import front end with example lines dropped, in an
 isolated namespace with no host bindings and no root, and keeps the result,

@@ -379,9 +379,9 @@ describe("main", () => {
     );
   });
 
-  it("keeps the Demi class testdoc green (011.20)", async () => {
+  it("keeps the Denum class testdoc green (011.20)", async () => {
     const out = new FrameArray([]);
-    const file = new URL("../hc/demi.hc", import.meta.url).pathname;
+    const file = new URL("../hc/denum.hc", import.meta.url).pathname;
     const status = await main(
       getEval({}, out),
       getOptions(["--testdoc", file]),
@@ -389,7 +389,7 @@ describe("main", () => {
 
     expect(status).toEqual(0);
     expect(out.at(-1).toString()).toContain(
-      '“{"total":101,"pass":101,"fail":0,"unimplemented":0}”',
+      '“{"total":121,"pass":121,"fail":0,"unimplemented":0}”',
     );
   });
 

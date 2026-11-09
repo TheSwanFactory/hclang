@@ -76,8 +76,8 @@ Deno.test("routing neither measures nor applies the routed Frame (011.21)", () =
 Deno.test("observing a router measures each routed child, by Size only", () => {
   Watched.seen.length = 0;
   const watched = new Watched([new FrameCount(4n)]);
-  const demi = run("((r0 $$.w) $$.w).####", { w: watched });
-  expect(demi.toText().toString()).toEqual("“Demi(2,4,4)”");
+  const denum = run("((r0 $$.w) $$.w).####", { w: watched });
+  expect(denum.toText().toString()).toEqual("“Denum(2,4,4)”");
   expect(Watched.seen.includes("call")).toBe(false);
   // `.####` reads the declared Size and residual, and each sums both channels,
   // so each of the two routed occurrences is measured twice.
@@ -103,15 +103,16 @@ Deno.test("a non-finite or cyclic child is routed, and observing it fails", () =
     .toEqual("$!.nonquantifiable-size .##");
 });
 
-Deno.test("a router's fourth hash is an instance of the bundled Demi class", () => {
-  const demi = run("((r0 “hello”) 7).####", {});
+Deno.test("a router's fourth hash is an instance of the bundled Denum class", () => {
+  const denum = run("((r0 “hello”) 7).####", {});
   // The Count is the two children routed, not the router's phase.
   expect(
-    ["count", "phase", "left", "right"].map((key) => `${demi.getOwn(key)}`),
-  ).toEqual(["2", "2", "5", "7"]);
-  expect(demi.equals(run("[“hello”, 7].####", {}))).toBe(Frame.all);
-  // The initial router has routed nothing, so it has Count zero and no Demi,
-  // like the empty host; the Demi of Count zero is a different, present value.
+    [`${denum.getOwn("count")}`, `${denum.getOwn("loads")}`],
+  ).toEqual(["2", "[5, 7]"]);
+  expect(`${run("((r0 “hello”) 7).####.phase ()", {})}`).toEqual("2");
+  expect(denum.equals(run("[“hello”, 7].####", {}))).toBe(Frame.all);
+  // The initial router has routed nothing, so it has Count zero and no Denum,
+  // like the empty host; the Denum of Count zero is a different, present value.
   expect(run("r0.#", {}).toString()).toEqual("0");
   expect(run("r0.####", {})).toBe(Frame.nil);
   expect(run("[].####", {})).toBe(Frame.nil);
@@ -121,7 +122,7 @@ Deno.test("a router's fourth hash is an instance of the bundled Demi class", () 
 });
 
 Deno.test("a router's phase is its Count's parity, and only alternating histories construct (007.25e)", () => {
-  // Admissible preloads of every small Count: the phase and the Demi's phase
+  // Admissible preloads of every small Count: the phase and the Denum's phase
   // are both the parity of left.# + right.#.
   for (
     const [channels, c, phase] of [
@@ -135,7 +136,10 @@ Deno.test("a router's phase is its Count's parity, and only alternating historie
     expect(`${router.getOwn("phase")}`, channels).toEqual(phase);
     expect(`${router.sizeFor(Frame.kCOUNT)}`, channels).toEqual(c);
     if (c !== "0") {
-      expect(`${router.sizeFor(Frame.kDEMI).getOwn("phase")}`, channels)
+      expect(
+        `${run(`(Routers.RotorRouter ${channels}).####.phase ()`, {})}`,
+        channels,
+      )
         .toEqual(phase);
     }
   }
@@ -152,7 +156,7 @@ Deno.test("a router's phase is its Count's parity, and only alternating historie
     expect(`${run(`Routers.RotorRouter ${channels}`, {})}`, channels)
       .toEqual("$!!.invalid-router");
   }
-  // Routing commutes with observing at every Count where the Demi exists.
+  // Routing commutes with observing at every Count where the Denum exists.
   expect(
     `${
       run(

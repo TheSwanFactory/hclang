@@ -248,7 +248,7 @@ reason        := [A-Za-z_][A-Za-z0-9_-]*
 
 The ASCII reason grammar is a decision of this specification. It makes the
 existing refusal names, including `division-by-zero`, `unsupported-figure`,
-`invalid-demi` and `invalid-scale`, directly writable. A literal constructs a
+`invalid-denum` and `invalid-scale`, directly writable. A literal constructs a
 flagged error without looking up its reason in any scope. Declaring a word with
 the same spelling cannot disable it.
 
@@ -334,8 +334,8 @@ After §6 works, replace deliberately unbound refusals in actual bundled code:
 | File                 | Existing refusal                          | Replacement             |
 | -------------------- | ----------------------------------------- | ----------------------- |
 | `hc/figures.hc`      | `unsupported-figure` in refusing branches | `$!.unsupported-figure` |
-| `hc/demi.hc`         | `invalid-demi`                            | `$!.invalid-demi`       |
-| `hc/demi.hc`         | `invalid-scale`                           | `$!.invalid-scale`      |
+| `hc/denum.hc`        | `invalid-denum`                           | `$!.invalid-denum`      |
+| `hc/denum.hc`        | `invalid-scale`                           | `$!.invalid-scale`      |
 | `hc/rotor-router.hc` | `invalid-router` (added in v0.38.1)       | `$!.invalid-router`     |
 
 Audit every `hc/*.hc` code body for other deliberate missing-name refusals; do
@@ -356,7 +356,7 @@ baseline, for unrelated reasons, and are unchanged.
 
 Update affected testdoc expectations and prose to name the intentional error
 rather than a missing variable, then regenerate `lib/bundle/hc-sources.ts` with
-`deno task bundle:embed`. Keep the embedded Demi prologue and ordinary imports
+`deno task bundle:embed`. Keep the embedded Denum prologue and ordinary imports
 in agreement. Verify that a same-named binding cannot turn a refusal into
 success.
 
@@ -387,7 +387,7 @@ literal parser. Do not remove evaluator checks to make it work.
 
 1. Implement and test the syntax contract in §6.
 2. Migrate bundled refusing branches, examples and prose; regenerate the embed.
-3. Verify the CLI/library paths and both implicit Demi loading and explicit
+3. Verify the CLI/library paths and both implicit Denum loading and explicit
    bundled imports against the same behavior.
 
 ### Required regression coverage
@@ -414,7 +414,7 @@ literal parser. Do not remove evaluator checks to make it work.
   aggregates, across every two-chunk split, with and without a terminator;
   malformed names; unaffected anchors and legacy notes; an untaken literal
   branch.
-- The exact `f 1`/`f 0` example in §6 and the migrated Figure/Demi refusal
+- The exact `f 1`/`f 0` example in §6 and the migrated Figure/Denum refusal
   paths, including a colliding ordinary binding and bundled-source parity.
 - Testdoc reporting of failed, passed, unimplemented and summary notes.
 
@@ -446,14 +446,14 @@ and equality also check error referents when invoked directly. The syntax
 remains owned by `FrameScopeAnchor.SYNTAX`. No recovery mechanism or
 evaluator-check relocation was added.
 
-The constructors in `hc/demi.hc` and `hc/rotor-router.hc` check that the
+The constructors in `hc/denum.hc` and `hc/rotor-router.hc` check that the
 argument is an array of exactly three elements, `(_ ~ ([].<>)) ? {(__ .#) = 3}`,
 before reading its fields. A short array, a group, text, nil or a Count
-therefore returns the deliberate `$!.invalid-demi` or `$!.invalid-router`
+therefore returns the deliberate `$!.invalid-denum` or `$!.invalid-router`
 refusal instead of failing incidentally at an index read; before this change
 those reads produced notes that execution silently continued past. The units
 corpus now documents that `3.m` is a failed Count property lookup, unlike the
-decimal literal `3.0.m`. The wrong-depth Demi and RotorRouter examples now show
+decimal literal `3.0.m`. The wrong-depth Denum and RotorRouter examples now show
 the method answering the failure and, through a mutable name, leaving both
 fields unchanged. RotorRouter's example that routed a missing-name note now
 shows that the note, like a flagged error, is never routed. One import test

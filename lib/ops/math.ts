@@ -94,7 +94,7 @@ export const Divide = (source: Frame, block: Frame): Frame => {
  * The divisor is the channel Count itself, never a Size read from it: it must
  * be a Count, and zero is `$!.division-by-zero /` as it is for numbers. Any
  * other divisor, a negative or fractional number, text, an aggregate or a
- * Demi, is `$!.division-domain /`. The answer allocates one array per
+ * Denum, is `$!.division-domain /`. The answer allocates one array per
  * channel, so a divisor that is both above 1,000,000, the limit repetition
  * uses for elements, and above the element count is
  * `$!.repetition-size 1000000`, checked before anything is allocated. Up to

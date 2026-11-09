@@ -201,41 +201,41 @@ Star uses native `*` dispatch; numeric pairs keep arithmetic.
 ; [.tag 1;] * [[]]
 # $!.star-metadata *
 ```
-The fourth observer derives a Demi from Count, Size and residual.
-A zero Count or absent residual gives no Demi; errors propagate. A schema used
-as an explicit element contributes Size normally, even though its own Demi is nil.
-A present Demi has Count C, Size L+R and residual L−R. Its Count is its full
+The fourth observer derives a Denum from Count, Size and residual.
+A zero Count or absent residual gives no Denum; errors propagate. A schema used
+as an explicit element contributes Size normally, even though its own Denum is nil.
+A present Denum has Count C, Size L+R and residual L−R. Its Count is its full
 application Count (007.25c), and its phase is derived from the parity of that
 Count: 2 for even and 1 for odd. The derivation therefore reconstructs its data
-value on repeated fourth observation, including present zero loads; a Demi of
+value on repeated fourth observation, including present zero loads; a Denum of
 Count zero, which the observers cannot tell from an empty host, declares its own
-fourth hash (`hc/demi.hc`).
-A present Demi is an instance of the HC class in `hc/demi.hc` (011.20), and
-reads as text `Demi(count,left,right)`. Applying a Demi to Y deposits Y's Size
+fourth hash (`hc/denum.hc`).
+A present Denum is an instance of the HC class in `hc/denum.hc` (011.20), and
+reads as text `Denum(count,left,right)`. Applying a Denum to Y deposits Y's Size
 and adds one to the Count, so for a nonempty Figure host X, (X Y).#### is
-X.#### Y; for an empty host, start from the Demi of Count zero instead,
+X.#### Y; for an empty host, start from the Denum of Count zero instead,
 because [].#### is nil. Scaling is the method `scale_`, the shadow of Star:
 (X * Y).#### is X.####.scale_ (Y.##) for a nonempty host. Count is a terminal
 quantity: positive Counts agree with pure Figures of that terminal Size, but 0
-has Size 0 while [] has Size 1. Mixed values may have present zero-load Demis,
+has Size 0 while [] has Size 1. Mixed values may have present zero-load Denums,
 including [0].####.
 ```
 ; [[].####, 0.####, “” “hello”.####, <2,3,5>.####]
-# [(), (), “Demi(5,3,2)”, ()]
+# [(), (), “Denum(5,3,2)”, ()]
 ; [(10 - 5).#### = 5.####, (0 - 5).#### = 5.####, (5.0).#### = 5.####, “hello”.#### = 5.####]
 # [<>, <>, <>, <>]
 ; [<>.#, <>.##, <>.###, ().##]
 # [0, 1, 0, 1]
 ; [1, 2, 3, 7] & {“” _.####}
-# [“Demi(1,1,0)”, “Demi(2,1,1)”, “Demi(3,2,1)”, “Demi(7,4,3)”]
+# [“Denum(1,1,0)”, “Denum(2,1,1)”, “Denum(3,2,1)”, “Denum(7,4,3)”]
 ; [[0], [“hello”], [<2,3,5>,2], {5 + 3}] & {“” _.####}
-# [“Demi(1,0,0)”, “Demi(1,5,0)”, “Demi(2,3,2)”, “Demi(3,8,1)”]
+# [“Denum(1,0,0)”, “Denum(1,5,0)”, “Denum(2,3,2)”, “Denum(3,8,1)”]
 ; [“” ([[],[]].#### 3), “” (7.####.scale_ 2), ([[],[]] 3).#### = ([[],[]].#### 3)]
-# [“Demi(3,4,1)”, “Demi(7,8,6)”, <>]
+# [“Denum(3,4,1)”, “Denum(7,8,6)”, <>]
 ```
 A RotorRouter, the class in `hc/rotor-router.hc` (011.21), keeps the routed
 Figures themselves in two ordered channels and declares the observers that make
-its fourth hash their Demi. Routing a Figure's children in turn from the initial
+its fourth hash their Denum. Routing a Figure's children in turn from the initial
 router sends the even positions left and the odd ones right, and that router's
 fourth hash is the Figure's.
 ```

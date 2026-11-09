@@ -8,7 +8,7 @@
  * HC, so this module installs the constructor it calls
  * (`installDivisionCarrier`).
  *
- * As with the Demi class (`demi-prologue.ts`), the class is read from the
+ * As with the Denum class (`denum-prologue.ts`), the class is read from the
  * compiled-in bundle, evaluated once per process on first use, in a namespace
  * of its own with no host bindings and no root, and its outcome is kept,
  * failure included. A division requested while the file is still loading is
@@ -107,7 +107,7 @@ export function constructRouter(channels: FrameArray): Frame {
  * The channels of an instance of the shipped class with other than two
  * channels, for `.####` (007.27); undefined for anything else.
  *
- * Recognition mirrors the Demi's (007.25e): the source's own stored
+ * Recognition mirrors the Denum's (007.25e): the source's own stored
  * `channels`, a list of arrays, must rebuild through the constructor into a
  * router `==` to the source, fields and methods included. Nothing of the
  * source runs, so a record that only spells `channels` is not a router.

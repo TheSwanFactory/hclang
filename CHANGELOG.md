@@ -4,6 +4,33 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.49.0 2026-11-09
+
+- **Breaking: `Demi` is renamed `Denum` (occurrence/figure 007.40).** The HC
+  class, its file (`hc/demi.hc` → `hc/denum.hc`), the error `$!!.invalid-demi` →
+  `$!!.invalid-denum`, the `$!.demi-*` fourth-hash errors → `$!.denum-*`, its
+  text `Denum(C,…)`, the TypeScript bridge (`constructDenum`,
+  `installDenumConstructor`, `denum-prologue.ts`) and `doc/FRAME-DENUM.md`. No
+  `Demi` alias is kept. Behavior is otherwise unchanged: Count and ordered loads
+  of any arity, application, `+ − *`, `./ n` redistribution, ratios, `.####` and
+  RotorRouter. This is not the withdrawn v0.45–v0.47 Denum: no CD view, rank or
+  coordinate algebra (#491).
+- **`Denum [loads]` defaults the Count to 1.** `Denum [[2, 5]]` is
+  `Denum [1, [2, 5]]`; an explicit Count, zero included, is kept (#491).
+- **Count binding `d.#%` (007.39a).** For a Denum `(C; [a0, …])` with C > 0,
+  `d.#%` answers the new Denum `(C; [b0, …, b(C−1)])` with `bj` the sum of the
+  loads at indices ≡ j mod C (`(3;[2,5,3,7,4]).#%` is `(3;[9,9,3])`). Count zero
+  is `$!.denum-binding-zero-count`, a non-Denum receiver
+  `$!.denum-binding-receiver`, and a Count above 65536
+  `$!.denum-binding-capacity`. `.#%` is a new lexical observer token; `.#%%` is
+  now a lexical error (write `.# %%`) (#491).
+- **A Denum stores only its Count and loads.** The binary Denum's `phase`,
+  `left` and `right` are no longer stored fields but readings applied to nil,
+  `d.phase ()`, `d.left ()` and `d.right ()`, derived from the Count's parity
+  and `loads`, so they cannot disagree with the state. Application routes by the
+  Count's parity. **Breaking:** `d.phase`, `d.left` and `d.right` without `()`
+  no longer answer a value (#491).
+
 ## v0.48.0 2026-11-08
 
 - **Restore the pre-Denum tree (occurrence/figure 007.37c, 007.37d).**

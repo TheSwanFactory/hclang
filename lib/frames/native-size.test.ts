@@ -309,7 +309,7 @@ Deno.test("reference chains refuse cycles before entering the aggregate Size wal
 });
 
 Deno.test("nil, [], 0, <> and [0] answer the four hashes distinctly (#462)", () => {
-  // Nil has no Count, so no residual and no Demi, but one Size like any opaque
+  // Nil has no Count, so no residual and no Denum, but one Size like any opaque
   // atom; the present empties differ from it and from each other.
   const rows: [string, Frame, string[], string[]][] = [
     ["()", Frame.nil, ["()", "1", "()"], ["", "FrameCount", ""]],
@@ -348,7 +348,7 @@ Deno.test("nil, [], 0, <> and [0] answer the four hashes distinctly (#462)", () 
     expect(evaluate(`[${source}.#, ${source}.##, ${source}.###]`).toString())
       .toEqual(`[[${answers.join(", ")}]]`);
   }
-  // Only the zero-load aggregate is a present Demi; nil's absent Count and the
+  // Only the zero-load aggregate is a present Denum; nil's absent Count and the
   // other empties' Count 0 answer none.
   for (const source of ["()", "[]", "0", "<>"]) {
     // A nil answer leaves the statement group empty.

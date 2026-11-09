@@ -291,7 +291,7 @@ describe("Lex", () => {
   }
 
   describe("size operators (#411, 010.04)", () => {
-    for (const name of [".#", ".##", ".###", ".####"]) {
+    for (const name of [".#", ".##", ".###", ".####", ".#%"]) {
       it(`lexes ${name} as one dotted name across every two-chunk split`, () => {
         const atoms = lexAtoms(`${name} `);
 
@@ -334,6 +334,21 @@ describe("Lex", () => {
           ).toEqual(["x", ".####"]);
         }
       }
+    });
+  });
+
+  describe("Count binding `.#%` (007.40)", () => {
+    it("ends `.#%` where the next term begins and leaves `.#` and `%%` alone", () => {
+      expect(lexAtoms("x.#% ").map(String)).toEqual(["x", ".#%"]);
+      expect(lexAtoms("x.#%.# ").map(String)).toEqual(["x", ".#%", ".#"]);
+      expect(lexAtoms("x.# %% 2 ").map(String)).toEqual(["x", ".#", "%%", "2"]);
+      expect(lexAtoms("x.#% #c# ").map(String)).toEqual(["x", ".#%"]);
+    });
+
+    it("refuses `.#%%` rather than splitting it", () => {
+      const source = "x.#%%2 ";
+      expect(lexResult(source).is.lexical).toBe(true);
+      expect(lexResult(source).toString()).toContain("`.#%%` is ambiguous");
     });
   });
 

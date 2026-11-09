@@ -5,11 +5,11 @@ RotorRouter (occurrence/figure 011.21)
 A RotorRouter is a two-channel router that keeps what it routes. Its state is
 two ordered arrays, left and right, of the Frames routed into them, and nothing
 else. Applying a router to a Frame appends that Frame, the same Frame, to the
-channel its Count selects. A Demi follows the same alternation by Size alone; a
-router keeps the children, so its numerical shadow is a Demi and its state is
+channel its Count selects. A Denum follows the same alternation by Size alone; a
+router keeps the children, so its numerical shadow is a Denum and its state is
 everything that shadow forgets: which Frames, in what order, and which channel.
 
-`RotorRouter` is an ordinary HC class, like `Demi` in `hc/demi.hc`: a
+`RotorRouter` is an ordinary HC class, like `Denum` in `hc/denum.hc`: a
 constructor closure answering a fresh aggregate whose fields are its state and
 whose methods are the class. Import it with
 `Routers <- './hc/rotor-router.hc'`, then `Routers.RotorRouter [[], []]`.
@@ -17,17 +17,17 @@ whose methods are the class. Import it with
 **State (007.25e).** `RotorRouter [left, right]` takes two arrays, the two
 ordered channels. There is no phase argument: the router's Count is
 `C = left.# + right.#`, the children it holds, and its phase is read from the
-parity of C exactly as a Demi's is, 2 when C is even (left next) and 1 when C is
+parity of C exactly as a Denum's is, 2 when C is even (left next) and 1 when C is
 odd (right next). Earlier versions took `RotorRouter [phase, left, right]`, a
 free phase beside the channels; that form is removed, with no alias, so the
-router's routing phase, its Count and the phase of its Demi are one fact.
+router's routing phase, its Count and the phase of its Denum are one fact.
 
 **Admissibility.** Routing from empty channels starts left and alternates, so
 every routed history has `left.# = right.#` (C even) or
 `left.# = right.# + 1` (C odd), and conversely every such pair is the one
 history that sent `left.0`, `right.0`, `left.1`, … in turn. The constructor
 admits exactly those pairs and refuses every other pair with
-`$!!.invalid-router`, a named error, as `Demi` refuses with `$!!.invalid-demi`:
+`$!!.invalid-router`, a named error, as `Denum` refuses with `$!!.invalid-denum`:
 `RotorRouter [[A], [B, C]]` and `RotorRouter [[A, B], []]` are not histories,
 and no history or offset is invented for them. Routing keeps the invariant, so
 every router a program can hold satisfies it. A channel is its elements: an
@@ -47,30 +47,30 @@ other. A Frame of Size zero still takes a slot and flips the phase. It is a
 mutating method, `apply_`, so through a name it is a functional update that
 leaves the router as it was, and through a mutable name it writes the router in
 place. Routing nil routes nothing and leaves the router as it was, as applying a
-Demi to nil does. A flagged error such as `1 / 0` is the answer of the
+Denum to nil does. A flagged error such as `1 / 0` is the answer of the
 expression that applies the router, so it is never routed.
 
-**Observers.** A router declares its Count, Size and residual as a Demi does
+**Observers.** A router declares its Count, Size and residual as a Denum does
 (007.25c): its Count C, its total load L+R and the signed difference L−R, where
 each load is the sum of the Sizes of the children routed into that channel. So
-`router.####` derives the router's Demi as it derives any Frame's,
-`Demi(C, L, R)`, and that Demi is the router's numerical shadow. Its phase is
+`router.####` derives the router's Denum as it derives any Frame's,
+`Denum(C, L, R)`, and that Denum is the router's numerical shadow. Its phase is
 the router's phase, because both are the parity of the same C. An empty channel
 has load 0, the empty sum; a nonempty channel's load is its native Size, which
 is that sum. Observation is where children are measured, so it is where their
 failures show, and declared observers run only when the router is observed:
-routing runs none of them, and observing writes nothing. The Demi forgets which
+routing runs none of them, and observing writes nothing. The Denum forgets which
 Frames were routed and their order, so distinct routers can share one.
 
 **The projection law.** For every router r whose fourth hash exists, that is
 every router with C ≥ 1 whose children have Sizes, and every Frame y,
 `(r y).#### = (r.####) y`: routing y into the channel the parity of C selects
 and then observing adds `y.##` to that channel's load and one to C, which is
-exactly what applying `Demi(C, L, R)` to y does. The empty router `[[], []]` is
+exactly what applying `Denum(C, L, R)` to y does. The empty router `[[], []]` is
 the boundary: it has routed nothing, so like the empty host `[]` its Count is
-zero and `.####` is nil, not a Demi conjured to make the equation look true.
-There the law reads through the zero-Count lifting the Demi class names,
-`(r0 y).#### = (Demi [0, 0, 0]) y`.
+zero and `.####` is nil, not a Denum conjured to make the equation look true.
+There the law reads through the zero-Count lifting the Denum class names,
+`(r0 y).#### = (Denum [0, 0, 0]) y`.
 
 **Text.** A router prints as its fields and methods, and as text reads
 `RotorRouter([…],[…])`, each channel as its spelling, the constructor's own
@@ -90,12 +90,12 @@ directly, as the binary router does: a small cursor, `append-at`, rebuilds the
 list of channels with the Frame added to that one, so a route costs one pass
 over the k channels and never replays the history (PR #482 review).
 Its Size is the sum of its channel loads and its residual their alternating
-sum, as a channel Demi's are. Its fourth hash is the channel Demi of its
-Count and channel loads, `Demi [C, [load0, …]]`: the fourth hash recognizes an
+sum, as a channel Denum's are. Its fourth hash is the channel Denum of its
+Count and channel loads, `Denum [C, [load0, …]]`: the fourth hash recognizes an
 instance of this class with other than two channels intrinsically, as it
-recognizes a Demi, because the binary Demi the observers derive follows
+recognizes a Denum, because the binary Denum the observers derive follows
 parity and not C mod k. So the projection law `(r y).#### = r.#### y` holds
-for every arity; at Count zero there is no Demi. Text reads `RotorRouter([ch0, ch1, …])`.
+for every arity; at Count zero there is no Denum. Text reads `RotorRouter([ch0, ch1, …])`.
 
 `router ./ n`, also spelled `router / n`, re-deals the Frames it holds: it
 reconstructs the order they were routed in from its channels, which their
@@ -316,7 +316,7 @@ residual, and each measures both channels, so a child's Size is read twice
 ; (r0 Cyclic).####
 # $!.cyclic-observation .##
 ; “” ((r0 Counted).####)
-# “Demi(1,5,0)”
+# “Denum(1,5,0)”
 ; counter_.n
 # 2
 ```
@@ -337,14 +337,14 @@ Routing nil routes nothing
 ## Empty and zero
 
 The initial router has routed no children, so its Count is zero, and like the
-empty host it has no Demi. Its Size and residual still read zero, and it is a
-present router in phase 2. The Demi of Count zero is a different thing, a Demi
+empty host it has no Denum. Its Size and residual still read zero, and it is a
+present router in phase 2. The Denum of Count zero is a different thing, a Denum
 constructed as such, which routing from the router reaches after one route
 ```
 ; [r0.#, r0.##, r0.###, r0.phase, r0.####, [].####]
 # [0, 0, 0, 2, (), ()]
-; Demis <- './hc/demi.hc';
-; [((r0 0).####) = ((Demis.Demi [0, 0, 0]) 0), ((r0 []).####) = ([] []).####]
+; Denums <- './hc/denum.hc';
+; [((r0 0).####) = ((Denums.Denum [0, 0, 0]) 0), ((r0 []).####) = ([] []).####]
 # [<>, <>]
 ```
 A Frame of Size zero takes a slot and flips the phase, and an empty array
@@ -352,11 +352,11 @@ routed as a child has Size 1, while an empty channel has load 0
 ```
 ; .z (r0 0);
 ; [z.phase, z.left, z.#, “” (z.####)]
-# [1, [0], 1, “Demi(1,0,0)”]
+# [1, [0], 1, “Denum(1,0,0)”]
 ; [“” ((r0 []).####), “” (((r0 []) []).####), “” ((((r0 0) 0) 0).####)]
-# [“Demi(1,1,0)”, “Demi(2,1,1)”, “Demi(3,0,0)”]
+# [“Denum(1,1,0)”, “Denum(2,1,1)”, “Denum(3,0,0)”]
 ```
-## The router's Demi
+## The router's Denum
 
 Each load is the sum of its channel's child Sizes, as exact Counts, over text,
 numbers, nested arrays, groups, closures, all, and a Frame routed twice, which
@@ -367,17 +367,17 @@ counts each time it was routed
 ; [mix.left, mix.right]
 # [[“hello”, [[1, 2], [3]], [[], []], { 5 + 3 }], [7, (4, 5), [[], []], <>]]
 ; [mix.left & {_.##}, mix.right & {_.##}, “” (mix.####)]
-# [[5, 6, 2, 9], [7, 9, 2, 1], “Demi(8,22,19)”]
+# [[5, 6, 2, 9], [7, 9, 2, 1], “Denum(8,22,19)”]
 ; “” (((r0 123456789012345678901234567890) 987654321098765432109876543210).####)
-# “Demi(2,123456789012345678901234567890,987654321098765432109876543210)”
+# “Denum(2,123456789012345678901234567890,987654321098765432109876543210)”
 ```
-A router's Demi is `Demi(C, L, R)` of its own channels, and its phase is the
+A router's Denum is `Denum(C, L, R)` of its own channels, and its phase is the
 router's phase, for every Count from 1 to 6 and for preloads
 ```
 ; .sh (steps & {_.####});
 ; [sh & {_ = ()}, sh & {_.#}]
 # [[<>, (), (), (), (), (), ()], [(), 1, 2, 3, 4, 5, 6]]
-; [steps &| {.k _; (k.# .> 0) ? {[k.phase = k.####.phase]} : {[]}}, (RotorRouter [[2, 3], [1]]).#### = (Demis.Demi [3, 5, 1])]
+; [steps &| {.k _; (k.# .> 0) ? {[k.phase = (k.####.phase ())]} : {[]}}, (RotorRouter [[2, 3], [1]]).#### = (Denums.Denum [3, 5, 1])]
 # [[<>, <>, <>, <>, <>, <>], <>]
 ```
 ## Observing commutes with routing
@@ -394,7 +394,7 @@ constructed directly from the two channels
 # [[5, [1, 2]], [“ab”], 1, <>]
 ```
 For every router whose fourth hash exists, routing Y then observing is applying
-the router's Demi to Y, which adds one to the Count. Its fourth hash is X's,
+the router's Denum to Y, which adds one to the Count. Its fourth hash is X's,
 Count included. The law holds for routers built by routing and for admissible
 preloads alike, in both phases, and for a zero-Size child
 ```
@@ -404,38 +404,38 @@ preloads alike, in both phases, and for a zero-Size child
 ; [((p1 Y).####) = ((p1.####) Y), ((p2 {5 + 3}).####) = ((p2.####) {5 + 3}), ((p1 0).####) = ((p1.####) 0)]
 # [<>, <>, <>]
 ; .pre [RotorRouter [[A], []], RotorRouter [[A], [B]], RotorRouter [[A, B], [C]], RotorRouter [[1, 2, 3, 4], [5, 6, 7, 8]], RotorRouter [[1, 2, 3, 4, 5], [6, 7, 8, 9]]];
-; [pre & {((_ Y).####) = ((_.####) Y)}, pre & {((_ 0).####) = ((_.####) 0)}, pre & {(_ Y).phase = ((_.####) Y).phase}]
+; [pre & {((_ Y).####) = ((_.####) Y)}, pre & {((_ 0).####) = ((_.####) 0)}, pre & {(_ Y).phase = (((_.####) Y).phase ())}]
 # [[<>, <>, <>, <>, <>], [<>, <>, <>, <>, <>], [<>, <>, <>, <>, <>]]
 ```
 The same holds at every step of a walk, Count 1 to 6, and a router can never
-route to the channel its Demi does not deposit into
+route to the channel its Denum does not deposit into
 ```
 ; steps &| {.k _; (k.# .> 0) ? {[((k Y).####) = ((k.####) Y)]} : {[]}}
 # [<>, <>, <>, <>, <>, <>]
-; steps &| {.k _; (k.# .> 0) ? {[[((k 4).left.# - k.left.#), (((k.####) 4).left - k.####.left)]]} : {[]}}
+; steps &| {.k _; (k.# .> 0) ? {[[((k 4).left.# - k.left.#), ((((k.####) 4).left ()) - (k.####.left ()))]]} : {[]}}
 # [[0, 0], [1, 4], [0, 0], [1, 4], [0, 0], [1, 4]]
 ```
 A failed Size is the answer on both sides: the router routes the Frame and its
-Demi fails when observed, and the Demi refuses the deposit with the same error
+Denum fails when observed, and the Denum refuses the deposit with the same error
 ```
 ; [((p1 Failing).####), ((p1.####) Failing)]
 # [$!.name-missing “..., $!.name-missing “...]
 ```
 The empty host is the boundary. `[].####` is nil, so `X.####` fails the first
 equation when X is empty, and so does the initial router, which has routed
-nothing and so has Count zero: it has no Demi, and none is faked. The law there
-reads through the Demi class's zero-Count lifting, `Demi [0, 0, 0]`, and after
+nothing and so has Count zero: it has no Denum, and none is faked. The law there
+reads through the Denum class's zero-Count lifting, `Denum [0, 0, 0]`, and after
 one route the equation holds again
 ```
-; [r0.####, ([] | r0) = r0, (([] | r0).####) = [].####, (([Y] | r0).####) = ([] Y).####, ((r0 Y).####) = ((Demis.Demi [0, 0, 0]) Y), ((r0 0).####) = ((Demis.Demi [0, 0, 0]) 0)]
+; [r0.####, ([] | r0) = r0, (([] | r0).####) = [].####, (([Y] | r0).####) = ([] Y).####, ((r0 Y).####) = ((Denums.Denum [0, 0, 0]) Y), ((r0 0).####) = ((Denums.Denum [0, 0, 0]) 0)]
 # [(), <>, <>, <>, <>, <>]
 ```
-## The Demi forgets
+## The Denum forgets
 
-Distinct routers can share a Demi: the fourth hash keeps only the Count and two
+Distinct routers can share a Denum: the fourth hash keeps only the Count and two
 sums, not which Frames were routed, nor their order, nor how the load was split
 among them. It does keep how many were routed, so a router with fewer children
-and the same loads has a different Demi
+and the same loads has a different Denum
 ```
 ; .s1 (RotorRouter [[2, 3], [1]]); .s2 (RotorRouter [[5], [1]]); .s3 (RotorRouter [[3, 2], [1]]); .s4 (RotorRouter [[1, 4], [1]]);
 ; [s1 = s2, s1 = s3, (s1.####) = (s3.####), (s1.####) = (s4.####), (s1.####) = (s2.####), s1.#, s2.#, s1.##, s2.##]
@@ -443,10 +443,10 @@ and the same loads has a different Demi
 ```
 ## Observers, declared
 
-A router's Count, Size and residual are its Demi's, and its fourth hash is a
-Demi, not the router: equal, it would have to be the same class. Its channels
+A router's Count, Size and residual are its Denum's, and its fourth hash is a
+Denum, not the router: equal, it would have to be the same class. Its channels
 are fields, not elements, so iterating a router yields nothing. A router
-inside an aggregate contributes its declared Size, as a Demi does
+inside an aggregate contributes its declared Size, as a Denum does
 ```
 ; [[r3.#, r3.##, r3.###] = [r3.####.#, r3.####.##, r3.####.###], r3.#### = r3, r3.####.#### = r3.####]
 # [<>, (), <>]
