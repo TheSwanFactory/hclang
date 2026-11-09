@@ -342,6 +342,25 @@ describe("VS Code size-operator grammar (#411)", () => {
     // A fifth hash is left to open a comment.
     expect(sizeMatches("x.#####c#")).toEqual([size(".####", 1)]);
   });
+  it("highlights the Count binding and the geometric observers whole (007.41b)", () => {
+    expect(sizeMatches("x.#%")).toEqual([size(".#%", 1)]);
+    for (
+      const observer of [
+        ".##%",
+        ".###%",
+        ".##%%",
+        ".###%%",
+        ".##%%%",
+        ".###%%%",
+      ]
+    ) {
+      expect(sizeMatches(`x${observer}`)).toEqual([size(observer, 1)]);
+      expect(sizeMatches(`x${observer}.#`))
+        .toEqual([size(observer, 1), size(".#", observer.length + 1)]);
+    }
+    // Spaced, `%%` is still the modulo operator.
+    expect(sizeMatches("x.## %% 2")).toEqual([size(".##", 1)]);
+  });
 
   it("leaves every other # to the comment rule", () => {
     for (const source of ["#c#", ".foo#bar#", "..#"]) {
