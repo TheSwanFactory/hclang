@@ -4,6 +4,14 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## Unreleased (experimental, not shipped)
+
+- **Experiment 007.41: simplex and Cayley–Dickson observer algebras.**
+  `experiments/007-observer-algebras/` holds isolated, test-only observer code
+  that reads a Count-bound Denum (`d.#%`) through a centered cyclic simplex
+  quotient and, at C = 2ⁿ, a recursive Cayley–Dickson algebra. It changes no
+  Denum, Frame, grammar or operator and installs no observer suffix. Run it with
+  `deno task experiment:observer-algebras`.
 ## v0.50.0 2026-11-09
 
 - **One Denum class and one RotorRouter class for every arity.** The separate

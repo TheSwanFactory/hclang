@@ -1,0 +1,123 @@
+# 007.41 simplex and Cayley-Dickson observer algebras (experimental)
+# convention: (a,b)(c,d) = (ac - conj(d)b, da + b conj(c)), conj(a,b) = (conj(a), -b)
+# phi: fixed-sign Helmert basis scaled by sqrt(C/(C-1)); index k carries row k
+== C=0 boundary: Denum [0, [2, 5]] .#%
+refused by .#%: bridge $!.denum-binding-zero-count; bare source $!.denum-binding-zero-count
+simplex: no algebra at Count 0
+cayley-dickson: no algebra at Count 0
+== C=1 degenerate: Denum [1, [4, 5]] .#%
+bound: “Denum(1,[9])”; bridge and bare source agree: true
+native: .#=1 .##=9 .###=9 (alternating signed sum)
+simplex: class=[0] R2=0
+simplex: b*b=[0] b*rot(b)=[0] rot(b)*b=[0]
+simplex: left action L_b is 0x0
+cayley-dickson: x=phi(b)=[0.000000]
+cayley-dickson: N(x)=0.000000 R2=0 exact N=0
+cayley-dickson: x*x=[0.000000]
+cayley-dickson: left action L_x is 1x1, L_x(x) - x*x max gap 0.0e+0
+compare b*b: phi(b*_S b)=[0.000000] phi(b)*_CD phi(b)=[0.000000] gap=0.000000 scalar=0.000000 homomorphic=true
+compare b*rot(b): gap=0.000000 scalar=0.000000 homomorphic=true; CD |xy-yx|^2=0.000000
+== C=2 [3,1]: Denum [2, [3, 1]] .#%
+bound: “Denum(2,3,1)”; bridge and bare source agree: true
+native: .#=2 .##=4 .###=2 (alternating signed sum)
+simplex: class=[2, 0] R2=4
+simplex: b*b=[4, 0] b*rot(b)=[-4, 0] rot(b)*b=[-4, 0]
+simplex: left action L_b is 1x1 [["2"]]
+cayley-dickson: x=phi(b)=[0.000000, 2.000000]
+cayley-dickson: N(x)=4.000000 R2=4 exact N=4
+cayley-dickson: x*x=[-4.000000, 0.000000]
+cayley-dickson: left action L_x is 2x2, L_x(x) - x*x max gap 0.0e+0
+compare b*b: phi(b*_S b)=[0.000000, 4.000000] phi(b)*_CD phi(b)=[-4.000000, 0.000000] gap=4.000000 scalar=-4.000000 homomorphic=false
+compare b*rot(b): gap=4.000000 scalar=4.000000 homomorphic=false; CD |xy-yx|^2=0.000000
+== C=3 probe: Denum [3, [2, 5, 3, 7, 4]] .#%
+bound: “Denum(3,[9, 9, 3])”; bridge and bare source agree: true
+native: .#=3 .##=21 .###=3 (alternating signed sum)
+simplex: class=[6, 6, 0] R2=36
+simplex: b*b=[0, 36, 0] b*rot(b)=[36, 0, 0] rot(b)*b=[36, 0, 0]
+simplex: left action L_b is 2x2 [["6","-6"],["6","0"]]
+cayley-dickson: refused (Count 3 is not a power of two: no Cayley–Dickson algebra)
+== C=4: Denum [4, [1, 2, 3, 4, 5, 6]] .#%
+bound: “Denum(4,[6, 8, 3, 4])”; bridge and bare source agree: true
+native: .#=4 .##=21 .###=-3 (alternating signed sum)
+simplex: class=[2, 4, -1, 0] R2=59/3
+simplex: b*b=[13, 24, 20, 0] b*rot(b)=[11, 7, -13, 0] rot(b)*b=[11, 7, -13, 0]
+simplex: left action L_b is 3x3 [["2","1","-5"],["4","3","-4"],["-1","5","-2"]]
+cayley-dickson: x=phi(b)=[0.000000, -1.632993, 3.771236, 1.666667]
+cayley-dickson: N(x)=19.666667 R2=59/3 exact N=59/3
+cayley-dickson: x*x=[-19.666667, 0.000000, 0.000000, 0.000000]
+cayley-dickson: left action L_x is 4x4, L_x(x) - x*x max gap 0.0e+0
+compare b*b: phi(b*_S b)=[0.000000, -8.981462, -1.414214, 19.000000] phi(b)*_CD phi(b)=[-19.666667, 0.000000, 0.000000, 0.000000] gap=19.666667 scalar=-19.666667 homomorphic=false
+compare b*rot(b): gap=19.372075 scalar=3.000000 homomorphic=false; CD |xy-yx|^2=1511.111111
+== C=8: Denum [8, [3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5]] .#%
+bound: “Denum(8,[8, 4, 9, 1, 5, 9, 2, 6])”; bridge and bare source agree: true
+native: .#=8 .##=44 .###=4 (alternating signed sum)
+simplex: class=[2, -2, 3, -5, -1, 3, -4, 0] R2=528/7
+simplex: b*b=[-93, -18, -11, -100, -3, -58, -53, 0] b*rot(b)=[75, 82, -7, 90, 35, 40, 93, 0] rot(b)*b=[75, 82, -7, 90, 35, 40, 93, 0]
+simplex: left action L_b is 7x7
+cayley-dickson: x=phi(b)=[0.000000, 3.023716, -2.618615, 5.554921, 0.478091, -3.513240, 3.958973, -0.571429]
+cayley-dickson: N(x)=75.428571 R2=528/7 exact N=528/7
+cayley-dickson: x*x=[-75.428571, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000]
+cayley-dickson: left action L_x is 8x8, L_x(x) - x*x max gap 2.2e-15
+compare b*b: phi(b*_S b)=[0.000000, -56.694671, -38.842784, 54.931993, -50.199602, 12.686701, 5.773503, -48.000000] phi(b)*_CD phi(b)=[-75.428571, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000] gap=75.428571 scalar=-75.428571 homomorphic=false
+compare b*rot(b): gap=85.016423 scalar=42.285714 homomorphic=false; CD |xy-yx|^2=15605.551020
+== C=16: Denum [16, [3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5, 8, 9, 7, 9, 3, 2, 3, 8, 4]] .#%
+bound: “Denum(16,[5, 4, 12, 5, 5, 9, 2, 6, 5, 3, 5, 8, 9, 7, 9, 3])”; bridge and bare source agree: true
+native: .#=16 .##=97 .###=7 (alternating signed sum)
+simplex: class=[2, 1, 9, 2, 2, 6, -1, 3, 2, 0, 2, 5, 6, 4, 6, 0] R2=355/3
+simplex: b*b=[48, -46, -29, -18, -31, -28, -43, 38, -40, 22, 12, -84, -13, -20, 9, 0] b*rot(b)=[-94, -77, -66, -79, -76, -91, -10, -88, -26, -36, -132, -61, -68, -39, -48, 0] rot(b)*b=[-94, -77, -66, -79, -76, -91, -10, -88, -26, -36, -132, -61, -68, -39, -48, 0]
+simplex: left action L_b is 15x15
+cayley-dickson: x=phi(b)=[0.000000, 0.730297, -6.324555, 1.788854, 1.385641, -2.639865, 4.462187, 0.000000, 0.973729, 2.830521, 0.590839, -2.427120, -3.224903, -0.995227, -2.922056, 3.266667]
+cayley-dickson: N(x)=118.333333 R2=355/3 exact N=355/3
+cayley-dickson: x*x=[-118.333333, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000]
+cayley-dickson: left action L_x is 16x16, L_x(x) - x*x max gap 3.6e-15
+compare b*b: phi(b*_S b)=[0.000000, 68.647894, 25.298221, 8.049845, 18.244269, 12.067956, 24.542027, -56.999415, 25.682102, -37.776575, -24.322879, 72.723692, -3.555662, 3.674683, -25.514540, -14.866667] phi(b)*_CD phi(b)=[-118.333333, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000] gap=118.333333 scalar=-118.333333 homomorphic=false
+compare b*rot(b): gap=88.788804 scalar=21.400000 homomorphic=false; CD |xy-yx|^2=54469.665391
+== uniform C=2: Denum [2, [5, 5]] .#%
+bound: “Denum(2,5,5)”; bridge and bare source agree: true
+native: .#=2 .##=10 .###=0 (alternating signed sum)
+simplex: class=[0, 0] R2=0
+simplex: b*b=[0, 0] b*rot(b)=[0, 0] rot(b)*b=[0, 0]
+simplex: left action L_b is 1x1 [["0"]]
+cayley-dickson: x=phi(b)=[0.000000, 0.000000]
+cayley-dickson: N(x)=0.000000 R2=0 exact N=0
+cayley-dickson: x*x=[0.000000, 0.000000]
+cayley-dickson: left action L_x is 2x2, L_x(x) - x*x max gap 0.0e+0
+compare b*b: phi(b*_S b)=[0.000000, 0.000000] phi(b)*_CD phi(b)=[0.000000, 0.000000] gap=0.000000 scalar=0.000000 homomorphic=true
+compare b*rot(b): gap=0.000000 scalar=0.000000 homomorphic=true; CD |xy-yx|^2=0.000000
+== uniform C=3: Denum [3, [5, 5, 5]] .#%
+bound: “Denum(3,[5, 5, 5])”; bridge and bare source agree: true
+native: .#=3 .##=15 .###=5 (alternating signed sum)
+simplex: class=[0, 0, 0] R2=0
+simplex: b*b=[0, 0, 0] b*rot(b)=[0, 0, 0] rot(b)*b=[0, 0, 0]
+simplex: left action L_b is 2x2 [["0","0"],["0","0"]]
+cayley-dickson: refused (Count 3 is not a power of two: no Cayley–Dickson algebra)
+== uniform C=4: Denum [4, [5, 5, 5, 5]] .#%
+bound: “Denum(4,[5, 5, 5, 5])”; bridge and bare source agree: true
+native: .#=4 .##=20 .###=0 (alternating signed sum)
+simplex: class=[0, 0, 0, 0] R2=0
+simplex: b*b=[0, 0, 0, 0] b*rot(b)=[0, 0, 0, 0] rot(b)*b=[0, 0, 0, 0]
+simplex: left action L_b is 3x3 [["0","0","0"],["0","0","0"],["0","0","0"]]
+cayley-dickson: x=phi(b)=[0.000000, 0.000000, 0.000000, 0.000000]
+cayley-dickson: N(x)=0.000000 R2=0 exact N=0
+cayley-dickson: x*x=[0.000000, 0.000000, 0.000000, 0.000000]
+cayley-dickson: left action L_x is 4x4, L_x(x) - x*x max gap 0.0e+0
+compare b*b: phi(b*_S b)=[0.000000, 0.000000, 0.000000, 0.000000] phi(b)*_CD phi(b)=[0.000000, 0.000000, 0.000000, 0.000000] gap=0.000000 scalar=0.000000 homomorphic=true
+compare b*rot(b): gap=0.000000 scalar=0.000000 homomorphic=true; CD |xy-yx|^2=0.000000
+== uniform C=8: Denum [8, [5, 5, 5, 5, 5, 5, 5, 5]] .#%
+bound: “Denum(8,[5, 5, 5, 5, 5, 5, 5, 5])”; bridge and bare source agree: true
+native: .#=8 .##=40 .###=0 (alternating signed sum)
+simplex: class=[0, 0, 0, 0, 0, 0, 0, 0] R2=0
+simplex: b*b=[0, 0, 0, 0, 0, 0, 0, 0] b*rot(b)=[0, 0, 0, 0, 0, 0, 0, 0] rot(b)*b=[0, 0, 0, 0, 0, 0, 0, 0]
+simplex: left action L_b is 7x7
+cayley-dickson: x=phi(b)=[0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000]
+cayley-dickson: N(x)=0.000000 R2=0 exact N=0
+cayley-dickson: x*x=[0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000]
+cayley-dickson: left action L_x is 8x8, L_x(x) - x*x max gap 0.0e+0
+compare b*b: phi(b*_S b)=[0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000] phi(b)*_CD phi(b)=[0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000] gap=0.000000 scalar=0.000000 homomorphic=true
+compare b*rot(b): gap=0.000000 scalar=0.000000 homomorphic=true; CD |xy-yx|^2=0.000000
+== Cayley-Dickson laws by dimension
+CD C=1: N(e1)=n/a associative=true; commutative=true; norm-composition(sparse family)=true; zero-divisor none in 0 sparse pairs
+CD C=2: e1*e1=[-1, 0] N(e1)=1 associative=true; commutative=true; norm-composition(sparse family)=true; zero-divisor none in 0 sparse pairs
+CD C=4: e1*e1=[-1, 0, 0, 0] N(e1)=1 associative=true; commutative=false witness(e1,e2); norm-composition(sparse family)=true; zero-divisor none in 36 sparse pairs
+CD C=8: e1*e1=[-1, 0, 0, 0, 0, 0, 0, 0] N(e1)=1 associative=false witness(e1,e2,e4); commutative=false witness(e1,e2); norm-composition(sparse family)=true; zero-divisor none in 1764 sparse pairs
+CD C=16: e1*e1=[-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] N(e1)=1 associative=false witness(e1,e2,e4); commutative=false witness(e1,e2); norm-composition(sparse family)=false witness x=[0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0] y=[0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1] N(xy)=8 N(x)N(y)=4; zero-divisor x=[0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0] y=[0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1] after 3460 pairs
