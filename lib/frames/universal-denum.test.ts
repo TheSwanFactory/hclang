@@ -22,20 +22,20 @@ import {
   MemoryStore,
 } from "../frames.ts";
 import { evaluate } from "../execute/evaluate.ts";
-import { constructDemi } from "../execute/demi-prologue.ts";
+import { constructDenum } from "../execute/denum-prologue.ts";
 import { FrameHandle } from "./frame-handle.ts";
 
 const last = (source: string): Frame =>
   evaluate(source).at(-1).asArray().at(-1)!;
 
-/** The value of a one-expression source that answers an aggregate, a Demi. */
+/** The value of a one-expression source that answers an aggregate, a Denum. */
 const value = (source: string): Frame =>
   FrameExpr.answeredValue(evaluate(source).at(-1)).referent();
 
 /**
- * A Demi's state as the retired native encoding spelled it, orientation then
+ * A Denum's state as the retired native encoding spelled it, orientation then
  * loads, read from the fields of the HC instance (011.20); undefined when the
- * value is not a Demi.
+ * value is not a Denum.
  */
 const encode = (
   value: Frame,
@@ -47,15 +47,15 @@ const encode = (
   return [phase.toString() === "2" ? "all" : "nil", `${left}`, `${right}`];
 };
 
-/** The full Count a Demi keeps (007.25c), as a bigint. */
+/** The full Count a Denum keeps (007.25c), as a bigint. */
 const countOf = (value: Frame): bigint => BigInt(`${value.getOwn("count")}`);
 
-/** The loads and phase of a Demi, as bigints and the orientation. */
+/** The loads and phase of a Denum, as bigints and the orientation. */
 const loads = (
   value: Frame,
 ): { left: bigint; right: bigint; even: boolean } => {
   const state = encode(value);
-  if (!state) throw new Error(`not a Demi: ${value}`);
+  if (!state) throw new Error(`not a Denum: ${value}`);
   return {
     left: BigInt(state[1]),
     right: BigInt(state[2]),
@@ -100,16 +100,16 @@ Deno.test("sized values take Count from Size and residual from Count parity (011
     const residual = value.sizeFor("###");
     expect(residual.className()).toEqual("FrameInt");
     expect(residual.toString()).toEqual((n % 2n).toString());
-    const demi = value.sizeFor("####");
+    const denum = value.sizeFor("####");
     if (n === 0n) {
-      expect(demi).toBe(Frame.nil);
+      expect(denum).toBe(Frame.nil);
     } else {
-      const d = loads(demi);
+      const d = loads(denum);
       expect(d.left + d.right).toEqual(n);
       expect(d.left - d.right).toEqual(n % 2n);
       expect(d.even).toBe(n % 2n === 0n);
       // The Count is kept whole, not reduced to its parity (007.25c).
-      expect(countOf(demi)).toEqual(n);
+      expect(countOf(denum)).toEqual(n);
     }
   }
   // A non-atom with Count from Size follows the same rule (011.18m).
@@ -189,21 +189,21 @@ Deno.test("fourth hash distinguishes atom/schema absence, empty hosts and presen
     expect(countOf(value(`${source}.####`)), source).toEqual(n);
     expect(value(`${source}.####.#`).toString(), source).toEqual(`${n}`);
   }
-  // Same phase and loads, different Counts: different Demis.
+  // Same phase and loads, different Counts: different Denums.
   expect(
     value("[5, 3].####").equals(value("[5, 3, 0, 0].####")),
   ).toBe(Frame.nil);
   expect(
     value("[5, 3].####.left = [5, 3, 0, 0].####.left").toString(),
   ).toEqual("<>");
-  // Deposit is application and scaling a method; the Demi class also declares
+  // Deposit is application and scaling a method; the Denum class also declares
   // the arithmetic operators as methods, so `+` deposits on the right and `*`
-  // scales, each answering a fresh Demi rather than nil or a Star refusal
+  // scales, each answering a fresh Denum rather than nil or a Star refusal
   // (015.02).
-  expect(value("“” ([[],[]].#### 3)").toString()).toEqual("“Demi(3,4,1)”");
-  expect(value("“” (7.####.scale_ 2)").toString()).toEqual("“Demi(7,8,6)”");
-  expect(value("“” ([[],[]].#### + 3)").toString()).toEqual("“Demi(2,1,4)”");
-  expect(value("“” (7.#### * 2)").toString()).toEqual("“Demi(7,8,6)”");
+  expect(value("“” ([[],[]].#### 3)").toString()).toEqual("“Denum(3,4,1)”");
+  expect(value("“” (7.####.scale_ 2)").toString()).toEqual("“Denum(7,8,6)”");
+  expect(value("“” ([[],[]].#### + 3)").toString()).toEqual("“Denum(2,1,4)”");
+  expect(value("“” (7.#### * 2)").toString()).toEqual("“Denum(7,8,6)”");
   // Nil has no Count; all is the present empty, observed exactly as [] (011.18k).
   expect(evaluate("().#").toString()).toEqual("[]");
   expect(last("<>.#").toString()).toEqual("0");
@@ -226,7 +226,7 @@ Deno.test("fourth hash distinguishes atom/schema absence, empty hosts and presen
   expect(last(".####").toString()).toEqual(".####");
 });
 
-Deno.test("derived Demi obeys projections over nested mixed values, sharing and bigint Counts", () => {
+Deno.test("derived Denum obeys projections over nested mixed values, sharing and bigint Counts", () => {
   const shared = new FrameArray([new FrameCount(5n), new FrameString("ab")]);
   const values = [
     new FrameArray([shared, shared, new FrameArray([shared])]),
@@ -348,18 +348,20 @@ Deno.test("missing Count falls back to Size, and missing residual to Count parit
       return super.sizeFor(key);
     }
   }
-  expect(new Invalid().sizeFor("####").toString()).toEqual("$!.demi-coherence");
+  expect(new Invalid().sizeFor("####").toString()).toEqual(
+    "$!.denum-coherence",
+  );
 });
 
-Deno.test("native append and Star commute with Demi application and scaling on pure shapes", () => {
+Deno.test("native append and Star commute with Denum application and scaling on pure shapes", () => {
   const shapes: FrameArray[] = [new FrameArray([])];
   for (let i = 0; i < 6; i++) {
     shapes.push(new FrameArray([shapes[i]]));
     shapes.push(new FrameArray([shapes[0], shapes[i]]));
   }
-  // The empty host has no Demi; it lifts to the Demi of Count zero, which is
+  // The empty host has no Denum; it lifts to the Denum of Count zero, which is
   // present (007.25c), where the two zero children of `[0, 0]` are Count two.
-  const lifted = constructDemi(
+  const lifted = constructDenum(
     new FrameCount(0n),
     new FrameCount(0n),
     new FrameCount(0n),

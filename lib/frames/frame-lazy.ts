@@ -196,7 +196,7 @@ export class FrameLazy extends FrameExpr {
   /**
    * `.#` counts the body's represented words (#429). `.##` sums their native
    * Sizes without execution or evaluation-site registration; an empty body
-   * retains Size 1. Residual alternates complete stored-word Sizes; Demi
+   * retains Size 1. Residual alternates complete stored-word Sizes; Denum
    * derives from those observations (011.18c). The operator reaches a closure
    * as its argument and is answered before its body runs.
    */

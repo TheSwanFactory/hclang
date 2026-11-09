@@ -72,7 +72,7 @@ System errors keep the spelling they print today, apart from bounds errors:
 1 / 0          => $!.division-by-zero /                        unchanged
 [].nope        => $!.name-missing “$:FrameArray.84.nope”;      unchanged
 [1] .5         => $!.bounds-exceeded “[0..1].5”;               was $>.bounds-exceeded …
-Demi [2, 0]    => $!!.invalid-demi                             was $!.invalid-demi
+Denum [2, 0]    => $!!.invalid-denum                             was $!.invalid-denum
 $!!.zero       => $!!.zero                                     was written $!.zero
 ```
 
@@ -80,14 +80,14 @@ $!!.zero       => $!!.zero                                     was written $!.ze
 evaluating a `$!!.reason` literal, or from user code raising `$!.reason`
 (decision 2). Everything constructed in TypeScript under `lib/` is a system
 error, including errors the interpreter makes while running bundled HC, such as
-`$!.demi-prologue-missing`.
+`$!.denum-prologue-missing`.
 
 So the interpreter's roughly 270 `$!.` construction sites in `lib/`, and the
 expectations that print them, stay as they are. What changes:
 
 - the user literal, from `$!.reason` to `$!!.reason`, in spec 10's tests and the
   docs;
-- the four bundled refusals that #472 migrated: `$!!.invalid-demi`,
+- the four bundled refusals that #472 migrated: `$!!.invalid-denum`,
   `$!!.invalid-scale`, `$!!.unsupported-figure` and `$!!.invalid-router`, and
   the expectations that print them;
 - the bounds note's rendering, from `$>.` to `$!.`;
@@ -101,7 +101,7 @@ reason (decision 2), with its subject dropped, as today.
 Decision 2 gives `$!.reason` two meanings by position:
 
 - **As a kind,** inside a schema: `<$!.division-by-zero>` matches system errors
-  with that reason, and `<$!!.invalid-demi>` matches user errors with theirs.
+  with that reason, and `<$!!.invalid-denum>` matches user errors with theirs.
 - **As a raised value,** in expression position: `$!.division-by-zero` written
   in user code answers `$!!.division-by-zero`.
 
@@ -240,7 +240,7 @@ x $!{(($# ~ <$!.division-by-zero>) ? {[0]} : {[$#.!]}) .0}       0 on a match
 | ------------------------------- | ------------------------------------------------------------------------------------------------ |
 | Lexer (`frame-scope-anchor.ts`) | `$!` operator, `$!!.reason` literal, `$!.reason` kind literal, `$#` anchor, legacy notes removed |
 | `lib/` error construction       | Unchanged for system errors; bounds note renders `$!.`; `type-mismatch` removed                  |
-| Bundled refusals                | `$!!.` in `hc/demi.hc`, `hc/figures.hc`, `hc/rotor-router.hc` and their expectations             |
+| Bundled refusals                | `$!!.` in `hc/denum.hc`, `hc/figures.hc`, `hc/rotor-router.hc` and their expectations            |
 | User-literal tests and docs     | `$!.reason` to `$!!.reason` (spec 10's tests, `doc/GRAMMAR.md`, `doc/LANGUAGE.md`)               |
 | Reducer (`frame-expr.ts`)       | The `$!` boundary: spaced split and catcher terms                                                |
 | Observation                     | A frame type for observations, the `$#` anchor and its members, kind matching                    |

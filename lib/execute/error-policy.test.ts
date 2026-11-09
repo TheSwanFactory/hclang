@@ -255,10 +255,10 @@ Deno.test("mutating methods return failures without undoing completed writes", (
 Deno.test("bundled refusals are named errors even with colliding caller bindings", async () => {
   const session = new HCLang();
   await session.call(
-    ".unsupported-figure 7; .invalid-demi 8; .invalid-scale 9; .invalid-router 10;",
+    ".unsupported-figure 7; .invalid-denum 8; .invalid-scale 9; .invalid-router 10;",
   );
   await session.call(
-    "Figures <- './hc/figures.hc'; Demis <- './hc/demi.hc'; Routers <- './hc/rotor-router.hc';",
+    "Figures <- './hc/figures.hc'; Denums <- './hc/denum.hc'; Routers <- './hc/rotor-router.hc';",
   );
   // A closure cannot bind a schema or nil argument, so no source input reaches
   // Gap's refusing branch; check the literal it holds and the same refusal.
@@ -269,7 +269,9 @@ Deno.test("bundled refusals are named errors even with colliding caller bindings
   for (
     const input of ["[2, 0]", "[2, 0, 0, 0]", "(2, 0, 0)", "“abc”", "()", "5"]
   ) {
-    expect(await session.call(`Demis.Demi ${input}`)).toBe("$!!.invalid-demi");
+    expect(await session.call(`Denums.Denum ${input}`)).toBe(
+      "$!!.invalid-denum",
+    );
   }
   for (
     const input of [
@@ -287,9 +289,9 @@ Deno.test("bundled refusals are named errors even with colliding caller bindings
     expect(await session.call(`Routers.RotorRouter ${input}`))
       .toBe("$!!.invalid-router");
   }
-  expect(await session.call("(Demis.Demi [2, 0, 0]).scale_ (0 - 1)"))
+  expect(await session.call("(Denums.Denum [2, 0, 0]).scale_ (0 - 1)"))
     .toContain("$!!.invalid-scale");
-  expect(await session.call("[5, 3].#### = (Demis.Demi [2, 5, 3])"))
+  expect(await session.call("[5, 3].#### = (Denums.Denum [2, 5, 3])"))
     .toBe("<>");
 });
 

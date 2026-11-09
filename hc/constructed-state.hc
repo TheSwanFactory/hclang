@@ -1,6 +1,6 @@
 #!/usr/bin/env hc
 ```
-Demi constructed physical state: VACT witness and scope (Explore 022.06)
+Denum constructed physical state: VACT witness and scope (Explore 022.06)
 
 Implements the corrected handoff in occurrence/explore 022.05a, pinned at
 9d966bd95a783849c0363d82ee295586e0ffc6db581815b443140d746843eec8:
@@ -26,7 +26,7 @@ a metadata-only empty host, as checked below. Append/observation can still
 read such a host; it is outside the closed Inlay construction family. No declared hash methods, declared parents, cycles, or arbitrary
 property-editing operations are in the uniform contract. This is a domain for
 this construction/observation experiment, not a special ontology of pure Figures.
-Other finite Frames can have Demi readings; their constructor laws require their
+Other finite Frames can have Denum readings; their constructor laws require their
 own domain checks. In particular, mixed-array append is illustrated below but
 mixed-array Star is outside this contract.
 
@@ -56,7 +56,7 @@ within each load are forgotten.
 ```
 Generation and selective compression
 
-No Demi is initialized when building X. The native reading derives from the
+No Denum is initialized when building X. The native reading derives from the
 constructed host. Equal readings can hide different nesting, while another
 construction gives a different reading. The reading keeps the Count, so two
 hosts with the same loads and phase but different Counts have different
@@ -69,7 +69,7 @@ readings.
 ; [C.#, F.#, C = F, C.#### = F.####, C.####.left = F.####.left, C.####.right = F.####.right, C.####.phase = F.####.phase, A.#### = C.####]
 # [2, 4, (), (), <>, <>, <>, ()]
 ; [“” A.####, “” C.####, “” F.####, “” [[], [[], []]].####]
-# [“Demi(1,1,0)”, “Demi(2,2,2)”, “Demi(4,2,2)”, “Demi(2,1,2)”]
+# [“Denum(1,1,0)”, “Denum(2,2,2)”, “Denum(4,2,2)”, “Denum(2,1,2)”]
 ```
 Uniform append and Inlay, including successive compositions
 
@@ -83,7 +83,7 @@ It works for either parity, independent of the shape or size of Y.
 ; [(A Y).#### = (A.#### Y), (C Y).#### = (C.#### Y), (X Y).#### = (X.#### Y)]
 # [<>, <>, <>]
 ; [“” (A Y).####, “” (C Y).####, “” ((C Y) []).####]
-# [“Demi(2,1,3)”, “Demi(3,5,2)”, “Demi(4,5,3)”]
+# [“Denum(2,1,3)”, “Denum(3,5,2)”, “Denum(4,5,3)”]
 ; ([5, “ab”] []).#### = ([5, “ab”].#### [])
 # <>
 ```
@@ -105,9 +105,9 @@ specified append/substitution operations explain why the readings commute.
 ```
 Origin and channel names
 
-The empty host has no Demi, despite Size 1. Its first append generates a
+The empty host has no Denum, despite Size 1. Its first append generates a
 present reading. Applying nil is not the append update; a zero-load phase-2
-Demi of Count zero is an explicit initialized-router convention, not a
+Denum of Count zero is an explicit initialized-router convention, not a
 preconstruction state secretly stored in []. A zero Size deposit still adds one
 to the Count and so changes routing phase.
 ```
@@ -115,28 +115,28 @@ to the Count and so changes routing phase.
 # [1, 1, 0]
 ; [([] Y).#### = ([].#### Y), ([] * Y).#### = Y.####]
 # [(), <>]
-; Demis <- './hc/demi.hc';
-; ([] Y).#### = ((Demis.Demi [0, 0, 0]) Y)
+; Denums <- './hc/denum.hc';
+; ([] Y).#### = ((Denums.Denum [0, 0, 0]) Y)
 # <>
-; [“” [0].####, “” ([0].#### 0), [].#### = [0].####, [].#### = (Demis.Demi [0, 0, 0]), (Demis.Demi [0, 0, 0]).#### = (Demis.Demi [0, 0, 0])]
-# [“Demi(1,0,0)”, “Demi(2,0,0)”, (), (), <>]
+; [“” [0].####, “” ([0].#### 0), [].#### = [0].####, [].#### = (Denums.Denum [0, 0, 0]), (Denums.Denum [0, 0, 0]).#### = (Denums.Denum [0, 0, 0])]
+# [“Denum(1,0,0)”, “Denum(2,0,0)”, (), (), <>]
 ```
 For a proposed relabeling, exchange the loads AND toggle which named channel
 is next: J(n,L,R) = (n+1,R,L). Toggling the phase changes the parity of the
-Count, and a Demi derives its phase from its Count, so the relabeling moves the
+Count, and a Denum derives its phase from its Count, so the relabeling moves the
 Count by one rather than leaving it fixed; the Count has no mirror image of its
 own. Total load stays fixed and residual changes sign. J commutes with deposit
 and scale; this is equivariance of a named router representation, not
 invariance of its signed readout, not reversal of the host, and not a new native
 constructor. Applying J twice returns the loads and the phase, with the Count
 two higher, so it is an involution on phase and loads and not on Count. The
-following closure only checks that explicit relabeling using the existing Demi
+following closure only checks that explicit relabeling using the existing Denum
 class.
 ```
-; .swap {.d _; Demis.Demi [(d.count + 1), d.right, d.left]};
+; .swap {.d _; Denums.Denum [(d.count + 1), d.right, d.left]};
 ; .q [[], [[], []]].####;
 ; [“” q, “” (swap q), (swap q).## = q.##, (swap q).### = (0 - q.###)]
-# [“Demi(2,1,2)”, “Demi(3,2,1)”, <>, <>]
+# [“Denum(2,1,2)”, “Denum(3,2,1)”, <>, <>]
 ; [(swap (q Y)) = ((swap q) Y), (swap ((q Y) [])) = (((swap q) Y) []), (swap (q.scale_ 3)) = ((swap q).scale_ 3)]
 # [<>, <>, <>]
 ; [(swap (swap q)).phase = q.phase, (swap (swap q)).left = q.left, (swap (swap q)).right = q.right, (swap (swap q)).count = (q.count + 2), (swap (swap q)) = q]
@@ -175,7 +175,7 @@ pointer as phase 2 or 1. Read n by counting immediate trays, which the pointer's
 position repeats only in parity, S by counting all
 terminal sticks, and A by subtracting the bin populations. No separately
 supplied state vector or stochastic routing law is needed. The empty host's
-one terminal stick is not an immediate child deposit: report no Demi until
+one terminal stick is not an immediate child deposit: report no Denum until
 construction places a first child. A physical pointer's initial left choice
 is part of this selected measurement convention.
 
@@ -199,13 +199,13 @@ counts and occurrence copies; it measures no material noise or physical law.
 Five-criterion verdict and evidence scope
 
 1. Derived: VACTED by execution for the examples; uniformly vacted under the
-   construction/observer contract. Hosts are built before their Demi is read.
+   construction/observer contract. Hosts are built before their Denum is read.
 2. Compressive: VACTED by distinct equal-reading constructions. Representation
    has three unbounded Counts, n, L and R, with the phase derived from n; fixed
    dimension is not bounded bits.
 3. Forced update: VACTED by execution for the displayed compositions; uniformly
    vacted by the append and substitution recipes on the declared domain.
-4. Origin: VACTED for no supplied host Demi and the first-construction boundary.
+4. Origin: VACTED for no supplied host Denum and the first-construction boundary.
    Channel relabeling is CONDITIONALLY VACTED as the explicit router
    equivariance above. Full origin/gauge invariance is NOT YET VACTED.
 5. Earned forgetting: uniformly vacted for the specified future constructor

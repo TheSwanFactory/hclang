@@ -21,9 +21,9 @@ and program is composed of frames. This unified representation enables:
 ### Basic Types
 
 - [fourth-hash.ts](fourth-hash.ts) - The derivation of `.####` from Count, Size
-  and residual. The Demi it answers is an HC class, `hc/demi.hc`, whose
-  constructor the evaluator installs (`installDemiConstructor`); see
-  [the Demi document](../../doc/FRAME-DEMI.md).
+  and residual. The Denum it answers is an HC class, `hc/denum.hc`, whose
+  constructor the evaluator installs (`installDenumConstructor`); see
+  [the Denum document](../../doc/FRAME-DENUM.md).
 
 - [frame-numeric.ts](frame-numeric.ts) - Rank-based numeric dispatch and the
   promotion ladder; see [Numeric Ladder](#numeric-ladder)
@@ -485,10 +485,10 @@ past `OBSERVATION_DEPTH_LIMIT` (32) is `$!.observation-depth`. The method runs
 on every observation and cannot write its receiver, but may act on other state
 it reaches. `.####` is derived from the three, so a class that declares them
 gets its fourth hash. No class declares `.####`: a method under that name is an
-ordinary property `.####` never runs. Because the three cannot tell a Demi of
+ordinary property `.####` never runs. Because the three cannot tell a Denum of
 Count zero from an empty host, `fourth-hash.ts` recognizes an instance of the
-shipped Demi class intrinsically: stored Counts `count`, `left`, `right` and
-`==` to the Demi the constructor builds from them, answering that fresh
+shipped Denum class intrinsically: stored Counts `count`, `left`, `right` and
+`==` to the Denum the constructor builds from them, answering that fresh
 reconstruction (007.25e). Anything else takes the derived path.
 
 The interpreter's own output is not application. The evaluator's output array is

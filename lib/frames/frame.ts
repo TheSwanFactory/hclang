@@ -600,8 +600,8 @@ export class Frame extends MetaFrame {
    * (occurrence/figure 011.18k, 011.18m). Schemas and nil have nil residual.
    */
   public static readonly kRESIDUAL = "###";
-  /** Derived nullable Demi, an instance of the HC class in `hc/demi.hc` (011.20). */
-  public static readonly kDEMI = "####";
+  /** Derived nullable Denum, an instance of the HC class in `hc/denum.hc` (011.20). */
+  public static readonly kDENUM = "####";
   /**
    * The size operators, the only names spelled with `#` (#411). Each answers
    * for its receiver through `sizeFor`, never through name lookup.
@@ -610,7 +610,7 @@ export class Frame extends MetaFrame {
     Frame.kCOUNT,
     Frame.kLEAVES,
     Frame.kRESIDUAL,
-    Frame.kDEMI,
+    Frame.kDENUM,
   ];
   /**
    * BEGIN_EXPR is the symbol for the beginning of an expression.
@@ -957,7 +957,7 @@ export class Frame extends MetaFrame {
   public static signed: (value: bigint) => Frame;
 
   /** Installed by `fourth-hash.ts`, avoiding a base-to-subclass import cycle. */
-  public static demi: (source: Frame) => Frame;
+  public static denum: (source: Frame) => Frame;
 
   /**
    * Whether this value is itself an error, flagged as such. A diagnostic
@@ -976,10 +976,10 @@ export class Frame extends MetaFrame {
   }
 
   /**
-   * Native Count, Size, residual and derived Demi. Missing Count falls back to
+   * Native Count, Size, residual and derived Denum. Missing Count falls back to
    * Size, and missing residual to Count parity; kinds with their own rules
-   * (lists, schemas, Demi, all) supply them explicitly (011.18k, 011.18m).
-   * Nil has no Count, so no residual or Demi.
+   * (lists, schemas, Denum, all) supply them explicitly (011.18k, 011.18m).
+   * Nil has no Count, so no residual or Denum.
    */
   public sizeFor(key: string): Frame {
     if (!Frame.SIZE_OPERATORS.includes(key)) return Frame.nil;
@@ -1002,8 +1002,8 @@ export class Frame extends MetaFrame {
         const data = (n as unknown as { data?: unknown }).data;
         return typeof data === "bigint" ? Frame.signed(data % 2n) : Frame.nil;
       }
-      case Frame.kDEMI:
-        return Frame.demi(this);
+      case Frame.kDENUM:
+        return Frame.denum(this);
       default:
         return Frame.nil;
     }

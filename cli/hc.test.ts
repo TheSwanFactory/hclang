@@ -379,9 +379,9 @@ describe("main", () => {
     );
   });
 
-  it("keeps the Demi class testdoc green (011.20)", async () => {
+  it("keeps the Denum class testdoc green (011.20)", async () => {
     const out = new FrameArray([]);
-    const file = new URL("../hc/demi.hc", import.meta.url).pathname;
+    const file = new URL("../hc/denum.hc", import.meta.url).pathname;
     const status = await main(
       getEval({}, out),
       getOptions(["--testdoc", file]),

@@ -173,7 +173,7 @@ complete at a colon with or without intervening space.
   call's argument, and so on per underscore). An argument is read-only, as a
   name is: applying an aggregate read through `_` collects onto a copy
 - **Parent declaration**: `.^` (declares the parent; `.^ base`)
-- **Size and Demi**: `.#` counts immediate elements/represented words of lists,
+- **Size and Denum**: `.#` counts immediate elements/represented words of lists,
   returns a Count's own magnitude, returns zero for `<>` and void comments, and
   returns nil for `()`, which has no Count. A missing kind-specific Count falls
   back to `.##`; an explicit Count wins. `.##` measures represented quantity:
@@ -187,15 +187,15 @@ complete at a colon with or without intervening space.
   residual. An aggregate may declare its own `.#`, `.##` and `.###` as methods
   of those names. `.####` returns nil for no Count, zero Count or nil residual;
   otherwise it derives the loads `(Size+residual)/2` and `(Size−residual)/2` and
-  answers an instance of the HC class `Demi` in `hc/demi.hc` that keeps the
-  whole Count (`Demi [Count, left, right]`), its phase derived as 2 for even
-  Count and 1 for odd. No class declares `.####`; an instance of `Demi` itself
-  is recognized intrinsically and answers a fresh equal Demi, so a Demi of Count
-  zero is present while `[].####` stays nil. Errors propagate, including cycles
-  and nonfinite quantities; incoherent loads are explicit errors. Four hashes
-  form an observer name; a fifth starts a comment. Earlier `.###` immediately
-  followed by a hash comment therefore changes tokenization. See
-  `doc/FRAME-DEMI.md` for the Demi class and compatibility matrix.
+  answers an instance of the HC class `Denum` in `hc/denum.hc` that keeps the
+  whole Count (`Denum [Count, left, right]`), its phase derived as 2 for even
+  Count and 1 for odd. No class declares `.####`; an instance of `Denum` itself
+  is recognized intrinsically and answers a fresh equal Denum, so a Denum of
+  Count zero is present while `[].####` stays nil. Errors propagate, including
+  cycles and nonfinite quantities; incoherent loads are explicit errors. Four
+  hashes form an observer name; a fifth starts a comment. Earlier `.###`
+  immediately followed by a hash comment therefore changes tokenization. See
+  `doc/FRAME-DENUM.md` for the Denum class and compatibility matrix.
 - **Enclosing scope**: `_^` (`_^.var`). Each caret is exactly one enclosing
   lexical scope: `_^^` is two scopes out. The count depends only on where the
   closure was written, never on how it was invoked. `_`/`__` and `_^`/`_^^` are
@@ -229,8 +229,8 @@ All mathematical operators can use optional `.` prefix:
   channel i mod n, and answers the `RotorRouter` of those channels:
   `([A, B, C, D, E] ./ 2).channels` is `[[A, C, E], [B, D]]` (007.27). Dividing
   that router again re-deals the same elements, so `(X ./ n) ./ m` is `X ./ m`
-  (007.27c). `Demi` and `RotorRouter` declare their own `/`, which redistributes
-  into n channels (`doc/FRAME-DEMI.md`).
+  (007.27c). `Denum` and `RotorRouter` declare their own `/`, which
+  redistributes into n channels (`doc/FRAME-DENUM.md`).
 
 The dotted spellings dispatch exactly as the bare ones, on every receiver
 (`xs .* 2` is `xs * 2`).
@@ -264,7 +264,7 @@ The dotted spellings dispatch exactly as the bare ones, on every receiver
 Errors have two namespaces. `$!.reason` is a **system error**, made by the
 interpreter: `$!.division-by-zero`, `$!.name-missing`, `$!.bounds-exceeded`.
 `$!!.reason` is a **user error**, raised by HC code, bundled modules included:
-`$!!.invalid-demi`, `$!!.unsupported-figure`.
+`$!!.invalid-denum`, `$!!.unsupported-figure`.
 
 `$!!.reason` constructs a flagged user error without a name lookup. The reason
 matches `[A-Za-z_][A-Za-z0-9_-]*`; a boundary or EOF ends the atom, and a

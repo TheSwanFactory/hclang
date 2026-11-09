@@ -2,8 +2,8 @@ import { expect } from "jsr:@std/expect@^0.219.1";
 import * as f from "../frames.ts";
 import { BoundMethod } from "./bound-method.ts";
 import { FrameHandle } from "./frame-handle.ts";
-// Installs the HC Demi class that `.####` answers (011.20).
-import { constructDemi } from "../execute/demi-prologue.ts";
+// Installs the HC Denum class that `.####` answers (011.20).
+import { constructDenum } from "../execute/denum-prologue.ts";
 
 // Compatibility evidence, not a fourth observer. Nil here records a missing
 // integer observation; it must never be converted to a numerical zero.
@@ -13,7 +13,7 @@ const observations = (value: f.Frame): string[] =>
     return result === f.Frame.nil ? "nil" : result.toString();
   });
 
-/** A Demi instance's phase and loads, read from its fields (011.20). */
+/** A Denum instance's phase and loads, read from its fields (011.20). */
 const state = (value: f.Frame): [string, string, string] =>
   ["phase", "left", "right"].map((key) => `${value.getOwn(key)}`) as [
     string,
@@ -21,10 +21,10 @@ const state = (value: f.Frame): [string, string, string] =>
     string,
   ];
 
-/** The full Count a Demi keeps (007.25c). */
+/** The full Count a Denum keeps (007.25c). */
 const countOf = (value: f.Frame): string => `${value.getOwn("count")}`;
 
-Deno.test("Demi compatibility matrix: all concrete Frame families stay non-executing", () => {
+Deno.test("Denum compatibility matrix: all concrete Frame families stay non-executing", () => {
   const c = new f.FrameCount(5n);
   const array = new f.FrameArray([c, new f.FrameCount(3n)]);
   const closure = new f.FrameLazy([c, new f.FrameCount(3n)]);
@@ -112,17 +112,17 @@ Deno.test("Demi compatibility matrix: all concrete Frame families stay non-execu
   const rows: [f.Frame, string[]][] = [
     [new f.FrameCount(0n), ["0", "0", "0"]],
     [c, ["5", "5", "1"]],
-    [constructDemi(new f.FrameCount(1n), c, new f.FrameCount(0n)), [
+    [constructDenum(new f.FrameCount(1n), c, new f.FrameCount(0n)), [
       "1",
       "5",
       "5",
     ]],
-    [constructDemi(new f.FrameCount(2n), c, new f.FrameCount(0n)), [
+    [constructDenum(new f.FrameCount(2n), c, new f.FrameCount(0n)), [
       "2",
       "5",
       "5",
     ]],
-    [constructDemi(new f.FrameCount(7n), c, new f.FrameCount(0n)), [
+    [constructDenum(new f.FrameCount(7n), c, new f.FrameCount(0n)), [
       "7",
       "5",
       "5",
@@ -185,7 +185,7 @@ Deno.test("Demi compatibility matrix: all concrete Frame families stay non-execu
   }
 });
 
-Deno.test("Demi cycles propagate errors while shared descendants stay coherent", () => {
+Deno.test("Denum cycles propagate errors while shared descendants stay coherent", () => {
   const cycle = new f.FrameArray([]);
   cycle.collect(cycle);
   expect(observations(cycle)).toEqual([

@@ -385,8 +385,8 @@ export class FrameArray extends FrameList {
    * Count, Size and residual. `.####` is not among them, because it is derived
    * from these three, so a class that declares them gets it for free. No
    * class declares `.####`: a method under that name is an ordinary property
-   * the fourth hash never runs. The one Demi these cannot derive, a constructed
-   * zero-Count Demi, is recognized intrinsically (`fourth-hash.ts`).
+   * the fourth hash never runs. The one Denum these cannot derive, a constructed
+   * zero-Count Denum, is recognized intrinsically (`fourth-hash.ts`).
    */
   public static readonly OBSERVATION_KEYS: readonly string[] = [
     Frame.kCOUNT,
