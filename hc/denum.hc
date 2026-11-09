@@ -858,6 +858,71 @@ which could be either, is refused by the lexer: write `.# %%`
 ; [[5, 3, 1].# %% 2, (Denum [3, [1]]).# %% 2, (Denum [3, [1]]).#% .#] # a comment after
 # [1, 1, 3]
 ```
+## Geometric observers, `.##%` … `.###%%%` (experimental)
+Six observers read a Denum through a geometry (occurrence/figure 007.41b,
+007.41c). Each first binds the Denum with `.#%`, so all of them read the same
+C loads `B = [b0, …, b(C−1)]`, and every refusal of `.#%` is theirs too. The
+`##` spelling answers a squared magnitude, exact and nonnegative: a Count when
+whole and a rational otherwise. The `###` spelling answers a fresh list of
+signed coordinates, never a Denum and never a single number. They are
+observations only: no load, native observer or operator changes, and no
+algebra product is installed
+
+The centered simplex, `%`, places the C loads on the vertices of a regular
+simplex centred at zero. `.##%` is `(C·Σbi² − S²)/(C−1)` with `S = Σbi`, and
+`.###%` is the centred coefficients `bi − S/C`, which sum to zero; their
+numerators over C are `C·bi − S`. Adding the same amount to every load
+changes neither, and Count 1 is the degenerate simplex, of magnitude 0
+```
+; .Sd (Denum [3, [2, 5, 3, 7, 4]]);
+; [Sd.##%, Sd.###%, (Sd.#%).##% = Sd.##%, “” Sd]
+# [36, [2, 2, -4], <>, “Denum(3,[2, 5, 3, 7, 4])”]
+; [(Denum [2, [3, 1]]).##%, (Denum [4, [2, 4, 2, 4]]).##%, (Denum [3, [1]]).###%, (Denum [3, [4, 4, 4]]).##%, (Denum [1, [5, 3]]).###%]
+# [4, 16/3, [2/3, -1/3, -1/3], 0, [0]]
+```
+The Cayley–Dickson observers, `%%`, need a Count that is a power of two, the
+dimension of a Cayley–Dickson algebra; any other Count is
+`$!.denum-cd-count`. They map the simplex coordinates isometrically onto the
+C−1 imaginary units with the fixed-sign Helmert basis of the 007.41
+experiment: `.###%%` is `[0, x1, …, x(C−1)]` with
+`xk = √(C/(C−1))·(b0 + … + b(k−1) − k·bk)/√(k(k+1))`, and `.##%%` is
+`Σ xk²`. Each `xk²` is rational, so `.##%%` is exact and equals `.##%`. A
+coordinate is exact when it is rational and a double where it has a radical.
+Equal magnitudes do not make the products agree: at C = 2, `B = [3, 1]` maps to
+`x = [0, 2]`, whose Cayley–Dickson square is −4, while the simplex magnitude is
++4
+```
+; [(Denum [2, [3, 1]]).###%%, (Denum [2, [3, 1]]).##%%, (Denum [4, [2, 4, 2, 7]]).##%% = (Denum [4, [2, 4, 2, 7]]).##%, ((Denum [4, [2, 4, 2, 7]]).###%%) .3]
+# [[0, 2], 4, <>, -13/3]
+; [(Denum [3, [1]]).##%%, (Denum [6, [1]]).###%%, (Denum [1, [5]]).###%%]
+# [$!.denum-cd-count, $!.denum-cd-count, [0]]
+```
+The cross-polytope observers, `%%%`, place one load on each vertex of a
+cross-polytope, `C = 2n` vertices `+e0 … +e(n−1), −e0 … −e(n−1)`, so `bi` and
+`b(i+n)` are opposite. `.###%%%` is the antipodal residual `ri = bi − b(i+n)`
+and `.##%%%` is `Σ ri²`, zero exactly when every opposite pair matches. An odd
+Count has no such pairing and is `$!.denum-cross-count`; that refuses only this
+one-load-per-vertex binding, since a cross-polytope exists in every dimension n
+```
+; [(Denum [4, [2, 4, 2, 4]]).###%%%, (Denum [4, [2, 4, 2, 4]]).##%%%, (Denum [6, [5, 2, 3, 5, 1, 3]]).###%%%, (Denum [6, [5, 2, 3, 5, 1, 3]]).##%%%, (Denum [2, [3, 1]]).###%%%]
+# [[0, 0], 0, [0, 1, 0], 1, [2]]
+; [(Denum [3, [1]]).##%%%, (Denum [1, [1]]).###%%%]
+# [$!.denum-cross-count, $!.denum-cross-count]
+```
+Only a Denum is observed, as `.#%` binds only a Denum, and no class can declare
+an observer of its own
+```
+; [[5, 3].##%, 3.###%%, (Denum [0, [1]]).##%%%, (Denum [70000, [1]]).###%, [.##% {7}].##%]
+# [$!.denum-binding-receiver, $!.denum-binding-receiver, $!.denum-binding-zero-count, $!.denum-binding-capacity, $!.denum-binding-receiver]
+```
+Each observer is one token, and the longest spelling is taken. A `%` after
+three cannot be split back into an observer and `%%`, so the lexer refuses it.
+**Breaking:** `.##%%` and `.###%%` written without a space used to read as
+`.##` or `.###` before `%%`; write `.## %%` for the modulo
+```
+; [[5, 3, 1].## %% 2, [5, 3, 1].### %% 2, (Denum [2, [3, 1]]).##%.#]
+# [1, 1, 4]
+```
 ## Importing
 
 Imported, the file binds the same class. The import is an example line, so

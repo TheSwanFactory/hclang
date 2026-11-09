@@ -10,8 +10,15 @@
   `experiments/007-observer-algebras/` holds isolated, test-only observer code
   that reads a Count-bound Denum (`d.#%`) through a centered cyclic simplex
   quotient and, at C = 2ⁿ, a recursive Cayley–Dickson algebra. It changes no
-  Denum, Frame, grammar or operator and installs no observer suffix. Run it with
+  Denum, Frame, grammar or operator. Run it with
   `deno task experiment:observer-algebras`.
+- **Experimental geometric observers of a Denum (007.41b, 007.41c).** `d.##%`
+  and `d.###%` (centered simplex), `d.##%%` and `d.###%%` (Cayley–Dickson, C a
+  power of two) and `d.##%%%` and `d.###%%%` (cross-polytope, C even) read the
+  loads of `d.#%`: `##` answers an exact squared magnitude, `###` a list of
+  signed coordinates. Refusals are `.#%`'s, `$!.denum-cd-count` and
+  `$!.denum-cross-count`. **Breaking (lexing):** `.##%%` and `.###%%` without a
+  space are now observers; write `.## %%` for the modulo.
 
 ## v0.50.0 2026-11-09
 

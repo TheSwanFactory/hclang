@@ -198,7 +198,13 @@ complete at a colon with or without intervening space.
   at indices ≡ j mod C. Count zero, a non-Denum receiver and a Count above 65536
   are the named failures `$!.denum-binding-zero-count`,
   `$!.denum-binding-receiver` and `$!.denum-binding-capacity`. `.#%%` is a
-  lexical error; write `.# %%`. Earlier `.###` immediately followed by a hash
+  lexical error; write `.# %%`. Experimental geometric observers read `.#%` of a
+  Denum (007.41b): `.##%`/`.###%` (centered simplex), `.##%%`/`.###%%`
+  (Cayley–Dickson, C a power of two) and `.##%%%`/`.###%%%` (cross-polytope, C
+  even). The `##` spelling answers an exact squared magnitude, the `###`
+  spelling a list of signed coordinates. Each is one token and the longest is
+  taken, so `.##%%` is no longer `.##` before `%%` (write `.## %%`); a `%` after
+  three is a lexical error. Earlier `.###` immediately followed by a hash
   comment therefore changes tokenization. See `doc/FRAME-DENUM.md` for the Denum
   class and compatibility matrix.
 - **Enclosing scope**: `_^` (`_^.var`). Each caret is exactly one enclosing

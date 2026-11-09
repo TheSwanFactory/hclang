@@ -539,3 +539,40 @@ is allocated.
 are unchanged. `.#%%` is a lexical error, since it cannot be split back into
 `.#` and `%%`; write `.# %%`. Before this change `.#%…` lexed as `.#` followed
 by a `%` time literal; it now begins `.#%`.
+
+## Geometric observers `.##%` … `.###%%%` (007.41b, experimental)
+
+Six native observers read a Denum through a geometry (occurrence/figure 007.41b,
+delivered on PR #492 per 007.41c). Each applies the real `.#%` to its receiver
+first and reads the bound loads `B = [b0, …, b(C−1)]`, so every `.#%` failure
+(receiver, zero Count, capacity) is answered as it is and no class can declare
+an observer. They are observations only: no load, native observer, operator or
+product changes.
+
+| Geometry             | Size-like `##…`                | Residual-like `###…`               | Domain                              |
+| -------------------- | ------------------------------ | ---------------------------------- | ----------------------------------- |
+| simplex `%`          | `(C·Σbᵢ² − S²)/(C−1)`, C=1 → 0 | `bᵢ − S/C` (numerators `C·bᵢ − S`) | C ≥ 1                               |
+| Cayley–Dickson `%%`  | `Σ xₖ²`, equal to `.##%`       | `[0, x₁, …, x(C−1)]`, `x = φ_C(B)` | C = 2ⁿ, else `$!.denum-cd-count`    |
+| cross-polytope `%%%` | `Σ rᵢ²`                        | `rᵢ = bᵢ − b(i+n)`, n = C/2        | C even, else `$!.denum-cross-count` |
+
+**Return types.** A `##` reading is exact and nonnegative: a FrameCount when
+whole, a FrameRational otherwise. A `###` reading is a fresh array of signed
+numbers, never a Denum: FrameInt or FrameRational where the coordinate is
+rational. Only Cayley–Dickson coordinates can be irrational; those are IEEE
+doubles (FrameNumber), so `.###%%` mixes exact and inexact entries, while
+`.##%%` stays exact because each `xₖ²` is rational.
+
+**Coordinate conventions.** Simplex coordinates are indexed by the bound load.
+The Cayley–Dickson map φ_C is the fixed-sign Helmert isometry of the 007.41
+experiment, `xₖ = √(C/(C−1))·(b₀ + … + b(k−1) − k·bₖ)/√(k(k+1))` on the
+imaginary unit `eₖ`, with real part 0; it is an observer coordinate choice and
+not a homomorphism (at C = 2, `B = [3, 1]` gives `x = [0, 2]`, whose CD square
+is −4 while the simplex magnitude is +4). The cross-polytope binding is 007.41b
+§5.A: one load per vertex, `bᵢ` on `+eᵢ` and `b(i+n)` on `−eᵢ`, so odd C is
+refused for this binding only. The Count-as-dimension alternative (§5.B) and the
+optional Clifford product are not implemented.
+
+**Lexing.** Each spelling is one token and the longest is taken. **Breaking:**
+`.##%%` and `.###%%` written without a space were `.##`/`.###` before the modulo
+`%%`; write `.## %%`. A `%` after three (`.##%%%%`) is a lexical error, like
+`.#%%`. `.####%` is unchanged (`.####` before a `%`).
