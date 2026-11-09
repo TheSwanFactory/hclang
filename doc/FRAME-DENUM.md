@@ -12,8 +12,7 @@ overloads are gone.
 
 `Denum [C, loads]` takes a Count and a nonempty list of Counts and answers a
 fresh aggregate whose two fields, `count` and `loads`, are its state and whose
-methods are the class. Every arity is the same class; `Denum [C, L, R]` is
-shorthand for `Denum [C, [L, R]]` (007.40):
+methods are the class. Every arity is the same class (007.40):
 
 | Member    | Meaning                                                                                                             |
 | --------- | ------------------------------------------------------------------------------------------------------------------- |
@@ -147,9 +146,9 @@ Observing commutes with applying. For a nonempty host X (`X.# > 0`):
 The empty host is the boundary, by convention rather than theorem: `[].####` is
 nil (011.15g), and applying nil answers its argument, so the append law as
 written fails there. Lifting the empty host to the Denum of Count zero,
-`Denum [0, 0, 0]`, restores it, `([] Y).#### = (Denum [0, 0, 0]) Y`, which is
-also what a reduce starts from: `xs | (Denum [0, 0, 0])` equals `xs.####` for a
-nonempty xs. For Star, `([] * Y).#### = Y.####`. Retiring `+` gives up the
+`Denum [0, [0, 0]]`, restores it, `([] Y).#### = (Denum [0, [0, 0]]) Y`, which
+is also what a reduce starts from: `xs | (Denum [0, [0, 0]])` equals `xs.####`
+for a nonempty xs. For Star, `([] * Y).#### = Y.####`. Retiring `+` gives up the
 state-only append evaluation of 011.16 §9.5: a step is computed by applying the
 Denum to the Frame, which reads its Size.
 
@@ -165,7 +164,7 @@ Let n=F.#. If it fails, propagate the failure; if n=0, return nil without asking
 Size or residual. Otherwise read s=F.##, then r=F.###, propagating errors in
 that order. A nil residual gives nil Denum. A present residual must be a signed
 exact integer and Size a nonnegative exact Count. Require L=(s+r)/2 and
-R=(s−r)/2 to be exact nonnegative integers; construct `Denum [n, L, R]`, which
+R=(s−r)/2 to be exact nonnegative integers; construct `Denum [n, [L, R]]`, which
 derives its phase 2 or 1 from the parity of n. The implementation introduces no
 fold or cache.
 
@@ -314,7 +313,7 @@ hash is `X.####`. For every router whose fourth hash exists (C ≥ 1, children
 sized), `(r y).####` is `r.#### y`, because the router's phase and its Denum's
 are the parity of the same C. The initial router `RotorRouter [[], []]` has
 routed nothing, so like the empty host it has no Denum and none is faked;
-`(r0 y).####` is `(Denum [0, 0, 0]) y`.
+`(r0 y).####` is `(Denum [0, [0, 0]]) y`.
 
 ## Full-Count Denum (007.25c)
 
@@ -352,14 +351,14 @@ A ratio takes no divisor: it is applied to nil because HC runs a method only
 when applied, and any other operand is `$!!.unary-observation`. At `C = 0` both
 are nil even when `S > 0`: there is no `0/0`, infinity or invented zero.
 
-**Fourth hash and equality.** `x.####` for a host builds `Denum [x.#, L, R]`, so
-`(X Y).#### = X.#### Y` and `(X * Y).#### = X.####.scale_ (Y.##)` hold with the
-Count included. Two Denums are `=` exactly when `C`, `L` and `R` are, so
-`Denum [2, 5, 1]` and `Denum [4, 5, 1]` share phase, Size and residual and are
-different. `.####` of a host with Count zero is still nil.
+**Fourth hash and equality.** `x.####` for a host builds `Denum [x.#, [L, R]]`,
+so `(X Y).#### = X.#### Y` and `(X * Y).#### = X.####.scale_ (Y.##)` hold with
+the Count included. Two Denums are `=` exactly when `C`, `L` and `R` are, so
+`Denum [2, [5, 1]]` and `Denum [4, [5, 1]]` share phase, Size and residual and
+are different. `.####` of a host with Count zero is still nil.
 
 **The empty-host boundary.** The three observers read 0, 0, 0 for both `[]` and
-`Denum [0, 0, 0]`, so a derivation from them cannot tell the two apart. The
+`Denum [0, [0, 0]]`, so a derivation from them cannot tell the two apart. The
 fourth hash therefore recognizes an instance of the shipped `Denum` class
 intrinsically (`lib/frames/fourth-hash.ts`, 007.25e), not through any declarable
 override. A source is a Denum exactly when its own stored `count` is a Count,
@@ -370,8 +369,8 @@ or closure of the source runs, so a foreign aggregate with forged `#`, `##`,
 `###`, a `.####` method, a phase that disagrees with its Count, a decimal or
 text Count, or an extra field is not a Denum and takes the ordinary derived
 path, nil at Count zero. `[].####` and `0.####` stay nil: a host with no
-children has no Denum. `Denum [0, 0, 0]` is a present value and its fourth hash
-is an equal instance.
+children has no Denum. `Denum [0, [0, 0]]` is a present value and its fourth
+hash is an equal instance.
 
 The earlier revision of this change let any aggregate declare `.####` and
 accepted an answer whose `#`, `##`, `###` spelled the same as the host's. That
@@ -495,12 +494,13 @@ Count C and the ordered nonnegative loads, of any arity of one or more. It is
 not the withdrawn v0.45–v0.47 Denum: there is no CD view, rank, schema, sign or
 coordinate algebra, and Frame `*` is unchanged.
 
-**Constructors.** `Denum [C, loads]` and `Denum [C, L, R]` take an explicit
-exact nonnegative Count. `Denum [loads]` is the default-Count form, C = 1, so
-`Denum [[2, 5]]` is `Denum [1, [2, 5]]`, while `Denum [0, [2, 5]]` keeps Count
-zero. Anything else, a fractional, negative or non-Count Count or load, an empty
-load list or a bare number, is `$!!.invalid-denum`. A `(.# C;)` constructor
-option is not part of the grammar and is deferred until specified.
+**Constructors.** `Denum [C, loads]` takes an explicit exact nonnegative Count;
+the three-argument `Denum [C, L, R]` is removed. `Denum [loads]` is the
+default-Count form, C = 1, so `Denum [[2, 5]]` is `Denum [1, [2, 5]]`, while
+`Denum [0, [2, 5]]` keeps Count zero. Anything else, a fractional, negative or
+non-Count Count or load, an empty load list or a bare number, is
+`$!!.invalid-denum`. A `(.# C;)` constructor option is not part of the grammar
+and is deferred until specified.
 
 **State is Count and loads.** A Denum stores exactly `count` and `loads`, and a
 RotorRouter exactly `channels`, for every arity: there is no separate

@@ -368,8 +368,7 @@ Deno.test("native append and Star commute with Denum application and scaling on 
   // present (007.25c), where the two zero children of `[0, 0]` are Count two.
   const lifted = constructDenum(
     new FrameCount(0n),
-    new FrameCount(0n),
-    new FrameCount(0n),
+    [new FrameCount(0n), new FrameCount(0n)],
   );
   expect(encode(lifted)).toEqual(["all", "0", "0"]);
   expect(countOf(lifted)).toEqual(0n);

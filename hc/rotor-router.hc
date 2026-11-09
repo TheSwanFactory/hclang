@@ -73,7 +73,7 @@ adds `y.##` to that channel's load and one to C, which is exactly what applying
 the Denum to y does. The empty router is the boundary: it has routed nothing,
 so like the empty host `[]` its Count is zero and `.####` is nil, not a Denum
 conjured to make the equation look true. There the law reads through the
-zero-Count lifting the Denum class names, `(r0 y).#### = (Denum [0, 0, 0]) y`.
+zero-Count lifting the Denum class names, `(r0 y).#### = (Denum [0, [0, 0]]) y`.
 
 **Text.** A router prints as its fields and methods, and as text reads
 `RotorRouter([ch0, ch1, …])`, the list of its channels, for every number of
@@ -313,7 +313,7 @@ constructed as such, which routing from the router reaches after one route
 ; [r0.#, r0.##, r0.###, (r0.# %% 2), r0.####, [].####]
 # [0, 0, 0, 0, (), ()]
 ; Denums <- './hc/denum.hc';
-; [((r0 0).####) = ((Denums.Denum [0, 0, 0]) 0), ((r0 []).####) = ([] []).####]
+; [((r0 0).####) = ((Denums.Denum [0, [0, 0]]) 0), ((r0 []).####) = ([] []).####]
 # [<>, <>]
 ```
 A Frame of Size zero takes a slot and moves the next channel, and an empty array
@@ -346,7 +346,7 @@ parity is the router's, for every Count from 1 to 6 and for preloads
 ; .sh (steps & {_.####});
 ; [sh & {_ = ()}, sh & {_.#}]
 # [[<>, (), (), (), (), (), ()], [(), 1, 2, 3, 4, 5, 6]]
-; [steps &| {.k _; (k.# .> 0) ? {[(k.# %% 2) = (k.#### .# %% 2)]} : {[]}}, (RotorRouter [[2, 3], [1]]).#### = (Denums.Denum [3, 5, 1])]
+; [steps &| {.k _; (k.# .> 0) ? {[(k.# %% 2) = (k.#### .# %% 2)]} : {[]}}, (RotorRouter [[2, 3], [1]]).#### = (Denums.Denum [3, [5, 1]])]
 # [[<>, <>, <>, <>, <>, <>], <>]
 ```
 ## Observing commutes with routing
@@ -393,10 +393,10 @@ Denum fails when observed, and the Denum refuses the deposit with the same error
 The empty host is the boundary. `[].####` is nil, so `X.####` fails the first
 equation when X is empty, and so does the initial router, which has routed
 nothing and so has Count zero: it has no Denum, and none is faked. The law there
-reads through the Denum class's zero-Count lifting, `Denum [0, 0, 0]`, and after
+reads through the Denum class's zero-Count lifting, `Denum [0, [0, 0]]`, and after
 one route the equation holds again
 ```
-; [r0.####, ([] | r0) = r0, (([] | r0).####) = [].####, (([Y] | r0).####) = ([] Y).####, ((r0 Y).####) = ((Denums.Denum [0, 0, 0]) Y), ((r0 0).####) = ((Denums.Denum [0, 0, 0]) 0)]
+; [r0.####, ([] | r0) = r0, (([] | r0).####) = [].####, (([Y] | r0).####) = ([] Y).####, ((r0 Y).####) = ((Denums.Denum [0, [0, 0]]) Y), ((r0 0).####) = ((Denums.Denum [0, [0, 0]]) 0)]
 # [(), <>, <>, <>, <>, <>]
 ```
 ## The Denum forgets

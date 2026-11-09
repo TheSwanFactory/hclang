@@ -115,9 +115,9 @@ to the Count and so changes routing phase.
 ; [([] Y).#### = ([].#### Y), ([] * Y).#### = Y.####]
 # [(), <>]
 ; Denums <- './hc/denum.hc';
-; ([] Y).#### = ((Denums.Denum [0, 0, 0]) Y)
+; ([] Y).#### = ((Denums.Denum [0, [0, 0]]) Y)
 # <>
-; [“” [0].####, “” ([0].#### 0), [].#### = [0].####, [].#### = (Denums.Denum [0, 0, 0]), (Denums.Denum [0, 0, 0]).#### = (Denums.Denum [0, 0, 0])]
+; [“” [0].####, “” ([0].#### 0), [].#### = [0].####, [].#### = (Denums.Denum [0, [0, 0]]), (Denums.Denum [0, [0, 0]]).#### = (Denums.Denum [0, [0, 0]])]
 # [“Denum(1,[0, 0])”, “Denum(2,[0, 0])”, (), (), <>]
 ```
 For a proposed relabeling, exchange the loads AND toggle which named channel
@@ -132,7 +132,7 @@ two higher, so it is an involution on phase and loads and not on Count. The
 following closure only checks that explicit relabeling using the existing Denum
 class.
 ```
-; .swap {.d _; Denums.Denum [(d.count + 1), d.loads .1, d.loads .0]};
+; .swap {.d _; Denums.Denum [(d.count + 1), [d.loads .1, d.loads .0]]};
 ; .q [[], [[], []]].####;
 ; [“” q, “” (swap q), (swap q).## = q.##, (swap q).### = (0 - q.###)]
 # [“Denum(2,[1, 2])”, “Denum(3,[2, 1])”, <>, <>]

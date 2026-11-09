@@ -175,27 +175,26 @@ Its failure shows where the channel is measured
 ## Denum
 
 A Denum of any arity is `Denum [C, loads]`, a Count and a nonempty list of
-Counts. Every arity is the same class and reads as `Denum(C,[…])`;
-`Denum [C, L, R]` is shorthand for `Denum [C, [L, R]]`, the same instance.
+Counts. Every arity is the same class and reads as `Denum(C,[…])`.
 Every Denum stores `count` and `loads`
 ```
 ; Denums <- './hc/denum.hc';
 ; .Denum Denums.Denum;
-; [“” (Denum [3, [5, 2]]), (Denum [3, [5, 2]]) == (Denum [3, 5, 2]), (Denum [3, [5, 2]]).loads .0, (Denum [3, 5, 2]).loads]
+; [“” (Denum [3, [5, 2]]), (Denum [3, [5, 2]]) == (Denum [3, [5, 2]]), (Denum [3, [5, 2]]).loads .0, (Denum [3, [5, 2]]).loads]
 # [“Denum(3,[5, 2])”, <>, 5, [5, 2]]
 ; [“” (Denum [0, [0, 0, 0]]), “” (Denum [4, [7]]), “” (Denum [2, [1, 2, 3, 4]]), (Denum [2, [1, 2, 3]]).loads, (Denum [2, [1, 2, 3]]).count]
 # [“Denum(0,[0, 0, 0])”, “Denum(4,[7])”, “Denum(2,[1, 2, 3, 4])”, [1, 2, 3], 2]
 ```
 No channels, a load that is not a Count, and any other shape are refused
 ```
-; [Denum [2, []], Denum [2, [1, (0 - 1), 3]], Denum [2, [1, 1.5]], Denum [2, [1, [2]]], Denum [(0 - 2), [1]], Denum [2, 5], Denum [2, [1], 3], Denum [2, [1, 2], 3, 4]]
+; [Denum [2, []], Denum [2, [1, (0 - 1), 3]], Denum [2, [1, 1.5]], Denum [2, [1, [2]]], Denum [(0 - 2), [1]], Denum [2, 5], Denum [2, [[1], 3]], Denum [2, [1, 2], 3, 4]]
 # [$!!.invalid-denum, $!!.invalid-denum, $!!.invalid-denum, $!!.invalid-denum, $!!.invalid-denum, $!!.invalid-denum, $!!.invalid-denum, $!!.invalid-denum]
 ```
 A Denum observes as its loads do: its Count is C, its Size the sum of
 its loads, and its residual their alternating sum, `e0 − e1 + e2 − …`, the
 list residual, which for two loads is `L − R`
 ```
-; .d7 (Denum [3, 5, 2]); .q3 (d7 ./ 3);
+; .d7 (Denum [3, [5, 2]]); .q3 (d7 ./ 3);
 ; [q3.#, q3.##, q3.###, q3.count, q3.loads]
 # [3, 7, 3, 3, [3, 2, 2]]
 ```
@@ -213,7 +212,7 @@ the last are empty
 `Denum(3,[4,3]) ./ 3`. Normalization is many-to-one: equal Count and Size give
 the same result, and the original distribution cannot be recovered
 ```
-; [q3 = (Denum [3, [3, 2, 2]]), ((Denum [3, 4, 3]) ./ 3) = q3, (Denum [3, 4, 3]) = d7, (d7 / 3) = q3, q3 = d7]
+; [q3 = (Denum [3, [3, 2, 2]]), ((Denum [3, [4, 3]]) ./ 3) = q3, (Denum [3, [4, 3]]) = d7, (d7 / 3) = q3, q3 = d7]
 # [<>, <>, (), <>, ()]
 ```
 It is idempotent, and dividing again renormalizes from the same Count and Size,
@@ -224,13 +223,13 @@ so the earlier division leaves no trace
 ```
 Zero Size, zero Count, one channel, and more channels than Size or Count
 ```
-; [“” ((Denum [0, 0, 0]) ./ 3), “” ((Denum [0, 9, 0]) ./ 4), “” ((Denum [0, 9, 0]) ./ 1), “” ((Denum [2, 1, 1]) ./ 5), “” ((Denum [1, 0, 0]) ./ 2)]
+; [“” ((Denum [0, [0, 0]]) ./ 3), “” ((Denum [0, [9, 0]]) ./ 4), “” ((Denum [0, [9, 0]]) ./ 1), “” ((Denum [2, [1, 1]]) ./ 5), “” ((Denum [1, [0, 0]]) ./ 2)]
 # [“Denum(0,[0, 0, 0])”, “Denum(0,[3, 2, 2, 2])”, “Denum(0,[9])”, “Denum(2,[1, 1, 0, 0, 0])”, “Denum(1,[0, 0])”]
 ```
 The divisor is a channel Count, refused as a list refuses it, never coerced to
 its Size
 ```
-; [d7 ./ 0, d7 ./ (3 - 1), d7 ./ 1.5, d7 ./ (1 / 2), d7 ./ [3], d7 ./ “three”, d7 ./ (Denum [1, 1, 1])]
+; [d7 ./ 0, d7 ./ (3 - 1), d7 ./ 1.5, d7 ./ (1 / 2), d7 ./ [3], d7 ./ “three”, d7 ./ (Denum [1, [1, 1]])]
 # [$!.division-by-zero /, $!.division-domain /, $!.division-domain /, $!.division-domain /, $!.division-domain /, $!.division-domain /, $!.division-domain /]
 ```
 ## Applying after division
@@ -264,7 +263,7 @@ dealing of S unit Frames into n channels, division is idempotent, and for every
 m from 1 to 4 dividing by n then m is dividing by m
 ```
 ; .cs [0, 1, 2, 3]; .ls [0, 1, 2, 3, 4]; .ns [1, 2, 3, 4];
-; .states (cs &| {.c _; ls &| {.l _; ls & {Denum [c, l, _]}}});
+; .states (cs &| {.c _; ls &| {.l _; ls & {Denum [c, [l, _]]}}});
 ; .law {.k _; ns &| {.n _; .q (k ./ n); [q.# = k.#, q.## = k.##, q.loads.# = n, q.loads = (((k.## [1]) ./ n).channels & {_.#}), (q ./ n) = q]}};
 ; .renorm {.k _; ns &| {.n _; ns & {.m _; ((k ./ n) ./ m) = (k ./ m)}}};
 ; .checks ((states &| law) | (states &| renorm));
@@ -291,15 +290,15 @@ residual over the Count, nil at Count zero
 `+` and `-` follow the residual's signs. The residual adds the loads at even
 indices and subtracts those at odd ones, so `-` deposits `x.##` on the first
 even load, load 0, and raises the residual, and `+` deposits on the first odd
-load, load 1, and lowers it. Both keep the Count, and both are `deposit-left_` and `deposit-right_`
-by the operand's Size. One load has no odd index, so there `+` is
+load, load 1, and lowers it. Both keep the Count, and both are `deposit_ [0, x.##]` and
+`deposit_ [1, x.##]`. One load has no odd index, so there `+` is
 `$!!.invalid-arity`
 ```
 ; [“” (q3 + 1), “” (q3 - 1), q3.###, (q3 + 1).###, (q3 - 1).###, (q3 + 1).#]
 # [“Denum(3,[3, 3, 2])”, “Denum(3,[4, 2, 2])”, 3, 2, 4, 3]
 ; [“” ((d7 ./ 4) + 1), “” ((d7 ./ 4) - 2.5), (d7 ./ 1) + 1, “” ((d7 ./ 1) - 1), “” (d7 + 1), “” (d7 - 1)]
 # [“Denum(3,[2, 3, 2, 1])”, “Denum(3,[4, 2, 2, 1])”, $!!.invalid-arity, “Denum(3,[8])”, “Denum(3,[5, 3])”, “Denum(3,[6, 2])”]
-; [((q3 + 4) - 2) = ((q3 - 2) + 4), ((q3 + 1) ./ 3) = ((q3 - 1) ./ 3), q3 + ([].nope), q3.deposit-right_ (0 - 1), q3.deposit-left_ 1.5, “” q3]
+; [((q3 + 4) - 2) = ((q3 - 2) + 4), ((q3 + 1) ./ 3) = ((q3 - 1) ./ 3), q3 + ([].nope), q3.deposit_ [1, (0 - 1)], q3.deposit_ [0, 1.5], “” q3]
 # [<>, <>, $!.name-missing “..., $!!.invalid-denum, $!!.invalid-denum, “Denum(3,[3, 2, 2])”]
 ```
 ## RotorRouter
@@ -394,7 +393,7 @@ routing grows linearly: three thousand Frames route into three channels in turn
 ```
 The divisor is refused as for a list
 ```
-; [r7 ./ 0, r7 ./ (3 - 1), r7 ./ 1.5, r7 ./ [2], r7 ./ (Denum [1, 1, 1]), r7 ./ “two”]
+; [r7 ./ 0, r7 ./ (3 - 1), r7 ./ 1.5, r7 ./ [2], r7 ./ (Denum [1, [1, 1]]), r7 ./ “two”]
 # [$!.division-by-zero /, $!.division-domain /, $!.division-domain /, $!.division-domain /, $!.division-domain /, $!.division-domain /]
 ```
 ## A router's observers and fourth hash

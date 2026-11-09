@@ -17,7 +17,6 @@ import { evaluate } from "./evaluate.ts";
 import { DENUM_BINDING_CAPACITY } from "../frames/fourth-hash.ts";
 import {
   constructDenum,
-  constructDenumLoads,
   DENUM_SOURCE,
   denumClass,
   loadDenumClass,
@@ -118,10 +117,10 @@ Deno.test("loading failures are answered, never a fabricated class", () => {
 });
 
 Deno.test("the constructor validates its three Counts in HC", () => {
-  expect(state(constructDenum(count(2n), count(0n), count(0n))))
+  expect(state(constructDenum(count(2n), [count(0n), count(0n)])))
     .toEqual(["2", "0", "0"]);
   expect(
-    state(constructDenum(count(1n), count(10n ** 30n), count(0n))),
+    state(constructDenum(count(1n), [count(10n ** 30n), count(0n)])),
   ).toEqual(["1", `${10n ** 30n}`, "0"]);
   // Any Count is a state, zero included, and with two loads the next one is
   // the Count's parity (007.25c). Nothing is refused by size.
@@ -137,7 +136,7 @@ Deno.test("the constructor validates its three Counts in HC", () => {
       [10n ** 30n, "0"],
     ] as const
   ) {
-    const denum = constructDenum(count(n), count(5n), count(1n));
+    const denum = constructDenum(count(n), [count(5n), count(1n)]);
     expect(state(denum), `${n}`).toEqual([`${n}`, "5", "1"]);
     expect(next(denum), `${n}`).toEqual(expected);
   }
@@ -160,8 +159,8 @@ Deno.test("the constructor validates its three Counts in HC", () => {
 });
 
 Deno.test("equal phase and loads with different Counts are different Denums (007.25c)", () => {
-  const two = constructDenum(count(2n), count(5n), count(1n));
-  const four = constructDenum(count(4n), count(5n), count(1n));
+  const two = constructDenum(count(2n), [count(5n), count(1n)]);
+  const four = constructDenum(count(4n), [count(5n), count(1n)]);
   expect(next(two)).toEqual(next(four));
   expect(loadsOf(two)).toEqual(loadsOf(four));
   for (const key of ["#", "##", "###"].slice(1)) {
@@ -178,7 +177,7 @@ Deno.test("equal phase and loads with different Counts are different Denums (007
 });
 
 Deno.test("a Denum of Count zero is present, while an empty host has no Denum (007.25c)", () => {
-  const zero = constructDenum(count(0n), count(0n), count(0n));
+  const zero = constructDenum(count(0n), [count(0n), count(0n)]);
   // The three observers read 0, 0, 0 for it and for the empty host alike.
   const hosts: Frame[] = [new FrameArray([]), count(0n)];
   for (const host of hosts) {
@@ -194,13 +193,13 @@ Deno.test("a Denum of Count zero is present, while an empty host has no Denum (0
   expect(same.equals(zero)).toBe(Frame.all);
   expect(same).not.toBe(zero);
   // A zero Count over nonzero loads is present too.
-  const loaded = constructDenum(count(0n), count(3n), count(0n));
+  const loaded = constructDenum(count(0n), [count(3n), count(0n)]);
   expect(loaded.sizeFor("####").equals(loaded)).toBe(Frame.all);
   expect(state(loaded.sizeFor("####"))).toEqual(["0", "3", "0"]);
 });
 
 Deno.test("deposit observes the argument's Size once and propagates its failure", () => {
-  const d = constructDenum(count(0n), count(0n), count(0n));
+  const d = constructDenum(count(0n), [count(0n), count(0n)]);
   expect(state(deposit(d, count(0n)))).toEqual(["1", "0", "0"]);
   expect(state(deposit(deposit(d, count(0n)), count(0n))))
     .toEqual(["2", "0", "0"]);
@@ -246,17 +245,17 @@ Deno.test("a Denum prints as HC that reads back as an equal Denum", () => {
 });
 
 Deno.test("Denum equality is value equality of fields; identity is the aggregate's", () => {
-  const a = constructDenum(count(1n), count(7n), count(2n));
-  const b = constructDenum(count(1n), count(7n), count(2n));
+  const a = constructDenum(count(1n), [count(7n), count(2n)]);
+  const b = constructDenum(count(1n), [count(7n), count(2n)]);
   expect(a.equals(b)).toBe(Frame.all);
   expect(a.typeEquals(b)).toBe(Frame.all);
   expect(a.identical(b)).toBe(Frame.nil);
   expect(a.identical(a)).toBe(Frame.all);
   for (
     const other of [
-      constructDenum(count(2n), count(7n), count(2n)),
-      constructDenum(count(1n), count(8n), count(2n)),
-      constructDenum(count(1n), count(7n), count(3n)),
+      constructDenum(count(2n), [count(7n), count(2n)]),
+      constructDenum(count(1n), [count(8n), count(2n)]),
+      constructDenum(count(1n), [count(7n), count(3n)]),
       Frame.nil,
     ]
   ) {
@@ -265,7 +264,7 @@ Deno.test("Denum equality is value equality of fields; identity is the aggregate
 });
 
 Deno.test("no operator is overloaded for a Denum; ordinary + and Star are unchanged", () => {
-  const d = constructDenum(count(2n), count(1n), count(0n));
+  const d = constructDenum(count(2n), [count(1n), count(0n)]);
   expect(Add(d, count(2n))).toBe(Frame.nil);
   expect(Multiply(d, count(2n)).toString()).toEqual("$!.star-metadata *");
   // Count * Denum keeps the existing Star dispatch, which repeats it.
@@ -346,7 +345,7 @@ Deno.test("an aggregate may declare its Count, Size and residual (011.20)", () =
 });
 
 Deno.test("only an instance of the shipped Denum class takes the intrinsic fourth-hash path (007.25e)", () => {
-  const zero = constructDenum(count(0n), count(0n), count(0n));
+  const zero = constructDenum(count(0n), [count(0n), count(0n)]);
   const answer = zero.sizeFor(Frame.kDENUM);
   // Present, equal, fresh: a reconstruction, never the source itself.
   expect(answer).not.toBe(Frame.nil);
@@ -357,7 +356,7 @@ Deno.test("only an instance of the shipped Denum class takes the intrinsic fourt
   expect(new FrameHandle(zero, false).sizeFor(Frame.kDENUM).typeEquals(zero))
     .toBe(Frame.all);
   // A zero-Count Denum over nonzero loads, reached without application.
-  const loaded = constructDenum(count(0n), count(3n), count(4n));
+  const loaded = constructDenum(count(0n), [count(3n), count(4n)]);
   expect(state(loaded.sizeFor(Frame.kDENUM))).toEqual(["0", "3", "4"]);
 
   // Foreign aggregates: forged observers, Denum-named fields with the wrong
@@ -382,7 +381,10 @@ Deno.test("only an instance of the shipped Denum class takes the intrinsic fourt
   ).toEqual("0");
   // A Denum edited by a foreign copy with one method changed is foreign too:
   // it falls back to the derived path, here its declared observers.
-  const edited = constructDenum(count(2n), count(5n), count(3n)) as FrameArray;
+  const edited = constructDenum(count(2n), [
+    count(5n),
+    count(3n),
+  ]) as FrameArray;
   const forged = new FrameArray([]);
   for (const key of edited.visibleKeys()) {
     forged.set(
@@ -488,7 +490,7 @@ Deno.test("a Denum stores only its Count and loads, for every arity (007.40 revi
     d.meta_keys().filter((key) => !(d.getOwn(key) instanceof FrameExpr));
   for (
     const d of [
-      constructDenum(count(0n), count(0n), count(0n)),
+      constructDenum(count(0n), [count(0n), count(0n)]),
       value("[5, 3, 7].####"),
       value("((([5, 3, 7].####) 4) - 2) * 3"),
       value("((([5, 3].####) 0) + 6) 1"),
@@ -509,7 +511,7 @@ Deno.test("a Denum stores only its Count and loads, for every arity (007.40 revi
 Deno.test(".#% materializes exactly up to its capacity (007.40 review)", () => {
   expect(DENUM_BINDING_CAPACITY).toEqual(65536n);
   const at = (c: bigint): Frame =>
-    constructDenumLoads(count(c), [count(1n), count(2n)]);
+    constructDenum(count(c), [count(1n), count(2n)]);
   const edge = at(DENUM_BINDING_CAPACITY).sizeFor(Frame.kBIND);
   expect(`${edge.getOwn("count")}`).toEqual("65536");
   const loads = edge.getOwn("loads").referent().elements();

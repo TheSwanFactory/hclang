@@ -114,17 +114,17 @@ Deno.test("Denum compatibility matrix: all concrete Frame families stay non-exec
   const rows: [f.Frame, string[]][] = [
     [new f.FrameCount(0n), ["0", "0", "0"]],
     [c, ["5", "5", "1"]],
-    [constructDenum(new f.FrameCount(1n), c, new f.FrameCount(0n)), [
+    [constructDenum(new f.FrameCount(1n), [c, new f.FrameCount(0n)]), [
       "1",
       "5",
       "5",
     ]],
-    [constructDenum(new f.FrameCount(2n), c, new f.FrameCount(0n)), [
+    [constructDenum(new f.FrameCount(2n), [c, new f.FrameCount(0n)]), [
       "2",
       "5",
       "5",
     ]],
-    [constructDenum(new f.FrameCount(7n), c, new f.FrameCount(0n)), [
+    [constructDenum(new f.FrameCount(7n), [c, new f.FrameCount(0n)]), [
       "7",
       "5",
       "5",

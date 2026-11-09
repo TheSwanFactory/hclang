@@ -89,7 +89,7 @@ export function denumClass(): Frame {
  * @param loads The ordered channel loads.
  * @returns The new instance, or the class's failure.
  */
-export function constructDenumLoads(
+export function constructDenum(
   count: FrameCount,
   loads: readonly FrameCount[],
 ): Frame {
@@ -101,21 +101,4 @@ export function constructDenumLoads(
   return FrameExpr.answeredValue(constructor.call(state)).referent();
 }
 
-/**
- * Constructs a Denum of two loads with the HC class: `Denum [count, left,
- * right]`, which is `Denum [count, [left, right]]`.
- *
- * @param count The full application Count; the Denum derives its phase from it.
- * @param left The left load.
- * @param right The right load.
- * @returns The new instance, or the class's failure.
- */
-export function constructDenum(
-  count: FrameCount,
-  left: FrameCount,
-  right: FrameCount,
-): Frame {
-  return constructDenumLoads(count, [left, right]);
-}
-
-installDenumConstructor(constructDenumLoads);
+installDenumConstructor(constructDenum);

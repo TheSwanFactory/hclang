@@ -72,7 +72,7 @@ function storedLoads(source: Frame): FrameCount[] | undefined {
 
 /**
  * The intrinsic Denum path (007.25e). A constructed Denum is the one Frame whose
- * fourth hash the three observers cannot decide: `Denum [0, 0, 0]` reads 0, 0,
+ * fourth hash the three observers cannot decide: `Denum [0, [0, 0]]` reads 0, 0,
  * 0, exactly as `[]` does, yet it is a present state. Rather than let any
  * class declare its own `.####`, the fourth hash recognizes an instance of the
  * shipped class itself, and nothing else.
@@ -227,7 +227,7 @@ function channelRouterDenum(source: Frame): Frame | undefined {
  * caches the source, and reads each observer at most once.
  *
  * A derived source with Count zero is nil: a host with no children has no
- * Denum, so `[].####` and `0.####` are nil while `(Denum [0, 0, 0]).####` is
+ * Denum, so `[].####` and `0.####` are nil while `(Denum [0, [0, 0]]).####` is
  * present. No class can declare `.####` for itself; only the three observers
  * are declarable (`FrameArray.OBSERVATION_KEYS`).
  *
