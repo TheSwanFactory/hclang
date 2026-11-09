@@ -192,15 +192,22 @@ complete at a colon with or without intervening space.
   instance of `Denum` itself is recognized intrinsically and answers a fresh
   equal Denum, so a Denum of Count zero is present while `[].####` stays nil.
   Errors propagate, including cycles and nonfinite quantities; incoherent loads
-  are explicit errors. Four hashes form an observer name; a fifth starts a
-  comment. `.#%` is the Count binding of a Denum (007.40): `(C; [a0, …]).#%`
-  with C > 0 answers the Denum `(C; [b0, …, b(C−1)])`, `bj` the sum of the loads
-  at indices ≡ j mod C. Count zero, a non-Denum receiver and a Count above 65536
-  are the named failures `$!.denum-binding-zero-count`,
-  `$!.denum-binding-receiver` and `$!.denum-binding-capacity`. `.#%%` is a
-  lexical error; write `.# %%`. Earlier `.###` immediately followed by a hash
-  comment therefore changes tokenization. See `doc/FRAME-DENUM.md` for the Denum
-  class and compatibility matrix.
+  are explicit errors. Four hashes form an observer name; a fifth continues it
+  as an unbound name. `.#%` is the Count binding of a Denum (007.40):
+  `(C; [a0, …]).#%` with C > 0 answers the Denum `(C; [b0, …, b(C−1)])`, `bj`
+  the sum of the loads at indices ≡ j mod C. Count zero, a non-Denum receiver
+  and a Count above 65536 are the named failures `$!.denum-binding-zero-count`,
+  `$!.denum-binding-receiver` and `$!.denum-binding-capacity`. After the dot,
+  `#` is an operator character, so an operator run such as `.##%`, `.#####` or
+  `.#+` is one name, never split, and an unbound spelling such as `.#%%` is
+  `$!.name-missing`; write `.# %%` for the modulo. Geometric observers read
+  `.#%` of a Denum (007.41b): `.##%`/`.###%` (centered simplex),
+  `.##%%`/`.###%%` (Cayley–Dickson, C a power of two) and `.##%%%`/`.###%%%`
+  (cross-polytope, C even). The `##` spelling answers an exact squared
+  magnitude, the `###` spelling a list of signed coordinates. Each is one token,
+  so `.##%%` is no longer `.##` before `%%` (write `.## %%`). Earlier `.###`
+  immediately followed by a hash comment therefore changes tokenization. See
+  `doc/FRAME-DENUM.md` for the Denum class and compatibility matrix.
 - **Enclosing scope**: `_^` (`_^.var`). Each caret is exactly one enclosing
   lexical scope: `_^^` is two scopes out. The count depends only on where the
   closure was written, never on how it was invoked. `_`/`__` and `_^`/`_^^` are

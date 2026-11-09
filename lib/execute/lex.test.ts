@@ -323,15 +323,18 @@ describe("Lex", () => {
       // No name contains `#`, so `.foo#bar` is a name before a comment.
       expect(lexAtoms(".foo#bar# ").map(String)).toEqual([".foo"]);
       expect(lexAtoms("..# ").map(String)).toEqual([".."]);
-      // Nothing extends `.####`, so a fifth hash begins a comment.
-      expect(lexAtoms("x.#####c# ").map(String)).toEqual(["x", ".####"]);
-      // Preserve the fifth-hash comment boundary across every input split.
-      for (const source of ["x.#####c# ", "x.###### "]) {
+      // After the dot `#` is an operator character, so a run of them, a
+      // fifth hash included, is one name and is never split.
+      expect(lexAtoms("x.##### #c# ").map(String)).toEqual(["x", ".#####"]);
+      expect(lexAtoms("x.#+1 ").map(String)).toEqual(["x", ".#+", "1"]);
+      expect(lexAtoms("x.# + 1 ").map(String)).toEqual(["x", ".#", "+", "1"]);
+      for (const source of ["x.##### ", "x.###### "]) {
+        const name = source.trim().slice(1);
         for (let split = 1; split < source.length; split++) {
           expect(
             lexChunkedAtoms([source.slice(0, split), source.slice(split)])
               .map(String),
-          ).toEqual(["x", ".####"]);
+          ).toEqual(["x", name]);
         }
       }
     });
@@ -345,10 +348,47 @@ describe("Lex", () => {
       expect(lexAtoms("x.#% #c# ").map(String)).toEqual(["x", ".#%"]);
     });
 
-    it("refuses `.#%%` rather than splitting it", () => {
-      const source = "x.#%%2 ";
-      expect(lexResult(source).is.lexical).toBe(true);
-      expect(lexResult(source).toString()).toContain("`.#%%` is ambiguous");
+    it("reads `.#%%` as one unbound name rather than splitting it", () => {
+      expect(lexAtoms("x.#%%2 ").map(String)).toEqual(["x", ".#%%", "2"]);
+    });
+  });
+
+  describe("geometric observers `.##%` … `.###%%%` (007.41b)", () => {
+    const observers = Frame.GEOMETRIC_OBSERVERS.map((key) => `.${key}`);
+
+    it("reads each spelling as one token, whole and in chunks", () => {
+      for (const observer of observers) {
+        expect(lexAtoms(`x${observer} `).map(String)).toEqual(["x", observer]);
+        expect(lexAtoms(`x${observer}.# `).map(String))
+          .toEqual(["x", observer, ".#"]);
+        expect(lexAtoms(`x${observer} #c# `).map(String))
+          .toEqual(["x", observer]);
+        expect(lexAtoms(`x${observer}2 `).map(String))
+          .toEqual(["x", observer, "2"]);
+        const source = `x${observer} `;
+        for (let split = 1; split < source.length; split++) {
+          expect(
+            lexChunkedAtoms([source.slice(0, split), source.slice(split)])
+              .map(String),
+          ).toEqual(["x", observer]);
+        }
+      }
+    });
+
+    it("leaves the native operators, `%%` and comments as they were", () => {
+      expect(lexAtoms("x.## %% 2 ").map(String))
+        .toEqual(["x", ".##", "%%", "2"]);
+      expect(lexAtoms("x.### %% 2 ").map(String))
+        .toEqual(["x", ".###", "%%", "2"]);
+      expect(lexAtoms("x.#% ").map(String)).toEqual(["x", ".#%"]);
+      expect(lexAtoms("x.#### ").map(String)).toEqual(["x", ".####"]);
+      expect(lexAtoms("x.##.#% ").map(String)).toEqual(["x", ".##", ".#%"]);
+    });
+
+    it("reads any longer `%` run as one unbound name, never splitting it", () => {
+      for (const name of [".##%%%%", ".###%%%%", ".#%%%", ".####%"]) {
+        expect(lexAtoms(`x${name}2 `).map(String)).toEqual(["x", name, "2"]);
+      }
     });
   });
 

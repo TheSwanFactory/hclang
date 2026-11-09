@@ -159,6 +159,24 @@ export const DENUM_BINDING_CAPACITY = 65536n;
  * @returns The bound Denum, or an error.
  */
 export function bindDenumCount(source: Frame): Frame {
+  const bound = boundLoads(source);
+  if (bound instanceof Frame) return bound;
+  return construct!(
+    new FrameCount(BigInt(bound.length)),
+    bound.map((load) => new FrameCount(load)),
+  );
+}
+
+/**
+ * The loads of `source.#%`, the C sums `bj = Σ ai` over `i mod C = j`, folded
+ * without building the bound Denum, or the binding's error in the order
+ * `bindDenumCount` documents. The geometric observers (007.41b) read these, so
+ * they consume the same genuine binding as `.#%` at no extra cost.
+ *
+ * @param source The observed Frame.
+ * @returns The C bound loads, or the binding's error.
+ */
+export function boundLoads(source: Frame): bigint[] | Frame {
   const failure = source.observationError();
   if (failure) return failure;
   if (!construct) return Frame.error("$!.denum-unavailable");
@@ -173,10 +191,7 @@ export function bindDenumCount(source: Frame): Frame {
   state.loads.forEach((load, index) => {
     bound[index % arity] += load;
   });
-  return construct(
-    new FrameCount(state.count),
-    bound.map((load) => new FrameCount(load)),
-  );
+  return bound;
 }
 
 /**

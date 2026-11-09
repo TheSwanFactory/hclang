@@ -259,8 +259,9 @@ Sized atom Count falls back to Size; nil/all Count changes name
 passthrough/absorption to zero. Their native Sizes are preserved. Stored errors
 now propagate instead of contributing opaque Size 1.
 
-The lexer, runtime dispatch and editor recognize `.####` together. A fifth hash
-starts a comment; `..#` remains the parameter ladder followed by a comment.
+The lexer, runtime dispatch and editor recognize `.####` together. Since 007.41d
+a fifth hash continues the name (`.#####` is one unbound name) rather than
+starting a comment; `..#` remains the parameter ladder followed by a comment.
 `x.####c#` previously meant `.###` followed by a comment and now begins with a
 fourth-hash observation followed by `c`. This is an intentional source break.
 Use whitespace before a hash comment after `.###` to preserve the old meaning.
@@ -536,6 +537,55 @@ Denum is present and `.####` still answers it); and a Count above 65536
 is allocated.
 
 **Lexing.** `.#%` is one token, like `.#`–`.####`. `.#`, `%%` and `#` comments
-are unchanged. `.#%%` is a lexical error, since it cannot be split back into
-`.#` and `%%`; write `.# %%`. Before this change `.#%…` lexed as `.#` followed
-by a `%` time literal; it now begins `.#%`.
+are unchanged. Inside a name `#` is an operator character, like `%`, so a run of
+them is one name, never split implicitly: `.#%%` is an unbound name
+(`$!.name-missing`); write `.# %%` for the modulo. Before this change `.#%…`
+lexed as `.#` followed by a `%` time literal; it now begins `.#%`.
+
+## Geometric observers `.##%` … `.###%%%` (007.41b)
+
+Six native observers read a Denum through a geometry (occurrence/figure 007.41b,
+delivered on PR #492 per 007.41c). Each applies the real `.#%` to its receiver
+first and reads the bound loads `B = [b0, …, b(C−1)]`, so every `.#%` failure
+(receiver, zero Count, capacity) is answered as it is and no class can declare
+an observer. They are observations only: no load, native observer, operator or
+product changes.
+
+| Geometry             | Size-like `##…`                | Residual-like `###…`               | Domain                              |
+| -------------------- | ------------------------------ | ---------------------------------- | ----------------------------------- |
+| simplex `%`          | `(C·Σbᵢ² − S²)/(C−1)`, C=1 → 0 | `bᵢ − S/C` (numerators `C·bᵢ − S`) | C ≥ 1                               |
+| Cayley–Dickson `%%`  | `Σ xₖ²`, equal to `.##%`       | `[0, x₁, …, x(C−1)]`, `x = φ_C(B)` | C = 2ⁿ, else `$!.denum-cd-count`    |
+| cross-polytope `%%%` | `Σ rᵢ²`                        | `rᵢ = bᵢ − b(i+n)`, n = C/2        | C even, else `$!.denum-cross-count` |
+
+**Return types.** A `##` reading is exact and nonnegative: a FrameCount when
+whole, a FrameRational otherwise. A `###` reading is a fresh array of signed
+numbers, never a Denum: FrameInt or FrameRational where the coordinate is
+rational. Only Cayley–Dickson coordinates can be irrational; those are IEEE
+doubles (FrameNumber), so `.###%%` mixes exact and inexact entries, while
+`.##%%` stays exact because each `xₖ²` is rational. The two CD readings
+therefore have different ranges, by design: an irrational coordinate past the
+doubles is refused as `$!.numeric-range .###%%` while `.##%%` of the same Denum
+is still exact (`B = [10⁴⁰⁰, 0, 0, 0]` gives `.##%% = 10⁸⁰⁰`), and an irrational
+coordinate of a load past 2⁵³ carries double precision only. An exact surd
+representation would be a separate decision (007.41e).
+
+**Coordinate conventions.** Simplex coordinates are indexed by the bound load
+and are the centered coefficients `zᵢ = bᵢ − S/C` on the C unit vertices, not
+orthonormal coordinates. Their Size is measured in the regular simplex's Gram
+metric, so `.##% = C/(C−1)·Σzᵢ²`, not `Σzᵢ²`: at `B = [2, 4, 2, 4]`, `.###%` is
+`[-1, 1, -1, 1]` with plain norm² 4, and `.##%` is 16/3 (007.41e). The CD and
+cross-polytope coordinates are orthonormal, so their Size is the plain `Σ`. The
+Cayley–Dickson map φ_C is the fixed-sign Helmert isometry of the 007.41
+experiment, `xₖ = √(C/(C−1))·(b₀ + … + b(k−1) − k·bₖ)/√(k(k+1))` on the
+imaginary unit `eₖ`, with real part 0; it is an observer coordinate choice and
+not a homomorphism (at C = 2, `B = [3, 1]` gives `x = [0, 2]`, whose CD square
+is −4 while the simplex magnitude is +4). The cross-polytope binding is 007.41b
+§5.A: one load per vertex, `bᵢ` on `+eᵢ` and `b(i+n)` on `−eᵢ`, so odd C is
+refused for this binding only. The Count-as-dimension alternative (§5.B) and the
+optional Clifford product are not implemented.
+
+**Lexing.** Each spelling is one token, by the same rule as `.#%`: inside a name
+`#` is an operator character, so an operator run is one name. **Breaking:**
+`.##%%` and `.###%%` written without a space were `.##`/`.###` before the modulo
+`%%`; write `.## %%`. Longer runs such as `.##%%%%`, `.####%` and `.#####` are
+unbound names, `$!.name-missing`, never split into an observer and the rest.

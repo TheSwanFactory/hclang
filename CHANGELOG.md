@@ -4,6 +4,31 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.51.0 2026-11-09
+
+- **Experiment 007.41: simplex and Cayley–Dickson observer algebras.**
+  `experiments/007-observer-algebras/` holds isolated, test-only observer code
+  that reads a Count-bound Denum (`d.#%`) through a centered cyclic simplex
+  quotient and, at C = 2ⁿ, a recursive Cayley–Dickson algebra. It changes no
+  Denum, Frame, grammar or operator. Run it with
+  `deno task experiment:observer-algebras` (#492).
+- **Geometric observers of a Denum (007.41b, 007.41c).** `d.##%` and `d.###%`
+  (centered simplex), `d.##%%` and `d.###%%` (Cayley–Dickson, C a power of two)
+  and `d.##%%%` and `d.###%%%` (cross-polytope, C even) read the loads of
+  `d.#%`: `##` answers an exact squared magnitude, `###` a list of signed
+  coordinates. Refusals are `.#%`'s, `$!.denum-cd-count` and
+  `$!.denum-cross-count`. Simplex coordinates are centered vertex coefficients,
+  so `.##% = C/(C−1)·Σzᵢ²`; `.##%%` stays exact where an irrational `.###%%`
+  coordinate is a double or refuses as `$!.numeric-range .###%%` (#492).
+- **A name is never split.** Inside a name `#` is an operator character, like
+  `%`, so `.#…` names follow the one rule for operator names: the whole run is
+  one name, and a spelling nothing binds, such as `.#%%`, `.##%%%%` or `.#####`,
+  is `$!.name-missing` like any unbound name. **Breaking:** `.#%%` is no longer
+  a lexical error; a fifth hash continues the name instead of opening a comment;
+  `.#+1` is `.#+` before `1` (write `.# + 1`); and `.##%%` and `.###%%` without
+  a space are observers, so write `.## %%` for the modulo. The VS Code extension
+  0.2.8 highlights these names the same way (#492).
+
 ## v0.50.0 2026-11-09
 
 - **One Denum class and one RotorRouter class for every arity.** The separate
