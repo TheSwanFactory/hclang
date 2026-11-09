@@ -180,6 +180,23 @@ export function bindDenumCount(source: Frame): Frame {
 }
 
 /**
+ * The loads of `source.#%`, read from the Denum the Count binding answered
+ * (007.41b). The geometric observers start here, so they all consume the same
+ * genuine binding, and any failure of `.#%` is answered as it is.
+ *
+ * @param source The observed Frame.
+ * @returns The C bound loads, or the binding's error.
+ */
+export function boundLoads(source: Frame): bigint[] | Frame {
+  const bound = bindDenumCount(source);
+  if (bound.isFailedResult() || bound.observationError()) return bound;
+  const loads = storedLoads(bound.referent());
+  return loads
+    ? loads.map((load) => load.data as bigint)
+    : Frame.error("$!.denum-binding-receiver");
+}
+
+/**
  * The router path (007.27). A router of k channels routes to channel C mod k,
  * which only a Denum of k loads follows, so an instance of the shipped
  * `RotorRouter` class, of any number of channels, answers the Denum of its

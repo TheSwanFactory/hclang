@@ -352,6 +352,47 @@ describe("Lex", () => {
     });
   });
 
+  describe("geometric observers `.##%` … `.###%%%` (007.41b)", () => {
+    const observers = [".##%", ".###%", ".##%%", ".###%%", ".##%%%", ".###%%%"];
+
+    it("reads each spelling as one token, whole and in chunks", () => {
+      for (const observer of observers) {
+        expect(lexAtoms(`x${observer} `).map(String)).toEqual(["x", observer]);
+        expect(lexAtoms(`x${observer}.# `).map(String))
+          .toEqual(["x", observer, ".#"]);
+        expect(lexAtoms(`x${observer} #c# `).map(String))
+          .toEqual(["x", observer]);
+        expect(lexAtoms(`x${observer}2 `).map(String))
+          .toEqual(["x", observer, "2"]);
+        const source = `x${observer} `;
+        for (let split = 1; split < source.length; split++) {
+          expect(
+            lexChunkedAtoms([source.slice(0, split), source.slice(split)])
+              .map(String),
+          ).toEqual(["x", observer]);
+        }
+      }
+    });
+
+    it("leaves the native operators, `%%` and comments as they were", () => {
+      expect(lexAtoms("x.## %% 2 ").map(String))
+        .toEqual(["x", ".##", "%%", "2"]);
+      expect(lexAtoms("x.### %% 2 ").map(String))
+        .toEqual(["x", ".###", "%%", "2"]);
+      expect(lexAtoms("x.#% ").map(String)).toEqual(["x", ".#%"]);
+      expect(lexAtoms("x.#### ").map(String)).toEqual(["x", ".####"]);
+      expect(lexAtoms("x.##.#% ").map(String)).toEqual(["x", ".##", ".#%"]);
+    });
+
+    it("refuses a fourth `%` rather than splitting it", () => {
+      for (const source of ["x.##%%%%2 ", "x.###%%%% "]) {
+        expect(lexResult(source).is.lexical).toBe(true);
+        expect(lexResult(source).toString()).toContain("is ambiguous");
+      }
+      expect(lexResult("x.#%%%2 ").toString()).toContain("`.#%%` is ambiguous");
+    });
+  });
+
   it("lexes a trailing-underscore mutating name across chunk boundaries", () => {
     for (const name of [".mutator_", "mutator_", "@mutator_"]) {
       expect(lexAtoms(`${name} `).map(String)).toEqual([name]);

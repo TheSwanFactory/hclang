@@ -61,6 +61,7 @@ export {
   observeDenum,
   type RouterRecognizer,
 } from "./frames/fourth-hash.ts";
+export { observeGeometry } from "./frames/denum-observers.ts";
 export { FrameDecimal } from "./frames/frame-decimal.ts";
 export { FrameSequence } from "./frames/frame-sequence.ts";
 export { FrameTypedNumber } from "./frames/frame-typed-number.ts";

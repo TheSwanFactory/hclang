@@ -610,6 +610,20 @@ export class Frame extends MetaFrame {
    */
   public static readonly kBIND = "#%";
   /**
+   * The experimental geometric observers of a Count-bound Denum (occurrence/
+   * figure 007.41b, 007.41c), Size-like then Residual-like for the centered
+   * simplex `%`, the Cayley–Dickson imaginaries `%%` and the cross-polytope
+   * `%%%`. Each reads `.#%` of its receiver (`denum-observers.ts`).
+   */
+  public static readonly GEOMETRIC_OBSERVERS: readonly string[] = [
+    "##%",
+    "###%",
+    "##%%",
+    "###%%",
+    "##%%%",
+    "###%%%",
+  ];
+  /**
    * The size operators, the only names spelled with `#` (#411). Each answers
    * for its receiver through `sizeFor`, never through name lookup.
    */
@@ -619,6 +633,7 @@ export class Frame extends MetaFrame {
     Frame.kRESIDUAL,
     Frame.kDENUM,
     Frame.kBIND,
+    ...Frame.GEOMETRIC_OBSERVERS,
   ];
   /**
    * BEGIN_EXPR is the symbol for the beginning of an expression.
@@ -971,6 +986,12 @@ export class Frame extends MetaFrame {
   public static bindCount: (source: Frame) => Frame;
 
   /**
+   * Installed by `denum-observers.ts`: one of `GEOMETRIC_OBSERVERS`, read
+   * from the receiver's `.#%`.
+   */
+  public static observeGeometry: (source: Frame, key: string) => Frame;
+
+  /**
    * Whether this value is itself an error, flagged as such. A diagnostic
    * failure such as `$!.name-missing` is flagged when constructed (#467).
    * Unlike `isFailedResult`, it never looks inside an aggregate, and unlike
@@ -1018,7 +1039,9 @@ export class Frame extends MetaFrame {
       case Frame.kBIND:
         return Frame.bindCount(this);
       default:
-        return Frame.nil;
+        return Frame.GEOMETRIC_OBSERVERS.includes(key)
+          ? Frame.observeGeometry(this, key)
+          : Frame.nil;
     }
   }
 
