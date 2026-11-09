@@ -10,7 +10,7 @@
   `left` and `right` are no longer stored fields but readings applied to nil,
   `router.phase ()`, `router.left ()` and `router.right ()`, derived from
   `channels`, as v0.49.0 did for Denum. **Breaking:** `router.phase`,
-  `router.left` and `router.right` without `()` no longer answer a value.
+  `router.left` and `router.right` without `()` no longer answer a value (#493).
 
 ## v0.49.0 2026-11-09
 
