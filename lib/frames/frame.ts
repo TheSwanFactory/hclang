@@ -610,19 +610,22 @@ export class Frame extends MetaFrame {
    */
   public static readonly kBIND = "#%";
   /**
-   * The experimental geometric observers of a Count-bound Denum (occurrence/
-   * figure 007.41b, 007.41c), Size-like then Residual-like for the centered
-   * simplex `%`, the Cayley–Dickson imaginaries `%%` and the cross-polytope
-   * `%%%`. Each reads `.#%` of its receiver (`denum-observers.ts`).
+   * The `%` suffixes of the geometric observers of a Count-bound Denum
+   * (occurrence/figure 007.41b, 007.41c): the centered simplex `%`, the
+   * Cayley–Dickson imaginaries `%%` and the cross-polytope `%%%`. They key
+   * `GEOMETRIES` in `denum-observers.ts`.
    */
-  public static readonly GEOMETRIC_OBSERVERS: readonly string[] = [
-    "##%",
-    "###%",
-    "##%%",
-    "###%%",
-    "##%%%",
-    "###%%%",
+  public static readonly GEOMETRY_SUFFIXES: readonly string[] = [
+    "%",
+    "%%",
+    "%%%",
   ];
+  /**
+   * The geometric observers: for each of `GEOMETRY_SUFFIXES`, the Size-like
+   * `##` then the Residual-like `###`. Each reads `.#%` of its receiver.
+   */
+  public static readonly GEOMETRIC_OBSERVERS: readonly string[] = Frame
+    .GEOMETRY_SUFFIXES.flatMap((suffix) => [`##${suffix}`, `###${suffix}`]);
   /**
    * The size operators, the only names spelled with `#` (#411). Each answers
    * for its receiver through `sizeFor`, never through name lookup.
@@ -987,7 +990,7 @@ export class Frame extends MetaFrame {
 
   /**
    * Installed by `denum-observers.ts`: one of `GEOMETRIC_OBSERVERS`, read
-   * from the receiver's `.#%`.
+   * from the receiver's `.#%`. `sizeFor` reaches it only for those keys.
    */
   public static observeGeometry: (source: Frame, key: string) => Frame;
 
@@ -1008,7 +1011,8 @@ export class Frame extends MetaFrame {
   }
 
   /**
-   * Native Count, Size, residual and derived Denum. Missing Count falls back to
+   * Native Count, Size, residual, derived Denum, the Count binding `.#%` and
+   * the geometric observers. Missing Count falls back to
    * Size, and missing residual to Count parity; kinds with their own rules
    * (lists, schemas, Denum, all) supply them explicitly (011.18k, 011.18m).
    * Nil has no Count, so no residual or Denum.
@@ -1039,9 +1043,7 @@ export class Frame extends MetaFrame {
       case Frame.kBIND:
         return Frame.bindCount(this);
       default:
-        return Frame.GEOMETRIC_OBSERVERS.includes(key)
-          ? Frame.observeGeometry(this, key)
-          : Frame.nil;
+        return Frame.observeGeometry(this, key);
     }
   }
 

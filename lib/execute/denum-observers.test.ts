@@ -15,6 +15,7 @@ import {
 } from "../frames.ts";
 import { evaluate } from "./evaluate.ts";
 import { constructDenum } from "./denum-prologue.ts";
+import { GEOMETRIES } from "../frames/denum-observers.ts";
 
 const SIMPLEX = ["##%", "###%"] as const;
 const CD = ["##%%", "###%%"] as const;
@@ -90,6 +91,30 @@ Deno.test("Count 1 is the degenerate simplex and the real Cayley–Dickson case"
   }
 });
 
+/**
+ * An independent exact oracle for the Cayley–Dickson norm: the sum of the
+ * squared Helmert coordinates `C·sₖ²/((C−1)k(k+1))` of the bound loads, which
+ * the isometry makes equal to the simplex form `.##%` answers.
+ */
+const helmertNorm = (c: bigint, loads: readonly bigint[]): Frame => {
+  const bound = Array.from({ length: Number(c) }, () => 0n);
+  loads.forEach((load, i) => bound[i % Number(c)] += load);
+  let [num, den] = [0n, 1n];
+  let prefix = 0n;
+  for (let k = 1n; k < c; k++) {
+    prefix += bound[Number(k) - 1];
+    const s = prefix - k * bound[Number(k)];
+    const termDen = (c - 1n) * k * (k + 1n);
+    [num, den] = [num * termDen + c * s * s * den, den * termDen];
+  }
+  return FrameRational.create(num, den);
+};
+
+Deno.test("the geometry table and Frame's observer spellings agree", () => {
+  expect(Object.keys(GEOMETRIES)).toEqual([...Frame.GEOMETRY_SUFFIXES]);
+  expect([...Frame.GEOMETRIC_OBSERVERS]).toEqual(ALL);
+});
+
 Deno.test("Cayley–Dickson .##%% is exactly the simplex magnitude at every C = 2ⁿ", () => {
   let seed = 7n;
   const next = (): bigint =>
@@ -101,6 +126,7 @@ Deno.test("Cayley–Dickson .##%% is exactly the simplex magnitude at every C = 
       const cd = observe(c, loads, "##%%");
       expect(text(cd)).toEqual(text(simplex));
       expect(cd.constructor).toBe(simplex.constructor);
+      expect(text(cd)).toEqual(text(helmertNorm(c, loads)));
       // The coordinates' squares add up to the exact norm within doubles.
       const coordinates = observe(c, loads, "###%%").elements();
       expect(coordinates.length).toEqual(Number(c));

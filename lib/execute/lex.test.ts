@@ -345,15 +345,13 @@ describe("Lex", () => {
       expect(lexAtoms("x.#% #c# ").map(String)).toEqual(["x", ".#%"]);
     });
 
-    it("refuses `.#%%` rather than splitting it", () => {
-      const source = "x.#%%2 ";
-      expect(lexResult(source).is.lexical).toBe(true);
-      expect(lexResult(source).toString()).toContain("`.#%%` is ambiguous");
+    it("reads `.#%%` as one unbound name rather than splitting it", () => {
+      expect(lexAtoms("x.#%%2 ").map(String)).toEqual(["x", ".#%%", "2"]);
     });
   });
 
   describe("geometric observers `.##%` … `.###%%%` (007.41b)", () => {
-    const observers = [".##%", ".###%", ".##%%", ".###%%", ".##%%%", ".###%%%"];
+    const observers = Frame.GEOMETRIC_OBSERVERS.map((key) => `.${key}`);
 
     it("reads each spelling as one token, whole and in chunks", () => {
       for (const observer of observers) {
@@ -384,12 +382,10 @@ describe("Lex", () => {
       expect(lexAtoms("x.##.#% ").map(String)).toEqual(["x", ".##", ".#%"]);
     });
 
-    it("refuses a fourth `%` rather than splitting it", () => {
-      for (const source of ["x.##%%%%2 ", "x.###%%%% "]) {
-        expect(lexResult(source).is.lexical).toBe(true);
-        expect(lexResult(source).toString()).toContain("is ambiguous");
+    it("reads any longer `%` run as one unbound name, never splitting it", () => {
+      for (const name of [".##%%%%", ".###%%%%", ".#%%%", ".####%"]) {
+        expect(lexAtoms(`x${name}2 `).map(String)).toEqual(["x", name, "2"]);
       }
-      expect(lexResult("x.#%%%2 ").toString()).toContain("`.#%%` is ambiguous");
     });
   });
 

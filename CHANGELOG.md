@@ -4,7 +4,7 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
-## Unreleased (experimental, not shipped)
+## Unreleased
 
 - **Experiment 007.41: simplex and Cayley–Dickson observer algebras.**
   `experiments/007-observer-algebras/` holds isolated, test-only observer code
@@ -12,13 +12,17 @@
   quotient and, at C = 2ⁿ, a recursive Cayley–Dickson algebra. It changes no
   Denum, Frame, grammar or operator. Run it with
   `deno task experiment:observer-algebras`.
-- **Experimental geometric observers of a Denum (007.41b, 007.41c).** `d.##%`
-  and `d.###%` (centered simplex), `d.##%%` and `d.###%%` (Cayley–Dickson, C a
-  power of two) and `d.##%%%` and `d.###%%%` (cross-polytope, C even) read the
-  loads of `d.#%`: `##` answers an exact squared magnitude, `###` a list of
-  signed coordinates. Refusals are `.#%`'s, `$!.denum-cd-count` and
-  `$!.denum-cross-count`. **Breaking (lexing):** `.##%%` and `.###%%` without a
-  space are now observers; write `.## %%` for the modulo.
+- **Geometric observers of a Denum (007.41b, 007.41c).** `d.##%` and `d.###%`
+  (centered simplex), `d.##%%` and `d.###%%` (Cayley–Dickson, C a power of two)
+  and `d.##%%%` and `d.###%%%` (cross-polytope, C even) read the loads of
+  `d.#%`: `##` answers an exact squared magnitude, `###` a list of signed
+  coordinates. Refusals are `.#%`'s, `$!.denum-cd-count` and
+  `$!.denum-cross-count`.
+- **A `#`/`%` name is never split.** After a dot, one to four `#` and any run of
+  `%` lex as one name, and a spelling nothing binds, such as `.#%%` or
+  `.##%%%%`, is `$!.name-missing` like any unbound name. **Breaking:** `.#%%` is
+  no longer a lexical error, and `.##%%` and `.###%%` without a space are
+  observers rather than `.##`/`.###` before the modulo; write `.## %%`.
 
 ## v0.50.0 2026-11-09
 

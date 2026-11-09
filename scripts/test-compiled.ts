@@ -9,6 +9,10 @@
  *
  * @module
  */
+// The barrel import comes first so the frame classes finish initializing.
+import "../lib/mod.ts";
+import { Frame } from "../lib/frames/frame.ts";
+
 const BINARY = new URL(
   Deno.build.os === "windows" ? "./hc.exe" : "./hc",
   import.meta.url,
@@ -25,8 +29,9 @@ const CASES: readonly { source: string; expected: string; what: string }[] = [
     // through `.####` with no import.
     what: "answer the geometric observers",
     source: `[${
-      ["##%", "###%", "##%%", "###%%", "##%%%", "###%%%"]
-        .map((key) => `([5, 3, 7, 1].####).${key}`).join(", ")
+      Frame.GEOMETRIC_OBSERVERS.map((key) => `([5, 3, 7, 1].####).${key}`).join(
+        ", ",
+      )
     }]`,
     expected:
       "[128, [8, 0, -4, -4], 128, [0, 6.531972647421807, 7.542472332656507, 16/3], 160, [12, 4]]",

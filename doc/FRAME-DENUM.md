@@ -536,11 +536,12 @@ Denum is present and `.####` still answers it); and a Count above 65536
 is allocated.
 
 **Lexing.** `.#%` is one token, like `.#`–`.####`. `.#`, `%%` and `#` comments
-are unchanged. `.#%%` is a lexical error, since it cannot be split back into
-`.#` and `%%`; write `.# %%`. Before this change `.#%…` lexed as `.#` followed
-by a `%` time literal; it now begins `.#%`.
+are unchanged. After the dot, one to four `#` and any run of `%` are one name,
+never split implicitly, so `.#%%` is an unbound name (`$!.name-missing`); write
+`.# %%` for the modulo. Before this change `.#%…` lexed as `.#` followed by a
+`%` time literal; it now begins `.#%`.
 
-## Geometric observers `.##%` … `.###%%%` (007.41b, experimental)
+## Geometric observers `.##%` … `.###%%%` (007.41b)
 
 Six native observers read a Denum through a geometry (occurrence/figure 007.41b,
 delivered on PR #492 per 007.41c). Each applies the real `.#%` to its receiver
@@ -572,7 +573,8 @@ is −4 while the simplex magnitude is +4). The cross-polytope binding is 007.41
 refused for this binding only. The Count-as-dimension alternative (§5.B) and the
 optional Clifford product are not implemented.
 
-**Lexing.** Each spelling is one token and the longest is taken. **Breaking:**
-`.##%%` and `.###%%` written without a space were `.##`/`.###` before the modulo
-`%%`; write `.## %%`. A `%` after three (`.##%%%%`) is a lexical error, like
-`.#%%`. `.####%` is unchanged (`.####` before a `%`).
+**Lexing.** Each spelling is one token, by the same rule as `.#%`: one to four
+`#` and any run of `%` are one name. **Breaking:** `.##%%` and `.###%%` written
+without a space were `.##`/`.###` before the modulo `%%`; write `.## %%`. Longer
+runs such as `.##%%%%` and `.####%` are unbound names, `$!.name-missing`, never
+split into an observer and a `%`.

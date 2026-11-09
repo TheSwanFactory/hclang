@@ -37,27 +37,14 @@ const recognizeName = (symbol: Frame, source = ""): ScanResult => {
   ) {
     return { disposition: ScanDisposition.CompleteRedispatch };
   }
-  // `#` begins a comment except where it spells a size operator, `.#`, `.##`
-  // `.###`, `.####`, the Count binding `.#%` (011.18, 007.40) or a geometric
-  // observer `.##%` … `.###%%%` (007.41b). A fifth hash starts a comment;
-  // `.foo#bar` still ends at its first hash. The longest observer is taken.
-  if (Frame.SIZE_OPERATORS.includes(source + char)) {
+  // After the dot, one to four hashes and any run of `%` are one name: `.#`,
+  // `.##`, `.###`, `.####`, the Count binding `.#%` (011.18, 007.40) and the
+  // geometric observers `.##%` … `.###%%%` (007.41b), and likewise unbound
+  // spellings such as `.#%%` or `.##%%%%`. A symbol is never split implicitly,
+  // so which spellings mean something is decided when the name is read. A
+  // fifth hash starts a comment, and `.foo#bar` still ends at its first hash.
+  if (/^#{1,4}%*$/.test(source + char)) {
     return { disposition: ScanDisposition.Consume };
-  }
-  // A `%` past the longest observer cannot be split back into a shorter
-  // operator and `%%` once `%` is consumed, so it is refused rather than read
-  // as that operator before a `%`: `.#%%` is `.# %%` or `.#% %`.
-  if (
-    char === "%" && source.endsWith("%") &&
-    Frame.SIZE_OPERATORS.includes(source)
-  ) {
-    const base = source.replace(/%+$/, "");
-    return {
-      disposition: ScanDisposition.Error,
-      message: source === Frame.kBIND
-        ? "`.#%%` is ambiguous: write `.# %%` or `.#% %`"
-        : `\`.${source}%\` is ambiguous: no observer has more than three \`%\`; write \`.${base} %%\` or \`.${source} %\``,
-    };
   }
   if (source.startsWith(Frame.kCOUNT)) {
     return { disposition: ScanDisposition.CompleteRedispatch };

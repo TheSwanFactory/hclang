@@ -4,6 +4,7 @@ import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 // The barrel import comes first so the frame classes finish initializing
 // before the lexing pipeline reaches them.
 import "../lib/mod.ts";
+import { Frame } from "../lib/frames/frame.ts";
 import { FrameArray } from "../lib/frames/frame-array.ts";
 import { FrameGroup } from "../lib/frames/frame-group.ts";
 import { FrameString } from "../lib/frames/frame-string.ts";
@@ -344,22 +345,16 @@ describe("VS Code size-operator grammar (#411)", () => {
   });
   it("highlights the Count binding and the geometric observers whole (007.41b)", () => {
     expect(sizeMatches("x.#%")).toEqual([size(".#%", 1)]);
-    for (
-      const observer of [
-        ".##%",
-        ".###%",
-        ".##%%",
-        ".###%%",
-        ".##%%%",
-        ".###%%%",
-      ]
-    ) {
+    for (const observer of Frame.GEOMETRIC_OBSERVERS.map((k) => `.${k}`)) {
       expect(sizeMatches(`x${observer}`)).toEqual([size(observer, 1)]);
       expect(sizeMatches(`x${observer}.#`))
         .toEqual([size(observer, 1), size(".#", observer.length + 1)]);
     }
     // Spaced, `%%` is still the modulo operator.
     expect(sizeMatches("x.## %% 2")).toEqual([size(".##", 1)]);
+    // An unbound spelling is still one name, as the lexer reads it.
+    expect(sizeMatches("x.##%%%%")).toEqual([size(".##%%%%", 1)]);
+    expect(sizeMatches("x.#%%")).toEqual([size(".#%%", 1)]);
   });
 
   it("leaves every other # to the comment rule", () => {
