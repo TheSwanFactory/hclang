@@ -562,10 +562,20 @@ whole, a FrameRational otherwise. A `###` reading is a fresh array of signed
 numbers, never a Denum: FrameInt or FrameRational where the coordinate is
 rational. Only Cayley–Dickson coordinates can be irrational; those are IEEE
 doubles (FrameNumber), so `.###%%` mixes exact and inexact entries, while
-`.##%%` stays exact because each `xₖ²` is rational.
+`.##%%` stays exact because each `xₖ²` is rational. The two CD readings
+therefore have different ranges, by design: an irrational coordinate past the
+doubles is refused as `$!.numeric-range .###%%` while `.##%%` of the same Denum
+is still exact (`B = [10⁴⁰⁰, 0, 0, 0]` gives `.##%% = 10⁸⁰⁰`), and an irrational
+coordinate of a load past 2⁵³ carries double precision only. An exact surd
+representation would be a separate decision (007.41e).
 
-**Coordinate conventions.** Simplex coordinates are indexed by the bound load.
-The Cayley–Dickson map φ_C is the fixed-sign Helmert isometry of the 007.41
+**Coordinate conventions.** Simplex coordinates are indexed by the bound load
+and are the centered coefficients `zᵢ = bᵢ − S/C` on the C unit vertices, not
+orthonormal coordinates. Their Size is measured in the regular simplex's Gram
+metric, so `.##% = C/(C−1)·Σzᵢ²`, not `Σzᵢ²`: at `B = [2, 4, 2, 4]`, `.###%` is
+`[-1, 1, -1, 1]` with plain norm² 4, and `.##%` is 16/3 (007.41e). The CD and
+cross-polytope coordinates are orthonormal, so their Size is the plain `Σ`. The
+Cayley–Dickson map φ_C is the fixed-sign Helmert isometry of the 007.41
 experiment, `xₖ = √(C/(C−1))·(b₀ + … + b(k−1) − k·bₖ)/√(k(k+1))` on the
 imaginary unit `eₖ`, with real part 0; it is an observer coordinate choice and
 not a homomorphism (at C = 2, `B = [3, 1]` gives `x = [0, 2]`, whose CD square

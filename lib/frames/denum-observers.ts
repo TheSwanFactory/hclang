@@ -73,8 +73,10 @@ function simplexSize(loads: readonly bigint[]): Frame {
 }
 
 /**
- * Centered simplex, `.###%`: the centered coefficients `bᵢ − S/C`, whose
- * numerators over C are `C·bᵢ − S` (007.41b §3). They sum to zero.
+ * Centered simplex, `.###%`: the centered coefficients `zᵢ = bᵢ − S/C`, whose
+ * numerators over C are `C·bᵢ − S` (007.41b §3). They sum to zero. They are
+ * coefficients on the C unit vertices, not orthonormal coordinates, so `.##%`
+ * is their norm in the simplex Gram metric, `C/(C−1)·Σzᵢ²` (007.41e).
  */
 function simplexResidual(loads: readonly bigint[]): Frame {
   const c = BigInt(loads.length);
@@ -104,7 +106,10 @@ function helmertNumerators(loads: readonly bigint[]): bigint[] {
  * `xₖ = sₖ·√(C/((C−1)k(k+1)))`. Writing `d = (C−1)k(k+1)`, that is
  * `sₖ·√(C·d)/d`, so a coordinate is the exact rational `sₖ·√m/d` when
  * `m = C·d` is a perfect square, and a double otherwise, computed as the
- * 007.41 experiment computes it. The real part is the exact 0.
+ * 007.41 experiment computes it. The real part is the exact 0. A double past
+ * the finite range is refused as `$!.numeric-range .###%%`, though `.##%%` of
+ * the same Denum stays exact: the two readings have different ranges by
+ * design (007.41e).
  */
 function cdResidual(loads: readonly bigint[]): Frame {
   const c = loads.length;

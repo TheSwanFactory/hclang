@@ -254,6 +254,56 @@ Deno.test("failures of .#% pass through every observer, in its order", () => {
   }
 });
 
+Deno.test("the binding capacity is inclusive: C = 65536 binds, 65537 refuses (007.41e)", () => {
+  // A sparse source keeps the fixture small: B = [1, 0, …, 0].
+  for (const key of ["##%", "##%%", "##%%%"]) {
+    expect(text(observe(65536n, [1n], key))).toEqual("1");
+  }
+  expect(observe(65536n, [1n], "###%").elements().length).toEqual(65536);
+  expect(observe(65536n, [1n], "###%%").elements().length).toEqual(65536);
+  expect(observe(65536n, [1n], "###%%%").elements().length).toEqual(32768);
+  // The binding refuses before any geometry checks its own Count domain.
+  for (const key of ALL) {
+    expect(text(observe(65537n, [1n], key)))
+      .toEqual("$!.denum-binding-capacity");
+  }
+});
+
+Deno.test("simplex coordinates carry the Gram factor: .##% = C/(C−1)·Σzᵢ² (007.41e)", () => {
+  const cases: [bigint, bigint[]][] = [
+    [2n, [3n, 1n]],
+    [3n, [2n, 5n, 3n, 7n, 4n]],
+    [4n, [2n, 4n, 2n, 4n]],
+    [6n, [5n, 2n, 3n, 5n, 1n, 3n]],
+  ];
+  for (const [c, loads] of cases) {
+    // Σzᵢ² as an exact fraction over C², from the coordinates' own values.
+    const z = observe(c, loads, "###%").elements().map((x) =>
+      x instanceof FrameRational
+        ? [x.numerator, x.denominator]
+        : [(x as FrameInt).data, 1n]
+    );
+    const num = z.reduce((t, [n, d]) => t + (n * (c / d)) ** 2n, 0n);
+    // C/(C−1)·num/C² = num/(C·(C−1))
+    const expected = FrameRational.create(num, c * (c - 1n));
+    expect(text(observe(c, loads, "##%"))).toEqual(text(expected));
+  }
+  // At B = [2, 4, 2, 4] the coordinates' plain norm² is 4, the Size 16/3.
+  expect(text(observe(4n, [2n, 4n, 2n, 4n], "###%"))).toEqual("[-1, 1, -1, 1]");
+  expect(text(observe(4n, [2n, 4n, 2n, 4n], "##%"))).toEqual("16/3");
+});
+
+Deno.test("CD Size stays exact where a Residual coordinate leaves the doubles (007.41e)", () => {
+  // B = [10⁴⁰⁰, 0, 0, 0]: x₁ = 10⁴⁰⁰·√(2/3) is irrational and past the
+  // doubles, so .###%% refuses while .##%% is the exact 10⁸⁰⁰.
+  const m = 10n ** 400n;
+  expect(text(observe(4n, [m, 0n, 0n, 0n], "##%%"))).toEqual(`${m * m}`);
+  expect(text(observe(4n, [m, 0n, 0n, 0n], "###%%")))
+    .toEqual("$!.numeric-range .###%%");
+  // The simplex and cross readings of the same Denum stay exact.
+  expect(text(observe(4n, [m, 0n, 0n, 0n], "###%%%"))).toEqual(`[${m}, 0]`);
+});
+
 Deno.test("observers are exact for loads past 2⁵³", () => {
   const big = 123456789012345678901234567890n;
   // B = [big, 1]: Q_S = (2(big² + 1) − (big + 1)²)/1 = (big − 1)².
