@@ -138,6 +138,30 @@ export function bindingSource(
   return `${denumClassSource()}\n(Denum [${count}, [${loads.join(", ")}]]).#%`;
 }
 
+/**
+ * Asks native geometric observers (`##%` … `###%%%`, 007.41b) of
+ * `Denum [count, loads]` from HC source in a bare evaluator, so the
+ * experiment's TypeScript algebras can be checked against the HC bindings. The
+ * Denum is built once by the shipped bridge and bound as `$$.d`; every reading
+ * is dispatched by HC source, `[$$.d.##%, …]`.
+ *
+ * @returns One answer per observer, in order.
+ */
+export function observeFromSource(
+  count: bigint,
+  loads: readonly bigint[],
+  observers: readonly string[],
+): Frame[] {
+  const d = constructDenum(
+    new FrameCount(count),
+    loads.map((l) => new FrameCount(l)),
+  );
+  const source = `[${observers.map((key) => `$$.d.${key}`).join(", ")}]`;
+  // Boxed, so a list observation is not mistaken for a group of statements.
+  return FrameExpr.answeredValue(evaluate(source, { d }).at(-1)).referent()
+    .asArray();
+}
+
 /** Binds `Denum [count, loads]` entirely from HC source in a bare evaluator. */
 export function bindWithBareSource(
   count: bigint,

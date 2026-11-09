@@ -5,6 +5,7 @@ import {
   bindingSource,
   bindWithBareSource,
   bindWithHC,
+  observeFromSource,
 } from "./bridge.ts";
 import {
   BigIntRing as R,
@@ -13,7 +14,12 @@ import {
   cdProduct,
   NumberRing as F,
 } from "./cayley-dickson.ts";
-import { ObserverDomainError, ratEqual, ratToString } from "./exact.ts";
+import {
+  ObserverDomainError,
+  ratEqual,
+  rational,
+  ratToString,
+} from "./exact.ts";
 import { CASES, runExperiment } from "./experiment.ts";
 import {
   compareProducts,
@@ -245,4 +251,50 @@ Deno.test("the printed report equals the committed fixture", async () => {
   );
   expect(report).toEqual(fixture);
   expect(CASES.length).toBeGreaterThan(8);
+});
+
+Deno.test("the native HC observers agree with the experiment's algebras (007.41b)", () => {
+  for (const c of [1, 2, 3, 4, 5, 6, 8, 16]) {
+    // Loads must be nonnegative; a uniform shift changes no simplex reading.
+    for (const v of sampleVectors(c, 4, 4141)) {
+      const loads = v.map((x) => x + 5n);
+      const count = BigInt(c);
+      const keys = ["##%", "###%", "##%%", "###%%", "##%%%", "###%%%"];
+      const answers = observeFromSource(count, loads, keys);
+      const read = (key: string) => answers[keys.indexOf(key)];
+      expect(`${read("##%")}`).toEqual(
+        ratToString(simplexResultantSquared(loads)),
+      );
+      const total = loads.reduce((a, b) => a + b, 0n);
+      // The centred coefficients bᵢ − S/C, reduced as the experiment does.
+      expect(`${read("###%")}`).toEqual(
+        `[${
+          loads.map((b) => ratToString(rational(count * b - total, count)))
+            .join(", ")
+        }]`,
+      );
+      if ((c & (c - 1)) === 0) {
+        expect(`${read("##%%")}`).toEqual(
+          ratToString(phiNormSquaredExact(loads)),
+        );
+        const x = read("###%%").elements().map(Number);
+        expect(maxDifference(x, phi(loads)))
+          .toBeLessThanOrEqual(
+            RELATIVE_TOLERANCE * Math.max(1, ...x.map(Math.abs)),
+          );
+      } else {
+        expect(`${read("##%%")}`).toEqual("$!.denum-cd-count");
+        expect(() => phi(loads)).toThrow(ObserverDomainError);
+      }
+      if (c % 2 === 0) {
+        const n = c / 2;
+        const r = loads.slice(0, n).map((b, i) => b - loads[i + n]);
+        expect(`${read("###%%%")}`).toEqual(`[${r.join(", ")}]`);
+        expect(`${read("##%%%")}`)
+          .toEqual(`${r.reduce((a, b) => a + b * b, 0n)}`);
+      } else {
+        expect(`${read("##%%%")}`).toEqual("$!.denum-cross-count");
+      }
+    }
+  }
 });

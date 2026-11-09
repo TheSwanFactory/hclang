@@ -1,13 +1,15 @@
 # 007.41 — simplex and Cayley–Dickson observer algebras
 
 Experimental code for Occurrence task 007.41. It is not part of the shipped
-runtime. It changes no Denum or Frame state, grammar, operator or version, and
-it installs no observer suffix. Both algebras produce separate **observer
-values** with signed or rational coefficients; nothing here converts a product
-back into a nonnegative native Denum.
+runtime and changes no Denum or Frame state, grammar, operator or version. The
+native HC observers `.##%` … `.###%%%` that 007.41b/c later asked for live in
+`lib/frames/denum-observers.ts` (see `doc/FRAME-DENUM.md`); a test here checks
+them against these algebras on the same inputs. Both algebras produce separate
+**observer values** with signed or rational coefficients; nothing here converts
+a product back into a nonnegative native Denum.
 
 ```sh
-deno task test:observer-algebras        # 31 tests, also part of test:all
+deno task test:observer-algebras        # 32 tests, also part of test:all
 deno task experiment:observer-algebras  # prints the report below
 ```
 
