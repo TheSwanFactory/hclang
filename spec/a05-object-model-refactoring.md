@@ -219,8 +219,8 @@ visibility through an inherited receiver reached via a handle.
 
 ### Visibility and symmetry
 
-- [ ] State the visibility matrix in `lib/frames/CLAUDE.md` beside the
-      resolution code it describes.
+- [ ] State the visibility matrix in `doc/ARCHITECTURE.md` beside the resolution
+      code it describes.
 - [ ] Test the full matrix across direct values, handles, bound methods, nested
       closures, inherited receivers, and instance copies.
 - [ ] Test that equality, alias identity, and mutation targets are unchanged by
