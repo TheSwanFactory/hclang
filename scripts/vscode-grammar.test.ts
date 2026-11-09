@@ -340,8 +340,9 @@ describe("VS Code size-operator grammar (#411)", () => {
     expect(sizeMatches("x.###")).toEqual([size(".###", 1)]);
     expect(sizeMatches("x.###.#")).toEqual([size(".###", 1), size(".#", 5)]);
     expect(sizeMatches("x.####")).toEqual([size(".####", 1)]);
-    // A fifth hash is left to open a comment.
-    expect(sizeMatches("x.#####c#")).toEqual([size(".####", 1)]);
+    // Inside a name `#` is an operator character, so the run is never split.
+    expect(sizeMatches("x.#####")).toEqual([size(".#####", 1)]);
+    expect(sizeMatches("x.#+1")).toEqual([size(".#+", 1)]);
   });
   it("highlights the Count binding and the geometric observers whole (007.41b)", () => {
     expect(sizeMatches("x.#%")).toEqual([size(".#%", 1)]);

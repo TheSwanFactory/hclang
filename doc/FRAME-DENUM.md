@@ -259,8 +259,9 @@ Sized atom Count falls back to Size; nil/all Count changes name
 passthrough/absorption to zero. Their native Sizes are preserved. Stored errors
 now propagate instead of contributing opaque Size 1.
 
-The lexer, runtime dispatch and editor recognize `.####` together. A fifth hash
-starts a comment; `..#` remains the parameter ladder followed by a comment.
+The lexer, runtime dispatch and editor recognize `.####` together. Since 007.41d
+a fifth hash continues the name (`.#####` is one unbound name) rather than
+starting a comment; `..#` remains the parameter ladder followed by a comment.
 `x.####c#` previously meant `.###` followed by a comment and now begins with a
 fourth-hash observation followed by `c`. This is an intentional source break.
 Use whitespace before a hash comment after `.###` to preserve the old meaning.
@@ -536,10 +537,10 @@ Denum is present and `.####` still answers it); and a Count above 65536
 is allocated.
 
 **Lexing.** `.#%` is one token, like `.#`–`.####`. `.#`, `%%` and `#` comments
-are unchanged. After the dot, one to four `#` and any run of `%` are one name,
-never split implicitly, so `.#%%` is an unbound name (`$!.name-missing`); write
-`.# %%` for the modulo. Before this change `.#%…` lexed as `.#` followed by a
-`%` time literal; it now begins `.#%`.
+are unchanged. Inside a name `#` is an operator character, like `%`, so a run of
+them is one name, never split implicitly: `.#%%` is an unbound name
+(`$!.name-missing`); write `.# %%` for the modulo. Before this change `.#%…`
+lexed as `.#` followed by a `%` time literal; it now begins `.#%`.
 
 ## Geometric observers `.##%` … `.###%%%` (007.41b)
 
@@ -573,8 +574,8 @@ is −4 while the simplex magnitude is +4). The cross-polytope binding is 007.41
 refused for this binding only. The Count-as-dimension alternative (§5.B) and the
 optional Clifford product are not implemented.
 
-**Lexing.** Each spelling is one token, by the same rule as `.#%`: one to four
-`#` and any run of `%` are one name. **Breaking:** `.##%%` and `.###%%` written
-without a space were `.##`/`.###` before the modulo `%%`; write `.## %%`. Longer
-runs such as `.##%%%%` and `.####%` are unbound names, `$!.name-missing`, never
-split into an observer and a `%`.
+**Lexing.** Each spelling is one token, by the same rule as `.#%`: inside a name
+`#` is an operator character, so an operator run is one name. **Breaking:**
+`.##%%` and `.###%%` written without a space were `.##`/`.###` before the modulo
+`%%`; write `.## %%`. Longer runs such as `.##%%%%`, `.####%` and `.#####` are
+unbound names, `$!.name-missing`, never split into an observer and the rest.

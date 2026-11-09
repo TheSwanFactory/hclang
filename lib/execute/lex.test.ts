@@ -323,15 +323,18 @@ describe("Lex", () => {
       // No name contains `#`, so `.foo#bar` is a name before a comment.
       expect(lexAtoms(".foo#bar# ").map(String)).toEqual([".foo"]);
       expect(lexAtoms("..# ").map(String)).toEqual([".."]);
-      // Nothing extends `.####`, so a fifth hash begins a comment.
-      expect(lexAtoms("x.#####c# ").map(String)).toEqual(["x", ".####"]);
-      // Preserve the fifth-hash comment boundary across every input split.
-      for (const source of ["x.#####c# ", "x.###### "]) {
+      // After the dot `#` is an operator character, so a run of them, a
+      // fifth hash included, is one name and is never split.
+      expect(lexAtoms("x.##### #c# ").map(String)).toEqual(["x", ".#####"]);
+      expect(lexAtoms("x.#+1 ").map(String)).toEqual(["x", ".#+", "1"]);
+      expect(lexAtoms("x.# + 1 ").map(String)).toEqual(["x", ".#", "+", "1"]);
+      for (const source of ["x.##### ", "x.###### "]) {
+        const name = source.trim().slice(1);
         for (let split = 1; split < source.length; split++) {
           expect(
             lexChunkedAtoms([source.slice(0, split), source.slice(split)])
               .map(String),
-          ).toEqual(["x", ".####"]);
+          ).toEqual(["x", name]);
         }
       }
     });

@@ -14,9 +14,17 @@ import {
   type SigilStart,
 } from "../scan.ts";
 
+/**
+ * Inside a name, `#` is an operator character like `%`. Elsewhere it opens a
+ * comment, but after the dot it spells the size operators `.#` … `.####`, the
+ * Count binding `.#%` and the geometric observers, so it joins the run.
+ */
+const isOperatorChar = (char: string): boolean =>
+  char === Frame.kCOUNT || FrameOperator.Accepts(char);
+
 /** A name accepts identifier and operator characters alike. */
 const includes = (char: string): boolean =>
-  FrameSymbol.SYMBOL_CHAR.test(char) || FrameOperator.OPERATOR_CHARS.test(char);
+  FrameSymbol.SYMBOL_CHAR.test(char) || isOperatorChar(char);
 
 /** A name continues while its spelling stays one kind of identifier. */
 const recognizeName = (symbol: Frame, source = ""): ScanResult => {
@@ -37,18 +45,6 @@ const recognizeName = (symbol: Frame, source = ""): ScanResult => {
   ) {
     return { disposition: ScanDisposition.CompleteRedispatch };
   }
-  // After the dot, one to four hashes and any run of `%` are one name: `.#`,
-  // `.##`, `.###`, `.####`, the Count binding `.#%` (011.18, 007.40) and the
-  // geometric observers `.##%` … `.###%%%` (007.41b), and likewise unbound
-  // spellings such as `.#%%` or `.##%%%%`. A symbol is never split implicitly,
-  // so which spellings mean something is decided when the name is read. A
-  // fifth hash starts a comment, and `.foo#bar` still ends at its first hash.
-  if (/^#{1,4}%*$/.test(source + char)) {
-    return { disposition: ScanDisposition.Consume };
-  }
-  if (source.startsWith(Frame.kCOUNT)) {
-    return { disposition: ScanDisposition.CompleteRedispatch };
-  }
   // `.^` needs no rule of its own: `^` is an operator character, so it is
   // consumed and completed like any other name.
   if (!includes(char)) {
@@ -60,9 +56,12 @@ const recognizeName = (symbol: Frame, source = ""): ScanResult => {
     return { disposition: ScanDisposition.Consume };
   }
 
-  const startsWithOperator = FrameOperator.Accepts(source[0]);
+  // An operator run is never split: `.%%%%`, `.##%%%%` and `.#####` are each
+  // one name, bound or not. An identifier ends where the kind changes, so
+  // `.foo#bar#` is `.foo` before a comment.
+  const startsWithOperator = isOperatorChar(source[0]);
   const continuesIdentifier = char[0] === "-" && !startsWithOperator;
-  const sameKind = FrameOperator.Accepts(char[0]) === startsWithOperator;
+  const sameKind = isOperatorChar(char[0]) === startsWithOperator;
   return {
     disposition: continuesIdentifier || sameKind
       ? ScanDisposition.Consume

@@ -18,11 +18,13 @@
   `d.#%`: `##` answers an exact squared magnitude, `###` a list of signed
   coordinates. Refusals are `.#%`'s, `$!.denum-cd-count` and
   `$!.denum-cross-count`.
-- **A `#`/`%` name is never split.** After a dot, one to four `#` and any run of
-  `%` lex as one name, and a spelling nothing binds, such as `.#%%` or
-  `.##%%%%`, is `$!.name-missing` like any unbound name. **Breaking:** `.#%%` is
-  no longer a lexical error, and `.##%%` and `.###%%` without a space are
-  observers rather than `.##`/`.###` before the modulo; write `.## %%`.
+- **A name is never split.** Inside a name `#` is an operator character, like
+  `%`, so `.#…` names follow the one rule for operator names: the whole run is
+  one name, and a spelling nothing binds, such as `.#%%`, `.##%%%%` or `.#####`,
+  is `$!.name-missing` like any unbound name. **Breaking:** `.#%%` is no longer
+  a lexical error; a fifth hash continues the name instead of opening a comment;
+  `.#+1` is `.#+` before `1` (write `.# + 1`); and `.##%%` and `.###%%` without
+  a space are observers, so write `.## %%` for the modulo.
 
 ## v0.50.0 2026-11-09
 
