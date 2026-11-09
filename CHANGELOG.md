@@ -12,6 +12,7 @@
   quotient and, at C = 2ⁿ, a recursive Cayley–Dickson algebra. It changes no
   Denum, Frame, grammar or operator and installs no observer suffix. Run it with
   `deno task experiment:observer-algebras`.
+
 ## v0.50.0 2026-11-09
 
 - **One Denum class and one RotorRouter class for every arity.** The separate

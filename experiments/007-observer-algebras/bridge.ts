@@ -13,7 +13,7 @@
  * @module
  */
 import { evaluate } from "../../lib/execute/evaluate.ts";
-import { constructDenumLoads } from "../../lib/execute/denum-prologue.ts";
+import { constructDenum } from "../../lib/execute/denum-prologue.ts";
 import { HC_SOURCES } from "../../lib/bundle/hc-sources.ts";
 import { Frame, FrameCount, FrameExpr } from "../../lib/frames.ts";
 
@@ -91,7 +91,7 @@ export function bindWithHC(
   count: bigint,
   loads: readonly bigint[],
 ): BindResult {
-  const denum = constructDenumLoads(
+  const denum = constructDenum(
     new FrameCount(count),
     loads.map((l) => new FrameCount(l)),
   );

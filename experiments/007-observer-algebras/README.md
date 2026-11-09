@@ -17,8 +17,8 @@ suite fails if the report changes.
 ## Input
 
 A Denum is bound with the real `d.#%` (007.39a, 007.40), through the TypeScript
-bridge (`constructDenumLoads` then `sizeFor(Frame.kBIND)`) and independently
-through a bare evaluator that runs the bundled `hc/denum.hc` followed by
+bridge (`constructDenum` then `sizeFor(Frame.kBIND)`) and independently through
+a bare evaluator that runs the bundled `hc/denum.hc` followed by
 `(Denum [C, [loads]]).#%`. Count C and the C loads are read from that answer.
 The experiment does not reimplement the `bⱼ = Σ_{i mod C = j} aᵢ` folding.
 Native `.#`, `.##` and `.###` are read from the same bound Denum and reported

@@ -18,7 +18,7 @@ cayley-dickson: left action L_x is 1x1, L_x(x) - x*x max gap 0.0e+0
 compare b*b: phi(b*_S b)=[0.000000] phi(b)*_CD phi(b)=[0.000000] gap=0.000000 scalar=0.000000 homomorphic=true
 compare b*rot(b): gap=0.000000 scalar=0.000000 homomorphic=true; CD |xy-yx|^2=0.000000
 == C=2 [3,1]: Denum [2, [3, 1]] .#%
-bound: “Denum(2,3,1)”; bridge and bare source agree: true
+bound: “Denum(2,[3, 1])”; bridge and bare source agree: true
 native: .#=2 .##=4 .###=2 (alternating signed sum)
 simplex: class=[2, 0] R2=4
 simplex: b*b=[4, 0] b*rot(b)=[-4, 0] rot(b)*b=[-4, 0]
@@ -73,7 +73,7 @@ cayley-dickson: left action L_x is 16x16, L_x(x) - x*x max gap 3.6e-15
 compare b*b: phi(b*_S b)=[0.000000, 68.647894, 25.298221, 8.049845, 18.244269, 12.067956, 24.542027, -56.999415, 25.682102, -37.776575, -24.322879, 72.723692, -3.555662, 3.674683, -25.514540, -14.866667] phi(b)*_CD phi(b)=[-118.333333, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000] gap=118.333333 scalar=-118.333333 homomorphic=false
 compare b*rot(b): gap=88.788804 scalar=21.400000 homomorphic=false; CD |xy-yx|^2=54469.665391
 == uniform C=2: Denum [2, [5, 5]] .#%
-bound: “Denum(2,5,5)”; bridge and bare source agree: true
+bound: “Denum(2,[5, 5])”; bridge and bare source agree: true
 native: .#=2 .##=10 .###=0 (alternating signed sum)
 simplex: class=[0, 0] R2=0
 simplex: b*b=[0, 0] b*rot(b)=[0, 0] rot(b)*b=[0, 0]
