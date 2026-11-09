@@ -96,6 +96,22 @@ function storedLoads(source: Frame): FrameCount[] | undefined {
  * @returns A fresh Denum equal to the source, or undefined.
  */
 function intrinsicDenum(source: Frame): Frame | undefined {
+  return recognizeDenum(source)?.denum;
+}
+
+/** A recognized Denum: its fresh reconstruction and the state it was built from. */
+interface DenumState {
+  readonly denum: Frame;
+  readonly count: bigint;
+  readonly loads: readonly bigint[];
+}
+
+/**
+ * Recognizes an instance of the shipped Denum class exactly as
+ * `intrinsicDenum` documents, answering its reconstruction together with the
+ * stored Count and loads it was rebuilt from, or undefined.
+ */
+function recognizeDenum(source: Frame): DenumState | undefined {
   if (!construct) return undefined;
   const host = source.referent();
   if (!host.ownsIdentity()) return undefined;
@@ -109,7 +125,60 @@ function intrinsicDenum(source: Frame): Frame | undefined {
   if (candidate.isFailedResult() || candidate.observationError()) {
     return undefined;
   }
-  return candidate.typeEquals(host) === Frame.all ? candidate : undefined;
+  return candidate.typeEquals(host) === Frame.all
+    ? {
+      denum: candidate,
+      count: count.data as bigint,
+      loads: loads.map((load) => load.data as bigint),
+    }
+    : undefined;
+}
+
+/**
+ * The most loads `.#%` materializes. The Count is exact and unbounded, but the
+ * bound Denum holds C loads, so a Count above this is refused with
+ * `$!.denum-binding-capacity` rather than allocated, truncated or converted.
+ */
+export const DENUM_BINDING_CAPACITY = 65536n;
+
+/**
+ * Count binding, `d.#%` (occurrence/figure 007.39a, 007.40). For a Denum
+ * `d = (C; [a0, …, a(A−1)])` with C > 0 it answers the new Denum
+ * `(C; [b0, …, b(C−1)])`, where `bj` is the sum of every `ai` with
+ * `i mod C = j`: fewer loads than C are copied and zero-filled, exactly C are
+ * kept, and more fold onto the first C by index. The Count, the total Size
+ * and nonnegativity are kept, the arity becomes C, and binding is idempotent.
+ * It is not a rank and allocates no geometry.
+ *
+ * Only a genuine Denum is bound, recognized as `.####` recognizes it, so
+ * nothing of the receiver runs. In order: a failed receiver is answered as it
+ * is; anything that is not a Denum is `$!.denum-binding-receiver`; Count zero
+ * is `$!.denum-binding-zero-count`, since there is no channel to bind into;
+ * and a Count above `DENUM_BINDING_CAPACITY` is `$!.denum-binding-capacity`.
+ * The receiver is never changed.
+ *
+ * @param source The observed Frame.
+ * @returns The bound Denum, or an error.
+ */
+export function bindDenumCount(source: Frame): Frame {
+  const failure = source.observationError();
+  if (failure) return failure;
+  if (!construct) return Frame.error("$!.denum-unavailable");
+  const state = recognizeDenum(source);
+  if (!state) return Frame.error("$!.denum-binding-receiver");
+  if (state.count === 0n) return Frame.error("$!.denum-binding-zero-count");
+  if (state.count > DENUM_BINDING_CAPACITY) {
+    return Frame.error("$!.denum-binding-capacity");
+  }
+  const arity = Number(state.count);
+  const bound = new Array<bigint>(arity).fill(0n);
+  state.loads.forEach((load, index) => {
+    bound[index % arity] += load;
+  });
+  return construct(
+    new FrameCount(state.count),
+    bound.map((load) => new FrameCount(load)),
+  );
 }
 
 /**
@@ -216,3 +285,4 @@ export function observeDenum(source: Frame): Frame {
 }
 
 Frame.denum = observeDenum;
+Frame.bindCount = bindDenumCount;

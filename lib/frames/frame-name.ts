@@ -38,8 +38,16 @@ const recognizeName = (symbol: Frame, source = ""): ScanResult => {
     return { disposition: ScanDisposition.CompleteRedispatch };
   }
   // `#` begins a comment except where it spells a size operator, `.#`, `.##`
-  // `.###` or `.####` (011.18). A fifth hash starts a comment;
-  // `.foo#bar` still ends at its first hash.
+  // `.###`, `.####` or the Count binding `.#%` (011.18, 007.40). A fifth hash
+  // starts a comment; `.foo#bar` still ends at its first hash.
+  // `.#%%` cannot be split back into `.#` and `%%` once `%` is consumed, so it
+  // is refused rather than read as `.#%` before a `%`: write `.# %%`.
+  if (source === Frame.kBIND && char === "%") {
+    return {
+      disposition: ScanDisposition.Error,
+      message: "`.#%%` is ambiguous: write `.# %%` or `.#% %`",
+    };
+  }
   if (Frame.SIZE_OPERATORS.includes(source + char)) {
     return { disposition: ScanDisposition.Consume };
   }

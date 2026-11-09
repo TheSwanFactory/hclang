@@ -603,6 +603,13 @@ export class Frame extends MetaFrame {
   /** Derived nullable Denum, an instance of the HC class in `hc/denum.hc` (011.20). */
   public static readonly kDENUM = "####";
   /**
+   * kBIND is `.#%`, Count binding (occurrence/figure 007.39a, 007.40): a
+   * Denum `(C; [a0, …])` with C > 0 answers the new Denum of C loads whose
+   * load j sums every source load at an index congruent to j mod C. Only a
+   * genuine Denum is bound; any other receiver is refused (`fourth-hash.ts`).
+   */
+  public static readonly kBIND = "#%";
+  /**
    * The size operators, the only names spelled with `#` (#411). Each answers
    * for its receiver through `sizeFor`, never through name lookup.
    */
@@ -611,6 +618,7 @@ export class Frame extends MetaFrame {
     Frame.kLEAVES,
     Frame.kRESIDUAL,
     Frame.kDENUM,
+    Frame.kBIND,
   ];
   /**
    * BEGIN_EXPR is the symbol for the beginning of an expression.
@@ -959,6 +967,9 @@ export class Frame extends MetaFrame {
   /** Installed by `fourth-hash.ts`, avoiding a base-to-subclass import cycle. */
   public static denum: (source: Frame) => Frame;
 
+  /** Installed by `fourth-hash.ts`: `.#%`, the Count binding of a Denum. */
+  public static bindCount: (source: Frame) => Frame;
+
   /**
    * Whether this value is itself an error, flagged as such. A diagnostic
    * failure such as `$!.name-missing` is flagged when constructed (#467).
@@ -1004,6 +1015,8 @@ export class Frame extends MetaFrame {
       }
       case Frame.kDENUM:
         return Frame.denum(this);
+      case Frame.kBIND:
+        return Frame.bindCount(this);
       default:
         return Frame.nil;
     }
