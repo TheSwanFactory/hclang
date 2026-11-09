@@ -37,13 +37,6 @@ deno task test:production # live GitHub Pages browser smoke test
 deno publish --dry-run
 ```
 
-## Public API
-
-- `@swanfactory/hcweb/mount` — `mountHcweb(element)`, the simplest entry
-- `@swanfactory/hcweb/islands/Main` — island entry for Fresh `islandSpecifiers`
-- `@swanfactory/hcweb` — components and prop types
-- `@swanfactory/hcweb/styles` — the scoped style string
-
 ## Artifact invariants
 
 The generated file must stay one HTML file with one inline script, no external

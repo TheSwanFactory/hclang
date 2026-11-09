@@ -62,7 +62,7 @@ handle and `X_` a mutable one. The test checks the class and never reads the
 flag, so a plain name is treated as the caller asking for a mutable view, which
 it did not do.
 
-This also contradicts the effect-marker rule in `lib/frames/CLAUDE.md`: "a
+This also contradicts the effect-marker rule in `doc/ARCHITECTURE.md`: "a
 trailing underscore on a key means the key touches identity." Here, a key
 without one touches identity.
 

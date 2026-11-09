@@ -82,7 +82,7 @@ This is the "same value and same type" predicate that #358 found unreachable.
   compare by reference. `B === B` holds, `B === B2` does not, and `(E .0) === A`
   holds.
 - **Atoms** have no identity a program can observe. The copy contract already
-  says sharing them is unobservable (`lib/frames/CLAUDE.md`, _Copy Contract_).
+  says sharing them is unobservable (`doc/ARCHITECTURE.md`, _Copy Contract_).
   For atoms, `===` is `==`. So `3 === 3` holds and `3 === 3.0` does not, which
   keeps the ladder monotone.
 - **Closures** share bodies by the same contract, so `===` is `==` for them too.

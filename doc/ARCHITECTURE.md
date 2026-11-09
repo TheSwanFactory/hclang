@@ -1,0 +1,788 @@
+# HC Architecture
+
+How the interpreter is built, and why. Each `spec/` file records a decision as
+it was made; this document describes the design as it stands now. Rules an
+editor must not break are in the CLAUDE.md files, which link back here.
+
+## Pipeline
+
+HC processes code through a stateless lexical boundary before its familiar
+Lex/Parse/Eval stages:
+
+1. **Symbolicate** - String → `FrameSymbol`
+2. **Sigilize** - Symbol + active lexical Frame → routed scan decision
+3. **Lex** - Syntax-owned lexical state → Token or structural action
+4. **Parse** - Tokens/actions → Frames (AST)
+5. **Eval** - Frames → Results
+
+Sigilizer holds no input state. Registered families advertise an immutable
+static `SYNTAX` descriptor carrying their `SIGIL_STARTS` metadata and their own
+recognition decisions through the neutral protocol in `lib/scan.ts`. Recognition
+is class-side and stateless, so `Lex` never constructs a value to ask a question
+about syntax; construction happens only through the descriptor's explicit value
+factory.
+
+A Sigil start selects one of two lexical paths. `atom` mode reads a
+single-delimiter atom, where asymmetric delimiters nest by matching pairs. `run`
+mode reads a family whose maximal run length selects nesting depth: an odd run
+opens, an equal run closes, an even run is empty, and a longer interior run is
+an error. Documents (`` ` ``) and ASCII-quoted strings (`"`) share that one
+rule, so run length never selects a type.
+
+Sigilizer is a stateless phase driver. Input-dependent state remains in the
+active `Lex` or syntax-specific Frame. Those Frames return the neutral scan
+decisions defined in `lib/scan.ts`; Sigilizer alone routes consume, completion,
+redispatch, transition, and lexical failure.
+
+Families that participate in source recognition publish an immutable static
+`SYNTAX` descriptor instead of exposing a constructor to the lexer:
+
+- `SIGIL_STARTS` advertises the source characters and lexical modes the family
+  owns;
+- `recognize(symbol, source, context)` decides what one source Symbol does to
+  the lexeme accumulated so far;
+- `finish(source)` completes or rejects the lexeme at physical EOF; and
+- `fromSource(source)` builds the runtime value, or throws for a family whose
+  values never come from source.
+
+Recognition is a property of the family, not of a value: it is stateless, so
+`lib/frames/atom-syntax.ts` supplies the shared rules and no family needs a
+receiver class. A family that genuinely accumulates lexical state, such as
+`FrameBytePayload`, is installed by a `Transition` and keeps instance
+`scan()`/`finishInput()` methods. `Frame.scan()` therefore means runtime double
+dispatch everywhere else.
+
+### Parse pipe
+
+The parser builds the Concrete Semantics Graph (`spec/a16`): Frames that are the
+program's own executable nodes, with no node the parser alone needed.
+
+A whitespace starts a bind pipe, whose `FrameBind` factory names the pipe and
+never reaches the graph: the pipe emits its one term bare, or several abutting
+terms, as `o.x` in `f o.x`, as one tight `FrameExpr` that evaluates before its
+neighbour applies.
+
+### Host bindings
+
+The context passed to `evaluate` supplies the explicit `$$` host namespace. Host
+bindings do not participate in bare-name lookup.
+
+## Iteration
+
+Iteration is application, twice. Both operators apply each streamed value to the
+right operand and differ only in what becomes of each answer: `&` keeps the
+answers apart, one per element, while `|` keeps each answer as the receiver for
+the next element. What a reduce starts from is therefore the combining rule —
+text joins, an aggregate collects, a numeric multiplies — so no operator carries
+a rule of its own. A class supplies any other rule by declaring a method named
+`apply` (`apply_` when it writes), which applying the aggregate calls (#375).
+Doubling either one widens the stream from values to `[key, value]` tuples, over
+the visible properties in declaration order and then the elements by index. A
+third operator, `&|`, maps and then splices each answer's elements into one
+fresh array, so it concatenates and, with a conditional, filters (#421). Integer
+repetition `n x` is likewise decided by x: `3 “ab”` joins three copies,
+`3 [1, 2]` concatenates the elements into a fresh aggregate of the same kind
+with its properties once (v0.22.0), and a closure, or a class that declares
+`apply`, is applied repeatedly.
+
+A resource pushes characters, so what a read answers is decided downstream by
+composition rather than declared by the source. `hc/apply-tutorial.md` teaches
+this and `hc/apply.hc` is the executable corpus. Before v0.15.0 `|` and `&` were
+assigned the other way around.
+
+Both operators take the right operand as the receiver and hand it the element as
+the argument. Neither inspects what it was handed, so a text or aggregate
+receiver is as ordinary as a closure, and no operator carries a second calling
+convention. The stream itself comes from `Frame.elements`, and the widened one
+from `Frame.visibleKeys` followed by those elements by index.
+
+## Operations
+
+Every operation is a frame. A fresh `FrameCurry` is created for every operation
+lookup. When lookup occurs inside a method, built-in conditionals and iterators
+capture that invocation's typed receiver state. They pass the exact object only
+to callback literals marked as evaluated in the same invocation; matching by
+state identity preserves nested language control flow while excluding unrelated
+named helpers and ordinary helper calls.
+
+Each arithmetic operator defers to `FrameNumeric`, which promotes along the
+[Numeric Ladder](#numeric-ladder), so mixed operands answer the higher rung:
+`2 + (0 - 3)` is a FrameInt and `2 * 1.5` a FrameDecimal. Division and modulo by
+zero are `$!.division-by-zero /` and `$!.modulo-by-zero %%`. An operand that is
+already an error, `$!.name-missing` included, is the answer of `+`, `-`, `*`,
+`/`, `%%`, `**`, ordering and all three equalities, left first, rather than nil
+(#467). Diagnostic failures carry `is.error`, so expression and closure
+sequencing, imports and conditionals propagate them like other errors.
+
+## Resource Imports
+
+`ParsePipe` recognizes `. <- resource` and `name <- resource` before ordinary
+expression evaluation. Both forms use `makeSourcePipe` to run resource
+characters through the same Lex/Parse/Eval stages as other HC source, with
+completed top-level forms emitted incrementally and unclosed structures checked
+at physical EOF rather than at logical newlines.
+
+`FrameImport` represents the reserved `. <- resource` and `name <- resource`
+expressions while receiving its source evaluator as a callback, so the frames
+package does not depend on the execution pipeline. A local import evaluates in
+the exact current `EvaluationScope`. A named import evaluates and validates its
+right side, then evaluates source in one fresh, unbound child namespace; only
+complete success commits that exact child through the ordinary `FrameSymbol`
+setter. Any right-side, read, parse, evaluation, or setter failure leaves the
+previous target binding (or its absence) unchanged.
+
+The child namespace owns imported declarations and falls through to the caller's
+ordered live lookup graph. `LiveLookupContext` exposes that graph read-only,
+withholds receiver/write authority, and resolves values and binding schema
+metadata through the same physical declaration owners. An alias that finds a
+caller binding through it is refused, `$!.read-only-scope @a` (#441), so the
+import fails rather than answering as though it had written. Immutable identity
+projections may be reused while their target is unchanged; rebinding a caller
+name produces a projection for the new target. Closures derived from the child
+retain this lookup without a parallel metadata scope list. The live caller
+lookup and its binding resolution both stop before `Frame.globals`, so a caller
+layer that shadows a global supplies both its value and its schema. An operator,
+or any other global no caller layer declares, is reached once through the outer
+lookup's single global tier, which curries an operator with its own operand.
+
+`FrameResource.elements()` is the only read path and is called once per import
+evaluation. Nested imports carry an invocation-local active resource chain;
+re-entering the same host namespace and resource spelling returns
+`$!.resource-import-cycle` before another read. The chain is neither a module
+registry nor a persistent cache, and a later independent import starts clean.
+
+Importing a testdoc runs its code and not its examples. A line that begins with
+a semicolon and a space outside prose, the line `HCEval.checkInput` reads as an
+example, is dropped up to its newline, and an expectation line (`# …`) is
+already a comment, so none of its claims is counted and none of its examples'
+names is bound. A name the module exports, such as Figures' `gap` and `spin`, is
+therefore declared in code, not in an example. Because the first failed form
+fails the whole import, an error in a testdoc's code would pass when that file
+runs directly and break every importer; the `HCLang` bundle test in
+`hc-lang.test.ts` imports Figures to catch it.
+
+**Quoting a file**, `'./f.hc' | {}` (#443, `spec/a18`), is the import stopped
+before evaluation. `quoteResourceSource` feeds the file's characters through the
+same `ExampleFilter`, lexer and parser, between `{` and `}`, into a sink that
+keeps the parsed closure instead of evaluating it. It binds that closure where
+the fold is written. `<-` in the file parses to an inert `FrameImport`, so
+quoting reads no other file and runs nothing. The file's lines are the comma
+terms of one body, so calling the quote answers the group of their values. It
+installs itself as `FrameLazy.quote`, which `ReduceElements` calls when a
+resource is folded into the empty closure, since `lib/frames` and `lib/ops`
+cannot import the parser.
+
+**The Denum class** (`denum-prologue.ts`, 011.20) is the one bundled file the
+evaluator reads without a root. `.####` derives its Count and loads natively in
+`lib/frames/fourth-hash.ts` and constructs an instance of `Denum` from
+`hc/denum.hc`. `hc-eval.ts` imports the module, which installs the constructor;
+the first construction evaluates the file once per process through
+`evaluateSourceText`, the import front end with example lines dropped, in an
+isolated namespace with no host bindings and no root, and keeps the result,
+failure included. So the file's own code may not import anything.
+
+`HCLang.makeHost` lays the bundled `hc/` files of `lib/bundle/hc-bundle.ts` over
+its in-memory session root, as the CLI does over its temp root, and `reset()`
+reinstalls them with the fresh root.
+
+## Text Values and Character Content
+
+`FrameString`, `FrameDoc`, `FrameComment`, and `FrameURI` all hold a string body
+and render it through their own delimiters, so `FrameText` holds that body once
+and they are siblings rather than subclasses of one another. A document is not a
+kind of string: `` ` `` denotes foreign content while `“ ”` denotes characters.
+
+Storage is not coercion. Contributing raw characters to a larger string is the
+`CharacterContent` capability, advertised only by `FrameString` and `FrameDoc`,
+and juxtaposition tests for that capability rather than for a class. A comment
+or a resource identifier therefore keeps its delimiters when it joins a string,
+which is why `“a” #b#` yields `“a#b#”`.
+
+What a value contributes is first asked of `Frame.toText()`, which answers the
+value itself. An aggregate that declares a `toText` method, on itself or a
+declared parent, answers that method's result instead (#398), found the way
+`apply` is (#375) and never in the surrounding scope. The answer then follows
+the same rule: characters if it has character content, its spelling otherwise.
+The printer never asks, so a printed value still reads back.
+
+Two families stay out. `FrameBytes` is byte-backed, with a printable form
+derived from a `Uint8Array`. `FrameNote` holds a string, but that string is a
+label key resolved through `LABELS`, and a note renders through `toString()`
+rather than the shared `toStringData()` path.
+
+A document publishes its characters as a computed `body` property rather than
+stored metadata, because stored metadata would switch the shared atom renderer
+to its braced form and break fence round-tripping. Reading `.body` does not
+change what a document denotes: it still evaluates to itself and still prints
+its fences.
+
+## Resources
+
+A resource identifier is inert until a root binding is reachable in the
+invocation context. Applying one writes, reducing one reads, and path extension
+is attenuation. `spec/a10-resource-primitive.md` is the contract for the
+authority, and `spec/a11-resource-iteration.md` for the reading.
+
+`FrameResource` is the one family whose application is effectful, and it extends
+`FrameURI` rather than replacing it. `'…'` lexes to the inert identity; when a
+root binding is reachable in the invocation context, `FrameURI.in` returns a
+`FrameResource` extending that binding, and when none is it returns itself. So a
+resource prints, compares, and decomposes exactly as the identifier it was
+written as, and the authority is the only difference.
+
+Three modules stand behind it, in dependency order:
+
+- `resource-reference.ts` decides what a reference means. Pure, total, and free
+  of `Frame`, so it is testable without an evaluator and callable before any
+  dispatch. Every refusal is decided here, named in the `$!.…` vocabulary
+  without the sigil.
+- `resource-store.ts` is the host seam, and the reason `lib/` has no `Deno` in
+  it. `MemoryStore` is the browser-safe default and the vehicle for
+  deterministic fixtures. The Deno CLI's filesystem store lives in
+  `cli/resource-store.ts`. `ResourceMapStore` lays fixed entries under canonical
+  keys over another store, read-only, so a harness can serve package-owned
+  source without widening its root; `lib/bundle/hc-bundle.ts` uses it to serve
+  the bundled `hc/` files in the CLI and `HCLang`.
+- `resource-binding.ts` names the capability structurally, because a root
+  binding is a `FrameResource` and `FrameURI` has to ask one to extend itself.
+
+Three protocol points are load-bearing. Reads go through `elements()`, which
+pushes one character at a time into whatever receiver the reduce was handed, so
+no part of the reading is a property of the resource. `asArray()` stays the
+structural view and performs no access, which is what lets `isFailedResult()` be
+inherited rather than overridden: `FrameExpr` calls it on every term of every
+statement, and consulting the reading view there would read once per mention.
+`visibleKeys()` answers none, so a doubled read yields indexed characters — the
+RFC 3986 components describe the reference the value _is_ rather than contents
+it holds. The store is a private TypeScript field, never metadata, so no
+iteration can reach the authority. See
+[`a10`](../spec/a10-resource-primitive.md) and
+[`a11`](../spec/a11-resource-iteration.md).
+
+## Walking a Closure
+
+A closure is an aggregate of its body's atoms, so `&` walks it without
+evaluating anything, and `.#` counts the atoms (#429, `spec/a15`). `atomsOf` in
+`frame-expr.ts` walks a body statement by statement: a tight expression,
+abutting terms, is one atom (`spec/a16`); the parser emits no `FrameBind` into
+the graph, wrappers, keeps a `;` statement terminator as the word `;`, and turns
+every symbol, operator and name into a `FrameWord`: a lookup yields `a`, a
+declaration `.a`. A word never resolves, however it is carried, so a program can
+hold, compare and re-collect the names of a body. Every other atom, a count, a
+string, a nested closure or an aggregate written in the body, is yielded as the
+template's own frame, and `Frame.walked()` is what lets an aggregate written in
+a body walk by the same rule. The walk never copies and never writes, so two
+walks yield the same frames and a call in between changes nothing. A size
+operator reaches a closure as its argument, where the body would run, so
+`FrameLazy.call` answers it first. A walk is evaluation stopped before each
+term's last step (`spec/a17`), so a bound closure's walk holds each atom with
+the scope the closure was bound in: a word carries it, and a compound atom,
+which is a tight expression, an aggregate or a nested closure, is a transparent
+`FrameScoped`, as is an alias. A fold is the one place words turn back into
+code, and it resumes them: `|` over a closure calls it with the receiver, and
+`|` over a stream that holds a word or a held term reassembles the body
+(`closureFromAtoms` in `reread.ts`), binds it where the `|` is written, and
+calls that. Each held term is rebuilt as its own class, a fresh symbol or a
+plumbing copy, and registered with its scope (`resumeAt` in `frame-expr.ts`),
+which `FrameExpr.evaluateTerms` consults. A held term resolves in the
+resumption's fresh frame, then the receiver, then its own scope read-only, with
+that scope as the enclosing one for `__` and carets
+(`EvaluationScope.resumedIn`), never the fold's site; any other term resolves at
+the site. A resumed alias that would write the closure's scope is refused,
+`$!.resumed-write`. So `{x + 1} | (.x 5)` is `6`, `{…} | (args)` is a second
+spelling of `{…} (args)`, and atoms from two closures folded together each
+resume where their own closure was bound. The evaluator hands the scope an
+operator was written in to the fresh curry it answers (`Frame.atSite`), which
+only a fold reads. Folding the atoms one at a time cannot be the call, because
+the evaluator keeps the scope apart from the running answer and a fold has only
+the one receiver. `reread.ts` is its own module because it needs `FrameArg`, a
+subclass of `FrameSymbol`, and `frame-symbol.ts` imports `frame-lazy.ts`. Before
+v0.25.0 the walk yielded parsed terms, dropped statements and declarations, and
+`.#` called the closure.
+
+A word is a name (v0.26.0): `=` compares spellings with any other name, the
+address `.x` included, and `===` compares the declaration each walked word
+resolves to. `atomsOf` resolves them as it walks, statement by statement, so
+shadowing is kept; a name at the head of an expression declares, a member name
+after a receiver (`o .a`) declares nothing, and a name declared nowhere in view
+is free and resolves per call. An aggregate written in a body is scoped inside
+it (`spec/a16`): its names keep their bindings, and its own declarations shadow.
+A nested closure's enclosing declarations are recorded when its outer closure
+walks past it, or when the outer's call binds it (`noteEnclosing`, from
+`FrameLazy.bind`), keyed by the body's first term, which a bound copy shares.
+The address `.x` written in a program is a name too: `FrameSymbol.called_by`
+hands it to a pending declaration as a value, so `.k .x` keeps a key, and to
+text without that member as its spelling, so `“” .x` is `“.x”`. Every other
+receiver reads the member, `o .x`, as before.
+
+## Errors and Catch
+
+Failure labels `!`, `>` and `-` on a `FrameNote` carry `is.error`, while test
+progress and summary notes do not. The `!` and `>` notes render as system
+errors, `$!.name-missing` and `$!.bounds-exceeded`. `$!!.reason` constructs a
+named user error independently of name lookup (#467). Errors the interpreter
+makes are system errors, `$!.reason`; source that writes `$!.reason` raises the
+user error with that reason, and a schema holding it names the system kind
+(`error-kind.ts`, spec a13/14).
+
+A catch handler receives `$#`, a `FrameObservation`: a non-error view of one
+error, with `.!` the original and `.#` its reason. `frame-observation.ts`
+installs `Frame.catchWith`, which `FrameExpr` calls late-bound so that
+expression reduction need not import it. The catch operator `$!` (`FrameCatch`)
+and the `$#` anchor live in `frame-scope-anchor.ts`; the `$!` boundary is in
+`FrameExpr.evaluateTerms`.
+
+## Visibility
+
+A leading underscore grades a declaration, and `Frame.resolve_here` in
+`frame.ts` is the one place that answers the question. The answer depends only
+on where the access originates:
+
+| Accessor origin              | public | protected | private |
+| ---------------------------- | ------ | --------- | ------- |
+| the owner itself             | yes    | yes       | yes     |
+| a descendant via parent link | yes    | yes       | no      |
+| an unrelated peer            | yes    | no        | no      |
+
+Two rules make that table hold no matter how the access arrives:
+
+- **Descendant means declared.** `isAncestorOf` walks the declared `parent`
+  chain only, never the lexical `up` pointer. Lexical nesting and syntactic
+  containment confer nothing, so an aggregate nested inside another is an
+  unrelated peer for visibility, and so is a peer's method body. `up` is
+  rewritten as lookup learns context, and access control must not depend on
+  lookup history.
+- **Origin is the receiver.** A method body resolves against the frame it runs
+  against, so the owner reaches all three of its own grades, including from a
+  scope nested inside the body. A refusal is an error value, not a miss, so it
+  never falls through to an ancestor that happens to share the name.
+
+Wrapping and copying must not bend the table. A handle grades against its
+target, and an instance copy is its own owner, with full access to its own
+fields and no residual claim on its source's private ones.
+
+## Declared Parents
+
+`.^ base` writes the structural parent link rather than an ordinary binding. Its
+position determines which object it targets:
+
+- **Construction position declares.** On an aggregate under construction, `.^`
+  declares that new aggregate's parent. Every frame may be a parent: an atom
+  simply has no bindings to inherit.
+- **Method position re-parents.** On an existing receiver, `.^` requires the
+  same receiver-write capability as `@name`. A method without the mutating
+  suffix returns `$!.method-not-mutating .^`. A mutating method reached through
+  a mutable handle updates the receiver itself; through an immutable handle it
+  updates only the functional instance copy selected by `BoundMethod`, so the
+  original keeps its parent.
+- **Everywhere else refuses.** With neither an aggregate under construction nor
+  an active method receiver, `.^` returns `$!.parent-not-declarable .^`.
+
+`setParent` remains the only writer and rejects any direct or indirect cycle
+before changing the link. Method-position re-parenting makes that guard
+reachable from HC source; both its frame-level invariant and a language-level
+indirect cycle are covered.
+
+The complete lookup graph is broader than that declared chain: lexical `up`
+links are rewritten freely, and handles add target links, so either can cycle.
+`MetaFrame.get` therefore owns one guarded traversal for every built-in frame.
+It checks `lookup_here` first, then follows the links from `lookup_links` with
+declared parents before lexical `up`, sharing one seen-set. A revisit is a miss
+for that branch rather than an error or recursive overflow, and `Frame.globals`
+is consulted once as the final tier after the non-global graph is exhausted.
+
+Specialized frames customize the template through protected hooks instead of
+recursing through public `get`: `lookup_here` supplies computed local values,
+`lookup_links` supplies structural links such as a handle target, and
+`lookup_result` transforms a successful value, such as binding a method to its
+handle target. Keeping traversal and cycle state in `MetaFrame.get` prevents a
+specialization from accidentally resetting the guard.
+
+## Effect Marker
+
+One spelling rule covers the whole effect axis: a trailing underscore on a key
+means the key touches identity. `counter_` names a mutable handle on its value,
+and `.set_ {…}` declares a method that may write the receiver it runs against.
+Because the two halves share a marker, the lexer needs no rule to carve a
+mutating marker out of an operator character, and `:` denotes if-else alone.
+
+`effect-marker.ts` is the only place that reads the marker. `FrameSymbol.in`
+asks `touchesIdentity` for handle mutability, and every `BoundMethod` is built
+from a `MethodEffect` produced by `methodEffect` where the method meets its
+receiver, so the effect engine receives a graded fact instead of testing a key's
+spelling itself. `MethodEffect.name` is the key without its marker, which is how
+a diagnostic names its subject. A marker alone is not a marked key: `_` and the
+longer underscore runs `FrameArg` uses are keys of length one and up whose whole
+text is the marker, and they grade as non-mutating so that a diagnostic never
+loses its subject.
+
+Nothing distinguishes a mutable field from a mutating method at the spelling
+level; the value's own type does. A `FrameArray` found under such a key becomes
+a handle, and a `FrameLazy` becomes a bound method. That is also why the marker
+is not purely additive: a block-valued field spelled with a trailing underscore
+before v0.11.0 is a mutating method now. Leading underscores are a separate
+axis, graded by `resolve_here` for visibility, so `.__secret_` is a private
+mutable binding.
+
+## Handles
+
+A handle is a name's effect-qualified reference to a value, and nothing more.
+Two rules define it:
+
+- **Transparency.** Wrapping does not change what a value prints, equals,
+  exposes, or answers when applied; rendering, data, metadata, array views, and
+  application delegate to the target, and assignment unwraps, so a mutation
+  lands where it would have without the wrapper. Application never writes
+  through the name: a collect lands on the target's `collectingCopy()`, a fresh
+  aggregate sharing its elements, whether or not the name is mutable.
+- **Target lookup.** `get_here` answers missing by design, so explicit dotted
+  lookup resolves against the caller's origin rather than the wrapper. A handle
+  created by a read records the scope of that read for its evaluation roots
+  only: lookup through it reaches the target and its declared parents, never
+  that scope, so `o.k` misses when `o` has no `k` (#400).
+
+Discovering a method through a handle or by bare name on the active raw receiver
+yields a `BoundMethod`, and so does reading one by dot from a value no name
+holds, which binds it immutably because such a value may still be shared
+(v0.23.0). Only a field is a method: a closure found under an element index is
+data the aggregate holds, so a handle answers it as itself, and `xs.0 === C`
+holds for `.xs [C]`. The `BoundMethod` owns the effect rules for that pairing: a
+mutating method acts on the receiver itself through a mutable handle, and on an
+instance copy through an immutable one. A method without the mutating suffix
+retains receiver read access but receives no receiver-write capability, so a
+receiver-targeted `@name` returns `$!.method-not-mutating @name` through either
+kind of handle. A bare sibling mutator called from such a method is rebound
+functionally instead of escalating the outer method to an in-place write. Handle
+mutability selects original identity versus functional copy only after the
+method contract authorizes mutation.
+
+The receiver is also reachable by caret. `EvaluationScope.lexicalAt` answers the
+receiver at the level that reaches the scope a method was written in, `_^` from
+its body and `_^^` from a block one level in, reading it through the same
+`receiverLayer` that bare-name lookup pushes. The count stays lexical (spec
+a06), and the receiver keeps exactly the authority the call was granted, so an
+inherited method or a functional copy reads its own fields, and a non-mutating
+method's `_^.m_ ()` is a functional update.
+
+One immutable `ReceiverState` carries the exact receiver, copy provenance, bare
+sibling binding mode, and private write brand from `BoundMethod` to the
+invocation frame. Syntax nested on the explicit evaluation stack reads that same
+object. A closure literal evaluated in that invocation receives a plumbing copy
+marked with the state object's identity. Fresh built-in conditional and iterator
+curries forward authority only when the callback bears that matching marker, so
+nested inline blocks retain the decision while unrelated named helpers and
+ordinary helper calls cannot acquire it.
+
+An alias first searches the receiver and its declared parents. A hit consumes
+the write brand; a miss searches the method's own scope and the scope it was
+written in, never the prepared argument or parameter supplied by the caller and
+never the scope its receiver was read from. Reads and writes therefore agree: a
+method's free names are lexical (#400).
+
+## Equality
+
+The three operators are a ladder, each strictly stronger than the last, and
+`Frame` owns one method per rung:
+
+- `equals` (`=`): the same value. Atom families override it, and `FrameArray`
+  compares its complete view, visible properties then elements, by `=`.
+- `typeEquals` (`==`): `equals` plus the same class at every node, so the
+  numeric rung counts. The class is the exact constructor, so a subclass is a
+  type of its own: a `FrameCount` is never `==` a `FrameInt`.
+- `identical` (`===`): the same frame. A frame that `ownsIdentity()`, which is
+  every `FrameArray`, compares by reference; anything else falls back to
+  `typeEquals`, because the copy contract makes sharing it unobservable.
+
+`referent()` is how a handle stays transparent: every rung unwraps through it,
+so a handle is equal, type-equal and identical to its target. No id is ever
+returned by a comparison. See [`a14/01`](../spec/a14-bfg/01-equality-ladder.md).
+
+## Declared Application
+
+Applying an aggregate collects, unless it declares a method named `apply`, or
+`apply_` when the rule writes the receiver (#375).
+`FrameArray.applicationMethod` finds it on the aggregate and its declared
+parents only, never in the lexical scope, and `apply` runs it as a
+`BoundMethod`, so a handle's mutability decides whether `apply_` writes the
+target or answers an updated copy, exactly as for any mutating method. A step
+answering nil leaves the receiver unchanged. An aggregate with a declared
+application no longer `collects()`, so a refusal applied to it stays a refusal
+instead of being held.
+
+Observation can be declared the same way (011.20). An aggregate observes its
+elements, so one that keeps state in fields observes as 0, 1, 0, unless it
+declares a method named `#`, `##` or `###`, which `FrameArray.sizeFor` and
+`nativeSize` run immutably in place of the list rule, through the same
+`declaredMethod` lookup. The answer must be a Count (`#`, `##`) or an exact
+integer (`###`), else `$!.declared-observation`; a method that observes its own
+receiver and key already being observed is `$!.cyclic-observation`, and nesting
+past `OBSERVATION_DEPTH_LIMIT` (32) is `$!.observation-depth`. The method runs
+on every observation and cannot write its receiver, but may act on other state
+it reaches. `.####` is derived from the three, so a class that declares them
+gets its fourth hash. No class declares `.####`: a method under that name is an
+ordinary property `.####` never runs. Because the three cannot tell a Denum of
+Count zero from an empty host, `fourth-hash.ts` recognizes an instance of the
+shipped Denum class intrinsically: a stored Count `count`, a stored nonempty
+list of Counts `loads`, and `==` to the Denum the constructor builds from them,
+answering that fresh reconstruction (007.25e). Anything else takes the derived
+path.
+
+The interpreter's own output is not application. The evaluator's output array is
+also the file scope, so a top-level `.apply` lands on it; `Frame.collect` is the
+plumbing path that `EvalPipe` and `evaluate` use, and an aggregate collects
+there unconditionally.
+
+Integer repetition asks first (v0.22.0). `FrameInt.repeat` refuses a negative
+count, then asks the argument's `repetitionFor(count)`, which `Frame` answers
+`undefined`. `FrameList` answers a plumbing `copy()` holding the terms it keeps
+once, its properties and statements, followed by the terms it repeats, its
+elements, n times and shared, and refuses more than `REPETITION_ELEMENT_LIMIT`
+repeated terms with `$!.repetition-size`. `repeatsTerm` decides which terms
+repeat: `FrameSchema` repeats every term it does not hold as a property,
+statements included, because a schema's terms are all type terms, and it
+recompiles a compiled matcher from the repeated terms. A result left with no
+term at all is the literal's empty value: nil for a `FrameGroup` and `Frame.all`
+for a `FrameSchema`. An aggregate with a declared application answers
+`undefined`, as `FrameExpr` does for every expression and closure, so repetition
+applies it from nil within `REPETITION_LIMIT`, as before.
+
+What an operation is handed is read-only (#419). `Frame.readOnly()` answers the
+frame itself, `FrameArray` an immutable handle on itself, and `FrameHandle`
+itself, so a handle the caller passed keeps its mutability. `_` and deeper
+argument levels read through `EvaluationScope.argumentRead`, and
+`FrameInt.repeat` applies through the operand's read-only view, so a map's
+element, a closure's argument and a repetition's operand are never written in
+place. Only what the operation created is written in place: a fresh literal, and
+a reduce's accumulator after the step that copied it.
+
+## Copy Contract
+
+Copying is two operations, not one, and every call site belongs to exactly one
+of them:
+
+- **Plumbing copy** — `Frame.copy()`. A shallow clone with an independent
+  metadata map, flags, and a fresh id, for interpreter internals that need those
+  and nothing more. It promises no object semantics; nested aggregates are
+  shared.
+- **Instance copy** — `Frame.instanceCopy()`. The object-semantic operation,
+  taken only by copy-on-write, where a mutating method is reached through an
+  immutable handle. It gives an aggregate fresh identity and shares its members;
+  atoms and closure bodies are shared too, because neither owns identity a write
+  can land on. A declared parent is preserved in its own field and the id is
+  always fresh.
+
+Copy-on-write therefore means functional update: `p.set_ 2` leaves `p` alone and
+evaluates to the new value. Bodies are never copied — a bound method passes its
+receiver as an explicit argument rather than rewriting a copied closure.
+
+The copy is lazy (#401). `BoundMethod` copies only the receiver. A handle read
+during the call records what it was read from (`FrameHandle.heldBy`), and when a
+mutating method is about to run through a mutable one whose target the call has
+not copied, `FrameHandle.copyOnWriteTarget` copies that target, installs the
+copy in its holder with `replaceMember`, copying the holder first if it is still
+shared, and follows the copy. So a call copies exactly the path down to what it
+writes, and whatever it never writes keeps its identity: a Figure the receiver
+holds is still the same Figure in the result. The original is still untouched at
+any depth, because nothing is written before it is copied. The result shares its
+unwritten members with the original, as a persistent data structure does, so a
+later in-place write through a mutable name reaches that shared member like any
+other alias of it.
+
+A declared parent remains shared rather than joining the instance copy. During a
+copy-on-write call, `BoundMethod` therefore records the aggregates the call has
+copied as call-scoped ownership provenance. Before a nested mutable method
+receives any write brand, its receiver must belong to that copied graph, which a
+path copy arranges for anything held by a copy; a receiver reached through a
+shared declared parent has no copied holder, so the call returns
+`$!.copy-on-write-boundary .method`. Alias resolution also checks that its
+physical declaration owner belongs to the graph, so reaching a shared declared
+parent returns `$!.copy-on-write-boundary .name` instead of mutating shared
+state. The provenance follows repeated dotted handle traversal, and the
+authority-minting check protects structural writes such as `.^` as well as
+aliases. An ordinary mutable receiver still updates an inherited owner directly.
+
+The boundary belongs to the invocation, not to the returned aggregate. A
+functional result can later be bound through a mutable name and then exercise
+normal mutable inherited-write authority; it is not permanently marked as an
+immutable copy.
+
+Isolation wins where the two effect rules meet. A nested `inner_` declares a
+mutable identity, yet reaching it through an **immutable** outer receiver still
+forks it, because the outer handle governs the whole aggregate it reaches:
+"untouched at any depth" would otherwise be false, and a caller holding the
+outer value immutably would observe a write through it. A trailing underscore
+declares how a name may be used, not a promise that an enclosing copy will share
+its target. Reach the inner identity through a mutable outer handle when sharing
+is the point.
+
+## Reference Tracking (ART)
+
+The effect marker grants authority; it does not record use.
+`reference-tracking.ts` keeps three runtime facts apart that the marker alone
+cannot answer (`spec/a12-reference-tracking-and-event-dispatch.md`):
+
+- **Possession.** `holdersOf(x)` lists every live binding that holds the
+  aggregate `x`: holder frame, key, the plane the key addresses (`kind`), and
+  whether the key claims mutation authority. A **member** holding is a named
+  binding, graded by its marker; an **element** holding is an index into a
+  `FrameArray`'s data plane, always mutable because an index hands out the
+  identity itself; a **parent** holding is the declared-parent edge, keyed `^`,
+  never mutable because the edge conveys lookup and no authority of its own. The
+  index is maintained at every commit of a binding: `MetaFrame.set`,
+  `replaceMember` (both planes), `setParent`, `FrameArray.collect`, `reset`,
+  every whole assignment of the data plane (`adoptData`), and the copy paths
+  that duplicate bindings without `set`. A value stored as a handle is indexed
+  by the identity behind it. Only identity-owning values are indexed; a holding
+  says a name _could_ write, not that anything is writing.
+- **Version.** `versionOf(x)` counts the mutations committed on `x`. It advances
+  at every commit point, `set` (when the stored frame changes), `replaceMember`,
+  `setParent`, `collect` and `reset`, so a read can be dated against the
+  versions xᵢ an identity passed through.
+- **Actual access.** `withAccessRecord(record, work)` makes `record` receive
+  every committed write and every keyed or element read that happens while
+  `work` runs, each dated by version, with the frames constructed meanwhile kept
+  apart so a functional-update copy is not mistaken for shared state. Writes are
+  observed completely, because every commit lands at the seams above. Reads are
+  observed at `get_here` and `FrameArray.elements`, where evaluation reads
+  state; a host that reaches into `meta` directly is not seen.
+- **Guard.** A record may carry a `guard`, a predicate over (frame, access).
+  `guardAccess` runs at the same seams, before the mutation lands or the value
+  is handed out, and throws `UncertifiedAccess` when an active record's guard
+  refuses a frame it did not create. This is how an admitted footprint becomes
+  an enforced certificate rather than an after-the-fact comparison.
+
+Outside an active record a read costs one length check and a write one `WeakMap`
+update. Holders are held strongly: a `WeakRef` would be kept alive for the whole
+job (#426), and a strong edge from a value to its holder only closes a cycle the
+collector frees once neither is reachable.
+
+## Potential Footprints and Event Dispatch
+
+An **event** is one call of a `BoundMethod` or a bound closure with an argument.
+`potentialFootprint(target, argument)` walks the body as data, grades each name
+by `touchesIdentity`, and resolves it against the scope the call would run in
+(`scopeForCall`) to the identity it denotes now. A write can land only through a
+marked key, so a marked name handed on whole, a marked method reached with
+authority, a marked local declaration, the owner of an `@name`, and the members
+under marked keys of a writable identity are the potential writes; every
+resolved referent and everything reachable from it is a potential read. The walk
+carries the authority the path holds: an unmarked name hands out an immutable
+handle, through which a mutating method is a functional update, while a marked
+name or an element index hands out the identity itself (so `h.inner_.set_ 9`
+through immutable `h` writes the shared inner identity, as the runtime does).
+Inside a functional update every write forks or meets
+`$!.copy-on-write-boundary`, so nothing reached there counts as written. A
+closure handed in as the argument is walked where it was written, since the body
+may call it, and so is every callback an arrow registered on an identity the
+event may write (`effectSubscribersOf`), since a committed write invokes it. A
+name the walk cannot resolve, an import, a resource, or a `BoundMethod` reached
+as a value makes the footprint _opaque_. The walk over-approximates and refuses
+rather than guesses; it is not an alias analysis, and a closure it reaches only
+through a value, an element of an aggregate it reads or of a data argument, is
+not walked.
+
+`dispatch(events, policy)` steps events statement by statement
+(`FrameExpr.stepBody`): the statement is the finest effect boundary a body
+defines, so it is the unit two events may interleave at, and nothing inside one
+is a boundary. Under `footprint`, events start in program order, and an event
+starts only when no unfinished earlier event and no running event has a
+conflicting footprint (a write meeting a read or write, or either side opaque),
+so conflicting events run in program order; a later event never starts ahead of
+an earlier one that has not started, since the earlier footprint is read only at
+its start and could by then name what the later one wrote. Readers are
+serialized against writers rather than given snapshots. `interleave` coordinates
+nothing and is the executable counterexample: two read-then-write events on one
+`x` lose an update, which is what shows that separate statements, and separate
+calls, are not a transaction.
+
+Admission rests only on the footprint the walk infers, read when the event is
+about to start, so a name an earlier event rebound is resolved to what it
+denotes then. A caller's `declared` footprint can widen the inferred one and is
+checked against what the event did (`undeclared`); it can never narrow it, so no
+unverified claim admits a conflict. Each event runs under an `AccessRecord`;
+under `footprint` and `certified-sequential` the record's guard is the footprint
+admission rested on, so every keyed or indexed lookup (a miss included), every
+commit of shared state, every arrow registration (a write of the managed value)
+and every pattern match that rewrites a bound value's source is checked against
+it before it happens, where state is what the walk counts as state: an aggregate
+or a plain scope `Frame` whose binding a `@name` can rebind. An access outside
+the certificate is refused there, with nothing read or written, and the event
+ends with `$!.uncertified-read` or `$!.uncertified-write` (`refused`); a refusal
+inside an arrow callback stops delivery at once, and a dispatcher handles only
+refusals by its own events' guards (`UncertifiedAccess.record`). The baseline
+`footprint` is held to is `certified-sequential`: the same events alone in
+program order, each stopping at its first refused access with its certified
+prefix kept (spec a12 §Soundness, conditional on seam-complete natives). Under
+`sequential` and `interleave` no guard is installed and shared state touched
+outside the potential footprint is reported afterwards as an **escape**
+(`escapes`, `readEscapes`), the diagnostic the guard turns into a refusal. An
+event the walk cannot read is opaque and serialized against everything. None of
+this is threads, a transaction, or rollback: a refused event keeps the certified
+writes it committed before the refusal.
+
+## Numeric Ladder
+
+Ranked numerics promote along one ladder, root first:
+
+```text
+FrameCount → FrameInt → FrameDecimal → FrameRational → FrameNumber
+```
+
+`NUMERIC_RANK` in `frame-numeric.ts` is the only place that orders the rungs, so
+inserting one below the root, such as a future `FrameBit`, renumbers that table
+and nothing else. `+`, `-`, `*`, `%%`, ordering, and `=` promote both operands
+to the higher rank; `/` and `**` choose their rung as before.
+
+`FrameCount` is the root and the value of every digit literal, `0` included: a
+negative number is a FrameInt because it is an operation's result, the lexer
+having no signed literal. It extends `FrameInt`, so whatever accepts an integer
+(repetition, ranges, byte lengths, bit widths, `exactInt`) accepts a count. A
+count prints exactly as the same integer does and reports its own class name.
+Counts are closed under `+`, `*`, `%%`, and a nonnegative integral `**`, which
+answer counts through `FrameInt.sameRung`. The operations that can leave the
+domain answer the rung that holds the result whatever its sign: unary minus and
+`-` answer a FrameInt (`5 - 3` included), and `/` answers a ratio, which
+collapses to a FrameInt, never a count, when it is whole. The decimal-digit
+`SYNTAX` descriptor belongs to `FrameCount`, and `FrameBlob` routes zero-led
+digits to it. A count is also what the language answers when it counts: a
+resource write answers the characters written, and `make_context` turns a host's
+digit string into a count.
+
+A count and a FrameInt are distinct types, as a FrameInt and a FrameDecimal are.
+`=` and ordering compare values across rungs, so `2 = (5 - 3)` holds, while
+`==`, `===`, and runtime types from `.<>` compare exact types: `2 == (5 - 3)` is
+nil and `2.<>` does not match `5 - 3`, nor `(5 - 3).<>` a `2`. Subclassing only
+lets integer consumers accept a count; `typeEquals` and `FrameType.match`
+compare exact constructors.
+
+## Type Matching
+
+First-class types implement the `FrameMatcher` protocol. A pure match returns
+either failure or success evidence. Binding validation and the `~` operator use
+only membership, while applying a type returns the evidence. `FrameSchema`
+delegates equality, structural, and bit-layout behavior to separate immutable
+matchers so adding a domain does not add domain logic to schema storage or
+binding resolution.
+
+## Context
+
+The public `Context` map supplies initial bindings. Runtime evaluation uses an
+immutable `EvaluationScope` with named argument, parameter, receiver, and
+write-target roles plus an enclosing-scope link. Syntax derives scopes rather
+than pushing positional frames, and closure literals capture a per-evaluation
+scope without rewriting shared closure or body ancestry. Reading a closure that
+is already bound answers that closure, and the read leaves its `up` alone, so a
+closure handed on through another closure's name still resolves its free names
+where it was made (#424). Evaluating an array or group literal never writes the
+parsed form, which is source a closure evaluates again on every call. Each
+evaluation declares into a fresh copy (#404).
+
+A call reads its explicit argument through `Frame.getOwn`: the argument's own
+properties and its declared parents, never its lexical scope, so the scope that
+built an argument cannot bind a closure's names (spec 7, layer 2). A block
+nested in a method runs with the receiver state its method forwarded, and
+`EvaluationScope.call` does not push those receiver layers again, so the
+method's locals stay ahead of the scope its receiver was read from.
+
+Context bindings remain homoiconic Frames and are created with `make_context`
+when entering through the public evaluator.

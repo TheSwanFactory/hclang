@@ -436,6 +436,6 @@ next phase should:
 
 ### Related Documentation
 
-- [lib/execute/CLAUDE.md](lib/execute/CLAUDE.md) - Pipeline overview
-- [lib/frames/CLAUDE.md](lib/frames/CLAUDE.md) - Frame protocol
+- [doc/ARCHITECTURE.md](../../doc/ARCHITECTURE.md#pipeline) - Pipeline overview
+- [lib/frames/CLAUDE.md](../../lib/frames/CLAUDE.md) - Frame invariants
 - [doc/LANGUAGE.md](doc/LANGUAGE.md) - Language specification

@@ -102,7 +102,7 @@ code fragments lets one fragment's `set!` reach another's.
 Many words can hold one scope, and two streams can mix words from many scopes,
 without any rule about who owns what. Copy-on-write is what makes that safe. A
 write never lands on shared state: a functional update leaves the original
-untouched at any depth (`lib/frames/CLAUDE.md`, Copy Contract), and every call
+untouched at any depth (`doc/ARCHITECTURE.md`, Copy Contract), and every call
 declares into a fresh frame of its own (#404). So a resumption declares into its
 own frame and reads each scope through a live lookup that withholds write
 authority (`LiveLookupContext`, the view a named import already gets). Sharing a
