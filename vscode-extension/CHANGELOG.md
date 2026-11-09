@@ -3,6 +3,16 @@
 All notable changes to the Homoiconic C VS Code extension will be documented in
 this file.
 
+## [0.2.8] - 2026-11-09
+
+### Changed
+
+- Highlight a dot, a hash and any following run of hashes and operator
+  characters as one name, as the lexer reads it: the Count binding `.#%`, the
+  geometric observers `.##%` … `.###%%%` and unbound spellings such as `.#####`
+  or `.#+` are each one name, never split (007.41b, 007.41d).
+- A fifth hash no longer opens a comment; `.#+1` is `.#+` before `1`.
+
 ## [0.2.7] - 2026-11-02
 
 ### Changed
