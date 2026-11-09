@@ -429,3 +429,41 @@ Deno.test("failures of declared observations propagate through the fourth hash a
     value(".bad [.## {“x”}]; [5, 3].#### bad").toString(),
   ).toEqual("$!.declared-observation .##");
 });
+
+/** The printed text of the value a bare source answers. */
+const text = (source: string): string => value(source).toText().toString();
+
+Deno.test("Count binding .#% runs in a bare evaluator with no root or import (007.40)", () => {
+  // The bound Denum is built by the bundled class, reached through .####.
+  expect(text("[2, 5].####.#%")).toEqual("“Denum(2,2,5)”");
+  expect(text("[5, 3, 7].####.#%")).toEqual("“Denum(3,[12, 3, 0])”");
+  const bound = value("[5, 3, 7].####.#%");
+  expect(bound.getOwn("count").toString()).toEqual("3");
+  expect(`${bound.getOwn("loads")}`).toEqual("[12, 3, 0]");
+  // Only a Denum is bound; the empty host has no Denum to bind.
+  expect(value("[5, 3].#%").toString()).toEqual("$!.denum-binding-receiver");
+  expect(value("[].####.#%").toString()).toEqual("$!.denum-binding-receiver");
+  expect(value("().#%").toString()).toEqual("$!.denum-binding-receiver");
+});
+
+Deno.test("the bound Denum is the fourth hash's own and its receiver is unchanged (007.40)", () => {
+  const source = value("[5, 3, 7].####");
+  const before = `${source.getOwn("loads")}`;
+  const bound = source.sizeFor(Frame.kBIND);
+  expect(`${source.getOwn("loads")}`).toEqual(before);
+  // The answer is a recognized Denum: .#### reconstructs it, and binding again
+  // changes nothing.
+  expect(bound.sizeFor(Frame.kDENUM).equals(bound)).toBe(Frame.all);
+  expect(bound.sizeFor(Frame.kBIND).equals(bound)).toBe(Frame.all);
+});
+
+Deno.test("a forged Denum is refused by .#% without running anything (007.40)", () => {
+  expect(
+    value("[.count 3; .loads [1, 2]; .# {3}; .## {3}; .### {1}].#%")
+      .toString(),
+  ).toEqual("$!.denum-binding-receiver");
+  // A class cannot declare .#% for itself: the method is never run.
+  expect(value("[.#% {[5, 3].####}].#%").toString()).toEqual(
+    "$!.denum-binding-receiver",
+  );
+});

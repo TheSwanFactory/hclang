@@ -488,3 +488,54 @@ of one and three channels. `[1, 2] / 2` was nil and is now
 **Not established.** This shows cyclic position as Count modulo arity on
 existing HC frames. It does not prove a cyclic Fact closure, the Stick reversal
 bridge or Gaussian arithmetic.
+
+## Demi renamed Denum, default Count and Count binding `.#%` (007.40)
+
+**Rename.** The class formerly called `Demi` is `Denum`, in
+[`hc/denum.hc`](../hc/denum.hc). This is a deliberate breaking rename with no
+alias: `$!!.invalid-demi` is `$!!.invalid-denum`, the fourth hash's `$!.demi-*`
+errors are `$!.denum-*`, and text reads `Denum(C,…)`. Its state is still the
+Count C and the ordered nonnegative loads, of any arity of one or more. It is
+not the withdrawn v0.45–v0.47 Denum: there is no CD view, rank, schema, sign or
+coordinate algebra, and Frame `*` is unchanged.
+
+**Constructors.** `Denum [C, loads]` and `Denum [C, L, R]` take an explicit
+exact nonnegative Count. `Denum [loads]` is the default-Count form, C = 1, so
+`Denum [[2, 5]]` is `Denum [1, [2, 5]]`, while `Denum [0, [2, 5]]` keeps Count
+zero. Anything else, a fractional, negative or non-Count Count or load, an empty
+load list or a bare number, is `$!!.invalid-denum`. A `(.# C;)` constructor
+option is not part of the grammar and is deferred until specified.
+
+**Phase.** The binary Denum's `.phase` is a reading of the Count's parity, 2 for
+even and 1 for odd. Application routes by the parity of the Count itself.
+
+**Count binding.** `d.#%` is a native observer token. For
+`d = (C; [a0, …, a(A−1)])` with C > 0 it answers the new Denum
+`(C; [b0, …, b(C−1)])`, `bj = Σ{ai | i mod C = j}`:
+
+| Source                 | `.#%`            |
+| ---------------------- | ---------------- |
+| `(3; [2, 5])`          | `(3; [2, 5, 0])` |
+| `(3; [2, 5, 3])`       | `(3; [2, 5, 3])` |
+| `(3; [2, 5, 3, 7])`    | `(3; [9, 5, 3])` |
+| `(3; [2, 5, 3, 7, 4])` | `(3; [9, 9, 3])` |
+| `(1; [2, 5, 3, 7, 4])` | `(1; [21])`      |
+
+It keeps the Count, the Size `.##` and nonnegativity, its arity is C, it is
+idempotent and it never changes its receiver. Its answer is an instance of the
+same class, recognized by `.####`. It is neither permutation-invariant nor
+invertible, and it is not `./ n`, which redistributes Size units. It is not a
+rank and chooses no geometry or metric.
+
+Only a genuine Denum is bound, recognized as `.####` recognizes one, so nothing
+of the receiver runs and no class can declare `.#%`. The failures, in order: a
+failed receiver is answered as it is; a non-Denum is
+`$!.denum-binding-receiver`; Count zero is `$!.denum-binding-zero-count` (the
+Denum is present and `.####` still answers it); and a Count above 65536
+(`DENUM_BINDING_CAPACITY`) is `$!.denum-binding-capacity`, so no unbounded array
+is allocated.
+
+**Lexing.** `.#%` is one token, like `.#`–`.####`. `.#`, `%%` and `#` comments
+are unchanged. `.#%%` is a lexical error, since it cannot be split back into
+`.#` and `%%`; write `.# %%`. Before this change `.#%…` lexed as `.#` followed
+by a `%` time literal; it now begins `.#%`.

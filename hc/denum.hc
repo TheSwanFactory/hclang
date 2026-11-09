@@ -830,6 +830,67 @@ an identity: the router keeps the Frames and a Denum forgets them
 ; [r4.#, k4.count, r4.phase, k4.phase, r4.#### = k4.####, (k4.size-ratio ()), (k4.residual-ratio ())]
 # [4, 4, 2, 2, <>, 15/4, 9/4]
 ```
+## Count binding, `.#%`
+
+`d.#%` binds a Denum to its own Count (occurrence/figure 007.39a). For
+`d = (C; [a0, …, a(A−1)])` with `C > 0` it answers a new Denum of Count C and
+exactly C loads, where load j is the sum of every source load whose index is
+congruent to j mod C. With fewer loads than C the loads are copied and the rest
+are zero; with exactly C they are kept; with more, each further load folds onto
+the load its index names mod C. Nothing is cycled, replicated or cancelled. It
+is not the redistribution `./ n`, which deals Size units and ignores the
+order of the loads, and it is not a rank: it answers a Denum, never a number
+```
+; [“” ((Denum [3, [2, 5]]).#%), “” ((Denum [3, [2, 5, 3]]).#%), “” ((Denum [3, [2, 5, 3, 7]]).#%), “” ((Denum [3, [2, 5, 3, 7, 4]]).#%)]
+# [“Denum(3,[2, 5, 0])”, “Denum(3,[2, 5, 3])”, “Denum(3,[9, 5, 3])”, “Denum(3,[9, 9, 3])”]
+; [“” ((Denum [[2, 5, 3, 7, 4]]).#%), “” ((Denum [4, [6]]).#%), “” ((Denum [2, [4]]).#%), “” ((Denum [3, [0, 0, 0, 0, 0]]).#%), “” ((Denum [2, 5, 3]).#%)]
+# [“Denum(1,[21])”, “Denum(4,[6, 0, 0, 0])”, “Denum(2,4,0)”, “Denum(3,[0, 0, 0])”, “Denum(2,5,3)”]
+```
+It keeps the Count, the total Size and nonnegative loads, its arity is the
+Count, it is idempotent, and its answer is an instance of this same class, so
+its fourth hash is itself. The receiver is left as it was
+```
+; .Bd (Denum [3, [2, 5, 3, 7, 4]]); .Bn (Bd.#%);
+; [Bn.#, Bn.##, Bd.##, Bn.loads.#, (Bn.#%) = Bn, Bn.#### = Bn, “” Bd]
+# [3, 21, 21, 3, <>, <>, “Denum(3,[2, 5, 3, 7, 4])”]
+; .lawB {.k _; .n (k.#%); [n.# = k.#, n.## = k.##, n.loads.# = k.#, (n.#%) = n]};
+; [Denum [1, [4, 4]], Denum [2, [1, 2, 3]], Denum [5, [9]], Denum [4, [1, 2, 3, 4, 5, 6, 7, 8, 9]], Denum [3, 123456789012345678901234567890, 1]] &| lawB
+# [<>, <>, <>, <>, <>, <>, <>, <>, <>, <>, <>, <>, <>, <>, <>, <>, <>, <>, <>, <>]
+```
+Order matters. The same loads in another order can bind differently, so
+binding is neither permutation-invariant nor invertible
+```
+; [“” ((Denum [2, [1, 2, 3]]).#%), “” ((Denum [2, [3, 2, 1]]).#%), “” ((Denum [2, [2, 1, 3]]).#%), (Denum [2, [3, 1]]).#% = (Denum [2, [1, 3]]).#%]
+# [“Denum(2,4,2)”, “Denum(2,4,2)”, “Denum(2,5,1)”, ()]
+```
+Binding follows application: a Denum whose Count has grown past its arity binds
+into as many loads as it has seen
+```
+; .G3 ((((Denum [0, [0, 0]]) 2) 5) 3);
+; [“” G3, “” (G3.#%)]
+# [“Denum(3,5,5)”, “Denum(3,[5, 5, 0])”]
+```
+A Denum of Count zero is present, under `.####` too, but has no channel to bind
+into, so `.#%` refuses it with a stable named failure rather than nil, an empty
+Denum or a division by zero. Anything that is not a Denum is refused too, the
+way `.####` recognizes one: hosts, numbers, nil, forged records and aggregates
+that declare a `#%` of their own. A Count too large to materialize is refused
+separately, and nothing is allocated
+```
+; .Z (Denum [0, [2, 5]]);
+; [Z.#### = Z, Z.#%, (Z.####).#%, [].####]
+# [<>, $!.denum-binding-zero-count, $!.denum-binding-zero-count, ()]
+; [[5, 3].#%, 3.#%, ().#%, “ab”.#%, {1}.#%, [.count 3; .loads [1, 2]].#%, [.#% {Denum [1, [1]]}].#%]
+# [$!.denum-binding-receiver, $!.denum-binding-receiver, $!.denum-binding-receiver, $!.denum-binding-receiver, $!.denum-binding-receiver, $!.denum-binding-receiver, $!.denum-binding-receiver]
+; [(Denum [70000, [1]]).#%, (Denum [123456789012345678901234567890, [1]]).#%, ([].nope).#%]
+# [$!.denum-binding-capacity, $!.denum-binding-capacity, $!.name-missing “...]
+```
+`.#%` is one token. `.#`, `%%` and a comment are read as before, and `.#%%`,
+which could be either, is refused by the lexer: write `.# %%`
+```
+; [[5, 3, 1].# %% 2, (Denum [3, [1]]).# %% 2, (Denum [3, [1]]).#% .#] # a comment after
+# [1, 1, 3]
+```
 ## Importing
 
 Imported, the file binds the same class. The import is an example line, so
