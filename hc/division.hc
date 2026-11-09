@@ -181,7 +181,7 @@ Denum, which reads as `Denum(C,[…])`. Every Denum stores `count` and `loads`
 ```
 ; Denums <- './hc/denum.hc';
 ; .Denum Denums.Denum;
-; [“” (Denum [3, [5, 2]]), (Denum [3, [5, 2]]) == (Denum [3, 5, 2]), (Denum [3, [5, 2]]).left, (Denum [3, 5, 2]).loads]
+; [“” (Denum [3, [5, 2]]), (Denum [3, [5, 2]]) == (Denum [3, 5, 2]), (Denum [3, [5, 2]]).left (), (Denum [3, 5, 2]).loads]
 # [“Denum(3,5,2)”, <>, 5, [5, 2]]
 ; [“” (Denum [0, [0, 0, 0]]), “” (Denum [4, [7]]), “” (Denum [2, [1, 2, 3, 4]]), (Denum [2, [1, 2, 3]]).loads, (Denum [2, [1, 2, 3]]).count]
 # [“Denum(0,[0, 0, 0])”, “Denum(4,[7])”, “Denum(2,[1, 2, 3, 4])”, [1, 2, 3], 2]

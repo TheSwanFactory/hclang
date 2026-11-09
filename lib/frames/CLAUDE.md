@@ -487,9 +487,10 @@ it reaches. `.####` is derived from the three, so a class that declares them
 gets its fourth hash. No class declares `.####`: a method under that name is an
 ordinary property `.####` never runs. Because the three cannot tell a Denum of
 Count zero from an empty host, `fourth-hash.ts` recognizes an instance of the
-shipped Denum class intrinsically: stored Counts `count`, `left`, `right` and
-`==` to the Denum the constructor builds from them, answering that fresh
-reconstruction (007.25e). Anything else takes the derived path.
+shipped Denum class intrinsically: a stored Count `count`, a stored nonempty
+list of Counts `loads`, and `==` to the Denum the constructor builds from them,
+answering that fresh reconstruction (007.25e). Anything else takes the derived
+path.
 
 The interpreter's own output is not application. The evaluator's output array is
 also the file scope, so a top-level `.apply` lands on it; `Frame.collect` is the

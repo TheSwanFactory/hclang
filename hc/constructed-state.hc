@@ -36,14 +36,14 @@ the sum of its immediate child Sizes, and A alternates + and - across those
 children, starting +. Properties do not enter these sums. D(X) = X.#### is
 nil for the empty host; otherwise it has Count n, loads L = (S+A)/2, R = (S-A)/2
 and phase p = 2 for even n (left next), 1 for odd n (right next). Read these
-with `.count` (or `.#`), `.left`, `.right`, `.phase`. n is kept whole (007.25c);
+with `.count` (or `.#`), `.left ()`, `.right ()`, `.phase ()`. n is kept whole (007.25c);
 the phase is its parity. Nesting, identities, properties and the distribution
 within each load are forgotten.
 ```
 ; .E []; .X [[], [[], []], []];
 ; [E.#, E.##, E.###, E.####]
 # [0, 1, 0, ()]
-; [X.#, X.##, X.###, X.####.phase, X.####.left, X.####.right]
+; [X.#, X.##, X.###, X.####.phase (), X.####.left (), X.####.right ()]
 # [3, 4, 0, 1, 2, 2]
 ; .decorated [.label 99; [], [[], []], []];
 ; [decorated.#### = X.####, decorated.label, X.#### = X.####]
@@ -66,7 +66,7 @@ readings.
 ; [A = B, A.#### = B.####, A.#### === B.####]
 # [(), <>, ()]
 ; .C [[[], []], [[], []]]; .F [[], [], [], []];
-; [C.#, F.#, C = F, C.#### = F.####, C.####.left = F.####.left, C.####.right = F.####.right, C.####.phase = F.####.phase, A.#### = C.####]
+; [C.#, F.#, C = F, C.#### = F.####, (C.####.left ()) = (F.####.left ()), (C.####.right ()) = (F.####.right ()), (C.####.phase ()) = (F.####.phase ()), A.#### = C.####]
 # [2, 4, (), (), <>, <>, <>, ()]
 ; [“” A.####, “” C.####, “” F.####, “” [[], [[], []]].####]
 # [“Denum(1,1,0)”, “Denum(2,2,2)”, “Denum(4,2,2)”, “Denum(2,1,2)”]
@@ -111,7 +111,7 @@ Denum of Count zero is an explicit initialized-router convention, not a
 preconstruction state secretly stored in []. A zero Size deposit still adds one
 to the Count and so changes routing phase.
 ```
-; [([] []).####.phase, ([] []).####.left, ([] []).####.right]
+; [([] []).####.phase (), ([] []).####.left (), ([] []).####.right ()]
 # [1, 1, 0]
 ; [([] Y).#### = ([].#### Y), ([] * Y).#### = Y.####]
 # [(), <>]
@@ -133,13 +133,13 @@ two higher, so it is an involution on phase and loads and not on Count. The
 following closure only checks that explicit relabeling using the existing Denum
 class.
 ```
-; .swap {.d _; Denums.Denum [(d.count + 1), d.right, d.left]};
+; .swap {.d _; Denums.Denum [(d.count + 1), d.right (), d.left ()]};
 ; .q [[], [[], []]].####;
 ; [“” q, “” (swap q), (swap q).## = q.##, (swap q).### = (0 - q.###)]
 # [“Denum(2,1,2)”, “Denum(3,2,1)”, <>, <>]
 ; [(swap (q Y)) = ((swap q) Y), (swap ((q Y) [])) = (((swap q) Y) []), (swap (q.scale_ 3)) = ((swap q).scale_ 3)]
 # [<>, <>, <>]
-; [(swap (swap q)).phase = q.phase, (swap (swap q)).left = q.left, (swap (swap q)).right = q.right, (swap (swap q)).count = (q.count + 2), (swap (swap q)) = q]
+; [((swap (swap q)).phase ()) = (q.phase ()), ((swap (swap q)).left ()) = (q.left ()), ((swap (swap q)).right ()) = (q.right ()), (swap (swap q)).count = (q.count + 2), (swap (swap q)) = q]
 # [<>, <>, <>, <>, ()]
 ```
 Future sufficiency, at its earned scope

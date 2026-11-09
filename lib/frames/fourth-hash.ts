@@ -82,8 +82,8 @@ function storedLoads(source: Frame): FrameCount[] | undefined {
  * A source is a Denum exactly when it has a stored Count `count` and a stored
  * nonempty list of Counts `loads`, and it is `==` (same value and same type at
  * every node, fields and methods included) to the Denum the shipped constructor
- * builds from them. A binary Denum stores `left` and `right` too, and the
- * comparison covers them. The answer is then that fresh reconstruction, of
+ * builds from them. A Denum stores nothing else (007.40), and the comparison
+ * covers its methods too. The answer is then that fresh reconstruction, of
  * the source's own arity, never the source
  * and never anything the source computed. No observer, method or closure of
  * the source runs, so a forged `#`, `##`, `###` or `####` cannot steer it, and

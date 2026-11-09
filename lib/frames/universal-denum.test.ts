@@ -33,18 +33,21 @@ const value = (source: string): Frame =>
   FrameExpr.answeredValue(evaluate(source).at(-1)).referent();
 
 /**
- * A Denum's state as the retired native encoding spelled it, orientation then
- * loads, read from the fields of the HC instance (011.20); undefined when the
- * value is not a Denum.
+ * A binary Denum's state as the retired native encoding spelled it,
+ * orientation then loads. It is read from the two fields the HC instance
+ * stores, `count` and `loads` (007.40), with the orientation the Count's
+ * parity; undefined when the value is not a binary Denum.
  */
 const encode = (
   value: Frame,
 ): readonly [string, string, string] | undefined => {
-  const [phase, left, right] = ["phase", "left", "right"].map((key) =>
-    value.getOwn(key)
-  );
-  if (phase.is.missing || left.is.missing || right.is.missing) return undefined;
-  return [phase.toString() === "2" ? "all" : "nil", `${left}`, `${right}`];
+  const count = value.getOwn("count");
+  const stored = value.getOwn("loads");
+  if (count.is.missing || stored.is.missing) return undefined;
+  const elements = stored.referent().elements();
+  if (elements.length !== 2) return undefined;
+  const even = BigInt(`${count}`) % 2n === 0n;
+  return [even ? "all" : "nil", `${elements[0]}`, `${elements[1]}`];
 };
 
 /** The full Count a Denum keeps (007.25c), as a bigint. */
@@ -194,7 +197,7 @@ Deno.test("fourth hash distinguishes atom/schema absence, empty hosts and presen
     value("[5, 3].####").equals(value("[5, 3, 0, 0].####")),
   ).toBe(Frame.nil);
   expect(
-    value("[5, 3].####.left = [5, 3, 0, 0].####.left").toString(),
+    value("([5, 3].####.left ()) = ([5, 3, 0, 0].####.left ())").toString(),
   ).toEqual("<>");
   // Deposit is application and scaling a method; the Denum class also declares
   // the arithmetic operators as methods, so `+` deposits on the right and `*`

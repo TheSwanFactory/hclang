@@ -377,7 +377,7 @@ router's phase, for every Count from 1 to 6 and for preloads
 ; .sh (steps & {_.####});
 ; [sh & {_ = ()}, sh & {_.#}]
 # [[<>, (), (), (), (), (), ()], [(), 1, 2, 3, 4, 5, 6]]
-; [steps &| {.k _; (k.# .> 0) ? {[k.phase = k.####.phase]} : {[]}}, (RotorRouter [[2, 3], [1]]).#### = (Denums.Denum [3, 5, 1])]
+; [steps &| {.k _; (k.# .> 0) ? {[k.phase = (k.####.phase ())]} : {[]}}, (RotorRouter [[2, 3], [1]]).#### = (Denums.Denum [3, 5, 1])]
 # [[<>, <>, <>, <>, <>, <>], <>]
 ```
 ## Observing commutes with routing
@@ -404,7 +404,7 @@ preloads alike, in both phases, and for a zero-Size child
 ; [((p1 Y).####) = ((p1.####) Y), ((p2 {5 + 3}).####) = ((p2.####) {5 + 3}), ((p1 0).####) = ((p1.####) 0)]
 # [<>, <>, <>]
 ; .pre [RotorRouter [[A], []], RotorRouter [[A], [B]], RotorRouter [[A, B], [C]], RotorRouter [[1, 2, 3, 4], [5, 6, 7, 8]], RotorRouter [[1, 2, 3, 4, 5], [6, 7, 8, 9]]];
-; [pre & {((_ Y).####) = ((_.####) Y)}, pre & {((_ 0).####) = ((_.####) 0)}, pre & {(_ Y).phase = ((_.####) Y).phase}]
+; [pre & {((_ Y).####) = ((_.####) Y)}, pre & {((_ 0).####) = ((_.####) 0)}, pre & {(_ Y).phase = (((_.####) Y).phase ())}]
 # [[<>, <>, <>, <>, <>], [<>, <>, <>, <>, <>], [<>, <>, <>, <>, <>]]
 ```
 The same holds at every step of a walk, Count 1 to 6, and a router can never
@@ -412,7 +412,7 @@ route to the channel its Denum does not deposit into
 ```
 ; steps &| {.k _; (k.# .> 0) ? {[((k Y).####) = ((k.####) Y)]} : {[]}}
 # [<>, <>, <>, <>, <>, <>]
-; steps &| {.k _; (k.# .> 0) ? {[[((k 4).left.# - k.left.#), (((k.####) 4).left - k.####.left)]]} : {[]}}
+; steps &| {.k _; (k.# .> 0) ? {[[((k 4).left.# - k.left.#), ((((k.####) 4).left ()) - (k.####.left ()))]]} : {[]}}
 # [[0, 0], [1, 4], [0, 0], [1, 4], [0, 0], [1, 4]]
 ```
 A failed Size is the answer on both sides: the router routes the Frame and its

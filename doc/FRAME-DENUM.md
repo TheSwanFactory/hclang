@@ -11,21 +11,24 @@ overloads are gone.
 ## The HC class
 
 `Denum [count, left, right]` takes three Counts and answers a fresh aggregate
-whose fields are its state and whose methods are the class:
+whose two fields, `count` and `loads`, are its state and whose methods are the
+class. The phase, left and right are readings of that state, applied to nil
+(007.40):
 
-| Member    | Meaning                                                                                                              |
-| --------- | -------------------------------------------------------------------------------------------------------------------- |
-| `.count`  | The full application Count (007.25c)                                                                                 |
-| `.phase`  | 2 when the Count is even (left next), 1 when odd (right next): the least positive Count of the parity (011.18g)      |
-| `.left`   | Left load, an exact Count                                                                                            |
-| `.right`  | Right load, an exact Count                                                                                           |
-| `.#`      | Declared Count: the stored Count                                                                                     |
-| `.##`     | Declared Size: L+R                                                                                                   |
-| `.###`    | Declared residual: L−R                                                                                               |
-| `.apply_` | `d x`: deposit `x.##` into the active load and add one to the Count, even for Size zero; a failed Size is the answer |
-| `.scale_` | `d.scale_ k`: multiply both loads by a Count k, keeping the Count                                                    |
-| `.####`   | Declared: the Denum of its own Count and loads, so a Count of zero is present                                        |
-| `.toText` | Text `Denum(3,12,3)`: Count, left, right                                                                             |
+| Member      | Meaning                                                                                                              |
+| ----------- | -------------------------------------------------------------------------------------------------------------------- |
+| `.count`    | The full application Count (007.25c)                                                                                 |
+| `.loads`    | The ordered loads, `[L, R]`                                                                                          |
+| `.phase ()` | 2 when the Count is even (left next), 1 when odd (right next): the least positive Count of the parity (011.18g)      |
+| `.left ()`  | Left load, `loads .0`, an exact Count                                                                                |
+| `.right ()` | Right load, `loads .1`, an exact Count                                                                               |
+| `.#`        | Declared Count: the stored Count                                                                                     |
+| `.##`       | Declared Size: L+R                                                                                                   |
+| `.###`      | Declared residual: L−R                                                                                               |
+| `.apply_`   | `d x`: deposit `x.##` into the active load and add one to the Count, even for Size zero; a failed Size is the answer |
+| `.scale_`   | `d.scale_ k`: multiply both loads by a Count k, keeping the Count                                                    |
+| `.####`     | Declared: the Denum of its own Count and loads, so a Count of zero is present                                        |
+| `.toText`   | Text `Denum(3,12,3)`: Count, left, right                                                                             |
 
 Anything else is refused with the named error `$!!.invalid-denum` (or
 `$!!.invalid-scale`), as Figures refuses an unsupported host. The phase is a
@@ -343,7 +346,7 @@ compatibility twin.
 | Member                                  | Answer                                                                     |
 | --------------------------------------- | -------------------------------------------------------------------------- |
 | `d.count`, `d.#`                        | The stored Count `C`                                                       |
-| `d.phase`                               | 2 when `C` is even (0 included), 1 when odd; derived, written with `C`     |
+| `d.phase ()`                            | 2 when `C` is even (0 included), 1 when odd; a reading, never stored       |
 | `d.##`, `d.###`                         | Size `L+R` and signed residual `L-R`                                       |
 | `d.####`                                | Intrinsic: a fresh equal Denum, for every `C` including 0                  |
 | `d x`                                   | Deposit `x.##` into the phase's load, `C` + 1, even for Size zero          |
@@ -433,16 +436,17 @@ Frames. The router carries that distinction, so `(X ./ n) ./ m = X ./ m` and
 
 **Denum.** `Denum [C, loads]` takes a Count and a nonempty list of Counts. Two
 loads are the binary `Denum [C, L, R]`, the same instance; any other arity is a
-channel Denum. Every Denum now stores `count` and `loads`; the binary one also
-keeps `phase`, `left` and `right`, written together with `loads`. A channel
-Denum of arity k deposits into channel `C mod k`; its Size is the sum of its
-loads and its residual their alternating sum `e0 − e1 + e2 − …` (the list
-residual, `L − R` for two); its fourth hash is intrinsic, a fresh equal Denum of
-its own arity, Count zero included; `*`, `scale_` and the ratios work as for the
-binary Denum. `-` deposits `x.##` on load 0, the first even load, raising the
-residual, and `+` on load 1, the first odd load, lowering it: for two loads that
-is the binary left and right. With one load there is no odd load, and `+` is
-`$!!.invalid-arity`. Text is `Denum(C,[e0, e1, …])`.
+channel Denum. Every Denum stores `count` and `loads` and nothing else; the
+binary one also answers the readings `phase ()`, `left ()` and `right ()`
+(007.40). A channel Denum of arity k deposits into channel `C mod k`; its Size
+is the sum of its loads and its residual their alternating sum
+`e0 − e1 + e2 − …` (the list residual, `L − R` for two); its fourth hash is
+intrinsic, a fresh equal Denum of its own arity, Count zero included; `*`,
+`scale_` and the ratios work as for the binary Denum. `-` deposits `x.##` on
+load 0, the first even load, raising the residual, and `+` on load 1, the first
+odd load, lowering it: for two loads that is the binary left and right. With one
+load there is no odd load, and `+` is `$!!.invalid-arity`. Text is
+`Denum(C,[e0, e1, …])`.
 
 `D ./ n` keeps C and S and canonicalizes the loads to S units dealt into n
 channels: with q = ⌊S/n⌋ and r = S mod n, the first r hold q + 1 and the rest q.
@@ -506,8 +510,12 @@ zero. Anything else, a fractional, negative or non-Count Count or load, an empty
 load list or a bare number, is `$!!.invalid-denum`. A `(.# C;)` constructor
 option is not part of the grammar and is deferred until specified.
 
-**Phase.** The binary Denum's `.phase` is a reading of the Count's parity, 2 for
-even and 1 for odd. Application routes by the parity of the Count itself.
+**State is Count and loads.** A Denum stores exactly `count` and `loads`. The
+binary Denum's `d.phase ()` is a reading of the Count's parity, 2 for even and 1
+for odd, and `d.left ()` and `d.right ()` read `loads .0` and `loads .1`; any
+other operand is `$!!.unary-observation`. They were stored fields before 007.40.
+Application routes by the parity of the Count itself, and no write can make a
+reading disagree with the state.
 
 **Count binding.** `d.#%` is a native observer token. For
 `d = (C; [a0, …, a(A−1)])` with C > 0 it answers the new Denum

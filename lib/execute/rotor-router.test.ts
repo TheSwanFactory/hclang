@@ -107,8 +107,9 @@ Deno.test("a router's fourth hash is an instance of the bundled Denum class", ()
   const denum = run("((r0 “hello”) 7).####", {});
   // The Count is the two children routed, not the router's phase.
   expect(
-    ["count", "phase", "left", "right"].map((key) => `${denum.getOwn(key)}`),
-  ).toEqual(["2", "2", "5", "7"]);
+    [`${denum.getOwn("count")}`, `${denum.getOwn("loads")}`],
+  ).toEqual(["2", "[5, 7]"]);
+  expect(`${run("((r0 “hello”) 7).####.phase ()", {})}`).toEqual("2");
   expect(denum.equals(run("[“hello”, 7].####", {}))).toBe(Frame.all);
   // The initial router has routed nothing, so it has Count zero and no Denum,
   // like the empty host; the Denum of Count zero is a different, present value.
@@ -135,7 +136,10 @@ Deno.test("a router's phase is its Count's parity, and only alternating historie
     expect(`${router.getOwn("phase")}`, channels).toEqual(phase);
     expect(`${router.sizeFor(Frame.kCOUNT)}`, channels).toEqual(c);
     if (c !== "0") {
-      expect(`${router.sizeFor(Frame.kDENUM).getOwn("phase")}`, channels)
+      expect(
+        `${run(`(Routers.RotorRouter ${channels}).####.phase ()`, {})}`,
+        channels,
+      )
         .toEqual(phase);
     }
   }

@@ -24,8 +24,12 @@
   `$!.denum-binding-receiver`, and a Count above 65536
   `$!.denum-binding-capacity`. `.#%` is a new lexical observer token; `.#%%` is
   now a lexical error (write `.# %%`).
-- The binary Denum routes application by the Count's parity; `.phase` is a
-  reading derived from it.
+- **A Denum stores only its Count and loads.** The binary Denum's `phase`,
+  `left` and `right` are no longer stored fields but readings applied to nil,
+  `d.phase ()`, `d.left ()` and `d.right ()`, derived from the Count's parity
+  and `loads`, so they cannot disagree with the state. Application routes by the
+  Count's parity. **Breaking:** `d.phase`, `d.left` and `d.right` without `()`
+  no longer answer a value.
 
 ## v0.48.0 2026-11-08
 
