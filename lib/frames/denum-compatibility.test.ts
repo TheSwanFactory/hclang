@@ -14,7 +14,7 @@ const observations = (value: f.Frame): string[] =>
   });
 
 /**
- * A binary Denum's phase and loads. The instance stores only `count` and
+ * A two-load Denum's parity and loads. The instance stores only `count` and
  * `loads` (007.40), so the phase is read from the Count's parity.
  */
 const state = (value: f.Frame): [string, string, string] => {

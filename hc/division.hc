@@ -66,13 +66,13 @@ Frame that occurs twice is dealt twice, and both are it
 ; [([A, A, A] ./ 2).channels, ([A, A, A] ./ 2).channels &| {_} &| {[_ === A]}]
 # [[[[1, [2]], [1, [2]]], [[1, [2]]]], [<>, <>, <>]]
 ```
-Two channels are the binary router, with its `left ()`, `right ()` and `phase ()`. One
+Two channels are a router like any other. One
 channel is the whole list, and more channels than elements leave the last ones
 empty. An empty list deals into n empty channels; empty elements are dealt
 like any other
 ```
-; [“” ([1, 2, 3] ./ 2), (([1, 2, 3] ./ 2).left ()), (([1, 2, 3] ./ 2).phase ())]
-# [“RotorRouter([1, 3],[2])”, [1, 3], 1]
+; [“” ([1, 2, 3] ./ 2), (([1, 2, 3] ./ 2).channels .0), (([1, 2, 3] ./ 2).# %% 2)]
+# [“RotorRouter([[1, 3], [2]])”, [1, 3], 1]
 ; [(xs ./ 1).channels, ([1, 2] ./ 5).channels, ([] ./ 3).channels, ([[], []] ./ 2).channels]
 # [[[[1, [2]], “b”, { 5 + 3 }, [.k 9; 4], 5, (6, 7), 7]], [[1], [2], [], [], []], [[], [], []], [[[]], [[]]]]
 ```
@@ -97,7 +97,7 @@ order, with no extra nesting. Dividing by the same n again changes nothing
 ```
 ; .X [A, 2, 3, 4, 5, 6];
 ; [“” (X ./ 2), “” ((X ./ 2) ./ 2), ((X ./ 2) ./ 2) = (X ./ 2), ((X ./ 2) ./ 3) = (X ./ 3), ((X ./ 3) ./ 2) = (X ./ 2)]
-# [“RotorRouter([[1, [2]], 3, 5],[2, 4, 6])”, “RotorRouter([[1, [2]], 3, 5],[2, 4, 6])”, <>, <>, <>]
+# [“RotorRouter([[[1, [2]], 3, 5], [2, 4, 6]])”, “RotorRouter([[[1, [2]], 3, 5], [2, 4, 6]])”, <>, <>, <>]
 ; [((X ./ 2) ./ 3).channels, (((X ./ 2) ./ 3).channels .0 .0) === A]
 # [[[[1, [2]], 4], [2, 5], [3, 6]], <>]
 ```
@@ -105,8 +105,8 @@ A plain list whose children are lists is not a division: its two children are
 two whole Frames, dealt as such, even when they look like channels
 ```
 ; .N [[1, 3, 5], [2, 4, 6]];
-; [“” (N ./ 2), ((N ./ 2).left ()) .0 = [1, 3, 5], (N ./ 2).# , “” ((N ./ 2) ./ 2)]
-# [“RotorRouter([[1, 3, 5]],[[2, 4, 6]])”, <>, 2, “RotorRouter([[1, 3, 5]],[[2, 4, 6]])”]
+; [“” (N ./ 2), ((N ./ 2).channels .0) .0 = [1, 3, 5], (N ./ 2).# , “” ((N ./ 2) ./ 2)]
+# [“RotorRouter([[[1, 3, 5]], [[2, 4, 6]]])”, <>, 2, “RotorRouter([[[1, 3, 5]], [[2, 4, 6]]])”]
 ```
 Uneven channels read back in dealt order: seven Frames into three channels,
 then into one, give the seven in order; into two they are dealt again from
@@ -114,7 +114,7 @@ that order
 ```
 ; .Y [1, 2, 3, 4, 5, 6, 7];
 ; [“” (Y ./ 3), (((Y ./ 3) ./ 1).channels .0) = Y, “” ((Y ./ 3) ./ 2), ((Y ./ 3) ./ 2) = (Y ./ 2)]
-# [“RotorRouter([[1, 4, 7], [2, 5], [3, 6]])”, <>, “RotorRouter([1, 3, 5, 7],[2, 4, 6])”, <>]
+# [“RotorRouter([[1, 4, 7], [2, 5], [3, 6]])”, <>, “RotorRouter([[1, 3, 5, 7], [2, 4, 6]])”, <>]
 ```
 Channels that no round-robin history left have no dealt order to read, so no
 router holds them and they are not divided: the constructor refuses them, and
@@ -175,14 +175,14 @@ Its failure shows where the channel is measured
 ## Denum
 
 A Denum of any arity is `Denum [C, loads]`, a Count and a nonempty list of
-Counts. Two loads are the binary Denum `Denum [C, L, R]` itself, the same
-instance, with its `left ()`, `right ()` and `phase ()`; any other arity is a channel
-Denum, which reads as `Denum(C,[…])`. Every Denum stores `count` and `loads`
+Counts. Every arity is the same class and reads as `Denum(C,[…])`;
+`Denum [C, L, R]` is shorthand for `Denum [C, [L, R]]`, the same instance.
+Every Denum stores `count` and `loads`
 ```
 ; Denums <- './hc/denum.hc';
 ; .Denum Denums.Denum;
-; [“” (Denum [3, [5, 2]]), (Denum [3, [5, 2]]) == (Denum [3, 5, 2]), (Denum [3, [5, 2]]).left (), (Denum [3, 5, 2]).loads]
-# [“Denum(3,5,2)”, <>, 5, [5, 2]]
+; [“” (Denum [3, [5, 2]]), (Denum [3, [5, 2]]) == (Denum [3, 5, 2]), (Denum [3, [5, 2]]).loads .0, (Denum [3, 5, 2]).loads]
+# [“Denum(3,[5, 2])”, <>, 5, [5, 2]]
 ; [“” (Denum [0, [0, 0, 0]]), “” (Denum [4, [7]]), “” (Denum [2, [1, 2, 3, 4]]), (Denum [2, [1, 2, 3]]).loads, (Denum [2, [1, 2, 3]]).count]
 # [“Denum(0,[0, 0, 0])”, “Denum(4,[7])”, “Denum(2,[1, 2, 3, 4])”, [1, 2, 3], 2]
 ```
@@ -191,7 +191,7 @@ No channels, a load that is not a Count, and any other shape are refused
 ; [Denum [2, []], Denum [2, [1, (0 - 1), 3]], Denum [2, [1, 1.5]], Denum [2, [1, [2]]], Denum [(0 - 2), [1]], Denum [2, 5], Denum [2, [1], 3], Denum [2, [1, 2], 3, 4]]
 # [$!!.invalid-denum, $!!.invalid-denum, $!!.invalid-denum, $!!.invalid-denum, $!!.invalid-denum, $!!.invalid-denum, $!!.invalid-denum, $!!.invalid-denum]
 ```
-A channel Denum observes as its loads do: its Count is C, its Size the sum of
+A Denum observes as its loads do: its Count is C, its Size the sum of
 its loads, and its residual their alternating sum, `e0 − e1 + e2 − …`, the
 list residual, which for two loads is `L − R`
 ```
@@ -207,7 +207,7 @@ and 1. Into one channel it is the whole Size, and into more channels than units
 the last are empty
 ```
 ; [“” (d7 ./ 2), “” (d7 ./ 3), “” (d7 ./ 4), “” (d7 ./ 1), “” (d7 ./ 9)]
-# [“Denum(3,4,3)”, “Denum(3,[3, 2, 2])”, “Denum(3,[2, 2, 2, 1])”, “Denum(3,[7])”, “Denum(3,[1, 1, 1, 1, 1, 1, 1, 0, 0])”]
+# [“Denum(3,[4, 3])”, “Denum(3,[3, 2, 2])”, “Denum(3,[2, 2, 2, 1])”, “Denum(3,[7])”, “Denum(3,[1, 1, 1, 1, 1, 1, 1, 0, 0])”]
 ```
 `Denum(3,[5,2]) ./ 3` is `Denum(3,[3,2,2])`, and so is the different state
 `Denum(3,[4,3]) ./ 3`. Normalization is many-to-one: equal Count and Size give
@@ -220,12 +220,12 @@ It is idempotent, and dividing again renormalizes from the same Count and Size,
 so the earlier division leaves no trace
 ```
 ; [(q3 ./ 3) = q3, (q3 ./ 2) = (d7 ./ 2), ((d7 ./ 4) ./ 3) = q3, “” (q3 ./ 2), ((q3 ./ 2) ./ 3) = q3]
-# [<>, <>, <>, “Denum(3,4,3)”, <>]
+# [<>, <>, <>, “Denum(3,[4, 3])”, <>]
 ```
 Zero Size, zero Count, one channel, and more channels than Size or Count
 ```
 ; [“” ((Denum [0, 0, 0]) ./ 3), “” ((Denum [0, 9, 0]) ./ 4), “” ((Denum [0, 9, 0]) ./ 1), “” ((Denum [2, 1, 1]) ./ 5), “” ((Denum [1, 0, 0]) ./ 2)]
-# [“Denum(0,[0, 0, 0])”, “Denum(0,[3, 2, 2, 2])”, “Denum(0,[9])”, “Denum(2,[1, 1, 0, 0, 0])”, “Denum(1,0,0)”]
+# [“Denum(0,[0, 0, 0])”, “Denum(0,[3, 2, 2, 2])”, “Denum(0,[9])”, “Denum(2,[1, 1, 0, 0, 0])”, “Denum(1,[0, 0])”]
 ```
 The divisor is a channel Count, refused as a list refuses it, never coerced to
 its Size
@@ -245,7 +245,7 @@ channels 0, 1, 2, 0 in turn
 # [“Denum(1,[4, 0, 0])”, “Denum(2,[4, 0, 0])”, “Denum(3,[4, 0, 6])”]
 ```
 A reduce applies it the same way, and through a mutable name it writes in
-place. One channel takes every deposit, and two channels are the binary Denum's
+place. One channel takes every deposit, and two channels alternate by the Count's
 parity
 ```
 ; “” ([5, 2, 7, 1, 0] | (Denum [0, [0, 0, 0]]))
@@ -254,7 +254,7 @@ parity
 ; m_ 5;
 ; m_ 6;
 ; [“” m_, “” ((d7 ./ 1) 4), “” ((d7 ./ 2) 4), “” (d7 4)]
-# [“Denum(2,[5, 6, 0])”, “Denum(4,[11])”, “Denum(4,4,7)”, “Denum(4,5,6)”]
+# [“Denum(2,[5, 6, 0])”, “Denum(4,[11])”, “Denum(4,[4, 7])”, “Denum(4,[5, 6])”]
 ```
 ## Denum laws
 
@@ -271,16 +271,16 @@ m from 1 to 4 dividing by n then m is dividing by m
 ; [states.#, checks.#, checks = (checks & {<>})]
 # [100, 3600, <>]
 ```
-## Channel Denum operations
+## Denum operations
 
-Its fourth hash is intrinsic, as for the binary Denum: a fresh equal channel Denum
-of the same arity, Count zero included. A record that only spells the fields is
-not one, and forged observers give the ordinary derived binary Denum
+Its fourth hash is intrinsic for every arity: a fresh equal Denum of the same
+arity, Count zero included. A record that only spells the fields is not one, and
+forged observers give the ordinary derived Denum of two loads
 ```
 ; [(q3.####) == q3, (q3.####) === q3, ((Denum [0, [0, 0, 0]]).####) = (Denum [0, [0, 0, 0]]), ([5, 2].#### ./ 3) = (Denum [2, [3, 2, 2]])]
 # [<>, (), <>, <>]
 ; [[.count 3; .loads [3, 2, 2]].####, “” ([.count 3; .loads [3, 2, 2]; .# {3}; .## {7}; .### {3}].####)]
-# [(), “Denum(3,5,2)”]
+# [(), “Denum(3,[5, 2])”]
 ```
 `*` and `scale_` scale every load and keep the Count; the ratios read Size and
 residual over the Count, nil at Count zero
@@ -291,28 +291,27 @@ residual over the Count, nil at Count zero
 `+` and `-` follow the residual's signs. The residual adds the loads at even
 indices and subtracts those at odd ones, so `-` deposits `x.##` on the first
 even load, load 0, and raises the residual, and `+` deposits on the first odd
-load, load 1, and lowers it. For two loads these are the binary Denum's left and
-right. Both keep the Count, and both are `deposit-left_` and `deposit-right_`
+load, load 1, and lowers it. Both keep the Count, and both are `deposit-left_` and `deposit-right_`
 by the operand's Size. One load has no odd index, so there `+` is
 `$!!.invalid-arity`
 ```
 ; [“” (q3 + 1), “” (q3 - 1), q3.###, (q3 + 1).###, (q3 - 1).###, (q3 + 1).#]
 # [“Denum(3,[3, 3, 2])”, “Denum(3,[4, 2, 2])”, 3, 2, 4, 3]
 ; [“” ((d7 ./ 4) + 1), “” ((d7 ./ 4) - 2.5), (d7 ./ 1) + 1, “” ((d7 ./ 1) - 1), “” (d7 + 1), “” (d7 - 1)]
-# [“Denum(3,[2, 3, 2, 1])”, “Denum(3,[4, 2, 2, 1])”, $!!.invalid-arity, “Denum(3,[8])”, “Denum(3,5,3)”, “Denum(3,6,2)”]
+# [“Denum(3,[2, 3, 2, 1])”, “Denum(3,[4, 2, 2, 1])”, $!!.invalid-arity, “Denum(3,[8])”, “Denum(3,[5, 3])”, “Denum(3,[6, 2])”]
 ; [((q3 + 4) - 2) = ((q3 - 2) + 4), ((q3 + 1) ./ 3) = ((q3 - 1) ./ 3), q3 + ([].nope), q3.deposit-right_ (0 - 1), q3.deposit-left_ 1.5, “” q3]
 # [<>, <>, $!.name-missing “..., $!!.invalid-denum, $!!.invalid-denum, “Denum(3,[3, 2, 2])”]
 ```
 ## RotorRouter
 
-`RotorRouter [ch0, …, chk−1]` takes k ≥ 1 channel arrays. Two are the binary
-router, with its `left ()`, `right ()` and `phase ()`; every router stores `channels`.
+`RotorRouter [ch0, …, chk−1]` takes k ≥ 1 channel arrays, and every router, of
+any number of channels, is the same class and stores `channels`.
 A round-robin history from channel 0 fills the channels so that the first
 C mod k hold one more than the rest, so the constructor admits exactly the
 channels whose Counts are the dealing of C into k, and refuses every other
 ```
 ; [[[]], [[], []], [[], [], []], [[], [], [], []]] & {“” (RotorRouter _)}
-# [“RotorRouter([[]])”, “RotorRouter([],[])”, “RotorRouter([[], [], []])”, “RotorRouter([[], [], [], []])”]
+# [“RotorRouter([[]])”, “RotorRouter([[], []])”, “RotorRouter([[], [], []])”, “RotorRouter([[], [], [], []])”]
 ; [[[5]], [[5], [6]], [[5], [], []], [[5], [6], []], [[5, 8], [6], [7]], [[5, 9], [6], [7], [8]]] & {(RotorRouter _).#}
 # [1, 2, 1, 2, 4, 5]
 ; [RotorRouter [[1], [2], [3, 4]], RotorRouter [[1], [], [2]], RotorRouter [[1, 2, 3], [4], [5]], RotorRouter [[], [1]], RotorRouter [[1, 2], [3], [4], [5], [6, 7]], RotorRouter []]
@@ -342,15 +341,15 @@ and dividing by one gives the history back in routed order
 # [[<>, (), ()], [<>, ()], 9, <>]
 ```
 Division is idempotent and renormalizes: dividing again re-deals the same
-history, so a router divided by 3 and then 2 is the binary router it came
+history, so a router divided by 3 and then 2 is the two-channel router it came
 from. The empty router divides into empty channels
 ```
 ; [(t3 ./ 3) = t3, (t3 ./ 2) = r7, ((r7 ./ 4) ./ 3) = t3, ((t3 ./ 4) ./ 2) = r7, “” (r0 ./ 3), (r0 ./ 3).#, ((RotorRouter [[], [], []]) ./ 2) = r0]
 # [<>, <>, <>, <>, “RotorRouter([[], [], []])”, 0, <>]
 ```
 After division the next route goes to channel C mod n: `t3` has Count 7, so 8,
-9 and 10 go to channels 1, 2 and 0. Divided back into two, it is the binary
-router that routed the same Frames
+9 and 10 go to channels 1, 2 and 0. Divided back into two, it is the
+two-channel router that routed the same Frames
 ```
 ; [“” (t3 8), “” ((t3 8) 9), “” (((t3 8) 9) 10)]
 # [“RotorRouter([[[1, [2]], [.k 9; 4], 7], [“b”, 5, 8], [{ 5 + 3 }, (6, 7)]])”, “RotorRouter([[[1, [2]], [.k 9; 4], 7], [“b”, 5, 8], [{ 5 + 3 }, (6, 7), 9]])”, “RotorRouter([[[1, [2]], [.k 9; 4], 7, 10], [“b”, 5, 8], [{ 5 + 3 }, (6, 7), 9]])”]
@@ -401,17 +400,16 @@ The divisor is refused as for a list
 ## A router's observers and fourth hash
 
 A router of any arity declares its Count C, its Size, the sum of its channel
-loads, and its residual, their alternating sum, as a channel Denum does. Its
-fourth hash is the Denum of the same arity: a router of k channels other than
-two is recognized intrinsically, as an instance of the shipped class, and
+loads, and its residual, their alternating sum, as its Denum does. Its
+fourth hash is the Denum of the same arity: a router of k channels is
+recognized intrinsically, as an instance of the shipped class, and
 answers `Denum [C, loads]`, one load per channel, so it routes to channel
-C mod k as its Denum deposits there. The binary router answers the binary Denum
-it always did. At Count zero there is no Denum, for any arity
+C mod k as its Denum deposits there. At Count zero there is no Denum, for any arity
 ```
 ; [t3.#, t3.##, t3.###, “” t3.####, t3.#### = (Denum [7, [14, 6, 22]]), t3.####.## = t3.##, t3.####.### = t3.###]
 # [7, 42, 30, “Denum(7,[14, 6, 22])”, <>, <>, <>]
 ; [“” (r7.####), ([] ./ 3).####, (RotorRouter [[], [], []]).####, “” ((([] ./ 3) 5).####)]
-# [“Denum(7,24,18)”, (), (), “Denum(1,[5, 0, 0])”]
+# [“Denum(7,[24, 18])”, (), (), “Denum(1,[5, 0, 0])”]
 ```
 So the projection law `(r y).#### = r.#### y` holds for every arity: routing y
 to channel C mod k and observing is depositing `y.##` there
@@ -437,7 +435,7 @@ and 3. They are different states with the same Size, and neither is wrong
 ```
 ; .two [5, 2];
 ; [loads (two ./ 2).channels, ((two | r0) ./ 2).channels & {load _}, “” (two.#### ./ 2), ((two | r0) ./ 2).#### = (two.#### ./ 2), ((two | r0) ./ 2).####.## = (two.#### ./ 2).##]
-# [[5, 2], [5, 2], “Denum(2,4,3)”, (), <>]
+# [[5, 2], [5, 2], “Denum(2,[4, 3])”, (), <>]
 ```
 They agree when every child has Size one, since then each Frame is one Size
 unit. With other Sizes they need not

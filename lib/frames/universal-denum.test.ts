@@ -33,10 +33,10 @@ const value = (source: string): Frame =>
   FrameExpr.answeredValue(evaluate(source).at(-1)).referent();
 
 /**
- * A binary Denum's state as the retired native encoding spelled it,
+ * A two-load Denum's state as the retired native encoding spelled it,
  * orientation then loads. It is read from the two fields the HC instance
  * stores, `count` and `loads` (007.40), with the orientation the Count's
- * parity; undefined when the value is not a binary Denum.
+ * parity; undefined when the value is not a two-load Denum.
  */
 const encode = (
   value: Frame,
@@ -197,16 +197,18 @@ Deno.test("fourth hash distinguishes atom/schema absence, empty hosts and presen
     value("[5, 3].####").equals(value("[5, 3, 0, 0].####")),
   ).toBe(Frame.nil);
   expect(
-    value("([5, 3].####.left ()) = ([5, 3, 0, 0].####.left ())").toString(),
+    value("[5, 3].####.loads = [5, 3, 0, 0].####.loads").toString(),
   ).toEqual("<>");
   // Deposit is application and scaling a method; the Denum class also declares
   // the arithmetic operators as methods, so `+` deposits on the right and `*`
   // scales, each answering a fresh Denum rather than nil or a Star refusal
   // (015.02).
-  expect(value("“” ([[],[]].#### 3)").toString()).toEqual("“Denum(3,4,1)”");
-  expect(value("“” (7.####.scale_ 2)").toString()).toEqual("“Denum(7,8,6)”");
-  expect(value("“” ([[],[]].#### + 3)").toString()).toEqual("“Denum(2,1,4)”");
-  expect(value("“” (7.#### * 2)").toString()).toEqual("“Denum(7,8,6)”");
+  expect(value("“” ([[],[]].#### 3)").toString()).toEqual("“Denum(3,[4, 1])”");
+  expect(value("“” (7.####.scale_ 2)").toString()).toEqual("“Denum(7,[8, 6])”");
+  expect(value("“” ([[],[]].#### + 3)").toString()).toEqual(
+    "“Denum(2,[1, 4])”",
+  );
+  expect(value("“” (7.#### * 2)").toString()).toEqual("“Denum(7,[8, 6])”");
   // Nil has no Count; all is the present empty, observed exactly as [] (011.18k).
   expect(evaluate("().#").toString()).toEqual("[]");
   expect(last("<>.#").toString()).toEqual("0");

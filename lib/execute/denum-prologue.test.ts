@@ -48,13 +48,15 @@ const state = (denum: Frame): string[] => [
   ...loadsOf(denum),
 ];
 
-/** A Denum's phase reading, `d.phase ()`: 2 for an even Count, 1 for odd. */
-const phase = (denum: Frame): string =>
-  `${
-    FrameExpr.answeredValue(
-      new FrameHandle(denum, false).get("phase").call(Frame.nil),
-    )
-  }`;
+/**
+ * The load the next application deposits into, observed: apply a Size-one
+ * Frame and find the load that grew. It is `C mod k` for every arity.
+ */
+const next = (denum: Frame): string => {
+  const before = loadsOf(denum);
+  const after = loadsOf(deposit(denum, count(1n)));
+  return `${after.findIndex((load, index) => load !== before[index])}`;
+};
 
 /** `d x` through an immutable name, as HC applies a named Denum. */
 const deposit = (d: Frame, x: Frame): Frame =>
@@ -68,8 +70,8 @@ Deno.test("the fourth hash constructs the HC class in a bare evaluator with no r
   expect(d).toBeInstanceOf(FrameArray);
   // The host's whole Count is kept, three, not its parity (007.25c).
   expect(state(d)).toEqual(["3", "12", "3"]);
-  expect(phase(d)).toEqual("1");
-  expect(d.toText().toString()).toEqual("“Denum(3,12,3)”");
+  expect(next(d)).toEqual("1");
+  expect(d.toText().toString()).toEqual("“Denum(3,[12, 3])”");
   // Its declared observers are the Denum laws; its own fourth hash is itself.
   expect(["#", "##", "###"].map((k) => `${d.sizeFor(k)}`))
     .toEqual(["3", "15", "9"]);
@@ -121,23 +123,23 @@ Deno.test("the constructor validates its three Counts in HC", () => {
   expect(
     state(constructDenum(count(1n), count(10n ** 30n), count(0n))),
   ).toEqual(["1", `${10n ** 30n}`, "0"]);
-  // Any Count is a state, zero included, and the phase is read from its
-  // parity: 2 when even, 1 when odd (007.25c). Nothing is refused by size.
+  // Any Count is a state, zero included, and with two loads the next one is
+  // the Count's parity (007.25c). Nothing is refused by size.
   for (
     const [n, expected] of [
-      [0n, "2"],
+      [0n, "0"],
       [1n, "1"],
-      [2n, "2"],
+      [2n, "0"],
       [3n, "1"],
-      [4n, "2"],
-      [100n, "2"],
+      [4n, "0"],
+      [100n, "0"],
       [101n, "1"],
-      [10n ** 30n, "2"],
+      [10n ** 30n, "0"],
     ] as const
   ) {
     const denum = constructDenum(count(n), count(5n), count(1n));
     expect(state(denum), `${n}`).toEqual([`${n}`, "5", "1"]);
-    expect(phase(denum), `${n}`).toEqual(expected);
+    expect(next(denum), `${n}`).toEqual(expected);
   }
   // What is not three Counts is refused: negative, fractional, short or long.
   const refused = (...elements: Frame[]) =>
@@ -160,7 +162,7 @@ Deno.test("the constructor validates its three Counts in HC", () => {
 Deno.test("equal phase and loads with different Counts are different Denums (007.25c)", () => {
   const two = constructDenum(count(2n), count(5n), count(1n));
   const four = constructDenum(count(4n), count(5n), count(1n));
-  expect(phase(two)).toEqual(phase(four));
+  expect(next(two)).toEqual(next(four));
   expect(loadsOf(two)).toEqual(loadsOf(four));
   for (const key of ["#", "##", "###"].slice(1)) {
     expect(`${two.sizeFor(key)}`).toEqual(`${four.sizeFor(key)}`);
@@ -239,7 +241,7 @@ Deno.test("a Denum prints as HC that reads back as an equal Denum", () => {
   expect(restored.typeEquals(d)).toBe(Frame.all);
   expect(restored.identical(d)).toBe(Frame.nil);
   expect(value(`${printed} 4`).toText().toString()).toEqual(
-    "“Denum(4,12,7)”",
+    "“Denum(4,[12, 7])”",
   );
 });
 
@@ -329,9 +331,9 @@ Deno.test("an aggregate may declare its Count, Size and residual (011.20)", () =
   // No class declares `####` (007.25e): a method under that name is an
   // ordinary property the fourth hash never runs, so it is derived as usual.
   expect(value("[.#### {7}; 5, 3].####").toText().toString())
-    .toEqual("“Denum(2,5,3)”");
+    .toEqual("“Denum(2,[5, 3])”");
   expect(value("[.#### {[]}; 5, 3].####").toText().toString())
-    .toEqual("“Denum(2,5,3)”");
+    .toEqual("“Denum(2,[5, 3])”");
   expect(value("[.#### {()}; 5, 3].#### = [5, 3].####").toString())
     .toEqual("<>");
   expect(value("([.#### {[].nope}].####) = ()").toString()).toEqual("<>");
@@ -447,7 +449,7 @@ const text = (source: string): string => value(source).toText().toString();
 
 Deno.test("Count binding .#% runs in a bare evaluator with no root or import (007.40)", () => {
   // The bound Denum is built by the bundled class, reached through .####.
-  expect(text("[2, 5].####.#%")).toEqual("“Denum(2,2,5)”");
+  expect(text("[2, 5].####.#%")).toEqual("“Denum(2,[2, 5])”");
   expect(text("[5, 3, 7].####.#%")).toEqual("“Denum(3,[12, 3, 0])”");
   const bound = value("[5, 3, 7].####.#%");
   expect(bound.getOwn("count").toString()).toEqual("3");
@@ -480,36 +482,27 @@ Deno.test("a forged Denum is refused by .#% without running anything (007.40)", 
   );
 });
 
-Deno.test("a Denum stores only its Count and loads, so its readings cannot diverge (007.40 review)", () => {
+Deno.test("a Denum stores only its Count and loads, for every arity (007.40 review)", () => {
   /** The instance's stored fields: every own property that is not a method. */
   const stored = (d: Frame): string[] =>
     d.meta_keys().filter((key) => !(d.getOwn(key) instanceof FrameExpr));
-  /** A unary reading of the instance, applied to nil, as HC reads `d.key ()`. */
-  const reading = (d: Frame, key: string): string =>
-    `${
-      FrameExpr.answeredValue(
-        new FrameHandle(d, false).get(key).call(Frame.nil),
-      )
-    }`;
-  const binary = [
-    constructDenum(count(0n), count(0n), count(0n)),
-    value("[5, 3, 7].####"),
-    value("((([5, 3, 7].####) 4) - 2) * 3"),
-    value("((([5, 3].####) 0) + 6) 1"),
-    value("[2, 5].####.#%"),
-  ];
-  for (const d of binary) {
+  for (
+    const d of [
+      constructDenum(count(0n), count(0n), count(0n)),
+      value("[5, 3, 7].####"),
+      value("((([5, 3, 7].####) 4) - 2) * 3"),
+      value("((([5, 3].####) 0) + 6) 1"),
+      value("[2, 5].####.#%"),
+      value("[5, 3, 7].####.#%"),
+      value("([5, 3, 7].####.#%) 4"),
+      value("(([5, 3, 7, 1].####.#%) 2) - 1"),
+    ]
+  ) {
     expect(stored(d), `${d.toText()}`).toEqual(["count", "loads"]);
+    // The next deposit goes to load C mod k, read from those two fields alone.
     const c = BigInt(`${d.getOwn("count")}`);
-    const [left, right] = d.getOwn("loads").referent().elements().map(String);
-    expect(reading(d, "phase"), `${d.toText()}`).toEqual(
-      c % 2n === 0n ? "2" : "1",
-    );
-    expect([reading(d, "left"), reading(d, "right")]).toEqual([left, right]);
-  }
-  // A channel Denum, bound or applied, stores the same two fields.
-  for (const source of ["[5, 3, 7].####.#%", "([5, 3, 7].####.#%) 4"]) {
-    expect(stored(value(source)), source).toEqual(["count", "loads"]);
+    const k = BigInt(loadsOf(d).length);
+    expect(next(d), `${d.toText()}`).toEqual(`${c % k}`);
   }
 });
 

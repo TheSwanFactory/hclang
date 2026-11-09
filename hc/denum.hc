@@ -2,12 +2,13 @@
 ```
 Denum (occurrence/figure 011.20, 007.25c)
 
-A Denum is a closed two-channel state: a Count and two loads, left and right.
-Applying a Denum to a Frame deposits that Frame's Size into the channel the
-Count's parity selects and adds one to the Count, so a Denum follows alternating
-construction one observation at a time and remembers how many it has seen. It
-is what the fourth hash answers: `x.####` is the Denum of x's Count, Size and
-residual, with Count x.#, left load (Size + residual)/2 and right load
+A Denum is a closed state of k ordered channels, k ≥ 1: a Count and k loads.
+Applying a Denum to a Frame deposits that Frame's Size into load `C mod k` and
+adds one to the Count, so a Denum follows round-robin construction one
+observation at a time and remembers how many it has seen. Every arity is the
+same class, with the same fields, methods and text; two loads are not a special
+case. It is what the fourth hash answers: `x.####` is the Denum of x's Count,
+Size and residual, with Count x.# and the two loads (Size + residual)/2 and
 (Size − residual)/2.
 
 `Denum` is an ordinary HC class: a constructor closure answering a fresh
@@ -17,45 +18,29 @@ answer with this constructor, which the evaluator reads from this file, compiled
 in, the first time `.####` needs one. So this file is both the definition every
 evaluator uses and its specification, and it works without a resource root.
 Import it to construct Denums directly: `Denums <- './hc/denum.hc'`, then
-`Denums.Denum [0, 0, 0]`.
+`Denums.Denum [0, [0, 0]]`.
 
-**State (007.25c).** `Denum [C, L, R]` takes three Counts, any of them zero
-(`Denum [C, loads]` takes a Count and a list of loads; see "Channels and
-division" below). `C`
-is the full application Count the state has recorded, not its parity, so
-`Denum [2, 5, 1]` and `Denum [4, 5, 1]` are different states that agree in phase
-and in both loads. Anything else is refused with `$!!.invalid-denum`, a named
-error, as Figures refuses an unsupported host. This replaces the phase-only
-`Denum [phase, L, R]` of earlier versions, where `phase` was 1 or 2 and the
-number of applications was forgotten: `Denum [2, 5, 3]` used to mean "an even
-number of applications, left next", and it now means exactly two. Nothing converts an old state to a new one, because the old one never recorded
-its Count. `Denum [0, 0, 0]` is the neutral start.
+**State (007.25c, 007.40).** A Denum stores exactly two fields: `count`, the
+Count `C`, and `loads`, its ordered loads. Nothing else is stored, so nothing
+can disagree with them. `d.count` and `d.#` are `C`, and `d.loads` is the list.
+`C` is the full application Count the state has recorded, not its parity, so
+`Denum [2, [5, 1]]` and `Denum [4, [5, 1]]` are different states with the same
+loads. Two Denums are `=` exactly when their Count and loads are.
 
-**Default Count (007.40).** `Denum [loads]`, a single list of loads, is the
-default-Count form, with `C = 1`: `Denum [[2, 5]]` is `Denum [1, [2, 5]]`. It is
-a constructor convention, not a claim that the state was reached by one
-application. An explicit Count always wins, so `Denum [0, [2, 5]]` keeps Count
-zero. A host declaration such as `(.# C;)` is not a constructor option.
-
-**State is Count and loads (007.40).** A Denum stores exactly two fields:
-`count`, the Count `C`, and `loads`, its ordered channel loads. Nothing else is
-stored, so nothing else can disagree with them. `d.count` and `d.#` are `C`,
-and `d.loads` is the list. Two Denums are `=` exactly when their Count and loads
-are. States with the same phase and loads but different Counts stay
-distinguishable.
-
-**Derived readings.** A binary Denum answers three readings computed from that
-state when applied to nil, as the ratios are: `d.phase ()`, `d.left ()` and
-`d.right ()`. `d.phase ()` reads the Count's parity and never the integer
-`C %% 2`: 2 when `C` is even, `C = 0` included, left next, and 1 when it is
-odd, right next. It is a Count rather than all or nil, so the odd phase is
-present. `d.left ()` and `d.right ()` are `d.loads .0` and `d.loads .1`. Any
-other operand is `$!!.unary-observation`. Before 007.40 these were stored fields
-written alongside the Count and loads; they are readings now, so application
-routes by the Count's parity and no write can make them diverge.
+**Constructor forms.** `Denum [C, loads]` takes a Count and a nonempty list of
+Counts, any of them zero. `Denum [loads]`, a single list, is the default-Count
+form with `C = 1` (007.40): `Denum [[2, 5]]` is `Denum [1, [2, 5]]`. It is a
+constructor convention, not a claim that the state was reached by one
+application, and an explicit Count always wins, so `Denum [0, [2, 5]]` keeps
+Count zero. `Denum [C, L, R]` is shorthand for `Denum [C, [L, R]]` and builds
+the same instance. Anything else is refused with `$!!.invalid-denum`, a named
+error, as Figures refuses an unsupported host. A host declaration such as
+`(.# C;)` is not a constructor option. `Denum [0, [0]]` is the neutral start of
+arity one, `Denum [0, 0, 0]` of arity two.
 
 **Observers.** A Denum declares its own Count, Size and residual (011.20): its
-Count `C`, its total load `L+R` and the signed difference `L−R`. An aggregate
+Count `C`, the sum of its loads and their alternating sum `e0 − e1 + e2 − …`,
+the list residual, which for two loads is `L − R`. An aggregate
 otherwise observes its elements, and a Denum has none, so without these it
 would observe as 0, 1, 0. Its fourth hash is not declared: no class can
 declare `.####`. The derivation from the three observers cannot tell an empty
@@ -70,14 +55,13 @@ the source runs, so a foreign aggregate that forges `#`, `##`, `###` or a
 `0.####` stay nil: those are hosts with no children, and a host with no
 children has no Denum.
 
-**Application**, `d x`: observe x's Size once, deposit it into the channel the
-phase selects (left in phase 2, right in phase 1) and add one to the Count,
-which flips the phase. A Size of zero still counts. If x has no Size, its
+**Application**, `d x`: observe x's Size once, deposit it into load
+`C mod k` and add one to the Count. A Size of zero still counts. If x has no Size, its
 failure is the answer rather than a deposit. It is a mutating method, `apply_`,
 so through a name, `d x` is a functional update: it answers a new Denum and
 leaves d unchanged.
 
-**Scaling**, `d.scale_ k`: multiply both loads by a Count k, keeping the
+**Scaling**, `d.scale_ k`: multiply every load by a Count k, keeping the
 Count. It is the numerical shadow of Star: `(x * y).####` is
 `x.####.scale_ (y.##)` for a nonempty host x, Count included. `scale_` stays,
 as the name the fourth hash and Star correspondence use; `d * k` answers the
@@ -90,32 +74,33 @@ method body keeps its global meaning rather than recurring into the class that
 is running. All three **construct a fresh Denum state** from the one Size
 observation `x.##` of their operand, keeping Figure 008's distinction between
 construction and observation. They are **fixed-channel load transformations**
-on the two-load shadow, consistent with the channel loads of a `RotorRouter`
+on the loads, consistent with the channel loads of a `RotorRouter`
 (`hc/rotor-router.hc`): `+` and `-` add `x.##` to one fixed channel's load the
 way a route adds a Frame's Size to the channel it lands in, and `*` is the Star
 shadow `scale_`. These are correspondences, not a claim that the Router
 declares named `+`, `-` or `*` methods. None of the three is application: **all
-keep `C`** and so the phase, and each answers a fresh value and leaves `d` as it
+keep `C`**, and each answers a fresh value and leaves `d` as it
 was. Because they change loads without an application, they can reach a state
 no run of applications reaches, such as `C = 0` with a nonzero load.
 
-- `d + x` is the **tally** operator: it deposits `x.##` on the **right**,
-  `Denum [C, L, R + x.##]`. A sizeless host's failure is the answer, as it is for
-  application. It is `d.deposit-right_ (x.##)`, a load-only functional update.
-- `d - x` is the **alternator** operator: it deposits on the **left**,
-  `Denum [C, L + x.##, R]`, as `d.deposit-left_ (x.##)`. It is not subtraction: a deposit only ever adds, so
-  a load never goes negative and stays a whole Count. Right deposition lowers
-  the signed residual `L − R` and left deposition raises it, the reverse of
-  ordinary signed-scalar `+` and `-`.
-- `d * x` is the **inlay** operator: it scales both loads by the operand's Size
-  `x.##`, `Denum [C, sL, sR]` for `s = x.##`, keeping `C`. It reads the operand
+- `d + x` is the **tally** operator: it deposits `x.##` on load 1, the first
+  load the residual subtracts. A sizeless host's failure is the answer, as it is
+  for application. It is `d.deposit-right_ (x.##)`, a load-only functional
+  update. With one load there is no load 1, and `+` is `$!!.invalid-arity`.
+- `d - x` is the **alternator** operator: it deposits on load 0, the first load
+  the residual adds, as `d.deposit-left_ (x.##)`. It is not subtraction: a
+  deposit only ever adds, so a load never goes negative and stays a whole Count.
+  `+` lowers the residual and `-` raises it, the reverse of ordinary
+  signed-scalar `+` and `-`.
+- `d * x` is the **inlay** operator: it scales every load by the operand's Size
+  `x.##`, keeping `C`. It reads the operand
   through the one Size observer, as `+` and `-` do, so any sized Frame scales a
   Denum, not only a bare Count. It is literally `d.scale_ (x.##)`.
 
 None of the three names the `Denum` constructor inside its method. A bare name
 in a method is looked up on the argument first (spec 7), and a decimal is
 unit-taggable, so inside `d + 2.5` the name `Denum` read `2.5.Denum`, a tagged
-number, and applying that to `[C, L, R]` was `$!.repetition-domain` (007.25e,
+number, and applying that to `[C, loads]` was `$!.repetition-domain` (007.25e,
 PR #480 review). Each operator now hands the one Size it observed to a
 load-only functional update on the receiver, `deposit-right_`, `deposit-left_`
 or `scale_`, so `D + 2.5`, `D - 2.5` and `D * 2.5` all read `(2.5).## = 2`.
@@ -129,8 +114,8 @@ something, so they are applied to nil, `d.size-ratio ()`; any other operand is
 `$!!.unary-observation`, so `d.size-ratio 4` is refused rather than read as a
 division by 4.
 
-- `d.size-ratio ()` is `S / C` for `S = L + R`, exact and nonnegative.
-- `d.residual-ratio ()` is `Δ / C` for `Δ = L − R`, exact and signed.
+- `d.size-ratio ()` is `S / C` for `S = d.##`, exact and nonnegative.
+- `d.residual-ratio ()` is `Δ / C` for `Δ = d.###`, exact and signed.
 
 Both are **nil when `C = 0`**, whatever the loads: the state exists and its Size
 and residual still read, but the ratio is absent, so there is no `0/0`, infinity
@@ -145,23 +130,7 @@ and `S / C` and `Δ / C` are arithmetic readings of it, not a construction of
 rational geometry.
 
 **Text.** A Denum prints as what it is, an aggregate of fields and methods. As
-text it reads `Denum(C,L,R)`, with the Count and both loads.
-
-**Channels and division (007.27).** The two loads are the arity-two case of an
-ordered list of channel loads. `Denum [C, loads]` takes a Count and a nonempty
-list of Counts: two loads are this binary Denum, the same instance
-`Denum [C, L, R]` builds, and any other number is a channel Denum. Every Denum
-stores `count` and `loads` and nothing else; only the binary one also answers
-the readings `phase ()`, `left ()` and `right ()`. A channel Denum of arity k
-deposits into channel `C mod k`, which for k = 2 is the phase's channel. Its
-Size is the sum of its loads and its residual their alternating sum
-`e0 − e1 + e2 − …`, the list residual, which for two loads is `L − R`. Its
-fourth hash is intrinsic too: a fresh equal Denum of the same arity. Its `*`,
-`scale_` and ratios are as here. Its `+` and `-` follow the residual's signs:
-`-` deposits on the first even load, load 0, raising the residual, and `+` on
-the first odd load, load 1, lowering it, which for two loads are left and
-right; with one load `+` is `$!!.invalid-arity`. Text reads `Denum(C,[e0, e1,
-…])`.
+text it reads `Denum(C,[e0, e1, …])`, the Count and its loads, for every arity.
 
 `d ./ n`, also spelled `d / n`, redistributes the Size: it keeps C and the
 total S and deals S Size units round-robin into n channels, so the first
@@ -175,69 +144,36 @@ specification, with the list and RotorRouter divisions beside it.
 
 **Methods read their own state through `_^`.** A bare name inside a method is
 looked up on the argument first (spec 7), and a Denum is applied to arbitrary
-Frames, so a bare `left` could read the argument's field. `_^` is the receiver
+Frames, so a bare `loads` could read the argument's field. `_^` is the receiver
 from a method's body, and `_^^` from a block one level in, because carets
 count lexically (spec a06). What a branch needs is bound as a local at method
-level, where nested blocks read it. The file's own names, the constructor
-`Denum` and the helpers `deposit-at` (a cursor that adds a Size at one channel
-index, applied by reduce) and `redistribution` (the round-robin loads of S
+level, where nested blocks read it; a deposit builds its own small cursor
+there, which adds a Size at one load index when the loads are reduced through
+it, so a Denum printed and read back still applies. The file's own names, the
+constructor `Denum` and the helper `redistribution` (the round-robin loads of S
 units in n channels), are read the same way, through the scope a caret ladder
 reaches, `(_^^^ .Denum)` from a branch, so an argument's fields never stand in
 for them.
 ```
-.deposit-at {.at (_ .0); .by (_ .1); [.index 0; .target at; .amount by; .out [];
-  .apply_ {.v _; .i (_^ .index); .t (_^ .target); .a (_^ .amount); .o (_^ .out);
-    @out (o ((i = t) ? {v + a} : {v})); @index (i + 1);}]};
 .redistribution {.s (_ .0); .ways (_ .1); .r (s %% ways); .q (((s - r) / ways).##);
   ((ways - r) [q]) | (r [(q + 1)])};
-.binary-denum {.c (_ .0); .l (_ .1); .r (_ .2); [
-    .count c;
-    .loads [l, r];
-    .# {_^.count};
-    .## {(_^ .loads).##};
-    .### {(_^ .loads).###};
-    .phase {.c (_^ .count); .u ((_ = ()) ? {1} : {0});
-      (u = 1) ? {((c %% 2) = 0) ? {2} : {1}} : {$!!.unary-observation}};
-    .left {.e (_^ .loads); .u ((_ = ()) ? {1} : {0});
-      (u = 1) ? {e .0} : {$!!.unary-observation}};
-    .right {.e (_^ .loads); .u ((_ = ()) ? {1} : {0});
-      (u = 1) ? {e .1} : {$!!.unary-observation}};
-    .apply_ {.s (_ .##); .c (_^ .count); .e (_^ .loads); .l (e .0); .r (e .1);
-      (s ~ (0.<>)) ? {((c %% 2) = 0) ? {@loads [(l + s), r];} : {@loads [l, (r + s)];}; @count (c + 1); _^^} : {s}};
-    .scale_ {.k _; .e (_^ .loads); .l (e .0); .r (e .1);
-      (k ~ (0.<>)) ? {@loads [(l * k), (r * k)]; _^^} : {$!!.invalid-scale}};
-    .deposit-right_ {.k _; .e (_^ .loads); .l (e .0); .r (e .1);
-      (k ~ (0.<>)) ? {@loads [l, (r + k)]; _^^} : {$!!.invalid-denum}};
-    .deposit-left_ {.k _; .e (_^ .loads); .l (e .0); .r (e .1);
-      (k ~ (0.<>)) ? {@loads [(l + k), r]; _^^} : {$!!.invalid-denum}};
-    .+ {.s (_ .##);
-      (s ~ (0.<>)) ? {(_^^ .deposit-right_ s)} : {s}};
-    .- {.s (_ .##);
-      (s ~ (0.<>)) ? {(_^^ .deposit-left_ s)} : {s}};
-    .* {.s (_ .##);
-      (s ~ (0.<>)) ? {(_^^ .scale_ s)} : {s}};
-    ./ {.ways _; .c (_^ .count); .s (_^ .##); .v ([] / ways);
-      (v ~ ([].<>)) ? {(_^^^ .Denum) [c, ((_^^^ .redistribution) [s, ways])]} : {v}};
-    .size-ratio {.c (_^ .count); .s (_^ .##); .u ((_ = ()) ? {1} : {0});
-      (c .> 0) ? {(u = 1) ? {s / c} : {$!!.unary-observation}}};
-    .residual-ratio {.c (_^ .count); .d (_^ .###); .u ((_ = ()) ? {1} : {0});
-      (c .> 0) ? {(u = 1) ? {d / c} : {$!!.unary-observation}}};
-    .toText {.e (_^ .loads); “Denum(” (_^ .count) “,” (e .0) “,” (e .1) “)”}
-  ]};
-.channel-denum {.c (_ .0); .e (_ .1); [
+.denum-instance {.c (_ .0); .e (_ .1); [
     .count c;
     .loads e;
     .# {_^.count};
     .## {(_^ .loads).##};
     .### {(_^ .loads).###};
     .apply_ {.s (_ .##); .c (_^ .count); .e (_^ .loads);
-      (s ~ (0.<>)) ? {@loads ((e | ((_^^^ .deposit-at) [(c %% (e.#)), s])) .out); @count (c + 1); _^^} : {s}};
+      .at (c %% (e.#)); .cursor [.index 0; .target at; .amount s; .out []; .apply_ {.v _; .i (_^ .index); .t (_^ .target); .a (_^ .amount); .o (_^ .out); @out (o ((i = t) ? {v + a} : {v})); @index (i + 1);}];
+      (s ~ (0.<>)) ? {@loads ((e | cursor) .out); @count (c + 1); _^^} : {s}};
     .scale_ {.k _; .e (_^ .loads);
       (k ~ (0.<>)) ? {@loads (e & {_ * k}); _^^} : {$!!.invalid-scale}};
     .deposit-right_ {.k _; .e (_^ .loads);
-      ((k ~ (0.<>)) ? {(e.#) .> 1}) ? {@loads ((e | ((_^^^ .deposit-at) [1, k])) .out); _^^} : {(k ~ (0.<>)) ? {$!!.invalid-arity} : {$!!.invalid-denum}}};
+      .cursor [.index 0; .target 1; .amount k; .out []; .apply_ {.v _; .i (_^ .index); .t (_^ .target); .a (_^ .amount); .o (_^ .out); @out (o ((i = t) ? {v + a} : {v})); @index (i + 1);}];
+      ((k ~ (0.<>)) ? {(e.#) .> 1}) ? {@loads ((e | cursor) .out); _^^} : {(k ~ (0.<>)) ? {$!!.invalid-arity} : {$!!.invalid-denum}}};
     .deposit-left_ {.k _; .e (_^ .loads);
-      (k ~ (0.<>)) ? {@loads ((e | ((_^^^ .deposit-at) [0, k])) .out); _^^} : {$!!.invalid-denum}};
+      .cursor [.index 0; .target 0; .amount k; .out []; .apply_ {.v _; .i (_^ .index); .t (_^ .target); .a (_^ .amount); .o (_^ .out); @out (o ((i = t) ? {v + a} : {v})); @index (i + 1);}];
+      (k ~ (0.<>)) ? {@loads ((e | cursor) .out); _^^} : {$!!.invalid-denum}};
     .+ {.s (_ .##);
       (s ~ (0.<>)) ? {(_^^ .deposit-right_ s)} : {s}};
     .- {.s (_ .##);
@@ -257,35 +193,35 @@ for them.
   .boxed ((n = 3) ? {[[a .1, a .2]]} : {(n = 2) ? {[a .1]} : {[a .0]}});
   ((c ~ (0.<>)) ? {(boxed .0) ~ ([].<>)}) ? {.e (boxed .0); .k (e.#);
   ((k .> 0) ? {(e &| {.x _; (x ~ (0.<>)) ? {[]} : {[x]}}).# = 0}) ? {
-    (k = 2) ? {binary-denum [c, (e .0), (e .1)]} : {channel-denum [c, (e | [])]}
+    denum-instance [c, (e | [])]
   } : {$!!.invalid-denum}} : {$!!.invalid-denum}} : {$!!.invalid-denum}};
 ```
 ## Construction
 
-A Denum holds its Count and its two loads; its phase is read from that Count. Each
-instance is its own: two built from the same constructor share nothing. The
-neutral start `Denum [0, 0, 0]` is present, in phase 2
+A Denum holds its Count and its loads. Each instance is its own: two built
+from the same constructor share nothing. The neutral start `Denum [0, 0, 0]`
+is present, with Count zero
 ```
 ; .d (Denum [0, 0, 0]);
-; [d.count, d.phase (), d.left (), d.right (), d.loads, d.#, d.##, d.###, “” d]
-# [0, 2, 0, 0, [0, 0], 0, 0, 0, “Denum(0,0,0)”]
+; [d.count, d.# %% 2, d.loads .0, d.loads .1, d.loads, d.#, d.##, d.###, “” d]
+# [0, 0, 0, 0, [0, 0], 0, 0, 0, “Denum(0,[0, 0])”]
 ; .a (Denum [2, 5, 3]); .b (Denum [1, 7, 0]);
-; [“” a, “” b, a.left (), b.left (), a.phase (), b.phase ()]
-# [“Denum(2,5,3)”, “Denum(1,7,0)”, 5, 7, 2, 1]
+; [“” a, “” b, a.loads .0, b.loads .0, a.# %% 2, b.# %% 2]
+# [“Denum(2,[5, 3])”, “Denum(1,[7, 0])”, 5, 7, 0, 1]
 ```
-Any Counts are a state. The phase is read from the parity of the Count, never
-from the Count itself: even is phase 2, zero included, and odd is phase 1
+Any Counts are a state. With two loads the next load is the Count's parity,
+`C %% 2`: 0 when even, zero included, and 1 when odd
 ```
-; [0, 1, 2, 3, 4, 5, 100, 101] & {(Denum [_, 5, 3]).phase ()}
-# [2, 1, 2, 1, 2, 1, 2, 1]
-; [(Denum [2, 5, 3]).#, (Denum [4, 5, 3]).#, (Denum [100, 5, 3]).count, (Denum [100, 5, 3]).phase (), (Denum [3, 5, 3]).phase ()]
-# [2, 4, 100, 2, 1]
+; [0, 1, 2, 3, 4, 5, 100, 101] & {(Denum [_, 5, 3]).# %% 2}
+# [0, 1, 0, 1, 0, 1, 0, 1]
+; [(Denum [2, 5, 3]).#, (Denum [4, 5, 3]).#, (Denum [100, 5, 3]).count, (Denum [100, 5, 3]).# %% 2, (Denum [3, 5, 3]).# %% 2]
+# [2, 4, 100, 0, 1]
 ```
 A positive Count over empty loads and nonzero loads over a zero Count are both
 states. Anything that is not three Counts is refused
 ```
 ; [“” (Denum [3, 0, 0]), “” (Denum [0, 3, 0]), “” (Denum [0, 0, 4])]
-# [“Denum(3,0,0)”, “Denum(0,3,0)”, “Denum(0,0,4)”]
+# [“Denum(3,[0, 0])”, “Denum(0,[3, 0])”, “Denum(0,[0, 4])”]
 ; [Denum [2, (0 - 1), 0], Denum [(0 - 1), 1, 1], Denum [(5 - 3), (5 - 7), 0], Denum [2, 1], Denum 5, Denum [2, 1.5, 0], Denum [2, 1, 0, 0]]
 # [$!!.invalid-denum, $!!.invalid-denum, $!!.invalid-denum, $!!.invalid-denum, $!!.invalid-denum, $!!.invalid-denum, $!!.invalid-denum]
 ```
@@ -293,13 +229,13 @@ states. Anything that is not three Counts is refused
 
 `Denum [loads]` is the default-Count form: the Count is 1. It is a constructor
 convention. An explicit Count, zero included, is kept as given. `[C, loads]` and
-the binary `[C, L, R]` are the explicit forms, and any arity of one or more
+its shorthand `[C, L, R]` are the explicit forms, and any arity of one or more
 loads is a Denum
 ```
 ; [“” (Denum [[2, 5]]), “” (Denum [0, [2, 5]]), “” (Denum [[7]]), “” (Denum [[2, 5, 3]])]
-# [“Denum(1,2,5)”, “Denum(0,2,5)”, “Denum(1,[7])”, “Denum(1,[2, 5, 3])”]
+# [“Denum(1,[2, 5])”, “Denum(0,[2, 5])”, “Denum(1,[7])”, “Denum(1,[2, 5, 3])”]
 ; [“” (Denum [3, [2, 5, 3, 7, 4]]), “” (Denum [0, [1]]), “” (Denum [2, 2, 5]), “” (Denum [3, [4]])]
-# [“Denum(3,[2, 5, 3, 7, 4])”, “Denum(0,[1])”, “Denum(2,2,5)”, “Denum(3,[4])”]
+# [“Denum(3,[2, 5, 3, 7, 4])”, “Denum(0,[1])”, “Denum(2,[2, 5])”, “Denum(3,[4])”]
 ; [(Denum [[2, 5]]).#, (Denum [[2, 5]]).##, (Denum [[2, 5]]) = (Denum [1, [2, 5]]), (Denum [[2, 5]]) = (Denum [1, 2, 5])]
 # [1, 7, <>, <>]
 ; (Denum [[123456789012345678901234567890, 5, 3]]).##
@@ -313,99 +249,94 @@ and the one-argument form takes a list of loads, never a bare number
 ; [Denum [1.5, [2, 5]], Denum [(0 - 1), [2, 5]], Denum [“a”, [2, 5]], Denum [2, [2, (0 - 1)]], Denum [2, []], Denum [2, 5], Denum [2, 1, 2, 3]]
 # [$!!.invalid-denum, $!!.invalid-denum, $!!.invalid-denum, $!!.invalid-denum, $!!.invalid-denum, $!!.invalid-denum, $!!.invalid-denum]
 ```
-The binary Denum's phase is not state. It is read from the Count's parity, so
-routing follows the Count alone, in both parities, with the Count alone
-deciding the next channel
+Routing follows the Count alone: application deposits into load
+`C mod arity`, here `C mod 2`, so two Denums with the same loads and Counts of
+different parity route to different loads
 ```
 ; [(Denum [2, 0, 0]) 5, (Denum [3, 0, 0]) 5] & {“” _}
-# [“Denum(3,5,0)”, “Denum(4,0,5)”]
+# [“Denum(3,[5, 0])”, “Denum(4,[0, 5])”]
 ```
-A Denum stores its Count and loads and nothing else, so its readings cannot
-drift from them. Along any run of applications, deposits and scalings, in
-either parity, the phase is the Count's parity, the left and right loads are
-the stored loads, the Size is their sum, and the fourth hash is the state
-itself. The readings are applied to nil; any other operand is refused
+A Denum stores its Count and loads and nothing else, whatever its arity. Along
+any run of applications, deposits and scalings its Size is the sum of its loads
+and its fourth hash is the state itself
 ```
 ; .walk {.s _; [s, (s 5), ((s 5) - 2), (((s 5) - 2) + 3), ((((s 5) - 2) + 3) * 2), (((((s 5) - 2) + 3) * 2) 0)]};
-; .agree {.k _; .p (((k.# %% 2) = 0) ? {2} : {1}); ((((k.phase ()) = p) ? {[k.left (), k.right ()] = k.loads}) ? {k.## = (k.loads).##}) ? {k.#### = k}};
-; [(walk (Denum [0, 0, 0])) & agree, (walk (Denum [1, 4, 1])) & agree]
-# [[<>, <>, <>, <>, <>, <>], [<>, <>, <>, <>, <>, <>]]
-; [(Denum [3, 5, 1]).phase 0, (Denum [3, 5, 1]).left [], (Denum [3, 5, 1]).right “a”]
-# [$!!.unary-observation, $!!.unary-observation, $!!.unary-observation]
+; .agree {.k _; (k.## = (k.loads).##) ? {k.#### = k}};
+; [(walk (Denum [0, 0, 0])) & agree, (walk (Denum [1, 4, 1])) & agree, (walk (Denum [2, [1, 2, 3]])) & agree]
+# [[<>, <>, <>, <>, <>, <>], [<>, <>, <>, <>, <>, <>], [<>, <>, <>, <>, <>, <>]]
 ```
 ## Application
 
-Each application deposits the argument's Size into the channel the phase
-selects and adds one to the Count, which flips the phase. The receiver is left
-as it was
+Each application deposits the argument's Size into load `C mod k` and adds one
+to the Count. The receiver is left as it was
 ```
 ; “” (d [5, 3])
-# “Denum(1,8,0)”
+# “Denum(1,[8, 0])”
 ; “” d
-# “Denum(0,0,0)”
+# “Denum(0,[0, 0])”
 ; “” (((d 5) 3) 7)
-# “Denum(3,12,3)”
+# “Denum(3,[12, 3])”
 ```
-A Size of zero deposits nothing and still counts, in both phases
+A Size of zero deposits nothing and still counts, in both parities
 ```
-; [(d 0).count, ((d 0) 0).count, (d 0).phase (), ((d 0) 0).phase (), (d 0).left (), ((d 0) 0).right ()]
-# [1, 2, 1, 2, 0, 0]
+; [(d 0).count, ((d 0) 0).count, (d 0).# %% 2, ((d 0) 0).# %% 2, (d 0).loads .0, ((d 0) 0).loads .1]
+# [1, 2, 1, 0, 0, 0]
 ```
 Any Frame is applied by its Size, measured without running it: text, the
 empty aggregate and all (Size 1 each), nested aggregates, a closure (one per
 word, so `{5 + 3}` is 9), empty text, and loads too large for a machine integer
 ```
 ; “” ((((((d “hello”) []) <>) [[1, 2], [3]]) {5 + 3}) “”)
-# “Denum(6,15,7)”
+# “Denum(6,[15, 7])”
 ; “” ((d 123456789012345678901234567890) 987654321098765432109876543210)
-# “Denum(2,123456789012345678901234567890,987654321098765432109876543210)”
+# “Denum(2,[123456789012345678901234567890, 987654321098765432109876543210])”
 ```
 A Frame without a Size is not deposited: its failure is the answer
 ```
 ; d ([].nope)
 # $!.name-missing “...
 ; “” d
-# “Denum(0,0,0)”
+# “Denum(0,[0, 0])”
 ```
 Deposit reads the receiver through `_^`, so an argument that holds fields of
 the same names deposits by its Size and nothing else
 ```
 ; “” (d [.count 50; .left 99; .phase 1; .s 100; 4])
-# “Denum(1,4,0)”
+# “Denum(1,[4, 0])”
 ; “” ((Denum [2, 5, 3]) [.count 50; .left 99; .right 7; 4])
-# “Denum(3,9,3)”
+# “Denum(3,[9, 3])”
 ```
 A Denum captured by a closure, mapped, or reduced is applied the same way, and
 the captured one stays as it was
 ```
 ; .start (Denum [0, 0, 0]); .step {start _};
 ; [“” (step 5), “” (step 3), “” start]
-# [“Denum(1,5,0)”, “Denum(1,3,0)”, “Denum(0,0,0)”]
+# [“Denum(1,[5, 0])”, “Denum(1,[3, 0])”, “Denum(0,[0, 0])”]
 ; [d, a] & {“” (_ 5)}
-# [“Denum(1,5,0)”, “Denum(3,10,3)”]
+# [“Denum(1,[5, 0])”, “Denum(3,[10, 3])”]
 ; “” ([5, 3, 7] | (Denum [0, 0, 0]))
-# “Denum(3,12,3)”
+# “Denum(3,[12, 3])”
 ```
 Through a mutable name, application writes the Denum in place
 ```
 ; .m_ (Denum [0, 0, 0]);
 ; m_ 5;
 ; m_ 3;
-; [“” m_, m_.count, m_.phase ()]
-# [“Denum(2,5,3)”, 2, 2]
+; [“” m_, m_.count, m_.# %% 2]
+# [“Denum(2,[5, 3])”, 2, 0]
 ```
 ## Application counts
 
-Starting at Count 0 in phase 2, or at Count 1 in phase 1, applying 5, 3, 7 and 2
-in turn grows the Count by exactly one each time and alternates the phase. The
-Size and residual are the alternating route's, from the left or from the right
+Starting at Count 0 or at Count 1, applying 5, 3, 7 and 2 in turn grows the
+Count by exactly one each time and alternates the load. The Size and residual
+are the alternating route's, from load 0 or from load 1
 ```
 ; .chain {.s _; [s, (s 5), ((s 5) 3), (((s 5) 3) 7), ((((s 5) 3) 7) 2)]};
 ; .c0 (chain (Denum [0, 0, 0])); .c1 (chain (Denum [1, 0, 0]));
-; [c0 & {_.count}, c0 & {_.phase ()}, c0 & {_.##}, c0 & {_.###}]
-# [[0, 1, 2, 3, 4], [2, 1, 2, 1, 2], [0, 5, 8, 15, 17], [0, 5, 2, 9, 7]]
-; [c1 & {_.count}, c1 & {_.phase ()}, c1 & {_.##}, c1 & {_.###}]
-# [[1, 2, 3, 4, 5], [1, 2, 1, 2, 1], [0, 5, 8, 15, 17], [0, -5, -2, -9, -7]]
+; [c0 & {_.count}, c0 & {_.# %% 2}, c0 & {_.##}, c0 & {_.###}]
+# [[0, 1, 2, 3, 4], [0, 1, 0, 1, 0], [0, 5, 8, 15, 17], [0, 5, 2, 9, 7]]
+; [c1 & {_.count}, c1 & {_.# %% 2}, c1 & {_.##}, c1 & {_.###}]
+# [[1, 2, 3, 4, 5], [1, 0, 1, 0, 1], [0, 5, 8, 15, 17], [0, -5, -2, -9, -7]]
 ```
 The Count and the loads together are the state, and the fourth hash of each step
 is that step, Count included
@@ -416,22 +347,22 @@ is that step, Count included
 ## Observers
 
 A Denum's Count is its stored Count, its Size the total load and its residual the
-signed difference, including a present zero-load Denum in either phase
+signed difference, including a present zero-load Denum in either parity
 ```
 ; .e (Denum [3, 12, 3]);
-; [e.#, e.##, e.###, e.phase ()]
+; [e.#, e.##, e.###, e.# %% 2]
 # [3, 15, 9, 1]
-; [d.#, d.##, d.###, (Denum [1, 0, 0]).#, (Denum [1, 0, 0]).phase ()]
+; [d.#, d.##, d.###, (Denum [1, 0, 0]).#, (Denum [1, 0, 0]).# %% 2]
 # [0, 0, 0, 1, 1]
 ```
-Count is `.#`, not phase. The same phase and loads with a different Count are
+Count is `.#`, not its parity. The same parity and loads with a different Count are
 different states with the same Size and residual
 ```
 ; .f2 (Denum [2, 5, 1]); .f4 (Denum [4, 5, 1]);
-; [(f2.phase ()) = (f4.phase ()), f2.## = f4.##, f2.### = f4.###, f2.# = f4.#, f2 = f4, f2 = (Denum [2, 5, 1])]
+; [(f2.# %% 2) = (f4.# %% 2), f2.## = f4.##, f2.### = f4.###, f2.# = f4.#, f2 = f4, f2 = (Denum [2, 5, 1])]
 # [<>, <>, <>, (), (), <>]
-; [f2.#, f4.#, f2.##, f2.###, f2.phase (), f4.phase ()]
-# [2, 4, 6, 4, 2, 2]
+; [f2.#, f4.#, f2.##, f2.###, f2.# %% 2, f4.# %% 2]
+# [2, 4, 6, 4, 0, 0]
 ```
 A Denum inside an aggregate contributes its declared Size
 ```
@@ -457,15 +388,15 @@ not reduced to its parity
 ```
 ; [[5, 3].#### = (Denum [2, 5, 3]), “hello”.#### = (Denum [5, 3, 2]), [0].#### = (Denum [1, 0, 0])]
 # [<>, <>, <>]
-; [[5, 3].####.#, “hello”.####.#, “hello”.####.phase (), [5, 3, 7].####.#, [5, 3, 7].####.phase ()]
+; [[5, 3].####.#, “hello”.####.#, “hello”.#### .# %% 2, [5, 3, 7].####.#, [5, 3, 7].#### .# %% 2]
 # [2, 5, 1, 3, 1]
 ; “” [5, 3, 7].####
-# “Denum(3,12,3)”
+# “Denum(3,[12, 3])”
 ```
 Hosts whose Counts differ by an even number do not share a fourth hash, though
-they share phase and, here, loads
+they share parity and, here, loads
 ```
-; [[5, 3].#### = [5, 3, 0, 0].####, ([5, 3].####.phase ()) = ([5, 3, 0, 0].####.phase ()), [5, 3].####.## = [5, 3, 0, 0].####.##]
+; [[5, 3].#### = [5, 3, 0, 0].####, ([5, 3].#### .# %% 2) = ([5, 3, 0, 0].#### .# %% 2), [5, 3].####.## = [5, 3, 0, 0].####.##]
 # [(), <>, <>]
 ```
 It is nil where there is no Denum: an empty host, Count zero, no Count, or no
@@ -493,7 +424,7 @@ Zero-Count Denums reached without an application are present too, and so is
 each functional update of one
 ```
 ; [“” ((Denum [0, 3, 0]).####), “” ((d + 4).####), “” ((d - 2.5).####), “” ((d * 7).####)]
-# [“Denum(0,3,0)”, “Denum(0,0,4)”, “Denum(0,2,0)”, “Denum(0,0,0)”]
+# [“Denum(0,[3, 0])”, “Denum(0,[0, 4])”, “Denum(0,[2, 0])”, “Denum(0,[0, 0])”]
 ```
 ## Only a Denum is a Denum
 
@@ -511,7 +442,7 @@ changes nothing, and nothing in it runs
 ; [Liar.####, Loud.####, Selfish.####, Broken.####, noted_.n]
 # [(), (), (), (), 0]
 ; [“” ([.#### {Denum [9, 9, 9]}; 5, 3].####), [.#### {Denum [9, 9, 9]}; 5, 3].#### = [5, 3].####]
-# [“Denum(2,5,3)”, <>]
+# [“Denum(2,[5, 3])”, <>]
 ```
 Forged observers do not make a Denum. An aggregate declaring Count, Size and
 residual 0, 0, 0 reads exactly as `Denum [0, 0, 0]` does, and still has no Denum,
@@ -521,12 +452,12 @@ observers, a fresh instance of this class, never the aggregate itself
 ; .Zero [.# {0}; .## {0}; .### {0}];
 ; .Three [.# {3}; .## {5}; .### {1}];
 ; [[Zero.#, Zero.##, Zero.###] = [d.#, d.##, d.###], Zero.####, “” Three.####, Three.#### = Three]
-# [<>, (), “Denum(3,3,2)”, ()]
+# [<>, (), “Denum(3,[3, 2])”, ()]
 ```
 Fields named like a Denum's are not enough either. Recognition compares the
 whole instance, fields and methods, by typed equality `==` with the Denum the
 constructor builds from the stored `count` and `loads`. So a bare record
-of those fields, one whose phase disagrees with its Count, one whose Count is a
+of those fields, a record in the old shape with a stored phase, one whose Count is a
 decimal, and one that adds a field are foreign, and with Count zero they have
 no Denum
 ```
@@ -540,7 +471,7 @@ A Denum with a Count is recognized as one, and what it answers is a fresh
 reconstruction from its stored state, equal to it and not it
 ```
 ; [(Denum [3, 5, 1]).#### == (Denum [3, 5, 1]), (Denum [3, 5, 1]).#### === (Denum [3, 5, 1]), “” (Denum [3, 5, 1]).####]
-# [<>, (), “Denum(3,5,1)”]
+# [<>, (), “Denum(3,[5, 1])”]
 ```
 ## Observing commutes with applying
 
@@ -564,11 +495,11 @@ what a reduce starts from
 ```
 ## Scaling and Star
 
-Scaling multiplies both loads and keeps the Count and phase: zero annihilates,
+Scaling multiplies every load and keeps the Count: zero annihilates,
 one is the identity, and scaling composes
 ```
 ; [“” (e.scale_ 2), “” (e.scale_ 0), (e.scale_ 1) = e, ((e.scale_ 2).scale_ 3) = (e.scale_ 6), (e.scale_ 2).#]
-# [“Denum(3,24,6)”, “Denum(3,0,0)”, <>, <>, 3]
+# [“Denum(3,[24, 6])”, “Denum(3,[0, 0])”, <>, <>, 3]
 ; e.scale_ (0 - 2)
 # $!!.invalid-scale
 ```
@@ -583,42 +514,42 @@ Three operators act on a Denum's state, each reading its operand through the one
 Size observer `x.##`. They are fixed-channel load transformations consistent
 with a `RotorRouter`'s channel loads (`hc/rotor-router.hc`), not named Router
 methods. `+`, `-` and `*` **construct a fresh Denum** from observations of their
-operands: `+` is tally, depositing `x.##` on the right; `-` is alternator,
-depositing on the left; and `*` is inlay, scaling both loads by `x.##` through
-`scale_`, the Star shadow. Each keeps the Count, and so the phase, answers a
+operands: `+` is tally, depositing `x.##` on load 1; `-` is alternator,
+depositing on load 0; and `*` is inlay, scaling every load by `x.##` through
+`scale_`, the Star shadow. Each keeps the Count, answers a
 fresh value and leaves its operand as it was, so they compose by nesting
 ```
 ; .D (Denum [2, 5, 3]);
 ; [“” (D + 4), “” (D - 4), “” (D * 3)]
-# [“Denum(2,5,7)”, “Denum(2,9,3)”, “Denum(2,15,9)”]
+# [“Denum(2,[5, 7])”, “Denum(2,[9, 3])”, “Denum(2,[15, 9])”]
 ; [“” ((D + 4) - 2), “” ((D - 2) + 4), “” ((D + 4) * 3)]
-# [“Denum(2,7,7)”, “Denum(2,7,7)”, “Denum(2,15,21)”]
+# [“Denum(2,[7, 7])”, “Denum(2,[7, 7])”, “Denum(2,[15, 21])”]
 ; “” D
-# “Denum(2,5,3)”
+# “Denum(2,[5, 3])”
 ```
-A deposit keeps the Count and phase, including phase 1, where application would
-flip it, and a zero Size deposits nothing while still answering a Denum. The
+A deposit keeps the Count, including an odd one, where application would
+change its parity, and a zero Size deposits nothing while still answering a Denum. The
 operand is measured by its Size, so any sized Frame deposits
 ```
-; [(D + 4).#, (D - 4).#, (D * 3).#, (D + 4).count, (D + 4).phase ()]
-# [2, 2, 2, 2, 2]
+; [(D + 4).#, (D - 4).#, (D * 3).#, (D + 4).count, (D + 4).# %% 2]
+# [2, 2, 2, 2, 0]
 ; .P (Denum [1, 5, 3]);
-; [“” (P + 4), (P + 4).#, (P + 4).phase (), “” (P - 4)]
-# [“Denum(1,5,7)”, 1, 1, “Denum(1,9,3)”]
+; [“” (P + 4), (P + 4).#, (P + 4).# %% 2, “” (P - 4)]
+# [“Denum(1,[5, 7])”, 1, 1, “Denum(1,[9, 3])”]
 ; [“” (D + 0), “” (D - 0), “” (D [3, 4])]
-# [“Denum(2,5,3)”, “Denum(2,5,3)”, “Denum(3,12,3)”]
+# [“Denum(2,[5, 3])”, “Denum(2,[5, 3])”, “Denum(3,[12, 3])”]
 ```
 Deposit is not application and deposit is not subtraction. `D x` adds one to the
-Count and flips the phase, and `D + x` does not, so they reach different
-states; `D - x` adds to the left load and never takes from the right, so a load
+Count and changes its parity, and `D + x` does not, so they reach different
+states; `D - x` adds to load 0 and never takes from load 1, so a load
 stays a whole Count and the signed residual only rises
 ```
 ; [(D + 4).###, (D - 4).###, D.###]
 # [-2, 6, 2]
-; [((D 4).# = (D + 4).#), (D 4).###, (D + 4).###, (D 4).#, (D 4).phase ()]
+; [((D 4).# = (D + 4).#), (D 4).###, (D + 4).###, (D 4).#, (D 4).# %% 2]
 # [(), 6, -2, 3, 1]
 ```
-Order of a right then a left deposit does not matter, and scaling after a
+Order of a load-1 then a load-0 deposit does not matter, and scaling after a
 balanced deposit is the Star shadow of scaling first
 ```
 ; [((D + 4) - 2) = ((D - 2) + 4), ((D + 4) * 3) = ((D * 3) + 12)]
@@ -642,21 +573,21 @@ per word. These are the review's own examples, from `Denum [0, 0, 0]`
 ; [(2.5).##, (1.5).##, (0 - 1.5).##]
 # [2, 1, 1]
 ; [“” ((Denum [0, 0, 0]) + 2), “” ((Denum [0, 0, 0]) + 2.5), “” ((Denum [0, 0, 0]) - 1.5), “” ((Denum [1, 2, 2]) * 2.5)]
-# [“Denum(0,0,2)”, “Denum(0,0,2)”, “Denum(0,1,0)”, “Denum(1,4,4)”]
+# [“Denum(0,[0, 2])”, “Denum(0,[0, 2])”, “Denum(0,[1, 0])”, “Denum(1,[4, 4])”]
 ; [“” (D + 2.5), “” (D - 2.5), “” (P + 0.5), “” (P - (0 - 3.5))]
-# [“Denum(2,5,5)”, “Denum(2,7,3)”, “Denum(1,5,3)”, “Denum(1,8,3)”]
+# [“Denum(2,[5, 5])”, “Denum(2,[7, 3])”, “Denum(1,[5, 3])”, “Denum(1,[8, 3])”]
 ; [“” (D + “abc”), “” (D - [[], []]), “” (D + (Denum [1, 2, 4])), “” (D - {5 + 3}), “” (D + <>), “” (D - [])]
-# [“Denum(2,5,6)”, “Denum(2,7,3)”, “Denum(2,5,9)”, “Denum(2,14,3)”, “Denum(2,5,4)”, “Denum(2,6,3)”]
+# [“Denum(2,[5, 6])”, “Denum(2,[7, 3])”, “Denum(2,[5, 9])”, “Denum(2,[14, 3])”, “Denum(2,[5, 4])”, “Denum(2,[6, 3])”]
 ```
-Each keeps the full Count, and with it the phase, in both parities; leaves the
+Each keeps the full Count, in both parities; leaves the
 receiver as it was, even through a mutable name; and refuses a sizeless operand
 with its failure
 ```
-; [(D + 2.5).#, (D + 2.5).phase (), (P - 1.5).#, (P - 1.5).phase (), “” D, “” P]
-# [2, 2, 1, 1, “Denum(2,5,3)”, “Denum(1,5,3)”]
+; [(D + 2.5).#, (D + 2.5).# %% 2, (P - 1.5).#, (P - 1.5).# %% 2, “” D, “” P]
+# [2, 0, 1, 1, “Denum(2,[5, 3])”, “Denum(1,[5, 3])”]
 ; .q_ (Denum [2, 5, 3]);
 ; [“” (q_ + 2.5), “” (q_ - 2.5), “” (q_ * 2.5), “” q_]
-# [“Denum(2,5,5)”, “Denum(2,7,3)”, “Denum(2,10,6)”, “Denum(2,5,3)”]
+# [“Denum(2,[5, 5])”, “Denum(2,[7, 3])”, “Denum(2,[10, 6])”, “Denum(2,[5, 3])”]
 ; [D + ([2.5].nope), D - ([2.5].nope), (Denum [0, 0, 0]) + ([].nope)]
 # [$!.name-missing “..., $!.name-missing “..., $!.name-missing “...]
 ```
@@ -668,13 +599,13 @@ such an aggregate deposits only its elements' Size, here 4
 ; (2.5).Denum
 # 2.5.Denum
 ; [“” (D + [.Denum 9; .right 99; .left 99; .count 7; .k 50; 4]), “” (D - [.Denum 9; .left 99; .l 99; .s 50; 4])]
-# [“Denum(2,5,7)”, “Denum(2,9,3)”]
+# [“Denum(2,[5, 7])”, “Denum(2,[9, 3])”]
 ```
 The functional updates behind them take a Count, so a negative or fractional
 deposit is not a Denum
 ```
 ; [D.deposit-right_ (0 - 1), D.deposit-left_ 2.5, “” (D.deposit-right_ 2), “” (D.deposit-left_ 2), “” D]
-# [$!!.invalid-denum, $!!.invalid-denum, “Denum(2,5,5)”, “Denum(2,7,3)”, “Denum(2,5,3)”]
+# [$!!.invalid-denum, $!!.invalid-denum, “Denum(2,[5, 5])”, “Denum(2,[7, 3])”, “Denum(2,[5, 3])”]
 ```
 `*` scales by the operand's Size, so its domain is every sized Frame: a Denum
 contributes `L + R`, an aggregate its element count, a decimal its truncated
@@ -682,9 +613,9 @@ magnitude, and a zero Size annihilates both loads. `D * 3` is unchanged, since
 `3.## = 3`, and the result keeps the Count in either parity
 ```
 ; [“” (D * (Denum [1, 2, 4])), “” (D * [[], []]), “” (D * 2.5), “” (D * 0)]
-# [“Denum(2,30,18)”, “Denum(2,10,6)”, “Denum(2,10,6)”, “Denum(2,0,0)”]
+# [“Denum(2,[30, 18])”, “Denum(2,[10, 6])”, “Denum(2,[10, 6])”, “Denum(2,[0, 0])”]
 ; [“” (D * 1), (D * 3).#, (P * 3).#, “” (P * 3)]
-# [“Denum(2,5,3)”, 2, 1, “Denum(1,15,9)”]
+# [“Denum(2,[5, 3])”, 2, 1, “Denum(1,[15, 9])”]
 ```
 The signed-scalar reading misleads: `+` lowers the residual and `-` raises it,
 so `D + 4` is not “larger” than `D`, and `D - 4` is not `D` made smaller
@@ -697,10 +628,10 @@ Count and can leave a zero Count over nonzero loads. That state is present, and
 its Size and residual read
 ```
 ; .Y ((Denum [0, 0, 0]) + 4);
-; [“” Y, “” ((Denum [0, 0, 0]) - 4), Y.count, Y.phase (), Y.##, Y.###]
-# [“Denum(0,0,4)”, “Denum(0,4,0)”, 0, 2, 4, -4]
-; [“” (D * 3), (D.scale_ 2).#, ((D + 4) 1).#, ((D + 4) 1).phase ()]
-# [“Denum(2,15,9)”, 2, 3, 1]
+; [“” Y, “” ((Denum [0, 0, 0]) - 4), Y.count, Y.# %% 2, Y.##, Y.###]
+# [“Denum(0,[0, 4])”, “Denum(0,[4, 0])”, 0, 0, 4, -4]
+; [“” (D * 3), (D.scale_ 2).#, ((D + 4) 1).#, ((D + 4) 1).# %% 2]
+# [“Denum(2,[15, 9])”, 2, 3, 1]
 ```
 ## Rational readings
 
@@ -726,7 +657,7 @@ residual, and an odd Count works as an even one does
 ; [(Denum [1, 7, 2]).size-ratio (), (Denum [1, 7, 2]).residual-ratio (), (Denum [1, 2, 7]).size-ratio (), (Denum [1, 2, 7]).residual-ratio ()]
 # [9, 5, 9, -5]
 ```
-Two Counts with the same phase and loads give different ratios, as they are
+Two Counts with the same parity and loads give different ratios, as they are
 different states: the ratio is what distinguishes `[2, 5, 1]` from `[4, 5, 1]`
 beyond their identity
 ```
@@ -746,7 +677,7 @@ signed
 # [<>, <>, (), <>, ()]
 ```
 An empty state, a balanced nonempty one and a positive Count over empty loads all
-read zero, in either phase
+read zero, in either parity
 ```
 ; [(Denum [2, 0, 0]).size-ratio (), (Denum [1, 0, 0]).size-ratio (), (Denum [3, 0, 0]).residual-ratio ()]
 # [0, 0, 0]
@@ -847,11 +778,11 @@ an identity: the router keeps the Frames and a Denum forgets them
 ; Routers <- './hc/rotor-router.hc';
 ; .rr (((Routers.RotorRouter [[], []]) 5) 1);
 ; .kk (((Denum [0, 0, 0]) 5) 1);
-; [rr.#, rr.##, rr.###, kk.count, kk.#, kk.##, kk.###, ((rr.left ()).# + (rr.right ()).#), rr.#### = kk.####, (rr.phase ()) = (kk.phase ())]
+; [rr.#, rr.##, rr.###, kk.count, kk.#, kk.##, kk.###, ((rr.channels .0).# + (rr.channels .1).#), rr.#### = kk.####, (rr.# %% 2) = (kk.# %% 2)]
 # [2, 6, 4, 2, 2, 6, 4, 2, <>, <>]
 ; .r4 (((rr 7) 2)); .k4 (((kk 7) 2));
-; [r4.#, k4.count, (r4.phase ()), k4.phase (), r4.#### = k4.####, (k4.size-ratio ()), (k4.residual-ratio ())]
-# [4, 4, 2, 2, <>, 15/4, 9/4]
+; [r4.#, k4.count, (r4.# %% 2), k4.# %% 2, r4.#### = k4.####, (k4.size-ratio ()), (k4.residual-ratio ())]
+# [4, 4, 0, 0, <>, 15/4, 9/4]
 ```
 ## Count binding, `.#%`
 
@@ -867,7 +798,7 @@ order of the loads, and it is not a rank: it answers a Denum, never a number
 ; [“” ((Denum [3, [2, 5]]).#%), “” ((Denum [3, [2, 5, 3]]).#%), “” ((Denum [3, [2, 5, 3, 7]]).#%), “” ((Denum [3, [2, 5, 3, 7, 4]]).#%)]
 # [“Denum(3,[2, 5, 0])”, “Denum(3,[2, 5, 3])”, “Denum(3,[9, 5, 3])”, “Denum(3,[9, 9, 3])”]
 ; [“” ((Denum [[2, 5, 3, 7, 4]]).#%), “” ((Denum [4, [6]]).#%), “” ((Denum [2, [4]]).#%), “” ((Denum [3, [0, 0, 0, 0, 0]]).#%), “” ((Denum [2, 5, 3]).#%)]
-# [“Denum(1,[21])”, “Denum(4,[6, 0, 0, 0])”, “Denum(2,4,0)”, “Denum(3,[0, 0, 0])”, “Denum(2,5,3)”]
+# [“Denum(1,[21])”, “Denum(4,[6, 0, 0, 0])”, “Denum(2,[4, 0])”, “Denum(3,[0, 0, 0])”, “Denum(2,[5, 3])”]
 ```
 It keeps the Count, the total Size and nonnegative loads, its arity is the
 Count, it is idempotent, and its answer is an instance of this same class, so
@@ -884,14 +815,14 @@ Order matters. The same loads in another order can bind differently, so
 binding is neither permutation-invariant nor invertible
 ```
 ; [“” ((Denum [2, [1, 2, 3]]).#%), “” ((Denum [2, [3, 2, 1]]).#%), “” ((Denum [2, [2, 1, 3]]).#%), (Denum [2, [3, 1]]).#% = (Denum [2, [1, 3]]).#%]
-# [“Denum(2,4,2)”, “Denum(2,4,2)”, “Denum(2,5,1)”, ()]
+# [“Denum(2,[4, 2])”, “Denum(2,[4, 2])”, “Denum(2,[5, 1])”, ()]
 ```
 Binding follows application: a Denum whose Count has grown past its arity binds
 into as many loads as it has seen
 ```
 ; .G3 ((((Denum [0, [0, 0]]) 2) 5) 3);
 ; [“” G3, “” (G3.#%)]
-# [“Denum(3,5,5)”, “Denum(3,[5, 5, 0])”]
+# [“Denum(3,[5, 5])”, “Denum(3,[5, 5, 0])”]
 ```
 A Denum of Count zero is present, under `.####` too, but has no channel to bind
 into, so `.#%` refuses it with a stable named failure rather than nil, an empty
@@ -925,4 +856,4 @@ the evaluator, which reads this file without a root, never runs it
 ```
 ; Denums <- './hc/denum.hc';
 ; [(Denums.Denum [2, 5, 3]) = [5, 3].####, “” ((Denums.Denum [0, 0, 0]) 4)]
-# [<>, “Denum(1,4,0)”]
+# [<>, “Denum(1,[4, 0])”]

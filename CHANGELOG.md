@@ -6,11 +6,15 @@
 
 ## Unreleased
 
-- **A RotorRouter stores only its channels.** The binary router's `phase`,
-  `left` and `right` are no longer stored fields but readings applied to nil,
-  `router.phase ()`, `router.left ()` and `router.right ()`, derived from
-  `channels`, as v0.49.0 did for Denum. **Breaking:** `router.phase`,
-  `router.left` and `router.right` without `()` no longer answer a value (#493).
+- **One Denum class and one RotorRouter class for every arity.** The separate
+  two-channel builders are gone: a Denum of two loads and a router of two
+  channels are the same class as any other arity, storing only `count` and
+  `loads`, or `channels`, and routing to `C mod k`. **Breaking:** two loads now
+  print like any other arity, `Denum(2,[5, 3])` and `RotorRouter([[5], [3]])`;
+  the two-channel `phase`, `left` and `right` fields and readings are removed
+  (read `d.loads .0`, `r.channels .1`, `d.# %% 2`). `Denum [C, L, R]` stays as
+  shorthand for `Denum [C, [L, R]]`. A router's fourth hash now reads each
+  channel's Size once (#493).
 
 ## v0.49.0 2026-11-09
 

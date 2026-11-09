@@ -83,8 +83,7 @@ export function denumClass(): Frame {
 
 /**
  * Constructs a Denum of any arity with the HC class: `Denum [count, loads]`.
- * Two loads give the binary Denum, the same instance `Denum [count, left,
- * right]` builds; any other nonzero number gives the channel Denum (007.27).
+ * Every number of loads, one or more, is the same class (007.27, 007.40).
  *
  * @param count The full application Count.
  * @param loads The ordered channel loads.
@@ -103,7 +102,8 @@ export function constructDenumLoads(
 }
 
 /**
- * Constructs a binary Denum with the HC class: `Denum [count, left, right]`.
+ * Constructs a Denum of two loads with the HC class: `Denum [count, left,
+ * right]`, which is `Denum [count, [left, right]]`.
  *
  * @param count The full application Count; the Denum derives its phase from it.
  * @param left The left load.

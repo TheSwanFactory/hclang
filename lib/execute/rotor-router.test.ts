@@ -70,8 +70,6 @@ Deno.test("routing neither measures nor applies the routed Frame (011.21)", () =
   const watched = new Watched([new FrameCount(4n)]);
   const routed = run("((r0 $$.w) $$.w)", { w: watched });
   expect(Watched.seen).toEqual([]);
-  expect(`${run("((r0 $$.w) $$.w).phase ()", { w: watched })}`).toEqual("2");
-  expect(Watched.seen).toEqual([]);
   const [left, right] = channelsOf(routed);
   expect(left.length).toBe(1);
   expect(left[0].referent()).toBe(watched);
@@ -82,11 +80,11 @@ Deno.test("observing a router measures each routed child, by Size only", () => {
   Watched.seen.length = 0;
   const watched = new Watched([new FrameCount(4n)]);
   const denum = run("((r0 $$.w) $$.w).####", { w: watched });
-  expect(denum.toText().toString()).toEqual("“Denum(2,4,4)”");
+  expect(denum.toText().toString()).toEqual("“Denum(2,[4, 4])”");
   expect(Watched.seen.includes("call")).toBe(false);
-  // `.####` reads the declared Size and residual, and each sums both channels,
-  // so each of the two routed occurrences is measured twice.
-  expect(Watched.seen.filter((key) => key === "##").length).toBe(4);
+  // `.####` recognizes the router and reads each channel's Size once, so each
+  // of the two routed occurrences is measured once.
+  expect(Watched.seen.filter((key) => key === "##").length).toBe(2);
 });
 
 Deno.test("a non-finite or cyclic child is routed, and observing it fails", () => {
@@ -95,7 +93,6 @@ Deno.test("a non-finite or cyclic child is routed, and observing it fails", () =
   const hosted = { inf: new FrameNumber(Infinity), cyc: cycle };
 
   const routed = run("((r0 $$.inf) $$.cyc)", hosted);
-  expect(`${run("((r0 $$.inf) $$.cyc).phase ()", hosted)}`).toEqual("2");
   expect(channelsOf(routed)[1][0].referent()).toBe(cycle);
 
   expect(`${run("(r0 $$.inf).####", hosted)}`)
@@ -109,11 +106,10 @@ Deno.test("a non-finite or cyclic child is routed, and observing it fails", () =
 
 Deno.test("a router's fourth hash is an instance of the bundled Denum class", () => {
   const denum = run("((r0 “hello”) 7).####", {});
-  // The Count is the two children routed, not the router's phase.
+  // The Count is the two children routed, not their parity.
   expect(
     [`${denum.getOwn("count")}`, `${denum.getOwn("loads")}`],
   ).toEqual(["2", "[5, 7]"]);
-  expect(`${run("((r0 “hello”) 7).####.phase ()", {})}`).toEqual("2");
   expect(denum.equals(run("[“hello”, 7].####", {}))).toBe(Frame.all);
   // The initial router has routed nothing, so it has Count zero and no Denum,
   // like the empty host; the Denum of Count zero is a different, present value.
@@ -121,31 +117,31 @@ Deno.test("a router's fourth hash is an instance of the bundled Denum class", ()
   expect(run("r0.####", {})).toBe(Frame.nil);
   expect(run("[].####", {})).toBe(Frame.nil);
   expect(`${run("((r0 5) 7).#", {})}`).toEqual("2");
-  expect(`${run("(r0 5).phase ()", {})}`).toEqual("1");
   expect(`${run("(((r0 5) 7) 9).####.count", {})}`).toEqual("3");
 });
 
-Deno.test("a router's phase is its Count's parity, and only alternating histories construct (007.25e)", () => {
-  // Admissible preloads of every small Count: the phase and the Denum's phase
-  // are both the parity of left.# + right.#.
+Deno.test("a router routes to channel C mod k, and only round-robin histories construct (007.25e)", () => {
+  // Admissible preloads of every small Count: the next Frame goes to channel
+  // C mod 2, and the router's Denum deposits into the same load.
   for (
-    const [channels, c, phase] of [
-      ["[[], []]", "0", "2"],
-      ["[[5], []]", "1", "1"],
-      ["[[5], [6]]", "2", "2"],
-      ["[[5, 7], [6]]", "3", "1"],
+    const [channels, c, next] of [
+      ["[[], []]", "0", 0],
+      ["[[5], []]", "1", 1],
+      ["[[5], [6]]", "2", 0],
+      ["[[5, 7], [6]]", "3", 1],
     ] as const
   ) {
     const router = run(`Routers.RotorRouter ${channels}`, {});
-    expect(`${run(`(Routers.RotorRouter ${channels}).phase ()`, {})}`, channels)
-      .toEqual(phase);
     expect(`${router.sizeFor(Frame.kCOUNT)}`, channels).toEqual(c);
+    const routed = channelsOf(run(`(Routers.RotorRouter ${channels}) 9`, {}));
+    expect(routed[next].length, channels).toBe(
+      channelsOf(router)[next].length + 1,
+    );
     if (c !== "0") {
       expect(
-        `${run(`(Routers.RotorRouter ${channels}).####.phase ()`, {})}`,
+        `${run(`((Routers.RotorRouter ${channels}) 9).####`, {})}`,
         channels,
-      )
-        .toEqual(phase);
+      ).toEqual(`${run(`((Routers.RotorRouter ${channels}).####) 9`, {})}`);
     }
   }
   // Not a left-first alternating history, or the removed phase-first form.
@@ -172,7 +168,7 @@ Deno.test("a router's phase is its Count's parity, and only alternating historie
   ).toEqual("[<>, <>, <>]");
 });
 
-Deno.test("a router stores only its channels, so its readings cannot diverge (007.40 follow-up)", () => {
+Deno.test("a router stores only its channels, for every number of channels (007.40 follow-up)", () => {
   /** The instance's stored fields: every own property that is not a method. */
   const stored = (router: Frame): string[] =>
     router.meta_keys().filter((key) =>
@@ -184,32 +180,17 @@ Deno.test("a router stores only its channels, so its readings cannot diverge (00
       "r0 5",
       "((r0 5) [1, 2]) “ab”",
       "Routers.RotorRouter [[5, 7], [6]]",
+      "Routers.RotorRouter [[5]]",
       "[1, 2, 3] ./ 2",
       "[1, 2, 3, 4] ./ 3",
+      "([1, 2, 3, 4] ./ 3) 5",
     ]
   ) {
-    const router = run(source, {});
-    expect(stored(router), source).toEqual(["channels"]);
+    expect(stored(run(source, {})), source).toEqual(["channels"]);
   }
-  // The binary readings agree with the channels at every step of a run.
-  for (
-    const source of [
-      "r0",
-      "r0 5",
-      "(r0 5) 6",
-      "((r0 5) 6) 7",
-      "(((r0 5) 6) 7) 8",
-    ]
-  ) {
-    const [left, right] = channelsOf(run(source, {}));
-    const phase = (left.length + right.length) % 2 === 0 ? "2" : "1";
-    expect(`${run(`(${source}).phase ()`, {})}`, source).toEqual(phase);
-    expect(`${run(`(${source}).left ()`, {})}`, source).toEqual(
-      `${new FrameArray(left)}`,
-    );
-    expect(`${run(`(${source}).right ()`, {})}`, source).toEqual(
-      `${new FrameArray(right)}`,
-    );
-  }
-  expect(`${run("r0.phase 0", {})}`).toEqual("$!!.unary-observation");
+  // Two channels print like any other number of channels.
+  expect(`${run("“” ((r0 5) 6)", {})}`).toEqual("“RotorRouter([[5], [6]])”");
+  expect(`${run("“” ([1, 2, 3] ./ 3)", {})}`).toEqual(
+    "“RotorRouter([[1], [2], [3]])”",
+  );
 });

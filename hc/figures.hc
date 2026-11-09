@@ -221,17 +221,17 @@ has Size 0 while [] has Size 1. Mixed values may have present zero-load Denums,
 including [0].####.
 ```
 ; [[].####, 0.####, “” “hello”.####, <2,3,5>.####]
-# [(), (), “Denum(5,3,2)”, ()]
+# [(), (), “Denum(5,[3, 2])”, ()]
 ; [(10 - 5).#### = 5.####, (0 - 5).#### = 5.####, (5.0).#### = 5.####, “hello”.#### = 5.####]
 # [<>, <>, <>, <>]
 ; [<>.#, <>.##, <>.###, ().##]
 # [0, 1, 0, 1]
 ; [1, 2, 3, 7] & {“” _.####}
-# [“Denum(1,1,0)”, “Denum(2,1,1)”, “Denum(3,2,1)”, “Denum(7,4,3)”]
+# [“Denum(1,[1, 0])”, “Denum(2,[1, 1])”, “Denum(3,[2, 1])”, “Denum(7,[4, 3])”]
 ; [[0], [“hello”], [<2,3,5>,2], {5 + 3}] & {“” _.####}
-# [“Denum(1,0,0)”, “Denum(1,5,0)”, “Denum(2,3,2)”, “Denum(3,8,1)”]
+# [“Denum(1,[0, 0])”, “Denum(1,[5, 0])”, “Denum(2,[3, 2])”, “Denum(3,[8, 1])”]
 ; [“” ([[],[]].#### 3), “” (7.####.scale_ 2), ([[],[]] 3).#### = ([[],[]].#### 3)]
-# [“Denum(3,4,1)”, “Denum(7,8,6)”, <>]
+# [“Denum(3,[4, 1])”, “Denum(7,[8, 6])”, <>]
 ```
 A RotorRouter, the class in `hc/rotor-router.hc` (011.21), keeps the routed
 Figures themselves in two ordered channels and declares the observers that make
@@ -241,7 +241,7 @@ fourth hash is the Figure's.
 ```
 ; Routers <- './hc/rotor-router.hc';
 ; .fr ([[], [[], []], []] | (Routers.RotorRouter [[], []]));
-; [(fr.left ()), (fr.right ()), fr.#### = [[], [[], []], []].####]
+; [(fr.channels .0), (fr.channels .1), fr.#### = [[], [[], []], []].####]
 # [[[], []], [[[], []]], <>]
 
 ```
