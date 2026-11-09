@@ -1,90 +1,9 @@
-# Homoiconic C (HC) - Developer Guide
+# Homoiconic C (HC): rules for this repository
 
-## Overview
-
-Homoiconic C (HC) is a universal language for code and data where both share the
-same representation. This monorepo contains the complete implementation,
-including core library, command-line tools, and web interface.
-
-## Project Structure
-
-This is a Deno workspace (monorepo) organized into several packages:
-
-```
-hclang/
-├── hc/               # HC programs, modules and testdocs, shipped in the package
-├── cli/              # Command-line interface and REPL
-├── lib/              # Core library (published to JSR)
-│   ├── execute/      # Language processing pipeline
-│   ├── frames/       # Core data structures
-│   ├── bundle/       # The generated embed of hc/, served by every host
-│   └── ops/          # Built-in operations
-├── maml/             # MAML markup language
-├── web/              # Web interface
-├── doc/              # Documentation and papers
-├── experiments/      # Research programs run on HC (not shipped)
-└── vscode-extension/ # VS Code syntax highlighting
-```
-
-## Package Documentation
-
-Each package has detailed documentation in its own CLAUDE.md file:
-
-### Core Packages
-
-- **[cli/CLAUDE.md](cli/CLAUDE.md)** - Command-line interface, REPL, and
-  BitScheme
-  - Interactive interpreter
-  - File execution
-  - Binary data manipulation with BitScheme
-
-- **[lib/execute/CLAUDE.md](lib/execute/CLAUDE.md)** - Language processing
-  pipeline
-  - Lexing (tokenization)
-  - Parsing (syntax tree construction)
-  - Evaluation (execution)
-
-- **[lib/frames/CLAUDE.md](lib/frames/CLAUDE.md)** - Core data structures
-  - Frame types and protocol
-  - Homoiconic representation
-  - Context management
-
-- **[lib/ops/CLAUDE.md](lib/ops/CLAUDE.md)** - Built-in operations
-  - Mathematical operations
-  - Control flow (conditionals, iteration)
-  - Higher-order functions
-
-- **[web/CLAUDE.md](web/CLAUDE.md)** - Web interface
-  - Single-file offline `hcweb.html` release artifact
-  - Reusable Preact components published as `@swanfactory/hcweb`
-  - Browser-based HC execution with transitive hclang loading
-
-## Quick Start
-
-### Installation
-
-```bash
-# For library usage
-deno add jsr:@swanfactory/hclang
-
-# For development
-git clone https://github.com/TheSwanFactory/hclang.git
-cd hclang
-deno task test
-```
-
-### Basic Usage
-
-```typescript
-// As a library
-import { execute } from "@swanfactory/hclang";
-const result = execute("1 + 1");
-console.log(result); // "2"
-
-// From command line
-deno task hc               # Launch REPL
-deno task hc file.hc       # Execute file
-```
+CLAUDE.md files hold policy and procedures that the code cannot tell you. How
+the interpreter is built is in [doc/ARCHITECTURE.md](doc/ARCHITECTURE.md);
+anything the code itself states, such as which files, classes or operators
+exist, should be read from the code, never recorded here.
 
 ## Development Workflow
 
@@ -112,50 +31,7 @@ deno task setup             # Install pre-commit hooks
 deno task build             # Build the CLI, npm package, and offline web artifact
 ```
 
-## Key Concepts
-
-### Homoiconicity
-
-HC's fundamental principle: code and data use the same representation (frames).
-This enables:
-
-- Treating programs as data
-- Meta-programming without special syntax
-- Uniform manipulation of code and values
-
-### Frames
-
-The universal building block. Everything in HC is a frame:
-
-- Primitive values (numbers, strings)
-- Collections (arrays, dictionaries)
-- Expressions and functions
-- The evaluation context itself
-
-### Pipeline Architecture
-
-HC processes code through a stateless lexical boundary before its familiar
-Lex/Parse/Eval stages:
-
-1. **Symbolicate** - String → `FrameSymbol`
-2. **Sigilize** - Symbol + active lexical Frame → routed scan decision
-3. **Lex** - Syntax-owned lexical state → Token or structural action
-4. **Parse** - Tokens/actions → Frames (AST)
-5. **Eval** - Frames → Results
-
-Sigilizer holds no input state. Registered families advertise an immutable
-static `SYNTAX` descriptor carrying their `SIGIL_STARTS` metadata and their own
-recognition decisions through the neutral protocol in `lib/scan.ts`. Recognition
-is class-side and stateless, so `Lex` never constructs a value to ask a question
-about syntax; construction happens only through the descriptor's explicit value
-factory.
-
-A Sigil start selects one of two lexical paths. `atom` mode reads a
-single-delimiter atom, where asymmetric delimiters nest by matching pairs. `run`
-mode reads a family whose maximal run length selects nesting depth: an odd run
-opens, an equal run closes, an even run is empty, and a longer interior run is
-an error. Documents (`` ` ``) and ASCII-quoted strings (`"`) share that one
-rule, so run length never selects a type.
+## Language Rulings
 
 ### Delimiter Families
 
@@ -169,10 +45,13 @@ A delimiter earns its keep only when it changes what the delimited text denotes:
 | `` ` ``   | foreign content, verbatim GFM prose  |
 | `#…#`     | a comment, which is also a string    |
 
-A resource identifier is inert until a root binding is reachable in the
-invocation context. Applying one writes, reducing one reads, and path extension
-is attenuation. `spec/a10-resource-primitive.md` is the contract for the
-authority, and `spec/a11-resource-iteration.md` for the reading.
+### Iteration
+
+`hc/apply-tutorial.md` teaches iteration and `hc/apply.hc` is its executable
+corpus ([design](doc/ARCHITECTURE.md#iteration)). Before v0.15.0 `|` and `&`
+were assigned the other way around, so older papers and specs read reversed.
+
+## Bundled `hc/` Files
 
 Every host that installs a root, the CLI and `HCLang` (and so the playground),
 lays the top-level `hc/` folder over it read-only. Those files are ordinary HC
@@ -187,29 +66,6 @@ the embed and fails on any difference, and both the pre-commit hook and
 or otherwise. The one exception is the Denum class that `.####` answers, which
 the evaluator reads from `hc/denum.hc` in the embed, in a namespace of its own
 (`lib/execute/denum-prologue.ts`), so that file's code must not import.
-
-### Iteration
-
-Iteration is application, twice. Both operators apply each streamed value to the
-right operand and differ only in what becomes of each answer: `&` keeps the
-answers apart, one per element, while `|` keeps each answer as the receiver for
-the next element. What a reduce starts from is therefore the combining rule —
-text joins, an aggregate collects, a numeric multiplies — so no operator carries
-a rule of its own. A class supplies any other rule by declaring a method named
-`apply` (`apply_` when it writes), which applying the aggregate calls (#375).
-Doubling either one widens the stream from values to `[key, value]` tuples, over
-the visible properties in declaration order and then the elements by index. A
-third operator, `&|`, maps and then splices each answer's elements into one
-fresh array, so it concatenates and, with a conditional, filters (#421). Integer
-repetition `n x` is likewise decided by x: `3 “ab”` joins three copies,
-`3 [1, 2]` concatenates the elements into a fresh aggregate of the same kind
-with its properties once (v0.22.0), and a closure, or a class that declares
-`apply`, is applied repeatedly.
-
-A resource pushes characters, so what a read answers is decided downstream by
-composition rather than declared by the source. `hc/apply-tutorial.md` teaches
-this and `hc/apply.hc` is the executable corpus. Before v0.15.0 `|` and `&` were
-assigned the other way around.
 
 ## Project Guidelines
 
@@ -229,10 +85,12 @@ assigned the other way around.
 
 ### Documentation
 
-- Update CLAUDE.md files when adding major features
+- CLAUDE.md files hold only policy and non-obvious procedure. Never add file
+  indexes, operator lists or other facts the code already states; they go stale,
+  and the code is the authority.
+- Record design and its rationale in `doc/ARCHITECTURE.md` or a `spec/` file.
 - Keep README.md in sync with capabilities
 - Document public APIs in JSDoc comments
-- Include usage examples
 
 ### Style Guide
 
@@ -246,7 +104,7 @@ assigned the other way around.
 
 ### Adding a Language Feature
 
-1. Read [lib/execute/CLAUDE.md](lib/execute/CLAUDE.md) for pipeline overview
+1. Read [the pipeline design](doc/ARCHITECTURE.md#pipeline)
 2. Register source starts with the owning Frame's static `SIGIL_STARTS`
 3. Publish a static `SYNTAX` descriptor with `recognize`, `finish`, and
    `fromSource`, composing the shared rules in `lib/frames/atom-syntax.ts`
@@ -254,26 +112,20 @@ assigned the other way around.
 5. Register the descriptor in `lib/execute/syntax.ts`
 6. Implement evaluation in `lib/execute/hc-eval.ts` or `lib/execute/hc-lang.ts`
 7. Add tests at each affected boundary
-8. Update documentation
 
 ### Adding a Built-in Operation
 
-1. Read [lib/ops/CLAUDE.md](lib/ops/CLAUDE.md)
-2. Choose appropriate module (math, conditionals, iterators, etc.)
-3. Implement as a Frame subclass
-4. Register in language context
-5. Add tests
-6. Document usage
+1. Implement it as a Frame subclass in the fitting `lib/ops/` module
+2. Register it in the language context
+3. Add tests
 
 ### Adding a Frame Type
 
-1. Read [lib/frames/CLAUDE.md](lib/frames/CLAUDE.md) for frame protocol
-2. Extend appropriate base class (Frame, FrameAtom, etc.)
-3. Implement required protocol methods
-4. Add constructor and initialization
-5. Implement toString() and toStringArray()
-6. Add comprehensive tests
-7. Update frame type documentation
+1. Read the invariants in [lib/frames/CLAUDE.md](lib/frames/CLAUDE.md)
+2. Extend the appropriate base class (Frame, FrameAtom, etc.)
+3. For source syntax, follow Adding a Language Feature
+4. Implement `toString()` and `toStringArray()`
+5. Add tests
 
 ## Publishing
 
@@ -348,86 +200,3 @@ be bumped before the merge. To publish a version the automation would otherwise
 skip, run the workflow manually from the Actions tab with **Publish the VS Code
 extension** checked. Running `deno task vscode:publish` locally also works and
 needs `VSCE_PAT` exported in the shell.
-
-## Architecture Overview
-
-### Library (lib/)
-
-The core interpreter, designed to be:
-
-- Framework-agnostic
-- Usable in Node, Deno, and browsers
-- Published to JSR as `@swanfactory/hclang`
-
-See sub-package documentation:
-
-- [lib/execute/](lib/execute/CLAUDE.md) - Pipeline stages
-- [lib/frames/](lib/frames/CLAUDE.md) - Data structures
-- [lib/ops/](lib/ops/CLAUDE.md) - Operations
-
-### CLI (cli/)
-
-Command-line tools built on lib:
-
-- REPL for interactive use
-- File execution
-- BitScheme for binary data
-
-See [cli/CLAUDE.md](cli/CLAUDE.md)
-
-### Web (web/)
-
-Preact playground distributed two ways:
-
-- `web/dist/hcweb.html`, one offline file attached to each GitHub release;
-  GitHub Pages serves its byte-identical `index.html` mirror at
-  [the online playground](https://theswanfactory.github.io/hclang/)
-- `@swanfactory/hcweb` on JSR for embedding, loading hclang transitively
-- One authoritative browser-based HC interpreter, no server or SSR
-- Bundled by `scripts/build-hcweb.ts` using Deno's browser bundler
-
-See [web/CLAUDE.md](web/CLAUDE.md)
-
-## Resources
-
-### Documentation
-
-- **Main README**: [README.md](README.md)
-- **Library API**: [JSR Documentation](https://jsr.io/@swanfactory/hclang/doc)
-- **Package READMEs**: Each package has a README.md
-- **Package Guides**: Each package has a CLAUDE.md
-
-### Links
-
-- **JSR Package**: [@swanfactory/hclang](https://jsr.io/@swanfactory/hclang)
-- **GitHub**: [TheSwanFactory/hclang](https://github.com/TheSwanFactory/hclang)
-- **Blog**:
-  [Homoiconic C Introduction](https://theswanfactory.wordpress.com/2016/12/20/homoiconic-c-a-universal-language-for-code-and-data/)
-- **MAML**:
-  [HTML6 Proposal](https://theswanfactory.wordpress.com/2016/11/08/introducing-maml-a-draft-proposal-for-html6/)
-
-### Getting Help
-
-- Check package-specific CLAUDE.md files
-- Review tests for usage examples
-- Read JSR documentation
-- Check GitHub issues
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Run `deno task test` to ensure everything works
-5. Submit a pull request to `master`
-
-All contributions should:
-
-- Include tests
-- Follow the style guide
-- Update relevant documentation
-- Pass all CI checks
-
-## License
-
-MIT - See [LICENSE](LICENSE)

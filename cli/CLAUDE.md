@@ -1,118 +1,34 @@
-# CLI Package - Homoiconic C Command-Line Interface
+# cli: rules for editing
 
-## Overview
+## Writing testdocs
 
-The CLI package provides the interactive REPL and command-line tools for
-Homoiconic C (HC). This is the primary interface for users to interact with the
-HC interpreter from the command line.
-
-## Key Components
-
-### Main Entry Point
-
-- [hc.ts](hc.ts) - Main CLI entry point and REPL implementation
-- Handles command-line arguments, file execution, and interactive mode
-- Integrates with the HC interpreter from the lib package
-
-### Core Utilities
-
-- [flatten.ts](flatten.ts) - Flattens nested structures for display
-- [prompt.ts](prompt.ts) - REPL prompt handling
-- [runfile.ts](runfile.ts) - File execution utilities
-
-### BitScheme
-
-- [hc/BitScheme.hc](hc/BitScheme.hc) - Binary data manipulation language
-- Executable documentation with embedded test examples
-- Run tests with: `deno task test:bs`
-
-## Usage
-
-### Running the REPL
-
-```bash
-deno task hc
-# or from root: deno task hc
-```
-
-### Running HC Files
-
-```bash
-deno task hc path/to/file.hc
-```
-
-### Running Tests
-
-```bash
-deno task test
-```
-
-Executable-document tests pair a value-returning `; source` with `# expected`.
-An expression ending in the HC `;` terminal is a statement, intentionally has no
-expectation, and is not counted as an assertion. For an unfinished but evaluated
-value-returning example, use `# $!.unimplemented Correct-Value`. A differing or
-missing actual result counts as unimplemented; producing `Correct-Value` fails
+Pair a value-returning `; source` with `# expected`. An expression that ends in
+the HC `;` terminal is a statement. It intentionally has no expectation and is
+not counted as an assertion. For an evaluated example whose correct value isn't
+implemented yet, write `# $!.unimplemented Correct-Value`. A differing or
+missing result then counts as unimplemented, and producing `Correct-Value` fails
 until the marker is removed. Comment out examples that must not be evaluated.
-Testdoc mode reports total, pass, fail, and unimplemented counts at EOF and
-exits non-zero when any test fails.
 
-### Building the Binary
-
-```bash
-deno task build
-# Outputs to: ../scripts/hc
-```
+## The compiled binary
 
 The binary needs no extra assets, because the bundled `hc/` files are compiled
-into the program. `deno task test:compiled` (part of `test:all`) builds it and
-imports Figures from an empty working directory.
-
-## Development Guidelines
-
-### Testing
-
-- Write tests alongside source files (e.g., [hc.test.ts](hc.test.ts))
-- Use `@std/expect` for assertions
-- Tests run with: `deno test --allow-env --allow-read --allow-write`
-
-### Adding New Commands
-
-1. Add command handling in [hc.ts](hc.ts)
-2. Parse arguments using `@std/cli`
-3. Add tests in corresponding `.test.ts` file
-4. Document in CLI help text
-
-### Dependencies
-
-- `@nothing628/chalk` - Terminal colors and formatting
-- `@std/cli` - Command-line argument parsing
-- `@std/expect` - Testing assertions
-- Uses `@swanfactory/hclang` library from parent workspace
-
-## Architecture
-
-The CLI acts as a thin wrapper around the core library (`lib/`):
-
-1. Parses command-line arguments
-2. Reads input (files or REPL)
-3. Calls `execute()` or `evaluate()` from the library
-4. Formats and displays results
+into it. `deno task test:compiled` (part of `test:all`) builds it and imports
+Figures from an empty working directory.
 
 ## Permission flags are a derived artifact
 
 The `hc` and `build` tasks run with
 `--allow-read --allow-write --allow-env
---deny-run --deny-ffi`. That list is a
-property of **this** harness and not the security model: `hcweb.html` is a
-harness with no permission flag to express, and the confinement it relies on is
-the same one. Read the flags as a floor derived from what the harness needs, and
+--deny-run --deny-ffi`. That list
+belongs to **this** harness and is not the security model: `hcweb.html` is a
+harness with no permission flags to express, and it relies on the same
+confinement. Treat the flags as a floor derived from what the harness needs,
 never as the boundary.
 
-- `--allow-env` is not the bound on what a program sees. The dictionary in
-  `lib/execute/env-visibility.ts` is, and the CLI reads one declared name at a
+- `--allow-env` does not bound what a program sees. The dictionary in
+  `lib/execute/env-visibility.ts` does, and the CLI reads one declared name at a
   time through it. The flag stays unscoped because the dependency tree probes
-  the colour-support family, which is exactly the thing a per-invocation flag
-  cannot express.
+  the colour-support family, which a per-invocation flag cannot express.
 - `--allow-read` and `--allow-write` are wider than any program's reach. A
   resource identifier resolves against the root binding, a fresh temp directory,
   so the language enforces a ceiling inside whatever the process holds.
@@ -121,21 +37,10 @@ never as the boundary.
   root widens, and every other path stays in the temp root.
 - `--deny-run` and `--deny-ffi` are a hard floor, because `--deny-*` beats
   `--allow-*` and either authority would void every path scope above.
-- Which schemes can reach a host is `getHandlers()`, not a flag. One entry is
-  bound, the clock; every other scheme is an empty slot and refuses.
-- `$$.dispatch` is part of the host surface of **every** program the CLI runs
-  (`getHost`), not only `-t` testdocs: the four dispatch policies (`sequential`,
-  `certified-sequential`, `interleave`, `footprint`) as host values. It grants
-  no authority: each event is a closure the program already holds, run with the
-  authority it already has. `HCLang` sessions, and so the playground, install
-  the same bridge, so a bundled testdoc that dispatches
-  (`hc/art-dispatch-vact.hc`) runs there too; a host that installs neither has
-  no `$$.dispatch` and answers `$!.name-missing`.
-
-## Important Notes
-
-- Debug mode: Set `DEBUG=true` environment variable
-- The CLI requires `--allow-read`, `--allow-write`, and `--allow-env`
-  permissions
-- BitScheme is self-documenting - the documentation files are executable
-- REPL supports multi-line input and command history
+- Which schemes can reach a host is decided by `getHandlers()`, not by a flag.
+  Only the clock is bound; every other scheme is an empty slot and refuses.
+- `$$.dispatch` is part of the host surface of **every** program the CLI runs,
+  not only `-t` testdocs. It grants no authority: each event is a closure the
+  program already holds, run with the authority it already has. `HCLang`
+  sessions install the same bridge, so a bundled testdoc that dispatches runs in
+  the playground too.
