@@ -168,6 +168,25 @@ export function bindDenumCount(source: Frame): Frame {
 }
 
 /**
+ * The recognized Denum state of `source`, or the error `.#%` answers for a
+ * failed or non-Denum receiver. The rank observers (007.43i, 007.44) read this
+ * stored Count and the stored loads as they are, without binding.
+ *
+ * @param source The observed Frame.
+ * @returns The Count and stored loads, or the receiver's error.
+ */
+export function denumState(
+  source: Frame,
+): { count: bigint; loads: readonly bigint[] } | Frame {
+  const failure = source.observationError();
+  if (failure) return failure;
+  if (!construct) return Frame.error("$!.denum-unavailable");
+  const state = recognizeDenum(source);
+  if (!state) return Frame.error("$!.denum-binding-receiver");
+  return { count: state.count, loads: state.loads };
+}
+
+/**
  * The loads of `source.#%`, the C sums `bj = Σ ai` over `i mod C = j`, folded
  * without building the bound Denum, or the binding's error in the order
  * `bindDenumCount` documents. The geometric observers (007.41b) read these, so
@@ -177,11 +196,8 @@ export function bindDenumCount(source: Frame): Frame {
  * @returns The C bound loads, or the binding's error.
  */
 export function boundLoads(source: Frame): bigint[] | Frame {
-  const failure = source.observationError();
-  if (failure) return failure;
-  if (!construct) return Frame.error("$!.denum-unavailable");
-  const state = recognizeDenum(source);
-  if (!state) return Frame.error("$!.denum-binding-receiver");
+  const state = denumState(source);
+  if (state instanceof Frame) return state;
   if (state.count === 0n) return Frame.error("$!.denum-binding-zero-count");
   if (state.count > DENUM_BINDING_CAPACITY) {
     return Frame.error("$!.denum-binding-capacity");

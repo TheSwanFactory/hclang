@@ -4,6 +4,22 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.52.0 2026-11-10
+
+- **KDSL observer corrected to the signed basis (007.43h).** `d.###%%` is now
+  the signed-basis residual `vᵢ − v(i+2^(r−1))` including the real coordinate,
+  and `d.##%%` its sum of squares, replacing the Helmert pure-imaginary reading.
+  `[2, 4, 2, 4]` at rank 2 is `[0, 0]` and Size 0, not 16/3. **Breaking:**
+  `.###%%` and `.##%%` change meaning.
+- **Count is the rank for the geometric observers (007.43i).** SSL wants `r+1`
+  slots, KPSL `2r` and KDSL `2^r`; the stored loads are zero-padded when short
+  and wrapped by index modulo when long, so every Count, zero included, has a
+  defined reading under every observer. **Breaking:** the observers no longer
+  apply `.#%` and no longer answer `$!.denum-cd-count`, `$!.denum-cross-count`
+  or `$!.denum-binding-zero-count`; a wanted length above 65536 is
+  `$!.denum-binding-capacity`. `.#%` and the native `*`, `.##`, `.###`, `.####`
+  and `./1` are unchanged.
+
 ## v0.51.0 2026-11-09
 
 - **Experiment 007.41: simplex and Cayley–Dickson observer algebras.**

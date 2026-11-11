@@ -542,50 +542,46 @@ them is one name, never split implicitly: `.#%%` is an unbound name
 (`$!.name-missing`); write `.# %%` for the modulo. Before this change `.#%…`
 lexed as `.#` followed by a `%` time literal; it now begins `.#%`.
 
-## Geometric observers `.##%` … `.###%%%` (007.41b)
+## Geometric observers `.##%` … `.###%%%` (007.41b, 007.43h, 007.43i, 007.44)
 
-Six native observers read a Denum through a geometry (occurrence/figure 007.41b,
-delivered on PR #492 per 007.41c). Each applies the real `.#%` to its receiver
-first and reads the bound loads `B = [b0, …, b(C−1)]`, so every `.#%` failure
-(receiver, zero Count, capacity) is answered as it is and no class can declare
-an observer. They are observations only: no load, native observer, operator or
-product changes.
+Six native observers read a Denum through a geometry. The Count of the Denum is
+its rank `r`; each geometry wants a definite number of slots for that rank. The
+stored loads are aligned to the wanted length (missing slots are 0; excess slots
+wrap by index modulo the wanted length and add into the slot they wrap to), and
+the observer is the geometry's ordinary formula on that virtual array. Every
+Count therefore has a defined reading under every observer, Count zero included.
+`.#%` is not applied and is unchanged. A receiver that is not a Denum is
+`$!.denum-binding-receiver`, a wanted length above 65536
+(`DENUM_BINDING_CAPACITY`) is `$!.denum-binding-capacity`, and no class can
+declare an observer. They are observations only: no load, native observer,
+operator or product changes.
 
-| Geometry             | Size-like `##…`                | Residual-like `###…`               | Domain                              |
-| -------------------- | ------------------------------ | ---------------------------------- | ----------------------------------- |
-| simplex `%`          | `(C·Σbᵢ² − S²)/(C−1)`, C=1 → 0 | `bᵢ − S/C` (numerators `C·bᵢ − S`) | C ≥ 1                               |
-| Cayley–Dickson `%%`  | `Σ xₖ²`, equal to `.##%`       | `[0, x₁, …, x(C−1)]`, `x = φ_C(B)` | C = 2ⁿ, else `$!.denum-cd-count`    |
-| cross-polytope `%%%` | `Σ rᵢ²`                        | `rᵢ = bᵢ − b(i+n)`, n = C/2        | C even, else `$!.denum-cross-count` |
+| Geometry                  | Wanted slots | Size-like `##…`                | Residual-like `###…`               |
+| ------------------------- | ------------ | ------------------------------ | ---------------------------------- |
+| SSL simplex `%`           | `r+1`        | `(C·Σbᵢ² − S²)/(C−1)`, C=1 → 0 | `bᵢ − S/C` (numerators `C·bᵢ − S`) |
+| KPSL cross-polytope `%%%` | `2r`         | `Σ rᵢ²`                        | `rᵢ = vᵢ − v(i+r)`, i < r          |
+| KDSL signed basis `%%`    | `2ʳ`         | `Σ Rᵢ²`                        | `Rᵢ = vᵢ − v(i+n)`, n = 2^(r−1)    |
+
+KDSL at rank 0 reads the single value itself; KPSL at rank 0 reads the empty
+residual and Size 0. The KDSL residual is the signed-basis reading of 007.43h,
+including the real coordinate, replacing the Helmert pure-imaginary reading of
+v0.51.0: `[2, 4, 2, 4]` at rank 2 is `[0, 0]` and Size 0, and `[3, 2, 1, 4]` is
+`[2, -2]` and Size 8. No Cayley–Dickson product is installed. **Breaking:**
+`.###%%`/`.##%%` change meaning, Count is the rank rather than the number of
+bound loads, and `$!.denum-cd-count`, `$!.denum-cross-count` and
+`$!.denum-binding-zero-count` are no longer answered by these observers.
 
 **Return types.** A `##` reading is exact and nonnegative: a FrameCount when
-whole, a FrameRational otherwise. A `###` reading is a fresh array of signed
-numbers, never a Denum: FrameInt or FrameRational where the coordinate is
-rational. Only Cayley–Dickson coordinates can be irrational; those are IEEE
-doubles (FrameNumber), so `.###%%` mixes exact and inexact entries, while
-`.##%%` stays exact because each `xₖ²` is rational. The two CD readings
-therefore have different ranges, by design: an irrational coordinate past the
-doubles is refused as `$!.numeric-range .###%%` while `.##%%` of the same Denum
-is still exact (`B = [10⁴⁰⁰, 0, 0, 0]` gives `.##%% = 10⁸⁰⁰`), and an irrational
-coordinate of a load past 2⁵³ carries double precision only. An exact surd
-representation would be a separate decision (007.41e).
+whole, a FrameRational otherwise (SSL only). A `###` reading is a fresh array of
+signed numbers, never a Denum: FrameInt for KDSL and KPSL, FrameInt or
+FrameRational for SSL.
 
-**Coordinate conventions.** Simplex coordinates are indexed by the bound load
-and are the centered coefficients `zᵢ = bᵢ − S/C` on the C unit vertices, not
-orthonormal coordinates. Their Size is measured in the regular simplex's Gram
-metric, so `.##% = C/(C−1)·Σzᵢ²`, not `Σzᵢ²`: at `B = [2, 4, 2, 4]`, `.###%` is
-`[-1, 1, -1, 1]` with plain norm² 4, and `.##%` is 16/3 (007.41e). The CD and
-cross-polytope coordinates are orthonormal, so their Size is the plain `Σ`. The
-Cayley–Dickson map φ_C is the fixed-sign Helmert isometry of the 007.41
-experiment, `xₖ = √(C/(C−1))·(b₀ + … + b(k−1) − k·bₖ)/√(k(k+1))` on the
-imaginary unit `eₖ`, with real part 0; it is an observer coordinate choice and
-not a homomorphism (at C = 2, `B = [3, 1]` gives `x = [0, 2]`, whose CD square
-is −4 while the simplex magnitude is +4). The cross-polytope binding is 007.41b
-§5.A: one load per vertex, `bᵢ` on `+eᵢ` and `b(i+n)` on `−eᵢ`, so odd C is
-refused for this binding only. The Count-as-dimension alternative (§5.B) and the
-optional Clifford product are not implemented.
+**Coordinate conventions.** SSL coordinates are the centered coefficients
+`zᵢ = bᵢ − S/C` on the C unit vertices, so `.##% = C/(C−1)·Σzᵢ²`. KPSL and KDSL
+use the same antipodal formula on different slot counts; they differ in rank
+interpretation and basis labels, not in arithmetic.
 
 **Lexing.** Each spelling is one token, by the same rule as `.#%`: inside a name
-`#` is an operator character, so an operator run is one name. **Breaking:**
-`.##%%` and `.###%%` written without a space were `.##`/`.###` before the modulo
-`%%`; write `.## %%`. Longer runs such as `.##%%%%`, `.####%` and `.#####` are
-unbound names, `$!.name-missing`, never split into an observer and the rest.
+`#` is an operator character, so an operator run is one name. Write `.## %%` for
+the modulo. Longer runs such as `.##%%%%`, `.####%` and `.#####` are unbound
+names, `$!.name-missing`.
