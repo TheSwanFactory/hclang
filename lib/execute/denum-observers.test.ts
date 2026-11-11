@@ -10,7 +10,6 @@ import {
   FrameCount,
   FrameExpr,
   FrameInt,
-  FrameNumber,
   FrameRational,
 } from "../frames.ts";
 import { evaluate } from "./evaluate.ts";
@@ -18,9 +17,9 @@ import { constructDenum } from "./denum-prologue.ts";
 import { GEOMETRIES } from "../frames/denum-observers.ts";
 
 const SIMPLEX = ["##%", "###%"] as const;
-const CD = ["##%%", "###%%"] as const;
-const CROSS = ["##%%%", "###%%%"] as const;
-const ALL = [...SIMPLEX, ...CD, ...CROSS];
+const KDSL = ["##%%", "###%%"] as const;
+const KPSL = ["##%%%", "###%%%"] as const;
+const ALL = [...SIMPLEX, ...KDSL, ...KPSL];
 
 const count = (n: bigint): FrameCount => new FrameCount(n);
 const denum = (c: bigint, loads: readonly bigint[]): Frame =>
@@ -42,27 +41,100 @@ const observe = (c: bigint, loads: readonly bigint[], key: string): Frame =>
 
 const text = (frame: Frame): string => `${frame}`;
 
-Deno.test("simplex .##% and .###% match the 007.41b worked examples", () => {
-  // (Denum [3, [2, 5, 3, 7, 4]]).#% has loads [9, 9, 3], S = 21: centered
-  // numerators [6, 6, −12] over 3, so the coordinates are [2, 2, −4], Q = 36.
-  const loads = [2n, 5n, 3n, 7n, 4n];
-  expect(text(observe(3n, loads, "##%"))).toEqual("36");
-  expect(text(observe(3n, loads, "###%"))).toEqual("[2, 2, -4]");
-  expect(text(observe(2n, [3n, 1n], "##%"))).toEqual("4");
-  expect(text(observe(2n, [3n, 1n], "###%"))).toEqual("[1, -1]");
-  expect(text(observe(4n, [2n, 4n, 2n, 4n], "##%"))).toEqual("16/3");
-  expect(text(observe(4n, [2n, 4n, 2n, 4n], "###%")))
-    .toEqual("[-1, 1, -1, 1]");
-  // Uniform loads have no residual, and a non-whole centre stays exact.
-  expect(text(observe(3n, [4n, 4n, 4n], "##%"))).toEqual("0");
-  expect(text(observe(3n, [4n, 4n, 4n], "###%"))).toEqual("[0, 0, 0]");
-  expect(text(observe(3n, [1n, 0n, 0n], "###%")))
-    .toEqual("[2/3, -1/3, -1/3]");
-  expect(text(observe(3n, [1n, 0n, 0n], "##%"))).toEqual("1");
+/** Asserts `[residual, size]` of one observer family for `Denum [r, loads]`. */
+const reads = (
+  suffix: string,
+  r: bigint,
+  loads: readonly bigint[],
+  residual: string,
+  size: string,
+): void => {
+  expect(text(observe(r, loads, `###${suffix}`))).toEqual(residual);
+  expect(text(observe(r, loads, `##${suffix}`))).toEqual(size);
+};
+
+Deno.test("KDSL reads the signed-basis residual (007.43h witnesses)", () => {
+  // Rank 2, four slots: the discriminating cancellation, not the Helmert 16/3.
+  reads("%%", 2n, [2n, 4n, 2n, 4n], "[0, 0]", "0");
+  reads("%%", 2n, [3n, 2n, 1n, 4n], "[2, -2]", "8");
+  // Rank 1: one signed integer. Rank 3: scalar plus three imaginary pairs.
+  reads("%%", 1n, [5n, 3n], "[2]", "4");
+  reads("%%", 1n, [3n, 5n], "[-2]", "4");
+  reads("%%", 3n, [9n, 1n, 2n, 3n, 4n, 5n, 6n, 7n], "[5, -4, -4, -4]", "73");
+  // Rank 0: the single value itself.
+  reads("%%", 0n, [5n], "[5]", "25");
+  // Each antipodal pair cancels on its own, and shifting a pair keeps R.
+  reads("%%", 3n, [1n, 2n, 3n, 4n, 1n, 2n, 3n, 4n], "[0, 0, 0, 0]", "0");
+  reads("%%", 3n, [11n, 2n, 3n, 4n, 11n, 2n, 3n, 4n], "[0, 0, 0, 0]", "0");
+  reads("%%", 2n, [7n, 4n, 5n, 4n], "[2, 0]", "4");
+});
+
+Deno.test("Count is the rank: KDSL pads short and wraps long loads at ranks 0–3", () => {
+  // Rank 0 wants 1 slot: everything wraps onto it.
+  reads("%%", 0n, [5n, 3n, 9n], "[17]", "289");
+  // Rank 1 wants 2: pad, exact, wrap.
+  reads("%%", 1n, [5n], "[5]", "25");
+  reads("%%", 1n, [5n, 3n, 9n], "[11]", "121");
+  // Rank 2 wants 4: [3, 1] pads to [3, 1, 0, 0]; six loads wrap to [6, 8, 3, 4].
+  reads("%%", 2n, [3n, 1n], "[3, 1]", "10");
+  reads("%%", 2n, [1n, 2n, 3n, 4n, 5n, 6n], "[3, 4]", "25");
+  // Rank 3 wants 8: one load pads to [1, 0, …]; nine wrap the ninth onto 0.
+  reads("%%", 3n, [1n], "[1, 0, 0, 0]", "1");
+  reads(
+    "%%",
+    3n,
+    [1n, 2n, 3n, 4n, 5n, 6n, 7n, 8n, 9n],
+    "[5, -4, -4, -4]",
+    "73",
+  );
+});
+
+Deno.test("KPSL keeps the antipodal formula at 2r slots and aligns the rest", () => {
+  // Matching slots: unchanged from the shipped residual.
+  reads("%%%", 2n, [2n, 4n, 2n, 4n], "[0, 0]", "0");
+  reads("%%%", 3n, [5n, 2n, 3n, 5n, 1n, 3n], "[0, 1, 0]", "1");
+  reads("%%%", 4n, [0n, 0n, 0n, 0n, 1n, 2n, 3n, 4n], "[-1, -2, -3, -4]", "30");
+  // Rank 0 wants no slots: the empty residual, Size 0.
+  reads("%%%", 0n, [4n, 5n], "[]", "0");
+  // Rank 1 wants 2.
+  reads("%%%", 1n, [5n], "[5]", "25");
+  reads("%%%", 1n, [5n, 3n, 2n], "[4]", "16");
+  // Rank 2 wants 4.
+  reads("%%%", 2n, [1n, 2n], "[1, 2]", "5");
+  reads("%%%", 2n, [1n, 2n, 3n, 4n, 5n, 6n], "[3, 4]", "25");
+  // Rank 3 wants 6.
+  reads("%%%", 3n, [1n, 2n, 3n], "[1, 2, 3]", "14");
+  reads("%%%", 3n, [1n, 2n, 3n, 4n, 5n, 6n, 7n, 8n], "[4, 5, -3]", "50");
+});
+
+Deno.test("SSL keeps the centered formula at r+1 slots and aligns the rest", () => {
+  // Matching slots: the 007.41b worked examples.
+  reads("%", 2n, [9n, 9n, 3n], "[2, 2, -4]", "36");
+  reads("%", 1n, [3n, 1n], "[1, -1]", "4");
+  reads("%", 3n, [2n, 4n, 2n, 4n], "[-1, 1, -1, 1]", "16/3");
+  reads("%", 2n, [4n, 4n, 4n], "[0, 0, 0]", "0");
+  reads("%", 2n, [1n, 0n, 0n], "[2/3, -1/3, -1/3]", "1");
+  // Rank 0 wants 1 slot, the degenerate simplex.
+  reads("%", 0n, [5n, 3n], "[0]", "0");
+  // Rank 1 pads, rank 2 pads and wraps (five loads fold to [9, 9, 3]).
+  reads("%", 1n, [3n], "[3/2, -3/2]", "9");
+  reads("%", 2n, [3n], "[2, -1, -1]", "9");
+  reads("%", 2n, [2n, 5n, 3n, 7n, 4n], "[2, 2, -4]", "36");
+});
+
+Deno.test("every Count has a defined reading under every observer", () => {
+  for (const key of ALL) {
+    for (let r = 0n; r <= 6n; r++) {
+      for (const loads of [[1n], [1n, 2n, 3n], [1n, 2n, 3n, 4n, 5n, 6n, 7n]]) {
+        const answer = observe(r, loads, key);
+        expect(text(answer).startsWith("$!")).toBe(false);
+      }
+    }
+  }
 });
 
 Deno.test("simplex observers are shift-invariant and their residual sums to zero", () => {
-  const base = [9n, 2n, 5n, 0n, 7n];
+  const base = [9n, 2n, 5n, 0n, 7n, 1n];
   for (const k of [0n, 1n, 13n, 10n ** 30n]) {
     const shifted = base.map((load) => load + k);
     expect(text(observe(5n, shifted, "##%")))
@@ -81,120 +153,17 @@ Deno.test("simplex observers are shift-invariant and their residual sums to zero
   expect(den > 0n).toBe(true);
 });
 
-Deno.test("Count 1 is the degenerate simplex and the real Cayley–Dickson case", () => {
-  for (const loads of [[5n], [5n, 3n, 9n]]) {
-    expect(text(observe(1n, loads, "##%"))).toEqual("0");
-    expect(text(observe(1n, loads, "###%"))).toEqual("[0]");
-    expect(text(observe(1n, loads, "##%%"))).toEqual("0");
-    expect(text(observe(1n, loads, "###%%"))).toEqual("[0]");
-    expect(text(observe(1n, loads, "##%%%"))).toEqual("$!.denum-cross-count");
-  }
-});
-
-/**
- * An independent exact oracle for the Cayley–Dickson norm: the sum of the
- * squared Helmert coordinates `C·sₖ²/((C−1)k(k+1))` of the bound loads, which
- * the isometry makes equal to the simplex form `.##%` answers.
- */
-const helmertNorm = (c: bigint, loads: readonly bigint[]): Frame => {
-  const bound = Array.from({ length: Number(c) }, () => 0n);
-  loads.forEach((load, i) => bound[i % Number(c)] += load);
-  let [num, den] = [0n, 1n];
-  let prefix = 0n;
-  for (let k = 1n; k < c; k++) {
-    prefix += bound[Number(k) - 1];
-    const s = prefix - k * bound[Number(k)];
-    const termDen = (c - 1n) * k * (k + 1n);
-    [num, den] = [num * termDen + c * s * s * den, den * termDen];
-  }
-  return FrameRational.create(num, den);
-};
-
 Deno.test("the geometry table and Frame's observer spellings agree", () => {
   expect(Object.keys(GEOMETRIES)).toEqual([...Frame.GEOMETRY_SUFFIXES]);
   expect([...Frame.GEOMETRIC_OBSERVERS]).toEqual(ALL);
 });
 
-Deno.test("Cayley–Dickson .##%% is exactly the simplex magnitude at every C = 2ⁿ", () => {
-  let seed = 7n;
-  const next = (): bigint =>
-    (seed = (seed * 1103515245n + 12345n) % 2147483648n) % 50n;
-  for (const c of [1n, 2n, 4n, 8n, 16n, 32n]) {
-    for (let trial = 0; trial < 5; trial++) {
-      const loads = Array.from({ length: Number(c) + trial }, next);
-      const simplex = observe(c, loads, "##%");
-      const cd = observe(c, loads, "##%%");
-      expect(text(cd)).toEqual(text(simplex));
-      expect(cd.constructor).toBe(simplex.constructor);
-      expect(text(cd)).toEqual(text(helmertNorm(c, loads)));
-      // The coordinates' squares add up to the exact norm within doubles.
-      const coordinates = observe(c, loads, "###%%").elements();
-      expect(coordinates.length).toEqual(Number(c));
-      expect(text(coordinates[0])).toEqual("0");
-      const norm = coordinates.reduce((s, x) => s + Number(x) ** 2, 0);
-      expect(Math.abs(norm - Number(simplex)))
-        .toBeLessThanOrEqual(1e-12 * Math.max(1, Number(simplex)));
-    }
-  }
-});
-
-Deno.test("Cayley–Dickson coordinates are exact where rational and doubles otherwise", () => {
-  // C = 2, B = [3, 1]: x = [0, 2], and x² = −4 in CD while the simplex
-  // magnitude is +4 (007.41b §4); the observer reports only x and N(x).
-  const two = observe(2n, [3n, 1n], "###%%").elements();
-  expect(two.map(text)).toEqual(["0", "2"]);
-  expect(two.every((x) => x instanceof FrameInt)).toBe(true);
-  expect(text(observe(2n, [3n, 1n], "##%%"))).toEqual("4");
-  // C = 4: coordinate 3 has the rational scale 1/9; 1 and 2 are irrational.
-  const four = observe(4n, [2n, 4n, 2n, 7n], "###%%").elements();
-  expect(text(four[0])).toEqual("0");
-  expect(four[1]).toBeInstanceOf(FrameNumber);
-  expect(four[2]).toBeInstanceOf(FrameNumber);
-  expect(text(four[3])).toEqual("-13/3");
-  expect(Number(four[1])).toBeCloseTo(-2 * Math.sqrt(4 / 3) / Math.sqrt(2), 12);
-  expect(Number(four[2])).toBeCloseTo(2 * Math.sqrt(4 / 3) / Math.sqrt(6), 12);
-  expect(text(observe(4n, [2n, 4n, 2n, 7n], "##%%"))).toEqual("67/3");
-  // A zero Helmert numerator is the exact 0.
-  expect(text(observe(4n, [3n, 3n, 3n, 3n], "###%%"))).toEqual("[0, 0, 0, 0]");
-});
-
-Deno.test("Cayley–Dickson observers refuse a Count that is not a power of two", () => {
-  for (const c of [3n, 5n, 6n, 7n, 12n]) {
-    for (const key of CD) {
-      expect(text(observe(c, [1n, 2n], key))).toEqual("$!.denum-cd-count");
-    }
-  }
-});
-
-Deno.test("cross-polytope .##%%% and .###%%% pair bᵢ with b(i+n) (007.41b §5.A)", () => {
-  expect(text(observe(4n, [2n, 4n, 2n, 4n], "###%%%"))).toEqual("[0, 0]");
-  expect(text(observe(4n, [2n, 4n, 2n, 4n], "##%%%"))).toEqual("0");
-  expect(text(observe(6n, [5n, 2n, 3n, 5n, 1n, 3n], "###%%%")))
-    .toEqual("[0, 1, 0]");
-  expect(text(observe(6n, [5n, 2n, 3n, 5n, 1n, 3n], "##%%%"))).toEqual("1");
-  expect(text(observe(2n, [3n, 1n], "###%%%"))).toEqual("[2]");
-  expect(text(observe(2n, [3n, 1n], "##%%%"))).toEqual("4");
-  expect(text(observe(8n, [0n, 0n, 0n, 0n, 1n, 2n, 3n, 4n], "###%%%")))
-    .toEqual("[-1, -2, -3, -4]");
-  expect(observe(4n, [2n, 4n, 2n, 4n], "###%%%").elements()[0])
-    .toBeInstanceOf(FrameInt);
-  // Odd C refuses only this one-load-per-vertex binding.
-  for (const c of [1n, 3n, 5n, 7n]) {
-    for (const key of CROSS) {
-      expect(text(observe(c, [1n, 2n], key))).toEqual("$!.denum-cross-count");
-    }
-  }
-});
-
-Deno.test("each observer reads the receiver's own .#% and leaves it unchanged", () => {
+Deno.test("observers read the stored loads and leave the receiver and natives unchanged", () => {
   const d = denum(3n, [2n, 5n, 3n, 7n, 4n]);
   const before = `${d.toText()}`;
-  const bound = d.sizeFor("#%");
-  for (const key of ALL) {
-    expect(text(d.sizeFor(key))).toEqual(text(bound.sizeFor(key)));
-  }
+  for (const key of ALL) d.sizeFor(key);
   expect(`${d.toText()}`).toEqual(before);
-  // Native observers are untouched.
+  const bound = d.sizeFor("#%");
   expect([
     d.sizeFor("#"),
     d.sizeFor("##"),
@@ -208,44 +177,42 @@ Deno.test("each observer reads the receiver's own .#% and leaves it unchanged", 
     "“Denum(3,[2, 5, 3, 7, 4])”",
     "“Denum(3,[9, 9, 3])”",
   ]);
-  // A Denum that has grown its Count binds, then observes, the new Count.
+  // A Denum that has grown its Count is read at the new rank.
   const grown = value("((([5, 3].####) 2) 4)");
   expect(text(grown.sizeFor("#"))).toEqual("4");
-  expect(text(grown.sizeFor("###%%%")))
-    .toEqual(text(grown.sizeFor("#%").sizeFor("###%%%")));
+  // Loads [7, 7] at rank 4 pad to 8 slots, so four antipodal differences.
+  expect(text(grown.sizeFor("###%%%"))).toEqual("[7, 7, 0, 0]");
 });
 
 Deno.test("observers answer fresh values of the documented types", () => {
-  const d = denum(4n, [2n, 4n, 2n, 7n]);
-  expect(d.sizeFor("##%")).toBeInstanceOf(FrameRational);
-  expect(denum(3n, [2n, 5n]).sizeFor("##%")).toBeInstanceOf(FrameCount);
+  const d = denum(3n, [2n, 4n, 2n, 7n]);
+  expect(denum(3n, [2n, 5n, 3n, 7n]).sizeFor("##%")).toBeInstanceOf(
+    FrameRational,
+  );
+  expect(denum(2n, [2n, 5n, 3n]).sizeFor("##%")).toBeInstanceOf(FrameCount);
   expect(d.sizeFor("##%%%")).toBeInstanceOf(FrameCount);
+  expect(d.sizeFor("##%%")).toBeInstanceOf(FrameCount);
   for (const key of ["###%", "###%%", "###%%%"]) {
     const first = d.sizeFor(key);
     expect(first).toBeInstanceOf(FrameArray);
     expect(first === d.sizeFor(key)).toBe(false);
   }
-  // Coordinates are signed FrameInts when whole, even when nonnegative.
-  expect(
-    denum(3n, [2n, 5n, 3n, 7n, 4n]).sizeFor("###%").elements()
-      .every((x) => x instanceof FrameInt),
-  ).toBe(true);
+  // Signed integer coordinates are FrameInts, even when nonnegative.
+  for (const key of ["###%%", "###%%%"]) {
+    expect(d.sizeFor(key).elements().every((x) => x instanceof FrameInt))
+      .toBe(true);
+  }
   expect(d.sizeFor("###%").elements()[0]).toBeInstanceOf(FrameRational);
 });
 
-Deno.test("failures of .#% pass through every observer, in its order", () => {
+Deno.test("receiver failures pass through every observer; Count zero is a rank", () => {
   for (const key of ALL) {
     for (const source of ["[5, 3]", "3", "()", "“ab”", "{1}", "[]"]) {
       expect(text(value(`${source}.${key}`))).toEqual(
         "$!.denum-binding-receiver",
       );
     }
-    expect(text(observe(0n, [2n, 5n], key)))
-      .toEqual("$!.denum-binding-zero-count");
-    expect(text(observe(70000n, [1n], key)))
-      .toEqual("$!.denum-binding-capacity");
-    expect(text(observe(10n ** 30n, [1n], key)))
-      .toEqual("$!.denum-binding-capacity");
+    expect(text(observe(0n, [2n, 5n], key)).startsWith("$!")).toBe(false);
     // A class cannot declare an observer: the method is never run.
     expect(text(value(`[.${key} {7}].${key}`)))
       .toEqual("$!.denum-binding-receiver");
@@ -254,74 +221,47 @@ Deno.test("failures of .#% pass through every observer, in its order", () => {
   }
 });
 
-Deno.test("the binding capacity is inclusive: C = 65536 binds, 65537 refuses (007.41e)", () => {
-  // A sparse source keeps the fixture small: B = [1, 0, …, 0].
-  for (const key of ["##%", "##%%", "##%%%"]) {
-    expect(text(observe(65536n, [1n], key))).toEqual("1");
-  }
-  expect(observe(65536n, [1n], "###%").elements().length).toEqual(65536);
-  expect(observe(65536n, [1n], "###%%").elements().length).toEqual(65536);
-  expect(observe(65536n, [1n], "###%%%").elements().length).toEqual(32768);
-  // The binding refuses before any geometry checks its own Count domain.
-  for (const key of ALL) {
-    expect(text(observe(65537n, [1n], key)))
+Deno.test("the wanted length is bounded by the binding capacity (65536)", () => {
+  // SSL wants r+1, KPSL 2r, KDSL 2ʳ slots; each is inclusive at 65536.
+  expect(text(observe(65535n, [1n], "##%"))).toEqual("1");
+  expect(observe(65535n, [1n], "###%").elements().length).toEqual(65536);
+  expect(text(observe(65536n, [1n], "##%")))
+    .toEqual("$!.denum-binding-capacity");
+  expect(observe(32768n, [1n], "###%%%").elements().length).toEqual(32768);
+  expect(text(observe(32769n, [1n], "##%%%")))
+    .toEqual("$!.denum-binding-capacity");
+  expect(observe(16n, [1n], "###%%").elements().length).toEqual(32768);
+  expect(text(observe(16n, [1n], "##%%"))).toEqual("1");
+  for (const key of KDSL) {
+    expect(text(observe(17n, [1n], key))).toEqual("$!.denum-binding-capacity");
+    expect(text(observe(10n ** 30n, [1n], key)))
       .toEqual("$!.denum-binding-capacity");
   }
 });
 
-Deno.test("simplex coordinates carry the Gram factor: .##% = C/(C−1)·Σzᵢ² (007.41e)", () => {
-  const cases: [bigint, bigint[]][] = [
-    [2n, [3n, 1n]],
-    [3n, [2n, 5n, 3n, 7n, 4n]],
-    [4n, [2n, 4n, 2n, 4n]],
-    [6n, [5n, 2n, 3n, 5n, 1n, 3n]],
-  ];
-  for (const [c, loads] of cases) {
-    // Σzᵢ² as an exact fraction over C², from the coordinates' own values.
-    const z = observe(c, loads, "###%").elements().map((x) =>
-      x instanceof FrameRational
-        ? [x.numerator, x.denominator]
-        : [(x as FrameInt).data, 1n]
-    );
-    const num = z.reduce((t, [n, d]) => t + (n * (c / d)) ** 2n, 0n);
-    // C/(C−1)·num/C² = num/(C·(C−1))
-    const expected = FrameRational.create(num, c * (c - 1n));
-    expect(text(observe(c, loads, "##%"))).toEqual(text(expected));
-  }
-  // At B = [2, 4, 2, 4] the coordinates' plain norm² is 4, the Size 16/3.
-  expect(text(observe(4n, [2n, 4n, 2n, 4n], "###%"))).toEqual("[-1, 1, -1, 1]");
-  expect(text(observe(4n, [2n, 4n, 2n, 4n], "##%"))).toEqual("16/3");
-});
-
-Deno.test("CD Size stays exact where a Residual coordinate leaves the doubles (007.41e)", () => {
-  // B = [10⁴⁰⁰, 0, 0, 0]: x₁ = 10⁴⁰⁰·√(2/3) is irrational and past the
-  // doubles, so .###%% refuses while .##%% is the exact 10⁸⁰⁰.
-  const m = 10n ** 400n;
-  expect(text(observe(4n, [m, 0n, 0n, 0n], "##%%"))).toEqual(`${m * m}`);
-  expect(text(observe(4n, [m, 0n, 0n, 0n], "###%%")))
-    .toEqual("$!.numeric-range .###%%");
-  // The simplex and cross readings of the same Denum stay exact.
-  expect(text(observe(4n, [m, 0n, 0n, 0n], "###%%%"))).toEqual(`[${m}, 0]`);
-});
-
 Deno.test("observers are exact for loads past 2⁵³", () => {
   const big = 123456789012345678901234567890n;
-  // B = [big, 1]: Q_S = (2(big² + 1) − (big + 1)²)/1 = (big − 1)².
-  expect(text(observe(2n, [big, 1n], "##%"))).toEqual(`${(big - 1n) ** 2n}`);
-  expect(text(observe(2n, [big, 1n], "##%%"))).toEqual(`${(big - 1n) ** 2n}`);
-  expect(text(observe(2n, [big, 1n], "###%%%"))).toEqual(`[${big - 1n}]`);
-  expect(text(observe(2n, [big, 1n], "###%%"))).toEqual(`[0, ${big - 1n}]`);
+  reads(
+    "%",
+    1n,
+    [big, 1n],
+    `[${big - 1n}/2, ${-(big - 1n)}/2]`,
+    `${(big - 1n) ** 2n}`,
+  );
+  reads("%%", 1n, [big, 1n], `[${big - 1n}]`, `${(big - 1n) ** 2n}`);
+  reads("%%%", 1n, [big, 1n], `[${big - 1n}]`, `${(big - 1n) ** 2n}`);
 });
 
 Deno.test("observers dispatch through names, handles, tight terms and closures", () => {
-  const d = denum(3n, [2n, 5n, 3n, 7n, 4n]);
+  const d = denum(2n, [9n, 9n, 3n]);
   expect(text(value(".e $$.d; e.##%", { d }))).toEqual("36");
   expect(text(value(".e $$.d; [e.##%, e .##%, (e).###%]", { d })))
     .toEqual("[36, 36, [2, 2, -4]]");
   expect(text(value(".f {_.##%}; f $$.d", { d }))).toEqual("36");
-  expect(text(value("[5, 3, 7].####.##%"))).toEqual("117");
-  expect(text(value("[5, 3, 7].####.###%"))).toEqual("[7, -2, -5]");
-  // Native readings of the observations themselves are ordinary.
+  // [5, 3, 7].#### is Count 3 with loads [12, 3]: SSL pads to 4 slots.
+  expect(text(value("[5, 3, 7].####.##%"))).toEqual("129");
+  expect(text(value("[5, 3, 7].####.###%")))
+    .toEqual("[33/4, -3/4, -15/4, -15/4]");
   expect(text(value(".e $$.d; [e.###%.#, (e.###%) .2, (e.##%) + 1]", { d })))
     .toEqual("[3, -4, 37]");
   // `.## %%` stays Size modulo.
