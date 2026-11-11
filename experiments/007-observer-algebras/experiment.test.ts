@@ -253,47 +253,49 @@ Deno.test("the printed report equals the committed fixture", async () => {
   expect(CASES.length).toBeGreaterThan(8);
 });
 
-Deno.test("the native HC observers agree with the experiment's algebras (007.41b)", () => {
+Deno.test("the native HC observers agree with the experiment's simplex, and read the signed basis for KDSL (007.43h, 007.44)", () => {
+  // The native observers read Count as the rank, so each geometry is asked at
+  // the rank whose wanted slot count is c: SSL r = c − 1, KPSL r = c/2, KDSL
+  // r = log₂ c. The Helmert pure-imaginary map φ stays in the experiment only.
   for (const c of [1, 2, 3, 4, 5, 6, 8, 16]) {
     // Loads must be nonnegative; a uniform shift changes no simplex reading.
     for (const v of sampleVectors(c, 4, 4141)) {
       const loads = v.map((x) => x + 5n);
       const count = BigInt(c);
-      const keys = ["##%", "###%", "##%%", "###%%", "##%%%", "###%%%"];
-      const answers = observeFromSource(count, loads, keys);
-      const read = (key: string) => answers[keys.indexOf(key)];
-      expect(`${read("##%")}`).toEqual(
+      const total = loads.reduce((a, b) => a + b, 0n);
+      const simplex = observeFromSource(count - 1n, loads, ["##%", "###%"]);
+      expect(`${simplex[0]}`).toEqual(
         ratToString(simplexResultantSquared(loads)),
       );
-      const total = loads.reduce((a, b) => a + b, 0n);
       // The centred coefficients bᵢ − S/C, reduced as the experiment does.
-      expect(`${read("###%")}`).toEqual(
+      expect(`${simplex[1]}`).toEqual(
         `[${
           loads.map((b) => ratToString(rational(count * b - total, count)))
             .join(", ")
         }]`,
       );
       if ((c & (c - 1)) === 0) {
-        expect(`${read("##%%")}`).toEqual(
-          ratToString(phiNormSquaredExact(loads)),
-        );
-        const x = read("###%%").elements().map(Number);
-        expect(maxDifference(x, phi(loads)))
-          .toBeLessThanOrEqual(
-            RELATIVE_TOLERANCE * Math.max(1, ...x.map(Math.abs)),
-          );
-      } else {
-        expect(`${read("##%%")}`).toEqual("$!.denum-cd-count");
-        expect(() => phi(loads)).toThrow(ObserverDomainError);
+        const rank = BigInt(Math.log2(c));
+        const [size, residual] = observeFromSource(rank, loads, [
+          "##%%",
+          "###%%",
+        ]);
+        const n = Math.max(c / 2, 1);
+        const r = c === 1
+          ? [loads[0]]
+          : loads.slice(0, n).map((b, i) => b - loads[i + n]);
+        expect(`${residual}`).toEqual(`[${r.join(", ")}]`);
+        expect(`${size}`).toEqual(`${r.reduce((a, b) => a + b * b, 0n)}`);
       }
       if (c % 2 === 0) {
         const n = c / 2;
         const r = loads.slice(0, n).map((b, i) => b - loads[i + n]);
-        expect(`${read("###%%%")}`).toEqual(`[${r.join(", ")}]`);
-        expect(`${read("##%%%")}`)
-          .toEqual(`${r.reduce((a, b) => a + b * b, 0n)}`);
-      } else {
-        expect(`${read("##%%%")}`).toEqual("$!.denum-cross-count");
+        const [size, residual] = observeFromSource(count / 2n, loads, [
+          "##%%%",
+          "###%%%",
+        ]);
+        expect(`${residual}`).toEqual(`[${r.join(", ")}]`);
+        expect(`${size}`).toEqual(`${r.reduce((a, b) => a + b * b, 0n)}`);
       }
     }
   }
