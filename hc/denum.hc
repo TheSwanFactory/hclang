@@ -861,10 +861,11 @@ never split, so `.#%%` is one unbound name rather than `.#%` before a `%`: write
 ```
 ## Geometric observers, `.##%` … `.###%%%`
 Six observers read a Denum through a geometry (occurrence/figure 007.41b,
-007.41c, 007.43h, 007.43i, 007.44). The Count of the Denum is its rank `r`, and
+007.41c, 007.43h, 007.43i, 007.44, 007.46). The count of percent signs is the
+ladder order: one `%` is SSL, two are KPSL, three are KDSL. The Count of the Denum is its rank `r`, and
 each geometry wants a definite number of slots for that rank: the simplex (SSL,
-`%`) `r+1`, the cross-polytope (KPSL, `%%%`) `2r` and the Cayley–Dickson signed
-basis (KDSL, `%%`) `2^r`. The stored loads are aligned to the wanted length:
+`%`) `r+1`, the cross-polytope (KPSL, `%%`) `2r` and the Cayley–Dickson signed
+basis (KDSL, `%%%`) `2^r`. The stored loads are aligned to the wanted length:
 missing slots are 0 and excess slots wrap by index modulo the wanted length,
 adding into the slot they wrap to. The observer is the geometry's ordinary
 formula on that virtual array, so every Count has a defined reading under every
@@ -887,33 +888,42 @@ degenerate simplex, of magnitude 0
 ; [(Denum [1, [3, 1]]).##%, (Denum [3, [2, 4, 2, 4]]).##%, (Denum [2, [1]]).###%, (Denum [2, [4, 4, 4]]).##%, (Denum [0, [5, 3]]).###%]
 # [4, 16/3, [2/3, -1/3, -1/3], 0, [0]]
 ```
-The Cayley–Dickson signed-basis observers, `%%`, read `2^r` slots in the
-reference order `+e0 … +e(n−1), −e0 … −e(n−1)` with `n = 2^(r−1)`. `.###%%` is
-`ri = vi − v(i+n)`, i = 0 … n−1, including the real coordinate; at rank 0 it is
-the single value. `.##%%` is `Σ ri²`. Each antipodal pair cancels on its own, so
-the load `[2, 4, 2, 4]` at rank 2 reads `[0, 0]` and `0`, and `[3, 2, 1, 4]`
-reads `[2, -2]` and `8`. Equal magnitudes would not make products agree, and no
-Cayley–Dickson product is installed
-```
-; [(Denum [2, [2, 4, 2, 4]]).###%%, (Denum [2, [2, 4, 2, 4]]).##%%, (Denum [2, [3, 2, 1, 4]]).###%%, (Denum [2, [3, 2, 1, 4]]).##%%]
-# [[0, 0], 0, [2, -2], 8]
-; [(Denum [0, [5, 3, 9]]).###%%, (Denum [1, [5, 3, 9]]).###%%, (Denum [3, [9, 1, 2, 3, 4, 5, 6, 7]]).###%%, (Denum [2, [3, 1]]).##%%]
-# [[17], [11], [5, -4, -4, -4], 10]
-```
-The cross-polytope observers, `%%%`, place `2r` slots on the vertices
-`+e0 … +e(r−1), −e0 … −e(r−1)`, so `bi` and `b(i+r)` are opposite. `.###%%%` is
-the antipodal residual `ri = bi − b(i+r)` and `.##%%%` is `Σ ri²`, zero exactly
+The cross-polytope observers, `%%`, place `2r` slots on the vertices
+`+e0 … +e(r−1), −e0 … −e(r−1)`, so `bi` and `b(i+r)` are opposite. `.###%%` is
+the antipodal residual `ri = bi − b(i+r)` and `.##%%` is `Σ ri²`, zero exactly
 when every opposite pair matches. Rank 0 wants no slots and reads `[]` and 0
 ```
-; [(Denum [2, [2, 4, 2, 4]]).###%%%, (Denum [2, [2, 4, 2, 4]]).##%%%, (Denum [3, [5, 2, 3, 5, 1, 3]]).###%%%, (Denum [3, [5, 2, 3, 5, 1, 3]]).##%%%, (Denum [1, [3, 1]]).###%%%]
+; [(Denum [2, [2, 4, 2, 4]]).###%%, (Denum [2, [2, 4, 2, 4]]).##%%, (Denum [3, [5, 2, 3, 5, 1, 3]]).###%%, (Denum [3, [5, 2, 3, 5, 1, 3]]).##%%, (Denum [1, [3, 1]]).###%%]
 # [[0, 0], 0, [0, 1, 0], 1, [2]]
-; [(Denum [0, [1]]).###%%%, (Denum [1, [5]]).##%%%, (Denum [2, [1, 2]]).###%%%]
+; [(Denum [0, [1]]).###%%, (Denum [1, [5]]).##%%, (Denum [2, [1, 2]]).###%%]
 # [[], 25, [1, 2]]
+```
+The Cayley–Dickson signed-basis observers, `%%%`, read `2^r` slots in the
+reference order `+e0 … +e(n−1), −e0 … −e(n−1)` with `n = 2^(r−1)`. `.###%%%` is
+`ri = vi − v(i+n)`, i = 0 … n−1, including the real coordinate; at rank 0 it is
+the single value. `.##%%%` is `Σ ri²`. Each antipodal pair cancels on its own, so
+the load `[2, 4, 2, 4]` at rank 2 reads `[0, 0]` and `0`, and `[3, 2, 1, 4]`
+reads `[2, -2]` and `8`. Equal magnitudes would not make products agree, and no
+Cayley–Dickson product is installed: `.##%%%` is a squared norm of the
+residual, not the multiplication. The `2^r` loads are signature loads, and the
+residual is `2^(r−1)` signed coefficients, one Cayley–Dickson rung below
+```
+; [(Denum [2, [2, 4, 2, 4]]).###%%%, (Denum [2, [2, 4, 2, 4]]).##%%%, (Denum [2, [3, 2, 1, 4]]).###%%%, (Denum [2, [3, 2, 1, 4]]).##%%%]
+# [[0, 0], 0, [2, -2], 8]
+; [(Denum [0, [5, 3, 9]]).###%%%, (Denum [1, [5, 3, 9]]).###%%%, (Denum [3, [9, 1, 2, 3, 4, 5, 6, 7]]).###%%%, (Denum [2, [3, 1]]).##%%%]
+# [[17], [11], [5, -4, -4, -4], 10]
+```
+The two differ wherever `2r` and `2^r` differ. At rank 3 the same six loads are
+three antipodal pairs to KPSL and eight padded slots to KDSL
+```
+; .W (Denum [3, [5, 2, 3, 5, 1, 3]]);
+; [W.###%%, W.##%%, W.###%%%, W.##%%%]
+# [[0, 1, 0], 1, [4, -1, 3, 5], 51]
 ```
 Only a Denum is observed, and no class can declare an observer of its own. A
 rank whose wanted slots pass the binding capacity of 65536 is refused
 ```
-; [[5, 3].##%, 3.###%%, (Denum [70000, [1]]).###%, (Denum [17, [1]]).##%%, [.##% {7}].##%]
+; [[5, 3].##%, 3.###%%, (Denum [70000, [1]]).###%, (Denum [17, [1]]).##%%%, [.##% {7}].##%]
 # [$!.denum-binding-receiver, $!.denum-binding-receiver, $!.denum-binding-capacity, $!.denum-binding-capacity, $!.denum-binding-receiver]
 ```
 Each observer is one token. A longer run, such as `.##%%%%`, is one unbound

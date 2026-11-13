@@ -34,7 +34,7 @@ const CASES: readonly { source: string; expected: string; what: string }[] = [
       )
     }]`,
     expected:
-      "[136, [44/5, 4/5, -16/5, -16/5, -16/5], 160, [12, 4, 0, 0, 0, 0, 0, 0], 160, [12, 4, 0, 0]]",
+      "[136, [44/5, 4/5, -16/5, -16/5, -16/5], 160, [12, 4, 0, 0], 160, [12, 4, 0, 0, 0, 0, 0, 0]]",
   },
 ];
 const workDirectory = await Deno.makeTempDir({ prefix: "hclang-compiled-" });

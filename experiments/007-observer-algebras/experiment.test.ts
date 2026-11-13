@@ -277,8 +277,8 @@ Deno.test("the native HC observers agree with the experiment's simplex, and read
       if ((c & (c - 1)) === 0) {
         const rank = BigInt(Math.log2(c));
         const [size, residual] = observeFromSource(rank, loads, [
-          "##%%",
-          "###%%",
+          "##%%%",
+          "###%%%",
         ]);
         const n = Math.max(c / 2, 1);
         const r = c === 1
@@ -291,8 +291,8 @@ Deno.test("the native HC observers agree with the experiment's simplex, and read
         const n = c / 2;
         const r = loads.slice(0, n).map((b, i) => b - loads[i + n]);
         const [size, residual] = observeFromSource(count / 2n, loads, [
-          "##%%%",
-          "###%%%",
+          "##%%",
+          "###%%",
         ]);
         expect(`${residual}`).toEqual(`[${r.join(", ")}]`);
         expect(`${size}`).toEqual(`${r.reduce((a, b) => a + b * b, 0n)}`);

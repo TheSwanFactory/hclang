@@ -4,6 +4,27 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## Unreleased
+
+> No version bump yet: merging this section does not publish or release. The
+> next version bump will release it.
+
+- **Observer suffix order corrected (007.46).** One `%` is SSL, two `%%` are
+  KPSL (cross-polytope, `2r` slots) and three `%%%` are KDSL (Cayley–Dickson
+  signed basis, `2^r` slots). **Breaking:** `.##%%`/`.###%%` and
+  `.##%%%`/`.###%%%` swap meaning against v0.52.0, which shipped them reversed.
+  The answers agree only at ranks 1 and 2. Count as rank, zero-padding,
+  wrap-add, the 65536 capacity and the signed-basis formulas are unchanged, and
+  so is SSL's `r+1`; native `*`, `.##`, `.###`, `.####` and `./1` are unchanged.
+- **Cayley–Dickson product reference.** `lib/frames/cayley-dickson.ts` states
+  the doubling law `(a,b)(c,d) = (ac − conj(d)b, da + b conj(c))` as executable
+  code with `i² = −1`, `ij = k`, `ji = −k` and octonion nonassociativity tests.
+  It is a TypeScript oracle, not a Figure or HC operation; no observer or
+  operator exposes it and native `*` is unchanged. `.##%%%` is a squared norm,
+  not a product. A rank-r KDSL value is read as 2^(r−1) signed coefficients
+  (length 2ʳ loads, one rung below), the oracle's target; SSL keeps `r+1` slots
+  by owner decision for this change.
+
 ## v0.52.0 2026-11-10
 
 - **KDSL observer corrected to the signed basis (007.43h).** `d.###%%` is now

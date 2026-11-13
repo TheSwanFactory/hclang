@@ -4,9 +4,10 @@ Experimental code for Occurrence task 007.41. It is not part of the shipped
 runtime and changes no Denum or Frame state, grammar, operator or version. The
 native HC observers `.##%` … `.###%%%` that 007.41b/c later asked for live in
 `lib/frames/denum-observers.ts` (see `doc/FRAME-DENUM.md`); a test here checks
-them against these algebras on the same inputs. Both algebras produce separate
-**observer values** with signed or rational coefficients; nothing here converts
-a product back into a nonnegative native Denum.
+them against these algebras on the same inputs. Since 007.46 `%%` is KPSL and
+`%%%` is KDSL. Both algebras produce separate **observer values** with signed or
+rational coefficients; nothing here converts a product back into a nonnegative
+native Denum.
 
 ```sh
 deno task test:observer-algebras        # 32 tests, also part of test:all
