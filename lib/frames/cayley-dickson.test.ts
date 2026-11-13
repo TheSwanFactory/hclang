@@ -1,7 +1,8 @@
 /**
  * The Cayley–Dickson doubling law as an executable oracle (occurrence/figure
  * 007.46): i² = −1, ij = k, ji = −k, octonion nonassociativity, and the norm
- * and conjugation laws that distinguish the product from the KDSL residual.
+ * and conjugation laws, with typed witnesses separating rank-r signature loads
+ * (2ʳ nonnegative) from their observed 2^(r−1) signed coefficients.
  */
 import { expect } from "jsr:@std/expect@^0.219.1";
 import {
@@ -92,19 +93,56 @@ Deno.test("sedenions have zero divisors, so the norm is no longer multiplicative
   expect(cdProduct(x, y).every((v) => v === 0n)).toBe(true);
 });
 
-Deno.test("the product is not the KDSL residual or its squared norm", () => {
-  // At rank 2 the KDSL residual of [a0, a1, a2, a3] is [a0 − a2, a1 − a3]:
-  // two coordinates, where the product of two elements has four.
-  const x = [3n, 2n, 1n, 4n];
-  const residual = [x[0] - x[2], x[1] - x[3]];
-  expect(residual).toEqual([2n, -2n]);
-  expect(cdProduct(x, x).length).toEqual(4);
-  expect(cdProduct(x, x)).toEqual([-12n, 12n, 6n, 24n]);
-  // Equal residual norm does not mean equal product: x and its conjugate.
-  expect(norm(x)).toEqual(norm(cdConjugate(x)));
-  expect(cdProduct(x, x)).not.toEqual(
-    cdProduct(cdConjugate(x), cdConjugate(x)),
+/**
+ * The observed signed coefficients of a rank-r KDSL load: 2ʳ nonnegative
+ * signature loads B give Φᵣ(B)ᵢ = Bᵢ − B(i+2^(r−1)), 2^(r−1) coefficients.
+ */
+const phi = (loads: readonly bigint[]): bigint[] => {
+  const n = loads.length / 2;
+  return loads.slice(0, n).map((load, i) => load - loads[i + n]);
+};
+
+Deno.test("a unary residual or norm is not a binary product", () => {
+  // Rank 2 loads are four signature slots, not four quaternion coefficients:
+  // the observed coefficient array has two entries, and the squared norm is a
+  // number. Neither has the shape of a product of two elements.
+  const load = [3n, 2n, 1n, 4n];
+  const observed = phi(load);
+  expect(observed).toEqual([2n, -2n]);
+  expect(norm(observed)).toEqual(8n);
+  expect(observed.length).toEqual(load.length / 2);
+  // Equal observed norm does not mean equal products: x and its conjugate.
+  expect(norm(observed)).toEqual(norm(cdConjugate(observed)));
+  expect(cdProduct(observed, observed)).not.toEqual(
+    cdProduct(cdConjugate(observed), cdConjugate(observed)),
   );
+});
+
+Deno.test("typed witnesses: observed rank-r coefficients are the rung r−1 algebra (007.46b)", () => {
+  // Rank 1: loads [5, 3] observe the integer [2]; its square is [4].
+  expect(phi([5n, 3n])).toEqual([2n]);
+  expect(cdProduct([2n], [2n])).toEqual([4n]);
+  // Rank 2, Gaussian: loads [3, 2, 1, 4] observe 2 − 2i, and (2 − 2i)² = −8i.
+  expect(phi([3n, 2n, 1n, 4n])).toEqual([2n, -2n]);
+  expect(cdProduct([2n, -2n], [2n, -2n])).toEqual([0n, -8n]);
+  // Rank 3, quaternion: eight loads observe 5 − 4i − 4j − 4k. In an
+  // alternative algebra x² = 2x₀x − |x|², with |x|² = 73.
+  const q = phi([9n, 1n, 2n, 3n, 4n, 5n, 6n, 7n]);
+  expect(q).toEqual([5n, -4n, -4n, -4n]);
+  expect(cdProduct(q, q)).toEqual([-23n, -40n, -40n, -40n]);
+  // Rank 4, octonion: sixteen loads observe an eight-coefficient x, |x|² = 111
+  // and x² = 2x₀x − |x|² = [−93, −12, 24, −30, 0, 24, −30, 24].
+  const o = phi([
+    ...[3n, 0n, 5n, 1n, 2n, 7n, 0n, 4n],
+    ...[0n, 2n, 1n, 6n, 2n, 3n, 5n, 0n],
+  ]);
+  expect(o).toEqual([3n, -2n, 4n, -5n, 0n, 4n, -5n, 4n]);
+  expect(norm(o)).toEqual(111n);
+  expect(cdProduct(o, o)).toEqual([-93n, -12n, 24n, -30n, 0n, 24n, -30n, 24n]);
+  // The coefficient array is one rung below the loads: raw loads of length 2ʳ
+  // are a different, larger algebra element and give a different shape.
+  expect(cdProduct(o, o).length).toEqual(8);
+  expect(() => cdProduct(o, [1n, 2n, 3n, 4n])).toThrow(RangeError);
 });
 
 Deno.test("lengths other than 2^r are refused", () => {
@@ -112,6 +150,18 @@ Deno.test("lengths other than 2^r are refused", () => {
   expect(isCayleyDicksonLength(16)).toBe(true);
   expect(isCayleyDicksonLength(0)).toBe(false);
   expect(isCayleyDicksonLength(6)).toBe(false);
+  // The predicate is exact beyond 32 bits, where `&` would coerce.
+  expect(isCayleyDicksonLength(2 ** 32)).toBe(true);
+  expect(isCayleyDicksonLength(2 ** 32 + 1)).toBe(false);
+  expect(isCayleyDicksonLength(2 ** 32 - 1)).toBe(false);
+  expect(isCayleyDicksonLength(2 ** 31)).toBe(true);
+  expect(isCayleyDicksonLength(2 ** 33 + 2 ** 32)).toBe(false);
+  expect(isCayleyDicksonLength(2 ** 52)).toBe(true);
+  expect(isCayleyDicksonLength(2 ** 53 - 1)).toBe(false);
+  expect(isCayleyDicksonLength(-4)).toBe(false);
+  expect(isCayleyDicksonLength(2.5)).toBe(false);
+  expect(isCayleyDicksonLength(NaN)).toBe(false);
+  expect(isCayleyDicksonLength(Infinity)).toBe(false);
   expect(() => cdProduct([1n, 2n, 3n], [1n, 2n, 3n])).toThrow(RangeError);
   expect(() => cdProduct([1n, 2n], [1n, 2n, 3n, 4n])).toThrow(RangeError);
   expect(() => cdConjugate([])).toThrow(RangeError);

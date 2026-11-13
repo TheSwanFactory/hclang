@@ -16,18 +16,36 @@
  * Rung 2 (length 4, quaternion): i = e1, j = e2, k = e3 = i·j. Rung 3 (length
  * 8, octonion) is nonassociative, rung 4 (sedenion) has zero divisors.
  *
- * The KDSL observers answer the signed-basis residual `vᵢ − v(i+n)` and its
- * squared norm. Those are readings of coordinates, not this product: the
- * product of two elements is a third element, and a squared norm of the
- * residual is a number.
+ * Two lengths must not be confused. The arrays here are Cayley–Dickson
+ * *coefficient arrays*, of length 2ᵏ for the algebra at doubling rung k
+ * (k = 1 Gaussian integers, 2 quaternions, 3 octonions, 4 sedenions). A
+ * rank-r KDSL observation is *not* such an array of length 2ʳ. The Denum holds
+ * 2ʳ nonnegative signature loads B, and the observer reads the signed
+ * coefficients Φᵣ(B)ᵢ = Bᵢ − B(i+2^(r−1)), i < 2^(r−1), an array of length
+ * 2^(r−1). So the oracle target of an observed rank-r KDSL value is the
+ * rung k = r − 1 algebra, one rung below the slot count's exponent: r = 1
+ * integers (length 1), r = 2 Gaussian (2), r = 3 quaternion (4), r = 4
+ * octonion (8), r = 5 sedenion (16). Rank 0 is the special scalar reading.
+ *
+ * Those observations (the residual and its squared norm) are readings of
+ * coordinates, not this product: the product of two elements is a third
+ * element, and a squared norm of the residual is a number. This module is a
+ * TypeScript reference for testing mathematical claims, not a Figure or HC
+ * operation, and native `*` is not defined by it.
  *
  * @module
  */
 
-/** True when `length` is 2ʳ for some r ≥ 0. */
+/**
+ * True when `length` is 2ʳ for some r ≥ 0. Exact for every JavaScript number:
+ * halving a double is exact, so no 32-bit bitwise coercion is involved, and
+ * `2 ** 32 + 1` is correctly refused.
+ */
 export function isCayleyDicksonLength(length: number): boolean {
-  return Number.isInteger(length) && length >= 1 &&
-    (length & (length - 1)) === 0;
+  if (!Number.isInteger(length) || length < 1) return false;
+  let rest = length;
+  while (rest % 2 === 0) rest /= 2;
+  return rest === 1;
 }
 
 function assertLength(length: number): void {

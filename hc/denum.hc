@@ -905,7 +905,8 @@ the single value. `.##%%%` is `Σ ri²`. Each antipodal pair cancels on its own,
 the load `[2, 4, 2, 4]` at rank 2 reads `[0, 0]` and `0`, and `[3, 2, 1, 4]`
 reads `[2, -2]` and `8`. Equal magnitudes would not make products agree, and no
 Cayley–Dickson product is installed: `.##%%%` is a squared norm of the
-residual, not the multiplication
+residual, not the multiplication. The `2^r` loads are signature loads, and the
+residual is `2^(r−1)` signed coefficients, one Cayley–Dickson rung below
 ```
 ; [(Denum [2, [2, 4, 2, 4]]).###%%%, (Denum [2, [2, 4, 2, 4]]).##%%%, (Denum [2, [3, 2, 1, 4]]).###%%%, (Denum [2, [3, 2, 1, 4]]).##%%%]
 # [[0, 0], 0, [2, -2], 8]

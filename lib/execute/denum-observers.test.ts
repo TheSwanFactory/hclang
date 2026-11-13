@@ -15,6 +15,7 @@ import {
 import { evaluate } from "./evaluate.ts";
 import { constructDenum } from "./denum-prologue.ts";
 import { GEOMETRIES } from "../frames/denum-observers.ts";
+import { cdProduct } from "../frames/cayley-dickson.ts";
 
 const SIMPLEX = ["##%", "###%"] as const;
 const KDSL = ["##%%%", "###%%%"] as const;
@@ -333,4 +334,36 @@ Deno.test("capacity bounds follow the suffix: %% saturates at rank 32768, %%% at
   expect(text(observe(17n, [1n], "##%%%"))).toEqual(
     "$!.denum-binding-capacity",
   );
+});
+
+/** The observed `.###%%%` coefficients of `Denum [r, loads]` as bigints. */
+const coefficients = (r: bigint, loads: readonly bigint[]): bigint[] =>
+  (JSON.parse(text(observe(r, loads, "###%%%"))) as number[]).map(BigInt);
+
+Deno.test("observed KDSL coefficients feed the Cayley–Dickson oracle at rung r−1 (007.46b)", () => {
+  // [rank, loads (2ʳ), coefficients (2^(r−1)), oracle square]. The oracle is a
+  // TypeScript reference; native `*` does not implement it.
+  const witnesses: [bigint, bigint[], bigint[], bigint[]][] = [
+    [1n, [5n, 3n], [2n], [4n]],
+    [2n, [3n, 2n, 1n, 4n], [2n, -2n], [0n, -8n]],
+    [
+      3n,
+      [9n, 1n, 2n, 3n, 4n, 5n, 6n, 7n],
+      [5n, -4n, -4n, -4n],
+      [-23n, -40n, -40n, -40n],
+    ],
+    [
+      4n,
+      [3n, 0n, 5n, 1n, 2n, 7n, 0n, 4n, 0n, 2n, 1n, 6n, 2n, 3n, 5n, 0n],
+      [3n, -2n, 4n, -5n, 0n, 4n, -5n, 4n],
+      [-93n, -12n, 24n, -30n, 0n, 24n, -30n, 24n],
+    ],
+  ];
+  for (const [r, loads, observed, square] of witnesses) {
+    expect(loads.length).toEqual(2 ** Number(r));
+    const seen = coefficients(r, loads);
+    expect(seen).toEqual(observed);
+    expect(seen.length).toEqual(2 ** (Number(r) - 1));
+    expect(cdProduct(seen, seen)).toEqual(square);
+  }
 });

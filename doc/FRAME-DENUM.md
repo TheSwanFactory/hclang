@@ -547,8 +547,8 @@ lexed as `.#` followed by a `%` time literal; it now begins `.#%`.
 Six native observers read a Denum through a geometry. **The count of percent
 signs is the ladder order, a semantic contract:** one `%` is SSL (simplex), two
 `%%` are KPSL (cross-polytope), three `%%%` are KDSL (Cayley–Dickson signed
-basis). v0.52.0 shipped KPSL and KDSL the other way round; v0.53.0 corrects it
-(007.46), see Breaking below.
+basis). v0.52.0 shipped KPSL and KDSL the other way round; the next release
+corrects it (007.46, unreleased at merge), see Breaking below.
 
 The Count of the Denum is its rank `r`; each geometry wants a definite number of
 slots for that rank. The stored loads are aligned to the wanted length (missing
@@ -601,12 +601,26 @@ index 0, and the product of two elements is a full length-2ʳ array, so
 `(1 + 2i + 3j + 4k)(5 + 6i + 7j + 8k) = −60 + 12i + 30j + 24k`.
 
 The reference is `lib/frames/cayley-dickson.ts` (`cdProduct`, `cdConjugate`),
-tested as an algebraic rule in `lib/frames/cayley-dickson.test.ts`. **No
-observer spelling exposes the product.** `.##%%%` is a squared norm of the
-signed-basis residual and `.###%%%` its coordinates; neither is the
-multiplication, and equal residual norm does not imply equal products. A product
-observer would need a new explicit API (a two-operand method or operator) and is
-not added here without an owner decision.
+tested as an algebraic rule in `lib/frames/cayley-dickson.test.ts`. It is an
+independent TypeScript oracle for testing mathematical claims, not a Figure or
+HC operation. **No observer spelling exposes the product.** `.##%%%` is a
+squared norm of the signed-basis residual and `.###%%%` its coordinates; neither
+is the multiplication, and equal residual norm does not imply equal products.
+The product-API question is closed for this change (owner and Graft, PR #496):
+no HC multiplication API is added, native `*` is unchanged and `cdProduct` stays
+a reference. Any future product API needs a separate concrete use case and its
+own authorized task.
+
+**Loads versus coefficients.** Two lengths are in play and must not be confused.
+A rank-r KDSL Denum holds `2ʳ` nonnegative signature loads `B`. The observer
+reads the `2^(r−1)` signed coefficients `Φᵣ(B)ᵢ = Bᵢ − B(i+2^(r−1))`
+(`.###%%%`), and `cdProduct` takes coefficient arrays, so the oracle target of
+an observed rank-r value has length `2^(r−1)`, one rung below the load count:
+r=1 integers (length 1), r=2 Gaussian (2), r=3 quaternion (4), r=4 octonion (8),
+r=5 sedenion (16). Rank 0 is the special scalar reading `[v₀]`. For example the
+rank-2 load `[3, 2, 1, 4]` observes `Φ₂ = [2, -2]`, the Gaussian integer
+`2 − 2i`, whose oracle square is `[0, -8]`. A four-load rank-2 Denum is not four
+quaternion coefficients. Native `*` does not implement the oracle.
 
 **Native `*` is not this product.** Native Denum `*` scales loads by the
 operand's Size: `[0, 1, 0, 0].#### * [0, 1, 0, 0].####` leaves the loads
@@ -614,17 +628,19 @@ operand's Size: `[0, 1, 0, 0].#### * [0, 1, 0, 0].####` leaves the loads
 homomorphism onto KDSL multiplication, by this one-line counterexample, and it
 is unchanged.
 
-**SSL arity.** The Executive's desired arities are SSL `N`, KPSL `2N`, KDSL
-`2^N`. The released SSL observer wants `N+1` slots, the vertex count of a rank-N
-simplex, and keeps that. Whether SSL should want `N` is an open owner decision;
-nothing here changes it.
+**SSL arity.** Approved for this change by the owner: Count is rank N, SSL wants
+`N+1` slots (the vertices of a conventional N-simplex, with N independent
+centered coordinates), KPSL `2N` and KDSL `2^N`. The Executive's earlier SSL `N`
+was provisional and is superseded here. This is an engineering convention under
+open mathematical inquiry, not a theorem; Figure research may revisit it in a
+separate reviewed change.
 
 KDSL at rank 0 reads the single value itself; KPSL at rank 0 reads the empty
 residual and Size 0. The KDSL residual is the signed-basis reading of 007.43h,
 including the real coordinate: `[2, 4, 2, 4]` at rank 2 is `[0, 0]` and Size 0,
 and `[3, 2, 1, 4]` is `[2, -2]` and Size 8. KPSL and KDSL coincide at rank 2
-(both want 4 slots) and differ from rank 3 (6 slots against 8). **Breaking
-(v0.53.0, 007.46):** `.##%%`/`.###%%` now answer KPSL and `.##%%%`/`.###%%%` now
+(both want 4 slots) and differ from rank 3 (6 slots against 8). **Breaking (next
+release, 007.46):** `.##%%`/`.###%%` now answer KPSL and `.##%%%`/`.###%%%` now
 answer KDSL, the reverse of v0.52.0. A program that used the old KPSL spelling
 `%%%` must write `%%`, and one that used the old KDSL spelling `%%` must write
 `%%%`. At ranks where `2r = 2ʳ` (1 and 2) the answers happen to agree.
