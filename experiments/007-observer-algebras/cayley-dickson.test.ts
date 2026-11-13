@@ -1,4 +1,8 @@
 import { expect } from "jsr:@std/expect@^0.219.1";
+import {
+  cdConjugate as shippedConjugate,
+  cdProduct as shippedProduct,
+} from "../../lib/frames/cayley-dickson.ts";
 import { ObserverDomainError } from "./exact.ts";
 import { sampleVectors } from "./sample.ts";
 import {
@@ -166,4 +170,16 @@ Deno.test("conj is an involution, x·conj(x) = N(x), and commutators vanish only
   }
   const [x, y] = sampleVectors(4, 2, 20);
   expect(cdIsZero(cdCommutator(R, x, y))).toBe(false);
+});
+
+Deno.test("the shipped reference product agrees with the experiment's on all samples (007.46)", () => {
+  for (const c of [1, 2, 4, 8, 16]) {
+    const samples = sampleVectors(c, 6, 4646);
+    for (const x of samples) {
+      expect(shippedConjugate(x)).toEqual(cdConj(R, x));
+      for (const y of samples) {
+        expect(shippedProduct(x, y)).toEqual(mul(x, y));
+      }
+    }
+  }
 });

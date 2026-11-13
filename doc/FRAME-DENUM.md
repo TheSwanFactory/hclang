@@ -542,34 +542,92 @@ them is one name, never split implicitly: `.#%%` is an unbound name
 (`$!.name-missing`); write `.# %%` for the modulo. Before this change `.#%…`
 lexed as `.#` followed by a `%` time literal; it now begins `.#%`.
 
-## Geometric observers `.##%` … `.###%%%` (007.41b, 007.43h, 007.43i, 007.44)
+## Geometric observers `.##%` … `.###%%%` (007.41b, 007.43h, 007.43i, 007.44, 007.46)
 
-Six native observers read a Denum through a geometry. The Count of the Denum is
-its rank `r`; each geometry wants a definite number of slots for that rank. The
-stored loads are aligned to the wanted length (missing slots are 0; excess slots
-wrap by index modulo the wanted length and add into the slot they wrap to), and
-the observer is the geometry's ordinary formula on that virtual array. Every
-Count therefore has a defined reading under every observer, Count zero included.
-`.#%` is not applied and is unchanged. A receiver that is not a Denum is
-`$!.denum-binding-receiver`, a wanted length above 65536
+Six native observers read a Denum through a geometry. **The count of percent
+signs is the ladder order, a semantic contract:** one `%` is SSL (simplex), two
+`%%` are KPSL (cross-polytope), three `%%%` are KDSL (Cayley–Dickson signed
+basis). v0.52.0 shipped KPSL and KDSL the other way round; v0.53.0 corrects it
+(007.46), see Breaking below.
+
+The Count of the Denum is its rank `r`; each geometry wants a definite number of
+slots for that rank. The stored loads are aligned to the wanted length (missing
+slots are 0; excess slots wrap by index modulo the wanted length and add into
+the slot they wrap to), and the observer is the geometry's ordinary formula on
+that virtual array. Every Count therefore has a defined reading under every
+observer, Count zero included. `.#%` is not applied and is unchanged. A receiver
+that is not a Denum is `$!.denum-binding-receiver`, a wanted length above 65536
 (`DENUM_BINDING_CAPACITY`) is `$!.denum-binding-capacity`, and no class can
 declare an observer. They are observations only: no load, native observer,
 operator or product changes.
 
-| Geometry                  | Wanted slots | Size-like `##…`                | Residual-like `###…`               |
-| ------------------------- | ------------ | ------------------------------ | ---------------------------------- |
-| SSL simplex `%`           | `r+1`        | `(C·Σbᵢ² − S²)/(C−1)`, C=1 → 0 | `bᵢ − S/C` (numerators `C·bᵢ − S`) |
-| KPSL cross-polytope `%%%` | `2r`         | `Σ rᵢ²`                        | `rᵢ = vᵢ − v(i+r)`, i < r          |
-| KDSL signed basis `%%`    | `2ʳ`         | `Σ Rᵢ²`                        | `Rᵢ = vᵢ − v(i+n)`, n = 2^(r−1)    |
+**Authoritative table.**
+
+| Spelling  | Geometry                  | Wanted slots (rank `r`) | Reading                                                    | Product / reference law              |
+| --------- | ------------------------- | ----------------------- | ---------------------------------------------------------- | ------------------------------------ |
+| `.##%`    | SSL centered simplex      | `r+1` (see below)       | squared Size `(C·Σbᵢ² − S²)/(C−1)`, C=1 → 0                | none                                 |
+| `.###%`   | SSL centered simplex      | `r+1`                   | residual `bᵢ − S/C` (numerators `C·bᵢ − S`)                | none                                 |
+| `.##%%`   | KPSL cross-polytope       | `2r`                    | squared Size `Σ rᵢ²`                                       | none                                 |
+| `.###%%`  | KPSL cross-polytope       | `2r`                    | residual `rᵢ = vᵢ − v(i+r)`, i < r; rank 0 is `[]`         | none                                 |
+| `.##%%%`  | KDSL Cayley–Dickson basis | `2ʳ`                    | squared Size `Σ Rᵢ²`                                       | none (a squared norm, not a product) |
+| `.###%%%` | KDSL Cayley–Dickson basis | `2ʳ`                    | residual `Rᵢ = vᵢ − v(i+n)`, n = 2^(r−1); rank 0 is `[v₀]` | none (coordinates, not a product)    |
+
+The raw and neighbouring operators are different things and are unchanged:
+
+| Spelling | What it is                                                                              |
+| -------- | --------------------------------------------------------------------------------------- |
+| `.#`     | Count (a Denum's rank `r`)                                                              |
+| `.##`    | native Size of the stored loads                                                         |
+| `.###`   | native residual of the stored loads                                                     |
+| `.####`  | the Denum constructor from a source                                                     |
+| `.#%`    | Count binding: folds the loads to exactly C slots by index modulo C                     |
+| `./1`    | the unary ratio form, not an observer                                                   |
+| `*`      | native Denum "inlay": scales every load by the operand's Size. It is not Cayley–Dickson |
+
+**KDSL multiplication.** KDSL is named for the Cayley–Dickson ladder, whose
+product is defined by doubling (007.30a, 007.31, 007.32d, 007.33c): for arrays
+of length 2ʳ with the first half the "a" part and index 0 the real unit,
+
+```
+real base:  a·b = ab,            conj(a) = a
+doubling:   (a,b)·(c,d) = (ac − conj(d)·b,  d·a + b·conj(c))
+conjugate:  conj(a,b) = (conj(a), −b)
+```
+
+At length 2 this is `(a,b)(c,d) = (ac − bd, da + bc)`, so `i² = −1`. At length
+4, `i = e1, j = e2, k = e3` give `ij = k`, `ji = −k`. At length 8 the product is
+nonassociative: `(e1e2)e4 = e7` and `e1(e2e4) = −e7`. The scalar coordinate is
+index 0, and the product of two elements is a full length-2ʳ array, so
+`(1 + 2i + 3j + 4k)(5 + 6i + 7j + 8k) = −60 + 12i + 30j + 24k`.
+
+The reference is `lib/frames/cayley-dickson.ts` (`cdProduct`, `cdConjugate`),
+tested as an algebraic rule in `lib/frames/cayley-dickson.test.ts`. **No
+observer spelling exposes the product.** `.##%%%` is a squared norm of the
+signed-basis residual and `.###%%%` its coordinates; neither is the
+multiplication, and equal residual norm does not imply equal products. A product
+observer would need a new explicit API (a two-operand method or operator) and is
+not added here without an owner decision.
+
+**Native `*` is not this product.** Native Denum `*` scales loads by the
+operand's Size: `[0, 1, 0, 0].#### * [0, 1, 0, 0].####` leaves the loads
+`[0, 1]`, where the Cayley–Dickson `e1·e1 = −e0`. Native `*` is therefore not a
+homomorphism onto KDSL multiplication, by this one-line counterexample, and it
+is unchanged.
+
+**SSL arity.** The Executive's desired arities are SSL `N`, KPSL `2N`, KDSL
+`2^N`. The released SSL observer wants `N+1` slots, the vertex count of a rank-N
+simplex, and keeps that. Whether SSL should want `N` is an open owner decision;
+nothing here changes it.
 
 KDSL at rank 0 reads the single value itself; KPSL at rank 0 reads the empty
 residual and Size 0. The KDSL residual is the signed-basis reading of 007.43h,
-including the real coordinate, replacing the Helmert pure-imaginary reading of
-v0.51.0: `[2, 4, 2, 4]` at rank 2 is `[0, 0]` and Size 0, and `[3, 2, 1, 4]` is
-`[2, -2]` and Size 8. No Cayley–Dickson product is installed. **Breaking:**
-`.###%%`/`.##%%` change meaning, Count is the rank rather than the number of
-bound loads, and `$!.denum-cd-count`, `$!.denum-cross-count` and
-`$!.denum-binding-zero-count` are no longer answered by these observers.
+including the real coordinate: `[2, 4, 2, 4]` at rank 2 is `[0, 0]` and Size 0,
+and `[3, 2, 1, 4]` is `[2, -2]` and Size 8. KPSL and KDSL coincide at rank 2
+(both want 4 slots) and differ from rank 3 (6 slots against 8). **Breaking
+(v0.53.0, 007.46):** `.##%%`/`.###%%` now answer KPSL and `.##%%%`/`.###%%%` now
+answer KDSL, the reverse of v0.52.0. A program that used the old KPSL spelling
+`%%%` must write `%%`, and one that used the old KDSL spelling `%%` must write
+`%%%`. At ranks where `2r = 2ʳ` (1 and 2) the answers happen to agree.
 
 **Return types.** A `##` reading is exact and nonnegative: a FrameCount when
 whole, a FrameRational otherwise (SSL only). A `###` reading is a fresh array of
@@ -579,7 +637,8 @@ FrameRational for SSL.
 **Coordinate conventions.** SSL coordinates are the centered coefficients
 `zᵢ = bᵢ − S/C` on the C unit vertices, so `.##% = C/(C−1)·Σzᵢ²`. KPSL and KDSL
 use the same antipodal formula on different slot counts; they differ in rank
-interpretation and basis labels, not in arithmetic.
+interpretation and basis labels, not in arithmetic. Only KDSL names a
+multiplication, and that is the separate reference above.
 
 **Lexing.** Each spelling is one token, by the same rule as `.#%`: inside a name
 `#` is an operator character, so an operator run is one name. Write `.## %%` for

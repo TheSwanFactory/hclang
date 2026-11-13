@@ -14,13 +14,20 @@
  * | Geometry | Size-like | Residual-like | Wanted slots |
  * | --- | --- | --- | --- |
  * | centered simplex (SSL) `%` | `.##%` | `.###%` | r + 1 |
- * | cross-polytope (KPSL) `%%%` | `.##%%%` | `.###%%%` | 2r |
- * | Cayley–Dickson signed basis (KDSL) `%%` | `.##%%` | `.###%%` | 2ʳ |
+ * | cross-polytope (KPSL) `%%` | `.##%%` | `.###%%` | 2r |
+ * | Cayley–Dickson signed basis (KDSL) `%%%` | `.##%%%` | `.###%%%` | 2ʳ |
+ *
+ * The suffix order is a semantic contract (007.46): one `%` is SSL, two are
+ * KPSL, three are KDSL. v0.52.0 shipped the last two the other way round.
  *
  * KDSL (007.43h) reads signed basis pairs: at rank 0 the single value, at rank
  * r ≥ 1 the 2^(r−1) differences `vᵢ − v(i+2^(r−1))`. Its Size-like is the sum
  * of their squares. A wanted length past `DENUM_BINDING_CAPACITY` is refused as
  * `$!.denum-binding-capacity`.
+ *
+ * KDSL's Size-like and Residual-like are observations of the coordinates, not
+ * its multiplication. The Cayley–Dickson product is the separate reference in
+ * `cayley-dickson.ts`; no observer spelling answers it.
  *
  * Return types: a squared magnitude is exact and nonnegative, a FrameCount
  * when whole and a FrameRational otherwise. Coordinates are a fresh array of
@@ -117,15 +124,17 @@ export const GEOMETRIES: Readonly<Record<string, Geometry>> = {
     residual: simplexResidual,
   },
   "%%": {
-    // 2ʳ, saturated so a huge rank is refused rather than computed.
-    wanted: (r) => r > 64n ? DENUM_BINDING_CAPACITY + 1n : 1n << r,
-    size: (slots) => sumSquares(signedBasisResidual(slots)),
-    residual: (slots) => integers(signedBasisResidual(slots)),
-  },
-  "%%%": {
+    // KPSL, the cross-polytope: 2r slots.
     wanted: (r) => 2n * r,
     size: (slots) => sumSquares(antipodalResidual(slots)),
     residual: (slots) => integers(antipodalResidual(slots)),
+  },
+  "%%%": {
+    // KDSL, the Cayley–Dickson signed basis: 2ʳ slots, saturated so a huge
+    // rank is refused rather than computed.
+    wanted: (r) => r > 64n ? DENUM_BINDING_CAPACITY + 1n : 1n << r,
+    size: (slots) => sumSquares(signedBasisResidual(slots)),
+    residual: (slots) => integers(signedBasisResidual(slots)),
   },
 };
 

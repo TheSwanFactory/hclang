@@ -139,7 +139,7 @@ export function bindingSource(
 }
 
 /**
- * Asks native geometric observers (`##%` … `###%%%`, 007.41b) of
+ * Asks native geometric observers (`##%` … `###%%%`, 007.41b, 007.46) of
  * `Denum [count, loads]` from HC source in a bare evaluator, so the
  * experiment's TypeScript algebras can be checked against the HC bindings. The
  * Denum is built once by the shipped bridge and bound as `$$.d`; every reading

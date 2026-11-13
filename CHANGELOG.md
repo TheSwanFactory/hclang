@@ -4,6 +4,20 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.53.0 2026-11-12
+
+- **Observer suffix order corrected (007.46).** One `%` is SSL, two `%%` are
+  KPSL (cross-polytope, `2r` slots) and three `%%%` are KDSL (Cayley–Dickson
+  signed basis, `2^r` slots). **Breaking:** `.##%%`/`.###%%` and
+  `.##%%%`/`.###%%%` swap meaning against v0.52.0, which shipped them reversed.
+  The answers agree only at ranks 1 and 2. Count as rank, zero-padding,
+  wrap-add, the 65536 capacity and the signed-basis formulas are unchanged, and
+  so is SSL's `r+1`; native `*`, `.##`, `.###`, `.####` and `./1` are unchanged.
+- **Cayley–Dickson product reference.** `lib/frames/cayley-dickson.ts` states
+  the doubling law `(a,b)(c,d) = (ac − conj(d)b, da + b conj(c))` as executable
+  code with `i² = −1`, `ij = k`, `ji = −k` and octonion nonassociativity tests.
+  No observer or operator exposes it; `.##%%%` is a squared norm, not a product.
+
 ## v0.52.0 2026-11-10
 
 - **KDSL observer corrected to the signed basis (007.43h).** `d.###%%` is now

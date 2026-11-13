@@ -611,9 +611,9 @@ export class Frame extends MetaFrame {
   public static readonly kBIND = "#%";
   /**
    * The `%` suffixes of the geometric observers of a Count-bound Denum
-   * (occurrence/figure 007.41b, 007.41c): the centered simplex `%`, the
-   * Cayley–Dickson imaginaries `%%` and the cross-polytope `%%%`. They key
-   * `GEOMETRIES` in `denum-observers.ts`.
+   * (occurrence/figure 007.41b, 007.46): the centered simplex SSL `%`, the
+   * cross-polytope KPSL `%%` and the Cayley–Dickson signed basis KDSL `%%%`.
+   * The order is a contract. They key `GEOMETRIES` in `denum-observers.ts`.
    */
   public static readonly GEOMETRY_SUFFIXES: readonly string[] = [
     "%",
