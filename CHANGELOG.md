@@ -4,10 +4,7 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
-## Unreleased
-
-> No version bump yet: merging this section does not publish or release. The
-> next version bump will release it.
+## v0.53.0 2026-11-15
 
 - **Observer suffix order corrected (007.46).** One `%` is SSL, two `%%` are
   KPSL (cross-polytope, `2r` slots) and three `%%%` are KDSL (Cayley–Dickson
@@ -23,7 +20,7 @@
   operator exposes it and native `*` is unchanged. `.##%%%` is a squared norm,
   not a product. A rank-r KDSL value is read as 2^(r−1) signed coefficients
   (length 2ʳ loads, one rung below), the oracle's target; SSL keeps `r+1` slots
-  by owner decision for this change.
+  by owner decision for this release.
 
 ## v0.52.0 2026-11-10
 
