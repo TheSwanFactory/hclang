@@ -72,6 +72,33 @@ an element-only list. This expectation pins the documented && behavior.
 # [10, 20, 30, 20, 40, 60]
 ```
 
+
+## Flop: concatenate by folding Apply over immediate children
+
+Flop is the FOIST name for repeated Apply: B | A threads A as the
+receiver while visiting each immediate child of B. It is a derived
+left fold, not argument spreading or a new HC evaluator primitive.
+
+```
+; [3, 4] | [1, 2]
+# [1, 2, 3, 4]
+; [] | [1, 2]
+# [1, 2]
+; [3, 4] | []
+# [3, 4]
+; [2, 2] | [1]
+# [1, 2, 2]
+; [[3], [4, 5]] | [1, 2]
+# [1, 2, [3], [4, 5]]
+; .flop {(_ .1) | (_ .0)};
+; flop [[1, 2], [3, 4]]
+# [1, 2, 3, 4]
+```
+
+This also pins the direction: the second collection is traversed,
+while the first collection supplies the initial receiver. Empty
+inputs and repeated occurrences retain their usual Apply semantics.
+
 ## Open design boundary
 
 Unequal-length Zip is intentionally not asserted: an absent address is not
