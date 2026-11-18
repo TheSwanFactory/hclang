@@ -14,9 +14,10 @@
  * JavaScript, so this script writes the maintained sources into one plain
  * module that every bundler can carry.
  *
- * The embed is committed: `deno task bundle:check` compares the shipped sources
- * without writing the embed. The pre-commit hook and
- * `test:all` both run that, so a stale embed never lands.
+ * The generated embed is currently tracked, but is rebuilt automatically by
+ * build, test, and publish tasks, including CI. `deno task bundle:check` can
+ * still verify that the generated module matches its HC sources; no manual
+ * regeneration or pre-commit freshness gate is required.
  *
  * Usage: `deno task bundle:embed`
  *
