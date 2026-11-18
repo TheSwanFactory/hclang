@@ -175,8 +175,9 @@ deno task hc
    This checks formatting and lint without fixing sources, then runs the test
    suite. Use `deno task fix` to format and apply lint fixes.
 
-   `deno task bundle:check` checks bundled HC sources without rewriting them;
-   after editing `hc/*.hc`, regenerate them with `deno task bundle:embed`.
+   Build, test, and publish tasks automatically regenerate the bundled HC
+   sources from `hc/*.hc`. `deno task bundle:check` is available to verify the
+   generated module when needed.
 
 ### Project Structure
 
