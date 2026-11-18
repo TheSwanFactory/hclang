@@ -19,6 +19,11 @@
     "cli"
   ],
   "exports": "./mod.ts",
+  "publish": {
+    "exclude": [
+      "!bundle/hc-sources.ts"
+    ]
+  },
   "compilerOptions": {
     "strict": true
   }
