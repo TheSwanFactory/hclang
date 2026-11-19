@@ -67,5 +67,5 @@ export async function runTestdocs(directory: URL = HC_DOC_DIR): Promise<number> 
 }
 
 if (import.meta.main) {
-  Deno.exitCode = await runTestdocs();
+  Deno.exit(await runTestdocs());
 }
