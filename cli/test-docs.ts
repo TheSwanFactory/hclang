@@ -8,7 +8,7 @@
  *
  * @module
  */
-import { fileURLToPath } from "node:url";
+import { fromFileUrl } from "jsr:@std/path@1.1.6";
 import { visibleEnvironment } from "../lib/execute/env-visibility.ts";
 import { getEval, getOptions, main } from "./hc.ts";
 
@@ -70,7 +70,7 @@ export async function runTestdocs(
       const environment = visibleEnvironment((name) => Deno.env.get(name));
       const status = await main(
         getEval(environment),
-        getOptions(["--testdoc", fileURLToPath(new URL(file, directory))]),
+        getOptions(["--testdoc", fromFileUrl(new URL(file, directory))]),
       );
       if (status !== 0) {
         failed++;

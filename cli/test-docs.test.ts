@@ -1,6 +1,5 @@
 import { expect } from "@std/expect";
-import { join } from "node:path";
-import { pathToFileURL } from "node:url";
+import { join, toFileUrl } from "jsr:@std/path@1.1.6";
 import {
   discoverTestdocs,
   hasExpectations,
@@ -9,7 +8,7 @@ import {
 } from "./test-docs.ts";
 
 function directoryUrl(path: string): URL {
-  return new URL(".", pathToFileURL(join(path, "marker.hc")));
+  return new URL(".", toFileUrl(join(path, "marker.hc")));
 }
 
 Deno.test("testdoc recognition requires shebang and executable expectations", () => {
