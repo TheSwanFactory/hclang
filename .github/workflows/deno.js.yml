@@ -19,9 +19,52 @@ on:
         default: false
 
 jobs:
+  # contents: write belongs only to this job. It pushes `style: deno fmt` onto
+  # a same-repo pull request branch. Forks get a read-only token, and the
+  # default branch is never a push target; both fail `deno fmt --check`.
+  # scripts/ci-format.ts is the policy. A format commit whose tip is already
+  # that bot commit is checked rather than pushed, so a token that does
+  # retrigger workflows cannot loop. The workflow token does not retrigger, so
+  # the build job records the checks on the commit this job pushes.
+  format:
+    permissions:
+      contents: write
+
+    runs-on: ubuntu-latest
+    outputs:
+      pushed: ${{ steps.apply.outputs.pushed }}
+      sha: ${{ steps.apply.outputs.sha }}
+
+    steps:
+      - name: Checkout the pull request head
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.head_ref }}
+          persist-credentials: true
+      - name: Checkout the event ref
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Use Deno 2.9.5
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.9.5
+      - name: Format and push, or fail the format check
+        id: apply
+        env:
+          HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
+          HEAD_REF: ${{ github.head_ref }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: bash scripts/ci-format.sh
+
   build:
+    needs: format
     permissions:
       contents: read
+      # Record this run on the format commit. The token push does not start one.
+      checks: write
 
     runs-on: ubuntu-latest
     outputs:
@@ -37,6 +80,11 @@ jobs:
         uses: denoland/setup-deno@v2
         with:
           deno-version: v2.9.5
+      # The format job pushed deno fmt of the PR head. This checkout is the
+      # merge commit from before that push, so format it too before the suite.
+      - name: Format the checkout before building
+        if: needs.format.outputs.pushed == 'true'
+        run: deno fmt
       - name: Use Node 24 for the supported npm runtime floor
         uses: actions/setup-node@v6
         with:
@@ -137,6 +185,34 @@ jobs:
         run: deno task vscode:publish
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
+      - name: Record this run on the format commit
+        if: always() && needs.format.outputs.pushed == 'true'
+        env:
+          FORMAT_SHA: ${{ needs.format.outputs.sha }}
+          JOB_STATUS: ${{ job.status }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          case "$JOB_STATUS" in
+            success) conclusion=success ;;
+            cancelled) conclusion=cancelled ;;
+            *) conclusion=failure ;;
+          esac
+          details="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          summary="The format job pushed this commit with the workflow token. That push does not start another workflow run, so this run formatted the pull request checkout with deno fmt and recorded the result here."
+          post_check() {
+            jq -n \
+              --arg name "$1" \
+              --arg sha "$FORMAT_SHA" \
+              --arg conclusion "$2" \
+              --arg details "$details" \
+              --arg title "$3" \
+              --arg summary "$summary" \
+              '{name:$name, head_sha:$sha, status:"completed", conclusion:$conclusion, details_url:$details, output:{title:$title, summary:$summary}}' |
+              gh api --method POST "/repos/${GITHUB_REPOSITORY}/check-runs" --input -
+          }
+          post_check format success "Formatting pushed"
+          post_check build "$conclusion" "Tested the formatted tree"
 
   release:
     name: Publish release

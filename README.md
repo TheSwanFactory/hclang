@@ -175,6 +175,11 @@ deno task hc
    This checks formatting and lint without fixing sources, then runs the test
    suite. Use `deno task fix` to format and apply lint fixes.
 
+   A pull request from a branch in this repository is formatted in CI. When
+   files change, CI pushes a `style: deno fmt` commit onto the branch; pull it
+   before the next `deno task test`. Pushes to the default branch and fork pull
+   requests fail `deno fmt --check` on drift.
+
    `deno task bundle:check` checks bundled HC sources without rewriting them;
    after editing `hc/*.hc`, regenerate them with `deno task bundle:embed`.
 

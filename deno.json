@@ -25,7 +25,7 @@
     "test:load-order": "deno test --allow-env --allow-read lib/load-order.test.ts",
     "test:maml": "deno test maml",
     "test:npm": "deno task build:npm && deno run -A scripts/test-npm.ts",
-    "test:scripts": "deno test scripts",
+    "test:scripts": "deno test --allow-run --allow-read --allow-write --allow-env scripts",
     "test:observer-algebras": "deno test --allow-read experiments/007-observer-algebras",
     "experiment:observer-algebras": "deno run --allow-read experiments/007-observer-algebras/report.ts",
     "test:web": "cd web && deno task test",
