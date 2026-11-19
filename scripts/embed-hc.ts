@@ -14,10 +14,10 @@
  * JavaScript, so this script writes the maintained sources into one plain
  * module that every bundler can carry.
  *
- * The generated embed is currently tracked, but is rebuilt automatically by
- * build, test, and publish tasks, including CI. `deno task bundle:check` can
- * still verify that the generated module matches its HC sources; no manual
- * regeneration or pre-commit freshness gate is required.
+ * The generated module is gitignored. Build, test, and publishing tasks
+ * regenerate it automatically, including in CI. The JSR package explicitly
+ * includes it despite .gitignore. `deno task bundle:check` remains an optional
+ * consistency check; no manual regeneration or pre-commit gate is required.
  *
  * Usage: `deno task bundle:embed`
  *
