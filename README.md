@@ -112,6 +112,11 @@ The root `deno.json` provides several tasks:
 | `deno task build:npm` | Generate the Node.js CLI package in `dist/npm`    |
 | `deno task test:npm`  | Pack and smoke-test the CLI package through `npx` |
 
+`test:doc` automatically discovers every `hc/*.hc` file with an HC shebang and
+an executable `; source` / `# expected` pair. It runs each testdoc in an
+independent session; there is no file list to update. `test:bs` remains a
+convenient focused command for BitScheme alone.
+
 ### BitScheme
 
 [BitScheme](hc/BitScheme.hc) is a specialized scripting language for
