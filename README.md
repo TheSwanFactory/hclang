@@ -82,8 +82,8 @@ cd hclang
 deno task hc
 ```
 
-This will launch the interactive HC interpreter. The `hc` task regenerates
-the local, gitignored HC bundle automatically on a fresh clone.
+This will launch the interactive HC interpreter. The `hc` task regenerates the
+local, gitignored HC bundle automatically on a fresh clone.
 
 ### Run Tests
 
