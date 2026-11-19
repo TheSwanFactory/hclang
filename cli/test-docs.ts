@@ -25,7 +25,9 @@ export function isTestdoc(source: string): boolean {
 }
 
 /** Discover assertion-bearing HC documents in stable filename order. */
-export async function discoverTestdocs(directory: URL = HC_DOC_DIR): Promise<string[]> {
+export async function discoverTestdocs(
+  directory: URL = HC_DOC_DIR,
+): Promise<string[]> {
   const files: string[] = [];
   for await (const entry of Deno.readDir(directory)) {
     if (!entry.isFile || !entry.name.endsWith(".hc")) continue;
@@ -36,7 +38,9 @@ export async function discoverTestdocs(directory: URL = HC_DOC_DIR): Promise<str
 }
 
 /** Execute every discovered testdoc independently; any failure fails the suite. */
-export async function runTestdocs(directory: URL = HC_DOC_DIR): Promise<number> {
+export async function runTestdocs(
+  directory: URL = HC_DOC_DIR,
+): Promise<number> {
   const files = await discoverTestdocs(directory);
   if (files.length === 0) {
     console.error("No executable HC testdocs found");
