@@ -41,6 +41,13 @@ expectation. Run with deno task test:doc.
 # [[1, 2], [1, 2], [1, 2], [1, 2]]
 ```
 
+## Cartesian pairing: nested children are paired as immediate elements
+
+```
+; [[1], [2]] &| {.a _; [[3], [4]] & {[a, _]}}
+# [[[1], [3]], [[1], [4]], [[2], [3]], [[2], [4]]]
+```
+
 ## Zip: corresponding positions
 
 The doubled map yields [address, value]. Its address can be applied to B.
@@ -72,7 +79,6 @@ an element-only list. This expectation pins the documented && behavior.
 # [10, 20, 30, 20, 40, 60]
 ```
 
-
 ## Flop: concatenate by folding Apply over immediate children
 
 Flop is the FOIST name for repeated Apply: B | A threads A as the
@@ -101,8 +107,10 @@ inputs and repeated occurrences retain their usual Apply semantics.
 
 ## Open design boundary
 
-Unequal-length Zip is intentionally not asserted: an absent address is not
-automatically a truncation rule. A general element-only Zip must also decide
-whether to filter the property plane. Those policies require separate tests.
+Zip against an empty right-hand source is intentionally not asserted: absent
+addresses require a policy (truncate, refuse or propagate a missing value),
+which is also unresolved for other unequal lengths. A general element-only Zip
+must additionally decide whether to filter the property plane. Those policies
+require separate tests.
 
 ```

@@ -13,7 +13,10 @@ until the marker is removed. Comment out examples that must not be evaluated.
 (`#!/usr/bin/env hc`) plus at least one adjacent `; source` / `# expected` pair
 marks a testdoc. Every discovered file runs in an independent evaluator session,
 in sorted filename order. Do not add filenames to a task manifest. Files without
-executable expectations remain ordinary HC modules or examples.
+executable expectations remain ordinary HC modules or examples. A new HC file
+with expectation pairs but without the HC shebang is rejected instead of
+silently skipped. The only legacy exceptions are `cqml.hc` (aspirational) and
+`white-paper-core.hc` (covered by the CLI test suite).
 
 ## The compiled binary
 

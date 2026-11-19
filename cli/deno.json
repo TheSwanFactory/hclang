@@ -11,7 +11,7 @@
     "test": "deno test --allow-env --allow-read --allow-write",
     "test:bs": "deno task hc ../hc/BitScheme.hc -t",
     "test:classes": "deno task hc ../hc/class-support.hc -t",
-    "test:doc": "deno task --config ../deno.json bundle:embed && deno run --allow-read --allow-write --allow-env --deny-run --deny-ffi ./test-docs.ts"
+    "test:doc": "deno run --allow-read --allow-write --allow-env --deny-run --deny-ffi ./test-docs.ts"
   },
   "imports": {
     "@nothing628/chalk": "jsr:@nothing628/chalk@^1.0.1",

@@ -82,7 +82,8 @@ cd hclang
 deno task hc
 ```
 
-This will launch the interactive HC interpreter.
+This will launch the interactive HC interpreter. The `hc` task regenerates
+the local, gitignored HC bundle automatically on a fresh clone.
 
 ### Run Tests
 
@@ -187,7 +188,9 @@ deno task hc
 
    Build, test, and publish tasks automatically regenerate the bundled HC
    sources from `hc/*.hc`. `deno task bundle:check` is available to verify the
-   generated module when needed.
+   generated module when needed. Before running raw `deno check`, a bare
+   `deno test`, or editor type-checking on a fresh clone, initialize that
+   gitignored module once with `deno task bundle:embed`.
 
 ### Project Structure
 

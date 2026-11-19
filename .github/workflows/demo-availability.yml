@@ -18,6 +18,8 @@ jobs:
       - uses: denoland/setup-deno@v2
         with:
           deno-version: v2.9.5
+      - name: Generate HC source bundle before dependency resolution
+        run: deno task bundle:embed
       - run: deno ci
       - name: Install Chromium
         run: deno run -A npm:playwright@1.62.0 install --with-deps chromium
