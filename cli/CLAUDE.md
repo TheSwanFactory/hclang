@@ -9,6 +9,15 @@ implemented yet, write `# $!.unimplemented Correct-Value`. A differing or
 missing result then counts as unimplemented, and producing `Correct-Value` fails
 until the marker is removed. Comment out examples that must not be evaluated.
 
+`deno task test:doc` discovers files in `hc/` automatically: an HC shebang
+(`#!/usr/bin/env hc`) plus at least one adjacent `; source` / `# expected` pair
+marks a testdoc. Every discovered file runs in an independent evaluator session,
+in sorted filename order. Do not add filenames to a task manifest. Files without
+executable expectations remain ordinary HC modules or examples. A new HC file
+with expectation pairs but without the HC shebang is rejected instead of
+silently skipped. The only legacy exceptions are `cqml.hc` (aspirational) and
+`white-paper-core.hc` (covered by the CLI test suite).
+
 ## The compiled binary
 
 The binary needs no extra assets, because the bundled `hc/` files are compiled

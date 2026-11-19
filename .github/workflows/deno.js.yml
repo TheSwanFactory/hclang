@@ -90,6 +90,8 @@ jobs:
         with:
           node-version: 24
           package-manager-cache: false
+      - name: Generate HC source bundle before dependency resolution
+        run: deno task bundle:embed
       - run: deno ci
       - name: Install Chromium for artifact tests
         run: deno run -A npm:playwright@1.62.0 install --with-deps chromium
@@ -239,6 +241,8 @@ jobs:
           node-version: 24
           registry-url: "https://registry.npmjs.org"
           package-manager-cache: false
+      - name: Generate HC source bundle before dependency resolution
+        run: deno task bundle:embed
       - run: deno ci
       - name: Download tested npm artifact
         uses: actions/download-artifact@v7
@@ -343,6 +347,8 @@ jobs:
       - uses: denoland/setup-deno@v2
         with:
           deno-version: v2.9.5
+      - name: Generate HC source bundle before dependency resolution
+        run: deno task bundle:embed
       - run: deno ci
       - name: Install Chromium
         run: deno run -A npm:playwright@1.62.0 install --with-deps chromium

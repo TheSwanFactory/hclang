@@ -21,12 +21,6 @@ hooks:
       glob: "**/*.{ts,tsx,js,jsx}"
       pass_filenames: true
 
-    # Fail on an hc/ bundle embed that was not regenerated
-    - id: bundle-check
-      name: bundle check
-      run: deno task bundle:check
-      pass_filenames: false
-
   pre-push:
     # Run the full gate before pushing, the same command CI runs; the built-in
     # `deno-test` is a bare `deno test -A`, which is not this project's gate

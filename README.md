@@ -82,7 +82,8 @@ cd hclang
 deno task hc
 ```
 
-This will launch the interactive HC interpreter.
+This will launch the interactive HC interpreter. The `hc` task regenerates the
+local, gitignored HC bundle automatically on a fresh clone.
 
 ### Run Tests
 
@@ -111,6 +112,11 @@ The root `deno.json` provides several tasks:
 | `deno task build`     | Build native, npm, and web artifacts              |
 | `deno task build:npm` | Generate the Node.js CLI package in `dist/npm`    |
 | `deno task test:npm`  | Pack and smoke-test the CLI package through `npx` |
+
+`test:doc` automatically discovers every `hc/*.hc` file with an HC shebang and
+an executable `; source` / `# expected` pair. It runs each testdoc in an
+independent session; there is no file list to update. `test:bs` remains a
+convenient focused command for BitScheme alone.
 
 ### BitScheme
 
@@ -180,8 +186,11 @@ deno task hc
    before the next `deno task test`. Pushes to the default branch and fork pull
    requests fail `deno fmt --check` on drift.
 
-   `deno task bundle:check` checks bundled HC sources without rewriting them;
-   after editing `hc/*.hc`, regenerate them with `deno task bundle:embed`.
+   Build, test, and publish tasks automatically regenerate the bundled HC
+   sources from `hc/*.hc`. `deno task bundle:check` is available to verify the
+   generated module when needed. Before running raw `deno check`, a bare
+   `deno test`, or editor type-checking on a fresh clone, initialize that
+   gitignored module once with `deno task bundle:embed`.
 
 ### Project Structure
 

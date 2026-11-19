@@ -74,13 +74,14 @@ lays the top-level `hc/` folder over it read-only. Those files are ordinary HC
 programs, modules and testdocs alike, and the package ships all of them so a
 session can include any one with `<-`: `Figures <- './hc/figures.hc'` imports
 `hc/figures.hc`. Nothing is in scope until a program imports it. The sources are
-compiled in from the generated, committed `lib/bundle/hc-sources.ts`, so after
-adding, editing, or removing an `hc/*.hc`, run `deno task bundle:embed` and
-commit the result. Git is the drift check: `deno task bundle:check` regenerates
-the embed and fails on any difference, and both the pre-commit hook and
-`test:all` run it. A bare `evaluate` has no root, so it imports nothing, bundled
-or otherwise. The one exception is the Denum class that `.####` answers, which
-the evaluator reads from `hc/denum.hc` in the embed, in a namespace of its own
+compiled in from the generated, gitignored `lib/bundle/hc-sources.ts`. Build,
+test, and publishing tasks regenerate that module from `hc/*.hc` automatically
+before consuming it, including in CI. There is no checked-in bundle to maintain.
+`lib/deno.json` explicitly includes the generated module in JSR publication
+despite `.gitignore`. `deno task bundle:check` remains available to diagnose
+mismatches. A bare `evaluate` has no root, so it imports nothing, bundled or
+otherwise. The one exception is the Denum class that `.####` answers, which the
+evaluator reads from `hc/denum.hc` in the embed, in a namespace of its own
 (`lib/execute/denum-prologue.ts`), so that file's code must not import.
 
 ## Project Guidelines
