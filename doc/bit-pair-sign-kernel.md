@@ -55,6 +55,8 @@ The discovered testdoc asserts:
 - identity-index and asymmetric early-return cases;
 - a small executable ladder of real, complex, quaternion, octonion, sedenion,
   and rank-5 basis-sign witnesses using the same kernel;
+- a short Cayley–Dickson ladder of rank-by-rank sign witnesses, including
+  quaternion anticommutation, an octonion associator sign, and embedding;
 - the **complete 8×8** sign table on octonionic basis indices, with expected
   values independently generated from the Rust reference;
 - representative bit-7 / leading-zero cases with the complete width-8 scan;
