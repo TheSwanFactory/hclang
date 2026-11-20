@@ -1,4 +1,8 @@
-import { assertEquals, assertNotEquals, assertThrows } from "jsr:@std/assert";
+import {
+  assertEquals,
+  assertNotEquals,
+  assertThrows,
+} from "jsr:@std/assert@^1.0.15";
 import {
   cayleyDicksonLaw,
   commutatorWitness,
