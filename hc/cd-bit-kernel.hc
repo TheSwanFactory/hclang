@@ -280,36 +280,33 @@ implements the n/2 half-rotation after zero-padding to a chosen CD arity.
   (split.front) | (split.back)
 };
 ```
-A sign reversal is ONLY a half-rotation of the flat sequence after
-zero-padding to its chosen CD power-of-two arity n=2m. At n=2 it swaps
-two counts; at n=4 it rotates four counts by two slots; at n=8 it
-rotates eight by four. It neither calls an integer minus nor introduces
-a new algebraic operation.
+A sign reversal is ONLY a half-rotation of a valid, flat,
+2m-slot CD presentation: at n=2 it swaps two counts; at n=4 it rotates
+four counts by two slots; at n=8 it rotates eight by four. It neither
+calls an integer minus nor introduces a new algebraic operation.
 
-The next CD arity is supplied explicitly as a zero-template length,
-just as the descending sign-scan powers are supplied. The pad fold
-appends only the missing zeros; it never examines symbolic addresses.
+To lift the value to the NEXT CD rung, insert m zeros after EACH
+m-slot half separately before the n/2 rotation. Appending zeros only at
+the end would move the positive/negative boundary and CHANGE the value.
+
+Both halves are taken from the SAME flat value and padded separately.
+This preserves the old CD basis directions in the higher rung. The
+doubling length is already specified by the source CD arity; no signed
+literals, arbitrary-list zero-fill, or automatic size inference.
 ```
-; .CdFlatPadTail {
-  [.source_length _;
-   .i 0;
-   .tail [];
-   .apply_ {
-     .unused _;
-     (i .>= source_length) ? {@tail (tail 0); <>} : {<>};
-     @i (i + 1);
-     _^^
-   }]
+; .cd_flat_embed_cd {
+  .x _;
+  .half (((x.#) / 2).##);
+  .parts (x | (CdFlatSplit half));
+  .zeros ((parts.front) & {0});
+  .positive (zeros | (parts.front));
+  .negative (zeros | (parts.back));
+  negative | positive
 };
-; .cd_flat_pad {
-  .args _;
-  .x (args .0);
-  .zeros (args .1);
-  .pad (zeros | (CdFlatPadTail (x.#)));
-  (pad.tail) | x
-};
-; cd_flat_pad [[3, 4, 1], [0, 0, 0, 0]]
-# [3, 4, 1, 0]
+; cd_flat_embed_cd [3, 1]
+# [3, 0, 1, 0]
+; cd_flat_embed_cd [3, 4, 1, 2]
+# [3, 4, 0, 0, 1, 2, 0, 0]
 ; cd_flat_neg [3, 1]
 # [1, 3]
 ; cd_flat_neg [3, 4, 1, 0]
@@ -318,6 +315,10 @@ appends only the missing zeros; it never examines symbolic addresses.
 # [5, 6, 7, 8, 1, 2, 3, 4]
 ; cd_flat_neg (cd_flat_neg [3, 4, 1, 0])
 # [3, 4, 1, 0]
+; cd_flat_neg (cd_flat_embed_cd [3, 1])
+# [1, 0, 3, 0]
+; cd_flat_embed_cd (cd_flat_neg [3, 1])
+# [1, 0, 3, 0]
 ```
 Addition is slotwise counting-number addition (native Zip). Equality
 modulo gauge is checked without subtraction: x and y are equivalent
@@ -336,6 +337,10 @@ negative halves. Both addends and the result remain flat.
   cd_bool ((split.front) = (split.back))
 };
 ; cd_flat_eq [[3, 4, 1, 2], [4, 5, 2, 3]]
+# 1
+; cd_flat_eq [cd_flat_embed_cd [3, 1], [2, 0, 0, 0]]
+# 1
+; cd_flat_eq [cd_flat_embed_cd [4, 2], cd_flat_embed_cd [3, 1]]
 # 1
 ; cd_flat_eq [[3, 4, 1, 2], [3, 4, 1, 3]]
 # 0
