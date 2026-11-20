@@ -63,3 +63,25 @@ The derived Zip still has its own property and missing-address semantics.
 # [[1, 10], [2, 20]]
 ; A && {[_.1, B (_.0)]}
 # [[1, 10], [2, 20]]
+
+```
+Operand shape follows HC's existing element iteration convention:
+a scalar or nil is one element; property-only Frames have no elements.
+Chaining pairs left to right instead of flattening triples.
+```
+; () |&| [1]
+# [[(), 1]]
+; 1 &|& [2, 3]
+# [[1, 2], [1, 3]]
+; “ab” |&| [1, 2]
+# [[“ab”, 1]]
+; (.a 1, .b 2) |&| [3, 4]
+# []
+; [1, 2] |&| [3, 4] |&| [5, 6]
+# [[[1, 3], 5], [[2, 4], 6]]
+
+```
+Closure elements are source-code atoms, not evaluated closure results.
+```
+; [1] &|& {_ + 1}
+# [[1, _], [1, +], [1, 1]]
