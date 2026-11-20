@@ -48,3 +48,18 @@ Named properties are not positional elements, on either side.
 # [[1, 10], [2, 20]]
 ; [.meta 9; 1, 2] &|& [.tag 8; 10]
 # [[1, 10], [2, 10]]
+
+```
+Native operations agree with the derived patterns on their shared domain.
+The derived Zip still has its own property and missing-address semantics.
+```
+; .A [1, 2];
+; .B [10, 20];
+; A &|& B
+# [[1, 10], [1, 20], [2, 10], [2, 20]]
+; A &| {.a _; B & {[a, _]}}
+# [[1, 10], [1, 20], [2, 10], [2, 20]]
+; A |&| B
+# [[1, 10], [2, 20]]
+; A && {[_.1, B (_.0)]}
+# [[1, 10], [2, 20]]
