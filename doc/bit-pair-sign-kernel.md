@@ -42,8 +42,8 @@ The required `powers` sequence is a complete descending list
 `[2^(n−1), ..., 1]`; `u` and `v` are nonnegative indices smaller than `2^n`.
 These are **preconditions**, not runtime checks. The core testdoc exercises
 widths 3 and 8 with numeric basis indices. The separate byte-ingress wrapper
-accepts two exact-width binary blobs through pure schema evidence, then
-converts them to the same numeric kernel input.
+accepts two exact-width binary blobs through pure schema evidence, then converts
+them to the same numeric kernel input.
 
 ## Test coverage
 
