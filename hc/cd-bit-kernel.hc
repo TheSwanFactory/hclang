@@ -286,8 +286,9 @@ four counts by two slots; at n=8 it rotates eight by four. It neither
 calls an integer minus nor introduces a new algebraic operation.
 
 To lift the value to the NEXT CD rung, insert m zeros after EACH
-m-slot half separately before the n/2 rotation. Appending zeros only at
-the end would move the positive/negative boundary and CHANGE the value.
+m-slot half separately. This halfwise padding COMMUTES with the n/2
+rotation. Appending zeros only at the end would move the positive/negative
+boundary and CHANGE the value.
 
 Both halves are taken from the SAME flat value and padded separately.
 This preserves the old CD basis directions in the higher rung. The
@@ -320,10 +321,12 @@ literals, arbitrary-list zero-fill, or automatic size inference.
 ; cd_flat_embed_cd (cd_flat_neg [3, 1])
 # [1, 0, 3, 0]
 ```
-Addition is slotwise counting-number addition (native Zip). Equality
-modulo gauge is checked without subtraction: x and y are equivalent
-exactly when x plus the half-rotation of y has equal positive and
-negative halves. Both addends and the result remain flat.
+Addition is slotwise counting-number addition (native Zip). The add/mul
+helpers assume equal-width CD operands at the stated rung; native Zip
+truncates unequal lists. Equality must explicitly reject unequal widths.
+Within one rung, gauge equality is checked without subtraction: x and y
+are equivalent exactly when x plus the half-rotation of y has equal
+positive and negative halves. Both addends and the result remain flat.
 ```
 ; .cd_flat_add {
   .xy _;
@@ -334,7 +337,7 @@ negative halves. Both addends and the result remain flat.
   .diff (cd_flat_add [(xy .0), cd_flat_neg (xy .1)]);
   .half (((diff.#) / 2).##);
   .split (diff | (CdFlatSplit half));
-  cd_bool ((split.front) = (split.back))
+  (((xy .0).#) = ((xy .1).#)) ? {cd_bool ((split.front) = (split.back))} : {0}
 };
 ; cd_flat_eq [[3, 4, 1, 2], [4, 5, 2, 3]]
 # 1
@@ -343,6 +346,10 @@ negative halves. Both addends and the result remain flat.
 ; cd_flat_eq [cd_flat_embed_cd [4, 2], cd_flat_embed_cd [3, 1]]
 # 1
 ; cd_flat_eq [[3, 4, 1, 2], [3, 4, 1, 3]]
+# 0
+; cd_flat_eq [[3, 1, 0, 0], [2, 0]]
+# 0
+; cd_flat_eq [[2, 0], [3, 1, 0, 0]]
 # 0
 ; cd_flat_eq [cd_flat_neg [3, 4, 1, 2], [2, 3, 4, 5]]
 # 1
@@ -454,6 +461,13 @@ slots) reuse this SINGLE flat sign/multiply/rotation construction.
 # [0, 0, 0, 1, 0, 0, 0, 0]
 ; cd_flat_mul [[0, 0, 1, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0], [2, 1]]
 # [0, 0, 0, 0, 0, 0, 0, 1]
+```
+Embedding into the next CD rung preserves multiplication modulo gauge:
+`embed(x*y) ~ embed(x)*embed(y)`. This tests the higher-rung basis
+compatibility directly, not just the coordinate layout.
+```
+; cd_flat_eq [cd_flat_embed_cd (cd_flat_mul [[2, 0, 1, 0], [0, 3, 0, 2], [1]]), cd_flat_mul [cd_flat_embed_cd [2, 0, 1, 0], cd_flat_embed_cd [0, 3, 0, 2], [2, 1]]]
+# 1
 ```
 Scope and interpretation:
 
