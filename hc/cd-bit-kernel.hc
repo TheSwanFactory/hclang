@@ -236,66 +236,188 @@ still has the same sign. No zero-divisor claim follows from signs alone.
 ; cd_sign [1, 2, [16, 8, 4, 2, 1]]
 # 0
 ```
-One rung earlier? Counting numbers as input to the SAME sign rule.
+Unflattening the coefficient ring: counting numbers and gauge.
 
-This is a discriminating experiment, not an assumption that the first bit
-means -1. Start with counting-number magnitudes 0, 1, 2, ... carried on
-the existing identity basis e_0. Introduce one NEW selector bit e_1,
-just as the conventional doubling does.
+An integer coefficient is represented by a pair [positive, negative] of
+counting numbers. These are COUNTERS, not a positive and a negative
+native HC integer. Pairs [a,b] and [c,d] represent the same coefficient
+exactly when a+d = b+c. Diagonal shifts [a+k,b+k] are gauge moves.
 
-For one-bit basis indices u,v in {0,1}, record the product as
-[sign_parity, basis_index]. Its basis index is (u + v) mod 2,
-i.e. XOR for one bit. The coefficient sign comes exclusively from the
-unchanged cd_sign; no negative literal is supplied or evaluated.
-
-The expected single-bit products are:
-  e_0 e_0 = +e_0   -> [0,0]
-  e_0 e_1 = +e_1   -> [0,1]
-  e_1 e_0 = +e_1   -> [0,1]
-  e_1 e_1 = -e_0   -> [1,0]
+This is the standard additive group completion of counting numbers.
+Addition, multiplication and representative equality below use only
+nonnegative addition, multiplication, comparisons, and pair swapping.
+No native negative literal or subtraction is needed in these functions.
 ```
-; .cd_rank1_product {
-  .uv _;
-  .u (uv .0);
-  .v (uv .1);
-  .index ((u + v) %% 2);
-  [cd_sign [u, v, [1]], index]
+; .cd_gauge_eq {
+  .xy _;
+  .a (xy .0);
+  .b (xy .1);
+  cd_bool (((a .0) + (b .1)) = ((a .1) + (b .0)))
 };
-; cd_rank1_product [0, 0]
-# [0, 0]
-; cd_rank1_product [0, 1]
-# [0, 1]
-; cd_rank1_product [1, 0]
-# [0, 1]
-; cd_rank1_product [1, 1]
+; .cd_gauge_add {
+  .xy _;
+  .a (xy .0);
+  .b (xy .1);
+  [((a .0) + (b .0)), ((a .1) + (b .1))]
+};
+; .cd_gauge_neg {.a _; [(a .1), (a .0)]};
+; .cd_gauge_mul {
+  .xy _;
+  .a (xy .0);
+  .b (xy .1);
+  [(((a .0) * (b .0)) + ((a .1) * (b .1))),
+   (((a .0) * (b .1)) + ((a .1) * (b .0)))]
+};
+; cd_gauge_eq [[1, 0], [2, 1]]
+# 1
+; cd_gauge_eq [[0, 1], [3, 4]]
+# 1
+; cd_gauge_eq [[1, 0], [0, 1]]
+# 0
+; cd_gauge_add [[3, 0], [0, 3]]
+# [3, 3]
+; cd_gauge_eq [cd_gauge_add [[3, 0], [0, 3]], [0, 0]]
+# 1
+; cd_gauge_neg [3, 0]
+# [0, 3]
+; cd_gauge_mul [[0, 1], [0, 1]]
 # [1, 0]
+; cd_gauge_eq [cd_gauge_mul [[2, 1], [0, 1]], [0, 1]]
+# 1
 ```
-Counting magnitude three can accompany the derived negative coefficient
-marker: [3,1] means "three units with negative sign". This is DATA,
-not HC's pre-existing negative integer -3 and not yet an additive inverse.
+The existing CD sign rule acts on a coefficient by leaving its counting
+pair alone for parity 0 or swapping its counters for parity 1. This does
+not modify cd_sign or interpret the basis selector as a negative number.
+The product of TWO representatives stays gauge invariant after either
+sign; a shifted pair merely contributes a different representative.
 ```
-; .cd_count_new_square {
-  .n _;
-  .product (cd_rank1_product [1, 1]);
-  [n, (product .0)]
+; .cd_gauge_signed {
+  .ps _;
+  .pair (ps .0);
+  .parity (ps .1);
+  (parity = 0) ? {pair} : {cd_gauge_neg pair}
 };
-; cd_count_new_square 3
-# [3, 1]
+; .cd_gauge_basis_coefficient {
+  .args _;
+  .a (args .0);
+  .b (args .1);
+  .u (args .2);
+  .v (args .3);
+  .powers (args .4);
+  cd_gauge_signed [cd_gauge_mul [a, b], cd_sign [u, v, powers]]
+};
+; cd_gauge_basis_coefficient [[1, 0], [1, 0], 1, 1, [1]]
+# [0, 1]
+; cd_gauge_eq [
+  cd_gauge_basis_coefficient [[2, 1], [3, 2], 1, 1, [1]],
+  [0, 1]
+]
+# 1
+; cd_gauge_eq [
+  cd_gauge_basis_coefficient [[2, 1], [3, 2], 2, 1, [2, 1]],
+  [0, 1]
+]
+# 1
+; cd_gauge_eq [
+  cd_gauge_basis_coefficient [[2, 1], [3, 2], 4, 1, [4, 2, 1]],
+  [0, 1]
+]
+# 1
 ```
-Interpretation and the still-open proof obligation:
+The next rung has FOUR counting coordinates: a complex coefficient pair
+[x0,x1], where each xj is itself a gauge pair [positive,negative].
+The four ordinary Cayley-Dickson one-bit basis products contribute to
+the two result coordinates. Each sign is obtained from the UNCHANGED
+cd_sign [u,v,[1]] and acts only by counter swapping. No direct - term.
 
-The same CD sign rule DOES produce a formal negative scalar coefficient
-from two positive-basis inputs: e_1 squared has sign parity 1. It also
-leaves e_1 as a distinct basis component; e_1 itself is not identified
-with -e_0. In particular, the one-bit extension is not JUST the ring
-of signed integers.
+The imaginary basis element e1 remains a distinct doubling component.
+In particular, e1*e1 yields the negative scalar class [0,1] on e0.
+```
+; .cd_complex_eq {
+  .xy _;
+  .a (xy .0);
+  .b (xy .1);
+  ((cd_gauge_eq [(a .0), (b .0)]) = 1) ? {
+    cd_gauge_eq [(a .1), (b .1)]
+  } : {0}
+};
+; .cd_complex_add {
+  .xy _;
+  .a (xy .0);
+  .b (xy .1);
+  [cd_gauge_add [(a .0), (b .0)], cd_gauge_add [(a .1), (b .1)]]
+};
+; .cd_complex_neg {
+  .a _;
+  [cd_gauge_neg (a .0), cd_gauge_neg (a .1)]
+};
+; .cd_complex_mul {
+  .xy _;
+  .a (xy .0);
+  .b (xy .1);
+  .aa (cd_gauge_basis_coefficient [(a .0), (b .0), 0, 0, [1]]);
+  .bb (cd_gauge_basis_coefficient [(a .1), (b .1), 1, 1, [1]]);
+  .ab (cd_gauge_basis_coefficient [(a .0), (b .1), 0, 1, [1]]);
+  .ba (cd_gauge_basis_coefficient [(a .1), (b .0), 1, 0, [1]]);
+  [cd_gauge_add [aa, bb], cd_gauge_add [ab, ba]]
+};
+; .cd_complex_one [[1, 0], [0, 0]];
+; .cd_complex_i [[0, 0], [1, 0]];
+; cd_complex_mul [cd_complex_i, cd_complex_i]
+# [[0, 1], [0, 0]]
+; cd_complex_mul [cd_complex_i, cd_complex_one]
+# [[0, 0], [1, 0]]
+; cd_complex_eq [[[2, 1], [5, 5]], cd_complex_one]
+# 1
+; cd_complex_eq [
+  cd_complex_add [cd_complex_i, cd_complex_neg cd_complex_i],
+  [[0, 0], [0, 0]]
+]
+# 1
+; cd_complex_eq [
+  cd_complex_mul [[[2, 1], [5, 5]], cd_complex_i],
+  cd_complex_i
+]
+# 1
+; cd_complex_eq [
+  cd_complex_mul [[[5, 5], [2, 1]], cd_complex_i],
+  [[0, 1], [0, 0]]
+]
+# 1
+```
+The quaternion rung is two complex coordinate blocks, or EIGHT raw
+counting counters. This equality witness exhibits four independent
+gauge moves without pretending to have built full quaternion arithmetic
+here. The already-tested cd_sign rank-2 witnesses above supply its
+basis-product signs, independently of the coefficient representatives.
+```
+; .cd_quaternion_eq {
+  .xy _;
+  .a (xy .0);
+  .b (xy .1);
+  ((cd_complex_eq [(a .0), (b .0)]) = 1) ? {
+    cd_complex_eq [(a .1), (b .1)]
+  } : {0}
+};
+; cd_quaternion_eq [
+  [[[1, 0], [0, 0]], [[0, 0], [1, 0]]],
+  [[[2, 1], [3, 3]], [[4, 4], [2, 1]]]
+]
+# 1
+```
+Verdict and limitation:
 
-These witnesses DO NOT construct addition on signed magnitudes, exhibit
-3 + (-3) = 0, or prove closure or the additive-inverse axioms. Reading
-[3,1] as the integer -3 requires additional coefficient semantics;
-the kernel alone computes only basis-product signs. Thus the conjecture
-"negative signs emerge" has a positive witness, while the stronger claim
-"the first doubling constructs exactly the integers" remains unproved.
+The gauge quotient makes additive inverses constructively: the class of
+[n,0] added to [0,n] equals the zero class [0,0], and the product of the
+class [0,1] with itself is the unit class. The same cd_sign basis kernel
+then acts coherently on these classes, independent of gauge representative.
+Complex numbers use four raw counting coordinates; quaternions use eight.
+
+But the gauge quotient is an ADDITIONAL equivalence construction on the
+coefficient carrier: the CD sign kernel ALONE does not construct that
+quotient. The first new CD basis bit denotes e1, not negative-one.
+Thus we have proved the gauge compatibility of the unchanged sign rule
+in the witnessed cases, not that its first doubling by itself is Z.
 ```
 ```
 Complete 8-by-8 octonion basis-sign matrix at width 3. Expected data were
