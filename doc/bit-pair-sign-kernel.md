@@ -40,8 +40,10 @@ changing BitScheme's grammar or making schemas effectful.
 
 The required `powers` sequence is a complete descending list
 `[2^(n−1), ..., 1]`; `u` and `v` are nonnegative indices smaller than `2^n`.
-These are **preconditions**, not runtime checks. The core testdoc exercises
-widths 3 and 8 with numeric basis indices. The separate byte-ingress wrapper
+These are **preconditions**, not runtime checks; this example intentionally
+omits range guards. Inputs outside the specified index domain are undefined,
+and their returned parity must not be interpreted as a valid product sign. The core testdoc exercises
+ranks 0 through 5 and width 8 with numeric basis indices. The separate byte-ingress wrapper
 accepts two exact-width binary blobs through pure schema evidence, then converts
 them to the same numeric kernel input.
 
@@ -51,10 +53,13 @@ The discovered testdoc asserts:
 
 - individual bit extraction and the paired observation shape;
 - identity-index and asymmetric early-return cases;
+- a small executable ladder of real, complex, quaternion, octonion,
+  sedenion, and rank-5 basis-sign witnesses using the same kernel;
 - the **complete 8×8** sign table on octonionic basis indices, with expected
   values independently generated from the Rust reference;
 - representative bit-7 / leading-zero cases with the complete width-8 scan;
-- fixed-width BitScheme schema capture and binary-blob ingress cases.
+- fixed-width BitScheme schema capture, binary-blob ingress cases, and
+  negative examples for invalid or incorrectly sized ingress.
 
 Run the executable assertions with:
 
@@ -64,10 +69,11 @@ deno task test:doc
 
 The full repository suite is `deno task test`.
 
-**Review note:** When the PR was authored, Deno execution was not available in
-the author's environment. Treat the result as source-written and rely on actual
-CI/testdoc execution before merging; do not interpret the reference-generated
-expectations as independently passing HC tests.
+**Verification history:** Before the ladder revision, CI run 721 and a local
+interpreter run passed all 25 original testdoc assertions. The 8×8 table and
+65,536 eight-bit sign pairs were independently cross-checked against a
+reference. The newly added ladder and negative-ingress assertions require a
+fresh testdoc run before their passing status can be claimed.
 
 ## Deliberate non-goals
 
