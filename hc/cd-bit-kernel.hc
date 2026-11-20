@@ -255,42 +255,58 @@ The observational gauge identifies two equal-length flat lists x,y iff
 for EVERY basis position j in [0,m), x[j]+y[j+m]=x[j+m]+y[j].
 The quotient interprets the flat states as signed coefficients; the
 states themselves are retained, not silently normalized.
+
+HC's doubled-map addresses are symbolic, NOT numeric indices. Instead
+the following ordinary fold class splits a flat stream after m slots,
+without treating those addresses as arithmetic. This same split
+implements the n/2 half-rotation after zero-padding to a chosen CD arity.
 ```
-; .cd_flat_eq {
-  .xy _;
-  .x (xy .0);
-  .y (xy .1);
-  .half (((x.#) / 2).##);
-  .checks (x && {.cell _; .i (cell .0);
-    (i .< half) ? {
-      cd_bool (((x i) + (y (i + half))) = ((x (i + half)) + (y i)))
-    } : {0}
-  });
-  cd_bool ((checks.##) = half)
+; .CdFlatSplit {
+  [.half _;
+   .i 0;
+   .front [];
+   .back [];
+   .apply_ {
+     .v _;
+     (i .< half) ? {@front (front v); <>} : {@back (back v); <>};
+     @i (i + 1);
+     _^^
+   }]
 };
-; cd_flat_eq [[3, 4, 1, 2], [4, 5, 2, 3]]
-# 1
-; cd_flat_eq [[3, 4, 1, 2], [3, 4, 1, 3]]
-# 0
+; .cd_flat_neg {
+  .x _;
+  .half (((x.#) / 2).##);
+  .split (x | (CdFlatSplit half));
+  (split.back) | (split.front)
+};
 ```
 A sign reversal is ONLY a half-rotation of the flat sequence after
 zero-padding to its chosen CD power-of-two arity n=2m. At n=2 it swaps
 two counts; at n=4 it rotates four counts by two slots; at n=8 it
 rotates eight by four. It neither calls an integer minus nor introduces
-a new algebraic operation. The next CD arity is supplied explicitly,
-as with the descending sign-scan powers; the zero template is n long.
+a new algebraic operation.
+
+The next CD arity is supplied explicitly as a zero-template length,
+just as the descending sign-scan powers are supplied. The pad fold
+appends only the missing zeros; it never examines symbolic addresses.
 ```
+; .CdFlatPadTail {
+  [.source_length _;
+   .i 0;
+   .tail [];
+   .apply_ {
+     .unused _;
+     (i .>= source_length) ? {@tail (tail 0); <>} : {<>};
+     @i (i + 1);
+     _^^
+   }]
+};
 ; .cd_flat_pad {
   .args _;
   .x (args .0);
   .zeros (args .1);
-  zeros && {.cell _; .i (cell .0); (i .< x.#) ? {x i} : {0}}
-};
-; .cd_flat_neg {
-  .x _;
-  .n (x.#);
-  .half ((n / 2).##);
-  x && {.cell _; .i (cell .0); x ((i + half) %% n)}
+  .pad (zeros | (CdFlatPadTail (x.#)));
+  (pad.tail) | x
 };
 ; cd_flat_pad [[3, 4, 1], [0, 0, 0, 0]]
 # [3, 4, 1, 0]
@@ -302,17 +318,29 @@ as with the descending sign-scan powers; the zero template is n long.
 # [5, 6, 7, 8, 1, 2, 3, 4]
 ; cd_flat_neg (cd_flat_neg [3, 4, 1, 0])
 # [3, 4, 1, 0]
-; cd_flat_eq [cd_flat_neg [3, 4, 1, 2], [2, 3, 4, 5]]
-# 1
 ```
-Addition is slotwise counting-number addition, and the quotient sees
-the usual cancellation. Both addends are flat states, and so is the
-result. The modulo-two sign is enacted by the same half-rotation.
+Addition is slotwise counting-number addition (native Zip). Equality
+modulo gauge is checked without subtraction: x and y are equivalent
+exactly when x plus the half-rotation of y has equal positive and
+negative halves. Both addends and the result remain flat.
 ```
 ; .cd_flat_add {
   .xy _;
   ((xy .0) |&| (xy .1)) & {((_ .0) + (_ .1))}
 };
+; .cd_flat_eq {
+  .xy _;
+  .diff (cd_flat_add [(xy .0), cd_flat_neg (xy .1)]);
+  .half (((diff.#) / 2).##);
+  .split (diff | (CdFlatSplit half));
+  cd_bool ((split.front) = (split.back))
+};
+; cd_flat_eq [[3, 4, 1, 2], [4, 5, 2, 3]]
+# 1
+; cd_flat_eq [[3, 4, 1, 2], [3, 4, 1, 3]]
+# 0
+; cd_flat_eq [cd_flat_neg [3, 4, 1, 2], [2, 3, 4, 5]]
+# 1
 ; cd_flat_add [[3, 4, 1, 2], cd_flat_neg [3, 4, 1, 2]]
 # [4, 6, 4, 6]
 ; cd_flat_eq [cd_flat_add [[3, 4, 1, 2], cd_flat_neg [3, 4, 1, 2]], [0, 0, 0, 0]]
@@ -320,12 +348,12 @@ result. The modulo-two sign is enacted by the same half-rotation.
 ```
 Product generation from the SAME cd_sign rule.
 
-The slot address i names (i mod m) as a CD basis index and (i<m)
-as its positive/negative orientation. Native Cart forms all input-slot
-pairs; each contributes its magnitude product to a destination basis
-index u XOR v, with sign = input orientations XOR cd_sign(u,v).
-No double-counting of basis dimensions: there are m basis directions
-and 2m sign-oriented counting slots for ONE represented number.
+The input stream's slot order already determines the CD basis index
+(slot modulo half) and its sign orientation. Native Cart forms all
+input-slot pairs; each contributes its magnitude product to the output
+basis index u XOR v, with sign = both input orientations XOR cd_sign.
+The transient [magnitude,basis index,orientation] routing records are
+NOT nested signed coefficients.
 
 cd_flat_xor uses the same observed bits as cd_sign, with no added
 bitwise-language primitive. Powers [] is the real, rank-zero case.
@@ -343,13 +371,18 @@ bitwise-language primitive. Powers [] is the real, rank-zero case.
 # 3
 ; cd_flat_xor [3, 3, [2, 1]]
 # 0
-; .cd_flat_slots {
-  .args _;
-  .x (args .0);
-  .half (args .1);
-  x && {.cell _; .i (cell .0); .mag (cell .1);
-    [mag, (i %% half), ((i .< half) ? {0} : {1})]
-  }
+; .CdFlatSlotter {
+  [.half _;
+   .i 0;
+   .slots [];
+   .apply_ {
+     .magnitude _;
+     .basis (i %% half);
+     .orientation ((i .< half) ? {0} : {1});
+     @slots (slots [magnitude, basis, orientation]);
+     @i (i + 1);
+     _^^
+   }]
 };
 ; .cd_flat_term {
   .args _;
@@ -364,15 +397,25 @@ bitwise-language primitive. Powers [] is the real, rank-zero case.
   .parity ((((a .2) + (b .2)) + (cd_sign [u, v, powers])) %% 2);
   [mag, ((cd_flat_xor [u, v, powers]) + (half * parity))]
 };
+; .CdFlatDeposit {
+  [.dest (_ .0);
+   .mag (_ .1);
+   .i 0;
+   .out [];
+   .apply_ {
+     .v _;
+     @out (out (v + ((i = dest) ? {mag} : {0})));
+     @i (i + 1);
+     _^^
+   }]
+};
 ; .CdFlatCollector {
   [.counts _;
    .apply_ {
      .term _;
      .mag (term .0);
-     .destination (term .1);
-     @counts (counts && {.cell _; .i (cell .0); .value (cell .1);
-       value + ((i = destination) ? {mag} : {0})
-     });
+     .dest (term .1);
+     @counts ((counts | (CdFlatDeposit [dest, mag])).out);
      _^^
    }]
 };
@@ -382,9 +425,9 @@ bitwise-language primitive. Powers [] is the real, rank-zero case.
   .y (args .1);
   .powers (args .2);
   .half (((x.#) / 2).##);
-  .xs (cd_flat_slots [x, half]);
-  .ys (cd_flat_slots [y, half]);
-  .terms ((xs &|& ys) & {cd_flat_term [_, powers, half]});
+  .xs (x | (CdFlatSlotter half));
+  .ys (y | (CdFlatSlotter half));
+  .terms (((xs.slots) &|& (ys.slots)) & {cd_flat_term [_, powers, half]});
   (terms | (CdFlatCollector (x & {0}))).counts
 };
 ```
