@@ -212,9 +212,9 @@ We compute each composite sign from two calls to the same kernel.
 # 0
 ; cd_sign [1, 6, [4, 2, 1]]
 # 1
-; (cd_sign [1, 2, [4, 2, 1]] + cd_sign [3, 4, [4, 2, 1]]) %% 2
+; ((cd_sign [1, 2, [4, 2, 1]]) + (cd_sign [3, 4, [4, 2, 1]])) %% 2
 # 0
-; (cd_sign [2, 4, [4, 2, 1]] + cd_sign [1, 6, [4, 2, 1]]) %% 2
+; ((cd_sign [2, 4, [4, 2, 1]]) + (cd_sign [1, 6, [4, 2, 1]])) %% 2
 # 1
 ```
 Rank 4, sedenion: e_8 squared is -e_0, and its products with
@@ -235,7 +235,6 @@ still has the same sign. No zero-divisor claim follows from signs alone.
 # 1
 ; cd_sign [1, 2, [16, 8, 4, 2, 1]]
 # 0
-```
 ```
 Complete 8-by-8 octonion basis-sign matrix at width 3. Expected data were
 computed independently from the Rust reference in Explore 023.01. This
@@ -277,14 +276,11 @@ This is an 8-bit bridge, NOT a public two-blob cursor or an implicit cast.
 ]>;
 ; .cd_byte_index {
   .bits (CdByte _);
-  ((cd_bool (bits.b7 = 0b1)) * 128) +
-  ((cd_bool (bits.b6 = 0b1)) * 64) +
-  ((cd_bool (bits.b5 = 0b1)) * 32) +
-  ((cd_bool (bits.b4 = 0b1)) * 16) +
-  ((cd_bool (bits.b3 = 0b1)) * 8) +
-  ((cd_bool (bits.b2 = 0b1)) * 4) +
-  ((cd_bool (bits.b1 = 0b1)) * 2) +
-  (cd_bool (bits.b0 = 0b1))
+  .w76 (((cd_bool (bits.b7 = 0b1)) * 128) + ((cd_bool (bits.b6 = 0b1)) * 64));
+  .w54 (((cd_bool (bits.b5 = 0b1)) * 32) + ((cd_bool (bits.b4 = 0b1)) * 16));
+  .w32 (((cd_bool (bits.b3 = 0b1)) * 8) + ((cd_bool (bits.b2 = 0b1)) * 4));
+  .w10 (((cd_bool (bits.b1 = 0b1)) * 2) + (cd_bool (bits.b0 = 0b1)));
+  w76 + w54 + w32 + w10
 };
 ; cd_byte_index 0b10100101
 # 165
