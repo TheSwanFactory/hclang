@@ -27,7 +27,9 @@ operator. p is a power of two and the input is a nonnegative integer.
 ; cd_bit [5, 1]
 # 1
 ```
-The observation map is pure: [u_bit, v_bit, lower_u_nonzero, lower_v_nonzero], from high to low. The lower-tail predicates refer to the
+The observation map is pure:
+[u_bit, v_bit, lower_u_nonzero, lower_v_nonzero], from high to low.
+The lower-tail predicates refer to the
 original operands. The transition applies the current swapped orientation
 before interpreting each observation. Values below bit k are x %% 2^k.
 ```
@@ -113,6 +115,66 @@ leading 00 observations leave the state unchanged.
 ; cd_sign [5, 3, [4, 2, 1]]
 # 0
 ```
+Executable witnesses for the conventional Cayley–Dickson ladder.
+These are basis-product SIGN tests, not construction of the number carriers.
+For basis units e_u and e_v, the product index is u XOR v and this kernel
+supplies the coefficient (-1)^parity. The same cd_sign implementation is
+used at every rank; only the complete descending powers list changes.
+
+Real (rank 0): e_0 is the multiplicative identity. An empty scan is valid
+for its sole basis index; the identity wrapper returns parity 0.
+```
+; cd_sign [0, 0, []]
+# 0
+```
+Complex (rank 1): e_1 squared is -e_0.
+```
+; cd_sign [1, 1, [1]]
+# 1
+```
+Quaternion (rank 2): e_1 e_2 = +e_3 and e_2 e_1 = -e_3.
+This demonstrates anticommutation without a rank-specific kernel.
+```
+; cd_sign [1, 2, [2, 1]]
+# 0
+; cd_sign [2, 1, [2, 1]]
+# 1
+```
+Octonion (rank 3): a newly introduced unit e_4 squares to -e_0,
+and anticommutes with the earlier unit e_1.
+```
+; cd_sign [4, 4, [4, 2, 1]]
+# 1
+; cd_sign [1, 4, [4, 2, 1]]
+# 0
+; cd_sign [4, 1, [4, 2, 1]]
+# 1
+```
+Sedenion (rank 4): the new e_8 also squares to -e_0.
+The quaternion signs embed unchanged when a leading zero bit is added.
+```
+; cd_sign [8, 8, [8, 4, 2, 1]]
+# 1
+; cd_sign [1, 2, [8, 4, 2, 1]]
+# 0
+; cd_sign [2, 1, [8, 4, 2, 1]]
+# 1
+```
+Rank 5 (32 dimensions): e_16 squares to -e_0 and the same
+quaternion signs persist through another doubling.
+```
+; cd_sign [16, 16, [16, 8, 4, 2, 1]]
+# 1
+; cd_sign [1, 2, [16, 8, 4, 2, 1]]
+# 0
+; cd_sign [2, 1, [16, 8, 4, 2, 1]]
+# 1
+```
+These witnesses demonstrate sign behavior and lower-rank embedding.
+They do not by themselves prove nonassociativity, zero divisors,
+or the emergence of negative integers from counting numbers.
+```
+```
 Complete 8-by-8 octonion basis-sign matrix at width 3. Expected data were
 computed independently from the Rust reference in Explore 023.01. This
 exercises all four current-bit cases and orientation/early-stop paths.
@@ -136,13 +198,13 @@ coercions or JavaScript bitwise truncation are involved in the HC arithmetic.
 ; cd_sign8 [255, 127]
 # 0
 ```
-The fold is an implementation of CD sign parity over numeric basis indices, not a new BitScheme syntax, a generalized signature kernel, or a proof about
-the physical geometry of the indexing space.
+The fold implements CD sign parity over numeric basis indices.
+It is not new BitScheme syntax, a generalized signature kernel,
+or a proof about the physical geometry of the indexing space.
 ```
 
 ```
-The current BitScheme bit-schema matcher can also be used as a pure ingress
-adapter. This fixed-width schema captures eight individual bits without
+The BitScheme matcher also serves as a pure ingress adapter. This fixed-width schema captures eight individual bits without
 changing its input. A separate ordinary HC computation converts the evidence
 to the numeric index consumed by the scan; schema matching stays read-only.
 This is an 8-bit bridge, NOT a public two-blob cursor or an implicit cast.
@@ -150,7 +212,14 @@ This is an 8-bit bridge, NOT a public two-blob cursor or an implicit cast.
 ; .CdByte <[.b7 <1@Bit>; .b6 <1@Bit>; .b5 <1@Bit>; .b4 <1@Bit>; .b3 <1@Bit>; .b2 <1@Bit>; .b1 <1@Bit>; .b0 <1@Bit>;]>;
 ; .cd_byte_index {
   .bits (CdByte _);
-  ((cd_bool (bits.b7 = 0b1)) * 128) + ((cd_bool (bits.b6 = 0b1)) * 64) + ((cd_bool (bits.b5 = 0b1)) * 32) + ((cd_bool (bits.b4 = 0b1)) * 16) + ((cd_bool (bits.b3 = 0b1)) * 8) + ((cd_bool (bits.b2 = 0b1)) * 4) + ((cd_bool (bits.b1 = 0b1)) * 2) + (cd_bool (bits.b0 = 0b1))
+  ((cd_bool (bits.b7 = 0b1)) * 128) +
+  ((cd_bool (bits.b6 = 0b1)) * 64) +
+  ((cd_bool (bits.b5 = 0b1)) * 32) +
+  ((cd_bool (bits.b4 = 0b1)) * 16) +
+  ((cd_bool (bits.b3 = 0b1)) * 8) +
+  ((cd_bool (bits.b2 = 0b1)) * 4) +
+  ((cd_bool (bits.b1 = 0b1)) * 2) +
+  (cd_bool (bits.b0 = 0b1))
 };
 ; cd_byte_index 0b10100101
 # 165
@@ -167,3 +236,14 @@ This is an 8-bit bridge, NOT a public two-blob cursor or an implicit cast.
 # 1
 ; cd_sign_bits8 [0b00000101, 0b00000011]
 # 0
+
+```
+Negative ingress witnesses: schema matching rejects undersized,
+oversized, and non-binary input instead of implicitly coercing it.
+```
+; cd_byte_index 0b101
+# $!.insufficient-bits .b4 3
+; cd_byte_index 0b111111111
+# $!.unconsumed-bits 1
+; cd_byte_index 5
+# $!.bit-input-invalid 5
