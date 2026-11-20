@@ -71,8 +71,10 @@ export function signedBasis(
   index: number,
   sign: 1 | -1 = 1,
 ): bigint[] {
-  if (!Number.isInteger(dimension) || dimension < 1 ||
-      !Number.isInteger(index) || index < 0 || index >= dimension) {
+  if (
+    !Number.isInteger(dimension) || dimension < 1 ||
+    !Number.isInteger(index) || index < 0 || index >= dimension
+  ) {
     throw new RangeError("invalid basis dimension or index");
   }
   const result = new Array<bigint>(dimension).fill(0n);
