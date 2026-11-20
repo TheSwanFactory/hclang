@@ -1,4 +1,5 @@
 import { IfElse, IfThen } from "./ops/conditionals.ts";
+import { CartElements, ZipElements } from "./ops/pairings.ts";
 import { FrameOps } from "./ops/frame-ops.ts";
 import {
   MapElements,
@@ -32,6 +33,8 @@ export const Ops = new FrameOps({
   "&": MapElements,
   "&&": MapMembers,
   "&|": SpliceElements,
+  "&|&": CartElements,
+  "|&|": ZipElements,
   ":": IfElse,
   "?": IfThen,
   "|": ReduceElements,
