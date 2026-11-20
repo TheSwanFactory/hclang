@@ -10,7 +10,7 @@ BitScheme schema matcher pure.
 
 The input powers must be a complete descending list [2^(n-1), ..., 1] and both
 indices must be in [0, 2^n). The example supplies explicit width-3 and width-8
-power lists. This is a U8 proof-of-concept, not a U64/bit-blob native API.
+power lists. This is a bounded basis-sign testdoc, not a U64/bit-blob native API.
 The output 0 or 1 is the exponent of (-1), NOT a zero algebra coefficient.
 The doubling convention is (a,b)(c,d) = (ac - d* b, da + b c*).
 ```
@@ -175,6 +175,68 @@ They do not by themselves prove nonassociativity, zero divisors,
 or the emergence of negative integers from counting numbers.
 ```
 ```
+Cayley–Dickson ladder: a few executable witnesses, one sign kernel.
+
+For basis units e_u e_v = (-1)^parity e_(u XOR v), these assertions check
+the coefficient sign only; the basis-index XOR is a mathematical convention,
+not an operation implemented by this kernel. The full algebra of linear
+combinations is deliberately out of scope. All ranks use the same cd_sign.
+
+Rank 0, real: e_0 is the identity (parity 0).
+Rank 1, complex: e_1 squared is -e_0 (parity 1).
+Rank 2, quaternion: e_1 e_2 = +e_3 and e_2 e_1 = -e_3.
+```
+; cd_sign [0, 0, [1]]
+# 0
+; cd_sign [0, 1, [1]]
+# 0
+; cd_sign [1, 1, [1]]
+# 1
+; cd_sign [1, 2, [2, 1]]
+# 0
+; cd_sign [2, 1, [2, 1]]
+# 1
+; cd_sign [3, 3, [2, 1]]
+# 1
+```
+Rank 3, octonion: e_1, e_2, e_4 give a nonassociative witness.
+(e_1 e_2) e_4 has sign 0; e_1 (e_2 e_4) has sign 1.
+The products have the same final basis index 7, but opposite signs.
+We compute each composite sign from two calls to the same kernel.
+```
+; cd_sign [1, 2, [4, 2, 1]]
+# 0
+; cd_sign [3, 4, [4, 2, 1]]
+# 0
+; cd_sign [2, 4, [4, 2, 1]]
+# 0
+; cd_sign [1, 6, [4, 2, 1]]
+# 1
+; (cd_sign [1, 2, [4, 2, 1]] + cd_sign [3, 4, [4, 2, 1]]) %% 2
+# 0
+; (cd_sign [2, 4, [4, 2, 1]] + cd_sign [1, 6, [4, 2, 1]]) %% 2
+# 1
+```
+Rank 4, sedenion: e_8 squared is -e_0, and its products with
+the existing quaternion generator are orientation-sensitive.
+The embedded quaternion product e_1 e_2 retains its sign.
+Rank 5: a new e_16 also squares to -e_0; the embedded e_1 e_2
+still has the same sign. No zero-divisor claim follows from signs alone.
+```
+; cd_sign [8, 8, [8, 4, 2, 1]]
+# 1
+; cd_sign [8, 1, [8, 4, 2, 1]]
+# 1
+; cd_sign [1, 8, [8, 4, 2, 1]]
+# 0
+; cd_sign [1, 2, [8, 4, 2, 1]]
+# 0
+; cd_sign [16, 16, [16, 8, 4, 2, 1]]
+# 1
+; cd_sign [1, 2, [16, 8, 4, 2, 1]]
+# 0
+```
+```
 Complete 8-by-8 octonion basis-sign matrix at width 3. Expected data were
 computed independently from the Rust reference in Explore 023.01. This
 exercises all four current-bit cases and orientation/early-stop paths.
@@ -209,7 +271,10 @@ changing its input. A separate ordinary HC computation converts the evidence
 to the numeric index consumed by the scan; schema matching stays read-only.
 This is an 8-bit bridge, NOT a public two-blob cursor or an implicit cast.
 ```
-; .CdByte <[.b7 <1@Bit>; .b6 <1@Bit>; .b5 <1@Bit>; .b4 <1@Bit>; .b3 <1@Bit>; .b2 <1@Bit>; .b1 <1@Bit>; .b0 <1@Bit>;]>;
+; .CdByte <[
+  .b7 <1@Bit>; .b6 <1@Bit>; .b5 <1@Bit>; .b4 <1@Bit>;
+  .b3 <1@Bit>; .b2 <1@Bit>; .b1 <1@Bit>; .b0 <1@Bit>;
+]>;
 ; .cd_byte_index {
   .bits (CdByte _);
   ((cd_bool (bits.b7 = 0b1)) * 128) +
@@ -240,6 +305,16 @@ This is an 8-bit bridge, NOT a public two-blob cursor or an implicit cast.
 ```
 Negative ingress witnesses: schema matching rejects undersized,
 oversized, and non-binary input instead of implicitly coercing it.
+```
+; cd_byte_index 0b101
+# $!.insufficient-bits .b4 3
+; cd_byte_index 0b111111111
+# $!.unconsumed-bits 1
+; cd_byte_index 5
+# $!.bit-input-invalid 5
+```
+BitScheme ingress rejects incomplete, oversized, or non-blob inputs.
+These are executable error-contract witnesses, not new parser behavior.
 ```
 ; cd_byte_index 0b101
 # $!.insufficient-bits .b4 3
