@@ -139,3 +139,27 @@ coercions or JavaScript bitwise truncation are involved in the HC arithmetic.
 The fold is an implementation of CD sign parity over numeric basis indices, not a new BitScheme syntax, a generalized signature kernel, or a proof about
 the physical geometry of the indexing space.
 ```
+
+```
+The current BitScheme bit-schema matcher can also be used as a pure ingress
+adapter. This fixed-width schema captures eight individual bits without
+changing its input. A separate ordinary HC computation converts the evidence
+to the numeric index consumed by the scan; schema matching stays read-only.
+This is an 8-bit bridge, NOT a public two-blob cursor or an implicit cast.
+```
+; .CdByte <[.b7 <1@Bit>; .b6 <1@Bit>; .b5 <1@Bit>; .b4 <1@Bit>; .b3 <1@Bit>; .b2 <1@Bit>; .b1 <1@Bit>; .b0 <1@Bit>;]>;
+; .cd_byte_index {
+  .bits (CdByte _);
+  ((cd_bool (bits.b7 = 0b1)) * 128) + ((cd_bool (bits.b6 = 0b1)) * 64) + ((cd_bool (bits.b5 = 0b1)) * 32) + ((cd_bool (bits.b4 = 0b1)) * 16) + ((cd_bool (bits.b3 = 0b1)) * 8) + ((cd_bool (bits.b2 = 0b1)) * 4) + ((cd_bool (bits.b1 = 0b1)) * 2) + (cd_bool (bits.b0 = 0b1))
+};
+; cd_byte_index 0b10100101
+# 165
+; cd_byte_index 0b00000000
+# 0
+; .cd_sign_bits8 {.inputs _; cd_sign8 [cd_byte_index (inputs .0), cd_byte_index (inputs .1)]};
+; cd_sign_bits8 [0b10000000, 0b10000001]
+# 0
+; cd_sign_bits8 [0b10000000, 0b00000001]
+# 1
+; cd_sign_bits8 [0b10000000, 0b00000000]
+# 0
