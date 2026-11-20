@@ -30,15 +30,20 @@ changing BitScheme's grammar or making schemas effectful.
 3. **Reduction (existing HC):** `observations | (CdSignState ())` applies the
    transition for each observation. A halted state is **absorbing**; the fold
    still visits remaining items. No short-circuit primitive is claimed.
-4. **Result:** `cd_sign` returns parity 0 or 1, and explicitly handles an input
+4. **Schema ingress (pure):** `CdByte` uses the implemented BitScheme matcher
+   for eight exact 1-bit captures. `cd_byte_index` converts that evidence into
+   an integer, and `cd_sign_bits8` delegates to the same fold. No matcher state
+   or implicit blob-to-integer cast is introduced.
+5. **Result:** `cd_sign` returns parity 0 or 1, and explicitly handles an input
    basis index zero as the identity case. Parity 0 means coefficient +1, not the
    algebraic zero element.
 
 The required `powers` sequence is a complete descending list
 `[2^(n−1), ..., 1]`; `u` and `v` are nonnegative indices smaller than `2^n`.
-They are checked by this document as **preconditions**, not by a runtime type
-checker. The testdoc exercises widths 3 and 8. Inputs are numeric basis indices,
-not native binary `FrameBlob` pairs.
+These are **preconditions**, not runtime checks. The core testdoc exercises
+widths 3 and 8 with numeric basis indices. The separate byte-ingress wrapper
+accepts two exact-width binary blobs through pure schema evidence, then
+converts them to the same numeric kernel input.
 
 ## Test coverage
 
@@ -48,7 +53,8 @@ The discovered testdoc asserts:
 - identity-index and asymmetric early-return cases;
 - the **complete 8×8** sign table on octonionic basis indices, with expected
   values independently generated from the Rust reference;
-- representative bit-7 / leading-zero cases with the complete width-8 scan.
+- representative bit-7 / leading-zero cases with the complete width-8 scan;
+- fixed-width BitScheme schema capture and binary-blob ingress cases.
 
 Run the executable assertions with:
 
