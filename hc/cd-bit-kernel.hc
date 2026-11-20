@@ -236,6 +236,176 @@ still has the same sign. No zero-divisor claim follows from signs alone.
 ; cd_sign [1, 2, [16, 8, 4, 2, 1]]
 # 0
 ```
+Unflattening the coefficient ring: counting numbers and gauge.
+
+An integer coefficient is represented by a pair [positive, negative] of
+counting numbers. These are COUNTERS, not a positive and a negative
+native HC integer. Pairs [a,b] and [c,d] represent the same coefficient
+exactly when a+d = b+c. Diagonal shifts [a+k,b+k] are gauge moves.
+
+This is the standard additive group completion of counting numbers.
+Addition, multiplication and representative equality below use only
+nonnegative addition, multiplication, comparisons, and pair swapping.
+No native negative literal or subtraction is needed in these functions.
+```
+; .cd_gauge_eq {
+  .xy _;
+  .a (xy .0);
+  .b (xy .1);
+  cd_bool (((a .0) + (b .1)) = ((a .1) + (b .0)))
+};
+; .cd_gauge_add {
+  .xy _;
+  .a (xy .0);
+  .b (xy .1);
+  [((a .0) + (b .0)), ((a .1) + (b .1))]
+};
+; .cd_gauge_neg {.a _; [(a .1), (a .0)]};
+; .cd_gauge_mul {
+  .xy _;
+  .a (xy .0);
+  .b (xy .1);
+  [(((a .0) * (b .0)) + ((a .1) * (b .1))),
+   (((a .0) * (b .1)) + ((a .1) * (b .0)))]
+};
+; cd_gauge_eq [[1, 0], [2, 1]]
+# 1
+; cd_gauge_eq [[0, 1], [3, 4]]
+# 1
+; cd_gauge_eq [[1, 0], [0, 1]]
+# 0
+; cd_gauge_add [[3, 0], [0, 3]]
+# [3, 3]
+; cd_gauge_eq [cd_gauge_add [[3, 0], [0, 3]], [0, 0]]
+# 1
+; cd_gauge_neg [3, 0]
+# [0, 3]
+; cd_gauge_mul [[0, 1], [0, 1]]
+# [1, 0]
+; cd_gauge_eq [cd_gauge_mul [[2, 1], [0, 1]], [0, 1]]
+# 1
+```
+The existing CD sign rule acts on a coefficient by leaving its counting
+pair alone for parity 0 or swapping its counters for parity 1. This does
+not modify cd_sign or interpret the basis selector as a negative number.
+The product of TWO representatives stays gauge invariant after either
+sign; a shifted pair merely contributes a different representative.
+```
+; .cd_gauge_signed {
+  .ps _;
+  .pair (ps .0);
+  .parity (ps .1);
+  (parity = 0) ? {pair} : {cd_gauge_neg pair}
+};
+; .cd_gauge_basis_coefficient {
+  .args _;
+  .a (args .0);
+  .b (args .1);
+  .u (args .2);
+  .v (args .3);
+  .powers (args .4);
+  cd_gauge_signed [cd_gauge_mul [a, b], cd_sign [u, v, powers]]
+};
+; cd_gauge_basis_coefficient [[1, 0], [1, 0], 1, 1, [1]]
+# [0, 1]
+; cd_gauge_eq [cd_gauge_basis_coefficient [[2, 1], [3, 2], 1, 1, [1]], [0, 1]]
+# 1
+; cd_gauge_eq [cd_gauge_basis_coefficient [[2, 1], [3, 2], 2, 1, [2, 1]], [0, 1]]
+# 1
+; cd_gauge_eq [cd_gauge_basis_coefficient [[2, 1], [3, 2], 4, 1, [4, 2, 1]], [0, 1]]
+# 1
+```
+The complex rung has TWO Cayley-Dickson basis dimensions and FOUR raw
+counting counters: [x0,x1], each xj a gauge pair [positive,negative].
+The four ordinary rank-one basis products contribute to the TWO
+result basis dimensions. Each sign comes from the UNCHANGED
+cd_sign [u,v,[1]] and acts only by counter swapping. No direct - term.
+
+The imaginary basis element e1 remains a distinct doubling component.
+In particular, e1*e1 yields the negative scalar class [0,1] on e0.
+```
+; .cd_complex_eq {
+  .xy _;
+  .a (xy .0);
+  .b (xy .1);
+  ((cd_gauge_eq [(a .0), (b .0)]) = 1) ? {
+    cd_gauge_eq [(a .1), (b .1)]
+  } : {0}
+};
+; .cd_complex_add {
+  .xy _;
+  .a (xy .0);
+  .b (xy .1);
+  [cd_gauge_add [(a .0), (b .0)], cd_gauge_add [(a .1), (b .1)]]
+};
+; .cd_complex_neg {
+  .a _;
+  [cd_gauge_neg (a .0), cd_gauge_neg (a .1)]
+};
+; .cd_complex_mul {
+  .xy _;
+  .a (xy .0);
+  .b (xy .1);
+  .aa (cd_gauge_basis_coefficient [(a .0), (b .0), 0, 0, [1]]);
+  .bb (cd_gauge_basis_coefficient [(a .1), (b .1), 1, 1, [1]]);
+  .ab (cd_gauge_basis_coefficient [(a .0), (b .1), 0, 1, [1]]);
+  .ba (cd_gauge_basis_coefficient [(a .1), (b .0), 1, 0, [1]]);
+  [cd_gauge_add [aa, bb], cd_gauge_add [ab, ba]]
+};
+; .cd_complex_one [[1, 0], [0, 0]];
+; .cd_complex_i [[0, 0], [1, 0]];
+; cd_complex_mul [cd_complex_i, cd_complex_i]
+# [[0, 1], [0, 0]]
+; cd_complex_mul [cd_complex_i, cd_complex_one]
+# [[0, 0], [1, 0]]
+; cd_complex_eq [[[2, 1], [5, 5]], cd_complex_one]
+# 1
+; cd_complex_eq [cd_complex_add [cd_complex_i, cd_complex_neg cd_complex_i], [[0, 0], [0, 0]]]
+# 1
+; cd_complex_eq [cd_complex_mul [[[2, 1], [5, 5]], cd_complex_i], cd_complex_i]
+# 1
+; cd_complex_eq [cd_complex_mul [[[5, 5], [2, 1]], cd_complex_i], [[0, 1], [0, 0]]]
+# 1
+```
+Both arguments may use off-canonical gauge representatives at once.
+The first represents scalar 1; the second represents imaginary unit e1.
+```
+; cd_complex_eq [cd_complex_mul [[[2, 1], [5, 5]], [[3, 3], [4, 3]]], cd_complex_i]
+# 1
+```
+The quaternion rung has FOUR Cayley-Dickson basis dimensions and
+EIGHT raw counting counters. This equality witness exhibits four
+independent gauge moves without pretending to have built full quaternion arithmetic
+here. The already-tested cd_sign rank-2 witnesses above supply its
+basis-product signs, independently of the coefficient representatives.
+```
+; .cd_quaternion_eq {
+  .xy _;
+  .a (xy .0);
+  .b (xy .1);
+  ((cd_complex_eq [(a .0), (b .0)]) = 1) ? {
+    cd_complex_eq [(a .1), (b .1)]
+  } : {0}
+};
+; cd_quaternion_eq [[[[1, 0], [0, 0]], [[0, 0], [1, 0]]], [[[2, 1], [3, 3]], [[4, 4], [2, 1]]]]
+# 1
+```
+Verdict and limitation:
+
+The gauge quotient makes additive inverses constructively: the class of
+[n,0] added to [0,n] equals the zero class [0,0], and the product of the
+class [0,1] with itself is the unit class. The same cd_sign basis kernel
+then acts coherently on these classes, independent of gauge representative.
+Complex numbers use four raw counting coordinates; quaternions use eight.
+
+But the gauge quotient is an ADDITIONAL equivalence construction on the
+coefficient carrier: the CD sign kernel ALONE does not construct that
+quotient. The first new CD basis bit denotes e1, not negative-one.
+Thus the witnessed cases confirm gauge compatibility of the unchanged
+sign rule (general proof: Explore 023.08), not that the first doubling
+by itself constructs Z.
+```
+```
 Complete 8-by-8 octonion basis-sign matrix at width 3. Expected data were
 computed independently from the Rust reference in Explore 023.01. This
 exercises all four current-bit cases and orientation/early-stop paths.
