@@ -4,6 +4,17 @@
 > only (ignore internal cleanup) one-line per change Ignore spec documents, and
 > deprioritize test-only changes
 
+## v0.53.1 2026-11-20
+
+- **Flat Cayley–Dickson counting-number witness (#504).** The executable
+  `hc/cd-bit-kernel.hc` testdoc now treats one CD value as a flat sequence of
+  nonnegative counting magnitudes with positive/negative orientation halves;
+  negation is the half-rotation of that sequence. It witnesses gauge equivalence
+  and cancellation, value-preserving halfwise padding between CD rungs,
+  complex/quaternion products and multiplicative embedding; unequal-width
+  equality comparisons return false. Documentation/tests only: the existing
+  `cd_sign` rule, interpreter, parser, and public operators are unchanged.
+
 ## v0.53.0 2026-11-15
 
 - **Observer suffix order corrected (007.46).** One `%` is SSL, two `%%` are
