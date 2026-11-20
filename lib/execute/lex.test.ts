@@ -625,6 +625,23 @@ describe("Lex", () => {
     ]);
   });
 
+  it("lexes Cart and Zip palindromes as single operators across chunks", () => {
+    for (const operator of ["&|&", "|&|"]) {
+      const expected = ["xs", operator, "ys"];
+      const source = `xs ${operator} ys `;
+      const atoms = lexAtoms(source);
+      expect(atoms.map(String)).toEqual(expected);
+      expect(atoms[1]).toBeInstanceOf(FrameOperator);
+      for (let split = 1; split < source.length; split++) {
+        expect(
+          lexChunkedAtoms([source.slice(0, split), source.slice(split)]).map(
+            String,
+          ),
+        ).toEqual(expected);
+      }
+    }
+  });
+
   it("accepts arbitrary non-structural operator runs", () => {
     expect(lexAtoms("+? ").map(String)).toEqual(["+?"]);
   });
