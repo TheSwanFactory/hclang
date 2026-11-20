@@ -308,26 +308,17 @@ sign; a shifted pair merely contributes a different representative.
 };
 ; cd_gauge_basis_coefficient [[1, 0], [1, 0], 1, 1, [1]]
 # [0, 1]
-; cd_gauge_eq [
-  cd_gauge_basis_coefficient [[2, 1], [3, 2], 1, 1, [1]],
-  [0, 1]
-]
+; cd_gauge_eq [cd_gauge_basis_coefficient [[2, 1], [3, 2], 1, 1, [1]], [0, 1]]
 # 1
-; cd_gauge_eq [
-  cd_gauge_basis_coefficient [[2, 1], [3, 2], 2, 1, [2, 1]],
-  [0, 1]
-]
+; cd_gauge_eq [cd_gauge_basis_coefficient [[2, 1], [3, 2], 2, 1, [2, 1]], [0, 1]]
 # 1
-; cd_gauge_eq [
-  cd_gauge_basis_coefficient [[2, 1], [3, 2], 4, 1, [4, 2, 1]],
-  [0, 1]
-]
+; cd_gauge_eq [cd_gauge_basis_coefficient [[2, 1], [3, 2], 4, 1, [4, 2, 1]], [0, 1]]
 # 1
 ```
-The next rung has FOUR counting coordinates: a complex coefficient pair
-[x0,x1], where each xj is itself a gauge pair [positive,negative].
-The four ordinary Cayley-Dickson one-bit basis products contribute to
-the two result coordinates. Each sign is obtained from the UNCHANGED
+The complex rung has TWO Cayley-Dickson basis dimensions and FOUR raw
+counting counters: [x0,x1], each xj a gauge pair [positive,negative].
+The four ordinary rank-one basis products contribute to the TWO
+result basis dimensions. Each sign comes from the UNCHANGED
 cd_sign [u,v,[1]] and acts only by counter swapping. No direct - term.
 
 The imaginary basis element e1 remains a distinct doubling component.
@@ -369,25 +360,22 @@ In particular, e1*e1 yields the negative scalar class [0,1] on e0.
 # [[0, 0], [1, 0]]
 ; cd_complex_eq [[[2, 1], [5, 5]], cd_complex_one]
 # 1
-; cd_complex_eq [
-  cd_complex_add [cd_complex_i, cd_complex_neg cd_complex_i],
-  [[0, 0], [0, 0]]
-]
+; cd_complex_eq [cd_complex_add [cd_complex_i, cd_complex_neg cd_complex_i], [[0, 0], [0, 0]]]
 # 1
-; cd_complex_eq [
-  cd_complex_mul [[[2, 1], [5, 5]], cd_complex_i],
-  cd_complex_i
-]
+; cd_complex_eq [cd_complex_mul [[[2, 1], [5, 5]], cd_complex_i], cd_complex_i]
 # 1
-; cd_complex_eq [
-  cd_complex_mul [[[5, 5], [2, 1]], cd_complex_i],
-  [[0, 1], [0, 0]]
-]
+; cd_complex_eq [cd_complex_mul [[[5, 5], [2, 1]], cd_complex_i], [[0, 1], [0, 0]]]
 # 1
 ```
-The quaternion rung is two complex coordinate blocks, or EIGHT raw
-counting counters. This equality witness exhibits four independent
-gauge moves without pretending to have built full quaternion arithmetic
+Both arguments may use off-canonical gauge representatives at once.
+The first represents scalar 1; the second represents imaginary unit e1.
+```
+; cd_complex_eq [cd_complex_mul [[[2, 1], [5, 5]], [[3, 3], [4, 3]]], cd_complex_i]
+# 1
+```
+The quaternion rung has FOUR Cayley-Dickson basis dimensions and
+EIGHT raw counting counters. This equality witness exhibits four
+independent gauge moves without pretending to have built full quaternion arithmetic
 here. The already-tested cd_sign rank-2 witnesses above supply its
 basis-product signs, independently of the coefficient representatives.
 ```
@@ -399,10 +387,7 @@ basis-product signs, independently of the coefficient representatives.
     cd_complex_eq [(a .1), (b .1)]
   } : {0}
 };
-; cd_quaternion_eq [
-  [[[1, 0], [0, 0]], [[0, 0], [1, 0]]],
-  [[[2, 1], [3, 3]], [[4, 4], [2, 1]]]
-]
+; cd_quaternion_eq [[[[1, 0], [0, 0]], [[0, 0], [1, 0]]], [[[2, 1], [3, 3]], [[4, 4], [2, 1]]]]
 # 1
 ```
 Verdict and limitation:
@@ -416,8 +401,9 @@ Complex numbers use four raw counting coordinates; quaternions use eight.
 But the gauge quotient is an ADDITIONAL equivalence construction on the
 coefficient carrier: the CD sign kernel ALONE does not construct that
 quotient. The first new CD basis bit denotes e1, not negative-one.
-Thus we have proved the gauge compatibility of the unchanged sign rule
-in the witnessed cases, not that its first doubling by itself is Z.
+Thus the witnessed cases confirm gauge compatibility of the unchanged
+sign rule (general proof: Explore 023.08), not that the first doubling
+by itself constructs Z.
 ```
 ```
 Complete 8-by-8 octonion basis-sign matrix at width 3. Expected data were
