@@ -163,3 +163,7 @@ This is an 8-bit bridge, NOT a public two-blob cursor or an implicit cast.
 # 1
 ; cd_sign_bits8 [0b10000000, 0b00000000]
 # 0
+; cd_sign_bits8 [0b00000010, 0b00000001]
+# 1
+; cd_sign_bits8 [0b00000101, 0b00000011]
+# 0
