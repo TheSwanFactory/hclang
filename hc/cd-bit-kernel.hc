@@ -277,7 +277,7 @@ implements the n/2 half-rotation after zero-padding to a chosen CD arity.
   .x _;
   .half (((x.#) / 2).##);
   .split (x | (CdFlatSplit half));
-  (split.back) | (split.front)
+  (split.front) | (split.back)
 };
 ```
 A sign reversal is ONLY a half-rotation of the flat sequence after
