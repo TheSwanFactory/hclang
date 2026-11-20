@@ -236,6 +236,68 @@ still has the same sign. No zero-divisor claim follows from signs alone.
 ; cd_sign [1, 2, [16, 8, 4, 2, 1]]
 # 0
 ```
+One rung earlier? Counting numbers as input to the SAME sign rule.
+
+This is a discriminating experiment, not an assumption that the first bit
+means -1. Start with counting-number magnitudes 0, 1, 2, ... carried on
+the existing identity basis e_0. Introduce one NEW selector bit e_1,
+just as the conventional doubling does.
+
+For one-bit basis indices u,v in {0,1}, record the product as
+[sign_parity, basis_index]. Its basis index is (u + v) mod 2,
+i.e. XOR for one bit. The coefficient sign comes exclusively from the
+unchanged cd_sign; no negative literal is supplied or evaluated.
+
+The expected single-bit products are:
+  e_0 e_0 = +e_0   -> [0,0]
+  e_0 e_1 = +e_1   -> [0,1]
+  e_1 e_0 = +e_1   -> [0,1]
+  e_1 e_1 = -e_0   -> [1,0]
+```
+; .cd_rank1_product {
+  .uv _;
+  .u (uv .0);
+  .v (uv .1);
+  .index ((u + v) %% 2);
+  [cd_sign [u, v, [1]], index]
+};
+; cd_rank1_product [0, 0]
+# [0, 0]
+; cd_rank1_product [0, 1]
+# [0, 1]
+; cd_rank1_product [1, 0]
+# [0, 1]
+; cd_rank1_product [1, 1]
+# [1, 0]
+```
+Counting magnitude three can accompany the derived negative coefficient
+marker: [3,1] means "three units with negative sign". This is DATA,
+not HC's pre-existing negative integer -3 and not yet an additive inverse.
+```
+; .cd_count_new_square {
+  .n _;
+  .product (cd_rank1_product [1, 1]);
+  [n, (product .0)]
+};
+; cd_count_new_square 3
+# [3, 1]
+```
+Interpretation and the still-open proof obligation:
+
+The same CD sign rule DOES produce a formal negative scalar coefficient
+from two positive-basis inputs: e_1 squared has sign parity 1. It also
+leaves e_1 as a distinct basis component; e_1 itself is not identified
+with -e_0. In particular, the one-bit extension is not JUST the ring
+of signed integers.
+
+These witnesses DO NOT construct addition on signed magnitudes, exhibit
+3 + (-3) = 0, or prove closure or the additive-inverse axioms. Reading
+[3,1] as the integer -3 requires additional coefficient semantics;
+the kernel alone computes only basis-product signs. Thus the conjecture
+"negative signs emerge" has a positive witness, while the stronger claim
+"the first doubling constructs exactly the integers" remains unproved.
+```
+```
 Complete 8-by-8 octonion basis-sign matrix at width 3. Expected data were
 computed independently from the Rust reference in Explore 023.01. This
 exercises all four current-bit cases and orientation/early-stop paths.
