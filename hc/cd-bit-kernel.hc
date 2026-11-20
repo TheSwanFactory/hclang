@@ -236,174 +236,189 @@ still has the same sign. No zero-divisor claim follows from signs alone.
 ; cd_sign [1, 2, [16, 8, 4, 2, 1]]
 # 0
 ```
-Unflattening the coefficient ring: counting numbers and gauge.
+Flat counting-number coordinates, before signed-coefficient flattening.
 
-An integer coefficient is represented by a pair [positive, negative] of
-counting numbers. These are COUNTERS, not a positive and a negative
-native HC integer. Pairs [a,b] and [c,d] represent the same coefficient
-exactly when a+d = b+c. Diagonal shifts [a+k,b+k] are gauge moves.
+ONE number is a FLAT list of nonnegative counting magnitudes. For a
+Cayley-Dickson rung with m basis directions, its signed presentation has
+2m counting slots in the order
 
-This is the standard additive group completion of counting numbers.
-Addition, multiplication and representative equality below use only
-nonnegative addition, multiplication, comparisons, and pair swapping.
-No native negative literal or subtraction is needed in these functions.
+    [positive e0, ..., positive e(m-1),
+     negative e0, ..., negative e(m-1)].
+
+The second half is not another number or another basis dimension. It is
+the opposite orientation for the SAME m basis directions. For the complex
+rung one number has four counts [a,b,c,d]; its eventual algebraic
+observation is (a-c) + (b-d)i. No signed literals, quotient classes or
+nested signed-coefficient pairs occur as primitive HC inputs here.
+
+The observational gauge identifies two equal-length flat lists x,y iff
+for EVERY basis position j in [0,m), x[j]+y[j+m]=x[j+m]+y[j].
+The quotient interprets the flat states as signed coefficients; the
+states themselves are retained, not silently normalized.
 ```
-; .cd_gauge_eq {
+; .cd_flat_eq {
   .xy _;
-  .a (xy .0);
-  .b (xy .1);
-  cd_bool (((a .0) + (b .1)) = ((a .1) + (b .0)))
+  .x (xy .0);
+  .y (xy .1);
+  .half (((x.#) / 2).##);
+  .checks (x && {.cell _; .i (cell .0);
+    (i .< half) ? {
+      cd_bool (((x i) + (y (i + half))) = ((x (i + half)) + (y i)))
+    } : {0}
+  });
+  cd_bool ((checks.##) = half)
 };
-; .cd_gauge_add {
-  .xy _;
-  .a (xy .0);
-  .b (xy .1);
-  [((a .0) + (b .0)), ((a .1) + (b .1))]
-};
-; .cd_gauge_neg {.a _; [(a .1), (a .0)]};
-; .cd_gauge_mul {
-  .xy _;
-  .a (xy .0);
-  .b (xy .1);
-  [(((a .0) * (b .0)) + ((a .1) * (b .1))),
-   (((a .0) * (b .1)) + ((a .1) * (b .0)))]
-};
-; cd_gauge_eq [[1, 0], [2, 1]]
+; cd_flat_eq [[3, 4, 1, 2], [4, 5, 2, 3]]
 # 1
-; cd_gauge_eq [[0, 1], [3, 4]]
-# 1
-; cd_gauge_eq [[1, 0], [0, 1]]
+; cd_flat_eq [[3, 4, 1, 2], [3, 4, 1, 3]]
 # 0
-; cd_gauge_add [[3, 0], [0, 3]]
-# [3, 3]
-; cd_gauge_eq [cd_gauge_add [[3, 0], [0, 3]], [0, 0]]
-# 1
-; cd_gauge_neg [3, 0]
-# [0, 3]
-; cd_gauge_mul [[0, 1], [0, 1]]
-# [1, 0]
-; cd_gauge_eq [cd_gauge_mul [[2, 1], [0, 1]], [0, 1]]
-# 1
 ```
-The existing CD sign rule acts on a coefficient by leaving its counting
-pair alone for parity 0 or swapping its counters for parity 1. This does
-not modify cd_sign or interpret the basis selector as a negative number.
-The product of TWO representatives stays gauge invariant after either
-sign; a shifted pair merely contributes a different representative.
+A sign reversal is ONLY a half-rotation of the flat sequence after
+zero-padding to its chosen CD power-of-two arity n=2m. At n=2 it swaps
+two counts; at n=4 it rotates four counts by two slots; at n=8 it
+rotates eight by four. It neither calls an integer minus nor introduces
+a new algebraic operation. The next CD arity is supplied explicitly,
+as with the descending sign-scan powers; the zero template is n long.
 ```
-; .cd_gauge_signed {
-  .ps _;
-  .pair (ps .0);
-  .parity (ps .1);
-  (parity = 0) ? {pair} : {cd_gauge_neg pair}
-};
-; .cd_gauge_basis_coefficient {
+; .cd_flat_pad {
   .args _;
-  .a (args .0);
-  .b (args .1);
-  .u (args .2);
-  .v (args .3);
-  .powers (args .4);
-  cd_gauge_signed [cd_gauge_mul [a, b], cd_sign [u, v, powers]]
+  .x (args .0);
+  .zeros (args .1);
+  zeros && {.cell _; .i (cell .0); (i .< x.#) ? {x i} : {0}}
 };
-; cd_gauge_basis_coefficient [[1, 0], [1, 0], 1, 1, [1]]
-# [0, 1]
-; cd_gauge_eq [cd_gauge_basis_coefficient [[2, 1], [3, 2], 1, 1, [1]], [0, 1]]
-# 1
-; cd_gauge_eq [cd_gauge_basis_coefficient [[2, 1], [3, 2], 2, 1, [2, 1]], [0, 1]]
-# 1
-; cd_gauge_eq [cd_gauge_basis_coefficient [[2, 1], [3, 2], 4, 1, [4, 2, 1]], [0, 1]]
+; .cd_flat_neg {
+  .x _;
+  .n (x.#);
+  .half ((n / 2).##);
+  x && {.cell _; .i (cell .0); x ((i + half) %% n)}
+};
+; cd_flat_pad [[3, 4, 1], [0, 0, 0, 0]]
+# [3, 4, 1, 0]
+; cd_flat_neg [3, 1]
+# [1, 3]
+; cd_flat_neg [3, 4, 1, 0]
+# [1, 0, 3, 4]
+; cd_flat_neg [1, 2, 3, 4, 5, 6, 7, 8]
+# [5, 6, 7, 8, 1, 2, 3, 4]
+; cd_flat_neg (cd_flat_neg [3, 4, 1, 0])
+# [3, 4, 1, 0]
+; cd_flat_eq [cd_flat_neg [3, 4, 1, 2], [2, 3, 4, 5]]
 # 1
 ```
-The complex rung has TWO Cayley-Dickson basis dimensions and FOUR raw
-counting counters: [x0,x1], each xj a gauge pair [positive,negative].
-The four ordinary rank-one basis products contribute to the TWO
-result basis dimensions. Each sign comes from the UNCHANGED
-cd_sign [u,v,[1]] and acts only by counter swapping. No direct - term.
+Addition is slotwise counting-number addition, and the quotient sees
+the usual cancellation. Both addends are flat states, and so is the
+result. The modulo-two sign is enacted by the same half-rotation.
+```
+; .cd_flat_add {
+  .xy _;
+  ((xy .0) |&| (xy .1)) & {((_ .0) + (_ .1))}
+};
+; cd_flat_add [[3, 4, 1, 2], cd_flat_neg [3, 4, 1, 2]]
+# [4, 6, 4, 6]
+; cd_flat_eq [cd_flat_add [[3, 4, 1, 2], cd_flat_neg [3, 4, 1, 2]], [0, 0, 0, 0]]
+# 1
+```
+Product generation from the SAME cd_sign rule.
 
-The imaginary basis element e1 remains a distinct doubling component.
-In particular, e1*e1 yields the negative scalar class [0,1] on e0.
-```
-; .cd_complex_eq {
-  .xy _;
-  .a (xy .0);
-  .b (xy .1);
-  ((cd_gauge_eq [(a .0), (b .0)]) = 1) ? {
-    cd_gauge_eq [(a .1), (b .1)]
-  } : {0}
-};
-; .cd_complex_add {
-  .xy _;
-  .a (xy .0);
-  .b (xy .1);
-  [cd_gauge_add [(a .0), (b .0)], cd_gauge_add [(a .1), (b .1)]]
-};
-; .cd_complex_neg {
-  .a _;
-  [cd_gauge_neg (a .0), cd_gauge_neg (a .1)]
-};
-; .cd_complex_mul {
-  .xy _;
-  .a (xy .0);
-  .b (xy .1);
-  .aa (cd_gauge_basis_coefficient [(a .0), (b .0), 0, 0, [1]]);
-  .bb (cd_gauge_basis_coefficient [(a .1), (b .1), 1, 1, [1]]);
-  .ab (cd_gauge_basis_coefficient [(a .0), (b .1), 0, 1, [1]]);
-  .ba (cd_gauge_basis_coefficient [(a .1), (b .0), 1, 0, [1]]);
-  [cd_gauge_add [aa, bb], cd_gauge_add [ab, ba]]
-};
-; .cd_complex_one [[1, 0], [0, 0]];
-; .cd_complex_i [[0, 0], [1, 0]];
-; cd_complex_mul [cd_complex_i, cd_complex_i]
-# [[0, 1], [0, 0]]
-; cd_complex_mul [cd_complex_i, cd_complex_one]
-# [[0, 0], [1, 0]]
-; cd_complex_eq [[[2, 1], [5, 5]], cd_complex_one]
-# 1
-; cd_complex_eq [cd_complex_add [cd_complex_i, cd_complex_neg cd_complex_i], [[0, 0], [0, 0]]]
-# 1
-; cd_complex_eq [cd_complex_mul [[[2, 1], [5, 5]], cd_complex_i], cd_complex_i]
-# 1
-; cd_complex_eq [cd_complex_mul [[[5, 5], [2, 1]], cd_complex_i], [[0, 1], [0, 0]]]
-# 1
-```
-Both arguments may use off-canonical gauge representatives at once.
-The first represents scalar 1; the second represents imaginary unit e1.
-```
-; cd_complex_eq [cd_complex_mul [[[2, 1], [5, 5]], [[3, 3], [4, 3]]], cd_complex_i]
-# 1
-```
-The quaternion rung has FOUR Cayley-Dickson basis dimensions and
-EIGHT raw counting counters. This equality witness exhibits four
-independent gauge moves without pretending to have built full quaternion arithmetic
-here. The already-tested cd_sign rank-2 witnesses above supply its
-basis-product signs, independently of the coefficient representatives.
-```
-; .cd_quaternion_eq {
-  .xy _;
-  .a (xy .0);
-  .b (xy .1);
-  ((cd_complex_eq [(a .0), (b .0)]) = 1) ? {
-    cd_complex_eq [(a .1), (b .1)]
-  } : {0}
-};
-; cd_quaternion_eq [[[[1, 0], [0, 0]], [[0, 0], [1, 0]]], [[[2, 1], [3, 3]], [[4, 4], [2, 1]]]]
-# 1
-```
-Verdict and limitation:
+The slot address i names (i mod m) as a CD basis index and (i<m)
+as its positive/negative orientation. Native Cart forms all input-slot
+pairs; each contributes its magnitude product to a destination basis
+index u XOR v, with sign = input orientations XOR cd_sign(u,v).
+No double-counting of basis dimensions: there are m basis directions
+and 2m sign-oriented counting slots for ONE represented number.
 
-The gauge quotient makes additive inverses constructively: the class of
-[n,0] added to [0,n] equals the zero class [0,0], and the product of the
-class [0,1] with itself is the unit class. The same cd_sign basis kernel
-then acts coherently on these classes, independent of gauge representative.
-Complex numbers use four raw counting coordinates; quaternions use eight.
+cd_flat_xor uses the same observed bits as cd_sign, with no added
+bitwise-language primitive. Powers [] is the real, rank-zero case.
+```
+; .cd_flat_xor {
+  .args _;
+  .u (args .0);
+  .v (args .1);
+  .powers (args .2);
+  (powers.# = 0) ? {0} : {
+    (powers & {.p _; (((cd_bit [u, p]) + (cd_bit [v, p])) %% 2) * p}).##
+  }
+};
+; cd_flat_xor [1, 2, [2, 1]]
+# 3
+; cd_flat_xor [3, 3, [2, 1]]
+# 0
+; .cd_flat_slots {
+  .args _;
+  .x (args .0);
+  .half (args .1);
+  x && {.cell _; .i (cell .0); .mag (cell .1);
+    [mag, (i %% half), ((i .< half) ? {0} : {1})]
+  }
+};
+; .cd_flat_term {
+  .args _;
+  .ab (args .0);
+  .powers (args .1);
+  .half (args .2);
+  .a (ab .0);
+  .b (ab .1);
+  .u (a .1);
+  .v (b .1);
+  .mag ((a .0) * (b .0));
+  .parity ((((a .2) + (b .2)) + (cd_sign [u, v, powers])) %% 2);
+  [mag, ((cd_flat_xor [u, v, powers]) + (half * parity))]
+};
+; .CdFlatCollector {
+  [.counts _;
+   .apply_ {
+     .term _;
+     .mag (term .0);
+     .destination (term .1);
+     @counts (counts && {.cell _; .i (cell .0); .value (cell .1);
+       value + ((i = destination) ? {mag} : {0})
+     });
+     _^^
+   }]
+};
+; .cd_flat_mul {
+  .args _;
+  .x (args .0);
+  .y (args .1);
+  .powers (args .2);
+  .half (((x.#) / 2).##);
+  .xs (cd_flat_slots [x, half]);
+  .ys (cd_flat_slots [y, half]);
+  .terms ((xs &|& ys) & {cd_flat_term [_, powers, half]});
+  (terms | (CdFlatCollector (x & {0}))).counts
+};
+```
+Real (one CD basis direction; two counting slots), complex (two basis
+directions; four slots), and quaternion (four basis directions; eight
+slots) reuse this SINGLE flat sign/multiply/rotation construction.
+```
+; cd_flat_mul [[0, 1], [0, 1], []]
+# [1, 0]
+; cd_flat_mul [[0, 1, 0, 0], [0, 1, 0, 0], [1]]
+# [0, 0, 1, 0]
+; cd_flat_mul [[0, 1, 0, 0], [1, 0, 0, 0], [1]]
+# [0, 1, 0, 0]
+; cd_flat_eq [cd_flat_mul [[2, 0, 1, 0], [0, 3, 0, 2], [1]], [0, 1, 0, 0]]
+# 1
+; cd_flat_eq [cd_flat_mul [cd_flat_neg [0, 1, 0, 0], cd_flat_neg [0, 1, 0, 0], [1]], [0, 0, 1, 0]]
+# 1
+; cd_flat_mul [[0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0], [2, 1]]
+# [0, 0, 0, 1, 0, 0, 0, 0]
+; cd_flat_mul [[0, 0, 1, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0], [2, 1]]
+# [0, 0, 0, 0, 0, 0, 0, 1]
+```
+Scope and interpretation:
 
-But the gauge quotient is an ADDITIONAL equivalence construction on the
-coefficient carrier: the CD sign kernel ALONE does not construct that
-quotient. The first new CD basis bit denotes e1, not negative-one.
-Thus the witnessed cases confirm gauge compatibility of the unchanged
-sign rule (general proof: Explore 023.08), not that the first doubling
-by itself constructs Z.
+One flat list gives ONE signed CD value on the selected rung.
+Its n/2 rotation is a concrete permutation of the padded counting slots;
+the gauge quotient is a later observational flattening, not an input
+assumption. The same cd_sign kernel governs the destination-half choice
+for every basis product, while cd_flat_xor routes to a CD basis direction.
+
+The witnesses use real/complex/quaternion powers and do not claim a
+new HCLang general-Frame unary Permute, the full FOIST Denumeration
+semantics, automatic arbitrary-width CD arity selection, or a theorem
+that cd_sign alone constructs the gauge quotient.
 ```
 ```
 Complete 8-by-8 octonion basis-sign matrix at width 3. Expected data were
