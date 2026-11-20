@@ -41,11 +41,11 @@ changing BitScheme's grammar or making schemas effectful.
 The required `powers` sequence is a complete descending list
 `[2^(n−1), ..., 1]`; `u` and `v` are nonnegative indices smaller than `2^n`.
 These are **preconditions**, not runtime checks; this example intentionally
-omits range guards. Inputs outside the specified index domain are undefined,
-and their returned parity must not be interpreted as a valid product sign. The core testdoc exercises
-ranks 0 through 5 and width 8 with numeric basis indices. The separate byte-ingress wrapper
-accepts two exact-width binary blobs through pure schema evidence, then converts
-them to the same numeric kernel input.
+omits range guards. Inputs outside the specified index domain are undefined, and
+their returned parity must not be interpreted as a valid product sign. The core
+testdoc exercises ranks 0 through 5 and width 8 with numeric basis indices. The
+separate byte-ingress wrapper accepts two exact-width binary blobs through pure
+schema evidence, then converts them to the same numeric kernel input.
 
 ## Test coverage
 
@@ -53,13 +53,13 @@ The discovered testdoc asserts:
 
 - individual bit extraction and the paired observation shape;
 - identity-index and asymmetric early-return cases;
-- a small executable ladder of real, complex, quaternion, octonion,
-  sedenion, and rank-5 basis-sign witnesses using the same kernel;
+- a small executable ladder of real, complex, quaternion, octonion, sedenion,
+  and rank-5 basis-sign witnesses using the same kernel;
 - the **complete 8×8** sign table on octonionic basis indices, with expected
   values independently generated from the Rust reference;
 - representative bit-7 / leading-zero cases with the complete width-8 scan;
-- fixed-width BitScheme schema capture, binary-blob ingress cases, and
-  negative examples for invalid or incorrectly sized ingress.
+- fixed-width BitScheme schema capture, binary-blob ingress cases, and negative
+  examples for invalid or incorrectly sized ingress.
 
 Run the executable assertions with:
 
