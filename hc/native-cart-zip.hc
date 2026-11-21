@@ -1,7 +1,9 @@
 #!/usr/bin/env hc
 ```
-Native Cart * and Zip |&| — FOIST 15
+Native Cart * and Zip |&| — FOIST 15 / FOIST 19a
 
+Before v0.54.0, native &|& was Cart. FOIST 19a moved it to *, while
+&|& now computes the KD product returning a Denum. Zip |&| is unchanged.
 The former derived Cart and Zip design patterns are tested in cart-zip.hc.
 These operators pair immediate positional elements as values, without
 evaluating or descending into nested children. Cart enumerates a flat
