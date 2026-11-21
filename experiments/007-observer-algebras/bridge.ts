@@ -68,7 +68,8 @@ export function readBound(denum: Frame): BindResult {
   const loads = loadFrames.map(wholeOf);
   const residual = loads.every((x) => x !== undefined)
     ? (loads as bigint[]).reduce(
-      (acc, x, i) => acc + (i % 2 === 0 ? x : -x), 0n
+      (acc, x, i) => acc + (i % 2 === 0 ? x : -x),
+      0n,
     )
     : undefined;
   if (
