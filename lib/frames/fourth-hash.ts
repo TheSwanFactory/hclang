@@ -282,8 +282,10 @@ export function observeDenum(source: Frame): Frame {
     // A non-collecting scalar exposes itself as its sole element. That is
     // a valid one-load observation, not a cyclic aggregate. Only recursive
     // collection of an aggregate into itself is an invalid self-child.
-    if (source.referent().collects() &&
-      child.referent() === source.referent()) {
+    if (
+      source.referent().collects() &&
+      child.referent() === source.referent()
+    ) {
       return Frame.error("$!.cyclic-aggregate .###");
     }
     const size = child.referent().sizeFor(Frame.kLEAVES);
