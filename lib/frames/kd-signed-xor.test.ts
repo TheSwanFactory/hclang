@@ -12,9 +12,7 @@ import {
 } from "./kd-signed-xor.ts";
 
 const basis = (dimensions: number, index: number): bigint[] =>
-  Array.from({ length: 2 * dimensions }, (_, i) =>
-    i === index ? 1n : 0n
-  );
+  Array.from({ length: 2 * dimensions }, (_, i) => i === index ? 1n : 0n);
 
 describe("FOIST 19a: raw KD loads and coordinate observation", () => {
   it("preserves the raw two-load value without imaginary-rank promotion", () => {
@@ -48,7 +46,14 @@ describe("FOIST 19a: raw KD loads and coordinate observation", () => {
   it("embeds each sign half separately, not by trailing padding", () => {
     expect(kdEmbedLoads([3n, 1n], 4)).toEqual([3n, 0n, 1n, 0n]);
     expect(kdEmbedLoads([3n, 4n, 1n, 2n], 8)).toEqual([
-      3n, 4n, 0n, 0n, 1n, 2n, 0n, 0n,
+      3n,
+      4n,
+      0n,
+      0n,
+      1n,
+      2n,
+      0n,
+      0n,
     ]);
     expect(kdCoordinates(kdEmbedLoads([3n, 1n], 4))).toEqual([2n, 0n]);
     expect(kdEmbedLoads(kdNegateLoads([3n, 1n]), 4)).toEqual(
@@ -71,7 +76,10 @@ describe("FOIST 19a: exact signed-XOR product (pure-load kernel)", () => {
     expect(kdMultiplyLoads([0n, 1n, 0n, 0n], [0n, 1n, 0n, 0n]))
       .toEqual([0n, 0n, 1n, 0n]);
     expect(kdCoordinates(kdMultiplyLoads([0n, 1n, 0n, 0n], [
-      0n, 1n, 0n, 0n,
+      0n,
+      1n,
+      0n,
+      0n,
     ]))).toEqual([-1n, 0n]);
   });
 

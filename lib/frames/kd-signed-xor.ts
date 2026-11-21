@@ -68,9 +68,11 @@ export function kdEmbedLoads(
   targetSlots: number,
 ): bigint[] {
   let full = kdCompleteLoads(loads);
-  if (!Number.isInteger(targetSlots) || targetSlots < 2 ||
-      targetSlots > KD_MAX_SLOTS || nextPowerOfTwo(targetSlots) !== targetSlots ||
-      targetSlots < full.length) {
+  if (
+    !Number.isInteger(targetSlots) || targetSlots < 2 ||
+    targetSlots > KD_MAX_SLOTS || nextPowerOfTwo(targetSlots) !== targetSlots ||
+    targetSlots < full.length
+  ) {
     throw new RangeError("invalid KD embedding destination arity");
   }
   if (full.length === 1) full = [full[0], 0n];
