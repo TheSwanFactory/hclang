@@ -26,6 +26,50 @@ Existing HC `*` means Star, `&|&` means Cart, `.###` is residual, and `.####`
 means the older two-load Denum; the branch must update dispatch, docs and
 existing tests before it can claim these public semantics.
 
+
+## Observable prefix instability (intentional)
+
+The third hash exposes raw loads, so **appending another raw load can change
+the interpretation of every earlier load** when the least power-of-two slot
+arity changes. This is inherent in lazy trailing-zero completion, not a
+mutation of the original Denum. In particular:
+
+- Raw `[3,1]`: arity 2, antipodal pair `3 − 1`, so `.#### = [2]`.
+- Append a load to get raw `[3,1,5]`: arity 4, virtually `[3,1,5,0]`,
+  so `.#### = [-2,1]`. The former negative-real slot now denotes
+  positive `e₁`. No implicit value-preserving cross-rank embedding occurred.
+- Explicit value-preserving embedding is **separate**:
+  `[3,1] → [3,0,1,0]`, still observing `[2,0]`.
+
+Once the new public observer dispatch is implemented, its executable HC testdoc
+must pin the intended visible behavior (these are **future** expectations, not
+currently executable syntax assertions):
+
+```hc
+; [3, 1].####
+# [2]
+; [3, 1, 5].####
+# [-2, 1]
+```
+
+The pure-load unit tests already pin the underlying distinctions.
+
+## Unsigned multiplication and work budget
+
+Two one-load unsigned scalar inputs **stay unsigned** under KD multiplication:
+`[3] &|& [3]` must produce raw loads `[9]`, not `[9,0]`.
+Promoting an unsigned scalar is needed for negation or multiplication with a
+signed-rank operand, not for unsigned × unsigned. This chooses *load arity*;
+the separate **construction Count** of the eventual result Denum is still open.
+
+The load kernel does **not** execute a dense loop over all 65536² possible
+pairs. It enumerates nonzero input slots and rejects any multiplication
+exceeding `KD_MAX_PRODUCT_TERMS = 262144` **active Cartesian pairs** before
+the product begins. Sparse high-arity inputs can therefore run without a
+quadratic traversal. This is a provisional runtime resource bound, not a
+mathematical restriction on Cayley–Dickson multiplication; the public HC
+operator must retain an explicit and testable resource policy.
+
 ## Product construction
 
 For signed-slot indices `i=(s,u)` and `j=(t,v)`, at common signed slot arity
@@ -68,10 +112,12 @@ Count** policy.
       unrelated syntax or silently importing numeric arithmetic.
 - [ ] Verify Flop/structural addition versus **slotwise KD addition**. They are
       not automatically the same operation, and bilinearity must not be assumed.
-- [ ] Run the full Deno suite, executable HC testdocs, formatter, package
-      validation and review the breaking changes. No Deno runtime is available
-      in the authoring environment, so CI results must be inspected after
-      creation.
+- [ ] Re-run the full Deno suite, executable HC testdocs, formatter,
+      package validation and review after **public operator dispatch** is
+      implemented. The reviewed first slice passed Deno 2.9.5 tests and
+      formatting (235 library tests, 10 CLI tests, 20 testdocs) and CI
+      `test:all` in [run 755](https://github.com/TheSwanFactory/hclang/actions/runs/44849829075).
+      These later review-driven code and test changes require fresh CI.
 
 **Historical scope:** This PR changes implementation only as files explicitly
 committed. FOIST 19 and 19a remain immutable; Explore 023 and Figure 018 are
