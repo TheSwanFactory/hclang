@@ -3,11 +3,11 @@
 **Authority:**
 [Occurrence FOIST 19a](https://nightly.quilttest.com/b/protology/packages/occurrence/foist/tree/ffc2e2188d5c93e6eaa96e0f363f88aa54ac560ec5623dcf1e78d73221ae5d80/19a-Foist-Raw-Denum-KD-Coordinates-Cart-and-Signed-XOR-Product.md).
 
-This branch is an **implementation-in-progress** of the intentionally breaking
-FOIST 19a operator contract. The first code slice is a reusable exact-integer
-signed-XOR load convolution in `lib/frames/kd-signed-xor.ts`, with tests against
-the independent recursive CD reference in `lib/frames/cayley-dickson.ts`. **Do
-not merge the draft based on that slice alone.**
+This branch implements the proposed **breaking** FOIST 19a operator contract
+in the HC runtime and tracks the migration of the legacy testdocs and tests.
+It also contains the exact signed-XOR load kernel and independent recursive-CD
+regressions. The PR remains **draft** until the entire active suite passes;
+do not treat the focused green FOIST tests as approval to merge.
 
 ## Target public semantics
 
@@ -22,9 +22,10 @@ not merge the draft based on that slice alone.**
 - Remove `.#%`, `.##%`, `.###%`, `.##%%`, `.###%%`, `.##%%%`, and `.###%%%` from
   the public observer surface. This does not remove ordinary modulo/remainder.
 
-Existing HC `*` means Star, `&|&` means Cart, `.###` is residual, and `.####`
-means the older two-load Denum; the branch must update dispatch, docs and
-existing tests before it can claim these public semantics.
+Before this PR, HC `*` meant Star, `&|&` meant Cart, `.###` was
+a residual, and `.####` constructed a two-load Denum. This branch replaces
+those public meanings. **Numeric scalar** `+`, `-`, and `*` remain
+ordinary exact numeric arithmetic so HC's own scalar implementation works.
 
 ## Observable prefix instability (intentional)
 
@@ -40,9 +41,7 @@ the original Denum. In particular:
 - Explicit value-preserving embedding is **separate**: `[3,1] → [3,0,1,0]`,
   still observing `[2,0]`.
 
-Once the new public observer dispatch is implemented, its executable HC testdoc
-must pin the intended visible behavior (these are **future** expectations, not
-currently executable syntax assertions):
+The executable [FOIST 19a testdoc](../../hc/foist-19a.hc) now pins the behavior:
 
 ```hc
 ; [3, 1].####
@@ -51,15 +50,15 @@ currently executable syntax assertions):
 # [-2, 1]
 ```
 
-The pure-load unit tests already pin the underlying distinctions.
+The runtime observer tests and the pure-load unit tests pin the same distinctions.
 
 ## Unsigned multiplication and work budget
 
 Two one-load unsigned scalar inputs **stay unsigned** under KD multiplication:
 `[3] &|& [3]` must produce raw loads `[9]`, not `[9,0]`. Promoting an unsigned
 scalar is needed for negation or multiplication with a signed-rank operand, not
-for unsigned × unsigned. This chooses _load arity_; the separate **construction
-Count** of the eventual result Denum is still open.
+for unsigned × unsigned. This chooses _load arity_; the result's **construction Count** follows `C(A &|& B)=C(A)×C(B)`,
+independently of the load arity.
 
 The load kernel does **not** execute a dense loop over all 65536² possible
 pairs. It enumerates nonzero input slots and rejects any multiplication
@@ -83,7 +82,7 @@ differences of the opposite slots. The separate rank-embedding rule pads **both
 orientation halves** individually, not the tail of an already canonical
 lower-rank value.
 
-## What the first code slice establishes
+## Implementation committed
 
 - Pure, arbitrary-supported-width guarded `cd_sign` using exact bigint indices.
 - Lazy raw-load completion, coordinate observation and half-turn.
@@ -93,22 +92,23 @@ lower-rank value.
 - Count is **not inferred from array length**: the kernel answers loads and
   leaves HC Denum construction to the public operator implementation.
 
-This math layer neither changes the interpreter nor answers `A &|& B` as a Denum
-yet. It deliberately avoids silently choosing the unapproved **output Denum
-Count** policy.
+The runtime is wired in `lib/frames/fourth-hash.ts`, `lib/ops.ts`,
+`lib/ops/math.ts`, and `lib/ops/pairings.ts`. The public `&|&` answers an
+HC Denum, with output Count chosen explicitly as the product of the
+construction Counts. See [the updated manual](../../doc/FRAME-DENUM.md).
 
-## Merge blockers
+## Merge blockers and completed items
 
-- [ ] Decide how the KD multiplication result's **construction Count** is
-      defined while keeping Count distinct from load arity.
-- [ ] Wire `.###` to the raw Denum for ordinary Frame families, including the
-      FOIST zero-arity Denum boundary; wire `.####` to coordinate observation.
-- [ ] Remove the seven `#%`-family observer dispatch paths and migrate tests,
-      docs and syntax highlighting.
+- [x] Define output construction Count as `C(A)×C(B)`, independent of arity.
+- [x] Wire `.###` and `.####` to raw Denum and KD coordinate observation,
+      including the canonical zero-arity state.
+- [ ] Remove the seven `#%`-family observer dispatch paths **and complete
+      migration** of all legacy tests, docs and syntax highlighting. Native
+      dispatch has been removed.
 - [ ] Reassign native `*` to Cart and `&|&` to KD multiplication, including the
       Denum-returning constructor and mixed-rank behavior.
-- [ ] Reassign `+` to Flop and unary `-` to Denum half-turn without breaking
-      unrelated syntax or silently importing numeric arithmetic.
+- [x] Reassign aggregate `+` to Flop and Denum unary `-` to half-turn;
+      numeric-scalar arithmetic is deliberately retained.
 - [ ] Verify Flop/structural addition versus **slotwise KD addition**. They are
       not automatically the same operation, and bilinearity must not be assumed.
 - [ ] Re-run the full Deno suite, executable HC testdocs, formatter, package
