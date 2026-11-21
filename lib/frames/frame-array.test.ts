@@ -223,7 +223,11 @@ describe("FrameArray", () => {
 
     it("reads KD antipodal differences without altering raw loads", () => {
       const a = new FrameArray([new FrameCount(3n), new FrameCount(1n)]);
-      const b = new FrameArray([new FrameCount(3n), new FrameCount(1n), new FrameCount(5n)]);
+      const b = new FrameArray([
+        new FrameCount(3n),
+        new FrameCount(1n),
+        new FrameCount(5n),
+      ]);
       expect(a.sizeFor("####").toString()).toEqual("[2]");
       expect(b.sizeFor("####").toString()).toEqual("[-2, 1]");
       expect(a.sizeFor("###").getOwn("loads").toString()).toEqual("[3, 1]");
