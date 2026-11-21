@@ -152,8 +152,7 @@ describe("FOIST 19a: exact signed-XOR product (pure-load kernel)", () => {
   it("agrees with recursive CD on dense, gauge-shifted, and mixed-rank inputs", () => {
     // Reproducible pseudo-random values, with the oracle independent of θ.
     let seed = 1;
-    const rnd = (): bigint =>
-      BigInt((seed = (seed * 48271) % 2147483647) % 6);
+    const rnd = (): bigint => BigInt((seed = (seed * 48271) % 2147483647) % 6);
     const cases: readonly (readonly [number, number])[] = [
       [1, 1],
       [2, 2],
@@ -198,5 +197,4 @@ describe("FOIST 19a: exact signed-XOR product (pure-load kernel)", () => {
     expect(kdCoordinates(kdMultiplyLoads(sparse, sparse))[0]).toEqual(-9n);
     expect(kdMultiplyLoads(sparse, sparse).length).toEqual(2048);
   });
-
 });
