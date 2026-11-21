@@ -64,8 +64,6 @@ The retired geometric hash suffixes are no longer installed.
 ```
 ; [2 + 3, 2 * 3, 7 %% 2]
 # [5, 6, 1]
-; 3.###%
-# $!.name-missing .###%
 
 ```
 The imported file ends with a native true value; nothing is installed in
