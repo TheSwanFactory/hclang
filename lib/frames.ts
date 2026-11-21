@@ -61,8 +61,6 @@ export {
   observeDenum,
   type RouterRecognizer,
 } from "./frames/fourth-hash.ts";
-// Installs `Frame.observeGeometry`; the module exports no public API.
-import "./frames/denum-observers.ts";
 export { FrameDecimal } from "./frames/frame-decimal.ts";
 export { FrameSequence } from "./frames/frame-sequence.ts";
 export { FrameTypedNumber } from "./frames/frame-typed-number.ts";

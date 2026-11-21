@@ -69,7 +69,7 @@ Deno.test("historical Count binder routes agree and match independent modulo gro
       const a = bindWithHC(c, loads);
       const b = bindWithBareSource(c, loads);
       expect(a).toEqual(b);
-      // Independent check, in the test only, of what the shipped binding did.
+      // Independent check of the experiment-local historical modulo-Count fold.
       const expected = new Array<bigint>(Number(c)).fill(0n);
       loads.forEach((v, i) => expected[i % Number(c)] += v);
       expect(a.ok && a.loads).toEqual(expected);

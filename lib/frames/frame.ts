@@ -594,37 +594,10 @@ export class Frame extends MetaFrame {
    * issue occurrence/figure 010.02).
    */
   public static readonly kLEAVES = "##";
-  /**
-   * kRESIDUAL is the legacy internal name for `.###`, now the raw
-   * nonnegative Denum observer (FOIST 19a). No signed residual is exposed.
-   */
-  public static readonly kRESIDUAL = "###";
-  /** `.####` observes Kaylee–Dixon signed coordinates from raw `.###`. */
-  public static readonly kDENUM = "####";
-  /**
-   * kBIND is `.#%`, Count binding (occurrence/figure 007.39a, 007.40): a
-   * Denum `(C; [a0, …])` with C > 0 answers the new Denum of C loads whose
-   * load j sums every source load at an index congruent to j mod C. Only a
-   * genuine Denum is bound; any other receiver is refused (`fourth-hash.ts`).
-   */
-  public static readonly kBIND = "#%";
-  /**
-   * The `%` suffixes of the geometric observers of a Count-bound Denum
-   * (occurrence/figure 007.41b, 007.46): the centered simplex SSL `%`, the
-   * cross-polytope KPSL `%%` and the Cayley–Dickson signed basis KDSL `%%%`.
-   * The order is a contract. They key `GEOMETRIES` in `denum-observers.ts`.
-   */
-  public static readonly GEOMETRY_SUFFIXES: readonly string[] = [
-    "%",
-    "%%",
-    "%%%",
-  ];
-  /**
-   * The geometric observers: for each of `GEOMETRY_SUFFIXES`, the Size-like
-   * `##` then the Residual-like `###`. Each reads `.#%` of its receiver.
-   */
-  public static readonly GEOMETRIC_OBSERVERS: readonly string[] = Frame
-    .GEOMETRY_SUFFIXES.flatMap((suffix) => [`##${suffix}`, `###${suffix}`]);
+  /** `.###` returns a constructive raw Denum, not a signed residual. */
+  public static readonly kRAW_DENUM = "###";
+  /** `.####` observes KD signed coordinates from raw `.###`. */
+  public static readonly kKD_COORDINATES = "####";
   /**
    * The size operators, the only names spelled with `#` (#411). Each answers
    * for its receiver through `sizeFor`, never through name lookup.
@@ -632,8 +605,8 @@ export class Frame extends MetaFrame {
   public static readonly SIZE_OPERATORS: readonly string[] = [
     Frame.kCOUNT,
     Frame.kLEAVES,
-    Frame.kRESIDUAL,
-    Frame.kDENUM,
+    Frame.kRAW_DENUM,
+    Frame.kKD_COORDINATES,
   ];
   /**
    * BEGIN_EXPR is the symbol for the beginning of an expression.
@@ -985,15 +958,6 @@ export class Frame extends MetaFrame {
   /** Installed by fourth-hash.ts for Denum unary half-turn negation. */
   public static negateDenum: (source: Frame) => Frame | undefined;
 
-  /** Installed by `fourth-hash.ts`: `.#%`, the Count binding of a Denum. */
-  public static bindCount: (source: Frame) => Frame;
-
-  /**
-   * Installed by `denum-observers.ts`: one of `GEOMETRIC_OBSERVERS`, read
-   * from the receiver's `.#%`. `sizeFor` reaches it only for those keys.
-   */
-  public static observeGeometry: (source: Frame, key: string) => Frame;
-
   /**
    * Whether this value is itself an error, flagged as such. A diagnostic
    * failure such as `$!.name-missing` is flagged when constructed (#467).
@@ -1011,11 +975,11 @@ export class Frame extends MetaFrame {
   }
 
   /**
-   * Native Count, Size, residual, derived Denum, the Count binding `.#%` and
-   * the geometric observers. Missing Count falls back to
-   * Size, and missing residual to Count parity; kinds with their own rules
-   * (lists, schemas, Denum, all) supply them explicitly (011.18k, 011.18m).
-   * Nil has no Count, so no residual or Denum.
+   * Native `.#` Count, `.##` Size, `.###` raw Denum and `.####` KD
+   * coordinates. Missing Count falls back to Size; special Frame kinds
+   * (lists, schemas, Denum, all) can supply their own Count/Size rules
+   * (011.18k, 011.18m). The retired `#%` suffixes are not dispatched here.
+   * Nil has no Count or Denum observation.
    */
   public sizeFor(key: string): Frame {
     if (!Frame.SIZE_OPERATORS.includes(key)) return Frame.nil;
@@ -1032,9 +996,9 @@ export class Frame extends MetaFrame {
         const size = this.nativeSize(new Set());
         return typeof size === "bigint" ? Frame.count(size) : size;
       }
-      case Frame.kRESIDUAL:
+      case Frame.kRAW_DENUM:
         return Frame.denum(this);
-      case Frame.kDENUM:
+      case Frame.kKD_COORDINATES:
         return Frame.observeKD(this);
       default:
         return Frame.nil;

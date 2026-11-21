@@ -1,8 +1,4 @@
-/**
- * FOIST 19a: native * now means Cartesian pairing on structural operands.
- * The pre-0.54.0 Star terminal-replacement algorithm survives internally in
- * FrameArray.star, but is no longer the public infix operator.
- */
+/** FOIST 19a: native * is Cartesian pairing, not recursive inlay. */
 import { expect } from "jsr:@std/expect@^0.219.1";
 import { HCLang } from "../mod.ts";
 import { Frame, FrameArray, FrameCount } from "../frames.ts";
@@ -20,6 +16,10 @@ Deno.test("FOIST 19a Cart pairs immediate occurrences in left-major order", asyn
       ["[] * [2, 3]", "[]"],
       ["[2, 3] * []", "[]"],
       ["[[1], [2]] * [[3]]", "[[[1], [3]], [[2], [3]]]"],
+      [
+        "[[], [[], []]] * [1, 2]",
+        "[[[], 1], [[], 2], [[[], []], 1], [[[], []], 2]]",
+      ],
     ] as const
   ) {
     expect(await hc.call(source), source).toEqual(expected);
@@ -42,15 +42,16 @@ Deno.test("FOIST 19a numeric scalars keep exact multiplication", async () => {
   }
 });
 
-Deno.test("FOIST 19a structural Cart differs from Star foliation", () => {
-  const left = new FrameArray([new FrameArray([])]);
+Deno.test("FOIST 19a Cart preserves empty terminals and nesting without inlay", () => {
+  const empty = new FrameArray([]);
+  const nested = new FrameArray([empty, empty]);
+  const left = new FrameArray([empty, nested]);
   const right = counts(3, 4);
   expect(Multiply(left, right).toString())
-    .toEqual("[[[], 3], [[], 4]]");
-  const oldStar = left.star(right);
-  expect(oldStar.toString()).toEqual("[[3, 4]]");
-  expect(left.toString()).toEqual("[[]]");
+    .toEqual("[[[], 3], [[], 4], [[[], []], 3], [[[], []], 4]]");
+  expect(left.toString()).toEqual("[[], [[], []]]");
   expect(right.toString()).toEqual("[3, 4]");
+  expect(Multiply(new FrameArray([]), right).toString()).toEqual("[]");
 });
 
 Deno.test("FOIST 19a Cart preserves order and duplicate element identity", () => {

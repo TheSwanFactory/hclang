@@ -2,15 +2,16 @@
 
 Experimental code for Occurrence task 007.41. It is not part of the shipped
 runtime and changes no Denum or Frame state, grammar, operator or version. The
-native HC observers `.##%` … `.###%%%` that 007.41b/c later asked for live in
-`lib/frames/denum-observers.ts` (see `doc/FRAME-DENUM.md`); a test here checks
-them against these algebras on the same inputs. Since 007.46 `%%` is KPSL and
-`%%%` is KDSL. Both algebras produce separate **observer values** with signed or
-rational coefficients; nothing here converts a product back into a nonnegative
-native Denum.
+native HC `.##%` … `.###%%%` geometric observers were **retired** by FOIST 19a;
+their former implementation `lib/frames/denum-observers.ts` has been removed.
+This experiment retains the historical 007.41/007.46 algebraic conventions
+locally (including KPSL `%%` and KDSL `%%%`). Its tests verify that the former
+HC spellings are now unbound, while the local algebras still produce their
+historical signed or rational observer values. Nothing here converts a product
+back into a nonnegative native Denum.
 
 ```sh
-deno task test:observer-algebras        # 32 tests, also part of test:all
+deno task test:observer-algebras        # 33 tests, also part of test:all
 deno task experiment:observer-algebras  # prints the report below
 ```
 
@@ -19,13 +20,14 @@ suite fails if the report changes.
 
 ## Input
 
-A Denum is bound with the real `d.#%` (007.39a, 007.40), through the TypeScript
-bridge (`constructDenum` then `sizeFor(Frame.kBIND)`) and independently through
-a bare evaluator that runs the bundled `hc/denum.hc` followed by
-`(Denum [C, [loads]]).#%`. Count C and the C loads are read from that answer.
-The experiment does not reimplement the `bⱼ = Σ_{i mod C = j} aᵢ` folding.
-Native `.#`, `.##` and `.###` are read from the same bound Denum and reported
-next to the algebras.
+A genuine Denum is constructed through `constructDenum` and independently
+through a bare evaluator with bundled `hc/denum.hc` and
+`(Denum [C, [loads]]).###`. **Each route reads back the constructed Denum's
+Count and loads** before applying the retired `d.#%` modulo-Count fold
+(`bⱼ = Σ_{i mod C = j} aᵢ`) locally. Both independently observed states must
+agree on the historical bound result. The experiment's alternating residual is
+also computed locally: public `.###` now means raw Denumeration, **not** the old
+residual. The actual `.#%` name remains unbound in today's HC.
 
 ## Algebra A — centered cyclic simplex (`simplex.ts`)
 
@@ -65,15 +67,15 @@ physical Fano orientation. `N(φ(a)) = R²(a)` holds exactly
 
 ## Files
 
-| File                  | Role                                                          |
-| --------------------- | ------------------------------------------------------------- |
-| `exact.ts`            | Rationals, `ObserverDomainError`                              |
-| `sample.ts`           | Seeded deterministic sample vectors                           |
-| `simplex.ts`          | Algebra A                                                     |
-| `cayley-dickson.ts`   | Algebra B and its witness searches                            |
-| `bridge.ts`           | Real `.#%` binding through the TS bridge and a bare evaluator |
-| `isometry.ts`         | `φ_C`, tolerances, product comparison                         |
-| `experiment.ts`       | Same-Denum report                                             |
-| `report.ts`           | Prints the report                                             |
-| `*.test.ts`           | Law, witness, boundary and fixture tests                      |
-| `expected-output.txt` | Committed report                                              |
+| File                  | Role                                                     |
+| --------------------- | -------------------------------------------------------- |
+| `exact.ts`            | Rationals, `ObserverDomainError`                         |
+| `sample.ts`           | Seeded deterministic sample vectors                      |
+| `simplex.ts`          | Algebra A                                                |
+| `cayley-dickson.ts`   | Algebra B and its witness searches                       |
+| `bridge.ts`           | Local historical `.#%` fold over genuine HC Denum states |
+| `isometry.ts`         | `φ_C`, tolerances, product comparison                    |
+| `experiment.ts`       | Same-Denum report                                        |
+| `report.ts`           | Prints the report                                        |
+| `*.test.ts`           | Law, witness, boundary and fixture tests                 |
+| `expected-output.txt` | Committed report                                         |

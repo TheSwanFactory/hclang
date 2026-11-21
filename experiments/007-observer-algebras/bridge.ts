@@ -105,7 +105,12 @@ function historicallyBind(count: bigint, loads: readonly bigint[]): BindResult {
   ));
 }
 
-/** Construct the genuine Denum, then apply the historical local binding. */
+/**
+ * Construct a genuine HC Denum, read back its Count and stored loads, then
+ * apply the experiment-local historical binding to that observed state.
+ * This matches the independent bare-evaluator path instead of folding the
+ * caller's original arguments without observing the constructed Denum.
+ */
 export function bindWithHC(
   count: bigint,
   loads: readonly bigint[],
@@ -114,9 +119,8 @@ export function bindWithHC(
     new FrameCount(count),
     loads.map((l) => new FrameCount(l)),
   );
-  const failure = failureOf(denum);
-  if (failure) return { ok: false, error: failure };
-  return historicallyBind(count, loads);
+  const read = readBound(denum);
+  return read.ok ? historicallyBind(read.count, read.loads) : read;
 }
 
 /** The bundled `hc/denum.hc` without its shebang, so a bare source can use it. */
@@ -157,11 +161,12 @@ export function bindingSource(
 }
 
 /**
- * Asks native geometric observers (`##%` … `###%%%`, 007.41b, 007.46) of
- * `Denum [count, loads]` from HC source in a bare evaluator, so the
- * experiment's TypeScript algebras can be checked against the HC bindings. The
- * Denum is built once by the shipped bridge and bound as `$$.d`; every reading
- * is dispatched by HC source, `[$$.d.##%, …]`.
+ * Probes observer spellings in today's HC evaluator. Historical geometry
+ * names (`##%` … `###%%%`) are unbound after FOIST 19a: these probes
+ * deliberately return name-missing instead of historical geometric values.
+ * The Denum is built once, bound as `$$.d`, and each name is read in HC
+ * source, e.g. `[$$.d.##%, …]`. Historical geometry lives in the separate
+ * TypeScript experiment.
  *
  * @returns One answer per observer, in order.
  */
