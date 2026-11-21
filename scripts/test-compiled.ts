@@ -27,8 +27,7 @@ const CASES: readonly { source: string; expected: string; what: string }[] = [
     // FOIST 19a replaces the six geometric hash suffixes with raw
     // Denumeration and lazily observed KD coordinates in every distribution.
     what: "evaluate FOIST 19a KD observers and Denum multiplication",
-    source:
-      "[[3, 1].####, [3, 1, 5].####, ([0, 1].### &|& [0, 1].###).####]",
+    source: "[[3, 1].####, [3, 1, 5].####, ([0, 1].### &|& [0, 1].###).####]",
     expected: "[[2], [-2, 1], [1]]",
   },
 ];
