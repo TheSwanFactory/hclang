@@ -14,11 +14,7 @@ import {
   cdProduct,
   NumberRing as F,
 } from "./cayley-dickson.ts";
-import {
-  ObserverDomainError,
-  ratEqual,
-  ratToString,
-} from "./exact.ts";
+import { ObserverDomainError, ratEqual, ratToString } from "./exact.ts";
 import { CASES, runExperiment } from "./experiment.ts";
 import {
   compareProducts,

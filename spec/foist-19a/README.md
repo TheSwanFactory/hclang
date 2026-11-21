@@ -55,31 +55,31 @@ distinctions.
 
 ## Flop preserves construction phase, not coordinate addition
 
-On Denums, `A + B = B | A` replays **B's ordered loads** into a fresh A
-using A's native `apply_`. The initial destination is `C(A) mod arity(A)`;
-the result Count is `C(A) + arity(B)`, **not** `C(A) + C(B)`.
-Consequently, two receivers with the same KD coordinates but different Counts
-can give different results under Flop. This behavior is intentional structural
-composition, not slotwise Cayley–Dickson addition:
+On Denums, `A + B = B | A` replays **B's ordered loads** into a fresh A using
+A's native `apply_`. The initial destination is `C(A) mod arity(A)`; the result
+Count is `C(A) + arity(B)`, **not** `C(A) + C(B)`. Consequently, two receivers
+with the same KD coordinates but different Counts can give different results
+under Flop. This behavior is intentional structural composition, not slotwise
+Cayley–Dickson addition:
 
 - `([3,1].### + [1,2].###).#### = [1]`
-- `((([3,1].###) 0) + [1,2].###).#### = [3]`, even though the receiver's
-  `.####` is still `[2]`.
+- `((([3,1].###) 0) + [1,2].###).#### = [3]`, even though the receiver's `.####`
+  is still `[2]`.
 
-The public `A - B` on Denums is the proposed structural expression
-`A + (-B)`, inheriting the same Count dependence; it is **not** claimed to
-be coordinate subtraction. Numeric scalar arithmetic remains native.
-KD bilinearity is with respect to **coordinate addition**, which is a separate
-not-yet-installed algebraic operation. Do not use Flop as a surrogate in
-algebraic proofs or tests.
+The public `A - B` on Denums is the proposed structural expression `A + (-B)`,
+inheriting the same Count dependence; it is **not** claimed to be coordinate
+subtraction. Numeric scalar arithmetic remains native. KD bilinearity is with
+respect to **coordinate addition**, which is a separate not-yet-installed
+algebraic operation. Do not use Flop as a surrogate in algebraic proofs or
+tests.
 
 ## Cart allocation bound
 
 Public structural Cart materializes all ordered pairs. To prevent unbounded
 allocation, `A * B` refuses when the pair count exceeds
-`CART_MAX_PAIRS = 262144`, returning `$!.cart-product-budget *`
-before building pairs. This implementation resource policy does not alter
-FOIST 19a's ordered Cartesian semantics.
+`CART_MAX_PAIRS = 262144`, returning `$!.cart-product-budget *` before building
+pairs. This implementation resource policy does not alter FOIST 19a's ordered
+Cartesian semantics.
 
 ## Unsigned multiplication and work budget
 
