@@ -131,10 +131,10 @@ Counts. See [the updated manual](../../doc/FRAME-DENUM.md).
 - [x] Define output construction Count as `C(A)×C(B)`, independent of arity.
 - [x] Wire `.###` and `.####` to raw Denum and KD coordinate observation,
       including the canonical zero-arity state.
-- [ ] Remove the seven `#%`-family observer dispatch paths **and complete
+- [x] Remove the seven `#%`-family observer dispatch paths **and complete
       migration** of all legacy tests, docs and syntax highlighting. Native
       dispatch has been removed.
-- [ ] Reassign native `*` to Cart and `&|&` to KD multiplication, including the
+- [x] Reassign native `*` to Cart and `&|&` to KD multiplication, including the
       Denum-returning constructor and mixed-rank behavior.
 - [x] Reassign aggregate `+` to Flop and Denum unary `-` to half-turn;
       numeric-scalar arithmetic is deliberately retained.
