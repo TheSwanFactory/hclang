@@ -140,13 +140,13 @@ Counts. See [the updated manual](../../doc/FRAME-DENUM.md).
       numeric-scalar arithmetic is deliberately retained.
 - [x] Establish and pin Flop's Count-phase dependence independently of
       **slotwise KD addition**. Bilinearity must not be assumed for Flop.
-- [x] Complete full Deno build and `test:all` regression validation of
-      public dispatch, including CLI, library, MAML, scripts, observer algebra,
-      web, all 21 HC testdocs, npm and compiled CLI:
+- [x] Complete full Deno build and `test:all` regression validation of public
+      dispatch, including CLI, library, MAML, scripts, observer algebra, web,
+      all 21 HC testdocs, npm and compiled CLI:
       [run 44861576576](https://github.com/TheSwanFactory/hclang/actions/runs/44861576576).
-- [x] Enforce the repository's existing `deno lint` contract in the CI
-      build gate and remove the final reported unused import. Final branch-head
-      status is always determined by the live GitHub checks.
+- [x] Enforce the repository's existing `deno lint` contract in the CI build
+      gate and remove the final reported unused import. Final branch-head status
+      is always determined by the live GitHub checks.
 
 **Historical scope:** This PR changes implementation only as files explicitly
 committed. FOIST 19 and 19a remain immutable; Explore 023 and Figure 018 are
