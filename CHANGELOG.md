@@ -6,8 +6,8 @@
 ## v0.54.1 2026-11-20
 
 **Pre-1.0 TypeScript API change:** This patch release intentionally removes
-retired exports without compatibility shims, as no external consumers exist.
-It is not backward-compatible for code that used those obsolete APIs.
+retired exports without compatibility shims, as no external consumers exist. It
+is not backward-compatible for code that used those obsolete APIs.
 
 - **TypeScript API cleanup (#507).** Remove obsolete exported Frame
   Count-binding and geometry members (`kBIND`, `bindCount`, `observeGeometry`,
