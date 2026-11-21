@@ -1,7 +1,11 @@
 import { expect } from "jsr:@std/expect@^0.219.1";
 import { Frame, FrameArray, FrameCount, FrameExpr } from "../frames.ts";
 import { CartElements, FlopElements } from "../ops/pairings.ts";
-import { multiplyDenum, observeDenum, observeKDCoordinates } from "../frames/fourth-hash.ts";
+import {
+  multiplyDenum,
+  observeDenum,
+  observeKDCoordinates,
+} from "../frames/fourth-hash.ts";
 import { constructDenum } from "./denum-prologue.ts";
 import { evaluate } from "./evaluate.ts";
 
@@ -40,8 +44,10 @@ Deno.test("FOIST 19a: Frame Flop and Cart preserve receiver order", () => {
   expect(read("[1, 2] + [3, 4]").toString()).toEqual("[1, 2, 3, 4]");
   expect(read("[1, 2] * [3, 4]").toString())
     .toEqual("[[1, 3], [1, 4], [2, 3], [2, 4]]");
-  expect(CartElements(denum(2n, [3n, 1n]), denum(2n, [4n, 2n]))
-    .toString()).toEqual("[[3, 4], [3, 2], [1, 4], [1, 2]]");
+  expect(
+    CartElements(denum(2n, [3n, 1n]), denum(2n, [4n, 2n]))
+      .toString(),
+  ).toEqual("[[3, 4], [3, 2], [1, 4], [1, 2]]");
   expect(rawState(FlopElements(denum(0n, [0n, 0n]), denum(2n, [3n, 1n]))))
     .toEqual(["2", ["3", "1"]]);
 });
@@ -75,7 +81,13 @@ Deno.test("FOIST 19a: the removed suffix observers refuse rather than alias", ()
   const d = denum(2n, [3n, 1n]);
   for (
     const key of [
-      "#%", "##%", "###%", "##%%", "###%%", "##%%%", "###%%%",
+      "#%",
+      "##%",
+      "###%",
+      "##%%",
+      "###%%",
+      "##%%%",
+      "###%%%",
     ]
   ) {
     expect(Frame.SIZE_OPERATORS.includes(key)).toEqual(false);
