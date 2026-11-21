@@ -60,7 +60,7 @@
         {
           "name": "entity.name.function.setter.hclang",
           "match": "(?<!\\.)\\.#[#&|?:+\\-/*%=<>!~^]*",
-          "comment": "A dot, a hash and any run of hashes and operator characters, scoped as the one dotted name the lexer reads: inside a name # is an operator character, so the size operators .# … .#### (occurrence/figure 011.18), the Count binding .#% (007.40), the geometric observers .##% … .###%%% (007.41b) and unbound spellings such as .##### or .#+ are each one name, never split. .foo#bar# is .foo before a comment; the lookbehind leaves ..# as the .. ladder before one. This precedes the standalone-dot rule, which matches the same dot and would leave the # to open a comment"
+          "comment": "A dot, a hash and any run of hashes and operator characters, scoped as the one dotted name the lexer reads: inside a name # is an operator character, so the size operators .# … .#### (occurrence/figure 011.18), retired .#% and .##% … .###%%% spellings (now unbound non-observer dotted names) and unbound spellings such as .##### or .#+ are each one name, never split. .foo#bar# is .foo before a comment; the lookbehind leaves ..# as the .. ladder before one. This precedes the standalone-dot rule, which matches the same dot and would leave the # to open a comment"
         },
         {
           "name": "variable.language.this.hclang",
