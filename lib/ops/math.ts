@@ -52,7 +52,10 @@ export const Add = (source: Frame, block: Frame): Frame => {
   return numericPair === Frame.nil ? FlopElements(source, block) : numericPair;
 };
 
-/** Subtraction is Flop with Denum half-turn, except on numeric scalars. */
+/** Numeric pairs subtract; otherwise subtraction Flops with a Denum half-turn.
+ * The right operand must be a Denum. A numeric left receiver is valid Flop,
+ * so 0 - D is not the same as unary -D.
+ */
 export const Subtract = (source: Frame, block: Frame): Frame => {
   const refused = failure(source) ?? failure(block);
   if (refused) return refused;
@@ -63,7 +66,9 @@ export const Subtract = (source: Frame, block: Frame): Frame => {
   );
   if (numericPair !== Frame.nil) return numericPair;
   const negative = Frame.negateDenum(block.referent());
-  return negative ? FlopElements(source, negative) : Frame.nil;
+  return negative
+    ? FlopElements(source, negative)
+    : Frame.error("$!.flop-domain -");
 };
 
 /** Cart is the structural Frame product; scalar arithmetic remains native. */

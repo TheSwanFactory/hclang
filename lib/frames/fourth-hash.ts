@@ -3,13 +3,14 @@ import { FrameCount } from "./frame-count.ts";
 import { FrameInt } from "./frame-int.ts";
 import { FrameArray } from "./frame-array.ts";
 import {
+  KDProductBudgetError,
   kdCoordinates,
   kdMultiplyLoads,
   kdNegateLoads,
 } from "./kd-signed-xor.ts";
 
 /**
- * Builds a Denum from its Count and its ordered channel loads, at least one.
+ * Builds a Denum from its Count and ordered loads, including zero arity.
  * The Count is the full observed Count of the source, not its parity. Every
  * arity is the same class (007.27, 007.40).
  */
@@ -21,7 +22,8 @@ export type DenumConstructor = (
 let construct: DenumConstructor | undefined;
 
 /**
- * Installs what `.####` answers a present Denum with. The Denum is an HC class,
+ * Installs the constructor for raw `.###` and KD `.####` observations.
+ * The Denum is an HC class,
  * `Denum` in `hc/denum.hc`, so the frames package, which cannot run HC, takes
  * its constructor from the evaluator (`lib/execute/denum-prologue.ts`).
  *
@@ -41,7 +43,7 @@ export type RouterRecognizer = (source: Frame) => Frame[] | undefined;
 let recognizeRouter: RouterRecognizer | undefined;
 
 /**
- * Installs how `.####` recognizes a channel router (007.27).
+ * Installs how raw `.###` recognizes a channel router (007.27).
  *
  * @param recognizer Answers a channel router's channels, or undefined.
  */
@@ -222,13 +224,14 @@ export function boundLoads(source: Frame): bigint[] | Frame {
  * Count and channel loads, `Denum [C, [load0, …]]`, where a load is the summed
  * Size of a channel's children and an empty channel's load is 0.
  *
- * Its Count is the children it holds; at Count zero it has no Denum, as the
- * empty host has none. Each child's Size is read
- * once, and a failed Size is answered as it is.
+ * Its Count is the number of routed children, independent of channel
+ * arity. At Count zero, k existing empty channels produce Denum(0,[0,...,0])
+ * rather than the empty Frame's Denum(0,[]). Each child's Size is read once
+ * and a failed Size propagates unchanged.
  *
  * @param source The observed Frame.
- * @returns The router's channel Denum, nil, an error, or undefined when the
- *   source is not a channel router.
+ * @returns The router's channel Denum, an error, or undefined when the source
+ *   is not a channel router.
  */
 function channelRouterDenum(source: Frame): Frame | undefined {
   const channels = recognizeRouter?.(source);
@@ -237,7 +240,7 @@ function channelRouterDenum(source: Frame): Frame | undefined {
     (total, channel) => total + BigInt(channel.elements().length),
     0n,
   );
-  if (count === 0n && channels.length === 0) {
+  if (channels.length === 0) {
     return construct?.(new FrameCount(0n), []) ??
       Frame.error("$!.denum-unavailable");
   }
@@ -330,7 +333,7 @@ export function observeKDCoordinates(source: Frame): Frame {
       ),
     );
   } catch {
-    return Frame.error("$!.denum-binding-capacity");
+    return Frame.error("$!.denum-kd-capacity");
   }
 }
 
@@ -346,7 +349,7 @@ export function negateDenum(source: Frame): Frame | undefined {
       loads.map((n) => new FrameCount(n)),
     );
   } catch {
-    return Frame.error("$!.denum-binding-capacity");
+    return Frame.error("$!.denum-kd-capacity");
   }
 }
 
@@ -375,7 +378,7 @@ export function multiplyDenum(left: Frame, right: Frame): Frame {
     );
   } catch (error) {
     return Frame.error(
-      error instanceof RangeError && error.message.includes("budget")
+      error instanceof KDProductBudgetError
         ? "$!.denum-product-budget &|&"
         : "$!.denum-product-capacity &|&",
     );

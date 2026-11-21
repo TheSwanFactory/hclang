@@ -1,9 +1,10 @@
 /**
  * FOIST 19a: exact-count Kaylee–Dixon load calculus.
  *
- * This is the pure, unbound load kernel for the proposed HC `&|&` operator.
- * An HC Denum stores a separate construction Count; this helper intentionally
- * does NOT fabricate that Count or change public Frame/observer dispatch.
+ * FOIST uses "Kaylee–Dixon" (KD) as its label for the Cayley–Dickson
+ * signed-XOR convention of Explore 023. The pure load kernel backs the live
+ * HC `&|&` operator (multiplyDenum in fourth-hash.ts). It answers raw loads,
+ * not a Denum; the public caller supplies Count C(A &|& B) = C(A) × C(B).
  *
  * Each signed value at width 2d stores [positive e_0..e_(d-1),
  * negative e_0..e_(d-1)], with nonnegative bigint magnitudes.
@@ -14,11 +15,19 @@
 export const KD_MAX_SLOTS = 65536;
 
 /**
- * Bound actual nonzero Cartesian slot interactions for the future HC-facing
- * operator. Dense inputs above this budget fail early; large sparse values
+ * Bound actual nonzero Cartesian slot interactions for public HC `&|&`.
+ * Dense inputs above this budget fail early; large sparse values
  * can still multiply. There is no hidden quadratic loop over zero slots.
  */
 export const KD_MAX_PRODUCT_TERMS = 262144;
+
+/** Typed resource refusal, independent of the diagnostic message wording. */
+export class KDProductBudgetError extends RangeError {
+  constructor() {
+    super("KD nonzero product term budget exceeded");
+    this.name = "KDProductBudgetError";
+  }
+}
 
 function validate(loads: readonly bigint[]): void {
   if (loads.length === 0 || loads.length > KD_MAX_SLOTS) {
@@ -144,8 +153,8 @@ export function kdCdSign(u: bigint, v: bigint): 0 | 1 {
  * exceeds KD_MAX_PRODUCT_TERMS; this avoids an unbounded dense n² traversal.
  *
  * The answer is canonical LOADS, not signed coordinates and not a Denum:
- * public HC `&|&` must construct a Denum around them once its output Count
- * rule is chosen. Source lengths are completed lazily and separately
+ * public HC `&|&` constructs the Denum with Count C(A)×C(B).
+ * Source lengths are completed lazily and separately
  * embedded into the larger rank, never padded naively across a sign boundary.
  */
 export function kdMultiplyLoads(
@@ -172,7 +181,7 @@ export function kdMultiplyLoads(
   const xs = activeSlots(x);
   const ys = activeSlots(y);
   if (xs.length * ys.length > KD_MAX_PRODUCT_TERMS) {
-    throw new RangeError("KD nonzero product term budget exceeded");
+    throw new KDProductBudgetError();
   }
 
   for (const a of xs) {

@@ -66,6 +66,16 @@ Deno.test("FOIST 19a: Flop retains receiver Count phase", () => {
     .toEqual("[1]");
 });
 
+Deno.test("FOIST 19a: mixed scalar Flop follows application, subtraction refuses non-Denums", () => {
+  expect(read("3 + [2, 5]").toString()).toEqual("30");
+  expect(read("1 + [2]").toString()).toEqual("2");
+  expect(read("5 - ([3, 1].###)").toString()).toEqual("15");
+  expect(read("0 - ([3, 1].###)").toString()).toEqual("0");
+  expect(read("([3, 1].###) - [1, 2]").toString())
+    .toEqual("$!.flop-domain -");
+  expect(read("[1, 2] - [3]").toString()).toEqual("$!.flop-domain -");
+});
+
 Deno.test("FOIST 19a: unary negative rotates Denum loads without promoted rank", () => {
   const d = denum(2n, [3n, 1n]);
   expect(rawState(Frame.negateDenum(d)!)).toEqual(["2", ["1", "3"]]);
@@ -92,6 +102,20 @@ Deno.test("FOIST 19a: signed-XOR &|& constructs a Denum with Count product", () 
   expect(rawState(multiplyDenum(denum(3n, [3n]), denum(7n, [3n]))))
     .toEqual(["21", ["9"]]);
   expect(rawState(multiplyDenum(denum(0n, []), neg))).toEqual(["0", []]);
+});
+
+Deno.test("FOIST 19a: KD capacity and product budget use public named refusals", () => {
+  const dense = denum(513n, Array<bigint>(513).fill(1n));
+  expect(multiplyDenum(dense, dense).toString())
+    .toEqual("$!.denum-product-budget &|&");
+
+  const wide = denum(65537n, Array<bigint>(65537).fill(1n));
+  expect(observeKDCoordinates(wide).toString())
+    .toEqual("$!.denum-kd-capacity");
+  expect(Frame.negateDenum(wide)?.toString())
+    .toEqual("$!.denum-kd-capacity");
+  expect(multiplyDenum(wide, denum(2n, [1n, 0n])).toString())
+    .toEqual("$!.denum-product-capacity &|&");
 });
 
 Deno.test("FOIST 19a: the removed suffix observers refuse rather than alias", () => {
