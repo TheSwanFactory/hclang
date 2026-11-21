@@ -1,13 +1,14 @@
-# FOIST 19a — HC operator migration (draft)
+# FOIST 19a — implemented HC operator and observer contract
 
 **Authority:**
 [Occurrence FOIST 19a](https://nightly.quilttest.com/b/protology/packages/occurrence/foist/tree/ffc2e2188d5c93e6eaa96e0f363f88aa54ac560ec5623dcf1e78d73221ae5d80/19a-Foist-Raw-Denum-KD-Coordinates-Cart-and-Signed-XOR-Product.md).
 
-This branch implements the proposed **breaking** FOIST 19a operator contract in
-the HC runtime and tracks the migration of the legacy testdocs and tests. It
-also contains the exact signed-XOR load kernel and independent recursive-CD
-regressions. The PR remains **draft** until the entire active suite passes; do
-not treat the focused green FOIST tests as approval to merge.
+This document records the **breaking**, implemented FOIST 19a operator contract
+and its rationale. It links runtime dispatch, executable HC testdocs, the exact
+signed-XOR load kernel and independent recursive Cayley–Dickson regressions.
+The implementation passed the full Deno validation gate in
+[run 44861795939](https://github.com/TheSwanFactory/hclang/actions/runs/44861795939);
+later code changes must pass fresh checks before merge.
 
 ## Target public semantics
 
@@ -68,7 +69,11 @@ Cayley–Dickson addition:
 
 The public `A - B` on Denums is the proposed structural expression `A + (-B)`,
 inheriting the same Count dependence; it is **not** claimed to be coordinate
-subtraction. Numeric scalar arithmetic remains native. KD bilinearity is with
+subtraction. Outside the numeric-numeric case, subtraction requires a Denum
+on the right and otherwise refuses `$!.flop-domain -`. Numeric scalar
+arithmetic remains native. Flop with a numeric **left** receiver uses scalar
+Apply: `3 + [2,5] = 30`, `5 - ([3,1].###) = 15`, and
+`0 - ([3,1].###) = 0`. Thus `0-D` is not unary `-D`. KD bilinearity is with
 respect to **coordinate addition**, which is a separate not-yet-installed
 algebraic operation. Do not use Flop as a surrogate in algebraic proofs or
 tests.
@@ -143,7 +148,7 @@ Counts. See [the updated manual](../../doc/FRAME-DENUM.md).
 - [x] Complete full Deno build and `test:all` regression validation of public
       dispatch, including CLI, library, MAML, scripts, observer algebra, web,
       all 21 HC testdocs, npm and compiled CLI:
-      [run 44861576576](https://github.com/TheSwanFactory/hclang/actions/runs/44861576576).
+      [run 44861795939](https://github.com/TheSwanFactory/hclang/actions/runs/44861795939).
 - [x] Enforce the repository's existing `deno lint` contract in the CI build
       gate and remove the final reported unused import. Final branch-head status
       is always determined by the live GitHub checks.
