@@ -2,7 +2,7 @@ import { expect } from "jsr:@std/expect@^0.219.1";
 import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 
 import { FrameArray, FrameInt } from "../frames.ts";
-import { CartElements, ZipElements } from "./pairings.ts";
+import { CART_MAX_PAIRS, CartElements, ZipElements } from "./pairings.ts";
 
 const ints = (...values: number[]): FrameArray =>
   new FrameArray(values.map((value) => FrameInt.for(`${value}`)));
@@ -18,6 +18,16 @@ describe("native Cart *", () => {
   it("preserves repeated occurrences", () => {
     expect(CartElements(ints(1, 1), ints(2, 2)).toString())
       .toEqual("[[1, 2], [1, 2], [1, 2], [1, 2]]");
+  });
+
+  it("rejects excessive public Cart allocation before enumerating pairs", () => {
+    const left = new FrameArray(
+      Array.from({ length: 513 }, () => FrameInt.for("1")),
+    );
+    expect(513 * 513).toBeGreaterThan(CART_MAX_PAIRS);
+    expect(CartElements(left, left).toString())
+      .toEqual("$!.cart-product-budget *");
+    expect(CartElements(ints(), left).toString()).toEqual("[]");
   });
 
   it("returns empty when either input has no elements", () => {

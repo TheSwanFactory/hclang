@@ -3,6 +3,9 @@ import { FrameArray } from "../frames/frame-array.ts";
 import { FrameCount } from "../frames/frame-count.ts";
 import { tryDenumState } from "../frames/fourth-hash.ts";
 
+/** Maximum materialized pairs in a single public structural Cart. */
+export const CART_MAX_PAIRS = 262144;
+
 /** Denums expose their raw load occurrences as the structural element plane. */
 export const cartInputs = (source: Frame): Frame[] => {
   const state = tryDenumState(source);
@@ -29,10 +32,19 @@ export const FlopElements = (left: Frame, right: Frame): Frame => {
  * operand is evaluated, modified, or recursively traversed. As with `&`,
  * scalars are singleton elements and closures expose their source-code atoms.
  */
-export const CartElements = (left: Frame, right: Frame): FrameArray => {
-  const pairs: Frame[] = [];
+export const CartElements = (left: Frame, right: Frame): Frame => {
+  const leftElements = cartInputs(left);
   const rightElements = cartInputs(right);
-  for (const a of cartInputs(left)) {
+  // Check before allocating the potentially massive Cartesian product.
+  if (
+    leftElements.length > 0 &&
+    rightElements.length >
+      Math.floor(CART_MAX_PAIRS / leftElements.length)
+  ) {
+    return Frame.error("$!.cart-product-budget *");
+  }
+  const pairs: Frame[] = [];
+  for (const a of leftElements) {
     for (const b of rightElements) {
       pairs.push(new FrameArray([a, b]));
     }

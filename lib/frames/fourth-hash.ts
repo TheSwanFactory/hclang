@@ -276,7 +276,12 @@ export function observeDenum(source: Frame): Frame {
     return Frame.error("$!.denum-count");
   }
   if (!construct) return Frame.error("$!.denum-unavailable");
-  if (count.data === 0n) return construct(new FrameCount(0n), []);
+  // A zero-valued scalar remains the unsigned empty seed. A collecting
+  // Frame can declare Count zero while still carrying positional children:
+  // raw Denumeration must not discard those children.
+  if (count.data === 0n && !source.referent().collects()) {
+    return construct(new FrameCount(0n), []);
+  }
   const loads: FrameCount[] = [];
   for (const child of source.elements()) {
     // A non-collecting scalar exposes itself as its sole element. That is
@@ -294,7 +299,9 @@ export function observeDenum(source: Frame): Frame {
     if (!whole) return Frame.error("$!.denum-observations");
     loads.push(new FrameCount(whole.data));
   }
-  if (loads.length === 0) return Frame.error("$!.denum-observations");
+  if (loads.length === 0 && count.data !== 0n) {
+    return Frame.error("$!.denum-observations");
+  }
   return construct(new FrameCount(count.data), loads);
 }
 

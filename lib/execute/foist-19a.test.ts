@@ -26,6 +26,11 @@ Deno.test("FOIST 19a: the third hash is raw Denumeration", () => {
     ["3", "1", "5"],
   ]);
   expect(rawState(read("[].###"))).toEqual(["0", []]);
+  // Count is independent from raw load arity, including declared zero Count.
+  expect(rawState(read("[.# {0}; 3, 1].###"))).toEqual([
+    "0",
+    ["3", "1"],
+  ]);
   expect(rawState(denum(9n, [3n, 1n]).sizeFor("###")))
     .toEqual(["9", ["3", "1"]]);
 });
@@ -50,6 +55,15 @@ Deno.test("FOIST 19a: Frame Flop and Cart preserve receiver order", () => {
   ).toEqual("[[3, 4], [3, 2], [1, 4], [1, 2]]");
   expect(rawState(FlopElements(denum(0n, [0n, 0n]), denum(2n, [3n, 1n]))))
     .toEqual(["2", ["3", "1"]]);
+});
+
+Deno.test("FOIST 19a: Flop retains receiver Count phase", () => {
+  expect(read("([3, 1].### + [1, 2].###).####").toString())
+    .toEqual("[1]");
+  expect(read("((([3, 1].###) 0) + [1, 2].###).####").toString())
+    .toEqual("[3]");
+  expect(read("((([3, 1].###) 0) - [1, 2].###).####").toString())
+    .toEqual("[1]");
 });
 
 Deno.test("FOIST 19a: unary negative rotates Denum loads without promoted rank", () => {
