@@ -43,6 +43,13 @@ describe("FOIST 19a: raw KD loads and coordinate observation", () => {
     expect(kdCoordinates(kdNegateLoads([3n]))).toEqual([-3n]);
   });
 
+  it("keeps unsigned × unsigned at one raw load, without sign promotion", () => {
+    expect(kdMultiplyLoads([3n], [3n])).toEqual([9n]);
+    expect(kdCoordinates(kdMultiplyLoads([3n], [3n]))).toEqual([9n]);
+    expect(kdMultiplyLoads([0n], [4n])).toEqual([0n]);
+    expect(kdMultiplyLoads([3n], [0n, 1n])).toEqual([0n, 3n]);
+  });
+
   it("embeds each sign half separately, not by trailing padding", () => {
     expect(kdEmbedLoads([3n, 1n], 4)).toEqual([3n, 0n, 1n, 0n]);
     expect(kdEmbedLoads([3n, 4n, 1n, 2n], 8)).toEqual([
@@ -142,4 +149,54 @@ describe("FOIST 19a: exact signed-XOR product (pure-load kernel)", () => {
     const higher = kdMultiplyLoads(kdEmbedLoads(x, 8), kdEmbedLoads(y, 8));
     expect(kdCoordinates(lower)).toEqual(kdCoordinates(higher));
   });
+  it("agrees with recursive CD on dense, gauge-shifted, and mixed-rank inputs", () => {
+    // Reproducible pseudo-random values, with the oracle independent of θ.
+    let seed = 1;
+    const rnd = (): bigint =>
+      BigInt((seed = (seed * 48271) % 2147483647) % 6);
+    const cases: readonly (readonly [number, number])[] = [
+      [1, 1],
+      [2, 2],
+      [4, 4],
+      [8, 8],
+      [16, 16],
+      [2, 8],
+      [4, 16],
+      [16, 4],
+      [8, 1],
+    ];
+    const lift = (loads: readonly bigint[], dimension: number): bigint[] => [
+      ...kdCoordinates(loads),
+      ...Array<bigint>(dimension - kdCoordinates(loads).length).fill(0n),
+    ];
+    for (const [a, b] of cases) {
+      for (let k = 0; k < 20; k++) {
+        const x = Array.from({ length: 2 * a }, rnd);
+        const y = Array.from({ length: 2 * b }, rnd);
+        const dim = Math.max(a, b);
+        const expected = cdProduct(lift(x, dim), lift(y, dim));
+        expect(kdCoordinates(kdMultiplyLoads(x, y))).toEqual(expected);
+        // Equal additions to both orientations of every basis direction.
+        const shiftedX = x.map((count) => count + 2n);
+        const shiftedY = y.map((count) => count + 3n);
+        expect(kdCoordinates(kdMultiplyLoads(shiftedX, y)))
+          .toEqual(expected);
+        expect(kdCoordinates(kdMultiplyLoads(x, shiftedY)))
+          .toEqual(expected);
+      }
+    }
+  });
+
+  it("limits active Cartesian work without penalizing sparse wide arrays", () => {
+    // 1024 × 1024 nonzero pairs exceed the 262144-term execution budget.
+    const dense = Array<bigint>(1024).fill(1n);
+    expect(() => kdMultiplyLoads(dense, dense)).toThrow(RangeError);
+
+    // Equally valid 2048-slot inputs with one active term each remain cheap.
+    const sparse = Array<bigint>(2048).fill(0n);
+    sparse[1] = 3n;
+    expect(kdCoordinates(kdMultiplyLoads(sparse, sparse))[0]).toEqual(-9n);
+    expect(kdMultiplyLoads(sparse, sparse).length).toEqual(2048);
+  });
+
 });
