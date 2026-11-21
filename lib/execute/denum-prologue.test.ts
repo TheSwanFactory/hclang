@@ -15,7 +15,11 @@ import {
   denumClass,
   loadDenumClass,
 } from "./denum-prologue.ts";
-import { observeDenum, observeKDCoordinates, tryDenumState } from "../frames/fourth-hash.ts";
+import {
+  observeDenum,
+  observeKDCoordinates,
+  tryDenumState,
+} from "../frames/fourth-hash.ts";
 
 const count = (n: bigint): FrameCount => new FrameCount(n);
 const denum = (c: bigint, loads: readonly bigint[]): Frame =>
@@ -109,9 +113,17 @@ Deno.test("FOIST 19a: constructor and class-load failures are explicit", () => {
 
 Deno.test("FOIST 19a: no %-suffixed hash observers are public", () => {
   const d = denum(2n, [3n, 1n]);
-  for (const key of [
-    "#%", "##%", "###%", "##%%", "###%%", "##%%%", "###%%%",
-  ]) {
+  for (
+    const key of [
+      "#%",
+      "##%",
+      "###%",
+      "##%%",
+      "###%%",
+      "##%%%",
+      "###%%%",
+    ]
+  ) {
     expect(Frame.SIZE_OPERATORS.includes(key)).toBe(false);
     expect(d.sizeFor(key)).toBe(Frame.nil);
   }
