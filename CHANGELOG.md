@@ -13,6 +13,19 @@
   loads by signed-XOR routing into a new Denum. Scalar arithmetic retains its
   existing meaning; the result Denum Count is the product of its operands'
   construction Counts.
+- **Breaking operator examples:** `[1, 2] * 2` now pairs to
+  `[[1, 2], [2, 2]]` rather than scaling to `[2, 4]`;
+  `2 * [1, 2]` pairs to `[[2, 1], [2, 2]]` rather than repeating.
+  `“ab” * 2` now pairs as `[[“ab”, 2]]` rather than refusing Star's domain.
+  `[1, 2] &|& [3, 4]` now gives `Denum(4,[11, 10])` instead of four
+  Cartesian pairs (Cart moved to `*`).
+- **Breaking observer and Flop examples:** `3.###` now answers
+  `Denum(3,[3])` rather than residual `1`, and `3.####` observes
+  `[3]`. Mixed scalar/aggregate `+` uses structural Flop:
+  `3 + [2, 5] = 30` (formerly nil); `5 - ([3,1].###) = 15`.
+  Non-Denum binary subtraction refuses `$!.flop-domain -`. The retired
+  `.#%` and geometric suffixes are unbound names (normally
+  `$!.name-missing`, not the former Count-binding error).
 
 ## v0.53.1 2026-11-20
 
