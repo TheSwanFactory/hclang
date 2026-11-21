@@ -8,9 +8,9 @@
 - **Kaylee–Dixon Step Ladder regression coverage (#509).** The executable
   `hc/cd-bit-kernel.hc` testdoc checks counting-first opposition and XOR
   routing, independently fixed Cayley–Dickson basis/vector fixtures, mixed
-  quaternion gauge equivalence, the nonempty 32-slot sedenion zero divisor
-  whose signed observation vanishes, and halfwise rank embedding. No
-  `cd_sign` change or new runtime, parser, language, or public API behavior.
+  quaternion gauge equivalence, the nonempty 32-slot sedenion zero divisor whose
+  signed observation vanishes, and halfwise rank embedding. No `cd_sign` change
+  or new runtime, parser, language, or public API behavior.
 
 ## v0.55.0 2026-11-20
 
