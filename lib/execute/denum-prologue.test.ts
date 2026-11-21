@@ -4,7 +4,6 @@ import {
   FrameArray,
   FrameCount,
   FrameExpr,
-  FrameInt,
 } from "../frames.ts";
 import { FrameHandle } from "../frames/frame-handle.ts";
 import { HC_SOURCES } from "../bundle/hc-sources.ts";
