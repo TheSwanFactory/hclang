@@ -13,27 +13,31 @@ const counts = (...items: number[]): FrameArray =>
 
 Deno.test("FOIST 19a Cart pairs immediate occurrences in left-major order", async () => {
   const hc = new HCLang();
-  for (const [source, expected] of [
-    ["[1, 2] * [3, 4]", "[[1, 3], [1, 4], [2, 3], [2, 4]]"],
-    ["[1, 1] * [2, 2]", "[[1, 2], [1, 2], [1, 2], [1, 2]]"],
-    ["[] * [2, 3]", "[]"],
-    ["[2, 3] * []", "[]"],
-    ["[[1], [2]] * [[3]]", "[[[1], [3]], [[2], [3]]]"],
-  ] as const) {
+  for (
+    const [source, expected] of [
+      ["[1, 2] * [3, 4]", "[[1, 3], [1, 4], [2, 3], [2, 4]]"],
+      ["[1, 1] * [2, 2]", "[[1, 2], [1, 2], [1, 2], [1, 2]]"],
+      ["[] * [2, 3]", "[]"],
+      ["[2, 3] * []", "[]"],
+      ["[[1], [2]] * [[3]]", "[[[1], [3]], [[2], [3]]]"],
+    ] as const
+  ) {
     expect(await hc.call(source), source).toEqual(expected);
   }
 });
 
 Deno.test("FOIST 19a numeric scalars keep exact multiplication", async () => {
   const hc = new HCLang();
-  for (const [source, expected] of [
-    ["2 * 3", "6"],
-    ["0 * 9", "0"],
-    ["(0 - 2) * 3", "-6"],
-    ["2 * 1.5", "3.0"],
-    ["(2 / 3) * (3 / 4)", "1/2"],
-    ["2 + 3 * 4", "20"],
-  ] as const) {
+  for (
+    const [source, expected] of [
+      ["2 * 3", "6"],
+      ["0 * 9", "0"],
+      ["(0 - 2) * 3", "-6"],
+      ["2 * 1.5", "3.0"],
+      ["(2 / 3) * (3 / 4)", "1/2"],
+      ["2 + 3 * 4", "20"],
+    ] as const
+  ) {
     expect(await hc.call(source), source).toEqual(expected);
   }
 });
