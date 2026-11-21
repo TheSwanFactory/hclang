@@ -8,7 +8,6 @@ import {
   FrameBlob,
   FrameBytes,
   FrameCount,
-  FrameExpr,
   FrameNumber,
   FrameScoped,
   FrameString,

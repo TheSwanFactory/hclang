@@ -17,7 +17,6 @@ import {
 import {
   ObserverDomainError,
   ratEqual,
-  rational,
   ratToString,
 } from "./exact.ts";
 import { CASES, runExperiment } from "./experiment.ts";

@@ -141,12 +141,10 @@ Deno.test("a router routes to channel C mod k, and only round-robin histories co
     expect(routed[next].length, channels).toBe(
       channelsOf(router)[next].length + 1,
     );
-    if (true) {
-      expect(
-        `${run(`((Routers.RotorRouter ${channels}) 9).###`, {})}`,
-        channels,
-      ).toEqual(`${run(`((Routers.RotorRouter ${channels}).###) 9`, {})}`);
-    }
+    expect(
+      `${run(`((Routers.RotorRouter ${channels}) 9).###`, {})}`,
+      channels,
+    ).toEqual(`${run(`((Routers.RotorRouter ${channels}).###) 9`, {})}`);
   }
   // Not a left-first alternating history, or the removed phase-first form.
   for (
