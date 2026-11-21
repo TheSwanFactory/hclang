@@ -595,12 +595,11 @@ export class Frame extends MetaFrame {
    */
   public static readonly kLEAVES = "##";
   /**
-   * kRESIDUAL is `.###`: a FrameInt alternating sum of immediate child native
-   * Sizes on non-schema lists, or Count parity on any other Frame with a Count
-   * (occurrence/figure 011.18k, 011.18m). Schemas and nil have nil residual.
+   * kRESIDUAL is the legacy internal name for `.###`, now the raw
+   * nonnegative Denum observer (FOIST 19a). No signed residual is exposed.
    */
   public static readonly kRESIDUAL = "###";
-  /** Derived nullable Denum, an instance of the HC class in `hc/denum.hc` (011.20). */
+  /** `.####` observes Kaylee–Dixon signed coordinates from raw `.###`. */
   public static readonly kDENUM = "####";
   /**
    * kBIND is `.#%`, Count binding (occurrence/figure 007.39a, 007.40): a
@@ -635,8 +634,6 @@ export class Frame extends MetaFrame {
     Frame.kLEAVES,
     Frame.kRESIDUAL,
     Frame.kDENUM,
-    Frame.kBIND,
-    ...Frame.GEOMETRIC_OBSERVERS,
   ];
   /**
    * BEGIN_EXPR is the symbol for the beginning of an expression.
@@ -667,7 +664,6 @@ export class Frame extends MetaFrame {
       if (key === Frame.kCOUNT) {
         return this.observationError() ?? Frame.count(0n);
       }
-      if (key === Frame.kRESIDUAL) return Frame.signed(0n); // 011.18k
       return super.sizeFor(key);
     }
 
@@ -984,6 +980,10 @@ export class Frame extends MetaFrame {
 
   /** Installed by `fourth-hash.ts`, avoiding a base-to-subclass import cycle. */
   public static denum: (source: Frame) => Frame;
+  /** Installed by fourth-hash.ts for the normalized KD coordinate observer. */
+  public static observeKD: (source: Frame) => Frame;
+  /** Installed by fourth-hash.ts for Denum unary half-turn negation. */
+  public static negateDenum: (source: Frame) => Frame | undefined;
 
   /** Installed by `fourth-hash.ts`: `.#%`, the Count binding of a Denum. */
   public static bindCount: (source: Frame) => Frame;
@@ -1032,18 +1032,12 @@ export class Frame extends MetaFrame {
         const size = this.nativeSize(new Set());
         return typeof size === "bigint" ? Frame.count(size) : size;
       }
-      case Frame.kRESIDUAL: {
-        const n = this.sizeFor(Frame.kCOUNT);
-        if (n.observationError()) return n;
-        const data = (n as unknown as { data?: unknown }).data;
-        return typeof data === "bigint" ? Frame.signed(data % 2n) : Frame.nil;
-      }
-      case Frame.kDENUM:
+      case Frame.kRESIDUAL:
         return Frame.denum(this);
-      case Frame.kBIND:
-        return Frame.bindCount(this);
+      case Frame.kDENUM:
+        return Frame.observeKD(this);
       default:
-        return Frame.observeGeometry(this, key);
+        return Frame.nil;
     }
   }
 

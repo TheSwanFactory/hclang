@@ -1,5 +1,24 @@
 import { Frame } from "../frames/frame.ts";
 import { FrameArray } from "../frames/frame-array.ts";
+import { FrameCount } from "../frames/frame-count.ts";
+import { tryDenumState } from "../frames/fourth-hash.ts";
+
+/** Denums expose their raw load occurrences as the structural element plane. */
+export const cartInputs = (source: Frame): Frame[] => {
+  const state = tryDenumState(source);
+  return state
+    ? state.loads.map((n) => new FrameCount(n))
+    : source.referent().elements();
+};
+
+/** FOIST 19a: Flop applies B's immediate children into a fresh A, in order. */
+export const FlopElements = (left: Frame, right: Frame): Frame => {
+  const a = left.referent();
+  const b = right.referent();
+  if (a.observationError()) return a;
+  if (b.observationError()) return b;
+  return Frame.reduceInto(cartInputs(b), a.collectingCopy());
+};
 
 /**
  * Native Cart: flat, left-major Cartesian pairing of immediate elements.
@@ -12,8 +31,8 @@ import { FrameArray } from "../frames/frame-array.ts";
  */
 export const CartElements = (left: Frame, right: Frame): FrameArray => {
   const pairs: Frame[] = [];
-  const rightElements = right.elements();
-  for (const a of left.elements()) {
+  const rightElements = cartInputs(right);
+  for (const a of cartInputs(left)) {
     for (const b of rightElements) {
       pairs.push(new FrameArray([a, b]));
     }

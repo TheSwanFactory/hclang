@@ -166,10 +166,15 @@ for them.
     .loads e;
     .# {_^.count};
     .## {(_^ .loads).##};
-    .### {(_^ .loads).###};
     .apply_ {.s (_ .##); .c (_^ .count); .e (_^ .loads);
-      .at (c %% (e.#)); .cursor [.index 0; .target at; .amount s; .out []; .apply_ {.v _; .i (_^ .index); .t (_^ .target); .a (_^ .amount); .o (_^ .out); @out (o ((i = t) ? {v + a} : {v})); @index (i + 1);}];
-      (s ~ (0.<>)) ? {@loads ((e | cursor) .out); @count (c + 1); _^^} : {s}};
+      .at (((e.#) = 0) ? {0} : {c %% (e.#)}); .cursor [.index 0; .target at; .amount s; .out []; .apply_ {.v _; .i (_^ .index); .t (_^ .target); .a (_^ .amount); .o (_^ .out); @out (o ((i = t) ? {v + a} : {v})); @index (i + 1);}];
+      (s ~ (0.<>)) ? {
+        ((e.#) = 0) ? {
+          @loads [s]; @count (c + 1); _^^
+        } : {
+          @loads ((e | cursor) .out); @count (c + 1); _^^
+        }
+      } : {s}};
     .scale_ {.k _; .e (_^ .loads);
       (k ~ (0.<>)) ? {@loads (e & {_ * k}); _^^} : {$!!.invalid-scale}};
     .deposit_ {.a _; .e (_^ .loads);
@@ -178,12 +183,6 @@ for them.
       .ix (((ok = 1) ? {(at ~ (0.<>)) ? {(e.#) .> at}}) ? {1} : {0});
       .cursor [.index 0; .target at; .amount k; .out []; .apply_ {.v _; .i (_^ .index); .t (_^ .target); .a (_^ .amount); .o (_^ .out); @out (o ((i = t) ? {v + a} : {v})); @index (i + 1);}];
       (ix = 1) ? {@loads ((e | cursor) .out); _^^} : {(ok = 1) ? {$!!.invalid-arity} : {$!!.invalid-denum}}};
-    .+ {.s (_ .##);
-      (s ~ (0.<>)) ? {(_^^ .deposit_ [1, s])} : {s}};
-    .- {.s (_ .##);
-      (s ~ (0.<>)) ? {(_^^ .deposit_ [0, s])} : {s}};
-    .* {.s (_ .##);
-      (s ~ (0.<>)) ? {(_^^ .scale_ s)} : {s}};
     ./ {.ways _; .c (_^ .count); .s (_^ .##); .v ([] / ways);
       (v ~ ([].<>)) ? {(_^^^ .Denum) [c, ((_^^^ .redistribution) [s, ways])]} : {v}};
     .size-ratio {.c (_^ .count); .s (_^ .##); .u ((_ = ()) ? {1} : {0});
@@ -196,9 +195,13 @@ for them.
   .c ((n = 1) ? {1} : {a .0});
   .boxed ((n = 2) ? {[a .1]} : {[a .0]});
   ((c ~ (0.<>)) ? {(boxed .0) ~ ([].<>)}) ? {.e (boxed .0); .k (e.#);
-  ((k .> 0) ? {(e &| {.x _; (x ~ (0.<>)) ? {[]} : {[x]}}).# = 0}) ? {
-    denum-instance [c, (e | [])]
-  } : {$!!.invalid-denum}} : {$!!.invalid-denum}} : {$!!.invalid-denum}};
+  ((k = 0) ? {
+    (c = 0) ? {denum-instance [c, (e | [])]} : {$!!.invalid-denum}
+  } : {
+    ((e &| {.x _; (x ~ (0.<>)) ? {[]} : {[x]}}).# = 0) ? {
+      denum-instance [c, (e | [])]
+    } : {$!!.invalid-denum}
+  })} : {$!!.invalid-denum}} : {$!!.invalid-denum}};
 ```
 ## Construction
 
