@@ -3,6 +3,15 @@
 > Record concise, user-facing changes since the previous release. Omit internal
 > cleanup, specification-only updates, and test-only changes.
 
+## v0.55.1 2026-11-20
+
+- **Kaylee–Dixon Step Ladder regression coverage (#509).** The executable
+  `hc/cd-bit-kernel.hc` testdoc checks counting-first opposition and XOR
+  routing, independently fixed Cayley–Dickson basis/vector fixtures, mixed
+  quaternion gauge equivalence, the nonempty 32-slot sedenion zero divisor whose
+  signed observation vanishes, and halfwise rank embedding. No `cd_sign` change
+  or new runtime, parser, language, or public API behavior.
+
 ## v0.55.0 2026-11-20
 
 - **Breaking TypeScript API cleanup (#507).** Remove the retired `Frame.kBIND`,
