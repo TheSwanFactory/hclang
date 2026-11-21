@@ -30,6 +30,18 @@ Fourth hash: signed coordinates, with lazy trailing completion.
 # []
 
 ```
+Scalar Denumeration reads Size, not signed numerical value.
+```
+; “” (0 - 2).###
+# “Denum(2,[2])”
+; (0 - 2).####
+# [2]
+; (7 / 2).####
+# [3]
+; “” (1 / 2).###
+# “Denum(0,[])”
+
+```
 Flop and structural Cartesian product are distinct.
 ```
 ; [1, 2] + [3, 4]
@@ -45,6 +57,14 @@ without changing the receiver's KD coordinates.
 # [1]
 ; ((([3, 1].###) 0) + [1, 2].###).####
 # [3]
+
+```
+Mixed scalar Flop follows numeric Apply; subtracting a non-Denum refuses.
+```
+; [3 + [2, 5], 1 + [2], 5 - ([3, 1].###), 0 - ([3, 1].###)]
+# [30, 2, 15, 0]
+; ([3, 1].###) - [1, 2]
+# $!.flop-domain -
 
 ```
 KD multiplication returns a Denum, and its fourth hash observes the
