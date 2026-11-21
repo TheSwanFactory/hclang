@@ -5,15 +5,14 @@
 
 ## v0.54.0 2026-11-20
 
-- **Breaking: FOIST 19a Denum and KD observers (#506).** `.###` now
-  constructs a raw Denum, while `.####` reads its lazy power-of-two KD
-  coordinates; unary Denum `-` half-rotates loads. The `#%`-suffixed observer
-  family is retired.
-- **Breaking: structural Cart and signed-XOR product (#506).** Frame `+`
-  Flops, aggregate `*` constructs ordered Cartesian pairs, and `&|&`
-  multiplies KD loads by signed-XOR routing into a new Denum. Scalar
-  arithmetic retains its existing meaning; the result Denum Count is the
-  product of its operands' construction Counts.
+- **Breaking: FOIST 19a Denum and KD observers (#506).** `.###` now constructs a
+  raw Denum, while `.####` reads its lazy power-of-two KD coordinates; unary
+  Denum `-` half-rotates loads. The `#%`-suffixed observer family is retired.
+- **Breaking: structural Cart and signed-XOR product (#506).** Frame `+` Flops,
+  aggregate `*` constructs ordered Cartesian pairs, and `&|&` multiplies KD
+  loads by signed-XOR routing into a new Denum. Scalar arithmetic retains its
+  existing meaning; the result Denum Count is the product of its operands'
+  construction Counts.
 
 ## v0.53.1 2026-11-20
 

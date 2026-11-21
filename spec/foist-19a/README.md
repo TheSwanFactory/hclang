@@ -3,11 +3,11 @@
 **Authority:**
 [Occurrence FOIST 19a](https://nightly.quilttest.com/b/protology/packages/occurrence/foist/tree/ffc2e2188d5c93e6eaa96e0f363f88aa54ac560ec5623dcf1e78d73221ae5d80/19a-Foist-Raw-Denum-KD-Coordinates-Cart-and-Signed-XOR-Product.md).
 
-This branch implements the proposed **breaking** FOIST 19a operator contract
-in the HC runtime and tracks the migration of the legacy testdocs and tests.
-It also contains the exact signed-XOR load kernel and independent recursive-CD
-regressions. The PR remains **draft** until the entire active suite passes;
-do not treat the focused green FOIST tests as approval to merge.
+This branch implements the proposed **breaking** FOIST 19a operator contract in
+the HC runtime and tracks the migration of the legacy testdocs and tests. It
+also contains the exact signed-XOR load kernel and independent recursive-CD
+regressions. The PR remains **draft** until the entire active suite passes; do
+not treat the focused green FOIST tests as approval to merge.
 
 ## Target public semantics
 
@@ -22,10 +22,10 @@ do not treat the focused green FOIST tests as approval to merge.
 - Remove `.#%`, `.##%`, `.###%`, `.##%%`, `.###%%`, `.##%%%`, and `.###%%%` from
   the public observer surface. This does not remove ordinary modulo/remainder.
 
-Before this PR, HC `*` meant Star, `&|&` meant Cart, `.###` was
-a residual, and `.####` constructed a two-load Denum. This branch replaces
-those public meanings. **Numeric scalar** `+`, `-`, and `*` remain
-ordinary exact numeric arithmetic so HC's own scalar implementation works.
+Before this PR, HC `*` meant Star, `&|&` meant Cart, `.###` was a residual, and
+`.####` constructed a two-load Denum. This branch replaces those public
+meanings. **Numeric scalar** `+`, `-`, and `*` remain ordinary exact numeric
+arithmetic so HC's own scalar implementation works.
 
 ## Observable prefix instability (intentional)
 
@@ -50,15 +50,16 @@ The executable [FOIST 19a testdoc](../../hc/foist-19a.hc) now pins the behavior:
 # [-2, 1]
 ```
 
-The runtime observer tests and the pure-load unit tests pin the same distinctions.
+The runtime observer tests and the pure-load unit tests pin the same
+distinctions.
 
 ## Unsigned multiplication and work budget
 
 Two one-load unsigned scalar inputs **stay unsigned** under KD multiplication:
 `[3] &|& [3]` must produce raw loads `[9]`, not `[9,0]`. Promoting an unsigned
 scalar is needed for negation or multiplication with a signed-rank operand, not
-for unsigned × unsigned. This chooses _load arity_; the result's **construction Count** follows `C(A &|& B)=C(A)×C(B)`,
-independently of the load arity.
+for unsigned × unsigned. This chooses _load arity_; the result's **construction
+Count** follows `C(A &|& B)=C(A)×C(B)`, independently of the load arity.
 
 The load kernel does **not** execute a dense loop over all 65536² possible
 pairs. It enumerates nonzero input slots and rejects any multiplication
@@ -93,9 +94,9 @@ lower-rank value.
   leaves HC Denum construction to the public operator implementation.
 
 The runtime is wired in `lib/frames/fourth-hash.ts`, `lib/ops.ts`,
-`lib/ops/math.ts`, and `lib/ops/pairings.ts`. The public `&|&` answers an
-HC Denum, with output Count chosen explicitly as the product of the
-construction Counts. See [the updated manual](../../doc/FRAME-DENUM.md).
+`lib/ops/math.ts`, and `lib/ops/pairings.ts`. The public `&|&` answers an HC
+Denum, with output Count chosen explicitly as the product of the construction
+Counts. See [the updated manual](../../doc/FRAME-DENUM.md).
 
 ## Merge blockers and completed items
 
