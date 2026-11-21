@@ -19,6 +19,21 @@ on:
         default: false
 
 jobs:
+  # Keep the new FOIST observer/operator contract visible while the legacy
+  # acceptance corpus is being migrated to the breaking semantics.
+  foist-kd:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.9.5
+      - run: deno task bundle:embed
+      - run: deno test --allow-read --allow-env lib/execute/foist-19a.test.ts lib/frames/kd-signed-xor.test.ts
+      - run: deno run --allow-read --allow-write --allow-env --deny-run --deny-ffi cli/hc.ts hc/foist-19a.hc -t
+
   # contents: write belongs only to this job. It pushes `style: deno fmt` onto
   # a same-repo pull request branch. Forks get a read-only token, and the
   # default branch is never a push target; both fail `deno fmt --check`.
