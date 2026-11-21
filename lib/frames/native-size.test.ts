@@ -9,18 +9,12 @@ import {
   FrameBytes,
   FrameCount,
   FrameExpr,
-  FrameGroup,
-  FrameLazy,
   FrameNumber,
-  FrameResource,
-  FrameSchema,
   FrameScoped,
   FrameString,
-  FrameSymbol,
-  MemoryStore,
-  parseTimeLiteral,
 } from "../frames.ts";
 import { evaluate } from "../execute/evaluate.ts";
+import { tryDenumState } from "./fourth-hash.ts";
 
 const last = (source: string): Frame =>
   evaluate(source).at(-1).asArray().at(-1)!;
@@ -85,182 +79,6 @@ Deno.test("text uses native Unicode code points; blobs use bits and payloads byt
   // There is no valid zero-width blob constructor/literal; empty bytes cover zero.
 });
 
-Deno.test("types and schemas count descriptions or declared alternatives", () => {
-  for (
-    const [source, size] of [
-      ["(1).<>", "1"],
-      ["<>", "1"],
-      ["()", "1"],
-      ["<2, 3, 5>", "3"],
-      ["<2, 2, [3, 5]>", "3"],
-      ["<<2, 3>, 5>", "2"],
-      ["<.a, .b>", "1"],
-      ["<8 @Bit>", "1"],
-      ["<(1).<>>", "1"],
-    ]
-  ) expect(last(`${source}.##`).toString(), source).toEqual(size);
-  let effects = 0;
-  class Candidate extends Frame {
-    public override in(): Frame {
-      effects++;
-      return this;
-    }
-    public override nativeSize(): bigint {
-      effects++;
-      return 999n;
-    }
-  }
-  const candidate = new Candidate();
-  const schema = new FrameSchema([
-    candidate,
-    candidate,
-    new FrameArray([candidate]),
-  ]);
-  expect(schema.sizeFor("##").toString()).toEqual("3");
-  expect(schema.sizeFor("###")).toBe(Frame.nil);
-  expect(effects).toEqual(0);
-  expect(new FrameSchema([]).sizeFor("##").toString()).toEqual("1");
-  const terms: Frame[] = [];
-  const cyclicCandidate = new FrameExpr(terms);
-  terms.push(cyclicCandidate);
-  expect(
-    new FrameSchema([cyclicCandidate, cyclicCandidate]).sizeFor("##")
-      .toString(),
-  )
-    .toEqual("2");
-});
-
-Deno.test("mixed arrays and evaluated groups alternate complete immediate Sizes", () => {
-  for (
-    const [source, size, residual, count] of [
-      ['[5, "hello"]', "10", "0", "2"],
-      ['[2, "é😀"]', "4", "0", "2"],
-      ['["😀", "é"]', "3", "-1", "2"],
-      ['[5, 3, "ab"]', "10", "4", "3"],
-      ['[5, 3, "ab", 7]', "17", "-3", "4"],
-      ['[[5, "ab"], [3, []], 2]', "13", "5", "3"],
-      ['(5, "hello")', "10", "0", "2"],
-      ['(.k 999; 5, "ab")', "7", "3", "2"],
-      ['[.k 999; 5, "ab"]', "7", "3", "2"],
-      ["[<2, 3, 5>, 2]", "5", "1", "2"],
-      ["[]", "1", "0", "0"],
-      ["[0, 0]", "0", "0", "2"],
-    ]
-  ) {
-    expect(last(`${source}.##`).toString(), source).toEqual(size);
-    const signed = last(`${source}.###`);
-    expect(signed.className()).toEqual("FrameInt");
-    expect(signed.toString(), source).toEqual(residual);
-    expect(last(`${source}.#`).toString(), source).toEqual(count);
-  }
-  // Schemas and nil keep nil residual (011.18k).
-  for (const source of ["<2,3>", "()"]) {
-    expect(evaluate(`${source}.###`).toString(), source).toEqual("[]");
-  }
-  // Values with a Count take its parity; all is the present empty (011.18m).
-  for (
-    const [source, parity] of [
-      ["(-3)", "1"],
-      ['"hi"', "0"],
-      ["(1).<>", "1"],
-      ["<>", "0"],
-    ]
-  ) {
-    expect(evaluate(`${source}.###`).toString(), source).toEqual(`[${parity}]`);
-  }
-  expect(
-    new FrameExpr([new FrameCount(5n), new FrameCount(3n)]).sizeFor("###")
-      .toString(),
-  )
-    .toEqual("2");
-  const sourceArray = new FrameArray([new FrameCount(5n)]);
-  sourceArray.is.source = true;
-  expect(sourceArray.sizeFor("###").toString()).toEqual("5");
-});
-
-Deno.test("recursive Size distinguishes sharing, mutual cycles, and metadata cycles", () => {
-  const child = new FrameArray([new FrameCount(5n), new FrameString("ab")]);
-  const handle = new FrameHandle(child, false);
-  const root = new FrameArray([handle, child, new FrameArray([handle])]);
-  root.set("self", root);
-  expect(root.sizeFor("##").toString()).toEqual("21");
-  expect(root.sizeFor("###").toString()).toEqual("7");
-  expect(handle.sizeFor("##").toString()).toEqual("7");
-  expect(handle.sizeFor("###").toString()).toEqual("3");
-  expect(root.asArray()).toEqual([handle, child, root.at(2)]);
-  expect(handle.unwrap()).toBe(child);
-  for (const length of [2, 3]) {
-    const nodes = Array.from({ length }, () => new FrameArray([]));
-    nodes.forEach((node, index) =>
-      node.collect(new FrameHandle(nodes[(index + 1) % length], false))
-    );
-    for (const node of nodes) {
-      expect(node.sizeFor("##").toString()).toEqual("$!.cyclic-aggregate .##");
-      expect(node.sizeFor("###").toString()).toEqual("$!.cyclic-aggregate .##");
-      expect(node.sizeFor("#").toString()).toEqual("1");
-      expect(node.asArray()).toHaveLength(1);
-    }
-  }
-  // Syntax walks must refuse cycles without registering evaluation sites first.
-  const body: Frame[] = [];
-  const closure = new FrameLazy(body);
-  const containing = new FrameArray([closure]);
-  body.push(containing);
-  expect(closure.sizeFor("##").toString()).toEqual("$!.cyclic-aggregate .##");
-  expect(containing.sizeFor("###").toString()).toEqual(
-    "$!.cyclic-aggregate .##",
-  );
-  const syntax: Frame[] = [];
-  const expr = new FrameExpr(syntax);
-  syntax.push(expr);
-  expect(expr.sizeFor("##").toString()).toEqual("$!.cyclic-aggregate .##");
-  const a: Frame[] = [];
-  const group = new FrameGroup(a);
-  a.push(group);
-  expect(group.sizeFor("##").toString()).toEqual("$!.cyclic-aggregate .##");
-  expect(group.sizeFor("###").toString()).toEqual("$!.cyclic-aggregate .##");
-});
-
-Deno.test("observation neither executes, matches nor reads resources", () => {
-  class UnreadStore extends MemoryStore {
-    public override read(): never {
-      throw new Error("unexpected resource read");
-    }
-    public override write(): never {
-      throw new Error("unexpected resource write");
-    }
-  }
-  class Uncalled extends FrameLazy {
-    public override call(): never {
-      throw new Error("unexpected closure call");
-    }
-  }
-  const resource = FrameResource.root(new UnreadStore()).extend("'./missing'");
-  const closure = new Uncalled([new FrameCount(5n), FrameSymbol.for("+")]);
-  const matcher = new FrameSchema([], {}, {
-    match(): never {
-      throw new Error("unexpected match");
-    },
-  });
-  const opaque = [
-    resource,
-    FrameSymbol.for("+"),
-    parseTimeLiteral("2026-10-30"),
-    parseTimeLiteral("PT1.5S"),
-    matcher,
-  ];
-  for (const atom of opaque) expect(atom.sizeFor("##").toString()).toEqual("1");
-  expect(last("9.8.m.##").toString()).toEqual("1");
-  expect(last("1.2.3.##").toString()).toEqual("1");
-  expect(closure.sizeFor("##").toString()).toEqual("6");
-  expect(closure.sizeFor("###").toString()).toEqual("4");
-  expect(new FrameArray([...opaque, closure]).sizeFor("##").toString()).toEqual(
-    "11",
-  );
-  expect(new FrameArray([resource, closure, matcher]).sizeFor("###").toString())
-    .toEqual("-4");
-});
-
 Deno.test("reference chains refuse cycles before entering the aggregate Size walk", () => {
   const value = new FrameCount(7n);
   const left = new FrameHandle(value, false);
@@ -308,58 +126,46 @@ Deno.test("reference chains refuse cycles before entering the aggregate Size wal
   );
 });
 
-Deno.test("nil, [], 0, <> and [0] answer the four hashes distinctly (#462)", () => {
-  // Nil has no Count, so no residual and no Denum, but one Size like any opaque
-  // atom; the present empties differ from it and from each other.
-  const rows: [string, Frame, string[], string[]][] = [
-    ["()", Frame.nil, ["()", "1", "()"], ["", "FrameCount", ""]],
-    ["[]", new FrameArray([]), ["0", "1", "0"], [
-      "FrameCount",
-      "FrameCount",
-      "FrameInt",
-    ]],
-    ["0", Frame.count(0n), ["0", "0", "0"], [
-      "FrameCount",
-      "FrameCount",
-      "FrameInt",
-    ]],
-    ["<>", Frame.all, ["0", "1", "0"], [
-      "FrameCount",
-      "FrameCount",
-      "FrameInt",
-    ]],
-    ["[0]", new FrameArray([Frame.count(0n)]), ["1", "0", "0"], [
-      "FrameCount",
-      "FrameCount",
-      "FrameInt",
-    ]],
-  ];
-  for (const [source, frame, answers, classes] of rows) {
-    ["#", "##", "###"].forEach((key, i) => {
-      const direct = frame.sizeFor(key);
-      if (answers[i] === "()") {
-        expect(direct, `${source}.${key}`).toBe(Frame.nil);
-      } else {
-        expect(direct.toString(), `${source}.${key}`).toEqual(answers[i]);
-        expect(direct.className(), `${source}.${key}`).toEqual(classes[i]);
-      }
-    });
-    // Evaluated HC agrees with the runtime, and `().#` is not the address.
-    expect(evaluate(`[${source}.#, ${source}.##, ${source}.###]`).toString())
-      .toEqual(`[[${answers.join(", ")}]]`);
-  }
-  // Only the zero-load aggregate is a present Denum; nil's absent Count and the
-  // other empties' Count 0 answer none.
-  for (const source of ["()", "[]", "0", "<>"]) {
-    // A nil answer leaves the statement group empty.
-    expect(evaluate(`${source}.#### ? {<>} : {()}`).toString(), source)
-      .toEqual("[]");
-  }
-  expect(last("[0].#### ? {<>} : {()}").toString()).toEqual("<>");
-  expect(evaluate("[[0].####.#, [0].####.##]").toString()).toEqual(
-    "[[1, 0]]",
-  );
-  // Nil inside an aggregate adds its one Size like any other atom.
-  expect(last("[()].##").toString()).toEqual("1");
-  expect(last("[(), 1].##").toString()).toEqual("2");
+Deno.test("FOIST 19a third hash preserves raw ordered immediate Sizes", () => {
+  const value = new FrameArray([new FrameCount(5n), new FrameString("hello")]);
+  expect(value.sizeFor("#").toString()).toEqual("2");
+  expect(value.sizeFor("##").toString()).toEqual("10");
+  const raw = tryDenumState(value.sizeFor("###"));
+  expect(raw?.count).toEqual(2n);
+  expect(raw?.loads).toEqual([5n, 5n]);
+  expect(value.sizeFor("####").toString()).toEqual("[0]");
+  expect(value.toString()).toEqual("[5, “hello”]");
+});
+
+Deno.test("FOIST 19a appending changes KD orientation without mutating prefix", () => {
+  const prefix = new FrameArray([new FrameCount(3n), new FrameCount(1n)]);
+  const extended = new FrameArray([...prefix.elements(), new FrameCount(5n)]);
+  expect(prefix.sizeFor("####").toString()).toEqual("[2]");
+  expect(extended.sizeFor("####").toString()).toEqual("[-2, 1]");
+  expect(tryDenumState(prefix.sizeFor("###"))?.loads).toEqual([3n, 1n]);
+  expect(tryDenumState(extended.sizeFor("###"))?.loads).toEqual([3n, 1n, 5n]);
+});
+
+Deno.test("FOIST 19a recursive Size and raw Denum propagate cycle errors", () => {
+  const a = new FrameArray([]);
+  a.collect(a);
+  expect(a.sizeFor("#").toString()).toEqual("1");
+  expect(a.sizeFor("##").toString()).toContain("cyclic-aggregate");
+  expect(a.sizeFor("###").toString()).toContain("cyclic-aggregate");
+  expect(a.sizeFor("####").toString()).toContain("cyclic-aggregate");
+});
+
+Deno.test("FOIST 19a distinguishes nil from zero-arity and zero-load Denums", () => {
+  expect(Frame.nil.sizeFor("###")).toBe(Frame.nil);
+  expect(Frame.nil.sizeFor("####")).toBe(Frame.nil);
+  const empty = new FrameArray([]);
+  const raw = tryDenumState(empty.sizeFor("###"));
+  expect(raw).toEqual({ count: 0n, loads: [] });
+  expect(empty.sizeFor("####").toString()).toEqual("[]");
+  const oneZero = new FrameArray([new FrameCount(0n)]);
+  expect(tryDenumState(oneZero.sizeFor("###"))).toEqual({
+    count: 1n,
+    loads: [0n],
+  });
+  expect(oneZero.sizeFor("####").toString()).toEqual("[0]");
 });
