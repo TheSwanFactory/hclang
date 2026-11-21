@@ -79,10 +79,10 @@ Deno.test("routing neither measures nor applies the routed Frame (011.21)", () =
 Deno.test("observing a router measures each routed child, by Size only", () => {
   Watched.seen.length = 0;
   const watched = new Watched([new FrameCount(4n)]);
-  const denum = run("((r0 $$.w) $$.w).####", { w: watched });
+  const denum = run("((r0 $$.w) $$.w).###", { w: watched });
   expect(denum.toText().toString()).toEqual("“Denum(2,[4, 4])”");
   expect(Watched.seen.includes("call")).toBe(false);
-  // `.####` recognizes the router and reads each channel's Size once, so each
+  // `.###` recognizes the router and reads each channel's Size once, so each
   // of the two routed occurrences is measured once.
   expect(Watched.seen.filter((key) => key === "##").length).toBe(2);
 });
@@ -95,29 +95,33 @@ Deno.test("a non-finite or cyclic child is routed, and observing it fails", () =
   const routed = run("((r0 $$.inf) $$.cyc)", hosted);
   expect(channelsOf(routed)[1][0].referent()).toBe(cycle);
 
-  expect(`${run("(r0 $$.inf).####", hosted)}`)
+  expect(`${run("(r0 $$.inf).###", hosted)}`)
     .toEqual("$!.nonquantifiable-size .##");
-  expect(`${run("((r0 5) $$.cyc).####", hosted)}`)
+  expect(`${run("((r0 5) $$.cyc).###", hosted)}`)
     .toEqual("$!.cyclic-aggregate .##");
   // The first failed load is the answer.
-  expect(`${run("((r0 $$.inf) $$.cyc).####", hosted)}`)
+  expect(`${run("((r0 $$.inf) $$.cyc).###", hosted)}`)
     .toEqual("$!.nonquantifiable-size .##");
 });
 
-Deno.test("a router's fourth hash is an instance of the bundled Denum class", () => {
-  const denum = run("((r0 “hello”) 7).####", {});
+Deno.test("a router's third hash is a raw Denum with channel-sized loads", () => {
+  const denum = run("((r0 “hello”) 7).###", {});
   // The Count is the two children routed, not their parity.
   expect(
     [`${denum.getOwn("count")}`, `${denum.getOwn("loads")}`],
   ).toEqual(["2", "[5, 7]"]);
-  expect(denum.equals(run("[“hello”, 7].####", {}))).toBe(Frame.all);
-  // The initial router has routed nothing, so it has Count zero and no Denum,
-  // like the empty host; the Denum of Count zero is a different, present value.
+  expect(denum.equals(run("[“hello”, 7].###", {}))).toBe(Frame.all);
+  // The empty router retains its channel arity as two zero loads, while an
+  // empty ordinary Frame has the canonical zero-load Denum.
   expect(run("r0.#", {}).toString()).toEqual("0");
-  expect(run("r0.####", {})).toBe(Frame.nil);
-  expect(run("[].####", {})).toBe(Frame.nil);
+  const routedEmpty = run("r0.###", {});
+  expect(routedEmpty.getOwn("count").toString()).toEqual("0");
+  expect(routedEmpty.getOwn("loads").toString()).toEqual("[0, 0]");
+  const ordinaryEmpty = run("[].###", {});
+  expect(ordinaryEmpty.getOwn("count").toString()).toEqual("0");
+  expect(ordinaryEmpty.getOwn("loads").toString()).toEqual("[]");
   expect(`${run("((r0 5) 7).#", {})}`).toEqual("2");
-  expect(`${run("(((r0 5) 7) 9).####.count", {})}`).toEqual("3");
+  expect(`${run("(((r0 5) 7) 9).###.count", {})}`).toEqual("3");
 });
 
 Deno.test("a router routes to channel C mod k, and only round-robin histories construct (007.25e)", () => {
@@ -137,11 +141,11 @@ Deno.test("a router routes to channel C mod k, and only round-robin histories co
     expect(routed[next].length, channels).toBe(
       channelsOf(router)[next].length + 1,
     );
-    if (c !== "0") {
+    if (true) {
       expect(
-        `${run(`((Routers.RotorRouter ${channels}) 9).####`, {})}`,
+        `${run(`((Routers.RotorRouter ${channels}) 9).###`, {})}`,
         channels,
-      ).toEqual(`${run(`((Routers.RotorRouter ${channels}).####) 9`, {})}`);
+      ).toEqual(`${run(`((Routers.RotorRouter ${channels}).###) 9`, {})}`);
     }
   }
   // Not a left-first alternating history, or the removed phase-first form.
@@ -157,11 +161,11 @@ Deno.test("a router routes to channel C mod k, and only round-robin histories co
     expect(`${run(`Routers.RotorRouter ${channels}`, {})}`, channels)
       .toEqual("$!!.invalid-router");
   }
-  // Routing commutes with observing at every Count where the Denum exists.
+  // Routing commutes with the raw third-hash observer, including Count zero.
   expect(
     `${
       run(
-        "[r0 5, (r0 5) 6, ((r0 5) 6) 7] & {.k _; ((k 9).####) = ((k.####) 9)}",
+        "[r0 5, (r0 5) 6, ((r0 5) 6) 7] & {.k _; ((k 9).###) = ((k.###) 9)}",
         {},
       )
     }`,
