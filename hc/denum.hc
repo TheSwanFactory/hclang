@@ -17,7 +17,6 @@ Scalar numeric arithmetic inside these methods remains native.
 The class lives entirely in HC and is embedded by the native evaluator
 through the Denum prologue. These definitions remain user-visible and
 the following testdoc witnesses replace the superseded v0.53.1 examples.
-```
 .redistribution {.s (_ .0); .ways (_ .1); .r (s %% ways); .q (((s - r) / ways).##);
   ((ways - r) [q]) | (r [(q + 1)])};
 .denum-instance {.c (_ .0); .e (_ .1); [
