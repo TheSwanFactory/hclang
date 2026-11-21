@@ -34,6 +34,31 @@ jobs:
       - run: deno test --allow-read --allow-env lib/execute/foist-19a.test.ts lib/frames/kd-signed-xor.test.ts
       - run: deno run --allow-read --allow-write --allow-env --deny-run --deny-ffi cli/hc.ts hc/foist-19a.hc -t
 
+  # Independent red/green migration gates until full test:all can pass.
+  # Run both even if the first fails, to expose every legacy failure family.
+  migration-audit:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.9.5
+      - run: deno task bundle:embed
+      - name: Library, HC testdocs, and observer-algebra migration
+        run: |
+          set +e
+          deno task test:lib
+          lib=$?
+          deno task test:doc
+          docs=$?
+          deno task test:observer-algebras
+          observers=$?
+          if [ "$lib" -ne 0 ] || [ "$docs" -ne 0 ] || [ "$observers" -ne 0 ]; then
+            exit 1
+          fi
+
   # contents: write belongs only to this job. It pushes `style: deno fmt` onto
   # a same-repo pull request branch. Forks get a read-only token, and the
   # default branch is never a push target; both fail `deno fmt --check`.
