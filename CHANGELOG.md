@@ -3,6 +3,19 @@
 > Record concise, user-facing changes since the previous release. Omit internal
 > cleanup, specification-only updates, and test-only changes.
 
+## Unreleased
+
+- **TypeScript API cleanup (#507).** Remove obsolete exported Frame Count-binding
+  and geometry members (`kBIND`, `bindCount`, `observeGeometry`,
+  `GEOMETRY_SUFFIXES`, `GEOMETRIC_OBSERVERS`) and their dead implementation.
+  These observers were already unbound in HC 0.54.0. TypeScript clients using
+  the retired members must migrate; the historical observer-algebra experiment
+  maintains its local implementation.
+- **TypeScript migration helpers.** `Frame.kRAW_DENUM` now names the `.###`
+  raw Denum observer; `Frame.kRESIDUAL` stays as a deprecated alias.
+  `FrameArray.star` and `FrameArray.starCount` remain callable for legacy
+  TypeScript clients but are deprecated because HC `*` now means Cart.
+
 ## v0.54.0 2026-11-20
 
 - **Breaking: FOIST 19a Denum and KD observers (#506).** `.###` now constructs a

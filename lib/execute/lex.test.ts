@@ -353,8 +353,16 @@ describe("Lex", () => {
     });
   });
 
-  describe("geometric observers `.##%` … `.###%%%` (007.41b)", () => {
-    const observers = Frame.GEOMETRIC_OBSERVERS.map((key) => `.${key}`);
+  describe("retired geometric suffixes `.##%` … `.###%%%`", () => {
+    // Historical spellings remain lexically whole, but are not HC observers.
+    const observers = [
+      ".##%",
+      ".###%",
+      ".##%%",
+      ".###%%",
+      ".##%%%",
+      ".###%%%",
+    ];
 
     it("reads each spelling as one token, whole and in chunks", () => {
       for (const observer of observers) {

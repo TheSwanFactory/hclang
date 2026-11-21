@@ -2,12 +2,13 @@
  * The 007.41 same-Denum experiment: both observer algebras on one bound Denum.
  *
  * `runExperiment()` answers a deterministic list of text lines. For every case
- * it builds a Denum, binds it with the real `d.#%` (twice: through the
- * TypeScript bridge and through a bare HC evaluator, and the two must agree),
- * reads the native `.#`, `.##` and `.###`, then reads the same loads through
- * the simplex quotient and, at C = 2ⁿ, the Cayley–Dickson algebra through the
- * isometry φ. Failures of compatibility are reported as measured, not
- * asserted away.
+ * it constructs a genuine HC Denum, reads its raw Count and loads through the
+ * TypeScript bridge and a bare evaluator, then applies the historical
+ * `d.#%` cyclic binding locally in `bridge.ts` to both results. The current
+ * public `d.#%` name is unbound; the historical alternating residual is
+ * computed locally, never by the new raw `.###` observer. The experiment
+ * compares the locally bound loads using simplex and Cayley–Dickson algebras
+ * at C = 2ⁿ. Compatibility failures remain visible in its output.
  *
  * Run it with `deno task experiment:observer-algebras`.
  *
@@ -41,7 +42,7 @@ import {
   simplexResultantSquared,
 } from "./simplex.ts";
 
-/** A Denum to feed through `d.#%`: `Denum [count, loads]`. */
+/** A raw HC Denum to feed through the local historical binder. */
 export interface Case {
   readonly label: string;
   readonly count: bigint;

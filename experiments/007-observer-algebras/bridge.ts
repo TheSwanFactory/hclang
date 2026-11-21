@@ -157,11 +157,12 @@ export function bindingSource(
 }
 
 /**
- * Asks native geometric observers (`##%` … `###%%%`, 007.41b, 007.46) of
- * `Denum [count, loads]` from HC source in a bare evaluator, so the
- * experiment's TypeScript algebras can be checked against the HC bindings. The
- * Denum is built once by the shipped bridge and bound as `$$.d`; every reading
- * is dispatched by HC source, `[$$.d.##%, …]`.
+ * Probes observer spellings in today's HC evaluator. Historical geometry
+ * names (`##%` … `###%%%`) are unbound after FOIST 19a: these probes
+ * deliberately return name-missing instead of historical geometric values.
+ * The Denum is built once, bound as `$$.d`, and each name is read in HC
+ * source, e.g. `[$$.d.##%, …]`. Historical geometry lives in the separate
+ * TypeScript experiment.
  *
  * @returns One answer per observer, in order.
  */
