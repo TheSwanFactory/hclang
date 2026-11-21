@@ -565,3 +565,127 @@ These are executable error-contract witnesses, not new parser behavior.
 # $!.unconsumed-bits 1
 ; cd_byte_index 5
 # $!.bit-input-invalid 5
+
+```
+018.18 Kaylee–Dixon counting-first VACT witnesses (testdoc-only).
+
+CD reference fixtures below were computed with an independent recursive
+signed-vector Cayley–Dickson oracle, using (a,b)(c,d) =
+(ac - conjugate(d)b, da + b conjugate(c)), as recorded in Figure 018.17a.
+Literal expected values are *not* computed from cd_sign at test time.
+HC uses the preexisting sign, XOR, flat Cartesian product, half-turn and
+halfwise embedding helpers above; this block adds no production operator.
+
+D0 has one unsigned counting channel. D1 first introduces an orientation
+bit, not an imaginary CD direction-selector bit. A route below is merely
+a testdoc adapter combining existing cd_sign and cd_flat_xor, not a
+second sign algorithm. Power lists are exact descending scan widths.
+```
+; 3 * 4
+# 12
+; .kd_route {
+  .args _;
+  .s (args .0);
+  .u (args .1);
+  .t (args .2);
+  .v (args .3);
+  .powers (args .4);
+  [(((s + t) + (cd_sign [u, v, powers])) %% 2), cd_flat_xor [u, v, powers]]
+};
+; kd_route [1, 0, 1, 0, []]
+# [0, 0]
+; kd_route [0, 0, 0, 3, [2, 1]]
+# [0, 3]
+; kd_route [0, 1, 0, 2, [2, 1]]
+# [0, 3]
+; kd_route [1, 1, 0, 2, [2, 1]]
+# [1, 3]
+; kd_route [0, 1, 1, 2, [2, 1]]
+# [1, 3]
+; kd_route [1, 1, 1, 2, [2, 1]]
+# [0, 3]
+; kd_route [0, 4, 0, 2, [4, 2, 1]]
+# [1, 6]
+; kd_route [0, 4, 0, 2, [8, 4, 2, 1]]
+# [1, 6]
+; kd_route [0, 1, 0, 6, [4, 2, 1]]
+# [1, 7]
+```
+Concrete D1 counted multiplication deposits all ordered nonnegative
+products. Cancellation at observation does not erase raw count loads.
+These array fixtures distinguish the orientation bit from CD directions.
+```
+; cd_flat_mul [[3, 1], [1, 0], []]
+# [3, 1]
+; cd_flat_mul [[0, 1], [0, 1], []]
+# [1, 0]
+; cd_flat_mul [[1, 1], [2, 1], []]
+# [3, 3]
+; cd_flat_eq [[3, 3], [0, 0]]
+# 1
+; cd_flat_eq [[3, 3], [3, 0]]
+# 0
+```
+Quaternion mixed-direction gauge witnesses: these are distinct nonnegative
+raw representations with equal observed coordinates. The independently
+computed signed CD-vector product of (2,-1,1,0) and (-1,1,0,2)
+is (-1,5,1,3). The two raw products differ but observe identically.
+```
+; .kd_gx [2, 0, 1, 0, 0, 1, 0, 0];
+; .kd_gx_other [3, 0, 3, 0, 1, 1, 2, 0];
+; .kd_gy [0, 1, 0, 2, 1, 0, 0, 0];
+; .kd_gy_other [0, 3, 0, 3, 1, 2, 0, 1];
+; cd_bool (kd_gx = kd_gx_other)
+# 0
+; cd_flat_eq [kd_gx, kd_gx_other]
+# 1
+; cd_flat_eq [kd_gy, kd_gy_other]
+# 1
+; .kd_gprod (cd_flat_mul [kd_gx, kd_gy, [2, 1]]);
+; .kd_gprod_other (cd_flat_mul [kd_gx_other, kd_gy_other, [2, 1]]);
+; kd_gprod
+# [1, 5, 2, 4, 2, 0, 1, 1]
+; cd_bool (kd_gprod = kd_gprod_other)
+# 0
+; cd_flat_eq [kd_gprod, kd_gprod_other]
+# 1
+; cd_flat_eq [kd_gprod, [0, 5, 1, 3, 1, 0, 0, 0]]
+# 1
+```
+At D5, the full 32-slot Cartesian counted product of
+(e1+e10)(e4-e15) has four unit loads at slots 5,14,21,30.
+The independently computed signed CD observation is the *zero vector*.
+Testing the complete raw result is stronger than a basis-sign check:
+the output is nonempty and every stored count remains nonnegative.
+```
+; .kd_sed_a [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+; .kd_sed_b [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1];
+; .kd_sed_product (cd_flat_mul [kd_sed_a, kd_sed_b, [8, 4, 2, 1]]);
+; kd_sed_product
+# [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0]
+; kd_sed_product.##
+# 4
+; cd_flat_eq [kd_sed_product, (kd_sed_a & {0})]
+# 1
+```
+Halfwise inclusions preserve signed observations and commute with a
+half-turn. Trailing padding of [3,1] would instead read 3+i.
+These are witnesses on valid even 2d-slot inputs only.
+```
+; cd_flat_embed_cd [3, 1]
+# [3, 0, 1, 0]
+; cd_flat_embed_cd [3, 4, 1, 2]
+# [3, 4, 0, 0, 1, 2, 0, 0]
+; cd_flat_eq [cd_flat_embed_cd [3, 4, 1, 2], [2, 2, 0, 0, 0, 0, 0, 0]]
+# 1
+; cd_bool ((cd_flat_embed_cd (cd_flat_neg [3, 4, 1, 2])) = (cd_flat_neg (cd_flat_embed_cd [3, 4, 1, 2])))
+# 1
+; cd_flat_neg (cd_flat_neg [3, 4, 1, 2])
+# [3, 4, 1, 2]
+```
+The existing testdoc also covers D2/D3 basis products, both octonion
+parenthesizations, guard-sensitive pairs (1,1), (1,2), (2,3), (4,2),
+multiple scan lengths and 8-bit ingress. Branch internals are not
+instrumented by this output-only witness. No claims about malformed
+flat arities, incomplete power lists or arbitrary-precision HC words.
+```
