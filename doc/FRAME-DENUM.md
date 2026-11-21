@@ -33,6 +33,12 @@ so class implementation can use exact Count arithmetic.
 - A recognized Denum answers an equal reconstructed Denum, preserving its
   original Count and loads without normalizing them.
 - The empty ordinary array reads as `Denum(0,[])`.
+- **Scalar extension beyond FOIST 19a's ordered-Frame formula:** a scalar contributes
+  its nonnegative *Size*, not its signed numerical value. Therefore
+  `(0 - 2).###` gives `Denum(2,[2])` and `.####` reads `[2]`—the sign
+  does not survive. Fractional scalars follow native Count and Size:
+  `(7 / 2).#### = [3]`, and `(1 / 2).### = Denum(0,[])`.
+  For a KD value of `-2`, construct explicit signed loads `Denum(2,[0,2])`.
 - Other Frames follow the ordinary Count and Size contracts; inability to supply
   an exact nonnegative load is a diagnostic error.
 
@@ -66,7 +72,9 @@ different.
 ## 4. Frame products and addition
 
 - `A+B`: **Flop**, applying the immediate children of `B` to a fresh receiver
-  `A` in order. Its old derived spelling is `B|A`.
+  `A` in order. Its old derived spelling is `B|A`. A numeric left receiver
+  applies its usual multiplication rule: `3 + [2,5] = 30`. This is
+  *structural* Flop, not addition of values.
 - `A*B`: **Cart**, a flat left-major Cartesian list of immediate ordered pairs
   `[[a₀,b₀],...,[aᵢ,bⱼ],...]`. For Denums, pair the stored raw load occurrences,
   not the class's named state fields. No signed routing is performed.
@@ -96,6 +104,12 @@ number of active Cartesian term pairs. It refuses exceeding the runtime product
 budget with a diagnostic instead of stalling the evaluator.
 
 ## 5. Negation and subtraction
+
+Outside numeric-numeric subtraction, `A - D = A + (-D)` requires a recognized
+Denum on the right. Any other right operand returns `$!.flop-domain -`, not
+silent nil. A numeric receiver retains scalar application semantics:
+`5 - ([3,1].###) = 15` and `0 - ([3,1].###) = 0`, so `0 - D` is
+**not** unary Denum negation.
 
 Unary `−D` on a Denum uses the least even power-of-two arity `n≥k`, with
 trailing zero completion only when necessary. It rotates the sequence by `n/2`
