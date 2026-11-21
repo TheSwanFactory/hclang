@@ -6,8 +6,8 @@
 
 The two native infix operators work on **immediate positional elements**:
 
-- `A * B` (**Cart**) returns a flat left-major Cartesian product, wrapping
-  each pairing as `[a,b]`. Duplicated values are not deduplicated.
+- `A * B` (**Cart**) returns a flat left-major Cartesian product, wrapping each
+  pairing as `[a,b]`. Duplicated values are not deduplicated.
 - `A |&| B` (**Zip**) pairs corresponding positions, stopping at the shorter
   input. An operand with no positional elements gives `[]`.
 
@@ -23,9 +23,9 @@ This is deliberate reuse of HC's existing `elements()` convention, not a special
 Cart/Zip rule.
 
 A closure's `elements()` are its **code atoms**, not the result of executing the
-closure. Consequently, `[1] * {_ + 1}` pairs `1` with the three code atoms
-`_`, `+`, and `1`. This is consistent with ordinary HC iteration over closures;
-pass an evaluated result instead when values, rather than code atoms, should be
+closure. Consequently, `[1] * {_ + 1}` pairs `1` with the three code atoms `_`,
+`+`, and `1`. This is consistent with ordinary HC iteration over closures; pass
+an evaluated result instead when values, rather than code atoms, should be
 paired.
 
 ```hc

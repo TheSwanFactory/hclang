@@ -18,7 +18,13 @@ Deno.test("FOIST 19a removes every % suffixed hash observer", () => {
   const d = denum(2n, [3n, 1n]);
   for (
     const key of [
-      "#%", "##%", "###%", "##%%", "###%%", "##%%%", "###%%%",
+      "#%",
+      "##%",
+      "###%",
+      "##%%",
+      "###%%",
+      "##%%%",
+      "###%%%",
     ]
   ) {
     expect(Frame.SIZE_OPERATORS.includes(key)).toBe(false);
