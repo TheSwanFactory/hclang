@@ -596,13 +596,8 @@ export class Frame extends MetaFrame {
   public static readonly kLEAVES = "##";
   /** `.###` returns a constructive raw Denum, not a signed residual. */
   public static readonly kRAW_DENUM = "###";
-  /**
-   * @deprecated Since 0.54.0, `.###` is raw Denumeration. Use
-   * `Frame.kRAW_DENUM`; this TypeScript alias is retained for compatibility.
-   */
-  public static readonly kRESIDUAL = Frame.kRAW_DENUM;
   /** `.####` observes KD signed coordinates from raw `.###`. */
-  public static readonly kDENUM = "####";
+  public static readonly kKD_COORDINATES = "####";
   /**
    * The size operators, the only names spelled with `#` (#411). Each answers
    * for its receiver through `sizeFor`, never through name lookup.
@@ -611,7 +606,7 @@ export class Frame extends MetaFrame {
     Frame.kCOUNT,
     Frame.kLEAVES,
     Frame.kRAW_DENUM,
-    Frame.kDENUM,
+    Frame.kKD_COORDINATES,
   ];
   /**
    * BEGIN_EXPR is the symbol for the beginning of an expression.
@@ -1003,7 +998,7 @@ export class Frame extends MetaFrame {
       }
       case Frame.kRAW_DENUM:
         return Frame.denum(this);
-      case Frame.kDENUM:
+      case Frame.kKD_COORDINATES:
         return Frame.observeKD(this);
       default:
         return Frame.nil;

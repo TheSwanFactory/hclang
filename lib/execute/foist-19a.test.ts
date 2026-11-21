@@ -126,11 +126,17 @@ Deno.test("FOIST 19a: retired Count/geometry internals are not installed", () =>
       "GEOMETRIC_OBSERVERS",
       "bindCount",
       "observeGeometry",
+      "kRESIDUAL",
+      "kDENUM",
     ]
   ) {
     expect(Object.hasOwn(Frame, key)).toBe(false);
   }
+  expect(Frame.kRAW_DENUM).toEqual("###");
+  expect(Frame.kKD_COORDINATES).toEqual("####");
   expect(Frame.SIZE_OPERATORS).toEqual(["#", "##", "###", "####"]);
+  expect(Object.hasOwn(FrameArray, "starCount")).toBe(false);
+  expect(Object.hasOwn(FrameArray.prototype, "star")).toBe(false);
 });
 
 Deno.test("FOIST 19a: the removed suffix observers refuse rather than alias", () => {
