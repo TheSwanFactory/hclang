@@ -33,6 +33,7 @@ jobs:
       - run: deno task bundle:embed
       - run: deno test --allow-read --allow-env lib/execute/foist-19a.test.ts lib/frames/kd-signed-xor.test.ts
       - run: deno run --allow-read --allow-write --allow-env --deny-run --deny-ffi cli/hc.ts hc/foist-19a.hc -t
+      - run: deno run --allow-read --allow-write --allow-env --deny-run --deny-ffi cli/hc.ts hc/denum.hc -t
 
   # Independent red/green migration gates until full test:all can pass.
   # Run both even if the first fails, to expose every legacy failure family.
