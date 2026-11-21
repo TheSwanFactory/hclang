@@ -3,24 +3,20 @@
 > Record concise, user-facing changes since the previous release. Omit internal
 > cleanup, specification-only updates, and test-only changes.
 
-## v0.54.1 2026-11-20
+## v0.55.0 2026-11-20
 
-**Pre-1.0 TypeScript API change:** This patch release intentionally removes
-retired exports without compatibility shims, as no external consumers exist. It
-is not backward-compatible for code that used those obsolete APIs.
-
-- **TypeScript API cleanup (#507).** Remove obsolete exported Frame
-  Count-binding and geometry members (`kBIND`, `bindCount`, `observeGeometry`,
-  `GEOMETRY_SUFFIXES`, `GEOMETRIC_OBSERVERS`) and their dead implementation.
-  These observers were already unbound in HC 0.54.0. TypeScript clients using
-  the retired members must migrate; the historical observer-algebra experiment
-  maintains its local implementation.
-- **No legacy TypeScript aliases (#507).** `Frame.kRESIDUAL` and `Frame.kDENUM`
-  have been removed, along with `FrameArray.star`, `FrameArray.starCount` and
-  its internal Star implementation. Use `Frame.kRAW_DENUM` for `.###`,
-  `Frame.kKD_COORDINATES` for `.####`, and structural Cart for `*`. Old
-  Star-only tests have been retired; Cart nesting and identity remain covered
-  without compatibility shims.
+- **Breaking TypeScript API cleanup (#507).** Remove the retired
+  `Frame.kBIND`, `Frame.bindCount`, `Frame.observeGeometry`,
+  `Frame.GEOMETRY_SUFFIXES`, and `Frame.GEOMETRIC_OBSERVERS` members and
+  their obsolete Count-binding and geometry implementation. HC's `#%` observer
+  spellings were already unbound in 0.54.0; the historical experiment retains
+  its independent modulo-Count binding.
+- **Breaking removal of legacy aliases and Star helpers (#507).** Remove
+  `Frame.kRESIDUAL`, `Frame.kDENUM`, `FrameArray.star`, and
+  `FrameArray.starCount` without compatibility aliases. Use
+  `Frame.kRAW_DENUM` for `.###`, `Frame.kKD_COORDINATES` for `.####`,
+  and HC structural Cart for `*`. The minor bump separates this incompatible
+  TypeScript API change from the 0.54.x release line.
 
 ## v0.54.0 2026-11-20
 

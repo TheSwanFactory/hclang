@@ -105,7 +105,12 @@ function historicallyBind(count: bigint, loads: readonly bigint[]): BindResult {
   ));
 }
 
-/** Construct the genuine Denum, then apply the historical local binding. */
+/**
+ * Construct a genuine HC Denum, read back its Count and stored loads, then
+ * apply the experiment-local historical binding to that observed state.
+ * This matches the independent bare-evaluator path instead of folding the
+ * caller's original arguments without observing the constructed Denum.
+ */
 export function bindWithHC(
   count: bigint,
   loads: readonly bigint[],
@@ -114,9 +119,8 @@ export function bindWithHC(
     new FrameCount(count),
     loads.map((l) => new FrameCount(l)),
   );
-  const failure = failureOf(denum);
-  if (failure) return { ok: false, error: failure };
-  return historicallyBind(count, loads);
+  const read = readBound(denum);
+  return read.ok ? historicallyBind(read.count, read.loads) : read;
 }
 
 /** The bundled `hc/denum.hc` without its shebang, so a bare source can use it. */

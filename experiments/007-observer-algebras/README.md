@@ -11,7 +11,7 @@ historical signed or rational observer values. Nothing here converts a product
 back into a nonnegative native Denum.
 
 ```sh
-deno task test:observer-algebras        # 32 tests, also part of test:all
+deno task test:observer-algebras        # 33 tests, also part of test:all
 deno task experiment:observer-algebras  # prints the report below
 ```
 
@@ -22,9 +22,10 @@ suite fails if the report changes.
 
 A genuine Denum is constructed through `constructDenum` and independently
 through a bare evaluator with bundled `hc/denum.hc` and
-`(Denum [C, [loads]]).###`. The bridge reads its raw Count and loads, then
-implements the **retired** `d.#%` modulo-Count fold (`bⱼ = Σ_{i mod C = j} aᵢ`)
-locally. Both routes must agree on the historical bound result. The experiment's
+`(Denum [C, [loads]]).###`. **Each route reads back the constructed Denum's
+Count and loads** before applying the retired `d.#%` modulo-Count fold
+(`bⱼ = Σ_{i mod C = j} aᵢ`) locally. Both independently observed states must
+agree on the historical bound result. The experiment's
 alternating residual is also computed locally: public `.###` now means raw
 Denumeration, **not** the old residual. The actual `.#%` name remains unbound in
 today's HC.
