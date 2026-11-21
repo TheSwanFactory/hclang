@@ -205,102 +205,51 @@ describe("FrameArray", () => {
     });
   });
 
-  describe("signed residual .### (010.04)", () => {
-    /** The answer of the last statement in a source sequence. */
-    const last = (source: string): Frame =>
-      evaluate(source).at(-1).asArray().at(-1)!;
-
-    it("folds immediate terminal counts with alternating signs, as a FrameInt", () => {
-      const table = [
-        ["[]", "0"],
-        ["[[]]", "1"],
-        ["[[], []]", "0"],
-        ["[[], [[], []]]", "-1"],
-        ["[[[], []], []]", "1"],
-        ["[[], [[], []], [[], [], []]]", "2"],
-        // Three levels: the children have 2, 3 and 3 terminals, and each
-        // child takes one sign however deep its terminals lie.
-        ["[[[], [[]]], [[[], []], []], [[[[], [], []]]]]", "2"],
-        ["[[[], []], [[], [], [], [], []]]", "-3"],
+  describe("raw Denum and KD coordinates (FOIST 19a)", () => {
+    it("observes immediate terminal Sizes as raw, ordered loads", () => {
+      const cases: readonly [string, string, string][] = [
+        ["[]", "0", "[]"],
+        ["[[]]", "1", "[1]"],
+        ["[[], []]", "2", "[1, 1]"],
+        ["[[], [[], []]]", "2", "[1, 2]"],
+        ["[5, 3, 7]", "3", "[5, 3, 7]"],
       ];
-      for (const [figure, residual] of table) {
-        const answer = last(`${figure}.###`);
-
-        expect(answer, figure).toBeInstanceOf(FrameInt);
-        expect(answer, figure).not.toBeInstanceOf(FrameCount);
-        expect(answer.className(), figure).toEqual("FrameInt");
-        expect(answer.toString(), figure).toEqual(residual);
+      for (const [source, count, loads] of cases) {
+        const raw = evaluate(`${source}.###`).at(0);
+        expect(raw.getOwn("count").toString(), source).toEqual(count);
+        expect(raw.getOwn("loads").toString(), source).toEqual(loads);
       }
     });
 
-    it("leaves .# and .## counts on the same Figures", () => {
-      const answer = last("[[], [[], []]].##");
-
-      expect(answer.className()).toEqual("FrameCount");
-      expect(answer.toString()).toEqual("3");
-      expect(last("[[], [[], []]].#").toString()).toEqual("2");
+    it("reads KD antipodal differences without altering raw loads", () => {
+      const a = new FrameArray([new FrameCount(3n), new FrameCount(1n)]);
+      const b = new FrameArray([new FrameCount(3n), new FrameCount(1n), new FrameCount(5n)]);
+      expect(a.sizeFor("####").toString()).toEqual("[2]");
+      expect(b.sizeFor("####").toString()).toEqual("[-2, 1]");
+      expect(a.sizeFor("###").getOwn("loads").toString()).toEqual("[3, 1]");
+      expect(b.sizeFor("###").getOwn("loads").toString()).toEqual("[3, 1, 5]");
     });
 
-    it("counts a shared branch at every occurrence", () => {
-      expect(last(".x [[], []]; [x, x, [x]].###").toString()).toEqual("2");
-      const empty = new FrameArray([]);
-      const xs = new FrameArray([empty, new FrameArray([empty, empty])]);
-      expect(evaluate("$$.xs.###", { xs }).at(0).toString()).toEqual("-1");
+    it("counts repeated shared children per occurrence", () => {
+      const child = new FrameArray([new FrameCount(5n)]);
+      const host = new FrameArray([child, child, new FrameArray([child])]);
+      expect(host.sizeFor("#").toString()).toEqual("3");
+      expect(host.sizeFor("###").getOwn("loads").toString())
+        .toEqual("[5, 5, 5]");
+      expect(host.sizeFor("####").toString()).toEqual("[0, 5]");
     });
 
-    it("ignores properties and a declared parent at every level", () => {
-      const table = [
-        ["[.k 1; []]", "1"],
-        ["[[], [.k 1; [], []]]", "-1"],
-        ["[.^ [.m 1]; [[], []]]", "2"],
-        ["[.k 1]", "0"],
-        ["[[], [.^ [.m 1]; .k 2; [], []]]", "-1"],
-        ["[.^ [.m 1]; .k 2]", "0"],
-      ];
-      for (const [figure, residual] of table) {
-        const answer = last(`${figure}.###`);
-
-        expect(answer.className(), figure).toEqual("FrameInt");
-        expect(answer.toString(), figure).toEqual(residual);
-      }
+    it("ignores named metadata when reading immediate loads", () => {
+      const a = new FrameArray([new FrameCount(3n), new FrameCount(1n)]);
+      a.set("meta", new FrameCount(99n));
+      expect(a.sizeFor("###").getOwn("loads").toString()).toEqual("[3, 1]");
     });
 
-    it("extends residual to mixed arrays and evaluated groups", () => {
-      for (
-        const [host, expected] of [
-          ["[1, []]", "0"],
-          ["[[], [1]]", "0"],
-          ["[[], [“ab”]]", "-1"],
-          ["[[], ([], [])]", "-1"],
-          ["([], [])", "0"],
-        ]
-      ) expect(last(`${host}.###`).toString(), host).toEqual(expected);
-    });
-
-    it("answers nil on schemas and Count parity on atoms (011.18k)", () => {
-      // nil, so the source answers no value.
-      expect(evaluate("<[], []>.###").toString()).toEqual("[]");
-      for (
-        const [source, parity] of [["“ab”", "0"], ["(0 - 5)", "1"], [
-          "1.5",
-          "1",
-        ]]
-      ) {
-        expect(evaluate(`${source}.###`).toString(), source)
-          .toEqual(`[${parity}]`);
-      }
-    });
-
-    it("propagates the cycle error on an aggregate that contains itself", () => {
-      const direct = new FrameArray([new FrameArray([])]);
-      direct.collect(direct);
-      const indirect = new FrameArray([new FrameArray([])]);
-      indirect.collect(new FrameArray([new FrameArray([]), indirect]));
-
-      for (const xs of [direct, indirect]) {
-        expect(evaluate("$$.xs.###", { xs }).at(0).toString())
-          .toEqual("$!.cyclic-aggregate .##");
-      }
+    it("propagates a cyclic Size error instead of recursively interpreting it", () => {
+      const a = new FrameArray([]);
+      a.collect(a);
+      expect(a.sizeFor("###").toString()).toContain("cyclic-aggregate");
+      expect(a.sizeFor("####").toString()).toContain("cyclic-aggregate");
     });
   });
 

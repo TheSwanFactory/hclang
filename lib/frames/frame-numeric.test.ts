@@ -200,8 +200,9 @@ describe("numeric domains", () => {
       .toEqual("$!.repetition-domain FrameSequence");
   });
 
-  it("preserves nil for arbitrary nonnumeric operator mismatches", () => {
-    expect(Add(new FrameInt(1n), new FrameString("x"))).toBe(Frame.nil);
+  it("uses structural Flop for nonnumeric operator pairs", () => {
+    expect(Add(new FrameInt(1n), new FrameString("x")).toString())
+      .toEqual("“x”");
   });
 
   it("exposes exactInt only for exact integer representations", () => {
