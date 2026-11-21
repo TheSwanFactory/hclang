@@ -341,9 +341,12 @@ describe("FrameCount", () => {
       const value = count(7n);
       expect(value.sizeFor(Frame.kCOUNT)).toBe(value);
       expect(value.sizeFor(Frame.kLEAVES)).toBe(value);
-      expect(value.sizeFor(Frame.kRESIDUAL).getOwn("loads").toString()).toEqual(
-        "[7]",
-      );
+      expect(Frame.kRESIDUAL).toBe(Frame.kRAW_DENUM);
+      expect(value.sizeFor(Frame.kRAW_DENUM).getOwn("loads").toString())
+        .toEqual("[7]");
+      // Existing TypeScript clients can continue using the deprecated alias.
+      expect(value.sizeFor(Frame.kRESIDUAL).getOwn("loads").toString())
+        .toEqual("[7]");
       expect(value.sizeFor(Frame.kDENUM).toString()).toEqual("[7]");
       for (const key of ["", "unknown", "#####", "#x"]) {
         expect(value.sizeFor(key)).toBe(Frame.nil);

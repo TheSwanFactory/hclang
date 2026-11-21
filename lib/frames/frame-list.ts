@@ -2,7 +2,6 @@ import { Frame } from "./frame.ts";
 import { type Context, NilContext } from "./context.ts";
 import { type EvaluationInput, EvaluationScope } from "./evaluation-scope.ts";
 import { FrameCount } from "./frame-count.ts";
-import { FrameInt } from "./frame-int.ts";
 import { REPETITION_ELEMENT_LIMIT } from "./frame-numeric.ts";
 import { renderNested } from "./stringify.ts";
 import type { FrameBinding } from "./frame-symbol.ts";
@@ -218,28 +217,6 @@ export class FrameList extends Frame {
     } finally {
       path.delete(this);
     }
-  }
-
-  /** Lists observe stored contents; schemas retain their separate semantics. */
-  protected supportsResidual(): boolean {
-    return true;
-  }
-
-  /** Alternate over immediate positions, using each child's complete Size. */
-  private residual(): Frame {
-    if (!this.supportsResidual()) return Frame.nil;
-    const elements = this.sizeElements();
-    if (elements instanceof Frame) return elements;
-    const path = new Set<Frame>([this]);
-    let signed = 0n;
-    let positive = true;
-    for (const element of elements) {
-      const size = element.referent().nativeSize(path);
-      if (typeof size !== "bigint") return size;
-      signed += positive ? size : -size;
-      positive = !positive;
-    }
-    return new FrameInt(signed);
   }
 
   /**

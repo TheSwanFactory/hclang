@@ -45,7 +45,12 @@ export class FrameArray extends FrameList {
     if (previous !== data) noteElements(this, data, previous);
   }
 
-  /** Count leaves use the same Star rule at the root and inside an array. */
+  /**
+   * Legacy TypeScript Star leaf helper. Not part of public HC `*` (Cart).
+   *
+   * @deprecated Since 0.54.0, HC `*` is Cartesian pairing. Retained for
+   * existing TypeScript clients; do not use to model current HC operators.
+   */
   public static starCount(count: FrameCount, replacement: Frame): Frame {
     const right = replacement.referent();
     if (right instanceof FrameNumeric) return count.multiply(right);
@@ -71,11 +76,15 @@ export class FrameArray extends FrameList {
   }
 
   /**
-   * Star: replace empty-array terminals and compose count leaves,
-   * sharing the replacement.
+   * Legacy TypeScript Star: replace empty-array terminals and compose count
+   * leaves, sharing the replacement.
    * Copy the same native metadata and declaration echoes as ordinary array
    * reconstruction. A decorated terminal cannot be replaced without loss.
    * Validate before rebuilding; neither operand is evaluated or mutated here.
+   *
+   * @deprecated Since 0.54.0, HC `*` means Cart, not Star/Foliation.
+   * Retained as a direct TypeScript API for compatibility; use explicit
+   * structural Cartesian pairing for the current language operator.
    */
   public star(replacement: Frame): Frame {
     const path = new Set<Frame>();
@@ -173,14 +182,6 @@ export class FrameArray extends FrameList {
 
   /** Aggregates own identity, so `===` compares them by reference. */
   public override ownsIdentity(): boolean {
-    return true;
-  }
-
-  /**
-   * An array exposes its ordered stored contents for residual; properties
-   * and declared parents are excluded. Source forms are not executed.
-   */
-  protected override supportsResidual(): boolean {
     return true;
   }
 
