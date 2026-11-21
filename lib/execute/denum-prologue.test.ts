@@ -107,8 +107,10 @@ Deno.test("FOIST 19a: constructor and class-load failures are explicit", () => {
     .toEqual("$!.denum-prologue-missing Denum");
   expect(constructDenum(count(2n), []).toString())
     .toContain("invalid-denum");
-  expect(constructDenum(count(2n), [count(1n), count(0n)])
-    .isFailedResult()).toBe(false);
+  expect(
+    constructDenum(count(2n), [count(1n), count(0n)])
+      .isFailedResult(),
+  ).toBe(false);
 });
 
 Deno.test("FOIST 19a: no %-suffixed hash observers are public", () => {
