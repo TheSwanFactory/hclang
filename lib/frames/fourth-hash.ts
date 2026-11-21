@@ -1,9 +1,16 @@
 import { Frame } from "./frame.ts";
 import { FrameCount } from "./frame-count.ts";
 import { FrameInt } from "./frame-int.ts";
+import { FrameArray } from "./frame-array.ts";
+import {
+  kdCoordinates,
+  kdMultiplyLoads,
+  kdNegateLoads,
+  KDProductBudgetError,
+} from "./kd-signed-xor.ts";
 
 /**
- * Builds a Denum from its Count and its ordered channel loads, at least one.
+ * Builds a Denum from its Count and ordered loads, including zero arity.
  * The Count is the full observed Count of the source, not its parity. Every
  * arity is the same class (007.27, 007.40).
  */
@@ -15,7 +22,8 @@ export type DenumConstructor = (
 let construct: DenumConstructor | undefined;
 
 /**
- * Installs what `.####` answers a present Denum with. The Denum is an HC class,
+ * Installs the constructor for raw `.###` and KD `.####` observations.
+ * The Denum is an HC class,
  * `Denum` in `hc/denum.hc`, so the frames package, which cannot run HC, takes
  * its constructor from the evaluator (`lib/execute/denum-prologue.ts`).
  *
@@ -35,7 +43,7 @@ export type RouterRecognizer = (source: Frame) => Frame[] | undefined;
 let recognizeRouter: RouterRecognizer | undefined;
 
 /**
- * Installs how `.####` recognizes a channel router (007.27).
+ * Installs how raw `.###` recognizes a channel router (007.27).
  *
  * @param recognizer Answers a channel router's channels, or undefined.
  */
@@ -63,7 +71,6 @@ function storedLoads(source: Frame): FrameCount[] | undefined {
   const value = source.get_here("loads").referent();
   if (!value.ownsIdentity()) return undefined;
   const elements = value.elements();
-  if (elements.length === 0) return undefined;
   const loads = elements.map(exactCount);
   return loads.every((load) => load !== undefined)
     ? loads as FrameCount[]
@@ -217,13 +224,14 @@ export function boundLoads(source: Frame): bigint[] | Frame {
  * Count and channel loads, `Denum [C, [load0, …]]`, where a load is the summed
  * Size of a channel's children and an empty channel's load is 0.
  *
- * Its Count is the children it holds; at Count zero it has no Denum, as the
- * empty host has none. Each child's Size is read
- * once, and a failed Size is answered as it is.
+ * Its Count is the number of routed children, independent of channel
+ * arity. At Count zero, k existing empty channels produce Denum(0,[0,...,0])
+ * rather than the empty Frame's Denum(0,[]). Each child's Size is read once
+ * and a failed Size propagates unchanged.
  *
  * @param source The observed Frame.
- * @returns The router's channel Denum, nil, an error, or undefined when the
- *   source is not a channel router.
+ * @returns The router's channel Denum, an error, or undefined when the source
+ *   is not a channel router.
  */
 function channelRouterDenum(source: Frame): Frame | undefined {
   const channels = recognizeRouter?.(source);
@@ -232,7 +240,10 @@ function channelRouterDenum(source: Frame): Frame | undefined {
     (total, channel) => total + BigInt(channel.elements().length),
     0n,
   );
-  if (count === 0n) return Frame.nil;
+  if (channels.length === 0) {
+    return construct?.(new FrameCount(0n), []) ??
+      Frame.error("$!.denum-unavailable");
+  }
   const loads: FrameCount[] = [];
   for (const channel of channels) {
     if (channel.elements().length === 0) {
@@ -250,26 +261,9 @@ function channelRouterDenum(source: Frame): Frame | undefined {
 }
 
 /**
- * The fourth hash, `.####`. For a constructed Denum it is that Denum's own state
- * (`intrinsicDenum`), Count zero included. For every other Frame it is derived
- * only from the existing observers: Count n, Size s and residual r give the
- * loads (s+r)/2 and (s−r)/2, and n itself is the Denum's Count, kept whole
- * rather than reduced to its parity (007.25c). It never folds, executes or
- * caches the source, and reads each observer at most once.
- *
- * A derived source with Count zero is nil: a host with no children has no
- * Denum, so `[].####` and `0.####` are nil while `(Denum [0, [0, 0]]).####` is
- * present. No class can declare `.####` for itself; only the three observers
- * are declarable (`FrameArray.OBSERVATION_KEYS`).
- *
- * In order: a failure of the source or of any observer is answered as it is;
- * no Count (nil) or Count zero is nil; nil residual is nil; observations that
- * are not exact Counts and an integer are `$!.denum-observations`; and loads
- * that are negative or not whole are `$!.denum-coherence`. Only then is the
- * Denum constructed (011.18b–m).
- *
- * @param source The observed Frame.
- * @returns A Denum, nil, or an error.
+ * The third hash: constructive, ordered Denumeration. A genuine Denum keeps
+ * its Count and raw loads; an ordinary Frame contributes the Size of each
+ * immediate child. Count is not forced to equal load arity on a Denum.
  */
 export function observeDenum(source: Frame): Frame {
   const failure = source.observationError();
@@ -278,37 +272,119 @@ export function observeDenum(source: Frame): Frame {
   if (intrinsic) return intrinsic;
   const routed = channelRouterDenum(source);
   if (routed) return routed;
-  const n = source.sizeFor(Frame.kCOUNT);
-  if (n.observationError()) return n;
-  if (n === Frame.nil) return Frame.nil; // no Count, no Denum (011.18k)
-  if (
-    !(n instanceof FrameCount) || typeof n.data !== "bigint" || n.data < 0n
-  ) {
+  const count = source.sizeFor(Frame.kCOUNT);
+  if (count.observationError()) return count;
+  if (count === Frame.nil) return Frame.nil;
+  if (!(count instanceof FrameCount)) {
     return Frame.error("$!.denum-count");
   }
-  if (n.data === 0n) return Frame.nil;
-  const s = source.sizeFor(Frame.kLEAVES);
-  if (s.observationError()) return s;
-  const r = source.sizeFor(Frame.kRESIDUAL);
-  if (r.observationError()) return r;
-  if (r === Frame.nil) return Frame.nil;
-  if (
-    !(s instanceof FrameCount) || !(r instanceof FrameInt) ||
-    typeof s.data !== "bigint" || typeof r.data !== "bigint" || s.data < 0n
-  ) return Frame.error("$!.denum-observations");
-  const sum = s.data + r.data;
-  const difference = s.data - r.data;
-  if (
-    sum < 0n || difference < 0n || sum % 2n !== 0n || difference % 2n !== 0n
-  ) {
-    return Frame.error("$!.denum-coherence");
-  }
   if (!construct) return Frame.error("$!.denum-unavailable");
-  return construct(new FrameCount(n.data), [
-    new FrameCount(sum / 2n),
-    new FrameCount(difference / 2n),
-  ]);
+  // A zero-valued scalar remains the unsigned empty seed. A collecting
+  // Frame can declare Count zero while still carrying positional children:
+  // raw Denumeration must not discard those children.
+  if (count.data === 0n && !source.referent().collects()) {
+    return construct(new FrameCount(0n), []);
+  }
+  const loads: FrameCount[] = [];
+  for (const child of source.elements()) {
+    // A non-collecting scalar exposes itself as its sole element. That is
+    // a valid one-load observation, not a cyclic aggregate. Only recursive
+    // collection of an aggregate into itself is an invalid self-child.
+    if (
+      source.referent().collects() &&
+      child.referent() === source.referent()
+    ) {
+      return Frame.error("$!.cyclic-aggregate .###");
+    }
+    const size = child.referent().sizeFor(Frame.kLEAVES);
+    if (size.observationError()) return size;
+    const whole = exactCount(size);
+    if (!whole) return Frame.error("$!.denum-observations");
+    loads.push(new FrameCount(whole.data));
+  }
+  if (loads.length === 0 && count.data !== 0n) {
+    return Frame.error("$!.denum-observations");
+  }
+  return construct(new FrameCount(count.data), loads);
+}
+
+/** An unforgeable Denum's stored Count and loads, without reconstructing it. */
+export function tryDenumState(
+  source: Frame,
+): { count: bigint; loads: readonly bigint[] } | undefined {
+  const state = recognizeDenum(source);
+  return state && { count: state.count, loads: state.loads };
+}
+
+/**
+ * The fourth hash observes KD signed coordinates from the raw third hash.
+ * Arity completion is virtual: neither Count nor the stored loads change.
+ */
+export function observeKDCoordinates(source: Frame): Frame {
+  const raw = observeDenum(source);
+  if (raw === Frame.nil || raw.observationError()) return raw;
+  const state = recognizeDenum(raw);
+  if (!state) return Frame.error("$!.denum-observations");
+  if (state.loads.length === 0) return new FrameArray([]);
+  try {
+    return new FrameArray(
+      kdCoordinates(state.loads).map((n) =>
+        n >= 0n ? new FrameCount(n) : new FrameInt(n)
+      ),
+    );
+  } catch {
+    return Frame.error("$!.denum-kd-capacity");
+  }
+}
+
+/** A Denum's unary sign half-turn, or undefined for a non-Denum value. */
+export function negateDenum(source: Frame): Frame | undefined {
+  const state = recognizeDenum(source);
+  if (!state) return undefined;
+  if (!construct) return Frame.error("$!.denum-unavailable");
+  try {
+    const loads = state.loads.length === 0 ? [] : kdNegateLoads(state.loads);
+    return construct(
+      new FrameCount(state.count),
+      loads.map((n) => new FrameCount(n)),
+    );
+  } catch {
+    return Frame.error("$!.denum-kd-capacity");
+  }
+}
+
+/**
+ * Signed-XOR KD multiplication. A product Count counts pairings of the
+ * operands' construction Counts, independent from its normalized load arity:
+ * C(A &|& B) := C(A) × C(B). This explicit policy preserves Count zero.
+ */
+export function multiplyDenum(left: Frame, right: Frame): Frame {
+  const a = observeDenum(left);
+  if (a.observationError() || a === Frame.nil) return a;
+  const b = observeDenum(right);
+  if (b.observationError() || b === Frame.nil) return b;
+  const x = recognizeDenum(a);
+  const y = recognizeDenum(b);
+  if (!x || !y || !construct) {
+    return Frame.error("$!.denum-observations");
+  }
+  try {
+    const loads = x.loads.length === 0 || y.loads.length === 0
+      ? []
+      : kdMultiplyLoads(x.loads, y.loads);
+    return construct(
+      new FrameCount(x.count * y.count),
+      loads.map((n) => new FrameCount(n)),
+    );
+  } catch (error) {
+    return Frame.error(
+      error instanceof KDProductBudgetError
+        ? "$!.denum-product-budget &|&"
+        : "$!.denum-product-capacity &|&",
+    );
+  }
 }
 
 Frame.denum = observeDenum;
-Frame.bindCount = bindDenumCount;
+Frame.observeKD = observeKDCoordinates;
+Frame.negateDenum = negateDenum;

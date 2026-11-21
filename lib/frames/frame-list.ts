@@ -195,7 +195,7 @@ export class FrameList extends Frame {
         ? elements
         : new FrameCount(BigInt(elements.length));
     }
-    return key === Frame.kRESIDUAL ? this.residual() : super.sizeFor(key);
+    return super.sizeFor(key);
   }
 
   /** Empty aggregates retain one terminal; shared descendants count per occurrence. */

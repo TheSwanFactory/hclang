@@ -5,6 +5,7 @@ import { FrameArray } from "../frames/frame-array.ts";
 import { FrameCount } from "../frames/frame-count.ts";
 import { FrameGroup } from "../frames/frame-group.ts";
 import { REPETITION_ELEMENT_LIMIT } from "../frames/frame-numeric.ts";
+import { CartElements, FlopElements } from "./pairings.ts";
 
 type NumericOperation = (left: FrameNumeric, right: FrameNumeric) => Frame;
 
@@ -39,24 +40,47 @@ const failure = (operand: Frame): Frame | undefined => {
   return value.isError() ? value : undefined;
 };
 
-export const Add = (source: Frame, block: Frame): Frame =>
-  arithmetic(source, block, (left, right) => left.add(right));
-
-export const Subtract = (source: Frame, block: Frame): Frame =>
-  arithmetic(source, block, (left, right) => left.subtract(right));
-
-/** Star constructs a frame; numeric pairs retain the existing arithmetic ladder. */
-export const Multiply = (source: Frame, block: Frame): Frame => {
-  const left = source.referent();
-  const right = block.referent();
-  const refused = failure(left) ?? failure(right);
+/** Exact numeric arithmetic survives for the core scalar ladder. */
+export const Add = (source: Frame, block: Frame): Frame => {
+  const refused = failure(source) ?? failure(block);
   if (refused) return refused;
-  if (left instanceof FrameNumeric && right instanceof FrameNumeric) {
-    return left.multiply(right);
-  }
-  if (left instanceof FrameArray) return left.star(block);
-  if (left instanceof FrameCount) return FrameArray.starCount(left, block);
-  return Frame.error("$!.star-domain *");
+  const numericPair = numeric(
+    source.referent(),
+    block.referent(),
+    (left, right) => left.add(right),
+  );
+  return numericPair === Frame.nil ? FlopElements(source, block) : numericPair;
+};
+
+/** Numeric pairs subtract; otherwise subtraction Flops with a Denum half-turn.
+ * The right operand must be a Denum. A numeric left receiver is valid Flop,
+ * so 0 - D is not the same as unary -D.
+ */
+export const Subtract = (source: Frame, block: Frame): Frame => {
+  const refused = failure(source) ?? failure(block);
+  if (refused) return refused;
+  const numericPair = numeric(
+    source.referent(),
+    block.referent(),
+    (left, right) => left.subtract(right),
+  );
+  if (numericPair !== Frame.nil) return numericPair;
+  const negative = Frame.negateDenum(block.referent());
+  return negative
+    ? FlopElements(source, negative)
+    : Frame.error("$!.flop-domain -");
+};
+
+/** Cart is the structural Frame product; scalar arithmetic remains native. */
+export const Multiply = (source: Frame, block: Frame): Frame => {
+  const refused = failure(source) ?? failure(block);
+  if (refused) return refused;
+  const numericPair = numeric(
+    source.referent(),
+    block.referent(),
+    (left, right) => left.multiply(right),
+  );
+  return numericPair === Frame.nil ? CartElements(source, block) : numericPair;
 };
 
 /**

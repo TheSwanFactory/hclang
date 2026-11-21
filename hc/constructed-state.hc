@@ -1,224 +1,82 @@
 #!/usr/bin/env hc
 ```
-Denum constructed physical state: VACT witness and scope (Explore 022.06)
+Constructed physical state — updated VACT test witness for FOIST 19a
 
-Implements the corrected handoff in occurrence/explore 022.05a, pinned at
-9d966bd95a783849c0363d82ee295586e0ffc6db581815b443140d746843eec8:
+The source study is occurrence/explore 022.05a (Hilary correction):
 https://nightly.quilttest.com/b/protology/packages/occurrence/explore/tree/9d966bd95a783849c0363d82ee295586e0ffc6db581815b443140d746843eec8/issues/022-constructed-physical-state/022.05a-Hilary-VACT-correction-constructive-physical-state.md
 
-Construction -> specified observation -> vacted fact -> interpretation.
-Run from the repository root: `deno task hc hc/constructed-state.hc -t`.
-The assertions below are the reproducible software witness. They do not report
-an executed laboratory experiment. Importing this testdoc exports no new state
-class or observer: it uses native arrays, application (one-child append), Star
-(terminal Inlay), and the existing fourth hash.
+Construction -> specified observation -> vacted fact -> interpretation remains
+the research methodology. This testdoc is a reproducible software witness,
+**not** an executed laboratory experiment or an assertion that a physical
+theorem has been proved.
 
-Uniform construction and exact observation contract
+The v0.53.1 testdoc demonstrated alternating-residual and terminal Star
+foliation identities. Those are no longer public HC semantics. FOIST 19a
+supersedes their software observer/operator allocation. This migration
+supplies fresh constructive witnesses, without claiming that the old
+homomorphism laws remain true for the new operators.
 
-Begin with the empty host E = []. For any already constructed finite hosts X
-and Y, construct X Y by appending Y as one immediate child, or X * Y by
-replacing each empty terminal of X with Y. Repetition of this recipe constructs
-arbitrary finite nested arrays: build each child, then append each to []. Shared
-children are permitted and contribute at every occurrence. There are no infinite
-Frames here. Ordinary properties may decorate nonterminal nodes; this observer
-ignores them. Inlay requires unadorned empty terminals: native Star refuses
-a metadata-only empty host, as checked below. Append/observation can still
-read such a host; it is outside the closed Inlay construction family. No declared hash methods, declared parents, cycles, or arbitrary
-property-editing operations are in the uniform contract. This is a domain for
-this construction/observation experiment, not a special ontology of pure Figures.
-Other finite Frames can have Denum readings; their constructor laws require their
-own domain checks. In particular, mixed-array append is illustrated below but
-mixed-array Star is outside this contract.
-
-For each host read Count n = X.#, Size S = X.##, and alternating residual
-A = X.###. An empty terminal has Size 1. A nonempty host has Size equal to
-the sum of its immediate child Sizes, and A alternates + and - across those
-children, starting +. Properties do not enter these sums. D(X) = X.#### is
-nil for the empty host; otherwise it has Count n, loads L = (S+A)/2, R = (S-A)/2
-and the next load is n %% 2. Read these with `.count` (or `.#`), `.loads .0`,
-`.loads .1` and `.# %% 2`. n is kept whole (007.25c). Nesting, identities, properties and the distribution
-within each load are forgotten.
+Two distinct physical-state construction paths can share observed KD
+coordinates but differ in immediate children and raw loads; observational
+equality is weaker than identity or structural equality.
 ```
-; .E []; .X [[], [[], []], []];
-; [E.#, E.##, E.###, E.####]
-# [0, 1, 0, ()]
-; [X.#, X.##, X.###, X.#### .# %% 2, X.#### .loads .0, X.#### .loads .1]
-# [3, 4, 0, 1, 2, 2]
-; .decorated [.label 99; [], [[], []], []];
-; [decorated.#### = X.####, decorated.label, X.#### = X.####]
-# [<>, 99, <>]
-; [(decorated * [[], []]).#### = (X * [[], []]).####, [.label 99;] * [[]]]
-# [<>, $!.star-metadata *]
-; .shared [[], []];
-; [shared, shared].#### = [[[], []], [[], []]].####
-# <>
-```
-Generation and selective compression
 
-No Denum is initialized when building X. The native reading derives from the
-constructed host. Equal readings can hide different nesting, while another
-construction gives a different reading. The reading keeps the Count, so two
-hosts with the same loads and phase but different Counts have different
-readings.
 ```
-; .A [[]]; .B [[[]]];
-; [A = B, A.#### = B.####, A.#### === B.####]
-# [(), <>, ()]
-; .C [[[], []], [[], []]]; .F [[], [], [], []];
-; [C.#, F.#, C = F, C.#### = F.####, (C.#### .loads .0) = (F.#### .loads .0), (C.#### .loads .1) = (F.#### .loads .1), (C.#### .# %% 2) = (F.#### .# %% 2), A.#### = C.####]
-# [2, 4, (), (), <>, <>, <>, ()]
-; [“” A.####, “” C.####, “” F.####, “” [[], [[], []]].####]
-# [“Denum(1,[1, 0])”, “Denum(2,[2, 2])”, “Denum(4,[2, 2])”, “Denum(2,[1, 2])”]
+Constructive arrays preserve child shape; Size sums immediate child's Size.
 ```
-Uniform append and Inlay, including successive compositions
-
-For any nonempty X in the contract, appending Y deposits Y.## into the active
-load and flips phase. This is precisely how native append adds one term to
-the Size sum and the alternating sum, and adds one to the Count: (X Y).#### =
-(X.#### Y).
-It works for either parity, independent of the shape or size of Y.
+; .E []; .X [[], [[], []], []]; .A [[]]; .B [[[]]];
+; [E.#, E.##, X.#, X.##, A.#, A.##]
+# [0, 1, 3, 4, 1, 1]
+; [A = B, A.#### = B.####]
+# [(), <>]
+```
+Raw Denumeration retains Count and ordered nonnegative Size loads.
+The canonical empty Frame has the zero-arity raw Denum.
+```
+; “” E.###
+# “Denum(0,[])”
+; “” X.###
+# “Denum(3,[1, 2, 1])”
+; “” A.###
+# “Denum(1,[1])”
+; “” B.###
+# “Denum(1,[1])”
+; [E.####, X.####, A.####, B.####]
+# [[], [0, 2], [1], [1]]
+```
+Appending to raw sequences can move the sign boundary after KD arity
+completion. It is not value-preserving rank embedding.
+```
+; [3, 1].####
+# [2]
+; [3, 1, 5].####
+# [-2, 1]
+; “” [3, 1, 5].###
+# “Denum(3,[3, 1, 5])”
+```
+An ordinary Frame append and a Denum Apply need not commute: a Denum's
+existing arity routes by C mod k, while ordinary Frame append creates a
+new immediate child and extends the raw load list. These two constructions
+must not be conflated when asserting physical-state invariants.
 ```
 ; .Y [[], [], []];
-; [(A Y).#### = (A.#### Y), (C Y).#### = (C.#### Y), (X Y).#### = (X.#### Y)]
-# [<>, <>, <>]
-; [“” (A Y).####, “” (C Y).####, “” ((C Y) []).####]
-# [“Denum(2,[1, 3])”, “Denum(3,[5, 2])”, “Denum(4,[5, 3])”]
-; ([5, “ab”] []).#### = ([5, “ab”].#### [])
-# <>
+; “” (A Y).###
+# “Denum(2,[1, 3])”
+; “” (A.### Y)
+# “Denum(2,[4])”
+; (A Y).#### = (A.### Y).####
+# ()
 ```
-Inlay replaces every terminal with Y. Each immediate child's Size is multiplied
-by Y.##, so both alternating loads scale by that same quantity. A nonempty
-host retains its immediate Count, so its phase. Thus for every such X and Y,
-(X * Y).#### = X.####.scale_ (Y.##). For empty X, [] * Y is Y itself:
-the empty case is substitution, not scaling a missing state.
-These are uniform recipes for every finite input in the contract. Enumerating
-tests cannot establish their scope: the shared child-Size traversal and the
-specified append/substitution operations explain why the readings commute.
+Flop and Cart distinguish append-like combination from pairing.
+Neither imposes the CD phase law; the signed-XOR KD product does.
 ```
-; [(A * Y).#### = (A.####.scale_ (Y.##)), (C * Y).#### = (C.####.scale_ (Y.##)), (X * Y).#### = (X.####.scale_ (Y.##))]
-# [<>, <>, <>]
-; [([] * Y) = Y, ([] * []).####, (X * []).#### = X.####]
-# [<>, (), <>]
-; (((C Y) * [[], []]) []).#### = (((C.#### Y).scale_ 2) [])
-# <>
+; [1, 2] + [3, 4]
+# [1, 2, 3, 4]
+; [1, 2] * [3, 4]
+# [[1, 3], [1, 4], [2, 3], [2, 4]]
+; ([0, 1].### &|& [0, 1].###).####
+# [1]
 ```
-Origin and channel names
-
-The empty host has no Denum, despite Size 1. Its first append generates a
-present reading. Applying nil is not the append update; a zero-load phase-2
-Denum of Count zero is an explicit initialized-router convention, not a
-preconstruction state secretly stored in []. A zero Size deposit still adds one
-to the Count and so changes routing phase.
-```
-; [([] []).#### .# %% 2, ([] []).#### .loads .0, ([] []).#### .loads .1]
-# [1, 1, 0]
-; [([] Y).#### = ([].#### Y), ([] * Y).#### = Y.####]
-# [(), <>]
-; Denums <- './hc/denum.hc';
-; ([] Y).#### = ((Denums.Denum [0, [0, 0]]) Y)
-# <>
-; [“” [0].####, “” ([0].#### 0), [].#### = [0].####, [].#### = (Denums.Denum [0, [0, 0]]), (Denums.Denum [0, [0, 0]]).#### = (Denums.Denum [0, [0, 0]])]
-# [“Denum(1,[0, 0])”, “Denum(2,[0, 0])”, (), (), <>]
-```
-For a proposed relabeling, exchange the loads AND toggle which named channel
-is next: J(n,L,R) = (n+1,R,L). Toggling the phase changes the parity of the
-Count, and a Denum derives its phase from its Count, so the relabeling moves the
-Count by one rather than leaving it fixed; the Count has no mirror image of its
-own. Total load stays fixed and residual changes sign. J commutes with deposit
-and scale; this is equivariance of a named router representation, not
-invariance of its signed readout, not reversal of the host, and not a new native
-constructor. Applying J twice returns the loads and the phase, with the Count
-two higher, so it is an involution on phase and loads and not on Count. The
-following closure only checks that explicit relabeling using the existing Denum
-class.
-```
-; .swap {.d _; Denums.Denum [(d.count + 1), [d.loads .1, d.loads .0]]};
-; .q [[], [[], []]].####;
-; [“” q, “” (swap q), (swap q).## = q.##, (swap q).### = (0 - q.###)]
-# [“Denum(2,[1, 2])”, “Denum(3,[2, 1])”, <>, <>]
-; [(swap (q Y)) = ((swap q) Y), (swap ((q Y) [])) = (((swap q) Y) []), (swap (q.scale_ 3)) = ((swap q).scale_ 3)]
-# [<>, <>, <>]
-; [((swap (swap q)).# %% 2) = (q.# %% 2), ((swap (swap q)).loads .0) = (q.loads .0), ((swap (swap q)).loads .1) = (q.loads .1), (swap (swap q)).count = (q.count + 2), (swap (swap q)) = q]
-# [<>, <>, <>, <>, ()]
-```
-Future sufficiency, at its earned scope
-
-For equal nonempty D readings, equal Count and loads imply equal total Size
-and equal phase. The append recipe uses only those fields and the appended Size; the
-Inlay recipe uses only those fields and the replacement Size. Consequently
-any finite sequence of the SAME right-append and right-Inlay constructions
-preserves D equality. If both starting hosts are empty, they are the same
-empty construction and the empty rules apply. A nonempty host in the primary
-domain has positive total load, so it cannot collide with the nil empty reading.
-One may also use equivalent hosts as common right operands, since Size agrees;
-the empty case must be treated separately (its Size is 1, not zero).
-This is a uniform construction/observer relationship, not a claim that every
-HC observer or arbitrary operation factors through D. Count already separates
-C and F, and the fourth hash keeps it, so their readings differ; inspecting
-stored metadata can separate decorated and undecorated X, which the reading does
-not.
-```
-; .P [[], [[], []]]; .Q [[[]], [[], []]];
-; [((A Y) * Y).#### = ((B Y) * Y).####, (((P []) * Y) A).#### = (((Q []) * Y) A).####, P = Q, P.#### = Q.####]
-# [<>, <>, (), <>]
-; [C.#### = F.####, C.# = F.#, decorated.#### = X.####, decorated = X]
-# [(), (), <>, ()]
-```
-Physically realizable readout (proposed material apparatus)
-
-Use a finite tray tree with one unit stick for each empty terminal. To read a
-nonempty host, count the sticks in each immediate child tray, deposit that many
-unit marks in alternating left and right bins, and toggle a two-position pointer
-after EACH child. Start left. Read bin populations as L,R and the next-bin
-pointer as phase 2 or 1. Read n by counting immediate trays, which the pointer's
-position repeats only in parity, S by counting all
-terminal sticks, and A by subtracting the bin populations. No separately
-supplied state vector or stochastic routing law is needed. The empty host's
-one terminal stick is not an immediate child deposit: report no Denum until
-construction places a first child. A physical pointer's initial left choice
-is part of this selected measurement convention.
-
-Append is placing a child tray and routing its counted terminal sticks into
-the next bin. Inlay is replacing EACH terminal stick with a copy of Y's tray
-tree, preserving its immediate ancestor's bin assignment. Replace each old
-bin mark with Y.## marks; retain the pointer. Do not route all replacement
-sticks globally one at a time: that would implement a different phase rule.
-For empty-host Inlay, replace the entire empty terminal and reread Y afresh.
-This finite procedure realizes the same counts and compositions without
-assuming the mathematical update equations as measurements. Recount the tray
-leaves and compare with the bins after each act; the numerical examples above
-supply a reproducible readout script (C starts 2,2,left; append Y gives
-5,2,right; append [] gives 5,3,left).
-
-Finite resources bound any performed run. Stick loss, misrouting, unequal
-units, shared subtrees mistaken for single occurrences, and changing declared
-observers are possible failures of the realization. The software models exact
-counts and occurrence copies; it measures no material noise or physical law.
-
-Five-criterion verdict and evidence scope
-
-1. Derived: VACTED by execution for the examples; uniformly vacted under the
-   construction/observer contract. Hosts are built before their Denum is read.
-2. Compressive: VACTED by distinct equal-reading constructions. Representation
-   has three unbounded Counts, n, L and R, with the phase derived from n; fixed
-   dimension is not bounded bits.
-3. Forced update: VACTED by execution for the displayed compositions; uniformly
-   vacted by the append and substitution recipes on the declared domain.
-4. Origin: VACTED for no supplied host Denum and the first-construction boundary.
-   Channel relabeling is CONDITIONALLY VACTED as the explicit router
-   equivariance above. Full origin/gauge invariance is NOT YET VACTED.
-5. Earned forgetting: uniformly vacted for the specified future constructor
-   language and D observations, with executable witnesses. Sufficiency for all
-   other HC observations is false, as the nesting and metadata counterexamples
-   above demonstrate.
-
-Actual apparatus executed here: the HC interpreter and testdoc harness, using
-native Frame construction and .####. The command's per-claim output and final
-pass/fail totals are the run evidence; the PR records the runtime and results.
-The material stick/bin apparatus is ONLY PROPOSED AS PHYSICALLY REALIZABLE;
-performed laboratory execution is NOT YET VACTED. The existential physical
-interpretation is CONDITIONALLY VACTED on that explicit realization. This
-claims neither uniqueness nor the physics of our universe. Supplementary
-update equations explain the observation; they are not a theorem-first gate.
+The imported module contributes no ambient declaration or side effect.
 ```
 [] = []

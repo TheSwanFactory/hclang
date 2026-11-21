@@ -96,6 +96,7 @@ jobs:
       - name: Install Chromium for artifact tests
         run: deno run -A npm:playwright@1.62.0 install --with-deps chromium
       - run: deno task build
+      - run: deno lint
       - run: deno task test:all
       - name: Upload candidate web artifact
         uses: actions/upload-artifact@v7
@@ -109,12 +110,14 @@ jobs:
           name: hclang-npm-candidate
           path: dist/hclang-*.tgz
           if-no-files-found: error
+      # When the format job pushed, this checkout was reformatted in place
+      # above, so the tree is intentionally dirty with exactly that diff.
       - name: Validate hclang package
         working-directory: lib
-        run: deno publish --dry-run
+        run: deno publish --dry-run ${{ needs.format.outputs.pushed == 'true' && '--allow-dirty' || '' }}
       - name: Validate hcweb package
         working-directory: web
-        run: deno publish --dry-run
+        run: deno publish --dry-run ${{ needs.format.outputs.pushed == 'true' && '--allow-dirty' || '' }}
       - name: Detect release
         id: version
         env:

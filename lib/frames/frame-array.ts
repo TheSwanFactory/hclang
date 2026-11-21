@@ -391,7 +391,6 @@ export class FrameArray extends FrameList {
   public static readonly OBSERVATION_KEYS: readonly string[] = [
     Frame.kCOUNT,
     Frame.kLEAVES,
-    Frame.kRESIDUAL,
   ];
 
   /** Declared observations in progress, so one that reads itself fails. */
@@ -459,9 +458,7 @@ export class FrameArray extends FrameList {
     const failure = answer.observationError();
     if (failure) return failure;
     const data = (answer as unknown as { data?: unknown }).data;
-    const valid = key === Frame.kRESIDUAL
-      ? answer.className() === "FrameInt" || answer instanceof FrameCount
-      : answer instanceof FrameCount;
+    const valid = answer instanceof FrameCount;
     return valid && typeof data === "bigint"
       ? answer
       : Frame.error(`$!.declared-observation .${key}`);
@@ -529,6 +526,14 @@ export class FrameArray extends FrameList {
    */
   public override collectingCopy(): FrameArray {
     return this.copy();
+  }
+
+  public override called_by(context: Frame, parameter: Frame): Frame {
+    if ("operator" in context && context.operator === "-") {
+      const negated = Frame.negateDenum(this);
+      if (negated) return negated;
+    }
+    return super.called_by(context, parameter);
   }
 
   public override apply(argument: Frame, _parameter: Frame): Frame {

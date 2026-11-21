@@ -1,7 +1,9 @@
 #!/usr/bin/env hc
 ```
-Native Cart &|& and Zip |&| — FOIST 15
+Native Cart * and Zip |&| — FOIST 15 / FOIST 19a
 
+Before v0.54.0, native &|& was Cart. FOIST 19a moved it to *, while
+&|& now computes the KD product returning a Denum. Zip |&| is unchanged.
 The former derived Cart and Zip design patterns are tested in cart-zip.hc.
 These operators pair immediate positional elements as values, without
 evaluating or descending into nested children. Cart enumerates a flat
@@ -12,15 +14,15 @@ are excluded from the pairing domains.
 ```
 Cart: left-major, flat Cartesian pairing.
 ```
-; [1, 2] &|& [10, 20, 30]
+; [1, 2] * [10, 20, 30]
 # [[1, 10], [1, 20], [1, 30], [2, 10], [2, 20], [2, 30]]
-; [1, 1] &|& [2, 2]
+; [1, 1] * [2, 2]
 # [[1, 2], [1, 2], [1, 2], [1, 2]]
-; [] &|& [10, 20]
+; [] * [10, 20]
 # []
-; [1, 2] &|& []
+; [1, 2] * []
 # []
-; [[1], [2]] &|& [[3], [4]]
+; [[1], [2]] * [[3], [4]]
 # [[[1], [3]], [[1], [4]], [[2], [3]], [[2], [4]]]
 
 ```
@@ -46,7 +48,7 @@ Named properties are not positional elements, on either side.
 ```
 ; [.meta 9; 1, 2] |&| [.tag 8; 10, 20, 30]
 # [[1, 10], [2, 20]]
-; [.meta 9; 1, 2] &|& [.tag 8; 10]
+; [.meta 9; 1, 2] * [.tag 8; 10]
 # [[1, 10], [2, 10]]
 
 ```
@@ -55,7 +57,7 @@ The derived Zip still has its own property and missing-address semantics.
 ```
 ; .A [1, 2];
 ; .B [10, 20];
-; A &|& B
+; A * B
 # [[1, 10], [1, 20], [2, 10], [2, 20]]
 ; A &| {.a _; B & {[a, _]}}
 # [[1, 10], [1, 20], [2, 10], [2, 20]]
@@ -71,7 +73,7 @@ Chaining pairs left to right instead of flattening triples.
 ```
 ; () |&| [1]
 # [[(), 1]]
-; 1 &|& [2, 3]
+; 1 * [2, 3]
 # [[1, 2], [1, 3]]
 ; “ab” |&| [1, 2]
 # [[“ab”, 1]]
@@ -83,5 +85,5 @@ Chaining pairs left to right instead of flattening triples.
 ```
 Closure elements are source-code atoms, not evaluated closure results.
 ```
-; [1] &|& {_ + 1}
+; [1] * {_ + 1}
 # [[1, _], [1, +], [1, 1]]

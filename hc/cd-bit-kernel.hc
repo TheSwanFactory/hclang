@@ -439,7 +439,7 @@ bitwise-language primitive. Powers [] is the real, rank-zero case.
   .half (((x.#) / 2).##);
   .xs (x | (CdFlatSlotter half));
   .ys (y | (CdFlatSlotter half));
-  .terms (((xs.slots) &|& (ys.slots)) & {cd_flat_term [_, powers, half]});
+  .terms (((xs.slots) * (ys.slots)) & {cd_flat_term [_, powers, half]});
   (terms | (CdFlatCollector (x & {0}))).counts
 };
 ```

@@ -326,16 +326,14 @@ describe("FrameCount", () => {
       }
     });
 
-    it("answers exact signed parity to .### (011.18)", () => {
+    it("observes an unsigned Count as a raw Denum, not signed parity", () => {
       for (const n of [0n, 1n, 2n, 3n, 7n, 9007199254740993123456789n]) {
-        const result = evaluate(`${n}.###`).at(0);
-        expectClass(result, "FrameInt");
-        expect(result.toString()).toEqual((n % 2n).toString());
-      }
-      // Every numeric rung shares the atom rule, so the rung is unobservable
-      // here (011.18k).
-      for (const [source, parity] of [["(5 - 3)", "0"], ["1.5", "1"]]) {
-        expect(evaluate(`${source}.###`).toString()).toEqual(`[${parity}]`);
+        const raw = count(n).sizeFor("###");
+        expect(raw.getOwn("count").toString()).toEqual(n.toString());
+        expect(raw.getOwn("loads").toString())
+          .toEqual(n === 0n ? "[]" : `[${n}]`);
+        expect(count(n).sizeFor("####").toString())
+          .toEqual(n === 0n ? "[]" : `[${n}]`);
       }
     });
 
@@ -343,7 +341,10 @@ describe("FrameCount", () => {
       const value = count(7n);
       expect(value.sizeFor(Frame.kCOUNT)).toBe(value);
       expect(value.sizeFor(Frame.kLEAVES)).toBe(value);
-      expect(value.sizeFor(Frame.kRESIDUAL).toString()).toEqual("1");
+      expect(value.sizeFor(Frame.kRESIDUAL).getOwn("loads").toString()).toEqual(
+        "[7]",
+      );
+      expect(value.sizeFor(Frame.kDENUM).toString()).toEqual("[7]");
       for (const key of ["", "unknown", "#####", "#x"]) {
         expect(value.sizeFor(key)).toBe(Frame.nil);
       }

@@ -59,7 +59,7 @@ Deno.test("dotted arithmetic operators dispatch as the bare operator", async () 
   await answers([
     // Resolved as a name, `.*` missed the named array and was found in the
     // scope the name was read in, so `ys .* 2` refused that scope's Star.
-    ["ys .* 2", "[2, 4]"],
+    ["ys .* 2", "[[1, 2], [2, 2]]"],
     ["[(ys ./ 2).channels]", "[[[1], [2]]]"],
     // A class's declared operator still answers its dotted spelling.
     ["plus .+ 5", "[“plus”, 5]"],

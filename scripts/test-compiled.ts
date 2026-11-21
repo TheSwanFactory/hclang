@@ -11,7 +11,6 @@
  */
 // The barrel import comes first so the frame classes finish initializing.
 import "../lib/mod.ts";
-import { Frame } from "../lib/frames/frame.ts";
 
 const BINARY = new URL(
   Deno.build.os === "windows" ? "./hc.exe" : "./hc",
@@ -25,16 +24,11 @@ const CASES: readonly { source: string; expected: string; what: string }[] = [
     expected: "((<>); <>)",
   },
   {
-    // The six geometric observers of a Count-bound Denum (007.41b), reached
-    // through `.####` with no import.
-    what: "answer the geometric observers",
-    source: `[${
-      Frame.GEOMETRIC_OBSERVERS.map((key) => `([5, 3, 7, 1].####).${key}`).join(
-        ", ",
-      )
-    }]`,
-    expected:
-      "[136, [44/5, 4/5, -16/5, -16/5, -16/5], 160, [12, 4, 0, 0], 160, [12, 4, 0, 0, 0, 0, 0, 0]]",
+    // FOIST 19a replaces the six geometric hash suffixes with raw
+    // Denumeration and lazily observed KD coordinates in every distribution.
+    what: "evaluate FOIST 19a KD observers and Denum multiplication",
+    source: "[[3, 1].####, [3, 1, 5].####, ([0, 1].### &|& [0, 1].###).####]",
+    expected: "[[2], [-2, 1], [1]]",
   },
 ];
 const workDirectory = await Deno.makeTempDir({ prefix: "hclang-compiled-" });

@@ -375,7 +375,7 @@ describe("main", () => {
 
     expect(status).toEqual(0);
     expect(out.at(-1).toString()).toContain(
-      '“{"total":54,"pass":54,"fail":0,"unimplemented":0}”',
+      '“{"total":12,"pass":12,"fail":0,"unimplemented":0}”',
     );
   });
 
@@ -389,7 +389,7 @@ describe("main", () => {
 
     expect(status).toEqual(0);
     expect(out.at(-1).toString()).toContain(
-      '“{"total":131,"pass":131,"fail":0,"unimplemented":0}”',
+      '“{"total":26,"pass":26,"fail":0,"unimplemented":0}”',
     );
   });
 
@@ -404,7 +404,7 @@ describe("main", () => {
 
     expect(status).toEqual(0);
     expect(out.at(-1).toString()).toContain(
-      '“{"total":23,"pass":23,"fail":0,"unimplemented":0}”',
+      '“{"total":16,"pass":16,"fail":0,"unimplemented":0}”',
     );
   });
 
@@ -418,7 +418,7 @@ describe("main", () => {
 
     expect(status).toEqual(0);
     expect(out.at(-1).toString()).toContain(
-      '“{"total":58,"pass":58,"fail":0,"unimplemented":0}”',
+      '“{"total":13,"pass":13,"fail":0,"unimplemented":0}”',
     );
   });
 
@@ -432,7 +432,7 @@ describe("main", () => {
 
     expect(status).toEqual(0);
     expect(out.at(-1).toString()).toContain(
-      '“{"total":66,"pass":66,"fail":0,"unimplemented":0}”',
+      '“{"total":36,"pass":36,"fail":0,"unimplemented":0}”',
     );
   });
 
