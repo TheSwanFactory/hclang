@@ -1,8 +1,14 @@
 # CHANGELOG
 
-> Create concise entries for changes since the last tag User-visible changes
-> only (ignore internal cleanup) one-line per change Ignore spec documents, and
-> deprioritize test-only changes
+> Record concise, user-facing changes since the previous release. Omit internal
+> cleanup, specification-only updates, and test-only changes.
+
+## v0.54.0 2026-11-20
+
+- **Kaylee–Dixon load arithmetic groundwork (#506).** Added exact nonnegative
+  signed-XOR multiplication, lazy KD coordinate completion, half-turn negation,
+  and value-preserving cross-rank embedding helpers. These are TypeScript
+  primitives only; the public HC operators and observers have not changed yet.
 
 ## v0.53.1 2026-11-20
 
