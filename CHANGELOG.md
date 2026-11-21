@@ -5,18 +5,18 @@
 
 ## v0.55.0 2026-11-20
 
-- **Breaking TypeScript API cleanup (#507).** Remove the retired
-  `Frame.kBIND`, `Frame.bindCount`, `Frame.observeGeometry`,
-  `Frame.GEOMETRY_SUFFIXES`, and `Frame.GEOMETRIC_OBSERVERS` members and
-  their obsolete Count-binding and geometry implementation. HC's `#%` observer
-  spellings were already unbound in 0.54.0; the historical experiment retains
-  its independent modulo-Count binding.
+- **Breaking TypeScript API cleanup (#507).** Remove the retired `Frame.kBIND`,
+  `Frame.bindCount`, `Frame.observeGeometry`, `Frame.GEOMETRY_SUFFIXES`, and
+  `Frame.GEOMETRIC_OBSERVERS` members and their obsolete Count-binding and
+  geometry implementation. HC's `#%` observer spellings were already unbound in
+  0.54.0; the historical experiment retains its independent modulo-Count
+  binding.
 - **Breaking removal of legacy aliases and Star helpers (#507).** Remove
   `Frame.kRESIDUAL`, `Frame.kDENUM`, `FrameArray.star`, and
-  `FrameArray.starCount` without compatibility aliases. Use
-  `Frame.kRAW_DENUM` for `.###`, `Frame.kKD_COORDINATES` for `.####`,
-  and HC structural Cart for `*`. The minor bump separates this incompatible
-  TypeScript API change from the 0.54.x release line.
+  `FrameArray.starCount` without compatibility aliases. Use `Frame.kRAW_DENUM`
+  for `.###`, `Frame.kKD_COORDINATES` for `.####`, and HC structural Cart for
+  `*`. The minor bump separates this incompatible TypeScript API change from the
+  0.54.x release line.
 
 ## v0.54.0 2026-11-20
 

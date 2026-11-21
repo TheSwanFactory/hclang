@@ -25,10 +25,9 @@ through a bare evaluator with bundled `hc/denum.hc` and
 `(Denum [C, [loads]]).###`. **Each route reads back the constructed Denum's
 Count and loads** before applying the retired `d.#%` modulo-Count fold
 (`bⱼ = Σ_{i mod C = j} aᵢ`) locally. Both independently observed states must
-agree on the historical bound result. The experiment's
-alternating residual is also computed locally: public `.###` now means raw
-Denumeration, **not** the old residual. The actual `.#%` name remains unbound in
-today's HC.
+agree on the historical bound result. The experiment's alternating residual is
+also computed locally: public `.###` now means raw Denumeration, **not** the old
+residual. The actual `.#%` name remains unbound in today's HC.
 
 ## Algebra A — centered cyclic simplex (`simplex.ts`)
 
