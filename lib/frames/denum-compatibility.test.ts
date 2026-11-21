@@ -13,6 +13,8 @@ import {
   MemoryStore,
 } from "../frames.ts";
 import { tryDenumState } from "./fourth-hash.ts";
+// Install the evaluator-owned Denum constructor for direct Frame observers.
+import "../execute/denum-prologue.ts";
 
 Deno.test("FOIST 19a: primitive and aggregate Sizes are non-executing", () => {
   const five = new FrameCount(5n);
