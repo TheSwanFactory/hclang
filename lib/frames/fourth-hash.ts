@@ -3,10 +3,10 @@ import { FrameCount } from "./frame-count.ts";
 import { FrameInt } from "./frame-int.ts";
 import { FrameArray } from "./frame-array.ts";
 import {
-  KDProductBudgetError,
   kdCoordinates,
   kdMultiplyLoads,
   kdNegateLoads,
+  KDProductBudgetError,
 } from "./kd-signed-xor.ts";
 
 /**
