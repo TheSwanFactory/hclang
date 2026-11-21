@@ -5,8 +5,8 @@
 
 This document records the **breaking**, implemented FOIST 19a operator contract
 and its rationale. It links runtime dispatch, executable HC testdocs, the exact
-signed-XOR load kernel and independent recursive Cayley–Dickson regressions.
-The implementation passed the full Deno validation gate in
+signed-XOR load kernel and independent recursive Cayley–Dickson regressions. The
+implementation passed the full Deno validation gate in
 [run 44861795939](https://github.com/TheSwanFactory/hclang/actions/runs/44861795939);
 later code changes must pass fresh checks before merge.
 
@@ -69,14 +69,13 @@ Cayley–Dickson addition:
 
 The public `A - B` on Denums is the proposed structural expression `A + (-B)`,
 inheriting the same Count dependence; it is **not** claimed to be coordinate
-subtraction. Outside the numeric-numeric case, subtraction requires a Denum
-on the right and otherwise refuses `$!.flop-domain -`. Numeric scalar
-arithmetic remains native. Flop with a numeric **left** receiver uses scalar
-Apply: `3 + [2,5] = 30`, `5 - ([3,1].###) = 15`, and
-`0 - ([3,1].###) = 0`. Thus `0-D` is not unary `-D`. KD bilinearity is with
-respect to **coordinate addition**, which is a separate not-yet-installed
-algebraic operation. Do not use Flop as a surrogate in algebraic proofs or
-tests.
+subtraction. Outside the numeric-numeric case, subtraction requires a Denum on
+the right and otherwise refuses `$!.flop-domain -`. Numeric scalar arithmetic
+remains native. Flop with a numeric **left** receiver uses scalar Apply:
+`3 + [2,5] = 30`, `5 - ([3,1].###) = 15`, and `0 - ([3,1].###) = 0`. Thus `0-D`
+is not unary `-D`. KD bilinearity is with respect to **coordinate addition**,
+which is a separate not-yet-installed algebraic operation. Do not use Flop as a
+surrogate in algebraic proofs or tests.
 
 ## Cart allocation bound
 
