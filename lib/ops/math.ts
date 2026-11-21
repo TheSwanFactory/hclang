@@ -44,8 +44,11 @@ const failure = (operand: Frame): Frame | undefined => {
 export const Add = (source: Frame, block: Frame): Frame => {
   const refused = failure(source) ?? failure(block);
   if (refused) return refused;
-  const numericPair = numeric(source.referent(), block.referent(),
-    (left, right) => left.add(right));
+  const numericPair = numeric(
+    source.referent(),
+    block.referent(),
+    (left, right) => left.add(right),
+  );
   return numericPair === Frame.nil ? FlopElements(source, block) : numericPair;
 };
 
@@ -53,8 +56,11 @@ export const Add = (source: Frame, block: Frame): Frame => {
 export const Subtract = (source: Frame, block: Frame): Frame => {
   const refused = failure(source) ?? failure(block);
   if (refused) return refused;
-  const numericPair = numeric(source.referent(), block.referent(),
-    (left, right) => left.subtract(right));
+  const numericPair = numeric(
+    source.referent(),
+    block.referent(),
+    (left, right) => left.subtract(right),
+  );
   if (numericPair !== Frame.nil) return numericPair;
   const negative = Frame.negateDenum(block.referent());
   return negative ? FlopElements(source, negative) : Frame.nil;
@@ -64,8 +70,11 @@ export const Subtract = (source: Frame, block: Frame): Frame => {
 export const Multiply = (source: Frame, block: Frame): Frame => {
   const refused = failure(source) ?? failure(block);
   if (refused) return refused;
-  const numericPair = numeric(source.referent(), block.referent(),
-    (left, right) => left.multiply(right));
+  const numericPair = numeric(
+    source.referent(),
+    block.referent(),
+    (left, right) => left.multiply(right),
+  );
   return numericPair === Frame.nil ? CartElements(source, block) : numericPair;
 };
 

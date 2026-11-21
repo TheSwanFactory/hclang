@@ -2,7 +2,11 @@ import { Frame } from "./frame.ts";
 import { FrameCount } from "./frame-count.ts";
 import { FrameInt } from "./frame-int.ts";
 import { FrameArray } from "./frame-array.ts";
-import { kdCoordinates, kdMultiplyLoads, kdNegateLoads } from "./kd-signed-xor.ts";
+import {
+  kdCoordinates,
+  kdMultiplyLoads,
+  kdNegateLoads,
+} from "./kd-signed-xor.ts";
 
 /**
  * Builds a Denum from its Count and its ordered channel loads, at least one.
@@ -323,9 +327,7 @@ export function negateDenum(source: Frame): Frame | undefined {
   if (!state) return undefined;
   if (!construct) return Frame.error("$!.denum-unavailable");
   try {
-    const loads = state.loads.length === 0
-      ? []
-      : kdNegateLoads(state.loads);
+    const loads = state.loads.length === 0 ? [] : kdNegateLoads(state.loads);
     return construct(
       new FrameCount(state.count),
       loads.map((n) => new FrameCount(n)),
