@@ -1,7 +1,7 @@
 # Cart and Zip (FOIST 15; Cart moved to * by FOIST 19a)
 
-Before v0.54.0, `&|&` was structural Cart; FOIST 19a assigns Cart to
-`*` and KD signed-XOR Denum multiplication to `&|&`.
+Before v0.54.0, `&|&` was structural Cart; FOIST 19a assigns Cart to `*` and KD
+signed-XOR Denum multiplication to `&|&`.
 
 **Status:** Implemented in HCLang; see the executable
 [`hc/native-cart-zip.hc`](../hc/native-cart-zip.hc) and the existing
