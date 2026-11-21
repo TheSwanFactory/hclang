@@ -260,11 +260,10 @@ Deno.test("bundled refusals are named errors even with colliding caller bindings
   await session.call(
     "Figures <- './hc/figures.hc'; Denums <- './hc/denum.hc'; Routers <- './hc/rotor-router.hc';",
   );
-  // A closure cannot bind a schema or nil argument, so no source input reaches
-  // Gap's refusing branch; check the literal it holds and the same refusal.
-  expect(await session.call("Figures"))
-    .toContain(": { $!!.unsupported-figure } };");
-  expect(await session.call("<2, 3>.### ? {<>} : {$!!.unsupported-figure}"))
+  // Gap/Spin were retired with the signed residual, but a named error still
+  // cannot be shadowed by caller-supplied bindings.
+  expect(await session.call("Figures.gap")).toContain("name-missing");
+  expect(await session.call("$!!.unsupported-figure"))
     .toBe("$!!.unsupported-figure");
   for (
     const input of ["[2, 0]", "[2, 0, 0, 0]", "(2, 0, 0)", "“abc”", "()", "5"]
@@ -291,7 +290,7 @@ Deno.test("bundled refusals are named errors even with colliding caller bindings
   }
   expect(await session.call("(Denums.Denum [2, [0, 0]]).scale_ (0 - 1)"))
     .toContain("$!!.invalid-scale");
-  expect(await session.call("[5, 3].#### = (Denums.Denum [2, [5, 3]])"))
+  expect(await session.call("[5, 3].### = (Denums.Denum [2, [5, 3]])"))
     .toBe("<>");
 });
 

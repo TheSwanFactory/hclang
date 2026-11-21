@@ -232,7 +232,7 @@ Deno.test("historical binding excludes Count 0; C = 1 is the degenerate zero rin
 });
 
 Deno.test("historical experiment does not reinstall removed public observers", () => {
-  expect(String(evaluate("[5, 3].####").at(-1))).toContain("[-2]");
+  expect(String(evaluate("[5, 3].####").at(-1))).toContain("[2]");
   expect(String(evaluate("[5, 3].#%").at(-1))).toContain("name-missing");
   expect(String(evaluate("[5, 3].###").at(-1))).toContain("count 2");
 });

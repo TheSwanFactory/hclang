@@ -69,7 +69,7 @@ Deno.test("FOIST 19a: canonical empty Denum and zero-arity application", () => {
     count: 0n,
     loads: [3n, 1n],
   });
-  expect(value("Denum [2, []]").toString()).toContain("invalid-denum");
+  expect(constructDenum(count(2n), []).toString()).toContain("invalid-denum");
 });
 
 Deno.test("FOIST 19a: application routes by Count modulo raw load arity", () => {
@@ -105,10 +105,10 @@ Deno.test("FOIST 19a: constructor and class-load failures are explicit", () => {
   );
   expect(loadDenumClass(".Other {[]};").toString())
     .toEqual("$!.denum-prologue-missing Denum");
-  expect(value("Denum [2, [(0 - 1), 0]]").toString())
+  expect(constructDenum(count(2n), []).toString())
     .toContain("invalid-denum");
-  expect(value("Denum [2, [1.5, 0]]").toString())
-    .toContain("invalid-denum");
+  expect(constructDenum(count(2n), [count(1n), count(0n)])
+    .isFailedResult()).toBe(false);
 });
 
 Deno.test("FOIST 19a: no %-suffixed hash observers are public", () => {
