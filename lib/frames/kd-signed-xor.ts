@@ -10,8 +10,15 @@
  * See occurrence/foist 19a and Explore 023.09a.
  */
 
-/** Keep allocations bounded; this is not a bound on mathematical rank. */
+/** Bound raw storage; mathematical CD rank itself has no fixed bound. */
 export const KD_MAX_SLOTS = 65536;
+
+/**
+ * Bound actual nonzero Cartesian slot interactions for the future HC-facing
+ * operator. Dense inputs above this budget fail early; large sparse values
+ * can still multiply. There is no hidden quadratic loop over zero slots.
+ */
+export const KD_MAX_PRODUCT_TERMS = 262144;
 
 function validate(loads: readonly bigint[]): void {
   if (loads.length === 0 || loads.length > KD_MAX_SLOTS) {
@@ -131,6 +138,11 @@ export function kdCdSign(u: bigint, v: bigint): 0 | 1 {
  * Builds every ordered slot pair, multiplies magnitudes, and adds them into
  * (orientation XOR θ, basis XOR) without cancelling opposite orientations.
  *
+ * Two unsigned one-load scalars multiply at arity one without promotion.
+ * Other values use the least common signed rank. Active (nonzero) slots are
+ * enumerated before the product and rejected if their Cartesian pair count
+ * exceeds KD_MAX_PRODUCT_TERMS; this avoids an unbounded dense n² traversal.
+ *
  * The answer is canonical LOADS, not signed coordinates and not a Denum:
  * public HC `&|&` must construct a Denum around them once its output Count
  * rule is chosen. Source lengths are completed lazily and separately
@@ -142,23 +154,36 @@ export function kdMultiplyLoads(
 ): bigint[] {
   const l = kdCompleteLoads(left);
   const r = kdCompleteLoads(right);
+
+  // Unsigned × unsigned stays unsigned: no gratuitous sign-rank promotion.
+  if (l.length === 1 && r.length === 1) return [l[0] * r[0]];
+
   const slots = Math.max(2, l.length, r.length);
   const x = kdEmbedLoads(l, slots);
   const y = kdEmbedLoads(r, slots);
   const d = slots / 2;
   const result = Array<bigint>(slots).fill(0n);
 
-  for (let i = 0; i < slots; i++) {
-    if (x[i] === 0n) continue;
-    const u = BigInt(i % d);
-    const s = i >= d ? 1 : 0;
-    for (let j = 0; j < slots; j++) {
-      if (y[j] === 0n) continue;
-      const v = BigInt(j % d);
-      const t = j >= d ? 1 : 0;
+  // The work is proportional to nonzero ordered pairs, not all slot pairs.
+  const activeSlots = (loads: readonly bigint[]) =>
+    loads.flatMap((magnitude, index) =>
+      magnitude === 0n ? [] : [{ index, magnitude }]
+    );
+  const xs = activeSlots(x);
+  const ys = activeSlots(y);
+  if (xs.length * ys.length > KD_MAX_PRODUCT_TERMS) {
+    throw new RangeError("KD nonzero product term budget exceeded");
+  }
+
+  for (const a of xs) {
+    const u = BigInt(a.index % d);
+    const s = a.index >= d ? 1 : 0;
+    for (const b of ys) {
+      const v = BigInt(b.index % d);
+      const t = b.index >= d ? 1 : 0;
       const w = Number(u ^ v);
       const q = s ^ t ^ kdCdSign(u, v);
-      result[w + q * d] += x[i] * y[j];
+      result[w + q * d] += a.magnitude * b.magnitude;
     }
   }
   return result;
