@@ -119,13 +119,15 @@ Deno.test("FOIST 19a: KD capacity and product budget use public named refusals",
 });
 
 Deno.test("FOIST 19a: retired Count/geometry internals are not installed", () => {
-  for (const key of [
-    "kBIND",
-    "GEOMETRY_SUFFIXES",
-    "GEOMETRIC_OBSERVERS",
-    "bindCount",
-    "observeGeometry",
-  ]) {
+  for (
+    const key of [
+      "kBIND",
+      "GEOMETRY_SUFFIXES",
+      "GEOMETRIC_OBSERVERS",
+      "bindCount",
+      "observeGeometry",
+    ]
+  ) {
     expect(Object.hasOwn(Frame, key)).toBe(false);
   }
   expect(Frame.SIZE_OPERATORS).toEqual(["#", "##", "###", "####"]);
