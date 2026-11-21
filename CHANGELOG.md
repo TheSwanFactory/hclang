@@ -11,12 +11,12 @@
   These observers were already unbound in HC 0.54.0. TypeScript clients using
   the retired members must migrate; the historical observer-algebra experiment
   maintains its local implementation.
-- **No legacy TypeScript aliases (#507).** `Frame.kRESIDUAL` and
-  `Frame.kDENUM` have been removed, along with `FrameArray.star`,
-  `FrameArray.starCount` and its internal Star implementation. Use
-  `Frame.kRAW_DENUM` for `.###`, `Frame.kKD_COORDINATES` for `.####`,
-  and structural Cart for `*`. Old Star-only tests have been retired; Cart
-  nesting and identity remain covered without compatibility shims.
+- **No legacy TypeScript aliases (#507).** `Frame.kRESIDUAL` and `Frame.kDENUM`
+  have been removed, along with `FrameArray.star`, `FrameArray.starCount` and
+  its internal Star implementation. Use `Frame.kRAW_DENUM` for `.###`,
+  `Frame.kKD_COORDINATES` for `.####`, and structural Cart for `*`. Old
+  Star-only tests have been retired; Cart nesting and identity remain covered
+  without compatibility shims.
 
 ## v0.54.0 2026-11-20
 
