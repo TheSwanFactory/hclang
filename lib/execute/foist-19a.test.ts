@@ -63,7 +63,7 @@ Deno.test("FOIST 19a: unary negative rotates Denum loads without promoted rank",
   expect(read("- ([3, 1].###)").sizeFor("####").toString()).toEqual("[-2]");
   expect(read("([3, 1].###) - ([1, 2].###)").sizeFor("####").toString())
     .toEqual("[3]");
-  expect(rawState(Frame.negateDenum(denum(0n, []))!)
+  expect(rawState(Frame.negateDenum(denum(0n, []))!))
     .toEqual(["0", []]);
 });
 
