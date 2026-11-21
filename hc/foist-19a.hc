@@ -38,6 +38,15 @@ Flop and structural Cartesian product are distinct.
 # [[1, 3], [1, 4], [2, 3], [2, 4]]
 
 ```
+Flop is constructive: a receiver's Count phase can change the result
+without changing the receiver's KD coordinates.
+```
+; ([3, 1].### + [1, 2].###).####
+# [1]
+; ((([3, 1].###) 0) + [1, 2].###).####
+# [3]
+
+```
 KD multiplication returns a Denum, and its fourth hash observes the
 product's coefficients. The product Count is C(A) × C(B).
 ```
