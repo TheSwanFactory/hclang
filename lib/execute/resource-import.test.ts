@@ -1574,7 +1574,7 @@ describe("quoting a source as a closure (#443)", () => {
       { "fig.hc": fig, "figures.hc": figures },
       ".fq ('./fig.hc' | {}); [(fq & {“” _}), (“” (fq ()))]",
     )).toContain(
-      "[[“. <- './figures.hc'”, “;”, “[]”, “*”, “[[], []]”], “[[], []]”])",
+      "[[“. <- './figures.hc'”, “;”, “[]”, “*”, “[[], []]”], “[]”])",
     );
   });
 
