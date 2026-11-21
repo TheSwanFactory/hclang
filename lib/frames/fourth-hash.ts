@@ -61,8 +61,8 @@ function exactCount(frame: Frame): FrameCount | undefined {
 }
 
 /**
- * The stored loads of a Denum instance: its own `loads` field, a nonempty list
- * whose elements are all exact Counts, or undefined.
+ * The stored loads of a Denum instance: its own `loads` list (including
+ * the canonical empty list), whose elements are exact Counts, or undefined.
  *
  * Only the instance's own field is read (`get_here`), never a declared parent
  * or a method, and the list's elements are read as stored, so nothing runs.
@@ -85,7 +85,7 @@ function storedLoads(source: Frame): FrameCount[] | undefined {
  * shipped class itself, and nothing else.
  *
  * A source is a Denum exactly when it has a stored Count `count` and a stored
- * nonempty list of Counts `loads`, and it is `==` (same value and same type at
+ * list of Counts `loads`, and it is `==` (same value and same type at
  * every node, fields and methods included) to the Denum the shipped constructor
  * builds from them. A Denum stores nothing else (007.40), and the comparison
  * covers its methods too. The answer is then that fresh reconstruction, of
@@ -137,84 +137,6 @@ function recognizeDenum(source: Frame): DenumState | undefined {
       loads: loads.map((load) => load.data as bigint),
     }
     : undefined;
-}
-
-/**
- * The most loads `.#%` materializes. The Count is exact and unbounded, but the
- * bound Denum holds C loads, so a Count above this is refused with
- * `$!.denum-binding-capacity` rather than allocated, truncated or converted.
- */
-export const DENUM_BINDING_CAPACITY = 65536n;
-
-/**
- * Count binding, `d.#%` (occurrence/figure 007.39a, 007.40). For a Denum
- * `d = (C; [a0, …, a(A−1)])` with C > 0 it answers the new Denum
- * `(C; [b0, …, b(C−1)])`, where `bj` is the sum of every `ai` with
- * `i mod C = j`: fewer loads than C are copied and zero-filled, exactly C are
- * kept, and more fold onto the first C by index. The Count, the total Size
- * and nonnegativity are kept, the arity becomes C, and binding is idempotent.
- * It is not a rank and allocates no geometry.
- *
- * Only a genuine Denum is bound, recognized as `.####` recognizes it, so
- * nothing of the receiver runs. In order: a failed receiver is answered as it
- * is; anything that is not a Denum is `$!.denum-binding-receiver`; Count zero
- * is `$!.denum-binding-zero-count`, since there is no channel to bind into;
- * and a Count above `DENUM_BINDING_CAPACITY` is `$!.denum-binding-capacity`.
- * The receiver is never changed.
- *
- * @param source The observed Frame.
- * @returns The bound Denum, or an error.
- */
-export function bindDenumCount(source: Frame): Frame {
-  const bound = boundLoads(source);
-  if (bound instanceof Frame) return bound;
-  return construct!(
-    new FrameCount(BigInt(bound.length)),
-    bound.map((load) => new FrameCount(load)),
-  );
-}
-
-/**
- * The recognized Denum state of `source`, or the error `.#%` answers for a
- * failed or non-Denum receiver. The rank observers (007.43i, 007.44) read this
- * stored Count and the stored loads as they are, without binding.
- *
- * @param source The observed Frame.
- * @returns The Count and stored loads, or the receiver's error.
- */
-export function denumState(
-  source: Frame,
-): { count: bigint; loads: readonly bigint[] } | Frame {
-  const failure = source.observationError();
-  if (failure) return failure;
-  if (!construct) return Frame.error("$!.denum-unavailable");
-  const state = recognizeDenum(source);
-  if (!state) return Frame.error("$!.denum-binding-receiver");
-  return { count: state.count, loads: state.loads };
-}
-
-/**
- * The loads of `source.#%`, the C sums `bj = Σ ai` over `i mod C = j`, folded
- * without building the bound Denum, or the binding's error in the order
- * `bindDenumCount` documents. The geometric observers (007.41b) read these, so
- * they consume the same genuine binding as `.#%` at no extra cost.
- *
- * @param source The observed Frame.
- * @returns The C bound loads, or the binding's error.
- */
-export function boundLoads(source: Frame): bigint[] | Frame {
-  const state = denumState(source);
-  if (state instanceof Frame) return state;
-  if (state.count === 0n) return Frame.error("$!.denum-binding-zero-count");
-  if (state.count > DENUM_BINDING_CAPACITY) {
-    return Frame.error("$!.denum-binding-capacity");
-  }
-  const arity = Number(state.count);
-  const bound = new Array<bigint>(arity).fill(0n);
-  state.loads.forEach((load, index) => {
-    bound[index % arity] += load;
-  });
-  return bound;
 }
 
 /**
