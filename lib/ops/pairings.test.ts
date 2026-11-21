@@ -7,9 +7,9 @@ import { CartElements, ZipElements } from "./pairings.ts";
 const ints = (...values: number[]): FrameArray =>
   new FrameArray(values.map((value) => FrameInt.for(`${value}`)));
 
-describe("native Cart &|&", () => {
+describe("native Cart *", () => {
   it("pairs every occurrence in left-major order", () => {
-    expect(ints(1, 2).get("&|&").call(ints(10, 20, 30)).toString())
+    expect(ints(1, 2).get("*").call(ints(10, 20, 30)).toString())
       .toEqual(
         "[[1, 10], [1, 20], [1, 30], [2, 10], [2, 20], [2, 30]]",
       );
@@ -61,7 +61,7 @@ describe("native Zip |&|", () => {
 
     expect(left.get("|&|").call(right).toString())
       .toEqual("[[1, 10], [2, 20]]");
-    expect(left.get("&|&").call(right).toString())
+    expect(left.get("*").call(right).toString())
       .toEqual(
         "[[1, 10], [1, 20], [1, 30], [2, 10], [2, 20], [2, 30]]",
       );
