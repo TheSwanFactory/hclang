@@ -25,7 +25,7 @@ import {
   type ISourced,
   NilContext,
 } from "../frames.ts";
-import { lexicalError } from "./sigilizer.ts";
+import { lexicalError } from "../sigilizer.ts";
 import {
   type AtomSyntax,
   ScanDisposition,

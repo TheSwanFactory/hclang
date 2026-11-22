@@ -1,8 +1,8 @@
 import { expect } from "jsr:@std/expect@^0.219.1";
 import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 
-import { Frame, FrameSymbol } from "../frames.ts";
-import { ScanDisposition, type ScanResponse } from "../scan.ts";
+import { Frame, FrameSymbol } from "./frames.ts";
+import { ScanDisposition, type ScanResponse } from "./scan.ts";
 import { Sigilizer } from "./sigilizer.ts";
 
 class RecordingReceiver extends Frame {

@@ -1,5 +1,5 @@
-import { Frame } from "../frames/frame.ts";
-import { ScanDisposition, type ScanResponse } from "../scan.ts";
+import { Frame } from "./frames/frame.ts";
+import { ScanDisposition, type ScanResponse } from "./scan.ts";
 
 /**
  * Primitive mutations a lexical state exposes to Sigilizer.

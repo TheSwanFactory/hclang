@@ -9,7 +9,7 @@ import {
 import type { ScanResponse } from "../scan.ts";
 import { Token } from "./lex.ts";
 import type { ParsePipe } from "./parse-pipe.ts";
-import { lexicalError, sigilizer } from "./sigilizer.ts";
+import { lexicalError, sigilizer } from "../sigilizer.ts";
 import { getSyntax } from "./syntax.ts";
 import type { IAction, IFinish, IPerformer } from "./terminals.ts";
 

@@ -12,7 +12,7 @@ import {
 import { EvalPipe, makeSourcePipe } from "./eval-pipe.ts";
 import { LexPipe } from "./lex-pipe.ts";
 import { ParsePipe } from "./parse-pipe.ts";
-import { sigilizer } from "./sigilizer.ts";
+import { sigilizer } from "../sigilizer.ts";
 
 /** Private output state for one imported source evaluation. */
 class ImportProgress extends Frame {

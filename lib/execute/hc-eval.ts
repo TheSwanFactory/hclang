@@ -13,7 +13,7 @@ import "./router-prologue.ts";
 import { EvalPipe, makeSourcePipe } from "./eval-pipe.ts";
 import { LexPipe } from "./lex-pipe.ts";
 import { evaluateResourceSource } from "./resource-import.ts";
-import { sigilizer } from "./sigilizer.ts";
+import { sigilizer } from "../sigilizer.ts";
 
 /**
  * Creates a new context from the given key-value entries.

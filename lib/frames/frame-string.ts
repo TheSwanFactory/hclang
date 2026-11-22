@@ -8,7 +8,7 @@ import {
 import { FrameSymbol } from "./frame-symbol.ts";
 import { NilContext } from "./context.ts";
 import type { Context } from "./context.ts";
-import { sigilizer } from "../execute/sigilizer.ts";
+import { sigilizer } from "../sigilizer.ts";
 import { nestingDepth, unterminatedAtEnd } from "./atom-syntax.ts";
 import {
   type AtomSyntax,
