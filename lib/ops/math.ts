@@ -40,48 +40,52 @@ const failure = (operand: Frame): Frame | undefined => {
   return value.isError() ? value : undefined;
 };
 
-/** Exact numeric arithmetic survives for the core scalar ladder. */
-export const Add = (source: Frame, block: Frame): Frame => {
+/**
+ * Arithmetic with a structural meaning beside the numeric one: an error
+ * operand first, left before right, then the numeric pair of the referents,
+ * and otherwise `fallback` on the operands as written.
+ */
+const arithmeticOr = (
+  source: Frame,
+  block: Frame,
+  operation: NumericOperation,
+  fallback: (source: Frame, block: Frame) => Frame,
+): Frame => {
   const refused = failure(source) ?? failure(block);
   if (refused) return refused;
-  const numericPair = numeric(
-    source.referent(),
-    block.referent(),
-    (left, right) => left.add(right),
-  );
-  return numericPair === Frame.nil ? FlopElements(source, block) : numericPair;
+  const numericPair = numeric(source.referent(), block.referent(), operation);
+  return numericPair === Frame.nil ? fallback(source, block) : numericPair;
 };
+
+/** Exact numeric arithmetic survives for the core scalar ladder. */
+export const Add = (source: Frame, block: Frame): Frame =>
+  arithmeticOr(source, block, (left, right) => left.add(right), FlopElements);
 
 /** Numeric pairs subtract; otherwise subtraction Flops with a Denum half-turn.
  * The right operand must be a Denum. A numeric left receiver is valid Flop,
  * so 0 - D is not the same as unary -D.
  */
-export const Subtract = (source: Frame, block: Frame): Frame => {
-  const refused = failure(source) ?? failure(block);
-  if (refused) return refused;
-  const numericPair = numeric(
-    source.referent(),
-    block.referent(),
+export const Subtract = (source: Frame, block: Frame): Frame =>
+  arithmeticOr(
+    source,
+    block,
     (left, right) => left.subtract(right),
+    (source, block) => {
+      const negative = Frame.negateDenum(block.referent());
+      return negative
+        ? FlopElements(source, negative)
+        : Frame.error("$!.flop-domain -");
+    },
   );
-  if (numericPair !== Frame.nil) return numericPair;
-  const negative = Frame.negateDenum(block.referent());
-  return negative
-    ? FlopElements(source, negative)
-    : Frame.error("$!.flop-domain -");
-};
 
 /** Cart is the structural Frame product; scalar arithmetic remains native. */
-export const Multiply = (source: Frame, block: Frame): Frame => {
-  const refused = failure(source) ?? failure(block);
-  if (refused) return refused;
-  const numericPair = numeric(
-    source.referent(),
-    block.referent(),
+export const Multiply = (source: Frame, block: Frame): Frame =>
+  arithmeticOr(
+    source,
+    block,
     (left, right) => left.multiply(right),
+    CartElements,
   );
-  return numericPair === Frame.nil ? CartElements(source, block) : numericPair;
-};
 
 /**
  * `/`, also spelled `./`. A numeric pair keeps the exact numeric ladder. An
