@@ -24,14 +24,28 @@ export function evaluate(
   meta: Context = NilContext,
 ): FrameArray {
   const out = new FrameArray([]);
-  const hostNamespace = new Frame(meta);
-  const hcEval = new HCEval(out, out, hostNamespace);
-  hcEval.call(input);
-  if (!hcEval.finish()) {
-    out.collect(
-      Frame.error(hcEval.error() ?? "incomplete lexical input"),
-      Frame.nil,
-    );
-  }
+  evaluateInto(input, out, out, new Frame(meta));
   return out;
+}
+
+/**
+ * Evaluates one complete source unit into `out`. An incomplete finish, such as
+ * an unclosed group, is collected into `out` as an error.
+ *
+ * @param input The HC source to evaluate.
+ * @param out Where the results are collected.
+ * @param fileScope The source unit's declarations.
+ * @param hostNamespace Host-supplied bindings, exposed through `$$`.
+ */
+export function evaluateInto(
+  input: string,
+  out: FrameArray,
+  fileScope: Frame,
+  hostNamespace: Frame,
+): void {
+  const evaluator = new HCEval(out, fileScope, hostNamespace);
+  evaluator.call(input);
+  if (!evaluator.finish()) {
+    out.collect(Frame.error(evaluator.incompleteReason()), Frame.nil);
+  }
 }

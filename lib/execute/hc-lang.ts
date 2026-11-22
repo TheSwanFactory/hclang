@@ -1,5 +1,6 @@
 import { renderResults } from "./execute.ts";
-import { HCEval, make_context } from "./hc-eval.ts";
+import { evaluateInto } from "./evaluate.ts";
+import { make_context } from "./hc-eval.ts";
 import {
   type Context,
   contextString,
@@ -60,18 +61,7 @@ export class HCLang {
   public call(input: string): Promise<string> {
     try {
       const out = new FrameArray([]);
-      const evaluator = new HCEval(
-        out,
-        this.fileScope,
-        this.hostNamespace,
-      );
-      evaluator.call(input);
-      if (!evaluator.finish()) {
-        out.collect(
-          Frame.error(evaluator.error() ?? "incomplete lexical input"),
-          Frame.nil,
-        );
-      }
+      evaluateInto(input, out, this.fileScope, this.hostNamespace);
       const result = renderResults(out);
       this.history.push({ input, output: result });
       return Promise.resolve(result);

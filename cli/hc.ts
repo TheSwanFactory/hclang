@@ -138,7 +138,7 @@ export async function main(
     const complete = evaluator.finish();
     runtimeFailed ||= evaluator.hasFailures();
     if (!complete) {
-      const reason = evaluator.error() ?? "incomplete lexical input";
+      const reason = evaluator.incompleteReason();
       console.error(`HCEval.finish.failed: ${reason}`);
     }
     return complete;

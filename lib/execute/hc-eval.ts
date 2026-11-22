@@ -196,6 +196,16 @@ export class HCEval {
     return this.lexicalError;
   }
 
+  /**
+   * Why `finish` answered false: the lexical error, or a generic reason when
+   * the input simply ended mid-form.
+   *
+   * @returns The reason the source unit is incomplete.
+   */
+  public incompleteReason(): string {
+    return this.error() ?? "incomplete lexical input";
+  }
+
   public level(): number {
     return this.pipe.level;
   }
