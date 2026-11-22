@@ -443,24 +443,17 @@ export function atomsOf(
       atoms.push(term);
     }
   };
-  let previous: Frame | undefined;
-  for (const term of terms) {
-    if (
-      isPlainExpr(term) && previous && isPlainExpr(previous) &&
-      previous.is.statement !== true
-    ) {
-      atoms.push(FrameWord.word(","));
-    }
-    if (isPlainExpr(term)) {
-      const declared = declaredName(term);
-      for (const inner of term.asArray()) walkAtom(inner);
+  // A statement's head is noted before its terms are walked and declared
+  // after them, so a name in its own value resolves to an earlier one.
+  let declared: FrameName | undefined;
+  walkStatements(terms, atoms, walkAtom, {
+    enter: (expr: FrameExpr): void => {
+      declared = declaredName(expr);
+    },
+    leave: (): void => {
       if (declared) scope.set(declared.source, declared);
-      if (term.is.statement) atoms.push(FrameWord.word(";"));
-    } else {
-      walkAtom(term);
-    }
-    previous = term;
-  }
+    },
+  });
   return atoms;
 }
 
@@ -489,23 +482,49 @@ function sizeAtomsOf(terms: readonly Frame[]): Frame[] | Frame {
       atoms.push(term);
     }
   };
+  walkStatements(terms, atoms, walkAtom);
+  return cyclic ? Frame.error("$!.cyclic-aggregate .##") : atoms;
+}
+
+/**
+ * The statement loop both atom walks share. Two plain expressions the source
+ * separated with `,` get the word `,` between them, each expression's terms
+ * go through `walkAtom`, and a statement that ended in `;` is followed by the
+ * word `;`. Any other term goes through `walkAtom` whole.
+ *
+ * @param terms A body's statements.
+ * @param atoms Where the punctuation words go, beside what `walkAtom` adds.
+ * @param walkAtom Walks one term into `atoms`.
+ * @param hooks Run around each plain expression's terms: `enter` before and
+ * `leave` after.
+ */
+function walkStatements(
+  terms: readonly Frame[],
+  atoms: Frame[],
+  walkAtom: (term: Frame) => void,
+  hooks?: {
+    enter?(expr: FrameExpr): void;
+    leave?(expr: FrameExpr): void;
+  },
+): void {
   let previous: Frame | undefined;
   for (const term of terms) {
     if (
       isPlainExpr(term) && previous && isPlainExpr(previous) &&
-      !previous.is.statement
+      previous.is.statement !== true
     ) {
       atoms.push(FrameWord.word(","));
     }
     if (isPlainExpr(term)) {
+      hooks?.enter?.(term);
       for (const inner of term.asArray()) walkAtom(inner);
+      hooks?.leave?.(term);
       if (term.is.statement) atoms.push(FrameWord.word(";"));
     } else {
       walkAtom(term);
     }
     previous = term;
   }
-  return cyclic ? Frame.error("$!.cyclic-aggregate .##") : atoms;
 }
 
 /**
