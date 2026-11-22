@@ -14,6 +14,7 @@ import { EvalPipe, makeSourcePipe } from "./eval-pipe.ts";
 import { LexPipe } from "./lex-pipe.ts";
 import { evaluateResourceSource } from "./resource-import.ts";
 import { sigilizer } from "../sigilizer.ts";
+import { EXPECT_PREFIX, SOURCE_PREFIX } from "./testdoc-markers.ts";
 
 /**
  * Creates a new context from the given key-value entries.
@@ -59,11 +60,11 @@ export class HCEval {
   /**
    * SOURCE is the input prompt prefix.
    */
-  public static readonly SOURCE = "; ";
+  public static readonly SOURCE = SOURCE_PREFIX;
   /**
    * EXPECT is the output prompt prefix.
    */
-  public static readonly EXPECT = "# ";
+  public static readonly EXPECT = EXPECT_PREFIX;
 
   private evaluator: EvalPipe;
   protected pipe: LexPipe;

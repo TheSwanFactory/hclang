@@ -13,6 +13,7 @@ import { EvalPipe, makeSourcePipe } from "./eval-pipe.ts";
 import { LexPipe } from "./lex-pipe.ts";
 import { ParsePipe } from "./parse-pipe.ts";
 import { sigilizer } from "../sigilizer.ts";
+import { SOURCE_PREFIX } from "./testdoc-markers.ts";
 
 /** Private output state for one imported source evaluation. */
 class ImportProgress extends Frame {
@@ -31,9 +32,6 @@ class ImportProgress extends Frame {
     return value;
   }
 }
-
-/** The prefix of a testdoc example line, `HCEval.SOURCE`. */
-const EXAMPLE = "; ";
 
 /**
  * Drops a testdoc's example lines from imported source, so importing a file
@@ -68,13 +66,13 @@ class ExampleFilter {
       return [character];
     }
     this.head += character;
-    if (this.head === EXAMPLE) {
+    if (this.head === SOURCE_PREFIX) {
       this.head = "";
       this.atLineStart = false;
       this.skipping = true;
       return [];
     }
-    if (EXAMPLE.startsWith(this.head)) return [];
+    if (SOURCE_PREFIX.startsWith(this.head)) return [];
     const kept = this.head.split("");
     this.head = "";
     this.atLineStart = character === "\n";
