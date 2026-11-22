@@ -35,8 +35,15 @@ export class HCLang {
   private fileScope: Frame;
   /** Stable frame exposing `context` through the explicit host anchor. */
   private hostNamespace: Frame;
+  /** Each submitted source string and its rendered output or error, in order. */
   protected history: HistoryPair[];
 
+  /**
+   * Starts a session with an empty file scope and no history.
+   *
+   * @param environment String values for the host namespace, reached through
+   *   `$$`; each becomes a Frame as `make_context` converts it.
+   */
   public constructor(environment: StringMap = {}) {
     this.context = make_context(environment);
     this.fileScope = new Frame();
