@@ -209,6 +209,133 @@ async function releaseGraph(
   throw new Error(`${failure} after ${RELEASE_ATTEMPTS} attempts`);
 }
 
+/**
+ * Writes the entry module into `temporaryDir` and bundles it, resolving the
+ * published hcweb `version` from JSR when releasing. Answers the bundle path.
+ */
+async function bundleEntry(
+  temporaryDir: string,
+  version: string,
+): Promise<string> {
+  const entryPath = join(temporaryDir, "entry.ts");
+  const bundlePath = join(temporaryDir, "bundle.js");
+  const temporaryLock = join(temporaryDir, "deno.lock");
+  const importSpecifier = releaseVersion
+    ? `jsr:@swanfactory/hcweb@${version}/mount`
+    : toFileUrl(join(webDir, "mount.ts")).href;
+  const entry = [
+    `import { mountHcweb } from ${JSON.stringify(importSpecifier)};`,
+    'const root = document.getElementById("hcweb-root");',
+    'if (!(root instanceof HTMLElement)) throw new Error("Missing hcweb root");',
+    "mountHcweb(root);",
+    "",
+  ].join("\n");
+  await Deno.writeTextFile(entryPath, entry);
+
+  if (releaseVersion) {
+    await releaseGraph(entryPath, temporaryLock, version);
+  }
+
+  const bundleArgs = ["bundle"];
+  if (releaseVersion) {
+    bundleArgs.push(
+      "--no-config",
+      "--lock",
+      temporaryLock,
+      ...RELEASE_AGE_ARGS,
+    );
+  } else {
+    bundleArgs.push(
+      "--config",
+      join(webDir, "deno.json"),
+      "--lock",
+      join(rootDir, "deno.lock"),
+      "--frozen",
+    );
+  }
+  bundleArgs.push(
+    "--platform=browser",
+    "--format=iife",
+    "--minify",
+    entryPath,
+    "--output",
+    bundlePath,
+  );
+  await command(Deno.execPath(), bundleArgs);
+  return bundlePath;
+}
+
+/** The provenance values `renderHtml` writes into the template. */
+interface HtmlFields {
+  readonly version: string;
+  readonly commit: string;
+  readonly buildDate: string;
+  readonly packageSource: string;
+}
+
+/**
+ * Inlines the bundle at the template's single entry marker and fills the
+ * provenance placeholders, each of which must be present.
+ */
+async function renderHtml(
+  bundlePath: string,
+  fields: HtmlFields,
+): Promise<string> {
+  const template = await Deno.readTextFile(templatePath);
+  if (template.split(entryMarker).length !== 2) {
+    throw new Error("Template must contain exactly one hcweb entry marker");
+  }
+  const bundle = (await Deno.readTextFile(bundlePath)).replaceAll(
+    /<\/script/gi,
+    "<\\/script",
+  );
+  // Function replacers avoid `$$`/`$&` expansion in bundled source.
+  let html = template.replace(
+    entryMarker,
+    () => `<script data-hcweb-bundle>\n${bundle}\n</script>`,
+  );
+
+  html = replaceRequired(html, "__HCWEB_VERSION__", fields.version);
+  html = replaceRequired(html, "__HCLANG_VERSION__", fields.version);
+  html = replaceRequired(html, "__SOURCE_COMMIT__", fields.commit);
+  html = replaceRequired(html, "__BUILD_DATE__", fields.buildDate);
+  html = replaceRequired(html, "__PACKAGE_SOURCE__", fields.packageSource);
+  return html;
+}
+
+/**
+ * Replaces `web/dist` with `hcweb.html`, its `index.html` copy and the
+ * checksum file. Answers the output path and the bytes written.
+ */
+async function writeArtifacts(
+  html: string,
+): Promise<{ outputPath: string; bytes: Uint8Array }> {
+  await Deno.remove(distDir, { recursive: true }).catch((error) => {
+    if (!(error instanceof Deno.errors.NotFound)) throw error;
+  });
+  await Deno.mkdir(distDir, { recursive: true });
+  const outputPath = join(distDir, "hcweb.html");
+  const bytes = new TextEncoder().encode(html);
+  for (const name of ["hcweb.html", "index.html"]) {
+    // `index.html` is the same bytes, so a static host can serve `/`.
+    const target = join(distDir, name);
+    await Deno.writeFile(`${target}.pending`, bytes);
+    await Deno.rename(`${target}.pending`, target);
+  }
+
+  const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", bytes));
+  const checksum = Array.from(
+    digest,
+    (byte) => byte.toString(16).padStart(2, "0"),
+  )
+    .join("");
+  await Deno.writeTextFile(
+    join(distDir, "hcweb.html.sha256"),
+    `${checksum}  hcweb.html\n`,
+  );
+  return { outputPath, bytes };
+}
+
 async function build(): Promise<void> {
   const version = await verifyVersions();
   const commit = await gitText(["rev-parse", "HEAD"]) ??
@@ -224,98 +351,17 @@ async function build(): Promise<void> {
   const temporaryDir = await Deno.makeTempDir({ prefix: "hcweb-build-" });
 
   try {
-    const entryPath = join(temporaryDir, "entry.ts");
-    const bundlePath = join(temporaryDir, "bundle.js");
-    const temporaryLock = join(temporaryDir, "deno.lock");
-    const importSpecifier = releaseVersion
-      ? `jsr:@swanfactory/hcweb@${version}/mount`
-      : toFileUrl(join(webDir, "mount.ts")).href;
-    const entry = [
-      `import { mountHcweb } from ${JSON.stringify(importSpecifier)};`,
-      'const root = document.getElementById("hcweb-root");',
-      'if (!(root instanceof HTMLElement)) throw new Error("Missing hcweb root");',
-      "mountHcweb(root);",
-      "",
-    ].join("\n");
-    await Deno.writeTextFile(entryPath, entry);
-
-    if (releaseVersion) {
-      await releaseGraph(entryPath, temporaryLock, version);
-    }
-
-    const bundleArgs = ["bundle"];
-    if (releaseVersion) {
-      bundleArgs.push(
-        "--no-config",
-        "--lock",
-        temporaryLock,
-        ...RELEASE_AGE_ARGS,
-      );
-    } else {
-      bundleArgs.push(
-        "--config",
-        join(webDir, "deno.json"),
-        "--lock",
-        join(rootDir, "deno.lock"),
-        "--frozen",
-      );
-    }
-    bundleArgs.push(
-      "--platform=browser",
-      "--format=iife",
-      "--minify",
-      entryPath,
-      "--output",
-      bundlePath,
-    );
-    await command(Deno.execPath(), bundleArgs);
-
-    const template = await Deno.readTextFile(templatePath);
-    if (template.split(entryMarker).length !== 2) {
-      throw new Error("Template must contain exactly one hcweb entry marker");
-    }
-    const bundle = (await Deno.readTextFile(bundlePath)).replaceAll(
-      /<\/script/gi,
-      "<\\/script",
-    );
-    // Function replacers avoid `$$`/`$&` expansion in bundled source.
-    let html = template.replace(
-      entryMarker,
-      () => `<script data-hcweb-bundle>\n${bundle}\n</script>`,
-    );
-
+    const bundlePath = await bundleEntry(temporaryDir, version);
     const packageSource = releaseVersion
       ? `jsr:@swanfactory/hcweb@${version}`
       : "workspace";
-    html = replaceRequired(html, "__HCWEB_VERSION__", version);
-    html = replaceRequired(html, "__HCLANG_VERSION__", version);
-    html = replaceRequired(html, "__SOURCE_COMMIT__", commit);
-    html = replaceRequired(html, "__BUILD_DATE__", buildDate);
-    html = replaceRequired(html, "__PACKAGE_SOURCE__", packageSource);
-
-    await Deno.remove(distDir, { recursive: true }).catch((error) => {
-      if (!(error instanceof Deno.errors.NotFound)) throw error;
+    const html = await renderHtml(bundlePath, {
+      version,
+      commit,
+      buildDate,
+      packageSource,
     });
-    await Deno.mkdir(distDir, { recursive: true });
-    const outputPath = join(distDir, "hcweb.html");
-    const bytes = new TextEncoder().encode(html);
-    for (const name of ["hcweb.html", "index.html"]) {
-      // `index.html` is the same bytes, so a static host can serve `/`.
-      const target = join(distDir, name);
-      await Deno.writeFile(`${target}.pending`, bytes);
-      await Deno.rename(`${target}.pending`, target);
-    }
-
-    const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", bytes));
-    const checksum = Array.from(
-      digest,
-      (byte) => byte.toString(16).padStart(2, "0"),
-    )
-      .join("");
-    await Deno.writeTextFile(
-      join(distDir, "hcweb.html.sha256"),
-      `${checksum}  hcweb.html\n`,
-    );
+    const { outputPath, bytes } = await writeArtifacts(html);
     console.log(
       `Built ${outputPath} from ${packageSource} (${bytes.length} bytes)`,
     );
