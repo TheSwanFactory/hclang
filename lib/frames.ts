@@ -104,7 +104,6 @@ export { type ISourced, MetaFrame } from "./frames/meta-frame.ts";
 export { ScanDisposition, type ScanResult } from "./scan.ts";
 export {
   type Context,
-  contextEqual,
   contextString,
   type IKeyValuePair,
   NilContext,

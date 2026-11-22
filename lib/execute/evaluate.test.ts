@@ -1830,7 +1830,12 @@ describe("evaluate", () => {
     it("updates file context on assignment", () => {
       const output = make_context({ x: "3" });
       const result = evaluate(".x 3;");
-      expect(frame.contextEqual(result.meta, output)).toEqual(true);
+      expect(Object.keys(result.meta).sort()).toEqual(
+        Object.keys(output).sort(),
+      );
+      for (const key of Object.keys(output)) {
+        expect(result.meta[key].isEqualTo(output[key])).toBe(true);
+      }
     });
   });
 

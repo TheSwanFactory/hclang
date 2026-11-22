@@ -5,7 +5,6 @@ export { make_context } from "./execute/hc-eval.ts";
 export { HCLang, type HistoryPair } from "./execute/hc-lang.ts";
 export {
   type Context,
-  contextEqual,
   contextString,
   type EvaluationRoots,
   type Flags,
