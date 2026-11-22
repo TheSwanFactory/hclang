@@ -204,7 +204,8 @@ export class FrameHandle extends Frame {
     }
     // A declared application is a method, so this name's mutability decides
     // whether it writes the target or answers an updated copy, and a nil
-    // answer leaves the accumulator as it was (`FrameArray.applyDeclared`).
+    // answer leaves the accumulator as it was (`applyDeclared`, in
+    // `declared-protocol.ts`).
     const result = new BoundMethod(
       declared.method as FrameLazy,
       this.target,
