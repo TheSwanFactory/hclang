@@ -21,10 +21,8 @@ import {
   FrameArray,
   FrameExpr,
   installRouterRecognizer,
+  isShippedInstance,
 } from "../frames.ts";
-// Direct, not through the barrel, which exports only the installers; the
-// barrel above has already loaded this module.
-import { isShippedInstance } from "../frames/fourth-hash.ts";
 import { installDivisionCarrier } from "../ops/math.ts";
 import { classOnce, type ClassPrologue } from "./class-prologue.ts";
 

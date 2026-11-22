@@ -38,6 +38,7 @@ export { FrameCount } from "./frames/frame-count.ts";
 export {
   installDenumConstructor,
   installRouterRecognizer,
+  isShippedInstance,
 } from "./frames/fourth-hash.ts";
 export { FrameDecimal } from "./frames/frame-decimal.ts";
 export { FrameSequence } from "./frames/frame-sequence.ts";
