@@ -97,11 +97,6 @@ export class ParsePipe extends FrameArray implements IFinish {
 
   public canPop(Factory: IArrayConstructor): boolean {
     const match = this.Factory.name === Factory.name;
-    if (!match && !this.strictStructure) {
-      console.error(
-        `ParsePipe.canPop.failed: ${Factory.name} cannot pop ${this.Factory.name}`,
-      );
-    }
     return match;
   }
 

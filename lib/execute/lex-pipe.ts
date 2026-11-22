@@ -131,13 +131,12 @@ export class LexPipe extends Frame implements IFinish, IPerformer {
             parser.next(false);
             break;
           }
-          if (value instanceof Frame) {
-            parser.finish(value);
-          } else {
-            console.error(
-              `LexPipe.perform.end.failed: value ${value} is not a Frame`,
+          if (!(value instanceof Frame)) {
+            throw new Error(
+              `Expected Frame for end action, but received: '${value}'`,
             );
           }
+          parser.finish(value);
           break;
         }
         case "bind": {
@@ -158,7 +157,6 @@ export class LexPipe extends Frame implements IFinish, IPerformer {
             if (parser.strictStructure) {
               return this.structureFailure("unmatched", factory.name);
             }
-            console.error("LexPipe.perform.pop.failed: already at top level");
             break;
           }
           if (!parser.canPop(factory)) {
