@@ -220,6 +220,8 @@ export class FrameArray extends FrameList {
   /**
    * The method this aggregate declares as its own application, `apply_` or
    * `apply`, on itself or a declared parent (#375, `applicationDeclaredBy`).
+   *
+   * @ignore
    */
   public override applicationMethod(): DeclaredApplication | undefined {
     return applicationDeclaredBy(this);
@@ -229,6 +231,8 @@ export class FrameArray extends FrameList {
    * The method this aggregate declares for the operator `key`, bound to it as
    * the left operand, or undefined when it declares none (015.02,
    * `operatorDeclaredBy`).
+   *
+   * @ignore
    */
   public declaredOperator(key: string): BoundMethod | undefined {
     return operatorDeclaredBy(this, key);

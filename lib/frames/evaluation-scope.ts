@@ -112,6 +112,8 @@ class LiveLookupContext extends Frame {
  * Syntax can derive a scope with another lookup layer or declaration target,
  * while closure calls derive a new scope linked to the scope captured when the
  * closure literal was evaluated. No caller mutates a shared context stack.
+ *
+ * @ignore
  */
 export class EvaluationScope {
   public readonly argument: Frame;

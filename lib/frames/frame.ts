@@ -97,7 +97,11 @@ export class MetaFrame {
    */
   public parent: Frame = {} as Frame; // forward-declare Frame
 
-  /** Typed receiver capability installed only on an invocation frame. */
+  /**
+   * Typed receiver capability installed only on an invocation frame.
+   *
+   * @ignore
+   */
   public receiverState?: ReceiverState;
 
   /**
@@ -175,6 +179,8 @@ export class MetaFrame {
    * The binding counterpart of `lookup_graph_on`, with the same tiers, so a
    * forwarded value and its binding metadata come from the same declaration
    * owner. `Frame.globals` stays the one final tier of the outer `resolve`.
+   *
+   * @ignore
    */
   protected resolve_graph_on(
     frame: MetaFrame,
@@ -190,7 +196,11 @@ export class MetaFrame {
     );
   }
 
-  /** Resolves a logical name to the declaration key visible from origin. */
+  /**
+   * Resolves a logical name to the declaration key visible from origin.
+   *
+   * @ignore
+   */
   public resolve_here(
     key: string,
     origin: MetaFrame = this,
@@ -230,7 +240,11 @@ export class MetaFrame {
       );
   }
 
-  /** Resolves a binding through the same guarded graph as ordinary lookup. */
+  /**
+   * Resolves a binding through the same guarded graph as ordinary lookup.
+   *
+   * @ignore
+   */
   public resolve(
     key: string,
     origin: MetaFrame = this,
@@ -826,6 +840,7 @@ export class Frame extends MetaFrame {
    * @param argument
    * @param parameter
    * @returns a Frame
+   * @ignore
    */
   public call(
     argument: Frame,
@@ -845,6 +860,8 @@ export class Frame extends MetaFrame {
    *
    * Non-lexical Frames retain the historical double-dispatch behavior. The
    * optional source is supplied only to syntax participants adapted by Lex.
+   *
+   * @ignore
    */
   public scan(
     argument: Frame,
@@ -854,7 +871,11 @@ export class Frame extends MetaFrame {
     return this.call(argument);
   }
 
-  /** Resolves this receiver at physical end-of-input. */
+  /**
+   * Resolves this receiver at physical end-of-input.
+   *
+   * @ignore
+   */
   public finishInput(_source = ""): ScanResponse {
     return this;
   }
@@ -942,24 +963,45 @@ export class Frame extends MetaFrame {
    * Records the scope an operation was written in, on the fresh value an
    * operator answered for it. Only a fold reads it, to resume a walk there
    * (spec a17); anything else is unchanged.
+   *
+   * @ignore
    */
   public atSite(_site: EvaluationScope): Frame {
     return this;
   }
 
-  /** Concrete syntax/value families, without eager imports of subclasses. */
+  /**
+   * Whether this is a name, asked without importing `FrameName`.
+   *
+   * @ignore
+   */
   public isName(): this is FrameName {
     return false;
   }
 
+  /**
+   * Whether this is a symbol, asked without importing `FrameSymbol`.
+   *
+   * @ignore
+   */
   public isSymbol(): this is FrameSymbol {
     return false;
   }
 
+  /**
+   * Whether this is a schema, asked without importing `FrameSchema`.
+   *
+   * @ignore
+   */
   public isSchema(): this is FrameSchema {
     return false;
   }
 
+  /**
+   * Whether this is a closure, asked without importing `FrameLazy`.
+   *
+   * @ignore
+   */
   public isClosure(): this is FrameLazy {
     return false;
   }
@@ -1232,6 +1274,8 @@ export class Frame extends MetaFrame {
    *
    * Only an aggregate can declare one, so the base answers none. See
    * `FrameArray.applicationMethod` for the protocol.
+   *
+   * @ignore
    */
   public applicationMethod(): DeclaredApplication | undefined {
     return undefined;
@@ -1293,12 +1337,19 @@ export class Frame extends MetaFrame {
    * `1`. This is what keeps a reduce compositional, since folding a whole stream
    * must equal folding its first part and continuing from that answer, even
    * when the first part is empty.
+   *
+   * @ignore
    */
   public reduce(receiver: Frame, receiverState?: ReceiverState): Frame {
     return Frame.reduceInto(this.elements(), receiver, receiverState);
   }
 
-  /** Threads one stream through a receiver, answering the receiver for an empty one. */
+  /**
+   * Threads one stream through a receiver, answering the receiver for an
+   * empty one.
+   *
+   * @ignore
+   */
   public static reduceInto(
     values: readonly Frame[],
     receiver: Frame,

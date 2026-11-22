@@ -13,3 +13,6 @@ export {
   MetaFrame,
   type StringMap,
 } from "./frames.ts";
+export type { FrameArray } from "./frames/frame-array.ts";
+export type { FrameList } from "./frames/frame-list.ts";
+export type { EvaluationInput } from "./frames/evaluation-scope.ts";
