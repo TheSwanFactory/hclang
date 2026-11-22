@@ -51,15 +51,22 @@ const stripLastComma = (result: Array<string>): Array<string> => {
   return result;
 };
 
+/**
+ * A frame built from an ordered list of terms, its data plane, beside its
+ * properties: the base of aggregates, groups, schemas and parsed expressions.
+ */
 export class FrameList extends Frame {
+  /** A list holding `data` as its terms and `meta` as its properties. */
   constructor(protected data: Array<Frame>, meta: Context = NilContext) {
     super(meta);
   }
 
+  /** A list begins with `(`. */
   public override string_open(): string {
     return Frame.BEGIN_EXPR;
   }
 
+  /** A list ends with `)`. */
   public override string_close(): string {
     return Frame.END_EXPR;
   }
@@ -77,6 +84,10 @@ export class FrameList extends Frame {
     return this.data.filter((item) => !this.holdsAsProperty(item));
   }
 
+  /**
+   * Each printed term with its separator: `;` after a statement and `,` after
+   * anything else.
+   */
   public toStringDataArray(): Array<string> {
     const result = this.renderedTerms().map((obj: Frame) => {
       const sep = (obj.is.statement) ? ";" : ",";
@@ -105,15 +116,21 @@ export class FrameList extends Frame {
     return elements;
   }
 
+  /** Whether the data plane holds no terms. */
   public isEmpty(): boolean {
     return (this.data.length === 0);
   }
 
+  /** The printed form: `toStringArray()` between the list's brackets. */
   public override toString(): string {
     return this.string_open() + this.toStringArray().join(" ") +
       this.string_close();
   }
 
+  /**
+   * The data plane as data equality reads it: each term's `dataString`,
+   * without the echoes of evaluated property declarations.
+   */
   public override dataString(): string {
     // Evaluated property declarations are retained as data-plane assignment
     // echoes as well as metadata. Exclude those echoes from data-only equality.
@@ -134,6 +151,7 @@ export class FrameList extends Frame {
       this.string_close();
   }
 
+  /** The data plane itself, not a copy: every term, in order. */
   public override asArray(): Array<Frame> {
     return this.data;
   }
@@ -162,6 +180,11 @@ export class FrameList extends Frame {
    * which this module cannot import without closing a cycle.
    */
   public static walkSource?: (terms: readonly Frame[]) => Frame[];
+  /**
+   * How a size operator walks a source aggregate: the same words as
+   * `walkSource`, without recording scope sites or binding names. Also
+   * installed by `frame-expr.ts`.
+   */
   public static sizeSource?: (terms: readonly Frame[]) => Frame[] | Frame;
 
   /** Quantity walks must not record evaluation sites or bind source words. */
@@ -298,10 +321,15 @@ export class FrameList extends Frame {
     return binding !== undefined && binding.target === this;
   }
 
+  /** The number of terms in the data plane. */
   public size(): number {
     return this.data.length;
   }
 
+  /**
+   * The plumbing copy, holding the same terms. A declaration echo this list
+   * holds is re-issued for the copy (`itemsFor`).
+   */
   public override copy(): this {
     const clone = super.copy();
     clone.adoptData(this.itemsFor(clone, (item) => item));

@@ -515,6 +515,13 @@ export class MetaFrame {
     return result;
   }
 
+  /**
+   * The binding stored under `physicalKey`, or undefined when there is none.
+   * A public binding is visible from any origin, a protected one from this
+   * frame or a frame whose declared parents include it, and a private one
+   * from this frame only. An origin that may not see it gets
+   * `$!.is-<visibility> .<key>` as the value.
+   */
   private authorize(
     physicalKey: string,
     visibility: Visibility,
@@ -783,13 +790,6 @@ export class Frame extends MetaFrame {
     return Frame.nil;
   }
 
-  /**
-   * in determines how the Frame is evaluated in the given contexts.
-   *
-   * @param _contexts
-   * @returns a Frame or Frame.nil
-   */
-
   /** Named roots carried by this frame, when it is a scoped projection. */
   public evaluationRoots(): EvaluationRoots | undefined {
     return undefined;
@@ -800,6 +800,12 @@ export class Frame extends MetaFrame {
     return this;
   }
 
+  /**
+   * in determines how the Frame is evaluated in the given scope.
+   *
+   * @param _scope
+   * @returns a Frame or Frame.nil
+   */
   public in(_scope: EvaluationInput = []): Frame {
     return this;
   }

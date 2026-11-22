@@ -27,14 +27,25 @@ import {
   textDeclaredBy,
 } from "./declared-protocol.ts";
 
+/**
+ * An aggregate, written `[...]`: properties and elements in one value.
+ *
+ * Applying a value to an aggregate collects it, unless the aggregate declares
+ * its own application. `evaluate` answers one, holding a source unit's results
+ * and top-level declarations.
+ */
 export class FrameArray extends FrameList {
+  /** The character that opens an aggregate. */
   public static readonly BEGIN_ARRAY = "[";
+  /** The character that closes an aggregate. */
   public static readonly END_ARRAY = "]";
+  /** How the lexer recognizes an aggregate: `[` opens one and `]` closes it. */
   public static readonly SIGIL_STARTS = [
     { key: FrameArray.BEGIN_ARRAY, mode: "push" },
     { key: FrameArray.END_ARRAY, mode: "pop" },
   ] as const satisfies readonly SigilStart[];
 
+  /** An aggregate holding `data` as its terms and `meta` as its properties. */
   constructor(data: Array<Frame>, meta = NilContext) {
     super(data, meta);
     // An aggregate holds its elements from birth (reference-tracking.ts).
@@ -51,14 +62,21 @@ export class FrameArray extends FrameList {
     if (previous !== data) noteElements(this, data, previous);
   }
 
+  /** An aggregate begins with `[`. */
   public override string_open(): string {
     return FrameArray.BEGIN_ARRAY;
   }
 
+  /** An aggregate ends with `]`. */
   public override string_close(): string {
     return FrameArray.END_ARRAY;
   }
 
+  /**
+   * Evaluates this literal's terms in `input` into a fresh aggregate, which
+   * keeps the declared parent and accepts declarations while it is built. A
+   * refusal that leaves it ill-formed is the answer instead (`illFormed`).
+   */
   public override in(input: EvaluationInput = []): Frame {
     const result = new FrameArray([...this.data], this.meta_copy());
     // A declared parent is carried in its own field, so propagation is a copy
@@ -129,6 +147,12 @@ export class FrameArray extends FrameList {
   /** Pairs under comparison, so a frame reachable from itself terminates. */
   private static readonly comparing = new Map<Frame, Set<Frame>>();
 
+  /**
+   * Compares this aggregate with `other` by `same` at every member: the
+   * visible properties in order, then the elements by index. Aggregates of
+   * different classes differ, and a pair already under comparison counts as
+   * equal, so a cycle terminates.
+   */
   private sameMembers(
     other: Frame,
     same: (left: Frame, right: Frame) => Frame,
@@ -201,6 +225,7 @@ export class FrameArray extends FrameList {
     return replaced || elementReplaced;
   }
 
+  /** An index key reads the element there; any other key, a binding. */
   protected override lookup_here(key: string, origin: MetaFrame): Frame {
     if (Frame.isIndexKey(key)) {
       return this.at(Number(key));
@@ -275,6 +300,10 @@ export class FrameArray extends FrameList {
     return this.copy();
   }
 
+  /**
+   * `-` applied to a Denum answers its sign half-turn (`Frame.negateDenum`);
+   * anything else dispatches as `Frame.called_by` does.
+   */
   public override called_by(context: Frame, parameter: Frame): Frame {
     if ("operator" in context && context.operator === "-") {
       const negated = Frame.negateDenum(this);
@@ -283,6 +312,10 @@ export class FrameArray extends FrameList {
     return super.called_by(context, parameter);
   }
 
+  /**
+   * Runs the application this aggregate declares, if any, on `argument`
+   * (`applyDeclared`), and otherwise collects `argument`.
+   */
   public override apply(argument: Frame, _parameter: Frame): Frame {
     const declared = this.applicationMethod();
     if (declared) {
@@ -327,10 +360,15 @@ export class FrameArray extends FrameList {
     return elements[index >= 0 ? index : n + index];
   }
 
+  /**
+   * The number of terms in the data plane, statements and declaration echoes
+   * included. `elements()` answers the elements alone.
+   */
   public length(): number {
     return this.data.length;
   }
 
+  /** Empties the data plane, as one write to this aggregate. */
   public reset(): void {
     beforeCommit(this);
     this.adoptData([]);
