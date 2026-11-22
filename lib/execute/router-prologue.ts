@@ -17,58 +17,31 @@
  * @module
  */
 import {
-  EvaluationScope,
   Frame,
   FrameArray,
   FrameExpr,
   installRouterRecognizer,
 } from "../frames.ts";
 import { installDivisionCarrier } from "../ops/math.ts";
-import { HC_SOURCES } from "../bundle/hc-sources.ts";
-import { evaluateSourceText } from "./resource-import.ts";
-
-/** The bundled file that defines the class. */
-const ROUTER_SOURCE = "hc/rotor-router.hc";
-
-/** The name the file declares the constructor under. */
-const ROUTER_CLASS = "RotorRouter";
+import { classOnce, type ClassPrologue } from "./class-prologue.ts";
 
 /**
- * The builder the class file declares beside its constructor, which makes an
- * instance of any number of channels from channels already known to be
- * admissible, without validating or copying them.
+ * The file, its names and the error prefix (`class-prologue.ts`). The second
+ * name is the builder the class file declares beside its constructor, which
+ * makes an instance of any number of channels from channels already known to
+ * be admissible, without validating or copying them.
  */
-const ROUTER_BUILDER = "router-instance";
-
-let loaded: Frame | undefined;
-let builder: Frame | undefined;
-let loading = false;
+const ROUTER_PROLOGUE: ClassPrologue = {
+  file: "hc/rotor-router.hc",
+  names: ["RotorRouter", "router-instance"],
+  prefix: "router-prologue",
+};
 
 /**
- * Evaluates class source in a namespace of its own, answering its
- * `RotorRouter` or the failure. Uncached: `routerClass` keeps the one result.
- *
- * @param source The source text, or undefined when the bundle lacks it.
- * @returns The constructor, or an error.
+ * The `RotorRouter` constructor and builder closures, evaluated from the
+ * bundle on first use, or the error that loading them answered.
  */
-function loadRouterClass(source: string | undefined): Frame {
-  if (source === undefined) {
-    return Frame.error(`$!.router-prologue-missing ${ROUTER_SOURCE}`);
-  }
-  const namespace = new FrameArray([]);
-  const result = evaluateSourceText(source, EvaluationScope.root(namespace));
-  if (result.isFailedResult() || result.observationError()) return result;
-  const constructor = namespace.getOwn(ROUTER_CLASS);
-  if (constructor.is.missing) {
-    return Frame.error(`$!.router-prologue-missing ${ROUTER_CLASS}`);
-  }
-  const instance = namespace.getOwn(ROUTER_BUILDER);
-  if (instance.is.missing) {
-    return Frame.error(`$!.router-prologue-missing ${ROUTER_BUILDER}`);
-  }
-  builder = instance;
-  return constructor;
-}
+const routerNames = classOnce(ROUTER_PROLOGUE);
 
 /**
  * The `RotorRouter` constructor closure, evaluated from the bundle on first
@@ -77,15 +50,8 @@ function loadRouterClass(source: string | undefined): Frame {
  * @returns The constructor, or the error that loading it answered.
  */
 function routerClass(): Frame {
-  if (loaded) return loaded;
-  if (loading) return Frame.error("$!.router-prologue-reentrant");
-  loading = true;
-  try {
-    loaded = loadRouterClass(HC_SOURCES.get(ROUTER_SOURCE));
-  } finally {
-    loading = false;
-  }
-  return loaded;
+  const loaded = routerNames();
+  return Array.isArray(loaded) ? loaded[0] : loaded;
 }
 
 /**
@@ -149,7 +115,9 @@ function channelRouterChannels(source: Frame): Frame[] | undefined {
  * @returns The new router, or the class's failure.
  */
 function dealtRouter(channels: FrameArray): Frame {
-  const constructor = routerClass();
+  const loaded = routerNames();
+  if (!Array.isArray(loaded)) return loaded;
+  const [constructor, builder] = loaded;
   if (constructor.isFailedResult() || constructor.observationError()) {
     return constructor;
   }
