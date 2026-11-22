@@ -1,4 +1,4 @@
-import { Frame, FrameArray, NilContext } from "../frames.ts";
+import { type Context, Frame, FrameArray, NilContext } from "../frames.ts";
 import { HCEval } from "./hc-eval.ts";
 
 /**
@@ -12,12 +12,17 @@ import { HCEval } from "./hc-eval.ts";
  * @returns The source unit's results and top-level declarations.
  *
  * @example
+ * ```ts
  * import { evaluate } from "jsr:@swanfactory/hclang";
  *
  * const result = evaluate("1 + 1");
  * console.log(result.toStringArray()); // ["2"]
+ * ```
  */
-export const evaluate = (input: string, meta = NilContext): FrameArray => {
+export function evaluate(
+  input: string,
+  meta: Context = NilContext,
+): FrameArray {
   const out = new FrameArray([]);
   const hostNamespace = new Frame(meta);
   const hcEval = new HCEval(out, out, hostNamespace);
@@ -29,4 +34,4 @@ export const evaluate = (input: string, meta = NilContext): FrameArray => {
     );
   }
   return out;
-};
+}

@@ -15,8 +15,12 @@ export type StringMap = { [key: string]: string };
  * their normal effects when read through a mutable name.
  *
  * @example
+ * ```ts
+ * import { type Context, evaluate, make_context } from "jsr:@swanfactory/hclang";
+ *
  * const host: Context = make_context({ a: "1" });
  * const result = evaluate("$$.a", host);
+ * ```
  */
 export type Context = { [key: string]: Frame };
 
