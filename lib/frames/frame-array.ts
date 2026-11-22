@@ -1,4 +1,4 @@
-import { type DeclaredApplication, Frame } from "./frame.ts";
+import { type DeclaredApplication, declaredChain, Frame } from "./frame.ts";
 import { BoundMethod } from "./bound-method.ts";
 import { methodEffect } from "./effect-marker.ts";
 import { FrameExpr } from "./frame-expr.ts";
@@ -402,15 +402,13 @@ export class FrameArray extends FrameList {
    * wherever it is written.
    */
   private declaredMethod(key: string): Frame | undefined {
-    const seen = new Set<Frame>([this]);
-    let local = this.get_here(key);
-    let next = this.hasDeclaredParent() ? this.parent : undefined;
-    while (local.is.missing && next && !seen.has(next)) {
-      seen.add(next);
-      local = next.get_here(key);
-      next = next.hasDeclaredParent() ? next.parent : undefined;
+    for (const frame of declaredChain(this)) {
+      const local = frame.get_here(key);
+      if (!local.is.missing) {
+        return local.className() === "FrameLazy" ? local : undefined;
+      }
     }
-    return local.className() === "FrameLazy" ? local : undefined;
+    return undefined;
   }
 
   /**

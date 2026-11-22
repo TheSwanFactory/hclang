@@ -1,4 +1,4 @@
-import { Frame } from "./frame.ts";
+import { declaredChain, Frame } from "./frame.ts";
 import { FrameArray } from "./frame-array.ts";
 import { FrameExpr, FrameScoped } from "./frame-expr.ts";
 import { FrameGroup } from "./frame-group.ts";
@@ -677,12 +677,10 @@ function walkCallable(walk: Walk, argument: Frame, spelling: string): void {
 
 /** Whether `owner` is the receiver itself or one of its declared parents. */
 function isOnReceiverPath(receiver: Frame, owner: Frame): boolean {
-  const seen = new Set<Frame>();
-  let current: Frame | undefined = unwrap(receiver);
-  while (current && !current.is.missing && !seen.has(current)) {
-    if (current === owner) return true;
-    seen.add(current);
-    current = current.hasDeclaredParent() ? current.parent : undefined;
+  const start = unwrap(receiver);
+  if (start.is.missing) return false;
+  for (const frame of declaredChain(start)) {
+    if (frame === owner) return true;
   }
   return false;
 }
@@ -702,13 +700,10 @@ function memberOf(frame: Frame, key: string): Frame | undefined {
     const element = target.at(Number(key));
     return element.is.missing || element.is.error ? undefined : element;
   }
-  const seen = new Set<Frame>();
-  let current: Frame | undefined = target;
-  while (current && !current.is.missing && !seen.has(current)) {
-    seen.add(current);
+  if (target.is.missing) return undefined;
+  for (const current of declaredChain(target)) {
     const binding = current.resolve_here(key, target);
     if (binding && !binding.value.is.error) return binding.value;
-    current = current.hasDeclaredParent() ? current.parent : undefined;
   }
   return undefined;
 }
@@ -718,15 +713,13 @@ function memberOf(frame: Frame, key: string): Frame | undefined {
  * `key`. Such a binding has no HC spelling; a host can install one.
  */
 function patternAnswers(frame: Frame, key: string): boolean {
-  const seen = new Set<Frame>();
-  let current: Frame | undefined = unwrap(frame);
-  while (current && !current.is.missing && !seen.has(current)) {
-    seen.add(current);
+  const start = unwrap(frame);
+  if (start.is.missing) return false;
+  for (const current of declaredChain(start)) {
     for (const pattern of current.meta_keys()) {
       const body = pattern.match(/\/(.*)\//);
       if (body && new RegExp(body[1]).test(key)) return true;
     }
-    current = current.hasDeclaredParent() ? current.parent : undefined;
   }
   return false;
 }

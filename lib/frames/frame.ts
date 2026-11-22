@@ -535,15 +535,28 @@ export class MetaFrame {
    * unrelated peer's method is not a descendant.
    */
   private isAncestorOf(origin: MetaFrame): boolean {
-    const seen = new Set<MetaFrame>();
-    let current: MetaFrame | undefined = origin;
-    while (current && !seen.has(current)) {
-      if (current === this) return true;
-      seen.add(current);
-      if (!current.hasDeclaredParent()) return false;
-      current = current.parent;
+    for (const frame of declaredChain(origin as Frame)) {
+      if (frame === (this as MetaFrame)) return true;
     }
     return false;
+  }
+}
+
+/**
+ * A frame and its declared parents, nearest first: `start`, then each
+ * `parent` while `hasDeclaredParent()` holds. It never follows a lexical `up`
+ * link, and it never yields a frame twice, so a walk over it ends even if a
+ * chain cycles.
+ */
+export function* declaredChain(
+  start: Frame,
+): Generator<Frame, void, undefined> {
+  const seen = new Set<Frame>();
+  let current: Frame | undefined = start;
+  while (current && !seen.has(current)) {
+    seen.add(current);
+    yield current;
+    current = current.hasDeclaredParent() ? current.parent : undefined;
   }
 }
 
@@ -1055,13 +1068,9 @@ export class Frame extends MetaFrame {
    * binds a method it finds to that target.
    */
   public getOwn(key: string, origin: MetaFrame = this): Frame {
-    const seen = new Set<Frame>();
-    let frame: Frame | undefined = this.referent();
-    while (frame && !seen.has(frame)) {
-      seen.add(frame);
+    for (const frame of declaredChain(this.referent())) {
       const local = frame.lookup_here(key, origin);
       if (!local.is.missing) return this.lookup_result(local, key);
-      frame = frame.hasDeclaredParent() ? frame.parent : undefined;
     }
     return Frame.missing;
   }

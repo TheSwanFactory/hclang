@@ -1,4 +1,4 @@
-import { Frame } from "./frame.ts";
+import { declaredChain, Frame } from "./frame.ts";
 import { FrameAtom } from "./frame-atom.ts";
 import { hasCharacterContent } from "./frame-text.ts";
 import { FrameWord } from "./frame-word.ts";
@@ -239,13 +239,10 @@ export class FrameSymbol extends FrameAtom {
     value: Frame,
     origin: Frame,
   ): boolean {
-    const seen = new Set<Frame>();
-    let current: Frame | undefined = receiver;
-    while (current && !current.is.missing && !seen.has(current)) {
-      seen.add(current);
-      const local = current.get_here(this.data, origin);
+    if (receiver.is.missing) return false;
+    for (const frame of declaredChain(receiver)) {
+      const local = frame.get_here(this.data, origin);
       if (!local.is.missing) return local === value;
-      current = current.hasDeclaredParent() ? current.parent : undefined;
     }
     return false;
   }
