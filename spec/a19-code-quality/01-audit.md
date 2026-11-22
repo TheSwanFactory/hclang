@@ -29,15 +29,27 @@ developers would notice, or that goes beyond the plan's Rules. Approving the
 disposition approves that change. [Dispositions](#dispositions) at the end
 groups every finding by disposition and lists those decisions.
 
-The public API is what `deno doc lib/mod.ts` lists, because JSR users can call
-only that. The npm package `hclang` declares the `hc` binary and no library
-entry (`scripts/build-npm.ts:16-20`). Every disposition that removes a name or
-member from the list needs a decision: 3.11 (`contextEqual`), and 3.12 and 3.17
-for `MetaFrame.isAlphabetic` and `Frame.signed`. If the owner approves any of
-those removals, the refactor PR bumps the minor version (decision 1). A
-disposition that adds to the list needs a decision too (5.17). Helpers that
-steps 10 to 13 add stay off the list, so a new member of `Frame`, `MetaFrame` or
-`HCLang` is `private`.
+The public API is what `deno doc lib/mod.ts` lists, plus the public instance
+members of `FrameArray`, its own and those it inherits from `FrameList`.
+`evaluate` returns a `FrameArray`, and the package README
+(`lib/README.md:34-41`, `:65-66`) and `evaluate`'s JSDoc (`evaluate.ts:17-18`)
+call its members, but `deno doc` does not list the class, because `lib/mod.ts`
+does not export it (5.17). A caller cannot name the class, so its static members
+do not count. Neither do the members of a type that a caller reaches only by
+narrowing a `Frame` with a guard such as `isSymbol()`, which no doc shows a
+caller doing (3.12). The npm package `hclang` declares the `hc` binary and no
+library entry (`scripts/build-npm.ts:16-20`).
+
+Every disposition that removes a name or member from the public API needs a
+decision: 3.11 (`contextEqual`), and 3.12 and 3.17 for `MetaFrame.isAlphabetic`
+and `Frame.signed`. If the owner approves any of those removals, the refactor PR
+bumps the minor version (decision 1). No disposition in steps 9 to 13 removes a
+public instance member of `FrameArray` or `FrameList`: 2.3 moves `FrameArray`'s
+declared protocol out but keeps its overrides, and `declaredOperator` as a
+delegator, on the class. A disposition that adds to the public API needs a
+decision too (5.17). Helpers that steps 10 to 13 add stay out of it, so a new
+member of `Frame`, `MetaFrame`, `HCLang`, `FrameList` or `FrameArray` is
+`private`.
 
 Paths are relative to the repository root, and line numbers are at `ba6c00b`. A
 finding that several steps turned up appears once, under the step that owns it,
@@ -634,9 +646,12 @@ through the barrel. **Disposition: step 9.** Remove those names. Where a whole
 statement goes, keep a bare `import "./frames/…";` in its place, because the
 barrel's import order decides the order modules evaluate in, and
 `test:load-order` must stay green. The `partition-check` line waits for 3.5,
-since that barrel line is the only thing that loads the module. Two of the
-names, `ReceiverState` and `ScanResponse`, are types that 5.17 would add to
-`lib/mod.ts`; if it does, step 12 exports them from their own modules.
+since that barrel line is the only thing that loads the module. Eight of the
+names are types that 5.17 would add to `lib/mod.ts`: `ReceiverState` and
+`ScanResponse`, which public signatures name, and `BoundMethod`, `FrameList`,
+`FrameMatcher`, `MatchFailure`, `MatchResult` and `MatchSuccess`, which those
+types name in turn. If it adds them, step 12 exports them from their own
+modules.
 
 **3.11 `contextEqual` is a public export with no use beyond tests.** Location:
 `lib/frames/context.ts:35`, exported from `lib/mod.ts`. Of `lib/mod.ts`'s 15
@@ -693,12 +708,14 @@ of them: `MetaFrame.isAlphabetic` and the `Frame.signed` hook are public static
 members of `lib/mod.ts` exports, which `deno doc lib/mod.ts` lists, so deleting
 either breaks a JSR caller as removing an export would. Decision 1 allows it,
 and the refactor PR then bumps the minor version. If the owner declines, step 9
-keeps both and deletes the other 20, which `deno doc lib/mod.ts` does not list.
-Three of those, `FrameLazy.returnSchema`, `FrameSchema.length` and
-`FrameSymbol.string_start`, are on types that public signatures name without
-exporting (5.17), so TypeScript code could reach them only by narrowing a
-`Frame` with `isClosure()`, `isSchema()` or `isSymbol()`. This audit does not
-count them as public API.
+keeps both and deletes the other 20, which are outside the public API:
+`deno doc lib/mod.ts` does not list them, and none is a member of `FrameArray`
+or `FrameList`. TypeScript code could reach four of those only by narrowing a
+`Frame` with a guard to a type that public signatures name without exporting
+(5.17): `FrameLazy.returnSchema` through `isClosure()`, `FrameSchema.length`
+through `isSchema()`, `FrameSymbol.string_start` through `isSymbol()`, and the
+base `FrameAtom.string_start` through `isName()`, because `FrameName` extends
+`FrameAtom` (`frame-name.ts:72`). This audit does not count them as public API.
 
 **3.13 45 `FrameNumeric` hook overrides cannot be reached.**
 `lib/frames/frame-numeric.ts:287-302` declares 15 abstract hooks. Three run
@@ -1445,17 +1462,39 @@ direction the plan rules out, and `env-visibility.ts` is pure policy code.
 exports have a JSDoc comment; counting public and protected members, `Frame`
 documents 73 of 77, `MetaFrame` 30 of 30 and `HCLang` 4 of 6.
 
-**5.17 Public signatures name 10 types the package does not export.** The 11
+**5.17 Public signatures name 11 types the package does not export.** The 11
 `private-type-ref` errors are members of `Frame` and `MetaFrame` that name
 `ReceiverState` (`frame.ts:101`, `:797`), `BindingResolution` (`:173`),
 `EvaluationInput` (`:756`), `ScanResponse` (`:816`), `EvaluationScope` (`:913`),
 `FrameName` (`:918`), `FrameSymbol` (`:922`), `FrameSchema` (`:926`),
-`FrameLazy` (`:930`) and `DeclaredApplication` (`:1210`). JSR users see them in
-signatures but cannot import them. `lib/frames.ts` exports 8 of them; no barrel
-exports `BindingResolution` or `DeclaredApplication`. **Disposition: step 12.**
-Add type-only re-exports to `lib/mod.ts`, which adds no run-time export. **Needs
-a decision:** this widens the public API, although it removes nothing. The
-alternative, taking those members out of the public surface, would break users.
+`FrameLazy` (`:930`) and `DeclaredApplication` (`:1210`). The lint misses an
+eleventh type: `evaluate` returns `FrameArray` (`lib/execute/evaluate.ts:20`),
+and the lint does not check the signature of a const arrow function (5.19). JSR
+users see these types in signatures but cannot import them, and the package
+README (`lib/README.md:34-41`) and `evaluate`'s JSDoc (`evaluate.ts:17-18`) call
+`FrameArray`'s members. `lib/frames.ts` exports 9 of the 11; no barrel exports
+`BindingResolution` or `DeclaredApplication`.
+
+Each type exported brings the types its own signatures name into the lint. In a
+probe at `ba6c00b`, adding only `export type { FrameArray }` to `lib/mod.ts`
+takes the lint from 20 errors to 38: 14 `FrameArray` declarations lack JSDoc,
+`FrameArray.in` and `applicationMethod` name `EvaluationInput` and
+`DeclaredApplication`, and the class names its base class `FrameList` and
+`BoundMethod`, which `declaredOperator` returns. Exporting the 11 types, and
+then each type the lint names next until it names none, takes 27 type exports
+and ends at 151 errors. 150 are `missing-jsdoc` (5.18). The last is a reference
+no type export can fix: `ReceiverState` uses `RECEIVER_WRITE_AUTHORIZED` as a
+key (`bound-method.ts:24`), and the module does not export that symbol (`:7`).
+The 16 types beyond the 11 are `BoundMethod`, `FrameAtom`, `FrameExpr`,
+`FrameList`, `FrameNote`, `ISourced`, `WriteTargetRole`, `Any`,
+`IArrayConstructor`, `ICurryFunction`, four from `frame-match.ts`
+(`FrameMatcher`, `MatchResult`, `MatchSuccess`, `MatchFailure`) and two from
+`scan.ts` (`ScanResult`, `ScanDisposition`). **Disposition: step 12.** Add the
+27 type-only re-exports to `lib/mod.ts`, which adds no run-time export. Step 12
+also has to resolve the `RECEIVER_WRITE_AUTHORIZED` reference before 5.19's
+check can pass. **Needs a decision:** this widens the public API by 27 type
+names, although it removes nothing. The alternative, taking those members out of
+the public surface, would break users.
 
 **5.18 Nine public declarations lack JSDoc.** The 9 `missing-jsdoc` errors are
 `VERSION` (`version.ts:1`), `HCLang`'s constructor and `history`
@@ -1464,13 +1503,24 @@ alternative, taking those members out of the public surface, would break users.
 that `deno doc --lint` still checks, `MetaFrame.authorize` (`:484`) and
 `Frame.quantityOperator` (`:1364`). `scripts/bump-version.ts:74-77` rewrites
 `lib/version.ts` from a one-line template, so a comment added only to
-`version.ts` would be lost at the next bump. **Disposition: step 12.** Add the
-comments, and add the `VERSION` comment to the bump template.
-`Frame.quantityOperator` needs none if step 11 has replaced it (4.12).
+`version.ts` would be lost at the next bump. 5.17's exports bring 141 more into
+the lint: at the end of 5.17's probe it reports 150, these 9 and 141 in 12 of
+the modules that define the exported types, most in `frame-note.ts` (20),
+`frame-symbol.ts` (19) and `frame-schema.ts` (16). **Disposition: step 12.** Add
+the comments, the 141 included if 5.17 is approved, and add the `VERSION`
+comment to the bump template. `Frame.quantityOperator` needs none if step 11 has
+replaced it (4.12).
 
 **5.19 Nothing runs `deno doc --lint`.** No workflow, task or script calls
-`deno doc`. **Disposition: step 16.** Add `deno doc --lint lib/mod.ts` to
-`deno task test` or to CI once 5.17 and 5.18 pass.
+`deno doc`. The lint also cannot see the signature of a const arrow function. In
+a probe, the same unexported return type gives a `private-type-ref` error on
+`export function make(): Hidden` and none on
+`export const make = (): Hidden => new Hidden()`, although `deno doc` prints
+both as functions. `evaluate` and `execute` are the const arrow functions among
+`lib/mod.ts`'s exports, and only `evaluate` names an unexported type, so the
+check would pass with `FrameArray` still unexported (5.17). **Disposition: step
+16.** Add `deno doc --lint lib/mod.ts` to `deno task test` or to CI once 5.17
+and 5.18 pass.
 
 **5.20 JSR publishes `lib/`'s tests and agent docs.** In the published 0.55.1,
 the 80 `.test.ts` files are 671,719 of 1,528,937 bytes (43.9%) of 185 files, and
@@ -2223,7 +2273,7 @@ These dispositions need a decision as well as approval:
 - 5.5 stops `make_context` and `HCLang` from printing the context for embedders
   that pass `DEBUG_ENV`.
 - 5.14 moves the Sigilizer, or instead amends the `lib/execute/CLAUDE.md` rule.
-- 5.17 adds type-only exports to `lib/mod.ts`.
+- 5.17 adds 27 type-only exports to `lib/mod.ts`, `FrameArray` among them.
 - 6.2 restates the testing rule at `CLAUDE.md:99`.
 - 6.12 offers pinning the 6 unpinned testdocs, which adds assertions.
 - 6.13 changes what `scripts/test-npm.ts` asserts about the numerics run.
@@ -2292,6 +2342,34 @@ npx --yes jscpd@4.0.5 --max-lines 5000 --max-size 500kb --min-tokens 50 \
 # Step 5
 git grep -n 'console\.' -- 'lib/*.ts' ':!*.test.ts'
 deno doc --lint lib/mod.ts
+
+# Step 5, 5.17's export probe, in a `git archive` snapshot after
+# `deno task bundle:embed`: FrameArray alone, then the 11 types and each type
+# the lint names next, until it names none.
+cp lib/mod.ts /tmp/mod.ts.orig
+print 'export type { FrameArray } from "./frames.ts";' >> lib/mod.ts
+deno doc --lint lib/mod.ts 2>&1 | grep -c '^error\['
+cp /tmp/mod.ts.orig lib/mod.ts
+seen=()
+next=(ReceiverState BindingResolution EvaluationInput ScanResponse
+  EvaluationScope FrameName FrameSymbol FrameSchema FrameLazy
+  DeclaredApplication FrameArray)
+while (( $#next )); do
+  for t in $next; do
+    f=$(grep -rlE \
+      "^export (type|interface|class|abstract class|enum) $t\b" lib \
+      --include='*.ts' | grep -v '\.test\.ts$')
+    [[ -n $f ]] &&
+      print "export type { $t } from \"./${f#lib/}\";" >> lib/mod.ts
+  done
+  seen+=($next)
+  deno doc --lint lib/mod.ts > /tmp/doc-lint.log 2>&1
+  next=(${(f)"$(sed -nE "s/.*references private type '([^']+)'.*/\1/p" \
+    /tmp/doc-lint.log | sort -u)"})
+  next=(${next:|seen})
+done
+grep -c '^export type' lib/mod.ts
+grep '^error\[' /tmp/doc-lint.log | cut -d: -f1 | sort | uniq -c
 
 # Step 5, value-import cycles, after `deno task bundle:embed`. One module
 # imports every non-test lib module, and networkx lists the simple cycles over
