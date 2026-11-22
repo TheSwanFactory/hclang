@@ -3,6 +3,14 @@
 > Record concise, user-facing changes since the previous release. Omit internal
 > cleanup, specification-only updates, and test-only changes.
 
+## v0.55.2 2026-11-22
+
+- **Code-quality audit record (#512).** `spec/a19-code-quality/01-audit.md`
+  measures the code at v0.55.1, covering coverage, size, dead code, duplication,
+  boundaries, tests, docs and tooling, and gives each of its 123 findings an
+  approved disposition for the refactor and cleanup that follow. No runtime,
+  language, or public API change.
+
 ## v0.55.1 2026-11-20
 
 - **Kaylee–Dixon Step Ladder regression coverage (#509).** The executable
