@@ -1,6 +1,7 @@
 import { type DeclaredApplication, declaredChain, Frame } from "./frame.ts";
 import { BoundMethod } from "./bound-method.ts";
 import { methodEffect } from "./effect-marker.ts";
+import { afterCommit, beforeCommit } from "./effect-registry.ts";
 import { FrameExpr } from "./frame-expr.ts";
 import { FrameCount } from "./frame-count.ts";
 import { FrameHandle } from "./frame-handle.ts";
@@ -14,7 +15,6 @@ import {
   noteElements,
   noteHolding,
   noteRead,
-  noteWrite,
   PARENT_KEY,
 } from "./reference-tracking.ts";
 import type { EvaluationInput } from "./evaluation-scope.ts";
@@ -185,12 +185,12 @@ export class FrameArray extends FrameList {
     let elementReplaced = false;
     this.data.forEach((item, index) => {
       if (item !== member) return;
-      if (!replaced && !elementReplaced) guardAccess(this, "write");
+      if (!replaced && !elementReplaced) beforeCommit(this);
       this.data[index] = replacement;
       noteHolding(this, String(index), replacement, member);
       elementReplaced = true;
     });
-    if (elementReplaced && !replaced) noteWrite(this);
+    if (elementReplaced && !replaced) afterCommit(this, "silent");
     return replaced || elementReplaced;
   }
 
@@ -466,10 +466,10 @@ export class FrameArray extends FrameList {
     _context: Frame = Frame.nil,
   ): FrameArray {
     if (!value.is.void) {
-      guardAccess(this, "write");
+      beforeCommit(this);
       this.data.push(value);
       noteHolding(this, String(this.data.length - 1), value);
-      noteWrite(this);
+      afterCommit(this, "silent");
     }
     return this;
   }
@@ -495,8 +495,8 @@ export class FrameArray extends FrameList {
   }
 
   public reset(): void {
-    guardAccess(this, "write");
+    beforeCommit(this);
     this.adoptData([]);
-    noteWrite(this);
+    afterCommit(this, "silent");
   }
 }

@@ -1,13 +1,12 @@
 import { type Context, type IKeyValuePair, NilContext } from "./context.ts";
 import { renderNested } from "./stringify.ts";
-import { hasEffectSubscribers, notifyEffect } from "./effect-registry.ts";
+import { afterCommit, beforeCommit } from "./effect-registry.ts";
 import {
   guardAccess,
   noteCopiedHoldings,
   noteCreated,
   noteHolding,
   noteRead,
-  noteWrite,
   PARENT_KEY,
 } from "./reference-tracking.ts";
 import type { FrameName } from "./frame-name.ts";
@@ -384,15 +383,10 @@ export class MetaFrame {
     }
     const previous = this.meta[key];
     // Refused before the write lands, so a refusal changes nothing.
-    if (previous !== value) guardAccess(this as unknown as Frame, "write");
+    if (previous !== value) beforeCommit(this as unknown as Frame);
     this.meta[key] = value;
     noteHolding(this as unknown as Frame, key, value, previous);
-    if (previous !== value) {
-      noteWrite(this as unknown as Frame);
-      if (hasEffectSubscribers(this as unknown as Frame)) {
-        notifyEffect(this as unknown as Frame);
-      }
-    }
+    if (previous !== value) afterCommit(this as unknown as Frame, "notify");
     return this;
   }
 
@@ -410,7 +404,7 @@ export class MetaFrame {
     if (this.wouldCreateParentCycle(parent)) {
       return Frame.error("$!.cyclic-parent .^");
     }
-    guardAccess(this as unknown as Frame, "write");
+    beforeCommit(this as unknown as Frame);
     const previous = this.parent;
     this.parent = parent;
     // The parent edge is a holding too (reference-tracking.ts): it is how a
@@ -421,7 +415,7 @@ export class MetaFrame {
       parent,
       previous && !previous.is.missing ? previous : undefined,
     );
-    noteWrite(this as unknown as Frame);
+    afterCommit(this as unknown as Frame, "silent");
     return undefined;
   }
 
@@ -496,10 +490,10 @@ export class MetaFrame {
         if (pattern.test(target)) {
           result = value;
           if ("source" in result) {
-            guardAccess(this as unknown as Frame, "write");
+            beforeCommit(this as unknown as Frame);
             const sourced = result as ISourced;
             sourced.source = target;
-            noteWrite(this as unknown as Frame);
+            afterCommit(this as unknown as Frame, "silent");
           }
         }
       }
@@ -1376,7 +1370,7 @@ export class Frame extends MetaFrame {
     let replaced = false;
     for (const [key, value] of this.meta_pairs()) {
       if (value === member) {
-        if (!replaced) guardAccess(this as unknown as Frame, "write");
+        if (!replaced) beforeCommit(this as unknown as Frame);
         this.meta[key] = replacement;
         noteHolding(this as unknown as Frame, key, replacement, member);
         replaced = true;
@@ -1384,12 +1378,7 @@ export class Frame extends MetaFrame {
     }
     // An element-plane commit is a mutation too; a copy-on-write install lands
     // on a fresh copy that carries no subscribers, so it never fires here.
-    if (replaced) {
-      noteWrite(this as unknown as Frame);
-      if (hasEffectSubscribers(this as unknown as Frame)) {
-        notifyEffect(this as unknown as Frame);
-      }
-    }
+    if (replaced) afterCommit(this as unknown as Frame, "notify");
     return replaced;
   }
 

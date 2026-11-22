@@ -100,17 +100,42 @@ export function installEffectInvoker(invoker: EffectInvoker): void {
  */
 export function registerEffect(managed: Frame, callback: Frame): Frame {
   // Refused before the subscriber list changes, so a refusal registers nothing.
-  guardAccess(managed, "write");
+  beforeCommit(managed);
   const existing = subscribers.get(managed);
   if (!existing) {
     subscribers.set(managed, [callback]);
-    noteWrite(managed);
+    afterCommit(managed, "silent");
     return managed;
   }
   if (existing.includes(callback)) return managed;
   existing.push(callback);
-  noteWrite(managed);
+  afterCommit(managed, "silent");
   return managed;
+}
+
+/**
+ * Whether a commit notifies the effect subscribers of the frame it wrote.
+ * Each commit site names its choice; only `MetaFrame.set` and
+ * `Frame.replaceMember` notify.
+ */
+export type CommitNotice = "notify" | "silent";
+
+/**
+ * Opens a commit to `frame`: guards the write before it lands, so a refusal
+ * changes nothing. Every commit path calls it, then `afterCommit` once the
+ * write has landed (reference-tracking.ts).
+ */
+export function beforeCommit(frame: Frame): void {
+  guardAccess(frame, "write");
+}
+
+/**
+ * Closes a commit to `frame` after the write has landed: notes the write,
+ * then, for `"notify"`, runs the frame's effect subscribers, if it has any.
+ */
+export function afterCommit(frame: Frame, notice: CommitNotice): void {
+  noteWrite(frame);
+  if (notice === "notify" && hasEffectSubscribers(frame)) notifyEffect(frame);
 }
 
 /** Whether a value carries any effect-boundary subscribers. */
