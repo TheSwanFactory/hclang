@@ -124,8 +124,16 @@ try {
 }
 
 const numerics = await npx(["hc/numerics.hc", "--testdoc"]);
-const expected = '“{"total":43,"pass":43,"fail":0,"unimplemented":0}”';
-if (!numerics.stdout.includes(expected)) {
+const summaries = JSON.parse(
+  await Deno.readTextFile(
+    new URL("../cli/testdoc-summaries.json", import.meta.url),
+  ),
+);
+const expected = `“${JSON.stringify(summaries["numerics.hc"])}”`;
+const finalSummary = numerics.stdout.split("\n").findLast((line) =>
+  line.includes("$=.test-summary")
+);
+if (finalSummary === undefined || !finalSummary.includes(expected)) {
   throw new Error(
     `npm testdoc did not report the numeric baseline\n${numerics.stdout}`,
   );
