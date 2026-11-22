@@ -16,8 +16,9 @@ import {
 
 /**
  * Inside a name, `#` is an operator character like `%`. Elsewhere it opens a
- * comment, but after the dot it spells the size operators `.#` … `.####`, the
- * Count binding `.#%` and the geometric observers, so it joins the run.
+ * comment, but after the dot it spells the size operators `.#` … `.####`, so
+ * it joins the run. A spelling such as `.#%` is then one name, which nothing
+ * binds.
  */
 const isOperatorChar = (char: string): boolean =>
   char === Frame.kCOUNT || FrameOperator.Accepts(char);

@@ -78,11 +78,12 @@ function storedLoads(source: Frame): FrameCount[] | undefined {
 }
 
 /**
- * The intrinsic Denum path (007.25e). A constructed Denum is the one Frame whose
- * fourth hash the three observers cannot decide: `Denum [0, [0, 0]]` reads 0, 0,
- * 0, exactly as `[]` does, yet it is a present state. Rather than let any
- * class declare its own `.####`, the fourth hash recognizes an instance of the
- * shipped class itself, and nothing else.
+ * The intrinsic Denum path (007.25e). A constructed Denum keeps its loads in a
+ * field, not as children, so the derived path, which reads the source's Count
+ * and each child's Size, cannot rebuild it: `Denum [0, [0, 0]]` would read as
+ * `[]` does, yet it is a present state. Rather than let any class declare its
+ * own `.###`, the raw Denum observation recognizes an instance of the shipped
+ * class itself, and nothing else; `.####` reads its coordinates from that.
  *
  * A source is a Denum exactly when it has a stored Count `count` and a stored
  * list of Counts `loads`, and it is `==` (same value and same type at

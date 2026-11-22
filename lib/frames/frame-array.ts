@@ -295,11 +295,11 @@ export class FrameArray extends FrameList {
 
   /**
    * The size operators an aggregate may declare its own answer to (011.20):
-   * Count, Size and residual. `.####` is not among them, because it is derived
-   * from these three, so a class that declares them gets it for free. No
-   * class declares `.####`: a method under that name is an ordinary property
-   * the fourth hash never runs. The one Denum these cannot derive, a constructed
-   * zero-Count Denum, is recognized intrinsically (`fourth-hash.ts`).
+   * Count and Size. `.###` and `.####` are not among them: the raw Denum is
+   * built from the Count and each element's Size, and `.####` reads its KD
+   * coordinates, so a method named `###` or `####` is an ordinary property
+   * the observers never run. The one Denum these cannot rebuild, a
+   * constructed one, is recognized intrinsically (`fourth-hash.ts`).
    */
   public static readonly OBSERVATION_KEYS: readonly string[] = [
     Frame.kCOUNT,
@@ -321,16 +321,15 @@ export class FrameArray extends FrameList {
 
   /**
    * An aggregate observes its elements, so a class that keeps its state in
-   * fields observes as its empty element list: Count 0, Size 1, residual 0.
-   * One that declares a method named `#`, `##` or `###`, on itself or a
-   * declared parent, answers that method's result instead, the way one that
-   * declares `apply` decides its own application (011.20). Nothing declares
-   * one by default, so every other aggregate observes exactly as before.
+   * fields observes as its empty element list: Count 0 and Size 1. One that
+   * declares a method named `#` or `##`, on itself or a declared parent,
+   * answers that method's result instead, the way one that declares `apply`
+   * decides its own application (011.20). Nothing declares one by default, so
+   * every other aggregate observes exactly as before.
    *
-   * The answer must be the kind the operator answers: a Count for `#` and
-   * `##`, an exact integer for `###`. Anything else is
-   * `$!.declared-observation`, an error the method answered is answered as it
-   * is, and a method that observes its own receiver the same way, directly
+   * The answer must be a Count, the kind both operators answer. Anything else
+   * is `$!.declared-observation`, an error the method answered is answered as
+   * it is, and a method that observes its own receiver the same way, directly
    * or through other declared observations, is `$!.cyclic-observation`.
    * Nesting deeper than `OBSERVATION_DEPTH_LIMIT`, as a method that observes
    * a fresh instance of its own class does, is `$!.observation-depth`.
@@ -377,7 +376,7 @@ export class FrameArray extends FrameList {
       : Frame.error(`$!.declared-observation .${key}`);
   }
 
-  /** A declared Count, Size or residual first; the list's own rule otherwise. */
+  /** A declared Count or Size first; the list's own rule otherwise. */
   public override sizeFor(key: string): Frame {
     const failure = this.observationError();
     if (failure && Frame.SIZE_OPERATORS.includes(key)) return failure;

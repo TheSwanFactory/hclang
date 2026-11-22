@@ -6,7 +6,7 @@ import {
   FrameSymbol,
   type StringMap,
 } from "../frames.ts";
-// Installs the Denum class that `.####` constructs (011.20).
+// Installs the Denum class that `.###` constructs and `.####` reads (011.20).
 import "./denum-prologue.ts";
 // Installs the RotorRouter class that list division answers (007.27c).
 import "./router-prologue.ts";

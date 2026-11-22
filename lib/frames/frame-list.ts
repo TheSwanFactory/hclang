@@ -184,7 +184,10 @@ export class FrameList extends Frame {
     return term.is.statement !== true && !this.holdsAsProperty(term);
   }
 
-  /** Immediate count is unchanged; Size and residual share native child sizes. */
+  /**
+   * Immediate count is unchanged; Size and the raw Denum's loads share native
+   * child sizes.
+   */
   public override sizeFor(key: string): Frame {
     const failure = this.observationError();
     if (failure && Frame.SIZE_OPERATORS.includes(key)) return failure;

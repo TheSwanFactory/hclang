@@ -55,9 +55,10 @@ export class FrameCount extends FrameInt {
   }
 
   /**
-   * A count is its own immediate count and Size (#411). Its residual, Count
-   * parity n mod 2, comes from the base Frame rule (011.18k, 011.18m).
-   * Unknown keys must not inherit the old accidental Count fallback.
+   * A count is its own immediate count and Size (#411). Its raw Denum and KD
+   * coordinates come from the base Frame rule: `3.###` is `Denum(3,[3])`, and
+   * `3.####` is `[3]`. Unknown keys must not inherit the old accidental Count
+   * fallback.
    */
   public override sizeFor(key: string): Frame {
     switch (key) {
