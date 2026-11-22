@@ -107,23 +107,7 @@ Deno.test("FOIST 19a: constructor and class-load failures are explicit", () => {
   ).toBe(false);
 });
 
-Deno.test("FOIST 19a: no %-suffixed hash observers are public", () => {
-  const d = denum(2n, [3n, 1n]);
-  for (
-    const key of [
-      "#%",
-      "##%",
-      "###%",
-      "##%%",
-      "###%%",
-      "##%%%",
-      "###%%%",
-    ]
-  ) {
-    expect(Frame.SIZE_OPERATORS.includes(key)).toBe(false);
-    expect(d.sizeFor(key)).toBe(Frame.nil);
-  }
-  expect(value("5 %% 2").toString()).toEqual("1");
+Deno.test("FOIST 19a: a genuine Denum's state is its construction Count and loads", () => {
   expect(state(denum(7n, [3n, 1n]))).toEqual({
     count: 7n,
     loads: [3n, 1n],

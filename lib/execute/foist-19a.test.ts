@@ -45,6 +45,33 @@ Deno.test("FOIST 19a: the fourth hash is observational KD coordinates", () => {
     .toEqual(["2", ["3", "1"]]);
 });
 
+Deno.test("FOIST 19a fourth hash uses the load arity, not construction Count", () => {
+  expect(denum(1n, [3n, 1n]).sizeFor("####").toString())
+    .toEqual("[2]");
+  expect(denum(8n, [3n, 1n]).sizeFor("####").toString())
+    .toEqual("[2]");
+  expect(denum(3n, [3n, 1n, 5n]).sizeFor("####").toString())
+    .toEqual("[-2, 1]");
+  expect(denum(3n, [3n, 1n, 5n, 0n]).sizeFor("####").toString())
+    .toEqual("[-2, 1]");
+});
+
+Deno.test("FOIST 19a fourth hash is gauge-invariant and pure", () => {
+  const raw = denum(4n, [3n, 1n, 5n, 0n]);
+  const gauge = denum(4n, [6n, 2n, 8n, 1n]);
+  expect(raw.sizeFor("####").toString())
+    .toEqual(gauge.sizeFor("####").toString());
+  expect(raw.getOwn("loads").toString()).toEqual("[3, 1, 5, 0]");
+  expect(gauge.getOwn("loads").toString()).toEqual("[6, 2, 8, 1]");
+});
+
+Deno.test("FOIST 19a preserves the empty Denum as the raw zero-arity state", () => {
+  const empty = denum(0n, []);
+  expect(empty.sizeFor("###").getOwn("count").toString()).toEqual("0");
+  expect(empty.sizeFor("###").getOwn("loads").toString()).toEqual("[]");
+  expect(empty.sizeFor("####").toString()).toEqual("[]");
+});
+
 Deno.test("FOIST 19a: Frame Flop and Cart preserve receiver order", () => {
   expect(read("[1, 2] + [3, 4]").toString()).toEqual("[1, 2, 3, 4]");
   expect(read("[1, 2] * [3, 4]").toString())
