@@ -2,8 +2,9 @@
 
 **Covers:** steps 1–8 of the [plan](README.md): baseline, size and complexity,
 dead code, duplication, boundaries, tests, docs and records, and tooling.\
-**Status:** Measured. Every disposition below is a proposal, and all of them
-await the owner's approval before step 9 starts.\
+**Status:** Measured and approved. The owner delegated approval of the
+dispositions; [Approval](#approval) records it, and every disposition it does
+not change stands as proposed.\
 **Measured at:** `ba6c00b` (`ba6c00b29d532c052b2c7a75ae86db5781fda75c`), the
 base of this branch. Its code is that of `390ee31` (v0.55.1), where the plan's
 own numbers were taken; the plan's README is the only file that differs.
@@ -42,8 +43,8 @@ library entry (`scripts/build-npm.ts:16-20`).
 
 Every disposition that removes a name or member from the public API needs a
 decision: 3.11 (`contextEqual`), and 3.12 and 3.17 for `MetaFrame.isAlphabetic`
-and `Frame.signed`. If the owner approves any of those removals, the refactor PR
-bumps the minor version (decision 1). No disposition in steps 9 to 13 removes a
+and `Frame.signed`. Decision 1 allows those removals, and the refactor PR ships
+them in a patch release (decision 5). No disposition in steps 9 to 13 removes a
 public instance member of `FrameArray` or `FrameList`: 2.3 moves `FrameArray`'s
 declared protocol out but keeps its overrides, and `declaredOperator` as a
 delegator, on the class. A disposition that adds to the public API needs a
@@ -661,8 +662,8 @@ no doc mentions and no public signature or other export needs. It prints two
 expectations about it, and the active case at `evaluate.test.ts:1833` uses it to
 compare a result's context with `{x: 3}`. **Disposition: step 9.** Remove it
 from `lib/mod.ts` and `lib/frames.ts` and delete it, as decision 1 allows; the
-refactor PR then bumps the minor version. **Needs a decision:** JSR users lose
-the function, the 4 `context.test.ts` expectations go with it, and
+refactor PR ships it in a patch release (decision 5). **Needs a decision:** JSR
+users lose the function, the 4 `context.test.ts` expectations go with it, and
 `evaluate.test.ts:1833` needs another way to compare the context while still
 asserting that it equals `{x: 3}`. If the export stays instead, step 12 removes
 its logging (5.4).
@@ -707,15 +708,16 @@ deletion. **Disposition: step 9.** Delete all 22. **Needs a decision** for two
 of them: `MetaFrame.isAlphabetic` and the `Frame.signed` hook are public static
 members of `lib/mod.ts` exports, which `deno doc lib/mod.ts` lists, so deleting
 either breaks a JSR caller as removing an export would. Decision 1 allows it,
-and the refactor PR then bumps the minor version. If the owner declines, step 9
-keeps both and deletes the other 20, which are outside the public API:
-`deno doc lib/mod.ts` does not list them, and none is a member of `FrameArray`
-or `FrameList`. TypeScript code could reach four of those only by narrowing a
-`Frame` with a guard to a type that public signatures name without exporting
-(5.17): `FrameLazy.returnSchema` through `isClosure()`, `FrameSchema.length`
-through `isSchema()`, `FrameSymbol.string_start` through `isSymbol()`, and the
-base `FrameAtom.string_start` through `isName()`, because `FrameName` extends
-`FrameAtom` (`frame-name.ts:72`). This audit does not count them as public API.
+and the refactor PR ships it in a patch release (decision 5). If the owner
+declines, step 9 keeps both and deletes the other 20, which are outside the
+public API: `deno doc lib/mod.ts` does not list them, and none is a member of
+`FrameArray` or `FrameList`. TypeScript code could reach four of those only by
+narrowing a `Frame` with a guard to a type that public signatures name without
+exporting (5.17): `FrameLazy.returnSchema` through `isClosure()`,
+`FrameSchema.length` through `isSchema()`, `FrameSymbol.string_start` through
+`isSymbol()`, and the base `FrameAtom.string_start` through `isName()`, because
+`FrameName` extends `FrameAtom` (`frame-name.ts:72`). This audit does not count
+them as public API.
 
 **3.13 45 `FrameNumeric` hook overrides cannot be reached.**
 `lib/frames/frame-numeric.ts:287-302` declares 15 abstract hooks. Three run
@@ -1494,36 +1496,39 @@ type-only exports in `lib/mod.ts`. The 16 types beyond the 11 are `BoundMethod`,
 `frame-match.ts` (`FrameMatcher`, `MatchResult`, `MatchSuccess`, `MatchFailure`)
 and two from `scan.ts` (`ScanResult`, `ScanDisposition`).
 
-The symbol has to stay out of callers' reach at run time, because it brands
-write authority. `FrameAlias.in` (`frame-alias.ts:66`) and the `.^` re-parenting
-in `FrameName.in` (`frame-name.ts:124`) answer `$!.method-not-mutating` unless
+The brand marks the receiver states that may write.
+`BoundMethod.receiverStateForCall` (`bound-method.ts:165`) brands the state of a
+mutating method's call and leaves a non-mutating one's unbranded (`:169-175`).
+`FrameAlias.in` (`frame-alias.ts:66`) and the `.^` re-parenting in
+`FrameName.in` (`frame-name.ts:124`) answer `$!.method-not-mutating` unless
 `authorizedReceiverWriteTarget` (`bound-method.ts:46-56`) finds the brand on the
-call's `ReceiverState`, and only `BoundMethod.receiverStateForCall` (`:165`)
-adds it. A type-only export is erased at run time, so callers still cannot
-obtain the symbol. A value export would let a caller brand a state of its own
-and pass it to the public `Frame.call` (`frame.ts:797-800`), which
-`FrameLazy.call` (`frame-lazy.ts:233-238`, `:294`) and `EvaluationScope.call`
-(`evaluation-scope.ts:236`, `:272`) carry into the call's scope. The method
-would then write the receiver the state names, skipping the instance copy
-(`bound-method.ts:197`) and the copy-on-write boundary check (`:178-184`) that
-`receiverStateForCall` applies. This path was traced through the source, not
-run.
+call's `ReceiverState`, so it refuses look-alikes such as a hand-built
+`ReceiverState` passed to the public `Frame.call`
+(`bound-method.test.ts:52-61`). It does not keep write authority from JavaScript
+callers. In a probe at `ba6c00b`, a script that imports only `evaluate` and
+`Frame` from `lib/mod.ts` got a `BoundMethod` from the public
+`FrameArray.declaredOperator` (`frame-array.ts:260`), called the
+TypeScript-private `receiverStateForCall` to get a branded state for a receiver
+of its choosing, and read the symbol from it with
+`Object.getOwnPropertySymbols`; `authorizedReceiverWriteTarget` accepted that
+state and a spread copy retargeted at another frame. Host code can also write
+any frame through the public `MetaFrame.set` (`frame.ts:355`).
 
 **Disposition: step 12.** Add 28 type-only exports to `lib/mod.ts`, the 27 types
 and the brand, and export the brand type-only from `bound-method.ts` too. None
-of them is a run-time export, and the brand must not become a value export.
-**Needs a decision:** the 28 exports remove nothing, but they publish more than
-28 names. Every member that `deno doc` then lists on them becomes public API,
-documented or not; 5.18's 141 comments count only the declarations that lack
-JSDoc. The comment at `lib/frames.ts:18-20` treats two of the types as internal:
-it calls `EvaluationScope` interpreter-internal and says `WriteTargetRole` stays
-private to the scope module. `WriteTargetRole` enters because
-`EvaluationScope.writeTargetRole` (`evaluation-scope.ts:121`) and
+of them is a run-time export, and the brand must not become a value export: that
+would add a run-time export, and it would make minting write authority a
+supported operation. **Needs a decision:** the 28 exports remove nothing, but
+they publish more than 28 names. Every member that `deno doc` then lists on them
+becomes public API, documented or not; 5.18's 141 comments count only the
+declarations that lack JSDoc. The comment at `lib/frames.ts:18-20` treats two of
+the types as internal: it calls `EvaluationScope` interpreter-internal and says
+`WriteTargetRole` stays private to the scope module. `WriteTargetRole` enters
+because `EvaluationScope.writeTargetRole` (`evaluation-scope.ts:121`) and
 `withWriteTarget` (`:369`) name it. Approving 5.17 reverses that choice, and
 step 12 then rewrites the comment. Removing any newly public member later needs
-a decision and a minor version bump, as 3.12 and 3.17 do. The alternative,
-taking the members that name these types out of the public API, would break
-users.
+a decision, as 3.12 and 3.17 do. The alternative, taking the members that name
+these types out of the public API, would break users.
 
 **5.18 Nine public declarations lack JSDoc.** The 9 `missing-jsdoc` errors are
 `VERSION` (`version.ts:1`), `HCLang`'s constructor and `history`
@@ -2294,11 +2299,10 @@ These dispositions need a decision as well as approval:
 
 - 3.3 deletes `cli/flatten.test.ts`, and the assertions in it, with the module
   it tests.
-- 3.11 removes `contextEqual` from the public API, with a minor version bump,
-  deletes its 4 expectations and changes how `evaluate.test.ts:1833` compares a
-  context.
+- 3.11 removes `contextEqual` from the public API, in a patch release, deletes
+  its 4 expectations and changes how `evaluate.test.ts:1833` compares a context.
 - 3.12 and 3.17 remove `MetaFrame.isAlphabetic` and `Frame.signed`, public
-  static members of `lib/mod.ts` exports, with the same minor version bump.
+  static members of `lib/mod.ts` exports, in the same patch release.
 - 5.5 stops `make_context` and `HCLang` from printing the context for embedders
   that pass `DEBUG_ENV`.
 - 5.14 moves the Sigilizer, or instead amends the `lib/execute/CLAUDE.md` rule.
@@ -2317,9 +2321,47 @@ These dispositions need a decision as well as approval:
 - 8.11 drops CI's separate build step, so a build failure shows up inside the
   test step.
 
-The refactor PR bumps the minor version if the owner approves any of the
-removals in 3.11, 3.12 and 3.17. No other disposition in steps 9 to 13 removes
-public API.
+The refactor PR ships the removals in 3.11, 3.12 and 3.17 in a patch release
+(decision 5). No other disposition in steps 9 to 13 removes public API.
+
+## Approval
+
+Approved on 2026-11-22. The owner delegated approval of the dispositions to the
+agent running the plan. Every disposition above stands as proposed unless this
+section changes it, and this section settles each decision the list above names.
+
+- **Approved as proposed:** 3.3; 3.11, 3.12 and 3.17, the removals, in a patch
+  release; 5.5; 5.14, moving the Sigilizer rather than amending the rule; 6.2,
+  restating the rule; and 6.13, by checking the final summary from 6.12's table.
+  Step 17 files every finding whose disposition is **issue**.
+- **6.12, with its option:** the generated table covers every discovered
+  testdoc, the 6 unpinned ones included.
+- **5.17, narrowed:** step 12 does not publish interpreter internals to satisfy
+  the lint. It exports `FrameArray` type-only, plus the types its documented
+  members need that a caller can use. A public member of an exported class that
+  names an interpreter-internal type, such as `EvaluationScope`,
+  `WriteTargetRole`, `ReceiverState`, `EvaluationInput`, `DeclaredApplication`
+  or `BoundMethod`, gets a JSDoc tag that keeps it out of `deno doc` instead, so
+  the choice recorded at `lib/frames.ts:18-20` stands. In a probe on Deno 2.9.7,
+  `deno doc --lint` reported no `private-type-ref` for a member tagged `@ignore`
+  or `@internal`. The brand stays out of value exports. Step 12 also makes
+  `lib/mod.ts`'s const-arrow exports function declarations, so the lint checks
+  their signatures (5.19), and writes 5.18's comments only for what it exports.
+  Its result document lists each member it tagged and each type it exported.
+- **7.13, except #498:** step 17 closes #481 and #452, and comments on #498 with
+  its state but leaves it open. Whether the native `|&|` settles the Zip policy
+  is the owner's call.
+- **8.1, declined:** the `deno-hooks` pin stays. 0.3.0's pre-commit would check
+  the whole working tree, including untracked agent notes under `.agents/`,
+  instead of formatting the staged files. Step 17 files the yanked pin as an
+  issue here, with the proposed issue for the deno-hooks repository.
+- **8.11, declined:** CI keeps its separate build step. A failure that names its
+  own step is worth 4.33 s.
+
+Pushing this record found a defect that the audit did not: from a linked
+worktree, the pre-push hook let `scripts/ci-format.integration.test.ts` run git
+against the repository itself, which set `core.bare=true` (#511). The refactor
+PR fixes it first.
 
 ## Reproduce
 

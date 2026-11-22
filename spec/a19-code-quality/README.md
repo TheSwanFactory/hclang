@@ -1,7 +1,7 @@
 # Code Quality: Audit, Refactor, Cleanup
 
-**Status:** Audit (steps 1–8) measured; its dispositions await approval before
-step 9. Refactor and cleanup have not started.\
+**Status:** Audit (steps 1–8) measured and its dispositions approved. Refactor
+and cleanup have not started.\
 **Measured at:** `390ee31` (v0.55.1). Every number below is from that commit.\
 **Scope:** The TypeScript in `lib/`, `cli/`, `web/`, `maml/` and `scripts/`, the
 bundled `hc/` files, `experiments/`, and the docs that describe them. HC
@@ -11,9 +11,8 @@ semantics and open design proposals are out of scope.
 
 - **Behavior stays fixed.** HC semantics, test assertions and testdoc claims
   stay as they are. A refactor may move a test but not change what it asserts.
-  An approved finding may remove a `lib/mod.ts` export (decision 1), and the
-  refactor PR then bumps the minor version. A defect found along the way gets
-  its own issue.
+  An approved finding may remove a `lib/mod.ts` export (decision 1). A defect
+  found along the way gets its own issue.
 - **Every step lands green.** Each PR passes `deno task test`, which runs
   `deno fmt --check`, `deno lint` and `test:all`.
 - **Results go in numbered documents.** Each result goes in the next numbered
@@ -90,10 +89,11 @@ Bring docs, records and tooling in line, then measure again.
 
 ## Decisions
 
-The owner answered the plan's four open questions before the audit began.
+The owner answered the plan's four open questions before the audit began, and
+set the release rule (5) during it.
 
 1. **Exports.** Step 9 may remove `lib/mod.ts` exports. That breaks JSR users,
-   so the refactor PR bumps the minor version.
+   and ships in a patch release (decision 5).
 2. **Coverage.** Coverage becomes a floor that CI enforces, added in step 16.
 3. **Experiments.** Every experiment stays in the repository. If its existing
    tests pass and run quickly, step 15 chains them from `test:all`; otherwise it
@@ -102,3 +102,5 @@ The owner answered the plan's four open questions before the audit began.
    test result and time, which the rule depends on.
 4. **PRs.** One PR per phase: the audit (steps 1–8), the refactor (9–13) and the
    cleanup (14–17).
+5. **Releases.** Each phase PR is a patch release with a CHANGELOG entry. It
+   merges only after a comment that its authors did not write.
