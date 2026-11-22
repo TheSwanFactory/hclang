@@ -60,6 +60,7 @@ export async function runTestdoc(
   return { status, last: out.at(-1).toString() };
 }
 
+/** The quoted summary JSON in a run's last line, captured without quotes. */
 const SUMMARY_PATTERN = /“(\{"total":[^”]*\})”/;
 
 if (import.meta.main) {
