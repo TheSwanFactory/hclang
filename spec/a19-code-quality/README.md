@@ -1,6 +1,7 @@
 # Code Quality: Audit, Refactor, Cleanup
 
-**Status:** Proposed. No step has started.\
+**Status:** Audit (steps 1–8) measured and its dispositions approved. Refactor
+and cleanup have not started.\
 **Measured at:** `390ee31` (v0.55.1). Every number below is from that commit.\
 **Scope:** The TypeScript in `lib/`, `cli/`, `web/`, `maml/` and `scripts/`, the
 bundled `hc/` files, `experiments/`, and the docs that describe them. HC
@@ -10,7 +11,7 @@ semantics and open design proposals are out of scope.
 
 - **Behavior stays fixed.** HC semantics, test assertions and testdoc claims
   stay as they are. A refactor may move a test but not change what it asserts.
-  `lib/mod.ts` keeps its exports unless question 1 says otherwise. A defect
+  An approved finding may remove a `lib/mod.ts` export (decision 1). A defect
   found along the way gets its own issue.
 - **Every step lands green.** Each PR passes `deno task test`, which runs
   `deno fmt --check`, `deno lint` and `test:all`.
@@ -77,17 +78,33 @@ Bring docs, records and tooling in line, then measure again.
 
 14. **Docs.** Update `doc/ARCHITECTURE.md` and `README.md` for what moved, and
     remove facts the code states from the CLAUDE.md files.
-15. **Records and experiments.** Add the missing status lines. Wire each
-    experiment's tests into a task, or delete the experiment (question 3).
+15. **Records and experiments.** Add the missing status lines. Chain each
+    experiment's tests from `test:all` if they pass and run quickly; otherwise
+    mark its README archived at the commit it last ran at (decision 3).
 16. **Tooling.** Apply dependency updates, stop test tasks from rewriting files,
-    and add the checks step 8 found missing to CI.
+    and add the checks step 8 found missing to CI, including the coverage floor
+    (decision 2).
 17. **Close out.** Repeat step 1 and record the before and after numbers. Close
     the issues the work resolved and file issues for deferred findings.
 
-## Open questions
+## Decisions
 
-1. May step 9 remove `lib/mod.ts` exports? That breaks JSR and npm users and
-   needs a minor version bump.
-2. Should coverage stay a measurement, or become a floor that CI enforces?
-3. Do experiments stay in the repository after their results are published?
-4. One PR per step, per phase, or one for the whole record?
+The owner answered the plan's four open questions before the audit began, and
+set the release rule (5) during it.
+
+1. **Exports.** Step 9 may remove `lib/mod.ts` exports. Removing one breaks its
+   callers, so the refactor PR's CHANGELOG entry names each removed symbol under
+   a **Breaking** label.
+2. **Coverage.** Coverage becomes a floor that CI enforces, added in step 16.
+3. **Experiments.** Every experiment stays in the repository. If its existing
+   tests pass and run quickly, step 15 chains them from `test:all`; otherwise it
+   marks the experiment's README archived, naming the commit it last ran at. The
+   owner left this question to judgement. The audit reports each experiment's
+   test result and time, which the rule depends on.
+4. **PRs.** One PR per phase: the audit (steps 1–8), the refactor (9–13) and the
+   cleanup (14–17).
+5. **Releases.** Each phase PR is a patch release with a CHANGELOG entry,
+   including the refactor's removals, so callers on a caret range such as
+   `^0.55.1` get them without opting in. A PR merges only after a comment that
+   neither the agent that wrote it nor that agent's sub-agents wrote, whichever
+   account posts it.
