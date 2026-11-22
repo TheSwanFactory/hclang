@@ -52,6 +52,28 @@ export function make_context(entries: StringMap): Context {
 }
 
 /**
+ * Builds the evaluator and the lexer that feeds it for one source unit, with
+ * imports evaluated and structure checked strictly.
+ *
+ * @param out Where the results are collected.
+ * @param fileScope The source unit's declarations.
+ * @param hostNamespace Host-supplied bindings, exposed through `$$`.
+ * @returns The evaluator and the lexer pipe in front of it.
+ */
+function sourcePipes(
+  out: Frame,
+  fileScope: Frame,
+  hostNamespace: Frame,
+): { evaluator: EvalPipe; pipe: LexPipe } {
+  const evaluator = new EvalPipe(out, fileScope, hostNamespace);
+  const pipe = makeSourcePipe(evaluator, {
+    importSource: evaluateResourceSource,
+    strictStructure: true,
+  });
+  return { evaluator, pipe };
+}
+
+/**
  * The `HCEval` class provides methods for evaluating and processing input strings
  * within a specific context. It includes functionality for creating contexts from
  * entries, setting up lexical pipes, generating prompts, and running a REPL (Read-Eval-Print Loop).
@@ -78,11 +100,9 @@ export class HCEval {
     public readonly fileScope: Frame = out,
     public readonly hostNamespace: Frame = Frame.nil,
   ) {
-    this.evaluator = new EvalPipe(out, fileScope, hostNamespace);
-    this.pipe = makeSourcePipe(this.evaluator, {
-      importSource: evaluateResourceSource,
-      strictStructure: true,
-    });
+    const pipes = sourcePipes(out, fileScope, hostNamespace);
+    this.evaluator = pipes.evaluator;
+    this.pipe = pipes.pipe;
     this.lex = this.pipe;
   }
 
@@ -171,15 +191,11 @@ export class HCEval {
     }
 
     if (!complete) {
-      this.evaluator = new EvalPipe(
+      ({ evaluator: this.evaluator, pipe: this.pipe } = sourcePipes(
         this.out,
         this.fileScope,
         this.hostNamespace,
-      );
-      this.pipe = makeSourcePipe(this.evaluator, {
-        importSource: evaluateResourceSource,
-        strictStructure: true,
-      });
+      ));
     }
     this.lex = this.pipe;
     this.inputBuffer = "";

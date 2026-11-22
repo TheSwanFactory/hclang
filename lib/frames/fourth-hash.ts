@@ -95,6 +95,19 @@ function storedLoads(source: Frame): FrameCount[] | undefined {
 }
 
 /**
+ * A Frame's Size `##` read as a load: an exact nonnegative Count. A failed Size
+ * propagates unchanged, and any other answer is `$!.denum-observations`.
+ *
+ * @param frame The channel or child whose Size is the load.
+ * @returns The load, or the failure to return.
+ */
+function sizeLoad(frame: Frame): FrameCount | Frame {
+  const size = frame.sizeFor(Frame.kLEAVES);
+  if (size.observationError()) return size;
+  return exactCount(size) ?? Frame.error("$!.denum-observations");
+}
+
+/**
  * The intrinsic Denum path (007.25e). A constructed Denum keeps its loads in a
  * field, not as children, so the derived path, which reads the source's Count
  * and each child's Size, cannot rebuild it: `Denum [0, [0, 0]]` would read as
@@ -187,10 +200,8 @@ function channelRouterDenum(source: Frame): Frame | undefined {
       loads.push(new FrameCount(0n));
       continue;
     }
-    const size = channel.sizeFor(Frame.kLEAVES);
-    if (size.observationError()) return size;
-    const load = exactCount(size);
-    if (!load) return Frame.error("$!.denum-observations");
+    const load = sizeLoad(channel);
+    if (!(load instanceof FrameCount)) return load;
     loads.push(new FrameCount(load.data));
   }
   if (!construct) return Frame.error("$!.denum-unavailable");
@@ -233,11 +244,9 @@ export function observeDenum(source: Frame): Frame {
     ) {
       return Frame.error("$!.cyclic-aggregate .###");
     }
-    const size = child.referent().sizeFor(Frame.kLEAVES);
-    if (size.observationError()) return size;
-    const whole = exactCount(size);
-    if (!whole) return Frame.error("$!.denum-observations");
-    loads.push(new FrameCount(whole.data));
+    const load = sizeLoad(child.referent());
+    if (!(load instanceof FrameCount)) return load;
+    loads.push(new FrameCount(load.data));
   }
   if (loads.length === 0 && count.data !== 0n) {
     return Frame.error("$!.denum-observations");
