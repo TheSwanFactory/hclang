@@ -173,10 +173,6 @@ export class FrameInt extends FrameNumeric {
     return this.sameRung(this.data * (right as FrameInt).data);
   }
 
-  protected override divideSame(_right: FrameNumeric): Frame {
-    return Frame.error(`$!.numeric-internal / ${this.className()}`);
-  }
-
   protected override moduloSame(right: FrameNumeric): Frame {
     const divisor = (right as FrameInt).data;
     const remainder = this.data % divisor;
@@ -185,11 +181,6 @@ export class FrameInt extends FrameNumeric {
         ? remainder + divisor
         : remainder,
     );
-  }
-
-  protected override powerSame(right: FrameNumeric): Frame {
-    const exponent = (right as FrameInt).data;
-    return this.powerIntegral(exponent);
   }
 
   protected override powerIntegral(exponent: bigint): Frame {

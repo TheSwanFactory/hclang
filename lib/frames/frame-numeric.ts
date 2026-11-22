@@ -284,22 +284,109 @@ export abstract class FrameNumeric extends FrameAtom {
     return this.ratioParts();
   }
 
-  public abstract isZero(): boolean;
+  // Defaults for the hooks a value with no arithmetic of its own answers. The
+  // rank checks above keep a null-ranked peer from reaching most of them, and
+  // a ranked rung overrides the ones it supports, so the defaults are
+  // refusals, kept in case a later change reaches one.
 
-  protected abstract promoteOne(): FrameNumeric;
-  protected abstract ratioParts(): readonly [bigint, bigint] | null;
-  protected abstract inexactResult(value: number): Frame;
-  protected abstract integralValue(): bigint | null;
+  /** Whether this value is zero. The base answers false. */
+  public isZero(): boolean {
+    return false;
+  }
+
+  /**
+   * This value one rung up the ladder. The base answers itself, which
+   * `promoteTo` reads as having no rung above, as for the top rung and the
+   * unranked peers.
+   */
+  protected promoteOne(): FrameNumeric {
+    return this;
+  }
+
+  /** The exact ratio `exactRatio` publishes. The base denotes none. */
+  protected ratioParts(): readonly [bigint, bigint] | null {
+    return null;
+  }
+
+  /**
+   * What an inexact quotient's host number becomes on this rung. The base
+   * refuses the projection, naming this class.
+   */
+  protected inexactResult(_value: number): Frame {
+    return Frame.error(`$!.numeric-domain projection ${this.className()}`);
+  }
+
+  /**
+   * The exact integer this value denotes, read as an exponent, or null. The
+   * base denotes none.
+   */
+  protected integralValue(): bigint | null {
+    return null;
+  }
+
   protected abstract unaryPlus(): Frame;
   protected abstract unaryMinus(): Frame;
-  protected abstract addSame(right: FrameNumeric): Frame;
-  protected abstract subtractSame(right: FrameNumeric): Frame;
-  protected abstract multiplySame(right: FrameNumeric): Frame;
-  protected abstract divideSame(right: FrameNumeric): Frame;
-  protected abstract moduloSame(right: FrameNumeric): Frame;
-  protected abstract powerSame(right: FrameNumeric): Frame;
-  protected abstract powerIntegral(exponent: bigint): Frame;
-  protected abstract compareSame(right: FrameNumeric): Comparison;
+
+  /** `+` on two values of this rung. The base refuses it. */
+  protected addSame(right: FrameNumeric): Frame {
+    return this.operationError("+", right);
+  }
+
+  /** `-` on two values of this rung. The base refuses it. */
+  protected subtractSame(right: FrameNumeric): Frame {
+    return this.operationError("-", right);
+  }
+
+  /** `*` on two values of this rung. The base refuses it. */
+  protected multiplySame(right: FrameNumeric): Frame {
+    return this.operationError("*", right);
+  }
+
+  /**
+   * `/` on two values of this rung. `divide` targets only the rational and
+   * number rungs, so any other ranked rung answers `$!.numeric-internal`; an
+   * unranked value refuses `/` as a domain error.
+   */
+  protected divideSame(right: FrameNumeric): Frame {
+    return this.rank === null
+      ? this.operationError("/", right)
+      : Frame.error(`$!.numeric-internal / ${this.className()}`);
+  }
+
+  /** `%%` on two values of this rung. The base refuses it. */
+  protected moduloSame(right: FrameNumeric): Frame {
+    return this.operationError("%%", right);
+  }
+
+  /**
+   * `**` on two values of this rung. `power` sends only a non-integral
+   * exponent here, on the number rung. Any other ranked rung raises to an
+   * integral exponent through `powerIntegral` and answers
+   * `$!.numeric-internal` otherwise; an unranked value refuses `**` as a
+   * domain error.
+   */
+  protected powerSame(right: FrameNumeric): Frame {
+    if (this.rank === null) return this.operationError("**", right);
+    const exponent = right.integralValue();
+    return exponent == null
+      ? Frame.error(`$!.numeric-internal ** ${this.className()}`)
+      : this.powerIntegral(exponent);
+  }
+
+  /** `**` to an exact integer exponent. The base refuses it. */
+  protected powerIntegral(_exponent: bigint): Frame {
+    return Frame.error(
+      `$!.numeric-domain ** ${this.className()} ${this.className()}`,
+    );
+  }
+
+  /**
+   * How this value orders against another of its rung, or null when the two
+   * do not order. The base orders none.
+   */
+  protected compareSame(_right: FrameNumeric): Comparison {
+    return null;
+  }
 
   protected operationError(
     operator: ArithmeticOperator | OrderingOperator,

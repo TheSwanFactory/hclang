@@ -86,19 +86,7 @@ export class FrameTypedNumber extends FrameNumeric {
     return this.spelling;
   }
 
-  protected override promoteOne(): FrameNumeric {
-    return this;
-  }
-
   protected override ratioParts(): null {
-    return null;
-  }
-
-  protected override inexactResult(_value: number): Frame {
-    return Frame.error("$!.numeric-domain projection FrameTypedNumber");
-  }
-
-  protected override integralValue(): null {
     return null;
   }
 
@@ -108,39 +96,5 @@ export class FrameTypedNumber extends FrameNumeric {
 
   protected override unaryMinus(): Frame {
     return Frame.error("$!.numeric-domain unary- FrameTypedNumber");
-  }
-
-  protected override addSame(right: FrameNumeric): Frame {
-    return this.operationError("+", right);
-  }
-
-  protected override subtractSame(right: FrameNumeric): Frame {
-    return this.operationError("-", right);
-  }
-
-  protected override multiplySame(right: FrameNumeric): Frame {
-    return this.operationError("*", right);
-  }
-
-  protected override divideSame(right: FrameNumeric): Frame {
-    return this.operationError("/", right);
-  }
-
-  protected override moduloSame(right: FrameNumeric): Frame {
-    return this.operationError("%%", right);
-  }
-
-  protected override powerSame(right: FrameNumeric): Frame {
-    return this.operationError("**", right);
-  }
-
-  protected override powerIntegral(_exponent: bigint): Frame {
-    return Frame.error(
-      "$!.numeric-domain ** FrameTypedNumber FrameTypedNumber",
-    );
-  }
-
-  protected override compareSame(_right: FrameNumeric): null {
-    return null;
   }
 }

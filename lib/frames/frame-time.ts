@@ -551,54 +551,8 @@ export abstract class FrameTime extends FrameNumeric {
     return combineOrdered(operator, left, this);
   }
 
-  protected override promoteOne(): FrameNumeric {
-    return this;
-  }
-
-  protected override ratioParts(): null {
-    return null;
-  }
-
-  protected override inexactResult(_value: number): Frame {
-    return Frame.error(`$!.numeric-domain projection ${this.className()}`);
-  }
-
-  protected override integralValue(): null {
-    return null;
-  }
-
   protected override unaryPlus(): Frame {
     return this;
-  }
-
-  protected override addSame(right: FrameNumeric): Frame {
-    return this.operationError("+", right);
-  }
-
-  protected override subtractSame(right: FrameNumeric): Frame {
-    return this.operationError("-", right);
-  }
-
-  protected override multiplySame(right: FrameNumeric): Frame {
-    return this.operationError("*", right);
-  }
-
-  protected override divideSame(right: FrameNumeric): Frame {
-    return this.operationError("/", right);
-  }
-
-  protected override moduloSame(right: FrameNumeric): Frame {
-    return this.operationError("%%", right);
-  }
-
-  protected override powerSame(right: FrameNumeric): Frame {
-    return this.operationError("**", right);
-  }
-
-  protected override powerIntegral(_exponent: bigint): Frame {
-    return Frame.error(
-      `$!.numeric-domain ** ${this.className()} ${this.className()}`,
-    );
   }
 
   protected override compareSame(right: FrameNumeric): -1 | 0 | 1 | null {

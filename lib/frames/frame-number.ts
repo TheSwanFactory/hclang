@@ -41,10 +41,6 @@ export class FrameNumber extends FrameNumeric {
     return this.spelling;
   }
 
-  protected override promoteOne(): FrameNumeric {
-    return this;
-  }
-
   protected override ratioParts(): null {
     return null;
   }
@@ -84,10 +80,6 @@ export class FrameNumber extends FrameNumeric {
 
   protected override divideSame(right: FrameNumeric): Frame {
     return new FrameNumber(this.data / (right as FrameNumber).data);
-  }
-
-  protected override moduloSame(right: FrameNumeric): Frame {
-    return this.operationError("%%", right);
   }
 
   protected override powerSame(right: FrameNumeric): Frame {

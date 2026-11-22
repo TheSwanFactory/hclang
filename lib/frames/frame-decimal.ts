@@ -151,21 +151,6 @@ export class FrameDecimal extends FrameNumeric {
     );
   }
 
-  protected override divideSame(_right: FrameNumeric): Frame {
-    return Frame.error("$!.numeric-internal / FrameDecimal");
-  }
-
-  protected override moduloSame(right: FrameNumeric): Frame {
-    return this.operationError("%%", right);
-  }
-
-  protected override powerSame(right: FrameNumeric): Frame {
-    const exponent = (right as FrameDecimal).integralValue();
-    return exponent == null
-      ? Frame.error("$!.numeric-internal ** FrameDecimal")
-      : this.powerIntegral(exponent);
-  }
-
   protected override powerIntegral(exponent: bigint): Frame {
     if (exponent < 0n) {
       return Frame.error("$!.numeric-internal ** FrameDecimal");

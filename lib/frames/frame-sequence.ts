@@ -43,10 +43,6 @@ export class FrameSequence extends FrameNumeric {
       : Frame.nil;
   }
 
-  public override isZero(): boolean {
-    return false;
-  }
-
   public override valueOf(): Frame {
     return Frame.error("$!.numeric-domain projection FrameSequence");
   }
@@ -55,19 +51,7 @@ export class FrameSequence extends FrameNumeric {
     return this.spelling;
   }
 
-  protected override promoteOne(): FrameNumeric {
-    return this;
-  }
-
   protected override ratioParts(): null {
-    return null;
-  }
-
-  protected override inexactResult(_value: number): Frame {
-    return Frame.error("$!.numeric-domain projection FrameSequence");
-  }
-
-  protected override integralValue(): null {
     return null;
   }
 
@@ -80,37 +64,5 @@ export class FrameSequence extends FrameNumeric {
 
   protected override unaryMinus(): Frame {
     return Frame.error("$!.numeric-domain unary- FrameSequence");
-  }
-
-  protected override addSame(right: FrameNumeric): Frame {
-    return this.operationError("+", right);
-  }
-
-  protected override subtractSame(right: FrameNumeric): Frame {
-    return this.operationError("-", right);
-  }
-
-  protected override multiplySame(right: FrameNumeric): Frame {
-    return this.operationError("*", right);
-  }
-
-  protected override divideSame(right: FrameNumeric): Frame {
-    return this.operationError("/", right);
-  }
-
-  protected override moduloSame(right: FrameNumeric): Frame {
-    return this.operationError("%%", right);
-  }
-
-  protected override powerSame(right: FrameNumeric): Frame {
-    return this.operationError("**", right);
-  }
-
-  protected override powerIntegral(_exponent: bigint): Frame {
-    return Frame.error("$!.numeric-domain ** FrameSequence FrameSequence");
-  }
-
-  protected override compareSame(_right: FrameNumeric): null {
-    return null;
   }
 }

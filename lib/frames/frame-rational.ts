@@ -150,17 +150,6 @@ export class FrameRational extends FrameNumeric {
     );
   }
 
-  protected override moduloSame(right: FrameNumeric): Frame {
-    return this.operationError("%%", right);
-  }
-
-  protected override powerSame(right: FrameNumeric): Frame {
-    const exponent = (right as FrameRational).integralValue();
-    return exponent == null
-      ? Frame.error("$!.numeric-internal ** FrameRational")
-      : this.powerIntegral(exponent);
-  }
-
   protected override powerIntegral(exponent: bigint): Frame {
     const positive = exponent < 0n ? -exponent : exponent;
     if (
