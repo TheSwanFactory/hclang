@@ -51,6 +51,23 @@ export function installRouterRecognizer(recognizer: RouterRecognizer): void {
   recognizeRouter = recognizer;
 }
 
+/**
+ * Whether a reconstruction shows its host to be an instance of a shipped HC
+ * class (007.25e): the rebuilt instance neither fails nor has an observation
+ * error, and it is `==` to the host, the same value and the same type at every
+ * node, fields and methods included. The caller rebuilds the instance from the
+ * host's own stored fields through the shipped constructor, so nothing of the
+ * host runs and a forged or edited record is not an instance.
+ *
+ * @param host The observed Frame's referent.
+ * @param rebuilt What the shipped constructor built from the host's fields.
+ * @returns True when the host is an instance of the shipped class.
+ */
+export function isShippedInstance(host: Frame, rebuilt: Frame): boolean {
+  return !rebuilt.isFailedResult() && !rebuilt.observationError() &&
+    rebuilt.typeEquals(host) === Frame.all;
+}
+
 /** A Frame read as an exact nonnegative Count, or undefined. */
 function exactCount(frame: Frame): FrameCount | undefined {
   const value = frame.referent();
@@ -128,10 +145,7 @@ function recognizeDenum(source: Frame): DenumState | undefined {
     new FrameCount(count.data),
     loads.map((load) => new FrameCount(load.data)),
   );
-  if (candidate.isFailedResult() || candidate.observationError()) {
-    return undefined;
-  }
-  return candidate.typeEquals(host) === Frame.all
+  return isShippedInstance(host, candidate)
     ? {
       denum: candidate,
       count: count.data as bigint,

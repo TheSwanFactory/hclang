@@ -22,6 +22,9 @@ import {
   FrameExpr,
   installRouterRecognizer,
 } from "../frames.ts";
+// Direct, not through the barrel, which exports only the installers; the
+// barrel above has already loaded this module.
+import { isShippedInstance } from "../frames/fourth-hash.ts";
 import { installDivisionCarrier } from "../ops/math.ts";
 import { classOnce, type ClassPrologue } from "./class-prologue.ts";
 
@@ -95,10 +98,7 @@ function channelRouterChannels(source: Frame): Frame[] | undefined {
       channels.map((channel) => new FrameArray([...channel.elements()])),
     ),
   );
-  if (candidate.isFailedResult() || candidate.observationError()) {
-    return undefined;
-  }
-  return candidate.typeEquals(host) === Frame.all ? channels : undefined;
+  return isShippedInstance(host, candidate) ? channels : undefined;
 }
 
 /**
