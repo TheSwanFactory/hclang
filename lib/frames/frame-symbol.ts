@@ -434,10 +434,6 @@ export class FrameSymbol extends FrameAtom {
     return /^[a-zA-Z][-\w]*$/.test(spelling);
   }
 
-  public override string_start(): string {
-    return FrameSymbol.SYMBOL_BEGIN.toString();
-  }
-
   /**
    * An address renders with its dot, so canonical output re-reads as input.
    *
@@ -535,11 +531,6 @@ export class FrameOperator extends FrameSymbol {
     this.is.operator = true;
   }
 
-  public static operator_chars(): string {
-    return "&|?:+\\-*%<>!";
-    // FrameOperator.OPERATOR_CHARS.source.slice(1, -1)
-  }
-
   public static Accepts(char: string): boolean {
     return FrameOperator.OPERATOR_CHARS.test(char);
   }
@@ -578,9 +569,5 @@ export class FrameOperator extends FrameSymbol {
     return value instanceof FrameCurry && this.receiverState
       ? value.withReceiverState(this.receiverState)
       : value;
-  }
-
-  public override string_start(): string {
-    return FrameOperator.OPERATOR_CHARS.toString();
   }
 }

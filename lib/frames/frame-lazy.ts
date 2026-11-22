@@ -69,11 +69,6 @@ export class FrameLazy extends FrameExpr {
     return this;
   }
 
-  /** The declared `^^` output schema, or undefined when none was bound. */
-  public returnSchema(): Frame | undefined {
-    return this.returnContract;
-  }
-
   /**
    * Checks a completed body result against the declared `^^` contract. An
    * undeclared closure keeps HC's implicit constructive behavior and returns

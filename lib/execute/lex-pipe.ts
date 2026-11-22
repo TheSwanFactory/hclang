@@ -3,7 +3,6 @@ import {
   FrameInt,
   FrameOperator,
   FrameSchema,
-  FrameString,
   FrameSymbol,
   type IArrayConstructor,
 } from "../frames.ts";
@@ -33,15 +32,6 @@ export class LexPipe extends Frame implements IFinish, IPerformer {
     syntax[Frame.kOUT] = out;
     super(syntax);
     this.level = 0;
-  }
-
-  public lex_string(input: string): Frame {
-    const source = new FrameString(input);
-    return this.lex(source);
-  }
-
-  public lex(source: FrameString): Frame {
-    return source.scanInto(this);
   }
 
   public override scan(argument: Frame): ScanResponse {

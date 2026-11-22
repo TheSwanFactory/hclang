@@ -69,16 +69,6 @@ export class MetaFrame {
   }
 
   /**
-   * Checks if the given character is alphabetic.
-   *
-   * @param {string} char - The character to check.
-   * @returns {boolean} `true` if the character is alphabetic, `false` otherwise.
-   */
-  public static isAlphabetic(char: string): boolean {
-    return /\p{L}/u.test(char);
-  }
-
-  /**
    * id_count is a static counter, incremented to generate unique IDs.
    */
   public static id_count = 0;
@@ -947,9 +937,6 @@ export class Frame extends MetaFrame {
 
   /** Installed by FrameCount without importing a subclass into its base. */
   public static count: (value: bigint) => Frame;
-
-  /** Installed by FrameInt without importing a subclass into its base. */
-  public static signed: (value: bigint) => Frame;
 
   /** Installed by `fourth-hash.ts`, avoiding a base-to-subclass import cycle. */
   public static denum: (source: Frame) => Frame;

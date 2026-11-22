@@ -97,10 +97,6 @@ export class FrameArg extends FrameSymbol {
     super(normalized, meta);
   }
 
-  public override string_start(): string {
-    return FrameArg.ARG_CHAR;
-  }
-
   public override in(input: EvaluationInput = []): Frame {
     const scope = EvaluationScope.from(input);
     const level = this.data.length;

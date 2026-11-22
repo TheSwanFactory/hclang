@@ -72,20 +72,6 @@ export class HCEval {
    */
   public static readonly EXPECT = "# ";
 
-  /**
-   * Creates a lexical pipe for evaluating expressions.
-   */
-  public static make_pipe(
-    out: Frame,
-    fileScope: Frame = out,
-    hostNamespace: Frame = Frame.nil,
-  ): LexPipe {
-    return makeSourcePipe(
-      new EvalPipe(out, fileScope, hostNamespace),
-      { importSource: evaluateResourceSource, strictStructure: true },
-    );
-  }
-
   private evaluator: EvalPipe;
   protected pipe: LexPipe;
   protected lex: Frame;

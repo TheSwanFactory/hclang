@@ -110,10 +110,6 @@ export class FrameInt extends FrameNumeric {
     return Number(this.data);
   }
 
-  public override string_start(): string {
-    return FrameInt.NUMBER_BEGIN.toString();
-  }
-
   public override valueOf(): number {
     return Number(this.data);
   }
@@ -242,5 +238,3 @@ export class FrameInt extends FrameNumeric {
     return result;
   }
 }
-
-Frame.signed = (value: bigint): FrameInt => new FrameInt(value);

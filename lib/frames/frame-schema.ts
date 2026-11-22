@@ -116,10 +116,6 @@ export class FrameSchema extends FrameList implements FrameMatcher {
     return this.data[n + index];
   }
 
-  public length(): number {
-    return this.data.length;
-  }
-
   /** Whether matching succeeds when its evidence is discarded. */
   public matches(value: Frame): boolean {
     return this.match(value).matched;

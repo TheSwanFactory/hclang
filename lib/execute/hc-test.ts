@@ -80,17 +80,6 @@ export class HCTest extends Frame {
     return argument;
   }
 
-  public performTest(expected: Frame, actual: Frame, source: Frame): Frame {
-    const result = this.assertEqual(
-      expected.toString(),
-      actual.toString(),
-      source.toString(),
-    );
-    this.pending = undefined;
-    this.clearMarkers();
-    return result;
-  }
-
   public assertEqual(expected: string, actual: string, source: string): Frame {
     const base = source + " ?" + expected;
     this.n.total += 1;

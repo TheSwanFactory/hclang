@@ -15,11 +15,6 @@ export class FrameNumber extends FrameNumeric {
     return FrameNumber.numbers[key] ??= new FrameNumber(value);
   }
 
-  /** Preserves the spelling of legacy host numeric strings that are inexact. */
-  public static fromHost(value: string): FrameNumber {
-    return new FrameNumber(value, NilContext, value);
-  }
-
   public readonly rank: NumericRank = NUMERIC_RANK.number;
   public readonly data: number;
   public readonly spelling: string;
