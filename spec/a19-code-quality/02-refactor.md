@@ -7,7 +7,7 @@ restructure tests.\
 PR's own Deno CI run supplies (see [Measurements](#measurements)).\
 **Base:** `ad37fd9` (v0.55.2). The branch begins with `90749a0`, the #511 fix,
 which the audit's Approval asked for first.\
-**Head:** the commit that completes this document. It follows `4965bc1`, the
+**Head:** the commit that completes this document. It follows `ffe2777`, the
 last commit that changes code, tests or tasks.
 
 Each entry uses the ID of its finding in the [audit](01-audit.md) and acts on
@@ -52,16 +52,17 @@ module uses:
 lines went with 3.10. The 31 types that exported signatures name stay exported,
 as the audit keeps them. Commit `7dd5c7c`.
 
-**3.10** `lib/frames.ts` re-exported 165 names; it now re-exports 99, and 98
-after 3.11. The 66 removed are the audit's 73 less the 7 of `partition-check`,
-whose statement stays whole because it is the module's only loader and 3.5 is an
-issue. The seven statements that lost every name became bare imports in the same
-place, so the barrel's evaluation order is unchanged: `frame-match`,
-`effect-registry`, `reference-tracking`, `access-footprint`, `event-dispatch`,
-`bound-method` and `frame-handle`. `lib/ops.ts` imports `ops/frame-curry.ts`
-instead of re-exporting `FrameCurry`. `test:load-order` passes. Of the eight
-types that 3.10 names for 5.17, only `FrameList` is exported, from its own
-module, in step 12. Commit `7dd5c7c`.
+**3.10** `lib/frames.ts` re-exported 165 names. This commit left 99 and 3.11
+left 98; the head has 99, with 4.2's `isShippedInstance`. The 66 removed are the
+audit's 73 less the 7 of `partition-check`, whose statement stays whole because
+it is the module's only loader and 3.5 is an issue. The seven statements that
+lost every name became bare imports in the same place, so the barrel's
+evaluation order is unchanged: `frame-match`, `effect-registry`,
+`reference-tracking`, `access-footprint`, `event-dispatch`, `bound-method` and
+`frame-handle`. `lib/ops.ts` imports `ops/frame-curry.ts` instead of
+re-exporting `FrameCurry`. `test:load-order` passes. Of the eight types that
+3.10 names for 5.17, only `FrameList` is exported, from its own module, in
+step 12. Commit `7dd5c7c`.
 
 **3.11** Removed `contextEqual` from `lib/mod.ts`, `lib/frames.ts` and
 `lib/frames/context.ts` (Breaking; approved). Its `describe` in
@@ -139,8 +140,9 @@ are gone with 3.1 and 3.2. Commit `b390951`.
 **2.3** Moved the declared protocol, the statics and private helpers that find
 and run the methods an aggregate declares (#375, 015.02), from
 `lib/frames/frame-array.ts` to the new `lib/frames/declared-protocol.ts` (241
-lines). `frame-array.ts` went from 502 lines to 335. The module exports the five
-functions `frame-array.ts` calls: `applicationDeclaredBy`, `operatorDeclaredBy`,
+lines). `frame-array.ts` went from 502 lines to 335; 5.17's tags and 5.18's
+comments bring it to 377 at the head. The module exports the five functions
+`frame-array.ts` calls: `applicationDeclaredBy`, `operatorDeclaredBy`,
 `textDeclaredBy`, `observationDeclaredBy` and `applyDeclared`.
 `methodDeclaredBy` stays module-private, a departure from the plan's list: only
 its own module calls it, and an export used only at home is what 3.8 removed.
@@ -189,9 +191,11 @@ check stays although no path reaches it now. Commit `e6b6dd1`.
 **4.2** Added `isShippedInstance(host, rebuilt)` to `lib/frames/fourth-hash.ts`:
 the 007.25e rule that `recognizeDenum` and the router's `channelRouterChannels`
 each spelled out. Each caller still reads its own fields. `router-prologue.ts`
-imports it from `fourth-hash.ts` directly, after the barrel, because
-`lib/frames.ts` was outside the unit's files; the barrel has loaded
-`fourth-hash.ts` by then, so load order is unchanged. Commit `7c38032`.
+first imported it from `fourth-hash.ts` directly, because `lib/frames.ts` was
+outside lane C's files. After the lanes merged, the barrel's `fourth-hash`
+statement re-exports it, and `router-prologue.ts` imports it from the barrel,
+like every other `lib/execute` module (`d4561e2`). That statement already loaded
+`fourth-hash.ts`, so load order is unchanged. Commits `7c38032` and `d4561e2`.
 
 **4.3** `MetaFrame`'s two lookup traversals are one: the private
 `MetaFrame.traverse` and `walk` take a step object, `VALUE_STEP` for `get` and
@@ -239,7 +243,8 @@ loop that `evaluateElements` and `quoteResourceSource` both ran. Commit
 (`lib/frames/evaluation-scope.ts`), which carries the private fields and applies
 only the changed options. `withLayers`, `withWriteTarget` and `resumedIn` call
 it, and `argumentAt` and `parameterAt` call the existing `outward`. The file
-went from 644 lines to 626. Commit `0ff65bc`.
+went from 644 lines to 626, and 5.17's tag brings it to 628 at the head. Commit
+`0ff65bc`.
 
 **4.11** Added `walkStatements` to `lib/frames/frame-expr.ts`, the punctuation
 loop `atomsOf` and `sizeAtomsOf` shared, with hooks for what each does inside.
@@ -371,11 +376,11 @@ files copied: `Counter`, `CountingExpression`, `readName`, `dispatchEvent`,
 `answerOfLast`, `innermostAnswer`, `lastText`, `firstEntryLastText`,
 `lastResultText` and `lastResult`. A file keeps a one-line wrapper where its
 helper closes over local state or its suites use one name for two helpers.
-Helpers that one file uses stay local, and so does `access-footprint.test.ts`'s
-copy of `readName`, which the unit did not own. `error-policy.test.ts`'s
-`innermostAnswer` now answers `Frame.nil` for an empty answer, as
-`catch.test.ts`'s did, where it threw before; no test reaches that case. Commit
-`57e0e22`.
+Helpers that one file uses stay local. `access-footprint.test.ts` kept its copy
+of `readName` in lane B, which did not own the file, and calls the shared helper
+since the lanes merged (`383db05`). `error-policy.test.ts`'s `innermostAnswer`
+now answers `Frame.nil` for an empty answer, as `catch.test.ts`'s did, where it
+threw before; no test reaches that case. Commits `57e0e22` and `383db05`.
 
 **6.8** `test:lib` runs `deno test --parallel` (see
 [Measurements](#measurements)). Commit `4965bc1`.
@@ -393,7 +398,8 @@ entries: the 21 discovered testdocs and `white-paper-core.hc`. The 16 pins in
 `cli/hc.test.ts` read their totals from it, and the six testdocs nothing pinned
 got cases (approved option). `cli/testdoc-summaries.test.ts` checks that the
 table lists every discovered testdoc. The table matched all 16 former literals.
-The inline totals stay. Commit `a395a84`.
+The inline totals stay. `ffe2777` adds the JSDoc that the generator's
+`SUMMARY_PATTERN` lacked. Commits `a395a84` and `ffe2777`.
 
 **6.13** `scripts/test-npm.ts` reads the last `$=.test-summary` line of the npm
 package's run and checks it against the table (approved). Commit `f29f00e`.
@@ -531,9 +537,17 @@ No defect turned up in product code.
   does. `doc/ARCHITECTURE.md:516` cites `declaredMethod`, which 2.3 made
   `methodDeclaredBy` in `lib/frames/declared-protocol.ts`, and the audit's step
   7 note on `ARCHITECTURE.md:512-528` cites `OBSERVATION_KEYS` at
-  `frame-array.ts:304-307`, which moved there too.
+  `frame-array.ts:304-307`, which moved there too. `doc/ARCHITECTURE.md:184`
+  names `HCLang.makeHost`, which 4.6 replaced with `hostNamespace` in
+  `lib/execute/host-namespace.ts`. `FrameScoped.call`'s JSDoc
+  (`lib/frames/frame-expr.ts`) lists `.#`, `.##` and `.###`, but the method also
+  sizes `.####`, as it did before this phase.
 - **Step 15:** `experiments/017-classical-cd/run.ts` records the whole text of
   `lib/version.ts` as `libVersion`, so its next run also records `VERSION`'s new
-  comment line.
+  comment line. Four records in `spec/1-fix-closures/` (07 to 10) link to
+  `lib/maml.ts`, which 5.1 moved to `maml/maml.ts`, so those links no longer
+  resolve. In prose, `spec/a06-outward-reference-resolution.md` and
+  `spec/a16-concrete-semantics-graph.md` name `lib/maml.ts`, and
+  `spec/a07-hc-security-architecture.md` names `cli/flatten.ts` (3.3).
 - **4.21 (an issue):** `lib/frames/effect-registry.ts`'s module comment still
   names `set` and `replaceMember` as the commit points.
