@@ -3,15 +3,17 @@
 **Covers:** steps 9–13 of the [plan](README.md): delete dead code, split
 oversized modules, merge accidental duplicates, fix boundary findings, and
 restructure tests.\
-**Status:** In progress: step 9 done; steps 10-13 follow.\
+**Status:** Done. One measurement is deferred: the CI side of 6.8, which this
+PR's own Deno CI run supplies (see [Measurements](#measurements)).\
 **Base:** `ad37fd9` (v0.55.2). The branch begins with `90749a0`, the #511 fix,
 which the audit's Approval asked for first.\
-**Head:** recorded when step 13 finishes.
+**Head:** the commit that completes this document. It follows `4965bc1`, the
+last commit that changes code, tests or tasks.
 
 Each entry uses the ID of its finding in the [audit](01-audit.md) and acts on
 the disposition its Approval settled. An entry gives what was done, the files
 and the commit, or why something was not done. Commits are on the
-`code-quality-refactor` branch.
+`code-quality-refactor` branch. Line numbers name the code at `90749a0`.
 
 ## Step 9: Dead code
 
@@ -58,7 +60,7 @@ place, so the barrel's evaluation order is unchanged: `frame-match`,
 `effect-registry`, `reference-tracking`, `access-footprint`, `event-dispatch`,
 `bound-method` and `frame-handle`. `lib/ops.ts` imports `ops/frame-curry.ts`
 instead of re-exporting `FrameCurry`. `test:load-order` passes. Of the eight
-types that 3.10 names for 5.17, only `FrameList` is to be exported, from its own
+types that 3.10 names for 5.17, only `FrameList` is exported, from its own
 module, in step 12. Commit `7dd5c7c`.
 
 **3.11** Removed `contextEqual` from `lib/mod.ts`, `lib/frames.ts` and
@@ -132,84 +134,323 @@ Commit `5873043`.
 **8.7** Its two `lib/` files, `lib/index.ts` and `lib/execute/script-spec.ts`,
 are gone with 3.1 and 3.2. Commit `b390951`.
 
-Cross-references with no action of their own: 3.1 removed one of 5.2's two
-remote imports (`jsr:@std/expect`), and the other goes with 5.3. The step 9
-parts of 6.1 and 6.3 are 3.2 and 3.1.
-
 ## Step 10: Size and complexity
 
-**2.3** Pending.\
-**2.4** Pending.\
-**2.5** Pending.\
-**2.7** Pending.\
-**2.8** Pending.\
-**2.9** Pending.
+**2.3** Moved the declared protocol, the statics and private helpers that find
+and run the methods an aggregate declares (#375, 015.02), from
+`lib/frames/frame-array.ts` to the new `lib/frames/declared-protocol.ts` (241
+lines). `frame-array.ts` went from 502 lines to 335. The module exports the five
+functions `frame-array.ts` calls: `applicationDeclaredBy`, `operatorDeclaredBy`,
+`textDeclaredBy`, `observationDeclaredBy` and `applyDeclared`.
+`methodDeclaredBy` stays module-private, a departure from the plan's list: only
+its own module calls it, and an export used only at home is what 3.8 removed.
+`FrameArray`'s overrides and `declaredOperator` stay as one-line delegators. The
+module value-imports nothing that reaches `frame-array.ts`, so it closes no
+cycle. Commit `dc442af`.
+
+**2.4** Moved `FrameSymbol.in`'s read projection into the private
+`projectRead(value, context, origin, scope)` in `lib/frames/frame-symbol.ts`,
+dedented and otherwise unchanged. `in` went from 92 lines to 22. Commit
+`d247018`.
+
+**2.5** Moved the civil calendar (`lib/frames/frame-time.ts:65-205`) to the new
+`lib/frames/civil-calendar.ts` (151 lines), which imports nothing.
+`frame-time.ts` went from 634 lines to 519. It imports 11 of the new module's 12
+exports: `renderYear` is exported, as planned, but only `renderInstant` calls
+it. Each moved declaration that had no JSDoc got a line. Commit `6da95d5`.
+
+**2.7** `walkPath` (`lib/frames/access-footprint.ts`) now hands each term kind
+to its own `step*` helper, eight in all, over a `PathCursor`. It went from 100
+lines to 41. Its `continue` chain became an `if`/`else` chain in the same order.
+The name step takes the name's source string, so `access-footprint.ts` needs no
+`FrameName` import. Commit `93ad2f9`.
+
+**2.8** Lifted `dispatch`'s `infer`, `refresh` and `mayStart` closures and its
+outcome mapper, now `outcomeOf`, to module functions in
+`lib/frames/event-dispatch.ts`, which went from 388 lines to 403. One
+`events.map` arrow stays inline; it captures no local of `dispatch`. Commit
+`38075fe`.
+
+**2.9** Split `scripts/build-hcweb.ts`'s `build` into `bundleEntry`,
+`renderHtml` and `writeArtifacts`. `renderHtml` takes a new module-private
+`HtmlFields`, and `build` computes the package source because its "Built" line
+prints it. The file went from 329 lines to 375. Commit `d1b77f8`.
 
 ## Step 11: Duplication
 
-**4.1** Pending.\
-**4.2** Pending.\
-**4.3** Pending.\
-**4.4** Pending.\
-**4.5** Pending.\
-**4.6** Pending.\
-**4.7** Pending.\
-**4.8** Pending.\
-**4.9** Pending.\
-**4.10** Pending.\
-**4.11** Pending.\
-**4.12** Pending.\
-**4.13** Pending.\
-**4.14** Pending.\
-**4.15** Pending.\
-**4.16** Pending.
+**4.1** Added `lib/execute/class-prologue.ts`, which loads a bundled HC class
+once (`classOnce`), keeping a failure and refusing reentry. The Denum and
+RotorRouter prologues each describe their class in one `ClassPrologue` record,
+which replaced `DENUM_CLASS`, `ROUTER_SOURCE`, `ROUTER_CLASS` and
+`ROUTER_BUILDER`; `DENUM_SOURCE` stays exported. Every `$!.denum-prologue-*` and
+`$!.router-prologue-*` spelling is unchanged, and the `$!.router-unavailable`
+check stays although no path reaches it now. Commit `e6b6dd1`.
+
+**4.2** Added `isShippedInstance(host, rebuilt)` to `lib/frames/fourth-hash.ts`:
+the 007.25e rule that `recognizeDenum` and the router's `channelRouterChannels`
+each spelled out. Each caller still reads its own fields. `router-prologue.ts`
+imports it from `fourth-hash.ts` directly, after the barrel, because
+`lib/frames.ts` was outside the unit's files; the barrel has loaded
+`fourth-hash.ts` by then, so load order is unchanged. Commit `7c38032`.
+
+**4.3** `MetaFrame`'s two lookup traversals are one: the private
+`MetaFrame.traverse` and `walk` take a step object, `VALUE_STEP` for `get` and
+`lookup_graph_on` or `BINDING_STEP` for `resolve` and `resolve_graph_on`, typed
+by the module-private `LookupStep<T>`. The local lookup, the depth-first walk of
+`lookup_links()` under a `seen` guard, and the one read of the globals are
+written once. The timing against `ba6c00b` kept the change (see
+[Measurements](#measurements)). Commit `f11c783`.
+
+**4.4** Added the generator `declaredChain(start)` to `lib/frames/frame.ts`: a
+frame and its declared parents, nearest first, never a frame twice. The seven
+walks use it: `isAncestorOf` and `getOwn` in `frame.ts`, the declared-method
+lookup that 2.3 moved, `isReceiverPathValue` in `frame-symbol.ts`, and
+`isOnReceiverPath`, `memberOf` and `patternAnswers` in `access-footprint.ts`.
+Four walks tested `!current.is.missing` in their loop; each now tests the start
+once, before it. `wouldCreateParentCycle` is unchanged. Commit `71aaf30`.
+
+**4.5** Added `beforeCommit` and `afterCommit` to
+`lib/frames/effect-registry.ts`, and the eight commit sites call them in their
+existing order. The notify choices are unchanged: `set` and
+`Frame.replaceMember` notify, and the other six stay silent (4.21 is an issue).
+Nothing else in `lib/` now calls `noteWrite` or `guardAccess(..., "write")`
+directly. Commit `e71446f`.
+
+**4.6** Added `lib/execute/host-namespace.ts`. Its `hostNamespace` takes the
+context and the store, the one part that differed, and builds the host namespace
+for both the CLI and `HCLang`. `cli/hc.ts`'s `getHost` and `getHandlers` stay as
+thin wrappers, which `cli/hc.test.ts` uses. Commit `f7918d1`.
+
+**4.7** Added `evaluateInto` (`lib/execute/evaluate.ts`), which evaluates one
+source unit into an array for `evaluate` and `HCLang.call`, and
+`HCEval.incompleteReason`, the one home of the "incomplete lexical input"
+fallback, which `cli/hc.ts` also reads. `HCLang.call` keeps its `try` and its
+history. Commit `e31c7fb`.
+
+**4.8** Added the leaf module `lib/execute/testdoc-markers.ts`, whose
+`SOURCE_PREFIX` and `EXPECT_PREFIX` replace the markers defined in `hc-eval.ts`,
+`resource-import.ts` and `cli/test-docs.ts`. Commit `e53ac67`.
+
+**4.9** Added the private `scanSource` to `lib/execute/resource-import.ts`, the
+loop that `evaluateElements` and `quoteResourceSource` both ran. Commit
+`178ea2b`.
+
+**4.10** Added the private `EvaluationScope.derive(changes)`
+(`lib/frames/evaluation-scope.ts`), which carries the private fields and applies
+only the changed options. `withLayers`, `withWriteTarget` and `resumedIn` call
+it, and `argumentAt` and `parameterAt` call the existing `outward`. The file
+went from 644 lines to 626. Commit `0ff65bc`.
+
+**4.11** Added `walkStatements` to `lib/frames/frame-expr.ts`, the punctuation
+loop `atomsOf` and `sizeAtomsOf` shared, with hooks for what each does inside.
+The inner walks stay apart, so `sizeAtomsOf` still records nothing and still
+refuses a cycle. Commit `497c1f7`.
+
+**4.12** Added the public `FrameSymbol.sizeOperatorKey()` and deleted
+`Frame.quantityOperator`, so the six sites test for a size operator in one
+place. This departs from the audit's "one module function in `frame.ts`":
+`frame-expr.ts` may gain no import and `Frame` no public member, and
+`FrameSymbol` is outside the public API. The three class checks agreed except
+for an addressed subclass of `FrameSymbol`, which nothing creates.
+`quantityOperator`'s missing JSDoc (5.18) went with it. Commit `d32e02b`.
+
+**4.13** `FrameSymbol`'s `apply` and `defineSchema` commit a declaration through
+the private `declarationSlot` and `priorValue` helpers and the module-private
+`DeclarationSlot` type. The schema check stays in `apply`. Commit `1e33f62`.
+
+**4.14** Added protected static helpers to `FrameNumeric` for the sign spelling
+in `unaryPlus` and `unaryMinus` and the range refusal in `exactInt`, and the
+private `FrameDecimal.aligned` for scale alignment, across `frame-int`,
+`-decimal`, `-rational`, `-number`, `-sequence`, `-count` and `-typed-number` in
+`lib/frames`. `FrameCount` calls them through its own class, to keep
+`frame-numeric.ts` a type-only import. Its `unaryPlus` now also reads a leading
+`-` as a sign, which a count never has. Commit `d3c33cc`.
+
+**4.15** Added `arithmeticOr` beside `arithmetic` in `lib/ops/math.ts`; `Add`,
+`Subtract` and `Multiply` call it. The fallback still receives the operands as
+written. Commit `5ad7b28`.
+
+**4.16** Added `unquote` (`lib/execute/hc-test.ts`), `sourcePipes`
+(`lib/execute/hc-eval.ts`) and `sizeLoad` (`lib/frames/fourth-hash.ts`) for the
+three repeats step 11 owns. `sizeLoad`'s caller treats any answer that is not a
+`FrameCount` as the failure, which differs from before only for a `FrameCount`
+that is itself an error, which no path produces. The two repeats the audit keeps
+(`schema-bit-matcher.ts`, `lex-run.ts`) stay. Commit `495f70d`.
 
 ## Step 12: Boundaries
 
-**5.1** Pending.\
-**5.3** Pending.\
-**5.5** Pending.\
-**5.6** Pending.\
-**5.7** Pending.\
-**5.10** Pending.\
-**5.13** Pending.\
-**5.14** Pending.\
-**5.17** Pending.\
-**5.18** Pending.\
-**8.10** Pending.
+**5.1** Moved `lib/maml.ts` to `maml/maml.ts`, into the package that uses it,
+and pointed `maml/maml.test.ts` and `maml/tag.test.ts` at it. Commit `f504e57`.
+
+**5.3** Moved the logger from `lib/execute/hc-log.ts` to `cli/hc-log.ts`, with
+its chalk import and output unchanged. `test:load-order` no longer needs
+`--allow-env`, because no `lib/` module reads the environment while it loads, so
+the task dropped it. The comments in `lib/load-order.test.ts` and
+`lib/execute/env-visibility.ts` say so. Commit `3adabba`.
+
+**5.5** Moved the `DEBUG_ENV` print from `make_context`
+(`lib/execute/hc-eval.ts`) to the CLI's `getEval` (`cli/hc.ts`), which
+`cli/test-docs.ts` also goes through, so both CLI paths print as before.
+`HCLang` and other embedders of `make_context` no longer print it (approved).
+`make_context`'s JSDoc says so. Commit `74d149e`.
+
+**5.6** Removed the two `console.error` calls in `lib/execute/lex-pipe.ts` and
+`parse-pipe.ts`, keeping what their paths return. Commit `36c2563`.
+
+**5.7** `LexPipe.perform`'s `end` action now throws
+`Expected Frame for end action, but received: '<value>'` instead of printing.
+Commit `36c2563`.
+
+**5.10** `frame-symbol.ts` and `frame-lazy.ts` test with the `isSchema()` and
+`isSymbol()` guards, so they import `FrameSchema` and `FrameSymbol` type-only.
+Those were the two value imports the audit found on 18 of the 24 value-import
+cycles. Commit `f9d1fbb`.
+
+**5.13** `lib/frames/frame.ts` imports `ICurryFunction` and `IArrayConstructor`
+from their defining modules instead of the `lib/ops.ts` and `lib/frames.ts`
+barrels. Commit `3a75918`.
+
+**5.14** Moved the Sigilizer from `lib/execute/sigilizer.ts` to
+`lib/sigilizer.ts`, beside the scan protocol, with its test (approved). The six
+modules that import it changed only their import line. Commit `177b0c8`.
+
+**5.17** (narrowed by the Approval) `evaluate` and `execute` are function
+declarations, so the lint checks their signatures (`9b7efb4`). `lib/mod.ts`
+exports `FrameArray`, `FrameList` and `EvaluationInput` type-only, and each
+member of an exported class that names an interpreter-internal type has an
+`@ignore` tag, which keeps it out of `deno doc`. The lists are under
+[Public API](#public-api). The planner's probe predicted the 17 member tags
+exactly. Once the `EvaluationScope` class is tagged, the lint alone no longer
+flags `Frame.atSite`, which names it; `atSite` keeps its tag under the
+Approval's rule. Commit `b304858`.
+
+**5.18** `NO_COLOR=1 deno doc --lint lib/mod.ts` exits 0. `HCLang`'s history and
+constructor got JSDoc in `d7be32d`, and `quantityOperator`'s gap went with 4.12.
+`43385c0` documents the 26 declarations of `FrameArray` and `FrameList` that
+5.17's exports brought into the lint, the private `FrameArray.sameMembers` among
+them, plus `MetaFrame.authorize`, `Frame.in` and `VERSION`. `Frame.in`'s comment
+had drifted above `evaluationRoots`, where it documented nothing; it is back on
+`in`. `scripts/bump-version.ts` writes `VERSION`'s comment, so the next bump
+keeps it, and `VERSION_PATTERN` still matches. Commit `43385c0`.
+
+**8.10** Fenced the JSDoc examples: `evaluate.ts`, `execute.ts` and
+`lib/frames/context.ts` in `9b7efb4`, each with its import line, and
+`make_context`'s in `74d149e`. The README fragment is step 14's, and the CI
+choice step 16's.
 
 ## Step 13: Tests
 
-**2.10** Pending.\
-**2.11** Pending.\
-**3.20** Pending.\
-**4.17** Pending.\
-**6.8** Pending.\
-**6.9** Pending.\
-**6.11** Pending.\
-**6.12** Pending.\
-**6.13** Pending.
+**2.10** Split `lib/execute/evaluate.test.ts` (2,654 lines) by suite into nine
+files:
+`evaluate.{strings,grouping,numbers,schemas,boolean-types,effect-boundaries,closures,contexts,access}.test.ts`.
+`evaluate.test.ts` keeps its five top-level cases, and the schemas file keeps
+the four `describe.skip` suites, the 4 ignored tests. Each file imports only
+what it uses. The largest is now `evaluate.access.test.ts`, at 819 lines. Commit
+`c32b728`.
+
+**2.11** Split `lib/execute/resource-import.test.ts` (1,587 lines) into its
+source, scope, authority and property files, with the shared fixtures in
+`resource-import.fixtures.test.ts`; #443's case stays in
+`resource-import.test.ts`. A fixture that one file uses stays in that file. The
+properties' top-level `describe` is "resource import: properties". Commit
+`49e8cc3`.
+
+**3.20** Deleted `lib/execute/denum-observers.test.ts` and moved its three
+distinct tests to `foist-19a.test.ts`, names and assertions unchanged. Four
+assertions were copies, and each is still asserted once, in `foist-19a.test.ts`:
+from `denum-observers.test.ts`, the `Frame.SIZE_OPERATORS` list and the loop
+over the seven removed suffix observers; from `denum-prologue.test.ts`, the same
+loop and `5 %% 2`. That `denum-prologue.test.ts` test is renamed for what it
+still checks, "FOIST 19a: a genuine Denum's state is its construction Count and
+loads". `lex.test.ts`'s suite is now "the retired spelling `.#%` lexes as one
+unbound name", with its cases unchanged (`177b0c8`). Commit `9d4a291`.
+
+**4.17** Added `lib/test-helpers.test.ts` for the helpers that two or more test
+files copied: `Counter`, `CountingExpression`, `readName`, `dispatchEvent`,
+`countOf`, `denumOf`, and the `evaluate` wrappers `lastTermOfLast`,
+`answerOfLast`, `innermostAnswer`, `lastText`, `firstEntryLastText`,
+`lastResultText` and `lastResult`. A file keeps a one-line wrapper where its
+helper closes over local state or its suites use one name for two helpers.
+Helpers that one file uses stay local, and so does `access-footprint.test.ts`'s
+copy of `readName`, which the unit did not own. `error-policy.test.ts`'s
+`innermostAnswer` now answers `Frame.nil` for an empty answer, as
+`catch.test.ts`'s did, where it threw before; no test reaches that case. Commit
+`57e0e22`.
+
+**6.8** `test:lib` runs `deno test --parallel` (see
+[Measurements](#measurements)). Commit `4965bc1`.
+
+**6.9** `web/tests/standalone.test.ts` compares the mirror's bytes directly,
+still byte for byte. Commit `21855a7`.
+
+**6.11** Renamed the second "binds expressions with interior spaces", the
+`1 .+ 2` case, to "binds a dotted operator with interior spaces". Commit
+`c32b728`.
+
+**6.12** Added `cli/testdoc-summaries.json`, written by
+`cd cli && deno task testdoc:summaries` (`cli/testdoc-summaries.ts`), with 22
+entries: the 21 discovered testdocs and `white-paper-core.hc`. The 16 pins in
+`cli/hc.test.ts` read their totals from it, and the six testdocs nothing pinned
+got cases (approved option). `cli/testdoc-summaries.test.ts` checks that the
+table lists every discovered testdoc. The table matched all 16 former literals.
+The inline totals stay. Commit `a395a84`.
+
+**6.13** `scripts/test-npm.ts` reads the last `$=.test-summary` line of the npm
+package's run and checks it against the table (approved). Commit `f29f00e`.
+
+## Cross-references
+
+- **5.2** is resolved by 3.1 and 5.3: 3.1 deleted the `jsr:@std/expect` import
+  with `script-spec.ts`, and 5.3 moved the chalk import to `cli/` with the
+  logger. No non-test `lib/` module imports a remote package.
+- The step 9 parts of 6.1 and 6.3 are 3.2 and 3.1.
 
 ## Public API
 
 **Removed**, for the CHANGELOG's **Breaking** label: `contextEqual` (3.11),
 `MetaFrame.isAlphabetic` (3.12) and `Frame.signed` (3.17).
 
-**Dependencies:** since 3.1, no non-test `lib/` module imports
-`jsr:@std/expect`. Chalk goes with 5.3.
+**Types exported** (5.17), all type-only: `FrameArray`, `FrameList` and
+`EvaluationInput`. `lib/mod.ts` gained no value export, and
+`RECEIVER_WRITE_AUTHORIZED` is exported from nowhere.
 
-**Types exported**, **members tagged out of `deno doc`** and the 5.5 printout:
-pending (step 12).
+**Members tagged out of `deno doc`** with `@ignore` (5.17):
+
+- `MetaFrame.receiverState`, `MetaFrame.resolve_here`, `MetaFrame.resolve` and
+  `MetaFrame.resolve_graph_on`.
+- `Frame.call`, `Frame.scan`, `Frame.finishInput`, `Frame.atSite`,
+  `Frame.isName`, `Frame.isSymbol`, `Frame.isSchema`, `Frame.isClosure`,
+  `Frame.applicationMethod`, `Frame.reduce` and the static `Frame.reduceInto`.
+- `FrameArray.applicationMethod` and `FrameArray.declaredOperator`.
+- The `EvaluationScope` class, which `EvaluationInput` names.
+
+The tag only hides them from the docs. The published types still declare them,
+and code that calls them still compiles.
+
+**Other user-visible changes:**
+
+- `make_context` and `HCLang` no longer print the context when it holds
+  `DEBUG_ENV`. The `hc` CLI and its testdoc runner still do (5.5).
+- `deno doc` now documents `FrameArray`, `FrameList`, `Frame.in` and `VERSION`
+  (5.18).
+- No non-test `lib/` module imports a remote package: chalk left with the logger
+  (5.3), and `jsr:@std/expect` with `script-spec.ts` (3.1). `lib/mod.ts`'s
+  module graph reached neither before, so the dependency list JSR shows, empty
+  for 0.55.2, stays empty. `lib/`'s test files, which JSR still publishes until
+  5.20 (step 16), import `jsr:@std/expect` and `jsr:@std/testing`.
+- The #511 fix (`90749a0`): `scripts/ci-format.integration.test.ts` clears git's
+  repository variables, so the pre-push hook no longer sets `core.bare=true`
+  when it runs from a linked worktree. Only contributors see it.
 
 ## Test counts
 
 Deno's counts, from `NO_COLOR=1 deno task test`: a top-level `Deno.test` or
 `describe` is a test, and a nested `it` or `describe` is a step.
 
-| Run                      | `90749a0`                          | Step 9                             |
+| Run                      | `90749a0`                          | Head                               |
 | ------------------------ | ---------------------------------- | ---------------------------------- |
-| `test:cli`               | 10 passed (74 steps)               | 9 passed (67 steps)                |
-| `test:lib`               | 201 passed (1553 steps), 4 ignored | 201 passed (1550 steps), 4 ignored |
+| `test:cli`               | 10 passed (74 steps)               | 10 passed (73 steps)               |
+| `test:lib`               | 201 passed (1553 steps), 4 ignored | 212 passed (1538 steps), 4 ignored |
 | `test:load-order`        | 1 passed (1 step)                  | 1 passed (1 step)                  |
 | `test:maml`              | 3 passed (18 steps)                | 3 passed (18 steps)                |
 | `test:scripts`           | 17 passed (118 steps)              | 17 passed (118 steps)              |
@@ -218,16 +459,81 @@ Deno's counts, from `NO_COLOR=1 deno task test`: a top-level `Deno.test` or
 | web `test:artifact`      | 2 passed (16 steps)                | 2 passed (16 steps)                |
 | `test:doc`               | 21 testdocs executed, 0 failed     | 21 testdocs executed, 0 failed     |
 
-- `test:cli` loses `cli/flatten.test.ts`'s 1 test and 7 steps (3.3).
-- `test:lib` loses `describe("contextEqual")` and its 2 cases, 3 steps (3.11).
+- `test:cli`: `cli/flatten.test.ts`'s 1 test and 7 steps went with 3.3. 6.12
+  adds 1 test, `cli/testdoc-summaries.test.ts`, and 6 steps, the cases for the
+  six testdocs nothing pinned.
+- `test:lib`: `describe("contextEqual")` and its 2 cases, 3 steps, went with
+  3.11. 2.10 adds 9 tests and removes 9 steps, because each of the nine
+  `evaluate` suites is now a file's top-level `describe`. 2.11 does the same for
+  resource-import's source, scope and authority suites, 3 tests for 3 steps; the
+  seven properties stay steps under "resource import: properties". 3.20 removes
+  1 test: `denum-observers.test.ts` had 4, and 3 moved to `foist-19a.test.ts`.
   `script-spec.ts`'s cases never ran (3.1), so its deletion changes no count.
-
-The final head's counts are recorded when step 13 finishes.
+- No other count changed. `test:load-order` dropped `--allow-env` (5.3) and
+  `test:lib` added `--parallel` (6.8), and neither changes a count.
 
 ## Measurements
 
-The 4.3 lookup timing and 6.8's local and CI numbers: pending (steps 11 and 13).
+**4.3, lookup traversal.**
+`NO_COLOR=1 deno test --ignore=lib/load-order.test.ts lib`, timed in an archive
+of `ba6c00b` and in lane A at `3a75918`, which holds 4.3, 4.4, 4.5 and 5.13.
+After one untimed warm-up in each tree, five alternating rounds on a 14-core Mac
+with Deno 2.9.7:
+
+| Tree      | Runs (s)                               | Median (s) |
+| --------- | -------------------------------------- | ---------- |
+| `ba6c00b` | 12.836, 13.561, 13.489, 12.762, 13.673 | 13.489     |
+| `3a75918` | 12.822, 13.710, 12.901, 13.444, 13.933 | 13.444     |
+
+The candidate's median is not above the base's slowest run, 13.673 s, so 4.3
+stayed. Lanes B and C ran tests at the same time, and the two trees do not run
+the same tests: `ba6c00b` has 1553 steps and `3a75918` 1550.
+
+**6.8, `--parallel`, local.** The same command, with and without `--parallel`,
+on the same machine with no other test running. After one untimed serial
+warm-up, three rounds alternating serial and parallel:
+
+| Mode     | Runs (s)               | Median (s) |
+| -------- | ---------------------- | ---------- |
+| serial   | 12.959, 13.013, 13.173 | 13.013     |
+| parallel | 5.498, 6.085, 5.900    | 5.900      |
+
+Every run printed `ok | 212 passed (1538 steps) | 0 failed | 4 ignored`. The
+parallel median is below the serial minimum, the plan's condition, so `test:lib`
+adopted `--parallel`. The median run is 7.1 s shorter.
+
+**6.8, CI.** Before: master's latest Deno CI run, 45069034886 at `ad37fd9`,
+printed `ok | 201 passed (1553 steps) | 0 failed | 4 ignored (27s)` for the
+serial `test:lib`, on a GitHub-hosted `ubuntu-26.04` runner with Deno 2.9.5. Its
+`Task test:lib` line and that summary are 30.2 s apart. After: this PR's own
+Deno CI run. In its `build` job's log, find `Task test:lib`, which now shows
+`deno test --parallel`, and read the summary line after it,
+`ok | 212 passed (1538 steps) | 0 failed | 4 ignored (Ns)`. Compare N with
+master's 27 s, or the two lines' timestamps with its 30.2 s. The runner's core
+count bounds the gain, and the log does not print it.
 
 ## Defects found
 
-None in step 9.
+- **6.13:** the npm check asserted a stale literal, `{"total":43,...}`, although
+  `hc/numerics.hc` now totals 84. It passed only because `stdout.includes`
+  matched the intermediate `$+.test-pass` line for claim 43. The check now reads
+  the final `$=.test-summary` line.
+- `jsr:@std/expect@0.219.1`, `cli/`'s pin, ignores `expect`'s message argument
+  without an error. 6.12's one custom message uses `jsr:@std/expect@1.0.17`,
+  already in `deno.lock` through `web/`. For step 16's dependency updates.
+
+No defect turned up in product code.
+
+## Left for cleanup
+
+- **Step 14:** `lib/frames/CLAUDE.md` still says "`MetaFrame.get` owns the
+  traversal and its cycle guard"; since 4.3 the private `MetaFrame.traverse`
+  does. `doc/ARCHITECTURE.md:516` cites `declaredMethod`, which 2.3 made
+  `methodDeclaredBy` in `lib/frames/declared-protocol.ts`, and the audit's step
+  7 note on `ARCHITECTURE.md:512-528` cites `OBSERVATION_KEYS` at
+  `frame-array.ts:304-307`, which moved there too.
+- **Step 15:** `experiments/017-classical-cd/run.ts` records the whole text of
+  `lib/version.ts` as `libVersion`, so its next run also records `VERSION`'s new
+  comment line.
+- **4.21 (an issue):** `lib/frames/effect-registry.ts`'s module comment still
+  names `set` and `replaceMember` as the commit points.
