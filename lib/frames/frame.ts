@@ -45,6 +45,17 @@ enum Visibility {
 }
 
 /**
+ * What one frame contributes to MetaFrame's guarded lookup traversal: its own
+ * answer for a key, and how it passes on an answer found through its links.
+ */
+type LookupStep<T> = {
+  /** The frame's own answer for `key`, or undefined when it has none. */
+  visit(frame: MetaFrame, key: string, origin: MetaFrame): T | undefined;
+  /** What `frame` answers for `found`, found at `frame` or below it. */
+  unwind(frame: MetaFrame, found: T, key: string): T;
+};
+
+/**
  * MetaFrame is the parent class of Frame, providing methods for managing metadata.
  */
 export class MetaFrame {
@@ -149,7 +160,13 @@ export class MetaFrame {
     key: string,
     origin: MetaFrame,
   ): Frame {
-    return MetaFrame.lookup(frame, key, origin, new Set<MetaFrame>());
+    return MetaFrame.walk(
+      frame,
+      MetaFrame.VALUE_STEP,
+      key,
+      origin,
+      new Set<MetaFrame>(),
+    ) ?? Frame.missing;
   }
 
   /**
@@ -165,7 +182,13 @@ export class MetaFrame {
     key: string,
     origin: MetaFrame,
   ): BindingResolution | undefined {
-    return MetaFrame.resolveBinding(frame, key, origin, new Set<MetaFrame>());
+    return MetaFrame.walk(
+      frame,
+      MetaFrame.BINDING_STEP,
+      key,
+      origin,
+      new Set<MetaFrame>(),
+    );
   }
 
   /** Resolves a logical name to the declaration key visible from origin. */
@@ -213,20 +236,7 @@ export class MetaFrame {
     key: string,
     origin: MetaFrame = this,
   ): BindingResolution | undefined {
-    const local = this.resolve_here(key, origin);
-    if (local) return local;
-
-    const seen = new Set<MetaFrame>([this]);
-    for (const link of this.lookup_links()) {
-      const result = MetaFrame.resolveBinding(link, key, origin, seen);
-      if (result) return result;
-    }
-
-    const globals = Frame.globals;
-    if (globals && !globals.is.missing && !seen.has(globals)) {
-      return MetaFrame.resolveBinding(globals, key, origin, seen);
-    }
-    return undefined;
+    return MetaFrame.traverse(this, MetaFrame.BINDING_STEP, key, origin);
   }
 
   /**
@@ -238,29 +248,8 @@ export class MetaFrame {
    * scope, and globals are consulted once after the complete scope graph.
    */
   public get(key: string, origin: MetaFrame = this): Frame {
-    const local = this.lookup_here(key, origin);
-    if (!local.is.missing) {
-      return this.lookup_result(local, key);
-    }
-
-    // Allocate traversal state only after an immediate local miss.
-    const seen = new Set<MetaFrame>([this]);
-    for (const link of this.lookup_links()) {
-      const result = MetaFrame.lookup(link, key, origin, seen);
-      if (!result.is.missing) {
-        return this.lookup_result(result, key);
-      }
-    }
-
-    // Globals are the final lookup tier, even when the lexical graph cycles.
-    const globals = Frame.globals;
-    if (globals && !globals.is.missing && !seen.has(globals)) {
-      const result = MetaFrame.lookup(globals, key, origin, seen);
-      if (!result.is.missing) {
-        return this.lookup_result(result, key);
-      }
-    }
-    return Frame.missing;
+    return MetaFrame.traverse(this, MetaFrame.VALUE_STEP, key, origin) ??
+      Frame.missing;
   }
 
   /** Local behavior used by the guarded lookup driver. */
@@ -282,51 +271,98 @@ export class MetaFrame {
     return links;
   }
 
-  /** Allows wrappers to transform a value found anywhere below them. */
+  /**
+   * Allows wrappers to transform a value found anywhere below them.
+   *
+   * It never turns a found value into a miss. The traversal stops at the
+   * first frame that answers, so a miss here would end the lookup instead of
+   * trying the next link. The one override, `FrameHandle.lookup_result`,
+   * answers a `BoundMethod` or the value.
+   */
   protected lookup_result(result: Frame, _key: string): Frame {
     return result;
   }
 
-  /** Depth-first declared-before-lexical traversal without global fallback. */
-  private static lookup(
-    frame: MetaFrame,
+  /**
+   * The value step of the traversal: a frame answers what its local lookup
+   * finds, and passes a value found below it through `lookup_result`.
+   */
+  private static readonly VALUE_STEP: LookupStep<Frame> = {
+    visit(frame, key, origin): Frame | undefined {
+      const local = frame.lookup_here(key, origin);
+      return local.is.missing ? undefined : local;
+    },
+    unwind(frame, found, key): Frame {
+      return frame.lookup_result(found, key);
+    },
+  };
+
+  /**
+   * The binding step of the traversal: a frame answers the declaration that
+   * `resolve_here` finds, and passes a binding found below it on unchanged.
+   */
+  private static readonly BINDING_STEP: LookupStep<BindingResolution> = {
+    visit(frame, key, origin): BindingResolution | undefined {
+      return frame.resolve_here(key, origin);
+    },
+    unwind(_frame, found): BindingResolution {
+      return found;
+    },
+  };
+
+  /**
+   * The one guarded lookup traversal, behind `get` and `resolve`.
+   *
+   * It visits `start` and allocates its cycle guard only after that local
+   * miss, so a local hit allocates nothing. It then walks `lookup_links()`
+   * depth first, declared parents before lexical scope, and consults
+   * `Frame.globals` once after the whole scope graph. Every answer unwinds
+   * through `start`.
+   */
+  private static traverse<T>(
+    start: MetaFrame,
+    step: LookupStep<T>,
     key: string,
     origin: MetaFrame,
-    seen: Set<MetaFrame>,
-  ): Frame {
-    if (seen.has(frame)) {
-      return Frame.missing;
-    }
-    seen.add(frame);
+  ): T | undefined {
+    const local = step.visit(start, key, origin);
+    if (local !== undefined) return step.unwind(start, local, key);
 
-    const local = frame.lookup_here(key, origin);
-    if (!local.is.missing) {
-      return frame.lookup_result(local, key);
+    // Allocate traversal state only after an immediate local miss.
+    const seen = new Set<MetaFrame>([start]);
+    for (const link of start.lookup_links()) {
+      const found = MetaFrame.walk(link, step, key, origin, seen);
+      if (found !== undefined) return step.unwind(start, found, key);
     }
-    for (const link of frame.lookup_links()) {
-      const result = MetaFrame.lookup(link, key, origin, seen);
-      if (!result.is.missing) {
-        return frame.lookup_result(result, key);
-      }
+
+    // Globals are the final lookup tier, even when the lexical graph cycles.
+    const globals = Frame.globals;
+    if (globals && !globals.is.missing && !seen.has(globals)) {
+      const found = MetaFrame.walk(globals, step, key, origin, seen);
+      if (found !== undefined) return step.unwind(start, found, key);
     }
-    return Frame.missing;
+    return undefined;
   }
 
-  /** Depth-first binding traversal without global fallback. */
-  private static resolveBinding(
+  /**
+   * The depth-first part of the traversal, without the globals tier. `frame`
+   * answers, or else its links do, in order, and no frame is visited twice.
+   */
+  private static walk<T>(
     frame: MetaFrame,
+    step: LookupStep<T>,
     key: string,
     origin: MetaFrame,
     seen: Set<MetaFrame>,
-  ): BindingResolution | undefined {
+  ): T | undefined {
     if (seen.has(frame)) return undefined;
     seen.add(frame);
 
-    const local = frame.resolve_here(key, origin);
-    if (local) return local;
+    const local = step.visit(frame, key, origin);
+    if (local !== undefined) return step.unwind(frame, local, key);
     for (const link of frame.lookup_links()) {
-      const result = MetaFrame.resolveBinding(link, key, origin, seen);
-      if (result) return result;
+      const found = MetaFrame.walk(link, step, key, origin, seen);
+      if (found !== undefined) return step.unwind(frame, found, key);
     }
     return undefined;
   }
