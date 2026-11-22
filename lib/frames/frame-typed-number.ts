@@ -86,10 +86,6 @@ export class FrameTypedNumber extends FrameNumeric {
     return this.spelling;
   }
 
-  protected override ratioParts(): null {
-    return null;
-  }
-
   protected override unaryPlus(): Frame {
     return this;
   }

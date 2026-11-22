@@ -58,9 +58,7 @@ export class FrameRational extends FrameNumeric {
     if (this.denominator !== 1n) {
       return Frame.error(`$!.exact-integer-required ${this.className()}`);
     }
-    return max != null && this.numerator > max
-      ? Frame.error(`$!.integer-range ${this.spelling} ${max}`)
-      : this.numerator;
+    return FrameNumeric.rangeChecked(this.numerator, this.spelling, max);
   }
 
   public override valueOf(): number {
@@ -88,31 +86,25 @@ export class FrameRational extends FrameNumeric {
   }
 
   protected override integralValue(): bigint | null {
-    return this.numerator % this.denominator === 0n
-      ? this.numerator / this.denominator
-      : null;
+    return FrameNumeric.wholeQuotient(this.numerator, this.denominator);
   }
 
   protected override unaryPlus(): Frame {
-    if (this.spelling.startsWith("+") || this.spelling.startsWith("-")) {
-      return this;
-    }
-    return new FrameRational(
+    const spelling = FrameNumeric.plusSpelling(this.spelling);
+    return spelling === undefined ? this : new FrameRational(
       this.numerator,
       this.denominator,
       NilContext,
-      `+${this.spelling}`,
+      spelling,
     );
   }
 
   protected override unaryMinus(): Frame {
-    const unsigned = this.spelling.replace(/^[+-]/, "");
-    const spelling = this.spelling.startsWith("-") ? unsigned : `-${unsigned}`;
     return new FrameRational(
       -this.numerator,
       this.denominator,
       NilContext,
-      spelling,
+      FrameNumeric.minusSpelling(this.spelling),
     );
   }
 

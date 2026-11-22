@@ -51,15 +51,9 @@ export class FrameSequence extends FrameNumeric {
     return this.spelling;
   }
 
-  protected override ratioParts(): null {
-    return null;
-  }
-
   protected override unaryPlus(): Frame {
-    if (this.spelling.startsWith("+") || this.spelling.startsWith("-")) {
-      return this;
-    }
-    return new FrameSequence(`+${this.spelling}`);
+    const spelling = FrameNumeric.plusSpelling(this.spelling);
+    return spelling === undefined ? this : new FrameSequence(spelling);
   }
 
   protected override unaryMinus(): Frame {

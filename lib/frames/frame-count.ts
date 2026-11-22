@@ -79,9 +79,11 @@ export class FrameCount extends FrameInt {
   }
 
   protected override unaryPlus(): Frame {
-    return this.spelling.startsWith("+")
+    // A count never starts with `-`, so the shared rule reads only its `+`.
+    const spelling = FrameCount.plusSpelling(this.spelling);
+    return spelling === undefined
       ? this
-      : new FrameCount(this.data, NilContext, `+${this.spelling}`);
+      : new FrameCount(this.data, NilContext, spelling);
   }
 }
 

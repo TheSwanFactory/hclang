@@ -74,9 +74,7 @@ export class FrameDecimal extends FrameNumeric {
     if (this.scale !== 0) {
       return Frame.error(`$!.exact-integer-required ${this.className()}`);
     }
-    return max != null && this.numerator > max
-      ? Frame.error(`$!.integer-range ${this.spelling} ${max}`)
-      : this.numerator;
+    return FrameNumeric.rangeChecked(this.numerator, this.spelling, max);
   }
 
   public override valueOf(): number {
@@ -104,41 +102,40 @@ export class FrameDecimal extends FrameNumeric {
   }
 
   protected override integralValue(): bigint | null {
-    const denominator = powerOfTen(this.scale);
-    return this.numerator % denominator === 0n
-      ? this.numerator / denominator
-      : null;
+    return FrameNumeric.wholeQuotient(this.numerator, powerOfTen(this.scale));
   }
 
   protected override unaryPlus(): Frame {
-    if (this.spelling.startsWith("+") || this.spelling.startsWith("-")) {
-      return this;
-    }
-    return new FrameDecimal(`+${this.spelling}`);
+    const spelling = FrameNumeric.plusSpelling(this.spelling);
+    return spelling === undefined ? this : new FrameDecimal(spelling);
   }
 
   protected override unaryMinus(): Frame {
-    const unsigned = this.spelling.replace(/^[+-]/, "");
-    const spelling = this.spelling.startsWith("-") ? unsigned : `-${unsigned}`;
-    return new FrameDecimal(spelling);
+    return new FrameDecimal(FrameNumeric.minusSpelling(this.spelling));
   }
 
+  /**
+   * The numerators of this decimal and `right` at their common scale, and that
+   * scale, so the two compare and combine digit for digit.
+   */
+  private aligned(right: FrameDecimal): readonly [bigint, bigint, number] {
+    const scale = Math.max(this.scale, right.scale);
+    return [
+      this.numerator * powerOfTen(scale - this.scale),
+      right.numerator * powerOfTen(scale - right.scale),
+      scale,
+    ];
+  }
   protected override addSame(right: FrameNumeric): Frame {
-    const decimal = right as FrameDecimal;
-    const scale = Math.max(this.scale, decimal.scale);
-    const leftNumerator = this.numerator * powerOfTen(scale - this.scale);
-    const rightNumerator = decimal.numerator * powerOfTen(
-      scale - decimal.scale,
+    const [leftNumerator, rightNumerator, scale] = this.aligned(
+      right as FrameDecimal,
     );
     return FrameDecimal.fromParts(leftNumerator + rightNumerator, scale);
   }
 
   protected override subtractSame(right: FrameNumeric): Frame {
-    const decimal = right as FrameDecimal;
-    const scale = Math.max(this.scale, decimal.scale);
-    const leftNumerator = this.numerator * powerOfTen(scale - this.scale);
-    const rightNumerator = decimal.numerator * powerOfTen(
-      scale - decimal.scale,
+    const [leftNumerator, rightNumerator, scale] = this.aligned(
+      right as FrameDecimal,
     );
     return FrameDecimal.fromParts(leftNumerator - rightNumerator, scale);
   }
@@ -169,11 +166,8 @@ export class FrameDecimal extends FrameNumeric {
   }
 
   protected override compareSame(right: FrameNumeric): -1 | 0 | 1 {
-    const decimal = right as FrameDecimal;
-    const scale = Math.max(this.scale, decimal.scale);
-    const leftNumerator = this.numerator * powerOfTen(scale - this.scale);
-    const rightNumerator = decimal.numerator * powerOfTen(
-      scale - decimal.scale,
+    const [leftNumerator, rightNumerator] = this.aligned(
+      right as FrameDecimal,
     );
     return leftNumerator < rightNumerator
       ? -1

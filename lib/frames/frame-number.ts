@@ -41,10 +41,6 @@ export class FrameNumber extends FrameNumeric {
     return this.spelling;
   }
 
-  protected override ratioParts(): null {
-    return null;
-  }
-
   protected override inexactResult(value: number): Frame {
     return new FrameNumber(value);
   }
@@ -56,10 +52,10 @@ export class FrameNumber extends FrameNumeric {
   }
 
   protected override unaryPlus(): Frame {
-    if (this.spelling.startsWith("+") || this.spelling.startsWith("-")) {
-      return this;
-    }
-    return new FrameNumber(this.data, NilContext, `+${this.spelling}`);
+    const spelling = FrameNumeric.plusSpelling(this.spelling);
+    return spelling === undefined
+      ? this
+      : new FrameNumber(this.data, NilContext, spelling);
   }
 
   protected override unaryMinus(): Frame {
