@@ -1,22 +1,14 @@
 import { renderResults } from "./execute.ts";
 import { HCEval, make_context } from "./hc-eval.ts";
 import {
-  CLOCK_SCHEME,
-  ClockHandler,
   type Context,
   contextString,
-  DISPATCH_KEY,
-  dispatchNamespace,
   Frame,
   FrameArray,
-  FrameResource,
   MemoryStore,
-  RealClock,
-  RESOURCE_ROOT_KEY,
-  ResourceHandlers,
   type StringMap,
 } from "../frames.ts";
-import { withHCBundle } from "../bundle/hc-bundle.ts";
+import { hostNamespace } from "./host-namespace.ts";
 
 /** One submitted source string and its rendered output. */
 export type HistoryPair = { input: string; output: string };
@@ -47,43 +39,11 @@ export class HCLang {
   public constructor(environment: StringMap = {}) {
     this.context = make_context(environment);
     this.fileScope = new Frame();
-    this.hostNamespace = HCLang.makeHost(this.context);
-    this.history = [];
-  }
-
-  /**
-   * Builds the host namespace, including this session's root binding.
-   *
-   * A session gets an in-memory root because the harnesses that use `HCLang`
-   * have no filesystem to offer, and because a session's resources should not
-   * outlive it. `reset()` installs a new one, so a cleared session cannot read
-   * what the previous one wrote.
-   *
-   * The root also overlays the bundled, read-only `hc/` files, as the CLI's
-   * does, so `Figures <- './hc/figures.hc'` works in every session, including
-   * the browser playground and every session after `reset()`.
-   *
-   * The clock is the real one, because a browser has one and a session is a
-   * live session. Every other scheme is an empty slot.
-   */
-  private static makeHost(context: Context): Frame {
-    // A Frame adopts the Context object it is handed, so the binding is added
-    // to a copy: the embedder's declared host values are what `getContextString`
-    // reports, and installing a capability must not edit that record.
-    const host = new Frame({ ...context });
-    host.set(
-      RESOURCE_ROOT_KEY,
-      FrameResource.root(
-        withHCBundle(new MemoryStore("session")),
-        ResourceHandlers.of({
-          [CLOCK_SCHEME]: new ClockHandler(new RealClock()),
-        }),
-      ),
+    this.hostNamespace = hostNamespace(
+      this.context,
+      new MemoryStore("session"),
     );
-    // The same bridge the CLI installs, so a bundled testdoc that dispatches
-    // (`hc/art-dispatch-vact.hc`) runs in a session as it does under the CLI.
-    host.set(DISPATCH_KEY, dispatchNamespace());
-    return host;
+    this.history = [];
   }
 
   /** Returns the host namespace supplied by the embedding application. */
@@ -133,7 +93,10 @@ export class HCLang {
   public reset(): void {
     this.context = make_context({});
     this.fileScope = new Frame();
-    this.hostNamespace = HCLang.makeHost(this.context);
+    this.hostNamespace = hostNamespace(
+      this.context,
+      new MemoryStore("session"),
+    );
     this.history = [];
   }
 }
