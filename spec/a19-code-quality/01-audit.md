@@ -48,8 +48,8 @@ public instance member of `FrameArray` or `FrameList`: 2.3 moves `FrameArray`'s
 declared protocol out but keeps its overrides, and `declaredOperator` as a
 delegator, on the class. A disposition that adds to the public API needs a
 decision too (5.17). Helpers that steps 10 to 13 add stay out of it, so a new
-member of `Frame`, `MetaFrame`, `HCLang`, `FrameList` or `FrameArray` is
-`private`.
+member of `Frame`, `MetaFrame`, `HCLang`, `FrameList`, `FrameArray` or a class
+that 5.17 exports is `private`.
 
 Paths are relative to the repository root, and line numbers are at `ba6c00b`. A
 finding that several steps turned up appears once, under the step that owns it,
@@ -1481,20 +1481,49 @@ takes the lint from 20 errors to 38: 14 `FrameArray` declarations lack JSDoc,
 `FrameArray.in` and `applicationMethod` name `EvaluationInput` and
 `DeclaredApplication`, and the class names its base class `FrameList` and
 `BoundMethod`, which `declaredOperator` returns. Exporting the 11 types, and
-then each type the lint names next until it names none, takes 27 type exports
-and ends at 151 errors. 150 are `missing-jsdoc` (5.18). The last is a reference
-no type export can fix: `ReceiverState` uses `RECEIVER_WRITE_AUTHORIZED` as a
-key (`bound-method.ts:24`), and the module does not export that symbol (`:7`).
-The 16 types beyond the 11 are `BoundMethod`, `FrameAtom`, `FrameExpr`,
-`FrameList`, `FrameNote`, `ISourced`, `WriteTargetRole`, `Any`,
-`IArrayConstructor`, `ICurryFunction`, four from `frame-match.ts`
-(`FrameMatcher`, `MatchResult`, `MatchSuccess`, `MatchFailure`) and two from
-`scan.ts` (`ScanResult`, `ScanDisposition`). **Disposition: step 12.** Add the
-27 type-only re-exports to `lib/mod.ts`, which adds no run-time export. Step 12
-also has to resolve the `RECEIVER_WRITE_AUTHORIZED` reference before 5.19's
-check can pass. **Needs a decision:** this widens the public API by 27 type
-names, although it removes nothing. The alternative, taking those members out of
-the public surface, would break users.
+then each type the lint names next, takes 27 type exports and ends at 151
+errors: 150 `missing-jsdoc` (5.18) and one `private-type-ref`, because
+`ReceiverState` uses the module-private symbol `RECEIVER_WRITE_AUTHORIZED` as a
+key (`bound-method.ts:7`, `:24`). A type-only export of the symbol clears that
+error. With `export type { RECEIVER_WRITE_AUTHORIZED };` in `bound-method.ts`
+and a type-only re-export of it in `lib/mod.ts`, the lint reports 150 errors,
+all `missing-jsdoc`, and `deno check lib/mod.ts` exits 0. That makes 28
+type-only exports in `lib/mod.ts`. The 16 types beyond the 11 are `BoundMethod`,
+`FrameAtom`, `FrameExpr`, `FrameList`, `FrameNote`, `ISourced`,
+`WriteTargetRole`, `Any`, `IArrayConstructor`, `ICurryFunction`, four from
+`frame-match.ts` (`FrameMatcher`, `MatchResult`, `MatchSuccess`, `MatchFailure`)
+and two from `scan.ts` (`ScanResult`, `ScanDisposition`).
+
+The symbol has to stay out of callers' reach at run time, because it brands
+write authority. `FrameAlias.in` (`frame-alias.ts:66`) and the `.^` re-parenting
+in `FrameName.in` (`frame-name.ts:124`) answer `$!.method-not-mutating` unless
+`authorizedReceiverWriteTarget` (`bound-method.ts:46-56`) finds the brand on the
+call's `ReceiverState`, and only `BoundMethod.receiverStateForCall` (`:165`)
+adds it. A type-only export is erased at run time, so callers still cannot
+obtain the symbol. A value export would let a caller brand a state of its own
+and pass it to the public `Frame.call` (`frame.ts:797-800`), which
+`FrameLazy.call` (`frame-lazy.ts:233-238`, `:294`) and `EvaluationScope.call`
+(`evaluation-scope.ts:236`, `:272`) carry into the call's scope. The method
+would then write the receiver the state names, skipping the instance copy
+(`bound-method.ts:197`) and the copy-on-write boundary check (`:178-184`) that
+`receiverStateForCall` applies. This path was traced through the source, not
+run.
+
+**Disposition: step 12.** Add 28 type-only exports to `lib/mod.ts`, the 27 types
+and the brand, and export the brand type-only from `bound-method.ts` too. None
+of them is a run-time export, and the brand must not become a value export.
+**Needs a decision:** the 28 exports remove nothing, but they publish more than
+28 names. Every member that `deno doc` then lists on them becomes public API,
+documented or not; 5.18's 141 comments count only the declarations that lack
+JSDoc. The comment at `lib/frames.ts:18-20` treats two of the types as internal:
+it calls `EvaluationScope` interpreter-internal and says `WriteTargetRole` stays
+private to the scope module. `WriteTargetRole` enters because
+`EvaluationScope.writeTargetRole` (`evaluation-scope.ts:121`) and
+`withWriteTarget` (`:369`) name it. Approving 5.17 reverses that choice, and
+step 12 then rewrites the comment. Removing any newly public member later needs
+a decision and a minor version bump, as 3.12 and 3.17 do. The alternative,
+taking the members that name these types out of the public API, would break
+users.
 
 **5.18 Nine public declarations lack JSDoc.** The 9 `missing-jsdoc` errors are
 `VERSION` (`version.ts:1`), `HCLang`'s constructor and `history`
@@ -2273,7 +2302,11 @@ These dispositions need a decision as well as approval:
 - 5.5 stops `make_context` and `HCLang` from printing the context for embedders
   that pass `DEBUG_ENV`.
 - 5.14 moves the Sigilizer, or instead amends the `lib/execute/CLAUDE.md` rule.
-- 5.17 adds 27 type-only exports to `lib/mod.ts`, `FrameArray` among them.
+- 5.17 adds 28 type-only exports to `lib/mod.ts`, `FrameArray` and the
+  `RECEIVER_WRITE_AUTHORIZED` brand among them; the brand must not become a
+  value export. The exports and every member that `deno doc` then lists on them
+  become public API, `EvaluationScope` and `WriteTargetRole` included, although
+  the comment at `lib/frames.ts:18-20` treats both as internal.
 - 6.2 restates the testing rule at `CLAUDE.md:99`.
 - 6.12 offers pinning the 6 unpinned testdocs, which adds assertions.
 - 6.13 changes what `scripts/test-npm.ts` asserts about the numerics run.
@@ -2345,7 +2378,7 @@ deno doc --lint lib/mod.ts
 
 # Step 5, 5.17's export probe, in a `git archive` snapshot after
 # `deno task bundle:embed`: FrameArray alone, then the 11 types and each type
-# the lint names next, until it names none.
+# the lint names next, then the brand, type-only.
 cp lib/mod.ts /tmp/mod.ts.orig
 print 'export type { FrameArray } from "./frames.ts";' >> lib/mod.ts
 deno doc --lint lib/mod.ts 2>&1 | grep -c '^error\['
@@ -2370,6 +2403,12 @@ while (( $#next )); do
 done
 grep -c '^export type' lib/mod.ts
 grep '^error\[' /tmp/doc-lint.log | cut -d: -f1 | sort | uniq -c
+print 'export type { RECEIVER_WRITE_AUTHORIZED };' >> lib/frames/bound-method.ts
+print 'export type { RECEIVER_WRITE_AUTHORIZED } from' \
+  '"./frames/bound-method.ts";' >> lib/mod.ts
+grep -c '^export type' lib/mod.ts
+deno doc --lint lib/mod.ts 2>&1 | grep '^error\[' | cut -d: -f1 | sort | uniq -c
+deno check lib/mod.ts
 
 # Step 5, value-import cycles, after `deno task bundle:embed`. One module
 # imports every non-test lib module, and networkx lists the simple cycles over
