@@ -145,8 +145,7 @@ export class FrameSymbol extends FrameAtom {
     const first = scope.argument;
     // A method body resolves against its receiver, so visibility asks the same
     // question no matter which path the access arrives by.
-    const receiverState = scope.receiverState;
-    const receiver = receiverState?.receiver;
+    const receiver = scope.receiverState?.receiver;
     for (const context of scope.lookupFrames()) {
       const explicitOrigin = this.get_here(Frame.kOUT);
       const origin = receiver ??
@@ -158,79 +157,100 @@ export class FrameSymbol extends FrameAtom {
         : context.get(this.data, origin);
       if (!value.is.missing) {
         if (value.is.error) return value;
-
-        // Every successful read gets its own lexical projection. Closures bind
-        // a scoped copy, aggregates keep their exact identity behind a handle,
-        // and immutable values use a plumbing copy. The shared binding is never
-        // re-parented for the benefit of one reader, so only a projection this
-        // read created takes the read site as its `up`: a closure that is
-        // already bound answers itself and keeps the scope it was made in.
-        const isCanonicalBoolean = value === Frame.nil || value === Frame.all;
-        const continuation = context instanceof FrameHandle
-          ? context
-          : context.projectionContext();
-        const resolved = value instanceof FrameLazy
-          ? value.bind(scope.captureScope())
-          : value instanceof FrameArray || isCanonicalBoolean
-          ? value
-          : value.copy();
-        if (resolved !== value) {
-          resolved.up = continuation;
-        }
-
-        // Built-in control flow receives the exact active capability only for
-        // callbacks it invokes; ordinary closure calls do not inherit it.
-        if (resolved instanceof FrameCurry && receiverState) {
-          resolved.withReceiverState(receiverState);
-        }
-        if (resolved.is.immediate === true) {
-          return resolved.call(context);
-        }
-        // A bare method found through the active raw receiver must obey the same
-        // effect and copy rules as dotted lookup through a handle.
-        if (
-          resolved instanceof FrameLazy && receiverState &&
-          context === receiver &&
-          this.isReceiverPathValue(receiver, value, origin)
-        ) {
-          return new BoundMethod(
-            resolved,
-            receiver,
-            receiverState.mutable,
-            methodEffect(this.data),
-            receiverState.copyOnWrite,
-            receiverState.lexicalContext,
-          );
-        }
-        // A method read by dot from a value no name holds binds to that value
-        // as a name would, immutably: it may still be shared, so a mutating
-        // method answers a functional update rather than writing it.
-        if (
-          resolved instanceof FrameLazy && this.is.address === true &&
-          !(context instanceof FrameHandle) && context.ownsIdentity() &&
-          this.isReceiverPathValue(context, value, origin)
-        ) {
-          return new BoundMethod(
-            resolved,
-            context,
-            false,
-            methodEffect(this.data),
-          );
-        }
-        const copyOnWrite = context instanceof FrameHandle
-          ? context.copyOnWriteScope() ?? receiverState?.copyOnWrite
-          : receiverState?.copyOnWrite;
-        if (!(resolved instanceof FrameArray)) return resolved;
-        const handle = new FrameHandle(
-          resolved,
-          touchesIdentity(this.data),
-          copyOnWrite,
-          continuation,
-        );
-        return copyOnWrite ? handle.heldBy(context) : handle;
+        return this.projectRead(value, context, origin, scope);
       }
     }
     return FrameNote.key(first.id + "." + this.data, first);
+  }
+
+  /**
+   * The projection one successful read of this name answers for `value`. It
+   * chooses between binding, copying and wrapping in a handle, and binds a
+   * method to the receiver it was found on.
+   *
+   * @param value The value found, neither missing nor an error.
+   * @param context The lookup frame the value was found through.
+   * @param origin The frame the lookup asked on behalf of.
+   * @param scope The scope the read evaluates in, which holds the receiver.
+   * @returns What the read answers.
+   */
+  private projectRead(
+    value: Frame,
+    context: Frame,
+    origin: Frame,
+    scope: EvaluationScope,
+  ): Frame {
+    const receiverState = scope.receiverState;
+    const receiver = receiverState?.receiver;
+    // Every successful read gets its own lexical projection. Closures bind
+    // a scoped copy, aggregates keep their exact identity behind a handle,
+    // and immutable values use a plumbing copy. The shared binding is never
+    // re-parented for the benefit of one reader, so only a projection this
+    // read created takes the read site as its `up`: a closure that is
+    // already bound answers itself and keeps the scope it was made in.
+    const isCanonicalBoolean = value === Frame.nil || value === Frame.all;
+    const continuation = context instanceof FrameHandle
+      ? context
+      : context.projectionContext();
+    const resolved = value instanceof FrameLazy
+      ? value.bind(scope.captureScope())
+      : value instanceof FrameArray || isCanonicalBoolean
+      ? value
+      : value.copy();
+    if (resolved !== value) {
+      resolved.up = continuation;
+    }
+
+    // Built-in control flow receives the exact active capability only for
+    // callbacks it invokes; ordinary closure calls do not inherit it.
+    if (resolved instanceof FrameCurry && receiverState) {
+      resolved.withReceiverState(receiverState);
+    }
+    if (resolved.is.immediate === true) {
+      return resolved.call(context);
+    }
+    // A bare method found through the active raw receiver must obey the same
+    // effect and copy rules as dotted lookup through a handle.
+    if (
+      resolved instanceof FrameLazy && receiverState &&
+      context === receiver &&
+      this.isReceiverPathValue(receiver, value, origin)
+    ) {
+      return new BoundMethod(
+        resolved,
+        receiver,
+        receiverState.mutable,
+        methodEffect(this.data),
+        receiverState.copyOnWrite,
+        receiverState.lexicalContext,
+      );
+    }
+    // A method read by dot from a value no name holds binds to that value
+    // as a name would, immutably: it may still be shared, so a mutating
+    // method answers a functional update rather than writing it.
+    if (
+      resolved instanceof FrameLazy && this.is.address === true &&
+      !(context instanceof FrameHandle) && context.ownsIdentity() &&
+      this.isReceiverPathValue(context, value, origin)
+    ) {
+      return new BoundMethod(
+        resolved,
+        context,
+        false,
+        methodEffect(this.data),
+      );
+    }
+    const copyOnWrite = context instanceof FrameHandle
+      ? context.copyOnWriteScope() ?? receiverState?.copyOnWrite
+      : receiverState?.copyOnWrite;
+    if (!(resolved instanceof FrameArray)) return resolved;
+    const handle = new FrameHandle(
+      resolved,
+      touchesIdentity(this.data),
+      copyOnWrite,
+      continuation,
+    );
+    return copyOnWrite ? handle.heldBy(context) : handle;
   }
 
   /** Whether a method was found on the receiver or its declared parents. */
