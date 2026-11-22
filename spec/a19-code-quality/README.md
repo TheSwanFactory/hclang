@@ -1,0 +1,93 @@
+# Code Quality: Audit, Refactor, Cleanup
+
+**Status:** Proposed. No step has started.\
+**Measured at:** `390ee31` (v0.55.1). Every number below is from that commit.\
+**Scope:** The TypeScript in `lib/`, `cli/`, `web/`, `maml/` and `scripts/`, the
+bundled `hc/` files, `experiments/`, and the docs that describe them. HC
+semantics and open design proposals are out of scope.
+
+## Rules
+
+- **Behavior stays fixed.** HC semantics, test assertions and testdoc claims
+  stay as they are. A refactor may move a test but not change what it asserts.
+  `lib/mod.ts` keeps its exports unless question 1 says otherwise. A defect
+  found along the way gets its own issue.
+- **Every step lands green.** Each PR passes `deno task test`, which runs
+  `deno fmt --check`, `deno lint` and `test:all`.
+- **Results go in numbered documents.** Each result goes in the next numbered
+  document in this folder, which names the steps it covers and states its
+  status. This README does not list them.
+
+## Audit
+
+Measure and report. The audit changes no code.
+
+1. **Baseline.** Record the wall time of each task `test:all` chains, the test
+   and testdoc claim counts, and line coverage per package
+   (`deno test --coverage`, then `deno coverage`). Step 17 repeats this.
+2. **Size and complexity.** Rank modules and functions by length and nesting,
+   and name classes with more than one responsibility. `lib/frames/frame.ts`
+   (1,384 lines) and `lib/execute/evaluate.test.ts` (2,654) are the largest
+   module and test file.
+3. **Dead code.** Find exports nothing imports, modules no entry point reaches,
+   branches the baseline run never covers, and anything the FOIST 19a migration
+   (#506, #508) left behind.
+4. **Duplication.** Find logic repeated across `lib/frames`, `lib/ops` and
+   `lib/execute`, or between TypeScript and `hc/`. Mark deliberate copies as
+   keep, such as the independent Cayley–Dickson oracles that differential tests
+   compare against.
+5. **Boundaries.** Confirm `lib/` imports nothing from `cli/` or `web/`, check
+   whether the `console.*` calls in 9 `lib/` modules belong in a library, list
+   the cycles in the `lib/` module graph (`deno info --json`), and run
+   `deno doc --lint lib/mod.ts` on the public API.
+6. **Tests.** List modules with no sibling `.test.ts` (36 in `lib/`; CLAUDE.md
+   asks for one per file), the slowest tests, and numbers that content changes
+   must update by hand, such as the 18 testdoc totals `cli/hc.test.ts` pins.
+7. **Docs and records.** Check `doc/ARCHITECTURE.md`, `README.md` and the
+   CLAUDE.md files against the code. List spec records with no status line,
+   experiments no task runs (only `007-observer-algebras` has tasks), and open
+   issues the code may already resolve, such as #481 (the bundle has been
+   generated and gitignored since #499).
+8. **Tooling.** Run `deno outdated`. List pre-release pins
+   (`deno-hooks@0.2.1-dev…`), test tasks that rewrite files (`maml`'s `test`
+   runs `deno fmt` and `deno lint --fix`), and files CI never type-checks (CI
+   runs no `deno check`).
+
+Each finding gets a location, a number where one applies, and a disposition: a
+refactor step, a cleanup step, an issue, or keep, with the reason. Approve the
+dispositions before step 9 starts.
+
+## Refactor
+
+Act only on approved findings.
+
+9. **Delete dead code** from step 3.
+10. **Split oversized modules** from step 2 along their responsibilities.
+    `lib/load-order.test.ts` must stay green: every `lib/` module still loads
+    when imported first.
+11. **Merge accidental duplicates** from step 4 into one implementation.
+12. **Fix boundary findings** from step 5, such as console output inside `lib/`
+    and import cycles.
+13. **Restructure tests.** Split the largest test files by feature, reduce the
+    hand-updated numbers step 6 found, and speed up the slowest tests.
+
+## Cleanup
+
+Bring docs, records and tooling in line, then measure again.
+
+14. **Docs.** Update `doc/ARCHITECTURE.md` and `README.md` for what moved, and
+    remove facts the code states from the CLAUDE.md files.
+15. **Records and experiments.** Add the missing status lines. Wire each
+    experiment's tests into a task, or delete the experiment (question 3).
+16. **Tooling.** Apply dependency updates, stop test tasks from rewriting files,
+    and add the checks step 8 found missing to CI.
+17. **Close out.** Repeat step 1 and record the before and after numbers. Close
+    the issues the work resolved and file issues for deferred findings.
+
+## Open questions
+
+1. May step 9 remove `lib/mod.ts` exports? That breaks JSR and npm users and
+   needs a minor version bump.
+2. Should coverage stay a measurement, or become a floor that CI enforces?
+3. Do experiments stay in the repository after their results are published?
+4. One PR per step, per phase, or one for the whole record?
