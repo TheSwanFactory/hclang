@@ -82,6 +82,12 @@ export class FrameLiteral extends FrameAtom {
   }
 }
 
+/**
+ * Where a declaration writes: the key it assigns, and the value bound there
+ * now when the name already resolves to a binding.
+ */
+type DeclarationSlot = { key: string; bound?: Frame };
+
 export class FrameSymbol extends FrameAtom {
   public override isSymbol(): this is FrameSymbol {
     return true;
@@ -310,10 +316,9 @@ export class FrameSymbol extends FrameAtom {
         ? new FrameLiteral(() => `.^ ${argument.toString()}`)
         : argument;
     }
-    const binding = out.resolve_here(this.data, out);
-    if (binding?.value.is.error) return binding.value;
-    const assignmentKey = binding?.key ?? this.data;
-    const schemaKey = `${assignmentKey}.<>`;
+    const slot = this.declarationSlot(out);
+    if (slot instanceof Frame) return slot;
+    const schemaKey = `${slot.key}.<>`;
 
     if (argument instanceof FrameSchema) {
       out.set(schemaKey, argument);
@@ -327,19 +332,47 @@ export class FrameSymbol extends FrameAtom {
       );
     }
 
-    const previous = binding?.value ?? out.get_here(this.data, out);
-    if (!previous.is.missing && this.isConstant(assignmentKey)) {
-      return Frame.error(`$error{$is-constant .${this.data}}`);
-    }
+    const prior = this.priorValue(out, slot);
+    if (prior instanceof Frame) return prior;
 
-    out.set(assignmentKey, argument);
-    return previous.is.missing
+    out.set(slot.key, argument);
+    return prior.previous.is.missing
       ? new FrameLiteral(() => `.${this.data} ${argument.toString()}`, {
         target: out,
-        key: assignmentKey,
+        key: slot.key,
         value: argument,
       })
       : argument;
+  }
+
+  /**
+   * The slot a declaration of this name writes in `out`: the key of the
+   * binding the name resolves to there, with its value, or the name itself
+   * when it resolves to none.
+   *
+   * @returns The slot, or the error the binding resolves to.
+   */
+  private declarationSlot(out: Frame): DeclarationSlot | Frame {
+    const binding = out.resolve_here(this.data, out);
+    if (binding?.value.is.error) return binding.value;
+    return { key: binding?.key ?? this.data, bound: binding?.value };
+  }
+
+  /**
+   * The value a declaration into `slot` replaces, missing when there is
+   * none. Replacing a constant's value is refused.
+   *
+   * @returns The prior value, or `$error{$is-constant .name}`.
+   */
+  private priorValue(
+    out: Frame,
+    slot: DeclarationSlot,
+  ): { previous: Frame } | Frame {
+    const previous = slot.bound ?? out.get_here(this.data, out);
+    if (!previous.is.missing && this.isConstant(slot.key)) {
+      return Frame.error(`$error{$is-constant .${this.data}}`);
+    }
+    return { previous };
   }
 
   public setter(out: Frame): FrameSymbol {
@@ -357,18 +390,15 @@ export class FrameSymbol extends FrameAtom {
   /** Complete a statement whose declared value is the schema itself. */
   public defineSchema(schema: FrameSchema): Frame {
     const out = this.get(Frame.kOUT);
-    const binding = out.resolve_here(this.data, out);
-    if (binding?.value.is.error) return binding.value;
-    const assignmentKey = binding?.key ?? this.data;
-    const previous = binding?.value ?? out.get_here(this.data, out);
-    if (!previous.is.missing && this.isConstant(assignmentKey)) {
-      return Frame.error(`$error{$is-constant .${this.data}}`);
-    }
-    out.set(assignmentKey, schema);
-    out.set(`${assignmentKey}.<>`, schema);
+    const slot = this.declarationSlot(out);
+    if (slot instanceof Frame) return slot;
+    const prior = this.priorValue(out, slot);
+    if (prior instanceof Frame) return prior;
+    out.set(slot.key, schema);
+    out.set(`${slot.key}.<>`, schema);
     return new FrameLiteral(() => `.${this.data} ${schema.toString()}`, {
       target: out,
-      key: assignmentKey,
+      key: slot.key,
       value: schema,
     });
   }
