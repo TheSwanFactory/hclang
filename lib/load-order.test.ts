@@ -4,8 +4,8 @@ import { beforeAll, describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 // imported, so an import cycle that bites only a direct import cannot return.
 // Each module is imported alone in its own module Worker, which has a fresh
 // module graph, like a fresh `deno` process. A Worker inherits this test's
-// permissions. `deno task test:load-order` grants read, to list and import the
-// modules, and env, which execute/hc-log.ts reads while it loads; the rest of
+// permissions. `deno task test:load-order` grants only read, to list and import
+// the modules: no lib/ module reads env while it loads. The rest of
 // `deno task test:lib` runs with no permissions.
 
 /** How many Workers load at once. */

@@ -43,8 +43,9 @@ const UNIX_VARIABLES = [
  *
  * This group is load-bearing rather than generous: the CLI's own dependency
  * tree reads the colour-support family, and `DEBUG`/`DEBUG_ENV` are read by the
- * logger and the context builder. Omitting them would leave a dictionary that
- * looks tidy and breaks the harness that uses it.
+ * CLI's logger (`cli/hc-log.ts`) and its context printout in `cli/hc.ts`.
+ * Omitting them would leave a dictionary that looks tidy and breaks the harness
+ * that uses it.
  *
  * Deliberately absent: the CI-vendor names that same dependency reads to guess
  * at colour support — `TF_BUILD`, `GITHUB_ACTIONS`, `TRAVIS`, and a dozen more.

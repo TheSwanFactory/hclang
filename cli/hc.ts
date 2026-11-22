@@ -1,6 +1,6 @@
 import { visibleEnvironment } from "../lib/execute/env-visibility.ts";
 import { HCEval, make_context } from "../lib/execute/hc-eval.ts";
-import { HCLog } from "../lib/execute/hc-log.ts";
+import { HCLog } from "./hc-log.ts";
 import { HCTest } from "../lib/execute/hc-test.ts";
 import { parseArgs } from "@std/cli/parse-args";
 import { runfile } from "./runfile.ts";
