@@ -22,15 +22,10 @@ import { sigilizer } from "../sigilizer.ts";
  * @returns {Context} A new context with the entries converted to appropriate Frame types
  *
  * @remarks
- * This method iterates over the entries and determines the type of each value
- * based on its first character:
- * - If alphabetic, the value is wrapped in a `FrameString`.
- * - If numeric, the value is wrapped in a `FrameCount`, as the same digits
- *   written in source would be.
- * - If neither, an error is logged and the key is set to `Frame.nil`.
- *
- * If the context contains a `DEBUG_ENV` key, the context is logged to the console
- * for debugging purposes.
+ * Each value becomes a Frame by its whole text:
+ * - An all-digit value becomes a `FrameCount`, as the same digits written in
+ *   source would be.
+ * - Any other value becomes a `FrameString`.
  *
  * @example
  * ```typescript
@@ -41,6 +36,7 @@ import { sigilizer } from "../sigilizer.ts";
  * };
  * const context = make_context(entries);
  * console.log(context);
+ * ```
  */
 export function make_context(entries: StringMap): Context {
   const context: Context = {};
@@ -51,9 +47,6 @@ export function make_context(entries: StringMap): Context {
       context[key] = new FrameString(value);
     }
   });
-  if (context.DEBUG_ENV) {
-    console.debug("DEBUG_ENV", context);
-  }
   return context;
 }
 

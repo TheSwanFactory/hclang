@@ -71,6 +71,7 @@ export function getOptions(args: string[]): ReturnType<typeof parseArgs> {
  */
 export function getEval(env: StringMap, out?: Frame): HCEval {
   const context = make_context(env);
+  if (context.DEBUG_ENV) console.debug("DEBUG_ENV", context);
   const output = out ?? new HCLog(context);
   return new HCEval(output, new Frame(), getHost(context));
 }
