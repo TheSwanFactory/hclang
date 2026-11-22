@@ -1,5 +1,5 @@
 import { expect } from "jsr:@std/expect@^0.219.1";
-import { Frame, FrameArray, FrameCount, FrameExpr } from "../frames.ts";
+import { Frame, FrameArray, FrameExpr } from "../frames.ts";
 import { FrameHandle } from "../frames/frame-handle.ts";
 import { HC_SOURCES } from "../bundle/hc-sources.ts";
 import { evaluate } from "./evaluate.ts";
@@ -14,19 +14,17 @@ import {
   observeKDCoordinates,
   tryDenumState,
 } from "../frames/fourth-hash.ts";
-
-const count = (n: bigint): FrameCount => new FrameCount(n);
-const denum = (c: bigint, loads: readonly bigint[]): Frame =>
-  constructDenum(count(c), loads.map(count));
+import {
+  answerOfLast as value,
+  countOf as count,
+  denumOf as denum,
+} from "../test-helpers.test.ts";
 
 const state = (d: Frame): { count: bigint; loads: readonly bigint[] } => {
   const observed = tryDenumState(d);
   if (!observed) throw new Error("not a genuine Denum: " + d);
   return observed;
 };
-
-const value = (source: string): Frame =>
-  FrameExpr.answeredValue(evaluate(source).at(-1)).referent();
 
 Deno.test("FOIST 19a: the third hash installs the HC class in a bare evaluator", () => {
   expect(evaluate("X <- './hc/denum.hc'; X").toString()).toContain("$!");

@@ -2,6 +2,7 @@ import { expect } from "jsr:@std/expect@^0.219.1";
 import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 import { evaluate } from "./evaluate.ts";
 import * as frame from "../frames.ts";
+import { lastText as result } from "../test-helpers.test.ts";
 
 describe("evaluate: boolean and type operations", () => {
   it("negates the nil and all singleton booleans", () => {
@@ -43,13 +44,6 @@ describe("evaluate: boolean and type operations", () => {
   });
 
   describe("closure return contracts `^^` (006.17)", () => {
-    // The last value an evaluation answered, the closure call rather than the
-    // declaration echo that precedes it in these two-statement sources.
-    const result = (source: string): string => {
-      const results = evaluate(source).asArray();
-      return results[results.length - 1].toString();
-    };
-
     it("accepts a return that conforms to the declared output schema", () => {
       const declaration = ".pick (.x) ^ {x} ^^ <1, 2, 3>; ";
       expect(result(declaration + "pick (.x 2)")).toContain("2");

@@ -12,6 +12,11 @@ import {
   FrameString,
 } from "../frames.ts";
 import { evaluate } from "../execute/evaluate.ts";
+import {
+  lastResult as answer,
+  lastResultText as text,
+  lastTermOfLast as last,
+} from "../test-helpers.test.ts";
 
 describe("FrameArray", () => {
   const a_frame = new FrameString("a");
@@ -69,9 +74,6 @@ describe("FrameArray", () => {
   });
 
   describe("size operators (#411)", () => {
-    /** The answer of the last statement in a source sequence. */
-    const last = (source: string): Frame =>
-      evaluate(source).at(-1).asArray().at(-1)!;
     const names = ".a 1; .b 2; .c 3; ";
 
     it("counts elements with .# and terminals with .##, as counts", () => {
@@ -322,9 +324,6 @@ describe("FrameArray", () => {
 
   describe("a declared application (#375)", () => {
     const summer = (body: string): string => `.Summer {[.total _; ${body}]}; `;
-    /** The answer of the last statement in a source sequence. */
-    const last = (source: string): Frame =>
-      evaluate(source).at(-1).asArray().at(-1)!;
 
     it("calls apply_ instead of collecting, answering the receiver", () => {
       const result = last(
@@ -462,11 +461,6 @@ describe("FrameArray", () => {
   });
 
   describe("integer repetition (v0.22.0)", () => {
-    /** The answer of the last line; earlier lines are setup statements. */
-    const answer = (...lines: string[]): Frame =>
-      evaluate(lines.join("\n")).at(-1);
-    const text = (...lines: string[]): string => answer(...lines).toString();
-
     it("concatenates the elements n times into a fresh array", () => {
       expect(text("3 [1, 2]")).toEqual("[1, 2, 1, 2, 1, 2]");
       expect(answer("3 [1, 2]")).toBeInstanceOf(FrameArray);

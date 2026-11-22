@@ -3,13 +3,11 @@ import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 import { evaluate } from "./evaluate.ts";
 import { make_context } from "./hc-eval.ts";
 import * as frame from "../frames.ts";
+import { firstEntryLastText, lastText } from "../test-helpers.test.ts";
 
 describe("evaluate: closures with arguments", () => {
   describe("write target", () => {
-    const last = (source: string): string => {
-      const results = evaluate(source).asArray();
-      return results[results.length - 1].toString();
-    };
+    const last = lastText;
 
     it("binds locally when the argument is a plain name", () => {
       expect(last(".X [1];\n.f {.o 2; o};\nf X;\nX\n")).toEqual("[1]");
@@ -127,8 +125,7 @@ describe("evaluate: closures with arguments", () => {
     });
 
     describe("an argument is read-only (#419)", () => {
-      const last = (source: string): string | undefined =>
-        evaluate(source).at(0).asArray().at(-1)?.toString();
+      const last = firstEntryLastText;
 
       it("collects onto a copy when a block applies its element", () => {
         expect(last(".xs [[1], [2]]; [xs & {_ 9}, xs, {_ 9} (xs .0)]"))
@@ -145,8 +142,7 @@ describe("evaluate: closures with arguments", () => {
     });
 
     describe("_^ in a method is its receiver (v0.23.0)", () => {
-      const last = (source: string): string | undefined =>
-        evaluate(source).at(0).asArray().at(-1)?.toString();
+      const last = firstEntryLastText;
 
       it("reads the descendant an inherited method was found on", () => {
         expect(last(
@@ -396,8 +392,7 @@ describe("evaluate: closures with arguments", () => {
 
   describe("the argument layer (spec 7, layer 2)", () => {
     it("reads the argument's own and inherited properties", () => {
-      const answer = (source: string): string | undefined =>
-        evaluate(source).at(0).asArray().at(-1)?.toString();
+      const answer = firstEntryLastText;
 
       expect(answer(".f {v}; f [.v 1]")).toEqual("1");
       expect(answer(".base [.v 2]; .f {v}; f [.^ base]")).toEqual("2");

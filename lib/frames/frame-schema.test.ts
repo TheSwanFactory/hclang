@@ -10,7 +10,11 @@ import {
   FrameSymbol,
   FrameType,
 } from "../frames.ts";
-import { evaluate } from "../execute/evaluate.ts";
+import {
+  lastResult as answer,
+  lastResultText as text,
+  lastTermOfLast as last,
+} from "../test-helpers.test.ts";
 
 describe("FrameSchema", () => {
   const a_frame = new FrameString("a");
@@ -105,10 +109,6 @@ describe("FrameSchema", () => {
   });
 
   describe("size operators (#411)", () => {
-    /** The answer of the last statement in a source sequence. */
-    const last = (source: string): Frame =>
-      evaluate(source).at(-1).asArray().at(-1)!;
-
     it("counts declared alternatives without weighting their values", () => {
       expect(last("<1, 2>.#").className()).toEqual("FrameCount");
       expect(last("<1, 2>.#").toString()).toEqual("2");
@@ -130,11 +130,6 @@ describe("FrameSchema", () => {
   });
 
   describe("integer repetition (v0.22.0)", () => {
-    /** The answer of the last line; earlier lines are setup statements. */
-    const answer = (...lines: string[]): Frame =>
-      evaluate(lines.join("\n")).at(-1);
-    const text = (...lines: string[]): string => answer(...lines).toString();
-
     it("concatenates an enumeration, which matches what it did", () => {
       expect(text("3 <1, 2>")).toEqual("<1, 2, 1, 2, 1, 2>");
       expect(answer("3 <1, 2>")).toBeInstanceOf(FrameSchema);

@@ -3,7 +3,6 @@ import {
   EvaluationScope,
   Frame,
   FrameArray,
-  FrameExpr,
   FrameImport,
   FrameNote,
   FrameResource,
@@ -15,27 +14,7 @@ import { evaluate } from "./evaluate.ts";
 import { evaluateResourceSource } from "./resource-import.ts";
 import { HCTest } from "./hc-test.ts";
 import { HCLang } from "./hc-lang.ts";
-
-class Counter extends Frame {
-  public readonly effects = { calls: 0 };
-  public get calls(): number {
-    return this.effects.calls;
-  }
-  public override call(_argument: Frame): Frame {
-    return Frame.count(BigInt(++this.effects.calls));
-  }
-}
-
-/** Look through the top-level group/statement, without evaluating again. */
-const answer = (source: string): Frame => {
-  let value: Frame = evaluate(source).asArray().at(-1)!;
-  while (
-    value.constructor === FrameExpr || value.constructor.name === "FrameGroup"
-  ) {
-    value = value.asArray().at(-1)!;
-  }
-  return value.referent();
-};
+import { Counter, innermostAnswer as answer } from "../test-helpers.test.ts";
 
 Deno.test("diagnostic classification agrees at shallow control boundaries", () => {
   for (const label of ["!", ">", "-", "+", "~", "=", "unknown"]) {

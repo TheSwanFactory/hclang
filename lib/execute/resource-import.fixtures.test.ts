@@ -6,7 +6,6 @@
  * exclusions treat it as test code.
  */
 import {
-  type EvaluationInput,
   EvaluationScope,
   Frame,
   FrameArray,
@@ -79,19 +78,6 @@ export class RecordingHandler implements SchemeHandler {
   public write(_reference: never, _content: string): HandlerWrite {
     this.writes += 1;
     return { ok: false, reason: "read-only" };
-  }
-}
-
-export class CountingExpression extends Frame {
-  public calls = 0;
-
-  public constructor(private readonly answer: Frame) {
-    super();
-  }
-
-  public override in(_input: EvaluationInput = []): Frame {
-    this.calls += 1;
-    return this.answer;
   }
 }
 

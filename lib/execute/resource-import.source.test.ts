@@ -16,7 +16,6 @@ import { evaluate } from "./evaluate.ts";
 import { HCEval } from "./hc-eval.ts";
 import { evaluateResourceSource } from "./resource-import.ts";
 import {
-  CountingExpression,
   MODULE_PATH,
   MODULE_REFERENCE,
   RecordingHandler,
@@ -25,6 +24,7 @@ import {
   rootContext,
   runFrameImport,
 } from "./resource-import.fixtures.test.ts";
+import { CountingExpression } from "../test-helpers.test.ts";
 
 const evaluateOuterImport = (
   importedSource: string,

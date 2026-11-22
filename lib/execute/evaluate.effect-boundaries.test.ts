@@ -1,14 +1,9 @@
 import { expect } from "jsr:@std/expect@^0.219.1";
 import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 import { evaluate } from "./evaluate.ts";
+import { lastText as last } from "../test-helpers.test.ts";
 
 describe("evaluate: effect boundaries and relactional semantics (006.17)", () => {
-  // The last value an evaluation answered, as the `^^` suite above does.
-  const last = (source: string): string => {
-    const results = evaluate(source).asArray();
-    return results[results.length - 1].toString();
-  };
-
   // A managed value plus a shared `log_` the registered callback bumps, so a
   // committed mutation is observable as a count of callback invocations. The
   // callback never touches the managed value, so firing is the only effect.

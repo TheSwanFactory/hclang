@@ -1,6 +1,7 @@
 import { expect } from "jsr:@std/expect@^0.219.1";
 import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 import { evaluate } from "./evaluate.ts";
+import { firstEntryLastText as answer } from "../test-helpers.test.ts";
 
 describe("evaluate: access and effects", () => {
   it("enforces visibility through ordinary property syntax", () => {
@@ -287,9 +288,6 @@ describe("evaluate: access and effects", () => {
   });
 
   describe("copy on write (#401)", () => {
-    const answer = (source: string): string | undefined =>
-      evaluate(source).at(0).asArray().at(-1)?.toString();
-
     it("shares what a functional update never writes", () => {
       expect(answer(
         ".kid [.n 1]; .k [.fig kid; .touch_ {@fig fig;}]; " +

@@ -12,11 +12,8 @@ import {
   FrameScoped,
   FrameString,
 } from "../frames.ts";
-import { evaluate } from "../execute/evaluate.ts";
 import { tryDenumState } from "./fourth-hash.ts";
-
-const last = (source: string): Frame =>
-  evaluate(source).at(-1).asArray().at(-1)!;
+import { lastTermOfLast as last } from "../test-helpers.test.ts";
 
 Deno.test("Size evaluates exact truncated magnitudes without Number projection", () => {
   for (

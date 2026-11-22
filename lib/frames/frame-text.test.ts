@@ -11,7 +11,7 @@ import {
   FrameURI,
   hasCharacterContent,
 } from "../frames.ts";
-import { evaluate } from "../execute/evaluate.ts";
+import { firstEntryLastText as answer } from "../test-helpers.test.ts";
 
 describe("FrameText", () => {
   it("holds the body of every delimited text family", () => {
@@ -45,8 +45,6 @@ describe("FrameText", () => {
   });
 
   describe("an aggregate's declared toText (#398)", () => {
-    const answer = (source: string): string | undefined =>
-      evaluate(source).at(0).asArray().at(-1)?.toString();
     const point =
       ".Point {[.X (_ .0); .Y (_ .1); .toText {“(” X “, ” Y “)”}]}; " +
       ".p (Point [3, 5]); ";

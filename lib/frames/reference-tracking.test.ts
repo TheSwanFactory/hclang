@@ -5,8 +5,6 @@ import { evaluate } from "../execute/evaluate.ts";
 import { Frame } from "./frame.ts";
 import { FrameArray } from "./frame-array.ts";
 import { FrameCount } from "./frame-count.ts";
-import { FrameSymbol } from "./frame-symbol.ts";
-import { EvaluationScope } from "./evaluation-scope.ts";
 import {
   AccessRecord,
   holdersOf,
@@ -16,13 +14,10 @@ import {
   versionOf,
   withAccessRecord,
 } from "./reference-tracking.ts";
+import { readName as read } from "../test-helpers.test.ts";
 
 const describeHolding = (holding: { key: string; mutable: boolean }): string =>
   `${holding.key}${holding.mutable ? "!" : ""}`;
-
-/** Reads a name as a statement would, so the answer is a handle. */
-const read = (scope: Frame, key: string): Frame =>
-  FrameSymbol.for(key).in(EvaluationScope.root(scope));
 
 describe("reference tracking: holders of an identity (ART inverse index)", () => {
   it("lists every binding that holds an aggregate, graded by its marker", () => {

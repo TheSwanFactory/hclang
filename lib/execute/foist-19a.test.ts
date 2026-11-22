@@ -1,23 +1,21 @@
 import { expect } from "jsr:@std/expect@^0.219.1";
-import { Frame, FrameArray, FrameCount, FrameExpr } from "../frames.ts";
+import { Frame, FrameArray } from "../frames.ts";
 import { CartElements, FlopElements } from "../ops/pairings.ts";
 import {
   multiplyDenum,
   observeDenum,
   observeKDCoordinates,
 } from "../frames/fourth-hash.ts";
-import { constructDenum } from "./denum-prologue.ts";
-import { evaluate } from "./evaluate.ts";
+import {
+  answerOfLast as read,
+  countOf as count,
+  denumOf as denum,
+} from "../test-helpers.test.ts";
 
-const count = (n: bigint): FrameCount => new FrameCount(n);
-const denum = (c: bigint, values: readonly bigint[]): Frame =>
-  constructDenum(count(c), values.map(count));
 const rawState = (value: Frame): [string, string[]] => [
   String(value.referent().getOwn("count")),
   value.referent().getOwn("loads").referent().elements().map(String),
 ];
-const read = (source: string): Frame =>
-  FrameExpr.answeredValue(evaluate(source).at(-1)).referent();
 
 Deno.test("FOIST 19a: the third hash is raw Denumeration", () => {
   expect(rawState(read("[3, 1].###"))).toEqual(["2", ["3", "1"]]);
