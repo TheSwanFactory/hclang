@@ -7,7 +7,7 @@ import {
   sitesAround,
 } from "./frame-expr.ts";
 import { FrameGroup } from "./frame-group.ts";
-import { FrameSymbol } from "./frame-symbol.ts";
+import type { FrameSymbol } from "./frame-symbol.ts";
 import { type Context, NilContext } from "./context.ts";
 import type { ReceiverState } from "./bound-method.ts";
 import { type EvaluationInput, EvaluationScope } from "./evaluation-scope.ts";
@@ -266,7 +266,7 @@ export class FrameLazy extends FrameExpr {
     receiverState?: ReceiverState,
   ): Frame | EvaluationScope {
     if (
-      argument instanceof FrameSymbol && argument.is.address === true &&
+      argument.isSymbol() && argument.is.address === true &&
       argument.spelling() === "<>"
     ) return FrameType.of(this);
     const size = this.sizeOperator(argument);
@@ -301,7 +301,7 @@ export class FrameLazy extends FrameExpr {
     }
 
     const missing = this.signature.asArray()
-      .filter((item): item is FrameSymbol => item instanceof FrameSymbol)
+      .filter((item): item is FrameSymbol => item.isSymbol())
       .map((item) => item.spelling())
       .filter((key) => prepared.get_here(key).is.missing);
     if (missing.length === 0) return prepared;

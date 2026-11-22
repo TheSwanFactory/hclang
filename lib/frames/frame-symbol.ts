@@ -5,7 +5,7 @@ import { FrameWord } from "./frame-word.ts";
 import { FrameNote } from "./frame-note.ts";
 import { FrameHandle } from "./frame-handle.ts";
 import { FrameArray } from "./frame-array.ts";
-import { FrameSchema } from "./frame-schema.ts";
+import type { FrameSchema } from "./frame-schema.ts";
 import { FrameType } from "./frame-type.ts";
 import { FrameLazy } from "./frame-lazy.ts";
 import { BoundMethod } from "./bound-method.ts";
@@ -320,7 +320,7 @@ export class FrameSymbol extends FrameAtom {
     if (slot instanceof Frame) return slot;
     const schemaKey = `${slot.key}.<>`;
 
-    if (argument instanceof FrameSchema) {
+    if (argument.isSchema()) {
       out.set(schemaKey, argument);
       return this;
     }
