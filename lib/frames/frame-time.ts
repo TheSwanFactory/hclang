@@ -70,7 +70,7 @@ const NANOS_PER_DAY = 24n * NANOS_PER_HOUR;
 const NANOS_PER_WEEK = 7n * NANOS_PER_DAY;
 
 /** Milliseconds are what a host clock reports, so the factor is named once. */
-export const NANOS_PER_MILLISECOND = 1_000_000n;
+const NANOS_PER_MILLISECOND = 1_000_000n;
 
 /** An offset-bearing instant, or a date standing for the start of its UTC day. */
 const INSTANT =

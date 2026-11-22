@@ -219,7 +219,7 @@ class QuoteSink extends Frame {
  * closure is bound at `site`, where the read was written, as any closure
  * written there would be.
  */
-export function quoteResourceSource(
+function quoteResourceSource(
   resource: Frame,
   site?: EvaluationScope,
 ): Frame {

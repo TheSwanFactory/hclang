@@ -38,7 +38,7 @@ import { evaluateSourceText } from "./resource-import.ts";
 export const DENUM_SOURCE = "hc/denum.hc";
 
 /** The name the file declares the constructor under. */
-export const DENUM_CLASS = "Denum";
+const DENUM_CLASS = "Denum";
 
 let loaded: Frame | undefined;
 let loading = false;

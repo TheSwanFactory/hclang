@@ -25,10 +25,10 @@
  */
 
 /** The bundled HC files, the only source of truth for them. */
-export const HC_DIR: URL = new URL("../hc/", import.meta.url);
+const HC_DIR: URL = new URL("../hc/", import.meta.url);
 
 /** The generated module every host imports. */
-export const EMBED_PATH: URL = new URL(
+const EMBED_PATH: URL = new URL(
   "../lib/bundle/hc-sources.ts",
   import.meta.url,
 );

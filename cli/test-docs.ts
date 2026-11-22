@@ -12,7 +12,7 @@ import { fromFileUrl } from "jsr:@std/path@1.1.6";
 import { visibleEnvironment } from "../lib/execute/env-visibility.ts";
 import { getEval, getOptions, main } from "./hc.ts";
 
-export const HC_DOC_DIR: URL = new URL("../hc/", import.meta.url);
+const HC_DOC_DIR: URL = new URL("../hc/", import.meta.url);
 
 // Existing legacy examples without the executable HC testdoc shebang:
 // CQML is aspirational; white-paper-core is exercised by cli/hc.test.ts.

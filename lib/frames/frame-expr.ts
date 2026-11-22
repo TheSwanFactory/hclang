@@ -469,7 +469,7 @@ export function atomsOf(
  * binding names. Compound atoms stay whole; only trivial wrappers are unwrapped.
  * A malformed cyclic wrapper is refused before it can recurse forever.
  */
-export function sizeAtomsOf(terms: readonly Frame[]): Frame[] | Frame {
+function sizeAtomsOf(terms: readonly Frame[]): Frame[] | Frame {
   const atoms: Frame[] = [];
   let cyclic = false;
   const walkAtom = (term: Frame, path = new Set<Frame>()): void => {

@@ -38,7 +38,7 @@ export type BindingResolution = {
 };
 
 /** Visibility levels for logical frame bindings. */
-export enum Visibility {
+enum Visibility {
   Public = "public",
   Protected = "protected",
   Private = "private",
@@ -544,7 +544,7 @@ export type DeclaredApplication = {
  * @param flags
  * @returns
  */
-export function inspectFlags(flags: Flags): string {
+function inspectFlags(flags: Flags): string {
   const entries = Object.entries(flags);
   if (entries.length === 0) {
     return "{}";

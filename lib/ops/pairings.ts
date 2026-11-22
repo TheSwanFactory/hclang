@@ -7,7 +7,7 @@ import { tryDenumState } from "../frames/fourth-hash.ts";
 export const CART_MAX_PAIRS = 262144;
 
 /** Denums expose their raw load occurrences as the structural element plane. */
-export const cartInputs = (source: Frame): Frame[] => {
+const cartInputs = (source: Frame): Frame[] => {
   const state = tryDenumState(source);
   return state
     ? state.loads.map((n) => new FrameCount(n))

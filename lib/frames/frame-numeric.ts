@@ -30,7 +30,7 @@ export const REPETITION_TEXT_LIMIT = 1_000_000n;
 export const REPETITION_ELEMENT_LIMIT = 1_000_000n;
 
 /** Maximum estimated bit width of an exact power result. */
-export const EXACT_POWER_BIT_LIMIT = 1_000_000n;
+const EXACT_POWER_BIT_LIMIT = 1_000_000n;
 
 /** Whether bigint exponentiation can stay within the exact-result budget. */
 export function exactPowerWithinLimit(

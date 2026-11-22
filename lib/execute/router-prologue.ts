@@ -28,17 +28,17 @@ import { HC_SOURCES } from "../bundle/hc-sources.ts";
 import { evaluateSourceText } from "./resource-import.ts";
 
 /** The bundled file that defines the class. */
-export const ROUTER_SOURCE = "hc/rotor-router.hc";
+const ROUTER_SOURCE = "hc/rotor-router.hc";
 
 /** The name the file declares the constructor under. */
-export const ROUTER_CLASS = "RotorRouter";
+const ROUTER_CLASS = "RotorRouter";
 
 /**
  * The builder the class file declares beside its constructor, which makes an
  * instance of any number of channels from channels already known to be
  * admissible, without validating or copying them.
  */
-export const ROUTER_BUILDER = "router-instance";
+const ROUTER_BUILDER = "router-instance";
 
 let loaded: Frame | undefined;
 let builder: Frame | undefined;
@@ -51,7 +51,7 @@ let loading = false;
  * @param source The source text, or undefined when the bundle lacks it.
  * @returns The constructor, or an error.
  */
-export function loadRouterClass(source: string | undefined): Frame {
+function loadRouterClass(source: string | undefined): Frame {
   if (source === undefined) {
     return Frame.error(`$!.router-prologue-missing ${ROUTER_SOURCE}`);
   }
@@ -76,7 +76,7 @@ export function loadRouterClass(source: string | undefined): Frame {
  *
  * @returns The constructor, or the error that loading it answered.
  */
-export function routerClass(): Frame {
+function routerClass(): Frame {
   if (loaded) return loaded;
   if (loading) return Frame.error("$!.router-prologue-reentrant");
   loading = true;
@@ -94,7 +94,7 @@ export function routerClass(): Frame {
  * @param channels The channel arrays, in order.
  * @returns The new instance, or the class's failure.
  */
-export function constructRouter(channels: FrameArray): Frame {
+function constructRouter(channels: FrameArray): Frame {
   const constructor = routerClass();
   if (constructor.isFailedResult() || constructor.observationError()) {
     return constructor;
@@ -114,7 +114,7 @@ export function constructRouter(channels: FrameArray): Frame {
  * @param source The observed Frame.
  * @returns The stored channel arrays, or undefined.
  */
-export function channelRouterChannels(source: Frame): Frame[] | undefined {
+function channelRouterChannels(source: Frame): Frame[] | undefined {
   const host = source.referent();
   if (!host.ownsIdentity()) return undefined;
   const stored = host.get_here("channels").referent();
@@ -148,7 +148,7 @@ export function channelRouterChannels(source: Frame): Frame[] | undefined {
  * @param channels The dealt channel arrays, at least one.
  * @returns The new router, or the class's failure.
  */
-export function dealtRouter(channels: FrameArray): Frame {
+function dealtRouter(channels: FrameArray): Frame {
   const constructor = routerClass();
   if (constructor.isFailedResult() || constructor.observationError()) {
     return constructor;
