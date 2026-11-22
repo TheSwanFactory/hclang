@@ -674,7 +674,7 @@ export class Frame extends MetaFrame {
     }
 
     override call(argument: Frame): Frame {
-      const key = Frame.quantityOperator(argument);
+      const key = argument.isSymbol() ? argument.sizeOperatorKey() : undefined;
       if (key) return this.sizeFor(key);
       return Frame.isBooleanNegation(argument) ? Frame.nil : this;
     }
@@ -833,7 +833,7 @@ export class Frame extends MetaFrame {
     _receiverState?: ReceiverState,
   ): Frame {
     if (this.is.void) {
-      const key = Frame.quantityOperator(argument);
+      const key = argument.isSymbol() ? argument.sizeOperatorKey() : undefined;
       if (key) return this.sizeFor(key);
       return Frame.isBooleanNegation(argument) ? Frame.all : argument;
     }
@@ -1380,14 +1380,6 @@ export class Frame extends MetaFrame {
     // on a fresh copy that carries no subscribers, so it never fires here.
     if (replaced) afterCommit(this as unknown as Frame, "notify");
     return replaced;
-  }
-
-  private static quantityOperator(argument: Frame): string | undefined {
-    if (argument.className() !== "FrameSymbol" || !argument.is.address) {
-      return undefined;
-    }
-    const key = (argument as unknown as { spelling(): string }).spelling();
-    return Frame.SIZE_OPERATORS.includes(key) ? key : undefined;
   }
 
   /**

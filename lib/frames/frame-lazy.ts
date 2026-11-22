@@ -196,13 +196,8 @@ export class FrameLazy extends FrameExpr {
    * closure as its argument and is answered before its body runs.
    */
   private sizeOperator(argument: Frame): Frame | undefined {
-    if (
-      argument instanceof FrameSymbol && argument.is.address === true &&
-      Frame.SIZE_OPERATORS.includes(argument.spelling())
-    ) {
-      return this.sizeFor(argument.spelling());
-    }
-    return undefined;
+    const key = argument.isSymbol() ? argument.sizeOperatorKey() : undefined;
+    return key === undefined ? undefined : this.sizeFor(key);
   }
 
   /**

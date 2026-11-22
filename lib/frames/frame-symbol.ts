@@ -379,12 +379,8 @@ export class FrameSymbol extends FrameAtom {
     }
     // A size operator answers for the receiver itself rather than looking a
     // name up, so the scope a value was read from never answers for it (#411).
-    // Only an address is one, since the lexer looks `#` up as the comment.
-    if (
-      this.is.address === true && Frame.SIZE_OPERATORS.includes(this.data)
-    ) {
-      return context.referent().sizeFor(this.data);
-    }
+    const sizeKey = this.sizeOperatorKey();
+    if (sizeKey !== undefined) return context.referent().sizeFor(sizeKey);
     // A dotted arithmetic operator is the operator itself: `xs ./ 3` is
     // `xs / 3` (GRAMMAR "Mathematical Operators"). Resolved as a name, it
     // missed a named aggregate and was found in the scope the name was read
@@ -430,6 +426,17 @@ export class FrameSymbol extends FrameAtom {
   /** Whether this is a declaration still waiting for its value, `.k`. */
   public isPendingDeclaration(): boolean {
     return this.is.address === true && !this.get_here(Frame.kOUT).is.missing;
+  }
+
+  /**
+   * The size operator this symbol is, `#` through `####` (#411), or
+   * undefined when it is none. Only an address is one, since the lexer looks
+   * a bare `#` up as the comment.
+   */
+  public sizeOperatorKey(): string | undefined {
+    return this.is.address === true && Frame.SIZE_OPERATORS.includes(this.data)
+      ? this.data
+      : undefined;
   }
 
   /**

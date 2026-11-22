@@ -214,8 +214,8 @@ export class FrameExpr extends FrameList {
         continue;
       }
       if (
-        index === 0 && value.isSymbol() && value.is.address &&
-        Frame.SIZE_OPERATORS.includes(value.spelling())
+        index === 0 && value.isSymbol() &&
+        value.sizeOperatorKey() !== undefined
       ) {
         sum = value;
         continue;
@@ -224,8 +224,7 @@ export class FrameExpr extends FrameList {
       // is not a receiver, so a leading .## remains an address (#411).
       if (
         index > 0 && sum.is.void && value.isSymbol() &&
-        value.is.address &&
-        Frame.SIZE_OPERATORS.includes(value.spelling())
+        value.sizeOperatorKey() !== undefined
       ) {
         sum = value.called_by(sum);
         continue;
@@ -634,12 +633,8 @@ export class FrameScoped extends Frame {
     argument: Frame,
     parameter: Frame = Frame.nil,
   ): Frame {
-    if (
-      argument.isSymbol() && argument.is.address === true &&
-      Frame.SIZE_OPERATORS.includes(argument.spelling())
-    ) {
-      return this.sizeFor(argument.spelling());
-    }
+    const key = argument.isSymbol() ? argument.sizeOperatorKey() : undefined;
+    if (key !== undefined) return this.sizeFor(key);
     return this.live().call(argument, parameter);
   }
 
