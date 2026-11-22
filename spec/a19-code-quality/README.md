@@ -92,8 +92,8 @@ Bring docs, records and tooling in line, then measure again.
 
 The owner answered the plan's four open questions before the audit began.
 
-1. **Exports.** Step 9 may remove `lib/mod.ts` exports. That breaks JSR and npm
-   users, so the refactor PR bumps the minor version.
+1. **Exports.** Step 9 may remove `lib/mod.ts` exports. That breaks JSR users,
+   so the refactor PR bumps the minor version.
 2. **Coverage.** Coverage becomes a floor that CI enforces, added in step 16.
 3. **Experiments.** Every experiment stays in the repository. If its existing
    tests pass and run quickly, step 15 chains them from `test:all`; otherwise it

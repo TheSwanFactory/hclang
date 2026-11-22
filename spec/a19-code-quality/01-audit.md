@@ -29,6 +29,16 @@ developers would notice, or that goes beyond the plan's Rules. Approving the
 disposition approves that change. [Dispositions](#dispositions) at the end
 groups every finding by disposition and lists those decisions.
 
+The public API is what `deno doc lib/mod.ts` lists, because JSR users can call
+only that. The npm package `hclang` declares the `hc` binary and no library
+entry (`scripts/build-npm.ts:16-20`). Every disposition that removes a name or
+member from the list needs a decision: 3.11 (`contextEqual`), and 3.12 and 3.17
+for `MetaFrame.isAlphabetic` and `Frame.signed`. If the owner approves any of
+those removals, the refactor PR bumps the minor version (decision 1). A
+disposition that adds to the list needs a decision too (5.17). Helpers that
+steps 10 to 13 add stay off the list, so a new member of `Frame`, `MetaFrame` or
+`HCLang` is `private`.
+
 Paths are relative to the repository root, and line numbers are at `ba6c00b`. A
 finding that several steps turned up appears once, under the step that owns it,
 and the other steps point to it. In coverage figures a line is a line that
@@ -64,6 +74,11 @@ inside `test:web`; `build:npm` 1.79 s inside `test:npm`; and `build:cli` 2.35 s
 inside `test:compiled`. Beyond `test:all`, `deno task test` runs
 `deno fmt --check` (0.03 s) and `deno lint` (0.02 s).
 
+These times include the load that the Environment line describes. A later
+comparison of times, such as 4.3's or step 17's, therefore re-runs `ba6c00b`
+beside the candidate, on the same machine under the same conditions, instead of
+comparing with this table.
+
 ### Test and testdoc claim counts
 
 The counts were identical in all five full runs: the warm-up, the three rounds
@@ -87,6 +102,12 @@ Of the 103 tracked test files, `test:all` runs these 99. The other four are
 experiments 017 and a13. `test:doc`, `test:npm` and `test:compiled` are not
 `deno test` runs: `test:npm` printed `Verified hclang@0.55.1 via npx`, and
 `test:compiled` passed both of its cases.
+
+Approved dispositions change these counts before step 17 repeats them. 3.3 and
+3.20 delete test files, 3.11 deletes assertions, and 2.10 and 2.11 turn nested
+suites, which Deno counts as steps, into top-level suites, which it counts as
+tests. A check that a change keeps every assertion, such as 8.2's, compares the
+counts just before and just after that change.
 
 `test:doc` executed 21 testdocs: **944 claims, of which 934 pass, 0 fail and 10
 are unimplemented**. Each count is the testdoc's final `$=.test-summary` line.
@@ -393,16 +414,20 @@ and `event-dispatch.vact.test.ts` (1,170 lines together) pin its behavior.
 artifact-write functions. `build:web` and `test:web` run it end to end, while
 `build-hcweb.test.ts` covers only its helpers.
 
-**2.10 `lib/execute/evaluate.test.ts` is one 2,647-line suite.** Its 263 cases
-sit in nine second-level suites: `strings` (lines 38–120, 11 cases), `grouping`
-(122–185, 10), `numbers` (187–465, 39), `schemas` (467–845, 49, including the
-four skipped suites of 1.5), `boolean and type operations` (847–935, 10),
+**2.10 `lib/execute/evaluate.test.ts` is one 2,647-line suite.** Of its 263
+cases, 5 sit directly under `describe("evaluate")` (lines 9–36: the export,
+empty input, comments, spaces and `<>`), and the other 258 in nine second-level
+suites: `strings` (lines 38–120, 11 cases), `grouping` (122–185, 10), `numbers`
+(187–465, 39), `schemas` (467–845, 49, including the four skipped suites of
+1.5), `boolean and type operations` (847–935, 10),
 `effect boundaries and relactional semantics (006.17)` (937–1106, 13),
 `closures with arguments` (1108–1525, 46), `contexts` (1527–1835, 17) and
 `access and effects` (1837–2653, 63). **Disposition: step 13.** Split the file
 along those suites into files such as `evaluate.<feature>.test.ts`, following
-the naming of `event-dispatch.vact.test.ts`. `access and effects` (817 lines)
-would be the largest new file. The skipped suites move with `schemas` unchanged.
+the naming of `event-dispatch.vact.test.ts`, and keep the five top-level cases
+in `evaluate.test.ts`, which stays the sibling test of
+`lib/execute/evaluate.ts`. `access and effects` (817 lines) would be the largest
+new file. The skipped suites move with `schemas` unchanged.
 
 **2.11 `lib/execute/resource-import.test.ts` mixes examples with a property
 harness.** 1,587 lines and 54 cases: a 240-line preamble of fixtures and a
@@ -514,7 +539,8 @@ Frames into tree nodes for react-accessible-treeview (#229, #235). Commit
 landed, and nothing in `web/` or elsewhere imports it; its `toJson` (line 112)
 is not called even by the test. **Disposition: step 9.** Delete it with
 `cli/flatten.test.ts` (91 lines), one of `test:cli`'s 5 test files. **Needs a
-decision:** this deletes a test file, and step 17's counts will show it.
+decision:** the test file's assertions go with the module they test, and step
+17's counts will show it.
 
 **3.4 MAML has no entry point.** `lib/maml.ts` (47 lines) exports `maml`, an
 HTML document renderer, and `maml/tag.ts` exports `tag`. Only `lib/index.ts`
@@ -620,8 +646,8 @@ no doc mentions and no public signature or other export needs. It prints two
 expectations about it, and the active case at `evaluate.test.ts:1833` uses it to
 compare a result's context with `{x: 3}`. **Disposition: step 9.** Remove it
 from `lib/mod.ts` and `lib/frames.ts` and delete it, as decision 1 allows; the
-refactor PR then bumps the minor version. **Needs a decision:** JSR and npm
-users lose the function, the 4 `context.test.ts` expectations go with it, and
+refactor PR then bumps the minor version. **Needs a decision:** JSR users lose
+the function, the 4 `context.test.ts` expectations go with it, and
 `evaluate.test.ts:1833` needs another way to compare the context while still
 asserting that it equals `{x: 3}`. If the export stays instead, step 12 removes
 its logging (5.4).
@@ -662,7 +688,17 @@ functions and the never-taken branches do not overlap.
 `LexHost.call` needs the most care. `Lex` and `LexRun` both override `scan`, and
 the Sigilizer drives lexers through `scan` and `consumeScan`, so nothing calls a
 lexer. The method overrides `Frame.call`, so the full suite should confirm the
-deletion. **Disposition: step 9.** Delete all 22.
+deletion. **Disposition: step 9.** Delete all 22. **Needs a decision** for two
+of them: `MetaFrame.isAlphabetic` and the `Frame.signed` hook are public static
+members of `lib/mod.ts` exports, which `deno doc lib/mod.ts` lists, so deleting
+either breaks a JSR caller as removing an export would. Decision 1 allows it,
+and the refactor PR then bumps the minor version. If the owner declines, step 9
+keeps both and deletes the other 20, which `deno doc lib/mod.ts` does not list.
+Three of those, `FrameLazy.returnSchema`, `FrameSchema.length` and
+`FrameSymbol.string_start`, are on types that public signatures name without
+exporting (5.17), so TypeScript code could reach them only by narrowing a
+`Frame` with `isClosure()`, `isSchema()` or `isSymbol()`. This audit does not
+count them as public API.
 
 **3.13 45 `FrameNumeric` hook overrides cannot be reached.**
 `lib/frames/frame-numeric.ts:287-302` declares 15 abstract hooks. Three run
@@ -806,7 +842,8 @@ gone.
 **3.17 `Frame.signed` is a hook with no reader.** Declared at
 `lib/frames/frame.ts:951-952` and installed at `lib/frames/frame-int.ts:246`.
 #506 removed its last reader, the `kRESIDUAL` branch. **Disposition: step 9.**
-Delete it (3 lines).
+Delete it (3 lines). **Needs a decision**, as 3.12 says: it is a public static
+member of `Frame`.
 
 **3.18 Comments in 9 code files describe the observers #506 retired.** They
 describe `.###` as the alternating residual, `.####` as the Denum constructor
@@ -868,7 +905,8 @@ Separately, `lib/execute/lex.test.ts:343` names a suite "Count binding `.#%`
 unbound name. **Disposition: step 13.** Fold the checks into
 `foist-19a.test.ts`, keeping each distinct assertion once, share the helper,
 move the file's other two tests (KD arity and gauge) beside the other `.####`
-tests, and rename the `lex.test.ts` suite.
+tests, and rename the `lex.test.ts` suite. No distinct assertion goes, so this
+needs no decision, although step 17's counts will drop.
 
 **3.21 Some FOIST-era material stays by design.** `hc/denum.hc`'s `scale_`,
 `deposit_`, `size-ratio`, `residual-ratio` and `./` methods, which
@@ -890,10 +928,14 @@ current behavior, and decision 3 keeps the experiments.
 `HCEval.finish.failed: $!.parse-unmatched-structure FrameSchema`.
 `hc/led_blink.hc` (53 lines, 2019) imports `<>.hcdl.fpga` and fails with
 `$!.resource-import-source-type <>`. `hc/hcsv.hc` (23 lines, 2021) runs. None is
-a testdoc, nothing in the repository names them, and every build ships all three
-in the bundle. `hc/cqml.hc` also fails, but `cli/CLAUDE.md:18` documents it as
-an aspirational legacy exception. **Disposition: issue.** Deleting, fixing or
-moving these examples to `doc/` is a content decision.
+a testdoc, no code, test or other doc names them, and every build ships all
+three in the bundle. The one mention is
+`spec/a13-error-handle/10-unified-diagnostic-failures.md:353-355`, which records
+that `gerbil.hc` and `led_blink.hc` already failed to import at that record's
+baseline, v0.38.0 (`57e49db`), so both have been broken at least since then.
+`hc/cqml.hc` also fails, but `cli/CLAUDE.md:18` documents it as an aspirational
+legacy exception. **Disposition: issue.** Deleting, fixing or moving these
+examples to `doc/` is a content decision.
 
 ## Step 4: Duplication
 
@@ -957,7 +999,8 @@ pairs. Each does a local lookup, then walks `lookup_links()` depth first under a
 `seen` guard, then reads the globals once, although `lib/frames/CLAUDE.md` says
 that "`MetaFrame.get` owns the traversal and its cycle guard". Write one
 traversal that takes the per-frame step. `get` is the interpreter's hottest
-path, so compare test times with step 1 before accepting the change.
+path, so before accepting the change, time the tests against a run of `ba6c00b`
+made beside it under the same conditions (step 1).
 
 **4.4 Seven walks up the declared parents.** `frame.ts:511-521` (`isAncestorOf`)
 and `1034-1044` (`getOwn`), `frame-array.ts:405-415` (`declaredMethod`),
@@ -1022,8 +1065,9 @@ side effects and guarded against cycles.
 addressed symbol spelling one of `Frame.SIZE_OPERATORS` with three different
 class checks: `className() === "FrameSymbol"`, `isSymbol()` and
 `instanceof FrameSymbol`. They agree only because no subclass of `FrameSymbol`
-can spell `#` through `####`. Replace them with one public static predicate on
-`Frame`.
+can spell `#` through `####`. Replace them with one module function in
+`frame.ts`, which `lib/mod.ts` does not re-export, so the public API does not
+change and `quantityOperator`'s missing JSDoc (5.18) goes with it.
 
 **4.13 `FrameSymbol` commits a declaration in two places.**
 `frame-symbol.ts:295-325` (in `apply`) and `341-357` (`defineSchema`), about 10
@@ -1285,22 +1329,57 @@ how to print a result; the library prints nothing there.
 **5.10 Two `instanceof` imports lie on 18 of the 24 value-import cycles.** Value
 imports form 24 simple cycles in 2 components that cover 15 modules, all in
 `lib/frames` except `lib/ops/frame-curry.ts`. No barrel and not `frame.ts` lies
-on one. Component A has 12 modules, 26 internal edges and 23 of the cycles, and
-`frame-symbol.ts` lies on 22 of them. Component B is the numeric ring
-`frame-int` → `frame-decimal` → `frame-rational` → `frame-int`. Every module
-still loads when imported first: all 57 uses of an imported value along the 29
-edges inside the components sit inside a function or method body, and every
-class on them extends a class outside them, except `FrameOperator`, which
-extends `FrameSymbol` in the same file. `frame-symbol.ts:8` imports
-`FrameSchema` as a value only to test `instanceof FrameSchema` (line 301), and
-`frame-lazy.ts:10` imports `FrameSymbol` only to test `instanceof FrameSymbol`
-(lines 205, 279 and 314). `Frame` already answers both with `isSchema()` and
-`isSymbol()` (`frame.ts:917`), with the same answer for any Frame: only
-`FrameSchema` overrides `isSchema()` and it has no subclass, and `FrameSymbol`'s
-override covers its subclasses. `lib/` defines no `Proxy` and no
-`Symbol.hasInstance`. **Disposition: step 12.** Call the guards and make both
-imports type-only. That cuts the cycles from 24 to 6 and component A from 12
-modules to 4.
+on one. Component A has 12 modules, 26 internal edges and 23 of the cycles. Its
+modules are `frame-alias`, `frame-array`, `frame-lazy`, `frame-name`,
+`frame-note`, `frame-schema`, `frame-string`, `frame-symbol`,
+`schema-bit-matcher`, `schema-compiler` and `schema-structural-matcher` in
+`lib/frames`, and `lib/ops/frame-curry.ts`. `frame-symbol.ts` lies on 22 of the
+24 cycles. Component B is the numeric ring `frame-int` → `frame-decimal` →
+`frame-rational` → `frame-int`. Every module still loads when imported first:
+all 57 uses of an imported value along the 29 edges inside the components sit
+inside a function or method body, and every class on them extends a class
+outside them, except `FrameOperator`, which extends `FrameSymbol` in the same
+file. `frame-symbol.ts:8` imports `FrameSchema` as a value only to test
+`instanceof FrameSchema` (line 301), and `frame-lazy.ts:10` imports
+`FrameSymbol` only to test `instanceof FrameSymbol` (lines 205, 279 and 314).
+`Frame` already answers both with `isSchema()` and `isSymbol()`
+(`frame.ts:917`), with the same answer for any Frame: only `FrameSchema`
+overrides `isSchema()` and it has no subclass, and `FrameSymbol`'s override
+covers its subclasses. `lib/` defines no `Proxy` and no `Symbol.hasInstance`.
+**Disposition: step 12.** Call the guards and make both imports type-only. That
+cuts the cycles from 24 to 6 and component A from 12 modules to 4.
+
+These are the 24 cycles. An arrow is a value import. Names are modules in
+`lib/frames` without `.ts`, except `ops/frame-curry`, and a cycle that 5.10 cuts
+starts at the import it cuts. The step 5 commands under [Reproduce](#reproduce)
+regenerate the list.
+
+| Value-import cycle                                                                                                                   | After 5.10                           |
+| ------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------ |
+| `frame-array → frame-note → frame-array`                                                                                             | remains (5.11)                       |
+| `frame-symbol → frame-note → frame-symbol`                                                                                           | remains (5.11)                       |
+| `frame-int → frame-decimal → frame-rational → frame-int`                                                                             | remains (5.11)                       |
+| `frame-symbol → frame-array → frame-note → frame-symbol`                                                                             | remains (5.11)                       |
+| `frame-symbol → frame-note → frame-string → frame-symbol`                                                                            | remains (5.11)                       |
+| `frame-symbol → frame-array → frame-note → frame-string → frame-symbol`                                                              | remains (5.11)                       |
+| `frame-lazy → frame-symbol → frame-lazy`                                                                                             | cut at `frame-lazy → frame-symbol`   |
+| `frame-lazy → frame-symbol → ops/frame-curry → frame-lazy`                                                                           | cut at `frame-lazy → frame-symbol`   |
+| `frame-lazy → frame-symbol → frame-schema → schema-compiler → schema-bit-matcher → frame-alias → frame-lazy`                         | cut at both imports                  |
+| `frame-symbol → frame-schema → frame-note → frame-symbol`                                                                            | cut at `frame-symbol → frame-schema` |
+| `frame-symbol → frame-schema → frame-note → frame-string → frame-symbol`                                                             | cut at `frame-symbol → frame-schema` |
+| `frame-symbol → frame-schema → schema-compiler → schema-bit-matcher → frame-alias → frame-symbol`                                    | cut at `frame-symbol → frame-schema` |
+| `frame-symbol → frame-schema → schema-compiler → schema-bit-matcher → frame-name → frame-symbol`                                     | cut at `frame-symbol → frame-schema` |
+| `frame-symbol → frame-schema → schema-compiler → schema-structural-matcher → frame-name → frame-symbol`                              | cut at `frame-symbol → frame-schema` |
+| `frame-symbol → frame-schema → schema-compiler → schema-bit-matcher → frame-alias → frame-note → frame-symbol`                       | cut at `frame-symbol → frame-schema` |
+| `frame-symbol → frame-schema → schema-compiler → schema-bit-matcher → frame-array → frame-note → frame-symbol`                       | cut at `frame-symbol → frame-schema` |
+| `frame-symbol → frame-schema → schema-compiler → schema-bit-matcher → frame-name → frame-note → frame-symbol`                        | cut at `frame-symbol → frame-schema` |
+| `frame-symbol → frame-schema → schema-compiler → schema-structural-matcher → frame-array → frame-note → frame-symbol`                | cut at `frame-symbol → frame-schema` |
+| `frame-symbol → frame-schema → schema-compiler → schema-structural-matcher → frame-name → frame-note → frame-symbol`                 | cut at `frame-symbol → frame-schema` |
+| `frame-symbol → frame-schema → schema-compiler → schema-bit-matcher → frame-alias → frame-note → frame-string → frame-symbol`        | cut at `frame-symbol → frame-schema` |
+| `frame-symbol → frame-schema → schema-compiler → schema-bit-matcher → frame-array → frame-note → frame-string → frame-symbol`        | cut at `frame-symbol → frame-schema` |
+| `frame-symbol → frame-schema → schema-compiler → schema-bit-matcher → frame-name → frame-note → frame-string → frame-symbol`         | cut at `frame-symbol → frame-schema` |
+| `frame-symbol → frame-schema → schema-compiler → schema-structural-matcher → frame-array → frame-note → frame-string → frame-symbol` | cut at `frame-symbol → frame-schema` |
+| `frame-symbol → frame-schema → schema-compiler → schema-structural-matcher → frame-name → frame-note → frame-string → frame-symbol`  | cut at `frame-symbol → frame-schema` |
 
 **5.11 The 6 remaining cycles are constructor calls.** Five run among
 `frame-array.ts`, `frame-note.ts`, `frame-string.ts` and `frame-symbol.ts`,
@@ -1382,11 +1461,12 @@ alternative, taking those members out of the public surface, would break users.
 `VERSION` (`version.ts:1`), `HCLang`'s constructor and `history`
 (`hc-lang.ts:40`, `:38`), `Frame.in`, `isSymbol`, `isSchema` and `isClosure`
 (`frame.ts:756`, `:922`, `:926`, `:930`), and two TypeScript-`private` members
-that `deno doc` still lists, `MetaFrame.authorize` (`:484`) and
+that `deno doc --lint` still checks, `MetaFrame.authorize` (`:484`) and
 `Frame.quantityOperator` (`:1364`). `scripts/bump-version.ts:74-77` rewrites
 `lib/version.ts` from a one-line template, so a comment added only to
 `version.ts` would be lost at the next bump. **Disposition: step 12.** Add the
 comments, and add the `VERSION` comment to the bump template.
+`Frame.quantityOperator` needs none if step 11 has replaced it (4.12).
 
 **5.19 Nothing runs `deno doc --lint`.** No workflow, task or script calls
 `deno doc`. **Disposition: step 16.** Add `deno doc --lint lib/mod.ts` to
@@ -1450,11 +1530,12 @@ moves the cases that target each module out of the feature files instead, which
 means untangling them: `lib/execute/parse.test.ts` alone imports `lex.ts`,
 `lex-pipe.ts` and `parse-pipe.ts`.
 
-**6.3 11 are below 90%, with 216 lines uncovered.** The 90% cut is this audit's,
+**6.3 12 are below 90%, with 243 lines uncovered.** The 90% cut is this audit's,
 not a project rule.
 
 | Module                            | Lines, `test:lib` | Lines, `test:all` | Uncovered |
 | --------------------------------- | ----------------- | ----------------- | --------: |
+| `lib/execute/script-spec.ts`      | 2/29              | 2/29              |        27 |
 | `lib/frames/frame-sequence.ts`    | 43/90             | 43/90             |        47 |
 | `lib/frames/frame-rational.ts`    | 117/156           | 117/156           |        39 |
 | `lib/execute/router-prologue.ts`  | 62/80             | 62/80             |        18 |
@@ -1467,9 +1548,10 @@ not a project rule.
 | `lib/frames/fourth-hash.ts`       | 157/178           | 157/178           |        21 |
 | `lib/frames/frame-observation.ts` | 53/60             | 53/60             |         7 |
 
-**Disposition: issue**, the one in 3.14, for the lines that are live once step 9
-deletes the dead ones (3.12, 3.13). If step 12 moves `hc-log.ts` out of `lib/`
-(5.3), its entry moves with it.
+**Disposition:** step 9 deletes `script-spec.ts`, whose two tests never run
+(3.1). For the other 11, **issue**, the one in 3.14, for the lines that are live
+once step 9 deletes the dead ones (3.12, 3.13). If step 12 moves `hc-log.ts` out
+of `lib/` (5.3), its entry moves with it.
 
 **6.4 The other packages.** `cli/` has 1 module with no sibling test,
 `cli/prompt.ts`, the untested REPL of 3.14. `web/` has 7 of 7, because its tests
@@ -1742,8 +1824,13 @@ commands under the root CLAUDE.md's Running Tests (`test:cli`, `test:lib`,
 `test:observer-algebras`, `build:cli`, `build:npm` and `build:web`, import the
 generated module without generating it. On a fresh clone they cannot resolve it,
 and after an `hc/*.hc` edit they run against the previous copy. **Disposition:
-step 16.** Chain `bundle:embed` into those tasks. If the owner prefers not to,
-step 14 names the tasks that regenerate it instead.
+step 16.** Chain `bundle:embed` into those tasks. One `test:all` then
+regenerates the bundle 11 times instead of 2, which at step 1's 0.07 s a run
+adds about 0.6 s. Step 16 accepts those runs, so that each task gives the same
+result alone as inside the chain. 8.11 removes a different repeat: CI's separate
+build step, which costs 4.33 s and builds nothing that `test:all` does not build
+again. If the owner prefers not to chain, step 14 names the tasks that
+regenerate the bundle instead.
 
 **7.4 `cli/CLAUDE.md` and `web/CLAUDE.md` restate the code.** `cli/CLAUDE.md`
 matches the code, but its exception names (`:18-19`) and "Only the clock is
@@ -1956,10 +2043,14 @@ in). `@std/encoding` 1.0.10 serves only an unused package (8.12), and
 and `@fresh/plugin-vite` want different ranges, which stays. **Disposition: step
 16.** Move each inline jsr specifier into an import map, one version per
 package, so that `deno outdated` reports it and `--update` can change it, then
-update. That edits the import lines of 109 files, and `lib/` has no import map
-yet. Moving 98 files from `@std/expect` 0.219 to 1.x changes the assertion
-library under them, so step 16 must confirm that the counts still match step 1:
-268 tests passed and 1,784 steps.
+update. At `ba6c00b` that edits the import lines of 109 files and moves 98 of
+them from `@std/expect` 0.219 to 1.x, and `lib/` has no import map yet. Steps 9
+to 13 change both numbers: 3.1, 3.3 and 3.20 delete files that import
+`@std/expect` inline, and the splits in 2.10 and 2.11 add some. The swap changes
+the assertion library under those files, so step 16 runs `test:all` on the
+cleanup branch just before and just after it and confirms that the passed,
+ignored and step counts do not change. Step 1's 268 tests and 1,784 steps cannot
+serve, because the refactor phase changes them first.
 
 **8.3 Routine updates for test, build and CI pins.** These stay on their current
 line: playwright 1.62.0 to 1.65.1, `@preact/signals` 2.11.0 to 2.11.4 (the only
@@ -2122,10 +2213,13 @@ Where a finding splits, the part is named after its ID.
 
 These dispositions need a decision as well as approval:
 
-- 3.3 deletes `cli/flatten.test.ts` with the module it tests.
+- 3.3 deletes `cli/flatten.test.ts`, and the assertions in it, with the module
+  it tests.
 - 3.11 removes `contextEqual` from the public API, with a minor version bump,
   deletes its 4 expectations and changes how `evaluate.test.ts:1833` compares a
   context.
+- 3.12 and 3.17 remove `MetaFrame.isAlphabetic` and `Frame.signed`, public
+  static members of `lib/mod.ts` exports, with the same minor version bump.
 - 5.5 stops `make_context` and `HCLang` from printing the context for embedders
   that pass `DEBUG_ENV`.
 - 5.14 moves the Sigilizer, or instead amends the `lib/execute/CLAUDE.md` rule.
@@ -2140,10 +2234,15 @@ These dispositions need a decision as well as approval:
 - 8.11 drops CI's separate build step, so a build failure shows up inside the
   test step.
 
+The refactor PR bumps the minor version if the owner approves any of the
+removals in 3.11, 3.12 and 3.17. No other disposition in steps 9 to 13 removes
+public API.
+
 ## Reproduce
 
 Run from the repository root with `NO_COLOR=1`. Step 17 repeats the step 1
-commands.
+commands; to compare times, it runs them at `ba6c00b` and at the candidate under
+the same conditions (step 1).
 
 ```sh
 # Step 1, wall time: three rounds of every task test:all chains, then the chain,
@@ -2193,6 +2292,25 @@ npx --yes jscpd@4.0.5 --max-lines 5000 --max-size 500kb --min-tokens 50 \
 # Step 5
 git grep -n 'console\.' -- 'lib/*.ts' ':!*.test.ts'
 deno doc --lint lib/mod.ts
+
+# Step 5, value-import cycles, after `deno task bundle:embed`. One module
+# imports every non-test lib module, and networkx lists the simple cycles over
+# the "code" edges that deno info records.
+git ls-files 'lib/*.ts' | grep -v '\.test\.ts$' |
+  sed "s|.*|import \"$PWD/&\";|" > /tmp/all-lib.ts
+deno info --json /tmp/all-lib.ts > /tmp/lib-graph.json
+python3 - "file://$PWD/" /tmp/lib-graph.json <<'EOF'
+import json, sys, networkx as nx
+root, graph = sys.argv[1], nx.DiGraph()
+for m in json.load(open(sys.argv[2]))["modules"]:
+    a = m["specifier"].removeprefix(root)
+    for d in m.get("dependencies", []):
+        b = d.get("code", {}).get("specifier", "").removeprefix(root)
+        if a.startswith("lib/") and b.startswith("lib/"):
+            graph.add_edge(a, b)
+for c in sorted(nx.simple_cycles(graph), key=len):
+    print(" -> ".join(c + c[:1]))
+EOF
 
 # Step 6, lib modules with no sibling test, and pinned testdoc totals
 git ls-files 'lib/*.ts' | grep -v '\.test\.ts$' | while read f; do
