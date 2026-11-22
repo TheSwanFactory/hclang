@@ -1,7 +1,9 @@
 # CHANGELOG
 
 > Record concise, user-facing changes since the previous release. Omit internal
-> cleanup, specification-only updates, and test-only changes.
+> cleanup, specification-only updates, and test-only changes, unless a release
+> contains nothing else; then describe it and say that nothing user-facing
+> changed.
 
 ## v0.55.2 2026-11-22
 

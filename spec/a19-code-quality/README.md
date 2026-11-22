@@ -92,8 +92,9 @@ Bring docs, records and tooling in line, then measure again.
 The owner answered the plan's four open questions before the audit began, and
 set the release rule (5) during it.
 
-1. **Exports.** Step 9 may remove `lib/mod.ts` exports. That breaks JSR users,
-   and ships in a patch release (decision 5).
+1. **Exports.** Step 9 may remove `lib/mod.ts` exports. Removing one breaks its
+   callers, so the refactor PR's CHANGELOG entry names each removed symbol under
+   a **Breaking** label.
 2. **Coverage.** Coverage becomes a floor that CI enforces, added in step 16.
 3. **Experiments.** Every experiment stays in the repository. If its existing
    tests pass and run quickly, step 15 chains them from `test:all`; otherwise it
@@ -102,5 +103,8 @@ set the release rule (5) during it.
    test result and time, which the rule depends on.
 4. **PRs.** One PR per phase: the audit (steps 1–8), the refactor (9–13) and the
    cleanup (14–17).
-5. **Releases.** Each phase PR is a patch release with a CHANGELOG entry. It
-   merges only after a comment that its authors did not write.
+5. **Releases.** Each phase PR is a patch release with a CHANGELOG entry,
+   including the refactor's removals, so callers on a caret range such as
+   `^0.55.1` get them without opting in. A PR merges only after a comment that
+   neither the agent that wrote it nor that agent's sub-agents wrote, whichever
+   account posts it.

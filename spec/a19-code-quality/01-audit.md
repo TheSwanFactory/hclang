@@ -2281,19 +2281,19 @@ hook that formats staged files and the CI `format` job that pushes
 
 Where a finding splits, the part is named after its ID.
 
-| Disposition | Findings                                                                                                                                                                                                                                                                                                                                             |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Step 9      | 3.1, 3.2, 3.3, 3.7, 3.8 (the values and `ScanHost`), 3.10, 3.11, 3.12, 3.13, 3.17, 3.18, 5.4, 5.8, 8.7 (two files)                                                                                                                                                                                                                                   |
-| Step 10     | 2.3, 2.4, 2.5, 2.7, 2.8, 2.9                                                                                                                                                                                                                                                                                                                         |
-| Step 11     | 4.1 to 4.15, 4.16 (three repeats)                                                                                                                                                                                                                                                                                                                    |
-| Step 12     | 5.1, 5.3, 5.5, 5.6, 5.7, 5.10, 5.13, 5.14, 5.17, 5.18, 8.10 (JSDoc fences)                                                                                                                                                                                                                                                                           |
-| Step 13     | 2.10, 2.11, 3.20, 4.17, 6.8, 6.9, 6.11, 6.12, 6.13                                                                                                                                                                                                                                                                                                   |
-| Step 14     | 3.19, 6.2 (the testing rule), 6.12 (the regenerate command), 7.1, 7.2, 7.4, 7.6, 7.7, 8.10 (README fragment)                                                                                                                                                                                                                                         |
-| Step 15     | experiments 017 and a13 (step 1), 7.9, 7.10, 8.7 (017's five files)                                                                                                                                                                                                                                                                                  |
-| Step 16     | 1.1, 1.2, 1.3, 5.19, 5.20, 7.3, 8.1, 8.2, 8.3, 8.5, 8.6, 8.7 (eleven files), 8.8, 8.9, 8.10 (the CI choice), 8.11, 8.12, 8.13                                                                                                                                                                                                                        |
-| Step 17     | 7.8, 7.13 (close #481, #498 and #452; comment on #361, #362, #310, #311, #312 and #319)                                                                                                                                                                                                                                                              |
-| Issue       | 1.5, 1.6, 2.2, 3.4, 3.5, 3.14 (three groups, with 6.3), 3.16 (`lib` and `cli` branches), 3.22, 4.18, 4.19, 4.20, 4.21, 6.6, 8.1 (upstream deno-hooks), 8.4                                                                                                                                                                                           |
-| Keep        | 1.4, 2.1, 2.6, 2.12, 3.6, 3.8 (31 types), 3.9, 3.14 (printing one-liners), 3.15, 3.16 (guards, tooling and experiment branches), 3.21, 4.16 (two repeats), 4.22, 5.2 (`RealClock`), 5.9, 5.11, 5.12, 5.15, 5.16, 6.1, 6.4, 6.5, 6.7, 6.10, 6.12 (inline totals), 6.14, 7.5, 7.11, 7.12, 7.13 (six issues stay open), 8.7 (a13), 8.14, experiment 007 |
+| Disposition | Findings                                                                                                                                                                                                                                                                                                                                                                        |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Step 9      | 3.1, 3.2, 3.3, 3.7, 3.8 (the values and `ScanHost`), 3.10, 3.11, 3.12, 3.13, 3.17, 3.18, 5.4, 5.8, 8.7 (two files)                                                                                                                                                                                                                                                              |
+| Step 10     | 2.3, 2.4, 2.5, 2.7, 2.8, 2.9                                                                                                                                                                                                                                                                                                                                                    |
+| Step 11     | 4.1 to 4.15, 4.16 (three repeats)                                                                                                                                                                                                                                                                                                                                               |
+| Step 12     | 5.1, 5.3, 5.5, 5.6, 5.7, 5.10, 5.13, 5.14, 5.17, 5.18, 8.10 (JSDoc fences)                                                                                                                                                                                                                                                                                                      |
+| Step 13     | 2.10, 2.11, 3.20, 4.17, 6.8, 6.9, 6.11, 6.12, 6.13                                                                                                                                                                                                                                                                                                                              |
+| Step 14     | 3.19, 6.2 (the testing rule), 6.12 (the regenerate command), 7.1, 7.2, 7.4, 7.6, 7.7, 8.10 (README fragment)                                                                                                                                                                                                                                                                    |
+| Step 15     | experiments 017 and a13 (step 1), 7.9, 7.10, 8.7 (017's five files)                                                                                                                                                                                                                                                                                                             |
+| Step 16     | 1.1, 1.2, 1.3, 5.19, 5.20, 7.3, 8.2, 8.3, 8.5, 8.6, 8.7 (eleven files), 8.8, 8.9, 8.10 (the CI choice), 8.12, 8.13                                                                                                                                                                                                                                                              |
+| Step 17     | 7.8, 7.13 (close #481 and #452; comment on #498, #361, #362, #310, #311, #312 and #319)                                                                                                                                                                                                                                                                                         |
+| Issue       | 1.5, 1.6, 2.2, 3.4, 3.5, 3.14 (three groups, with 6.3), 3.16 (`lib` and `cli` branches), 3.22, 4.18, 4.19, 4.20, 4.21, 6.6, 8.1 (upstream deno-hooks, and the yanked pin), 8.4                                                                                                                                                                                                  |
+| Keep        | 1.4, 2.1, 2.6, 2.12, 3.6, 3.8 (31 types), 3.9, 3.14 (printing one-liners), 3.15, 3.16 (guards, tooling and experiment branches), 3.21, 4.16 (two repeats), 4.22, 5.2 (`RealClock`), 5.9, 5.11, 5.12, 5.15, 5.16, 6.1, 6.4, 6.5, 6.7, 6.10, 6.12 (inline totals), 6.14, 7.5, 7.11, 7.12, 7.13 (six issues stay open), 8.1 (the pin stays), 8.7 (a13), 8.11, 8.14, experiment 007 |
 
 These dispositions need a decision as well as approval:
 
@@ -2330,6 +2330,13 @@ Approved on 2026-11-22. The owner delegated approval of the dispositions to the
 agent running the plan. Every disposition above stands as proposed unless this
 section changes it, and this section settles each decision the list above names.
 
+The owner set the rules these calls follow: removing public API is allowed
+(decision 1), and each phase ships as a patch release (decision 5). The removals
+in 3.11, 3.12 and 3.17 rest on those two decisions. The agent made every other
+call below on its own judgment: 5.5, 5.14, 5.17, 6.2, 6.12's option, 6.13, #498,
+8.1 and 8.11. The owner was shown all of them before they were recorded and
+raised no objection.
+
 - **Approved as proposed:** 3.3; 3.11, 3.12 and 3.17, the removals, in a patch
   release; 5.5; 5.14, moving the Sigilizer rather than amending the rule; 6.2,
   restating the rule; and 6.13, by checking the final summary from 6.12's table.
@@ -2338,11 +2345,14 @@ section changes it, and this section settles each decision the list above names.
   testdoc, the 6 unpinned ones included.
 - **5.17, narrowed:** step 12 does not publish interpreter internals to satisfy
   the lint. It exports `FrameArray` type-only, plus the types its documented
-  members need that a caller can use. A public member of an exported class that
-  names an interpreter-internal type, such as `EvaluationScope`,
-  `WriteTargetRole`, `ReceiverState`, `EvaluationInput`, `DeclaredApplication`
+  members need that a caller can use. It also exports `EvaluationInput`
+  type-only, because `lib/frames.ts:18-20` re-exports that type for implementors
+  and tests: it appears in `Frame.in`'s signature. A public member of an
+  exported class that names an interpreter-internal type, such as
+  `EvaluationScope`, `WriteTargetRole`, `ReceiverState`, `DeclaredApplication`
   or `BoundMethod`, gets a JSDoc tag that keeps it out of `deno doc` instead, so
-  the choice recorded at `lib/frames.ts:18-20` stands. In a probe on Deno 2.9.7,
+  the rest of that comment's choice stands. The tag hides the member from the
+  docs only, and the published types still reach it. In a probe on Deno 2.9.7,
   `deno doc --lint` reported no `private-type-ref` for a member tagged `@ignore`
   or `@internal`. The brand stays out of value exports. Step 12 also makes
   `lib/mod.ts`'s const-arrow exports function declarations, so the lint checks
