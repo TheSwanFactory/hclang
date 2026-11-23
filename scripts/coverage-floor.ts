@@ -4,8 +4,10 @@
  * For every row of {@link PACKAGES}, run the package's own tests with
  * `DENO_COVERAGE_DIR` set to a fresh directory, report that directory with
  * `deno coverage --lcov` filtered to the package, and compare the lines hit
- * with the row's floor. A row fails when it is below its floor or when its
- * report is empty. `deno task coverage:check` runs it, and so does CI's build
+ * with the row's floor. A row fails when its tests fail, when `deno coverage`
+ * fails, when its report is empty, or when it is below its floor. Every row is
+ * measured and printed before the check exits, so one failing row does not
+ * hide the others. `deno task coverage:check` runs it, and so does CI's build
  * job; `deno task test` does not, because collecting coverage roughly doubles
  * the time of the tests it re-runs.
  *
@@ -37,11 +39,13 @@ export interface Package {
   readonly floor: number;
 }
 
-/** The lines of one package's report. */
+/** The lines of one package's report, or why it has none. */
 export interface Result {
   readonly name: string;
   readonly hit: number;
   readonly found: number;
+  /** Set when the row's tests or `deno coverage` failed. */
+  readonly error?: string;
 }
 
 const task = (name: string, cwd = "."): Step => ({
@@ -51,7 +55,10 @@ const task = (name: string, cwd = "."): Step => ({
 
 /**
  * The packages of the audit's coverage table, each with its own tests. Each
- * floor is the line coverage measured when the floor was set, rounded down.
+ * floor is the line coverage measured when the floor was set, rounded down to
+ * a whole percent. A row measured at 99% or more gets one point less (maml
+ * measured 100%, web 99.12%), so that one new uncovered line in a small,
+ * almost fully covered package does not fail CI.
  */
 export const PACKAGES: readonly Package[] = [
   {
@@ -73,7 +80,7 @@ export const PACKAGES: readonly Package[] = [
     prefix: "maml/",
     steps: [task("test:maml")],
     excludes: [],
-    floor: 100,
+    floor: 99,
   },
   {
     name: "scripts",
@@ -91,7 +98,7 @@ export const PACKAGES: readonly Package[] = [
       task("test:artifact", "web"),
     ],
     excludes: ["/web/(tests|dist)/"],
-    floor: 99,
+    floor: 98,
   },
   {
     name: "experiments/007-observer-algebras",
@@ -120,13 +127,17 @@ export const lineTotals = (lcov: string): { hit: number; found: number } => {
 export const percent = (hit: number, found: number): number =>
   found === 0 ? 0 : (hit / found) * 100;
 
-/** One message per row that is below its floor or reported no lines. */
+/**
+ * One message per row whose tests or coverage failed, that reported no lines,
+ * or that is below its floor.
+ */
 export const failures = (
   results: readonly Result[],
   rows: readonly Package[],
 ): string[] =>
   rows.flatMap((row) => {
     const result = results.find((each) => each.name === row.name);
+    if (result?.error !== undefined) return [`${row.name}: ${result.error}`];
     if (result === undefined || result.found === 0) {
       return [`${row.name}: the coverage report is empty`];
     }
@@ -142,12 +153,23 @@ export const failures = (
 const literal = (text: string): string =>
   text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-/** Runs deno quietly; on failure, prints its output and returns false. */
+/**
+ * The errors `deno coverage` exits 1 with when it has nothing to report: no
+ * coverage files in the directory, or none of them under the row's filters.
+ */
+const NOTHING_TO_REPORT =
+  /^error: (No coverage files found|No covered files included in the report)/m;
+
+/** Whether `deno coverage`'s stderr says it had nothing to report. */
+export const nothingToReport = (stderr: string): boolean =>
+  NOTHING_TO_REPORT.test(stderr);
+
+/** Runs deno quietly; on failure, prints its output. */
 const deno = async (
   args: readonly string[],
   cwd: string,
   env: Record<string, string>,
-): Promise<boolean> => {
+): Promise<{ code: number; stderr: string }> => {
   const { code, stdout, stderr } = await new Deno.Command("deno", {
     args: [...args],
     cwd,
@@ -160,22 +182,34 @@ const deno = async (
     await Deno.stderr.write(stderr);
     console.error(`deno ${args.join(" ")} exited with ${code} in ${cwd}`);
   }
-  return code === 0;
+  return { code, stderr: new TextDecoder().decode(stderr) };
 };
 
-/** Runs a row's tests under coverage and totals the lines of its report. */
-const measure = async (root: string, row: Package): Promise<Result> => {
+/**
+ * Runs a row's tests under coverage and totals the lines of its report. A
+ * failure of the tests or of `deno coverage` becomes the result's `error`.
+ *
+ * @param root The repository root, resolved, without a trailing slash.
+ * @param row The package to measure.
+ */
+export const measure = async (root: string, row: Package): Promise<Result> => {
   const dir = await Deno.makeTempDir({ prefix: "hc-coverage-" });
   try {
     const env = { DENO_COVERAGE_DIR: dir, NO_COLOR: "1" };
     for (const step of row.steps) {
-      if (!await deno(step.args, `${root}/${step.cwd}`, env)) {
-        throw new Error(`${row.name}'s tests failed`);
+      const { code } = await deno(step.args, `${root}/${step.cwd}`, env);
+      if (code !== 0) {
+        return {
+          name: row.name,
+          hit: 0,
+          found: 0,
+          error: `its tests failed (deno ${step.args.join(" ")}, exit ${code})`,
+        };
       }
     }
     const lcov = `${dir}/report.lcov`;
     const rootUrl = toFileUrl(root).href;
-    const reported = await deno(
+    const { code, stderr } = await deno(
       [
         "coverage",
         dir,
@@ -188,8 +222,15 @@ const measure = async (root: string, row: Package): Promise<Result> => {
       root,
       {},
     );
-    // `deno coverage` exits 1 when it finds nothing to report.
-    const report = reported ? await Deno.readTextFile(lcov) : "";
+    if (code !== 0 && !nothingToReport(stderr)) {
+      return {
+        name: row.name,
+        hit: 0,
+        found: 0,
+        error: `deno coverage failed (exit ${code})`,
+      };
+    }
+    const report = code === 0 ? await Deno.readTextFile(lcov) : "";
     return { name: row.name, ...lineTotals(report) };
   } finally {
     await Deno.remove(dir, { recursive: true });
@@ -208,9 +249,11 @@ const main = async (): Promise<void> => {
     results.push(result);
     const seconds = ((performance.now() - started) / 1000).toFixed(1);
     console.log(
-      `${row.name}: ${result.hit}/${result.found} lines, ` +
-        `${percent(result.hit, result.found).toFixed(2)}%, ` +
-        `floor ${row.floor}% (${seconds} s)`,
+      result.error === undefined
+        ? `${row.name}: ${result.hit}/${result.found} lines, ` +
+          `${percent(result.hit, result.found).toFixed(2)}%, ` +
+          `floor ${row.floor}% (${seconds} s)`
+        : `${row.name}: ${result.error}, floor ${row.floor}% (${seconds} s)`,
     );
   }
   const failed = failures(results, PACKAGES);
