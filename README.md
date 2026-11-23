@@ -172,8 +172,10 @@ deno task hc
 
 3. (Optional) Install the git hooks with `deno task setup`. It installs
    [deno-hooks](https://jsr.io/@theswanfactory/deno-hooks) as configured in
-   `deno-hooks.yml`: a pre-commit hook that runs `deno fmt` and `deno lint` on
-   the staged files, and a pre-push hook that runs `deno task test:all`.
+   `deno-hooks.yml`: a pre-commit hook that runs `deno fmt --check` and
+   `deno lint` over the working tree, and a pre-push hook that runs
+   `deno task test:all`. The pre-commit hook checks and does not format; run
+   `deno task fix` to format.
 
 4. Run tests:
 

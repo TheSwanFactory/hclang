@@ -63,6 +63,7 @@
     ]
   },
   "exclude": [
+    ".agents/",
     "dist/",
     "web/dist/",
     "**/_fresh/",
@@ -87,8 +88,7 @@
     "@std/expect": "jsr:@std/expect@^1.0.20",
     "@std/path": "jsr:@std/path@^1.1.6",
     "@std/testing": "jsr:@std/testing@^1.0.21",
-    "@theswanfactory/deno-hooks": "jsr:@theswanfactory/deno-hooks@0.2.1-dev.1765778019",
-    "deno-hooks": "jsr:@theswanfactory/deno-hooks@0.2.1-dev.1765778019"
+    "deno-hooks": "jsr:@theswanfactory/deno-hooks@0.3.1"
   },
   "workspace": [
     "cli",
