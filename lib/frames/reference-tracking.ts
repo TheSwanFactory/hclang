@@ -232,7 +232,8 @@ export function activeLookupProbe(): LookupProbe | undefined {
 
 /**
  * Throws if a lookup probe is active. Every commit point calls it through
- * `beforeCommit` and `afterCommit` (effect-registry.ts), so a write a lookup
+ * `beforeCommit` and `afterCommit`, or `afterRegister` for a registration
+ * (effect-registry.ts), so a write a lookup
  * reaches without checking `activeLookupProbe` fails loudly instead of
  * changing state while the walk infers a certificate.
  */

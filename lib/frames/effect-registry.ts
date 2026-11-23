@@ -17,12 +17,20 @@ import {
  * permission; it does not freeze, copy, or convert the managed value; and it is
  * not a returned-handle permission gate.
  *
- * This module owns the registry and the single notification seam. The commit
- * point is `MetaFrame.set` (named-property writes) and `replaceMember`
- * (element writes): every committed mutation in the runtime lands there, so a
- * callback registered on a value fires for every actor that writes it and for
- * none that merely fails or rolls back (a refused write returns before `set`,
- * and a functional update writes a *copy* that carries no subscribers).
+ * This module owns the registry and the single notification seam. Every
+ * commit site opens with `beforeCommit` and closes with `afterCommit`, and
+ * `afterCommit` notifies the written value's subscribers. So every committed
+ * mutation of a value notifies its subscribers, at whichever site it lands
+ * (`MetaFrame.set`, `setParent` and `match_here`, `replaceMember`, and
+ * `FrameArray.collect` and `reset`). A callback registered on a value fires
+ * for every actor that writes it and for none that merely fails or rolls back
+ * (a refused write throws in `beforeCommit` before it lands, and a functional
+ * update writes a *copy* that carries no subscribers).
+ *
+ * Registering a subscriber is the one commit that does not notify. It writes
+ * only the subscriber list, not the value, so it closes with `afterRegister`,
+ * which notes the write but fires nothing: an arrow fires on a later committed
+ * mutation, never on its own declaration.
  *
  * ## Operational policy (006.17 §4 leaves these to the implementation)
  *
@@ -105,26 +113,20 @@ export function registerEffect(managed: Frame, callback: Frame): Frame {
   const existing = subscribers.get(managed);
   if (!existing) {
     subscribers.set(managed, [callback]);
-    afterCommit(managed, "silent");
+    afterRegister(managed);
     return managed;
   }
   if (existing.includes(callback)) return managed;
   existing.push(callback);
-  afterCommit(managed, "silent");
+  afterRegister(managed);
   return managed;
 }
 
 /**
- * Whether a commit notifies the effect subscribers of the frame it wrote.
- * Each commit site names its choice; only `MetaFrame.set` and
- * `Frame.replaceMember` notify.
- */
-export type CommitNotice = "notify" | "silent";
-
-/**
  * Opens a commit to `frame`: guards the write before it lands, so a refusal
- * changes nothing. A commit under a lookup probe throws. Every commit path calls it, then `afterCommit` once the
- * write has landed (reference-tracking.ts).
+ * changes nothing. A commit under a lookup probe throws. Every commit path
+ * calls it, then `afterCommit` (or, for a registration, `afterRegister`) once
+ * the write has landed (reference-tracking.ts).
  */
 export function beforeCommit(frame: Frame): void {
   refuseCommitUnderProbe(frame);
@@ -133,14 +135,24 @@ export function beforeCommit(frame: Frame): void {
 
 /**
  * Closes a commit to `frame` after the write has landed: notes the write,
- * then, for `"notify"`, runs the frame's effect subscribers, if it has any.
- * A commit under a lookup probe throws, a path that skipped `beforeCommit`
- * included.
+ * then runs the frame's effect subscribers, if it has any. Every commit site
+ * closes through here, so every committed mutation notifies. A commit under a
+ * lookup probe throws, a path that skipped `beforeCommit` included.
  */
-export function afterCommit(frame: Frame, notice: CommitNotice): void {
+export function afterCommit(frame: Frame): void {
   refuseCommitUnderProbe(frame);
   noteWrite(frame);
-  if (notice === "notify" && hasEffectSubscribers(frame)) notifyEffect(frame);
+  if (hasEffectSubscribers(frame)) notifyEffect(frame);
+}
+/**
+ * Closes a registration on `managed`: notes the write of its subscriber list,
+ * and fires nothing. Declaring an arrow is not a mutation of the value it
+ * observes, so neither the new callback nor any earlier one runs. A
+ * registration under a lookup probe throws, as any commit does.
+ */
+function afterRegister(managed: Frame): void {
+  refuseCommitUnderProbe(managed);
+  noteWrite(managed);
 }
 
 /** Whether a value carries any effect-boundary subscribers. */

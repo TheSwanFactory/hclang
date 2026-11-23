@@ -405,7 +405,7 @@ export class MetaFrame {
     if (previous !== value) beforeCommit(this as unknown as Frame);
     this.meta[key] = value;
     noteHolding(this as unknown as Frame, key, value, previous);
-    if (previous !== value) afterCommit(this as unknown as Frame, "notify");
+    if (previous !== value) afterCommit(this as unknown as Frame);
     return this;
   }
 
@@ -434,7 +434,7 @@ export class MetaFrame {
       parent,
       previous && !previous.is.missing ? previous : undefined,
     );
-    afterCommit(this as unknown as Frame, "silent");
+    afterCommit(this as unknown as Frame);
     return undefined;
   }
 
@@ -516,7 +516,7 @@ export class MetaFrame {
             beforeCommit(this as unknown as Frame);
             const sourced = result as ISourced;
             sourced.source = target;
-            afterCommit(this as unknown as Frame, "silent");
+            afterCommit(this as unknown as Frame);
           }
         }
       }
@@ -1447,7 +1447,7 @@ export class Frame extends MetaFrame {
     }
     // An element-plane commit is a mutation too; a copy-on-write install lands
     // on a fresh copy that carries no subscribers, so it never fires here.
-    if (replaced) afterCommit(this as unknown as Frame, "notify");
+    if (replaced) afterCommit(this as unknown as Frame);
     return replaced;
   }
 
