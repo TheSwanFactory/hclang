@@ -1,4 +1,4 @@
-import chalk from "jsr:@nothing628/chalk@^1.0.1";
+import chalk from "@nothing628/chalk";
 import { type Context, Frame } from "../lib/frames.ts";
 import { HCEval } from "../lib/execute/hc-eval.ts";
 

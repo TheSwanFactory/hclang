@@ -1,5 +1,5 @@
-import { expect } from "jsr:@std/expect@^0.219.1";
-import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
+import { expect } from "@std/expect";
+import { describe, it } from "@std/testing/bdd";
 
 import { VISIBLE_ENVIRONMENT, visibleEnvironment } from "./env-visibility.ts";
 import { evaluate } from "./evaluate.ts";

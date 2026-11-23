@@ -1,4 +1,4 @@
-import { dirname, fromFileUrl, join, toFileUrl } from "jsr:@std/path@1.1.6";
+import { dirname, fromFileUrl, join, toFileUrl } from "@std/path";
 
 const rootDir = dirname(dirname(fromFileUrl(import.meta.url)));
 const webDir = join(rootDir, "web");

@@ -23,7 +23,7 @@
  * @module
  */
 
-import { parseArgs } from "jsr:@std/cli@^1.0.13/parse-args";
+import { parseArgs } from "@std/cli/parse-args";
 import { compareVariant, type Comparison, observations } from "./compare.ts";
 import { errorLines, parseRecords } from "./parse.ts";
 

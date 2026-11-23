@@ -1,4 +1,4 @@
-import { expect } from "jsr:@std/expect@^0.219.1";
+import { expect } from "@std/expect";
 import { evaluate } from "../../lib/execute/evaluate.ts";
 import {
   bindFromSource,

@@ -1,5 +1,5 @@
-import { expect } from "jsr:@std/expect@^0.219.1";
-import { beforeAll, describe, it } from "jsr:@std/testing@^1.0.10/bdd";
+import { expect } from "@std/expect";
+import { beforeAll, describe, it } from "@std/testing/bdd";
 // Every non-test module under lib/ must load when it is the first module
 // imported, so an import cycle that bites only a direct import cannot return.
 // Each module is imported alone in its own module Worker, which has a fresh

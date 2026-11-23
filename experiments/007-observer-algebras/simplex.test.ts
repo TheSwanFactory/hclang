@@ -1,4 +1,4 @@
-import { expect } from "jsr:@std/expect@^0.219.1";
+import { expect } from "@std/expect";
 import { ObserverDomainError, ratToString } from "./exact.ts";
 import { sampleVectors } from "./sample.ts";
 import {

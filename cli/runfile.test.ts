@@ -1,5 +1,5 @@
-import { expect } from "jsr:@std/expect@^0.219.1";
-import { beforeEach, describe, it } from "jsr:@std/testing@^1.0.10/bdd";
+import { expect } from "@std/expect";
+import { beforeEach, describe, it } from "@std/testing/bdd";
 import { runfile } from "./runfile.ts";
 import { HCEval } from "../lib/execute/hc-eval.ts";
 import { FrameArray, FrameDoc } from "../lib/frames.ts";

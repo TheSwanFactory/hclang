@@ -1,6 +1,6 @@
-import { afterAll, beforeAll, describe, it } from "jsr:@std/testing@1.0.15/bdd";
-import { expect } from "jsr:@std/expect@1.0.17";
-import { dirname, fromFileUrl, join, toFileUrl } from "jsr:@std/path@1.1.6";
+import { afterAll, beforeAll, describe, it } from "@std/testing/bdd";
+import { expect } from "@std/expect";
+import { dirname, fromFileUrl, join, toFileUrl } from "@std/path";
 import { chromium } from "playwright";
 import type { Browser, Page } from "playwright";
 

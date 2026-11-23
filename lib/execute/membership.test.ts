@@ -1,4 +1,4 @@
-import { expect } from "jsr:@std/expect@^0.219.1";
+import { expect } from "@std/expect";
 import { FrameHandle } from "../frames/frame-handle.ts";
 import { evaluate } from "./evaluate.ts";
 import {

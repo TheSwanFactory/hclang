@@ -1,5 +1,5 @@
 import { expect } from "@std/expect";
-import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
+import { describe, it } from "@std/testing/bdd";
 
 import { DenoFileStore } from "./resource-store.ts";
 

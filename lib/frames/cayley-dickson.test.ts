@@ -4,7 +4,7 @@
  * and conjugation laws, with typed witnesses separating rank-r signature loads
  * (2ʳ nonnegative) from their observed 2^(r−1) signed coefficients.
  */
-import { expect } from "jsr:@std/expect@^0.219.1";
+import { expect } from "@std/expect";
 import {
   cdBasis,
   cdConjugate,

@@ -1,5 +1,5 @@
 import { FrameHandle } from "./frame-handle.ts";
-import { expect } from "jsr:@std/expect@^0.219.1";
+import { expect } from "@std/expect";
 import {
   EvaluationScope,
   Frame,

@@ -2,7 +2,7 @@
  * FOIST 19a compatibility of raw Denumeration, KD observation and the native
  * Frame-family Size contract. Historical residual parity is no longer exposed.
  */
-import { expect } from "jsr:@std/expect@^0.219.1";
+import { expect } from "@std/expect";
 import {
   Frame,
   FrameArray,

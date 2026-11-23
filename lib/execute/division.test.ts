@@ -1,4 +1,4 @@
-import { expect } from "jsr:@std/expect@^0.219.1";
+import { expect } from "@std/expect";
 import { HCLang } from "../mod.ts";
 
 /** A session holding a named array `xs`, a Count `n` and a class `d`. */

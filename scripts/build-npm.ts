@@ -1,4 +1,4 @@
-import { build, emptyDir } from "jsr:@deno/dnt@0.43.2";
+import { build, emptyDir } from "@deno/dnt";
 
 const ROOT_MANIFEST = "deno.json";
 const OUTPUT_DIR = "dist/npm";

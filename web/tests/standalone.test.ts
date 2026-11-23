@@ -1,6 +1,6 @@
-import { describe, it } from "jsr:@std/testing@1.0.15/bdd";
-import { expect } from "jsr:@std/expect@1.0.17";
-import { dirname, fromFileUrl, join } from "jsr:@std/path@1.1.6";
+import { describe, it } from "@std/testing/bdd";
+import { expect } from "@std/expect";
+import { dirname, fromFileUrl, join } from "@std/path";
 import { HC_SOURCES } from "../../lib/bundle/hc-sources.ts";
 
 const webDir = dirname(dirname(fromFileUrl(import.meta.url)));
