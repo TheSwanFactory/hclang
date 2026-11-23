@@ -56,9 +56,10 @@ const task = (name: string, cwd = "."): Step => ({
 /**
  * The packages of the audit's coverage table, each with its own tests. Each
  * floor is the line coverage measured when the floor was set, rounded down to
- * a whole percent. A row measured at 99% or more gets one point less (maml
- * measured 100%, web 99.12%), so that one new uncovered line in a small,
- * almost fully covered package does not fail CI.
+ * a whole percent. A row measured at 99% or more instead gets the coverage it
+ * would have with one more uncovered line, `hit / (found + 1)`, rounded down,
+ * so that one new uncovered line in a small, almost fully covered package does
+ * not fail CI while two do: maml 57/58 gives 98, web 113/115 gives 98.
  */
 export const PACKAGES: readonly Package[] = [
   {
@@ -80,7 +81,7 @@ export const PACKAGES: readonly Package[] = [
     prefix: "maml/",
     steps: [task("test:maml")],
     excludes: [],
-    floor: 99,
+    floor: 98,
   },
   {
     name: "scripts",
@@ -160,7 +161,10 @@ const literal = (text: string): string =>
 const NOTHING_TO_REPORT =
   /^error: (No coverage files found|No covered files included in the report)/m;
 
-/** ANSI color codes, which deno writes to stderr when color is forced (CI). */
+/**
+ * ANSI color codes. `measure` runs `deno coverage` with `NO_COLOR`, so its
+ * stderr is plain text; stripping them is a fallback for a forced-color run.
+ */
 // deno-lint-ignore no-control-regex -- the escape byte is what it matches.
 const ANSI = /\x1b\[[0-9;]*m/g;
 
@@ -168,11 +172,15 @@ const ANSI = /\x1b\[[0-9;]*m/g;
 export const nothingToReport = (stderr: string): boolean =>
   NOTHING_TO_REPORT.test(stderr.replace(ANSI, ""));
 
-/** Runs deno quietly; on failure, prints its output. */
+/**
+ * Runs deno quietly. On failure it prints deno's output, unless `benign`
+ * accepts the failure's stderr, as for a report with nothing to show.
+ */
 const deno = async (
   args: readonly string[],
   cwd: string,
   env: Record<string, string>,
+  benign: (stderr: string) => boolean = () => false,
 ): Promise<{ code: number; stderr: string }> => {
   const { code, stdout, stderr } = await new Deno.Command("deno", {
     args: [...args],
@@ -181,12 +189,13 @@ const deno = async (
     stdout: "piped",
     stderr: "piped",
   }).output();
-  if (code !== 0) {
+  const text = new TextDecoder().decode(stderr);
+  if (code !== 0 && !benign(text)) {
     await Deno.stdout.write(stdout);
     await Deno.stderr.write(stderr);
     console.error(`deno ${args.join(" ")} exited with ${code} in ${cwd}`);
   }
-  return { code, stderr: new TextDecoder().decode(stderr) };
+  return { code, stderr: text };
 };
 
 /**
@@ -224,7 +233,8 @@ export const measure = async (root: string, row: Package): Promise<Result> => {
         `--output=${lcov}`,
       ],
       root,
-      {},
+      { NO_COLOR: "1" },
+      nothingToReport,
     );
     if (code !== 0 && !nothingToReport(stderr)) {
       return {

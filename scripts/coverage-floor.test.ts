@@ -169,7 +169,9 @@ describe("measure", () => {
         ],
       };
       const result = await measure(root, at("", [corrupt]));
-      expect(result.error).toEqual("deno coverage failed (exit 1)");
+      // Deno 2.9.5 and 2.9.7 exit 1 on the unreadable file; the exit code is
+      // not part of the contract, so only the kind of error is asserted.
+      expect(result.error).toMatch(/^deno coverage failed \(exit \d+\)$/);
     }));
 });
 

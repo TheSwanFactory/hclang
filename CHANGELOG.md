@@ -7,11 +7,14 @@
 
 ## v0.55.4 2026-11-22
 
-- **Bundled examples removed (#525).** `hc/gerbil.hc` and `hc/led_blink.hc` are
-  no longer bundled, so `'./hc/gerbil.hc'` and `'./hc/led_blink.hc'` no longer
-  import in `hc`, the library or hcweb. Neither ran: `gerbil.hc` failed with
-  `$!.parse-unmatched-structure` and `led_blink.hc` with
-  `$!.resource-import-source-type`. `hc/hcsv.hc` stays.
+- **Breaking: bundled examples removed (#525).** `hc/gerbil.hc` and
+  `hc/led_blink.hc` are no longer bundled, so `'./hc/gerbil.hc'` and
+  `'./hc/led_blink.hc'` no longer import in `hc`, the library or hcweb. Neither
+  ran: `gerbil.hc` failed with `$!.parse-unmatched-structure` and `led_blink.hc`
+  with `$!.resource-import-source-type`. `hc/hcsv.hc` stays. This ships as a
+  patch by the owner's decision; since neither file imported, no import that
+  worked before stops working, but a `^0.55` caller gets the removal without
+  opting in.
 - **Smaller JSR package (#532).** `@swanfactory/hclang` no longer ships its
   `*.test.ts` files or `CLAUDE.md`; `bundle/hc-sources.ts` is still included.
 - **Dependency updates (#532).** `@swanfactory/hcweb` imports `@preact/signals`

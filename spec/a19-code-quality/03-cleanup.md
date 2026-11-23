@@ -281,10 +281,10 @@ rounded down to a whole percent:
 | `experiments/007-observer-algebras` | `test:observer-algebras`                                 | 745/762    | 97.77%        |    97 |
 
 Raising `cli`'s floor to 79 made the check exit 1 with "cli: 78.37% is below its
-79% floor". The review follow-up (R3) set maml's floor to 99 and web's to 98.
-`maml` has 57 lines where the audit counted 22, because 5.1 moved `lib/maml.ts`
-into `maml/`. The `scripts` row counts `coverage-floor.ts` itself, whose `main`
-its tests do not run.
+79% floor". The review follow-up (R3, and its second round) set maml's floor to
+98 and web's to 98. `maml` has 57 lines where the audit counted 22, because 5.1
+moved `lib/maml.ts` into `maml/`. The `scripts` row counts `coverage-floor.ts`
+itself, whose `main` its tests do not run.
 
 **1.4** Kept, as the audit decided. The floor cannot see the files that no Deno
 test loads: `web/mod.ts`, `web/mount.ts` (it runs only inside the built
@@ -798,6 +798,27 @@ that names them, in `spec/a13-error-handle/10-unified-diagnostic-failures.md`
 and the audit, stays. `doc/led_blink.v`, the Verilog original that #129 added
 with `led_blink.hc`, is reported on #525 and not deleted. Files: `hc/gerbil.hc`,
 `hc/led_blink.hc`. Commit: `3291c6b`.
+
+The review's second round, 6017064936 at `a50fa28`, left four threads:
+
+- **4662223524, the Breaking label.** The CHANGELOG's #525 bullet is now a
+  **Breaking:** entry. It says the release stays a patch by the owner's
+  decision, that neither file imported, and that a `^0.55` caller gets the
+  removal without opting in.
+- **4662223529, colored `deno coverage` output.** `measure` runs `deno coverage`
+  with `NO_COLOR`, so its stderr is plain text. The ANSI strip stays as a
+  fallback. `deno()` no longer prints the output of a failure that
+  `nothingToReport` accepts, so a row with nothing to report shows no
+  error-looking lines in the CI log.
+- **4662223535, maml's floor.** The reviewer's arithmetic holds. maml has 57
+  instrumented lines, so one new uncovered line gives 57/58, 98.28%, which a
+  floor of 99 would fail. A row measured at 99% or more now gets the coverage it
+  would have with one more uncovered line, rounded down: maml 98 and web 98
+  (113/115, 98.26%). One new uncovered line passes and two fail. The rule is in
+  the doc comment of `PACKAGES`.
+- **4662223536, the corrupt-file test.** It asserts only that the error is "deno
+  coverage failed (exit N)", and its comment names the Deno versions observed,
+  2.9.5 and 2.9.7.
 
 **R9, #520: the partition check.** Following the resolution on #520,
 `lib/frames/partition-check.ts` and its test move to
