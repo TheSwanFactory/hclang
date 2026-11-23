@@ -171,6 +171,10 @@ creates a GitHub Release tagged `v<version>` with generated notes and the tested
 `hcweb.html` download. Merges without a version bump do not publish packages,
 create a release, or deploy the demo; no manual tag is required.
 
+MAML is not a JSR package of its own. It ships inside hclang as the
+`@swanfactory/hclang/maml` subpath (`lib/maml/mod.ts`), so publishing hclang
+publishes it, and `deno publish --dry-run` in `lib/` validates it.
+
 The release workflow uploads `web/dist/` to GitHub Pages and verifies the public
 page's version, source commit, and HC evaluation in Chromium. A separate
 `demo-availability.yml` workflow runs the browser check daily and on manual

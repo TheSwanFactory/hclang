@@ -85,3 +85,18 @@ is refused, and no other path or scheme is reachable through it. The bare
 
 Each CLI input file receives its own `$` namespace, while all files share the
 host-selected `$$` namespace.
+
+### `@swanfactory/hclang/maml`
+
+The MAML subpath exports `maml`, which renders a frame as an HTML document, and
+`tag`, which wraps contents in a named element. `maml` puts the frame's contents
+in `<body>` and each of its public metadata properties in `<head>`.
+
+```typescript
+import { evaluate } from "@swanfactory/hclang";
+import { maml } from "@swanfactory/hclang/maml";
+
+const page = maml.call(evaluate('"Hello, MAML!"').at(0));
+console.log(page.toString());
+// prints: “<!DOCTYPE html><html><head></head><body>Hello, MAML!</body></html>”
+```

@@ -1,8 +1,14 @@
 import { expect } from "@std/expect";
 import { describe, it } from "@std/testing/bdd";
 
-import { FrameExpr, FrameString } from "../lib/frames.ts";
+import { FrameExpr, FrameString } from "../frames.ts";
 import { maml } from "./maml.ts";
+import { tag } from "./tag.ts";
+import { evaluate } from "@swanfactory/hclang";
+import {
+  maml as publishedMaml,
+  tag as publishedTag,
+} from "@swanfactory/hclang/maml";
 
 describe("maml", () => {
   const body_text = "Hello, MAML!";
@@ -96,6 +102,22 @@ describe("MAML metadata rendering", () => {
     expect(first.toString()).toContain("<title>First</title>");
     expect(second.toString()).toEqual(
       "“<!DOCTYPE html><html><head><author>Second</author></head><body>Two</body></html>”",
+    );
+  });
+});
+
+describe("@swanfactory/hclang/maml", () => {
+  it("exports maml and tag through the package subpath", () => {
+    expect(publishedMaml).toBe(maml);
+    expect(publishedTag).toBe(tag);
+    expect(publishedMaml.call(new FrameString("Body")).toString()).toEqual(
+      "“<!DOCTYPE html><html><head></head><body>Body</body></html>”",
+    );
+  });
+  it("prints the README example's output", () => {
+    const page = publishedMaml.call(evaluate('"Hello, MAML!"').at(0));
+    expect(page.toString()).toEqual(
+      "“<!DOCTYPE html><html><head></head><body>Hello, MAML!</body></html>”",
     );
   });
 });

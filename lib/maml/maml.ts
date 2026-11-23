@@ -4,7 +4,7 @@ import {
   FrameExpr,
   FrameString,
   FrameSymbol,
-} from "../lib/frames.ts";
+} from "../frames.ts";
 import { tag } from "./tag.ts";
 
 const HTML_PREFIX = "<!DOCTYPE html>";
@@ -41,7 +41,15 @@ const head = MakeTag(
 );
 const body = MakeTag("body", FrameArg.here());
 
-export const maml = new FrameExpr([
+/**
+ * Renders a frame as an HTML document.
+ *
+ * The frame's contents become the `<body>`, and each of its public metadata
+ * properties becomes an element of the `<head>` named by its key. The result
+ * is a string frame that starts with `<!DOCTYPE html>`. The renderer binds
+ * `tag` as its own `tag` property.
+ */
+export const maml: Frame = new FrameExpr([
   new FrameString(HTML_PREFIX),
   MakeTag("html", new FrameExpr([head, body])),
 ], { tag });

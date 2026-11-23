@@ -180,7 +180,7 @@ describe("PACKAGES", () => {
     expect(PACKAGES.map((each) => each.name)).toEqual([
       "lib",
       "cli",
-      "maml",
+      "lib/maml",
       "scripts",
       "web",
       "experiments/007-observer-algebras",

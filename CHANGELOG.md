@@ -5,6 +5,17 @@
 > contains nothing else; then describe it and say that nothing user-facing
 > changed.
 
+## v0.55.8 2026-11-23
+
+- **MAML is published as `jsr:@swanfactory/hclang/maml` (#519).** The MAML
+  renderer now ships inside the hclang package as the `./maml` export, rather
+  than as a separate `@swanfactory/maml` package that was never published.
+  `import { maml, tag } from "@swanfactory/hclang/maml"` gives `maml`, which
+  renders a frame as an HTML document with its public metadata in `<head>` and
+  its contents in `<body>`, and `tag`, which wraps contents in a named element.
+  The sources moved from `maml/` to `lib/maml/`, and `maml/` is no longer a
+  workspace member. No HC answers change.
+
 ## v0.55.7 2026-11-23
 
 - **The four skipped schema suites now run (#516).** No HC answer changes.
