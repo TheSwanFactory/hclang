@@ -14,6 +14,7 @@ import { FrameCurry } from "../ops/frame-curry.ts";
 import { isFrameMatcher } from "./frame-match.ts";
 import { type Context, NilContext } from "./context.ts";
 import { type EvaluationInput, EvaluationScope } from "./evaluation-scope.ts";
+import { activeLookupProbe } from "./reference-tracking.ts";
 import {
   completeAtEnd,
   includeOrEnd,
@@ -191,7 +192,11 @@ export class FrameSymbol extends FrameAtom {
     // A method body resolves against its receiver, so visibility asks the same
     // question no matter which path the access arrives by.
     const receiver = scope.receiverState?.receiver;
+    const probe = activeLookupProbe();
     for (const context of scope.lookupFrames()) {
+      // A probe's answer comes from the layer that answers, not from an
+      // earlier one that found a value and then missed.
+      probe?.startLayer();
       const explicitOrigin = this.get_here(Frame.kOUT);
       const origin = receiver ??
         (context instanceof FrameHandle && !explicitOrigin.is.missing

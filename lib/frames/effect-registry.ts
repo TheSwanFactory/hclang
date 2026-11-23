@@ -2,6 +2,7 @@ import type { Frame } from "./frame.ts";
 import {
   guardAccess,
   noteWrite,
+  refuseCommitUnderProbe,
   UncertifiedAccess,
 } from "./reference-tracking.ts";
 
@@ -122,18 +123,22 @@ export type CommitNotice = "notify" | "silent";
 
 /**
  * Opens a commit to `frame`: guards the write before it lands, so a refusal
- * changes nothing. Every commit path calls it, then `afterCommit` once the
+ * changes nothing. A commit under a lookup probe throws. Every commit path calls it, then `afterCommit` once the
  * write has landed (reference-tracking.ts).
  */
 export function beforeCommit(frame: Frame): void {
+  refuseCommitUnderProbe(frame);
   guardAccess(frame, "write");
 }
 
 /**
  * Closes a commit to `frame` after the write has landed: notes the write,
  * then, for `"notify"`, runs the frame's effect subscribers, if it has any.
+ * A commit under a lookup probe throws, a path that skipped `beforeCommit`
+ * included.
  */
 export function afterCommit(frame: Frame, notice: CommitNotice): void {
+  refuseCommitUnderProbe(frame);
   noteWrite(frame);
   if (notice === "notify" && hasEffectSubscribers(frame)) notifyEffect(frame);
 }

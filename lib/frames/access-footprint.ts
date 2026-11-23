@@ -234,6 +234,13 @@ interface Site {
  * the receiver state given when it runs as a method, made under the walk's
  * scratch record as the top-level call scope is. The argument is not known
  * here, so it is nil.
+ *
+ * A probed lookup through this scope, or through the top-level one
+ * `potentialFootprint` makes, can fill a `LiveLookupContext`'s handle cache
+ * (evaluation-scope.ts). That is intended: the scope is the walk's own, never
+ * the one the event runs in, and where the live context is shared (an
+ * imported namespace's `up`) the cached handle is a read-only handle that the
+ * event's own lookup would make the same way.
  */
 function nestedScope(
   walk: Walk,
@@ -640,7 +647,7 @@ function walkSymbol(
   }
   // Lookup answered an error (`$!.is-private .x`): the name denotes that
   // value, and the read goes no further.
-  if (lookup.found.value.is.error) return fresh;
+  if (lookup.value?.is.error) return fresh;
   return walkReferent(walk, spelling, lookup.found, site, handedOn, true);
 }
 
@@ -907,11 +914,14 @@ function patternAnswers(frame: Frame, key: string): boolean {
  * probe, so `consulted` is every frame whose guarded `get_here` it ran, hit or
  * miss, less the frames it created. `found` is the first frame whose own
  * local lookup answered, unwrapped, with the raw value it answered; it is
- * absent when every layer missed. `pattern` says a pattern binding answered.
+ * absent when every layer missed. `value` is what lookup itself answers, after
+ * any `lookup_result` wrapping, an error included. `pattern` says a pattern
+ * binding answered.
  */
 export interface NameLookup {
   readonly consulted: readonly Frame[];
   readonly found?: Resolution;
+  readonly value?: Frame;
   readonly pattern: boolean;
 }
 
@@ -923,7 +933,7 @@ export function nameLookup(symbol: FrameSymbol, scope: NameScope): NameLookup {
   const found = read && probe.owner && probe.answer
     ? { owner: unwrap(probe.owner), value: probe.answer }
     : undefined;
-  return { consulted, found, pattern: probe.pattern };
+  return { consulted, found, value: read?.value, pattern: probe.pattern };
 }
 
 /**

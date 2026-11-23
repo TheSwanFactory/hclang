@@ -4,7 +4,8 @@ import { evaluate } from "../execute/evaluate.ts";
 import { Frame } from "./frame.ts";
 import { FrameName } from "./frame-name.ts";
 import { FrameResource } from "./frame-resource.ts";
-import { FrameSymbol } from "./frame-symbol.ts";
+import { FrameSymbol, type NameScope } from "./frame-symbol.ts";
+import type { MetaFrame } from "./frame.ts";
 import { BoundMethod } from "./bound-method.ts";
 import { FrameLazy } from "./frame-lazy.ts";
 import { MemoryStore } from "./resource-store.ts";
@@ -247,6 +248,20 @@ describe("footprint names follow lookup (#527)", () => {
         const lookup = nameLookup(symbol, scope);
         expect(shared(lookup.consulted)).toEqual(shared(record.sharedReads()));
         expect(lookup.found?.value.toString()).toEqual(answer.toString());
+        // The owner is a frame lookup consulted, and its own binding gives
+        // back the value found, so a lookup that discards an inner hit fails
+        // here instead of certifying the wrong binding. An atom owner (`9.8`,
+        // a doc) answers from its own data without a keyed read, and makes a
+        // fresh value each time; it is not state, so no guard asks about it.
+        const found = lookup.found!;
+        if (isState(found.owner)) {
+          expect(lookup.consulted).toContain(found.owner);
+        }
+        const origin = scope.receiverState?.receiver ?? found.owner;
+        const reread = found.owner.getOwn(fixture.name, origin);
+        if (isState(found.value)) expect(reread).toBe(found.value);
+        else expect(reread.toString()).toEqual(found.value.toString());
+        expect(lookup.value?.is.error).toBe(answer.is.error);
       });
     }
   });
@@ -292,6 +307,25 @@ describe("footprint names follow lookup (#527)", () => {
       ]);
       expect(report.outcomes[1].waitedFor).toEqual([]);
     });
+  });
+
+  it("a probe's answer comes from the layer that answered", () => {
+    const inner = evaluate(".x [.tag 1];");
+    // A layer whose own lookup reads an inner binding, then misses.
+    const discarding = new (class extends Frame {
+      protected override lookup_here(key: string, origin: MetaFrame): Frame {
+        inner.getOwn(key);
+        return super.lookup_here(key, origin);
+      }
+    })();
+    const outer = evaluate(".x [.tag 2];");
+    const scope: NameScope = {
+      lookupFrames: () => [discarding, outer],
+      isArgumentLayer: () => false,
+    };
+    const lookup = nameLookup(FrameSymbol.for("x"), scope);
+    expect(lookup.found?.owner).toBe(outer);
+    expect(lookup.found?.value).toBe(outer.get_here("x"));
   });
 
   it("a pattern binding on a lookup frame makes the name opaque and is not rewritten", () => {

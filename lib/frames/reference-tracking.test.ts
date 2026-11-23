@@ -339,4 +339,23 @@ describe("reference tracking: lookup probe", () => {
     expect(probe.owner).toBe(a);
     expect(probe.answer).toBe(one);
   });
+
+  it("throws at a commit under a probe, before the write lands", () => {
+    const x = new FrameArray([]);
+    const before = versionOf(x);
+    const probe = new LookupProbe();
+    expect(() => withLookupProbe(probe, () => x.set("k", FrameCount.for("1"))))
+      .toThrow("under a lookup probe");
+    expect(x.getOwn("k").is.missing).toBe(true);
+    expect(versionOf(x)).toBe(before);
+    expect(probe.writes.size).toBe(0);
+    expect(activeLookupProbe()).toBeUndefined();
+  });
+
+  it("refuses asynchronous work and restores the outer probe", () => {
+    const probe = new LookupProbe();
+    expect(() => withLookupProbe(probe, () => Promise.resolve(1)))
+      .toThrow("asynchronous");
+    expect(activeLookupProbe()).toBeUndefined();
+  });
 });
