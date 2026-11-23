@@ -20,10 +20,16 @@ deno task test:compiled     # Build the CLI binary and run it from an empty dir
 ### Code Quality
 
 ```bash
-deno fmt                    # Format code
-deno lint --fix             # Lint and fix issues
-deno task setup             # Install pre-commit hooks
+deno task fix               # Format code and apply lint fixes
+deno task setup             # Install the git hooks from deno-hooks.yml
 ```
+
+`deno task setup` installs the hooks into the repository's shared hooks
+directory, which the main checkout and every worktree use. The pre-commit hook
+runs `deno fmt --check` and `deno lint` over the whole working tree. It checks
+and does not format, so run `deno task fix` when it refuses a commit. The
+pre-push hook runs `deno task test:all`. The top-level `exclude` in `deno.json`
+lists `.agents/`, so untracked agent notes never fail fmt, lint or check.
 
 ### Formatting pull requests
 

@@ -3,6 +3,10 @@
 **Version**: 0.1.0 **Status**: Shipped as `jsr:@theswanfactory/deno-hooks`,
 which `deno task setup` installs **Date**: 2025-12-14
 
+> **Note (0.3.x):** this is the original design. deno-hooks 0.3.x, which hclang
+> pins, dropped the built-in hooks, `glob` and `pass_filenames`; each hook is
+> now a plain list of commands (see the root `deno-hooks.yml`).
+
 ## Abstract
 
 Deno Hooks is a zero-dependency git hooks framework written in pure TypeScript

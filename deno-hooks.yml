@@ -1,33 +1,10 @@
 hooks:
+  # Each hook runs its commands in order from the repository root and stops at
+  # the first failure. The commands check the whole working tree, not only the
+  # staged files, and change nothing; `deno task fix` formats and fixes lint.
   pre-commit:
-    # The runner matches each glob against the repo-relative path, and its `*`
-    # stops at a `/`, so `**/` is what reaches nested files; it also matches
-    # zero directories, so root-level files still match.
-
-    # Format code with deno fmt
-    - id: deno-fmt
-      name: deno fmt
-      run: deno-fmt
-      glob: "**/*.{ts,tsx,js,jsx,json,md}"
-      # The tracked paths in deno.json's fmt.exclude and top-level exclude.
-      # deno fmt skips them when given them too, but given only those it fails
-      # "No target files found".
-      exclude: "**/{doc/out/**,doc/no_equal.md,doc/shannon/1-shannon.md,hc/apply-tutorial.md,experiments/a13-recovery-spike/**}"
-      pass_filenames: true
-
-    # Lint code with deno lint
-    - id: deno-lint
-      name: deno lint
-      run: deno-lint
-      glob: "**/*.{ts,tsx,js,jsx}"
-      # The tracked paths in deno.json's top-level exclude, for the same reason.
-      exclude: "**/experiments/a13-recovery-spike/**"
-      pass_filenames: true
-
+    - deno fmt --check
+    - deno lint
   pre-push:
-    # Run the full gate before pushing, the same command CI runs; the built-in
-    # `deno-test` is a bare `deno test -A`, which is not this project's gate
-    - id: test
-      name: test
-      run: deno task test:all
-      pass_filenames: false
+    # The full gate, the same command CI runs.
+    - deno task test:all

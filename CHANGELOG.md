@@ -5,6 +5,20 @@
 > contains nothing else; then describe it and say that nothing user-facing
 > changed.
 
+## v0.55.9 2026-11-23
+
+- **The git hooks run on deno-hooks 0.3.1 (#515).** `deno task setup` used to
+  install a yanked 0.2.1 pre-release; it now pins
+  `jsr:@theswanfactory/deno-hooks@0.3.1`, which also installs from a worktree.
+  The pre-commit hook now checks rather than formats: it runs `deno fmt --check`
+  and `deno lint` over the working tree and refuses the commit on a failure
+  without changing any file. It used to check only the staged files and format
+  the ones that failed. Run `deno task fix` to format. The pre-push hook still
+  runs `deno task test:all`. `.agents/` and `.worktrees/` join the root
+  `deno.json` exclude, so untracked agent notes and linked worktrees kept inside
+  the checkout never fail fmt, lint or check. Rerun `deno task setup` to pick up
+  the new hooks.
+
 ## v0.55.8 2026-11-23
 
 - **MAML is published as `jsr:@swanfactory/hclang/maml` (#519).** The MAML
