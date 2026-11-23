@@ -27,9 +27,14 @@ deno task setup             # Install the git hooks from deno-hooks.yml
 `deno task setup` installs the hooks into the repository's shared hooks
 directory, which the main checkout and every worktree use. The pre-commit hook
 runs `deno fmt --check` and `deno lint` over the whole working tree. It checks
-and does not format, so run `deno task fix` when it refuses a commit. The
-pre-push hook runs `deno task test:all`. The top-level `exclude` in `deno.json`
-lists `.agents/`, so untracked agent notes never fail fmt, lint or check.
+and does not format, so run `deno task fix` when it refuses a commit. It judges
+the files on disk, not the staged copies: an unformatted file you have not
+staged still refuses the commit, and a file fixed after `git add` but not
+re-staged passes while its staged copy stays unformatted. Stage what you fix;
+CI's `format` job catches the rest. The pre-push hook runs `deno task test:all`.
+The top-level `exclude` in `deno.json` lists `.agents/` and `.worktrees/`, so
+untracked agent notes and linked worktrees inside the checkout never fail fmt,
+lint or check.
 
 ### Formatting pull requests
 
