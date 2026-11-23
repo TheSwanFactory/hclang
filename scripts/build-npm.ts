@@ -21,6 +21,8 @@ await build({
   outDir: OUTPUT_DIR,
   scriptModule: false,
   declaration: false,
+  // @types/node 24 no longer declares Array.prototype.at; Node 24 has it.
+  compilerOptions: { lib: ["ES2022"] },
   test: false,
   shims: {
     deno: true,
@@ -56,7 +58,7 @@ await build({
       "@deno/shim-deno": "0.19.2",
     },
     devDependencies: {
-      "@types/node": "22.20.2",
+      "@types/node": "24.19.2",
     },
   },
   postBuild(): void {

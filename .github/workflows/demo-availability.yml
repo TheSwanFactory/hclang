@@ -17,12 +17,12 @@ jobs:
       - uses: actions/checkout@v7
       - uses: denoland/setup-deno@v2
         with:
-          deno-version: v2.9.5
+          deno-version: v2.9.8
       - name: Generate HC source bundle before dependency resolution
         run: deno task bundle:embed
       - run: deno ci
       - name: Install Chromium
-        run: deno run -A npm:playwright@1.62.0 install --with-deps chromium
+        run: deno run -A npm:playwright@1.65.1 install --with-deps chromium
       - name: Evaluate HC on the public site
         working-directory: web
         run: deno task test:production

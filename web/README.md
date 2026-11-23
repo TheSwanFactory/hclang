@@ -56,7 +56,7 @@ production build, and the generated artifact itself. The artifact tests open
 any network request. They need a browser once:
 
 ```sh
-deno run -A npm:playwright@1.62.0 install chromium
+deno run -A npm:playwright@1.65.1 install chromium
 ```
 
 ## How the release artifact is built

@@ -4,12 +4,12 @@
   },
   "imports": {
     "@fresh/plugin-vite": "jsr:@fresh/plugin-vite@1.1.2",
-    "@preact/signals": "npm:@preact/signals@2.11.0",
+    "@preact/signals": "npm:@preact/signals@2.11.4",
     "@swanfactory/hcweb/islands/Main": "../../islands/Main.tsx",
     "@types/babel__core": "npm:@types/babel__core@7.20.5",
     "fresh": "jsr:@fresh/core@2.3.3",
     "preact": "npm:preact@10.29.8",
-    "vite": "npm:vite@7.3.6"
+    "vite": "npm:vite@7.3.8"
   },
   "compilerOptions": {
     "jsx": "precompile",
