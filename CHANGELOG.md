@@ -14,9 +14,10 @@
   and `deno lint` over the working tree and refuses the commit on a failure
   without changing any file. It used to check only the staged files and format
   the ones that failed. Run `deno task fix` to format. The pre-push hook still
-  runs `deno task test:all`. `.agents/` joins the root `deno.json` exclude, so
-  untracked agent notes never fail fmt, lint or check. Rerun `deno task setup`
-  to pick up the new hooks.
+  runs `deno task test:all`. `.agents/` and `.worktrees/` join the root
+  `deno.json` exclude, so untracked agent notes and linked worktrees kept inside
+  the checkout never fail fmt, lint or check. Rerun `deno task setup` to pick up
+  the new hooks.
 
 ## v0.55.8 2026-11-23
 

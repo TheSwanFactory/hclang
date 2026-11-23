@@ -64,6 +64,7 @@
   },
   "exclude": [
     ".agents/",
+    ".worktrees/",
     "dist/",
     "web/dist/",
     "**/_fresh/",
