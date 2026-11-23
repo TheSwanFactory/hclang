@@ -160,7 +160,8 @@ async function main(): Promise<number> {
     porcelain,
     allowDirty: !!args["allow-dirty"],
     deno: Deno.version,
-    libVersion: (await Deno.readTextFile(REPO + "lib/version.ts")).trim(),
+    libVersion: (await Deno.readTextFile(REPO + "lib/version.ts")).split("\n")
+      .find((line) => line.startsWith("export const VERSION")) ?? "",
     os: `${Deno.build.os} ${Deno.build.arch}`,
     srcDir: src === HERE
       ? "experiments/017-classical-cd/"
