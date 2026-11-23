@@ -11,9 +11,12 @@
   mutation commit sites in `lib/frames` now close through one helper that
   records the write and notifies the frame's subscribers. Before, only
   `MetaFrame.set` and `Frame.replaceMember` notified. Declaring an arrow still
-  fires nothing. Only `MetaFrame.set` reaches a subscribed value from HC today,
-  and it already notified, so nothing user-facing changed: no HC answer or
-  testdoc summary changes.
+  fires nothing. A write that changes nothing is not a commit: re-setting the
+  parent a frame already has, or a pattern lookup that finds the bound name's
+  source already rewritten, neither notifies nor advances the version. Only
+  `MetaFrame.set` reaches a subscribed value from HC today, and it already
+  notified, so nothing user-facing changed: no HC answer or testdoc summary
+  changes.
 
 ## v0.55.5 2026-11-22
 
