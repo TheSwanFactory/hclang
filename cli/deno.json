@@ -1,5 +1,5 @@
 {
-  "version": "0.55.9",
+  "version": "0.55.10",
   "description": "Homoiconic C command-line interface and REPL",
   "entry": "./hc.ts",
   "bin": {
