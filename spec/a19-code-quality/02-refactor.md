@@ -493,8 +493,8 @@ Deno's counts, from `NO_COLOR=1 deno task test`: a top-level `Deno.test` or
 
 | Run                      | `90749a0`                          | Head                               |
 | ------------------------ | ---------------------------------- | ---------------------------------- |
-| `test:cli`               | 10 passed (74 steps)               | 10 passed (73 steps)               |
-| `test:lib`               | 201 passed (1553 steps), 4 ignored | 212 passed (1538 steps), 4 ignored |
+| `test:cli`               | 10 passed (74 steps)               | 11 passed (77 steps)               |
+| `test:lib`               | 201 passed (1553 steps), 4 ignored | 215 passed (1543 steps), 4 ignored |
 | `test:load-order`        | 1 passed (1 step)                  | 1 passed (1 step)                  |
 | `test:maml`              | 3 passed (18 steps)                | 3 passed (18 steps)                |
 | `test:scripts`           | 17 passed (118 steps)              | 17 passed (118 steps)              |
@@ -505,7 +505,8 @@ Deno's counts, from `NO_COLOR=1 deno task test`: a top-level `Deno.test` or
 
 - `test:cli`: `cli/flatten.test.ts`'s 1 test and 7 steps went with 3.3. 6.12
   adds 1 test, `cli/testdoc-summaries.test.ts`, and 6 steps, the cases for the
-  six testdocs nothing pinned.
+  six testdocs nothing pinned. The outside review adds 1 test and 4 steps, the
+  generator's guards in `cli/testdoc-summaries.test.ts`.
 - `test:lib`: `describe("contextEqual")` and its 2 cases, 3 steps, went with
   3.11. 2.10 adds 9 tests and removes 9 steps, because each of the nine
   `evaluate` suites is now a file's top-level `describe`. 2.11 does the same for
@@ -513,6 +514,9 @@ Deno's counts, from `NO_COLOR=1 deno task test`: a top-level `Deno.test` or
   seven properties stay steps under "resource import: properties". 3.20 removes
   1 test: `denum-observers.test.ts` had 4, and 3 moved to `foist-19a.test.ts`.
   `script-spec.ts`'s cases never ran (3.1), so its deletion changes no count.
+  The outside review adds 3 tests and 5 steps: `describe("ranked rungs")` in
+  `frame-numeric.test.ts`, with a step per rung, and the 2 tests of
+  `lib/execute/class-prologue.test.ts`.
 - No other count changed. `test:load-order` dropped `--allow-env` (5.3) and
   `test:lib` added `--parallel` (6.8), and neither changes a count.
 
@@ -546,16 +550,21 @@ Every run printed `ok | 212 passed (1538 steps) | 0 failed | 4 ignored`. The
 parallel median is below the serial minimum, the plan's condition, so `test:lib`
 adopted `--parallel`. The median run is 7.1 s shorter.
 
-**6.8, CI.** Before: master's latest Deno CI run, 45069034886 at `ad37fd9`,
-printed `ok | 201 passed (1553 steps) | 0 failed | 4 ignored (27s)` for the
-serial `test:lib`, on a GitHub-hosted `ubuntu-26.04` runner with Deno 2.9.5. Its
+**6.8, CI.** Before: master's latest Deno CI run,
+[45069034886](https://github.com/TheSwanFactory/hclang/actions/runs/45069034886)
+at `ad37fd9`, printed
+`ok | 201 passed (1553 steps) | 0 failed | 4 ignored (27s)` for the serial
+`test:lib`, on a GitHub-hosted `ubuntu-26.04` runner with Deno 2.9.5. Its
 `Task test:lib` line and that summary are 30.2 s apart. After: this PR's Deno CI
-run 45097701512 at `ef6b508`, on the same image and Deno version, printed
+run
+[45097701512](https://github.com/TheSwanFactory/hclang/actions/runs/45097701512)
+at `ef6b508`, on the same image and Deno version, printed
 `ok | 212 passed (1538 steps) | 0 failed | 4 ignored (22s)` for the parallel
 `test:lib`, 25.2 s after its `Task test:lib` line. Its run at `e7b1e65`,
-45097327222, printed the same 22 s, 25.3 s apart. On CI the parallel `test:lib`
-is 5 s shorter by either measure. The runner's core count bounds the gain, and
-the log does not print it.
+[45097327222](https://github.com/TheSwanFactory/hclang/actions/runs/45097327222),
+printed the same 22 s, 25.3 s apart. On CI the parallel `test:lib` is 5 s
+shorter by either measure. The runner's core count bounds the gain, and the log
+does not print it.
 
 ## Defects found
 
@@ -580,6 +589,50 @@ the log does not print it.
   bundle, before and after this phase.
 
 That bundle defect is the only one this phase found in product code.
+
+## Outside review
+
+The Slacker review of #514, reviews 6015833297 (at `ef6b508`) and 6015916393 (at
+`c00d910`), left seven threads. Each fix keeps every HC answer: the testdoc
+summary table and `test:doc` are unchanged, and the counts above change only by
+the tests listed here.
+
+- **4661196475, the patch bump.** The version stays 0.55.3 under decision 5. The
+  CHANGELOG's Breaking bullet now says so, and that callers on a `^0.55` range
+  receive the removals without opting in (`9f1705c`).
+- **4661196484 and 4661196487, `FrameNumeric`'s hook defaults.** 3.13 gave every
+  hook but `unaryPlus` and `unaryMinus` a base default, and 4.14 then deleted
+  the `ratioParts` overrides that repeated it. A default is now kept only where
+  it is a refusal, an error a rung that forgets the override answers visibly:
+  `inexactResult` and the `*Same` and `powerIntegral` arithmetic hooks.
+  `isZero`, `promoteOne`, `ratioParts`, `integralValue` and `compareSame` answer
+  facts about the value (`equals` reads a null comparison as unequal), so they
+  are abstract again, and a comment in `frame-numeric.ts` states the rule, which
+  also covers the unary signs. The rungs and peers that relied on those five
+  defaults regain explicit overrides answering what the defaults answered:
+  `FrameNumber` (`promoteOne`, `ratioParts`), `FrameTime` (`promoteOne`,
+  `ratioParts`, `integralValue`), `FrameTypedNumber` (those three and
+  `compareSame`) and `FrameSequence` (those four and `isZero`). A "ranked rungs"
+  test enumerates `NUMERIC_RANK` and asserts each rung overrides the refusing
+  hooks its dispatch reaches (`466365c`).
+- **4661196491, the generated summary table.** `testdoc:summaries` prints each
+  file's old and new counts before writing, and refuses a table in which a
+  file's `total` or `pass` drops, its `fail` rises or the file disappears,
+  unless the script is given `--allow-regression`. Recording only exit-0 runs is
+  intended: a testdoc with a failing claim exits 1 and already fails `test:doc`.
+  The generator's module doc says so (`85b480f`).
+- **4661196493, `classOnce`'s cache.** Behavior is unchanged. The docs now say
+  that an error the load answers is kept, and that a throw keeps nothing and
+  propagates, so the next call evaluates again. `classOnce` takes an optional
+  source reader so a test can inject a throwing source (`907fd76`).
+- **4661196495, `--parallel` and the disk.** All 95 `lib/` test files were
+  checked for fixed on-disk paths and shared temp-dir names. None writes to
+  disk: `test:lib` grants no permissions, so a write would fail rather than
+  race. The only file-system call is `Deno.readDir` in `lib/load-order.test.ts`,
+  which `test:load-order` runs on its own, outside `--parallel`. The `/tmp/...`
+  strings in `frame-resource.test.ts` and `resource-reference.test.ts` are roots
+  of in-memory stores and path fixtures. Nothing needed fixing.
+- **4661266551, run links.** The 6.8 CI paragraph links its three Actions runs.
 
 ## Left for cleanup
 
