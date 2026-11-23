@@ -55,7 +55,7 @@ up.
 
 ### What MAML Expects
 
-From [lib/maml.ts:39-42](../../lib/maml.ts#L39-L42):
+From [lib/maml.ts:39-42](../../maml/maml.ts):
 
 ```typescript
 export const maml = new FrameExpr([
@@ -139,6 +139,6 @@ This should work because `tag` is already imported at the top of the file!
 
 ## References
 
-- [lib/maml.ts](../../lib/maml.ts)
+- [lib/maml.ts](../../maml/maml.ts)
 - [lib/ops/iterators.ts](../../lib/ops/iterators.ts)
 - [maml/tag.ts](../../maml/tag.ts)

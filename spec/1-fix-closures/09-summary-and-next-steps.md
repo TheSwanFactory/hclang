@@ -164,7 +164,7 @@ For Option A:
 
 ## References
 
-- **Specs**: [spec/1-fix-closures/](./README.md)
+- **Specs**: [spec/1-fix-closures/](./)
 - **Tests**: [lib/execute/evaluate.test.ts](../../lib/execute/evaluate.test.ts)
-- **MAML**: [lib/maml.ts](../../lib/maml.ts)
+- **MAML**: [lib/maml.ts](../../maml/maml.ts)
 - **Commit**: b02b34e (where MAML broke)

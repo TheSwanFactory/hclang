@@ -50,7 +50,7 @@ not just during stringification.
 
 ### MAML Architecture
 
-From [lib/maml.ts](../../lib/maml.ts):
+From [lib/maml.ts](../../maml/maml.ts):
 
 ```typescript
 export const maml = new FrameExpr([
@@ -284,4 +284,4 @@ Before marking this work complete:
 - [lib/frames/frame-expr.ts](../../lib/frames/frame-expr.ts) - Changed file
 - [lib/frames/frame-lazy.ts](../../lib/frames/frame-lazy.ts) - Changed file
 - [maml/maml.test.ts](../../maml/maml.test.ts) - Failing tests
-- [lib/maml.ts](../../lib/maml.ts) - MAML implementation
+- [lib/maml.ts](../../maml/maml.ts) - MAML implementation
