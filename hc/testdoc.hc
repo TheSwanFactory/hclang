@@ -226,7 +226,7 @@ HLIR advanced types (aspirational)
 # $!.unimplemented .ratio 3.14
 ; .whole <i32> ratio                     # Explicit conversion
 # $!.unimplemented .whole 3
-; .small <i32> 42
+; .small <i32> 42                        # Setup for widening
 # $!.unimplemented .small 42
 ; .wide <f64> small                      # Numeric widening
 # $!.unimplemented .wide 42

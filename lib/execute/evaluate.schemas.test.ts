@@ -268,7 +268,15 @@ describe("evaluate: schemas", () => {
       expect(result.meta.x).toBeUndefined();
     });
 
+    it("leaves a plain declaration applied to nil unbound", () => {
+      // Pins doc/LANGUAGE.md "Nil (False)": `.nil ()` answers `.nil`.
+      const result = evaluate(".nil ()");
+      expect(result.toString()).toEqual("[.nil]");
+      expect(result.meta.nil).toBeUndefined();
+    });
+
     it("leaves a nil-valued declaration unbound under the void schema", () => {
+      // Same rule as the `.x` case; kept for the old HLIR "void" intent.
       const result = evaluate(".void <()> ()");
       expect(result.toString()).toEqual("[.void.<> <()>; .void]");
       expect(result.meta.void).toBeUndefined();
@@ -278,7 +286,9 @@ describe("evaluate: schemas", () => {
       // `@x` is the write alias of `x`, not its value, so the lookup `x`
       // reads the value (spec/a15-closure-inspection.md).
       const result = evaluate(".x <1> 1; .y x");
-      expect(result.toString()).toContain(".y 1");
+      expect(result.toString()).toEqual(
+        "[.x.<> <1>; .x 1; .y 1; ((.x 1); .y 1)]",
+      );
       expect(result.meta["y.<>"]).toBeUndefined();
     });
 
@@ -319,5 +329,6 @@ describe("evaluate: schemas", () => {
   });
 
   // HLIR primitive schemas and schema coercion are unimplemented claims in
-  // hc/testdoc.hc, tracked by #536.
+  // hc/testdoc.hc, tracked by #536. The type-refusal and record-composition
+  // cases have no testdoc claim and are listed in #536.
 });

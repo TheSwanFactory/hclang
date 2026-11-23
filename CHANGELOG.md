@@ -5,7 +5,7 @@
 > contains nothing else; then describe it and say that nothing user-facing
 > changed.
 
-## v0.55.7 2026-11-22
+## v0.55.7 2026-11-23
 
 - **The four skipped schema suites now run (#516).** No HC answer changes.
   - `doc/LANGUAGE.md` "Nil (False)" now shows what `.nil ()` does: applying nil
