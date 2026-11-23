@@ -17,6 +17,11 @@
     witness, as under `sequential`.
   - An event whose argument is a closure made in another call answered
     `$!.uncertified-read`. It now answers `1`, as under `sequential`.
+  - A closure event that calls a method of a namespace imported inside a call,
+    where the method is a closure made elsewhere and the importing call binds
+    the name it reads, answered `$!.uncertified-read`. The certificate listed
+    the importing call's frame, which a method call never reads. It now answers
+    the value, as under `sequential`.
   - An event that calls a `__` method of its parent no longer certifies that
     method's writes, which lookup refuses to reach, so a reader of `x_` no
     longer waits for it: `.waited [[], []]`, was `[[], [0]]`.
@@ -25,8 +30,9 @@
     event. Their results are unchanged.
 
   Witness W19 in `hc/art-dispatch-vact.hc` pins these, with
-  `lib/frames/access-footprint.lookup.test.ts` for the namespace-function case.
-  No other testdoc answer changes.
+  `lib/frames/access-footprint.lookup.test.ts` for the namespace-function and
+  namespace-method cases, which need a module that is not bundled. No other
+  testdoc answer changes.
 
 ## v0.55.4 2026-11-22
 

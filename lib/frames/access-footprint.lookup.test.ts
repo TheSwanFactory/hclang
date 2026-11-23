@@ -49,6 +49,13 @@ const NS_PARENT =
   `.x [.tag 1]; .mk {.x [.tag 7]; M <- './m.hc'; M}; .M (mk ()); .C [.^ M; .m {x.tag}]; .ev {C.m ()};`;
 const NS_IN_CALL =
   `.mk {.x [.tag 7]; M <- './m.hc'; M}; .M (mk ()); .ev {M.get ()};`;
+/**
+ * A namespace imported inside a call, whose method is a closure made in
+ * another call: the receiver layer is a handle, so lookup does not climb the
+ * namespace's `up` into the importing call, where `x` is shadowed.
+ */
+const NS_FOREIGN_METHOD =
+  `.x [.tag 1]; .mkreader {{x.tag}}; .reader (mkreader ()); .mk {.x [.tag 7]; M <- './m.hc'; M}; .M (mk ()); .ev {M.get ()};`;
 const numeric = (parent: string, result: string): Fixture => ({
   id: `2n ${parent}`,
   program: `.k [.tag 1]; .C [.^ ${parent}; .f {k.tag}];`,
@@ -106,6 +113,22 @@ const FIXTURES: readonly Fixture[] = [
     event: { closure: "ev" },
     name: "M",
     result: "7",
+  },
+  {
+    id: "2f",
+    program: NS_FOREIGN_METHOD,
+    module: ".get reader;",
+    event: { method: ["M", "get"] },
+    name: "x",
+    result: "1",
+  },
+  {
+    id: "2g",
+    program: NS_FOREIGN_METHOD,
+    module: ".get reader;",
+    event: { closure: "ev" },
+    name: "M",
+    result: "1",
   },
   {
     id: "2d",

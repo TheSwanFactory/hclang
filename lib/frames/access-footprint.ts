@@ -5,7 +5,8 @@ import { FrameGroup } from "./frame-group.ts";
 import { FrameHandle } from "./frame-handle.ts";
 import { FrameLazy } from "./frame-lazy.ts";
 import { FrameSymbol, type NameScope } from "./frame-symbol.ts";
-import { BoundMethod } from "./bound-method.ts";
+import { BoundMethod, type ReceiverState } from "./bound-method.ts";
+import type { EvaluationScope } from "./evaluation-scope.ts";
 import { touchesIdentity } from "./effect-marker.ts";
 import { effectSubscribersOf } from "./effect-registry.ts";
 import {
@@ -121,6 +122,15 @@ class Walk {
    * call frame the event will make afresh when it runs, never shared state.
    */
   public readonly scratch = new AccessRecord();
+  /**
+   * Stands for the scope a dotted read happens in, which the handle that read
+   * answers records (`FrameHandle` read context). Lookup through such a handle
+   * asks only whether there is one, never for names in it.
+   */
+  public readonly readScope = withAccessRecord(
+    this.scratch,
+    () => new Frame(),
+  );
   private readonly standIns = new Set<Frame>();
 
   /** Whether a frame is state the event could share with another. */
@@ -207,21 +217,33 @@ interface Site {
   readonly locals: Map<string, Referents | undefined>;
   /**
    * The layers and receiver a bare name reads through, as `FrameSymbol.in`
-   * would read it in this body.
+   * would read it in this body: the scope the call builds (`scopeForCall`).
    */
   readonly lookup: NameScope;
+  /**
+   * The read scope the receiver's method was reached through, when the call
+   * reads its receiver through a handle that records one
+   * (`ReceiverState.lexicalContext`). Such a receiver layer is looked up on
+   * the receiver and its declared parents only, never its own `up`.
+   */
+  readonly receiverContext?: Frame;
 }
 
 /**
- * The name scope of a body the walk reaches by name: its lexical frames,
- * receiver first when it runs as a method, with no argument layer.
+ * The scope a call of a closure the walk reaches by name would run in, with
+ * the receiver state given when it runs as a method, made under the walk's
+ * scratch record as the top-level call scope is. The argument is not known
+ * here, so it is nil.
  */
-function lexicalScope(frames: readonly Frame[], receiver?: Frame): NameScope {
-  return {
-    lookupFrames: () => frames,
-    isArgumentLayer: () => false,
-    receiverState: receiver ? { receiver } : undefined,
-  };
+function nestedScope(
+  walk: Walk,
+  closure: FrameLazy,
+  receiverState?: ReceiverState,
+): EvaluationScope {
+  return withAccessRecord(
+    walk.scratch,
+    () => closure.scopeForCall(Frame.nil, Frame.nil, receiverState),
+  );
 }
 
 /**
@@ -273,6 +295,7 @@ export function potentialFootprint(
       argumentMutable,
       locals: new Map(),
       lookup: scope,
+      receiverContext: scope.receiverState?.lexicalContext,
     });
   } else if (target instanceof FrameLazy) {
     const scope = withAccessRecord(
@@ -662,7 +685,12 @@ function walkName(
       walk,
       source,
       { owner: receiver, value: member },
-      { ...site, receiver, receiverMutable: current.mutable },
+      {
+        ...site,
+        receiver,
+        receiverMutable: current.mutable,
+        receiverContext: readContextOf(walk, frame, site),
+      },
       handedOn,
       current.mutable,
     );
@@ -737,13 +765,25 @@ function walkReferent(
       pathMutable && !site.isolated;
     if (writes) walk.write(site.receiver!);
     const receiver = onReceiver ? site.receiver : undefined;
-    const frames = receiver
-      ? [receiver, ...lexicalChain(value)]
-      : lexicalChain(value);
+    // The receiver state a call selects, over the receiver itself: a
+    // functional update would read an instance copy holding the same
+    // bindings, and the walk counts its accesses at the shared original.
+    const lookup = nestedScope(
+      walk,
+      value,
+      receiver && {
+        receiver,
+        mutable: writes,
+        lexicalContext: site.receiverContext,
+      },
+    );
     walkBody(walk, value, {
-      frames,
-      lookup: lexicalScope(frames, receiver),
+      frames: receiver
+        ? [receiver, ...lexicalChain(value)]
+        : lexicalChain(value),
+      lookup,
       receiver,
+      receiverContext: receiver && site.receiverContext,
       receiverMutable: writes,
       // A mutating method reached without authority is a functional update.
       isolated: site.isolated || (marked && !writes),
@@ -776,10 +816,9 @@ function walkReferent(
 function walkCallable(walk: Walk, argument: Frame, spelling: string): void {
   const value = unwrap(argument);
   if (value instanceof FrameLazy) {
-    const frames = lexicalChain(value);
     walkBody(walk, value, {
-      frames,
-      lookup: lexicalScope(frames),
+      frames: lexicalChain(value),
+      lookup: nestedScope(walk, value),
       receiverMutable: false,
       isolated: false,
       argument: Frame.nil,
@@ -789,6 +828,26 @@ function walkCallable(walk: Walk, argument: Frame, spelling: string): void {
   } else if (value instanceof BoundMethod) {
     walk.refuse(`${spelling} ${value.className()}`);
   }
+}
+
+/**
+ * The read scope the handle a dotted method read goes through records, as
+ * `BoundMethod.lexicalContext`, or undefined when that handle records none.
+ * A handle the walk holds says so itself. The argument `_` is read through
+ * `argumentRead`, a handle with no read scope, and the receiver `_^` is the
+ * call's receiver layer. Any other aggregate was reached by a name, and that
+ * read wraps it in a handle recording the scope it happened in
+ * (`FrameSymbol.projectRead`); a read of any other value hands out the value.
+ */
+function readContextOf(
+  walk: Walk,
+  frame: Frame,
+  site: Site,
+): Frame | undefined {
+  if (frame instanceof FrameHandle) return frame.readContextFrame();
+  if (frame === site.argument) return undefined;
+  if (frame === site.receiver) return site.receiverContext;
+  return frame instanceof FrameArray ? walk.readScope : undefined;
 }
 
 /** Whether `owner` is the receiver itself or one of its declared parents. */
