@@ -2,7 +2,7 @@
 
 **Covers:** steps 14–17 of the [plan](README.md): docs, records and experiments,
 tooling, and the close-out.\
-**Status:** In progress.\
+**Status:** Done. Steps 14–17 are complete; the release is v0.55.4.\
 **Base:** `9d0e7c7`, #514 squash-merged into master (v0.55.3). The work began on
 `c00d910`, #514's head, and was rebased onto `9d0e7c7`; measurements that name
 `c00d910` were taken before the rebase.\
@@ -55,9 +55,9 @@ moved or deleted names (`lib/maml.ts`, `hc-log`, `execute/sigilizer`,
 `contextEqual`, `isAlphabetic`, `Frame.signed`, `quantityOperator`, `flatten`,
 `script-spec`, `lib/index.ts`, `DENUM_CLASS`, `ROUTER_SOURCE`) found none beyond
 the cited lines. Files: `lib/frames/CLAUDE.md`, `doc/ARCHITECTURE.md`. Commit:
-`1653a44`. `lib/frames/frame.ts:95`, the `parent` field's comment, still says
-"It is written only by setParent"; the file was outside lane A, so step 17 fixes
-or files it.
+`1653a44`. `lib/frames/frame.ts:95`, the `parent` field's comment, still said
+"It is written only by setParent"; the file was outside lane A, so step 17 fixed
+it (Defects found, `0d16e51`).
 
 **02, traversal** `lib/frames/CLAUDE.md` says the private `MetaFrame.traverse`,
 with `walk`, owns the traversal and its cycle guard, and `get` and `resolve` go
@@ -310,7 +310,8 @@ regenerates it and passes. One `deno task test` now writes the bundle 9 times
 instead of 2; the audit estimated 11. Files: `deno.json`. Commit: `62c431d`.
 
 **8.1** Declined in the audit's Approval: the `deno-hooks` pin stays, so no
-change here. Step 17 files the yanked pin and the upstream deno-hooks issue.
+change here. Step 17 filed the yanked pin as #515 and the worktree install as
+deno-hooks#13.
 
 **8.2** Every inline `jsr:` import specifier in the tracked `.ts` and `.tsx`
 files is now a bare specifier that the root `deno.json` import map resolves:
@@ -324,16 +325,19 @@ imports bare. The edit touched the import lines of 120 files. In
 arguments. The `jsr:@swanfactory/*` strings stay: they are test data, the
 release builder's specifiers, and the JSDoc examples in
 `lib/execute/evaluate.ts`, `lib/execute/execute.ts` and `lib/frames/context.ts`.
-Those three examples are the only lines that the plan's check,
-`git grep -nE 'from "jsr:' -- '*.ts' '*.tsx'`, still prints. The counts before
-and after the swap match exactly (Measurements). That also settles 02's defect:
-`@std/expect` 0.219.1 is no longer in the lock, so `expect`'s message argument
-now prints, and no assertion failed when it did. Files: `deno.json`,
-`cli/deno.json`, the import lines of 120 files. Commit: `94104e4`. After the
-rebase onto `9d0e7c7`, master's new `lib/execute/class-prologue.test.ts`
-imported `jsr:@std/expect@^0.219.1` inline, which `deno install --frozen`
-refused against the regenerated lock; it now imports the bare `@std/expect`.
-Commit: the one that completes A5.
+The archived experiment is excluded: step 17 restored
+`experiments/a13-recovery-spike/spike.test.ts:11` to its own
+`jsr:@std/expect@^0.219.1` (`0d16e51`, Defects found), so 119 of the 120 files
+keep the swap. That line and the three examples are the only lines that the
+plan's check, `git grep -nE 'from "jsr:' -- '*.ts' '*.tsx'`, still prints. The
+counts before and after the swap match exactly (Measurements). That also settles
+02's defect: `@std/expect` 0.219.1 is no longer in the lock, so `expect`'s
+message argument now prints, and no assertion failed when it did. Files:
+`deno.json`, `cli/deno.json`, the import lines of 120 files. Commit: `94104e4`.
+After the rebase onto `9d0e7c7`, master's new
+`lib/execute/class-prologue.test.ts` imported `jsr:@std/expect@^0.219.1` inline,
+which `deno install --frozen` refused against the regenerated lock; it now
+imports the bare `@std/expect`. Commit: `1ac47df`.
 
 **8.3** Same-line updates: playwright 1.62.0 to 1.65.1 in `web/deno.json`, the
 four browser installs in the workflows and `web/README.md`; `@preact/signals`
@@ -415,6 +419,11 @@ exits 0. Files: `deno.lock`. Commit: `e0d39d1`.
 Commit: `866f17c`.
 
 ## Step 17: Close out
+
+The re-baseline, the duplicate check, the issues filed, and the issues closed
+and commented on. Step 17 also fixed the two things the earlier steps left to it
+(Defects found): a13's `@std/expect` pin and `Frame.parent`'s comment, both in
+`0d16e51`.
 
 ### Re-baseline
 
@@ -583,8 +592,10 @@ times each from the repository root, 20:01 to 20:02:
 | `a13-recovery-spike`    | the head's folder in `05b4f25`'s tree                                | fail: TS2307, `"@std/expect"` not in the import map | 0.25 (0.25–0.45)       |                          |
 | `a13-recovery-spike`    | `ba6c00b`'s folder in `05b4f25`'s tree                               | pass: 13 tests                                      | 0.30 (0.30–0.53)       | pass, 0.61               |
 
-Both 017 commands now run in `test:classical-cd`. The a13 result is a defect
-(below).
+Both 017 commands now run in `test:classical-cd`. The a13 result in `05b4f25`'s
+tree was a defect of 8.2, fixed in `0d16e51` (Defects found). After the fix, the
+head's folder in a `git archive 05b4f25` tree passed 13 tests in each of three
+runs, 0.49 s median (0.44–2.29 s, the first run cold).
 
 ### Duplicate check
 
@@ -710,9 +721,12 @@ Each comment's facts were re-checked at the head before it was posted.
 
 ## Defects found
 
-- Step 14 found no defect in product code. `lib/frames/frame.ts:95` still says
-  the `parent` field is written only by `setParent`, the claim 7.1 corrected in
-  the docs; step 17 fixes or files it.
+- Step 14 found no defect in product code. `lib/frames/frame.ts:95` said the
+  `parent` field is written only by `setParent`, the claim 7.1 corrected in the
+  docs; `FrameArray.in` (`frame-array.ts:85`) and `Frame.copy()` also write it.
+  Step 17 fixed the comment to match `lib/frames/CLAUDE.md`: `setParent` is the
+  only path that attaches it, and a copy carries the source's existing link.
+  Comment only. Files: `lib/frames/frame.ts`. Commit: `0d16e51`.
 - Step 15 found no defect in product code. The audit's 7.10 was wrong about
   `spec/a13-error-handle/01-error-handling.md`: v0.40.0 shipped 14's use-site
   `$!` operator, not 01's parent-scope `.$:` property
@@ -726,7 +740,15 @@ Each comment's facts were re-checked at the head before it was posted.
   map lacks, so the head's folder copied into `05b4f25`'s tree fails to
   type-check (TS2307), while its README and step 15's entry say its tests pass
   there. `ba6c00b`'s folder still passes 13 of 13. Step 15 checked the recipe at
-  `c00d910`, before 8.2 merged.
+  `c00d910`, before 8.2 merged. Fixed: the line is again
+  `jsr:@std/expect@^0.219.1`, as at `ba6c00b`, because an archived experiment
+  keeps its own pins and the dependency sweep should not reach it. a13 is the
+  only archived experiment, and 8.2 touched no other file in it. With the fix,
+  the head's folder in a `git archive 05b4f25` tree passes 13 of 13 in three
+  runs. At the head, `deno test experiments/a13-recovery-spike` still passes 10
+  and fails 3, and now adds `@std/expect`, `@std/assert` and `@std/fmt` 0.219.1
+  to `deno.lock`; `--no-lock` avoids that, and no task runs the folder. Files:
+  `experiments/a13-recovery-spike/spike.test.ts`. Commit: `0d16e51`.
 - One `deno task coverage:check` at the head, started at 19:42 by an earlier
   run's script under load, failed: `deno coverage` of lib stopped on an empty V8
   coverage file ("EOF while parsing a value at line 1 column 0") after a 61.9 s
@@ -797,3 +819,31 @@ Deno 2.9.7. `deno task test` took 45.7 s before 8.2 (the first run in this
 worktree) and 35.1 s at `17f0ff4`, which includes the new `check` task's 3.2 s.
 `deno task coverage:check` took 41.1 s at `17f0ff4`: lib 26.2 s, cli 7.2 s, maml
 0.4 s, scripts 2.2 s, web 2.2 s and `experiments/007-observer-algebras` 2.8 s.
+
+**Step 17, before and after.** The re-baseline's tables (step 17) compare the
+audit's numbers, `ba6c00b` and `1ac47df` under the same conditions. In short (an
+empty cell was not re-measured; the re-run's counts were not recorded):
+
+| Measure                                     | Audit, at `ba6c00b` | Re-run at `ba6c00b` | `1ac47df`                         |
+| ------------------------------------------- | ------------------- | ------------------- | --------------------------------- |
+| `test:all`, median wall s                   | 37.85               | 35.99               | 35.12                             |
+| `test:lib`, median wall s                   | 13.49               | 13.28               | 6.86                              |
+| Test files run by `test:all`                | 99                  |                     | 117                               |
+| Tests passed, steps, ignored                | 268, 1,784, 4       |                     | 290, 1,804, 4                     |
+| Testdoc claims: total, pass, fail, unimpl.  | 944, 934, 0, 10     |                     | 944, 934, 0, 10                   |
+| Line coverage, all six packages, `test:all` | 92.4%               |                     | 93.4%                             |
+| Untaken branches, all six, `test:all`       | 356                 |                     | 333                               |
+| Uncovered lines in 6.3's 11 modules         | 216                 |                     | 131                               |
+| `scripts/hc` bytes                          | 186,020,242         | 186,020,242         | 181,462,930                       |
+| a13 in `05b4f25`'s tree                     | 13 passed           | 13 passed           | TS2307; 13 passed after `0d16e51` |
+
+The commits after `1ac47df` change docs, one comment (`lib/frames/frame.ts`) and
+the archived a13 test, which no task runs. On `0d16e51` plus this document's
+final edits, `NO_COLOR=1 deno task test` exited 0 in 43.0 s with the
+re-baseline's counts: `test:cli` 11 passed (77 steps), `test:lib` 215 passed
+(1544 steps) and 4 ignored, `test:load-order` 1 (1 step), `test:maml` 3 (18
+steps), `test:scripts` 21 (127 steps), `test:observer-algebras` 33,
+`test:classical-cd` 3 (17 steps), web `test:components` 1 (4 steps) and
+`test:artifact` 2 (16 steps), `test:doc` 21 testdocs executed with 0 failed, and
+`test:npm` verified `hclang@0.55.3`. `core.bare` was `false` and the main
+checkout's `git status --short` was empty.
