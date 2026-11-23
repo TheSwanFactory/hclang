@@ -69,20 +69,6 @@ export const lastTermOfLast = (source: string): Frame =>
 export const answerOfLast = (source: string): Frame =>
   FrameExpr.answeredValue(evaluate(source).at(-1)).referent();
 
-/** The last statement's value, looking through top-level groups. */
-export const innermostAnswer = (
-  source: string,
-  meta: Record<string, Frame> = {},
-): Frame => {
-  let value: Frame = evaluate(source, meta).asArray().at(-1) ?? Frame.nil;
-  while (
-    value.constructor === FrameExpr || value.constructor.name === "FrameGroup"
-  ) {
-    value = value.asArray().at(-1) ?? Frame.nil;
-  }
-  return value.referent();
-};
-
 /** The text of the last value an evaluation answered. */
 export const lastText = (source: string): string => {
   const results = evaluate(source).asArray();
