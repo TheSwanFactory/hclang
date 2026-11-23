@@ -21,6 +21,8 @@
   "exports": "./mod.ts",
   "publish": {
     "exclude": [
+      "**/*.test.ts",
+      "**/CLAUDE.md",
       "!bundle/hc-sources.ts"
     ]
   },

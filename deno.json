@@ -11,7 +11,7 @@
     "build:web": "cd web && deno task build",
     "build:web:release": "deno run -A scripts/build-hcweb.ts --jsr-version",
     "bump": "deno run -A scripts/bump-version.ts",
-    "clean": "rm deno.lock */deno.lock",
+    "clean": "rm deno.lock",
     "hc": "deno task bundle:embed && deno run --allow-read --allow-write --allow-env --deny-run --deny-ffi cli/hc.ts",
     "publish": "deno task publish:lib && deno task publish:web",
     "publish:lib": "deno task bundle:embed && cd lib && deno publish",

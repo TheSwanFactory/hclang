@@ -5,7 +5,7 @@
   "license": "MIT",
   "exports": "./tag.ts",
   "tasks": {
-    "test": "deno fmt && deno lint --fix && deno test --allow-env --allow-read --allow-write"
+    "test": "deno fmt --check && deno lint && deno test"
   },
   "compilerOptions": {
     "strict": true
