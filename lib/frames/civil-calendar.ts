@@ -106,7 +106,7 @@ const pad = (value: bigint, width: number): string =>
   (value < 0n ? -value : value).toString().padStart(width, "0");
 
 /** Years outside four digits are spelled with an explicit sign, per ISO 8601. */
-export const renderYear = (year: bigint): string =>
+const renderYear = (year: bigint): string =>
   year >= 0n && year <= 9999n
     ? pad(year, 4)
     : `${year < 0n ? "-" : "+"}${pad(year, 6)}`;

@@ -23,7 +23,7 @@ export type TestdocSummary = {
 };
 
 /** Where the recorded table lives. */
-export const SUMMARIES_URL: URL = new URL(
+const SUMMARIES_URL: URL = new URL(
   "./testdoc-summaries.json",
   import.meta.url,
 );
