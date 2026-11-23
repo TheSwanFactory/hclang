@@ -331,11 +331,10 @@ bytes and opaque atoms. Explicit list, schema and all Count rules take precedenc
 quantity: lists sum complete child Sizes, with Size 1 for an empty list. Numeric
 magnitude, Unicode text length, blob bits and payload bytes have their own native
 Sizes; schemas retain their description/alternative quantities. Other opaque
-values have Size 1. `.###` alternates child Sizes on non-schema lists, or returns
-Count parity (`.# mod 2`) on every other value with a Count; schemas have nil
-residual, and `<>` observes as `[]`. `.####` derives a Denum, an instance of
-the class in `hc/denum.hc`, which keeps the source's whole Count, returning nil at
-zero Count or nil residual and propagating failed observations.
+values have Size 1. `.###` answers the raw Denum, an instance of the class in
+`hc/denum.hc`, of the source's Count and each child's Size, and `<>` observes as
+`[]`. `.####` answers KD coordinates read from that Denum, propagating failed
+observations.
 ```
 ; [.meta 1; 2, 3] .#
 # 2

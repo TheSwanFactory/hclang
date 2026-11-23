@@ -253,7 +253,7 @@ The declarations below remain non-executable because user-defined capture units 
 
 === Constructors and Deferred Captures (aspirational, #310)
 
-Constructors are intended to reverse schema flow by mapping capture keys into a value. The old dotted iterator spellings are stale; current HC uses `|` for map and `&` for reduce.
+Constructors are intended to reverse schema flow by mapping capture keys into a value. The old dotted iterator spellings are stale; current HC uses `&` for map and `|` for reduce.
 ```
 ; BS3_sequence
 # $!.unimplemented [0b000, 0b111]

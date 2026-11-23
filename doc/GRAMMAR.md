@@ -180,35 +180,28 @@ complete at a colon with or without intervening space.
   exact truncated numeric magnitude, Unicode code points, blob bits, payload
   bytes, enumeration alternatives or one opaque occurrence. Lists sum complete
   child Sizes; empty lists retain Size 1. Metadata and declared parents are
-  excluded; sharing counts per occurrence. `.###` is the alternating sum of
-  immediate child Sizes on all non-schema lists, including stored source syntax
-  and closure words without execution, and FrameInt Count parity (`.# mod 2`) on
-  every other Frame with a Count, `<>` included. Schemas and nil have nil
-  residual. An aggregate may declare its own `.#`, `.##` and `.###` as methods
-  of those names. `.####` returns nil for no Count, zero Count or nil residual;
-  otherwise it derives the loads `(Size+residual)/2` and `(Size−residual)/2` and
-  answers an instance of the HC class `Denum` in `hc/denum.hc` that keeps the
-  whole Count (`Denum [Count, [load0, load1]]`). No class declares `.####`; an
+  excluded; sharing counts per occurrence. `.###` answers the raw Denum, an
+  instance of the HC class `Denum` in `hc/denum.hc`: an ordinary Frame supplies
+  its Count and the Size of each immediate child as the loads, unnormalized, so
+  `[3, 1].###` is the Denum of Count 2 and loads `[3, 1]`. `[]` and `<>` read as
+  the empty Denum `Denum [0, []]`, and `()`, with no Count, answers nil. An
   instance of `Denum` itself is recognized intrinsically and answers a fresh
-  equal Denum, so a Denum of Count zero is present while `[].####` stays nil.
-  Errors propagate, including cycles and nonfinite quantities; incoherent loads
-  are explicit errors. Four hashes form an observer name; a fifth continues it
-  as an unbound name. `.#%` is the Count binding of a Denum (007.40):
-  `(C; [a0, …]).#%` with C > 0 answers the Denum `(C; [b0, …, b(C−1)])`, `bj`
-  the sum of the loads at indices ≡ j mod C. Count zero, a non-Denum receiver
-  and a Count above 65536 are the named failures `$!.denum-binding-zero-count`,
-  `$!.denum-binding-receiver` and `$!.denum-binding-capacity`. After the dot,
-  `#` is an operator character, so an operator run such as `.##%`, `.#####` or
-  `.#+` is one name, never split, and an unbound spelling such as `.#%%` is
-  `$!.name-missing`; write `.# %%` for the modulo. Geometric observers read a
-  Denum's Count as the rank (007.41b, 007.43i): `.##%`/`.###%` (centered
-  simplex), `.##%%`/`.###%%` (KPSL, cross-polytope, `2r` slots) and
-  `.##%%%`/`.###%%%` (KDSL, Cayley–Dickson signed basis, `2^r` slots; 007.46).
-  The `##` spelling answers an exact squared magnitude, the `###` spelling a
-  list of signed coordinates. Each is one token, so `.##%%` is no longer `.##`
-  before `%%` (write `.## %%`). Earlier `.###` immediately followed by a hash
-  comment therefore changes tokenization. See `doc/FRAME-DENUM.md` for the Denum
-  class and compatibility matrix.
+  equal Denum. `.####` answers the KD coordinates read from that Denum: the
+  loads are virtually zero-padded to a power-of-two arity, and each coordinate
+  is a load of the first half minus its opposite in the second, so `[3, 1].####`
+  is `[2]`, `[3, 1, 5].####` is `[-2, 1]` and the empty Denum reads `[]`. An
+  aggregate may declare its own `.#` and `.##` as methods of those names, and
+  `.###` and `.####` follow from them; a method named `###` or `####` is an
+  ordinary property. Errors propagate, including cycles and nonfinite
+  quantities; incoherent loads are explicit errors. Four hashes form an observer
+  name; a fifth continues it as an unbound name. After the dot, `#` is an
+  operator character, so an operator run such as `.##%`, `.#####` or `.#+` is
+  one name, never split, and an unbound spelling such as `.#%%` is
+  `$!.name-missing`; write `.# %%` for the modulo, and `.## %%` rather than
+  `.##%%`. A `.###` immediately followed by a hash comment is therefore read as
+  a longer name. The retired `#%` observers (`.#%`, `.##%`, `.###%` and the
+  rest) are unbound names like any other. See `doc/FRAME-DENUM.md` for the Denum
+  class.
 - **Enclosing scope**: `_^` (`_^.var`). Each caret is exactly one enclosing
   lexical scope: `_^^` is two scopes out. The count depends only on where the
   closure was written, never on how it was invoked. `_`/`__` and `_^`/`_^^` are
