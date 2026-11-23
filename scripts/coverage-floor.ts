@@ -160,9 +160,13 @@ const literal = (text: string): string =>
 const NOTHING_TO_REPORT =
   /^error: (No coverage files found|No covered files included in the report)/m;
 
+/** ANSI color codes, which deno writes to stderr when color is forced (CI). */
+// deno-lint-ignore no-control-regex -- the escape byte is what it matches.
+const ANSI = /\x1b\[[0-9;]*m/g;
+
 /** Whether `deno coverage`'s stderr says it had nothing to report. */
 export const nothingToReport = (stderr: string): boolean =>
-  NOTHING_TO_REPORT.test(stderr);
+  NOTHING_TO_REPORT.test(stderr.replace(ANSI, ""));
 
 /** Runs deno quietly; on failure, prints its output. */
 const deno = async (

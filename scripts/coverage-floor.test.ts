@@ -102,6 +102,11 @@ describe("nothingToReport", () => {
       nothingToReport("error: No covered files included in the report\n"),
     ).toBe(true);
   });
+  it("recognizes them in colored output", () => {
+    const colored = "\x1b[0m\x1b[1m\x1b[31merror\x1b[0m: " +
+      "No covered files included in the report\n";
+    expect(nothingToReport(colored)).toBe(true);
+  });
   it("does not mistake another error for an empty report", () => {
     const stderr = "error: Failed reading '/tmp/x/bad.json'\n\n" +
       "Caused by:\n    EOF while parsing a value at line 1 column 0\n";
