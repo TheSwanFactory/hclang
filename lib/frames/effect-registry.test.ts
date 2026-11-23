@@ -262,9 +262,14 @@ describe("every commit site notifies (#529)", () => {
     const managed = node();
     const first = counter();
     const second = counter();
+    // Registration fires nothing, but it still notes a write of the
+    // subscriber list, so the version and footprint tracking see it.
+    const before = versionOf(managed);
     registerEffect(managed, first.callback);
+    expect(versionOf(managed)).toBe(before + 1);
     expect(first.fired.count).toBe(0);
     registerEffect(managed, second.callback);
+    expect(versionOf(managed)).toBe(before + 2);
     // Re-declaring an arrow already registered fires nothing either.
     registerEffect(managed, first.callback);
     expect([first.fired.count, second.fired.count]).toEqual([0, 0]);
