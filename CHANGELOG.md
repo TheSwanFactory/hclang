@@ -5,6 +5,16 @@
 > contains nothing else; then describe it and say that nothing user-facing
 > changed.
 
+## v0.55.6 2026-11-22
+
+- **Every committed mutation notifies effect subscribers (#529).** All seven
+  mutation commit sites in `lib/frames` now close through one helper that
+  records the write and notifies the frame's subscribers. Before, only
+  `MetaFrame.set` and `Frame.replaceMember` notified. Declaring an arrow still
+  fires nothing. Only `MetaFrame.set` reaches a subscribed value from HC today,
+  and it already notified, so nothing user-facing changed: no HC answer or
+  testdoc summary changes.
+
 ## v0.55.5 2026-11-22
 
 - **Dispatch certificates follow lookup (#527).** The walk that certifies an
