@@ -21,6 +21,10 @@ at `05b4f25`.
 deno test experiments/a13-recovery-spike
 ```
 
+From v0.55.4 the root `deno.json` excludes this folder, so `deno check`,
+`deno fmt`, `deno lint` and `deno test` at the repository root skip it and its
+pinned `jsr:@std/expect@^0.219.1` stays out of `deno.lock`.
+
 | File            | Role                                                                                                                                                                                                                    |
 | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `spike.ts`      | The observation a handler receives (`Observation`), variant A (`Recover`, a host-bound receiver spelled `$$.recover {E} H`), variant B (`installCatchBoundary`, the infix `E catch H`), and the control `EagerCatcher`. |
