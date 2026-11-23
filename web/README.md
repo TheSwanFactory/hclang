@@ -32,6 +32,7 @@ mountHcweb(document.getElementById("hcweb-root")!);
 Fresh 2 consumers can register the island directly instead:
 
 ```ts
+import { fresh } from "jsr:@fresh/plugin-vite@1.1.2";
 fresh({ islandSpecifiers: ["@swanfactory/hcweb/islands/Main"] });
 ```
 
