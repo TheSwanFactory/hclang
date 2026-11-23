@@ -102,10 +102,10 @@
     "unimplemented": 0
   },
   "testdoc.hc": {
-    "total": 77,
+    "total": 84,
     "pass": 75,
     "fail": 0,
-    "unimplemented": 2
+    "unimplemented": 9
   },
   "time.hc": {
     "total": 47,

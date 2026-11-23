@@ -218,8 +218,21 @@ HLIR advanced types (aspirational)
 # $!.unimplemented .x 42
 ; .mat <tensor<2x3xf32>> [[1,2,3]]      # Tensor types
 # $!.unimplemented .mat...
+; .slice <tensor<1x2xf32>> [[1,2]]       # Nested generic types
+# $!.unimplemented .slice [[1, 2]]
+; .idx <index> 0                         # Index type
+# $!.unimplemented .idx 0
+; .ratio <f32> 3.14                      # Floating-point types
+# $!.unimplemented .ratio 3.14
+; .whole <i32> ratio                     # Explicit conversion
+# $!.unimplemented .whole 3
+; .small <i32> 42
+# $!.unimplemented .small 42
+; .wide <f64> small                      # Numeric widening
+# $!.unimplemented .wide 42
 ```
-Function-signature notation such as \`.f <(.x <i32>) -> <i32>> {x + 1}\`
-remains a proposal and is not executable HC. Its arrow is not accepted by the
-current schema grammar.
+Function-signature notation is a proposal: the current schema grammar does not
+accept its arrow. These claims are tracked by #536.
 ```
+; .f <(.x <i32>, .y <f32>) -> <i32>> {x + y}
+# $!.unimplemented .f { x + y }
