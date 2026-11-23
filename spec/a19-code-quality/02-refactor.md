@@ -112,8 +112,9 @@ deleted:
 Two stay, because a default would change their answer. `FrameTime.isZero`
 answers `nanos === 0n`, and `FrameNumber.inexactResult` answers a `FrameNumber`,
 which `frame-numeric.ts` cannot import. The `ratioParts` overrides of
-`FrameSequence`, `FrameTypedNumber` and `FrameNumber` now repeat the default's
-`null`; they are live (3.14), not among the 45, and stay. Commit `5e49f31`.
+`FrameSequence`, `FrameTypedNumber` and `FrameNumber` then repeated the
+default's `null`. They were live (3.14) and not among the 45, so this commit
+kept them; 4.14 deleted them in `d3c33cc`. Commit `5e49f31`.
 
 **3.17** Deleted the `Frame.signed` hook (`lib/frames/frame.ts`) and its
 installer (`lib/frames/frame-int.ts`) (Breaking; approved). Commit `bb31462`.
@@ -257,21 +258,39 @@ refuses a cycle. Commit `497c1f7`.
 `Frame.quantityOperator`, so the six sites test for a size operator in one
 place. This departs from the audit's "one module function in `frame.ts`":
 `frame-expr.ts` may gain no import and `Frame` no public member, and
-`FrameSymbol` is outside the public API. The three class checks agreed except
-for an addressed subclass of `FrameSymbol`, which nothing creates.
-`quantityOperator`'s missing JSDoc (5.18) went with it. Commit `d32e02b`.
+`FrameSymbol` is outside the public API. `quantityOperator`'s missing JSDoc
+(5.18) went with it. Commit `d32e02b`.
+
+Under Deno the three class checks agreed, except for an addressed subclass of
+`FrameSymbol`, which nothing creates, so `hc` and the library answer as before.
+In the bundled hcweb playground, `hcweb.html`, they did not agree.
+`quantityOperator` tested `className() === "FrameSymbol"`, and `className()`
+answers the constructor's name, which `deno bundle` renames: a bundle built with
+`hcweb.html`'s `--minify` named the class `r`, and one without it
+`_FrameSymbol`. In a bundle the test never matched, so the two sites that asked
+it, `Frame.all`'s `call` and the void branch of `Frame.call`, missed the size
+operator, and `<>.#` and `<>.##` answered `<>`. They now answer `0` and `1`, as
+under Deno and as `lib/frames/frame-schema.test.ts` asserts. The commit
+message's "The answers do not change" holds only under Deno. The new answers are
+a fix, but not one of the changes the Approval allowed, so
+[Defects found](#defects-found) and [Public API](#public-api) record them too.
 
 **4.13** `FrameSymbol`'s `apply` and `defineSchema` commit a declaration through
 the private `declarationSlot` and `priorValue` helpers and the module-private
 `DeclarationSlot` type. The schema check stays in `apply`. Commit `1e33f62`.
 
-**4.14** Added protected static helpers to `FrameNumeric` for the sign spelling
-in `unaryPlus` and `unaryMinus` and the range refusal in `exactInt`, and the
-private `FrameDecimal.aligned` for scale alignment, across `frame-int`,
-`-decimal`, `-rational`, `-number`, `-sequence`, `-count` and `-typed-number` in
-`lib/frames`. `FrameCount` calls them through its own class, to keep
-`frame-numeric.ts` a type-only import. Its `unaryPlus` now also reads a leading
-`-` as a sign, which a count never has. Commit `d3c33cc`.
+**4.14** Added protected static helpers to `FrameNumeric`: `plusSpelling` and
+`minusSpelling` for the sign spelling in `unaryPlus` and `unaryMinus`,
+`rangeChecked` for the range refusal in `exactInt`, and `wholeQuotient`, the
+exact whole quotient or null, for the `integralValue` of `FrameDecimal` and
+`FrameRational`. The private `FrameDecimal.aligned` does the scale alignment.
+The changes span `frame-int`, `-decimal`, `-rational`, `-number`, `-sequence`,
+`-count` and `-typed-number` in `lib/frames`. `FrameCount` calls the helpers
+through its own class, to keep `frame-numeric.ts` a type-only import. Its
+`unaryPlus` now also reads a leading `-` as a sign, which a count never has. The
+`ratioParts` overrides of `FrameSequence`, `FrameTypedNumber` and `FrameNumber`,
+which 3.13 kept, answered the default's `null`, so this commit deleted them, as
+the audit's 3.13 planned for step 11. Commit `d3c33cc`.
 
 **4.15** Added `arithmeticOr` beside `arithmetic` in `lib/ops/math.ts`; `Add`,
 `Subtract` and `Multiply` call it. The fallback still receives the operands as
@@ -452,6 +471,10 @@ and code that calls them still compiles.
 
 - `make_context` and `HCLang` no longer print the context when it holds
   `DEBUG_ENV`. The `hc` CLI and its testdoc runner still do (5.5).
+- In the hcweb playground (`hcweb.html`), `<>.#` and `<>.##` answer `0` and `1`,
+  as `hc` and the library always did, instead of `<>` (4.12, #513). `$!`
+  handlers still never run there; #513 tracks that and the other `className()`
+  checks the bundle defeats.
 - `deno doc` now documents `FrameArray`, `FrameList`, `Frame.in` and `VERSION`
   (5.18).
 - No non-test `lib/` module imports a remote package: chalk left with the logger
@@ -542,8 +565,20 @@ count bounds the gain, and the log does not print it.
 - `jsr:@std/expect@0.219.1`, `cli/`'s pin, ignores `expect`'s message argument
   without an error. 6.12's one custom message uses `jsr:@std/expect@1.0.17`,
   already in `deno.lock` through `web/`. For step 16's dependency updates.
+- **4.12, the playground's class-name checks (#513):** an exact `className()`
+  comparison never matches in the bundled hcweb playground, because
+  `deno bundle` renames classes. `Frame.quantityOperator`'s
+  `className() === "FrameSymbol"` made `<>.#` and `<>.##` answer `<>` there
+  instead of `0` and `1`. 4.12 replaced it with `isSymbol()`, which fixed those
+  answers (see 4.12). The comparisons this phase left in place fail the same
+  way, and #513 tracks them: `Frame.isBooleanNegation` (`lib/frames/frame.ts`),
+  `isCatch` (`frame-expr.ts`), the `spelling` helper (`frame-observation.ts`),
+  `methodDeclaredBy` (`declared-protocol.ts`), and `isState` and `walkPath`
+  (`access-footprint.ts`). Because of `isCatch`, a `$!` handler never runs in
+  the playground: `$!!.zero $! 7` answers `7` under Deno and `$!!.zero` in the
+  bundle, before and after this phase.
 
-No defect turned up in product code.
+That bundle defect is the only one this phase found in product code.
 
 ## Left for cleanup
 
