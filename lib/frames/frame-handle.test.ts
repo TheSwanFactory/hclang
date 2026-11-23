@@ -11,6 +11,7 @@ import { FrameNumber } from "./frame-number.ts";
 import { FrameString } from "./frame-string.ts";
 import { FrameSymbol } from "./frame-symbol.ts";
 import { BoundMethod } from "./bound-method.ts";
+import { LookupProbe, withLookupProbe } from "./reference-tracking.ts";
 
 describe("FrameHandle", () => {
   const target = (): FrameArray =>
@@ -179,6 +180,26 @@ describe("FrameHandle", () => {
       expect(result).toBe(value);
     });
 
+    it("forks a copy-on-write member for a mutating method, except under a probe", () => {
+      const bump = method();
+      const member = (): FrameArray => new FrameArray([], { bump_: bump });
+      const setup = () => {
+        const inner = member();
+        const holder = new FrameArray([], { inner_: inner });
+        const graph = new WeakSet<Frame>([holder]);
+        const handle = new FrameHandle(inner, true, graph, new Frame())
+          .heldBy(holder);
+        return { inner, holder, handle };
+      };
+      const probed = setup();
+      const probe = new LookupProbe();
+      withLookupProbe(probe, () => probed.handle.get("bump_"));
+      expect(probed.holder.get_here("inner_")).toBe(probed.inner);
+      expect(probe.answer).toBe(bump);
+      const plain = setup();
+      expect(plain.handle.get("bump_")).toBeInstanceOf(BoundMethod);
+      expect(plain.holder.get_here("inner_")).not.toBe(plain.inner);
+    });
     it("acts on an instance copy through an immutable handle", () => {
       const value = target();
       value.set("write_", method());

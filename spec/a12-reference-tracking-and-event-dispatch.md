@@ -268,11 +268,12 @@ plain `sequential` run.
 - **(H3) Locality of the walk.** The certificate the walk infers is a function
   of the code (immutable) and of the state of the frames it puts in `R`. By
   inspection of `access-footprint.ts`, the walk reads state only through
-  `meta_pairs`, `resolve_here`, `asArray`, the declared parent and
-  `effectSubscribersOf`, each on a frame it adds to `R` (every frame a name
-  lookup consults, hit or miss, and every frame reachable from a read referent);
-  frames the walk itself makes to stand for the call are not shared. This is
-  argued from the code, and is the paragraph a reviewer should check.
+  `meta_pairs`, lookup's own guarded `get_here`, run under a lookup probe (bare
+  names), `resolve_here` (`@name` and dotted members), `asArray`, the declared
+  parent and `effectSubscribersOf`, each on a frame it adds to `R` (every frame
+  a name lookup consults, hit or miss, and every frame reachable from a read
+  referent); frames the walk itself makes to stand for the call are not shared.
+  This is argued from the code, and is the paragraph a reviewer should check.
 
 ### Theorem (conditional serializability)
 
@@ -361,28 +362,31 @@ events whose steps interleaved have conflicting certificates; `interleave` on
 W1, W6 and W9 matches no serial order. Its last block is the boundary witness
 above.
 
-| Witness                                               | before the repair (`footprint`, at `334b160`) | `footprint` = `certified-sequential`          |
-| ----------------------------------------------------- | --------------------------------------------- | --------------------------------------------- |
-| W1 two `incr-x`                                       | serialized, `6, 7` (`interleave`: `6, 6`)     | serialized, `6, 7`                            |
-| W2 `incr-x` with a mutable alias writer               | serialized                                    | serialized                                    |
-| W3 `incr-x` with `incr-y`                             | interleaved, baseline observable              | interleaved, baseline observable              |
-| W4 writer/reader both orders                          | one committed version each way                | one committed version each way                |
-| W5 functional update through an immutable alias       | no wait, x untouched                          | no wait, x untouched                          |
-| W6 `move` with `sum-slow`; two `move`                 | 15; conserved (`interleave`: 16; not)         | 15; conserved                                 |
-| W7 `retarget`, `via-t`, `incr-y`                      | `via-t` re-read at start, writes y; 12        | same                                          |
-| W8 closure returned by a call, then called            | walked by name, serialized                    | same                                          |
-| W9 `hidden-incr-x` (calls through data) with `incr-x` | `$!.uncertified-read`, 6                      | same                                          |
-| W10 `[each, setters]`; `hidden-write-x` with `read-x` | `$!.uncertified-read`; `$!.uncertified-write` | same                                          |
-| W11 `cell-twice` (arrow callback writes `log_`)       | callback walked, serialized, 12               | same                                          |
-| W12 `ghost` (import) with `incr-y`                    | opaque, serialized, fails, 11                 | same                                          |
-| W13 `prefix-x` (writes x, then refused) with `read-x` | `$!.uncertified-read, 6`; old baseline read 5 | `$!.uncertified-read, 6`, x = 6, both runs    |
-| W14 `arm-hidden` then `poke`                          | `0, 0`, no callback; `sequential` fires once  | registration refused, `0`; nothing fires      |
-| W14 `poke-late` then `arm-hidden`                     | registration admitted unseen                  | registration refused; nothing fires           |
-| W14 `arm` (by name) with `poke`, both orders          | serialized through the read of w              | serialized as a write of w; fires as serially |
-| W15 `poke2` (first callback refused, second ticks)    | second callback ran: `log2_` = 1              | stops at the refusal: `log2_` = 0             |
-| W16 `peek-k` (miss through data) with `rebase`        | `2, 0`; the serial order reads 1              | miss refused, `$!.uncertified-read, 0`        |
-| W17 `retarget-holder`, `via-holder`, `incr-y`         | `0, 12, 11`; `sequential` gives `0, 11, 12`   | `incr-y` waits for `via-holder`: `0, 11, 12`  |
-| W18 `nested` (`$$.dispatch` inside an event)          | refused at the read of `$$`                   | same; host nesting attributed to its guard    |
+| Witness                                               | before the repair (`footprint`, at `334b160`)             | `footprint` = `certified-sequential`          |
+| ----------------------------------------------------- | --------------------------------------------------------- | --------------------------------------------- |
+| W1 two `incr-x`                                       | serialized, `6, 7` (`interleave`: `6, 6`)                 | serialized, `6, 7`                            |
+| W2 `incr-x` with a mutable alias writer               | serialized                                                | serialized                                    |
+| W3 `incr-x` with `incr-y`                             | interleaved, baseline observable                          | interleaved, baseline observable              |
+| W4 writer/reader both orders                          | one committed version each way                            | one committed version each way                |
+| W5 functional update through an immutable alias       | no wait, x untouched                                      | no wait, x untouched                          |
+| W6 `move` with `sum-slow`; two `move`                 | 15; conserved (`interleave`: 16; not)                     | 15; conserved                                 |
+| W7 `retarget`, `via-t`, `incr-y`                      | `via-t` re-read at start, writes y; 12                    | same                                          |
+| W8 closure returned by a call, then called            | walked by name, serialized                                | same                                          |
+| W9 `hidden-incr-x` (calls through data) with `incr-x` | `$!.uncertified-read`, 6                                  | same                                          |
+| W10 `[each, setters]`; `hidden-write-x` with `read-x` | `$!.uncertified-read`; `$!.uncertified-write`             | same                                          |
+| W11 `cell-twice` (arrow callback writes `log_`)       | callback walked, serialized, 12                           | same                                          |
+| W12 `ghost` (import) with `incr-y`                    | opaque, serialized, fails, 11                             | same                                          |
+| W13 `prefix-x` (writes x, then refused) with `read-x` | `$!.uncertified-read, 6`; old baseline read 5             | `$!.uncertified-read, 6`, x = 6, both runs    |
+| W14 `arm-hidden` then `poke`                          | `0, 0`, no callback; `sequential` fires once              | registration refused, `0`; nothing fires      |
+| W14 `poke-late` then `arm-hidden`                     | registration admitted unseen                              | registration refused; nothing fires           |
+| W14 `arm` (by name) with `poke`, both orders          | serialized through the read of w                          | serialized as a write of w; fires as serially |
+| W15 `poke2` (first callback refused, second ticks)    | second callback ran: `log2_` = 1                          | stops at the refusal: `log2_` = 0             |
+| W16 `peek-k` (miss through data) with `rebase`        | `2, 0`; the serial order reads 1                          | miss refused, `$!.uncertified-read, 0`        |
+| W17 `retarget-holder`, `via-holder`, `incr-y`         | `0, 12, 11`; `sequential` gives `0, 11, 12`               | `incr-y` waits for `via-holder`: `0, 11, 12`  |
+| W18 `nested` (`$$.dispatch` inside an event)          | refused at the read of `$$`                               | same; host nesting attributed to its guard    |
+| W19 `via-ns` (namespace parent bound in a call)       | at v0.55.3: `$!.uncertified-read`                         | `7`                                           |
+| W19 `[read-shade, foreign-arg]`                       | at v0.55.3: `$!.uncertified-read`                         | `1`                                           |
+| W19 `via-hidden` with `read-x`                        | at v0.55.3: `read-x` waits for a write that cannot happen | no wait, `$!.is-private .poke-x, 5`           |
 
 A passing run is a vacted fact for those executions. It is not a proof of the
 claim for every HC program; the argument above is what carries the claim over

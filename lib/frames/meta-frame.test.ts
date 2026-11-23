@@ -4,10 +4,16 @@ import { describe, it } from "@std/testing/bdd";
 import {
   type Context,
   Frame,
+  FrameName,
   FrameString,
   FrameSymbol,
   type IKeyValuePair,
 } from "../frames.ts";
+import {
+  LookupProbe,
+  versionOf,
+  withLookupProbe,
+} from "./reference-tracking.ts";
 
 describe("MetaFrame", () => {
   const frame = new Frame({ nil: Frame.nil });
@@ -51,6 +57,33 @@ describe("MetaFrame", () => {
     expect(result.toString()).toEqual(value.toString());
   });
 
+  it("rewrites nothing for a pattern match under a lookup probe", () => {
+    const holder = new Frame();
+    const seed = new FrameName("seed");
+    holder.set("/k.*/", seed);
+    const before = versionOf(holder);
+    const probe = new LookupProbe();
+    const found = withLookupProbe(probe, () => holder.get("kz"));
+    expect(found).toBe(seed);
+    expect(seed.source).toBe("seed");
+    expect(probe.pattern).toBe(true);
+    expect(versionOf(holder)).toBe(before);
+    // Without a probe the match commits, as it always has.
+    holder.get("kz");
+    expect(seed.source).toBe("kz");
+    expect(versionOf(holder)).toBe(before + 1);
+  });
+  it("reports the declared parent as the owner a probe sees", () => {
+    const parent = new Frame({ k: new FrameString("inherited") });
+    const child = new Frame();
+    child.setParent(parent);
+    const probe = new LookupProbe();
+    withLookupProbe(probe, () => child.get("k"));
+    expect(probe.owner).toBe(parent);
+    expect(probe.answer?.toString()).toEqual("“inherited”");
+    expect(probe.reads.has(child)).toBe(true);
+    expect(probe.reads.has(parent)).toBe(true);
+  });
   it("gets Frame.missing if missing key", () => {
     const value = frame.get("missing");
     expect(value.is.missing).toBe(true);

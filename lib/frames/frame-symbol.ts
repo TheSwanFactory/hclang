@@ -88,6 +88,27 @@ export class FrameLiteral extends FrameAtom {
  */
 type DeclarationSlot = { key: string; bound?: Frame };
 
+/** One successful read of a bare name, before it is projected. */
+export interface NameRead {
+  /** The value lookup answered, an error included. */
+  readonly value: Frame;
+  /** The lookup frame the value was found through. */
+  readonly context: Frame;
+  /** The frame the lookup asked on behalf of, which grades visibility. */
+  readonly origin: Frame;
+}
+
+/**
+ * What a bare name reads through: the scope's lookup layers, which of them is
+ * the argument layer, and the receiver a method body runs on.
+ * `EvaluationScope` is one.
+ */
+export interface NameScope {
+  lookupFrames(): readonly Frame[];
+  isArgumentLayer(layer: Frame): boolean;
+  readonly receiverState?: { readonly receiver: Frame };
+}
+
 export class FrameSymbol extends FrameAtom {
   public override isSymbol(): this is FrameSymbol {
     return true;
@@ -148,7 +169,25 @@ export class FrameSymbol extends FrameAtom {
 
   public override in(input: EvaluationInput = []): Frame {
     const scope = EvaluationScope.from(input);
-    const first = scope.argument;
+    const read = this.lookupIn(scope);
+    if (read === undefined) {
+      const first = scope.argument;
+      return FrameNote.key(first.id + "." + this.data, first);
+    }
+    if (read.value.is.error) return read.value;
+    return this.projectRead(read.value, read.context, read.origin, scope);
+  }
+
+  /**
+   * The one bare-name read: each lookup layer in turn, the argument layer by
+   * `getOwn` and the others by `get`, with visibility graded from the
+   * receiver when there is one. It answers the first value that is not
+   * missing, an error included, or undefined when every layer misses.
+   *
+   * The footprint walk (`access-footprint.ts`) runs this same read under a
+   * lookup probe, so a certificate lists exactly the frames it consults.
+   */
+  public lookupIn(scope: NameScope): NameRead | undefined {
     // A method body resolves against its receiver, so visibility asks the same
     // question no matter which path the access arrives by.
     const receiver = scope.receiverState?.receiver;
@@ -161,12 +200,9 @@ export class FrameSymbol extends FrameAtom {
       const value = scope.isArgumentLayer(context)
         ? context.getOwn(this.data, origin)
         : context.get(this.data, origin);
-      if (!value.is.missing) {
-        if (value.is.error) return value;
-        return this.projectRead(value, context, origin, scope);
-      }
+      if (!value.is.missing) return { value, context, origin };
     }
-    return FrameNote.key(first.id + "." + this.data, first);
+    return undefined;
   }
 
   /**

@@ -676,10 +676,12 @@ collector frees once neither is reachable.
 An **event** is one call of a `BoundMethod` or a bound closure with an argument.
 `potentialFootprint(target, argument)` walks the body as data, grades each name
 by `touchesIdentity`, and resolves it against the scope the call would run in
-(`scopeForCall`) to the identity it denotes now. A write can land only through a
-marked key, so a marked name handed on whole, a marked method reached with
-authority, a marked local declaration, the owner of an `@name`, and the members
-under marked keys of a writable identity are the potential writes; every
+(`scopeForCall`) to the identity it denotes now. A bare name is resolved by
+lookup's own traversal (`FrameSymbol.lookupIn`) under a lookup probe, which
+records every frame it consults and writes nothing. A write can land only
+through a marked key, so a marked name handed on whole, a marked method reached
+with authority, a marked local declaration, the owner of an `@name`, and the
+members under marked keys of a writable identity are the potential writes; every
 resolved referent and everything reachable from it is a potential read. The walk
 carries the authority the path holds: an unmarked name hands out an immutable
 handle, through which a mutating method is a functional update, while a marked

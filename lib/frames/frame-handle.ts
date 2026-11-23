@@ -4,6 +4,7 @@ import { BoundMethod } from "./bound-method.ts";
 import { methodEffect } from "./effect-marker.ts";
 import type { MetaFrame } from "./meta-frame.ts";
 import type { Context } from "./context.ts";
+import { activeLookupProbe } from "./reference-tracking.ts";
 
 /**
  * A name's effect-qualified reference to a value.
@@ -162,7 +163,10 @@ export class FrameHandle extends Frame {
   protected override lookup_result(value: Frame, key: string): Frame {
     if (value.isClosure() && !Frame.isIndexKey(key)) {
       const effect = methodEffect(key);
-      if (effect.mutating && this.mutable) this.copyOnWriteTarget();
+      // A lookup probe only reads, so it does not fork the target.
+      if (effect.mutating && this.mutable && !activeLookupProbe()) {
+        this.copyOnWriteTarget();
+      }
       return new BoundMethod(
         value,
         this.target,

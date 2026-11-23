@@ -31,7 +31,9 @@ import { touchesIdentity } from "./effect-marker.ts";
  *   receives every committed write and every keyed or indexed lookup that
  *   happens while it is active, each dated by version. This is the footprint
  *   an event *actually* had, as distinct from the footprint its code *could*
- *   have (`access-footprint.ts`), and from any consistency contract.
+ *   have (`access-footprint.ts`), and from any consistency contract. The
+ *   footprint walk reads a bare name with `withLookupProbe`, which records
+ *   the frames that one lookup consults while no event record is charged.
  *
  * ## What is and is not observed
  *
@@ -189,6 +191,63 @@ export function withAccessRecord<T>(record: AccessRecord, work: () => T): T {
     return work();
   } finally {
     active.pop();
+  }
+}
+
+/**
+ * A record of one bare-name lookup run for the footprint walk
+ * (`access-footprint.ts`), not for an event. Its `reads` are every frame the
+ * lookup consulted, hit or miss, through the same `get_here` the event guard
+ * checks. `owner` and `answer` are the first frame whose own local lookup
+ * answered (`noteAnswer`) and the raw value it answered, before any
+ * `lookup_result` wrapping. `pattern` says a pattern binding answered, which
+ * the walk refuses to guess about.
+ */
+export class LookupProbe extends AccessRecord {
+  public owner?: Frame;
+  public answer?: Frame;
+  public pattern = false;
+}
+
+/** The probe a lookup is running under, if any. */
+let probing: LookupProbe | undefined;
+
+/**
+ * The lookup probe currently active, if any. A commit point that a lookup can
+ * reach (`MetaFrame.match_here`, `FrameHandle.lookup_result`) checks it and
+ * skips its commit, so that a probe performs no write.
+ */
+export function activeLookupProbe(): LookupProbe | undefined {
+  return probing;
+}
+
+/**
+ * Runs `work`, a lookup, with `probe` as the only active record. No outer
+ * record receives its notes and no outer guard is asked, since the lookup is
+ * the walk inferring a certificate, not the event acting. Nested probes and a
+ * throw restore the outer records and probe.
+ */
+export function withLookupProbe<T>(probe: LookupProbe, work: () => T): T {
+  const outer = active.splice(0, active.length, probe);
+  const previous = probing;
+  probing = probe;
+  try {
+    return work();
+  } finally {
+    active.splice(0, active.length, ...outer);
+    probing = previous;
+  }
+}
+
+/**
+ * Notes that `frame`'s own local lookup answered `value`. Under a lookup
+ * probe, the first answer is kept as the probe's `owner` and `answer`; with no
+ * probe this does nothing.
+ */
+export function noteAnswer(frame: Frame, value: Frame): void {
+  if (probing !== undefined && probing.owner === undefined) {
+    probing.owner = frame;
+    probing.answer = value;
   }
 }
 

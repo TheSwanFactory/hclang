@@ -628,6 +628,50 @@ describe("VACT witness: PR #484 review repairs, with the finer observers", () =>
   });
 });
 
+describe("VACT witness: names are read through lookup (#527)", () => {
+  it("W19: a name found through a namespace, a foreign argument or a hidden method is certified as lookup reads it", () => {
+    const w = world();
+    w.run(`.shade [.tag 1];
+.mk-ns {.shade [.tag 7]; M <- './hc/format.hc'; M};
+.ns-child [.^ (mk-ns ()); .m {shade.tag}];
+.via-ns {ns-child.m ()};
+.read-shade {shade.tag};
+.mk-arg {.shade [.tag 7]; {0}};
+.foreign-arg (mk-arg ());
+.hidden-base [.__poke-x {x_.set_ 1}];
+.hidden-child [.^ hidden-base; .m {poke-x ()}];
+.via-hidden {hidden-child.m ()};`);
+    const cases: [DispatchEvent[], string[]][] = [
+      [[w.event("0", "via-ns")], ["7"]],
+      [[w.event("0", "read-shade", w.read("foreign-arg"))], ["1"]],
+      [
+        [w.event("0", "via-hidden"), w.event("1", "read-x")],
+        ["$!.is-private .poke-x", "5"],
+      ],
+    ];
+    for (const [events, results] of cases) {
+      for (const policy of ["footprint", "certified-sequential"] as const) {
+        const report = dispatch(events, policy);
+        expectCertified(report);
+        expect(report.outcomes.map((o) => o.result.toString())).toEqual(
+          results,
+        );
+        for (const outcome of report.outcomes) {
+          expect(isOpaque(outcome.potential)).toBe(false);
+          expect(outcome.refused).toBeUndefined();
+        }
+      }
+    }
+    // The private method cannot be called, so its write of x is not
+    // certified and the reader of x does not wait for it.
+    const hidden = dispatch(
+      [w.event("0", "via-hidden"), w.event("1", "read-x")],
+      "footprint",
+    );
+    expect(hidden.outcomes[0].potential.writes.size).toBe(0);
+    expect(byLabel(hidden, "1").waitedFor).toEqual([]);
+  });
+});
 describe("VACT boundary: a native that reads state without a seam is outside the claim", () => {
   it("is admitted, unrefused and unreported, and breaks the equality", () => {
     // A host native that reads y's binding straight from `meta`, as printing

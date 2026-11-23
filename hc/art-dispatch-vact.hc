@@ -450,6 +450,42 @@ refusal belongs to the guard that refused it.
 ; $$.dispatch.sequential [nested]
 # [.trace “0:1”; .waited [[]]; .escapes [0]; [.trace “0:1”; .waited [[]]; .escapes [0]; 5]]
 ```
+W19. The walk reads each name through lookup's own traversal (#527), so a
+certificate lists exactly the frames lookup consults. Before v0.55.5 the walk
+used a narrower rule: `via-ns`, whose class has a namespace imported inside a
+call as its declared parent, and `read-shade` with a closure made in another
+call as its argument, were refused under their own certificates, and
+`via-hidden` certified a write by a private method it cannot call, so
+`read-x` waited for it. This section declares what it uses here, so the
+construction the companion test replays is unchanged.
+```
+; .shade [.tag 1];
+; .mk-ns {.shade [.tag 7]; M <- './hc/format.hc'; M};
+; .ns-child [.^ (mk-ns ()); .m {shade.tag}];
+; .via-ns {ns-child.m ()};
+; $$.dispatch.sequential [via-ns]
+# [.trace “0:1”; .waited [[]]; .escapes [0]; 7]
+; $$.dispatch.certified-sequential [via-ns]
+# [.trace “0:1”; .waited [[]]; .escapes [0]; 7]
+; $$.dispatch.footprint [via-ns]
+# [.trace “0:1”; .waited [[]]; .escapes [0]; 7]
+; .read-shade {shade.tag};
+; .mk-arg {.shade [.tag 7]; {0}};
+; .foreign-arg (mk-arg ());
+; $$.dispatch.sequential [[read-shade, foreign-arg]]
+# [.trace “0:1”; .waited [[]]; .escapes [0]; 1]
+; $$.dispatch.certified-sequential [[read-shade, foreign-arg]]
+# [.trace “0:1”; .waited [[]]; .escapes [0]; 1]
+; $$.dispatch.footprint [[read-shade, foreign-arg]]
+# [.trace “0:1”; .waited [[]]; .escapes [0]; 1]
+; .hidden-base [.__poke-x {x_.set_ 1}];
+; .hidden-child [.^ hidden-base; .m {poke-x ()}];
+; .via-hidden {hidden-child.m ()};
+; $$.dispatch.sequential [via-hidden, read-x]
+# [.trace “0:1 1:1”; .waited [[], []]; .escapes [0, 0]; $!.is-private .poke-x, 5]
+; $$.dispatch.footprint [via-hidden, read-x]
+# [.trace “0:1 1:1”; .waited [[], []]; .escapes [0, 0]; $!.is-private .poke-x, 5]
+```
 Refusals of the bridge itself: an element that is not a callable, and a bare
 policy, which is a value.
 ```

@@ -7,12 +7,17 @@ import { FrameArray } from "./frame-array.ts";
 import { FrameCount } from "./frame-count.ts";
 import {
   AccessRecord,
+  activeLookupProbe,
+  guardAccess,
   holdersOf,
+  LookupProbe,
   mutableHoldersOf,
+  noteAnswer,
   noteRead,
   noteWrite,
   versionOf,
   withAccessRecord,
+  withLookupProbe,
 } from "./reference-tracking.ts";
 import { readName as read } from "../test-helpers.test.ts";
 
@@ -266,5 +271,72 @@ describe("reference tracking: actual access of an active record", () => {
     const record = new AccessRecord();
     const frame = new Frame();
     expect(record.created.has(frame)).toBe(false);
+  });
+});
+
+describe("reference tracking: lookup probe", () => {
+  it("neither asks nor charges an outer record while a probe runs", () => {
+    const x = new FrameArray([]);
+    const outer = new AccessRecord();
+    outer.guard = () => false;
+    const probe = new LookupProbe();
+    withAccessRecord(outer, () =>
+      withLookupProbe(probe, () => {
+        guardAccess(x, "read");
+        noteRead(x);
+      }));
+    expect(probe.reads.has(x)).toBe(true);
+    expect(outer.reads.size).toBe(0);
+    // Once the probe ends, the outer record is active and guarding again.
+    expect(() => withAccessRecord(outer, () => guardAccess(x, "read")))
+      .toThrow();
+  });
+
+  it("restores the active records and probe when the work throws", () => {
+    const x = new FrameArray([]);
+    const outer = new AccessRecord();
+    const probe = new LookupProbe();
+    withAccessRecord(outer, () => {
+      expect(() =>
+        withLookupProbe(probe, () => {
+          throw new Error("boom");
+        })
+      ).toThrow("boom");
+      expect(activeLookupProbe()).toBeUndefined();
+      noteRead(x);
+    });
+    expect(outer.reads.has(x)).toBe(true);
+    expect(probe.reads.has(x)).toBe(false);
+  });
+
+  it("restores the outer probe after a nested one", () => {
+    const x = new FrameArray([]);
+    const first = new LookupProbe();
+    const second = new LookupProbe();
+    withLookupProbe(first, () => {
+      withLookupProbe(second, () => {
+        expect(activeLookupProbe()).toBe(second);
+        noteRead(x);
+      });
+      expect(activeLookupProbe()).toBe(first);
+    });
+    expect(activeLookupProbe()).toBeUndefined();
+    expect(second.reads.has(x)).toBe(true);
+    expect(first.reads.has(x)).toBe(false);
+  });
+
+  it("keeps the first answer and does nothing with no probe", () => {
+    const a = new FrameArray([]);
+    const b = new FrameArray([]);
+    const one = FrameCount.for("1");
+    const two = FrameCount.for("2");
+    noteAnswer(a, one);
+    const probe = new LookupProbe();
+    withLookupProbe(probe, () => {
+      noteAnswer(a, one);
+      noteAnswer(b, two);
+    });
+    expect(probe.owner).toBe(a);
+    expect(probe.answer).toBe(one);
   });
 });
