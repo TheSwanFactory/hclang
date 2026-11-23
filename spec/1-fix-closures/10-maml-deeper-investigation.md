@@ -1,7 +1,8 @@
 # MAML Deeper Investigation
 
-**Status**: Investigation **Date**: 2025-12-14 **Related**:
-[08-maml-redesign.md](08-maml-redesign.md)
+**Status**: Closed. v0.37.1 (#461) removed `HeadBlock`, so the `.tag` failure it
+investigates no longer arises; `deno task test:maml` passes. **Date**:
+2025-12-14 **Related**: [08-maml-redesign.md](08-maml-redesign.md)
 
 ## Problem
 

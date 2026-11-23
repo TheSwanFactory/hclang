@@ -1,7 +1,9 @@
 # Recovery Semantics: What a Program Can Do With a Failure
 
-**Status:** Proposal for review. Nothing here is implemented or decided; §9
-lists the questions reviewers are asked to answer.\
+**Status:** Closed proposal; prior work of
+[14](14-error-namespaces-and-catch.md), which v0.40.0 (#473) implemented, and
+whose §1 records what was decided. §9 lists the questions reviewers were asked
+to answer.\
 **Issue:** [#360](https://github.com/TheSwanFactory/hclang/issues/360),
 especially
 [the 2026-11-02 comment](https://github.com/TheSwanFactory/hclang/issues/360#issuecomment-6570926133).\

@@ -1,7 +1,8 @@
 # Metadata-First Implementation Spec
 
-**Status**: Implementation In Progress **Date**: 2025-12-14 **Related**:
-[06-test-failures-analysis.md](06-test-failures-analysis.md)
+**Status**: Closed. v0.37.1 (#461) fixed the MAML failures it tracks, in
+`maml/maml.ts`; `deno task test:maml` passes in `test:all`. **Date**: 2025-12-14
+**Related**: [06-test-failures-analysis.md](06-test-failures-analysis.md)
 
 ## Overview
 

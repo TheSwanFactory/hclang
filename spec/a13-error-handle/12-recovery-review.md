@@ -10,8 +10,9 @@ operator spelling open.
 
 # Recovery Outcomes and Error Observation
 
-**Status:** Proposal for review. This document proposes rulings for Q3–Q6 of 11.
-None are implemented or ratified.\
+**Status:** Closed proposal of rulings for Q3–Q6 of 11; prior work of
+[14](14-error-namespaces-and-catch.md), which v0.40.0 (#473) implemented, and
+whose §1 records what was decided.\
 **Issue:** [#360](https://github.com/TheSwanFactory/hclang/issues/360).\
 **Baseline:** v0.39.0, `05b4f25`, following 10.\
 **Prior:** a13, 06, 10, and 11.

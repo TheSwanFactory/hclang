@@ -1,6 +1,9 @@
 # MAML Redesign for HC Closure Semantics
 
-**Status**: Design Proposal **Date**: 2025-12-14 **Related**:
+**Status**: Not implemented. The `__` change it proposes did not fix the tests
+([10](10-maml-deeper-investigation.md)); v0.37.1 (#461) fixed MAML by replacing
+`HeadBlock` with a host `MetadataHead` class (`maml/maml.ts`). **Date**:
+2025-12-14 **Related**:
 [07-metadata-first-implementation.md](07-metadata-first-implementation.md)
 
 ## Overview

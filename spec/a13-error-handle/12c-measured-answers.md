@@ -1,7 +1,8 @@
 # Reply to 12b: Measured Answers
 
-**Status:** Proposal for review, replying to [12b](12b-error-identity.md).
-Nothing here is implemented or decided.\
+**Status:** Closed proposal, replying to [12b](12b-error-identity.md); prior
+work of [14](14-error-namespaces-and-catch.md), which v0.40.0 (#473)
+implemented, and whose §1 records what was decided.\
 **Issue:** [#360](https://github.com/TheSwanFactory/hclang/issues/360).\
 **Baseline:** v0.39.0, `05b4f25`. Unlike 12b, every claim about current behavior
 here was probed, with `deno task hc -e '<source>'` or, for frame identity, a

@@ -1,6 +1,7 @@
 # Deno Hooks: A Native Git Hooks Framework for Deno
 
-**Version**: 0.1.0 **Status**: Specification Draft **Date**: 2025-12-14
+**Version**: 0.1.0 **Status**: Shipped as `jsr:@theswanfactory/deno-hooks`,
+which `deno task setup` installs **Date**: 2025-12-14
 
 ## Abstract
 
