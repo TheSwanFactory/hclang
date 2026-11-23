@@ -1,7 +1,7 @@
 # Code Quality Cleanup: Steps 14–17
 
 **Covers:** steps 14–17 of the [plan](README.md): docs, records and experiments,
-tooling, and the close-out.\
+tooling, and the close-out; and the follow-up to #532's review.\
 **Status:** Done. Steps 14–17 are complete; the release is v0.55.4.\
 **Base:** `9d0e7c7`, #514 squash-merged into master (v0.55.3). The work began on
 `c00d910`, #514's head, and was rebased onto `9d0e7c7`; measurements that name
@@ -169,7 +169,7 @@ every `test:all` run, through the 017 entry. `run.ts` is checked by step 16's
 only the line of `lib/version.ts` that starts with `export const VERSION`, as
 runs did before the JSDoc line was added. `deno check` on the file exits 0; the
 evidence run was not run. Files: `experiments/017-classical-cd/run.ts`. Commit:
-`50a74be`.
+`50a74be`. The review follow-up (R6) imports `VERSION` instead.
 
 **Exp. a13** `experiments/a13-recovery-spike/README.md` gains "**Status:**
 Archived. Its tests last ran, all 13 passing, at `05b4f25` (v0.39.0); 3 of 13
@@ -281,9 +281,10 @@ rounded down to a whole percent:
 | `experiments/007-observer-algebras` | `test:observer-algebras`                                 | 745/762    | 97.77%        |    97 |
 
 Raising `cli`'s floor to 79 made the check exit 1 with "cli: 78.37% is below its
-79% floor". `maml` has 57 lines where the audit counted 22, because 5.1 moved
-`lib/maml.ts` into `maml/`. The `scripts` row counts `coverage-floor.ts` itself,
-whose `main` its tests do not run.
+79% floor". The review follow-up (R3) set maml's floor to 99 and web's to 98.
+`maml` has 57 lines where the audit counted 22, because 5.1 moved `lib/maml.ts`
+into `maml/`. The `scripts` row counts `coverage-floor.ts` itself, whose `main`
+its tests do not run.
 
 **1.4** Kept, as the audit decided. The floor cannot see the files that no Deno
 test loads: `web/mod.ts`, `web/mount.ts` (it runs only inside the built
@@ -396,6 +397,7 @@ web's own `check` task stays for developers. Commit: `baf86a4`.
 **8.9** The root `exclude` gains `dist/`, `check` names its directories, and it
 runs after `bundle:embed`. After `deno task build`, a bare `deno check --frozen`
 exits 0 and lists no `dist/` path. Files: `deno.json`. Commit: `baf86a4`.
+`0d16e51` broke that bare check; the review follow-up (R7) restored it.
 
 **8.10, the CI choice** `check` runs `deno check --doc-only` on `README.md`,
 `lib/README.md` and `web/README.md`: six TypeScript blocks, all passing. Step
@@ -416,7 +418,7 @@ keeps. `deno task test` passes with the same counts and `deno install --frozen`
 exits 0. Files: `deno.lock`. Commit: `e0d39d1`.
 
 **8.13** The root `clean` task is now `rm deno.lock`. Files: `deno.json`.
-Commit: `866f17c`.
+Commit: `866f17c`. The review follow-up (R5) made it `rm -f deno.lock`.
 
 ## Step 17: Close out
 
@@ -718,6 +720,108 @@ Each comment's facts were re-checked at the head before it was posted.
   (`cli/runfile.ts:10`), the path move, and 7.8's three copies of the BitScheme
   tutorial (`web/index.html:141`, `3701615`, `static/` excluded in
   `web/deno.json`). 7.8 and 7.13.
+
+## Review follow-up
+
+The outside review of #532 ("— Slacker review", review 6016660475) left six
+inline threads, R1–R6 below. The owner delegated the calls on them, and folded
+in three more changes: R7, the root type-check that step 17's closeout review
+found broken, and the owner's decisions on #525 (R8) and #520 (R9). Each reply
+on a thread names its item and commit. The version stays 0.55.4.
+
+**R1, a failing row (thread 4661896580).** Accepted. When a row's step exits
+non-zero, `measure` in `scripts/coverage-floor.ts` no longer throws: it returns
+the row with an `error`, such as "its tests failed (deno task test:lib, exit
+1)", and `main` goes on to the next row. Every row is measured and printed, and
+`failures` reports each error row before the check exits 1. Files:
+`scripts/coverage-floor.ts`, `scripts/coverage-floor.test.ts`. Commit:
+`140b1c7`.
+
+**R2, `deno coverage` failures (thread 4661896589).** Accepted. `deno coverage`
+2.9.7 exits 1 when it has nothing to report, and also on a real error: an
+unreadable coverage file ("Failed reading … EOF while parsing a value"), or a
+panic on a bad `--include` regex. `nothingToReport` matches its two
+nothing-to-report errors on stderr, "No coverage files found" and "No covered
+files included in the report", which stay "the coverage report is empty". Any
+other non-zero exit is "deno coverage failed (exit N)". `measure`'s new tests
+run it on a temporary package: a covered module, a failing step, a report the
+filters leave empty, and a step that writes an empty coverage file. Commit:
+`140b1c7`.
+
+**R3, floors near 100% (thread 4661896593).** Accepted for rows measured at 99%
+or more: their floor is one point below the rounded-down measurement, so maml's
+is 99 (measured 100.00%) and web's 98 (99.12%). The other floors stay the
+rounded-down measurement. The rule is in the doc comment of `PACKAGES`, where
+the floors are defined. Commit: `140b1c7`.
+
+**R4, the repeated `bundle:embed` (thread 4661896599).** Declined. One embed
+takes 0.07 s (five runs), and `deno task test:all` runs it 10 times, about 0.7 s
+of a run. The leading embed keeps each task correct when it runs alone (7.3),
+and a staleness check would add more code than the time it saves. No change.
+
+**R5, `clean` (thread 4661896608).** Accepted: the task is `rm -f deno.lock`, so
+a second `deno task clean` exits 0. Files: `deno.json`. Commit: `430b08e`.
+
+**R6, `run.ts`'s `libVersion` (thread 4661896614).** Accepted.
+`experiments/017-classical-cd/run.ts` imports `VERSION` from
+`../../lib/version.ts`, so `runtime.json` records the version itself,
+`"0.55.4"`, where earlier runs recorded the source line, and a reformatted
+`lib/version.ts` can no longer leave it empty. `deno task test:classical-cd`
+passes (3 tests, 17 steps; `gate0.hc` 17 of 17), and
+`run.ts --variant closure-probe` exits 0 in 0.6 s with 9 comparisons, 0
+disagreements and `"libVersion": "0.55.4"` in `runtime.json`; the gated
+variants, which take tens of minutes, were not rerun. Files:
+`experiments/017-classical-cd/run.ts`. Commit: `2fe85de`.
+
+**R7, the root type-check.** Since `0d16e51` restored a13's pinned
+`jsr:@std/expect@^0.219.1`, a bare `deno check --frozen` at the root failed with
+"The lockfile is out of date", because resolving the pin would add
+`@std/expect`, `@std/assert` and `@std/fmt` 0.219.1 to `deno.lock`; no gate ran
+it, so 8.9's claim no longer held. The root `deno.json`'s top-level `exclude`
+now lists `experiments/a13-recovery-spike/`, so the root's `deno check`,
+`deno fmt`, `deno lint` and `deno test` skip the archived experiment. The recipe
+in its README still works in `05b4f25`'s tree, whose config does not exclude it,
+and the README says so. `deno fmt` and `deno lint` given only excluded files
+fail "No target files found", so `deno-hooks.yml`'s fmt hook adds the folder to
+its `exclude` and the lint hook gains the same `exclude`. Committing the README
+alone ran neither hook. A bare `deno check --frozen` exits 0 and checks 262
+files, none in a13. Files: `deno.json`, `deno-hooks.yml`,
+`experiments/a13-recovery-spike/README.md`. Commits: `28b1fa7`, `ab575aa`.
+
+**R8, #525: the unused bundled examples.** The owner kept only `hc/hcsv.hc`.
+`hc/gerbil.hc` and `hc/led_blink.hc`, which 3.22 found unrunnable, are deleted,
+so the bundle has 24 files instead of 26 and no host serves `./hc/gerbil.hc` or
+`./hc/led_blink.hc` (CHANGELOG). No file counted the bundled sources. Neither
+file was ever in `cli/testdoc-summaries.json`; regenerating it after the
+deletion wrote the same 22 entries, and `git diff` is empty. The historical text
+that names them, in `spec/a13-error-handle/10-unified-diagnostic-failures.md`
+and the audit, stays. `doc/led_blink.v`, the Verilog original that #129 added
+with `led_blink.hc`, is reported on #525 and not deleted. Files: `hc/gerbil.hc`,
+`hc/led_blink.hc`. Commit: `3291c6b`.
+
+**R9, #520: the partition check.** Following the resolution on #520,
+`lib/frames/partition-check.ts` and its test move to
+`experiments/006-partition-check/`. Its README points to Figure 006.17, which no
+document in this repository holds, and says the module is an executable model of
+the figure's §6 rule, to return to `lib/` once partitioned execution exists. The
+`lib/frames.ts` re-export (`:128`), the module's only loader, is gone; the
+barrel's other statements keep their order, and `test:load-order` passes. The
+model still imports `isEffectObserver` from `lib/frames/effect-registry.ts`. New
+task `test:partition-check` (1 test, 8 steps, 0.58 s) runs from `test:all` after
+`test:scripts` (decision 3), and the root `check` names the folder. lib's
+coverage is 94.35% (9828/10417) against its floor of 94. Files: `deno.json`,
+`lib/frames.ts`, `experiments/006-partition-check/`. Commit: `b4fb541`.
+
+The coverage check after R1–R9 printed: lib 94.35%, cli 78.24%, maml 100.00%,
+scripts 51.30% (up from 42.59%, with `measure`'s tests), web 99.12% and
+`experiments/007-observer-algebras` 97.77%, every row at or above its floor, in
+44.7 s. `NO_COLOR=1 deno task test` exited 0 in 45 s: `test:cli` 11 passed (77
+steps), `test:lib` 214 (1536 steps) and 4 ignored, one test and 8 steps fewer
+with the partition check gone, `test:load-order` 1, `test:maml` 3 (18 steps),
+`test:scripts` 23 (134 steps), `test:partition-check` 1 (8 steps),
+`test:observer-algebras` 33, `test:classical-cd` 3 (17 steps), web
+`test:components` 1 (4 steps) and `test:artifact` 2 (16 steps), `test:doc` 21
+testdocs with 0 failed, and `test:npm` verified `hclang@0.55.4`.
 
 ## Defects found
 

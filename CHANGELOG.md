@@ -7,6 +7,11 @@
 
 ## v0.55.4 2026-11-22
 
+- **Bundled examples removed (#525).** `hc/gerbil.hc` and `hc/led_blink.hc` are
+  no longer bundled, so `'./hc/gerbil.hc'` and `'./hc/led_blink.hc'` no longer
+  import in `hc`, the library or hcweb. Neither ran: `gerbil.hc` failed with
+  `$!.parse-unmatched-structure` and `led_blink.hc` with
+  `$!.resource-import-source-type`. `hc/hcsv.hc` stays.
 - **Smaller JSR package (#532).** `@swanfactory/hclang` no longer ships its
   `*.test.ts` files or `CLAUDE.md`; `bundle/hc-sources.ts` is still included.
 - **Dependency updates (#532).** `@swanfactory/hcweb` imports `@preact/signals`
@@ -15,7 +20,8 @@
 - **Code-quality cleanup record (#532).** `spec/a19-code-quality/03-cleanup.md`
   records spec a19's cleanup: docs, records and experiments brought up to date,
   tooling fixes, a per-package line-coverage floor that CI checks, and the
-  re-baseline against v0.55.1. No runtime, language, or public API change.
+  re-baseline against v0.55.1. Apart from the removed examples, no runtime,
+  language, or public API change.
 
 ## v0.55.3 2026-11-22
 
