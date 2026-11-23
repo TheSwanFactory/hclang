@@ -7,7 +7,7 @@
  *
  * const page = maml.call(evaluate('"Hello, MAML!"').at(0));
  * console.log(page.toString());
- * // "“<!DOCTYPE html><html><head></head><body>Hello, MAML!</body></html>”"
+ * // prints: “<!DOCTYPE html><html><head></head><body>Hello, MAML!</body></html>”
  * ```
  *
  * @module
