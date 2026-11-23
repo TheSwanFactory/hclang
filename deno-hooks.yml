@@ -1,7 +1,8 @@
 hooks:
   # Each hook runs its commands in order from the repository root and stops at
-  # the first failure. The commands check the whole working tree, not only the
-  # staged files, and change nothing; `deno task fix` formats and fixes lint.
+  # the first failure. The commands check the files on disk across the whole
+  # working tree, not the staged copies, and change nothing: stage what you fix.
+  # `deno task fix` formats and fixes lint.
   pre-commit:
     - deno fmt --check
     - deno lint

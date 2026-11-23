@@ -5,6 +5,13 @@
 > contains nothing else; then describe it and say that nothing user-facing
 > changed.
 
+## v0.55.10 2026-11-23
+
+- **Hook documentation (#539).** `CLAUDE.md` and `deno-hooks.yml` say that the
+  pre-commit hook checks the files on disk, not the staged copies, so stage what
+  you fix, and `CLAUDE.md` names the `.worktrees/` exclude. Nothing user-facing
+  changed.
+
 ## v0.55.9 2026-11-23
 
 - **The git hooks run on deno-hooks 0.3.1 (#515).** `deno task setup` used to
