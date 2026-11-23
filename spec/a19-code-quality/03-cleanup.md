@@ -14,7 +14,228 @@ files and the commit, or why something was not done. Commits are on the
 
 ## Step 14: Docs
 
+Lane A, branch `code-quality-cleanup-docs` off `c00d910`, merged in `b40d1fc`.
+
+**7.2** Root `CLAUDE.md`: hosts lay the `hc/*.hc` files over the root and the
+package ships every `hc/*.hc` file; two bundled classes load without a root, the
+Denum that `.###` answers and the RotorRouter, through
+`lib/execute/class-prologue.ts`; Code Organization keeps only "Keep lib/
+independent of cli/ and web/"; evaluation goes in a Frame's `in` and `call` or
+`lib/ops`; an operation is an `ICurryFunction` registered in the `Ops` table in
+`lib/ops.ts`; a Frame type implements `toString()` plus `toStringData()` or
+`toStringArray()`; the bump paragraph names "every manifest that carries the
+version" instead of five `deno.json` files. The bundle regeneration lines are
+true after 7.3 (step 16). Files: `CLAUDE.md`. Commit: `6bf4ea4`.
+
+**6.2** The testing rule in `CLAUDE.md` now reads, as approved: "Each module
+needs tests: a sibling `<name>.test.ts`, or a feature test that the coverage
+report shows covering it." "Aim for high coverage" became "Keep each package at
+or above its line-coverage floor, which CI checks with
+`deno task coverage:check`". Files: `CLAUDE.md`. Commit: `6bf4ea4`.
+
+**7.1** `lib/frames/CLAUDE.md`: `setParent` is the only path that attaches a
+parent, and copies (`FrameArray.in`, `Frame.copy()`) carry the source's link;
+`resource-reference.ts` decides every reference refusal and the stores decide
+their own. Commit: `8a523c6`. `doc/ARCHITECTURE.md`: a paragraph in Operations
+on the structural meaning of `+`, `-`, `*`, `/`, `|&|` and `&|&`, linking
+`doc/FRAME-DENUM.md`, `doc/native-cart-zip.md` and `spec/foist-19a/README.md`;
+the Figures `gap`/`spin` example dropped; the Resource Imports paragraph names
+both prologues and `class-prologue.ts`, with `.###` constructing the Denum and
+`.####` reading KD coordinates from it; "every reference refusal", with the two
+stores named; the `setParent` wording as in `lib/frames/CLAUDE.md`; declared
+observation is `#` or `##` only, every answer a Count, `.###` the raw Denum and
+`.####` derived from it. Two more stale phrases in that paragraph were fixed
+with it: "observes as 0, 1, 0" (the third value was the retired residual) became
+"Count 0 and Size 1", and "a stored nonempty list of Counts" became "a stored
+list" (`storedLoads` in `fourth-hash.ts` accepts the empty list). A grep for the
+moved or deleted names (`lib/maml.ts`, `hc-log`, `execute/sigilizer`,
+`contextEqual`, `isAlphabetic`, `Frame.signed`, `quantityOperator`, `flatten`,
+`script-spec`, `lib/index.ts`, `DENUM_CLASS`, `ROUTER_SOURCE`) found none beyond
+the cited lines. Files: `lib/frames/CLAUDE.md`, `doc/ARCHITECTURE.md`. Commit:
+`bcd6645`. `lib/frames/frame.ts:95`, the `parent` field's comment, still says
+"It is written only by setParent"; the file was outside lane A, so step 17 fixes
+or files it.
+
+**02, traversal** `lib/frames/CLAUDE.md` says the private `MetaFrame.traverse`,
+with `walk`, owns the traversal and its cycle guard, and `get` and `resolve` go
+through it. The specialization sentence stays. Files: `lib/frames/CLAUDE.md`.
+Commit: `8a523c6`.
+
+**7.4** `cli/CLAUDE.md`: the two exception names became "The legacy exceptions
+are listed in `cli/test-docs.ts`", and "Only the clock is bound…" is gone; the
+`getHandlers()` sentence stays. `web/CLAUDE.md`: the Architecture, Commands and
+Hosting and monitoring sections are gone; the title, Dependency boundary,
+Artifact invariants (with its `hc/` paragraph) and Changes stay, with one line
+pointing to `web/README.md`. Files: `cli/CLAUDE.md`, `web/CLAUDE.md`. Commit:
+`c0c5eda`.
+
+**6.12** `cli/CLAUDE.md`'s testdoc section: after a change that adds, removes or
+un-implements a claim in a bundled testdoc, run
+`cd cli && deno task testdoc:summaries` and commit the regenerated
+`cli/testdoc-summaries.json`, which `cli/hc.test.ts` reads. Files:
+`cli/CLAUDE.md`. Commit: `c0c5eda`.
+
+**02, ARCH** In `doc/ARCHITECTURE.md`, `declaredMethod` became
+`methodDeclaredBy` in `lib/frames/declared-protocol.ts`, `OBSERVATION_KEYS` is
+cited there, and `HCLang.makeHost` became `hostNamespace` in
+`lib/execute/host-namespace.ts`, shared by the CLI and `HCLang`. Files:
+`doc/ARCHITECTURE.md`. Commit: `bcd6645`.
+
+**3.19** `doc/GRAMMAR.md` "Size and Denum": `.###` is the raw Denum (Count and
+each child's Size as loads, `[]` and `<>` the empty Denum, `()` nil), `.####` KD
+coordinates read from it, with the `[3, 1]` and `[3, 1, 5]` examples from
+`doc/FRAME-DENUM.md`; an aggregate declares only `.#` and `.##`; the residual,
+the `.#%` binding with its `$!.denum-binding-*` errors and the geometric
+observers are gone, and the retired `#%` spellings are unbound names. The
+tokenization rules stay. Each example value was checked with `cli/hc.ts -e`.
+`doc/LANGUAGE.md`: the `Figures.gap` example lines are dropped (the import line
+stays); the Figures, residual, `gap`/`spin` and Star passages (`:600-666`)
+became one paragraph on `.###`, `.####`, Flop and Cart with links to
+FRAME-DENUM, native-cart-zip and foist-19a, plus a line saying FOIST 19a
+(v0.54.0) retired them; in `:667-737` the heading drops "and signed residual",
+"residual is nil" is gone, and the `.###` residual paragraph became two
+sentences on the raw Denum. The `pure` migration recipe (`x.### ? {<>} : {()}`)
+went with it, because it relied on the residual. `hc/apply.hc:334-338`, prose
+only: `.###` the raw Denum and `.####` KD coordinates. `deno task test:doc`
+executed 21 testdocs with 0 failed, and `deno task test:cli` passed 10 (73
+steps), so the summaries table still matches. Files: `doc/GRAMMAR.md`,
+`doc/LANGUAGE.md`, `hc/apply.hc`. Commit: `76aded9`.
+
+**7.7** `lib/README.md:79-82` drops "(`gap` and `spin`)"; the import sentence
+stays. `hc/BitScheme.hc:256` now says "current HC uses `&` for map and `|` for
+reduce" (`lib/ops.ts`: `"&": MapElements`, `"|": ReduceElements`). Prose only;
+BitScheme's totals are unchanged. Files: `lib/README.md`, `hc/BitScheme.hc`.
+Commit: `76aded9`.
+
+**7.6** `README.md:24`: Web is "the offline `hcweb.html` playground and the
+`@swanfactory/hcweb` component". The task table adds `test:all`, `test:scripts`,
+`test:observer-algebras`, `test:classical-cd`, `test:compiled`,
+`test:load-order`, `check` and `coverage:check`; after the merge each of these
+tasks exists in the root `deno.json`, and `check` type-checks, checks the README
+code blocks and runs `deno doc --lint`, as its row says. Setup step 3 describes
+`deno task setup` and `deno-hooks.yml` (pre-commit fmt and lint on staged files,
+pre-push `deno task test:all`) instead of Python pre-commit. The type-check
+advice points at `deno task check`. Project Structure adds `hc/`, `scripts/`,
+`spec/`, `experiments/` and `vscode-extension/`, names the four packages, and
+describes `doc/` and `deno.json` as documentation and workspace configuration.
+Files: `README.md`. Commit: `e4b20bf`.
+
+**02, JSDoc** `FrameScoped.call`'s JSDoc in `lib/frames/frame-expr.ts` now says
+it "Sizes as its term does, `.#`, `.##`, `.###` and `.####`; anything else is
+applied." Comment only: `sizeOperatorKey` covers `Frame.SIZE_OPERATORS`, which
+includes `kKD_COORDINATES`. Files: `lib/frames/frame-expr.ts`. Commit:
+`ed1f4b5`.
+
+**8.10, the README fragment** `web/README.md`'s Fresh fragment now starts with
+`import { fresh } from "jsr:@fresh/plugin-vite@1.1.2";`. It landed in lane C,
+because step 16's `check` type-checks the README blocks; see 8.10 under step 16.
+Files: `web/README.md`. Commit: `004e08a`.
+
+`vscode-extension/CHANGELOG.md:44` still mentions the `.###` signed residual; it
+is a historical entry and stays. Lane A's `deno task test` at `ed1f4b5` exited 0
+in 41 s.
+
 ## Step 15: Records and experiments
+
+Lane B, branch `code-quality-cleanup-records` off `c00d910`, merged in
+`6cfb43d`. The merge conflicted only on `deno.json`, where both sides changed
+the lines around `test:all`; the result keeps lane B's `test:all` and
+`test:classical-cd` lines and lane C's `@vscode/vsce@4.1.1` tasks.
+
+**Exp. 017** The root `deno.json` gains
+`"test:classical-cd": "deno test experiments/017-classical-cd && cd cli && deno task hc ../experiments/017-classical-cd/gate0.hc -t"`,
+and `test:all` runs it right after `test:observer-algebras`.
+`experiments/017-classical-cd/README.md:5-8` says its tests and `gate0.hc` run
+in `deno task test:all` through `test:classical-cd`, and that the evidence run
+`run.ts` stays manual (tens of minutes, about 20 GB). `cli/hc.ts:183` returns
+the testdoc's exit code, so a failing claim fails the task. Measured at
+`c00d910` with the other lanes running (load average 6.8 to 11.4), three runs
+each: `deno test experiments/017-classical-cd` passed 3 tests (17 steps) in
+3.12–3.31 s; `gate0.hc -t` passed 17 of 17 in 0.20–0.21 s warm (1.06 s cold);
+`deno task test:classical-cd` took 2.99–3.04 s. The audit measured 2.85 s and
+0.15 s. It still passes and runs quickly (decision 3), so it is chained. Files:
+`deno.json`, `experiments/017-classical-cd/README.md`. Commit: `942d1ac`.
+
+**8.7, 017's five files** `deno test experiments/017-classical-cd` type-checks
+`compare.ts`, `oracle.ts`, `oracle.test.ts`, `parse.ts` and `parse.test.ts` on
+every `test:all` run, through the 017 entry. `run.ts` is checked by step 16's
+`check`. Commit: `942d1ac`.
+
+**02, run.ts** `libVersion` in `experiments/017-classical-cd/run.ts` now records
+only the line of `lib/version.ts` that starts with `export const VERSION`, as
+runs did before the JSDoc line was added. `deno check` on the file exits 0; the
+evidence run was not run. Files: `experiments/017-classical-cd/run.ts`. Commit:
+`8c037a4`.
+
+**Exp. a13** `experiments/a13-recovery-spike/README.md` gains "**Status:**
+Archived. Its tests last ran, all 13 passing, at `05b4f25` (v0.39.0); 3 of 13
+fail on later versions." It is not chained. At `c00d910`,
+`deno test experiments/a13-recovery-spike` passes 10 and fails 3
+(`spike.test.ts:95`, `:200`, `:216`); `05b4f25`'s tree with the folder from
+`c00d910` copied in passes 13 of 13. Files:
+`experiments/a13-recovery-spike/README.md`. Commit: `9b2cb2b`.
+
+**7.9** Each of the 10 records gains a `**Status:**` line within its first 15
+lines, stating only what the record and the code support:
+
+| Record                                               | Status                                                                                                |
+| ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `spec/1-fix-closures/04-hcfmt-spec.md`               | Proposal. Not implemented: no code implements hcfmt                                                   |
+| `spec/1-fix-closures/05-hcfmt-pretty-printing.md`    | As 04                                                                                                 |
+| `spec/2-type-tests/03-bitscheme-failures.md`         | Historical: the December 2025 failure state                                                           |
+| `spec/4-ai-security/README.md`                       | Architecture pinned, not enforced; next phase is implementation and falsification (2026-08-09)        |
+| `spec/4-ai-security/01-ai-security-requirements.md`  | Requirements; no findings about the current implementation                                            |
+| `spec/4-ai-security/02-hc-ai-security-triage.md`     | Triage; verdict of 2026-08-09: conceptually aligned, not close to security clearance                  |
+| `spec/4-ai-security/04-risk-assessment.md`           | Assessment as of 2026-08-09 (#278), the four risk ratings                                             |
+| `spec/6-parsing-failures/checklists/requirements.md` | Completed for v0.8.4; all 17 items checked                                                            |
+| `spec/a13-error-handle/exception-tutorial.md`        | Not implemented: it teaches 01's parent-scope `.$:` design; v0.40.0 (#473) shipped 14's `$!` operator |
+| `spec/foist-19a/README.md`                           | Implemented in v0.54.0 (#506); retirements in v0.55.0 (#508)                                          |
+
+The audit's step 7 status scan prints nothing. Files: the 10 records. Commit:
+`dec0f45`.
+
+**7.10** Stale status lines, each checked against the code and the tags:
+
+- `spec/a02-hcweb-deployment.md`: "Proposed" became implemented in v0.9.4
+  (#315), which added `build:web:release`; the release job still builds and
+  attaches `hcweb.html`.
+- `spec/a13-error-handle/01-error-handling.md`: "Not implemented. v0.40.0 (#473)
+  shipped use-site recovery, the `$!` catch operator of 14, instead; no code
+  implements this parent-scope `.$:` property." The audit said 14 shipped 01's
+  design; see Defects found.
+- `spec/a13-error-handle/11`, `12`, `12a`, `12b`, `12c`: "Nothing here is
+  implemented or decided" became a closed proposal, prior work of 14, which
+  v0.40.0 (#473) implemented.
+- `spec/2-type-tests/01-status.md`: "In Progress - Phase 1" became "Phase 1
+  complete, as `02-findings.md` records".
+- `doc/spec/2-deno-hooks/README.md`: "Specification Draft" became "Shipped as
+  `jsr:@theswanfactory/deno-hooks`, which `deno task setup` installs".
+- `spec/1-fix-closures/07`, `08`, `09`, `10` and `12`, all from #271 (v0.7.5).
+  The MAML failures they chase were fixed in `8f59dac` (#461, v0.37.1), which
+  replaced `HeadBlock` with a host `MetadataHead` class (now `maml/maml.ts`);
+  `maml/maml.test.ts:44,48` hold the two tests 07 listed as failing. 07 is
+  closed (#461 fixed the failures); 08 is not implemented (its `__` change did
+  not fix the tests, and #461 replaced `HeadBlock`); 09 is closed (Option A's
+  MAML step did not fix the tests; #461 did); 10 is closed (#461 removed
+  `HeadBlock`); 12 is resolved (v0.7.5 shipped the closure fixes, and #461 fixed
+  MAML and added `test:maml`).
+
+`spec/1-fix-closures/11` and `spec/a13-error-handle/13` are outside the audit's
+list and stay as written. Files: the 11 records above. Commit: `60dab80`.
+
+**02, maml links** In `spec/1-fix-closures/07`, `08`, `09` and `10`, the 8 links
+to `../../lib/maml.ts` now target `../../maml/maml.ts`; the two anchored ones
+(`08:154`, `10:58`) lose their anchors, since the file moved and changed. Link
+texts and prose mentions keep `lib/maml.ts`, as records of their time. `09:167`
+linked a `README.md` that no commit ever added; it now targets `./`, the folder
+its text names. Every relative link in the four files resolves. The prose in
+`spec/a06-outward-reference-resolution.md:66`,
+`spec/a16-concrete-semantics-graph.md:188` and
+`spec/a07-hc-security-architecture.md:125` stays, following 02's `.kiro/specs/`
+precedent; none of them is a link. Files: the four records. Commit: `5ddcdfe`.
+
+Lane B's `deno task test` exited 0; the only new counts were
+`test:classical-cd`'s, 3 passed (17 steps) and `gate0.hc` 17 of 17.
 
 ## Step 16: Tooling
 
@@ -189,6 +410,14 @@ Commit: `420a6ce`.
 
 ## Defects found
 
+- Step 14 found no defect in product code. `lib/frames/frame.ts:95` still says
+  the `parent` field is written only by `setParent`, the claim 7.1 corrected in
+  the docs; step 17 fixes or files it.
+- Step 15 found no defect in product code. The audit's 7.10 was wrong about
+  `spec/a13-error-handle/01-error-handling.md`: v0.40.0 shipped 14's use-site
+  `$!` operator, not 01's parent-scope `.$:` property
+  (`git grep '\.\$:' -- lib hc cli` finds nothing), so 01 and the tutorial say
+  "Not implemented".
 - Step 16 found no new defect. 02's defect, that `@std/expect` 0.219.1 ignored
   `expect`'s message argument, is gone with 8.2.
 
