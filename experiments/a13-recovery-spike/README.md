@@ -1,5 +1,8 @@
 # a13 recovery spike
 
+**Status:** Archived. Its tests last ran, all 13 passing, at `05b4f25`
+(v0.39.0); 3 of 13 fail on later versions.
+
 Research code for spec
 [a13/13](../../spec/a13-error-handle/13-recovery-spike-findings.md). It is not
 part of the shipped runtime and not wired into `deno task test:all`. It changes
