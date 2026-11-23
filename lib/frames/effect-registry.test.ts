@@ -3,13 +3,16 @@ import { describe, it } from "@std/testing/bdd";
 
 import { Frame } from "./frame.ts";
 import { FrameArray } from "./frame-array.ts";
+import { FrameName } from "./frame-name.ts";
 import {
+  afterCommit,
   EFFECT_DELIVERY_LIMIT,
   hasEffectSubscribers,
   installEffectInvoker,
   notifyEffect,
   registerEffect,
 } from "./effect-registry.ts";
+import { versionOf } from "./reference-tracking.ts";
 
 /** A managed value that records how many times a mutation committed on it. */
 const node = (): Frame => new FrameArray([]);
@@ -171,5 +174,107 @@ describe("effect registry (006.17 §3-4)", () => {
     notifyEffect(managed);
     managed.set("value", new FrameArray([]));
     expect(hasEffectSubscribers(managed)).toBe(false);
+  });
+});
+/** A callback stub that counts its invocations in `fired.count`. */
+const counter = (): { callback: Frame; fired: { count: number } } => {
+  const fired = { count: 0 };
+  const callback = node();
+  (callback as unknown as { call: () => Frame }).call = (): Frame => {
+    fired.count += 1;
+    return Frame.nil;
+  };
+  return { callback, fired };
+};
+// Every commit site closes through the notifying `afterCommit` (#529), so each
+// one fires a value's subscribers. Only `MetaFrame.set` is known to reach a
+// subscribed value from HC today (the #529 probe: `set_` fired once). The
+// other sites reach only frames that cannot have subscribers yet, such as
+// fresh copies, constructions and parser state, so HC cannot drive them here:
+// each is driven through its method on a subscribed value instead.
+describe("every commit site notifies (#529)", () => {
+  /** Subscribes a counter to `managed`, runs `commit`, answers the count. */
+  const firesOn = (managed: Frame, commit: () => unknown): number => {
+    const { callback, fired } = counter();
+    registerEffect(managed, callback);
+    commit();
+    return fired.count;
+  };
+  it("MetaFrame.set", () => {
+    const managed = node();
+    expect(firesOn(managed, () => managed.set("k", node()))).toBe(1);
+  });
+  it("MetaFrame.setParent (unreachable from HC on a subscribed value)", () => {
+    const managed = node();
+    expect(firesOn(managed, () => managed.setParent(node()))).toBe(1);
+  });
+  it("MetaFrame.setParent re-setting the same parent fires nothing", () => {
+    const managed = node();
+    const parent = node();
+    managed.setParent(parent);
+    const before = versionOf(managed);
+    expect(firesOn(managed, () => managed.setParent(parent))).toBe(0);
+    expect(versionOf(managed)).toBe(before + 1); // the registration alone
+  });
+  it("MetaFrame.match_here (unreachable from HC on a subscribed value)", () => {
+    const managed = node();
+    managed.set("/^p/", new FrameName("x"));
+    // A lookup that only a pattern answers rewrites the bound name's source.
+    expect(firesOn(managed, () => managed.get_here("pin"))).toBe(1);
+  });
+  it("MetaFrame.match_here fires once for two reads of the same name", () => {
+    const managed = node();
+    managed.set("/^p/", new FrameName("x"));
+    // The second read finds the source already rewritten, so it changes
+    // nothing and neither commits nor notifies.
+    const fired = firesOn(managed, () => {
+      managed.get_here("pin");
+      managed.get_here("pin");
+    });
+    expect(fired).toBe(1);
+  });
+  it("Frame.replaceMember (unreachable from HC on a subscribed value)", () => {
+    const managed = node();
+    const member = node();
+    managed.set("k", member);
+    expect(firesOn(managed, () => managed.replaceMember(member, node())))
+      .toBe(1);
+  });
+  it("FrameArray.replaceMember on an element (unreachable from HC on a subscribed value)", () => {
+    const member = node();
+    const managed = new FrameArray([member]);
+    expect(firesOn(managed, () => managed.replaceMember(member, node())))
+      .toBe(1);
+  });
+  it("FrameArray.collect (unreachable from HC on a subscribed value)", () => {
+    const managed = new FrameArray([]);
+    expect(firesOn(managed, () => managed.collect(node()))).toBe(1);
+  });
+  it("FrameArray.reset (unreachable from HC on a subscribed value)", () => {
+    const managed = new FrameArray([node()]);
+    expect(firesOn(managed, () => managed.reset())).toBe(1);
+  });
+  it("afterCommit, the helper every site above closes through", () => {
+    const managed = node();
+    expect(firesOn(managed, () => afterCommit(managed))).toBe(1);
+  });
+  it("registerEffect fires neither the new arrow nor the earlier ones", () => {
+    const managed = node();
+    const first = counter();
+    const second = counter();
+    // Registration fires nothing, but it still notes a write of the
+    // subscriber list, so the version and footprint tracking see it.
+    const before = versionOf(managed);
+    registerEffect(managed, first.callback);
+    expect(versionOf(managed)).toBe(before + 1);
+    expect(first.fired.count).toBe(0);
+    registerEffect(managed, second.callback);
+    expect(versionOf(managed)).toBe(before + 2);
+    // Re-declaring an arrow already registered fires nothing either.
+    registerEffect(managed, first.callback);
+    expect([first.fired.count, second.fired.count]).toEqual([0, 0]);
+    // A later committed mutation fires each arrow once.
+    managed.set("k", node());
+    expect([first.fired.count, second.fired.count]).toEqual([1, 1]);
   });
 });

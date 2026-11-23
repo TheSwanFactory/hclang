@@ -405,7 +405,7 @@ export class MetaFrame {
     if (previous !== value) beforeCommit(this as unknown as Frame);
     this.meta[key] = value;
     noteHolding(this as unknown as Frame, key, value, previous);
-    if (previous !== value) afterCommit(this as unknown as Frame, "notify");
+    if (previous !== value) afterCommit(this as unknown as Frame);
     return this;
   }
 
@@ -423,8 +423,9 @@ export class MetaFrame {
     if (this.wouldCreateParentCycle(parent)) {
       return Frame.error("$!.cyclic-parent .^");
     }
-    beforeCommit(this as unknown as Frame);
     const previous = this.parent;
+    // As in `set`, re-setting the parent already held is not a mutation.
+    if (previous !== parent) beforeCommit(this as unknown as Frame);
     this.parent = parent;
     // The parent edge is a holding too (reference-tracking.ts): it is how a
     // name reaches the parent, though it conveys no authority of its own.
@@ -434,7 +435,7 @@ export class MetaFrame {
       parent,
       previous && !previous.is.missing ? previous : undefined,
     );
-    afterCommit(this as unknown as Frame, "silent");
+    if (previous !== parent) afterCommit(this as unknown as Frame);
     return undefined;
   }
 
@@ -498,9 +499,15 @@ export class MetaFrame {
    *
    * A match rewrites the bound value's `source` to the target, which changes
    * what every later reader of that binding sees, so it is a write of this
-   * frame: guarded before the value is touched, and noted after. Under a
-   * lookup probe the source is left as it is and the probe is marked, since
-   * the footprint walk only reads and refuses a name a pattern answers.
+   * frame: guarded before the value is touched, and noted after. A match
+   * whose source already is the target changes nothing, so it neither commits
+   * nor notifies. Under a lookup probe the source is left as it is and the
+   * probe is marked, since the footprint walk only reads and refuses a name a
+   * pattern answers.
+   *
+   * Every pattern key is tried, in `meta_pairs` order (key insertion order),
+   * and each one that matches rewrites its own value's source. The last
+   * matching pattern wins: its value is the one answered.
    */
   protected match_here(target: string): Frame {
     let result = Frame.missing;
@@ -512,11 +519,13 @@ export class MetaFrame {
           result = value;
           const probe = activeLookupProbe();
           if (probe) probe.pattern = true;
-          else if ("source" in result) {
+          else if (
+            "source" in result && (result as ISourced).source !== target
+          ) {
             beforeCommit(this as unknown as Frame);
             const sourced = result as ISourced;
             sourced.source = target;
-            afterCommit(this as unknown as Frame, "silent");
+            afterCommit(this as unknown as Frame);
           }
         }
       }
@@ -1447,7 +1456,7 @@ export class Frame extends MetaFrame {
     }
     // An element-plane commit is a mutation too; a copy-on-write install lands
     // on a fresh copy that carries no subscribers, so it never fires here.
-    if (replaced) afterCommit(this as unknown as Frame, "notify");
+    if (replaced) afterCommit(this as unknown as Frame);
     return replaced;
   }
 

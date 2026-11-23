@@ -221,7 +221,7 @@ export class FrameArray extends FrameList {
       noteHolding(this, String(index), replacement, member);
       elementReplaced = true;
     });
-    if (elementReplaced && !replaced) afterCommit(this, "silent");
+    if (elementReplaced && !replaced) afterCommit(this);
     return replaced || elementReplaced;
   }
 
@@ -339,7 +339,7 @@ export class FrameArray extends FrameList {
       beforeCommit(this);
       this.data.push(value);
       noteHolding(this, String(this.data.length - 1), value);
-      afterCommit(this, "silent");
+      afterCommit(this);
     }
     return this;
   }
@@ -372,6 +372,6 @@ export class FrameArray extends FrameList {
   public reset(): void {
     beforeCommit(this);
     this.adoptData([]);
-    afterCommit(this, "silent");
+    afterCommit(this);
   }
 }
