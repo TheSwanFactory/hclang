@@ -59,7 +59,7 @@ const task = (name: string, cwd = "."): Step => ({
  * a whole percent. A row measured at 99% or more instead gets the coverage it
  * would have with one more uncovered line, `hit / (found + 1)`, rounded down,
  * so that one new uncovered line in a small, almost fully covered package does
- * not fail CI while two do: maml 57/58 gives 98, web 113/115 gives 98.
+ * not fail CI while two do: lib/maml 57/58 gives 98, web 113/115 gives 98.
  */
 export const PACKAGES: readonly Package[] = [
   {
@@ -77,8 +77,8 @@ export const PACKAGES: readonly Package[] = [
     floor: 78,
   },
   {
-    name: "maml",
-    prefix: "maml/",
+    name: "lib/maml",
+    prefix: "lib/maml/",
     steps: [task("test:maml")],
     excludes: [],
     floor: 98,

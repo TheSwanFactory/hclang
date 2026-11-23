@@ -1,7 +1,7 @@
 import { expect } from "@std/expect";
 import { describe, it } from "@std/testing/bdd";
 
-import { FrameExpr, FrameString, FrameSymbol } from "../lib/frames.ts";
+import { FrameExpr, FrameString, FrameSymbol } from "../frames.ts";
 import { maml } from "./maml.ts";
 
 describe("MAML Tag", () => {

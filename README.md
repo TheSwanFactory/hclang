@@ -20,7 +20,8 @@ The repository includes several packages:
 - **MAML** -
   [_Multipurpose Abstract Markup Language_](https://theswanfactory.wordpress.com/2016/11/08/introducing-maml-a-draft-proposal-for-html6/),
   a radically simple proposal for replacing web technologies (HTML, CSS,
-  JavaScript, SVG) with a single format based on HC
+  JavaScript, SVG) with a single format based on HC. Its HTML renderer ships
+  with the core library as `jsr:@swanfactory/hclang/maml`
 - **Web** - the offline `hcweb.html` playground and the `@swanfactory/hcweb`
   component
 
@@ -107,7 +108,7 @@ The root `deno.json` provides several tasks:
 | `deno task fix`                    | Format sources and apply lint fixes                                 |
 | `deno task test:cli`               | Test CLI package                                                    |
 | `deno task test:lib`               | Test library package                                                |
-| `deno task test:maml`              | Test MAML package                                                   |
+| `deno task test:maml`              | Test MAML (`lib/maml/`) alone; `test:lib` also runs it              |
 | `deno task test:web`               | Test web package                                                    |
 | `deno task test:scripts`           | Test the build and release scripts                                  |
 | `deno task test:observer-algebras` | Test experiment 007                                                 |
@@ -196,14 +197,12 @@ deno task hc
 
 ### Project Structure
 
-This is a Deno workspace (monorepo). `cli/`, `lib/`, `maml/` and `web/` are its
-packages:
+This is a Deno workspace (monorepo). `cli/`, `lib/` and `web/` are its packages:
 
 ```text
 hclang/
 ├── cli/               # HC command-line interface & REPL
-├── lib/               # Core library (published to JSR)
-├── maml/              # MAML markup language
+├── lib/               # Core library (published to JSR), with MAML in lib/maml/
 ├── web/               # hcweb playground and component
 ├── hc/                # Bundled HC programs, modules and testdocs
 ├── scripts/           # Build, release and test scripts

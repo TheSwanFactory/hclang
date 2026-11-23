@@ -18,7 +18,10 @@
     "interpreter",
     "cli"
   ],
-  "exports": "./mod.ts",
+  "exports": {
+    ".": "./mod.ts",
+    "./maml": "./maml/mod.ts"
+  },
   "publish": {
     "exclude": [
       "**/*.test.ts",

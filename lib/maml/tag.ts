@@ -1,10 +1,11 @@
 import {
+  Frame,
   FrameArg,
   FrameArray,
   FrameExpr,
   FrameLazy,
   FrameString,
-} from "../lib/frames.ts";
+} from "../frames.ts";
 
 const wrapArg = (prefix: string, suffix: string): FrameExpr => {
   return new FrameExpr([
@@ -14,7 +15,12 @@ const wrapArg = (prefix: string, suffix: string): FrameExpr => {
   ]);
 };
 
-export const tag: FrameExpr = new FrameExpr([
+/**
+ * Wraps contents in an element named by its first argument.
+ *
+ * `tag.call(name).call(contents)` renders `<name>contents</name>`.
+ */
+export const tag: Frame = new FrameExpr([
   new FrameLazy([]),
   new FrameArray([
     wrapArg("<", ">"),

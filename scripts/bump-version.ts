@@ -15,7 +15,6 @@ const VERSIONED_MANIFESTS = [
   "deno.json",
   "lib/deno.json",
   "cli/deno.json",
-  "maml/deno.json",
   "web/deno.json",
 ] as const;
 
