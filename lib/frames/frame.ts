@@ -92,8 +92,9 @@ export class MetaFrame {
 
   /**
    * parent is the declared parent: the explicit `.^` inheritance link.
-   * It is written only by setParent, so the declared chain is acyclic by
-   * construction, and it is the only chain visibility authorizes against.
+   * setParent is the only path that attaches it, and it rejects cycles; a copy
+   * (FrameArray.in, Frame.copy()) carries the source's existing link. It is
+   * the only chain visibility authorizes against.
    */
   public parent: Frame = {} as Frame; // forward-declare Frame
 

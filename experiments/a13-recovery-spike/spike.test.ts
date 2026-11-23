@@ -8,7 +8,7 @@
  *
  * @module
  */
-import { expect } from "@std/expect";
+import { expect } from "jsr:@std/expect@^0.219.1";
 import { evaluate } from "../../lib/execute/evaluate.ts";
 import { Frame, FrameExpr } from "../../lib/frames.ts";
 import {
