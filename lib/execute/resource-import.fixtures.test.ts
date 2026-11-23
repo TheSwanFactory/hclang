@@ -22,10 +22,16 @@ import {
 } from "../frames.ts";
 import { evaluateResourceSource } from "./resource-import.ts";
 
+/** The store path that the imported module is written to. */
 export const MODULE_PATH = "module.hc";
 
+/** The resource reference that HC source uses to name `MODULE_PATH`. */
 export const MODULE_REFERENCE = "'./module.hc'";
 
+/**
+ * A store that records each path it reads and writes, and refuses every read
+ * with `refusal` when one is given.
+ */
 export class RecordingStore implements ResourceStore {
   public readonly reads: string[] = [];
   public readonly writes: string[] = [];
@@ -60,6 +66,10 @@ export class RecordingStore implements ResourceStore {
   }
 }
 
+/**
+ * A scheme handler that counts its calls, answers every read with `answer`
+ * and refuses every write as read-only.
+ */
 export class RecordingHandler implements SchemeHandler {
   public reads = 0;
   public writes = 0;
@@ -81,6 +91,7 @@ export class RecordingHandler implements SchemeHandler {
   }
 }
 
+/** A host context whose resource root is `store`, with scheme `handlers`. */
 export const rootContext = (
   store: ResourceStore,
   handlers: ResourceHandlers = ResourceHandlers.none,
@@ -88,6 +99,7 @@ export const rootContext = (
   [RESOURCE_ROOT_KEY]: FrameResource.root(store, handlers),
 });
 
+/** Writes `source` to `MODULE_PATH` and answers the resource that names it. */
 export const resourceWithSource = (
   source: string,
   store: ResourceStore = new MemoryStore(),
@@ -96,6 +108,10 @@ export const resourceWithSource = (
   return FrameResource.root(store).extend(`./${MODULE_PATH}`) as FrameResource;
 };
 
+/**
+ * Imports `source` through a `FrameImport` evaluated directly in a fresh
+ * file, and records the scope its evaluator received.
+ */
 export const runFrameImport = (
   source: string,
   target: "." | string = ".",
@@ -120,6 +136,10 @@ export const runFrameImport = (
   return { file, resource, result, evaluatedScope };
 };
 
+/**
+ * Makes `resource.elements()` answer a fresh copy of `elements`, calling
+ * `onRead` before each read.
+ */
 export const replaceElements = (
   resource: FrameResource,
   elements: readonly Frame[],

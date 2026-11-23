@@ -27,6 +27,10 @@ import {
   rootContext,
 } from "./resource-import.fixtures.test.ts";
 
+/**
+ * Lexes and parses `chunks` as one source, scanned chunk by chunk, and
+ * answers its first term, the import.
+ */
 const parsedImport = (chunks: readonly string[]): FrameImport => {
   const output = new FrameArray([]);
   const parser = new ParsePipe(output, FrameGroup, {
@@ -44,6 +48,7 @@ const parsedImport = (chunks: readonly string[]): FrameImport => {
   return expression.asArray()[0] as FrameImport;
 };
 
+/** A seeded xorshift32 generator, so each run repeats the same cases. */
 class SeededGenerator {
   public constructor(private state: number) {}
 
@@ -65,8 +70,13 @@ class SeededGenerator {
   }
 }
 
+/** How many generated cases each property checks. */
 const PROPERTY_CASES = 100;
 
+/**
+ * Runs `verify` on `PROPERTY_CASES` cases from `generate`, and names the
+ * seed, index and generated case of any failure.
+ */
 function runProperty<T>(
   seed: number,
   generate: (generator: SeededGenerator, index: number) => T,
@@ -90,6 +100,7 @@ function runProperty<T>(
   }
 }
 
+/** Splits `source` into consecutive chunks of one to five characters. */
 function randomChunks(source: string, generator: SeededGenerator): string[] {
   const chunks: string[] = [];
   let offset = 0;

@@ -26,6 +26,10 @@ import {
 } from "./resource-import.fixtures.test.ts";
 import { CountingExpression } from "../test-helpers.test.ts";
 
+/**
+ * Writes `importedSource` to `MODULE_PATH` and evaluates `expression`, by
+ * default a local import of it, with that store as the resource root.
+ */
 const evaluateOuterImport = (
   importedSource: string,
   expression = `. <- ${MODULE_REFERENCE}`,
