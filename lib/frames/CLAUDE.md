@@ -18,13 +18,17 @@ rather than answering the question again somewhere else.
 - **Visibility:** `Frame.resolve_here` answers it, and it walks the declared
   `parent` chain, never the lexical `up` pointer
   ([Visibility](../../doc/ARCHITECTURE.md#visibility)).
-- **Declared parents:** `setParent` is the only writer, and it rejects cycles
+- **Declared parents:** `setParent` is the only path that attaches a parent, and
+  it rejects cycles; a copy (`FrameArray.in`, `Frame.copy()`) carries the
+  source's existing link
   ([Declared Parents](../../doc/ARCHITECTURE.md#declared-parents)).
-- **Lookup traversal:** `MetaFrame.get` owns the traversal and its cycle guard.
-  A specialization customizes `lookup_here`, `lookup_links` or `lookup_result`.
-  It never recurses through the public `get`.
-- **Resource refusals:** `resource-reference.ts` decides every one, and it stays
-  free of `Frame` ([Resources](../../doc/ARCHITECTURE.md#resources)).
+- **Lookup traversal:** the private `MetaFrame.traverse`, with `walk`, owns the
+  traversal and its cycle guard; `get` and `resolve` go through it. A
+  specialization customizes `lookup_here`, `lookup_links` or `lookup_result`. It
+  never recurses through the public `get`.
+- **Resource refusals:** `resource-reference.ts` decides every reference
+  refusal, and it stays free of `Frame`; the stores decide their own refusals
+  ([Resources](../../doc/ARCHITECTURE.md#resources)).
 
 ## Boundaries
 
