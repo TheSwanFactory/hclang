@@ -9,9 +9,11 @@
  * testdoc: its example lines are dropped and the first failure fails the
  * whole. It runs in a namespace of its own, with no host bindings and no root,
  * so it can read nothing but the global operators, and nothing a program
- * declares can reach it. Its outcome is kept, failure included, so it is never
- * evaluated twice. A request made while the file is still loading answers
- * `$!.<prefix>-reentrant`, because a class cannot be defined by itself.
+ * declares can reach it. What the load answers is kept, an error included, so
+ * the file is not evaluated again. A throw keeps nothing and propagates, so the
+ * next request evaluates the file again. A request made while the file is still
+ * loading answers `$!.<prefix>-reentrant`, because a class cannot be defined by
+ * itself.
  *
  * @module
  */
@@ -61,13 +63,19 @@ export function loadClassNames(
 
 /**
  * Answers a loader that evaluates the class from the bundle on first use and
- * keeps the outcome, failure included.
+ * keeps what the load answers, an error included. A throw keeps nothing and
+ * propagates, so the next call evaluates the class again.
  *
  * @param prologue The file, the names to read and the error prefix.
+ * @param source Reads the source text; the bundle's copy of the file unless a
+ *   test supplies its own.
  * @returns The loader: the declared names' values in order, the error loading
  *   answered, or `$!.<prefix>-reentrant` while the file is loading.
  */
-export function classOnce(prologue: ClassPrologue): () => Frame[] | Frame {
+export function classOnce(
+  prologue: ClassPrologue,
+  source: () => string | undefined = () => HC_SOURCES.get(prologue.file),
+): () => Frame[] | Frame {
   let loaded: Frame[] | Frame | undefined;
   let loading = false;
   return () => {
@@ -75,7 +83,7 @@ export function classOnce(prologue: ClassPrologue): () => Frame[] | Frame {
     if (loading) return Frame.error(`$!.${prologue.prefix}-reentrant`);
     loading = true;
     try {
-      loaded = loadClassNames(prologue, HC_SOURCES.get(prologue.file));
+      loaded = loadClassNames(prologue, source());
     } finally {
       loading = false;
     }
