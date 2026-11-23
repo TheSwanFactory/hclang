@@ -586,6 +586,128 @@ times each from the repository root, 20:01 to 20:02:
 Both 017 commands now run in `test:classical-cd`. The a13 result is a defect
 (below).
 
+### Duplicate check
+
+Before any action, `gh issue list --state all --limit 200 --search` ran on
+hclang for each issue's key words (worktree, deno-hooks, yanked,
+evaluate.schemas, describe.skip, node_modules, compiled binary, Frame protocol,
+MAML, partition, REPL, prompt.ts, unary, inexactResult, branches, refusal,
+gerbil, led_blink, hcsv, testdoc claims, footprint, resolveName, cd-bit-kernel,
+effect subscribers, beforeCommit, recognizeDenum, Denum, preact, a19), and every
+deno-hooks issue was listed. No issue, open or closed, duplicated any of the 18.
+hclang's open issues were the 17 the plan listed; deno-hooks had #2–#7 and #12
+open and #8, #9 closed, none about worktrees or the hooks path. #511 and #513
+were not refiled. Before each close or comment, the issue was checked for an
+earlier a19 comment; none had one.
+
+### Issues filed
+
+One issue per finding whose disposition is **issue**, with 3.14 split into its
+three groups and 8.1 into its two parts. Each body ends with a link to the
+finding in the audit at `c00d910`. Locations are at `1ac47df` and the numbers
+are the re-baseline's where it measured them; otherwise the body says the count
+is the audit's at `ba6c00b`. Labels are the repositories' own.
+
+| Finding                          | Issue                                                                   | Title                                                                        | Label        |
+| -------------------------------- | ----------------------------------------------------------------------- | ---------------------------------------------------------------------------- | ------------ |
+| 8.1, upstream                    | [deno-hooks#13](https://github.com/TheSwanFactory/deno-hooks/issues/13) | Hook install fails in a git worktree: it assumes `.git` is a directory       | bug          |
+| 8.1, the pin                     | [#515](https://github.com/TheSwanFactory/hclang/issues/515)             | Hook runner is pinned to a yanked deno-hooks pre-release                     | dependencies |
+| 1.5                              | [#516](https://github.com/TheSwanFactory/hclang/issues/516)             | Decide the four skipped schema suites in `evaluate.schemas.test.ts`          | question     |
+| 1.6                              | [#517](https://github.com/TheSwanFactory/hclang/issues/517)             | The compiled `hc` binary embeds the workspace's `node_modules`               | enhancement  |
+| 2.2                              | [#518](https://github.com/TheSwanFactory/hclang/issues/518)             | Group `Frame`'s protocol into smaller units                                  | enhancement  |
+| 3.4                              | [#519](https://github.com/TheSwanFactory/hclang/issues/519)             | Decide MAML's future: expose, publish or delete                              | question     |
+| 3.5                              | [#520](https://github.com/TheSwanFactory/hclang/issues/520)             | Decide whether the evaluator applies the 006.17 §6 partition rule            | question     |
+| 3.14, the REPL; 6.3              | [#521](https://github.com/TheSwanFactory/hclang/issues/521)             | Test the REPL                                                                | enhancement  |
+| 3.14, numeric paths; 6.3         | [#522](https://github.com/TheSwanFactory/hclang/issues/522)             | Test the untested numeric paths                                              | enhancement  |
+| 3.14, rare values and paths; 6.3 | [#523](https://github.com/TheSwanFactory/hclang/issues/523)             | Test rare values and paths in `lib/frames`                                   | enhancement  |
+| 3.16, `lib` and `cli`            | [#524](https://github.com/TheSwanFactory/hclang/issues/524)             | Test the untaken refusal branches in `lib` and `cli`                         | enhancement  |
+| 3.22                             | [#525](https://github.com/TheSwanFactory/hclang/issues/525)             | Decide the unused bundled examples `gerbil.hc`, `led_blink.hc` and `hcsv.hc` | question     |
+| 4.18                             | [#526](https://github.com/TheSwanFactory/hclang/issues/526)             | Review TypeScript tests that re-assert testdoc claims                        | enhancement  |
+| 4.19                             | [#527](https://github.com/TheSwanFactory/hclang/issues/527)             | The footprint walk resolves names by a narrower rule than lookup             | question     |
+| 4.20                             | [#528](https://github.com/TheSwanFactory/hclang/issues/528)             | `hc/cd-bit-kernel.hc` asserts three error-contract examples twice            | enhancement  |
+| 4.21                             | [#529](https://github.com/TheSwanFactory/hclang/issues/529)             | Only two of eight commit sites notify effect subscribers                     | question     |
+| 6.6                              | [#530](https://github.com/TheSwanFactory/hclang/issues/530)             | Recognize a Denum once per observation                                       | enhancement  |
+| 8.4                              | [#531](https://github.com/TheSwanFactory/hclang/issues/531)             | Decide whether hcweb moves to preact 11                                      | dependencies |
+
+Where a body differs from the plan's draft, because the head or a re-check
+differed:
+
+- **8.1, upstream.** The installer's source was read on JSR for both versions:
+  0.2.1-dev.1765778019 takes the root from `--show-toplevel` (`src/files.ts:12`)
+  and calls `ensureDir` on `` `${gitRoot}/.git/hooks` ``
+  (`src/install.ts:89-90`); 0.3.0 does the same at `src/install.ts:48` and
+  `:149-150`. JSR's metadata still marks 0.2.1 and the pinned pre-release
+  yanked, with 0.3.0 the latest. #515 links deno-hooks#13.
+- **1.5.** The four suites are at `lib/execute/evaluate.schemas.test.ts:263`,
+  `:290`, `:309` and `:368`, after step 13's split (2.10).
+- **1.6.** The body gives both sizes: 186,020,242 bytes at `ba6c00b` and
+  181,462,930 at the head (107.61 MB embedded, `node_modules/` 104.38 MB).
+  `deno info --json cli/hc.ts` still lists no npm package.
+- **2.2.** Recounted at the head: `Frame` is `lib/frames/frame.ts:633-1454`, 822
+  lines, with 54 instance methods and 21 static members (23 at `ba6c00b`; 3.17
+  and 4.12 removed `Frame.signed` and `quantityOperator`). The 68 subclasses and
+  45 overrides are the audit's counts.
+- **3.14 and 6.3.** The whole-chain lcov at the head shows each of the audit's
+  41 functions still unrun. The numeric issue adds that #514's review restored
+  the `ratioParts` overrides of sequences and typed numbers, which 4.14 had
+  deleted, and lists 9 other restored overrides no test runs (`promoteOne`,
+  `isZero`, `integralValue` and `compareSame` on the null-ranked rungs). The
+  REPL issue also takes `cli/hc-log.ts` from 6.3, because its unrun lines
+  include the REPL's prompt branch (`:18`, set by `cli/hc.ts:170`); with it,
+  each of 6.3's 11 modules and `cli/prompt.ts` is in exactly one issue.
+- **3.16.** The body gives the audit's and the head's untaken branches per
+  folder and the four starting files' counts.
+- **3.22.** Re-run at the head: `gerbil.hc` and `led_blink.hc` exit 1 with the
+  audit's errors, `hcsv.hc` exits 0. `hc/cqml.hc`'s exception is now cited at
+  `cli/test-docs.ts:23`, since 7.4 replaced the `cli/CLAUDE.md` line.
+- **4.18.** The counts are the audit's at `ba6c00b`, not re-measured;
+  `evaluate.test.ts` is now the nine `evaluate.*.test.ts` files.
+- **4.20.** Lines 552–557 and 562–567 are unchanged; the file has 117 claims.
+- **4.21.** The body names the eight sites at the head and notes that 4.5's
+  `CommitNotice` comment (`effect-registry.ts:117-119`) states the two notifying
+  sites, while the module comment at `:19-24` still says every committed
+  mutation lands in them.
+- **6.6.** Locations at the head: `recognizeDenum` `fourth-hash.ts:150`,
+  `observeDenum` `:216`, `observeKDCoordinates` `:269`, `multiplyDenum` `:307`;
+  the test prints 5 s under `--parallel`.
+
+### Issues closed and commented on
+
+Each comment's facts were re-checked at the head before it was posted.
+
+- **#481, closed** as completed: resolved by #499 (`.gitignore:55`, and
+  `"!bundle/hc-sources.ts"` in `lib/deno.json`'s `publish.exclude`), with 7.3's
+  remainder fixed on this branch (`62c431d`, shipping in v0.55.4). 7.13.
+- **#452, closed** as completed: resolved by #451 (`3511dd7`, the issue's own
+  adoption comment), then made obsolete by #456, which removed the Figure Inlay
+  wrapper and renamed its test file, and by #506 and #508. No `graft` remains in
+  `lib/` or `hc/`. 7.13.
+- **#498, commented**, stays open: `hc/cart-zip.hc` (19 claims) asserts 9 of the
+  11 scenarios, and the native `|&|` (#502, `hc/native-cart-zip.hc`, 24 claims)
+  answers the other 2 by truncating. Whether that settles the Zip policy is the
+  owner's call (Approval). 7.13.
+- **#361, commented**: the issue's examples, run with `execute` from
+  `lib/mod.ts`, each with its answer. Two facts differed from the plan's draft.
+  `1 - “text”` answers `$!.flop-domain -`, an error rather than nil, because `-`
+  needs a Denum on the right. The issue's migration example changed:
+  `(1 + “text”) : {“else”}` answers `“text”` and `?` runs its branch. The cited
+  test was renamed in #506 (`e307ba2`, found with `git log -S`) to "uses
+  structural Flop for nonnumeric operator pairs",
+  `lib/frames/frame-numeric.test.ts:205`. 7.13.
+- **#362, commented**: #365's MVP, with `hc/units.hc` at 40 claims. The plan's
+  draft said `05-uom-mvp.md` leaves T3 to T7 open; the spec names no tensions,
+  so the comment cites the issue's own 2026-09-09 list and records the one
+  change since: after #358, `9.8.m === 9.8.kg` answers nil, which settles T2's
+  conflation. T3, T5, T6 and T7 remain open. 7.13.
+- **#310, #311, #312, commented**: the move to `hc/BitScheme.hc` (#405), the
+  file's 40 claims, 32 pass and 8 unimplemented, and each issue's section and
+  count: #310 line 254, 3 (its implemented sections at 217 and 234); #311 line
+  282, 2; #312 line 315, 3. 7.13.
+- **#319, commented**: the 6 `.adoc` files, the `DOC_EXTENSIONS` shim
+  (`cli/runfile.ts:10`), the path move, and 7.8's three copies of the BitScheme
+  tutorial (`web/index.html:141`, `3701615`, `static/` excluded in
+  `web/deno.json`). 7.8 and 7.13.
+
 ## Defects found
 
 - Step 14 found no defect in product code. `lib/frames/frame.ts:95` still says
@@ -612,6 +734,42 @@ Both 017 commands now run in `test:classical-cd`. The a13 result is a defect
   the merge step's passed, so it did not reproduce.
 
 ## GitHub actions
+
+Every action of step 17, in the order taken. Nothing else was filed, closed or
+commented on.
+
+| Repository                  | Action                       | Number | URL                                                                         | Finding                |
+| --------------------------- | ---------------------------- | ------ | --------------------------------------------------------------------------- | ---------------------- |
+| `TheSwanFactory/deno-hooks` | filed                        | #13    | https://github.com/TheSwanFactory/deno-hooks/issues/13                      | 8.1, upstream          |
+| `TheSwanFactory/hclang`     | filed                        | #515   | https://github.com/TheSwanFactory/hclang/issues/515                         | 8.1, the pin           |
+| `TheSwanFactory/hclang`     | filed                        | #516   | https://github.com/TheSwanFactory/hclang/issues/516                         | 1.5                    |
+| `TheSwanFactory/hclang`     | filed                        | #517   | https://github.com/TheSwanFactory/hclang/issues/517                         | 1.6                    |
+| `TheSwanFactory/hclang`     | filed                        | #518   | https://github.com/TheSwanFactory/hclang/issues/518                         | 2.2                    |
+| `TheSwanFactory/hclang`     | filed                        | #519   | https://github.com/TheSwanFactory/hclang/issues/519                         | 3.4                    |
+| `TheSwanFactory/hclang`     | filed                        | #520   | https://github.com/TheSwanFactory/hclang/issues/520                         | 3.5                    |
+| `TheSwanFactory/hclang`     | filed                        | #521   | https://github.com/TheSwanFactory/hclang/issues/521                         | 3.14 (REPL), 6.3       |
+| `TheSwanFactory/hclang`     | filed                        | #522   | https://github.com/TheSwanFactory/hclang/issues/522                         | 3.14 (numeric), 6.3    |
+| `TheSwanFactory/hclang`     | filed                        | #523   | https://github.com/TheSwanFactory/hclang/issues/523                         | 3.14 (rare paths), 6.3 |
+| `TheSwanFactory/hclang`     | filed                        | #524   | https://github.com/TheSwanFactory/hclang/issues/524                         | 3.16                   |
+| `TheSwanFactory/hclang`     | filed                        | #525   | https://github.com/TheSwanFactory/hclang/issues/525                         | 3.22                   |
+| `TheSwanFactory/hclang`     | filed                        | #526   | https://github.com/TheSwanFactory/hclang/issues/526                         | 4.18                   |
+| `TheSwanFactory/hclang`     | filed                        | #527   | https://github.com/TheSwanFactory/hclang/issues/527                         | 4.19                   |
+| `TheSwanFactory/hclang`     | filed                        | #528   | https://github.com/TheSwanFactory/hclang/issues/528                         | 4.20                   |
+| `TheSwanFactory/hclang`     | filed                        | #529   | https://github.com/TheSwanFactory/hclang/issues/529                         | 4.21                   |
+| `TheSwanFactory/hclang`     | filed                        | #530   | https://github.com/TheSwanFactory/hclang/issues/530                         | 6.6                    |
+| `TheSwanFactory/hclang`     | filed                        | #531   | https://github.com/TheSwanFactory/hclang/issues/531                         | 8.4                    |
+| `TheSwanFactory/hclang`     | closed as completed, comment | #481   | https://github.com/TheSwanFactory/hclang/issues/481#issuecomment-7091456716 | 7.13                   |
+| `TheSwanFactory/hclang`     | closed as completed, comment | #452   | https://github.com/TheSwanFactory/hclang/issues/452#issuecomment-7091457747 | 7.13                   |
+| `TheSwanFactory/hclang`     | commented, stays open        | #498   | https://github.com/TheSwanFactory/hclang/issues/498#issuecomment-7091460254 | 7.13                   |
+| `TheSwanFactory/hclang`     | commented, stays open        | #361   | https://github.com/TheSwanFactory/hclang/issues/361#issuecomment-7091460753 | 7.13                   |
+| `TheSwanFactory/hclang`     | commented, stays open        | #362   | https://github.com/TheSwanFactory/hclang/issues/362#issuecomment-7091461331 | 7.13                   |
+| `TheSwanFactory/hclang`     | commented, stays open        | #310   | https://github.com/TheSwanFactory/hclang/issues/310#issuecomment-7091461898 | 7.13                   |
+| `TheSwanFactory/hclang`     | commented, stays open        | #311   | https://github.com/TheSwanFactory/hclang/issues/311#issuecomment-7091462382 | 7.13                   |
+| `TheSwanFactory/hclang`     | commented, stays open        | #312   | https://github.com/TheSwanFactory/hclang/issues/312#issuecomment-7091462816 | 7.13                   |
+| `TheSwanFactory/hclang`     | commented, stays open        | #319   | https://github.com/TheSwanFactory/hclang/issues/319#issuecomment-7091463262 | 7.8, 7.13              |
+
+The other open issues the audit checked, #277, #374, #410, #428, #474 and #485,
+stay open with no comment (7.13's keep).
 
 ## Measurements
 
