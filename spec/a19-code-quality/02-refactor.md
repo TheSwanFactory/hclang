@@ -7,7 +7,7 @@ restructure tests.\
 PR's own Deno CI run supplies (see [Measurements](#measurements)).\
 **Base:** `ad37fd9` (v0.55.2). The branch begins with `90749a0`, the #511 fix,
 which the audit's Approval asked for first.\
-**Head:** the commit that completes this document. It follows `ffe2777`, the
+**Head:** the commit that completes this document. It follows `3851b50`, the
 last commit that changes code, tests or tasks.
 
 Each entry uses the ID of its finding in the [audit](01-audit.md) and acts on
@@ -157,9 +157,11 @@ dedented and otherwise unchanged. `in` went from 92 lines to 22. Commit
 
 **2.5** Moved the civil calendar (`lib/frames/frame-time.ts:65-205`) to the new
 `lib/frames/civil-calendar.ts` (151 lines), which imports nothing.
-`frame-time.ts` went from 634 lines to 519. It imports 11 of the new module's 12
-exports: `renderYear` is exported, as planned, but only `renderInstant` calls
-it. Each moved declaration that had no JSDoc got a line. Commit `6da95d5`.
+`frame-time.ts` went from 634 lines to 519 and imports all 11 of the new
+module's exports. `renderYear` stays module-private, a departure from the plan's
+list: only `renderInstant` calls it, and an export used only at home is what 3.8
+removed (`7e5cedb`). Each moved declaration that had no JSDoc got a line.
+Commits `6da95d5` and `7e5cedb`.
 
 **2.7** `walkPath` (`lib/frames/access-footprint.ts`) now hands each term kind
 to its own `step*` helper, eight in all, over a `PathCursor`. It went from 100
@@ -297,7 +299,10 @@ the task dropped it. The comments in `lib/load-order.test.ts` and
 (`lib/execute/hc-eval.ts`) to the CLI's `getEval` (`cli/hc.ts`), which
 `cli/test-docs.ts` also goes through, so both CLI paths print as before.
 `HCLang` and other embedders of `make_context` no longer print it (approved).
-`make_context`'s JSDoc says so. Commit `74d149e`.
+`make_context`'s JSDoc dropped its `DEBUG_ENV` paragraph and describes only the
+conversion: an all-digit value becomes a `FrameCount`, and any other value a
+`FrameString`. [Public API](#public-api) lists the change for the CHANGELOG.
+Commit `74d149e`.
 
 **5.6** Removed the two `console.error` calls in `lib/execute/lex-pipe.ts` and
 `parse-pipe.ts`, keeping what their paths return. Commit `36c2563`.
@@ -357,8 +362,10 @@ what it uses. The largest is now `evaluate.access.test.ts`, at 819 lines. Commit
 source, scope, authority and property files, with the shared fixtures in
 `resource-import.fixtures.test.ts`; #443's case stays in
 `resource-import.test.ts`. A fixture that one file uses stays in that file. The
-properties' top-level `describe` is "resource import: properties". Commit
-`49e8cc3`.
+properties' top-level `describe` is "resource import: properties". The split
+moved 14 top-level declarations, which got JSDoc in `3851b50`: the eight shared
+fixtures, the five of the property harness, and `evaluateOuterImport` in the
+source file. Commits `49e8cc3` and `3851b50`.
 
 **3.20** Deleted `lib/execute/denum-observers.test.ts` and moved its three
 distinct tests to `foist-19a.test.ts`, names and assertions unchanged. Four
@@ -373,14 +380,20 @@ unbound name", with its cases unchanged (`177b0c8`). Commit `9d4a291`.
 **4.17** Added `lib/test-helpers.test.ts` for the helpers that two or more test
 files copied: `Counter`, `CountingExpression`, `readName`, `dispatchEvent`,
 `countOf`, `denumOf`, and the `evaluate` wrappers `lastTermOfLast`,
-`answerOfLast`, `innermostAnswer`, `lastText`, `firstEntryLastText`,
-`lastResultText` and `lastResult`. A file keeps a one-line wrapper where its
-helper closes over local state or its suites use one name for two helpers.
-Helpers that one file uses stay local. `access-footprint.test.ts` kept its copy
-of `readName` in lane B, which did not own the file, and calls the shared helper
-since the lanes merged (`383db05`). `error-policy.test.ts`'s `innermostAnswer`
-now answers `Frame.nil` for an empty answer, as `catch.test.ts`'s did, where it
-threw before; no test reaches that case. Commits `57e0e22` and `383db05`.
+`answerOfLast`, `lastText`, `firstEntryLastText`, `lastResultText` and
+`lastResult`. A file keeps a one-line wrapper where its helper closes over local
+state or its suites use one name for two helpers. Helpers that one file uses
+stay local. `access-footprint.test.ts` kept its copy of `readName` in lane B,
+which did not own the file, and calls the shared helper since the lanes merged
+(`383db05`). The plan also listed `innermostAnswer`, the unwrap loop in
+`catch.test.ts` and `error-policy.test.ts`, but the two copies differ. The copy
+in `error-policy.test.ts` throws on an empty evaluation, where the one in
+`catch.test.ts` answers `Frame.nil`, and only catch's takes a context. `57e0e22`
+merged them anyway, which let one `error-policy.test.ts` assertion, that the
+closure literal `{ $!!.zero }` is not an error, pass on an evaluation that
+answers nothing. Under the plan's rule against merging shapes that differ,
+`0b78a59` gives each file back its own helper, as at `90749a0`. Commits
+`57e0e22`, `383db05` and `0b78a59`.
 
 **6.8** `test:lib` runs `deno test --parallel` (see
 [Measurements](#measurements)). Commit `4965bc1`.
@@ -399,7 +412,9 @@ entries: the 21 discovered testdocs and `white-paper-core.hc`. The 16 pins in
 got cases (approved option). `cli/testdoc-summaries.test.ts` checks that the
 table lists every discovered testdoc. The table matched all 16 former literals.
 The inline totals stay. `ffe2777` adds the JSDoc that the generator's
-`SUMMARY_PATTERN` lacked. Commits `a395a84` and `ffe2777`.
+`SUMMARY_PATTERN` lacked. `SUMMARIES_URL` stays module-private, a departure from
+the plan's list, because only its own module reads it (`7e5cedb`). Commits
+`a395a84`, `ffe2777` and `7e5cedb`.
 
 **6.13** `scripts/test-npm.ts` reads the last `$=.test-summary` line of the npm
 package's run and checks it against the table (approved). Commit `f29f00e`.
