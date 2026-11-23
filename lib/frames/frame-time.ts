@@ -436,6 +436,18 @@ export abstract class FrameTime extends FrameNumeric {
     return combineOrdered(operator, left, this);
   }
 
+  protected override promoteOne(): FrameNumeric {
+    return this;
+  }
+
+  protected override ratioParts(): null {
+    return null;
+  }
+
+  protected override integralValue(): null {
+    return null;
+  }
+
   protected override unaryPlus(): Frame {
     return this;
   }

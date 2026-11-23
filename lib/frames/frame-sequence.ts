@@ -43,12 +43,28 @@ export class FrameSequence extends FrameNumeric {
       : Frame.nil;
   }
 
+  public override isZero(): boolean {
+    return false;
+  }
+
   public override valueOf(): Frame {
     return Frame.error("$!.numeric-domain projection FrameSequence");
   }
 
   protected override toData(): string {
     return this.spelling;
+  }
+
+  protected override promoteOne(): FrameNumeric {
+    return this;
+  }
+
+  protected override ratioParts(): null {
+    return null;
+  }
+
+  protected override integralValue(): null {
+    return null;
   }
 
   protected override unaryPlus(): Frame {
@@ -58,5 +74,9 @@ export class FrameSequence extends FrameNumeric {
 
   protected override unaryMinus(): Frame {
     return Frame.error("$!.numeric-domain unary- FrameSequence");
+  }
+
+  protected override compareSame(_right: FrameNumeric): null {
+    return null;
   }
 }

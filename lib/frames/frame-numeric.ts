@@ -284,29 +284,23 @@ export abstract class FrameNumeric extends FrameAtom {
     return this.ratioParts();
   }
 
-  // Defaults for the hooks a value with no arithmetic of its own answers. The
-  // rank checks above keep a null-ranked peer from reaching most of them, and
-  // a ranked rung overrides the ones it supports, so the defaults are
-  // refusals, kept in case a later change reaches one.
+  // A hook has a default only when the default is a refusal: an error that a
+  // rung which forgets the override answers visibly. A hook whose answer is a
+  // fact about the value (zero, the rung above, the exact ratio, the integral
+  // exponent, the order, the signs) stays abstract, because a default would
+  // answer for a rung that never said so.
 
-  /** Whether this value is zero. The base answers false. */
-  public isZero(): boolean {
-    return false;
-  }
+  /** Whether this value is zero. */
+  public abstract isZero(): boolean;
 
   /**
-   * This value one rung up the ladder. The base answers itself, which
-   * `promoteTo` reads as having no rung above, as for the top rung and the
-   * unranked peers.
+   * This value one rung up the ladder, or itself, which `promoteTo` reads as
+   * having no rung above, as for the top rung and the unranked peers.
    */
-  protected promoteOne(): FrameNumeric {
-    return this;
-  }
+  protected abstract promoteOne(): FrameNumeric;
 
-  /** The exact ratio `exactRatio` publishes. The base denotes none. */
-  protected ratioParts(): readonly [bigint, bigint] | null {
-    return null;
-  }
+  /** The exact ratio `exactRatio` publishes, or null when it denotes none. */
+  protected abstract ratioParts(): readonly [bigint, bigint] | null;
 
   /**
    * What an inexact quotient's host number becomes on this rung. The base
@@ -316,13 +310,8 @@ export abstract class FrameNumeric extends FrameAtom {
     return Frame.error(`$!.numeric-domain projection ${this.className()}`);
   }
 
-  /**
-   * The exact integer this value denotes, read as an exponent, or null. The
-   * base denotes none.
-   */
-  protected integralValue(): bigint | null {
-    return null;
-  }
+  /** The exact integer this value denotes, read as an exponent, or null. */
+  protected abstract integralValue(): bigint | null;
 
   /**
    * The spelling `+` gives a literal, or undefined when the spelling already
@@ -361,6 +350,7 @@ export abstract class FrameNumeric extends FrameAtom {
   ): bigint | null {
     return numerator % denominator === 0n ? numerator / denominator : null;
   }
+  // Abstract by the rule above: a sign is an answer each class spells itself.
   protected abstract unaryPlus(): Frame;
   protected abstract unaryMinus(): Frame;
 
@@ -419,11 +409,9 @@ export abstract class FrameNumeric extends FrameAtom {
 
   /**
    * How this value orders against another of its rung, or null when the two
-   * do not order. The base orders none.
+   * do not order. `equals` reads null as unequal, so it is an answer.
    */
-  protected compareSame(_right: FrameNumeric): Comparison {
-    return null;
-  }
+  protected abstract compareSame(right: FrameNumeric): Comparison;
 
   protected operationError(
     operator: ArithmeticOperator | OrderingOperator,

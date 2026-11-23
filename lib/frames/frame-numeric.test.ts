@@ -4,6 +4,7 @@ import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 import {
   Frame,
   FrameArray,
+  FrameCount,
   FrameDecimal,
   FrameInt,
   FrameNumber,
@@ -11,6 +12,7 @@ import {
   FrameRational,
   FrameSequence,
   FrameString,
+  NUMERIC_RANK,
 } from "../frames.ts";
 import { Add } from "../ops/math.ts";
 
@@ -364,4 +366,38 @@ describe("numeric behavior matrices", () => {
     expect(new FrameRational(2n, 3n).power(exponent).toString())
       .toEqual("$!.numeric-range ** FrameRational");
   });
+});
+
+describe("ranked rungs", () => {
+  // One value per rung of NUMERIC_RANK; the Record type fails to compile when
+  // a rung is added without an entry here.
+  const rungs: Record<keyof typeof NUMERIC_RANK, FrameNumeric> = {
+    count: new FrameCount(2n),
+    int: new FrameInt(-2n),
+    decimal: new FrameDecimal("2.5"),
+    rational: new FrameRational(1n, 3n),
+    number: new FrameNumber(2.5),
+  };
+  // The hooks whose base answers a refusal, so only this test notices a rung
+  // that forgets one. The dispatch reaches each one on these rungs.
+  const joined = ["addSame", "subtractSame", "multiplySame"];
+  const everyRung = [...joined, "inexactResult", "powerIntegral"];
+  const required: Record<keyof typeof NUMERIC_RANK, string[]> = {
+    count: [...everyRung, "moduloSame"],
+    int: [...everyRung, "moduloSame"],
+    decimal: everyRung,
+    rational: [...everyRung, "divideSame"],
+    number: [...everyRung, "divideSame", "powerSame"],
+  };
+
+  for (const [name, value] of Object.entries(rungs)) {
+    const rung = name as keyof typeof NUMERIC_RANK;
+    it(`${name} overrides the refusing hooks its dispatch reaches`, () => {
+      expect(value.rank).toEqual(NUMERIC_RANK[rung]);
+      const inherited = required[rung].filter((hook) =>
+        Reflect.get(value, hook) === Reflect.get(FrameNumeric.prototype, hook)
+      );
+      expect(inherited).toEqual([]);
+    });
+  }
 });

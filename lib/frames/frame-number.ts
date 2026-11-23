@@ -41,6 +41,14 @@ export class FrameNumber extends FrameNumeric {
     return this.spelling;
   }
 
+  protected override promoteOne(): FrameNumeric {
+    return this;
+  }
+
+  protected override ratioParts(): null {
+    return null;
+  }
+
   protected override inexactResult(value: number): Frame {
     return new FrameNumber(value);
   }

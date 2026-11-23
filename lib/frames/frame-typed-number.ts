@@ -86,11 +86,27 @@ export class FrameTypedNumber extends FrameNumeric {
     return this.spelling;
   }
 
+  protected override promoteOne(): FrameNumeric {
+    return this;
+  }
+
+  protected override ratioParts(): null {
+    return null;
+  }
+
+  protected override integralValue(): null {
+    return null;
+  }
+
   protected override unaryPlus(): Frame {
     return this;
   }
 
   protected override unaryMinus(): Frame {
     return Frame.error("$!.numeric-domain unary- FrameTypedNumber");
+  }
+
+  protected override compareSame(_right: FrameNumeric): null {
+    return null;
   }
 }
