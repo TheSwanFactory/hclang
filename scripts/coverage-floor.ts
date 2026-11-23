@@ -1,0 +1,223 @@
+/**
+ * Check each package's line coverage against its floor.
+ *
+ * For every row of {@link PACKAGES}, run the package's own tests with
+ * `DENO_COVERAGE_DIR` set to a fresh directory, report that directory with
+ * `deno coverage --lcov` filtered to the package, and compare the lines hit
+ * with the row's floor. A row fails when it is below its floor or when its
+ * report is empty. `deno task coverage:check` runs it, and so does CI's build
+ * job; `deno task test` does not, because collecting coverage roughly doubles
+ * the time of the tests it re-runs.
+ *
+ * The filters follow the audit's coverage findings (spec/a19-code-quality,
+ * 1.1 and 1.2): an `--include` per package, an exclude of `\.test\.` with the
+ * dot (so `lib/execute/hc-test.ts` counts), the generated bundle left out,
+ * and web's coverage collected without `test:consumer`, whose vite build
+ * hides web's sources from the report.
+ *
+ * @module
+ */
+import { fromFileUrl, toFileUrl } from "@std/path";
+
+/** One command a row runs, from a directory relative to the repository root. */
+export interface Step {
+  readonly cwd: string;
+  readonly args: readonly string[];
+}
+
+/** A package, the tests that cover it, and the floor its lines must reach. */
+export interface Package {
+  readonly name: string;
+  /** Directory under the repository root, with a trailing slash. */
+  readonly prefix: string;
+  readonly steps: readonly Step[];
+  /** Extra `--exclude` patterns, matched against file URLs. */
+  readonly excludes: readonly string[];
+  /** Whole-percent minimum for line coverage. */
+  readonly floor: number;
+}
+
+/** The lines of one package's report. */
+export interface Result {
+  readonly name: string;
+  readonly hit: number;
+  readonly found: number;
+}
+
+const task = (name: string, cwd = "."): Step => ({
+  cwd,
+  args: ["task", name],
+});
+
+/**
+ * The packages of the audit's coverage table, each with its own tests. Each
+ * floor is the line coverage measured when the floor was set, rounded down.
+ */
+export const PACKAGES: readonly Package[] = [
+  {
+    name: "lib",
+    prefix: "lib/",
+    steps: [task("test:lib")],
+    excludes: ["/lib/bundle/hc-sources\\.ts$"],
+    floor: 94,
+  },
+  {
+    name: "cli",
+    prefix: "cli/",
+    steps: [task("test:cli")],
+    excludes: [],
+    floor: 78,
+  },
+  {
+    name: "maml",
+    prefix: "maml/",
+    steps: [task("test:maml")],
+    excludes: [],
+    floor: 100,
+  },
+  {
+    name: "scripts",
+    prefix: "scripts/",
+    steps: [task("test:scripts")],
+    excludes: [],
+    floor: 42,
+  },
+  {
+    name: "web",
+    prefix: "web/",
+    steps: [
+      task("build:web"),
+      task("test:components", "web"),
+      task("test:artifact", "web"),
+    ],
+    excludes: ["/web/(tests|dist)/"],
+    floor: 99,
+  },
+  {
+    name: "experiments/007-observer-algebras",
+    prefix: "experiments/007-observer-algebras/",
+    steps: [task("test:observer-algebras")],
+    excludes: [],
+    floor: 97,
+  },
+];
+
+/** Test files, with the dot, so a module named `hc-test.ts` still counts. */
+const TEST_FILES = "\\.test\\.(js|mjs|ts|jsx|tsx)$";
+
+/** Sums the `LH:` and `LF:` records of an lcov report. */
+export const lineTotals = (lcov: string): { hit: number; found: number } => {
+  let hit = 0;
+  let found = 0;
+  for (const line of lcov.split("\n")) {
+    if (line.startsWith("LH:")) hit += Number(line.slice(3));
+    if (line.startsWith("LF:")) found += Number(line.slice(3));
+  }
+  return { hit, found };
+};
+
+/** Lines hit as a percentage of lines found; 0 for an empty report. */
+export const percent = (hit: number, found: number): number =>
+  found === 0 ? 0 : (hit / found) * 100;
+
+/** One message per row that is below its floor or reported no lines. */
+export const failures = (
+  results: readonly Result[],
+  rows: readonly Package[],
+): string[] =>
+  rows.flatMap((row) => {
+    const result = results.find((each) => each.name === row.name);
+    if (result === undefined || result.found === 0) {
+      return [`${row.name}: the coverage report is empty`];
+    }
+    const measured = percent(result.hit, result.found);
+    return measured < row.floor
+      ? [
+        `${row.name}: ${measured.toFixed(2)}% is below its ${row.floor}% floor`,
+      ]
+      : [];
+  });
+
+/** Escapes a path for use as a literal inside a regular expression. */
+const literal = (text: string): string =>
+  text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/** Runs deno quietly; on failure, prints its output and returns false. */
+const deno = async (
+  args: readonly string[],
+  cwd: string,
+  env: Record<string, string>,
+): Promise<boolean> => {
+  const { code, stdout, stderr } = await new Deno.Command("deno", {
+    args: [...args],
+    cwd,
+    env,
+    stdout: "piped",
+    stderr: "piped",
+  }).output();
+  if (code !== 0) {
+    await Deno.stdout.write(stdout);
+    await Deno.stderr.write(stderr);
+    console.error(`deno ${args.join(" ")} exited with ${code} in ${cwd}`);
+  }
+  return code === 0;
+};
+
+/** Runs a row's tests under coverage and totals the lines of its report. */
+const measure = async (root: string, row: Package): Promise<Result> => {
+  const dir = await Deno.makeTempDir({ prefix: "hc-coverage-" });
+  try {
+    const env = { DENO_COVERAGE_DIR: dir, NO_COLOR: "1" };
+    for (const step of row.steps) {
+      if (!await deno(step.args, `${root}/${step.cwd}`, env)) {
+        throw new Error(`${row.name}'s tests failed`);
+      }
+    }
+    const lcov = `${dir}/report.lcov`;
+    const rootUrl = toFileUrl(root).href;
+    const reported = await deno(
+      [
+        "coverage",
+        dir,
+        `--include=^${literal(`${rootUrl}/${row.prefix}`)}`,
+        `--exclude=${TEST_FILES}`,
+        ...row.excludes.map((pattern) => `--exclude=${pattern}`),
+        "--lcov",
+        `--output=${lcov}`,
+      ],
+      root,
+      {},
+    );
+    // `deno coverage` exits 1 when it finds nothing to report.
+    const report = reported ? await Deno.readTextFile(lcov) : "";
+    return { name: row.name, ...lineTotals(report) };
+  } finally {
+    await Deno.remove(dir, { recursive: true });
+  }
+};
+
+const main = async (): Promise<void> => {
+  // Reports name resolved paths (on macOS, /tmp is /private/tmp), so an
+  // unresolved root would match no file.
+  const root = Deno.realPathSync(fromFileUrl(new URL("..", import.meta.url)))
+    .replace(/\/$/, "");
+  const results: Result[] = [];
+  for (const row of PACKAGES) {
+    const started = performance.now();
+    const result = await measure(root, row);
+    results.push(result);
+    const seconds = ((performance.now() - started) / 1000).toFixed(1);
+    console.log(
+      `${row.name}: ${result.hit}/${result.found} lines, ` +
+        `${percent(result.hit, result.found).toFixed(2)}%, ` +
+        `floor ${row.floor}% (${seconds} s)`,
+    );
+  }
+  const failed = failures(results, PACKAGES);
+  for (const message of failed) console.error(message);
+  if (failed.length > 0) Deno.exit(1);
+};
+
+if (import.meta.main) {
+  await main();
+}

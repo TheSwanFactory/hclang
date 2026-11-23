@@ -111,6 +111,8 @@ jobs:
           name: hclang-npm-candidate
           path: dist/hclang-*.tgz
           if-no-files-found: error
+      - name: Check the coverage floor
+        run: deno task coverage:check
       # When the format job pushed, this checkout was reformatted in place
       # above, so the tree is intentionally dirty with exactly that diff.
       - name: Validate hclang package

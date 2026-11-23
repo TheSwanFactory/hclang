@@ -20,6 +20,7 @@
     "setup": "deno task bundle:embed && deno run -A deno-hooks",
     "test": "deno fmt --check && deno lint && deno task check && deno task test:all",
     "check": "deno task bundle:embed && deno check --frozen cli lib maml scripts web experiments/007-observer-algebras experiments/017-classical-cd && deno check --frozen --doc-only README.md lib/README.md web/README.md && deno doc --lint lib/mod.ts",
+    "coverage:check": "deno task bundle:embed && deno run --allow-read --allow-write --allow-run --allow-env scripts/coverage-floor.ts",
     "test:cli": "deno task bundle:embed && cd cli && deno task test",
     "test:doc": "deno task bundle:embed && cd cli && deno task test:doc",
     "test:lib": "deno task bundle:embed && deno test --parallel --ignore=lib/load-order.test.ts lib && deno task test:load-order",
