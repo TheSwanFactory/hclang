@@ -3,12 +3,12 @@
 **Covers:** steps 9–13 of the [plan](README.md): delete dead code, split
 oversized modules, merge accidental duplicates, fix boundary findings, and
 restructure tests.\
-**Status:** Done. One measurement is deferred: the CI side of 6.8, which this
-PR's own Deno CI run supplies (see [Measurements](#measurements)).\
+**Status:** Done.\
 **Base:** `ad37fd9` (v0.55.2). The branch begins with `90749a0`, the #511 fix,
 which the audit's Approval asked for first.\
-**Head:** the commit that completes this document. It follows `3851b50`, the
-last commit that changes code, tests or tasks.
+**Head:** the commit that completes this document. The commits after `3851b50`
+change only this document, the version (`e7b1e65`, 0.55.3) and the CHANGELOG
+(`ef6b508`).
 
 Each entry uses the ID of its finding in the [audit](01-audit.md) and acts on
 the disposition its Approval settled. An entry gives what was done, the files
@@ -549,12 +549,13 @@ adopted `--parallel`. The median run is 7.1 s shorter.
 **6.8, CI.** Before: master's latest Deno CI run, 45069034886 at `ad37fd9`,
 printed `ok | 201 passed (1553 steps) | 0 failed | 4 ignored (27s)` for the
 serial `test:lib`, on a GitHub-hosted `ubuntu-26.04` runner with Deno 2.9.5. Its
-`Task test:lib` line and that summary are 30.2 s apart. After: this PR's own
-Deno CI run. In its `build` job's log, find `Task test:lib`, which now shows
-`deno test --parallel`, and read the summary line after it,
-`ok | 212 passed (1538 steps) | 0 failed | 4 ignored (Ns)`. Compare N with
-master's 27 s, or the two lines' timestamps with its 30.2 s. The runner's core
-count bounds the gain, and the log does not print it.
+`Task test:lib` line and that summary are 30.2 s apart. After: this PR's Deno CI
+run 45097701512 at `ef6b508`, on the same image and Deno version, printed
+`ok | 212 passed (1538 steps) | 0 failed | 4 ignored (22s)` for the parallel
+`test:lib`, 25.2 s after its `Task test:lib` line. Its run at `e7b1e65`,
+45097327222, printed the same 22 s, 25.3 s apart. On CI the parallel `test:lib`
+is 5 s shorter by either measure. The runner's core count bounds the gain, and
+the log does not print it.
 
 ## Defects found
 
