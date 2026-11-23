@@ -5,7 +5,7 @@
 > contains nothing else; then describe it and say that nothing user-facing
 > changed.
 
-## v0.55.8 2026-11-22
+## v0.55.8 2026-11-23
 
 - **MAML is published as `jsr:@swanfactory/hclang/maml` (#519).** The MAML
   renderer now ships inside the hclang package as the `./maml` export, rather

@@ -50,7 +50,7 @@ not just during stringification.
 
 ### MAML Architecture
 
-From [lib/maml.ts](../../maml/maml.ts):
+From [lib/maml/maml.ts](../../lib/maml/maml.ts):
 
 ```typescript
 export const maml = new FrameExpr([
@@ -59,8 +59,8 @@ export const maml = new FrameExpr([
 ], { tag }); // ← metadata includes 'tag' function
 ```
 
-The `tag` function (from [maml/tag.ts](../../maml/tag.ts)) should be available
-in the metadata context when evaluating the MAML expression.
+The `tag` function (from [lib/maml/tag.ts](../../lib/maml/tag.ts)) should be
+available in the metadata context when evaluating the MAML expression.
 
 ### Current Error
 
@@ -283,5 +283,5 @@ Before marking this work complete:
   analysis
 - [lib/frames/frame-expr.ts](../../lib/frames/frame-expr.ts) - Changed file
 - [lib/frames/frame-lazy.ts](../../lib/frames/frame-lazy.ts) - Changed file
-- [maml/maml.test.ts](../../maml/maml.test.ts) - Failing tests
-- [lib/maml.ts](../../maml/maml.ts) - MAML implementation
+- [lib/maml/maml.test.ts](../../lib/maml/maml.test.ts) - Failing tests
+- [lib/maml/maml.ts](../../lib/maml/maml.ts) - MAML implementation

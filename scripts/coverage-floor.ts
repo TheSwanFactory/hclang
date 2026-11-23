@@ -66,7 +66,7 @@ export const PACKAGES: readonly Package[] = [
     name: "lib",
     prefix: "lib/",
     steps: [task("test:lib")],
-    excludes: ["/lib/bundle/hc-sources\\.ts$"],
+    excludes: ["/lib/bundle/hc-sources\\.ts$", "/lib/maml/"],
     floor: 94,
   },
   {
