@@ -2,8 +2,9 @@
 
 Research program for Occurrence task 017.10
 (`quilt+s3://protology#package=occurrence/explore@dafd253e97cf16c9f074ec9508f6de65e0394a9abaf063c63136999db76ab4f3&path=issues/017-cayley-dickson-space-elevator-explained-linearly/017.10-Invariant-task-classical-Cayley-Dickson-HC-lane.md`).
-It is research code, not part of the shipped runtime, and it is not wired into
-`deno task test:all`: the evidence run takes tens of minutes and about 20 GB of
+It is research code, not part of the shipped runtime. Its tests and `gate0.hc`
+run in `deno task test:all`, through `deno task test:classical-cd`. The evidence
+run, `run.ts`, stays manual, because it takes tens of minutes and about 20 GB of
 memory.
 
 HC builds the classical sign tables w₀ = 0 → w₁ → w₂ → w₃ → w₄ (dimensions 1, 2,
