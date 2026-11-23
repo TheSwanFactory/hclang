@@ -1,5 +1,8 @@
 # BitScheme Test Failures - Type and Selector Issues
 
+**Status:** Historical: it records the December 2025 failure state, as the note
+below says.
+
 **Date**: 2025-12-21 **Source**: BitScheme test suite (`hc/BitScheme.hc`) **Test
 Command**: `deno task test:bs` **Results**: 14 passed, 17 failed (31 total)
 

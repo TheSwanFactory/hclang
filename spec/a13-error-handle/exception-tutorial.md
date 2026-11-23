@@ -1,5 +1,10 @@
 # Handling errors: a tutorial
 
+**Status:** Not implemented. It teaches the parent-scope `.$:` design of
+[01](01-error-handling.md), which no code implements; v0.40.0 (#473) shipped
+use-site recovery, the `$!` catch operator of
+[14](14-error-namespaces-and-catch.md), instead.
+
 A failure in HC is a value, and it is permanently a value: once something has
 failed, every expression that so much as reads it answers that same failure
 back. `1 + (1 / 0)` is the division by zero, not a sum. `(1 / 0) ? {“caught”}`

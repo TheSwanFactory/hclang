@@ -1,5 +1,9 @@
 # Risk Assessment
 
+**Status:** Assessment as of 2026-08-09 (#278): expressibility and syntax are
+low risk; semantic soundness is high; substrate security is unknown, plausibly
+high; federated meaning and evidence are high but deferrable.
+
 ## Summary
 
 The feasibility of dynamic total resource effect typing in HC has three primary

@@ -1,5 +1,8 @@
 # AI Security Requirements in HC Terms
 
+**Status:** Requirements. It states no findings about the current
+implementation.
+
 This document translates the finalized `08` thread in the
 [`marketing/ai-security`](https://nightly.quilttest.com/b/quilt-leadership/packages/marketing/ai-security)
 package into HC terminology. It states requirements, not findings about the

@@ -1,5 +1,6 @@
 # Specification Quality Checklist: Sigilizer Interface
 
+**Status:** Completed for v0.8.4; all 17 items are checked.\
 **Purpose:** Validate specification completeness and quality before planning\
 **Created:** 2026-08-12\
 **Project:** [09-sigilizer-spec.md](../09-sigilizer-spec.md)
