@@ -64,7 +64,8 @@
   "exclude": [
     "dist/",
     "web/dist/",
-    "**/_fresh/"
+    "**/_fresh/",
+    "experiments/a13-recovery-spike/"
   ],
   "lint": {
     "rules": {
