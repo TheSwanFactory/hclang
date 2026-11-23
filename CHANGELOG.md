@@ -5,6 +5,35 @@
 > contains nothing else; then describe it and say that nothing user-facing
 > changed.
 
+## v0.55.5 2026-11-22
+
+- **Dispatch certificates follow lookup (#527).** The walk that certifies an
+  event under `$$.dispatch.footprint` and `certified-sequential` now reads each
+  name through lookup's own traversal, so the certificate lists exactly the
+  frames lookup consults. These answers change:
+  - A method whose declared parent is a namespace imported inside a call, and a
+    namespace function that reads a name bound by the call that imported it,
+    answered `$!.uncertified-read`. They now answer the value, `7` in the
+    witness, as under `sequential`.
+  - An event whose argument is a closure made in another call answered
+    `$!.uncertified-read`. It now answers `1`, as under `sequential`.
+  - A closure event that calls a method of a namespace imported inside a call,
+    where the method is a closure made elsewhere and the importing call binds
+    the name it reads, answered `$!.uncertified-read`. The certificate listed
+    the importing call's frame, which a method call never reads. It now answers
+    the value, as under `sequential`.
+  - An event that calls a `__` method of its parent no longer certifies that
+    method's writes, which lookup refuses to reach, so a reader of `x_` no
+    longer waits for it: `.waited [[], []]`, was `[[], [0]]`.
+  - Events that resolve a name through an imported namespace are certified
+    rather than opaque, so they are no longer serialized against every other
+    event. Their results are unchanged.
+
+  Witness W19 in `hc/art-dispatch-vact.hc` pins these, with
+  `lib/frames/access-footprint.lookup.test.ts` for the namespace-function and
+  namespace-method cases, which need a module that is not bundled. No other
+  testdoc answer changes.
+
 ## v0.55.4 2026-11-22
 
 - **Breaking: bundled examples removed (#525).** `hc/gerbil.hc` and

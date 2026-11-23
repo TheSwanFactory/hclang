@@ -2,7 +2,9 @@ import { type Context, type IKeyValuePair, NilContext } from "./context.ts";
 import { renderNested } from "./stringify.ts";
 import { afterCommit, beforeCommit } from "./effect-registry.ts";
 import {
+  activeLookupProbe,
   guardAccess,
+  noteAnswer,
   noteCopiedHoldings,
   noteCreated,
   noteHolding,
@@ -304,7 +306,9 @@ export class MetaFrame {
   private static readonly VALUE_STEP: LookupStep<Frame> = {
     visit(frame, key, origin): Frame | undefined {
       const local = frame.lookup_here(key, origin);
-      return local.is.missing ? undefined : local;
+      if (local.is.missing) return undefined;
+      noteAnswer(frame as Frame, local);
+      return local;
     },
     unwind(frame, found, key): Frame {
       return frame.lookup_result(found, key);
@@ -494,7 +498,9 @@ export class MetaFrame {
    *
    * A match rewrites the bound value's `source` to the target, which changes
    * what every later reader of that binding sees, so it is a write of this
-   * frame: guarded before the value is touched, and noted after.
+   * frame: guarded before the value is touched, and noted after. Under a
+   * lookup probe the source is left as it is and the probe is marked, since
+   * the footprint walk only reads and refuses a name a pattern answers.
    */
   protected match_here(target: string): Frame {
     let result = Frame.missing;
@@ -504,7 +510,9 @@ export class MetaFrame {
         const pattern = new RegExp(isPattern[1]);
         if (pattern.test(target)) {
           result = value;
-          if ("source" in result) {
+          const probe = activeLookupProbe();
+          if (probe) probe.pattern = true;
+          else if ("source" in result) {
             beforeCommit(this as unknown as Frame);
             const sourced = result as ISourced;
             sourced.source = target;
@@ -1113,7 +1121,10 @@ export class Frame extends MetaFrame {
   public getOwn(key: string, origin: MetaFrame = this): Frame {
     for (const frame of declaredChain(this.referent())) {
       const local = frame.lookup_here(key, origin);
-      if (!local.is.missing) return this.lookup_result(local, key);
+      if (!local.is.missing) {
+        noteAnswer(frame, local);
+        return this.lookup_result(local, key);
+      }
     }
     return Frame.missing;
   }

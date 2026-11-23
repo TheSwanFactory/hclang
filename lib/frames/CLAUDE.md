@@ -25,7 +25,9 @@ rather than answering the question again somewhere else.
 - **Lookup traversal:** the private `MetaFrame.traverse`, with `walk`, owns the
   traversal and its cycle guard; `get` and `resolve` go through it. A
   specialization customizes `lookup_here`, `lookup_links` or `lookup_result`. It
-  never recurses through the public `get`.
+  never recurses through the public `get`. The footprint walk reads a bare name
+  through `FrameSymbol.lookupIn` under `withLookupProbe`; never copy the
+  traversal, and keep lookup free of commits under a probe.
 - **Resource refusals:** `resource-reference.ts` decides every reference
   refusal, and it stays free of `Frame`; the stores decide their own refusals
   ([Resources](../../doc/ARCHITECTURE.md#resources)).

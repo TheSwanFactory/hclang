@@ -4,11 +4,17 @@ import { FrameExpr, FrameScoped } from "./frame-expr.ts";
 import { FrameGroup } from "./frame-group.ts";
 import { FrameHandle } from "./frame-handle.ts";
 import { FrameLazy } from "./frame-lazy.ts";
-import { FrameSymbol } from "./frame-symbol.ts";
-import { BoundMethod } from "./bound-method.ts";
+import { FrameSymbol, type NameScope } from "./frame-symbol.ts";
+import { BoundMethod, type ReceiverState } from "./bound-method.ts";
+import type { EvaluationScope } from "./evaluation-scope.ts";
 import { touchesIdentity } from "./effect-marker.ts";
 import { effectSubscribersOf } from "./effect-registry.ts";
-import { AccessRecord, withAccessRecord } from "./reference-tracking.ts";
+import {
+  AccessRecord,
+  LookupProbe,
+  withAccessRecord,
+  withLookupProbe,
+} from "./reference-tracking.ts";
 
 /**
  * The potential access footprint of an event, read off its code before it runs
@@ -19,7 +25,10 @@ import { AccessRecord, withAccessRecord } from "./reference-tracking.ts";
  * an argument. HC code is Frames, so the body can be walked as data: each
  * name in it is graded by the one effect rule, `touchesIdentity`, and resolved
  * against the scope the call would run in (`scopeForCall`) to the identity it
- * denotes *now*. The walk answers two sets of identities and a list of names:
+ * denotes *now*. A bare name is read by lookup itself (`FrameSymbol.lookupIn`)
+ * under a lookup probe (`withLookupProbe`), so its reads are exactly the
+ * frames lookup consults, hit or miss, which are the reads the event guard
+ * checks (#527). The walk answers two sets of identities and a list of names:
  *
  * - **writes**: identities the event may mutate. A write can land on an
  *   identity only through a key spelled with the marker or by registering an
@@ -113,6 +122,15 @@ class Walk {
    * call frame the event will make afresh when it runs, never shared state.
    */
   public readonly scratch = new AccessRecord();
+  /**
+   * Stands for the scope a dotted read happens in, which the handle that read
+   * answers records (`FrameHandle` read context). Lookup through such a handle
+   * asks only whether there is one, never for names in it.
+   */
+  public readonly readScope = withAccessRecord(
+    this.scratch,
+    () => new Frame(),
+  );
   private readonly standIns = new Set<Frame>();
 
   /** Whether a frame is state the event could share with another. */
@@ -197,6 +215,42 @@ interface Site {
   readonly argumentMutable: boolean;
   /** Names the body declared so far, with what each may denote. */
   readonly locals: Map<string, Referents | undefined>;
+  /**
+   * The layers and receiver a bare name reads through, as `FrameSymbol.in`
+   * would read it in this body: the scope the call builds (`scopeForCall`).
+   */
+  readonly lookup: NameScope;
+  /**
+   * The read scope the receiver's method was reached through, when the call
+   * reads its receiver through a handle that records one
+   * (`ReceiverState.lexicalContext`). Such a receiver layer is looked up on
+   * the receiver and its declared parents only, never its own `up`.
+   */
+  readonly receiverContext?: Frame;
+}
+
+/**
+ * The scope a call of a closure the walk reaches by name would run in, with
+ * the receiver state given when it runs as a method, made under the walk's
+ * scratch record as the top-level call scope is. The argument is not known
+ * here, so it is nil.
+ *
+ * A probed lookup through this scope, or through the top-level one
+ * `potentialFootprint` makes, can fill a `LiveLookupContext`'s handle cache
+ * (evaluation-scope.ts). That is intended: the scope is the walk's own, never
+ * the one the event runs in, and where the live context is shared (an
+ * imported namespace's `up`) the cached handle is a read-only handle that the
+ * event's own lookup would make the same way.
+ */
+function nestedScope(
+  walk: Walk,
+  closure: FrameLazy,
+  receiverState?: ReceiverState,
+): EvaluationScope {
+  return withAccessRecord(
+    walk.scratch,
+    () => closure.scopeForCall(Frame.nil, Frame.nil, receiverState),
+  );
 }
 
 /**
@@ -247,6 +301,8 @@ export function potentialFootprint(
       argument,
       argumentMutable,
       locals: new Map(),
+      lookup: scope,
+      receiverContext: scope.receiverState?.lexicalContext,
     });
   } else if (target instanceof FrameLazy) {
     const scope = withAccessRecord(
@@ -260,6 +316,7 @@ export function potentialFootprint(
       argument,
       argumentMutable,
       locals: new Map(),
+      lookup: scope,
     });
   } else {
     walk.refuse(`target ${target.className()}`);
@@ -577,12 +634,21 @@ function walkSymbol(
     }
     return { frames: referents.frames, mutable };
   }
-  const found = resolveName(walk, spelling, site.frames);
-  if (!found) {
+  const lookup = nameLookup(term, site.lookup);
+  for (const frame of lookup.consulted) walk.readBinding(frame);
+  if (lookup.pattern) {
+    // A pattern binding answered: the walk does not guess what it denotes.
+    walk.refuse(`/pattern/ ${spelling}`);
+    return undefined;
+  }
+  if (!lookup.found) {
     walk.refuse(spelling);
     return undefined;
   }
-  return walkReferent(walk, spelling, found, site, handedOn, true);
+  // Lookup answered an error (`$!.is-private .x`): the name denotes that
+  // value, and the read goes no further.
+  if (lookup.value?.is.error) return fresh;
+  return walkReferent(walk, spelling, lookup.found, site, handedOn, true);
 }
 
 /** A dotted name applied to the path so far: a member, a parent, or a method. */
@@ -626,7 +692,12 @@ function walkName(
       walk,
       source,
       { owner: receiver, value: member },
-      { ...site, receiver, receiverMutable: current.mutable },
+      {
+        ...site,
+        receiver,
+        receiverMutable: current.mutable,
+        receiverContext: readContextOf(walk, frame, site),
+      },
       handedOn,
       current.mutable,
     );
@@ -644,7 +715,7 @@ function walkAlias(
 ): Referents | undefined {
   if (site.locals.has(key)) return site.locals.get(key) ?? fresh;
   if (site.receiver) {
-    const onReceiver = resolveName(walk, key, [site.receiver]);
+    const onReceiver = resolveAlias(walk, key, [site.receiver]);
     if (onReceiver) {
       // The write lands on the receiver, or on its functional copy.
       if (site.receiverMutable && !site.isolated) {
@@ -655,7 +726,7 @@ function walkAlias(
       return { frames: [onReceiver.value], mutable: false };
     }
   }
-  const lexical = resolveName(
+  const lexical = resolveAlias(
     walk,
     key,
     site.frames.filter((frame) =>
@@ -701,11 +772,25 @@ function walkReferent(
       pathMutable && !site.isolated;
     if (writes) walk.write(site.receiver!);
     const receiver = onReceiver ? site.receiver : undefined;
+    // The receiver state a call selects, over the receiver itself: a
+    // functional update would read an instance copy holding the same
+    // bindings, and the walk counts its accesses at the shared original.
+    const lookup = nestedScope(
+      walk,
+      value,
+      receiver && {
+        receiver,
+        mutable: writes,
+        lexicalContext: site.receiverContext,
+      },
+    );
     walkBody(walk, value, {
       frames: receiver
         ? [receiver, ...lexicalChain(value)]
         : lexicalChain(value),
+      lookup,
       receiver,
+      receiverContext: receiver && site.receiverContext,
       receiverMutable: writes,
       // A mutating method reached without authority is a functional update.
       isolated: site.isolated || (marked && !writes),
@@ -740,6 +825,7 @@ function walkCallable(walk: Walk, argument: Frame, spelling: string): void {
   if (value instanceof FrameLazy) {
     walkBody(walk, value, {
       frames: lexicalChain(value),
+      lookup: nestedScope(walk, value),
       receiverMutable: false,
       isolated: false,
       argument: Frame.nil,
@@ -749,6 +835,26 @@ function walkCallable(walk: Walk, argument: Frame, spelling: string): void {
   } else if (value instanceof BoundMethod) {
     walk.refuse(`${spelling} ${value.className()}`);
   }
+}
+
+/**
+ * The read scope the handle a dotted method read goes through records, as
+ * `BoundMethod.lexicalContext`, or undefined when that handle records none.
+ * A handle the walk holds says so itself. The argument `_` is read through
+ * `argumentRead`, a handle with no read scope, and the receiver `_^` is the
+ * call's receiver layer. Any other aggregate was reached by a name, and that
+ * read wraps it in a handle recording the scope it happened in
+ * (`FrameSymbol.projectRead`); a read of any other value hands out the value.
+ */
+function readContextOf(
+  walk: Walk,
+  frame: Frame,
+  site: Site,
+): Frame | undefined {
+  if (frame instanceof FrameHandle) return frame.readContextFrame();
+  if (frame === site.argument) return undefined;
+  if (frame === site.receiver) return site.receiverContext;
+  return frame instanceof FrameArray ? walk.readScope : undefined;
 }
 
 /** Whether `owner` is the receiver itself or one of its declared parents. */
@@ -801,22 +907,54 @@ function patternAnswers(frame: Frame, key: string): boolean {
 }
 
 /**
- * Resolves a bare name the way a call's lookup would: each lookup frame in
- * order, then its declared parents, then the lexical `up` chain, and the
- * globals last. A handle resolves on its target and parents only (#400).
+ * What one bare-name read consulted and found: the walk's name step, and the
+ * seam the differential test checks against lookup (#527).
+ *
+ * The read is lookup itself (`FrameSymbol.lookupIn`), run under a lookup
+ * probe, so `consulted` is every frame whose guarded `get_here` it ran, hit or
+ * miss, less the frames it created. `found` is the first frame whose own
+ * local lookup answered, unwrapped, with the raw value it answered; it is
+ * absent when every layer missed. `value` is what lookup itself answers, after
+ * any `lookup_result` wrapping, an error included. `pattern` says a pattern
+ * binding answered.
+ */
+export interface NameLookup {
+  readonly consulted: readonly Frame[];
+  readonly found?: Resolution;
+  readonly value?: Frame;
+  readonly pattern: boolean;
+}
+
+/** Reads `symbol` in `scope` the way the event will, and reports it. */
+export function nameLookup(symbol: FrameSymbol, scope: NameScope): NameLookup {
+  const probe = new LookupProbe();
+  const read = withLookupProbe(probe, () => symbol.lookupIn(scope));
+  const consulted = probe.sharedReads();
+  const found = read && probe.owner && probe.answer
+    ? { owner: unwrap(probe.owner), value: probe.answer }
+    : undefined;
+  return { consulted, found, value: read?.value, pattern: probe.pattern };
+}
+
+/**
+ * Finds the binding an `@name` writes: each frame in order, then its declared
+ * parents, then the lexical `up` chain, and the globals last, approximating
+ * `FrameAlias.find`. A handle resolves on its target and parents only (#400).
+ * Bare names no longer use this; they are read by lookup itself
+ * (`nameLookup`, #527).
  *
  * Every frame consulted is read, the ones that miss included: a miss is that
  * frame's answer that the name is absent there, and a binding added to it
  * would change where the name resolves.
  */
-function resolveName(
+function resolveAlias(
   walk: Walk,
   key: string,
   frames: readonly Frame[],
 ): Resolution | undefined {
   const seen = new Set<Frame>();
   for (const frame of frames) {
-    const found = resolveThrough(
+    const found = resolveAliasThrough(
       walk,
       key,
       frame,
@@ -836,7 +974,7 @@ function resolveName(
   return undefined;
 }
 
-function resolveThrough(
+function resolveAliasThrough(
   walk: Walk,
   key: string,
   frame: Frame,
@@ -854,14 +992,20 @@ function resolveThrough(
       : { owner: target, value: binding.value };
   }
   if (target.hasDeclaredParent()) {
-    const inherited = resolveThrough(walk, key, target.parent, seen, false);
+    const inherited = resolveAliasThrough(
+      walk,
+      key,
+      target.parent,
+      seen,
+      false,
+    );
     if (inherited) return inherited;
   }
   if (
     followLexical && target.up && !target.up.is.missing &&
     target.up !== Frame.globals
   ) {
-    return resolveThrough(walk, key, target.up, seen, true);
+    return resolveAliasThrough(walk, key, target.up, seen, true);
   }
   return undefined;
 }
