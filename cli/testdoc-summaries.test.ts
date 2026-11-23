@@ -44,13 +44,16 @@ Deno.test("the summaries generator reports and guards each file's counts", async
   });
 
   await t.step(
-    "refuses a dropped total or pass, a risen fail, or a lost file",
+    "refuses a dropped total or pass, a risen fail or unimplemented, or a lost file",
     () => {
       for (
         const next of [
           { ...previous, "a.hc": counts(3, 3) },
           { ...previous, "a.hc": counts(4, 3, 0, 1) },
           { ...previous, "a.hc": counts(5, 4, 1) },
+          // A claim slips to unimplemented while another is added: the total
+          // and pass count stay level.
+          { ...previous, "a.hc": counts(5, 4, 0, 1) },
           { "a.hc": counts(4, 4) },
         ]
       ) {

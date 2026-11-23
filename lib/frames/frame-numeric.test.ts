@@ -390,6 +390,20 @@ describe("ranked rungs", () => {
     number: [...everyRung, "divideSame", "powerSame"],
   };
 
+  // The base's refusing defaults, listed once. The abstract hooks have no
+  // prototype entry, so a hook that gains a default on the base appears here,
+  // and the test fails until the lists above name it.
+  const refusing = [...everyRung, "moduloSame", "divideSame", "powerSame"];
+  it("lists every refusing default the base defines", () => {
+    const defaults = Object.getOwnPropertyNames(FrameNumeric.prototype)
+      .filter((name) =>
+        name.endsWith("Same") || name === "inexactResult" ||
+        name === "powerIntegral"
+      );
+    expect(defaults.sort()).toEqual([...refusing].sort());
+    expect([...new Set(Object.values(required).flat())].sort())
+      .toEqual([...refusing].sort());
+  });
   for (const [name, value] of Object.entries(rungs)) {
     const rung = name as keyof typeof NUMERIC_RANK;
     it(`${name} overrides the refusing hooks its dispatch reaches`, () => {

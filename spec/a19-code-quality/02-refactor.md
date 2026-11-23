@@ -494,7 +494,7 @@ Deno's counts, from `NO_COLOR=1 deno task test`: a top-level `Deno.test` or
 | Run                      | `90749a0`                          | Head                               |
 | ------------------------ | ---------------------------------- | ---------------------------------- |
 | `test:cli`               | 10 passed (74 steps)               | 11 passed (77 steps)               |
-| `test:lib`               | 201 passed (1553 steps), 4 ignored | 215 passed (1543 steps), 4 ignored |
+| `test:lib`               | 201 passed (1553 steps), 4 ignored | 215 passed (1544 steps), 4 ignored |
 | `test:load-order`        | 1 passed (1 step)                  | 1 passed (1 step)                  |
 | `test:maml`              | 3 passed (18 steps)                | 3 passed (18 steps)                |
 | `test:scripts`           | 17 passed (118 steps)              | 17 passed (118 steps)              |
@@ -514,7 +514,7 @@ Deno's counts, from `NO_COLOR=1 deno task test`: a top-level `Deno.test` or
   seven properties stay steps under "resource import: properties". 3.20 removes
   1 test: `denum-observers.test.ts` had 4, and 3 moved to `foist-19a.test.ts`.
   `script-spec.ts`'s cases never ran (3.1), so its deletion changes no count.
-  The outside review adds 3 tests and 5 steps: `describe("ranked rungs")` in
+  The outside review adds 3 tests and 6 steps: `describe("ranked rungs")` in
   `frame-numeric.test.ts`, with a step per rung, and the 2 tests of
   `lib/execute/class-prologue.test.ts`.
 - No other count changed. `test:load-order` dropped `--allow-env` (5.3) and
@@ -617,10 +617,10 @@ the tests listed here.
   hooks its dispatch reaches (`466365c`).
 - **4661196491, the generated summary table.** `testdoc:summaries` prints each
   file's old and new counts before writing, and refuses a table in which a
-  file's `total` or `pass` drops, its `fail` rises or the file disappears,
-  unless the script is given `--allow-regression`. Recording only exit-0 runs is
-  intended: a testdoc with a failing claim exits 1 and already fails `test:doc`.
-  The generator's module doc says so (`85b480f`).
+  file's `total` or `pass` drops, its `fail` or `unimplemented` rises or the
+  file disappears, unless the script is given `--allow-regression`. Recording
+  only exit-0 runs is intended: a testdoc with a failing claim exits 1 and
+  already fails `test:doc`. The generator's module doc says so (`85b480f`).
 - **4661196493, `classOnce`'s cache.** Behavior is unchanged. The docs now say
   that an error the load answers is kept, and that a throw keeps nothing and
   propagates, so the next call evaluates again. `classOnce` takes an optional
@@ -633,6 +633,20 @@ the tests listed here.
   strings in `frame-resource.test.ts` and `resource-reference.test.ts` are roots
   of in-memory stores and path fixtures. Nothing needed fixing.
 - **4661266551, run links.** The 6.8 CI paragraph links its three Actions runs.
+
+The review's third round, 6016130147 at `fed4e7a`, left two threads:
+
+- **4661444184, unimplemented claims.** The generator's guard also refuses a
+  rise in a file's `unimplemented` count, which catches a claim that slips to
+  unimplemented while another is added. `testdoc-summaries.test.ts` checks that
+  case.
+- **4661444189, the hand-kept hook list.** "ranked rungs" lists the base's
+  refusing defaults once and asserts that they equal the `*Same`,
+  `inexactResult` and `powerIntegral` members `FrameNumeric.prototype` defines,
+  and that the rungs' required lists name each of them. Abstract hooks have no
+  prototype entry, so a hook that gains a base default fails the test until the
+  lists name it. The match is by name, so a refusing default with a different
+  name would still go unnoticed.
 
 ## Left for cleanup
 

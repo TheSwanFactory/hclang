@@ -10,8 +10,8 @@
  * Because the table is produced by the code the tests guard, the generator
  * guards it against recording a regression. Before writing, it prints each
  * file's recorded counts and new counts. It refuses to write a table in which
- * a file's `total` or `pass` drops, its `fail` rises, or the file disappears,
- * unless `--allow-regression` is given:
+ * a file's `total` or `pass` drops, its `fail` or `unimplemented` rises, or the
+ * file disappears, unless `--allow-regression` is given:
  * `cd cli && deno task testdoc:summaries --allow-regression`.
  *
  * Only a run that exits 0 is recorded, by intent. A testdoc exits non-zero when
@@ -85,13 +85,19 @@ function countsText(s: TestdocSummary | undefined): string {
       `unimplemented ${s.unimplemented}`;
 }
 
-/** Whether `next` records less than `previous`: a file lost or a count worse. */
+/**
+ * Whether `next` records less than `previous`: a file lost, a smaller total or
+ * pass count, or more failed or unimplemented claims. Counts cannot catch every
+ * swap, but a claim that slips to unimplemented while another is added keeps
+ * the total and pass count level, so the unimplemented count is checked too.
+ */
 function regressed(
   previous: TestdocSummary,
   next: TestdocSummary | undefined,
 ): boolean {
   return next === undefined || next.total < previous.total ||
-    next.pass < previous.pass || next.fail > previous.fail;
+    next.pass < previous.pass || next.fail > previous.fail ||
+    next.unimplemented > previous.unimplemented;
 }
 
 /**
