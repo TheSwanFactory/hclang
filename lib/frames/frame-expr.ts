@@ -628,7 +628,10 @@ export class FrameScoped extends Frame {
     return this.referent().nativeSize(path);
   }
 
-  /** Sizes as its term does, `.#`, `.##` and `.###`; anything else is applied. */
+  /**
+   * Sizes as its term does, `.#`, `.##`, `.###` and `.####`; anything else is
+   * applied.
+   */
   public override call(
     argument: Frame,
     parameter: Frame = Frame.nil,
