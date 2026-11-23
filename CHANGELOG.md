@@ -5,6 +5,18 @@
 > contains nothing else; then describe it and say that nothing user-facing
 > changed.
 
+## v0.55.7 2026-11-23
+
+- **The four skipped schema suites now run (#516).** No HC answer changes.
+  - `doc/LANGUAGE.md` "Nil (False)" now shows what `.nil ()` does: applying nil
+    to a declaration leaves it unchanged, so it answers `.nil` and binds
+    nothing. The page used to show `nil` reading back `()`.
+  - `hc/testdoc.hc` records the HLIR schema aspirations that the skipped suites
+    held as `$!.unimplemented` claims: `index`, `f32` and `f64`, nested tensors,
+    explicit conversion, numeric widening, and function signatures. Its summary
+    moves from 77 claims with 2 unimplemented to 84 claims with 9 unimplemented.
+    #536 tracks implementing them.
+
 ## v0.55.6 2026-11-22
 
 - **Every committed mutation notifies effect subscribers (#529).** All seven

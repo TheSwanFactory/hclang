@@ -414,9 +414,11 @@ The result of evaluating the empty expression is conventionally called nil.
     ; ()
     # ()
 
-    ; .nil ();
-    ; nil
-    # ()
+Applying nil to a declaration leaves the declaration unchanged, so it binds
+nothing and `nil` stays unbound.
+
+    ; .nil ()
+    # .nil
 
 This is also used as boolean `false` (but not zero).
 
