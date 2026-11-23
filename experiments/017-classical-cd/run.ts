@@ -26,6 +26,7 @@
 import { parseArgs } from "@std/cli/parse-args";
 import { compareVariant, type Comparison, observations } from "./compare.ts";
 import { errorLines, parseRecords } from "./parse.ts";
+import { VERSION } from "../../lib/version.ts";
 
 const HERE = new URL(".", import.meta.url).pathname;
 const REPO = new URL("../../", import.meta.url).pathname;
@@ -160,8 +161,7 @@ async function main(): Promise<number> {
     porcelain,
     allowDirty: !!args["allow-dirty"],
     deno: Deno.version,
-    libVersion: (await Deno.readTextFile(REPO + "lib/version.ts")).split("\n")
-      .find((line) => line.startsWith("export const VERSION")) ?? "",
+    libVersion: VERSION,
     os: `${Deno.build.os} ${Deno.build.arch}`,
     srcDir: src === HERE
       ? "experiments/017-classical-cd/"
