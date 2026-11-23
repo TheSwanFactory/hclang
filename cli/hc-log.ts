@@ -1,8 +1,6 @@
 import chalk from "jsr:@nothing628/chalk@^1.0.1";
-import { type Context, Frame } from "../frames.ts";
-import { HCEval } from "./hc-eval.ts";
-
-export type Counts = { [key: string]: number };
+import { type Context, Frame } from "../lib/frames.ts";
+import { HCEval } from "../lib/execute/hc-eval.ts";
 
 export class HCLog extends Frame {
   constructor(context: Context, public prompt: boolean = false) {

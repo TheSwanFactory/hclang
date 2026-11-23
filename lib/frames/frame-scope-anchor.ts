@@ -242,7 +242,7 @@ export class FrameScopeAnchor extends FrameAtom {
  * reduction (`FrameExpr`) recognizes it among an expression's terms, so it
  * never evaluates as a value of its own.
  */
-export class FrameCatch extends FrameAtom {
+class FrameCatch extends FrameAtom {
   public override in(_input: EvaluationInput = []): Frame {
     return this;
   }
@@ -260,7 +260,7 @@ export class FrameCatch extends FrameAtom {
  * `$#`, the anchor for the observation of the innermost catch handler now
  * running (spec a13/14 §6). Outside every handler it is an error.
  */
-export class FrameObservationAnchor extends FrameAtom {
+class FrameObservationAnchor extends FrameAtom {
   public override in(_input: EvaluationInput = []): Frame {
     return FrameObservation.current() ??
       Frame.error("$!.observation-missing");

@@ -2,23 +2,13 @@ import { expect } from "jsr:@std/expect@^0.219.1";
 import { evaluate } from "./evaluate.ts";
 import { Frame, FrameExpr, FrameObservation } from "../frames.ts";
 import { describedKind, kindOf } from "../frames/error-kind.ts";
+import { Counter } from "../test-helpers.test.ts";
 
 /**
  * The catch operator `$!` and observations `$#` (spec a13/14), with the
  * conformance cases of specs a13/12 through a13/13, ported from
  * `experiments/a13-recovery-spike/`.
  */
-
-/** Counts calls; host bindings are copied, so the count is shared. */
-class Counter extends Frame {
-  public readonly effects = { calls: 0 };
-  public get calls(): number {
-    return this.effects.calls;
-  }
-  public override call(_argument: Frame): Frame {
-    return Frame.count(BigInt(++this.effects.calls));
-  }
-}
 
 /** Records what it is applied to and answers it unchanged. */
 class Spy extends Frame {

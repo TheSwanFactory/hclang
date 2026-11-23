@@ -27,7 +27,7 @@ import {
 import { IdenticalMember, Member, TypedMember } from "./ops/membership.ts";
 import { Arrow, BindReturn, BindType } from "./ops/type-operations.ts";
 
-export { FrameCurry } from "./ops/frame-curry.ts";
+import "./ops/frame-curry.ts";
 export type { ICurryFunction } from "./ops/frame-curry.ts";
 
 export const Ops = new FrameOps({

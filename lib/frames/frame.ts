@@ -1,21 +1,20 @@
 import { type Context, type IKeyValuePair, NilContext } from "./context.ts";
 import { renderNested } from "./stringify.ts";
-import { hasEffectSubscribers, notifyEffect } from "./effect-registry.ts";
+import { afterCommit, beforeCommit } from "./effect-registry.ts";
 import {
   guardAccess,
   noteCopiedHoldings,
   noteCreated,
   noteHolding,
   noteRead,
-  noteWrite,
   PARENT_KEY,
 } from "./reference-tracking.ts";
 import type { FrameName } from "./frame-name.ts";
 import type { FrameSymbol } from "./frame-symbol.ts";
 import type { FrameSchema } from "./frame-schema.ts";
 import type { FrameLazy } from "./frame-lazy.ts";
-import type { ICurryFunction } from "../ops.ts";
-import type { IArrayConstructor } from "../frames.ts";
+import type { ICurryFunction } from "../ops/frame-curry.ts";
+import type { IArrayConstructor } from "./frame-list.ts";
 import type { ScanResponse } from "../scan.ts";
 import type { ReceiverState } from "./bound-method.ts";
 import type { EvaluationInput, EvaluationScope } from "./evaluation-scope.ts";
@@ -38,11 +37,22 @@ export type BindingResolution = {
 };
 
 /** Visibility levels for logical frame bindings. */
-export enum Visibility {
+enum Visibility {
   Public = "public",
   Protected = "protected",
   Private = "private",
 }
+
+/**
+ * What one frame contributes to MetaFrame's guarded lookup traversal: its own
+ * answer for a key, and how it passes on an answer found through its links.
+ */
+type LookupStep<T> = {
+  /** The frame's own answer for `key`, or undefined when it has none. */
+  visit(frame: MetaFrame, key: string, origin: MetaFrame): T | undefined;
+  /** What `frame` answers for `found`, found at `frame` or below it. */
+  unwind(frame: MetaFrame, found: T, key: string): T;
+};
 
 /**
  * MetaFrame is the parent class of Frame, providing methods for managing metadata.
@@ -69,16 +79,6 @@ export class MetaFrame {
   }
 
   /**
-   * Checks if the given character is alphabetic.
-   *
-   * @param {string} char - The character to check.
-   * @returns {boolean} `true` if the character is alphabetic, `false` otherwise.
-   */
-  public static isAlphabetic(char: string): boolean {
-    return /\p{L}/u.test(char);
-  }
-
-  /**
    * id_count is a static counter, incremented to generate unique IDs.
    */
   public static id_count = 0;
@@ -97,7 +97,11 @@ export class MetaFrame {
    */
   public parent: Frame = {} as Frame; // forward-declare Frame
 
-  /** Typed receiver capability installed only on an invocation frame. */
+  /**
+   * Typed receiver capability installed only on an invocation frame.
+   *
+   * @ignore
+   */
   public receiverState?: ReceiverState;
 
   /**
@@ -159,7 +163,13 @@ export class MetaFrame {
     key: string,
     origin: MetaFrame,
   ): Frame {
-    return MetaFrame.lookup(frame, key, origin, new Set<MetaFrame>());
+    return MetaFrame.walk(
+      frame,
+      MetaFrame.VALUE_STEP,
+      key,
+      origin,
+      new Set<MetaFrame>(),
+    ) ?? Frame.missing;
   }
 
   /**
@@ -169,16 +179,28 @@ export class MetaFrame {
    * The binding counterpart of `lookup_graph_on`, with the same tiers, so a
    * forwarded value and its binding metadata come from the same declaration
    * owner. `Frame.globals` stays the one final tier of the outer `resolve`.
+   *
+   * @ignore
    */
   protected resolve_graph_on(
     frame: MetaFrame,
     key: string,
     origin: MetaFrame,
   ): BindingResolution | undefined {
-    return MetaFrame.resolveBinding(frame, key, origin, new Set<MetaFrame>());
+    return MetaFrame.walk(
+      frame,
+      MetaFrame.BINDING_STEP,
+      key,
+      origin,
+      new Set<MetaFrame>(),
+    );
   }
 
-  /** Resolves a logical name to the declaration key visible from origin. */
+  /**
+   * Resolves a logical name to the declaration key visible from origin.
+   *
+   * @ignore
+   */
   public resolve_here(
     key: string,
     origin: MetaFrame = this,
@@ -218,25 +240,16 @@ export class MetaFrame {
       );
   }
 
-  /** Resolves a binding through the same guarded graph as ordinary lookup. */
+  /**
+   * Resolves a binding through the same guarded graph as ordinary lookup.
+   *
+   * @ignore
+   */
   public resolve(
     key: string,
     origin: MetaFrame = this,
   ): BindingResolution | undefined {
-    const local = this.resolve_here(key, origin);
-    if (local) return local;
-
-    const seen = new Set<MetaFrame>([this]);
-    for (const link of this.lookup_links()) {
-      const result = MetaFrame.resolveBinding(link, key, origin, seen);
-      if (result) return result;
-    }
-
-    const globals = Frame.globals;
-    if (globals && !globals.is.missing && !seen.has(globals)) {
-      return MetaFrame.resolveBinding(globals, key, origin, seen);
-    }
-    return undefined;
+    return MetaFrame.traverse(this, MetaFrame.BINDING_STEP, key, origin);
   }
 
   /**
@@ -248,29 +261,8 @@ export class MetaFrame {
    * scope, and globals are consulted once after the complete scope graph.
    */
   public get(key: string, origin: MetaFrame = this): Frame {
-    const local = this.lookup_here(key, origin);
-    if (!local.is.missing) {
-      return this.lookup_result(local, key);
-    }
-
-    // Allocate traversal state only after an immediate local miss.
-    const seen = new Set<MetaFrame>([this]);
-    for (const link of this.lookup_links()) {
-      const result = MetaFrame.lookup(link, key, origin, seen);
-      if (!result.is.missing) {
-        return this.lookup_result(result, key);
-      }
-    }
-
-    // Globals are the final lookup tier, even when the lexical graph cycles.
-    const globals = Frame.globals;
-    if (globals && !globals.is.missing && !seen.has(globals)) {
-      const result = MetaFrame.lookup(globals, key, origin, seen);
-      if (!result.is.missing) {
-        return this.lookup_result(result, key);
-      }
-    }
-    return Frame.missing;
+    return MetaFrame.traverse(this, MetaFrame.VALUE_STEP, key, origin) ??
+      Frame.missing;
   }
 
   /** Local behavior used by the guarded lookup driver. */
@@ -292,51 +284,98 @@ export class MetaFrame {
     return links;
   }
 
-  /** Allows wrappers to transform a value found anywhere below them. */
+  /**
+   * Allows wrappers to transform a value found anywhere below them.
+   *
+   * It never turns a found value into a miss. The traversal stops at the
+   * first frame that answers, so a miss here would end the lookup instead of
+   * trying the next link. The one override, `FrameHandle.lookup_result`,
+   * answers a `BoundMethod` or the value.
+   */
   protected lookup_result(result: Frame, _key: string): Frame {
     return result;
   }
 
-  /** Depth-first declared-before-lexical traversal without global fallback. */
-  private static lookup(
-    frame: MetaFrame,
+  /**
+   * The value step of the traversal: a frame answers what its local lookup
+   * finds, and passes a value found below it through `lookup_result`.
+   */
+  private static readonly VALUE_STEP: LookupStep<Frame> = {
+    visit(frame, key, origin): Frame | undefined {
+      const local = frame.lookup_here(key, origin);
+      return local.is.missing ? undefined : local;
+    },
+    unwind(frame, found, key): Frame {
+      return frame.lookup_result(found, key);
+    },
+  };
+
+  /**
+   * The binding step of the traversal: a frame answers the declaration that
+   * `resolve_here` finds, and passes a binding found below it on unchanged.
+   */
+  private static readonly BINDING_STEP: LookupStep<BindingResolution> = {
+    visit(frame, key, origin): BindingResolution | undefined {
+      return frame.resolve_here(key, origin);
+    },
+    unwind(_frame, found): BindingResolution {
+      return found;
+    },
+  };
+
+  /**
+   * The one guarded lookup traversal, behind `get` and `resolve`.
+   *
+   * It visits `start` and allocates its cycle guard only after that local
+   * miss, so a local hit allocates nothing. It then walks `lookup_links()`
+   * depth first, declared parents before lexical scope, and consults
+   * `Frame.globals` once after the whole scope graph. Every answer unwinds
+   * through `start`.
+   */
+  private static traverse<T>(
+    start: MetaFrame,
+    step: LookupStep<T>,
     key: string,
     origin: MetaFrame,
-    seen: Set<MetaFrame>,
-  ): Frame {
-    if (seen.has(frame)) {
-      return Frame.missing;
-    }
-    seen.add(frame);
+  ): T | undefined {
+    const local = step.visit(start, key, origin);
+    if (local !== undefined) return step.unwind(start, local, key);
 
-    const local = frame.lookup_here(key, origin);
-    if (!local.is.missing) {
-      return frame.lookup_result(local, key);
+    // Allocate traversal state only after an immediate local miss.
+    const seen = new Set<MetaFrame>([start]);
+    for (const link of start.lookup_links()) {
+      const found = MetaFrame.walk(link, step, key, origin, seen);
+      if (found !== undefined) return step.unwind(start, found, key);
     }
-    for (const link of frame.lookup_links()) {
-      const result = MetaFrame.lookup(link, key, origin, seen);
-      if (!result.is.missing) {
-        return frame.lookup_result(result, key);
-      }
+
+    // Globals are the final lookup tier, even when the lexical graph cycles.
+    const globals = Frame.globals;
+    if (globals && !globals.is.missing && !seen.has(globals)) {
+      const found = MetaFrame.walk(globals, step, key, origin, seen);
+      if (found !== undefined) return step.unwind(start, found, key);
     }
-    return Frame.missing;
+    return undefined;
   }
 
-  /** Depth-first binding traversal without global fallback. */
-  private static resolveBinding(
+  /**
+   * The depth-first part of the traversal, without the globals tier. `frame`
+   * answers, or else its links do, in order, and no frame is visited twice.
+   */
+  private static walk<T>(
     frame: MetaFrame,
+    step: LookupStep<T>,
     key: string,
     origin: MetaFrame,
     seen: Set<MetaFrame>,
-  ): BindingResolution | undefined {
+  ): T | undefined {
     if (seen.has(frame)) return undefined;
     seen.add(frame);
 
-    const local = frame.resolve_here(key, origin);
-    if (local) return local;
+    const local = step.visit(frame, key, origin);
+    if (local !== undefined) return step.unwind(frame, local, key);
     for (const link of frame.lookup_links()) {
-      const result = MetaFrame.resolveBinding(link, key, origin, seen);
-      if (result) return result;
+      const found = MetaFrame.walk(link, step, key, origin, seen);
+      if (found !== undefined) return step.unwind(frame, found, key);
     }
     return undefined;
   }
@@ -358,15 +397,10 @@ export class MetaFrame {
     }
     const previous = this.meta[key];
     // Refused before the write lands, so a refusal changes nothing.
-    if (previous !== value) guardAccess(this as unknown as Frame, "write");
+    if (previous !== value) beforeCommit(this as unknown as Frame);
     this.meta[key] = value;
     noteHolding(this as unknown as Frame, key, value, previous);
-    if (previous !== value) {
-      noteWrite(this as unknown as Frame);
-      if (hasEffectSubscribers(this as unknown as Frame)) {
-        notifyEffect(this as unknown as Frame);
-      }
-    }
+    if (previous !== value) afterCommit(this as unknown as Frame, "notify");
     return this;
   }
 
@@ -384,7 +418,7 @@ export class MetaFrame {
     if (this.wouldCreateParentCycle(parent)) {
       return Frame.error("$!.cyclic-parent .^");
     }
-    guardAccess(this as unknown as Frame, "write");
+    beforeCommit(this as unknown as Frame);
     const previous = this.parent;
     this.parent = parent;
     // The parent edge is a holding too (reference-tracking.ts): it is how a
@@ -395,7 +429,7 @@ export class MetaFrame {
       parent,
       previous && !previous.is.missing ? previous : undefined,
     );
-    noteWrite(this as unknown as Frame);
+    afterCommit(this as unknown as Frame, "silent");
     return undefined;
   }
 
@@ -470,10 +504,10 @@ export class MetaFrame {
         if (pattern.test(target)) {
           result = value;
           if ("source" in result) {
-            guardAccess(this as unknown as Frame, "write");
+            beforeCommit(this as unknown as Frame);
             const sourced = result as ISourced;
             sourced.source = target;
-            noteWrite(this as unknown as Frame);
+            afterCommit(this as unknown as Frame, "silent");
           }
         }
       }
@@ -481,6 +515,13 @@ export class MetaFrame {
     return result;
   }
 
+  /**
+   * The binding stored under `physicalKey`, or undefined when there is none.
+   * A public binding is visible from any origin, a protected one from this
+   * frame or a frame whose declared parents include it, and a private one
+   * from this frame only. An origin that may not see it gets
+   * `$!.is-<visibility> .<key>` as the value.
+   */
   private authorize(
     physicalKey: string,
     visibility: Visibility,
@@ -509,15 +550,28 @@ export class MetaFrame {
    * unrelated peer's method is not a descendant.
    */
   private isAncestorOf(origin: MetaFrame): boolean {
-    const seen = new Set<MetaFrame>();
-    let current: MetaFrame | undefined = origin;
-    while (current && !seen.has(current)) {
-      if (current === this) return true;
-      seen.add(current);
-      if (!current.hasDeclaredParent()) return false;
-      current = current.parent;
+    for (const frame of declaredChain(origin as Frame)) {
+      if (frame === (this as MetaFrame)) return true;
     }
     return false;
+  }
+}
+
+/**
+ * A frame and its declared parents, nearest first: `start`, then each
+ * `parent` while `hasDeclaredParent()` holds. It never follows a lexical `up`
+ * link, and it never yields a frame twice, so a walk over it ends even if a
+ * chain cycles.
+ */
+export function* declaredChain(
+  start: Frame,
+): Generator<Frame, void, undefined> {
+  const seen = new Set<Frame>();
+  let current: Frame | undefined = start;
+  while (current && !seen.has(current)) {
+    seen.add(current);
+    yield current;
+    current = current.hasDeclaredParent() ? current.parent : undefined;
   }
 }
 
@@ -544,7 +598,7 @@ export type DeclaredApplication = {
  * @param flags
  * @returns
  */
-export function inspectFlags(flags: Flags): string {
+function inspectFlags(flags: Flags): string {
   const entries = Object.entries(flags);
   if (entries.length === 0) {
     return "{}";
@@ -641,7 +695,7 @@ export class Frame extends MetaFrame {
     }
 
     override call(argument: Frame): Frame {
-      const key = Frame.quantityOperator(argument);
+      const key = argument.isSymbol() ? argument.sizeOperatorKey() : undefined;
       if (key) return this.sizeFor(key);
       return Frame.isBooleanNegation(argument) ? Frame.nil : this;
     }
@@ -736,13 +790,6 @@ export class Frame extends MetaFrame {
     return Frame.nil;
   }
 
-  /**
-   * in determines how the Frame is evaluated in the given contexts.
-   *
-   * @param _contexts
-   * @returns a Frame or Frame.nil
-   */
-
   /** Named roots carried by this frame, when it is a scoped projection. */
   public evaluationRoots(): EvaluationRoots | undefined {
     return undefined;
@@ -753,6 +800,12 @@ export class Frame extends MetaFrame {
     return this;
   }
 
+  /**
+   * in determines how the Frame is evaluated in the given scope.
+   *
+   * @param _scope
+   * @returns a Frame or Frame.nil
+   */
   public in(_scope: EvaluationInput = []): Frame {
     return this;
   }
@@ -793,6 +846,7 @@ export class Frame extends MetaFrame {
    * @param argument
    * @param parameter
    * @returns a Frame
+   * @ignore
    */
   public call(
     argument: Frame,
@@ -800,7 +854,7 @@ export class Frame extends MetaFrame {
     _receiverState?: ReceiverState,
   ): Frame {
     if (this.is.void) {
-      const key = Frame.quantityOperator(argument);
+      const key = argument.isSymbol() ? argument.sizeOperatorKey() : undefined;
       if (key) return this.sizeFor(key);
       return Frame.isBooleanNegation(argument) ? Frame.all : argument;
     }
@@ -812,6 +866,8 @@ export class Frame extends MetaFrame {
    *
    * Non-lexical Frames retain the historical double-dispatch behavior. The
    * optional source is supplied only to syntax participants adapted by Lex.
+   *
+   * @ignore
    */
   public scan(
     argument: Frame,
@@ -821,7 +877,11 @@ export class Frame extends MetaFrame {
     return this.call(argument);
   }
 
-  /** Resolves this receiver at physical end-of-input. */
+  /**
+   * Resolves this receiver at physical end-of-input.
+   *
+   * @ignore
+   */
   public finishInput(_source = ""): ScanResponse {
     return this;
   }
@@ -909,24 +969,45 @@ export class Frame extends MetaFrame {
    * Records the scope an operation was written in, on the fresh value an
    * operator answered for it. Only a fold reads it, to resume a walk there
    * (spec a17); anything else is unchanged.
+   *
+   * @ignore
    */
   public atSite(_site: EvaluationScope): Frame {
     return this;
   }
 
-  /** Concrete syntax/value families, without eager imports of subclasses. */
+  /**
+   * Whether this is a name, asked without importing `FrameName`.
+   *
+   * @ignore
+   */
   public isName(): this is FrameName {
     return false;
   }
 
+  /**
+   * Whether this is a symbol, asked without importing `FrameSymbol`.
+   *
+   * @ignore
+   */
   public isSymbol(): this is FrameSymbol {
     return false;
   }
 
+  /**
+   * Whether this is a schema, asked without importing `FrameSchema`.
+   *
+   * @ignore
+   */
   public isSchema(): this is FrameSchema {
     return false;
   }
 
+  /**
+   * Whether this is a closure, asked without importing `FrameLazy`.
+   *
+   * @ignore
+   */
   public isClosure(): this is FrameLazy {
     return false;
   }
@@ -947,9 +1028,6 @@ export class Frame extends MetaFrame {
 
   /** Installed by FrameCount without importing a subclass into its base. */
   public static count: (value: bigint) => Frame;
-
-  /** Installed by FrameInt without importing a subclass into its base. */
-  public static signed: (value: bigint) => Frame;
 
   /** Installed by `fourth-hash.ts`, avoiding a base-to-subclass import cycle. */
   public static denum: (source: Frame) => Frame;
@@ -1032,13 +1110,9 @@ export class Frame extends MetaFrame {
    * binds a method it finds to that target.
    */
   public getOwn(key: string, origin: MetaFrame = this): Frame {
-    const seen = new Set<Frame>();
-    let frame: Frame | undefined = this.referent();
-    while (frame && !seen.has(frame)) {
-      seen.add(frame);
+    for (const frame of declaredChain(this.referent())) {
       const local = frame.lookup_here(key, origin);
       if (!local.is.missing) return this.lookup_result(local, key);
-      frame = frame.hasDeclaredParent() ? frame.parent : undefined;
     }
     return Frame.missing;
   }
@@ -1206,6 +1280,8 @@ export class Frame extends MetaFrame {
    *
    * Only an aggregate can declare one, so the base answers none. See
    * `FrameArray.applicationMethod` for the protocol.
+   *
+   * @ignore
    */
   public applicationMethod(): DeclaredApplication | undefined {
     return undefined;
@@ -1267,12 +1343,19 @@ export class Frame extends MetaFrame {
    * `1`. This is what keeps a reduce compositional, since folding a whole stream
    * must equal folding its first part and continuing from that answer, even
    * when the first part is empty.
+   *
+   * @ignore
    */
   public reduce(receiver: Frame, receiverState?: ReceiverState): Frame {
     return Frame.reduceInto(this.elements(), receiver, receiverState);
   }
 
-  /** Threads one stream through a receiver, answering the receiver for an empty one. */
+  /**
+   * Threads one stream through a receiver, answering the receiver for an
+   * empty one.
+   *
+   * @ignore
+   */
   public static reduceInto(
     values: readonly Frame[],
     receiver: Frame,
@@ -1344,7 +1427,7 @@ export class Frame extends MetaFrame {
     let replaced = false;
     for (const [key, value] of this.meta_pairs()) {
       if (value === member) {
-        if (!replaced) guardAccess(this as unknown as Frame, "write");
+        if (!replaced) beforeCommit(this as unknown as Frame);
         this.meta[key] = replacement;
         noteHolding(this as unknown as Frame, key, replacement, member);
         replaced = true;
@@ -1352,21 +1435,8 @@ export class Frame extends MetaFrame {
     }
     // An element-plane commit is a mutation too; a copy-on-write install lands
     // on a fresh copy that carries no subscribers, so it never fires here.
-    if (replaced) {
-      noteWrite(this as unknown as Frame);
-      if (hasEffectSubscribers(this as unknown as Frame)) {
-        notifyEffect(this as unknown as Frame);
-      }
-    }
+    if (replaced) afterCommit(this as unknown as Frame, "notify");
     return replaced;
-  }
-
-  private static quantityOperator(argument: Frame): string | undefined {
-    if (argument.className() !== "FrameSymbol" || !argument.is.address) {
-      return undefined;
-    }
-    const key = (argument as unknown as { spelling(): string }).spelling();
-    return Frame.SIZE_OPERATORS.includes(key) ? key : undefined;
   }
 
   /**

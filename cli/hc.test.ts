@@ -1,4 +1,6 @@
 import { expect } from "jsr:@std/expect@^0.219.1";
+// 0.219 ignores a custom failure message; 1.x prints it.
+import { expect as expectWithMessage } from "jsr:@std/expect@1.0.17";
 import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 import { visibleEnvironment } from "../lib/execute/env-visibility.ts";
 import { HCEval } from "../lib/execute/hc-eval.ts";
@@ -9,10 +11,36 @@ import {
   RESOURCE_ROOT_KEY,
 } from "../lib/frames.ts";
 import { getEval, getHandlers, getHost, getOptions, main } from "./hc.ts";
+import {
+  readSummaries,
+  runTestdoc as runRecordedTestdoc,
+  summaryText,
+} from "./testdoc-summaries.ts";
 
 // Malformed-input and no-authority tests intentionally bypass the CLI factory:
 // they exercise HCEval itself or prove behavior without a host root binding.
 const bareEval = (out = new FrameArray([])): HCEval => new HCEval(out);
+
+/** Every testdoc's recorded summary, from `testdoc-summaries.json`. */
+const table = await readSummaries();
+
+/** Files that already have a case of their own in `describe("main")`. */
+const dedicated = new Set<string>();
+
+/** Registers `name`, which runs `file` and expects its recorded summary. */
+const keepsRecordedSummary = (name: string, file: string): void => {
+  dedicated.add(file);
+  it(name, async () => {
+    const { status, last } = await runRecordedTestdoc(file);
+
+    expect(status).toEqual(0);
+    expectWithMessage(
+      last,
+      `${file} no longer prints its recorded summary; if the change is ` +
+        "intended, run `cd cli && deno task testdoc:summaries`",
+    ).toContain(summaryText(table[file]));
+  });
+};
 
 describe("getOptions", () => {
   it("is exported", () => {
@@ -323,118 +351,45 @@ describe("main", () => {
     }
   });
 
-  it("keeps the maintained testdoc fixture green with authoritative totals", async () => {
-    const out = new FrameArray([]);
-    const file = new URL("../hc/testdoc.hc", import.meta.url).pathname;
-    const status = await main(
-      getEval({}, out),
-      getOptions(["--testdoc", file]),
-    );
+  keepsRecordedSummary(
+    "keeps the maintained testdoc fixture green with authoritative totals",
+    "testdoc.hc",
+  );
 
-    expect(status).toEqual(0);
-    expect(out.at(-1).toString()).toContain(
-      '“{"total":77,"pass":75,"fail":0,"unimplemented":2}”',
-    );
-  });
+  keepsRecordedSummary(
+    "keeps the numeric acceptance testdoc green",
+    "numerics.hc",
+  );
 
-  it("keeps the numeric acceptance testdoc green", async () => {
-    const out = new FrameArray([]);
-    const file = new URL("../hc/numerics.hc", import.meta.url).pathname;
-    const status = await main(
-      getEval({}, out),
-      getOptions(["--testdoc", file]),
-    );
+  keepsRecordedSummary(
+    "keeps the units acceptance testdoc green",
+    "units.hc",
+  );
 
-    expect(status).toEqual(0);
-    expect(out.at(-1).toString()).toContain(
-      '“{"total":84,"pass":84,"fail":0,"unimplemented":0}”',
-    );
-  });
+  keepsRecordedSummary(
+    "keeps the Figures testdoc green",
+    "figures.hc",
+  );
 
-  it("keeps the units acceptance testdoc green", async () => {
-    const out = new FrameArray([]);
-    const file = new URL("../hc/units.hc", import.meta.url).pathname;
-    const status = await main(
-      getEval({}, out),
-      getOptions(["--testdoc", file]),
-    );
+  keepsRecordedSummary(
+    "keeps the Denum class testdoc green (011.20)",
+    "denum.hc",
+  );
 
-    expect(status).toEqual(0);
-    expect(out.at(-1).toString()).toContain(
-      '“{"total":40,"pass":40,"fail":0,"unimplemented":0}”',
-    );
-  });
+  keepsRecordedSummary(
+    "keeps the constructed-state VACT testdoc green (Explore 022.05a)",
+    "constructed-state.hc",
+  );
 
-  it("keeps the Figures testdoc green", async () => {
-    const out = new FrameArray([]);
-    const file = new URL("../hc/figures.hc", import.meta.url).pathname;
-    const status = await main(
-      getEval({}, out),
-      getOptions(["--testdoc", file]),
-    );
+  keepsRecordedSummary(
+    "keeps the RotorRouter class testdoc green (011.21)",
+    "rotor-router.hc",
+  );
 
-    expect(status).toEqual(0);
-    expect(out.at(-1).toString()).toContain(
-      '“{"total":12,"pass":12,"fail":0,"unimplemented":0}”',
-    );
-  });
-
-  it("keeps the Denum class testdoc green (011.20)", async () => {
-    const out = new FrameArray([]);
-    const file = new URL("../hc/denum.hc", import.meta.url).pathname;
-    const status = await main(
-      getEval({}, out),
-      getOptions(["--testdoc", file]),
-    );
-
-    expect(status).toEqual(0);
-    expect(out.at(-1).toString()).toContain(
-      '“{"total":26,"pass":26,"fail":0,"unimplemented":0}”',
-    );
-  });
-
-  it("keeps the constructed-state VACT testdoc green (Explore 022.05a)", async () => {
-    const out = new FrameArray([]);
-    const file =
-      new URL("../hc/constructed-state.hc", import.meta.url).pathname;
-    const status = await main(
-      getEval({}, out),
-      getOptions(["--testdoc", file]),
-    );
-
-    expect(status).toEqual(0);
-    expect(out.at(-1).toString()).toContain(
-      '“{"total":16,"pass":16,"fail":0,"unimplemented":0}”',
-    );
-  });
-
-  it("keeps the RotorRouter class testdoc green (011.21)", async () => {
-    const out = new FrameArray([]);
-    const file = new URL("../hc/rotor-router.hc", import.meta.url).pathname;
-    const status = await main(
-      getEval({}, out),
-      getOptions(["--testdoc", file]),
-    );
-
-    expect(status).toEqual(0);
-    expect(out.at(-1).toString()).toContain(
-      '“{"total":13,"pass":13,"fail":0,"unimplemented":0}”',
-    );
-  });
-
-  it("keeps the literal division testdoc green (007.27)", async () => {
-    const out = new FrameArray([]);
-    const file = new URL("../hc/division.hc", import.meta.url).pathname;
-    const status = await main(
-      getEval({}, out),
-      getOptions(["--testdoc", file]),
-    );
-
-    expect(status).toEqual(0);
-    expect(out.at(-1).toString()).toContain(
-      '“{"total":36,"pass":36,"fail":0,"unimplemented":0}”',
-    );
-  });
+  keepsRecordedSummary(
+    "keeps the literal division testdoc green (007.27)",
+    "division.hc",
+  );
 
   /** Runs `source` as a temporary testdoc under the CLI's real harness. */
   const runTestdoc = async (source: string) => {
@@ -482,6 +437,7 @@ describe("main", () => {
     );
   });
 
+  dedicated.add("BitScheme.hc");
   it("traverses the BitScheme tutorial with authoritative totals", async () => {
     const out = new FrameArray([]);
     const file = new URL("../hc/BitScheme.hc", import.meta.url).pathname;
@@ -501,102 +457,48 @@ describe("main", () => {
       expect(diagnostics).toEqual([]);
       expect(summaries.length).toEqual(1);
       expect(summaries[0].toString()).toContain(
-        '“{"total":40,"pass":32,"fail":0,"unimplemented":8}”',
+        summaryText(table["BitScheme.hc"]),
       );
     } finally {
       console.error = originalError;
     }
   });
 
-  it("passes the white-paper core examples independently", async () => {
-    const out = new FrameArray([]);
-    const file = new URL("../hc/white-paper-core.hc", import.meta.url).pathname;
-    const status = await main(
-      getEval({}, out),
-      getOptions(["--testdoc", file]),
-    );
+  keepsRecordedSummary(
+    "passes the white-paper core examples independently",
+    "white-paper-core.hc",
+  );
 
-    expect(status).toEqual(0);
-    expect(out.at(-1).toString()).toContain(
-      '“{"total":18,"pass":18,"fail":0,"unimplemented":0}”',
-    );
-  });
+  keepsRecordedSummary(
+    "passes the annotated class-support examples independently",
+    "class-support.hc",
+  );
 
-  it("passes the annotated class-support examples independently", async () => {
-    const out = new FrameArray([]);
-    const file = new URL("../hc/class-support.hc", import.meta.url).pathname;
-    const status = await main(
-      getEval({}, out),
-      getOptions(["--testdoc", file]),
-    );
+  keepsRecordedSummary(
+    "passes executable rendering coverage with authoritative totals",
+    "format.hc",
+  );
 
-    expect(status).toEqual(0);
-    expect(out.at(-1).toString()).toContain(
-      '“{"total":51,"pass":51,"fail":0,"unimplemented":0}”',
-    );
-  });
+  // Run under the namespace the CLI actually installs: an empty one would
+  // leave every identifier inert and assert nothing about the primitive.
+  keepsRecordedSummary(
+    "keeps the resource acceptance testdoc green under real authority",
+    "resources.hc",
+  );
 
-  it("passes executable rendering coverage with authoritative totals", async () => {
-    const out = new FrameArray([]);
-    const file = new URL("../hc/format.hc", import.meta.url).pathname;
-    const status = await main(
-      getEval({}, out),
-      getOptions(["--testdoc", file]),
-    );
+  // The clock is a handler entry, so this asserts the corpus under the table
+  // the CLI installs rather than under one arranged for the test.
+  keepsRecordedSummary(
+    "keeps the time acceptance testdoc green under the installed clock",
+    "time.hc",
+  );
 
-    expect(status).toEqual(0);
-    expect(out.at(-1).toString()).toContain(
-      '“{"total":7,"pass":7,"fail":0,"unimplemented":0}”',
-    );
-  });
-
-  it("keeps the resource acceptance testdoc green under real authority", async () => {
-    const out = new FrameArray([]);
-    const file = new URL("../hc/resources.hc", import.meta.url).pathname;
-    // Run under the namespace the CLI actually installs: an empty one would
-    // leave every identifier inert and assert nothing about the primitive.
-    const status = await main(
-      getEval({}, out),
-      getOptions(["--testdoc", file]),
-    );
-
-    expect(status).toEqual(0);
-    expect(out.at(-1).toString()).toContain(
-      '“{"total":34,"pass":34,"fail":0,"unimplemented":0}”',
-    );
-  });
-
-  it("keeps the time acceptance testdoc green under the installed clock", async () => {
-    const out = new FrameArray([]);
-    const file = new URL("../hc/time.hc", import.meta.url).pathname;
-    // The clock is a handler entry, so this asserts the corpus under the table
-    // the CLI installs rather than under one arranged for the test.
-    const status = await main(
-      getEval({}, out),
-      getOptions(["--testdoc", file]),
-    );
-
-    expect(status).toEqual(0);
-    expect(out.at(-1).toString()).toContain(
-      '“{"total":47,"pass":47,"fail":0,"unimplemented":0}”',
-    );
-  });
-
-  it("keeps the apply-and-iterate decisions green under real authority", async () => {
-    const out = new FrameArray([]);
-    const file = new URL("../hc/apply.hc", import.meta.url).pathname;
-    // A root binding, because the resource decisions are part of the model this
-    // file pins. Every decision is executable, so nothing here is a promise.
-    const status = await main(
-      getEval({}, out),
-      getOptions(["--testdoc", file]),
-    );
-
-    expect(status).toEqual(0);
-    expect(out.at(-1).toString()).toContain(
-      '“{"total":76,"pass":76,"fail":0,"unimplemented":0}”',
-    );
-  });
+  // A root binding, because the resource decisions are part of the model this
+  // file pins. Every decision is executable, so nothing here is a promise.
+  keepsRecordedSummary(
+    "keeps the apply-and-iterate decisions green under real authority",
+    "apply.hc",
+  );
 
   it("leaves a resource identifier inert with no root binding installed", () => {
     const out = new FrameArray([]);
@@ -607,6 +509,7 @@ describe("main", () => {
     expect(out.at(0).toString()).toEqual("“hello”");
   });
 
+  dedicated.add("white-paper.hc");
   it("traverses the complete white paper with authoritative totals", async () => {
     const out = new FrameArray([]);
     const file = new URL("../hc/white-paper.hc", import.meta.url).pathname;
@@ -626,10 +529,16 @@ describe("main", () => {
       expect(diagnostics).toEqual([]);
       expect(summaries.length).toEqual(1);
       expect(summaries[0].toString()).toContain(
-        '“{"total":95,"pass":95,"fail":0,"unimplemented":0}”',
+        summaryText(table["white-paper.hc"]),
       );
     } finally {
       console.error = originalError;
     }
   });
+
+  // Every recorded testdoc without a case above still keeps its summary.
+  for (const file of Object.keys(table)) {
+    if (dedicated.has(file)) continue;
+    keepsRecordedSummary(`keeps ${file} at its recorded summary`, file);
+  }
 });

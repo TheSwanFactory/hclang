@@ -5,14 +5,13 @@ import { evaluate } from "../execute/evaluate.ts";
 import { Frame } from "./frame.ts";
 import { FrameArray } from "./frame-array.ts";
 import { FrameCount } from "./frame-count.ts";
-import { FrameSymbol } from "./frame-symbol.ts";
-import { EvaluationScope } from "./evaluation-scope.ts";
 import {
   footprintsConflict,
   isOpaque,
   type PotentialFootprint,
   potentialFootprint,
 } from "./access-footprint.ts";
+import { readName } from "../test-helpers.test.ts";
 
 const PROGRAM = `
 .x_ [.n 5; .set_ {@n _;}; .get {n}; .inner_ [.k 0; .bump_ {@k (k + 1);}]];
@@ -55,8 +54,7 @@ const program = (): {
       : frame === scope
       ? "file"
       : frame.id;
-  const read = (key: string): Frame =>
-    FrameSymbol.for(key).in(EvaluationScope.root(scope));
+  const read = (key: string): Frame => readName(scope, key);
   const footprint = (key: string, argument = Frame.nil): PotentialFootprint =>
     potentialFootprint(read(key), argument);
   return { scope, name, read, footprint };

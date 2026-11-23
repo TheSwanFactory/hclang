@@ -2,7 +2,9 @@
  * Exercises `scripts/ci-format.sh` against a local bare repository.
  *
  * `deno task test:scripts` passes `--allow-run` so this can spawn git, bash,
- * and deno. The policy tests in `ci-format.test.ts` need none of that.
+ * and deno, and `--allow-env` so it can spawn them without the variables that
+ * locate this repository. The policy tests in `ci-format.test.ts` need none of
+ * that.
  *
  * @module
  */
@@ -25,6 +27,37 @@ interface RunResult {
   stderr: string;
 }
 
+/**
+ * This process's environment without the variables that tell git which
+ * repository to use: `GIT_DIR`, `GIT_WORK_TREE`, `GIT_INDEX_FILE` and the rest
+ * that `git rev-parse --local-env-vars` lists.
+ *
+ * Git exports them to its hooks, and in a linked worktree `GIT_DIR` is an
+ * absolute path. When the pre-push hook ran these tests from a worktree, the
+ * fixture inherited them, so its git commands ran against the real repository
+ * and left it with `core.bare=true` (#511).
+ */
+const isolatedEnv = async (): Promise<Record<string, string>> => {
+  const listed = await new Deno.Command("git", {
+    args: ["rev-parse", "--local-env-vars"],
+  }).output();
+  if (!listed.success) {
+    throw new Error(
+      `git rev-parse --local-env-vars failed (${listed.code})\n${
+        new TextDecoder().decode(listed.stderr)
+      }`,
+    );
+  }
+  const env = Deno.env.toObject();
+  for (const name of new TextDecoder().decode(listed.stdout).split("\n")) {
+    delete env[name];
+  }
+  return env;
+};
+
+/** The environment every command in this file starts from. */
+const baseEnv = await isolatedEnv();
+
 const run = async (
   cwd: string,
   args: readonly string[],
@@ -33,7 +66,9 @@ const run = async (
   const command = new Deno.Command(args[0], {
     args: args.slice(1),
     cwd,
-    env,
+    // Without clearEnv, `env` only adds to this process's environment.
+    clearEnv: true,
+    env: { ...baseEnv, ...env },
     stdout: "piped",
     stderr: "piped",
   });

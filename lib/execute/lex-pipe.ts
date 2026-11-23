@@ -3,14 +3,13 @@ import {
   FrameInt,
   FrameOperator,
   FrameSchema,
-  FrameString,
   FrameSymbol,
   type IArrayConstructor,
 } from "../frames.ts";
 import type { ScanResponse } from "../scan.ts";
 import { Token } from "./lex.ts";
 import type { ParsePipe } from "./parse-pipe.ts";
-import { lexicalError, sigilizer } from "./sigilizer.ts";
+import { lexicalError, sigilizer } from "../sigilizer.ts";
 import { getSyntax } from "./syntax.ts";
 import type { IAction, IFinish, IPerformer } from "./terminals.ts";
 
@@ -33,15 +32,6 @@ export class LexPipe extends Frame implements IFinish, IPerformer {
     syntax[Frame.kOUT] = out;
     super(syntax);
     this.level = 0;
-  }
-
-  public lex_string(input: string): Frame {
-    const source = new FrameString(input);
-    return this.lex(source);
-  }
-
-  public lex(source: FrameString): Frame {
-    return source.scanInto(this);
   }
 
   public override scan(argument: Frame): ScanResponse {
@@ -141,13 +131,12 @@ export class LexPipe extends Frame implements IFinish, IPerformer {
             parser.next(false);
             break;
           }
-          if (value instanceof Frame) {
-            parser.finish(value);
-          } else {
-            console.error(
-              `LexPipe.perform.end.failed: value ${value} is not a Frame`,
+          if (!(value instanceof Frame)) {
+            throw new Error(
+              `Expected Frame for end action, but received: '${value}'`,
             );
           }
+          parser.finish(value);
           break;
         }
         case "bind": {
@@ -168,7 +157,6 @@ export class LexPipe extends Frame implements IFinish, IPerformer {
             if (parser.strictStructure) {
               return this.structureFailure("unmatched", factory.name);
             }
-            console.error("LexPipe.perform.pop.failed: already at top level");
             break;
           }
           if (!parser.canPop(factory)) {

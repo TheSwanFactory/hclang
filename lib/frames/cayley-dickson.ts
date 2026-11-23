@@ -1,9 +1,9 @@
 /**
- * The Cayley–Dickson multiplication law that the KDSL observer family
- * (`.##%%%`, `.###%%%`) is named for (occurrence/figure 007.46, 007.31,
- * 007.32d). It is a reference algebra on exact integer coordinate arrays of
- * length 2ʳ. It is not a Frame, installs no operator or observer, and native
- * Figure `*` does not call it.
+ * The Cayley–Dickson multiplication law, the independent oracle that
+ * `kd-signed-xor.test.ts` checks the KD product behind `&|&` against
+ * (occurrence/figure 007.46, 007.31, 007.32d). It is a reference algebra on
+ * exact integer coordinate arrays of length 2ʳ. It is not a Frame, installs no
+ * operator or observer, and native Figure `*` does not call it.
  *
  * The law is the recursive doubling, with the first half of an array the "a"
  * part and index 0 the real unit:
@@ -18,20 +18,20 @@
  *
  * Two lengths must not be confused. The arrays here are Cayley–Dickson
  * *coefficient arrays*, of length 2ᵏ for the algebra at doubling rung k
- * (k = 1 Gaussian integers, 2 quaternions, 3 octonions, 4 sedenions). A
- * rank-r KDSL observation is *not* such an array of length 2ʳ. The Denum holds
- * 2ʳ nonnegative signature loads B, and the observer reads the signed
- * coefficients Φᵣ(B)ᵢ = Bᵢ − B(i+2^(r−1)), i < 2^(r−1), an array of length
- * 2^(r−1). So the oracle target of an observed rank-r KDSL value is the
- * rung k = r − 1 algebra, one rung below the slot count's exponent: r = 1
- * integers (length 1), r = 2 Gaussian (2), r = 3 quaternion (4), r = 4
- * octonion (8), r = 5 sedenion (16). Rank 0 is the special scalar reading.
+ * (k = 1 Gaussian integers, 2 quaternions, 3 octonions, 4 sedenions). The
+ * rank-r reading `.####` answers is *not* such an array of length 2ʳ. A Denum
+ * whose loads complete to 2ʳ nonnegative signature loads B reads as the
+ * signed coefficients Φᵣ(B)ᵢ = Bᵢ − B(i+2^(r−1)), i < 2^(r−1), an array of
+ * length 2^(r−1) (`kdCoordinates` in `kd-signed-xor.ts`). So the oracle
+ * target of a rank-r `.####` value is the rung k = r − 1 algebra, one rung
+ * below the slot count's exponent: r = 1 integers (length 1), r = 2 Gaussian
+ * (2), r = 3 quaternion (4), r = 4 octonion (8), r = 5 sedenion (16). Rank 0,
+ * a single load, reads as the unsigned scalar.
  *
- * Those observations (the residual and its squared norm) are readings of
- * coordinates, not this product: the product of two elements is a third
- * element, and a squared norm of the residual is a number. This module is a
- * TypeScript reference for testing mathematical claims, not a Figure or HC
- * operation, and native `*` is not defined by it.
+ * That reading is of coordinates, not this product: the product of two
+ * elements is a third element. This module is a TypeScript reference for
+ * testing mathematical claims, not a Figure or HC operation, and native `*` is
+ * not defined by it.
  *
  * @module
  */

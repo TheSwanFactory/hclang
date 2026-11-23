@@ -4,11 +4,7 @@ import { Ops } from "./ops.ts";
 export { FrameAlias } from "./frames/frame-alias.ts";
 export { FrameArray } from "./frames/frame-array.ts";
 export { FrameAtom } from "./frames/frame-atom.ts";
-export {
-  type CharacterContent,
-  FrameText,
-  hasCharacterContent,
-} from "./frames/frame-text.ts";
+export { FrameText, hasCharacterContent } from "./frames/frame-text.ts";
 export { FrameArg, FrameParam } from "./frames/frame-arg.ts";
 export { FrameBlob } from "./frames/frame-blob.ts";
 export { FrameBytePayload, FrameBytes } from "./frames/frame-bytes.ts";
@@ -29,51 +25,32 @@ export {
   type ImportTarget,
 } from "./frames/frame-import.ts";
 export { FrameLazy } from "./frames/frame-lazy.ts";
-export {
-  type FrameMatcher,
-  isFrameMatcher,
-  type MatchFailure,
-  type MatchResult,
-  type MatchSuccess,
-} from "./frames/frame-match.ts";
-export { FrameList, type IArrayConstructor } from "./frames/frame-list.ts";
+import "./frames/frame-match.ts";
+export { type IArrayConstructor } from "./frames/frame-list.ts";
 export { FrameName } from "./frames/frame-name.ts";
 export { FrameWord } from "./frames/frame-word.ts";
 export { FrameNote } from "./frames/frame-note.ts";
-export {
-  FrameCatch,
-  FrameObservationAnchor,
-  FrameScopeAnchor,
-  type ScopeAnchorKind,
-} from "./frames/frame-scope-anchor.ts";
+export { FrameScopeAnchor } from "./frames/frame-scope-anchor.ts";
 export { FrameObservation } from "./frames/frame-observation.ts";
-export {
-  FrameNumeric,
-  NUMERIC_RANK,
-  type NumericRank,
-} from "./frames/frame-numeric.ts";
+export { FrameNumeric, NUMERIC_RANK } from "./frames/frame-numeric.ts";
 export { FrameInt } from "./frames/frame-int.ts";
 export { FrameCount } from "./frames/frame-count.ts";
 export {
-  type DenumConstructor,
   installDenumConstructor,
   installRouterRecognizer,
-  observeDenum,
-  type RouterRecognizer,
+  isShippedInstance,
 } from "./frames/fourth-hash.ts";
 export { FrameDecimal } from "./frames/frame-decimal.ts";
 export { FrameSequence } from "./frames/frame-sequence.ts";
 export { FrameTypedNumber } from "./frames/frame-typed-number.ts";
 export {
   type DimensionalKind,
-  type DimensionalOperator,
   dimensionalResult,
 } from "./frames/dimensional-algebra.ts";
 export {
   FrameDateTime,
   FrameDuration,
   FrameTime,
-  NANOS_PER_MILLISECOND,
   parseTimeLiteral,
 } from "./frames/frame-time.ts";
 export {
@@ -81,7 +58,6 @@ export {
   type Clock,
   CLOCK_SCHEME,
   ClockHandler,
-  type ClockReading,
   FrozenClock,
   RealClock,
   ScriptedClock,
@@ -91,7 +67,6 @@ export { FrameNumber } from "./frames/frame-number.ts";
 export { FrameSchema } from "./frames/frame-schema.ts";
 export { FrameString, FrameStringEnd } from "./frames/frame-string.ts";
 export {
-  type FrameBinding,
   FrameLiteral,
   FrameOperator,
   FrameSymbol,
@@ -99,21 +74,12 @@ export {
 export { FrameType } from "./frames/frame-type.ts";
 export { FrameURI } from "./frames/frame-uri.ts";
 export { FrameResource } from "./frames/frame-resource.ts";
-export {
-  isResourceBinding,
-  RESOURCE_ROOT_KEY,
-  type ResourceBinding,
-} from "./frames/resource-binding.ts";
+export { RESOURCE_ROOT_KEY } from "./frames/resource-binding.ts";
 export {
   containsResolved,
   decomposeReference,
   joinNormalized,
-  type Normalization,
   normalizeReference,
-  normalizeReferencePath,
-  type ReferenceParts,
-  URI_PART_KEYS,
-  type URIPartKey,
 } from "./frames/resource-reference.ts";
 export {
   characterElements,
@@ -135,67 +101,22 @@ export {
   type Flags,
   Frame,
 } from "./frames/frame.ts";
-export { type ISourced, MetaFrame, Visibility } from "./frames/meta-frame.ts";
-export {
-  type LexicalMode,
-  ScanDisposition,
-  type ScanResponse,
-  type ScanResult,
-  type SigilStart,
-} from "./scan.ts";
+export { type ISourced, MetaFrame } from "./frames/meta-frame.ts";
+export { ScanDisposition, type ScanResult } from "./scan.ts";
 export {
   type Context,
-  contextEqual,
   contextString,
   type IKeyValuePair,
   NilContext,
   type StringMap,
 } from "./frames/context.ts";
-export {
-  type EffectInvoker,
-  hasEffectSubscribers,
-  installEffectInvoker,
-  isEffectObserver,
-  notifyEffect,
-  registerEffect,
-} from "./frames/effect-registry.ts";
-export {
-  type AccessGuard,
-  type AccessKind,
-  AccessRecord,
-  guardAccess,
-  holdersOf,
-  type Holding,
-  type HoldingKind,
-  isTracking,
-  keyGrantsMutation,
-  mutableHoldersOf,
-  PARENT_KEY,
-  UncertifiedAccess,
-  versionOf,
-  withAccessRecord,
-} from "./frames/reference-tracking.ts";
-export {
-  footprintsConflict,
-  isOpaque,
-  isState,
-  type PotentialFootprint,
-  potentialFootprint,
-} from "./frames/access-footprint.ts";
-export {
-  accessesOutside,
-  dispatch,
-  type DispatchEvent,
-  type DispatchPolicy,
-  type DispatchReport,
-  type EventOutcome,
-  stepsOf,
-  versionRead,
-  versionWritten,
-} from "./frames/event-dispatch.ts";
+import "./frames/effect-registry.ts";
+import "./frames/reference-tracking.ts";
+import "./frames/access-footprint.ts";
+import "./frames/event-dispatch.ts";
 export { DISPATCH_KEY, dispatchNamespace } from "./frames/dispatch-host.ts";
-export { BoundMethod, type ReceiverState } from "./frames/bound-method.ts";
-export { FrameHandle } from "./frames/frame-handle.ts";
+import "./frames/bound-method.ts";
+import "./frames/frame-handle.ts";
 export {
   checkPartitions,
   type DependencyEdge,

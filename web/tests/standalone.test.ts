@@ -72,7 +72,8 @@ describe("standalone artifact", () => {
   it("mirrors the artifact byte-for-byte as index.html", async () => {
     const mirror = await Deno.readFile(join(distDir, "index.html"));
     const artifact = await Deno.readFile(artifactPath);
-    expect(mirror).toEqual(artifact);
+    expect(mirror.length).toBe(artifact.length);
+    expect(mirror.every((byte, index) => byte === artifact[index])).toBe(true);
   });
 
   it("matches its published checksum", async () => {

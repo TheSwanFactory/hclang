@@ -1,4 +1,4 @@
-import { Frame } from "./frame.ts";
+import { declaredChain, Frame } from "./frame.ts";
 import { FrameArray } from "./frame-array.ts";
 import { FrameExpr, FrameScoped } from "./frame-expr.ts";
 import { FrameGroup } from "./frame-group.ts";
@@ -339,6 +339,27 @@ const stripMarker = (key: string): string =>
   touchesIdentity(key) ? key.slice(0, -1) : key;
 
 /**
+ * What a path walk carries from one term to the next: what the path denotes
+ * so far, undefined once that is unknown, and whether a term on the path has
+ * been refused.
+ */
+interface PathCursor {
+  current: Referents | undefined;
+  refused: boolean;
+}
+
+/**
+ * Refuses the path at `what`. Once a term has been refused, the path is
+ * already opaque, so only the first refusal is recorded: later names applied
+ * to the unknown value add nothing.
+ */
+function refusePath(walk: Walk, cursor: PathCursor, what: string): void {
+  if (!cursor.refused) walk.refuse(what);
+  cursor.refused = true;
+  cursor.current = undefined;
+}
+
+/**
  * Walks the terms of one expression left to right, carrying what the path so
  * far denotes, as evaluation carries its accumulator. Answers what the whole
  * path denotes, or undefined when that is not known.
@@ -348,15 +369,7 @@ function walkPath(
   terms: readonly Frame[],
   site: Site,
 ): Referents | undefined {
-  let current: Referents | undefined = fresh;
-  // Once a term has been refused, the path is already opaque; later names
-  // applied to the unknown value add nothing.
-  let refused = false;
-  const refuse = (what: string): void => {
-    if (!refused) walk.refuse(what);
-    refused = true;
-    current = undefined;
-  };
+  const cursor: PathCursor = { current: fresh, refused: false };
   for (let index = 0; index < terms.length; index++) {
     const term = plainAtom(terms[index]);
     const next = terms[index + 1] === undefined
@@ -368,80 +381,143 @@ function walkPath(
     // the referent may be written.
     const handedOn = !(next !== undefined && next.isName());
     if (term.is.operator === true) {
-      // An arrow `managed -> callback` registers on its left operand's
-      // referent, which changes what every later write of it invokes, so it
-      // is a write of that referent, whatever the handle's authority.
-      if (isArrow(term) && current !== undefined) {
-        for (const frame of current.frames) walk.write(frame);
-      }
-      // An operator combines its operands into a value no name holds.
-      current = refused ? undefined : fresh;
-      continue;
+      stepOperator(walk, cursor, term);
+    } else if (term.isName()) {
+      stepName(walk, cursor, term.source, site, handedOn);
+    } else if (term.className() === "FrameAlias") {
+      stepAlias(walk, cursor, term, site);
+    } else if (term instanceof FrameSymbol) {
+      stepSymbol(walk, cursor, term, site, handedOn);
+    } else if (term instanceof FrameLazy) {
+      stepClosure(walk, cursor, term, site);
+    } else if (term instanceof FrameGroup) {
+      stepGroup(walk, cursor, term, site);
+    } else if (term instanceof FrameExpr && term.isPlainExpression()) {
+      stepTight(walk, cursor, term, site);
+    } else if (term instanceof FrameArray || term instanceof FrameExpr) {
+      stepAggregate(walk, cursor, term, site);
+    } else if (isOpaqueTerm(term)) {
+      refusePath(walk, cursor, term.className());
+    } else {
+      // An atom (a count, a string, an echo): a value, not a path.
+      cursor.current = fresh;
     }
-    if (term.isName()) {
-      if (current === undefined) {
-        if (touchesIdentity(term.source)) refuse(`.${term.source} <unknown>`);
-        continue;
-      }
-      current = walkName(walk, term.source, current, handedOn, site);
-      continue;
-    }
-    if (term.className() === "FrameAlias") {
-      current = walkAlias(walk, term.toString().slice(1), site);
-      if (current === undefined) refused = true;
-      continue;
-    }
-    if (term instanceof FrameSymbol) {
-      current = walkSymbol(walk, term, site, handedOn);
-      if (current === undefined) refused = true;
-      continue;
-    }
-    if (term instanceof FrameLazy) {
-      // A closure literal in this body runs in this body's scope when called.
-      walkBody(walk, term, { ...site, locals: new Map(site.locals) });
-      current = fresh;
-      continue;
-    }
-    if (term instanceof FrameGroup) {
-      // `(e)` is the path `e`; `(a, b)` is a fresh tuple of walked values.
-      const inner = term.asArray();
-      if (inner.length === 1) {
-        const only = plainAtom(inner[0]);
-        current = walkPath(
-          walk,
-          only instanceof FrameExpr && only.isPlainExpression()
-            ? only.asArray()
-            : [only],
-          site,
-        );
-        if (current === undefined) refused = true;
-      } else {
-        for (const each of inner) walkStatement(walk, each, site);
-        current = fresh;
-      }
-      continue;
-    }
-    if (term instanceof FrameExpr && term.isPlainExpression()) {
-      // A tight expression, terms that abut, is one path of its own.
-      current = walkPath(walk, term.asArray(), site);
-      if (current === undefined) refused = true;
-      continue;
-    }
-    if (term instanceof FrameArray || term instanceof FrameExpr) {
-      // An aggregate literal or a nested expression: its terms are read; the
-      // value is fresh.
-      for (const inner of term.asArray()) walkStatement(walk, inner, site);
-      current = fresh;
-      continue;
-    }
-    if (isOpaqueTerm(term)) {
-      refuse(term.className());
-      continue;
-    }
-    // An atom (a count, a string, an echo): a value, not a path.
-    current = fresh;
   }
-  return current;
+  return cursor.current;
+}
+
+/** An operator term: it answers a value no name holds. */
+function stepOperator(walk: Walk, cursor: PathCursor, term: Frame): void {
+  // An arrow `managed -> callback` registers on its left operand's
+  // referent, which changes what every later write of it invokes, so it
+  // is a write of that referent, whatever the handle's authority.
+  if (isArrow(term) && cursor.current !== undefined) {
+    for (const frame of cursor.current.frames) walk.write(frame);
+  }
+  // An operator combines its operands into a value no name holds.
+  cursor.current = cursor.refused ? undefined : fresh;
+}
+
+/** A dotted name `.k`, applied to what the path denotes so far. */
+function stepName(
+  walk: Walk,
+  cursor: PathCursor,
+  source: string,
+  site: Site,
+  handedOn: boolean,
+): void {
+  if (cursor.current === undefined) {
+    if (touchesIdentity(source)) {
+      refusePath(walk, cursor, `.${source} <unknown>`);
+    }
+    return;
+  }
+  cursor.current = walkName(walk, source, cursor.current, handedOn, site);
+}
+
+/** An alias `@name`, a write to the binding it names. */
+function stepAlias(
+  walk: Walk,
+  cursor: PathCursor,
+  term: Frame,
+  site: Site,
+): void {
+  cursor.current = walkAlias(walk, term.toString().slice(1), site);
+  if (cursor.current === undefined) cursor.refused = true;
+}
+
+/** A bare name, which starts the path at what it denotes. */
+function stepSymbol(
+  walk: Walk,
+  cursor: PathCursor,
+  term: FrameSymbol,
+  site: Site,
+  handedOn: boolean,
+): void {
+  cursor.current = walkSymbol(walk, term, site, handedOn);
+  if (cursor.current === undefined) cursor.refused = true;
+}
+
+/** A closure literal in this body, which runs in this body's scope. */
+function stepClosure(
+  walk: Walk,
+  cursor: PathCursor,
+  term: FrameLazy,
+  site: Site,
+): void {
+  walkBody(walk, term, { ...site, locals: new Map(site.locals) });
+  cursor.current = fresh;
+}
+
+/**
+ * A group: `(e)` is the path `e`; `(a, b)` is a fresh tuple of walked values.
+ */
+function stepGroup(
+  walk: Walk,
+  cursor: PathCursor,
+  term: FrameGroup,
+  site: Site,
+): void {
+  const inner = term.asArray();
+  if (inner.length === 1) {
+    const only = plainAtom(inner[0]);
+    cursor.current = walkPath(
+      walk,
+      only instanceof FrameExpr && only.isPlainExpression()
+        ? only.asArray()
+        : [only],
+      site,
+    );
+    if (cursor.current === undefined) cursor.refused = true;
+  } else {
+    for (const each of inner) walkStatement(walk, each, site);
+    cursor.current = fresh;
+  }
+}
+
+/** A tight expression, terms that abut, which is one path of its own. */
+function stepTight(
+  walk: Walk,
+  cursor: PathCursor,
+  term: FrameExpr,
+  site: Site,
+): void {
+  cursor.current = walkPath(walk, term.asArray(), site);
+  if (cursor.current === undefined) cursor.refused = true;
+}
+
+/**
+ * An aggregate literal or a nested expression: its terms are read; the
+ * value is fresh.
+ */
+function stepAggregate(
+  walk: Walk,
+  cursor: PathCursor,
+  term: FrameArray | FrameExpr,
+  site: Site,
+): void {
+  for (const inner of term.asArray()) walkStatement(walk, inner, site);
+  cursor.current = fresh;
 }
 
 /** Whether an operator term is the effect arrow `->` (`registerEffect`). */
@@ -677,12 +753,10 @@ function walkCallable(walk: Walk, argument: Frame, spelling: string): void {
 
 /** Whether `owner` is the receiver itself or one of its declared parents. */
 function isOnReceiverPath(receiver: Frame, owner: Frame): boolean {
-  const seen = new Set<Frame>();
-  let current: Frame | undefined = unwrap(receiver);
-  while (current && !current.is.missing && !seen.has(current)) {
-    if (current === owner) return true;
-    seen.add(current);
-    current = current.hasDeclaredParent() ? current.parent : undefined;
+  const start = unwrap(receiver);
+  if (start.is.missing) return false;
+  for (const frame of declaredChain(start)) {
+    if (frame === owner) return true;
   }
   return false;
 }
@@ -702,13 +776,10 @@ function memberOf(frame: Frame, key: string): Frame | undefined {
     const element = target.at(Number(key));
     return element.is.missing || element.is.error ? undefined : element;
   }
-  const seen = new Set<Frame>();
-  let current: Frame | undefined = target;
-  while (current && !current.is.missing && !seen.has(current)) {
-    seen.add(current);
+  if (target.is.missing) return undefined;
+  for (const current of declaredChain(target)) {
     const binding = current.resolve_here(key, target);
     if (binding && !binding.value.is.error) return binding.value;
-    current = current.hasDeclaredParent() ? current.parent : undefined;
   }
   return undefined;
 }
@@ -718,15 +789,13 @@ function memberOf(frame: Frame, key: string): Frame | undefined {
  * `key`. Such a binding has no HC spelling; a host can install one.
  */
 function patternAnswers(frame: Frame, key: string): boolean {
-  const seen = new Set<Frame>();
-  let current: Frame | undefined = unwrap(frame);
-  while (current && !current.is.missing && !seen.has(current)) {
-    seen.add(current);
+  const start = unwrap(frame);
+  if (start.is.missing) return false;
+  for (const current of declaredChain(start)) {
     for (const pattern of current.meta_keys()) {
       const body = pattern.match(/\/(.*)\//);
       if (body && new RegExp(body[1]).test(key)) return true;
     }
-    current = current.hasDeclaredParent() ? current.parent : undefined;
   }
   return false;
 }

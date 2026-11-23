@@ -82,9 +82,7 @@ export class FrameInt extends FrameNumeric {
   }
 
   public override exactInt(max?: bigint): bigint | Frame {
-    return max != null && this.data > max
-      ? Frame.error(`$!.integer-range ${this.spelling} ${max}`)
-      : this.data;
+    return FrameNumeric.rangeChecked(this.data, this.spelling, max);
   }
 
   public range(): number[] | Frame {
@@ -108,10 +106,6 @@ export class FrameInt extends FrameNumeric {
       return Frame.error(`$!.repetition-limit ${REPETITION_LIMIT}`);
     }
     return Number(this.data);
-  }
-
-  public override string_start(): string {
-    return FrameInt.NUMBER_BEGIN.toString();
   }
 
   public override valueOf(): number {
@@ -143,15 +137,14 @@ export class FrameInt extends FrameNumeric {
   }
 
   protected override unaryPlus(): Frame {
-    if (this.spelling.startsWith("+") || this.spelling.startsWith("-")) {
-      return this;
-    }
-    return new FrameInt(this.data, NilContext, `+${this.spelling}`);
+    const spelling = FrameNumeric.plusSpelling(this.spelling);
+    return spelling === undefined
+      ? this
+      : new FrameInt(this.data, NilContext, spelling);
   }
 
   protected override unaryMinus(): Frame {
-    const unsigned = this.spelling.replace(/^[+-]/, "");
-    const spelling = this.spelling.startsWith("-") ? unsigned : `-${unsigned}`;
+    const spelling = FrameNumeric.minusSpelling(this.spelling);
     return new FrameInt(-this.data, NilContext, spelling);
   }
 
@@ -177,10 +170,6 @@ export class FrameInt extends FrameNumeric {
     return this.sameRung(this.data * (right as FrameInt).data);
   }
 
-  protected override divideSame(_right: FrameNumeric): Frame {
-    return Frame.error(`$!.numeric-internal / ${this.className()}`);
-  }
-
   protected override moduloSame(right: FrameNumeric): Frame {
     const divisor = (right as FrameInt).data;
     const remainder = this.data % divisor;
@@ -189,11 +178,6 @@ export class FrameInt extends FrameNumeric {
         ? remainder + divisor
         : remainder,
     );
-  }
-
-  protected override powerSame(right: FrameNumeric): Frame {
-    const exponent = (right as FrameInt).data;
-    return this.powerIntegral(exponent);
   }
 
   protected override powerIntegral(exponent: bigint): Frame {
@@ -242,5 +226,3 @@ export class FrameInt extends FrameNumeric {
     return result;
   }
 }
-
-Frame.signed = (value: bigint): FrameInt => new FrameInt(value);

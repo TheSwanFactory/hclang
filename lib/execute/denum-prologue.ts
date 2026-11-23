@@ -1,13 +1,14 @@
 /**
- * The Denum class, loaded from HC for the fourth hash.
+ * The Denum class, loaded from HC for the Denum observers and operators.
  *
- * `.####` answers a Denum, and a Denum is an HC class, `Denum` in `hc/denum.hc`,
- * not a native one (occurrence/figure 011.20). The frames package derives the
- * Count and loads natively but cannot run HC, so this module installs the
- * constructor it calls (`installDenumConstructor`).
+ * `.###` answers a raw Denum, and `.####` reads KD coordinates from one. A
+ * Denum is an HC class, `Denum` in `hc/denum.hc`, not a native one
+ * (occurrence/figure 011.20). The frames package derives the Count and loads
+ * natively but cannot run HC, so this module installs the constructor it calls
+ * (`installDenumConstructor`).
  *
  * The class is read from the compiled-in bundle, not through a resource root,
- * so `.####` works in a bare `evaluate`, which has no root and imports nothing.
+ * so `.###` works in a bare `evaluate`, which has no root and imports nothing.
  * The file is evaluated the first time a Denum is constructed, once per
  * process, the way an import evaluates a testdoc: its example lines are
  * dropped and the first failure fails the whole. It runs in a namespace of its
@@ -17,31 +18,48 @@
  * while the file is still loading is `$!.denum-prologue-reentrant`, because
  * the class cannot be defined by itself.
  *
- * What stays native is only what HC cannot say: reading `#`, `##` and `###`
- * in a fixed order with their absence and error rules, and checking that the
- * loads are whole. Everything a Denum does is in the HC source.
+ * What stays native is reading a source's Count `#` and each child's Size `##`
+ * in a fixed order, with their absence and error rules, checking that the
+ * loads are whole, and the KD arithmetic of `.####`, unary `-` and `&|&`
+ * (`lib/frames/fourth-hash.ts`). The Denum's own methods are in the HC source.
  *
  * @module
  */
 import {
-  EvaluationScope,
   Frame,
   FrameArray,
   FrameCount,
   FrameExpr,
   installDenumConstructor,
 } from "../frames.ts";
-import { HC_SOURCES } from "../bundle/hc-sources.ts";
-import { evaluateSourceText } from "./resource-import.ts";
+import {
+  classOnce,
+  type ClassPrologue,
+  loadClassNames,
+} from "./class-prologue.ts";
 
 /** The bundled file that defines the class. */
 export const DENUM_SOURCE = "hc/denum.hc";
 
-/** The name the file declares the constructor under. */
-export const DENUM_CLASS = "Denum";
+/** The file, the constructor's name and the error prefix (`class-prologue.ts`). */
+const DENUM_PROLOGUE: ClassPrologue = {
+  file: DENUM_SOURCE,
+  names: ["Denum"],
+  prefix: "denum-prologue",
+};
 
-let loaded: Frame | undefined;
-let loading = false;
+/** The one load of the class this process uses. */
+const denumOnce = classOnce(DENUM_PROLOGUE);
+
+/**
+ * The constructor out of a load's answer.
+ *
+ * @param loaded The declared names' values, or the failure.
+ * @returns The constructor, or the failure.
+ */
+function constructorOf(loaded: Frame[] | Frame): Frame {
+  return Array.isArray(loaded) ? loaded[0] : loaded;
+}
 
 /**
  * Evaluates class source in a namespace of its own, with no host bindings and
@@ -52,16 +70,7 @@ let loading = false;
  * @returns The constructor, or an error.
  */
 export function loadDenumClass(source: string | undefined): Frame {
-  if (source === undefined) {
-    return Frame.error(`$!.denum-prologue-missing ${DENUM_SOURCE}`);
-  }
-  const namespace = new FrameArray([]);
-  const result = evaluateSourceText(source, EvaluationScope.root(namespace));
-  if (result.isFailedResult() || result.observationError()) return result;
-  const constructor = namespace.getOwn(DENUM_CLASS);
-  return constructor.is.missing
-    ? Frame.error(`$!.denum-prologue-missing ${DENUM_CLASS}`)
-    : constructor;
+  return constructorOf(loadClassNames(DENUM_PROLOGUE, source));
 }
 
 /**
@@ -70,15 +79,7 @@ export function loadDenumClass(source: string | undefined): Frame {
  * @returns The constructor, or the error that loading it answered.
  */
 export function denumClass(): Frame {
-  if (loaded) return loaded;
-  if (loading) return Frame.error("$!.denum-prologue-reentrant");
-  loading = true;
-  try {
-    loaded = loadDenumClass(HC_SOURCES.get(DENUM_SOURCE));
-  } finally {
-    loading = false;
-  }
-  return loaded;
+  return constructorOf(denumOnce());
 }
 
 /**

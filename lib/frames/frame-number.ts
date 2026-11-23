@@ -15,11 +15,6 @@ export class FrameNumber extends FrameNumeric {
     return FrameNumber.numbers[key] ??= new FrameNumber(value);
   }
 
-  /** Preserves the spelling of legacy host numeric strings that are inexact. */
-  public static fromHost(value: string): FrameNumber {
-    return new FrameNumber(value, NilContext, value);
-  }
-
   public readonly rank: NumericRank = NUMERIC_RANK.number;
   public readonly data: number;
   public readonly spelling: string;
@@ -65,10 +60,10 @@ export class FrameNumber extends FrameNumeric {
   }
 
   protected override unaryPlus(): Frame {
-    if (this.spelling.startsWith("+") || this.spelling.startsWith("-")) {
-      return this;
-    }
-    return new FrameNumber(this.data, NilContext, `+${this.spelling}`);
+    const spelling = FrameNumeric.plusSpelling(this.spelling);
+    return spelling === undefined
+      ? this
+      : new FrameNumber(this.data, NilContext, spelling);
   }
 
   protected override unaryMinus(): Frame {
@@ -89,10 +84,6 @@ export class FrameNumber extends FrameNumeric {
 
   protected override divideSame(right: FrameNumeric): Frame {
     return new FrameNumber(this.data / (right as FrameNumber).data);
-  }
-
-  protected override moduloSame(right: FrameNumeric): Frame {
-    return this.operationError("%%", right);
   }
 
   protected override powerSame(right: FrameNumeric): Frame {

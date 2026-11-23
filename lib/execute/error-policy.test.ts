@@ -15,16 +15,7 @@ import { evaluate } from "./evaluate.ts";
 import { evaluateResourceSource } from "./resource-import.ts";
 import { HCTest } from "./hc-test.ts";
 import { HCLang } from "./hc-lang.ts";
-
-class Counter extends Frame {
-  public readonly effects = { calls: 0 };
-  public get calls(): number {
-    return this.effects.calls;
-  }
-  public override call(_argument: Frame): Frame {
-    return Frame.count(BigInt(++this.effects.calls));
-  }
-}
+import { Counter } from "../test-helpers.test.ts";
 
 /** Look through the top-level group/statement, without evaluating again. */
 const answer = (source: string): Frame => {

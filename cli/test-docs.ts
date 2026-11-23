@@ -10,9 +10,13 @@
  */
 import { fromFileUrl } from "jsr:@std/path@1.1.6";
 import { visibleEnvironment } from "../lib/execute/env-visibility.ts";
+import {
+  EXPECT_PREFIX,
+  SOURCE_PREFIX,
+} from "../lib/execute/testdoc-markers.ts";
 import { getEval, getOptions, main } from "./hc.ts";
 
-export const HC_DOC_DIR: URL = new URL("../hc/", import.meta.url);
+const HC_DOC_DIR: URL = new URL("../hc/", import.meta.url);
 
 // Existing legacy examples without the executable HC testdoc shebang:
 // CQML is aspirational; white-paper-core is exercised by cli/hc.test.ts.
@@ -22,7 +26,8 @@ const LEGACY_EXAMPLES = new Set(["cqml.hc", "white-paper-core.hc"]);
 export function hasExpectations(source: string): boolean {
   const lines = source.split(/\r?\n/);
   return lines.some((line, i) =>
-    line.startsWith("; ") && (lines[i + 1] ?? "").startsWith("# ")
+    line.startsWith(SOURCE_PREFIX) &&
+    (lines[i + 1] ?? "").startsWith(EXPECT_PREFIX)
   );
 }
 

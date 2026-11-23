@@ -1,5 +1,5 @@
 {
-  "version": "0.55.2",
+  "version": "0.55.3",
   "nodeModulesDir": "manual",
   "bin": {
     "hc": "scripts/hc"
@@ -21,8 +21,8 @@
     "test": "deno fmt --check && deno lint && deno task test:all",
     "test:cli": "cd cli && deno task test",
     "test:doc": "deno task bundle:embed && cd cli && deno task test:doc",
-    "test:lib": "deno test --ignore=lib/load-order.test.ts lib && deno task test:load-order",
-    "test:load-order": "deno test --allow-env --allow-read lib/load-order.test.ts",
+    "test:lib": "deno test --parallel --ignore=lib/load-order.test.ts lib && deno task test:load-order",
+    "test:load-order": "deno test --allow-read lib/load-order.test.ts",
     "test:maml": "deno test maml",
     "test:npm": "deno task build:npm && deno run -A scripts/test-npm.ts",
     "test:scripts": "deno test --allow-run --allow-read --allow-write --allow-env scripts",

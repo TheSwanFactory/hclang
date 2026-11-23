@@ -3,6 +3,11 @@ import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 
 import * as frame from "../frames.ts";
 import { evaluate } from "../execute/evaluate.ts";
+import {
+  lastResult as answer,
+  lastResultText as text,
+  lastTermOfLast as last,
+} from "../test-helpers.test.ts";
 
 describe("FrameGroup", () => {
   const a_frame = new frame.FrameString("a");
@@ -32,10 +37,6 @@ describe("FrameGroup", () => {
   });
 
   describe("size operators (#411)", () => {
-    /** The answer of the last statement in a source sequence. */
-    const last = (source: string): frame.Frame =>
-      evaluate(source).at(-1).asArray().at(-1)!;
-
     it("counts a group's elements and leaves, as an array's", () => {
       const table = [
         ["(1, 2)", "2", "3"],
@@ -87,11 +88,6 @@ describe("FrameGroup", () => {
   });
 
   describe("integer repetition (v0.22.0)", () => {
-    /** The answer of the last line; earlier lines are setup statements. */
-    const answer = (...lines: string[]): frame.Frame =>
-      evaluate(lines.join("\n")).at(-1);
-    const text = (...lines: string[]): string => answer(...lines).toString();
-
     it("concatenates a group's elements into a group", () => {
       expect(text("3 (1, 2)")).toEqual("(1, 2, 1, 2, 1, 2)");
       expect(answer("3 (1, 2)")).toBeInstanceOf(frame.FrameGroup);
@@ -119,10 +115,6 @@ describe("FrameGroup", () => {
   });
 
   describe("evaluation, every time afresh (#404)", () => {
-    /** The answer of the last line; earlier lines are setup statements. */
-    const text = (...lines: string[]): string =>
-      evaluate(lines.join("\n")).at(-1).toString();
-
     it("answers a fresh group and leaves the one it evaluated alone", () => {
       const group = new frame.FrameGroup([a_frame, b_frame], { c: c_frame });
       const result = group.in();

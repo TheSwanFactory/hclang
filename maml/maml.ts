@@ -4,8 +4,8 @@ import {
   FrameExpr,
   FrameString,
   FrameSymbol,
-} from "./frames.ts";
-import { tag } from "../maml/tag.ts";
+} from "../lib/frames.ts";
+import { tag } from "./tag.ts";
 
 const HTML_PREFIX = "<!DOCTYPE html>";
 

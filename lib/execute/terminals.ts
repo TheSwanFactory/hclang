@@ -1,5 +1,4 @@
 import {
-  type Any,
   type Context,
   Frame,
   FrameArray,
@@ -32,7 +31,6 @@ const terminate: ICurryFunction = (pipe: Frame, parameter: Frame): Frame => {
   }
 
   const note = FrameNote.key(pipe.id, pipe);
-  // console.error("terminate", pipe);
   return note;
 };
 
@@ -48,10 +46,6 @@ export class Terminal extends Frame {
 
   public override apply(argument: Frame, parameter: Frame): Frame {
     return this.data(argument, parameter);
-  }
-
-  protected toData(): Any {
-    return this.data;
   }
 
   public override toString(): string {

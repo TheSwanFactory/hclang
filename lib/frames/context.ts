@@ -15,8 +15,12 @@ export type StringMap = { [key: string]: string };
  * their normal effects when read through a mutable name.
  *
  * @example
+ * ```ts
+ * import { type Context, evaluate, make_context } from "jsr:@swanfactory/hclang";
+ *
  * const host: Context = make_context({ a: "1" });
  * const result = evaluate("$$.a", host);
+ * ```
  */
 export type Context = { [key: string]: Frame };
 
@@ -24,30 +28,6 @@ export type Context = { [key: string]: Frame };
  * NilContext is an empty context.
  */
 export const NilContext: Context = {};
-
-/**
- * contextEqual compares two contexts for equality.
- *
- * @param left
- * @param right
- * @returns true if the contexts are equal
- */
-export function contextEqual(
-  left: Context,
-  right: Context,
-): boolean {
-  const keys = new Set([...Object.keys(left), ...Object.keys(right)]);
-  console.log(`contextEqual.keys`, keys);
-  for (const key of keys) {
-    const lvalue = left[key];
-    const rvalue = right[key];
-    console.log(`contextEqual.${key}`, lvalue, rvalue);
-    if (!lvalue || !rvalue || !lvalue.isEqualTo(rvalue)) {
-      return false;
-    }
-  }
-  return true;
-}
 
 /**
  * contextString returns a string representation of the context.

@@ -15,7 +15,7 @@
  */
 import { Frame, FrameSymbol } from "../frames.ts";
 import { LexHost, Token } from "./lex.ts";
-import { sigilizer } from "./sigilizer.ts";
+import { sigilizer } from "../sigilizer.ts";
 import {
   type RunSyntax,
   ScanDisposition,

@@ -1,11 +1,11 @@
-import { Frame } from "./frame.ts";
+import { declaredChain, Frame } from "./frame.ts";
 import { FrameAtom } from "./frame-atom.ts";
 import { hasCharacterContent } from "./frame-text.ts";
 import { FrameWord } from "./frame-word.ts";
 import { FrameNote } from "./frame-note.ts";
 import { FrameHandle } from "./frame-handle.ts";
 import { FrameArray } from "./frame-array.ts";
-import { FrameSchema } from "./frame-schema.ts";
+import type { FrameSchema } from "./frame-schema.ts";
 import { FrameType } from "./frame-type.ts";
 import { FrameLazy } from "./frame-lazy.ts";
 import { BoundMethod } from "./bound-method.ts";
@@ -82,6 +82,12 @@ export class FrameLiteral extends FrameAtom {
   }
 }
 
+/**
+ * Where a declaration writes: the key it assigns, and the value bound there
+ * now when the name already resolves to a binding.
+ */
+type DeclarationSlot = { key: string; bound?: Frame };
+
 export class FrameSymbol extends FrameAtom {
   public override isSymbol(): this is FrameSymbol {
     return true;
@@ -145,8 +151,7 @@ export class FrameSymbol extends FrameAtom {
     const first = scope.argument;
     // A method body resolves against its receiver, so visibility asks the same
     // question no matter which path the access arrives by.
-    const receiverState = scope.receiverState;
-    const receiver = receiverState?.receiver;
+    const receiver = scope.receiverState?.receiver;
     for (const context of scope.lookupFrames()) {
       const explicitOrigin = this.get_here(Frame.kOUT);
       const origin = receiver ??
@@ -158,79 +163,100 @@ export class FrameSymbol extends FrameAtom {
         : context.get(this.data, origin);
       if (!value.is.missing) {
         if (value.is.error) return value;
-
-        // Every successful read gets its own lexical projection. Closures bind
-        // a scoped copy, aggregates keep their exact identity behind a handle,
-        // and immutable values use a plumbing copy. The shared binding is never
-        // re-parented for the benefit of one reader, so only a projection this
-        // read created takes the read site as its `up`: a closure that is
-        // already bound answers itself and keeps the scope it was made in.
-        const isCanonicalBoolean = value === Frame.nil || value === Frame.all;
-        const continuation = context instanceof FrameHandle
-          ? context
-          : context.projectionContext();
-        const resolved = value instanceof FrameLazy
-          ? value.bind(scope.captureScope())
-          : value instanceof FrameArray || isCanonicalBoolean
-          ? value
-          : value.copy();
-        if (resolved !== value) {
-          resolved.up = continuation;
-        }
-
-        // Built-in control flow receives the exact active capability only for
-        // callbacks it invokes; ordinary closure calls do not inherit it.
-        if (resolved instanceof FrameCurry && receiverState) {
-          resolved.withReceiverState(receiverState);
-        }
-        if (resolved.is.immediate === true) {
-          return resolved.call(context);
-        }
-        // A bare method found through the active raw receiver must obey the same
-        // effect and copy rules as dotted lookup through a handle.
-        if (
-          resolved instanceof FrameLazy && receiverState &&
-          context === receiver &&
-          this.isReceiverPathValue(receiver, value, origin)
-        ) {
-          return new BoundMethod(
-            resolved,
-            receiver,
-            receiverState.mutable,
-            methodEffect(this.data),
-            receiverState.copyOnWrite,
-            receiverState.lexicalContext,
-          );
-        }
-        // A method read by dot from a value no name holds binds to that value
-        // as a name would, immutably: it may still be shared, so a mutating
-        // method answers a functional update rather than writing it.
-        if (
-          resolved instanceof FrameLazy && this.is.address === true &&
-          !(context instanceof FrameHandle) && context.ownsIdentity() &&
-          this.isReceiverPathValue(context, value, origin)
-        ) {
-          return new BoundMethod(
-            resolved,
-            context,
-            false,
-            methodEffect(this.data),
-          );
-        }
-        const copyOnWrite = context instanceof FrameHandle
-          ? context.copyOnWriteScope() ?? receiverState?.copyOnWrite
-          : receiverState?.copyOnWrite;
-        if (!(resolved instanceof FrameArray)) return resolved;
-        const handle = new FrameHandle(
-          resolved,
-          touchesIdentity(this.data),
-          copyOnWrite,
-          continuation,
-        );
-        return copyOnWrite ? handle.heldBy(context) : handle;
+        return this.projectRead(value, context, origin, scope);
       }
     }
     return FrameNote.key(first.id + "." + this.data, first);
+  }
+
+  /**
+   * The projection one successful read of this name answers for `value`. It
+   * chooses between binding, copying and wrapping in a handle, and binds a
+   * method to the receiver it was found on.
+   *
+   * @param value The value found, neither missing nor an error.
+   * @param context The lookup frame the value was found through.
+   * @param origin The frame the lookup asked on behalf of.
+   * @param scope The scope the read evaluates in, which holds the receiver.
+   * @returns What the read answers.
+   */
+  private projectRead(
+    value: Frame,
+    context: Frame,
+    origin: Frame,
+    scope: EvaluationScope,
+  ): Frame {
+    const receiverState = scope.receiverState;
+    const receiver = receiverState?.receiver;
+    // Every successful read gets its own lexical projection. Closures bind
+    // a scoped copy, aggregates keep their exact identity behind a handle,
+    // and immutable values use a plumbing copy. The shared binding is never
+    // re-parented for the benefit of one reader, so only a projection this
+    // read created takes the read site as its `up`: a closure that is
+    // already bound answers itself and keeps the scope it was made in.
+    const isCanonicalBoolean = value === Frame.nil || value === Frame.all;
+    const continuation = context instanceof FrameHandle
+      ? context
+      : context.projectionContext();
+    const resolved = value instanceof FrameLazy
+      ? value.bind(scope.captureScope())
+      : value instanceof FrameArray || isCanonicalBoolean
+      ? value
+      : value.copy();
+    if (resolved !== value) {
+      resolved.up = continuation;
+    }
+
+    // Built-in control flow receives the exact active capability only for
+    // callbacks it invokes; ordinary closure calls do not inherit it.
+    if (resolved instanceof FrameCurry && receiverState) {
+      resolved.withReceiverState(receiverState);
+    }
+    if (resolved.is.immediate === true) {
+      return resolved.call(context);
+    }
+    // A bare method found through the active raw receiver must obey the same
+    // effect and copy rules as dotted lookup through a handle.
+    if (
+      resolved instanceof FrameLazy && receiverState &&
+      context === receiver &&
+      this.isReceiverPathValue(receiver, value, origin)
+    ) {
+      return new BoundMethod(
+        resolved,
+        receiver,
+        receiverState.mutable,
+        methodEffect(this.data),
+        receiverState.copyOnWrite,
+        receiverState.lexicalContext,
+      );
+    }
+    // A method read by dot from a value no name holds binds to that value
+    // as a name would, immutably: it may still be shared, so a mutating
+    // method answers a functional update rather than writing it.
+    if (
+      resolved instanceof FrameLazy && this.is.address === true &&
+      !(context instanceof FrameHandle) && context.ownsIdentity() &&
+      this.isReceiverPathValue(context, value, origin)
+    ) {
+      return new BoundMethod(
+        resolved,
+        context,
+        false,
+        methodEffect(this.data),
+      );
+    }
+    const copyOnWrite = context instanceof FrameHandle
+      ? context.copyOnWriteScope() ?? receiverState?.copyOnWrite
+      : receiverState?.copyOnWrite;
+    if (!(resolved instanceof FrameArray)) return resolved;
+    const handle = new FrameHandle(
+      resolved,
+      touchesIdentity(this.data),
+      copyOnWrite,
+      continuation,
+    );
+    return copyOnWrite ? handle.heldBy(context) : handle;
   }
 
   /** Whether a method was found on the receiver or its declared parents. */
@@ -239,13 +265,10 @@ export class FrameSymbol extends FrameAtom {
     value: Frame,
     origin: Frame,
   ): boolean {
-    const seen = new Set<Frame>();
-    let current: Frame | undefined = receiver;
-    while (current && !current.is.missing && !seen.has(current)) {
-      seen.add(current);
-      const local = current.get_here(this.data, origin);
+    if (receiver.is.missing) return false;
+    for (const frame of declaredChain(receiver)) {
+      const local = frame.get_here(this.data, origin);
       if (!local.is.missing) return local === value;
-      current = current.hasDeclaredParent() ? current.parent : undefined;
     }
     return false;
   }
@@ -293,12 +316,11 @@ export class FrameSymbol extends FrameAtom {
         ? new FrameLiteral(() => `.^ ${argument.toString()}`)
         : argument;
     }
-    const binding = out.resolve_here(this.data, out);
-    if (binding?.value.is.error) return binding.value;
-    const assignmentKey = binding?.key ?? this.data;
-    const schemaKey = `${assignmentKey}.<>`;
+    const slot = this.declarationSlot(out);
+    if (slot instanceof Frame) return slot;
+    const schemaKey = `${slot.key}.<>`;
 
-    if (argument instanceof FrameSchema) {
+    if (argument.isSchema()) {
       out.set(schemaKey, argument);
       return this;
     }
@@ -310,19 +332,47 @@ export class FrameSymbol extends FrameAtom {
       );
     }
 
-    const previous = binding?.value ?? out.get_here(this.data, out);
-    if (!previous.is.missing && this.isConstant(assignmentKey)) {
-      return Frame.error(`$error{$is-constant .${this.data}}`);
-    }
+    const prior = this.priorValue(out, slot);
+    if (prior instanceof Frame) return prior;
 
-    out.set(assignmentKey, argument);
-    return previous.is.missing
+    out.set(slot.key, argument);
+    return prior.previous.is.missing
       ? new FrameLiteral(() => `.${this.data} ${argument.toString()}`, {
         target: out,
-        key: assignmentKey,
+        key: slot.key,
         value: argument,
       })
       : argument;
+  }
+
+  /**
+   * The slot a declaration of this name writes in `out`: the key of the
+   * binding the name resolves to there, with its value, or the name itself
+   * when it resolves to none.
+   *
+   * @returns The slot, or the error the binding resolves to.
+   */
+  private declarationSlot(out: Frame): DeclarationSlot | Frame {
+    const binding = out.resolve_here(this.data, out);
+    if (binding?.value.is.error) return binding.value;
+    return { key: binding?.key ?? this.data, bound: binding?.value };
+  }
+
+  /**
+   * The value a declaration into `slot` replaces, missing when there is
+   * none. Replacing a constant's value is refused.
+   *
+   * @returns The prior value, or `$error{$is-constant .name}`.
+   */
+  private priorValue(
+    out: Frame,
+    slot: DeclarationSlot,
+  ): { previous: Frame } | Frame {
+    const previous = slot.bound ?? out.get_here(this.data, out);
+    if (!previous.is.missing && this.isConstant(slot.key)) {
+      return Frame.error(`$error{$is-constant .${this.data}}`);
+    }
+    return { previous };
   }
 
   public setter(out: Frame): FrameSymbol {
@@ -340,18 +390,15 @@ export class FrameSymbol extends FrameAtom {
   /** Complete a statement whose declared value is the schema itself. */
   public defineSchema(schema: FrameSchema): Frame {
     const out = this.get(Frame.kOUT);
-    const binding = out.resolve_here(this.data, out);
-    if (binding?.value.is.error) return binding.value;
-    const assignmentKey = binding?.key ?? this.data;
-    const previous = binding?.value ?? out.get_here(this.data, out);
-    if (!previous.is.missing && this.isConstant(assignmentKey)) {
-      return Frame.error(`$error{$is-constant .${this.data}}`);
-    }
-    out.set(assignmentKey, schema);
-    out.set(`${assignmentKey}.<>`, schema);
+    const slot = this.declarationSlot(out);
+    if (slot instanceof Frame) return slot;
+    const prior = this.priorValue(out, slot);
+    if (prior instanceof Frame) return prior;
+    out.set(slot.key, schema);
+    out.set(`${slot.key}.<>`, schema);
     return new FrameLiteral(() => `.${this.data} ${schema.toString()}`, {
       target: out,
-      key: assignmentKey,
+      key: slot.key,
       value: schema,
     });
   }
@@ -362,12 +409,8 @@ export class FrameSymbol extends FrameAtom {
     }
     // A size operator answers for the receiver itself rather than looking a
     // name up, so the scope a value was read from never answers for it (#411).
-    // Only an address is one, since the lexer looks `#` up as the comment.
-    if (
-      this.is.address === true && Frame.SIZE_OPERATORS.includes(this.data)
-    ) {
-      return context.referent().sizeFor(this.data);
-    }
+    const sizeKey = this.sizeOperatorKey();
+    if (sizeKey !== undefined) return context.referent().sizeFor(sizeKey);
     // A dotted arithmetic operator is the operator itself: `xs ./ 3` is
     // `xs / 3` (GRAMMAR "Mathematical Operators"). Resolved as a name, it
     // missed a named aggregate and was found in the scope the name was read
@@ -416,6 +459,17 @@ export class FrameSymbol extends FrameAtom {
   }
 
   /**
+   * The size operator this symbol is, `#` through `####` (#411), or
+   * undefined when it is none. Only an address is one, since the lexer looks
+   * a bare `#` up as the comment.
+   */
+  public sizeOperatorKey(): string | undefined {
+    return this.is.address === true && Frame.SIZE_OPERATORS.includes(this.data)
+      ? this.data
+      : undefined;
+  }
+
+  /**
    * The arithmetic operators a dot may prefix and still mean the operator,
    * `.+ .- .* ./ .%% .**`. They dispatch as the bare operator does: the left
    * operand's declared method, then the global operation.
@@ -432,10 +486,6 @@ export class FrameSymbol extends FrameAtom {
   /** Whether a spelling is an ordinary name rather than an operator or key. */
   public static isIdentifier(spelling: string): boolean {
     return /^[a-zA-Z][-\w]*$/.test(spelling);
-  }
-
-  public override string_start(): string {
-    return FrameSymbol.SYMBOL_BEGIN.toString();
   }
 
   /**
@@ -535,11 +585,6 @@ export class FrameOperator extends FrameSymbol {
     this.is.operator = true;
   }
 
-  public static operator_chars(): string {
-    return "&|?:+\\-*%<>!";
-    // FrameOperator.OPERATOR_CHARS.source.slice(1, -1)
-  }
-
   public static Accepts(char: string): boolean {
     return FrameOperator.OPERATOR_CHARS.test(char);
   }
@@ -578,9 +623,5 @@ export class FrameOperator extends FrameSymbol {
     return value instanceof FrameCurry && this.receiverState
       ? value.withReceiverState(this.receiverState)
       : value;
-  }
-
-  public override string_start(): string {
-    return FrameOperator.OPERATOR_CHARS.toString();
   }
 }

@@ -21,6 +21,7 @@ import {
   versionRead,
   versionWritten,
 } from "./event-dispatch.ts";
+import { dispatchEvent, readName } from "../test-helpers.test.ts";
 
 /**
  * The HC program every dispatch below runs against. Two mutable identities,
@@ -71,13 +72,11 @@ const program = (): Program => {
   const scope = evaluate(PROGRAM);
   const x = scope.get_here("x_");
   const y = scope.get_here("y_");
-  const read = (key: string): Frame =>
-    FrameSymbol.for(key).in(EvaluationScope.root(scope));
   const event = (
     label: string,
     key: string,
     argument?: Frame,
-  ): DispatchEvent => ({ label, target: read(key), argument });
+  ): DispatchEvent => dispatchEvent(scope, label, key, argument);
   const run = (labels: string[], policy: DispatchPolicy): DispatchReport =>
     dispatch(
       labels.map((label, index) => event(`${label}${index}`, label)),
@@ -404,8 +403,7 @@ describe("event dispatch: admission cannot be narrowed by a declaration", () => 
 
   it("footprint: a closure passed as the argument is walked, so its writes are inferred", () => {
     const { n, x, event, scope } = program();
-    const read = (key: string): Frame =>
-      FrameSymbol.for(key).in(EvaluationScope.root(scope));
+    const read = (key: string): Frame => readName(scope, key);
     const applied = potentialFootprint(read("apply"), read("incr-x"));
     expect(applied.writes.has(x)).toBe(true);
     const report = dispatch([
@@ -464,8 +462,7 @@ describe("event dispatch: escapes on a plain scope Frame", () => {
 
   it("footprint: a writer and a reader of the plain scope are serialized", () => {
     const scope = plainScope(SOURCE);
-    const read = (key: string): Frame =>
-      FrameSymbol.for(key).in(EvaluationScope.root(scope));
+    const read = (key: string): Frame => readName(scope, key);
     const report = dispatch([
       { label: "bump", target: read("bump") },
       { label: "peek", target: read("peek") },

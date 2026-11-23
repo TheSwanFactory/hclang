@@ -7,7 +7,7 @@ import {
   sitesAround,
 } from "./frame-expr.ts";
 import { FrameGroup } from "./frame-group.ts";
-import { FrameSymbol } from "./frame-symbol.ts";
+import type { FrameSymbol } from "./frame-symbol.ts";
 import { type Context, NilContext } from "./context.ts";
 import type { ReceiverState } from "./bound-method.ts";
 import { type EvaluationInput, EvaluationScope } from "./evaluation-scope.ts";
@@ -67,11 +67,6 @@ export class FrameLazy extends FrameExpr {
   public bindReturn(returnContract: Frame): this {
     this.returnContract = returnContract;
     return this;
-  }
-
-  /** The declared `^^` output schema, or undefined when none was bound. */
-  public returnSchema(): Frame | undefined {
-    return this.returnContract;
   }
 
   /**
@@ -196,18 +191,13 @@ export class FrameLazy extends FrameExpr {
   /**
    * `.#` counts the body's represented words (#429). `.##` sums their native
    * Sizes without execution or evaluation-site registration; an empty body
-   * retains Size 1. Residual alternates complete stored-word Sizes; Denum
-   * derives from those observations (011.18c). The operator reaches a closure
-   * as its argument and is answered before its body runs.
+   * retains Size 1. `.###` is the raw Denum of that Count and the words'
+   * Sizes, and `.####` reads its KD coordinates. The operator reaches a
+   * closure as its argument and is answered before its body runs.
    */
   private sizeOperator(argument: Frame): Frame | undefined {
-    if (
-      argument instanceof FrameSymbol && argument.is.address === true &&
-      Frame.SIZE_OPERATORS.includes(argument.spelling())
-    ) {
-      return this.sizeFor(argument.spelling());
-    }
-    return undefined;
+    const key = argument.isSymbol() ? argument.sizeOperatorKey() : undefined;
+    return key === undefined ? undefined : this.sizeFor(key);
   }
 
   /**
@@ -276,7 +266,7 @@ export class FrameLazy extends FrameExpr {
     receiverState?: ReceiverState,
   ): Frame | EvaluationScope {
     if (
-      argument instanceof FrameSymbol && argument.is.address === true &&
+      argument.isSymbol() && argument.is.address === true &&
       argument.spelling() === "<>"
     ) return FrameType.of(this);
     const size = this.sizeOperator(argument);
@@ -311,7 +301,7 @@ export class FrameLazy extends FrameExpr {
     }
 
     const missing = this.signature.asArray()
-      .filter((item): item is FrameSymbol => item instanceof FrameSymbol)
+      .filter((item): item is FrameSymbol => item.isSymbol())
       .map((item) => item.spelling())
       .filter((key) => prepared.get_here(key).is.missing);
     if (missing.length === 0) return prepared;

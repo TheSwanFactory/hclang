@@ -1,23 +1,16 @@
 import { visibleEnvironment } from "../lib/execute/env-visibility.ts";
 import { HCEval, make_context } from "../lib/execute/hc-eval.ts";
-import { HCLog } from "../lib/execute/hc-log.ts";
+import { HCLog } from "./hc-log.ts";
 import { HCTest } from "../lib/execute/hc-test.ts";
 import { parseArgs } from "@std/cli/parse-args";
 import { runfile } from "./runfile.ts";
 import { Prompt } from "./prompt.ts";
 import { DenoFileStore } from "./resource-store.ts";
-import { withHCBundle } from "../lib/bundle/hc-bundle.ts";
+import { hostHandlers, hostNamespace } from "../lib/execute/host-namespace.ts";
 import {
-  CLOCK_SCHEME,
-  ClockHandler,
   type Context,
-  DISPATCH_KEY,
-  dispatchNamespace,
   Frame,
-  FrameResource,
-  RealClock,
-  RESOURCE_ROOT_KEY,
-  ResourceHandlers,
+  type ResourceHandlers,
   type StringMap,
 } from "../lib/frames.ts";
 
@@ -71,54 +64,39 @@ export function getOptions(args: string[]): ReturnType<typeof parseArgs> {
  */
 export function getEval(env: StringMap, out?: Frame): HCEval {
   const context = make_context(env);
+  if (context.DEBUG_ENV) console.debug("DEBUG_ENV", context);
   const output = out ?? new HCLog(context);
   return new HCEval(output, new Frame(), getHost(context));
 }
 
 /**
- * Builds this harness's host namespace, root binding included.
+ * Builds this harness's host namespace, root binding included
+ * (`lib/execute/host-namespace.ts`).
  *
  * The root is a fresh temp directory with the bundled, read-only `hc/` files
  * laid over it, so a program can import them without reaching anything else.
- * The dispatcher is bound beside it (`$$.dispatch`), so a testdoc can hand
- * its own closures to each dispatch policy (`hc/art-dispatch-vact.hc`).
  *
  * Exported so a test can run a source unit under the authority the CLI actually
  * grants, rather than under an empty namespace that would make the resource
  * primitive invisible.
  *
- * @param context - Host bindings, which are copied rather than adopted.
+ * @param context - Host bindings, which are copied rather than adopted, because
+ *   the logger holds the same object.
  * @returns A frame reachable from HC source through `$$`.
  */
 export function getHost(context: Context = {}): Frame {
-  // Copied, because a Frame adopts the Context object it is handed and the
-  // logger holds the same one: the root binding belongs to the host namespace
-  // and nowhere else.
-  const host = new Frame({ ...context });
-  host.set(
-    RESOURCE_ROOT_KEY,
-    FrameResource.root(withHCBundle(new DenoFileStore()), getHandlers()),
-  );
-  host.set(DISPATCH_KEY, dispatchNamespace());
-  return host;
+  return hostNamespace(context, new DenoFileStore());
 }
 
 /**
- * This harness's scheme table.
- *
- * One entry, and the emptiness of every other slot is the point: `'https://…'`
- * refuses because nothing is bound to `https`, not because a rule forbids it.
- * The CLI installs the real clock, which is the only thing this harness can
- * honestly implement that the root binding does not already cover.
+ * This harness's scheme table, the real clock only (`hostHandlers`).
  *
  * Exported so a test can run under the table the CLI actually grants.
  *
  * @returns The scheme handlers reachable from a CLI evaluation.
  */
 export function getHandlers(): ResourceHandlers {
-  return ResourceHandlers.of({
-    [CLOCK_SCHEME]: new ClockHandler(new RealClock()),
-  });
+  return hostHandlers();
 }
 
 /**
@@ -160,7 +138,7 @@ export async function main(
     const complete = evaluator.finish();
     runtimeFailed ||= evaluator.hasFailures();
     if (!complete) {
-      const reason = evaluator.error() ?? "incomplete lexical input";
+      const reason = evaluator.incompleteReason();
       console.error(`HCEval.finish.failed: ${reason}`);
     }
     return complete;

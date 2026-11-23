@@ -92,7 +92,7 @@ export class FrameWord extends FrameAtom {
  * prints with its dot. Structural, because the symbol module cannot be
  * imported here without closing a cycle through its own base classes.
  */
-export const nameOf = (frame: Frame): string | undefined => {
+const nameOf = (frame: Frame): string | undefined => {
   if (frame instanceof FrameWord) return frame.spelling();
   const named = frame as Frame & { spelling?: () => string };
   return frame.is.address === true && typeof named.spelling === "function"

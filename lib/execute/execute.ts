@@ -1,5 +1,5 @@
 import { evaluate } from "./evaluate.ts";
-import { type FrameArray, NilContext } from "../frames.ts";
+import { type Context, type FrameArray, NilContext } from "../frames.ts";
 
 const stripLastCommas = (array: string[]): string[] =>
   array.map((item) => {
@@ -19,9 +19,12 @@ export const renderResults = (result: FrameArray): string =>
  * @returns Rendered evaluation results separated by newlines.
  *
  * @example
+ * ```ts
  * import { execute } from "jsr:@swanfactory/hclang";
  *
  * console.log(execute("1 + 1")); // "2"
+ * ```
  */
-export const execute = (input: string, meta = NilContext): string =>
-  renderResults(evaluate(input, meta));
+export function execute(input: string, meta: Context = NilContext): string {
+  return renderResults(evaluate(input, meta));
+}

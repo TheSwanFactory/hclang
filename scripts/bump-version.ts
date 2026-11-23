@@ -73,7 +73,8 @@ const main = async (): Promise<void> => {
   }
   await Deno.writeTextFile(
     VERSION_MODULE,
-    `export const VERSION = "${version}";\n`,
+    "/** The current version of the HC interpreter. */\n" +
+      `export const VERSION = "${version}";\n`,
   );
   console.log(`Bumped version to ${version}`);
 

@@ -1,23 +1,21 @@
 import { expect } from "jsr:@std/expect@^0.219.1";
-import { Frame, FrameArray, FrameCount, FrameExpr } from "../frames.ts";
+import { Frame, FrameArray } from "../frames.ts";
 import { CartElements, FlopElements } from "../ops/pairings.ts";
 import {
   multiplyDenum,
   observeDenum,
   observeKDCoordinates,
 } from "../frames/fourth-hash.ts";
-import { constructDenum } from "./denum-prologue.ts";
-import { evaluate } from "./evaluate.ts";
+import {
+  answerOfLast as read,
+  countOf as count,
+  denumOf as denum,
+} from "../test-helpers.test.ts";
 
-const count = (n: bigint): FrameCount => new FrameCount(n);
-const denum = (c: bigint, values: readonly bigint[]): Frame =>
-  constructDenum(count(c), values.map(count));
 const rawState = (value: Frame): [string, string[]] => [
   String(value.referent().getOwn("count")),
   value.referent().getOwn("loads").referent().elements().map(String),
 ];
-const read = (source: string): Frame =>
-  FrameExpr.answeredValue(evaluate(source).at(-1)).referent();
 
 Deno.test("FOIST 19a: the third hash is raw Denumeration", () => {
   expect(rawState(read("[3, 1].###"))).toEqual(["2", ["3", "1"]]);
@@ -43,6 +41,33 @@ Deno.test("FOIST 19a: the fourth hash is observational KD coordinates", () => {
     .toEqual("[2]");
   expect(rawState(observeDenum(new FrameArray([count(3n), count(1n)]))))
     .toEqual(["2", ["3", "1"]]);
+});
+
+Deno.test("FOIST 19a fourth hash uses the load arity, not construction Count", () => {
+  expect(denum(1n, [3n, 1n]).sizeFor("####").toString())
+    .toEqual("[2]");
+  expect(denum(8n, [3n, 1n]).sizeFor("####").toString())
+    .toEqual("[2]");
+  expect(denum(3n, [3n, 1n, 5n]).sizeFor("####").toString())
+    .toEqual("[-2, 1]");
+  expect(denum(3n, [3n, 1n, 5n, 0n]).sizeFor("####").toString())
+    .toEqual("[-2, 1]");
+});
+
+Deno.test("FOIST 19a fourth hash is gauge-invariant and pure", () => {
+  const raw = denum(4n, [3n, 1n, 5n, 0n]);
+  const gauge = denum(4n, [6n, 2n, 8n, 1n]);
+  expect(raw.sizeFor("####").toString())
+    .toEqual(gauge.sizeFor("####").toString());
+  expect(raw.getOwn("loads").toString()).toEqual("[3, 1, 5, 0]");
+  expect(gauge.getOwn("loads").toString()).toEqual("[6, 2, 8, 1]");
+});
+
+Deno.test("FOIST 19a preserves the empty Denum as the raw zero-arity state", () => {
+  const empty = denum(0n, []);
+  expect(empty.sizeFor("###").getOwn("count").toString()).toEqual("0");
+  expect(empty.sizeFor("###").getOwn("loads").toString()).toEqual("[]");
+  expect(empty.sizeFor("####").toString()).toEqual("[]");
 });
 
 Deno.test("FOIST 19a: Frame Flop and Cart preserve receiver order", () => {

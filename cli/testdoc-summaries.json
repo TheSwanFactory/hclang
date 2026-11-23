@@ -1,0 +1,134 @@
+{
+  "BitScheme.hc": {
+    "total": 40,
+    "pass": 32,
+    "fail": 0,
+    "unimplemented": 8
+  },
+  "apply.hc": {
+    "total": 76,
+    "pass": 76,
+    "fail": 0,
+    "unimplemented": 0
+  },
+  "art-dispatch-vact.hc": {
+    "total": 95,
+    "pass": 95,
+    "fail": 0,
+    "unimplemented": 0
+  },
+  "cart-zip.hc": {
+    "total": 19,
+    "pass": 19,
+    "fail": 0,
+    "unimplemented": 0
+  },
+  "cd-bit-kernel.hc": {
+    "total": 117,
+    "pass": 117,
+    "fail": 0,
+    "unimplemented": 0
+  },
+  "class-support.hc": {
+    "total": 51,
+    "pass": 51,
+    "fail": 0,
+    "unimplemented": 0
+  },
+  "constructed-state.hc": {
+    "total": 16,
+    "pass": 16,
+    "fail": 0,
+    "unimplemented": 0
+  },
+  "denum.hc": {
+    "total": 26,
+    "pass": 26,
+    "fail": 0,
+    "unimplemented": 0
+  },
+  "division.hc": {
+    "total": 36,
+    "pass": 36,
+    "fail": 0,
+    "unimplemented": 0
+  },
+  "figures.hc": {
+    "total": 12,
+    "pass": 12,
+    "fail": 0,
+    "unimplemented": 0
+  },
+  "foist-19a.hc": {
+    "total": 19,
+    "pass": 19,
+    "fail": 0,
+    "unimplemented": 0
+  },
+  "format.hc": {
+    "total": 7,
+    "pass": 7,
+    "fail": 0,
+    "unimplemented": 0
+  },
+  "membership.hc": {
+    "total": 16,
+    "pass": 16,
+    "fail": 0,
+    "unimplemented": 0
+  },
+  "native-cart-zip.hc": {
+    "total": 24,
+    "pass": 24,
+    "fail": 0,
+    "unimplemented": 0
+  },
+  "numerics.hc": {
+    "total": 84,
+    "pass": 84,
+    "fail": 0,
+    "unimplemented": 0
+  },
+  "resources.hc": {
+    "total": 34,
+    "pass": 34,
+    "fail": 0,
+    "unimplemented": 0
+  },
+  "rotor-router.hc": {
+    "total": 13,
+    "pass": 13,
+    "fail": 0,
+    "unimplemented": 0
+  },
+  "testdoc.hc": {
+    "total": 77,
+    "pass": 75,
+    "fail": 0,
+    "unimplemented": 2
+  },
+  "time.hc": {
+    "total": 47,
+    "pass": 47,
+    "fail": 0,
+    "unimplemented": 0
+  },
+  "units.hc": {
+    "total": 40,
+    "pass": 40,
+    "fail": 0,
+    "unimplemented": 0
+  },
+  "white-paper-core.hc": {
+    "total": 18,
+    "pass": 18,
+    "fail": 0,
+    "unimplemented": 0
+  },
+  "white-paper.hc": {
+    "total": 95,
+    "pass": 95,
+    "fail": 0,
+    "unimplemented": 0
+  }
+}

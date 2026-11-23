@@ -25,10 +25,6 @@ export class FrameAtom extends Frame {
     return "";
   }
 
-  public string_start(): string {
-    return this.string_prefix();
-  }
-
   public toStringData(): string {
     const data = this.toData();
     const dataString = data == null ? "" : data.toString();

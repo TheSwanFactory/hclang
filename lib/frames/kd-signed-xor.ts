@@ -12,14 +12,14 @@
  */
 
 /** Bound raw storage; mathematical CD rank itself has no fixed bound. */
-export const KD_MAX_SLOTS = 65536;
+const KD_MAX_SLOTS = 65536;
 
 /**
  * Bound actual nonzero Cartesian slot interactions for public HC `&|&`.
  * Dense inputs above this budget fail early; large sparse values
  * can still multiply. There is no hidden quadratic loop over zero slots.
  */
-export const KD_MAX_PRODUCT_TERMS = 262144;
+const KD_MAX_PRODUCT_TERMS = 262144;
 
 /** Typed resource refusal, independent of the diagnostic message wording. */
 export class KDProductBudgetError extends RangeError {

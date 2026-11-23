@@ -92,7 +92,7 @@ const kindOf = (key: string): HoldingKind =>
   key === PARENT_KEY ? "parent" : isIndexKey(key) ? "element" : "member";
 
 /** Whether a key, by its spelling alone, hands out mutation authority. */
-export const keyGrantsMutation = (key: string): boolean =>
+const keyGrantsMutation = (key: string): boolean =>
   key !== PARENT_KEY && (isIndexKey(key) || touchesIdentity(key));
 
 /** Identity → the bindings that hold it. Keyed weakly by the identity. */
@@ -192,9 +192,6 @@ export function withAccessRecord<T>(record: AccessRecord, work: () => T): T {
   }
 }
 
-/** Whether any record is active, so hot paths can skip their note early. */
-export const isTracking = (): boolean => active.length > 0;
-
 /** The number of mutations committed on `frame`; 0 for a never-written one. */
 export function versionOf(frame: Frame): number {
   return versions.get(frame) ?? 0;
@@ -252,16 +249,6 @@ export function noteHolding(
 function identityOf(value: Frame): Frame | undefined {
   const target = value.referent();
   return target.ownsIdentity() ? target : undefined;
-}
-
-/** Notes that `holder` no longer holds `previous` under `key`. */
-export function noteReleased(
-  holder: Frame,
-  key: string,
-  previous: Frame,
-): void {
-  const released = identityOf(previous);
-  if (released) dropHolding(released, holder, key);
 }
 
 /**

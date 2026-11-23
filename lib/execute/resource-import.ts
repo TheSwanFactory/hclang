@@ -12,7 +12,8 @@ import {
 import { EvalPipe, makeSourcePipe } from "./eval-pipe.ts";
 import { LexPipe } from "./lex-pipe.ts";
 import { ParsePipe } from "./parse-pipe.ts";
-import { sigilizer } from "./sigilizer.ts";
+import { sigilizer } from "../sigilizer.ts";
+import { SOURCE_PREFIX } from "./testdoc-markers.ts";
 
 /** Private output state for one imported source evaluation. */
 class ImportProgress extends Frame {
@@ -31,9 +32,6 @@ class ImportProgress extends Frame {
     return value;
   }
 }
-
-/** The prefix of a testdoc example line, `HCEval.SOURCE`. */
-const EXAMPLE = "; ";
 
 /**
  * Drops a testdoc's example lines from imported source, so importing a file
@@ -68,13 +66,13 @@ class ExampleFilter {
       return [character];
     }
     this.head += character;
-    if (this.head === EXAMPLE) {
+    if (this.head === SOURCE_PREFIX) {
       this.head = "";
       this.atLineStart = false;
       this.skipping = true;
       return [];
     }
-    if (EXAMPLE.startsWith(this.head)) return [];
+    if (SOURCE_PREFIX.startsWith(this.head)) return [];
     const kept = this.head.split("");
     this.head = "";
     this.atLineStart = character === "\n";
@@ -96,6 +94,40 @@ type ActiveImport = {
 
 const sourceTypeFailure = (value: Frame): Frame =>
   Frame.error(`$!.resource-import-source-type ${value.toString()}`);
+
+/**
+ * Scans a source's character elements, example lines dropped, stopping at the
+ * first failure. The loop an import and a quoted read share: each element must
+ * be a non-failed Frame with character content, and each character passes
+ * through the example filter, which is told whether the lexer is in prose,
+ * before the kept characters reach `scan`. The caller flushes the filter and
+ * finishes the lexer.
+ *
+ * @param elements The source's elements, in order.
+ * @param examples The filter that drops example lines.
+ * @param prose Whether the lexer is inside a document, asked once per
+ *   character.
+ * @param scan Scans one kept character, answering a failure or undefined.
+ * @returns The first failure, or undefined when every character scanned.
+ */
+function scanSource(
+  elements: Iterable<Frame>,
+  examples: ExampleFilter,
+  prose: () => boolean,
+  scan: (character: string) => Frame | undefined,
+): Frame | undefined {
+  for (const element of elements) {
+    if (element.isFailedResult()) return element;
+    if (!hasCharacterContent(element)) return sourceTypeFailure(element);
+    for (const character of element.characterContent().split("")) {
+      for (const kept of examples.filter(character, prose())) {
+        const failure = scan(kept);
+        if (failure) return failure;
+      }
+    }
+  }
+  return undefined;
+}
 
 /** Evaluate a resource's character elements through the existing HC pipeline. */
 export function evaluateResourceSource(
@@ -167,19 +199,13 @@ function evaluateElements(
     return progress.firstFailure;
   };
   const examples = new ExampleFilter();
-
-  for (const element of elements) {
-    if (element.isFailedResult()) return element;
-    if (!hasCharacterContent(element)) return sourceTypeFailure(element);
-
-    for (const character of element.characterContent().split("")) {
-      const prose = receiver.is.document === true;
-      for (const kept of examples.filter(character, prose)) {
-        const failure = scan(kept);
-        if (failure) return failure;
-      }
-    }
-  }
+  const scanned = scanSource(
+    elements,
+    examples,
+    () => receiver.is.document === true,
+    scan,
+  );
+  if (scanned) return scanned;
   for (const kept of examples.flush()) {
     const failure = scan(kept);
     if (failure) return failure;
@@ -219,7 +245,7 @@ class QuoteSink extends Frame {
  * closure is bound at `site`, where the read was written, as any closure
  * written there would be.
  */
-export function quoteResourceSource(
+function quoteResourceSource(
   resource: Frame,
   site?: EvaluationScope,
 ): Frame {
@@ -239,17 +265,13 @@ export function quoteResourceSource(
   const examples = new ExampleFilter();
   const opened = scan("{");
   if (opened) return opened;
-  for (const element of resource.elements()) {
-    if (element.isFailedResult()) return element;
-    if (!hasCharacterContent(element)) return sourceTypeFailure(element);
-    for (const character of element.characterContent().split("")) {
-      const prose = receiver.is.document === true;
-      for (const kept of examples.filter(character, prose)) {
-        const failure = scan(kept);
-        if (failure) return failure;
-      }
-    }
-  }
+  const scanned = scanSource(
+    resource.elements(),
+    examples,
+    () => receiver.is.document === true,
+    scan,
+  );
+  if (scanned) return scanned;
   for (const kept of [...examples.flush(), "\n", "}"]) {
     const failure = scan(kept);
     if (failure) return failure;

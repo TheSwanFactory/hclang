@@ -25,7 +25,7 @@ import {
   type ISourced,
   NilContext,
 } from "../frames.ts";
-import { lexicalError, sigilizer } from "./sigilizer.ts";
+import { lexicalError } from "../sigilizer.ts";
 import {
   type AtomSyntax,
   ScanDisposition,
@@ -66,10 +66,6 @@ export abstract class LexHost extends Frame implements ISourced {
     this.is.void = true;
     this.is.lexical = true;
     this.id = this.id + "." + facet.NAME;
-  }
-
-  public override call(argument: Frame, _parameter = Frame.nil): Frame {
-    return sigilizer.scan(this, argument);
   }
 
   public override toString(): string {

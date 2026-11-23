@@ -1,5 +1,5 @@
-import { Frame } from "../frames/frame.ts";
-import { ScanDisposition, type ScanResponse } from "../scan.ts";
+import { Frame } from "./frames/frame.ts";
+import { ScanDisposition, type ScanResponse } from "./scan.ts";
 
 /**
  * Primitive mutations a lexical state exposes to Sigilizer.
@@ -7,7 +7,7 @@ import { ScanDisposition, type ScanResponse } from "../scan.ts";
  * Syntax-specific Frames decide what should happen; the host owns the mutable
  * token buffer and output connection on which that decision operates.
  */
-export interface ScanHost extends Frame {
+interface ScanHost extends Frame {
   /** Append one consumed Symbol and remain active. */
   consumeScan(symbol: Frame): Frame;
   /** Emit the completed value, if any, and return the parent receiver. */

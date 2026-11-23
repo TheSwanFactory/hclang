@@ -6,14 +6,15 @@ import {
   FrameSymbol,
   type StringMap,
 } from "../frames.ts";
-// Installs the Denum class that `.####` constructs (011.20).
+// Installs the Denum class that `.###` constructs and `.####` reads (011.20).
 import "./denum-prologue.ts";
 // Installs the RotorRouter class that list division answers (007.27c).
 import "./router-prologue.ts";
 import { EvalPipe, makeSourcePipe } from "./eval-pipe.ts";
 import { LexPipe } from "./lex-pipe.ts";
 import { evaluateResourceSource } from "./resource-import.ts";
-import { sigilizer } from "./sigilizer.ts";
+import { sigilizer } from "../sigilizer.ts";
+import { EXPECT_PREFIX, SOURCE_PREFIX } from "./testdoc-markers.ts";
 
 /**
  * Creates a new context from the given key-value entries.
@@ -22,15 +23,10 @@ import { sigilizer } from "./sigilizer.ts";
  * @returns {Context} A new context with the entries converted to appropriate Frame types
  *
  * @remarks
- * This method iterates over the entries and determines the type of each value
- * based on its first character:
- * - If alphabetic, the value is wrapped in a `FrameString`.
- * - If numeric, the value is wrapped in a `FrameCount`, as the same digits
- *   written in source would be.
- * - If neither, an error is logged and the key is set to `Frame.nil`.
- *
- * If the context contains a `DEBUG_ENV` key, the context is logged to the console
- * for debugging purposes.
+ * Each value becomes a Frame by its whole text:
+ * - An all-digit value becomes a `FrameCount`, as the same digits written in
+ *   source would be.
+ * - Any other value becomes a `FrameString`.
  *
  * @example
  * ```typescript
@@ -41,6 +37,7 @@ import { sigilizer } from "./sigilizer.ts";
  * };
  * const context = make_context(entries);
  * console.log(context);
+ * ```
  */
 export function make_context(entries: StringMap): Context {
   const context: Context = {};
@@ -51,10 +48,29 @@ export function make_context(entries: StringMap): Context {
       context[key] = new FrameString(value);
     }
   });
-  if (context.DEBUG_ENV) {
-    console.debug("DEBUG_ENV", context);
-  }
   return context;
+}
+
+/**
+ * Builds the evaluator and the lexer that feeds it for one source unit, with
+ * imports evaluated and structure checked strictly.
+ *
+ * @param out Where the results are collected.
+ * @param fileScope The source unit's declarations.
+ * @param hostNamespace Host-supplied bindings, exposed through `$$`.
+ * @returns The evaluator and the lexer pipe in front of it.
+ */
+function sourcePipes(
+  out: Frame,
+  fileScope: Frame,
+  hostNamespace: Frame,
+): { evaluator: EvalPipe; pipe: LexPipe } {
+  const evaluator = new EvalPipe(out, fileScope, hostNamespace);
+  const pipe = makeSourcePipe(evaluator, {
+    importSource: evaluateResourceSource,
+    strictStructure: true,
+  });
+  return { evaluator, pipe };
 }
 
 /**
@@ -66,25 +82,11 @@ export class HCEval {
   /**
    * SOURCE is the input prompt prefix.
    */
-  public static readonly SOURCE = "; ";
+  public static readonly SOURCE = SOURCE_PREFIX;
   /**
    * EXPECT is the output prompt prefix.
    */
-  public static readonly EXPECT = "# ";
-
-  /**
-   * Creates a lexical pipe for evaluating expressions.
-   */
-  public static make_pipe(
-    out: Frame,
-    fileScope: Frame = out,
-    hostNamespace: Frame = Frame.nil,
-  ): LexPipe {
-    return makeSourcePipe(
-      new EvalPipe(out, fileScope, hostNamespace),
-      { importSource: evaluateResourceSource, strictStructure: true },
-    );
-  }
+  public static readonly EXPECT = EXPECT_PREFIX;
 
   private evaluator: EvalPipe;
   protected pipe: LexPipe;
@@ -98,11 +100,9 @@ export class HCEval {
     public readonly fileScope: Frame = out,
     public readonly hostNamespace: Frame = Frame.nil,
   ) {
-    this.evaluator = new EvalPipe(out, fileScope, hostNamespace);
-    this.pipe = makeSourcePipe(this.evaluator, {
-      importSource: evaluateResourceSource,
-      strictStructure: true,
-    });
+    const pipes = sourcePipes(out, fileScope, hostNamespace);
+    this.evaluator = pipes.evaluator;
+    this.pipe = pipes.pipe;
     this.lex = this.pipe;
   }
 
@@ -191,15 +191,11 @@ export class HCEval {
     }
 
     if (!complete) {
-      this.evaluator = new EvalPipe(
+      ({ evaluator: this.evaluator, pipe: this.pipe } = sourcePipes(
         this.out,
         this.fileScope,
         this.hostNamespace,
-      );
-      this.pipe = makeSourcePipe(this.evaluator, {
-        importSource: evaluateResourceSource,
-        strictStructure: true,
-      });
+      ));
     }
     this.lex = this.pipe;
     this.inputBuffer = "";
@@ -214,6 +210,16 @@ export class HCEval {
 
   public error(): string | null {
     return this.lexicalError;
+  }
+
+  /**
+   * Why `finish` answered false: the lexical error, or a generic reason when
+   * the input simply ended mid-form.
+   *
+   * @returns The reason the source unit is incomplete.
+   */
+  public incompleteReason(): string {
+    return this.error() ?? "incomplete lexical input";
   }
 
   public level(): number {

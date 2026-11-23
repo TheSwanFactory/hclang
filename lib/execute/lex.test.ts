@@ -25,7 +25,7 @@ import {
 import { Lex } from "./lex.ts";
 import { LexPipe } from "./lex-pipe.ts";
 import { ParsePipe } from "./parse-pipe.ts";
-import { sigilizer } from "./sigilizer.ts";
+import { sigilizer } from "../sigilizer.ts";
 import { type AtomSyntax, ScanDisposition } from "../scan.ts";
 
 const lexAtoms = (source: string): Frame[] => {
@@ -340,7 +340,7 @@ describe("Lex", () => {
     });
   });
 
-  describe("Count binding `.#%` (007.40)", () => {
+  describe("the retired spelling `.#%` lexes as one unbound name", () => {
     it("ends `.#%` where the next term begins and leaves `.#` and `%%` alone", () => {
       expect(lexAtoms("x.#% ").map(String)).toEqual(["x", ".#%"]);
       expect(lexAtoms("x.#%.# ").map(String)).toEqual(["x", ".#%", ".#"]);

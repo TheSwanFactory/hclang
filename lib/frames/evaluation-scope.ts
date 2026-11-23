@@ -112,6 +112,8 @@ class LiveLookupContext extends Frame {
  * Syntax can derive a scope with another lookup layer or declaration target,
  * while closure calls derive a new scope linked to the scope captured when the
  * closure literal was evaluated. No caller mutates a shared context stack.
+ *
+ * @ignore
  */
 export class EvaluationScope {
   public readonly argument: Frame;
@@ -345,21 +347,33 @@ export class EvaluationScope {
     return this.withLayers(this.prepended(frame));
   }
 
-  private withLayers(layers: LookupLayers): EvaluationScope {
+  /**
+   * A copy of this scope with `changes` applied: every option, the private
+   * lookup layers and argument layer included, carries over unless named.
+   */
+  private derive(changes: Partial<ScopeOptions>): EvaluationScope {
     return new EvaluationScope({
       argument: this.argument,
       parameter: this.parameter,
       receiverState: this.receiverState,
       writeTarget: this.writeTarget,
       writeTargetRole: this.writeTargetRole,
-      lookupFrames: layers.frames,
-      lookupMembers: layers.members,
+      lookupFrames: this.#lookupFrames,
+      lookupMembers: this.#lookupMembers,
       argumentLayer: this.#argumentLayer,
       enclosing: this.enclosing,
       closure: this.closure,
       lexicalTarget: this.lexicalTarget,
       fileScope: this.fileScope,
       hostNamespace: this.hostNamespace,
+      ...changes,
+    });
+  }
+
+  private withLayers(layers: LookupLayers): EvaluationScope {
+    return this.derive({
+      lookupFrames: layers.frames,
+      lookupMembers: layers.members,
     });
   }
 
@@ -373,20 +387,12 @@ export class EvaluationScope {
     const layers = role === "construction"
       ? this.prepended(target)
       : this.appended(target);
-    return new EvaluationScope({
-      argument: this.argument,
-      parameter: this.parameter,
-      receiverState: this.receiverState,
+    return this.derive({
       writeTarget: target,
       writeTargetRole: role,
       lookupFrames: layers.frames,
       lookupMembers: layers.members,
-      argumentLayer: this.#argumentLayer,
-      enclosing: this.enclosing,
-      closure: this.closure,
       lexicalTarget: target,
-      fileScope: this.fileScope,
-      hostNamespace: this.hostNamespace,
     });
   }
 
@@ -421,20 +427,10 @@ export class EvaluationScope {
       true,
     );
     const layers = EvaluationScope.layers([...own, live]);
-    return new EvaluationScope({
-      argument: this.argument,
-      parameter: this.parameter,
-      receiverState: this.receiverState,
-      writeTarget: this.writeTarget,
-      writeTargetRole: this.writeTargetRole,
+    return this.derive({
       lookupFrames: layers.frames,
       lookupMembers: layers.members,
-      argumentLayer: this.#argumentLayer,
       enclosing: scope,
-      closure: this.closure,
-      lexicalTarget: this.lexicalTarget,
-      fileScope: this.fileScope,
-      hostNamespace: this.hostNamespace,
     });
   }
 
@@ -467,13 +463,7 @@ export class EvaluationScope {
 
   /** Resolves `_`, `__`, ... through enclosing call scopes. */
   public argumentAt(level: number): Frame | undefined {
-    if (level <= 1) return this.argument;
-
-    let scope = this.enclosing;
-    for (let current = 2; current < level; current += 1) {
-      scope = scope?.enclosing;
-    }
-    return scope?.argument;
+    return this.outward(level - 1)?.argument;
   }
 
   /**
@@ -489,13 +479,7 @@ export class EvaluationScope {
 
   /** Resolves `.`, `..`, ... through exact enclosing call parameters. */
   public parameterAt(level: number): Frame | undefined {
-    if (level <= 1) return this.parameter;
-
-    let scope = this.enclosing;
-    for (let current = 2; current < level; current += 1) {
-      scope = scope?.enclosing;
-    }
-    return scope?.parameter;
+    return this.outward(level - 1)?.parameter;
   }
 
   /**

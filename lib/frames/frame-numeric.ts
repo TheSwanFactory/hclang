@@ -30,7 +30,7 @@ export const REPETITION_TEXT_LIMIT = 1_000_000n;
 export const REPETITION_ELEMENT_LIMIT = 1_000_000n;
 
 /** Maximum estimated bit width of an exact power result. */
-export const EXACT_POWER_BIT_LIMIT = 1_000_000n;
+const EXACT_POWER_BIT_LIMIT = 1_000_000n;
 
 /** Whether bigint exponentiation can stay within the exact-result budget. */
 export function exactPowerWithinLimit(
@@ -284,21 +284,133 @@ export abstract class FrameNumeric extends FrameAtom {
     return this.ratioParts();
   }
 
+  // A hook has a default only when the default is a refusal: an error that a
+  // rung which forgets the override answers visibly. A hook whose answer is a
+  // fact about the value (zero, the rung above, the exact ratio, the integral
+  // exponent, the order, the signs) stays abstract, because a default would
+  // answer for a rung that never said so.
+
+  /** Whether this value is zero. */
   public abstract isZero(): boolean;
 
+  /**
+   * This value one rung up the ladder, or itself, which `promoteTo` reads as
+   * having no rung above, as for the top rung and the unranked peers.
+   */
   protected abstract promoteOne(): FrameNumeric;
+
+  /** The exact ratio `exactRatio` publishes, or null when it denotes none. */
   protected abstract ratioParts(): readonly [bigint, bigint] | null;
-  protected abstract inexactResult(value: number): Frame;
+
+  /**
+   * What an inexact quotient's host number becomes on this rung. The base
+   * refuses the projection, naming this class.
+   */
+  protected inexactResult(_value: number): Frame {
+    return Frame.error(`$!.numeric-domain projection ${this.className()}`);
+  }
+
+  /** The exact integer this value denotes, read as an exponent, or null. */
   protected abstract integralValue(): bigint | null;
+
+  /**
+   * The spelling `+` gives a literal, or undefined when the spelling already
+   * carries a sign and the value answers itself.
+   */
+  protected static plusSpelling(spelling: string): string | undefined {
+    return spelling.startsWith("+") || spelling.startsWith("-")
+      ? undefined
+      : `+${spelling}`;
+  }
+  /**
+   * The spelling `-` gives a literal: a leading `-` is dropped, and any other
+   * spelling has its sign replaced by `-`.
+   */
+  protected static minusSpelling(spelling: string): string {
+    const unsigned = spelling.replace(/^[+-]/, "");
+    return spelling.startsWith("-") ? unsigned : `-${unsigned}`;
+  }
+  /**
+   * `value`, or `$!.integer-range <spelling> <max>` when a bound is given and
+   * `value` exceeds it.
+   */
+  protected static rangeChecked(
+    value: bigint,
+    spelling: string,
+    max?: bigint,
+  ): bigint | Frame {
+    return max != null && value > max
+      ? Frame.error(`$!.integer-range ${spelling} ${max}`)
+      : value;
+  }
+  /** The exact quotient of an exact ratio, or null when it is not whole. */
+  protected static wholeQuotient(
+    numerator: bigint,
+    denominator: bigint,
+  ): bigint | null {
+    return numerator % denominator === 0n ? numerator / denominator : null;
+  }
+  // Abstract by the rule above: a sign is an answer each class spells itself.
   protected abstract unaryPlus(): Frame;
   protected abstract unaryMinus(): Frame;
-  protected abstract addSame(right: FrameNumeric): Frame;
-  protected abstract subtractSame(right: FrameNumeric): Frame;
-  protected abstract multiplySame(right: FrameNumeric): Frame;
-  protected abstract divideSame(right: FrameNumeric): Frame;
-  protected abstract moduloSame(right: FrameNumeric): Frame;
-  protected abstract powerSame(right: FrameNumeric): Frame;
-  protected abstract powerIntegral(exponent: bigint): Frame;
+
+  /** `+` on two values of this rung. The base refuses it. */
+  protected addSame(right: FrameNumeric): Frame {
+    return this.operationError("+", right);
+  }
+
+  /** `-` on two values of this rung. The base refuses it. */
+  protected subtractSame(right: FrameNumeric): Frame {
+    return this.operationError("-", right);
+  }
+
+  /** `*` on two values of this rung. The base refuses it. */
+  protected multiplySame(right: FrameNumeric): Frame {
+    return this.operationError("*", right);
+  }
+
+  /**
+   * `/` on two values of this rung. `divide` targets only the rational and
+   * number rungs, so any other ranked rung answers `$!.numeric-internal`; an
+   * unranked value refuses `/` as a domain error.
+   */
+  protected divideSame(right: FrameNumeric): Frame {
+    return this.rank === null
+      ? this.operationError("/", right)
+      : Frame.error(`$!.numeric-internal / ${this.className()}`);
+  }
+
+  /** `%%` on two values of this rung. The base refuses it. */
+  protected moduloSame(right: FrameNumeric): Frame {
+    return this.operationError("%%", right);
+  }
+
+  /**
+   * `**` on two values of this rung. `power` sends only a non-integral
+   * exponent here, on the number rung. Any other ranked rung raises to an
+   * integral exponent through `powerIntegral` and answers
+   * `$!.numeric-internal` otherwise; an unranked value refuses `**` as a
+   * domain error.
+   */
+  protected powerSame(right: FrameNumeric): Frame {
+    if (this.rank === null) return this.operationError("**", right);
+    const exponent = right.integralValue();
+    return exponent == null
+      ? Frame.error(`$!.numeric-internal ** ${this.className()}`)
+      : this.powerIntegral(exponent);
+  }
+
+  /** `**` to an exact integer exponent. The base refuses it. */
+  protected powerIntegral(_exponent: bigint): Frame {
+    return Frame.error(
+      `$!.numeric-domain ** ${this.className()} ${this.className()}`,
+    );
+  }
+
+  /**
+   * How this value orders against another of its rung, or null when the two
+   * do not order. `equals` reads null as unequal, so it is an answer.
+   */
   protected abstract compareSame(right: FrameNumeric): Comparison;
 
   protected operationError(

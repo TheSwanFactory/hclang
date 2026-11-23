@@ -219,6 +219,79 @@ export function accessesOutside(
   return touched.filter((frame) => isState(frame) && !allowed.has(frame));
 }
 
+/** The footprint inferred from an event's code and argument. */
+function inferFootprint(event: DispatchEvent): PotentialFootprint {
+  return potentialFootprint(event.target, event.argument ?? Frame.nil);
+}
+
+/**
+ * Reads a waiting event's footprint again from its code. Its names may have
+ * been rebound by an event that finished since, so the footprint is re-read
+ * until the event starts, and frozen from then on.
+ */
+function refreshFootprint(state: Running): void {
+  if (state.generator) return;
+  state.inferred = inferFootprint(state.event);
+  state.potential = widen(state.inferred, state.event.declared);
+}
+
+/**
+ * Whether the event at `index` may start now under `policy`, recording the
+ * peer it waits for when it may not. `serial` holds every event back until
+ * each earlier one is done.
+ */
+function mayStart(
+  states: readonly Running[],
+  index: number,
+  policy: DispatchPolicy,
+  serial: boolean,
+): boolean {
+  if (policy === "interleave") return true;
+  const state = states[index];
+  refreshFootprint(state);
+  for (let other = 0; other < states.length; other++) {
+    if (other === index) continue;
+    const peer = states[other];
+    if (peer.done) continue;
+    // A later event matters only once it is running.
+    if (other > index && !peer.generator) continue;
+    // An earlier event that has not started holds back every later one:
+    // its footprint is read when it starts and may name what a later event
+    // would already have written.
+    const conflicts = serial || !peer.generator ||
+      footprintsConflict(state.potential, peer.potential);
+    if (conflicts) {
+      state.waitedFor.add(peer.event.label);
+      return false;
+    }
+  }
+  return true;
+}
+
+/** What a finished event did, checked against what it and its caller claimed. */
+function outcomeOf(state: Running): EventOutcome {
+  // An opaque event claimed nothing, so nothing it did escapes a claim.
+  const opaque = isOpaque(state.potential);
+  const declared = state.event.declared;
+  return {
+    label: state.event.label,
+    result: state.result,
+    steps: state.steps,
+    inferred: state.inferred,
+    potential: state.potential,
+    actual: state.record,
+    escapes: opaque ? [] : accessesOutside(state.record, state.potential),
+    readEscapes: opaque
+      ? []
+      : accessesOutside(state.record, state.potential, "reads"),
+    undeclared: declared && !isOpaque(declared)
+      ? accessesOutside(state.record, declared)
+      : [],
+    waitedFor: [...state.waitedFor],
+    refused: state.refused,
+  };
+}
+
 /**
  * Runs `events` under `policy` and reports what each did and in what order.
  */
@@ -227,10 +300,8 @@ export function dispatch(
   policy: DispatchPolicy = "footprint",
 ): DispatchReport {
   const trace: string[] = [];
-  const infer = (event: DispatchEvent): PotentialFootprint =>
-    potentialFootprint(event.target, event.argument ?? Frame.nil);
   const states: Running[] = events.map((event) => {
-    const inferred = infer(event);
+    const inferred = inferFootprint(event);
     return {
       event,
       record: new AccessRecord(),
@@ -243,39 +314,8 @@ export function dispatch(
     };
   });
 
-  // A waiting event's names may have been rebound by an event that finished
-  // since, so its footprint is read again from its code until it starts.
-  const refresh = (state: Running): void => {
-    if (state.generator) return;
-    state.inferred = infer(state.event);
-    state.potential = widen(state.inferred, state.event.declared);
-  };
-
   const serial = policy === "sequential" || policy === "certified-sequential";
   const guarded = policy === "footprint" || policy === "certified-sequential";
-
-  const mayStart = (index: number): boolean => {
-    if (policy === "interleave") return true;
-    const state = states[index];
-    refresh(state);
-    for (let other = 0; other < states.length; other++) {
-      if (other === index) continue;
-      const peer = states[other];
-      if (peer.done) continue;
-      // A later event matters only once it is running.
-      if (other > index && !peer.generator) continue;
-      // An earlier event that has not started holds back every later one:
-      // its footprint is read when it starts and may name what a later event
-      // would already have written.
-      const conflicts = serial || !peer.generator ||
-        footprintsConflict(state.potential, peer.potential);
-      if (conflicts) {
-        state.waitedFor.add(peer.event.label);
-        return false;
-      }
-    }
-    return true;
-  };
 
   let remaining = states.length;
   while (remaining > 0) {
@@ -284,7 +324,7 @@ export function dispatch(
       const state = states[index];
       if (state.done) continue;
       if (!state.generator) {
-        if (!mayStart(index)) continue;
+        if (!mayStart(states, index, policy, serial)) continue;
         state.generator = stepsOf(
           state.event.target,
           state.event.argument ?? Frame.nil,
@@ -327,32 +367,7 @@ export function dispatch(
     }
   }
 
-  return {
-    policy,
-    trace,
-    outcomes: states.map((state) => {
-      // An opaque event claimed nothing, so nothing it did escapes a claim.
-      const opaque = isOpaque(state.potential);
-      const declared = state.event.declared;
-      return {
-        label: state.event.label,
-        result: state.result,
-        steps: state.steps,
-        inferred: state.inferred,
-        potential: state.potential,
-        actual: state.record,
-        escapes: opaque ? [] : accessesOutside(state.record, state.potential),
-        readEscapes: opaque
-          ? []
-          : accessesOutside(state.record, state.potential, "reads"),
-        undeclared: declared && !isOpaque(declared)
-          ? accessesOutside(state.record, declared)
-          : [],
-        waitedFor: [...state.waitedFor],
-        refused: state.refused,
-      };
-    }),
-  };
+  return { policy, trace, outcomes: states.map(outcomeOf) };
 }
 
 /** The statement steps of calling `target`; a callable without a body is one. */

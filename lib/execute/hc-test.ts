@@ -14,6 +14,16 @@ type PendingTest = {
   statement: boolean;
 };
 
+/**
+ * Strips the curly quotes a recorded string is rendered in.
+ *
+ * @param text A rendered value, quoted as `“…”` or bare.
+ * @returns The text between the quotes, or the text unchanged when unquoted.
+ */
+function unquote(text: string): string {
+  return text.startsWith("“") && text.endsWith("”") ? text.slice(1, -1) : text;
+}
+
 export class HCTest extends Frame {
   /** Marks an evaluated example whose correct result is not implemented yet. */
   public static readonly UNIMPLEMENTED = "$!.unimplemented";
@@ -78,17 +88,6 @@ export class HCTest extends Frame {
       super.set(HCEval.SOURCE, Frame.missing);
     }
     return argument;
-  }
-
-  public performTest(expected: Frame, actual: Frame, source: Frame): Frame {
-    const result = this.assertEqual(
-      expected.toString(),
-      actual.toString(),
-      source.toString(),
-    );
-    this.pending = undefined;
-    this.clearMarkers();
-    return result;
   }
 
   public assertEqual(expected: string, actual: string, source: string): Frame {
@@ -215,8 +214,8 @@ export class HCTest extends Frame {
   }
 
   private unimplementedExpected(expected: string): string | null {
-    const quoted = expected.startsWith("“") && expected.endsWith("”");
-    const marker = quoted ? expected.slice(1, -1) : expected;
+    const marker = unquote(expected);
+    const quoted = marker !== expected;
     if (marker === HCTest.UNIMPLEMENTED) return "";
 
     const prefix = `${HCTest.UNIMPLEMENTED} `;
@@ -228,17 +227,11 @@ export class HCTest extends Frame {
   }
 
   private hasContent(value: string): boolean {
-    const unquoted = value.startsWith("“") && value.endsWith("”")
-      ? value.slice(1, -1)
-      : value;
-    return unquoted.trim().length > 0;
+    return unquote(value).trim().length > 0;
   }
 
   private isStatementSource(source: string): boolean {
-    const unquoted = source.startsWith("“") && source.endsWith("”")
-      ? source.slice(1, -1)
-      : source;
-    return unquoted.trimEnd().endsWith(";");
+    return unquote(source).trimEnd().endsWith(";");
   }
 
   private clearMarkers(): void {

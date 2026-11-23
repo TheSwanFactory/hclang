@@ -114,10 +114,6 @@ export class FrameBlob extends FrameAtom {
     return super.called_by(context, parameter);
   }
 
-  public override string_start(): string {
-    return FrameBlob.BLOB_START;
-  }
-
   public override string_prefix(): string {
     const sigil = FrameBlob.BLOB_PREFIX[this.base];
     return "0" + sigil;

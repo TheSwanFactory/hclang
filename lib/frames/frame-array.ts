@@ -1,6 +1,7 @@
 import { type DeclaredApplication, Frame } from "./frame.ts";
 import { BoundMethod } from "./bound-method.ts";
 import { methodEffect } from "./effect-marker.ts";
+import { afterCommit, beforeCommit } from "./effect-registry.ts";
 import { FrameExpr } from "./frame-expr.ts";
 import { FrameCount } from "./frame-count.ts";
 import { FrameHandle } from "./frame-handle.ts";
@@ -14,20 +15,37 @@ import {
   noteElements,
   noteHolding,
   noteRead,
-  noteWrite,
   PARENT_KEY,
 } from "./reference-tracking.ts";
 import type { EvaluationInput } from "./evaluation-scope.ts";
 import type { SigilStart } from "../scan.ts";
+import {
+  applicationDeclaredBy,
+  applyDeclared,
+  observationDeclaredBy,
+  operatorDeclaredBy,
+  textDeclaredBy,
+} from "./declared-protocol.ts";
 
+/**
+ * An aggregate, written `[...]`: properties and elements in one value.
+ *
+ * Applying a value to an aggregate collects it, unless the aggregate declares
+ * its own application. `evaluate` answers one, holding a source unit's results
+ * and top-level declarations.
+ */
 export class FrameArray extends FrameList {
+  /** The character that opens an aggregate. */
   public static readonly BEGIN_ARRAY = "[";
+  /** The character that closes an aggregate. */
   public static readonly END_ARRAY = "]";
+  /** How the lexer recognizes an aggregate: `[` opens one and `]` closes it. */
   public static readonly SIGIL_STARTS = [
     { key: FrameArray.BEGIN_ARRAY, mode: "push" },
     { key: FrameArray.END_ARRAY, mode: "pop" },
   ] as const satisfies readonly SigilStart[];
 
+  /** An aggregate holding `data` as its terms and `meta` as its properties. */
   constructor(data: Array<Frame>, meta = NilContext) {
     super(data, meta);
     // An aggregate holds its elements from birth (reference-tracking.ts).
@@ -44,14 +62,21 @@ export class FrameArray extends FrameList {
     if (previous !== data) noteElements(this, data, previous);
   }
 
+  /** An aggregate begins with `[`. */
   public override string_open(): string {
     return FrameArray.BEGIN_ARRAY;
   }
 
+  /** An aggregate ends with `]`. */
   public override string_close(): string {
     return FrameArray.END_ARRAY;
   }
 
+  /**
+   * Evaluates this literal's terms in `input` into a fresh aggregate, which
+   * keeps the declared parent and accepts declarations while it is built. A
+   * refusal that leaves it ill-formed is the answer instead (`illFormed`).
+   */
   public override in(input: EvaluationInput = []): Frame {
     const result = new FrameArray([...this.data], this.meta_copy());
     // A declared parent is carried in its own field, so propagation is a copy
@@ -122,6 +147,12 @@ export class FrameArray extends FrameList {
   /** Pairs under comparison, so a frame reachable from itself terminates. */
   private static readonly comparing = new Map<Frame, Set<Frame>>();
 
+  /**
+   * Compares this aggregate with `other` by `same` at every member: the
+   * visible properties in order, then the elements by index. Aggregates of
+   * different classes differ, and a pair already under comparison counts as
+   * equal, so a cycle terminates.
+   */
   private sameMembers(
     other: Frame,
     same: (left: Frame, right: Frame) => Frame,
@@ -185,15 +216,16 @@ export class FrameArray extends FrameList {
     let elementReplaced = false;
     this.data.forEach((item, index) => {
       if (item !== member) return;
-      if (!replaced && !elementReplaced) guardAccess(this, "write");
+      if (!replaced && !elementReplaced) beforeCommit(this);
       this.data[index] = replacement;
       noteHolding(this, String(index), replacement, member);
       elementReplaced = true;
     });
-    if (elementReplaced && !replaced) noteWrite(this);
+    if (elementReplaced && !replaced) afterCommit(this, "silent");
     return replaced || elementReplaced;
   }
 
+  /** An index key reads the element there; any other key, a binding. */
   protected override lookup_here(key: string, origin: MetaFrame): Frame {
     if (Frame.isIndexKey(key)) {
       return this.at(Number(key));
@@ -210,178 +242,41 @@ export class FrameArray extends FrameList {
     return this.applicationMethod() === undefined;
   }
 
-  /** The keys an aggregate declares its own application under, mutating first. */
-  public static readonly APPLICATION_KEYS = ["apply_", "apply"] as const;
-
   /**
-   * The method this aggregate declares as its own application (#375).
+   * The method this aggregate declares as its own application, `apply_` or
+   * `apply`, on itself or a declared parent (#375, `applicationDeclaredBy`).
    *
-   * Applying an aggregate collects, and a receiver that wants another rule
-   * declares it as a method named `apply`, or `apply_` when the rule writes the
-   * receiver. It is found on the aggregate or its declared parents, the same
-   * chain a class's methods come from, and never in the scope around it, so a
-   * plain array keeps collecting wherever it is written.
+   * @ignore
    */
   public override applicationMethod(): DeclaredApplication | undefined {
-    for (const key of FrameArray.APPLICATION_KEYS) {
-      const method = this.declaredMethod(key);
-      if (method) return { key, method };
-    }
-    return undefined;
+    return applicationDeclaredBy(this);
   }
-
-  /**
-   * The operators an aggregate may declare its own answer to (015.02).
-   *
-   * These are the ordinary binary arithmetic spellings. A class declares one
-   * as a method under the operator's own name, `+`, `-`, `*` or `/`, the way
-   * it declares `apply`, `#` or `toText`. The method takes the right operand
-   * and answers the operation's result, so the class decides what the operator
-   * means on its instances without any special case in the evaluator.
-   */
-  public static readonly OPERATOR_KEYS: readonly string[] = [
-    "+",
-    "-",
-    "*",
-    "/",
-  ];
 
   /**
    * The method this aggregate declares for the operator `key`, bound to it as
-   * the left operand, or undefined when it declares none (015.02).
+   * the left operand, or undefined when it declares none (015.02,
+   * `operatorDeclaredBy`).
    *
-   * Found on the aggregate or its declared parents, the same class chain its
-   * other methods come from, and never in the scope around it, so an operator
-   * written inside a method body keeps its ordinary meaning rather than
-   * recurring into the class that is running. The method runs immutably, like a
-   * declared observation: a deposit answers a fresh instance, as a functional
-   * update does, and leaves the left operand unchanged.
+   * @ignore
    */
   public declaredOperator(key: string): BoundMethod | undefined {
-    if (!FrameArray.OPERATOR_KEYS.includes(key)) return undefined;
-    const method = this.declaredMethod(key);
-    if (!method) return undefined;
-    return new BoundMethod(
-      method as FrameLazy,
-      this,
-      false,
-      methodEffect(key),
-    );
+    return operatorDeclaredBy(this, key);
   }
 
-  /** The key an aggregate declares its readable text under (#398). */
-  public static readonly TEXT_KEY = "toText";
-
   /**
-   * What this aggregate contributes when text receives it (#398).
-   *
-   * Text contributes an aggregate's spelling, which reads back as the same
-   * value but spells every declaration, methods included. An aggregate that
-   * declares `toText`, on itself or a declared parent, contributes that
-   * method's answer instead, the way one that declares `apply` decides its own
-   * application. The printer never calls it, so a printed value still reads
-   * back.
+   * What this aggregate contributes when text receives it (#398): the answer
+   * of the `toText` method it declares (`textDeclaredBy`), or else itself, so
+   * text takes its spelling.
    */
   public override toText(): Frame {
-    const method = this.declaredMethod(FrameArray.TEXT_KEY);
-    if (!method) return this;
-    return new BoundMethod(
-      method as FrameLazy,
-      this,
-      false,
-      methodEffect(FrameArray.TEXT_KEY),
-    ).call(Frame.nil);
+    return textDeclaredBy(this) ?? this;
   }
 
-  /**
-   * The size operators an aggregate may declare its own answer to (011.20):
-   * Count, Size and residual. `.####` is not among them, because it is derived
-   * from these three, so a class that declares them gets it for free. No
-   * class declares `.####`: a method under that name is an ordinary property
-   * the fourth hash never runs. The one Denum these cannot derive, a constructed
-   * zero-Count Denum, is recognized intrinsically (`fourth-hash.ts`).
-   */
-  public static readonly OBSERVATION_KEYS: readonly string[] = [
-    Frame.kCOUNT,
-    Frame.kLEAVES,
-  ];
-
-  /** Declared observations in progress, so one that reads itself fails. */
-  private static readonly observing = new Map<FrameArray, Set<string>>();
-
-  /**
-   * How deeply declared observations may nest. A cycle through the same
-   * receivers is caught exactly; one that builds a fresh receiver each step
-   * is not, so nesting is bounded too, far above any real class's need.
-   */
-  public static readonly OBSERVATION_DEPTH_LIMIT = 32;
-
-  /** Declared observations now running, across every receiver. */
-  private static observationDepth = 0;
-
-  /**
-   * An aggregate observes its elements, so a class that keeps its state in
-   * fields observes as its empty element list: Count 0, Size 1, residual 0.
-   * One that declares a method named `#`, `##` or `###`, on itself or a
-   * declared parent, answers that method's result instead, the way one that
-   * declares `apply` decides its own application (011.20). Nothing declares
-   * one by default, so every other aggregate observes exactly as before.
-   *
-   * The answer must be the kind the operator answers: a Count for `#` and
-   * `##`, an exact integer for `###`. Anything else is
-   * `$!.declared-observation`, an error the method answered is answered as it
-   * is, and a method that observes its own receiver the same way, directly
-   * or through other declared observations, is `$!.cyclic-observation`.
-   * Nesting deeper than `OBSERVATION_DEPTH_LIMIT`, as a method that observes
-   * a fresh instance of its own class does, is `$!.observation-depth`.
-   *
-   * The method runs immutably, so it cannot write its receiver. It is still
-   * code the class wrote: it runs on every observation, with no caching, and
-   * may act on anything else it can reach, a mutable handle in scope
-   * included. Observation is pure only for classes that keep it pure.
-   *
-   * @param key A size operator.
-   * @returns The declared answer, or undefined when none is declared.
-   */
-  private declaredObservation(key: string): Frame | undefined {
-    if (!FrameArray.OBSERVATION_KEYS.includes(key)) return undefined;
-    const method = this.declaredMethod(key);
-    if (!method) return undefined;
-    const active = FrameArray.observing.get(this) ?? new Set<string>();
-    if (active.has(key)) return Frame.error(`$!.cyclic-observation .${key}`);
-    if (FrameArray.observationDepth >= FrameArray.OBSERVATION_DEPTH_LIMIT) {
-      return Frame.error(`$!.observation-depth .${key}`);
-    }
-    active.add(key);
-    FrameArray.observing.set(this, active);
-    FrameArray.observationDepth++;
-    let answer: Frame;
-    try {
-      answer = new BoundMethod(
-        method as FrameLazy,
-        this,
-        false,
-        methodEffect(key),
-      ).call(Frame.nil).referent();
-    } finally {
-      FrameArray.observationDepth--;
-      active.delete(key);
-      if (active.size === 0) FrameArray.observing.delete(this);
-    }
-    const failure = answer.observationError();
-    if (failure) return failure;
-    const data = (answer as unknown as { data?: unknown }).data;
-    const valid = answer instanceof FrameCount;
-    return valid && typeof data === "bigint"
-      ? answer
-      : Frame.error(`$!.declared-observation .${key}`);
-  }
-
-  /** A declared Count, Size or residual first; the list's own rule otherwise. */
+  /** A declared Count or Size first; the list's own rule otherwise. */
   public override sizeFor(key: string): Frame {
     const failure = this.observationError();
     if (failure && Frame.SIZE_OPERATORS.includes(key)) return failure;
-    return this.declaredObservation(key) ?? super.sizeFor(key);
+    return observationDeclaredBy(this, key) ?? super.sizeFor(key);
   }
 
   /**
@@ -391,45 +286,9 @@ export class FrameArray extends FrameList {
   public override nativeSize(path: Set<Frame>): bigint | Frame {
     const failure = this.observationError();
     if (failure) return failure;
-    const declared = this.declaredObservation(Frame.kLEAVES);
+    const declared = observationDeclaredBy(this, Frame.kLEAVES);
     if (declared === undefined) return super.nativeSize(path);
     return declared instanceof FrameCount ? declared.data : declared;
-  }
-
-  /**
-   * A method declared under `key` on this aggregate or its declared parents.
-   *
-   * Never the scope around it, so a plain array keeps its default behavior
-   * wherever it is written.
-   */
-  private declaredMethod(key: string): Frame | undefined {
-    const seen = new Set<Frame>([this]);
-    let local = this.get_here(key);
-    let next = this.hasDeclaredParent() ? this.parent : undefined;
-    while (local.is.missing && next && !seen.has(next)) {
-      seen.add(next);
-      local = next.get_here(key);
-      next = next.hasDeclaredParent() ? next.parent : undefined;
-    }
-    return local.className() === "FrameLazy" ? local : undefined;
-  }
-
-  /**
-   * Runs a declared application with the receiver it binds to.
-   *
-   * The effect axis decides writes, as it does for every method: `apply_`
-   * reached mutably writes the receiver and answers it, and reached immutably
-   * answers an updated copy. A step that answers nil leaves the receiver as it
-   * was, the way an aggregate ignores a nil argument, so a reduce can skip an
-   * element without losing what it accumulated.
-   */
-  public static applyDeclared(
-    bound: BoundMethod,
-    argument: Frame,
-    unchanged: Frame,
-  ): Frame {
-    const result = bound.call(argument);
-    return result.is.void ? unchanged : result;
   }
 
   /**
@@ -441,6 +300,10 @@ export class FrameArray extends FrameList {
     return this.copy();
   }
 
+  /**
+   * `-` applied to a Denum answers its sign half-turn (`Frame.negateDenum`);
+   * anything else dispatches as `Frame.called_by` does.
+   */
   public override called_by(context: Frame, parameter: Frame): Frame {
     if ("operator" in context && context.operator === "-") {
       const negated = Frame.negateDenum(this);
@@ -449,6 +312,10 @@ export class FrameArray extends FrameList {
     return super.called_by(context, parameter);
   }
 
+  /**
+   * Runs the application this aggregate declares, if any, on `argument`
+   * (`applyDeclared`), and otherwise collects `argument`.
+   */
   public override apply(argument: Frame, _parameter: Frame): Frame {
     const declared = this.applicationMethod();
     if (declared) {
@@ -458,7 +325,7 @@ export class FrameArray extends FrameList {
         true,
         methodEffect(declared.key),
       );
-      return FrameArray.applyDeclared(bound, argument, this);
+      return applyDeclared(bound, argument, this);
     }
     return this.collect(argument);
   }
@@ -469,10 +336,10 @@ export class FrameArray extends FrameList {
     _context: Frame = Frame.nil,
   ): FrameArray {
     if (!value.is.void) {
-      guardAccess(this, "write");
+      beforeCommit(this);
       this.data.push(value);
       noteHolding(this, String(this.data.length - 1), value);
-      noteWrite(this);
+      afterCommit(this, "silent");
     }
     return this;
   }
@@ -493,13 +360,18 @@ export class FrameArray extends FrameList {
     return elements[index >= 0 ? index : n + index];
   }
 
+  /**
+   * The number of terms in the data plane, statements and declaration echoes
+   * included. `elements()` answers the elements alone.
+   */
   public length(): number {
     return this.data.length;
   }
 
+  /** Empties the data plane, as one write to this aggregate. */
   public reset(): void {
-    guardAccess(this, "write");
+    beforeCommit(this);
     this.adoptData([]);
-    noteWrite(this);
+    afterCommit(this, "silent");
   }
 }

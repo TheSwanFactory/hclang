@@ -3,7 +3,11 @@ import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 
 import * as frame from "../frames.ts";
 import type { ReceiverState } from "./bound-method.ts";
-import { evaluate } from "../execute/evaluate.ts";
+import {
+  lastResult as answer,
+  lastResultText as text,
+  lastTermOfLast as last,
+} from "../test-helpers.test.ts";
 
 describe("FrameLazy", () => {
   const slow = new frame.FrameString("slow");
@@ -190,9 +194,6 @@ describe("FrameLazy", () => {
   });
 
   describe("a comma expression in the body (#443)", () => {
-    /** The answer of the last line; earlier lines are setup statements. */
-    const text = (source: string): string => evaluate(source).at(-1).toString();
-
     it("collects its terms into a group, as top level does", () => {
       // A comma, or a newline, separates the terms of one expression, and
       // that expression is the group of their values wherever it is written.
@@ -225,10 +226,6 @@ describe("FrameLazy", () => {
   });
 
   describe("size operators (#411)", () => {
-    /** The answer of the last statement in a source sequence. */
-    const last = (source: string): frame.Frame =>
-      evaluate(source).at(-1).asArray().at(-1)!;
-
     it("counts a closure's atoms rather than calling it (#429)", () => {
       // A closure is an aggregate of its body's atoms, so the operator counts
       // them as it counts any aggregate's elements. Before v0.25.0 applying
@@ -248,10 +245,6 @@ describe("FrameLazy", () => {
   });
 
   describe("integer repetition (v0.22.0)", () => {
-    /** The answer of the last line; earlier lines are setup statements. */
-    const answer = (...lines: string[]): frame.Frame =>
-      evaluate(lines.join("\n")).at(-1);
-
     it("leaves a closure's repetition as it was", () => {
       // A closure's terms are its body, which is code rather than elements,
       // so repetition applies it rather than concatenating the body.

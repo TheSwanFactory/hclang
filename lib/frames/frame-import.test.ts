@@ -2,7 +2,6 @@ import { expect } from "jsr:@std/expect@^0.219.1";
 import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
 
 import {
-  type EvaluationInput,
   EvaluationScope,
   Frame,
   FrameArray,
@@ -13,19 +12,7 @@ import {
   FrameString,
   MemoryStore,
 } from "../frames.ts";
-
-class CountingExpression extends Frame {
-  public calls = 0;
-
-  public constructor(private readonly answer: Frame) {
-    super();
-  }
-
-  public override in(_input: EvaluationInput = []): Frame {
-    this.calls += 1;
-    return this.answer;
-  }
-}
+import { CountingExpression } from "../test-helpers.test.ts";
 
 const resource = (): FrameResource =>
   FrameResource.root(new MemoryStore()).extend("./module.hc") as FrameResource;

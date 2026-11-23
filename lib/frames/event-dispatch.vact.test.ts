@@ -8,8 +8,6 @@ import { Frame } from "./frame.ts";
 import { FrameArray } from "./frame-array.ts";
 import { FrameCount } from "./frame-count.ts";
 import { FrameName } from "./frame-name.ts";
-import { FrameSymbol } from "./frame-symbol.ts";
-import { EvaluationScope } from "./evaluation-scope.ts";
 import { DISPATCH_KEY, dispatchNamespace } from "./dispatch-host.ts";
 import { FrameResource } from "./frame-resource.ts";
 import { RESOURCE_ROOT_KEY } from "./resource-binding.ts";
@@ -38,6 +36,7 @@ import {
   versionRead,
   versionWritten,
 } from "./event-dispatch.ts";
+import { dispatchEvent, readName } from "../test-helpers.test.ts";
 
 /**
  * The host-side half of the VACT witness in `hc/art-dispatch-vact.hc`
@@ -113,13 +112,12 @@ const world = (): World => {
     expect(hc.hasFailures()).toBe(false);
   };
   run(construction().join("\n"));
-  const read = (key: string): Frame =>
-    FrameSymbol.for(key).in(EvaluationScope.root(scope));
+  const read = (key: string): Frame => readName(scope, key);
   const event = (
     label: string,
     key: string,
     argument?: Frame,
-  ): DispatchEvent => ({ label, target: read(key), argument });
+  ): DispatchEvent => dispatchEvent(scope, label, key, argument);
   const field = (key: string, name: string): string =>
     scope.get_here(key).get(name).toString();
   return {
