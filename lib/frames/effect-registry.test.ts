@@ -213,6 +213,17 @@ describe("every commit site notifies (#529)", () => {
     // A lookup that only a pattern answers rewrites the bound name's source.
     expect(firesOn(managed, () => managed.get_here("pin"))).toBe(1);
   });
+  it("MetaFrame.match_here fires once for two reads of the same name", () => {
+    const managed = node();
+    managed.set("/^p/", new FrameName("x"));
+    // The second read finds the source already rewritten, so it changes
+    // nothing and neither commits nor notifies.
+    const fired = firesOn(managed, () => {
+      managed.get_here("pin");
+      managed.get_here("pin");
+    });
+    expect(fired).toBe(1);
+  });
   it("Frame.replaceMember (unreachable from HC on a subscribed value)", () => {
     const managed = node();
     const member = node();

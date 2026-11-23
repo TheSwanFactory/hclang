@@ -498,9 +498,15 @@ export class MetaFrame {
    *
    * A match rewrites the bound value's `source` to the target, which changes
    * what every later reader of that binding sees, so it is a write of this
-   * frame: guarded before the value is touched, and noted after. Under a
-   * lookup probe the source is left as it is and the probe is marked, since
-   * the footprint walk only reads and refuses a name a pattern answers.
+   * frame: guarded before the value is touched, and noted after. A match
+   * whose source already is the target changes nothing, so it neither commits
+   * nor notifies. Under a lookup probe the source is left as it is and the
+   * probe is marked, since the footprint walk only reads and refuses a name a
+   * pattern answers.
+   *
+   * Every pattern key is tried, in `meta_pairs` order (key insertion order),
+   * and each one that matches rewrites its own value's source. The last
+   * matching pattern wins: its value is the one answered.
    */
   protected match_here(target: string): Frame {
     let result = Frame.missing;
@@ -512,7 +518,9 @@ export class MetaFrame {
           result = value;
           const probe = activeLookupProbe();
           if (probe) probe.pattern = true;
-          else if ("source" in result) {
+          else if (
+            "source" in result && (result as ISourced).source !== target
+          ) {
             beforeCommit(this as unknown as Frame);
             const sourced = result as ISourced;
             sourced.source = target;
