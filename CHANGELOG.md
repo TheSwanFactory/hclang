@@ -5,6 +5,39 @@
 > contains nothing else; then describe it and say that nothing user-facing
 > changed.
 
+## v0.55.3 2026-11-22
+
+- **Breaking: unused TypeScript API removed (#514).** Spec a19's refactor
+  (`spec/a19-code-quality/02-refactor.md`) removes `contextEqual`, which only
+  tests used and which logged every key it compared; the static
+  `MetaFrame.isAlphabetic`, which nothing called; and the static `Frame.signed`
+  hook, which nothing read. None has a replacement.
+- **Type exports (#514).** `@swanfactory/hclang` exports `FrameArray`, the type
+  `evaluate` returns, its base class `FrameList`, and `EvaluationInput`, which
+  `Frame.in` takes, as types only. No run-time export is added.
+- **API docs (#514).** `deno doc` and JSR's docs now document `FrameArray`,
+  `FrameList`, `Frame.in` and `VERSION`. Members that name interpreter-internal
+  types carry `@ignore`, so the docs no longer list them: `Frame.call`, `scan`,
+  `finishInput`, `atSite`, `isName`, `isSymbol`, `isSchema`, `isClosure`,
+  `applicationMethod`, `reduce` and the static `reduceInto`;
+  `MetaFrame.receiverState`, `resolve_here`, `resolve` and `resolve_graph_on`;
+  `FrameArray.applicationMethod` and `declaredOperator`; and the
+  `EvaluationScope` class. They still exist and still type-check.
+- **`DEBUG_ENV` printing moves to the CLI (#514).** `make_context` and `HCLang`
+  no longer print the context when it holds `DEBUG_ENV`. The `hc` CLI and its
+  testdoc runner still do.
+- **Playground size observers fixed (#514).** In the hcweb playground, `<>.#`
+  and `<>.##` answer `0` and `1`, as `hc` and the library always did, instead of
+  `<>`. `$!` handlers still never run in the playground; #513 tracks that.
+- **No remote imports in `lib/` (#514).** No non-test `lib/` module imports a
+  remote package: the logger and its `chalk` import moved to the CLI, and the
+  unused `script-spec.ts`, which imported `@std/expect`, is deleted. The
+  package's JSR dependency list stays empty.
+- **Worktree pre-push fix (#514).** The `ci-format` integration test clears
+  git's repository variables before it runs git, so the pre-push hook no longer
+  sets `core.bare=true` on the repository when it runs from a linked worktree.
+  Refs #511.
+
 ## v0.55.2 2026-11-22
 
 - **Code-quality audit record (#512).** `spec/a19-code-quality/01-audit.md`
