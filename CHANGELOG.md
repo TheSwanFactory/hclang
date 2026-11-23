@@ -11,7 +11,10 @@
   (`spec/a19-code-quality/02-refactor.md`) removes `contextEqual`, which only
   tests used and which logged every key it compared; the static
   `MetaFrame.isAlphabetic`, which nothing called; and the static `Frame.signed`
-  hook, which nothing read. None has a replacement.
+  hook, which nothing read. None has a replacement. This ships as a patch by the
+  owner's decision (decision 5 of `spec/a19-code-quality/README.md`): nothing in
+  this repository used the removed symbols except `contextEqual`'s own tests,
+  and callers on a `^0.55` range receive the removal without opting in.
 - **Type exports (#514).** `@swanfactory/hclang` exports `FrameArray`, the type
   `evaluate` returns, its base class `FrameList`, and `EvaluationInput`, which
   `Frame.in` takes, as types only. No run-time export is added.
