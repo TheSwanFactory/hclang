@@ -5,6 +5,18 @@
 > contains nothing else; then describe it and say that nothing user-facing
 > changed.
 
+## v0.55.4 2026-11-22
+
+- **Smaller JSR package (#532).** `@swanfactory/hclang` no longer ships its
+  `*.test.ts` files or `CLAUDE.md`; `bundle/hc-sources.ts` is still included.
+- **Dependency updates (#532).** `@swanfactory/hcweb` imports `@preact/signals`
+  2.11.4, up from 2.11.0. The npm package is built with `@deno/dnt` 0.44.0; its
+  emitted ESM is unchanged.
+- **Code-quality cleanup record (#532).** `spec/a19-code-quality/03-cleanup.md`
+  records spec a19's cleanup: docs, records and experiments brought up to date,
+  tooling fixes, a per-package line-coverage floor that CI checks, and the
+  re-baseline against v0.55.1. No runtime, language, or public API change.
+
 ## v0.55.3 2026-11-22
 
 - **Breaking: unused TypeScript API removed (#514).** Spec a19's refactor
