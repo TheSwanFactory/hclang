@@ -423,8 +423,9 @@ export class MetaFrame {
     if (this.wouldCreateParentCycle(parent)) {
       return Frame.error("$!.cyclic-parent .^");
     }
-    beforeCommit(this as unknown as Frame);
     const previous = this.parent;
+    // As in `set`, re-setting the parent already held is not a mutation.
+    if (previous !== parent) beforeCommit(this as unknown as Frame);
     this.parent = parent;
     // The parent edge is a holding too (reference-tracking.ts): it is how a
     // name reaches the parent, though it conveys no authority of its own.
@@ -434,7 +435,7 @@ export class MetaFrame {
       parent,
       previous && !previous.is.missing ? previous : undefined,
     );
-    afterCommit(this as unknown as Frame);
+    if (previous !== parent) afterCommit(this as unknown as Frame);
     return undefined;
   }
 

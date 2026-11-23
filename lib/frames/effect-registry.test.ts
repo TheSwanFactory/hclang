@@ -12,6 +12,7 @@ import {
   notifyEffect,
   registerEffect,
 } from "./effect-registry.ts";
+import { versionOf } from "./reference-tracking.ts";
 
 /** A managed value that records how many times a mutation committed on it. */
 const node = (): Frame => new FrameArray([]);
@@ -206,6 +207,14 @@ describe("every commit site notifies (#529)", () => {
   it("MetaFrame.setParent (unreachable from HC on a subscribed value)", () => {
     const managed = node();
     expect(firesOn(managed, () => managed.setParent(node()))).toBe(1);
+  });
+  it("MetaFrame.setParent re-setting the same parent fires nothing", () => {
+    const managed = node();
+    const parent = node();
+    managed.setParent(parent);
+    const before = versionOf(managed);
+    expect(firesOn(managed, () => managed.setParent(parent))).toBe(0);
+    expect(versionOf(managed)).toBe(before + 1); // the registration alone
   });
   it("MetaFrame.match_here (unreachable from HC on a subscribed value)", () => {
     const managed = node();
