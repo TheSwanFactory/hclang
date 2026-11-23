@@ -8,7 +8,7 @@
  *
  * @module
  */
-import { fromFileUrl } from "jsr:@std/path@1.1.6";
+import { fromFileUrl } from "@std/path";
 import { visibleEnvironment } from "../lib/execute/env-visibility.ts";
 import {
   EXPECT_PREFIX,

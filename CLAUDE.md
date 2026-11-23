@@ -70,35 +70,37 @@ were assigned the other way around, so older papers and specs read reversed.
 ## Bundled `hc/` Files
 
 Every host that installs a root, the CLI and `HCLang` (and so the playground),
-lays the top-level `hc/` folder over it read-only. Those files are ordinary HC
-programs, modules and testdocs alike, and the package ships all of them so a
-session can include any one with `<-`: `Figures <- './hc/figures.hc'` imports
-`hc/figures.hc`. Nothing is in scope until a program imports it. The sources are
-compiled in from the generated, gitignored `lib/bundle/hc-sources.ts`. Build,
-test, and publishing tasks regenerate that module from `hc/*.hc` automatically
-before consuming it, including in CI. There is no checked-in bundle to maintain.
-`lib/deno.json` explicitly includes the generated module in JSR publication
-despite `.gitignore`. `deno task bundle:check` remains available to diagnose
-mismatches. A bare `evaluate` has no root, so it imports nothing, bundled or
-otherwise. The one exception is the Denum class that `.####` answers, which the
-evaluator reads from `hc/denum.hc` in the embed, in a namespace of its own
-(`lib/execute/denum-prologue.ts`), so that file's code must not import.
+lays the top-level `hc/*.hc` files over it read-only; other files in `hc/` are
+not served. Those files are ordinary HC programs, modules and testdocs alike,
+and the package ships every `hc/*.hc` file so a session can include any one with
+`<-`: `Figures <- './hc/figures.hc'` imports `hc/figures.hc`. Nothing is in
+scope until a program imports it. The sources are compiled in from the
+generated, gitignored `lib/bundle/hc-sources.ts`. Build, test, and publishing
+tasks regenerate that module from `hc/*.hc` automatically before consuming it,
+including in CI. There is no checked-in bundle to maintain. `lib/deno.json`
+explicitly includes the generated module in JSR publication despite
+`.gitignore`. `deno task bundle:check` remains available to diagnose mismatches.
+A bare `evaluate` has no root, so it imports nothing, bundled or otherwise. Two
+bundled classes are the exception: the Denum class that `.###` answers
+(`hc/denum.hc`, `lib/execute/denum-prologue.ts`) and the RotorRouter class
+(`hc/rotor-router.hc`, `lib/execute/router-prologue.ts`). The evaluator reads
+both from the embed through `lib/execute/class-prologue.ts`, each in a namespace
+of its own, so neither file's code may import.
 
 ## Project Guidelines
 
 ### Code Organization
 
-- **lib/** - Pure, reusable library code
-- **cli/** - Command-line interface wrapping lib
-- **web/** - Web interface wrapping lib
 - Keep lib/ independent of cli/ and web/
 
 ### Testing Standards
 
 - Write tests for all new functionality
-- Each file should have a corresponding `.test.ts`
+- Each module needs tests: a sibling `<name>.test.ts`, or a feature test that
+  the coverage report shows covering it.
 - Use `@std/expect` for assertions
-- Aim for high coverage
+- Keep each package at or above its line-coverage floor, which CI checks with
+  `deno task coverage:check`.
 
 ### Documentation
 
@@ -127,13 +129,15 @@ evaluator reads from `hc/denum.hc` in the embed, in a namespace of its own
    `fromSource`, composing the shared rules in `lib/frames/atom-syntax.ts`
 4. Add structural actions in `lib/execute/terminals.ts` when applicable
 5. Register the descriptor in `lib/execute/syntax.ts`
-6. Implement evaluation in `lib/execute/hc-eval.ts` or `lib/execute/hc-lang.ts`
+6. Implement evaluation in the Frame's `in` and `call`, or in `lib/ops` for an
+   operator
 7. Add tests at each affected boundary
 
 ### Adding a Built-in Operation
 
-1. Implement it as a Frame subclass in the fitting `lib/ops/` module
-2. Register it in the language context
+1. Write it as an `ICurryFunction`, `(source, block) => Frame`, in the fitting
+   `lib/ops/` module
+2. Register it in the `Ops` table in `lib/ops.ts`
 3. Add tests
 
 ### Adding a Frame Type
@@ -141,7 +145,8 @@ evaluator reads from `hc/denum.hc` in the embed, in a namespace of its own
 1. Read the invariants in [lib/frames/CLAUDE.md](lib/frames/CLAUDE.md)
 2. Extend the appropriate base class (Frame, FrameAtom, etc.)
 3. For source syntax, follow Adding a Language Feature
-4. Implement `toString()` and `toStringArray()`
+4. Implement `toString()`, plus `toStringData()` for an atom or
+   `toStringArray()` for a list
 5. Add tests
 
 ## Publishing
@@ -153,8 +158,8 @@ deno task bump              # Bump the patch version everywhere and commit
 deno task bump --minor      # Bump the minor version instead, resetting the patch
 ```
 
-The task updates the five `deno.json` files and `lib/version.ts`, runs
-`deno install`, then stages and commits the result. Any other argument is
+The task updates every manifest that carries the version, and `lib/version.ts`,
+runs `deno install`, then stages and commits the result. Any other argument is
 refused rather than ignored.
 
 ### Publishing packages, releases, and the online demo

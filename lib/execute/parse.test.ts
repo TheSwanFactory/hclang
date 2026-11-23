@@ -1,5 +1,5 @@
-import { expect } from "jsr:@std/expect@^0.219.1";
-import { beforeEach, describe, it } from "jsr:@std/testing@^1.0.10/bdd";
+import { expect } from "@std/expect";
+import { beforeEach, describe, it } from "@std/testing/bdd";
 
 import { Token } from "./lex.ts";
 import { LexPipe } from "./lex-pipe.ts";

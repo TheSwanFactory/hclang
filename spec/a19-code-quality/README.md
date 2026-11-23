@@ -1,7 +1,7 @@
 # Code Quality: Audit, Refactor, Cleanup
 
-**Status:** Audit (steps 1–8) and refactor (steps 9–13) done. Cleanup has not
-started.\
+**Status:** Audit (steps 1–8), refactor (steps 9–13) and cleanup (steps 14–17)
+done.\
 **Measured at:** `390ee31` (v0.55.1). Every number below is from that commit.\
 **Scope:** The TypeScript in `lib/`, `cli/`, `web/`, `maml/` and `scripts/`, the
 bundled `hc/` files, `experiments/`, and the docs that describe them. HC

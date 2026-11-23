@@ -117,13 +117,4 @@ import "./frames/event-dispatch.ts";
 export { DISPATCH_KEY, dispatchNamespace } from "./frames/dispatch-host.ts";
 import "./frames/bound-method.ts";
 import "./frames/frame-handle.ts";
-export {
-  checkPartitions,
-  type DependencyEdge,
-  type DependencyKind,
-  type PartitionCheckResult,
-  type PartitionError,
-  type PartitionPlan,
-  partitionPlan,
-} from "./frames/partition-check.ts";
 Frame.globals = Ops;

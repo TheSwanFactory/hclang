@@ -1,6 +1,9 @@
 # MAML Redesign for HC Closure Semantics
 
-**Status**: Design Proposal **Date**: 2025-12-14 **Related**:
+**Status**: Not implemented. The `__` change it proposes did not fix the tests
+([10](10-maml-deeper-investigation.md)); v0.37.1 (#461) fixed MAML by replacing
+`HeadBlock` with a host `MetadataHead` class (`maml/maml.ts`). **Date**:
+2025-12-14 **Related**:
 [07-metadata-first-implementation.md](07-metadata-first-implementation.md)
 
 ## Overview
@@ -38,7 +41,7 @@ Expected output:
 
 ### Current Architecture
 
-From [lib/maml.ts](../../lib/maml.ts):
+From [lib/maml.ts](../../maml/maml.ts):
 
 ```typescript
 const HeadBlock = new FrameLazy([
@@ -148,7 +151,7 @@ const head = MakeTag(
 
 ### Implementation
 
-Change [lib/maml.ts:23-27](../../lib/maml.ts#L23-L27):
+Change [lib/maml.ts:23-27](../../maml/maml.ts):
 
 ```typescript
 // OLD
@@ -235,7 +238,7 @@ After implementation:
 
 ## References
 
-- [lib/maml.ts](../../lib/maml.ts) - MAML implementation
+- [lib/maml.ts](../../maml/maml.ts) - MAML implementation
 - [maml/tag.ts](../../maml/tag.ts) - Tag wrapper function
 - [lib/ops/iterators.ts](../../lib/ops/iterators.ts) - `&&` iterator
 - [07-metadata-first-implementation.md](07-metadata-first-implementation.md) -

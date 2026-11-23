@@ -1,5 +1,7 @@
 # HC Formatting ("hcfmt") Specification
 
+**Status:** Proposal. Not implemented: no code implements hcfmt.
+
 ## Goal
 
 Define the canonical formatting (“quining”) rules for HC source so any valid HC

@@ -1,6 +1,8 @@
 # Error Handling: A Parent-Scope Recovery Property
 
-**Status:** Proposed. Not implemented — design points only, no code.\
+**Status:** Not implemented. v0.40.0 (#473) shipped use-site recovery, the `$!`
+catch operator of [14](14-error-namespaces-and-catch.md), instead; no code
+implements this parent-scope `.$:` property.\
 **Issues:** [#360](https://github.com/TheSwanFactory/hclang/issues/360) (this
 design). Blocks [#361](https://github.com/TheSwanFactory/hclang/issues/361)
 (M-3, via [`a08`](../a08-rationalizing-numbers.md) §11.1, T-4).\

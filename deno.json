@@ -1,42 +1,46 @@
 {
-  "version": "0.55.3",
+  "version": "0.55.4",
   "nodeModulesDir": "manual",
   "bin": {
     "hc": "scripts/hc"
   },
   "tasks": {
     "build": "deno task bundle:embed && deno task build:cli && deno task build:npm && deno task build:web",
-    "build:cli": "cd cli && deno task build",
-    "build:npm": "deno run -A scripts/build-npm.ts",
-    "build:web": "cd web && deno task build",
+    "build:cli": "deno task bundle:embed && cd cli && deno task build",
+    "build:npm": "deno task bundle:embed && deno run -A scripts/build-npm.ts",
+    "build:web": "deno task bundle:embed && cd web && deno task build",
     "build:web:release": "deno run -A scripts/build-hcweb.ts --jsr-version",
     "bump": "deno run -A scripts/bump-version.ts",
-    "clean": "rm deno.lock */deno.lock",
+    "clean": "rm -f deno.lock",
     "hc": "deno task bundle:embed && deno run --allow-read --allow-write --allow-env --deny-run --deny-ffi cli/hc.ts",
     "publish": "deno task publish:lib && deno task publish:web",
     "publish:lib": "deno task bundle:embed && cd lib && deno publish",
     "publish:npm": "npm publish",
     "publish:web": "deno task bundle:embed && cd web && deno publish",
     "setup": "deno task bundle:embed && deno run -A deno-hooks",
-    "test": "deno fmt --check && deno lint && deno task test:all",
-    "test:cli": "cd cli && deno task test",
+    "test": "deno fmt --check && deno lint && deno task check && deno task test:all",
+    "check": "deno task bundle:embed && deno check --frozen cli lib maml scripts web experiments/006-partition-check experiments/007-observer-algebras experiments/017-classical-cd && deno check --frozen --doc-only README.md lib/README.md web/README.md && deno doc --lint lib/mod.ts",
+    "coverage:check": "deno task bundle:embed && deno run --allow-read --allow-write --allow-run --allow-env scripts/coverage-floor.ts",
+    "test:cli": "deno task bundle:embed && cd cli && deno task test",
     "test:doc": "deno task bundle:embed && cd cli && deno task test:doc",
-    "test:lib": "deno test --parallel --ignore=lib/load-order.test.ts lib && deno task test:load-order",
-    "test:load-order": "deno test --allow-read lib/load-order.test.ts",
+    "test:lib": "deno task bundle:embed && deno test --parallel --ignore=lib/load-order.test.ts lib && deno task test:load-order",
+    "test:load-order": "deno task bundle:embed && deno test --allow-read lib/load-order.test.ts",
     "test:maml": "deno test maml",
     "test:npm": "deno task build:npm && deno run -A scripts/test-npm.ts",
     "test:scripts": "deno test --allow-run --allow-read --allow-write --allow-env scripts",
-    "test:observer-algebras": "deno test --allow-read experiments/007-observer-algebras",
+    "test:partition-check": "deno test experiments/006-partition-check",
+    "test:observer-algebras": "deno task bundle:embed && deno test --allow-read experiments/007-observer-algebras",
     "experiment:observer-algebras": "deno run --allow-read experiments/007-observer-algebras/report.ts",
-    "test:web": "cd web && deno task test",
+    "test:web": "deno task bundle:embed && cd web && deno task test",
     "test:bs": "cd cli && deno task test:bs",
     "test:compiled": "deno task build:cli && deno run --allow-read --allow-write --allow-env --allow-run scripts/test-compiled.ts",
     "bundle:embed": "deno run --allow-read --allow-write scripts/embed-hc.ts && deno fmt --quiet lib/bundle/hc-sources.ts",
     "bundle:check": "deno run --allow-read scripts/embed-hc.ts --check",
-    "test:all": "deno task bundle:embed && deno task test:cli && deno task test:lib && deno task test:maml && deno task test:scripts && deno task test:observer-algebras && deno task test:web && deno task test:doc && deno task test:npm && deno task test:compiled",
-    "vscode:package": "cd vscode-extension && npx --yes @vscode/vsce@3.9.2 package",
-    "vscode:publish": "cd vscode-extension && npx --yes @vscode/vsce@3.9.2 publish",
-    "vscode:install": "cd vscode-extension && npx --yes @vscode/vsce@3.9.2 package && code --install-extension *.vsix",
+    "test:all": "deno task bundle:embed && deno task test:cli && deno task test:lib && deno task test:maml && deno task test:scripts && deno task test:partition-check && deno task test:observer-algebras && deno task test:classical-cd && deno task test:web && deno task test:doc && deno task test:npm && deno task test:compiled",
+    "test:classical-cd": "deno test experiments/017-classical-cd && cd cli && deno task hc ../experiments/017-classical-cd/gate0.hc -t",
+    "vscode:package": "cd vscode-extension && npx --yes @vscode/vsce@4.1.1 package",
+    "vscode:publish": "cd vscode-extension && npx --yes @vscode/vsce@4.1.1 publish",
+    "vscode:install": "cd vscode-extension && npx --yes @vscode/vsce@4.1.1 package && code --install-extension *.vsix",
     "fix": "deno fmt && deno lint --fix"
   },
   "compilerOptions": {
@@ -59,8 +63,10 @@
     ]
   },
   "exclude": [
+    "dist/",
     "web/dist/",
-    "**/_fresh/"
+    "**/_fresh/",
+    "experiments/a13-recovery-spike/"
   ],
   "lint": {
     "rules": {
@@ -76,6 +82,11 @@
     }
   },
   "imports": {
+    "@deno/dnt": "jsr:@deno/dnt@0.44.0",
+    "@std/cli": "jsr:@std/cli@^1.0.13",
+    "@std/expect": "jsr:@std/expect@^1.0.20",
+    "@std/path": "jsr:@std/path@^1.1.6",
+    "@std/testing": "jsr:@std/testing@^1.0.21",
     "@theswanfactory/deno-hooks": "jsr:@theswanfactory/deno-hooks@0.2.1-dev.1765778019",
     "deno-hooks": "jsr:@theswanfactory/deno-hooks@0.2.1-dev.1765778019"
   },

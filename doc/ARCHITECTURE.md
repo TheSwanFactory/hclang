@@ -114,6 +114,14 @@ already an error, `$!.name-missing` included, is the answer of `+`, `-`, `*`,
 (#467). Diagnostic failures carry `is.error`, so expression and closure
 sequencing, imports and conditionals propagate them like other errors.
 
+When the operands are not a numeric pair, four of them have a structural meaning
+(`lib/ops/math.ts`): `+` Flops, `-` Flops with a Denum half-turn of its right
+operand, `*` is Cart, and `/` by a positive Count deals an array or group into a
+`RotorRouter`. In the `Ops` table (`lib/ops.ts`), `|&|` is Zip and `&|&` the KD
+product. [FRAME-DENUM](FRAME-DENUM.md),
+[native Cart and Zip](native-cart-zip.md) and
+[FOIST 19a](../spec/foist-19a/README.md) describe them.
+
 ## Resource Imports
 
 `ParsePipe` recognizes `. <- resource` and `name <- resource` before ordinary
@@ -155,11 +163,10 @@ Importing a testdoc runs its code and not its examples. A line that begins with
 a semicolon and a space outside prose, the line `HCEval.checkInput` reads as an
 example, is dropped up to its newline, and an expectation line (`# …`) is
 already a comment, so none of its claims is counted and none of its examples'
-names is bound. A name the module exports, such as Figures' `gap` and `spin`, is
-therefore declared in code, not in an example. Because the first failed form
-fails the whole import, an error in a testdoc's code would pass when that file
-runs directly and break every importer; the `HCLang` bundle test in
-`hc-lang.test.ts` imports Figures to catch it.
+names is bound. A name the module exports is therefore declared in code, not in
+an example. Because the first failed form fails the whole import, an error in a
+testdoc's code would pass when that file runs directly and break every importer;
+the `HCLang` bundle test in `hc-lang.test.ts` imports Figures to catch it.
 
 **Quoting a file**, `'./f.hc' | {}` (#443, `spec/a18`), is the import stopped
 before evaluation. `quoteResourceSource` feeds the file's characters through the
@@ -172,18 +179,22 @@ installs itself as `FrameLazy.quote`, which `ReduceElements` calls when a
 resource is folded into the empty closure, since `lib/frames` and `lib/ops`
 cannot import the parser.
 
-**The Denum class** (`denum-prologue.ts`, 011.20) is the one bundled file the
-evaluator reads without a root. `.####` derives its Count and loads natively in
-`lib/frames/fourth-hash.ts` and constructs an instance of `Denum` from
-`hc/denum.hc`. `hc-eval.ts` imports the module, which installs the constructor;
-the first construction evaluates the file once per process through
+**The Denum and RotorRouter classes** (`denum-prologue.ts`, 011.20, and
+`router-prologue.ts`, 007.27) are the two bundled files the evaluator reads
+without a root, both through `class-prologue.ts`. `.###` derives its Count and
+loads natively in `lib/frames/fourth-hash.ts` and constructs an instance of
+`Denum` from `hc/denum.hc`; `.####` answers KD coordinates read from that raw
+Denum. List division constructs a `RotorRouter` from `hc/rotor-router.hc`.
+`hc-eval.ts` imports both modules, which install the constructors; the first
+construction of each class evaluates its file once per process through
 `evaluateSourceText`, the import front end with example lines dropped, in an
 isolated namespace with no host bindings and no root, and keeps the result,
-failure included. So the file's own code may not import anything.
+failure included. So neither file's own code may import anything.
 
-`HCLang.makeHost` lays the bundled `hc/` files of `lib/bundle/hc-bundle.ts` over
-its in-memory session root, as the CLI does over its temp root, and `reset()`
-reinstalls them with the fresh root.
+`hostNamespace` in `lib/execute/host-namespace.ts`, shared by the CLI and
+`HCLang`, lays the bundled `hc/` files of `lib/bundle/hc-bundle.ts` over the
+root: `HCLang`'s in-memory session root and the CLI's temp root.
+`HCLang.reset()` reinstalls them with the fresh root.
 
 ## Text Values and Character Content
 
@@ -234,8 +245,9 @@ Three modules stand behind it, in dependency order:
 
 - `resource-reference.ts` decides what a reference means. Pure, total, and free
   of `Frame`, so it is testable without an evaluator and callable before any
-  dispatch. Every refusal is decided here, named in the `$!.…` vocabulary
-  without the sigil.
+  dispatch. Every reference refusal is decided here, named in the `$!.…`
+  vocabulary without the sigil; the stores (`lib/frames/resource-store.ts`,
+  `cli/resource-store.ts`) decide their own.
 - `resource-store.ts` is the host seam, and the reason `lib/` has no `Deno` in
   it. `MemoryStore` is the browser-safe default and the vehicle for
   deterministic fixtures. The Deno CLI's filesystem store lives in
@@ -378,10 +390,11 @@ position determines which object it targets:
 - **Everywhere else refuses.** With neither an aggregate under construction nor
   an active method receiver, `.^` returns `$!.parent-not-declarable .^`.
 
-`setParent` remains the only writer and rejects any direct or indirect cycle
-before changing the link. Method-position re-parenting makes that guard
-reachable from HC source; both its frame-level invariant and a language-level
-indirect cycle are covered.
+`setParent` remains the only path that attaches a parent, and it rejects any
+direct or indirect cycle before changing the link; a copy (`FrameArray.in`,
+`Frame.copy()`) carries the source's existing link. Method-position re-parenting
+makes that guard reachable from HC source; both its frame-level invariant and a
+language-level indirect cycle are covered.
 
 The complete lookup graph is broader than that declared chain: lexical `up`
 links are rewritten freely, and handles add target links, so either can cycle.
@@ -510,22 +523,24 @@ application no longer `collects()`, so a refusal applied to it stays a refusal
 instead of being held.
 
 Observation can be declared the same way (011.20). An aggregate observes its
-elements, so one that keeps state in fields observes as 0, 1, 0, unless it
-declares a method named `#`, `##` or `###`, which `FrameArray.sizeFor` and
-`nativeSize` run immutably in place of the list rule, through the same
-`declaredMethod` lookup. The answer must be a Count (`#`, `##`) or an exact
-integer (`###`), else `$!.declared-observation`; a method that observes its own
-receiver and key already being observed is `$!.cyclic-observation`, and nesting
-past `OBSERVATION_DEPTH_LIMIT` (32) is `$!.observation-depth`. The method runs
-on every observation and cannot write its receiver, but may act on other state
-it reaches. `.####` is derived from the three, so a class that declares them
-gets its fourth hash. No class declares `.####`: a method under that name is an
-ordinary property `.####` never runs. Because the three cannot tell a Denum of
-Count zero from an empty host, `fourth-hash.ts` recognizes an instance of the
-shipped Denum class intrinsically: a stored Count `count`, a stored nonempty
-list of Counts `loads`, and `==` to the Denum the constructor builds from them,
-answering that fresh reconstruction (007.25e). Anything else takes the derived
-path.
+elements, so one that keeps state in fields observes as Count 0 and Size 1,
+unless it declares a method named `#` or `##` (`OBSERVATION_KEYS` in
+`lib/frames/declared-protocol.ts`), which `FrameArray.sizeFor` and `nativeSize`
+run immutably in place of the list rule, through the same `methodDeclaredBy`
+lookup in `declared-protocol.ts`. Every declared answer must be a Count, else
+`$!.declared-observation`; a method that observes its own receiver and key
+already being observed is `$!.cyclic-observation`, and nesting past
+`OBSERVATION_DEPTH_LIMIT` (32) is `$!.observation-depth`. The method runs on
+every observation and cannot write its receiver, but may act on other state it
+reaches. `.###` is the raw Denum, built from the Count and each element's Size,
+and `.####` derives from it, so a class that declares `#` and `##` gets both. No
+class declares `.###` or `.####`: a method under either name is an ordinary
+property the observers never run. Because the Count and Sizes cannot rebuild a
+constructed Denum, whose loads are a field, `fourth-hash.ts` recognizes an
+instance of the shipped Denum class intrinsically: a stored Count `count`, a
+stored list of Counts `loads`, and `==` to the Denum the constructor builds from
+them, answering that fresh reconstruction (007.25e). Anything else takes the
+derived path.
 
 The interpreter's own output is not application. The evaluator's output array is
 also the file scope, so a top-level `.apply` lands on it; `Frame.collect` is the

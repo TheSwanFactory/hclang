@@ -1,6 +1,6 @@
 {
   "name": "@swanfactory/hclang",
-  "version": "0.55.3",
+  "version": "0.55.4",
   "description": "Homoiconic C - pure JavaScript library",
   "license": "MIT",
   "repository": {
@@ -21,6 +21,8 @@
   "exports": "./mod.ts",
   "publish": {
     "exclude": [
+      "**/*.test.ts",
+      "**/CLAUDE.md",
       "!bundle/hc-sources.ts"
     ]
   },

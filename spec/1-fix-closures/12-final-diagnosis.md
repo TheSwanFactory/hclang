@@ -1,6 +1,8 @@
 # Final Diagnosis: Fundamental Conflict
 
-**Status**: Blocker Identified **Date**: 2025-12-14
+**Status**: Resolved. v0.7.5 (#271) shipped the closure fixes, its Option 1;
+v0.37.1 (#461) fixed MAML and added `deno task test:maml` to `test:all`.
+**Date**: 2025-12-14
 
 ## The Conflict
 

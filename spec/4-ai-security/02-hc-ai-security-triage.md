@@ -1,5 +1,7 @@
 # HC AI Security Triage
 
+**Status:** Triage. Its verdict, dated 2026-08-09: HC is conceptually aligned
+but not close to security clearance.\
 **Date:** 2026-08-09\
 **Basis:** current repository on `chore/deno-2.9.5-upgrade`\
 **Requirements:**

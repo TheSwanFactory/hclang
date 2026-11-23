@@ -1,6 +1,8 @@
 # Single-file hcweb deployment
 
-**Status:** Proposed\
+**Status:** Implemented in v0.9.4 (#315). The release job builds `hcweb.html`
+from the published JSR package (`deno task build:web:release`) and attaches it
+to the GitHub release (`.github/workflows/deno.js.yml`).\
 **Scope:** Production distribution of the hcweb playground\
 **Related:** [a01 — Re-publish hcweb on Fresh 2](a01-republish-hcweb.md),
 [#263 — Re-publish hcweb](https://github.com/TheSwanFactory/hclang/issues/263)

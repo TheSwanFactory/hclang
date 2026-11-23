@@ -32,6 +32,7 @@ mountHcweb(document.getElementById("hcweb-root")!);
 Fresh 2 consumers can register the island directly instead:
 
 ```ts
+import { fresh } from "jsr:@fresh/plugin-vite@1.1.2";
 fresh({ islandSpecifiers: ["@swanfactory/hcweb/islands/Main"] });
 ```
 
@@ -56,7 +57,7 @@ production build, and the generated artifact itself. The artifact tests open
 any network request. They need a browser once:
 
 ```sh
-deno run -A npm:playwright@1.62.0 install chromium
+deno run -A npm:playwright@1.65.1 install chromium
 ```
 
 ## How the release artifact is built

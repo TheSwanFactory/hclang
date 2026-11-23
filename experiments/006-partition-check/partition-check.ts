@@ -1,5 +1,5 @@
-import type { Frame } from "./frame.ts";
-import { isEffectObserver } from "./effect-registry.ts";
+import type { Frame } from "../../lib/frames/frame.ts";
+import { isEffectObserver } from "../../lib/frames/effect-registry.ts";
 
 /**
  * A bounded, executable partition/dependency check for HC effect boundaries

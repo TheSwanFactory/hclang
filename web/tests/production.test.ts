@@ -1,4 +1,4 @@
-import { expect } from "jsr:@std/expect@1.0.17";
+import { expect } from "@std/expect";
 import { chromium } from "playwright";
 
 const url = Deno.env.get("HCWEB_URL") ??

@@ -1,5 +1,7 @@
 # HC Pretty-Printing Specification (hcfmt Pretty Mode)
 
+**Status:** Proposal. Not implemented: no code implements hcfmt.
+
 ## Goal
 
 Define a deterministic, opinionated pretty-printing profile for HC, inspired by

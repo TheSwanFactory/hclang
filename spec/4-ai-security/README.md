@@ -1,5 +1,10 @@
 # HC and AI Security
 
+**Status:** Architecture pinned, not enforced. As
+[Current status](#current-status) says (2026-08-09), the interpreter does not
+enforce the authority invariant, and the next phase is implementation and
+falsification.
+
 ## Context
 
 The Quilt package

@@ -1,5 +1,5 @@
-import { expect } from "jsr:@std/expect@^0.219.1";
-import { beforeEach, describe, it } from "jsr:@std/testing@^1.0.10/bdd";
+import { expect } from "@std/expect";
+import { beforeEach, describe, it } from "@std/testing/bdd";
 import { runfile } from "./runfile.ts";
 import { HCEval } from "../lib/execute/hc-eval.ts";
 import { FrameArray, FrameDoc } from "../lib/frames.ts";
@@ -16,68 +16,83 @@ describe("runfile", () => {
   });
 
   it("calls hc_eval.call for each line in the file", async () => {
-    const file = "./testfile.test.txt";
-    await Deno.writeTextFile(file, "1 + 1\n2 + 2");
+    const file = await Deno.makeTempFile({ suffix: ".txt" });
+    try {
+      await Deno.writeTextFile(file, "1 + 1\n2 + 2");
 
-    let callCount = 0;
-    hc_eval.call = (_line: string) => {
-      callCount++;
-    };
+      let callCount = 0;
+      hc_eval.call = (_line: string) => {
+        callCount++;
+      };
 
-    await runfile(hc_eval, file);
+      await runfile(hc_eval, file);
 
-    expect(callCount).toBeGreaterThan(0);
-    await Deno.remove(file);
+      expect(callCount).toBeGreaterThan(0);
+    } finally {
+      await Deno.remove(file);
+    }
   });
 
   it("handles empty files", async () => {
-    const emptyFile = "./emptyfile.test.txt";
-    await Deno.writeTextFile(emptyFile, "");
+    const file = await Deno.makeTempFile({ suffix: ".txt" });
+    try {
+      await Deno.writeTextFile(file, "");
 
-    let callCount = 0;
-    hc_eval.call = (_line: string) => {
-      callCount++;
-    };
-    await runfile(hc_eval, emptyFile);
-    expect(callCount).toEqual(0);
-    await Deno.remove(emptyFile);
+      let callCount = 0;
+      hc_eval.call = (_line: string) => {
+        callCount++;
+      };
+      await runfile(hc_eval, file);
+      expect(callCount).toEqual(0);
+    } finally {
+      await Deno.remove(file);
+    }
   });
 
   it("handles files with a single line", async () => {
-    const singleLineFile = "./singlelinefile.test.txt";
-    await Deno.writeTextFile(singleLineFile, "1 + 1");
+    const file = await Deno.makeTempFile({ suffix: ".txt" });
+    try {
+      await Deno.writeTextFile(file, "1 + 1");
 
-    let callCount = 0;
-    hc_eval.call = (_line: string) => {
-      callCount++;
-    };
-    await runfile(hc_eval, singleLineFile);
-    expect(callCount).toEqual(1);
-    await Deno.remove(singleLineFile);
+      let callCount = 0;
+      hc_eval.call = (_line: string) => {
+        callCount++;
+      };
+      await runfile(hc_eval, file);
+      expect(callCount).toEqual(1);
+    } finally {
+      await Deno.remove(file);
+    }
   });
   it("handles files with multiple lines", async () => {
-    const multiLineFile = "./multilinefile.test.txt";
-    await Deno.writeTextFile(multiLineFile, "1 + 1\n2 + 2");
+    const file = await Deno.makeTempFile({ suffix: ".txt" });
+    try {
+      await Deno.writeTextFile(file, "1 + 1\n2 + 2");
 
-    let callCount = 0;
-    hc_eval.call = (_line: string) => {
-      callCount++;
-    };
-    await runfile(hc_eval, multiLineFile);
-    expect(callCount).toEqual(2);
-    await Deno.remove(multiLineFile);
+      let callCount = 0;
+      hc_eval.call = (_line: string) => {
+        callCount++;
+      };
+      await runfile(hc_eval, file);
+      expect(callCount).toEqual(2);
+    } finally {
+      await Deno.remove(file);
+    }
   });
   it("handles files with a trailing newline", async () => {
-    const trailingNewlineFile = "./trailingnewlinefile.test.txt";
-    await Deno.writeTextFile(trailingNewlineFile, "1 + 1\n");
+    const file = await Deno.makeTempFile({ suffix: ".txt" });
+    try {
+      await Deno.writeTextFile(file, "1 + 1\n");
 
-    let callCount = 0;
-    hc_eval.call = (_line: string) => {
-      callCount++;
-    };
-    await runfile(hc_eval, trailingNewlineFile);
-    expect(callCount).toEqual(1);
-    await Deno.remove(trailingNewlineFile);
+      let callCount = 0;
+      hc_eval.call = (_line: string) => {
+        callCount++;
+      };
+      await runfile(hc_eval, file);
+      expect(callCount).toEqual(1);
+    } finally {
+      await Deno.remove(file);
+    }
   });
 
   it("keeps inline backticks inside synthetic documentation wrappers", async () => {

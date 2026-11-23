@@ -1,4 +1,4 @@
-import { expect } from "jsr:@std/expect@^0.219.1";
+import { expect } from "@std/expect";
 import { Frame, FrameArray } from "../frames.ts";
 import { CartElements, FlopElements } from "../ops/pairings.ts";
 import {

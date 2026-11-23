@@ -2,7 +2,7 @@
  * FOIST 19a: Count and Size retain their native Figure meanings while
  * Denumeration, KD coordinates and structural product have new public roles.
  */
-import { expect } from "jsr:@std/expect@^0.219.1";
+import { expect } from "@std/expect";
 import { HCLang } from "../mod.ts";
 
 const shapes = [

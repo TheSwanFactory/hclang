@@ -1,7 +1,5 @@
-import { expect } from "jsr:@std/expect@^0.219.1";
-// 0.219 ignores a custom failure message; 1.x prints it.
-import { expect as expectWithMessage } from "jsr:@std/expect@1.0.17";
-import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
+import { expect } from "@std/expect";
+import { describe, it } from "@std/testing/bdd";
 import { visibleEnvironment } from "../lib/execute/env-visibility.ts";
 import { HCEval } from "../lib/execute/hc-eval.ts";
 import {
@@ -34,7 +32,7 @@ const keepsRecordedSummary = (name: string, file: string): void => {
     const { status, last } = await runRecordedTestdoc(file);
 
     expect(status).toEqual(0);
-    expectWithMessage(
+    expect(
       last,
       `${file} no longer prints its recorded summary; if the change is ` +
         "intended, run `cd cli && deno task testdoc:summaries`",

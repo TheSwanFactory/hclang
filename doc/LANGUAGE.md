@@ -372,8 +372,6 @@ source in a fresh namespace. It binds the namespace to `name` only once every
 form has succeeded, so a failed import binds nothing.
 
     ; Figures <- './hc/figures.hc';
-    ; Figures.gap [[], [[], []]]
-    # 1
 
 - **Namespace isolation.** Everything the module declares is reached qualified,
   through `Figures`, and nothing it declares lands in the importing file.
@@ -589,8 +587,8 @@ its spelling, which reads back as the same value, and the printer always shows
 that spelling.
 
 For a worked example, see the Figures module, shipped with the package as
-[`hc/figures.hc`](../hc/figures.hc), imported with
-`Figures <- './hc/figures.hc'`.
+[`hc/figures.hc`](../hc/figures.hc). It is a testdoc of the native observations
+and exports nothing, so `Figures <- './hc/figures.hc'` binds only the namespace.
 
 A figure is a projection of HC frames through which we observe invariants that
 embody mathematical relations. This working definition leaves each investigation
@@ -601,32 +599,19 @@ examples. Their element observations exclude properties and declared parents at
 every level. `[c, …]` constructs a frame; use native `.#` for immediate arity,
 `.##` for Size, `=` for form equality and `===` for identity. The domains of the
 individual native operations remain explicit; eligibility for an observation
-does not itself define a figure. Star `x * y` retains the nesting of x and
-places y at each empty-array terminal. A flat product is `x.## [y]`; no
-constructor, count, size, comparison or multiplication wrapper is needed. Native
-`.###` is the signed residual, the alternating sum of an eligible host's
-immediate child Sizes as a FrameInt (`[[], [[], []]].###` is -1). It also
-accepts mixed arrays and evaluated groups; standalone atoms, schemas,
-expressions and closures answer nil.
+does not itself define a figure. Native `.###` is the raw Denum of the Count and
+each immediate child's Size, so `[3, 1].###` is the Denum of Count 2 and loads
+`[3, 1]`, and `.####` reads its KD coordinates: `[3, 1].####` is `[2]` (see
+[FRAME-DENUM](FRAME-DENUM.md)). For non-numeric operands `x + y` Flops, applying
+y's children to x in order, and `x * y` is Cart, the ordered pairs of immediate
+children: `[1, 2] * [3, 4]` is `[[1, 3], [1, 4], [2, 3], [2, 4]]` (see
+[native Cart and Zip](native-cart-zip.md)). Numeric pairs keep ordinary
+arithmetic.
 
-The module exports only `gap` and `spin`, as derived mathematical abbreviations.
-`gap x` is |x.###|, always a nonnegative FrameInt; `spin x N` is x.### / N for a
-positive Count. Both use native observations directly and retain
-unsupported-host refusal. Spin validates the host first, then refuses non-Count
-divisors with a type error and zero with division-by-zero, including when the
-residual is zero. Bare division would accept negative or fractional resolutions;
-`(x.###).##` would change Gap's type to Count and turn nil into Size 1. The
-abbreviations preserve these distinctions without defining a separate Figure
-language domain.
-
-`pure`, `need` and `withness` were removed in v0.37.1. Migrate `pure x` to
-`x.### ? {<>} : {()}` when a boolean is needed, or branch directly on `x.###`. A
-zero FrameInt is true; nil means unsupported. Use `x` directly where its
-observation already establishes availability; an explicit local refusal is
-`x.### ? {x} : {$!!.unsupported-figure}`. An outer array binding such as
-`{.x <[].<>> _; x}` accepts `[[], [“nested atom”]]` and rejects the group
-`(5, 3)` despite its valid residual. It proves neither recursive array-only
-content nor the full native observer domain.
+`pure`, `need` and `withness` were removed in v0.37.1. FOIST 19a (v0.54.0)
+retired the signed residual, Figures' `gap` and `spin` and the Star product
+([FOIST 19a](../spec/foist-19a/README.md)); their examples remain in the history
+before v0.54.0.
 
 Single-point incidence is `point ~~~ line`. Replace `withness host requested`
 with ordinary iteration:
@@ -641,30 +626,7 @@ fail. Atoms follow native `===`, including its type distinction. See the
 executable incidence examples in `hc/figures.hc` and Fano points in
 [`hc/membership.hc`](../hc/membership.hc).
 
-Star preserves properties and declared parents on freshly rebuilt nonterminal
-ancestors. A plain terminal (zero elements) is replaced by the replacement
-itself, shared by identity; neither operand is mutated. Star refuses terminals
-carrying properties, statements or declared parents, rather than discarding
-them.
-
-Numeric pairs keep existing `*` arithmetic. A FrameCount host and nonnumeric
-replacement construct n occurrences: `2 * [[]]` is `[[[]], [[]]]`. Zero returns
-count `0`, whose Size is 0; `[]` is a single terminal with Size 1. Other numeric
-hosts with nonnumeric replacements receive a domain refusal. Count expansion
-uses the existing repetition limit. Nested FrameCount leaves use exactly the
-same numeric/expansion rule as a root count: `[2] * [[]]` is `[[[[]], [[]]]]`,
-`[2] * 3` is `[6]`, and `[0] * [[]]` is `[0]` with Size 0. Thus
-`([[], []] * 3) * [[]]` can compose again and equals `[[], []] * (3 * [[]])`,
-sharing every replacement. The module provides no `inlay` wrapper or separate
-composition guard; native `*` accepts arrays containing count leaves.
-
-Repeated Star is supported when the resulting host is a finite array/count
-structure within these metadata and expansion limits. Arbitrary replacements
-such as strings, negative integers or ratios remain valid right operands but are
-refused if later used as structural hosts. No general structural associativity
-is claimed across numeric arithmetic and structural expansion.
-
-#### Native Size and signed residual (v0.37.0)
+#### Native Size (v0.37.0)
 
 `.##` observes nonnegative integral represented quantity as a FrameCount:
 
@@ -709,31 +671,23 @@ observe their referents; repeated shared descendants count once per occurrence.
 A true containment cycle in the traversed plane refuses with
 `$!.cyclic-aggregate .##`; the graph is never changed by observation. Reference
 chains have a separate guard: a cycle of FrameHandle/FrameScoped referents
-refuses with `$!.cyclic-reference` before recursive Size starts; residual is
-nil. HC lookup creates handles targeting existing arrays, and the only internal
-retargeting copies an existing target for a functional update. There is no HC
-source operation that creates a handle-only target cycle. Runtime reflection can
+refuses with `$!.cyclic-reference` before recursive Size starts. HC lookup
+creates handles targeting existing arrays, and the only internal retargeting
+copies an existing target for a functional update. There is no HC source
+operation that creates a handle-only target cycle. Runtime reflection can
 construct one (as the existing handle lookup tests do), so it is defended too.
 FrameAlias is setter syntax and inherits the identity referent; observing an
 alias does not resolve a binding. Schema alternatives are counted without
 descending into their candidate graphs.
 
-`.###` alternates over immediate data positions, using each child's **complete**
-Size: `x₁.## − x₂.## + x₃.## − …`. Mixed FrameArrays and evaluated FrameGroups
-are included: `[5, “hello”].###` is 0 and `(5, 3).###` is 2. It always answers a
-FrameInt, including `[].### = 0`; pure nested-array results are preserved.
-Source arrays/groups have a syntax walk and must be evaluated before becoming
-residual hosts. FrameExpr (including FrameBind), FrameLazy, and FrameSchema are
-excluded as hosts: their walks expose executable words or matcher instructions,
-not ordered data. Generic FrameList also has no residual capability. These kinds
-can occur as children where their native Size is finite. Standalone atoms have
-no alternating data plane; their residual is the parity of their Count
-(011.18k). Cycles or nonquantifiable children also yield nil for residual. No
-closure execution, resource read, stream consumption or schema match is needed
-for either observer. `.#` retains its existing behavior, including the special
-nil/all application behavior; a leading receiverless `.##` remains an address.
-Runtime errors retain the evaluator's normal short-circuit propagation even
-though their stored atom has Size 1.
+`.###` answers the raw Denum of the host's Count, with each immediate child's
+**complete** Size as a load; `.####` reads KD coordinates from it (see
+[FRAME-DENUM](FRAME-DENUM.md)). A failed observation of the host or of a child
+propagates unchanged. No closure execution, resource read, stream consumption or
+schema match is needed for either observer. `.#` retains its existing behavior,
+including the special nil/all application behavior; a leading receiverless `.##`
+remains an address. Runtime errors retain the evaluator's normal short-circuit
+propagation even though their stored atom has Size 1.
 
 ### TODO: Class variables
 

@@ -1,5 +1,6 @@
 # FOIST 19a — implemented HC operator and observer contract
 
+**Status:** Implemented in v0.54.0 (#506); retirements in v0.55.0 (#508).\
 **Authority:**
 [Occurrence FOIST 19a](https://nightly.quilttest.com/b/protology/packages/occurrence/foist/tree/ffc2e2188d5c93e6eaa96e0f363f88aa54ac560ec5623dcf1e78d73221ae5d80/19a-Foist-Raw-Denum-KD-Coordinates-Cart-and-Signed-XOR-Product.md).
 

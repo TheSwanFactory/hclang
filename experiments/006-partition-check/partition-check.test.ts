@@ -1,14 +1,14 @@
-import { expect } from "jsr:@std/expect@^0.219.1";
-import { describe, it } from "jsr:@std/testing@^1.0.10/bdd";
+import { expect } from "@std/expect";
+import { describe, it } from "@std/testing/bdd";
 
-import { Frame } from "./frame.ts";
-import { FrameArray } from "./frame-array.ts";
+import { Frame } from "../../lib/frames/frame.ts";
+import { FrameArray } from "../../lib/frames/frame-array.ts";
 import {
   checkPartitions,
   type DependencyEdge,
   partitionPlan,
 } from "./partition-check.ts";
-import { registerEffect } from "./effect-registry.ts";
+import { registerEffect } from "../../lib/frames/effect-registry.ts";
 
 /** A fresh distinct managed/observer value for each case. */
 const node = (): Frame => new FrameArray([]);

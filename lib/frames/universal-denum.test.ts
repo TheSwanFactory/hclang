@@ -3,7 +3,7 @@
  * exact Counts, gauge, and error propagation. The old alternating residual
  * and two-load reconstruction are no longer public observers.
  */
-import { expect } from "jsr:@std/expect@^0.219.1";
+import { expect } from "@std/expect";
 import { Frame, FrameArray, FrameCount, FrameString } from "../frames.ts";
 import { constructDenum } from "../execute/denum-prologue.ts";
 import {

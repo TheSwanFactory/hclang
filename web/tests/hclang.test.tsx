@@ -1,6 +1,6 @@
 import "./setup.ts";
-import { afterEach, describe, it } from "jsr:@std/testing@1.0.15/bdd";
-import { expect } from "jsr:@std/expect@1.0.17";
+import { afterEach, describe, it } from "@std/testing/bdd";
+import { expect } from "@std/expect";
 
 const {
   cleanup,

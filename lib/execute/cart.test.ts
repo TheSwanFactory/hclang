@@ -1,5 +1,5 @@
 /** FOIST 19a: native * is Cartesian pairing, not recursive inlay. */
-import { expect } from "jsr:@std/expect@^0.219.1";
+import { expect } from "@std/expect";
 import { HCLang } from "../mod.ts";
 import { Frame, FrameArray, FrameCount } from "../frames.ts";
 import { Multiply } from "../ops/math.ts";

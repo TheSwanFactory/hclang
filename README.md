@@ -21,7 +21,8 @@ The repository includes several packages:
   [_Multipurpose Abstract Markup Language_](https://theswanfactory.wordpress.com/2016/11/08/introducing-maml-a-draft-proposal-for-html6/),
   a radically simple proposal for replacing web technologies (HTML, CSS,
   JavaScript, SVG) with a single format based on HC
-- **Web** - Web components and Fresh framework integration
+- **Web** - the offline `hcweb.html` playground and the `@swanfactory/hcweb`
+  component
 
 HC can also be used to define easily-parseable variants of other common file
 formats (e.g., HCSV, HCSON).
@@ -97,21 +98,29 @@ deno task test
 
 The root `deno.json` provides several tasks:
 
-| Task                  | Description                                       |
-| --------------------- | ------------------------------------------------- |
-| `deno task hc`        | Launch the HC REPL                                |
-| `deno task setup`     | Install pre-commit hooks                          |
-| `deno task test`      | Check formatting and lint, then run all tests     |
-| `deno task fix`       | Format sources and apply lint fixes               |
-| `deno task test:cli`  | Test CLI package                                  |
-| `deno task test:lib`  | Test library package                              |
-| `deno task test:maml` | Test MAML package                                 |
-| `deno task test:web`  | Test web package                                  |
-| `deno task test:bs`   | Test BitScheme documentation                      |
-| `deno task test:doc`  | Test HC documentation examples                    |
-| `deno task build`     | Build native, npm, and web artifacts              |
-| `deno task build:npm` | Generate the Node.js CLI package in `dist/npm`    |
-| `deno task test:npm`  | Pack and smoke-test the CLI package through `npx` |
+| Task                               | Description                                                         |
+| ---------------------------------- | ------------------------------------------------------------------- |
+| `deno task hc`                     | Launch the HC REPL                                                  |
+| `deno task setup`                  | Install the git hooks (deno-hooks)                                  |
+| `deno task test`                   | Check formatting and lint, then run all tests                       |
+| `deno task test:all`               | Run every package's tests, without fmt and lint                     |
+| `deno task fix`                    | Format sources and apply lint fixes                                 |
+| `deno task test:cli`               | Test CLI package                                                    |
+| `deno task test:lib`               | Test library package                                                |
+| `deno task test:maml`              | Test MAML package                                                   |
+| `deno task test:web`               | Test web package                                                    |
+| `deno task test:scripts`           | Test the build and release scripts                                  |
+| `deno task test:observer-algebras` | Test experiment 007                                                 |
+| `deno task test:classical-cd`      | Test experiment 017                                                 |
+| `deno task test:compiled`          | Build the CLI binary and run it from an empty directory             |
+| `deno task test:load-order`        | Check that every `lib/` module loads when imported first            |
+| `deno task check`                  | Type-check, check the README code blocks, and run `deno doc --lint` |
+| `deno task coverage:check`         | Check each package's line-coverage floor, as CI does                |
+| `deno task test:bs`                | Test BitScheme documentation                                        |
+| `deno task test:doc`               | Test HC documentation examples                                      |
+| `deno task build`                  | Build native, npm, and web artifacts                                |
+| `deno task build:npm`              | Generate the Node.js CLI package in `dist/npm`                      |
+| `deno task test:npm`               | Pack and smoke-test the CLI package through `npx`                   |
 
 `test:doc` automatically discovers every `hc/*.hc` file with an HC shebang and
 an executable `; source` / `# expected` pair. It runs each testdoc in an
@@ -160,17 +169,10 @@ deno task hc
    # Other platforms: see https://deno.land/
    ```
 
-3. (Optional) Install [pre-commit](https://pre-commit.com/) for automatic code
-   quality checks:
-
-   ```bash
-   # macOS
-   brew install pre-commit
-
-   # Other platforms: pip install pre-commit
-   ```
-
-   Install pre-commit hooks explicitly with `deno task setup`.
+3. (Optional) Install the git hooks with `deno task setup`. It installs
+   [deno-hooks](https://jsr.io/@theswanfactory/deno-hooks) as configured in
+   `deno-hooks.yml`: a pre-commit hook that runs `deno fmt` and `deno lint` on
+   the staged files, and a pre-push hook that runs `deno task test:all`.
 
 4. Run tests:
 
@@ -188,22 +190,28 @@ deno task hc
 
    Build, test, and publish tasks automatically regenerate the bundled HC
    sources from `hc/*.hc`. `deno task bundle:check` is available to verify the
-   generated module when needed. Before running raw `deno check`, a bare
-   `deno test`, or editor type-checking on a fresh clone, initialize that
+   generated module when needed. To type-check, run `deno task check`. Before a
+   bare `deno test` or editor type-checking on a fresh clone, initialize that
    gitignored module once with `deno task bundle:embed`.
 
 ### Project Structure
 
-This is a Deno workspace (monorepo) with the following packages:
+This is a Deno workspace (monorepo). `cli/`, `lib/`, `maml/` and `web/` are its
+packages:
 
 ```text
 hclang/
-├── cli/          # HC command-line interface & REPL
-├── lib/          # Core library (published to JSR)
-├── maml/         # MAML markup language
-├── web/          # Web components
-├── doc/          # Documentation and papers
-└── deno.json     # Workspace root configuration
+├── cli/               # HC command-line interface & REPL
+├── lib/               # Core library (published to JSR)
+├── maml/              # MAML markup language
+├── web/               # hcweb playground and component
+├── hc/                # Bundled HC programs, modules and testdocs
+├── scripts/           # Build, release and test scripts
+├── doc/               # Language and design documentation, and papers
+├── spec/              # Design records and specifications
+├── experiments/       # Experiments, each with its own README
+├── vscode-extension/  # VS Code syntax highlighting
+└── deno.json          # Workspace configuration and tasks
 ```
 
 ### VS Code Extension

@@ -1,5 +1,5 @@
 {
-  "version": "0.55.3",
+  "version": "0.55.4",
   "description": "Homoiconic C command-line interface and REPL",
   "entry": "./hc.ts",
   "bin": {
@@ -15,8 +15,6 @@
     "testdoc:summaries": "deno task --config ../deno.json bundle:embed && deno run --allow-read --allow-write --allow-env --deny-run --deny-ffi ./testdoc-summaries.ts"
   },
   "imports": {
-    "@nothing628/chalk": "jsr:@nothing628/chalk@^1.0.1",
-    "@std/cli": "jsr:@std/cli@^1.0.13",
-    "@std/expect": "jsr:@std/expect@^0.219.1"
+    "@nothing628/chalk": "jsr:@nothing628/chalk@^1.0.1"
   }
 }

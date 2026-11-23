@@ -1,6 +1,8 @@
 # Fix Closures - Summary and Next Steps
 
-**Status**: Ready for Implementation **Date**: 2025-12-14 **Branch**:
+**Status**: Closed. Option A's MAML step, `__` in `HeadBlock`, did not fix the
+tests ([10](10-maml-deeper-investigation.md)); v0.37.1 (#461) fixed MAML by
+replacing `HeadBlock` (`maml/maml.ts`). **Date**: 2025-12-14 **Branch**:
 `fix-closures`
 
 ## Summary
@@ -162,7 +164,7 @@ For Option A:
 
 ## References
 
-- **Specs**: [spec/1-fix-closures/](./README.md)
+- **Specs**: [spec/1-fix-closures/](./)
 - **Tests**: [lib/execute/evaluate.test.ts](../../lib/execute/evaluate.test.ts)
-- **MAML**: [lib/maml.ts](../../lib/maml.ts)
+- **MAML**: [lib/maml.ts](../../maml/maml.ts)
 - **Commit**: b02b34e (where MAML broke)

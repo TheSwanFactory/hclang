@@ -15,8 +15,12 @@ marks a testdoc. Every discovered file runs in an independent evaluator session,
 in sorted filename order. Do not add filenames to a task manifest. Files without
 executable expectations remain ordinary HC modules or examples. A new HC file
 with expectation pairs but without the HC shebang is rejected instead of
-silently skipped. The only legacy exceptions are `cqml.hc` (aspirational) and
-`white-paper-core.hc` (covered by the CLI test suite).
+silently skipped. The legacy exceptions are listed in `cli/test-docs.ts`.
+
+After a change that adds, removes or un-implements a claim in a bundled testdoc,
+run `cd cli && deno task testdoc:summaries` and commit the regenerated
+`cli/testdoc-summaries.json`; `cli/hc.test.ts` reads each expected summary from
+it.
 
 ## The compiled binary
 
@@ -47,7 +51,6 @@ never as the boundary.
 - `--deny-run` and `--deny-ffi` are a hard floor, because `--deny-*` beats
   `--allow-*` and either authority would void every path scope above.
 - Which schemes can reach a host is decided by `getHandlers()`, not by a flag.
-  Only the clock is bound; every other scheme is an empty slot and refuses.
 - `$$.dispatch` is part of the host surface of **every** program the CLI runs,
   not only `-t` testdocs. It grants no authority: each event is a closure the
   program already holds, run with the authority it already has. `HCLang`

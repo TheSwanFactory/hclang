@@ -1,5 +1,5 @@
 import { expect } from "@std/expect";
-import { join, toFileUrl } from "jsr:@std/path@1.1.6";
+import { join, toFileUrl } from "@std/path";
 import {
   discoverTestdocs,
   hasExpectations,
