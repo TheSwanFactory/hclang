@@ -416,6 +416,176 @@ Commit: `866f17c`.
 
 ## Step 17: Close out
 
+### Re-baseline
+
+The audit's step 1 method, at `ba6c00b` (a detached worktree with its bundle and
+`deno install --frozen`) and at `1ac47df`, this branch after the rebase. Same
+machine (Apple M4 Pro, 14 cores, 48 GB, macOS), Deno 2.9.7, `NO_COLOR=1`, AC
+power, and no other `deno test`, `task`, `run` or `coverage` process at the
+start of any round. Tests in the `ba6c00b` tree ran directly, never through a
+hook, with git's repository variables unset. After every round `core.bare` was
+`false` and the main checkout's `git status --short` was empty.
+
+**Wall time.** One warm-up `deno task test:all` in each tree (`ba6c00b` 78.74 s,
+`1ac47df` 36.83 s), then three rounds from 19:46 to 19:55, alternating the
+trees. Each round ran every task its tree's `test:all` chains, in chain order,
+then the chain, then `deno fmt --check` and `deno lint`. Every run exited 0.
+Load averages at the start of the rounds were 29.8, 7.6, 4.9, 3.0, 3.3 and 2.5.
+macOS's `XprotectService` scanned the freshly compiled `scripts/hc` binaries
+during the warm-ups and round 1; it inflated round 1 at `ba6c00b` (`test:web`
+15.99 s, `test:doc` 8.47 s, `test:npm` 20.42 s, `test:compiled` 18.44 s). Those
+are the ranges' maxima and do not move the medians.
+
+| Task, in `test:all` order | Audit, median s | `ba6c00b`, median (range) s | `1ac47df`, median (range) s |
+| ------------------------- | --------------: | --------------------------- | --------------------------- |
+| `bundle:embed`            |            0.07 | 0.07 (0.07–0.07)            | 0.06 (0.06–0.07)            |
+| `test:cli`                |            0.81 | 0.79 (0.78–0.82)            | 4.18 (4.17–4.18)            |
+| `test:lib`                |           13.49 | 13.28 (13.27–14.09)         | 6.86 (6.83–6.87)            |
+| `test:maml`               |            0.34 | 0.34 (0.33–0.40)            | 0.35 (0.35–0.36)            |
+| `test:scripts`            |            2.07 | 1.92 (1.92–2.41)            | 2.00 (1.98–2.01)            |
+| `test:observer-algebras`  |            1.54 | 1.50 (1.48–1.58)            | 1.60 (1.58–1.60)            |
+| `test:classical-cd`       |                 |                             | 2.90 (2.89–2.90)            |
+| `test:web`                |            5.38 | 5.05 (5.03–15.99)           | 4.61 (4.53–4.61)            |
+| `test:doc`                |            3.72 | 3.46 (3.44–8.47)            | 3.62 (3.61–3.66)            |
+| `test:npm`                |            6.35 | 5.73 (5.61–20.42)           | 5.83 (5.47–6.01)            |
+| `test:compiled`           |            4.18 | 3.58 (3.56–18.44)           | 3.45 (3.43–3.46)            |
+| Sum of medians            |           37.95 | 35.72                       | 35.46                       |
+| `test:all`, whole chain   |           37.85 | 35.99 (35.28–38.76)         | 35.12 (35.10–35.37)         |
+| `deno fmt --check`        |            0.03 | 0.03 (0.03–0.03)            | 0.04 (0.03–0.04)            |
+| `deno lint`               |            0.02 | 0.02 (0.02–0.02)            | 0.02 (0.02–0.02)            |
+
+The chain is 0.87 s shorter at the head although it runs more: every task now
+runs `bundle:embed` first (7.3), and `test:classical-cd` (step 15) adds 2.90 s.
+`test:lib` is 6.42 s shorter, because it runs `--parallel` (6.8). `test:cli` is
+3.39 s longer: 6.12's `cli/hc.test.ts` now pins every testdoc, and the
+`hc/cd-bit-kernel.hc` step alone prints 3 s. At the head, `deno task check` took
+1.41 s and `deno task coverage:check` 41.02 s, both exit 0, run once after the
+rounds.
+
+**Counts.** Identical in all three rounds and in each `test:all`. Deno counts a
+top-level `Deno.test` or `describe` as a test and a nested one as a step.
+
+| Task                          | Files, audit → head | Passed, audit → head | Steps, audit → head | Ignored |
+| ----------------------------- | ------------------- | -------------------- | ------------------- | ------: |
+| `test:cli`                    | 5 → 5               | 10 → 11              | 74 → 77             |       0 |
+| `test:lib`, main run          | 79 → 94             | 201 → 215            | 1,553 → 1,544       |       4 |
+| `test:lib`, `test:load-order` | 1 → 1               | 1 → 1                | 1 → 1               |       0 |
+| `test:maml`                   | 2 → 2               | 3 → 3                | 18 → 18             |       0 |
+| `test:scripts`                | 6 → 7               | 17 → 21              | 118 → 127           |       0 |
+| `test:observer-algebras`      | 3 → 3               | 33 → 33              | 0 → 0               |       0 |
+| `test:classical-cd`           | – → 2               | – → 3                | – → 17              |       0 |
+| `test:web`, `test:components` | 1 → 1               | 1 → 1                | 4 → 4               |       0 |
+| `test:web`, `test:artifact`   | 2 → 2               | 2 → 2                | 16 → 16             |       0 |
+| **Total**                     | **99 → 117**        | **268 → 290**        | **1,784 → 1,804**   |   **4** |
+
+Of 119 tracked test files (103 at `ba6c00b`), `test:all` runs 117; the other two
+are `web/tests/production.test.ts` and a13's `spike.test.ts`. Each difference,
+by finding (02's Test counts give the refactor's in detail):
+
+- `test:cli`, +1 test, +3 steps: 3.3 deleted `cli/flatten.test.ts` (−1, −7);
+  6.12 added `cli/testdoc-summaries.test.ts` and six pinned testdocs (+1, +6);
+  #514's outside review added the generator's guards (+1, +4).
+- `test:lib`, +14 tests, −9 steps, +15 files: 2.10 split `evaluate.test.ts` into
+  nine `evaluate.<feature>.test.ts` files (+9 tests, −9 steps); 2.11 split
+  `resource-import.test.ts` into five files (+3, −3); 3.11 removed
+  `describe("contextEqual")` (−3 steps); 3.20 deleted `denum-observers.test.ts`
+  and moved 3 of its 4 tests (−1 test); 4.17 added `lib/test-helpers.test.ts`;
+  5.14 moved `sigilizer.test.ts` to `lib/`; the outside review added
+  `class-prologue.test.ts` and the ranked-rungs suite (+3, +6).
+- `test:scripts`, +4 tests, +9 steps, +1 file: `scripts/coverage-floor.test.ts`
+  (step 16, 1.1).
+- `test:classical-cd`, +3 tests, +17 steps, +2 files: experiment 017, chained
+  from `test:all` in step 15.
+- The 4 ignored tests are still 1.5's `describe.skip` suites, now in
+  `lib/execute/evaluate.schemas.test.ts`.
+
+`test:doc` executed 21 testdocs with **944 claims, 934 pass, 0 fail and 10
+unimplemented**, each testdoc's final `$=.test-summary` equal to the audit's
+table. `test:classical-cd` adds `gate0.hc`'s 17 of 17. `test:npm` printed
+`Verified hclang@0.55.3 via npx` and `test:compiled` passed both its cases.
+
+The slowest test is still `lib/execute/foist-19a.test.ts:132` (6.6), which
+prints 5 s in each round under `--parallel` and 4 s at `ba6c00b`; the second is
+`division.test.ts`'s routing guard (6.7), 3 s and 2 s. After each
+`test:compiled`, `scripts/hc` was 181,462,930 bytes (186,020,242 at `ba6c00b`,
+as the audit measured): 107.61 MB of embedded files, of which `node_modules/` is
+104.38 MB and `dist/npm/node_modules/` 3.22 MB (1.6).
+
+**Coverage.** The audit's commands at the head: each package's own task with
+`DENO_COVERAGE_DIR`, then one `deno task test:all`, reported with each package's
+`--include` (the `pwd -P` prefix), `--exclude='\.test\.(js|mjs|ts|jsx|tsx)$'`,
+the bundle excluded for lib and `/web/(tests|dist)/` for web. Web is collected
+from `build:web`, `test:components` and `test:artifact` (1.2): the whole chain's
+report for web is still empty ("Missing transpiled source code" for all five
+modules), so web's `test:all` columns repeat its own collection, as the audit's
+did. Collecting took 29.95 s for `test:lib` and 67.83 s for `test:all`.
+
+| Package                             | Files     | Lines, own task       | Lines, `test:all`                             | Branches, `test:all`                      | Functions, `test:all`                     |
+| ----------------------------------- | --------- | --------------------- | --------------------------------------------- | ----------------------------------------- | ----------------------------------------- |
+| `lib`, audit                        | 100       | 92.2% (9,878/10,719)  | 92.9% (9,960/10,719)                          | 93.2% (4,020/4,312)                       | 91.2% (1,185/1,300)                       |
+| `lib`, head                         | 101       | 94.4% (9,871/10,457)  | 94.8% (9,915/10,457)                          | 93.6% (3,904/4,170)                       | 94.6% (1,221/1,291)                       |
+| `cli`, audit                        | 6         | 80.7% (321/398)       | 82.2% (327/398)                               | 87.6% (127/145)                           | 82.4% (28/34)                             |
+| `cli`, head                         | 7         | 78.2% (356/455)       | 80.0% (364/455)                               | 86.6% (129/149)                           | 87.2% (34/39)                             |
+| `maml`, audit                       | 1         | 100% (22/22)          | 100% (22/22)                                  | no branches                               | 100% (1/1)                                |
+| `maml`, head                        | 2         | 100% (57/57)          | 100% (57/57)                                  | 100% (1/1)                                | 100% (3/3)                                |
+| `scripts`, audit                    | 7         | 40.6% (187/461)       | 82.5% (552/669)                               | 82.5% (104/126)                           | 88.5% (23/26)                             |
+| `scripts`, head                     | 8         | 42.6% (270/634)       | 78.2% (663/848)                               | 83.9% (120/143)                           | 81.1% (30/37)                             |
+| `web`, audit                        | 5         | 99.1% (113/114)       | 99.1% (113/114)                               | 94.4% (17/18)                             | 100% (8/8)                                |
+| `web`, head                         | 5         | 99.1% (113/114)       | 99.1% (113/114)                               | 94.4% (17/18)                             | 100% (8/8)                                |
+| `experiments/007-observer-algebras` | 7 and 7   | 97.8% (745/762), both | 97.8% (745/762), both                         | 88.9% (185/208), both                     | 98.7% (78/79), both                       |
+| All six, audit → head               | 126 → 130 |                       | 92.4% (11,719/12,684) → 93.4% (11,857/12,693) | 92.6% (4,453/4,809) → 92.9% (4,356/4,689) | 91.4% (1,323/1,448) → 94.3% (1,374/1,457) |
+
+- `lib` lost 262 instrumented lines to the step 9 deletions (3.1, 3.12, 3.13),
+  `hc-log.ts` (5.3) and `maml.ts` leaving it; its whole-chain line coverage is
+  94.8%, against the audit's forecast of about 95.1%.
+- `cli` gained `hc-log.ts` (5.3) and `testdoc-summaries.ts` (6.12) and lost
+  `flatten.ts` (3.3). `maml` now holds `maml.ts` beside `tag.ts`.
+- `scripts` gained `coverage-floor.ts` (step 16): 83 of its 150 lines run in
+  `test:scripts`, and the rest only under `deno task coverage:check`, which
+  `test:all` does not chain. The own task loads 5 of its 8 modules (1.4).
+
+Untaken branches (BRF − BRH), whole chain, for 3.16: `lib/frames` 224 → 212,
+`lib/execute` 61 → 44, `lib/ops` 7 → 7, `lib/` itself 0 → 3 (`sigilizer.ts`
+moved there, 5.14), so `lib` 292 → 266; `cli` 18 → 20 (`hc-log.ts` brings 3);
+`scripts` 22 → 23; `web` 1 → 1; `experiments/007-observer-algebras` 23 → 23; all
+356 → 333. The files with the most are `lib/frames/access-footprint.ts` (39),
+`frame-symbol.ts` (15), `frame-numeric.ts` (14), `fourth-hash.ts` (14) and
+`frame-expr.ts` (13); `lib/execute/router-prologue.ts` has 8.
+
+6.3's 11 modules and `cli/prompt.ts`, whole chain (own task where it differs):
+
+| Module                               | Lines, audit `test:all` | Lines, head     | Uncovered | Branches, head        | Functions, head |
+| ------------------------------------ | ----------------------- | --------------- | --------: | --------------------- | --------------- |
+| `lib/frames/frame-sequence.ts`       | 43/90                   | 43/64 (67.2%)   |        21 | 15/16                 | 7/13            |
+| `lib/frames/frame-rational.ts`       | 117/156                 | 114/139 (82.0%) |        25 | 23/27                 | 16/20           |
+| `lib/execute/router-prologue.ts`     | 62/80                   | 44/53 (83.0%)   |         9 | 17/25 (own 16/24)     | 4/4             |
+| `lib/frames/frame-decimal.ts`        | 132/164                 | 126/142 (88.7%) |        16 | 43/46                 | 19/22           |
+| `lib/frames/frame-atom.ts`           | 34/42                   | 34/39 (87.2%)   |         5 | 7/9 (own 6/8)         | 7/8             |
+| `lib/execute/terminals.ts`           | 57/67                   | 57/64 (89.1%)   |         7 | 7/9                   | 8/9             |
+| `lib/frames/frame-int.ts`            | 161/187                 | 157/173 (90.8%) |        16 | 70/74                 | 25/27           |
+| `cli/hc-log.ts` (was `lib/execute/`) | 34/39                   | 34/39 (87.2%)   |         5 | 9/12                  | 4/4             |
+| `lib/ops/frame-ops.ts`               | 22/25                   | 22/25 (88.0%)   |         3 | 5/6                   | 5/6             |
+| `lib/frames/fourth-hash.ts`          | 157/178                 | 163/180 (90.6%) |        17 | 111/125 (own 109/123) | 14/14           |
+| `lib/frames/frame-observation.ts`    | 53/60                   | 53/60 (88.3%)   |         7 | 12/16                 | 10/12           |
+| `cli/prompt.ts`                      | 5/38                    | 5/38 (13.2%)    |        33 | none                  | 0/5             |
+
+The 11 modules leave 131 lines uncovered, against 216 at `ba6c00b`.
+
+**Experiments.** The audit's "Step 1, experiments" commands at the head, three
+times each from the repository root, 20:01 to 20:02:
+
+| Experiment              | Command                                                              | Result at the head                                  | Wall s, median (range) | Audit at `ba6c00b`       |
+| ----------------------- | -------------------------------------------------------------------- | --------------------------------------------------- | ---------------------- | ------------------------ |
+| `007-observer-algebras` | `deno test --allow-read experiments/007-observer-algebras`           | pass: 33 tests                                      | 1.48 (1.47–1.48)       | pass, 1.57 (as its task) |
+| `017-classical-cd`      | `deno test experiments/017-classical-cd`                             | pass: 3 tests, 17 steps                             | 2.70 (2.68–2.71)       | pass, 2.85               |
+| `017-classical-cd`      | `cd cli && deno task hc ../experiments/017-classical-cd/gate0.hc -t` | pass: 17 of 17 claims                               | 0.15 (0.14–0.15)       | pass, 0.15               |
+| `a13-recovery-spike`    | `deno test experiments/a13-recovery-spike`                           | fail: 10 pass, 3 fail (`:95`, `:200`, `:216`)       | 0.32 (0.32–0.56)       | fail, 10 and 3, 0.34     |
+| `a13-recovery-spike`    | the head's folder in `05b4f25`'s tree                                | fail: TS2307, `"@std/expect"` not in the import map | 0.25 (0.25–0.45)       |                          |
+| `a13-recovery-spike`    | `ba6c00b`'s folder in `05b4f25`'s tree                               | pass: 13 tests                                      | 0.30 (0.30–0.53)       | pass, 0.61               |
+
+Both 017 commands now run in `test:classical-cd`. The a13 result is a defect
+(below).
+
 ## Defects found
 
 - Step 14 found no defect in product code. `lib/frames/frame.ts:95` still says
@@ -428,6 +598,18 @@ Commit: `866f17c`.
   "Not implemented".
 - Step 16 found no new defect. 02's defect, that `@std/expect` 0.219.1 ignored
   `expect`'s message argument, is gone with 8.2.
+- Step 17's re-baseline found that 8.2 (`94104e4`) broke a13's archive recipe.
+  It changed `experiments/a13-recovery-spike/spike.test.ts:11` from
+  `jsr:@std/expect@^0.219.1` to the bare `@std/expect`, which `05b4f25`'s import
+  map lacks, so the head's folder copied into `05b4f25`'s tree fails to
+  type-check (TS2307), while its README and step 15's entry say its tests pass
+  there. `ba6c00b`'s folder still passes 13 of 13. Step 15 checked the recipe at
+  `c00d910`, before 8.2 merged.
+- One `deno task coverage:check` at the head, started at 19:42 by an earlier
+  run's script under load, failed: `deno coverage` of lib stopped on an empty V8
+  coverage file ("EOF while parsing a value at line 1 column 0") after a 61.9 s
+  `test:lib`, and the floor reported lib's report as empty. The run at 19:54 and
+  the merge step's passed, so it did not reproduce.
 
 ## GitHub actions
 
