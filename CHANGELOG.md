@@ -5,6 +5,14 @@
 > contains nothing else; then describe it and say that nothing user-facing
 > changed.
 
+## v0.55.13 2026-11-23
+
+- **A Denum is recognized once per observation (#530).** `.####` and `&|&` no
+  longer rebuild a Denum a second time to recognize the reconstruction that
+  `.###` just made; they reuse the Count and loads it was built from. The
+  slowest library test drops from a median of 4.9 s to 3.3 s. No answers change,
+  and nothing user-facing changed.
+
 ## v0.55.12 2026-11-23
 
 - **Smaller compiled `hc` binary (#517).** `deno task build:cli` no longer

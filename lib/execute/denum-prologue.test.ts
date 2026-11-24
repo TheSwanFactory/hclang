@@ -10,6 +10,8 @@ import {
   loadDenumClass,
 } from "./denum-prologue.ts";
 import {
+  installDenumConstructor,
+  multiplyDenum,
   observeDenum,
   observeKDCoordinates,
   tryDenumState,
@@ -89,6 +91,43 @@ Deno.test("FOIST 19a: raw Denumeration preserves instances, not forged fields", 
     count: 0n,
     loads: [],
   });
+});
+
+Deno.test("FOIST 19a: .#### and &|& give a forged record its derived answer", () => {
+  const d = denum(4n, [3n, 1n]);
+  const forged = new FrameArray([]);
+  forged.set("count", count(4n));
+  forged.set("loads", new FrameArray([count(3n), count(1n)]));
+  const derived = observeDenum(forged);
+  expect(observeKDCoordinates(d).toString()).toEqual("[2]");
+  expect(observeKDCoordinates(forged).toString())
+    .toEqual(observeKDCoordinates(derived).toString());
+  expect(observeKDCoordinates(forged).toString()).toEqual("[]");
+  expect(state(multiplyDenum(forged, d)))
+    .toEqual(state(multiplyDenum(derived, d)));
+  expect(state(multiplyDenum(d, forged)))
+    .toEqual(state(multiplyDenum(d, derived)));
+  expect(state(multiplyDenum(forged, d))).toEqual({ count: 0n, loads: [] });
+});
+
+Deno.test("FOIST 19a: .#### and &|& build a genuine Denum once", () => {
+  const d = denum(4n, [3n, 1n]);
+  const e = denum(2n, [5n]);
+  let calls = 0;
+  installDenumConstructor((c, loads) => {
+    calls++;
+    return constructDenum(c, loads);
+  });
+  try {
+    observeKDCoordinates(d);
+    expect(calls).toEqual(1);
+    calls = 0;
+    // One recognition per operand, plus the product.
+    multiplyDenum(d, e);
+    expect(calls).toEqual(3);
+  } finally {
+    installDenumConstructor(constructDenum);
+  }
 });
 
 Deno.test("FOIST 19a: constructor and class-load failures are explicit", () => {
