@@ -33,7 +33,7 @@
     "experiment:observer-algebras": "deno run --allow-read experiments/007-observer-algebras/report.ts",
     "test:web": "deno task bundle:embed && cd web && deno task test",
     "test:bs": "cd cli && deno task test:bs",
-    "test:compiled": "deno task build:cli && deno run --allow-read --allow-write --allow-env --allow-run scripts/test-compiled.ts",
+    "test:compiled": "deno run --allow-read --allow-write --allow-env --allow-run scripts/test-compiled.ts",
     "bundle:embed": "deno run --allow-read --allow-write scripts/embed-hc.ts && deno fmt --quiet lib/bundle/hc-sources.ts",
     "bundle:check": "deno run --allow-read scripts/embed-hc.ts --check",
     "test:all": "deno task bundle:embed && deno task test:cli && deno task test:lib && deno task test:scripts && deno task test:partition-check && deno task test:observer-algebras && deno task test:classical-cd && deno task test:web && deno task test:doc && deno task test:npm && deno task test:compiled",
