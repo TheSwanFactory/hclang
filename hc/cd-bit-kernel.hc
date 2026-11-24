@@ -546,17 +546,8 @@ This is an 8-bit bridge, NOT a public two-blob cursor or an implicit cast.
 # 0
 
 ```
-Negative ingress witnesses: schema matching rejects undersized,
-oversized, and non-binary input instead of implicitly coercing it.
-```
-; cd_byte_index 0b101
-# $!.insufficient-bits .b4 3
-; cd_byte_index 0b111111111
-# $!.unconsumed-bits 1
-; cd_byte_index 5
-# $!.bit-input-invalid 5
-```
-BitScheme ingress rejects incomplete, oversized, or non-blob inputs.
+Negative ingress witnesses: BitScheme schema matching rejects undersized,
+oversized, and non-blob input instead of implicitly coercing it.
 These are executable error-contract witnesses, not new parser behavior.
 ```
 ; cd_byte_index 0b101
