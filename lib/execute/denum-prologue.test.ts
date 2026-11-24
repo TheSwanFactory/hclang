@@ -10,6 +10,7 @@ import {
   loadDenumClass,
 } from "./denum-prologue.ts";
 import {
+  installDenumConstructor,
   multiplyDenum,
   observeDenum,
   observeKDCoordinates,
@@ -107,6 +108,26 @@ Deno.test("FOIST 19a: .#### and &|& give a forged record its derived answer", ()
   expect(state(multiplyDenum(d, forged)))
     .toEqual(state(multiplyDenum(d, derived)));
   expect(state(multiplyDenum(forged, d))).toEqual({ count: 0n, loads: [] });
+});
+
+Deno.test("FOIST 19a: .#### and &|& build a genuine Denum once", () => {
+  const d = denum(4n, [3n, 1n]);
+  const e = denum(2n, [5n]);
+  let calls = 0;
+  installDenumConstructor((c, loads) => {
+    calls++;
+    return constructDenum(c, loads);
+  });
+  try {
+    observeKDCoordinates(d);
+    expect(calls).toEqual(1);
+    calls = 0;
+    // One recognition per operand, plus the product.
+    multiplyDenum(d, e);
+    expect(calls).toEqual(3);
+  } finally {
+    installDenumConstructor(constructDenum);
+  }
 });
 
 Deno.test("FOIST 19a: constructor and class-load failures are explicit", () => {
