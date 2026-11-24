@@ -5,6 +5,13 @@
 > contains nothing else; then describe it and say that nothing user-facing
 > changed.
 
+## v0.55.11 2026-11-23
+
+- **One copy of the cd-bit-kernel error witnesses (#528).**
+  `hc/cd-bit-kernel.hc` asserted the same three `cd_byte_index` error-contract
+  claims twice; it now asserts them once, under one introduction, and its pinned
+  testdoc total drops from 117 to 114. Nothing user-facing changed.
+
 ## v0.55.10 2026-11-23
 
 - **Hook documentation (#539).** `CLAUDE.md` and `deno-hooks.yml` say that the
