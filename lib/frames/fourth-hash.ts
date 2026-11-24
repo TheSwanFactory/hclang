@@ -129,10 +129,11 @@ function sizeLoad(frame: Frame): FrameCount | Frame {
  * other Frame.
  *
  * @param source The observed Frame.
- * @returns A fresh Denum equal to the source, or undefined.
+ * @returns A fresh Denum equal to the source, with the state it was built
+ *   from, or undefined.
  */
-function intrinsicDenum(source: Frame): Frame | undefined {
-  return recognizeDenum(source)?.denum;
+function intrinsicDenum(source: Frame): DenumState | undefined {
+  return recognizeDenum(source);
 }
 
 /** A recognized Denum: its fresh reconstruction and the state it was built from. */
@@ -214,6 +215,16 @@ function channelRouterDenum(source: Frame): Frame | undefined {
  * immediate child. Count is not forced to equal load arity on a Denum.
  */
 export function observeDenum(source: Frame): Frame {
+  const raw = observeRawDenum(source);
+  return raw instanceof Frame ? raw : raw.denum;
+}
+
+/**
+ * The raw third hash as `observeDenum` answers it, except that a recognized
+ * Denum answers its state, so a caller that needs the stored Count and loads
+ * does not rebuild the reconstruction to recognize it again.
+ */
+function observeRawDenum(source: Frame): Frame | DenumState {
   const failure = source.observationError();
   if (failure) return failure;
   const intrinsic = intrinsicDenum(source);
@@ -263,13 +274,27 @@ export function tryDenumState(
 }
 
 /**
+ * The state of a raw observation: the one already recognized, or, for a
+ * Denum the derived or router path constructed, its recognition.
+ */
+function stateOf(raw: Frame | DenumState): DenumState | undefined {
+  return raw instanceof Frame ? recognizeDenum(raw) : raw;
+}
+
+/** Whether a raw observation is absent or failed, and so is the answer. */
+function isRawRefusal(raw: Frame | DenumState): raw is Frame {
+  return raw instanceof Frame &&
+    (raw === Frame.nil || raw.observationError() !== undefined);
+}
+
+/**
  * The fourth hash observes KD signed coordinates from the raw third hash.
  * Arity completion is virtual: neither Count nor the stored loads change.
  */
 export function observeKDCoordinates(source: Frame): Frame {
-  const raw = observeDenum(source);
-  if (raw === Frame.nil || raw.observationError()) return raw;
-  const state = recognizeDenum(raw);
+  const raw = observeRawDenum(source);
+  if (isRawRefusal(raw)) return raw;
+  const state = stateOf(raw);
   if (!state) return Frame.error("$!.denum-observations");
   if (state.loads.length === 0) return new FrameArray([]);
   try {
@@ -305,12 +330,12 @@ export function negateDenum(source: Frame): Frame | undefined {
  * C(A &|& B) := C(A) × C(B). This explicit policy preserves Count zero.
  */
 export function multiplyDenum(left: Frame, right: Frame): Frame {
-  const a = observeDenum(left);
-  if (a.observationError() || a === Frame.nil) return a;
-  const b = observeDenum(right);
-  if (b.observationError() || b === Frame.nil) return b;
-  const x = recognizeDenum(a);
-  const y = recognizeDenum(b);
+  const a = observeRawDenum(left);
+  if (isRawRefusal(a)) return a;
+  const b = observeRawDenum(right);
+  if (isRawRefusal(b)) return b;
+  const x = stateOf(a);
+  const y = stateOf(b);
   if (!x || !y || !construct) {
     return Frame.error("$!.denum-observations");
   }
