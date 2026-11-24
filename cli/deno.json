@@ -1,12 +1,12 @@
 {
-  "version": "0.55.11",
+  "version": "0.55.12",
   "description": "Homoiconic C command-line interface and REPL",
   "entry": "./hc.ts",
   "bin": {
     "hc": "./hc.ts"
   },
   "tasks": {
-    "build": "deno compile --allow-read --allow-write --allow-env --deny-run --deny-ffi --output ../scripts/hc ./hc.ts",
+    "build": "cd .. && deno compile --allow-read --allow-write --allow-env --deny-run --deny-ffi --exclude node_modules --exclude dist/npm/node_modules --output scripts/hc cli/hc.ts",
     "hc": "deno task --config ../deno.json bundle:embed && deno run --allow-read --allow-write --allow-env --deny-run --deny-ffi ./hc.ts",
     "test": "deno test --allow-env --allow-read --allow-write",
     "test:bs": "deno task hc ../hc/BitScheme.hc -t",

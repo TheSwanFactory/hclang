@@ -5,6 +5,13 @@
 > contains nothing else; then describe it and say that nothing user-facing
 > changed.
 
+## v0.55.12 2026-11-23
+
+- **Smaller compiled `hc` binary (#517).** `deno task build:cli` no longer
+  embeds the workspace `node_modules/` or `dist/npm/node_modules/` in
+  `scripts/hc`, which imports no npm package. The binary shrinks from 181.5 MB
+  to 69.7 MB, and its embedded files from 107.63 MB to 1.86 MB.
+
 ## v0.55.11 2026-11-23
 
 - **One copy of the cd-bit-kernel error witnesses (#528).**
