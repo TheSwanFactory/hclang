@@ -5,6 +5,17 @@
 > contains nothing else; then describe it and say that nothing user-facing
 > changed.
 
+## v0.55.16 2026-11-24
+
+- **Tests for the REPL and the untested numeric paths (#521, #522).** A `cli`
+  test drives `hc`'s REPL through piped stdin, one line per prompt, and checks
+  the banner, the `;` and `# #` prompts and the `#` results; two `hc --evaluate`
+  runs cover `DEBUG` logging and uncoloured output. 18 testdoc claims in
+  `hc/numerics.hc`, `hc/time.hc` and `hc/units.hc` pin unary `+` and `-`,
+  inexact quotients, non-integral exponents, `.<=` on durations and the refusal
+  to scale a duration by a sequence or typed number. Nothing user-facing
+  changed.
+
 ## v0.55.15 2026-11-24
 
 - **The playground answers as the CLI does (#513).** The minified playground
