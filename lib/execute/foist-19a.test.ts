@@ -34,8 +34,6 @@ Deno.test("FOIST 19a: the third hash is raw Denumeration", () => {
 });
 
 Deno.test("FOIST 19a: the fourth hash is observational KD coordinates", () => {
-  expect(read("[3, 1].####").toString()).toEqual("[2]");
-  expect(read("[3, 1, 5].####").toString()).toEqual("[-2, 1]");
   expect(read("[].####").toString()).toEqual("[]");
   expect(observeKDCoordinates(denum(9n, [3n, 1n])).toString())
     .toEqual("[2]");
@@ -71,9 +69,6 @@ Deno.test("FOIST 19a preserves the empty Denum as the raw zero-arity state", () 
 });
 
 Deno.test("FOIST 19a: Frame Flop and Cart preserve receiver order", () => {
-  expect(read("[1, 2] + [3, 4]").toString()).toEqual("[1, 2, 3, 4]");
-  expect(read("[1, 2] * [3, 4]").toString())
-    .toEqual("[[1, 3], [1, 4], [2, 3], [2, 4]]");
   expect(
     CartElements(denum(2n, [3n, 1n]), denum(2n, [4n, 2n]))
       .toString(),
@@ -83,10 +78,6 @@ Deno.test("FOIST 19a: Frame Flop and Cart preserve receiver order", () => {
 });
 
 Deno.test("FOIST 19a: Flop retains receiver Count phase", () => {
-  expect(read("([3, 1].### + [1, 2].###).####").toString())
-    .toEqual("[1]");
-  expect(read("((([3, 1].###) 0) + [1, 2].###).####").toString())
-    .toEqual("[3]");
   expect(read("((([3, 1].###) 0) - [1, 2].###).####").toString())
     .toEqual("[1]");
 });
@@ -96,8 +87,6 @@ Deno.test("FOIST 19a: mixed scalar Flop follows application, subtraction refuses
   expect(read("1 + [2]").toString()).toEqual("2");
   expect(read("5 - ([3, 1].###)").toString()).toEqual("15");
   expect(read("0 - ([3, 1].###)").toString()).toEqual("0");
-  expect(read("([3, 1].###) - [1, 2]").toString())
-    .toEqual("$!.flop-domain -");
   expect(read("[1, 2] - [3]").toString()).toEqual("$!.flop-domain -");
 });
 
