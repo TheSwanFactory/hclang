@@ -699,10 +699,16 @@ export function sitesAround(body: readonly Frame[]): Sites {
   return (body[0] && enclosingSites.get(body[0])) ?? new Map();
 }
 
+/**
+ * Looks through the parse wrappers around one term: a group, or a plain
+ * expression. A closure or an array of one term is a value, not a wrapper, so
+ * `.c {<.x>}` declares the closure rather than the schema inside it (#428).
+ */
 function unwrapSingleton(frame: Frame): Frame {
   let result = frame;
   while (
-    result instanceof FrameList && !result.isSchema() &&
+    result instanceof FrameList &&
+    (result.className() === "FrameGroup" || isPlainExpr(result)) &&
     result.size() === 1
   ) {
     result = result.asArray()[0];

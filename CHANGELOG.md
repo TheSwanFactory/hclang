@@ -5,6 +5,15 @@
 > contains nothing else; then describe it and say that nothing user-facing
 > changed.
 
+## v0.55.14 2026-11-24
+
+- **Declaring a one-term closure or array of a schema binds that value (#428).**
+  `.s {<_, 1>}` used to define `s` as the schema inside the braces, so
+  `[s 1, s 2]` answered a type error; it now binds the closure and answers
+  `[<1, 1>, <2, 1>]`. Likewise `.u [<.x>]; [u, u.#]` answers `[[<.x>], 1]`
+  instead of `[<.x>, 1]`, and `.c {<.x>}; c` prints `{ <.x> }`. A schema in a
+  group, as in `.v (<.x>)`, still defines one.
+
 ## v0.55.13 2026-11-23
 
 - **A Denum is recognized once per observation (#530).** `.####` and `&|&` no

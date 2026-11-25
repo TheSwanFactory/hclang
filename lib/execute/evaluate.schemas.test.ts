@@ -326,6 +326,29 @@ describe("evaluate: schemas", () => {
       // Schema-only binding support
       expect(result.toString()).toContain(".x 2");
     });
+    // A one-term closure or array is a value, not a wrapper around its schema,
+    // so declaring one binds it rather than defining a schema (#428).
+    it("binds a one-term closure of a schema as the closure", () => {
+      const result = evaluate(".s {<_, 1>}; [s 1, s 2]");
+      expect(result.meta["s.<>"]).toBeUndefined();
+      expect(result.toString()).toEqual(
+        "[.s { <_, 1> }; ((.s { <_, 1> }); [<1, 1>, <2, 1>])]",
+      );
+    });
+    it("binds a one-term array of a schema as the array", () => {
+      const result = evaluate(".u [<.x>]; [u, u.#]");
+      expect(result.meta["u.<>"]).toBeUndefined();
+      expect(result.toString()).toEqual(
+        "[.u [<.x>]; ((.u [<.x>]); [[<.x>], 1])]",
+      );
+    });
+    it("prints a declared one-term closure of a schema as the closure", () => {
+      // `c` prints as the literal `{<.x>}` prints outside a declaration.
+      expect(evaluate("{<.x>}").toString()).toEqual("[{ <.x> }]");
+      expect(evaluate(".c {<.x>}; c").toString()).toEqual(
+        "[.c { <.x> }; ((.c { <.x> }); { <.x> })]",
+      );
+    });
   });
 
   // HLIR primitive schemas and schema coercion are unimplemented claims in
