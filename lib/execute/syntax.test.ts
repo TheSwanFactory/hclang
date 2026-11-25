@@ -78,4 +78,16 @@ describe("getSyntax", () => {
       "Conflicting Sigil registration: \\",
     );
   });
+
+  it("rejects an atom family that claims a structural start (#524)", () => {
+    const structural: SyntaxFacet = {
+      ...FrameCount.SYNTAX,
+      NAME: "Structural",
+      SIGIL_STARTS: [{ key: "%%", mode: "push" }],
+    };
+
+    expect(() => getSyntax([structural])).toThrow(
+      "Atom registered a structural Sigil mode: %%",
+    );
+  });
 });

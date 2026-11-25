@@ -163,4 +163,13 @@ describe("a dollar form at the end of input", () => {
       });
     }
   });
+  it("rejects a word character right after `$#` (#524)", () => {
+    for (const source of ["$#a", "$#1"]) {
+      expect(finish(source)).toEqual({
+        complete: false,
+        error: `invalid dollar form: ${source}`,
+        out: "[]",
+      });
+    }
+  });
 });

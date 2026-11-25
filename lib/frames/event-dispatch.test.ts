@@ -110,6 +110,19 @@ describe("event dispatch: stepping", () => {
   });
 });
 
+describe("event dispatch: a host error (#524)", () => {
+  it("propagates a throw that is not its guard's refusal, under every policy", () => {
+    const thrower = new (class extends Frame {
+      public override call(_argument: Frame): Frame {
+        throw new Error("host bug");
+      }
+    })();
+    for (const policy of ["footprint", "sequential", "interleave"] as const) {
+      expect(() => dispatch([{ label: "a", target: thrower }], policy))
+        .toThrow("host bug");
+    }
+  });
+});
 describe("event dispatch: same-x write/write (lost update)", () => {
   it("sequential: two read-then-write events on x both land", () => {
     const { n, x, run } = program();

@@ -134,6 +134,18 @@ describe("resource import: source evaluation", () => {
     expect(bare.at(0).toString()).toEqual("5");
   });
 
+  it("answers the failure of a form that a final held `;` completes (#524)", () => {
+    // The one-byte payload is the newline, so the form is still open when the
+    // `;` that ends it starts a line, where the example filter holds it until
+    // the source ends.
+    expect(evaluateOuterImport("1 / 0 \\1\\\n;").toString())
+      .toEqual("[$!.division-by-zero /]");
+    expect(evaluateOuterImport("2 \\1\\\n;").isFailedResult()).toBe(false);
+  });
+  it("answers an open structure the source ends inside (#524)", () => {
+    expect(evaluateOuterImport("[").toString())
+      .toEqual("[$!.parse-unclosed-structure 1]");
+  });
   it("recognizes an example line split across resource elements", () => {
     const handler = new RecordingHandler({
       ok: true,

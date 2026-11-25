@@ -783,6 +783,13 @@ describe("Lex", () => {
       "Malformed completed without a value or source factory",
     );
   });
+  it("refuses a transition to a receiver that is not an atom (#524)", () => {
+    const lex = new Lex(FrameString.SYNTAX);
+    expect(lex.transitionScan(new FrameArray([]))).toEqual({
+      disposition: ScanDisposition.Error,
+      message: "lexical transition did not return an atom",
+    });
+  });
 
   it("redispatches the first payload character after a dynamic zero length", () => {
     const output = new FrameArray([]);

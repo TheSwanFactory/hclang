@@ -1,8 +1,13 @@
 import { expect } from "@std/expect";
 import { describe, it } from "@std/testing/bdd";
 
-import { FrameArray, FrameInt } from "../frames.ts";
-import { CART_MAX_PAIRS, CartElements, ZipElements } from "./pairings.ts";
+import { Frame, FrameArray, FrameInt } from "../frames.ts";
+import {
+  CART_MAX_PAIRS,
+  CartElements,
+  FlopElements,
+  ZipElements,
+} from "./pairings.ts";
 
 const ints = (...values: number[]): FrameArray =>
   new FrameArray(values.map((value) => FrameInt.for(`${value}`)));
@@ -45,6 +50,19 @@ describe("native Cart *", () => {
   });
 });
 
+describe("native Flop", () => {
+  // `+` and `-` answer an error operand before they Flop. From HC, Flop meets
+  // an error only on the right, a Denum too wide for `-` to negate
+  // (`foist-19a.test.ts`), so a host hands it the rest (#524).
+  it("answers an error operand, the left first", () => {
+    const left = Frame.error("$!.left");
+    const right = Frame.error("$!.right");
+    expect(FlopElements(left, ints(1))).toBe(left);
+    expect(FlopElements(ints(1), right)).toBe(right);
+    expect(FlopElements(left, right)).toBe(left);
+    expect(FlopElements(ints(1), ints(2, 3)).toString()).toEqual("[1, 2, 3]");
+  });
+});
 describe("native Zip |&|", () => {
   it("pairs equal lengths positionally", () => {
     expect(ints(1, 2).get("|&|").call(ints(10, 20)).toString())

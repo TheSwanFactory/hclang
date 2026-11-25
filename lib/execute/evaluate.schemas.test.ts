@@ -221,6 +221,14 @@ describe("evaluate: schemas", () => {
         "[$!.unconsumed-bits 1]",
       );
     });
+    it("refuses a remainder bit schema applied to a non-blob (#524)", () => {
+      expect(evaluate("<[@Bit]> 5").toString()).toEqual(
+        "[$!.bit-input-invalid 5]",
+      );
+      expect(evaluate("<[@Bit]> “101”").toString()).toEqual(
+        "[$!.bit-input-invalid “101”]",
+      );
+    });
 
     it("defines and reuses a named bit splitter with exact-width results", () => {
       const result = evaluate(

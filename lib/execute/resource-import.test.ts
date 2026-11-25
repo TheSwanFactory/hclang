@@ -100,4 +100,17 @@ describe("quoting a source as a closure (#443)", () => {
       "$!.parse-mismatched-structure",
     );
   });
+  it("answers a lexeme or a structure the source leaves open (#524)", () => {
+    // The string runs on through the quote's own closing newline and brace.
+    expect(quote({ "s.hc": "“abc" }, "'./s.hc' | {}"))
+      .toEqual("unterminated FrameString: “abc\n}");
+    expect(quote({ "o.hc": "{" }, "'./o.hc' | {}"))
+      .toEqual("$!.parse-unclosed-structure 1");
+  });
+  it("refuses a source that does not parse to one closure (#524)", () => {
+    // Inside the quote's own braces, `}{` closes its closure and opens a
+    // second one.
+    expect(quote({ "two.hc": "}{" }, "'./two.hc' | {}"))
+      .toEqual("$!.resource-quote-syntax './two.hc'");
+  });
 });

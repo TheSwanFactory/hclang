@@ -109,4 +109,21 @@ describe("LexPipe", () => {
     expect(lexer.level).toEqual(0);
     expect(lexer.finish(frame.Frame.nil)).toBe(lexer);
   });
+  // The syntax table hands `push` and `pop` a factory and `end` a Frame, so
+  // these refuse only an action built by hand (#524).
+  it("refuses a push or pop action that names a Frame, not a factory", () => {
+    expect(() => pipe.perform({ push: success })).toThrow(
+      "Expected IArrayConstructor, but received Frame: '“success!”'",
+    );
+    expect(() => pipe.perform({ pop: success })).toThrow(
+      "Expected IArrayConstructor, but received Frame: '“success!”'",
+    );
+    expect(pipe.level).toEqual(0);
+  });
+  it("refuses an end action at top level that names a factory, not a Frame", () => {
+    expect(() => pipe.perform({ end: frame.FrameArray })).toThrow(
+      "Expected Frame for end action, but received: ",
+    );
+    expect(final.length()).toEqual(0);
+  });
 });

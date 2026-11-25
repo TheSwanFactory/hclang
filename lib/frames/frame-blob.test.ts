@@ -81,6 +81,14 @@ describe("FrameBlob", () => {
     expect(blob.sliceBits(3, 2).toString()).toEqual("0b01");
     expect(blob.toString()).toEqual("0b00101");
   });
+  it("refuses a slice outside its bits, or of no bits (#524)", () => {
+    const blob = new FrameBlob("0b00101");
+    expect(() => blob.sliceBits(3, 3)).toThrow("Invalid bit slice: 3..6");
+    expect(() => blob.sliceBits(-1, 2)).toThrow("Invalid bit slice: -1..1");
+    expect(() => blob.sliceBits(0, 0)).toThrow("Invalid bit slice: 0..0");
+    expect(() => blob.sliceBits(0.5, 1)).toThrow("Invalid bit slice: 0.5..1.5");
+    expect(blob.toString()).toEqual("0b00101");
+  });
 
   it("handles all zeros correctly", () => {
     const fourZeros = "0b0000";

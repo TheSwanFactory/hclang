@@ -91,6 +91,15 @@ describe("Frame", () => {
       }
       expect(error.toString()).toEqual("$!.failure");
     });
+    it("observes the missing sentinel as a missing name (#524)", () => {
+      // A lookup answers the sentinel for a miss, and HC reports the miss
+      // rather than observing it, so this reads it through the API (011.18m).
+      for (const key of Frame.SIZE_OPERATORS) {
+        expect(Frame.missing.sizeFor(key).toString())
+          .toEqual("$!.name-missing");
+      }
+      expect(Frame.missing.sizeFor("x")).toBe(Frame.nil);
+    });
   });
 
   describe("equals", () => {
