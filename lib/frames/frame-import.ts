@@ -15,6 +15,7 @@ export type ImportSourceEvaluator = (
 
 /** An import expression whose source evaluator is supplied by the pipeline. */
 export class FrameImport extends Frame {
+  public static override readonly TAG: string = "FrameImport";
   public constructor(
     public readonly target: ImportTarget,
     public readonly resourceExpression: Frame,

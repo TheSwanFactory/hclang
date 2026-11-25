@@ -16,6 +16,7 @@ import { authorizedReceiverWriteTarget } from "./bound-method.ts";
 import type { AtomSyntax, ScanResult, SigilStart } from "../scan.ts";
 
 export class FrameAlias extends FrameAtom {
+  public static override readonly TAG: string = "FrameAlias";
   public static readonly ALIAS_BEGIN = "@";
   public static readonly SIGIL_STARTS = [
     { key: FrameAlias.ALIAS_BEGIN, mode: "atom" },

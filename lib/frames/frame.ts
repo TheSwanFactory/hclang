@@ -1224,6 +1224,26 @@ export class Frame extends MetaFrame {
   public className(): string {
     return this.constructor.name;
   }
+  /**
+   * The class's name, spelled out for `isClass`.
+   *
+   * Minification renames classes, so `className()` cannot recognize a class
+   * in the bundled playground (#513). A class that is recognized from a module
+   * that cannot import it (load order) declares its own tag.
+   *
+   * @ignore
+   */
+  public static readonly TAG: string = "Frame";
+  /**
+   * Whether this frame's own class declares `tag`: that class, never a
+   * subclass, which inherits the tag but does not declare it.
+   *
+   * @ignore
+   */
+  public isClass(tag: string): boolean {
+    const own = this.constructor as typeof Frame;
+    return Object.hasOwn(own, "TAG") && own.TAG === tag;
+  }
 
   /**
    * inspect returns a string representation of the Frame
@@ -1469,7 +1489,7 @@ export class Frame extends MetaFrame {
    * import the symbol module without closing a cycle through its own base.
    */
   private static isBooleanNegation(argument: Frame): boolean {
-    return argument.className() === "FrameSymbol" &&
+    return argument.isClass("FrameSymbol") &&
       (argument as unknown as { spelling(): string }).spelling() === "!";
   }
 }

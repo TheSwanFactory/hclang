@@ -346,7 +346,7 @@ function unwrap(frame: Frame): Frame {
  */
 export function isState(frame: Frame): boolean {
   if (frame.is.missing || frame.is.void) return false;
-  return frame.ownsIdentity() || frame.className() === "Frame";
+  return frame.ownsIdentity() || frame.isClass("Frame");
 }
 
 /** The identities a frame holds: its bindings, elements, and declared parent. */
@@ -441,7 +441,7 @@ function walkPath(
       stepOperator(walk, cursor, term);
     } else if (term.isName()) {
       stepName(walk, cursor, term.source, site, handedOn);
-    } else if (term.className() === "FrameAlias") {
+    } else if (term.isClass("FrameAlias")) {
       stepAlias(walk, cursor, term, site);
     } else if (term instanceof FrameSymbol) {
       stepSymbol(walk, cursor, term, site, handedOn);
@@ -595,9 +595,8 @@ function plainAtom(term: Frame): Frame {
 
 /** Terms whose effect cannot be read off the code: they run or reach outside. */
 const isOpaqueTerm = (term: Frame): boolean => {
-  const name = term.className();
-  return name === "FrameImport" || name === "FrameResource" ||
-    name === "FrameURI";
+  return term.isClass("FrameImport") || term.isClass("FrameResource") ||
+    term.isClass("FrameURI");
 };
 
 /** A bare name: the argument, the receiver, a local, or a lookup. */
@@ -608,8 +607,7 @@ function walkSymbol(
   handedOn: boolean,
 ): Referents | undefined {
   const spelling = term.spelling();
-  const name = term.className();
-  if (name === "FrameArg" || name === "FrameParam") {
+  if (term.isClass("FrameArg") || term.isClass("FrameParam")) {
     if (spelling === "_") {
       walkCallable(walk, site.argument, spelling);
       return { frames: [site.argument], mutable: site.argumentMutable };

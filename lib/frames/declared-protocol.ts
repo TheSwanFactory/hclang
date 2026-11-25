@@ -88,7 +88,7 @@ function methodDeclaredBy(
   for (const frame of declaredChain(receiver)) {
     const local = frame.get_here(key);
     if (!local.is.missing) {
-      return local.className() === "FrameLazy" ? local : undefined;
+      return local.isClass("FrameLazy") ? local : undefined;
     }
   }
   return undefined;

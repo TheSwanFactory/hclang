@@ -24,6 +24,7 @@ const completeLexeme = (source: string): FrameArg | FrameParam =>
     : completeArg(source);
 
 export class FrameArg extends FrameSymbol {
+  public static override readonly TAG: string = "FrameArg";
   public static readonly ARG_CHAR = "_";
   public static override readonly SIGIL_STARTS: readonly SigilStart[] = [
     { key: FrameArg.ARG_CHAR, mode: "atom" },
@@ -113,6 +114,7 @@ export class FrameArg extends FrameSymbol {
 }
 
 export class FrameParam extends FrameSymbol {
+  public static override readonly TAG: string = "FrameParam";
   public static readonly ARG_CHAR = "^";
 
   public static there(): FrameParam {

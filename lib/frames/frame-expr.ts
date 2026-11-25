@@ -718,7 +718,7 @@ function unwrapSingleton(frame: Frame): Frame {
 
 /** The catch operator `$!`, as the lexer completes it (`FrameCatch`). */
 function isCatch(term: Frame | undefined): boolean {
-  return term?.className() === "FrameCatch";
+  return term?.isClass("FrameCatch") === true;
 }
 
 /** A tight expression that begins with `$!`: `$!{H}` written after a term. */

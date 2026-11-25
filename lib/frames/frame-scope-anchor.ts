@@ -243,6 +243,7 @@ export class FrameScopeAnchor extends FrameAtom {
  * never evaluates as a value of its own.
  */
 class FrameCatch extends FrameAtom {
+  public static override readonly TAG: string = "FrameCatch";
   public override in(_input: EvaluationInput = []): Frame {
     return this;
   }
