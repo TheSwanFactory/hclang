@@ -5,6 +5,14 @@
 > contains nothing else; then describe it and say that nothing user-facing
 > changed.
 
+## v0.55.31 2026-11-25
+
+- **Fewer duplicated FOIST and figures tests (#526).** The TypeScript tests for
+  Cart, Flop and the fourth hash no longer repeat the examples
+  `hc/foist-19a.hc`, `hc/figures.hc`, `hc/constructed-state.hc` and
+  `hc/native-cart-zip.hc` already check; those examples remain the tests for
+  those answers. Nothing user-facing changed.
+
 ## v0.55.30 2026-11-25
 
 - **Fewer duplicated time tests (#526).** The TypeScript tests for datetimes and
