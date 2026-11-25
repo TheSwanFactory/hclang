@@ -198,6 +198,8 @@ const WALK = `
 .local-unknown {.l nowhere; l};
 .ladder {x_.n + .};
 .parents {c .^};
+.no-parent {x_ .^};
+.receiver-free {_^};
 .inner-of {x_.inner_};
 .pass-inner {sink x_.inner_};
 .holder {{x_.set_ 1}};
@@ -292,6 +294,10 @@ describe("potential footprint: rare walk paths (#524)", () => {
     expect(names(fp.reads, name)).toEqual(["P", "c", "file"]);
     expect(names(fp.writes, name)).toEqual([]);
     expect(isOpaque(fp)).toBe(false);
+    // A path with no declared parent reads only what it walked to.
+    const none = potentialFootprint(read("no-parent"));
+    expect(names(none.reads, name)).toEqual(["file", "x", "x.inner"]);
+    expect(isOpaque(none)).toBe(false);
   });
 
   it("resolves `_^` to the receiver, with the authority the call holds", () => {
@@ -305,6 +311,10 @@ describe("potential footprint: rare walk paths (#524)", () => {
     const functional = potentialFootprint(read("z").get("poke_"));
     expect(names(functional.writes, name)).toEqual([]);
     expect(isOpaque(functional)).toBe(false);
+    // A closure that is no method has no receiver for `_^` to name.
+    expect(potentialFootprint(read("receiver-free")).unresolved).toEqual([
+      "_^",
+    ]);
   });
 
   it("touches nothing when the bound method refuses the call before its body", () => {
@@ -349,13 +359,19 @@ describe("potential footprint: rare walk paths (#524)", () => {
     // which is held with the closure's scope.
     const [, atom] = read("pass-inner").elements();
     expect(atom).toBeInstanceOf(FrameScoped);
-    const body = new FrameLazy([atom]).bind(EvaluationScope.root(scope));
-    const fp = potentialFootprint(body);
     const original = potentialFootprint(read("inner-of"));
-    expect(names(fp.writes, name)).toEqual(["x.inner"]);
-    expect(names(fp.writes, name)).toEqual(names(original.writes, name));
-    expect(names(fp.reads, name)).toEqual(names(original.reads, name));
-    expect(isOpaque(fp)).toBe(false);
+    expect(names(original.writes, name)).toEqual(["x.inner"]);
+    // The atom as a bare statement, and inside a one-term expression as the
+    // parser wraps a term.
+    for (const statement of [atom, new FrameExpr([new FrameExpr([atom])])]) {
+      const body = new FrameLazy([statement]).bind(
+        EvaluationScope.root(scope),
+      );
+      const fp = potentialFootprint(body);
+      expect(names(fp.writes, name)).toEqual(names(original.writes, name));
+      expect(names(fp.reads, name)).toEqual(names(original.reads, name));
+      expect(isOpaque(fp)).toBe(false);
+    }
   });
 
   it("walks an empty statement as touching nothing", () => {
