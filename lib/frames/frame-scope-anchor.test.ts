@@ -4,10 +4,12 @@ import { describe, it } from "@std/testing/bdd";
 import {
   EvaluationScope,
   Frame,
+  FrameArray,
   FrameNumber,
   FrameScopeAnchor,
   FrameSymbol,
 } from "../frames.ts";
+import { HCEval } from "../execute/hc-eval.ts";
 import { lastResult } from "../test-helpers.test.ts";
 
 describe("FrameScopeAnchor", () => {
@@ -101,5 +103,64 @@ describe("FrameCatch", () => {
     const atom = result.at(1);
     expect(atom.className()).toEqual("FrameCatch");
     expect(atom.is.error).not.toBe(true);
+  });
+});
+describe("a dollar form at the end of input", () => {
+  // A source file whose last line has no newline reaches the end of input
+  // with the dollar form still being scanned (`runfile` calls the last line
+  // with `endOfLine` false), so `finish` completes it rather than a newline.
+  const finish = (source: string): {
+    complete: boolean;
+    error: string | null;
+    out: string;
+  } => {
+    const out = new FrameArray([]);
+    const evaluator = new HCEval(out);
+    evaluator.call(source, false);
+    const complete = evaluator.finish();
+    return { complete, error: evaluator.error(), out: out.toString() };
+  };
+  it("completes an anchor, an observation or the catch operator", () => {
+    expect(finish("$")).toEqual({ complete: true, error: null, out: "[$]" });
+    expect(finish("$$")).toEqual({ complete: true, error: null, out: "[$$]" });
+    expect(finish("$#")).toEqual({
+      complete: true,
+      error: null,
+      out: "[$!.observation-missing]",
+    });
+    expect(finish("$!")).toEqual({
+      complete: true,
+      error: null,
+      out: "[$!.catch-operand-missing]",
+    });
+  });
+  it("completes an error literal as the user error it raises", () => {
+    expect(finish("$!.x")).toEqual({
+      complete: true,
+      error: null,
+      out: "[$!!.x]",
+    });
+    expect(finish("$!!.y-1")).toEqual({
+      complete: true,
+      error: null,
+      out: "[$!!.y-1]",
+    });
+  });
+  it("rejects an unfinished form without a trailing newline in the message", () => {
+    // The same forms ended by a newline report `$!!\n`.
+    for (const source of ["$!!", "$!.", "$!!."]) {
+      expect(finish(source)).toEqual({
+        complete: false,
+        error: `invalid dollar form: ${source}`,
+        out: "[]",
+      });
+    }
+    for (const source of ["$=", "$=abc", "$+ok", "$-no", "$~"]) {
+      expect(finish(source)).toEqual({
+        complete: false,
+        error: `unterminated FrameNote: ${source}`,
+        out: "[]",
+      });
+    }
   });
 });

@@ -128,6 +128,26 @@ Deno.test("$# is the innermost running handler's observation", () => {
     .toMatch(/^\$!\.name-missing/);
 });
 
+Deno.test("an observation called with a value, not a member name, answers no member", () => {
+  expect(answer("(1 / 0) $!{$# 3}").toString())
+    .toMatch(/^\$!\.name-missing \$#\.division-by-zero/);
+  expect(answer("(1 / 0) $!{$# [1]} $!{$#.#}").toString())
+    .toBe("“name-missing”");
+});
+Deno.test("an error whose rendering names no kind is observed with an empty reason", () => {
+  // Only a host can supply such an error; HC's own errors all have a kind.
+  const failure = Frame.error("boom");
+  expect(answer("$$.failure $!{$#}", { failure }).toString()).toBe("$#.");
+  expect(answer("$$.failure $!{$#.#}", { failure }).toString()).toBe("“”");
+  expect(answer("$$.failure $!{$#.!}", { failure })).toBe(failure);
+});
+Deno.test("a handler that is itself an error is the result (a13/12 §2.3)", () => {
+  expect(answer("(1 / 0) $! ($!!.boom)").toString()).toBe("$!!.boom");
+  expect(answer("((1 / 0) $! ($!!.boom)) $!{$#.#}").toString())
+    .toBe("“boom”");
+  expect(answer("(1 / 0) $! [].nope").toString())
+    .toMatch(/^\$!\.name-missing/);
+});
 Deno.test("an observation evaluates to itself", () => {
   // `{} [$#]` holds the observation as a term; calling it evaluates the term.
   const seen = new Spy();
