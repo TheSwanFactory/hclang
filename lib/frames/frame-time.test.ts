@@ -162,6 +162,20 @@ describe("FrameTime", () => {
       expect(rendered("%P1D% / %PT1H%")).toEqual("24");
       expect(rendered("%PT1H% / %P1D%")).toEqual("1/24");
     });
+    it("refuses the ratio to a zero duration as division by zero (#524)", () => {
+      expect(rendered("%PT1H% / %PT0S%")).toEqual("$!.division-by-zero /");
+    });
+    it("refuses an instant divided by anything (#524)", () => {
+      expect(rendered("%2026-08-21% / 2")).toEqual(
+        "$!.numeric-domain / FrameDateTime FrameCount",
+      );
+      expect(rendered("%2026-08-21% / %PT1H%")).toEqual(
+        "$!.numeric-domain / FrameDateTime FrameDuration",
+      );
+      expect(rendered("%PT1H% / %2026-08-21%")).toEqual(
+        "$!.numeric-domain / FrameDuration FrameDateTime",
+      );
+    });
 
     it("refuses the sum of two instants", () => {
       expect(rendered("%2026-08-21T00:00:00Z% + %2026-08-21T00:00:00Z%"))

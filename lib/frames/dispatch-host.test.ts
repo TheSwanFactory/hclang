@@ -16,4 +16,10 @@ describe("DispatchPolicyFrame", () => {
     expect(answer(`(${codified}) [{1}, {2}]`).toString())
       .toBe("[.trace “0:1 1:1”; .waited [[], []]; .escapes [0, 0]; 1, 2]");
   });
+  it("refuses an argument that is not a list of events (#524)", () => {
+    expect(answer("$$.dispatch.sequential 5").toString())
+      .toBe("$!.dispatch-events FrameCount");
+    expect(answer("$$.dispatch.footprint “x”").toString())
+      .toBe("$!.dispatch-events FrameString");
+  });
 });

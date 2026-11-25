@@ -178,3 +178,47 @@ describe("walking an expression (#429, spec a16, a17)", () => {
     });
   });
 });
+describe("FrameExpr refusals (#524)", () => {
+  it("refuses a tight catcher that opens an expression, with nothing to guard", () => {
+    // After a leading space the tight `$!{0}` is the expression's first term.
+    expect(evaluate("( $!{0} 1)").at(0).toString())
+      .toEqual("$!.catch-operand-missing");
+    expect(evaluate("((1 / 0) $!{0})").at(0).toString()).toEqual("0");
+  });
+  it("refuses a tight catcher with no handler", () => {
+    // The parser unwraps a one-term tight expression, so only a host builds a
+    // catcher of the catch operator alone. The operator comes from a parse.
+    const find = (term: Frame, depth = 0): Frame | undefined =>
+      term.isClass("FrameCatch")
+        ? term
+        : depth > 3
+        ? undefined
+        : term.asArray().map((child) => find(child, depth + 1))
+          .find((found) => found !== undefined);
+    const operator = find(evaluate("{1 $! 2}").at(0))!;
+    expect(operator.isClass("FrameCatch")).toBe(true);
+    const failing = new FrameExpr([
+      FrameSymbol.for("nope"),
+      new FrameExpr([operator]),
+    ]);
+    expect(failing.in([new FrameArray([])]).toString())
+      .toEqual("$!.catch-handler-missing");
+  });
+  it("refuses a schema definition whose name is not a setter", () => {
+    // `.^` outside construction and `.` outside a call answer no setter.
+    expect(evaluate(".^ <1>;").toString())
+      .toEqual("[($!.unsupported-schema-definition);]");
+    expect(evaluate(". <1>;").toString())
+      .toEqual("[($!.unsupported-schema-definition);]");
+    expect(evaluate(".x <1>;").toString()).toEqual("[.x <1>; .x.<> <1>;]");
+  });
+  it("refuses the size of an expression wrapped in itself", () => {
+    // Built directly, since the cycle is the subject and not how one arises.
+    const terms: Frame[] = [];
+    const wrapper = new FrameExpr(terms);
+    terms.push(wrapper);
+    const expr = new FrameExpr([wrapper, new FrameCount(1n)]);
+    expect(expr.sizeFor("#").toString()).toEqual("$!.cyclic-aggregate .##");
+    expect(expr.sizeFor("##").toString()).toEqual("$!.cyclic-aggregate .##");
+  });
+});

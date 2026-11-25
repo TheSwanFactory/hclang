@@ -139,6 +139,9 @@ Deno.test("FOIST 19a: KD capacity and product budget use public named refusals",
     .toEqual("$!.denum-kd-capacity");
   expect(Frame.negateDenum(wide)?.toString())
     .toEqual("$!.denum-kd-capacity");
+  // Subtraction Flops with that refusal, and Flop answers it (#524).
+  expect(read("[1] - (65537 [1]).###").toString())
+    .toEqual("$!.denum-kd-capacity");
   expect(multiplyDenum(wide, denum(2n, [1n, 0n])).toString())
     .toEqual("$!.denum-product-capacity &|&");
 });

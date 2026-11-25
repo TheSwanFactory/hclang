@@ -136,6 +136,20 @@ describe("FrameBytes", () => {
     });
   });
 
+  it("rejects a length character that is neither a digit, a name nor the end (#524)", () => {
+    for (const [char, source] of [["x", "1"], ["\\", ""], ["!", ""]]) {
+      expect(
+        FrameBytes.SYNTAX.recognize(
+          FrameSymbol.for(char),
+          source,
+          new FrameArray([]),
+        ),
+      ).toEqual({
+        disposition: ScanDisposition.Error,
+        message: `invalid byte length: \\${source}${char}`,
+      });
+    }
+  });
   it("reports an unterminated symbolic length", () => {
     expect(FrameBytes.SYNTAX.finish("size")).toEqual({
       disposition: ScanDisposition.Error,
