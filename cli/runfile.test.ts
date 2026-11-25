@@ -170,4 +170,16 @@ describe("runfile", () => {
       await Deno.remove(file);
     }
   });
+
+  it("strips the carriage return from each CRLF line", async () => {
+    const file = await Deno.makeTempFile({ suffix: ".hc" });
+    try {
+      await Deno.writeTextFile(file, "1 + 1\r\n2 + 2\r\n");
+      const lines: string[] = [];
+      await runfile({ call: (line: string) => lines.push(line) }, file);
+      expect(lines).toEqual(["1 + 1", "2 + 2"]);
+    } finally {
+      await Deno.remove(file);
+    }
+  });
 });

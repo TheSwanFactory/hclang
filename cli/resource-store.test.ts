@@ -74,6 +74,51 @@ describe("DenoFileStore", () => {
     Deno.removeSync(root, { recursive: true });
   });
 
+  it("reports a file inside the root that the host will not read", () => {
+    const { store, root } = opened();
+    store.write("locked.txt", "secret");
+    Deno.chmodSync(`${root}/locked.txt`, 0o000);
+    expect(store.read("locked.txt")).toEqual({
+      ok: false,
+      reason: "resource-unreadable",
+    });
+    Deno.removeSync(root, { recursive: true });
+  });
+
+  it("reports a write under a path that is a file", () => {
+    const { store, root } = opened();
+    store.write("plain.txt", "flat");
+    expect(store.write("plain.txt/inner.txt", "no")).toEqual({
+      ok: false,
+      reason: "resource-unwritable",
+    });
+    expect(Deno.readTextFileSync(`${root}/plain.txt`)).toEqual("flat");
+    Deno.removeSync(root, { recursive: true });
+  });
+
+  it("keeps the created root as named when the host cannot resolve it", () => {
+    const makeTempDirSync = Deno.makeTempDirSync;
+    const realPathSync = Deno.realPathSync;
+    let created = "";
+    Deno.makeTempDirSync = (options?: Deno.MakeTempOptions) =>
+      created = makeTempDirSync(options);
+    Deno.realPathSync = () => {
+      throw new Deno.errors.NotFound("unresolvable");
+    };
+    try {
+      const store = new DenoFileStore("hclang-test-");
+      expect(store.read("a.txt")).toEqual({
+        ok: false,
+        reason: "resource-absent",
+      });
+      expect(store.describe()).toEqual(created.replaceAll("\\", "/"));
+    } finally {
+      Deno.makeTempDirSync = makeTempDirSync;
+      Deno.realPathSync = realPathSync;
+      Deno.removeSync(created, { recursive: true });
+    }
+  });
+
   describe("containment re-verified after resolution", () => {
     it("refuses a symlinked file whose bytes come from outside", () => {
       const { store, root } = opened();
