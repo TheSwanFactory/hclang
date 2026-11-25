@@ -5,6 +5,16 @@
 > contains nothing else; then describe it and say that nothing user-facing
 > changed.
 
+## v0.55.26 2026-11-25
+
+- **Tests for how a name reads and declares in its rare cases (#524).** New
+  library tests show what a symbol answers for a control-flow operator read by
+  name in a method body, a schema read that meets a private binding or no
+  binding, a declaration of a handle or over a binding that holds an error, a
+  constant's schema redefined, an address compared with a walked word, an
+  operator when the globals have no operation table, and an operator followed by
+  a schema bracket. Nothing user-facing changed.
+
 ## v0.55.25 2026-11-24
 
 - **Tests for how the footprint walk resolves names (#524).** New library tests
