@@ -5,6 +5,14 @@
 > contains nothing else; then describe it and say that nothing user-facing
 > changed.
 
+## v0.55.21 2026-11-24
+
+- **A caught failed statement keeps its error kind (#550).** When a statement
+  ending in `;` fails, a handler now sees the failure's kind: `(1 / 0;) $!{$#}`
+  answers `$#.division-by-zero` instead of `$#.`, `$#.#` answers
+  `“division-by-zero”` instead of `“”`, and a kind pattern such as
+  `$# ~ <$!.division-by-zero>` matches.
+
 ## v0.55.20 2026-11-24
 
 - **Applying a term a walk holds no longer rewrites the closure (#549).** An
@@ -15,20 +23,12 @@
 
 ## v0.55.19 2026-11-24
 
-<<<<<<< HEAD
 - **Tests for the remaining rare paths in the frames (#523).** New library tests
   finish a file whose last line ends in a dollar form, with no newline, check
   that calling an error answers the error, that an operator spelling outside the
   global table such as `++` answers `$!.name-missing`, and that a catch handler
   sees an observation called with a value, a host error with no kind, and a
   handler that is itself an error. Nothing user-facing changed.
-=======
-- **A caught failed statement keeps its error kind (#550).** When a statement
-  ending in `;` fails, a handler now sees the failure's kind: `(1 / 0;) $!{$#}`
-  answers `$#.division-by-zero` instead of `$#.`, `$#.#` answers
-  `“division-by-zero”` instead of `“”`, and a kind pattern such as
-  `$# ~ <$!.division-by-zero>` matches.
->>>>>>> 1e45c3b (docs: changelog for v0.55.19 (#550))
 
 ## v0.55.18 2026-11-24
 
