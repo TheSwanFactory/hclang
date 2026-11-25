@@ -165,6 +165,32 @@ Deno.test("a failed statement keeps its kind when caught (#550)", () => {
   expect(answer("(1 / 0;) $!{$#.!} $!{$#.#}").toString())
     .toBe("“division-by-zero”");
 });
+Deno.test("a multi-statement group collects like an aggregate (#555)", () => {
+  // a13/10 §4.2, a13/11 §3: the group holds the failure and is not an error.
+  const tick = new Counter();
+  const after = new Counter();
+  const meta = { tick, after };
+  expect(text("(1; 1 / 0) $!{$$.tick ()}", meta))
+    .toBe("[((1); $!.division-by-zero /)]");
+  expect(text("(1 / 0; 2) $!{$$.tick ()}", meta))
+    .toBe("[(($!.division-by-zero /); 2)]");
+  expect(text("(1; 1 / 0;) $!{$$.tick ()}", meta))
+    .toBe("[((1); ($!.division-by-zero /);)]");
+  expect(text("(1; 2) $!{$$.tick ()}", meta)).toBe("[((1); 2)]");
+  // The statements after the failure run.
+  expect(text("(1 / 0; $$.after ()) $!{$$.tick ()}", meta))
+    .toBe("[(($!.division-by-zero /); 1)]");
+  expect(after.calls).toBe(1);
+  expect(tick.calls).toBe(0);
+  // The same sources with `$#` answer the group too.
+  expect(text("(1; 1 / 0) $!{$#}")).toBe("[((1); $!.division-by-zero /)]");
+  expect(text("(1 / 0; 2) $!{$#}")).toBe("[(($!.division-by-zero /); 2)]");
+  expect(text("(1; 1 / 0;) $!{$#}"))
+    .toBe("[((1); ($!.division-by-zero /);)]");
+  expect(text("(1; 2) $!{$#}")).toBe("[((1); 2)]");
+  // A one-term group answers its term, so its failure is caught.
+  expect(text("(1 / 0;) $!{$#}")).toBe("[$#.division-by-zero]");
+});
 Deno.test("an observation evaluates to itself", () => {
   // `{} [$#]` holds the observation as a term; calling it evaluates the term.
   const seen = new Spy();

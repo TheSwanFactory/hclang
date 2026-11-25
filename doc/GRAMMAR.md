@@ -367,7 +367,10 @@ x $!{(($# ~ <$!.division-by-zero>) .!) ? {$#.!} : {()}}
 
 An aggregate that collected a failure is not one, so `[(1 / 0), 7] $! {0}` is
 the array. The guarded expression runs once, and recovery does not resume it:
-statements after the failure do not run.
+statements after the failure do not run. A group of two or more statements
+collects like an aggregate instead (a13/10 §4.2, a13/11 §3): `(1 / 0; 2) $!{0}`
+is `(($!.division-by-zero /); 2)`, and `2` runs. A one-term group answers its
+term, so `(1 / 0;) $!{0}` is `0` while `(1; 1 / 0;) $!{0}` is the group.
 
 ## Special Values
 

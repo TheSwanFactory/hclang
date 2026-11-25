@@ -5,6 +5,15 @@
 > contains nothing else; then describe it and say that nothing user-facing
 > changed.
 
+## v0.55.23 2026-11-24
+
+- **A group of statements collects a failure like an aggregate (#555).** The
+  grammar now says that `$!` answers a group of two or more statements unchanged
+  when one of them failed, so `(1 / 0; 2) $!{0}` is the group and `2` still
+  runs, while a one-term group such as `(1 / 0;)` answers its term and is
+  caught. New library tests pin these cases. This documents today's behavior, so
+  nothing user-facing changed.
+
 ## v0.55.22 2026-11-24
 
 - **Tests for the raw Denum's and the router's refusals (#524).** New testdoc
