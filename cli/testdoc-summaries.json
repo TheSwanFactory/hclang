@@ -42,8 +42,8 @@
     "unimplemented": 0
   },
   "denum.hc": {
-    "total": 26,
-    "pass": 26,
+    "total": 31,
+    "pass": 31,
     "fail": 0,
     "unimplemented": 0
   },
@@ -96,8 +96,8 @@
     "unimplemented": 0
   },
   "rotor-router.hc": {
-    "total": 13,
-    "pass": 13,
+    "total": 17,
+    "pass": 17,
     "fail": 0,
     "unimplemented": 0
   },
