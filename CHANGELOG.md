@@ -5,6 +5,14 @@
 > contains nothing else; then describe it and say that nothing user-facing
 > changed.
 
+## v0.55.33 2026-11-25
+
+- **A declaration keeps a dotted operator (#566).** `.k .+` now binds `k` to
+  `.+`, as `.k .x` binds `k` to `.x`, so `2 k 3` answers `5`. The same holds for
+  every dotted operator, among them `.*`, `.%%`, `.<`, `.>` and `.#`. Before,
+  the operator was applied to `.k` and `k` was never bound: `.k .+; k` answered
+  `$!.name-missing`.
+
 ## v0.55.32 2026-11-25
 
 - **Fewer duplicated array, schema, resource and clock tests (#526).** The

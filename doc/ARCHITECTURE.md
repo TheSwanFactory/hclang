@@ -324,8 +324,10 @@ walks past it, or when the outer's call binds it (`noteEnclosing`, from
 `FrameLazy.bind`), keyed by the body's first term, which a bound copy shares.
 The address `.x` written in a program is a name too: `FrameSymbol.called_by`
 hands it to a pending declaration as a value, so `.k .x` keeps a key, and to
-text without that member as its spelling, so `“” .x` is `“.x”`. Every other
-receiver reads the member, `o .x`, as before.
+text without that member as its spelling, so `“” .x` is `“.x”`. A pending
+declaration takes every address that way, an operator's included, so `.k .+`
+binds `k` to `.+` (#566). Every other receiver reads the member, `o .x`, as
+before.
 
 ## Errors and Catch
 
