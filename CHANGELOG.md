@@ -5,6 +5,16 @@
 > contains nothing else; then describe it and say that nothing user-facing
 > changed.
 
+## v0.55.27 2026-11-25
+
+- **Tests for the command line's rare paths (#524).** New CLI tests show what
+  `hc` answers for `--verbose`, a `DEBUG_ENV` environment, a file named after an
+  incomplete `-e` source, a numeric file argument, and `--testdoc` with no
+  source; what the file store answers for a file it may not read, a write under
+  a path that is a file, and a root the host cannot resolve; that a CRLF file
+  runs without its carriage returns; and that the testdoc runner counts a
+  testdoc whose run throws as failed. Nothing user-facing changed.
+
 ## v0.55.26 2026-11-25
 
 - **Tests for how a name reads and declares in its rare cases (#524).** New
