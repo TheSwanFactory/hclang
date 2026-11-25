@@ -5,22 +5,22 @@
 > contains nothing else; then describe it and say that nothing user-facing
 > changed.
 
+## v0.55.20 2026-11-24
+
+- **Applying a term a walk holds no longer rewrites the closure (#549).** An
+  aggregate taken from a closure's walk collected the argument into the
+  closure's own body, so after `.f {[1]}; ((f & {_}) .0) 2` the closure was
+  `{[1, 2]}` and `f ()` answered `[1, 2]`. The term now applies read-only, as a
+  name does: the call still answers `[1, 2]`, and `f ()` stays `[1]`.
+
 ## v0.55.19 2026-11-24
 
-<<<<<<< HEAD
 - **Tests for the remaining rare paths in the frames (#523).** New library tests
   finish a file whose last line ends in a dollar form, with no newline, check
   that calling an error answers the error, that an operator spelling outside the
   global table such as `++` answers `$!.name-missing`, and that a catch handler
   sees an observation called with a value, a host error with no kind, and a
   handler that is itself an error. Nothing user-facing changed.
-=======
-- **Applying a term a walk holds no longer rewrites the closure (#549).** An
-  aggregate taken from a closure's walk collected the argument into the
-  closure's own body, so after `.f {[1]}; ((f & {_}) .0) 2` the closure was
-  `{[1, 2]}` and `f ()` answered `[1, 2]`. The term now applies read-only, as a
-  name does: the call still answers `[1, 2]`, and `f ()` stays `[1]`.
->>>>>>> f07bd8cc (fix: apply a term a walk holds read-only, so the closure keeps its body (#549))
 
 ## v0.55.18 2026-11-24
 
