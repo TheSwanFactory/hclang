@@ -195,6 +195,19 @@ another, named or computed
 ; cat [xs, [3, 4]]
 # [1, 2, 3, 4]
 ```
+A name declared with an address holds that address, whatever it spells (#566).
+`.k .x` keeps the key `.x`, and the dotted spelling of an operator is kept the
+same way rather than applied to the pending `.k`. The name then applies as the
+operator does, and the rest of the statement goes on exactly as after `.x`
+```
+; .plus .+; .times .*; .mod .%%; .count .#; .less .<;
+; [plus, times, mod, less, count = (.#)]
+# [.+, .*, .%%, .<, <>]
+; [2 plus 3, 2 times 3, 7 mod 3, [1, 2, 3] count, 3 less 2]
+# [5, 6, 1, 3, ()]
+; [.k .x 2; .j .* 2]
+# [.k .x; .j .*; (2); 2]
+```
 ## There is no closure form of reduce
 
 **Decision.** `|` threads, always. It does not inspect what it was handed, and

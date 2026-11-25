@@ -446,6 +446,17 @@ export class FrameSymbol extends FrameAtom {
   }
 
   public override called_by(context: Frame): Frame {
+    // A pending declaration stores any address that follows it, so `.k .x`
+    // keeps the key and `o k` reads `o.x` later. An operator is no exception:
+    // `.k .+` binds `k` to `.+` rather than adding `.k` to something (#566).
+    // The stored name is a fresh address, so it carries no write authority
+    // over the scope it was written in.
+    if (
+      this.is.address === true && context instanceof FrameSymbol &&
+      context.isPendingDeclaration()
+    ) {
+      return context.apply(FrameSymbol.address(this.data), Frame.nil);
+    }
     if (this.is.address === true && this.data === "<>") {
       return FrameType.of(context);
     }
@@ -459,24 +470,19 @@ export class FrameSymbol extends FrameAtom {
     // in, so `xs .* 2` answered for that scope (007.27).
     if (
       this.is.address === true &&
-      FrameSymbol.DOTTED_OPERATORS.includes(this.data) &&
-      !(context instanceof FrameSymbol && context.isPendingDeclaration())
+      FrameSymbol.DOTTED_OPERATORS.includes(this.data)
     ) {
       return new FrameOperator(this.data).called_by(context);
     }
-    // An address applied by a receiver reads that member, `o .x`. Two
-    // receivers take the name itself instead (#429). A pending declaration
-    // stores it, so `.k .x` keeps the key and `o k` reads `o.x` later; the
-    // stored name is a fresh address, so it carries no write authority over
-    // the scope `.x` was written in. Text with no such member, which is all
-    // text but a document's `.body`, spells it: `“” .x` is `“.x”`.
-    if (this.is.address === true && FrameSymbol.isIdentifier(this.data)) {
-      if (context instanceof FrameSymbol && context.isPendingDeclaration()) {
-        return context.apply(FrameSymbol.address(this.data), Frame.nil);
-      }
-      if (hasCharacterContent(context) && context.get(this.data).is.missing) {
-        return context.apply(this, Frame.nil);
-      }
+    // An address applied by a receiver reads that member, `o .x`. A pending
+    // declaration takes the name itself instead (above), and so does text
+    // with no such member (#429), which is all text but a document's `.body`:
+    // `“” .x` is `“.x”`.
+    if (
+      this.is.address === true && FrameSymbol.isIdentifier(this.data) &&
+      hasCharacterContent(context) && context.get(this.data).is.missing
+    ) {
+      return context.apply(this, Frame.nil);
     }
     return this.in([context]);
   }
