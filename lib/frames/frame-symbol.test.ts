@@ -279,14 +279,14 @@ describe("FrameSymbol", () => {
       )).toContain("($!.method-not-mutating @value); 1)");
     });
     it("answers the refusal a binding's schema read meets", () => {
-      expect(answer(".P [.__p <1>;]; .c [.^ P; .r {p <^>}]; c.r 0"))
-        .toContain("; $!.is-private .p)");
+      // A descendant reads its parent's protected schema, not its private one.
+      expect(answer(".P [._p <1>;]; [.^ P; p.<^>]")).toContain("; <1>])");
+      expect(answer(".P [.__p <1>;]; [.^ P; p.<^>]"))
+        .toContain("; $!.is-private .p])");
     });
     it("answers a missing name for the schema of a name nothing binds", () => {
-      expect(
-        FrameSymbol.for("unbound").bindingSchema([new frame.FrameArray([])])
-          .toString(),
-      ).toContain("$!.name-missing");
+      expect(answer("unbound.<^>")).toContain("$!.name-missing");
+      expect(answer("unbound.<^>")).toContain(".unbound");
     });
     it("declares the aggregate a handle holds, not the handle", () => {
       const out = new frame.FrameArray([]);
@@ -311,7 +311,7 @@ describe("FrameSymbol", () => {
       expect(out.get_here("k.<>").is.missing).toBe(true);
     });
     it("refuses to redefine a constant's schema", () => {
-      expect(answer(".X <1>; .X <2>; X <^>"))
+      expect(answer(".X <1>; .X <2>;"))
         .toContain("($error{$is-constant .X});");
     });
     it("compares an address with a walked word by spelling", () => {
