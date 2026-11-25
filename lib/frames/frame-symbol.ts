@@ -111,6 +111,7 @@ export interface NameScope {
 }
 
 export class FrameSymbol extends FrameAtom {
+  public static override readonly TAG: string = "FrameSymbol";
   public override isSymbol(): this is FrameSymbol {
     return true;
   }

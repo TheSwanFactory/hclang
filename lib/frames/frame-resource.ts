@@ -56,6 +56,7 @@ type Placement =
   | { readonly kind: "refused"; readonly reason: string };
 
 export class FrameResource extends FrameURI implements ResourceBinding {
+  public static override readonly TAG: string = "FrameResource";
   /**
    * Creates the root binding a harness installs.
    *

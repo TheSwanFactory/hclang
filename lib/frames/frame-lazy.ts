@@ -22,6 +22,7 @@ const capturedScopes = new WeakMap<FrameLazy, EvaluationScope>();
 const inlineCallbackReceiverStates = new WeakMap<FrameLazy, ReceiverState>();
 
 export class FrameLazy extends FrameExpr {
+  public static override readonly TAG: string = "FrameLazy";
   public override isClosure(): this is FrameLazy {
     return true;
   }

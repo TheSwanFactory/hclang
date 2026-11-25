@@ -96,8 +96,7 @@ export class ParsePipe extends FrameArray implements IFinish {
   }
 
   public canPop(Factory: IArrayConstructor): boolean {
-    const match = this.Factory.name === Factory.name;
-    return match;
+    return this.Factory === Factory;
   }
 
   public factoryName(): string {

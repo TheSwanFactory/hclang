@@ -6,6 +6,7 @@ import { type EvaluationInput, EvaluationScope } from "./evaluation-scope.ts";
 import type { SigilStart } from "../scan.ts";
 
 export class FrameGroup extends FrameList {
+  public static override readonly TAG: string = "FrameGroup";
   public static readonly SIGIL_STARTS = [
     { key: Frame.BEGIN_EXPR, mode: "push" },
     { key: Frame.END_EXPR, mode: "pop" },

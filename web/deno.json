@@ -1,6 +1,6 @@
 {
   "name": "@swanfactory/hcweb",
-  "version": "0.55.14",
+  "version": "0.55.15",
   "description": "Homoiconic C - Web Components",
   "license": "MIT",
   "repository": {
@@ -16,7 +16,7 @@
     "test": "deno task build && deno task test:components && deno task test:consumer && deno task test:artifact",
     "test:components": "deno test -A tests/hclang.test.tsx",
     "test:consumer": "deno task --config tests/consumer/deno.json --lock ../deno.lock build",
-    "test:artifact": "deno test -A tests/standalone.test.ts tests/standalone-browser.test.ts",
+    "test:artifact": "deno test -A tests/standalone.test.ts tests/standalone-browser.test.ts tests/standalone-parity.test.ts",
     "test:production": "deno test -A tests/production.test.ts"
   },
   "exports": {

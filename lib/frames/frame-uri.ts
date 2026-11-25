@@ -59,6 +59,7 @@ const recognizeReference = (symbol: Frame, source = ""): ScanResult => {
  * error instead of a silently swallowed remainder.
  */
 export class FrameURI extends FrameText {
+  public static override readonly TAG: string = "FrameURI";
   public static readonly URI_BEGIN = "'";
   public static readonly URI_END = "'";
   public static readonly SIGIL_STARTS: readonly SigilStart[] = [

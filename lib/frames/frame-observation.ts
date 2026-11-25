@@ -6,7 +6,7 @@ import type { EvaluationInput } from "./evaluation-scope.ts";
 
 /** A symbol's spelling, without importing `FrameSymbol` (load order). */
 const spelling = (frame: Frame): string | undefined =>
-  frame.className() === "FrameSymbol"
+  frame.isClass("FrameSymbol")
     ? (frame as unknown as { spelling(): string }).spelling()
     : undefined;
 
