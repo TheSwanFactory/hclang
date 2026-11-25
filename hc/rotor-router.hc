@@ -81,6 +81,21 @@ Third hash is raw Denum. Fourth hash is KD antipodal coordinates.
 # [[5], [-1], [6]]
 
 ```
+A record that only stores a `channels` field is not a router, whether the
+list is empty, holds a value that is not a channel, or holds channels. Its
+third hash is the derived Denum of a Frame with no children, where a router
+built from the same channels has their Count and loads.
+```
+; “” [.channels []].###
+# “Denum(0,[])”
+; “” [.channels [5]].###
+# “Denum(0,[])”
+; “” [.channels [[5]]].###
+# “Denum(0,[])”
+; “” (RotorRouter [[5]]).###
+# “Denum(1,[5])”
+
+```
 Rebalancing into fresh channels is a structural operation, not KD product.
 ```
 ; “” ([1, 2, 3] / 2)

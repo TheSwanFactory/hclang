@@ -141,3 +141,24 @@ the following testdoc witnesses replace the superseded v0.53.1 examples.
 # 1
 ; “” ((Denum [2, [5, 3]]) / 3)
 # “Denum(2,[3, 3, 2])”
+```
+## Records that are not Denums, and raw observations that refuse
+A record that only stores `count` and `loads` fields is not a Denum, even
+when its loads are not Counts: its third hash is the derived Denum of a Frame
+with no children.
+```
+; “” [.count 0; .loads [-1]].###
+# “Denum(0,[])”
+```
+A declared Count that is not a Count is the answer of `.###` and of `&|&`,
+on either side. A declared Count above zero over no children has no loads
+to observe.
+```
+; [.# {()}].###
+# $!.declared-observation .#
+; [.# {()}] &|& [3]
+# $!.declared-observation .#
+; [3] &|& [.# {()}]
+# $!.declared-observation .#
+; [.# {5}].###
+# $!.denum-observations
