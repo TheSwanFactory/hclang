@@ -2,7 +2,8 @@ import { expect } from "@std/expect";
 import { describe, it } from "@std/testing/bdd";
 
 import * as frame from "../frames.ts";
-import { FrameSymbol } from "../frames.ts";
+import { FrameLiteral, FrameOperator, FrameSymbol } from "../frames.ts";
+import { FrameHandle } from "./frame-handle.ts";
 import { evaluate } from "../execute/evaluate.ts";
 
 describe("FrameSymbol", () => {
@@ -256,6 +257,83 @@ describe("FrameSymbol", () => {
     });
   });
 
+  describe("rare paths (#524)", () => {
+    const answer = (source: string): string =>
+      evaluate(source).at(0).toString();
+    it("keeps an echo that records no binding when it is re-owned", () => {
+      // `.^ p` answers such an echo; it names no property for a copy to hold.
+      const echo = new FrameLiteral(".^ p");
+      expect(echo.reownedBy(new frame.FrameArray([]))).toBe(echo);
+    });
+    it("hands the method's receiver to a control-flow curry read by name", () => {
+      // `g` is `(1 ?)`, read by name in the method body, so the callback it
+      // runs has the method's authority, as `1 ? {...}` written there would.
+      expect(answer(
+        ".old [.marker 1]; .next [.marker 2]; " +
+          ".child_ [.^ old; .reparent_ {.g _; g {.^ next}}]; " +
+          "child_.reparent_ (1 ?); child_.marker",
+      )).toMatch(/; 2\)$/);
+      expect(answer(
+        ".owner_ [.value 1; .write {.g _; g {@value 9}}]; " +
+          "owner_.write (1 ?); owner_.value",
+      )).toContain("($!.method-not-mutating @value); 1)");
+    });
+    it("answers the refusal a binding's schema read meets", () => {
+      // A descendant reads its parent's protected schema, not its private one.
+      expect(answer(".P [._p <1>;]; [.^ P; p.<^>]")).toContain("; <1>])");
+      expect(answer(".P [.__p <1>;]; [.^ P; p.<^>]"))
+        .toContain("; $!.is-private .p])");
+    });
+    it("answers a missing name for the schema of a name nothing binds", () => {
+      expect(answer("unbound.<^>")).toContain("$!.name-missing");
+      expect(answer("unbound.<^>")).toContain(".unbound");
+    });
+    it("declares the aggregate a handle holds, not the handle", () => {
+      const out = new frame.FrameArray([]);
+      const held = new frame.FrameArray([new frame.FrameNumber("1")]);
+      const echo = FrameSymbol.for("k").setter(out).apply(
+        new FrameHandle(held, false),
+        frame.Frame.nil,
+      );
+      expect(out.get_here("k")).toBe(held);
+      expect(echo.toString()).toEqual(".k [1]");
+    });
+    it("answers the error a declared name's binding holds, and writes nothing", () => {
+      // No HC declaration stores an error, so a host binds one.
+      const refusal = frame.Frame.error("$!.host-refusal");
+      const out = new frame.FrameArray([], { k: refusal });
+      const setter = FrameSymbol.for("k").setter(out);
+      expect(setter.apply(new frame.FrameNumber("2"), frame.Frame.nil))
+        .toBe(refusal);
+      const schema = new frame.FrameSchema([new frame.FrameNumber("2")]);
+      expect(setter.defineSchema(schema)).toBe(refusal);
+      expect(out.get_here("k")).toBe(refusal);
+      expect(out.get_here("k.<>").is.missing).toBe(true);
+    });
+    it("refuses to redefine a constant's schema", () => {
+      expect(answer(".X <1>; .X <2>;"))
+        .toContain("($error{$is-constant .X});");
+    });
+    it("compares an address with a walked word by spelling", () => {
+      expect(answer("[(.x) = (({x} & {_}) .0), (.y) = (({x} & {_}) .0)]"))
+        .toEqual("[<>, ()]");
+    });
+    it("reads an operator by name when the globals table has no operations", () => {
+      // A stand-in for Ops with no `operation` method, binding `+` as a name.
+      const globals = new frame.FrameArray([], {
+        "+": new frame.FrameString("plus"),
+      });
+      const saved = frame.Frame.globals;
+      frame.Frame.globals = globals;
+      try {
+        const context = new frame.FrameArray([]);
+        expect(new FrameOperator("+").called_by(context).toString())
+          .toEqual("“plus”");
+      } finally {
+        frame.Frame.globals = saved;
+      }
+    });
+  });
   describe("setter", () => {
     const value = "value";
     const frame_value = new frame.FrameString(value);

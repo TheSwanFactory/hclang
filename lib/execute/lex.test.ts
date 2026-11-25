@@ -245,6 +245,16 @@ describe("Lex", () => {
     expect(lexAtoms(".plain, ").map(String)).toEqual([".plain"]);
   });
 
+  it("ends an operator at a comparison bracket, which opens a schema", () => {
+    // The two abut, so they lex as one tight expression.
+    const atoms = lexAtoms("1 +<2> ");
+    expect(atoms.map(String)).toEqual(["1", "(+ <2>)"]);
+    const [operator, schema] = (atoms[1] as FrameExpr).asArray();
+    expect(operator).toBeInstanceOf(FrameOperator);
+    expect(operator.toString()).toEqual("+");
+    expect(schema).toBeInstanceOf(FrameSchema);
+  });
+
   describe("effect-boundary arrow `->` (006.17)", () => {
     it("lexes `->` as one operator between its operands", () => {
       const atoms = lexAtoms("a -> b ");
