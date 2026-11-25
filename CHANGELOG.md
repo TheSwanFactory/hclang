@@ -5,6 +5,14 @@
 > contains nothing else; then describe it and say that nothing user-facing
 > changed.
 
+## v0.55.21 2026-11-24
+
+- **A caught failed statement keeps its error kind (#550).** When a statement
+  ending in `;` fails, a handler now sees the failure's kind: `(1 / 0;) $!{$#}`
+  answers `$#.division-by-zero` instead of `$#.`, `$#.#` answers
+  `“division-by-zero”` instead of `“”`, and a kind pattern such as
+  `$# ~ <$!.division-by-zero>` matches.
+
 ## v0.55.20 2026-11-24
 
 - **Applying a term a walk holds no longer rewrites the closure (#549).** An
