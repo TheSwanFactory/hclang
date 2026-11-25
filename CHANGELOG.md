@@ -5,6 +5,12 @@
 > contains nothing else; then describe it and say that nothing user-facing
 > changed.
 
+## v0.55.30 2026-11-25
+
+- **Fewer duplicated time tests (#526).** The TypeScript tests for datetimes and
+  durations no longer repeat the examples `hc/time.hc` already checks; those
+  examples remain the tests for those answers. Nothing user-facing changed.
+
 ## v0.55.29 2026-11-25
 
 - **A branch-coverage floor in CI (#543).** `deno task coverage:check` now
