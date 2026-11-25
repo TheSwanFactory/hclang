@@ -116,7 +116,7 @@ The root `deno.json` provides several tasks:
 | `deno task test:compiled`          | Build the CLI binary and run it from an empty directory             |
 | `deno task test:load-order`        | Check that every `lib/` module loads when imported first            |
 | `deno task check`                  | Type-check, check the README code blocks, and run `deno doc --lint` |
-| `deno task coverage:check`         | Check each package's line-coverage floor, as CI does                |
+| `deno task coverage:check`         | Check each package's line and branch coverage floors, as CI does    |
 | `deno task test:bs`                | Test BitScheme documentation                                        |
 | `deno task test:doc`               | Test HC documentation examples                                      |
 | `deno task build`                  | Build native, npm, and web artifacts                                |
