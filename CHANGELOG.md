@@ -5,6 +5,14 @@
 > contains nothing else; then describe it and say that nothing user-facing
 > changed.
 
+## v0.55.20 2026-11-24
+
+- **Applying a term a walk holds no longer rewrites the closure (#549).** An
+  aggregate taken from a closure's walk collected the argument into the
+  closure's own body, so after `.f {[1]}; ((f & {_}) .0) 2` the closure was
+  `{[1, 2]}` and `f ()` answered `[1, 2]`. The term now applies read-only, as a
+  name does: the call still answers `[1, 2]`, and `f ()` stays `[1]`.
+
 ## v0.55.19 2026-11-24
 
 - **Tests for the remaining rare paths in the frames (#523).** New library tests

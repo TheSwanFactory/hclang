@@ -638,7 +638,12 @@ export class FrameScoped extends Frame {
   ): Frame {
     const key = argument.isSymbol() ? argument.sizeOperatorKey() : undefined;
     if (key !== undefined) return this.sizeFor(key);
-    return this.live().call(argument, parameter);
+    // Any other term is the template's own, which every call of its closure
+    // shares, so it applies read-only, as a name does: an aggregate collects
+    // onto a copy and the closure keeps its body (spec a17 §3, #549).
+    const live = this.live();
+    return (live === this.term ? live.readOnly() : live)
+      .call(argument, parameter);
   }
 
   public override equals(other: Frame): Frame {

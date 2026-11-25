@@ -174,6 +174,20 @@ reduce's own accumulator, is written in place
 ; [(3 acc).n, acc.n]
 # [2, 0]
 ```
+A term a walk holds applies like a name as well (#549). Walking a closure yields
+the terms of its body, which every call of the closure shares, so applying one
+collects onto a copy and the closure keeps its body
+```
+; .f {[1]};
+; ((f & {_}) .0) 2
+# [1, 2]
+; f ()
+# [1]
+; .g {[1] 2};
+; .w ((g & {_}) .0);
+; [w 3, w 4, g ()]
+# [[1, 3], [1, 4], [1, 2]]
+```
 Concatenation therefore needs no operator of its own: reduce one aggregate into
 another, named or computed
 ```
