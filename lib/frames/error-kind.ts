@@ -7,7 +7,8 @@ import type { Frame } from "./frame.ts";
  * system error, made by the interpreter, and `$!!.reason` for a user error,
  * raised by HC code. Every error's rendering begins with its kind, followed by
  * whatever subject it carries, so the kind is read from that prefix with the
- * reason grammar of spec 10 §6.1.
+ * reason grammar of spec 10 §6.1. A failed statement's kind is the kind of the
+ * error it carries.
  *
  * A `$!.reason` literal written in HC source is a user error that still
  * describes the system kind it was written as. A schema that holds it matches
@@ -24,15 +25,33 @@ const WRITTEN: unique symbol = Symbol("written error kind");
 
 type Described = Frame & { [WRITTEN]?: string };
 
+/**
+ * The error a failed statement carries, looking through its wrappers.
+ *
+ * A terminated statement that fails answers a wrapper flagged as an error,
+ * holding the failure as its one term (`FrameExpr.asStatement`). The wrapper
+ * renders the terminator around the failure, `($!.division-by-zero /);`, so
+ * its kind is the kind of the failure it holds.
+ */
+const carried = (error: Frame): Frame => {
+  let failure = error;
+  while (failure.is.statement === true && failure.is.error === true) {
+    const terms = failure.asArray();
+    if (terms.length !== 1) break;
+    failure = terms[0];
+  }
+  return failure;
+};
+
 /** The kind an error renders with, `$!.reason` or `$!!.reason`, if any. */
 export const kindOf = (error: Frame): string | undefined => {
-  const match = KIND.exec(error.toString());
+  const match = KIND.exec(carried(error).toString());
   return match ? `$${match[1]}.${match[2]}` : undefined;
 };
 
 /** The reason within a kind, without its namespace. */
 export const reasonOf = (error: Frame): string | undefined =>
-  KIND.exec(error.toString())?.[2];
+  KIND.exec(carried(error).toString())?.[2];
 
 /** Records that a user error was written as the system kind `kind`. */
 export const describeAs = (error: Frame, kind: string): Frame => {

@@ -148,6 +148,23 @@ Deno.test("a handler that is itself an error is the result (a13/12 §2.3)", () =
   expect(answer("(1 / 0) $! [].nope").toString())
     .toMatch(/^\$!\.name-missing/);
 });
+Deno.test("a failed statement keeps its kind when caught (#550)", () => {
+  // `(1 / 0;)` answers the statement's wrapper, `($!.division-by-zero /);`.
+  expect(answer("(1 / 0;) $!{$#}").toString()).toBe("$#.division-by-zero");
+  expect(answer("(1 / 0;) $!{$#.#}").toString()).toBe("“division-by-zero”");
+  expect(answer("(1 / 0;) $! $#.#").toString()).toBe("“division-by-zero”");
+  expect(answer("(1 / 0;) $!{_}").toString()).toBe("$#.division-by-zero");
+  expect(answer("([].nope;) $!{$#}").toString()).toBe("$#.name-missing");
+  expect(answer("((1 / 0;);) $!{$#}").toString()).toBe("$#.division-by-zero");
+  expect(text("(1 / 0;) $!{$# ~ <$!.division-by-zero>}")).toBe("[<>]");
+  expect(text("(1 / 0;) $!{$# ~ <$!.name-missing>}")).toBe("[]");
+  expect(text("($!!.zero;) $!{$# ~ <$!!.zero>}")).toBe("[<>]");
+  // `$#.!` still answers the frame that was caught, wrapper and all, and the
+  // next handler in the chain reads its kind.
+  expect(text("(1 / 0;) $!{$#.!}")).toBe("[($!.division-by-zero /);]");
+  expect(answer("(1 / 0;) $!{$#.!} $!{$#.#}").toString())
+    .toBe("“division-by-zero”");
+});
 Deno.test("an observation evaluates to itself", () => {
   // `{} [$#]` holds the observation as a term; calling it evaluates the term.
   const seen = new Spy();
