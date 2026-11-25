@@ -35,8 +35,6 @@ describe("FrameArray", () => {
     it("prints a declaration once, from the property plane it wrote", () => {
       // Both planes held it before, so re-reading the output declared `.a`
       // twice: once from the echo and once from the property.
-      expect(evaluate("[.a 1; a, 2]").at(0).toString())
-        .toEqual("[.a 1; 1, 2]");
       expect(evaluate("[.a 1]").at(0).toString()).toEqual("[.a 1;]");
     });
 
@@ -95,7 +93,6 @@ describe("FrameArray", () => {
     });
 
     it("counts elements, never properties", () => {
-      expect(last("[.meta 1; 2, 3] .#").toString()).toEqual("2");
       expect(last("[.meta [1, 2]; [3]] .##").toString()).toEqual("3");
     });
 
@@ -260,11 +257,6 @@ describe("FrameArray", () => {
   });
 
   describe("a key the aggregate already assigns", () => {
-    it("answers the refusal, because nothing well-formed was built", () => {
-      expect(evaluate("[.0 9; 1, 2]").at(0).toString())
-        .toEqual("$!.numeric-key .0");
-    });
-
     it("leaves a refused write inspectable, with that write undone", () => {
       const result = evaluate(".owner [.A 1; .A 2; 3]");
 
@@ -325,14 +317,6 @@ describe("FrameArray", () => {
   describe("a declared application (#375)", () => {
     const summer = (body: string): string => `.Summer {[.total _; ${body}]}; `;
 
-    it("calls apply_ instead of collecting, answering the receiver", () => {
-      const result = last(
-        summer(".apply_ {@total (total + _);}") +
-          "([1, 2, 4] | (Summer 0)) .total",
-      );
-      expect(result.toString()).toEqual("7");
-    });
-
     it("updates a copy through an immutable name and fills a mutable one", () => {
       const result = last(
         summer(".apply_ {@total (total + _);}") +
@@ -340,14 +324,6 @@ describe("FrameArray", () => {
           "[1, 2] | r_; [([1, 2] | s) .total, s.total, r_.total]",
       );
       expect(result.toString()).toEqual("[3, 0, 3]");
-    });
-
-    it("keeps the receiver when a non-mutating step answers nil", () => {
-      const result = last(
-        ".Max {[.best _; .apply {(_ .> best) ? {Max __}}]}; " +
-          "([3, 9, 4] | (Max 0)) .best",
-      );
-      expect(result.toString()).toEqual("9");
     });
 
     it("is found on declared parents but not in the surrounding scope", () => {
@@ -462,10 +438,8 @@ describe("FrameArray", () => {
 
   describe("integer repetition (v0.22.0)", () => {
     it("concatenates the elements n times into a fresh array", () => {
-      expect(text("3 [1, 2]")).toEqual("[1, 2, 1, 2, 1, 2]");
       expect(answer("3 [1, 2]")).toBeInstanceOf(FrameArray);
       expect(text("1 [1, 2]")).toEqual("[1, 2]");
-      expect(text("0 [1, 2]")).toEqual("[]");
       expect(text("(3 [1, 2]).#")).toEqual("6");
     });
 

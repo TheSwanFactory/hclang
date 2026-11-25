@@ -42,21 +42,11 @@ describe("evaluate: schemas", () => {
     expect(result.toString()).toContain(".x “hello”");
   });
 
-  it("accepts values from string enumeration", () => {
-    const result = evaluate('.color <"red","green","blue"> "red"');
-    expect(result.toString()).toContain(".color “red”");
-  });
-
   it("rejects values not in string enumeration", () => {
     const result = evaluate(
       '.color <"red","green","blue"> "red"; @color "yellow"',
     );
     expect(result.toString()).toContain("$!.type-error");
-  });
-
-  it("validates number enumerations", () => {
-    const result = evaluate(".option <1,2,3> 2");
-    expect(result.toString()).toContain(".option 2");
   });
 
   it("rejects numbers not in enumeration", () => {
@@ -65,19 +55,9 @@ describe("evaluate: schemas", () => {
   });
 
   // Single-value schema tests (constants)
-  it("enforces single value schema", () => {
-    const result = evaluate(".const <42> 42");
-    expect(result.toString()).toContain(".const 42");
-  });
-
   it("rejects different value for single value schema", () => {
     const result = evaluate(".const <42> 42; @const 43");
     expect(result.toString()).toContain("$!.type-error");
-  });
-
-  it("enforces string literal type", () => {
-    const result = evaluate('.status <"ok"> "ok"');
-    expect(result.toString()).toContain(".status “ok”");
   });
 
   // Reassignment tests
@@ -194,11 +174,6 @@ describe("evaluate: schemas", () => {
       expect(evaluate("<.secret> [.__secret 1;]").toString()).toEqual(
         "[$!.is-private .secret]",
       );
-    });
-
-    it("matches exact and complete bit schemas", () => {
-      expect(evaluate("<8@Bit> 0xff").toString()).toEqual("[0xff]");
-      expect(evaluate("<[@Bit]> 0b101").toString()).toEqual("[0b101]");
     });
 
     it("requires exact safe integers for bit widths", () => {

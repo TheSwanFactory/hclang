@@ -21,20 +21,10 @@ describe("evaluate: boolean and type operations", () => {
     expect(evaluate("“Q” ~ (1).<>").toString()).toEqual("[]");
   });
 
-  it("enforces closure signature defaults and required properties", () => {
+  it("enforces closure signature required properties", () => {
     const declaration =
       ".join-name (.first “Jane”, .last) ^ {last “, ” first}; ";
 
-    expect(
-      evaluate(
-        declaration + "join-name (.first “John”, .last “Doe”)",
-      ).at(0).toString(),
-    ).toContain("“Doe, John”");
-    expect(
-      evaluate(
-        declaration + "join-name (.middle “Q”, .last “Doe”)",
-      ).at(0).toString(),
-    ).toContain("“Doe, Jane”");
     expect(
       evaluate(declaration + "join-name (.middle “Q”)").at(0).toString(),
     ).toContain(

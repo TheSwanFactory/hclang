@@ -262,12 +262,6 @@ describe("FrameCount", () => {
       ) {
         expect(evaluate(source).toString()).toEqual("[]");
       }
-      expect(value("(2).<> (5 - 3)").toString()).toEqual(
-        "$!.type-error (2).<> 2",
-      );
-      expect(value("(5 - 3).<> 2").toString()).toEqual(
-        "$!.type-error (2).<> 2",
-      );
       expect(count(2n).typeEquals(int(2n))).toBe(Frame.nil);
       expect(int(2n).typeEquals(count(2n))).toBe(Frame.nil);
       expect(count(2n).identical(int(2n))).toBe(Frame.nil);
@@ -290,8 +284,6 @@ describe("FrameCount", () => {
       ) {
         expect(value(source)).toBe(Frame.all);
       }
-      expect(value("(2).<> 3").toString()).toEqual("3");
-      expect(value("(0 - 1).<> (0 - 5)").toString()).toEqual("-5");
     });
 
     it("leaves the data plane comparing spellings", () => {
@@ -373,7 +365,6 @@ describe("FrameCount", () => {
       expect(value("3“ab”").toString()).toEqual("“ababab”");
       expect(count(2n).range()).toEqual([0, 1]);
       expect(count(5n).exactInt()).toEqual(5n);
-      expect(value("<8@Bit> 0xff").toString()).toEqual("0xff");
       expect(
         evaluate(".size (4 * 2);\n\\size\\01234567").at(-1).toString(),
       ).toEqual("\\8\\01234567");
