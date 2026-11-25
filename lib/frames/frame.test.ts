@@ -80,6 +80,17 @@ describe("Frame", () => {
       expect(aggregate.isFailedResult()).toBe(true);
       expect(nested.isFailedResult()).toBe(false);
     });
+    it("answers an error itself when it is called", () => {
+      // HC never calls an error: expression reduction skips the terms after a
+      // failed one. `Frame.error` is public, so this reads it through the API.
+      const error = Frame.error("$!.failure");
+      for (const argument of [new FrameInt("3"), Frame.all, Frame.nil]) {
+        const result = error.call(argument);
+        expect(result).toBe(error);
+        expect(result.isError()).toBe(true);
+      }
+      expect(error.toString()).toEqual("$!.failure");
+    });
   });
 
   describe("equals", () => {
