@@ -5,6 +5,16 @@
 > contains nothing else; then describe it and say that nothing user-facing
 > changed.
 
+## v0.55.25 2026-11-24
+
+- **Tests for how the footprint walk resolves names (#524).** New library tests
+  show what an event's potential footprint answers for an alias to a local, an
+  alias inside a functional update, an alias a class member inherits from its
+  declared parent, an alias whose binding holds an error or that only the
+  globals bind, a closure a method finds outside its receiver, a name bound to a
+  bound method, a member read through an argument handle or a group, an index
+  past the argument's end, and a missing argument. Nothing user-facing changed.
+
 ## v0.55.24 2026-11-24
 
 - **Tests for the footprint walk's rare paths (#524).** New library tests show
