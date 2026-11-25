@@ -93,6 +93,11 @@ Composition refuses, including same-unit
 ; -(9.8.m)
 # $!.numeric-domain unary- FrameTypedNumber
 ```
+Unary `+` changes nothing, so it does not refuse
+```
+; + 3.5.m
+# 3.5.m
+```
 Boundaries that do not move
 ```
 ; 9.8.5
