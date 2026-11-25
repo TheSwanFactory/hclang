@@ -5,6 +5,18 @@
 > contains nothing else; then describe it and say that nothing user-facing
 > changed.
 
+## v0.55.24 2026-11-24
+
+- **Tests for the footprint walk's rare paths (#524).** New library tests show
+  what an event's potential footprint answers for a tuple or a one-term group, a
+  marked local handed on whole, an unknown value bound to a name, a refused path
+  carried through an operator, a group or a tight expression, an alias that
+  names no binding, the parameter ladder, `.^` off method position, `_^` in a
+  method, a call refused at the copy-on-write boundary, a walked closure handed
+  in as the argument, a body holding a walk's atom, an empty statement, and an
+  alias write that an import's read-only view refuses. Nothing user-facing
+  changed.
+
 ## v0.55.23 2026-11-24
 
 - **A group of statements collects a failure like an aggregate (#555).** The
