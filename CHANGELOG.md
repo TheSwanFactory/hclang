@@ -5,6 +5,16 @@
 > contains nothing else; then describe it and say that nothing user-facing
 > changed.
 
+## v0.55.32 2026-11-25
+
+- **Fewer duplicated array, schema, resource and clock tests (#526).** The
+  TypeScript tests for arrays, counts, schemas, closures, resources, the clock
+  and text conversion no longer repeat the examples `hc/apply.hc`,
+  `hc/numerics.hc`, `hc/BitScheme.hc`, `hc/resources.hc`, `hc/time.hc`,
+  `hc/class-support.hc`, `hc/testdoc.hc` and `hc/white-paper.hc` already check;
+  those examples remain the tests for those answers. Nothing user-facing
+  changed.
+
 ## v0.55.31 2026-11-25
 
 - **Fewer duplicated FOIST and figures tests (#526).** The TypeScript tests for

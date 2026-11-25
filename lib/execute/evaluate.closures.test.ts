@@ -35,11 +35,6 @@ describe("evaluate: closures with arguments", () => {
       expect(result.toString()).toEqual("[42]");
     });
 
-    it("applies closure { _ + 1 } to add one", () => {
-      const result = evaluate("{ _ + 1 } 2");
-      expect(result.toString()).toEqual("[3]");
-    });
-
     it("applies closure { _ * _ } to square", () => {
       const result = evaluate("{ _ * _ } 3");
       expect(result.toString()).toEqual("[9]");

@@ -66,28 +66,14 @@ describe("the clock as a grant", () => {
     )).toEqual(["<>"]);
   });
 
-  it("refuses a write, because an observation is not a setting", () => {
-    expect(underClock("'clock:now' “2020-01-01”", pinned("2026-08-21")))
-      .toEqual(["$!.clock-read-only 'clock:now'"]);
-  });
-
   it("names nothing but `now`", () => {
     const clock = pinned("2026-08-21T00:00:00Z");
 
-    expect(underClock("'clock:tomorrow' | []", clock)).toEqual([
-      "[$!.clock-unreadable 'clock:tomorrow']",
-    ]);
     expect(underClock("'clock:' | []", clock)).toEqual([
       "[$!.clock-unreadable 'clock:']",
     ]);
     expect(underClock("'clock://elsewhere/now' | []", clock)).toEqual([
       "[$!.clock-unreadable 'clock://elsewhere/now']",
-    ]);
-  });
-
-  it("keeps the URI components of the reference readable", () => {
-    expect(underClock("'clock:now' .scheme", pinned("2026-08-21"))).toEqual([
-      "“clock”",
     ]);
   });
 

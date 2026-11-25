@@ -64,10 +64,6 @@ describe("FrameText", () => {
       expect(answer(".Num {[.toText {42}]}; “n=” (Num())")).toEqual("“n=42”");
     });
 
-    it("falls back to the spelling when none is declared", () => {
-      expect(answer("“” [.x 1; 2]")).toEqual("“[.x 1; 2]”");
-    });
-
     it("is never found in the scope around a plain aggregate", () => {
       expect(answer(".toText {“x”}; “” [1]")).toEqual("“[1]”");
     });

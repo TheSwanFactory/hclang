@@ -102,7 +102,6 @@ describe("FrameResource", () => {
 
   describe("as a root binding", () => {
     it("resolves an identifier only when one is reachable", () => {
-      expect(results("'./out.txt' “hello”")).toEqual(["5"]);
       expect(evaluate("'./out.txt' “hello”").toStringArray()).toEqual([
         "“hello”",
       ]);
@@ -172,12 +171,6 @@ describe("FrameResource", () => {
         "$!.resource-scheme-unbound 'https://example.com/x'",
       ]);
       expect(store.read("")).toEqual({ ok: false, reason: "resource-absent" });
-    });
-
-    it("refuses a parent escape at normalization", () => {
-      expect(results("'../escape' “no”")).toEqual([
-        "$!.resource-parent-escape '../escape'",
-      ]);
     });
   });
 
