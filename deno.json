@@ -1,5 +1,5 @@
 {
-  "version": "0.55.22",
+  "version": "0.55.23",
   "nodeModulesDir": "manual",
   "bin": {
     "hc": "scripts/hc"
