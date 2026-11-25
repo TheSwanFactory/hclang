@@ -8,6 +8,7 @@ import {
   FrameScopeAnchor,
   FrameSymbol,
 } from "../frames.ts";
+import { lastResult } from "../test-helpers.test.ts";
 
 describe("FrameScopeAnchor", () => {
   const roots = (): {
@@ -89,5 +90,16 @@ describe("FrameScopeAnchor", () => {
 
     expect(result.is.error).toBe(true);
     expect(result.toString()).toEqual("$!.scope-not-callable $");
+  });
+});
+describe("FrameCatch", () => {
+  it("evaluates to itself outside expression reduction", () => {
+    // A walk holds `$!` as an atom; `{} [walk]` holds that aggregate as a
+    // term, and calling it evaluates each atom on its own.
+    const result = lastResult("({} [{1 $! 2} & {_}]) ()");
+    expect(result.toString()).toEqual("[1, $!, 2]");
+    const atom = result.at(1);
+    expect(atom.className()).toEqual("FrameCatch");
+    expect(atom.is.error).not.toBe(true);
   });
 });

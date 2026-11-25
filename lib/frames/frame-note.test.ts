@@ -8,6 +8,7 @@ import {
   FrameString,
   FrameSymbol,
 } from "../frames.ts";
+import { lastResult } from "../test-helpers.test.ts";
 
 describe("FrameNote", () => {
   const key = "key";
@@ -60,5 +61,11 @@ describe("FrameNote", () => {
     expect(out.length()).toEqual(1);
     const result = out.at(0);
     expect(result).toEqual(note);
+  });
+  it("prints inside an aggregate's data plane between its delimiters", () => {
+    // The note's text is metadata, so the data plane holds `$` and `;` alone.
+    const collected = lastResult("[([].nope), 7]");
+    expect(collected.dataString()).toEqual("[$;,7]");
+    expect(collected.dataEquals(lastResult("[7, 7]"))).toBe(Frame.nil);
   });
 });

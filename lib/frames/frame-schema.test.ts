@@ -28,6 +28,15 @@ describe("FrameSchema", () => {
   it("stringifies with brackets", () => {
     expect(frame_schema.toString()).toEqual("<“a”, “b”>");
   });
+  it("prints inside an aggregate's data plane as its own form", () => {
+    // A formatted schema prints its format; an enumeration, its terms.
+    expect(answer("[<8@Bit>]").dataString()).toEqual("[<8@Bit>]");
+    expect(answer("[<1, 2>]").dataString()).toEqual("[<1,2>]");
+    expect(answer("[<8@Bit>]").dataEquals(answer("[<16@Bit>]")))
+      .toBe(Frame.nil);
+    expect(answer("[<1, 2>]").dataEquals(answer("[<1, 2>]")))
+      .toBe(Frame.all);
+  });
 
   it("uses 'at' to access elements by index", () => {
     const first_element = frame_schema.at(0);

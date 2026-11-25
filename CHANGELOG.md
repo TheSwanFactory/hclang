@@ -5,6 +5,14 @@
 > contains nothing else; then describe it and say that nothing user-facing
 > changed.
 
+## v0.55.17 2026-11-24
+
+- **Tests for evaluating and printing rare values (#523).** New library tests
+  evaluate a dispatch policy, an observation `$#` and the catch operator `$!` a
+  second time, which answers the value itself, and read the data plane of an
+  aggregate that holds an observation, a schema, a type or a note. Nothing
+  user-facing changed.
+
 ## v0.55.16 2026-11-24
 
 - **Tests for the REPL and the untested numeric paths (#521, #522).** A `cli`

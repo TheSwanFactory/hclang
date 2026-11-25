@@ -128,6 +128,21 @@ Deno.test("$# is the innermost running handler's observation", () => {
     .toMatch(/^\$!\.name-missing/);
 });
 
+Deno.test("an observation evaluates to itself", () => {
+  // `{} [$#]` holds the observation as a term; calling it evaluates the term.
+  const seen = new Spy();
+  const result = answer("(1 / 0) $!{($$.seen $#), ({} [$#]) ()}", { seen });
+  expect(result).toBe(seen.seen[0]);
+  expect(result.toString()).toBe("$#.division-by-zero");
+  expect(answer("(1 / 0) $!{(({} [$#]) ()) .#}").toString())
+    .toBe("“division-by-zero”");
+});
+Deno.test("an observation inside an aggregate keeps its reason in the data plane", () => {
+  const division = answer("(1 / 0) $!{[$#]}");
+  expect(division.dataString()).toBe("[$#.division-by-zero]");
+  expect(division.dataEquals(answer("(1 / 0) $!{[$#]}"))).toBe(Frame.all);
+  expect(division.dataEquals(answer("[].nope $!{[$#]}"))).toBe(Frame.nil);
+});
 Deno.test("$# is current while the handler expression is evaluated, not only called", () => {
   // A non-closure handler reads the observation too (PR #473 review).
   expect(answer("(1 / 0) $! $#.#").toString()).toBe("“division-by-zero”");
