@@ -5,6 +5,19 @@
 > contains nothing else; then describe it and say that nothing user-facing
 > changed.
 
+## v0.55.28 2026-11-25
+
+- **Tests for the remaining refusals (#524).** New tests show what HC answers
+  for a declared Count that observes itself or nests too deep, a dispatch given
+  something other than a list of events, a tight catcher that opens an
+  expression, a schema declared under `.^`, `$#` followed by a word character,
+  an instant divided, the ratio to a zero duration, a remainder bit schema
+  applied to a number, an import whose last form a held `;` completes, a quoted
+  file left open or parsing to two closures, and subtracting a Denum too wide to
+  negate. Host-side tests cover the class loader's failure and reentry,
+  malformed lexer actions and spellings, and list division before the evaluator
+  installs its router. Nothing user-facing changed.
+
 ## v0.55.27 2026-11-25
 
 - **Tests for the command line's rare paths (#524).** New CLI tests show what
