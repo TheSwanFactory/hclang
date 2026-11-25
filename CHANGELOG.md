@@ -5,6 +5,15 @@
 > contains nothing else; then describe it and say that nothing user-facing
 > changed.
 
+## v0.55.19 2026-11-24
+
+- **Tests for the remaining rare paths in the frames (#523).** New library tests
+  finish a file whose last line ends in a dollar form, with no newline, check
+  that calling an error answers the error, that an operator spelling outside the
+  global table such as `++` answers `$!.name-missing`, and that a catch handler
+  sees an observation called with a value, a host error with no kind, and a
+  handler that is itself an error. Nothing user-facing changed.
+
 ## v0.55.18 2026-11-24
 
 - **Tests for walking expressions and held terms (#523).** New library tests
