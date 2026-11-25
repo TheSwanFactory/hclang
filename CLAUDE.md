@@ -110,8 +110,8 @@ of its own, so neither file's code may import.
 - Each module needs tests: a sibling `<name>.test.ts`, or a feature test that
   the coverage report shows covering it.
 - Use `@std/expect` for assertions
-- Keep each package at or above its line-coverage floor, which CI checks with
-  `deno task coverage:check`.
+- Keep each package at or above its line and branch coverage floors, which CI
+  checks with `deno task coverage:check`.
 
 ### Documentation
 

@@ -1,6 +1,7 @@
 import { expect } from "@std/expect";
 import { describe, it } from "@std/testing/bdd";
 import {
+  branchTotals,
   failures,
   lineTotals,
   measure,
@@ -11,13 +12,22 @@ import {
   type Step,
 } from "./coverage-floor.ts";
 
-const row = (name: string, floor: number): Package => ({
+const row = (name: string, floor: number, branchFloor = 0): Package => ({
   name,
   prefix: `${name}/`,
   steps: [],
   excludes: [],
   floor,
+  branchFloor,
 });
+
+/** A row's totals; its one branch is taken unless `branches` gives hit and found. */
+const totals = (
+  name: string,
+  hit: number,
+  found: number,
+  branches: [number, number] = [1, 1],
+) => ({ name, hit, found, branchHit: branches[0], branchFound: branches[1] });
 
 describe("lineTotals", () => {
   it("sums the LH and LF records of every file", () => {
@@ -45,6 +55,33 @@ describe("lineTotals", () => {
   });
 });
 
+describe("branchTotals", () => {
+  it("sums the BRH and BRF records of every file", () => {
+    const lcov = [
+      "SF:/repo/lib/a.ts",
+      "BRDA:3,0,0,1",
+      "BRDA:3,0,1,0",
+      "BRF:4",
+      "BRH:3",
+      "LH:7",
+      "LF:10",
+      "end_of_record",
+      "SF:/repo/lib/b.ts",
+      "BRF:2",
+      "BRH:2",
+      "LH:3",
+      "LF:5",
+      "end_of_record",
+      "",
+    ].join("\n");
+    expect(branchTotals(lcov)).toEqual({ branchHit: 5, branchFound: 6 });
+  });
+
+  it("reports nothing for an empty report", () => {
+    expect(branchTotals("")).toEqual({ branchHit: 0, branchFound: 0 });
+  });
+});
+
 describe("percent", () => {
   it("divides lines hit by lines found", () => {
     expect(percent(9869, 10428)).toBeCloseTo(94.64, 2);
@@ -60,41 +97,59 @@ describe("failures", () => {
   const rows = [row("lib", 94), row("cli", 78)];
 
   it("passes rows at or above their floor", () => {
-    const results = [
-      { name: "lib", hit: 94, found: 100 },
-      { name: "cli", hit: 99, found: 100 },
-    ];
+    const results = [totals("lib", 94, 100), totals("cli", 99, 100)];
     expect(failures(results, rows)).toEqual([]);
   });
 
   it("fails a row below its floor", () => {
-    const results = [
-      { name: "lib", hit: 9399, found: 10000 },
-      { name: "cli", hit: 78, found: 100 },
-    ];
+    const results = [totals("lib", 9399, 10000), totals("cli", 78, 100)];
     expect(failures(results, rows)).toEqual([
-      "lib: 93.99% is below its 94% floor",
+      "lib: line coverage 93.99% is below its 94% floor",
+    ]);
+  });
+
+  it("fails a row below its branch floor, whatever its lines", () => {
+    const branchRows = [row("lib", 94, 96), row("cli", 78, 97)];
+    const results = [
+      totals("lib", 100, 100, [959, 1000]),
+      totals("cli", 78, 100, [97, 100]),
+    ];
+    expect(failures(results, branchRows)).toEqual([
+      "lib: branch coverage 95.90% is below its 96% floor",
+    ]);
+  });
+
+  it("names both floors when a row is below each", () => {
+    const results = [totals("lib", 93, 100, [1, 2])];
+    expect(failures(results, [row("lib", 94, 66)])).toEqual([
+      "lib: line coverage 93.00% is below its 94% floor",
+      "lib: branch coverage 50.00% is below its 66% floor",
     ]);
   });
 
   it("fails a row whose report is empty or missing", () => {
-    const results = [{ name: "lib", hit: 0, found: 0 }];
+    const results = [totals("lib", 0, 0, [0, 0])];
     expect(failures(results, rows)).toEqual([
       "lib: the coverage report is empty",
       "cli: the coverage report is empty",
     ]);
   });
+
   it("reports a row's error and still checks every other row", () => {
     const results = [
-      { name: "lib", hit: 0, found: 0, error: "deno coverage failed (exit 1)" },
-      { name: "cli", hit: 77, found: 100 },
+      {
+        ...totals("lib", 0, 0, [0, 0]),
+        error: "deno coverage failed (exit 1)",
+      },
+      totals("cli", 77, 100),
     ];
     expect(failures(results, rows)).toEqual([
       "lib: deno coverage failed (exit 1)",
-      "cli: 77.00% is below its 78% floor",
+      "cli: line coverage 77.00% is below its 78% floor",
     ]);
   });
 });
+
 describe("nothingToReport", () => {
   it("recognizes deno coverage's two empty-report errors", () => {
     expect(nothingToReport("error: No coverage files found\n")).toBe(true);
@@ -122,6 +177,7 @@ describe("measure", () => {
     steps,
     excludes: [],
     floor: 50,
+    branchFloor: 50,
   });
   const inFixture = async (
     test: (root: string) => Promise<void>,
@@ -149,13 +205,21 @@ describe("measure", () => {
         name: "fixture",
         hit: 0,
         found: 0,
+        branchHit: 0,
+        branchFound: 0,
         error: "its tests failed (deno eval Deno.exit(3), exit 3)",
       });
     }));
   it("reports an empty report with no error", () =>
     inFixture(async (root) => {
       const result = await measure(root, at("elsewhere/", [run]));
-      expect(result).toEqual({ name: "fixture", hit: 0, found: 0 });
+      expect(result).toEqual({
+        name: "fixture",
+        hit: 0,
+        found: 0,
+        branchHit: 0,
+        branchFound: 0,
+      });
     }));
   it("reports a failure of deno coverage as an error", () =>
     inFixture(async (root) => {
@@ -189,6 +253,7 @@ describe("PACKAGES", () => {
       expect(each.prefix).toEqual(`${each.name}/`);
       expect(each.steps.length).toBeGreaterThan(0);
       expect(Number.isInteger(each.floor)).toBe(true);
+      expect(Number.isInteger(each.branchFloor)).toBe(true);
     }
   });
 

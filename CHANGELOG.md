@@ -5,6 +5,14 @@
 > contains nothing else; then describe it and say that nothing user-facing
 > changed.
 
+## v0.55.29 2026-11-25
+
+- **A branch-coverage floor in CI (#543).** `deno task coverage:check` now
+  checks each package's branch coverage as well as its lines, with floors set
+  from the branches measured after #524's tests landed: lib 96%, cli 97%,
+  lib/maml 66%, scripts 87%, web 94%, and experiment 007 88%. Nothing
+  user-facing changed.
+
 ## v0.55.28 2026-11-25
 
 - **Tests for the remaining refusals (#524).** New tests show what HC answers

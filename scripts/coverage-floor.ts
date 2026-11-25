@@ -1,11 +1,12 @@
 /**
- * Check each package's line coverage against its floor.
+ * Check each package's line and branch coverage against its floors.
  *
  * For every row of {@link PACKAGES}, run the package's own tests with
  * `DENO_COVERAGE_DIR` set to a fresh directory, report that directory with
  * `deno coverage --lcov` filtered to the package, and compare the lines hit
- * with the row's floor. A row fails when its tests fail, when `deno coverage`
- * fails, when its report is empty, or when it is below its floor. Every row is
+ * with the row's line floor and the branches taken with its branch floor. A
+ * row fails when its tests fail, when `deno coverage` fails, when its report is
+ * empty, or when it is below either floor. Every row is
  * measured and printed before the check exits, so one failing row does not
  * hide the others. `deno task coverage:check` runs it, and so does CI's build
  * job; `deno task test` does not, because collecting coverage roughly doubles
@@ -27,7 +28,7 @@ export interface Step {
   readonly args: readonly string[];
 }
 
-/** A package, the tests that cover it, and the floor its lines must reach. */
+/** A package, the tests that cover it, and the floors its coverage must reach. */
 export interface Package {
   readonly name: string;
   /** Directory under the repository root, with a trailing slash. */
@@ -37,13 +38,17 @@ export interface Package {
   readonly excludes: readonly string[];
   /** Whole-percent minimum for line coverage. */
   readonly floor: number;
+  /** Whole-percent minimum for branch coverage. */
+  readonly branchFloor: number;
 }
 
-/** The lines of one package's report, or why it has none. */
+/** The lines and branches of one package's report, or why it has none. */
 export interface Result {
   readonly name: string;
   readonly hit: number;
   readonly found: number;
+  readonly branchHit: number;
+  readonly branchFound: number;
   /** Set when the row's tests or `deno coverage` failed. */
   readonly error?: string;
 }
@@ -55,11 +60,13 @@ const task = (name: string, cwd = "."): Step => ({
 
 /**
  * The packages of the audit's coverage table, each with its own tests. Each
- * floor is the line coverage measured when the floor was set, rounded down to
- * a whole percent. A row measured at 99% or more instead gets the coverage it
- * would have with one more uncovered line, `hit / (found + 1)`, rounded down,
- * so that one new uncovered line in a small, almost fully covered package does
- * not fail CI while two do: lib/maml 57/58 gives 98, web 113/115 gives 98.
+ * floor is the coverage measured when the floor was set, rounded down to a
+ * whole percent. A row measured at 99% or more instead gets the coverage it
+ * would have with one more uncovered line or branch, `hit / (found + 1)`,
+ * rounded down, so that one new uncovered line or branch in a small, almost
+ * fully covered package does not fail CI while two do: lib/maml's 57/58 lines
+ * give 98, web's 113/115 lines give 98, and lib/maml's 2/2 branches give 66.
+ * The branch floors were set after #524, from the branches measured then.
  */
 export const PACKAGES: readonly Package[] = [
   {
@@ -68,6 +75,7 @@ export const PACKAGES: readonly Package[] = [
     steps: [task("test:lib")],
     excludes: ["/lib/bundle/hc-sources\\.ts$", "/lib/maml/"],
     floor: 94,
+    branchFloor: 96,
   },
   {
     name: "cli",
@@ -75,6 +83,7 @@ export const PACKAGES: readonly Package[] = [
     steps: [task("test:cli")],
     excludes: [],
     floor: 78,
+    branchFloor: 97,
   },
   {
     name: "lib/maml",
@@ -82,6 +91,7 @@ export const PACKAGES: readonly Package[] = [
     steps: [task("test:maml")],
     excludes: [],
     floor: 98,
+    branchFloor: 66,
   },
   {
     name: "scripts",
@@ -89,6 +99,7 @@ export const PACKAGES: readonly Package[] = [
     steps: [task("test:scripts")],
     excludes: [],
     floor: 42,
+    branchFloor: 87,
   },
   {
     name: "web",
@@ -100,6 +111,7 @@ export const PACKAGES: readonly Package[] = [
     ],
     excludes: ["/web/(tests|dist)/"],
     floor: 98,
+    branchFloor: 94,
   },
   {
     name: "experiments/007-observer-algebras",
@@ -107,6 +119,7 @@ export const PACKAGES: readonly Package[] = [
     steps: [task("test:observer-algebras")],
     excludes: [],
     floor: 97,
+    branchFloor: 88,
   },
 ];
 
@@ -124,13 +137,26 @@ export const lineTotals = (lcov: string): { hit: number; found: number } => {
   return { hit, found };
 };
 
-/** Lines hit as a percentage of lines found; 0 for an empty report. */
+/** Sums the `BRH:` and `BRF:` records of an lcov report. */
+export const branchTotals = (
+  lcov: string,
+): { branchHit: number; branchFound: number } => {
+  let branchHit = 0;
+  let branchFound = 0;
+  for (const line of lcov.split("\n")) {
+    if (line.startsWith("BRH:")) branchHit += Number(line.slice(4));
+    if (line.startsWith("BRF:")) branchFound += Number(line.slice(4));
+  }
+  return { branchHit, branchFound };
+};
+
+/** Hits as a percentage of the total found; 0 for an empty report. */
 export const percent = (hit: number, found: number): number =>
   found === 0 ? 0 : (hit / found) * 100;
 
 /**
- * One message per row whose tests or coverage failed, that reported no lines,
- * or that is below its floor.
+ * One message per row whose tests or coverage failed or that reported no
+ * lines, and one per floor a row is below.
  */
 export const failures = (
   results: readonly Result[],
@@ -142,12 +168,21 @@ export const failures = (
     if (result === undefined || result.found === 0) {
       return [`${row.name}: the coverage report is empty`];
     }
-    const measured = percent(result.hit, result.found);
-    return measured < row.floor
-      ? [
-        `${row.name}: ${measured.toFixed(2)}% is below its ${row.floor}% floor`,
-      ]
-      : [];
+    const below = (kind: string, measured: number, floor: number) =>
+      measured < floor
+        ? [
+          `${row.name}: ${kind} coverage ${measured.toFixed(2)}% ` +
+          `is below its ${floor}% floor`,
+        ]
+        : [];
+    return [
+      ...below("line", percent(result.hit, result.found), row.floor),
+      ...below(
+        "branch",
+        percent(result.branchHit, result.branchFound),
+        row.branchFloor,
+      ),
+    ];
   });
 
 /** Escapes a path for use as a literal inside a regular expression. */
@@ -199,7 +234,8 @@ const deno = async (
 };
 
 /**
- * Runs a row's tests under coverage and totals the lines of its report. A
+ * Runs a row's tests under coverage and totals the lines and branches of its
+ * report. A
  * failure of the tests or of `deno coverage` becomes the result's `error`.
  *
  * @param root The repository root, resolved, without a trailing slash.
@@ -216,6 +252,8 @@ export const measure = async (root: string, row: Package): Promise<Result> => {
           name: row.name,
           hit: 0,
           found: 0,
+          branchHit: 0,
+          branchFound: 0,
           error: `its tests failed (deno ${step.args.join(" ")}, exit ${code})`,
         };
       }
@@ -241,11 +279,17 @@ export const measure = async (root: string, row: Package): Promise<Result> => {
         name: row.name,
         hit: 0,
         found: 0,
+        branchHit: 0,
+        branchFound: 0,
         error: `deno coverage failed (exit ${code})`,
       };
     }
     const report = code === 0 ? await Deno.readTextFile(lcov) : "";
-    return { name: row.name, ...lineTotals(report) };
+    return {
+      name: row.name,
+      ...lineTotals(report),
+      ...branchTotals(report),
+    };
   } finally {
     await Deno.remove(dir, { recursive: true });
   }
@@ -266,8 +310,12 @@ const main = async (): Promise<void> => {
       result.error === undefined
         ? `${row.name}: ${result.hit}/${result.found} lines, ` +
           `${percent(result.hit, result.found).toFixed(2)}%, ` +
-          `floor ${row.floor}% (${seconds} s)`
-        : `${row.name}: ${result.error}, floor ${row.floor}% (${seconds} s)`,
+          `floor ${row.floor}%; ` +
+          `${result.branchHit}/${result.branchFound} branches, ` +
+          `${percent(result.branchHit, result.branchFound).toFixed(2)}%, ` +
+          `floor ${row.branchFloor}% (${seconds} s)`
+        : `${row.name}: ${result.error}, floors ${row.floor}% lines, ` +
+          `${row.branchFloor}% branches (${seconds} s)`,
     );
   }
   const failed = failures(results, PACKAGES);
