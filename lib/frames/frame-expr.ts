@@ -708,7 +708,7 @@ function unwrapSingleton(frame: Frame): Frame {
   let result = frame;
   while (
     result instanceof FrameList &&
-    (result.className() === "FrameGroup" || isPlainExpr(result)) &&
+    (result.isClass("FrameGroup") || isPlainExpr(result)) &&
     result.size() === 1
   ) {
     result = result.asArray()[0];

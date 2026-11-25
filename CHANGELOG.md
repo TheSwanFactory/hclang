@@ -5,6 +5,18 @@
 > contains nothing else; then describe it and say that nothing user-facing
 > changed.
 
+## v0.55.15 2026-11-24
+
+- **The playground answers as the CLI does (#513).** The minified playground
+  bundle renames classes, so checks that recognized a class by its name never
+  matched there. In the playground, `$!!.zero $! 7` answered `$!!.zero` instead
+  of `7`, so no `$!` handler ran; `().!` and `<>.!` did not negate; a class's
+  declared `+`, `apply` or `toText` was ignored; `.v (<.x>)` did not declare a
+  schema; and `$$.dispatch.footprint` misread events' footprints. These checks
+  now use a class tag that survives minification. Error messages that name an
+  internal class, such as `$!.numeric-domain + FrameDecimal FrameCount`, still
+  show the minified name in the playground.
+
 ## v0.55.14 2026-11-24
 
 - **Declaring a one-term closure or array of a schema binds that value (#428).**

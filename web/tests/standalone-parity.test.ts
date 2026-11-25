@@ -22,6 +22,7 @@ const CASES: readonly (readonly [string, string])[] = [
     "a class declares an operator",
     ".Vec [.n 3; .+ {.a (_^ .n); .b (_ .n); [.n (a + b)]}]; (Vec + [.n 4]).n",
   ],
+  ["a grouped schema declares a schema", ".v (<.x>); v [.x 1]"],
   [
     "a dispatch reads each event's footprint",
     ".x_ [.n 5; .set_ {@n _;}]; .y_ [.n 10; .set_ {@n _;}]; " +
