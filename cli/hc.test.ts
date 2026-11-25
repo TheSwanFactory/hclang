@@ -233,6 +233,81 @@ describe("main", () => {
     }
   });
 
+  it("logs the options when verbose", async () => {
+    const originalError = console.error;
+    const diagnostics: unknown[][] = [];
+    console.error = (...args: unknown[]) => diagnostics.push(args);
+    try {
+      const options = getOptions(["-v", "-e", "1"]);
+      expect(await main(bareEval(), options)).toEqual(0);
+      expect(diagnostics).toEqual([["options", options]]);
+    } finally {
+      console.error = originalError;
+    }
+  });
+
+  it("logs the context when DEBUG_ENV is set", () => {
+    const originalDebug = console.debug;
+    const logged: unknown[][] = [];
+    console.debug = (...args: unknown[]) => logged.push(args);
+    try {
+      getEval({ DEBUG_ENV: "1", NAME: "hc" }, new FrameArray([]));
+      expect(logged.length).toEqual(1);
+      const [label, context] = logged[0] as [string, Record<string, unknown>];
+      expect(label).toEqual("DEBUG_ENV");
+      expect(Object.keys(context)).toEqual(["DEBUG_ENV", "NAME"]);
+      expect(String(context.NAME)).toEqual("“hc”");
+    } finally {
+      console.debug = originalDebug;
+    }
+  });
+
+  it("runs no file after an incomplete evaluated source", async () => {
+    const file = await Deno.makeTempFile({ suffix: ".hc" });
+    const out = new FrameArray([]);
+    const originalError = console.error;
+    const diagnostics: string[] = [];
+    console.error = (...args: unknown[]) => diagnostics.push(args.join(" "));
+    try {
+      await Deno.writeTextFile(file, "42\n");
+      const status = await main(bareEval(out), getOptions(["-e", "```", file]));
+      expect(status).toEqual(1);
+      expect(diagnostics).toEqual([
+        "HCEval.finish.failed: unterminated document string",
+      ]);
+      expect(out.asArray().map(String)).toEqual([]);
+    } finally {
+      console.error = originalError;
+      await Deno.remove(file);
+    }
+  });
+
+  it("skips a numeric file argument and runs the rest", async () => {
+    const file = await Deno.makeTempFile({ suffix: ".hc" });
+    const out = new FrameArray([]);
+    const originalError = console.error;
+    const diagnostics: string[] = [];
+    console.error = (...args: unknown[]) => diagnostics.push(args.join(" "));
+    try {
+      await Deno.writeTextFile(file, "42\n");
+      const status = await main(bareEval(out), getOptions(["7", file]));
+      expect(status).toEqual(0);
+      expect(diagnostics).toEqual(["Invalid file argument 7"]);
+      expect(out.asArray().map(String)).toEqual(["42"]);
+    } finally {
+      console.error = originalError;
+      await Deno.remove(file);
+    }
+  });
+
+  it("finishes an empty testdoc run with a zero summary", async () => {
+    const out = new FrameArray([]);
+    expect(await main(bareEval(out), getOptions(["--testdoc"]))).toEqual(0);
+    expect(out.asArray().map(String)).toEqual([
+      '$=.test-summary “HCTest”; .n “{"total":0,"pass":0,"fail":0,"unimplemented":0}”;',
+    ]);
+  });
+
   it("returns a non-zero status for a failed testdoc assertion", async () => {
     const file = await Deno.makeTempFile({ suffix: ".hc" });
     try {
