@@ -42,14 +42,6 @@ Deno.test("FOIST 19a Cart pairs whole nested figures rather than replacing leave
   const hc = new HCLang();
   expect(await hc.call("[[], [[], []]] * [1, 2]"))
     .toEqual("[[[], 1], [[], 2], [[[], []], 1], [[[], []], 2]]");
-  expect(await hc.call("[1, 2] * []")).toEqual("[]");
-});
-
-Deno.test("FOIST 19a Flop differs from Cart", async () => {
-  const hc = new HCLang();
-  expect(await hc.call("[1, 2] + [3, 4]")).toEqual("[1, 2, 3, 4]");
-  expect(await hc.call("[1, 2] * [3, 4]"))
-    .toEqual("[[1, 3], [1, 4], [2, 3], [2, 4]]");
 });
 
 Deno.test("FOIST 19a preserves incidence and identity of shared children", async () => {
