@@ -9,10 +9,15 @@ import {
   FrameExpr,
   FrameLazy,
   FrameName,
+  FrameScoped,
   FrameString,
   FrameSymbol,
 } from "../frames.ts";
 import { evaluate } from "../execute/evaluate.ts";
+import {
+  lastResultText as text,
+  lastTermOfLast as last,
+} from "../test-helpers.test.ts";
 
 describe("FrameExpr", () => {
   const frame = new Frame();
@@ -130,6 +135,46 @@ describe("FrameExpr", () => {
       // aggregate has a rule.
       expect(new FrameString("ab").repetitionFor(3n)).toBeUndefined();
       expect(new FrameCount(2n).repetitionFor(3n)).toBeUndefined();
+    });
+  });
+});
+
+describe("walking an expression (#429, spec a16, a17)", () => {
+  it("walks a codified expression as its atoms, statements kept", () => {
+    // A value's statement answers nothing, so `[1; 2]` iterated is `[2]`. An
+    // expression codified from it is code, and walks as a body does, with the
+    // statement's `;` kept as a word.
+    expect(text("({} [1; 2]) & {_}")).toEqual("[1, ;, 2]");
+  });
+  it("walks a source aggregate as a body, statements and separators kept", () => {
+    // Indexing a walked aggregate reaches the source aggregate nested in it,
+    // which no evaluation has made a value.
+    expect(text("((({[[a; b]]} & {_}) .0) .0) & {_}")).toEqual("[a, ;, b]");
+    expect(text("((({[[a b, c]]} & {_}) .0) .0) & {“” _}"))
+      .toEqual("[“a”, “b”, “,”, “c”]");
+  });
+  describe("a term held with its closure's scope", () => {
+    it("compares as its term does, by value", () => {
+      // `3 = 3.0`: the held source aggregate compares by its members' values,
+      // not by its text.
+      expect(last(".f {g [3]}; ((f & {_}) .1) = [3.0]").toString())
+        .toEqual("<>");
+      expect(last(".f {g [3]}; ((f & {_}) .1) = [4]").toString())
+        .toEqual("()");
+    });
+    it("is a plain expression when its term is one", () => {
+      const tight = last(".o [.x 5]; .f {g o.x}; (f & {_}) .1");
+      expect(tight).toBeInstanceOf(FrameScoped);
+      expect(tight.isPlainExpression()).toBe(true);
+      const aggregate = last(".f {g [3]}; (f & {_}) .1");
+      expect(aggregate).toBeInstanceOf(FrameScoped);
+      expect(aggregate.isPlainExpression()).toBe(false);
+    });
+    it("has its term's data plane", () => {
+      // Two walks that hold different aggregates have different data planes.
+      const walk = last(".f {g [3]}; f & {_}");
+      expect(walk.dataEquals(last(".f {g [3]}; f & {_}"))).toBe(Frame.all);
+      expect(walk.dataEquals(last(".f {g [4]}; f & {_}"))).toBe(Frame.nil);
     });
   });
 });

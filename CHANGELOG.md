@@ -5,6 +5,15 @@
 > contains nothing else; then describe it and say that nothing user-facing
 > changed.
 
+## v0.55.18 2026-11-24
+
+- **Tests for walking expressions and held terms (#523).** New library tests
+  walk an expression codified with `{} [...]` and a source aggregate reached by
+  indexing a walk, which keep their statements' `;` and `,` as words, and check
+  that a term a walk holds with its closure's scope compares by value, answers
+  whether it is a plain expression, and has its term's data plane. Nothing
+  user-facing changed.
+
 ## v0.55.17 2026-11-24
 
 - **Tests for evaluating and printing rare values (#523).** New library tests
