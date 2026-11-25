@@ -5,9 +5,19 @@ import { evaluate } from "../execute/evaluate.ts";
 import { Frame } from "./frame.ts";
 import { FrameArray } from "./frame-array.ts";
 import { FrameCount } from "./frame-count.ts";
+import { FrameExpr, FrameScoped } from "./frame-expr.ts";
+import { FrameLazy } from "./frame-lazy.ts";
+import { FrameResource } from "./frame-resource.ts";
+import { BoundMethod } from "./bound-method.ts";
+import { methodEffect } from "./effect-marker.ts";
+import { EvaluationScope } from "./evaluation-scope.ts";
+import { dispatch } from "./event-dispatch.ts";
+import { MemoryStore } from "./resource-store.ts";
+import { RESOURCE_ROOT_KEY } from "./resource-binding.ts";
 import {
   footprintsConflict,
   isOpaque,
+  isState,
   type PotentialFootprint,
   potentialFootprint,
 } from "./access-footprint.ts";
@@ -166,6 +176,233 @@ describe("potential footprint: what a body's names may touch", () => {
   it("is opaque for a target that has no code to walk", () => {
     const fp = potentialFootprint(FrameCount.for("1"));
     expect(isOpaque(fp)).toBe(true);
+  });
+});
+
+const WALK = `
+.x_ [.n 5; .set_ {@n _;}; .who {_^.n}; .poke_ {_^.set_ 1}; .inner_ [.k 0]];
+.y_ [.n 10; .set_ {@n _;}];
+.z x_;
+.P [.tag 1];
+.c [.^ P; .v 2];
+.sink {_};
+.apply {_ ()};
+.pair {.q (x_, y_)};
+.one {.q (x_)};
+.hand-on {.w_ x_; sink w_};
+.mark-unknown {.b_ nowhere};
+.add-unknown {nowhere + 1};
+.alias-unknown {@nowhere 1};
+.group-unknown {(nowhere)};
+.tight-unknown {sink nowhere.k};
+.local-unknown {.l nowhere; l};
+.ladder {x_.n + .};
+.parents {c .^};
+.no-parent {x_ .^};
+.receiver-free {_^};
+.inner-of {x_.inner_};
+.pass-inner {sink x_.inner_};
+.holder {{x_.set_ 1}};
+.empty {};
+`;
+
+/** The walk program, with names for the identities the tests name. */
+const walkProgram = (): {
+  scope: Frame;
+  x: Frame;
+  name: (frame: Frame) => string;
+  read: (key: string) => Frame;
+} => {
+  const scope = evaluate(WALK);
+  const named = new Map<Frame, string>([
+    [scope, "file"],
+    [scope.get_here("x_"), "x"],
+    [scope.get_here("x_").get_here("inner_"), "x.inner"],
+    [scope.get_here("y_"), "y"],
+    [scope.get_here("P"), "P"],
+    [scope.get_here("c"), "c"],
+  ]);
+  return {
+    scope,
+    x: scope.get_here("x_"),
+    name: (frame) => named.get(frame) ?? frame.id,
+    read: (key) => readName(scope, key),
+  };
+};
+
+describe("potential footprint: rare walk paths (#524)", () => {
+  it("walks each term of a tuple and a one-term group as the path inside it", () => {
+    const { read, name } = walkProgram();
+    const pair = potentialFootprint(read("pair"));
+    expect(names(pair.writes, name)).toEqual(["x", "x.inner", "y"]);
+    expect(isOpaque(pair)).toBe(false);
+    const one = potentialFootprint(read("one"));
+    expect(names(one.writes, name)).toEqual(["x", "x.inner"]);
+    expect(isOpaque(one)).toBe(false);
+  });
+
+  it("writes a marked local's referent when the local is handed on whole", () => {
+    const { read, name } = walkProgram();
+    const fp = potentialFootprint(read("hand-on"));
+    expect(names(fp.writes, name)).toEqual(["x", "x.inner"]);
+    expect(isOpaque(fp)).toBe(false);
+  });
+
+  it("refuses an unknown value bound to a marked name, and the name", () => {
+    const { read } = walkProgram();
+    expect(potentialFootprint(read("mark-unknown")).unresolved).toEqual([
+      "nowhere",
+      ".b_ <unknown>",
+    ]);
+  });
+
+  it("refuses an unknown local once, where it was read", () => {
+    const { read } = walkProgram();
+    expect(potentialFootprint(read("local-unknown")).unresolved).toEqual([
+      "nowhere",
+      "l",
+    ]);
+  });
+
+  it("keeps a refused path refused through an operator, a group and a tight expression", () => {
+    const { read } = walkProgram();
+    for (const key of ["add-unknown", "group-unknown", "tight-unknown"]) {
+      const fp = potentialFootprint(read(key));
+      expect(fp.unresolved).toEqual(["nowhere"]);
+      expect(fp.writes.size).toBe(0);
+    }
+  });
+
+  it("refuses an alias that names no binding", () => {
+    const { read } = walkProgram();
+    const fp = potentialFootprint(read("alias-unknown"));
+    expect(fp.unresolved).toEqual(["@nowhere"]);
+    expect(fp.writes.size).toBe(0);
+  });
+
+  it("reads the call's own parameter, not state, for the parameter ladder", () => {
+    const { read, name } = walkProgram();
+    const fp = potentialFootprint(read("ladder"));
+    expect(names(fp.reads, name)).toEqual(["file", "x", "x.inner"]);
+    expect(names(fp.writes, name)).toEqual([]);
+    expect(isOpaque(fp)).toBe(false);
+  });
+
+  it("reads the declared parents of a path for `.^` off method position", () => {
+    const { read, name } = walkProgram();
+    const fp = potentialFootprint(read("parents"));
+    expect(names(fp.reads, name)).toEqual(["P", "c", "file"]);
+    expect(names(fp.writes, name)).toEqual([]);
+    expect(isOpaque(fp)).toBe(false);
+    // A path with no declared parent reads only what it walked to.
+    const none = potentialFootprint(read("no-parent"));
+    expect(names(none.reads, name)).toEqual(["file", "x", "x.inner"]);
+    expect(isOpaque(none)).toBe(false);
+  });
+
+  it("resolves `_^` to the receiver, with the authority the call holds", () => {
+    const { read, name } = walkProgram();
+    const who = potentialFootprint(read("x_").get("who"));
+    expect(names(who.reads, name)).toEqual(["x", "x.inner"]);
+    expect(names(who.writes, name)).toEqual([]);
+    const poke = potentialFootprint(read("x_").get("poke_"));
+    expect(names(poke.writes, name)).toEqual(["x", "x.inner"]);
+    // Through an immutable handle the call is a functional update.
+    const functional = potentialFootprint(read("z").get("poke_"));
+    expect(names(functional.writes, name)).toEqual([]);
+    expect(isOpaque(functional)).toBe(false);
+    // A closure that is no method has no receiver for `_^` to name.
+    expect(potentialFootprint(read("receiver-free")).unresolved).toEqual([
+      "_^",
+    ]);
+  });
+
+  it("touches nothing when the bound method refuses the call before its body", () => {
+    const { x } = walkProgram();
+    // A mutable binding inside a functional update whose copy-on-write graph
+    // does not hold the receiver: the call meets the boundary.
+    const method = new BoundMethod(
+      x.get_here("set_") as FrameLazy,
+      x,
+      true,
+      methodEffect("set_"),
+      new WeakSet<Frame>(),
+    );
+    const fp = potentialFootprint(method, FrameCount.for("7"));
+    expect(fp.reads.size).toBe(0);
+    expect(fp.writes.size).toBe(0);
+    expect(isOpaque(fp)).toBe(false);
+    expect(method.call(FrameCount.for("7")).toString()).toEqual(
+      "$!.copy-on-write-boundary .set",
+    );
+    expect(x.get_here("n").toString()).toEqual("5");
+  });
+
+  it("does not admit the write of a walked closure atom handed in as the argument", () => {
+    const { read, x } = walkProgram();
+    const [atom] = read("holder").elements();
+    expect(atom).toBeInstanceOf(FrameScoped);
+    const fp = potentialFootprint(read("apply"), atom);
+    const outcome = dispatch(
+      [{ label: "apply", target: read("apply"), argument: atom }],
+      "sequential",
+    ).outcomes[0];
+    // The call writes `x_`, so the footprint must say so or be opaque.
+    expect(x.get_here("n").toString()).toEqual("1");
+    expect(outcome.actual.sharedWrites()).toContain(x);
+    expect(isOpaque(fp) || fp.writes.has(x)).toBe(true);
+  });
+
+  it("walks a body holding a walk's scoped atom as the closure it came from", () => {
+    const { read, scope, name } = walkProgram();
+    // `sink x_.inner_` walks as the word `sink` and the tight `x_.inner_`,
+    // which is held with the closure's scope.
+    const [, atom] = read("pass-inner").elements();
+    expect(atom).toBeInstanceOf(FrameScoped);
+    const original = potentialFootprint(read("inner-of"));
+    expect(names(original.writes, name)).toEqual(["x.inner"]);
+    // The atom as a bare statement, and inside a one-term expression as the
+    // parser wraps a term.
+    for (const statement of [atom, new FrameExpr([new FrameExpr([atom])])]) {
+      const body = new FrameLazy([statement]).bind(
+        EvaluationScope.root(scope),
+      );
+      const fp = potentialFootprint(body);
+      expect(names(fp.writes, name)).toEqual(names(original.writes, name));
+      expect(names(fp.reads, name)).toEqual(names(original.reads, name));
+      expect(isOpaque(fp)).toBe(false);
+    }
+  });
+
+  it("walks an empty statement as touching nothing", () => {
+    const { read, scope } = walkProgram();
+    const statement = new FrameExpr([]);
+    statement.is.statement = true;
+    const body = new FrameLazy([statement]).bind(EvaluationScope.root(scope));
+    const fp = potentialFootprint(body);
+    const empty = potentialFootprint(read("empty"));
+    expect(fp.reads.size).toBe(empty.reads.size);
+    expect(fp.writes.size).toBe(0);
+    expect(isOpaque(fp)).toBe(false);
+  });
+
+  it("writes nothing for an alias that lands on an import's read-only view", () => {
+    const store = new MemoryStore();
+    store.write("m.hc", ".C_ [.poke_ {@k 2}];");
+    const scope = evaluate(".k 1; M <- './m.hc';", {
+      [RESOURCE_ROOT_KEY]: FrameResource.root(store),
+    });
+    const target = readName(scope, "M").get("C_").get("poke_");
+    const fp = potentialFootprint(target);
+    const outcome = dispatch([{ label: "poke", target }], "sequential")
+      .outcomes[0];
+    expect(outcome.result.toString()).toEqual("$!.read-only-scope @k");
+    expect(fp.writes.size).toBe(0);
+    expect(isOpaque(fp)).toBe(false);
+    expect(new Set(fp.reads)).toEqual(
+      new Set(outcome.actual.sharedReads().filter(isState)),
+    );
+    expect(scope.get_here("k").toString()).toEqual("1");
   });
 });
 
