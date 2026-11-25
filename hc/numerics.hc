@@ -64,6 +64,44 @@ Exponentiation stays exact when its exponent is integral
 # 1/2
 ; 2 ** 1.5
 # 2.8284271247461903
+; (1 / 2.0) ** 2
+# 0.25
+```
+An exponent that is not whole, rational or host number, answers a host number
+```
+; 2 ** (1 / 2)
+# 1.4142135623730951
+; 2 ** (1 / 2.0)
+# 1.4142135623730951
+```
+Unary `+` and `-` keep the operand's rung. `+` writes the sign into an unsigned
+spelling and leaves a signed one alone, and a sequence keeps its spelling too
+```
+; + 1.5
+# +1.5
+; + (0 - 3)
+# -3
+; + (1 / 3)
+# +1/3
+; + (2 ** 1.5)
+# +2.8284271247461903
+; + 1.408.555
+# +1.408.555
+; - 1.5
+# -1.5
+; - (1 / 3)
+# -1/3
+; - (2 ** 1.5)
+# -2.8284271247461903
+```
+A quotient with a host-number side is computed from the exact operands when an
+operand is too large for a host number, and a quotient still too large for one
+is `Infinity`
+```
+; (10 ** 400) / 3.0
+# Infinity
+; ((10 ** 400) / 3) / 2.0
+# Infinity
 ```
 Numeric equality is exact. `=` asks for the same value, `==` also asks for the
 same rung, and `===` asks for the same frame, which for a number is `==`

@@ -52,6 +52,8 @@ A duration is a peer type, fixed-length, and it also renders canonically
 # %P7D%
 ; %PT0S%
 # %PT0S%
+; + %PT1H%
+# %PT1H%
 ```
 A calendar quantity is refused, because a year and a month are not
 displacements: admitting them would put calendar rules in the trusted base
@@ -89,6 +91,13 @@ The fourth row is a type error, and it is a value like any other refusal
 ; 1 + %PT1H%
 # $!.numeric-domain + FrameCount FrameDuration
 ```
+A sequence and a typed number are not scalars, so neither scales an interval
+```
+; %PT1H% * 1.408.555
+# $!.numeric-domain * FrameDuration FrameSequence
+; %PT1H% * 3.5.m
+# $!.numeric-domain * FrameDuration FrameTypedNumber
+```
 Division follows the same table: an interval over a scalar is an interval, and an
 interval over an interval is the plain number relating them
 ```
@@ -112,6 +121,8 @@ refused rather than rounded into place
 Peers of one kind order, and the two kinds do not order against each other
 ```
 ; %PT1H%.< %PT2H%
+# <>
+; %PT1H% .<= %PT2H%
 # <>
 ; %2026-08-21%.> %2026-08-20%
 # <>
