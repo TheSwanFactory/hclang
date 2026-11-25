@@ -5,6 +5,16 @@
 > contains nothing else; then describe it and say that nothing user-facing
 > changed.
 
+## v0.55.22 2026-11-24
+
+- **Tests for the raw Denum's and the router's refusals (#524).** New testdoc
+  claims show that a record which only stores a Denum's `count` and `loads`, or
+  a router's `channels`, takes the derived `.###`, and that `.###` and `&|&`
+  answer a declared Count that is not a Count. New library tests cover a Denum
+  observation with no constructor installed, a constructor that builds no Denum,
+  Sizes that are not Counts, and a router class file that is missing or binds a
+  failed constructor. Nothing user-facing changed.
+
 ## v0.55.21 2026-11-24
 
 - **A caught failed statement keeps its error kind (#550).** When a statement
