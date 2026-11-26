@@ -5,6 +5,22 @@
 > contains nothing else; then describe it and say that nothing user-facing
 > changed.
 
+## v0.55.35 2026-11-25
+
+- **A numeric type admits values from lower rungs (#410).** On the ladder count,
+  int, decimal, rational, number, a runtime type from `.<>` now admits a value
+  from its own rung or any lower one, through `~` and through a schema:
+  `5 ~ (0 - 1).<>` is `<>`, and `.d <1.5.<>> 2` binds `2` where it answered
+  `$!.type-error`. The value is bound unchanged, so `.d <1.5.<>> 3` then `1 / d`
+  answers the exact `1/3`. Narrowing is still refused whatever the value: the
+  count type rejects `5 - 3`, and the int type rejects `4.0`. `==` stays an
+  exact type test, and other types, including sequences and typed numbers, still
+  match only their own class.
+- **Migration: a numeric schema no longer rejects lower rungs (#410).** A schema
+  that used an int, decimal, rational or number type to refuse a count, for
+  example to require a value computed by subtraction, now binds it. No bundled
+  module relied on that refusal.
+
 ## v0.55.34 2026-11-25
 
 - **Numeric-only operators refuse other operands with an error (#361).** `%%`,

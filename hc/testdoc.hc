@@ -224,8 +224,8 @@ HLIR advanced types (aspirational)
 # $!.unimplemented .idx 0
 ; .ratio <f32> 3.14                      # Floating-point types
 # $!.unimplemented .ratio 3.14
-; .whole <i32> ratio                     # Explicit conversion
-# $!.unimplemented .whole 3
+; .whole <i32> ratio                     # Narrowing is refused
+# $!.unimplemented $!.type-error .whole <i32> 3.14
 ; .small <i32> 42                        # Setup for widening
 # $!.unimplemented .small 42
 ; .wide <f64> small                      # Numeric widening

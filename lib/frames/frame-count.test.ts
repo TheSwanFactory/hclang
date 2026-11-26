@@ -242,7 +242,7 @@ describe("FrameCount", () => {
       expectClass(value("<1, 2, 3> (5 - 3)"), "FrameInt");
     });
 
-    it("is a distinct type from FrameInt for ==, ===, and runtime types", () => {
+    it("is a distinct type from FrameInt for ==, ===, and narrowing", () => {
       for (
         const source of [
           "2 == (5 - 3)",
@@ -251,9 +251,8 @@ describe("FrameCount", () => {
           "(5 - 3) === 2",
           "[2] == [5 - 3]",
           "[.a 1; .b 2;] == [.a 1; .b (4 - 2);]",
+          // A Count type refuses a FrameInt, whatever its value (#410).
           "(5 - 3) ~ (2).<>",
-          "2 ~ (5 - 3).<>",
-          "5 ~ (0 - 1).<>",
           "(0 - 1) ~ (5).<>",
           // Exactly as a FrameInt and a FrameDecimal are.
           "2 == 2.0",
@@ -266,7 +265,12 @@ describe("FrameCount", () => {
       expect(int(2n).typeEquals(count(2n))).toBe(Frame.nil);
       expect(count(2n).identical(int(2n))).toBe(Frame.nil);
       expect(FrameType.of(count(2n)).matches(int(2n))).toBe(false);
-      expect(FrameType.of(int(2n)).matches(count(2n))).toBe(false);
+    });
+    it("is admitted by an Int type, which binds it unchanged (#410)", () => {
+      expect(value("2 ~ (5 - 3).<>")).toBe(Frame.all);
+      expect(value("5 ~ (0 - 1).<>")).toBe(Frame.all);
+      expect(FrameType.of(int(2n)).matches(count(2n))).toBe(true);
+      expectClass(value("(0 - 1).<> 5"), "FrameCount");
     });
 
     it("keeps ==, ===, and runtime type matching holding within one rung", () => {
