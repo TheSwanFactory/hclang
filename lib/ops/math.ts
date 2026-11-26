@@ -11,7 +11,6 @@ import { CartElements, FlopElements } from "./pairings.ts";
 type NumericOperation = (left: FrameNumeric, right: FrameNumeric) => Frame;
 
 /** The operators whose non-numeric operands are a numeric-domain error. */
-
 type DomainOperator = "%%" | "**" | "<" | "<=" | ">" | ">=";
 
 /**
@@ -54,7 +53,6 @@ const arithmetic = (
 };
 
 /** Arithmetic whose only meaning is numeric: `%%` and `**`. */
-
 const numericOnly = (
   operator: DomainOperator,
   operation: NumericOperation,
@@ -68,7 +66,6 @@ const numericOnly = (
   );
 
 /** An operand that is an error value (`Frame.isError`), unwrapped. */
-
 const failure = (operand: Frame): Frame | undefined => {
   const value = operand.referent();
   return value.isError() ? value : undefined;
@@ -87,7 +84,6 @@ const arithmeticOr = (
 ): Frame => arithmetic(source, block, operation, () => fallback(source, block));
 
 /** Exact numeric arithmetic survives for the core scalar ladder. */
-
 export const Add = (source: Frame, block: Frame): Frame =>
   arithmeticOr(source, block, (left, right) => left.add(right), FlopElements);
 
@@ -109,7 +105,6 @@ export const Subtract = (source: Frame, block: Frame): Frame =>
   );
 
 /** Cart is the structural Frame product; scalar arithmetic remains native. */
-
 export const Multiply = (source: Frame, block: Frame): Frame =>
   arithmeticOr(
     source,
@@ -221,13 +216,11 @@ export const Equals = (source: Frame, block: Frame): Frame => {
 };
 
 /** `==`: the same value and the same type at every node. */
-
 export const TypeEquals = (source: Frame, block: Frame): Frame => {
   return failure(source) ?? failure(block) ?? source.typeEquals(block);
 };
 
 /** `===`: the same frame. Atoms, which own no identity, fall back to `==`. */
-
 export const Identical = (source: Frame, block: Frame): Frame => {
   return failure(source) ?? failure(block) ?? source.identical(block);
 };
