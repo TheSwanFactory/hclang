@@ -6,7 +6,7 @@
     "hc": "./hc.ts"
   },
   "tasks": {
-    "build": "cd .. && deno compile --allow-read --allow-write --allow-env --deny-run --deny-ffi --exclude node_modules --exclude dist/npm/node_modules --output scripts/hc cli/hc.ts",
+    "build": "cd .. && deno compile --allow-read --allow-write --allow-env --deny-run --deny-ffi --node-modules-dir=none --output scripts/hc cli/hc.ts",
     "hc": "deno task --config ../deno.json bundle:embed && deno run --allow-read --allow-write --allow-env --deny-run --deny-ffi ./hc.ts",
     "test": "deno test --allow-env --allow-read --allow-write --allow-run --ignore=rest-loopback.test.ts",
     "test:bs": "deno task hc ../hc/BitScheme.hc -t",
