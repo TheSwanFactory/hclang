@@ -81,14 +81,10 @@ export class FileEvidence implements RestEvidenceSink {
     }
   }
 }
-/** The resolved form of a path whose last step may not exist yet. */
+/** The resolved form of a path whose parent exists and whose last step may not. */
 const resolvedTarget = (path: string): string => {
   const parent = dirname(path);
-  try {
-    return join(Deno.realPathSync(parent), path.slice(parent.length + 1));
-  } catch {
-    return path;
-  }
+  return join(Deno.realPathSync(parent), path.slice(parent.length + 1));
 };
 /** The resolved root, or the root as given when it does not exist. */
 const resolvedRoot = (root: string): string => {

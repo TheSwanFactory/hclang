@@ -80,7 +80,7 @@ export const PACKAGES: readonly Package[] = [
   {
     name: "cli",
     prefix: "cli/",
-    steps: [task("test:cli")],
+    steps: [task("test:cli"), task("test:rest-loopback")],
     excludes: [],
     floor: 78,
     branchFloor: 97,

@@ -18,7 +18,9 @@ import {
   type RestEvidence,
 } from "../lib/frames.ts";
 import { evaluate } from "../lib/execute/evaluate.ts";
+import { restGrantPolicy } from "../lib/frames/rest-policy.ts";
 import { loadRestConfig, type RestInstall } from "./rest-config.ts";
+import { LiveTransport } from "./rest-worker.ts";
 /** One request the loopback server received. */
 interface Received {
   readonly method: string;
@@ -50,6 +52,8 @@ const server = Deno.serve({ hostname: "127.0.0.1", port: 0, onListen() {} },
         return new Response("late");
       case "/api/broken":
         return new Response("boom", { status: 500 });
+      case "/api/huge-header":
+        return new Response("", { headers: { link: "x".repeat(70000) } });
       case "/api/bytes":
         return new Response(new Uint8Array([0x61, 0xff, 0x62]));
       default:
@@ -237,6 +241,122 @@ describe("live REST transport over loopback", () => {
     }
     await settle();
     expect(received).toHaveLength(1);
+  });
+  it("answers resource-transport when allowlisted headers overflow", () => {
+    expect(run(`api [.path “huge-header”]`)).toEqual(
+      refusal("resource-transport"),
+    );
+  });
+  it("records a main-isolate refusal through the worker, failing closed", () => {
+    Deno.mkdirSync(`${directory}/blocked2/evidence.jsonl`, { recursive: true });
+    const blocked = loadRestConfig(
+      configFile([grant({ evidence: "blocked2/evidence.jsonl" })]),
+      "/nonexistent-root",
+    );
+    try {
+      const answer = evaluate(`'${base}' [.path “../x”]`, {
+        [RESOURCE_ROOT_KEY]: FrameResource.root(
+          new MemoryStore(),
+          ResourceHandlers.of(blocked.handlers),
+        ),
+      }).toString();
+      expect(answer).toContain("$!.resource-evidence");
+    } finally {
+      blocked.close();
+    }
+  });
+  describe("the worker re-verifies against its own grant", () => {
+    const policy = () =>
+      restGrantPolicy({
+        base,
+        requests: 5,
+        responseBytes: 1000,
+        timeoutMs: 500,
+        lifetimeMs: 60_000,
+      });
+    const stub = (url: string | null) => ({
+      grant: base,
+      at: new Date(0).toISOString(),
+      method: "GET",
+      url,
+    });
+    const outgoing = (url: string, headers: Record<string, string> = {}) => ({
+      url,
+      headers,
+      timeoutMs: 500,
+      responseBytes: 1000,
+    });
+    it("refuses a URL, stub or header the main isolate should have", async () => {
+      await reset();
+      const live = new LiveTransport(
+        policy(),
+        `${directory}/evidence/direct.jsonl`,
+      );
+      try {
+        const outside = `http://127.0.0.1:${port}/outside`;
+        expect(live.send(outgoing(outside), stub(outside))).toEqual({
+          ok: false,
+          reason: "resource-escaped-root",
+        });
+        expect(live.send(outgoing(`${base}issues`), stub(`${base}other`)))
+          .toEqual({ ok: false, reason: "resource-escaped-root" });
+        expect(
+          live.send(
+            outgoing(`${base}issues`, { authorization: "x" }),
+            stub(`${base}issues`),
+          ),
+        ).toEqual({ ok: false, reason: "resource-header-forbidden" });
+      } finally {
+        live.close();
+      }
+      await settle();
+      expect(received).toEqual([]);
+      expect(
+        Deno.readTextFileSync(`${directory}/evidence/direct.jsonl`).trim()
+          .split("\n"),
+      ).toHaveLength(3);
+    });
+    it("answers resource-transport when the connection fails", () => {
+      const listener = Deno.listen({ hostname: "127.0.0.1", port: 0 });
+      const closed = (listener.addr as Deno.NetAddr).port;
+      listener.close();
+      const closedBase = `http://127.0.0.1:${closed}/api/`;
+      const live = new LiveTransport(
+        restGrantPolicy({
+          base: closedBase,
+          requests: 1,
+          responseBytes: 10,
+          timeoutMs: 2_000,
+          lifetimeMs: 60_000,
+        }),
+        `${directory}/evidence/closed.jsonl`,
+      );
+      try {
+        expect(
+          live.send(outgoing(`${closedBase}x`), {
+            ...stub(`${closedBase}x`),
+            grant: closedBase,
+          }),
+        ).toEqual({ ok: false, reason: "resource-transport" });
+      } finally {
+        live.close();
+      }
+    });
+    it("stops waiting for a worker that never answers", () => {
+      const live = new LiveTransport(
+        policy(),
+        `${directory}/evidence/stopped.jsonl`,
+        0,
+      );
+      live.close();
+      expect(
+        live.send(
+          { ...outgoing(`${base}issues`), timeoutMs: 50 },
+          stub(`${base}issues`),
+        ),
+      ).toEqual({ ok: false, reason: "resource-transport timeout" });
+      expect(live.describe()).toContain("live");
+    });
   });
   it("refuses to start with broader net permission than the grants", () => {
     expect(

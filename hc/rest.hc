@@ -17,8 +17,9 @@ manifest: its external surface is the set of `'https://…'` literals it writes
 Application is one `GET`, and it answers a response record. Every request key
 is optional:
 - `.path`, a string: a relative reference, normalized by the same rule as a
-  root-relative resource path. An absent or empty path requests the base with
-  its trailing slash removed.
+  root-relative resource path. A trailing slash the path was written with is
+  kept. An absent or empty path requests the base with its trailing slash
+  removed.
 - `.query`, a record of strings, encoded with `URLSearchParams`.
 - `.headers`, a record of strings, whose names are case-folded and must be on
   the grant's allowlist: `accept`, `accept-language`, `if-none-match` and
@@ -57,6 +58,14 @@ the same literal twice yields the same grant twice, not new authority
 # $!.resource-unbound 'https://api.github.com/repos/TheSwanFactory/hclang/issues/277/'
 ; 'https://api.github.com/repos/TheSwanFactory/' | “”
 # $!.resource-unbound 'https://api.github.com/repos/TheSwanFactory/'
+```
+The base is spelled exactly, so a grep for it finds every use. A spelling that
+only normalizes to it names no grant
+```
+; 'https://API.github.com/repos/TheSwanFactory/hclang/' | “”
+# $!.resource-unbound 'https://API.github.com/repos/TheSwanFactory/hclang/'
+; 'https://api.github.com/repos/TheSwanFactory/hclang/x/../' | “”
+# $!.resource-unbound 'https://api.github.com/repos/TheSwanFactory/hclang/x/../'
 ```
 The path cannot leave the base. Every refusal of the root-relative path rule
 applies unchanged, and a path that names a scheme, an authority, a query or a
@@ -99,6 +108,15 @@ the allowlist answers `$!.resource-header-forbidden`, and `authorization`,
 ; api [.headers [.cookie “session=1”]]
 # $!.resource-header-forbidden 'https://api.github.com/repos/TheSwanFactory/hclang/'
 ; api [.headers [.host “example.com”]]
+# $!.resource-header-forbidden 'https://api.github.com/repos/TheSwanFactory/hclang/'
+```
+A header value must be one `fetch` can send, so a character above U+00FF is
+refused before any request is spent, and so is a name written twice, so the
+answer never depends on key order
+```
+; api [.headers [.accept “€”]]
+# $!.resource-header-forbidden 'https://api.github.com/repos/TheSwanFactory/hclang/'
+; api [.headers [.Accept “a”, .accept “b”]]
 # $!.resource-header-forbidden 'https://api.github.com/repos/TheSwanFactory/hclang/'
 ```
 Budgets belong to the grant, and the harness sets them. This grant allows no

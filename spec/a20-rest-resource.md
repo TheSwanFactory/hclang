@@ -26,11 +26,19 @@ resource literal:
 .api 'https://api.github.com/repos/TheSwanFactory/hclang/'
 ```
 
-- **Identity is the URI.** After `URL` normalization a literal must equal a
-  grant's base exactly, trailing slash included (`namesGrant`). A literal naming
-  no grant, whether another origin, a parent or a sub-path of a grant, or one
-  carrying userinfo, a query or a fragment, answers `$!.resource-unbound`.
-  Writing the same literal twice yields the same grant twice, not new authority.
+- **Identity is the URI, spelled exactly.** The literal as written must equal a
+  grant's canonical base, trailing slash included (`namesGrant`). A spelling
+  that only normalizes to the base, such as
+  `'https://API.github.com:443/…/hclang/'` or `'…/hclang/x/../'`, names no
+  grant, so a grep for the base finds every use of it (decided in review of
+  #572; #277 had said "after normalization", which admitted those aliases with
+  the same authority). A literal naming no grant, whether another origin, a
+  parent or a sub-path of a grant, or one carrying userinfo, a query or a
+  fragment, answers `$!.resource-unbound`. An empty `?` or `#` is not a
+  component in the RFC 3986 decomposition the handler receives, so
+  `'…/hclang/?'` names the grant; it still contains the base, so the grep still
+  finds it. Writing the same literal twice yields the same grant twice, not new
+  authority.
 - **The resource is a leaf** (a12 §2). The relative path travels in the request.
 - **The program is the manifest** (a07 §5): its external surface is the set of
   `'https://…'` literals it writes.
@@ -56,11 +64,11 @@ and `.body`, answers `$!.resource-request-shape`, and so does a value that is
 not a record, a record holding elements, or a key whose value has the wrong
 shape.
 
-| Key        | Value             | Rule                                                                                                                                                                                                                                                                                                                 |
-| ---------- | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `.path`    | string            | A relative reference, normalized by `normalizeReference`, so a path naming a scheme, an authority, a query or a fragment is refused, and every root-plane refusal (`$!.resource-parent-escape`, `$!.resource-encoded-separator`, …) applies unchanged. Absent or empty requests the base without its trailing slash. |
-| `.query`   | record of strings | Encoded with `URLSearchParams`. There is no raw query string.                                                                                                                                                                                                                                                        |
-| `.headers` | record of strings | Names are case-folded and checked against the request allowlist (§4).                                                                                                                                                                                                                                                |
+| Key        | Value             | Rule                                                                                                                                                                                                                                                                                                                                                                                                              |
+| ---------- | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `.path`    | string            | A relative reference, normalized by `normalizeReference`, so a path naming a scheme, an authority, a query or a fragment is refused, and every root-plane refusal (`$!.resource-parent-escape`, `$!.resource-encoded-separator`, …) applies unchanged. A trailing slash the path was written with is kept, since some servers tell `/x/` from `/x`; absent or empty requests the base without its trailing slash. |
+| `.query`   | record of strings | Encoded with `URLSearchParams`. There is no raw query string.                                                                                                                                                                                                                                                                                                                                                     |
+| `.headers` | record of strings | Names are case-folded and checked against the request allowlist (§4).                                                                                                                                                                                                                                                                                                                                             |
 
 **Response record.** `.status` is a Count, `.headers` holds only allowlisted
 response headers, and `.body` is the response decoded as UTF-8 with invalid
@@ -93,10 +101,13 @@ widen what is sent.
 
 - **Request:** `accept`, `accept-language`, `if-none-match`,
   `if-modified-since`, plus names a grant adds. Anything else is
-  `$!.resource-header-forbidden`, and so is a value with a control character.
-  `authorization`, `cookie`, `host` and `proxy-*` are refused for every grant,
-  and a grant that tries to allow one fails at startup, so a program cannot
-  supply a credential.
+  `$!.resource-header-forbidden`, and so is a name written twice (so the answer
+  never depends on key order) and a value `fetch` cannot send: a control
+  character, or a character above U+00FF, which is not a ByteString. Refusing
+  these up front keeps the simulator and the live transport in agreement and
+  spends no request on one that cannot be sent. `authorization`, `cookie`,
+  `host` and `proxy-*` are refused for every grant, and a grant that tries to
+  allow one fails at startup, so a program cannot supply a credential.
 - **Response:** `content-type`, `content-length`, `etag`, `last-modified`,
   `link`, `location`, `retry-after`, plus names a grant adds. The rest,
   `set-cookie` included, are dropped.
@@ -236,9 +247,9 @@ handler produced exactly one evidence record.
   adversarial list against the simulator.
 - `lib/frames/rest-hostile.property.test.ts`: the invariant.
 - `cli/rest-config.test.ts`: startup refusals and the CLI install.
-- `cli/rest-loopback.test.ts` (`deno task test:rest-loopback`, in `test:all`):
-  the live worker transport against a loopback server, with net permission for
-  `127.0.0.1` only.
+- `cli/rest-loopback.test.ts` (`deno task test:rest-loopback`, in `test:all` and
+  in the cli row of `scripts/coverage-floor.ts`): the live worker transport
+  against a loopback server, with net permission for `127.0.0.1` only.
 - `cli/no-network-path.test.ts`: the static check.
 - `hc/rest.hc` under `test:doc` (simulated), and `deno task test:rest-live`
   (live, opt-in, skipped when the network is unavailable or rate-limited).

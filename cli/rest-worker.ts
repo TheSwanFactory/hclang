@@ -69,9 +69,10 @@ type Message =
 type Meta =
   | {
     readonly ok: true;
-    readonly status?: number;
-    readonly headers?: Readonly<Record<string, string>>;
+    readonly status: number;
+    readonly headers: Readonly<Record<string, string>>;
   }
+  | { readonly ok: true; readonly recorded: true }
   | { readonly ok: false; readonly reason: string };
 const encoder = new TextEncoder();
 /** The part of a web worker this module uses. */
@@ -105,10 +106,13 @@ export class LiveTransport implements RestTransport {
   /**
    * @param policy The grant, copied to the worker once and never again.
    * @param evidence The absolute path the worker appends evidence to.
+   * @param marginMs How long past a request's timeout to wait for the worker
+   *   before answering `resource-transport timeout` without it.
    */
   public constructor(
     private readonly policy: RestGrantPolicy,
     private readonly evidence: string,
+    private readonly marginMs: number = WAIT_MARGIN_MS,
   ) {
     this.#worker = new Worker(import.meta.url, {
       type: "module",
@@ -129,20 +133,26 @@ export class LiveTransport implements RestTransport {
     );
     const answer = this.call(
       { kind: "send", shared, request, stub },
-      request.timeoutMs + WAIT_MARGIN_MS,
+      request.timeoutMs + this.marginMs,
     );
-    if (!answer.meta.ok) return answer.meta;
+    const meta = answer.meta;
+    if (!meta.ok) return meta;
+    if (!("status" in meta)) {
+      return { ok: false, reason: "resource-transport" };
+    }
     return {
       ok: true,
-      status: answer.meta.status ?? 0,
-      headers: answer.meta.headers ?? {},
+      status: meta.status,
+      headers: meta.headers,
       body: new TextDecoder("utf-8", { fatal: false }).decode(answer.body),
     };
   }
   public record(evidence: RestEvidence): boolean {
     const shared = new SharedArrayBuffer(HEADER_BYTES + META_CAPACITY);
-    return this.call({ kind: "record", shared, evidence }, RECORD_WAIT_MS)
-      .meta.ok;
+    return this.call(
+      { kind: "record", shared, evidence },
+      Math.min(RECORD_WAIT_MS, this.policy.timeoutMs + this.marginMs),
+    ).meta.ok;
   }
   /** Stops the worker. */
   public close(): void {
@@ -189,8 +199,9 @@ function writeAnswer(
 ): void {
   let encoded = encoder.encode(JSON.stringify(meta));
   let payload = body;
-  const room = shared.byteLength - HEADER_BYTES - META_CAPACITY;
-  if (encoded.length > META_CAPACITY || payload.length > room) {
+  // The body fits by construction: the buffer holds `responseBytes`, and
+  // `receive` stops past that. Allowlisted headers could still be too long.
+  if (encoded.length > META_CAPACITY) {
     encoded = encoder.encode(
       JSON.stringify({ ok: false, reason: "resource-transport" }),
     );
@@ -224,6 +235,7 @@ type Received =
     readonly status: number;
     readonly headers: Readonly<Record<string, string>>;
     readonly body: Uint8Array;
+    readonly bytes: number;
   }
   | {
     readonly ok: false;
@@ -232,9 +244,10 @@ type Received =
     readonly bytes: number;
   };
 /** Fetches one verified `GET`, within the grant's time and size budgets. */
-async function receive(request: RestOutgoing, grant: WorkerGrant): Promise<
-  Received & { readonly bytes?: number }
-> {
+async function receive(
+  request: RestOutgoing,
+  grant: WorkerGrant,
+): Promise<Received> {
   const controller = new AbortController();
   let timedOut = false;
   const timer = setTimeout(() => {
@@ -296,6 +309,10 @@ async function receive(request: RestOutgoing, grant: WorkerGrant): Promise<
 function installWorker(scope: {
   onmessage: ((event: WorkerEvent<Message>) => void) | null;
 }): void {
+  // Messages arrive in the order they were posted, and the constructor posts
+  // `init` first, so every later message finds the grant. Were one ever to
+  // arrive first, reading the grant throws, nothing is answered, and the main
+  // isolate's wait times out: the request fails closed.
   let grant: WorkerGrant | undefined;
   scope.onmessage = async (event: WorkerEvent<Message>) => {
     const message = event.data;
@@ -303,31 +320,30 @@ function installWorker(scope: {
       grant ??= message.grant;
       return;
     }
-    if (grant === undefined) {
-      writeAnswer(message.shared, { ok: false, reason: "resource-transport" });
-      return;
-    }
+    const held = grant as WorkerGrant;
     if (message.kind === "record") {
-      const ok = appendEvidence(grant.evidence, message.evidence);
+      const ok = appendEvidence(held.evidence, message.evidence);
       writeAnswer(
         message.shared,
-        ok ? { ok: true } : { ok: false, reason: "resource-evidence" },
+        ok ? { ok: true, recorded: true } : {
+          ok: false,
+          reason: "resource-evidence",
+        },
       );
       return;
     }
     const { request, stub } = message;
     const headers = requestHeaders(
-      grant.policy,
+      held.policy,
       Object.entries(request.headers),
     );
-    const refusal = !withinBase(grant.policy.base, request.url) ||
-        stub.url !== request.url
-      ? "resource-escaped-root"
-      : !headers.ok
-      ? "resource-header-forbidden"
-      : undefined;
-    if (refusal !== undefined) {
-      const ok = appendEvidence(grant.evidence, {
+    const escaped = !withinBase(held.policy.base, request.url) ||
+      stub.url !== request.url;
+    if (escaped || !headers.ok) {
+      const refusal = escaped
+        ? "resource-escaped-root"
+        : "resource-header-forbidden";
+      const ok = appendEvidence(held.evidence, {
         ...stub,
         outcome: "refused",
         status: null,
@@ -342,15 +358,15 @@ function installWorker(scope: {
     }
     const received = await receive({
       url: request.url,
-      headers: headers.ok ? headers.headers : {},
-      timeoutMs: grant.policy.timeoutMs,
-      responseBytes: grant.policy.responseBytes,
-    }, grant);
-    const appended = appendEvidence(grant.evidence, {
+      headers: headers.headers,
+      timeoutMs: held.policy.timeoutMs,
+      responseBytes: held.policy.responseBytes,
+    }, held);
+    const appended = appendEvidence(held.evidence, {
       ...stub,
       outcome: "sent",
       status: received.status,
-      responseBytes: received.bytes ?? 0,
+      responseBytes: received.bytes,
       refusal: received.ok ? null : received.reason,
     });
     if (!appended) {

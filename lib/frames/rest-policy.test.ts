@@ -69,30 +69,23 @@ describe("restGrantPolicy", () => {
   });
 });
 describe("namesGrant", () => {
-  it("is exact equality after URL normalization", () => {
+  it("is the base spelled exactly", () => {
     expect(namesGrant(BASE, BASE)).toEqual(true);
-    expect(
-      namesGrant(BASE, "HTTPS://API.GITHUB.COM/repos/TheSwanFactory/hclang/"),
-    )
-      .toEqual(true);
-    expect(
-      namesGrant(
-        BASE,
-        "https://api.github.com:443/repos/TheSwanFactory/hclang/",
-      ),
-    )
-      .toEqual(true);
   });
-  it("refuses sub-paths, parents, other origins and decorated literals", () => {
+  it("refuses aliases, sub-paths, parents, other origins and decorations", () => {
     for (
       const literal of [
+        "HTTPS://API.GITHUB.COM/repos/TheSwanFactory/hclang/",
+        "https://api.github.com:443/repos/TheSwanFactory/hclang/",
+        `${BASE}x/../`,
+        `${BASE}%2e%2e/hclang/`,
         `${BASE}issues/`,
         "https://api.github.com/repos/TheSwanFactory/hclang",
         "https://api.github.com/repos/TheSwanFactory/",
         "http://api.github.com/repos/TheSwanFactory/hclang/",
         "https://evil.example/repos/TheSwanFactory/hclang/",
         "https://user@api.github.com/repos/TheSwanFactory/hclang/",
-        `${BASE}?`,
+        `${BASE}?q=1`,
         `${BASE}#x`,
         "not a url",
       ]
@@ -116,6 +109,12 @@ describe("requestUrl", () => {
       ok: true,
       url: `${BASE}issues/277?state=open&q=a+b%26c`,
     });
+  });
+  it("keeps a trailing slash the path was written with", () => {
+    expect(url("issues/277/")).toEqual({ ok: true, url: `${BASE}issues/277/` });
+    expect(url("issues/./")).toEqual({ ok: true, url: `${BASE}issues/` });
+    expect(url("./")).toEqual({ ok: true, url: BASE });
+    expect(url("issues/277")).toEqual({ ok: true, url: `${BASE}issues/277` });
   });
   it("keeps a decoded ? or # inside the path", () => {
     expect(url("a%3Fb%23c")).toEqual({ ok: true, url: `${BASE}a%3Fb%23c` });
@@ -182,6 +181,18 @@ describe("headers", () => {
     }
     expect(requestHeaders(policy, [["accept", "a\r\nauthorization: x"]]))
       .toEqual({ ok: false, reason: "resource-header-forbidden" });
+  });
+  it("refuses a value fetch cannot send, and a name written twice", () => {
+    expect(requestHeaders(policy, [["accept", "é"]]).ok).toEqual(true);
+    for (const value of ["€", "✓", "\u{1F600}"]) {
+      expect(requestHeaders(policy, [["accept", value]])).toEqual({
+        ok: false,
+        reason: "resource-header-forbidden",
+      });
+    }
+    expect(requestHeaders(policy, [["Accept", "a"], ["accept", "b"]])).toEqual(
+      { ok: false, reason: "resource-header-forbidden" },
+    );
   });
   it("drops response headers off the allowlist, set-cookie included", () => {
     expect(responseHeaders(policy, [

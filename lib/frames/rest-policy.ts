@@ -177,24 +177,17 @@ function allowlist(
 /**
  * Whether a written resource literal names this grant.
  *
- * Identity is the URI: after `URL` normalization the literal must equal the
- * base exactly, trailing slash included. A sub-path of a grant is not the grant,
- * and neither is a literal carrying userinfo, a query or a fragment.
+ * Identity is the URI, spelled exactly: the literal as the program wrote it
+ * must equal the canonical base, trailing slash included. A spelling that only
+ * normalizes to the base (`'https://API.github.com:443/…/'`, `'…/x/../'`) is
+ * not the grant, so a grep for the base finds every use of it and the program
+ * stays the manifest. A sub-path of a grant is not the grant either.
  *
  * @param base A canonical grant base.
  * @param literal The literal as the program wrote it, without its quotes.
  */
 export function namesGrant(base: string, literal: string): boolean {
-  let url: URL;
-  try {
-    url = new URL(literal);
-  } catch {
-    return false;
-  }
-  if (url.username !== "" || url.password !== "") return false;
-  if (url.search !== "" || url.hash !== "") return false;
-  if (literal.includes("?") || literal.includes("#")) return false;
-  return url.href === base;
+  return literal === base;
 }
 /**
  * Whether a request URL is still the grant's base or below it.
@@ -251,7 +244,13 @@ export function requestUrl(
   const encoded = normal.path === ""
     ? ""
     : normal.path.split("/").map(encodeURIComponent).join("/");
-  const target = encoded === "" ? base.slice(0, -1) : base + encoded;
+  // Normalization drops a trailing slash, but some servers tell `/x/` from
+  // `/x`, so a path written with one keeps it. Only an absent or empty path
+  // requests the base without its slash.
+  const slash = (path ?? "").endsWith("/") ? "/" : "";
+  const target = encoded === "" && slash === ""
+    ? base.slice(0, -1)
+    : base + (encoded === "" ? "" : encoded + slash);
   let url: URL;
   try {
     url = new URL(target);
@@ -270,9 +269,12 @@ export function requestUrl(
 /**
  * Checks the headers a program asked to send, case-folding their names.
  *
- * A name outside the grant's allowlist, any forbidden name, and a value with a
- * control character (which could split one header into two) all answer
- * `resource-header-forbidden`.
+ * A name outside the grant's allowlist, any forbidden name, a name written
+ * twice (so the answer never depends on key order), and a value `fetch` could
+ * not send (a control character, which could split one header into two, or a
+ * character above U+00FF, which is not a ByteString) all answer
+ * `resource-header-forbidden`. Refusing here keeps the simulated and live
+ * transports in agreement and spends no request on one that cannot be sent.
  *
  * @param policy The grant whose allowlist applies.
  * @param headers The header pairs the program wrote.
@@ -289,8 +291,9 @@ export function requestHeaders(
     if (
       isForbiddenRequestHeader(folded) ||
       !policy.requestHeaders.includes(folded) ||
+      Object.hasOwn(checked, folded) ||
       // deno-lint-ignore no-control-regex
-      /[\u0000-\u001f\u007f]/.test(value)
+      /[\u0000-\u001f\u007f]|[^\u0000-\u00ff]/.test(value)
     ) {
       return { ok: false, reason: "resource-header-forbidden" };
     }

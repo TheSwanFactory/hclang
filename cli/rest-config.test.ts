@@ -75,6 +75,22 @@ describe("--rest startup", () => {
     );
     expect(refused([grant({ evidence: "" })])).toThrow("must name evidence");
     expect(refused([grant(), grant()])).toThrow("distinct bases");
+    expect(refused(["not an object"])).toThrow("must be an object");
+    expect(refused([grant({ transport: "" })])).toThrow(
+      "must name a transport",
+    );
+  });
+  it("accepts an absolute evidence path, and fails closed when it cannot append", async () => {
+    const { directory } = setup([]);
+    Deno.mkdirSync(`${directory}/blocked.jsonl`);
+    const file = setup([grant({ evidence: `${directory}/blocked.jsonl` })])
+      .file;
+    const out = new FrameArray([]);
+    await main(
+      getEval({}, out, file),
+      getOptions(["-e", `'${BASE}' []`]),
+    );
+    expect(out.at(-1).toString()).toContain("$!.resource-evidence");
   });
   it("installs simulated grants for the CLI, and reports refusals", async () => {
     const { file, directory } = setup([grant()]);
