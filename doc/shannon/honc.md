@@ -1,31 +1,40 @@
-= Hoon is from Mars, Honc is from Venus
-== Homoiconic-On-Nock-C: An Easy-to-Love Scripting Language for Urbit
+# Hoon is from Mars, Honc is from Venus
 
-** INCOMPLETE **
+## Homoiconic-On-Nock-C: An Easy-to-Love Scripting Language for Urbit
+
+**INCOMPLETE**
 
 Draft 0, 2023-08-01 ~ponnum-minnus <ernest.prabhakar@gmail.com>
 
+- Hoon is a warrior, carving bloody runes into the harsh Martian cliffs in order
+  to un-think the corrupted idioms of Earth.
 
-* Hoon is a warrior, carving bloody runes into the harsh Martian cliffs in order to un-think the corrupted idioms of Earth.
+- Honc is a lover, singing soft songs of the gentle Venetian seas to woo wayward
+  sailors back to their native innocence.
 
-* Honc is a lover, singing soft songs of the gentle Venetian seas to woo wayward sailors back to their native innocence.
+More prosaically, Honc is an attempt to express Nock semantics in the familiar,
+C-like syntax (and terminology) used by Python, Ruby, etc. It is built on
+Homoiconic C ("hclang"), another attempt to reinvent programming on an
+axiomatic, tree-structured foundation.
 
-More prosaically, Honc is an attempt to express Nock semantics in the familiar, C-like syntax (and terminology) used by Python, Ruby, etc.
-It is built on Homoiconic C ("hclang"), another attempt to reinvent programming on an axiomatic, tree-structured foundation.
+Initially, I thought it might be easy to implement nock in hclang, to give Urbit
+developers a more approachable scripting language. As I got into it, however, I
+began to wonder whether it was the other way around, and I should be
+re-implemeting hclang on top of nock!
 
-Initially, I thought it might be easy to implement nock in hclang, to give Urbit developers a more approachable scripting language.
-As I got into it, however, I began to wonder whether it was the other way around, and I should be re-implemeting hclang on top of nock!
-
-In other words, is it possible hclang and nock are both manifestations of the same "ur" programming language?
+In other words, is it possible hclang and nock are both manifestations of the
+same "ur" programming language?
 
 Honc is my attempt to answer that question.
 
-Note: this document is inspired by, and largely replicates, the excellent https://blog.timlucmiptev.space/part1.html[Nock tutorial] by ~timluc-miptev.
+Note: this document is inspired by, and largely replicates, the excellent
+[Nock tutorial](https://blog.timlucmiptev.space/part1.html) by ~timluc-miptev.
 Any errors are mine alone; corrections are deeply appreciated!
 
 ## The `nockc` compiler
 
-`nockc` is a hclang function that compiles a pure subset of hclang to equivalent nock structures.
+`nockc` is a hclang function that compiles a pure subset of hclang to equivalent
+nock structures.
 
 ```hclang
 ; . <- `nock`; # import nock module [does not yet exist] into current context
@@ -36,21 +45,22 @@ Any errors are mine alone; corrections are deeply appreciated!
 # 1
 ```
 
-All hclang functions take a single argument, which can be `nil` or a complex data structure.
+All hclang functions take a single argument, which can be `nil` or a complex
+data structure.
 
-Note this fragment uses the hclang input (";") and output ("#") prompts from the REPL.
-Since ";" terminates expressions, and "#" creates comments,
-REPL code can be pasted directly into a source file (where it is interprted as a doctest).
+Note this fragment uses the hclang input (";") and output ("#") prompts from the
+REPL. Since ";" terminates expressions, and "#" creates comments, REPL code can
+be pasted directly into a source file (where it is interprted as a doctest).
 
 ## nock Cells as hclang Groups
 
-Similar to nouns in nock, every value in hclang is a "frame."
-Syntatically, frames can be single literals ("atoms") or grouped collections ("cells").
+Similar to nouns in nock, every value in hclang is a "frame." Syntatically,
+frames can be single literals ("atoms") or grouped collections ("cells").
 
 ### [list]
 
-The simplest way way to represent cells in hclang is as a "boxed" group,
-which is a comma-seperated list with square brackets:
+The simplest way way to represent cells in hclang is as a "boxed" group, which
+is a comma-seperated list with square brackets:
 
 ```hclang
 ; nockc [782, [0b11, 0xFACE]]
@@ -58,9 +68,10 @@ which is a comma-seperated list with square brackets:
 ```
 
 ### (expression)
-Frame expressions are grouped using round brackets (parenthesis),
-which are "unboxed."
-That is, single values (as in nock) are returned as scalars rather than groups.
+
+Frame expressions are grouped using round brackets (parenthesis), which are
+"unboxed." That is, single values (as in nock) are returned as scalars rather
+than groups.
 
 ```hclang
 ; (1)
@@ -71,8 +82,8 @@ That is, single values (as in nock) are returned as scalars rather than groups.
 
 ### {function}
 
-Frame uses curly braces for lazy evaluation (i.e., "functions").
-For example, list by default appends its argument:
+Frame uses curly braces for lazy evaluation (i.e., "functions"). For example,
+list by default appends its argument:
 
 ```hclang
 ; [1]
@@ -94,17 +105,17 @@ This will be more obviously useful when we bind frames to names, below.
 
 ## Properties
 
-Frames are monadic, in that they can act as dictionaries, enumerables, or functions.
-Individuals frames are treated as continuous lists rather than binary trees,
-though the underlying implementation can be optimized for efficiency.
+Frames are monadic, in that they can act as dictionaries, enumerables, or
+functions. Individuals frames are treated as continuous lists rather than binary
+trees, though the underlying implementation can be optimized for efficiency.
 
 There are two ways to access elements of a Frame:
 
 ### Indexed Values: OpCode 0
 
-Frame indices are 0-based, as in C.
-The compiler will [need to] be smart enough to translate between frames and cells,
-including any implicit or explicit nesting.
+Frame indices are 0-based, as in C. The compiler will [need to] be smart enough
+to translate between frames and cells, including any implicit or explicit
+nesting.
 
 ```hclang
 ; [1, 2, 3].1
@@ -119,12 +130,11 @@ including any implicit or explicit nesting.
 
 ### Named Values: Compile-Time Variables
 
-Names in frame use a "." sigil, to distingiush from the value.
-Values are thus assigned directly to a name without any "=",
-in a syntax reminiscent of CSS.
+Names in frame use a "." sigil, to distingiush from the value. Values are thus
+assigned directly to a name without any "=", in a syntax reminiscent of CSS.
 
-In particular we can set `.name value` in the current or an explicit frame,
-then retrieve it at compile time:
+In particular we can set `.name value` in the current or an explicit frame, then
+retrieve it at compile time:
 
 ```hclang
 ; .pi 3.14;
@@ -146,8 +156,8 @@ then retrieve it at compile time:
 
 ## The `nock` interpreter
 
-In addition to the `nockc` compiler,
-honc includes a `nock` interpteter that can evaluate the results:
+In addition to the `nockc` compiler, honc includes a `nock` interpteter that can
+evaluate the results:
 
 ```hclang
 ; .nlist (nockc {plist .a});
@@ -155,15 +165,15 @@ honc includes a `nock` interpteter that can evaluate the results:
 # {[1, 3.14, 1, 42] [0, 2]}
 ; nock nlist
 # 1
-````
+```
 
-Note that by default groupings simply append,
-so if you evaluate a result directly you just get a longer frame:
+Note that by default groupings simply append, so if you evaluate a result
+directly you just get a longer frame:
 
 ```hclang
 ; nlist()
 # [1, 3.14, 1, 42, [0, 2]]
-````
+```
 
 ### nock Quote as Lazy Groupings: OpCode 1
 
@@ -174,22 +184,19 @@ By default, non-final expressions will be returned as lazy:
 ```hclang
 ; nockc([1, 2, 3], [0, 3])
 # {[1, 2, 3] [0, 3]}
-````
-
-
-
+```
 
 ```hclang
-````
-
+```
 
 ```hclang
-````
+```
 
 ## Honc Class
 
-The Honc class (which in hclang is just a function with properties) implements most of honc.
-Instances of the Honc class acts as the subject for all honc expressions.
+The Honc class (which in hclang is just a function with properties) implements
+most of honc. Instances of the Honc class acts as the subject for all honc
+expressions.
 
 You can directly evaluate Nock expressions by calling Honc:
 
@@ -198,8 +205,8 @@ You can directly evaluate Nock expressions by calling Honc:
 # 50
 ```
 
-However, the following sections show the built-in convenience functions
-that allow you to write more traditional code.
+However, the following sections show the built-in convenience functions that
+allow you to write more traditional code.
 
 ## Convenience Methods
 
@@ -222,6 +229,7 @@ Much of the time, nock functions are implemented as methods on the Honc class:
     _ & {^ __} # The Distribution Rule
 }
 ```
+
 To get the raw opcodes, pass the expression to `nock` instead of evaluating it:
 
 ```hclang
@@ -230,7 +238,6 @@ To get the raw opcodes, pass the expression to `nock` instead of evaluating it:
 ```
 
 Note that hclang uses curly braces to defer evaluation.
-
 
 ### OpCode 0: Echo
 
@@ -243,7 +250,8 @@ For example, the 0 operator becomes the `echo` method on Honc:
 # 50
 ```
 
-As a convenience, you can pass `echo` a list of 0-based indices for nested data structures:
+As a convenience, you can pass `echo` a list of 0-based indices for nested data
+structures:
 
 ```hclang
 ; .apples Honc([[`apple`, .pie] [0b1101, 0xdad]]);
@@ -253,12 +261,13 @@ As a convenience, you can pass `echo` a list of 0-based indices for nested data 
 # .pie
 ```
 
-Note that hclang expresses variable assignment via symbol expressions (`.key value`).
-
+Note that hclang expresses variable assignment via symbol expressions
+(`.key value`).
 
 ### OpCode 1: Unbox
 
-Honc considers opcode 1 as "unbox" rather than "quote", because it removes brackets wherever possible.
+Honc considers opcode 1 as "unbox" rather than "quote", because it removes
+brackets wherever possible.
 
 ```hclang
 ; Honc([.anything]).unbox(67)
@@ -271,7 +280,6 @@ Honc considers opcode 1 as "unbox" rather than "quote", because it removes brack
 
 ### OpCode 2: Mutate
 
-
 ```hclang
 # Original: [50 51] [2 [0 3] [1 [4 0 1]]]
 ; .op2a { Honc([50, 51]).exec {echo(3), unbox(incr().echo())} }
@@ -282,15 +290,12 @@ Honc considers opcode 1 as "unbox" rather than "quote", because it removes brack
 
 # Original: [[4 0 1] 51] [2 [0 3] [0 2]]]
 ; .op2b { Honc([4, 0, 1]) }
-
 ```
 
 ### OpCode 3: Type Cell
 
 ```hclang
-
 ```
-
 
 ### OpCode 4: Incremement
 
@@ -309,27 +314,20 @@ Honc considers opcode 1 as "unbox" rather than "quote", because it removes brack
 # [50, [4, 4, 0, 1]]
 ```
 
+### OpCode
+
+```hclang
+```
 
 ### OpCode
 
 ```hclang
-
 ```
-
-
-### OpCode
-
-```hclang
-
-```
-
 
 ## OpCode
 
 ```hclang
-
 ```
-
 
 ## Appendix: Honc Implementation
 
@@ -346,17 +344,18 @@ honc {
 }
 ```
 
-== H. Map and Reduce in hclang
+## H. Map and Reduce in hclang
 
-The easiest way for me to understand nock opcode 2 is in terms of
-two hclang primitive operators: map `&` and reduce `|`.
-These map to pseudo-operators in nasm:
+The easiest way for me to understand nock opcode 2 is in terms of two hclang
+primitive operators: map `&` and reduce `|`. These map to pseudo-operators in
+nasm:
 
 ```hclang
 .map 121
 .reduce 122
 ```
-=== Map
+
+### Map
 
 Map creates a new list from an old list by applying a closure in parallel:
 
@@ -365,10 +364,10 @@ Map creates a new list from an old list by applying a closure in parallel:
 # [`1`, `2`]
 ```
 
-=== Reduce
+### Reduce
 
-Reduce creates a single element from an old list by repeated application to a seed.
-For example, when you apply an element to a list it appends (repeatedly):
+Reduce creates a single element from an old list by repeated application to a
+seed. For example, when you apply an element to a list it appends (repeatedly):
 
 ```hclang
 ; [] 1
@@ -388,13 +387,12 @@ We can use this (rather awkwardly) to clone a list using Reduce:
 
 Compared to wrapping each element if we instead used Map:
 
-
 ```hclang
 ; [1, 2, 3, 4] & []
 # [[1], [2], [3], [4]]
 ```
 
-=== Evaluation
+### Evaluation
 
 Importantly, Reduce is how hclang performs evaluation.
 
@@ -407,7 +405,6 @@ Consider `nock.print` of a cell:
 
 We can implement it as either a closure to apply:
 
-
 ```hclang
 ; .np_closure { nock.print [1, 2] };
 ; np_closure()
@@ -416,14 +413,13 @@ We can implement it as either a closure to apply:
 
 or a list of elements to apply:
 
-
 ```hclang
 ; .np_list [ nock, .print, [1, 2] ];
 ; np_list | ()
 # `[1 2]`
 ```
 
-=== Applications of nil
+### Applications of nil
 
 Note that applying any element to nil results in that element:
 
@@ -439,17 +435,14 @@ Applying nil a to non-closure just returns that element:
 # 1
 ```
 
-
 Applying nil to a closure evaluates it:
-
 
 ```hclang
 ; { 1 } ()
 # 1
 ```
 
-=== map-eval in hclang
-
+### map-eval in hclang
 
 ```hclang
 ; .op2 { [50, 51] [2, [0, 3], [1, [4, 0, 1]]] }

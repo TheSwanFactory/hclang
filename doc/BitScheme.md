@@ -1,25 +1,48 @@
-= BitScheme Tutorial/Specification
+# BitScheme Tutorial/Specification
+
 Draft 0.2, 2019-09-07
 
 Declaratively parse, manipulate and generate binary data
 
-BitScheme is a lightweight data format for describing arbitrary sequences of binary data ("bitstreams", like those used for programming FPGAs).footnote:[https://en.wikipedia.org/wiki/Field-programmable_gate_array[Field-Programmable Gate Array]] It also doubles as a scripting language for manipulating those bitstreams -- what is sometimes called a DREADFUL.footnote:[Declaratively Rendered Executable Abstract Data Format Un-Language]
+BitScheme is a lightweight data format for describing arbitrary sequences of
+binary data ("bitstreams", like those used for programming FPGAs).[^fpga] It
+also doubles as a scripting language for manipulating those bitstreams -- what
+is sometimes called a DREADFUL.[^dreadful]
 
-BitScheme files use "hc" (as in https://github.com/TheSwanFactory/hclang[Homoiconic C]) as the file extension, and must contain that string in an opening "!#" shebang.footnote:[https://en.wikipedia.org/wiki/Shebang_(Unix)[shebang], aka hashbang]
+BitScheme files use "hc" (as in
+[Homoiconic C](https://github.com/TheSwanFactory/hclang)) as the file extension,
+and must contain that string in an opening "!#" shebang.[^shebang]
+
+[^fpga]: [Field-Programmable Gate Array](https://en.wikipedia.org/wiki/Field-programmable_gate_array)
+
+[^dreadful]: Declaratively Rendered Executable Abstract Data Format Un-Language
+
+[^shebang]: [shebang](https://en.wikipedia.org/wiki/Shebang_(Unix)), aka
+    hashbang
+
 ```
 #!/use/bin/env hc
 ```
 
-While you can write parsers in other languages to read the BitScheme format, BitScheme files can also be executed directly from the command line to parse or generate bitstreams. BitScheme can also be run as a REPL.footnote:[https://en.wikipedia.org/wiki/Read–eval–print_loop[Read–Eval–Print Loop]]. The REPL uses ``; `` as the input prompt and ``# `` for the output (plus ``# # `` for multi-line prompts), which is also the format we will use for code examples in this document.
+While you can write parsers in other languages to read the BitScheme format,
+BitScheme files can also be executed directly from the command line to parse or
+generate bitstreams. BitScheme can also be run as a REPL.[^repl] The REPL uses
+`;` as the input prompt and `#` for the output (plus `# #` for multi-line
+prompts), which is also the format we will use for code examples in this
+document.
 
-== Syntax
+[^repl]: [Read–Eval–Print Loop](https://en.wikipedia.org/wiki/Read–eval–print_loop)
+
+## Syntax
 
 BitScheme syntax is mostly just Identifiers and Grouping.
 
-=== Identifiers
-==== Literals
+### Identifiers
+
+#### Literals
 
 The simplest Identifiers are Literals, e.g.:
+
 ```
 ; 12345 # Decimal
 # 12345
@@ -28,105 +51,146 @@ The simplest Identifiers are Literals, e.g.:
 ; 0xcafebabe # Hexadecimal
 # 0xcafebabe
 ```
-===== String (quoted, utf-8)
+
+##### String (quoted, utf-8)
+
 ```
 ; `Hello`
 # `Hello`
 ;
 ```
-===== ByteString
+
+##### ByteString
+
 ```
 ; \5\Hello
 # \5\Hello
 ```
-You can also use triple-backquotes for docstrings in https://asciidoctor.org[asciidoc] format. If you pass a ".adoc" file to bitscheme, it will prepend the backquotes, execute the code blocks, and warn if the evaluated input does not match the expected output.
+
+You can also use triple-backquotes for docstrings in
+[GitHub Flavored Markdown](https://github.github.com/gfm/) format. If you pass a
+".md" file to bitscheme, it will prepend the backquotes, execute the code
+blocks, and warn if the evaluated input does not match the expected output.
 
 Comment strings (using "#") are also considered a type of Literal:
+
 ```
 ; 1234 # trailing comment
 ; #  inline comment # 4321
-
 ```
 
-==== Expressions
+#### Expressions
 
-Identifiers can be combined into Expressions. The default behavior is concatenation:
+Identifiers can be combined into Expressions. The default behavior is
+concatenation:
+
 ```
 ; 0b1101 0b0110
 # 0b11010110
-; `Hello`` World`
+; `Hello` ` World`
 # “Hello World”
 ```
-==== Symbols
 
-BitScheme also supports Symbolic Identifiers, which use prefix sigils for different usages:
-===== .Name (setter)
+#### Symbols
+
+BitScheme also supports Symbolic Identifiers, which use prefix sigils for
+different usages:
+
+##### .Name (setter)
+
 ```
 ; .the_answer 42;
 ```
-===== Value (getter)
+
+##### Value (getter)
+
 ```
 ; the_answer
 # 42
 ```
-===== $Error
+
+##### $Error
+
 ```
 ; ther_answer
 # $!.name-missing “$:HCTest.113.ther_answer”;
 ```
-===== Alias
+
+##### Alias
+
 ```
 ; @the_answer 7;
 ; the_answer
 # 7
 ```
-Symbols with only non-alphanumeric characters (e.g., "+") are called Operators rather than Identifiers. There are four universal binary Operators in the standard library, which can be used with any Value:
+
+Symbols with only non-alphanumeric characters (e.g., "+") are called Operators
+rather than Identifiers. There are four universal binary Operators in the
+standard library, which can be used with any Value:
 
 - "?" if-then
 - ":" if-else
 - "&" map
 - "|" reduce
 
-The *&* and *|* operators, by default, operate over enumerable elements. Use *&&* and *||* to iterate over properties instead, and *&&&* and *|||* for both.
+The **&** and **|** operators, by default, operate over enumerable elements. Use
+**&&** and **||** to iterate over properties instead, and **&&&** and **|||**
+for both.
 
-See *Operator Syntax* below for more details.
+See **Operator Syntax** below for more details.
 
-=== Grouping
-==== Terminals
+### Grouping
+
+#### Terminals
 
 Elements are separated using Terminals:
-===== newline
+
+##### newline
+
 ```
 ; `Terminal Expression`
 # `Terminal Expression`
 ```
-===== comma
+
+##### comma
+
 ```
 ; `Expression1`,`Expression2`
 # (`Expression1`, `Expression2`)
 ```
-===== semicolon
+
+##### semicolon
+
 ```
 ; `Statement`;
 ```
 
-==== Delimiters
+#### Delimiters
+
 Elements are aggregated using pairs of Delimiters:
-===== [] Boxed
+
+##### [] Boxed
+
 ```
 ; [1, 2, 3]
 # [1, 2, 3]
 ```
-===== () Unboxed
+
+##### () Unboxed
+
 ```
 ; (0b1 0b0)
 # 0b10
 ```
-===== <> Schema (i.e. type; see below)
+
+##### <> Schema (i.e. type; see below)
+
 ```
 ; .Bit <0b0, 0b1>;
 ```
-===== {} Deferred
+
+##### {} Deferred
+
 ```
 ; .AppendZero {0b1 0b0};
 ; AppendZero
@@ -134,59 +198,78 @@ Elements are aggregated using pairs of Delimiters:
 ; AppendZero()
 # 0b10
 ```
-==== Properties
+
+#### Properties
 
 Names can be used as properties to extract values from Groupings:
+
 ```
 ; [.a 1; .b 2;].a
 # 1
 ```
 
-==== Operator Syntax
+#### Operator Syntax
 
 Operators are actually just non-alphanumeric properties.
-===== _nil_, the empty expression
+
+##### _nil_, the empty expression
+
 ```
 ; .false ()
 ```
-===== _all_, the inclusive schema
+
+##### _all_, the inclusive schema
+
 ```
 ; .true <>
 ```
-===== Ternary
+
+##### Ternary
+
 ```
 ; true .? `Yes` .: `No`
 # `Yes`
 ; false .? `Yes` .: `No`
 # `No`
 ```
-===== Map
+
+##### Map
+
 ```
 ; [0b101, 0b010] .& AppendZero
 # [0b1010, 0b0100]
 ```
-===== Reduce
+
+##### Reduce
+
 ```
 ; [0b101, 0b010] .| AppendZero
 # 0b10100100
 ```
 
-== Schemas
+## Schemas
 
-Schemas, a novel feature of `bitscheme`, can be thought of as a cross between type signatures and regular expressions.  Syntactically they are ordinary Groupings, so they are easy to compose and refactor.  Each element of a Schema is called a _capture_.
+Schemas, a novel feature of `bitscheme`, can be thought of as a cross between
+type signatures and regular expressions. Syntactically they are ordinary
+Groupings, so they are easy to compose and refactor. Each element of a Schema is
+called a _capture_.
 
-=== Simple Captures
+### Simple Captures
 
-The three simple Schemas resemble C types, though they actually define an interface rather than require a specific representation:
+The three simple Schemas resemble C types, though they actually define an
+interface rather than require a specific representation:
+
 ```
 ; .enum123 <1,2,3>; # Enumerated list of valid values
 ; .BitStream <[@Bit]>; # Variable-length Sequence of a specific type
 ; .Byte <8@Bit>; # Fixed-length sequences
 ```
 
-=== Type Constraints
+### Type Constraints
 
-The Schema constrains which values can be bound to a Symbol, and can be retrieved via the `<>` property.
+The Schema constrains which values can be bound to a Symbol, and can be
+retrieved via the `<>` property.
+
 ```
 ; @enum123 2;
 ; enum123
@@ -197,7 +280,7 @@ The Schema constrains which values can be bound to a Symbol, and can be retrieve
 # $@enum123<1,2,3> 4
 ```
 
-=== Deconstructors
+### Deconstructors
 
 Schemas can also act directly to extract or bind values from compound sequences:
 
@@ -207,11 +290,13 @@ Schemas can also act directly to extract or bind values from compound sequences:
 ; .BitSplitter3 <[.head <3@Bit>; .tail <[@Bit]>;]>;
 ; BitSplitter3 0b10101100
 # [.head 0b101; .tail 0b01100;]
-
 ```
-=== Constructors
 
-We can also reverse the flow, by mapping capture keys to a dictionary to generate a sequence of values:
+### Constructors
+
+We can also reverse the flow, by mapping capture keys to a dictionary to
+generate a sequence of values:
+
 ```
 ; .Bit <0b0, 0b1>;
 ; .Byte <8@Bit>; # Fixed-length sequences
@@ -219,36 +304,43 @@ We can also reverse the flow, by mapping capture keys to a dictionary to generat
 ; .BS3_sequence (BitSplitter3 .& [.head 0b000; .tail 0b111;]);
 ; BS3_sequence
 # [0b000, 0b111]
-
 ```
+
 The sequence can then be evaluated by folding it into an expression:
+
 ```
 ; BS3_sequence .| ()
 # 0b000111
 ```
 
-=== Deferred Captures
-To reuse the results of previous captures, enclose the referencing capture in brackets to defer evaluation:
+### Deferred Captures
+
+To reuse the results of previous captures, enclose the referencing capture in
+brackets to defer evaluation:
+
 ```
 ; .NetString <[.n <4@Bit>; .string {<n@Byte>};]>;
 ; NetString 0x548656c6c6f666666666 # 5:Hello + sixes
 # [.n 0x5; .string 0x48656c6c6f;] # Hello
-
 ```
 
-== Example A: Symbolicated Frame Buffer
+## Example A: Symbolicated Frame Buffer
 
 This example demonstrates:
 
-* parsing named and unnamed captures
-* reusing variables across scopes
-* symbolicating output
+- parsing named and unnamed captures
+- reusing variables across scopes
+- symbolicating output
 
 The bitstream starts with a 5-byte magic number for the _header_:
+
 ```
 ; .fb-start 0xf4m3b0ff3c;
 ```
-After that come an arbitrary series of one of three _commands_.  Each command starts with a 4-bit _operation_:
+
+After that come an arbitrary series of one of three _commands_. Each command
+starts with a 4-bit _operation_:
+
 ```
 ; .op {
 # # .x 0xa
@@ -256,36 +348,49 @@ After that come an arbitrary series of one of three _commands_.  Each command st
 # # .data 0xc
 }
 ```
-The _x_ and _y_ operations are to set the top-level _width_ and _height_ variables, respectively:
+
+The _x_ and _y_ operations are to set the top-level _width_ and _height_
+variables, respectively:
+
 ```
 ; .width <2 @Byte>;
 ; .height <2 @Byte>;
 ; .parse-x <op.x; @width>;
 ; .parse-y <op.y; @height>;
 ```
+
 Those variables then determine the size of the data buffer in bytes:
+
 ```
 ; .pixel <2 @Byte>;
 ; .parse-data <op.data; .fb-data <width height pixel>>;
 ; .command <parse-x, parse-y, parse-data>;
 ; .fb-parse <fb-start, [command]>;
 ```
+
 For simplicity, let's assume a really small 4 x 2 display:
+
 ```
 ; .sizes {.mvga-x 0x0004; .mvga-y 0x0002;};
 ; .mvga-data [0x0000 0x0001 0x0010 0x0100 0xffff 0xfff0 0xff00 0xf000];
-
 ```
+
 The bitstream then becomes:
+
 ```
 ; .fb-bits (fb-start op.x mvga-x op.y mvga-y op.data mvga-data);
 ```
+
 which parses back to:
+
 ```
 ; fb-parse fb-bits
 # [0xf4m3b0ff3c, @width 0x0004, @height 0x0002, .fb-data 0x0000000100100100fffffff0ff00f000]
 ```
-If we would rather display symbolic values, we instead have the captures reverse-map ("|>") into the names:
+
+If we would rather display symbolic values, we instead have the captures
+reverse-map ("|>") into the names:
+
 ```
 ; .sym-x <parse-x |> sizes>;
 ; .sym-y <parse-y |> sizes>;
@@ -293,15 +398,18 @@ If we would rather display symbolic values, we instead have the captures reverse
 ; .fb-sym <fb-start |> @fb-start, [sym-commands]>;
 ; fb-sym fb-bits
 # [{fb-start}, {@width mvga-x}, {@height mvga-y}, .fb-data 0x0000000100100100fffffff0ff00f000]
-
 ```
 
-== Example B: RISC V
+## Example B: RISC V
 
-To see how this works for more complex data, we will construct Schema for the six https://en.wikipedia.org/wiki/RISC-V#ISA_base_and_extensions[32-bit RISC-V Instruction Formats].
+To see how this works for more complex data, we will construct Schema for the
+six
+[32-bit RISC-V Instruction Formats](https://en.wikipedia.org/wiki/RISC-V#ISA_base_and_extensions).
 
-=== Fields
-We start by defining captures for the various sub-fields used by RISC V instructions (as used by RV 32I):
+### Fields
+
+We start by defining captures for the various sub-fields used by RISC V
+instructions (as used by RV 32I):
 
 ```
 ; .OP <7@Bit> (
@@ -322,7 +430,8 @@ We start by defining captures for the various sub-fields used by RISC V instruct
 ; .SOURCE (RS2, RS1, FUNCT3);
 ```
 
-=== Schema
+### Schema
+
 These Identifiers allow us to define our top-level Schema very concisely:
 
 ```
@@ -333,26 +442,32 @@ These Identifiers allow us to define our top-level Schema very concisely:
 ; .Branch <[.b12 <Bit>,.imm10-5 <6@Bit>, SOURCE, .imm4-1 <4@Bit>,.b11 <Bit>, .opcode OP.Branch]>;
 ; .Jump <[.b20 <Bit>,.imm10-1 <10@Bit>, .b11 <Bit>, .imm19-12 <8@Bit>, RD, .opcode OP.Jump]>;
 ; .RISC-V <Register, Immediate, UpperImmediate, Store, Branch, Jump>;
-
 ```
-==== Immediate Helpers
+
+#### Immediate Helpers
 
 We can also define helper properties to reconstitute immediates:
+
 ```
 ; @Immediate.immediate { imm11-0 };
 ; @UpperImmediate.immediate { imm31-12 (12 0b0)};
 ; @Store.immediate { imm11-5 imm4-0 };
 ; @Branch.immediate { b12 b11 imm10-5 imm4-1 0b0};
 ; @Jump.immediate { b20 imm19-12 b11 imm10-1 0b0 };
-
 ```
-==== Constructors
 
-Constructors allow us to natively write assembly as an internal DSL.footnote:[https://en.wikipedia.org/wiki/Domain-specific_language[Domain Specific Language]]. We use the `^` operator to bind a Schema to a deferred expression. For example:
+#### Constructors
+
+Constructors allow us to natively write assembly as an internal DSL.[^dsl] We
+use the `^` operator to bind a Schema to a deferred expression. For example:
+
+[^dsl]: [Domain Specific Language](https://en.wikipedia.org/wiki/Domain-specific_language)
+
 ```
 ; .func (.add 0b000; .slt 010; .xor 0b100; .or 0b110; .and 0b111;);
 ; .addi <[.value, .source, .dest]> ^ {value source func.add dest OP.Math };
 ```
+
 ```
 ; .r10 0b01010;
 ; .r7 0b00111;
@@ -360,30 +475,40 @@ Constructors allow us to natively write assembly as an internal DSL.footnote:[ht
 ; .add_11_to_r10_into_r7 addi[v11, r10, r7]
 # 0b0000000101101010000001110010011
 ```
+
 That is, "0b00000001011 01010 000 00111 0010011" with spaces added for clarity.
 
-=== Usage
+### Usage
 
-==== Generating Data Files
+#### Generating Data Files
 
-Having created our Schema, we can simply evaluate it to expand all the variables:
+Having created our Schema, we can simply evaluate it to expand all the
+variables:
+
 ```
 ; RISC-V
 ```
-The resulting output contains no variables, and can be used as a schema format for traditional parsers and generators.
 
-==== Parsing
+The resulting output contains no variables, and can be used as a schema format
+for traditional parsers and generators.
+
+#### Parsing
 
 We can also apply this Schema to a 32-bit value to parse it into its components:
+
 ```
 ; .a11r10r7-parsed (RISC-V add_11_to_r10_into_r7)
 # (.imm11 0b00000001011; .rs1 0b01010; .func3 0b000; .rd 0b00111; .opcode 0b0010011;)
 ```
-More sophisticated parsers can of course render binary values as symbols for easier readability.
 
-==== Generation
+More sophisticated parsers can of course render binary values as symbols for
+easier readability.
 
-Similarly, we can map the Schema into a dictionary to generate a sequence, and thus a value:
+#### Generation
+
+Similarly, we can map the Schema into a dictionary to generate a sequence, and
+thus a value:
+
 ```
 ; .a11r10r7-sequence (RISC-V .&& a11r10r7-parsed)
 # [0b00000001011, 0b01010, 0b000, 0b00111, 0b0010011]
@@ -391,8 +516,9 @@ Similarly, we can map the Schema into a dictionary to generate a sequence, and t
 # 0b00000001011 01010 000 00111 0010011 # spaces added for clarity
 ```
 
-== Next Steps
+## Next Steps
 
-As of September 16, 2019 "hc" can evaluate all the primitives in this document except the operators (though only about half the tests pass).
+As of September 16, 2019 "hc" can evaluate all the primitives in this document
+except the operators (though only about half the tests pass).
 
 My goal is to have this entire document working by the end of 2019.

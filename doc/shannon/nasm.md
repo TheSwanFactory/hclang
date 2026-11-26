@@ -1,19 +1,20 @@
-= nasm: The Nock Assembler
+# nasm: The Nock Assembler
+
 Draft 1, 2023-08-01 ~ponnum-minnus <ernest.prabhakar@gmail.com>
 
-== Introduction
+## Introduction
 
-`nasm` is an high-level assembly language for nock bytecode,
-the foundational computing layer of the Urbit decentralized network.
+`nasm` is an high-level assembly language for nock bytecode, the foundational
+computing layer of the Urbit decentralized network.
 
-It defines symbols, conventions, tools and libraries that make it easy
-for Earthlings to read and write nock.
+It defines symbols, conventions, tools and libraries that make it easy for
+Earthlings to read and write nock.
 
 This document (and most of the examples) are directly inspired by
-https://blog.timlucmiptev.space/part1.html[Nock for Everyday Coders].
-Any errors or misinterpretaions are, of course, my sole responsibility.
+[Nock for Everyday Coders](https://blog.timlucmiptev.space/part1.html). Any
+errors or misinterpretaions are, of course, my sole responsibility.
 
-=== Example
+### Example
 
 ```hclang
 ; .nock <- `nock`;
@@ -23,16 +24,14 @@ Any errors or misinterpretaions are, of course, my sole responsibility.
 # `[50 51] [0 2]`
 ; nock.eval .-2
 # 50
-
 ```
 
-=== Homoiconic C
+### Homoiconic C
 
-`nasm` is written in Homoiconic C (also known as "hclang"),
-another minimalist axiomatic language.
-It has suprisingly similar semantics to nock,
-but is designed to maximize readability and simplify evaluation.
-Homoiconic C has no keywords, but instead uses very precise syntax:
+`nasm` is written in Homoiconic C (also known as "hclang"), another minimalist
+axiomatic language. It has suprisingly similar semantics to nock, but is
+designed to maximize readability and simplify evaluation. Homoiconic C has no
+keywords, but instead uses very precise syntax:
 
 - `;` for end of expressions (and the input prompt)
 - `#` for comments (and the output prompt)
@@ -43,11 +42,11 @@ Homoiconic C has no keywords, but instead uses very precise syntax:
 - `<-` to load modules
 - `backticks` ("`") for strings
 
-=== Compiling to Assembly
+### Compiling to Assembly
 
-While hclang is an impure systems language
-(inspired by https://github.com/repos-bitc/bitc[bitc-lang]),
-it includes a pure subset that can be compiled to Nock assembly:
+While hclang is an impure systems language (inspired by
+[bitc-lang](https://github.com/repos-bitc/bitc)), it includes a pure subset that
+can be compiled to Nock assembly:
 
 ```hclang
 ; [50, 51].0
@@ -56,7 +55,7 @@ it includes a pure subset that can be compiled to Nock assembly:
 # { [50, 51] (get 2) }
 ```
 
-=== Shortcuts
+### Shortcuts
 
 For brevity, we use the following abbreviations:
 
@@ -77,7 +76,7 @@ This allows us to rewrite the initial example as:
 # 50
 ```
 
-== A. Primitive Operators
+## A. Primitive Operators
 
 ```hclang
 .get 0 # '/'
@@ -88,19 +87,19 @@ This allows us to rewrite the initial example as:
 .eval 102 # '*'
 ```
 
-The Nock [pseudocode notation](https://developers.urbit.org/reference/nock/definition#rules)
+The Nock
+[pseudocode notation](https://developers.urbit.org/reference/nock/definition#rules)
 defines six prefix operators: ?, +, =, /, #, and *.
 
-Nasm instantiates these as actual operators with actual names
-(while I sympathize with the desire to avoid English cultural imperialism,
-I find explicit words very helpful in the learning process).
+Nasm instantiates these as actual operators with actual names (while I
+sympathize with the desire to avoid English cultural imperialism, I find
+explicit words very helpful in the learning process).
 
-Note that eval and set are assigned 1xx psuedo-opcodes, as are other non-coded operations.
-These simplify composition, but are "compiled away" by the assembler.
-See Appendix A for more details.
+Note that eval and set are assigned 1xx psuedo-opcodes, as are other non-coded
+operations. These simplify composition, but are "compiled away" by the
+assembler. See Appendix A for more details.
 
-
-=== Examples
+### Examples
 
 ```hclang
 ; run { 50 (get 1) }
@@ -125,10 +124,10 @@ See Appendix A for more details.
 # [50, 9, 10] (explicit set)
 ```
 
-=== Hierarchical `get`
+### Hierarchical `get`
 
-The `get` opcode in nock extracts items from a binary tree
-(which is what all lists are implemented as in nock)
+The `get` opcode in nock extracts items from a binary tree (which is what all
+lists are implemented as in nock)
 
 ```hclang
 ; run { list (get 2) }
@@ -137,8 +136,8 @@ The `get` opcode in nock extracts items from a binary tree
 # [12, 13]
 ```
 
-For convenience, you can pass `get` a 0-based list of nested indices
-(rather than a number) which it will use to calculate the appropriate offset:
+For convenience, you can pass `get` a 0-based list of nested indices (rather
+than a number) which it will use to calculate the appropriate offset:
 
 ```hclang
 ; .list2 [20, 21, [22, 23]];
@@ -152,9 +151,9 @@ For convenience, you can pass `get` a 0-based list of nested indices
 # 23
 ```
 
-== B. Quoting and Evaluation
+## B. Quoting and Evaluation
 
-=== OpCode 1: quote
+### OpCode 1: quote
 
 The `quote` opcode ignores the subject and returns its body:
 
@@ -165,8 +164,8 @@ The `quote` opcode ignores the subject and returns its body:
 # [0, 2]
 ```
 
-Note that the assembler stil expands variable names inside a quote,
-such as `get`.
+Note that the assembler stil expands variable names inside a quote, such as
+`get`.
 
 You can get the same effect by passing an hclang closure:
 
@@ -175,18 +174,18 @@ You can get the same effect by passing an hclang closure:
 # [[50, 51], [1, [0, 2]]]
 ```
 
-Observe that the eval pseudo-app acts as the inverse of quote,
-and may be expanded by the assembler:
+Observe that the eval pseudo-app acts as the inverse of quote, and may be
+expanded by the assembler:
 
 ```hclang
 ; nasm { [50, 51] (eval {get 2}) }
 # [[50, 51], [0, 2]]
 ```
 
-=== OpCode 7: compose
+### OpCode 7: compose
 
-The simplest native evaluation opcode is `compose`,
-which repeatedly applies its arguments to the subject:
+The simplest native evaluation opcode is `compose`, which repeatedly applies its
+arguments to the subject:
 
 ```hclang
 ; nasm { [23, 45] (compose (get 3) (incr (get 1))) }
@@ -195,9 +194,8 @@ which repeatedly applies its arguments to the subject:
 # 46
 ```
 
-Because hclang supports linear lists as well as binary expressions,
-you can also just specify a sequence of operations directly,
-and nasm will interpolate the 7.
+Because hclang supports linear lists as well as binary expressions, you can also
+just specify a sequence of operations directly, and nasm will interpolate the 7.
 
 ```hclang
 ; nasm { [23, 45] (get 3) (incr (get 1)) }
@@ -216,12 +214,10 @@ you must explicitly group the formulas as a cell:
 # [45, 24]
 ```
 
-=== OpCode 2: map-eval
+### OpCode 2: map-eval
 
-OpCode 2 is the more general version of 7
-(more precisely, 7 is syntactic sugar on 2).
-It evaluates *both* arguments against the subject
-before applying them.
+OpCode 2 is the more general version of 7 (more precisely, 7 is syntactic sugar
+on 2). It evaluates _both_ arguments against the subject before applying them.
 
 ```hclang
 ; [(incr (get 1)), 51] [map-eval (get 3) (get 2)]
@@ -232,15 +228,15 @@ before applying them.
 # Effect: { 51 (incr (get 1)) }
 ```
 
-== C. Methods
+## C. Methods
 
 The "method" operation `[a 9 b c]` does two things:
 
 - applies formula `c` to the subject
 - invokes the method at slot `b` against that new subject
 
-For example, if `a` is an atom and `b` is 2,
-then it simply applies the new formula `c` to `a`.
+For example, if `a` is an atom and `b` is 2, then it simply applies the new
+formula `c` to `a`.
 
 It is also defined as syntactic sugar on top of `map-eval`:
 
@@ -294,8 +290,7 @@ using the following expansion:
 # 46
 ```
 
-
-== D. Conditionals
+## D. Conditionals
 
 Opcode 6 emulates a traditional if-else:
 
@@ -308,8 +303,8 @@ Opcode 6 emulates a traditional if-else:
 # `1 (get 1)` is 1 (false), so it calls the second branch (increment)
 ```
 
-nasm allows you to instead use the hclang primitives '?' and ':' for
-if and else, respectively, much like the C ternary operator:
+nasm allows you to instead use the hclang primitives '?' and ':' for if and
+else, respectively, much like the C ternary operator:
 
 ```hclang
 ; nasm { 1 ((get 1) ? (get 1) : (incr (get 1))) }
@@ -337,9 +332,10 @@ Which can be useful when compling hclang:
 # { [50, 51] (0 (if-true get 2) (else get 3)) }
 ```
 
-== E. Prepend
+## E. Prepend
 
-OpCode 8 is used to prepend a value to a subject and then runs the second formula:
+OpCode 8 is used to prepend a value to a subject and then runs the second
+formula:
 
 Either by getting an existing value:
 
@@ -361,17 +357,15 @@ Or creating a new one:
 # 1 (incr 0)
 ```
 
-This makes it easy to store "local variables" that can be used
-without modifying the rest of the payload.
+This makes it easy to store "local variables" that can be used without modifying
+the rest of the payload.
 
-
-== F. Native
-
+## F. Native
 
 OpCode 11 is a general 'escape hatch' to call native functionality.
 
-For example, passing an atom calls the procedure with that syscall index
-using the rest of the argument as the body:
+For example, passing an atom calls the procedure with that syscall index using
+the rest of the argument as the body:
 
 ```hclang
 # Original: ([50 51] [11 103 0 2])
@@ -384,16 +378,16 @@ using the rest of the argument as the body:
 
 Conversely, passing a cell executes the nock expression first:
 
-
 ```hclang
 ; run { [50, 51] (native [atom-print {}] (get 2)) }
 `50` # print result
 # 50
 ```
 
-== G. Compile-Time Variables
+## G. Compile-Time Variables
 
-The assembler has access to local context, so it can access and expand variables.
+The assembler has access to local context, so it can access and expand
+variables.
 
 ```hclang
 ; .list [10, 11, 12, 13];
@@ -401,8 +395,8 @@ The assembler has access to local context, so it can access and expand variables
 # [10, [11, [12, 13]]]
 ```
 
-The local context itself is represented by '.',
-which nasm models as an implicit get:
+The local context itself is represented by '.', which nasm models as an implicit
+get:
 
 ```hclang
 ; nasm { . }
@@ -416,11 +410,9 @@ By default, the compiler will expand local variables:
 # { [10, [11, [12, 13]]] (get 2) }
 ```
 
-We can instead tell the compiler to include an environment
-as part of its output.
-That tells it to not expand those variables,
-but instead pass along  for the assembler to use.
-
+We can instead tell the compiler to include an environment as part of its
+output. That tells it to not expand those variables, but instead pass along for
+the assembler to use.
 
 ```hclang
 ; nc.pass { list }
@@ -430,27 +422,24 @@ but instead pass along  for the assembler to use.
 # 10
 ```
 
-The `..` operator adds those names to the parent context,
-so nasm knows it can make use of it.
+The `..` operator adds those names to the parent context, so nasm knows it can
+make use of it.
 
+## Appendix A: RINC Pseudo-Ops
 
-== Appendix A: RINC Pseudo-Ops
-
-Strictly speaking, nasm is actually designed around the small number
-of primitive operations that are used to define nock,
-rather than the actual nock opcodes.
-This also makes it easy to compile hclang primitives down to the
+Strictly speaking, nasm is actually designed around the small number of
+primitive operations that are used to define nock, rather than the actual nock
+opcodes. This also makes it easy to compile hclang primitives down to the
 corresponding psuedo-op.
 
-This approach is similar to the way modern processors and compilers
-tend to use orthogonal Reduced Instruction Set Computing (RISC) operations,
-rather the Complex Instruction Set Computing (CISC) operations
-optimized for efficient hand-coding.
-Hence the term "RINC", for Reduced Instruction Nock Computing.
+This approach is similar to the way modern processors and compilers tend to use
+orthogonal Reduced Instruction Set Computing (RISC) operations, rather the
+Complex Instruction Set Computing (CISC) operations optimized for efficient
+hand-coding. Hence the term "RINC", for Reduced Instruction Nock Computing.
 
-The nasm assembler is repsonsible for converting any pseudo-ops
-into the appropriate nock opcodes, so the resulting code runs
-on any nock-compatible virtual machine.
+The nasm assembler is repsonsible for converting any pseudo-ops into the
+appropriate nock opcodes, so the resulting code runs on any nock-compatible
+virtual machine.
 
 ```hclang
 .opcodes [
