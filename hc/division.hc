@@ -139,11 +139,12 @@ answered as it is
 ; [[1, 2] ./ (2 ** 30), [1, 2] ./ 1000001, ([1] ./ 1000).channels.#]
 # [$!.repetition-size 1000000, $!.repetition-size 1000000, 1000]
 ```
-Numbers keep exact numeric division, and a Frame that is neither a number nor
-an ordered list still answers nil
+Numbers keep exact numeric division. Any other pair, such as a Frame that is
+neither a number nor an ordered list, or a number divided by text, is outside
+the domain too (#361)
 ```
-; [6 ./ 3, 7 ./ 2, 7 / 2, “abcd” ./ 2, <1, 2> ./ 2]
-# [2, 7/2, 7/2, (), ()]
+; [6 ./ 3, 7 ./ 2, 7 / 2, “abcd” ./ 2, <1, 2> ./ 2, 1 / “text”]
+# [2, 7/2, 7/2, $!.division-domain /, $!.division-domain /, $!.division-domain /]
 ```
 ## Conservation and empty channels
 

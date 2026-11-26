@@ -172,6 +172,67 @@ Zero and unsupported domains return stable errors
 ; -1.408.555
 # $!.numeric-domain property FrameDecimal
 ```
+Operators with only a numeric meaning refuse any other operand (#361). `%%`,
+`**` and the ordering operators answer `$!.numeric-domain` naming the operator
+and both operand classes, where they answered nil. For ordering, nil already
+means false, so the refusal keeps a comparison that could not run apart from one
+that ran and does not hold. Ordering is written dotted, `1.< 3`, since bare `<`
+and `>` delimit schemas
+```
+; [2 %% “a”, “a” %% 2, [1, 2] %% 2]
+# [$!.numeric-domain %% FrameCount FrameString, $!.numeric-domain %% FrameString FrameCount, $!.numeric-domain %% FrameArray FrameCount]
+; [2 ** “a”, “a” ** 2, [1, 2] ** 2]
+# [$!.numeric-domain ** FrameCount FrameString, $!.numeric-domain ** FrameString FrameCount, $!.numeric-domain ** FrameArray FrameCount]
+; [1.< “a”, “a”.< 1, [1].< 2]
+# [$!.numeric-domain < FrameCount FrameString, $!.numeric-domain < FrameString FrameCount, $!.numeric-domain < FrameArray FrameCount]
+; [1.<= “a”, “a”.<= 1]
+# [$!.numeric-domain <= FrameCount FrameString, $!.numeric-domain <= FrameString FrameCount]
+; [1.> “a”, “a”.> 1]
+# [$!.numeric-domain > FrameCount FrameString, $!.numeric-domain > FrameString FrameCount]
+; [1.>= “a”, “a”.>= 1]
+# [$!.numeric-domain >= FrameCount FrameString, $!.numeric-domain >= FrameString FrameCount]
+```
+Scalar division refuses the same pairs as `$!.division-domain /`, the error a
+list's bad divisor answers. An operand that is already an error is answered
+first, left before right
+```
+; [1 / “text”, “text” / 1, “a” / “b”]
+# [$!.division-domain /, $!.division-domain /, $!.division-domain /]
+; [(1 / 0) %% “a”, “a”.< (1 / 0), (1 / 0) ** (2 %% “a”)]
+# [$!.division-by-zero /, $!.division-by-zero /, $!.division-by-zero /]
+```
+A program that used `:` as a fallback for one of these cases changes: the
+refusal is an error, so neither branch runs and the error is the answer. The
+catch operator `$!` recovers instead
+```
+; (2 %% “a”) : {“else”}
+# $!.numeric-domain %% FrameCount FrameString
+; (2 %% “a”) ? {“then”}
+# $!.numeric-domain %% FrameCount FrameString
+; (1.< “a”) ? {“then”} : {“else”}
+# $!.numeric-domain < FrameCount FrameString
+; (2 %% “a”) $! {“else”}
+# “else”
+```
+Two strings order by Unicode code point, character by character, and a proper
+prefix comes first (#568). This is not UTF-16 code-unit order: a character
+outside the Basic Multilingual Plane, such as `😀` (U+1F600), follows `｡`
+(U+FF61), though its first code unit is smaller. Locale-aware collation is not
+provided. Text against any other operand is refused as above
+```
+; [“a”.< “b”, “b”.< “a”, “a”.<= “a”, “a”.< “a”, “a”.>= “a”, “a”.> “a”]
+# [<>, (), <>, (), <>, ()]
+; [“ab”.< “abc”, “abc”.> “ab”, “abc”.< “ab”, “abc”.<= “abd”]
+# [<>, <>, (), <>]
+; [“”.< “a”, “”.<= “”, “a”.> “”, “”.> “”]
+# [<>, <>, <>, ()]
+; [“b”.> “abc”, “é”.> “z”, “B”.< “a”]
+# [<>, <>, <>]
+; [“｡”.< “😀”, “😀”.> “｡”, “a😀”.< “a｡”]
+# [<>, <>, ()]
+; [“1”.< 2, 1.>= “2”]
+# [$!.numeric-domain < FrameString FrameCount, $!.numeric-domain >= FrameCount FrameString]
+```
 Repetition and exact powers fail before unsafe allocation
 ```
 ; 3.14“Hello”
