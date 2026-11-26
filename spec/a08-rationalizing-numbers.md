@@ -362,6 +362,33 @@ gated operators in `lib/ops/math.ts` currently `return Frame.nil` when either
 operand fails the `instanceof` test, so today a type mismatch is silently empty
 rather than an error. See **T-4**.
 
+#### Membership follows the ladder (#410)
+
+The same ranks decide type membership. A numeric runtime type (`F.<>`) admits a
+value from its own rung or any lower rung, for `~` and for schema binding alike,
+and the schema binds the value unchanged. With §12's count below `Int`, the
+ladder is `Count 0 < Int 1 < Decimal 2 < Rational 3 < Number 4`:
+
+| Type                    | Admits                                |
+| ----------------------- | ------------------------------------- |
+| Count (`2.<>`)          | Count                                 |
+| Int (`(0 - 1).<>`)      | Count, Int                            |
+| Decimal (`1.5.<>`)      | Count, Int, Decimal                   |
+| Rational (`(1 / 2).<>`) | Count, Int, Decimal, Rational         |
+| Number (`(1 / 3.0).<>`) | Count, Int, Decimal, Rational, Number |
+
+- **No conversion on bind.** `.d <1.5.<>> 3` binds the count `3`, so `1 / d` is
+  the exact `1/3`. A declared numeric type is a ceiling, and arithmetic follows
+  the value. Promoting on bind would turn a count into `3/1`, which ND-005's
+  canonical form forbids.
+- **Narrowing is refused, whatever the value.** The Count type rejects `5 - 3`,
+  a FrameInt whose value is `2`, and the Int type rejects `4.0`. A schema never
+  truncates; a lower rung needs an explicit conversion.
+- **Exact elsewhere.** `==` stays an exact, symmetric type test (#409). Unranked
+  numerics (`Sequence`, typed numbers) and every other subclass pair
+  (`FrameResource`/`FrameURI`, `FrameOperator`/`FrameSymbol`) match only their
+  own class: widening comes from the ladder, not the class hierarchy.
+
 ### 5.1 Addition, subtraction, multiplication
 
 Join on the tower. Nothing escapes; `Int` embeds as scale 0.
@@ -1378,9 +1405,10 @@ A count prints as the same integer does, so no printed value changes, but a
 domain error names its class: `1.408.555 + 1` is
 `$!.numeric-domain + FrameSequence FrameCount`. `=` is unchanged, so
 `2 = (5 - 3)` holds, but a count and a FrameInt are distinct types. `==` and
-`===` (spec a14) and runtime types from `.<>` compare exact types, so
-`2 == (5 - 3)` is nil, as `3 == 3.0` is, and `2.<>` does not match `5 - 3`.
-Promotion makes the rungs interoperate; it does not make them one type.
+`===` (spec a14) compare exact types, so `2 == (5 - 3)` is nil, as `3 == 3.0`
+is. A runtime type from `.<>` admits lower rungs but never a higher one (see
+"Membership follows the ladder" in §5.0, #410), so `2.<>` does not match
+`5 - 3`. Promotion makes the rungs interoperate; it does not make them one type.
 
 The language counts in one place today: a resource write answers the characters
 it wrote, which is now a count. `make_context` turns a host's digit string into

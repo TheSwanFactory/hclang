@@ -304,8 +304,9 @@ Mixed operands follow the ladder
 # -2
 ```
 Comparison and `=` compare values across rungs, so a count and a FrameInt of the
-same value are `=`. `==`, `===` and runtime types from `.<>` compare exact types, so the two are
-not `==`, just as `2` and `2.0` are not
+same value are `=`. `==` and `===` compare exact types, so the two are not `==`,
+just as `2` and `2.0` are not. A runtime type from `.<>` refuses a value from a
+higher rung, whatever its value, but admits a lower one (below)
 ```
 ; 2 = (5 - 3)
 # <>
@@ -322,7 +323,7 @@ not `==`, just as `2` and `2.0` are not
 ; (2).<> (5 - 3)
 # $!.type-error (2).<> 2
 ; (5 - 3).<> 2
-# $!.type-error (2).<> 2
+# 2
 ; (0 - 1).< 0
 # <>
 ; 2.<= (5 - 3)
@@ -340,3 +341,66 @@ Within one rung, `==` and type application hold as they always have
 # 3
 ; (0 - 1).<> (0 - 5)
 # -5
+```
+A numeric type admits a value from its own rung or any lower rung, on the ladder
+count, int, decimal, rational, number. `~` and a schema ask the same question,
+and the schema binds the value unchanged, so the declared type is a ceiling and
+arithmetic follows the value (#410)
+```
+; .IntType <(0 - 1).<>>;
+; .DecType <1.5.<>>;
+; .NumType <(1 / 3.0).<>>;
+; .CountType <2.<>>;
+; 5 ~ (0 - 1).<>
+# <>
+; .int-of-count <IntType> 5
+# .int-of-count 5
+; (0 - 5) ~ (0 - 1).<>
+# <>
+; .int-of-int <IntType> (0 - 5)
+# .int-of-int -5
+; 2 ~ 1.5.<>
+# <>
+; .dec-of-count <DecType> 2
+# .dec-of-count 2
+; 2 ~ (1 / 3.0).<>
+# <>
+; .num-of-count <NumType> 2
+# .num-of-count 2
+; (1 / 2) ~ 1.5.<>
+# ()
+; .dec-of-rational <DecType> (1 / 2)
+# $!.type-error .dec-of-rational <<(1.5).<>>> 1/2
+; (5 - 3) ~ 2.<>
+# ()
+; .count-of-int <CountType> (5 - 3)
+# $!.type-error .count-of-int <<(2).<>>> 2
+; (0 - 5) ~ 2.<>
+# ()
+; .count-of-negative <CountType> (0 - 5)
+# $!.type-error .count-of-negative <<(2).<>>> -5
+; 4.0 ~ (0 - 1).<>
+# ()
+; 5 == (0 - 1)
+# ()
+```
+A union of the count and int types still works, and now admits exactly what the
+int type alone admits
+```
+; [5 ~ <1.<>, (0 - 1).<>>, (0 - 5) ~ <1.<>, (0 - 1).<>>, 1.5 ~ <1.<>, (0 - 1).<>>]
+# [<>, <>, ()]
+; [5 ~ <(0 - 1).<>>, (0 - 5) ~ <(0 - 1).<>>, 1.5 ~ <(0 - 1).<>>]
+# [<>, <>, ()]
+; .union-of-count <1.<>, (0 - 1).<>> 5
+# .union-of-count 5
+; .union-of-decimal <1.<>, (0 - 1).<>> 1.5
+# $!.type-error .union-of-decimal <(1).<>, (-1).<>> 1.5
+```
+The bound value keeps its own class: a Count bound by an Int type is still
+admitted by the Count type, and a Count bound by a Decimal type divides exactly
+```
+; int-of-count ~ 2.<>
+# <>
+; .third <1.5.<>> 3;
+; 1 / third
+# 1/3

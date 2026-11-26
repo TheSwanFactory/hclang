@@ -771,11 +771,15 @@ resource write answers the characters written, and `make_context` turns a host's
 digit string into a count.
 
 A count and a FrameInt are distinct types, as a FrameInt and a FrameDecimal are.
-`=` and ordering compare values across rungs, so `2 = (5 - 3)` holds, while
-`==`, `===`, and runtime types from `.<>` compare exact types: `2 == (5 - 3)` is
-nil and `2.<>` does not match `5 - 3`, nor `(5 - 3).<>` a `2`. Subclassing only
-lets integer consumers accept a count; `typeEquals` and `FrameType.match`
-compare exact constructors.
+`=` and ordering compare values across rungs, so `2 = (5 - 3)` holds, while `==`
+and `===` compare exact types: `2 == (5 - 3)` is nil. Subclassing only lets
+integer consumers accept a count; `typeEquals` compares exact constructors.
+`FrameType.match` asks membership, which is directional on the ladder only: a
+type whose representative has a non-null `rank` admits a numeric value whose
+`rank` is at most its own, and binds it unchanged (#410). So `(5 - 3).<>`
+matches a `2`, but `2.<>` does not match `5 - 3`, whatever its value. Unranked
+numerics (`FrameSequence`, `FrameTypedNumber`) and every other subclass pair,
+such as `FrameResource` and `FrameURI`, compare exact constructors.
 
 ## Type Matching
 
