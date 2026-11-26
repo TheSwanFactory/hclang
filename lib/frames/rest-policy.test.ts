@@ -114,6 +114,9 @@ describe("requestUrl", () => {
     expect(url("issues/277/")).toEqual({ ok: true, url: `${BASE}issues/277/` });
     expect(url("issues/./")).toEqual({ ok: true, url: `${BASE}issues/` });
     expect(url("./")).toEqual({ ok: true, url: BASE });
+    expect(url(".")).toEqual({ ok: true, url: BASE });
+    expect(url("issues/.")).toEqual({ ok: true, url: `${BASE}issues/` });
+    expect(url("issues.")).toEqual({ ok: true, url: `${BASE}issues.` });
     expect(url("issues/277")).toEqual({ ok: true, url: `${BASE}issues/277` });
   });
   it("keeps a decoded ? or # inside the path", () => {

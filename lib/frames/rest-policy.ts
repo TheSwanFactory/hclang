@@ -245,9 +245,14 @@ export function requestUrl(
     ? ""
     : normal.path.split("/").map(encodeURIComponent).join("/");
   // Normalization drops a trailing slash, but some servers tell `/x/` from
-  // `/x`, so a path written with one keeps it. Only an absent or empty path
-  // requests the base without its slash.
-  const slash = (path ?? "").endsWith("/") ? "/" : "";
+  // `/x`, so a path that resolves to one keeps it: a final `/`, or a final `.`
+  // segment, which RFC 3986 §5.2.4 resolves to a trailing slash. Only an
+  // absent or empty path requests the base without its slash.
+  const written = path ?? "";
+  const slash = written.endsWith("/") || written === "." ||
+      written.endsWith("/.")
+    ? "/"
+    : "";
   const target = encoded === "" && slash === ""
     ? base.slice(0, -1)
     : base + (encoded === "" ? "" : encoded + slash);

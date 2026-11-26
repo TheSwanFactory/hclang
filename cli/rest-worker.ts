@@ -311,8 +311,10 @@ function installWorker(scope: {
 }): void {
   // Messages arrive in the order they were posted, and the constructor posts
   // `init` first, so every later message finds the grant. Were one ever to
-  // arrive first, reading the grant throws, nothing is answered, and the main
-  // isolate's wait times out: the request fails closed.
+  // arrive first, reading the grant would throw in the worker: nothing is
+  // answered, the main isolate's wait times out, and Deno then ends the whole
+  // process with "Unhandled error in child worker". That still fails closed,
+  // but for the run rather than for one request.
   let grant: WorkerGrant | undefined;
   scope.onmessage = async (event: WorkerEvent<Message>) => {
     const message = event.data;

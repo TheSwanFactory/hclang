@@ -17,9 +17,9 @@ manifest: its external surface is the set of `'https://…'` literals it writes
 Application is one `GET`, and it answers a response record. Every request key
 is optional:
 - `.path`, a string: a relative reference, normalized by the same rule as a
-  root-relative resource path. A trailing slash the path was written with is
-  kept. An absent or empty path requests the base with its trailing slash
-  removed.
+  root-relative resource path. A path that resolves to a trailing slash (a
+  final `/` or `.` segment) keeps it. An absent or empty path requests the
+  base with its trailing slash removed.
 - `.query`, a record of strings, encoded with `URLSearchParams`.
 - `.headers`, a record of strings, whose names are case-folded and must be on
   the grant's allowlist: `accept`, `accept-language`, `if-none-match` and
