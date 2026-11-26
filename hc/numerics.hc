@@ -384,6 +384,18 @@ arithmetic follows the value (#410)
 ; 5 == (0 - 1)
 # ()
 ```
+A union of the count and int types still works, and now admits exactly what the
+int type alone admits
+```
+; [5 ~ <1.<>, (0 - 1).<>>, (0 - 5) ~ <1.<>, (0 - 1).<>>, 1.5 ~ <1.<>, (0 - 1).<>>]
+# [<>, <>, ()]
+; [5 ~ <(0 - 1).<>>, (0 - 5) ~ <(0 - 1).<>>, 1.5 ~ <(0 - 1).<>>]
+# [<>, <>, ()]
+; .union-of-count <1.<>, (0 - 1).<>> 5
+# .union-of-count 5
+; .union-of-decimal <1.<>, (0 - 1).<>> 1.5
+# $!.type-error .union-of-decimal <(1).<>, (-1).<>> 1.5
+```
 The bound value keeps its own class: a Count bound by an Int type is still
 admitted by the Count type, and a Count bound by a Decimal type divides exactly
 ```
