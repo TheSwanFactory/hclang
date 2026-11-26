@@ -95,6 +95,12 @@
     "fail": 0,
     "unimplemented": 0
   },
+  "rest.hc": {
+    "total": 26,
+    "pass": 26,
+    "fail": 0,
+    "unimplemented": 0
+  },
   "rotor-router.hc": {
     "total": 17,
     "pass": 17,

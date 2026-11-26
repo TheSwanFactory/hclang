@@ -5,6 +5,25 @@
 > contains nothing else; then describe it and say that nothing user-facing
 > changed.
 
+## v0.57.0 2026-11-25
+
+- **A REST resource reads public resources (#277).** The CLI's new
+  `--rest <file>` flag installs REST grants, each with a base URI, budgets and
+  an evidence file. A program reaches a grant by writing its base as a resource
+  literal, `.api 'https://api.github.com/repos/TheSwanFactory/hclang/'`, and
+  applying it to a request record sends one `GET`:
+  `api [.path “issues/277”, .query [.state “open”]]` answers
+  `[.status 200; .headers […]; .body “…”]`. Only `.path`, `.query` and
+  `.headers` are accepted. A literal that names no grant answers
+  `$!.resource-unbound`, and a path that leaves the base, a forbidden header
+  (`authorization`, `cookie`, `host`, …) and an exhausted budget are refused by
+  name. Redirects are never followed. Every application, sent or refused, writes
+  one JSON line of evidence outside the program's root. `deno task hc:rest` runs
+  the CLI against the public GitHub API with network access to `api.github.com`
+  only, and `--rest` refuses to start when net permission is broader than its
+  grants. `hc/rest.hc` documents the protocol and runs unchanged against
+  simulated and live grants. The browser playground has no live REST.
+
 ## v0.56.0 2026-11-25
 
 - **A numeric type admits values from lower rungs (#410).** On the ladder count,

@@ -6,6 +6,7 @@ import { parseArgs } from "@std/cli/parse-args";
 import { runfile } from "./runfile.ts";
 import { Prompt } from "./prompt.ts";
 import { DenoFileStore } from "./resource-store.ts";
+import { loadRestConfig } from "./rest-config.ts";
 import { hostHandlers, hostNamespace } from "../lib/execute/host-namespace.ts";
 import {
   type Context,
@@ -43,7 +44,7 @@ export function getOptions(args: string[]): ReturnType<typeof parseArgs> {
   return parseArgs(args, {
     alias: aliases,
     boolean: ["help", "interactive", "testdoc", "verbose", "version"],
-    string: ["evaluate"],
+    string: ["evaluate", "rest"],
   });
 }
 
@@ -60,13 +61,14 @@ export function getOptions(args: string[]): ReturnType<typeof parseArgs> {
  *
  * @param env - An object containing key-value pairs of environment variables.
  * @param out - Optional output sink. Tests inject a capture frame; the CLI uses HCLog.
+ * @param rest - Optional `--rest` grants file (`cli/rest-config.ts`).
  * @returns An instance of `HCEval` configured with the provided environment variables.
  */
-export function getEval(env: StringMap, out?: Frame): HCEval {
+export function getEval(env: StringMap, out?: Frame, rest?: string): HCEval {
   const context = make_context(env);
   if (context.DEBUG_ENV) console.debug("DEBUG_ENV", context);
   const output = out ?? new HCLog(context);
-  return new HCEval(output, new Frame(), getHost(context));
+  return new HCEval(output, new Frame(), getHost(context, rest));
 }
 
 /**
@@ -80,12 +82,20 @@ export function getEval(env: StringMap, out?: Frame): HCEval {
  * grants, rather than under an empty namespace that would make the resource
  * primitive invisible.
  *
+ * With `rest`, the scheme table also holds the REST grants that file names,
+ * built once here, before the first line runs. Startup throws, and installs
+ * nothing, when the file is refused (`loadRestConfig`).
+ *
  * @param context - Host bindings, which are copied rather than adopted, because
  *   the logger holds the same object.
+ * @param rest - Optional `--rest` grants file.
  * @returns A frame reachable from HC source through `$$`.
  */
-export function getHost(context: Context = {}): Frame {
-  return hostNamespace(context, new DenoFileStore());
+export function getHost(context: Context = {}, rest?: string): Frame {
+  const store = new DenoFileStore();
+  if (rest === undefined) return hostNamespace(context, store);
+  const install = loadRestConfig(rest, store.rootPath());
+  return hostNamespace(context, store, hostHandlers(install.handlers));
 }
 
 /**
@@ -189,7 +199,13 @@ if (import.meta.main) {
   // under are a derived artifact rather than the bound.
   const env = visibleEnvironment((name) => Deno.env.get(name));
   const options = getOptions(Deno.args);
-  const hc_eval = getEval(env);
+  let hc_eval: HCEval;
+  try {
+    hc_eval = getEval(env, undefined, options.rest);
+  } catch (error) {
+    console.error((error as Error).message);
+    Deno.exit(1);
+  }
   main(hc_eval, options).then((exitCode) => {
     Deno.exit(exitCode);
   }).catch((err) => {

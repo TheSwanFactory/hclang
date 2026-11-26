@@ -88,6 +88,15 @@ export class DenoFileStore implements ResourceStore {
     }
   }
 
+  /**
+   * The resolved root directory, created now if it does not exist yet.
+   *
+   * For the harness only, which must keep files a program must not reach,
+   * such as REST evidence, outside it. Never handed to a program.
+   */
+  public rootPath(): string {
+    return this.ensureRoot();
+  }
   /** Creates the root on first use and pins its resolved form once. */
   private ensureRoot(): string {
     if (this.root === undefined) {

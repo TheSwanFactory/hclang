@@ -51,6 +51,14 @@ never as the boundary.
 - `--deny-run` and `--deny-ffi` are a hard floor, because `--deny-*` beats
   `--allow-*` and either authority would void every path scope above.
 - Which schemes can reach a host is decided by `getHandlers()`, not by a flag.
+- **Network is granted only with `--rest` live grants.** `deno task hc:rest`
+  adds `--allow-net=api.github.com` and nothing else, and `--rest` refuses to
+  start when net permission is missing for a live grant host or granted for the
+  sentinel `example.invalid` (`rest-config.ts`). `rest-worker.ts` is the only
+  file under `cli/` that may mention `fetch(` or `new Worker`
+  (`no-network-path.test.ts`). `rest-loopback.test.ts` needs
+  `--allow-net=127.0.0.1`, so the `test` task ignores it and
+  `deno task test:rest-loopback` runs it.
 - `$$.dispatch` is part of the host surface of **every** program the CLI runs,
   not only `-t` testdocs. It grants no authority: each event is a closure the
   program already holds, run with the authority it already has. `HCLang`

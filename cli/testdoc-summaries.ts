@@ -23,7 +23,7 @@
 import { fromFileUrl } from "@std/path";
 import { FrameArray } from "../lib/frames.ts";
 import { getEval, getOptions, main } from "./hc.ts";
-import { discoverTestdocs } from "./test-docs.ts";
+import { discoverTestdocs, testdocRest } from "./test-docs.ts";
 
 /** The counts a testdoc's `$=.test-summary` reports. */
 export type TestdocSummary = {
@@ -62,7 +62,7 @@ export async function runTestdoc(
 ): Promise<{ status: number; last: string }> {
   const out = new FrameArray([]);
   const status = await main(
-    getEval({}, out),
+    getEval({}, out, testdocRest(file)),
     getOptions([
       "--testdoc",
       fromFileUrl(new URL(`../hc/${file}`, import.meta.url)),

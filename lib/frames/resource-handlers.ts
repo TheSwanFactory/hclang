@@ -46,6 +46,13 @@ export type HandlerWrite =
   | { readonly ok: true; readonly count: number }
   | Refusal;
 
+/**
+ * What a handler answers when a resource is applied to a request: one ordinary
+ * response value, or a refusal.
+ */
+export type HandlerExchange =
+  | { readonly ok: true; readonly response: Frame }
+  | Refusal;
 /** One scheme's implementation, held by a harness and never by a program. */
 export interface SchemeHandler {
   /** This entry's identity, for a harness or a test, never for a program. */
@@ -56,6 +63,14 @@ export interface SchemeHandler {
 
   /** Writes the reference, answering how many characters it accepted. */
   write(reference: ReferenceParts, content: string): HandlerWrite;
+  /**
+   * Applies the reference to a request, answering a response value.
+   *
+   * Optional. A handler that has it is not a store: application performs one
+   * exchange (`RestHandler`'s `GET`) instead of a write, and `write` is never
+   * reached through application.
+   */
+  exchange?(reference: ReferenceParts, request: Frame): HandlerExchange;
 }
 
 /** The character elements a text-backed handler answers. */

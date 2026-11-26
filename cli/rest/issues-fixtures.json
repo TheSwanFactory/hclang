@@ -1,0 +1,7 @@
+{
+  "277": {
+    "status": 200,
+    "headers": { "content-type": "application/json; charset=utf-8" },
+    "body": "{\"number\":277,\"title\":\"REST resource frame MVP: read public resources (DTRB proof point)\",\"state\":\"open\"}"
+  }
+}

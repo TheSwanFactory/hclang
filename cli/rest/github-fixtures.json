@@ -1,0 +1,16 @@
+{
+  "issues/277": {
+    "status": 200,
+    "headers": {
+      "content-type": "application/json; charset=utf-8",
+      "etag": "W/\"simulated-277\"",
+      "set-cookie": "dropped=1"
+    },
+    "body": "{\"number\":277,\"title\":\"REST resource frame MVP: read public resources (DTRB proof point)\",\"state\":\"open\"}"
+  },
+  "": {
+    "status": 200,
+    "headers": { "content-type": "application/json; charset=utf-8" },
+    "body": "{\"full_name\":\"TheSwanFactory/hclang\"}"
+  }
+}
