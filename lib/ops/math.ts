@@ -4,37 +4,71 @@ import { FrameNumeric } from "../frames/frame-numeric.ts";
 import { FrameArray } from "../frames/frame-array.ts";
 import { FrameCount } from "../frames/frame-count.ts";
 import { FrameGroup } from "../frames/frame-group.ts";
+import { FrameString } from "../frames/frame-string.ts";
 import { REPETITION_ELEMENT_LIMIT } from "../frames/frame-numeric.ts";
 import { CartElements, FlopElements } from "./pairings.ts";
 
 type NumericOperation = (left: FrameNumeric, right: FrameNumeric) => Frame;
 
-/** Applies a numeric operation, or answers nil for any other pair. */
-const numeric = (
-  source: Frame,
-  block: Frame,
-  operation: NumericOperation,
-): Frame => {
-  return source instanceof FrameNumeric && block instanceof FrameNumeric
-    ? operation(source, block)
-    : Frame.nil;
-};
+/** The operators whose non-numeric operands are a numeric-domain error. */
+
+type DomainOperator = "%%" | "**" | "<" | "<=" | ">" | ">=";
 
 /**
- * Arithmetic answers an operand that is already an error, left first, rather
- * than nil, so a failed read such as `$!.name-missing` reaches whatever uses
- * the result. As nil it vanished: a write of nil leaves a field unchanged, so a
- * misread load looked like an update that never landed (011.20). Ordering
- * uses the same rule: diagnostic failures now short-circuit before `?` (#467).
+ * The refusal for a pair that is not two numbers, in the vocabulary
+ * `FrameNumeric.operationError` uses for a pair of numbers that do not
+ * combine: `2 %% “a”` is `$!.numeric-domain %% FrameCount FrameString`.
+ */
+const domainError = (
+  operator: DomainOperator,
+  source: Frame,
+  block: Frame,
+): Frame =>
+  Frame.error(
+    `$!.numeric-domain ${operator} ${source.className()} ${block.className()}`,
+  );
+
+/**
+ * Arithmetic answers an operand that is already an error, left first, so a
+ * failed read such as `$!.name-missing` reaches whatever uses the result. As
+ * nil it vanished: a write of nil leaves a field unchanged, so a misread load
+ * looked like an update that never landed (011.20). Ordering uses the same
+ * rule: diagnostic failures now short-circuit before `?` (#467).
+ *
+ * A pair of referents that is not two numbers answers `refuse` on them. It
+ * answered nil until #361, which for ordering read the same as false.
  */
 const arithmetic = (
   source: Frame,
   block: Frame,
   operation: NumericOperation,
-): Frame =>
-  failure(source) ?? failure(block) ?? numeric(source, block, operation);
+  refuse: (source: Frame, block: Frame) => Frame,
+): Frame => {
+  const refused = failure(source) ?? failure(block);
+  if (refused) return refused;
+  const left = source.referent();
+  const right = block.referent();
+  return left instanceof FrameNumeric && right instanceof FrameNumeric
+    ? operation(left, right)
+    : refuse(left, right);
+};
+
+/** Arithmetic whose only meaning is numeric: `%%` and `**`. */
+
+const numericOnly = (
+  operator: DomainOperator,
+  operation: NumericOperation,
+) =>
+(source: Frame, block: Frame): Frame =>
+  arithmetic(
+    source,
+    block,
+    operation,
+    (left, right) => domainError(operator, left, right),
+  );
 
 /** An operand that is an error value (`Frame.isError`), unwrapped. */
+
 const failure = (operand: Frame): Frame | undefined => {
   const value = operand.referent();
   return value.isError() ? value : undefined;
@@ -50,14 +84,10 @@ const arithmeticOr = (
   block: Frame,
   operation: NumericOperation,
   fallback: (source: Frame, block: Frame) => Frame,
-): Frame => {
-  const refused = failure(source) ?? failure(block);
-  if (refused) return refused;
-  const numericPair = numeric(source.referent(), block.referent(), operation);
-  return numericPair === Frame.nil ? fallback(source, block) : numericPair;
-};
+): Frame => arithmetic(source, block, operation, () => fallback(source, block));
 
 /** Exact numeric arithmetic survives for the core scalar ladder. */
+
 export const Add = (source: Frame, block: Frame): Frame =>
   arithmeticOr(source, block, (left, right) => left.add(right), FlopElements);
 
@@ -79,6 +109,7 @@ export const Subtract = (source: Frame, block: Frame): Frame =>
   );
 
 /** Cart is the structural Frame product; scalar arithmetic remains native. */
+
 export const Multiply = (source: Frame, block: Frame): Frame =>
   arithmeticOr(
     source,
@@ -92,15 +123,20 @@ export const Multiply = (source: Frame, block: Frame): Frame =>
  * ordered aggregate, an array or a group, divided by a positive Count n is
  * dealt into n channels (007.27): the element at index i goes to channel
  * i mod n, so `[A, B, C, D, E, F, G] / 3` is the n-channel `RotorRouter`
- * whose channels are `[[A, D, G], [B, E], [C, F]]`. Anything else answers nil,
- * as before.
+ * whose channels are `[[A, D, G], [B, E], [C, F]]`. Any other pair that is
+ * not two numbers is `$!.division-domain /`, as a list's bad divisor is (#361).
  */
 export const Divide = (source: Frame, block: Frame): Frame => {
   const left = source.referent();
   if (left instanceof FrameArray || left instanceof FrameGroup) {
     return failure(left) ?? failure(block) ?? deal(left, block);
   }
-  return arithmetic(source, block, (left, right) => left.divide(right));
+  return arithmetic(
+    source,
+    block,
+    (left, right) => left.divide(right),
+    () => Frame.error("$!.division-domain /"),
+  );
 };
 
 /**
@@ -173,34 +209,90 @@ const deal = (source: FrameArray | FrameGroup, block: Frame): Frame => {
   );
 };
 
-export const Modulo = (source: Frame, block: Frame): Frame =>
-  arithmetic(source, block, (left, right) => left.modulo(right));
+export const Modulo = numericOnly(
+  "%%",
+  (left, right) => left.modulo(right),
+);
 
-export const Power = (source: Frame, block: Frame): Frame =>
-  arithmetic(source, block, (left, right) => left.power(right));
+export const Power = numericOnly("**", (left, right) => left.power(right));
 
 export const Equals = (source: Frame, block: Frame): Frame => {
   return failure(source) ?? failure(block) ?? source.equals(block);
 };
 
 /** `==`: the same value and the same type at every node. */
+
 export const TypeEquals = (source: Frame, block: Frame): Frame => {
   return failure(source) ?? failure(block) ?? source.typeEquals(block);
 };
 
 /** `===`: the same frame. Atoms, which own no identity, fall back to `==`. */
+
 export const Identical = (source: Frame, block: Frame): Frame => {
   return failure(source) ?? failure(block) ?? source.identical(block);
 };
 
-export const GreaterThan = (source: Frame, block: Frame): Frame =>
-  arithmetic(source, block, (left, right) => left.greaterThan(right));
+/**
+ * How two texts order: by Unicode code point, element by element, with a
+ * proper prefix first (#568). JavaScript's `<` compares UTF-16 code units,
+ * which puts a character outside the Basic Multilingual Plane, stored as a
+ * surrogate pair, before U+E000–U+FFFF; iterating a string yields code points.
+ * Locale-aware collation is out of scope.
+ */
+const compareCodePoints = (left: string, right: string): -1 | 0 | 1 => {
+  const rightPoints = right[Symbol.iterator]();
+  for (const character of left) {
+    const next = rightPoints.next();
+    if (next.done) return 1;
+    const difference = character.codePointAt(0)! - next.value.codePointAt(0)!;
+    if (difference !== 0) return difference < 0 ? -1 : 1;
+  }
+  return rightPoints.next().done ? 0 : -1;
+};
 
-export const GreaterThanOrEqual = (source: Frame, block: Frame): Frame =>
-  arithmetic(source, block, (left, right) => left.greaterThanOrEqual(right));
+/**
+ * The ordering operators, `.<` and its kin. Two numbers order on the numeric
+ * ladder and two strings by code point (#568); either answers `<>` when the
+ * comparison holds and nil when it does not. Any other pair is a
+ * numeric-domain error (#361), since nil here would read as false.
+ */
+const ordering = (
+  operator: DomainOperator,
+  operation: NumericOperation,
+  holds: (comparison: -1 | 0 | 1) => boolean,
+) =>
+(source: Frame, block: Frame): Frame =>
+  arithmetic(source, block, operation, (left, right) => {
+    if (left instanceof FrameString && right instanceof FrameString) {
+      const comparison = compareCodePoints(
+        left.characterContent(),
+        right.characterContent(),
+      );
+      return holds(comparison) ? Frame.all : Frame.nil;
+    }
+    return domainError(operator, left, right);
+  });
 
-export const LessThan = (source: Frame, block: Frame): Frame =>
-  arithmetic(source, block, (left, right) => left.lessThan(right));
+export const GreaterThan = ordering(
+  ">",
+  (left, right) => left.greaterThan(right),
+  (comparison) => comparison > 0,
+);
 
-export const LessThanOrEqual = (source: Frame, block: Frame): Frame =>
-  arithmetic(source, block, (left, right) => left.lessThanOrEqual(right));
+export const GreaterThanOrEqual = ordering(
+  ">=",
+  (left, right) => left.greaterThanOrEqual(right),
+  (comparison) => comparison >= 0,
+);
+
+export const LessThan = ordering(
+  "<",
+  (left, right) => left.lessThan(right),
+  (comparison) => comparison < 0,
+);
+
+export const LessThanOrEqual = ordering(
+  "<=",
+  (left, right) => left.lessThanOrEqual(right),
+  (comparison) => comparison <= 0,
+);

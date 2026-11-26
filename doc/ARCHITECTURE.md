@@ -117,8 +117,11 @@ sequencing, imports and conditionals propagate them like other errors.
 When the operands are not a numeric pair, four of them have a structural meaning
 (`lib/ops/math.ts`): `+` Flops, `-` Flops with a Denum half-turn of its right
 operand, `*` is Cart, and `/` by a positive Count deals an array or group into a
-`RotorRouter`. In the `Ops` table (`lib/ops.ts`), `|&|` is Zip and `&|&` the KD
-product. [FRAME-DENUM](FRAME-DENUM.md),
+`RotorRouter`. Any other pair is an error (#361): `/` answers
+`$!.division-domain /`, and `%%`, `**` and ordering answer
+`$!.numeric-domain <op> <LeftClass> <RightClass>`, except that two strings order
+by code point (#568). In the `Ops` table (`lib/ops.ts`), `|&|` is Zip and `&|&`
+the KD product. [FRAME-DENUM](FRAME-DENUM.md),
 [native Cart and Zip](native-cart-zip.md) and
 [FOIST 19a](../spec/foist-19a/README.md) describe them.
 

@@ -1,13 +1,14 @@
 # Rationalizing Numbers
 
-**Status:** **Implemented except M-3.** The five frames, the rank-based dispatch
-of §5.0, both truth matrices, and ND-002 through ND-013 are built and covered by
+**Status:** **Implemented.** The five frames, the rank-based dispatch of §5.0,
+both truth matrices, and ND-002 through ND-013 are built and covered by
 exhaustive per-rung matrix tests. All four tensions (§6) and all six
 representation questions (§9) are settled. **M-3 — type mismatch returning an
-error frame instead of `nil` — is deliberately not shipped**, because its
-prerequisite (how error frames behave in conditional position) is still
-undefined; see T-4 and §11.1. Seven smaller divergences between this design and
-the code are recorded in §11.\
+error frame instead of `nil` — shipped last, in v0.55.34
+([#361](https://github.com/TheSwanFactory/hclang/issues/361))**, after its
+prerequisite (how error frames behave in conditional position) was settled by
+#360; see T-4 and §11.1. Seven smaller divergences between this design and the
+code are recorded in §11.\
 **Issues:** [#355](https://github.com/TheSwanFactory/hclang/issues/355) (this
 design), [#356](https://github.com/TheSwanFactory/hclang/issues/356) and
 [#357](https://github.com/TheSwanFactory/hclang/issues/357) (dependencies, both
@@ -26,10 +27,10 @@ a decision from a description.
 **Reading note.** Sections 1 through 10 are the design. §11 is the delta against
 the code as built, and it is the authoritative list of what is still open.
 
-**Open, blocking:** error frames in conditional position need defining before
-**M-3** can be implemented — filed as
-[#360](https://github.com/TheSwanFactory/hclang/issues/360) (T-4, §11.1).
-Nothing else in this document is blocked.
+**Nothing in this document is open.** Error frames in conditional position, the
+prerequisite for **M-3**, were settled by
+[#360](https://github.com/TheSwanFactory/hclang/issues/360), and M-3 shipped as
+[#361](https://github.com/TheSwanFactory/hclang/issues/361) (T-4, §11.1).
 
 ## 1. HC has no float literal
 
@@ -1132,7 +1133,20 @@ ND-010, T-4's zero paragraph, Q4, and Q5 — were **edited after the fact to
 describe what had been built**. They read as decisions but were descriptions.
 Each is flagged in place, and the substantive consequences are below.
 
-### 11.1 M-3 is not shipped; it is #361, blocked by #360
+### 11.1 M-3 shipped as #361, after #360
+
+**Shipped in v0.55.34 (#361).** #360 closed after #472 (v0.39.0) made `?` and
+`:` answer an error operand unchanged without running either branch. FOIST 19a
+(#506) had meanwhile given `+`, `-`, `*` and list `/` structural meanings for
+non-numeric operands (Flop, Flop with a Denum half-turn, Cart, dealing into a
+`RotorRouter`), so M-3 narrowed to the operators with only a numeric meaning.
+`%%`, `**` and the four ordering operators now answer
+`$!.numeric-domain <op> <LeftClass> <RightClass>` for a pair that is not two
+numbers, and scalar `/` answers `$!.division-domain /`. Two strings are the one
+non-numeric pair that orders: by code point, in the same release (#568). The
+migration is the one this section predicted: `(2 %% “a”) : {“else”}` answered
+`“else”` and now answers the error; `hc/numerics.hc` asserts it and the `$!`
+recovery. The rest of this section is the record from before.
 
 `lib/ops/math.ts` still ends its single numeric gate with `: Frame.nil`, so
 `1 + “text”` evaluates to nil rather than an error frame naming the operator and
@@ -1284,7 +1298,7 @@ a test rather than a fix.
 | -------------------------- | ----------------------------------------------------------- |
 | Error propagation (§11.1)  | **Ratified.** Errors are terminal and never reach `?` / `:` |
 | Error detection (§11.1)    | **Deferred to #360**, reframed as one question              |
-| M-3 (§11.1)                | **Filed as #361**, blocked by #360                          |
+| M-3 (§11.1)                | **Shipped**, #361 in v0.55.34, after #360                   |
 | Host bridge (§11.3)        | Route non-`\p{Nd}` to `FrameString` — **done**, `407afc8`   |
 | Scale limit (§11.4)        | Separate scale constant — **done**, `407afc8`               |
 | Error text (§11.7)         | Name the lookup, not `unary-` — **done**, `407afc8`         |
@@ -1292,8 +1306,8 @@ a test rather than a fix.
 | Modulo sign (§11.5)        | Adopt floored, not host truncated — **done**, `325fdf4`     |
 | Zero-led spelling (§11.2)  | Preserved deliberately, tested — **done**, `325fdf4`        |
 
-**Nothing in this section is open.** Every item is either fixed or filed: #360
-for error detection, #361 for M-3 behind it.
+**Nothing in this section is open.** Every item is fixed: #360 settled error
+detection, and #361 shipped M-3 behind it in v0.55.34.
 
 Three of these need their reasoning on the record.
 

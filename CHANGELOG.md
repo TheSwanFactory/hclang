@@ -5,6 +5,27 @@
 > contains nothing else; then describe it and say that nothing user-facing
 > changed.
 
+## v0.55.34 2026-11-25
+
+- **Numeric-only operators refuse other operands with an error (#361).** `%%`,
+  `**` and the ordering operators `.<`, `.<=`, `.>` and `.>=` answered nil when
+  an operand was not a number; they now answer
+  `$!.numeric-domain <op> <LeftClass> <RightClass>`, so `2 %% “a”` is
+  `$!.numeric-domain %% FrameCount FrameString`. Scalar `/` with such an
+  operand, such as `1 / “text”` or `“abcd” / 2`, answers `$!.division-domain /`.
+  Nil is not a number either, so `() %% 2` is
+  `$!.numeric-domain %% Frame FrameCount`. An operand that is already an error
+  is still answered first. `+`, `-`, `*`, list division and the equalities are
+  unchanged.
+- **Migration: `:` no longer catches these cases (#361).** Before, the nil let
+  `:` run its fallback: `(2 %% “a”) : {“else”}` answered `“else”`. Now the
+  answer is the error and neither `?` nor `:` runs a branch. Recover with the
+  catch operator instead: `(2 %% “a”) $! {“else”}` answers `“else”`.
+- **Ordering compares two strings (#568).** `“a”.< “b”` is `<>` and `“b”.< “a”`
+  is nil, comparing by Unicode code point, character by character, with a proper
+  prefix first (`“ab”.< “abc”` is `<>`). Code-point order is not UTF-16 order,
+  so `“｡”.< “😀”` is `<>`. A string against a non-string is the error above.
+
 ## v0.55.33 2026-11-25
 
 - **A declaration keeps a dotted operator (#566).** `.k .+` now binds `k` to

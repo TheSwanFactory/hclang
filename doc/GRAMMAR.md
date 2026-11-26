@@ -244,8 +244,11 @@ The dotted spellings dispatch exactly as the bare ones, on every receiver
 ### Comparison Operators
 
 - **Equality**: `=` (comparison only, never assignment)
-- **Greater than**: `>`
-- **Less than**: `<`
+- **Ordering**: `.<`, `.<=`, `.>`, `.>=` (dotted, since bare `<` and `>` delimit
+  schemas) answer `<>` when the comparison holds and nil when it does not. Two
+  numbers order by value and two strings by Unicode code point, a proper prefix
+  first. Any other pair is `$!.numeric-domain <op> <LeftClass> <RightClass>`, so
+  `1.< “a”` is `$!.numeric-domain < FrameCount FrameString`
 - **Member of**: `~` (predicate/membership test)
 
 ### Logical Operators
