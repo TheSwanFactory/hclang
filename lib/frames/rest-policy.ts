@@ -259,7 +259,9 @@ export function requestUrl(
     return { ok: false, reason: "resource-escaped-root" };
   }
   if (query.length > 0) {
-    url.search = new URLSearchParams(query.map(([k, v]) => [k, v])).toString();
+    url.search = new URLSearchParams(
+      query.map(([key, value]): [string, string] => [key, value]),
+    ).toString();
   }
   return withinBase(base, url.href)
     ? { ok: true, url: url.href }

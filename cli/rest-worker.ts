@@ -74,6 +74,26 @@ type Meta =
   }
   | { readonly ok: false; readonly reason: string };
 const encoder = new TextEncoder();
+/** The part of a web worker this module uses. */
+interface HostWorker {
+  postMessage(message: unknown): void;
+  terminate(): void;
+}
+/**
+ * The host's `Worker`, typed locally.
+ *
+ * The npm build type-checks this module against Node's types, which have no
+ * global `Worker`, so the constructor is read from `globalThis` instead of
+ * named as a global type. Live REST runs only under Deno.
+ */
+const Worker = (globalThis as unknown as {
+  Worker: new (
+    url: string,
+    options: { type: "module"; name: string },
+  ) => HostWorker;
+}).Worker;
+/** The event a worker receives. */
+type WorkerEvent<T> = { readonly data: T };
 /**
  * The main isolate's side: a `RestTransport` whose sends run in a worker.
  *
@@ -81,7 +101,7 @@ const encoder = new TextEncoder();
  * run exits the process instead.
  */
 export class LiveTransport implements RestTransport {
-  readonly #worker: Worker;
+  readonly #worker: HostWorker;
   /**
    * @param policy The grant, copied to the worker once and never again.
    * @param evidence The absolute path the worker appends evidence to.
@@ -274,10 +294,10 @@ async function receive(request: RestOutgoing, grant: WorkerGrant): Promise<
 }
 /** The worker half: re-verifies, fetches, records, answers. */
 function installWorker(scope: {
-  onmessage: ((event: MessageEvent<Message>) => void) | null;
+  onmessage: ((event: WorkerEvent<Message>) => void) | null;
 }): void {
   let grant: WorkerGrant | undefined;
-  scope.onmessage = async (event: MessageEvent<Message>) => {
+  scope.onmessage = async (event: WorkerEvent<Message>) => {
     const message = event.data;
     if (message.kind === "init") {
       grant ??= message.grant;
@@ -349,7 +369,7 @@ function installWorker(scope: {
 if ((globalThis as { name?: string }).name === WORKER_NAME) {
   installWorker(
     globalThis as unknown as {
-      onmessage: ((event: MessageEvent<Message>) => void) | null;
+      onmessage: ((event: WorkerEvent<Message>) => void) | null;
     },
   );
 }
