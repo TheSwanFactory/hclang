@@ -5,7 +5,7 @@
 > contains nothing else; then describe it and say that nothing user-facing
 > changed.
 
-## v0.55.35 2026-11-25
+## v0.56.0 2026-11-25
 
 - **A numeric type admits values from lower rungs (#410).** On the ladder count,
   int, decimal, rational, number, a runtime type from `.<>` now admits a value
