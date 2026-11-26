@@ -4,8 +4,10 @@ const ENDDOC = "```\n";
 /**
  * Extensions wrapped in a synthetic document fence.
  *
- * Prose inside an HC document is GFM. `adoc` is retained only as a
- * compatibility shim for AsciiDoc files that predate that decision.
+ * Prose inside an HC document is GFM. `adoc` is kept on purpose for
+ * third-party AsciiDoc files: the wrapper only fences the file and never
+ * parses its prose, so any dialect whose examples sit between triple
+ * backticks runs the same way.
  */
 const DOC_EXTENSIONS = ["md", "adoc"];
 

@@ -5,6 +5,14 @@
 > contains nothing else; then describe it and say that nothing user-facing
 > changed.
 
+## v0.57.1 2026-11-26
+
+- **The AsciiDoc docs are now Markdown (#319).** The BitScheme tutorial,
+  Goldiware, honc, nasm and the two Zoasophy notes moved from `.adoc` to `.md`
+  with GFM headings, links, footnotes and code blocks, and the prose in
+  `hc/BitScheme.hc` is GFM too. The playground's "Homoiconic C Tutorial" link
+  now points at `doc/BitScheme.md`; the old `.adoc` link no longer resolves.
+
 ## v0.57.0 2026-11-25
 
 - **A REST resource reads public resources (#277).** The CLI's new
