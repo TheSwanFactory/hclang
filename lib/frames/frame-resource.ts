@@ -117,6 +117,10 @@ export class FrameResource extends FrameURI implements ResourceBinding {
   /**
    * Application writes, and returns the evidence rather than the receiver.
    *
+   * A scheme handler with an `exchange` is not a store, so for it application
+   * is that exchange instead: a REST resource applied to a request record
+   * answers a response record (`rest-handler.ts`).
+   *
    * A receiver-returning call hides errors in its result, so the count of
    * characters written is the answer: it is checkable, and a refusal cannot
    * masquerade as it.
@@ -125,6 +129,12 @@ export class FrameResource extends FrameURI implements ResourceBinding {
     const placement = this.placement;
     if (placement.kind === "refused") {
       return this.storeRefusal(placement.reason);
+    }
+    if (placement.kind === "scheme" && placement.handler.exchange) {
+      const exchanged = placement.handler.exchange(placement.parts, argument);
+      return exchanged.ok
+        ? exchanged.response
+        : this.storeRefusal(exchanged.reason);
     }
 
     const content = hasCharacterContent(argument)

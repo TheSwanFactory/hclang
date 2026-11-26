@@ -22,6 +22,23 @@ const HC_DOC_DIR: URL = new URL("../hc/", import.meta.url);
 // CQML is aspirational; white-paper-core is exercised by cli/hc.test.ts.
 const LEGACY_EXAMPLES = new Set(["cqml.hc", "white-paper-core.hc"]);
 
+/**
+ * The `--rest` grants file a testdoc runs under, when it needs one.
+ *
+ * `hc/rest.hc` reads the GitHub REST API, so `test:doc` runs it against the
+ * simulated grants; `deno task test:rest-live` runs the same file against
+ * `rest/github-live.json`.
+ */
+const TESTDOC_REST: Readonly<Record<string, string>> = {
+  "rest.hc": "./rest/github-simulated.json",
+};
+/** The `--rest` grants file for a testdoc, or undefined when it needs none. */
+export function testdocRest(file: string): string | undefined {
+  const grants = TESTDOC_REST[file];
+  return grants === undefined
+    ? undefined
+    : fromFileUrl(new URL(grants, import.meta.url));
+}
 /** Whether this source contains an adjacent HC source/expected pair. */
 export function hasExpectations(source: string): boolean {
   const lines = source.split(/\r?\n/);
@@ -74,7 +91,7 @@ export async function runTestdocs(
     try {
       const environment = visibleEnvironment((name) => Deno.env.get(name));
       const status = await main(
-        getEval(environment),
+        getEval(environment, undefined, testdocRest(file)),
         getOptions(["--testdoc", fromFileUrl(new URL(file, directory))]),
       );
       if (status !== 0) {

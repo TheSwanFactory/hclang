@@ -33,6 +33,7 @@ import {
   RESOURCE_ROOT_KEY,
   ResourceHandlers,
   type ResourceStore,
+  type SchemeHandler,
 } from "../frames.ts";
 import { withHCBundle } from "../bundle/hc-bundle.ts";
 
@@ -41,9 +42,14 @@ import { withHCBundle } from "../bundle/hc-bundle.ts";
  *
  * @param context Host bindings, which are copied rather than adopted.
  * @param store The store under the root, before the bundled `hc/` overlay.
+ * @param handlers The scheme table under the root; the real clock by default.
  * @returns A frame reachable from HC source through `$$`.
  */
-export function hostNamespace(context: Context, store: ResourceStore): Frame {
+export function hostNamespace(
+  context: Context,
+  store: ResourceStore,
+  handlers: ResourceHandlers = hostHandlers(),
+): Frame {
   // A Frame adopts the Context object it is handed, so the bindings are added
   // to a copy: the embedder's declared host values are what the harness
   // reports (`HCLang.getContextString`, the CLI's logger), and installing a
@@ -51,7 +57,7 @@ export function hostNamespace(context: Context, store: ResourceStore): Frame {
   const host = new Frame({ ...context });
   host.set(
     RESOURCE_ROOT_KEY,
-    FrameResource.root(withHCBundle(store), hostHandlers()),
+    FrameResource.root(withHCBundle(store), handlers),
   );
   host.set(DISPATCH_KEY, dispatchNamespace());
   return host;
@@ -66,10 +72,17 @@ export function hostNamespace(context: Context, store: ResourceStore): Frame {
  * that the root binding does not already cover: a browser has one, and a
  * session is a live session.
  *
+ * A harness that holds more, such as the CLI's `--rest` grants, passes them as
+ * `extra`; they sit beside the clock and never replace it.
+ *
+ * @param extra Further entries, by scheme, that a harness installs.
  * @returns The scheme handlers reachable from a host's evaluation.
  */
-export function hostHandlers(): ResourceHandlers {
+export function hostHandlers(
+  extra: Readonly<Record<string, SchemeHandler>> = {},
+): ResourceHandlers {
   return ResourceHandlers.of({
+    ...extra,
     [CLOCK_SCHEME]: new ClockHandler(new RealClock()),
   });
 }

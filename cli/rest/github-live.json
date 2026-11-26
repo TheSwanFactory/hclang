@@ -1,0 +1,38 @@
+[
+  {
+    "base": "https://api.github.com/repos/TheSwanFactory/hclang/",
+    "transport": "live",
+    "requests": 20,
+    "responseBytes": 1000000,
+    "timeoutMs": 10000,
+    "lifetimeMs": 600000,
+    "evidence": "evidence/live.jsonl"
+  },
+  {
+    "base": "https://api.github.com/repos/TheSwanFactory/hclang/issues/",
+    "transport": "live",
+    "requests": 5,
+    "responseBytes": 16,
+    "timeoutMs": 10000,
+    "lifetimeMs": 600000,
+    "evidence": "evidence/live.jsonl"
+  },
+  {
+    "base": "https://api.github.com/repos/TheSwanFactory/hclang/pulls/",
+    "transport": "live",
+    "requests": 0,
+    "responseBytes": 1000000,
+    "timeoutMs": 10000,
+    "lifetimeMs": 600000,
+    "evidence": "evidence/live.jsonl"
+  },
+  {
+    "base": "https://api.github.com/repos/TheSwanFactory/hclang-absent-277/",
+    "transport": "live",
+    "requests": 5,
+    "responseBytes": 1000000,
+    "timeoutMs": 10000,
+    "lifetimeMs": 600000,
+    "evidence": "evidence/live.jsonl"
+  }
+]

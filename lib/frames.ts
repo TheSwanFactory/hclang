@@ -83,12 +83,50 @@ export {
 } from "./frames/resource-reference.ts";
 export {
   characterElements,
+  type HandlerExchange,
   type HandlerRead,
   type HandlerWrite,
   ResourceHandlers,
   type SchemeHandler,
   StoreHandler,
 } from "./frames/resource-handlers.ts";
+export {
+  DEFAULT_REQUEST_HEADERS,
+  DEFAULT_RESPONSE_HEADERS,
+  isForbiddenRequestHeader,
+  namesGrant,
+  requestHeaders,
+  requestUrl,
+  responseHeaders,
+  REST_METHOD,
+  type RestEvidence,
+  type RestEvidenceSink,
+  type RestEvidenceStub,
+  type RestGrantPolicy,
+  restGrantPolicy,
+  type RestGrantSpec,
+  type RestOutgoing,
+  type RestRefusal,
+  type RestTransport,
+  type RestTransportResult,
+  withinBase,
+} from "./frames/rest-policy.ts";
+export {
+  readRequest,
+  responseRecord,
+  RestGrant,
+  RestHandler,
+  type RestOutcome,
+  type RestRequest,
+  type RestResponse,
+} from "./frames/rest-handler.ts";
+export {
+  MemoryEvidence,
+  NOT_FOUND,
+  type RestCall,
+  type RestFixture,
+  RestSimulator,
+} from "./frames/rest-simulator.ts";
 export {
   MemoryStore,
   ResourceMapStore,
