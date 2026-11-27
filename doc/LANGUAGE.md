@@ -462,6 +462,18 @@ selectors and bit splitters; `<>` is total and `()` matches nothing. This
 matcher interpretation applies only to `~`. `~~` and `~~~` compare immediate
 schema terms literally and do not invoke the schema matcher.
 
+A closure inside a schema is a predicate candidate. The schema calls it with the
+value and admits the value unless the closure answers nil or an error:
+`5 ~ <{_.< 10}>` is `<>` and `50 ~ <{_.< 10}>` is nil. When no candidate
+matches, the first error a predicate answered is the failure's reason, which
+schema application `<p> v` answers: `<{$!!.too-big}> 5` is `$!!.too-big`. A
+predicate composes with other candidates, so `<0, {_.> 100}>` admits 0 and 101.
+Binding keeps the value unchanged: `.d <{_ ~ 1.5.<>}> 3` binds the integer 3.
+Matching stays read-only, so a schema holding a predicate that may write (its
+access footprint has a write) is refused when it is built, with
+`$!.schema-predicate-effect`; a predicate that only reads enclosing names is
+admitted (#536).
+
 `F.<>` extracts the exact runtime class of F, transparently through a name or
 handle. It matches only values of that class, except that a numeric type also
 admits lower rungs (above). It replaces unary `~~F`: `“”.<> “Q”` returns `“Q”`,

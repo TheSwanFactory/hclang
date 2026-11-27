@@ -212,6 +212,28 @@ String schemas
 ; .status <"ok"> "ok"
 # .status “ok”
 ```
+Predicate schema candidates
+```
+; [5 ~ <{_.< 10}>, 50 ~ <{_.< 10}>]
+# [<>, ()]
+; [0 ~ <0, {_.> 100}>, 101 ~ <0, {_.> 100}>, 50 ~ <0, {_.> 100}>]
+# [<>, <>, ()]
+; .small-count <{_.< 10}> 5
+# .small-count 5
+; @small-count 50
+# $!.type-error .small-count <{ _ .< 10 }> 50
+; “a” ~ <{_.< 10}>
+# ()
+; <{$!!.too-big}> 5
+# $!!.too-big
+; .third <{_ ~ 1.5.<>}> 3;
+; 1 / third
+# 1/3
+; .tally 0;
+; .bump {@tally (tally + 1); <>};
+; <bump>
+# $!.schema-predicate-effect
+```
 HLIR advanced types (aspirational)
 ```
 ; .x <i32> 42                           # Primitive types

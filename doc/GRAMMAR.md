@@ -269,6 +269,7 @@ The dotted spellings dispatch exactly as the bare ones, on every receiver
 ### Type Operators
 
 - **Type specification**: `<` and `>` (used for static typing)
+- **Predicate candidate**: a closure inside a schema, `<{_.< 10}>`
 
 ## Named Error Literals
 

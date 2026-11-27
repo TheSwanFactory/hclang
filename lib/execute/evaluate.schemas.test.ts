@@ -334,7 +334,58 @@ describe("evaluate: schemas", () => {
     });
   });
 
-  // HLIR primitive schemas and schema coercion are unimplemented claims in
-  // hc/testdoc.hc, tracked by #536. The type-refusal and record-composition
-  // cases have no testdoc claim and are listed in #536.
+  // A closure inside a schema is a predicate candidate (#536); the HC-level
+  // claims live in the "Predicate schema candidates" section of hc/testdoc.hc.
+  describe("predicate schema candidates (#536)", () => {
+    it("admits a value the predicate answers and refuses one it nils", () => {
+      expect(evaluate("[5 ~ <{_.< 10}>, 50 ~ <{_.< 10}>]").toString())
+        .toEqual("[[<>, ()]]");
+    });
+    it("binds an admitted value and refuses a later write", () => {
+      const result = evaluate(".small <{_.< 10}> 5; @small 50");
+      expect(result.toString()).toContain(
+        "$!.type-error .small <{ _ .< 10 }> 50",
+      );
+      expect(result.meta["small"]?.toString()).toEqual("5");
+    });
+    it("composes with other candidates in a union", () => {
+      expect(
+        evaluate(
+          "[0 ~ <0, {_.> 100}>, 101 ~ <0, {_.> 100}>, 50 ~ <0, {_.> 100}>]",
+        )
+          .toString(),
+      ).toEqual("[[<>, <>, ()]]");
+    });
+    it("treats a predicate's error as a failure and its reason", () => {
+      expect(evaluate("<{$!!.too-big}> 5").toString()).toEqual(
+        "[$!!.too-big]",
+      );
+      expect(evaluate("[“a” ~ <{_.< 10}>]").toString()).toEqual("[[()]]");
+    });
+    it("binds the value unchanged", () => {
+      expect(evaluate(".d <{_ ~ 1.5.<>}> 3; 1 / d").toString()).toEqual(
+        "[.d.<> <{ _ ~ (1 .5 .<>) }>; .d 3; ((.d 3); 1/3)]",
+      );
+    });
+    it("admits a closure read from an aggregate", () => {
+      expect(evaluate(".n [.p {_.< 10}]; 5 ~ <n.p>").toString()).toEqual(
+        "[.n [.p { _ .< 10 };]; ((.n [.p { _ .< 10 };]); <>)]",
+      );
+    });
+    it("refuses an effectful predicate when the schema is built", () => {
+      expect(
+        evaluate(".tally 0; .bump {@tally (tally + 1); <>}; <bump>")
+          .toString(),
+      ).toContain("$!.schema-predicate-effect");
+      const result = evaluate(
+        ".tally 0; .bump {@tally (tally + 1); <>}; 5 ~ <bump>",
+      );
+      expect(result.meta["tally"]?.toString()).toEqual("0");
+    });
+    it("admits a read-only closure over a file name", () => {
+      expect(evaluate(".limit 10; 5 ~ <{_.< limit}>").toString()).toEqual(
+        "[.limit 10; ((.limit 10); <>)]",
+      );
+    });
+  });
 });

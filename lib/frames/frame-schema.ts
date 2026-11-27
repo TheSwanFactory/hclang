@@ -6,6 +6,8 @@ import { type FrameMatcher, type MatchResult } from "./frame-match.ts";
 import {
   EnumerationSchemaMatcher,
   type SchemaMatcher,
+  schemaPredicateHasEffect,
+  schemaPredicateOf,
 } from "./schema-matcher.ts";
 import { NilContext } from "./context.ts";
 import type { EvaluationInput } from "./evaluation-scope.ts";
@@ -42,12 +44,24 @@ export class FrameSchema extends FrameList implements FrameMatcher {
     return FrameSchema.END_SCHEMA;
   }
 
+  /**
+   * A schema holding a predicate that may write is refused when built, so
+   * matching stays read-only, as BitScheme requires (#536).
+   */
   public override in(input: EvaluationInput = []): Frame {
     const matcher = compileSchemaMatcher(this.data);
     if (matcher) {
       return new FrameSchema([...this.data], NilContext, matcher);
     }
     const array = this.array_eval(input);
+    if (
+      array.some((term) => {
+        const predicate = schemaPredicateOf(term);
+        return predicate !== undefined && schemaPredicateHasEffect(predicate);
+      })
+    ) {
+      return Frame.error("$!.schema-predicate-effect");
+    }
     return new FrameSchema(array);
   }
 

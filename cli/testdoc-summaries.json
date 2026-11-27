@@ -114,8 +114,8 @@
     "unimplemented": 0
   },
   "testdoc.hc": {
-    "total": 84,
-    "pass": 75,
+    "total": 92,
+    "pass": 83,
     "fail": 0,
     "unimplemented": 9
   },

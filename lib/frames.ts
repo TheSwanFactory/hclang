@@ -151,6 +151,7 @@ export {
 import "./frames/effect-registry.ts";
 import "./frames/reference-tracking.ts";
 import "./frames/access-footprint.ts";
+import "./frames/schema-predicate.ts";
 import "./frames/event-dispatch.ts";
 export { DISPATCH_KEY, dispatchNamespace } from "./frames/dispatch-host.ts";
 import "./frames/bound-method.ts";

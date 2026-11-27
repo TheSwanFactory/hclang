@@ -15,6 +15,15 @@
   `(1 / 3.0) %% 1` answers `$!.numeric-domain %% FrameNumber FrameCount`.
   `3.0 %% 2` now answers `1.0` where it answered
   `$!.numeric-domain %% FrameDecimal FrameCount`.
+- **A closure in a schema is a predicate (#536).** The schema calls the closure
+  with the value and admits it unless the answer is nil or an error:
+  `5 ~ <{_.< 10}>` is `<>`, `.small <{_.< 10}> 5` binds 5 and a later
+  `@small 50` is refused with `$!.type-error`. Predicates join unions
+  (`<0, {_.> 100}>` admits 0 and 101), a predicate's error is the refusal reason
+  (`<{$!!.too-big}> 5` answers `$!!.too-big`), and binding never converts the
+  value. A schema whose predicate may write is refused when built with
+  `$!.schema-predicate-effect`. `.s {_.< 10}; .z <s> 5` now binds 5 where it
+  answered `$!.type-error`.
 
 ## v0.58.0 2026-11-26
 
