@@ -1449,4 +1449,4 @@ This partly undoes T-3's narrowing and M-2's migration: `3.0 %% 2` answers `1.0`
 again, now exactly, where it answered
 `$!.numeric-domain %% FrameDecimal FrameCount`. Since `x - (x %% 1)` is the
 floor of any exact `x`, HC code can truncate explicitly without a new operator;
-`hc/hlir.hc` relies on that for its integer predicates.
+`hc/hlir.hc` builds its `floor`, `trunc` and `round` conversions on it.

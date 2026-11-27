@@ -24,6 +24,15 @@
   value. A schema whose predicate may write is refused when built with
   `$!.schema-predicate-effect`. `.s {_.< 10}; .z <s> 5` now binds 5 where it
   answered `$!.type-error`.
+- **HLIR primitive types are an HC module (#536).** `HLIR <- './hc/hlir.hc'`
+  provides `i8` `i16` `i32` `i64` `u8` `u16` `u32` `u64` `index` `f64`, the
+  width generators `int w` and `uint w`, the conversions `floor`, `trunc` and
+  `round` (half away from zero), and `record [.re f64; .im f64]` and
+  `tensor [[2, 3], f64]`. The widths, records and tensors are predicate schemas:
+  `.top <i32> 2147483647` binds, `2147483648 ~ <i32>` is nil, and text or `3.14`
+  is refused. Truncation is explicit: `<i32>` refuses 3.14 while
+  `.whole <i32> (trunc 3.14)` binds 3. `f32` and encode/decode against bit
+  layouts are not included. The testdoc's HLIR claims now pass.
 
 ## v0.58.0 2026-11-26
 

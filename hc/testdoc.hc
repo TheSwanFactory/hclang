@@ -234,27 +234,132 @@ Predicate schema candidates
 ; <bump>
 # $!.schema-predicate-effect
 ```
-HLIR advanced types (aspirational)
+HLIR primitive types from hc/hlir.hc (#536)
 ```
-; .x <i32> 42                           # Primitive types
-# $!.unimplemented .x 42
-; .mat <tensor<2x3xf32>> [[1,2,3]]      # Tensor types
-# $!.unimplemented .mat...
-; .slice <tensor<1x2xf32>> [[1,2]]       # Nested generic types
-# $!.unimplemented .slice [[1, 2]]
-; .idx <index> 0                         # Index type
-# $!.unimplemented .idx 0
-; .ratio <f32> 3.14                      # Floating-point types
-# $!.unimplemented .ratio 3.14
-; .whole <i32> ratio                     # Narrowing is refused
-# $!.unimplemented $!.type-error .whole <i32> 3.14
-; .small <i32> 42                        # Setup for widening
-# $!.unimplemented .small 42
-; .wide <f64> small                      # Numeric widening
-# $!.unimplemented .wide 42
+; HLIR <- './hc/hlir.hc';
+; .i8 HLIR.i8;
+; .i16 HLIR.i16;
+; .i32 HLIR.i32;
+; .i64 HLIR.i64;
+; .u8 HLIR.u8;
+; .u16 HLIR.u16;
+; .u32 HLIR.u32;
+; .u64 HLIR.u64;
+; .index HLIR.index;
+; .f64 HLIR.f64;
+; .int HLIR.int;
+; .uint HLIR.uint;
+; .floor HLIR.floor;
+; .trunc HLIR.trunc;
+; .round HLIR.round;
+; .record HLIR.record;
+; .tensor HLIR.tensor;
+; .x <i32> 42
+# 42
+; .mat <tensor [[2, 3], f64]> [[1, 2, 3], [4, 5, 6]]
+# .mat [[1, 2, 3], [4, 5, 6]]
+; .slice <tensor [[1, 2], f64]> [[1, 2]]
+# .slice [[1, 2]]
+; .idx <index> 0
+# .idx 0
+; .ratio <f64> 3.14
+# .ratio 3.14
+; .whole <i32> ratio
+# $!.type-error .whole <...
+; ratio ~ <i32>
+# ()
+; .truncated <i32> (trunc ratio)
+# .truncated 3
+; .small <i32> 42
+# .small 42
+; .wide <f64> small
+# .wide 42
 ```
-Function-signature notation is a proposal: the current schema grammar does not
-accept its arrow. These claims are tracked by #536.
+Function signatures use `^` for the arguments and `^^` for the result
+contract. Argument schemas are not checked yet, and checking a closure
+value against a function type is a follow-up.
 ```
-; .f <(.x <i32>, .y <f32>) -> <i32>> {x + y}
-# $!.unimplemented .f { x + y }
+; .f (.x <i32>, .y <f64>) ^ {x + y} ^^ <i32>;
+; f (.x 1, .y 2)
+# 3
+; f (.x 1, .y 2.5)
+# $!.type-error <...
+```
+HLIR widths admit both boundaries and refuse one past each
+```
+; [127 ~ <i8>, 128 ~ <i8>, (0 - 128) ~ <i8>, (0 - 129) ~ <i8>]
+# [<>, (), <>, ()]
+; [32767 ~ <i16>, 32768 ~ <i16>, (0 - 32768) ~ <i16>, (0 - 32769) ~ <i16>]
+# [<>, (), <>, ()]
+; [2147483647 ~ <i32>, 2147483648 ~ <i32>, (0 - 2147483648) ~ <i32>, (0 - 2147483649) ~ <i32>]
+# [<>, (), <>, ()]
+; [9223372036854775807 ~ <i64>, 9223372036854775808 ~ <i64>, (0 - 9223372036854775808) ~ <i64>, (0 - 9223372036854775809) ~ <i64>]
+# [<>, (), <>, ()]
+; [255 ~ <u8>, 256 ~ <u8>, 0 ~ <u8>, (0 - 1) ~ <u8>]
+# [<>, (), <>, ()]
+; [65535 ~ <u16>, 65536 ~ <u16>, 0 ~ <u16>, (0 - 1) ~ <u16>]
+# [<>, (), <>, ()]
+; [4294967295 ~ <u32>, 4294967296 ~ <u32>, 0 ~ <u32>, (0 - 1) ~ <u32>]
+# [<>, (), <>, ()]
+; [18446744073709551615 ~ <u64>, 18446744073709551616 ~ <u64>, 0 ~ <u64>, (0 - 1) ~ <u64>]
+# [<>, (), <>, ()]
+; .top <i32> 2147483647
+# .top 2147483647
+; .over <i32> 2147483648
+# $!.type-error .over <...
+; [2047 ~ <int 12>, 2048 ~ <int 12>, 4095 ~ <uint 12>, 4096 ~ <uint 12>]
+# [<>, (), <>, ()]
+```
+HLIR widths refuse text
+```
+; [“42” ~ <i32>, “42” ~ <u8>, “42” ~ <index>, “42” ~ <f64>]
+# [(), (), (), ()]
+; .label <i32> “42”
+# $!.type-error .label <...
+```
+HLIR integer widths refuse non-integers; f64 admits them
+```
+; [3.14 ~ <i32>, (7 / 2) ~ <i64>, 3.14 ~ <u8>, 4.0 ~ <i32>, 3.14 ~ <index>]
+# [(), (), (), (), ()]
+; [(0 - 1) ~ <u8>, (5 - 3) ~ <u8>, 3.14 ~ <f64>, (7 / 2) ~ <f64>]
+# [(), (), <>, <>]
+```
+HLIR conversions answer the Int rung
+```
+; [floor 3.7, floor (0 - 3.7), trunc 3.7, trunc (0 - 3.7), round 2.5, round (0 - 2.5), round 2.4, round (7 / 2)]
+# [3, -4, 3, -3, 3, -3, 2, 4]
+```
+HLIR records admit exactly their properties
+```
+; .complex (record [.re f64; .im f64]);
+; .z <complex> [.re 1.5; .im 2;]
+# .z [.re 1.5; .im 2;]
+; [.re 1.5;] ~ <complex>
+# ()
+; [.re 1.5; .im 2; .k 0;] ~ <complex>
+# ()
+; [.re 1.5; .im “two”;] ~ <complex>
+# ()
+; [.re 1.5; .im 2; 7] ~ <complex>
+# ()
+; 1.5 ~ <complex>
+# ()
+; .pixel (record [.x i32; .y u8]);
+; [[.x (0 - 5); .y 255;] ~ <pixel>, [.x 1; .y 256;] ~ <pixel>]
+# [<>, ()]
+```
+HLIR tensors check shape and leaf
+```
+; .m23 (tensor [[2, 3], f64]);
+; [[1, 2, 3], [4, 5, 6]] ~ <m23>
+# <>
+; [[1, 2, 3]] ~ <m23>
+# ()
+; [[1, 2], [3, 4]] ~ <m23>
+# ()
+; [[1, 2, 3], [4, 5, “x”]] ~ <m23>
+# ()
+; 7 ~ <m23>
+# ()
+; [[[1, 2, 3], [4, 5, 6]] ~ <tensor [[2, 3], i32]>, [[1.5, 2, 3], [4, 5, 6]] ~ <tensor [[2, 3], i32]>]
+# [<>, ()]
