@@ -801,7 +801,18 @@ is already bound answers that closure, and the read leaves its `up` alone, so a
 closure handed on through another closure's name still resolves its free names
 where it was made (#424). Evaluating an array or group literal never writes the
 parsed form, which is source a closure evaluates again on every call. Each
-evaluation declares into a fresh copy (#404).
+evaluation declares into a fresh copy (#404). No name can rewrite a closure's
+body, captures or contracts, whether or not its key carries the effect marker;
+on a closure-valued key the marker only lets the method write its receiver. The
+`^` signature and `^^` return contract are therefore bound onto a copy
+(`FrameLazy.withSignature` and `withReturn`, through `boundCopy`, which keeps
+the captured scope), and `BindType` and `BindReturn` rebind only the declared
+name to it. Every other name holding the original keeps its signature and
+contract, whether the closure was declared on that line or long before (#485). A
+redeclaration such as `.f f` answers the closure rather than an echo, so it
+answers a copy that records the declaration (`declaredBinding`), and
+`.f f ^^ <…>` rebinds `f`. A bare read such as `g ^^ <…>` declares nothing and
+binds nothing.
 
 A call reads its explicit argument through `Frame.getOwn`: the argument's own
 properties and its declared parents, never its lexical scope, so the scope that

@@ -53,21 +53,43 @@ export class FrameLazy extends FrameExpr {
    */
   public static quote?: (resource: Frame, site?: EvaluationScope) => Frame;
 
-  public bindSignature(signature: Frame): this {
-    if (signature instanceof FrameGroup) {
-      this.signature = signature;
-    }
-    return this;
+  /**
+   * A copy of this closure that keeps the scope and receiver capability it
+   * captured. Both are side tables keyed by the closure, so a plain `copy`
+   * would leave the copy unbound. `^` and `^^` refine such a copy (#485).
+   */
+  public boundCopy(): FrameLazy {
+    const copy = this.copy();
+    const scope = capturedScopes.get(this);
+    if (scope) capturedScopes.set(copy, scope);
+    const receiverState = inlineCallbackReceiverStates.get(this);
+    if (receiverState) inlineCallbackReceiverStates.set(copy, receiverState);
+    return copy;
   }
 
   /**
-   * Records the `^^` return contract. The schema is kept as written and only
-   * consulted after the body runs, so copying the closure template, which the
-   * per-evaluation `bind` above does, carries the contract to the bound copy.
+   * A copy of this closure with the `^` input signature. This closure is left
+   * as it was, so any other name that holds it keeps its own signature (#485).
    */
-  public bindReturn(returnContract: Frame): this {
-    this.returnContract = returnContract;
-    return this;
+  public withSignature(signature: Frame): FrameLazy {
+    const refined = this.boundCopy();
+    if (signature instanceof FrameGroup) {
+      refined.signature = signature;
+    }
+    return refined;
+  }
+
+  /**
+   * A copy of this closure with the `^^` return contract, leaving this one
+   * unchanged for any other name that holds it (#485). The schema is kept as
+   * written and only consulted after the body runs, so copying the closure
+   * template, which the per-evaluation `bind` does, carries the contract
+   * to the bound copy.
+   */
+  public withReturn(returnContract: Frame): FrameLazy {
+    const refined = this.boundCopy();
+    refined.returnContract = returnContract;
+    return refined;
   }
 
   /**
