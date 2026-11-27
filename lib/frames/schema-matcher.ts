@@ -1,3 +1,4 @@
+import type { EvaluationInput } from "./evaluation-scope.ts";
 import { Frame } from "./frame.ts";
 import { FrameList } from "./frame-list.ts";
 import {
@@ -12,6 +13,10 @@ import {
 export interface SchemaMatcher {
   match(schema: FrameList, value: Frame, origin: Frame): MatchResult;
   format?(): string;
+  /** Application may construct while membership remains a pure match. */
+  apply?(schema: FrameList, value: Frame, origin: Frame): Frame;
+  /** Ordered capture values for the constructor direction of reduction. */
+  construct?(value: Frame): Frame;
 }
 
 /**
@@ -27,6 +32,8 @@ export interface SchemaPredicates {
   hasEffect(predicate: Frame): boolean;
   /** Calls the predicate with `value`, refusing any write to shared state. */
   call(predicate: Frame, value: Frame): Frame;
+  /** Evaluates a schema term without writing shared state. */
+  evaluate(term: Frame, input: EvaluationInput): Frame;
 }
 let predicates: SchemaPredicates | undefined;
 export function installSchemaPredicates(p: SchemaPredicates): void {
@@ -39,10 +46,16 @@ export function schemaPredicateOf(candidate: Frame): Frame | undefined {
 export function schemaPredicateHasEffect(predicate: Frame): boolean {
   return predicates?.hasEffect(predicate) ?? false;
 }
-function callSchemaPredicate(predicate: Frame, value: Frame): Frame {
+export function callSchemaPredicate(predicate: Frame, value: Frame): Frame {
   return predicates
     ? predicates.call(predicate, value)
     : predicate.call(value, Frame.nil);
+}
+/** Resolve a schema term through the same read-only guard as predicates. */
+export function evaluateSchemaTerm(term: Frame, input: EvaluationInput): Frame {
+  return predicates
+    ? predicates.evaluate(term, input)
+    : Frame.error("$!.schema-evaluator-unavailable");
 }
 /**
  * Finite equality type with delegation to nested first-class types and
@@ -116,6 +129,7 @@ export function unwrapSchemaSyntax(frame: Frame): Frame {
   let result = frame;
   while (
     result instanceof FrameList && !isSchemaFrame(result) &&
+    !result.isClosure() &&
     result.string_open() !== "[" && result.size() === 1
   ) {
     result = result.asArray()[0];

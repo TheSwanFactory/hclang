@@ -4,6 +4,8 @@ import { describe, it } from "@std/testing/bdd";
 import {
   Frame,
   FrameBlob,
+  FrameCount,
+  FrameInt,
   FrameSymbol,
   ScanDisposition,
   type ScanResult,
@@ -90,10 +92,38 @@ describe("FrameBlob", () => {
     expect(blob.toString()).toEqual("0b00101");
   });
 
+  it("enumerates Count bits without changing structural access or the blob", () => {
+    const blob = new FrameBlob("0x05");
+    expect(blob.elements().map((bit) => bit.toString())).toEqual([
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "1",
+      "0",
+      "1",
+    ]);
+    expect(
+      blob.elements().every((bit) => bit instanceof FrameCount),
+    ).toBe(true);
+    expect(blob.asArray()).toEqual([blob]);
+    expect(blob.unsignedValue()).toEqual(5n);
+    expect(blob.toString()).toEqual("0x05");
+  });
+
   it("handles all zeros correctly", () => {
     const fourZeros = "0b0000";
     const padded = new FrameBlob(fourZeros);
     expect(padded.toString()).toEqual(fourZeros);
+  });
+
+  it("appends computed integer bits without writing its input", () => {
+    const blob = new FrameBlob("0b001");
+    expect(blob.call(new FrameCount(0n)).toString()).toEqual("0b0010");
+    expect(blob.call(new FrameInt(1n)).toString()).toEqual("0b0011");
+    expect(blob.toString()).toEqual("0b001");
+    expect(blob.call(new FrameCount(2n)).toString()).toEqual("2");
   });
 
   it("appends blobs on a common base", () => {

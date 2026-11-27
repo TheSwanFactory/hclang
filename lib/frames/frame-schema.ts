@@ -10,7 +10,8 @@ import {
   schemaPredicateOf,
 } from "./schema-matcher.ts";
 import { NilContext } from "./context.ts";
-import type { EvaluationInput } from "./evaluation-scope.ts";
+import { type EvaluationInput, EvaluationScope } from "./evaluation-scope.ts";
+import type { ReceiverState } from "./bound-method.ts";
 import type { SigilStart } from "../scan.ts";
 
 export class FrameSchema extends FrameList implements FrameMatcher {
@@ -26,6 +27,7 @@ export class FrameSchema extends FrameList implements FrameMatcher {
   ] as const satisfies readonly SigilStart[];
 
   private matcher: SchemaMatcher;
+  private compilationScope?: EvaluationScope;
 
   constructor(
     data: Array<Frame>,
@@ -50,9 +52,13 @@ export class FrameSchema extends FrameList implements FrameMatcher {
    * so matching stays read-only, as BitScheme requires (#536).
    */
   public override in(input: EvaluationInput = []): Frame {
-    const matcher = compileSchemaMatcher(this.data);
+    const scope = EvaluationScope.from(input);
+    const matcher = compileSchemaMatcher(this.data, scope);
+    if (matcher instanceof Frame) return matcher;
     if (matcher) {
-      return new FrameSchema([...this.data], NilContext, matcher);
+      const result = new FrameSchema([...this.data], NilContext, matcher);
+      result.compilationScope = scope;
+      return result;
     }
     const array = this.array_eval(input);
     if (
@@ -67,8 +73,25 @@ export class FrameSchema extends FrameList implements FrameMatcher {
   }
 
   public override apply(argument: Frame, parameter: Frame): Frame {
+    if (this.matcher.apply) {
+      return this.matcher.apply(this, argument, parameter);
+    }
     const result = this.match(argument, parameter);
     return result.matched ? result.evidence : result.error;
+  }
+
+  /** Reduce a bit layout to its ordered constructor captures. */
+  public override reduce(
+    receiver: Frame,
+    receiverState?: ReceiverState,
+  ): Frame {
+    return this.matcher.construct?.(receiver) ??
+      super.reduce(receiver, receiverState);
+  }
+
+  /** Inspect the immutable domain matcher without coupling storage to a domain. */
+  public compiledMatcher(): SchemaMatcher {
+    return this.matcher;
   }
 
   /**
@@ -92,8 +115,9 @@ export class FrameSchema extends FrameList implements FrameMatcher {
   protected override finishRepetition(): Frame {
     if (this.size() === 0) return Frame.all;
     if (!(this.matcher instanceof EnumerationSchemaMatcher)) {
-      this.matcher = compileSchemaMatcher(this.data) ??
-        new EnumerationSchemaMatcher();
+      const matcher = compileSchemaMatcher(this.data, this.compilationScope);
+      if (matcher instanceof Frame) return matcher;
+      this.matcher = matcher ?? new EnumerationSchemaMatcher();
     }
     return this;
   }

@@ -1,3 +1,4 @@
+import { FrameInt } from "./frame-int.ts";
 import { FrameCount } from "./frame-count.ts";
 import type { Frame } from "./frame.ts";
 import { FrameAtom } from "./frame-atom.ts";
@@ -105,6 +106,21 @@ export class FrameBlob extends FrameAtom {
     this.n_bits = FrameBlob.count_bits(source, this.base);
   }
 
+  /** Applying an integer bit appends it, so folds over bits rebuild blobs. */
+  public override apply(argument: Frame, parameter: Frame): Frame {
+    if (
+      argument instanceof FrameInt &&
+      (argument.data === 0n || argument.data === 1n)
+    ) {
+      return new FrameBlob(
+        `0b${
+          this.data.toString(2).padStart(this.bitLength(), "0")
+        }${argument.data}`,
+      );
+    }
+    return super.apply(argument, parameter);
+  }
+
   public override called_by(context: Frame, parameter: Frame): Frame {
     if (context instanceof FrameBlob) {
       const left_operand = context as FrameBlob;
@@ -128,6 +144,22 @@ export class FrameBlob extends FrameAtom {
 
   public override nativeSize(): bigint {
     return this.n_bits;
+  }
+
+  /** Stream Counts 0 and 1, most significant first, preserving leading zeros. */
+  public override elements(): Frame[] {
+    return Array.from(
+      { length: this.bitLength() },
+      (_, index) =>
+        FrameCount.for(
+          ((this.data >> BigInt(this.bitLength() - index - 1)) & 1n).toString(),
+        ),
+    );
+  }
+
+  /** The unsigned numeric value, independent of the blob's rendered width. */
+  public unsignedValue(): bigint {
+    return this.data;
   }
 
   /** The exact rendered width of this blob, including leading zero bits. */

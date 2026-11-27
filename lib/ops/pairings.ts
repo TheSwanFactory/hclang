@@ -30,7 +30,8 @@ export const FlopElements = (left: Frame, right: Frame): Frame => {
  * named properties are not inputs. Repeated occurrences remain repeated.
  * Pairing is structural: each result is a two-element Frame, and neither
  * operand is evaluated, modified, or recursively traversed. As with `&`,
- * scalars are singleton elements and closures expose their source-code atoms.
+ * ordinary scalars are singleton elements, blobs stream bits, and closures
+ * expose their source-code atoms.
  */
 export const CartElements = (left: Frame, right: Frame): Frame => {
   const leftElements = cartInputs(left);
@@ -55,7 +56,8 @@ export const CartElements = (left: Frame, right: Frame): Frame => {
 /**
  * Native Zip: pair positional elements in lockstep, truncating to the shorter
  * input. An operand with no positional elements returns an empty Frame;
- * scalars remain singleton elements. Named properties are excluded.
+ * ordinary scalars remain singleton elements, and blobs stream bits. Named
+ * properties are excluded.
  */
 export const ZipElements = (left: Frame, right: Frame): FrameArray => {
   const leftElements = left.elements();

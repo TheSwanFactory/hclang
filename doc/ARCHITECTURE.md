@@ -790,6 +790,33 @@ delegates equality, structural, and bit-layout behavior to separate immutable
 matchers so adding a domain does not add domain logic to schema storage or
 binding resolution.
 
+Bit capture application has a separate constructor path: `<w@Bit>` applied to a
+nonnegative integer pads it to an exact-width binary blob, while `<[@Bit]>` uses
+the minimum width (one bit for zero). Integers remain outside bit-schema
+membership, including binding validation. Fixed widths must be positive safe
+integers; allocating a constructed blob is bounded by the same text budget as
+repetition. A blob streams its bits as Counts 0 and 1, most significant first,
+retaining leading zeros, while structural `asArray()` continues to treat it as
+one atom. All element consumers use those bits: map, reduce, structural
+Flop/Cart/Zip, and the raw Denum/KD observers. Applying an integer 0 or 1 to a
+blob appends that bit to a new binary blob, so Flop between blobs still
+concatenates. Other Flop receivers consume the Count bits according to their own
+application rules.
+
+Reducing a deterministic bit layout into an object validates and selects its
+named captures in layout order and ignores extra object fields. It deliberately
+answers the ordered capture list; joining that list is ordinary application.
+Deferred capture closures receive a fresh object of earlier capture values and
+return a bit schema. They run through the same read-only guard as schema
+predicates. Width expressions resolve in that call's scope under the same guard,
+including during compilation and repetition. A blob width supplies its unsigned
+value. `@Bit` is reserved as the single-bit unit; `@Byte` uses an explicitly
+bound exact `Byte` schema when present and otherwise defaults to eight bits. A
+non-schema Byte binding is refused. A zero-width capture is refused with
+`$!.bit-width 0` while empty blobs remain deferred (#375). Remainders are
+terminal and nonempty, and matching must consume the entire input. No partially
+matched evidence escapes on failure.
+
 ## Context
 
 The public `Context` map supplies initial bindings. Runtime evaluation uses an
