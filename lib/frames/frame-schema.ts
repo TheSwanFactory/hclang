@@ -2,6 +2,7 @@ import { Frame } from "./frame.ts";
 import { FrameList } from "./frame-list.ts";
 import { FrameNote } from "./frame-note.ts";
 import { compileSchemaMatcher } from "./schema-compiler.ts";
+import { compileBitChoice, isBitChoice } from "./schema-bit-matcher.ts";
 import { type FrameMatcher, type MatchResult } from "./frame-match.ts";
 import {
   EnumerationSchemaMatcher,
@@ -69,7 +70,8 @@ export class FrameSchema extends FrameList implements FrameMatcher {
     ) {
       return Frame.error("$!.schema-predicate-effect");
     }
-    return new FrameSchema(array);
+    // A schema of bit layouts parses and constructs as their choice (#312).
+    return new FrameSchema(array, NilContext, compileBitChoice(array));
   }
 
   public override apply(argument: Frame, parameter: Frame): Frame {
@@ -114,7 +116,10 @@ export class FrameSchema extends FrameList implements FrameMatcher {
    */
   protected override finishRepetition(): Frame {
     if (this.size() === 0) return Frame.all;
-    if (!(this.matcher instanceof EnumerationSchemaMatcher)) {
+    if (isBitChoice(this.matcher)) {
+      // A choice's terms are its compiled options, so it repeats as one.
+      this.matcher = compileBitChoice(this.data) ?? this.matcher;
+    } else if (!(this.matcher instanceof EnumerationSchemaMatcher)) {
       const matcher = compileSchemaMatcher(this.data, this.compilationScope);
       if (matcher instanceof Frame) return matcher;
       this.matcher = matcher ?? new EnumerationSchemaMatcher();
@@ -125,7 +130,9 @@ export class FrameSchema extends FrameList implements FrameMatcher {
   public override nativeSize(): bigint {
     // Empty enumeration means the total type, not an empty finite domain.
     // Inspect the installed matcher only; never traverse/compile candidates.
-    return this.matcher instanceof EnumerationSchemaMatcher &&
+    // A choice of bit layouts counts its options, as its enumeration did.
+    return (this.matcher instanceof EnumerationSchemaMatcher ||
+        isBitChoice(this.matcher)) &&
         this.data.length > 0
       ? BigInt(this.data.length)
       : 1n;

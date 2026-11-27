@@ -335,9 +335,107 @@ class AlternativeBitLayout implements BitLayout {
     return none;
   }
 
+  /** The options, for a top-level choice that matches each one whole. */
+  public layouts(): readonly BitLayout[] {
+    return this.options;
+  }
+
   public format(): string {
     return `<${this.options.map((option) => option.format()).join(", ")}>`;
   }
+}
+
+/**
+ * A schema of bit layouts applied on its own (`<Register, Immediate>`), such
+ * as an instruction decoder (#312). Each option is tried in order against the
+ * whole input, as if applied alone, and the first that matches answers its
+ * captures; so the choice admits exactly the blobs its enumeration did. When
+ * none matches, the reason follows the nested rule: the first failure after
+ * an option's opening field, else `$!.no-bit-alternative 0`. Construction
+ * answers the capture list of the first option that builds from the object.
+ * Nested in a layout, it is the ordinary cursor-based choice.
+ */
+class ChoiceBitSchemaMatcher implements SchemaMatcher, BitLayout {
+  public readonly terminal: boolean;
+
+  public constructor(private readonly choice: AlternativeBitLayout) {
+    this.terminal = choice.terminal;
+  }
+
+  public match(_schema: FrameList, value: Frame, _origin: Frame): MatchResult {
+    if (!(value instanceof FrameBlob)) return bitInputInvalid(value);
+    let reason: Frame | undefined;
+    for (const option of this.choice.layouts()) {
+      const result = matchWhole(option, value, "");
+      if (result.matched) return result;
+      if (openingMismatches.get(result.error) !== 0) reason ??= result.error;
+    }
+    return matchFailure(reason ?? Frame.error("$!.no-bit-alternative 0"));
+  }
+
+  public matchAt(
+    value: FrameBlob,
+    offset: number,
+    scope: CaptureScope,
+    label: string,
+  ): BitStep {
+    return this.choice.matchAt(value, offset, scope, label);
+  }
+
+  /**
+   * An option missing one of its fields does not apply, so the reason is the
+   * first refusal of an option that had every field; a construction no option
+   * attempts names the first option's missing field.
+   */
+  public construct(value: Frame): Frame {
+    const refusals: Frame[] = [];
+    for (const option of this.choice.layouts()) {
+      const built = option instanceof BitSequenceSchemaMatcher ||
+          option instanceof RepetitionBitLayout ||
+          option instanceof ChoiceBitSchemaMatcher
+        ? option.construct(value)
+        : Frame.error(`$!.unsupported-bit-construct ${option.format()}`);
+      if (!built.is.error) return built;
+      refusals.push(built);
+    }
+    return refusals.find((refusal) => !missingFields.has(refusal)) ??
+      refusals[0];
+  }
+
+  public layouts(): readonly BitLayout[] {
+    return this.choice.layouts();
+  }
+
+  public format(): string {
+    return this.choice.format();
+  }
+}
+
+/** Construction refusals for a field the object lacks. */
+const missingFields = new WeakSet<Frame>();
+
+/**
+ * The top-level choice a schema's evaluated candidates denote: every candidate
+ * a schema already compiled to a bit layout. A schema of blobs, or one mixing
+ * blobs and layouts, stays an enumeration outside a bit layout.
+ */
+export function compileBitChoice(
+  candidates: Frame[],
+): SchemaMatcher | undefined {
+  if (candidates.length === 0) return undefined;
+  const options: BitLayout[] = [];
+  for (const candidate of candidates) {
+    const schema = candidate.referent();
+    const matcher = schema.isSchema() ? schema.compiledMatcher() : undefined;
+    if (!matcher || !isBitLayout(matcher)) return undefined;
+    options.push(matcher);
+  }
+  return new ChoiceBitSchemaMatcher(new AlternativeBitLayout(options));
+}
+
+/** Whether a schema's matcher is a top-level choice, sized by its options. */
+export function isBitChoice(matcher: SchemaMatcher): boolean {
+  return matcher instanceof ChoiceBitSchemaMatcher;
 }
 
 /**
@@ -465,7 +563,11 @@ class BitSequenceSchemaMatcher implements SchemaMatcher, BitLayout {
     const parts: Frame[] = [];
     for (const capture of this.captures) {
       const binding = value.resolve_here(capture.name, Frame.nil);
-      if (!binding) return Frame.error(`$!.property-missing .${capture.name}`);
+      if (!binding) {
+        const missing = Frame.error(`$!.property-missing .${capture.name}`);
+        missingFields.add(missing);
+        return missing;
+      }
       const part = binding.value;
       if (part.is.error) return part;
       if (capture.layout && !(capture.layout instanceof LiteralBitLayout)) {
@@ -553,6 +655,11 @@ function layoutOfSchema(
 ): BitLayout | undefined {
   if (!schema.isSchema() || path.has(schema)) return undefined;
   const matcher = schema.compiledMatcher();
+  // A one-option choice, such as `<X>`, is that option inside a layout.
+  if (matcher instanceof ChoiceBitSchemaMatcher) {
+    const options = matcher.layouts();
+    return options.length === 1 ? options[0] : matcher;
+  }
   if (isBitLayout(matcher)) return matcher;
   if (!(matcher instanceof EnumerationSchemaMatcher)) return undefined;
   const candidates = schema.asArray().map((candidate) => candidate.referent());

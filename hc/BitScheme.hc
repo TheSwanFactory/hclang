@@ -204,7 +204,7 @@ This specification distinguishes four statuses:
 * **aspirational** examples are executable assertions marked `$!.unimplemented`;
 * **environment-dependent** operations, such as writing generated data files, remain non-executable documentation.
 
-The schema and capture gaps are tracked by [#310](https://github.com/TheSwanFactory/hclang/issues/310). The framebuffer example ([#311](https://github.com/TheSwanFactory/hclang/issues/311)) is implemented; the RISC-V example is tracked by [#312](https://github.com/TheSwanFactory/hclang/issues/312).
+The schema and capture gaps are tracked by [#310](https://github.com/TheSwanFactory/hclang/issues/310). The framebuffer example ([#311](https://github.com/TheSwanFactory/hclang/issues/311)) and the RISC-V example ([#312](https://github.com/TheSwanFactory/hclang/issues/312)) are implemented.
 
 ## Schemas
 
@@ -406,35 +406,67 @@ as it is. `&&` streams each command's captures as `[key, value]` tuples:
 # [.fb-start, [[[.op, .x], [.width, .mvga-x]], [[.op, .y], [.height, .mvga-y]], [[.op, .data], [.fb-data, 0b00000000000000000000000000000001000000000001000000000001000000001111111111111111111111111111000011111111000000001111000000000000]]]]
 ```
 
-## Example B: RISC-V (aspirational, #312)
+## Example B: RISC-V (implemented, #312)
 
-The following RV32I schema remains non-executable documentation because fixed-length captures and schema constructors are not implemented:
+This example defines the six RV32I instruction formats, constructs an `addi`
+instruction, parses it back into named fields, and generates its bits from
+those fields.
 
-    .OP <7@Bit> (.Register <0b0110011>; .Load 0b0000011; .Math 0b0010011; .Immediate <Load, Math>; .Upper <0b0110111, 0b0010111>; .Store <0b0100011>; .Branch <0b1100011>; .Jump <0b1101111>;);
-    .FUNCT3 (.funct3 <3@Bit>;);
-    .FUNCT7 (.funct7 <7@Bit>;);
-    .RD (.rd <5@Bit>);
-    .RS1 (.rs1 <5@Bit>);
-    .RS2 (.rs2 <5@Bit>);
-    .SOURCE (RS2, RS1, FUNCT3);
-    .Register <[FUNCT7, SOURCE, RD, OP.Register]>;
-    .Immediate <[.imm11-0 <12@Bit>, RS1, FUNCT3, RD, .opcode OP.Immediate]>;
-    .UpperImmediate <[.imm31-12 <20@Bit>, RD, .opcode OP.Upper]>;
-    .Store <[.imm11-5 <7@Bit>, SOURCE, .imm4-0 <5@Bit>, .opcode OP.Store]>;
-    .Branch <[.b12 <Bit>, .imm10-5 <6@Bit>, SOURCE, .imm4-1 <4@Bit>, .b11 <Bit>, .opcode OP.Branch]>;
-    .Jump <[.b20 <Bit>, .imm10-1 <10@Bit>, .b11 <Bit>, .imm19-12 <8@Bit>, RD, .opcode OP.Jump]>;
-    .RISC-V <Register, Immediate, UpperImmediate, Store, Branch, Jump>;
-    .func (.add 0b000; .slt 0b010; .xor 0b100; .or 0b110; .and 0b111;);
-    .addi <[.value, .source, .dest]> ^ {value source func.add dest OP.Math};
-
-Construction, parsing, and generation are tracked independently so each future result can remove one marker:
+Each opcode is a 7-bit blob, and each format ends with a literal opcode field.
+`<OP.Load, OP.Math>` is a literal field that matches either opcode:
 ```
+; .OP [.Register 0b0110011; .Load 0b0000011; .Math 0b0010011; .LUI 0b0110111; .AUIPC 0b0010111; .Store 0b0100011; .Branch 0b1100011; .Jump 0b1101111;];
+; .Register <[.funct7 <7@Bit>; .rs2 <5@Bit>; .rs1 <5@Bit>; .funct3 <3@Bit>; .rd <5@Bit>; .opcode <OP.Register>;]>;
+; .Immediate <[.imm11-0 <12@Bit>; .rs1 <5@Bit>; .funct3 <3@Bit>; .rd <5@Bit>; .opcode <OP.Load, OP.Math>;]>;
+; .UpperImmediate <[.imm31-12 <20@Bit>; .rd <5@Bit>; .opcode <OP.LUI, OP.AUIPC>;]>;
+; .Store <[.imm11-5 <7@Bit>; .rs2 <5@Bit>; .rs1 <5@Bit>; .funct3 <3@Bit>; .imm4-0 <5@Bit>; .opcode <OP.Store>;]>;
+; .Branch <[.b12 <1@Bit>; .imm10-5 <6@Bit>; .rs2 <5@Bit>; .rs1 <5@Bit>; .funct3 <3@Bit>; .imm4-1 <4@Bit>; .b11 <1@Bit>; .opcode <OP.Branch>;]>;
+; .Jump <[.b20 <1@Bit>; .imm10-1 <10@Bit>; .b11 <1@Bit>; .imm19-12 <8@Bit>; .rd <5@Bit>; .opcode <OP.Jump>;]>;
+```
+
+A schema whose candidates are all bit layouts is their ordered choice when
+applied on its own. Each format is tried against the whole instruction, and
+the first that matches answers its captures:
+```
+; .RISC-V <Register, Immediate, UpperImmediate, Store, Branch, Jump>;
+```
+
+The 2019 sketch spliced shared field groups such as `(RS2, RS1, FUNCT3)` into
+each format and declared constructors with `^`. Field groups cannot be spliced
+into a layout yet, so each format spells its fields out. A constructor is an
+ordinary closure: it reduces its fields into the `Immediate` format, which
+checks their widths and the opcode, then joins the capture list. The
+`imm11-0` immediate is 11, `rs1` is register 10 and `rd` is register 7:
+```
+; .func [.add 0b000; .slt 0b010; .xor 0b100; .or 0b110; .and 0b111;];
+; .addi {.a _; .f (Immediate | [.imm11-0 a.0; .rs1 a.1; .funct3 func.add; .rd a.2; .opcode OP.Math;]); (f.0 f.1 f.2 f.3 f.4)};
 ; addi[0b000000001011, 0b01010, 0b00111]
-# $!.unimplemented 0b00000000101101010000001110010011
+# 0b00000000101101010000001110010011
+```
+
+Bit constructors turn integers into fields of the right width, so the same
+instruction can be built from numbers. A field of the wrong width is refused:
+```
+; addi[<12@Bit> 11, <5@Bit> 10, <5@Bit> 7]
+# 0b00000000101101010000001110010011
+; addi[0b1011, 0b01010, 0b00111]
+# $!.bit-width 12
+```
+
+Parsing the instruction finds the `Immediate` format. `Register` fails at its
+opcode, the last field, so the choice moves on:
+```
 ; RISC-V 0b00000000101101010000001110010011
-# $!.unimplemented [.imm11-0 0b000000001011; .rs1 0b01010; .funct3 0b000; .rd 0b00111; .opcode 0b0010011;]
+# [.imm11-0 0b000000001011; .rs1 0b01010; .funct3 0b000; .rd 0b00111; .opcode 0b0010011;]
+; RISC-V 0b00000000101101010000001111111111
+# $!.bit-literal-mismatch .opcode 25
+```
+
+Generation reduces the fields into the choice. `Register` lacks `funct7`, so
+the first format that has every field, `Immediate`, answers the capture list:
+```
 ; RISC-V | [.imm11-0 0b000000001011; .rs1 0b01010; .funct3 0b000; .rd 0b00111; .opcode 0b0010011;]
-# $!.unimplemented [0b000000001011, 0b01010, 0b000, 0b00111, 0b0010011]
+# [0b000000001011, 0b01010, 0b000, 0b00111, 0b0010011]
 ```
 
 Writing the generated bytes to a data file is environment-dependent and intentionally remains non-executable documentation. The executable specification ends here.
