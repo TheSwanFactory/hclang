@@ -5,7 +5,7 @@
 > contains nothing else; then describe it and say that nothing user-facing
 > changed.
 
-## Unreleased
+## v0.57.2 2026-11-26
 
 - **`^` and `^^` no longer change other names holding the closure (#485).** Both
   refine a copy of the closure and bind it only to the name being declared.
