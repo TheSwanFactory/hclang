@@ -22,8 +22,11 @@
   (`<0, {_.> 100}>` admits 0 and 101), a predicate's error is the refusal reason
   (`<{$!!.too-big}> 5` answers `$!!.too-big`), and binding never converts the
   value. A schema whose predicate may write is refused when built with
-  `$!.schema-predicate-effect`. `.s {_.< 10}; .z <s> 5` now binds 5 where it
-  answered `$!.type-error`.
+  `$!.schema-predicate-effect`. A write that analysis cannot see, such as a
+  predicate calling the matched value, is refused before it lands and fails the
+  match with the same error, so matching never writes shared state. Comparisons
+  inside a schema take the dot (`{_.> 100}`), since a bare `>` closes the
+  schema. `.s {_.< 10}; .z <s> 5` now binds 5 where it answered `$!.type-error`.
 - **HLIR primitive types are an HC module (#536).** `HLIR <- './hc/hlir.hc'`
   provides `i8` `i16` `i32` `i64` `u8` `u16` `u32` `u64` `index` `f64`, the
   width generators `int w` and `uint w`, the conversions `floor`, `trunc` and

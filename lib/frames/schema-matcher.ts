@@ -25,6 +25,8 @@ export interface SchemaPredicates {
   predicateOf(candidate: Frame): Frame | undefined;
   /** Whether calling the predicate may write (its footprint has a write). */
   hasEffect(predicate: Frame): boolean;
+  /** Calls the predicate with `value`, refusing any write to shared state. */
+  call(predicate: Frame, value: Frame): Frame;
 }
 let predicates: SchemaPredicates | undefined;
 export function installSchemaPredicates(p: SchemaPredicates): void {
@@ -37,11 +39,18 @@ export function schemaPredicateOf(candidate: Frame): Frame | undefined {
 export function schemaPredicateHasEffect(predicate: Frame): boolean {
   return predicates?.hasEffect(predicate) ?? false;
 }
+function callSchemaPredicate(predicate: Frame, value: Frame): Frame {
+  return predicates
+    ? predicates.call(predicate, value)
+    : predicate.call(value, Frame.nil);
+}
 /**
  * Finite equality type with delegation to nested first-class types and
  * predicate candidates. A closure candidate is called with the value and
  * admits it unless it answers nil or an error; when no candidate matches, the
- * first error a predicate answered is the failure's reason (#536).
+ * first error a predicate answered is the failure's reason (#536). The call
+ * runs under a guard that refuses writes to shared state, so a predicate that
+ * writes through its argument answers `$!.schema-predicate-effect` instead.
  */
 export class EnumerationSchemaMatcher implements SchemaMatcher {
   public match(
@@ -65,7 +74,7 @@ export class EnumerationSchemaMatcher implements SchemaMatcher {
       }
       const predicate = schemaPredicateOf(candidate);
       if (predicate) {
-        const answer = predicate.call(value, Frame.nil);
+        const answer = callSchemaPredicate(predicate, value);
         if (answer.is.error === true) reason ??= answer;
         else if (answer !== Frame.nil) return matchSuccess(value);
         continue;

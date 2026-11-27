@@ -468,11 +468,16 @@ value and admits the value unless the closure answers nil or an error:
 matches, the first error a predicate answered is the failure's reason, which
 schema application `<p> v` answers: `<{$!!.too-big}> 5` is `$!!.too-big`. A
 predicate composes with other candidates, so `<0, {_.> 100}>` admits 0 and 101.
-Binding keeps the value unchanged: `.d <{_ ~ 1.5.<>}> 3` binds the integer 3.
-Matching stays read-only, so a schema holding a predicate that may write (its
-access footprint has a write) is refused when it is built, with
-`$!.schema-predicate-effect`; a predicate that only reads enclosing names is
-admitted (#536).
+Inside a schema, write comparisons with the dot (`{_.> 100}`, `{_.< 10}`): a
+bare `>` closes the schema, so `<{_ > 3}>` is a parse error. Binding keeps the
+value unchanged: `.d <{_ ~ 1.5.<>}> 3` binds the integer 3. Matching stays
+read-only. A schema holding a predicate that may write (its access footprint has
+a write) is refused when it is built, with `$!.schema-predicate-effect`; a
+predicate that only reads enclosing names is admitted. A write the footprint
+cannot see, such as calling the matched value (`.p {_ (); <>}`) or a closure
+held in an aggregate, is refused when it is attempted, before it lands, and the
+match fails with `$!.schema-predicate-effect` as its reason. Frames the
+predicate creates, such as its local bindings, stay writable (#536).
 
 `F.<>` extracts the exact runtime class of F, transparently through a name or
 handle. It matches only values of that class, except that a numeric type also

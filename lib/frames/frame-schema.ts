@@ -45,8 +45,9 @@ export class FrameSchema extends FrameList implements FrameMatcher {
   }
 
   /**
-   * A schema holding a predicate that may write is refused when built, so
-   * matching stays read-only, as BitScheme requires (#536).
+   * A schema holding a predicate that may write is refused when built; a
+   * write the footprint cannot see is refused at the call (schema-predicate.ts),
+   * so matching stays read-only, as BitScheme requires (#536).
    */
   public override in(input: EvaluationInput = []): Frame {
     const matcher = compileSchemaMatcher(this.data);

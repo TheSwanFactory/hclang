@@ -390,6 +390,34 @@ describe("evaluate: schemas", () => {
       const result = evaluate(source + "5 ~ <p>");
       expect(result.meta["tally"]?.toString()).toEqual("0");
     });
+    // The construction-time walk cannot see these writes, so the call's
+    // guard refuses them and the match fails with nothing written.
+    it("refuses a write through the matched value", () => {
+      const source = ".tally 0; .bump {@tally (tally + 1); <>}; ";
+      const called = evaluate(source + ".p {_ (); <>}; [bump ~ <p>, <p> bump]");
+      expect(called.toString()).toContain("[(), $!.schema-predicate-effect]");
+      expect(called.meta["tally"]?.toString()).toEqual("0");
+      const iterated = evaluate(
+        source + ".q {_ & {_ ()}; <>}; [[bump] ~ <q>, <q> [bump]]",
+      );
+      expect(iterated.toString()).toContain(
+        "[(), $!.schema-predicate-effect]",
+      );
+      expect(iterated.meta["tally"]?.toString()).toEqual("0");
+    });
+    it("refuses a write through an iterated aggregate of closures", () => {
+      const result = evaluate(
+        ".tally 0; .bump {@tally (tally + 1); <>}; .fns [bump]; " +
+          ".p {fns & {_ ()}; <>}; [5 ~ <p>, 6 ~ <p>, <p> 7]",
+      );
+      expect(result.toString()).toContain(
+        "[(), (), $!.schema-predicate-effect]",
+      );
+      expect(result.meta["tally"]?.toString()).toEqual("0");
+    });
+    it("lets a predicate write frames it creates", () => {
+      expect(evaluate("5 ~ <{.v _; v.< 10}>").toString()).toEqual("[<>]");
+    });
     it("admits a read-only closure over a file name", () => {
       expect(evaluate(".limit 10; 5 ~ <{_.< limit}>").toString()).toEqual(
         "[.limit 10; ((.limit 10); <>)]",

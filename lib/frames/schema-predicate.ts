@@ -2,14 +2,22 @@
  * Installs predicate schema candidates (#536): a closure inside a schema, a
  * `FrameLazy` or a `BoundMethod` (a closure read by dot), possibly behind a
  * handle, is a predicate. Its effect is graded by its potential access
- * footprint (access-footprint.ts); any write makes it effectful. It lives
+ * footprint (access-footprint.ts); any write makes it effectful. That walk
+ * cannot see a write reached through the matched value or through closures
+ * held in an aggregate, so each call also runs under an `AccessRecord` guard
+ * that refuses writes to shared state before they land. It lives
  * here because schema-matcher.ts is imported by frame.ts and cannot import
  * the closure or footprint machinery.
  */
 import { FrameLazy } from "./frame-lazy.ts";
 import { Frame } from "./frame.ts";
 import { BoundMethod } from "./bound-method.ts";
-import { potentialFootprint } from "./access-footprint.ts";
+import { isState, potentialFootprint } from "./access-footprint.ts";
+import {
+  AccessRecord,
+  UncertifiedAccess,
+  withAccessRecord,
+} from "./reference-tracking.ts";
 import { installSchemaPredicates } from "./schema-matcher.ts";
 
 installSchemaPredicates({
@@ -21,4 +29,18 @@ installSchemaPredicates({
   },
   hasEffect: (predicate) =>
     potentialFootprint(predicate, Frame.nil).writes.size > 0,
+  call: (predicate, value) => {
+    // Frames the predicate creates are its own (record.created) and writable.
+    const record = new AccessRecord();
+    record.guard = (frame, access) => access !== "write" || !isState(frame);
+    try {
+      return withAccessRecord(record, () => predicate.call(value, Frame.nil));
+    } catch (error) {
+      // A refusal by an enclosing record belongs to whoever installed it.
+      if (!(error instanceof UncertifiedAccess) || error.record !== record) {
+        throw error;
+      }
+      return Frame.error("$!.schema-predicate-effect");
+    }
+  },
 });
