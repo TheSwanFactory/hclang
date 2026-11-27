@@ -14,9 +14,12 @@
   the input, answering each element's captures; `<[<8@Bit>]> 0x1234` is
   `[0b00010010, 0b00110100]`. Deferred captures see every earlier capture of the
   same parse, so a data command can size its payload from width and height
-  commands before it. No binding outside the parse is written. These forms used
-  to answer `$!.unsupported-schema-match` or `$!.type-error`. The tutorial's
-  framebuffer example now parses and symbolicates.
+  commands before it; a payload that comes first answers
+  `$!.capture-missing .fb-data width`. No binding outside the parse is written.
+  Reducing an object into a choice or repetition answers
+  `$!.unsupported-bit-construct`. These forms used to answer
+  `$!.unsupported-schema-match` or `$!.type-error`. The tutorial's framebuffer
+  example now parses and symbolicates.
 - **`&&` and `||` stream property values through a name or an argument (#311).**
   `.n [.a 4; .b 2;]; n && {_}` was `[[.a, ()], [.b, ()]]` and is now
   `[[.a, 4], [.b, 2]]`; a closure's argument streams the same way.

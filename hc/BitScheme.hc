@@ -384,11 +384,12 @@ bits, rendered in binary like every captured field:
 ```
 
 A data command that comes before the dimensions fails, because its deferred
-capture has no width to read yet. An opcode that no command starts with fails
+capture has no width to read yet; the error names the field and the missing
+capture. An opcode that no command starts with fails
 at its position:
 ```
 ; fb-parse (fb-start op.data mvga-data)
-# $!.name-missing...
+# $!.capture-missing .fb-data width
 ; fb-parse (fb-start 0xd)
 # $!.no-bit-alternative .commands.0 40
 ```

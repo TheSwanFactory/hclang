@@ -824,15 +824,21 @@ bits rather than spellings, and answers the declared blob. A schema of bit
 layouts (`<parse-x, parse-y>`) tries its options in order and keeps the first
 that matches, with no backtracking once one has. When every option fails, it
 reports the first failure that happened after an option's opening field matched,
-and `$!.no-bit-alternative` otherwise. `<[element]>` repeats a layout until the
-input ends; each element must consume a bit, and any mismatch fails the whole
-repetition. Repetitions are terminal like remainders. Outside a bit layout these
-schemas keep their enumeration meaning. One parse keeps a capture scope of every
-named capture made so far, and a deferred capture receives that scope, so a
-width captured by an earlier repeated element sizes a later one. The scope
-belongs to the match: a failed option's captures are discarded with it, and no
-caller or ancestor binding is written. Construction accepts literal fields but
-refuses choices and repetitions with `$!.unsupported-bit-construct`.
+and `$!.no-bit-alternative` otherwise. A nested choice whose options all failed
+at their opening fields counts as not applying, so the rule holds through
+nesting. `<[element]>` repeats a layout until the input ends; each element must
+consume a bit, and any mismatch fails the whole repetition. An element written
+with bit syntax that fails to compile reports why (`<[<0@Bit>]>` is
+`$!.bit-width 0`). Repetitions are terminal like remainders. Outside a bit
+layout these schemas keep their enumeration meaning. One parse keeps a capture
+scope of every named capture made so far, and a deferred capture receives that
+scope, so a width captured by an earlier repeated element sizes a later one. A
+name the deferred capture needs that neither the parse nor the enclosing scope
+binds is reported as `$!.capture-missing .field name`. The scope belongs to the
+match: a failed option's captures are discarded with it, and no caller or
+ancestor binding is written. Construction accepts literal fields but refuses
+choices and repetitions, top-level or nested, with
+`$!.unsupported-bit-construct`.
 
 ## Context
 

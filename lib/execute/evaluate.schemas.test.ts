@@ -483,9 +483,13 @@ describe("evaluate: schemas", () => {
         "[.s 0xf; .cs [[.op 0xa; .w 0b0100;], [.op 0xc; .d 0b0101;]];]",
       );
       // The width is captured after the data command, so the data command's
-      // deferred capture cannot read it; the reason is reported.
-      expect(answer("<[.s <0xf>; .cs <[C]>;]> 0xfc5a4")).toContain(
-        "$!.name-missing",
+      // deferred capture cannot read it; the field and capture are named.
+      expect(answer("<[.s <0xf>; .cs <[C]>;]> 0xfc5a4")).toEqual(
+        "$!.capture-missing .d w",
+      );
+      // A deferred name bound outside the layout still resolves there.
+      expect(answer(".n 2; <[.d <0b1>; .v {<n@Bit>};]> 0b110")).toEqual(
+        "[.d 0b1; .v 0b10;]",
       );
       // P captures an 8-bit w before failing; D must size by X's w.
       expect(
@@ -510,6 +514,37 @@ describe("evaluate: schemas", () => {
       );
       expect(answer("<[.s <0xf>; .cs <[C]>;]> | [.s 0xf; .cs [];]"))
         .toEqual("$!.unsupported-bit-construct .cs");
+      expect(evaluate("<[<8@Bit>]> | [0x12, 0x34]").toString()).toEqual(
+        "[$!.unsupported-bit-construct <[<8@Bit>]>]",
+      );
+    });
+
+    it("reports why a repetition element fails to compile", () => {
+      expect(evaluate("<[<0@Bit>]> 0b0").toString()).toEqual(
+        "[$!.bit-width 0]",
+      );
+      const effect = evaluate(".x 0; <[<(@x 1; 4)@Bit>]> 0xf; [x]");
+      expect(effect.meta.x.toString()).toEqual("0");
+      expect(effect.toString()).toContain("$!.schema-predicate-effect");
+      expect(evaluate(".R <[<0@Bit>]>;").toString()).toContain(
+        "$!.bit-width 0",
+      );
+    });
+
+    // A choice none of whose options opened did not apply, so an enclosing
+    // choice reports the later option that opened and then failed.
+    it("keeps the deeper failure through a nested choice", () => {
+      const nested = ".A <[.op <0xa>;]>; .B <[.op <0xb>;]>; " +
+        ".N <[.first <A, B>;]>; .P <[.op <0xc>; .payload <8@Bit>;]>; ";
+      expect(answer(nested + "<[<N, P>]> 0xc1")).toEqual(
+        "$!.insufficient-bits .payload 4",
+      );
+      expect(answer(nested + "<[<<A, B>, P>]> 0xc1")).toEqual(
+        "$!.insufficient-bits .payload 4",
+      );
+      expect(answer(nested + "<[<N, P>]> 0xd1")).toEqual(
+        "$!.no-bit-alternative .0 0",
+      );
     });
 
     it("mixes literal and layout options and unwraps a single option", () => {
@@ -540,6 +575,9 @@ describe("evaluate: schemas", () => {
       ) expect(evaluate(source).toString()).toEqual(expected);
       expect(evaluate("<[.a <1, 2>; .b <nope>;]> 1").toString()).toContain(
         "$!.type-error <[.a <1, 2>;",
+      );
+      expect(evaluate("<[nope]> 0b1").toString()).toContain(
+        "$!.type-error <[$!.name-missing",
       );
     });
   });

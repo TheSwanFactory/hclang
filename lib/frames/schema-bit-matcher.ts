@@ -128,7 +128,11 @@ export function compileBitSchemaMatcher(
       }
       if (entries.length === 1 && !isNamedCapture(entries[0])) {
         const element = bitLayoutOf(entries[0], input);
-        if (element !== undefined && !(element instanceof Frame)) {
+        // An element written with bit syntax that fails to compile, such as
+        // `<0@Bit>`, reports why; anything else keeps its enumeration meaning.
+        if (element instanceof Frame) {
+          if (containsBitSyntax(entries)) return element;
+        } else if (element !== undefined) {
           return new RepetitionBitLayout(element);
         }
       }
@@ -276,7 +280,8 @@ class LiteralBitLayout implements BitLayout {
 }
 
 /**
- * Each literal mismatch and the cursor it happened at. A mismatch at the
+ * Each literal mismatch, or choice none of whose options opened, and the
+ * cursor it happened at. A mismatch at the
  * cursor an option started from means the option did not apply. Any other
  * failure means the option's opening field matched and a later one failed,
  * which is the reason an ordered choice reports when no option matches.
@@ -322,7 +327,12 @@ class AlternativeBitLayout implements BitLayout {
       for (const [name, part] of trial) scope.set(name, part);
       return step;
     }
-    return reason ?? Frame.error(`$!.no-bit-alternative ${label} ${offset}`);
+    if (reason) return reason;
+    // No option got past its opening field, so to an enclosing choice this
+    // choice did not apply either.
+    const none = Frame.error(`$!.no-bit-alternative ${label} ${offset}`);
+    openingMismatches.set(none, offset);
+    return none;
   }
 
   public format(): string {
@@ -369,6 +379,11 @@ class RepetitionBitLayout implements SchemaMatcher, BitLayout {
       at = step.end;
     }
     return { evidence: new FrameArray(items), end: at };
+  }
+
+  /** Construction would have to choose elements; it is refused, not guessed. */
+  public construct(_value: Frame): Frame {
+    return Frame.error(`$!.unsupported-bit-construct ${this.format()}`);
   }
 
   public format(): string {
@@ -431,7 +446,7 @@ class BitSequenceSchemaMatcher implements SchemaMatcher, BitLayout {
   private width(capture: BitCapture, evidence: Frame): number | null | Frame {
     if (!(capture.bits instanceof Frame)) return capture.bits;
     const answer = callSchemaPredicate(capture.bits, evidence);
-    if (answer.is.error) return answer;
+    if (answer.is.error) return missingCapture(capture.name, answer, evidence);
     const matcher = answer.isSchema() ? answer.compiledMatcher() : undefined;
     const width = matcher instanceof ExactBitSchemaMatcher ||
         matcher instanceof RemainderBitSchemaMatcher
@@ -491,6 +506,20 @@ class BitSequenceSchemaMatcher implements SchemaMatcher, BitLayout {
       ).join(" ")
     }]>`;
   }
+}
+
+/**
+ * A deferred capture's name lookup starts at the capture scope, so a missing
+ * name that is not bound outside the layout either is reported against that
+ * scope (`$!.name-missing “$:FrameArray.N.width”`), with an id that changes run
+ * to run. Name the field being sized and the capture it needed instead.
+ */
+function missingCapture(field: string, error: Frame, scope: Frame): Frame {
+  const prefix = `$!.name-missing “${scope.id}.`;
+  const text = error.toString();
+  if (!text.startsWith(prefix)) return error;
+  const name = text.slice(prefix.length).split("”")[0];
+  return Frame.error(`$!.capture-missing .${field} ${name}`);
 }
 
 function isNamedCapture(entry: Frame): boolean {
