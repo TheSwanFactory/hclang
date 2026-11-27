@@ -123,3 +123,8 @@ authenticated run skipped for the unset token.
 Master's subsequent HLIR release claimed v0.59.0. Record 13 documents the
 rebased v0.60.0 preparation and the intentional empty-token/403 policies. The
 full gate and all unchanged coverage floors pass on this latest base.
+
+Kiro identified a coverage instrumentation difference between local Deno 2.9.7
+and CI's pinned 2.9.8. Record 14 adds a real missing-config startup regression
+and verifies the pinned runtime: all unchanged coverage floors pass, with CLI
+branches at 97.11%. The earlier 2.9.7 figures are historical local measurements.

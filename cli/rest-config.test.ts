@@ -324,11 +324,13 @@ describe("REST config validation boundaries", () => {
       const cli = new URL("./hc.ts", import.meta.url).pathname;
       const command = async (
         args: string[],
+        allowWrite = false,
       ): Promise<{ code: number; output: string }> => {
         const result = await new Deno.Command(Deno.execPath(), {
           args: [
             "run",
             "--allow-read",
+            ...(allowWrite ? ["--allow-write"] : []),
             `--allow-env=${CLI_ENVIRONMENT.join(",")}`,
             "--no-prompt",
             cli,
@@ -355,6 +357,18 @@ describe("REST config validation boundaries", () => {
       expect(success.output).not.toContain("name-missing");
       expect(() => Deno.statSync(`${directory}/untouched`)).toThrow();
       expect((await command(["--grants"])).code).toBe(1);
+      // Normal startup must fail before evaluation when its grants cannot load.
+      // Give this launch temp-root write access so it reaches the REST failure.
+      const missing = await command([
+        "--rest",
+        `${directory}/missing.json`,
+        "--evaluate",
+        "1",
+      ], true);
+      expect(missing.code, missing.output).toBe(1);
+      expect(missing.output).toContain("--rest: cannot read");
+      expect(missing.output).toContain("missing.json");
+      expect(missing.output).not.toContain("Requires write access");
     } finally {
       Deno.removeSync(directory, { recursive: true });
     }
