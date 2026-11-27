@@ -101,6 +101,12 @@
     "fail": 0,
     "unimplemented": 0
   },
+  "rest-auth.hc": {
+    "total": 5,
+    "pass": 5,
+    "fail": 0,
+    "unimplemented": 0
+  },
   "rest.hc": {
     "total": 26,
     "pass": 26,

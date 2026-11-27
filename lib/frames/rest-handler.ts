@@ -16,7 +16,7 @@
  *
  * Installation is harness-only, as for every handler: a grant is a TypeScript
  * value, and HC has no spelling that creates, widens, revokes or enumerates
- * one. `spec/a20-rest-resource.md` records the design.
+ * one. `spec/a20-rest-resource/` records the design.
  *
  * @module
  */
@@ -32,29 +32,29 @@ import {
   type HandlerWrite,
   type SchemeHandler,
 } from "./resource-handlers.ts";
+import {
+  attenuateRestPolicy,
+  RestAuthority,
+  type RestNarrowing,
+} from "./rest-authority.ts";
 import type { ReferenceParts } from "./resource-reference.ts";
 import {
   namesGrant,
-  requestHeaders,
-  requestUrl,
   responseHeaders,
   REST_METHOD,
-  type RestEvidence,
   type RestEvidenceStub,
   type RestGrantPolicy,
   restGrantPolicy,
   type RestGrantSpec,
+  type RestInput,
   type RestRefusal,
+  type RestRequest,
   type RestTransport,
+  type RestTransportResult,
 } from "./rest-policy.ts";
-/** The keys a request record may hold in the MVP. */
-const REQUEST_KEYS = new Set(["path", "query", "headers"]);
-/** One request, read out of its record. */
-export interface RestRequest {
-  readonly path?: string;
-  readonly query: readonly (readonly [string, string])[];
-  readonly headers: readonly (readonly [string, string])[];
-}
+/** The keys a request record may hold. */
+const REQUEST_KEYS = new Set(["path", "query", "headers", "method", "body"]);
+export type { RestRequest } from "./rest-policy.ts";
 /** One response, before it becomes a record. */
 export interface RestResponse {
   readonly status: number;
@@ -95,11 +95,9 @@ const stringPairs = (
 /**
  * Reads a request record, or refuses its shape.
  *
- * Every key is optional, and any key outside `.path`, `.query` and `.headers`
- * answers `resource-request-shape`, which includes `.method` and `.body`: the
- * MVP sends public `GET`s only. A value that is not a record, or a record
- * holding elements, is refused the same way, so applying a string is never a
- * write.
+ * Every key is optional: path, query, headers, method and body. Unknown keys,
+ * values of the wrong type, and aggregates holding elements are shape refusals.
+ * Method and body permissions are decided by the grant after parsing.
  *
  * @param frame The argument the resource was applied to.
  */
@@ -122,7 +120,17 @@ export function readRequest(
     ? stringPairs(record.getOwn("headers"))
     : [];
   if (query === undefined || headers === undefined) return shape;
-  return { ok: true, request: { path, query, headers } };
+  const method = keys.includes("method")
+    ? stringValue(record.getOwn("method"))
+    : undefined;
+  const body = keys.includes("body")
+    ? stringValue(record.getOwn("body"))
+    : undefined;
+  if (
+    (keys.includes("method") && method === undefined) ||
+    (keys.includes("body") && body === undefined)
+  ) return shape;
+  return { ok: true, request: { path, query, headers, method, body } };
 }
 /**
  * A response as an ordinary HC record.
@@ -152,111 +160,85 @@ export function responseRecord(response: RestResponse): Frame {
  * still spends a request.
  */
 export class RestGrant {
-  public readonly policy: RestGrantPolicy;
-  private readonly created: number;
-  private sent = 0;
-  private revoked = false;
-  /**
-   * @param spec The grant as the harness wrote it, checked by `restGrantPolicy`.
-   * @param transport How this grant sends, simulated or live.
-   * @param now The harness's clock in epoch milliseconds, for `at` and lifetime.
-   */
+  public readonly authority: RestAuthority;
+  public readonly id: string;
   public constructor(
     spec: RestGrantSpec,
     private readonly transport: RestTransport,
-    private readonly now: () => number = Date.now,
+    now: () => number = Date.now,
+    id: string = spec.base,
+    parent?: RestGrant,
   ) {
-    this.policy = restGrantPolicy(spec);
-    this.created = now();
+    this.id = id;
+    this.authority = new RestAuthority(
+      restGrantPolicy(spec),
+      now,
+      id,
+      parent?.authority,
+    );
   }
-  /** The base URI a literal names this grant by. */
+  public get policy(): RestGrantPolicy {
+    return this.authority.policy;
+  }
   public get base(): string {
     return this.policy.base;
   }
-  /** Requests sent so far, for a harness or a test. */
   public requestsSent(): number {
-    return this.sent;
+    return this.transport.requestsSent?.(this.id) ?? this.authority.sent;
   }
-  /** Ends this grant: every later application answers `resource-revoked`. */
   public revoke(): void {
-    this.revoked = true;
+    this.authority.revoked = true;
+    this.transport.revoke?.(this.id);
   }
-  /** This grant's identity, for a harness or a test, never for a program. */
-  public describe(): string {
-    return `${this.policy.base} via ${this.transport.describe()}`;
-  }
-  /**
-   * Decides one application and, when it passes, sends it.
-   *
-   * @param request The request record already read, or its shape refusal.
-   */
-  public exchange(
-    request: { readonly ok: true; readonly request: RestRequest } | RestRefusal,
-  ): RestOutcome {
-    const at = this.now();
-    const stub: RestEvidenceStub = {
-      grant: this.policy.base,
-      at: new Date(at).toISOString(),
-      method: REST_METHOD,
-      url: null,
-    };
-    if (this.revoked) return this.refuse(stub, "resource-revoked");
-    if (at - this.created > this.policy.lifetimeMs) {
-      return this.refuse(stub, "resource-budget lifetime");
-    }
-    if (!request.ok) return this.refuse(stub, request.reason);
-    const url = requestUrl(
-      this.policy.base,
-      request.request.path,
-      request.request.query,
+  /** Constructs a child sharing this grant's counters, clock and transport. */
+  public attenuate(narrow: RestNarrowing, id?: string): RestGrant {
+    const policy = attenuateRestPolicy(this.policy, narrow);
+    const child = new RestGrant(
+      policy,
+      this.transport,
+      this.authority.now,
+      id ?? policy.base,
+      this,
     );
-    if (!url.ok) return this.refuse(stub, url.reason);
-    const located = { ...stub, url: url.url };
-    const headers = requestHeaders(this.policy, request.request.headers);
-    if (!headers.ok) return this.refuse(located, headers.reason);
-    if (this.sent >= this.policy.requests) {
-      return this.refuse(located, "resource-budget requests");
-    }
-    this.sent += 1;
-    const sent = this.transport.send({
-      url: url.url,
-      headers: headers.headers,
-      timeoutMs: this.policy.timeoutMs,
-      responseBytes: this.policy.responseBytes,
-    }, located);
+    return child;
+  }
+  public describe(): string {
+    return `${this.base} via ${this.transport.describe()}`;
+  }
+  public exchange(input: RestInput): RestOutcome {
+    const sent = this.transport.authorize
+      ? this.transport.authorize(this.id, input)
+      : this.localExchange(input);
     if (!sent.ok) return sent;
     return {
       ok: true,
       response: {
-        status: sent.status,
+        ...sent,
         headers: responseHeaders(this.policy, Object.entries(sent.headers)),
-        body: sent.body,
       },
     };
   }
-  /**
-   * Records a literal that names no grant, through this grant's channel.
-   *
-   * The record's `grant` is null, because no grant was reached.
-   */
+  private localExchange(input: RestInput): RestTransportResult {
+    const prepared = this.authority.prepare(input);
+    if (!prepared.ok) return this.refuse(prepared.stub, prepared.reason);
+    return this.transport.send(prepared.request, prepared.stub);
+  }
   public refuseUnbound(): RestRefusal {
     return this.refuse({
       grant: null,
-      at: new Date(this.now()).toISOString(),
+      at: new Date().toISOString(),
       method: REST_METHOD,
       url: null,
     }, "resource-unbound");
   }
-  /** Records a refusal decided before any transport call. */
   private refuse(stub: RestEvidenceStub, reason: string): RestRefusal {
-    const record: RestEvidence = {
-      ...stub,
-      outcome: "refused",
-      status: null,
-      responseBytes: 0,
-      refusal: reason,
-    };
-    return this.transport.record(record)
+    return this.transport.record({
+        ...stub,
+        outcome: "refused",
+        status: null,
+        responseBytes: 0,
+        refusal: reason,
+      })
       ? { ok: false, reason }
       : { ok: false, reason: "resource-evidence" };
   }
@@ -317,7 +299,7 @@ export class RestHandler implements SchemeHandler {
     }
     return { ok: true, elements: characterElements(answered.response.body) };
   }
-  /** Application is one `GET`, answered as a response record. */
+  /** Application is one policy-checked request, answered as a response record. */
   public exchange(reference: ReferenceParts, request: Frame): HandlerExchange {
     const grant = this.grantFor(reference);
     if (!grant.ok) return grant;
@@ -326,7 +308,7 @@ export class RestHandler implements SchemeHandler {
       ? { ok: true, response: responseRecord(answered.response) }
       : answered;
   }
-  /** Writing is not a REST verb in the MVP; application sends instead. */
+  /** Store-style writing is not a REST verb; request-record application sends. */
   public write(reference: ReferenceParts, _content: string): HandlerWrite {
     const grant = this.grantFor(reference);
     if (!grant.ok) return grant;

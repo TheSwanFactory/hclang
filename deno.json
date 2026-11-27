@@ -1,5 +1,5 @@
 {
-  "version": "0.59.0",
+  "version": "0.60.0",
   "nodeModulesDir": "manual",
   "bin": {
     "hc": "scripts/hc"
@@ -13,7 +13,7 @@
     "bump": "deno run -A scripts/bump-version.ts",
     "clean": "rm -f deno.lock",
     "hc": "deno task bundle:embed && deno run --allow-read --allow-write --allow-env --deny-run --deny-ffi cli/hc.ts",
-    "hc:rest": "deno task bundle:embed && deno run --allow-read --allow-write --allow-env --allow-net=api.github.com --deny-run --deny-ffi cli/hc.ts --rest cli/rest/github-live.json",
+    "hc:rest": "deno task bundle:embed && deno run --no-prompt --allow-read --allow-write --allow-env --unstable-worker-options --allow-net=api.github.com --deny-run --deny-ffi cli/hc.ts --rest cli/rest/github-live.json",
     "publish": "deno task publish:lib && deno task publish:web",
     "publish:lib": "deno task bundle:embed && cd lib && deno publish",
     "publish:npm": "npm publish",
@@ -24,8 +24,8 @@
     "coverage:check": "deno task bundle:embed && deno run --allow-read --allow-write --allow-run --allow-env scripts/coverage-floor.ts",
     "test:cli": "deno task bundle:embed && cd cli && deno task test",
     "test:doc": "deno task bundle:embed && cd cli && deno task test:doc",
-    "test:rest-loopback": "deno task bundle:embed && deno test --allow-read --allow-write --allow-env --allow-net=127.0.0.1 cli/rest-loopback.test.ts",
-    "test:rest-live": "deno task bundle:embed && deno run --allow-read --allow-run scripts/rest-live.ts",
+    "test:rest-loopback": "deno task bundle:embed && deno test --no-prompt --allow-read --allow-write --allow-env --unstable-worker-options --allow-net=127.0.0.1 cli/rest-loopback.test.ts",
+    "test:rest-live": "deno task bundle:embed && deno run --no-prompt --allow-read --allow-run --allow-env=HC_GITHUB_TOKEN scripts/rest-live.ts",
     "test:lib": "deno task bundle:embed && deno test --parallel --ignore=lib/load-order.test.ts lib && deno task test:load-order",
     "test:load-order": "deno task bundle:embed && deno test --allow-read lib/load-order.test.ts",
     "test:maml": "deno test lib/maml",
@@ -44,7 +44,9 @@
     "vscode:package": "cd vscode-extension && npx --yes @vscode/vsce@4.1.1 package",
     "vscode:publish": "cd vscode-extension && npx --yes @vscode/vsce@4.1.1 publish",
     "vscode:install": "cd vscode-extension && npx --yes @vscode/vsce@4.1.1 package && code --install-extension *.vsix",
-    "fix": "deno fmt && deno lint --fix"
+    "fix": "deno fmt && deno lint --fix",
+    "hc:rest-auth": "deno task bundle:embed && deno run --no-prompt --unstable-worker-options --allow-read --allow-write --allow-env=HOME,HOSTNAME,LANG,LC_ALL,LC_CTYPE,LOGNAME,PATH,PWD,SHELL,SHLVL,TMPDIR,TZ,USER,CI,COLORTERM,DEBUG,DEBUG_ENV,EDITOR,FORCE_COLOR,NO_COLOR,PAGER,TERM,TERM_PROGRAM,TERM_PROGRAM_VERSION,TF_BUILD,AGENT_NAME,GITHUB_ACTIONS,GITEA_ACTIONS,TRAVIS,CIRCLECI,APPVEYOR,GITLAB_CI,BUILDKITE,DRONE,CI_NAME,TEAMCITY_VERSION,HC_GITHUB_TOKEN --allow-net=api.github.com --deny-run --deny-ffi cli/hc.ts --rest cli/rest/github-auth.json",
+    "test:rest-fathom": "deno task bundle:embed && deno run --no-prompt --allow-read --allow-write --allow-run scripts/rest-fathom-live.ts"
   },
   "compilerOptions": {
     "lib": [

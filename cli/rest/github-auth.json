@@ -1,0 +1,36 @@
+{
+  "grants": [
+    {
+      "id": "repo",
+      "base": "https://api.github.com/repos/TheSwanFactory/hclang/",
+      "methods": [
+        "GET"
+      ],
+      "transport": "live",
+      "requests": 10,
+      "requestBytes": 0,
+      "responseBytes": 1000000,
+      "timeoutMs": 10000,
+      "lifetimeMs": 600000,
+      "evidence": "evidence/auth-live.jsonl",
+      "credential": {
+        "env": "HC_GITHUB_TOKEN",
+        "scheme": "bearer",
+        "create": "https://github.com/settings/personal-access-tokens/new?name=hclang+REST&target_name=TheSwanFactory&expires_in=30&issues=read",
+        "permissions": "Select only TheSwanFactory/hclang. Read-only Metadata and Issues. Expiry: 30 days."
+      }
+    },
+    {
+      "id": "issues-read",
+      "attenuates": "repo",
+      "path": "issues/",
+      "methods": [
+        "GET"
+      ],
+      "requests": 5
+    }
+  ],
+  "install": [
+    "issues-read"
+  ]
+}

@@ -87,6 +87,50 @@ deno task hc
 This will launch the interactive HC interpreter. The `hc` task regenerates the
 local, gitignored HC bundle automatically on a fresh clone.
 
+### Use a REST Grant
+
+Live REST runs from source under Deno. The harness selects authority; HC
+programs cannot read or choose credentials. Inspect the shipped grant's
+requirements:
+
+```bash
+deno task hc --rest cli/rest/github-auth.json --grants
+```
+
+Create the repository-limited token described there and set `HC_GITHUB_TOKEN`,
+or put it in a gitignored `.env` file. Run the same scoped task either way:
+
+```bash
+# With an exported token
+deno task hc:rest-auth hc/rest-auth.hc --testdoc
+
+# With a token in .env; --env-file belongs before the task name
+deno task --env-file=.env hc:rest-auth hc/rest-auth.hc --testdoc
+
+# Opt-in public reads plus authenticated reads when the token is set
+deno task --env-file=.env test:rest-live
+```
+
+Only the installed issues child is available to the program; the credentialed
+repository ancestor stays private. [REST configuration](doc/rest-resource.md)
+describes custom grants, write requests and uncertain outcomes. The browser and
+npm CLI do not provide this live Deno transport.
+
+For an existing Fathom API key in your private environment file, use a Fathom
+**API recording ID** (which can differ from the web-call ID):
+
+```bash
+deno task --env-file="$HOME/.env" test:rest-fathom <numeric-api-recording-id>
+```
+
+This status-only proof reads one recording summary through a path-narrowed
+grant. Only the worker reads `FATHOM_API_KEY`; the runner prints HTTP status and
+check counts, and removes its temporary config and evidence. It prints no
+meeting content or credential values. The proof uses trusted, fixed HC source.
+Do not reuse its grant as a read-only sandbox for arbitrary HC: Fathom accepts
+`destination_url`, and grants do not restrict query parameters or requests made
+by the provider. See [the trust boundary](doc/rest-resource.md).
+
 ### Run Tests
 
 ```bash

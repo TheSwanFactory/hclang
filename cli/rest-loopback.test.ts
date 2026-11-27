@@ -18,6 +18,7 @@ import {
   type RestEvidence,
 } from "../lib/frames.ts";
 import { evaluate } from "../lib/execute/evaluate.ts";
+import { attenuateRestPolicy } from "../lib/frames/rest-authority.ts";
 import { restGrantPolicy } from "../lib/frames/rest-policy.ts";
 import { loadRestConfig, type RestInstall } from "./rest-config.ts";
 import { LiveTransport } from "./rest-worker.ts";
@@ -183,7 +184,7 @@ describe("live REST transport over loopback", () => {
       refusal("resource-encoded-separator"),
     );
     expect(run(`api [.method “POST”]`)).toEqual(
-      refusal("resource-request-shape"),
+      refusal("resource-method-forbidden"),
     );
     expect(run(`api [.headers [.authorization “x”]]`)).toEqual(
       refusal("resource-header-forbidden"),
@@ -354,7 +355,7 @@ describe("live REST transport over loopback", () => {
           { ...outgoing(`${base}issues`), timeoutMs: 50 },
           stub(`${base}issues`),
         ),
-      ).toEqual({ ok: false, reason: "resource-transport timeout" });
+      ).toEqual({ ok: false, reason: "resource-transport closed" });
       expect(live.describe()).toContain("live");
     });
   });
@@ -372,4 +373,509 @@ describe("live REST transport over loopback", () => {
       )
     ).toThrow("net permission is not granted for api.github.com");
   });
+});
+
+Deno.test({
+  name: "credentialed workers enforce installed children and uncertain effects",
+  permissions: {
+    env: ["HC_REST_TEST_TOKEN"],
+    net: ["127.0.0.1"],
+    read: true,
+    write: true,
+  },
+  async fn(): Promise<void> {
+    const temp = Deno.makeTempDirSync({ prefix: "hc-rest-auth-" });
+    const token = "fake-worker-only-token";
+    Deno.env.set("HC_REST_TEST_TOKEN", token);
+    const seen: {
+      method: string;
+      authorization: string;
+      body: string;
+      path: string;
+    }[] = [];
+    const code = `
+      const server = Deno.serve({hostname:"127.0.0.1",port:0,onListen(){}}, async (request) => {
+        self.postMessage({kind:"received",method:request.method,authorization:request.headers.get("authorization"),body:await request.text(),path:new URL(request.url).pathname});
+        const path = new URL(request.url).pathname;
+        if (path.endsWith("/drop")) return new Response(new ReadableStream({ start(controller) { controller.enqueue(new Uint8Array([1])); setTimeout(()=>controller.error(new Error("dropped")),5); } }));
+        if (path.endsWith("/slow")) { await new Promise(resolve=>setTimeout(resolve,200)); return new Response("late"); }
+        if (path.endsWith("/large")) return new Response("x".repeat(200));
+        if (path.endsWith("/evidence-fail")) {
+          const file = ${JSON.stringify(temp + "/effects.jsonl")};
+          Deno.renameSync(file, file+".saved"); Deno.mkdirSync(file);
+        }
+        return new Response("ok", {status:201});
+      });
+      self.postMessage({kind:"listening",port:server.addr.port});`;
+    const server = new Worker(
+      URL.createObjectURL(new Blob([code], { type: "application/javascript" })),
+      { type: "module" },
+    );
+    const port = await new Promise<number>((resolve) => {
+      server.onmessage = (event) => {
+        if (event.data.kind === "listening") resolve(event.data.port);
+        else seen.push(event.data);
+      };
+    });
+    const base = `http://127.0.0.1:${port}/api/`;
+    const credential = {
+      env: "HC_REST_TEST_TOKEN",
+      scheme: "bearer",
+      create: "https://example.com/token",
+      permissions: "test only",
+    };
+    const root = {
+      id: "root",
+      base,
+      methods: ["GET", "POST"],
+      requestBytes: 20,
+      requests: 20,
+      responseBytes: 1000,
+      timeoutMs: 1000,
+      lifetimeMs: 60000,
+      evidence: "effects.jsonl",
+      transport: "live",
+      credential,
+    };
+    const file = `${temp}/grants.json`;
+    Deno.writeTextFileSync(
+      file,
+      JSON.stringify({
+        grants: [root, {
+          id: "read",
+          attenuates: "root",
+          path: "issues/",
+          methods: ["GET"],
+          responseBytes: 10,
+          timeoutMs: 40,
+        }, {
+          ...root,
+          id: "other",
+          base: `http://127.0.0.1:${port}/other/`,
+          evidence: "other.jsonl",
+        }],
+        install: ["read", "other"],
+      }),
+    );
+    let install: RestInstall | undefined;
+    const direct: LiveTransport[] = [];
+    try {
+      install = loadRestConfig(file, "/nonexistent-root");
+      expect(() => Deno.env.get("HC_REST_TEST_TOKEN")).toThrow();
+      const read = install.grants[0];
+      const send = (path: string, method = "GET", body?: string) =>
+        read.exchange({
+          ok: true,
+          request: { path, method, body, query: [], headers: [] },
+        });
+      expect(send("1").ok).toBe(true);
+      expect(send("1", "POST")).toMatchObject({
+        reason: "resource-method-forbidden",
+      });
+      expect(send("../outside")).toMatchObject({
+        reason: "resource-parent-escape",
+      });
+      expect(send("large")).toMatchObject({
+        reason: "resource-budget response-size",
+      });
+      expect(send("slow")).toMatchObject({
+        reason: "resource-transport timeout",
+      });
+      const other = install.grants[1];
+      expect(
+        other.exchange({ ok: true, request: { query: [], headers: [] } }).ok,
+      ).toBe(true);
+      const serialized = JSON.stringify(install.handlers);
+      expect(serialized).not.toContain(token);
+      expect(read.requestsSent()).toBe(3);
+      expect(read.exchange({ ok: false, reason: "resource-request-shape" }))
+        .toMatchObject({ reason: "resource-request-shape" });
+      read.revoke();
+      expect(send("1")).toMatchObject({ reason: "resource-revoked" });
+      // Scope a second transport without reading the now-revoked token in the main isolate.
+      const parentPolicy = restGrantPolicy(root);
+      const childPolicy = attenuateRestPolicy(parentPolicy, {
+        path: "issues/",
+        methods: ["GET"],
+      });
+      const worker = new LiveTransport(
+        parentPolicy,
+        `${temp}/forged.jsonl`,
+        undefined,
+        {
+          definitions: [
+            { id: "root", policy: parentPolicy, installed: false },
+            {
+              id: "read",
+              policy: childPolicy,
+              parent: "root",
+              installed: true,
+            },
+          ],
+        },
+      );
+      direct.push(worker);
+      expect(
+        worker.record({
+          grant: null,
+          at: new Date().toISOString(),
+          method: "GET",
+          url: null,
+          outcome: "refused",
+          status: null,
+          responseBytes: 0,
+          refusal: "resource-unbound",
+        }),
+      ).toBe(true);
+      const legacy = new LiveTransport(parentPolicy, `${temp}/legacy.jsonl`);
+      direct.push(legacy);
+      expect(
+        legacy.send({
+          url: base.slice(0, -1),
+          headers: {},
+          method: "GET",
+          timeoutMs: 1000,
+          responseBytes: 1000,
+        }, {
+          grant: base,
+          at: new Date().toISOString(),
+          method: "GET",
+          url: base.slice(0, -1),
+        }).ok,
+      ).toBe(true);
+      worker.revoke("unknown-id");
+      expect(worker.requestsSent("unknown-id")).toBe(0);
+      expect(
+        worker.send({
+          url: `${base}outside`,
+          method: "POST",
+          headers: {},
+          timeoutMs: 1000,
+          responseBytes: 1000,
+        }, {
+          grant: base,
+          at: new Date().toISOString(),
+          method: "POST",
+          url: `${base}outside`,
+        }),
+      ).toMatchObject({ reason: "resource-unbound" });
+      const raw = (path: string, method = "GET") => ({
+        ok: true as const,
+        request: { path, method, query: [], headers: [] },
+      });
+      expect(worker.authorize("root", raw(""))).toMatchObject({
+        reason: "resource-unbound",
+      });
+      expect(worker.authorize("read", raw("1", "POST"))).toMatchObject({
+        reason: "resource-method-forbidden",
+      });
+      expect(worker.authorize("read", raw("../outside"))).toMatchObject({
+        reason: "resource-parent-escape",
+      });
+      expect(
+        worker.authorize(
+          "read",
+          {
+            ok: true,
+            request: { ...raw("1").request, responseBytes: 99999 },
+          } as never,
+        ),
+      ).toMatchObject({ reason: "resource-request-shape" });
+      const effects = new LiveTransport(
+        parentPolicy,
+        `${temp}/effects-write.jsonl`,
+        undefined,
+        {
+          definitions: [{ id: "write", policy: parentPolicy, installed: true }],
+        },
+      );
+      direct.push(effects);
+      expect(effects.authorize("write", raw("write", "POST")).ok).toBe(true);
+      expect(effects.authorize("write", raw("drop", "POST"))).toMatchObject({
+        reason: expect.stringMatching(/^resource-effect-uncertain /),
+      });
+      const records = Deno.readTextFileSync(`${temp}/effects-write.jsonl`)
+        .trim().split("\n").map((line) => JSON.parse(line));
+      expect(records.map((record) => record.phase)).toEqual([
+        "intent",
+        "completion",
+        "intent",
+        "completion",
+      ]);
+      expect(records[0].requestId).toBe(records[1].requestId);
+      // The server makes the evidence target unwritable only after the intent is appended.
+      const failing = new LiveTransport(
+        parentPolicy,
+        `${temp}/effects.jsonl`,
+        undefined,
+        {
+          definitions: [{ id: "write", policy: parentPolicy, installed: true }],
+        },
+      );
+      direct.push(failing);
+      expect(failing.authorize("write", raw("evidence-fail", "POST")))
+        .toMatchObject({
+          reason: expect.stringMatching(/^resource-effect-uncertain /),
+        });
+      // Intent failure is definite and must not send a second request.
+      expect(failing.authorize("write", raw("write", "POST"))).toMatchObject({
+        reason: "resource-evidence",
+      });
+      const stalled = new LiveTransport(
+        parentPolicy,
+        `${temp}/stalled.jsonl`,
+        -995,
+        {
+          definitions: [{ id: "write", policy: parentPolicy, installed: true }],
+        },
+      );
+      direct.push(stalled);
+      expect(stalled.authorize("write", raw("slow", "POST"))).toMatchObject({
+        reason: expect.stringMatching(/^resource-effect-uncertain /),
+      });
+      expect(() => stalled.ready()).toThrow("REST worker startup failed");
+      expect(stalled.requestsSent("write")).toBe(0);
+      expect(stalled.authorize("write", raw("write", "POST"))).toMatchObject({
+        reason: "resource-transport closed",
+      });
+      await new Promise((resolve) => setTimeout(resolve, 250));
+      expect(
+        seen.filter((request) => request.authorization === `Bearer ${token}`),
+      ).toHaveLength(4);
+      expect(Deno.readTextFileSync(`${temp}/other.jsonl`)).not.toContain(token);
+      expect(seen.filter((request) => request.path === "/api/write"))
+        .toHaveLength(1);
+      expect(seen.filter((request) => request.path === "/api/drop"))
+        .toHaveLength(1);
+      const completions = Deno.readTextFileSync(`${temp}/effects-write.jsonl`);
+      expect(completions).not.toContain(token);
+    } finally {
+      install?.close();
+      for (const transport of direct) transport.close();
+      server.terminate();
+      Deno.removeSync(temp, { recursive: true });
+    }
+  },
+});
+
+Deno.test({
+  name: "missing selected credential stops startup before evaluation",
+  permissions: {
+    env: ["HC_REST_MISSING_TEST"],
+    net: ["127.0.0.1"],
+    read: true,
+    write: true,
+  },
+  fn(): void {
+    const temp = Deno.makeTempDirSync();
+    const file = `${temp}/grants.json`;
+    Deno.env.delete("HC_REST_MISSING_TEST");
+    Deno.writeTextFileSync(
+      file,
+      JSON.stringify([{
+        base: "http://127.0.0.1:1/api/",
+        transport: "live",
+        requests: 1,
+        responseBytes: 10,
+        timeoutMs: 50,
+        lifetimeMs: 1000,
+        evidence: "missing.jsonl",
+        credential: {
+          env: "HC_REST_MISSING_TEST",
+          scheme: "bearer",
+          create: "https://example.com/token",
+          permissions: "test only",
+        },
+      }]),
+    );
+    try {
+      expect(() => loadRestConfig(file, "/nonexistent-root")).toThrow(
+        "HC_REST_MISSING_TEST is unset or unavailable",
+      );
+    } finally {
+      Deno.removeSync(temp, { recursive: true });
+    }
+  },
+});
+Deno.test("bare allow-env cannot start a credentialed evaluator", () => {
+  const temp = Deno.makeTempDirSync();
+  const file = `${temp}/grants.json`;
+  Deno.env.set("HC_REST_BROAD_TEST", "fake");
+  Deno.writeTextFileSync(
+    file,
+    JSON.stringify([{
+      base: "http://127.0.0.1:1/api/",
+      transport: "live",
+      requests: 1,
+      responseBytes: 10,
+      timeoutMs: 50,
+      lifetimeMs: 1000,
+      evidence: "broad.jsonl",
+      credential: {
+        env: "HC_REST_BROAD_TEST",
+        scheme: "bearer",
+        create: "https://example.com/token",
+        permissions: "test only",
+      },
+    }]),
+  );
+  try {
+    expect(() => loadRestConfig(file, "/nonexistent-root")).toThrow(
+      "remains accessible",
+    );
+  } finally {
+    Deno.env.delete("HC_REST_BROAD_TEST");
+    Deno.removeSync(temp, { recursive: true });
+  }
+});
+
+Deno.test({
+  name:
+    "an unavailable credential cannot be bypassed through the transport API",
+  permissions: {
+    env: ["HC_REST_UNAVAILABLE"],
+    net: ["127.0.0.1"],
+    read: true,
+    write: true,
+  },
+  fn(): void {
+    Deno.env.delete("HC_REST_UNAVAILABLE");
+    const temp = Deno.makeTempDirSync();
+    const policy = restGrantPolicy({
+      base: "http://127.0.0.1:1/api/",
+      requests: 1,
+      responseBytes: 10,
+      timeoutMs: 50,
+      lifetimeMs: 1000,
+    });
+    const transport = new LiveTransport(
+      policy,
+      `${temp}/evidence.jsonl`,
+      undefined,
+      {
+        credentialEnv: "HC_REST_UNAVAILABLE",
+        definitions: [{ id: "r", policy, installed: true }],
+      },
+    );
+    try {
+      expect(transport.ready()).toBe(false);
+      expect(
+        transport.authorize("r", {
+          ok: true,
+          request: { query: [], headers: [] },
+        }),
+      ).toMatchObject({ reason: "resource-unbound" });
+      expect(transport.requestsSent("r")).toBe(0);
+    } finally {
+      transport.close();
+      Deno.removeSync(temp, { recursive: true });
+    }
+  },
+});
+
+Deno.test({
+  name:
+    "API-key credentials stay worker-only and cannot be supplied or replaced by HC",
+  permissions: {
+    env: ["REST_TEST_API_KEY"],
+    net: ["127.0.0.1"],
+    read: true,
+    write: true,
+  },
+  async fn(): Promise<void> {
+    const temp = Deno.makeTempDirSync({ prefix: "hc-rest-api-key-" });
+    Deno.env.set("REST_TEST_API_KEY", "fake-header-key");
+    const seen: { key: string | null; authorization: string | null }[] = [];
+    const server = new Worker(
+      URL.createObjectURL(
+        new Blob(
+          [`
+      const server=Deno.serve({hostname:"127.0.0.1",port:0,onListen(){}},request=>{
+        self.postMessage({kind:"received",key:request.headers.get("x-api-key"),authorization:request.headers.get("authorization")});
+        return new Response("ok");
+      });
+      self.postMessage({kind:"listening",port:server.addr.port});
+    `],
+          { type: "application/javascript" },
+        ),
+      ),
+      { type: "module" },
+    );
+    const port = await new Promise<number>((resolve) => {
+      server.onmessage = (event) => {
+        if (event.data.kind === "listening") resolve(event.data.port);
+        else seen.push(event.data);
+      };
+    });
+    const base = `http://127.0.0.1:${port}/api/`;
+    const file = `${temp}/grants.json`;
+    Deno.writeTextFileSync(
+      file,
+      JSON.stringify({
+        grants: [{
+          id: "root",
+          base,
+          methods: ["GET"],
+          requests: 3,
+          responseBytes: 100,
+          timeoutMs: 1000,
+          lifetimeMs: 60000,
+          transport: "live",
+          evidence: "evidence.jsonl",
+          credential: {
+            env: "REST_TEST_API_KEY",
+            scheme: "x-api-key",
+            create: "https://example.com/key",
+            permissions: "read",
+          },
+        }, { id: "child", attenuates: "root", path: "recordings/1/" }],
+        install: ["child"],
+      }),
+    );
+    let install: RestInstall | undefined;
+    try {
+      install = loadRestConfig(file, "/nonexistent-root");
+      expect(() => Deno.env.get("REST_TEST_API_KEY")).toThrow();
+      const child = install.grants[0];
+      expect(
+        child.exchange({
+          ok: true,
+          request: { path: "summary", query: [], headers: [] },
+        }),
+      ).toMatchObject({ ok: true });
+      expect(
+        child.exchange({
+          ok: true,
+          request: {
+            path: "summary",
+            query: [],
+            headers: [["X-Api-Key", "replace"]],
+          },
+        }),
+      ).toMatchObject({ reason: "resource-header-forbidden" });
+      expect(
+        child.exchange({
+          ok: true,
+          request: {
+            path: "summary",
+            query: [],
+            headers: [["authorization", "replace"]],
+          },
+        }),
+      ).toMatchObject({ reason: "resource-header-forbidden" });
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      expect(seen).toHaveLength(1);
+      expect(seen[0]).toMatchObject({
+        key: "fake-header-key",
+        authorization: null,
+      });
+      const evidence = Deno.readTextFileSync(`${temp}/evidence.jsonl`);
+      expect(evidence).not.toContain("fake-header-key");
+      expect(evidence).not.toContain("replace");
+    } finally {
+      install?.close();
+      server.terminate();
+      Deno.removeSync(temp, { recursive: true });
+    }
+  },
 });

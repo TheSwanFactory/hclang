@@ -1,24 +1,21 @@
 /**
  * The REST resource's policy, as pure functions over plain data.
  *
- * Everything that decides what a REST grant may send lives here, and nothing
- * here touches a `Frame` or a host. That is what lets the same decisions run in
- * two places: in the main isolate before any transport is called, and again in
- * the live transport's worker (`cli/rest-worker.ts`), which re-verifies against
- * its own copy of the grant before it fetches. A defect in the main isolate
- * therefore cannot widen what is sent.
+ * This module validates policies, URLs and headers without touching a Frame or
+ * a host. rest-authority.ts combines these decisions with shared grant state.
+ * Live enforcement runs in the transport worker, independently of main-side
+ * diagnostics, so an evaluator-side defect cannot widen the outgoing request.
  *
- * The MVP grants public reads only: every request is a `GET`, there is no
- * request body, and a program cannot supply a credential, because
- * `authorization`, `cookie`, `host` and `proxy-*` are headers no grant may
- * allow. `spec/a20-rest-resource.md` records the design.
+ * Methods and UTF-8 bodies are bounded by the grant. Programs cannot supply
+ * credentials: authorization, cookie, host and proxy headers are always refused.
+ * The accepted design is in spec/a20-rest-resource/08-Codex-accepted-design-and-implementation.md.
  *
  * @module
  */
 import { normalizeReference } from "./resource-reference.ts";
 /** A refusal, naming its reason in the `$!.…` vocabulary without the sigil. */
 export type RestRefusal = { readonly ok: false; readonly reason: string };
-/** The only method the MVP sends. */
+/** The default request method. */
 export const REST_METHOD = "GET";
 /** Request headers a program may set on any grant. */
 export const DEFAULT_REQUEST_HEADERS: readonly string[] = Object.freeze([
@@ -26,6 +23,8 @@ export const DEFAULT_REQUEST_HEADERS: readonly string[] = Object.freeze([
   "accept-language",
   "if-none-match",
   "if-modified-since",
+  "content-type",
+  "if-match",
 ]);
 /** Response headers a program may see from any grant. */
 export const DEFAULT_RESPONSE_HEADERS: readonly string[] = Object.freeze([
@@ -46,13 +45,18 @@ export const DEFAULT_RESPONSE_HEADERS: readonly string[] = Object.freeze([
  */
 export const isForbiddenRequestHeader = (name: string): boolean => {
   const folded = name.toLowerCase();
-  return folded === "authorization" || folded === "cookie" ||
+  return folded === "authorization" || folded === "x-api-key" ||
+    folded === "cookie" ||
     folded === "host" || folded.startsWith("proxy-");
 };
 /** What a harness writes to construct a grant, before it is checked. */
 export interface RestGrantSpec {
   /** The base URI a literal must equal, trailing slash included. */
   readonly base: string;
+  /** Allowed HTTP methods; public GET only when omitted. */
+  readonly methods?: readonly string[];
+  /** Maximum UTF-8 body size; no body bytes when omitted. */
+  readonly requestBytes?: number;
   /** How many requests the grant may send in its lifetime. */
   readonly requests: number;
   /** How many response body bytes one request may receive. */
@@ -69,6 +73,8 @@ export interface RestGrantSpec {
 /** A checked grant: a canonical base, its budgets and its allowlists. */
 export interface RestGrantPolicy {
   readonly base: string;
+  readonly methods: readonly string[];
+  readonly requestBytes: number;
   readonly requests: number;
   readonly responseBytes: number;
   readonly timeoutMs: number;
@@ -133,8 +139,22 @@ export function restGrantPolicy(spec: RestGrantSpec): RestGrantPolicy {
       throw new TypeError(`REST grant ${key} must be positive: ${base}`);
     }
   }
+  const methods = spec.methods ?? [REST_METHOD];
+  if (
+    !Array.isArray(methods) ||
+    methods.some((method) =>
+      !["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE"].includes(method)
+    )
+  ) throw new TypeError(`REST grant methods are invalid: ${base}`);
+  if (!isBudget(spec.requestBytes ?? 0)) {
+    throw new TypeError(
+      `REST grant requestBytes must be a whole count: ${base}`,
+    );
+  }
   return Object.freeze({
     base,
+    methods: Object.freeze([...new Set(methods)]),
+    requestBytes: spec.requestBytes ?? 0,
     requests: spec.requests,
     responseBytes: spec.responseBytes,
     timeoutMs: spec.timeoutMs,
@@ -323,8 +343,26 @@ export function responseHeaders(
   }
   return kept;
 }
-/** One verified `GET`, as a transport receives it. */
+/** Parsed request data, containing no authority or transport limits. */
+export interface RestRequest {
+  readonly path?: string;
+  readonly query: readonly (readonly [string, string])[];
+  readonly headers: readonly (readonly [string, string])[];
+  readonly method?: string;
+  readonly body?: string;
+}
+/** Request parsing result. */
+export type RestInput =
+  | { readonly ok: true; readonly request: RestRequest }
+  | RestRefusal;
+/** Whether a method needs an intent and completion record. */
+export const isRestEffect = (method: string): boolean =>
+  method !== "GET" && method !== "HEAD";
+
+/** A verified request as a transport receives it. */
 export interface RestOutgoing {
+  readonly method?: string;
+  readonly body?: string;
   /** The URL, already built and re-verified by `requestUrl`. */
   readonly url: string;
   /** The checked request headers, names case-folded. */
@@ -346,15 +384,20 @@ export type RestTransportResult =
 /**
  * One evidence record, written for every application, sent or refused.
  *
- * It never holds a request header value, and since the MVP holds no
- * credential, it cannot hold one of those either.
+ * Records contain no request header values or bodies. Effect records carry a
+ * request ID joining intent and completion; credentials stay in the worker.
  */
 export interface RestEvidence {
+  /** Present on effect records, counted before dispatch. */
+  readonly requestBytes?: number;
+  readonly requestId?: string;
+  readonly phase?: "intent" | "completion";
+  readonly ancestry?: readonly string[];
   /** The grant the application went through, or null for no grant. */
   readonly grant: string | null;
   /** When the application was decided, as an ISO 8601 instant. */
   readonly at: string;
-  /** The method, always `GET` in the MVP. */
+  /** The verified HTTP method. */
   readonly method: string;
   /** The URL sent, or null when the refusal came before one existed. */
   readonly url: string | null;
@@ -370,7 +413,7 @@ export interface RestEvidence {
 /** The evidence fields known before a transport is called. */
 export type RestEvidenceStub = Pick<
   RestEvidence,
-  "grant" | "at" | "method" | "url"
+  "grant" | "at" | "method" | "url" | "requestId" | "requestBytes" | "ancestry"
 >;
 /** Where a transport appends evidence; an append that fails answers false. */
 export interface RestEvidenceSink {
@@ -386,9 +429,15 @@ export interface RestEvidenceSink {
  * the append fails.
  */
 export interface RestTransport {
+  /** Live transports own final policy and state in their worker. */
+  authorize?(grant: string, input: RestInput): RestTransportResult;
+  /** Reads the authoritative request count for a live grant. */
+  requestsSent?(grant: string): number;
+  /** Revocation forwarded to the enforcement owner. */
+  revoke?(grant: string): void;
   /** This transport's identity, for a harness or a test, never for a program. */
   describe(): string;
-  /** Sends one `GET` and records its evidence. */
+  /** Sends one authorized request and records its evidence. */
   send(request: RestOutgoing, evidence: RestEvidenceStub): RestTransportResult;
   /** Records a refusal decided before sending, through the same channel. */
   record(evidence: RestEvidence): boolean;

@@ -2,11 +2,12 @@
 ```
 A REST resource: reading public resources (#277)
 This testdoc is the executable acceptance corpus for the REST resource MVP, and
-`spec/a20-rest-resource.md` is its design record. The same file, byte for
-byte, runs against two grant tables. `test:doc` installs simulated grants from
-`cli/rest/github-simulated.json`, and `deno task test:rest-live` installs the
-live grants in `cli/rest/github-live.json`, which read the public GitHub REST
-API with no credential. Every claim below answers the same against both.
+`spec/a20-rest-resource/` holds its design record. The same file runs against
+two grant tables. `test:doc` installs fixtures from
+`cli/rest/github-simulated.json`; `deno task test:rest-live` runs the public
+corpus against `cli/rest/github-live.json`, without a credential. Direct live
+launches require `--unstable-worker-options` and `--no-prompt`, also for public
+grants. The shipped `hc:rest` task supplies those flags.
 A REST resource is a handler table entry, reached by writing its base URI as
 a resource literal. The harness holds grants, each with a base. A literal must
 equal a grant's base exactly, trailing slash included, so the program is the
@@ -85,13 +86,13 @@ followed by passing it back
 ; api [.path “issues?state=open”]
 # $!.resource-part-unsupported 'https://api.github.com/repos/TheSwanFactory/hclang/'
 ```
-The MVP sends public `GET`s only. Any key outside `.path`, `.query` and
-`.headers`, including `.method` and `.body`, answers
-`$!.resource-request-shape`, and so does applying the resource to anything but
-a record: unlike a store-backed resource, applying a string is not a write
+These grants allow public `GET`s only. An explicit method outside the grant
+answers `$!.resource-method-forbidden`. A body with GET is a shape refusal,
+and so is applying anything but a request record. Unlike a store-backed
+resource, applying a string is not a write
 ```
 ; api [.method “DELETE”]
-# $!.resource-request-shape 'https://api.github.com/repos/TheSwanFactory/hclang/'
+# $!.resource-method-forbidden 'https://api.github.com/repos/TheSwanFactory/hclang/'
 ; api [.body “{}”]
 # $!.resource-request-shape 'https://api.github.com/repos/TheSwanFactory/hclang/'
 ; api “a string is not a request”

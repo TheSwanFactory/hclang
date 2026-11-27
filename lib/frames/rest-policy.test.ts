@@ -56,7 +56,13 @@ describe("restGrantPolicy", () => {
   });
   it("lets no grant allow a credential-bearing or host-changing header", () => {
     for (
-      const name of ["Authorization", "cookie", "HOST", "proxy-authorization"]
+      const name of [
+        "Authorization",
+        "x-api-key",
+        "cookie",
+        "HOST",
+        "proxy-authorization",
+      ]
     ) {
       expect(isForbiddenRequestHeader(name)).toEqual(true);
       expect(() => restGrantPolicy(spec({ requestHeaders: [name] })))

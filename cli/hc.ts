@@ -6,7 +6,11 @@ import { parseArgs } from "@std/cli/parse-args";
 import { runfile } from "./runfile.ts";
 import { Prompt } from "./prompt.ts";
 import { DenoFileStore } from "./resource-store.ts";
-import { loadRestConfig } from "./rest-config.ts";
+import {
+  describeRestConfig,
+  loadRestConfig,
+  readRestConfig,
+} from "./rest-config.ts";
 import { hostHandlers, hostNamespace } from "../lib/execute/host-namespace.ts";
 import {
   type Context,
@@ -43,7 +47,7 @@ const aliases = {
 export function getOptions(args: string[]): ReturnType<typeof parseArgs> {
   return parseArgs(args, {
     alias: aliases,
-    boolean: ["help", "interactive", "testdoc", "verbose", "version"],
+    boolean: ["help", "interactive", "testdoc", "verbose", "version", "grants"],
     string: ["evaluate", "rest"],
   });
 }
@@ -199,6 +203,16 @@ if (import.meta.main) {
   // under are a derived artifact rather than the bound.
   const env = visibleEnvironment((name) => Deno.env.get(name));
   const options = getOptions(Deno.args);
+  if (options.grants) {
+    try {
+      if (!options.rest) throw new Error("--grants requires --rest <file>");
+      console.log(describeRestConfig(readRestConfig(options.rest)));
+      Deno.exit(0);
+    } catch (error) {
+      console.error((error as Error).message);
+      Deno.exit(1);
+    }
+  }
   let hc_eval: HCEval;
   try {
     hc_eval = getEval(env, undefined, options.rest);

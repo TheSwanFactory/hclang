@@ -274,3 +274,67 @@ describe("REST hostile programs", () => {
     expect(refused).toBeGreaterThan(200);
   });
 });
+
+describe("hostile programs with installed attenuated writers", () => {
+  it("cannot recover a private ancestor or exceed shared policy through composition", () => {
+    let effects = 0;
+    for (let index = 0; index < CASES; index++) {
+      const random = new Seeded(0x570 + index * 7919);
+      const generated = program(random);
+      const evidence = new MemoryEvidence();
+      const simulator = new RestSimulator(API, {
+        "issues/277": { status: 201, body: "{}" },
+      }, evidence);
+      const parent = new RestGrant({
+        base: API,
+        methods: ["GET", "POST"],
+        requestBytes: 8,
+        requests: 4,
+        responseBytes: 1000,
+        timeoutMs: 1000,
+        lifetimeMs: 60000,
+      }, simulator);
+      const child = parent.attenuate({
+        path: "issues/",
+        methods: index % 2 ? ["GET"] : ["GET", "POST"],
+      });
+      const handler = new CountingHandler(new RestHandler([child]));
+      const root = FrameResource.root(
+        new MemoryStore(),
+        ResourceHandlers.of({ https: handler }),
+      );
+      const source = generated.source +
+        `\n'${ISSUES}' [.path “277”, .method “POST”, .body “é”];`;
+      evaluate(source, { [RESOURCE_ROOT_KEY]: root });
+      for (const call of simulator.calls) {
+        const pathname = new URL(call.url).pathname;
+        const scope = new URL(ISSUES).pathname;
+        expect(pathname.startsWith(scope) || pathname === scope.slice(0, -1))
+          .toBe(true);
+        expect(child.policy.methods).toContain(call.method);
+        expect(Object.keys(call.headers)).not.toContain("authorization");
+        expect(new TextEncoder().encode(call.body ?? "").length)
+          .toBeLessThanOrEqual(8);
+      }
+      expect(simulator.calls.length).toBeLessThanOrEqual(4);
+      expect(parent.requestsSent()).toBe(simulator.calls.length);
+      const applications = evidence.records.filter((record) =>
+        record.phase !== "completion"
+      );
+      expect(applications).toHaveLength(handler.applications);
+      for (
+        const intent of evidence.records.filter((record) =>
+          record.phase === "intent"
+        )
+      ) {
+        expect(
+          evidence.records.filter((record) =>
+            record.requestId === intent.requestId
+          ),
+        ).toHaveLength(2);
+        effects++;
+      }
+    }
+    expect(effects).toBeGreaterThan(20);
+  });
+});
