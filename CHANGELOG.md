@@ -5,6 +5,17 @@
 > contains nothing else; then describe it and say that nothing user-facing
 > changed.
 
+## v0.59.0 2026-11-26
+
+- **`%%` works on every exact rung (#536).** Decimals and rationals now take a
+  remainder: `3.14 %% 1` is `0.14`, `(7 / 2) %% 1` is `1/2`, and
+  `3.5 %% (1 / 3)` is `1/6`. Mixed operands promote like `+`, and the remainder
+  takes the divisor's sign on every rung (`(0 - 3.14) %% 1` is `0.86`), so
+  `x - (x %% 1)` is the floor of `x`. An inexact number is still refused:
+  `(1 / 3.0) %% 1` answers `$!.numeric-domain %% FrameNumber FrameCount`.
+  `3.0 %% 2` now answers `1.0` where it answered
+  `$!.numeric-domain %% FrameDecimal FrameCount`.
+
 ## v0.58.0 2026-11-26
 
 - **The KD sign and multiply kernel is written in HC (#576).**

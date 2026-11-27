@@ -148,6 +148,16 @@ export class FrameDecimal extends FrameNumeric {
     );
   }
 
+  protected override moduloSame(right: FrameNumeric): Frame {
+    const [leftNumerator, rightNumerator, scale] = this.aligned(
+      right as FrameDecimal,
+    );
+    return FrameDecimal.fromParts(
+      FrameNumeric.flooredRemainder(leftNumerator, rightNumerator),
+      scale,
+    );
+  }
+
   protected override powerIntegral(exponent: bigint): Frame {
     if (exponent < 0n) {
       return Frame.error("$!.numeric-internal ** FrameDecimal");

@@ -247,21 +247,23 @@ the highest numeric rank along the ladder count, integer, decimal, rational,
 inexact. A count is closed under `+`, `*`, `%%`, and a nonnegative integral
 `**`, but unary `-` and binary `-` answer a signed integer even when the result
 is nonnegative, so `5 - 3` is the integer `2`, and division answers a rational,
-or an integer when it is whole. `%%` accepts counts and integers only, and
-integer juxtaposition performs multiplication or bounded repetition. Repeated
-text joins its copies, so `3 “ab”` is `“ababab”`, and a repeated aggregate
-concatenates its elements into a fresh aggregate of the same kind, keeping its
-properties once, so `3 [1, 2]` is `[1, 2, 1, 2, 1, 2]`. A schema repeats every
-term, so it matches what its literal written n times matches. A closure, or a
-class that declares `apply`, is applied repeatedly instead. A count prints as
-the same integer does. Numeric `=` compares values across ranks, while `==` and
-`===` compare exact types, so a count and an integer are distinct: `2 = (5 - 3)`
-holds, but `2 == (5 - 3)` is nil, as `3 == 3.0` is. A numeric runtime type from
-`.<>` admits a value from its own rung or any lower one on the ladder count,
-int, decimal, rational, number, and a schema binds that value unchanged:
-`5 ~ (0 - 1).<>` is `<>`, and `.d <1.5.<>> 3` binds the count `3`, so `1 / d` is
-`1/3`. A type never admits a higher rung, so `2.<>` does not match `5 - 3`,
-whatever its value.
+or an integer when it is whole. `%%` accepts any exact rung (count, integer,
+decimal, rational), promoted like `+`; the remainder takes the divisor's sign,
+so `(0 - 7) %% 2` is `1` and `3.14 %% 1` is `0.14`, and an inexact number is
+refused. Integer juxtaposition performs multiplication or bounded repetition.
+Repeated text joins its copies, so `3 “ab”` is `“ababab”`, and a repeated
+aggregate concatenates its elements into a fresh aggregate of the same kind,
+keeping its properties once, so `3 [1, 2]` is `[1, 2, 1, 2, 1, 2]`. A schema
+repeats every term, so it matches what its literal written n times matches. A
+closure, or a class that declares `apply`, is applied repeatedly instead. A
+count prints as the same integer does. Numeric `=` compares values across ranks,
+while `==` and `===` compare exact types, so a count and an integer are
+distinct: `2 = (5 - 3)` holds, but `2 == (5 - 3)` is nil, as `3 == 3.0` is. A
+numeric runtime type from `.<>` admits a value from its own rung or any lower
+one on the ladder count, int, decimal, rational, number, and a schema binds that
+value unchanged: `5 ~ (0 - 1).<>` is `<>`, and `.d <1.5.<>> 3` binds the count
+`3`, so `1 / d` is `1/3`. A type never admits a higher rung, so `2.<>` does not
+match `5 - 3`, whatever its value.
 
 Explicit `0b`, `0o`, and `0x` forms are blobs, not numeric integers.
 

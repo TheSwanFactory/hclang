@@ -143,7 +143,7 @@ describe("FrameCount", () => {
       expect(count(0n).power(int(-1n)).toString())
         .toEqual("$!.division-by-zero **");
       expect(new FrameDecimal("1.0").modulo(count(1n)).toString())
-        .toEqual("$!.numeric-domain %% FrameDecimal FrameCount");
+        .toEqual("0.0");
       expect(count(2n).power(count(1_000_000n)).toString())
         .toEqual("$!.numeric-range ** FrameCount");
     });

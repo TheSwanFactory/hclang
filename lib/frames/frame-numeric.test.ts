@@ -128,7 +128,85 @@ describe("numeric tower", () => {
     expect(new FrameInt(1n).modulo(new FrameInt(0n)).toString())
       .toEqual("$!.modulo-by-zero %%");
     expect(new FrameDecimal("1.0").modulo(new FrameInt(1n)).toString())
-      .toEqual("$!.numeric-domain %% FrameDecimal FrameInt");
+      .toEqual("0.0");
+    expect(FrameNumber.for(0.5).modulo(new FrameInt(1n)).toString())
+      .toEqual("$!.numeric-domain %% FrameNumber FrameInt");
+    expect(new FrameDecimal("1.5").modulo(FrameNumber.for(0.5)).toString())
+      .toEqual("$!.numeric-domain %% FrameDecimal FrameNumber");
+  });
+  it("takes %% on every exact rung with the divisor's sign", () => {
+    const cases: [Frame, string, string][] = [
+      [
+        new FrameDecimal("3.14").modulo(new FrameCount(1n)),
+        "0.14",
+        "FrameDecimal",
+      ],
+      [
+        new FrameDecimal("-3.14").modulo(new FrameCount(1n)),
+        "0.86",
+        "FrameDecimal",
+      ],
+      [
+        new FrameDecimal("3.14").modulo(new FrameInt(-1n)),
+        "-0.86",
+        "FrameDecimal",
+      ],
+      [
+        new FrameDecimal("3.0").modulo(new FrameCount(2n)),
+        "1.0",
+        "FrameDecimal",
+      ],
+      [
+        new FrameRational(7n, 2n).modulo(new FrameCount(1n)),
+        "1/2",
+        "FrameRational",
+      ],
+      [
+        new FrameRational(-7n, 2n).modulo(new FrameInt(1n)),
+        "1/2",
+        "FrameRational",
+      ],
+      [
+        new FrameRational(7n, 2n).modulo(new FrameInt(-1n)),
+        "-1/2",
+        "FrameRational",
+      ],
+      [
+        new FrameRational(7n, 2n).modulo(new FrameRational(1n, 2n)),
+        "0",
+        "FrameInt",
+      ],
+      [
+        new FrameDecimal("3.5").modulo(new FrameRational(1n, 3n)),
+        "1/6",
+        "FrameRational",
+      ],
+      [
+        new FrameCount(7n).modulo(new FrameDecimal("2.5")),
+        "2.0",
+        "FrameDecimal",
+      ],
+      [
+        new FrameCount(7n).modulo(new FrameRational(2n, 3n)),
+        "1/3",
+        "FrameRational",
+      ],
+    ];
+    for (const [result, text, kind] of cases) {
+      expect(result.toString()).toEqual(text);
+      expect(result.constructor.name).toEqual(kind);
+    }
+    for (
+      const [dividend, divisor] of [
+        [new FrameDecimal("1.5"), new FrameInt(0n)],
+        [new FrameDecimal("1.5"), new FrameDecimal("0.0")],
+        [new FrameRational(1n, 2n), new FrameCount(0n)],
+        [new FrameCount(1n), new FrameDecimal("0.00")],
+      ] as const
+    ) {
+      expect(dividend.modulo(divisor).toString())
+        .toEqual("$!.modulo-by-zero %%");
+    }
   });
 
   it("keeps integral powers exact and fractional powers inexact", () => {
@@ -385,8 +463,8 @@ describe("ranked rungs", () => {
   const required: Record<keyof typeof NUMERIC_RANK, string[]> = {
     count: [...everyRung, "moduloSame"],
     int: [...everyRung, "moduloSame"],
-    decimal: everyRung,
-    rational: [...everyRung, "divideSame"],
+    decimal: [...everyRung, "moduloSame"],
+    rational: [...everyRung, "moduloSame", "divideSame"],
     number: [...everyRung, "divideSame", "powerSame"],
   };
 

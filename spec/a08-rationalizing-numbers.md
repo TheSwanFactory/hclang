@@ -200,7 +200,10 @@ makes **Q3** a real question rather than a detail.
   identity that normally motivates truncated modulo does not exist here.
   `a %% n` therefore takes the sign of `n` and is always a proper residue:
   `-7 %% 3` is `2` and `7 %% -3` is `-2`. The code currently returns the host's
-  truncated `-1` and `1`; see §11.5 and §11.8.
+  truncated `-1` and `1`; see §11.5 and §11.8.\
+  _Relaxed by #536._ `%%` now accepts any two exact operands (Count, Int,
+  Decimal, Rational), joined like `+`, with the divisor-sign rule unchanged; the
+  Number rung is still refused. See §13.
 - **ND-007** — `**` stays exact where an exact answer exists: a non-negative
   integer exponent yields the base's own rung, a negative integer exponent
   yields `Rat↓`, and a genuinely fractional exponent yields `FrameNumber`.
@@ -343,7 +346,7 @@ per-operator logic in the system:
 | `+ - *`     | none — pure join                                                                                           |
 | `/`         | **ND-004**: the divisor's rank alone decides. Divisor `Dec` or `Num` → `Num`; otherwise `Rat`, then step 4 |
 | `**`        | **ND-007**: the exponent's _value_ selects the rule, not its rank                                          |
-| `%%`        | **ND-006**: both operands must be rank 0; no promotion is attempted                                        |
+| `%%`        | **ND-006**: joined over the exact rungs (Count..Rational); Number refused (#536)                           |
 | `< <= > >=` | join, then compare at that rank — "cross-multiplication" is what comparing at rank 2 means                 |
 
 Two mechanisms were considered and rejected. **Double dispatch** would need 25
@@ -469,11 +472,14 @@ alternative:
 The operator is `%%`, not `%` (`lib/ops.ts:38`); bare `%` is unbound in HC, so
 grepping for it will find nothing.
 
-Per **ND-006**, `Int %% Int → Int` and every other combination is `err`. Modulo
-is not a closure problem — it is definable on decimals and rationals via
-truncated division — but the sign and truncation conventions diverge across
-languages, and restricting the domain avoids specifying them. Note this narrows
-today's behavior, where `%%` accepts any two `FrameNumber` (**T-3**).
+Per **ND-006** as amended by §13 (#536), `Exact %% Exact → the joined rung`:
+both operands promote to the higher of Count, Int, Decimal and Rational, and any
+operand on the Number rung is `err`. The remainder takes the divisor's sign
+(`-7 %% 3` is `2`, `7 %% -3` is `-2`, `-3.14 %% 1` is `0.86`), so it is always a
+proper residue and `x - (x %% 1)` is the floor of `x` on every exact rung. As
+first decided, `Int %% Int → Int` was the only defined case and every other
+combination was `err`, which narrowed the earlier behavior where `%%` accepted
+any two `FrameNumber` (**T-3**).
 
 ### 5.5 Comparison and equality
 
@@ -1414,3 +1420,33 @@ The language counts in one place today: a resource write answers the characters
 it wrote, which is now a count. `make_context` turns a host's digit string into
 a count, as the same digits in source would be. Element indices are not numbers
 at all (iteration addresses them as `.0`, `.1`, …), so nothing changes there.
+
+## 13. Amendment: modulo on every exact rung (#536)
+
+[#536](https://github.com/TheSwanFactory/hclang/issues/536) relaxes ND-006: `%%`
+accepts any two exact operands, Count, Int, Decimal or Rational. Both promote to
+the higher rung as `+` does, so two counts still answer a count, and the
+remainder keeps the floored, divisor-sign convention ND-006 picked for integers.
+
+Each rung computes the remainder on its own exact representation:
+
+- **Count and Int** are unchanged: `-7 %% 3` is `2` and `7 %% -3` is `-2`.
+- **Decimal** aligns both operands to the common scale, as `+` does, and takes
+  the integer remainder of the scaled numerators at that scale: `3.14 %% 1` is
+  `0.14`, `-3.14 %% 1` is `0.86`, `3.14 %% -1` is `-0.86`, and `3.0 %% 2` is
+  `1.0`.
+- **Rational** cross-multiplies over the product denominator and canonicalizes
+  the result per ND-005: `(7 / 2) %% 1` is `1/2`, `3.5 %% (1 / 3)` is `1/6`, and
+  `(7 / 2) %% (1 / 2)` collapses to the FrameInt `0`. Denominators are positive,
+  so the divisor's sign is its numerator's.
+
+The Number rung stays refused, `(1 / 3.0) %% 1` answering
+`$!.numeric-domain %% FrameNumber FrameCount`: a float remainder would hide the
+inexactness ND-004 makes visible. A zero divisor on any rung is still
+`$!.modulo-by-zero %%`.
+
+This partly undoes T-3's narrowing and M-2's migration: `3.0 %% 2` answers `1.0`
+again, now exactly, where it answered
+`$!.numeric-domain %% FrameDecimal FrameCount`. Since `x - (x %% 1)` is the
+floor of any exact `x`, HC code can truncate explicitly without a new operator;
+`hc/hlir.hc` relies on that for its integer predicates.
