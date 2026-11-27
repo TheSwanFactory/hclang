@@ -1,3 +1,4 @@
+import { FrameInt } from "./frame-int.ts";
 import { FrameCount } from "./frame-count.ts";
 import type { Frame } from "./frame.ts";
 import { FrameAtom } from "./frame-atom.ts";
@@ -103,6 +104,21 @@ export class FrameBlob extends FrameAtom {
     this.data = BigInt(source);
     this.base = FrameBlob.find_base(source);
     this.n_bits = FrameBlob.count_bits(source, this.base);
+  }
+
+  /** Applying an integer bit appends it, so folds over bits rebuild blobs. */
+  public override apply(argument: Frame, parameter: Frame): Frame {
+    if (
+      argument instanceof FrameInt &&
+      (argument.data === 0n || argument.data === 1n)
+    ) {
+      return new FrameBlob(
+        `0b${
+          this.data.toString(2).padStart(this.bitLength(), "0")
+        }${argument.data}`,
+      );
+    }
+    return super.apply(argument, parameter);
   }
 
   public override called_by(context: Frame, parameter: Frame): Frame {

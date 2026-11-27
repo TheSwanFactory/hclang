@@ -54,6 +54,7 @@ export class FrameSchema extends FrameList implements FrameMatcher {
   public override in(input: EvaluationInput = []): Frame {
     const scope = EvaluationScope.from(input);
     const matcher = compileSchemaMatcher(this.data, scope);
+    if (matcher instanceof Frame) return matcher;
     if (matcher) {
       const result = new FrameSchema([...this.data], NilContext, matcher);
       result.compilationScope = scope;
@@ -88,9 +89,9 @@ export class FrameSchema extends FrameList implements FrameMatcher {
       super.reduce(receiver, receiverState);
   }
 
-  /** Width of a compiled bit capture; undefined for other schema domains. */
-  public bitWidth(): number | null | undefined {
-    return this.matcher.bits;
+  /** Inspect the immutable domain matcher without coupling storage to a domain. */
+  public compiledMatcher(): SchemaMatcher {
+    return this.matcher;
   }
 
   /**
@@ -114,8 +115,9 @@ export class FrameSchema extends FrameList implements FrameMatcher {
   protected override finishRepetition(): Frame {
     if (this.size() === 0) return Frame.all;
     if (!(this.matcher instanceof EnumerationSchemaMatcher)) {
-      this.matcher = compileSchemaMatcher(this.data, this.compilationScope) ??
-        new EnumerationSchemaMatcher();
+      const matcher = compileSchemaMatcher(this.data, this.compilationScope);
+      if (matcher instanceof Frame) return matcher;
+      this.matcher = matcher ?? new EnumerationSchemaMatcher();
     }
     return this;
   }

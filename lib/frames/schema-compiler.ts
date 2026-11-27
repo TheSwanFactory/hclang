@@ -8,7 +8,7 @@ import { compileStructuralSchemaMatcher } from "./schema-structural-matcher.ts";
 export function compileSchemaMatcher(
   data: Frame[],
   input?: EvaluationInput,
-): SchemaMatcher | undefined {
+): SchemaMatcher | Frame | undefined {
   return compileStructuralSchemaMatcher(data) ??
     compileBitSchemaMatcher(data, input);
 }

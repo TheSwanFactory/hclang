@@ -1,3 +1,4 @@
+import type { EvaluationInput } from "./evaluation-scope.ts";
 import { Frame } from "./frame.ts";
 import { FrameList } from "./frame-list.ts";
 import {
@@ -16,8 +17,6 @@ export interface SchemaMatcher {
   apply?(schema: FrameList, value: Frame, origin: Frame): Frame;
   /** Ordered capture values for the constructor direction of reduction. */
   construct?(value: Frame): Frame;
-  /** Bit width, or null for a terminal remainder. */
-  readonly bits?: number | null;
 }
 
 /**
@@ -33,6 +32,8 @@ export interface SchemaPredicates {
   hasEffect(predicate: Frame): boolean;
   /** Calls the predicate with `value`, refusing any write to shared state. */
   call(predicate: Frame, value: Frame): Frame;
+  /** Evaluates a schema term without writing shared state. */
+  evaluate(term: Frame, input: EvaluationInput): Frame;
 }
 let predicates: SchemaPredicates | undefined;
 export function installSchemaPredicates(p: SchemaPredicates): void {
@@ -49,6 +50,12 @@ export function callSchemaPredicate(predicate: Frame, value: Frame): Frame {
   return predicates
     ? predicates.call(predicate, value)
     : predicate.call(value, Frame.nil);
+}
+/** Resolve a schema term through the same read-only guard as predicates. */
+export function evaluateSchemaTerm(term: Frame, input: EvaluationInput): Frame {
+  return predicates
+    ? predicates.evaluate(term, input)
+    : Frame.error("$!.schema-evaluator-unavailable");
 }
 /**
  * Finite equality type with delegation to nested first-class types and

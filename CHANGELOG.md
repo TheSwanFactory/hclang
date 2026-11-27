@@ -5,15 +5,27 @@
 > contains nothing else; then describe it and say that nothing user-facing
 > changed.
 
-## Unreleased
+## v0.61.0 2026-11-27
 
-- **BitScheme constructors and deferred captures (#310).** Applying `<8@Bit>` to
-  `5` constructs `0b00000101`; `<[@Bit]>` uses the minimum width, and a Count
-  that does not fit is refused. Binding and membership still require blobs.
-  Blobs now iterate as Counts 0 and 1, most significant first, including leading
-  zeros. Reducing a named bit layout into an object returns its validated
-  captures in layout order. Deferred captures can use earlier capture values as
-  widths, with `@Byte` denoting eight bits.
+- **BitScheme constructs blobs and resolves deferred captures.** `<8@Bit> 5` now
+  answers `0b00000101` instead of `$!.bit-input-invalid 5`; computed nonnegative
+  integers work too, including `<8@Bit> (5 - 3)`. `<[@Bit]>` uses the minimum
+  width (one bit for zero). Overflow and zero-width captures report
+  `$!.bit-width`. Binding and membership still require blobs. A deterministic
+  bit layout reduces an object to its validated capture list in layout order,
+  ignoring extra fields. Deferred captures use earlier capture values as widths.
+  `@Byte` defaults to eight bits and honors an explicit exact `Byte` schema.
+  Width evaluation and deferred calls refuse writes to shared state. Parsing
+  consumes the entire input; declare a terminal remainder to keep trailing data
+  (#310).
+- **Blobs stream Count bits to every element consumer.** `0b101 | []` was
+  `[0b101]` and is now `[1, 0, 1]`; leading zeros are preserved. Map `&`, Zip
+  `|&|`, and Cartesian product `*` operate on bits; `0b101 |&| [7, 8, 9]` is
+  `[[1, 7], [0, 8], [1, 9]]`. `[] + 0b101` collects `[1, 0, 1]`, `“a” + 0b101`
+  is `“a101”`, and `1 + 0b101` and `0b101 | 0` answer `0`. Applying an integer
+  bit appends it (`0b101 1` is `0b1011`), so blob `+` still concatenates.
+  `.###.loads` now observes `[1, 0, 1]` instead of `[3]`, and `0b101.####` is
+  `[0, 0]` instead of `[3]` (#310).
 
 ## v0.60.0 2026-11-26
 

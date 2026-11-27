@@ -299,6 +299,7 @@ export class FrameExpr extends FrameList {
     }
     const setter = name.in(scope);
     const value = schema.in(scope);
+    if (value.is.error) return value;
     if (!setter.isSymbol() || !value.isSchema()) {
       return Frame.error("$!.unsupported-schema-definition");
     }

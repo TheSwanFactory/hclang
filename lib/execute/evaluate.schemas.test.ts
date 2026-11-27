@@ -302,6 +302,99 @@ describe("evaluate: schemas", () => {
       expect(result.toString()).toContain("$!.schema-predicate-effect");
     });
 
+    it("constructs computed nonnegative integers while keeping membership blob-only", () => {
+      for (
+        const [source, expected] of [
+          ["<8@Bit> (5 - 3)", "[0b00000010]"],
+          ["<[@Bit]> (5 - 3)", "[0b10]"],
+          ["<[@Bit]> (3 - 3)", "[0b0]"],
+          ["<2@Bit> (8 - 3)", "[$!.bit-width 2]"],
+          ["<8@Bit> (3 - 5)", "[$!.bit-input-invalid -2]"],
+          ["<[@Bit]> (3 - 5)", "[$!.bit-input-invalid -2]"],
+        ]
+      ) expect(evaluate(source).toString()).toEqual(expected);
+      expect(evaluate("(5 - 3) ~ <8@Bit>").toString()).toEqual("[]");
+      const rejected = evaluate(".x <8@Bit> (5 - 3)");
+      expect(rejected.meta.x).toBeUndefined();
+      expect(rejected.toString()).toContain("$!.type-error");
+    });
+
+    it("refuses width effects during construction, sequences, and repetition", () => {
+      for (
+        const source of [
+          ".S <(@x (x + 1); 3)@Bit>;",
+          ".R (1 <(@x (x + 1); 3)@Bit>);",
+          "<[.a <(@x 1; 2)@Bit>; .b <[@Bit]>;]> 0b111;",
+        ]
+      ) {
+        const result = evaluate(`.x 0; ${source} [x]`);
+        expect(result.meta.x.toString()).toEqual("0");
+        expect(result.toString()).toContain("$!.schema-predicate-effect");
+      }
+      expect(evaluate("<(2 + 1)@Bit> 5").toString()).toEqual("[0b101]");
+    });
+
+    it("honors an explicit Byte unit and diagnoses zero widths", () => {
+      expect(evaluate("<1@Byte> 0x12").toString()).toEqual("[0x12]");
+      expect(evaluate(".Byte <16@Bit>; <1@Byte> 0x1234").toString()).toContain(
+        "0x1234)",
+      );
+      expect(evaluate(".Byte <16@Bit>; <1@Byte> 0x12").toString()).toContain(
+        "$!.insufficient-bits <16@Bit> 0",
+      );
+      expect(evaluate(".Byte 3; <1@Byte> 0x12").toString()).toContain(
+        "$!.invalid-bit-unit @Byte",
+      );
+      expect(evaluate("<0@Bit> 0").toString()).toEqual("[$!.bit-width 0]");
+      expect(evaluate("<[.n <4@Bit>; .string {<n@Byte>};]> 0x0").toString())
+        .toEqual("[$!.bit-width 0]");
+    });
+
+    it("projects extra fields and round-trips three ordered captures", () => {
+      const schema = "<[.a <1@Bit>; .b <2@Bit>; .c <2@Bit>;]>";
+      const object = "[.c 0b11; .a 0b1; .b 0b00; .extra 9;]";
+      expect(evaluate(`${schema} | ${object}`).toString()).toEqual(
+        "[[0b1, 0b00, 0b11]]",
+      );
+      const result = evaluate(
+        `.S ${schema}; .parts (S | ${object}); S ([parts.1, parts.2] | parts.0)`,
+      );
+      expect(result.toString()).toContain("[.a 0b1; .b 0b00; .c 0b11;]");
+      expect(evaluate(`${schema} 0b100110`).toString()).toEqual(
+        "[$!.unconsumed-bits 1]",
+      );
+      expect(
+        evaluate("<[.n <4@Bit>; .string {<n@Byte>}; .rest <[@Bit]>;]> 0x148ff")
+          .at(0).get_here("rest").toString(),
+      ).toEqual("0b11111111");
+    });
+
+    it("streams bits consistently to structural operators and size observers", () => {
+      for (
+        const [source, expected] of [
+          ["0b1 + 0b1", "[0b11]"],
+          ["0b10 + 0b1", "[0b101]"],
+          ["0b101 + 0b011", "[0b101011]"],
+          ["0b001 | 0b0", "[0b0001]"],
+          [
+            "0b101 * 0b11",
+            "[[[1, 1], [1, 1], [0, 1], [0, 1], [1, 1], [1, 1]]]",
+          ],
+          ["0b101 |&| 0b011", "[[[1, 0], [0, 1], [1, 1]]]"],
+          ["0b101 |&| [7, 8, 9]", "[[[1, 7], [0, 8], [1, 9]]]"],
+          ["[] + 0b101", "[[1, 0, 1]]"],
+          ["[1, 2] * 0b11", "[[[1, 1], [1, 1], [2, 1], [2, 1]]]"],
+          ["1 + 0b101", "[0]"],
+          ["“a” + 0b101", "[“a101”]"],
+          ["0b101.####", "[[0, 0]]"],
+          ["0b101.###.loads", "[[1, 0, 1]]"],
+          ["0b101 | 0", "[0]"],
+        ]
+      ) expect(evaluate(source).toString()).toEqual(expected);
+      const held = evaluate(".bits 0b101; bits + 0b011; bits");
+      expect(held.meta.bits.toString()).toEqual("0b101");
+    });
+
     it("defines and reuses a named bit splitter with exact-width results", () => {
       const result = evaluate(
         ".Split <[.head <3@Bit>; .tail <[@Bit]>;]>; " +

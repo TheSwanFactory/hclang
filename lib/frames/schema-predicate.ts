@@ -20,6 +20,21 @@ import {
 } from "./reference-tracking.ts";
 import { installSchemaPredicates } from "./schema-matcher.ts";
 
+/** Both schema construction and matching refuse writes to existing state. */
+function readOnlySchema(action: () => Frame): Frame {
+  const record = new AccessRecord();
+  record.guard = (frame, access) => access !== "write" || !isState(frame);
+  try {
+    return withAccessRecord(record, action);
+  } catch (error) {
+    // A refusal by an enclosing record belongs to whoever installed it.
+    if (!(error instanceof UncertifiedAccess) || error.record !== record) {
+      throw error;
+    }
+    return Frame.error("$!.schema-predicate-effect");
+  }
+}
+
 installSchemaPredicates({
   predicateOf: (candidate) => {
     const target = candidate.referent();
@@ -29,18 +44,7 @@ installSchemaPredicates({
   },
   hasEffect: (predicate) =>
     potentialFootprint(predicate, Frame.nil).writes.size > 0,
-  call: (predicate, value) => {
-    // Frames the predicate creates are its own (record.created) and writable.
-    const record = new AccessRecord();
-    record.guard = (frame, access) => access !== "write" || !isState(frame);
-    try {
-      return withAccessRecord(record, () => predicate.call(value, Frame.nil));
-    } catch (error) {
-      // A refusal by an enclosing record belongs to whoever installed it.
-      if (!(error instanceof UncertifiedAccess) || error.record !== record) {
-        throw error;
-      }
-      return Frame.error("$!.schema-predicate-effect");
-    }
-  },
+  call: (predicate, value) =>
+    readOnlySchema(() => predicate.call(value, Frame.nil)),
+  evaluate: (term, input) => readOnlySchema(() => term.in(input)),
 });

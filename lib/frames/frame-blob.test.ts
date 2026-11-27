@@ -5,6 +5,7 @@ import {
   Frame,
   FrameBlob,
   FrameCount,
+  FrameInt,
   FrameSymbol,
   ScanDisposition,
   type ScanResult,
@@ -115,6 +116,14 @@ describe("FrameBlob", () => {
     const fourZeros = "0b0000";
     const padded = new FrameBlob(fourZeros);
     expect(padded.toString()).toEqual(fourZeros);
+  });
+
+  it("appends computed integer bits without writing its input", () => {
+    const blob = new FrameBlob("0b001");
+    expect(blob.call(new FrameCount(0n)).toString()).toEqual("0b0010");
+    expect(blob.call(new FrameInt(1n)).toString()).toEqual("0b0011");
+    expect(blob.toString()).toEqual("0b001");
+    expect(blob.call(new FrameCount(2n)).toString()).toEqual("2");
   });
 
   it("appends blobs on a common base", () => {

@@ -250,18 +250,21 @@ Property selectors extract direct properties in schema order. A schema-only stat
 # [.head 0b101; .tail 0b01100;]
 ```
 
-The declarations below remain non-executable because user-defined capture units and aliases are deferred:
-
-    .Bit <0b0, 0b1>;
-    .BitStream <[@Bit]>;
-    .Byte <8@Bit>;
+`@Bit` is the built-in single-bit unit. `@Byte` defaults to eight bits, and an
+explicit `Byte` binding to an exact bit schema overrides that default. Other
+user-defined capture-unit aliases remain deferred:
+```
+; .Byte <8@Bit>;
+```
 
 ### Constructors and Deferred Captures (implemented, #310)
 
-Applying a bit capture to a Count constructs a binary blob, padding to the
-requested width. A Count that does not fit is refused. A remainder capture uses
-the minimum width, with one bit for zero. Binding and membership still validate
-blobs without converting Counts:
+Applying a bit capture to a nonnegative integer (a Count or computed Int)
+constructs a binary blob, padding to the
+requested width. An integer that does not fit is refused. A remainder capture uses
+the minimum width, with one bit for zero. A zero-width capture is refused with
+`$!.bit-width 0` until empty blobs are supported (#375). Binding and membership still validate
+blobs without converting integers:
 ```
 ; <8@Bit> 5
 # 0b00000101
@@ -283,9 +286,18 @@ zeros. Decoding uses ordinary HC application and reduction:
 # 5
 ```
 
+The same bit stream feeds all element consumers. Blob `*` makes Cartesian bit
+pairs and `|&|` zips bits; `[] + blob` collects bits, and text `+ blob` joins
+decimal bit spellings. Applying an integer `0` or `1` to a blob appends that bit,
+so blob `+` still concatenates and folding bits into a blob rebuilds them.
+`.###.loads` observes the bit values and `.####` derives their KD coordinates.
+
 Reducing a bit layout into an object selects and validates its captures in
-schema order. The resulting sequence can be joined by applying the tail to the
-head; `&` maps and keeps a sequence rather than concatenating it:
+schema order, ignoring extra fields. The constructor deliberately returns a
+capture list, as the original `BS3_sequence` claim specifies. The resulting
+sequence can be joined by applying the tail to the
+head; the earlier `& {. _}` claim used stale syntax: `&` maps and keeps a
+sequence rather than concatenating it:
 ```
 ; .BS3_sequence (BitSplitter3 | [.head 0b000; .tail 0b111;]);
 ; BS3_sequence
@@ -295,10 +307,12 @@ head; `&` maps and keeps a sequence rather than concatenating it:
 ```
 
 A deferred capture is a read-only closure that receives the earlier named
-captures and returns a bit schema. `@Byte` is the built-in eight-bit width unit;
+captures and returns a bit schema. `@Byte` uses the `Byte` binding above;
 when a width is a blob, its unsigned value supplies the length. Captures keep
 their exact binary width. The input must be consumed completely, so the old
-example's extra trailing `66666666` is omitted:
+example's extra trailing `66666666` is omitted. A prefix parser must declare an
+explicit terminal remainder capture, such as `.rest <[@Bit]>`. Binary rendering
+preserves the width of each captured field rather than the input's hex base:
 ```
 ; .NetString <[.n <4@Bit>; .string {<n@Byte>};]>;
 ; NetString 0x548656c6c6f

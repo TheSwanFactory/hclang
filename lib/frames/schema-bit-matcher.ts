@@ -1,5 +1,6 @@
-import { FrameCount } from "./frame-count.ts";
-import type { EvaluationInput } from "./evaluation-scope.ts";
+import { FrameInt } from "./frame-int.ts";
+import { FrameSymbol } from "./frame-symbol.ts";
+import { type EvaluationInput, EvaluationScope } from "./evaluation-scope.ts";
 import { Frame } from "./frame.ts";
 import { FrameAlias } from "./frame-alias.ts";
 import { FrameArray } from "./frame-array.ts";
@@ -10,6 +11,7 @@ import { FrameNumeric, REPETITION_TEXT_LIMIT } from "./frame-numeric.ts";
 import { matchFailure, type MatchResult, matchSuccess } from "./frame-match.ts";
 import {
   callSchemaPredicate,
+  evaluateSchemaTerm,
   isSchemaFrame,
   type SchemaMatcher,
   schemaPredicateHasEffect,
@@ -26,21 +28,26 @@ type BitCapture = {
 export function compileBitSchemaMatcher(
   data: Frame[],
   input?: EvaluationInput,
-): SchemaMatcher | undefined {
+): SchemaMatcher | Frame | undefined {
   if (data.length === 1) {
     const expression = data[0];
     const terms = expression instanceof FrameList
       ? expression.asArray().map(unwrapSchemaSyntax)
       : [];
-    const unit = terms.length === 2 ? bitUnit(terms[1]) : undefined;
+    const unit = terms.length === 2 ? bitUnit(terms[1], input) : undefined;
+    if (unit instanceof Frame) return unit;
     if (unit !== undefined) {
-      const width = input === undefined ? terms[0] : terms[0].in(input);
+      const width = input === undefined
+        ? terms[0]
+        : evaluateSchemaTerm(terms[0], input);
+      if (width.is.error) return width;
       const exact = width instanceof FrameBlob
         ? width.unsignedValue()
         : width instanceof FrameNumeric
         ? width.exactInt(BigInt(Number.MAX_SAFE_INTEGER))
         : undefined;
       const bits = typeof exact === "bigint" ? exact * BigInt(unit) : undefined;
+      if (bits === 0n) return Frame.error("$!.bit-width 0");
       return bits !== undefined && bits > 0n &&
           bits <= BigInt(Number.MAX_SAFE_INTEGER)
         ? new ExactBitSchemaMatcher(Number(bits))
@@ -91,7 +98,7 @@ class ExactBitSchemaMatcher implements SchemaMatcher {
   }
 
   public apply(schema: FrameList, value: Frame, origin: Frame): Frame {
-    if (value instanceof FrameCount) {
+    if (value instanceof FrameInt && value.data >= 0n) {
       const digits = value.data.toString(2);
       return digits.length > this.bits ||
           BigInt(this.bits) > REPETITION_TEXT_LIMIT
@@ -111,7 +118,7 @@ class RemainderBitSchemaMatcher implements SchemaMatcher {
   public readonly bits = null;
 
   public apply(schema: FrameList, value: Frame, origin: Frame): Frame {
-    if (value instanceof FrameCount) {
+    if (value instanceof FrameInt && value.data >= 0n) {
       return new FrameBlob(`0b${value.data.toString(2)}`);
     }
     const result = this.match(schema, value, origin);
@@ -173,7 +180,11 @@ class BitSequenceSchemaMatcher implements SchemaMatcher {
     if (!(capture.bits instanceof Frame)) return capture.bits;
     const answer = callSchemaPredicate(capture.bits, evidence);
     if (answer.is.error) return answer;
-    const width = answer.isSchema() ? answer.bitWidth() : undefined;
+    const matcher = answer.isSchema() ? answer.compiledMatcher() : undefined;
+    const width = matcher instanceof ExactBitSchemaMatcher ||
+        matcher instanceof RemainderBitSchemaMatcher
+      ? matcher.bits
+      : undefined;
     if (width === null && capture !== this.captures.at(-1)) {
       return Frame.error(`$!.invalid-remainder-position .${capture.name}`);
     }
@@ -222,7 +233,7 @@ class BitSequenceSchemaMatcher implements SchemaMatcher {
 function compileBitSequence(
   entries: Frame[],
   input?: EvaluationInput,
-): SchemaMatcher | undefined {
+): SchemaMatcher | Frame | undefined {
   if (entries.length === 0 || !containsBitSyntax(entries)) return undefined;
   const captures: BitCapture[] = [];
   const names = new Set<string>();
@@ -248,6 +259,7 @@ function compileBitSequence(
     }
     const nested = deferred ??
       compileBitSchemaMatcher(capture.asArray(), input);
+    if (nested instanceof Frame && !deferred) return nested;
     if (
       !(nested instanceof ExactBitSchemaMatcher) &&
       !(nested instanceof RemainderBitSchemaMatcher) && !deferred
@@ -280,17 +292,27 @@ function compileBitSequence(
   return new BitSequenceSchemaMatcher(captures);
 }
 
-function bitUnit(frame: Frame): number | undefined {
+function bitUnit(
+  frame: Frame,
+  input?: EvaluationInput,
+): number | Frame | undefined {
   if (!(frame instanceof FrameAlias)) return undefined;
-  return frame.toString() === "@Bit"
-    ? 1
-    : frame.toString() === "@Byte"
-    ? 8
-    : undefined;
+  if (frame.toString() === "@Bit") return 1;
+  if (frame.toString() !== "@Byte") return undefined;
+  if (input === undefined) return 8;
+  const binding = FrameSymbol.for("Byte").lookupIn(EvaluationScope.from(input))
+    ?.value;
+  if (binding === undefined) return 8;
+  if (binding.is.error) return binding;
+  const matcher = binding.isSchema() ? binding.compiledMatcher() : undefined;
+  return matcher instanceof ExactBitSchemaMatcher
+    ? matcher.bits
+    : Frame.error("$!.invalid-bit-unit @Byte");
 }
 
 function isBitAlias(frame: Frame): boolean {
-  return bitUnit(frame) !== undefined;
+  return frame instanceof FrameAlias &&
+    ["@Bit", "@Byte"].includes(frame.toString());
 }
 
 function containsBitSyntax(frames: Frame[]): boolean {

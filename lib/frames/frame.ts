@@ -1342,9 +1342,9 @@ export class Frame extends MetaFrame {
   /**
    * The values this frame streams when it is iterated.
    *
-   * Anything which is not an aggregate is a single element, so text does not
-   * enumerate its characters. An aggregate answers its elements; a stream, such
-   * as a resource, answers content it produces on demand.
+   * The default is one element, so text does not enumerate its characters.
+   * Aggregates answer their elements, blobs stream Count bits, and resources
+   * answer content they produce on demand.
    */
   public elements(): Array<Frame> {
     return [this];
