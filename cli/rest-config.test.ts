@@ -1,5 +1,6 @@
 import { CLI_ENVIRONMENT } from "./env-permissions.ts";
 import { expect } from "@std/expect";
+import { dirname } from "@std/path";
 import { describe, it } from "@std/testing/bdd";
 import {
   describeRestConfig,
@@ -330,7 +331,7 @@ describe("REST config validation boundaries", () => {
           args: [
             "run",
             "--allow-read",
-            ...(allowWrite ? ["--allow-write"] : []),
+            ...(allowWrite ? [`--allow-write=${dirname(directory)}`] : []),
             `--allow-env=${CLI_ENVIRONMENT.join(",")}`,
             "--no-prompt",
             cli,

@@ -39,3 +39,11 @@ pass on 2.9.8. Every package remains above its unchanged floor. The required
 pre-push full suite also uses the pinned binary through PATH before publication;
 GitHub's new build run will verify the pushed head. No credential values are
 inspected; the authenticated live read still requires Ernie's token.
+
+Kiro's follow-up confirmed that GitHub's Deno 2.9.8 run 45930464790 passed at
+571/588 CLI branches, matching the local result, and found no production bugs.
+Its remaining permission nit is accepted: the startup-failure launch now scopes
+write access to the parent of its fixture temp directory (the OS temp root),
+instead of granting unscoped writes. The neighboring preflight launches still
+have no write permission. This is test-only permission tightening; the branch
+floor and production behavior remain unchanged.
