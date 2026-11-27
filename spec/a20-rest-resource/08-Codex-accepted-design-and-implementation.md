@@ -1,8 +1,8 @@
 # Accepted REST Design and Implementation
 
 **Author:** Codex.\
-**Status:** Implemented and validated; awaiting review and the optional
-live-token check.\
+**Status:** Implemented and validated in PR #579; awaiting the manual
+authenticated live read and further review.\
 **Branch:** `codex/rest-resource-spec`.\
 **Issue:** [#570](https://github.com/TheSwanFactory/hclang/issues/570).\
 **PR:** [#579](https://github.com/TheSwanFactory/hclang/pull/579).
@@ -112,3 +112,9 @@ The interactive-permission follow-up in 10 passed the focused regression tests,
 format/lint/type checks and all clean coverage floors (library branches 96.12%,
 CLI branches 97.04%). The required pre-push full-suite hook validates the final
 commit before publication. PR #579 remains open for review; it is not merged.
+
+Kiro's review follow-up in 12 restores the public live corpus, distinguishes 403
+token failures from skips, documents the new live-worker flags and rebases onto
+v0.58.0 with a v0.59.0 minor bump. The full gate and clean coverage floors pass
+after that rebase. All 26 public live claims passed against GitHub; only the
+authenticated run skipped for the unset token.
