@@ -247,21 +247,23 @@ the highest numeric rank along the ladder count, integer, decimal, rational,
 inexact. A count is closed under `+`, `*`, `%%`, and a nonnegative integral
 `**`, but unary `-` and binary `-` answer a signed integer even when the result
 is nonnegative, so `5 - 3` is the integer `2`, and division answers a rational,
-or an integer when it is whole. `%%` accepts counts and integers only, and
-integer juxtaposition performs multiplication or bounded repetition. Repeated
-text joins its copies, so `3 “ab”` is `“ababab”`, and a repeated aggregate
-concatenates its elements into a fresh aggregate of the same kind, keeping its
-properties once, so `3 [1, 2]` is `[1, 2, 1, 2, 1, 2]`. A schema repeats every
-term, so it matches what its literal written n times matches. A closure, or a
-class that declares `apply`, is applied repeatedly instead. A count prints as
-the same integer does. Numeric `=` compares values across ranks, while `==` and
-`===` compare exact types, so a count and an integer are distinct: `2 = (5 - 3)`
-holds, but `2 == (5 - 3)` is nil, as `3 == 3.0` is. A numeric runtime type from
-`.<>` admits a value from its own rung or any lower one on the ladder count,
-int, decimal, rational, number, and a schema binds that value unchanged:
-`5 ~ (0 - 1).<>` is `<>`, and `.d <1.5.<>> 3` binds the count `3`, so `1 / d` is
-`1/3`. A type never admits a higher rung, so `2.<>` does not match `5 - 3`,
-whatever its value.
+or an integer when it is whole. `%%` accepts any exact rung (count, integer,
+decimal, rational), promoted like `+`; the remainder takes the divisor's sign,
+so `(0 - 7) %% 2` is `1` and `3.14 %% 1` is `0.14`, and an inexact number is
+refused. Integer juxtaposition performs multiplication or bounded repetition.
+Repeated text joins its copies, so `3 “ab”` is `“ababab”`, and a repeated
+aggregate concatenates its elements into a fresh aggregate of the same kind,
+keeping its properties once, so `3 [1, 2]` is `[1, 2, 1, 2, 1, 2]`. A schema
+repeats every term, so it matches what its literal written n times matches. A
+closure, or a class that declares `apply`, is applied repeatedly instead. A
+count prints as the same integer does. Numeric `=` compares values across ranks,
+while `==` and `===` compare exact types, so a count and an integer are
+distinct: `2 = (5 - 3)` holds, but `2 == (5 - 3)` is nil, as `3 == 3.0` is. A
+numeric runtime type from `.<>` admits a value from its own rung or any lower
+one on the ladder count, int, decimal, rational, number, and a schema binds that
+value unchanged: `5 ~ (0 - 1).<>` is `<>`, and `.d <1.5.<>> 3` binds the count
+`3`, so `1 / d` is `1/3`. A type never admits a higher rung, so `2.<>` does not
+match `5 - 3`, whatever its value.
 
 Explicit `0b`, `0o`, and `0x` forms are blobs, not numeric integers.
 
@@ -459,6 +461,23 @@ e.g. `(1 + 1) ~~ [2]`.
 selectors and bit splitters; `<>` is total and `()` matches nothing. This
 matcher interpretation applies only to `~`. `~~` and `~~~` compare immediate
 schema terms literally and do not invoke the schema matcher.
+
+A closure inside a schema is a predicate candidate. The schema calls it with the
+value and admits the value unless the closure answers nil or an error:
+`5 ~ <{_.< 10}>` is `<>` and `50 ~ <{_.< 10}>` is nil. When no candidate
+matches, the first error a predicate answered is the failure's reason, which
+schema application `<p> v` answers: `<{$!!.too-big}> 5` is `$!!.too-big`. A
+predicate composes with other candidates, so `<0, {_.> 100}>` admits 0 and 101.
+Inside a schema, write comparisons with the dot (`{_.> 100}`, `{_.< 10}`): a
+bare `>` closes the schema, so `<{_ > 3}>` is a parse error. Binding keeps the
+value unchanged: `.d <{_ ~ 1.5.<>}> 3` binds the integer 3. Matching stays
+read-only. A schema holding a predicate that may write (its access footprint has
+a write) is refused when it is built, with `$!.schema-predicate-effect`; a
+predicate that only reads enclosing names is admitted. A write the footprint
+cannot see, such as calling the matched value (`.p {_ (); <>}`) or a closure
+held in an aggregate, is refused when it is attempted, before it lands, and the
+match fails with `$!.schema-predicate-effect` as its reason. Frames the
+predicate creates, such as its local bindings, stay writable (#536).
 
 `F.<>` extracts the exact runtime class of F, transparently through a name or
 handle. It matches only values of that class, except that a numeric type also

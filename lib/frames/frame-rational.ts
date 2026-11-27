@@ -134,6 +134,18 @@ export class FrameRational extends FrameNumeric {
     );
   }
 
+  // Denominators are positive, so the divisor's sign is its numerator's.
+  protected override moduloSame(right: FrameNumeric): Frame {
+    const rational = right as FrameRational;
+    return FrameRational.create(
+      FrameNumeric.flooredRemainder(
+        this.numerator * rational.denominator,
+        rational.numerator * this.denominator,
+      ),
+      this.denominator * rational.denominator,
+    );
+  }
+
   protected override divideSame(right: FrameNumeric): Frame {
     const rational = right as FrameRational;
     return FrameRational.create(

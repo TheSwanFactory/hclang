@@ -193,11 +193,15 @@ export abstract class FrameNumeric extends FrameAtom {
     return this.promoteTo(target).divideSame(right.promoteTo(target));
   }
 
-  /** Integer rungs only, joined like `+`, so two counts answer a count. */
+  /**
+   * Exact rungs only, joined like `+` (two counts answer a count), with the
+   * remainder taking the divisor's sign. The Number rung is refused because a
+   * float remainder would hide the inexactness ND-004 makes visible (#536).
+   */
   public modulo(right: FrameNumeric): Frame {
     if (
       this.rank == null || right.rank == null ||
-      this.rank > NUMERIC_RANK.int || right.rank > NUMERIC_RANK.int
+      this.rank === NUMERIC_RANK.number || right.rank === NUMERIC_RANK.number
     ) {
       return this.operationError("%%", right);
     }
@@ -349,6 +353,13 @@ export abstract class FrameNumeric extends FrameAtom {
     denominator: bigint,
   ): bigint | null {
     return numerator % denominator === 0n ? numerator / denominator : null;
+  }
+  /** The remainder of `dividend / divisor`, taking the divisor's sign. */
+  protected static flooredRemainder(dividend: bigint, divisor: bigint): bigint {
+    const remainder = dividend % divisor;
+    return remainder !== 0n && (remainder < 0n) !== (divisor < 0n)
+      ? remainder + divisor
+      : remainder;
   }
   // Abstract by the rule above: a sign is an answer each class spells itself.
   protected abstract unaryPlus(): Frame;

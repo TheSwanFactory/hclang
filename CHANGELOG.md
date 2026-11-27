@@ -5,6 +5,40 @@
 > contains nothing else; then describe it and say that nothing user-facing
 > changed.
 
+## v0.59.0 2026-11-26
+
+- **`%%` works on every exact rung (#536).** Decimals and rationals now take a
+  remainder: `3.14 %% 1` is `0.14`, `(7 / 2) %% 1` is `1/2`, and
+  `3.5 %% (1 / 3)` is `1/6`. Mixed operands promote like `+`, and the remainder
+  takes the divisor's sign on every rung (`(0 - 3.14) %% 1` is `0.86`), so
+  `x - (x %% 1)` is the floor of `x`. An inexact number is still refused:
+  `(1 / 3.0) %% 1` answers `$!.numeric-domain %% FrameNumber FrameCount`.
+  `3.0 %% 2` now answers `1.0` where it answered
+  `$!.numeric-domain %% FrameDecimal FrameCount`.
+- **A closure in a schema is a predicate (#536).** The schema calls the closure
+  with the value and admits it unless the answer is nil or an error:
+  `5 ~ <{_.< 10}>` is `<>`, `.small <{_.< 10}> 5` binds 5 and a later
+  `@small 50` is refused with `$!.type-error`. Predicates join unions
+  (`<0, {_.> 100}>` admits 0 and 101), a predicate's error is the refusal reason
+  (`<{$!!.too-big}> 5` answers `$!!.too-big`), and binding never converts the
+  value. A schema whose predicate may write is refused when built with
+  `$!.schema-predicate-effect`. A write that analysis cannot see, such as a
+  predicate calling the matched value, is refused before it lands and fails the
+  match with the same error, so matching never writes shared state. Comparisons
+  inside a schema take the dot (`{_.> 100}`), since a bare `>` closes the
+  schema. `.s {_.< 10}; .z <s> 5` now binds 5 where it answered `$!.type-error`.
+- **HLIR primitive types are an HC module (#536).** `HLIR <- './hc/hlir.hc'`
+  provides `i8` `i16` `i32` `i64` `u8` `u16` `u32` `u64` `index` `f64`, the
+  width generators `int w` and `uint w`, the conversions `floor`, `trunc` and
+  `round` (half away from zero), and `record [.re f64; .im f64]` and
+  `tensor [[2, 3], f64]`. The widths, records and tensors are predicate schemas:
+  `.top <i32> 2147483647` binds, `2147483648 ~ <i32>` is nil, and text or `3.14`
+  is refused. Truncation is explicit: `<i32>` refuses 3.14 while
+  `.whole <i32> (trunc 3.14)` binds 3. The conversions take exact values only:
+  `floor (1 / 3.0)` answers `$!.numeric-domain %% FrameNumber FrameCount`. `f32`
+  and encode/decode against bit layouts are not included. The testdoc's HLIR
+  claims now pass.
+
 ## v0.58.0 2026-11-26
 
 - **The KD sign and multiply kernel is written in HC (#576).**

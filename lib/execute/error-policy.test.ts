@@ -293,6 +293,15 @@ Deno.test("the bundled testdoc imports: its headings are text, not code", async 
   expect(result).not.toContain("$!");
   expect(await session.call("T.#")).not.toContain("$!");
 });
+Deno.test("the bundled HLIR module imports its primitive types (#536)", async () => {
+  const session = new HCLang();
+  expect(await session.call("HLIR <- './hc/hlir.hc'")).not.toContain("$!");
+  expect(
+    await session.call(
+      "[42 ~ <HLIR.i32>, 2147483648 ~ <HLIR.i32>, [[1, 2]] ~ <HLIR.tensor [[1, 2], HLIR.f64]>, HLIR.trunc (0 - 3.7)]",
+    ),
+  ).toBe("[<>, (), <>, -3]");
+});
 
 Deno.test("test reports retain failed, passed, unimplemented and summary notes", () => {
   const out = new FrameArray([]);

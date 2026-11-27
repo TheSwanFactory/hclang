@@ -146,7 +146,7 @@ or written and no element holds its own aggregate
 ; [(1 xs) = xs, (1 xs) === xs, ((3 [xs]) .2) === xs, (2 [[1, 2]]).##]
 # [<>, (), <>, 6]
 ```
-Cross-rung promotion and integer-only modulo
+Cross-rung promotion and modulo on every exact rung (#536)
 ```
 ; 1 + 2.5
 # 3.5
@@ -155,7 +155,17 @@ Cross-rung promotion and integer-only modulo
 ; 3.%%2
 # 1
 ; 3.0 %% 2
-# $!.numeric-domain %% FrameDecimal FrameCount
+# 1.0
+; [3.14 %% 1, (0 - 3.14) %% 1, (7 / 2) %% 1, (0 - 7) %% 2, 7 %% (0 - 2), 3.5 %% (1 / 3)]
+# [0.14, 0.86, 1/2, 1, -1, 1/6]
+; [3.14 - (3.14 %% 1), (7 / 2) - ((7 / 2) %% 1)]
+# [3.00, 3]
+; (1 / 3.0) %% 1
+# $!.numeric-domain %% FrameNumber FrameCount
+; 3.14 %% (1 / 3.0)
+# $!.numeric-domain %% FrameDecimal FrameNumber
+; 1.5 %% (1 - 1)
+# $!.modulo-by-zero %%
 ```
 Zero and unsupported domains return stable errors
 ```

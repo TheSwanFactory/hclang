@@ -72,9 +72,11 @@ integer, decimal, rational, and inexact ranks; division is exact unless its
 divisor is a decimal or inexact number. Counts stay counts under `+`, `*`, `%%`,
 and a nonnegative integral `**`, while unary `-` and binary `-` answer an
 integer whatever the sign, and division answers a rational, or an integer when
-the quotient is whole. `%%` accepts counts and integers only. Sequences and
-typed numbers reject arithmetic, ordering, signs, and repetition; a typed number
-refuses even a same-unit operand.
+the quotient is whole. `%%` accepts any exact rung (count, integer, decimal,
+rational), promoted like `+`; the remainder takes the divisor's sign, so
+`(0 - 7) %% 2` is `1` and `3.14 %% 1` is `0.14`, and an inexact number is
+refused. Sequences and typed numbers reject arithmetic, ordering, signs, and
+repetition; a typed number refuses even a same-unit operand.
 
 #### Time Types
 
@@ -267,6 +269,7 @@ The dotted spellings dispatch exactly as the bare ones, on every receiver
 ### Type Operators
 
 - **Type specification**: `<` and `>` (used for static typing)
+- **Predicate candidate**: a closure inside a schema, `<{_.< 10}>`
 
 ## Named Error Literals
 

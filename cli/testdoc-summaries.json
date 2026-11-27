@@ -90,8 +90,8 @@
     "unimplemented": 0
   },
   "numerics.hc": {
-    "total": 137,
-    "pass": 137,
+    "total": 142,
+    "pass": 142,
     "fail": 0,
     "unimplemented": 0
   },
@@ -114,10 +114,10 @@
     "unimplemented": 0
   },
   "testdoc.hc": {
-    "total": 84,
-    "pass": 75,
+    "total": 124,
+    "pass": 124,
     "fail": 0,
-    "unimplemented": 9
+    "unimplemented": 0
   },
   "time.hc": {
     "total": 51,
