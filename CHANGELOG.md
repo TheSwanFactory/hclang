@@ -5,7 +5,7 @@
 > contains nothing else; then describe it and say that nothing user-facing
 > changed.
 
-## Unreleased
+## v0.58.0 2026-11-26
 
 - **The KD sign and multiply kernel is written in HC (#576).**
   `KD <- './hc/kd.hc'` imports `half`, `xor`, `width`, `bit`, `low`,
