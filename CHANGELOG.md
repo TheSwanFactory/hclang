@@ -31,8 +31,10 @@
   `tensor [[2, 3], f64]`. The widths, records and tensors are predicate schemas:
   `.top <i32> 2147483647` binds, `2147483648 ~ <i32>` is nil, and text or `3.14`
   is refused. Truncation is explicit: `<i32>` refuses 3.14 while
-  `.whole <i32> (trunc 3.14)` binds 3. `f32` and encode/decode against bit
-  layouts are not included. The testdoc's HLIR claims now pass.
+  `.whole <i32> (trunc 3.14)` binds 3. The conversions take exact values only:
+  `floor (1 / 3.0)` answers `$!.numeric-domain %% FrameNumber FrameCount`. `f32`
+  and encode/decode against bit layouts are not included. The testdoc's HLIR
+  claims now pass.
 
 ## v0.58.0 2026-11-26
 

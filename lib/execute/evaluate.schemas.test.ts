@@ -382,6 +382,14 @@ describe("evaluate: schemas", () => {
       );
       expect(result.meta["tally"]?.toString()).toEqual("0");
     });
+    it("refuses a predicate that calls a writing closure", () => {
+      const source = ".tally 0; .bump {@tally (tally + 1); <>}; .p {bump _}; ";
+      expect(evaluate(source + "<p>").toString()).toContain(
+        "$!.schema-predicate-effect",
+      );
+      const result = evaluate(source + "5 ~ <p>");
+      expect(result.meta["tally"]?.toString()).toEqual("0");
+    });
     it("admits a read-only closure over a file name", () => {
       expect(evaluate(".limit 10; 5 ~ <{_.< limit}>").toString()).toEqual(
         "[.limit 10; ((.limit 10); <>)]",

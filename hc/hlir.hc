@@ -10,7 +10,9 @@ admit a Count v with v < 2^w; index is any Count; f64 is the Number type.
 `int w` and `uint w` build the predicate for any other width.
 Binding never converts the value (#410), so 3.14 is refused by <i32> and
 narrowing is explicit: floor, trunc and round (half away from zero) answer
-the Int rung, and `.whole <i32> (trunc 3.14)` binds 3.
+the Int rung, and `.whole <i32> (trunc 3.14)` binds 3. They take exact
+values only (Count, Int, Decimal, Rational), because they are built on `%%`:
+`floor (1 / 3.0)` answers `$!.numeric-domain %% FrameNumber FrameCount`.
 `record [.re f64; .im f64]` admits an aggregate with exactly those
 properties, each matching its type; `tensor [[2, 3], f64]` admits a 2x3
 array of arrays whose leaves match f64.
