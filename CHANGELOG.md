@@ -5,6 +5,17 @@
 > contains nothing else; then describe it and say that nothing user-facing
 > changed.
 
+## v0.58.0 2026-11-26
+
+- **The KD sign and multiply kernel is written in HC (#576).**
+  `KD <- './hc/kd.hc'` imports `half`, `xor`, `width`, `bit`, `low`,
+  `cd_sign [u, v]` and `kd_multiply [left, right]`, using only Counts, recursion
+  and `%%`. `kd_multiply` answers the same loads as `&|&`, including lazy
+  completion, halfwise embedding and one-load unsigned scalars, and above
+  262,144 nonzero pairs it answers `$!.denum-product-budget &|&` as `&|&` does.
+  The module is the executable specification of `&|&`; a differential test
+  checks it against the native kernel, which is unchanged.
+
 ## v0.57.2 2026-11-26
 
 - **`^` and `^^` no longer change other names holding the closure (#485).** Both
