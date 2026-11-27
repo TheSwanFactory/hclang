@@ -5,6 +5,18 @@
 > contains nothing else; then describe it and say that nothing user-facing
 > changed.
 
+## v0.57.2 2026-11-26
+
+- **`^` and `^^` no longer change other names holding the closure (#485).** Both
+  refine a copy of the closure and bind it only to the name being declared.
+  After `.f (.x) ^ {x}; .g f; .h f ^^ <1, 2, 3>`, `f (.x 9)` and `g (.x 9)`
+  answer `9` and only `h (.x 9)` answers `$!.type-error <1, 2, 3> 9`; before,
+  all three were refused. Likewise `.h (.x, .y) ^ f` no longer makes `f` and its
+  aliases demand `.y`. `.f f ^^ <…>` now binds the contract to `f` (it used to
+  bind nothing), and a name that held `f` before keeps the old behavior. A
+  closure under a `_` key is unaffected: `.set_ {…}` still declares a method
+  that may write its receiver.
+
 ## v0.57.1 2026-11-26
 
 - **The AsciiDoc docs are now Markdown (#319).** The BitScheme tutorial,
