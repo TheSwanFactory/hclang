@@ -772,3 +772,110 @@ Deno.test({
     }
   },
 });
+
+Deno.test({
+  name:
+    "API-key credentials stay worker-only and cannot be supplied or replaced by HC",
+  permissions: {
+    env: ["REST_TEST_API_KEY"],
+    net: ["127.0.0.1"],
+    read: true,
+    write: true,
+  },
+  async fn(): Promise<void> {
+    const temp = Deno.makeTempDirSync({ prefix: "hc-rest-api-key-" });
+    Deno.env.set("REST_TEST_API_KEY", "fake-header-key");
+    const seen: { key: string | null; authorization: string | null }[] = [];
+    const server = new Worker(
+      URL.createObjectURL(
+        new Blob(
+          [`
+      const server=Deno.serve({hostname:"127.0.0.1",port:0,onListen(){}},request=>{
+        self.postMessage({kind:"received",key:request.headers.get("x-api-key"),authorization:request.headers.get("authorization")});
+        return new Response("ok");
+      });
+      self.postMessage({kind:"listening",port:server.addr.port});
+    `],
+          { type: "application/javascript" },
+        ),
+      ),
+      { type: "module" },
+    );
+    const port = await new Promise<number>((resolve) => {
+      server.onmessage = (event) => {
+        if (event.data.kind === "listening") resolve(event.data.port);
+        else seen.push(event.data);
+      };
+    });
+    const base = `http://127.0.0.1:${port}/api/`;
+    const file = `${temp}/grants.json`;
+    Deno.writeTextFileSync(
+      file,
+      JSON.stringify({
+        grants: [{
+          id: "root",
+          base,
+          methods: ["GET"],
+          requests: 3,
+          responseBytes: 100,
+          timeoutMs: 1000,
+          lifetimeMs: 60000,
+          transport: "live",
+          evidence: "evidence.jsonl",
+          credential: {
+            env: "REST_TEST_API_KEY",
+            scheme: "x-api-key",
+            create: "https://example.com/key",
+            permissions: "read",
+          },
+        }, { id: "child", attenuates: "root", path: "recordings/1/" }],
+        install: ["child"],
+      }),
+    );
+    let install: RestInstall | undefined;
+    try {
+      install = loadRestConfig(file, "/nonexistent-root");
+      expect(() => Deno.env.get("REST_TEST_API_KEY")).toThrow();
+      const child = install.grants[0];
+      expect(
+        child.exchange({
+          ok: true,
+          request: { path: "summary", query: [], headers: [] },
+        }),
+      ).toMatchObject({ ok: true });
+      expect(
+        child.exchange({
+          ok: true,
+          request: {
+            path: "summary",
+            query: [],
+            headers: [["X-Api-Key", "replace"]],
+          },
+        }),
+      ).toMatchObject({ reason: "resource-header-forbidden" });
+      expect(
+        child.exchange({
+          ok: true,
+          request: {
+            path: "summary",
+            query: [],
+            headers: [["authorization", "replace"]],
+          },
+        }),
+      ).toMatchObject({ reason: "resource-header-forbidden" });
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      expect(seen).toHaveLength(1);
+      expect(seen[0]).toMatchObject({
+        key: "fake-header-key",
+        authorization: null,
+      });
+      const evidence = Deno.readTextFileSync(`${temp}/evidence.jsonl`);
+      expect(evidence).not.toContain("fake-header-key");
+      expect(evidence).not.toContain("replace");
+    } finally {
+      install?.close();
+      server.terminate();
+      Deno.removeSync(temp, { recursive: true });
+    }
+  },
+});

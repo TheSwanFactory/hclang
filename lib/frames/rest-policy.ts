@@ -45,7 +45,8 @@ export const DEFAULT_RESPONSE_HEADERS: readonly string[] = Object.freeze([
  */
 export const isForbiddenRequestHeader = (name: string): boolean => {
   const folded = name.toLowerCase();
-  return folded === "authorization" || folded === "cookie" ||
+  return folded === "authorization" || folded === "x-api-key" ||
+    folded === "cookie" ||
     folded === "host" || folded.startsWith("proxy-");
 };
 /** What a harness writes to construct a grant, before it is checked. */

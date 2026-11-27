@@ -138,3 +138,34 @@ The live runner inspects credential presence, not its value. Omit
 value is invalid setup and fails that corpus when the worker checks it. An
 authenticated 403 is conservatively a failure even if rate limiting caused it;
 without discriminating evidence the runner does not treat it as a safe skip.
+
+## Existing API keys and Fathom
+
+Credentials support two fixed encodings: `bearer` sends
+`Authorization: Bearer ...`; `x-api-key` sends `X-Api-Key: ...`. The worker
+selects and injects that header after authorization. HC cannot supply either
+header, even if a grant tries adding it to its request-header list. Arbitrary
+credential header names, refresh and OAuth flows remain out of scope.
+
+A credential environment name can be an existing environment identifier such as
+`FATHOM_API_KEY`; an `HC_` prefix is not required. Names inspected by the CLI or
+visible to HC are refused, case-insensitively, so standard invocation and
+color-detection variables cannot become credentials. The explicit worker env
+permission, main-isolate revocation and `--no-prompt` still enforce isolation.
+
+Fathom's documented read endpoint is
+`https://api.fathom.ai/external/v1/recordings/{recording_id}/summary`,
+authenticated with `X-Api-Key`. Its API recording ID may differ from a
+`fathom.video/calls/` web-call ID. The user-authorized live proof is:
+
+```bash
+deno task --env-file="$HOME/.env" test:rest-fathom <api-recording-id>
+```
+
+Deno loads the environment file as data; neither the launcher nor the evaluator
+reads the key value. The launcher builds a private temporary config that
+installs only the selected recording's GET grant. It checks summary HTTP 200,
+private-parent inaccessibility, credential-header replacement refusal and POST
+refusal. It reports status/check counts only, then removes the temporary config,
+HC source and evidence. Keep real meeting IDs and content out of checked-in
+examples and reports.

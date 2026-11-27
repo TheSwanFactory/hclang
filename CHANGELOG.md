@@ -9,12 +9,15 @@
 
 - **REST grants support credentials, writes and attenuation (#570).** A harness
   can install only selected children while keeping ancestors private. Live Deno
-  workers hold bearer tokens and enforce shared budgets; HC cannot choose or
-  read credentials. `--grants` explains setup and `hc:rest-auth` runs the
-  shipped scoped config. Writes record intent and completion and report
+  workers hold bearer tokens or API keys and enforce shared budgets; HC cannot
+  choose or read credentials. `--grants` explains setup and `hc:rest-auth` runs
+  the shipped scoped config. Writes record intent and completion and report
   uncertain outcomes without automatic retries. Existing public-read config
   files still load; direct live launches now require `--unstable-worker-options`
   and `--no-prompt`, including public grants. Shipped tasks supply both flags.
+  Existing private key names such as `FATHOM_API_KEY` are supported, and
+  `test:rest-fathom` checks a caller-selected recording without printing
+  content.
 
 ## v0.59.0 2026-11-26
 

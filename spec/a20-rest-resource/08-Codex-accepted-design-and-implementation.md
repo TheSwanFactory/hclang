@@ -1,8 +1,8 @@
 # Accepted REST Design and Implementation
 
 **Author:** Codex.\
-**Status:** Implemented and validated in PR #579; awaiting the manual
-authenticated live read and further review.\
+**Status:** Implemented in PR #579; user-authorized Fathom live read and full
+local regression/coverage gates passed; GitHub CI pending on that extension.\
 **Branch:** `codex/rest-resource-spec`.\
 **Release preparation:** v0.60.0, rebased on master's v0.59.0.\
 **Issue:** [#570](https://github.com/TheSwanFactory/hclang/issues/570).\
@@ -45,9 +45,9 @@ cannot outlive an ancestor. Root credentials never appear in child descriptors.
 
 Methods are GET (default), HEAD, POST, PUT, PATCH and DELETE. String bodies are
 UTF-8 and only legal for POST/PUT/PATCH, within `requestBytes`. Authorization,
-cookie, host and proxy headers remain forbidden to HC. Redirects remain manual.
-Credentialed endpoints must be trusted not to reflect authorization in
-responses.
+x-api-key, cookie, host and proxy headers remain forbidden to HC. Redirects
+remain manual. Credentialed endpoints must be trusted not to reflect
+authorization in responses.
 
 Definite pre-dispatch refusals retain one refusal record. GET/HEAD retain one
 sent record. Other methods require intent before dispatch and completion before
@@ -87,7 +87,7 @@ through that cutoff and reports only meaningful changes.
 ## Implementation and verification
 
 The branch implements worker-owned live authorization, selected-ancestor config
-loading, worker-only bearer credentials, write methods/body budgets,
+loading, worker-only bearer/API-key credentials, write methods/body budgets,
 harness-only attenuation, shared ancestor state, preflight diagnostics and
 two-phase effect evidence. The same pure authority code runs in the simulator.
 The new `hc/rest-auth.hc` corpus runs against fixtures in the normal suite and
@@ -128,3 +128,9 @@ Kiro identified a coverage instrumentation difference between local Deno 2.9.7
 and CI's pinned 2.9.8. Record 14 adds a real missing-config startup regression
 and verifies the pinned runtime: all unchanged coverage floors pass, with CLI
 branches at 97.11%. The earlier 2.9.7 figures are historical local measurements.
+
+Ernie authorized Fathom as the live credential target. Record 15 adds the fixed
+X-Api-Key scheme and existing non-host environment names; a real authenticated
+summary read through the narrowed HC grant passed HTTP 200 and all four checks.
+No meeting ID, content or key value is committed. GitHub token creation is no
+longer needed to satisfy the live credentialed-read acceptance condition.

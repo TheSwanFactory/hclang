@@ -116,6 +116,18 @@ repository ancestor stays private. [REST configuration](doc/rest-resource.md)
 describes custom grants, write requests and uncertain outcomes. The browser and
 npm CLI do not provide this live Deno transport.
 
+For an existing Fathom API key in your private environment file, use a Fathom
+**API recording ID** (which can differ from the web-call ID):
+
+```bash
+deno task --env-file="$HOME/.env" test:rest-fathom <recording-id>
+```
+
+This status-only proof reads one recording summary through a path-narrowed
+grant. Only the worker reads `FATHOM_API_KEY`; the runner prints HTTP status and
+check counts, and removes its temporary config and evidence. It prints no
+meeting content or credential values.
+
 ### Run Tests
 
 ```bash

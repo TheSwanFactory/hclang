@@ -251,6 +251,9 @@ describe("REST config validation boundaries", () => {
       ...[
         { extra: "bad" },
         { env: "PATH" },
+        { env: "TF_BUILD" },
+        { env: "tf_build" },
+        { env: "invalid-name" },
         { env: 1 },
         { scheme: "basic" },
         { create: 1 },
@@ -417,6 +420,39 @@ Deno.test("post-revocation diagnostics use worker reports without probing env", 
     );
   } finally {
     Deno.env.has = has;
+    Deno.removeSync(directory, { recursive: true });
+  }
+});
+
+Deno.test("an existing non-visible API-key variable can supply a fixed header scheme", () => {
+  const { file, directory } = graph({
+    grants: [
+      grant({
+        id: "api",
+        credential: {
+          env: "FATHOM_API_KEY",
+          scheme: "x-api-key",
+          create: "https://developers.fathom.ai/quickstart",
+          permissions: "read",
+        },
+      }),
+    ],
+    install: ["api"],
+  });
+  try {
+    expect(readRestConfig(file).definitions[0].credential).toMatchObject({
+      env: "FATHOM_API_KEY",
+      scheme: "x-api-key",
+    });
+    Deno.writeTextFileSync(
+      file,
+      JSON.stringify({
+        grants: [grant({ id: "api", requestHeaders: ["x-api-key"] })],
+        install: ["api"],
+      }),
+    );
+    expect(() => readRestConfig(file)).toThrow("may not allow");
+  } finally {
     Deno.removeSync(directory, { recursive: true });
   }
 });

@@ -20,12 +20,12 @@ import {
   type RestTransport,
   type SchemeHandler,
 } from "../lib/frames.ts";
-import { VISIBLE_ENVIRONMENT } from "../lib/execute/env-visibility.ts";
+import { CLI_ENVIRONMENT } from "./env-permissions.ts";
 import {
   attenuateRestPolicy,
   type RestNarrowing,
 } from "../lib/frames/rest-authority.ts";
-import { LiveTransport } from "./rest-worker.ts";
+import { LiveTransport, type RestCredentialScheme } from "./rest-worker.ts";
 /** A host no grant names; net permission for it means the flag is too broad. */
 export const SENTINEL_HOST = "example.invalid";
 /** How the CLI asks about net permission; a test substitutes its own. */
@@ -106,7 +106,7 @@ const readJson = (file: string): unknown => {
 /** A root's human-facing credential declaration; never holds a value. */
 export interface RestCredential {
   readonly env: string;
-  readonly scheme: "bearer";
+  readonly scheme: RestCredentialScheme;
   readonly create: string;
   readonly permissions: string;
 }
@@ -236,9 +236,11 @@ export function readRestConfig(file: string): RestConfig {
           Object.keys(value).some((key) =>
             !["env", "scheme", "create", "permissions"].includes(key)
           ) ||
-          typeof value.env !== "string" || !/^HC_[A-Z0-9_]+$/.test(value.env) ||
-          VISIBLE_ENVIRONMENT.includes(value.env) ||
-          value.scheme !== "bearer" || typeof value.create !== "string" ||
+          typeof value.env !== "string" ||
+          !/^[A-Za-z_][A-Za-z0-9_]*$/.test(value.env) ||
+          CLI_ENVIRONMENT.includes(value.env.toUpperCase()) ||
+          !["bearer", "x-api-key"].includes(value.scheme as string) ||
+          typeof value.create !== "string" ||
           typeof value.permissions !== "string"
         ) {
           throw new Error(
@@ -309,10 +311,11 @@ export function describeRestConfig(
       }
       lines.push(
         `  ${credential.env}: ${status}`,
+        `  scheme: ${credential.scheme}`,
         `  create: ${credential.create}`,
         `  permissions: ${credential.permissions}`,
         `  export ${credential.env} with a new token, or put it in a gitignored .env.`,
-        "  Shipped task: deno task --env-file=.env hc:rest-auth <program>",
+        "  Task syntax: deno task --env-file=.env <task> [args]",
         "  Custom deno run: put --env-file=.env before cli/hc.ts.",
       );
     }
@@ -362,6 +365,7 @@ export function loadRestConfig(
       if (entry.transport === "live") {
         const sender = new LiveTransport(entry.policy, evidence, undefined, {
           credentialEnv: entry.credential?.env,
+          credentialScheme: entry.credential?.scheme,
           definitions: selected.filter((node) => node.root === entry.id).map((
             node,
           ) => ({

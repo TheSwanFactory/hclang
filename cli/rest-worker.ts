@@ -27,15 +27,19 @@ export interface RestWorkerDefinition {
   readonly parent?: string;
   readonly installed: boolean;
 }
+/** Fixed credential encodings supported by the trusted harness. */
+export type RestCredentialScheme = "bearer" | "x-api-key";
 /** Worker initialization supplied by the harness, never by HC. */
 export interface RestWorkerOptions {
   readonly definitions: readonly RestWorkerDefinition[];
   readonly credentialEnv?: string;
+  readonly credentialScheme?: RestCredentialScheme;
 }
 interface WorkerGrant {
   readonly policy: RestGrantPolicy;
   readonly evidence: string;
   readonly token?: string;
+  readonly credentialScheme?: RestCredentialScheme;
 }
 type Message =
   | {
@@ -359,7 +363,11 @@ async function receive(
       body: request.body,
       headers: {
         ...request.headers,
-        ...(grant.token ? { authorization: `Bearer ${grant.token}` } : {}),
+        ...(grant.token
+          ? grant.credentialScheme === "x-api-key"
+            ? { "x-api-key": grant.token }
+            : { authorization: `Bearer ${grant.token}` }
+          : {}),
       },
       redirect: "manual",
       signal: controller.signal,
@@ -436,7 +444,12 @@ function installWorker(
         } catch { /* unavailable */ }
         available = token !== undefined && token !== "";
       }
-      held = { policy: message.policy, evidence: message.evidence, token };
+      held = {
+        policy: message.policy,
+        evidence: message.evidence,
+        token,
+        credentialScheme: message.options?.credentialScheme,
+      };
       legacy = message.options === undefined;
       const definitions = message.options?.definitions ??
         [{ id: held.policy.base, policy: held.policy, installed: true }];
