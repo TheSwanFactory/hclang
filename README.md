@@ -120,7 +120,7 @@ For an existing Fathom API key in your private environment file, use a Fathom
 **API recording ID** (which can differ from the web-call ID):
 
 ```bash
-deno task --env-file="$HOME/.env" test:rest-fathom <recording-id>
+deno task --env-file="$HOME/.env" test:rest-fathom <numeric-api-recording-id>
 ```
 
 This status-only proof reads one recording summary through a path-narrowed

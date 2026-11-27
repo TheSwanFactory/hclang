@@ -21,14 +21,16 @@ authorization proof. It is not a sandbox for arbitrary HC with access to these
 endpoints. A harness for untrusted HC must use an audited endpoint or a trusted
 adapter that fixes or validates provider-sensitive inputs.
 
-Defer the proposed query-name allowlist. It is a useful independent authority
-extension, but it does not generally establish read-only semantics: providers
-can interpret allowed query values or paths as effects too. Adding it requires
-config, attenuation, worker/simulator authorization and evidence semantics plus
-hostile-input coverage. Do not grow this PR from an opt-in fixed-source proof
-into provider-specific effect classification. This decision preserves the
-accepted generic HTTP authority boundary and explicitly documents its limit. No
-new live Fathom request or destination delivery was made for this response.
+Defer the proposed query-name allowlist, tracked in
+[#581](https://github.com/TheSwanFactory/hclang/issues/581). It is a useful
+independent authority extension, but it does not generally establish read-only
+semantics: providers can interpret allowed query values or paths as effects too.
+Adding it requires config, attenuation, worker/simulator authorization and
+evidence semantics plus hostile-input coverage. Do not grow this PR from an
+opt-in fixed-source proof into provider-specific effect classification. This
+decision preserves the accepted generic HTTP authority boundary and explicitly
+documents its limit. No new live Fathom request or destination delivery was made
+for this response.
 
 ## Diagnostics
 
@@ -52,3 +54,13 @@ with unchanged floors: library branches 96.09%, CLI branches 97.18%, scripts
 branches 89.06%. The pre-push hook repeats the full suite. The prior Fathom head
 `57c9b02e` passed CI run 45935113010, including tests, coverage and package
 validation; that status does not substitute for checking this follow-up.
+
+## Review convergence
+
+Kiro reviewed `c14ec4e1`, accepted the smaller documentation decision, confirmed
+all four prior comments addressed, and found no bugs. The tracking question is
+answered by #581 and the links above. The remaining placeholder nit is resolved
+by using `<numeric-api-recording-id>` consistently in the launcher, README and
+REST instructions. CI run 45937525061 passed on `c14ec4e1`; this wording-only
+follow-up retains the same behavior and is checked by focused tests, formatting,
+lint and the required full-suite pre-push hook.

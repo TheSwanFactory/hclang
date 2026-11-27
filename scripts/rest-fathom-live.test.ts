@@ -17,7 +17,7 @@ Deno.test("Fathom recording IDs cannot inject a path or program", async () => {
   ) {
     await expect(fathomLive(id, () => {
       throw new Error("runner must not be reached");
-    }, () => {})).rejects.toThrow("numeric recording id");
+    }, () => {})).rejects.toThrow("numeric-api-recording-id");
   }
 });
 Deno.test("Fathom proof requires successful assertions and exactly one authenticated 200", async () => {

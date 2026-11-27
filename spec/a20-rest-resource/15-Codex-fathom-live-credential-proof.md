@@ -43,10 +43,11 @@ provider Ernie authorized. The GitHub-specific authenticated corpus remains
 optional and explicitly skips without its own token; its bearer transport path
 is covered by the existing real loopback tests.
 
-`test:rest-fathom <api-recording-id>` uses Deno task's native `--env-file`
-support. The launcher never reads the key value or prints the child's private
-output. Its config, HC source and metadata-only evidence are created outside the
-repo and removed after the run. Real IDs and meeting bodies are not checked in.
+`test:rest-fathom <numeric-api-recording-id>` uses Deno task's native
+`--env-file` support. The launcher never reads the key value or prints the
+child's private output. Its config, HC source and metadata-only evidence are
+created outside the repo and removed after the run. Real IDs and meeting bodies
+are not checked in.
 
 ## Verification
 

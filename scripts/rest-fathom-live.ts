@@ -23,7 +23,7 @@ export async function fathomLive(
 ): Promise<number> {
   if (!/^\d+$/.test(recordingId)) {
     throw new FathomUsageError(
-      "Usage: deno task test:rest-fathom <numeric recording id>",
+      "Usage: deno task test:rest-fathom <numeric-api-recording-id>",
     );
   }
   const repo = new URL("../", import.meta.url);
@@ -113,7 +113,7 @@ export async function fathomLive(
     );
     if (records.length === 0) {
       report(
-        "test:rest-fathom: no evidence recorded; load FATHOM_API_KEY with deno task --env-file=... test:rest-fathom <api-recording-id>; check scoped permissions and grant setup",
+        "test:rest-fathom: no evidence recorded; load FATHOM_API_KEY with deno task --env-file=... test:rest-fathom <numeric-api-recording-id>; check scoped permissions and grant setup",
       );
     }
     return passed ? 0 : 1;

@@ -167,7 +167,7 @@ authenticated with `X-Api-Key`. Its API recording ID may differ from a
 `fathom.video/calls/` web-call ID. The user-authorized live proof is:
 
 ```bash
-deno task --env-file="$HOME/.env" test:rest-fathom <api-recording-id>
+deno task --env-file="$HOME/.env" test:rest-fathom <numeric-api-recording-id>
 ```
 
 Deno loads the environment file as data; neither the launcher nor the evaluator
@@ -186,3 +186,7 @@ endpoints accept `destination_url` and can deliver data to that URL. Do not copy
 this grant as a read-only or egress-safe sandbox for arbitrary HC programs; its
 GET/path limits do not prevent that provider-side delivery. The fixed-source
 proof remains valid; it does not test provider-side effect confinement.
+
+The deferred query-name allowlist is tracked in
+[#581](https://github.com/TheSwanFactory/hclang/issues/581). It does not block
+this fixed-source proof or establish general provider-side effect confinement.
