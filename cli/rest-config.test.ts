@@ -214,6 +214,7 @@ Deno.test("hc:rest-auth scopes env to CLI dependencies and selected credentials"
     [...CLI_ENVIRONMENT, "HC_GITHUB_TOKEN"].sort(),
   );
   expect(task).toContain("--unstable-worker-options");
+  expect(task).toContain("--no-prompt");
   expect(task).toContain("--rest cli/rest/github-auth.json");
 });
 
@@ -368,6 +369,39 @@ Deno.test("preflight explains an installed grant with no allowed methods", () =>
   try {
     expect(describeRestConfig(readRestConfig(file))).toContain("methods: none");
   } finally {
+    Deno.removeSync(directory, { recursive: true });
+  }
+});
+
+Deno.test("post-revocation diagnostics use worker reports without probing env", () => {
+  const { file, directory } = graph({
+    grants: [
+      grant({
+        id: "r",
+        credential: {
+          env: "HC_REST_STATUS",
+          scheme: "bearer",
+          create: "https://example.com/token",
+          permissions: "read",
+        },
+      }),
+    ],
+    install: ["r"],
+  });
+  const has = Deno.env.has;
+  Deno.env.has = (): boolean => {
+    throw new Error("must not re-read credential status");
+  };
+  try {
+    const config = readRestConfig(file);
+    expect(describeRestConfig(config, new Map([["r", false]]))).toContain(
+      "HC_REST_STATUS: unset or unavailable",
+    );
+    expect(describeRestConfig(config, new Map([["r", true]]))).toContain(
+      "HC_REST_STATUS: set",
+    );
+  } finally {
+    Deno.env.has = has;
     Deno.removeSync(directory, { recursive: true });
   }
 });

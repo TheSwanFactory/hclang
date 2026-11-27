@@ -9,7 +9,7 @@
  * runs against both.
  *
  * It also records every call it receives, so a test can check that each one
- * was a `GET` under the base of the grant it went through.
+ * used an allowed method under the base of the grant it went through.
  *
  * @module
  */

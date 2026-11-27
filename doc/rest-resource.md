@@ -75,9 +75,10 @@ permitted to inspect; it never prints values.
 Only root ancestors of installed live grants need workers, env/net permissions
 and credentials. Missing required credentials stop startup. Worker permissions
 are scoped before credential access is revoked in the evaluator isolate. This
-requires Deno's `--unstable-worker-options`; a bare `--allow-env` cannot be used
-for credentialed evaluation. The shipped `hc:rest-auth` task has the exact env
-and network flags for `cli/rest/github-auth.json`.
+requires Deno's `--unstable-worker-options` and `--no-prompt`; a bare
+`--allow-env` cannot be used for credentialed evaluation. The shipped
+`hc:rest-auth` task has the exact env and network flags for
+`cli/rest/github-auth.json`.
 
 Use an exported `HC_GITHUB_TOKEN`, or a `.env` file containing
 `HC_GITHUB_TOKEN=...`, then run:
@@ -90,8 +91,8 @@ Deno task itself loads the environment file before running the scoped command.
 For a custom config, supply `deno run` with an explicit env list containing the
 visible invocation variables, CLI color-detection variables and required
 credential names, scoped net hosts, read/write access for config/evidence,
-`--unstable-worker-options`, `--deny-run` and `--deny-ffi`, all before
-`cli/hc.ts --rest <file> <program>`.
+`--unstable-worker-options`, `--deny-run` and `--deny-ffi`, and `--no-prompt`,
+all before `cli/hc.ts --rest <file> <program>`.
 
 A credential declaration supplies instructions, not a proof of remote token
 permissions. Reusing `gh auth token` reuses that token's existing scope. Grants
@@ -126,3 +127,8 @@ The host-only env list is declared in
 variables during module initialization, so those specific names are permitted
 alongside visible invocation variables. They remain absent from HC's curated
 environment dictionary.
+
+REST launches use `--no-prompt` so a post-revocation read cannot regain env
+access through an interactive permission prompt. Missing-token instructions use
+the worker's boolean availability report, without inspecting the variable again.
+Preflight queries permission first and never prompts for additional env access.

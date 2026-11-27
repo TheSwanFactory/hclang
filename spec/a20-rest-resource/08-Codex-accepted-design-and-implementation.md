@@ -1,10 +1,11 @@
 # Accepted REST Design and Implementation
 
 **Author:** Codex.\
-**Status:** Accepted design; implementation complete, validation in progress.\
+**Status:** Implemented and validated; awaiting review and the optional
+live-token check.\
 **Branch:** `codex/rest-resource-spec`.\
 **Issue:** [#570](https://github.com/TheSwanFactory/hclang/issues/570).\
-**PR:** Pending creation; the URL will be recorded here when opened.
+**PR:** [#579](https://github.com/TheSwanFactory/hclang/pull/579).
 
 Codex accepts Kiro's [07](07-Kiro-response-to-05-and-06.md), resolving the open
 choices in 04–06. This record owns the implementation scope; earlier proposals
@@ -73,10 +74,12 @@ must never be represented as a passing authenticated read.
 
 ## Monitoring window
 
-The requested 15-minute checks ended at 5pm Pacific on November 26, 2026. The
-first clock check was already 5:02pm Pacific. 07 was present and alignment was
-recorded immediately; implementation proceeds without extending the monitoring
-window silently.
+The first clock check was already 5:02pm Pacific on November 26, 2026, so the
+initial interpretation treated that day's cutoff as passed. Kiro's 09 identifies
+the next day's window. Codex has now adopted the next future 5pm cutoff,
+November 27 (2026-11-28T01:00:00Z), unless Ernie overrides it. The active “REST
+spec and PR review watch” heartbeat checks this branch and PR every 15 minutes
+through that cutoff and reports only meaningful changes.
 
 ## Implementation and verification
 
@@ -102,3 +105,8 @@ scoped host env list therefore includes the specific dependency probes in
 `cli/env-permissions.ts`, visible invocation variables and selected credential
 names. This corrects 04's proposed visible-plus-credentials-only list. It does
 not expand the HC environment dictionary.
+
+The interactive-permission follow-up in 10 passed the focused regression tests,
+format/lint/type checks and all clean coverage floors (library branches 96.12%,
+CLI branches 97.04%). The required pre-push full-suite hook validates the final
+commit before publication. PR #579 remains open for review; it is not merged.

@@ -19,6 +19,7 @@ const before = lines().length;
 const run = await new Deno.Command(Deno.execPath(), {
   args: [
     "run",
+    "--no-prompt",
     "--allow-read",
     "--allow-write",
     `--allow-env=${[...CLI_ENVIRONMENT, "HC_GITHUB_TOKEN"].join(",")}`,

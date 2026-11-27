@@ -1,12 +1,10 @@
 /**
  * The REST resource's policy, as pure functions over plain data.
  *
- * Everything that decides what a REST grant may send lives here, and nothing
- * here touches a `Frame` or a host. That is what lets the same decisions run in
- * two places: in the main isolate before any transport is called, and again in
- * the live transport's worker (`cli/rest-worker.ts`), which re-verifies against
- * its own copy of the grant before it fetches. A defect in the main isolate
- * therefore cannot widen what is sent.
+ * This module validates policies, URLs and headers without touching a Frame or
+ * a host. rest-authority.ts combines these decisions with shared grant state.
+ * Live enforcement runs in the transport worker, independently of main-side
+ * diagnostics, so an evaluator-side defect cannot widen the outgoing request.
  *
  * Methods and UTF-8 bodies are bounded by the grant. Programs cannot supply
  * credentials: authorization, cookie, host and proxy headers are always refused.
@@ -385,8 +383,8 @@ export type RestTransportResult =
 /**
  * One evidence record, written for every application, sent or refused.
  *
- * It never holds a request header value, and since the MVP holds no
- * credential, it cannot hold one of those either.
+ * Records contain no request header values or bodies. Effect records carry a
+ * request ID joining intent and completion; credentials stay in the worker.
  */
 export interface RestEvidence {
   /** Present on effect records, counted before dispatch. */
@@ -398,7 +396,7 @@ export interface RestEvidence {
   readonly grant: string | null;
   /** When the application was decided, as an ISO 8601 instant. */
   readonly at: string;
-  /** The method, always `GET` in the MVP. */
+  /** The verified HTTP method. */
   readonly method: string;
   /** The URL sent, or null when the refusal came before one existed. */
   readonly url: string | null;

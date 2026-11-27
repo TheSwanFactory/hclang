@@ -272,7 +272,10 @@ export function readRestConfig(file: string): RestConfig {
   return { definitions: [...checked.values()], install: install as string[] };
 }
 /** Human-facing diagnostics only. A denied env inspection does not imply absence. */
-export function describeRestConfig(config: RestConfig): string {
+export function describeRestConfig(
+  config: RestConfig,
+  availability?: ReadonlyMap<string, boolean>,
+): string {
   const byId = new Map(
     config.definitions.map((definition) => [definition.id, definition]),
   );
@@ -294,9 +297,14 @@ export function describeRestConfig(config: RestConfig): string {
     if (root.credential) {
       const credential = root.credential;
       let status: string;
-      try {
+      if (availability !== undefined) {
+        status = availability.get(root.id) ? "set" : "unset or unavailable";
+      } else if (
+        Deno.permissions.querySync({ name: "env", variable: credential.env })
+          .state === "granted"
+      ) {
         status = Deno.env.has(credential.env) ? "set" : "unset";
-      } catch {
+      } else {
         status = "not permitted to inspect";
       }
       lines.push(
@@ -389,12 +397,17 @@ export function loadRestConfig(
         );
       }
     }
+    const availability = new Map(
+      liveRoots.map((entry, i) => [entry.id, live[i].ready()]),
+    );
     for (let i = 0; i < live.length; i++) {
-      if (!live[i].ready()) {
+      if (!availability.get(liveRoots[i].id)) {
         throw new Error(
           `--rest: required credential ${
             liveRoots[i].credential?.env
-          } is unset or unavailable\n${describeRestConfig(config)}`,
+          } is unset or unavailable\n${
+            describeRestConfig(config, availability)
+          }`,
         );
       }
     }
