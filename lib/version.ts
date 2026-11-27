@@ -1,2 +1,2 @@
 /** The current version of the HC interpreter. */
-export const VERSION = "0.61.0";
+export const VERSION = "0.61.1";

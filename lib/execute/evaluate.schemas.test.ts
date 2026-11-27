@@ -432,6 +432,156 @@ describe("evaluate: schemas", () => {
     });
   });
 
+  describe("literal fields, ordered choice and repetition (#311)", () => {
+    const prelude = ".op [.x 0xa; .y 0xb;]; " +
+      ".X <[.op <op.x>; .w <4@Bit>;]>; .Y <[.op <op.y>; .h <4@Bit>;]>; " +
+      ".D <[.op <0xc>; .d {<(w)@Bit>};]>; .C <X, Y, D>; ";
+    // The answer of the last statement after the prelude's declarations.
+    const answer = (source: string) =>
+      evaluate(prelude + source).asArray().at(-1)?.asArray().at(-1)
+        ?.toString();
+
+    it("matches literal fields by bits and answers the declared blob", () => {
+      expect(answer("X 0xa3")).toEqual("[.op 0xa; .w 0b0011;]");
+      expect(answer("X 0b10100011")).toEqual("[.op 0xa; .w 0b0011;]");
+      expect(answer("X 0xb3")).toEqual("$!.bit-literal-mismatch .op 0");
+      expect(answer("<[.op <0xa, 0xb>; .w <4@Bit>;]> 0xb3")).toEqual(
+        "[.op 0xb; .w 0b0011;]",
+      );
+      expect(answer("X")).toEqual("<[.op <0xa>; .w <4@Bit>;]>");
+    });
+
+    it("keeps a schema of blobs an enumeration outside a bit layout", () => {
+      expect(evaluate("[0xa ~ <0xa>, 0b1010 ~ <0xa>]").toString()).toEqual(
+        "[[<>, ()]]",
+      );
+    });
+
+    it("repeats a layout to the end of the input", () => {
+      expect(evaluate("<[<8@Bit>]> 0x1234").toString()).toEqual(
+        "[[0b00010010, 0b00110100]]",
+      );
+      expect(evaluate("<[<0xa, 0xb>]> 0xabba").toString()).toEqual(
+        "[[0xa, 0xb, 0xb, 0xa]]",
+      );
+      expect(answer("<[C]> 0xa3b2")).toEqual(
+        "[[.op 0xa; .w 0b0011;], [.op 0xb; .h 0b0010;]]",
+      );
+      expect(answer("<[C]> 0xa30")).toEqual(
+        "$!.no-bit-alternative .1 8",
+      );
+      expect(evaluate("<[<8@Bit>]> 0x123").toString()).toEqual(
+        "[$!.insufficient-bits .1 8]",
+      );
+      expect(evaluate("<[<8@Bit>]> 5").toString()).toEqual(
+        "[$!.bit-input-invalid 5]",
+      );
+    });
+
+    it("lets a deferred capture read captures of earlier elements", () => {
+      expect(answer("<[.s <0xf>; .cs <[C]>;]> 0xfa4c5")).toEqual(
+        "[.s 0xf; .cs [[.op 0xa; .w 0b0100;], [.op 0xc; .d 0b0101;]];]",
+      );
+      // The width is captured after the data command, so the data command's
+      // deferred capture cannot read it; the field and capture are named.
+      expect(answer("<[.s <0xf>; .cs <[C]>;]> 0xfc5a4")).toEqual(
+        "$!.capture-missing .d w",
+      );
+      // A deferred name bound outside the layout still resolves there.
+      expect(answer(".n 2; <[.d <0b1>; .v {<n@Bit>};]> 0b110")).toEqual(
+        "[.d 0b1; .v 0b10;]",
+      );
+      // P captures an 8-bit w before failing; D must size by X's w.
+      expect(
+        answer(
+          ".P <[.op <0xa>; .w <8@Bit>; .z <0xf>;]>; " +
+            "<[.cs <[<P, X, D>]>;]> 0xa4c5",
+        ),
+      ).toEqual(
+        "[.cs [[.op 0xa; .w 0b0100;], [.op 0xc; .d 0b0101;]];]",
+      );
+    });
+
+    it("requires repetitions last and refuses constructing them", () => {
+      expect(answer("<[.cs <[C]>; .t <4@Bit>;]> 0xa3")).toEqual(
+        "$!.invalid-remainder-position .cs",
+      );
+      expect(answer("X | [.op 0xa; .w 0b0011;]")).toEqual(
+        "[0xa, 0b0011]",
+      );
+      expect(answer("X | [.op 0xb; .w 0b0011;]")).toEqual(
+        "$!.bit-literal-mismatch .op 0",
+      );
+      expect(answer("<[.s <0xf>; .cs <[C]>;]> | [.s 0xf; .cs [];]"))
+        .toEqual("$!.unsupported-bit-construct .cs");
+      expect(evaluate("<[<8@Bit>]> | [0x12, 0x34]").toString()).toEqual(
+        "[$!.unsupported-bit-construct <[<8@Bit>]>]",
+      );
+    });
+
+    it("reports why a repetition element fails to compile", () => {
+      expect(evaluate("<[<0@Bit>]> 0b0").toString()).toEqual(
+        "[$!.bit-width 0]",
+      );
+      const effect = evaluate(".x 0; <[<(@x 1; 4)@Bit>]> 0xf; [x]");
+      expect(effect.meta.x.toString()).toEqual("0");
+      expect(effect.toString()).toContain("$!.schema-predicate-effect");
+      expect(evaluate(".R <[<0@Bit>]>;").toString()).toContain(
+        "$!.bit-width 0",
+      );
+    });
+
+    // A choice none of whose options opened did not apply, so an enclosing
+    // choice reports the later option that opened and then failed.
+    it("keeps the deeper failure through a nested choice", () => {
+      const nested = ".A <[.op <0xa>;]>; .B <[.op <0xb>;]>; " +
+        ".N <[.first <A, B>;]>; .P <[.op <0xc>; .payload <8@Bit>;]>; ";
+      expect(answer(nested + "<[<N, P>]> 0xc1")).toEqual(
+        "$!.insufficient-bits .payload 4",
+      );
+      expect(answer(nested + "<[<<A, B>, P>]> 0xc1")).toEqual(
+        "$!.insufficient-bits .payload 4",
+      );
+      expect(answer(nested + "<[<N, P>]> 0xd1")).toEqual(
+        "$!.no-bit-alternative .0 0",
+      );
+    });
+
+    it("mixes literal and layout options and unwraps a single option", () => {
+      expect(answer("<[<X>]> 0xa3")).toEqual("[[.op 0xa; .w 0b0011;]]");
+      expect(answer("<[<0xf, X>]> 0xfa3")).toEqual(
+        "[0xf, [.op 0xa; .w 0b0011;]]",
+      );
+      expect(answer("<[.s <0xf>; .t <[<0xa, 0xb>]>;]> 0xfab")).toEqual(
+        "[.s 0xf; .t [0xa, 0xb];]",
+      );
+      expect(answer("<[.n <4@Bit>; .s {$!!.bad};]> | [.n 0b0001; .s 0x1;]"))
+        .toEqual("$!!.bad");
+    });
+
+    // Each answer matches master before #311: none of these is a bit layout.
+    it("leaves schemas without bit layouts as enumerations", () => {
+      for (
+        const [source, expected] of [
+          ["<[.d {_}]> 5", "[$!.type-error <[.d { _ };]> 5]"],
+          ["<[0xa]> 0xa", "[$!.type-error <[0xa]> 0xa]"],
+          ["<[<1, 2>]> 1", "[$!.type-error <[<1, 2>]> 1]"],
+          ["<[<>]> 0b1", "[$!.type-error <[<>]> 0b1]"],
+          [
+            "<[.a <1, 2>; .d {_}]> 1",
+            "[$!.type-error <[.a <1, 2>; .a.<> <1, 2>; .d { _ };]> 1]",
+          ],
+        ]
+      ) expect(evaluate(source).toString()).toEqual(expected);
+      expect(evaluate("<[.a <1, 2>; .b <nope>;]> 1").toString()).toContain(
+        "$!.type-error <[.a <1, 2>;",
+      );
+      expect(evaluate("<[nope]> 0b1").toString()).toContain(
+        "$!.type-error <[$!.name-missing",
+      );
+    });
+  });
+
   describe("edge cases", () => {
     it("leaves a declaration applied to nil unbound", () => {
       // Applying nil to a pending declaration answers the declaration
