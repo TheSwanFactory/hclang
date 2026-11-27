@@ -314,7 +314,7 @@ export function describeRestConfig(
         `  scheme: ${credential.scheme}`,
         `  create: ${credential.create}`,
         `  permissions: ${credential.permissions}`,
-        `  export ${credential.env} with a new token, or put it in a gitignored .env.`,
+        `  export ${credential.env} with a token or key from the create link, or put it in a gitignored .env.`,
         "  Task syntax: deno task --env-file=.env <task> [args]",
         "  Custom deno run: put --env-file=.env before cli/hc.ts.",
       );

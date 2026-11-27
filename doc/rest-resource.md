@@ -99,6 +99,14 @@ permissions. Reusing `gh auth token` reuses that token's existing scope. Grants
 must name trusted APIs that do not reflect authorization into responses; worker
 isolation cannot hide a token echoed by an authorized server.
 
+A grant constrains local HTTP requests, not the provider's interpretation of
+those requests. Query parameters are unrestricted. GET/HEAD can trigger remote
+effects, including delivery to a caller-selected callback URL. Local net
+permissions do not constrain requests made by the provider. Do not give
+untrusted HC a credentialed endpoint that accepts destinations or other unsafe
+inputs unless a trusted adapter validates or fixes those inputs. This runtime
+has no query-name allowlist or provider-side egress control.
+
 ## Write outcomes
 
 GET and HEAD retain one evidence record. Other methods append intent before
@@ -169,3 +177,12 @@ private-parent inaccessibility, credential-header replacement refusal and POST
 refusal. It reports status/check counts only, then removes the temporary config,
 HC source and evidence. Keep real meeting IDs and content out of checked-in
 examples and reports.
+
+This Fathom launcher runs trusted HC source with a fixed summary path and no
+query. Fathom's
+[summary](https://developers.fathom.ai/api-reference/recordings/get-summary) and
+[transcript](https://developers.fathom.ai/api-reference/recordings/get-transcript)
+endpoints accept `destination_url` and can deliver data to that URL. Do not copy
+this grant as a read-only or egress-safe sandbox for arbitrary HC programs; its
+GET/path limits do not prevent that provider-side delivery. The fixed-source
+proof remains valid; it does not test provider-side effect confinement.

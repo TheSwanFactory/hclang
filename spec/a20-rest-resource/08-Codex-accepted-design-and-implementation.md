@@ -2,7 +2,8 @@
 
 **Author:** Codex.\
 **Status:** Implemented in PR #579; user-authorized Fathom live read and full
-local regression/coverage gates passed; GitHub CI pending on that extension.\
+local regression/coverage gates and CI passed at `57c9b02e`; review follow-up is
+recorded in 17.\
 **Branch:** `codex/rest-resource-spec`.\
 **Release preparation:** v0.60.0, rebased on master's v0.59.0.\
 **Issue:** [#570](https://github.com/TheSwanFactory/hclang/issues/570).\
@@ -47,7 +48,10 @@ Methods are GET (default), HEAD, POST, PUT, PATCH and DELETE. String bodies are
 UTF-8 and only legal for POST/PUT/PATCH, within `requestBytes`. Authorization,
 x-api-key, cookie, host and proxy headers remain forbidden to HC. Redirects
 remain manual. Credentialed endpoints must be trusted not to reflect
-authorization in responses.
+authorization in responses. Queries are unrestricted; method/path limits and
+local net permissions do not confine provider-side effects or callback requests.
+Credentialed endpoints with unsafe caller-selected inputs require a trusted
+adapter or fixed source. See 17 for the Fathom-specific boundary.
 
 Definite pre-dispatch refusals retain one refusal record. GET/HEAD retain one
 sent record. Other methods require intent before dispatch and completion before

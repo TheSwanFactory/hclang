@@ -1,6 +1,15 @@
 /** Opt-in status-only live credential proof for one caller-selected Fathom recording. @module */
 import { CLI_ENVIRONMENT } from "../cli/env-permissions.ts";
 
+class FathomUsageError extends Error {}
+/** Reports local failures without exposing paths, IDs or captured child output. */
+export function fathomFailure(error: unknown): string {
+  if (error instanceof FathomUsageError) return error.message;
+  if (error instanceof Deno.errors.NotCapable) {
+    return "test:rest-fathom: launcher permission denied; use the shipped task with read, write and run permissions";
+  }
+  return "test:rest-fathom: local launch or temporary-file operation failed; check filesystem access and the Deno runtime";
+}
 /** The process seam lets tests verify the real launcher without live credentials. */
 export type FathomRunner = (
   args: string[],
@@ -13,7 +22,9 @@ export async function fathomLive(
   report: (line: string) => void = console.log,
 ): Promise<number> {
   if (!/^\d+$/.test(recordingId)) {
-    throw new Error("Usage: deno task test:rest-fathom <numeric recording id>");
+    throw new FathomUsageError(
+      "Usage: deno task test:rest-fathom <numeric recording id>",
+    );
   }
   const repo = new URL("../", import.meta.url);
   const temporary = Deno.makeTempDirSync({ prefix: "hc-rest-fathom-" });
@@ -41,7 +52,7 @@ export async function fathomLive(
             scheme: "x-api-key",
             create: "https://developers.fathom.ai/quickstart",
             permissions:
-              "Existing user API key; install read access only to the selected recording.",
+              "Existing key for a trusted fixed-source summary proof; path/method scope does not restrict provider-side effects.",
           },
         }, {
           id: "recording",
@@ -100,6 +111,11 @@ export async function fathomLive(
         status ?? "not dispatched"
       }; one recording grant; content withheld`,
     );
+    if (records.length === 0) {
+      report(
+        "test:rest-fathom: no evidence recorded; load FATHOM_API_KEY with deno task --env-file=... test:rest-fathom <api-recording-id>; check scoped permissions and grant setup",
+      );
+    }
     return passed ? 0 : 1;
   } finally {
     Deno.removeSync(temporary, { recursive: true });
@@ -118,10 +134,8 @@ async function runCli(args: string[], cwd: URL): Promise<{ success: boolean }> {
 if (import.meta.main) {
   try {
     Deno.exit(await fathomLive(Deno.args[0] ?? ""));
-  } catch {
-    console.error(
-      "test:rest-fathom: supply a numeric recording id; the key must be loaded from the environment",
-    );
+  } catch (error) {
+    console.error(fathomFailure(error));
     Deno.exit(1);
   }
 }

@@ -126,7 +126,10 @@ deno task --env-file="$HOME/.env" test:rest-fathom <recording-id>
 This status-only proof reads one recording summary through a path-narrowed
 grant. Only the worker reads `FATHOM_API_KEY`; the runner prints HTTP status and
 check counts, and removes its temporary config and evidence. It prints no
-meeting content or credential values.
+meeting content or credential values. The proof uses trusted, fixed HC source.
+Do not reuse its grant as a read-only sandbox for arbitrary HC: Fathom accepts
+`destination_url`, and grants do not restrict query parameters or requests made
+by the provider. See [the trust boundary](doc/rest-resource.md).
 
 ### Run Tests
 

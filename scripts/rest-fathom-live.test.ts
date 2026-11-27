@@ -1,6 +1,10 @@
 import { expect } from "@std/expect";
 import { dirname } from "@std/path";
-import { fathomLive, type FathomRunner } from "./rest-fathom-live.ts";
+import {
+  fathomFailure,
+  fathomLive,
+  type FathomRunner,
+} from "./rest-fathom-live.ts";
 Deno.test("Fathom recording IDs cannot inject a path or program", async () => {
   for (
     const id of [
@@ -51,6 +55,8 @@ Deno.test("Fathom proof requires successful assertions and exactly one authentic
     expect(await fathomLive("123456789", run, (line) => reports.push(line)))
       .toBe(scenario.expected);
     expect(reports.join("\n")).not.toContain("123456789");
+    expect(reports.some((line) => line.includes("--env-file=...")))
+      .toBe(scenario.statuses.length === 0);
     expect(() => Deno.statSync(temporary)).toThrow();
   }
 });
@@ -64,4 +70,32 @@ Deno.test("Fathom proof cleans up private temporary files after process failure"
     "launch failed",
   );
   expect(() => Deno.statSync(temporary)).toThrow();
+});
+
+Deno.test("Fathom launch failures distinguish usage and permissions without private error text", async () => {
+  try {
+    await fathomLive("bad", undefined, () => {});
+  } catch (error) {
+    expect(fathomFailure(error)).toContain("Usage:");
+  }
+  expect(fathomFailure(new Error("private-path-or-content")))
+    .not.toContain("private-path-or-content");
+  const child = await new Deno.Command(Deno.execPath(), {
+    args: [
+      "run",
+      "--no-prompt",
+      "--allow-read",
+      "--allow-write",
+      "scripts/rest-fathom-live.ts",
+      "123456",
+    ],
+    cwd: new URL("../", import.meta.url),
+    stdout: "piped",
+    stderr: "piped",
+  }).output();
+  const error = new TextDecoder().decode(child.stderr);
+  expect(child.code).toBe(1);
+  expect(error).toContain("launcher permission denied");
+  expect(error).not.toContain("Usage:");
+  expect(error).not.toContain("123456");
 });
