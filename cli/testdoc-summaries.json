@@ -71,6 +71,12 @@
     "fail": 0,
     "unimplemented": 0
   },
+  "kd.hc": {
+    "total": 13,
+    "pass": 13,
+    "fail": 0,
+    "unimplemented": 0
+  },
   "membership.hc": {
     "total": 16,
     "pass": 16,

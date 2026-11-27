@@ -116,6 +116,17 @@ differences of the opposite slots. The separate rank-embedding rule pads **both
 orientation halves** individually, not the tail of an already canonical
 lower-rank value.
 
+## Executable specification
+
+The pure-HC module [`hc/kd.hc`](../../hc/kd.hc) (#576) is the executable
+specification of this kernel. Its `cd_sign [u, v]` is the guarded parity/swapped
+walk, with the width computed from the operands, and its
+`kd_multiply [left, right]` answers the loads of `&|&`: lazy completion,
+halfwise embedding, unsigned scalars at arity one, and the same 262,144-pair
+budget refusal. It uses only Counts, recursion and `%%`. The native kernel stays
+for speed, and `lib/execute/kd-module.test.ts` checks the module against
+`kdCdSign` and `kdMultiplyLoads`.
+
 ## Implementation committed
 
 - Pure, arbitrary-supported-width guarded `cd_sign` using exact bigint indices.

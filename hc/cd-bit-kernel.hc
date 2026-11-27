@@ -13,6 +13,8 @@ indices must be in [0, 2^n). The example supplies explicit width-3 and width-8
 power lists. This is a bounded basis-sign testdoc, not a U64/bit-blob native API.
 The output 0 or 1 is the exponent of (-1), NOT a zero algebra coefficient.
 The doubling convention is (a,b)(c,d) = (ac - d* b, da + b c*).
+hc/kd.hc now specifies the full sign and multiply kernel in pure HC, with
+computed widths; this file remains the Explore 023.05 record.
 ```
 ```
 Bit observation: bit(x,p) uses modulo rather than a newly invented HC bitwise
