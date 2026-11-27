@@ -107,7 +107,7 @@ deno task hc:rest-auth hc/rest-auth.hc --testdoc
 # With a token in .env; --env-file belongs before the task name
 deno task --env-file=.env hc:rest-auth hc/rest-auth.hc --testdoc
 
-# Opt-in authenticated read; reports a skip when the token is unset
+# Opt-in public reads plus authenticated reads when the token is set
 deno task --env-file=.env test:rest-live
 ```
 

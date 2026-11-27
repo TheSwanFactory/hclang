@@ -66,7 +66,9 @@ requests, sibling budgets and ancestor revocation, smaller child streaming
 limits, and write intent/completion failures. Extend generated hostile-program
 and attenuation tests. Preserve public-read behavior except that explicit
 supported methods are now recognized and policy refusals replace old shape
-refusals.
+refusals. Direct live launches now also require `--unstable-worker-options` and
+`--no-prompt`, including credential-less public grants; shipped tasks supply
+them.
 
 Run formatting, lint, type/documentation checks and the repository suite. Live
 authentication remains opt-in and requires Ernie's token; an unset-token skip
@@ -92,9 +94,9 @@ the live issues child in the opt-in authenticated test.
 
 `deno task test` passed, including formatting, lint, type/documentation checks,
 CLI/library/loopback/script tests, web/browser tests, executable HC documents,
-npm packaging and compiled-CLI verification. Coverage-floor validation is
-pending. `deno task test:rest-live` reported a skip because `HC_GITHUB_TOKEN` is
-unset; no authenticated live-read success is claimed.
+npm packaging and compiled-CLI verification. All coverage floors passed.
+`deno task test:rest-live` reported a skip because `HC_GITHUB_TOKEN` is unset;
+no authenticated live-read success is claimed.
 
 Deno task supports `--env-file` before the task name. The documented setup is
 `deno task --env-file=.env hc:rest-auth hc/rest-auth.hc --testdoc`, so the

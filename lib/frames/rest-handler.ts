@@ -16,7 +16,7 @@
  *
  * Installation is harness-only, as for every handler: a grant is a TypeScript
  * value, and HC has no spelling that creates, widens, revokes or enumerates
- * one. `spec/a20-rest-resource.md` records the design.
+ * one. `spec/a20-rest-resource/` records the design.
  *
  * @module
  */

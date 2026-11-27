@@ -311,8 +311,9 @@ export function describeRestConfig(
         `  ${credential.env}: ${status}`,
         `  create: ${credential.create}`,
         `  permissions: ${credential.permissions}`,
-        `  export ${credential.env} with a new token, or put it in .env and use Deno --env-file=.env before cli/hc.ts.`,
-        `  ${credential.env}=$(gh auth token) reuses an existing credential; its scope is not established by these instructions.`,
+        `  export ${credential.env} with a new token, or put it in a gitignored .env.`,
+        "  Shipped task: deno task --env-file=.env hc:rest-auth <program>",
+        "  Custom deno run: put --env-file=.env before cli/hc.ts.",
       );
     }
     return lines.join("\n");

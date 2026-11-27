@@ -342,7 +342,6 @@ export function responseHeaders(
   }
   return kept;
 }
-/** A verified request as a transport receives it. */
 /** Parsed request data, containing no authority or transport limits. */
 export interface RestRequest {
   readonly path?: string;
@@ -359,6 +358,7 @@ export type RestInput =
 export const isRestEffect = (method: string): boolean =>
   method !== "GET" && method !== "HEAD";
 
+/** A verified request as a transport receives it. */
 export interface RestOutgoing {
   readonly method?: string;
   readonly body?: string;

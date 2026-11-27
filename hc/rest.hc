@@ -2,11 +2,12 @@
 ```
 A REST resource: reading public resources (#277)
 This testdoc is the executable acceptance corpus for the REST resource MVP, and
-`spec/a20-rest-resource.md` is its design record. The same file, byte for
-byte, runs against two grant tables. `test:doc` installs simulated grants from
-`cli/rest/github-simulated.json`, and a direct `deno run` with `--rest cli/rest/github-live.json` installs the
-live grants in `cli/rest/github-live.json`, which read the public GitHub REST
-API with no credential. Every claim below answers the same against both.
+`spec/a20-rest-resource/` holds its design record. The same file runs against
+two grant tables. `test:doc` installs fixtures from
+`cli/rest/github-simulated.json`; `deno task test:rest-live` runs the public
+corpus against `cli/rest/github-live.json`, without a credential. Direct live
+launches require `--unstable-worker-options` and `--no-prompt`, also for public
+grants. The shipped `hc:rest` task supplies those flags.
 A REST resource is a handler table entry, reached by writing its base URI as
 a resource literal. The harness holds grants, each with a base. A literal must
 equal a grant's base exactly, trailing slash included, so the program is the
