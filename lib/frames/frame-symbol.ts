@@ -84,6 +84,34 @@ export class FrameLiteral extends FrameAtom {
 }
 
 /**
+ * The declaration each closure answered by a redeclaration records.
+ *
+ * Redeclaring a name answers the new value rather than an echo, so `.f f`
+ * still prints as the closure. A closure answer still has to name its binding,
+ * so that `.f f ^^ <…>` rebinds `f` (#485). The answer is a copy of the
+ * closure the name now holds: keyed by that one, the entry would also answer
+ * for every other name that holds it, and `g ^^ <…>` would rebind `f`.
+ */
+const redeclarations = new WeakMap<Frame, FrameBinding>();
+
+/** A copy of `closure`, the answer of a redeclaration recorded as `binding`. */
+const redeclaredClosure = (
+  closure: FrameLazy,
+  binding: FrameBinding,
+): FrameLazy => {
+  const answer = closure.boundCopy();
+  redeclarations.set(answer, binding);
+  return answer;
+};
+
+/**
+ * The declaration `answer` records: its echo's binding, or the binding of the
+ * redeclaration that answered it.
+ */
+export const declaredBinding = (answer: Frame): FrameBinding | undefined =>
+  answer instanceof FrameLiteral ? answer.binding : redeclarations.get(answer);
+
+/**
  * Where a declaration writes: the key it assigns, and the value bound there
  * now when the name already resolves to a binding.
  */
@@ -378,12 +406,15 @@ export class FrameSymbol extends FrameAtom {
     if (prior instanceof Frame) return prior;
 
     out.set(slot.key, argument);
-    return prior.previous.is.missing
-      ? new FrameLiteral(() => `.${this.data} ${argument.toString()}`, {
-        target: out,
-        key: slot.key,
-        value: argument,
-      })
+    const binding = { target: out, key: slot.key, value: argument };
+    if (prior.previous.is.missing) {
+      return new FrameLiteral(
+        () => `.${this.data} ${argument.toString()}`,
+        binding,
+      );
+    }
+    return argument instanceof FrameLazy
+      ? redeclaredClosure(argument, binding)
       : argument;
   }
 

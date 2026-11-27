@@ -684,8 +684,21 @@ and a result that does not is refused rather than returned:
 # $!.type-error <1, 2, 3> 9
 ```
 A return contract checks only the exposed result; it neither freezes, copies,
-nor converts the underlying object, and a closure whose body already failed
+nor converts the value the call returns, and a closure whose body already failed
 surfaces that failure rather than a contract complaint.
+
+Both `^` and `^^` refine a copy of the closure and bind that copy to the name
+being declared, so no other name that holds the closure sees the change. Here
+`.tight tight` redeclares `tight` with a narrower contract, while `loose` and
+`earlier`, bound before, keep the closures they were given:
+```
+; .loose (.x) ^ {x};
+; .tight loose ^^ <1, 2, 3>;
+; .earlier tight;
+; .tight tight ^^ <1>;
+; [loose (.x 9), earlier (.x 2), tight (.x 2)]
+# [9, 2, $!.type-error <1> 2]
+```
 
 
 #### Effect Boundaries
