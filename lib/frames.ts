@@ -157,3 +157,9 @@ export { DISPATCH_KEY, dispatchNamespace } from "./frames/dispatch-host.ts";
 import "./frames/bound-method.ts";
 import "./frames/frame-handle.ts";
 Frame.globals = Ops;
+
+export {
+  attenuateRestPolicy,
+  RestAuthority,
+  type RestNarrowing,
+} from "./frames/rest-authority.ts";

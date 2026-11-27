@@ -1,0 +1,30 @@
+{
+  "grants": [
+    {
+      "id": "repo",
+      "base": "https://api.github.com/repos/TheSwanFactory/hclang/",
+      "methods": [
+        "GET"
+      ],
+      "transport": "github-fixtures.json",
+      "requests": 10,
+      "requestBytes": 0,
+      "responseBytes": 1000000,
+      "timeoutMs": 10000,
+      "lifetimeMs": 600000,
+      "evidence": "evidence/auth-simulated.jsonl"
+    },
+    {
+      "id": "issues-read",
+      "attenuates": "repo",
+      "path": "issues/",
+      "methods": [
+        "GET"
+      ],
+      "requests": 5
+    }
+  ],
+  "install": [
+    "issues-read"
+  ]
+}

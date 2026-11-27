@@ -5,6 +5,16 @@
 > contains nothing else; then describe it and say that nothing user-facing
 > changed.
 
+## Unreleased
+
+- **REST grants support credentials, writes and attenuation (#570).** A harness
+  can install only selected children while keeping ancestors private. Live Deno
+  workers hold bearer tokens and enforce shared budgets; HC cannot choose or
+  read credentials. `--grants` explains setup and `hc:rest-auth` runs the
+  shipped scoped config. Writes record intent and completion and report
+  uncertain outcomes without automatic retries. Existing public-read configs
+  still load.
+
 ## v0.59.0 2026-11-26
 
 - **`%%` works on every exact rung (#536).** Decimals and rationals now take a

@@ -56,3 +56,6 @@ lib/bundle/hc-sources.ts
 
 # REST evidence written by --rest runs (cli/rest-config.ts)
 cli/rest/evidence/
+
+# Local REST credentials, loaded by Deno --env-file
+.env

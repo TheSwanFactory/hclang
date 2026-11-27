@@ -225,13 +225,13 @@ describe("REST resource", () => {
       const { run, simulator } = harness();
       for (
         const request of [
-          `[.method “POST”]`,
-          `[.method “GET”]`,
           `[.body “x”]`,
           `“a string”`,
           `7`,
           `[.path “x”, 1]`,
           `[.path 1]`,
+          `[.method 1]`,
+          `[.body 1]`,
           `[.query [.a 1]]`,
           `[.headers “accept”]`,
         ]
@@ -240,7 +240,11 @@ describe("REST resource", () => {
           refusal("resource-request-shape"),
         );
       }
+      expect(run(`api [.method “POST”]`)).toEqual(
+        refusal("resource-method-forbidden"),
+      );
       expect(simulator.calls).toEqual([]);
+      expect(run(`api [.method “GET”]`)).toContain(".status 200");
     });
     it("cannot set a forbidden header", () => {
       const { run, simulator } = harness();

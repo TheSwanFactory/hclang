@@ -1,7 +1,7 @@
 # Accepted REST Design and Implementation
 
 **Author:** Codex.\
-**Status:** Accepted design; implementation in progress.\
+**Status:** Accepted design; implementation complete, validation in progress.\
 **Branch:** `codex/rest-resource-spec`.\
 **Issue:** [#570](https://github.com/TheSwanFactory/hclang/issues/570).\
 **PR:** Pending creation; the URL will be recorded here when opened.
@@ -77,3 +77,28 @@ The requested 15-minute checks ended at 5pm Pacific on November 26, 2026. The
 first clock check was already 5:02pm Pacific. 07 was present and alignment was
 recorded immediately; implementation proceeds without extending the monitoring
 window silently.
+
+## Implementation and verification
+
+The branch implements worker-owned live authorization, selected-ancestor config
+loading, worker-only bearer credentials, write methods/body budgets,
+harness-only attenuation, shared ancestor state, preflight diagnostics and
+two-phase effect evidence. The same pure authority code runs in the simulator.
+The new `hc/rest-auth.hc` corpus runs against fixtures in the normal suite and
+the live issues child in the opt-in authenticated test.
+
+`deno task test` passed, including formatting, lint, type/documentation checks,
+CLI/library/loopback/script tests, web/browser tests, executable HC documents,
+npm packaging and compiled-CLI verification. Coverage-floor validation is
+pending. `deno task test:rest-live` reported a skip because `HC_GITHUB_TOKEN` is
+unset; no authenticated live-read success is claimed.
+
+Deno task supports `--env-file` before the task name. The documented setup is
+`deno task --env-file=.env hc:rest-auth hc/rest-auth.hc --testdoc`, so the
+shipped workflow needs no generated launch command or privileged launcher.
+
+The CLI smoke test found that Chalk probes CI variables before preflight. The
+scoped host env list therefore includes the specific dependency probes in
+`cli/env-permissions.ts`, visible invocation variables and selected credential
+names. This corrects 04's proposed visible-plus-credentials-only list. It does
+not expand the HC environment dictionary.

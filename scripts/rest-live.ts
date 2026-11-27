@@ -1,21 +1,13 @@
-/**
- * `deno task test:rest-live`: runs `hc/rest.hc` unchanged against the live,
- * public GitHub REST API.
- *
- * The testdoc runs in a child CLI with net permission for `api.github.com`
- * only, under the live grants in `cli/rest/github-live.json`, so it exercises
- * the origin, path, method, header and budget claims against the real server.
- * It is opt-in and not part of `test:all` or CI: GitHub allows 60
- * unauthenticated requests an hour per IP, and the run needs the network.
- *
- * When the run fails and the new evidence shows the network was unavailable
- * (`resource-transport`) or GitHub rate-limited the run (403 or 429), the task
- * reports a skip and exits 0 instead.
- *
- * @module
- */
+/** Opt-in authenticated GitHub read through an installed child grant. @module */
+import { CLI_ENVIRONMENT } from "../cli/env-permissions.ts";
+if (!Deno.env.has("HC_GITHUB_TOKEN")) {
+  console.log(
+    "test:rest-live: skipped, HC_GITHUB_TOKEN is unset; use --grants for setup instructions",
+  );
+  Deno.exit(0);
+}
 const repo = new URL("../", import.meta.url);
-const evidence = new URL("cli/rest/evidence/live.jsonl", repo);
+const evidence = new URL("cli/rest/evidence/auth-live.jsonl", repo);
 const lines = (): string[] => {
   try {
     return Deno.readTextFileSync(evidence).split("\n").filter(Boolean);
@@ -29,14 +21,15 @@ const run = await new Deno.Command(Deno.execPath(), {
     "run",
     "--allow-read",
     "--allow-write",
-    "--allow-env",
+    `--allow-env=${[...CLI_ENVIRONMENT, "HC_GITHUB_TOKEN"].join(",")}`,
+    "--unstable-worker-options",
     "--allow-net=api.github.com",
     "--deny-run",
     "--deny-ffi",
     "cli/hc.ts",
     "--rest",
-    "cli/rest/github-live.json",
-    "hc/rest.hc",
+    "cli/rest/github-auth.json",
+    "hc/rest-auth.hc",
     "-t",
   ],
   cwd: repo,
@@ -49,7 +42,7 @@ const summary = output.split("\n").filter((line) =>
 );
 console.log(summary.join("\n"));
 if (run.code === 0) {
-  console.log("test:rest-live: hc/rest.hc passed against the live grants");
+  console.log("test:rest-live: hc/rest-auth.hc passed against the live grants");
   Deno.exit(0);
 }
 const fresh = lines().slice(before).map((line) => JSON.parse(line));
@@ -68,5 +61,5 @@ if (unavailable || limited) {
   );
   Deno.exit(0);
 }
-console.error("test:rest-live: hc/rest.hc failed against the live grants");
+console.error("test:rest-live: hc/rest-auth.hc failed against the live grants");
 Deno.exit(1);

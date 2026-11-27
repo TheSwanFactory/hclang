@@ -87,6 +87,35 @@ deno task hc
 This will launch the interactive HC interpreter. The `hc` task regenerates the
 local, gitignored HC bundle automatically on a fresh clone.
 
+### Use a REST Grant
+
+Live REST runs from source under Deno. The harness selects authority; HC
+programs cannot read or choose credentials. Inspect the shipped grant's
+requirements:
+
+```bash
+deno task hc --rest cli/rest/github-auth.json --grants
+```
+
+Create the repository-limited token described there and set `HC_GITHUB_TOKEN`,
+or put it in a gitignored `.env` file. Run the same scoped task either way:
+
+```bash
+# With an exported token
+deno task hc:rest-auth hc/rest-auth.hc --testdoc
+
+# With a token in .env; --env-file belongs before the task name
+deno task --env-file=.env hc:rest-auth hc/rest-auth.hc --testdoc
+
+# Opt-in authenticated read; reports a skip when the token is unset
+deno task --env-file=.env test:rest-live
+```
+
+Only the installed issues child is available to the program; the credentialed
+repository ancestor stays private. [REST configuration](doc/rest-resource.md)
+describes custom grants, write requests and uncertain outcomes. The browser and
+npm CLI do not provide this live Deno transport.
+
 ### Run Tests
 
 ```bash

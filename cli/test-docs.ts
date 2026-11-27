@@ -26,11 +26,12 @@ const LEGACY_EXAMPLES = new Set(["cqml.hc", "white-paper-core.hc"]);
  * The `--rest` grants file a testdoc runs under, when it needs one.
  *
  * `hc/rest.hc` reads the GitHub REST API, so `test:doc` runs it against the
- * simulated grants; `deno task test:rest-live` runs the same file against
- * `rest/github-live.json`.
+ * simulated grants. The credentialed corpus rest-auth.hc uses the matching
+ * simulated config here and the live config in test:rest-live.
  */
 const TESTDOC_REST: Readonly<Record<string, string>> = {
   "rest.hc": "./rest/github-simulated.json",
+  "rest-auth.hc": "./rest/github-auth-simulated.json",
 };
 /** The `--rest` grants file for a testdoc, or undefined when it needs none. */
 export function testdocRest(file: string): string | undefined {

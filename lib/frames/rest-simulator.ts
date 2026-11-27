@@ -14,6 +14,7 @@
  * @module
  */
 import {
+  isRestEffect,
   REST_METHOD,
   type RestEvidence,
   type RestEvidenceSink,
@@ -53,6 +54,7 @@ export interface RestCall {
   readonly method: string;
   readonly url: string;
   readonly headers: Readonly<Record<string, string>>;
+  readonly body?: string;
 }
 const encoder = new TextEncoder();
 /** Answers a grant's requests from fixtures. */
@@ -82,10 +84,32 @@ export class RestSimulator implements RestTransport {
     if (!withinBase(this.base, request.url)) {
       return this.refused(stub, "resource-escaped-root");
     }
+    const method = request.method ?? REST_METHOD;
+    const effect = isRestEffect(method);
+    const located = effect
+      ? {
+        ...stub,
+        requestId: crypto.randomUUID(),
+        requestBytes: encoder.encode(request.body ?? "").length,
+      }
+      : stub;
+    if (
+      effect &&
+      !this.evidence.append({
+        ...located,
+        phase: "intent",
+        outcome: "sent",
+        status: null,
+        responseBytes: 0,
+        refusal: null,
+      })
+    ) return { ok: false, reason: "resource-evidence" };
+    stub = located;
     this.calls.push({
-      method: REST_METHOD,
+      method,
       url: request.url,
       headers: request.headers,
+      ...(request.body === undefined ? {} : { body: request.body }),
     });
     const fixture = this.fixtures.get(this.pathOf(request.url)) ?? NOT_FOUND;
     if ((fixture.delayMs ?? 0) > request.timeoutMs) {
@@ -129,13 +153,21 @@ export class RestSimulator implements RestTransport {
     responseBytes: number,
     refusal: string | null,
   ): RestTransportResult {
+    const effect = isRestEffect(stub.method);
     const appended = this.evidence.append({
       ...stub,
+      ...(effect ? { phase: "completion" as const } : {}),
       outcome: "sent",
       status,
       responseBytes,
       refusal,
     });
+    if (effect && (!appended || refusal !== null)) {
+      return {
+        ok: false,
+        reason: `resource-effect-uncertain ${stub.requestId}`,
+      };
+    }
     if (!appended) return { ok: false, reason: "resource-evidence" };
     return refusal === null
       ? { ok: true, status: 0, headers: {}, body: "" }
