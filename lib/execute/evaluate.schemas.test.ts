@@ -512,12 +512,34 @@ describe("evaluate: schemas", () => {
         .toEqual("$!.unsupported-bit-construct .cs");
     });
 
-    it("leaves a sequence without bit syntax or literal fields alone", () => {
-      expect(evaluate("<[.a <1, 2>;]> 1").toString()).toEqual(
-        evaluate("<[.a <1, 2>;]> 1").toString(),
+    it("mixes literal and layout options and unwraps a single option", () => {
+      expect(answer("<[<X>]> 0xa3")).toEqual("[[.op 0xa; .w 0b0011;]]");
+      expect(answer("<[<0xf, X>]> 0xfa3")).toEqual(
+        "[0xf, [.op 0xa; .w 0b0011;]]",
       );
-      expect(evaluate("<[.a <1, 2>;]> 1").toString()).not.toContain(
-        "unsupported",
+      expect(answer("<[.s <0xf>; .t <[<0xa, 0xb>]>;]> 0xfab")).toEqual(
+        "[.s 0xf; .t [0xa, 0xb];]",
+      );
+      expect(answer("<[.n <4@Bit>; .s {$!!.bad};]> | [.n 0b0001; .s 0x1;]"))
+        .toEqual("$!!.bad");
+    });
+
+    // Each answer matches master before #311: none of these is a bit layout.
+    it("leaves schemas without bit layouts as enumerations", () => {
+      for (
+        const [source, expected] of [
+          ["<[.d {_}]> 5", "[$!.type-error <[.d { _ };]> 5]"],
+          ["<[0xa]> 0xa", "[$!.type-error <[0xa]> 0xa]"],
+          ["<[<1, 2>]> 1", "[$!.type-error <[<1, 2>]> 1]"],
+          ["<[<>]> 0b1", "[$!.type-error <[<>]> 0b1]"],
+          [
+            "<[.a <1, 2>; .d {_}]> 1",
+            "[$!.type-error <[.a <1, 2>; .a.<> <1, 2>; .d { _ };]> 1]",
+          ],
+        ]
+      ) expect(evaluate(source).toString()).toEqual(expected);
+      expect(evaluate("<[.a <1, 2>; .b <nope>;]> 1").toString()).toContain(
+        "$!.type-error <[.a <1, 2>;",
       );
     });
   });
