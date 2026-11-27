@@ -204,11 +204,11 @@ This specification distinguishes four statuses:
 * **aspirational** examples are executable assertions marked `$!.unimplemented`;
 * **environment-dependent** operations, such as writing generated data files, remain non-executable documentation.
 
-The schema and capture gaps are tracked by [#310](https://github.com/TheSwanFactory/hclang/issues/310). The framebuffer example is tracked by [#311](https://github.com/TheSwanFactory/hclang/issues/311), and the RISC-V example by [#312](https://github.com/TheSwanFactory/hclang/issues/312).
+The schema and capture gaps are tracked by [#310](https://github.com/TheSwanFactory/hclang/issues/310). The framebuffer example ([#311](https://github.com/TheSwanFactory/hclang/issues/311)) is implemented; the RISC-V example is tracked by [#312](https://github.com/TheSwanFactory/hclang/issues/312).
 
 ## Schemas
 
-Schemas can be thought of as a cross between type signatures and regular expressions. Each element of a schema is called a _capture_. Numeric enumeration constraints and the minimal deterministic retrieval and deconstruction forms are implemented. Deterministic constructors and capture lengths that depend on earlier captures are implemented; general alternatives and user-defined capture units remain aspirational.
+Schemas can be thought of as a cross between type signatures and regular expressions. Each element of a schema is called a _capture_. Numeric enumeration constraints and the minimal deterministic retrieval and deconstruction forms are implemented. Deterministic constructors, capture lengths that depend on earlier captures, literal fields, and ordered choice and repetition inside bit layouts are implemented; user-defined capture units remain aspirational.
 
 ### Numeric Constraints (implemented)
 
@@ -319,34 +319,90 @@ preserves the width of each captured field rather than the input's hex base:
 # [.n 0b0101; .string 0b0100100001100101011011000110110001101111;]
 ```
 
-## Example A: Symbolicated Frame Buffer (aspirational, #311)
+## Example A: Symbolicated Frame Buffer (implemented, #311)
 
-This design parses named and unnamed captures, reuses variables across scopes, and symbolicates output. Its declarations are non-executable because they depend on #310 and the parser-specific work in #311:
+This example parses a header and a command stream, carries captures from one
+command into the next, and renders the result with symbolic names.
 
-    .fb-start 0xf4m3b0ff3c;
-    .op {.x 0xa; .y 0xb; .data 0xc;};
-    .width <2@Byte>;
-    .height <2@Byte>;
-    .parse-x <op.x; @width>;
-    .parse-y <op.y; @height>;
-    .pixel <2@Byte>;
-    .parse-data <op.data; .fb-data <width height pixel>>;
-    .command <parse-x, parse-y, parse-data>;
-    .fb-parse <fb-start, [command]>;
-    .sizes {.mvga-x 0x0004; .mvga-y 0x0002;};
-    .mvga-data [0x0000 0x0001 0x0010 0x0100 0xffff 0xfff0 0xff00 0xf000];
-    .fb-bits (fb-start op.x mvga-x op.y mvga-y op.data mvga-data);
-    .sym-x <parse-x |> sizes>;
-    .sym-y <parse-y |> sizes>;
-    .sym-commands <sym-x, sym-y, parse-data>;
-    .fb-sym <fb-start |> @fb-start, [sym-commands]>;
+The bitstream starts with a 5-byte start marker, and each command starts with a
+4-bit opcode. The original marker, `0xf4m3b0ff3c`, is not hexadecimal, so the
+example uses `0xf4a3b0ff3c`:
+```
+; .fb-start 0xf4a3b0ff3c;
+; .op [.x 0xa; .y 0xb; .data 0xc;];
+```
 
-The parsing and symbolic-output targets remain authoritative aspirational assertions:
+Inside a bit layout, a capture whose schema holds blobs is a literal field. It
+consumes the width of the blob it matches and compares bits rather than
+spellings, so `0b1010` matches `0xa`, then answers the blob as declared. Outside
+a bit layout, `<0xa>` is still an ordinary enumeration. The _x_ and _y_ commands
+carry the display width and height:
+```
+; .parse-x <[.op <op.x>; .width <2@Byte>;]>;
+; .parse-y <[.op <op.y>; .height <2@Byte>;]>;
+; parse-x 0xa0004
+# [.op 0xa; .width 0b0000000000000100;]
+; parse-x 0xb0004
+# $!.bit-literal-mismatch .op 0
+```
+
+Those values size the data buffer. A deferred capture receives every capture
+made earlier in the same parse, including the captures of earlier commands, so
+the _data_ command reads the width and height captured before it. Nothing
+outside the parse is written. Blob `*` pairs bits rather than multiplying, so
+`value` decodes each dimension with the `Decode` closure from above:
+```
+; .value {(_ | (Decode 0)).n};
+; .pixel 2;
+; .parse-data <[.op <op.data>; .fb-data {<((value width) * (value height) * pixel)@Byte>};]>;
+```
+
+Inside a bit layout, a schema of bit layouts is an ordered choice: the first
+option that matches at the cursor wins. `<[command]>` repeats a layout until
+the input ends and answers the list of each element's captures. Like a
+remainder, a repetition must be the last capture:
+```
+; .command <parse-x, parse-y, parse-data>;
+; .fb-parse <[.start <fb-start>; .commands <[command]>;]>;
+```
+
+For simplicity, assume a really small 4 x 2 display with 2-byte pixels:
+```
+; .mvga-x 0x0004;
+; .mvga-y 0x0002;
+; .mvga-data (0x0000 0x0001 0x0010 0x0100 0xffff 0xfff0 0xff00 0xf000);
+; .fb-bits (fb-start op.x mvga-x op.y mvga-y op.data mvga-data);
+; fb-bits
+# 0xf4a3b0ff3ca0004b0002c0000000100100100fffffff0ff00f000
+```
+
+The bitstream parses back to its marker and commands. The payload keeps all 128
+bits, rendered in binary like every captured field:
 ```
 ; fb-parse fb-bits
-# $!.unimplemented [0xf4m3b0ff3c, @width 0x0004, @height 0x0002, .fb-data 0x0000000100100100fffffff0ff00f000]
+# [.start 0xf4a3b0ff3c; .commands [[.op 0xa; .width 0b0000000000000100;], [.op 0xb; .height 0b0000000000000010;], [.op 0xc; .fb-data 0b00000000000000000000000000000001000000000001000000000001000000001111111111111111111111111111000011111111000000001111000000000000;]];]
+```
+
+A data command that comes before the dimensions fails, because its deferred
+capture has no width to read yet. An opcode that no command starts with fails
+at its position:
+```
+; fb-parse (fb-start op.data mvga-data)
+# $!.name-missing...
+; fb-parse (fb-start 0xd)
+# $!.no-bit-alternative .commands.0 40
+```
+
+To display symbolic values, map the parsed captures back to names without
+changing the parse. `symbol` answers the name in `symbols` whose value has the
+same bits, and otherwise answers the value unchanged, so the raw payload stays
+as it is. `&&` streams each command's captures as `[key, value]` tuples:
+```
+; .symbols [.fb-start fb-start; .x op.x; .y op.y; .data op.data; .mvga-x mvga-x; .mvga-y mvga-y;];
+; .symbol {.v _; .hits ((symbols && {.t _; ((t.1 | []) = (v | [])) ? {[t.0]} : {[]}}) &| {_}); ((hits.#) = 0) ? {v} : {hits.0}};
+; .fb-sym {.p (fb-parse _); [symbol p.start, p.commands & {_ && {.t _; [t.0, symbol t.1]}}]};
 ; fb-sym fb-bits
-# $!.unimplemented [{fb-start}, {@width mvga-x}, {@height mvga-y}, .fb-data 0x0000000100100100fffffff0ff00f000]
+# [.fb-start, [[[.op, .x], [.width, .mvga-x]], [[.op, .y], [.height, .mvga-y]], [[.op, .data], [.fb-data, 0b00000000000000000000000000000001000000000001000000000001000000001111111111111111111111111111000011111111000000001111000000000000]]]]
 ```
 
 ## Example B: RISC-V (aspirational, #312)

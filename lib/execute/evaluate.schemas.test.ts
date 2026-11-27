@@ -432,6 +432,96 @@ describe("evaluate: schemas", () => {
     });
   });
 
+  describe("literal fields, ordered choice and repetition (#311)", () => {
+    const prelude = ".op [.x 0xa; .y 0xb;]; " +
+      ".X <[.op <op.x>; .w <4@Bit>;]>; .Y <[.op <op.y>; .h <4@Bit>;]>; " +
+      ".D <[.op <0xc>; .d {<(w)@Bit>};]>; .C <X, Y, D>; ";
+    // The answer of the last statement after the prelude's declarations.
+    const answer = (source: string) =>
+      evaluate(prelude + source).asArray().at(-1)?.asArray().at(-1)
+        ?.toString();
+
+    it("matches literal fields by bits and answers the declared blob", () => {
+      expect(answer("X 0xa3")).toEqual("[.op 0xa; .w 0b0011;]");
+      expect(answer("X 0b10100011")).toEqual("[.op 0xa; .w 0b0011;]");
+      expect(answer("X 0xb3")).toEqual("$!.bit-literal-mismatch .op 0");
+      expect(answer("<[.op <0xa, 0xb>; .w <4@Bit>;]> 0xb3")).toEqual(
+        "[.op 0xb; .w 0b0011;]",
+      );
+      expect(answer("X")).toEqual("<[.op <0xa>; .w <4@Bit>;]>");
+    });
+
+    it("keeps a schema of blobs an enumeration outside a bit layout", () => {
+      expect(evaluate("[0xa ~ <0xa>, 0b1010 ~ <0xa>]").toString()).toEqual(
+        "[[<>, ()]]",
+      );
+    });
+
+    it("repeats a layout to the end of the input", () => {
+      expect(evaluate("<[<8@Bit>]> 0x1234").toString()).toEqual(
+        "[[0b00010010, 0b00110100]]",
+      );
+      expect(evaluate("<[<0xa, 0xb>]> 0xabba").toString()).toEqual(
+        "[[0xa, 0xb, 0xb, 0xa]]",
+      );
+      expect(answer("<[C]> 0xa3b2")).toEqual(
+        "[[.op 0xa; .w 0b0011;], [.op 0xb; .h 0b0010;]]",
+      );
+      expect(answer("<[C]> 0xa30")).toEqual(
+        "$!.no-bit-alternative .1 8",
+      );
+      expect(evaluate("<[<8@Bit>]> 0x123").toString()).toEqual(
+        "[$!.insufficient-bits .1 8]",
+      );
+      expect(evaluate("<[<8@Bit>]> 5").toString()).toEqual(
+        "[$!.bit-input-invalid 5]",
+      );
+    });
+
+    it("lets a deferred capture read captures of earlier elements", () => {
+      expect(answer("<[.s <0xf>; .cs <[C]>;]> 0xfa4c5")).toEqual(
+        "[.s 0xf; .cs [[.op 0xa; .w 0b0100;], [.op 0xc; .d 0b0101;]];]",
+      );
+      // The width is captured after the data command, so the data command's
+      // deferred capture cannot read it; the reason is reported.
+      expect(answer("<[.s <0xf>; .cs <[C]>;]> 0xfc5a4")).toContain(
+        "$!.name-missing",
+      );
+      // P captures an 8-bit w before failing; D must size by X's w.
+      expect(
+        answer(
+          ".P <[.op <0xa>; .w <8@Bit>; .z <0xf>;]>; " +
+            "<[.cs <[<P, X, D>]>;]> 0xa4c5",
+        ),
+      ).toEqual(
+        "[.cs [[.op 0xa; .w 0b0100;], [.op 0xc; .d 0b0101;]];]",
+      );
+    });
+
+    it("requires repetitions last and refuses constructing them", () => {
+      expect(answer("<[.cs <[C]>; .t <4@Bit>;]> 0xa3")).toEqual(
+        "$!.invalid-remainder-position .cs",
+      );
+      expect(answer("X | [.op 0xa; .w 0b0011;]")).toEqual(
+        "[0xa, 0b0011]",
+      );
+      expect(answer("X | [.op 0xb; .w 0b0011;]")).toEqual(
+        "$!.bit-literal-mismatch .op 0",
+      );
+      expect(answer("<[.s <0xf>; .cs <[C]>;]> | [.s 0xf; .cs [];]"))
+        .toEqual("$!.unsupported-bit-construct .cs");
+    });
+
+    it("leaves a sequence without bit syntax or literal fields alone", () => {
+      expect(evaluate("<[.a <1, 2>;]> 1").toString()).toEqual(
+        evaluate("<[.a <1, 2>;]> 1").toString(),
+      );
+      expect(evaluate("<[.a <1, 2>;]> 1").toString()).not.toContain(
+        "unsupported",
+      );
+    });
+  });
+
   describe("edge cases", () => {
     it("leaves a declaration applied to nil unbound", () => {
       // Applying nil to a pending declaration answers the declaration

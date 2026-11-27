@@ -11,6 +11,7 @@ import { FrameNumeric, REPETITION_TEXT_LIMIT } from "./frame-numeric.ts";
 import { matchFailure, type MatchResult, matchSuccess } from "./frame-match.ts";
 import {
   callSchemaPredicate,
+  EnumerationSchemaMatcher,
   evaluateSchemaTerm,
   isSchemaFrame,
   type SchemaMatcher,
@@ -19,10 +20,73 @@ import {
   unwrapSchemaSyntax,
 } from "./schema-matcher.ts";
 
+/**
+ * The named captures one parse has made so far, in parse order (#311). A
+ * deferred capture reads them, so a width captured by an earlier element of a
+ * repetition sizes a later element's field. Nothing outside the parse is
+ * written: the scope lives only as long as the match.
+ */
+type CaptureScope = Map<string, Frame>;
+
+/** One layout's answer at a cursor: its evidence and where it stopped. */
+type BitStep = { evidence: Frame; end: number } | Frame;
+
+/**
+ * A bit layout that can match at a cursor inside a larger blob, so it can be
+ * one capture of a sequence, one option of an alternative, or the element of
+ * a repetition. `terminal` layouts consume every remaining bit and so must
+ * come last. `label` names the capture in errors.
+ */
+interface BitLayout {
+  readonly terminal: boolean;
+  format(): string;
+  matchAt(
+    value: FrameBlob,
+    offset: number,
+    scope: CaptureScope,
+    label: string,
+  ): BitStep;
+}
+
 type BitCapture = {
   name: string;
   bits: number | null | Frame;
+  layout?: BitLayout;
 };
+
+function isBitLayout(
+  matcher: SchemaMatcher | BitLayout,
+): matcher is BitLayout {
+  return typeof (matcher as Partial<BitLayout>).matchAt === "function";
+}
+
+function bitInputInvalid(value: Frame): MatchResult {
+  return matchFailure(Frame.error(`$!.bit-input-invalid ${value.toString()}`));
+}
+
+/** A blob matched by a layout that consumes all of it. */
+function matchWhole(
+  layout: BitLayout,
+  value: Frame,
+  label: string,
+): MatchResult {
+  if (!(value instanceof FrameBlob)) return bitInputInvalid(value);
+  const step = layout.matchAt(value, 0, new Map(), label);
+  if (step instanceof Frame) return matchFailure(step);
+  if (step.end < value.bitLength()) {
+    return matchFailure(
+      Frame.error(`$!.unconsumed-bits ${value.bitLength() - step.end}`),
+    );
+  }
+  return matchSuccess(step.evidence);
+}
+
+/** The argument a deferred capture receives: every capture made so far. */
+function scopeFrame(scope: CaptureScope): Frame {
+  const frame = new FrameArray([]);
+  for (const [name, value] of scope) frame.set(name, value);
+  return frame;
+}
 
 /** Compile only schemas that use the built-in Bit matcher syntax. */
 export function compileBitSchemaMatcher(
@@ -62,6 +126,12 @@ export function compileBitSchemaMatcher(
       ) {
         return new RemainderBitSchemaMatcher();
       }
+      if (entries.length === 1 && !isNamedCapture(entries[0])) {
+        const element = bitLayoutOf(entries[0], input);
+        if (element !== undefined && !(element instanceof Frame)) {
+          return new RepetitionBitLayout(element);
+        }
+      }
       const sequence = compileBitSequence(entries, input);
       if (sequence) return sequence;
     }
@@ -70,7 +140,9 @@ export function compileBitSchemaMatcher(
   return containsBitSyntax(data) ? new UnsupportedSchemaMatcher() : undefined;
 }
 
-class ExactBitSchemaMatcher implements SchemaMatcher {
+class ExactBitSchemaMatcher implements SchemaMatcher, BitLayout {
+  public readonly terminal = false;
+
   public constructor(public readonly bits: number) {
   }
 
@@ -79,11 +151,7 @@ class ExactBitSchemaMatcher implements SchemaMatcher {
     value: Frame,
     _origin: Frame,
   ): MatchResult {
-    if (!(value instanceof FrameBlob)) {
-      return matchFailure(
-        Frame.error(`$!.bit-input-invalid ${value.toString()}`),
-      );
-    }
+    if (!(value instanceof FrameBlob)) return bitInputInvalid(value);
     if (value.bitLength() < this.bits) {
       return matchFailure(
         Frame.error(`$!.insufficient-bits <${this.bits}@Bit> 0`),
@@ -95,6 +163,20 @@ class ExactBitSchemaMatcher implements SchemaMatcher {
       );
     }
     return matchSuccess(value);
+  }
+
+  public matchAt(
+    value: FrameBlob,
+    offset: number,
+    _scope: CaptureScope,
+    label: string,
+  ): BitStep {
+    return offset + this.bits > value.bitLength()
+      ? Frame.error(`$!.insufficient-bits ${label} ${offset}`)
+      : {
+        evidence: value.sliceBits(offset, this.bits),
+        end: offset + this.bits,
+      };
   }
 
   public apply(schema: FrameList, value: Frame, origin: Frame): Frame {
@@ -114,8 +196,9 @@ class ExactBitSchemaMatcher implements SchemaMatcher {
   }
 }
 
-class RemainderBitSchemaMatcher implements SchemaMatcher {
+class RemainderBitSchemaMatcher implements SchemaMatcher, BitLayout {
   public readonly bits = null;
+  public readonly terminal = true;
 
   public apply(schema: FrameList, value: Frame, origin: Frame): Frame {
     if (value instanceof FrameInt && value.data >= 0n) {
@@ -132,7 +215,19 @@ class RemainderBitSchemaMatcher implements SchemaMatcher {
   ): MatchResult {
     return value instanceof FrameBlob
       ? matchSuccess(value)
-      : matchFailure(Frame.error(`$!.bit-input-invalid ${value.toString()}`));
+      : bitInputInvalid(value);
+  }
+
+  public matchAt(
+    value: FrameBlob,
+    offset: number,
+    _scope: CaptureScope,
+    label: string,
+  ): BitStep {
+    const width = value.bitLength() - offset;
+    return width <= 0
+      ? Frame.error(`$!.insufficient-bits ${label} ${offset}`)
+      : { evidence: value.sliceBits(offset, width), end: value.bitLength() };
   }
 
   public format(): string {
@@ -140,8 +235,153 @@ class RemainderBitSchemaMatcher implements SchemaMatcher {
   }
 }
 
-class BitSequenceSchemaMatcher implements SchemaMatcher {
+/**
+ * A constant field, such as a start marker or an opcode, written as a schema
+ * of blobs (`<0xa>`, `<op.x>`). It consumes the width of whichever blob it
+ * matches, compares bits rather than spellings (`0b1010` matches `0xa`), and
+ * answers the blob as declared. Only built for a capture inside a bit layout;
+ * a bare `<0xa>` stays an enumeration.
+ */
+class LiteralBitLayout implements BitLayout {
+  public readonly terminal = false;
+
+  public constructor(private readonly literals: FrameBlob[]) {
+  }
+
+  public matchAt(
+    value: FrameBlob,
+    offset: number,
+    _scope: CaptureScope,
+    label: string,
+  ): BitStep {
+    for (const literal of this.literals) {
+      if (sameBits(value, offset, literal)) {
+        return { evidence: literal, end: offset + literal.bitLength() };
+      }
+    }
+    const mismatch = Frame.error(`$!.bit-literal-mismatch ${label} ${offset}`);
+    openingMismatches.set(mismatch, offset);
+    return mismatch;
+  }
+
+  public matches(part: FrameBlob): boolean {
+    return this.literals.some((literal) =>
+      literal.bitLength() === part.bitLength() && sameBits(part, 0, literal)
+    );
+  }
+
+  public format(): string {
+    return `<${this.literals.map((literal) => literal.toString()).join(", ")}>`;
+  }
+}
+
+/**
+ * Each literal mismatch and the cursor it happened at. A mismatch at the
+ * cursor an option started from means the option did not apply. Any other
+ * failure means the option's opening field matched and a later one failed,
+ * which is the reason an ordered choice reports when no option matches.
+ */
+const openingMismatches = new WeakMap<Frame, number>();
+
+function sameBits(
+  value: FrameBlob,
+  offset: number,
+  literal: FrameBlob,
+): boolean {
+  const width = literal.bitLength();
+  return offset + width <= value.bitLength() &&
+    value.sliceBits(offset, width).unsignedValue() === literal.unsignedValue();
+}
+
+/**
+ * Ordered choice among bit layouts (`<parse-x, parse-y, parse-data>`): the
+ * first option that matches at the cursor wins, and no later failure revisits
+ * the choice. A failed option's captures are discarded with it.
+ */
+class AlternativeBitLayout implements BitLayout {
+  public readonly terminal: boolean;
+
+  public constructor(private readonly options: BitLayout[]) {
+    this.terminal = options.some((option) => option.terminal);
+  }
+
+  public matchAt(
+    value: FrameBlob,
+    offset: number,
+    scope: CaptureScope,
+    label: string,
+  ): BitStep {
+    let reason: Frame | undefined;
+    for (const option of this.options) {
+      const trial = new Map(scope);
+      const step = option.matchAt(value, offset, trial, label);
+      if (step instanceof Frame) {
+        if (openingMismatches.get(step) !== offset) reason ??= step;
+        continue;
+      }
+      for (const [name, part] of trial) scope.set(name, part);
+      return step;
+    }
+    return reason ?? Frame.error(`$!.no-bit-alternative ${label} ${offset}`);
+  }
+
+  public format(): string {
+    return `<${this.options.map((option) => option.format()).join(", ")}>`;
+  }
+}
+
+/**
+ * `<[element]>` repeats a bit layout until the input ends, answering the list
+ * of each element's evidence; `<[@Bit]>` remains the plain remainder. Every
+ * element must consume at least one bit, and a mismatch fails the whole
+ * repetition rather than stopping early, since the input must be consumed.
+ */
+class RepetitionBitLayout implements SchemaMatcher, BitLayout {
+  public readonly terminal = true;
+
+  public constructor(private readonly element: BitLayout) {
+  }
+
+  public match(_schema: FrameList, value: Frame, _origin: Frame): MatchResult {
+    return matchWhole(this, value, "");
+  }
+
+  public matchAt(
+    value: FrameBlob,
+    offset: number,
+    scope: CaptureScope,
+    label: string,
+  ): BitStep {
+    const items: Frame[] = [];
+    let at = offset;
+    while (at < value.bitLength()) {
+      const step = this.element.matchAt(
+        value,
+        at,
+        scope,
+        `${label}.${items.length}`,
+      );
+      if (step instanceof Frame) return step;
+      if (step.end <= at) {
+        return Frame.error(`$!.empty-repetition ${label} ${at}`);
+      }
+      items.push(step.evidence);
+      at = step.end;
+    }
+    return { evidence: new FrameArray(items), end: at };
+  }
+
+  public format(): string {
+    return `<[${this.element.format()}]>`;
+  }
+}
+
+class BitSequenceSchemaMatcher implements SchemaMatcher, BitLayout {
+  public readonly terminal: boolean;
+
   public constructor(private readonly captures: BitCapture[]) {
+    const last = captures.at(-1);
+    this.terminal = last?.layout?.terminal ?? last?.bits === null;
   }
 
   public match(
@@ -149,31 +389,43 @@ class BitSequenceSchemaMatcher implements SchemaMatcher {
     value: Frame,
     _origin: Frame,
   ): MatchResult {
-    if (!(value instanceof FrameBlob)) {
-      return matchFailure(
-        Frame.error(`$!.bit-input-invalid ${value.toString()}`),
-      );
-    }
-    let offset = 0;
+    return matchWhole(this, value, "");
+  }
+
+  public matchAt(
+    value: FrameBlob,
+    offset: number,
+    scope: CaptureScope,
+    _label: string,
+  ): BitStep {
+    let at = offset;
     const evidence = new FrameArray([]);
     for (const capture of this.captures) {
-      const resolved = this.width(capture, evidence);
-      if (resolved instanceof Frame) return matchFailure(resolved);
-      const width = resolved ?? value.bitLength() - offset;
-      if (width <= 0 || offset + width > value.bitLength()) {
-        return matchFailure(
-          Frame.error(`$!.insufficient-bits .${capture.name} ${offset}`),
+      let part: Frame;
+      if (capture.layout) {
+        const step = capture.layout.matchAt(
+          value,
+          at,
+          scope,
+          `.${capture.name}`,
         );
+        if (step instanceof Frame) return step;
+        part = step.evidence;
+        at = step.end;
+      } else {
+        const resolved = this.width(capture, scopeFrame(scope));
+        if (resolved instanceof Frame) return resolved;
+        const width = resolved ?? value.bitLength() - at;
+        if (width <= 0 || at + width > value.bitLength()) {
+          return Frame.error(`$!.insufficient-bits .${capture.name} ${at}`);
+        }
+        part = value.sliceBits(at, width);
+        at += width;
       }
-      evidence.set(capture.name, value.sliceBits(offset, width));
-      offset += width;
+      evidence.set(capture.name, part);
+      scope.set(capture.name, part);
     }
-    if (offset < value.bitLength()) {
-      return matchFailure(
-        Frame.error(`$!.unconsumed-bits ${value.bitLength() - offset}`),
-      );
-    }
-    return matchSuccess(evidence);
+    return { evidence, end: at };
   }
 
   private width(capture: BitCapture, evidence: Frame): number | null | Frame {
@@ -201,13 +453,22 @@ class BitSequenceSchemaMatcher implements SchemaMatcher {
       if (!binding) return Frame.error(`$!.property-missing .${capture.name}`);
       const part = binding.value;
       if (part.is.error) return part;
-      const width = this.width(capture, evidence);
-      if (width instanceof Frame) return width;
+      if (capture.layout && !(capture.layout instanceof LiteralBitLayout)) {
+        return Frame.error(`$!.unsupported-bit-construct .${capture.name}`);
+      }
       if (!(part instanceof FrameBlob)) {
         return Frame.error(`$!.bit-input-invalid ${part.toString()}`);
       }
-      if (width !== null && part.bitLength() !== width) {
-        return Frame.error(`$!.bit-width ${width}`);
+      if (capture.layout instanceof LiteralBitLayout) {
+        if (!capture.layout.matches(part)) {
+          return Frame.error(`$!.bit-literal-mismatch .${capture.name} 0`);
+        }
+      } else {
+        const width = this.width(capture, evidence);
+        if (width instanceof Frame) return width;
+        if (width !== null && part.bitLength() !== width) {
+          return Frame.error(`$!.bit-width ${width}`);
+        }
       }
       parts.push(part);
       evidence.set(capture.name, part);
@@ -219,7 +480,9 @@ class BitSequenceSchemaMatcher implements SchemaMatcher {
     return `<[${
       this.captures.map((capture) =>
         `.${capture.name} ${
-          capture.bits instanceof Frame
+          capture.layout
+            ? capture.layout.format()
+            : capture.bits instanceof Frame
             ? capture.bits.toString()
             : capture.bits == null
             ? "<[@Bit]>"
@@ -230,13 +493,72 @@ class BitSequenceSchemaMatcher implements SchemaMatcher {
   }
 }
 
+function isNamedCapture(entry: Frame): boolean {
+  const terms = entry instanceof FrameList
+    ? entry.asArray().map(unwrapSchemaSyntax)
+    : [];
+  return terms.length === 2 && terms[0] instanceof FrameName;
+}
+
+/**
+ * The bit layout a schema term denotes when used inside a bit layout: a bit
+ * matcher as compiled, a schema of blobs as a literal field, or a schema of
+ * such schemas as an ordered choice. Undefined when the term denotes none, and
+ * an error when evaluating it failed.
+ */
+function bitLayoutOf(
+  term: Frame,
+  input?: EvaluationInput,
+): BitLayout | Frame | undefined {
+  const syntax = unwrapSchemaSyntax(term);
+  const value = input === undefined
+    ? syntax
+    : evaluateSchemaTerm(syntax, input);
+  if (value.is.error) return value;
+  return layoutOfSchema(value.referent(), new Set());
+}
+
+function layoutOfSchema(
+  schema: Frame,
+  path: Set<Frame>,
+): BitLayout | undefined {
+  if (!schema.isSchema() || path.has(schema)) return undefined;
+  const matcher = schema.compiledMatcher();
+  if (isBitLayout(matcher)) return matcher;
+  if (!(matcher instanceof EnumerationSchemaMatcher)) return undefined;
+  const candidates = schema.asArray().map((candidate) => candidate.referent());
+  if (candidates.length === 0) return undefined;
+  if (candidates.every((candidate) => candidate instanceof FrameBlob)) {
+    return new LiteralBitLayout(candidates as FrameBlob[]);
+  }
+  const options: BitLayout[] = [];
+  const inner = new Set(path).add(schema);
+  for (const candidate of candidates) {
+    const option = candidate instanceof FrameBlob
+      ? new LiteralBitLayout([candidate])
+      : layoutOfSchema(candidate, inner);
+    if (!option) return undefined;
+    options.push(option);
+  }
+  return options.length === 1 ? options[0] : new AlternativeBitLayout(options);
+}
+
 function compileBitSequence(
   entries: Frame[],
   input?: EvaluationInput,
 ): SchemaMatcher | Frame | undefined {
-  if (entries.length === 0 || !containsBitSyntax(entries)) return undefined;
+  if (entries.length === 0) return undefined;
   const captures: BitCapture[] = [];
   const names = new Set<string>();
+  // A sequence is a bit layout when it spells bit syntax or one of its
+  // captures evaluates to a bit layout, such as a literal field (#311).
+  // Otherwise it stays an ordinary enumeration, as before.
+  const syntax = containsBitSyntax(entries);
+  let layouts = false;
+  const refuse = (matcher: SchemaMatcher | Frame) =>
+    syntax || layouts || entries.some((entry) => layoutCapture(entry, input))
+      ? matcher
+      : undefined;
 
   for (let index = 0; index < entries.length; index++) {
     const entry = entries[index];
@@ -247,27 +569,32 @@ function compileBitSequence(
       terms.length !== 2 || !(terms[0] instanceof FrameName) ||
       !(isSchemaFrame(terms[1]) || terms[1].isClosure())
     ) {
-      return containsBitSyntax(entries)
-        ? new UnsupportedSchemaMatcher()
-        : undefined;
+      return refuse(new UnsupportedSchemaMatcher());
     }
 
     const capture = terms[1];
     const deferred = capture.isClosure() ? capture.in(input) : undefined;
     if (deferred && schemaPredicateHasEffect(deferred)) {
-      return new UnsupportedSchemaMatcher("$!.schema-predicate-effect");
+      return refuse(
+        new UnsupportedSchemaMatcher("$!.schema-predicate-effect"),
+      );
     }
-    const nested = deferred ??
+    const compiled = deferred ??
       compileBitSchemaMatcher(capture.asArray(), input);
-    if (nested instanceof Frame && !deferred) return nested;
+    if (compiled instanceof Frame && !deferred) return compiled;
+    // A capture written without bit syntax, such as `<op.x>`, may still
+    // denote a literal field or a choice of layouts once evaluated.
+    const nested = deferred || compiled !== undefined
+      ? compiled
+      : bitLayoutOf(capture, input);
+    if (nested instanceof Frame && !deferred) return refuse(nested);
     if (
-      !(nested instanceof ExactBitSchemaMatcher) &&
-      !(nested instanceof RemainderBitSchemaMatcher) && !deferred
+      !deferred &&
+      (nested === undefined || !isBitLayout(nested as SchemaMatcher))
     ) {
-      return containsBitSyntax(entries)
-        ? new UnsupportedSchemaMatcher()
-        : undefined;
+      return refuse(new UnsupportedSchemaMatcher());
     }
+    if (!deferred) layouts = true;
 
     const name = terms[0].source;
     if (names.has(name)) {
@@ -277,19 +604,33 @@ function compileBitSequence(
 
     if (deferred) {
       captures.push({ name, bits: deferred });
-    } else if (nested instanceof RemainderBitSchemaMatcher) {
-      if (index !== entries.length - 1) {
-        return new UnsupportedSchemaMatcher(
-          `$!.invalid-remainder-position .${name}`,
-        );
-      }
+      continue;
+    }
+    const layout = nested as BitLayout;
+    if (layout.terminal && index !== entries.length - 1) {
+      return new UnsupportedSchemaMatcher(
+        `$!.invalid-remainder-position .${name}`,
+      );
+    }
+    if (layout instanceof RemainderBitSchemaMatcher) {
       captures.push({ name, bits: null });
-    } else if (nested instanceof ExactBitSchemaMatcher) {
-      captures.push({ name, bits: nested.bits });
+    } else if (layout instanceof ExactBitSchemaMatcher) {
+      captures.push({ name, bits: layout.bits });
+    } else {
+      captures.push({ name, bits: null, layout });
     }
   }
 
-  return new BitSequenceSchemaMatcher(captures);
+  return syntax || layouts ? new BitSequenceSchemaMatcher(captures) : undefined;
+}
+
+/** Whether a sequence entry is a named capture of an evaluated bit layout. */
+function layoutCapture(entry: Frame, input?: EvaluationInput): boolean {
+  if (!isNamedCapture(entry)) return false;
+  const capture = unwrapSchemaSyntax((entry as FrameList).asArray()[1]);
+  if (!isSchemaFrame(capture)) return false;
+  const layout = bitLayoutOf(capture, input);
+  return layout !== undefined && !(layout instanceof Frame);
 }
 
 function bitUnit(

@@ -817,6 +817,23 @@ non-schema Byte binding is refused. A zero-width capture is refused with
 terminal and nonempty, and matching must consume the entire input. No partially
 matched evidence escapes on failure.
 
+Inside a bit layout, captures can also be literal fields, ordered choices and
+repetitions (#311). Each such layout matches at a cursor in the input. A capture
+schema of blobs (`<0xa>`) consumes the width of the blob it matches, compares
+bits rather than spellings, and answers the declared blob. A schema of bit
+layouts (`<parse-x, parse-y>`) tries its options in order and keeps the first
+that matches, with no backtracking once one has. When every option fails, it
+reports the first failure that happened after an option's opening field matched,
+and `$!.no-bit-alternative` otherwise. `<[element]>` repeats a layout until the
+input ends; each element must consume a bit, and any mismatch fails the whole
+repetition. Repetitions are terminal like remainders. Outside a bit layout these
+schemas keep their enumeration meaning. One parse keeps a capture scope of every
+named capture made so far, and a deferred capture receives that scope, so a
+width captured by an earlier repeated element sizes a later one. The scope
+belongs to the match: a failed option's captures are discarded with it, and no
+caller or ancestor binding is written. Construction accepts literal fields but
+refuses choices and repetitions with `$!.unsupported-bit-construct`.
+
 ## Context
 
 The public `Context` map supplies initial bindings. Runtime evaluation uses an

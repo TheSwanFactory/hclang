@@ -38,8 +38,11 @@ const tuple = (key: string, value: Frame): FrameArray =>
  * canonical output re-readable as input.
  */
 const members = (source: Frame): Frame[] => {
-  const properties = source.visibleKeys().map((key) =>
-    tuple(key, source.get_here(key))
+  // A handle (a name, or a closure's argument) lists its target's keys but
+  // answers no keyed lookup of its own, so read the values from the target.
+  const owner = source.referent();
+  const properties = owner.visibleKeys().map((key) =>
+    tuple(key, owner.get_here(key))
   );
   const elements = source.elements().map((value, index) =>
     tuple(index.toString(), value)

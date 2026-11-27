@@ -5,6 +5,22 @@
 > contains nothing else; then describe it and say that nothing user-facing
 > changed.
 
+## v0.61.1 2026-11-27
+
+- **BitScheme parses command streams (#311).** Inside a bit layout, a capture of
+  blobs is a literal field: `<[.op <0xa>; .w <4@Bit>;]> 0xa3` answers
+  `[.op 0xa; .w 0b0011;]`, comparing bits, so `0b1010` also matches. A schema of
+  layouts is an ordered choice, and `<[command]>` repeats a layout to the end of
+  the input, answering each element's captures; `<[<8@Bit>]> 0x1234` is
+  `[0b00010010, 0b00110100]`. Deferred captures see every earlier capture of the
+  same parse, so a data command can size its payload from width and height
+  commands before it. No binding outside the parse is written. These forms used
+  to answer `$!.unsupported-schema-match` or `$!.type-error`. The tutorial's
+  framebuffer example now parses and symbolicates.
+- **`&&` and `||` stream property values through a name or an argument (#311).**
+  `.n [.a 4; .b 2;]; n && {_}` was `[[.a, ()], [.b, ()]]` and is now
+  `[[.a, 4], [.b, 2]]`; a closure's argument streams the same way.
+
 ## v0.61.0 2026-11-27
 
 - **BitScheme constructs blobs and resolves deferred captures.** `<8@Bit> 5` now
