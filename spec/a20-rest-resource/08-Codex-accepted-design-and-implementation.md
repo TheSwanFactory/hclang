@@ -4,6 +4,7 @@
 **Status:** Implemented and validated in PR #579; awaiting the manual
 authenticated live read and further review.\
 **Branch:** `codex/rest-resource-spec`.\
+**Release preparation:** v0.60.0, rebased on master's v0.59.0.\
 **Issue:** [#570](https://github.com/TheSwanFactory/hclang/issues/570).\
 **PR:** [#579](https://github.com/TheSwanFactory/hclang/pull/579).
 
@@ -118,3 +119,7 @@ token failures from skips, documents the new live-worker flags and rebases onto
 v0.58.0 with a v0.59.0 minor bump. The full gate and clean coverage floors pass
 after that rebase. All 26 public live claims passed against GitHub; only the
 authenticated run skipped for the unset token.
+
+Master's subsequent HLIR release claimed v0.59.0. Record 13 documents the
+rebased v0.60.0 preparation and the intentional empty-token/403 policies. The
+full gate and all unchanged coverage floors pass on this latest base.

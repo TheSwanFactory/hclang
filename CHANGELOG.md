@@ -5,7 +5,7 @@
 > contains nothing else; then describe it and say that nothing user-facing
 > changed.
 
-## v0.59.0 2026-11-26
+## v0.60.0 2026-11-26
 
 - **REST grants support credentials, writes and attenuation (#570).** A harness
   can install only selected children while keeping ancestors private. Live Deno

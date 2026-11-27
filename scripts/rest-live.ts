@@ -48,7 +48,8 @@ export async function runLiveChecks(
       );
       continue;
     }
-    // Authentication/authorization failures must not be hidden by another transport error.
+    // A 403 can mean forbidden access or rate limiting. Without discriminating
+    // evidence, fail conservatively; never mask it with another transport error.
     const tokenFailure = corpus.name === "authenticated" &&
       result.records.some((record) =>
         record.status === 401 || record.status === 403
@@ -126,6 +127,8 @@ async function runCorpus(corpus: LiveCorpus): Promise<LiveRun> {
     records: lines(evidence).slice(before).map((line) => JSON.parse(line)),
   };
 }
+// Presence is all the runner inspects. The worker alone reads the credential;
+// an explicitly defined empty value is invalid setup, not an unset-token skip.
 if (import.meta.main) {
   Deno.exit(await runLiveChecks(Deno.env.has("HC_GITHUB_TOKEN")));
 }

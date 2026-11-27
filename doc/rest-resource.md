@@ -132,3 +132,9 @@ REST launches use `--no-prompt` so a post-revocation read cannot regain env
 access through an interactive permission prompt. Missing-token instructions use
 the worker's boolean availability report, without inspecting the variable again.
 Preflight queries permission first and never prompts for additional env access.
+
+The live runner inspects credential presence, not its value. Omit
+`HC_GITHUB_TOKEN` to skip the authenticated corpus. An explicitly set empty
+value is invalid setup and fails that corpus when the worker checks it. An
+authenticated 403 is conservatively a failure even if rate limiting caused it;
+without discriminating evidence the runner does not treat it as a safe skip.
