@@ -1,9 +1,9 @@
 {
   "BitScheme.hc": {
-    "total": 51,
-    "pass": 48,
+    "total": 54,
+    "pass": 54,
     "fail": 0,
-    "unimplemented": 3
+    "unimplemented": 0
   },
   "apply.hc": {
     "total": 82,

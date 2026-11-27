@@ -187,7 +187,8 @@ code examples and verifying outputs. Bit captures construct blobs from
 nonnegative integers, blobs iterate as bits, and deterministic layouts support
 ordered constructors and capture lengths that depend on earlier captures.
 Literal fields, ordered choices and repetitions parse command streams such as
-the tutorial's framebuffer example.
+the tutorial's framebuffer example, and a schema of layouts decodes and encodes
+instruction formats such as its RISC-V example.
 
 ### Debug Mode
 

@@ -837,8 +837,22 @@ name the deferred capture needs that neither the parse nor the enclosing scope
 binds is reported as `$!.capture-missing .field name`. The scope belongs to the
 match: a failed option's captures are discarded with it, and no caller or
 ancestor binding is written. Construction accepts literal fields but refuses
-choices and repetitions, top-level or nested, with
+nested choices and repetitions, and top-level repetitions, with
 `$!.unsupported-bit-construct`.
+
+Outside a bit layout, a schema whose evaluated candidates are all compiled bit
+layouts is a top-level choice (#312), such as `<Register, Immediate>`. It tries
+each option against the whole input, as if that option were applied alone, so it
+admits exactly the blobs its enumeration admitted, and answers the first match's
+captures. Failures follow the nested rule, with `$!.no-bit-alternative 0` when
+no option got past its opening field. Construction answers the capture list of
+the first option that builds from the object; an option missing a field does not
+apply, so the reason reported is the first refusal of an option that had every
+field, else the first missing field. Membership, binding validation and `.#`
+(the option count) are unchanged, and a repeated choice is rebuilt from its
+repeated options. Inside a layout it is the ordinary cursor-based choice, and a
+one-option choice is that option. Schemas of blobs, or of blobs mixed with
+layouts, stay enumerations.
 
 ## Context
 

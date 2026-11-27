@@ -582,6 +582,80 @@ describe("evaluate: schemas", () => {
     });
   });
 
+  describe("a schema of bit layouts on its own (#312)", () => {
+    const prelude = ".X <[.op <0xa>; .w <4@Bit>;]>; " +
+      ".Y <[.op <0xb>; .h <4@Bit>;]>; .L <[.op <0xa>; .w <8@Bit>;]>; " +
+      ".C <X, Y>; ";
+    const answer = (source: string) =>
+      evaluate(prelude + source).asArray().at(-1)?.asArray().at(-1)
+        ?.toString();
+
+    it("parses with the first option that matches the whole input", () => {
+      expect(answer("C 0xb3")).toEqual("[.op 0xb; .h 0b0011;]");
+      expect(answer("<C> 0xa3")).toEqual("[.op 0xa; .w 0b0011;]");
+      // X matches a prefix of 0xa12 and leaves bits, so L is tried.
+      expect(answer("<X, L> 0xa12")).toEqual("[.op 0xa; .w 0b00010010;]");
+      expect(answer("<L, X> 0xa1")).toEqual("[.op 0xa; .w 0b0001;]");
+    });
+
+    it("reports the first failure past an option's opening field", () => {
+      expect(answer("C 0xa")).toEqual("$!.insufficient-bits .w 4");
+      expect(answer("C 0xc3")).toEqual("$!.no-bit-alternative 0");
+      expect(answer("C 5")).toEqual("$!.bit-input-invalid 5");
+    });
+
+    it("keeps membership, binding and size as the enumeration had them", () => {
+      expect(answer("[0xa3 ~ C, 0xc3 ~ C]")).toEqual("[<>, ()]");
+      expect(answer(".x <C> 0xa3; [x]")).toEqual("[0xa3]");
+      expect(answer("[C.#, (2 C).#, (2 C) 0xb1]")).toEqual(
+        "[2, 4, [.op 0xb; .h 0b0001;]]",
+      );
+      expect(answer("C")).toEqual(
+        "<<[.op <0xa>; .w <4@Bit>;]>, <[.op <0xb>; .h <4@Bit>;]>>",
+      );
+      // Schemas of blobs, values and mixtures stay enumerations.
+      expect(answer("<<0xa>, <0xb>> 0b1010")).toEqual(
+        "$!.type-error <<0xa>, <0xb>> 0b1010",
+      );
+      expect(answer("<X, 5> 5")).toEqual("5");
+    });
+
+    it("keeps a nested choice cursor-based and one option unwrapped", () => {
+      expect(answer("<[.c <C>; .d <X>;]> 0xb1a2")).toEqual(
+        "[.c [.op 0xb; .h 0b0001;]; .d [.op 0xa; .w 0b0010;];]",
+      );
+      expect(answer("<[.n <4@Bit>; .c <[C]>;]> 0x1a1b2")).toEqual(
+        "[.n 0b0001; .c [[.op 0xa; .w 0b0001;], [.op 0xb; .h 0b0010;]];]",
+      );
+      expect(answer(".N <4@Bit>; <[.a <N>; .b <N>;]> | [.a 0x1; .b 0x2;]"))
+        .toEqual("[0x1, 0x2]");
+    });
+
+    it("constructs with the first option that has every field", () => {
+      expect(answer("C | [.op 0xb; .h 0b0011;]")).toEqual("[0xb, 0b0011]");
+      expect(answer("C | [.op 0xa; .w 0b0011; .h 0b0001;]")).toEqual(
+        "[0xa, 0b0011]",
+      );
+      // Y has every field, so its refusal is the reason, not X's.
+      expect(answer("<X, Y> | [.op 0xa; .h 0b0011;]")).toEqual(
+        "$!.bit-literal-mismatch .op 0",
+      );
+      expect(answer("C | [.z 1;]")).toEqual("$!.property-missing .op");
+      expect(answer("<<[.op <0xb>;]>, C> | [.op 0xa; .w 0b0001;]"))
+        .toEqual("[0xa, 0b0001]");
+      expect(answer(".R <[C]>; <R> | [.op 0xa;]")).toEqual(
+        "$!.unsupported-bit-construct <[<<[.op <0xa>; .w <4@Bit>;]>, " +
+          "<[.op <0xb>; .h <4@Bit>;]>>]>",
+      );
+      expect(answer(".B <8@Bit>; <B, X> | [.op 0xa; .w 0b0001;]")).toEqual(
+        "[0xa, 0b0001]",
+      );
+      expect(answer(".B <8@Bit>; <B> | 0b1")).toEqual(
+        "$!.unsupported-bit-construct <8@Bit>",
+      );
+    });
+  });
+
   describe("edge cases", () => {
     it("leaves a declaration applied to nil unbound", () => {
       // Applying nil to a pending declaration answers the declaration

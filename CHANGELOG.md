@@ -5,6 +5,20 @@
 > contains nothing else; then describe it and say that nothing user-facing
 > changed.
 
+## v0.61.2 2026-11-27
+
+- **A schema of bit layouts parses and constructs as their choice (#312).**
+  Applied on its own, `<X, Y>` tries each layout against the whole blob and
+  answers the first match's captures, where it used to answer the blob
+  unchanged. Reducing an object into it answers the capture list of the first
+  layout that has every field, where it used to fall back to ordinary reduction.
+  Membership, binding validation and `.#` are unchanged, and schemas of blobs
+  stay enumerations. The tutorial's RISC-V example now constructs an `addi`
+  instruction, parses it into named fields and generates its bits.
+- **Migration:** code that applied a schema of layouts to check a blob and use
+  it, such as `C 0xa3`, now gets the parsed captures; test membership with
+  `0xa3 ~ C` instead.
+
 ## v0.61.1 2026-11-27
 
 - **BitScheme parses command streams (#311).** Inside a bit layout, a capture of
