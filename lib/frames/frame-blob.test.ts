@@ -4,6 +4,7 @@ import { describe, it } from "@std/testing/bdd";
 import {
   Frame,
   FrameBlob,
+  FrameCount,
   FrameSymbol,
   ScanDisposition,
   type ScanResult,
@@ -88,6 +89,26 @@ describe("FrameBlob", () => {
     expect(() => blob.sliceBits(0, 0)).toThrow("Invalid bit slice: 0..0");
     expect(() => blob.sliceBits(0.5, 1)).toThrow("Invalid bit slice: 0.5..1.5");
     expect(blob.toString()).toEqual("0b00101");
+  });
+
+  it("enumerates Count bits without changing structural access or the blob", () => {
+    const blob = new FrameBlob("0x05");
+    expect(blob.elements().map((bit) => bit.toString())).toEqual([
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "1",
+      "0",
+      "1",
+    ]);
+    expect(
+      blob.elements().every((bit) => bit instanceof FrameCount),
+    ).toBe(true);
+    expect(blob.asArray()).toEqual([blob]);
+    expect(blob.unsignedValue()).toEqual(5n);
+    expect(blob.toString()).toEqual("0x05");
   });
 
   it("handles all zeros correctly", () => {

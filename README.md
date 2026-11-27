@@ -183,7 +183,9 @@ deno task test:bs
 ```
 
 This runs the BitScheme interpreter on its own documentation, executing embedded
-code examples and verifying outputs.
+code examples and verifying outputs. Bit captures construct blobs from Counts,
+blobs iterate as bits, and deterministic layouts support ordered constructors
+and capture lengths that depend on earlier captures.
 
 ### Debug Mode
 

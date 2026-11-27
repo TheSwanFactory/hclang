@@ -187,7 +187,7 @@ describe("evaluate: schemas", () => {
 
     it("distinguishes invalid, short, and long bit inputs", () => {
       expect(evaluate("<3@Bit> 5").toString()).toEqual(
-        "[$!.bit-input-invalid 5]",
+        "[0b101]",
       );
       expect(evaluate("<3@Bit> 0b10").toString()).toEqual(
         "[$!.insufficient-bits <3@Bit> 0]",
@@ -196,13 +196,110 @@ describe("evaluate: schemas", () => {
         "[$!.unconsumed-bits 1]",
       );
     });
-    it("refuses a remainder bit schema applied to a non-blob (#524)", () => {
+    it("constructs a remainder from Counts and refuses text", () => {
       expect(evaluate("<[@Bit]> 5").toString()).toEqual(
-        "[$!.bit-input-invalid 5]",
+        "[0b101]",
       );
       expect(evaluate("<[@Bit]> “101”").toString()).toEqual(
         "[$!.bit-input-invalid “101”]",
       );
+    });
+
+    it("constructs exact and minimal blobs without broadening membership", () => {
+      for (
+        const [source, expected] of [
+          ["<8@Bit> 5", "[0b00000101]"],
+          ["<8@Bit> 0", "[0b00000000]"],
+          ["<8@Bit> 255", "[0b11111111]"],
+          ["<8@Bit> 256", "[$!.bit-width 8]"],
+          ["<2@Bit> 5", "[$!.bit-width 2]"],
+          ["<[@Bit]> 0", "[0b0]"],
+          ["<64@Bit> 18446744073709551615", "[0b" + "1".repeat(64) + "]"],
+          ["<9007199254740991@Bit> 1", "[$!.bit-width 9007199254740991]"],
+        ]
+      ) expect(evaluate(source).toString()).toEqual(expected);
+      for (const value of ["-1", "1.5", "1.0", "“101”"]) {
+        for (const schema of ["<8@Bit>", "<[@Bit]>"]) {
+          expect(evaluate(`${schema} ${value}`).toString()).toContain(
+            "$!.bit-input-invalid",
+          );
+        }
+      }
+      for (const schema of ["<8@Bit>", "<[@Bit]>"]) {
+        expect(evaluate(`5 ~ ${schema}`).toString()).toEqual("[]");
+        const rejected = evaluate(`.x ${schema} 5`);
+        expect(rejected.meta.x).toBeUndefined();
+        expect(rejected.toString()).toContain("$!.type-error");
+      }
+    });
+
+    it("iterates bits as Counts in significance order and decodes with HC", () => {
+      expect(evaluate("[0b00101 | [], 0b00101 & {_}, 0x0a | []]").toString())
+        .toEqual(
+          "[[[0, 0, 1, 0, 1], [0, 0, 1, 0, 1], [0, 0, 0, 0, 1, 0, 1, 0]]]",
+        );
+      expect(
+        evaluate("(0b101 | [.n 0; .apply_ {@n (n * 2 + _); }]).n").toString(),
+      ).toEqual("[5]");
+      expect(evaluate("0b101 = 5").toString()).toEqual("[]");
+    });
+
+    it("constructs an ordered capture sequence and validates its fields", () => {
+      const schema = "<[.head <3@Bit>; .tail <[@Bit]>;]>";
+      expect(evaluate(`${schema} | [.tail 0b111; .head 0b000;]`).toString())
+        .toEqual("[[0b000, 0b111]]");
+      expect(evaluate(`${schema} | [.head 0b00; .tail 0b1;]`).toString())
+        .toEqual("[$!.bit-width 3]");
+      expect(evaluate(`${schema} | [.head 3; .tail 0b1;]`).toString()).toEqual(
+        "[$!.bit-input-invalid 3]",
+      );
+      expect(evaluate(`${schema} | [.head 0b000;]`).toString()).toEqual(
+        "[$!.property-missing .tail]",
+      );
+      expect(evaluate(`${schema} | [.__head 0b000; .tail 0b1;]`).toString())
+        .toContain("$!.is-private .head");
+    });
+
+    it("resolves deferred capture schemas from each call's earlier captures", () => {
+      const schema = "<[.n <4@Bit>; .string {<n@Byte>};]>";
+      const parsed = evaluate(`${schema} 0x548656c6c6f`).at(0);
+      expect(parsed.get_here("n").toString()).toEqual("0b0101");
+      expect(parsed.get_here("string").toString()).toEqual(
+        "0b0100100001100101011011000110110001101111",
+      );
+      expect(evaluate(`${schema} | [.n 0b0001; .string 0x48;]`).toString())
+        .toEqual("[[0b0001, 0x48]]");
+      expect(evaluate(`${schema} 0x548`).toString()).toEqual(
+        "[$!.insufficient-bits .string 4]",
+      );
+      expect(evaluate(`${schema} 0x14800`).toString()).toEqual(
+        "[$!.unconsumed-bits 8]",
+      );
+      const twice = evaluate(`.Net ${schema}; [Net 0x148, Net 0x24869]`)
+        .toString();
+      expect(twice).toContain(".string 0b01001000;");
+      expect(twice).toContain(".string 0b0100100001101001;");
+    });
+
+    it("preserves dynamic width scope when a schema is repeated once", () => {
+      expect(evaluate(".n 3; (1 <n@Bit>) 5").toString()).toContain("0b101");
+      const result = evaluate(
+        ".Net <[.n <4@Bit>; .string {<n@Byte>};]>; (1 Net) 0x148",
+      );
+      expect(result.toString()).toContain("[.n 0b0001; .string 0b01001000;]");
+    });
+
+    it("refuses invalid and effectful deferred captures atomically", () => {
+      expect(evaluate("<[.n <1@Bit>; .x {42};]> 0b11").toString()).toEqual(
+        "[$!.invalid-bit-capture .x]",
+      );
+      expect(evaluate("<[.x {<[@Bit]>}; .y <1@Bit>;]> 0b11").toString())
+        .toEqual("[$!.invalid-remainder-position .x]");
+      const result = evaluate(
+        ".tally 0; <[.n <1@Bit>; .x {@tally 1; <1@Bit>};]> 0b11",
+      );
+      expect(result.meta.tally.toString()).toEqual("0");
+      expect(result.toString()).toContain("$!.schema-predicate-effect");
     });
 
     it("defines and reuses a named bit splitter with exact-width results", () => {

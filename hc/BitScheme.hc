@@ -208,7 +208,7 @@ The schema and capture gaps are tracked by [#310](https://github.com/TheSwanFact
 
 ## Schemas
 
-Schemas can be thought of as a cross between type signatures and regular expressions. Each element of a schema is called a _capture_. Numeric enumeration constraints and the minimal deterministic retrieval and deconstruction forms are implemented. General alternatives, constructors, and deferred capture lengths remain aspirational.
+Schemas can be thought of as a cross between type signatures and regular expressions. Each element of a schema is called a _capture_. Numeric enumeration constraints and the minimal deterministic retrieval and deconstruction forms are implemented. Deterministic constructors and capture lengths that depend on earlier captures are implemented; general alternatives and user-defined capture units remain aspirational.
 
 ### Numeric Constraints (implemented)
 
@@ -256,27 +256,54 @@ The declarations below remain non-executable because user-defined capture units 
     .BitStream <[@Bit]>;
     .Byte <8@Bit>;
 
-### Constructors and Deferred Captures (aspirational, #310)
+### Constructors and Deferred Captures (implemented, #310)
 
-Constructors are intended to reverse schema flow by mapping capture keys into a value. The old dotted iterator spellings are stale; current HC uses `&` for map and `|` for reduce.
+Applying a bit capture to a Count constructs a binary blob, padding to the
+requested width. A Count that does not fit is refused. A remainder capture uses
+the minimum width, with one bit for zero. Binding and membership still validate
+blobs without converting Counts:
 ```
+; <8@Bit> 5
+# 0b00000101
+; <2@Bit> 5
+# $!.bit-width 2
+; <[@Bit]> 0
+# 0b0
+; 5 ~ <8@Bit>
+# ()
+```
+
+A blob enumerates its bits as Counts, most significant first, including leading
+zeros. Decoding uses ordinary HC application and reduction:
+```
+; 0b00101 | []
+# [0, 0, 1, 0, 1]
+; .Decode {[.n _; .apply_ {@n (n * 2 + _);}]};
+; (0b101 | (Decode 0)).n
+# 5
+```
+
+Reducing a bit layout into an object selects and validates its captures in
+schema order. The resulting sequence can be joined by applying the tail to the
+head; `&` maps and keeps a sequence rather than concatenating it:
+```
+; .BS3_sequence (BitSplitter3 | [.head 0b000; .tail 0b111;]);
 ; BS3_sequence
-# $!.unimplemented [0b000, 0b111]
-; BS3_sequence & {. _}
-# $!.unimplemented 0b000111
+# [0b000, 0b111]
+; [BS3_sequence.1] | BS3_sequence.0
+# 0b000111
 ```
 
-The intended constructor remains non-executable until schema deconstruction exists:
-
-    .BS3_sequence (BitSplitter3 | [.head 0b000; .tail 0b111;]);
-
-Deferred captures are intended to reuse the result of an earlier capture:
+A deferred capture is a read-only closure that receives the earlier named
+captures and returns a bit schema. `@Byte` is the built-in eight-bit width unit;
+when a width is a blob, its unsigned value supplies the length. Captures keep
+their exact binary width. The input must be consumed completely, so the old
+example's extra trailing `66666666` is omitted:
 ```
-; NetString 0x548656c6c6f666666666
-# $!.unimplemented [.n 0x5; .string 0x48656c6c6f;]
+; .NetString <[.n <4@Bit>; .string {<n@Byte>};]>;
+; NetString 0x548656c6c6f
+# [.n 0b0101; .string 0b0100100001100101011011000110110001101111;]
 ```
-
-    .NetString <[.n <4@Bit>; .string {<n@Byte>};]>;
 
 ## Example A: Symbolicated Frame Buffer (aspirational, #311)
 

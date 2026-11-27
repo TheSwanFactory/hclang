@@ -5,6 +5,16 @@
 > contains nothing else; then describe it and say that nothing user-facing
 > changed.
 
+## Unreleased
+
+- **BitScheme constructors and deferred captures (#310).** Applying `<8@Bit>` to
+  `5` constructs `0b00000101`; `<[@Bit]>` uses the minimum width, and a Count
+  that does not fit is refused. Binding and membership still require blobs.
+  Blobs now iterate as Counts 0 and 1, most significant first, including leading
+  zeros. Reducing a named bit layout into an object returns its validated
+  captures in layout order. Deferred captures can use earlier capture values as
+  widths, with `@Byte` denoting eight bits.
+
 ## v0.60.0 2026-11-26
 
 - **REST grants support credentials, writes and attenuation (#570).** A harness

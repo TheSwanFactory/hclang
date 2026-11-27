@@ -130,6 +130,22 @@ export class FrameBlob extends FrameAtom {
     return this.n_bits;
   }
 
+  /** Stream Counts 0 and 1, most significant first, preserving leading zeros. */
+  public override elements(): Frame[] {
+    return Array.from(
+      { length: this.bitLength() },
+      (_, index) =>
+        FrameCount.for(
+          ((this.data >> BigInt(this.bitLength() - index - 1)) & 1n).toString(),
+        ),
+    );
+  }
+
+  /** The unsigned numeric value, independent of the blob's rendered width. */
+  public unsignedValue(): bigint {
+    return this.data;
+  }
+
   /** The exact rendered width of this blob, including leading zero bits. */
   public bitLength(): number {
     return Number(this.n_bits);

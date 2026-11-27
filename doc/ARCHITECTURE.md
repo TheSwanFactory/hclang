@@ -790,6 +790,22 @@ delegates equality, structural, and bit-layout behavior to separate immutable
 matchers so adding a domain does not add domain logic to schema storage or
 binding resolution.
 
+Bit capture application has a separate constructor path: `<w@Bit>` applied to a
+Count pads it to an exact-width binary blob, while `<[@Bit]>` uses the minimum
+width (one bit for zero). Counts remain outside bit-schema membership, including
+binding validation. Fixed widths must be positive safe integers; allocating a
+constructed blob is bounded by the same text budget as repetition. A blob
+streams its bits as Counts 0 and 1, most significant first, retaining leading
+zeros, while structural `asArray()` continues to treat it as one atom.
+
+Reducing a deterministic bit layout into an object validates and selects its
+named captures in layout order. Deferred capture closures receive a fresh object
+of earlier capture values and return a bit schema. They run through the same
+read-only guard as schema predicates. Width expressions resolve in that call's
+scope; a blob width supplies its unsigned value, and `@Byte` multiplies the
+width by eight. Remainders are terminal and nonempty, and matching must consume
+the entire input. No partially matched evidence escapes on failure.
+
 ## Context
 
 The public `Context` map supplies initial bindings. Runtime evaluation uses an

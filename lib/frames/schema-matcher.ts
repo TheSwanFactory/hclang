@@ -12,6 +12,12 @@ import {
 export interface SchemaMatcher {
   match(schema: FrameList, value: Frame, origin: Frame): MatchResult;
   format?(): string;
+  /** Application may construct while membership remains a pure match. */
+  apply?(schema: FrameList, value: Frame, origin: Frame): Frame;
+  /** Ordered capture values for the constructor direction of reduction. */
+  construct?(value: Frame): Frame;
+  /** Bit width, or null for a terminal remainder. */
+  readonly bits?: number | null;
 }
 
 /**
@@ -39,7 +45,7 @@ export function schemaPredicateOf(candidate: Frame): Frame | undefined {
 export function schemaPredicateHasEffect(predicate: Frame): boolean {
   return predicates?.hasEffect(predicate) ?? false;
 }
-function callSchemaPredicate(predicate: Frame, value: Frame): Frame {
+export function callSchemaPredicate(predicate: Frame, value: Frame): Frame {
   return predicates
     ? predicates.call(predicate, value)
     : predicate.call(value, Frame.nil);
@@ -116,6 +122,7 @@ export function unwrapSchemaSyntax(frame: Frame): Frame {
   let result = frame;
   while (
     result instanceof FrameList && !isSchemaFrame(result) &&
+    !result.isClosure() &&
     result.string_open() !== "[" && result.size() === 1
   ) {
     result = result.asArray()[0];
